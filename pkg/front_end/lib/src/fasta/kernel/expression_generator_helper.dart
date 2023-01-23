@@ -50,7 +50,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Forest get forest;
 
-  Constructor? lookupConstructor(Name name, {bool isSuper: false});
+  Constructor? lookupConstructor(Name name, {bool isSuper = false});
 
   Expression toValue(Object? node);
 
@@ -60,7 +60,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Expression_Generator_Builder scopeLookup(
       Scope scope, String name, Token token,
-      {bool isQualified: false, PrefixBuilder? prefix});
+      {bool isQualified = false, PrefixBuilder? prefix});
 
   Expression_Generator_Initializer finishSend(Object receiver,
       List<TypeBuilder>? typeArguments, ArgumentsImpl arguments, int offset,
@@ -82,8 +82,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       [int charOffset = TreeNode.noOffset]);
 
   Expression buildStaticInvocation(Member target, Arguments arguments,
-      {Constness constness: Constness.implicit,
-      int charOffset: TreeNode.noOffset});
+      {Constness constness = Constness.implicit,
+      int charOffset = TreeNode.noOffset});
 
   Expression buildExtensionMethodInvocation(
       int fileOffset, Procedure target, Arguments arguments,
@@ -109,12 +109,12 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Expression buildMethodInvocation(
       Expression receiver, Name name, Arguments arguments, int offset,
-      {bool isConstantExpression: false, bool isNullAware: false});
+      {bool isConstantExpression = false, bool isNullAware = false});
 
   Expression buildSuperInvocation(Name name, Arguments arguments, int offset,
-      {bool isConstantExpression: false,
-      bool isNullAware: false,
-      bool isImplicitCall: false});
+      {bool isConstantExpression = false,
+      bool isNullAware = false,
+      bool isImplicitCall = false});
 
   Expression buildConstructorInvocation(
       TypeDeclarationBuilder type,
@@ -137,12 +137,12 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   Expression buildProblemErrorIfConst(
       Message message, int charOffset, int length);
 
-  Message warnUnresolvedGet(Name name, int charOffset, {bool isSuper: false});
+  Message warnUnresolvedGet(Name name, int charOffset, {bool isSuper = false});
 
-  Message warnUnresolvedSet(Name name, int charOffset, {bool isSuper: false});
+  Message warnUnresolvedSet(Name name, int charOffset, {bool isSuper = false});
 
   Message warnUnresolvedMethod(Name name, int charOffset,
-      {bool isSuper: false});
+      {bool isSuper = false});
 
   void warnTypeArgumentsMismatch(String name, int expected, int charOffset);
 
@@ -169,7 +169,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   /// Creates a [VariableGet] of the [variable] using [charOffset] as the file
   /// offset of the created node.
   Expression createVariableGet(VariableDeclaration variable, int charOffset,
-      {bool forNullGuardedAccess: false});
+      {bool forNullGuardedAccess = false});
 
   /// Registers that [variable] is assigned to.
   ///

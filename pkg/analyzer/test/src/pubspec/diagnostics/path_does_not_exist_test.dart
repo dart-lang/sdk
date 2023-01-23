@@ -45,4 +45,38 @@ dev_dependencies:
     path: /foo
 ''');
   }
+
+  test_screenshotPathDoesNotExist_path_error() {
+    assertErrors('''
+name: foo
+screenshots:
+  - description: '...'
+    path: example/screenshots/no.webp
+''', [PubspecWarningCode.PATH_DOES_NOT_EXIST]);
+  }
+
+  test_screenshotPathDoesNotExist_path_error_multiple() {
+    assertErrors('''
+name: foo
+screenshots:
+  - description: '...'
+    path: example/screenshots/no.webp
+  - description: '...'
+    path: example/screenshots/no.webp
+''', [
+      PubspecWarningCode.PATH_DOES_NOT_EXIST,
+      PubspecWarningCode.PATH_DOES_NOT_EXIST,
+    ]);
+  }
+
+  test_screenshotPathExists() {
+    newFolder('/sample/example');
+    newFile('/sample/example/yes.webp', '');
+    assertNoErrors('''
+name: foo
+screenshots:
+  - description: '...'
+    path: example/yes.webp
+''');
+  }
 }

@@ -15,7 +15,7 @@ MemberId computeMemberId(Element element) {
       memberName += '=';
     }
     return MemberId.internal(memberName);
-  } else if (enclosingElement is ClassElement) {
+  } else if (enclosingElement is InterfaceElement) {
     var memberName = element.name!;
     var className = enclosingElement.name;
     return MemberId.internal(memberName, className: className);

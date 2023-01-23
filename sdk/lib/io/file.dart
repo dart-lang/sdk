@@ -221,25 +221,31 @@ abstract class File implements FileSystemEntity {
   /// all directories in its path already exist. If [recursive] is `true`, any
   /// non-existing parent paths are created first.
   ///
-  /// Existing files are left untouched by [create]. Calling [create] on an
-  /// existing file might fail if there are restrictive permissions on
-  /// the file.
+  /// If [exclusive] is `true` and to-be-created file already exists, this
+  /// operation completes the future with a [FileSystemException].
+  ///
+  /// If [exclusive] is `false`, existing files are left untouched by [create].
+  /// Calling [create] on an existing file still might fail if there are
+  /// restrictive permissions on the file.
   ///
   /// Completes the future with a [FileSystemException] if the operation fails.
-  Future<File> create({bool recursive = false});
+  Future<File> create({bool recursive = false, bool exclusive = false});
 
   /// Synchronously creates the file.
-  ///
-  /// Existing files are left untouched by [createSync].
-  /// Calling [createSync] on an existing file might fail
-  /// if there are restrictive permissions on the file.
   ///
   /// If [recursive] is `false`, the default, the file is created
   /// only if all directories in its path already exist.
   /// If [recursive] is `true`, all non-existing parent paths are created first.
   ///
+  /// If [exclusive] is `true` and to-be-created file already exists, this
+  /// operation completes the future with a [FileSystemException].
+  ///
+  /// If [exclusive] is `false`, existing files are left untouched by
+  /// [createSync]. Calling [createSync] on an existing file still might fail
+  /// if there are restrictive permissions on the file.
+  ///
   /// Throws a [FileSystemException] if the operation fails.
-  void createSync({bool recursive = false});
+  void createSync({bool recursive = false, bool exclusive = false});
 
   /// Renames this file.
   ///
@@ -412,6 +418,8 @@ abstract class File implements FileSystemEntity {
   ///
   /// * [FileMode.append]: same as [FileMode.write] except that the file is
   /// not truncated.
+  ///
+  /// Throws a [FileSystemException] if the operation fails.
   Future<RandomAccessFile> open({FileMode mode = FileMode.read});
 
   /// Synchronously opens the file for random access operations.
@@ -436,6 +444,12 @@ abstract class File implements FileSystemEntity {
   /// In order to make sure that system resources are freed, the stream
   /// must be read to completion or the subscription on the stream must
   /// be cancelled.
+  ///
+  /// If [File] is a [named pipe](https://en.wikipedia.org/wiki/Named_pipe)
+  /// then the returned [Stream] will wait until the write side of the pipe
+  /// is closed before signaling "done". If there are no writers attached
+  /// to the pipe when it is opened, then [Stream.listen] will wait until
+  /// a writer opens the pipe.
   Stream<List<int>> openRead([int? start, int? end]);
 
   /// Creates a new independent [IOSink] for the file.
@@ -878,12 +892,42 @@ class FileSystemException implements IOException {
   ///
   /// The [message] and [path] path defaults to empty strings if omitted,
   /// and [osError] defaults to `null`.
-  @pragma("vm:entry-point")
   const FileSystemException([this.message = "", this.path = "", this.osError]);
 
-  String toString() {
+  /// Create a new file system exception based on an [OSError.errorCode].
+  ///
+  /// For example, if `errorCode == 2` then a [PathNotFoundException]
+  /// will be returned.
+  @pragma("vm:entry-point")
+  factory FileSystemException._fromOSError(
+      OSError err, String message, String? path) {
+    if (Platform.isWindows) {
+      switch (err.errorCode) {
+        case _errorFileNotFound:
+        case _errorPathNotFound:
+        case _errorInvalidDrive:
+        case _errorNoMoreFiles:
+        case _errorBadNetpath:
+        case _errorBadNetName:
+        case _errorBadPathName:
+        case _errorFilenameExedRange:
+          return PathNotFoundException(path!, err, message);
+        default:
+          return FileSystemException(message, path, err);
+      }
+    } else {
+      switch (err.errorCode) {
+        case _eNoEnt:
+          return PathNotFoundException(path!, err, message);
+        default:
+          return FileSystemException(message, path, err);
+      }
+    }
+  }
+
+  String _toStringHelper(String className) {
     StringBuffer sb = new StringBuffer();
-    sb.write("FileSystemException");
+    sb.write(className);
     if (message.isNotEmpty) {
       sb.write(": $message");
       if (path != null) {
@@ -901,5 +945,79 @@ class FileSystemException implements IOException {
       sb.write(": $path");
     }
     return sb.toString();
+  }
+
+  String toString() {
+    return _toStringHelper("FileSystemException");
+  }
+}
+
+/// Exception thrown when a file operation fails because a file or
+/// directory does not exist.
+class PathNotFoundException extends FileSystemException {
+  const PathNotFoundException(String path, OSError osError,
+      [String message = ""])
+      : super(message, path, osError);
+
+  String toString() {
+    return _toStringHelper("PathNotFoundException");
+  }
+}
+
+/// The "read" end of an [Pipe] created by [Pipe.create].
+///
+/// The read stream will continue to listen until the "write" end of the
+/// pipe (i.e. [Pipe.write]) is closed.
+///
+/// ```dart
+/// final pipe = await Pipe.create();
+/// pipe.read.transform(utf8.decoder).listen((data) {
+///   print(data);
+/// }, onDone: () => print('Done'));
+/// ```
+abstract class ReadPipe implements Stream<List<int>> {}
+
+/// The "write" end of an [Pipe] created by [Pipe.create].
+///
+/// ```dart
+/// final pipe = await Pipe.create();
+/// pipe.write.add("Hello World!".codeUnits);
+/// pipe.write.close();
+/// ```
+abstract class WritePipe implements IOSink {}
+
+/// An anonymous pipe that can be used to send data in a single direction i.e.
+/// data written to [write] can be read using [read].
+///
+/// On macOS and Linux (excluding Android), either the [read] or [write]
+/// portion of the pipe can be transmitted to another process and used for
+/// interprocess communication.
+///
+/// For example:
+/// ```dart
+/// final pipe = await Pipe.create();
+/// final socket = await RawSocket.connect(address, 0);
+/// socket.sendMessage(<SocketControlMessage>[
+/// SocketControlMessage.fromHandles(
+///     <ResourceHandle>[ResourceHandle.fromReadPipe(pipe.read)])
+/// ], 'Hello'.codeUnits);
+/// pipe.write.add('Hello over pipe!'.codeUnits);
+/// pipe.write.close();
+/// ```
+abstract class Pipe {
+  /// The read end of the [Pipe].
+  ReadPipe get read;
+
+  /// The write end of the [Pipe].
+  WritePipe get write;
+
+  // Create an anonymous pipe.
+  static Future<Pipe> create() {
+    return _Pipe.create();
+  }
+
+  /// Synchronously creates an anonymous pipe.
+  factory Pipe.createSync() {
+    return _Pipe.createSync();
   }
 }

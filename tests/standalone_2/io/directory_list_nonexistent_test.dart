@@ -18,9 +18,9 @@ void testListNonExistent() {
   asyncStart();
   Directory.systemTemp.createTemp('dart_directory_list_nonexistent').then((d) {
     d.delete().then((ignore) {
-      Expect.throws(() => d.listSync(), (e) => e is FileSystemException);
+      Expect.throws(() => d.listSync(), (e) => e is PathNotFoundException);
       Expect.throws(
-          () => d.listSync(recursive: true), (e) => e is FileSystemException);
+          () => d.listSync(recursive: true), (e) => e is PathNotFoundException);
       asyncEnd();
     });
   });

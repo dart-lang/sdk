@@ -39,7 +39,7 @@ bool isPotentiallyConstantTypeExpression(TypeAnnotation node) {
 
 bool _isConstantTypeName(Identifier name) {
   var element = name.staticElement;
-  if (element is ClassElement || element is TypeAliasElement) {
+  if (element is InterfaceElement || element is TypeAliasElement) {
     if (name is PrefixedIdentifier) {
       if (name.isDeferred) {
         return false;
@@ -100,6 +100,10 @@ class _Collector {
     if (node is ParenthesizedExpression) {
       collect(node.expression);
       return;
+    }
+
+    if (node is RecordLiteral) {
+      return _recordLiteral(node);
     }
 
     if (node is MethodInvocation) {
@@ -307,6 +311,12 @@ class _Collector {
     }
 
     nodes.add(node);
+  }
+
+  void _recordLiteral(RecordLiteral node) {
+    for (final field in node.fields) {
+      collect(field);
+    }
   }
 
   void _typeArgumentList(TypeArgumentList? typeArgumentList) {

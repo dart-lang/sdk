@@ -21,10 +21,12 @@ import 'top_level_parser.dart' show TopLevelParser;
 import 'identifier_context.dart' show IdentifierContext;
 
 class DebugListener extends Listener {
+  @override
   void handleIdentifier(Token token, IdentifierContext context) {
     logEvent("Identifier: ${token.lexeme}");
   }
 
+  @override
   void logEvent(String name) {
     print(name);
   }
@@ -33,7 +35,7 @@ class DebugListener extends Listener {
 mainEntryPoint(List<String> arguments) async {
   for (String argument in arguments) {
     if (argument.startsWith("@")) {
-      Uri uri = Uri.base.resolve(argument.substring(/* startIndex = */ 1));
+      Uri uri = Uri.base.resolve(argument.substring(/* start = */ 1));
       await for (String file in new File.fromUri(uri)
           .openRead()
           .cast<List<int>>()

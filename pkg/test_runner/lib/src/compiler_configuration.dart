@@ -114,9 +114,6 @@ abstract class CompilerConfiguration {
 
       case Compiler.fasta:
         return FastaCompilerConfiguration(configuration);
-
-      case Compiler.none:
-        return NoneCompilerConfiguration(configuration);
     }
 
     throw "unreachable";
@@ -528,6 +525,9 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
   List<String> computeCompilerArguments(
       TestFile testFile, List<String> vmOptions, List<String> args) {
     return [
+      ...testFile.sharedOptions,
+      ..._configuration.sharedOptions,
+      ..._experimentsArgument(_configuration, testFile),
       // The file being compiled is the last argument.
       args.last
     ];
@@ -572,10 +572,13 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
       CommandArtifact? artifact) {
     return [
       '--experimental-wasm-gc',
-      '--wasm-gc-js-interop',
+      '--experimental-wasm-stack-switching',
+      '--experimental-wasm-type-reflection',
       'pkg/dart2wasm/bin/run_wasm.js',
       '--',
       artifact!.filename,
+      ...testFile.sharedObjects
+          .map((obj) => '${_configuration.buildDirectory}/wasm/$obj.wasm'),
     ];
   }
 }
@@ -963,12 +966,14 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   Command computeAssembleCommand(String tempDir, List arguments,
       Map<String, String> environmentOverrides) {
     late String cc;
-    String? shared, ldFlags;
+    String? shared;
+    var ldFlags = <String>[];
     List<String>? target;
     if (_isAndroid) {
       cc = "$ndkPath/toolchains/$abiTriple-4.9/prebuilt/"
           "$host-x86_64/bin/$abiTriple-gcc";
       shared = '-shared';
+      ldFlags.add('-Wl,--no-undefined');
     } else if (Platform.isLinux) {
       if (_isSimArm || (_isArm && _configuration.useQemu)) {
         cc = 'arm-linux-gnueabihf-gcc';
@@ -982,11 +987,13 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         cc = 'gcc';
       }
       shared = '-shared';
+      ldFlags.add('-Wl,--no-undefined');
     } else if (Platform.isMacOS) {
       cc = 'clang';
       shared = '-dynamiclib';
+      ldFlags.add('-Wl,-undefined,error');
       // Tell Mac linker to give up generating eh_frame from dwarf.
-      ldFlags = '-Wl,-no_compact_unwind';
+      ldFlags.add('-Wl,-no_compact_unwind');
       if ({Architecture.arm64, Architecture.arm64c}
           .contains(_configuration.architecture)) {
         target = ['-arch', 'arm64'];
@@ -999,6 +1006,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     switch (_configuration.architecture) {
       case Architecture.x64:
       case Architecture.x64c:
+      case Architecture.simx64:
+      case Architecture.simx64c:
         ccFlags = "-m64";
         break;
       case Architecture.simarm64:
@@ -1022,7 +1031,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     var args = [
       if (target != null) ...target,
       if (ccFlags != null) ccFlags,
-      if (ldFlags != null) ldFlags,
+      ...ldFlags,
       shared,
       '-o',
       '$tempDir/out.aotsnapshot',
@@ -1194,7 +1203,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
     if (_useSdk) {
       prefix = '${_configuration.buildDirectory}/dart-sdk/bin';
     }
-    return '$prefix/dart$shellScriptExtension';
+    return '$prefix/dart$executableExtension';
   }
 
   String computeAnalyzerCliPath() {

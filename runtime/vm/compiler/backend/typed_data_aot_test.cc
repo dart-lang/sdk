@@ -152,6 +152,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalGetSet) {
           kMatchAndMoveLoadIndexed,
           kMoveGlob,
           // Store 1
+          kMatchAndMoveCheckWritable,
           kMoveParallelMoves,
           kMatchAndMoveLoadUntagged,
           kMoveParallelMoves,
@@ -195,6 +196,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalGetSet) {
           kMatchAndMoveLoadIndexed,
           kMoveGlob,
           // Store 1
+          kMatchAndMoveCheckWritable,
           kMoveParallelMoves,
           kMatchAndMoveLoadUntagged,
           kMoveParallelMoves,

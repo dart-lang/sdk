@@ -18,4 +18,4 @@ expect(expected, actual) {}
 final bool inSoundMode = <int?>[] is! List<int>;
 main() {}
 testDefaultValues() {}
-throws(Function() f, {bool inSoundModeOnly: false}) {}
+throws(Function() f, {bool inSoundModeOnly = false}) {}

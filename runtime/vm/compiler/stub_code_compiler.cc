@@ -267,6 +267,166 @@ void StubCodeCompiler::GenerateAssertAssignableStub(Assembler* assembler) {
 #endif
 }
 
+// Instantiate type arguments from instantiator and function type args.
+// Inputs:
+// - InstantiationABI::kUninstantiatedTypeArgumentsReg: tav to instantiate
+// - InstantiationABI::kInstantiatorTypeArgumentsReg: instantiator tav
+// - InstantiationABI::kFunctionTypeArgumentsReg: function tav
+// Outputs:
+// - InstantiationABI::kResultTypeArgumentsReg: instantiated tav
+// Clobbers:
+// - InstantiationABI::kScratchReg
+void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
+    Assembler* assembler) {
+  // We only need the offset of the current entry up until we either call
+  // the runtime or until we retrieve the instantiated type arguments out of it
+  // to put in the result register, so we use the result register to store it.
+  const Register kEntryReg = InstantiationABI::kResultTypeArgumentsReg;
+  // Lookup cache before calling runtime.
+  __ LoadCompressed(
+      InstantiationABI::kScratchReg,
+      compiler::FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
+                             target::TypeArguments::instantiations_offset()));
+  // Both the linear and hash-based cache access loops assume kEntryReg is
+  // the address of the first cache entry, so set it before branching.
+  __ LoadFieldAddressForOffset(kEntryReg, InstantiationABI::kScratchReg,
+                               Array::data_offset());
+  __ AddImmediate(kEntryReg, TypeArguments::Cache::kHeaderSize *
+                                 target::kCompressedWordSize);
+
+  compiler::Label linear_cache_loop, hash_cache_loop, found, call_runtime;
+
+  // There is a maximum size for linear caches that is smaller than the size of
+  // any hash-based cache, so we check the size of the backing array to
+  // determine if this is a linear or hash-based cache.
+  __ LoadFromSlot(InstantiationABI::kScratchReg, InstantiationABI::kScratchReg,
+                  Slot::Array_length());
+  __ CompareImmediate(
+      InstantiationABI::kScratchReg,
+      target::ToRawSmi(TypeArguments::Cache::kMaxLinearCacheSize));
+  __ BranchIf(GREATER, &call_runtime);
+
+  __ Bind(&linear_cache_loop);
+  // Use load-acquire to get the entry.
+  static_assert(TypeArguments::Cache::kSentinelIndex ==
+                    TypeArguments::Cache::kInstantiatorTypeArgsIndex,
+                "sentinel is not same index as instantiator type args");
+  __ LoadAcquireCompressed(InstantiationABI::kScratchReg, kEntryReg,
+                           TypeArguments::Cache::kInstantiatorTypeArgsIndex *
+                               target::kCompressedWordSize);
+  // Must either be the sentinel (a Smi) or a TypeArguments object, so test for
+  // a Smi and go to the runtime if found.
+  __ BranchIfSmi(InstantiationABI::kScratchReg, &call_runtime,
+                 compiler::Assembler::kNearJump);
+  // We have a TypeArguments object, so this is an array cache and we can
+  // safely access the other entries.
+  compiler::Label next;
+  __ CompareRegisters(InstantiationABI::kScratchReg,
+                      InstantiationABI::kInstantiatorTypeArgumentsReg);
+  __ BranchIf(NOT_EQUAL, &next, compiler::Assembler::kNearJump);
+  __ LoadCompressed(
+      InstantiationABI::kScratchReg,
+      compiler::Address(kEntryReg,
+                        TypeArguments::Cache::kFunctionTypeArgsIndex *
+                            target::kCompressedWordSize));
+  __ CompareRegisters(InstantiationABI::kScratchReg,
+                      InstantiationABI::kFunctionTypeArgumentsReg);
+  __ BranchIf(EQUAL, &found, compiler::Assembler::kNearJump);
+  __ Bind(&next);
+  __ AddImmediate(kEntryReg, TypeArguments::Cache::kEntrySize *
+                                 target::kCompressedWordSize);
+  __ Jump(&linear_cache_loop, compiler::Assembler::kNearJump);
+
+  // Instantiate non-null type arguments.
+  // A runtime call to instantiate the type arguments is required.
+  __ Bind(&call_runtime);
+  __ EnterStubFrame();
+#if !defined(DART_ASSEMBLER_HAS_NULL_REG)
+  __ PushObject(Object::null_object());  // Make room for the result.
+#endif
+#if defined(TARGET_ARCH_ARM)
+  static_assert((InstantiationABI::kUninstantiatedTypeArgumentsReg >
+                 InstantiationABI::kInstantiatorTypeArgumentsReg) &&
+                    (InstantiationABI::kInstantiatorTypeArgumentsReg >
+                     InstantiationABI::kFunctionTypeArgumentsReg),
+                "Should be ordered to push arguments with one instruction");
+#endif
+  __ PushRegistersInOrder({
+#if defined(DART_ASSEMBLER_HAS_NULL_REG)
+    NULL_REG,
+#endif
+        InstantiationABI::kUninstantiatedTypeArgumentsReg,
+        InstantiationABI::kInstantiatorTypeArgumentsReg,
+        InstantiationABI::kFunctionTypeArgumentsReg,
+  });
+  __ CallRuntime(kInstantiateTypeArgumentsRuntimeEntry, 3);
+  __ Drop(3);  // Drop 2 type vectors, and uninstantiated type.
+  __ PopRegister(InstantiationABI::kResultTypeArgumentsReg);
+  __ LeaveStubFrame();
+  __ Ret();
+
+  __ Bind(&found);
+  __ LoadCompressed(
+      InstantiationABI::kResultTypeArgumentsReg,
+      compiler::Address(kEntryReg,
+                        TypeArguments::Cache::kInstantiatedTypeArgsIndex *
+                            target::kCompressedWordSize));
+  __ Ret();
+}
+
+void StubCodeCompiler::
+    GenerateInstantiateTypeArgumentsMayShareInstantiatorTAStub(
+        Assembler* assembler) {
+  const Register kScratch1Reg = InstantiationABI::kResultTypeArgumentsReg;
+  const Register kScratch2Reg = InstantiationABI::kScratchReg;
+  // Return the instantiator type arguments if its nullability is compatible for
+  // sharing, otherwise proceed to instantiation cache lookup.
+  compiler::Label cache_lookup;
+  __ LoadCompressedSmi(
+      kScratch1Reg,
+      compiler::FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
+                             target::TypeArguments::nullability_offset()));
+  __ LoadCompressedSmi(
+      kScratch2Reg,
+      compiler::FieldAddress(InstantiationABI::kInstantiatorTypeArgumentsReg,
+                             target::TypeArguments::nullability_offset()));
+  __ AndRegisters(kScratch2Reg, kScratch1Reg);
+  __ CompareRegisters(kScratch2Reg, kScratch1Reg);
+  __ BranchIf(NOT_EQUAL, &cache_lookup, compiler::Assembler::kNearJump);
+  __ MoveRegister(InstantiationABI::kResultTypeArgumentsReg,
+                  InstantiationABI::kInstantiatorTypeArgumentsReg);
+  __ Ret();
+
+  __ Bind(&cache_lookup);
+  GenerateInstantiateTypeArgumentsStub(assembler);
+}
+
+void StubCodeCompiler::GenerateInstantiateTypeArgumentsMayShareFunctionTAStub(
+    Assembler* assembler) {
+  const Register kScratch1Reg = InstantiationABI::kResultTypeArgumentsReg;
+  const Register kScratch2Reg = InstantiationABI::kScratchReg;
+  // Return the function type arguments if its nullability is compatible for
+  // sharing, otherwise proceed to instantiation cache lookup.
+  compiler::Label cache_lookup;
+  __ LoadCompressedSmi(
+      kScratch1Reg,
+      compiler::FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
+                             target::TypeArguments::nullability_offset()));
+  __ LoadCompressedSmi(
+      kScratch2Reg,
+      compiler::FieldAddress(InstantiationABI::kFunctionTypeArgumentsReg,
+                             target::TypeArguments::nullability_offset()));
+  __ AndRegisters(kScratch2Reg, kScratch1Reg);
+  __ CompareRegisters(kScratch2Reg, kScratch1Reg);
+  __ BranchIf(NOT_EQUAL, &cache_lookup, compiler::Assembler::kNearJump);
+  __ MoveRegister(InstantiationABI::kResultTypeArgumentsReg,
+                  InstantiationABI::kFunctionTypeArgumentsReg);
+  __ Ret();
+
+  __ Bind(&cache_lookup);
+  GenerateInstantiateTypeArgumentsStub(assembler);
+}
+
 static void BuildInstantiateTypeRuntimeCall(Assembler* assembler) {
   __ EnterStubFrame();
   __ PushObject(Object::null_object());
@@ -312,49 +472,27 @@ static void BuildInstantiateTypeParameterStub(Assembler* assembler,
   __ LoadClassId(InstantiateTypeABI::kScratchReg,
                  InstantiateTypeABI::kResultTypeReg);
 
-  // The loaded value from the TAV can be [Type], [FunctionType] or [TypeRef].
+  // Handle/unwrap TypeRefs in runtime.
+  __ CompareImmediate(InstantiateTypeABI::kScratchReg, kTypeRefCid);
+  __ BranchIf(EQUAL, &runtime_call);
 
-  // Handle [Type]s.
-  __ CompareImmediate(InstantiateTypeABI::kScratchReg, kTypeCid);
-  __ BranchIf(NOT_EQUAL, &type_parameter_value_is_not_type);
   switch (nullability) {
     case Nullability::kNonNullable:
       __ Ret();
       break;
     case Nullability::kNullable:
-      __ CompareTypeNullabilityWith(
+      __ CompareAbstractTypeNullabilityWith(
           InstantiateTypeABI::kResultTypeReg,
-          static_cast<int8_t>(Nullability::kNullable));
+          static_cast<int8_t>(Nullability::kNullable),
+          InstantiateTypeABI::kScratchReg);
       __ BranchIf(NOT_EQUAL, &runtime_call);
       __ Ret();
       break;
     case Nullability::kLegacy:
-      __ CompareTypeNullabilityWith(
+      __ CompareAbstractTypeNullabilityWith(
           InstantiateTypeABI::kResultTypeReg,
-          static_cast<int8_t>(Nullability::kNonNullable));
-      __ BranchIf(EQUAL, &runtime_call);
-      __ Ret();
-  }
-
-  // Handle [FunctionType]s.
-  __ Bind(&type_parameter_value_is_not_type);
-  __ CompareImmediate(InstantiateTypeABI::kScratchReg, kFunctionTypeCid);
-  __ BranchIf(NOT_EQUAL, &runtime_call);
-  switch (nullability) {
-    case Nullability::kNonNullable:
-      __ Ret();
-      break;
-    case Nullability::kNullable:
-      __ CompareFunctionTypeNullabilityWith(
-          InstantiateTypeABI::kResultTypeReg,
-          static_cast<int8_t>(Nullability::kNullable));
-      __ BranchIf(NOT_EQUAL, &runtime_call);
-      __ Ret();
-      break;
-    case Nullability::kLegacy:
-      __ CompareFunctionTypeNullabilityWith(
-          InstantiateTypeABI::kResultTypeReg,
-          static_cast<int8_t>(Nullability::kNonNullable));
+          static_cast<int8_t>(Nullability::kNonNullable),
+          InstantiateTypeABI::kScratchReg);
       __ BranchIf(EQUAL, &runtime_call);
       __ Ret();
   }
@@ -519,8 +657,9 @@ static void GenerateTypeIsTopTypeForSubtyping(Assembler* assembler,
   __ BranchIf(NOT_EQUAL, &done, compiler::Assembler::kNearJump);
   if (null_safety) {
     // Instance type isn't a top type if non-nullable in null safe mode.
-    __ CompareTypeNullabilityWith(
-        scratch1_reg, static_cast<int8_t>(Nullability::kNonNullable));
+    __ CompareAbstractTypeNullabilityWith(
+        scratch1_reg, static_cast<int8_t>(Nullability::kNonNullable),
+        scratch2_reg);
     __ BranchIf(EQUAL, &done, compiler::Assembler::kNearJump);
   }
   __ Bind(&is_top_type);
@@ -618,8 +757,9 @@ static void GenerateNullIsAssignableToType(Assembler* assembler,
     compiler::Label is_not_type;
     __ CompareClassId(kCurrentTypeReg, kTypeCid, kScratchReg);
     __ BranchIf(NOT_EQUAL, &is_not_type, compiler::Assembler::kNearJump);
-    __ CompareTypeNullabilityWith(
-        kCurrentTypeReg, static_cast<int8_t>(Nullability::kNonNullable));
+    __ CompareAbstractTypeNullabilityWith(
+        kCurrentTypeReg, static_cast<int8_t>(Nullability::kNonNullable),
+        kScratchReg);
     __ BranchIf(NOT_EQUAL, &is_assignable);
     // FutureOr is a special case because it may have the non-nullable bit set,
     // but FutureOr<T> functions as the union of T and Future<T>, so it must be
@@ -643,11 +783,9 @@ static void GenerateNullIsAssignableToType(Assembler* assembler,
     __ Bind(&is_not_type);
     // Null is assignable to a type parameter only if it is nullable or if the
     // instantiation is nullable.
-    __ LoadFieldFromOffset(
-        kScratchReg, kCurrentTypeReg,
-        compiler::target::TypeParameter::nullability_offset(), kByte);
-    __ CompareImmediate(kScratchReg,
-                        static_cast<int8_t>(Nullability::kNonNullable));
+    __ CompareAbstractTypeNullabilityWith(
+        kCurrentTypeReg, static_cast<int8_t>(Nullability::kNonNullable),
+        kScratchReg);
     __ BranchIf(NOT_EQUAL, &is_assignable);
 
     // Don't set kScratchReg in here as on IA32, that's the function TAV reg.
@@ -672,7 +810,7 @@ static void GenerateNullIsAssignableToType(Assembler* assembler,
     __ LoadFieldFromOffset(
         kScratchReg, kCurrentTypeReg,
         target::TypeParameter::parameterized_class_id_offset(),
-        kUnsignedTwoBytes);
+        kUnsignedFourBytes);
     __ CompareImmediate(kScratchReg, kFunctionCid);
     __ BranchIf(EQUAL, &function_type_param, Assembler::kNearJump);
     handle_case(TypeTestABI::kInstantiatorTypeArgumentsReg);
@@ -789,7 +927,7 @@ static void BuildTypeParameterTypeTestStub(Assembler* assembler,
   Label function_type_param;
   __ LoadFieldFromOffset(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg,
                          target::TypeParameter::parameterized_class_id_offset(),
-                         kUnsignedTwoBytes);
+                         kUnsignedFourBytes);
   __ CompareImmediate(TypeTestABI::kScratchReg, kFunctionCid);
   __ BranchIf(EQUAL, &function_type_param, Assembler::kNearJump);
   handle_case(TypeTestABI::kInstantiatorTypeArgumentsReg);
@@ -869,7 +1007,7 @@ void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
   __ CompareObject(TypeTestABI::kSubtypeTestCacheReg, NullObject());
   __ BranchIf(EQUAL, &call_runtime, Assembler::kNearJump);
 
-  // If this is not a [Type] object, we'll go to the runtime.
+  // If this is not a [Type] object, we'll use wider SubtypeTestCache.
   Label is_simple_case, is_complex_case;
   __ LoadClassId(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg);
   __ CompareImmediate(TypeTestABI::kScratchReg, kTypeCid);
@@ -877,10 +1015,15 @@ void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
 
   // Check whether this [Type] is instantiated/uninstantiated.
   __ LoadFieldFromOffset(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg,
-                         target::Type::type_state_offset(), kByte);
+                         target::AbstractType::flags_offset(), kByte);
+  __ AndImmediate(
+      TypeTestABI::kScratchReg,
+      Utils::NBitMask<int32_t>(target::UntaggedAbstractType::kTypeStateBits)
+          << target::UntaggedAbstractType::kTypeStateShift);
   __ CompareImmediate(
       TypeTestABI::kScratchReg,
-      target::UntaggedAbstractType::kTypeStateFinalizedInstantiated);
+      target::UntaggedAbstractType::kTypeStateFinalizedInstantiated
+          << target::UntaggedAbstractType::kTypeStateShift);
   __ BranchIf(NOT_EQUAL, &is_complex_case, Assembler::kNearJump);
 
   // This [Type] could be a FutureOr. Subtype2TestCache does not support Smi.
@@ -889,7 +1032,8 @@ void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
   // Fall through to &is_simple_case
 
   const RegisterSet caller_saved_registers(
-      TypeTestABI::kSubtypeTestCacheStubCallerSavedRegisters);
+      TypeTestABI::kSubtypeTestCacheStubCallerSavedRegisters,
+      /*fpu_registers=*/0);
 
   __ Bind(&is_simple_case);
   {
@@ -1060,6 +1204,214 @@ void StubCodeCompiler::GenerateAllocateGrowableArrayStub(Assembler* assembler) {
 #endif  // defined(TARGET_ARCH_IA32)
 }
 
+void StubCodeCompiler::GenerateAllocateRecordStub(Assembler* assembler) {
+  const Register result_reg = AllocateRecordABI::kResultReg;
+  const Register num_fields_reg = AllocateRecordABI::kNumFieldsReg;
+  const Register field_names_reg = AllocateRecordABI::kFieldNamesReg;
+  const Register temp_reg = AllocateRecordABI::kTemp1Reg;
+  const Register new_top_reg = AllocateRecordABI::kTemp2Reg;
+  Label slow_case;
+
+  // Check for allocation tracing.
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(kRecordCid, &slow_case, temp_reg));
+
+  // Compute the rounded instance size.
+  const intptr_t fixed_size_plus_alignment_padding =
+      (target::Record::field_offset(0) +
+       target::ObjectAlignment::kObjectAlignment - 1);
+  __ AddScaled(temp_reg, num_fields_reg, TIMES_COMPRESSED_HALF_WORD_SIZE,
+               fixed_size_plus_alignment_padding);
+  __ AndImmediate(temp_reg, -target::ObjectAlignment::kObjectAlignment);
+
+  // Now allocate the object.
+  __ LoadFromOffset(result_reg, Address(THR, target::Thread::top_offset()));
+  __ MoveRegister(new_top_reg, temp_reg);
+  __ AddRegisters(new_top_reg, result_reg);
+  // Check if the allocation fits into the remaining space.
+  __ CompareWithMemoryValue(new_top_reg,
+                            Address(THR, target::Thread::end_offset()));
+  __ BranchIf(UNSIGNED_GREATER_EQUAL, &slow_case);
+
+  // Successfully allocated the object, now update top to point to
+  // next object start and initialize the object.
+  __ StoreToOffset(new_top_reg, Address(THR, target::Thread::top_offset()));
+  __ AddImmediate(result_reg, kHeapObjectTag);
+
+  // Calculate the size tag.
+  {
+    Label size_tag_overflow, done;
+    __ CompareImmediate(temp_reg, target::UntaggedObject::kSizeTagMaxSizeTag);
+    __ BranchIf(UNSIGNED_GREATER, &size_tag_overflow, Assembler::kNearJump);
+    __ LslImmediate(temp_reg,
+                    target::UntaggedObject::kTagBitsSizeTagPos -
+                        target::ObjectAlignment::kObjectAlignmentLog2);
+    __ Jump(&done, Assembler::kNearJump);
+
+    __ Bind(&size_tag_overflow);
+    // Set overflow size tag value.
+    __ LoadImmediate(temp_reg, 0);
+
+    __ Bind(&done);
+    uword tags = target::MakeTagWordForNewSpaceObject(kRecordCid, 0);
+    __ OrImmediate(temp_reg, tags);
+    __ StoreToOffset(
+        temp_reg,
+        FieldAddress(result_reg, target::Object::tags_offset()));  // Tags.
+  }
+
+  __ StoreCompressedIntoObjectNoBarrier(
+      result_reg, FieldAddress(result_reg, target::Record::num_fields_offset()),
+      num_fields_reg);
+
+  __ StoreCompressedIntoObjectNoBarrier(
+      result_reg,
+      FieldAddress(result_reg, target::Record::field_names_offset()),
+      field_names_reg);
+
+  // Initialize the remaining words of the object.
+  {
+    const Register field_reg = field_names_reg;
+#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||              \
+    defined(TARGET_ARCH_RISCV64)
+    const Register null_reg = NULL_REG;
+#else
+    const Register null_reg = temp_reg;
+    __ LoadObject(null_reg, NullObject());
+#endif
+
+    Label loop, done;
+    __ AddImmediate(field_reg, result_reg, target::Record::field_offset(0));
+    __ CompareRegisters(field_reg, new_top_reg);
+    __ BranchIf(UNSIGNED_GREATER_EQUAL, &done, Assembler::kNearJump);
+
+    __ Bind(&loop);
+    for (intptr_t offset = 0; offset < target::kObjectAlignment;
+         offset += target::kCompressedWordSize) {
+      __ StoreCompressedIntoObjectNoBarrier(
+          result_reg, FieldAddress(field_reg, offset), null_reg);
+    }
+    // Safe to only check every kObjectAlignment bytes instead of each word.
+    ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
+    __ AddImmediate(field_reg, target::kObjectAlignment);
+    __ CompareRegisters(field_reg, new_top_reg);
+    __ BranchIf(UNSIGNED_LESS, &loop, Assembler::kNearJump);
+    __ Bind(&done);
+  }
+
+  __ Ret();
+
+  __ Bind(&slow_case);
+
+  __ EnterStubFrame();
+  __ PushObject(NullObject());  // Space on the stack for the return value.
+  __ PushRegistersInOrder({num_fields_reg, field_names_reg});
+  __ CallRuntime(kAllocateRecordRuntimeEntry, 2);
+  __ Drop(2);
+  __ PopRegister(AllocateRecordABI::kResultReg);
+
+  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
+void StubCodeCompiler::GenerateAllocateSmallRecordStub(Assembler* assembler,
+                                                       intptr_t num_fields,
+                                                       bool has_named_fields) {
+  ASSERT(num_fields == 2 || num_fields == 3);
+  const Register result_reg = AllocateSmallRecordABI::kResultReg;
+  const Register field_names_reg = AllocateSmallRecordABI::kFieldNamesReg;
+  const Register value0_reg = AllocateSmallRecordABI::kValue0Reg;
+  const Register value1_reg = AllocateSmallRecordABI::kValue1Reg;
+  const Register value2_reg = AllocateSmallRecordABI::kValue2Reg;
+  const Register temp_reg = AllocateSmallRecordABI::kTempReg;
+  Label slow_case;
+
+  if ((num_fields > 2) && (value2_reg == kNoRegister)) {
+    // Not implemented.
+    __ Breakpoint();
+    return;
+  }
+
+#if defined(DEBUG)
+  // Need to account for the debug checks added by
+  // StoreCompressedIntoObjectNoBarrier.
+  const auto distance = Assembler::kFarJump;
+#else
+  const auto distance = Assembler::kNearJump;
+#endif
+  __ TryAllocateObject(kRecordCid, target::Record::InstanceSize(num_fields),
+                       &slow_case, distance, result_reg, temp_reg);
+
+  __ LoadImmediate(temp_reg, Smi::RawValue(num_fields));
+  __ StoreCompressedIntoObjectNoBarrier(
+      result_reg, FieldAddress(result_reg, target::Record::num_fields_offset()),
+      temp_reg);
+
+  if (!has_named_fields) {
+    __ LoadObject(field_names_reg, Object::empty_array());
+  }
+  __ StoreCompressedIntoObjectNoBarrier(
+      result_reg,
+      FieldAddress(result_reg, target::Record::field_names_offset()),
+      field_names_reg);
+
+  __ StoreCompressedIntoObjectNoBarrier(
+      result_reg, FieldAddress(result_reg, target::Record::field_offset(0)),
+      value0_reg);
+
+  __ StoreCompressedIntoObjectNoBarrier(
+      result_reg, FieldAddress(result_reg, target::Record::field_offset(1)),
+      value1_reg);
+
+  if (num_fields > 2) {
+    __ StoreCompressedIntoObjectNoBarrier(
+        result_reg, FieldAddress(result_reg, target::Record::field_offset(2)),
+        value2_reg);
+  }
+
+  __ Ret();
+
+  __ Bind(&slow_case);
+
+  __ EnterStubFrame();
+  __ PushObject(NullObject());  // Space on the stack for the return value.
+  __ PushObject(Smi::ZoneHandle(Smi::New(num_fields)));
+  if (has_named_fields) {
+    __ PushRegister(field_names_reg);
+  } else {
+    __ PushObject(Object::empty_array());
+  }
+  __ PushRegistersInOrder({value0_reg, value1_reg});
+  if (num_fields > 2) {
+    __ PushRegister(value2_reg);
+  } else {
+    __ PushObject(NullObject());
+  }
+  __ CallRuntime(kAllocateSmallRecordRuntimeEntry, 5);
+  __ Drop(5);
+  __ PopRegister(result_reg);
+
+  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
+void StubCodeCompiler::GenerateAllocateRecord2Stub(Assembler* assembler) {
+  GenerateAllocateSmallRecordStub(assembler, 2, /*has_named_fields=*/false);
+}
+
+void StubCodeCompiler::GenerateAllocateRecord2NamedStub(Assembler* assembler) {
+  GenerateAllocateSmallRecordStub(assembler, 2, /*has_named_fields=*/true);
+}
+
+void StubCodeCompiler::GenerateAllocateRecord3Stub(Assembler* assembler) {
+  GenerateAllocateSmallRecordStub(assembler, 3, /*has_named_fields=*/false);
+}
+
+void StubCodeCompiler::GenerateAllocateRecord3NamedStub(Assembler* assembler) {
+  GenerateAllocateSmallRecordStub(assembler, 3, /*has_named_fields=*/true);
+}
+
 // The UnhandledException class lives in the VM isolate, so it cannot cache
 // an allocation stub for itself. Instead, we cache it in the stub code list.
 void StubCodeCompiler::GenerateAllocateUnhandledExceptionStub(
@@ -1186,6 +1538,16 @@ void StubCodeCompiler::GenerateRangeErrorSharedWithFPURegsStub(
   GenerateRangeError(assembler, /*with_fpu_regs=*/true);
 }
 
+void StubCodeCompiler::GenerateWriteErrorSharedWithoutFPURegsStub(
+    Assembler* assembler) {
+  GenerateWriteError(assembler, /*with_fpu_regs=*/false);
+}
+
+void StubCodeCompiler::GenerateWriteErrorSharedWithFPURegsStub(
+    Assembler* assembler) {
+  GenerateWriteError(assembler, /*with_fpu_regs=*/true);
+}
+
 void StubCodeCompiler::GenerateFrameAwaitingMaterializationStub(
     Assembler* assembler) {
   __ Breakpoint();  // Marker stub.
@@ -1233,13 +1595,17 @@ EMIT_BOX_ALLOCATION(Int32x4)
 
 #undef EMIT_BOX_ALLOCATION
 
-void StubCodeCompiler::GenerateBoxDoubleStub(Assembler* assembler) {
+static void GenerateBoxFpuValueStub(Assembler* assembler,
+                                    const dart::Class& cls,
+                                    const RuntimeEntry& runtime_entry,
+                                    void (Assembler::*store_value)(FpuRegister,
+                                                                   Register,
+                                                                   int32_t)) {
   Label call_runtime;
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
-    __ TryAllocate(compiler::DoubleClass(), &call_runtime,
-                   compiler::Assembler::kFarJump, BoxDoubleStubABI::kResultReg,
-                   BoxDoubleStubABI::kTempReg);
-    __ StoreUnboxedDouble(
+    __ TryAllocate(cls, &call_runtime, compiler::Assembler::kFarJump,
+                   BoxDoubleStubABI::kResultReg, BoxDoubleStubABI::kTempReg);
+    (assembler->*store_value)(
         BoxDoubleStubABI::kValueReg, BoxDoubleStubABI::kResultReg,
         compiler::target::Double::value_offset() - kHeapObjectTag);
     __ Ret();
@@ -1247,18 +1613,44 @@ void StubCodeCompiler::GenerateBoxDoubleStub(Assembler* assembler) {
   __ Bind(&call_runtime);
   __ EnterStubFrame();
   __ PushObject(NullObject()); /* Make room for result. */
-  __ StoreUnboxedDouble(BoxDoubleStubABI::kValueReg, THR,
-                        target::Thread::unboxed_double_runtime_arg_offset());
-  __ CallRuntime(kBoxDoubleRuntimeEntry, 0);
+  (assembler->*store_value)(BoxDoubleStubABI::kValueReg, THR,
+                            target::Thread::unboxed_runtime_arg_offset());
+  __ CallRuntime(runtime_entry, 0);
   __ PopRegister(BoxDoubleStubABI::kResultReg);
   __ LeaveStubFrame();
   __ Ret();
 }
 
+void StubCodeCompiler::GenerateBoxDoubleStub(Assembler* assembler) {
+  GenerateBoxFpuValueStub(assembler, compiler::DoubleClass(),
+                          kBoxDoubleRuntimeEntry,
+                          &Assembler::StoreUnboxedDouble);
+}
+
+void StubCodeCompiler::GenerateBoxFloat32x4Stub(Assembler* assembler) {
+#if !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
+  GenerateBoxFpuValueStub(assembler, compiler::Float32x4Class(),
+                          kBoxFloat32x4RuntimeEntry,
+                          &Assembler::StoreUnboxedSimd128);
+#else
+  __ Stop("Not supported on RISC-V.");
+#endif
+}
+
+void StubCodeCompiler::GenerateBoxFloat64x2Stub(Assembler* assembler) {
+#if !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
+  GenerateBoxFpuValueStub(assembler, compiler::Float64x2Class(),
+                          kBoxFloat64x2RuntimeEntry,
+                          &Assembler::StoreUnboxedSimd128);
+#else
+  __ Stop("Not supported on RISC-V.");
+#endif
+}
+
 void StubCodeCompiler::GenerateDoubleToIntegerStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ StoreUnboxedDouble(DoubleToIntegerStubABI::kInputReg, THR,
-                        target::Thread::unboxed_double_runtime_arg_offset());
+                        target::Thread::unboxed_runtime_arg_offset());
   __ PushObject(NullObject()); /* Make room for result. */
   __ PushRegister(DoubleToIntegerStubABI::kRecognizedKindReg);
   __ CallRuntime(kDoubleToIntegerRuntimeEntry, 1);
@@ -1379,6 +1771,7 @@ static void GenerateAllocateSuspendState(Assembler* assembler,
 
 void StubCodeCompiler::GenerateSuspendStub(
     Assembler* assembler,
+    bool call_suspend_function,
     intptr_t suspend_entry_point_offset_in_thread,
     intptr_t suspend_function_offset_in_object_store) {
   const Register kArgument = SuspendStubABI::kArgumentReg;
@@ -1516,17 +1909,28 @@ void StubCodeCompiler::GenerateSuspendStub(
   }
 #endif
 
-  // Push arguments for suspend Dart function.
-  __ PushRegistersInOrder({kSuspendState, kArgument});
+  if (call_suspend_function) {
+    // Push arguments for suspend Dart function early to preserve them
+    // across write barrier.
+    __ PushRegistersInOrder({kSuspendState, kArgument});
+  }
 
   // Write barrier.
   __ BranchIfBit(kSuspendState, target::ObjectAlignment::kNewObjectBitPosition,
                  ZERO, &old_gen_object);
 
   __ Bind(&call_dart);
-  __ Comment("Call suspend Dart function");
-  CallDartCoreLibraryFunction(assembler, suspend_entry_point_offset_in_thread,
-                              suspend_function_offset_in_object_store);
+  if (call_suspend_function) {
+    __ Comment("Call suspend Dart function");
+    CallDartCoreLibraryFunction(assembler, suspend_entry_point_offset_in_thread,
+                                suspend_function_offset_in_object_store);
+  } else {
+    // SuspendStub returns either the result of Dart callback,
+    // or SuspendStub argument (if Dart callback is not used).
+    // The latter is used by yield/yield* in sync* functions
+    // to indicate that iteration should be continued.
+    __ MoveRegister(CallingConventions::kReturnReg, kArgument);
+  }
 
   __ LeaveStubFrame();
 
@@ -1585,6 +1989,11 @@ void StubCodeCompiler::GenerateSuspendStub(
 
   __ Bind(&old_gen_object);
   __ Comment("Old gen SuspendState slow case");
+  if (!call_suspend_function) {
+    // Save kArgument which contains the return value
+    // if suspend function is not called.
+    __ PushRegister(kArgument);
+  }
   {
 #if defined(TARGET_ARCH_IA32)
     LeafRuntimeScope rt(assembler, /*frame_size=*/2 * target::kWordSize,
@@ -1599,11 +2008,15 @@ void StubCodeCompiler::GenerateSuspendStub(
 #endif
     rt.Call(kEnsureRememberedAndMarkingDeferredRuntimeEntry, 2);
   }
+  if (!call_suspend_function) {
+    __ PopRegister(kArgument);
+  }
   __ Jump(&call_dart);
 }
 
 void StubCodeCompiler::GenerateAwaitStub(Assembler* assembler) {
   GenerateSuspendStub(assembler,
+                      /*call_suspend_function=*/true,
                       target::Thread::suspend_state_await_entry_point_offset(),
                       target::ObjectStore::suspend_state_await_offset());
 }
@@ -1611,15 +2024,25 @@ void StubCodeCompiler::GenerateAwaitStub(Assembler* assembler) {
 void StubCodeCompiler::GenerateYieldAsyncStarStub(Assembler* assembler) {
   GenerateSuspendStub(
       assembler,
+      /*call_suspend_function=*/true,
       target::Thread::suspend_state_yield_async_star_entry_point_offset(),
       target::ObjectStore::suspend_state_yield_async_star_offset());
 }
 
-void StubCodeCompiler::GenerateYieldSyncStarStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateSuspendSyncStarAtStartStub(
+    Assembler* assembler) {
   GenerateSuspendStub(
       assembler,
-      target::Thread::suspend_state_yield_sync_star_entry_point_offset(),
-      target::ObjectStore::suspend_state_yield_sync_star_offset());
+      /*call_suspend_function=*/true,
+      target::Thread::
+          suspend_state_suspend_sync_star_at_start_entry_point_offset(),
+      target::ObjectStore::suspend_state_suspend_sync_star_at_start_offset());
+}
+
+void StubCodeCompiler::GenerateSuspendSyncStarAtYieldStub(
+    Assembler* assembler) {
+  GenerateSuspendStub(assembler,
+                      /*call_suspend_function=*/false, -1, -1);
 }
 
 void StubCodeCompiler::GenerateInitSuspendableFunctionStub(
@@ -1899,14 +2322,6 @@ void StubCodeCompiler::GenerateReturnAsyncStarStub(Assembler* assembler) {
       target::Thread::suspend_state_return_async_star_entry_point_offset(),
       target::ObjectStore::suspend_state_return_async_star_offset(),
       target::Thread::return_async_star_stub_offset());
-}
-
-void StubCodeCompiler::GenerateReturnSyncStarStub(Assembler* assembler) {
-  GenerateReturnStub(
-      assembler,
-      target::Thread::suspend_state_return_sync_star_entry_point_offset(),
-      target::ObjectStore::suspend_state_return_sync_star_offset(),
-      target::Thread::return_sync_star_stub_offset());
 }
 
 void StubCodeCompiler::GenerateAsyncExceptionHandlerStub(Assembler* assembler) {

@@ -6,6 +6,7 @@
 
 library type_substitution_test;
 
+import 'package:compiler/src/elements/names.dart';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
@@ -17,7 +18,8 @@ import '../helpers/type_test_helper.dart';
 DartType getType(ElementEnvironment elementEnvironment, String name) {
   ClassEntity cls =
       elementEnvironment.lookupClass(elementEnvironment.mainLibrary, 'Class');
-  FunctionEntity element = elementEnvironment.lookupClassMember(cls, name);
+  FunctionEntity element = elementEnvironment.lookupClassMember(
+      cls, Name(name, cls.library.canonicalUri));
   Expect.isNotNull(element);
   FunctionType type = elementEnvironment.getFunctionType(element);
 

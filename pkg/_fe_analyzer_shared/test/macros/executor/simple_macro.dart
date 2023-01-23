@@ -8,7 +8,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 /// A very simple macro that augments any declaration it is given, usually
 /// adding print statements and inlining values from the declaration object
-/// for comparision with expected values in tests.
+/// for comparison with expected values in tests.
 ///
 /// When applied to [MethodDeclaration]s there is some extra work that happens
 /// to validate the introspection APIs work as expected.

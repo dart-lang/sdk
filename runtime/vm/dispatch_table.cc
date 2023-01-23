@@ -8,54 +8,8 @@
 
 namespace dart {
 
-intptr_t DispatchTable::OriginElement() {
-#if defined(TARGET_ARCH_X64)
-  // Max negative byte offset / 8
-  return 16;
-#elif defined(TARGET_ARCH_ARM)
-  // Max negative load offset / 4
-  return 1023;
-#elif defined(TARGET_ARCH_ARM64)
-  // Max consecutive sub immediate value
-  return 4096;
-#elif defined(TARGET_ARCH_RISCV32)
-  // Max consecutive sub immediate value
-  return 2048 / 4;
-#elif defined(TARGET_ARCH_RISCV64)
-  // Max consecutive sub immediate value
-  return 2048 / 8;
-#else
-  // No AOT on IA32
-  UNREACHABLE();
-  return 0;
-#endif
-}
-
-intptr_t DispatchTable::LargestSmallOffset() {
-#if defined(TARGET_ARCH_X64)
-  // Origin + Max positive byte offset / 8
-  return 31;
-#elif defined(TARGET_ARCH_ARM)
-  // Origin + Max positive load offset / 4
-  return 2046;
-#elif defined(TARGET_ARCH_ARM64)
-  // Origin + Max consecutive add immediate value
-  return 8192;
-#elif defined(TARGET_ARCH_RISCV32)
-  // Origin + Max consecutive add immediate value
-  return 4096 / 4;
-#elif defined(TARGET_ARCH_RISCV64)
-  // Origin + Max consecutive add immediate value
-  return 4096 / 8;
-#else
-  // No AOT on IA32
-  UNREACHABLE();
-  return 0;
-#endif
-}
-
 const uword* DispatchTable::ArrayOrigin() const {
-  return &array_.get()[OriginElement()];
+  return &array_.get()[kOriginElement];
 }
 
 }  // namespace dart

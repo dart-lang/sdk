@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import '../../common/elements.dart' show CommonElements;
 import '../../constants/values.dart';
 import '../../elements/entities.dart';
 import '../../elements/names.dart';
 import '../../elements/types.dart';
 import '../../ir/class_relation.dart';
+import '../../js_model/js_world.dart';
 import '../../universe/selector.dart';
-import '../../world.dart';
 import '../abstract_value_domain.dart';
 
 /// This class is used to store bits information about class entities.
@@ -172,7 +170,7 @@ class PowersetBitsDomain {
 
   // TODO(coam): This currently returns null if we are not sure if it's a primitive.
   // It could be improved because we can also tell when we're certain it's not a primitive.
-  PrimitiveConstantValue getPrimitiveValue(int value) {
+  PrimitiveConstantValue? getPrimitiveValue(int value) {
     if (isDefinitelyTrue(value)) {
       return TrueConstantValue();
     }
@@ -355,7 +353,7 @@ class PowersetBitsDomain {
   }
 
   ClassInfo _computeClassInfo(ClassEntity cls) {
-    ClassInfo classInfo = _storedClassInfo[cls];
+    ClassInfo? classInfo = _storedClassInfo[cls];
     if (classInfo != null) {
       return classInfo;
     }
@@ -442,7 +440,10 @@ class PowersetBitsDomain {
   }
 
   int createFromStaticType(DartType type,
-      {ClassRelation classRelation = ClassRelation.subtype, bool nullable}) {
+      {ClassRelation classRelation = ClassRelation.subtype,
+      required bool nullable}) {
+    // TODO(48820): Remove after sound null safety is enabled.
+    // ignore: unnecessary_null_comparison
     assert(nullable != null);
 
     if ((classRelation == ClassRelation.subtype ||
@@ -481,8 +482,6 @@ class PowersetBitsDomain {
 
   int _createFromStaticType(
       DartType type, ClassRelation classRelation, bool nullable) {
-    assert(nullable != null);
-
     int finish(int value, bool isPrecise) {
       // [isPrecise] is ignored since we only treat singleton partitions as
       // precise.
@@ -524,7 +523,7 @@ class PowersetBitsDomain {
         // type and is maximal (i.e. instantiated to bounds), the typemask,
         // which is based on the class element, is still precise. We check
         // against Top for the parameter arguments since we don't have a
-        // convenient check for instantation to bounds.
+        // convenient check for instantiation to bounds.
         //
         // TODO(sra): Check arguments against bounds.
         // TODO(sra): Handle other variances.
@@ -576,26 +575,21 @@ class PowersetBitsDomain {
 
   int get emptyType => powersetBottom;
 
-  int _constMapType;
-  int get constMapType => _constMapType ??=
+  late final int constMapType =
       createNonNullSubtype(commonElements.constMapLiteralClass);
 
   int get constSetType => otherValue;
 
-  int _constListType;
-  int get constListType => _constListType ??=
+  late final int constListType =
       createNonNullExact(commonElements.jsUnmodifiableArrayClass);
 
-  int _fixedListType;
-  int get fixedListType =>
-      _fixedListType ??= createNonNullExact(commonElements.jsFixedArrayClass);
+  late final int fixedListType =
+      createNonNullExact(commonElements.jsFixedArrayClass);
 
-  int _growableListType;
-  int get growableListType => _growableListType ??=
+  late final int growableListType =
       createNonNullExact(commonElements.jsExtendableArrayClass);
 
-  int _mutableArrayType;
-  int get mutableArrayType => _mutableArrayType ??=
+  late final int mutableArrayType =
       createNonNullSubtype(commonElements.jsMutableArrayClass);
 
   int get nullType => nullValue;
@@ -605,33 +599,21 @@ class PowersetBitsDomain {
   // TODO(fishythefish): Support tracking late sentinels in the powerset domain.
   int get lateSentinelType => powersetBottom;
 
-  int _mapType;
-  int get mapType =>
-      _mapType ??= createNonNullSubtype(commonElements.mapLiteralClass);
+  late final int mapType = createNonNullSubtype(commonElements.mapLiteralClass);
 
-  int _setType;
-  int get setType =>
-      _setType ??= createNonNullSubtype(commonElements.setLiteralClass);
+  late final int setType = createNonNullSubtype(commonElements.setLiteralClass);
 
-  int _listType;
-  int get listType =>
-      _listType ??= createNonNullExact(commonElements.jsArrayClass);
+  late final int listType = createNonNullExact(commonElements.jsArrayClass);
 
-  int _stringType;
-  int get stringType =>
-      _stringType ??= createNonNullSubtype(commonElements.jsStringClass);
+  late final int stringType =
+      createNonNullSubtype(commonElements.jsStringClass);
 
-  int _numType;
-  int get numType =>
-      _numType ??= createNonNullSubclass(commonElements.jsNumberClass);
+  late final int numType = createNonNullSubclass(commonElements.jsNumberClass);
 
-  int _numNotIntType;
-  int get numNotIntType =>
-      _numNotIntType ??= createNonNullExact(commonElements.jsNumNotIntClass);
+  late final int numNotIntType =
+      createNonNullExact(commonElements.jsNumNotIntClass);
 
-  int _intType;
-  int get intType =>
-      _intType ??= createNonNullSubtype(commonElements.jsIntClass);
+  late final int intType = createNonNullSubtype(commonElements.jsIntClass);
 
   int get positiveIntType => intType;
   int get uint32Type => intType;
@@ -639,9 +621,8 @@ class PowersetBitsDomain {
 
   int get boolType => boolValue;
 
-  int _functionType;
-  int get functionType =>
-      _functionType ??= createNonNullSubtype(commonElements.functionClass);
+  late final int functionType =
+      createNonNullSubtype(commonElements.functionClass);
 
   int get typeType => otherValue;
 }

@@ -16,9 +16,9 @@ class C {
   positional2(u, v, w, [@Y int y = 1, @Z int z = 2, @X int x = 3]) {}
   positional3(u, v, w, [@Z int z = 1, @X int x = 2, @Y int y = 3]) {}
 
-  named1(u, v, w, {@X int x: 1, @Y int y: 2, @Z int z: 3}) {}
-  named2(u, v, w, {@Y int y: 1, @Z int z: 2, @X int x: 3}) {}
-  named3(u, v, w, {@Z int z: 1, @X int x: 2, @Y int y: 3}) {}
+  named1(u, v, w, {@X int x = 1, @Y int y = 2, @Z int z = 3}) {}
+  named2(u, v, w, {@Y int y = 1, @Z int z = 2, @X int x = 3}) {}
+  named3(u, v, w, {@Z int z = 1, @X int x = 2, @Y int y = 3}) {}
 }
 
 testPositional() {

@@ -221,7 +221,7 @@ generic(typeConstructor, setBaseClass) => JS('', '''(() => {
     if (args.length != length && args.length != 0) {
       $throwInternalError('requires ' + length + ' or 0 type arguments');
     }
-    while (args.length < length) args.push($dynamic);
+    while (args.length < length) args.push(${typeRep<dynamic>()});
 
     let value = resultMap;
     for (let i = 0; i < length; i++) {
@@ -339,6 +339,9 @@ bool isJsInterop(obj) {
   // Note that it is still possible to call typed JS interop methods on
   // extension types but the calls must be statically typed.
   if (JS('!', '#[#] != null', obj, _extensionType)) return false;
+
+  // Exclude record types.
+  if (_jsInstanceOf(obj, _RecordImpl)) return false;
   return !_jsInstanceOf(obj, Object);
 }
 
@@ -429,7 +432,7 @@ final dartx = JS('', 'dartx');
 /// Install properties in prototype-first order.  Properties / descriptors from
 /// more specific types should overwrite ones from less specific types.
 void _installProperties(jsProto, dartType, installedParent) {
-  if (JS('!', '# === #', dartType, Object)) {
+  if (JS('!', '# === #', dartType, JS_CLASS_REF(Object))) {
     _installPropertiesForObject(jsProto);
     return;
   }
@@ -447,7 +450,7 @@ void _installProperties(jsProto, dartType, installedParent) {
 void _installPropertiesForObject(jsProto) {
   // core.Object members need to be copied from the non-symbol name to the
   // symbol name.
-  var coreObjProto = JS<Object>('!', '#.prototype', Object);
+  var coreObjProto = JS<Object>('!', '#.prototype', JS_CLASS_REF(Object));
   var names = getOwnPropertyNames(coreObjProto);
   for (int i = 0, n = JS('!', '#.length', names); i < n; ++i) {
     var name = JS<String>('!', '#[#]', names, i);
@@ -472,7 +475,7 @@ void _applyExtension(jsType, dartExtType) {
   var jsProto = JS('', '#.prototype', jsType);
   if (jsProto == null) return;
 
-  if (JS('!', '# === #', dartExtType, Object)) {
+  if (JS('!', '# === #', dartExtType, JS_CLASS_REF(Object))) {
     _installPropertiesForGlobalObject(jsProto);
     return;
   }
@@ -488,7 +491,7 @@ void _applyExtension(jsType, dartExtType) {
       jsProto, dartExtType, JS('', '#[#]', jsProto, _extensionType));
 
   // Mark the JS type's instances so we can easily check for extensions.
-  if (JS('!', '# !== #', dartExtType, JSFunction)) {
+  if (JS('!', '# !== #', dartExtType, JS_CLASS_REF(JSFunction))) {
     JS('', '#[#] = #', jsProto, _extensionType, dartExtType);
   }
   JS('', '#[#] = #[#]', jsType, _methodSig, dartExtType, _methodSig);
@@ -636,17 +639,56 @@ addTypeTests(ctor, isClass) {
       cast);
 }
 
+/// A runtime mapping of interface type recipe to the symbol used to tag the
+/// class for simple identification in the dart:rti library.
+///
+/// Maps String -> JavaScript Symbol.
+final _typeTagSymbols = JS<Object>('!', 'new Map()');
+
+Object typeTagSymbol(String recipe) {
+  var tag = '${JS_GET_NAME(JsGetName.OPERATOR_IS_PREFIX)}${recipe}';
+  var probe = JS<Object?>('', '#[#]', _typeTagSymbols, tag);
+  if (probe != null) return probe;
+  var tagSymbol = JS<Object>('!', 'Symbol(#)', tag);
+  JS('', '#[#] = #', _typeTagSymbols, tag, tagSymbol);
+  return tagSymbol;
+}
+
+/// Attaches the type [recipe] and the type tag for the class to to [classRef].
+///
+/// The tags are used for simple identification of instances in the dart:rti
+/// library.
+///
+/// The first element of interface [interfaceRecipes] must always be the recipe
+/// for the type represented by [classRef].
+void addRtiResources(Object classRef, String recipe) {
+  // Attach the classes own interface type recipe.
+  // The recipe is used in dart:_rti to create an [rti.Rti] instance when
+  // needed.
+  JS('', r'#.# = #', classRef, rti.interfaceTypeRecipePropertyName, recipe);
+  // Add specialized test resources used for fast interface type checks in
+  // dart:_rti.
+  var prototype = JS<Object>('!', '#.prototype', classRef);
+  var tagSymbol = typeTagSymbol(recipe);
+  JS('', '#.# = #', prototype, tagSymbol, true);
+}
+
 /// Pre-initializes types with empty type caches.
 ///
 /// Allows us to perform faster lookups on local caches without having to
 /// filter out the prototype chain. Also allows types to remain relatively
 /// monomorphic, which results in faster execution in V8.
 addTypeCaches(type) {
-  JS('', '#[#] = void 0', type, _cachedLegacy);
-  JS('', '#[#] = void 0', type, _cachedNullable);
-  var subtypeCacheMap = JS<Object>('!', 'new Map()');
-  JS('', '#[#] = #', type, _subtypeCache, subtypeCacheMap);
-  JS('', '#.push(#)', _cacheMaps, subtypeCacheMap);
+  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+    // Create a rti object cache property used in dart:_rti.
+    JS('', '#[#] = null', type, rti.constructorRtiCachePropertyName);
+  } else {
+    JS('', '#[#] = void 0', type, _cachedLegacy);
+    JS('', '#[#] = void 0', type, _cachedNullable);
+    var subtypeCacheMap = JS<Object>('!', 'new Map()');
+    JS('', '#[#] = #', type, _subtypeCache, subtypeCacheMap);
+    JS('', '#.push(#)', _cacheMaps, subtypeCacheMap);
+  }
 }
 
 // TODO(jmesserly): should we do this for all interfaces?

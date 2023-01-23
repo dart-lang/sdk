@@ -46,6 +46,8 @@ class ObjectPointerVisitor;
                                 LAZY_ASYNC, LAZY_ISOLATE, LAZY_INTERNAL,       \
                                 LAZY_FFI)                                      \
   LAZY_CORE(Class, list_class)                                                 \
+  LAZY_CORE(Class, map_class)                                                  \
+  LAZY_CORE(Class, set_class)                                                  \
   LAZY_CORE(Type, non_nullable_list_rare_type)                                 \
   LAZY_CORE(Type, non_nullable_map_rare_type)                                  \
   LAZY_CORE(Field, enum_index_field)                                           \
@@ -60,6 +62,9 @@ class ObjectPointerVisitor;
   LAZY_ASYNC(Type, non_nullable_future_rare_type)                              \
   LAZY_ASYNC(Type, non_nullable_future_never_type)                             \
   LAZY_ASYNC(Type, nullable_future_null_type)                                  \
+  LAZY_ISOLATE(Class, send_port_class)                                         \
+  LAZY_ISOLATE(Class, capability_class)                                        \
+  LAZY_ISOLATE(Class, transferable_class)                                      \
   LAZY_ISOLATE(Function, lookup_port_handler)                                  \
   LAZY_ISOLATE(Function, lookup_open_ports)                                    \
   LAZY_ISOLATE(Function, handle_message_function)                              \
@@ -75,6 +80,7 @@ class ObjectPointerVisitor;
   RW(Type, function_type)                                                      \
   RW(Type, type_type)                                                          \
   RW(Class, closure_class)                                                     \
+  RW(Class, record_class)                                                      \
   RW(Type, number_type)                                                        \
   RW(Type, int_type)                                                           \
   RW(Type, legacy_int_type)                                                    \
@@ -97,6 +103,7 @@ class ObjectPointerVisitor;
   RW(TypeArguments, type_argument_int)                                         \
   RW(TypeArguments, type_argument_legacy_int)                                  \
   RW(TypeArguments, type_argument_double)                                      \
+  RW(TypeArguments, type_argument_never)                                       \
   RW(TypeArguments, type_argument_string)                                      \
   RW(TypeArguments, type_argument_legacy_string)                               \
   RW(TypeArguments, type_argument_string_dynamic)                              \
@@ -117,10 +124,10 @@ class ObjectPointerVisitor;
   RW(Type, array_type)                                                         \
   RW(Class, immutable_array_class)                                             \
   RW(Class, growable_object_array_class)                                       \
-  RW(Class, linked_hash_map_class)                                             \
-  RW(Class, immutable_linked_hash_map_class)                                   \
-  RW(Class, linked_hash_set_class)                                             \
-  RW(Class, immutable_linked_hash_set_class)                                   \
+  RW(Class, map_impl_class)                                                    \
+  RW(Class, const_map_impl_class)                                              \
+  RW(Class, set_impl_class)                                                    \
+  RW(Class, const_set_impl_class)                                              \
   RW(Class, float32x4_class)                                                   \
   RW(Class, int32x4_class)                                                     \
   RW(Class, float64x2_class)                                                   \
@@ -135,6 +142,7 @@ class ObjectPointerVisitor;
   ARW_AR(Array, symbol_table)                                                  \
   RW(Array, canonical_types)                                                   \
   RW(Array, canonical_function_types)                                          \
+  RW(Array, canonical_record_types)                                            \
   RW(Array, canonical_type_parameters)                                         \
   RW(Array, canonical_type_arguments)                                          \
   RW(Library, async_library)                                                   \
@@ -165,12 +173,8 @@ class ObjectPointerVisitor;
   RW(Function, simple_instance_of_function)                                    \
   RW(Function, simple_instance_of_true_function)                               \
   RW(Function, simple_instance_of_false_function)                              \
-  RW(Function, async_star_move_next_helper)                                    \
   RW(Function, async_star_stream_controller_add)                               \
   RW(Function, async_star_stream_controller_add_stream)                        \
-  RW(Function, complete_on_async_return)                                       \
-  RW(Function, complete_with_no_future_on_async_return)                        \
-  RW(Function, complete_on_async_error)                                        \
   RW(Function, suspend_state_init_async)                                       \
   RW(Function, suspend_state_await)                                            \
   RW(Function, suspend_state_return_async)                                     \
@@ -179,13 +183,14 @@ class ObjectPointerVisitor;
   RW(Function, suspend_state_yield_async_star)                                 \
   RW(Function, suspend_state_return_async_star)                                \
   RW(Function, suspend_state_init_sync_star)                                   \
-  RW(Function, suspend_state_yield_sync_star)                                  \
-  RW(Function, suspend_state_return_sync_star)                                 \
+  RW(Function, suspend_state_suspend_sync_star_at_start)                       \
   RW(Function, suspend_state_handle_exception)                                 \
   RW(Class, async_star_stream_controller)                                      \
   RW(Class, stream_class)                                                      \
+  RW(Class, sync_star_iterator_class)                                          \
   RW(Field, async_star_stream_controller_async_star_body)                      \
   RW(Field, sync_star_iterator_current)                                        \
+  RW(Field, sync_star_iterator_state)                                          \
   RW(Field, sync_star_iterator_yield_star_iterable)                            \
   ARW_RELAXED(Smi, future_timeout_future_index)                                \
   ARW_RELAXED(Smi, future_wait_future_index)                                   \
@@ -206,6 +211,8 @@ class ObjectPointerVisitor;
   RW(Code, null_cast_error_stub_without_fpu_regs_stub)                         \
   RW(Code, range_error_stub_with_fpu_regs_stub)                                \
   RW(Code, range_error_stub_without_fpu_regs_stub)                             \
+  RW(Code, write_error_stub_with_fpu_regs_stub)                                \
+  RW(Code, write_error_stub_without_fpu_regs_stub)                             \
   RW(Code, allocate_mint_with_fpu_regs_stub)                                   \
   RW(Code, allocate_mint_without_fpu_regs_stub)                                \
   RW(Code, stack_overflow_stub_with_fpu_regs_stub)                             \
@@ -235,6 +242,11 @@ class ObjectPointerVisitor;
   RW(Code, allocate_growable_array_stub)                                       \
   RW(Code, allocate_object_stub)                                               \
   RW(Code, allocate_object_parametrized_stub)                                  \
+  RW(Code, allocate_record_stub)                                               \
+  RW(Code, allocate_record2_stub)                                              \
+  RW(Code, allocate_record2_named_stub)                                        \
+  RW(Code, allocate_record3_stub)                                              \
+  RW(Code, allocate_record3_named_stub)                                        \
   RW(Code, allocate_unhandled_exception_stub)                                  \
   RW(Code, clone_context_stub)                                                 \
   RW(Code, write_barrier_wrappers_stub)                                        \
@@ -267,13 +279,13 @@ class ObjectPointerVisitor;
   RW(Code, yield_async_star_stub)                                              \
   RW(Code, return_async_star_stub)                                             \
   RW(Code, init_sync_star_stub)                                                \
-  RW(Code, yield_sync_star_stub)                                               \
-  RW(Code, return_sync_star_stub)                                              \
+  RW(Code, suspend_sync_star_at_start_stub)                                    \
+  RW(Code, suspend_sync_star_at_yield_stub)                                    \
   RW(Array, dispatch_table_code_entries)                                       \
   RW(GrowableObjectArray, instructions_tables)                                 \
   RW(Array, obfuscation_map)                                                   \
   RW(Array, loading_unit_uris)                                                 \
-  RW(GrowableObjectArray, ffi_callback_functions)                              \
+  RW(Array, ffi_callback_functions)                                            \
   RW(Class, ffi_pointer_class)                                                 \
   RW(Class, ffi_native_type_class)                                             \
   // Please remember the last entry must be referred in the 'to' function below.
@@ -294,6 +306,8 @@ class ObjectPointerVisitor;
      NullCastErrorSharedWithoutFPURegs)                                        \
   DO(range_error_stub_with_fpu_regs_stub, RangeErrorSharedWithFPURegs)         \
   DO(range_error_stub_without_fpu_regs_stub, RangeErrorSharedWithoutFPURegs)   \
+  DO(write_error_stub_with_fpu_regs_stub, WriteErrorSharedWithFPURegs)         \
+  DO(write_error_stub_without_fpu_regs_stub, WriteErrorSharedWithoutFPURegs)   \
   DO(allocate_mint_with_fpu_regs_stub, AllocateMintSharedWithFPURegs)          \
   DO(allocate_mint_without_fpu_regs_stub, AllocateMintSharedWithoutFPURegs)    \
   DO(stack_overflow_stub_with_fpu_regs_stub, StackOverflowSharedWithFPURegs)   \
@@ -324,6 +338,11 @@ class ObjectPointerVisitor;
   DO(allocate_growable_array_stub, AllocateGrowableArray)                      \
   DO(allocate_object_stub, AllocateObject)                                     \
   DO(allocate_object_parametrized_stub, AllocateObjectParameterized)           \
+  DO(allocate_record_stub, AllocateRecord)                                     \
+  DO(allocate_record2_stub, AllocateRecord2)                                   \
+  DO(allocate_record2_named_stub, AllocateRecord2Named)                        \
+  DO(allocate_record3_stub, AllocateRecord3)                                   \
+  DO(allocate_record3_named_stub, AllocateRecord3Named)                        \
   DO(allocate_unhandled_exception_stub, AllocateUnhandledException)            \
   DO(clone_context_stub, CloneContext)                                         \
   DO(call_closure_no_such_method_stub, CallClosureNoSuchMethod)                \
@@ -355,8 +374,8 @@ class ObjectPointerVisitor;
   DO(yield_async_star_stub, YieldAsyncStar)                                    \
   DO(return_async_star_stub, ReturnAsyncStar)                                  \
   DO(init_sync_star_stub, InitSyncStar)                                        \
-  DO(yield_sync_star_stub, YieldSyncStar)                                      \
-  DO(return_sync_star_stub, ReturnSyncStar)                                    \
+  DO(suspend_sync_star_at_start_stub, SuspendSyncStarAtStart)                  \
+  DO(suspend_sync_star_at_yield_stub, SuspendSyncStarAtYield)                  \
   DO(instance_of_stub, InstanceOf)
 
 #define ISOLATE_OBJECT_STORE_FIELD_LIST(R_, RW)                                \

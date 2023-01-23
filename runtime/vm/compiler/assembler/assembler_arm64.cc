@@ -482,7 +482,7 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
     return false;
   }
 
-  ASSERT(IsNotTemporaryScopedHandle(object));
+  DEBUG_ASSERT(IsNotTemporaryScopedHandle(object));
   ASSERT(IsInOldSpace(object));
   return true;
 }
@@ -728,7 +728,8 @@ void Assembler::AddImmediate(Register dest,
   }
   if (Operand::CanHold(imm, width, &op) == Operand::Immediate) {
     add(dest, rn, op, sz);
-  } else if (Operand::CanHold(-imm, width, &op) == Operand::Immediate) {
+  } else if (Operand::CanHold(-static_cast<uint64_t>(imm), width, &op) ==
+             Operand::Immediate) {
     sub(dest, rn, op, sz);
   } else {
     // TODO(zra): Try adding top 12 bits, then bottom 12 bits.
@@ -748,7 +749,8 @@ void Assembler::AddImmediateSetFlags(Register dest,
   if (Operand::CanHold(imm, width, &op) == Operand::Immediate) {
     // Handles imm == kMinInt64.
     adds(dest, rn, op, sz);
-  } else if (Operand::CanHold(-imm, width, &op) == Operand::Immediate) {
+  } else if (Operand::CanHold(-static_cast<uint64_t>(imm), width, &op) ==
+             Operand::Immediate) {
     ASSERT(imm != kMinInt64);  // Would cause erroneous overflow detection.
     subs(dest, rn, op, sz);
   } else {
@@ -769,7 +771,8 @@ void Assembler::SubImmediateSetFlags(Register dest,
   if (Operand::CanHold(imm, width, &op) == Operand::Immediate) {
     // Handles imm == kMinInt64.
     subs(dest, rn, op, sz);
-  } else if (Operand::CanHold(-imm, width, &op) == Operand::Immediate) {
+  } else if (Operand::CanHold(-static_cast<uint64_t>(imm), width, &op) ==
+             Operand::Immediate) {
     ASSERT(imm != kMinInt64);  // Would cause erroneous overflow detection.
     adds(dest, rn, op, sz);
   } else {
@@ -857,7 +860,7 @@ Address Assembler::PrepareLargeOffset(Register base,
                                       int32_t offset,
                                       OperandSize sz) {
   if (Address::CanHoldOffset(offset, Address::Offset, sz)) {
-    return Address(base, offset, Address::Offset, sz);
+    return Address(base, offset);
   }
   ASSERT(base != TMP2);
   Operand op;
@@ -867,7 +870,7 @@ Address Assembler::PrepareLargeOffset(Register base,
       (Operand::CanHold(upper20, kXRegSizeInBits, &op) == Operand::Immediate) &&
       Address::CanHoldOffset(lower12, Address::Offset, sz)) {
     add(TMP2, base, op);
-    return Address(TMP2, lower12, Address::Offset, sz);
+    return Address(TMP2, lower12);
   }
   LoadImmediate(TMP2, offset);
   return Address(base, TMP2);
@@ -969,7 +972,7 @@ void Assembler::LoadCompressedSmi(Register dest, const Address& slot) {
 #endif
 #if defined(DEBUG)
   Label done;
-  BranchIfSmi(dest, &done);
+  BranchIfSmi(dest, &done, kNearJump);
   Stop("Expected Smi");
   Bind(&done);
 #endif
@@ -989,43 +992,6 @@ void Assembler::LoadCompressedSmiFromOffset(Register dest,
   Stop("Expected Smi");
   Bind(&done);
 #endif
-}
-
-// Preserves object and value registers.
-void Assembler::StoreIntoObjectFilter(Register object,
-                                      Register value,
-                                      Label* label,
-                                      CanBeSmi value_can_be_smi,
-                                      BarrierFilterMode how_to_jump) {
-  COMPILE_ASSERT((target::ObjectAlignment::kNewObjectAlignmentOffset ==
-                  target::kWordSize) &&
-                 (target::ObjectAlignment::kOldObjectAlignmentOffset == 0));
-
-  // Write-barrier triggers if the value is in the new space (has bit set) and
-  // the object is in the old space (has bit cleared).
-  if (value_can_be_smi == kValueIsNotSmi) {
-#if defined(DEBUG)
-    Label okay;
-    BranchIfNotSmi(value, &okay);
-    Stop("Unexpected Smi!");
-    Bind(&okay);
-#endif
-    // To check that, we compute value & ~object and skip the write barrier
-    // if the bit is not set. We can't destroy the object.
-    bic(TMP, value, Operand(object));
-  } else {
-    // For the value we are only interested in the new/old bit and the tag bit.
-    // And the new bit with the tag bit. The resulting bit will be 0 for a Smi.
-    and_(TMP, value,
-         Operand(value, LSL, target::ObjectAlignment::kNewObjectBitPosition));
-    // And the result with the negated space bit of the object.
-    bic(TMP, TMP, Operand(object));
-  }
-  if (how_to_jump == kJumpToNoUpdate) {
-    tbz(label, TMP, target::ObjectAlignment::kNewObjectBitPosition);
-  } else {
-    tbnz(label, TMP, target::ObjectAlignment::kNewObjectBitPosition);
-  }
 }
 
 void Assembler::StoreIntoObjectOffset(Register object,
@@ -1100,10 +1066,8 @@ void Assembler::StoreBarrier(Register object,
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done);
   }
-  ldr(TMP, FieldAddress(object, target::Object::tags_offset(), kByte),
-      kUnsignedByte);
-  ldr(TMP2, FieldAddress(value, target::Object::tags_offset(), kByte),
-      kUnsignedByte);
+  ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
+  ldr(TMP2, FieldAddress(value, target::Object::tags_offset()), kUnsignedByte);
   and_(TMP, TMP2,
        Operand(TMP, LSR, target::UntaggedObject::kBarrierOverlapShift));
   tst(TMP, Operand(HEAP_BITS, LSR, 32));
@@ -1155,7 +1119,7 @@ void Assembler::StoreCompressedIntoArray(Register object,
                                          Register slot,
                                          Register value,
                                          CanBeSmi can_be_smi) {
-  str(value, Address(slot, 0, Address::Offset, kObjectBytes), kObjectBytes);
+  str(value, Address(slot, 0), kObjectBytes);
   StoreIntoArrayBarrier(object, slot, value, can_be_smi);
 }
 
@@ -1182,10 +1146,8 @@ void Assembler::StoreIntoArrayBarrier(Register object,
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done);
   }
-  ldr(TMP, FieldAddress(object, target::Object::tags_offset(), kByte),
-      kUnsignedByte);
-  ldr(TMP2, FieldAddress(value, target::Object::tags_offset(), kByte),
-      kUnsignedByte);
+  ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
+  ldr(TMP2, FieldAddress(value, target::Object::tags_offset()), kUnsignedByte);
   and_(TMP, TMP2,
        Operand(TMP, LSR, target::UntaggedObject::kBarrierOverlapShift));
   tst(TMP, Operand(HEAP_BITS, LSR, 32));
@@ -1221,14 +1183,12 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   // reachable via a constant pool, so it doesn't matter if it is not traced via
   // 'object'.
   Label done;
-  StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
-
-  ldr(TMP, FieldAddress(object, target::Object::tags_offset(), kByte),
-      kUnsignedByte);
-  tsti(TMP, Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
-  b(&done, ZERO);
-
-  Stop("Store buffer update is required");
+  BranchIfSmi(value, &done, kNearJump);
+  ldr(TMP, FieldAddress(value, target::Object::tags_offset()), kUnsignedByte);
+  tbz(&done, TMP, target::UntaggedObject::kNewBit);
+  ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
+  tbz(&done, TMP, target::UntaggedObject::kOldAndNotRememberedBit);
+  Stop("Write barrier is required");
   Bind(&done);
 #endif  // defined(DEBUG)
   // No store buffer update.
@@ -1248,14 +1208,12 @@ void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
   // reachable via a constant pool, so it doesn't matter if it is not traced via
   // 'object'.
   Label done;
-  StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
-
-  ldr(TMP, FieldAddress(object, target::Object::tags_offset(), kByte),
-      kUnsignedByte);
-  tsti(TMP, Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
-  b(&done, ZERO);
-
-  Stop("Store buffer update is required");
+  BranchIfSmi(value, &done, kNearJump);
+  ldr(TMP, FieldAddress(value, target::Object::tags_offset()), kUnsignedByte);
+  tbz(&done, TMP, target::UntaggedObject::kNewBit);
+  ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
+  tbz(&done, TMP, target::UntaggedObject::kOldAndNotRememberedBit);
+  Stop("Write barrier is required");
   Bind(&done);
 #endif  // defined(DEBUG)
   // No store buffer update.
@@ -1293,10 +1251,11 @@ void Assembler::StoreCompressedIntoObjectOffsetNoBarrier(
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
-                                         const Object& value) {
+                                         const Object& value,
+                                         MemoryOrder memory_order) {
+  RELEASE_ASSERT(memory_order == kRelaxedNonAtomic);
   ASSERT(IsOriginalObject(value));
-  ASSERT(IsNotTemporaryScopedHandle(value));
-  // No store buffer update.
+  DEBUG_ASSERT(IsNotTemporaryScopedHandle(value));
   if (IsSameObject(compiler::NullObject(), value)) {
     str(NULL_REG, dest);
   } else if (target::IsSmi(value) && (target::ToRawSmi(value) == 0)) {
@@ -1312,9 +1271,9 @@ void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
                                                    const Object& value,
                                                    MemoryOrder memory_order) {
   // stlr does not feature an address operand.
-  ASSERT(memory_order == kRelaxedNonAtomic);
+  RELEASE_ASSERT(memory_order == kRelaxedNonAtomic);
   ASSERT(IsOriginalObject(value));
-  ASSERT(IsNotTemporaryScopedHandle(value));
+  DEBUG_ASSERT(IsNotTemporaryScopedHandle(value));
   // No store buffer update.
   if (IsSameObject(compiler::NullObject(), value)) {
     str(NULL_REG, dest, kObjectBytes);
@@ -1380,28 +1339,23 @@ void Assembler::StoreInternalPointer(Register object,
 }
 
 void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
-  ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
-  ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
-  LsrImmediate(result, tags, target::UntaggedObject::kClassIdTagPos,
-               kFourBytes);
+  ASSERT(target::UntaggedObject::kClassIdTagPos == 12);
+  ASSERT(target::UntaggedObject::kClassIdTagSize == 20);
+  ubfx(result, tags, target::UntaggedObject::kClassIdTagPos,
+       target::UntaggedObject::kClassIdTagSize);
 }
 
 void Assembler::ExtractInstanceSizeFromTags(Register result, Register tags) {
   ASSERT(target::UntaggedObject::kSizeTagPos == 8);
-  ASSERT(target::UntaggedObject::kSizeTagSize == 8);
+  ASSERT(target::UntaggedObject::kSizeTagSize == 4);
   ubfx(result, tags, target::UntaggedObject::kSizeTagPos,
        target::UntaggedObject::kSizeTagSize);
   LslImmediate(result, result, target::ObjectAlignment::kObjectAlignmentLog2);
 }
 
 void Assembler::LoadClassId(Register result, Register object) {
-  ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
-  ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
-  const intptr_t class_id_offset =
-      target::Object::tags_offset() +
-      target::UntaggedObject::kClassIdTagPos / kBitsPerByte;
-  LoadFromOffset(result, object, class_id_offset - kHeapObjectTag,
-                 kUnsignedTwoBytes);
+  ldr(result, FieldAddress(object, target::Object::tags_offset()));
+  ExtractClassIdFromTags(result, result);
 }
 
 void Assembler::LoadClassById(Register result, Register class_id) {
@@ -1901,13 +1855,13 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   const intptr_t count_offset = target::Array::element_offset(1);
 
   // Sadly this cannot use ldp because ldp requires aligned offsets.
-  ldr(R1, FieldAddress(R5, cid_offset, kObjectBytes), kObjectBytes);
-  ldr(R2, FieldAddress(R5, count_offset, kObjectBytes), kObjectBytes);
+  ldr(R1, FieldAddress(R5, cid_offset), kObjectBytes);
+  ldr(R2, FieldAddress(R5, count_offset), kObjectBytes);
   LoadClassIdMayBeSmi(IP0, R0);
   add(R2, R2, Operand(target::ToRawSmi(1)), kObjectBytes);
   cmp(R1, Operand(IP0, LSL, 1), kObjectBytes);
   b(&miss, NE);
-  str(R2, FieldAddress(R5, count_offset, kObjectBytes), kObjectBytes);
+  str(R2, FieldAddress(R5, count_offset), kObjectBytes);
   LoadImmediate(R4, 0);  // GC-safe for OptimizeInvokedFunction
 
   // Fall through to unchecked entry.
@@ -1963,17 +1917,14 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      JumpDistance distance) {
   ASSERT(cid > 0);
 
-  const intptr_t shared_table_offset =
-      target::IsolateGroup::shared_class_table_offset();
-  const intptr_t table_offset =
-      target::SharedClassTable::class_heap_stats_table_offset();
-  const intptr_t class_offset = target::ClassTable::ClassOffsetFor(cid);
-
   LoadIsolateGroup(temp_reg);
-  ldr(temp_reg, Address(temp_reg, shared_table_offset));
-  ldr(temp_reg, Address(temp_reg, table_offset));
-  AddImmediate(temp_reg, class_offset);
-  ldr(temp_reg, Address(temp_reg, 0), kUnsignedByte);
+  ldr(temp_reg, Address(temp_reg, target::IsolateGroup::class_table_offset()));
+  ldr(temp_reg,
+      Address(temp_reg,
+              target::ClassTable::allocation_tracing_state_table_offset()));
+  LoadFromOffset(temp_reg, temp_reg,
+                 target::ClassTable::AllocationTracingStateSlotOffsetFor(cid),
+                 kUnsignedByte);
   cbnz(trace, temp_reg);
 }
 #endif  // !PRODUCT
@@ -2107,7 +2058,7 @@ Address Assembler::ElementAddressForIntIndex(bool is_external,
   ASSERT(Utils::IsInt(32, offset));
   const OperandSize size = Address::OperandSizeFor(cid);
   ASSERT(Address::CanHoldOffset(offset, Address::Offset, size));
-  return Address(array, static_cast<int32_t>(offset), Address::Offset, size);
+  return Address(array, static_cast<int32_t>(offset));
 }
 
 void Assembler::ComputeElementAddressForIntIndex(Register address,
@@ -2173,7 +2124,7 @@ Address Assembler::ElementAddressForRegIndexWithSize(bool is_external,
     }
   }
   ASSERT(Address::CanHoldOffset(offset, Address::Offset, size));
-  return Address(temp, offset, Address::Offset, size);
+  return Address(temp, offset);
 }
 
 void Assembler::ComputeElementAddressForRegIndex(Register address,
@@ -2382,7 +2333,7 @@ void Assembler::PushNativeCalleeSavedRegisters() {
 
 void Assembler::PopNativeCalleeSavedRegisters() {
   // Restore the bottom 64-bits of callee-saved V registers.
-  bool pop_single = (kAbiPreservedFpuRegCount & 1) == 1;
+  bool pop_single = (kAbiPreservedFpuRegCount & 1) != 0;
   VRegister vprev = kNoVRegister;
   for (int i = kAbiLastPreservedFpuReg; i >= kAbiFirstPreservedFpuReg; i--) {
     const VRegister r = static_cast<VRegister>(i);
@@ -2402,7 +2353,7 @@ void Assembler::PopNativeCalleeSavedRegisters() {
   // register when it is not holding a pool-pointer since we are returning to
   // C++ code. We also skip the dart stack pointer SP, since we are still
   // using it as the stack pointer.
-  pop_single = (kAbiPreservedCpuRegCount & 1) == 1;
+  pop_single = (kAbiPreservedCpuRegCount & 1) != 0;
   Register prev = kNoRegister;
   for (int i = kAbiLastPreservedCpuReg; i >= kAbiFirstPreservedCpuReg; i--) {
     Register r = static_cast<Register>(i);
@@ -2462,6 +2413,19 @@ void Assembler::GenerateCbzTbz(Register rn,
       // Only conditions above allow single instruction emission.
       UNREACHABLE();
   }
+}
+
+void Assembler::RangeCheck(Register value,
+                           Register temp,
+                           intptr_t low,
+                           intptr_t high,
+                           RangeCheckCondition condition,
+                           Label* target) {
+  auto cc = condition == kIfInRange ? LS : HI;
+  Register to_check = temp != kNoRegister ? temp : value;
+  AddImmediate(to_check, value, -low);
+  CompareImmediate(to_check, high - low);
+  b(target, cc);
 }
 
 }  // namespace compiler

@@ -106,6 +106,21 @@ void f() {
 ''');
   }
 
+  Future<void> test_localVariable_initializedToNull_recordType() async {
+    await resolveTestCode('''
+void f() {
+  (int, int) r = null;
+  print(r);
+}
+''');
+    await assertHasFix('''
+void f() {
+  (int, int)? r = null;
+  print(r);
+}
+''');
+  }
+
   Future<void> test_localVariable_type() async {
     await resolveTestCode('''
 void f() {
@@ -119,6 +134,23 @@ void f() {
   String? s = '';
   s = null;
   print(s);
+}
+''');
+  }
+
+  Future<void> test_localVariable_type_recordType() async {
+    await resolveTestCode('''
+void f() {
+  ({int x, int y}) r = (x: 0, y: 0);
+  r = null;
+  print(r);
+}
+''');
+    await assertHasFix('''
+void f() {
+  ({int x, int y})? r = (x: 0, y: 0);
+  r = null;
+  print(r);
 }
 ''');
   }
@@ -166,6 +198,15 @@ void f() {
   s = null;
   print(s);
 }
+''');
+  }
+
+  Future<void> test_positional() async {
+    await resolveTestCode('''
+void f([String s]) {}
+''');
+    await assertHasFix('''
+void f([String? s]) {}
 ''');
   }
 

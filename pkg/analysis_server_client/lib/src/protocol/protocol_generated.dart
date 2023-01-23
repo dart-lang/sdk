@@ -5180,7 +5180,7 @@ class CompletionMode implements Enum {
 class CompletionRegisterLibraryPathsParams implements RequestParams {
   /// A list of objects each containing a path and the additional libraries
   /// from which the client is interested in receiving completion suggestions.
-  /// If one configured path is beneath another, the descendent will override
+  /// If one configured path is beneath another, the descendant will override
   /// the ancestors' configured libraries of interest.
   List<LibraryPathSet> paths;
 
@@ -5982,6 +5982,7 @@ class DiagnosticGetServerPortResult implements ResponseResult {
 /// {
 ///   "included": List<FilePath>
 ///   "inTestMode": optional bool
+///   "codes": optional List<String>
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -6004,7 +6005,10 @@ class EditBulkFixesParams implements RequestParams {
   /// If this field is omitted the flag defaults to false.
   bool? inTestMode;
 
-  EditBulkFixesParams(this.included, {this.inTestMode});
+  /// A list of diagnostic codes to be fixed.
+  List<String>? codes;
+
+  EditBulkFixesParams(this.included, {this.inTestMode, this.codes});
 
   factory EditBulkFixesParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -6022,7 +6026,13 @@ class EditBulkFixesParams implements RequestParams {
         inTestMode =
             jsonDecoder.decodeBool('$jsonPath.inTestMode', json['inTestMode']);
       }
-      return EditBulkFixesParams(included, inTestMode: inTestMode);
+      List<String>? codes;
+      if (json.containsKey('codes')) {
+        codes = jsonDecoder.decodeList(
+            '$jsonPath.codes', json['codes'], jsonDecoder.decodeString);
+      }
+      return EditBulkFixesParams(included,
+          inTestMode: inTestMode, codes: codes);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'edit.bulkFixes params', json);
     }
@@ -6041,6 +6051,10 @@ class EditBulkFixesParams implements RequestParams {
     if (inTestMode != null) {
       result['inTestMode'] = inTestMode;
     }
+    var codes = this.codes;
+    if (codes != null) {
+      result['codes'] = codes;
+    }
     return result;
   }
 
@@ -6057,7 +6071,8 @@ class EditBulkFixesParams implements RequestParams {
     if (other is EditBulkFixesParams) {
       return listEqual(
               included, other.included, (String a, String b) => a == b) &&
-          inTestMode == other.inTestMode;
+          inTestMode == other.inTestMode &&
+          listEqual(codes, other.codes, (String a, String b) => a == b);
     }
     return false;
   }
@@ -6066,30 +6081,42 @@ class EditBulkFixesParams implements RequestParams {
   int get hashCode => Object.hash(
         Object.hashAll(included),
         inTestMode,
+        Object.hashAll(codes ?? []),
       );
 }
 
 /// edit.bulkFixes result
 ///
 /// {
+///   "message": String
 ///   "edits": List<SourceFileEdit>
 ///   "details": List<BulkFix>
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditBulkFixesResult implements ResponseResult {
+  /// An optional message explaining unapplied fixes.
+  String message;
+
   /// A list of source edits to apply the recommended changes.
   List<SourceFileEdit> edits;
 
   /// Details that summarize the fixes associated with the recommended changes.
   List<BulkFix> details;
 
-  EditBulkFixesResult(this.edits, this.details);
+  EditBulkFixesResult(this.message, this.edits, this.details);
 
   factory EditBulkFixesResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
+      String message;
+      if (json.containsKey('message')) {
+        message =
+            jsonDecoder.decodeString('$jsonPath.message', json['message']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'message');
+      }
       List<SourceFileEdit> edits;
       if (json.containsKey('edits')) {
         edits = jsonDecoder.decodeList(
@@ -6110,7 +6137,7 @@ class EditBulkFixesResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'details');
       }
-      return EditBulkFixesResult(edits, details);
+      return EditBulkFixesResult(message, edits, details);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'edit.bulkFixes result', json);
     }
@@ -6126,6 +6153,7 @@ class EditBulkFixesResult implements ResponseResult {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
+    result['message'] = message;
     result['edits'] =
         edits.map((SourceFileEdit value) => value.toJson()).toList();
     result['details'] = details.map((BulkFix value) => value.toJson()).toList();
@@ -6143,7 +6171,8 @@ class EditBulkFixesResult implements ResponseResult {
   @override
   bool operator ==(other) {
     if (other is EditBulkFixesResult) {
-      return listEqual(edits, other.edits,
+      return message == other.message &&
+          listEqual(edits, other.edits,
               (SourceFileEdit a, SourceFileEdit b) => a == b) &&
           listEqual(details, other.details, (BulkFix a, BulkFix b) => a == b);
     }
@@ -6152,6 +6181,7 @@ class EditBulkFixesResult implements ResponseResult {
 
   @override
   int get hashCode => Object.hash(
+        message,
         Object.hashAll(edits),
         Object.hashAll(details),
       );
@@ -12911,158 +12941,6 @@ class InlineMethodOptions extends RefactoringOptions {
       );
 }
 
-/// kythe.getKytheEntries params
-///
-/// {
-///   "file": FilePath
-/// }
-///
-/// Clients may not extend, implement or mix-in this class.
-class KytheGetKytheEntriesParams implements RequestParams {
-  /// The file containing the code for which the Kythe Entry objects are being
-  /// requested.
-  String file;
-
-  KytheGetKytheEntriesParams(this.file);
-
-  factory KytheGetKytheEntriesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
-    json ??= {};
-    if (json is Map) {
-      String file;
-      if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, 'file');
-      }
-      return KytheGetKytheEntriesParams(file);
-    } else {
-      throw jsonDecoder.mismatch(
-          jsonPath, 'kythe.getKytheEntries params', json);
-    }
-  }
-
-  factory KytheGetKytheEntriesParams.fromRequest(Request request) {
-    return KytheGetKytheEntriesParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
-  }
-
-  @override
-  Map<String, Object> toJson() {
-    var result = <String, Object>{};
-    result['file'] = file;
-    return result;
-  }
-
-  @override
-  Request toRequest(String id) {
-    return Request(id, 'kythe.getKytheEntries', toJson());
-  }
-
-  @override
-  String toString() => json.encode(toJson());
-
-  @override
-  bool operator ==(other) {
-    if (other is KytheGetKytheEntriesParams) {
-      return file == other.file;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => file.hashCode;
-}
-
-/// kythe.getKytheEntries result
-///
-/// {
-///   "entries": List<KytheEntry>
-///   "files": List<FilePath>
-/// }
-///
-/// Clients may not extend, implement or mix-in this class.
-class KytheGetKytheEntriesResult implements ResponseResult {
-  /// The list of KytheEntry objects for the queried file.
-  List<KytheEntry> entries;
-
-  /// The set of files paths that were required, but not in the file system, to
-  /// give a complete and accurate Kythe graph for the file. This could be due
-  /// to a referenced file that does not exist or generated files not being
-  /// generated or passed before the call to "getKytheEntries".
-  List<String> files;
-
-  KytheGetKytheEntriesResult(this.entries, this.files);
-
-  factory KytheGetKytheEntriesResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
-    json ??= {};
-    if (json is Map) {
-      List<KytheEntry> entries;
-      if (json.containsKey('entries')) {
-        entries = jsonDecoder.decodeList(
-            '$jsonPath.entries',
-            json['entries'],
-            (String jsonPath, Object? json) =>
-                KytheEntry.fromJson(jsonDecoder, jsonPath, json));
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, 'entries');
-      }
-      List<String> files;
-      if (json.containsKey('files')) {
-        files = jsonDecoder.decodeList(
-            '$jsonPath.files', json['files'], jsonDecoder.decodeString);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, 'files');
-      }
-      return KytheGetKytheEntriesResult(entries, files);
-    } else {
-      throw jsonDecoder.mismatch(
-          jsonPath, 'kythe.getKytheEntries result', json);
-    }
-  }
-
-  factory KytheGetKytheEntriesResult.fromResponse(Response response) {
-    return KytheGetKytheEntriesResult.fromJson(
-        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
-        'result',
-        response.result);
-  }
-
-  @override
-  Map<String, Object> toJson() {
-    var result = <String, Object>{};
-    result['entries'] =
-        entries.map((KytheEntry value) => value.toJson()).toList();
-    result['files'] = files;
-    return result;
-  }
-
-  @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
-  }
-
-  @override
-  String toString() => json.encode(toJson());
-
-  @override
-  bool operator ==(other) {
-    if (other is KytheGetKytheEntriesResult) {
-      return listEqual(
-              entries, other.entries, (KytheEntry a, KytheEntry b) => a == b) &&
-          listEqual(files, other.files, (String a, String b) => a == b);
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => Object.hash(
-        Object.hashAll(entries),
-        Object.hashAll(files),
-      );
-}
-
 /// LibraryPathSet
 ///
 /// {
@@ -13836,7 +13714,6 @@ class RequestError implements HasToJson {
 ///   GET_ERRORS_INVALID_FILE
 ///   GET_FIXES_INVALID_FILE
 ///   GET_IMPORTED_ELEMENTS_INVALID_FILE
-///   GET_KYTHE_ENTRIES_INVALID_FILE
 ///   GET_NAVIGATION_INVALID_FILE
 ///   GET_REACHABLE_SOURCES_INVALID_FILE
 ///   GET_SIGNATURE_INVALID_FILE
@@ -13924,11 +13801,6 @@ class RequestErrorCode implements Enum {
   /// not match a file currently subject to analysis.
   static const RequestErrorCode GET_IMPORTED_ELEMENTS_INVALID_FILE =
       RequestErrorCode._('GET_IMPORTED_ELEMENTS_INVALID_FILE');
-
-  /// An "analysis.getKytheEntries" request specified a FilePath that does not
-  /// match a file that is currently subject to analysis.
-  static const RequestErrorCode GET_KYTHE_ENTRIES_INVALID_FILE =
-      RequestErrorCode._('GET_KYTHE_ENTRIES_INVALID_FILE');
 
   /// An "analysis.getNavigation" request specified a FilePath which does not
   /// match a file currently subject to analysis.
@@ -14049,7 +13921,6 @@ class RequestErrorCode implements Enum {
     GET_ERRORS_INVALID_FILE,
     GET_FIXES_INVALID_FILE,
     GET_IMPORTED_ELEMENTS_INVALID_FILE,
-    GET_KYTHE_ENTRIES_INVALID_FILE,
     GET_NAVIGATION_INVALID_FILE,
     GET_REACHABLE_SOURCES_INVALID_FILE,
     GET_SIGNATURE_INVALID_FILE,
@@ -14105,8 +13976,6 @@ class RequestErrorCode implements Enum {
         return GET_FIXES_INVALID_FILE;
       case 'GET_IMPORTED_ELEMENTS_INVALID_FILE':
         return GET_IMPORTED_ELEMENTS_INVALID_FILE;
-      case 'GET_KYTHE_ENTRIES_INVALID_FILE':
-        return GET_KYTHE_ENTRIES_INVALID_FILE;
       case 'GET_NAVIGATION_INVALID_FILE':
         return GET_NAVIGATION_INVALID_FILE;
       case 'GET_REACHABLE_SOURCES_INVALID_FILE':

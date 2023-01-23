@@ -30,7 +30,7 @@ class InstanceRefElement extends CustomElement implements Renderable {
 
   factory InstanceRefElement(
       M.IsolateRef isolate, M.InstanceRef instance, M.ObjectRepository objects,
-      {RenderingQueue queue, bool expandable: true}) {
+      {RenderingQueue queue, bool expandable = true}) {
     assert(isolate != null);
     assert(instance != null);
     assert(objects != null);
@@ -127,6 +127,7 @@ class InstanceRefElement extends CustomElement implements Renderable {
       case M.InstanceKind.functionType:
       case M.InstanceKind.typeRef:
       case M.InstanceKind.typeParameter:
+      case M.InstanceKind.recordType:
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
             ..text = _instance.name
@@ -168,6 +169,7 @@ class InstanceRefElement extends CustomElement implements Renderable {
         ];
       case M.InstanceKind.list:
       case M.InstanceKind.map:
+      case M.InstanceKind.set:
       case M.InstanceKind.uint8ClampedList:
       case M.InstanceKind.uint8List:
       case M.InstanceKind.uint16List:
@@ -192,12 +194,10 @@ class InstanceRefElement extends CustomElement implements Renderable {
             ]
         ];
       case M.InstanceKind.mirrorReference:
-        return [
-          new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
-            ..classes = ['emphasize']
-            ..text = _instance.clazz.name
-        ];
       case M.InstanceKind.weakProperty:
+      case M.InstanceKind.finalizer:
+      case M.InstanceKind.weakReference:
+      case M.InstanceKind.record:
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
             ..classes = ['emphasize']
@@ -213,10 +213,13 @@ class InstanceRefElement extends CustomElement implements Renderable {
       case M.InstanceKind.plainInstance:
       case M.InstanceKind.mirrorReference:
       case M.InstanceKind.stackTrace:
+      case M.InstanceKind.weakReference:
       case M.InstanceKind.weakProperty:
+      case M.InstanceKind.recordType:
         return true;
       case M.InstanceKind.list:
       case M.InstanceKind.map:
+      case M.InstanceKind.set:
       case M.InstanceKind.uint8ClampedList:
       case M.InstanceKind.uint8List:
       case M.InstanceKind.uint16List:
@@ -283,7 +286,7 @@ class InstanceRefElement extends CustomElement implements Renderable {
                 anyRef(_isolate, element, _objects, queue: _r.queue)
               ])
             .toList()
-              ..addAll(_createShowMoreButton());
+          ..addAll(_createShowMoreButton());
       case M.InstanceKind.map:
         return _loadedInstance.associations
             .map<Element>((association) => new DivElement()
@@ -294,7 +297,15 @@ class InstanceRefElement extends CustomElement implements Renderable {
                 anyRef(_isolate, association.value, _objects, queue: _r.queue)
               ])
             .toList()
-              ..addAll(_createShowMoreButton());
+          ..addAll(_createShowMoreButton());
+      case M.InstanceKind.set:
+        return _loadedInstance.elements
+            .map<Element>((element) => new DivElement()
+              ..children = <Element>[
+                anyRef(_isolate, element, _objects, queue: _r.queue)
+              ])
+            .toList()
+          ..addAll(_createShowMoreButton());
       case M.InstanceKind.uint8ClampedList:
       case M.InstanceKind.uint8List:
       case M.InstanceKind.uint16List:
@@ -313,7 +324,7 @@ class InstanceRefElement extends CustomElement implements Renderable {
         return _loadedInstance.typedElements
             .map<Element>((e) => new DivElement()..text = '[ ${index++} ] : $e')
             .toList()
-              ..addAll(_createShowMoreButton());
+          ..addAll(_createShowMoreButton());
       case M.InstanceKind.mirrorReference:
         return [
           new SpanElement()..text = '<referent> : ',
@@ -325,17 +336,29 @@ class InstanceRefElement extends CustomElement implements Renderable {
             ..classes = ['stackTraceBox']
             ..text = _instance.valueAsString
         ];
+      case M.InstanceKind.weakReference:
+        return [
+          new SpanElement()..text = '<target> : ',
+          anyRef(_isolate, _loadedInstance.target, _objects, queue: _r.queue)
+        ];
       case M.InstanceKind.weakProperty:
         return [
           new SpanElement()..text = '<key> : ',
-          new InstanceRefElement(_isolate, _loadedInstance.key, _objects,
-                  queue: _r.queue)
-              .element,
+          anyRef(_isolate, _loadedInstance.key, _objects, queue: _r.queue),
           new BRElement(),
           new SpanElement()..text = '<value> : ',
-          new InstanceRefElement(_isolate, _loadedInstance.value, _objects,
-                  queue: _r.queue)
-              .element,
+          anyRef(_isolate, _loadedInstance.value, _objects, queue: _r.queue),
+        ];
+      case M.InstanceKind.recordType:
+        final fields = _loadedInstance.fields.toList();
+        return [
+          for (int i = 0; i < fields.length; ++i) ...[
+            new SpanElement()..text = '${fields[i].name} = ',
+            new InstanceRefElement(_isolate, fields[i].value.asValue, _objects,
+                    queue: _r.queue)
+                .element,
+            if (i + 1 != fields.length) new BRElement(),
+          ]
         ];
       default:
         return [];

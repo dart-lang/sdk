@@ -894,7 +894,7 @@ void Assembler::EmitMultiVSMemOp(Condition cond,
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B27 |
                      B26 | B11 | B9 | am | (load ? L : 0) |
                      ArmEncode::Rn(base) |
-                     ((static_cast<int32_t>(start) & 0x1) ? D : 0) |
+                     ((static_cast<int32_t>(start) & 0x1) != 0 ? D : 0) |
                      ((static_cast<int32_t>(start) >> 1) << 12) | count;
   Emit(encoding);
 }
@@ -914,7 +914,7 @@ void Assembler::EmitMultiVDMemOp(Condition cond,
   int32_t encoding =
       (static_cast<int32_t>(cond) << kConditionShift) | B27 | B26 | B11 | B9 |
       B8 | am | (load ? L : 0) | ArmEncode::Rn(base) |
-      ((static_cast<int32_t>(start) & 0x10) ? D : 0) |
+      ((static_cast<int32_t>(start) & 0x10) != 0 ? D : 0) |
       ((static_cast<int32_t>(start) & 0xf) << 12) | (count << 1) | notArmv5te;
   Emit(encoding);
 }
@@ -1631,7 +1631,7 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
     return false;
   }
 
-  ASSERT(IsNotTemporaryScopedHandle(object));
+  DEBUG_ASSERT(IsNotTemporaryScopedHandle(object));
   ASSERT(IsInOldSpace(object));
   return true;
 }
@@ -1704,38 +1704,6 @@ void Assembler::CompareObject(Register rn, const Object& object) {
   }
 }
 
-// Preserves object and value registers.
-void Assembler::StoreIntoObjectFilter(Register object,
-                                      Register value,
-                                      Label* label,
-                                      CanBeSmi value_can_be_smi,
-                                      BarrierFilterMode how_to_jump) {
-  COMPILE_ASSERT((target::ObjectAlignment::kNewObjectAlignmentOffset ==
-                  target::kWordSize) &&
-                 (target::ObjectAlignment::kOldObjectAlignmentOffset == 0));
-  // For the value we are only interested in the new/old bit and the tag bit.
-  // And the new bit with the tag bit. The resulting bit will be 0 for a Smi.
-  if (value_can_be_smi == kValueCanBeSmi) {
-    and_(
-        IP, value,
-        Operand(value, LSL, target::ObjectAlignment::kObjectAlignmentLog2 - 1));
-    // And the result with the negated space bit of the object.
-    bic(IP, IP, Operand(object));
-  } else {
-#if defined(DEBUG)
-    Label okay;
-    BranchIfNotSmi(value, &okay);
-    Stop("Unexpected Smi!");
-    Bind(&okay);
-#endif
-    bic(IP, value, Operand(object));
-  }
-  tst(IP, Operand(target::ObjectAlignment::kNewObjectAlignmentOffset));
-  if (how_to_jump != kNoJump) {
-    b(label, how_to_jump == kJumpToNoUpdate ? EQ : NE);
-  }
-}
-
 Register UseRegister(Register reg, RegList* used) {
   ASSERT(reg != THR);
   ASSERT(reg != SP);
@@ -1782,7 +1750,7 @@ void Assembler::StoreIntoObject(Register object,
   // Compare UntaggedObject::StorePointer.
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
-    BranchIfSmi(value, &done);
+    BranchIfSmi(value, &done, kNearJump);
   }
   const bool preserve_lr = lr_state().LRContainsReturnAddress();
   if (preserve_lr) {
@@ -1853,7 +1821,7 @@ void Assembler::StoreIntoArray(Register object,
   // Compare UntaggedObject::StorePointer.
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
-    BranchIfSmi(value, &done);
+    BranchIfSmi(value, &done, kNearJump);
   }
   const bool preserve_lr = lr_state().LRContainsReturnAddress();
   if (preserve_lr) {
@@ -1915,13 +1883,14 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   // reachable via a constant pool, so it doesn't matter if it is not traced via
   // 'object'.
   Label done;
-  StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
-
+  BranchIfSmi(value, &done, kNearJump);
+  ldrb(TMP, FieldAddress(value, target::Object::tags_offset()));
+  tst(TMP, Operand(1 << target::UntaggedObject::kNewBit));
+  b(&done, ZERO);
   ldrb(TMP, FieldAddress(object, target::Object::tags_offset()));
   tst(TMP, Operand(1 << target::UntaggedObject::kOldAndNotRememberedBit));
   b(&done, ZERO);
-
-  Stop("Store buffer update is required");
+  Stop("Write barrier is required");
   Bind(&done);
 #endif  // defined(DEBUG)
   // No store buffer update.
@@ -1932,7 +1901,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Object& value,
                                          MemoryOrder memory_order) {
   ASSERT(IsOriginalObject(value));
-  ASSERT(IsNotTemporaryScopedHandle(value));
+  DEBUG_ASSERT(IsNotTemporaryScopedHandle(value));
   // No store buffer update.
   LoadObject(IP, value);
   if (memory_order == kRelease) {
@@ -1942,7 +1911,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   }
 }
 
-void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
+void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
                                                int32_t offset,
                                                Register value,
                                                MemoryOrder memory_order) {
@@ -1960,7 +1929,7 @@ void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
   }
 }
 
-void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
+void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
                                                int32_t offset,
                                                const Object& value,
                                                MemoryOrder memory_order) {
@@ -1998,16 +1967,6 @@ void Assembler::InitializeFieldsNoBarrier(Register object,
   strd(value_even, value_odd, begin, -2 * target::kWordSize, LS);
   b(&init_loop, CC);
   str(value_even, Address(begin, -2 * target::kWordSize), HI);
-#if defined(DEBUG)
-  Label done;
-  StoreIntoObjectFilter(object, value_even, &done, kValueCanBeSmi,
-                        kJumpToNoUpdate);
-  StoreIntoObjectFilter(object, value_odd, &done, kValueCanBeSmi,
-                        kJumpToNoUpdate);
-  Stop("Store buffer update is required");
-  Bind(&done);
-#endif  // defined(DEBUG)
-  // No store buffer update.
 }
 
 void Assembler::InitializeFieldsNoBarrierUnrolled(Register object,
@@ -2026,16 +1985,6 @@ void Assembler::InitializeFieldsNoBarrierUnrolled(Register object,
     str(value_even, Address(base, current_offset));
     current_offset += target::kWordSize;
   }
-#if defined(DEBUG)
-  Label done;
-  StoreIntoObjectFilter(object, value_even, &done, kValueCanBeSmi,
-                        kJumpToNoUpdate);
-  StoreIntoObjectFilter(object, value_odd, &done, kValueCanBeSmi,
-                        kJumpToNoUpdate);
-  Stop("Store buffer update is required");
-  Bind(&done);
-#endif  // defined(DEBUG)
-  // No store buffer update.
 }
 
 void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
@@ -2049,15 +1998,18 @@ void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
   str(value, dest);
 }
 
-void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
-  ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
-  ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
-  Lsr(result, tags, Operand(target::UntaggedObject::kClassIdTagPos), AL);
+void Assembler::ExtractClassIdFromTags(Register result,
+                                       Register tags,
+                                       Condition cond) {
+  ASSERT(target::UntaggedObject::kClassIdTagPos == 12);
+  ASSERT(target::UntaggedObject::kClassIdTagSize == 20);
+  ubfx(result, tags, target::UntaggedObject::kClassIdTagPos,
+       target::UntaggedObject::kClassIdTagSize, cond);
 }
 
 void Assembler::ExtractInstanceSizeFromTags(Register result, Register tags) {
   ASSERT(target::UntaggedObject::kSizeTagPos == 8);
-  ASSERT(target::UntaggedObject::kSizeTagSize == 8);
+  ASSERT(target::UntaggedObject::kSizeTagSize == 4);
   Lsr(result, tags,
       Operand(target::UntaggedObject::kSizeTagPos -
               target::ObjectAlignment::kObjectAlignmentLog2),
@@ -2068,12 +2020,8 @@ void Assembler::ExtractInstanceSizeFromTags(Register result, Register tags) {
 }
 
 void Assembler::LoadClassId(Register result, Register object, Condition cond) {
-  ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
-  ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
-  const intptr_t class_id_offset =
-      target::Object::tags_offset() +
-      target::UntaggedObject::kClassIdTagPos / kBitsPerByte;
-  ldrh(result, FieldAddress(object, class_id_offset), cond);
+  ldr(result, FieldAddress(object, target::Object::tags_offset()), cond);
+  ExtractClassIdFromTags(result, result, cond);
 }
 
 void Assembler::LoadClassById(Register result, Register class_id) {
@@ -2301,7 +2249,7 @@ void Assembler::LoadCompressedSmi(Register dest, const Address& slot) {
   ldr(dest, slot);
 #if defined(DEBUG)
   Label done;
-  BranchIfSmi(dest, &done);
+  BranchIfSmi(dest, &done, kNearJump);
   Stop("Expected Smi");
   Bind(&done);
 #endif
@@ -2311,6 +2259,7 @@ OperandSize Address::OperandSizeFor(intptr_t cid) {
   switch (cid) {
     case kArrayCid:
     case kImmutableArrayCid:
+    case kRecordCid:
     case kTypeArgumentsCid:
       return kFourBytes;
     case kOneByteStringCid:
@@ -3035,77 +2984,6 @@ void Assembler::StoreMultipleDToOffset(DRegister first,
   vstmd(IA, IP, first, count);
 }
 
-void Assembler::CopyDoubleField(Register dst,
-                                Register src,
-                                Register tmp1,
-                                Register tmp2,
-                                DRegister dtmp) {
-    LoadDFromOffset(dtmp, src, target::Double::value_offset() - kHeapObjectTag);
-    StoreDToOffset(dtmp, dst, target::Double::value_offset() - kHeapObjectTag);
-}
-
-void Assembler::CopyFloat32x4Field(Register dst,
-                                   Register src,
-                                   Register tmp1,
-                                   Register tmp2,
-                                   DRegister dtmp) {
-  if (TargetCPUFeatures::neon_supported()) {
-    LoadMultipleDFromOffset(dtmp, 2, src,
-                            target::Float32x4::value_offset() - kHeapObjectTag);
-    StoreMultipleDToOffset(dtmp, 2, dst,
-                           target::Float32x4::value_offset() - kHeapObjectTag);
-  } else {
-    LoadFieldFromOffset(
-        tmp1, src, target::Float32x4::value_offset() + 0 * target::kWordSize);
-    LoadFieldFromOffset(
-        tmp2, src, target::Float32x4::value_offset() + 1 * target::kWordSize);
-    StoreFieldToOffset(
-        tmp1, dst, target::Float32x4::value_offset() + 0 * target::kWordSize);
-    StoreFieldToOffset(
-        tmp2, dst, target::Float32x4::value_offset() + 1 * target::kWordSize);
-
-    LoadFieldFromOffset(
-        tmp1, src, target::Float32x4::value_offset() + 2 * target::kWordSize);
-    LoadFieldFromOffset(
-        tmp2, src, target::Float32x4::value_offset() + 3 * target::kWordSize);
-    StoreFieldToOffset(
-        tmp1, dst, target::Float32x4::value_offset() + 2 * target::kWordSize);
-    StoreFieldToOffset(
-        tmp2, dst, target::Float32x4::value_offset() + 3 * target::kWordSize);
-  }
-}
-
-void Assembler::CopyFloat64x2Field(Register dst,
-                                   Register src,
-                                   Register tmp1,
-                                   Register tmp2,
-                                   DRegister dtmp) {
-  if (TargetCPUFeatures::neon_supported()) {
-    LoadMultipleDFromOffset(dtmp, 2, src,
-                            target::Float64x2::value_offset() - kHeapObjectTag);
-    StoreMultipleDToOffset(dtmp, 2, dst,
-                           target::Float64x2::value_offset() - kHeapObjectTag);
-  } else {
-    LoadFieldFromOffset(
-        tmp1, src, target::Float64x2::value_offset() + 0 * target::kWordSize);
-    LoadFieldFromOffset(
-        tmp2, src, target::Float64x2::value_offset() + 1 * target::kWordSize);
-    StoreFieldToOffset(
-        tmp1, dst, target::Float64x2::value_offset() + 0 * target::kWordSize);
-    StoreFieldToOffset(
-        tmp2, dst, target::Float64x2::value_offset() + 1 * target::kWordSize);
-
-    LoadFieldFromOffset(
-        tmp1, src, target::Float64x2::value_offset() + 2 * target::kWordSize);
-    LoadFieldFromOffset(
-        tmp2, src, target::Float64x2::value_offset() + 3 * target::kWordSize);
-    StoreFieldToOffset(
-        tmp1, dst, target::Float64x2::value_offset() + 2 * target::kWordSize);
-    StoreFieldToOffset(
-        tmp2, dst, target::Float64x2::value_offset() + 3 * target::kWordSize);
-  }
-}
-
 void Assembler::AddImmediate(Register rd,
                              Register rn,
                              int32_t value,
@@ -3592,25 +3470,22 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Label* trace,
                                      Register temp_reg,
                                      JumpDistance distance) {
-  LoadAllocationStatsAddress(temp_reg, cid);
+  LoadAllocationTracingStateAddress(temp_reg, cid);
   MaybeTraceAllocation(temp_reg, trace);
 }
 
-void Assembler::LoadAllocationStatsAddress(Register dest, intptr_t cid) {
+void Assembler::LoadAllocationTracingStateAddress(Register dest, intptr_t cid) {
   ASSERT(dest != kNoRegister);
   ASSERT(dest != TMP);
   ASSERT(cid > 0);
 
-  const intptr_t shared_table_offset =
-      target::IsolateGroup::shared_class_table_offset();
-  const intptr_t table_offset =
-      target::SharedClassTable::class_heap_stats_table_offset();
-  const intptr_t class_offset = target::ClassTable::ClassOffsetFor(cid);
-
   LoadIsolateGroup(dest);
-  ldr(dest, Address(dest, shared_table_offset));
-  ldr(dest, Address(dest, table_offset));
-  AddImmediate(dest, class_offset);
+  ldr(dest, Address(dest, target::IsolateGroup::class_table_offset()));
+  ldr(dest,
+      Address(dest,
+              target::ClassTable::allocation_tracing_state_table_offset()));
+  AddImmediate(dest,
+               target::ClassTable::AllocationTracingStateSlotOffsetFor(cid));
 }
 #endif  // !PRODUCT
 
@@ -3631,7 +3506,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
                           target::ObjectAlignment::kObjectAlignment));
   if (FLAG_inline_alloc &&
       target::Heap::IsAllocatableInNewSpace(instance_size)) {
-    NOT_IN_PRODUCT(LoadAllocationStatsAddress(temp_reg, cid));
+    NOT_IN_PRODUCT(LoadAllocationTracingStateAddress(temp_reg, cid));
     ldr(instance_reg, Address(THR, target::Thread::top_offset()));
     // TODO(koda): Protect against unsigned overflow here.
     AddImmediate(instance_reg, instance_size);
@@ -3669,7 +3544,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
                                  Register temp2) {
   if (FLAG_inline_alloc &&
       target::Heap::IsAllocatableInNewSpace(instance_size)) {
-    NOT_IN_PRODUCT(LoadAllocationStatsAddress(temp1, cid));
+    NOT_IN_PRODUCT(LoadAllocationTracingStateAddress(temp1, cid));
     // Potential new object start.
     ldr(instance, Address(THR, target::Thread::top_offset()));
     AddImmediateSetFlags(end_address, instance, instance_size);
@@ -3910,6 +3785,19 @@ void Assembler::StoreWordUnaligned(Register src, Register addr, Register tmp) {
   strb(tmp, Address(addr, 2));
   Lsr(tmp, src, Operand(24));
   strb(tmp, Address(addr, 3));
+}
+
+void Assembler::RangeCheck(Register value,
+                           Register temp,
+                           intptr_t low,
+                           intptr_t high,
+                           RangeCheckCondition condition,
+                           Label* target) {
+  auto cc = condition == kIfInRange ? LS : HI;
+  Register to_check = temp != kNoRegister ? temp : value;
+  AddImmediate(to_check, value, -low);
+  CompareImmediate(to_check, high - low);
+  b(target, cc);
 }
 
 }  // namespace compiler

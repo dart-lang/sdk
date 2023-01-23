@@ -15,6 +15,33 @@ main() {
 
 @reflectiveTest
 class DeprecatedExportUseTest extends PubPackageResolutionTest {
+  test_deprecated_augmentation_function() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo() {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'c.dart';
+
+@deprecated
+export 'a.dart';
+''');
+
+    newFile('$testPackageLibPath/c.dart', r'''
+import augment 'b.dart';
+''');
+
+    await assertErrorsInCode('''
+import 'c.dart';
+
+void f() {
+  foo();
+}
+''', [
+      error(HintCode.DEPRECATED_EXPORT_USE, 31, 3),
+    ]);
+  }
+
   test_deprecated_class_asExpression() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
@@ -219,6 +246,39 @@ void f() {
 }
 ''', [
       error(HintCode.DEPRECATED_EXPORT_USE, 48, 3),
+    ]);
+  }
+
+  /// While linking `b.dart` and `c.dart` library cycle, we build their
+  /// import scopes, and while doing this we access `hasDeprecated` on the
+  /// `export a.dart` in `b.dart`. But because the metadata is not resolved
+  /// yet (we are still linking!), we cache metadata flags that don't
+  /// reflect the actual state. So, we need to reset them after linking.
+  /// If we don't, we will fail to report the hint.
+  test_deprecated_libraryCycle() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo() {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+import 'c.dart';
+
+@deprecated
+export 'a.dart';
+''');
+
+    newFile('$testPackageLibPath/c.dart', r'''
+import 'b.dart';
+''');
+
+    await assertErrorsInCode('''
+import 'b.dart';
+
+void f() {
+  foo();
+}
+''', [
+      error(HintCode.DEPRECATED_EXPORT_USE, 31, 3),
     ]);
   }
 

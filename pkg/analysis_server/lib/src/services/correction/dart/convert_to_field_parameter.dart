@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -24,7 +25,7 @@ class ConvertToFieldParameter extends CorrectionProducer {
     }
 
     // analyze parameter
-    var parameterName = context.identifier.name;
+    var parameterName = context.identifier.lexeme;
     var parameterElement = context.parameter.declaredElement!;
     var initializers = context.constructor.initializers;
 
@@ -87,18 +88,18 @@ class ConvertToFieldParameter extends CorrectionProducer {
 
   static _Context? _findParameter(AstNode node) {
     var parent = node.parent;
-    if (parent is SimpleFormalParameter) {
-      var identifier = parent.identifier;
+    if (node is SimpleFormalParameter) {
+      var identifier = node.name;
       if (identifier == null) return null;
 
-      var formalParameterList = parent.parent;
+      var formalParameterList = parent;
       if (formalParameterList is! FormalParameterList) return null;
 
       var constructor = formalParameterList.parent;
       if (constructor is! ConstructorDeclaration) return null;
 
       return _Context(
-        parameter: parent,
+        parameter: node,
         identifier: identifier,
         constructor: constructor,
       );
@@ -111,8 +112,8 @@ class ConvertToFieldParameter extends CorrectionProducer {
       if (parent.expression == node) {
         for (var formalParameter in constructor.parameters.parameters) {
           if (formalParameter is SimpleFormalParameter) {
-            var identifier = formalParameter.identifier;
-            if (identifier != null && identifier.name == node.name) {
+            var identifier = formalParameter.name;
+            if (identifier != null && identifier.lexeme == node.name) {
               return _Context(
                 parameter: formalParameter,
                 identifier: identifier,
@@ -130,7 +131,7 @@ class ConvertToFieldParameter extends CorrectionProducer {
 
 class _Context {
   final SimpleFormalParameter parameter;
-  final SimpleIdentifier identifier;
+  final Token identifier;
   final ConstructorDeclaration constructor;
 
   _Context({

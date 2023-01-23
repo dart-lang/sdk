@@ -27,6 +27,8 @@ constexpr bool kDartUseBackgroundCompilation = false;
 constexpr bool kDartUseBackgroundCompilation = true;
 #endif
 
+constexpr intptr_t kDefaultOptimizationCounterThreshold = 30000;
+
 // The disassembler might be force included even in product builds so we need
 // to conditionally make these into product flags to make the disassembler
 // usable in product mode.
@@ -88,11 +90,10 @@ constexpr bool FLAG_support_il_printer = false;
   DISASSEMBLE_FLAGS(P, R, C, D)                                                \
   P(abort_on_oom, bool, false,                                                 \
     "Abort if memory allocation fails - use only with --old-gen-heap-size")    \
+  P(add_readonly_data_symbols, bool, false,                                    \
+    "Add static symbols for objects in snapshot read-only data")               \
   C(async_debugger, false, false, bool, true,                                  \
     "Debugger support async functions.")                                       \
-  P(async_igoto_threshold, int, 5,                                             \
-    "Number of continuations after which igoto-based async is used."           \
-    "-1 means never.")                                                         \
   P(background_compilation, bool, kDartUseBackgroundCompilation,               \
     "Run optimizing compilation in background")                                \
   P(check_token_positions, bool, false,                                        \
@@ -157,11 +158,8 @@ constexpr bool FLAG_support_il_printer = false;
     "Max size of new gen semi space in MB")                                    \
   P(new_gen_semi_initial_size, int, (kWordSize <= 4) ? 1 : 2,                  \
     "Initial size of new gen semi space in MB")                                \
-  P(optimization_counter_threshold, int, 30000,                                \
+  P(optimization_counter_threshold, int, kDefaultOptimizationCounterThreshold, \
     "Function's usage-counter value before it is optimized, -1 means never")   \
-  R(randomize_optimization_counter, false, bool, false,                        \
-    "Randomize optimization counter thresholds on a per-function basis (for "  \
-    "testing).")                                                               \
   P(optimization_level, int, 2,                                                \
     "Optimization level: 1 (favor size), 2 (default), 3 (favor speed)")        \
   P(old_gen_heap_size, int, kDefaultMaxOldGenHeapSize,                         \
@@ -242,6 +240,8 @@ constexpr bool FLAG_support_il_printer = false;
     "Enables heap verification before GC.")                                    \
   R(verify_store_buffer, false, bool, false,                                   \
     "Enables store buffer verification before and after scavenges.")           \
+  R(verify_after_marking, false, bool, false,                                  \
+    "Enables heap verification after marking.")                                \
   P(enable_slow_path_sharing, bool, true, "Enable sharing of slow-path code.") \
   P(shared_slow_path_triggers_gc, bool, false,                                 \
     "TESTING: slow-path triggers a GC.")                                       \

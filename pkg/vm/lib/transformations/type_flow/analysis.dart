@@ -538,15 +538,10 @@ class _DispatchableInvocation extends _Invocation {
     }
   }
 
-  // TODO(alexmarkov): Consider caching targets for Null type.
   void _collectTargetsForNull(Map<Member, _ReceiverTypeBuilder> targets,
       TypeFlowAnalysis typeFlowAnalysis) {
-    Class nullClass =
-        typeFlowAnalysis.environment.coreTypes.deprecatedNullClass;
-
-    Member? target = typeFlowAnalysis.hierarchyCache.hierarchy
-        .getDispatchTarget(nullClass, selector.name, setter: selector.isSetter);
-
+    final Member? target = typeFlowAnalysis.hierarchyCache._nullTFClass
+        .getDispatchTarget(selector);
     if (target != null) {
       if (kPrintTrace) {
         tracePrint("Found $target for null receiver");
@@ -559,9 +554,12 @@ class _DispatchableInvocation extends _Invocation {
       ConcreteType receiver,
       Map<Member, _ReceiverTypeBuilder> targets,
       TypeFlowAnalysis typeFlowAnalysis) {
-    final TFClass cls = receiver.cls;
+    final cls = receiver.cls as _TFClassImpl;
 
-    Member? target = (cls as _TFClassImpl).getDispatchTarget(selector);
+    Member? target = cls.getDispatchTarget(selector);
+    if (cls.hasMutableDispatchTargets) {
+      cls.dependencyTracker.addDependentInvocation(this);
+    }
 
     if (target != null) {
       if (kPrintTrace) {
@@ -1011,13 +1009,15 @@ class _TFClassImpl extends TFClass {
   late final Map<Name, Member> _dispatchTargetsNonSetters =
       _initDispatchTargets(false);
   final _DependencyTracker dependencyTracker = new _DependencyTracker();
+  final bool hasMutableDispatchTargets;
 
   /// Flag indicating if this class has a noSuchMethod() method not inherited
   /// from Object.
   /// Lazy initialized by ClassHierarchyCache.hasNonTrivialNoSuchMethod().
   bool? hasNonTrivialNoSuchMethod;
 
-  _TFClassImpl(int id, Class classNode, this.superclass, this.supertypes)
+  _TFClassImpl(int id, Class classNode, this.superclass, this.supertypes,
+      {required this.hasMutableDispatchTargets})
       : super(id, classNode) {
     supertypes.add(this);
   }
@@ -1056,6 +1056,7 @@ class _TFClassImpl extends TFClass {
   }
 
   void addAllocatedSubtype(_TFClassImpl subType) {
+    assert(subType == this || !hasMutableDispatchTargets);
     _allocatedSubtypes.add(subType);
     _specializedConeType = null; // Reset cached specialization.
   }
@@ -1064,6 +1065,7 @@ class _TFClassImpl extends TFClass {
     Map<Name, Member> targets;
     final superclass = this.superclass;
     if (superclass != null) {
+      assert(!superclass.hasMutableDispatchTargets);
       targets = Map.from(setters
           ? superclass._dispatchTargetsSetters
           : superclass._dispatchTargetsNonSetters);
@@ -1093,6 +1095,15 @@ class _TFClassImpl extends TFClass {
         : _dispatchTargetsNonSetters)[selector.name];
   }
 
+  void _addField(Field field) {
+    assert(hasMutableDispatchTargets);
+    assert(!field.isStatic && !field.isAbstract);
+    _dispatchTargetsNonSetters[field.name] = field;
+    if (field.hasSetter) {
+      _dispatchTargetsSetters[field.name] = field;
+    }
+  }
+
   String dump() => "$this {supers: $supertypes}";
 }
 
@@ -1110,7 +1121,8 @@ class GenericInterfacesInfoImpl implements GenericInterfacesInfo {
         RuntimeTypeTranslatorImpl.forClosedTypes(coreTypes, this);
   }
 
-  List<DartType> flattenedTypeArgumentsFor(Class klass, {bool useCache: true}) {
+  List<DartType> flattenedTypeArgumentsFor(Class klass,
+      {bool useCache = true}) {
     final cached = useCache ? cachedFlattenedTypeArgs[klass] : null;
     if (cached != null) return cached;
 
@@ -1166,7 +1178,6 @@ class GenericInterfacesInfoImpl implements GenericInterfacesInfo {
 // TODO(alexmarkov): Rename to _TypeHierarchyImpl.
 class _ClassHierarchyCache extends TypeHierarchy {
   final TypeFlowAnalysis _typeFlowAnalysis;
-  final ClosedWorldClassHierarchy hierarchy;
   final TypeEnvironment environment;
   final Set<Class> allocatedClasses = new Set<Class>();
   final Map<Class, _TFClassImpl> classes = <Class, _TFClassImpl>{};
@@ -1176,6 +1187,10 @@ class _ClassHierarchyCache extends TypeHierarchy {
   final Member objectNoSuchMethod;
 
   static final Name noSuchMethodName = new Name("noSuchMethod");
+
+  // Class of all record instances (could be synthetic if Target
+  // doesn't provide one).
+  final Class recordClass;
 
   /// Class hierarchy is sealed after analysis is finished.
   /// Once it is sealed, no new allocated classes may be added and no new
@@ -1188,10 +1203,32 @@ class _ClassHierarchyCache extends TypeHierarchy {
   final Map<DynamicSelector, _DynamicTargetSet> _dynamicTargets =
       <DynamicSelector, _DynamicTargetSet>{};
 
-  _ClassHierarchyCache(this._typeFlowAnalysis, this.hierarchy,
-      this.genericInterfacesInfo, this.environment, bool nullSafety)
-      : objectNoSuchMethod = hierarchy.getDispatchTarget(
-            environment.coreTypes.objectClass, noSuchMethodName)!,
+  final Map<String, Field> _recordFields = <String, Field>{};
+
+  @override
+  late final Type recordType = addAllocatedClass(recordClass);
+
+  late final _TFClassImpl _recordTFClass = getTFClass(recordClass);
+
+  late final _TFClassImpl _objectTFClass =
+      getTFClass(environment.coreTypes.objectClass);
+
+  late final _TFClassImpl _nullTFClass =
+      getTFClass(environment.coreTypes.deprecatedNullClass);
+
+  _ClassHierarchyCache(this._typeFlowAnalysis, this.genericInterfacesInfo,
+      this.environment, bool nullSafety)
+      : objectNoSuchMethod = environment.coreTypes.index
+            .getProcedure('dart:core', 'Object', 'noSuchMethod'),
+        recordClass = _typeFlowAnalysis.target
+                .concreteRecordClass(environment.coreTypes) ??
+            Class(
+                name: "&&Record",
+                supertype: Supertype(environment.coreTypes.objectClass, []),
+                implementedTypes: [
+                  Supertype(environment.coreTypes.recordClass, [])
+                ],
+                fileUri: artificialNodeUri),
         super(environment.coreTypes, nullSafety);
 
   @override
@@ -1207,7 +1244,8 @@ class _ClassHierarchyCache extends TypeHierarchy {
     Class? superclassNode = c.superclass;
     _TFClassImpl? superclass =
         superclassNode != null ? getTFClass(superclassNode) : null;
-    return new _TFClassImpl(++_classIdCounter, c, superclass, supertypes);
+    return new _TFClassImpl(++_classIdCounter, c, superclass, supertypes,
+        hasMutableDispatchTargets: c == recordClass);
   }
 
   ConcreteType addAllocatedClass(Class cl) {
@@ -1285,7 +1323,7 @@ class _ClassHierarchyCache extends TypeHierarchy {
     bool? value = classImpl.hasNonTrivialNoSuchMethod;
     if (value == null) {
       classImpl.hasNonTrivialNoSuchMethod = value =
-          (hierarchy.getDispatchTarget(c.classNode, noSuchMethodName) !=
+          (classImpl._dispatchTargetsNonSetters[noSuchMethodName] !=
               objectNoSuchMethod);
     }
     return value;
@@ -1296,11 +1334,7 @@ class _ClassHierarchyCache extends TypeHierarchy {
   }
 
   _DynamicTargetSet _createDynamicTargetSet(DynamicSelector selector) {
-    // TODO(alexmarkov): consider caching the set of Object selectors.
-    final isObjectMethod = (hierarchy.getDispatchTarget(
-            _typeFlowAnalysis.environment.coreTypes.objectClass, selector.name,
-            setter: selector.isSetter) !=
-        null);
+    final isObjectMethod = _objectTFClass.getDispatchTarget(selector) != null;
 
     final targetSet = new _DynamicTargetSet(selector, isObjectMethod);
     for (Class c in allocatedClasses) {
@@ -1312,13 +1346,41 @@ class _ClassHierarchyCache extends TypeHierarchy {
   void _addDynamicTarget(Class c, _DynamicTargetSet targetSet) {
     assert(!_sealed);
     final selector = targetSet.selector;
-    final member = hierarchy.getDispatchTarget(c, selector.name,
-        setter: selector.isSetter);
+    final member = getTFClass(c).getDispatchTarget(selector);
     if (member != null) {
       if (targetSet.targets.add(member)) {
         targetSet.invalidateDependentInvocations(_typeFlowAnalysis.workList);
       }
     }
+  }
+
+  Field getRecordField(String name) {
+    return _recordFields[name] ??= _addRecordField(Name(name));
+  }
+
+  Field _addRecordField(Name name) {
+    assert(!_sealed);
+    final Field field = Field.immutable(name, fileUri: artificialNodeUri);
+    field.parent = recordClass;
+    // Add field to the record class for future queries.
+    _recordTFClass._addField(field);
+    _recordTFClass.dependencyTracker
+        .invalidateDependentInvocations(_typeFlowAnalysis.workList);
+    // Update dynamic target sets collected so far.
+    _DynamicTargetSet? targetSet =
+        _dynamicTargets[DynamicSelector(CallKind.PropertyGet, name)];
+    if (targetSet != null) {
+      if (targetSet.targets.add(field)) {
+        targetSet.invalidateDependentInvocations(_typeFlowAnalysis.workList);
+      }
+    }
+    targetSet = _dynamicTargets[DynamicSelector(CallKind.Method, name)];
+    if (targetSet != null) {
+      if (targetSet.targets.add(field)) {
+        targetSet.invalidateDependentInvocations(_typeFlowAnalysis.workList);
+      }
+    }
+    return field;
   }
 
   @override
@@ -1552,8 +1614,8 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
       : annotationMatcher =
             matcher ?? new ConstantPragmaAnnotationParser(coreTypes, target) {
     nativeCodeOracle = new NativeCodeOracle(libraryIndex, annotationMatcher);
-    hierarchyCache = new _ClassHierarchyCache(this, hierarchy,
-        _genericInterfacesInfo, environment, target.flags.enableNullSafety);
+    hierarchyCache = new _ClassHierarchyCache(this, _genericInterfacesInfo,
+        environment, target.flags.enableNullSafety);
     summaryCollector = new SummaryCollector(
         target,
         environment,
@@ -1699,7 +1761,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
 
   @override
   Type applyCall(Call? callSite, Selector selector, Args<Type> args,
-      {bool isResultUsed: true, bool processImmediately: true}) {
+      {bool isResultUsed = true, bool processImmediately = true}) {
     _Invocation invocation = _invocationsCache.getInvocation(selector, args);
 
     // Test if tracing is enabled to avoid expensive message formatting.
@@ -1767,6 +1829,12 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
     }
     return hierarchyCache.addAllocatedClass(c);
   }
+
+  @override
+  Field getRecordPositionalField(int pos) => getRecordNamedField("\$$pos");
+
+  @override
+  Field getRecordNamedField(String name) => hierarchyCache.getRecordField(name);
 
   @override
   void recordMemberCalledViaInterfaceSelector(Member target) {

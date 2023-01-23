@@ -2,19 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library tracer;
 
 import 'package:kernel/text/indentation.dart' show Indentation;
 
 import '../compiler_api.dart' as api;
+import 'js_model/js_world.dart' show JClosedWorld;
 import 'options.dart' show CompilerOptions;
 import 'ssa/nodes.dart' as ssa show HGraph;
 import 'ssa/tracer.dart' show HTracer;
-import 'world.dart' show JClosedWorld;
 
-String TRACE_FILTER_PATTERN_FOR_TEST;
+String? TRACE_FILTER_PATTERN_FOR_TEST;
 
 /// Dumps the intermediate representation after each phase in a format
 /// readable by IR Hydra.
@@ -22,14 +20,14 @@ class Tracer extends TracerUtil {
   final JClosedWorld closedWorld;
   bool traceActive = false;
   @override
-  final api.OutputSink output;
-  final RegExp traceFilter;
+  final api.OutputSink? output;
+  final RegExp? traceFilter;
 
   Tracer._(this.closedWorld, this.traceFilter, this.output);
 
   factory Tracer(JClosedWorld closedWorld, CompilerOptions options,
       api.CompilerOutput compilerOutput) {
-    String pattern = options.dumpSsaPattern ?? TRACE_FILTER_PATTERN_FOR_TEST;
+    String? pattern = options.dumpSsaPattern ?? TRACE_FILTER_PATTERN_FOR_TEST;
     if (pattern == null) return Tracer._(closedWorld, null, null);
     var traceFilter = RegExp(pattern);
     var output =
@@ -41,7 +39,7 @@ class Tracer extends TracerUtil {
 
   void traceCompilation(String methodName) {
     if (!isEnabled) return;
-    traceActive = traceFilter.hasMatch(methodName);
+    traceActive = traceFilter!.hasMatch(methodName);
     if (!traceActive) return;
     tag("compilation", () {
       printProperty("name", methodName);
@@ -53,24 +51,24 @@ class Tracer extends TracerUtil {
   void traceGraph(String name, var irObject) {
     if (!traceActive) return;
     if (irObject is ssa.HGraph) {
-      HTracer(output, closedWorld).traceGraph(name, irObject);
+      HTracer(output!, closedWorld).traceGraph(name, irObject);
     }
   }
 
   void traceJavaScriptText(String name, String Function() getText) {
     if (!traceActive) return;
-    HTracer(output, closedWorld).traceJavaScriptText(name, getText());
+    HTracer(output!, closedWorld).traceJavaScriptText(name, getText());
   }
 
   void close() {
     if (output != null) {
-      output.close();
+      output!.close();
     }
   }
 }
 
 abstract class TracerUtil {
-  api.OutputSink get output;
+  api.OutputSink? get output;
   final Indentation _ind = Indentation();
 
   void tag(String tagName, Function f) {
@@ -106,7 +104,7 @@ abstract class TracerUtil {
   }
 
   void add(String string) {
-    output.add(string);
+    output!.add(string);
   }
 
   void addIndent() {

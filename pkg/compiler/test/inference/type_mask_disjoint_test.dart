@@ -11,9 +11,9 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/abstract_value_domain.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
-import 'package:compiler/src/world.dart';
+import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 const String CODE = """
 class A {}
@@ -54,7 +54,7 @@ main() {
     /// Checks the expectation of `isDisjoint` for two mask. Also checks that
     /// the result is consistent with an equivalent (but slower) implementation
     /// based on intersection.
-    checkMask(TypeMask m1, TypeMask m2, {areDisjoint: false}) {
+    checkMask(TypeMask m1, TypeMask m2, {areDisjoint = false}) {
       print('masks: $m1 $m2');
       Expect.equals(areDisjoint, m1.isDisjoint(m2, world));
       Expect.equals(areDisjoint, m2.isDisjoint(m1, world));
@@ -116,14 +116,14 @@ main() {
     /// Checks the expectation of `isDisjoint` for two mask descriptors (see
     /// [maskOf] for details).
     check(String typeMaskDescriptor1, String typeMaskDescriptor2,
-        {areDisjoint: true}) {
+        {areDisjoint = true}) {
       print('[$typeMaskDescriptor1] & [$typeMaskDescriptor2]');
       checkMask(maskOf(typeMaskDescriptor1), maskOf(typeMaskDescriptor2),
           areDisjoint: areDisjoint);
     }
 
     checkUnions(List<String> descriptors1, List<String> descriptors2,
-        {areDisjoint: true}) {
+        {areDisjoint = true}) {
       print('[$descriptors1] & [$descriptors2]');
       var m1 =
           new TypeMask.unionOf(descriptors1.map(maskOf).toList(), commonMasks);

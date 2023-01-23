@@ -32,15 +32,15 @@ class CallersDataComputer extends DataComputer<String> {
   @override
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<String>> actualMap,
-      {bool verbose: false}) {
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+      {bool verbose = false}) {
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new CallersIrComputer(
             compiler.reporter,
             actualMap,
             elementMap,
-            compiler.globalInference.typesInferrerInternal,
+            compiler.globalInference.typesInferrerInternal as TypeGraphInferrer,
             closedWorld.closureDataLookup)
         .run(definition.node);
   }

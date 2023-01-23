@@ -2,24 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
-import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../js_backend/field_analysis.dart' show JFieldAnalysis;
-import '../world.dart' show JClosedWorld;
+import '../js_model/elements.dart' show JField;
+import '../js_model/js_world.dart' show JClosedWorld;
 import 'logging.dart';
 import 'nodes.dart';
-import 'optimize.dart' show OptimizationPhase;
+import 'optimize_interfaces.dart' show OptimizationPhase;
 
 /// Optimization phase that tries to eliminate late field checks and memory
 /// loads.
-class SsaLateFieldOptimizer extends HBaseVisitor implements OptimizationPhase {
+class SsaLateFieldOptimizer extends HBaseVisitor<void>
+    implements OptimizationPhase {
   @override
   final String name = "SsaLateFieldOptimizer";
 
   final JClosedWorld _closedWorld;
-  final OptimizationTestLog /*?*/ _log;
+  final OptimizationTestLog? _log;
 
   final AbstractValueDomain _abstractValueDomain;
   final JFieldAnalysis _fieldAnalysis;
@@ -37,7 +36,7 @@ class SsaLateFieldOptimizer extends HBaseVisitor implements OptimizationPhase {
     _log?.instructionHistogram('$name.post', graph, _summarizeInstruction);
   }
 
-  static String /*?*/ _summarizeInstruction(HInstruction node) {
+  static String? _summarizeInstruction(HInstruction node) {
     if (node is HLateCheck) return '${node.runtimeType}';
     if (node is HFieldGet) return '${node.runtimeType}';
     return null;
@@ -48,9 +47,9 @@ class SsaLateFieldOptimizer extends HBaseVisitor implements OptimizationPhase {
 
   @override
   void visitBasicBlock(HBasicBlock block) {
-    HInstruction instruction = block.first;
+    HInstruction? instruction = block.first;
     while (instruction != null) {
-      HInstruction next = instruction.next;
+      HInstruction? next = instruction.next;
       instruction.accept(this);
       instruction = next;
     }
@@ -140,14 +139,14 @@ class SsaLateFieldOptimizer extends HBaseVisitor implements OptimizationPhase {
 
     // Cleanup. Remove redundant checks.
     if (input is HLateReadCheck || node.isRedundant(_closedWorld)) {
-      node.block.rewrite(node, input);
-      node.block.remove(node);
+      node.block!.rewrite(node, input);
+      node.block!.remove(node);
       return;
     }
 
     if (input is HFieldGet) {
       HInstruction receiver = input.receiver;
-      FieldEntity field = input.element;
+      final field = input.element as JField;
 
       final uses = DominatedUses.of(receiver, node);
 
@@ -164,15 +163,15 @@ class SsaLateFieldOptimizer extends HBaseVisitor implements OptimizationPhase {
         // `late final` backing fields are assigned at most once, so loads can
         // be replaced with the dominating checked load value.
         for (final load in loads) {
-          load.block.rewrite(load, node);
-          load.block.remove(load);
+          load.block!.rewrite(load, node);
+          load.block!.remove(load);
         }
       } else {
         for (final load in loads) {
           final known = HTypeKnown.witnessed(node.instructionType, load, node)
             ..sourceInformation = node.sourceInformation;
-          load.block.rewrite(load, known);
-          load.block.addAfter(load, known);
+          load.block!.rewrite(load, known);
+          load.block!.addAfter(load, known);
         }
       }
     }
@@ -180,7 +179,7 @@ class SsaLateFieldOptimizer extends HBaseVisitor implements OptimizationPhase {
 
   @override
   void visitFieldSet(HFieldSet node) {
-    FieldEntity field = node.element;
+    final field = node.element as JField;
     final fieldData = _fieldAnalysis.getFieldData(field);
     if (!fieldData.isLateBackingField) return;
 
@@ -202,8 +201,8 @@ class SsaLateFieldOptimizer extends HBaseVisitor implements OptimizationPhase {
       // [field] is a `late final` field so the stored value is the value of
       // every subsequent load. Replace loads with the stored value.
       for (final load in loads) {
-        load.block.rewrite(load, node.value);
-        load.block.remove(load);
+        load.block!.rewrite(load, node.value);
+        load.block!.remove(load);
       }
     } else {
       // The subsequent loaded value cannot be the sentinel value. Refine the

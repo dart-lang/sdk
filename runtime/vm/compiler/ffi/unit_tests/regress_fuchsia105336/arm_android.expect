@@ -1,0 +1,9 @@
+r0 int32
+(r2, r3) int64[double]
+S+0 int32
+S+8 double
+S+16 int32
+S+20 int32
+S+24 int32
+=>
+r0 void

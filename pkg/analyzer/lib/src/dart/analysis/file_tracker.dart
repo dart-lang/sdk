@@ -185,10 +185,13 @@ class FileTracker {
       }
 
       // Add files that directly import the changed file.
-      for (String addedPath in addedFiles) {
-        FileState addedFile = _fsState.getFileForPath(addedPath);
-        if (addedFile.importedFiles.contains(file)) {
-          pendingImportFiles.add(addedPath);
+      for (final addedPath in addedFiles) {
+        final addedFile = _fsState.getFileForPath(addedPath);
+        final addedKind = addedFile.kind;
+        if (addedKind is LibraryOrAugmentationFileKind) {
+          if (addedKind.importsFile(file)) {
+            pendingImportFiles.add(addedPath);
+          }
         }
       }
 

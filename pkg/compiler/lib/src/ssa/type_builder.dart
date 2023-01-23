@@ -10,11 +10,11 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../js_model/class_type_variable_access.dart';
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/type_recipe.dart';
 import '../io/source_information.dart';
 import '../options.dart';
 import '../universe/use.dart' show TypeUse;
-import '../world.dart';
 
 /// Functions to insert type checking, coercion, and instruction insertion
 /// depending on the environment for dart code.

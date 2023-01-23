@@ -961,7 +961,7 @@ DART_EXPORT Dart_Handle PassObjectToC(Dart_Handle h) {
   }
 
   Dart_Handle return_value;
-  if (!Dart_IsNull(h)) {
+  if (!Dart_IsNull(h) && !Dart_IsInteger(h)) {
     // A weak handle which outlives this call. Lifetime managed in C.
     auto weak_handle = Dart_NewWeakPersistentHandle(
         h, reinterpret_cast<void*>(0x1234), 64, RunFinalizer);
@@ -1063,6 +1063,13 @@ DART_EXPORT int64_t PropagateErrorWithoutHandle(Dart_Handle (*callback)()) {
   }
   Dart_ExitScope();
   return 0;
+}
+
+DART_EXPORT Dart_Handle ThrowOnReturnOfError(Dart_Handle (*callback)()) {
+  Dart_Handle result = callback();
+  const bool is_error = Dart_IsError(result);
+  printf("ThrowOnReturnOfError is_error %s\n", is_error ? "true" : "false");
+  return result;
 }
 
 DART_EXPORT Dart_Handle TrueHandle() {

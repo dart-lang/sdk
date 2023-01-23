@@ -11,14 +11,15 @@ library compiler.src.kernel.dart2js_target;
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Message, LocatedMessage;
 import 'package:_js_interop_checks/js_interop_checks.dart';
+import 'package:_js_interop_checks/src/transformations/export_creator.dart';
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
-import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
+import 'package:kernel/type_environment.dart';
 
 import '../options.dart';
 import 'invocation_mirror_constants.dart';
@@ -74,6 +75,7 @@ class Dart2jsTarget extends Target {
   final CompilerOptions? options;
   final bool canPerformGlobalTransforms;
   final bool supportsUnevaluatedConstants;
+  Map<String, ir.Class>? _nativeClasses;
 
   Dart2jsTarget(this.name, this.flags,
       {this.options,
@@ -138,13 +140,6 @@ class Dart2jsTarget extends Target {
   bool get errorOnUnexactWebIntLiterals => true;
 
   @override
-  void performOutlineTransformations(ir.Component component,
-      CoreTypes coreTypes, ReferenceFromIndex? referenceFromIndex) {
-    component.accept(StaticInteropStubCreator(
-        StaticInteropClassEraser(coreTypes, referenceFromIndex)));
-  }
-
-  @override
   void performModularTransformationsOnLibraries(
       ir.Component component,
       CoreTypes coreTypes,
@@ -155,20 +150,23 @@ class Dart2jsTarget extends Target {
       ReferenceFromIndex? referenceFromIndex,
       {void Function(String msg)? logger,
       ChangedStructureNotifier? changedStructureNotifier}) {
-    var nativeClasses = JsInteropChecks.getNativeClasses(component);
-    var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
-    var staticInteropClassEraser =
-        StaticInteropClassEraser(coreTypes, referenceFromIndex);
+    _nativeClasses = JsInteropChecks.getNativeClasses(component);
+    var jsInteropChecks = JsInteropChecks(
+        coreTypes,
+        diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
+        _nativeClasses!);
+    // Process and validate first before doing anything with exports.
     for (var library in libraries) {
-      JsInteropChecks(
-              coreTypes,
-              diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
-              nativeClasses)
-          .visitLibrary(library);
+      jsInteropChecks.visitLibrary(library);
+    }
+    var exportCreator = ExportCreator(TypeEnvironment(coreTypes, hierarchy),
+        diagnosticReporter, jsInteropChecks.exportChecker);
+    var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
+    for (var library in libraries) {
+      exportCreator.visitLibrary(library);
       // TODO (rileyporter): Merge js_util optimizations with other lowerings
       // in the single pass in `transformations/lowering.dart`.
       jsUtilOptimizer.visitLibrary(library);
-      staticInteropClassEraser.visitLibrary(library);
     }
     lowering.transformLibraries(libraries, coreTypes, hierarchy, options);
     logger?.call("Lowering transformations performed");
@@ -271,6 +269,7 @@ const requiredLibraries = <String, List<String>>{
     'dart:_js_primitives',
     'dart:_js_shared_embedded_names',
     'dart:_late_helper',
+    'dart:_load_library_priority',
     'dart:_metadata',
     'dart:_native_typed_data',
     'dart:_recipe_syntax',
@@ -307,6 +306,7 @@ const requiredLibraries = <String, List<String>>{
     'dart:_js_primitives',
     'dart:_js_shared_embedded_names',
     'dart:_late_helper',
+    'dart:_load_library_priority',
     'dart:_native_typed_data',
     'dart:_recipe_syntax',
     'dart:_rti',

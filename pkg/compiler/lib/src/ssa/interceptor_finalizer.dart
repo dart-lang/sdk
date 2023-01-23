@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../js_backend/interceptor_data.dart';
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../universe/selector.dart' show Selector;
-import '../world.dart' show JClosedWorld;
 import 'nodes.dart';
-import 'optimize.dart';
+import 'optimize_interfaces.dart' show OptimizationPhase;
 
 /// SsaFinalizeInterceptors makes adjustments for the interceptor calling
 /// convention.
@@ -28,12 +26,12 @@ import 'optimize.dart';
 ///    getInterceptor-call pair with a call to a 'one-shot interceptor' outlined
 ///    method.
 ///
-class SsaFinalizeInterceptors extends HBaseVisitor
+class SsaFinalizeInterceptors extends HBaseVisitor<void>
     implements OptimizationPhase {
   @override
   String get name => "SsaFinalizeInterceptors";
   final JClosedWorld _closedWorld;
-  HGraph _graph;
+  late HGraph _graph;
 
   SsaFinalizeInterceptors(this._closedWorld);
 
@@ -54,8 +52,8 @@ class SsaFinalizeInterceptors extends HBaseVisitor
   bool validPostcondition(HGraph graph) => true;
 
   @override
-  visitBasicBlock(HBasicBlock node) {
-    HInstruction instruction = node.first;
+  void visitBasicBlock(HBasicBlock node) {
+    HInstruction? instruction = node.first;
     while (instruction != null) {
       final next = instruction.next;
       instruction.accept(this);
@@ -68,7 +66,7 @@ class SsaFinalizeInterceptors extends HBaseVisitor
   /// will always be the same value.
   bool usesSelfInterceptor(MemberEntity element) {
     if (!_interceptorData.isInterceptedMethod(element)) return false;
-    ClassEntity cls = element.enclosingClass;
+    ClassEntity cls = element.enclosingClass!;
     return !_interceptorData.isInterceptedClass(cls);
   }
 
@@ -76,9 +74,9 @@ class SsaFinalizeInterceptors extends HBaseVisitor
     // The entry block contains the parameters in order, starting with `this`,
     // and then the explicit receiver. There are other instructions in the
     // block, like constants, which we ignore.
-    HThis thisParameter;
-    HParameterValue receiverParameter;
-    for (HInstruction node = _graph.entry.first;
+    HThis? thisParameter;
+    HParameterValue? receiverParameter;
+    for (HInstruction? node = _graph.entry.first;
         node != null;
         node = node.next) {
       if (node is HParameterValue) {
@@ -94,8 +92,8 @@ class SsaFinalizeInterceptors extends HBaseVisitor
         '`this` parameter should be before other parameters');
     assert(receiverParameter != null,
         'Intercepted convention requires explicit receiver');
-    thisParameter.instructionType = receiverParameter.instructionType;
-    receiverParameter.block.rewrite(receiverParameter, thisParameter);
+    thisParameter!.instructionType = receiverParameter!.instructionType;
+    receiverParameter.block!.rewrite(receiverParameter, thisParameter);
     receiverParameter.sourceElement = const _RenameToUnderscore();
   }
 
@@ -106,7 +104,7 @@ class SsaFinalizeInterceptors extends HBaseVisitor
     if (_interceptorIsReceiver(node)) {
       if (node.element != null) {
         tryReplaceExplicitReceiverForTargetWithDummy(
-            node, node.selector, node.element);
+            node, node.selector, node.element!);
       } else {
         tryReplaceExplicitReceiverForSelectorWithDummy(
             node, node.selector, node.receiverType);
@@ -149,11 +147,11 @@ class SsaFinalizeInterceptors extends HBaseVisitor
       oneShot.sourceElement = node.sourceElement;
       oneShot.sideEffects.setTo(node.sideEffects);
 
-      HBasicBlock block = node.block;
+      HBasicBlock block = node.block!;
       block.addAfter(node, oneShot);
       block.rewrite(node, oneShot);
       block.remove(node);
-      interceptor.block.remove(interceptor);
+      interceptor.block!.remove(interceptor);
     }
   }
 
@@ -189,9 +187,7 @@ class SsaFinalizeInterceptors extends HBaseVisitor
   }
 
   void tryReplaceExplicitReceiverForTargetWithDummy(
-      HInvoke node, Selector selector, MemberEntity target) {
-    assert(target != null);
-
+      HInvoke node, Selector? selector, MemberEntity target) {
     // TODO(15933): Make automatically generated property extraction closures
     // work with the dummy receiver optimization.
     if (selector != null && selector.isGetter) return;
@@ -203,7 +199,6 @@ class SsaFinalizeInterceptors extends HBaseVisitor
 
   void tryReplaceExplicitReceiverForSelectorWithDummy(
       HInvoke node, Selector selector, AbstractValue mask) {
-    assert(mask != null);
     // Calls of the form
     //
     //     a.foo$1(a, x)

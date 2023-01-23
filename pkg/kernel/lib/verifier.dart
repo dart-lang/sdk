@@ -9,7 +9,9 @@ import 'transformations/flags.dart';
 import 'type_environment.dart' show StatefulStaticTypeContext, TypeEnvironment;
 
 void verifyComponent(Component component,
-    {bool? isOutline, bool? afterConst, bool constantsAreAlwaysInlined: true}) {
+    {bool? isOutline,
+    bool? afterConst,
+    bool constantsAreAlwaysInlined = true}) {
   VerifyingVisitor.check(component,
       isOutline: isOutline,
       afterConst: afterConst,
@@ -89,10 +91,12 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   Extension? currentExtension;
 
+  View? currentView;
+
   TreeNode? currentParent;
 
   TreeNode? get currentClassOrExtensionOrMember =>
-      currentMember ?? currentClass ?? currentExtension;
+      currentMember ?? currentClass ?? currentExtension ?? currentView;
 
   static void check(Component component,
       {bool? isOutline,
@@ -271,6 +275,17 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     exitParent(oldParent);
     undeclareTypeParameters(node.typeParameters);
     currentExtension = null;
+  }
+
+  @override
+  void visitView(View node) {
+    currentView = node;
+    declareTypeParameters(node.typeParameters);
+    final TreeNode? oldParent = enterParent(node);
+    node.visitChildren(this);
+    exitParent(oldParent);
+    undeclareTypeParameters(node.typeParameters);
+    currentView = null;
   }
 
   void checkTypedef(Typedef node) {
@@ -528,7 +543,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     switch (currentAsyncMarker) {
       case AsyncMarker.Sync:
       case AsyncMarker.Async:
-      case AsyncMarker.SyncYielding:
         // ok
         break;
       case AsyncMarker.SyncStar:
@@ -556,7 +570,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
         break;
       case AsyncMarker.SyncStar:
       case AsyncMarker.AsyncStar:
-      case AsyncMarker.SyncYielding:
         // ok
         break;
     }
@@ -914,7 +927,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
             currentParent, "Type $node references an anonymous mixin class.");
       }
     }
-    defaultDartType(node);
   }
 
   @override

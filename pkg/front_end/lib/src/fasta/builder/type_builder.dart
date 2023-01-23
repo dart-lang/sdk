@@ -24,6 +24,14 @@ enum TypeUse {
   ///
   parameterType,
 
+  /// A type used as the type of a record entry.
+  ///
+  /// For instance `X` and `Y` in
+  ///
+  ///    (X, {Y y}) foo = ...;
+  ///
+  recordEntryType,
+
   /// A type used as the type of a field.
   ///
   /// For instance `X` and `Y` in

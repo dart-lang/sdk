@@ -22,8 +22,6 @@ const _defineVariableOption = 'D';
 const _enableExperimentOption = 'enable-experiment';
 const _enableInitializingFormalAccessFlag = 'initializing-formal-access';
 const _ignoreUnrecognizedFlagsFlag = 'ignore-unrecognized-flags';
-const _implicitCastsFlag = 'implicit-casts';
-const _noImplicitDynamicFlag = 'no-implicit-dynamic';
 const _packagesOption = 'packages';
 const _sdkPathOption = 'dart-sdk';
 
@@ -175,10 +173,6 @@ class CommandLineOptions {
     return castNullable(_argResults[_enableExperimentOption]);
   }
 
-  bool? get implicitCasts => _argResults[_implicitCastsFlag] as bool?;
-
-  bool? get noImplicitDynamic => _argResults[_noImplicitDynamicFlag] as bool?;
-
   /// Update the [analysisOptions] with flags that the user specified
   /// explicitly. The [analysisOptions] are usually loaded from one of
   /// `analysis_options.yaml` files, possibly with includes. We consider
@@ -200,16 +194,6 @@ class CommandLineOptions {
         sdkLanguageVersion: ExperimentStatus.currentVersion,
         flags: enabledExperiments,
       );
-    }
-
-    var implicitCasts = this.implicitCasts;
-    if (implicitCasts != null) {
-      analysisOptions.implicitCasts = implicitCasts;
-    }
-
-    var noImplicitDynamic = this.noImplicitDynamic;
-    if (noImplicitDynamic != null) {
-      analysisOptions.implicitDynamic = !noImplicitDynamic;
     }
   }
 
@@ -286,7 +270,7 @@ class CommandLineOptions {
 
       // Check that SDK is existing directory.
       if (sdkPath != null) {
-        if (!(io.Directory(sdkPath)).existsSync()) {
+        if (!io.Directory(sdkPath).existsSync()) {
           printAndFail('Invalid Dart SDK path: $sdkPath');
           return null; // Only reachable in testing.
         }
@@ -327,31 +311,10 @@ class CommandLineOptions {
         help: 'The path to the Dart SDK.', hide: ddc && hide);
     parser.addOption(_analysisOptionsFileOption,
         help: 'Path to an analysis options file.', hide: ddc && hide);
-    parser.addFlag('strong',
-        help: 'Enable strong mode (deprecated); this option is now ignored.',
-        defaultsTo: true,
-        hide: true,
-        negatable: true);
-    parser.addFlag('declaration-casts',
-        negatable: true,
-        help:
-            'Disable declaration casts in strong mode (https://goo.gl/cTLz40)\n'
-            'This option is now ignored and will be removed in a future release.',
-        hide: ddc && hide);
     parser.addMultiOption(_enableExperimentOption,
         help: 'Enable one or more experimental features. If multiple features '
             'are being added, they should be comma separated.',
         splitCommas: true);
-    parser.addFlag(_implicitCastsFlag,
-        negatable: true,
-        help: 'Disable implicit casts in strong mode (https://goo.gl/cTLz40).',
-        defaultsTo: null,
-        hide: ddc && hide);
-    parser.addFlag(_noImplicitDynamicFlag,
-        defaultsTo: null,
-        negatable: false,
-        help: 'Disable implicit dynamic (https://goo.gl/m0UgXD).',
-        hide: ddc && hide);
 
     //
     // Hidden flags and options.
@@ -520,11 +483,6 @@ class CommandLineOptions {
         }
       }
 
-      if (results.wasParsed('strong')) {
-        errorSink.writeln(
-            'Note: the --strong flag is deprecated and will be removed in an '
-            'future release.\n');
-      }
       if (results.wasParsed(_enableExperimentOption)) {
         var names =
             (results[_enableExperimentOption] as List).cast<String>().toList();

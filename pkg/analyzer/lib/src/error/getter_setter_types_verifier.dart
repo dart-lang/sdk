@@ -39,8 +39,8 @@ class GetterSetterTypesVerifier {
     }
   }
 
-  void checkInterface(ClassElement classElement, Interface interface) {
-    var libraryUri = classElement.library.source.uri;
+  void checkInterface(InterfaceElement element, Interface interface) {
+    var libraryUri = element.library.source.uri;
 
     for (var name in interface.map.keys) {
       if (!name.isAccessibleFor(libraryUri)) continue;
@@ -53,22 +53,22 @@ class GetterSetterTypesVerifier {
           var setterType = setter.parameters[0].type;
           if (!_match(getterType, setterType)) {
             Element errorElement;
-            if (getter.enclosingElement == classElement) {
+            if (getter.enclosingElement == element) {
               errorElement = getter;
-            } else if (setter.enclosingElement == classElement) {
+            } else if (setter.enclosingElement == element) {
               errorElement = setter;
             } else {
-              errorElement = classElement;
+              errorElement = element;
             }
 
             var getterName = getter.displayName;
-            if (getter.enclosingElement != classElement) {
+            if (getter.enclosingElement != element) {
               var getterClassName = getter.enclosingElement.displayName;
               getterName = '$getterClassName.$getterName';
             }
 
             var setterName = setter.displayName;
-            if (setter.enclosingElement != classElement) {
+            if (setter.enclosingElement != element) {
               var setterClassName = setter.enclosingElement.displayName;
               setterName = '$setterClassName.$setterName';
             }

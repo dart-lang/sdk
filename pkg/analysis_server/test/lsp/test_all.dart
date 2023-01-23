@@ -6,6 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/lsp/lsp_packet_transformer_test.dart' as lsp_packet_transformer;
 import 'analyzer_status_test.dart' as analyzer_status;
+import 'call_hierarchy_test.dart' as call_hierarchy;
 import 'cancel_request_test.dart' as cancel_request;
 import 'change_workspace_folders_test.dart' as change_workspace_folders;
 import 'client_configuration_test.dart' as client_configuration;
@@ -30,6 +31,7 @@ import 'format_test.dart' as format;
 import 'hover_test.dart' as hover;
 import 'implementation_test.dart' as implementation;
 import 'initialization_test.dart' as initialization;
+import 'inlay_hint_test.dart' as inlay_hint;
 import 'mapping_test.dart' as mapping;
 import 'outline_test.dart' as outline;
 import 'priority_files_test.dart' as priority_files;
@@ -44,12 +46,14 @@ import 'signature_help_test.dart' as signature_help;
 import 'snippets_test.dart' as snippets;
 import 'super_test.dart' as get_super;
 import 'type_definition_test.dart' as type_definition;
+import 'type_hierarchy_test.dart' as type_hierarchy;
 import 'will_rename_files_test.dart' as will_rename_files;
 import 'workspace_symbols_test.dart' as workspace_symbols;
 
 void main() {
   defineReflectiveSuite(() {
     analyzer_status.main();
+    call_hierarchy.main();
     cancel_request.main();
     change_workspace_folders.main();
     client_configuration.main();
@@ -75,6 +79,7 @@ void main() {
     hover.main();
     implementation.main();
     initialization.main();
+    inlay_hint.main();
     lsp_packet_transformer.main();
     mapping.main();
     outline.main();
@@ -89,6 +94,7 @@ void main() {
     signature_help.main();
     snippets.main();
     type_definition.main();
+    type_hierarchy.main();
     will_rename_files.main();
     workspace_symbols.main();
   }, name: 'lsp');

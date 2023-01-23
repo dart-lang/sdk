@@ -102,7 +102,7 @@ class U32<T> {
   late A Function<A>(List<Function> x) Function() x22;
   late B Function(B x) Function<B extends core.int>() x23;
 
-  U32({this.tIsBool: false, this.tIsInt: false})
+  U32({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   int m0(int y, {List<Function> x = const []}) => throw 'uncalled';

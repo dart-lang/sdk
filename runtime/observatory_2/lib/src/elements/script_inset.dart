@@ -46,8 +46,8 @@ class ScriptInsetElement extends CustomElement implements Renderable {
       {int startPos,
       int endPos,
       int currentPos,
-      bool inDebuggerContext: false,
-      Iterable variables: const [],
+      bool inDebuggerContext = false,
+      Iterable variables = const [],
       RenderingQueue queue}) {
     assert(isolate != null);
     assert(script != null);

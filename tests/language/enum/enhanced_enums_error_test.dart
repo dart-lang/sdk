@@ -78,15 +78,11 @@ enum ConflictStaticSetterInstanceMembers {
   // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
   // [cfe] This static member conflicts with an instance member.
   int foo() => 37;
-  //  ^^^
-  // [cfe] unspecified
 }
 
 enum ConflictStaticInstanceProperty2 {
   e1;
   int get foo => 42;
-  //      ^^^
-  // [cfe] unspecified
   static void set foo(int _) {}
   //              ^^^
   // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
@@ -102,8 +98,6 @@ enum ConflictStaticInstanceProperty {
   // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
   // [cfe] This static member conflicts with an instance member.
   void set foo(int _) {}
-  //       ^^^
-  // [cfe] unspecified
 }
 
 
@@ -124,8 +118,6 @@ enum ConflictInheritedEnumValue with MethodFoo {
 
 enum ConflictStaticEnumValues {
   e1,
-//^^
-// [cfe] unspecified
   e1,
 //^^
 // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
@@ -135,8 +127,6 @@ enum ConflictStaticEnumValues {
 
 enum ConflictStaticEnumValuesLooksDifferent {
   e1(),
-//^^
-// [cfe] unspecified
   e1.value(42),
 //^^
 // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
@@ -159,7 +149,7 @@ enum ConflictStaticInstanceImplicitValues {
   int get values => 42;
   //      ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.VALUES_DECLARATION_IN_ENUM
-  // [cfe] Enums can't contain declarations of members with the name 'values'.
+  // [cfe] An enum can't declare a member named 'values'.
 }
 
 enum ConflictStaticInstanceEnumValue {
@@ -189,7 +179,7 @@ enum ConflictEnumValueImplicitValues {
   values;
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.VALUES_DECLARATION_IN_ENUM
-// [cfe] unspecified
+// [cfe] 'values' is already declared in this scope.
 }
 
 enum ConflictEnumValueInheritedFoo with MethodFoo {
@@ -247,19 +237,19 @@ enum ConflictTypeParameterMember<foo> {
 }
 
 enum ConflictTypeParameterValues<values> {
+  // ^
+  // [cfe] Conflicts with type variable 'values'.
   //                             ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_TYPE_VARIABLE_AND_MEMBER
-  // [cfe] unspecified
   e1;
 }
 
 enum ConflictTypeParameterEnumValue<e1> {
   //                                ^^
   // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_TYPE_VARIABLE_AND_MEMBER
-  // [cfe] unspecified
   e1;
-//^^
-// [cfe] unspecified
+//^
+// [cfe] Conflicts with type variable 'e1'.
 }
 
 enum ConflictTypeParameters<T, T> {
@@ -274,6 +264,8 @@ enum ConflictClassTypeParameter<ConflictClassTypeParameter> {
   // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_TYPE_VARIABLE_AND_CONTAINER
   // [cfe] A type variable can't have the same name as its enclosing declaration.
   e1;
+  //^
+  // [cfe] Couldn't find constructor 'ConflictClassTypeParameter'.
 }
 
 // "If you define an instance member named $m$,
@@ -301,7 +293,7 @@ enum ImplementInheritedMemberDifferentType implements GetFoo {
   int foo(int x) => x;
   //  ^^^
   // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_METHOD_AND_FIELD
-  // [cfe] unspecified
+  // [cfe] Can't declare a member that conflicts with an inherited one.
 }
 
 enum OverrideInheritedParameterTypeOverride with SetFoo {
@@ -345,16 +337,16 @@ enum ConflictConstructorNameStatic {
   //                                  ^^^
   // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER
   static int get foo => 42;
-  //             ^^^
+  //             ^
   // [cfe] Conflicts with constructor 'ConflictConstructorNameStatic.foo'.
 }
 
 enum ConflictConstructorNameStaticEnumValue {
   e1.e1();
-//^^
+//^
 // [cfe] Conflicts with constructor 'ConflictConstructorNameStaticEnumValue.e1'.
   const ConflictConstructorNameStaticEnumValue.e1();
-  //    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  //    ^
   // [cfe] Conflicts with member 'e1'.
   //                                           ^^
   // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER
@@ -406,26 +398,30 @@ enum ConflictClassEnumValue {
 //^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING
 // [cfe] Name of enum constant 'ConflictClassEnumValue' can't be the same as the enum's own name.
+//                      ^
+// [cfe] Couldn't find constructor 'ConflictClassEnumValue'.
 }
 
 // Has conflict with implicitly inserted `values` member.
 enum values {
   // ^^^^^^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] The name 'values' is not a valid name for an enum. Try using a different name.
   e1;
+  //^
+  // [cfe] Couldn't find constructor 'values'.
 }
 
 // "It is an error if a concrete class does not implement some member
 //  of its interface, and there is no non-trivial \code{noSuchMethod}"
 
 enum UnimplementedInterface {
-  // ^^^^^^^^^^^^^^^^^^^^^^
-  // [cfe] The non-abstract class 'UnimplementedInterface' is missing implementations for these members:
   e1;
   int foo();
 //^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.ENUM_WITH_ABSTRACT_MEMBER
+//    ^
+// [cfe] Enums can't declare abstract members.
 }
 
 enum UnimplementedInterfaceInherited implements MethodFoo {
@@ -455,7 +451,8 @@ enum OverridesEquals {
   bool operator==(Object other) => identical(e1, other);
   //   ^^^^^^^^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  //           ^
+  // [cfe] An enum can't declare a non-abstract member named '=='.
 }
 
 enum OverridesHashCode {
@@ -463,8 +460,8 @@ enum OverridesHashCode {
 
   int get hashCode => 42;
   //      ^^^^^^^^
-  // [cfe] unspecified
   // [analyzer] unspecified
+  // [cfe] An enum can't declare a non-abstract member named 'hashCode'.
 }
 
 // Invalid syntax that the compiled *should* recover from.
@@ -570,7 +567,7 @@ enum DeclaresInstanceValues {
   int get values => 42;
   //      ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.VALUES_DECLARATION_IN_ENUM
-  // [cfe] Enums can't contain declarations of members with the name 'values'.
+  // [cfe] An enum can't declare a member named 'values'.
 }
 
 enum DeclaresStaticValues {
@@ -578,20 +575,21 @@ enum DeclaresStaticValues {
   static int get values => 42;
   //             ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.VALUES_DECLARATION_IN_ENUM
-  // [cfe] Enums can't contain declarations of members with the name 'values'.
+  // [cfe] An enum can't declare a member named 'values'.
 }
 
 enum InheritsValues with ValuesGetter {
   // ^^^^^^^^^^^^^^
-  // [cfe] Can't declare a member that conflicts with an inherited one.
   // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ENUM_VALUES
+  // [cfe] An enum can't inherit a member named 'values'.
+  // [cfe] Can't declare a member that conflicts with an inherited one.
   e1;
 }
 
 enum ImplementsValues implements ValuesGetter {
   // ^^^^^^^^^^^^^^^^
-  // [cfe] Can't declare a member that conflicts with an inherited one.
   // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ENUM_VALUES
+  // [cfe] Can't declare a member that conflicts with an inherited one.
   e1;
 
   noSuchMethod(i) => 42;
@@ -602,7 +600,7 @@ enum DeclaresInstanceIndex {
   int get index => 42;
   //      ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
-  // [cfe] unspecified
+  // [cfe] An enum can't declare a non-abstract member named 'index'.
 }
 
 enum DeclaresStaticIndex {
@@ -610,13 +608,14 @@ enum DeclaresStaticIndex {
   static int get index => 42; // Conflicts with inherited instance member.
   //             ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
+  // [cfe] An enum can't declare a non-abstract member named 'index'.
   // [cfe] Can't declare a member that conflicts with an inherited one.
 }
 
 enum InheritsIndex with IndexGetter {
   // ^^^^^^^^^^^^^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] An enum can't inherit a member named 'index'.
   e1;
 }
 
@@ -640,7 +639,7 @@ enum ImplementsNeverIndex {
   Never get index => throw "Never!";
   //        ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
-  // [cfe] unspecified
+  // [cfe] An enum can't declare a non-abstract member named 'index'.
 }
 
 enum NSMImplementsNeverIndex implements NeverIndexGetter {
@@ -657,10 +656,10 @@ enum CyclicReference {
 //   ^
 // [cfe] Constant evaluation error:
   e1(e2),
-//^
-// [cfe] Constant evaluation error:
 //^^
 // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_COMPILE_TIME_CONSTANT
+// [cfe] Can't infer the type of 'e1': circularity found during type inference.
+// [cfe] Constant evaluation error:
   e2(e1);
 //^^
 // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_COMPILE_TIME_CONSTANT

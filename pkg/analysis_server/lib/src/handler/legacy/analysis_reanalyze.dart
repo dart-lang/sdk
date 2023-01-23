@@ -16,15 +16,17 @@ class AnalysisReanalyzeHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    server.options.analytics?.sendEvent('analysis', 'reanalyze');
+    unawaited(server.options.analytics?.sendEvent('analysis', 'reanalyze'));
+
+    // Send the response before starting any work so that analysis results and
+    // status events will only arrive after the response.
+    sendResult(AnalysisReanalyzeResult());
 
     await server.reanalyze();
     //
     // Restart all of the plugins. This is an async operation that will happen
     // in the background.
     //
-    server.pluginManager.restartPlugins();
-
-    sendResult(AnalysisReanalyzeResult());
+    unawaited(server.pluginManager.restartPlugins());
   }
 }

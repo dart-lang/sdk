@@ -89,6 +89,69 @@ void f() {
 ''');
   }
 
+  Future<void> test_localVariable_conflictWithParameter() async {
+    await resolveTestCode('''
+class A {
+  void m({int? foo}) {
+    var _foo = 1;
+    print(foo);
+    print(_foo);
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  void m({int? foo}) {
+    var foo0 = 1;
+    print(foo);
+    print(foo0);
+  }
+}
+''');
+  }
+
+  Future<void> test_localVariable_conflictWithVariable() async {
+    await resolveTestCode('''
+void f() {
+  var _foo = 1;
+  var foo = true;
+  print(_foo);
+  print(foo);
+}
+''');
+    await assertHasFix('''
+void f() {
+  var foo0 = 1;
+  var foo = true;
+  print(foo0);
+  print(foo);
+}
+''');
+  }
+
+  Future<void> test_localVariable_conflictWithVariable_existing() async {
+    await resolveTestCode('''
+void f() {
+  var _foo = 1;
+  var foo = true;
+  var foo0 = true;
+  print(_foo);
+  print(foo);
+  print(foo0);
+}
+''');
+    await assertHasFix('''
+void f() {
+  var foo1 = 1;
+  var foo = true;
+  var foo0 = true;
+  print(foo1);
+  print(foo);
+  print(foo0);
+}
+''');
+  }
+
   Future<void> test_parameter_closure() async {
     await resolveTestCode('''
 void f() {

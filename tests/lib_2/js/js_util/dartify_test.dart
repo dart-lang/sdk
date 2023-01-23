@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Tests the dartify functionality of the js_util library.
 
 @JS()
@@ -30,13 +32,21 @@ main() {
     };
     globalThis.recObjectData = {};
     globalThis.recObjectData = {'foo': globalThis.recObjectData}
-    globalThis.throwData = function() {};
+    globalThis.throwData = new RegExp();
+    globalThis.complexData = {
+      'a': new Date(0),
+      'b': new Promise((resolve, reject) => {}),
+    };
+    globalThis.complexList = [
+      new Date(0),
+      new Promise((resolve, reject) => {}),
+    ];
     """);
 
   test('convert an array', () {
-    Object? jsArray = js_util.getProperty(js_util.globalThis, 'arrayData');
-    Object? dartArray = js_util.dartify(jsArray);
-    List<Object?> expectedValues = [
+    Object jsArray = js_util.getProperty(js_util.globalThis, 'arrayData');
+    Object dartArray = js_util.dartify(jsArray);
+    List<Object> expectedValues = [
       1,
       2,
       false,
@@ -50,16 +60,16 @@ main() {
   });
 
   test('convert a recursive array', () {
-    Object? jsArray = js_util.getProperty(js_util.globalThis, 'recArrayData');
-    Object? dartArray = js_util.dartify(jsArray);
-    List<Object?> expectedValues = [[]];
+    Object jsArray = js_util.getProperty(js_util.globalThis, 'recArrayData');
+    Object dartArray = js_util.dartify(jsArray);
+    List<Object> expectedValues = [[]];
     Expect.deepEquals(expectedValues, dartArray);
   });
 
   test('convert an object literal', () {
-    Object? jsObject = js_util.getProperty(js_util.globalThis, 'objectData');
-    Object? dartObject = js_util.dartify(jsObject);
-    Map<Object?, Object?> expectedValues = {
+    Object jsObject = js_util.getProperty(js_util.globalThis, 'objectData');
+    Object dartObject = js_util.dartify(jsObject);
+    Map<Object, Object> expectedValues = {
       'a': 1,
       'b': [1, 2, 3],
       'c': {
@@ -71,15 +81,31 @@ main() {
   });
 
   test('convert a recursive object literal', () {
-    Object? jsObject = js_util.getProperty(js_util.globalThis, 'recObjectData');
-    Object? dartObject = js_util.dartify(jsObject);
-    Map<Object?, Object?> expectedValues = {
+    Object jsObject = js_util.getProperty(js_util.globalThis, 'recObjectData');
+    Object dartObject = js_util.dartify(jsObject);
+    Map<Object, Object> expectedValues = {
       'foo': {},
     };
     Expect.deepEquals(expectedValues, dartObject);
   });
 
-  test('throws if object is not an object literal or array', () {
+  test('complex types convert in an Object', () {
+    Object jsObject = js_util.getProperty(js_util.globalThis, 'complexData');
+    Map<Object, Object> dartObject =
+        js_util.dartify(jsObject) as Map<Object, Object>;
+    print(dartObject);
+    Expect.isTrue(dartObject['a'] is DateTime);
+    Expect.isTrue(dartObject['b'] is Future);
+  });
+
+  test('complex types convert in a List', () {
+    Object jsArray = js_util.getProperty(js_util.globalThis, 'complexList');
+    List<Object> dartList = js_util.dartify(jsArray) as List<Object>;
+    Expect.isTrue(dartList[0] is DateTime);
+    Expect.isTrue(dartList[1] is Future);
+  });
+
+  test('throws if object is a regexp', () {
     expect(
         () => js_util
             .dartify(js_util.getProperty(js_util.globalThis, 'throwData')),

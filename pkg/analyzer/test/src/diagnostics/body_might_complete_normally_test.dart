@@ -10,11 +10,19 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(BodyMayCompleteNormallyTest);
+    defineReflectiveTests(BodyMayCompleteNormallyTest_Language218);
   });
 }
 
 @reflectiveTest
-class BodyMayCompleteNormallyTest extends PubPackageResolutionTest {
+class BodyMayCompleteNormallyTest extends PubPackageResolutionTest
+    with BodyMayCompleteNormallyTestCases {}
+
+@reflectiveTest
+class BodyMayCompleteNormallyTest_Language218 extends PubPackageResolutionTest
+    with WithLanguage218Mixin, BodyMayCompleteNormallyTestCases {}
+
+mixin BodyMayCompleteNormallyTestCases on PubPackageResolutionTest {
   test_enum_method_nonNullable_blockBody_switchStatement_notNullable_exhaustive() async {
     await assertNoErrorsInCode(r'''
 enum E {

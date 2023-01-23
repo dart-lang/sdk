@@ -61,7 +61,7 @@ final String checkedInDartVM =
     p.join("tools", "sdks", "dart-sdk", "bin", "dart${executableSuffix}");
 
 Future<Result> runDart(String prefix, List<String> arguments,
-    {bool printOut: true}) {
+    {bool printOut = true}) {
   final augmentedArguments = <String>[]
     ..addAll(Platform.executableArguments)
     ..add('--verbosity=warning')
@@ -94,8 +94,8 @@ Future<Result> runGenSnapshot(String prefix, List<String> arguments) {
 
 Future<Result> runBinary(String prefix, String binary, List<String> arguments,
     {Map<String, String> environment,
-    bool runInShell: false,
-    bool printOut: true}) async {
+    bool runInShell = false,
+    bool printOut = true}) async {
   print("+ $binary " + arguments.join(" "));
   final processResult = await Process.run(binary, arguments,
       environment: environment, runInShell: runInShell);

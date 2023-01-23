@@ -103,7 +103,8 @@ import 'package:expect/expect.dart';
   "modifiers": {
     "abstract": false
   },
-  "children": []
+  "children": [],
+  "supers": []
 }]*/
 class Super<T> {
   void method(T t) {}
@@ -121,7 +122,8 @@ class Super<T> {
   },
   "children": [
     "function/memory:sdk/tests/web/native/main.dart::Mixin.method"
-  ]
+  ],
+  "supers": []
 }]*/
 class Mixin {
   /*member: Mixin.method:
@@ -155,41 +157,41 @@ class Mixin {
   "functionKind": 2
 }],
    holding=[
-    {"id":"function/dart:_rti::Rti._bind","mask":null},
-    {"id":"function/dart:_rti::Rti._eval","mask":null},
-    {"id":"function/dart:_rti::_arrayInstanceType","mask":null},
-    {"id":"function/dart:_rti::_asBool","mask":null},
-    {"id":"function/dart:_rti::_asBoolQ","mask":null},
-    {"id":"function/dart:_rti::_asBoolS","mask":null},
-    {"id":"function/dart:_rti::_asDouble","mask":null},
-    {"id":"function/dart:_rti::_asDoubleQ","mask":null},
-    {"id":"function/dart:_rti::_asDoubleS","mask":null},
-    {"id":"function/dart:_rti::_asInt","mask":null},
-    {"id":"function/dart:_rti::_asIntQ","mask":null},
-    {"id":"function/dart:_rti::_asIntS","mask":null},
-    {"id":"function/dart:_rti::_asNum","mask":null},
-    {"id":"function/dart:_rti::_asNumQ","mask":null},
-    {"id":"function/dart:_rti::_asNumS","mask":null},
-    {"id":"function/dart:_rti::_asObject","mask":null},
-    {"id":"function/dart:_rti::_asString","mask":null},
-    {"id":"function/dart:_rti::_asStringQ","mask":null},
-    {"id":"function/dart:_rti::_asStringS","mask":null},
-    {"id":"function/dart:_rti::_asTop","mask":null},
-    {"id":"function/dart:_rti::_generalAsCheckImplementation","mask":null},
-    {"id":"function/dart:_rti::_generalIsTestImplementation","mask":null},
-    {"id":"function/dart:_rti::_generalNullableAsCheckImplementation","mask":null},
-    {"id":"function/dart:_rti::_generalNullableIsTestImplementation","mask":null},
-    {"id":"function/dart:_rti::_installSpecializedAsCheck","mask":null},
-    {"id":"function/dart:_rti::_installSpecializedIsTest","mask":null},
-    {"id":"function/dart:_rti::_instanceType","mask":null},
-    {"id":"function/dart:_rti::_isBool","mask":null},
-    {"id":"function/dart:_rti::_isInt","mask":null},
-    {"id":"function/dart:_rti::_isNum","mask":null},
-    {"id":"function/dart:_rti::_isObject","mask":null},
-    {"id":"function/dart:_rti::_isString","mask":null},
-    {"id":"function/dart:_rti::_isTop","mask":null},
-    {"id":"function/dart:_rti::findType","mask":null},
-    {"id":"function/dart:_rti::instanceType","mask":null}]
+    {"id":"function/dart:_rti::Rti._bind"},
+    {"id":"function/dart:_rti::Rti._eval"},
+    {"id":"function/dart:_rti::_arrayInstanceType"},
+    {"id":"function/dart:_rti::_asBool"},
+    {"id":"function/dart:_rti::_asBoolQ"},
+    {"id":"function/dart:_rti::_asBoolS"},
+    {"id":"function/dart:_rti::_asDouble"},
+    {"id":"function/dart:_rti::_asDoubleQ"},
+    {"id":"function/dart:_rti::_asDoubleS"},
+    {"id":"function/dart:_rti::_asInt"},
+    {"id":"function/dart:_rti::_asIntQ"},
+    {"id":"function/dart:_rti::_asIntS"},
+    {"id":"function/dart:_rti::_asNum"},
+    {"id":"function/dart:_rti::_asNumQ"},
+    {"id":"function/dart:_rti::_asNumS"},
+    {"id":"function/dart:_rti::_asObject"},
+    {"id":"function/dart:_rti::_asString"},
+    {"id":"function/dart:_rti::_asStringQ"},
+    {"id":"function/dart:_rti::_asStringS"},
+    {"id":"function/dart:_rti::_asTop"},
+    {"id":"function/dart:_rti::_generalAsCheckImplementation"},
+    {"id":"function/dart:_rti::_generalIsTestImplementation"},
+    {"id":"function/dart:_rti::_generalNullableAsCheckImplementation"},
+    {"id":"function/dart:_rti::_generalNullableIsTestImplementation"},
+    {"id":"function/dart:_rti::_installSpecializedAsCheck"},
+    {"id":"function/dart:_rti::_installSpecializedIsTest"},
+    {"id":"function/dart:_rti::_instanceType"},
+    {"id":"function/dart:_rti::_isBool"},
+    {"id":"function/dart:_rti::_isInt"},
+    {"id":"function/dart:_rti::_isNum"},
+    {"id":"function/dart:_rti::_isObject"},
+    {"id":"function/dart:_rti::_isString"},
+    {"id":"function/dart:_rti::_isTop"},
+    {"id":"function/dart:_rti::findType"},
+    {"id":"function/dart:_rti::instanceType"}]
   */
   void method(int t) {}
 }
@@ -206,6 +208,10 @@ class Mixin {
   },
   "children": [
     "function/memory:sdk/tests/web/native/main.dart::Clazz.method"
+  ],
+  "supers": [
+    "class/memory:sdk/tests/web/native/main.dart::Mixin",
+    "class/memory:sdk/tests/web/native/main.dart::Super"
   ]
 }]*/
 /*member: Clazz.method:
@@ -239,42 +245,42 @@ class Mixin {
   "functionKind": 2
 }],
  holding=[
-  {"id":"function/dart:_rti::Rti._bind","mask":null},
-  {"id":"function/dart:_rti::Rti._eval","mask":null},
-  {"id":"function/dart:_rti::_arrayInstanceType","mask":null},
-  {"id":"function/dart:_rti::_asBool","mask":null},
-  {"id":"function/dart:_rti::_asBoolQ","mask":null},
-  {"id":"function/dart:_rti::_asBoolS","mask":null},
-  {"id":"function/dart:_rti::_asDouble","mask":null},
-  {"id":"function/dart:_rti::_asDoubleQ","mask":null},
-  {"id":"function/dart:_rti::_asDoubleS","mask":null},
-  {"id":"function/dart:_rti::_asInt","mask":null},
-  {"id":"function/dart:_rti::_asIntQ","mask":null},
-  {"id":"function/dart:_rti::_asIntS","mask":null},
-  {"id":"function/dart:_rti::_asNum","mask":null},
-  {"id":"function/dart:_rti::_asNumQ","mask":null},
-  {"id":"function/dart:_rti::_asNumS","mask":null},
-  {"id":"function/dart:_rti::_asObject","mask":null},
-  {"id":"function/dart:_rti::_asString","mask":null},
-  {"id":"function/dart:_rti::_asStringQ","mask":null},
-  {"id":"function/dart:_rti::_asStringS","mask":null},
-  {"id":"function/dart:_rti::_asTop","mask":null},
-  {"id":"function/dart:_rti::_generalAsCheckImplementation","mask":null},
-  {"id":"function/dart:_rti::_generalIsTestImplementation","mask":null},
-  {"id":"function/dart:_rti::_generalNullableAsCheckImplementation","mask":null},
-  {"id":"function/dart:_rti::_generalNullableIsTestImplementation","mask":null},
-  {"id":"function/dart:_rti::_installSpecializedAsCheck","mask":null},
-  {"id":"function/dart:_rti::_installSpecializedIsTest","mask":null},
-  {"id":"function/dart:_rti::_instanceType","mask":null},
-  {"id":"function/dart:_rti::_isBool","mask":null},
-  {"id":"function/dart:_rti::_isInt","mask":null},
-  {"id":"function/dart:_rti::_isNum","mask":null},
-  {"id":"function/dart:_rti::_isObject","mask":null},
-  {"id":"function/dart:_rti::_isString","mask":null},
-  {"id":"function/dart:_rti::_isTop","mask":null},
-  {"id":"function/dart:_rti::findType","mask":null},
-  {"id":"function/dart:_rti::instanceType","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Mixin.method","mask":null}]
+  {"id":"function/dart:_rti::Rti._bind"},
+  {"id":"function/dart:_rti::Rti._eval"},
+  {"id":"function/dart:_rti::_arrayInstanceType"},
+  {"id":"function/dart:_rti::_asBool"},
+  {"id":"function/dart:_rti::_asBoolQ"},
+  {"id":"function/dart:_rti::_asBoolS"},
+  {"id":"function/dart:_rti::_asDouble"},
+  {"id":"function/dart:_rti::_asDoubleQ"},
+  {"id":"function/dart:_rti::_asDoubleS"},
+  {"id":"function/dart:_rti::_asInt"},
+  {"id":"function/dart:_rti::_asIntQ"},
+  {"id":"function/dart:_rti::_asIntS"},
+  {"id":"function/dart:_rti::_asNum"},
+  {"id":"function/dart:_rti::_asNumQ"},
+  {"id":"function/dart:_rti::_asNumS"},
+  {"id":"function/dart:_rti::_asObject"},
+  {"id":"function/dart:_rti::_asString"},
+  {"id":"function/dart:_rti::_asStringQ"},
+  {"id":"function/dart:_rti::_asStringS"},
+  {"id":"function/dart:_rti::_asTop"},
+  {"id":"function/dart:_rti::_generalAsCheckImplementation"},
+  {"id":"function/dart:_rti::_generalIsTestImplementation"},
+  {"id":"function/dart:_rti::_generalNullableAsCheckImplementation"},
+  {"id":"function/dart:_rti::_generalNullableIsTestImplementation"},
+  {"id":"function/dart:_rti::_installSpecializedAsCheck"},
+  {"id":"function/dart:_rti::_installSpecializedIsTest"},
+  {"id":"function/dart:_rti::_instanceType"},
+  {"id":"function/dart:_rti::_isBool"},
+  {"id":"function/dart:_rti::_isInt"},
+  {"id":"function/dart:_rti::_isNum"},
+  {"id":"function/dart:_rti::_isObject"},
+  {"id":"function/dart:_rti::_isString"},
+  {"id":"function/dart:_rti::_isTop"},
+  {"id":"function/dart:_rti::findType"},
+  {"id":"function/dart:_rti::instanceType"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Mixin.method"}]
 */
 class Clazz = Super<int> with Mixin;
 
@@ -291,6 +297,9 @@ class Clazz = Super<int> with Mixin;
   "children": [
     "function/memory:sdk/tests/web/native/main.dart::Subclass.Subclass",
     "function/memory:sdk/tests/web/native/main.dart::Subclass.test"
+  ],
+  "supers": [
+    "class/memory:sdk/tests/web/native/main.dart::Clazz"
   ]
 }]*/
 /*member: Subclass.:function=[{
@@ -406,17 +415,17 @@ class Subclass extends Clazz {
   "functionKind": 2
 }],
  holding=[
-  {"id":"function/dart:_js_helper::closureFromTearOff","mask":null},
-  {"id":"function/dart:_rti::_setArrayType","mask":null},
-  {"id":"function/dart:_rti::findType","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Clazz.method","mask":null},
+  {"id":"function/dart:_js_helper::closureFromTearOff"},
+  {"id":"function/dart:_rti::_setArrayType"},
+  {"id":"function/dart:_rti::findType"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Clazz.method"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::Subclass.Subclass","mask":"inlined"},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Subclass.Subclass","mask":null},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Subclass.Subclass"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::Subclass.test","mask":"inlined"},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Subclass.test","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::main.main_closure.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::main.main_closure.call","mask":null},
-  {"id":"function/package:expect/expect.dart::Expect.throws","mask":null}]
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Subclass.test"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::main.main_closure.call"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::main.main_closure.call"},
+  {"id":"function/package:expect/expect.dart::Expect.throws"}]
 */
 main() {
   Super<Object> s = new Subclass()..test();

@@ -6,6 +6,7 @@
 
 #include "vm/program_visitor.h"
 
+#include "vm/canonical_tables.h"
 #include "vm/closure_functions_cache.h"
 #include "vm/code_patcher.h"
 #include "vm/deopt_instructions.h"
@@ -256,14 +257,16 @@ void ProgramVisitor::WalkProgram(Zone* zone,
 
     // TODO(dartbug.com/43049): Use a more general solution and remove manual
     // tracking through object_store->ffi_callback_functions.
-    auto& function = Function::Handle(zone);
-    const auto& ffi_callback_entries = GrowableObjectArray::Handle(
-        zone, object_store->ffi_callback_functions());
-    if (!ffi_callback_entries.IsNull()) {
-      for (intptr_t i = 0; i < ffi_callback_entries.Length(); i++) {
-        function ^= ffi_callback_entries.At(i);
+    if (object_store->ffi_callback_functions() != Array::null()) {
+      auto& function = Function::Handle(zone);
+      FfiCallbackFunctionSet set(object_store->ffi_callback_functions());
+      FfiCallbackFunctionSet::Iterator it(&set);
+      while (it.MoveNext()) {
+        const intptr_t entry = it.Current();
+        function ^= set.GetKey(entry);
         walker.AddToWorklist(function);
       }
+      set.Release();
     }
   }
 
@@ -1468,15 +1471,8 @@ class AssignLoadingUnitsCodeVisitor : public ObjectVisitor {
         }
         id = unit_.id();
       }
-    } else if (code.IsAllocationStubCode()) {
-      cls_ ^= code.owner();
-      lib_ = cls_.library();
-      unit_ = lib_.loading_unit();
-      if (unit_.IsNull()) {
-        return;  // Assignment remains LoadingUnit::kIllegalId
-      }
-      id = unit_.id();
-    } else if (code.IsTypeTestStubCode() || code.IsStubCode()) {
+    } else if (code.IsTypeTestStubCode() || code.IsStubCode() ||
+               code.IsAllocationStubCode()) {
       id = LoadingUnit::kRootId;
     } else {
       UNREACHABLE();

@@ -5,12 +5,12 @@ import "dart:core" as core;
 class C extends core::_Enum /*isEnum*/  {
   static const field core::List<self::C> values = #C20;
   final field core::String log;
-  static const field self::C a = #C4;
-  static const field self::C b = #C7;
-  static const field self::C c = #C10;
-  static const field self::C d = #C13;
-  static const field self::C e = #C16;
-  static const field self::C f = #C19;
+  enum-element static const field self::C a = #C4;
+  enum-element static const field self::C b = #C7;
+  enum-element static const field self::C c = #C10;
+  enum-element static const field self::C d = #C13;
+  enum-element static const field self::C e = #C16;
+  enum-element static const field self::C f = #C19;
   const constructor •(core::int #index, core::String #name, core::int x, core::int y, {core::int z = #C21}) → self::C
     : self::C::log = "x=${x}, y=${y}, z=${z}", super core::_Enum::•(#index, #name)
     ;
@@ -23,7 +23,7 @@ class C extends core::_Enum /*isEnum*/  {
   const constructor named3(core::int #index, core::String #name, core::int x, core::int y, core::int z) → self::C
     : final core::int #t5 = #index, final core::String #t6 = #name, final core::int #t7 = z, this self::C::•(#t5, #t6, x, y, z: #t7)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "C.${this.{core::_Enum::_name}{core::String}}";
 }
 static method main() → dynamic {
@@ -67,8 +67,8 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///redirecting_constructor.dart:
 - C. (from org-dartlang-testcase:///redirecting_constructor.dart:16:9)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - C.named1 (from org-dartlang-testcase:///redirecting_constructor.dart:19:9)
 - C.named2 (from org-dartlang-testcase:///redirecting_constructor.dart:20:9)
 - C.named3 (from org-dartlang-testcase:///redirecting_constructor.dart:21:9)

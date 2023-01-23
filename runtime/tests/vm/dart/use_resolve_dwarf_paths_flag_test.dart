@@ -5,7 +5,7 @@
 // This test checks that --resolve-dwarf-paths outputs absolute and relative
 // paths in DWARF information.
 
-// OtherResources=use_dwarf_stack_traces_flag_program.dart
+// OtherResources=use_save_debugging_info_flag_program.dart
 
 import "dart:async";
 import "dart:io";
@@ -38,7 +38,8 @@ main(List<String> args) async {
 
   await withTempDir('dwarf-flag-test', (String tempDir) async {
     final cwDir = path.dirname(Platform.script.toFilePath());
-    final script = path.join(cwDir, 'use_dwarf_stack_traces_flag_program.dart');
+    final script =
+        path.join(cwDir, 'use_save_debugging_info_flag_program.dart');
     final scriptDill = path.join(tempDir, 'flag_program.dill');
 
     // Compile script to Kernel IR.

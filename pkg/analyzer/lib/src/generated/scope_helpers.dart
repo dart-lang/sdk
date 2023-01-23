@@ -39,10 +39,10 @@ mixin ScopeHelpers {
     required ScopeLookupResult scopeLookupResult,
     required SimpleIdentifier node,
   }) {
-    if (scopeLookupResult is PrefixScopeLookupResult) {
+    if (scopeLookupResult is PrefixScopeLookupResult &&
+        scopeLookupResult.getterIsFromDeprecatedExport) {
       _reportDeprecatedExportUse(
         node: node,
-        imported: scopeLookupResult.importedGetter,
       );
     }
   }
@@ -51,24 +51,19 @@ mixin ScopeHelpers {
     required ScopeLookupResult scopeLookupResult,
     required SimpleIdentifier node,
   }) {
-    if (scopeLookupResult is PrefixScopeLookupResult) {
+    if (scopeLookupResult is PrefixScopeLookupResult &&
+        scopeLookupResult.setterIsFromDeprecatedExport) {
       _reportDeprecatedExportUse(
         node: node,
-        imported: scopeLookupResult.importedSetter,
       );
     }
   }
 
-  void _reportDeprecatedExportUse({
-    required SimpleIdentifier node,
-    required final ImportedElement? imported,
-  }) {
-    if (imported != null && imported.isFromDeprecatedExport) {
-      errorReporter.reportErrorForNode(
-        HintCode.DEPRECATED_EXPORT_USE,
-        node,
-        [node.name],
-      );
-    }
+  void _reportDeprecatedExportUse({required SimpleIdentifier node}) {
+    errorReporter.reportErrorForNode(
+      HintCode.DEPRECATED_EXPORT_USE,
+      node,
+      [node.name],
+    );
   }
 }

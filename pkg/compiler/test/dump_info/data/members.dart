@@ -98,7 +98,8 @@
     "function/memory:sdk/tests/web/native/main.dart::C.C._default",
     "function/memory:sdk/tests/web/native/main.dart::C.C.create",
     "function/memory:sdk/tests/web/native/main.dart::C.compute"
-  ]
+  ],
+  "supers": []
 }]*/
 class C {
   /*member: C.value:
@@ -115,8 +116,8 @@ class C {
   "type": "dynamic"
 }],
    holding=[
-    {"id":"function/dart:_js_helper::throwCyclicInit","mask":null},
-    {"id":"function/dart:_late_helper::throwLateFieldADI","mask":null}]
+    {"id":"function/dart:_js_helper::throwCyclicInit"},
+    {"id":"function/dart:_late_helper::throwLateFieldADI"}]
   */
   final value;
   /*member: C.counter:function=[{
@@ -146,12 +147,12 @@ class C {
   "type": "bool"
 }],
    holding=[
-    {"id":"field/memory:sdk/tests/web/native/main.dart::C.counter","mask":null},
-    {"id":"field/memory:sdk/tests/web/native/main.dart::C.counter","mask":null},
-    {"id":"function/dart:_js_helper::throwCyclicInit","mask":null},
-    {"id":"function/dart:_late_helper::throwLateFieldADI","mask":null},
+    {"id":"field/memory:sdk/tests/web/native/main.dart::C.counter"},
+    {"id":"field/memory:sdk/tests/web/native/main.dart::C.counter"},
+    {"id":"function/dart:_js_helper::throwCyclicInit"},
+    {"id":"function/dart:_late_helper::throwLateFieldADI"},
     {"id":"function/memory:sdk/tests/web/native/main.dart::C.compute","mask":"inlined"},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::C.compute","mask":null}]
+    {"id":"function/memory:sdk/tests/web/native/main.dart::C.compute"}]
   */
   static bool y = C.compute();
   /*member: C.compute:function=[{
@@ -291,7 +292,8 @@ void F() {}
   "children": [
     "field/memory:sdk/tests/web/native/main.dart::A.a",
     "function/memory:sdk/tests/web/native/main.dart::A.A"
-  ]
+  ],
+  "supers": []
 }],
  classType=[{
   "id": "classType/memory:sdk/tests/web/native/main.dart::A",
@@ -384,19 +386,19 @@ final constList = const [
   "functionKind": 0
 }],
  holding=[
-  {"id":"field/memory:sdk/tests/web/native/main.dart::C.y","mask":null},
-  {"id":"function/dart:_internal::printToConsole","mask":null},
-  {"id":"function/dart:_js_helper::S","mask":null},
-  {"id":"function/dart:_js_primitives::printString","mask":null},
-  {"id":"function/dart:_rti::findType","mask":null},
-  {"id":"function/dart:core::Error.Error","mask":null},
+  {"id":"field/memory:sdk/tests/web/native/main.dart::C.y"},
+  {"id":"function/dart:_internal::printToConsole"},
+  {"id":"function/dart:_js_helper::S"},
+  {"id":"function/dart:_js_primitives::printString"},
+  {"id":"function/dart:_rti::findType"},
+  {"id":"function/dart:core::Error.Error"},
   {"id":"function/dart:core::print","mask":"inlined"},
-  {"id":"function/dart:core::print","mask":null},
+  {"id":"function/dart:core::print"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::A.A","mask":"inlined"},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::A.A","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::C.C._default","mask":null},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::A.A"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::C.C._default"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::C.C.create","mask":"inlined"},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::C.C.create","mask":null}]
+  {"id":"function/memory:sdk/tests/web/native/main.dart::C.C.create"}]
 */
 main() {
   dynamic l = [constList, const A(), F, C.y, false, A().a];

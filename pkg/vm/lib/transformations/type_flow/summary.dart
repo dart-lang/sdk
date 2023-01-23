@@ -299,7 +299,7 @@ class Call extends Statement {
 
   Member? _monomorphicTarget;
 
-  Member? get monomorphicTarget => _monomorphicTarget;
+  Member? get monomorphicTarget => filterArtificialNode(_monomorphicTarget);
 
   bool get isMonomorphic => (_flags & kMonomorphic) != 0;
 
@@ -634,9 +634,9 @@ class Summary {
   int calleeTime = 0;
 
   Summary(this.name,
-      {this.parameterCount: 0,
-      this.positionalParameterCount: 0,
-      this.requiredParameterCount: 0});
+      {this.parameterCount = 0,
+      this.positionalParameterCount = 0,
+      this.requiredParameterCount = 0});
 
   List<Statement> get statements => _statements;
 

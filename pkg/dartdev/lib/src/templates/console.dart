@@ -39,7 +39,7 @@ final String _pubspec = '''
 name: __projectName__
 description: A sample command-line application.
 version: 1.0.0
-# homepage: https://www.example.com
+# repository: https://github.com/my_org/my_repo
 
 environment:
   ${common.sdkConstraint}
@@ -49,7 +49,7 @@ environment:
 
 dev_dependencies:
   lints: ^2.0.0
-  test: ^1.16.0
+  test: ^1.21.0
 ''';
 
 final String _readme = '''

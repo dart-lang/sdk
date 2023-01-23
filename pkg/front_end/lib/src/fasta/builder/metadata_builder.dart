@@ -30,7 +30,8 @@ class MetadataBuilder {
       SourceLibraryBuilder library,
       DeclarationBuilder? classOrExtensionBuilder,
       MemberBuilder? member,
-      Uri fileUri, Scope scope) {
+      Uri fileUri,
+      Scope scope) {
     if (metadata == null) return;
     BodyBuilder bodyBuilder = library.loader
         .createBodyBuilderForOutlineExpression(library, classOrExtensionBuilder,
@@ -41,6 +42,6 @@ class MetadataBuilder {
           bodyBuilder.parseAnnotation(annotationBuilder.beginToken));
     }
     bodyBuilder.inferAnnotations(parent, parent.annotations);
-    bodyBuilder.performBacklogComputations();
+    bodyBuilder.performBacklogComputations(allowFurtherDelays: false);
   }
 }

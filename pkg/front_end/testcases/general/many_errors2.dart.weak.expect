@@ -39,11 +39,6 @@ library /*isNonNullableByDefault*/;
 //   const AbstractClass.id();
 //         ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/many_errors2.dart:28:9: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-//   const AbstractClass.id();
-//         ^
-//
 // pkg/front_end/testcases/general/many_errors2.dart:29:12: Warning: Operand of null-aware operation '??=' has type 'B' which excludes null.
 //  - 'B' is from 'pkg/front_end/testcases/general/many_errors2.dart'.
 //   (new C().b ??= new B()).b;
@@ -96,10 +91,7 @@ external foo(String x) {
   }
 }
 static method m() → dynamic {
-  throw invalid-expression "pkg/front_end/testcases/general/many_errors2.dart:28:9: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-Try using a constructor or factory that is 'const'.
-  const AbstractClass.id();
-        ^";
+  invalid-expression "The class 'AbstractClass' is abstract and can't be instantiated.";
   invalid-expression "pkg/front_end/testcases/general/many_errors2.dart:29:27: Error: The getter 'b' isn't defined for the class 'B'.
  - 'B' is from 'pkg/front_end/testcases/general/many_errors2.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'b'.

@@ -1,0 +1,69 @@
+part 'field_promotion_name_conflicts_part.dart';
+
+abstract class C {
+  final int? _f1;
+  final int? _f2;
+  final int? _f3;
+  final int? _f4;
+  final int? _f5;
+  final int? _f6;
+  final int? _f7;
+  final int? _f8;
+  final int? _f9;
+  final int? _f10;
+  final int? _f11;
+  final int? _f12;
+  final int? _f13;
+  C(int? i)
+      : _f1 = i,
+        _f2 = i,
+        _f3 = i,
+        _f4 = i,
+        _f5 = i,
+        _f6 = i,
+        _f7 = i,
+        _f8 = i,
+        _f9 = i,
+        _f10 = i,
+        _f11 = i,
+        _f12 = i,
+        _f13 = i;
+}
+
+abstract class D {
+  final int? _f1;
+  int? _f2;
+  int? get _f3;
+  int? get _f4 => 0;
+  set _f5(int? i) {}
+  static int? _f6;
+  static int? get _f7 => 0;
+  D(int? i) : _f1 = i;
+}
+
+int? _f8;
+int? get _f9 => 0;
+
+extension on String {
+  int? get _f10 => 0;
+}
+
+mixin M {
+  int? _f12;
+  int? get _f13 => 0;
+}
+void acceptsInt(int x) {}
+void testFinalField(C c) {}
+void testNonFinalField(C c) {}
+void testAbstractGetter(C c) {}
+void testConcreteGetter(C c) {}
+void testSetter(C c) {}
+void testStaticField(C c) {}
+void testStaticGetter(C c) {}
+void testTopLevelField(C c) {}
+void testTopLevelGetter(C c) {}
+void testExtensionGetter(C c) {}
+void testGetterInPart(C c) {}
+void testFieldInMixin(C c) {}
+void testGetterInMixin(C c) {}
+main() {}

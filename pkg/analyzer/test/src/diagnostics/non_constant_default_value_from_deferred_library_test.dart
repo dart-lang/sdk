@@ -24,7 +24,7 @@ const V = 1;
     await assertErrorsInCode('''
 library root;
 import 'lib1.dart' deferred as a;
-f({x : a.V}) {}
+f({x = a.V}) {}
 ''', [
       error(
           CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY,
@@ -41,7 +41,7 @@ const V = 1;
     await assertErrorsInCode('''
 library root;
 import 'lib1.dart' deferred as a;
-f({x : a.V + 1}) {}
+f({x = a.V + 1}) {}
 ''', [
       error(
           CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY,

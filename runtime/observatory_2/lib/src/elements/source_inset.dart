@@ -35,8 +35,8 @@ class SourceInsetElement extends CustomElement implements Renderable {
       M.ObjectRepository objects,
       M.EventRepository events,
       {int currentPos,
-      bool inDebuggerContext: false,
-      Iterable variables: const [],
+      bool inDebuggerContext = false,
+      Iterable variables = const [],
       RenderingQueue queue}) {
     assert(isolate != null);
     assert(location != null);

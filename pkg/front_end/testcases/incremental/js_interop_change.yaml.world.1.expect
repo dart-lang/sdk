@@ -1,0 +1,124 @@
+main = main::main;
+library from "package:js/js.dart" as js {
+
+  class JS extends dart.core::Object /*hasConstConstructor*/  {
+    final field dart.core::String? name;
+    const constructor •([dart.core::String? name = #C1]) → js::JS
+      : js::JS::name = name, super dart.core::Object::•()
+      ;
+    static method _#new#tearOff([dart.core::String? name = #C1]) → js::JS
+      return new js::JS::•(name);
+  }
+  class _StaticInterop extends dart.core::Object /*hasConstConstructor*/  {
+    const constructor •() → js::_StaticInterop
+      : super dart.core::Object::•()
+      ;
+    static method _#new#tearOff() → js::_StaticInterop
+      return new js::_StaticInterop::•();
+  }
+  static const field js::_StaticInterop staticInterop = #C2;
+}
+library from "org-dartlang-test:///lib1.dart" as lib1 {
+
+  import "org-dartlang-test:///lib2.dart";
+
+  class Class extends dart.core::Object {
+    synthetic constructor •() → lib1::Class
+      : super dart.core::Object::•()
+      ;
+    method instanceMethod() → sta::StaticJSClass
+      return sta::StaticJSClass::factory();
+    get instanceGetter() → sta::StaticJSClass
+      return sta::StaticJSClass::•();
+    set instanceSetter((sta::StaticJSClass) → void f) → void {}
+    static method staticMethod() → sta::StaticJSClass
+      return sta::StaticJSClass::factory();
+    static get staticGetter() → sta::StaticJSClass
+      return sta::StaticJSClass::•();
+    static set staticSetter((sta::StaticJSClass) → void f) → void {}
+    static method _#new#tearOff() → lib1::Class
+      return new lib1::Class::•();
+  }
+  static method topLevelMethod() → sta::StaticJSClass
+    return sta::StaticJSClass::•();
+  static get topLevelGetter() → sta::StaticJSClass
+    return sta::StaticJSClass::•();
+  static set topLevelSetter((sta::StaticJSClass) → void f) → void {}
+}
+@#C3
+library static_interop from "org-dartlang-test:///lib2.dart" as sta {
+
+  import "package:js/js.dart";
+
+  @#C5
+  @#C2
+  class StaticJSClass extends dart.core::Object {
+    external static factory •() → sta::StaticJSClass;
+    static method _#new#tearOff() → sta::StaticJSClass
+      return sta::StaticJSClass::•();
+    static factory factory() → sta::StaticJSClass {
+      return sta::StaticJSClass::•();
+    }
+    static method _#factory#tearOff() → sta::StaticJSClass
+      return sta::StaticJSClass::factory();
+  }
+  @#C3
+  external static method eval(dart.core::String code) → void;
+  static method setUp() → void {
+    sta::eval("function JSClass() {}");
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib1.dart";
+  import "org-dartlang-test:///lib2.dart";
+
+  class Subclass extends lib1::Class {
+    synthetic constructor •() → main::Subclass
+      : super lib1::Class::•()
+      ;
+    method method() → void {
+      sta::StaticJSClass baz = super.{lib1::Class::instanceMethod}();
+      () → sta::StaticJSClass bazFunction = super.{lib1::Class::instanceMethod};
+      baz = super.{lib1::Class::instanceGetter};
+      super.{lib1::Class::instanceSetter} = (sta::StaticJSClass s) → void {};
+    }
+    static method _#new#tearOff() → main::Subclass
+      return new main::Subclass::•();
+  }
+  static method main() → dynamic {
+    sta::StaticJSClass foo = lib1::topLevelMethod();
+    () → sta::StaticJSClass fooFunction = #C6;
+    foo = lib1::topLevelGetter;
+    lib1::topLevelSetter = (sta::StaticJSClass s) → void {};
+    sta::StaticJSClass bar = lib1::Class::staticMethod();
+    () → sta::StaticJSClass barFunction = #C7;
+    bar = lib1::Class::staticGetter;
+    lib1::Class::staticSetter = (sta::StaticJSClass s) → void {};
+    lib1::Class c = new lib1::Class::•();
+    sta::StaticJSClass baz = c.{lib1::Class::instanceMethod}(){() → sta::StaticJSClass};
+    () → sta::StaticJSClass bazFunction = c.{lib1::Class::instanceMethod}{() → sta::StaticJSClass};
+    baz = c.{lib1::Class::instanceGetter}{sta::StaticJSClass};
+    c.{lib1::Class::instanceSetter} = (sta::StaticJSClass s) → void {};
+  }
+}
+constants  {
+  #C1 = null
+  #C2 = js::_StaticInterop {}
+  #C3 = js::JS {name:#C1}
+  #C4 = "JSClass"
+  #C5 = js::JS {name:#C4}
+  #C6 = static-tearoff lib1::topLevelMethod
+  #C7 = static-tearoff lib1::Class::staticMethod
+}
+
+
+Constructor coverage from constants:
+org-dartlang-test:///lib2.dart:
+- JS. (from org-dartlang-test:///js/lib/js.dart:3:9)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)
+
+org-dartlang-test:///js/lib/js.dart:
+- _StaticInterop. (from org-dartlang-test:///js/lib/js.dart:6:9)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)
+

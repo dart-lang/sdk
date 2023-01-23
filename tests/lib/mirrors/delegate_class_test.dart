@@ -10,7 +10,7 @@ import 'package:expect/expect.dart';
 
 class C {
   static method(a, b, c) => "$a-$b-$c";
-  static methodWithNamed(a, {b: 'B', c}) => "$a-$b-$c";
+  static methodWithNamed(a, {b = 'B', c}) => "$a-$b-$c";
   static methodWithOpt(a, [b, c = 'C']) => "$a-$b-$c";
   static get getter => 'g';
   static set setter(x) {

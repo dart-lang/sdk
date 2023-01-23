@@ -20,11 +20,11 @@ List<Element> getChildren(Element parent, [String? name]) {
   return children;
 }
 
-/// Returns direct non-synthetic children of the given [ClassElement].
+/// Returns direct non-synthetic children of the given [InterfaceElement].
 ///
 /// Includes: fields, accessors and methods.
 /// Excludes: constructors and synthetic elements.
-List<Element> getClassMembers(ClassElement clazz, [String? name]) {
+List<Element> getClassMembers(InterfaceElement clazz, [String? name]) {
   var members = <Element>[];
   visitChildren(clazz, (Element element) {
     if (element.isSynthetic) {
@@ -48,10 +48,10 @@ List<Element> getClassMembers(ClassElement clazz, [String? name]) {
 }
 
 /// Returns a [Set] with direct subclasses of [seed].
-Future<Set<ClassElement>> getDirectSubClasses(
-    SearchEngine searchEngine, ClassElement seed) async {
+Future<Set<InterfaceElement>> getDirectSubClasses(
+    SearchEngine searchEngine, InterfaceElement seed) async {
   var matches = await searchEngine.searchSubtypes(seed);
-  return matches.map((match) => match.element).cast<ClassElement>().toSet();
+  return matches.map((match) => match.element).cast<InterfaceElement>().toSet();
 }
 
 /// Return the non-synthetic children of the given [extension]. This includes
@@ -90,10 +90,10 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
   // static elements
   if (member.isStatic || member is ConstructorElement) {
     result.add(member);
-    return Future.value(result);
+    return result;
   }
   // method, field, etc
-  if (enclosingElement is ClassElement) {
+  if (enclosingElement is InterfaceElement) {
     var name = member.displayName;
     var searchClasses = [
       ...enclosingElement.allSupertypes.map((e) => e.element),
@@ -147,13 +147,13 @@ Future<List<ParameterElement>> getHierarchyNamedParameters(
   return [element];
 }
 
-/// Returns non-synthetic members of the given [ClassElement] and its super
+/// Returns non-synthetic members of the given [InterfaceElement] and its super
 /// classes.
 ///
 /// Includes: fields, accessors and methods.
 ///
 /// Excludes: constructors and synthetic elements.
-List<Element> getMembers(ClassElement clazz) {
+List<Element> getMembers(InterfaceElement clazz) {
   var classElements = [
     ...clazz.allSupertypes.map((e) => e.element),
     clazz,

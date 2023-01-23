@@ -10,6 +10,9 @@ isolate/ping_pause_test: Skip # Issue https://dartbug.com/37787
 html/*: Skip # TODO(ahe): Make dart:html available.
 js/*: Skip # TODO(ahe): Make dart:js available.
 
+[ $arch == ia32 && $mode == debug ]
+*: Pass, Slow # The CFE is not run from AppJit snapshot, JIT warmup in debug mode very slow
+
 [ $arch == x64 && $compiler == dartk && $mode == debug && $runtime == vm ]
 mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
 

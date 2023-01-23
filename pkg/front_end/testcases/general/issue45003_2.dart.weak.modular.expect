@@ -32,4 +32,4 @@ Constructor coverage from constants:
 org-dartlang-testcase:///issue45003_2.dart:
 - B. (from org-dartlang-testcase:///issue45003_2.dart:10:9)
 - A. (from org-dartlang-testcase:///issue45003_2.dart:14:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

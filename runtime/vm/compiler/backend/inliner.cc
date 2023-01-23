@@ -119,12 +119,6 @@ static bool IsCallRecursive(const Function& function, Definition* call) {
   return false;
 }
 
-// Helper to get the default value of a formal parameter.
-static ConstantInstr* GetDefaultValue(intptr_t i,
-                                      const ParsedFunction& parsed_function) {
-  return new ConstantInstr(parsed_function.DefaultParameterValueAt(i));
-}
-
 // Helper to get result type from call (or nullptr otherwise).
 static CompileType* ResultType(Definition* call) {
   if (auto static_call = call->AsStaticCall()) {
@@ -530,37 +524,50 @@ class CallSites : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(CallSites);
 };
 
-// Determines if inlining this graph yields a small leaf node.
-static bool IsSmallLeaf(FlowGraph* graph) {
+// Determines if inlining this graph yields a small leaf node, or a sequence of
+// static calls that is no larger than the call site it will replace.
+static bool IsSmallLeafOrReduction(int inlining_depth,
+                                   intptr_t call_site_instructions,
+                                   FlowGraph* graph) {
   intptr_t instruction_count = 0;
+  intptr_t call_count = 0;
   for (BlockIterator block_it = graph->postorder_iterator(); !block_it.Done();
        block_it.Advance()) {
     BlockEntryInstr* entry = block_it.Current();
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
+      if (current->IsReturn()) continue;
       ++instruction_count;
       if (current->IsInstanceCall() || current->IsPolymorphicInstanceCall() ||
           current->IsClosureCall()) {
         return false;
-      } else if (current->IsStaticCall()) {
+      }
+      if (current->IsStaticCall()) {
         const Function& function = current->AsStaticCall()->function();
         const intptr_t inl_size = function.optimized_instruction_count();
         const bool always_inline =
             FlowGraphInliner::FunctionHasPreferInlinePragma(function);
-        // Accept a static call is always inlined in some way and add the
-        // cached size to the total instruction count. A reasonable guess
-        // is made if the count has not been collected yet (listed methods
-        // are never very large).
-        if (!always_inline && !function.IsRecognized()) {
-          return false;
+        // Accept a static call that is always inlined in some way and add the
+        // cached size to the total instruction count. A reasonable guess is
+        // made if the count has not been collected yet (listed methods are
+        // never very large).
+        if (always_inline || function.IsRecognized()) {
+          if (!always_inline) {
+            static constexpr intptr_t kAvgListedMethodSize = 20;
+            instruction_count +=
+                (inl_size == 0 ? kAvgListedMethodSize : inl_size);
+          }
+        } else {
+          ++call_count;
+          instruction_count += current->AsStaticCall()->ArgumentCount();
+          instruction_count += 1;  // pop the call frame.
         }
-        if (!always_inline) {
-          static constexpr intptr_t kAvgListedMethodSize = 20;
-          instruction_count +=
-              (inl_size == 0 ? kAvgListedMethodSize : inl_size);
-        }
+        continue;
       }
     }
+  }
+  if (call_count > 0) {
+    return instruction_count <= call_site_instructions;
   }
   return instruction_count <= FLAG_inlining_small_leaf_size_threshold;
 }
@@ -782,10 +789,7 @@ static void ReplaceParameterStubs(Zone* zone,
             callee_signature, first_arg_index, i)) {
       RedefinitionInstr* redefinition =
           new (zone) RedefinitionInstr(actual->Copy(zone));
-      redefinition->set_ssa_temp_index(caller_graph->alloc_ssa_temp_index());
-      if (FlowGraph::NeedsPairLocation(redefinition->representation())) {
-        caller_graph->alloc_ssa_temp_index();
-      }
+      caller_graph->AllocateSSAIndex(redefinition);
       if (is_polymorphic_receiver && target_info->IsSingleCid()) {
         redefinition->UpdateType(CompileType::FromCid(target_info->cid_start));
       }
@@ -831,11 +835,7 @@ static void ReplaceParameterStubs(Zone* zone,
           LoadFieldInstr* context_load = new (zone) LoadFieldInstr(
               new Value((*arguments)[first_arg_index]->definition()),
               Slot::Closure_context(), call_data->call->source());
-          context_load->set_ssa_temp_index(
-              caller_graph->alloc_ssa_temp_index());
-          if (FlowGraph::NeedsPairLocation(context_load->representation())) {
-            caller_graph->alloc_ssa_temp_index();
-          }
+          caller_graph->AllocateSSAIndex(context_load);
           context_load->InsertBefore(callee_entry->next());
           param->ReplaceUsesWith(context_load);
           break;
@@ -1001,7 +1001,7 @@ class CallSiteInliner : public ValueObject {
                                   FlowGraph* graph) {
     ConstantInstr* constant = argument->definition()->AsConstant();
     if (constant != NULL) {
-      return new (Z) ConstantInstr(constant->value());
+      return graph->GetConstant(constant->value());
     } else {
       ParameterInstr* param = new (Z)
           ParameterInstr(i, -1, graph->graph_entry(), kNoRepresentation);
@@ -1049,6 +1049,8 @@ class CallSiteInliner : public ValueObject {
 
     if (FlowGraphInliner::FunctionHasNeverInlinePragma(function)) {
       TRACE_INLINING(THR_Print("     Bailout: vm:never-inline pragma\n"));
+      PRINT_INLINING_TREE("vm:never-inline", &call_data->caller, &function,
+                          call_data->call);
       return false;
     }
 
@@ -1169,6 +1171,8 @@ class CallSiteInliner : public ValueObject {
             TRACE_INLINING(
                 THR_Print("     Bailout: not inlinable due to "
                           "!function.CanBeInlined()\n"));
+            PRINT_INLINING_TREE("Not inlinable", &call_data->caller, &function,
+                                call_data->call);
             return false;
           }
         }
@@ -1290,7 +1294,7 @@ class CallSiteInliner : public ValueObject {
         {
           // Compute SSA on the callee graph, catching bailouts.
           COMPILER_TIMINGS_TIMER_SCOPE(thread(), ComputeSSA);
-          callee_graph->ComputeSSA(caller_graph_->max_virtual_register_number(),
+          callee_graph->ComputeSSA(caller_graph_->current_ssa_temp_index(),
                                    param_stubs);
 #if defined(DEBUG)
           // The inlining IDs of instructions in the callee graph are unset
@@ -1365,9 +1369,19 @@ class CallSiteInliner : public ValueObject {
               ShouldWeInline(function, instruction_count, call_site_count);
           if (!decision.value) {
             // If size is larger than all thresholds, don't consider it again.
+
+            // TODO(dartbug.com/49665): Make compiler smart enough so it itself
+            // can identify highly-specialized functions that should always
+            // be considered for inlining, without relying on a pragma.
             if ((instruction_count > FLAG_inlining_size_threshold) &&
                 (call_site_count > FLAG_inlining_callee_call_sites_threshold)) {
-              function.set_is_inlinable(false);
+              // Will keep trying to inline the function if it can be
+              // specialized based on argument types.
+              if (!FlowGraphInliner::FunctionHasAlwaysConsiderInliningPragma(
+                      function)) {
+                function.set_is_inlinable(false);
+                TRACE_INLINING(THR_Print("     Mark not inlinable\n"));
+              }
             }
             TRACE_INLINING(
                 THR_Print("     Bailout: heuristics (%s) with "
@@ -1389,7 +1403,13 @@ class CallSiteInliner : public ValueObject {
           // TODO(ajcbik): with the now better bookkeeping, explore removing
           // this
           if (stricter_heuristic) {
-            if (!IsSmallLeaf(callee_graph)) {
+            intptr_t call_site_instructions = 0;
+            if (auto static_call = call->AsStaticCall()) {
+              // Push all the arguments, do the call, drop arguments.
+              call_site_instructions = static_call->ArgumentCount() + 1 + 1;
+            }
+            if (!IsSmallLeafOrReduction(inlining_depth_, call_site_instructions,
+                                        callee_graph)) {
               TRACE_INLINING(
                   THR_Print("     Bailout: heuristics (no small leaf)\n"));
               PRINT_INLINING_TREE("Heuristic fail (no small leaf)",
@@ -1740,7 +1760,7 @@ class CallSiteInliner : public ValueObject {
       for (intptr_t i = arg_count - first_arg_index; i < param_count; ++i) {
         const Instance& object =
             parsed_function.DefaultParameterValueAt(i - fixed_param_count);
-        ConstantInstr* constant = new (Z) ConstantInstr(object);
+        ConstantInstr* constant = callee_graph->GetConstant(object);
         arguments->Add(NULL);
         param_stubs->Add(constant);
       }
@@ -1757,8 +1777,10 @@ class CallSiteInliner : public ValueObject {
     // Fast path when no optional named parameters are given.
     if (argument_names_count == 0) {
       for (intptr_t i = 0; i < param_count - fixed_param_count; ++i) {
+        const Instance& object = parsed_function.DefaultParameterValueAt(i);
+        ConstantInstr* constant = callee_graph->GetConstant(object);
         arguments->Add(NULL);
-        param_stubs->Add(GetDefaultValue(i, parsed_function));
+        param_stubs->Add(constant);
       }
       return true;
     }
@@ -1795,8 +1817,10 @@ class CallSiteInliner : public ValueObject {
         param_stubs->Add(
             CreateParameterStub(first_arg_index + i, arg, callee_graph));
       } else {
-        param_stubs->Add(
-            GetDefaultValue(i - fixed_param_count, parsed_function));
+        const Instance& object =
+            parsed_function.DefaultParameterValueAt(i - fixed_param_count);
+        ConstantInstr* constant = callee_graph->GetConstant(object);
+        param_stubs->Add(constant);
       }
     }
     return argument_names_count == match_count;
@@ -1977,11 +2001,7 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
   Definition* receiver = call_->Receiver()->definition();
   RedefinitionInstr* redefinition =
       new (Z) RedefinitionInstr(new (Z) Value(receiver));
-  redefinition->set_ssa_temp_index(
-      owner_->caller_graph()->alloc_ssa_temp_index());
-  if (FlowGraph::NeedsPairLocation(redefinition->representation())) {
-    owner_->caller_graph()->alloc_ssa_temp_index();
-  }
+  owner_->caller_graph()->AllocateSSAIndex(redefinition);
   if (FlowGraphInliner::TryInlineRecognizedMethod(
           owner_->caller_graph(), receiver_cid, target, call_, redefinition,
           call_->source(), call_->ic_data(), graph_entry, &entry, &last,
@@ -2038,7 +2058,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
   // at least one branch on the class id.
   LoadClassIdInstr* load_cid =
       new (Z) LoadClassIdInstr(new (Z) Value(receiver));
-  load_cid->set_ssa_temp_index(owner_->caller_graph()->alloc_ssa_temp_index());
+  owner_->caller_graph()->AllocateSSAIndex(load_cid);
   cursor = AppendInstruction(cursor, load_cid);
   for (intptr_t i = 0; i < inlined_variants_.length(); ++i) {
     const CidRange& variant = inlined_variants_[i];
@@ -2054,8 +2074,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
       if (!call_->complete()) {
         RedefinitionInstr* cid_redefinition =
             new RedefinitionInstr(new (Z) Value(load_cid));
-        cid_redefinition->set_ssa_temp_index(
-            owner_->caller_graph()->alloc_ssa_temp_index());
+        owner_->caller_graph()->AllocateSSAIndex(cid_redefinition);
         cursor = AppendInstruction(cursor, cid_redefinition);
         CheckClassIdInstr* check_class_id = new (Z) CheckClassIdInstr(
             new (Z) Value(cid_redefinition), variant, call_->deopt_id());
@@ -2242,11 +2261,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
     PolymorphicInstanceCallInstr* fallback_call =
         PolymorphicInstanceCallInstr::FromCall(Z, call_, *non_inlined_variants_,
                                                call_->complete());
-    fallback_call->set_ssa_temp_index(
-        owner_->caller_graph()->alloc_ssa_temp_index());
-    if (FlowGraph::NeedsPairLocation(fallback_call->representation())) {
-      owner_->caller_graph()->alloc_ssa_temp_index();
-    }
+    owner_->caller_graph()->AllocateSSAIndex(fallback_call);
     fallback_call->InheritDeoptTarget(zone(), call_);
     fallback_call->set_total_call_count(call_->CallCount());
     ReturnInstr* fallback_return = new ReturnInstr(
@@ -2455,6 +2470,19 @@ bool FlowGraphInliner::FunctionHasNeverInlinePragma(const Function& function) {
   Object& options = Object::Handle();
   return Library::FindPragma(thread, /*only_core=*/false, function,
                              Symbols::vm_never_inline(),
+                             /*multiple=*/false, &options);
+}
+
+bool FlowGraphInliner::FunctionHasAlwaysConsiderInliningPragma(
+    const Function& function) {
+  if (!function.has_pragma()) {
+    return false;
+  }
+  Thread* thread = dart::Thread::Current();
+  COMPILER_TIMINGS_TIMER_SCOPE(thread, CheckForPragma);
+  Object& options = Object::Handle();
+  return Library::FindPragma(thread, /*only_core=*/false, function,
+                             Symbols::vm_always_consider_inlining(),
                              /*multiple=*/false, &options);
 }
 
@@ -2954,8 +2982,8 @@ static bool InlineGrowableArraySetter(FlowGraph* flow_graph,
   (*entry)->InheritDeoptTarget(Z, call);
 
   // This is an internal method, no need to check argument types.
-  StoreInstanceFieldInstr* store = new (Z)
-      StoreInstanceFieldInstr(field, new (Z) Value(array), new (Z) Value(value),
+  StoreFieldInstr* store =
+      new (Z) StoreFieldInstr(field, new (Z) Value(array), new (Z) Value(value),
                               store_barrier_type, call->source());
   flow_graph->AppendTo(*entry, store, call->env(), FlowGraph::kEffect);
   *last = store;
@@ -4058,10 +4086,10 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     case MethodRecognizer::kFloat32x4Reciprocal:
     case MethodRecognizer::kFloat32x4ReciprocalSqrt:
     case MethodRecognizer::kFloat32x4Scale:
-    case MethodRecognizer::kFloat32x4ShuffleW:
-    case MethodRecognizer::kFloat32x4ShuffleX:
-    case MethodRecognizer::kFloat32x4ShuffleY:
-    case MethodRecognizer::kFloat32x4ShuffleZ:
+    case MethodRecognizer::kFloat32x4GetW:
+    case MethodRecognizer::kFloat32x4GetX:
+    case MethodRecognizer::kFloat32x4GetY:
+    case MethodRecognizer::kFloat32x4GetZ:
     case MethodRecognizer::kFloat32x4Splat:
     case MethodRecognizer::kFloat32x4Sqrt:
     case MethodRecognizer::kFloat32x4ToFloat64x2:
@@ -4188,7 +4216,8 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
         type = Type::IntType();
       } else if (IsTypeClassId(receiver_cid)) {
         type = Type::DartTypeType();
-      } else if (receiver_cid != kClosureCid) {
+      } else if ((receiver_cid != kClosureCid) &&
+                 (receiver_cid != kRecordCid)) {
         const Class& cls = Class::Handle(
             Z, flow_graph->isolate_group()->class_table()->At(receiver_cid));
         if (!cls.IsGeneric()) {

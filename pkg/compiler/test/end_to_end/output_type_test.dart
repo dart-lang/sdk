@@ -22,7 +22,7 @@ import 'package:compiler/src/inferrer/debug.dart' show PRINT_GRAPH;
 import 'package:compiler/src/tracer.dart' show TRACE_FILTER_PATTERN_FOR_TEST;
 import 'package:expect/expect.dart';
 
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 class TestRandomAccessFileOutputProvider implements api.CompilerOutput {
   final RandomAccessFileOutputProvider provider;
@@ -45,7 +45,7 @@ class TestRandomAccessFileOutputProvider implements api.CompilerOutput {
 CompileFunc oldCompileFunc;
 
 Future<Null> test(List<String> arguments, List<String> expectedOutput,
-    {List<String> groupOutputs: const <String>[]}) async {
+    {List<String> groupOutputs = const <String>[]}) async {
   List<String> options = new List<String>.from(arguments)
     ..add('--platform-binaries=$sdkPlatformBinariesPath')
     ..add('--libraries-spec=$sdkLibrariesSpecificationUri');

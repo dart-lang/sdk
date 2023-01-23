@@ -17,7 +17,7 @@ namespace dart {
 // Note: any instruction that does a call has two deoptimization points,
 // one before the call and one after the call - so that we could deoptimize
 // to either before or after the call depending on whether the same call
-// already occured in the optimized code (and potentially produced
+// already occurred in the optimized code (and potentially produced
 // observable side-effects) or not.
 //
 // To simplify implementation we always allocate two deopt ids (one for before

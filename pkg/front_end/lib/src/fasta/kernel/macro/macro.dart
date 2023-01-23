@@ -806,7 +806,7 @@ class MacroApplications {
     List<List<macro.ParameterDeclarationImpl>> parameters =
         _createParameters(builder, builder.formals);
     macro.ClassDeclaration definingClass =
-        getClassDeclaration(builder.classBuilder as SourceClassBuilder);
+        getClassDeclaration(builder.classBuilder);
 
     return new macro.ConstructorDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
@@ -1100,7 +1100,9 @@ class _TypeIntrospector implements macro.TypeIntrospector {
     }
     ClassBuilder classBuilder = macroApplications._getClassBuilder(type);
     List<macro.ConstructorDeclaration> result = [];
-    classBuilder.forEachConstructor((_, MemberBuilder memberBuilder) {
+    Iterator<MemberBuilder> iterator = classBuilder.fullConstructorIterator;
+    while (iterator.moveNext()) {
+      MemberBuilder memberBuilder = iterator.current;
       if (memberBuilder is DeclaredSourceConstructorBuilder) {
         // TODO(johnniwinther): Should we support synthesized constructors?
         result.add(macroApplications._getMemberDeclaration(memberBuilder)
@@ -1109,7 +1111,7 @@ class _TypeIntrospector implements macro.TypeIntrospector {
         result.add(macroApplications._getMemberDeclaration(memberBuilder)
             as macro.ConstructorDeclaration);
       }
-    });
+    }
     return new Future.value(result);
   }
 
@@ -1120,12 +1122,14 @@ class _TypeIntrospector implements macro.TypeIntrospector {
     }
     ClassBuilder classBuilder = macroApplications._getClassBuilder(type);
     List<macro.FieldDeclaration> result = [];
-    classBuilder.forEach((_, Builder memberBuilder) {
+    Iterator<Builder> iterator = classBuilder.fullMemberIterator;
+    while (iterator.moveNext()) {
+      Builder memberBuilder = iterator.current;
       if (memberBuilder is SourceFieldBuilder) {
         result.add(macroApplications._getMemberDeclaration(memberBuilder)
             as macro.FieldDeclaration);
       }
-    });
+    }
     return new Future.value(result);
   }
 
@@ -1137,12 +1141,14 @@ class _TypeIntrospector implements macro.TypeIntrospector {
     }
     ClassBuilder classBuilder = macroApplications._getClassBuilder(type);
     List<macro.MethodDeclaration> result = [];
-    classBuilder.forEach((_, Builder memberBuilder) {
+    Iterator<Builder> iterator = classBuilder.fullMemberIterator;
+    while (iterator.moveNext()) {
+      Builder memberBuilder = iterator.current;
       if (memberBuilder is SourceProcedureBuilder) {
         result.add(macroApplications._getMemberDeclaration(memberBuilder)
             as macro.MethodDeclaration);
       }
-    });
+    }
     return new Future.value(result);
   }
 }

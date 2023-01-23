@@ -60,5 +60,5 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///late_fields_with_annotation.dart:
-- pragma._ (from org-dartlang-sdk:///lib/core/annotations.dart:188:9)
-- Object. (from org-dartlang-sdk:///lib/core/object.dart:25:9)
+- pragma._ (from org-dartlang-sdk:///lib/core/annotations.dart)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)

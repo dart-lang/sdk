@@ -1,0 +1,25 @@
+void foo() {
+
+(42, 42, 42, );
+(foo: 42, bar: 42, 42, baz: 42, );
+
+
+((42, 42), 42);
+
+
+((foo, bar) => 42, 42);
+}
+
+
+void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+([BeginToken]42[StringToken],[SimpleToken] 42[StringToken],[SimpleToken] 42[StringToken],[SimpleToken] )[SimpleToken];[SimpleToken]
+([BeginToken]foo[StringToken]:[SimpleToken] 42[StringToken],[SimpleToken] bar[StringToken]:[SimpleToken] 42[StringToken],[SimpleToken] 42[StringToken],[SimpleToken] baz[StringToken]:[SimpleToken] 42[StringToken],[SimpleToken] )[SimpleToken];[SimpleToken]
+
+
+([BeginToken]([BeginToken]42[StringToken],[SimpleToken] 42[StringToken])[SimpleToken],[SimpleToken] 42[StringToken])[SimpleToken];[SimpleToken]
+
+
+([BeginToken]([BeginToken]foo[StringToken],[SimpleToken] bar[StringToken])[SimpleToken] =>[SimpleToken] 42[StringToken],[SimpleToken] 42[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

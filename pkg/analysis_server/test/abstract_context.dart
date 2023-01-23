@@ -52,6 +52,7 @@ class AbstractContextTest with ResourceProviderMixin {
         EnableString.enhanced_enums,
         EnableString.macros,
         EnableString.named_arguments_anywhere,
+        EnableString.records,
         EnableString.super_parameters,
       ];
 
@@ -105,12 +106,13 @@ class AbstractContextTest with ResourceProviderMixin {
   /// Create an analysis options file based on the given arguments.
   void createAnalysisOptionsFile({
     List<String>? experiments,
+    List<String>? cannotIgnore,
     bool? implicitCasts,
     List<String>? lints,
   }) {
     var buffer = StringBuffer();
 
-    if (experiments != null || implicitCasts != null) {
+    if (experiments != null || implicitCasts != null || cannotIgnore != null) {
       buffer.writeln('analyzer:');
     }
 
@@ -124,6 +126,13 @@ class AbstractContextTest with ResourceProviderMixin {
     if (implicitCasts != null) {
       buffer.writeln('  strong-mode:');
       buffer.writeln('    implicit-casts: $implicitCasts');
+    }
+
+    if (cannotIgnore != null) {
+      buffer.writeln('  cannot-ignore:');
+      for (var unignorable in cannotIgnore) {
+        buffer.writeln('    - $unignorable');
+      }
     }
 
     if (lints != null) {
@@ -156,6 +165,9 @@ class AbstractContextTest with ResourceProviderMixin {
     var context = getContext(path);
     return context.driver;
   }
+
+  Future<ResolvedUnitResult> getResolvedUnit(String path) async =>
+      await (await session).getResolvedUnit(path) as ResolvedUnitResult;
 
   @override
   File newFile(String path, String content) {

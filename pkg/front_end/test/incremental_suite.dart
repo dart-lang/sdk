@@ -45,7 +45,7 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
     show DiagnosticMessageFromJson, FormattedMessage;
 
 import 'package:front_end/src/fasta/incremental_compiler.dart'
-    show IncrementalCompiler, RecorderForTesting;
+    show AdvancedInvalidationResult, IncrementalCompiler, RecorderForTesting;
 
 import 'package:front_end/src/fasta/incremental_serializer.dart'
     show IncrementalSerializer;
@@ -93,18 +93,258 @@ import "package:testing/testing.dart"
 
 import "package:vm/target/vm.dart" show VmTarget;
 
-import "package:yaml/yaml.dart" show YamlList, YamlMap, loadYamlNode;
+import "package:yaml/yaml.dart" show YamlMap, loadYamlNode;
 
 import 'binary_md_dill_reader.dart' show DillComparer;
 
 import "incremental_utils.dart" as util;
 
+import 'test_utils.dart';
 import 'testing_utils.dart' show checkEnvironment;
 
 import 'utils/io_utils.dart' show computeRepoDir;
+import 'utils/values.dart';
 
 void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
+
+/// Top level yaml properties for an incremental test.
+class TestProperties {
+  /// Value of [type] for selecting a [basicTest].
+  static const String type_basic = 'basic';
+
+  /// Value of [type] for selecting a [NewWorldTest].
+  static const String type_newworld = 'newworld';
+
+  /// This selects the type of test.
+  ///
+  /// [type_basic] runs a [basicTest] with additional properties defined in
+  /// [BasicTestProperties].
+  ///
+  /// [type_newworld] runs a [NewWorldTest] with additional properties defined
+  /// in [NewWorldTestProperties].
+  static const Property<String> type = Property.required(
+      'type', StringValue(options: {type_basic, type_newworld}));
+}
+
+/// Additional yaml properties for a [basicTest].
+// TODO(johnniwinther,jensj): Document all properties.
+class BasicTestProperties {
+  static const Property<Map<String, String>> sources =
+      Property.required('sources', MapValue(StringValue()));
+
+  static const Property<String> entry =
+      Property.required('entry', StringValue());
+
+  static const Property<List<String>?> invalidate =
+      Property.optional('invalidate', ListValue(StringValue()));
+}
+
+/// Additional yaml properties for a [NewWorldTest].
+// TODO(johnniwinther,jensj): Document all properties.
+class NewWorldTestProperties {
+  static const Property<List<World>> worlds =
+      Property.required('worlds', ListValue(CustomValue(World.create)));
+
+  static const Property<Map<String, Map<String, String>>?> modules =
+      Property.optional('modules', MapValue(MapValue(StringValue())));
+
+  static const Property<bool> omitPlatform =
+      Property.optional('omitPlatform', BoolValue(), defaultValue: true);
+
+  static const Property<bool> forceLateLoweringForTesting = Property.optional(
+      'forceLateLoweringForTesting', BoolValue(),
+      defaultValue: false);
+
+  static const Property<bool> trackWidgetCreation = Property.optional(
+      'trackWidgetCreation', BoolValue(),
+      defaultValue: false);
+
+  static const Property<bool> incrementalSerialization = Property.optional(
+      'incrementalSerialization', BoolValue(),
+      defaultValue: false);
+
+  static const String nnbdMode_strong = 'strong';
+
+  static const Property<String?> nnbdMode =
+      Property.optional('nnbdMode', StringValue(options: {nnbdMode_strong}));
+
+  static const String target_none = 'none';
+  static const String target_dartdevc = 'dartdevc';
+  static const String target_dart2js = 'dart2js';
+  static const String target_vm = 'vm';
+
+  static const Property<String?> target = Property.optional(
+      'target',
+      StringValue(
+          options: {target_none, target_dartdevc, target_dart2js, target_vm}));
+}
+
+/// Yaml properties for a [World] within a [NewWorldTest].
+// TODO(johnniwinther,jensj): Document all properties.
+class WorldProperties {
+  static const Property<List<String>?> modules =
+      Property.optional('modules', ListValue(StringValue()));
+
+  static const String worldType_updated = 'updated';
+
+  static const Property<String?> worldType =
+      Property.optional('worldType', StringValue(options: {worldType_updated}));
+
+  static const Property<bool> noFullComponent =
+      Property.optional('noFullComponent', BoolValue(), defaultValue: false);
+
+  static const Property<bool?> expectInitializeFromDill =
+      Property.optional('expectInitializeFromDill', BoolValue());
+
+  static const Property<Map<String, String>> sources = Property.optional(
+      'sources', MapValue(StringValue()),
+      defaultValue: const {});
+
+  static const Property<bool> badSdk =
+      Property.optional('badSdk', BoolValue(), defaultValue: false);
+
+  static const Property<bool> enableStringReplacement = Property.optional(
+      'enableStringReplacement', BoolValue(),
+      defaultValue: false);
+
+  static const Property<String?> packageConfigFile =
+      Property.optional('packageConfigFile', StringValue());
+
+  static const Property<String?> experiments =
+      Property.optional("experiments", StringValue());
+
+  static const String nnbdMode_strong = 'strong';
+
+  static const Property<String?> nnbdMode =
+      Property.optional("nnbdMode", StringValue(options: {nnbdMode_strong}));
+
+  static const Property<List<String>> entry = Property.required(
+      'entry', ListValue(StringValue(), supportSingleton: true));
+
+  static const Property<bool> outlineOnly =
+      Property.optional("outlineOnly", BoolValue(), defaultValue: false);
+
+  static const Property<bool> skipOutlineBodyCheck = Property.optional(
+      "skipOutlineBodyCheck", BoolValue(),
+      defaultValue: false);
+
+  static const Property<bool> fromComponent =
+      Property.optional("fromComponent", BoolValue(), defaultValue: false);
+
+  static const Property<List<String>?> invalidate =
+      Property.optional("invalidate", ListValue(StringValue()));
+
+  static const Property<bool> simulateTransformer = Property.optional(
+      "simulateTransformer", BoolValue(),
+      defaultValue: false);
+
+  static const Property<bool?> expectInitializationError =
+      Property.optional("expectInitializationError", BoolValue());
+
+  static const Property<bool> compareToPrevious =
+      Property.optional("compareToPrevious", BoolValue(), defaultValue: false);
+
+  static const Property<List<String>?> uriToSourcesDoesntInclude =
+      Property.optional("uriToSourcesDoesntInclude", ListValue(StringValue()));
+
+  static const Property<List<String>?> uriToSourcesOnlyIncludes =
+      Property.optional("uriToSourcesOnlyIncludes", ListValue(StringValue()));
+
+  static const Property<bool> skipClassHierarchyTest = Property.optional(
+      "skipClassHierarchyTest", BoolValue(),
+      defaultValue: false);
+
+  static const Property<bool> expectsPlatform =
+      Property.optional("expectsPlatform", BoolValue(), defaultValue: false);
+
+  static const Property<int?> expectedLibraryCount =
+      const Property.optional("expectedLibraryCount", IntValue());
+
+  static const Property<int?> expectedSyntheticLibraryCount =
+      Property.optional("expectedSyntheticLibraryCount", IntValue());
+
+  /// The expected result of the advanced invalidation.
+  ///
+  /// If omitted, this defaults to `noDirectlyInvalidated` which corresponds
+  /// to the advanced invalidation result of the initial compilation. This means
+  /// that all subsequent world entries must specify the expected advanced
+  /// invalidation result.
+  static const Property<AdvancedInvalidationResult> advancedInvalidation =
+      Property.optional(
+          "advancedInvalidation", EnumValue(AdvancedInvalidationResult.values),
+          defaultValue: AdvancedInvalidationResult.noDirectlyInvalidated);
+
+  static const Property<bool> checkEntries =
+      Property.optional("checkEntries", BoolValue(), defaultValue: false);
+
+  static const Property<bool> checkInvalidatedFiles = Property.optional(
+      "checkInvalidatedFiles", BoolValue(),
+      defaultValue: true);
+
+  static const Property<List<String>?> expectedInvalidatedUri =
+      Property.optional('expectedInvalidatedUri', ListValue(StringValue()));
+
+  static const Property<int?> expectSameErrorsAsWorld =
+      Property.optional('expectSameErrorsAsWorld', IntValue());
+
+  static const Property<List<ExpressionCompilation>?> expressionCompilation =
+      Property.optional(
+          'expressionCompilation',
+          ListValue(CustomValue(ExpressionCompilation.create),
+              supportSingleton: true));
+
+  static const Property<bool> compareWithFromScratch = Property.optional(
+      'compareWithFromScratch', BoolValue(),
+      defaultValue: false);
+
+  static const Property<bool> brandNewIncrementalSerializationAllowDifferent =
+      Property.optional(
+          'brandNewIncrementalSerializationAllowDifferent', BoolValue(),
+          defaultValue: false);
+
+  /// Whether the compilation of the world is expected to result in warnings.
+  static const Property<bool> warnings =
+      Property.optional('warnings', BoolValue(), defaultValue: false);
+
+  /// Whether the compilation of the world is expected to result in compile-time
+  /// errors.
+  static const Property<bool> errors =
+      Property.optional('errors', BoolValue(), defaultValue: false);
+
+  static const Property<List<String>?> neededDillLibraries =
+      Property.optional('neededDillLibraries', ListValue(StringValue()));
+
+  static const Property<Map<String, List<String>>?> expectedContent =
+      Property.optional('expectedContent', MapValue(ListValue(StringValue())));
+
+  static const Property<bool> incrementalSerializationDoesWork =
+      Property.optional('incrementalSerializationDoesWork', BoolValue(),
+          defaultValue: false);
+
+  static const Property<List<String>?> serializationShouldNotInclude =
+      Property.optional(
+          'serializationShouldNotInclude', ListValue(StringValue()));
+
+  static const Property<bool> checkConstantCoverageReferences =
+      Property.optional('checkConstantCoverageReferences', BoolValue(),
+          defaultValue: true);
+}
+
+/// Yaml properties for an [ExpressionCompilation] with a [World].
+// TODO(johnniwinther,jensj): Document all properties.
+class ExpressionCompilationProperties {
+  static const Property<bool> errors =
+      Property.optional('errors', BoolValue(), defaultValue: false);
+
+  static const Property<bool> warnings =
+      Property.optional('warnings', BoolValue(), defaultValue: false);
+
+  static const Property<String> uri = Property.required('uri', StringValue());
+
+  static const Property<String> expression =
+      Property.required('expression', StringValue());
+}
 
 final ExpectationSet staticExpectationSet =
     new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
@@ -180,7 +420,7 @@ const String EXPECTATIONS = '''
     "group": "Fail"
   },
   {
-    "name": "UnexpectedRebuildBodiesOnly",
+    "name": "UnexpectedAdvancedInvalidation",
     "group": "Fail"
   },
   {
@@ -197,6 +437,10 @@ const String EXPECTATIONS = '''
   },
   {
     "name": "NNBDModeMismatch",
+    "group": "Fail"
+  },
+  {
+    "name": "ConstantCoverageReferenceWithoutNode",
     "group": "Fail"
   }
 ]
@@ -231,8 +475,8 @@ final Expectation MissingPlatformLibraries =
     staticExpectationSet["MissingPlatformLibraries"];
 final Expectation UnexpectedPlatformLibraries =
     staticExpectationSet["UnexpectedPlatformLibraries"];
-final Expectation UnexpectedRebuildBodiesOnly =
-    staticExpectationSet["UnexpectedRebuildBodiesOnly"];
+final Expectation UnexpectedAdvancedInvalidation =
+    staticExpectationSet["UnexpectedAdvancedInvalidation"];
 final Expectation UnexpectedEntryToLibraryCount =
     staticExpectationSet["UnexpectedEntryToLibraryCount"];
 final Expectation LibraryCountMismatch =
@@ -240,6 +484,8 @@ final Expectation LibraryCountMismatch =
 final Expectation InitializedFromDillMismatch =
     staticExpectationSet["InitializedFromDillMismatch"];
 final Expectation NNBDModeMismatch = staticExpectationSet["NNBDModeMismatch"];
+final Expectation ConstantCoverageReferenceWithoutNode =
+    staticExpectationSet["ConstantCoverageReferenceWithoutNode"];
 
 Future<Context> createContext(Chain suite, Map<String, String> environment) {
   const Set<String> knownEnvironmentKeys = {
@@ -342,43 +588,39 @@ class RunCompilations extends Step<TestData, TestData, Context> {
     Result<TestData>? result;
     YamlMap map = data.map;
     Set<String> keys = new Set<String>.from(map.keys.cast<String>());
-    keys.remove("type");
-    switch (map["type"]) {
-      case "basic":
-        keys.removeAll(["sources", "entry", "invalidate"]);
+    String type = TestProperties.type.read(map, keys);
+    switch (type) {
+      case TestProperties.type_basic:
         await basicTest(
-          map["sources"],
-          map["entry"],
-          map["invalidate"],
+          BasicTestProperties.sources.read(map, keys),
+          BasicTestProperties.entry.read(map, keys),
+          BasicTestProperties.invalidate.read(map, keys),
           data.outDir!,
         );
         break;
-      case "newworld":
-        keys.removeAll([
-          "worlds",
-          "modules",
-          "omitPlatform",
-          "target",
-          "forceLateLoweringForTesting",
-          "trackWidgetCreation",
-          "incrementalSerialization",
-          "nnbdMode",
-        ]);
-        result = await new NewWorldTest().newWorldTest(
-          data,
-          context,
-          map["worlds"],
-          map["modules"],
-          map["omitPlatform"],
-          map["target"],
-          map["forceLateLoweringForTesting"] ?? false,
-          map["trackWidgetCreation"] ?? false,
-          map["incrementalSerialization"],
-          map["nnbdMode"] == "strong" ? NnbdMode.Strong : NnbdMode.Weak,
-        );
+      case TestProperties.type_newworld:
+        result = await new NewWorldTest(
+          data: data,
+          context: context,
+          worlds: NewWorldTestProperties.worlds.read(map, keys),
+          omitPlatform: NewWorldTestProperties.omitPlatform.read(map, keys),
+          forceLateLoweringForTesting: NewWorldTestProperties
+              .forceLateLoweringForTesting
+              .read(map, keys),
+          trackWidgetCreation:
+              NewWorldTestProperties.trackWidgetCreation.read(map, keys),
+          incrementalSerialization:
+              NewWorldTestProperties.incrementalSerialization.read(map, keys),
+          nnbdMode: NewWorldTestProperties.nnbdMode.read(map, keys) ==
+                  NewWorldTestProperties.nnbdMode_strong
+              ? NnbdMode.Strong
+              : NnbdMode.Weak,
+          modules: NewWorldTestProperties.modules.read(map, keys),
+          targetName: NewWorldTestProperties.target.read(map, keys),
+        ).newWorldTest();
         break;
       default:
-        throw "Unexpected type: ${map['type']}";
+        throw "Unexpected type: ${type}";
     }
 
     if (keys.isNotEmpty) throw "Unknown toplevel keys: $keys";
@@ -386,8 +628,8 @@ class RunCompilations extends Step<TestData, TestData, Context> {
   }
 }
 
-Future<Null> basicTest(YamlMap sourceFiles, String entryPoint,
-    YamlList? invalidate, Directory outDir) async {
+Future<Null> basicTest(Map<String, String> sourceFiles, String entryPoint,
+    List<String>? invalidate, Directory outDir) async {
   Uri entryPointUri = outDir.uri.resolve(entryPoint);
   Set<String> invalidateFilenames =
       invalidate == null ? new Set<String>() : new Set<String>.from(invalidate);
@@ -399,7 +641,7 @@ Future<Null> basicTest(YamlMap sourceFiles, String entryPoint,
       invalidateUris.add(uri);
       invalidateFilenames.remove(filename);
     }
-    String source = sourceFiles[filename];
+    String source = sourceFiles[filename]!;
     if (filename == ".dart_tool/package_config.json") {
       packagesUri = uri;
     }
@@ -446,7 +688,7 @@ Future<Null> basicTest(YamlMap sourceFiles, String entryPoint,
 }
 
 Future<Map<String, List<int>>> createModules(
-    Map module,
+    Map<String, Map<String, String>> module,
     final List<int> sdkSummaryData,
     Target target,
     Target originalTarget,
@@ -459,9 +701,9 @@ Future<Map<String, List<int>>> createModules(
   fs.entityForUri(sdkSummaryUri).writeAsBytesSync(sdkSummaryData);
 
   // Setup all sources
-  for (Map moduleSources in module.values) {
+  for (Map<String, String> moduleSources in module.values) {
     for (String filename in moduleSources.keys) {
-      String data = moduleSources[filename];
+      String data = moduleSources[filename]!;
       Uri uri = base.resolve(filename);
       if (await fs.entityForUri(uri).exists()) {
         throw "More than one entry for $filename";
@@ -475,7 +717,7 @@ Future<Map<String, List<int>>> createModules(
   for (String moduleName in module.keys) {
     List<Uri> moduleSources = <Uri>[];
     Uri? packagesUri;
-    for (String filename in module[moduleName].keys) {
+    for (String filename in module[moduleName]!.keys) {
       Uri uri = base.resolve(filename);
       if (uri.pathSegments.last == "package_config.json") {
         packagesUri = uri;
@@ -526,7 +768,304 @@ Future<Map<String, List<int>>> createModules(
   return moduleResult;
 }
 
+String doStringReplacements(String input) {
+  Version enableNonNullableVersion =
+      ExperimentalFlag.nonNullable.experimentEnabledVersion;
+  String output = input.replaceAll("%NNBD_VERSION_MARKER%",
+      "${enableNonNullableVersion.major}.${enableNonNullableVersion.minor}");
+  return output;
+}
+
+class ExpressionCompilation {
+  final bool errors;
+  final bool warnings;
+  final String uri;
+  final String expression;
+
+  ExpressionCompilation(
+      {required this.errors,
+      required this.warnings,
+      required this.uri,
+      required this.expression});
+
+  static ExpressionCompilation create(Map yaml) {
+    Set<String> keys = new Set<String>.from(yaml.keys);
+
+    bool errors = ExpressionCompilationProperties.errors.read(yaml, keys);
+    bool warnings = ExpressionCompilationProperties.warnings.read(yaml, keys);
+    String uri = ExpressionCompilationProperties.uri.read(yaml, keys);
+    String expression =
+        ExpressionCompilationProperties.expression.read(yaml, keys);
+
+    if (keys.isNotEmpty) {
+      throw "Unknown key(s) for ExpressionCompilation: $keys";
+    }
+    return new ExpressionCompilation(
+        errors: errors, warnings: warnings, uri: uri, expression: expression);
+  }
+}
+
+class World {
+  final List<String>? modules;
+  final bool updateWorldType;
+  final bool noFullComponent;
+  final bool? expectInitializeFromDill;
+  final Map<String, String?> sources;
+  final bool useBadSdk;
+  final bool enableStringReplacement;
+  final String? packageConfigFile;
+  final String? experiments;
+  final String? nnbdModeString;
+  final List<String> entries;
+  final bool outlineOnly;
+  final bool skipOutlineBodyCheck;
+  final bool fromComponent;
+  final List<String>? invalidate;
+  final bool simulateTransformer;
+  final bool? expectInitializationError;
+  final bool compareToPrevious;
+  final List<String>? uriToSourcesDoesntInclude;
+  final List<String>? uriToSourcesOnlyIncludes;
+  final bool skipClassHierarchyTest;
+  final bool expectsPlatform;
+  final int? expectedLibraryCount;
+  final int? expectedSyntheticLibraryCount;
+  final bool warnings;
+  final bool errors;
+  final List<String>? neededDillLibraries;
+  final Map<String, List<String>>? expectedContent;
+  final bool incrementalSerializationDoesWork;
+
+  /// The expected result of the advanced invalidation.
+  final AdvancedInvalidationResult advancedInvalidation;
+
+  final bool checkEntries;
+  final bool checkInvalidatedFiles;
+  final List<String>? expectedInvalidatedUri;
+  final int? expectSameErrorsAsWorld;
+  final List<ExpressionCompilation>? expressionCompilation;
+  final bool compareWithFromScratch;
+
+  /// Don't check for equality when we allow it to be different
+  /// (e.g. when the old one contains more, and the new one doesn't).
+  final bool brandNewIncrementalSerializationAllowDifferent;
+
+  final List<String>? serializationShouldNotInclude;
+
+  /// Whether to check if the serialized constant coverage references
+  /// points to anything in itself.
+  final bool checkConstantCoverageReferences;
+
+  World({
+    required this.modules,
+    required this.updateWorldType,
+    required this.noFullComponent,
+    required this.expectInitializeFromDill,
+    required this.sources,
+    required this.useBadSdk,
+    required this.enableStringReplacement,
+    required this.packageConfigFile,
+    required this.experiments,
+    required this.nnbdModeString,
+    required this.entries,
+    required this.outlineOnly,
+    required this.skipOutlineBodyCheck,
+    required this.fromComponent,
+    required this.invalidate,
+    required this.simulateTransformer,
+    required this.expectInitializationError,
+    required this.compareToPrevious,
+    required this.uriToSourcesDoesntInclude,
+    required this.uriToSourcesOnlyIncludes,
+    required this.skipClassHierarchyTest,
+    required this.expectsPlatform,
+    required this.expectedLibraryCount,
+    required this.expectedSyntheticLibraryCount,
+    required this.advancedInvalidation,
+    required this.checkEntries,
+    required this.checkInvalidatedFiles,
+    required this.expectedInvalidatedUri,
+    required this.expectSameErrorsAsWorld,
+    required this.expressionCompilation,
+    required this.compareWithFromScratch,
+    required this.brandNewIncrementalSerializationAllowDifferent,
+    required this.warnings,
+    required this.errors,
+    required this.neededDillLibraries,
+    required this.expectedContent,
+    required this.incrementalSerializationDoesWork,
+    required this.serializationShouldNotInclude,
+    required this.checkConstantCoverageReferences,
+  });
+
+  static World create(Map world) {
+    Set<String> keys = new Set<String>.from(world.keys);
+
+    List<String>? modules = WorldProperties.modules.read(world, keys);
+
+    String? worldType = WorldProperties.worldType.read(world, keys);
+    bool updateWorldType = worldType == WorldProperties.worldType_updated;
+
+    bool noFullComponent = WorldProperties.noFullComponent.read(world, keys);
+
+    bool? expectInitializeFromDill =
+        WorldProperties.expectInitializeFromDill.read(world, keys);
+
+    Map<String, String?> sources = WorldProperties.sources.read(world, keys);
+
+    bool useBadSdk = WorldProperties.badSdk.read(world, keys);
+
+    bool enableStringReplacement =
+        WorldProperties.enableStringReplacement.read(world, keys);
+
+    String? packageConfigFile =
+        WorldProperties.packageConfigFile.read(world, keys);
+
+    String? experiments = WorldProperties.experiments.read(world, keys);
+
+    String? nnbdModeString = WorldProperties.nnbdMode.read(world, keys);
+
+    List<String> entries = WorldProperties.entry.read(world, keys);
+
+    bool outlineOnly = WorldProperties.outlineOnly.read(world, keys);
+
+    bool skipOutlineBodyCheck =
+        WorldProperties.skipOutlineBodyCheck.read(world, keys);
+
+    bool fromComponent = WorldProperties.fromComponent.read(world, keys);
+
+    List<String>? invalidate = WorldProperties.invalidate.read(world, keys);
+
+    bool simulateTransformer =
+        WorldProperties.simulateTransformer.read(world, keys);
+
+    bool? expectInitializationError =
+        WorldProperties.expectInitializationError.read(world, keys);
+
+    bool compareToPrevious =
+        WorldProperties.compareToPrevious.read(world, keys);
+
+    List<String>? uriToSourcesDoesntInclude =
+        WorldProperties.uriToSourcesDoesntInclude.read(world, keys);
+
+    List<String>? uriToSourcesOnlyIncludes =
+        WorldProperties.uriToSourcesOnlyIncludes.read(world, keys);
+
+    bool skipClassHierarchyTest =
+        WorldProperties.skipClassHierarchyTest.read(world, keys);
+
+    bool expectsPlatform = WorldProperties.expectsPlatform.read(world, keys);
+
+    int? expectedLibraryCount =
+        WorldProperties.expectedLibraryCount.read(world, keys);
+
+    int? expectedSyntheticLibraryCount =
+        WorldProperties.expectedSyntheticLibraryCount.read(world, keys);
+
+    AdvancedInvalidationResult advancedInvalidation =
+        WorldProperties.advancedInvalidation.read(world, keys);
+
+    bool checkEntries = WorldProperties.checkEntries.read(world, keys);
+
+    bool checkInvalidatedFiles =
+        WorldProperties.checkInvalidatedFiles.read(world, keys);
+
+    List<String>? expectedInvalidatedUri =
+        WorldProperties.expectedInvalidatedUri.read(world, keys);
+
+    int? expectSameErrorsAsWorld =
+        WorldProperties.expectSameErrorsAsWorld.read(world, keys);
+
+    List<ExpressionCompilation>? expressionCompilation =
+        WorldProperties.expressionCompilation.read(world, keys);
+
+    bool compareWithFromScratch =
+        WorldProperties.compareWithFromScratch.read(world, keys);
+
+    bool brandNewIncrementalSerializationAllowDifferent = WorldProperties
+        .brandNewIncrementalSerializationAllowDifferent
+        .read(world, keys);
+
+    bool warnings = WorldProperties.warnings.read(world, keys);
+
+    bool errors = WorldProperties.errors.read(world, keys);
+
+    List<String>? neededDillLibraries =
+        WorldProperties.neededDillLibraries.read(world, keys);
+
+    Map<String, List<String>>? expectedContent =
+        WorldProperties.expectedContent.read(world, keys);
+
+    bool incrementalSerializationDoesWork =
+        WorldProperties.incrementalSerializationDoesWork.read(world, keys);
+
+    List<String>? serializationShouldNotInclude =
+        WorldProperties.serializationShouldNotInclude.read(world, keys);
+
+    bool checkConstantCoverageReferences =
+        WorldProperties.checkConstantCoverageReferences.read(world, keys);
+
+    if (keys.isNotEmpty) {
+      throw "Unknown key(s) for World: $keys";
+    }
+
+    return new World(
+      modules: modules,
+      updateWorldType: updateWorldType,
+      noFullComponent: noFullComponent,
+      expectInitializeFromDill: expectInitializeFromDill,
+      sources: sources,
+      useBadSdk: useBadSdk,
+      enableStringReplacement: enableStringReplacement,
+      packageConfigFile: packageConfigFile,
+      experiments: experiments,
+      nnbdModeString: nnbdModeString,
+      entries: entries,
+      outlineOnly: outlineOnly,
+      skipOutlineBodyCheck: skipOutlineBodyCheck,
+      fromComponent: fromComponent,
+      invalidate: invalidate,
+      simulateTransformer: simulateTransformer,
+      expectInitializationError: expectInitializationError,
+      compareToPrevious: compareToPrevious,
+      uriToSourcesDoesntInclude: uriToSourcesDoesntInclude,
+      uriToSourcesOnlyIncludes: uriToSourcesOnlyIncludes,
+      skipClassHierarchyTest: skipClassHierarchyTest,
+      expectsPlatform: expectsPlatform,
+      expectedLibraryCount: expectedLibraryCount,
+      expectedSyntheticLibraryCount: expectedSyntheticLibraryCount,
+      advancedInvalidation: advancedInvalidation,
+      checkEntries: checkEntries,
+      checkInvalidatedFiles: checkInvalidatedFiles,
+      expectedInvalidatedUri: expectedInvalidatedUri,
+      expectSameErrorsAsWorld: expectSameErrorsAsWorld,
+      expressionCompilation: expressionCompilation,
+      compareWithFromScratch: compareWithFromScratch,
+      brandNewIncrementalSerializationAllowDifferent:
+          brandNewIncrementalSerializationAllowDifferent,
+      warnings: warnings,
+      errors: errors,
+      neededDillLibraries: neededDillLibraries,
+      expectedContent: expectedContent,
+      incrementalSerializationDoesWork: incrementalSerializationDoesWork,
+      serializationShouldNotInclude: serializationShouldNotInclude,
+      checkConstantCoverageReferences: checkConstantCoverageReferences,
+    );
+  }
+}
+
 class NewWorldTest {
+  final TestData data;
+  final Context context;
+  final List<World> worlds;
+  final Map<String, Map<String, String>>? modules;
+  final bool omitPlatform;
+  final bool forceLateLoweringForTesting;
+  final bool trackWidgetCreation;
+  final bool incrementalSerialization;
+  final NnbdMode nnbdMode;
+  final String? targetName;
+
   // These are fields in a class to make it easier to track down memory leaks
   // via the leak detector test.
   Component? newestWholeComponent;
@@ -535,25 +1074,20 @@ class NewWorldTest {
   Component? component2;
   Component? component3;
 
-  String doStringReplacements(String input) {
-    Version enableNonNullableVersion =
-        ExperimentalFlag.nonNullable.experimentEnabledVersion;
-    String output = input.replaceAll("%NNBD_VERSION_MARKER%",
-        "${enableNonNullableVersion.major}.${enableNonNullableVersion.minor}");
-    return output;
-  }
+  NewWorldTest({
+    required this.data,
+    required this.context,
+    required this.worlds,
+    required this.modules,
+    required this.omitPlatform,
+    required this.forceLateLoweringForTesting,
+    required this.trackWidgetCreation,
+    required this.incrementalSerialization,
+    required this.nnbdMode,
+    required this.targetName,
+  });
 
-  Future<Result<TestData>> newWorldTest(
-      TestData data,
-      Context context,
-      List worlds,
-      Map? modules,
-      bool? omitPlatform,
-      String? targetName,
-      bool forceLateLoweringForTesting,
-      bool trackWidgetCreation,
-      bool? incrementalSerialization,
-      NnbdMode nnbdMode) async {
+  Future<Result<TestData>> newWorldTest() async {
     final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
 
     TestTargetFlags targetFlags = new TestTargetFlags(
@@ -562,13 +1096,13 @@ class NewWorldTest {
         trackWidgetCreation: trackWidgetCreation);
     Target target = new VmTarget(targetFlags);
     if (targetName != null) {
-      if (targetName == "None") {
+      if (targetName == NewWorldTestProperties.target_none) {
         target = new NoneTarget(targetFlags);
-      } else if (targetName == "DDC") {
+      } else if (targetName == NewWorldTestProperties.target_dartdevc) {
         target = new DevCompilerTarget(targetFlags);
-      } else if (targetName == "dart2js") {
+      } else if (targetName == NewWorldTestProperties.target_dart2js) {
         target = new Dart2jsTarget("dart2js", targetFlags);
-      } else if (targetName == "VM") {
+      } else if (targetName == NewWorldTestProperties.target_vm) {
         // default.
       } else {
         throw "Unknown target name '$targetName'";
@@ -602,7 +1136,7 @@ class NewWorldTest {
 
     if (modules != null) {
       moduleData = await createModules(
-          modules, sdkSummaryData, target, originalTarget, sdkSummary,
+          modules!, sdkSummaryData, target, originalTarget, sdkSummary,
           trackNeededDillLibraries: false);
       sdk = newestWholeComponent = new Component();
       new BinaryBuilder(sdkSummaryData,
@@ -613,13 +1147,13 @@ class NewWorldTest {
     int worldNum = 0;
     // TODO: When needed, we can do this for warnings too.
     List<Set<String>> worldErrors = [];
-    for (YamlMap world in worlds) {
+    for (World world in worlds) {
       worldNum++;
       print("----------------");
       print("World #$worldNum");
       print("----------------");
       List<Component>? modulesToUse;
-      if (world["modules"] != null) {
+      if (world.modules != null) {
         moduleComponents ??= new Map<String, Component>();
 
         sdk!.adoptChildren();
@@ -628,13 +1162,13 @@ class NewWorldTest {
         }
 
         modulesToUse = <Component>[];
-        for (String moduleName in world["modules"]) {
+        for (String moduleName in world.modules!) {
           Component? moduleComponent = moduleComponents[moduleName];
           if (moduleComponent != null) {
             modulesToUse.add(moduleComponent);
           }
         }
-        for (String moduleName in world["modules"]) {
+        for (String moduleName in world.modules!) {
           Component? moduleComponent = moduleComponents[moduleName];
           if (moduleComponent == null) {
             moduleComponent = new Component(nameRoot: sdk!.root);
@@ -649,16 +1183,7 @@ class NewWorldTest {
         }
       }
 
-      bool brandNewWorld = true;
-      if (world["worldType"] == "updated") {
-        brandNewWorld = false;
-      }
-      bool noFullComponent = false;
-      if (world["noFullComponent"] == true) {
-        noFullComponent = true;
-      }
-
-      if (brandNewWorld) {
+      if (!world.updateWorldType) {
         fs = new TestMemoryFileSystem(base);
       }
       fs!.entityForUri(sdkSummaryUri).writeAsBytesSync(sdkSummaryData);
@@ -670,14 +1195,13 @@ class NewWorldTest {
             .writeAsBytesSync(newestWholeComponentData);
         expectInitializeFromDill = true;
       }
-      if (world["expectInitializeFromDill"] != null) {
-        expectInitializeFromDill = world["expectInitializeFromDill"];
+      if (world.expectInitializeFromDill != null) {
+        expectInitializeFromDill = world.expectInitializeFromDill!;
       }
-      if (brandNewWorld) {
-        sourceFiles = new Map<String, String?>.from(world["sources"]);
+      if (!world.updateWorldType) {
+        sourceFiles = new Map<String, String?>.from(world.sources);
       } else {
-        sourceFiles!.addAll(new Map<String, String?>.from(
-            world["sources"] ?? <String, String?>{}));
+        sourceFiles!.addAll(new Map<String, String?>.from(world.sources));
       }
       Uri? packagesUri;
       for (String filename in sourceFiles.keys) {
@@ -686,28 +1210,28 @@ class NewWorldTest {
         if (filename == ".dart_tool/package_config.json") {
           packagesUri = uri;
         }
-        if (world["enableStringReplacement"] == true) {
+        if (world.enableStringReplacement) {
           data = doStringReplacements(data);
         }
         fs.entityForUri(uri).writeAsStringSync(data);
       }
-      if (world["packageConfigFile"] != null) {
-        packagesUri = base.resolve(world["packageConfigFile"]);
+      if (world.packageConfigFile != null) {
+        packagesUri = base.resolve(world.packageConfigFile!);
       }
 
-      if (brandNewWorld) {
+      if (!world.updateWorldType) {
         options = getOptions(target: target, sdkSummary: sdkSummary);
         options.nnbdMode = nnbdMode;
         options.fileSystem = fs;
         options.sdkRoot = null;
         options.sdkSummary = sdkSummaryUri;
-        if (world["badSdk"] == true) {
+        if (world.useBadSdk) {
           options.sdkSummary = sdkSummaryUri.resolve("nonexisting.dill");
         }
-        options.omitPlatform = omitPlatform != false;
-        if (world["experiments"] != null) {
+        options.omitPlatform = omitPlatform;
+        if (world.experiments != null) {
           Map<String, bool> flagsFromOptions =
-              parseExperimentalArguments([world["experiments"]]);
+              parseExperimentalArguments([world.experiments!]);
           // Ensure that we run with non-nullable turned off even when the
           // flag is on by default.
           Map<ExperimentalFlag, bool> explicitExperimentalFlags =
@@ -720,10 +1244,10 @@ class NewWorldTest {
         }
         // A separate "world" can also change nnbd mode ---
         // notice that the platform is not updated though!
-        if (world["nnbdMode"] != null) {
-          String nnbdMode = world["nnbdMode"];
+        if (world.nnbdModeString != null) {
+          String nnbdMode = world.nnbdModeString!;
           switch (nnbdMode) {
-            case "strong":
+            case WorldProperties.nnbdMode_strong:
               options.nnbdMode = NnbdMode.Strong;
               break;
             default:
@@ -763,32 +1287,21 @@ class NewWorldTest {
         }
       };
 
-      List<Uri> entries;
-      if (world["entry"] is String) {
-        entries = [base.resolve(world["entry"])];
-      } else {
-        entries = <Uri>[];
-        List<dynamic> entryList = world["entry"];
-        for (String entry in entryList) {
-          entries.add(base.resolve(entry));
-        }
-      }
-      bool outlineOnly = world["outlineOnly"] == true;
-      bool skipOutlineBodyCheck = world["skipOutlineBodyCheck"] == true;
-      if (brandNewWorld) {
+      List<Uri> entries = world.entries.map((e) => base.resolve(e)).toList();
+      if (!world.updateWorldType) {
         if (incrementalSerialization == true) {
           incrementalSerializer = new IncrementalSerializer();
         }
-        if (world["fromComponent"] == true) {
+        if (world.fromComponent) {
           compiler = new TestIncrementalCompiler.fromComponent(
               options,
               entries.first,
               (modulesToUse != null) ? sdk : newestWholeComponent,
-              outlineOnly,
+              world.outlineOnly,
               incrementalSerializer);
         } else {
           compiler = new TestIncrementalCompiler(options, entries.first,
-              initializeFrom, outlineOnly, incrementalSerializer);
+              initializeFrom, world.outlineOnly, incrementalSerializer);
 
           if (modulesToUse != null) {
             throw "You probably shouldn't do this! "
@@ -798,8 +1311,8 @@ class NewWorldTest {
       }
 
       List<Uri> invalidated = <Uri>[];
-      if (world["invalidate"] != null) {
-        for (String filename in world["invalidate"]) {
+      if (world.invalidate != null) {
+        for (String filename in world.invalidate!) {
           Uri uri = base.resolve(filename);
           invalidated.add(uri);
           compiler!.invalidate(uri);
@@ -814,14 +1327,15 @@ class NewWorldTest {
       Stopwatch stopwatch = new Stopwatch()..start();
       IncrementalCompilerResult? compilerResult = await compiler!.computeDelta(
           entryPoints: entries,
-          fullComponent:
-              brandNewWorld ? false : (noFullComponent ? false : true),
+          fullComponent: !world.updateWorldType
+              ? false
+              : (world.noFullComponent ? false : true),
           trackNeededDillLibraries: modulesToUse != null,
-          simulateTransformer: world["simulateTransformer"]);
+          simulateTransformer: world.simulateTransformer);
       component = compilerResult.component;
       // compilerResult is null'ed out at the end to avoid any
       // "artificial memory leak" on that account.
-      if (outlineOnly && !skipOutlineBodyCheck) {
+      if (world.outlineOnly && !world.skipOutlineBodyCheck) {
         for (Library lib in component!.libraries) {
           for (Class c in lib.classes) {
             for (Procedure p in c.procedures) {
@@ -841,19 +1355,20 @@ class NewWorldTest {
       Result<TestData>? result = performErrorAndWarningCheck(world, data,
           gotError, formattedErrors, gotWarning, formattedWarnings);
       if (result != null) return result;
-      if (world["expectInitializationError"] != null) {
+      bool? expectInitializationError = world.expectInitializationError;
+      if (expectInitializationError != null) {
         Set<String> seenInitializationError = seenDiagnosticCodes.intersection({
           "InitializeFromDillNotSelfContainedNoDump",
           "InitializeFromDillNotSelfContained",
           "InitializeFromDillUnknownProblem",
           "InitializeFromDillUnknownProblemNoDump",
         });
-        if (world["expectInitializationError"] == true) {
+        if (expectInitializationError) {
           if (seenInitializationError.isEmpty) {
             return new Result<TestData>(data, MissingInitializationError,
                 "Expected to see an initialization error but didn't.");
           }
-        } else if (world["expectInitializationError"] == false) {
+        } else {
           if (seenInitializationError.isNotEmpty) {
             return new Result<TestData>(
                 data,
@@ -861,9 +1376,6 @@ class NewWorldTest {
                 "Expected not to see an initialization error but did: "
                 "$seenInitializationError.");
           }
-        } else {
-          throw "Unsupported value for 'expectInitializationError': "
-              "${world["expectInitializationError"]}";
         }
       }
       util.throwOnEmptyMixinBodies(component!);
@@ -880,7 +1392,7 @@ class NewWorldTest {
       Result? nnbdCheck = checkNNBDSettings(component!);
       if (nnbdCheck != null) return nnbdCheck.copyWithOutput(data);
 
-      if (!noFullComponent) {
+      if (!world.noFullComponent) {
         Set<Library> allLibraries = new Set<Library>();
         for (Library lib in component!.libraries) {
           computeAllReachableLibrariesFor(lib, allLibraries);
@@ -911,7 +1423,7 @@ class NewWorldTest {
       result = checkExpectFile(data, worldNum, "", context, actualSerialized);
       if (result != null) return result;
 
-      if (world["compareToPrevious"] == true && newestWholeComponent != null) {
+      if (world.compareToPrevious && newestWholeComponent != null) {
         EquivalenceResult result = checkEquivalence(
             newestWholeComponent!, component!,
             strategy: const Strategy());
@@ -924,8 +1436,14 @@ class NewWorldTest {
       newestWholeComponentData = util.postProcess(component!);
       newestWholeComponent = component;
 
-      if (world["uriToSourcesDoesntInclude"] != null) {
-        for (String filename in world["uriToSourcesDoesntInclude"]) {
+      if (world.checkConstantCoverageReferences) {
+        Result<TestData>? result = checkConstantCoverageReferences(
+            newestWholeComponentData, omitPlatform, sdkSummaryData, data);
+        if (result != null) return result;
+      }
+
+      if (world.uriToSourcesDoesntInclude != null) {
+        for (String filename in world.uriToSourcesDoesntInclude!) {
           Uri uri = base.resolve(filename);
           if (component!.uriToSource[uri] != null) {
             return new Result<TestData>(
@@ -936,9 +1454,9 @@ class NewWorldTest {
           }
         }
       }
-      if (world["uriToSourcesOnlyIncludes"] != null) {
+      if (world.uriToSourcesOnlyIncludes != null) {
         Set<Uri> allowed = {};
-        for (String filename in world["uriToSourcesOnlyIncludes"]) {
+        for (String filename in world.uriToSourcesOnlyIncludes!) {
           Uri uri = base.resolve(filename);
           allowed.add(uri);
         }
@@ -957,7 +1475,7 @@ class NewWorldTest {
         }
       }
 
-      if (world["skipClassHierarchyTest"] != true) {
+      if (!world.skipClassHierarchyTest) {
         result = checkClassHierarchy(compilerResult, data, worldNum, context);
         if (result != null) return result;
       }
@@ -966,7 +1484,7 @@ class NewWorldTest {
       int nonSyntheticPlatformLibraries =
           countNonSyntheticPlatformLibraries(component!);
       int syntheticLibraries = countSyntheticLibraries(component!);
-      if (world["expectsPlatform"] == true) {
+      if (world.expectsPlatform) {
         if (nonSyntheticPlatformLibraries < 5) {
           return new Result<TestData>(
               data,
@@ -984,43 +1502,42 @@ class NewWorldTest {
               "but got $nonSyntheticPlatformLibraries.");
         }
       }
-      if (world["expectedLibraryCount"] != null) {
+      if (world.expectedLibraryCount != null) {
         if (nonSyntheticLibraries - nonSyntheticPlatformLibraries !=
-            world["expectedLibraryCount"]) {
+            world.expectedLibraryCount!) {
           return new Result<TestData>(
               data,
               LibraryCountMismatch,
-              "Expected ${world["expectedLibraryCount"]} non-synthetic "
+              "Expected ${world.expectedLibraryCount} non-synthetic "
               "libraries, got "
               "${nonSyntheticLibraries - nonSyntheticPlatformLibraries} "
               "(not counting platform libraries)");
         }
       }
-      if (world["expectedSyntheticLibraryCount"] != null) {
-        if (syntheticLibraries != world["expectedSyntheticLibraryCount"]) {
+      if (world.expectedSyntheticLibraryCount != null) {
+        if (syntheticLibraries != world.expectedSyntheticLibraryCount!) {
           return new Result<TestData>(
               data,
               LibraryCountMismatch,
-              "Expected ${world["expectedSyntheticLibraryCount"]} synthetic "
+              "Expected ${world.expectedSyntheticLibraryCount} synthetic "
               "libraries, got ${syntheticLibraries}");
         }
       }
 
-      if (world["expectsRebuildBodiesOnly"] != null) {
-        bool didRebuildBodiesOnly =
-            compiler.recorderForTesting.rebuildBodiesCount! > 0;
-        if (world["expectsRebuildBodiesOnly"] != didRebuildBodiesOnly) {
-          return new Result<TestData>(
-              data,
-              UnexpectedRebuildBodiesOnly,
-              "Expected didRebuildBodiesOnly="
-              "${world["expectsRebuildBodiesOnly"]}, "
-              "didRebuildBodiesOnly=${didRebuildBodiesOnly}.");
-        }
+      AdvancedInvalidationResult? actualAdvancedInvalidation =
+          compiler.recorderForTesting.advancedInvalidationResult;
+      if (world.advancedInvalidation != actualAdvancedInvalidation) {
+        return new Result<TestData>(
+            data,
+            UnexpectedAdvancedInvalidation,
+            "Expected advancedInvalidation: "
+            "${world.advancedInvalidation}, "
+            "advancedInvalidation: "
+            "${actualAdvancedInvalidation}.");
       }
 
-      if (!noFullComponent) {
-        if (world["checkEntries"] != false) {
+      if (!world.noFullComponent) {
+        if (world.checkEntries) {
           List<Library> entryLib = component!.libraries
               .where((Library lib) =>
                   entries.contains(lib.importUri) ||
@@ -1052,20 +1569,20 @@ class NewWorldTest {
         Expect.isFalse(compiler.initializedIncrementalSerializerForTesting);
       }
 
-      if (world["checkInvalidatedFiles"] != false) {
+      if (world.checkInvalidatedFiles) {
         Set<Uri>? filteredInvalidated =
             compiler.getFilteredInvalidatedImportUrisForTesting(invalidated);
-        if (world["invalidate"] != null) {
+        if (world.invalidate != null) {
           Expect.equals(
-              world["invalidate"].length, filteredInvalidated?.length ?? 0);
-          List? expectedInvalidatedUri = world["expectedInvalidatedUri"];
-          if (expectedInvalidatedUri != null) {
-            Expect.setEquals(expectedInvalidatedUri.map((s) => base.resolve(s)),
+              world.invalidate!.length, filteredInvalidated?.length ?? 0);
+          if (world.expectedInvalidatedUri != null) {
+            Expect.setEquals(
+                world.expectedInvalidatedUri!.map((s) => base.resolve(s)),
                 filteredInvalidated!);
           }
         } else {
           Expect.isNull(filteredInvalidated);
-          Expect.isNull(world["expectedInvalidatedUri"]);
+          Expect.isNull(world.expectedInvalidatedUri);
         }
       }
       Result<List<int>?> serializationResult = checkIncrementalSerialization(
@@ -1077,10 +1594,9 @@ class NewWorldTest {
 
       worldErrors.add(formattedErrors.toSet());
       assert(worldErrors.length == worldNum);
-      if (world["expectSameErrorsAsWorld"] != null) {
-        int expectSameErrorsAsWorld = world["expectSameErrorsAsWorld"];
+      if (world.expectSameErrorsAsWorld != null) {
         checkErrorsAndWarnings(
-          worldErrors[expectSameErrorsAsWorld - 1],
+          worldErrors[world.expectSameErrorsAsWorld! - 1],
           formattedErrors,
           {},
           {},
@@ -1097,13 +1613,13 @@ class NewWorldTest {
         formattedWarnings.clear();
       }
 
-      if (!noFullComponent) {
+      if (!world.noFullComponent) {
         clearPrevErrorsEtc();
         IncrementalCompilerResult? compilerResult2 =
             await compiler.computeDelta(
                 entryPoints: entries,
                 fullComponent: true,
-                simulateTransformer: world["simulateTransformer"]);
+                simulateTransformer: world.simulateTransformer);
         component2 = compilerResult2.component;
         compilerResult2 = null;
         Result<TestData>? result = performErrorAndWarningCheck(world, data,
@@ -1144,37 +1660,29 @@ class NewWorldTest {
         }
       }
 
-      if (world["expressionCompilation"] != null) {
-        List compilations;
-        if (world["expressionCompilation"] is List) {
-          compilations = world["expressionCompilation"];
-        } else {
-          compilations = [world["expressionCompilation"]];
-        }
+      if (world.expressionCompilation != null) {
         int expressionCompilationNum = 0;
-        for (Map compilation in compilations) {
+        for (ExpressionCompilation compilation
+            in world.expressionCompilation!) {
           expressionCompilationNum++;
           clearPrevErrorsEtc();
-          bool expectErrors = compilation["errors"] ?? false;
-          bool expectWarnings = compilation["warnings"] ?? false;
-          Uri uri = base.resolve(compilation["uri"]);
-          String expression = compilation["expression"];
+          Uri uri = base.resolve(compilation.uri);
           Procedure procedure = (await compiler.compileExpression(
-              expression, {}, [], "debugExpr", uri))!;
-          if (gotError && !expectErrors) {
+              compilation.expression, {}, [], "debugExpr", uri))!;
+          if (gotError && !compilation.errors) {
             return new Result<TestData>(data, UnexpectedErrors,
                 "Got error(s) on expression compilation: ${formattedErrors}.");
-          } else if (!gotError && expectErrors) {
+          } else if (!gotError && compilation.errors) {
             return new Result<TestData>(
                 data, MissingErrors, "Didn't get any errors.");
           }
-          if (gotWarning && !expectWarnings) {
+          if (gotWarning && !compilation.warnings) {
             return new Result<TestData>(
                 data,
                 UnexpectedWarnings,
                 "Got warning(s) on expression compilation: "
                 "${formattedWarnings}.");
-          } else if (!gotWarning && expectWarnings) {
+          } else if (!gotWarning && compilation.warnings) {
             return new Result<TestData>(
                 data, MissingWarnings, "Didn't get any warnings.");
           }
@@ -1188,9 +1696,8 @@ class NewWorldTest {
         }
       }
 
-      if (!noFullComponent &&
-          (incrementalSerialization == true ||
-              world["compareWithFromScratch"] == true)) {
+      if (!world.noFullComponent &&
+          (incrementalSerialization == true || world.compareWithFromScratch)) {
         // Do compile from scratch and compare.
         clearPrevErrorsEtc();
         TestIncrementalCompiler? compilerFromScratch;
@@ -1200,12 +1707,16 @@ class NewWorldTest {
           incrementalSerializer2 = new IncrementalSerializer();
         }
 
-        if (world["fromComponent"] == true || modulesToUse != null) {
+        if (world.fromComponent || modulesToUse != null) {
           compilerFromScratch = new TestIncrementalCompiler.fromComponent(
-              options, entries.first, sdk, outlineOnly, incrementalSerializer2);
+              options,
+              entries.first,
+              sdk,
+              world.outlineOnly,
+              incrementalSerializer2);
         } else {
           compilerFromScratch = new TestIncrementalCompiler(options,
-              entries.first, null, outlineOnly, incrementalSerializer2);
+              entries.first, null, world.outlineOnly, incrementalSerializer2);
         }
 
         if (modulesToUse != null) {
@@ -1218,7 +1729,7 @@ class NewWorldTest {
             await compilerFromScratch.computeDelta(
                 entryPoints: entries,
                 trackNeededDillLibraries: modulesToUse != null,
-                simulateTransformer: world["simulateTransformer"]);
+                simulateTransformer: world.simulateTransformer);
         component3 = compilerResult3.component;
         compilerResult3 = null;
         compilerFromScratch = null;
@@ -1232,7 +1743,7 @@ class NewWorldTest {
         List<int> thisWholeComponent = util.postProcess(component3!);
         print("*****\n\ncomponent3:\n"
             "${componentToStringSdkFiltered(component3!)}\n\n\n");
-        if (world["compareWithFromScratch"] == true) {
+        if (world.compareWithFromScratch) {
           checkIsEqual(newestWholeComponentData, thisWholeComponent);
         }
         checkErrorsAndWarnings(prevFormattedErrors, formattedErrors,
@@ -1260,7 +1771,7 @@ class NewWorldTest {
         }
 
         if (incrementalSerializationBytes != null) {
-          if (world["brandNewIncrementalSerializationAllowDifferent"] == true) {
+          if (world.brandNewIncrementalSerializationAllowDifferent) {
             // Don't check for equality when we allow it to be different
             // (e.g. when the old one contains more, and the new one doesn't).
           } else {
@@ -1288,6 +1799,38 @@ class NewWorldTest {
     }
     return new Result<TestData>.pass(data);
   }
+}
+
+Result<TestData>? checkConstantCoverageReferences(
+    List<int> newestWholeComponentData,
+    bool omitPlatform,
+    List<int> sdkSummaryData,
+    TestData data) {
+  // Note that this is in a method to avoid "semi-leaks".
+  Component loadedComponent = new Component();
+  if (omitPlatform) {
+    new BinaryBuilder(sdkSummaryData, filename: null)
+        .readComponent(loadedComponent);
+  }
+  new BinaryBuilder(newestWholeComponentData, filename: null)
+      .readComponent(loadedComponent);
+
+  for (MapEntry<Uri, Source> source in loadedComponent.uriToSource.entries) {
+    Set<Reference>? references = source.value.constantCoverageConstructors;
+    if (references != null) {
+      for (Reference reference in references) {
+        if (reference.node == null) {
+          return new Result<TestData>(
+              data,
+              ConstantCoverageReferenceWithoutNode,
+              "Constant coverage reference without node: "
+              "${reference.canonicalName} from ${source.value.importUri} "
+              "indexed in ${source.key}");
+        }
+      }
+    }
+  }
+  return null;
 }
 
 class Strategy extends EquivalenceStrategy {
@@ -1382,7 +1925,7 @@ Result<TestData>? checkExpectFile(TestData data, int worldNum,
 /// while we're trying to figure out if it's useful or not.
 Result<TestData>? checkClassHierarchy(IncrementalCompilerResult compilerResult,
     TestData data, int worldNum, Context context,
-    {bool checkExpectFile: false}) {
+    {bool checkExpectFile = false}) {
   ClassHierarchy? classHierarchy = compilerResult.classHierarchy;
   if (classHierarchy is! ClosedWorldClassHierarchy) {
     return new Result<TestData>(
@@ -1598,7 +2141,7 @@ Result<List<int>?> checkIncrementalSerialization(
     bool? incrementalSerialization,
     Component component,
     IncrementalSerializer? incrementalSerializer,
-    YamlMap world) {
+    World world) {
   if (incrementalSerialization == true) {
     Component c = new Component(nameRoot: component.root)
       ..setMainMethodAndMode(null, false, component.mode);
@@ -1614,7 +2157,7 @@ Result<List<int>?> checkIncrementalSerialization(
           "Incremental serialization added libraries!");
     }
     if (librariesBefore == librariesAfter &&
-        world["incrementalSerializationDoesWork"] == true) {
+        world.incrementalSerializationDoesWork) {
       return new Result<List<int>>(null, IncrementalSerializationError,
           "Incremental serialization didn't remove any libraries!");
     }
@@ -1642,12 +2185,10 @@ Result<List<int>?> checkIncrementalSerialization(
       new BinaryBuilder(bytes, filename: null).readComponent(loadedComponent);
 
       // Check that it doesn't contain anything we said it shouldn't.
-      if (world["serializationShouldNotInclude"] is List) {
-        List serializationShouldNotInclude =
-            world["serializationShouldNotInclude"];
+      if (world.serializationShouldNotInclude != null) {
         Set<Uri> includedImportUris =
             loadedComponent.libraries.map((l) => l.importUri).toSet();
-        for (String uriString in serializationShouldNotInclude) {
+        for (String uriString in world.serializationShouldNotInclude!) {
           Uri uri = Uri.parse(uriString);
           if (includedImportUris.contains(uri)) {
             return new Result<List<int>>(
@@ -1722,17 +2263,16 @@ void computeAllReachableLibrariesFor(Library lib, Set<Library> allLibraries) {
   }
 }
 
-Result? checkExpectedContent(YamlMap world, Component component) {
-  if (world["expectedContent"] != null) {
+Result? checkExpectedContent(World world, Component component) {
+  if (world.expectedContent != null) {
     Map<String, Set<String>> actualContent = buildMapOfContent(component);
-    Map expectedContent = world["expectedContent"];
-    return checkExpectedContentData(actualContent, expectedContent);
+    return checkExpectedContentData(actualContent, world.expectedContent!);
   }
   return null;
 }
 
-Result? checkExpectedContentData(
-    Map<String, Set<String>> actualContent, Map expectedContent) {
+Result? checkExpectedContentData(Map<String, Set<String>> actualContent,
+    Map<String, Iterable<String>> expectedContent) {
   Result<TestData> createFailureResult() {
     return new Result(
         null,
@@ -1750,9 +2290,9 @@ Result? checkExpectedContentData(
   if (missingKeys.isNotEmpty) {
     return createFailureResult();
   }
-  for (String key in expectedContent.keys) {
-    Set<String> expected = new Set<String>.from(expectedContent[key]);
-    Set<String> actual = actualContent[key]!.toSet();
+  for (MapEntry<String, Iterable<String>> entry in expectedContent.entries) {
+    Set<String> expected = new Set<String>.from(entry.value);
+    Set<String> actual = actualContent[entry.key]!.toSet();
     if (expected.length != actual.length) {
       return createFailureResult();
     }
@@ -1783,8 +2323,8 @@ Map<String, Set<String>> buildMapOfContent(Component component) {
 }
 
 Result<TestData>? checkNeededDillLibraries(
-    YamlMap world, TestData data, Set<Library>? neededDillLibraries, Uri base) {
-  if (world["neededDillLibraries"] != null) {
+    World world, TestData data, Set<Library>? neededDillLibraries, Uri base) {
+  if (world.neededDillLibraries != null) {
     List<Uri> actualContent = <Uri>[];
     for (Library lib in neededDillLibraries!) {
       if (lib.importUri.isScheme("dart")) continue;
@@ -1792,7 +2332,7 @@ Result<TestData>? checkNeededDillLibraries(
     }
 
     List<Uri> expectedContent = <Uri>[];
-    for (String entry in world["neededDillLibraries"]) {
+    for (String entry in world.neededDillLibraries!) {
       expectedContent.add(base.resolve(entry));
     }
 
@@ -1844,25 +2384,8 @@ String componentToStringSdkFiltered(Component component) {
   StringBuffer s = new StringBuffer();
   s.write(componentToString(c));
 
-  bool printedConstantCoverageHeader = false;
-  for (Source source in component.uriToSource.values) {
-    if (source.importUri?.scheme == "dart") continue;
-
-    if (source.constantCoverageConstructors != null &&
-        source.constantCoverageConstructors!.isNotEmpty) {
-      if (!printedConstantCoverageHeader) {
-        s.writeln("");
-        s.writeln("");
-        s.writeln("Constructor coverage from constants:");
-        printedConstantCoverageHeader = true;
-      }
-      s.writeln("${source.fileUri}:");
-      for (Reference reference in source.constantCoverageConstructors!) {
-        s.writeln("- ${reference.node} (from ${reference.node?.location})");
-      }
-      s.writeln("");
-    }
-  }
+  addConstantCoverageToExpectation(component, s,
+      skipImportUri: (Uri? importUri) => importUri?.scheme == "dart");
 
   if (dartUris.isNotEmpty) {
     s.writeln("");
@@ -1900,23 +2423,23 @@ int countSyntheticLibraries(Component c) {
 }
 
 Result<TestData>? performErrorAndWarningCheck(
-    YamlMap world,
+    World world,
     TestData data,
     bool gotError,
     Set<String> formattedErrors,
     bool gotWarning,
     Set<String> formattedWarnings) {
-  if (world["errors"] == true && !gotError) {
+  if (world.errors && !gotError) {
     return new Result<TestData>(
         data, MissingErrors, "Expected error, but didn't get any.");
-  } else if (world["errors"] != true && gotError) {
+  } else if (!world.errors && gotError) {
     return new Result<TestData>(
         data, UnexpectedErrors, "Got unexpected error(s): $formattedErrors.");
   }
-  if (world["warnings"] == true && !gotWarning) {
+  if (world.warnings && !gotWarning) {
     return new Result<TestData>(
         data, MissingWarnings, "Expected warning, but didn't get any.");
-  } else if (world["warnings"] != true && gotWarning) {
+  } else if (!world.warnings && gotWarning) {
     return new Result<TestData>(data, UnexpectedWarnings,
         "Got unexpected warnings(s): $formattedWarnings.");
   }
@@ -2139,7 +2662,7 @@ class TestIncrementalCompiler extends IncrementalCompiler {
   Future<IncrementalCompilerResult> computeDelta(
       {List<Uri>? entryPoints,
       bool fullComponent = false,
-      bool trackNeededDillLibraries: false,
+      bool trackNeededDillLibraries = false,
       bool? simulateTransformer}) async {
     IncrementalCompilerResult result = await super.computeDelta(
         entryPoints: entryPoints,
@@ -2163,6 +2686,7 @@ class TestIncrementalCompiler extends IncrementalCompiler {
 
 class TestRecorderForTesting extends RecorderForTesting {
   Set<Uri>? invalidatedImportUrisForTesting;
+  AdvancedInvalidationResult? advancedInvalidationResult;
   int? rebuildBodiesCount;
 
   @override
@@ -2184,6 +2708,16 @@ class TestRecorderForTesting extends RecorderForTesting {
   @override
   void recordRebuildBodiesCount(int count) {
     rebuildBodiesCount = count;
+    assert(
+        count == 0 ||
+            advancedInvalidationResult == AdvancedInvalidationResult.bodiesOnly,
+        "Unexpected successful advanced invalidation: "
+        "${advancedInvalidationResult}");
+  }
+
+  @override
+  void recordAdvancedInvalidationResult(AdvancedInvalidationResult result) {
+    advancedInvalidationResult = result;
   }
 
   @override

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/computer/computer_selection_ranges.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -103,6 +102,28 @@ final foo = Foo("test");
     );
   }
 
+  Future<void> test_field_recordType() async {
+    final content = '''
+class C<T> {
+  (int, int) r = (0, 1);
+}
+''';
+    final offset = content.indexOf('int');
+
+    final regions = await _computeSelectionRanges(content, offset);
+    _expectRegions(
+      regions,
+      content,
+      [
+        'int',
+        '(int, int)',
+        '(int, int) r = (0, 1)',
+        '(int, int) r = (0, 1);',
+        'class C<T> {\n  (int, int) r = (0, 1);\n}',
+      ],
+    );
+  }
+
   Future<void> test_method() async {
     final content = '''
 class Foo<T> {
@@ -182,6 +203,33 @@ void a(String b) {
     );
   }
 
+  Future<void> test_topLevelFunction_record() async {
+    final content = '''
+void f() {
+  var r = (x: 3, y: 2);
+}
+''';
+    final offset = content.indexOf('y');
+
+    final regions = await _computeSelectionRanges(content, offset);
+    _expectRegions(
+      regions,
+      content,
+      [
+        'y',
+        'y:',
+        'y: 2',
+        '(x: 3, y: 2)',
+        'r = (x: 3, y: 2)',
+        'var r = (x: 3, y: 2)',
+        'var r = (x: 3, y: 2);',
+        '{\n  var r = (x: 3, y: 2);\n}',
+        '() {\n  var r = (x: 3, y: 2);\n}',
+        'void f() {\n  var r = (x: 3, y: 2);\n}',
+      ],
+    );
+  }
+
   Future<void> test_whitespace() async {
     final content = '    class Foo {}';
     final offset = 0;
@@ -193,8 +241,7 @@ void a(String b) {
   Future<List<SelectionRange>?> _computeSelectionRanges(
       String sourceContent, int offset) async {
     newFile(sourcePath, sourceContent);
-    var result =
-        await (await session).getResolvedUnit(sourcePath) as ResolvedUnitResult;
+    var result = await getResolvedUnit(sourcePath);
     var computer = DartSelectionRangeComputer(result.unit, offset);
     return computer.compute();
   }

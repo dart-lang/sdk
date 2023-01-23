@@ -4,11 +4,9 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -33,7 +31,7 @@ class VariableDeclarationResolver {
         _resolver.errorReporter.reportErrorForNode(
           HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE,
           node,
-          [node.name.name],
+          [node.name.lexeme],
         );
       }
       return;
@@ -50,12 +48,13 @@ class VariableDeclarationResolver {
     }
 
     _resolver.analyzeExpression(initializer, element.type);
-    initializer = node.initializer!;
+    initializer = _resolver.popRewrite()!;
     var whyNotPromoted =
         _resolver.flowAnalysis.flow?.whyNotPromoted(initializer);
 
-    if (parent.type == null) {
-      _setInferredType(element, initializer.typeOrThrow);
+    var initializerType = initializer.typeOrThrow;
+    if (parent.type == null && element is LocalVariableElementImpl) {
+      element.type = _resolver.variableTypeFromInitializerType(initializerType);
     }
 
     if (isTopLevel) {
@@ -70,18 +69,12 @@ class VariableDeclarationResolver {
       element.constantInitializer = initializer;
     }
 
-    _resolver.checkForInvalidAssignment(node.name, initializer,
-        whyNotPromoted: whyNotPromoted);
-  }
-
-  void _setInferredType(VariableElement element, DartType initializerType) {
-    if (element is LocalVariableElementImpl) {
-      if (initializerType.isDartCoreNull) {
-        initializerType = DynamicTypeImpl.instance;
-      }
-
-      var inferredType = _resolver.typeSystem.demoteType(initializerType);
-      element.type = inferredType;
-    }
+    _resolver.checkForAssignableExpressionAtType(
+      initializer,
+      initializerType,
+      element.type,
+      CompileTimeErrorCode.INVALID_ASSIGNMENT,
+      whyNotPromoted: whyNotPromoted,
+    );
   }
 }

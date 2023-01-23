@@ -30,14 +30,31 @@ void f() {
           2),
     ]);
 
-    var invocation = findNode.functionExpressionInvocation('();');
-    assertFunctionExpressionInvocation(
-      invocation,
-      element: findElement.method('call', of: 'E'),
-      typeArgumentTypes: [],
-      invokeType: 'void Function()',
-      type: 'void',
-    );
+    final node = findNode.functionExpressionInvocation('();');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 0
+          parameter: <null>
+          staticType: int
+      rightParenthesis: )
+    extendedType: int
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: self::@extension::E::@method::call
+  staticInvokeType: void Function()
+  staticType: void
+''');
   }
 
   test_getter() async {

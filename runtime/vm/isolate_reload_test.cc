@@ -4076,10 +4076,8 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersWithGenerics) {
   EXPECT_VALID(lib);
   // Verify that we ran field initializers on existing instances and
   // correct type arguments were used.
-  EXPECT_STREQ(
-      "List<String> _InternalLinkedHashMap<String, String> List<int> "
-      "_InternalLinkedHashMap<int, int>",
-      SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("List<String> _Map<String, String> List<int> _Map<int, int>",
+               SimpleInvokeStr(lib, "main"));
 }
 
 TEST_CASE(IsolateReload_AddNewStaticField) {
@@ -4205,21 +4203,45 @@ TEST_CASE(IsolateReload_DeleteStaticField) {
   }
 }
 
-TEST_CASE(IsolateReload_ExistingFieldChangesType) {
+static void TestReloadWithFieldChange(const char* prefix,
+                                      const char* suffix,
+                                      const char* verify,
+                                      const char* from_type,
+                                      const char* from_init,
+                                      const char* to_type,
+                                      const char* to_init) {
   const char* late_tag = TestCase::LateTag();
   // clang-format off
   auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr,
                                                      R"(
+    import 'dart:typed_data';
+
+    void doubleEq(double got, double expected) {
+      if (got != expected) throw 'expected $expected got $got';
+    }
+
+    void float32x4Eq(Float32x4 got, Float32x4 expected) {
+      if (got.equal(expected).signMask != 0xf) throw 'expected $expected got $got';
+    }
+
     class Foo {
-      int x = 42;
+      %s
+      %s x = %s;
+      %s
     }
     %s Foo value;
     main() {
       value = Foo();
+      %s
       return 'Okay';
     }
   )",
-  late_tag), std::free);
+  prefix,
+  from_type,
+  from_init,
+  suffix,
+  late_tag,
+  verify), std::free);
   // clang-format on
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript.get(), NULL);
@@ -4228,26 +4250,90 @@ TEST_CASE(IsolateReload_ExistingFieldChangesType) {
 
   // clang-format off
   auto kReloadScript = Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
+    import 'dart:typed_data';
+
+    void doubleEq(double got, double expected) {
+      if (got != expected) throw 'expected $expected got $got';
+    }
+
+    void float32x4Eq(Float32x4 got, Float32x4 expected) {
+      if (got.equal(expected).signMask != 0xf) throw 'expected $expected got $got';
+    }
+
     class Foo {
-      double x = 42.0;
+      %s
+      %s x = %s;
+      %s
     }
     %s Foo value;
     main() {
       try {
+        %s
         return value.x.toString();
       } catch (e) {
         return e.toString();
       }
     }
-  )",
-  late_tag), std::free);
+  )", prefix, to_type, to_init, suffix,
+  late_tag, verify), std::free);
   // clang-format on
 
   lib = TestCase::ReloadTestScript(kReloadScript.get());
   EXPECT_VALID(lib);
   EXPECT_STREQ(
-      "type 'int' is not a subtype of type 'double' of 'function result'",
+      OS::SCreate(
+          Thread::Current()->zone(),
+          "type '%s' is not a subtype of type '%s' of 'function result'",
+          from_type, to_type),
       SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_ExistingFieldChangesType) {
+  TestReloadWithFieldChange(/*prefix=*/"", /*suffix=*/"", /*verify=*/"",
+                            /*from_type=*/"int", /*from_init=*/"42",
+                            /*to_type=*/"double", /*to_init=*/"42.0");
+}
+
+TEST_CASE(IsolateReload_ExistingFieldChangesTypeWithOtherUnboxedFields) {
+  TestReloadWithFieldChange(
+      /*prefix=*/"double a = 1.5;",
+      /*suffix=*/"Float32x4 b = Float32x4(1.0, 2.0, 3.0, 4.0);", /*verify=*/
+      "doubleEq(value.a, 1.5); float32x4Eq(value.b, Float32x4(1.0, 2.0, 3.0, "
+      "4.0));",
+      /*from_type=*/"int", /*from_init=*/"42", /*to_type=*/"double",
+      /*to_init=*/"42.0");
+}
+
+TEST_CASE(IsolateReload_ExistingFieldUnboxedToBoxed) {
+  TestReloadWithFieldChange(
+      /*prefix=*/"double a = 1.5;",
+      /*suffix=*/"Float32x4 b = Float32x4(1.0, 2.0, 3.0, 4.0);", /*verify=*/
+      "doubleEq(value.a, 1.5); float32x4Eq(value.b, Float32x4(1.0, 2.0, 3.0, "
+      "4.0));",
+      /*from_type=*/"double", /*from_init=*/"42.0", /*to_type=*/"String",
+      /*to_init=*/"'42'");
+}
+
+TEST_CASE(IsolateReload_ExistingFieldBoxedToUnboxed) {
+  // Note: underlying field will not actually be unboxed.
+  TestReloadWithFieldChange(
+      /*prefix=*/"double a = 1.5;",
+      /*suffix=*/"Float32x4 b = Float32x4(1.0, 2.0, 3.0, 4.0);", /*verify=*/
+      "doubleEq(value.a, 1.5); float32x4Eq(value.b, Float32x4(1.0, 2.0, 3.0, "
+      "4.0));",
+      /*from_type=*/"String", /*from_init=*/"'42.0'", /*to_type=*/"double",
+      /*to_init=*/"42.0");
+}
+
+TEST_CASE(IsolateReload_ExistingFieldUnboxedToUnboxed) {
+  // Note: underlying field will not actually be unboxed.
+  TestReloadWithFieldChange(
+      /*prefix=*/"double a = 1.5;",
+      /*suffix=*/"Float32x4 b = Float32x4(1.0, 2.0, 3.0, 4.0);", /*verify=*/
+      "doubleEq(value.a, 1.5); float32x4Eq(value.b, Float32x4(1.0, 2.0, 3.0, "
+      "4.0));",
+      /*from_type=*/"double", /*from_init=*/"42.0", /*to_type=*/"Float32x4",
+      /*to_init=*/"Float32x4(1.0, 2.0, 3.0, 4.0)");
 }
 
 TEST_CASE(IsolateReload_ExistingStaticFieldChangesType) {

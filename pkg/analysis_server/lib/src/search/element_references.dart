@@ -14,10 +14,9 @@ class ElementReferencesComputer {
 
   ElementReferencesComputer(this.searchEngine);
 
-  /// Computes [SearchResult]s for [element] references.
-  Future<List<SearchResult>> compute(
-      Element element, bool withPotential) async {
-    var results = <SearchResult>[];
+  /// Computes [SearchMatch]es for [element] references.
+  Future<List<SearchMatch>> compute(Element element, bool withPotential) async {
+    var results = <SearchMatch>[];
 
     // Add element references.
     results.addAll(await _findElementsReferences(element));
@@ -26,7 +25,7 @@ class ElementReferencesComputer {
     if (withPotential && _isMemberElement(element)) {
       var name = element.displayName;
       var matches = await searchEngine.searchMemberReferences(name);
-      results.addAll(matches.where((match) => !match.isResolved).map(toResult));
+      results.addAll(matches.where((match) => !match.isResolved));
     }
 
     return results;
@@ -34,8 +33,8 @@ class ElementReferencesComputer {
 
   /// Returns a [Future] completing with a [List] of references to [element] or
   /// to the corresponding hierarchy [Element]s.
-  Future<List<SearchResult>> _findElementsReferences(Element element) async {
-    var allResults = <SearchResult>[];
+  Future<List<SearchMatch>> _findElementsReferences(Element element) async {
+    var allResults = <SearchMatch>[];
     var refElements = await _getRefElements(element);
     for (var refElement in refElements) {
       var elementResults = await _findSingleElementReferences(refElement);
@@ -45,10 +44,9 @@ class ElementReferencesComputer {
   }
 
   /// Returns a [Future] completing with a [List] of references to [element].
-  Future<List<SearchResult>> _findSingleElementReferences(
+  Future<List<SearchMatch>> _findSingleElementReferences(
       Element element) async {
-    var matches = await searchEngine.searchReferences(element);
-    return matches.map(toResult).toList();
+    return searchEngine.searchReferences(element);
   }
 
   /// Returns a [Future] completing with [Element]s to search references to.
@@ -75,6 +73,6 @@ class ElementReferencesComputer {
     if (element is ConstructorElement) {
       return false;
     }
-    return element.enclosingElement is ClassElement;
+    return element.enclosingElement is InterfaceElement;
   }
 }

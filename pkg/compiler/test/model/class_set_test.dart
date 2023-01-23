@@ -14,7 +14,7 @@ import 'package:compiler/src/elements/entities.dart' show ClassEntity;
 import 'package:compiler/src/kernel/kernel_world.dart';
 import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/util/enumset.dart';
-import 'package:compiler/src/world.dart';
+import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import '../helpers/type_test_helper.dart';
 
 void main() {
@@ -65,7 +65,8 @@ testIterators() async {
   ClassEntity G = env.getClass("G");
 
   void checkClass(ClassEntity cls,
-      {bool directlyInstantiated: false, bool indirectlyInstantiated: false}) {
+      {bool directlyInstantiated = false,
+      bool indirectlyInstantiated = false}) {
     ClassHierarchyNode node = world.classHierarchy.getClassHierarchyNode(cls);
     Expect.isNotNull(node, "Expected ClassHierarchyNode for $cls.");
     Expect.equals(
@@ -420,8 +421,8 @@ testForEach() async {
 
   void checkForEach(ClassEntity cls, List<ClassEntity> expected,
       {ClassEntity stop,
-      List<ClassEntity> skipSubclasses: const <ClassEntity>[],
-      bool forEachSubtype: false,
+      List<ClassEntity> skipSubclasses = const <ClassEntity>[],
+      bool forEachSubtype = false,
       EnumSet<Instantiation> mask}) {
     if (mask == null) {
       mask = ClassHierarchyNode.ALL;
@@ -483,7 +484,7 @@ testForEach() async {
       forEachSubtype: true, mask: ClassHierarchyNode.INSTANTIATED);
 
   void checkAny(ClassEntity cls, List<ClassEntity> expected,
-      {ClassEntity find, bool expectedResult, bool anySubtype: false}) {
+      {ClassEntity find, bool expectedResult, bool anySubtype = false}) {
     ClassSet classSet = world.classHierarchy.getClassSet(cls);
     List<ClassEntity> visited = <ClassEntity>[];
 
@@ -551,7 +552,7 @@ testClosures() async {
   ClassEntity closureClass = world.commonElements.closureClass;
   ClassEntity A = env.getClass("A");
 
-  checkIsFunction(ClassEntity cls, {bool expected: true}) {
+  checkIsFunction(ClassEntity cls, {bool expected = true}) {
     Expect.equals(
         expected,
         world.classHierarchy.isSubtypeOf(cls, functionClass),

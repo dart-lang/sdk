@@ -171,7 +171,7 @@ void main() {
       });
 
       test("compiler defaults to runtime's default compiler", () {
-        expect(Configuration.parse("vm", {}).compiler, equals(Compiler.none));
+        expect(Configuration.parse("vm", {}).compiler, equals(Compiler.dartk));
       });
 
       test("mode defaults to compiler's default mode", () {

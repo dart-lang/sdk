@@ -70,7 +70,7 @@ part of lib;
 Future<int> zero() async => 0;
 ''');
 
-    final analysisSession = contextFor(lib.path).currentSession;
+    final analysisSession = contextFor(lib).currentSession;
     final resolvedLibrary = await analysisSession.getResolvedLibrary(lib.path);
     resolvedLibrary as ResolvedLibraryResult;
 
@@ -135,7 +135,7 @@ part of lib;
 Future<int> zero() async => 0;
 ''');
 
-    final analysisSession = contextFor(lib.path).currentSession;
+    final analysisSession = contextFor(lib).currentSession;
     final resolvedLibrary = await analysisSession.getResolvedLibrary(lib.path);
     resolvedLibrary as ResolvedLibraryResult;
 

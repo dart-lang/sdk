@@ -5,35 +5,16 @@
 #include "vm/compiler/ffi/unit_test.h"
 
 #include "platform/syslog.h"
+#include "vm/globals.h"
 
 namespace dart {
 namespace compiler {
 namespace ffi {
 
-#if defined(TARGET_ARCH_ARM)
-const char* kArch = "arm";
-#elif defined(TARGET_ARCH_ARM64)
-const char* kArch = "arm64";
-#elif defined(TARGET_ARCH_IA32)
-const char* kArch = "ia32";
-#elif defined(TARGET_ARCH_X64)
-const char* kArch = "x64";
-#elif defined(TARGET_ARCH_RISCV32)
-const char* kArch = "riscv32";
-#elif defined(TARGET_ARCH_RISCV64)
-const char* kArch = "riscv64";
-#endif
-
-#if defined(DART_TARGET_OS_ANDROID)
-const char* kOs = "android";
-#elif defined(DART_TARGET_OS_MACOS_IOS)
-const char* kOs = "ios";
-#elif defined(DART_TARGET_OS_LINUX)
-const char* kOs = "linux";
-#elif defined(DART_TARGET_OS_MACOS)
-const char* kOs = "macos";
-#elif defined(DART_TARGET_OS_WINDOWS)
+#if defined(DART_TARGET_OS_WINDOWS)
 const char* kOs = "win";
+#else
+const char* kOs = kTargetOperatingSystemName;
 #endif
 
 void WriteToFile(char* path, const char* contents) {

@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart'
         DynamicType,
         FutureOrType,
         InterfaceType,
+        InvalidType,
         Member,
         Name,
         NullType,
@@ -33,6 +34,7 @@ import 'declaration_builder.dart';
 import 'library_builder.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
+import 'name_iterator.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
@@ -64,11 +66,15 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   bool get isMacro;
 
+  bool get isSealed;
+
   bool get isAugmentation;
 
   bool get declaresConstConstructor;
 
   bool get isMixin;
+
+  bool get isMixinDeclaration;
 
   bool get isMixinApplication;
 
@@ -78,8 +84,6 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   MemberBuilder? findConstructorOrFactory(
       String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary);
-
-  void forEach(void f(String name, Builder builder));
 
   /// The [Class] built by this builder.
   ///
@@ -122,10 +126,34 @@ abstract class ClassBuilder implements DeclarationBuilder {
   /// patch are searched before searching the interface members in the origin
   /// class.
   Member? lookupInstanceMember(ClassHierarchy hierarchy, Name name,
-      {bool isSetter: false, bool isSuper: false});
+      {bool isSetter = false, bool isSuper = false});
 
-  /// Calls [f] for each constructor declared in this class.
-  void forEachConstructor(void Function(String, MemberBuilder) f);
+  // TODO(johnniwinther): Support filtering on the returns builder types in
+  // these:
+
+  /// [Iterator] for all members declared in this class or any of its
+  /// augmentations.
+  ///
+  /// Duplicates and augmenting constructor are _not_ included.
+  Iterator<MemberBuilder> get fullConstructorIterator;
+
+  /// [NameIterator] for all constructors declared in this class or any of its
+  /// augmentations.
+  ///
+  /// Duplicates and augmenting constructors are _not_ included.
+  NameIterator<MemberBuilder> get fullConstructorNameIterator;
+
+  /// [Iterator] for all members declared in this class or any of its
+  /// augmentations.
+  ///
+  /// Duplicates and augmenting members are _not_ included.
+  Iterator<Builder> get fullMemberIterator;
+
+  /// [NameIterator] for all members declared in this class or any of its
+  /// augmentations.
+  ///
+  /// Duplicates and augmenting members are _not_ included.
+  NameIterator<Builder> get fullMemberNameIterator;
 }
 
 abstract class ClassBuilderImpl extends DeclarationBuilderImpl
@@ -196,7 +224,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   Builder? findStaticBuilder(
       String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
-      {bool isSetter: false}) {
+      {bool isSetter = false}) {
     if (accessingLibrary.nameOriginBuilder.origin !=
             libraryBuilder.nameOriginBuilder.origin &&
         name.startsWith("_")) {
@@ -231,13 +259,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  void forEach(void f(String name, Builder builder)) {
-    scope.forEach(f);
-  }
-
-  @override
   Builder? lookupLocalMember(String name,
-      {bool setter: false, bool required: false}) {
+      {bool setter = false, bool required = false}) {
     Builder? builder = scope.lookupLocalMember(name, setter: setter);
     if (builder == null && isPatch) {
       builder = origin.scope.lookupLocalMember(name, setter: setter);
@@ -351,6 +374,15 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       int charOffset,
       ClassHierarchyBase? hierarchy,
       {required bool hasExplicitTypeArguments}) {
+    if (name == "Record" &&
+        libraryBuilder.importUri.scheme == "dart" &&
+        libraryBuilder.importUri.path == "core" &&
+        library is SourceLibraryBuilder &&
+        !library.libraryFeatures.records.isEnabled) {
+      library.reportFeatureNotEnabled(
+          library.libraryFeatures.records, fileUri, charOffset, name.length);
+      return const InvalidType();
+    }
     return buildAliasedTypeWithBuiltArguments(
         library,
         nullabilityBuilder.build(library),
@@ -390,7 +422,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   Member? lookupInstanceMember(ClassHierarchy hierarchy, Name name,
-      {bool isSetter: false, bool isSuper: false}) {
+      {bool isSetter = false, bool isSuper = false}) {
     Class? instanceClass = cls;
     if (isPatch) {
       assert(identical(instanceClass, origin.cls),

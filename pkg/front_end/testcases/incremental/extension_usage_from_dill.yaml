@@ -94,3 +94,5 @@ worlds:
         expression: print("1234".parseInt())
       - uri: main.dart
         expression: print("1234".fooMe1())
+    advancedInvalidation: bodiesOnly
+

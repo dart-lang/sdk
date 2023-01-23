@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "core_patch.dart";
+part of "core_patch.dart";
 
 @patch
 class Error {
@@ -59,10 +59,10 @@ class _AssertionError extends Error implements AssertionError {
       return condition;
     }
     if (condition is _Closure) {
-      return (condition as dynamic)();
+      return (condition as dynamic Function())();
     }
     if (condition is Function) {
-      condition = condition();
+      condition = (condition as dynamic Function())();
     }
     return condition;
   }
@@ -157,6 +157,15 @@ class _InternalError {
 class UnsupportedError {
   static _throwNew(String msg) {
     throw new UnsupportedError(msg);
+  }
+}
+
+@patch
+@pragma("vm:entry-point")
+class StateError {
+  @pragma("vm:entry-point")
+  static _throwNew(String msg) {
+    throw new StateError(msg);
   }
 }
 
@@ -507,4 +516,34 @@ class _DuplicatedFieldInitializerError extends Error {
   _DuplicatedFieldInitializerError(this._name);
 
   toString() => "Error: field '$_name' is already initialized.";
+}
+
+// Implementations needed to implement the `_stackTrace` member added
+// in the @patch class of [Error].
+
+@patch
+class OutOfMemoryError {
+  StackTrace? get _stackTrace =>
+      throw UnsupportedError('OutOfMemoryError._stackTrace');
+  void set _stackTrace(StackTrace? _) {
+    throw UnsupportedError('OutOfMemoryError._stackTrace');
+  }
+}
+
+@patch
+class StackOverflowError {
+  StackTrace? get _stackTrace =>
+      throw UnsupportedError('StackOverflowError._stackTrace');
+  void set _stackTrace(StackTrace? _) {
+    throw UnsupportedError('StackOverflowError._stackTrace');
+  }
+}
+
+@patch
+class IntegerDivisionByZeroException {
+  StackTrace? get _stackTrace =>
+      throw UnsupportedError('IntegerDivisionByZeroException._stackTrace');
+  void set _stackTrace(StackTrace? _) {
+    throw UnsupportedError('IntegerDivisionByZeroException._stackTrace');
+  }
 }

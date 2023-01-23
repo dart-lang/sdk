@@ -11,7 +11,7 @@ import 'package:path/path.dart';
 import 'error_code_info.dart';
 import 'generate.dart';
 
-main() async {
+Future<void> main() async {
   await GeneratedContent.checkAll(analyzerPkgPath,
       join(analyzerPkgPath, 'tool', 'messages', 'generate.dart'), allTargets);
 }

@@ -53,7 +53,8 @@ f() {
   foo(1);
 }
 ''', [
-      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 37, 3),
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL,
+          39, 1),
     ]);
     assertTypeArgumentTypes(
       findNode.methodInvocation('foo('),

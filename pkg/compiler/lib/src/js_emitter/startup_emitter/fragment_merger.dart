@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'dart:collection';
 import '../../common/elements.dart' show ElementEnvironment;
 import '../../deferred_load/output_unit.dart'
-    show ImportDescription, OutputUnit, OutputUnitData, deferredPartFileName;
+    show OutputUnit, OutputUnitData, deferredPartFileName;
 import '../../elements/entities.dart';
 import '../../js/js.dart' as js;
 import '../../options.dart';
@@ -103,7 +101,7 @@ import '../model.dart';
 /// interleaving.
 ///
 /// Instead, when this happens we emit {a} and {c} into separate
-/// [CodeFragments], with separate top level initalization functions that are
+/// [CodeFragments], with separate top level initialization functions that are
 /// only called when the necessary dependencies for initialization are
 /// present. These [CodeFragments] end up in a single [FinalizedFragment].
 /// While this approach doesn't have the performance benefits of
@@ -167,8 +165,9 @@ class PreFragment {
   final List<EmittedOutputUnit> emittedOutputUnits = [];
   final Set<PreFragment> successors = {};
   final Set<PreFragment> predecessors = {};
-  FinalizedFragment finalizedFragment;
+  late final FinalizedFragment finalizedFragment;
   int size = 0;
+
   // TODO(joshualitt): interleave dynamically when it makes sense.
   bool shouldInterleave = false;
 
@@ -275,7 +274,6 @@ class PreFragment {
       Program program,
       Map<OutputUnit, CodeFragment> outputUnitMap,
       Map<CodeFragment, FinalizedFragment> codeFragmentMap) {
-    assert(finalizedFragment == null);
     List<CodeFragment> codeFragments = shouldInterleave
         ? [interleaveEmittedOutputUnits(program)]
         : bundleEmittedOutputUnits(program);
@@ -390,7 +388,7 @@ class CodeFragment {
   String toString() {
     List<String> outputUnitStrings = [];
     for (var outputUnit in outputUnits) {
-      List<String> importStrings = [];
+      List<String?> importStrings = [];
       for (var import in outputUnit.imports) {
         importStrings.add(import.name);
       }
@@ -462,11 +460,11 @@ class FragmentMerger {
       List<CodeFragment> codeFragments = [];
       for (var outputUnit in outputUnits) {
         if (omittedOutputUnits.contains(outputUnit)) continue;
-        var codeFragment = outputUnitMap[outputUnit];
+        final codeFragment = outputUnitMap[outputUnit]!;
         if (uniqueCodeFragments.add(codeFragment)) {
           codeFragments.add(codeFragment);
         }
-        var finalizedFragment = codeFragmentMap[codeFragment];
+        final finalizedFragment = codeFragmentMap[codeFragment]!;
         if (uniqueFinalizedFragments.add(finalizedFragment)) {
           finalizedFragments.add(finalizedFragment);
         }
@@ -487,16 +485,16 @@ class FragmentMerger {
       for (int j = i + 1; j < allOutputUnits.length; j++) {
         var b = allOutputUnits[j];
         if (b.imports.containsAll(aImports)) {
-          backEdges[b] ??= {};
+          final backEdge = backEdges[b] ??= {};
 
           // Remove transitive edges from nodes that will reach 'b' from the
           // edge we just added.
           // Note: Because we add edges in order (starting from the smallest
           // sets) we always add transitive edges before the last direct edge.
-          backEdges[b].removeWhere((c) => aImports.containsAll(c.imports));
+          backEdge.removeWhere((c) => aImports.containsAll(c.imports));
 
           // Create an edge to denote that 'b' must be loaded before 'a'.
-          backEdges[b].add(a);
+          backEdge.add(a);
         }
       }
     }
@@ -525,9 +523,9 @@ class FragmentMerger {
     // Get a list of direct edges and then attach them to PreFragments.
     var allEdges = createDirectEdges(outputUnits);
     allEdges.forEach((outputUnit, edges) {
-      var predecessor = outputUnitMap[outputUnit];
+      final predecessor = outputUnitMap[outputUnit]!;
       for (var edge in edges) {
-        var successor = outputUnitMap[edge];
+        final successor = outputUnitMap[edge]!;
         predecessor.successors.add(successor);
         successor.predecessors.add(predecessor);
       }
@@ -576,7 +574,7 @@ class FragmentMerger {
   ///   {a}, {b}, {c}+{a, b}, {b, c}+{a, b, c}.
   List<PreFragment> mergeFragments(List<PreFragment> preDeferredFragments) {
     var components = separateComponents(preDeferredFragments);
-    int desiredNumberOfFragment = _options.mergeFragmentsThreshold;
+    final desiredNumberOfFragment = _options.mergeFragmentsThreshold!;
     int idealFragmentSize = (totalSize / desiredNumberOfFragment).ceil();
     List<_Partition> partitions = [];
     void add(PreFragment next) {
@@ -624,7 +622,7 @@ class FragmentMerger {
 
     Map<String, List<OutputUnit>> outputUnitsToLoad = {};
     for (var import in outputUnitData.deferredImportDescriptions.keys) {
-      var loadId = outputUnitData.importDeferName[import];
+      final loadId = outputUnitData.importDeferName[import]!;
       List<OutputUnit> loadList = [];
       for (var outputUnit in sortedOutputUnits) {
         assert(!outputUnit.isMainOutput);
@@ -659,9 +657,8 @@ class FragmentMerger {
     outputUnitData.deferredImportDescriptions.keys
         .forEach((ImportEntity import) {
       var importDeferName = outputUnitData.importDeferName[import];
-      List<FinalizedFragment> fragments = fragmentsToLoad[importDeferName];
-      ImportDescription description =
-          outputUnitData.deferredImportDescriptions[import];
+      final fragments = fragmentsToLoad[importDeferName]!;
+      final description = outputUnitData.deferredImportDescriptions[import]!;
       String getName(LibraryEntity library) {
         var name = _elementEnvironment.getLibraryName(library);
         return name == '' ? '<unnamed>' : name;
@@ -675,7 +672,7 @@ class FragmentMerger {
           .map((fragment) =>
               deferredPartFileName(_options, fragment.canonicalOutputUnit.name))
           .toList();
-      libraryMap["imports"][importDeferName] = partFileNames;
+      (libraryMap["imports"] as Map)[importDeferName] = partFileNames;
     });
     return mapping;
   }

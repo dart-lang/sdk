@@ -73,11 +73,11 @@ static method main() → dynamic async /* futureValueType= dynamic */ {
   core::Iterable<core::int> fi = await self::iterablefun();
   col::LinkedHashSet<core::int> flhs = await self::lhsfun();
   col::LinkedHashMap<core::int, core::bool> flhm = await self::lhmfun();
-  core::Map<core::int, core::bool> fm2 = await self::mapfun2();
-  core::Set<core::int> fs2 = await self::setfun2();
-  core::Iterable<core::int> fi2 = await self::iterablefun2();
-  col::LinkedHashSet<core::int> flhs2 = await self::lhsfun2();
-  col::LinkedHashMap<core::int, core::bool> flhm2 = await self::lhmfun2();
+  core::Map<core::int, core::bool> fm2 = await self::mapfun2() /* runtimeCheckType= asy::Future<core::Map<core::int, core::bool>> */ ;
+  core::Set<core::int> fs2 = await self::setfun2() /* runtimeCheckType= asy::Future<core::Set<core::int>> */ ;
+  core::Iterable<core::int> fi2 = await self::iterablefun2() /* runtimeCheckType= asy::Future<core::Iterable<core::int>> */ ;
+  col::LinkedHashSet<core::int> flhs2 = await self::lhsfun2() /* runtimeCheckType= asy::Future<col::LinkedHashSet<core::int>> */ ;
+  col::LinkedHashMap<core::int, core::bool> flhm2 = await self::lhmfun2() /* runtimeCheckType= asy::Future<col::LinkedHashMap<core::int, core::bool>> */ ;
 }
 static method mapfun() → asy::Future<core::Map<core::int, core::bool>> async /* futureValueType= core::Map<core::int, core::bool> */ 
   return <core::int, core::bool>{};

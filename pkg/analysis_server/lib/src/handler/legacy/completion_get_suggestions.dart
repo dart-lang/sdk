@@ -41,7 +41,7 @@ class CompletionGetSuggestionsHandler extends CompletionGetSuggestions2Handler {
     }
 
     var performance = OperationPerformanceImpl('<root>');
-    performance.runAsync(
+    await performance.runAsync(
       'request',
       (performance) async {
         if (file.endsWith('.yaml')) {

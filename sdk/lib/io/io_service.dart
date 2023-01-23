@@ -37,18 +37,19 @@ class _IOService {
   static const int fileIdentical = 28;
   static const int fileStat = 29;
   static const int fileLock = 30;
-  static const int socketLookup = 31;
-  static const int socketListInterfaces = 32;
-  static const int socketReverseLookup = 33;
-  static const int directoryCreate = 34;
-  static const int directoryDelete = 35;
-  static const int directoryExists = 36;
-  static const int directoryCreateTemp = 37;
-  static const int directoryListStart = 38;
-  static const int directoryListNext = 39;
-  static const int directoryListStop = 40;
-  static const int directoryRename = 41;
-  static const int sslProcessFilter = 42;
+  static const int fileCreatePipe = 31;
+  static const int socketLookup = 32;
+  static const int socketListInterfaces = 33;
+  static const int socketReverseLookup = 34;
+  static const int directoryCreate = 35;
+  static const int directoryDelete = 36;
+  static const int directoryExists = 37;
+  static const int directoryCreateTemp = 38;
+  static const int directoryListStart = 39;
+  static const int directoryListNext = 40;
+  static const int directoryListStop = 41;
+  static const int directoryRename = 42;
+  static const int sslProcessFilter = 43;
 
-  external static Future _dispatch(int request, List data);
+  external static Future<Object?> _dispatch(int request, List data);
 }

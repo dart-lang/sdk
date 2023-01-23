@@ -1,0 +1,19 @@
+dynamic get get => throw "hello";
+dynamic get get { throw "hello"; }
+dynamic get get async => throw "hello";
+dynamic get get async { throw "hello"; }
+dynamic get get async* => throw "hello";
+dynamic get get async* { throw "hello"; }
+dynamic get get sync* => throw "hello";
+dynamic get get sync* { throw "hello"; }
+
+
+dynamic[KeywordToken] get[KeywordToken] get[KeywordToken] =>[SimpleToken] throw[KeywordToken] "hello"[StringToken];[SimpleToken]
+dynamic[KeywordToken] get[KeywordToken] get[KeywordToken] {[BeginToken] throw[KeywordToken] "hello"[StringToken];[SimpleToken] }[SimpleToken]
+dynamic[KeywordToken] get[KeywordToken] get[KeywordToken] async[KeywordToken] =>[SimpleToken] throw[KeywordToken] "hello"[StringToken];[SimpleToken]
+dynamic[KeywordToken] get[KeywordToken] get[KeywordToken] async[KeywordToken] {[BeginToken] throw[KeywordToken] "hello"[StringToken];[SimpleToken] }[SimpleToken]
+dynamic[KeywordToken] get[KeywordToken] get[KeywordToken] async[KeywordToken]*[SimpleToken] =>[SimpleToken] throw[KeywordToken] "hello"[StringToken];[SimpleToken]
+dynamic[KeywordToken] get[KeywordToken] get[KeywordToken] async[KeywordToken]*[SimpleToken] {[BeginToken] throw[KeywordToken] "hello"[StringToken];[SimpleToken] }[SimpleToken]
+dynamic[KeywordToken] get[KeywordToken] get[KeywordToken] sync[KeywordToken]*[SimpleToken] =>[SimpleToken] throw[KeywordToken] "hello"[StringToken];[SimpleToken]
+dynamic[KeywordToken] get[KeywordToken] get[KeywordToken] sync[KeywordToken]*[SimpleToken] {[BeginToken] throw[KeywordToken] "hello"[StringToken];[SimpleToken] }[SimpleToken]
+[SimpleToken]

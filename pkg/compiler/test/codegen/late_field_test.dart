@@ -42,7 +42,7 @@ int test(Foo foo) {
 }
 """;
 
-Future check(String test, {String entry: 'test'}) {
+Future check(String test, {String entry = 'test'}) {
   return compile(test,
       entry: entry,
       methodName: 'test',

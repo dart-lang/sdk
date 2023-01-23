@@ -354,9 +354,9 @@ int? f(List<int >  values)
 
   void test_nullAwarenessUnnecessaryInStrongMode() async {
     await buildInfoForSingleTestFile('''
-int f(String s) => s?.length;
+int f(String/*!*/ s) => s?.length;
 ''', migratedContent: '''
-int  f(String  s) => s?.length;
+int  f(String/*!*/ s) => s?.length;
 ''', warnOnWeakCode: true);
     var output = renderUnits()[0];
     expect(_stripDataAttributes(output.regions!),

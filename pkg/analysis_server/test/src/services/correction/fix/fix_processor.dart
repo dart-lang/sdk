@@ -11,7 +11,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
-import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
@@ -162,9 +161,7 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
     var fileEdits = fix.change.edits;
     expect(fileEdits, hasLength(1));
 
-    if (useLineEndingsForPlatform) {
-      expected = normalizeNewlinesForPlatform(expected);
-    }
+    expected = normalizeSource(expected);
 
     var fileContent = testCode;
     resultCode = SourceEdit.applySequence(fileContent, fileEdits[0].edits);
@@ -256,9 +253,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
       int? expectedNumberOfFixesForKind,
       String? matchFixMessage,
       bool allowFixAllFixes = false}) async {
-    if (useLineEndingsForPlatform) {
-      expected = normalizeNewlinesForPlatform(expected);
-    }
+    expected = normalizeSource(expected);
     var error = await _findErrorToFix(
       errorFilter: errorFilter,
       length: length,
@@ -285,9 +280,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
 
   Future<void> assertHasFixAllFix(ErrorCode errorCode, String expected,
       {String? target}) async {
-    if (useLineEndingsForPlatform) {
-      expected = normalizeNewlinesForPlatform(expected);
-    }
+    expected = normalizeSource(expected);
     var error = await _findErrorToFixOfType(errorCode);
     var fix = await _assertHasFixAllFix(error);
     change = fix.change;

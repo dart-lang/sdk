@@ -18,7 +18,7 @@ class Class2 extends core::Object {
   method toString() → core::String
     return "Class2(${this.{self::Class2::field}{core::int}})";
 }
-extension _extension#0 on self::Class1 {
+extension /* unnamed */ _extension#0 on self::Class1 {
   method method = self::_extension#0|method;
   tearoff method = self::_extension#0|get#method;
   method genericMethod = self::_extension#0|genericMethod;
@@ -26,7 +26,7 @@ extension _extension#0 on self::Class1 {
   get property = self::_extension#0|get#property;
   set property = self::_extension#0|set#property;
 }
-extension _extension#1 on self::Class2 {
+extension /* unnamed */ _extension#1 on self::Class2 {
   method method = self::_extension#1|method;
   tearoff method = self::_extension#1|get#method;
   method genericMethod = self::_extension#1|genericMethod;

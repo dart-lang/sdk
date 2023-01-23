@@ -114,7 +114,7 @@ static bool DecodeLoadX(uword end,
                         Register* base,
                         intptr_t* offset,
                         intptr_t* length) {
-  Instr instr(*reinterpret_cast<uint32_t*>(end - 4));
+  Instr instr(LoadUnaligned(reinterpret_cast<uint32_t*>(end - 4)));
 #if XLEN == 32
   if (instr.opcode() == LOAD && instr.funct3() == LW) {
 #elif XLEN == 64
@@ -151,7 +151,7 @@ static bool DecodeLUI(uword end,
                       Register* dst,
                       intptr_t* imm,
                       intptr_t* length) {
-  Instr instr(*reinterpret_cast<uint32_t*>(end - 4));
+  Instr instr(LoadUnaligned(reinterpret_cast<uint32_t*>(end - 4)));
   if (instr.opcode() == LUI) {
     *dst = instr.rd();
     *imm = instr.utype_imm();
@@ -237,7 +237,7 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
       }
     }
   } else {
-    Instr instr(*reinterpret_cast<uint32_t*>(pc));
+    Instr instr(LoadUnaligned(reinterpret_cast<uint32_t*>(pc)));
 #if XLEN == 32
     if (instr.opcode() == LOAD && instr.funct3() == LW) {
 #elif XLEN == 64
@@ -379,9 +379,9 @@ bool ReturnPattern::IsValid() const {
 }
 
 bool PcRelativeCallPattern::IsValid() const {
-  Instr aupic(*reinterpret_cast<uint32_t*>(pc_));
+  Instr aupic(LoadUnaligned(reinterpret_cast<uint32_t*>(pc_)));
   if (aupic.opcode() != AUIPC) return false;
-  Instr jalr(*reinterpret_cast<uint32_t*>(pc_ + 4));
+  Instr jalr(LoadUnaligned(reinterpret_cast<uint32_t*>(pc_ + 4)));
   if (jalr.opcode() != JALR) return false;
   if (aupic.rd() != jalr.rs1()) return false;
   if (jalr.rd() != RA) return false;
@@ -389,9 +389,9 @@ bool PcRelativeCallPattern::IsValid() const {
 }
 
 bool PcRelativeTailCallPattern::IsValid() const {
-  Instr aupic(*reinterpret_cast<uint32_t*>(pc_));
+  Instr aupic(LoadUnaligned(reinterpret_cast<uint32_t*>(pc_)));
   if (aupic.opcode() != AUIPC) return false;
-  Instr jr(*reinterpret_cast<uint32_t*>(pc_ + 4));
+  Instr jr(LoadUnaligned(reinterpret_cast<uint32_t*>(pc_ + 4)));
   if (jr.opcode() != JALR) return false;
   if (aupic.rd() != jr.rs1()) return false;
   if (jr.rd() != ZR) return false;
@@ -438,9 +438,9 @@ intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
     // pc-relative call
     // xxxxxxxx aupic ra, hi
     // xxxxxxxx jalr ra, lo
-    Instr jalr(*reinterpret_cast<uint32_t*>(pc_ - 4));
+    Instr jalr(LoadUnaligned(reinterpret_cast<uint32_t*>(pc_ - 4)));
     ASSERT(jalr.opcode() == JALR);
-    Instr auipc(*reinterpret_cast<uint32_t*>(pc_ - 8));
+    Instr auipc(LoadUnaligned(reinterpret_cast<uint32_t*>(pc_ - 8)));
     ASSERT(auipc.opcode() == AUIPC);
 
     Register reg;

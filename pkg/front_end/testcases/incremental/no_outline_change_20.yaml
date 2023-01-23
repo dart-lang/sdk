@@ -8,7 +8,6 @@
 type: newworld
 worlds:
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
         class A1 {}
@@ -24,10 +23,10 @@ worlds:
           }
           static String get getter2 => "42!";
           static void set setter2(String s) {}
+          static int field = 42;
         }
     expectedLibraryCount: 1
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
@@ -47,6 +46,7 @@ worlds:
           }
           static String get getter2 => "42!";
           static void set setter2(String s) {}
+          static int field = 42;
         }
     expectedLibraryCount: 1
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly

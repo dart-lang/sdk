@@ -4,7 +4,9 @@
 
 // @dart = 2.7
 
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/elements/names.dart';
+
+import 'package:compiler/src/util/memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/elements/entities.dart'
@@ -61,14 +63,14 @@ main() {
     Expect.isNotNull(library);
     ClassEntity clss = environment.lookupClass(library, 'B1');
     Expect.isNotNull(clss);
-    var member = environment.lookupClassMember(clss, 'foo');
+    var member = environment.lookupClassMember(clss, PublicName('foo'));
     Expect.isNotNull(member);
   });
 }
 
 /// Generate a component for a modular complation unit.
 Future<List<int>> compileUnit(List<String> inputs, Map<String, dynamic> sources,
-    {List<String> deps: const []}) async {
+    {List<String> deps = const []}) async {
   var fs = MemoryFileSystem(_defaultDir);
   sources.forEach((name, data) {
     var entity = fs.entityForUri(toTestUri(name));

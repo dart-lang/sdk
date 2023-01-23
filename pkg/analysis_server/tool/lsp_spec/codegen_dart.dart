@@ -8,6 +8,7 @@ import 'package:analyzer_utilities/tools.dart';
 import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
 
+import 'generate_all.dart';
 import 'meta_model.dart';
 
 final formatter = DartFormatter();
@@ -235,6 +236,11 @@ bool _isSpecType(TypeBase type) {
       type != TypeReference.LspAny &&
       (_interfaces.containsKey(type.name) ||
           (_namespaces.containsKey(type.name)));
+}
+
+bool _isUriType(TypeBase type) {
+  type = resolveTypeAlias(type);
+  return type is TypeReference && type.dartType == 'Uri';
 }
 
 /// Maps reserved words and identifiers that cause issues in field names.
@@ -684,6 +690,17 @@ void _writeFromJsonCode(
 
   if (_isSimpleType(type)) {
     buffer.write('$valueCode$cast');
+  } else if (_isUriType(type)) {
+    if (allowsNull) {
+      buffer.write('$valueCode != null ? ');
+    }
+    buffer
+      ..write('Uri.parse(')
+      ..write(requiresCast ? '$valueCode as String' : valueCode)
+      ..write(')');
+    if (allowsNull) {
+      buffer.write(': null');
+    }
   } else if (_isSpecType(type)) {
     // Our own types have fromJson() constructors we can call.
     if (allowsNull) {
@@ -823,22 +840,38 @@ void _writeFromJsonConstructor(
       ..outdent()
       ..writeIndentedln('}');
   }
-  for (final field in allFields) {
-    // Add a local variable to allow type promotion (and avoid multiple lookups).
-    final localName = _makeValidIdentifier(field.name);
-    final localNameJson = '${localName}Json';
-    buffer.writeIndentedln("final $localNameJson = json['${field.name}'];");
-    buffer.writeIndented('final $localName = ');
-    _writeFromJsonCode(buffer, field.type, localNameJson,
-        allowsNull: field.allowsNull || field.allowsUndefined);
-    buffer.writeln(';');
+  if (interface.abstract) {
+    buffer.writeIndentedln(
+      "throw ArgumentError("
+      "'Supplied map is not valid for any subclass of ${interface.name}'"
+      ");",
+    );
+  } else {
+    for (final field in allFields) {
+      // Add a local variable to allow type promotion (and avoid multiple lookups).
+      final localName = _makeValidIdentifier(field.name);
+      final localNameJson = '${localName}Json';
+      buffer.writeIndentedln("final $localNameJson = json['${field.name}'];");
+      buffer.writeIndented('final $localName = ');
+      _writeFromJsonCode(buffer, field.type, localNameJson,
+          allowsNull: field.allowsNull || field.allowsUndefined);
+      buffer.writeln(';');
+    }
+    buffer
+      ..writeIndented('return ${interface.name}(')
+      ..write(allFields.map((field) => '${field.name}: ${field.name}, ').join())
+      ..writeln(');');
   }
   buffer
-    ..writeIndented('return ${interface.name}(')
-    ..write(allFields.map((field) => '${field.name}: ${field.name}, ').join())
-    ..writeln(');')
     ..outdent()
     ..writeIndented('}');
+}
+
+void _writeGetter(IndentableStringBuffer buffer, AbstractGetter getter) {
+  _writeDocCommentsAndAnnotations(buffer, getter);
+  buffer
+    ..writeIndented(getter.type.dartTypeWithTypeArgs)
+    ..writeln(' get ${getter.name};');
 }
 
 void _writeHashCode(IndentableStringBuffer buffer, Interface interface) {
@@ -885,7 +918,9 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
   final isPrivate = interface.name.startsWith('_');
   _writeDocCommentsAndAnnotations(buffer, interface);
 
-  buffer.writeIndented('class ${interface.name} ');
+  buffer
+    ..writeIndented(interface.abstract ? 'abstract ' : '')
+    ..write('class ${interface.name} ');
   final allBaseTypes =
       interface.baseTypes.map((t) => t.dartTypeWithTypeArgs).toList();
   allBaseTypes.add('ToJsonable');
@@ -903,7 +938,10 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
   // Handle Consts and Fields separately, since we need to include superclass
   // Fields.
   final consts = interface.members.whereType<Constant>().toList();
+  final getters = interface.members.whereType<AbstractGetter>().toList();
   final fields = _getAllFields(interface);
+  _writeMembers(buffer, interface, getters);
+  buffer.writeln();
   _writeMembers(buffer, interface, consts);
   buffer.writeln();
   _writeMembers(buffer, interface, fields);
@@ -955,6 +993,8 @@ void _writeMember(
     _writeField(buffer, interface, member);
   } else if (member is Constant) {
     _writeConst(buffer, member);
+  } else if (member is AbstractGetter) {
+    _writeGetter(buffer, member);
   } else {
     throw 'Unknown type';
   }
@@ -973,6 +1013,15 @@ void _writeToJsonCode(IndentableStringBuffer buffer, TypeBase type,
     buffer.write('$valueCode$nullOp.map((item) => ');
     _writeToJsonCode(buffer, type.elementType, 'item', '');
     buffer.write(').toList()');
+  } else if (type is MapType &&
+      (_isUriType(type.indexType) || _isUriType(type.valueType))) {
+    buffer.write('$valueCode$nullOp.map((key, value) => MapEntry(');
+    _writeToJsonCode(buffer, type.indexType, 'key', '');
+    buffer.write(', ');
+    _writeToJsonCode(buffer, type.valueType, 'value', '');
+    buffer.write('))');
+  } else if (_isUriType(type)) {
+    buffer.write('$valueCode$nullOp.toString()');
   } else {
     buffer.write(valueCode);
   }
@@ -1076,17 +1125,22 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer,
 
   final operator = negation ? '!' : '';
   final and = negation ? '||' : '&&';
+  final or = negation ? '&&' : '||';
   final every = negation ? 'any' : 'every';
+  final equals = negation ? '!=' : '==';
+  final notEqual = negation ? '==' : '!=';
+  final true_ = negation ? 'false' : 'true';
 
   if (isNullableAnyType(type)) {
-    buffer.write(negation ? 'false' : 'true');
+    buffer.write(true_);
   } else if (isObjectType(type)) {
-    final notEqual = negation ? '==' : '!=';
     buffer.write('$valueCode $notEqual null');
   } else if (_isSimpleType(type)) {
     buffer.write('$valueCode is$operator $fullDartType');
+  } else if (_isUriType(type)) {
+    buffer.write('($valueCode is$operator String $and '
+        'Uri.tryParse($valueCode) $notEqual null)');
   } else if (type is LiteralType) {
-    final equals = negation ? '!=' : '==';
     buffer.write('$valueCode $equals literal');
   } else if (type is LiteralUnionType) {
     buffer.write('${operator}literals.contains(value)');
@@ -1132,7 +1186,7 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer,
     if (parenForCollection) {
       buffer.write('(');
     }
-    var or = negation ? '&&' : '||';
+
     // To type check a union, we just recursively check against each of its types.
     for (var i = 0; i < type.types.length; i++) {
       if (i != 0) {

@@ -234,10 +234,10 @@ class ConstructorFieldsVerifier {
           _fieldMap[fieldElement] = _InitState.initInFieldFormal;
         } else if (state == _InitState.initInDeclaration) {
           if (fieldElement.isFinal || fieldElement.isConst) {
-            _errorReporter.reportErrorForNode(
+            _errorReporter.reportErrorForToken(
               CompileTimeErrorCode
                   .FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
-              parameter.identifier,
+              parameter.name,
               [fieldElement.displayName],
             );
           }

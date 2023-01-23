@@ -19,7 +19,7 @@ import 'package:analyzer/src/summary2/type_builder.dart';
 
 /// Return `true` if [type] can be used as a class.
 bool _isInterfaceTypeClass(InterfaceType type) {
-  if (type.element.isMixin) {
+  if (type.element is MixinElement) {
     return false;
   }
   return _isInterfaceTypeInterface(type);
@@ -27,7 +27,7 @@ bool _isInterfaceTypeClass(InterfaceType type) {
 
 /// Return `true` if [type] can be used as an interface or a mixin.
 bool _isInterfaceTypeInterface(InterfaceType type) {
-  if (type.element.isEnum) {
+  if (type.element is EnumElement) {
     return false;
   }
   if (type.isDartCoreFunction || type.isDartCoreNull) {
@@ -194,7 +194,7 @@ class TypesBuilder {
       if (returnType == null) {
         if (node.isSetter) {
           returnType = _voidType;
-        } else if (node.isOperator && node.name.name == '[]=') {
+        } else if (node.isOperator && node.name.lexeme == '[]=') {
           returnType = _voidType;
         } else {
           returnType = _dynamicType;
@@ -362,7 +362,7 @@ class TypesBuilder {
     );
   }
 
-  static InterfaceType _objectType(ClassElementImpl element) {
+  static InterfaceType _objectType(AbstractClassElementImpl element) {
     return element.library.typeProvider.objectType;
   }
 }
@@ -393,7 +393,7 @@ class _MixinInference {
   }
 
   InterfaceType? _findInterfaceTypeForElement(
-    ClassElement element,
+    InterfaceElement element,
     List<InterfaceType> interfaceTypes,
   ) {
     for (var interfaceType in interfaceTypes) {
@@ -434,7 +434,7 @@ class _MixinInference {
     List<InterfaceType>? supertypeConstraints;
     InterfaceType Function(List<DartType> typeArguments)? instantiate;
     final mixinElement = mixinNode.name.staticElement;
-    if (mixinElement is ClassElement) {
+    if (mixinElement is InterfaceElement) {
       typeParameters = mixinElement.typeParameters;
       if (typeParameters.isNotEmpty) {
         supertypeConstraints = typeSystem
@@ -585,8 +585,11 @@ class _MixinsInference {
   /// hierarchies for all classes being linked, indiscriminately.
   void _resetHierarchies(List<AstNode> declarations) {
     for (var declaration in declarations) {
-      if (declaration is ClassOrMixinDeclaration) {
+      if (declaration is ClassDeclaration) {
         var element = declaration.declaredElement as ClassElementImpl;
+        element.library.session.classHierarchy.remove(element);
+      } else if (declaration is MixinDeclaration) {
+        var element = declaration.declaredElement as MixinElementImpl;
         element.library.session.classHierarchy.remove(element);
       }
     }

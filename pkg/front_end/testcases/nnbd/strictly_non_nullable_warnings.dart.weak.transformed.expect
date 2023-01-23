@@ -144,13 +144,13 @@ static method warning(core::String s, core::List<core::String> l, core::Map<core
       #t5.{core::List::addAll}{Invariant}(#t6{core::Iterable<core::String>}){(core::Iterable<core::String>) → void};
   } =>#t5;
   core::Set<core::String> a = block {
-    final core::Set<core::String> #t7 = new col::_CompactLinkedHashSet::•<core::String>();
+    final core::Set<core::String> #t7 = new col::_Set::•<core::String>();
     final core::Iterable<core::String>? #t8 = l;
     if(!(#t8 == null))
       #t7.{core::Set::addAll}{Invariant}(#t8{core::Iterable<core::String>}){(core::Iterable<core::String>) → void};
   } =>#t7;
   block {
-    final core::Set<core::String> #t9 = new col::_CompactLinkedHashSet::•<core::String>();
+    final core::Set<core::String> #t9 = new col::_Set::•<core::String>();
     final core::Iterable<core::String>? #t10 = l;
     if(!(#t10 == null))
       #t9.{core::Set::addAll}{Invariant}(#t10{core::Iterable<core::String>}){(core::Iterable<core::String>) → void};

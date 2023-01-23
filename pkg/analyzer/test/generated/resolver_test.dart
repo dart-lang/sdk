@@ -4,10 +4,7 @@
 
 import 'dart:collection';
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
@@ -45,6 +42,23 @@ class A {
     ]);
   }
 
+  test_breakLabelOnSwitchMember_language218() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.18
+class A {
+  void m(int i) {
+    switch (i) {
+      l: case 0:
+        break;
+      case 1:
+        break l;
+    }
+  }
+}''', [
+      error(CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, 121, 1),
+    ]);
+  }
+
   test_continueLabelOnSwitch() async {
     await assertErrorsInCode(r'''
 class A {
@@ -56,6 +70,21 @@ class A {
   }
 }''', [
       error(CompileTimeErrorCode.CONTINUE_LABEL_ON_SWITCH, 79, 1),
+    ]);
+  }
+
+  test_continueLabelOnSwitch_language218() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.18
+class A {
+  void m(int i) {
+    l: switch (i) {
+      case 0:
+        continue l;
+    }
+  }
+}''', [
+      error(CompileTimeErrorCode.CONTINUE_LABEL_ON_SWITCH, 95, 1),
     ]);
   }
 
@@ -104,175 +133,6 @@ class PrefixedNamespaceTest extends PubPackageResolutionTest {
       map[element.name!] = element;
     }
     return map;
-  }
-}
-
-/// Instances of the class `StaticTypeVerifier` verify that all of the nodes in
-/// an AST structure that should have a static type associated with them do have
-/// a static type.
-class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
-  /// A list containing all of the AST Expression nodes that were not resolved.
-  final List<Expression> _unresolvedExpressions = <Expression>[];
-
-  /// The TypeAnnotation nodes that were not resolved.
-  final List<TypeAnnotation> _unresolvedTypes = <TypeAnnotation>[];
-
-  /// Counter for the number of Expression nodes visited that are resolved.
-  int _resolvedExpressionCount = 0;
-
-  /// Counter for the number of TypeName nodes visited that are resolved.
-  int _resolvedTypeCount = 0;
-
-  /// Assert that all of the visited nodes have a static type associated with
-  /// them.
-  void assertResolved() {
-    if (_unresolvedExpressions.isNotEmpty || _unresolvedTypes.isNotEmpty) {
-      StringBuffer buffer = StringBuffer();
-      int unresolvedTypeCount = _unresolvedTypes.length;
-      if (unresolvedTypeCount > 0) {
-        buffer.write("Failed to resolve ");
-        buffer.write(unresolvedTypeCount);
-        buffer.write(" of ");
-        buffer.write(_resolvedTypeCount + unresolvedTypeCount);
-        buffer.writeln(" type names:");
-        for (TypeAnnotation identifier in _unresolvedTypes) {
-          buffer.write("  ");
-          buffer.write(identifier.toString());
-          buffer.write(" (");
-          buffer.write(_getFileName(identifier));
-          buffer.write(" : ");
-          buffer.write(identifier.offset);
-          buffer.writeln(")");
-        }
-      }
-      int unresolvedExpressionCount = _unresolvedExpressions.length;
-      if (unresolvedExpressionCount > 0) {
-        buffer.writeln("Failed to resolve ");
-        buffer.write(unresolvedExpressionCount);
-        buffer.write(" of ");
-        buffer.write(_resolvedExpressionCount + unresolvedExpressionCount);
-        buffer.writeln(" expressions:");
-        for (Expression expression in _unresolvedExpressions) {
-          buffer.write("  ");
-          buffer.write(expression.toString());
-          buffer.write(" (");
-          buffer.write(_getFileName(expression));
-          buffer.write(" : ");
-          buffer.write(expression.offset);
-          buffer.writeln(")");
-        }
-      }
-      fail(buffer.toString());
-    }
-  }
-
-  @override
-  void visitBreakStatement(BreakStatement node) {}
-
-  @override
-  void visitCommentReference(CommentReference node) {}
-
-  @override
-  void visitContinueStatement(ContinueStatement node) {}
-
-  @override
-  void visitExportDirective(ExportDirective node) {}
-
-  @override
-  void visitExpression(Expression node) {
-    node.visitChildren(this);
-    var staticType = node.staticType;
-    if (staticType == null) {
-      _unresolvedExpressions.add(node);
-    } else {
-      _resolvedExpressionCount++;
-    }
-  }
-
-  @override
-  void visitImportDirective(ImportDirective node) {}
-
-  @override
-  void visitLabel(Label node) {}
-
-  @override
-  void visitLibraryIdentifier(LibraryIdentifier node) {}
-
-  @override
-  void visitNamedType(NamedType node) {
-    // Note: do not visit children from this node, the child SimpleIdentifier in
-    // TypeName (i.e. "String") does not have a static type defined.
-    // TODO(brianwilkerson) Not visiting the children means that we won't catch
-    // type arguments that were not resolved.
-    if (node.type == null) {
-      _unresolvedTypes.add(node);
-    } else {
-      _resolvedTypeCount++;
-    }
-  }
-
-  @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    // In cases where we have a prefixed identifier where the prefix is dynamic,
-    // we don't want to assert that the node will have a type.
-    if (node.staticType == null && node.prefix.typeOrThrow.isDynamic) {
-      return;
-    }
-    super.visitPrefixedIdentifier(node);
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    // In cases where identifiers are being used for something other than an
-    // expressions, then they can be ignored.
-    var parent = node.parent;
-    if (parent is MethodInvocation && identical(node, parent.methodName)) {
-      return;
-    } else if (parent is RedirectingConstructorInvocation &&
-        identical(node, parent.constructorName)) {
-      return;
-    } else if (parent is SuperConstructorInvocation &&
-        identical(node, parent.constructorName)) {
-      return;
-    } else if (parent is ConstructorName && identical(node, parent.name)) {
-      return;
-    } else if (parent is ConstructorFieldInitializer &&
-        identical(node, parent.fieldName)) {
-      return;
-    } else if (node.staticElement is PrefixElement) {
-      // Prefixes don't have a type.
-      return;
-    }
-    super.visitSimpleIdentifier(node);
-  }
-
-  @override
-  void visitTypeAnnotation(TypeAnnotation node) {
-    if (node.type == null) {
-      _unresolvedTypes.add(node);
-    } else {
-      _resolvedTypeCount++;
-    }
-    super.visitTypeAnnotation(node);
-  }
-
-  String _getFileName(AstNode? node) {
-    // TODO (jwren) there are two copies of this method, one here and one in
-    // ResolutionVerifier, they should be resolved into a single method
-    if (node != null) {
-      AstNode root = node.root;
-      if (root is CompilationUnit) {
-        CompilationUnit rootCU = root;
-        if (rootCU.declaredElement != null) {
-          return rootCU.declaredElement!.source.fullName;
-        } else {
-          return "<unknown file- CompilationUnit.getElement() returned null>";
-        }
-      } else {
-        return "<unknown file- CompilationUnit.getRoot() is not a CompilationUnit>";
-      }
-    }
-    return "<unknown file- ASTNode is null>";
   }
 }
 
@@ -490,7 +350,6 @@ main() {
 }''';
     await resolveTestCode(code);
     assertType(findElement.localVar('v').type, 'int');
-    assertTypeNull(findNode.simple('v; // declare'));
     assertType(findNode.simple('v; // return'), 'int');
   }
 
@@ -501,7 +360,6 @@ f() {
   return v;
 }''');
     assertType(findElement.localVar('v').type, 'int');
-    assertTypeNull(findNode.simple('v = 0;'));
     assertType(findNode.simple('v;'), 'int');
   }
 
@@ -512,7 +370,6 @@ f() {
   return v;
 }''');
     assertType(findElement.localVar('v').type, 'List<int>');
-    assertTypeNull(findNode.simple('v ='));
     assertType(findNode.simple('v;'), 'List<int>');
   }
 
@@ -523,7 +380,6 @@ main() {
   return v;
 }''');
     assertType(findElement.localVar('v').type, 'int');
-    assertTypeNull(findNode.simple('v ='));
     assertType(findNode.simple('v;'), 'int');
   }
 
@@ -632,7 +488,6 @@ main() {
   toString(); // marker
 }''');
     assertTypeDynamic(findElement.localVar('toString').type);
-    assertTypeNull(findNode.simple('toString ='));
     assertTypeDynamic(findNode.simple('toString(); // marker'));
   }
 

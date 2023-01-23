@@ -4,6 +4,14 @@
 
 import "dart:typed_data" show Uint8List;
 
+part "class_id.dart";
+part "print_patch.dart";
+part "symbol_patch.dart";
+
+// Compilation to Wasm is always fully null safe.
+@patch
+bool typeAcceptsNull<T>() => null is T;
+
 /// The returned string is a [_OneByteString] with uninitialized content.
 external String allocateOneByteString(int length);
 
@@ -116,27 +124,43 @@ external double intBitsToFloat(int value);
 external int doubleToIntBits(double value);
 external double intBitsToDouble(int value);
 
-// Exported call stubs to enable JS to call Dart closures. Since all closure
-// parameters and returns are boxed (their Wasm type is #Top) the Wasm type of
-// the closure will be the same as with all parameters and returns as dynamic.
-// Thus, the unsafeCast succeeds, and as long as the passed argumnets have the
-// correct types, the argument casts inside the closure will also succeed.
-
-@pragma("wasm:export", "\$call0")
-dynamic _callClosure0(dynamic closure) {
-  return unsafeCast<dynamic Function()>(closure)();
+/// Used to invoke a Dart closure from JS (for microtasks and other callbacks),
+/// printing any exceptions that escape.
+@pragma("wasm:export", "\$invokeCallback")
+void _invokeCallback(void Function() callback) {
+  try {
+    callback();
+  } catch (e, s) {
+    print(e);
+    print(s);
+    rethrow;
+  }
 }
 
-@pragma("wasm:export", "\$call1")
-dynamic _callClosure1(dynamic closure, dynamic arg1) {
-  return unsafeCast<dynamic Function(dynamic)>(closure)(arg1);
-}
-
-@pragma("wasm:export", "\$call2")
-dynamic _callClosure2(dynamic closure, dynamic arg1, dynamic arg2) {
-  return unsafeCast<dynamic Function(dynamic, dynamic)>(closure)(arg1, arg2);
+/// Used to invoke the `main` function from JS, printing any exceptions that
+/// escape.
+@pragma("wasm:export", "\$invokeMain")
+void _invokeMain(Function main) {
+  try {
+    if (main is void Function(List<String>, Null)) {
+      main(const <String>[], null);
+    } else if (main is void Function(List<String>)) {
+      main(const <String>[]);
+    } else if (main is void Function()) {
+      main();
+    } else {
+      throw "Could not call main";
+    }
+  } catch (e, s) {
+    print(e);
+    print(s);
+    rethrow;
+  }
 }
 
 // Schedule a callback from JS via setTimeout.
 @pragma("wasm:import", "dart2wasm.scheduleCallback")
 external void scheduleCallback(double millis, dynamic Function() callback);
+
+@pragma("wasm:import", "dart2wasm.jsonEncode")
+external String jsonEncode(String object);

@@ -211,6 +211,40 @@ class ParsedFunctionType extends ParsedType {
   }
 }
 
+class ParsedRecordType extends ParsedType {
+  final List<ParsedType> positional;
+  final List<ParsedNamedArgument> named;
+  final ParsedNullability parsedNullability;
+
+  ParsedRecordType(this.positional, this.named, this.parsedNullability);
+
+  @override
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write("(");
+    for (int i = 0; i < positional.length; i++) {
+      if (i != 0) sb.write(", ");
+      sb.write(positional[i]);
+    }
+    if (named.isNotEmpty) {
+      if (positional.isNotEmpty) sb.write(", ");
+      sb.write("{");
+      for (int i = 0; i < named.length; i++) {
+        if (i != 0) sb.write(", ");
+        sb.write(named[i]);
+      }
+      sb.write("}");
+    }
+    sb.write(")");
+    return "$sb";
+  }
+
+  @override
+  R accept<R, A>(Visitor<R, A> visitor, A a) {
+    return visitor.visitRecordType(this, a);
+  }
+}
+
 class ParsedVoidType extends ParsedType {
   @override
   String toString() => "void";
@@ -328,7 +362,7 @@ class Token {
 
   Token? next;
 
-  Token(this.charOffset, this.text, {this.isIdentifier: false});
+  Token(this.charOffset, this.text, {this.isIdentifier = false});
 
   bool get isEof => text == null;
 }
@@ -390,7 +424,7 @@ class Parser {
     do {
       ParsedType type;
       if (optional("(") || optional("<")) {
-        type = parseFunctionType();
+        type = parseFunctionOrRecordType();
       } else if (optionalAdvance("void")) {
         type = new ParsedInterfaceType(
             "void", <ParsedType>[], ParsedNullability.nullable);
@@ -432,15 +466,30 @@ class Parser {
     return parseType();
   }
 
-  ParsedFunctionType parseFunctionType() {
+  ParsedType /* ParsedFunctionType|ParsedRecordType */
+      parseFunctionOrRecordType() {
     List<ParsedTypeVariable> typeVariables = parseTypeVariablesOpt();
     ParsedArguments arguments = parseArguments();
-    expect("-");
-    expect(">");
-    ParsedNullability parsedNullability = parseNullability();
-    ParsedType returnType = parseReturnType();
-    return new ParsedFunctionType(
-        typeVariables, returnType, arguments, parsedNullability);
+    if (optional("-")) {
+      // FunctionType.
+      expect("-");
+      expect(">");
+      ParsedNullability parsedNullability = parseNullability();
+      ParsedType returnType = parseReturnType();
+      return new ParsedFunctionType(
+          typeVariables, returnType, arguments, parsedNullability);
+    } else {
+      // RecordType.
+      if (typeVariables.isNotEmpty) {
+        throw "Type variables are detected on a record type.";
+      }
+      if (arguments.positional.isNotEmpty) {
+        throw "Records can't have optional positional fields.";
+      }
+      ParsedNullability parsedNullability = parseNullability();
+      return new ParsedRecordType(
+          arguments.required, arguments.named, parsedNullability);
+    }
   }
 
   String parseName() {
@@ -524,7 +573,7 @@ class Parser {
     }
     ParsedFunctionType? callableType;
     if (optionalAdvance("{")) {
-      callableType = parseFunctionType();
+      callableType = parseFunctionOrRecordType() as ParsedFunctionType?;
       expect("}");
     } else {
       expect(";");
@@ -665,6 +714,8 @@ abstract class Visitor<R, A> {
   R visitTypedef(ParsedTypedef node, A a);
 
   R visitFunctionType(ParsedFunctionType node, A a);
+
+  R visitRecordType(ParsedRecordType node, A a);
 
   R visitVoidType(ParsedVoidType node, A a);
 

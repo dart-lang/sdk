@@ -42,6 +42,10 @@ abstract class ClassHierarchyBase {
   List<DartType>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass);
 
+  /// True if [subtype] inherits from [superclass] though zero or more
+  /// `extends`, `with`, and `implements` relationships.
+  bool isSubtypeOf(Class subtype, Class superclass);
+
   /// Returns the least upper bound of two interface types, as defined by Dart
   /// 1.0.
   ///
@@ -62,6 +66,21 @@ abstract class ClassHierarchyBase {
 }
 
 abstract class ClassHierarchyMembers {
+  /// Returns the instance member that would respond to a dynamic dispatch of
+  /// [name] to an instance of [class_], or `null` if no such member exists.
+  ///
+  /// If [setter] is `false`, the name is dispatched as a getter or call,
+  /// and will return a field, getter, method, or operator (or null).
+  ///
+  /// If [setter] is `true`, the name is dispatched as a setter, roughly
+  /// corresponding to `name=` in the Dart specification, but note that the
+  /// returned member will not have a name ending with `=`.  In this case,
+  /// a non-final field or setter (or null) will be returned.
+  ///
+  /// If the class is abstract, abstract members are ignored and the dispatch
+  /// is resolved if the class was not abstract.
+  Member? getDispatchTarget(Class class_, Name name, {bool setter = false});
+
   /// Returns the possibly abstract interface member of [class_] with the given
   /// [name].
   ///
@@ -71,7 +90,7 @@ abstract class ClassHierarchyMembers {
   ///
   /// If multiple members with that name are inherited and not overridden, the
   /// member from the first declared supertype is returned.
-  Member? getInterfaceMember(Class class_, Name name, {bool setter: false});
+  Member? getInterfaceMember(Class class_, Name name, {bool setter = false});
 }
 
 /// Interface for answering various subclassing queries.
@@ -111,21 +130,6 @@ abstract class ClassHierarchy
   /// be a generic class.
   Supertype? asInstantiationOf(Supertype type, Class superclass);
 
-  /// Returns the instance member that would respond to a dynamic dispatch of
-  /// [name] to an instance of [class_], or `null` if no such member exists.
-  ///
-  /// If [setter] is `false`, the name is dispatched as a getter or call,
-  /// and will return a field, getter, method, or operator (or null).
-  ///
-  /// If [setter] is `true`, the name is dispatched as a setter, roughly
-  /// corresponding to `name=` in the Dart specification, but note that the
-  /// returned member will not have a name ending with `=`.  In this case,
-  /// a non-final field or setter (or null) will be returned.
-  ///
-  /// If the class is abstract, abstract members are ignored and the dispatch
-  /// is resolved if the class was not abstract.
-  Member? getDispatchTarget(Class class_, Name name, {bool setter: false});
-
   /// Returns the list of potential targets of dynamic dispatch to an instance
   /// of [class_].
   ///
@@ -136,7 +140,7 @@ abstract class ClassHierarchy
   /// See [getDispatchTarget] for more details.
   ///
   /// The returned list should not be modified.
-  List<Member> getDispatchTargets(Class class_, {bool setters: false});
+  List<Member> getDispatchTargets(Class class_, {bool setters = false});
 
   /// Returns the list of members denoting the interface for [class_], which
   /// may include abstract members.
@@ -146,22 +150,18 @@ abstract class ClassHierarchy
   /// in the class.
   ///
   /// Also see [getInterfaceMember].
-  List<Member> getInterfaceMembers(Class class_, {bool setters: false});
+  List<Member> getInterfaceMembers(Class class_, {bool setters = false});
 
   /// Returns the list of members declared in [class_], including abstract
   /// members.
   ///
   /// Members are sorted by name so that they may be efficiently compared across
   /// classes.
-  List<Member> getDeclaredMembers(Class class_, {bool setters: false});
+  List<Member> getDeclaredMembers(Class class_, {bool setters = false});
 
   /// True if [subclass] inherits from [superclass] though zero or more
   /// `extends` relationships.
   bool isSubclassOf(Class subclass, Class superclass);
-
-  /// True if [subtype] inherits from [superclass] though zero or more
-  /// `extends`, `with`, and `implements` relationships.
-  bool isSubtypeOf(Class subtype, Class superclass);
 
   /// True if the given class is used as the right-hand operand to a
   /// mixin application (i.e. [Class.mixedInType]).
@@ -229,7 +229,7 @@ abstract class ClassHierarchy
   /// changed too, or - if [findDescendants] is true, the ClassHierarchy will
   /// spend the time to find them for the caller.
   ClassHierarchy applyMemberChanges(Iterable<Class> classes,
-      {bool findDescendants: false});
+      {bool findDescendants = false});
 
   /// Merges two sorted lists.
   ///
@@ -355,7 +355,7 @@ abstract class ClassHierarchySubtypes {
   /// target, or `null` if it could not be resolved or there are multiple
   /// possible targets.
   Member? getSingleTargetForInterfaceInvocation(Member interfaceTarget,
-      {bool setter: false});
+      {bool setter = false});
 }
 
 class _ClassInfoSubtype {
@@ -418,7 +418,7 @@ class _ClosedWorldClassHierarchySubtypes implements ClassHierarchySubtypes {
 
   @override
   Member? getSingleTargetForInterfaceInvocation(Member interfaceTarget,
-      {bool setter: false}) {
+      {bool setter = false}) {
     if (invalidated) throw "This data structure has been invalidated";
     Name name = interfaceTarget.name;
     Member? target = null;
@@ -800,7 +800,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   }
 
   @override
-  Member? getDispatchTarget(Class class_, Name name, {bool setter: false}) {
+  Member? getDispatchTarget(Class class_, Name name, {bool setter = false}) {
     List<Member> list =
         _buildImplementedMembers(class_, infoFor(class_), setters: setter);
     Member? member = ClassHierarchy.findMemberByName(list, name);
@@ -812,30 +812,30 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   }
 
   @override
-  List<Member> getDispatchTargets(Class class_, {bool setters: false}) {
+  List<Member> getDispatchTargets(Class class_, {bool setters = false}) {
     return _buildImplementedMembers(class_, infoFor(class_), setters: setters);
   }
 
   @override
-  Member? getInterfaceMember(Class class_, Name name, {bool setter: false}) {
+  Member? getInterfaceMember(Class class_, Name name, {bool setter = false}) {
     List<Member> list = getInterfaceMembers(class_, setters: setter);
     return ClassHierarchy.findMemberByName(list, name);
   }
 
   @override
-  List<Member> getInterfaceMembers(Class class_, {bool setters: false}) {
+  List<Member> getInterfaceMembers(Class class_, {bool setters = false}) {
     return _buildInterfaceMembers(class_, infoFor(class_), setters: setters);
   }
 
   @override
-  List<Member> getDeclaredMembers(Class class_, {bool setters: false}) {
+  List<Member> getDeclaredMembers(Class class_, {bool setters = false}) {
     return _buildDeclaredMembers(class_, infoFor(class_), setters: setters);
   }
 
   @override
   void forEachOverridePair(Class class_,
       callback(Member declaredMember, Member interfaceMember, bool isSetter),
-      {bool crossGettersSetters: false}) {
+      {bool crossGettersSetters = false}) {
     _ClassInfo info = infoFor(class_);
     for (Supertype supertype in class_.supers) {
       Class superclass = supertype.classNode;
@@ -854,7 +854,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       List<Member> declaredList,
       List<Member> inheritedList,
       callback(Member declaredMember, Member interfaceMember, bool isSetter),
-      {bool isSetter: false}) {
+      {bool isSetter = false}) {
     int i = 0, j = 0;
     while (i < declaredList.length && j < inheritedList.length) {
       Member declared = declaredList[i];
@@ -984,7 +984,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   @override
   ClassHierarchy applyMemberChanges(Iterable<Class> classes,
-      {bool findDescendants: false}) {
+      {bool findDescendants = false}) {
     if (classes.isEmpty) return this;
 
     List<_ClassInfo> infos = <_ClassInfo>[];
@@ -1317,7 +1317,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   /// Both lists must be sorted by name beforehand.
   static List<Member> _inheritMembers(
       List<Member> declared, List<Member> inherited,
-      {bool skipAbstractMembers: false}) {
+      {bool skipAbstractMembers = false}) {
     List<Member> result = new List<Member>.filled(
         declared.length + inherited.length, dummyMember,
         growable: true);

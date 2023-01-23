@@ -4,11 +4,11 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
-import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart' hide DirectiveUri;
 import 'package:analyzer/src/dart/analysis/file_state.dart' as file_state;
+import 'package:analyzer/src/dart/analysis/unlinked_data.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -19,6 +19,7 @@ import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
 import 'package:analyzer/src/summary2/default_value_resolver.dart';
 import 'package:analyzer/src/summary2/element_builder.dart';
 import 'package:analyzer/src/summary2/export.dart';
+import 'package:analyzer/src/summary2/field_promotability.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/macro_application.dart';
 import 'package:analyzer/src/summary2/metadata_resolver.dart';
@@ -26,6 +27,15 @@ import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/reference_resolver.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+
+class DefiningLinkingUnit extends LinkingUnit {
+  DefiningLinkingUnit({
+    required super.reference,
+    required super.node,
+    required super.element,
+    required super.container,
+  });
+}
 
 class ImplicitEnumNodes {
   final EnumElementImpl element;
@@ -41,7 +51,7 @@ class ImplicitEnumNodes {
 
 class LibraryBuilder {
   final Linker linker;
-  final LibraryFileStateKind kind;
+  final LibraryFileKind kind;
   final Uri uri;
   final Reference reference;
   final LibraryElementImpl element;
@@ -89,40 +99,55 @@ class LibraryBuilder {
   }
 
   void addExporters() {
-    final exportElements = element.exports;
-    for (var i = 0; i < exportElements.length; i++) {
-      final exportElement = exportElements[i];
+    final containers = [element, ...element.augmentations];
+    for (var containerIndex = 0;
+        containerIndex < containers.length;
+        containerIndex++) {
+      final container = containers[containerIndex];
+      final exportElements = container.libraryExports;
+      for (var exportIndex = 0;
+          exportIndex < exportElements.length;
+          exportIndex++) {
+        final exportElement = exportElements[exportIndex];
 
-      final exportedLibrary = exportElement.exportedLibrary;
-      if (exportedLibrary is! LibraryElementImpl) {
-        continue;
-      }
-
-      final combinators = exportElement.combinators.map((combinator) {
-        if (combinator is ShowElementCombinator) {
-          return Combinator.show(combinator.shownNames);
-        } else if (combinator is HideElementCombinator) {
-          return Combinator.hide(combinator.hiddenNames);
-        } else {
-          throw UnimplementedError();
+        final exportedLibrary = exportElement.exportedLibrary;
+        if (exportedLibrary is! LibraryElementImpl) {
+          continue;
         }
-      }).toList();
 
-      final exportedUri = exportedLibrary.source.uri;
-      final exportedBuilder = linker.builders[exportedUri];
-
-      final export = Export(this, i, combinators);
-      if (exportedBuilder != null) {
-        exportedBuilder.exports.add(export);
-      } else {
-        final exportedReferences = exportedLibrary.exportedReferences;
-        for (final exported in exportedReferences) {
-          final reference = exported.reference;
-          final name = reference.name;
-          if (reference.isSetter) {
-            export.addToExportScope('$name=', exported);
+        final combinators = exportElement.combinators.map((combinator) {
+          if (combinator is ShowElementCombinator) {
+            return Combinator.show(combinator.shownNames);
+          } else if (combinator is HideElementCombinator) {
+            return Combinator.hide(combinator.hiddenNames);
           } else {
-            export.addToExportScope(name, exported);
+            throw UnimplementedError();
+          }
+        }).toList();
+
+        final exportedUri = exportedLibrary.source.uri;
+        final exportedBuilder = linker.builders[exportedUri];
+
+        final export = Export(
+          exporter: this,
+          location: ExportLocation(
+            containerIndex: containerIndex,
+            exportIndex: exportIndex,
+          ),
+          combinators: combinators,
+        );
+        if (exportedBuilder != null) {
+          exportedBuilder.exports.add(export);
+        } else {
+          final exportedReferences = exportedLibrary.exportedReferences;
+          for (final exported in exportedReferences) {
+            final reference = exported.reference;
+            final name = reference.name;
+            if (reference.isSetter) {
+              export.addToExportScope('$name=', exported);
+            } else {
+              export.addToExportScope(name, exported);
+            }
           }
         }
       }
@@ -132,13 +157,19 @@ class LibraryBuilder {
   /// Build elements for declarations in the library units, add top-level
   /// declarations to the local scope, for combining into export scopes.
   void buildElements() {
+    _buildDirectives(
+      kind: kind,
+      container: element,
+    );
+
     for (var linkingUnit in units) {
       var elementBuilder = ElementBuilder(
         libraryBuilder: this,
+        container: linkingUnit.container,
         unitReference: linkingUnit.reference,
         unitElement: linkingUnit.element,
       );
-      if (linkingUnit.isDefiningUnit) {
+      if (linkingUnit is DefiningLinkingUnit) {
         elementBuilder.buildLibraryElementChildren(linkingUnit.node);
       }
       elementBuilder.buildDeclarationElements(linkingUnit.node);
@@ -152,8 +183,8 @@ class LibraryBuilder {
       enum_.element.supertype =
           typeProvider.enumType ?? typeProvider.objectType;
       var valuesType = typeProvider.listType(
-        element.typeSystem.instantiateToBounds2(
-          classElement: enum_.element,
+        element.typeSystem.instantiateInterfaceToBounds(
+          element: enum_.element,
           nullabilitySuffix: typeProvider.objectType.nullabilitySuffix,
         ),
       );
@@ -173,11 +204,11 @@ class LibraryBuilder {
   void collectMixinSuperInvokedNames() {
     for (var linkingUnit in units) {
       for (var declaration in linkingUnit.node.declarations) {
-        if (declaration is ast.MixinDeclaration) {
+        if (declaration is ast.MixinDeclarationImpl) {
           var names = <String>{};
           var collector = MixinSuperInvokedNamesCollector(names);
           for (var executable in declaration.members) {
-            if (executable is ast.MethodDeclaration) {
+            if (executable is ast.MethodDeclarationImpl) {
               executable.body.accept(collector);
             }
           }
@@ -186,6 +217,15 @@ class LibraryBuilder {
         }
       }
     }
+  }
+
+  /// Computes which fields in this library are promotable.
+  void computeFieldPromotability() {
+    if (!element.featureSet.isEnabled(Feature.inference_update_2)) {
+      return;
+    }
+
+    FieldPromotability(this).perform();
   }
 
   void declare(String name, Reference reference) {
@@ -225,6 +265,7 @@ class LibraryBuilder {
 
     final elementBuilder = ElementBuilder(
       libraryBuilder: this,
+      container: element,
       unitReference: unitReference,
       unitElement: unitElement,
     );
@@ -242,7 +283,7 @@ class LibraryBuilder {
     final augmentedUnitElement = element.definingCompilationUnit;
     for (final augmentation in unitElement.classes) {
       // TODO(scheglov) if augmentation
-      final augmented = element.getType(augmentation.name);
+      final augmented = element.getClass(augmentation.name);
       if (augmented is ClassElementImpl) {
         augmented.accessors = [
           ...augmented.accessors,
@@ -322,7 +363,7 @@ class LibraryBuilder {
     var unitReference = reference.getChild('@unit').getChild('$unitUri');
     _bindReference(unitReference, unitElement);
 
-    element.parts2.add(
+    element.parts.add(
       PartElementImpl(
         uri: DirectiveUriWithUnitImpl(
           relativeUriString: '_macro_types.dart',
@@ -334,6 +375,7 @@ class LibraryBuilder {
 
     ElementBuilder(
       libraryBuilder: this,
+      container: element,
       unitReference: unitReference,
       unitElement: unitElement,
     ).buildDeclarationElements(unitNode);
@@ -343,9 +385,9 @@ class LibraryBuilder {
 
     units.add(
       LinkingUnit(
-        isDefiningUnit: false,
         reference: unitReference,
         node: unitNode,
+        container: element,
         element: unitElement,
       ),
     );
@@ -376,7 +418,11 @@ class LibraryBuilder {
 
   void resolveTypes(NodesToBuildType nodesToBuildType) {
     for (var linkingUnit in units) {
-      var resolver = ReferenceResolver(linker, nodesToBuildType, element);
+      var resolver = ReferenceResolver(
+        linker,
+        nodesToBuildType,
+        linkingUnit.container,
+      );
       linkingUnit.node.accept(resolver);
     }
   }
@@ -402,6 +448,299 @@ class LibraryBuilder {
     }
   }
 
+  AugmentationImportElementImpl _buildAugmentationImport(
+    LibraryOrAugmentationElementImpl augmentationTarget,
+    AugmentationImportState state,
+  ) {
+    final DirectiveUri uri;
+    if (state is AugmentationImportWithFile) {
+      final importedAugmentation = state.importedAugmentation;
+      if (importedAugmentation != null) {
+        final importedFile = importedAugmentation.file;
+
+        final unitNode = importedFile.parse();
+        final unitElement = CompilationUnitElementImpl(
+          source: importedFile.source,
+          // TODO(scheglov) Remove this parameter.
+          librarySource: importedFile.source,
+          lineInfo: unitNode.lineInfo,
+        );
+        unitElement.setCodeRange(0, unitNode.length);
+
+        final unitReference =
+            reference.getChild('@augmentation').getChild(importedFile.uriStr);
+        _bindReference(unitReference, unitElement);
+
+        final augmentation = LibraryAugmentationElementImpl(
+          augmentationTarget: augmentationTarget,
+          nameOffset: importedAugmentation.unlinked.libraryKeywordOffset,
+        );
+        augmentation.definingCompilationUnit = unitElement;
+        augmentation.reference = unitElement.reference!;
+
+        _buildDirectives(
+          kind: importedAugmentation,
+          container: augmentation,
+        );
+
+        uri = DirectiveUriWithAugmentationImpl(
+          relativeUriString: state.uri.relativeUriStr,
+          relativeUri: state.uri.relativeUri,
+          source: importedFile.source,
+          augmentation: augmentation,
+        );
+
+        units.add(
+          DefiningLinkingUnit(
+            reference: unitReference,
+            node: unitNode,
+            element: unitElement,
+            container: augmentation,
+          ),
+        );
+      } else {
+        uri = DirectiveUriWithSourceImpl(
+          relativeUriString: state.uri.relativeUriStr,
+          relativeUri: state.uri.relativeUri,
+          source: state.importedSource,
+        );
+      }
+    } else {
+      final selectedUri = state.uri;
+      if (selectedUri is file_state.DirectiveUriWithUri) {
+        uri = DirectiveUriWithRelativeUriImpl(
+          relativeUriString: selectedUri.relativeUriStr,
+          relativeUri: selectedUri.relativeUri,
+        );
+      } else if (selectedUri is file_state.DirectiveUriWithString) {
+        uri = DirectiveUriWithRelativeUriStringImpl(
+          relativeUriString: selectedUri.relativeUriStr,
+        );
+      } else {
+        uri = DirectiveUriImpl();
+      }
+    }
+
+    return AugmentationImportElementImpl(
+      importKeywordOffset: state.unlinked.importKeywordOffset,
+      uri: uri,
+    );
+  }
+
+  List<NamespaceCombinator> _buildCombinators(
+    List<UnlinkedCombinator> combinators2,
+  ) {
+    return combinators2.map((unlinked) {
+      if (unlinked.isShow) {
+        return ShowElementCombinatorImpl()
+          ..offset = unlinked.keywordOffset
+          ..end = unlinked.endOffset
+          ..shownNames = unlinked.names;
+      } else {
+        // TODO(scheglov) Why no offsets?
+        return HideElementCombinatorImpl()..hiddenNames = unlinked.names;
+      }
+    }).toList();
+  }
+
+  /// Builds directive elements, for the library and recursively for its
+  /// augmentations.
+  void _buildDirectives({
+    required LibraryOrAugmentationFileKind kind,
+    required LibraryOrAugmentationElementImpl container,
+  }) {
+    container.libraryExports = kind.libraryExports.map(_buildExport).toList();
+    container.libraryImports = kind.libraryImports.map((state) {
+      return _buildImport(
+        container: container,
+        state: state,
+      );
+    }).toList();
+
+    container.augmentationImports = kind.augmentationImports.map((state) {
+      return _buildAugmentationImport(container, state);
+    }).toList();
+  }
+
+  LibraryExportElementImpl _buildExport(LibraryExportState state) {
+    final combinators = _buildCombinators(
+      state.unlinked.combinators,
+    );
+
+    final DirectiveUri uri;
+    if (state is LibraryExportWithFile) {
+      final exportedLibraryKind = state.exportedLibrary;
+      if (exportedLibraryKind != null) {
+        final exportedFile = exportedLibraryKind.file;
+        final exportedUri = exportedFile.uri;
+        final elementFactory = linker.elementFactory;
+        final exportedLibrary = elementFactory.libraryOfUri2(exportedUri);
+        uri = DirectiveUriWithLibraryImpl(
+          relativeUriString: state.selectedUri.relativeUriStr,
+          relativeUri: state.selectedUri.relativeUri,
+          source: exportedLibrary.source,
+          library: exportedLibrary,
+        );
+      } else {
+        uri = DirectiveUriWithSourceImpl(
+          relativeUriString: state.selectedUri.relativeUriStr,
+          relativeUri: state.selectedUri.relativeUri,
+          source: state.exportedSource,
+        );
+      }
+    } else if (state is LibraryExportWithInSummarySource) {
+      final exportedLibrarySource = state.exportedLibrarySource;
+      if (exportedLibrarySource != null) {
+        final exportedUri = exportedLibrarySource.uri;
+        final elementFactory = linker.elementFactory;
+        final exportedLibrary = elementFactory.libraryOfUri2(exportedUri);
+        uri = DirectiveUriWithLibraryImpl(
+          relativeUriString: state.selectedUri.relativeUriStr,
+          relativeUri: state.selectedUri.relativeUri,
+          source: exportedLibrary.source,
+          library: exportedLibrary,
+        );
+      } else {
+        uri = DirectiveUriWithSourceImpl(
+          relativeUriString: state.selectedUri.relativeUriStr,
+          relativeUri: state.selectedUri.relativeUri,
+          source: state.exportedSource,
+        );
+      }
+    } else {
+      final selectedUri = state.selectedUri;
+      if (selectedUri is file_state.DirectiveUriWithUri) {
+        uri = DirectiveUriWithRelativeUriImpl(
+          relativeUriString: selectedUri.relativeUriStr,
+          relativeUri: selectedUri.relativeUri,
+        );
+      } else if (selectedUri is file_state.DirectiveUriWithString) {
+        uri = DirectiveUriWithRelativeUriStringImpl(
+          relativeUriString: selectedUri.relativeUriStr,
+        );
+      } else {
+        uri = DirectiveUriImpl();
+      }
+    }
+
+    return LibraryExportElementImpl(
+      combinators: combinators,
+      exportKeywordOffset: state.unlinked.exportKeywordOffset,
+      uri: uri,
+    );
+  }
+
+  LibraryImportElementImpl _buildImport({
+    required LibraryOrAugmentationElementImpl container,
+    required LibraryImportState state,
+  }) {
+    final importPrefix = state.unlinked.prefix.mapOrNull((unlinked) {
+      final prefix = _buildPrefix(
+        name: unlinked.name,
+        nameOffset: unlinked.nameOffset,
+        container: container,
+      );
+      if (unlinked.deferredOffset != null) {
+        return DeferredImportElementPrefixImpl(
+          element: prefix,
+        );
+      } else {
+        return ImportElementPrefixImpl(
+          element: prefix,
+        );
+      }
+    });
+
+    final combinators = _buildCombinators(
+      state.unlinked.combinators,
+    );
+
+    final DirectiveUri uri;
+    if (state is LibraryImportWithFile) {
+      final importedLibraryKind = state.importedLibrary;
+      if (importedLibraryKind != null) {
+        final importedFile = importedLibraryKind.file;
+        final importedUri = importedFile.uri;
+        final elementFactory = linker.elementFactory;
+        final importedLibrary = elementFactory.libraryOfUri2(importedUri);
+        uri = DirectiveUriWithLibraryImpl(
+          relativeUriString: state.selectedUri.relativeUriStr,
+          relativeUri: state.selectedUri.relativeUri,
+          source: importedLibrary.source,
+          library: importedLibrary,
+        );
+      } else {
+        uri = DirectiveUriWithSourceImpl(
+          relativeUriString: state.selectedUri.relativeUriStr,
+          relativeUri: state.selectedUri.relativeUri,
+          source: state.importedSource,
+        );
+      }
+    } else if (state is LibraryImportWithInSummarySource) {
+      final importedLibrarySource = state.importedLibrarySource;
+      if (importedLibrarySource != null) {
+        final importedUri = importedLibrarySource.uri;
+        final elementFactory = linker.elementFactory;
+        final importedLibrary = elementFactory.libraryOfUri2(importedUri);
+        uri = DirectiveUriWithLibraryImpl(
+          relativeUriString: state.selectedUri.relativeUriStr,
+          relativeUri: state.selectedUri.relativeUri,
+          source: importedLibrary.source,
+          library: importedLibrary,
+        );
+      } else {
+        uri = DirectiveUriWithSourceImpl(
+          relativeUriString: state.selectedUri.relativeUriStr,
+          relativeUri: state.selectedUri.relativeUri,
+          source: state.importedSource,
+        );
+      }
+    } else {
+      final selectedUri = state.selectedUri;
+      if (selectedUri is file_state.DirectiveUriWithUri) {
+        uri = DirectiveUriWithRelativeUriImpl(
+          relativeUriString: selectedUri.relativeUriStr,
+          relativeUri: selectedUri.relativeUri,
+        );
+      } else if (selectedUri is file_state.DirectiveUriWithString) {
+        uri = DirectiveUriWithRelativeUriStringImpl(
+          relativeUriString: selectedUri.relativeUriStr,
+        );
+      } else {
+        uri = DirectiveUriImpl();
+      }
+    }
+
+    return LibraryImportElementImpl(
+      combinators: combinators,
+      importKeywordOffset: state.unlinked.importKeywordOffset,
+      prefix: importPrefix,
+      uri: uri,
+    )..isSynthetic = state.isSyntheticDartCore;
+  }
+
+  PrefixElementImpl _buildPrefix({
+    required String name,
+    required int nameOffset,
+    required LibraryOrAugmentationElementImpl container,
+  }) {
+    // TODO(scheglov) Make reference required.
+    final containerRef = container.reference!;
+    final reference = containerRef.getChild('@prefix').getChild(name);
+    final existing = reference.element;
+    if (existing is PrefixElementImpl) {
+      return existing;
+    } else {
+      final result = PrefixElementImpl(
+        name,
+        nameOffset,
+        reference: reference,
+      );
+      container.encloseElement(result);
+      return result;
+    }
+  }
+
   /// These elements are implicitly declared in `dart:core`.
   void _declareDartCoreDynamicNever() {
     if (reference.name == 'dart:core') {
@@ -415,7 +754,7 @@ class LibraryBuilder {
     }
   }
 
-  static void build(Linker linker, LibraryFileStateKind inputLibrary) {
+  static void build(Linker linker, LibraryFileKind inputLibrary) {
     final elementFactory = linker.elementFactory;
     final rootReference = linker.rootReference;
 
@@ -429,10 +768,13 @@ class LibraryBuilder {
     var nameOffset = -1;
     var nameLength = 0;
     for (final directive in libraryUnitNode.directives) {
-      if (directive is ast.LibraryDirective) {
-        name = directive.name.components.map((e) => e.name).join('.');
-        nameOffset = directive.name.offset;
-        nameLength = directive.name.length;
+      if (directive is ast.LibraryDirectiveImpl) {
+        final nameIdentifier = directive.name2;
+        if (nameIdentifier != null) {
+          name = nameIdentifier.components.map((e) => e.name).join('.');
+          nameOffset = nameIdentifier.offset;
+          nameLength = nameIdentifier.length;
+        }
         break;
       }
     }
@@ -466,11 +808,11 @@ class LibraryBuilder {
       _bindReference(unitReference, unitElement);
 
       linkingUnits.add(
-        LinkingUnit(
-          isDefiningUnit: true,
+        DefiningLinkingUnit(
           reference: unitReference,
           node: libraryUnitNode,
           element: unitElement,
+          container: libraryElement,
         ),
       );
 
@@ -482,7 +824,7 @@ class LibraryBuilder {
       final uriState = partState.uri;
 
       final DirectiveUri directiveUri;
-      if (partState is PartDirectiveWithFile) {
+      if (partState is PartWithFile) {
         final includedPart = partState.includedPart;
         if (includedPart != null) {
           final partFile = includedPart.file;
@@ -501,9 +843,9 @@ class LibraryBuilder {
 
           linkingUnits.add(
             LinkingUnit(
-              isDefiningUnit: false,
               reference: unitReference,
               node: partUnitNode,
+              container: libraryElement,
               element: unitElement,
             ),
           );
@@ -546,7 +888,7 @@ class LibraryBuilder {
       );
     }
 
-    libraryElement.parts2 = parts;
+    libraryElement.parts = parts;
 
     final builder = LibraryBuilder._(
       linker: linker,
@@ -567,15 +909,15 @@ class LibraryBuilder {
 }
 
 class LinkingUnit {
-  final bool isDefiningUnit;
   final Reference reference;
   final ast.CompilationUnitImpl node;
+  final LibraryOrAugmentationElementImpl container;
   final CompilationUnitElementImpl element;
 
   LinkingUnit({
-    required this.isDefiningUnit,
     required this.reference,
     required this.node,
+    required this.container,
     required this.element,
   });
 }
@@ -590,5 +932,12 @@ class _FlushElementOffsets extends GeneralizingElementVisitor<void> {
       element.nameEnd = null;
     }
     super.visitElement(element);
+  }
+}
+
+extension<T> on T? {
+  R? mapOrNull<R>(R Function(T) mapper) {
+    final self = this;
+    return self != null ? mapper(self) : null;
   }
 }

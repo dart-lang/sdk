@@ -482,7 +482,7 @@ String typeStringHelper(DartType type) {
   // Supertypes or type parameters are specialized in a consistent manner.
   // TODO(ajcbik): inspect type structure semantically, not by display name
   //               and unify DartFuzz's DartType with analyzer DartType.
-  switch (type.displayName) {
+  switch (type.asCode) {
     case 'AbstractClassInstantiationError':
       return abstractClassInstantiationErrorEncoding;
     case 'ArgumentError':

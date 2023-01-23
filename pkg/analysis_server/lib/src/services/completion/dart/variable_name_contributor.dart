@@ -36,9 +36,18 @@ class VariableNameContributor extends DartCompletionContributor {
         if (expression is Identifier) {
           strName = _getStringName(expression);
         }
+      } else if (node is RecordTypeAnnotationField) {
+        final identifier = _typeAnnotationIdentifier(node.type);
+        if (identifier != null) {
+          strName = _getStringName(identifier);
+        }
       } else if (node is SimpleFormalParameter) {
-        var identifier = _formalParameterTypeIdentifier(node);
-        strName = _getStringName(identifier);
+        var identifier = _formalParameterTypeIdentifier2(node);
+        if (identifier != null) {
+          strName = _getStringName(identifier);
+        } else {
+          strName = node.name?.lexeme;
+        }
       } else if (node is VariableDeclarationList) {
         var identifier = _typeAnnotationIdentifier(node.type);
         strName = _getStringName(identifier);
@@ -57,7 +66,7 @@ class VariableNameContributor extends DartCompletionContributor {
           var varDeclarations = varDeclarationList.variables;
           if (varDeclarations.length == 1) {
             var declaration = varDeclarations.first;
-            strName = _getStringName(declaration.name);
+            strName = declaration.name.lexeme;
           }
         }
       }
@@ -100,13 +109,12 @@ class VariableNameContributor extends DartCompletionContributor {
     return id.name;
   }
 
-  static Identifier? _formalParameterTypeIdentifier(FormalParameter node) {
+  static Identifier? _formalParameterTypeIdentifier2(FormalParameter node) {
     if (node is SimpleFormalParameter) {
       var type = node.type;
       if (type != null) {
         return _typeAnnotationIdentifier(type);
       }
-      return node.identifier;
     }
     return null;
   }

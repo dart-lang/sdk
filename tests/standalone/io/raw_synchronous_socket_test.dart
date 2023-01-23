@@ -33,7 +33,7 @@ void testInvalidConnect() {
     Expect.isTrue(e is SocketException);
   }
 
-  // Connect to an unavaliable IP-address.
+  // Connect to an unavailable IP-address.
   try {
     var socket = RawSynchronousSocket.connectSync("1.2.3.4", 0);
     Expect.fail("Failure expected");

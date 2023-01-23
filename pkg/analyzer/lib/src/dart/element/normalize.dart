@@ -145,6 +145,24 @@ class NormalizeHelper {
       );
     }
 
+    // NORM(Record(T0, ..., Tn)) = Record(R0, ..., Rn) where Ri is NORM(Ti)
+    if (T is RecordTypeImpl) {
+      return RecordTypeImpl(
+        positionalFields: T.positionalFields.map((field) {
+          return RecordTypePositionalFieldImpl(
+            type: _normalize(field.type),
+          );
+        }).toList(),
+        namedFields: T.namedFields.map((field) {
+          return RecordTypeNamedFieldImpl(
+            name: field.name,
+            type: _normalize(field.type),
+          );
+        }).toList(),
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
+    }
+
     // NORM(R Function<X extends B>(S)) = R1 Function(X extends B1>(S1)
     return _functionType(T as FunctionType);
   }

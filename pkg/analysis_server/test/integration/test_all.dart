@@ -11,7 +11,6 @@ import 'coverage_test.dart' as coverage_test;
 import 'diagnostic/test_all.dart' as diagnostic;
 import 'edit/test_all.dart' as edit;
 import 'execution/test_all.dart' as execution;
-import 'kythe/test_all.dart' as kythe;
 import 'linter/test_all.dart' as linter;
 import 'lsp_server/test_all.dart' as lsp_server;
 import 'search/test_all.dart' as search;
@@ -26,7 +25,6 @@ void main() {
     diagnostic.main();
     edit.main();
     execution.main();
-    kythe.main();
     linter.main();
     lsp_server.main();
     search.main();

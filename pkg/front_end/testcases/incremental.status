@@ -8,9 +8,9 @@
 #strongmode_mixins_2: Crash
 
 changing_modules_16: Crash
-late_lowering: EquivalenceError
 constant_fileoffset_and_typedef: EquivalenceError
 no_such_method_forwarder: EquivalenceError
 changing_nullability_on_recompile: EquivalenceError
 initializer_not_copied: EquivalenceError
 changed_error: EquivalenceError
+issue_49968: ConstantCoverageReferenceWithoutNode

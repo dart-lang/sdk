@@ -1,0 +1,82 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class MyMap extends core::Object implements core::Map<core::String, core::int> {
+  synthetic constructor •() → self::MyMap
+    : super core::Object::•()
+    ;
+}
+static method test1(dynamic x) → dynamic {
+  final dynamic #t1 = x;
+  final dynamic #t2 = #t1;
+  if(#t2 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#t2{core::Map<dynamic, dynamic>}.{core::Map::containsKey}("a"){(core::Object?) → core::bool} && #t2{core::Map<dynamic, dynamic>}.{core::Map::containsKey}("b"){(core::Object?) → core::bool})) {
+    final dynamic #t3 = #t2{core::Map<dynamic, dynamic>}.{core::Map::[]}("a"){(core::Object?) → dynamic};
+    final dynamic #t4 = #t2{core::Map<dynamic, dynamic>}.{core::Map::[]}("b"){(core::Object?) → dynamic};
+    if(#t3 =={core::Object::==}{(core::Object) → core::bool} 1 && #t4 =={core::Object::==}{(core::Object) → core::bool} 2) {
+    }
+  }
+}
+static method test2(dynamic x) → dynamic {
+  final dynamic #t5 = x;
+  final core::bool #t6 = true;
+  final dynamic #t7 = #t5;
+  if(#t7 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#t7{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(1){(core::Object?) → core::bool} && #t7{core::Map<dynamic, dynamic>}.{core::Map::containsKey}("foo"){(core::Object?) → core::bool})) {
+    final dynamic #t8 = #t7{core::Map<dynamic, dynamic>}.{core::Map::[]}(1){(core::Object?) → dynamic};
+    final dynamic #t9 = #t7{core::Map<dynamic, dynamic>}.{core::Map::[]}("foo"){(core::Object?) → dynamic};
+    if(#t8 =={core::Object::==}{(core::Object) → core::bool} 2 && #t9 =={core::Object::==}{(core::Object) → core::bool} "bar") {
+      #t6 = false;
+      {
+        return 0;
+      }
+    }
+  }
+  if(#t6) {
+    return 1;
+  }
+}
+static method test3(core::Map<core::bool, core::double> x) → dynamic {
+  final core::Map<core::bool, core::double> #t10 = x;
+  final core::Map<core::bool, core::double> #t11 = #t10;
+  if(#t11.{core::Map::containsKey}(true){(core::Object?) → core::bool}) {
+    final core::double #t12 = #t11.{core::Map::[]}(true){(core::Object?) → core::double?};
+    if(#t12 =={core::num::==}{(core::Object) → core::bool} 3.14) {
+    }
+  }
+  final core::Map<core::bool, core::double> #t13 = x;
+  final core::Map<core::bool, core::double> #t14 = #t13;
+}
+static method test4(self::MyMap x) → dynamic {
+  final self::MyMap #t15 = x;
+  final self::MyMap #t16 = #t15;
+  if(#t16.{core::Map::containsKey}("one"){(core::Object?) → core::bool} && #t16.{core::Map::containsKey}("two"){(core::Object?) → core::bool}) {
+    final core::int #t17 = #t16.{core::Map::[]}("one"){(core::Object?) → core::int?};
+    final core::int #t18 = #t16.{core::Map::[]}("two"){(core::Object?) → core::int?};
+    if(#t17 =={core::num::==}{(core::Object) → core::bool} 1 && #t18 =={core::num::==}{(core::Object) → core::bool} 2) {
+    }
+  }
+}
+static method test5(dynamic x) → dynamic {
+  final dynamic #t19 = x;
+  final core::bool #t20 = true;
+  final dynamic #t21 = #t19;
+  if(#t21 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#t21{core::Map<dynamic, dynamic>}.{core::Map::containsKey}("one"){(core::Object?) → core::bool} && #t21{core::Map<dynamic, dynamic>}.{core::Map::containsKey}("two"){(core::Object?) → core::bool})) {
+    final dynamic #t22 = #t21{core::Map<dynamic, dynamic>}.{core::Map::[]}("one"){(core::Object?) → dynamic};
+    final dynamic #t23 = #t21{core::Map<dynamic, dynamic>}.{core::Map::[]}("two"){(core::Object?) → dynamic};
+    final dynamic #t24 = #t23!;
+    final dynamic #t25 = #t24;
+    if(#t25 is core::String) {
+      #t20 = false;
+      {
+        dynamic y1 = #t22;
+        core::String y2 = #t25{core::String};
+        {
+          return 0;
+        }
+      }
+    }
+  }
+  if(#t20) {
+    return 1;
+  }
+}

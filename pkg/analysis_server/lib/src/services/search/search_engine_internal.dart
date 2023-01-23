@@ -15,7 +15,7 @@ class SearchEngineImpl implements SearchEngine {
   SearchEngineImpl(this._drivers);
 
   @override
-  Future<Set<String>?> membersOfSubtypes(ClassElement type) async {
+  Future<Set<String>?> membersOfSubtypes(InterfaceElement type) async {
     var drivers = _drivers.toList();
     var searchedFiles = _createSearchedFiles(drivers);
 
@@ -24,7 +24,8 @@ class SearchEngineImpl implements SearchEngine {
     var visitedIds = <String>{};
     var members = <String>{};
 
-    Future<void> addMembers(ClassElement? type, SubtypeResult? subtype) async {
+    Future<void> addMembers(
+        InterfaceElement? type, SubtypeResult? subtype) async {
       if (subtype != null && !visitedIds.add(subtype.id)) {
         return;
       }
@@ -50,13 +51,13 @@ class SearchEngineImpl implements SearchEngine {
   }
 
   @override
-  Future<Set<ClassElement>> searchAllSubtypes(ClassElement type) async {
-    var allSubtypes = <ClassElement>{};
+  Future<Set<InterfaceElement>> searchAllSubtypes(InterfaceElement type) async {
+    var allSubtypes = <InterfaceElement>{};
 
-    Future<void> addSubtypes(ClassElement type) async {
+    Future<void> addSubtypes(InterfaceElement type) async {
       var directResults = await _searchDirectSubtypes(type);
       for (var directResult in directResults) {
-        var directSubtype = directResult.enclosingElement as ClassElement;
+        var directSubtype = directResult.enclosingElement as InterfaceElement;
         if (allSubtypes.add(directSubtype)) {
           await addSubtypes(directSubtype);
         }
@@ -105,7 +106,7 @@ class SearchEngineImpl implements SearchEngine {
   }
 
   @override
-  Future<List<SearchMatch>> searchSubtypes(ClassElement type) async {
+  Future<List<SearchMatch>> searchSubtypes(InterfaceElement type) async {
     var results = await _searchDirectSubtypes(type);
     return results.map(SearchMatchImpl.forSearchResult).toList();
   }
@@ -132,7 +133,8 @@ class SearchEngineImpl implements SearchEngine {
     return searchedFiles;
   }
 
-  Future<List<SearchResult>> _searchDirectSubtypes(ClassElement type) async {
+  Future<List<SearchResult>> _searchDirectSubtypes(
+      InterfaceElement type) async {
     var allResults = <SearchResult>[];
     var drivers = _drivers.toList();
     var searchedFiles = _createSearchedFiles(drivers);
@@ -248,6 +250,18 @@ class SearchMatchImpl implements SearchMatch {
     }
     if (kind == SearchResultKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF) {
       return MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF;
+    }
+    if (kind == SearchResultKind.REFERENCE_IN_EXTENDS_CLAUSE) {
+      return MatchKind.REFERENCE_IN_EXTENDS_CLAUSE;
+    }
+    if (kind == SearchResultKind.REFERENCE_IN_IMPLEMENTS_CLAUSE) {
+      return MatchKind.REFERENCE_IN_IMPLEMENTS_CLAUSE;
+    }
+    if (kind == SearchResultKind.REFERENCE_IN_ON_CLAUSE) {
+      return MatchKind.REFERENCE_IN_ON_CLAUSE;
+    }
+    if (kind == SearchResultKind.REFERENCE_IN_WITH_CLAUSE) {
+      return MatchKind.REFERENCE_IN_WITH_CLAUSE;
     }
     return MatchKind.REFERENCE;
   }

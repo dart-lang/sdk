@@ -1,6 +1,6 @@
 {
   "branches": [
-    "master"
+    "main"
   ],
   "filesets": {
     "analyzer_unit_tests": [
@@ -19,7 +19,6 @@
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
-      "samples_2/",
       "sdk/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
@@ -102,7 +101,6 @@
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
-      "samples_2/",
       "sdk/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
@@ -183,6 +181,7 @@
       "out/ReleaseX64/dart2wasm_asserts.snapshot",
       "out/ReleaseX64/dart2wasm_outline.dill",
       "out/ReleaseX64/dart2wasm_platform.dill",
+      "out/ReleaseX64/wasm/",
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
@@ -208,8 +207,7 @@
       "third_party/d8/",
       "third_party/pkg/",
       "third_party/requirejs/",
-      "tools/",
-      "xcodebuild/ReleaseX64/dart"
+      "tools/"
     ],
     "front-end": [
       ".dart_tool/package_config.json",
@@ -219,7 +217,6 @@
       "runtime/tests/",
       "samples-dev/",
       "samples/",
-      "samples_2/",
       "sdk/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
@@ -282,7 +279,6 @@
       "xcodebuild/",
       "pkg/",
       "samples/",
-      "samples_2/",
       "samples-dev/",
       "tools/",
       "third_party/android_tools/sdk/platform-tools/adb",
@@ -421,18 +417,9 @@
       "__comment__": "This configuration is only used for a custom test runner. If it conflicts with a new configuration you are adding, you can make this configuration more specific by adding options."
     },
     "vm-ffi-unit-test": {
-      "__comment__": "This configuration is only used for a custom test runner. If it conflicts with a new configuration you are adding, you can make this configuration more specific by adding options."
-    },
-    "unittest-analyzer_use_fasta-(linux|mac|win)": {
+      "__comment__": "This configuration is only used for a custom test runner. If it conflicts with a new configuration you are adding, you can make this configuration more specific by adding options.",
       "options": {
-        "compiler": "none",
-        "runtime": "vm",
-        "mode": "release",
-        "use-sdk": true,
-        "vm-options": [
-          "-DuseFastaParser=true"
-        ],
-        "builder-tag": "analyzer_use_fasta"
+        "builder-tag": "ffi"
       }
     },
     "dartk-asan-(linux|mac)-(debug|product|release)-(ia32|x64|simarm|simarm64|simriscv32|simriscv64)": {
@@ -1290,6 +1277,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--no-clang",
+            "--no-goma",
             "--use-qemu",
             "--use-mallinfo2",
             "dart_precompiled_runtime",
@@ -1338,6 +1326,14 @@
           ]
         },
         {
+          "name": "build dart (cross x64)",
+          "script": "tools/build.py",
+          "arguments": [
+            "--arch=simx64",
+            "gen_snapshot"
+          ]
+        },
+        {
           "name": "vm nnbd tests in weak mode with asserts",
           "arguments": [
             "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
@@ -1372,6 +1368,7 @@
     },
     {
       "builders": [
+        "vm-kernel-precomp-nnbd-linux-debug-simriscv64",
         "vm-kernel-precomp-nnbd-linux-debug-x64",
         "vm-kernel-precomp-nnbd-linux-release-simarm64",
         "vm-kernel-precomp-nnbd-linux-release-simarm64c",
@@ -1436,7 +1433,7 @@
             "co19"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 15
         },
         {
           "name": "co19 nnbd tests in weak mode with asserts",
@@ -1445,7 +1442,7 @@
             "co19"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 15
         }
       ]
     },
@@ -1492,7 +1489,6 @@
         "vm-kernel-precomp-linux-release-simarm64",
         "vm-kernel-precomp-linux-release-simriscv32",
         "vm-kernel-precomp-linux-release-simriscv64",
-        "vm-kernel-precomp-mac-product-x64",
         "vm-kernel-precomp-mac-release-simarm64",
         "vm-kernel-precomp-mac-release-simarm64c",
         "vm-kernel-precomp-win-product-x64",
@@ -1518,6 +1514,30 @@
           ],
           "fileset": "vm-kernel",
           "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-precomp-mac-product-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm kernel precomp builders lacking shard support."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartkp-${system}-${mode}-${arch}"
+          ]
         }
       ]
     },
@@ -1918,6 +1938,7 @@
     {
       "builders": [
         "vm-kernel-nnbd-linux-debug-ia32",
+        "vm-kernel-nnbd-linux-debug-simriscv64",
         "vm-kernel-nnbd-linux-debug-x64",
         "vm-kernel-nnbd-linux-debug-x64c",
         "vm-kernel-nnbd-linux-release-ia32",
@@ -1934,9 +1955,9 @@
         "vm-kernel-nnbd-mac-release-arm64",
         "vm-kernel-nnbd-mac-release-x64",
         "vm-kernel-nnbd-mac-release-x64c",
-        "vm-kernel-nnbd-win-release-ia32",
         "vm-kernel-nnbd-win-debug-x64",
         "vm-kernel-nnbd-win-debug-x64c",
+        "vm-kernel-nnbd-win-release-ia32",
         "vm-kernel-nnbd-win-release-x64",
         "vm-kernel-nnbd-win-release-x64c"
       ],
@@ -3119,113 +3140,12 @@
             "-ndart2wasm-hostasserts-linux-x64-d8",
             "language",
             "corelib",
-            "web/wasm"
+            "web/wasm",
+            "lib/lib/(async|collection|convert|js/export|js/static_interop_test|math|typed_data)/",
+            "co19/co19/(src/)?(Language|LanguageFeatures|LibTest/(async|collection|convert|core|math|typed_data))/"
           ],
-          "shards": 3,
+          "shards": 10,
           "fileset": "dart2wasm_hostasserts"
-        }
-      ]
-    },
-    {
-      "builders": [
-        "dart-sdk-linux"
-      ],
-      "meta": {
-        "description": "This configuration is used by the linux sdk builder. The difference between this configuration and the other sdk builder configurations is that this one also generates the api docs."
-      },
-      "steps": [
-        {
-          "name": "build dart (clang builds)",
-          "script": "tools/build.py",
-          "arguments": [
-            "--arch=ia32,x64,arm,arm64",
-            "--mode=release",
-            "--check-clean",
-            "create_sdk"
-          ]
-        },
-        {
-          "name": "build dart (gcc builds)",
-          "script": "tools/build.py",
-          "arguments": [
-            "--no-clang",
-            "--arch=riscv64",
-            "--mode=release",
-            "--check-clean",
-            "create_sdk"
-          ]
-        },
-        {
-          "name": "upload sdk",
-          "script": "tools/bots/dart_sdk.py",
-          "arguments": [
-            "--arch=ia32,x64,arm,arm64,riscv64"
-          ]
-        },
-        {
-          "name": "build api docs",
-          "script": "tools/bots/dart_sdk.py",
-          "arguments": [
-            "api_docs"
-          ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "dart-sdk-mac",
-        "dart-sdk-mac-arm64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the sdk-builders for MacOS."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=release",
-            "--check-clean",
-            "create_sdk"
-          ],
-          "environment": {
-            "DART_GN_ARGS": "mac_use_goma_rbe=true"
-          }
-        },
-        {
-          "name": "upload sdk",
-          "script": "tools/bots/dart_sdk.py",
-          "arguments": [
-            "--arch=${arch}"
-          ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "dart-sdk-win"
-      ],
-      "meta": {
-        "description": "This configuration is used by the sdk-builders for Windows. It also adds CQ coverage for building on Windows."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--arch=ia32,x64,arm64",
-            "--mode=release",
-            "--check-clean",
-            "create_sdk",
-            "runtime"
-          ]
-        },
-        {
-          "name": "upload sdk",
-          "script": "tools/bots/dart_sdk.py",
-          "arguments": [
-            "--arch=ia32,x64,arm64"
-          ]
         }
       ]
     },

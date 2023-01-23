@@ -6,13 +6,33 @@ library _fe_analyzer_shared.scanner.string_canonicalizer;
 
 import 'dart:convert';
 
-class Node {
-  dynamic /* String | List<int> */ data;
-  int start;
-  int end;
-  String payload;
+abstract class Node {
+  final String payload;
   Node? next;
-  Node(this.data, this.start, this.end, this.payload, this.next);
+
+  Node(this.payload, this.next);
+
+  int get hash;
+}
+
+class StringNode extends Node {
+  StringNode(super.payload, super.next);
+
+  @override
+  int get hash =>
+      StringCanonicalizer.hashString(payload, /* start = */ 0, payload.length);
+}
+
+class Utf8Node extends Node {
+  final List<int> data;
+  final int start;
+  final int end;
+
+  Utf8Node(this.data, this.start, this.end, String payload, Node? next)
+      : super(payload, next);
+
+  @override
+  int get hash => StringCanonicalizer.hashBytes(data, start, end);
 }
 
 /// A hash table for triples:
@@ -41,7 +61,7 @@ class StringCanonicalizer {
     if (asciiOnly) {
       s = new String.fromCharCodes(data, start, end);
     } else {
-      s = new Utf8Decoder(allowMalformed: true).convert(data, start, end);
+      s = const Utf8Decoder(allowMalformed: true).convert(data, start, end);
     }
     return s;
   }
@@ -69,9 +89,7 @@ class StringCanonicalizer {
       Node? t = _nodes[i];
       while (t != null) {
         Node? n = t.next;
-        int newIndex = t.data is String
-            ? hashString(t.data, t.start, t.end) & (newSize - 1)
-            : hashBytes(t.data, t.start, t.end) & (newSize - 1);
+        int newIndex = t.hash & (newSize - 1);
         Node? s = newNodes[newIndex];
         t.next = s;
         newNodes[newIndex] = t;
@@ -83,36 +101,99 @@ class StringCanonicalizer {
   }
 
   String canonicalize(data, int start, int end, bool asciiOnly) {
+    if (data is String) {
+      if (start == 0 && (end == data.length - 1)) {
+        return canonicalizeString(data);
+      }
+      return canonicalizeSubString(data, start, end);
+    }
+    return canonicalizeBytes(data as List<int>, start, end, asciiOnly);
+  }
+
+  String canonicalizeBytes(List<int> data, int start, int end, bool asciiOnly) {
     if (_count > _size) rehash();
-    int index = data is String
-        ? hashString(data, start, end)
-        : hashBytes(data, start, end);
-    index = index & (_size - 1);
+    final int index = hashBytes(data, start, end) & (_size - 1);
     Node? s = _nodes[index];
     Node? t = s;
     int len = end - start;
     while (t != null) {
-      if (t.end - t.start == len) {
-        int i = start, j = t.start;
-        while (i < end && data[i] == t.data[j]) {
-          i++;
-          j++;
-        }
-        if (i == end) {
-          return t.payload;
+      if (t is Utf8Node) {
+        final List<int> tData = t.data;
+        if (t.end - t.start == len) {
+          int i = start, j = t.start;
+          while (i < end && data[i] == tData[j]) {
+            i++;
+            j++;
+          }
+          if (i == end) {
+            return t.payload;
+          }
         }
       }
       t = t.next;
     }
-    String payload;
-    if (data is String) {
-      payload = data.substring(start, end);
-    } else {
-      payload = decode(data, start, end, asciiOnly);
-    }
-    _nodes[index] = new Node(data, start, end, payload, s);
+    String payload = decode(data, start, end, asciiOnly);
+    _nodes[index] = new Utf8Node(data, start, end, payload, s);
     _count++;
     return payload;
+  }
+
+  String canonicalizeSubString(String data, int start, int end) {
+    if (_count > _size) rehash();
+    final int index = hashString(data, start, end) & (_size - 1);
+    Node? s = _nodes[index];
+    Node? t = s;
+    int len = end - start;
+    while (t != null) {
+      if (t is StringNode) {
+        final String tData = t.payload;
+        if (identical(data, tData)) return tData;
+        if (tData.length == len) {
+          int i = start, j = 0;
+          while (i < end && data.codeUnitAt(i) == tData.codeUnitAt(j)) {
+            i++;
+            j++;
+          }
+          if (i == end) {
+            return tData;
+          }
+        }
+      }
+      t = t.next;
+    }
+    return insertStringNode(index, s, data.substring(start, end));
+  }
+
+  String canonicalizeString(String data) {
+    if (_count > _size) rehash();
+    final int index =
+        hashString(data, /* start = */ 0, data.length) & (_size - 1);
+    Node? s = _nodes[index];
+    Node? t = s;
+    while (t != null) {
+      if (t is StringNode) {
+        final String tData = t.payload;
+        if (identical(data, tData)) return tData;
+        if (data == tData) return tData;
+      }
+      t = t.next;
+    }
+    return insertStringNode(index, s, data);
+  }
+
+  String insertStringNode(int index, Node? next, String value) {
+    final StringNode newNode = new StringNode(value, next);
+    _nodes[index] = newNode;
+    _count++;
+    return value;
+  }
+
+  String insertUtf8Node(int index, Node? next, List<int> buffer, int start,
+      int end, String value) {
+    final Utf8Node newNode = new Utf8Node(buffer, start, end, value, next);
+    _nodes[index] = newNode;
+    _count++;
+    return value;
   }
 
   clear() {

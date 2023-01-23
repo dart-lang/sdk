@@ -4,8 +4,8 @@
 # BSD-style license that can be found in the LICENSE file.
 set -x
 
-ninja=$(which ninja)
-depot_tools=$(dirname $ninja)
+fetch=$(which fetch)
+depot_tools=$(dirname $fetch)
 image="debian-package:0.1"
 dockerfile=tools/linux_dist_support/Debian.dockerfile
 docker build --build-arg depot_tools=$depot_tools -t $image - < $dockerfile

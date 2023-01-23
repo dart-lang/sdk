@@ -78,6 +78,7 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
 
   @override
   Supertype? getClassAsInstanceOf(Class subclass, Class superclass) {
+    if (identical(subclass, superclass)) return subclass.asThisSupertype;
     ClassHierarchyNode clsNode = getNodeFromClass(subclass);
     ClassHierarchyNode supertypeNode = getNodeFromClass(superclass);
     List<Supertype> superclasses = clsNode.superclasses;
@@ -112,6 +113,11 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
       InterfaceType type, Class superclass) {
     if (type.classNode == superclass) return type.typeArguments;
     return asSupertypeOf(type, superclass)?.typeArguments;
+  }
+
+  @override
+  bool isSubtypeOf(Class subtype, Class superclass) {
+    return getClassAsInstanceOf(subtype, superclass) != null;
   }
 
   @override

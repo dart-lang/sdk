@@ -737,6 +737,21 @@ void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
       /*allow_return=*/false, perform_runtime_call);
 }
 
+void StubCodeCompiler::GenerateWriteError(Assembler* assembler,
+                                          bool with_fpu_regs) {
+  auto perform_runtime_call = [&]() {
+    __ CallRuntime(kWriteErrorRuntimeEntry, /*argument_count=*/0);
+    __ Breakpoint();
+  };
+
+  GenerateSharedStubGeneric(
+      assembler, /*save_fpu_registers=*/with_fpu_regs,
+      with_fpu_regs
+          ? target::Thread::write_error_shared_with_fpu_regs_stub_offset()
+          : target::Thread::write_error_shared_without_fpu_regs_stub_offset(),
+      /*allow_return=*/false, perform_runtime_call);
+}
+
 // Input parameters:
 //   LR : return address.
 //   SP : address of return value.
@@ -1792,10 +1807,8 @@ void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
     Label slow_case;
 
     // Load num. variable (int32) in the existing context.
-    __ ldr(
-        R1,
-        FieldAddress(R5, target::Context::num_variables_offset(), kFourBytes),
-        kFourBytes);
+    __ ldr(R1, FieldAddress(R5, target::Context::num_variables_offset()),
+           kFourBytes);
 
     GenerateAllocateContextSpaceStub(assembler, &slow_case);
 
@@ -2011,19 +2024,19 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
     // Get card table.
     __ Bind(&remember_card);
-    __ AndImmediate(TMP, R1, target::kOldPageMask);  // OldPage.
+    __ AndImmediate(TMP, R1, target::kPageMask);  // Page.
     __ ldr(TMP,
-           Address(TMP, target::OldPage::card_table_offset()));  // Card table.
+           Address(TMP, target::Page::card_table_offset()));  // Card table.
     __ cbz(&remember_card_slow, TMP);
 
     // Dirty the card.
-    __ AndImmediate(TMP, R1, target::kOldPageMask);  // OldPage.
+    __ AndImmediate(TMP, R1, target::kPageMask);     // Page.
     __ sub(R25, R25, Operand(TMP));                  // Offset in page.
     __ ldr(TMP,
-           Address(TMP, target::OldPage::card_table_offset()));  // Card table.
+           Address(TMP, target::Page::card_table_offset()));  // Card table.
     __ add(TMP, TMP,
            Operand(R25, LSR,
-                   target::OldPage::kBytesPerCardLog2));  // Card address.
+                   target::Page::kBytesPerCardLog2));  // Card address.
     __ str(R1, Address(TMP, 0),
            kUnsignedByte);  // Low byte of R1 is non-zero from object tag.
     __ ret();
@@ -2231,9 +2244,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
       !target::Class::TraceAllocation(cls) &&
       target::SizeFitsInSizeTag(instance_size)) {
     if (is_cls_parameterized) {
-      // TODO(41974): Assign all allocation stubs to the root loading unit?
-      if (false &&
-          !IsSameObject(NullObject(),
+      if (!IsSameObject(NullObject(),
                         CastHandle<Object>(allocat_object_parametrized))) {
         __ GenerateUnRelocatedPcRelativeTailCall();
         unresolved_calls->Add(new UnresolvedPcRelativeCall(
@@ -2246,9 +2257,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
         __ br(R4);
       }
     } else {
-      // TODO(41974): Assign all allocation stubs to the root loading unit?
-      if (false &&
-          !IsSameObject(NullObject(), CastHandle<Object>(allocate_object))) {
+      if (!IsSameObject(NullObject(), CastHandle<Object>(allocate_object))) {
         __ GenerateUnRelocatedPcRelativeTailCall();
         unresolved_calls->Add(new UnresolvedPcRelativeCall(
             __ CodeSize(), allocate_object, /*is_tail_call=*/true));
@@ -3044,31 +3053,26 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // Closure handling.
   {
     __ Comment("Closure");
-    __ LoadCompressed(
-        STCInternalRegs::kInstanceCidOrSignatureReg,
-        FieldAddress(TypeTestABI::kInstanceReg,
-                     target::Closure::function_offset(), kObjectBytes));
-    __ LoadCompressed(
-        STCInternalRegs::kInstanceCidOrSignatureReg,
-        FieldAddress(STCInternalRegs::kInstanceCidOrSignatureReg,
-                     target::Function::signature_offset(), kObjectBytes));
+    __ LoadCompressed(STCInternalRegs::kInstanceCidOrSignatureReg,
+                      FieldAddress(TypeTestABI::kInstanceReg,
+                                   target::Closure::function_offset()));
+    __ LoadCompressed(STCInternalRegs::kInstanceCidOrSignatureReg,
+                      FieldAddress(STCInternalRegs::kInstanceCidOrSignatureReg,
+                                   target::Function::signature_offset()));
     if (n >= 3) {
       __ LoadCompressed(
           STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
           FieldAddress(TypeTestABI::kInstanceReg,
-                       target::Closure::instantiator_type_arguments_offset(),
-                       kObjectBytes));
+                       target::Closure::instantiator_type_arguments_offset()));
       if (n >= 7) {
         __ LoadCompressed(
             STCInternalRegs::kInstanceParentFunctionTypeArgumentsReg,
             FieldAddress(TypeTestABI::kInstanceReg,
-                         target::Closure::function_type_arguments_offset(),
-                         kObjectBytes));
+                         target::Closure::function_type_arguments_offset()));
         __ LoadCompressed(
             STCInternalRegs::kInstanceDelayedFunctionTypeArgumentsReg,
             FieldAddress(TypeTestABI::kInstanceReg,
-                         target::Closure::delayed_type_arguments_offset(),
-                         kObjectBytes));
+                         target::Closure::delayed_type_arguments_offset()));
       }
     }
     __ b(&loop);
@@ -3092,7 +3096,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
       __ add(kScratchReg, TypeTestABI::kInstanceReg,
              Operand(kScratchReg, LSL, kCompressedWordSizeLog2));
       __ LoadCompressed(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
-                        FieldAddress(kScratchReg, 0, kObjectBytes));
+                        FieldAddress(kScratchReg, 0));
       __ Bind(&has_no_type_arguments);
       __ Comment("No type arguments");
 
@@ -3115,8 +3119,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
       kScratchReg,
       Address(kCacheArrayReg,
               target::kCompressedWordSize *
-                  target::SubtypeTestCache::kInstanceCidOrSignature,
-              Address::Offset, kObjectBytes));
+                  target::SubtypeTestCache::kInstanceCidOrSignature));
   __ CompareObjectRegisters(kScratchReg, kNullReg);
   __ b(&done, EQ);
   __ CompareObjectRegisters(kScratchReg,
@@ -3128,16 +3131,14 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ LoadCompressed(kScratchReg,
                       Address(kCacheArrayReg,
                               target::kCompressedWordSize *
-                                  target::SubtypeTestCache::kDestinationType,
-                              Address::Offset, kObjectBytes));
+                                  target::SubtypeTestCache::kDestinationType));
     __ cmp(kScratchReg, Operand(TypeTestABI::kDstTypeReg));
     __ b(&next_iteration, NE);
     __ LoadCompressed(
         kScratchReg,
         Address(kCacheArrayReg,
                 target::kCompressedWordSize *
-                    target::SubtypeTestCache::kInstanceTypeArguments,
-                Address::Offset, kObjectBytes));
+                    target::SubtypeTestCache::kInstanceTypeArguments));
     __ cmp(kScratchReg,
            Operand(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg));
     if (n == 3) {
@@ -3148,16 +3149,14 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
           kScratchReg,
           Address(kCacheArrayReg,
                   target::kCompressedWordSize *
-                      target::SubtypeTestCache::kInstantiatorTypeArguments,
-                  Address::Offset, kObjectBytes));
+                      target::SubtypeTestCache::kInstantiatorTypeArguments));
       __ cmp(kScratchReg, Operand(TypeTestABI::kInstantiatorTypeArgumentsReg));
       __ b(&next_iteration, NE);
       __ LoadCompressed(
           kScratchReg,
           Address(kCacheArrayReg,
                   target::kCompressedWordSize *
-                      target::SubtypeTestCache::kFunctionTypeArguments,
-                  Address::Offset, kObjectBytes));
+                      target::SubtypeTestCache::kFunctionTypeArguments));
       __ cmp(kScratchReg, Operand(TypeTestABI::kFunctionTypeArgumentsReg));
       if (n == 5) {
         __ b(&found, EQ);
@@ -3165,23 +3164,22 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
         ASSERT(n == 7);
         __ b(&next_iteration, NE);
 
-        __ LoadCompressed(kScratchReg,
-                          Address(kCacheArrayReg,
-                                  target::kCompressedWordSize *
-                                      target::SubtypeTestCache::
-                                          kInstanceParentFunctionTypeArguments,
-                                  Address::Offset, kObjectBytes));
+        __ LoadCompressed(
+            kScratchReg, Address(kCacheArrayReg,
+                                 target::kCompressedWordSize *
+                                     target::SubtypeTestCache::
+                                         kInstanceParentFunctionTypeArguments));
         __ cmp(
             kScratchReg,
             Operand(STCInternalRegs::kInstanceParentFunctionTypeArgumentsReg));
         __ b(&next_iteration, NE);
 
-        __ LoadCompressed(kScratchReg,
-                          Address(kCacheArrayReg,
-                                  target::kCompressedWordSize *
-                                      target::SubtypeTestCache::
-                                          kInstanceDelayedFunctionTypeArguments,
-                                  Address::Offset, kObjectBytes));
+        __ LoadCompressed(
+            kScratchReg,
+            Address(kCacheArrayReg,
+                    target::kCompressedWordSize *
+                        target::SubtypeTestCache::
+                            kInstanceDelayedFunctionTypeArguments));
         __ cmp(
             kScratchReg,
             Operand(STCInternalRegs::kInstanceDelayedFunctionTypeArgumentsReg));
@@ -3198,11 +3196,10 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   __ Bind(&found);
   __ Comment("Found");
-  __ LoadCompressed(TypeTestABI::kSubtypeTestCacheResultReg,
-                    Address(kCacheArrayReg,
-                            target::kCompressedWordSize *
-                                target::SubtypeTestCache::kTestResult,
-                            Address::Offset, kObjectBytes));
+  __ LoadCompressed(
+      TypeTestABI::kSubtypeTestCacheResultReg,
+      Address(kCacheArrayReg, target::kCompressedWordSize *
+                                  target::SubtypeTestCache::kTestResult));
   __ Bind(&done);
   __ Comment("Done");
   __ ret();
@@ -3501,9 +3498,8 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   // proper target for the given name and arguments descriptor.  If the
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
-  __ LoadCompressed(
-      FUNCTION_REG,
-      FieldAddress(TMP, base + target::kCompressedWordSize, kObjectBytes));
+  __ LoadCompressed(FUNCTION_REG,
+                    FieldAddress(TMP, base + target::kCompressedWordSize));
   __ ldr(R1,
          FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
   __ ldr(ARGS_DESC_REG,
@@ -3566,14 +3562,12 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   if (FLAG_precompiled_mode) {
     const intptr_t entry_offset =
         target::ICData::EntryPointIndexFor(1) * target::kCompressedWordSize;
-    __ LoadCompressed(R1,
-                      Address(R8, entry_offset, Address::Offset, kObjectBytes));
+    __ LoadCompressed(R1, Address(R8, entry_offset));
     __ ldr(R1, FieldAddress(R1, target::Function::entry_point_offset()));
   } else {
     const intptr_t code_offset =
         target::ICData::CodeIndexFor(1) * target::kCompressedWordSize;
-    __ LoadCompressed(CODE_REG,
-                      Address(R8, code_offset, Address::Offset, kObjectBytes));
+    __ LoadCompressed(CODE_REG, Address(R8, code_offset));
     __ ldr(R1, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   }
   __ br(R1);
@@ -3646,13 +3640,9 @@ void StubCodeCompiler::GenerateSwitchableCallMissStub(Assembler* assembler) {
 void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   Label miss;
   __ LoadClassIdMayBeSmi(R1, R0);
-  __ ldr(R2,
-         FieldAddress(R5, target::SingleTargetCache::lower_limit_offset(),
-                      kTwoBytes),
+  __ ldr(R2, FieldAddress(R5, target::SingleTargetCache::lower_limit_offset()),
          kUnsignedTwoBytes);
-  __ ldr(R3,
-         FieldAddress(R5, target::SingleTargetCache::upper_limit_offset(),
-                      kTwoBytes),
+  __ ldr(R3, FieldAddress(R5, target::SingleTargetCache::upper_limit_offset()),
          kUnsignedTwoBytes);
 
   __ cmp(R1, Operand(R2));
@@ -3683,112 +3673,6 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ ldr(R1, FieldAddress(CODE_REG, target::Code::entry_point_offset(
                                         CodeEntryKind::kMonomorphic)));
   __ br(R1);
-}
-
-// Instantiate type arguments from instantiator and function type args.
-// R3 uninstantiated type arguments.
-// R2 instantiator type arguments.
-// R1: function type arguments.
-// Returns instantiated type arguments in R0.
-void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
-    Assembler* assembler) {
-  // Lookup cache before calling runtime.
-  __ LoadCompressedFieldFromOffset(
-      R0, InstantiationABI::kUninstantiatedTypeArgumentsReg,
-      target::TypeArguments::instantiations_offset());
-  __ AddImmediate(R0, Array::data_offset() - kHeapObjectTag);
-  // The instantiations cache is initialized with Object::zero_array() and is
-  // therefore guaranteed to contain kNoInstantiator. No length check needed.
-  compiler::Label loop, next, found, call_runtime;
-  __ Bind(&loop);
-
-  // Use load-acquire to test for sentinel, if we found non-sentinel it is safe
-  // to access the other entries. If we found a sentinel we go to runtime.
-  __ LoadAcquireCompressed(
-      R5, R0,
-      TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
-          target::kCompressedWordSize);
-  __ CompareImmediate(R5, Smi::RawValue(TypeArguments::kNoInstantiator),
-                      kObjectBytes);
-  __ b(&call_runtime, EQ);
-
-  __ CompareRegisters(R5, InstantiationABI::kInstantiatorTypeArgumentsReg);
-  __ b(&next, NE);
-  __ LoadCompressedFromOffset(
-      R4, R0,
-      TypeArguments::Instantiation::kFunctionTypeArgsIndex *
-          target::kCompressedWordSize);
-  __ CompareRegisters(R4, InstantiationABI::kFunctionTypeArgumentsReg);
-  __ b(&found, EQ);
-  __ Bind(&next);
-  __ AddImmediate(R0, TypeArguments::Instantiation::kSizeInWords *
-                          target::kCompressedWordSize);
-  __ b(&loop);
-
-  // Instantiate non-null type arguments.
-  // A runtime call to instantiate the type arguments is required.
-  __ Bind(&call_runtime);
-  __ EnterStubFrame();
-  __ PushPair(InstantiationABI::kUninstantiatedTypeArgumentsReg, NULL_REG);
-  __ PushPair(InstantiationABI::kFunctionTypeArgumentsReg,
-              InstantiationABI::kInstantiatorTypeArgumentsReg);
-  __ CallRuntime(kInstantiateTypeArgumentsRuntimeEntry, 3);
-  __ Drop(3);  // Drop 2 type vectors, and uninstantiated type.
-  __ Pop(InstantiationABI::kResultTypeArgumentsReg);
-  __ LeaveStubFrame();
-  __ Ret();
-
-  __ Bind(&found);
-  __ LoadCompressedFromOffset(
-      InstantiationABI::kResultTypeArgumentsReg, R0,
-      TypeArguments::Instantiation::kInstantiatedTypeArgsIndex *
-          target::kCompressedWordSize);
-  __ Ret();
-}
-
-void StubCodeCompiler::
-    GenerateInstantiateTypeArgumentsMayShareInstantiatorTAStub(
-        Assembler* assembler) {
-  // Return the instantiator type arguments if its nullability is compatible for
-  // sharing, otherwise proceed to instantiation cache lookup.
-  compiler::Label cache_lookup;
-  __ LoadCompressedSmi(
-      R0, FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                       target::TypeArguments::nullability_offset()));
-  __ LoadCompressedSmi(
-      R4, FieldAddress(InstantiationABI::kInstantiatorTypeArgumentsReg,
-                       target::TypeArguments::nullability_offset()));
-  __ and_(R4, R4, Operand(R0));
-  __ cmp(R4, Operand(R0));
-  __ b(&cache_lookup, NE);
-  __ mov(InstantiationABI::kResultTypeArgumentsReg,
-         InstantiationABI::kInstantiatorTypeArgumentsReg);
-  __ Ret();
-
-  __ Bind(&cache_lookup);
-  GenerateInstantiateTypeArgumentsStub(assembler);
-}
-
-void StubCodeCompiler::GenerateInstantiateTypeArgumentsMayShareFunctionTAStub(
-    Assembler* assembler) {
-  // Return the function type arguments if its nullability is compatible for
-  // sharing, otherwise proceed to instantiation cache lookup.
-  compiler::Label cache_lookup;
-  __ LoadCompressedSmi(
-      R0, FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                       target::TypeArguments::nullability_offset()));
-  __ LoadCompressedSmi(
-      R4, FieldAddress(InstantiationABI::kFunctionTypeArgumentsReg,
-                       target::TypeArguments::nullability_offset()));
-  __ and_(R4, R4, Operand(R0));
-  __ cmp(R4, Operand(R0));
-  __ b(&cache_lookup, NE);
-  __ mov(InstantiationABI::kResultTypeArgumentsReg,
-         InstantiationABI::kFunctionTypeArgumentsReg);
-  __ Ret();
-
-  __ Bind(&cache_lookup);
-  GenerateInstantiateTypeArgumentsStub(assembler);
 }
 
 static int GetScaleFactor(intptr_t size) {

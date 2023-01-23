@@ -73,11 +73,12 @@ Many tools embed this library, such as:
 
 * [dart format] - a formatter for Dart code
 * [dart doc] - a documentation generator for Dart code
-* [Dart Analysis Server][analysis_sever] - a stateful server that supports IDEs and editors
+* [Dart Analysis Server][analysis_server] - a stateful server that supports IDEs and editors
 
 ## Support
 
-Post issues and feature requests at https://github.com/dart-lang/sdk/issues
+Post issues and feature requests at https://github.com/dart-lang/sdk/issues.
+These will be triaged according to the [analyzer triage priorities][triage].
 
 Questions and discussions are welcome at the
 [Dart Analyzer Discussion Group][list].
@@ -105,5 +106,6 @@ See the [LICENSE] file.
 [LICENSE]: https://github.com/dart-lang/sdk/blob/main/pkg/analyzer/LICENSE
 [dart format]: https://github.com/dart-lang/dart_style
 [dart doc]: https://github.com/dart-lang/dartdoc
-[analysis_sever]: https://github.com/dart-lang/sdk/tree/main/pkg/analysis_server
+[analysis_server]: https://github.com/dart-lang/sdk/tree/main/pkg/analysis_server
 [custom_analysis]: https://dart.dev/guides/language/analysis-options
+[triage]: https://github.com/dart-lang/sdk/blob/main/pkg/analyzer/TRIAGE.md

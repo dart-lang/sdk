@@ -10,7 +10,7 @@ import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/commandline_options.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 const List<Test> TESTS = const <Test>[
   const Test('Empty js-interop class.', '''
@@ -377,13 +377,13 @@ class Test {
   final List<MessageKind> warnings;
 
   const Test(this.name, this._source,
-      {this.errors: const <MessageKind>[],
-      this.warnings: const <MessageKind>[]})
+      {this.errors = const <MessageKind>[],
+      this.warnings = const <MessageKind>[]})
       : _sources = null;
 
   const Test.multi(this.name, this._sources,
-      {this.errors: const <MessageKind>[],
-      this.warnings: const <MessageKind>[]})
+      {this.errors = const <MessageKind>[],
+      this.warnings = const <MessageKind>[]})
       : _source = null;
 
   String get source => _source ?? _sources['main.dart'];

@@ -35,6 +35,12 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitAugmentationImportDirective(AugmentationImportDirective node) {
+    // TODO(scheglov) write test
+    node.metadata.accept(this);
+  }
+
+  @override
   void visitClassDeclaration(ClassDeclaration node) {
     node.metadata.accept(this);
     node.typeParameters?.accept(this);
@@ -90,8 +96,12 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitExportDirective(ExportDirective node) {
+  void visitExportDirective(covariant ExportDirectiveImpl node) {
     node.metadata.accept(this);
+    // We might have already accessed metadata flags, e.g. `hasDeprecated`,
+    // before we finished metadata resolution, during `PrefixScope` building.
+    // So, these flags are not accurate anymore, and we need to reset them.
+    node.element!.resetMetadataFlags();
   }
 
   @override
@@ -167,6 +177,12 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
+    node.metadata.accept(this);
+  }
+
+  @override
+  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
+    // TODO(scheglov) write test
     node.metadata.accept(this);
   }
 

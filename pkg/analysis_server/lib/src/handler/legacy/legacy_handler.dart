@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
@@ -38,7 +38,7 @@ abstract class CompletionHandler extends LegacyHandler {
 /// A request handler for the legacy protocol.
 abstract class LegacyHandler {
   /// The analysis server that is using this handler to process a request.
-  final AnalysisServer server;
+  final LegacyAnalysisServer server;
 
   /// The request being handled.
   final Request request;

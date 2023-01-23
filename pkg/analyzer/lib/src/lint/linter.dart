@@ -338,8 +338,10 @@ class LinterContextImpl implements LinterContext {
   bool canBeConstConstructor(covariant ConstructorDeclarationImpl node) {
     var element = node.declaredElement!;
 
-    ClassElement classElement = element.enclosingElement;
-    if (classElement.hasNonFinalField) return false;
+    final classElement = element.enclosingElement;
+    if (classElement is ClassElement && classElement.hasNonFinalField) {
+      return false;
+    }
 
     var oldKeyword = node.constKeyword;
     try {
@@ -368,6 +370,7 @@ class LinterContextImpl implements LinterContext {
     var evaluationEngine = ConstantEvaluationEngine(
       declaredVariables: declaredVariables,
       isNonNullableByDefault: isEnabled(Feature.non_nullable),
+      configuration: ConstantEvaluationConfiguration(),
     );
 
     var dependencies = <ConstantEvaluationTarget>[];
@@ -376,9 +379,10 @@ class LinterContextImpl implements LinterContext {
     );
 
     computeConstants(
-      declaredVariables,
-      dependencies,
-      libraryElement.featureSet,
+      declaredVariables: declaredVariables,
+      constants: dependencies,
+      featureSet: libraryElement.featureSet,
+      configuration: ConstantEvaluationConfiguration(),
     );
 
     var visitor = ConstantVisitor(
@@ -482,9 +486,10 @@ class LinterContextImpl implements LinterContext {
     var dependenciesFinder = ConstantExpressionsDependenciesFinder();
     node.accept(dependenciesFinder);
     computeConstants(
-      declaredVariables,
-      dependenciesFinder.dependencies.toList(),
-      libraryElement.featureSet,
+      declaredVariables: declaredVariables,
+      constants: dependenciesFinder.dependencies.toList(),
+      featureSet: libraryElement.featureSet,
+      configuration: ConstantEvaluationConfiguration(),
     );
 
     var listener = _ConstantAnalysisErrorListener();
@@ -615,6 +620,15 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   @override
   final String name;
 
+  /// The documentation for the lint that should appear on the Diagnostic
+  /// messages page. This field should never be accessed in any code in `lib` or
+  /// `bin`.
+  final String? documentation;
+
+  /// A flag indicating whether this lint has documentation on the Diagnostic
+  /// messages page.
+  final bool hasDocumentation;
+
   /// Until pubspec analysis is pushed into the analyzer proper, we need to
   /// do some extra book-keeping to keep track of details that will help us
   /// constitute AnalysisErrorInfos.
@@ -626,6 +640,8 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     required this.description,
     required this.details,
     this.maturity = Maturity.stable,
+    this.documentation,
+    this.hasDocumentation = false,
   });
 
   /// A list of incompatible rule ids.
@@ -681,11 +697,20 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     }
   }
 
-  void reportPubLint(PSNode node) {
+  void reportPubLint(PSNode node,
+      {List<Object> arguments = const [],
+      List<DiagnosticMessage> contextMessages = const [],
+      ErrorCode? errorCode}) {
     var source = node.source;
     // Cache error and location info for creating AnalysisErrorInfos
     AnalysisError error = AnalysisError(
-        source, node.span.start.offset, node.span.length, lintCode);
+      source,
+      node.span.start.offset,
+      node.span.length,
+      errorCode ?? lintCode,
+      arguments,
+      contextMessages,
+    );
     LineInfo lineInfo = LineInfo.fromContent(source.contents.data);
 
     _locationInfo.add(AnalysisErrorInfoImpl([error], lineInfo));

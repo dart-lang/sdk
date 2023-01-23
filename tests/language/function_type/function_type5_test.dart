@@ -106,7 +106,7 @@ class U5<T> {
   late Function<A>(core.List<core.int> x) Function(int x) x22;
   late void Function<A>(List<T> x) Function(int x) x23;
 
-  U5({this.tIsBool: false, this.tIsInt: false})
+  U5({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   int m0([int x0 = -1]) => throw 'uncalled';

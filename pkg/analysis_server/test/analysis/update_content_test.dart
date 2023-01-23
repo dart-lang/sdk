@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_server_base.dart';
 import '../mocks.dart';
-import '../services/refactoring/abstract_rename.dart';
+import '../services/refactoring/legacy/abstract_rename.dart';
 
 void main() {
   defineReflectiveSuite(() {

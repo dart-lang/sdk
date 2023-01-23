@@ -7,7 +7,7 @@ class X extends core::Object {
     : super core::Object::•()
     ;
   method _foo() → void async /* futureValueType= void */ {
-    await null;
+    await null /* runtimeCheckType= dart.async::Future<Null> */ ;
     core::print("hello");
   }
   method foo() → void

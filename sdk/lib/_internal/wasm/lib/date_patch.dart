@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "core_patch.dart";
+part of "core_patch.dart";
 
 // This file is identical to the VM `date_patch.dart` except for the
 // implementation of `_getCurrentMicros` and the `_jsDateNow` import.
@@ -17,20 +17,19 @@ external double _jsDateNow();
 class DateTime {
   // Natives.
   // The natives have been moved up here to work around Issue 10401.
-  @pragma("vm:external-name", "DateTime_currentTimeMicros")
   static int _getCurrentMicros() =>
       (_jsDateNow() * Duration.microsecondsPerMillisecond).toInt();
 
-  @pragma("vm:external-name", "DateTime_timeZoneName")
-  external static String _timeZoneNameForClampedSeconds(int secondsSinceEpoch);
+  @pragma("wasm:import", "dart2wasm.getTimeZoneNameForSeconds")
+  external static String _timeZoneNameForClampedSecondsRaw(
+      double secondsSinceEpoch);
 
-  @pragma("vm:external-name", "DateTime_timeZoneOffsetInSeconds")
-  external static int _timeZoneOffsetInSecondsForClampedSeconds(
-      int secondsSinceEpoch);
+  static String _timeZoneNameForClampedSeconds(int secondsSinceEpoch) =>
+      _timeZoneNameForClampedSecondsRaw(secondsSinceEpoch.toDouble());
 
-  // Daylight-savings independent adjustment for the local time zone.
-  @pragma("vm:external-name", "DateTime_localTimeZoneAdjustmentInSeconds")
-  external static int _localTimeZoneAdjustmentInSeconds();
+  @pragma("wasm:import", "dart2wasm.getTimeZoneOffsetInSeconds")
+  external static double _timeZoneOffsetInSecondsForClampedSeconds(
+      double secondsSinceEpoch);
 
   static const _MICROSECOND_INDEX = 0;
   static const _MILLISECOND_INDEX = 1;
@@ -46,7 +45,7 @@ class DateTime {
 
   @patch
   DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
-      {bool isUtc: false})
+      {bool isUtc = false})
       : this._withValue(
             _validateMilliseconds(millisecondsSinceEpoch) *
                 Duration.microsecondsPerMillisecond,
@@ -54,7 +53,7 @@ class DateTime {
 
   @patch
   DateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch,
-      {bool isUtc: false})
+      {bool isUtc = false})
       : this._withValue(microsecondsSinceEpoch, isUtc: isUtc);
 
   @patch
@@ -428,7 +427,9 @@ class DateTime {
 
   static int _timeZoneOffsetInSeconds(int microsecondsSinceEpoch) {
     int equivalentSeconds = _equivalentSeconds(microsecondsSinceEpoch);
-    return _timeZoneOffsetInSecondsForClampedSeconds(equivalentSeconds);
+    return _timeZoneOffsetInSecondsForClampedSeconds(
+            equivalentSeconds.toDouble())
+        .toInt();
   }
 
   static String _timeZoneName(int microsecondsSinceEpoch) {

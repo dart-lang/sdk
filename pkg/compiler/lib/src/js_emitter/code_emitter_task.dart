@@ -2,44 +2,43 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.js_emitter.code_emitter_task;
 
-import '../common.dart';
+import 'package:compiler/src/dump_info.dart';
+import 'package:compiler/src/native/enqueue.dart';
+
 import '../common/metrics.dart' show Metric, Metrics, CountMetric;
 import '../common/tasks.dart' show CompilerTask;
-import '../compiler.dart' show Compiler;
+import '../compiler_interfaces.dart' show CompilerEmitterFacade;
 import '../constants/values.dart';
 import '../deferred_load/output_unit.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
-import '../js_backend/backend.dart' show CodegenInputs;
+import '../js_backend/codegen_inputs.dart' show CodegenInputs;
 import '../js_backend/inferred_data.dart';
 import '../js_backend/namer.dart' show Namer;
 import '../js_backend/runtime_types.dart' show RuntimeTypesChecks;
-import '../js_model/js_strategy.dart';
+import '../js_model/js_strategy_interfaces.dart';
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../options.dart';
 import '../universe/codegen_world_builder.dart';
-import '../world.dart' show JClosedWorld;
 import 'program_builder/program_builder.dart';
 import 'startup_emitter/emitter.dart' as startup_js_emitter;
 import 'startup_emitter/fragment_merger.dart';
 
-import 'metadata_collector.dart' show MetadataCollector;
+import 'js_emitter.dart';
 import 'model.dart';
-import 'native_emitter.dart' show NativeEmitter;
 
 /// Generates the code for all used classes in the program. Static fields (even
 /// in classes) are ignored, since they can be treated as non-class elements.
 ///
 /// The code for the containing (used) methods must exist in the `universe`.
 class CodeEmitterTask extends CompilerTask {
-  RuntimeTypesChecks _rtiChecks;
-  NativeEmitter _nativeEmitter;
-  MetadataCollector metadataCollector;
-  Emitter _emitter;
-  final Compiler _compiler;
+  late final RuntimeTypesChecks _rtiChecks;
+  late final NativeEmitter nativeEmitter;
+  late final MetadataCollector metadataCollector;
+  late final Emitter emitter;
+  final CompilerEmitterFacade _compiler;
   final bool _generateSourceMap;
 
   JsBackendStrategy get _backendStrategy => _compiler.backendStrategy;
@@ -49,30 +48,16 @@ class CodeEmitterTask extends CompilerTask {
   /// The field is set after the program has been emitted.
   /// Contains a list of all classes that are emitted.
   /// Currently used for testing and dump-info.
-  Set<ClassEntity> neededClasses;
+  late final Set<ClassEntity> neededClasses;
 
   /// See [neededClasses] but for class types.
-  Set<ClassEntity> neededClassTypes;
+  late final Set<ClassEntity> neededClassTypes;
 
   @override
   final _EmitterMetrics metrics = _EmitterMetrics();
 
   CodeEmitterTask(this._compiler, this._generateSourceMap)
       : super(_compiler.measurer);
-
-  NativeEmitter get nativeEmitter {
-    assert(
-        _nativeEmitter != null,
-        failedAt(
-            NO_LOCATION_SPANNABLE, "NativeEmitter has not been created yet."));
-    return _nativeEmitter;
-  }
-
-  Emitter /*!*/ get emitter {
-    assert(_emitter != null,
-        failedAt(NO_LOCATION_SPANNABLE, "Emitter has not been created yet."));
-    return _emitter;
-  }
 
   @override
   String get name => 'Code emitter';
@@ -88,22 +73,22 @@ class CodeEmitterTask extends CompilerTask {
   void createEmitter(
       Namer namer, CodegenInputs codegen, JClosedWorld closedWorld) {
     measure(() {
-      _nativeEmitter = NativeEmitter(
-          this, closedWorld, _backendStrategy.nativeCodegenEnqueuer);
-      _emitter = startup_js_emitter.EmitterImpl(
+      nativeEmitter = NativeEmitter(this, closedWorld,
+          _backendStrategy.nativeCodegenEnqueuer as NativeCodegenEnqueuer);
+      emitter = startup_js_emitter.EmitterImpl(
           _compiler.options,
           _compiler.reporter,
           _compiler.outputProvider,
-          _compiler.dumpInfoTask,
+          _compiler.dumpInfoTask as DumpInfoTask,
           namer,
           closedWorld,
           codegen.rtiRecipeEncoder,
-          _nativeEmitter,
+          nativeEmitter,
           _backendStrategy.sourceInformationStrategy,
           this,
           _generateSourceMap);
       metadataCollector = MetadataCollector(
-          _compiler.reporter, _emitter, codegen.rtiRecipeEncoder);
+          _compiler.reporter, emitter, codegen.rtiRecipeEncoder);
     });
   }
 
@@ -123,7 +108,7 @@ class CodeEmitterTask extends CompilerTask {
           closedWorld.commonElements,
           closedWorld.outputUnitData,
           codegenWorld,
-          _backendStrategy.nativeCodegenEnqueuer,
+          _backendStrategy.nativeCodegenEnqueuer as NativeCodegenEnqueuer,
           closedWorld.backendUsage,
           closedWorld.nativeData,
           closedWorld.rtiNeed,
@@ -141,7 +126,7 @@ class CodeEmitterTask extends CompilerTask {
           _backendStrategy.sourceInformationStrategy,
           closedWorld.sorter,
           _rtiChecks.requiredClasses,
-          closedWorld.elementEnvironment.mainFunction);
+          closedWorld.elementEnvironment.mainFunction!);
       int size = emitter.emitProgram(programBuilder, codegenWorld);
       neededClasses = programBuilder.collector.neededClasses;
       neededClassTypes = programBuilder.collector.neededClassTypes;
@@ -199,9 +184,9 @@ abstract class ModularEmitter {
 ///
 /// These methods are _not_ available during modular code generation.
 abstract class Emitter implements ModularEmitter {
-  Program get programForTesting;
+  Program? get programForTesting;
 
-  List<PreFragment> get preDeferredFragmentsForTesting;
+  List<PreFragment>? get preDeferredFragmentsForTesting;
 
   /// The set of omitted [OutputUnits].
   Set<OutputUnit> get omittedOutputUnits;

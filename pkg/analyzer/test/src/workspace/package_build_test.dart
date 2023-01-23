@@ -66,7 +66,7 @@ class PackageBuildFileUriResolverTest with ResourceProviderMixin {
     resolver = PackageBuildFileUriResolver(workspace);
     newFile('/workspace/test.dart', '');
     newFile('/workspace/.dart_tool/build/generated/project/gen.dart', '');
-    expect(workspace.isBazel, isFalse);
+    expect(workspace.isBlaze, isFalse);
   }
 
   void test_pathToUri() {

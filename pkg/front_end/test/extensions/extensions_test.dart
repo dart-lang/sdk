@@ -141,7 +141,8 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
       if (library != libraryBuilder) {
         libraryPrefix = '${library.fileUri.pathSegments.last}.';
       }
-      features.addElement(Tags.builderScope, '$libraryPrefix${extension.name}');
+      features.addElement(
+          Tags.builderScope, '$libraryPrefix${extension.extension.name}');
     });
     return features;
   }

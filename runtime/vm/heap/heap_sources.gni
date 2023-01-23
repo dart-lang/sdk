@@ -2,8 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# This file contains all sources (vm and tests) for the compiler pipeline.
-# Unit test files need to have a "_test" suffix appended to the name.
 heap_sources = [
   "become.cc",
   "become.h",
@@ -17,12 +15,16 @@ heap_sources = [
   "heap.h",
   "marker.cc",
   "marker.h",
+  "page.cc",
+  "page.h",
   "pages.cc",
   "pages.h",
   "pointer_block.cc",
   "pointer_block.h",
   "safepoint.cc",
   "safepoint.h",
+  "sampler.cc",
+  "sampler.h",
   "scavenger.cc",
   "scavenger.h",
   "spaces.h",

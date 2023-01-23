@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 82;
+  UInt32 formatVersion = 89;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -229,6 +229,11 @@ type TypedefReference {
   CanonicalNameReference canonicalName;
 }
 
+type ViewReference {
+  // Must be populated by a view (possibly later in the file).
+  CanonicalNameReference canonicalName;
+}
+
 type Name {
   StringReference name;
   if name begins with '_' {
@@ -252,6 +257,7 @@ type Library {
   List<Typedef> typedefs;
   List<Class> classes;
   List<Extension> extensions;
+  List<View> views;
   List<Field> fields;
   List<Procedure> procedures;
 
@@ -313,7 +319,7 @@ type Class extends Node {
   FileOffset fileOffset; // Offset of the name of the class.
   FileOffset fileEndOffset;
   Byte flags (isAbstract, isEnum, isAnonymousMixin, isEliminatedMixin,
-              isMixinDeclaration, hasConstConstructor, isMacro);
+              isMixinDeclaration, hasConstConstructor, isMacro, isSealed);
   StringReference name;
   List<Expression> annotations;
   List<TypeParameter> typeParameters;
@@ -340,10 +346,11 @@ type Extension extends Node {
   List<Expression> annotations;
   UriReference fileUri;
   FileOffset fileOffset;
-  Byte flags (isExtensionTypeDeclaration);
+  Byte flags (isExtensionTypeDeclaration, isUnnamedExtension);
   List<TypeParameter> typeParameters;
   DartType onType;
   Option<ExtensionTypeShowHideClause> showHideClause;
+  List<ExtensionMemberDescriptor> members;
 }
 
 type ExtensionTypeShowHideClause {
@@ -357,7 +364,6 @@ type ExtensionTypeShowHideClause {
   List<CanonicalNameReference> hiddenGetters;
   List<CanonicalNameReference> hiddenSetters;
   List<CanonicalNameReference> hiddenOperators;
-  List<ExtensionMemberDescriptor> members;
 }
 
 enum ExtensionMemberKind { Field = 0, Method = 1, Getter = 2, Setter = 3, Operator = 4, TearOff = 5, }
@@ -365,6 +371,28 @@ enum ExtensionMemberKind { Field = 0, Method = 1, Getter = 2, Setter = 3, Operat
 type ExtensionMemberDescriptor {
   Name name;
   ExtensionMemberKind kind;
+  Byte flags (isStatic);
+  MemberReference member;
+}
+
+type View extends Node {
+  Byte tag = 85;
+  CanonicalNameReference canonicalName;
+  StringReference name;
+  List<Expression> annotations;
+  UriReference fileUri;
+  FileOffset fileOffset;
+  Byte flags ();
+  List<TypeParameter> typeParameters;
+  DartType representationType;
+  List<ViewMemberDescriptor> members;
+}
+
+enum ViewMemberKind { Constructor = 0, Factory = 1, Field = 2, Method = 3, Getter = 4, Setter = 5, Operator = 6, TearOff = 7, }
+
+type ViewMemberDescriptor {
+  Name name;
+  ViewMemberKind kind;
   Byte flags (isStatic);
   MemberReference member;
 }
@@ -382,7 +410,8 @@ type Field extends Member {
   FileOffset fileEndOffset;
   UInt flags (isFinal, isConst, isStatic, isCovariantByDeclaration,
                 isCovariantByClass, isLate, isExtensionMember,
-                isNonNullableByDefault, isInternalImplementation);
+                isNonNullableByDefault, isInternalImplementation,
+                isEnumElement);
   Name name;
   List<Expression> annotations;
   DartType type;
@@ -510,8 +539,7 @@ enum AsyncMarker {
   Sync,
   SyncStar,
   Async,
-  AsyncStar,
-  SyncYielding
+  AsyncStar
 }
 */
 
@@ -650,6 +678,22 @@ type InstanceGet extends Expression {
   DartType resultType;
   MemberReference interfaceTarget;
   MemberReference interfaceTargetOrigin; // May be NullReference.
+}
+
+type RecordIndexGet extends Expression {
+  Byte tag = 101;
+  FileOffset fileOffset;
+  Expression receiver;
+  DartType receiverType;
+  UInt index;
+}
+
+type RecordNameGet extends Expression {
+  Byte tag = 102;
+  FileOffset fileOffset;
+  Expression receiver;
+  DartType receiverType;
+  StringReference name;
 }
 
 type InstanceSet extends Expression {
@@ -1094,10 +1138,27 @@ type MapEntry {
   Expression value;
 }
 
+type RecordLiteral extends Expression {
+  Byte tag = 104; // Note: tag is out of order.
+  FileOffset fileOffset;
+  List<Expression> positional;
+  List<NamedExpression> named;
+  DartType recordType;
+}
+
+type ConstRecordLiteral extends Expression {
+  Byte tag = 105; // Note: tag is out of order.
+  FileOffset fileOffset;
+  List<Expression> positional;
+  List<NamedExpression> named;
+  DartType recordType;
+}
+
 type AwaitExpression extends Expression {
   Byte tag = 51;
   FileOffset fileOffset;
   Expression operand;
+  Option<DartType> runtimeCheckType;
 }
 
 type FunctionExpression extends Expression {
@@ -1238,6 +1299,13 @@ type ConstructorTearOffConstant extends Constant {
 type RedirectingFactoryTearOffConstant extends Constant {
   Byte tag = 16;
   CanonicalNameReference constructorReference;
+}
+
+type RecordConstant extends Constant {
+  Byte tag = 17;
+  List<ConstantReference> positional;
+  List<Pair<StringReference, ConstantReference>> named;
+  DartType recordType;
 }
 
 abstract type Statement extends Node {}
@@ -1398,7 +1466,7 @@ type TryFinally extends Statement {
 type YieldStatement extends Statement {
   Byte tag = 77;
   FileOffset fileOffset;
-  Byte flags (isYieldStar, isNative);
+  Byte flags (isYieldStar);
   Expression expression;
 }
 
@@ -1493,6 +1561,13 @@ type FunctionType extends DartType {
   DartType returnType;
 }
 
+type RecordType extends DartType {
+  Byte tag = 100;
+  Byte nullability; // Index into the Nullability enum above.
+  List<DartType> positional;
+  List<NamedDartType> named;
+}
+
 type SimpleFunctionType extends DartType {
   Byte tag = 97; // Note: tag is out of order.
   Byte nullability; // Index into the Nullability enum above.
@@ -1530,7 +1605,20 @@ type TypeParameterType extends DartType {
   // the class type parameters in a constructor refer to those declared on the
   // class.
   UInt index;
-  Option<DartType> bound;
+}
+
+type IntersectionType extends DartType {
+  Byte tag = 99;
+  TypeParameterType left;
+  DartType right;
+}
+
+type ViewType extends DartType {
+  Byte tag = 103;
+  Byte nullability; // Index into the Nullability enum above.
+  ViewReference viewReference;
+  List<DartType> typeArguments;
+  DartType representationType;
 }
 
 type TypedefType {

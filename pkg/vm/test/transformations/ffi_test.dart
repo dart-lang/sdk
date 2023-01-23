@@ -10,9 +10,9 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/verifier.dart';
-
 import 'package:test/test.dart';
-
+import 'package:vm/kernel_front_end.dart'
+    show runGlobalTransformations, ErrorDetector;
 import 'package:vm/transformations/ffi/native.dart' show transformLibraries;
 
 import '../common_test_utils.dart';
@@ -25,7 +25,7 @@ class TestDiagnosticReporter extends DiagnosticReporter<Object, Object> {
       {List<Object>? context}) {/* nop */}
 }
 
-runTestCase(Uri source) async {
+runTestCaseJit(Uri source) async {
   final target = TestingVmTarget(TargetFlags());
 
   Component component = await compileTestCaseToKernelProgram(source,
@@ -48,6 +48,33 @@ runTestCase(Uri source) async {
   compareResultWithExpectationsFile(source, actual);
 }
 
+runTestCaseAot(Uri source) async {
+  final target = TestingVmTarget(TargetFlags(supportMirrors: false));
+
+  Component component = await compileTestCaseToKernelProgram(source,
+      target: target, experimentalFlags: ['generic-metadata']);
+
+  const bool useGlobalTypeFlowAnalysis = true;
+  const bool enableAsserts = false;
+  const bool useProtobufAwareTreeShakerV2 = true;
+  final nopErrorDetector = ErrorDetector();
+  runGlobalTransformations(
+    target,
+    component,
+    useGlobalTypeFlowAnalysis,
+    enableAsserts,
+    useProtobufAwareTreeShakerV2,
+    nopErrorDetector,
+    treeShakeWriteOnlyFields: true,
+  );
+
+  verifyComponent(component);
+
+  final actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
+
+  compareResultWithExpectationsFile(source, actual, expectFilePostfix: '.aot');
+}
+
 void main(List<String> args) {
   assert(args.isEmpty || args.length == 1);
   String? filter;
@@ -63,7 +90,8 @@ void main(List<String> args) {
         .reversed) {
       if (entry.path.endsWith(".dart") &&
           (filter == null || entry.path.contains(filter))) {
-        test(entry.path, () => runTestCase(entry.uri));
+        test(entry.path, () => runTestCaseJit(entry.uri));
+        test('${entry.path} aot', () => runTestCaseAot(entry.uri));
       }
     }
   });

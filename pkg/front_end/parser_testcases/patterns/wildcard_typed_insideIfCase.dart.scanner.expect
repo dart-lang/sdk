@@ -1,0 +1,9 @@
+void f(x) {
+if (x case int _) {}
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] case[KeywordToken] int[StringToken] _[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

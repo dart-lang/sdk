@@ -31,6 +31,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_schema_elimination.dart';
 import 'package:analyzer/src/dart/element/well_bounded.dart';
+import 'package:analyzer/src/dart/error/inference_error_listener.dart';
 
 /// Fresh type parameters created to unify two lists of type parameters.
 class RelatedTypeParameters {
@@ -316,9 +317,9 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   List<InterfaceType> gatherMixinSupertypeConstraintsForInference(
-      ClassElement mixinElement) {
+      InterfaceElement mixinElement) {
     List<InterfaceType> candidates;
-    if (mixinElement.isMixin) {
+    if (mixinElement is MixinElement) {
       candidates = mixinElement.superclassConstraints;
     } else {
       final supertype = mixinElement.supertype;
@@ -327,7 +328,7 @@ class TypeSystemImpl implements TypeSystem {
       }
       candidates = [supertype];
       candidates.addAll(mixinElement.mixins);
-      if (mixinElement.isMixinApplication) {
+      if (mixinElement is ClassElement && mixinElement.isMixinApplication) {
         candidates.removeLast();
       }
     }
@@ -493,13 +494,33 @@ class TypeSystemImpl implements TypeSystem {
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
     var inferrer = GenericInferrer(this, fnType.typeFormals,
-        errorReporter: errorReporter,
+        inferenceErrorListener: errorReporter == null
+            ? null
+            : InferenceErrorReporter(
+                errorReporter,
+                isNonNullableByDefault: isNonNullableByDefault,
+                isGenericMetadataEnabled: genericMetadataIsEnabled,
+              ),
         errorNode: errorNode,
         genericMetadataIsEnabled: genericMetadataIsEnabled);
     inferrer.constrainGenericFunctionInContext(fnType, contextType);
 
     // Infer and instantiate the resulting type.
     return inferrer.upwardsInfer();
+  }
+
+  @override
+  InterfaceType instantiateInterfaceToBounds({
+    required InterfaceElement element,
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    final typeParameters = element.typeParameters;
+    final typeArguments = _defaultTypeArguments(typeParameters);
+    final type = element.instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+    return toLegacyTypeIfOptOut(type) as InterfaceType;
   }
 
   /// Given a [DartType] [type], if [type] is an uninstantiated
@@ -517,6 +538,7 @@ class TypeSystemImpl implements TypeSystem {
     return instantiateType(type, arguments);
   }
 
+  @Deprecated('Use instantiateInterface/TypeAliasToBounds() instead')
   @override
   DartType instantiateToBounds2({
     ClassElement? classElement,
@@ -524,23 +546,15 @@ class TypeSystemImpl implements TypeSystem {
     required NullabilitySuffix nullabilitySuffix,
   }) {
     if (classElement != null) {
-      var typeParameters = classElement.typeParameters;
-      var typeArguments = _defaultTypeArguments(typeParameters);
-      var type = classElement.instantiate(
-        typeArguments: typeArguments,
+      return instantiateInterfaceToBounds(
+        element: classElement,
         nullabilitySuffix: nullabilitySuffix,
       );
-      type = toLegacyTypeIfOptOut(type) as InterfaceType;
-      return type;
     } else if (typeAliasElement != null) {
-      var typeParameters = typeAliasElement.typeParameters;
-      var typeArguments = _defaultTypeArguments(typeParameters);
-      var type = typeAliasElement.instantiate(
-        typeArguments: typeArguments,
+      return instantiateTypeAliasToBounds(
+        element: typeAliasElement,
         nullabilitySuffix: nullabilitySuffix,
       );
-      type = toLegacyTypeIfOptOut(type);
-      return type;
     } else {
       throw ArgumentError('Missing element');
     }
@@ -562,6 +576,20 @@ class TypeSystemImpl implements TypeSystem {
     } else {
       return type;
     }
+  }
+
+  @override
+  DartType instantiateTypeAliasToBounds({
+    required TypeAliasElement element,
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    final typeParameters = element.typeParameters;
+    final typeArguments = _defaultTypeArguments(typeParameters);
+    final type = element.instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+    return toLegacyTypeIfOptOut(type);
   }
 
   /// Given uninstantiated [typeFormals], instantiate them to their bounds.
@@ -1512,6 +1540,7 @@ class TypeSystemImpl implements TypeSystem {
       required DartType declaredReturnType,
       required DartType? contextReturnType,
       ErrorReporter? errorReporter,
+      InferenceErrorListener? inferenceErrorListener,
       AstNode? errorNode,
       required bool genericMetadataIsEnabled,
       bool isConst = false}) {
@@ -1519,8 +1548,15 @@ class TypeSystemImpl implements TypeSystem {
     // inferred. It will optimistically assume these type parameters can be
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
+    if (errorReporter != null) {
+      inferenceErrorListener ??= InferenceErrorReporter(
+        errorReporter,
+        isNonNullableByDefault: isNonNullableByDefault,
+        isGenericMetadataEnabled: genericMetadataIsEnabled,
+      );
+    }
     var inferrer = GenericInferrer(this, typeParameters,
-        errorReporter: errorReporter,
+        inferenceErrorListener: inferenceErrorListener,
         errorNode: errorNode,
         genericMetadataIsEnabled: genericMetadataIsEnabled);
 

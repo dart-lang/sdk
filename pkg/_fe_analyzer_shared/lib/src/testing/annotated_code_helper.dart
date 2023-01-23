@@ -41,6 +41,7 @@ class Annotation {
       : assert(offset != null),
         assert(offset >= 0);
 
+  @override
   String toString() =>
       'Annotation(index=$index,lineNo=$lineNo,columnNo=$columnNo,'
       'offset=$offset,prefix=$prefix,text=$text,suffix=$suffix)';

@@ -113,10 +113,6 @@ int Platform::NumberOfProcessors() {
   return info.dwNumberOfProcessors;
 }
 
-const char* Platform::OperatingSystem() {
-  return "windows";
-}
-
 // We pull the version number, and other version information out of the
 // registry because GetVersionEx() and friends lie about the OS version after
 // Windows 8.1. See:

@@ -5,6 +5,6 @@
 import "dart:nonexisting/nonexisting.dart";
 //     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.URI_DOES_NOT_EXIST
-// [cfe] Not found: 'dart:nonexisting/nonexisting.dart'
+// [cfe] Dart library 'dart:nonexisting/nonexisting.dart' is not available on this platform.
 
 main() {}

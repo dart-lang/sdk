@@ -1,0 +1,8 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+static method test(dynamic x) → dynamic {
+  final dynamic #t1 = x;
+  if(#t1 == null) {
+  }
+}

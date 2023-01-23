@@ -372,6 +372,12 @@ void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
   __ Breakpoint();
 }
 
+void StubCodeCompiler::GenerateWriteError(Assembler* assembler,
+                                          bool with_fpu_regs) {
+  // Only used in AOT.
+  __ Breakpoint();
+}
+
 void StubCodeCompiler::GenerateDispatchTableNullErrorStub(
     Assembler* assembler) {
   // Only used in AOT.
@@ -1334,60 +1340,60 @@ void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
 }
 
 void StubCodeCompiler::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
-  // Not used on IA32.
-  __ Breakpoint();
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+    if ((kDartAvailableCpuRegs & (1 << i)) == 0) continue;
+
+    Register reg = static_cast<Register>(i);
+    intptr_t start = __ CodeSize();
+    __ pushl(kWriteBarrierObjectReg);
+    __ movl(kWriteBarrierObjectReg, reg);
+    __ call(Address(THR, target::Thread::write_barrier_entry_point_offset()));
+    __ popl(kWriteBarrierObjectReg);
+    __ ret();
+    intptr_t end = __ CodeSize();
+
+    ASSERT_EQUAL(end - start, kStoreBufferWrapperSize);
+    RELEASE_ASSERT(end - start == kStoreBufferWrapperSize);
+  }
 }
 
 // Helper stub to implement Assembler::StoreIntoObject/Array.
 // Input parameters:
 //   EDX: Object (old)
+//   EBX: Value (old or new)
 //   EDI: Slot
-// If EDX is not remembered, mark as remembered and add to the store buffer.
+// If EAX is new, add EDX to the store buffer. Otherwise EAX is old, mark EAX
+// and add it to the mark list.
 COMPILE_ASSERT(kWriteBarrierObjectReg == EDX);
-COMPILE_ASSERT(kWriteBarrierValueReg == kNoRegister);
+COMPILE_ASSERT(kWriteBarrierValueReg == EBX);
 COMPILE_ASSERT(kWriteBarrierSlotReg == EDI);
 static void GenerateWriteBarrierStubHelper(Assembler* assembler,
                                            bool cards) {
-  Label remember_card;
-
   // Save values being destroyed.
   __ pushl(EAX);
   __ pushl(ECX);
 
-  Label add_to_buffer;
-  // Check whether this object has already been remembered. Skip adding to the
-  // store buffer if the object is in the store buffer already.
-  // Spilled: EAX, ECX
-  // EDX: Address being stored
-  __ movl(EAX, FieldAddress(EDX, target::Object::tags_offset()));
-  __ testl(EAX,
-           Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
-  __ j(NOT_EQUAL, &add_to_buffer, Assembler::kNearJump);
-  __ popl(ECX);
-  __ popl(EAX);
-  __ ret();
-
-  // Update the tags that this object has been remembered.
-  // EDX: Address being stored
-  // EAX: Current tag value
-  __ Bind(&add_to_buffer);
+  Label add_to_mark_stack, remember_card, lost_race;
+  __ testl(EBX, Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
+  __ j(ZERO, &add_to_mark_stack);
 
   if (cards) {
-    // Check if this object is using remembered cards.
-    __ testl(EAX, Immediate(1 << target::UntaggedObject::kCardRememberedBit));
-    __ j(NOT_EQUAL, &remember_card, Assembler::kFarJump);  // Unlikely.
+    __ testl(FieldAddress(EDX, target::Object::tags_offset()),
+             Immediate(1 << target::UntaggedObject::kCardRememberedBit));
+    __ j(NOT_ZERO, &remember_card, Assembler::kFarJump);  // Unlikely.
   } else {
 #if defined(DEBUG)
     Label ok;
-    __ testl(EAX, Immediate(1 << target::UntaggedObject::kCardRememberedBit));
-    __ j(ZERO, &ok, Assembler::kFarJump);  // Unlikely.
+    __ testl(FieldAddress(EDX, target::Object::tags_offset()),
+             Immediate(1 << target::UntaggedObject::kCardRememberedBit));
+    __ j(ZERO, &ok, Assembler::kFarJump);
     __ Stop("Wrong barrier");
     __ Bind(&ok);
 #endif
   }
 
   // Atomically clear kOldAndNotRememberedBit.
-  Label retry, lost_race;
+  Label retry;
   __ movl(EAX, FieldAddress(EDX, target::Object::tags_offset()));
   __ Bind(&retry);
   __ movl(ECX, EAX);
@@ -1437,6 +1443,43 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   }
   __ ret();
 
+  __ Bind(&add_to_mark_stack);
+  // Atomically clear kOldAndNotMarkedBit.
+  Label retry_marking, marking_overflow;
+  __ movl(EAX, FieldAddress(EBX, target::Object::tags_offset()));
+  __ Bind(&retry_marking);
+  __ movl(ECX, EAX);
+  __ testl(ECX, Immediate(1 << target::UntaggedObject::kOldAndNotMarkedBit));
+  __ j(ZERO, &lost_race);  // Marked by another thread.
+  __ andl(ECX, Immediate(~(1 << target::UntaggedObject::kOldAndNotMarkedBit)));
+  // Cmpxchgq: compare value = implicit operand EAX, new value = ECX.
+  // On failure, EAX is updated with the current value.
+  __ LockCmpxchgl(FieldAddress(EBX, target::Object::tags_offset()), ECX);
+  __ j(NOT_EQUAL, &retry_marking, Assembler::kNearJump);
+
+  __ movl(EAX, Address(THR, target::Thread::marking_stack_block_offset()));
+  __ movl(ECX, Address(EAX, target::MarkingStackBlock::top_offset()));
+  __ movl(
+      Address(EAX, ECX, TIMES_4, target::MarkingStackBlock::pointers_offset()),
+      EBX);
+  __ incl(ECX);
+  __ movl(Address(EAX, target::MarkingStackBlock::top_offset()), ECX);
+  __ cmpl(ECX, Immediate(target::MarkingStackBlock::kSize));
+  __ popl(ECX);  // Unspill.
+  __ popl(EAX);  // Unspill.
+  __ j(EQUAL, &marking_overflow, Assembler::kNearJump);
+  __ ret();
+
+  __ Bind(&marking_overflow);
+  {
+    LeafRuntimeScope rt(assembler,
+                        /*frame_size=*/1 * target::kWordSize,
+                        /*preserve_registers=*/true);
+    __ movl(Address(ESP, 0), THR);  // Push the thread as the only argument.
+    rt.Call(kMarkingStackBlockProcessRuntimeEntry, 1);
+  }
+  __ ret();
+
   __ Bind(&lost_race);
   __ popl(ECX);  // Unspill.
   __ popl(EAX);  // Unspill.
@@ -1448,17 +1491,17 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
     // Get card table.
     __ Bind(&remember_card);
     __ movl(EAX, EDX);                              // Object.
-    __ andl(EAX, Immediate(target::kOldPageMask));  // OldPage.
-    __ cmpl(Address(EAX, target::OldPage::card_table_offset()), Immediate(0));
+    __ andl(EAX, Immediate(target::kPageMask));     // Page.
+    __ cmpl(Address(EAX, target::Page::card_table_offset()), Immediate(0));
     __ j(EQUAL, &remember_card_slow, Assembler::kNearJump);
 
     // Dirty the card.
     __ subl(EDI, EAX);  // Offset in page.
     __ movl(EAX,
-            Address(EAX, target::OldPage::card_table_offset()));  // Card table.
+            Address(EAX, target::Page::card_table_offset()));  // Card table.
     __ shrl(
         EDI,
-        Immediate(target::OldPage::kBytesPerCardLog2));  // Index in card table.
+        Immediate(target::Page::kBytesPerCardLog2));  // Index in card table.
     __ movb(Address(EAX, EDI, TIMES_1, 0), Immediate(1));
     __ popl(ECX);
     __ popl(EAX);
@@ -2875,113 +2918,6 @@ void StubCodeCompiler::GenerateSwitchableCallMissStub(Assembler* assembler) {
 
 void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ int3();  // AOT only.
-}
-
-// Instantiate type arguments from instantiator and function type args.
-// EBX: uninstantiated type arguments.
-// EDX: instantiator type arguments.
-// ECX: function type arguments.
-// Returns instantiated type arguments in EAX.
-void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
-    Assembler* assembler) {
-  // Lookup cache before calling runtime.
-  __ pushl(InstantiationABI::kUninstantiatedTypeArgumentsReg);  // Preserve reg.
-  __ movl(EAX, compiler::FieldAddress(
-                   InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                   target::TypeArguments::instantiations_offset()));
-  __ leal(EAX, compiler::FieldAddress(EAX, Array::data_offset()));
-  // The instantiations cache is initialized with Object::zero_array() and is
-  // therefore guaranteed to contain kNoInstantiator. No length check needed.
-  compiler::Label loop, next, found, call_runtime;
-  __ Bind(&loop);
-
-  // Use load-acquire to test for sentinel, if we found non-sentinel it is safe
-  // to access the other entries. If we found a sentinel we go to runtime.
-  __ LoadAcquire(EDI, EAX,
-                 TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
-                     target::kWordSize);
-  __ CompareImmediate(EDI, Smi::RawValue(TypeArguments::kNoInstantiator));
-  __ j(EQUAL, &call_runtime, compiler::Assembler::kNearJump);
-
-  __ cmpl(EDI, InstantiationABI::kInstantiatorTypeArgumentsReg);
-  __ j(NOT_EQUAL, &next, compiler::Assembler::kNearJump);
-  __ movl(EBX, compiler::Address(
-                   EAX, TypeArguments::Instantiation::kFunctionTypeArgsIndex *
-                            target::kWordSize));
-  __ cmpl(EBX, InstantiationABI::kFunctionTypeArgumentsReg);
-  __ j(EQUAL, &found, compiler::Assembler::kNearJump);
-  __ Bind(&next);
-  __ addl(EAX, compiler::Immediate(TypeArguments::Instantiation::kSizeInWords *
-                                   target::kWordSize));
-  __ jmp(&loop, compiler::Assembler::kNearJump);
-
-  // Instantiate non-null type arguments.
-  // A runtime call to instantiate the type arguments is required.
-  __ Bind(&call_runtime);
-  __ popl(InstantiationABI::kUninstantiatedTypeArgumentsReg);  // Restore reg.
-  __ EnterStubFrame();
-  __ PushObject(Object::null_object());  // Make room for the result.
-  __ pushl(InstantiationABI::kUninstantiatedTypeArgumentsReg);
-  __ pushl(InstantiationABI::kInstantiatorTypeArgumentsReg);
-  __ pushl(InstantiationABI::kFunctionTypeArgumentsReg);
-  __ CallRuntime(kInstantiateTypeArgumentsRuntimeEntry, 3);
-  __ Drop(3);  // Drop 2 type vectors, and uninstantiated args.
-  __ popl(InstantiationABI::kResultTypeArgumentsReg);
-  __ LeaveFrame();
-  __ ret();
-
-  __ Bind(&found);
-  __ popl(InstantiationABI::kUninstantiatedTypeArgumentsReg);  // Drop reg.
-  __ movl(InstantiationABI::kResultTypeArgumentsReg,
-          compiler::Address(
-              EAX, TypeArguments::Instantiation::kInstantiatedTypeArgsIndex *
-                       target::kWordSize));
-  __ ret();
-}
-
-void StubCodeCompiler::
-    GenerateInstantiateTypeArgumentsMayShareInstantiatorTAStub(
-        Assembler* assembler) {
-  // Return the instantiator type arguments if its nullability is compatible for
-  // sharing, otherwise proceed to instantiation cache lookup.
-  compiler::Label cache_lookup;
-  __ movl(EAX, compiler::FieldAddress(
-                   InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                   target::TypeArguments::nullability_offset()));
-  __ movl(EDI, compiler::FieldAddress(
-                   InstantiationABI::kInstantiatorTypeArgumentsReg,
-                   target::TypeArguments::nullability_offset()));
-  __ andl(EDI, EAX);
-  __ cmpl(EDI, EAX);
-  __ j(NOT_EQUAL, &cache_lookup, compiler::Assembler::kNearJump);
-  __ movl(InstantiationABI::kResultTypeArgumentsReg,
-          InstantiationABI::kInstantiatorTypeArgumentsReg);
-  __ ret();
-
-  __ Bind(&cache_lookup);
-  GenerateInstantiateTypeArgumentsStub(assembler);
-}
-
-void StubCodeCompiler::GenerateInstantiateTypeArgumentsMayShareFunctionTAStub(
-    Assembler* assembler) {
-  // Return the function type arguments if its nullability is compatible for
-  // sharing, otherwise proceed to instantiation cache lookup.
-  compiler::Label cache_lookup;
-  __ movl(EAX, compiler::FieldAddress(
-                   InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                   target::TypeArguments::nullability_offset()));
-  __ movl(EDI,
-          compiler::FieldAddress(InstantiationABI::kFunctionTypeArgumentsReg,
-                                 target::TypeArguments::nullability_offset()));
-  __ andl(EDI, EAX);
-  __ cmpl(EDI, EAX);
-  __ j(NOT_EQUAL, &cache_lookup, compiler::Assembler::kNearJump);
-  __ movl(InstantiationABI::kResultTypeArgumentsReg,
-          InstantiationABI::kFunctionTypeArgumentsReg);
-  __ ret();
-
-  __ Bind(&cache_lookup);
-  GenerateInstantiateTypeArgumentsStub(assembler);
 }
 
 static ScaleFactor GetScaleFactor(intptr_t size) {

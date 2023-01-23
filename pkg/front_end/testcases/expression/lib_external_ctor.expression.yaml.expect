@@ -4,7 +4,7 @@ Errors: {
            ^^^^^^^
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
-  return () → Never {
-    throw new dart.core::AbstractClassInstantiationError::•("Process");
+  return () → Null {
+    invalid-expression "The class 'Process' is abstract and can't be instantiated.";
     dart.io::File::fromUri(dart.core::Uri::parse("file://test.dart"));
   };

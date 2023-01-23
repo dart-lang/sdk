@@ -1,0 +1,29 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+[@vm.inferred-type.metadata=dart.core::_GrowableList?<dart.core::Object>]static field dynamic list = [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::Object>] core::_GrowableList::_literal2<core::Object>("abc", (42, {foo42: "foo42"}));
+static method recordLiteral() → dynamic
+  return (#C1, #C2, {bar: #C3});
+[@vm.unboxing-info.metadata=(b)->i]static method recordFieldAccess1([@vm.inferred-type.metadata=dart.core::_Record](core::int, core::String) rec) → dynamic
+  return rec.$0{core::int};
+[@vm.unboxing-info.metadata=(b)->i]static method recordFieldAccess2([@vm.inferred-type.metadata=dart.core::_Record]({required a: core::int, required b: core::String}) rec) → dynamic
+  return rec.a{core::int};
+static method recordDynamicFieldAccess(dynamic x) → dynamic
+  return [@vm.inferred-type.metadata=dart.core::_OneByteString (value: "foo42")] x{dynamic}.foo42;
+static method main() → dynamic {
+  core::print(#C7);
+  core::print([@vm.inferred-type.metadata=dart.core::_Record] self::recordLiteral());
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi] self::recordFieldAccess1((10, "hi")));
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 20)] self::recordFieldAccess2(({a: 20, b: "bye"})));
+  core::print([@vm.inferred-type.metadata=dart.core::_OneByteString (value: "foo42")] self::recordDynamicFieldAccess([@vm.direct-call.metadata=dart.core::_GrowableList.[]??] [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.inferred-type.metadata=dart.core::_GrowableList?<dart.core::Object>] self::list{dynamic}.[](1)));
+}
+constants  {
+  #C1 = 1
+  #C2 = 2
+  #C3 = 3
+  #C4 = 42
+  #C5 = "Hey"
+  #C6 = "foo"
+  #C7 = (#C4, #C5, {foo:#C6})
+}

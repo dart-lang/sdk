@@ -114,6 +114,49 @@ class Bar {
     expect(driverForInside.addedFiles, isNot(contains(fileOutsideRootPath)));
   }
 
+  Future<void> test_documentOpen_contentChanged_analysis() async {
+    const content = '// original content';
+    const newContent = '// new content';
+    newFile(mainFilePath, content);
+
+    // Wait for initial analysis to provide diagnostics for the file.
+    await Future.wait([
+      waitForDiagnostics(mainFileUri),
+      initialize(),
+    ]);
+
+    // Capture any further diagnostics sent after we open the file.
+    List<Diagnostic>? diagnostics;
+    unawaited(waitForDiagnostics(mainFileUri).then((d) => diagnostics = d));
+    await openFile(mainFileUri, newContent);
+    await pumpEventQueue(times: 5000);
+
+    // Expect diagnostics, because changing the content will have triggered
+    // analysis.
+    expect(diagnostics, isNotNull);
+  }
+
+  Future<void> test_documentOpen_contentUnchanged_noAnalysis() async {
+    const content = '// original content';
+    newFile(mainFilePath, content);
+
+    // Wait for initial analysis to provide diagnostics for the file.
+    await Future.wait([
+      waitForDiagnostics(mainFileUri),
+      initialize(),
+    ]);
+
+    // Capture any further diagnostics sent after we open the file.
+    List<Diagnostic>? diagnostics;
+    unawaited(waitForDiagnostics(mainFileUri).then((d) => diagnostics = d));
+    await openFile(mainFileUri, content);
+    await pumpEventQueue(times: 5000);
+
+    // Expect no diagnostics because the file didn't actually change content
+    // when the overlay was created, so it should not have triggered analysis.
+    expect(diagnostics, isNull);
+  }
+
   Future<void> test_documentOpen_createsOverlay() async {
     await _initializeAndOpen();
 

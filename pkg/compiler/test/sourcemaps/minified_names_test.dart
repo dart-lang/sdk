@@ -14,7 +14,7 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:dart2js_tools/src/dart2js_mapping.dart';
 
 import '../helpers/d8_helper.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 import 'package:expect/expect.dart';
 
 void main(List<String> args) {

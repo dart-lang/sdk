@@ -2,17 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library js_backend.backend.resolution_listener;
 
 import '../common/elements.dart' show KCommonElements, KElementEnvironment;
-import '../common/names.dart' show Identifiers;
+import '../common/names.dart' show Identifiers, Names;
 import '../constants/values.dart';
 import '../deferred_load/deferred_load.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart' show Enqueuer, EnqueuerListener;
+import '../kernel/kelements.dart' show KClass;
 import '../native/enqueue.dart';
 import '../options.dart' show CompilerOptions;
 import '../universe/call_structure.dart' show CallStructure;
@@ -137,7 +136,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
   @override
   void onQueueOpen(
-      Enqueuer enqueuer, FunctionEntity mainMethod, Iterable<Uri> libraries) {
+      Enqueuer enqueuer, FunctionEntity? mainMethod, Iterable<Uri> libraries) {
     if (_deferredLoadTask.isProgramSplit) {
       enqueuer.applyImpact(_computeDeferredLoadingImpact());
     }
@@ -160,13 +159,13 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     enqueuer.applyImpact(_customElementsAnalysis.flush());
 
     for (ClassEntity cls in recentClasses) {
-      MemberEntity element = _elementEnvironment.lookupLocalClassMember(
-          cls, Identifiers.noSuchMethod_);
+      MemberEntity? element =
+          _elementEnvironment.lookupLocalClassMember(cls, Names.noSuchMethod_);
       if (element != null &&
           element.isInstanceMember &&
           element.isFunction &&
           !element.isAbstract) {
-        _noSuchMethodRegistry.registerNoSuchMethod(element);
+        _noSuchMethodRegistry.registerNoSuchMethod(element as FunctionEntity);
       }
     }
     _noSuchMethodRegistry.onQueueEmpty();
@@ -253,7 +252,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     _customElementsAnalysis.registerStaticUse(member);
 
     if (member.isFunction) {
-      FunctionEntity function = member;
+      FunctionEntity function = member as FunctionEntity;
       if (function.isExternal) {
         FunctionType functionType =
             _elementEnvironment.getFunctionType(function);
@@ -275,7 +274,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
         }
       }
       if (function.isInstanceMember) {
-        ClassEntity cls = function.enclosingClass;
+        ClassEntity cls = function.enclosingClass!;
 
         if (function.name == Identifiers.call &&
             _elementEnvironment.isGenericClass(cls)) {
@@ -421,7 +420,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
   @override
   WorldImpact registerInstantiatedClass(ClassEntity cls) {
-    _fieldAnalysis.registerInstantiatedClass(cls);
+    _fieldAnalysis.registerInstantiatedClass(cls as KClass);
     return _processClass(cls);
   }
 
@@ -458,7 +457,8 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     // TODO(13155): Find a way to register fewer _commonElements.
     List<FunctionEntity> staticUses = [];
     for (CheckedModeHelper helper in CheckedModeHelpers.helpers) {
-      staticUses.add(helper.getStaticUse(_commonElements).element);
+      staticUses
+          .add(helper.getStaticUse(_commonElements).element as FunctionEntity);
     }
     _registerBackendImpact(
         impactBuilder, BackendImpact(globalUses: staticUses));

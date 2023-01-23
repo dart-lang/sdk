@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_internal" show patch;
+
+import "dart:typed_data" show Uint32List;
+
 // The [LinkedHashMap] and [LinkedHashSet] factory constructors return different
 // internal implementations depending on the supplied callback functions.
 
@@ -15,7 +19,7 @@ class LinkedHashMap<K, V> {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
-          return new _InternalLinkedHashMap<K, V>();
+          return new _Map<K, V>();
         }
         hashCode = _defaultHashCode;
       } else {
@@ -46,7 +50,7 @@ class LinkedHashSet<E> {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
-          return new _CompactLinkedHashSet<E>();
+          return new _Set<E>();
         }
         hashCode = _defaultHashCode;
       } else {

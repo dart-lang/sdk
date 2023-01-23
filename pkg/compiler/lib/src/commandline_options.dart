@@ -94,6 +94,7 @@ class Flags {
   static const String suppressWarnings = '--suppress-warnings';
   static const String terse = '--terse';
   static const String testMode = '--test-mode';
+  static const String experimentalInferrer = '--experimental-inferrer';
   static const String trustPrimitives = '--trust-primitives';
   static const String trustTypeAnnotations = '--trust-type-annotations';
   static const String trustJSInteropTypeAnnotations =
@@ -113,6 +114,7 @@ class Flags {
   static const String sources = '--sources';
   static const String readData = '--read-data';
   static const String writeData = '--write-data';
+  static const String memoryMappedFiles = '--memory-map-files';
   static const String noClosedWorldInData = '--no-closed-world-in-data';
   static const String writeClosedWorld = '--write-closed-world';
   static const String readClosedWorld = '--read-closed-world';

@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -42,17 +43,18 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   ClassElement get boolElement => typeProvider.boolElement;
 
-  ClassElement get doubleElement => typeProvider.doubleType.element;
+  ClassElement get doubleElement => typeProvider.doubleElement;
 
   InterfaceType get doubleType => typeProvider.doubleType;
 
-  Element get dynamicElement => typeProvider.dynamicType.element!;
+  Element get dynamicElement =>
+      (typeProvider.dynamicType as DynamicTypeImpl).element;
 
   FeatureSet get featureSet => result.libraryElement.featureSet;
 
   ClassElement get futureElement => typeProvider.futureElement;
 
-  ClassElement get intElement => typeProvider.intType.element;
+  ClassElement get intElement => typeProvider.intElement;
 
   InterfaceType get intType => typeProvider.intType;
 
@@ -68,17 +70,18 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   NeverElementImpl get neverElement => NeverElementImpl.instance;
 
-  ClassElement get numElement => typeProvider.numType.element;
+  ClassElement get numElement => typeProvider.numElement;
 
-  ClassElement get objectElement => typeProvider.objectType.element;
+  ClassElement get objectElement =>
+      typeProvider.objectType.element as ClassElement;
 
   InterfaceType get objectType => typeProvider.objectType;
 
-  ClassElement get stringElement => typeProvider.stringType.element;
+  ClassElement get stringElement => typeProvider.stringElement;
 
   InterfaceType get stringType => typeProvider.stringType;
 
-  String get testFilePath => '/test/lib/test.dart';
+  File get testFile;
 
   TypeProvider get typeProvider => result.typeProvider;
 
@@ -87,7 +90,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   VoidType get voidType => VoidTypeImpl.instance;
 
   void addTestFile(String content) {
-    newFile(testFilePath, content);
+    newFile(testFile.path, content);
   }
 
   /// Assert that the given [identifier] is a reference to a class, in the
@@ -117,9 +120,18 @@ mixin ResolutionTest implements ResourceProviderMixin {
     );
   }
 
-  void assertDartObjectText(DartObject? object, String expected) {
+  void assertDartObjectText(
+    DartObject? object,
+    String expected, {
+    LibraryElement? libraryElement,
+  }) {
+    libraryElement ??= result.libraryElement;
+
     var buffer = StringBuffer();
-    DartObjectPrinter(buffer).write(object as DartObjectImpl?, '');
+    DartObjectPrinter(
+      sink: buffer,
+      selfUriStr: '${libraryElement.source.uri}',
+    ).write(object as DartObjectImpl?);
     var actual = buffer.toString();
     if (actual != expected) {
       print(buffer);
@@ -266,37 +278,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertErrorsInResolvedUnit(result, expectedErrors);
   }
 
-  void assertExtensionOverride(
-    ExtensionOverride node, {
-    required Object element,
-    required String extendedType,
-    required List<String> typeArgumentTypes,
-  }) {
-    assertElement(node, element);
-    assertType(node.extendedType, extendedType);
-    assertElementTypes(node.typeArgumentTypes, typeArgumentTypes);
-  }
-
-  void assertFieldFormalParameter(
-    FieldFormalParameter node, {
-    required FieldFormalParameterElement element,
-  }) {
-    assertElement(node.declaredElement, element);
-  }
-
-  void assertFunctionExpressionInvocation(
-    FunctionExpressionInvocation node, {
-    required ExecutableElement? element,
-    required List<String> typeArgumentTypes,
-    required String invokeType,
-    required String type,
-  }) {
-    assertElement(node, element);
-    assertTypeArgumentTypes(node, typeArgumentTypes);
-    assertInvokeType(node, invokeType);
-    assertType(node, type);
-  }
-
   void assertHasTestErrors() {
     expect(result.errors, isNotEmpty);
   }
@@ -400,15 +381,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  void assertNamespaceDirectiveSelected(
-    NamespaceDirective directive, {
-    required String expectedRelativeUri,
-    required String expectedUri,
-  }) {
-    expect(directive.selectedUriContent, expectedRelativeUri);
-    expect('${directive.selectedSource!.uri}', expectedUri);
-  }
-
   Future<void> assertNoErrorsInCode(String code) async {
     addTestFile(code);
     await resolveTestFile();
@@ -423,6 +395,22 @@ mixin ResolutionTest implements ResourceProviderMixin {
   void assertParameterElementType(FormalParameter node, String expected) {
     var parameterElement = node.declaredElement!;
     assertType(parameterElement.type, expected);
+  }
+
+  void assertParsedNodeText(
+    AstNode node,
+    String expected, {
+    bool skipArgumentList = false,
+  }) {
+    var actual = _parsedNodeText(
+      node,
+      skipArgumentList: skipArgumentList,
+    );
+    if (actual != expected) {
+      print(actual);
+      NodeTextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
   }
 
   void assertPrefixedIdentifier(
@@ -759,7 +747,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   Future<void> resolveTestFile() {
-    return resolveFile2(testFilePath);
+    return resolveFile2(testFile.path);
   }
 
   /// Choose the type display string, depending on whether the [result] is
@@ -800,6 +788,23 @@ mixin ResolutionTest implements ResourceProviderMixin {
     fail('Expected SimpleIdentifier: (${node.runtimeType}) $node');
   }
 
+  String _parsedNodeText(
+    AstNode node, {
+    bool skipArgumentList = false,
+  }) {
+    var buffer = StringBuffer();
+    node.accept(
+      ResolvedAstPrinter(
+        selfUriStr: '${result.libraryElement.source.uri}',
+        sink: buffer,
+        indent: '',
+        skipArgumentList: skipArgumentList,
+        withResolution: false,
+      ),
+    );
+    return buffer.toString();
+  }
+
   String _resolvedNodeText(
     AstNode node, {
     bool skipArgumentList = false,
@@ -807,7 +812,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var buffer = StringBuffer();
     node.accept(
       ResolvedAstPrinter(
-        selfUriStr: result.uri.toString(),
+        selfUriStr: '${result.libraryElement.source.uri}',
         sink: buffer,
         indent: '',
         skipArgumentList: skipArgumentList,

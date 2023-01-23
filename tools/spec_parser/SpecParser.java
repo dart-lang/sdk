@@ -64,7 +64,7 @@ public class SpecParser {
 
   private static void helpAndExit() {
     System.err.println("Expected arguments: [--verbose] <file>...");
-    compileTimeErrorExit();
+    normalExit();
   }
 
   /// Receive command lines from standard input and produce feedback about

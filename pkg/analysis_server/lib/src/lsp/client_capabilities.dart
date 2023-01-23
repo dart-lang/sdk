@@ -71,6 +71,7 @@ class LspClientCapabilities {
   final bool typeDefinitionLocationLink;
   final bool hierarchicalSymbols;
   final bool diagnosticCodeDescription;
+  final bool lineFoldingOnly;
   final Set<CodeActionKind> codeActionKinds;
   final Set<CompletionItemTag> completionItemTags;
   final Set<DiagnosticTag> diagnosticTags;
@@ -81,82 +82,152 @@ class LspClientCapabilities {
   final Set<SymbolKind> workspaceSymbolKinds;
   final Set<CompletionItemKind> completionItemKinds;
   final Set<InsertTextMode> completionInsertTextModes;
+  final bool completionDefaultEditRange;
+  final bool completionDefaultTextMode;
   final bool experimentalSnippetTextEdit;
+  final Set<String> codeActionCommandParameterSupportedKinds;
 
-  LspClientCapabilities(this.raw)
-      : applyEdit = raw.workspace?.applyEdit ?? false,
-        codeActionKinds = _listToSet(raw.textDocument?.codeAction
-            ?.codeActionLiteralSupport?.codeActionKind.valueSet),
-        completionDeprecatedFlag =
-            raw.textDocument?.completion?.completionItem?.deprecatedSupport ??
-                false,
-        completionDocumentationFormats = _completionDocumentationFormats(raw),
-        completionInsertTextModes = _listToSet(raw.textDocument?.completion
-            ?.completionItem?.insertTextModeSupport?.valueSet),
-        completionItemKinds = _listToSet(
-            raw.textDocument?.completion?.completionItemKind?.valueSet,
-            defaults: defaultSupportedCompletionKinds),
-        completionSnippets =
-            raw.textDocument?.completion?.completionItem?.snippetSupport ??
-                false,
-        configuration = raw.workspace?.configuration ?? false,
-        createResourceOperations = raw
-                .workspace?.workspaceEdit?.resourceOperations
-                ?.contains(ResourceOperationKind.Create) ??
-            false,
-        renameResourceOperations = raw
-                .workspace?.workspaceEdit?.resourceOperations
-                ?.contains(ResourceOperationKind.Rename) ??
-            false,
-        definitionLocationLink =
-            raw.textDocument?.definition?.linkSupport ?? false,
-        typeDefinitionLocationLink =
-            raw.textDocument?.typeDefinition?.linkSupport ?? false,
-        completionItemTags = _listToSet(
-            raw.textDocument?.completion?.completionItem?.tagSupport?.valueSet),
-        diagnosticTags = _listToSet(
-            raw.textDocument?.publishDiagnostics?.tagSupport?.valueSet),
-        documentChanges =
-            raw.workspace?.workspaceEdit?.documentChanges ?? false,
-        documentSymbolKinds = _listToSet(
-            raw.textDocument?.documentSymbol?.symbolKind?.valueSet,
-            defaults: defaultSupportedSymbolKinds),
-        hierarchicalSymbols = raw.textDocument?.documentSymbol
-                ?.hierarchicalDocumentSymbolSupport ??
-            false,
-        diagnosticCodeDescription =
-            raw.textDocument?.publishDiagnostics?.codeDescriptionSupport ??
-                false,
-        hoverContentFormats = _hoverContentFormats(raw),
-        insertReplaceCompletionRanges = raw.textDocument?.completion
-                ?.completionItem?.insertReplaceSupport ??
-            false,
-        literalCodeActions =
-            raw.textDocument?.codeAction?.codeActionLiteralSupport != null,
-        renameValidation = raw.textDocument?.rename?.prepareSupport ?? false,
-        signatureHelpDocumentationFormats = _sigHelpDocumentationFormats(raw),
-        workDoneProgress = raw.window?.workDoneProgress ?? false,
-        workspaceSymbolKinds = _listToSet(
-            raw.workspace?.symbol?.symbolKind?.valueSet,
-            defaults: defaultSupportedSymbolKinds),
-        experimentalSnippetTextEdit =
-            raw.experimental is Map<String, Object?> &&
-                (raw.experimental as Map<String, Object?>)['snippetTextEdit'] ==
-                    true;
+  factory LspClientCapabilities(ClientCapabilities raw) {
+    final workspace = raw.workspace;
+    final workspaceEdit = workspace?.workspaceEdit;
+    final resourceOperations = workspaceEdit?.resourceOperations;
+    final textDocument = raw.textDocument;
+    final completion = textDocument?.completion;
+    final completionItem = completion?.completionItem;
+    final completionList = completion?.completionList;
+    final completionDefaults = _listToSet(completionList?.itemDefaults);
+    final codeAction = textDocument?.codeAction;
+    final codeActionLiteral = codeAction?.codeActionLiteralSupport;
+    final documentSymbol = textDocument?.documentSymbol;
+    final publishDiagnostics = textDocument?.publishDiagnostics;
+    final signatureHelp = textDocument?.signatureHelp;
+    final signatureInformation = signatureHelp?.signatureInformation;
+    final hover = textDocument?.hover;
+    final definition = textDocument?.definition;
+    final typeDefinition = textDocument?.typeDefinition;
+    final workspaceSymbol = workspace?.symbol;
+    final experimental = _mapOrEmpty(raw.experimental);
+    final experimentalActions = _mapOrEmpty(experimental['dartCodeAction']);
 
-  static Set<MarkupKind>? _completionDocumentationFormats(
-      ClientCapabilities raw) {
-    // For formats, null is valid (which means only raw strings are supported,
-    // not [MarkupContent]).
-    return _listToNullableSet(
-        raw.textDocument?.completion?.completionItem?.documentationFormat);
+    final applyEdit = workspace?.applyEdit ?? false;
+    final codeActionKinds =
+        _listToSet(codeActionLiteral?.codeActionKind.valueSet);
+    final completionDeprecatedFlag = completionItem?.deprecatedSupport ?? false;
+    final completionDocumentationFormats =
+        _listToNullableSet(completionItem?.documentationFormat);
+    final completionInsertTextModes =
+        _listToSet(completionItem?.insertTextModeSupport?.valueSet);
+    final completionItemKinds = _listToSet(
+        completion?.completionItemKind?.valueSet,
+        defaults: defaultSupportedCompletionKinds);
+    final completionSnippets = completionItem?.snippetSupport ?? false;
+    final completionDefaultEditRange = completionDefaults.contains('editRange');
+    final completionDefaultTextMode =
+        completionDefaults.contains('insertTextMode');
+    final configuration = workspace?.configuration ?? false;
+    final createResourceOperations =
+        resourceOperations?.contains(ResourceOperationKind.Create) ?? false;
+    final renameResourceOperations =
+        resourceOperations?.contains(ResourceOperationKind.Rename) ?? false;
+    final definitionLocationLink = definition?.linkSupport ?? false;
+    final typeDefinitionLocationLink = typeDefinition?.linkSupport ?? false;
+    final completionItemTags = _listToSet(completionItem?.tagSupport?.valueSet);
+    final diagnosticTags = _listToSet(publishDiagnostics?.tagSupport?.valueSet);
+    final documentChanges = workspaceEdit?.documentChanges ?? false;
+    final documentSymbolKinds = _listToSet(documentSymbol?.symbolKind?.valueSet,
+        defaults: defaultSupportedSymbolKinds);
+    final hierarchicalSymbols =
+        documentSymbol?.hierarchicalDocumentSymbolSupport ?? false;
+    final diagnosticCodeDescription =
+        publishDiagnostics?.codeDescriptionSupport ?? false;
+    final hoverContentFormats = _listToNullableSet(hover?.contentFormat);
+    final insertReplaceCompletionRanges =
+        completionItem?.insertReplaceSupport ?? false;
+    final lineFoldingOnly =
+        textDocument?.foldingRange?.lineFoldingOnly ?? false;
+    final literalCodeActions = codeActionLiteral != null;
+    final renameValidation = textDocument?.rename?.prepareSupport ?? false;
+    final signatureHelpDocumentationFormats =
+        _listToNullableSet(signatureInformation?.documentationFormat);
+    final workDoneProgress = raw.window?.workDoneProgress ?? false;
+    final workspaceSymbolKinds = _listToSet(
+        workspaceSymbol?.symbolKind?.valueSet,
+        defaults: defaultSupportedSymbolKinds);
+    final experimentalSnippetTextEdit = experimental['snippetTextEdit'] == true;
+    final commandParameterSupport =
+        _mapOrEmpty(experimentalActions['commandParameterSupport']);
+    final commandParameterSupportedKinds =
+        _listToSet(commandParameterSupport['supportedKinds'] as List?)
+            .cast<String>();
+
+    return LspClientCapabilities._(
+      raw,
+      documentChanges: documentChanges,
+      configuration: configuration,
+      createResourceOperations: createResourceOperations,
+      renameResourceOperations: renameResourceOperations,
+      completionDeprecatedFlag: completionDeprecatedFlag,
+      applyEdit: applyEdit,
+      workDoneProgress: workDoneProgress,
+      completionSnippets: completionSnippets,
+      renameValidation: renameValidation,
+      literalCodeActions: literalCodeActions,
+      insertReplaceCompletionRanges: insertReplaceCompletionRanges,
+      definitionLocationLink: definitionLocationLink,
+      typeDefinitionLocationLink: typeDefinitionLocationLink,
+      hierarchicalSymbols: hierarchicalSymbols,
+      lineFoldingOnly: lineFoldingOnly,
+      diagnosticCodeDescription: diagnosticCodeDescription,
+      codeActionKinds: codeActionKinds,
+      completionItemTags: completionItemTags,
+      diagnosticTags: diagnosticTags,
+      completionDocumentationFormats: completionDocumentationFormats,
+      signatureHelpDocumentationFormats: signatureHelpDocumentationFormats,
+      hoverContentFormats: hoverContentFormats,
+      documentSymbolKinds: documentSymbolKinds,
+      workspaceSymbolKinds: workspaceSymbolKinds,
+      completionItemKinds: completionItemKinds,
+      completionInsertTextModes: completionInsertTextModes,
+      completionDefaultEditRange: completionDefaultEditRange,
+      completionDefaultTextMode: completionDefaultTextMode,
+      experimentalSnippetTextEdit: experimentalSnippetTextEdit,
+      codeActionCommandParameterSupportedKinds: commandParameterSupportedKinds,
+    );
   }
 
-  static Set<MarkupKind>? _hoverContentFormats(ClientCapabilities raw) {
-    // For formats, null is valid (which means only raw strings are supported,
-    // not [MarkupContent]), so use null as default.
-    return _listToNullableSet(raw.textDocument?.hover?.contentFormat);
-  }
+  LspClientCapabilities._(
+    this.raw, {
+    required this.documentChanges,
+    required this.configuration,
+    required this.createResourceOperations,
+    required this.renameResourceOperations,
+    required this.completionDeprecatedFlag,
+    required this.applyEdit,
+    required this.workDoneProgress,
+    required this.completionSnippets,
+    required this.renameValidation,
+    required this.literalCodeActions,
+    required this.insertReplaceCompletionRanges,
+    required this.definitionLocationLink,
+    required this.typeDefinitionLocationLink,
+    required this.hierarchicalSymbols,
+    required this.lineFoldingOnly,
+    required this.diagnosticCodeDescription,
+    required this.codeActionKinds,
+    required this.completionItemTags,
+    required this.diagnosticTags,
+    required this.completionDocumentationFormats,
+    required this.signatureHelpDocumentationFormats,
+    required this.hoverContentFormats,
+    required this.documentSymbolKinds,
+    required this.workspaceSymbolKinds,
+    required this.completionItemKinds,
+    required this.completionInsertTextModes,
+    required this.completionDefaultEditRange,
+    required this.completionDefaultTextMode,
+    required this.experimentalSnippetTextEdit,
+    required this.codeActionCommandParameterSupportedKinds,
+  });
 
   /// Converts a list to a `Set`, returning null if the list is null.
   static Set<T>? _listToNullableSet<T>(List<T>? items) {
@@ -170,10 +241,7 @@ class LspClientCapabilities {
     return items != null ? {...items} : defaults;
   }
 
-  static Set<MarkupKind>? _sigHelpDocumentationFormats(ClientCapabilities raw) {
-    // For formats, null is valid (which means only raw strings are supported,
-    // not [MarkupContent]), so use null as default.
-    return _listToNullableSet(raw.textDocument?.signatureHelp
-        ?.signatureInformation?.documentationFormat);
+  static Map<String, Object?> _mapOrEmpty(Object? item) {
+    return item is Map<String, Object?> ? item : const {};
   }
 }

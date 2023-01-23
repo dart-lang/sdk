@@ -33,7 +33,7 @@ class NavNotifyExceptionElement extends CustomElement implements Renderable {
   StackTrace? get stacktrace => _stacktrace;
 
   factory NavNotifyExceptionElement(dynamic exception,
-      {StackTrace? stacktrace: null, RenderingQueue? queue}) {
+      {StackTrace? stacktrace = null, RenderingQueue? queue}) {
     assert(exception != null);
     NavNotifyExceptionElement e = new NavNotifyExceptionElement.created();
     e._r = new RenderingScheduler<NavNotifyExceptionElement>(e, queue: queue);

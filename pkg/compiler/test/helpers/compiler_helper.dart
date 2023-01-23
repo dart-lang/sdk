@@ -13,16 +13,16 @@ import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
-import 'package:compiler/src/world.dart';
+import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:expect/expect.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart' show Link;
-import 'memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 export 'package:compiler/src/diagnostics/messages.dart';
 export 'package:compiler/src/diagnostics/source_span.dart';
 export 'package:compiler/src/diagnostics/spannable.dart';
+export 'package:compiler/src/util/output_collector.dart';
 export 'package:compiler/src/util/util.dart';
-export 'output_collector.dart';
 
 String _commonTestPath(bool soundNullSafety) {
   // Pretend this is a web/native test to allow use of 'native' keyword
@@ -37,17 +37,17 @@ String _commonTestPath(bool soundNullSafety) {
 /// If [check] is provided, it is executed on the code for [entry] before
 /// returning.
 Future<String> compile(String code,
-    {String entry: 'main',
+    {String entry = 'main',
     String methodName,
-    bool enableTypeAssertions: false,
-    bool minify: false,
-    bool disableInlining: true,
-    bool disableTypeInference: true,
-    bool omitImplicitChecks: true,
-    bool enableVariance: false,
+    bool enableTypeAssertions = false,
+    bool minify = false,
+    bool disableInlining = true,
+    bool disableTypeInference = true,
+    bool omitImplicitChecks = true,
+    bool enableVariance = false,
     void check(String generatedEntry),
-    bool returnAll: false,
-    bool soundNullSafety: false}) async {
+    bool returnAll = false,
+    bool soundNullSafety = false}) async {
   OutputCollector outputCollector = returnAll ? new OutputCollector() : null;
   List<String> options = <String>[];
   if (disableTypeInference) {
@@ -109,9 +109,9 @@ Future<String> compile(String code,
 }
 
 Future<String> compileAll(String code,
-    {bool disableInlining: true,
-    bool minify: false,
-    bool soundNullSafety: false,
+    {bool disableInlining = true,
+    bool minify = false,
+    bool soundNullSafety = false,
     int expectedErrors,
     int expectedWarnings}) async {
   OutputCollector outputCollector = new OutputCollector();

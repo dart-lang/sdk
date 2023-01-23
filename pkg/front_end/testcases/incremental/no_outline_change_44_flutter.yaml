@@ -6,10 +6,9 @@
 
 type: newworld
 trackWidgetCreation: true
-target: DDC # basically needed for widget creation to be run
+target: dartdevc # basically needed for widget creation to be run
 worlds:
   - entry: flutter_gallery/lib/main.dart
-    experiments: alternative-invalidation-strategy
     sources:
       flutter_gallery/.dart_tool/package_config.json: |
         {
@@ -35,11 +34,10 @@ worlds:
     expectedLibraryCount: 3
 
   - entry: flutter_gallery/lib/main.dart
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
       - package:flutter/src/widgets/framework.dart
     expectedLibraryCount: 3
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly
 

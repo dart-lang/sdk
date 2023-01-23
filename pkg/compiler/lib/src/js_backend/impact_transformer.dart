@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library js_backend.backend.impact_transformer;
 
 import '../common/elements.dart';
@@ -12,6 +10,7 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_emitter/native_emitter.dart';
+import '../js_model/js_world.dart';
 import '../native/enqueue.dart';
 import '../native/behavior.dart';
 import '../universe/call_structure.dart';
@@ -20,7 +19,6 @@ import '../universe/selector.dart';
 import '../universe/use.dart';
 import '../universe/world_impact.dart' show TransformedWorldImpact, WorldImpact;
 import '../util/util.dart';
-import '../world.dart';
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'interceptor_data.dart';
@@ -71,7 +69,7 @@ class CodegenImpactTransformer {
     }
     if (typeWithoutNullability is InterfaceType &&
         _nativeData.isNativeClass(typeWithoutNullability.element)) {
-      // We will neeed to add the "$is" and "$as" properties on the
+      // We will need to add the "$is" and "$as" properties on the
       // JavaScript object prototype, so we make sure
       // [:defineProperty:] is compiled.
       _impacts.nativeTypeCheck.registerImpact(transformed, _elementEnvironment);
@@ -100,13 +98,13 @@ class CodegenImpactTransformer {
         case ConstantValueKind.INSTANTIATION:
           transformed.registerStaticUse(StaticUse.staticInvoke(
               _closedWorld.commonElements.findType, CallStructure.ONE_ARG));
-          InstantiationConstantValue instantiation = constantUse.value;
+          final instantiation = constantUse.value as InstantiationConstantValue;
           _rtiChecksBuilder.registerGenericInstantiation(GenericInstantiation(
               instantiation.function.type, instantiation.typeArguments));
           break;
         case ConstantValueKind.DEFERRED_GLOBAL:
-          _closedWorld.outputUnitData
-              .registerConstantDeferredUse(constantUse.value);
+          _closedWorld.outputUnitData.registerConstantDeferredUse(
+              constantUse.value as DeferredGlobalConstantValue);
           break;
         default:
           break;
@@ -122,7 +120,7 @@ class CodegenImpactTransformer {
     for (StaticUse staticUse in impact.staticUses) {
       switch (staticUse.kind) {
         case StaticUseKind.CALL_METHOD:
-          FunctionEntity callMethod = staticUse.element;
+          final callMethod = staticUse.element as FunctionEntity;
           if (_rtiNeed.methodNeedsSignature(callMethod)) {
             _impacts.computeSignature
                 .registerImpact(transformed, _elementEnvironment);
@@ -152,8 +150,7 @@ class CodegenImpactTransformer {
     }
 
     for (Set<ClassEntity> classes in impact.specializedGetInterceptors) {
-      _oneShotInterceptorData.registerSpecializedGetInterceptor(
-          classes, _namer);
+      _oneShotInterceptorData.registerSpecializedGetInterceptor(classes);
     }
 
     if (impact.usesInterceptor) {

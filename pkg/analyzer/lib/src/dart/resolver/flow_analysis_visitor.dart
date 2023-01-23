@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -10,6 +12,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
@@ -59,7 +62,7 @@ class FlowAnalysisDataForTesting {
 /// be extracted.
 class FlowAnalysisHelper {
   /// The reused instance for creating new [FlowAnalysis] instances.
-  final TypeSystemOperations _typeOperations;
+  final TypeSystemOperations typeOperations;
 
   /// Precomputed sets of potentially assigned variables.
   AssignedVariables<AstNode, PromotableElement>? assignedVariables;
@@ -88,7 +91,7 @@ class FlowAnalysisHelper {
             respectImplicitlyTypedVarInitializers:
                 featureSet.isEnabled(Feature.constructor_tearoffs));
 
-  FlowAnalysisHelper._(this._typeOperations, this.dataForTesting,
+  FlowAnalysisHelper._(this.typeOperations, this.dataForTesting,
       {required this.isNonNullableByDefault,
       required this.respectImplicitlyTypedVarInitializers});
 
@@ -244,11 +247,11 @@ class FlowAnalysisHelper {
     }
     flow = isNonNullableByDefault
         ? FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
-                DartType>(_typeOperations, assignedVariables!,
+                DartType>(typeOperations, assignedVariables!,
             respectImplicitlyTypedVarInitializers:
                 respectImplicitlyTypedVarInitializers)
         : FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
-            DartType>.legacy(_typeOperations, assignedVariables!);
+            DartType>.legacy(typeOperations, assignedVariables!);
   }
 
   void topLevelDeclaration_exit() {
@@ -375,10 +378,17 @@ class FlowAnalysisHelperForMigration extends FlowAnalysisHelper {
   }
 }
 
-class TypeSystemOperations extends Operations<PromotableElement, DartType> {
+class TypeSystemOperations
+    with TypeOperations<DartType>
+    implements Operations<PromotableElement, DartType> {
   final TypeSystemImpl typeSystem;
 
   TypeSystemOperations(this.typeSystem);
+
+  @override
+  bool areStructurallyEqual(DartType type1, DartType type2) {
+    return type1 == type2;
+  }
 
   @override
   TypeClassification classifyType(DartType type) {
@@ -397,8 +407,29 @@ class TypeSystemOperations extends Operations<PromotableElement, DartType> {
   }
 
   @override
+  DartType glb(DartType type1, DartType type2) {
+    return typeSystem.getGreatestLowerBound(type1, type2);
+  }
+
+  @override
+  bool isAssignableTo(DartType fromType, DartType toType) {
+    return typeSystem.isAssignableTo(fromType, toType);
+  }
+
+  @override
+  bool isDynamic(DartType type) => type.isDynamic;
+
+  @override
   bool isNever(DartType type) {
     return typeSystem.isBottom(type);
+  }
+
+  @override
+  bool isPropertyPromotable(Object property) {
+    if (property is! PropertyAccessorElement) return false;
+    var field = property.variable;
+    if (field is! FieldElement) return false;
+    return field.isPromotable;
   }
 
   @override
@@ -413,6 +444,48 @@ class TypeSystemOperations extends Operations<PromotableElement, DartType> {
 
   @override
   bool isTypeParameterType(DartType type) => type is TypeParameterType;
+
+  @override
+  DartType lub(DartType type1, DartType type2) {
+    throw UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  DartType makeNullable(DartType type) {
+    return typeSystem.makeNullable(type);
+  }
+
+  @override
+  DartType? matchIterableType(DartType type) {
+    var iterableElement = typeSystem.typeProvider.iterableElement;
+    var listType = type.asInstanceOf(iterableElement);
+    return listType?.typeArguments[0];
+  }
+
+  @override
+  DartType? matchListType(DartType type) {
+    var listElement = typeSystem.typeProvider.listElement;
+    var listType = type.asInstanceOf(listElement);
+    return listType?.typeArguments[0];
+  }
+
+  @override
+  MapPatternTypeArguments<DartType>? matchMapType(DartType type) {
+    var mapElement = typeSystem.typeProvider.mapElement;
+    var mapType = type.asInstanceOf(mapElement);
+    if (mapType != null) {
+      return MapPatternTypeArguments<DartType>(
+        keyType: mapType.typeArguments[0],
+        valueType: mapType.typeArguments[1],
+      );
+    }
+    return null;
+  }
+
+  @override
+  DartType normalize(DartType type) {
+    return typeSystem.normalize(type);
+  }
 
   @override
   DartType promoteToNonNull(DartType type) {
@@ -467,11 +540,10 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   void visitCatchClause(CatchClause node) {
     for (var identifier in [
       node.exceptionParameter,
-      node.stackTraceParameter
+      node.stackTraceParameter,
     ]) {
       if (identifier != null) {
-        assignedVariables
-            .declare(identifier.staticElement as PromotableElement);
+        assignedVariables.declare(identifier.declaredElement!);
       }
     }
     super.visitCatchClause(node);
@@ -534,26 +606,28 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitIfElement(IfElement node) {
-    node.condition.accept(this);
-    assignedVariables.beginNode();
-    node.thenElement.accept(this);
-    assignedVariables.endNode(node);
-    node.elseElement?.accept(this);
+  void visitIfElement(covariant IfElementImpl node) {
+    _visitIf(node);
   }
 
   @override
-  void visitIfStatement(IfStatement node) {
-    node.condition.accept(this);
-    assignedVariables.beginNode();
-    node.thenStatement.accept(this);
-    assignedVariables.endNode(node);
-    node.elseStatement?.accept(this);
+  void visitIfStatement(covariant IfStatementImpl node) {
+    _visitIf(node);
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     throw StateError('Should not visit top level declarations');
+  }
+
+  @override
+  void visitPatternVariableDeclarationStatement(
+    covariant PatternVariableDeclarationStatementImpl node,
+  ) {
+    for (var variable in node.declaration.elements) {
+      assignedVariables.declare(variable);
+    }
+    super.visitPatternVariableDeclarationStatement(node);
   }
 
   @override
@@ -689,6 +763,28 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       assignedVariables.endNode(node);
     } else {
       throw StateError('Unrecognized for loop parts');
+    }
+  }
+
+  void _visitIf(IfElementOrStatementImpl node) {
+    node.expression.accept(this);
+
+    var caseClause = node.caseClause;
+    if (caseClause != null) {
+      var guardedPattern = caseClause.guardedPattern;
+      assignedVariables.beginNode();
+      for (var variable in guardedPattern.variables.values) {
+        assignedVariables.declare(variable);
+      }
+      guardedPattern.whenClause?.accept(this);
+      node.ifTrue.accept(this);
+      assignedVariables.endNode(node);
+      node.ifFalse?.accept(this);
+    } else {
+      assignedVariables.beginNode();
+      node.ifTrue.accept(this);
+      assignedVariables.endNode(node);
+      node.ifFalse?.accept(this);
     }
   }
 }

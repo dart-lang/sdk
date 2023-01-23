@@ -17,7 +17,7 @@ class Server {
   var ha1;
 
   static Future<Server> start(String? algorithm, String? qop,
-      {int? nonceStaleAfter, bool useNextNonce: false}) {
+      {int? nonceStaleAfter, bool useNextNonce = false}) {
     return new Server()._start(algorithm, qop, nonceStaleAfter, useNextNonce);
   }
 
@@ -37,7 +37,7 @@ class Server {
     HttpServer.bind("127.0.0.1", 0).then((s) {
       server = s;
       server.listen((HttpRequest request) {
-        sendUnauthorizedResponse(HttpResponse response, {stale: false}) {
+        sendUnauthorizedResponse(HttpResponse response, {stale = false}) {
           response.statusCode = HttpStatus.unauthorized;
           StringBuffer authHeader = new StringBuffer();
           authHeader.write('Digest');

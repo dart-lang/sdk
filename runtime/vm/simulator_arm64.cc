@@ -1111,8 +1111,7 @@ intptr_t Simulator::ReadX(uword addr,
   const bool allow_unaligned_access =
       FLAG_sim_allow_unaligned_accesses && !must_be_aligned;
   if (allow_unaligned_access || (addr & 7) == 0) {
-    intptr_t* ptr = reinterpret_cast<intptr_t*>(addr);
-    return *ptr;
+    return LoadUnaligned(reinterpret_cast<intptr_t*>(addr));
   }
   UnalignedAccess("read", addr, instr);
   return 0;
@@ -1120,8 +1119,7 @@ intptr_t Simulator::ReadX(uword addr,
 
 void Simulator::WriteX(uword addr, intptr_t value, Instr* instr) {
   if (FLAG_sim_allow_unaligned_accesses || (addr & 7) == 0) {
-    intptr_t* ptr = reinterpret_cast<intptr_t*>(addr);
-    *ptr = value;
+    StoreUnaligned(reinterpret_cast<intptr_t*>(addr), value);
     return;
   }
   UnalignedAccess("write", addr, instr);
@@ -1133,8 +1131,7 @@ uint32_t Simulator::ReadWU(uword addr,
   const bool allow_unaligned_access =
       FLAG_sim_allow_unaligned_accesses && !must_be_aligned;
   if (allow_unaligned_access || (addr & 3) == 0) {
-    uint32_t* ptr = reinterpret_cast<uint32_t*>(addr);
-    return *ptr;
+    return LoadUnaligned(reinterpret_cast<uint32_t*>(addr));
   }
   UnalignedAccess("read unsigned single word", addr, instr);
   return 0;
@@ -1142,8 +1139,7 @@ uint32_t Simulator::ReadWU(uword addr,
 
 int32_t Simulator::ReadW(uword addr, Instr* instr) {
   if (FLAG_sim_allow_unaligned_accesses || (addr & 3) == 0) {
-    int32_t* ptr = reinterpret_cast<int32_t*>(addr);
-    return *ptr;
+    return LoadUnaligned(reinterpret_cast<int32_t*>(addr));
   }
   UnalignedAccess("read single word", addr, instr);
   return 0;
@@ -1151,8 +1147,7 @@ int32_t Simulator::ReadW(uword addr, Instr* instr) {
 
 void Simulator::WriteW(uword addr, uint32_t value, Instr* instr) {
   if (FLAG_sim_allow_unaligned_accesses || (addr & 3) == 0) {
-    uint32_t* ptr = reinterpret_cast<uint32_t*>(addr);
-    *ptr = value;
+    StoreUnaligned(reinterpret_cast<uint32_t*>(addr), value);
     return;
   }
   UnalignedAccess("write single word", addr, instr);
@@ -1160,8 +1155,7 @@ void Simulator::WriteW(uword addr, uint32_t value, Instr* instr) {
 
 uint16_t Simulator::ReadHU(uword addr, Instr* instr) {
   if (FLAG_sim_allow_unaligned_accesses || (addr & 1) == 0) {
-    uint16_t* ptr = reinterpret_cast<uint16_t*>(addr);
-    return *ptr;
+    return LoadUnaligned(reinterpret_cast<uint16_t*>(addr));
   }
   UnalignedAccess("unsigned halfword read", addr, instr);
   return 0;
@@ -1169,8 +1163,7 @@ uint16_t Simulator::ReadHU(uword addr, Instr* instr) {
 
 int16_t Simulator::ReadH(uword addr, Instr* instr) {
   if (FLAG_sim_allow_unaligned_accesses || (addr & 1) == 0) {
-    int16_t* ptr = reinterpret_cast<int16_t*>(addr);
-    return *ptr;
+    return LoadUnaligned(reinterpret_cast<int16_t*>(addr));
   }
   UnalignedAccess("signed halfword read", addr, instr);
   return 0;
@@ -1178,8 +1171,7 @@ int16_t Simulator::ReadH(uword addr, Instr* instr) {
 
 void Simulator::WriteH(uword addr, uint16_t value, Instr* instr) {
   if (FLAG_sim_allow_unaligned_accesses || (addr & 1) == 0) {
-    uint16_t* ptr = reinterpret_cast<uint16_t*>(addr);
-    *ptr = value;
+    StoreUnaligned(reinterpret_cast<uint16_t*>(addr), value);
     return;
   }
   UnalignedAccess("halfword write", addr, instr);

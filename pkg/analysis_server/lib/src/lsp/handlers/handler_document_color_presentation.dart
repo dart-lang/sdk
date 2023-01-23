@@ -63,7 +63,7 @@ class DocumentColorPresentationHandler
   Future<ColorPresentation> _createColorPresentation(
     ResolvedUnitResult unit,
     SourceRange editRange,
-    ClassElement colorType,
+    InterfaceElement colorType,
     String label,
     String invocationString,
   ) async {

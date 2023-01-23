@@ -152,7 +152,7 @@ config("compiler") {
   # ----------------------------------
   if (is_mac) {
     # These flags are shared between the C compiler and linker.
-    common_mac_flags = [ "-fno-exceptions" ]
+    common_mac_flags = []
 
     # CPU architecture.
     if (current_cpu == "x64") {
@@ -234,8 +234,6 @@ config("compiler") {
         ]
       }
     }
-
-    cflags += [ "-fno-exceptions" ]
   }
 
   # Linux/Android common flags setup.
@@ -377,7 +375,10 @@ config("compiler") {
     } else if (is_linux) {
       toolchain_stamp_file =
           "//buildtools/linux-x64/clang/.versions/clang.cipd_version"
-    } else {
+    } else if (is_mac && host_cpu == "arm64") {
+      toolchain_stamp_file =
+          "//buildtools/mac-arm64/clang/.versions/clang.cipd_version"
+    } else if (is_mac) {
       toolchain_stamp_file =
           "//buildtools/mac-x64/clang/.versions/clang.cipd_version"
     }
@@ -460,7 +461,10 @@ config("runtime_library") {
   }
 
   if (is_linux) {
-    libs += [ "dl" ]
+    libs += [
+      "dl",
+      "pthread",
+    ]
   } else if (is_android) {
     # Android standard library setup.
     if (is_clang) {
@@ -545,6 +549,7 @@ if (is_win) {
       "-Wno-microsoft-unqualified-friend",
       "-Wno-unknown-argument",  # icu
       "-Wno-unused-value",  # crashpad
+      "-Wno-deprecated-non-prototype",  # zlib
     ]
   } else {
     default_warning_flags += [
@@ -576,6 +581,7 @@ if (is_win) {
     default_warning_flags += [
       "-Wno-tautological-constant-compare",
       "-Wno-unused-but-set-variable",  # icu
+      "-Wno-deprecated-non-prototype",  # zlib
     ]
   } else {
     default_warning_flags +=

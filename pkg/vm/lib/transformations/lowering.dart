@@ -10,6 +10,7 @@ import 'package:kernel/type_environment.dart'
 
 import 'package:vm/transformations/specializer/factory_specializer.dart';
 
+import 'for_in_lowering.dart' show ForInLowering;
 import 'late_var_init_transformer.dart' show LateVarInitTransformer;
 import 'list_literals_lowering.dart' show ListLiteralsLowering;
 import 'type_casts_optimizer.dart' as typeCastsOptimizer
@@ -20,15 +21,19 @@ import 'type_casts_optimizer.dart' as typeCastsOptimizer
 ///
 /// Each transformation is applied locally to AST nodes of certain types
 /// after transforming children nodes.
-void transformLibraries(List<Library> libraries, CoreTypes coreTypes,
-    ClassHierarchy hierarchy, bool nullSafety) {
-  final transformer = _Lowering(coreTypes, hierarchy, nullSafety);
+void transformLibraries(
+    List<Library> libraries, CoreTypes coreTypes, ClassHierarchy hierarchy,
+    {required bool nullSafety, required bool productMode}) {
+  final transformer = _Lowering(coreTypes, hierarchy,
+      nullSafety: nullSafety, productMode: productMode);
   libraries.forEach(transformer.visitLibrary);
 }
 
-void transformProcedure(Procedure procedure, CoreTypes coreTypes,
-    ClassHierarchy hierarchy, bool nullSafety) {
-  final transformer = _Lowering(coreTypes, hierarchy, nullSafety);
+void transformProcedure(
+    Procedure procedure, CoreTypes coreTypes, ClassHierarchy hierarchy,
+    {required bool nullSafety, required bool productMode}) {
+  final transformer = _Lowering(coreTypes, hierarchy,
+      nullSafety: nullSafety, productMode: productMode);
   procedure.accept(transformer);
 }
 
@@ -38,15 +43,19 @@ class _Lowering extends Transformer {
   final LateVarInitTransformer lateVarInitTransformer;
   final FactorySpecializer factorySpecializer;
   final ListLiteralsLowering listLiteralsLowering;
+  final ForInLowering forInLowering;
 
   Member? _currentMember;
+  FunctionNode? _currentFunctionNode;
   StaticTypeContext? _cachedStaticTypeContext;
 
-  _Lowering(CoreTypes coreTypes, ClassHierarchy hierarchy, this.nullSafety)
+  _Lowering(CoreTypes coreTypes, ClassHierarchy hierarchy,
+      {required this.nullSafety, required bool productMode})
       : env = TypeEnvironment(coreTypes, hierarchy),
         lateVarInitTransformer = LateVarInitTransformer(),
         factorySpecializer = FactorySpecializer(coreTypes),
-        listLiteralsLowering = ListLiteralsLowering(coreTypes);
+        listLiteralsLowering = ListLiteralsLowering(coreTypes),
+        forInLowering = ForInLowering(coreTypes, productMode: productMode);
 
   StaticTypeContext get _staticTypeContext =>
       _cachedStaticTypeContext ??= StaticTypeContext(_currentMember!, env);
@@ -66,6 +75,17 @@ class _Lowering extends Transformer {
 
     _currentMember = null;
     _cachedStaticTypeContext = null;
+    return result;
+  }
+
+  @override
+  visitFunctionNode(FunctionNode node) {
+    final savedFunctionNode = _currentFunctionNode;
+    _currentFunctionNode = node;
+
+    final result = super.visitFunctionNode(node);
+
+    _currentFunctionNode = savedFunctionNode;
     return result;
   }
 
@@ -98,5 +118,12 @@ class _Lowering extends Transformer {
   visitListLiteral(ListLiteral node) {
     node.transformChildren(this);
     return listLiteralsLowering.transformListLiteral(node);
+  }
+
+  @override
+  visitForInStatement(ForInStatement node) {
+    node.transformChildren(this);
+    return forInLowering.transformForInStatement(
+        node, _currentFunctionNode, _staticTypeContext);
   }
 }

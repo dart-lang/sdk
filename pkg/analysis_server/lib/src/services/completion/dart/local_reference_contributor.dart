@@ -8,6 +8,7 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
@@ -48,6 +49,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
     if (!opType.isPrefixed) {
       if (opType.includeReturnValueSuggestions ||
           opType.includeTypeNameSuggestions ||
+          opType.includeAnnotationSuggestions ||
           opType.includeVoidReturnSuggestions ||
           opType.includeConstructorSuggestions ||
           suggestLocalFields) {
@@ -82,16 +84,19 @@ class LocalReferenceContributor extends DartCompletionContributor {
     if (request.includeIdentifiers) {
       var member = _enclosingMember(request.target);
       if (member != null) {
-        var classOrMixin = member.parent;
-        if (classOrMixin is ClassOrMixinDeclaration) {
-          var declaredElement = classOrMixin.declaredElement;
-          if (declaredElement != null) {
-            memberBuilder = MemberSuggestionBuilder(request, builder);
-            _computeSuggestionsForClass(declaredElement);
-          }
+        var enclosingNode = member.parent;
+        if (enclosingNode is ClassDeclaration) {
+          _addForInterface(enclosingNode.declaredElement!);
+        } else if (enclosingNode is MixinDeclaration) {
+          _addForInterface(enclosingNode.declaredElement!);
         }
       }
     }
+  }
+
+  void _addForInterface(InterfaceElement interface) {
+    memberBuilder = MemberSuggestionBuilder(request, builder);
+    _computeSuggestionsForClass(interface);
   }
 
   void _addSuggestionsForType(InterfaceType type, double inheritanceDistance,
@@ -141,14 +146,14 @@ class LocalReferenceContributor extends DartCompletionContributor {
     }
   }
 
-  void _computeSuggestionsForClass(ClassElement classElement) {
+  void _computeSuggestionsForClass(InterfaceElement interface) {
     var isFunctionalArgument = request.target.isFunctionalArgument();
     classMemberSuggestionKind = isFunctionalArgument
         ? CompletionSuggestionKind.IDENTIFIER
         : CompletionSuggestionKind.INVOCATION;
-    for (var type in classElement.allSupertypes) {
+    for (var type in interface.allSupertypes) {
       var inheritanceDistance = request.featureComputer
-          .inheritanceDistanceFeature(classElement, type.element);
+          .inheritanceDistanceFeature(interface, type.element);
       _addSuggestionsForType(type, inheritanceDistance,
           isFunctionalArgument: isFunctionalArgument);
     }
@@ -213,14 +218,14 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredClass(ClassDeclaration declaration) {
-    _declaredClassElement(declaration.declaredElement);
+    _declaredInterfaceElement(declaration.declaredElement);
   }
 
   @override
   void declaredClassTypeAlias(ClassTypeAlias declaration) {
     var declaredElement = declaration.declaredElement;
     if (declaredElement != null && opType.includeTypeNameSuggestions) {
-      builder.suggestClass(declaredElement);
+      builder.suggestInterface(declaredElement);
     }
   }
 
@@ -231,7 +236,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredEnum(EnumDeclaration declaration) {
-    _declaredClassElement(declaration.declaredElement);
+    _declaredInterfaceElement(declaration.declaredElement);
   }
 
   @override
@@ -259,7 +264,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       var enclosingElement = enclosingClass?.declaredElement;
       if (enclosingElement != null) {
         var enclosingElement = field.enclosingElement;
-        if (enclosingElement is ClassElement) {
+        if (enclosingElement is InterfaceElement) {
           inheritanceDistance = request.featureComputer
               .inheritanceDistanceFeature(enclosingElement, enclosingElement);
         }
@@ -315,10 +320,14 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredLocalVar(SimpleIdentifier name, TypeAnnotation? type) {
-    if (visibilityTracker._isVisible(name.staticElement) &&
+  void declaredLocalVar(
+    Token name,
+    TypeAnnotation? type,
+    LocalVariableElement declaredElement,
+  ) {
+    if (visibilityTracker._isVisible(declaredElement) &&
         opType.includeReturnValueSuggestions) {
-      builder.suggestLocalVariable(name.staticElement as LocalVariableElement);
+      builder.suggestLocalVariable(declaredElement);
     }
   }
 
@@ -334,7 +343,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
           .thisOrAncestorOfType<ClassDeclaration>();
       if (enclosingClass != null) {
         var enclosingElement = element?.enclosingElement;
-        if (enclosingElement is ClassElement) {
+        if (enclosingElement is InterfaceElement) {
           inheritanceDistance = request.featureComputer
               .inheritanceDistanceFeature(
                   enclosingClass.declaredElement!, enclosingElement);
@@ -357,16 +366,15 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         declaredElement != null &&
         visibilityTracker._isVisible(declaredElement) &&
         opType.includeTypeNameSuggestions) {
-      builder.suggestClass(declaredElement);
+      builder.suggestInterface(declaredElement);
     }
   }
 
   @override
-  void declaredParam(SimpleIdentifier name, TypeAnnotation? type) {
-    var element = name.staticElement;
+  void declaredParam(Token name, Element? element, TypeAnnotation? type) {
     if (visibilityTracker._isVisible(element) &&
         opType.includeReturnValueSuggestions) {
-      if (_isUnused(name.name)) {
+      if (_isUnused(name.lexeme)) {
         return;
       }
       if (element is ParameterElement) {
@@ -407,19 +415,28 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     super.visitExtendsClause(node);
   }
 
-  void _declaredClassElement(ClassElement? class_) {
-    if (class_ != null && visibilityTracker._isVisible(class_)) {
+  void _declaredInterfaceElement(InterfaceElement? element) {
+    if (element != null && visibilityTracker._isVisible(element)) {
       if (opType.includeTypeNameSuggestions) {
-        builder.suggestClass(class_);
+        builder.suggestInterface(element);
       }
 
+      final includeConstructors = opType.includeConstructorSuggestions ||
+          opType.includeAnnotationSuggestions;
+      final includeOnlyConstConstructors =
+          opType.includeAnnotationSuggestions &&
+              !opType.includeConstructorSuggestions;
       if (!opType.isPrefixed &&
-          opType.includeConstructorSuggestions &&
-          !class_.isEnum) {
-        for (final constructor in class_.constructors) {
-          if (!class_.isAbstract || constructor.isFactory) {
-            builder.suggestConstructor(constructor);
+          includeConstructors &&
+          element is ClassElement) {
+        for (final constructor in element.constructors) {
+          if (element.isAbstract && !constructor.isFactory) {
+            continue;
           }
+          if (includeOnlyConstConstructors && !constructor.isConst) {
+            continue;
+          }
+          builder.suggestConstructor(constructor);
         }
       }
 
@@ -428,7 +445,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         final contextType = request.contextType;
         if (contextType is InterfaceType) {
           // TODO(scheglov) This looks not ideal - we should suggest getters.
-          for (final field in class_.fields) {
+          for (final field in element.fields) {
             if (field.isStatic &&
                 typeSystem.isSubtypeOf(field.type, contextType)) {
               builder.suggestStaticField(field);

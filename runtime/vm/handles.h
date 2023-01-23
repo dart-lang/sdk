@@ -87,8 +87,10 @@ class Handles {
   // when the current zone is destroyed.
   static uword AllocateZoneHandle(Zone* zone);
 
+#if defined(DEBUG)
   // Returns true if specified handle is a zone handle.
   static bool IsZoneHandle(uword handle);
+#endif
 
   // Allocates space for a scoped handle.
   uword AllocateScopedHandle() {
@@ -216,14 +218,6 @@ class Handles {
   // Allocates a new handle block and links it up.
   void SetupNextZoneBlock();
 
-#if defined(DEBUG)
-  // Verifies consistency of handle blocks after a scope is destroyed.
-  void VerifyScopedHandleState();
-
-  // Zaps the free scoped handles to an uninitialized value.
-  void ZapFreeScopedHandles();
-#endif
-
   HandlesBlock* zone_blocks_;        // List of zone handles.
   HandlesBlock first_scoped_block_;  // First block of scoped handles.
   HandlesBlock* scoped_blocks_;      // List of scoped handles.
@@ -237,7 +231,12 @@ class Handles {
   DISALLOW_COPY_AND_ASSIGN(Handles);
 };
 
+#if defined(DEBUG)
+static const int kVMHandleSizeInWords = 3;
+static const int kOffsetOfIsZoneHandle = 2;
+#else
 static const int kVMHandleSizeInWords = 2;
+#endif
 static const int kVMHandlesPerChunk = 63;
 static const int kOffsetOfRawPtr = kWordSize;
 class VMHandles : public Handles<kVMHandleSizeInWords,
@@ -280,8 +279,10 @@ class VMHandles : public Handles<kVMHandleSizeInWords,
   // will be destroyed when the current zone is destroyed.
   static uword AllocateZoneHandle(Zone* zone);
 
+#if defined(DEBUG)
   // Returns true if specified handle is a zone handle.
   static bool IsZoneHandle(uword handle);
+#endif
 
   // Returns number of handles, these functions are used for testing purposes.
   static int ScopedHandleCount();

@@ -466,10 +466,10 @@ some more code
 
 void testString(
   String text, {
-  Map<String, Map<Id, String>> actualData: const {},
+  Map<String, Map<Id, String>> actualData = const {},
   String? expectedResult,
-  int classOffset: 0,
-  int memberOffset: 0,
+  int classOffset = 0,
+  int memberOffset = 0,
 }) {
   testGeneral(const StringDataInterpreter(), text,
       actualData: actualData,
@@ -486,10 +486,10 @@ void testString(
 
 void testFeatures(
   String text, {
-  Map<String, Map<Id, String>> actualData: const {},
+  Map<String, Map<Id, String>> actualData = const {},
   String? expectedResult,
-  int classOffset: 0,
-  int memberOffset: 0,
+  int classOffset = 0,
+  int memberOffset = 0,
 }) {
   Map<String, Map<Id, Features>> actualFeatures = {};
   actualData.forEach((String marker, Map<Id, String> data) {
@@ -506,10 +506,10 @@ void testFeatures(
 }
 
 void testGeneral<T>(DataInterpreter<T> dataInterpreter, String text,
-    {Map<String, Map<Id, T>> actualData: const {},
+    {Map<String, Map<Id, T>> actualData = const {},
     String? expectedResult,
-    int classOffset: 0,
-    int memberOffset: 0}) {
+    int classOffset = 0,
+    int memberOffset = 0}) {
   expectedResult ??= text;
   AnnotatedCode code =
       new AnnotatedCode.fromText(text, commentStart, commentEnd);

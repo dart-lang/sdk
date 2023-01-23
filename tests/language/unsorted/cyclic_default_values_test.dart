@@ -7,8 +7,8 @@ import "package:expect/expect.dart";
 bar([x = foo]) => x((_) => "bar");
 foo([y = bar]) => y((_) => "foo");
 
-foo2({f: bar2}) => f(f: ({f}) => "foo2");
-bar2({f: foo2}) => f(f: ({f}) => "bar2");
+foo2({f = bar2}) => f(f: ({f}) => "foo2");
+bar2({f = foo2}) => f(f: ({f}) => "bar2");
 
 main() {
   var f = bar;

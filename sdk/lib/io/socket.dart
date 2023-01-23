@@ -263,7 +263,7 @@ abstract class RawServerSocket implements Stream<RawSocket> {
 /// one for each connection made to the listening socket.
 ///
 /// See [Socket] for more info.
-abstract class ServerSocket implements Stream<Socket> {
+abstract class ServerSocket implements ServerSocketBase<Socket> {
   /// Listens on a given address and port.
   ///
   /// When the returned future completes the server socket is bound
@@ -599,6 +599,8 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
   /// Returns `null` if no data is available.
   ///
   /// Unsupported by [RawSecureSocket].
+  ///
+  /// Unsupported on Android, Fuchsia, Windows.
   @Since("2.15")
   SocketMessage? readMessage([int? count]);
 
@@ -638,6 +640,8 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
   /// Throws an [OSError] if message could not be sent out.
   ///
   /// Unsupported by [RawSecureSocket].
+  ///
+  /// Unsupported on Android, Fuchsia, Windows.
   @Since("2.15")
   int sendMessage(List<SocketControlMessage> controlMessages, List<int> data,
       [int offset = 0, int? count]);
@@ -769,6 +773,8 @@ abstract class Socket implements Stream<Uint8List>, IOSink {
   external static Future<ConnectionTask<Socket>> _startConnect(host, int port,
       {sourceAddress, int sourcePort = 0});
 
+  Future<List<Object?>> _detachRaw();
+
   /// Destroys the socket in both directions.
   ///
   /// Calling [destroy] will make the send a close event on the stream
@@ -869,9 +875,20 @@ abstract class ResourceHandle {
   /// Creates wrapper around current stdout.
   external factory ResourceHandle.fromStdout(Stdout stdout);
 
+  // Creates wrapper around a readable pipe.
+  external factory ResourceHandle.fromReadPipe(ReadPipe pipe);
+
+  // Creates wrapper around a writeable pipe.
+  external factory ResourceHandle.fromWritePipe(WritePipe pipe);
+
   /// Extracts opened file from resource handle.
   ///
-  /// This can also be used when receiving stdin and stdout handles.
+  /// This can also be used when receiving stdin and stdout handles and read
+  /// and write pipes.
+  ///
+  /// Since the [ResourceHandle] represents a single OS resource,
+  /// none of [toFile], [toSocket], [toRawSocket], or [toRawDatagramSocket],
+  /// [toReadPipe], [toWritePipe], can be called after a call to this method.
   ///
   /// If this resource handle is not a file or stdio handle, the behavior of the
   /// returned [RandomAccessFile] is completely unspecified.
@@ -880,12 +897,20 @@ abstract class ResourceHandle {
 
   /// Extracts opened socket from resource handle.
   ///
+  /// Since the [ResourceHandle] represents a single OS resource,
+  /// none of [toFile], [toSocket], [toRawSocket], or [toRawDatagramSocket],
+  /// [toReadPipe], [toWritePipe], can be called after a call to this method.
+  //
   /// If this resource handle is not a socket handle, the behavior of the
   /// returned [Socket] is completely unspecified.
   /// Be very careful to avoid using a handle incorrectly.
   Socket toSocket();
 
   /// Extracts opened raw socket from resource handle.
+  ///
+  /// Since the [ResourceHandle] represents a single OS resource,
+  /// none of [toFile], [toSocket], [toRawSocket], or [toRawDatagramSocket],
+  /// [toReadPipe], [toWritePipe], can be called after a call to this method.
   ///
   /// If this resource handle is not a socket handle, the behavior of the
   /// returned [RawSocket] is completely unspecified.
@@ -894,17 +919,43 @@ abstract class ResourceHandle {
 
   /// Extracts opened raw datagram socket from resource handle.
   ///
+  /// Since the [ResourceHandle] represents a single OS resource,
+  /// none of [toFile], [toSocket], [toRawSocket], or [toRawDatagramSocket],
+  /// [toReadPipe], [toWritePipe], can be called after a call to this method.
+  ///
   /// If this resource handle is not a datagram socket handle, the behavior of
   /// the returned [RawDatagramSocket] is completely unspecified.
   /// Be very careful to avoid using a handle incorrectly.
   RawDatagramSocket toRawDatagramSocket();
+
+  /// Extracts a read pipe from resource handle.
+  ///
+  /// Since the [ResourceHandle] represents a single OS resource,
+  /// none of [toFile], [toSocket], [toRawSocket], or [toRawDatagramSocket],
+  /// [toReadPipe], [toWritePipe], can be called after a call to this method.
+  ///
+  /// If this resource handle is not a readable pipe, the behavior of the
+  /// returned [ReadPipe] is completely unspecified.
+  /// Be very careful to avoid using a handle incorrectly.
+  ReadPipe toReadPipe();
+
+  /// Extracts a write pipe from resource handle.
+  ///
+  /// Since the [ResourceHandle] represents a single OS resource,
+  /// none of [toFile], [toSocket], [toRawSocket], or [toRawDatagramSocket],
+  /// [toReadPipe], [toWritePipe], can be called after a call to this method.
+  ///
+  /// If this resource handle is not a writeable pipe, the behavior of the
+  /// returned [ReadPipe] is completely unspecified.
+  /// Be very careful to avoid using a handle incorrectly.
+  WritePipe toWritePipe();
 }
 
 /// Control message part of the [SocketMessage] received by a call to
 /// [RawSocket.readMessage].
 ///
 /// Control messages could carry different information including
-/// [ResourceHandle]. If [ResourceHandle]s are availabe as part of this message,
+/// [ResourceHandle]. If [ResourceHandle]s are available as part of this message,
 /// they can be extracted via [extractHandles].
 abstract class SocketControlMessage {
   /// Creates a control message containing the provided [handles].

@@ -56,6 +56,7 @@ from generator import TypeRegistry
 from generate_blink_file import Generate_Blink
 from htmleventgenerator import HtmlEventGenerator
 from htmlrenamer import HtmlRenamer
+from prototype_htmleventgenerator import Prototype_HtmlEventGenerator
 from systemhtml import DartLibraryEmitter, Dart2JSBackend,\
                        HtmlDartInterfaceGenerator, DartLibrary, DartLibraries,\
                        HTML_LIBRARY_NAMES
@@ -95,7 +96,8 @@ def GenerateFromDatabase(common_database,
                          update_dom_metadata=False,
                          logging_level=logging.WARNING,
                          dart_js_interop=False,
-                         generate_static_extensions=False):
+                         generate_static_extensions=False,
+                         generate_prototype_events=False):
     print('\n ----- Accessing DOM using %s -----\n' %
           ('dart:js' if dart_js_interop else 'C++'))
 
@@ -142,17 +144,22 @@ def GenerateFromDatabase(common_database,
                                                   dart_libraries)
         event_generator = HtmlEventGenerator(webkit_database, renamer, metadata,
                                              template_loader)
+        prototype_event_generator = Prototype_HtmlEventGenerator(
+            webkit_database, renamer, metadata, event_generator)
 
         def generate_interface(interface, gl_constants=None):
             backend = backend_factory(interface)
             interface_generator = HtmlDartInterfaceGenerator(
-                options, dart_library_emitter, event_generator, interface,
-                backend)
+                options, dart_library_emitter, event_generator,
+                prototype_event_generator, interface, backend)
             interface_generator.Generate()
             if len(backend._gl_constants) > 0 and not (gl_constants is None):
                 gl_constants.extend(backend._gl_constants)
 
         generator.Generate(webkit_database, common_database, generate_interface)
+        if generate_prototype_events:
+            dart_bin = os.path.join(utils.CheckedInSdkPath(), 'bin', 'dart')
+            prototype_event_generator.WriteFile(dart_bin)
 
         dart_library_emitter.EmitLibraries(auxiliary_dir, dart_js_interop)
 
@@ -313,6 +320,12 @@ def main():
         action='store_true',
         default=False,
         help='Generate static extension members for dart:html classes')
+    parser.add_option(
+        '--generate-prototype-events',
+        dest='generate_prototype_events',
+        action='store_true',
+        default=False,
+        help='Generate event stream library for dart:html prototype')
 
     (options, args) = parser.parse_args()
 
@@ -345,7 +358,8 @@ def main():
     GenerateFromDatabase(database, dart2js_output_dir,
                          options.update_dom_metadata, logging_level,
                          options.dart_js_interop,
-                         options.generate_static_extensions)
+                         options.generate_static_extensions,
+                         options.generate_prototype_events)
 
     file_generation_start_time = time.time()
 

@@ -30,6 +30,7 @@ import '../builder/field_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
+import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
@@ -152,7 +153,6 @@ class KernelTarget extends TargetImplementation {
   /// Shared with [CompilerContext].
   final Map<Uri, Source> uriToSource = CompilerContext.current.uriToSource;
 
-  MemberBuilder? _cachedAbstractClassInstantiationError;
   MemberBuilder? _cachedCompileTimeError;
   MemberBuilder? _cachedDuplicatedFieldInitializerError;
   MemberBuilder? _cachedNativeAnnotation;
@@ -185,17 +185,6 @@ class KernelTarget extends TargetImplementation {
   }
 
   Uri? translateUri(Uri uri) => uriTranslator.translate(uri);
-
-  /// Returns a reference to the constructor of
-  /// `AbstractClassInstantiationError` error.  The constructor is expected to
-  /// accept a single argument of type String, which is the name of the
-  /// abstract class.
-  // TODO: Use some other error before `AbstractClassInstantiationError`
-  // is removed.
-  MemberBuilder getAbstractClassInstantiationError(Loader loader) {
-    return _cachedAbstractClassInstantiationError ??=
-        loader.coreLibrary.getConstructor("AbstractClassInstantiationError");
-  }
 
   /// Returns a reference to the constructor used for creating a compile-time
   /// error. The constructor is expected to accept a single argument of type
@@ -306,7 +295,7 @@ class KernelTarget extends TargetImplementation {
   }
 
   /// Return list of same size as input with possibly translated uris.
-  Uri getEntryPointUri(Uri entryPoint, {bool issueProblem: false}) {
+  Uri getEntryPointUri(Uri entryPoint, {bool issueProblem = false}) {
     String scheme = entryPoint.scheme;
     switch (scheme) {
       case "package":
@@ -541,6 +530,10 @@ class KernelTarget extends TargetImplementation {
           ?.enterPhase(BenchmarkPhases.outline_addNoSuchMethodForwarders);
       loader.addNoSuchMethodForwarders(sortedSourceClassBuilders);
 
+      benchmarker
+          ?.enterPhase(BenchmarkPhases.outline_computeFieldPromotability);
+      loader.computeFieldPromotability(sortedSourceClassBuilders);
+
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkMixins);
       loader.checkMixins(sortedSourceClassBuilders);
 
@@ -593,7 +586,7 @@ class KernelTarget extends TargetImplementation {
   /// component.
   Future<BuildResult> buildComponent(
       {required MacroApplications? macroApplications,
-      bool verify: false}) async {
+      bool verify = false}) async {
     if (loader.first == null) {
       return new BuildResult(macroApplications: macroApplications);
     }
@@ -871,7 +864,7 @@ class KernelTarget extends TargetImplementation {
       constructorReference =
           indexedClass.lookupConstructorReference(new Name(""));
       tearOffReference = indexedClass.lookupGetterReference(
-          constructorTearOffName("", indexedClass.library));
+          new Name(constructorTearOffName(""), indexedClass.library));
     }
 
     /// From [Dart Programming Language Specification, 4th Edition](
@@ -929,7 +922,7 @@ class KernelTarget extends TargetImplementation {
       constructorReference =
           indexedClass.lookupConstructorReference(new Name(""));
       tearOffReference = indexedClass.lookupGetterReference(
-          constructorTearOffName("", indexedClass.library));
+          new Name(constructorTearOffName(""), indexedClass.library));
     }
 
     if (supertype is ClassBuilder) {
@@ -937,7 +930,11 @@ class KernelTarget extends TargetImplementation {
       bool isConstructorAdded = false;
       Map<TypeParameter, DartType>? substitutionMap;
 
-      void addSyntheticConstructor(String name, MemberBuilder memberBuilder) {
+      NameIterator<MemberBuilder> iterator =
+          superclassBuilder.fullConstructorNameIterator;
+      while (iterator.moveNext()) {
+        String name = iterator.name;
+        MemberBuilder memberBuilder = iterator.current;
         if (memberBuilder.member is Constructor) {
           substitutionMap ??= builder.getSubstitutionMap(superclassBuilder.cls);
           Reference? constructorReference;
@@ -961,20 +958,18 @@ class KernelTarget extends TargetImplementation {
                 // added to `Class` whose name is `_` private to `lib1`.
                 .lookupConstructorReference(memberBuilder.member.name);
             tearOffReference = indexedClass.lookupGetterReference(
-                constructorTearOffName(name, indexedClass.library));
+                new Name(constructorTearOffName(name), indexedClass.library));
           }
           builder.addSyntheticConstructor(_makeMixinApplicationConstructor(
               builder,
               builder.cls.mixin,
               memberBuilder as MemberBuilderImpl,
-              substitutionMap!,
+              substitutionMap,
               constructorReference,
               tearOffReference));
           isConstructorAdded = true;
         }
       }
-
-      superclassBuilder.forEachConstructor(addSyntheticConstructor);
 
       if (!isConstructorAdded) {
         builder.addSyntheticConstructor(_makeDefaultConstructor(
@@ -1322,11 +1317,12 @@ class KernelTarget extends TargetImplementation {
           patchConstructorNames.add(name);
         }
       });
-      builder.constructorScope.forEach((String name, Builder builder) {
-        if (builder is ConstructorBuilder) {
-          patchConstructorNames.remove(name);
-        }
-      });
+      NameIterator<ConstructorBuilder> iterator = builder.constructorScope
+          .filteredNameIterator<ConstructorBuilder>(
+              includeDuplicates: false, includeAugmentations: true);
+      while (iterator.moveNext()) {
+        patchConstructorNames.remove(iterator.name);
+      }
       Set<String> kernelConstructorNames =
           cls.constructors.map((c) => c.name.text).toSet().difference({""});
       return kernelConstructorNames.containsAll(patchConstructorNames);
@@ -1334,6 +1330,9 @@ class KernelTarget extends TargetImplementation {
         "Constructors of class '${builder.fullNameForErrors}' "
         "aren't fully patched.");
     for (Constructor constructor in cls.constructors) {
+      if (constructor.isExternal) {
+        continue;
+      }
       bool isRedirecting = false;
       for (Initializer initializer in constructor.initializers) {
         if (initializer is RedirectingInitializer) {
@@ -1411,33 +1410,13 @@ class KernelTarget extends TargetImplementation {
 
     builder.forEachDeclaredConstructor(
         (String name, DeclaredSourceConstructorBuilder constructorBuilder) {
-      if (constructorBuilder.isExternal) return;
-      // In case of duplicating constructors the earliest ones (those that
-      // declared towards the beginning of the file) come last in the list.
-      // To report errors on the first definition of a constructor, we need to
-      // iterate until that last element.
-      DeclaredSourceConstructorBuilder earliest = constructorBuilder;
-      Builder earliestBuilder = constructorBuilder;
-      while (earliestBuilder.next != null) {
-        earliestBuilder = earliestBuilder.next!;
-        if (earliestBuilder is DeclaredSourceConstructorBuilder) {
-          earliest = earliestBuilder;
-        }
-      }
-
-      bool isRedirecting = false;
-      for (Initializer initializer in earliest.constructor.initializers) {
-        if (initializer is RedirectingInitializer) {
-          isRedirecting = true;
-        }
-      }
-      if (!isRedirecting) {
-        Set<SourceFieldBuilder> fields =
-            earliest.takeInitializedFields() ?? const {};
-        constructorInitializedFields[earliest] = fields;
-        (initializedFields ??= new Set<SourceFieldBuilder>.identity())
-            .addAll(fields);
-      }
+      if (constructorBuilder.isEffectivelyExternal) return;
+      if (constructorBuilder.isEffectivelyRedirecting) return;
+      Set<SourceFieldBuilder> fields =
+          constructorBuilder.takeInitializedFields() ?? const {};
+      constructorInitializedFields[constructorBuilder] = fields;
+      (initializedFields ??= new Set<SourceFieldBuilder>.identity())
+          .addAll(fields);
     });
 
     // Run through all fields that aren't initialized by any constructor, and
@@ -1558,11 +1537,12 @@ class KernelTarget extends TargetImplementation {
           isSynthesized: fieldBuilder.isLateLowered,
         ));
       });
-      builder.forEach((String name, Builder builder) {
-        if (builder is FieldBuilder) {
-          patchFieldNames.remove(name);
+      NameIterator<Builder> fieldIterator = builder.fullMemberNameIterator;
+      while (fieldIterator.moveNext()) {
+        if (fieldIterator.current is FieldBuilder) {
+          patchFieldNames.remove(fieldIterator.name);
         }
-      });
+      }
       Set<String> kernelFieldNames = cls.fields.map((f) => f.name.text).toSet();
       return kernelFieldNames.containsAll(patchFieldNames);
     }(),
@@ -1723,24 +1703,11 @@ class KernelTarget extends TargetImplementation {
     assert(library.importUri.isScheme("dart"));
     List<Uri>? patches = uriTranslator.getDartPatches(library.importUri.path);
     if (patches != null) {
-      SourceLibraryBuilder? first;
       for (Uri patch in patches) {
-        if (first == null) {
-          first = library.loader.read(patch, -1,
-              fileUri: patch,
-              origin: library,
-              accessor: library) as SourceLibraryBuilder;
-        } else {
-          // If there's more than one patch file, it's interpreted as a part of
-          // the patch library.
-          SourceLibraryBuilder part = library.loader.read(patch, -1,
-              origin: library,
-              fileUri: patch,
-              accessor: library) as SourceLibraryBuilder;
-          first.parts.add(part);
-          first.partOffsets.add(-1);
-          part.partOfUri = first.importUri;
-        }
+        library.loader.read(patch, -1,
+            fileUri: patch,
+            origin: library,
+            accessor: library) as SourceLibraryBuilder;
       }
     }
   }

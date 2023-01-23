@@ -28,4 +28,4 @@ worlds:
     invalidate:
       - main.dart
     expectedLibraryCount: 2
-    expectsRebuildBodiesOnly: false
+    advancedInvalidation: importsFfi

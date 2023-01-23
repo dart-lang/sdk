@@ -144,7 +144,8 @@ class IfCondition extends LiteralEntryInfo {
     final Token ifToken = token.next!;
     assert(optional('if', ifToken));
     parser.listener.beginIfControlFlow(ifToken);
-    Token result = parser.ensureParenthesizedCondition(ifToken);
+    Token result = parser.ensureParenthesizedCondition(ifToken,
+        allowCase: parser.allowPatterns);
     parser.listener.handleThenControlFlow(result);
     return result;
   }

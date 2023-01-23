@@ -14,9 +14,9 @@ import 'package:compiler/src/elements/entities.dart' show ClassEntity;
 import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/universe/class_hierarchy.dart';
 import 'package:compiler/src/universe/selector.dart';
-import 'package:compiler/src/world.dart';
+import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import '../helpers/element_lookup.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 void main() {
   asyncTest(() async {
@@ -28,9 +28,9 @@ void main() {
 
 testClasses(String import1, String import2) async {
   test(String mainSource,
-      {List<String> directlyInstantiated: const <String>[],
-      List<String> abstractlyInstantiated: const <String>[],
-      List<String> indirectlyInstantiated: const <String>[]}) async {
+      {List<String> directlyInstantiated = const <String>[],
+      List<String> abstractlyInstantiated = const <String>[],
+      List<String> indirectlyInstantiated = const <String>[]}) async {
     String mainFile = 'sdk/tests/web_2/native/main.dart';
     Uri entryPoint = Uri.parse('memory:$mainFile');
     CompilationResult result =

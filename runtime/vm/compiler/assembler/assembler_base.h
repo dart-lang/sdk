@@ -437,8 +437,10 @@ class AssemblerBuffer : public ValueObject {
   template <typename T>
   void Emit(T value) {
     ASSERT(HasEnsuredCapacity());
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
+    defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
     // Variable-length instructions in ia32/x64 have unaligned immediates.
+    // Instruction parcels in RISC-V are only 2-byte aligned.
     StoreUnaligned(reinterpret_cast<T*>(cursor_), value);
 #else
     // Other architecture have aligned, fixed-length instructions.
@@ -460,8 +462,10 @@ class AssemblerBuffer : public ValueObject {
   T Load(intptr_t position) {
     ASSERT(position >= 0 &&
            position <= (Size() - static_cast<intptr_t>(sizeof(T))));
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
+    defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
     // Variable-length instructions in ia32/x64 have unaligned immediates.
+    // Instruction parcels in RISC-V are only 2-byte aligned.
     return LoadUnaligned(reinterpret_cast<T*>(contents_ + position));
 #else
     // Other architecture have aligned, fixed-length instructions.
@@ -473,8 +477,10 @@ class AssemblerBuffer : public ValueObject {
   void Store(intptr_t position, T value) {
     ASSERT(position >= 0 &&
            position <= (Size() - static_cast<intptr_t>(sizeof(T))));
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
+    defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
     // Variable-length instructions in ia32/x64 have unaligned immediates.
+    // Instruction parcels in RISC-V are only 2-byte aligned.
     StoreUnaligned(reinterpret_cast<T*>(contents_ + position), value);
 #else
     // Other architecture have aligned, fixed-length instructions.
@@ -703,6 +709,12 @@ class AssemblerBase : public StackResource {
     kRelaxedNonAtomic,
   };
 
+  virtual void LoadAcquire(Register reg, Register address, int32_t offset) = 0;
+
+  virtual void LoadFieldAddressForOffset(Register reg,
+                                         Register base,
+                                         int32_t offset) = 0;
+
   virtual void LoadField(Register dst, const FieldAddress& address) = 0;
   virtual void LoadFieldFromOffset(Register reg,
                                    Register base,
@@ -726,10 +738,17 @@ class AssemblerBase : public StackResource {
   void StoreToSlot(Register src, Register base, const Slot& slot);
   void StoreToSlotNoBarrier(Register src, Register base, const Slot& slot);
 
+  // Loads a Smi, handling sign extension appropriately when compressed.
+  // In DEBUG mode, also checks that the loaded value is a Smi and halts if not.
+  virtual void LoadCompressedSmi(Register dst, const Address& slot) = 0;
+
   // Install pure virtual methods if using compressed pointers, to ensure that
   // these methods are overridden. If there are no compressed pointers, forward
   // to the uncompressed version.
 #if defined(DART_COMPRESSED_POINTERS)
+  virtual void LoadAcquireCompressed(Register dst,
+                                     Register address,
+                                     int32_t offset) = 0;
   virtual void LoadCompressedField(Register dst,
                                    const FieldAddress& address) = 0;
   virtual void LoadCompressedFieldFromOffset(Register dst,
@@ -747,6 +766,11 @@ class AssemblerBase : public StackResource {
       Register value,       // Value we are storing.
       MemoryOrder memory_order = kRelaxedNonAtomic) = 0;
 #else
+  virtual void LoadAcquireCompressed(Register dst,
+                                     Register address,
+                                     int32_t offset) {
+    LoadAcquire(dst, address, offset);
+  }
   virtual void LoadCompressedField(Register dst, const FieldAddress& address) {
     LoadField(dst, address);
   }
@@ -776,30 +800,32 @@ class AssemblerBase : public StackResource {
                             Register address,
                             int32_t offset = 0) = 0;
 
-  // Retrieves nullability from a FunctionTypePtr in [type] and compares it
-  // to [value].
-  //
-  // TODO(dartbug.com/47034): Change how nullability is stored so that it
-  // can be accessed without checking the class id first.
-  virtual void CompareFunctionTypeNullabilityWith(Register type,
-                                                  int8_t value) = 0;
+  // Loads nullability from an AbstractType [type] to [dst].
+  virtual void LoadAbstractTypeNullability(Register dst, Register type) = 0;
+  // Loads nullability from an AbstractType [type] and compares it
+  // to [value]. Clobbers [scratch].
+  virtual void CompareAbstractTypeNullabilityWith(Register type,
+                                                  /*Nullability*/ int8_t value,
+                                                  Register scratch) = 0;
 
-  // Retrieves nullability from a TypePtr in [type] and compares it to [value].
-  //
-  // TODO(dartbug.com/47034): Change how nullability is stored so that it
-  // can be accessed without checking the class id first.
-  virtual void CompareTypeNullabilityWith(Register type, int8_t value) = 0;
+  virtual void CompareImmediate(Register reg,
+                                target::word imm,
+                                OperandSize width = kWordBytes) = 0;
+  virtual void LsrImmediate(Register dst, int32_t shift) = 0;
+
+  // If src2 == kNoRegister, dst = dst & src1, otherwise dst = src1 & src2.
+  virtual void AndRegisters(Register dst,
+                            Register src1,
+                            Register src2 = kNoRegister) = 0;
 
   void LoadTypeClassId(Register dst, Register src) {
 #if !defined(TARGET_ARCH_IA32)
     EnsureHasClassIdInDEBUG(kTypeCid, src, TMP);
 #endif
-    ASSERT(!compiler::target::UntaggedType::kTypeClassIdIsSigned);
-    ASSERT_EQUAL(compiler::target::UntaggedType::kTypeClassIdBitSize,
-                 kBitsPerInt16);
     LoadFieldFromOffset(dst, src,
-                        compiler::target::Type::type_class_id_offset(),
-                        kUnsignedTwoBytes);
+                        compiler::target::AbstractType::flags_offset(),
+                        kUnsignedFourBytes);
+    LsrImmediate(dst, compiler::target::UntaggedType::kTypeClassIdShift);
   }
 
   virtual void EnsureHasClassIdInDEBUG(intptr_t cid,
@@ -851,6 +877,24 @@ class AssemblerBase : public StackResource {
   // Returns the offset (from the very beginning of the instructions) to the
   // unchecked entry point (incl. prologue/frame setup, etc.).
   intptr_t UncheckedEntryOffset() const { return unchecked_entry_offset_; }
+
+  enum RangeCheckCondition {
+    kIfNotInRange = 0,
+    kIfInRange = 1,
+  };
+
+  // Jumps to [target] if [condition] is satisfied.
+  //
+  // [low] and [high] are inclusive.
+  // If [temp] is kNoRegister, then [value] is overwritten.
+  // Note: Using a valid [temp] register generates an additional
+  //       instruction on x64/ia32.
+  virtual void RangeCheck(Register value,
+                          Register temp,
+                          intptr_t low,
+                          intptr_t high,
+                          RangeCheckCondition condition,
+                          Label* target) = 0;
 
  protected:
   AssemblerBuffer buffer_;  // Contains position independent code.

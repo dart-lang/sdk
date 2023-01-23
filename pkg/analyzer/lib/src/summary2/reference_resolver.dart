@@ -16,6 +16,7 @@ import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
+import 'package:analyzer/src/summary2/record_type_builder.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 
 /// Recursive visitor of [LinkedNode]s that resolves explicit type annotations
@@ -40,10 +41,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   ReferenceResolver(
     this.linker,
     this.nodesToBuildType,
-    LibraryElementImpl libraryElement,
-  )   : _typeSystem = libraryElement.typeSystem,
-        scope = libraryElement.scope,
-        isNNBD = libraryElement.isNonNullableByDefault;
+    LibraryOrAugmentationElementImpl container,
+  )   : _typeSystem = container.library.typeSystem,
+        scope = container.scope,
+        isNNBD = container.isNonNullableByDefault;
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {}
@@ -61,7 +62,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.implementsClause?.accept(this);
     node.withClause?.accept(this);
 
-    scope = ClassScope(scope, element);
+    scope = InterfaceScope(scope, element);
     LinkingNodeContext(node, scope);
 
     node.members.accept(this);
@@ -125,7 +126,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.implementsClause?.accept(this);
     node.withClause?.accept(this);
 
-    scope = ClassScope(scope, element);
+    scope = InterfaceScope(scope, element);
     LinkingNodeContext(node, scope);
 
     node.members.accept(this);
@@ -319,7 +320,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.onClause?.accept(this);
     node.implementsClause?.accept(this);
 
-    scope = ClassScope(scope, element);
+    scope = InterfaceScope(scope, element);
     LinkingNodeContext(node, scope);
 
     node.members.accept(this);
@@ -385,6 +386,37 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitOnClause(OnClause node) {
     node.superclassConstraints.accept(this);
+  }
+
+  @override
+  void visitRecordTypeAnnotation(covariant RecordTypeAnnotationImpl node) {
+    node.positionalFields.accept(this);
+    node.namedFields?.accept(this);
+
+    final builder = RecordTypeBuilder.of(_typeSystem, node);
+    node.type = builder;
+    nodesToBuildType.addTypeBuilder(builder);
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedField(
+    RecordTypeAnnotationNamedField node,
+  ) {
+    node.type.accept(this);
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedFields(
+    RecordTypeAnnotationNamedFields node,
+  ) {
+    node.fields.accept(this);
+  }
+
+  @override
+  void visitRecordTypeAnnotationPositionalField(
+    RecordTypeAnnotationPositionalField node,
+  ) {
+    node.type.accept(this);
   }
 
   @override

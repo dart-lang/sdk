@@ -4,6 +4,9 @@
 
 library fasta.stack_listener_impl;
 
+import 'package:_fe_analyzer_shared/src/experiments/flags.dart' as shared
+    show ExperimentalFlag;
+
 import 'package:_fe_analyzer_shared/src/parser/parser.dart' show Parser;
 
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart';
@@ -25,8 +28,11 @@ abstract class StackListenerImpl extends StackListener {
 
   LibraryFeatures get libraryFeatures => libraryBuilder.libraryFeatures;
 
+  GlobalFeatures get globalFeatures =>
+      libraryBuilder.loader.target.globalFeatures;
+
   @override
-  Uri get importUri => libraryBuilder.importUri;
+  Uri get importUri => libraryBuilder.origin.importUri;
 
   AsyncMarker asyncMarkerFromTokens(Token? asyncToken, Token? starToken) {
     if (asyncToken == null || identical(asyncToken.stringValue, "sync")) {
@@ -143,6 +149,15 @@ abstract class StackListenerImpl extends StackListener {
 
   void reportNonNullAssertExpressionNotEnabled(Token bang) {
     reportMissingNonNullableSupport(bang);
+  }
+
+  @override
+  void handleExperimentNotEnabled(shared.ExperimentalFlag experimentalFlag,
+      Token startToken, Token endToken) {
+    reportIfNotEnabled(
+        libraryFeatures.fromSharedExperimentalFlags(experimentalFlag),
+        startToken.charOffset,
+        endToken.charEnd - startToken.charOffset);
   }
 }
 

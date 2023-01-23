@@ -110,7 +110,7 @@ class ReplaceWithVar extends CorrectionProducer {
       }
       await builder.addDartFileEdit(file, (builder) {
         if (parent.isConst || parent.isFinal) {
-          builder.addDeletion(range.startStart(type, parent.identifier));
+          builder.addDeletion(range.startStart(type, parent.name));
         } else {
           builder.addSimpleReplacement(range.node(type), 'var');
         }

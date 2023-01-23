@@ -887,40 +887,6 @@ library /*isNonNullableByDefault*/;
 //       Extension.duplicateExtensionStaticFieldAndInstanceSetter2;
 //                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:188:5: Error: Can't use 'duplicateInstanceFieldAndStaticSetter1' because it is declared more than once.
-//   c.duplicateInstanceFieldAndStaticSetter1 =
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:189:9: Error: Can't use 'duplicateInstanceFieldAndStaticSetter1' because it is declared more than once.
-//       c.duplicateInstanceFieldAndStaticSetter1;
-//         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:189:9: Error: The getter 'duplicateInstanceFieldAndStaticSetter1' isn't defined for the class 'Class'.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/field_vs_setter.dart'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named 'duplicateInstanceFieldAndStaticSetter1'.
-//       c.duplicateInstanceFieldAndStaticSetter1;
-//         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:188:5: Error: The setter 'duplicateInstanceFieldAndStaticSetter1' isn't defined for the class 'Class'.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/field_vs_setter.dart'.
-// Try correcting the name to the name of an existing setter, or defining a setter or field named 'duplicateInstanceFieldAndStaticSetter1'.
-//   c.duplicateInstanceFieldAndStaticSetter1 =
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:190:5: Error: Can't use 'duplicateInstanceFieldAndStaticSetter2' because it is declared more than once.
-//   c.duplicateInstanceFieldAndStaticSetter2 =
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:191:9: Error: Can't use 'duplicateInstanceFieldAndStaticSetter2' because it is declared more than once.
-//       c.duplicateInstanceFieldAndStaticSetter2;
-//         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:191:9: Error: The getter 'duplicateInstanceFieldAndStaticSetter2' isn't defined for the class 'Class'.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/field_vs_setter.dart'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named 'duplicateInstanceFieldAndStaticSetter2'.
-//       c.duplicateInstanceFieldAndStaticSetter2;
-//         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:190:5: Error: The setter 'duplicateInstanceFieldAndStaticSetter2' isn't defined for the class 'Class'.
 //  - 'Class' is from 'pkg/front_end/testcases/nnbd/field_vs_setter.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'duplicateInstanceFieldAndStaticSetter2'.
@@ -1051,26 +1017,6 @@ library /*isNonNullableByDefault*/;
 //   0.duplicateExtensionStaticFieldAndInstanceSetter2 =
 //     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:39:14: Error: Final field 'duplicateInstanceFieldAndSetter2' is not initialized.
-// Try to initialize the field in the declaration or in every constructor.
-//   final int? duplicateInstanceFieldAndSetter2 = null;
-//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:61:21: Error: Final field 'duplicateStaticFieldAndSetter2' is not initialized.
-// Try to initialize the field in the declaration or in every constructor.
-//   static final int? duplicateStaticFieldAndSetter2 = null;
-//                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:90:14: Error: Final field 'duplicateInstanceFieldAndStaticSetter2' is not initialized.
-// Try to initialize the field in the declaration or in every constructor.
-//   final int? duplicateInstanceFieldAndStaticSetter2 = null;
-//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:98:21: Error: Final field 'duplicateStaticFieldAndInstanceSetter2' is not initialized.
-// Try to initialize the field in the declaration or in every constructor.
-//   static final int? duplicateStaticFieldAndInstanceSetter2 = null;
-//                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -1160,24 +1106,12 @@ static method test() → dynamic {
   c.{self::Class::instanceFieldAndDuplicateSetter} = c.{self::Class::instanceFieldAndDuplicateSetter}{core::int?};
   c.{self::Class::instanceLateFinalFieldAndSetter} = c.{self::Class::instanceLateFinalFieldAndSetter}{core::int?};
   c.{self::Class::instanceLateFinalFieldAndDuplicateSetter} = c.{self::Class::instanceLateFinalFieldAndDuplicateSetter}{core::int?};
-  invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:188:5: Error: The setter 'duplicateInstanceFieldAndStaticSetter1' isn't defined for the class 'Class'.
- - 'Class' is from 'pkg/front_end/testcases/nnbd/field_vs_setter.dart'.
-Try correcting the name to the name of an existing setter, or defining a setter or field named 'duplicateInstanceFieldAndStaticSetter1'.
-  c.duplicateInstanceFieldAndStaticSetter1 =
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.duplicateInstanceFieldAndStaticSetter1 = invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:189:9: Error: The getter 'duplicateInstanceFieldAndStaticSetter1' isn't defined for the class 'Class'.
- - 'Class' is from 'pkg/front_end/testcases/nnbd/field_vs_setter.dart'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named 'duplicateInstanceFieldAndStaticSetter1'.
-      c.duplicateInstanceFieldAndStaticSetter1;
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.duplicateInstanceFieldAndStaticSetter1;
+  c.{self::Class::duplicateInstanceFieldAndStaticSetter1} = c.{self::Class::duplicateInstanceFieldAndStaticSetter1}{core::int?};
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:190:5: Error: The setter 'duplicateInstanceFieldAndStaticSetter2' isn't defined for the class 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/field_vs_setter.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'duplicateInstanceFieldAndStaticSetter2'.
   c.duplicateInstanceFieldAndStaticSetter2 =
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.duplicateInstanceFieldAndStaticSetter2 = invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:191:9: Error: The getter 'duplicateInstanceFieldAndStaticSetter2' isn't defined for the class 'Class'.
- - 'Class' is from 'pkg/front_end/testcases/nnbd/field_vs_setter.dart'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named 'duplicateInstanceFieldAndStaticSetter2'.
-      c.duplicateInstanceFieldAndStaticSetter2;
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.duplicateInstanceFieldAndStaticSetter2;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.duplicateInstanceFieldAndStaticSetter2 = c.{self::Class::duplicateInstanceFieldAndStaticSetter2}{core::int?};
   self::Class::staticFieldAndSetter = self::Class::staticFieldAndSetter;
   self::Class::staticFieldAndDuplicateSetter = self::Class::staticFieldAndDuplicateSetter;
   self::Class::staticLateFinalFieldAndSetter = self::Class::staticLateFinalFieldAndSetter;

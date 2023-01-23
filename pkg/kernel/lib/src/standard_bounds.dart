@@ -211,27 +211,22 @@ mixin StandardBounds {
     }
 
     // MOREBOTTOM(X&S, Y&T) = MOREBOTTOM(S, T).
-    if (s is TypeParameterType &&
-        s.promotedBound != null &&
-        t is TypeParameterType &&
-        t.promotedBound != null) {
-      return morebottom(s.promotedBound!, t.promotedBound!);
+    if (s is IntersectionType && t is IntersectionType) {
+      return morebottom(s.right, t.right);
     }
 
     // MOREBOTTOM(X&S, T) = true.
-    if (s is TypeParameterType && s.promotedBound != null) {
+    if (s is IntersectionType) {
       return true;
     }
 
     // MOREBOTTOM(S, X&T) = false.
-    if (t is TypeParameterType && t.promotedBound != null) {
+    if (t is IntersectionType) {
       return false;
     }
 
     // MOREBOTTOM(X extends S, Y extends T) = MOREBOTTOM(S, T).
     if (s is TypeParameterType && t is TypeParameterType) {
-      assert(s.promotedBound == null);
-      assert(t.promotedBound == null);
       return morebottom(s.parameter.bound, t.parameter.bound);
     }
 
@@ -413,6 +408,11 @@ mixin StandardBounds {
 
     if (type1 is FunctionType && type2 is FunctionType) {
       return _getNullabilityAwareFunctionStandardLowerBound(
+          type1, type2, clientLibrary);
+    }
+
+    if (type1 is RecordType && type2 is RecordType) {
+      return _getNullabilityAwareRecordStandardLowerBound(
           type1, type2, clientLibrary);
     }
 
@@ -741,8 +741,18 @@ mixin StandardBounds {
           type1, type2, clientLibrary);
     }
 
+    if (type1 is IntersectionType) {
+      return _getNullabilityAwareIntersectionStandardUpperBound(
+          type1, type2, clientLibrary);
+    }
+
     if (type2 is TypeParameterType) {
       return _getNullabilityAwareTypeParameterStandardUpperBound(
+          type2, type1, clientLibrary);
+    }
+
+    if (type2 is IntersectionType) {
+      return _getNullabilityAwareIntersectionStandardUpperBound(
           type2, type1, clientLibrary);
     }
 
@@ -771,6 +781,33 @@ mixin StandardBounds {
       }
 
       // UP(T1, T Function<...>(...)) = UP(T1, Object)
+      return _getNullabilityAwareStandardUpperBound(
+          type1, coreTypes.objectNonNullableRawType, clientLibrary);
+    }
+
+    if (type1 is RecordType) {
+      if (type2 is RecordType) {
+        return _getNullabilityAwareRecordStandardUpperBound(
+            type1, type2, clientLibrary);
+      }
+
+      if (type2 is InterfaceType && type2.classNode == coreTypes.recordClass) {
+        // UP(Record(...), Record) = Record
+        return coreTypes.recordRawType(uniteNullabilities(
+            type1.declaredNullability, type2.declaredNullability));
+      }
+
+      // UP(Record(...), T2) = UP(Object, T2)
+      return _getNullabilityAwareStandardUpperBound(
+          coreTypes.objectNonNullableRawType, type2, clientLibrary);
+    } else if (type2 is RecordType) {
+      if (type1 is InterfaceType && type1.classNode == coreTypes.recordClass) {
+        // UP(Record, Record(...)) = Record
+        return coreTypes.recordRawType(uniteNullabilities(
+            type1.declaredNullability, type2.declaredNullability));
+      }
+
+      // UP(T1, Record(...)) = UP(T1, Object)
       return _getNullabilityAwareStandardUpperBound(
           type1, coreTypes.objectNonNullableRawType, clientLibrary);
     }
@@ -1046,6 +1083,60 @@ mixin StandardBounds {
             math.min(f.requiredParameterCount, g.requiredParameterCount));
   }
 
+  /// Computes the nullability-aware lower bound of two record types.
+  ///
+  /// The algorithm is defined as follows:
+  /// DOWN((P00, ..., P0k, Named0), (P10, ..., P1k, Named1)) =
+  ///   (P20, ..., P2k, Named2)
+  /// if:
+  ///   P2i is DOWN(P0i, P1i),
+  ///   Named0 contains R0i xi
+  ///       if Named1 contains R1i xi
+  ///   Named1 contains R1i xi
+  ///       if Named0 contains R0i xi
+  ///   Named2 contains exactly R2i xi
+  ///       for each xi in both Named0 and Named1
+  ///     where R0i xi is in Named0
+  ///     where R1i xi is in Named1
+  ///     and R2i is UP(R0i, R1i)
+  /// DOWN(Record(...), Record(...)) = Never otherwise.
+  DartType _getNullabilityAwareRecordStandardLowerBound(
+      RecordType r1, RecordType r2, Library clientLibrary) {
+    // The fallback result for whenever the following rule applies:
+    //     DOWN(Record(...), Record(...)) = Never otherwise.
+    late final DartType fallbackResult = NeverType.fromNullability(
+        intersectNullabilities(r1.declaredNullability, r2.declaredNullability));
+
+    if (r1.positional.length != r2.positional.length ||
+        r1.named.length != r2.named.length) {
+      return fallbackResult;
+    }
+
+    int positionalLength = r1.positional.length;
+    int namedLength = r1.named.length;
+
+    for (int i = 0; i < namedLength; i++) {
+      if (r1.named[i].name != r2.named[i].name) {
+        return fallbackResult;
+      }
+    }
+
+    List<DartType> positional = new List<DartType>.generate(
+        positionalLength,
+        (i) => _getNullabilityAwareStandardLowerBound(
+            r1.positional[i], r2.positional[i], clientLibrary));
+
+    List<NamedType> named = new List<NamedType>.generate(
+        namedLength,
+        (i) => new NamedType(
+            r1.named[i].name,
+            _getNullabilityAwareStandardLowerBound(
+                r1.named[i].type, r2.named[i].type, clientLibrary)));
+
+    return new RecordType(positional, named,
+        intersectNullabilities(r1.declaredNullability, r2.declaredNullability));
+  }
+
   /// Computes the nullability-aware lower bound of two function types.
   ///
   /// UP(
@@ -1214,69 +1305,134 @@ mixin StandardBounds {
         requiredParameterCount: f.requiredParameterCount);
   }
 
+  /// Computes the nullability-aware lower bound of two record types.
+  ///
+  /// UP((P00, ... P0k, Named0), (P10, ... P1k, Named1)) =
+  ///   (P20, ..., P2k, Named2)
+  /// if:
+  ///   P2i is UP(P0i, P1i)
+  ///   Named0 contains R0i xi
+  ///       if Named1 contains R1i xi
+  ///   Named1 contains R1i xi
+  ///       if Named0 contains R0i xi
+  ///   Named2 contains exactly R2i xi
+  ///       for each xi in both Named0 and Named1
+  ///     where R0i xi is in Named0
+  ///     where R1i xi is in Named1
+  ///     and R2i is UP(R0i, R1i)
+  /// UP(Record(...), Record(...)) = Record otherwise
+  DartType _getNullabilityAwareRecordStandardUpperBound(
+      RecordType r1, RecordType r2, Library clientLibrary) {
+    // The return value for whenever the following applies:
+    //     UP(Record(...), Record(...)) = Record otherwise
+    late final DartType fallbackResult = coreTypes.recordRawType(
+        uniteNullabilities(r1.declaredNullability, r2.declaredNullability));
+
+    // Here we perform a quick check on the function types to figure out if we
+    // can compute a non-trivial upper bound for them.
+    if (r1.positional.length != r2.positional.length ||
+        r1.named.length != r2.named.length) {
+      return fallbackResult;
+    }
+
+    int positionalLength = r1.positional.length;
+    int namedLength = r1.named.length;
+
+    for (int i = 0; i < namedLength; i++) {
+      // The named parameters of record types are assumed to be sorted
+      // lexicographically.
+      if (r1.named[i].name != r2.named[i].name) {
+        return fallbackResult;
+      }
+    }
+
+    List<DartType> positional = new List<DartType>.generate(
+        positionalLength,
+        (i) => _getNullabilityAwareStandardUpperBound(
+            r1.positional[i], r2.positional[i], clientLibrary));
+
+    List<NamedType> named = new List<NamedType>.generate(
+        namedLength,
+        (i) => new NamedType(
+            r1.named[i].name,
+            _getNullabilityAwareStandardUpperBound(
+                r1.named[i].type, r2.named[i].type, clientLibrary)));
+
+    return new RecordType(positional, named,
+        uniteNullabilities(r1.declaredNullability, r2.declaredNullability));
+  }
+
   DartType _getNullabilityAwareTypeParameterStandardUpperBound(
       TypeParameterType type1, DartType type2, Library clientLibrary) {
-    if (type1.promotedBound == null) {
-      // UP(X1 extends B1, T2) =
-      //   T2 if X1 <: T2
-      //   otherwise X1 if T2 <: X1
-      //   otherwise UP(B1a, T2)
-      //     where B1a is the greatest closure of B1 with respect to X1,
-      //     as defined in [inference.md].
-      if (isSubtypeOf(type1, type2, SubtypeCheckMode.withNullabilities)) {
-        return type2.withDeclaredNullability(
-            uniteNullabilities(type1.declaredNullability, type2.nullability));
-      }
-      if (isSubtypeOf(type2, type1, SubtypeCheckMode.withNullabilities)) {
-        return type1.withDeclaredNullability(
-            uniteNullabilities(type1.declaredNullability, type2.nullability));
-      }
-      NullabilityAwareTypeVariableEliminator eliminator =
-          new NullabilityAwareTypeVariableEliminator(
-              eliminationTargets: <TypeParameter>{type1.parameter},
-              bottomType: const NeverType.nonNullable(),
-              topType: coreTypes.objectNullableRawType,
-              topFunctionType: coreTypes.functionNonNullableRawType,
-              unhandledTypeHandler: (type, recursor) => false);
-      return _getNullabilityAwareStandardUpperBound(
-              eliminator.eliminateToGreatest(type1.parameter.bound),
-              type2,
-              clientLibrary)
-          .withDeclaredNullability(uniteNullabilities(
-              type1.declaredNullability,
-              uniteNullabilities(type1.parameter.bound.declaredNullability,
-                  type2.nullability)));
-    } else {
-      // UP(X1 & B1, T2) =
-      //   T2 if X1 <: T2
-      //   otherwise X1 if T2 <: X1
-      //   otherwise UP(B1a, T2)
-      //     where B1a is the greatest closure of B1 with respect to X1,
-      //     as defined in [inference.md].
-      DartType demoted =
-          new TypeParameterType(type1.parameter, type1.declaredNullability);
-      if (isSubtypeOf(demoted, type2, SubtypeCheckMode.withNullabilities)) {
-        return type2.withDeclaredNullability(uniteNullabilities(
-            type1.declaredNullability, type2.declaredNullability));
-      }
-      if (isSubtypeOf(type2, demoted, SubtypeCheckMode.withNullabilities)) {
-        return demoted.withDeclaredNullability(uniteNullabilities(
-            type1.declaredNullability, type2.declaredNullability));
-      }
-      NullabilityAwareTypeVariableEliminator eliminator =
-          new NullabilityAwareTypeVariableEliminator(
-              eliminationTargets: <TypeParameter>{type1.parameter},
-              bottomType: const NeverType.nonNullable(),
-              topType: coreTypes.objectNullableRawType,
-              topFunctionType: coreTypes.functionNonNullableRawType,
-              unhandledTypeHandler: (type, recursor) => false);
-      return _getNullabilityAwareStandardUpperBound(
-              eliminator.eliminateToGreatest(type1.promotedBound!),
-              type2,
-              clientLibrary)
-          .withDeclaredNullability(uniteNullabilities(
-              type1.promotedBound!.declaredNullability, type2.nullability));
+    // UP(X1 extends B1, T2) =
+    //   T2 if X1 <: T2
+    //   otherwise X1 if T2 <: X1
+    //   otherwise UP(B1a, T2)
+    //     where B1a is the greatest closure of B1 with respect to X1,
+    //     as defined in [inference.md].
+    if (isSubtypeOf(type1, type2, SubtypeCheckMode.withNullabilities)) {
+      return type2.withDeclaredNullability(
+          uniteNullabilities(type1.declaredNullability, type2.nullability));
     }
+    if (isSubtypeOf(type2, type1, SubtypeCheckMode.withNullabilities)) {
+      return type1.withDeclaredNullability(
+          uniteNullabilities(type1.declaredNullability, type2.nullability));
+    }
+    NullabilityAwareTypeVariableEliminator eliminator =
+        new NullabilityAwareTypeVariableEliminator(
+            eliminationTargets: <TypeParameter>{type1.parameter},
+            bottomType: const NeverType.nonNullable(),
+            topType: coreTypes.objectNullableRawType,
+            topFunctionType: coreTypes.functionNonNullableRawType,
+            unhandledTypeHandler: (type, recursor) => false);
+    return _getNullabilityAwareStandardUpperBound(
+            eliminator.eliminateToGreatest(type1.parameter.bound),
+            type2,
+            clientLibrary)
+        .withDeclaredNullability(uniteNullabilities(
+            type1.declaredNullability,
+            uniteNullabilities(
+                type1.parameter.bound.declaredNullability, type2.nullability)));
+  }
+
+  DartType _getNullabilityAwareIntersectionStandardUpperBound(
+      IntersectionType type1, DartType type2, Library clientLibrary) {
+    // UP(X1 & B1, T2) =
+    //   T2 if X1 <: T2
+    //   otherwise X1 if T2 <: X1
+    //   otherwise UP(B1a, T2)
+    //     where B1a is the greatest closure of B1 with respect to X1,
+    //     as defined in [inference.md].
+    DartType demoted = type1.left;
+    if (isSubtypeOf(demoted, type2, SubtypeCheckMode.withNullabilities)) {
+      return type2.withDeclaredNullability(uniteNullabilities(
+          type1.declaredNullability, type2.declaredNullability));
+    }
+    if (isSubtypeOf(type2, demoted, SubtypeCheckMode.withNullabilities)) {
+      return demoted.withDeclaredNullability(uniteNullabilities(
+          type1.declaredNullability, type2.declaredNullability));
+    }
+    NullabilityAwareTypeVariableEliminator eliminator =
+        new NullabilityAwareTypeVariableEliminator(
+            eliminationTargets: <TypeParameter>{type1.left.parameter},
+            bottomType: const NeverType.nonNullable(),
+            topType: coreTypes.objectNullableRawType,
+            topFunctionType: coreTypes.functionNonNullableRawType,
+            unhandledTypeHandler: (type, recursor) => false);
+    Nullability resultingNullability =
+        uniteNullabilities(type1.right.declaredNullability, type2.nullability);
+
+    // If the resulting nullability is [Nullability.undetermined], one of the
+    // types can be nullable at run time. The upper bound is supposed to be a
+    // supertype to both of the types under all conditions, so we interpret the
+    // undetermined case as [Nullability.nullable].
+    resultingNullability = resultingNullability == Nullability.undetermined
+        ? Nullability.nullable
+        : resultingNullability;
+
+    return _getNullabilityAwareStandardUpperBound(
+            eliminator.eliminateToGreatest(type1.right), type2, clientLibrary)
+        .withDeclaredNullability(resultingNullability);
   }
 
   DartType _getNullabilityObliviousStandardUpperBound(

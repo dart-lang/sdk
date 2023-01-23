@@ -46,9 +46,10 @@ class _HasPromotedTypeVariableVisitor extends DartTypeVisitor<bool> {
   }
 
   @override
-  bool visitTypeParameterType(TypeParameterType node) {
-    return node.promotedBound != null;
-  }
+  bool visitTypeParameterType(TypeParameterType node) => false;
+
+  @override
+  bool visitIntersectionType(IntersectionType node) => true;
 }
 
 /// Returns [type] in which all promoted type variables have been replace with
@@ -125,10 +126,16 @@ class _DemotionNullabilityNormalization extends ReplacementVisitor {
   @override
   DartType? visitTypeParameterType(TypeParameterType node, int variance) {
     Nullability? newNullability = visitNullability(node);
-    if (demoteTypeVariables && node.promotedBound != null) {
-      return new TypeParameterType(
-          node.parameter, newNullability ?? node.declaredNullability);
-    }
     return createTypeParameterType(node, newNullability);
+  }
+
+  @override
+  DartType? visitIntersectionType(IntersectionType node, int variance) {
+    Nullability? newNullability = visitNullability(node);
+    if (demoteTypeVariables) {
+      return new TypeParameterType(
+          node.left.parameter, newNullability ?? node.left.nullability);
+    }
+    return createTypeParameterType(node.left, newNullability);
   }
 }

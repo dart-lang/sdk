@@ -8,6 +8,8 @@ import 'package:test/test.dart';
 import '../utils.dart';
 
 void main() {
+  ensureRunFromSdkBinDart();
+
   group('migrate', defineMigrateTests, timeout: longTimeout);
 }
 

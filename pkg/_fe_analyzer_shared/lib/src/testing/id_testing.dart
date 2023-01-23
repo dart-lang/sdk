@@ -218,8 +218,8 @@ class MemberAnnotations<DataType> {
 void computeExpectedMap(Uri sourceUri, String filename, AnnotatedCode code,
     Map<String, MemberAnnotations<IdValue>> maps,
     {required void onFailure(String message),
-    bool preserveWhitespaceInAnnotations: false,
-    bool preserveInfixWhitespaceInAnnotations: false}) {
+    bool preserveWhitespaceInAnnotations = false,
+    bool preserveInfixWhitespaceInAnnotations = false}) {
   List<String> mapKeys = maps.keys.toList();
   Map<String, AnnotatedCode> split = splitByPrefixes(code, mapKeys);
 
@@ -263,8 +263,8 @@ TestData computeTestData(FileSystemEntity testFile,
     {required Iterable<String> supportedMarkers,
     required Uri createTestUri(Uri uri, String fileName),
     required void onFailure(String message),
-    bool preserveWhitespaceInAnnotations: false,
-    bool preserveInfixWhitespaceInAnnotations: false}) {
+    bool preserveWhitespaceInAnnotations = false,
+    bool preserveInfixWhitespaceInAnnotations = false}) {
   Uri? entryPoint;
 
   String testName;
@@ -406,7 +406,7 @@ abstract class CompiledData<T> {
 
   Map<int, List<String>> computeDiffAnnotationsAgainst(
       Map<Id, ActualData<T>> thisMap, Map<Id, ActualData<T>> otherMap, Uri uri,
-      {bool includeMatches: false}) {
+      {bool includeMatches = false}) {
     Map<int, List<String>> annotations = <int, List<String>>{};
     thisMap.forEach((Id id, ActualData<T> thisData) {
       ActualData<T>? otherData = otherMap[id];
@@ -436,7 +436,8 @@ abstract class CompiledData<T> {
 
   int getOffsetFromId(Id id, Uri uri);
 
-  void reportError(Uri uri, int offset, String message, {bool succinct: false});
+  void reportError(Uri uri, int offset, String message,
+      {bool succinct = false});
 }
 
 /// Interface used for interpreting annotations.
@@ -513,8 +514,8 @@ Future<TestResult<T>> checkCode<T>(
     CompiledData<T> compiledData,
     DataInterpreter<T> dataInterpreter,
     {bool filterActualData(IdValue? expected, ActualData<T> actualData)?,
-    bool fatalErrors: true,
-    bool succinct: false,
+    bool fatalErrors = true,
+    bool succinct = false,
     required void onFailure(String message)}) async {
   String testName = testData.name;
   Map<Uri, AnnotatedCode> code = testData.code;
@@ -703,7 +704,7 @@ class MarkerOptions {
   MarkerOptions.internal(this.markers);
 
   factory MarkerOptions.fromDataDir(Directory dataDir,
-      {bool shouldFindScript: true}) {
+      {bool shouldFindScript = true}) {
     File file = new File.fromUri(dataDir.uri.resolve('marker.options'));
     File script = new File.fromUri(Platform.script);
     if (!file.existsSync()) {
@@ -810,17 +811,17 @@ const List<Option> idTestOptions = [
 
 /// Check code for all tests in [dataDir] using [runTest].
 Future<void> runTests<T>(Directory dataDir,
-    {List<String> args: const <String>[],
-    int shards: 1,
-    int shardIndex: 0,
+    {List<String> args = const <String>[],
+    int shards = 1,
+    int shardIndex = 0,
     void onTest(Uri uri)?,
     required Uri createUriForFileName(String fileName),
     required void onFailure(String message),
     required RunTestFunction<T> runTest,
     List<String>? skipList,
     Map<String, List<String>>? skipMap,
-    bool preserveWhitespaceInAnnotations: false,
-    bool preserveInfixWhitespaceInAnnotations: false}) async {
+    bool preserveWhitespaceInAnnotations = false,
+    bool preserveInfixWhitespaceInAnnotations = false}) async {
   ParsedOptions parsedOptions = ParsedOptions.parse(args, idTestOptions);
   MarkerOptions markerOptions =
       new MarkerOptions.fromDataDir(dataDir, shouldFindScript: shards == 1);

@@ -82,8 +82,7 @@ class Mapping {
 class LibraryIndex {
  public:
   // |kernel_data| is the kernel data for one library alone.
-  explicit LibraryIndex(const ExternalTypedData& kernel_data,
-                        uint32_t binary_version);
+  explicit LibraryIndex(const ExternalTypedData& kernel_data);
 
   intptr_t class_count() const { return class_count_; }
   intptr_t procedure_count() const { return procedure_count_; }
@@ -111,7 +110,6 @@ class LibraryIndex {
 
  private:
   Reader reader_;
-  uint32_t binary_version_;
   intptr_t source_references_offset_;
   intptr_t class_index_offset_;
   intptr_t class_count_;
@@ -238,8 +236,7 @@ class KernelLoader : public ValueObject {
 
   KernelLoader(const Script& script,
                const ExternalTypedData& kernel_data,
-               intptr_t data_program_offset,
-               uint32_t kernel_binary_version);
+               intptr_t data_program_offset);
 
   void InitializeFields(
       DirectChainedHashMap<UriToSourceTableTrait>* uri_to_source_table);
@@ -318,11 +315,14 @@ class KernelLoader : public ValueObject {
     return kernel_program_info_.ScriptAt(source_uri_index);
   }
 
-  // Returns the initial field value for a static function (if applicable).
-  ObjectPtr GenerateFieldAccessors(const Class& klass,
-                                   const Field& field,
-                                   FieldHelper* field_helper);
-  bool FieldNeedsSetter(FieldHelper* field_helper);
+  // Reads field initializer and returns the initial field value.
+  ObjectPtr ReadInitialFieldValue(const Field& field,
+                                  FieldHelper* field_helper);
+
+  // Generates field getter and setter functions.
+  void GenerateFieldAccessors(const Class& klass,
+                              const Field& field,
+                              FieldHelper* field_helper);
 
   void LoadLibraryImportsAndExports(Library* library,
                                     const Class& toplevel_class);
@@ -333,19 +333,6 @@ class KernelLoader : public ValueObject {
   ClassPtr LookupClass(const Library& library, NameIndex klass);
 
   UntaggedFunction::Kind GetFunctionType(ProcedureHelper::Kind procedure_kind);
-
-  void EnsureExternalClassIsLookedUp() {
-    if (external_name_class_.IsNull()) {
-      ASSERT(external_name_field_.IsNull());
-      const Library& internal_lib =
-          Library::Handle(zone_, dart::Library::InternalLibrary());
-      external_name_class_ = internal_lib.LookupClass(Symbols::ExternalName());
-      external_name_field_ = external_name_class_.LookupField(Symbols::name());
-    }
-    ASSERT(!external_name_class_.IsNull());
-    ASSERT(!external_name_field_.IsNull());
-    ASSERT(external_name_class_.is_declaration_loaded());
-  }
 
   void EnsurePragmaClassIsLookedUp() {
     if (pragma_class_.IsNull()) {
@@ -386,7 +373,6 @@ class KernelLoader : public ValueObject {
   // This is the offset of the current library within
   // the whole kernel program.
   intptr_t library_kernel_offset_;
-  uint32_t kernel_binary_version_;
   // This is the offset by which offsets, which are set relative
   // to their library's kernel data, have to be corrected.
   intptr_t correction_offset_;
@@ -402,8 +388,6 @@ class KernelLoader : public ValueObject {
   TypeTranslator type_translator_;
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
 
-  Class& external_name_class_;
-  Field& external_name_field_;
   GrowableObjectArray& annotation_list_;
   GrowableObjectArray& potential_pragma_functions_;
   Object& static_field_value_;

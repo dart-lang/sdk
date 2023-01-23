@@ -83,9 +83,10 @@ class FieldElementFlags {
   static const int _isExternal = 1 << 7;
   static const int _isFinal = 1 << 8;
   static const int _isLate = 1 << 9;
-  static const int _isStatic = 1 << 10;
-  static const int _isSynthetic = 1 << 11;
-  static const int _isTempAugmentation = 1 << 12;
+  static const int _isPromotable = 1 << 10;
+  static const int _isStatic = 1 << 11;
+  static const int _isSynthetic = 1 << 12;
+  static const int _isTempAugmentation = 1 << 13;
 
   static void read(SummaryDataReader reader, FieldElementImpl element) {
     var byte = reader.readUInt30();
@@ -99,6 +100,7 @@ class FieldElementFlags {
     element.isExternal = (byte & _isExternal) != 0;
     element.isFinal = (byte & _isFinal) != 0;
     element.isLate = (byte & _isLate) != 0;
+    element.isPromotable = (byte & _isPromotable) != 0;
     element.isStatic = (byte & _isStatic) != 0;
     element.isSynthetic = (byte & _isSynthetic) != 0;
     element.isTempAugmentation = (byte & _isTempAugmentation) != 0;
@@ -116,6 +118,7 @@ class FieldElementFlags {
     result |= element.isExternal ? _isExternal : 0;
     result |= element.isFinal ? _isFinal : 0;
     result |= element.isLate ? _isLate : 0;
+    result |= element.isPromotable ? _isPromotable : 0;
     result |= element.isStatic ? _isStatic : 0;
     result |= element.isSynthetic ? _isSynthetic : 0;
     result |= element.isTempAugmentation ? _isTempAugmentation : 0;
@@ -150,24 +153,6 @@ class FunctionElementFlags {
   }
 }
 
-class ImportElementFlags {
-  static const int _isDeferred = 1 << 0;
-  static const int _isSynthetic = 1 << 1;
-
-  static void read(SummaryDataReader reader, ImportElementImpl element) {
-    var byte = reader.readByte();
-    element.isDeferred = (byte & _isDeferred) != 0;
-    element.isSynthetic = (byte & _isSynthetic) != 0;
-  }
-
-  static void write(BufferedSink sink, ImportElementImpl element) {
-    var result = 0;
-    result |= element.isDeferred ? _isDeferred : 0;
-    result |= element.isSynthetic ? _isSynthetic : 0;
-    sink.writeByte(result);
-  }
-}
-
 class LibraryElementFlags {
   static const int _hasPartOfDirective = 1 << 0;
   static const int _isSynthetic = 1 << 1;
@@ -181,6 +166,21 @@ class LibraryElementFlags {
   static void write(BufferedSink sink, LibraryElementImpl element) {
     var result = 0;
     result |= element.hasPartOfDirective ? _hasPartOfDirective : 0;
+    result |= element.isSynthetic ? _isSynthetic : 0;
+    sink.writeByte(result);
+  }
+}
+
+class LibraryImportElementFlags {
+  static const int _isSynthetic = 1 << 0;
+
+  static void read(SummaryDataReader reader, LibraryImportElementImpl element) {
+    var byte = reader.readByte();
+    element.isSynthetic = (byte & _isSynthetic) != 0;
+  }
+
+  static void write(BufferedSink sink, LibraryImportElementImpl element) {
+    var result = 0;
     result |= element.isSynthetic ? _isSynthetic : 0;
     sink.writeByte(result);
   }

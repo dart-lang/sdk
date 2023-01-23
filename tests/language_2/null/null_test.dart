@@ -5,15 +5,9 @@
 
 // @dart = 2.9
 
-// VMOptions=--optimization-counter-threshold=5
+// VMOptions=--optimization-counter-threshold=90
 
 import "package:expect/expect.dart";
-
-class BadInherit
-  extends Null //    //# 01: compile-time error
-  implements Null // //# 02: compile-time error
-  extends Object with Null // //# 03: compile-time error
-{}
 
 class EqualsNotCalled {
   int get hashCode => throw "And don't warn!";
@@ -48,14 +42,12 @@ confuse(x) {
 }
 
 void main() {
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < 100; i++) {
     test();
   }
 }
 
 void test() {
-  new BadInherit(); // Make sure class is referenced.
-
   int foo(var obj) {
     Expect.equals(null, obj);
   }

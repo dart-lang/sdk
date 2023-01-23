@@ -13,7 +13,7 @@ main() {
 class A {
   final bool condition;
 
-  A({this.condition: true});
+  A({this.condition = true});
 
   factory A.a1({condition}) = _A1.boo;
 
@@ -25,5 +25,5 @@ class A {
 }
 
 class _A1 extends A {
-  _A1.boo({condition: true}) : super(condition: condition);
+  _A1.boo({condition = true}) : super(condition: condition);
 }

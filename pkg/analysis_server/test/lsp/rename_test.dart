@@ -36,6 +36,47 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     return _test_prepare(content, 'MyClass');
   }
 
+  Future<void> test_prepare_enum() {
+    const content = '''
+    enum [[My^Enum]] { one }
+    ''';
+
+    return _test_prepare(content, 'MyEnum');
+  }
+
+  Future<void> test_prepare_enumMember() {
+    const content = '''
+    enum MyEnum { [[o^ne]] }
+    ''';
+
+    return _test_prepare(content, 'one');
+  }
+
+  Future<void> test_prepare_enumMember_reference() {
+    const content = '''
+    enum MyEnum { one }
+    final a = MyEnum.[[o^ne]];
+    ''';
+
+    return _test_prepare(content, 'one');
+  }
+
+  Future<void> test_prepare_function_startOfParameterList() {
+    const content = '''
+    void [[aaaa]]^() {}
+    ''';
+
+    return _test_prepare(content, 'aaaa');
+  }
+
+  Future<void> test_prepare_function_startOfTypeParameterList() {
+    const content = '''
+    void [[aaaa]]^<T>() {}
+    ''';
+
+    return _test_prepare(content, 'aaaa');
+  }
+
   Future<void> test_prepare_importPrefix() async {
     const content = '''
     import 'dart:async' as [[myPr^efix]];
@@ -70,6 +111,26 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     return _test_prepare(content, null);
   }
 
+  Future<void> test_prepare_method_startOfParameterList() {
+    const content = '''
+    class A {
+      void [[aaaa]]^() {}
+    }
+    ''';
+
+    return _test_prepare(content, 'aaaa');
+  }
+
+  Future<void> test_prepare_method_startOfTypeParameterList() {
+    const content = '''
+    class A {
+      void [[aaaa]]^<T>() {}
+    }
+    ''';
+
+    return _test_prepare(content, 'aaaa');
+  }
+
   Future<void> test_prepare_sdkClass() async {
     const content = '''
     final a = new [[Ob^ject]]();
@@ -81,7 +142,7 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     final request = makeRequest(
       Method.textDocument_prepareRename,
       TextDocumentPositionParams(
-        textDocument: TextDocumentIdentifier(uri: mainFileUri.toString()),
+        textDocument: TextDocumentIdentifier(uri: mainFileUri),
         position: positionFromMarker(content),
       ),
     );
@@ -366,6 +427,53 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     );
   }
 
+  Future<void> test_rename_enum() {
+    const content = '''
+    enum MyEnum { one }
+    final a = MyE^num.one;
+    ''';
+    const expectedContent = '''
+    enum MyNewEnum { one }
+    final a = MyNewEnum.one;
+    ''';
+    return _test_rename_withDocumentChanges(
+        content, 'MyNewEnum', expectedContent);
+  }
+
+  Future<void> test_rename_enumMember() {
+    const content = '''
+    enum MyEnum { one }
+    final a = MyEnum.o^ne;
+    ''';
+    const expectedContent = '''
+    enum MyEnum { newOne }
+    final a = MyEnum.newOne;
+    ''';
+    return _test_rename_withDocumentChanges(content, 'newOne', expectedContent);
+  }
+
+  Future<void> test_rename_function_startOfParameterList() {
+    const content = '''
+    void f^() {}
+    ''';
+    const expectedContent = '''
+    void newName() {}
+    ''';
+    return _test_rename_withDocumentChanges(
+        content, 'newName', expectedContent);
+  }
+
+  Future<void> test_rename_function_startOfTypeParameterList() {
+    const content = '''
+    void f^<T>() {}
+    ''';
+    const expectedContent = '''
+    void newName<T>() {}
+    ''';
+    return _test_rename_withDocumentChanges(
+        content, 'newName', expectedContent);
+  }
+
   Future<void> test_rename_importPrefix() {
     const content = '''
     import 'dart:async' as myPr^efix;
@@ -406,6 +514,36 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     }
     ''';
     return _test_rename_withDocumentChanges(content, 'MyNewClass', null);
+  }
+
+  Future<void> test_rename_method_startOfParameterList() {
+    const content = '''
+    class MyClass {
+      void m^() {}
+    }
+    ''';
+    const expectedContent = '''
+    class MyClass {
+      void newName() {}
+    }
+    ''';
+    return _test_rename_withDocumentChanges(
+        content, 'newName', expectedContent);
+  }
+
+  Future<void> test_rename_method_startOfTypeParameterList() {
+    const content = '''
+    class MyClass {
+      void m^<T>() {}
+    }
+    ''';
+    const expectedContent = '''
+    class MyClass {
+      void newName<T>() {}
+    }
+    ''';
+    return _test_rename_withDocumentChanges(
+        content, 'newName', expectedContent);
   }
 
   Future<void> test_rename_multipleFiles() async {
@@ -546,7 +684,7 @@ class RenameTest extends AbstractLspAnalysisServerTest {
       Method.textDocument_rename,
       RenameParams(
         newName: 'Object2',
-        textDocument: TextDocumentIdentifier(uri: mainFileUri.toString()),
+        textDocument: TextDocumentIdentifier(uri: mainFileUri),
         position: positionFromMarker(content),
       ),
     );
@@ -557,6 +695,42 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     expect(response.error, isNotNull);
     expect(response.error!.code, ServerErrorCodes.RenameNotValid);
     expect(response.error!.message, contains('is defined in the SDK'));
+  }
+
+  /// Unrelated dartdoc references should not be renamed.
+  ///
+  /// https://github.com/Dart-Code/Dart-Code/issues/4131
+  Future<void> test_rename_updatesCorrectDartdocReferences() {
+    const content = '''
+    class A {
+      int? origi^nalName;
+    }
+
+    class B {
+      int? originalName;
+    }
+
+    /// [A.originalName]
+    /// [B.originalName]
+    /// [C.originalName]
+    var a;
+    ''';
+    const expectedContent = '''
+    class A {
+      int? newName;
+    }
+
+    class B {
+      int? originalName;
+    }
+
+    /// [A.newName]
+    /// [B.originalName]
+    /// [C.originalName]
+    var a;
+    ''';
+    return _test_rename_withDocumentChanges(
+        content, 'newName', expectedContent);
   }
 
   Future<void> test_rename_usingLegacyChangeInterface() async {

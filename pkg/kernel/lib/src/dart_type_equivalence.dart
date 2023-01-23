@@ -88,13 +88,61 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
         if (!nodeNamedParameters.containsKey(otherName) ||
             !nodeNamedParameters[otherName]!.accept1(this, otherType)) {
           result = false;
+        } else {
+          nodeNamedParameters.remove(otherName);
         }
+      }
+      if (nodeNamedParameters.isNotEmpty) {
+        result = false;
       }
       if (!node.returnType.accept1(this, other.returnType)) {
         result = false;
       }
 
       _dropTypeParameters();
+      return result;
+    }
+    return false;
+  }
+
+  @override
+  bool visitRecordType(RecordType node, DartType other) {
+    if (other is RecordType) {
+      if (!_checkAndRegisterNullabilities(
+          node.declaredNullability, other.declaredNullability)) {
+        return false;
+      }
+
+      // Perform simple number checks before the checks on parts.
+      if (node.positional.length != other.positional.length) {
+        return false;
+      }
+      if (node.named.length != other.named.length) {
+        return false;
+      }
+
+      bool result = true;
+
+      for (int i = 0; result && i < node.positional.length; ++i) {
+        if (!node.positional[i].accept1(this, other.positional[i])) {
+          result = false;
+        }
+      }
+
+      // The named fields of [RecordType]s are supposed to be sorted, so we can
+      // use a linear search to compare them.
+      int nodeIndex = 0;
+      int otherIndex = 0;
+      while (result && nodeIndex < node.named.length) {
+        NamedType nodeNamedType = node.named[nodeIndex];
+        NamedType otherNamedType = other.named[otherIndex];
+        if (nodeNamedType.name != otherNamedType.name) {
+          result = false;
+        } else {
+          result = nodeNamedType.type.accept1(this, otherNamedType.type);
+        }
+      }
+
       return result;
     }
     return false;
@@ -153,6 +201,32 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   }
 
   @override
+  bool visitViewType(ViewType node, DartType other) {
+    // First, check Object*, Object?.
+    if (equateTopTypes && coreTypes.isTop(node)) {
+      return coreTypes.isTop(other);
+    }
+
+    if (other is ViewType) {
+      if (!_checkAndRegisterNullabilities(
+          node.declaredNullability, other.declaredNullability)) {
+        return false;
+      }
+      if (node.view != other.view) {
+        return false;
+      }
+      assert(node.typeArguments.length == other.typeArguments.length);
+      for (int i = 0; i < node.typeArguments.length; ++i) {
+        if (!node.typeArguments[i].accept1(this, other.typeArguments[i])) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  @override
   bool visitFutureOrType(FutureOrType node, DartType other) {
     // First, check FutureOr<dynamic>, FutureOr<Object?>, etc.
     if (equateTopTypes && coreTypes.isTop(node)) {
@@ -194,11 +268,6 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   @override
   bool visitTypeParameterType(TypeParameterType node, DartType other) {
     if (other is TypeParameterType) {
-      bool nodeIsIntersection = node.promotedBound != null;
-      bool otherIsIntersection = other.promotedBound != null;
-      if (nodeIsIntersection != otherIsIntersection) {
-        return false;
-      }
       if (!_checkAndRegisterNullabilities(
           node.declaredNullability, other.declaredNullability)) {
         return false;
@@ -206,9 +275,16 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
       if (!identical(_lookup(node.parameter), other.parameter)) {
         return false;
       }
-      return nodeIsIntersection
-          ? node.promotedBound!.accept1(this, other.promotedBound)
-          : true;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitIntersectionType(IntersectionType node, DartType other) {
+    if (other is IntersectionType) {
+      return node.left.accept1(this, other.left) &&
+          node.right.accept1(this, other.right);
     }
     return false;
   }

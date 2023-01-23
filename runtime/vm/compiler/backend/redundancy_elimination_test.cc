@@ -5,6 +5,7 @@
 #include "vm/compiler/backend/redundancy_elimination.h"
 
 #include <functional>
+#include <utility>
 
 #include "vm/compiler/backend/block_builder.h"
 #include "vm/compiler/backend/il_printer.h"
@@ -271,14 +272,14 @@ static void TestAliasingViaRedefinition(
     v1 = builder.AddDefinition(
         new LoadFieldInstr(new Value(v0), slot, InstructionSource()));
     auto v2 = builder.AddDefinition(make_redefinition(&S, H.flow_graph(), v0));
-    auto args = new InputsArray(2);
-    args->Add(new Value(v1));
+    InputsArray args(2);
+    args.Add(new Value(v1));
     if (make_it_escape) {
-      args->Add(new Value(v2));
+      args.Add(new Value(v2));
     }
     call = builder.AddInstruction(new StaticCallInstr(
-        InstructionSource(), blackhole, 0, Array::empty_array(), args,
-        S.GetNextDeoptId(), 0, ICData::RebindRule::kStatic));
+        InstructionSource(), blackhole, 0, Array::empty_array(),
+        std::move(args), S.GetNextDeoptId(), 0, ICData::RebindRule::kStatic));
     v4 = builder.AddDefinition(
         new LoadFieldInstr(new Value(v2), slot, InstructionSource()));
     ret = builder.AddInstruction(new ReturnInstr(
@@ -446,27 +447,27 @@ static void TestAliasingViaStore(
         new AllocateObjectInstr(InstructionSource(), cls, S.GetNextDeoptId()));
     if (!make_host_escape) {
       builder.AddInstruction(
-          new StoreInstanceFieldInstr(slot, new Value(v5), new Value(v0),
-                                      kEmitStoreBarrier, InstructionSource()));
+          new StoreFieldInstr(slot, new Value(v5), new Value(v0),
+                              kEmitStoreBarrier, InstructionSource()));
     }
     v1 = builder.AddDefinition(
         new LoadFieldInstr(new Value(v0), slot, InstructionSource()));
     auto v2 = builder.AddDefinition(make_redefinition(&S, H.flow_graph(), v5));
-    auto args = new InputsArray(2);
-    args->Add(new Value(v1));
+    InputsArray args(2);
+    args.Add(new Value(v1));
     if (make_it_escape) {
       auto v6 = builder.AddDefinition(
           new LoadFieldInstr(new Value(v2), slot, InstructionSource()));
-      args->Add(new Value(v6));
+      args.Add(new Value(v6));
     } else if (make_host_escape) {
       builder.AddInstruction(
-          new StoreInstanceFieldInstr(slot, new Value(v2), new Value(v0),
-                                      kEmitStoreBarrier, InstructionSource()));
-      args->Add(new Value(v5));
+          new StoreFieldInstr(slot, new Value(v2), new Value(v0),
+                              kEmitStoreBarrier, InstructionSource()));
+      args.Add(new Value(v5));
     }
     call = builder.AddInstruction(new StaticCallInstr(
-        InstructionSource(), blackhole, 0, Array::empty_array(), args,
-        S.GetNextDeoptId(), 0, ICData::RebindRule::kStatic));
+        InstructionSource(), blackhole, 0, Array::empty_array(),
+        std::move(args), S.GetNextDeoptId(), 0, ICData::RebindRule::kStatic));
     v4 = builder.AddDefinition(
         new LoadFieldInstr(new Value(v0), slot, InstructionSource()));
     ret = builder.AddInstruction(new ReturnInstr(
@@ -605,8 +606,8 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
 
     //   array <- StaticCall(...) {_Uint32List}
     array = builder.AddDefinition(new StaticCallInstr(
-        InstructionSource(), function, 0, Array::empty_array(),
-        new InputsArray(), DeoptId::kNone, 0, ICData::kNoRebind));
+        InstructionSource(), function, 0, Array::empty_array(), InputsArray(),
+        DeoptId::kNone, 0, ICData::kNoRebind));
     array->UpdateType(CompileType::FromCid(kTypedDataUint32ArrayCid));
     array->SetResultType(zone, CompileType::FromCid(kTypedDataUint32ArrayCid));
     array->set_is_known_list_constructor(true);
@@ -857,7 +858,7 @@ static void CountLoadsStores(FlowGraph* flow_graph,
          it.Advance()) {
       if (it.Current()->IsLoadField()) {
         (*loads)++;
-      } else if (it.Current()->IsStoreInstanceField()) {
+      } else if (it.Current()->IsStoreField()) {
         (*stores)++;
       }
     }
@@ -1068,6 +1069,133 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantInitializerCallInLoop) {
   EXPECT(load_field_in_loop2->calls_initializer());
 }
 
+#if !defined(TARGET_ARCH_IA32)
+
+ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantInitializingStoreAOT) {
+  const char* kScript = R"(
+class Vec3 {
+  final double x, y, z;
+
+  @pragma('vm:prefer-inline')
+  const Vec3(this.x, this.y, this.z);
+
+  @override
+  @pragma('vm:prefer-inline')
+  String toString() => _vec3ToString(x, y, z);
+}
+
+@pragma('vm:never-inline')
+String _vec3ToString(double x, double y, double z) => '';
+
+// Boxed storage for Vec3.
+// Fields are unboxed.
+class Vec3Mut {
+  double _x = 0.0;
+  double _y = 0.0;
+  double _z = 0.0;
+
+  Vec3Mut(Vec3 v)
+      : _x = v.x,
+        _y = v.y,
+        _z = v.z;
+
+  @override
+  String toString() => _vec3ToString(_x, _y, _z);
+
+  @pragma('vm:prefer-inline')
+  set vec(Vec3 v) {
+      _x = v.x;
+      _y = v.y;
+      _z = v.z;
+  }
+}
+
+Vec3Mut main() {
+  final a = Vec3(3, 4, 5);
+  final b = Vec3(8, 9, 10);
+  final c = Vec3(18, 19, 20);
+  final d = Vec3(180, 190, 200);
+  final e = Vec3(1800, 1900, 2000);
+  final v = Vec3Mut(a);
+  v.vec = b;
+  v.vec = c;
+  v.vec = d;
+  v.vec = e;
+  return v;
+}
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function = Function::Handle(GetFunction(root_library, "main"));
+
+  TestPipeline pipeline(function, CompilerPass::kAOT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+  auto entry = flow_graph->graph_entry()->normal_entry();
+
+  AllocateObjectInstr* allocate;
+  StoreFieldInstr* store1;
+  StoreFieldInstr* store2;
+  StoreFieldInstr* store3;
+
+  ILMatcher cursor(flow_graph, entry, true, ParallelMovesHandling::kSkip);
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMoveGlob,
+      {kMatchAndMoveAllocateObject, &allocate},
+      {kMatchAndMoveStoreField, &store1},
+      {kMatchAndMoveStoreField, &store2},
+      {kMatchAndMoveStoreField, &store3},
+      kMatchReturn,
+  }));
+
+  EXPECT(store1->instance()->definition() == allocate);
+  EXPECT(store2->instance()->definition() == allocate);
+  EXPECT(store3->instance()->definition() == allocate);
+}
+
+ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantStoreAOT) {
+  const char* kScript = R"(
+class Foo {
+  int x = -1;
+
+  toString() => "Foo x: $x";
+}
+
+class Bar {}
+
+main() {
+  final foo = Foo();
+  foo.x = 11;
+  new Bar();
+  foo.x = 12;
+  new Bar();
+  foo.x = 13;
+  return foo;
+}
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  Invoke(root_library, "main");
+  const auto& function = Function::Handle(GetFunction(root_library, "main"));
+  TestPipeline pipeline(function, CompilerPass::kAOT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+  auto entry = flow_graph->graph_entry()->normal_entry();
+
+  AllocateObjectInstr* allocate;
+  StoreFieldInstr* store1;
+
+  ILMatcher cursor(flow_graph, entry, true, ParallelMovesHandling::kSkip);
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMoveGlob,
+      {kMatchAndMoveAllocateObject, &allocate},
+      {kMatchAndMoveStoreField, &store1},  // initializing store
+      kMatchReturn,
+  }));
+
+  EXPECT(store1->instance()->definition() == allocate);
+}
+
+#endif  // !defined(TARGET_ARCH_IA32)
+
 ISOLATE_UNIT_TEST_CASE(AllocationSinking_Arrays) {
   const char* kScript = R"(
 import 'dart:typed_data';
@@ -1201,7 +1329,13 @@ main() {
   RELEASE_ASSERT(cursor.TryMatch({
       kMatchAndMoveFunctionEntry,
       kMatchAndMoveCheckStackOverflow,
-      kMatchAndMoveCheckClass,
+  }));
+  if (FLAG_sound_null_safety != kNullSafetyOptionStrong) {
+    RELEASE_ASSERT(cursor.TryMatch({
+        kMatchAndMoveCheckClass,
+    }));
+  }
+  RELEASE_ASSERT(cursor.TryMatch({
       kMatchAndMoveUnbox,
       kMatchAndMoveBinaryDoubleOp,
       kMatchAndMoveBinaryDoubleOp,
@@ -1230,6 +1364,108 @@ main() {
   }));
 
   EXPECT(string_interpolate->ArgumentAt(0) == create_array);
+}
+
+ISOLATE_UNIT_TEST_CASE(AllocationSinking_Records) {
+  const char* kScript = R"(
+
+@pragma('vm:prefer-inline')
+({int field1, String field2}) getRecord(int x, String y) =>
+    (field1: x, field2: y);
+
+@pragma('vm:never-inline')
+String foo(int x, String y) {
+  // All allocations in this function are eliminated by the compiler,
+  // except array allocation for string interpolation at the end.
+  (int, bool) r1 = (x, true);
+  final r2 = getRecord(x, y);
+  int sum = r1.$0 + r2.field1;
+  return "r1: (${r1.$0}, ${r1.$1}), "
+    "r2: (field1: ${r2.field1}, field2: ${r2.field2}), sum: $sum";
+}
+
+int count = 0;
+main() {
+  // Deoptimize on the 2nd run.
+  return foo(count++ == 0 ? 42 : 9223372036854775807, 'hey');
+}
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& result1 = Object::Handle(Invoke(root_library, "main"));
+  EXPECT(result1.IsString());
+  EXPECT_STREQ(result1.ToCString(),
+               "r1: (42, true), r2: (field1: 42, field2: hey), sum: 84");
+  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+  ASSERT(flow_graph != nullptr);
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+
+  /* Flow graph to match:
+
+  2: B1[function entry]:2 {
+      v2 <- Parameter(0) [-9223372036854775808, 9223372036854775807] T{int}
+      v3 <- Parameter(1) T{String}
+}
+  4:     CheckStackOverflow:8(stack=0, loop=0)
+  5:     ParallelMove rax <- S+3
+  6:     CheckSmi:16(v2)
+  8:     ParallelMove rcx <- rax
+  8:     v9 <- BinarySmiOp:16(+, v2 T{_Smi}, v2 T{_Smi}) [-4611686018427387904, 4611686018427387903] T{_Smi}
+  9:     ParallelMove rbx <- C, r10 <- C, S-3 <- rcx
+ 10:     v11 <- CreateArray:18(v0, v10) T{_List}
+ 11:     ParallelMove rax <- rax
+ 12:     StoreIndexed(v11, v12, v13, NoStoreBarrier)
+ 13:     ParallelMove rcx <- S+3
+ 14:     StoreIndexed(v11, v14, v2 T{_Smi}, NoStoreBarrier)
+ 16:     StoreIndexed(v11, v16, v17, NoStoreBarrier)
+ 18:     StoreIndexed(v11, v18, v5, NoStoreBarrier)
+ 20:     StoreIndexed(v11, v20, v21, NoStoreBarrier)
+ 22:     StoreIndexed(v11, v22, v2 T{_Smi}, NoStoreBarrier)
+ 24:     StoreIndexed(v11, v24, v25, NoStoreBarrier)
+ 25:     ParallelMove rcx <- S+2
+ 26:     StoreIndexed(v11, v26, v3, NoStoreBarrier)
+ 28:     StoreIndexed(v11, v28, v29, NoStoreBarrier)
+ 29:     ParallelMove rcx <- S-3
+ 30:     StoreIndexed(v11, v30, v9, NoStoreBarrier)
+ 32:     PushArgument(v11)
+ 34:     v31 <- StaticCall:20( _interpolate@0150898<0> v11, recognized_kind = StringBaseInterpolate) T{String}
+ 35:     ParallelMove rax <- rax
+ 36:     Return:24(v31)
+*/
+
+  ILMatcher cursor(flow_graph, entry, /*trace=*/true,
+                   ParallelMovesHandling::kSkip);
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMatchAndMoveFunctionEntry,
+      kMatchAndMoveCheckStackOverflow,
+      kMatchAndMoveCheckSmi,
+      kMatchAndMoveBinarySmiOp,
+      kMatchAndMoveCreateArray,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMovePushArgument,
+      kMatchAndMoveStaticCall,
+      kMatchReturn,
+  }));
+
+  Compiler::CompileOptimizedFunction(thread, function);
+  const auto& result2 = Object::Handle(Invoke(root_library, "main"));
+  EXPECT(result2.IsString());
+  EXPECT_STREQ(result2.ToCString(),
+               "r1: (9223372036854775807, true), r2: (field1: "
+               "9223372036854775807, field2: hey), sum: -2");
 }
 
 #if !defined(TARGET_ARCH_IA32)
@@ -1269,8 +1505,8 @@ ISOLATE_UNIT_TEST_CASE(DelayAllocations_DelayAcrossCalls) {
   StaticCallInstr* call1;
   StaticCallInstr* call2;
   AllocateObjectInstr* allocate;
-  StoreInstanceFieldInstr* store1;
-  StoreInstanceFieldInstr* store2;
+  StoreFieldInstr* store1;
+  StoreFieldInstr* store2;
 
   ILMatcher cursor(flow_graph, entry, true, ParallelMovesHandling::kSkip);
   RELEASE_ASSERT(cursor.TryMatch({
@@ -1280,8 +1516,8 @@ ISOLATE_UNIT_TEST_CASE(DelayAllocations_DelayAcrossCalls) {
       {kMatchAndMoveStaticCall, &call2},
       kMoveGlob,
       {kMatchAndMoveAllocateObject, &allocate},
-      {kMatchAndMoveStoreInstanceField, &store1},
-      {kMatchAndMoveStoreInstanceField, &store2},
+      {kMatchAndMoveStoreField, &store1},
+      {kMatchAndMoveStoreField, &store2},
   }));
 
   EXPECT(strcmp(call1->function().UserVisibleNameCString(), "foo") == 0);
@@ -1421,13 +1657,13 @@ ISOLATE_UNIT_TEST_CASE(CSE_Redefinitions) {
     load2 = builder.AddDefinition(
         new LoadFieldInstr(new Value(redef3), slot, InstructionSource()));
 
-    auto args = new InputsArray(3);
-    args->Add(new Value(load0));
-    args->Add(new Value(load1));
-    args->Add(new Value(load2));
+    InputsArray args(3);
+    args.Add(new Value(load0));
+    args.Add(new Value(load1));
+    args.Add(new Value(load2));
     call = builder.AddInstruction(new StaticCallInstr(
-        InstructionSource(), blackhole, 0, Array::empty_array(), args,
-        S.GetNextDeoptId(), 0, ICData::RebindRule::kStatic));
+        InstructionSource(), blackhole, 0, Array::empty_array(),
+        std::move(args), S.GetNextDeoptId(), 0, ICData::RebindRule::kStatic));
 
     ret = builder.AddReturn(new Value(box1));
   }

@@ -15,4 +15,4 @@ class Class4int extends Class4<Class4int> {}
 
 testBounded() {}
 expect(expected, actual) {}
-throws(Function() f, {bool inSoundModeOnly: false}) {}
+throws(Function() f, {bool inSoundModeOnly = false}) {}

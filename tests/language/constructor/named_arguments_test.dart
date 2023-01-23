@@ -20,7 +20,7 @@ bar() {
 class X {
   var i;
   var j;
-  X({a: 'defa', b: 'defb'})
+  X({a = 'defa', b = 'defb'})
       : this.i = a,
         this.j = b;
   X.foo() : this(b: 1, a: 2);

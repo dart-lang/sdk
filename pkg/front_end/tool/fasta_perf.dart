@@ -221,7 +221,7 @@ class _PartialAstBuilder extends AstBuilder {
 
 // Invoke the fasta kernel generator for the program starting in [entryUri]
 Future<CompilerResult> generateKernel(Uri entryUri,
-    {bool compileSdk: true}) async {
+    {bool compileSdk = true}) async {
   // TODO(sigmund): this is here only to compute the input size,
   // we should extract the input size from the frontend instead.
   scanReachableFiles(entryUri);

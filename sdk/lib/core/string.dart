@@ -861,7 +861,8 @@ class RuneIterator implements BidirectionalIterator<int> {
   /// Setting the position to the end of the string means that there is no
   /// current rune.
   void set rawIndex(int rawIndex) {
-    RangeError.checkValidIndex(rawIndex, string, "rawIndex");
+    IndexError.check(rawIndex, string.length,
+        indexable: string, name: "rawIndex");
     reset(rawIndex);
     moveNext();
   }

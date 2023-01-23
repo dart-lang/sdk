@@ -6,7 +6,7 @@
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'dart tools/generate_experimental_flags.dart' to update.
 //
-// Current version: 2.18.0
+// Current version: 2.19.0
 
 #include "vm/experimental_features.h"
 
@@ -18,7 +18,7 @@ namespace dart {
 
 bool GetExperimentalFeatureDefault(ExperimentalFeature feature) {
   constexpr bool kFeatureValues[] = {
-      true, true, true, true, true, true, true,
+      true, true, true, true, true, true, true, true,
       true, true, true, true, true, true, true,
   };
   ASSERT(static_cast<size_t>(feature) < ARRAY_SIZE(kFeatureValues));
@@ -41,6 +41,7 @@ const char* GetExperimentalFeatureName(ExperimentalFeature feature) {
       "named-arguments-anywhere",
       "super-parameters",
       "inference-update-1",
+      "unnamed-libraries",
   };
   ASSERT(static_cast<size_t>(feature) < ARRAY_SIZE(kFeatureNames));
   return kFeatureNames[static_cast<int>(feature)];

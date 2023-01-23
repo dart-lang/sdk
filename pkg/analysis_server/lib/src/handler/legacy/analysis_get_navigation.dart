@@ -6,8 +6,8 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
+import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analysis_server/src/request_handler_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -17,7 +17,7 @@ import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 
 /// The handler for the `analysis.getNavigation` request.
 class AnalysisGetNavigationHandler extends LegacyHandler
-    with RequestHandlerMixin<AnalysisServer> {
+    with RequestHandlerMixin<LegacyAnalysisServer> {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   AnalysisGetNavigationHandler(

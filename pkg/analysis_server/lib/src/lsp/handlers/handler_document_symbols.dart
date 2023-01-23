@@ -65,7 +65,7 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
   SymbolInformation? _asSymbolInformation(
     String? containerName,
     Set<SymbolKind> supportedKinds,
-    String documentUri,
+    Uri documentUri,
     LineInfo lineInfo,
     Outline outline,
   ) {
@@ -112,7 +112,7 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
     } else {
       // Otherwise, we need to use the original flat SymbolInformation.
       final allSymbols = <SymbolInformation>[];
-      final documentUri = Uri.file(path).toString();
+      final documentUri = Uri.file(path);
 
       // Adds a symbol and it's children recursively, supplying the parent
       // name as required by SymbolInformation.

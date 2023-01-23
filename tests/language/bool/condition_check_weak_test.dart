@@ -18,7 +18,7 @@ String check({bool? a, bool? b}) {
 
 class Class {
   final String field;
-  Class({bool? a: false, bool? b: true}) : this.field = check(a: a, b: b);
+  Class({bool? a = false, bool? b = true}) : this.field = check(a: a, b: b);
 }
 
 main() {

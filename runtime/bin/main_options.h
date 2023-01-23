@@ -48,7 +48,8 @@ namespace bin {
   V(long_ssl_cert_evaluation, long_ssl_cert_evaluation)                        \
   V(bypass_trusting_system_roots, bypass_trusting_system_roots)                \
   V(delayed_filewatch_callback, delayed_filewatch_callback)                    \
-  V(mark_main_isolate_as_system_isolate, mark_main_isolate_as_system_isolate)
+  V(mark_main_isolate_as_system_isolate, mark_main_isolate_as_system_isolate)  \
+  V(no_serve_observatory, disable_observatory)
 
 // Boolean flags that have a short form.
 #define SHORT_BOOL_OPTIONS_LIST(V)                                             \

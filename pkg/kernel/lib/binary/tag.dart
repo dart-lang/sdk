@@ -10,6 +10,7 @@ class Tag {
 
   static const int Class = 2;
   static const int Extension = 115;
+  static const int View = 85;
 
   static const int FunctionNode = 3;
 
@@ -69,7 +70,6 @@ class Tag {
   static const int AwaitExpression = 51;
   static const int FunctionExpression = 52;
   static const int Let = 53;
-  static const int BlockExpression = 82;
   static const int Instantiation = 54;
   static const int PositiveIntLiteral = 55;
   static const int NegativeIntLiteral = 56;
@@ -77,18 +77,26 @@ class Tag {
   static const int ConstListLiteral = 58;
   static const int ConstMapLiteral = 59;
   static const int ConstructorTearOff = 60;
+  // 61-81 are occupied by various [Statement]s
+  static const int BlockExpression = 82;
   static const int TypedefTearOff = 83;
   static const int RedirectingFactoryTearOff = 84;
+  // 85 is occupied by [View].
 
+  static const int RecordIndexGet = 101;
+  static const int RecordNameGet = 102;
+  static const int RecordLiteral = 104;
+  static const int ConstRecordLiteral = 105;
+  static const int ConstantExpression = 106;
   static const int SetLiteral = 109;
   static const int ConstSetLiteral = 110;
   static const int ListConcatenation = 111;
   static const int SetConcatenation = 112;
   static const int MapConcatenation = 113;
   static const int InstanceCreation = 114;
+  // 115 is occupied by [Extension].
   static const int FileUriExpression = 116;
 
-  /// 115 is occupied by [Extension].
   static const int NullCheck = 117;
   static const int InstanceGet = 118;
   static const int InstanceSet = 119;
@@ -127,6 +135,7 @@ class Tag {
   // 82 is occupied by [BlockExpression] (expression).
   // 83 is occupied by [TypedefTearOff] (expression).
   // 84 is occupied by [RedirectingFactoryTearOff] (expression).
+  // 85 is occupied by [View].
 
   // Types
   static const int TypedefType = 87;
@@ -140,29 +149,36 @@ class Tag {
   static const int SimpleInterfaceType = 96;
   static const int SimpleFunctionType = 97;
   static const int NeverType = 98;
+  static const int IntersectionType = 99;
+  static const int RecordType = 100;
+  // 101 is occupied by [RecordIndexGet] (expression).
+  // 102 is occupied by [RecordNameGet] (expression).
+  static const int ViewType = 103;
 
-  static const int ConstantExpression = 106;
+  // 104 is occupied by [RecordLiteral] (expression).
+  // 105 is occupied by [ConstRecordLiteral] (expression).
+  // 106 is occupied by [ConstantExpression].
 
-  /// 108 is occupied by [RedirectingFactory] (member).
-  /// 109 is occupied by [SetLiteral] (expression).
-  /// 110 is occupied by [ConstSetLiteral] (expression).
-  /// 111 is occupied by [ListConcatenation] (expression).
-  /// 112 is occupied by [SetConcatenation] (expression).
-  /// 113 is occupied by [MapConcatenation] (expression).
-  /// 114 is occupied by [InstanceCreation] (expression).
-  /// 115 is occupied by [Extension].
-  /// 116 is occupied by [FileUriExpression] (expression).
-  /// 117 is occupied by [NullCheck] (expression).
-  /// 118 is occupied by [InstanceGet] (expression).
-  /// 119 is occupied by [InstanceSet] (expression).
-  /// 120 is occupied by [InstanceInvocation] (expression).
-  /// 121 is occupied by [InstanceTearOff] (expression).
-  /// 122 is occupied by [DynamicGet] (expression).
-  /// 123 is occupied by [DynamicSet] (expression).
-  /// 124 is occupied by [DynamicInvocation] (expression).
-  /// 125 is occupied by [FunctionInvocation] (expression).
-  /// 126 is occupied by [FunctionTearOff] (expression).
-  /// 127 is occupied by [LocalFunctionInvocation] (expression).
+  // 108 is occupied by [RedirectingFactory] (member).
+  // 109 is occupied by [SetLiteral] (expression).
+  // 110 is occupied by [ConstSetLiteral] (expression).
+  // 111 is occupied by [ListConcatenation] (expression).
+  // 112 is occupied by [SetConcatenation] (expression).
+  // 113 is occupied by [MapConcatenation] (expression).
+  // 114 is occupied by [InstanceCreation] (expression).
+  // 115 is occupied by [Extension].
+  // 116 is occupied by [FileUriExpression] (expression).
+  // 117 is occupied by [NullCheck] (expression).
+  // 118 is occupied by [InstanceGet] (expression).
+  // 119 is occupied by [InstanceSet] (expression).
+  // 120 is occupied by [InstanceInvocation] (expression).
+  // 121 is occupied by [InstanceTearOff] (expression).
+  // 122 is occupied by [DynamicGet] (expression).
+  // 123 is occupied by [DynamicSet] (expression).
+  // 124 is occupied by [DynamicInvocation] (expression).
+  // 125 is occupied by [FunctionInvocation] (expression).
+  // 126 is occupied by [FunctionTearOff] (expression).
+  // 127 is occupied by [LocalFunctionInvocation] (expression).
 
   static const int SpecializedTagHighBit = 0x80; // 10000000
   static const int SpecializedTagMask = 0xF8; // 11111000
@@ -179,7 +195,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 82;
+  static const int BinaryFormatVersion = 89;
 }
 
 abstract class ConstantTag {
@@ -201,6 +217,7 @@ abstract class ConstantTag {
   static const int TypedefTearOffConstant = 14;
   static const int ConstructorTearOffConstant = 15;
   static const int RedirectingFactoryTearOffConstant = 16;
+  static const int RecordConstant = 17;
 }
 
 const int sdkHashLength = 10; // Bytes, a Git "short hash".

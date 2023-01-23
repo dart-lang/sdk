@@ -122,7 +122,7 @@ class _WidgetDescriptionComputer {
 
   /// The set of classes for which we are currently adding properties,
   /// used to prevent infinite recursion.
-  final Set<ClassElement> classesBeingProcessed = <ClassElement>{};
+  final Set<InterfaceElement> elementsBeingProcessed = {};
 
   /// The resolved unit with the widget [InstanceCreationExpression].
   final ResolvedUnitResult resolvedUnit;
@@ -279,7 +279,7 @@ class _WidgetDescriptionComputer {
     if (constructorElement == null) return;
 
     var classElement = constructorElement.enclosingElement;
-    if (!classesBeingProcessed.add(classElement)) return;
+    if (!elementsBeingProcessed.add(classElement)) return;
 
     var existingNamed = <String>{};
     if (instanceCreation != null) {
@@ -320,7 +320,7 @@ class _WidgetDescriptionComputer {
       );
     }
 
-    classesBeingProcessed.remove(classElement);
+    elementsBeingProcessed.remove(classElement);
   }
 
   void _addProperty({
@@ -404,7 +404,7 @@ class _WidgetDescriptionComputer {
   }
 
   List<protocol.FlutterWidgetPropertyValueEnumItem> _enumItemsForEnum(
-    ClassElement element,
+    EnumElement element,
   ) {
     return element.fields
         .where((field) => field.isStatic && field.isEnumConstant)
@@ -463,7 +463,7 @@ class _WidgetDescriptionComputer {
     }
     if (type is InterfaceType) {
       var classElement = type.element;
-      if (classElement.isEnum) {
+      if (classElement is EnumElement) {
         return protocol.FlutterWidgetPropertyEditor(
           protocol.FlutterWidgetPropertyEditorKind.ENUM,
           enumItems: _enumItemsForEnum(classElement),
@@ -520,13 +520,13 @@ class _WidgetDescriptionComputer {
   }
 
   protocol.FlutterWidgetPropertyValueEnumItem _toEnumItem(FieldElement field) {
-    var classElement = field.enclosingElement as ClassElement;
-    var libraryUriStr = '${classElement.library.source.uri}';
+    var interfaceElement = field.enclosingElement as InterfaceElement;
+    var libraryUriStr = '${interfaceElement.library.source.uri}';
     var documentation = getFieldDocumentation(field);
 
     return protocol.FlutterWidgetPropertyValueEnumItem(
       libraryUriStr,
-      classElement.name,
+      interfaceElement.name,
       field.name,
       documentation: documentation,
     );
@@ -546,7 +546,7 @@ class _WidgetDescriptionComputer {
       if (element is PropertyAccessorElement && element.isGetter) {
         var field = element.variable;
         if (field is FieldElement && field.isStatic) {
-          var enclosingClass = field.enclosingElement as ClassElement;
+          var enclosingClass = field.enclosingElement as InterfaceElement;
           if (field.isEnumConstant ||
               _flutter.isExactAlignment(enclosingClass) ||
               _flutter.isExactAlignmentDirectional(enclosingClass)) {

@@ -1,0 +1,2 @@
+foo<T, S>(bool b, T t, S s) {}
+main() {}

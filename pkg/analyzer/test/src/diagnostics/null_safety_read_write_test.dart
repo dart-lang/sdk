@@ -1217,7 +1217,7 @@ void f(bool b) {
   }) {
     var node = findNode.simple(search);
 
-    var testingData = driverFor(testFilePath).testingData!;
+    var testingData = driverFor(testFile).testingData!;
     var unitData = testingData.uriToFlowAnalysisData[result.uri]!;
 
     if (assigned) {

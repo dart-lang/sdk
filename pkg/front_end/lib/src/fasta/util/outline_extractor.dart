@@ -72,7 +72,7 @@ Future<Map<Uri, String>> extractOutline(List<Uri> entryPointUris,
     required Uri? packages,
     Uri? platform,
     Target? target,
-    int verbosityLevel: 0}) {
+    int verbosityLevel = 0}) {
   CompilerOptions options = new CompilerOptions()
     ..target = target
     ..packagesFileUri = packages
@@ -86,7 +86,7 @@ Future<Map<Uri, String>> extractOutline(List<Uri> entryPointUris,
 
 Future<Map<Uri, String>> extractOutlineWithProcessedOptions(
     List<Uri> entryPointUris,
-    {int verbosityLevel: 0,
+    {int verbosityLevel = 0,
     required ProcessedOptions processedOptions}) {
   return CompilerContext.runWithOptions(processedOptions,
       (CompilerContext c) async {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 /// TypeReferences are 'holes' in the generated JavaScript that are filled in by
 /// the emitter with code to access a type.
 ///
@@ -69,7 +67,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart'
 import '../common/elements.dart' show CommonElements;
 import '../elements/types.dart';
 import '../js/js.dart' as js;
-import '../js_emitter/code_emitter_task.dart' show Emitter;
+import '../js_emitter/js_emitter.dart' show Emitter;
 import '../js_model/type_recipe.dart'
     show
         TypeRecipe,
@@ -79,7 +77,7 @@ import '../js_model/type_recipe.dart'
 import '../serialization/serialization.dart';
 import '../util/util.dart' show Hashing;
 import 'frequency_assignment.dart';
-import 'namer.dart';
+import 'namer.dart' as namer;
 import 'runtime_types_new.dart' show RecipeEncoder;
 
 /// Run the minifier for 'type$' property names even in non-minified mode,
@@ -111,10 +109,10 @@ class TypeReference extends js.DeferredExpression implements js.AstContainer {
   // variable.
   bool forLazyInitializer = false;
 
-  js.Expression _value;
+  js.Expression? _value;
 
   @override
-  final js.JavaScriptNodeSourceInformation sourceInformation;
+  final js.JavaScriptNodeSourceInformation? sourceInformation;
 
   TypeReference(this.typeRecipe) : sourceInformation = null;
   TypeReference._(this.typeRecipe, this._value, this.sourceInformation);
@@ -135,15 +133,15 @@ class TypeReference extends js.DeferredExpression implements js.AstContainer {
   }
 
   set value(js.Expression value) {
-    assert(!isFinalized && value != null);
+    assert(!isFinalized, 'TypeReference already finalized: $typeRecipe');
+    // TODO(48820): Remove after migration.
+    assert((value as dynamic) != null,
+        'TypeReference must not be finalized to `null`: $typeRecipe');
     _value = value;
   }
 
   @override
-  js.Expression get value {
-    assert(isFinalized, 'TypeReference is unassigned');
-    return _value;
-  }
+  js.Expression get value => _value!;
 
   @override
   bool get isFinalized => _value != null;
@@ -155,14 +153,14 @@ class TypeReference extends js.DeferredExpression implements js.AstContainer {
 
   @override
   TypeReference withSourceInformation(
-      js.JavaScriptNodeSourceInformation newSourceInformation) {
+      js.JavaScriptNodeSourceInformation? newSourceInformation) {
     if (newSourceInformation == sourceInformation) return this;
     if (newSourceInformation == null) return this;
     return TypeReference._(typeRecipe, _value, newSourceInformation);
   }
 
   @override
-  Iterable<js.Node> get containedNodes => isFinalized ? [_value] : const [];
+  Iterable<js.Node> get containedNodes => isFinalized ? [value] : const [];
 
   @override
   String nonfinalizedDebugText() {
@@ -182,38 +180,36 @@ class TypeReference extends js.DeferredExpression implements js.AstContainer {
 /// initializes the variable.
 class TypeReferenceResource extends js.DeferredStatement
     implements js.AstContainer {
-  js.Statement _statement;
+  js.Statement? _statement;
 
   @override
-  final js.JavaScriptNodeSourceInformation sourceInformation;
+  final js.JavaScriptNodeSourceInformation? sourceInformation;
 
   TypeReferenceResource() : sourceInformation = null;
   TypeReferenceResource._(this._statement, this.sourceInformation);
 
   set statement(js.Statement statement) {
-    assert(!isFinalized && statement != null);
+    // TODO(48820): Remove after migration.
+    assert(!isFinalized && (statement as dynamic) != null);
     _statement = statement;
   }
 
   @override
-  js.Statement get statement {
-    assert(isFinalized, 'TypeReferenceResource is unassigned');
-    return _statement;
-  }
+  js.Statement get statement => _statement!;
 
   @override
   bool get isFinalized => _statement != null;
 
   @override
   TypeReferenceResource withSourceInformation(
-      js.JavaScriptNodeSourceInformation newSourceInformation) {
+      js.JavaScriptNodeSourceInformation? newSourceInformation) {
     if (newSourceInformation == sourceInformation) return this;
     if (newSourceInformation == null) return this;
     return TypeReferenceResource._(_statement, newSourceInformation);
   }
 
   @override
-  Iterable<js.Node> get containedNodes => isFinalized ? [_statement] : const [];
+  Iterable<js.Node> get containedNodes => isFinalized ? [statement] : const [];
 
   @override
   void visitChildren<T>(js.NodeVisitor<T> visitor) {
@@ -242,8 +238,8 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
   final RecipeEncoder _recipeEncoder;
   final bool _minify;
 
-  /*late final*/ _TypeReferenceCollectorVisitor _visitor;
-  TypeReferenceResource _resource;
+  late final _TypeReferenceCollectorVisitor _visitor;
+  TypeReferenceResource? _resource;
 
   /// Maps the recipe (type expression) to the references with the same recipe.
   /// Much of the algorithm's state is stored in the _ReferenceSet objects.
@@ -286,7 +282,7 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
     js.Expression helperAccess =
         _emitter.staticFunctionAccess(_commonElements.findType);
 
-    js.Expression loadTypeCall(TypeRecipe recipe, String helperLocal) {
+    js.Expression loadTypeCall(TypeRecipe recipe, String? helperLocal) {
       js.Expression recipeExpression =
           _recipeEncoder.encodeGroundRecipe(_emitter, recipe);
       return js.js(r'#(#)', [helperLocal ?? helperAccess, recipeExpression]);
@@ -308,20 +304,20 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
 
     // Sort by name (which is unique and mostly stable) so that similar recipes
     // are grouped together.
-    referenceSetsUsingProperties.sort((a, b) => a.name.compareTo(b.name));
+    referenceSetsUsingProperties.sort((a, b) => a.name!.compareTo(b.name!));
 
     // We can generate a literal with calls to H.findType (minified to typically
     // e.g. H.xy) or cache H.findType in a local in a scope created by an IIFE.
     // Doing so saves 2-3 bytes per entry, but with an overhead of 30+ bytes for
     // the IIFE.  So it is smaller to use the IIFE only for over 10 or so types.
     const minUseIIFE = 10;
-    String helperLocal =
+    final helperLocal =
         referenceSetsUsingProperties.length < minUseIIFE ? null : 'findType';
 
     List<js.Property> properties = [];
     for (_ReferenceSet referenceSet in referenceSetsUsingProperties) {
       TypeRecipe recipe = referenceSet.recipe;
-      var propertyName = js.string(referenceSet.propertyName);
+      final propertyName = js.string(referenceSet.propertyName!);
       properties
           .add(js.Property(propertyName, loadTypeCall(recipe, helperLocal)));
       var access = js.js('#.#', [typesHolderLocalName, propertyName]);
@@ -331,7 +327,7 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
     }
 
     if (properties.isEmpty) {
-      _resource.statement = js.Block.empty();
+      _resource!.statement = js.Block.empty();
     } else {
       js.Expression initializer =
           js.ObjectInitializer(properties, isOneLiner: false);
@@ -341,7 +337,7 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
             [js.VariableDeclaration(helperLocal), helperAccess, initializer]);
         initializer = js.js('#()', js.Parentheses(function));
       }
-      _resource.statement = js.js.statement(r'var # = #',
+      _resource!.statement = js.js.statement(r'var # = #',
           [js.VariableDeclaration(typesHolderLocalName), initializer]);
     }
   }
@@ -390,7 +386,7 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
       }
 
       // TODO(sra): There are other contexts that would be beneficial, e.g. a
-      // type reference occuring only in a throw expression.
+      // type reference occurring only in a throw expression.
 
       String suggestedName = _RecipeToIdentifier().run(referenceSet.recipe);
       if (usedNames.contains(suggestedName)) {
@@ -423,11 +419,12 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
         assert(a.name != b.name);
         int r = b.count.compareTo(a.count); // Decreasing frequency.
         if (r != 0) return r;
-        return a.name.compareTo(b.name); // Tie-break with characteristic name.
+        return a.name!
+            .compareTo(b.name!); // Tie-break with characteristic name.
       });
 
     for (var referenceSet in referencesByFrequency) {
-      referenceSet.hash = _hashCharacteristicString(referenceSet.name);
+      referenceSet.hash = _hashCharacteristicString(referenceSet.name!);
     }
 
     int hashOf(int index) => referencesByFrequency[index].hash;
@@ -437,7 +434,7 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
         referencesByFrequency[index].propertyName = name;
       } else {
         var refSet = referencesByFrequency[index];
-        refSet.propertyName = name + '_' + refSet.name;
+        refSet.propertyName = name + '_' + refSet.name!;
       }
     }
 
@@ -517,10 +514,10 @@ class _ReferenceSet {
   /// Characteristic name of the recipe - this can be used as a property name
   /// for emitting unminified code, and as a stable hash source for minified
   /// names.  [name] is `null` if [recipe] should always be generated at use.
-  String name;
+  String? name;
 
   /// Property name for 'indexing' into the precomputed types.
-  String propertyName;
+  String? propertyName;
 
   /// A stable hash code that can be used for picking stable minified names.
   int hash = 0;
@@ -602,7 +599,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
       _visit(recipe.type, null);
     } else if (recipe is FullTypeEnvironmentRecipe) {
       _add(r'$env');
-      if (recipe.classType != null) _visit(recipe.classType, null);
+      if (recipe.classType != null) _visit(recipe.classType!, null);
       _add('${recipe.types.length}');
       int index = 0;
       for (DartType type in recipe.types) {
@@ -614,7 +611,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
       throw StateError('Unexpected recipe: $recipe');
     }
     String result = _fragments.join('_');
-    if (Namer.startsWithIdentifierCharacter(result)) return result;
+    if (namer.startsWithIdentifierCharacter(result)) return result;
     return 'z' + result;
   }
 
@@ -623,7 +620,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
   }
 
   void _identifier(String text) {
-    _add(Namer.replaceNonIdentifierCharacters(text));
+    _add(namer.replaceNonIdentifierCharacters(text));
   }
 
   bool _comma(bool needsComma) {
@@ -631,7 +628,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
     return true;
   }
 
-  void _visit(DartType type, DartType parent) {
+  void _visit(DartType type, DartType? parent) {
     type.accept(this, parent);
   }
 
@@ -674,8 +671,8 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
 
   @override
   void visitTypeVariableType(covariant TypeVariableType type, DartType parent) {
-    _identifier(type.element.typeDeclaration.name);
-    _identifier(type.element.name);
+    _identifier(type.element.typeDeclaration!.name!);
+    _identifier(type.element.name!);
   }
 
   @override
@@ -784,8 +781,26 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
     }
   }
 
+  @override
+  void visitRecordType(covariant RecordType type, _) {
+    if (_dagCheck(type)) return;
+    final shape = type.shape;
+    // e.g. `(int, {String foo})` -> "Record_2_int_and_String_foo"
+    _identifier('Record');
+    final fieldCount = shape.fieldCount;
+    _add('$fieldCount');
+    bool needsComma = false;
+    for (int i = 0; i < fieldCount; i++) {
+      needsComma = _comma(needsComma);
+      _visit(type.fields[i], type);
+      if (i >= shape.positionalFieldCount) {
+        _identifier(shape.fieldNames[i - shape.positionalFieldCount]);
+      }
+    }
+  }
+
   bool _dagCheck(DartType type) {
-    int /*?*/ ref = _backrefs[type];
+    int? ref = _backrefs[type];
     if (ref != null) {
       _add('\$$ref');
       return true;

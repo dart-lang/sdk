@@ -12,7 +12,7 @@ import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:expect/expect.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 void main() {
   runTest() async {

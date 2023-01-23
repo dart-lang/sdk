@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "isolate_patch.dart";
+part of "isolate_patch.dart";
 
 // Timer heap implemented as a array-based binary heap[0].
 // This allows for O(1) `first`, O(log(n)) `remove`/`removeFirst` and O(log(n))
@@ -140,7 +140,7 @@ class _Timer implements Timer {
   static const _ID_MASK = 0x1fffffff;
   static int _idCount = 0;
 
-  static _RawReceivePortImpl? _receivePort;
+  static _RawReceivePort? _receivePort;
   static SendPort? _sendPort;
   static bool _receivePortActive = false;
   static int _scheduledWakeupTime = 0;
@@ -455,7 +455,7 @@ class _Timer implements Timer {
     var receivePort = _receivePort;
     if (receivePort == null) {
       assert(_sendPort == null);
-      final port = _RawReceivePortImpl('Timer');
+      final port = _RawReceivePort('Timer');
       port.handler = _handleMessage;
       _sendPort = port.sendPort;
       _receivePort = port;

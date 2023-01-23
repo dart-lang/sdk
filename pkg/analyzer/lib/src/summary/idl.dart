@@ -482,6 +482,11 @@ enum IndexRelationKind {
   /// Right: other class declaration.
   IS_IMPLEMENTED_BY,
 
+  /// Left: an interface element.
+  ///   Constrains.
+  /// Right: mixin.
+  CONSTRAINS,
+
   /// Left: class.
   ///   Is mixed into.
   /// Right: other class declaration.

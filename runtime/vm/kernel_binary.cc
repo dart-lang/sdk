@@ -35,43 +35,29 @@ const char* Reader::TagName(Tag tag) {
 }
 
 TypedDataPtr Reader::ReadLineStartsData(intptr_t line_start_count) {
-  TypedData& line_starts_data = TypedData::Handle(
-      TypedData::New(kTypedDataInt8ArrayCid, line_start_count, Heap::kOld));
-
   const intptr_t start_offset = offset();
-  intptr_t i = 0;
-  for (; i < line_start_count; ++i) {
+
+  // Choose representation between Uint16 and Uint32 typed data.
+  intptr_t max_start = 0;
+  for (intptr_t i = 0; i < line_start_count; ++i) {
     const intptr_t delta = ReadUInt();
-    if (delta > kMaxInt8) {
-      break;
-    }
-    line_starts_data.SetInt8(i, static_cast<int8_t>(delta));
+    max_start += delta;
   }
 
-  if (i < line_start_count) {
-    // Slow path: choose representation between Int16 and Int32 typed data.
-    set_offset(start_offset);
-    intptr_t max_delta = 0;
-    for (intptr_t i = 0; i < line_start_count; ++i) {
-      const intptr_t delta = ReadUInt();
-      if (delta > max_delta) {
-        max_delta = delta;
-      }
-    }
+  const intptr_t cid = (max_start <= kMaxUint16) ? kTypedDataUint16ArrayCid
+                                                 : kTypedDataUint32ArrayCid;
+  const TypedData& line_starts_data =
+      TypedData::Handle(TypedData::New(cid, line_start_count, Heap::kOld));
 
-    ASSERT(max_delta > kMaxInt8);
-    const intptr_t cid = (max_delta <= kMaxInt16) ? kTypedDataInt16ArrayCid
-                                                  : kTypedDataInt32ArrayCid;
-    line_starts_data = TypedData::New(cid, line_start_count, Heap::kOld);
-
-    set_offset(start_offset);
-    for (intptr_t i = 0; i < line_start_count; ++i) {
-      const intptr_t delta = ReadUInt();
-      if (cid == kTypedDataInt16ArrayCid) {
-        line_starts_data.SetInt16(i << 1, static_cast<int16_t>(delta));
-      } else {
-        line_starts_data.SetInt32(i << 2, delta);
-      }
+  set_offset(start_offset);
+  intptr_t current_start = 0;
+  for (intptr_t i = 0; i < line_start_count; ++i) {
+    const intptr_t delta = ReadUInt();
+    current_start += delta;
+    if (cid == kTypedDataUint16ArrayCid) {
+      line_starts_data.SetUint16(i << 1, static_cast<uint16_t>(current_start));
+    } else {
+      line_starts_data.SetUint32(i << 2, current_start);
     }
   }
 
@@ -121,9 +107,8 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
     return nullptr;
   }
 
-  uint32_t formatVersion = reader->ReadUInt32();
-  if ((formatVersion < kMinSupportedKernelFormatVersion) ||
-      (formatVersion > kMaxSupportedKernelFormatVersion)) {
+  const uint32_t format_version = reader->ReadUInt32();
+  if (format_version != kSupportedKernelFormatVersion) {
     if (error != nullptr) {
       *error = kKernelInvalidBinaryFormatVersion;
     }
@@ -143,7 +128,6 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
   }
 
   std::unique_ptr<Program> program(new Program());
-  program->binary_version_ = formatVersion;
   program->binary_.typed_data = reader->typed_data();
   program->binary_.kernel_data = reader->buffer();
   program->binary_.kernel_data_size = reader->size();

@@ -44,7 +44,7 @@ typedef DirectChainedHashMap<DefinitionIndexPairTrait> DefinitionIndexMap;
 // This optimization removes write barriers from some store instructions under
 // certain assumptions which the runtime is responsible to sustain.
 //
-// We can skip a write barrier on a StoreInstanceField to a container object X
+// We can skip a write barrier on a StoreField to a container object X
 // if we know that either:
 //   - X is in new-space, or
 //   - X is in old-space, and:
@@ -359,8 +359,8 @@ bool WriteBarrierElimination::SlotEligibleForWBE(const Slot& slot) {
 
   switch (slot.kind()) {
     case Slot::Kind::kCapturedVariable:  // Context
-      return true;
-    case Slot::Kind::kDartField:  // Instance
+    case Slot::Kind::kDartField:         // Instance
+    case Slot::Kind::kRecordField:       // Instance
       return true;
 
 #define FOR_EACH_NATIVE_SLOT(class, underlying_type, field, __, ___)           \
@@ -385,7 +385,7 @@ void WriteBarrierElimination::UpdateVectorForBlock(BlockEntryInstr* entry,
     Instruction* const current = it.Current();
 
     if (finalize) {
-      if (StoreInstanceFieldInstr* instr = current->AsStoreInstanceField()) {
+      if (StoreFieldInstr* instr = current->AsStoreField()) {
         Definition* const container = instr->instance()->definition();
         if (IsUsable(container) && vector_->Contains(Index(container))) {
           DEBUG_ASSERT(SlotEligibleForWBE(instr->slot()));

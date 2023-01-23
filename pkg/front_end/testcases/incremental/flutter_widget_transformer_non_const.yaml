@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE.md file.
 
 type: newworld
-target: DDC
+target: dartdevc
 trackWidgetCreation: true
 worlds:
   - entry: main.dart
@@ -73,3 +73,4 @@ worlds:
         import 'foo.dart';
         Foo foo = new Foo(name: 'foo');
     expectedLibraryCount: 4
+    advancedInvalidation: outlineChange

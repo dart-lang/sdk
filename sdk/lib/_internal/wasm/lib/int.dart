@@ -2,13 +2,34 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "core_patch.dart";
+part of "core_patch.dart";
+
+@patch
+class int {
+  /// Wasm i64.div_s instruction
+  external int _div_s(int divisor);
+
+  /// Wasm i64.lt_u instruction
+  external bool _lt_u(int other);
+
+  /// Wasm i64.shr_s instruction
+  external int _shr_s(int shift);
+
+  /// Wasm i64.shr_u instruction
+  external int _shr_u(int shift);
+
+  /// Wasm i64.shl instruction
+  external int _shl(int shift);
+}
 
 @pragma("wasm:entry-point")
-class _BoxedInt implements int {
+class _BoxedInt extends int {
   // A boxed int contains an unboxed int.
   @pragma("wasm:entry-point")
   int value = 0;
+
+  /// Dummy factory to silence error about missing superclass constructor.
+  external factory _BoxedInt();
 
   external num operator +(num other);
   external num operator -(num other);
@@ -19,7 +40,7 @@ class _BoxedInt implements int {
   }
 
   int operator ~/(num other) => other is int
-      ? this ~/ other
+      ? _truncDiv(this.value, other)
       : _BoxedDouble._truncDiv(toDouble(), unsafeCast<double>(other));
 
   num operator %(num other) => other is int
@@ -38,6 +59,21 @@ class _BoxedInt implements int {
     return rem;
   }
 
+  static int _truncDiv(int a, int b) {
+    // Division special case: overflow in I64.
+    // MIN_VALUE / -1 = (MAX_VALUE + 1), which wraps around to MIN_VALUE
+    const int MIN_INT = -9223372036854775808;
+    if (a == MIN_INT && b == -1) {
+      return MIN_INT;
+    }
+
+    if (b == 0) {
+      throw IntegerDivisionByZeroException();
+    }
+
+    return a._div_s(b);
+  }
+
   num remainder(num other) => other is int
       ? this - (this ~/ other) * other
       : _BoxedDouble._remainder(toDouble(), unsafeCast<double>(other));
@@ -48,9 +84,47 @@ class _BoxedInt implements int {
   external int operator |(int other);
   external int operator ^(int other);
 
-  external int operator >>(int other);
-  external int operator >>>(int other);
-  external int operator <<(int other);
+  int operator >>(int shift) {
+    // Unsigned comparison to check for large and negative shifts
+    if (shift._lt_u(64)) {
+      return this._shr_s(shift);
+    }
+
+    if (shift < 0) {
+      throw ArgumentError(shift);
+    }
+
+    // shift >= 64, 0 or -1 depending on sign: `this >= 0 ? 0 : -1`
+    return this._shr_s(63);
+  }
+
+  int operator >>>(int shift) {
+    // Unsigned comparison to check for large and negative shifts
+    if (shift._lt_u(64)) {
+      return this._shr_u(shift);
+    }
+
+    if (shift < 0) {
+      throw ArgumentError(shift);
+    }
+
+    // shift >= 64
+    return 0;
+  }
+
+  int operator <<(int shift) {
+    // Unsigned comparison to check for large and negative shifts
+    if (shift._lt_u(64)) {
+      return this._shl(shift);
+    }
+
+    if (shift < 0) {
+      throw ArgumentError(shift);
+    }
+
+    // shift >= 64
+    return 0;
+  }
 
   external bool operator <(num other);
   external bool operator >(num other);
@@ -125,7 +199,7 @@ class _BoxedInt implements int {
       } else {
         // If abs(other) > MAX_EXACT_INT_TO_DOUBLE, then other has an integer
         // value (no bits below the decimal point).
-        other = other.toInt();
+        other = other._toInt();
       }
     }
     if (this < other) {
@@ -411,8 +485,16 @@ class _BoxedInt implements int {
     return _binaryGcd(x, y, false);
   }
 
-  int get hashCode => this;
-  int get _identityHashCode => this;
+  int get hashCode => _intHashCode(this);
+  int get _identityHashCode => _intHashCode(this);
+
+  static int _intHashCode(int value) {
+    const int magic = 0x2D51;
+    int lower = (value & 0xFFFFFFFF) * magic;
+    int upper = (value >>> 32) * magic;
+    int upper_accum = upper + (lower >>> 32);
+    return (lower ^ upper_accum ^ (upper_accum >>> 32)) & 0x3FFFFFFF;
+  }
 
   external int operator ~();
   external int get bitLength;

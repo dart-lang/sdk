@@ -79,12 +79,12 @@ intptr_t TimelineEventSystraceRecorder::PrintSystrace(TimelineEvent* event,
     }
     case TimelineEvent::kAsyncBegin: {
       length = Utils::SNPrint(buffer, buffer_size, "S|%" Pd64 "|%s|%" Pd64 "",
-                              pid, event->label(), event->AsyncId());
+                              pid, event->label(), event->Id());
       break;
     }
     case TimelineEvent::kAsyncEnd: {
       length = Utils::SNPrint(buffer, buffer_size, "F|%" Pd64 "|%s|%" Pd64 "",
-                              pid, event->label(), event->AsyncId());
+                              pid, event->label(), event->Id());
       break;
     }
     default:

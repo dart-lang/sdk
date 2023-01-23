@@ -71,6 +71,30 @@ void main(List<String> args) async {
       await client.setBreakpoints(testFile, []);
     });
 
+    test(
+        'does not fail updating breakpoints after a removal '
+        'if two breakpoints resolved to the same location', () async {
+      final client = dap.client;
+      final testFile =
+          dap.createTestFile(simpleBreakpointWithLeadingBlankLineProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+      final beforeBreakpointLine = breakpointLine - 1;
+
+      // Hit the breakpoint line first to ensure the function is compiled. This
+      // is required to ensure the VM gives us back the same breakpoint ID for
+      // the two locations.
+      await client.hitBreakpoint(testFile, breakpointLine);
+
+      // Add breakpoints to both lines.
+      await client.setBreakpoints(
+        testFile,
+        [breakpointLine, beforeBreakpointLine],
+      );
+
+      // Remove all breakpoints (which in reality, is just one).
+      await client.setBreakpoints(testFile, []);
+    });
+
     test('stops at a line breakpoint in the SDK set via local sources',
         () async {
       final client = dap.client;
@@ -83,7 +107,8 @@ void main(List<String> args) async {
       await client.hitBreakpoint(sdkFile, breakpointLine, entryFile: testFile);
     });
 
-    test('stops at a line breakpoint and can be resumed', () async {
+    /// Tests hitting a simple breakpoint and resuming.
+    Future<void> _testHitBreakpointAndResume() async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleBreakpointProgram);
       final breakpointLine = lineWith(testFile, breakpointMarker);
@@ -96,7 +121,31 @@ void main(List<String> args) async {
         client.event('terminated'),
         client.continue_(stop.threadId!),
       ], eagerError: true);
+    }
+
+    test('stops at a line breakpoint and can be resumed', () async {
+      await _testHitBreakpointAndResume();
     });
+
+    test(
+        'stops at a line breakpoint and can be resumed '
+        'when breakpoint requests have lowercase drive letters '
+        'and program/VM have uppercase drive letters', () async {
+      final client = dap.client;
+      client.forceDriveLetterCasingUpper = true;
+      client.forceBreakpointDriveLetterCasingLower = true;
+      await _testHitBreakpointAndResume();
+    }, skip: !Platform.isWindows);
+
+    test(
+        'stops at a line breakpoint and can be resumed '
+        'when breakpoint requests have uppercase drive letters '
+        'and program/VM have lowercase drive letters', () async {
+      final client = dap.client;
+      client.forceDriveLetterCasingLower = true;
+      client.forceBreakpointDriveLetterCasingUpper = true;
+      await _testHitBreakpointAndResume();
+    }, skip: !Platform.isWindows);
 
     test('stops at a line breakpoint and can step over (next)', () async {
       final testFile = dap.createTestFile('''
@@ -390,7 +439,7 @@ void main(List<String> args) async {
       final breakpointLine = lineWith(testFile, breakpointMarker);
       final stepLine = lineWith(testFile, stepMarker);
 
-      // Start with debugSdkLibraryes _enabled_ and hit the breakpoint.
+      // Start with debugSdkLibraries _enabled_ and hit the breakpoint.
       final stop = await client.hitBreakpoint(
         testFile,
         breakpointLine,

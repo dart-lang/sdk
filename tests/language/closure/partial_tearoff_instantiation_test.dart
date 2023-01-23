@@ -15,12 +15,12 @@ void defaultF<T>(T v) {
 
 class X1 {
   final F1 f;
-  const X1({this.f: defaultF});
+  const X1({this.f = defaultF});
 }
 
 class X2 {
   final F2 f;
-  const X2({this.f: defaultF});
+  const X2({this.f = defaultF});
 }
 
 class Y1 {

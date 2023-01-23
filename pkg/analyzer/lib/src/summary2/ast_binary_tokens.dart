@@ -75,6 +75,8 @@ class Tokens {
 
   static Token factory_() => TokenFactory.tokenFromKeyword(Keyword.FACTORY);
 
+  static Token false_() => TokenFactory.tokenFromKeyword(Keyword.FALSE);
+
   static Token final_() => TokenFactory.tokenFromKeyword(Keyword.FINAL);
 
   static Token finally_() => TokenFactory.tokenFromKeyword(Keyword.FINALLY);
@@ -185,6 +187,8 @@ class Tokens {
   static Token this_() => TokenFactory.tokenFromKeyword(Keyword.THIS);
 
   static Token throw_() => TokenFactory.tokenFromKeyword(Keyword.THROW);
+
+  static Token true_() => TokenFactory.tokenFromKeyword(Keyword.TRUE);
 
   static Token try_() => TokenFactory.tokenFromKeyword(Keyword.TRY);
 

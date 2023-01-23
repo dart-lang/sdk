@@ -285,4 +285,31 @@ ISOLATE_UNIT_TEST_CASE(EvalExpressionExhaustCIDs) {
   EXPECT_EQ(initial_class_table_size, final_class_table_size);
 }
 
+// Too slow in debug mode.
+#if !defined(DEBUG)
+TEST_CASE(ManyClasses) {
+  // Limit is 20 bits. Check only more than 16 bits so test completes in
+  // reasonable time.
+  const intptr_t kNumClasses = (1 << 16) + 1;
+
+  TextBuffer buffer(MB);
+  for (intptr_t i = 0; i < kNumClasses; i++) {
+    buffer.Printf("class C%" Pd " { String toString() => 'C%" Pd "'; }\n", i,
+                  i);
+  }
+  buffer.Printf("main() {\n");
+  for (intptr_t i = 0; i < kNumClasses; i++) {
+    buffer.Printf("  new C%" Pd "().toString();\n", i);
+  }
+  buffer.Printf("}\n");
+
+  Dart_Handle lib = TestCase::LoadTestScript(buffer.buffer(), NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  EXPECT(IsolateGroup::Current()->class_table()->NumCids() >= kNumClasses);
+}
+#endif  // !defined(DEBUG)
+
 }  // namespace dart

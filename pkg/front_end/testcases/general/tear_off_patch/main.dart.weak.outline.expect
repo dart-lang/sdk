@@ -54,12 +54,12 @@ static method _#AliasImpl#patched#tearOff<T extends core::num>({has-declared-ini
 
 Extra constant evaluation status:
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:6:46 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:7:9 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:8:28 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:7:8 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:8:27 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:12:21 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:15:11 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:15:10 -> InstanceConstant(const _Patch{})
 Evaluated: ConstructorTearOff @ org-dartlang-testcase:///origin_lib.dart:5:7 -> ConstructorTearOffConstant(Class.redirect)
 Evaluated: ConstructorTearOff @ org-dartlang-testcase:///origin_lib.dart:5:7 -> ConstructorTearOffConstant(Class.redirect2)
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:18:38 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:19:47 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:18:36 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:19:45 -> InstanceConstant(const _Patch{})
 Extra constant evaluation: evaluated: 34, effectively constant: 9

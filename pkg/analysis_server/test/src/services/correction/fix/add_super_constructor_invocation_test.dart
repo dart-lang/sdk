@@ -123,9 +123,6 @@ class B extends A {
 ''');
   }
 
-  @FailingTest(
-    reason: 'Generates positional arguments instead of named',
-  )
   Future<void> test_unnamed_requiredNamed() async {
     await resolveTestCode('''
 class A {

@@ -15,7 +15,6 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/js_model/locals.dart';
-import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
@@ -34,8 +33,8 @@ class ClosureDataComputer extends DataComputer<String> {
   @override
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<String>> actualMap,
-      {bool verbose: false}) {
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+      {bool verbose = false}) {
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     GlobalLocalsMap localsMap =
         compiler.globalInference.resultsForTesting.globalLocalsMap;
@@ -78,7 +77,7 @@ class ClosureIrChecker extends IrDataExtractor<String> {
       this._localsMap,
       this.closureDataLookup,
       this._closedWorld,
-      {this.verbose: false})
+      {this.verbose = false})
       : super(reporter, actualMap) {
     pushMember(member);
   }

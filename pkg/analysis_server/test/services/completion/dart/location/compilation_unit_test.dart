@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer_utilities/check/check.dart';
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
 import '../completion_check.dart';
+import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
@@ -30,22 +31,39 @@ class CompilationUnitTest2 extends AbstractCompletionDriverTest
 }
 
 mixin CompilationUnitTestCases on AbstractCompletionDriverTest {
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+
+    printerConfiguration = printer.Configuration(
+      filter: (suggestion) {
+        if (isProtocolVersion2) {
+          return suggestion.kind == CompletionSuggestionKind.KEYWORD;
+        } else {
+          final completion = suggestion.completion;
+          return const {'import', 'export', 'part'}.any(completion.contains);
+        }
+      },
+    );
+  }
+
   Future<void> test_definingUnit_export() async {
     var response = await getTestCodeSuggestions('''
 exp^
 ''');
 
-    check(response).suggestions.includesAll([
-      (suggestion) => suggestion
-        ..completion.isEqualTo("export '';")
-        ..kind.isKeyword
-        ..hasSelection(offset: 8),
-    ]);
-
     if (isProtocolVersion2) {
-      check(response).suggestions.excludesAll([
-        (suggestion) => suggestion.completion.startsWith('import'),
-      ]);
+      assertResponseText(response, r'''
+replacement
+  left: 3
+suggestions
+  export '';
+    kind: keyword
+    selection: 8
+''');
+    } else {
+      // TODO(scheglov) This is wrong, should filter.
+      _protocol1Directives(response);
     }
   }
 
@@ -54,17 +72,18 @@ exp^
 imp^
 ''');
 
-    check(response).suggestions.includesAll([
-      (suggestion) => suggestion
-        ..completion.isEqualTo("import '';")
-        ..kind.isKeyword
-        ..hasSelection(offset: 8),
-    ]);
-
     if (isProtocolVersion2) {
-      check(response).suggestions.excludesAll([
-        (suggestion) => suggestion.completion.startsWith('export'),
-      ]);
+      assertResponseText(response, r'''
+replacement
+  left: 3
+suggestions
+  import '';
+    kind: keyword
+    selection: 8
+''');
+    } else {
+      // TODO(scheglov) This is wrong, should filter.
+      _protocol1Directives(response);
     }
   }
 
@@ -73,11 +92,35 @@ imp^
 par^
 ''');
 
-    check(response).suggestions.includesAll([
-      (suggestion) => suggestion
-        ..completion.isEqualTo("part '';")
-        ..kind.isKeyword
-        ..hasSelection(offset: 6),
-    ]);
+    if (isProtocolVersion2) {
+      assertResponseText(response, r'''
+replacement
+  left: 3
+suggestions
+  part '';
+    kind: keyword
+    selection: 6
+''');
+    } else {
+      // TODO(scheglov) This is wrong, should filter.
+      _protocol1Directives(response);
+    }
+  }
+
+  void _protocol1Directives(CompletionResponseForTesting response) {
+    assertResponseText(response, r'''
+replacement
+  left: 3
+suggestions
+  import '';
+    kind: keyword
+    selection: 8
+  export '';
+    kind: keyword
+    selection: 8
+  part '';
+    kind: keyword
+    selection: 6
+''');
   }
 }

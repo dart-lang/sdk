@@ -6,10 +6,10 @@ import 'dart:collection' show Queue;
 
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
+import '../js_model/js_world.dart';
 import '../serialization/serialization.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
-import '../world_interfaces.dart';
 import 'annotations.dart';
 
 abstract class InferredData {
@@ -49,9 +49,6 @@ abstract class InferredData {
 }
 
 abstract class InferredDataBuilder {
-  /// Registers the executing of [element] as without side effects.
-  void registerSideEffectsFree(FunctionEntity element);
-
   /// Returns the [SideEffectBuilder] associated with [element].
   SideEffectsBuilder getSideEffectsBuilder(FunctionEntity member);
 
@@ -68,9 +65,6 @@ abstract class InferredDataBuilder {
   // TODO(johnniwinther): Is this 'potentially called' or 'known to be called'?
   void addFunctionCalledInLoop(MemberEntity element);
 
-  /// Registers that [element] is guaranteed not to throw an exception.
-  void registerCannotThrow(FunctionEntity element);
-
   /// Create a [InferredData] object for the collected information.
   InferredData close(JClosedWorld closedWorld);
 }
@@ -84,8 +78,6 @@ class InferredDataImpl implements InferredData {
   final Set<MemberEntity> _functionsCalledInLoop;
   final Map<FunctionEntity, SideEffects> _sideEffects;
 
-  final Set<FunctionEntity> _sideEffectsFreeElements;
-
   final Set<FunctionEntity> _elementsThatCannotThrow;
 
   final Set<FunctionEntity> _functionsThatMightBePassedToApply;
@@ -94,7 +86,6 @@ class InferredDataImpl implements InferredData {
       this._closedWorld,
       this._functionsCalledInLoop,
       this._sideEffects,
-      this._sideEffectsFreeElements,
       this._elementsThatCannotThrow,
       this._functionsThatMightBePassedToApply);
 
@@ -104,20 +95,13 @@ class InferredDataImpl implements InferredData {
     Set<MemberEntity> functionsCalledInLoop = source.readMembers().toSet();
     Map<FunctionEntity, SideEffects> sideEffects = source.readMemberMap(
         (MemberEntity member) => SideEffects.readFromDataSource(source));
-    Set<FunctionEntity> sideEffectsFreeElements =
-        source.readMembers<FunctionEntity>().toSet();
     Set<FunctionEntity> elementsThatCannotThrow =
         source.readMembers<FunctionEntity>().toSet();
     Set<FunctionEntity> functionsThatMightBePassedToApply =
         source.readMembers<FunctionEntity>().toSet();
     source.end(tag);
-    return InferredDataImpl(
-        closedWorld,
-        functionsCalledInLoop,
-        sideEffects,
-        sideEffectsFreeElements,
-        elementsThatCannotThrow,
-        functionsThatMightBePassedToApply);
+    return InferredDataImpl(closedWorld, functionsCalledInLoop, sideEffects,
+        elementsThatCannotThrow, functionsThatMightBePassedToApply);
   }
 
   @override
@@ -129,7 +113,6 @@ class InferredDataImpl implements InferredData {
         _sideEffects,
         (MemberEntity member, SideEffects sideEffects) =>
             sideEffects.writeToDataSink(sink));
-    sink.writeMembers(_sideEffectsFreeElements);
     sink.writeMembers(_elementsThatCannotThrow);
     sink.writeMembers(_functionsThatMightBePassedToApply);
     sink.end(tag);
@@ -145,7 +128,7 @@ class InferredDataImpl implements InferredData {
     }
     SideEffects sideEffects = SideEffects.empty();
     for (MemberEntity e in _closedWorld.locateMembers(selector, receiver)) {
-      if (e.isField) {
+      if (e is FieldEntity) {
         if (selector.isGetter) {
           if (!_closedWorld.fieldNeverChanges(e)) {
             sideEffects.setDependsOnInstancePropertyStore();
@@ -206,27 +189,24 @@ class InferredDataBuilderImpl implements InferredDataBuilder {
   Map<MemberEntity, SideEffectsBuilder>? _sideEffectsBuilders = {};
   final Set<FunctionEntity> prematureSideEffectAccesses = {};
 
-  final Set<FunctionEntity> _sideEffectsFreeElements = {};
-
   final Set<FunctionEntity> _elementsThatCannotThrow = {};
 
   final Set<FunctionEntity> _functionsThatMightBePassedToApply = {};
 
-  InferredDataBuilderImpl(AnnotationsData annotationsData) {
-    annotationsData.forEachNoThrows(registerCannotThrow);
-    annotationsData.forEachNoSideEffects(registerSideEffectsFree);
-  }
+  AnnotationsData? _annotationsData;
+
+  InferredDataBuilderImpl(AnnotationsData this._annotationsData);
 
   @override
   SideEffectsBuilder getSideEffectsBuilder(MemberEntity member) {
-    return _sideEffectsBuilders![member] ??= SideEffectsBuilder(member);
+    return _sideEffectsBuilders![member] ??= _createSideEffectsBuilder(member);
   }
 
-  @override
-  void registerSideEffectsFree(FunctionEntity element) {
-    _sideEffectsFreeElements.add(element);
-    assert(!_sideEffectsBuilders!.containsKey(element));
-    _sideEffectsBuilders![element] = SideEffectsBuilder.free(element);
+  SideEffectsBuilder _createSideEffectsBuilder(MemberEntity member) {
+    if (_annotationsData!.hasNoSideEffects(member)) {
+      return SideEffectsBuilder.free(member);
+    }
+    return SideEffectsBuilder(member);
   }
 
   /// Compute [SideEffects] for all registered [SideEffectBuilder]s.
@@ -238,19 +218,22 @@ class InferredDataBuilderImpl implements InferredDataBuilder {
     Iterable<SideEffectsBuilder> sideEffectsBuilders =
         _sideEffectsBuilders!.values;
     emptyWorkList(sideEffectsBuilders);
-    for (SideEffectsBuilder sideEffectsBuilder in sideEffectsBuilders) {
-      _sideEffects[sideEffectsBuilder.member as FunctionEntity] =
-          sideEffectsBuilder.sideEffects;
+    for (SideEffectsBuilder builder in sideEffectsBuilders) {
+      final function = builder.member as FunctionEntity;
+      _sideEffects[function] = builder.sideEffects;
+
+      // TODO(sra): We should also infer whether the function cannot throw. This
+      // might be conveniently computed with the closure of the side effects
+      // over the call graph. For now we just use the annotations.
+      if (_annotationsData!.hasNoThrows(function)) {
+        _elementsThatCannotThrow.add(function);
+      }
     }
     _sideEffectsBuilders = null;
+    _annotationsData = null;
 
-    return InferredDataImpl(
-        closedWorld,
-        _functionsCalledInLoop,
-        _sideEffects,
-        _sideEffectsFreeElements,
-        _elementsThatCannotThrow,
-        _functionsThatMightBePassedToApply);
+    return InferredDataImpl(closedWorld, _functionsCalledInLoop, _sideEffects,
+        _elementsThatCannotThrow, _functionsThatMightBePassedToApply);
   }
 
   static void emptyWorkList(Iterable<SideEffectsBuilder> sideEffectsBuilders) {
@@ -278,11 +261,6 @@ class InferredDataBuilderImpl implements InferredDataBuilder {
   @override
   void addFunctionCalledInLoop(MemberEntity element) {
     _functionsCalledInLoop.add(element);
-  }
-
-  @override
-  void registerCannotThrow(FunctionEntity element) {
-    _elementsThatCannotThrow.add(element);
   }
 
   @override

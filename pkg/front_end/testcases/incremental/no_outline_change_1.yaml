@@ -7,7 +7,6 @@
 type: newworld
 worlds:
   - entry: actualMain.dart
-    experiments: alternative-invalidation-strategy
     sources:
       actualMain.dart: |
         import 'main.dart' as m;
@@ -37,7 +36,6 @@ worlds:
         }
     expectedLibraryCount: 4
   - entry: actualMain.dart
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
@@ -52,4 +50,4 @@ worlds:
         }
         mainHello() {}
     expectedLibraryCount: 4
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly

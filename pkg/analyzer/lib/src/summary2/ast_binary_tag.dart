@@ -8,12 +8,19 @@ class AliasedElementTag {
 }
 
 enum DirectiveUriKind {
+  withAugmentation,
   withLibrary,
   withUnit,
   withSource,
   withRelativeUri,
   withRelativeUriString,
   withNothing,
+}
+
+enum ImportElementPrefixKind {
+  isDeferred,
+  isNotDeferred,
+  isNull,
 }
 
 class Tag {
@@ -70,7 +77,6 @@ class Tag {
   static const int MethodDeclaration_getter = 85;
   static const int MethodDeclaration_setter = 86;
   static const int MethodInvocation = 59;
-  static const int MixinDeclaration = 67;
   static const int NamedExpression = 60;
   static const int NamedType = 39;
   static const int NullLiteral = 49;
@@ -79,6 +85,7 @@ class Tag {
   static const int PrefixExpression = 79;
   static const int PrefixedIdentifier = 32;
   static const int PropertyAccess = 62;
+  static const int RecordLiteral = 105;
   static const int RedirectingConstructorInvocation = 54;
   static const int SetOrMapLiteral = 65;
   static const int ShowCombinator = 33;
@@ -103,6 +110,7 @@ class Tag {
   static const int MemberLegacyWithoutTypeArguments = 1;
   static const int MemberLegacyWithTypeArguments = 2;
   static const int MemberWithTypeArguments = 3;
+  static const int ImportPrefixElement = 4;
 
   static const int ParameterKindRequiredPositional = 1;
   static const int ParameterKindOptionalPositional = 2;
@@ -117,8 +125,9 @@ class Tag {
   static const int InterfaceType_noTypeArguments_none = 7;
   static const int InterfaceType_noTypeArguments_question = 8;
   static const int InterfaceType_noTypeArguments_star = 9;
-  static const int TypeParameterType = 10;
-  static const int VoidType = 11;
+  static const int RecordType = 10;
+  static const int TypeParameterType = 11;
+  static const int VoidType = 12;
 }
 
 enum TypeParameterVarianceTag {

@@ -28,7 +28,8 @@ class LineData {
   final String lineClass;
   final String lineNumberClass;
 
-  const LineData({this.lineClass: 'line', this.lineNumberClass: 'lineNumber'});
+  const LineData(
+      {this.lineClass = 'line', this.lineNumberClass = 'lineNumber'});
 }
 
 class AnnotationData {
@@ -36,7 +37,7 @@ class AnnotationData {
   final Map<String, String> properties;
 
   const AnnotationData(
-      {this.tag: 'a', this.properties: const <String, String>{}});
+      {this.tag = 'a', this.properties = const <String, String>{}});
 
   @override
   int get hashCode => tag.hashCode * 13 + properties.hashCode * 19;
@@ -52,8 +53,8 @@ class AnnotationData {
 }
 
 AnnotationDataFunction createAnnotationDataFunction(
-    {CssColorScheme colorScheme: const SingleColorScheme(),
-    ElementScheme elementScheme: const ElementScheme()}) {
+    {CssColorScheme colorScheme = const SingleColorScheme(),
+    ElementScheme elementScheme = const ElementScheme()}) {
   return (Iterable<Annotation> annotations, {bool forSpan}) {
     return getAnnotationDataFromSchemes(annotations,
         forSpan: forSpan,
@@ -66,8 +67,8 @@ LineData getDefaultLineData(data) => const LineData();
 
 AnnotationData getAnnotationDataFromSchemes(Iterable<Annotation> annotations,
     {bool forSpan,
-    CssColorScheme colorScheme: const SingleColorScheme(),
-    ElementScheme elementScheme: const ElementScheme()}) {
+    CssColorScheme colorScheme = const SingleColorScheme(),
+    ElementScheme elementScheme = const ElementScheme()}) {
   if (colorScheme.showLocationAsSpan != forSpan) return null;
   Map<String, String> data = <String, String>{};
   var id;
@@ -108,10 +109,10 @@ class HtmlPrintContext {
 
   HtmlPrintContext(
       {this.lineNoWidth,
-      this.usePre: true,
-      this.includeAnnotation: includeAllAnnotation,
-      this.getAnnotationData: getAnnotationDataFromSchemes,
-      this.getLineData: getDefaultLineData});
+      this.usePre = true,
+      this.includeAnnotation = includeAllAnnotation,
+      this.getAnnotationData = getAnnotationDataFromSchemes,
+      this.getLineData = getDefaultLineData});
 
   HtmlPrintContext from(
       {int lineNoWidth,
@@ -244,8 +245,8 @@ class TagPart implements HtmlPart {
   final List<HtmlPart> content;
 
   TagPart(this.tag,
-      {this.properties: const <String, String>{},
-      this.content: const <HtmlPart>[]});
+      {this.properties = const <String, String>{},
+      this.content = const <HtmlPart>[]});
 
   @override
   HtmlPartKind get kind => HtmlPartKind.TAG;

@@ -60,7 +60,8 @@ class ConstantReplacer implements ConstantVisitor<Constant?> {
   /// Call this method to compute values for subnodes recursively, while only
   /// visiting each subnode once.
   Constant? visitConstant(Constant node) {
-    return cache[node] ??= node.accept(this);
+    if (cache.containsKey(node)) return cache[node];
+    return cache[node] = node.accept(this);
   }
 
   @override
@@ -167,6 +168,31 @@ class ConstantReplacer implements ConstantVisitor<Constant?> {
     } else {
       return SetConstant(
           typeArgument ?? node.typeArgument, entries ?? node.entries);
+    }
+  }
+
+  @override
+  Constant? visitRecordConstant(RecordConstant node) {
+    RecordType? recordType = visitDartType(node.recordType) as RecordType?;
+    List<Constant>? positional;
+    for (int i = 0; i < node.positional.length; i++) {
+      Constant? entry = visitConstant(node.positional[i]);
+      if (entry != null) {
+        (positional ??= List.of(node.positional))[i] = entry;
+      }
+    }
+    Map<String, Constant>? named;
+    for (MapEntry<String, Constant> entry in node.named.entries) {
+      Constant? value = visitConstant(entry.value);
+      if (value != null) {
+        (named ??= Map.of(node.named))[entry.key] = value;
+      }
+    }
+    if (recordType == null && positional == null && named == null) {
+      return null;
+    } else {
+      return RecordConstant(positional ?? node.positional, named ?? node.named,
+          recordType ?? node.recordType);
     }
   }
 

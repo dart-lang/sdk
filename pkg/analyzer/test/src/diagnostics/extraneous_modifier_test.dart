@@ -29,8 +29,7 @@ class A {
     assertParsedNodeText(node, r'''
 SimpleFormalParameter
   keyword: const
-  identifier: SimpleIdentifier
-    token: a
+  name: a
 ''');
   }
 
@@ -46,8 +45,7 @@ class A {
     assertParsedNodeText(node, r'''
 SimpleFormalParameter
   keyword: var
-  identifier: SimpleIdentifier
-    token: a
+  name: a
 ''');
   }
 
@@ -67,8 +65,7 @@ SuperFormalParameter
   keyword: var
   superKeyword: super
   period: .
-  identifier: SimpleIdentifier
-    token: a
+  name: a
 ''');
   }
 }

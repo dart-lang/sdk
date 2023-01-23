@@ -29,12 +29,34 @@ void f() {
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION, 54, 5),
     ]);
 
-    assertExtensionOverride(
-      findNode.extensionOverride('E<int>'),
-      element: findElement.extension_('E'),
-      extendedType: 'int',
-      typeArgumentTypes: [],
-    );
+    final node = findNode.extensionOverride('E<int>');
+    assertResolvedNodeText(node, r'''
+ExtensionOverride
+  extensionName: SimpleIdentifier
+    token: E
+    staticElement: self::@extension::E
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  extendedType: int
+  staticType: null
+''');
   }
 
   test_tooFew() async {
@@ -51,12 +73,37 @@ void f() {
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION, 60, 6),
     ]);
 
-    assertExtensionOverride(
-      findNode.extensionOverride('E<bool>'),
-      element: findElement.extension_('E'),
-      extendedType: 'int',
-      typeArgumentTypes: ['dynamic', 'dynamic'],
-    );
+    final node = findNode.extensionOverride('E<bool>');
+    assertResolvedNodeText(node, r'''
+ExtensionOverride
+  extensionName: SimpleIdentifier
+    token: E
+    staticElement: self::@extension::E
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: bool
+          staticElement: dart:core::@class::bool
+          staticType: null
+        type: bool
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  extendedType: int
+  staticType: null
+  typeArgumentTypes
+    dynamic
+    dynamic
+''');
   }
 
   test_tooMany() async {
@@ -73,11 +120,41 @@ void f() {
           11),
     ]);
 
-    assertExtensionOverride(
-      findNode.extensionOverride('E<bool, int>'),
-      element: findElement.extension_('E'),
-      extendedType: 'int',
-      typeArgumentTypes: ['dynamic'],
-    );
+    final node = findNode.extensionOverride('E<bool, int>');
+    assertResolvedNodeText(node, r'''
+ExtensionOverride
+  extensionName: SimpleIdentifier
+    token: E
+    staticElement: self::@extension::E
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: bool
+          staticElement: dart:core::@class::bool
+          staticType: null
+        type: bool
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  extendedType: int
+  staticType: null
+  typeArgumentTypes
+    dynamic
+''');
   }
 }

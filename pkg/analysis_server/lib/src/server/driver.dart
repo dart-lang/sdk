@@ -9,9 +9,9 @@ import 'dart:math';
 
 import 'package:analysis_server/protocol/protocol_constants.dart'
     show PROTOCOL_VERSION;
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/analytics/noop_analytics.dart';
+import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/lsp_socket_server.dart';
 import 'package:analysis_server/src/server/crash_reporting.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
@@ -428,7 +428,7 @@ class Driver implements ServerStarter {
         }
         await instrumentationService.shutdown();
 
-        socketServer.analysisServer!.shutdown();
+        unawaited(socketServer.analysisServer!.shutdown());
 
         try {
           tempDriverDir.deleteSync(recursive: true);
@@ -454,7 +454,7 @@ class Driver implements ServerStarter {
             httpServer.close();
           }
           await instrumentationService.shutdown();
-          socketServer.analysisServer!.shutdown();
+          unawaited(socketServer.analysisServer!.shutdown());
           if (sendPort == null) exit(0);
         });
       },
@@ -482,12 +482,12 @@ class Driver implements ServerStarter {
     var diagnosticServer = _DiagnosticServerImpl();
 
     final socketServer = LspSocketServer(
-      analysisServerOptions,
-      diagnosticServer,
-      analyticsManager,
-      dartSdkManager,
-      instrumentationService,
-    );
+        analysisServerOptions,
+        diagnosticServer,
+        analyticsManager,
+        dartSdkManager,
+        instrumentationService,
+        detachableFileSystemManager);
     errorNotifier.server = socketServer.analysisServer;
 
     diagnosticServer.httpServer = httpServer = HttpAnalysisServer(socketServer);
@@ -502,7 +502,7 @@ class Driver implements ServerStarter {
         // Only shutdown the server and exit if the server is not already
         // handling the shutdown.
         if (!socketServer.analysisServer!.willExit) {
-          socketServer.analysisServer!.shutdown();
+          unawaited(socketServer.analysisServer!.shutdown());
           exit(0);
         }
       });

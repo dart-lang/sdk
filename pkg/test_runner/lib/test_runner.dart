@@ -81,9 +81,9 @@ Future<ProcessResult> runProcessInheritStdio(
 
 /// Finds the branch of a builder given the list of branches.
 String branchOfBuilder(String builder, List<String> branches) {
-  return branches.where((branch) => branch != "master").firstWhere(
+  return branches.where((branch) => branch != "main").firstWhere(
       (branch) => builder.endsWith("-$branch"),
-      orElse: () => "master");
+      orElse: () => "main");
 }
 
 /// Finds the named configuration to test according to the test matrix
@@ -320,7 +320,7 @@ Future<void> runTests(List<String> args) async {
   parser.addOption("branch",
       abbr: "B",
       help: "Select the builders building this branch",
-      defaultsTo: "master");
+      defaultsTo: "main");
   parser.addOption("commit", abbr: "C", help: "Compare with this commit");
   parser.addFlag("deflake",
       help: "Re-run failing newly tests $deflakingCount times.");

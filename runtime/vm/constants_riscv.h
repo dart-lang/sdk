@@ -164,6 +164,7 @@ constexpr Register CALLEE_SAVED_TEMP = S8;
 constexpr Register CALLEE_SAVED_TEMP2 = S7;
 constexpr Register WRITE_BARRIER_STATE = S11;
 constexpr Register NULL_REG = S10;  // Caches NullObject() value.
+#define DART_ASSEMBLER_HAS_NULL_REG 1
 
 // ABI for catch-clause entry point.
 constexpr Register kExceptionObjectReg = A0;
@@ -326,8 +327,8 @@ struct RangeErrorABI {
 // ABI for AllocateObjectStub.
 struct AllocateObjectABI {
   static constexpr Register kResultReg = A0;
-  static constexpr Register kTypeArgumentsReg = T1;
-  static const Register kTagsReg = T2;
+  static constexpr Register kTypeArgumentsReg = A1;
+  static constexpr Register kTagsReg = T2;
 };
 
 // ABI for AllocateClosureStub.
@@ -357,6 +358,26 @@ struct AllocateArrayABI {
   static constexpr Register kTypeArgumentsReg = T1;
 };
 
+// ABI for AllocateRecordStub.
+struct AllocateRecordABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kNumFieldsReg = T2;
+  static const Register kFieldNamesReg = T1;
+  static const Register kTemp1Reg = T3;
+  static const Register kTemp2Reg = T4;
+};
+
+// ABI for AllocateSmallRecordStub (AllocateRecord2, AllocateRecord2Named,
+// AllocateRecord3, AllocateRecord3Named).
+struct AllocateSmallRecordABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kFieldNamesReg = T2;
+  static const Register kValue0Reg = T3;
+  static const Register kValue1Reg = T4;
+  static const Register kValue2Reg = A1;
+  static const Register kTempReg = T1;
+};
+
 // ABI for AllocateTypedDataArrayStub.
 struct AllocateTypedDataArrayABI {
   static constexpr Register kResultReg = AllocateObjectABI::kResultReg;
@@ -377,7 +398,8 @@ struct DoubleToIntegerStubABI {
   static constexpr Register kResultReg = A0;
 };
 
-// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub, YieldSyncStarStub).
+// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub,
+// SuspendSyncStarAtStartStub, SuspendSyncStarAtYieldStub).
 struct SuspendStubABI {
   static const Register kArgumentReg = A0;
   static const Register kTempReg = T0;
@@ -411,7 +433,7 @@ struct ResumeStubABI {
 };
 
 // ABI for ReturnStub (ReturnAsyncStub, ReturnAsyncNotFutureStub,
-// ReturnAsyncStarStub, ReturnSyncStarStub).
+// ReturnAsyncStarStub).
 struct ReturnStubABI {
   static const Register kSuspendStateReg = T1;
 };
@@ -436,7 +458,7 @@ struct CloneSuspendStateStubABI {
 // register). This ABI is added to distinguish memory corruption errors from
 // null errors.
 struct DispatchTableNullErrorABI {
-  static constexpr Register kClassIdReg = T1;
+  static constexpr Register kClassIdReg = A2;
 };
 
 typedef uint32_t RegList;
@@ -460,18 +482,18 @@ constexpr int kAbiPreservedCpuRegCount = 11;
 #if defined(DART_TARGET_OS_FUCHSIA)
 // We rely on X18 not being touched by Dart generated assembly or stubs at all.
 // We rely on that any calls into C++ also preserve X18.
-constexpr intptr_t kReservedCpuRegisters =
+constexpr RegList kReservedCpuRegisters =
     R(ZR) | R(TP) | R(GP) | R(SP) | R(FP) | R(TMP) | R(TMP2) | R(PP) | R(THR) |
     R(RA) | R(WRITE_BARRIER_STATE) | R(NULL_REG) | R(DISPATCH_TABLE_REG) |
     R(FAR_TMP) | R(18);
-constexpr intptr_t kNumberOfReservedCpuRegisters = 15;
 #else
-constexpr intptr_t kReservedCpuRegisters =
+constexpr RegList kReservedCpuRegisters =
     R(ZR) | R(TP) | R(GP) | R(SP) | R(FP) | R(TMP) | R(TMP2) | R(PP) | R(THR) |
     R(RA) | R(WRITE_BARRIER_STATE) | R(NULL_REG) | R(DISPATCH_TABLE_REG) |
     R(FAR_TMP);
-constexpr intptr_t kNumberOfReservedCpuRegisters = 14;
 #endif
+constexpr intptr_t kNumberOfReservedCpuRegisters =
+    Utils::CountOneBits32(kReservedCpuRegisters);
 // CPU registers available to Dart allocator.
 constexpr RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
@@ -631,12 +653,15 @@ enum ScaleFactor {
 #else
   TIMES_COMPRESSED_WORD_SIZE = TIMES_HALF_WORD_SIZE,
 #endif
+  // Used for Smi-boxed indices.
+  TIMES_COMPRESSED_HALF_WORD_SIZE = TIMES_COMPRESSED_WORD_SIZE - 1,
 };
 
 const uword kBreakInstructionFiller = 0;  // trap or c.trap
 
 inline int32_t SignExtend(int N, int32_t value) {
-  return (value << (32 - N)) >> (32 - N);
+  return static_cast<int32_t>(static_cast<uint32_t>(value) << (32 - N)) >>
+         (32 - N);
 }
 
 inline intx_t sign_extend(int32_t x) {
@@ -756,11 +781,36 @@ enum Funct3 {
   J = 0b000,
   JN = 0b001,
   JX = 0b010,
-  MIN = 0b000,
-  MAX = 0b001,
+  FMIN = 0b000,
+  FMAX = 0b001,
   FEQ = 0b010,
   FLT = 0b001,
   FLE = 0b000,
+
+  SH1ADD = 0b010,
+  SH2ADD = 0b100,
+  SH3ADD = 0b110,
+
+  F3_COUNT = 0b001,
+
+  MAX = 0b110,
+  MAXU = 0b111,
+  MIN = 0b100,
+  MINU = 0b101,
+  CLMUL = 0b001,
+  CLMULH = 0b011,
+  CLMULR = 0b010,
+
+  SEXT = 0b001,
+  ZEXT = 0b100,
+
+  ROL = 0b001,
+  ROR = 0b101,
+
+  BCLR = 0b001,
+  BEXT = 0b101,
+  F3_BINV = 0b001,
+  F3_BSET = 0b001,
 };
 
 enum Funct7 {
@@ -798,6 +848,16 @@ enum Funct7 {
   FCVTDint = 0b1101001,
   FMVXD = 0b1110001,
   FMVDX = 0b1111001,
+
+  ADDUW = 0b0000100,
+  SHADD = 0b0010000,
+  SLLIUW = 0b0000100,
+  COUNT = 0b0110000,
+  MINMAXCLMUL = 0b0000101,
+  ROTATE = 0b0110000,
+  BCLRBEXT = 0b0100100,
+  BINV = 0b0110100,
+  BSET = 0b0010100,
 };
 
 enum Funct5 {
@@ -904,6 +964,17 @@ DEFINE_FUNCT_ENCODING(uint32_t, Shamt, 20, 0x3F)
 DEFINE_FUNCT_ENCODING(RoundingMode, RoundingMode, 12, 0x7)
 #undef DEFINE_FUNCT_ENCODING
 
+inline intx_t ImmLo(intx_t imm) {
+  return static_cast<intx_t>(static_cast<uintx_t>(imm) << (XLEN - 12)) >>
+         (XLEN - 12);
+}
+inline intx_t ImmHi(intx_t imm) {
+  return static_cast<intx_t>(static_cast<uintx_t>(imm) -
+                             static_cast<uintx_t>(ImmLo(imm)))
+             << (XLEN - 32) >>
+         (XLEN - 32);
+}
+
 inline bool IsBTypeImm(intptr_t imm) {
   return Utils::IsInt(12, imm) && Utils::IsAligned(imm, 2);
 }
@@ -951,7 +1022,7 @@ inline bool IsITypeImm(intptr_t imm) {
 }
 inline uint32_t EncodeITypeImm(intptr_t imm) {
   ASSERT(IsITypeImm(imm));
-  return imm << 20;
+  return static_cast<uint32_t>(imm) << 20;
 }
 inline intptr_t DecodeITypeImm(uint32_t encoded) {
   return SignExtend(12, encoded >> 20);
@@ -1480,6 +1551,12 @@ static constexpr Extension RV_D(4);  // Double-precision floating point
 static constexpr Extension RV_C(5);  // Compressed instructions
 static constexpr ExtensionSet RV_G = RV_I | RV_M | RV_A | RV_F | RV_D;
 static constexpr ExtensionSet RV_GC = RV_G | RV_C;
+static constexpr Extension RV_Zba(6);  // Address generation
+static constexpr Extension RV_Zbb(7);  // Basic bit-manipulation
+static constexpr Extension RV_Zbc(8);  // Carry-less multiplicatio
+static constexpr Extension RV_Zbs(9);  // Single-bit instructions
+static constexpr ExtensionSet RV_B = RV_Zba | RV_Zbb | RV_Zbc | RV_Zbs;
+static constexpr ExtensionSet RV_GCB = RV_GC | RV_B;
 
 #undef R
 

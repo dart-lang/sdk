@@ -50,7 +50,7 @@ part of dart.core;
 ///
 /// - the code imports a deprecated library.
 /// - the code exports a deprecated library, or any deprecated member of
-///   a non-deprecated library.
+///   a non-deprecated library.
 /// - the code refers statically to a deprecated declaration.
 /// - the code uses a member of an object with a statically known
 ///   type, where the member is deprecated on the interface of the static type.

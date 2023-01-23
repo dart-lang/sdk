@@ -5,7 +5,11 @@
 library dart._http;
 
 import 'dart:_internal'
-    show Since, valueOfNonNullableParamWithDefault, HttpStatus;
+    show
+        checkNotNullable,
+        Since,
+        valueOfNonNullableParamWithDefault,
+        HttpStatus;
 import 'dart:async';
 import 'dart:collection'
     show
@@ -29,6 +33,7 @@ part 'http_headers.dart';
 part 'http_impl.dart';
 part 'http_parser.dart';
 part 'http_session.dart';
+part 'http_testing.dart';
 part 'overrides.dart';
 part 'websocket.dart';
 part 'websocket_impl.dart';
@@ -264,7 +269,7 @@ abstract class HttpServer implements Stream<HttpRequest> {
   /// The default timeout is 20 minutes.
   set sessionTimeout(int timeout);
 
-  /// A [HttpConnectionsInfo] object summarizing the number of
+  /// An [HttpConnectionsInfo] object summarizing the number of
   /// current connections handled by the server.
   HttpConnectionsInfo connectionsInfo();
 }
@@ -1065,7 +1070,7 @@ abstract class HttpResponse implements IOSink {
 /// ## Making a simple GET request: an example
 ///
 /// A `getUrl` request is a two-step process, triggered by two [Future]s.
-/// When the first future completes with a [HttpClientRequest], the underlying
+/// When the first future completes with an [HttpClientRequest], the underlying
 /// network connection has been established, but no data has been sent.
 /// In the callback function for the first future, the HTTP headers and body
 /// can be set on the request. Either the first write to the request object
@@ -1718,7 +1723,7 @@ abstract class HttpClientRequest implements IOSink {
   /// Cookies to present to the server (in the 'cookie' header).
   List<Cookie> get cookies;
 
-  /// A [HttpClientResponse] future that will complete once the response is
+  /// An [HttpClientResponse] future that will complete once the response is
   /// available.
   ///
   /// If an error occurs before the response is available, this future will
@@ -1765,7 +1770,7 @@ abstract class HttpClientRequest implements IOSink {
 
 /// HTTP response for a client connection.
 ///
-/// The body of a [HttpClientResponse] object is a [Stream] of data from the
+/// The body of an [HttpClientResponse] object is a [Stream] of data from the
 /// server. Use [Stream] methods like [`transform`][Stream.transform] and
 /// [`join`][Stream.join] to access the data.
 ///

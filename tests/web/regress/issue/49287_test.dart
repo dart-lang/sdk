@@ -10,7 +10,7 @@ import '49287_data.dart';
 
 // This test contains a huge number of large strings that are predominantly code
 // points that require surrogate pairs. The hope is that if there is an encoding
-// issue like #49287 where a split surrgote pair is converted to U+FFFD
+// issue like #49287 where a split surrogate pair is converted to U+FFFD
 // REPLACEMENT CHARACTER, this will appear in the constructed string that
 // otherwise does not contain U+FFFD.
 

@@ -16,6 +16,7 @@ abstract class Invocation {
   ///
   /// The method invocation has no type arguments.
   /// If the named arguments are omitted, they default to no named arguments.
+  @pragma("wasm:entry-point")
   factory Invocation.method(
           Symbol memberName, Iterable<Object?>? positionalArguments,
           [Map<Symbol, Object?>? namedArguments]) =>
@@ -28,6 +29,7 @@ abstract class Invocation {
   /// All the individual type arguments must be non-null.
   ///
   /// If the named arguments are omitted, they default to no named arguments.
+  @pragma("wasm:entry-point")
   factory Invocation.genericMethod(Symbol memberName,
           Iterable<Type>? typeArguments, Iterable<Object?>? positionalArguments,
           [Map<Symbol, Object?>? namedArguments]) =>
@@ -35,6 +37,7 @@ abstract class Invocation {
           memberName, typeArguments, positionalArguments, namedArguments);
 
   /// Creates an invocation corresponding to a getter invocation.
+  @pragma("wasm:entry-point")
   factory Invocation.getter(Symbol name) = _Invocation.getter;
 
   /// Creates an invocation corresponding to a setter invocation.
@@ -45,6 +48,7 @@ abstract class Invocation {
   /// ```dart
   /// Invocation.setter(const Symbol("member="), value)
   /// ```
+  @pragma("wasm:entry-point")
   factory Invocation.setter(Symbol memberName, Object? argument) =
       _Invocation.setter;
 

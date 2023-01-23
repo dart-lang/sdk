@@ -27,6 +27,7 @@ part 'errors.dart';
 part 'iterable.dart';
 part 'list.dart';
 part 'linked_list.dart';
+part 'patch.dart';
 part 'print.dart';
 part 'sort.dart';
 part 'symbol.dart';
@@ -96,8 +97,7 @@ class CodeUnits extends UnmodifiableListBase<int> {
   static String stringOf(CodeUnits u) => u._string;
 }
 
-/// Marks a function or library as having an external implementation ("native"
-/// in the Dart VM).
+/// Marks a function or library as having an external implementation.
 ///
 /// On a function, this provides a backend-specific String that can be used to
 /// identify the function's implementation.

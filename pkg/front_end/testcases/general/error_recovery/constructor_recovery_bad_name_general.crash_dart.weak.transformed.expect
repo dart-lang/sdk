@@ -334,10 +334,6 @@ library /*isNonNullableByDefault*/;
 //     return 0;
 //     ^
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:39:7: Error: Field 'Foo' should be initialized because its type 'int' doesn't allow null.
-//   int Foo;
-//       ^^^
-//
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:40:7: Error: Field 'A' should be initialized because its type 'int' doesn't allow null.
 //   int A, Foo, B;
 //       ^

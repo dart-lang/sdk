@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_internal" show patch;
+
+import "dart:typed_data" show Uint32List;
+
 @patch
 class LinkedHashMap<K, V> {
   @patch
@@ -89,4 +93,11 @@ class _WasmImmutableLinkedHashSet<E> extends _HashWasmImmutableBase
     throw new UnsupportedError(
         "Immutable sets can only be instantiated via constants");
   }
+
+  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
+
+  static Set<R> _newEmpty<R>() => LinkedHashSet<R>._default();
+
+  // Returns a mutable set.
+  Set<E> toSet() => LinkedHashSet<E>._default()..addAll(this);
 }

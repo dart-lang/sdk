@@ -46,3 +46,4 @@ worlds:
           print("lib2.x!");
         }
     expectedLibraryCount: 3
+    advancedInvalidation: problemsInLibrary

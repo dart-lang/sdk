@@ -10,19 +10,19 @@ static method main() → dynamic async /* futureValueType= dynamic */ {
   await self::returnsFutureOrString();
   await self::returnsAwaitFutureOrString();
   await self::returnsFutureString();
-  await self::returnsAwaitFutureString();
+  await self::returnsAwaitFutureString() /* runtimeCheckType= asy::Future<core::String> */ ;
   await self::returnsObject();
   await self::returnsFutureOrObject();
   await self::returnsAwaitFutureOrObject();
   await self::returnsFutureObject();
-  await self::returnsAwaitFutureObject();
+  await self::returnsAwaitFutureObject() /* runtimeCheckType= asy::Future<core::Object> */ ;
 }
 static method returnsString() → asy::Future<core::String> async /* futureValueType= core::String */ 
   return "a";
 static method returnsFutureOrString() → asy::Future<core::String> async /* futureValueType= core::String */ 
   return self::getFutureOr<core::String>("a");
 static method returnsAwaitFutureOrString() → asy::Future<core::String> async /* futureValueType= core::String */ 
-  return await self::getFutureOr<core::String>("a");
+  return await self::getFutureOr<core::String>("a") /* runtimeCheckType= asy::Future<core::String> */ ;
 static method returnsFutureString() → asy::Future<core::String> async /* futureValueType= core::String */ 
   return self::getFuture<core::String>("a");
 static method returnsAwaitFutureString() → FutureOr<core::String> async /* futureValueType= core::String */ 
@@ -32,7 +32,7 @@ static method returnsObject() → asy::Future<core::Object> async /* futureValue
 static method returnsFutureOrObject() → asy::Future<core::Object> async /* futureValueType= core::Object */ 
   return self::getFutureOr<core::Object>(new core::Object::•());
 static method returnsAwaitFutureOrObject() → asy::Future<core::Object> async /* futureValueType= core::Object */ 
-  return await self::getFutureOr<core::Object>(new core::Object::•());
+  return await self::getFutureOr<core::Object>(new core::Object::•()) /* runtimeCheckType= asy::Future<core::Object> */ ;
 static method returnsFutureObject() → asy::Future<core::Object> async /* futureValueType= core::Object */ 
   return self::getFuture<core::Object>(new core::Object::•());
 static method returnsAwaitFutureObject() → FutureOr<core::Object> async /* futureValueType= core::Object */ 

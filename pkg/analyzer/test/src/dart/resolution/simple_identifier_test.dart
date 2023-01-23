@@ -77,6 +77,214 @@ int Function() foo(A? a) {
     assertElement(identifier, findElement.parameter('a'));
     assertType(identifier, 'A?');
   }
+
+  test_inExtension_onFunctionType_call() async {
+    await assertNoErrorsInCode('''
+extension E on int Function(double) {
+  void f() {
+    call;
+  }
+}
+''');
+
+    final node = findNode.simple('call;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: call
+  staticElement: <null>
+  staticType: int Function(double)
+''');
+  }
+
+  test_inExtension_onFunctionType_call_inference() async {
+    await assertNoErrorsInCode('''
+extension E on int Function<T>(T) {
+  int Function(double) f() {
+    return call;
+  }
+}
+''');
+
+    final node = findNode.simple('call;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: call
+  staticElement: <null>
+  staticType: int Function(double)
+  tearOffTypeArgumentTypes
+    double
+''');
+  }
+
+  test_inExtension_onRecordType_fromTypeParameterBound_named() async {
+    await assertNoErrorsInCode('''
+extension E<T extends ({int foo})> on T {
+  void f() {
+    foo;
+  }
+}
+''');
+
+    final node = findNode.simple('foo;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: foo
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  test_inExtension_onRecordType_fromTypeParameterBound_positional() async {
+    await assertNoErrorsInCode(r'''
+extension E<T extends (int, String)> on T {
+  void f() {
+    $0;
+  }
+}
+''');
+
+    final node = findNode.simple(r'$0;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: $0
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  test_inExtension_onRecordType_named() async {
+    await assertNoErrorsInCode('''
+extension E on ({int foo}) {
+  void f() {
+    foo;
+  }
+}
+''');
+
+    final node = findNode.simple('foo;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: foo
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  test_inExtension_onRecordType_named_fromExtension() async {
+    await assertNoErrorsInCode('''
+extension E on ({int foo}) {
+  bool get bar => true;
+
+  void f() {
+    bar;
+  }
+}
+''');
+
+    final node = findNode.simple('bar;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: bar
+  staticElement: self::@extension::E::@getter::bar
+  staticType: bool
+''');
+  }
+
+  test_inExtension_onRecordType_named_unresolved() async {
+    await assertErrorsInCode('''
+extension E on ({int foo}) {
+  void f() {
+    bar;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 46, 3),
+    ]);
+
+    final node = findNode.simple('bar;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: bar
+  staticElement: <null>
+  staticType: dynamic
+''');
+  }
+
+  test_inExtension_onRecordType_positional_0() async {
+    await assertNoErrorsInCode(r'''
+extension E on (int, String) {
+  void f() {
+    $0;
+  }
+}
+''');
+
+    final node = findNode.simple(r'$0;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: $0
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  test_inExtension_onRecordType_positional_1() async {
+    await assertNoErrorsInCode(r'''
+extension E on (int, String) {
+  void f() {
+    $1;
+  }
+}
+''');
+
+    final node = findNode.simple(r'$1;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: $1
+  staticElement: <null>
+  staticType: String
+''');
+  }
+
+  test_inExtension_onRecordType_positional_2_fromExtension() async {
+    await assertNoErrorsInCode(r'''
+extension E on (int, String) {
+  bool get $2 => true;
+
+  void f() {
+    $2;
+  }
+}
+''');
+
+    final node = findNode.simple(r'$2;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: $2
+  staticElement: self::@extension::E::@getter::$2
+  staticType: bool
+''');
+  }
+
+  test_inExtension_onRecordType_positional_2_unresolved() async {
+    await assertErrorsInCode(r'''
+extension E on (int, String) {
+  void f() {
+    $2;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 48, 2),
+    ]);
+
+    final node = findNode.simple(r'$2;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: $2
+  staticElement: <null>
+  staticType: dynamic
+''');
+  }
 }
 
 mixin SimpleIdentifierResolutionTestCases on PubPackageResolutionTest {

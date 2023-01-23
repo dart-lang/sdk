@@ -1,6 +1,87 @@
-## 4.3.0-dev
+## 5.2.0
+* Deprecated `Element.enclosingElement3`, use `enclosingElement` instead.
+* Deprecated `Directive.element2`, use `element` instead.
+* Deprecated `CatchClause.exceptionParameter2`, use `exceptionParameter` instead.
+* Deprecated `CatchClause.stackTraceParameter2`, use `stackTraceParameter` instead.
+* Deprecated `DartType.element2`, use `element` instead.
+* Deprecated `Element.isAccessibleIn2()`, use `isAccessibleIn()` instead.
+* Deprecated `CompilationUnitElement.enums2`, use `enums` instead.
+* Deprecated `CompilationUnitElement.getEnum2()`, use `getEnum()` instead.
+* Deprecated `CompilationUnitElement.mixins2`, use `mixins` instead.
+* Deprecated `LibraryElement.parts2`, use `parts` instead.
+* Deprecated `ImportElement.imports2`, use `imports` instead.
+* Add `AnalysisDriverForPackageBuild.sdkLibraryUris`.
+* Deprecated `buildSdkSummary2()`, use `buildSdkSummary()` instead.
+
+## 5.1.0
+* Deprecated `AstNode.name2`, use `name` instead.
+* Deprecated `AstNode.declaredElement2`, use `declaredElement` instead.
+
+## 5.0.0
+* Removed deprecated methods from AST.
+* Removed deprecated `DiagnosticMessage.message`.
+* Removed deprecated `LibraryElement.getImportsWithPrefix()`.
+* Removed deprecated `ParameterElement.isNotOptional`.
+* Removed deprecated `DartType.displayName`.
+* Removed deprecated methods from `AnalysisDriver`.
+* Removed deprecated `ClassOrMixinDeclaration`.
+* Removed deprecated `Declaration.declaredElement`.
+* Removed deprecated `Element.enclosingElement` and `enclosingElement2`.
+* Removed deprecated `ExportElement`, `ImportElement`.
+* Removed deprecated `NamedCompilationUnitMember.name`.
+* Removed deprecated `Declaration.declaredElement`.
+* Removed deprecated `DartType.element`.
+
+## 4.7.0
+* Add missing `addXyz` to `NodeLintRegistry`.
+* Add `lookUpInheritedConcreteX()` to `InterfaceElement`.
+
+## 4.6.0
+* Added `DartType.element2`, so that `InterfaceType.element2` overrides it.
+
+## 4.5.0
+* Update deprecation message for `FormalParameter.identifier`.
+* Deprecated `ClassOrMixinDeclaration`, use `ClassDeclaration` and `MixinDeclaration` directly.
+* Deprecated `Declaration.declaredElement`, use `declaredElement2` instead.
+  This is necessary to separate `ClassElement`, `EnumElement`, and `MixinElement`.
+  And, in the future, augmentations like `ClassAugmentationElement`, etc.
+* Deprecated `TypeSystem.instantiateToBounds2()`, use `instantiateInterfaceToBounds()` or
+  `instantiateTypeAliasToBounds()` instead.
+
+## 4.4.0
+* Deprecated `ClassDeclaration.isAbstract`, use `abstractKeyword` instead.
+* Deprecated `ClassTypeAlias.isAbstract`, use `abstractKeyword` instead.
+* Deprecated `ClassOrMixinDeclaration.getField`, filter `members` instead.
+* Deprecated `ClassOrMixinDeclaration.getMethod`, filter `members` instead.
+* Deprecated `ClassDeclaration.getConstructor`, filter `members` instead.
+* Deprecated `Directive.element`, use `element2` instead.
+* Deprecated `ClassElement.hasStaticMember`, it is not useful for clients.
+* Deprecated `NamespaceDirective.uriElement`, use `element2.uri` with `DirectiveUriWithLibrary` instead.
+* Deprecated `UriBasedDirective.uriContent`, `UriBasedDirective.uriElement`, `UriBasedDirective.uriSource`.
+  Use `Directive.element2.uri` instead.
+* Deprecated `NamespaceDirective.selectedSource`, use `element2.uri` with `DirectiveUriWithSource` instead.
+* Deprecated `Configuration.uriSource`, use `resolvedUri` instead.
+* Deprecated `CatchClause.exceptionParameter` and `CatchClause.stackTraceParameter`.
+  Use `exceptionParameter2` and `stackTraceParameter2` instead.
+* Added `FileResult.isAugmentation` and `isLibrary` to complement `isPart`.
+* Deprecated 'XyzDeclaration.name' in AST, use `name2` and `declaredElement` instead.
+* Deprecated `Element.enclosingElement2`, use `enclosingElement3` instead.  The meaningful change is that
+  `ConstructorElement.enclosingElement3` returns now `IntefaceElement`, not `ClassElement`.
+* Deprecated `get enums/mixin`, use `get enums2/mixins2` instead.
+* Deprecated `DartType.element`, check for `InterfaceType`, `TypeParameterType`, and then ask the element.
+* Deprecated `ClassElement.isEnum` and `isMixin`. Check for `is EnumElement` and `is MixinElement` instead.
+* Deprecated `LibraryElement.getType()` use `getClass()` instead.
+
+## 4.3.1
+* Fix `identifier` for `LibraryExportElement` and `LibraryImportElement`.
+
+## 4.3.0
 * Deprecated `Directive.keyword`, use corresponding `xyzToken` in specific directives.
 * Deprecated `LibraryElement.parts`, use `parts2` instead.
+* Deprecated `LibraryElement.exports`, use `libraryExports` instead.
+* Deprecated `LibraryElement.imports`, use `libraryImports` instead.
+* Deprecated `Element.enclosingElement`, use `enclosingElement2` instead.
+* `Member` is not equal to `ElementImpl`, use `Element.declaration`.
 
 ## 4.2.0
 * Update SDK constraints to `>=2.17.0 <3.0.0`.
@@ -699,7 +780,7 @@
   `CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS`.
 
 ## 0.38.1
-* LinterVistor support for extension method AST nodes.
+* LinterVisitor support for extension method AST nodes.
 
 ## 0.38.0
 * The deprecated method `AstFactory.compilationUnit2` has been removed.  Clients
@@ -761,7 +842,7 @@
 * Removed methods `AstVisitor.ForStatement2`, `ListLiteral.elements2`,
   `SetOrMapLiteral.elements2`, `AstFactory.forStatement2`, and
   `NodeLintRegistry.addForStatement2`, as well as class `ForStatement2`.  Use
-  the variants with out the "2" suffix instead.
+  the variants without the "2" suffix instead.
 * Changed the signature and behavior of `parseFile` to match `parseFile2`.
   Clients that switched to using `parseFile2` when `parseFile` was deprecated
   should now switch back to `parseFile`.

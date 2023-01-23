@@ -27,7 +27,7 @@ external int testJsInteropMethod();
 
 @JS()
 class JsInteropClass {
-  /*member: JsInteropClass.:static=[LegacyJavaScriptObject.(0)]*/
+  /*member: JsInteropClass.:*/
   external JsInteropClass();
 
   /*member: JsInteropClass.method:

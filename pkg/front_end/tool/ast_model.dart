@@ -95,6 +95,7 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
     '_classes': FieldRule(name: 'classes'),
     '_typedefs': FieldRule(name: 'typedefs'),
     '_extensions': FieldRule(name: 'extensions'),
+    '_views': FieldRule(name: 'views'),
     '_fields': FieldRule(name: 'fields'),
     '_procedures': FieldRule(name: 'procedures'),
   },
@@ -113,6 +114,9 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
     'dirty': null,
   },
   'Extension': {
+    'typeParameters': FieldRule(isDeclaration: true),
+  },
+  'View': {
     'typeParameters': FieldRule(isDeclaration: true),
   },
   'Field': {
@@ -178,6 +182,12 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   },
   'TypeParameterType': {
     'parameter': FieldRule(isDeclaration: false),
+  },
+  'ExtensionType': {
+    '_onType': FieldRule(name: 'onType'),
+  },
+  'ViewType': {
+    '_representationType': FieldRule(name: 'representationType'),
   },
 };
 
@@ -508,7 +518,7 @@ class AstModel {
 /// the package config file.
 ///
 /// If [printDump] is `true`, a dump of the model printed to stdout.
-Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump: false}) async {
+Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
   bool errorsFound = false;
   CompilerOptions options = new CompilerOptions();
   options.sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);

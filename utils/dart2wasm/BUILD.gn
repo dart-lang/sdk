@@ -7,6 +7,22 @@ import("../compile_platform.gni")
 
 sdk_root = "../../sdk"
 
+template("wasm_module") {
+  action(target_name) {
+    script = rebase_path("//build/gn_run_binary.py")
+    args = [
+      "compiled_action",
+      rebase_path("//third_party/emsdk/upstream/emscripten/emcc"),
+      "--no-entry",
+      rebase_path("//tests/web/wasm/${invoker.module_name}.c"),
+      "-o",
+      rebase_path("$root_out_dir/wasm/${invoker.module_name}.wasm"),
+      "-O",
+    ]
+    outputs = [ "$root_out_dir/wasm/${invoker.module_name}.wasm" ]
+  }
+}
+
 aot_snapshot("dart2wasm_snapshot") {
   main_dart = "../../pkg/dart2wasm/bin/dart2wasm.dart"
   name = "dart2wasm"
@@ -17,6 +33,12 @@ aot_snapshot("dart2wasm_asserts_snapshot") {
   name = "dart2wasm_asserts"
   gen_kernel_args = [ "--enable-asserts" ]
   gen_snapshot_args = [ "--enable-asserts" ]
+}
+
+aot_snapshot("dart2wasm_product_snapshot") {
+  main_dart = "../../pkg/dart2wasm/bin/dart2wasm.dart"
+  name = "dart2wasm_product"
+  force_product_mode = true
 }
 
 compile_platform("compile_dart2wasm_platform") {
@@ -35,4 +57,12 @@ compile_platform("compile_dart2wasm_platform") {
     "dart:core",
     "--nnbd-strong",
   ]
+}
+
+wasm_module("ffi_native_test_wasm_module") {
+  module_name = "ffi_native_test_module"
+}
+
+group("test_wasm_modules") {
+  deps = [ ":ffi_native_test_wasm_module" ]
 }

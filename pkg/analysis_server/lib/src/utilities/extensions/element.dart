@@ -31,14 +31,14 @@ extension ElementExtension on Element {
       return true;
     }
     var ancestor = enclosingElement;
-    if (ancestor is ClassElement) {
+    if (ancestor is InterfaceElement) {
       if (ancestor.hasDeprecated) {
         return true;
       }
       ancestor = ancestor.enclosingElement;
     }
     return ancestor is CompilationUnitElement &&
-        ancestor.enclosingElement2.hasDeprecated;
+        ancestor.enclosingElement.hasDeprecated;
   }
 
   /// Return this element and all its enclosing elements.
@@ -79,8 +79,8 @@ extension MethodElementExtensions on MethodElement {
         definingClass.isDartCoreSet;
   }
 
-  /// Return `true` if this element represents the method `toList` from either
-  /// `Iterable` or `List`.
+  /// Return `true` if this element represents the method `toList` from
+  /// `Iterable`.
   bool get isToListMethod {
     if (name != 'toList') {
       return false;
@@ -89,6 +89,19 @@ extension MethodElementExtensions on MethodElement {
     if (definingClass is! ClassElement) {
       return false;
     }
-    return definingClass.isDartCoreIterable || definingClass.isDartCoreList;
+    return definingClass.isDartCoreIterable;
+  }
+
+  /// Return `true` if this element represents the method `toSet` from
+  /// `Iterable`.
+  bool get isToSetMethod {
+    if (name != 'toSet') {
+      return false;
+    }
+    var definingClass = enclosingElement;
+    if (definingClass is! ClassElement) {
+      return false;
+    }
+    return definingClass.isDartCoreIterable;
   }
 }

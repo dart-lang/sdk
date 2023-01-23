@@ -37,6 +37,15 @@ class ReplacedByTest extends DataDrivenFixProcessorTest {
     );
   }
 
+  Future<void> test_defaultConstructor_defaultConstructor_removed() async {
+    await _assertReplacement(
+      _Element.defaultConstructor(isDeprecated: true, isOld: true),
+      _Element.defaultConstructor(),
+      isInvocation: true,
+      isOldRemoved: true,
+    );
+  }
+
   Future<void> test_defaultConstructor_namedConstructor() async {
     await _assertReplacement(
       _Element.defaultConstructor(isDeprecated: true, isOld: true),
@@ -798,14 +807,24 @@ class ReplacedByTest extends DataDrivenFixProcessorTest {
   Future<void> _assertReplacement(_Element oldElement, _Element newElement,
       {bool isAssignment = false,
       bool isInvocation = false,
-      bool isPrefixed = false}) async {
+      bool isPrefixed = false,
+      bool isOldRemoved = false}) async {
     assert(!(isAssignment && isInvocation));
     setPackageContent('''
-${oldElement.declaration}
+${isOldRemoved ? '' : oldElement.declaration}
 ${newElement.declaration}
 ''');
-    setPackageData(_replacedBy(oldElement.kind, oldElement.components,
-        newElement.kind, newElement.components));
+
+    setPackageData(
+      _replacedBy(
+        oldElement.kind,
+        oldElement.components,
+        newElement.kind,
+        newElement.components,
+        oldUri: isOldRemoved ? Uri.parse('dart:core') : null,
+      ),
+    );
+
     var prefixDeclaration = isPrefixed ? ' as p' : '';
     var prefixReference = isPrefixed ? 'p.' : '';
     var invocation = isInvocation ? '()' : '';
@@ -826,29 +845,36 @@ void g() {
 ''');
       return;
     }
-    await resolveTestCode('''
-import '$importUri'$prefixDeclaration;
 
-var x = $prefixReference${oldElement.reference}$invocation;
+    var import = "import '$importUri'$prefixDeclaration;";
+    //TODO(asashour) inserting imports should remove initial blank lines
+    var oldImport = isOldRemoved
+        ? ''
+        : '''
+$import
+''';
+    var newImport = '''
+$import${isOldRemoved ? '\n' : ''}
+''';
+
+    await resolveTestCode('''
+${oldImport}var x = $prefixReference${oldElement.reference}$invocation;
 ''');
     await assertHasFix('''
-import '$importUri'$prefixDeclaration;
-
-var x = $prefixReference${newElement.reference}$invocation;
+${newImport}var x = $prefixReference${newElement.reference}$invocation;
 ''');
   }
 
   Transform _replacedBy(ElementKind oldKind, List<String> oldComponents,
       ElementKind newKind, List<String> newComponents,
-      {bool isStatic = false}) {
-    var uris = [Uri.parse(importUri)];
+      {bool isStatic = false, Uri? oldUri}) {
     var oldElement = ElementDescriptor(
-        libraryUris: uris,
+        libraryUris: [oldUri ?? Uri.parse(importUri)],
         kind: oldKind,
         isStatic: isStatic,
         components: oldComponents);
-    var newElement2 = ElementDescriptor(
-        libraryUris: uris,
+    var newElement = ElementDescriptor(
+        libraryUris: [Uri.parse(importUri)],
         kind: newKind,
         isStatic: isStatic,
         components: newComponents);
@@ -858,13 +884,46 @@ var x = $prefixReference${newElement.reference}$invocation;
         element: oldElement,
         bulkApply: true,
         changesSelector: UnconditionalChangesSelector([
-          ReplacedBy(newElement: newElement2),
+          ReplacedBy(newElement: newElement),
         ]));
   }
 }
 
 @reflectiveTest
 class ReplacedByUriSemanticsTest extends DataDrivenFixProcessorTest {
+  Future<void> test_different_uris() async {
+    setPackageContent('''
+@deprecated
+double oldSin(num n) => 1;
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace with different uri'
+    date: 2022-09-28
+    element:
+      uris: ['$importUri']
+      function: 'oldSin'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['dart:math']
+          function: 'sin'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+var x = oldSin(1);
+''');
+    await assertHasFix('''
+import 'dart:math';
+
+import '$importUri';
+
+var x = sin(1);
+''');
+  }
+
   Future<void> test_new_element_uris_multiple() async {
     setPackageContent('');
     newFile('$workspaceRootPath/p/lib/expect.dart', '''
@@ -876,7 +935,7 @@ export 'expect.dart';
     addPackageDataFile('''
 version: 1
 transforms:
-  - title:  'Replace expect'
+  - title: 'Replace expect'
     date: 2022-05-12
     bulkApply: false
     element:
@@ -910,7 +969,7 @@ f() {
     addPackageDataFile('''
 version: 1
 transforms:
-  - title:  'Replace expect'
+  - title: 'Replace expect'
     date: 2022-05-12
     bulkApply: false
     element:

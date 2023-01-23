@@ -33,14 +33,15 @@ void injectText(AllInfo info) {
 
 Map<String, String> _cache = {};
 
-_getContents(OutputUnitInfo unit) => _cache.putIfAbsent(unit.filename, () {
+String _getContents(OutputUnitInfo unit) =>
+    _cache.putIfAbsent(unit.filename, () {
       var uri = Uri.base.resolve(unit.filename);
       return File.fromUri(uri).readAsStringSync();
     });
 
-_fillSpan(CodeSpan span, OutputUnitInfo unit) {
+void _fillSpan(CodeSpan span, OutputUnitInfo unit) {
   if (span.text == null && span.start != null && span.end != 0) {
     var contents = _getContents(unit);
-    span.text = contents.substring(span.start, span.end);
+    span.text = contents.substring(span.start!, span.end);
   }
 }

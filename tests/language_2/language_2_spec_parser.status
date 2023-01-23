@@ -12,5 +12,3 @@ regress/regress1751477_test: Skip # Times out: 9 levels, exponential blowup => 4
 syntax/deep_nesting_expression_test: Skip # JVM stack overflow.
 syntax/deep_nesting_statement_test: Skip # JVM stack overflow.
 variance: Skip # Not yet supported.
-vm/debug_break_enabled_vm_test/01: Fail # Uses debug break.
-vm/debug_break_enabled_vm_test/none: Fail # Uses debug break.

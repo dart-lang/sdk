@@ -14,9 +14,9 @@ import "dart:isolate" show SendPort;
 import "dart:typed_data" show Int32List, Uint8List;
 
 /// These are the additional parts of this patch library:
-// part "class_id_fasta.dart";
-// part "print_patch.dart";
-// part "symbol_patch.dart";
+part "class_id_fasta.dart";
+part "print_patch.dart";
+part "symbol_patch.dart";
 
 // On the VM, we don't make the entire legacy weak mode check
 // const to avoid having a constant in the platform libraries
@@ -177,8 +177,18 @@ abstract class VMInternalsForTesting {
   @pragma("vm:external-name", "Internal_collectAllGarbage")
   external static void collectAllGarbage();
 
+  @pragma("vm:external-name", "Internal_writeHeapSnapshotToFile")
+  external static void writeHeapSnapshotToFile(String filename);
+
   @pragma("vm:external-name", "Internal_deoptimizeFunctionsOnStack")
   external static void deoptimizeFunctionsOnStack();
+
+  // Used to verify that PC addresses in stubs can be named using DWARF info
+  // by returning an offset into the isolate instructions that should correspond
+  // to a known stub.
+  @pragma("vm:external-name",
+      "Internal_randomInstructionsOffsetInsideAllocateObjectStub")
+  external static int randomInstructionsOffsetInsideAllocateObjectStub();
 }
 
 @patch
@@ -215,11 +225,12 @@ void checkValidWeakTarget(object, name) {
       (object is bool) ||
       (object is num) ||
       (object is String) ||
+      (object is Record) ||
       (object is Pointer) ||
       (object is Struct) ||
       (object is Union)) {
     throw new ArgumentError.value(object, name,
-        "Cannot be a string, number, boolean, null, Pointer, Struct or Union");
+        "Cannot be a string, number, boolean, record, null, Pointer, Struct or Union");
   }
 }
 

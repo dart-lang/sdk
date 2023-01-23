@@ -36,8 +36,8 @@ void main() {
   out2.createSync();
   Directory out3 = new Directory.fromUri(tmpDir.uri.resolve('binary'));
   out3.createSync();
-  Directory appDir =
-      new Directory.fromUri(Uri.base.resolve('samples-dev/swarm'));
+  Directory appDir = new Directory.fromUri(
+      Uri.base.resolve('pkg/compiler/test/codesize/swarm'));
 
   print("Copying '${appDir.path}' to '${tmpDir.path}'.");
   copyDirectory(appDir, tmpDir);

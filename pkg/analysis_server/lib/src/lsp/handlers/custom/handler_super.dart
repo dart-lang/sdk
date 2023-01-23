@@ -7,6 +7,7 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:collection/collection.dart';
 
 class SuperHandler
@@ -32,7 +33,7 @@ class SuperHandler
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
 
     return offset.mapResult((offset) async {
-      var node = await server.getNodeAtOffset(path.result, offset);
+      var node = NodeLocator(offset).searchWithin(unit.result.unit);
       if (node == null) {
         return success(null);
       }

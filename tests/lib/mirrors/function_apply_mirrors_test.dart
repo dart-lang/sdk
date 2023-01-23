@@ -13,7 +13,7 @@ import 'function_apply_mirrors_lib.dart' as lib;
 
 import "package:expect/expect.dart";
 
-int foo({x: 499, y: 42}) => x + y;
+int foo({x = 499, y = 42}) => x + y;
 
 main() {
   Expect.equals(709, Function.apply(foo, [], {#y: 210}));

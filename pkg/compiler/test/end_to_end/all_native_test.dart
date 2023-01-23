@@ -7,7 +7,7 @@
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 main() {
   asyncTest(() async {
@@ -26,9 +26,9 @@ test(List<String> options) async {
         fileName: '''
         import 'dart:html';
         import 'dart:_js_helper';
-        
+
         method(o) native;
-        
+
         main() {
           method(document);
         }

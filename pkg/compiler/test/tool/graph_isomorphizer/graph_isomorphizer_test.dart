@@ -9,7 +9,7 @@ import 'dart:io';
 import 'package:expect/expect.dart';
 import 'package:compiler/compiler_api.dart' as api;
 import 'package:dart_style/dart_style.dart' show DartFormatter;
-import '../../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 import '../../../tool/graph_isomorphizer.dart';
 
 /// Only generate goldens from the root sdk directory.
@@ -48,7 +48,7 @@ void verifyGeneratedFile(
 }
 
 GraphIsomorphizer generateFiles(List<String> graphFileLines,
-    {String outDirectory: '.'}) {
+    {String outDirectory = '.'}) {
   Map<int, List<List<int>>> names = {};
   int maxBit = namesFromGraphFileLines(graphFileLines, names);
   var graphIsomorphizer =

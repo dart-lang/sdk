@@ -29,7 +29,7 @@ class InstanceMemberTest2 extends CompletionRelevanceTest
 }
 
 mixin InstanceMemberTestCases on CompletionRelevanceTest {
-  Future<void> test_contextType() async {
+  Future<void> test_contextType_interfaceType_method() async {
     await addTestFile(r'''
 class A {}
 class B extends A {}
@@ -53,6 +53,48 @@ void g(E e) {
       suggestionWith(completion: 'c'), // subtype
       suggestionWith(completion: 'd'), // unrelated
       suggestionWith(completion: 'a'), // supertype
+    ]);
+  }
+
+  Future<void> test_contextType_recordType_named() async {
+    await addTestFile(r'''
+class A {}
+class B extends A {}
+class C extends B {}
+class D {}
+
+void f(B _) {}
+
+void g(({A foo01, B foo02, C foo03, D foo04}) r) {
+  f(r.^);
+}
+''');
+    assertOrder([
+      suggestionWith(completion: r'foo02'), // same
+      suggestionWith(completion: r'foo03'), // subtype
+      suggestionWith(completion: r'foo04'), // unrelated
+      suggestionWith(completion: r'foo01'), // supertype
+    ]);
+  }
+
+  Future<void> test_contextType_recordType_positional() async {
+    await addTestFile(r'''
+class A {}
+class B extends A {}
+class C extends B {}
+class D {}
+
+void f(B _) {}
+
+void g((A, B, C, D) r) {
+  f(r.^);
+}
+''');
+    assertOrder([
+      suggestionWith(completion: r'$1'), // same
+      suggestionWith(completion: r'$2'), // subtype
+      suggestionWith(completion: r'$3'), // unrelated
+      suggestionWith(completion: r'$0'), // supertype
     ]);
   }
 

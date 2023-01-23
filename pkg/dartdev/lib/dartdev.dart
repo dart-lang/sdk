@@ -18,11 +18,13 @@ import 'package:usage/usage.dart';
 import 'src/analytics.dart';
 import 'src/commands/analyze.dart';
 import 'src/commands/compile.dart';
+import 'src/commands/compile_server_shutdown.dart';
 import 'src/commands/create.dart';
 import 'src/commands/debug_adapter.dart';
 import 'src/commands/devtools.dart';
 import 'src/commands/doc.dart';
 import 'src/commands/fix.dart';
+import 'src/commands/info.dart';
 import 'src/commands/language_server.dart';
 import 'src/commands/migrate.dart';
 import 'src/commands/run.dart';
@@ -36,39 +38,48 @@ import 'src/vm_interop_handler.dart';
 /// This is typically called from bin/, but given the length of the method and
 /// analytics logic, it has been moved here.
 Future<void> runDartdev(List<String> args, SendPort? port) async {
-  VmInteropHandler.initialize(port);
-
-  // TODO(sigurdm): Remove when top-level pub is removed.
-  if (args[0] == '__deprecated_pub') {
-    // This is the entry-point supporting the top-level `pub` script.
-    // ignore: deprecated_member_use
-    VmInteropHandler.exit(await deprecatedpubCommand().run(args.skip(1)));
-    return;
-  }
-
-  if (args.contains('run')) {
-    // These flags have a format that can't be handled by package:args, so while
-    // they are valid flags we'll assume the VM has verified them by this point.
-    args = args
-        .where(
-          (element) => !(element.contains('--observe') ||
-              element.contains('--enable-vm-service') ||
-              element.contains('--devtools')),
-        )
-        .toList();
-  }
-
-  // Finally, call the runner to execute the command; see DartdevRunner.
-
-  final runner = DartdevRunner(args);
   int? exitCode = 1;
   try {
-    exitCode = await runner.run(args);
+    VmInteropHandler.initialize(port);
+
+    // TODO(sigurdm): Remove when top-level pub is removed.
+    if (args[0] == '__deprecated_pub') {
+      // This is the entry-point supporting the top-level `pub` script.
+      // ignore: deprecated_member_use
+      exitCode = await deprecatedpubCommand().run(args.skip(1));
+    } else {
+      if (args.contains('run')) {
+        // These flags have a format that can't be handled by package:args, so while
+        // they are valid flags we'll assume the VM has verified them by this point.
+        args = args
+            .where(
+              (element) => !(element.contains('--observe') ||
+                  element.contains('--enable-vm-service') ||
+                  element.contains('--devtools')),
+            )
+            .toList();
+      }
+
+      // Finally, call the runner to execute the command; see DartdevRunner.
+      final runner = DartdevRunner(args);
+      exitCode = await runner.run(args);
+    }
   } on UsageException catch (e) {
     // TODO(sigurdm): It is unclear when a UsageException gets to here, and
     // when it is in DartdevRunner.runCommand.
     io.stderr.writeln('$e');
     exitCode = 64;
+  } catch (e, st) {
+    // Unexpected error encountered.
+    io.stderr.writeln('An unexpected error was encountered by the Dart CLI.');
+    io.stderr.writeln('Please file an issue at '
+        'https://github.com/dart-lang/sdk/issues/new with the following '
+        'details:\n');
+    io.stderr.writeln("Invocation: 'dart ${args.join(' ')}'");
+    io.stderr.writeln("Exception: '$e'");
+    io.stderr.writeln('Stack Trace:');
+    io.stderr.writeln(st.toString());
+    exitCode = 255;
   } finally {
     VmInteropHandler.exit(exitCode);
   }
@@ -111,15 +122,14 @@ class DartdevRunner extends CommandRunner<int> {
     );
 
     addCommand(AnalyzeCommand(verbose: verbose));
+    addCommand(CompileCommand(verbose: verbose));
     addCommand(CreateCommand(verbose: verbose));
     addCommand(DebugAdapterCommand(verbose: verbose));
-    addCommand(CompileCommand(verbose: verbose));
+    addCommand(DevToolsCommand(verbose: verbose));
     addCommand(DocCommand(verbose: verbose));
-    addCommand(DevToolsCommand(
-      verbose: verbose,
-    ));
     addCommand(FixCommand(verbose: verbose));
     addCommand(FormatCommand(verbose: verbose));
+    addCommand(InfoCommand(verbose: verbose));
     addCommand(LanguageServerCommand(verbose: verbose));
     addCommand(MigrateCommand(verbose: verbose));
     addCommand(
@@ -133,6 +143,7 @@ class DartdevRunner extends CommandRunner<int> {
     );
     addCommand(RunCommand(verbose: verbose));
     addCommand(TestCommand());
+    addCommand(CompileServerShutdownCommand(verbose: verbose));
   }
 
   @visibleForTesting
@@ -198,10 +209,9 @@ class DartdevRunner extends CommandRunner<int> {
       }
     }
 
-    final Ansi ansi = Ansi(Ansi.terminalSupportsAnsi);
-    log = topLevelResults['diagnostics']
-        ? Logger.verbose(ansi: ansi)
-        : Logger.standard(ansi: ansi);
+    if (topLevelResults['diagnostics']) {
+      log = Logger.verbose(ansi: ansi);
+    }
 
     var command = topLevelResults.command;
     final commandNames = [];

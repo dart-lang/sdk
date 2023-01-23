@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: avoid_dynamic_calls
+
 /// A tool to gather coverage data from an app generated with dart2js. This
 /// depends on code that has been landed in the bleeding_edge version of dart2js
 /// and that we expect to become publicly visible in version 0.13.0 of the Dart
@@ -111,7 +113,7 @@ class _Server {
       : jsCode = _adjustRequestUrl(File(jsPath).readAsStringSync(), prefix),
         prefix = _normalize(prefix);
 
-  run() async {
+  Future<void> run() async {
     await shelf.serve(_handler, hostname, port);
     var urlBase = "http://$hostname:$port${prefix == '' ? '/' : '/$prefix/'}";
     var htmlFilename = htmlPath == null ? '' : path.basename(htmlPath!);
@@ -121,7 +123,7 @@ class _Server {
         "  - coverage reporting: ${urlBase}coverage\n");
   }
 
-  _expectedPath(String tail) => prefix == '' ? tail : '$prefix/$tail';
+  String _expectedPath(String tail) => prefix == '' ? tail : '$prefix/$tail';
 
   FutureOr<shelf.Response> _handler(shelf.Request request) async {
     var urlPath = request.url.path;
@@ -161,7 +163,7 @@ class _Server {
     return shelf.Response.notFound('Not found: "$urlPath"');
   }
 
-  _record(List entries) {
+  void _record(List entries) {
     for (var entry in entries) {
       var id = entry[0];
       data.putIfAbsent('$id', () => {'name': entry[1], 'count': 0});
@@ -172,7 +174,7 @@ class _Server {
 
   bool _savePending = false;
   int _total = 0;
-  _enqueueSave() async {
+  Future<void> _enqueueSave() async {
     if (!_savePending) {
       _savePending = true;
       await Future.delayed(Duration(seconds: 3));
@@ -188,13 +190,13 @@ class _Server {
 }
 
 /// Removes leading and trailing slashes of [uriPath].
-_normalize(String uriPath) {
+String _normalize(String uriPath) {
   if (uriPath.startsWith('/')) uriPath = uriPath.substring(1);
   if (uriPath.endsWith('/')) uriPath = uriPath.substring(0, uriPath.length - 1);
   return uriPath;
 }
 
-_adjustRequestUrl(String code, String prefix) {
+String _adjustRequestUrl(String code, String prefix) {
   var url = prefix == '' ? 'coverage' : '$prefix/coverage';
   var hook = '''
       self.dartCallInstrumentation = function(id, name) {

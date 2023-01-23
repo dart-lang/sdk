@@ -10,7 +10,7 @@ import 'package:expect/expect.dart';
 import 'package:front_end/src/fasta/messages.dart'
     show templateCantReadFile, messageMissingMain;
 import 'package:compiler/compiler_api.dart' as api;
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 final EXCEPTION = 'Crash-marker';
 
@@ -46,7 +46,7 @@ main() {
 }
 
 void test(String title, RunResult result,
-    {List expectedLines: const [], List expectedExceptions: const []}) {
+    {List expectedLines = const [], List expectedExceptions = const []}) {
   print('--------------------------------------------------------------------');
   print('Running $title');
   print('--------------------------------------------------------------------');
@@ -66,7 +66,7 @@ void test(String title, RunResult result,
 }
 
 Future<RunResult> run(
-    {Map<String, String> memorySourceFiles: const {'main.dart': 'main() {}'},
+    {Map<String, String> memorySourceFiles = const {'main.dart': 'main() {}'},
     api.CompilerDiagnostics diagnostics}) async {
   RunResult result = new RunResult();
   await runZoned(() async {

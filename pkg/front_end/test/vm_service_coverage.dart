@@ -24,7 +24,7 @@ class CoverageHelper extends vmService.LaunchingVMServiceHelper {
   final bool forceCompilation;
   final bool printHits;
 
-  CoverageHelper({this.forceCompilation: false, this.printHits: true});
+  CoverageHelper({this.forceCompilation = false, this.printHits = true});
 
   @override
   Future<void> run() async {

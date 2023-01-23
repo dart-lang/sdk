@@ -47,12 +47,9 @@ class AddTypeAnnotation extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     final node = this.node;
-    if (node is SimpleIdentifier) {
-      var parent = node.parent;
-      if (parent is SimpleFormalParameter) {
-        await _forSimpleFormalParameter(builder, node, parent);
-        return;
-      }
+    if (node is SimpleFormalParameter) {
+      await _forSimpleFormalParameter(builder, node.name!, node);
+      return;
     }
 
     for (var node in this.node.withParents) {
@@ -116,15 +113,17 @@ class AddTypeAnnotation extends CorrectionProducer {
       return;
     }
     var type = declaredIdentifier.declaredElement!.type;
-    if (type is! InterfaceType && type is! FunctionType) {
+    if (type is! InterfaceType &&
+        type is! FunctionType &&
+        type is! RecordType) {
       return;
     }
     await _applyChange(builder, declaredIdentifier.keyword,
-        declaredIdentifier.identifier.offset, type);
+        declaredIdentifier.name.offset, type);
   }
 
-  Future<void> _forSimpleFormalParameter(ChangeBuilder builder,
-      SimpleIdentifier name, SimpleFormalParameter parameter) async {
+  Future<void> _forSimpleFormalParameter(ChangeBuilder builder, Token name,
+      SimpleFormalParameter parameter) async {
     // Ensure that there isn't already a type annotation.
     if (parameter.type != null) {
       return;
@@ -135,7 +134,9 @@ class AddTypeAnnotation extends CorrectionProducer {
     // method overrides a method that has a type for the corresponding
     // parameter, it would be nice to copy down the type from the overridden
     // method.
-    if (type is! InterfaceType) {
+    if (type is! InterfaceType &&
+//        type is! FunctionType &&
+        type is! RecordType) {
       return;
     }
     await _applyChange(builder, null, name.offset, type);
@@ -165,7 +166,8 @@ class AddTypeAnnotation extends CorrectionProducer {
       }
     }
     if ((type is! InterfaceType || type.isDartCoreNull) &&
-        type is! FunctionType) {
+        type is! FunctionType &&
+        type is! RecordType) {
       return;
     }
     await _applyChange(builder, declarationList.keyword, variable.offset, type);

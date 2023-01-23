@@ -194,6 +194,78 @@ void f() {
 ''');
   }
 
+  Future<void> test_fieldFormalParameter_external() async {
+    await resolveTestCode('''
+class C {
+  external int one;
+  C(this.oen);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_fieldFormalParameter_getter() async {
+    await resolveTestCode('''
+class C {
+  int get one => 1;
+  C(this.oen);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_fieldFormalParameter_initializer() async {
+    await resolveTestCode('''
+class C {
+  int one;
+  C(this.oen): one = 1;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_fieldFormalParameter_used() async {
+    await resolveTestCode('''
+class C {
+  int one;
+  C(this.one, this.oen);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_fieldFormalParameter_withoutType() async {
+    await resolveTestCode('''
+class C {
+  var one;
+  C(this.oen);
+}
+''');
+    await assertHasFix('''
+class C {
+  var one;
+  C(this.one);
+}
+''');
+  }
+
+  Future<void> test_fieldFormalParameter_withType() async {
+    await resolveTestCode('''
+class C {
+  int one = 1;
+  var done = '';
+  C(String this.on);
+}
+''');
+    await assertHasFix('''
+class C {
+  int one = 1;
+  var done = '';
+  C(String this.done);
+}
+''');
+  }
+
   Future<void> test_function_fromImport() async {
     await resolveTestCode('''
 void f() {

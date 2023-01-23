@@ -29,6 +29,7 @@ core_sdk_sources = [
   "object.dart",
   "pattern.dart",
   "print.dart",
+  "record.dart",
   "regexp.dart",
   "set.dart",
   "sink.dart",

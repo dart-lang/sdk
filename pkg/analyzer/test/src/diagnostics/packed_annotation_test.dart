@@ -41,7 +41,8 @@ class C extends Struct {
 }
 ''', [
       error(FfiCode.PACKED_ANNOTATION_ALIGNMENT, 20, 9),
-      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 27, 2),
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
+          28, 1),
     ]);
   }
 

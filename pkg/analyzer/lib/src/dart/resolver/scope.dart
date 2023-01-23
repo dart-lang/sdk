@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -23,7 +24,11 @@ class BlockScope {
       if (statement is LabeledStatement) {
         statement = statement.statement;
       }
-      if (statement is VariableDeclarationStatement) {
+      if (statement is PatternVariableDeclarationStatementImpl) {
+        for (var variable in statement.declaration.elements) {
+          yield variable;
+        }
+      } else if (statement is VariableDeclarationStatement) {
         NodeList<VariableDeclaration> variables = statement.variables.variables;
         int variableCount = variables.length;
         for (int j = 0; j < variableCount; j++) {
@@ -135,7 +140,7 @@ class Namespace {
 class NamespaceBuilder {
   /// Create a namespace representing the export namespace of the given
   /// [element].
-  Namespace createExportNamespaceForDirective(ExportElement element) {
+  Namespace createExportNamespaceForDirective(LibraryExportElement element) {
     var exportedLibrary = element.exportedLibrary;
     if (exportedLibrary == null) {
       //
@@ -158,18 +163,13 @@ class NamespaceBuilder {
 
   /// Create a namespace representing the import namespace of the given
   /// [element].
-  Namespace createImportNamespaceForDirective(ImportElement element) {
-    var importedLibrary = element.importedLibrary;
-    if (importedLibrary == null) {
-      //
-      // The imported library will be null if the URI does not reference a valid
-      // library.
-      //
-      return Namespace.EMPTY;
-    }
+  Namespace createImportNamespaceForDirective({
+    required LibraryElement importedLibrary,
+    required List<NamespaceCombinator> combinators,
+    required PrefixElement? prefix,
+  }) {
     Map<String, Element> exportedNames = _getExportMapping(importedLibrary);
-    exportedNames = _applyCombinators(exportedNames, element.combinators);
-    var prefix = element.prefix;
+    exportedNames = _applyCombinators(exportedNames, combinators);
     if (prefix != null) {
       return PrefixedNamespace(prefix.name, exportedNames);
     }
@@ -216,7 +216,7 @@ class NamespaceBuilder {
     for (ClassElement element in compilationUnit.classes) {
       _addIfPublic(definedNames, element);
     }
-    for (ClassElement element in compilationUnit.enums) {
+    for (final element in compilationUnit.enums) {
       _addIfPublic(definedNames, element);
     }
     for (ExtensionElement element in compilationUnit.extensions) {
@@ -225,7 +225,7 @@ class NamespaceBuilder {
     for (FunctionElement element in compilationUnit.functions) {
       _addIfPublic(definedNames, element);
     }
-    for (ClassElement element in compilationUnit.mixins) {
+    for (final element in compilationUnit.mixins) {
       _addIfPublic(definedNames, element);
     }
     for (TypeAliasElement element in compilationUnit.typeAliases) {

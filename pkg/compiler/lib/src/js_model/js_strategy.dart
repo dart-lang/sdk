@@ -25,22 +25,34 @@ import '../io/source_information.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/type_graph_inferrer.dart';
 import '../inferrer/types.dart';
+import '../inferrer_experimental/types.dart' as experimentalInferrer;
+import '../inferrer_experimental/type_graph_inferrer.dart'
+    as experimentalInferrer;
 import '../js/js_source_mapping.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/backend_impact.dart';
+import '../js_backend/codegen_inputs.dart';
 import '../js_backend/codegen_listener.dart';
 import '../js_backend/custom_elements_analysis.dart';
 import '../js_backend/enqueuer.dart';
 import '../js_backend/impact_transformer.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_backend/interceptor_data.dart';
-import '../js_backend/namer.dart';
+import '../js_backend/namer.dart'
+    show
+        FixedNames,
+        FrequencyBasedNamer,
+        MinifiedFixedNames,
+        MinifyNamer,
+        ModularNamer,
+        Namer;
 import '../js_backend/runtime_types.dart';
 import '../js_backend/runtime_types_codegen.dart';
-import '../js_backend/runtime_types_new.dart'
-    show RecipeEncoder, RecipeEncoderImpl;
+import '../js_backend/runtime_types_new.dart' show RecipeEncoder;
+import '../js_backend/runtime_types_new.dart' show RecipeEncoderImpl;
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../js/js.dart' as js;
 import '../kernel/kernel_strategy.dart';
 import '../kernel/kernel_world.dart';
@@ -49,6 +61,7 @@ import '../native/enqueue.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
 import '../ssa/builder.dart';
+import '../ssa/metrics.dart';
 import '../ssa/nodes.dart';
 import '../ssa/ssa.dart';
 import '../ssa/types.dart';
@@ -56,17 +69,17 @@ import '../tracer.dart';
 import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart';
 import '../universe/world_impact.dart';
-import '../world.dart';
 import 'closure.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
 import 'js_world.dart';
-import 'js_world_builder.dart' show JsClosedWorldBuilder;
+import 'js_world_builder.dart' show JClosedWorldBuilder;
 import 'locals.dart';
+import 'js_strategy_interfaces.dart' as interfaces;
 
 /// JS Strategy pattern that defines the element model used in type inference
 /// and code generation.
-class JsBackendStrategy {
+class JsBackendStrategy implements interfaces.JsBackendStrategy {
   final Compiler _compiler;
   JsKernelToElementMap _elementMap;
 
@@ -86,9 +99,13 @@ class JsBackendStrategy {
 
   FunctionCompiler _functionCompiler;
 
+  @override
   SourceInformationStrategy sourceInformationStrategy;
 
+  final SsaMetrics _ssaMetrics = SsaMetrics();
+
   /// The generated code as a js AST for compiled methods.
+  @override
   final Map<MemberEntity, js.Expression> generatedCode = {};
 
   JsBackendStrategy(this._compiler) {
@@ -96,12 +113,13 @@ class JsBackendStrategy {
     if (!generateSourceMap) {
       sourceInformationStrategy = const JavaScriptSourceInformationStrategy();
     } else {
-      sourceInformationStrategy = KernelSourceInformationStrategy(this);
+      sourceInformationStrategy = KernelSourceInformationStrategy();
     }
     _emitterTask = CodeEmitterTask(_compiler, generateSourceMap);
     _functionCompiler = SsaFunctionCompiler(
         _compiler.options,
         _compiler.reporter,
+        _ssaMetrics,
         this,
         _compiler.measurer,
         sourceInformationStrategy);
@@ -115,10 +133,12 @@ class JsBackendStrategy {
 
   FunctionCompiler get functionCompiler => _functionCompiler;
 
+  @override
   CodeEmitterTask get emitterTask => _emitterTask;
 
   Namer get namerForTesting => _namer;
 
+  @override
   NativeEnqueuer get nativeCodegenEnqueuer => _nativeCodegenEnqueuer;
 
   RuntimeTypesChecksBuilder get rtiChecksBuilderForTesting => _rtiChecksBuilder;
@@ -131,15 +151,9 @@ class JsBackendStrategy {
         enableMinification: _compiler.options.enableMinification);
   }
 
-  @deprecated
-  JsToElementMap get elementMap {
-    assert(_elementMap != null,
-        "JsBackendStrategy.elementMap has not been created yet.");
-    return _elementMap;
-  }
-
   /// Codegen support for generating table of interceptors and
   /// constructors for custom elements.
+  @override
   CustomElementsCodegenAnalysis get customElementsCodegenAnalysis {
     assert(
         _customElementsCodegenAnalysis != null,
@@ -148,6 +162,7 @@ class JsBackendStrategy {
     return _customElementsCodegenAnalysis;
   }
 
+  @override
   RuntimeTypesChecksBuilder get rtiChecksBuilder {
     assert(
         _rtiChecksBuilder != null,
@@ -169,11 +184,16 @@ class JsBackendStrategy {
         _compiler.environment,
         strategy.elementMap,
         closedWorld.liveMemberUsage,
+        closedWorld.liveAbstractInstanceMembers,
         closedWorld.annotationsData);
     ClosureDataBuilder closureDataBuilder = ClosureDataBuilder(
         _compiler.reporter, _elementMap, closedWorld.annotationsData);
-    JsClosedWorldBuilder closedWorldBuilder = JsClosedWorldBuilder(_elementMap,
-        closureDataBuilder, _compiler.options, _compiler.abstractValueStrategy);
+    JClosedWorldBuilder closedWorldBuilder = JClosedWorldBuilder(
+        _elementMap,
+        closureDataBuilder,
+        _compiler.options,
+        _compiler.reporter,
+        _compiler.abstractValueStrategy);
     JClosedWorld jClosedWorld = closedWorldBuilder.convertClosedWorld(
         closedWorld, strategy.closureModels, outputUnitData);
     _elementMap.lateOutputUnitDataBuilder =
@@ -185,8 +205,9 @@ class JsBackendStrategy {
   /// strategy.
   ///
   /// This is used to support serialization after type inference.
-  void registerJClosedWorld(covariant JsClosedWorld closedWorld) {
+  void registerJClosedWorld(covariant JClosedWorld closedWorld) {
     _elementMap = closedWorld.elementMap;
+    sourceInformationStrategy.onElementMapAvailable(_elementMap);
   }
 
   /// Called when the compiler starts running the codegen.
@@ -376,8 +397,8 @@ class JsBackendStrategy {
         _compiler.options,
         _compiler.reporter,
         _compiler.dumpInfoTask,
-        // ignore:deprecated_member_use_from_same_package
-        elementMap,
+        _ssaMetrics,
+        _elementMap /*!*/,
         sourceInformationStrategy);
   }
 
@@ -387,15 +408,27 @@ class JsBackendStrategy {
   }
 
   /// Creates the [TypesInferrer] used by this strategy.
+  @override
   TypesInferrer createTypesInferrer(
-      JClosedWorld closedWorld,
+      covariant JClosedWorld closedWorld,
       GlobalLocalsMap globalLocalsMap,
       InferredDataBuilder inferredDataBuilder) {
     return TypeGraphInferrer(
         _compiler, closedWorld, globalLocalsMap, inferredDataBuilder);
   }
 
+  /// Creates the [TypesInferrer] used by this strategy.
+  @override
+  experimentalInferrer.TypesInferrer createExperimentalTypesInferrer(
+      covariant JClosedWorld closedWorld,
+      GlobalLocalsMap globalLocalsMap,
+      InferredDataBuilder inferredDataBuilder) {
+    return experimentalInferrer.TypeGraphInferrer(
+        _compiler, closedWorld, globalLocalsMap, inferredDataBuilder);
+  }
+
   /// Prepare [source] to deserialize modular code generation data.
+  @override
   void prepareCodegenReader(DataSourceReader source) {
     source.registerEntityReader(ClosedEntityReader(_elementMap));
     source.registerEntityLookup(ClosedEntityLookup(_elementMap));
@@ -409,6 +442,7 @@ class JsBackendStrategy {
   ///
   /// The needed members include members computed on demand during non-modular
   /// code generation, such as constructor bodies and and generator bodies.
+  @override
   EntityWriter forEachCodegenMember(void Function(MemberEntity member) f) {
     int earlyMemberIndexLimit = _elementMap.prepareForCodegenSerialization();
     ClosedEntityWriter entityWriter = ClosedEntityWriter(earlyMemberIndexLimit);
@@ -471,14 +505,21 @@ class KernelSsaBuilder implements SsaBuilder {
   final CompilerOptions _options;
   final DiagnosticReporter _reporter;
   final DumpInfoTask _dumpInfoTask;
+  final SsaMetrics _metrics;
   final JsToElementMap _elementMap;
   final SourceInformationStrategy _sourceInformationStrategy;
 
   FunctionInlineCache _inlineCache;
   InlineDataCache _inlineDataCache;
 
-  KernelSsaBuilder(this._task, this._options, this._reporter,
-      this._dumpInfoTask, this._elementMap, this._sourceInformationStrategy);
+  KernelSsaBuilder(
+      this._task,
+      this._options,
+      this._reporter,
+      this._dumpInfoTask,
+      this._metrics,
+      this._elementMap,
+      this._sourceInformationStrategy);
 
   @override
   HGraph build(
@@ -500,6 +541,7 @@ class KernelSsaBuilder implements SsaBuilder {
           member,
           _elementMap.getMemberThisType(member),
           _dumpInfoTask,
+          _metrics,
           _elementMap,
           results,
           closedWorld,
@@ -608,7 +650,9 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
 
   @override
   AbstractValue typeFromNativeBehavior(
-      NativeBehavior nativeBehavior, JClosedWorld closedWorld) {
+      // TODO(48820): remove covariant once interface and implementation match.
+      NativeBehavior nativeBehavior,
+      covariant JClosedWorld closedWorld) {
     return AbstractValueFactory.fromNativeBehavior(nativeBehavior, closedWorld);
   }
 }

@@ -37,7 +37,6 @@ import 'package:analyzer/src/util/either.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/util/uri.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
@@ -46,16 +45,16 @@ import 'package:path/path.dart' as package_path;
 import 'package:pub_semver/pub_semver.dart';
 
 /// The file has a `library augment` directive.
-abstract class AugmentationFileStateKind extends LibraryOrAugmentationFileKind {
-  final UnlinkedLibraryAugmentationDirective directive;
+abstract class AugmentationFileKind extends LibraryOrAugmentationFileKind {
+  final UnlinkedLibraryAugmentationDirective unlinked;
 
-  AugmentationFileStateKind({
+  AugmentationFileKind({
     required super.file,
-    required this.directive,
+    required this.unlinked,
   });
 
   @override
-  LibraryFileStateKind get asLibrary {
+  LibraryFileKind get asLibrary {
     // TODO(scheglov): implement asLibrary
     throw UnimplementedError();
   }
@@ -64,14 +63,82 @@ abstract class AugmentationFileStateKind extends LibraryOrAugmentationFileKind {
   bool isAugmentationOf(LibraryOrAugmentationFileKind container);
 }
 
-/// The URI of the [directive] can be resolved.
-class AugmentationKnownFileStateKind extends AugmentationFileStateKind {
-  /// The file that is referenced by the [directive].
+/// Information about a single `import augment` directive.
+class AugmentationImportState<U extends DirectiveUri> extends DirectiveState {
+  final UnlinkedAugmentationImportDirective unlinked;
+  final U uri;
+
+  AugmentationImportState({
+    required this.unlinked,
+    required this.uri,
+  });
+
+  /// Returns a [Source] that is referenced by this directive.
+  ///
+  /// Returns `null` if the URI cannot be resolved into a [Source].
+  Source? get importedSource => null;
+}
+
+/// [AugmentationImportWithUri] that has a valid URI that references a file.
+class AugmentationImportWithFile
+    extends AugmentationImportWithUri<DirectiveUriWithFile> {
+  final LibraryOrAugmentationFileKind container;
+
+  AugmentationImportWithFile({
+    required this.container,
+    required super.unlinked,
+    required super.uri,
+  }) {
+    importedFile.referencingFiles.add(container.file);
+  }
+
+  /// If [importedFile] is an [AugmentationFileKind], and it confirms that
+  /// it is an augmentation of the [container], returns the [importedFile].
+  AugmentationFileKind? get importedAugmentation {
+    final kind = importedFile.kind;
+    if (kind is AugmentationFileKind && kind.isAugmentationOf(container)) {
+      return kind;
+    }
+    return null;
+  }
+
+  FileState get importedFile => uri.file;
+
+  @override
+  Source get importedSource => importedFile.source;
+
+  @override
+  void dispose() {
+    importedFile.referencingFiles.remove(container.file);
+  }
+}
+
+/// [AugmentationImportState] that has a valid URI.
+class AugmentationImportWithUri<U extends DirectiveUriWithUri>
+    extends AugmentationImportWithUriStr<U> {
+  AugmentationImportWithUri({
+    required super.unlinked,
+    required super.uri,
+  });
+}
+
+/// [AugmentationImportState] that has a relative URI string.
+class AugmentationImportWithUriStr<U extends DirectiveUriWithString>
+    extends AugmentationImportState<U> {
+  AugmentationImportWithUriStr({
+    required super.unlinked,
+    required super.uri,
+  });
+}
+
+/// The URI of the [unlinked] can be resolved.
+class AugmentationKnownFileKind extends AugmentationFileKind {
+  /// The file that is referenced by the [unlinked].
   final FileState uriFile;
 
-  AugmentationKnownFileStateKind({
+  AugmentationKnownFileKind({
     required super.file,
-    required super.directive,
+    required super.unlinked,
     required this.uriFile,
   });
 
@@ -88,13 +155,13 @@ class AugmentationKnownFileStateKind extends AugmentationFileStateKind {
   }
 
   @override
-  LibraryFileStateKind? get library {
+  LibraryFileKind? get library {
     final visited = Set<LibraryOrAugmentationFileKind>.identity();
     var current = augmented;
     while (current != null && visited.add(current)) {
-      if (current is LibraryFileStateKind) {
+      if (current is LibraryFileKind) {
         return current;
-      } else if (current is AugmentationKnownFileStateKind) {
+      } else if (current is AugmentationKnownFileKind) {
         current = current.augmented;
       } else {
         return null;
@@ -104,20 +171,31 @@ class AugmentationKnownFileStateKind extends AugmentationFileStateKind {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    invalidateLibraryCycle();
+  }
+
+  @override
+  void invalidateLibraryCycle() {
+    augmented?.invalidateLibraryCycle();
+  }
+
+  @override
   bool isAugmentationOf(LibraryOrAugmentationFileKind container) {
     return uriFile == container.file;
   }
 }
 
-/// The URI of the [directive] can not be resolved.
-class AugmentationUnknownFileStateKind extends AugmentationFileStateKind {
-  AugmentationUnknownFileStateKind({
+/// The URI of the [unlinked] can not be resolved.
+class AugmentationUnknownFileKind extends AugmentationFileKind {
+  AugmentationUnknownFileKind({
     required super.file,
-    required super.directive,
+    required super.unlinked,
   });
 
   @override
-  LibraryFileStateKind? get library => null;
+  LibraryFileKind? get library => null;
 
   @override
   bool isAugmentationOf(LibraryOrAugmentationFileKind container) => false;
@@ -202,109 +280,8 @@ class DirectiveUriWithUri extends DirectiveUriWithString {
     required this.relativeUri,
   });
 
-  bool get isValid {
-    return relativeUri.path.isNotEmpty;
-  }
-
   @override
   String toString() => '$relativeUri';
-}
-
-/// Information about a single `export` directive.
-class ExportDirectiveState<U extends DirectiveUri> extends DirectiveState {
-  final UnlinkedNamespaceDirective directive;
-  final U selectedUri;
-  final NamespaceDirectiveUris uris;
-
-  ExportDirectiveState({
-    required this.directive,
-    required this.selectedUri,
-    required this.uris,
-  });
-
-  /// If [exportedSource] corresponds to a library, returns it.
-  Source? get exportedLibrarySource => null;
-
-  /// Returns a [Source] that is referenced by this directive. If the are
-  /// configurations, selects the one which satisfies the conditions.
-  ///
-  /// Returns `null` if the selected URI is not valid, or cannot be resolved
-  /// into a [Source].
-  Source? get exportedSource => null;
-}
-
-/// [ExportDirectiveWithUri] that has a valid URI that references a file.
-class ExportDirectiveWithFile
-    extends ExportDirectiveWithUri<DirectiveUriWithFile> {
-  final LibraryOrAugmentationFileKind container;
-
-  ExportDirectiveWithFile({
-    required this.container,
-    required super.directive,
-    required super.selectedUri,
-    required super.uris,
-  }) {
-    exportedFile.referencingFiles.add(container.file);
-  }
-
-  FileState get exportedFile => selectedUri.file;
-
-  /// Returns [exportedFile] if it is a library.
-  LibraryFileStateKind? get exportedLibrary {
-    final kind = exportedFile.kind;
-    if (kind is LibraryFileStateKind) {
-      return kind;
-    }
-    return null;
-  }
-
-  @override
-  Source? get exportedLibrarySource {
-    if (exportedFile.kind is LibraryFileStateKind) {
-      return exportedSource;
-    }
-    return null;
-  }
-
-  @override
-  Source get exportedSource => exportedFile.source;
-
-  @override
-  void dispose() {
-    exportedFile.referencingFiles.remove(container.file);
-  }
-}
-
-/// [ExportDirectiveWithUri] with a URI that resolves to [InSummarySource].
-class ExportDirectiveWithInSummarySource
-    extends ExportDirectiveWithUri<DirectiveUriWithInSummarySource> {
-  ExportDirectiveWithInSummarySource({
-    required super.directive,
-    required super.selectedUri,
-    required super.uris,
-  });
-
-  @override
-  Source? get exportedLibrarySource {
-    if (exportedSource.kind == InSummarySourceKind.library) {
-      return exportedSource;
-    } else {
-      return null;
-    }
-  }
-
-  @override
-  InSummarySource get exportedSource => selectedUri.source;
-}
-
-/// [ExportDirectiveState] that has a valid URI.
-class ExportDirectiveWithUri<U extends DirectiveUriWithUri>
-    extends ExportDirectiveState<U> {
-  ExportDirectiveWithUri({
-    required super.directive,
-    required super.selectedUri,
-    required super.uris,
-  });
 }
 
 /// A library from [SummaryDataStore].
@@ -316,7 +293,9 @@ class ExternalLibrary {
 
 abstract class FileContent {
   String get content;
+
   String get contentHash;
+
   bool get exists;
 }
 
@@ -347,6 +326,29 @@ class FileContentOverlay {
 
 abstract class FileContentStrategy {
   FileContent get(String path);
+}
+
+abstract class FileKind {
+  final FileState file;
+
+  FileKind({
+    required this.file,
+  });
+
+  /// When [library] returns `null`, this getter is used to look at this
+  /// file itself as a library.
+  LibraryFileKind get asLibrary {
+    return LibraryFileKind(
+      file: file,
+      name: null,
+    );
+  }
+
+  /// Returns the library in which this file should be analyzed.
+  LibraryFileKind? get library;
+
+  @mustCallSuper
+  void dispose() {}
 }
 
 /// Information about a file being analyzed, explicitly or implicitly.
@@ -398,15 +400,10 @@ class FileState {
 
   UnlinkedUnit? _unlinked2;
 
-  FileStateKind? _kind;
+  FileKind? _kind;
 
   /// Files that reference this file.
   final Set<FileState> referencingFiles = {};
-
-  List<FileState?>? _importedFiles;
-  List<FileState?>? _exportedFiles;
-
-  Set<FileState>? _directReferencedFiles;
 
   /// The flag that shows whether the file has an error or warning that
   /// might be fixed by a change to another file.
@@ -446,87 +443,16 @@ class FileState {
     return _driverUnlinkedUnit!.definedTopLevelNames;
   }
 
-  /// Return the set of all directly referenced files - imported, exported or
-  /// parted.
-  /// TODO(scheglov) Stop using [partedFiles].
-  Set<FileState> get directReferencedFiles {
-    return _directReferencedFiles ??= <FileState>{
-      ...importedFiles.whereNotNull(),
-      ...exportedFiles.whereNotNull(),
-      ...partedFiles.whereNotNull(),
-    };
-  }
-
   /// Return `true` if the file exists.
   bool get exists => _fileContent!.exists;
-
-  /// The list of files this file exports.
-  List<FileState?> get exportedFiles {
-    return _exportedFiles ??= _unlinked2!.exports.map((directive) {
-      var uri = _selectRelativeUri(directive);
-      if (uri == null) {
-        return null;
-      }
-      return _fileForRelativeUri(uri).map(
-        (file) {
-          file?.referencingFiles.add(this);
-          return file;
-        },
-        (_) => null,
-      );
-    }).toList();
-  }
 
   @override
   int get hashCode => uri.hashCode;
 
-  /// The list of files this file imports.
-  List<FileState?> get importedFiles {
-    return _importedFiles ??= _unlinked2!.imports.map((directive) {
-      var uri = _selectRelativeUri(directive);
-      if (uri == null) {
-        return null;
-      }
-      return _fileForRelativeUri(uri).map(
-        (file) {
-          file?.referencingFiles.add(this);
-          return file;
-        },
-        (_) => null,
-      );
-    }).toList();
-  }
-
-  /// Return `true` if the file does not have a `library` directive, and has a
-  /// `part of` directive, so is probably a part.
-  bool get isPart {
-    if (_unlinked2!.libraryDirective != null) {
-      return false;
-    }
-    return _unlinked2!.partOfNameDirective != null ||
-        _unlinked2!.partOfUriDirective != null;
-  }
-
-  FileStateKind get kind => _kind!;
+  FileKind get kind => _kind!;
 
   /// Return information about line in the file.
   LineInfo get lineInfo => _lineInfo!;
-
-  /// The list of files this library file references as parts.
-  List<FileState?> get partedFiles {
-    final kind = _kind;
-    if (kind is LibraryFileStateKind) {
-      return kind.parts.map((part) {
-        if (part is PartDirectiveWithFile) {
-          return part.includedFile;
-        } else {
-          return null;
-        }
-      }).toList();
-    } else {
-      return [];
-    }
-  }
 
   /// The external names referenced by the file.
   Set<String> get referencedNames {
@@ -534,7 +460,7 @@ class FileState {
   }
 
   File get resource {
-    return _fsState._resourceProvider.getFile(path);
+    return _fsState.resourceProvider.getFile(path);
   }
 
   @visibleForTesting
@@ -608,11 +534,6 @@ class FileState {
     bool apiSignatureChanged = _apiSignature != null &&
         !_equalByteLists(_apiSignature, newApiSignature);
     _apiSignature = newApiSignature;
-
-    // Read imports/exports on demand.
-    _importedFiles = null;
-    _exportedFiles = null;
-    _directReferencedFiles = null;
 
     // Read parts eagerly to link parts to libraries.
     _updateKind();
@@ -837,21 +758,6 @@ class FileState {
     prefetchFiles(paths.toList());
   }
 
-  /// TODO(scheglov) move to _fsState?
-  String? _selectRelativeUri(UnlinkedNamespaceDirective directive) {
-    for (var configuration in directive.configurations) {
-      var name = configuration.name;
-      var value = configuration.value;
-      if (value.isEmpty) {
-        value = 'true';
-      }
-      if (_fsState._declaredVariables.get(name) == value) {
-        return configuration.uri;
-      }
-    }
-    return directive.uri;
-  }
-
   void _updateKind() {
     _kind?.dispose();
 
@@ -869,26 +775,26 @@ class FileState {
             )
           : null;
       if (uriFile != null) {
-        _kind = AugmentationKnownFileStateKind(
+        _kind = AugmentationKnownFileKind(
           file: this,
-          directive: libraryAugmentationDirective,
+          unlinked: libraryAugmentationDirective,
           uriFile: uriFile,
         );
       } else {
-        _kind = AugmentationUnknownFileStateKind(
+        _kind = AugmentationUnknownFileKind(
           file: this,
-          directive: libraryAugmentationDirective,
+          unlinked: libraryAugmentationDirective,
         );
       }
     } else if (libraryDirective != null) {
-      _kind = LibraryFileStateKind(
+      _kind = LibraryFileKind(
         file: this,
         name: libraryDirective.name,
       );
     } else if (partOfNameDirective != null) {
-      _kind = PartOfNameFileStateKind(
+      _kind = PartOfNameFileKind(
         file: this,
-        directive: partOfNameDirective,
+        unlinked: partOfNameDirective,
       );
     } else if (partOfUriDirective != null) {
       final uriStr = partOfUriDirective.uri;
@@ -899,19 +805,19 @@ class FileState {
             )
           : null;
       if (uriFile != null) {
-        _kind = PartOfUriKnownFileStateKind(
+        _kind = PartOfUriKnownFileKind(
           file: this,
-          directive: partOfUriDirective,
+          unlinked: partOfUriDirective,
           uriFile: uriFile,
         );
       } else {
-        _kind = PartOfUriUnknownFileStateKind(
+        _kind = PartOfUriUnknownFileKind(
           file: this,
-          directive: partOfUriDirective,
+          unlinked: partOfUriDirective,
         );
       }
     } else {
-      _kind = LibraryFileStateKind(
+      _kind = LibraryFileKind(
         file: this,
         name: null,
       );
@@ -926,24 +832,26 @@ class FileState {
     UnlinkedLibraryAugmentationDirective? libraryAugmentationDirective;
     UnlinkedPartOfNameDirective? partOfNameDirective;
     UnlinkedPartOfUriDirective? partOfUriDirective;
-    var augmentations = <UnlinkedImportAugmentationDirective>[];
-    var exports = <UnlinkedNamespaceDirective>[];
-    var imports = <UnlinkedNamespaceDirective>[];
+    var augmentations = <UnlinkedAugmentationImportDirective>[];
+    var exports = <UnlinkedLibraryExportDirective>[];
+    var imports = <UnlinkedLibraryImportDirective>[];
     var parts = <UnlinkedPartDirective>[];
     var macroClasses = <MacroClass>[];
     var hasDartCoreImport = false;
     for (var directive in unit.directives) {
       if (directive is ExportDirective) {
-        var builder = _serializeNamespaceDirective(directive);
+        var builder = _serializeExport(directive);
         exports.add(builder);
       } else if (directive is AugmentationImportDirectiveImpl) {
         augmentations.add(
-          UnlinkedImportAugmentationDirective(
+          UnlinkedAugmentationImportDirective(
+            augmentKeywordOffset: directive.augmentKeyword.offset,
+            importKeywordOffset: directive.importKeyword.offset,
             uri: directive.uri.stringValue,
           ),
         );
       } else if (directive is ImportDirectiveImpl) {
-        var builder = _serializeNamespaceDirective(directive);
+        var builder = _serializeImport(directive);
         imports.add(builder);
         if (builder.uri == 'dart:core') {
           hasDartCoreImport = true;
@@ -953,6 +861,8 @@ class FileState {
         final uriStr = uri.stringValue;
         if (uriStr != null) {
           libraryAugmentationDirective = UnlinkedLibraryAugmentationDirective(
+            augmentKeywordOffset: directive.augmentKeyword.offset,
+            libraryKeywordOffset: directive.libraryKeyword.offset,
             uri: uriStr,
             uriRange: UnlinkedSourceRange(
               offset: uri.offset,
@@ -962,7 +872,7 @@ class FileState {
         }
       } else if (directive is LibraryDirective) {
         libraryDirective = UnlinkedLibraryDirective(
-          name: directive.name.name,
+          name: directive.name2?.name,
         );
       } else if (directive is PartDirective) {
         parts.add(
@@ -1000,13 +910,13 @@ class FileState {
         if (declaration.macroKeyword != null) {
           var constructors = declaration.members
               .whereType<ConstructorDeclaration>()
-              .map((e) => e.name?.name ?? '')
+              .map((e) => e.name?.lexeme ?? '')
               .where((e) => !e.startsWith('_'))
               .toList();
           if (constructors.isNotEmpty) {
             macroClasses.add(
               MacroClass(
-                name: declaration.name.name,
+                name: declaration.name.lexeme,
                 constructors: constructors,
               ),
             );
@@ -1016,9 +926,12 @@ class FileState {
     }
     if (!isDartCore && !hasDartCoreImport) {
       imports.add(
-        UnlinkedNamespaceDirective(
+        UnlinkedLibraryImportDirective(
+          combinators: [],
           configurations: [],
-          isSyntheticDartCoreImport: true,
+          importKeywordOffset: -1,
+          isSyntheticDartCore: true,
+          prefix: null,
           uri: 'dart:core',
         ),
       );
@@ -1027,21 +940,21 @@ class FileState {
     final topLevelDeclarations = <String>{};
     for (final declaration in unit.declarations) {
       if (declaration is ClassDeclaration) {
-        topLevelDeclarations.add(declaration.name.name);
+        topLevelDeclarations.add(declaration.name.lexeme);
       } else if (declaration is EnumDeclaration) {
-        topLevelDeclarations.add(declaration.name.name);
+        topLevelDeclarations.add(declaration.name.lexeme);
       } else if (declaration is ExtensionDeclaration) {
         var name = declaration.name;
         if (name != null) {
-          topLevelDeclarations.add(name.name);
+          topLevelDeclarations.add(name.lexeme);
         }
       } else if (declaration is FunctionDeclaration) {
-        topLevelDeclarations.add(declaration.name.name);
+        topLevelDeclarations.add(declaration.name.lexeme);
       } else if (declaration is MixinDeclaration) {
-        topLevelDeclarations.add(declaration.name.name);
+        topLevelDeclarations.add(declaration.name.lexeme);
       } else if (declaration is TopLevelVariableDeclaration) {
         for (var variable in declaration.variables.variables) {
-          topLevelDeclarations.add(variable.name.name);
+          topLevelDeclarations.add(variable.name.lexeme);
         }
       }
     }
@@ -1081,44 +994,72 @@ class FileState {
     return true;
   }
 
-  static UnlinkedNamespaceDirective _serializeNamespaceDirective(
-      NamespaceDirective directive) {
-    return UnlinkedNamespaceDirective(
-      configurations: directive.configurations.map((configuration) {
-        var name = configuration.name.components.join('.');
-        var value = configuration.value?.stringValue ?? '';
-        return UnlinkedNamespaceDirectiveConfiguration(
-          name: name,
-          value: value,
-          uri: configuration.uri.stringValue,
+  static List<UnlinkedCombinator> _serializeCombinators(
+    List<Combinator> combinators,
+  ) {
+    return combinators.map((combinator) {
+      if (combinator is ShowCombinator) {
+        return UnlinkedCombinator(
+          keywordOffset: combinator.keyword.offset,
+          endOffset: combinator.end,
+          isShow: true,
+          names: combinator.shownNames.map((e) => e.name).toList(),
         );
-      }).toList(),
-      uri: directive.uri.stringValue,
-    );
-  }
-}
-
-abstract class FileStateKind {
-  final FileState file;
-
-  FileStateKind({
-    required this.file,
-  });
-
-  /// When [library] returns `null`, this getter is used to look at this
-  /// file itself as a library.
-  LibraryFileStateKind get asLibrary {
-    return LibraryFileStateKind(
-      file: file,
-      name: null,
-    );
+      } else {
+        combinator as HideCombinator;
+        return UnlinkedCombinator(
+          keywordOffset: combinator.keyword.offset,
+          endOffset: combinator.end,
+          isShow: false,
+          names: combinator.hiddenNames.map((e) => e.name).toList(),
+        );
+      }
+    }).toList();
   }
 
-  /// Returns the library in which this file should be analyzed.
-  LibraryFileStateKind? get library;
+  static List<UnlinkedNamespaceDirectiveConfiguration> _serializeConfigurations(
+    List<Configuration> configurations,
+  ) {
+    return configurations.map((configuration) {
+      var name = configuration.name.components.join('.');
+      var value = configuration.value?.stringValue ?? '';
+      return UnlinkedNamespaceDirectiveConfiguration(
+        name: name,
+        value: value,
+        uri: configuration.uri.stringValue,
+      );
+    }).toList();
+  }
 
-  @mustCallSuper
-  void dispose() {}
+  static UnlinkedLibraryExportDirective _serializeExport(ExportDirective node) {
+    return UnlinkedLibraryExportDirective(
+      combinators: _serializeCombinators(node.combinators),
+      configurations: _serializeConfigurations(node.configurations),
+      exportKeywordOffset: node.exportKeyword.offset,
+      uri: node.uri.stringValue,
+    );
+  }
+
+  static UnlinkedLibraryImportDirective _serializeImport(ImportDirective node) {
+    UnlinkedLibraryImportPrefix? unlinkedPrefix;
+    final prefix = node.prefix;
+    if (prefix != null) {
+      unlinkedPrefix = UnlinkedLibraryImportPrefix(
+        deferredOffset: node.deferredKeyword?.offset,
+        asOffset: node.asKeyword!.offset,
+        name: prefix.name,
+        nameOffset: prefix.offset,
+      );
+    }
+
+    return UnlinkedLibraryImportDirective(
+      combinators: _serializeCombinators(node.combinators),
+      configurations: _serializeConfigurations(node.configurations),
+      importKeywordOffset: node.importKeyword.offset,
+      uri: node.uri.stringValue,
+      prefix: unlinkedPrefix,
+    );
+  }
 }
 
 enum FileStateRefreshResult {
@@ -1144,7 +1085,7 @@ class FileStateTestView {
 /// Information about known file system state.
 class FileSystemState {
   final PerformanceLog _logger;
-  final ResourceProvider _resourceProvider;
+  final ResourceProvider resourceProvider;
   final String contextName;
   final ByteStore _byteStore;
   final SourceFactory _sourceFactory;
@@ -1170,7 +1111,7 @@ class FileSystemState {
   /// Mapping from a path to the corresponding [FileState].
   final Map<String, FileState> _pathToFile = {};
 
-  /// Mapping from a library name to the [LibraryFileStateKind] that have it.
+  /// Mapping from a library name to the [LibraryFileKind] that have it.
   final _LibraryNameToFiles _libraryNameToFiles = _LibraryNameToFiles();
 
   /// The map of subtyped names to files where these names are subtyped.
@@ -1196,7 +1137,7 @@ class FileSystemState {
   FileSystemState(
     this._logger,
     this._byteStore,
-    this._resourceProvider,
+    this.resourceProvider,
     this.contextName,
     this._sourceFactory,
     this._workspace,
@@ -1212,7 +1153,7 @@ class FileSystemState {
     _testView = FileSystemStateTestView(this);
   }
 
-  package_path.Context get pathContext => _resourceProvider.pathContext;
+  package_path.Context get pathContext => resourceProvider.pathContext;
 
   @visibleForTesting
   FileSystemStateTestView get test => _testView;
@@ -1244,14 +1185,6 @@ class FileSystemState {
   /// Collected files that transitively reference a file with the [path].
   /// These files are potentially affected by the change.
   void collectAffected(String path, Set<FileState> affected) {
-    // TODO(scheglov) This should not be necessary.
-    // We use affected files to remove library elements, and we can only get
-    // these library elements when we link or load them, using library cycles.
-    // And we get library cycles by asking `directReferencedFiles`.
-    for (var file in knownFiles.toList()) {
-      file.directReferencedFiles;
-    }
-
     collectAffected(FileState file) {
       if (affected.add(file)) {
         for (var other in file.referencingFiles) {
@@ -1311,6 +1244,10 @@ class FileSystemState {
     return _pathToFile[file.path];
   }
 
+  FileState? getExistingFromPath(String path) {
+    return _pathToFile[path];
+  }
+
   /// Return the [FileState] for the given absolute [path]. The returned file
   /// has the last known state since if was last refreshed.
   /// TODO(scheglov) Merge with [getFileForPath2].
@@ -1329,7 +1266,7 @@ class FileSystemState {
   }) {
     var file = _pathToFile[path];
     if (file == null) {
-      File resource = _resourceProvider.getFile(path);
+      File resource = resourceProvider.getFile(path);
       Uri uri = _sourceFactory.pathToUri(path)!;
       file = _newFile(resource, path, uri);
     }
@@ -1372,7 +1309,7 @@ class FileSystemState {
         return Either2.t1(file);
       }
 
-      File resource = _resourceProvider.getFile(path);
+      File resource = resourceProvider.getFile(path);
 
       var rewrittenUri = rewriteToCanonicalUri(_sourceFactory, uri);
       if (rewrittenUri == null) {
@@ -1419,7 +1356,7 @@ class FileSystemState {
   /// Return `true` if there is a URI that can be resolved to the [path].
   ///
   /// When a file exists, but for the URI that corresponds to the file is
-  /// resolved to another file, e.g. a generated one in Bazel, Gn, etc, we
+  /// resolved to another file, e.g. a generated one in Blaze, Gn, etc, we
   /// cannot analyze the original file.
   bool hasUri(String path) {
     bool? flag = _hasUriForPath[path];
@@ -1440,8 +1377,8 @@ class FileSystemState {
       for (final file in _pathToFile.values.toList()) {
         final kind = file.kind;
         if (kind is LibraryOrAugmentationFileKind) {
-          kind.imports;
-          kind.exports;
+          kind.libraryImports;
+          kind.libraryExports;
         }
       }
       if (_pathToFile.length == fileCount) {
@@ -1589,208 +1526,168 @@ class FileUriProperties {
   bool get isSrc => (_flags & _isSrc) != 0;
 }
 
-/// Information about a single `import augment` directive.
-class ImportAugmentationDirectiveState<U extends DirectiveUri>
-    extends DirectiveState {
-  final UnlinkedImportAugmentationDirective directive;
-  final U uri;
-
-  ImportAugmentationDirectiveState({
-    required this.directive,
-    required this.uri,
-  });
-
-  /// Returns a [Source] that is referenced by this directive.
-  ///
-  /// Returns `null` if the URI cannot be resolved into a [Source].
-  Source? get importedSource => null;
-}
-
-/// [ImportAugmentationWithUri] that has a valid URI that references a file.
-class ImportAugmentationDirectiveWithFile
-    extends ImportAugmentationWithUri<DirectiveUriWithFile> {
-  final LibraryOrAugmentationFileKind container;
-
-  ImportAugmentationDirectiveWithFile({
-    required this.container,
-    required super.directive,
-    required super.uri,
-  }) {
-    importedFile.referencingFiles.add(container.file);
-  }
-
-  /// If [importedFile] is a [AugmentationFileStateKind], and it confirms that
-  /// it is an augmentation of the [container], returns the [importedFile].
-  AugmentationFileStateKind? get importedAugmentation {
-    final kind = importedFile.kind;
-    if (kind is AugmentationFileStateKind && kind.isAugmentationOf(container)) {
-      return kind;
-    }
-    return null;
-  }
-
-  FileState get importedFile => uri.file;
-
-  @override
-  Source? get importedSource => importedFile.source;
-
-  @override
-  void dispose() {
-    importedFile.referencingFiles.remove(container.file);
-  }
-}
-
-/// [ImportAugmentationDirectiveState] that has a valid URI.
-class ImportAugmentationWithUri<U extends DirectiveUriWithUri>
-    extends ImportAugmentationDirectiveState<U> {
-  ImportAugmentationWithUri({
-    required super.directive,
-    required super.uri,
-  });
-}
-
-/// Information about a single `import` directive.
-class ImportDirectiveState<U extends DirectiveUri> extends DirectiveState {
-  final UnlinkedNamespaceDirective directive;
+/// Information about a single `export` directive.
+class LibraryExportState<U extends DirectiveUri> extends DirectiveState {
+  final UnlinkedLibraryExportDirective unlinked;
   final U selectedUri;
   final NamespaceDirectiveUris uris;
 
-  ImportDirectiveState({
-    required this.directive,
+  LibraryExportState({
+    required this.unlinked,
     required this.selectedUri,
     required this.uris,
   });
 
-  /// If [importedSource] corresponds to a library, returns it.
-  Source? get importedLibrarySource => null;
+  /// If [exportedSource] corresponds to a library, returns it.
+  Source? get exportedLibrarySource => null;
 
-  /// Returns a [Source] that is referenced by this directive. If the are
+  /// Returns a [Source] that is referenced by this directive. If there are
   /// configurations, selects the one which satisfies the conditions.
   ///
   /// Returns `null` if the selected URI is not valid, or cannot be resolved
   /// into a [Source].
-  Source? get importedSource => null;
-
-  bool get isSyntheticDartCoreImport => directive.isSyntheticDartCoreImport;
+  Source? get exportedSource => null;
 }
 
-/// [ImportDirectiveWithUri] that has a valid URI that references a file.
-class ImportDirectiveWithFile
-    extends ImportDirectiveWithUri<DirectiveUriWithFile> {
+/// [LibraryExportWithUri] that has a valid URI that references a file.
+class LibraryExportWithFile extends LibraryExportWithUri<DirectiveUriWithFile> {
   final LibraryOrAugmentationFileKind container;
 
-  ImportDirectiveWithFile({
+  LibraryExportWithFile({
     required this.container,
-    required super.directive,
+    required super.unlinked,
     required super.selectedUri,
     required super.uris,
   }) {
-    importedFile.referencingFiles.add(container.file);
+    exportedFile.referencingFiles.add(container.file);
   }
 
-  FileState get importedFile => selectedUri.file;
+  FileState get exportedFile => selectedUri.file;
 
-  /// Returns [importedFile] if it is a library.
-  LibraryFileStateKind? get importedLibrary {
-    final kind = importedFile.kind;
-    if (kind is LibraryFileStateKind) {
+  /// Returns [exportedFile] if it is a library.
+  LibraryFileKind? get exportedLibrary {
+    final kind = exportedFile.kind;
+    if (kind is LibraryFileKind) {
       return kind;
     }
     return null;
   }
 
   @override
-  Source? get importedLibrarySource {
-    if (importedFile.kind is LibraryFileStateKind) {
-      return importedSource;
+  Source? get exportedLibrarySource {
+    if (exportedFile.kind is LibraryFileKind) {
+      return exportedSource;
     }
     return null;
   }
 
   @override
-  Source get importedSource => importedFile.source;
+  Source get exportedSource => exportedFile.source;
 
   @override
   void dispose() {
-    importedFile.referencingFiles.remove(container.file);
+    exportedFile.referencingFiles.remove(container.file);
   }
 }
 
-/// [ImportDirectiveWithUri] with a URI that resolves to [InSummarySource].
-class ImportDirectiveWithInSummarySource
-    extends ImportDirectiveWithUri<DirectiveUriWithInSummarySource> {
-  ImportDirectiveWithInSummarySource({
-    required super.directive,
+/// [LibraryExportWithUri] with a URI that resolves to [InSummarySource].
+class LibraryExportWithInSummarySource
+    extends LibraryExportWithUri<DirectiveUriWithInSummarySource> {
+  LibraryExportWithInSummarySource({
+    required super.unlinked,
     required super.selectedUri,
     required super.uris,
   });
 
   @override
-  Source? get importedLibrarySource {
-    if (importedSource.kind == InSummarySourceKind.library) {
-      return importedSource;
+  Source? get exportedLibrarySource {
+    if (exportedSource.kind == InSummarySourceKind.library) {
+      return exportedSource;
     } else {
       return null;
     }
   }
 
   @override
-  InSummarySource get importedSource => selectedUri.source;
+  InSummarySource get exportedSource => selectedUri.source;
 }
 
-/// [ImportDirectiveState] that has a valid URI.
-class ImportDirectiveWithUri<U extends DirectiveUriWithUri>
-    extends ImportDirectiveState<U> {
-  ImportDirectiveWithUri({
-    required super.directive,
+/// [LibraryExportState] that has a valid URI.
+class LibraryExportWithUri<U extends DirectiveUriWithUri>
+    extends LibraryExportWithUriStr<U> {
+  LibraryExportWithUri({
+    required super.unlinked,
     required super.selectedUri,
     required super.uris,
   });
 }
 
-class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
+/// [LibraryExportState] that has a relative URI string.
+class LibraryExportWithUriStr<U extends DirectiveUriWithString>
+    extends LibraryExportState<U> {
+  LibraryExportWithUriStr({
+    required super.unlinked,
+    required super.selectedUri,
+    required super.uris,
+  });
+}
+
+class LibraryFileKind extends LibraryOrAugmentationFileKind {
   /// The name of the library from the `library` directive.
   /// Or `null` if no `library` directive.
   final String? name;
 
-  List<PartDirectiveState>? _parts;
+  List<PartState>? _parts;
 
   LibraryCycle? _libraryCycle;
 
-  LibraryFileStateKind({
+  LibraryFileKind({
     required super.file,
     required this.name,
   }) {
     file._fsState._libraryNameToFiles.add(this);
   }
 
-  /// The list of files files that this library consists of, i.e. this library
-  /// file itself, its [parts], and augmentations.
-  List<FileState> get files {
-    final files = [
-      file,
-    ];
+  /// All augmentations of this library, in the depth-first pre-order order.
+  List<AugmentationFileKind> get augmentations {
+    final result = <AugmentationFileKind>[];
 
-    // TODO(scheglov) When we include only valid parts, use this instead.
-    final includeOnlyValidParts = 0 > 1;
-    for (final part in parts) {
-      if (part is PartDirectiveWithFile) {
-        if (includeOnlyValidParts) {
-          files.addIfNotNull(part.includedPart?.file);
-        } else {
-          files.add(part.includedFile);
+    void visitAugmentations(LibraryOrAugmentationFileKind kind) {
+      if (kind is AugmentationFileKind) {
+        result.add(kind);
+      }
+      for (final import in kind.augmentationImports) {
+        if (import is AugmentationImportWithFile) {
+          final augmentation = import.importedAugmentation;
+          if (augmentation != null) {
+            visitAugmentations(augmentation);
+          }
         }
       }
     }
 
-    // TODO(scheglov) Include augmentations.
-    return files;
+    visitAugmentations(this);
+    return result;
+  }
+
+  /// The list of files that this library consists of, i.e. this library file
+  /// itself, its [parts], and augmentations.
+  List<FileState> get files {
+    return [
+      file,
+      ...parts
+          .whereType<PartWithFile>()
+          .map((partState) => partState.includedPart)
+          .whereNotNull()
+          .map((partKind) => partKind.file),
+      ...augmentations.map((e) => e.file),
+    ];
   }
 
   LibraryCycle? get internal_libraryCycle => _libraryCycle;
 
   @override
-  LibraryFileStateKind get library => this;
+  LibraryFileKind get library => this;
 
   /// Return the [LibraryCycle] this file belongs to, even if it consists of
   /// just this file.  If the library cycle is not known yet, compute it.
@@ -1802,25 +1699,31 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
     return _libraryCycle!;
   }
 
-  List<PartDirectiveState> get parts {
-    return _parts ??= file.unlinked2.parts.map((directive) {
-      final uri = file._buildDirectiveUri(directive.uri);
+  List<PartState> get parts {
+    return _parts ??= file.unlinked2.parts.map((unlinked) {
+      final uri = file._buildDirectiveUri(unlinked.uri);
       if (uri is DirectiveUriWithFile) {
-        return PartDirectiveWithFile(
+        return PartWithFile(
           library: this,
-          directive: directive,
+          unlinked: unlinked,
           uri: uri,
         );
       } else if (uri is DirectiveUriWithUri) {
-        return PartDirectiveWithUri(
+        return PartWithUri(
           library: this,
-          directive: directive,
+          unlinked: unlinked,
+          uri: uri,
+        );
+      } else if (uri is DirectiveUriWithString) {
+        return PartWithUriStr(
+          library: this,
+          unlinked: unlinked,
           uri: uri,
         );
       } else {
-        return PartDirectiveState(
+        return PartState(
           library: this,
-          directive: directive,
+          unlinked: unlinked,
           uri: uri,
         );
       }
@@ -1831,7 +1734,7 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
   void collectTransitive(Set<FileState> files) {
     super.collectTransitive(files);
     for (final part in parts) {
-      if (part is PartDirectiveWithFile) {
+      if (part is PartWithFile) {
         files.add(part.includedFile);
       }
     }
@@ -1851,9 +1754,9 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
     super.dispose();
   }
 
-  bool hasPart(PartFileStateKind partKind) {
+  bool hasPart(PartFileKind partKind) {
     for (final partDirective in parts) {
-      if (partDirective is PartDirectiveWithFile) {
+      if (partDirective is PartWithFile) {
         if (partDirective.includedFile == partKind.file) {
           return true;
         }
@@ -1866,71 +1769,192 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
     _libraryCycle = cycle;
   }
 
+  @override
   void invalidateLibraryCycle() {
     _libraryCycle?.invalidate();
     _libraryCycle = null;
   }
 }
 
-abstract class LibraryOrAugmentationFileKind extends FileStateKind {
-  List<ImportAugmentationDirectiveState>? _augmentations;
-  List<ExportDirectiveState>? _exports;
-  List<ImportDirectiveState>? _imports;
+/// Information about a single `import` directive.
+class LibraryImportState<U extends DirectiveUri> extends DirectiveState {
+  final UnlinkedLibraryImportDirective unlinked;
+  final U selectedUri;
+  final NamespaceDirectiveUris uris;
+
+  LibraryImportState({
+    required this.unlinked,
+    required this.selectedUri,
+    required this.uris,
+  });
+
+  /// If [importedSource] corresponds to a library, returns it.
+  Source? get importedLibrarySource => null;
+
+  /// Returns a [Source] that is referenced by this directive. If there are
+  /// configurations, selects the one which satisfies the conditions.
+  ///
+  /// Returns `null` if the selected URI is not valid, or cannot be resolved
+  /// into a [Source].
+  Source? get importedSource => null;
+
+  bool get isSyntheticDartCore => unlinked.isSyntheticDartCore;
+}
+
+/// [LibraryImportWithUri] that has a valid URI that references a file.
+class LibraryImportWithFile extends LibraryImportWithUri<DirectiveUriWithFile> {
+  final LibraryOrAugmentationFileKind container;
+
+  LibraryImportWithFile({
+    required this.container,
+    required super.unlinked,
+    required super.selectedUri,
+    required super.uris,
+  }) {
+    importedFile.referencingFiles.add(container.file);
+  }
+
+  FileState get importedFile => selectedUri.file;
+
+  /// Returns [importedFile] if it is a library.
+  LibraryFileKind? get importedLibrary {
+    final kind = importedFile.kind;
+    if (kind is LibraryFileKind) {
+      return kind;
+    }
+    return null;
+  }
+
+  @override
+  Source? get importedLibrarySource {
+    if (importedFile.kind is LibraryFileKind) {
+      return importedSource;
+    }
+    return null;
+  }
+
+  @override
+  Source get importedSource => importedFile.source;
+
+  @override
+  void dispose() {
+    importedFile.referencingFiles.remove(container.file);
+  }
+}
+
+/// [LibraryImportWithUri] with a URI that resolves to [InSummarySource].
+class LibraryImportWithInSummarySource
+    extends LibraryImportWithUri<DirectiveUriWithInSummarySource> {
+  LibraryImportWithInSummarySource({
+    required super.unlinked,
+    required super.selectedUri,
+    required super.uris,
+  });
+
+  @override
+  Source? get importedLibrarySource {
+    if (importedSource.kind == InSummarySourceKind.library) {
+      return importedSource;
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  InSummarySource get importedSource => selectedUri.source;
+}
+
+/// [LibraryImportState] that has a valid URI.
+class LibraryImportWithUri<U extends DirectiveUriWithUri>
+    extends LibraryImportWithUriStr<U> {
+  LibraryImportWithUri({
+    required super.unlinked,
+    required super.selectedUri,
+    required super.uris,
+  });
+}
+
+/// [LibraryImportState] that has a relative URI string.
+class LibraryImportWithUriStr<U extends DirectiveUriWithString>
+    extends LibraryImportState<U> {
+  LibraryImportWithUriStr({
+    required super.unlinked,
+    required super.selectedUri,
+    required super.uris,
+  });
+}
+
+abstract class LibraryOrAugmentationFileKind extends FileKind {
+  List<AugmentationImportState>? _augmentationImports;
+  List<LibraryExportState>? _libraryExports;
+  List<LibraryImportState>? _libraryImports;
 
   LibraryOrAugmentationFileKind({
     required super.file,
   });
 
-  List<ImportAugmentationDirectiveState> get augmentations {
-    return _augmentations ??= file.unlinked2.augmentations.map((directive) {
-      final uri = file._buildDirectiveUri(directive.uri);
+  List<AugmentationImportState> get augmentationImports {
+    return _augmentationImports ??=
+        file.unlinked2.augmentations.map((unlinked) {
+      final uri = file._buildDirectiveUri(unlinked.uri);
       if (uri is DirectiveUriWithFile) {
-        return ImportAugmentationDirectiveWithFile(
+        return AugmentationImportWithFile(
           container: this,
-          directive: directive,
+          unlinked: unlinked,
           uri: uri,
         );
       } else if (uri is DirectiveUriWithUri) {
-        return ImportAugmentationWithUri(
-          directive: directive,
+        return AugmentationImportWithUri(
+          unlinked: unlinked,
+          uri: uri,
+        );
+      } else if (uri is DirectiveUriWithString) {
+        return AugmentationImportWithUriStr(
+          unlinked: unlinked,
           uri: uri,
         );
       } else {
-        return ImportAugmentationDirectiveState(
-          directive: directive,
+        return AugmentationImportState(
+          unlinked: unlinked,
           uri: uri,
         );
       }
     }).toList();
   }
 
-  List<ExportDirectiveState> get exports {
-    return _exports ??=
-        file.unlinked2.exports.map<ExportDirectiveState>((directive) {
-      final uris = file._buildNamespaceDirectiveUris(directive);
+  List<LibraryExportState> get libraryExports {
+    return _libraryExports ??=
+        file.unlinked2.exports.map<LibraryExportState>((unlinked) {
+      final uris = file._buildNamespaceDirectiveUris(unlinked);
       final selectedUri = uris.selected;
       if (selectedUri is DirectiveUriWithFile) {
-        return ExportDirectiveWithFile(
+        return LibraryExportWithFile(
           container: this,
-          directive: directive,
+          unlinked: unlinked,
           selectedUri: selectedUri,
           uris: uris,
         );
       } else if (selectedUri is DirectiveUriWithInSummarySource) {
-        return ExportDirectiveWithInSummarySource(
-          directive: directive,
+        return LibraryExportWithInSummarySource(
+          unlinked: unlinked,
           selectedUri: selectedUri,
           uris: uris,
         );
       } else if (selectedUri is DirectiveUriWithUri) {
-        return ExportDirectiveWithUri(
-          directive: directive,
+        return LibraryExportWithUri(
+          unlinked: unlinked,
+          selectedUri: selectedUri,
+          uris: uris,
+        );
+      } else if (selectedUri is DirectiveUriWithString) {
+        return LibraryExportWithUriStr(
+          unlinked: unlinked,
           selectedUri: selectedUri,
           uris: uris,
         );
       } else {
-        return ExportDirectiveState(
-          directive: directive,
+        return LibraryExportState(
+          unlinked: unlinked,
           selectedUri: selectedUri,
           uris: uris,
         );
@@ -1938,33 +1962,39 @@ abstract class LibraryOrAugmentationFileKind extends FileStateKind {
     }).toList();
   }
 
-  List<ImportDirectiveState> get imports {
-    return _imports ??=
-        file.unlinked2.imports.map<ImportDirectiveState>((directive) {
-      final uris = file._buildNamespaceDirectiveUris(directive);
+  List<LibraryImportState> get libraryImports {
+    return _libraryImports ??=
+        file.unlinked2.imports.map<LibraryImportState>((unlinked) {
+      final uris = file._buildNamespaceDirectiveUris(unlinked);
       final selectedUri = uris.selected;
       if (selectedUri is DirectiveUriWithFile) {
-        return ImportDirectiveWithFile(
+        return LibraryImportWithFile(
           container: this,
-          directive: directive,
+          unlinked: unlinked,
           selectedUri: selectedUri,
           uris: uris,
         );
       } else if (selectedUri is DirectiveUriWithInSummarySource) {
-        return ImportDirectiveWithInSummarySource(
-          directive: directive,
+        return LibraryImportWithInSummarySource(
+          unlinked: unlinked,
           selectedUri: selectedUri,
           uris: uris,
         );
       } else if (selectedUri is DirectiveUriWithUri) {
-        return ImportDirectiveWithUri(
-          directive: directive,
+        return LibraryImportWithUri(
+          unlinked: unlinked,
+          selectedUri: selectedUri,
+          uris: uris,
+        );
+      } else if (selectedUri is DirectiveUriWithString) {
+        return LibraryImportWithUriStr(
+          unlinked: unlinked,
           selectedUri: selectedUri,
           uris: uris,
         );
       } else {
-        return ImportDirectiveState(
-          directive: directive,
+        return LibraryImportState(
+          unlinked: unlinked,
           selectedUri: selectedUri,
           uris: uris,
         );
@@ -1976,18 +2006,18 @@ abstract class LibraryOrAugmentationFileKind extends FileStateKind {
   @mustCallSuper
   void collectTransitive(Set<FileState> files) {
     if (files.add(file)) {
-      for (final augmentation in augmentations) {
-        if (augmentation is ImportAugmentationDirectiveWithFile) {
+      for (final augmentation in augmentationImports) {
+        if (augmentation is AugmentationImportWithFile) {
           augmentation.importedAugmentation?.collectTransitive(files);
         }
       }
-      for (final export in exports) {
-        if (export is ExportDirectiveWithFile) {
+      for (final export in libraryExports) {
+        if (export is LibraryExportWithFile) {
           export.exportedLibrary?.collectTransitive(files);
         }
       }
-      for (final import in imports) {
-        if (import is ImportDirectiveWithFile) {
+      for (final import in libraryImports) {
+        if (import is LibraryImportWithFile) {
           import.importedLibrary?.collectTransitive(files);
         }
       }
@@ -2001,10 +2031,10 @@ abstract class LibraryOrAugmentationFileKind extends FileStateKind {
   /// we register available objects.
   @visibleForTesting
   void discoverReferencedFiles() {
-    exports;
-    imports;
-    for (final import in augmentations) {
-      if (import is ImportAugmentationDirectiveWithFile) {
+    libraryExports;
+    libraryImports;
+    for (final import in augmentationImports) {
+      if (import is AugmentationImportWithFile) {
         import.importedAugmentation?.discoverReferencedFiles();
       }
     }
@@ -2012,15 +2042,15 @@ abstract class LibraryOrAugmentationFileKind extends FileStateKind {
 
   @override
   void dispose() {
-    _augmentations?.disposeAll();
-    _exports?.disposeAll();
-    _imports?.disposeAll();
+    _augmentationImports?.disposeAll();
+    _libraryExports?.disposeAll();
+    _libraryImports?.disposeAll();
     super.dispose();
   }
 
-  bool hasAugmentation(AugmentationFileStateKind augmentation) {
-    for (final import in augmentations) {
-      if (import is ImportAugmentationDirectiveWithFile) {
+  bool hasAugmentation(AugmentationFileKind augmentation) {
+    for (final import in augmentationImports) {
+      if (import is AugmentationImportWithFile) {
         if (import.importedFile == augmentation.file) {
           return true;
         }
@@ -2028,6 +2058,19 @@ abstract class LibraryOrAugmentationFileKind extends FileStateKind {
     }
     return false;
   }
+
+  /// Returns `true` if [file] is imported as a library, or an augmentation.
+  bool importsFile(FileState file) {
+    return augmentationImports
+            .whereType<AugmentationImportWithFile>()
+            .any((import) => import.importedFile == file) ||
+        libraryImports
+            .whereType<LibraryImportWithFile>()
+            .any((import) => import.importedFile == file);
+  }
+
+  /// Invalidates the containing [LibraryFileKind] cycle.
+  void invalidateLibraryCycle() {}
 }
 
 class NamespaceDirectiveUris {
@@ -2042,68 +2085,9 @@ class NamespaceDirectiveUris {
   });
 }
 
-/// Information about a single `part` directive.
-class PartDirectiveState<U extends DirectiveUri> extends DirectiveState {
-  final LibraryFileStateKind library;
-  final UnlinkedPartDirective directive;
-  final U uri;
-
-  PartDirectiveState({
-    required this.library,
-    required this.directive,
-    required this.uri,
-  });
-
-  /// Returns a [Source] that is referenced by this directive.
-  ///
-  /// Returns `null` if the URI cannot be resolved into a [Source].
-  Source? get includedSource => null;
-}
-
-/// [PartDirectiveWithUri] that has a valid URI that references a file.
-class PartDirectiveWithFile extends PartDirectiveWithUri<DirectiveUriWithFile> {
-  PartDirectiveWithFile({
-    required super.library,
-    required super.directive,
-    required super.uri,
-  }) {
-    includedFile.referencingFiles.add(library.file);
-  }
-
-  FileState get includedFile => uri.file;
-
-  /// If [includedFile] is a [PartFileStateKind], and it confirms that it
-  /// is a part of the [library], returns the [includedFile].
-  PartFileStateKind? get includedPart {
-    final kind = includedFile.kind;
-    if (kind is PartFileStateKind && kind.isPartOf(library)) {
-      return kind;
-    }
-    return null;
-  }
-
-  @override
-  Source? get includedSource => includedFile.source;
-
-  @override
-  void dispose() {
-    includedFile.referencingFiles.remove(library.file);
-  }
-}
-
-/// [PartDirectiveState] that has a valid URI.
-class PartDirectiveWithUri<U extends DirectiveUriWithUri>
-    extends PartDirectiveState<U> {
-  PartDirectiveWithUri({
-    required super.library,
-    required super.directive,
-    required super.uri,
-  });
-}
-
 /// The file has `part of` directive.
-abstract class PartFileStateKind extends FileStateKind {
-  PartFileStateKind({
+abstract class PartFileKind extends FileKind {
+  PartFileKind({
     required super.file,
   }) {
     _invalidateLibraries();
@@ -2116,14 +2100,14 @@ abstract class PartFileStateKind extends FileStateKind {
   }
 
   /// Returns `true` if the `part of` directive confirms the [library].
-  bool isPartOf(LibraryFileStateKind library);
+  bool isPartOf(LibraryFileKind library);
 
   /// This method is invoked when the part file is updated.
   /// The file either becomes a part, or might stop being a part.
   void _invalidateLibraries() {
     for (final reference in file.referencingFiles) {
       final referenceKind = reference.kind;
-      if (referenceKind is LibraryFileStateKind) {
+      if (referenceKind is LibraryFileKind) {
         referenceKind.invalidateLibraryCycle();
       }
     }
@@ -2131,27 +2115,27 @@ abstract class PartFileStateKind extends FileStateKind {
 }
 
 /// The file has `part of name` directive.
-class PartOfNameFileStateKind extends PartFileStateKind {
-  final UnlinkedPartOfNameDirective directive;
+class PartOfNameFileKind extends PartFileKind {
+  final UnlinkedPartOfNameDirective unlinked;
 
-  PartOfNameFileStateKind({
+  PartOfNameFileKind({
     required super.file,
-    required this.directive,
+    required this.unlinked,
   });
 
-  /// Libraries with the same name as in [directive].
-  List<LibraryFileStateKind> get libraries {
+  /// Libraries with the same name as in [unlinked].
+  List<LibraryFileKind> get libraries {
     final files = file._fsState._libraryNameToFiles;
-    return files[directive.name] ?? [];
+    return files[unlinked.name] ?? [];
   }
 
   /// If there are libraries that include this file as a part, return the
   /// first one as if sorted by path.
   @override
-  LibraryFileStateKind? get library {
+  LibraryFileKind? get library {
     discoverLibraries();
 
-    LibraryFileStateKind? result;
+    LibraryFileKind? result;
     for (final library in libraries) {
       if (library.hasPart(this)) {
         if (result == null) {
@@ -2167,7 +2151,7 @@ class PartOfNameFileStateKind extends PartFileStateKind {
   @visibleForTesting
   void discoverLibraries() {
     if (libraries.isEmpty) {
-      var resourceProvider = file._fsState._resourceProvider;
+      var resourceProvider = file._fsState.resourceProvider;
       var pathContext = resourceProvider.pathContext;
 
       var siblings = <Resource>[];
@@ -2187,35 +2171,35 @@ class PartOfNameFileStateKind extends PartFileStateKind {
   }
 
   @override
-  bool isPartOf(LibraryFileStateKind library) {
-    return directive.name == library.name;
+  bool isPartOf(LibraryFileKind library) {
+    return unlinked.name == library.name;
   }
 }
 
 /// The file has `part of URI` directive.
-abstract class PartOfUriFileStateKind extends PartFileStateKind {
-  final UnlinkedPartOfUriDirective directive;
+abstract class PartOfUriFileKind extends PartFileKind {
+  final UnlinkedPartOfUriDirective unlinked;
 
-  PartOfUriFileStateKind({
+  PartOfUriFileKind({
     required super.file,
-    required this.directive,
+    required this.unlinked,
   });
 }
 
 /// The file has `part of URI` directive, and the URI can be resolved.
-class PartOfUriKnownFileStateKind extends PartOfUriFileStateKind {
+class PartOfUriKnownFileKind extends PartOfUriFileKind {
   final FileState uriFile;
 
-  PartOfUriKnownFileStateKind({
+  PartOfUriKnownFileKind({
     required super.file,
-    required super.directive,
+    required super.unlinked,
     required this.uriFile,
   });
 
   @override
-  LibraryFileStateKind? get library {
+  LibraryFileKind? get library {
     final uriKind = uriFile.kind;
-    if (uriKind is LibraryFileStateKind) {
+    if (uriKind is LibraryFileKind) {
       if (uriKind.hasPart(this)) {
         return uriKind;
       }
@@ -2224,23 +2208,90 @@ class PartOfUriKnownFileStateKind extends PartOfUriFileStateKind {
   }
 
   @override
-  bool isPartOf(LibraryFileStateKind library) {
+  bool isPartOf(LibraryFileKind library) {
     return uriFile == library.file;
   }
 }
 
 /// The file has `part of URI` directive, and the URI cannot be resolved.
-class PartOfUriUnknownFileStateKind extends PartOfUriFileStateKind {
-  PartOfUriUnknownFileStateKind({
+class PartOfUriUnknownFileKind extends PartOfUriFileKind {
+  PartOfUriUnknownFileKind({
     required super.file,
-    required super.directive,
+    required super.unlinked,
   });
 
   @override
-  LibraryFileStateKind? get library => null;
+  LibraryFileKind? get library => null;
 
   @override
-  bool isPartOf(LibraryFileStateKind library) => false;
+  bool isPartOf(LibraryFileKind library) => false;
+}
+
+/// Information about a single `part` directive.
+class PartState<U extends DirectiveUri> extends DirectiveState {
+  final LibraryFileKind library;
+  final UnlinkedPartDirective unlinked;
+  final U uri;
+
+  PartState({
+    required this.library,
+    required this.unlinked,
+    required this.uri,
+  });
+
+  /// Returns a [Source] that is referenced by this directive.
+  ///
+  /// Returns `null` if the URI cannot be resolved into a [Source].
+  Source? get includedSource => null;
+}
+
+/// [PartWithUri] that has a valid URI that references a file.
+class PartWithFile extends PartWithUri<DirectiveUriWithFile> {
+  PartWithFile({
+    required super.library,
+    required super.unlinked,
+    required super.uri,
+  }) {
+    includedFile.referencingFiles.add(library.file);
+  }
+
+  FileState get includedFile => uri.file;
+
+  /// If [includedFile] is a [PartFileKind], and it confirms that it
+  /// is a part of the [library], returns the [includedFile].
+  PartFileKind? get includedPart {
+    final kind = includedFile.kind;
+    if (kind is PartFileKind && kind.isPartOf(library)) {
+      return kind;
+    }
+    return null;
+  }
+
+  @override
+  Source? get includedSource => includedFile.source;
+
+  @override
+  void dispose() {
+    includedFile.referencingFiles.remove(library.file);
+  }
+}
+
+/// [PartState] that has a valid URI.
+class PartWithUri<U extends DirectiveUriWithUri> extends PartWithUriStr<U> {
+  PartWithUri({
+    required super.library,
+    required super.unlinked,
+    required super.uri,
+  });
+}
+
+/// [PartState] that has a relative URI string.
+class PartWithUriStr<U extends DirectiveUriWithString> extends PartState<U> {
+  PartWithUriStr({
+    required super.library,
+    required super.unlinked,
+    required super.uri,
+  });
 }
 
 class StoredFileContent implements FileContent {
@@ -2283,14 +2334,14 @@ class StoredFileContentStrategy implements FileContentStrategy {
 }
 
 class _LibraryNameToFiles {
-  final Map<String, List<LibraryFileStateKind>> _map = {};
+  final Map<String, List<LibraryFileKind>> _map = {};
 
-  List<LibraryFileStateKind>? operator [](String name) {
+  List<LibraryFileKind>? operator [](String name) {
     return _map[name];
   }
 
   /// If [kind] is a named library, register it.
-  void add(LibraryFileStateKind kind) {
+  void add(LibraryFileKind kind) {
     final name = kind.name;
     if (name != null) {
       final libraries = _map[name] ??= [];
@@ -2303,7 +2354,7 @@ class _LibraryNameToFiles {
   }
 
   /// If [kind] is a named library, unregister it.
-  void remove(LibraryFileStateKind kind) {
+  void remove(LibraryFileKind kind) {
     final name = kind.name;
     if (name != null) {
       final libraries = _map[name];

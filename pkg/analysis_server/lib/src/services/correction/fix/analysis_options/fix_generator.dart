@@ -61,19 +61,18 @@ class AnalysisOptionsFixGenerator {
     var errorCode = error.errorCode;
 //    if (errorCode == AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR) {
 //    } else if (errorCode == AnalysisOptionsErrorCode.PARSE_ERROR) {
-//    } else if (errorCode ==
-//        AnalysisOptionsHintCode.PREVIEW_DART_2_SETTING_DEPRECATED) {
-//    } else if (errorCode ==
-//        AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED) {
 //    } else
-
-    if (errorCode == DEPRECATED_LINT_HINT) {
+    if (errorCode ==
+        AnalysisOptionsHintCode.PREVIEW_DART_2_SETTING_DEPRECATED) {
+      await _addFix_removeSetting(coveringNodePath);
+    } else if (errorCode ==
+        AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED) {
+      await _addFix_removeSetting(coveringNodePath);
+    } else if (errorCode == DEPRECATED_LINT_HINT) {
       await _addFix_removeLint(coveringNodePath);
     } else if (errorCode ==
         AnalysisOptionsHintCode.SUPER_MIXINS_SETTING_DEPRECATED) {
       await _addFix_removeSetting(coveringNodePath);
-//    } else if (errorCode ==
-//        AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED) {
 //    } else if (errorCode == AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING) {
 //    } else if (errorCode == AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND) {
 //    } else if (errorCode == AnalysisOptionsWarningCode.INVALID_OPTION) {
@@ -117,6 +116,7 @@ class AnalysisOptionsFixGenerator {
     if (change.edits.isEmpty) {
       return;
     }
+    change.id = kind.id;
     change.message = formatList(kind.message, args);
     fixes.add(Fix(kind, change));
   }

@@ -51,7 +51,7 @@ class MockSdkTest extends PubPackageResolutionTest {
   }
 
   Future<ResolvedLibraryResult> _resolvedLibraryByUri(String uriStr) async {
-    var analysisSession = contextFor(testFilePath).currentSession;
+    var analysisSession = contextFor(testFile).currentSession;
     var coreElementResult =
         await analysisSession.getLibraryByUri(uriStr) as LibraryElementResult;
     return await analysisSession.getResolvedLibraryByElement(

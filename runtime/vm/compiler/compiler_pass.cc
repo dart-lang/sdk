@@ -84,6 +84,7 @@ DEFINE_OPTION_HANDLER(CompilerPass::ParseFiltersFromFlag,
                       "Do --compiler-passes=help for more information.");
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
+DEFINE_FLAG(bool, test_il_serialization, false, "Test IL serialization.");
 
 void CompilerPassState::set_flow_graph(FlowGraph* flow_graph) {
   flow_graph_ = flow_graph;
@@ -564,6 +565,22 @@ COMPILER_PASS(AllocateRegistersForGraphIntrinsic, {
 COMPILER_PASS(ReorderBlocks, {
   if (state->reorder_blocks) {
     BlockScheduler::ReorderBlocks(flow_graph);
+  }
+
+  // This is the last compiler pass.
+  // Test that round-trip IL serialization works before generating code.
+  if (FLAG_test_il_serialization && CompilerState::Current().is_aot()) {
+    Zone* zone = flow_graph->zone();
+    auto* detached_defs = new (zone) ZoneGrowableArray<Definition*>(zone, 0);
+    flow_graph->CompactSSA(detached_defs);
+
+    ZoneWriteStream write_stream(flow_graph->zone(), 1024);
+    FlowGraphSerializer serializer(&write_stream);
+    serializer.WriteFlowGraph(*flow_graph, *detached_defs);
+    ReadStream read_stream(write_stream.buffer(), write_stream.bytes_written());
+    FlowGraphDeserializer deserializer(flow_graph->parsed_function(),
+                                       &read_stream);
+    state->set_flow_graph(deserializer.ReadFlowGraph());
   }
 });
 

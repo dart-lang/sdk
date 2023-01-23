@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "core_patch.dart";
+part of "core_patch.dart";
 
 abstract class _IntegerImplementation implements int {
   @pragma("vm:recognized", "graph-intrinsic")
@@ -61,17 +61,20 @@ abstract class _IntegerImplementation implements int {
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   @pragma("vm:disable-unboxed-parameters")
-  int operator &(int other) => other._bitAndFromInteger(this);
+  int operator &(int other) =>
+      unsafeCast<_IntegerImplementation>(other)._bitAndFromInteger(this);
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   @pragma("vm:disable-unboxed-parameters")
-  int operator |(int other) => other._bitOrFromInteger(this);
+  int operator |(int other) =>
+      unsafeCast<_IntegerImplementation>(other)._bitOrFromInteger(this);
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   @pragma("vm:disable-unboxed-parameters")
-  int operator ^(int other) => other._bitXorFromInteger(this);
+  int operator ^(int other) =>
+      unsafeCast<_IntegerImplementation>(other)._bitXorFromInteger(this);
 
   num remainder(num other) {
     return other._remainderFromInteger(this);
@@ -120,17 +123,20 @@ abstract class _IntegerImplementation implements int {
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   @pragma("vm:disable-unboxed-parameters")
-  int operator >>(int other) => other._shrFromInteger(this);
+  int operator >>(int other) =>
+      unsafeCast<_IntegerImplementation>(other)._shrFromInteger(this);
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   @pragma("vm:disable-unboxed-parameters")
-  int operator >>>(int other) => other._ushrFromInteger(this);
+  int operator >>>(int other) =>
+      unsafeCast<_IntegerImplementation>(other)._ushrFromInteger(this);
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   @pragma("vm:disable-unboxed-parameters")
-  int operator <<(int other) => other._shlFromInteger(this);
+  int operator <<(int other) =>
+      unsafeCast<_IntegerImplementation>(other)._shlFromInteger(this);
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
@@ -557,8 +563,11 @@ class _Smi extends _IntegerImplementation {
     throw "Unreachable";
   }
 
-  int get hashCode => this;
-  int get _identityHashCode => this;
+  @pragma("vm:recognized", "other")
+  external int get hashCode;
+
+  int get _identityHashCode => hashCode;
+
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:disable-unboxed-parameters")
@@ -768,8 +777,10 @@ class _Mint extends _IntegerImplementation {
     throw "Unreachable";
   }
 
-  int get hashCode => this;
-  int get _identityHashCode => this;
+  @pragma("vm:recognized", "other")
+  external int get hashCode;
+
+  int get _identityHashCode => hashCode;
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:external-name", "Mint_bitNegate")
   external int operator ~();

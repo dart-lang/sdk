@@ -26,14 +26,6 @@
 
 namespace dart {
 
-const char* OS::Name() {
-#if DART_HOST_OS_IOS
-  return "ios";
-#else
-  return "macos";
-#endif
-}
-
 intptr_t OS::ProcessId() {
   return static_cast<intptr_t>(getpid());
 }
@@ -58,14 +50,6 @@ int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
   // Even if the offset was 24 hours it would still easily fit into 32 bits.
   // If unsuccessful, return zero like V8 does.
   return succeeded ? static_cast<int>(decomposed.tm_gmtoff) : 0;
-}
-
-int OS::GetLocalTimeZoneAdjustmentInSeconds() {
-  // TODO(floitsch): avoid excessive calls to tzset?
-  tzset();
-  // Even if the offset was 24 hours it would still easily fit into 32 bits.
-  // Note that Unix and Dart disagree on the sign.
-  return static_cast<int>(-timezone);
 }
 
 int64_t OS::GetCurrentTimeMillis() {

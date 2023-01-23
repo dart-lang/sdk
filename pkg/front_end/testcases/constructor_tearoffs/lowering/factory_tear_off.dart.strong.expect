@@ -16,29 +16,29 @@ library /*isNonNullableByDefault*/;
 //     f4a(42, 87); // error
 //        ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off.dart:112:8: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off.dart:111:8: Error: Too few positional arguments: 1 required, 0 given.
 //     f5a(); // error
 //        ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off.dart:113:8: Error: Too many positional arguments: 2 allowed, but 3 found.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off.dart:112:8: Error: Too many positional arguments: 2 allowed, but 3 found.
 // Try removing the extra positional arguments.
 //     f5a(42, 87, 123); // error
 //        ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off.dart:125:8: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off.dart:124:8: Error: Too few positional arguments: 1 required, 0 given.
 //     f6a(); // error
 //        ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off.dart:126:8: Error: Required named parameter 'field3' must be provided.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off.dart:125:8: Error: Required named parameter 'field3' must be provided.
 //     f6a(42); // error
 //        ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off.dart:127:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off.dart:126:8: Error: Too many positional arguments: 1 allowed, but 2 found.
 // Try removing the extra positional arguments.
 //     f6a(42, 87); // error
 //        ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off.dart:128:8: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off.dart:127:8: Error: Too few positional arguments: 1 required, 0 given.
 //     f6a(field1: 87, field2: 87); // error
 //        ^
 //
@@ -179,10 +179,10 @@ Try removing the extra positional arguments.
   self::expect(87, c5b.{self::Class5::field1}{core::int});
   self::expect(42, c5b.{self::Class5::field2}{core::int?});
   () → Null {
-    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off.dart:112:8: Error: Too few positional arguments: 1 required, 0 given.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off.dart:111:8: Error: Too few positional arguments: 1 required, 0 given.
     f5a(); // error
        ^" in f5a{<inapplicable>}.();
-    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off.dart:113:8: Error: Too many positional arguments: 2 allowed, but 3 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off.dart:112:8: Error: Too many positional arguments: 2 allowed, but 3 found.
 Try removing the extra positional arguments.
     f5a(42, 87, 123); // error
        ^" in f5a{<inapplicable>}.(42, 87, 123);
@@ -196,17 +196,17 @@ Try removing the extra positional arguments.
   self::expect(null, c6a.{self::Class6::field2}{core::int?});
   self::expect(87, c6a.{self::Class6::field3}{core::int});
   () → Null {
-    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off.dart:125:8: Error: Too few positional arguments: 1 required, 0 given.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off.dart:124:8: Error: Too few positional arguments: 1 required, 0 given.
     f6a(); // error
        ^" in f6a{<inapplicable>}.();
-    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off.dart:126:8: Error: Required named parameter 'field3' must be provided.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off.dart:125:8: Error: Required named parameter 'field3' must be provided.
     f6a(42); // error
        ^" in f6a{<inapplicable>}.(42);
-    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off.dart:127:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off.dart:126:8: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
     f6a(42, 87); // error
        ^" in f6a{<inapplicable>}.(42, 87);
-    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off.dart:128:8: Error: Too few positional arguments: 1 required, 0 given.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off.dart:127:8: Error: Too few positional arguments: 1 required, 0 given.
     f6a(field1: 87, field2: 87); // error
        ^" in f6a{<inapplicable>}.(field1: 87, field2: 87);
   };

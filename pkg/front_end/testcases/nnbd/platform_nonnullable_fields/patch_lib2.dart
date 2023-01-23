@@ -25,6 +25,8 @@
 // Comment to make offset in patch_lib2.dart exceed the range of patch_lib.dart.
 // Comment to make offset in patch_lib2.dart exceed the range of patch_lib.dart.
 
+part of 'patch_lib.dart';
+
 @patch
 class Class1 {
   int field;

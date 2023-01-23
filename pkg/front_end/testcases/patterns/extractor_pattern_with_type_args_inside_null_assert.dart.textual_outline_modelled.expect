@@ -1,0 +1,5 @@
+class C<T> {
+  T? f;
+}
+
+test(dynamic x) {}

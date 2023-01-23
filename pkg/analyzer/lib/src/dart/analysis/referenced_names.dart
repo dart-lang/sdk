@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 /// Compute the set of external names referenced in the [unit].
@@ -135,16 +136,16 @@ class _LocalNameScope {
     return scope;
   }
 
-  void add(SimpleIdentifier? identifier) {
-    if (identifier != null) {
-      (names ??= <String>{}).add(identifier.name);
+  void add(Token? token) {
+    if (token != null) {
+      (names ??= <String>{}).add(token.lexeme);
     }
   }
 
   void addFormalParameters(FormalParameterList? parameterList) {
     if (parameterList != null) {
       parameterList.parameters
-          .map((p) => p is NormalFormalParameter ? p.identifier : null)
+          .map((p) => p is NormalFormalParameter ? p.name : null)
           .forEach(add);
     }
   }

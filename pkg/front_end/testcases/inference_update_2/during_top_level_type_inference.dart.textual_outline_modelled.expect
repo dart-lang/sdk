@@ -1,0 +1,37 @@
+class C {
+  C(int i)
+      : _promotable = i,
+        _notPromotable = i;
+  final instanceNotPromotable =
+      ((C c) => c._notPromotable != null ? c._notPromotable : 0)(new C(0));
+  final instancePromotable =
+      ((C c) => c._promotable != null ? c._promotable : 0)(new C(0));
+  final int? _notPromotable;
+  final int? _promotable;
+  late final instanceNotPromotableViaThis =
+      _notPromotable != null ? _notPromotable : 0;
+  late final instancePromotableViaThis = _promotable != null ? _promotable : 0;
+  static final staticNotPromotable =
+      ((C c) => c._notPromotable != null ? c._notPromotable : 0)(new C(0));
+  static final staticPromotable =
+      ((C c) => c._promotable != null ? c._promotable : 0)(new C(0));
+}
+
+class D {
+  int? _notPromotable;
+}
+
+final topLevelNotPromotable =
+    ((C c) => c._notPromotable != null ? c._notPromotable : 0)(new C(0));
+final topLevelPromotable =
+    ((C c) => c._promotable != null ? c._promotable : 0)(new C(0));
+main() {}
+void acceptsInt(int x) {}
+void testInstanceNotPromotable(C c) {}
+void testInstanceNotPromotableViaThis(C c) {}
+void testInstancePromotable(C c) {}
+void testInstancePromotableViaThis(C c) {}
+void testStaticNotPromotable() {}
+void testStaticPromotable() {}
+void testTopLevelNotPromotable() {}
+void testTopLevelPromotable() {}

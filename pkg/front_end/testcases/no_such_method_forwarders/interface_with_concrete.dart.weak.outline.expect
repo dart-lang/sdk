@@ -44,8 +44,8 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///interface_with_concrete.dart:16:8 -> SymbolConstant(#foo)
-Evaluated: ListLiteral @ org-dartlang-testcase:///interface_with_concrete.dart:16:8 -> ListConstant(const <Type*>[])
-Evaluated: ListLiteral @ org-dartlang-testcase:///interface_with_concrete.dart:16:8 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///interface_with_concrete.dart:16:8 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///interface_with_concrete.dart:19:7 -> SymbolConstant(#foo)
+Evaluated: ListLiteral @ org-dartlang-testcase:///interface_with_concrete.dart:19:7 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///interface_with_concrete.dart:19:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///interface_with_concrete.dart:19:7 -> MapConstant(const <Symbol*, dynamic>{})
 Extra constant evaluation: evaluated: 8, effectively constant: 4

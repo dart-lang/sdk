@@ -42,6 +42,11 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
+  Element? visitClassTypeAlias(ClassTypeAlias node) {
+    return node.declaredElement;
+  }
+
+  @override
   Element? visitCompilationUnit(CompilationUnit node) {
     return node.declaredElement;
   }
@@ -64,12 +69,47 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
+  Element? visitDeclaredIdentifier(DeclaredIdentifier node) {
+    return node.declaredElement;
+  }
+
+  @override
+  Element? visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    return node.declaredElement;
+  }
+
+  @override
+  Element? visitEnumDeclaration(EnumDeclaration node) {
+    return node.declaredElement;
+  }
+
+  @override
   Element? visitExportDirective(ExportDirective node) {
     return node.element;
   }
 
   @override
+  Element? visitExtensionDeclaration(ExtensionDeclaration node) {
+    return node.declaredElement;
+  }
+
+  @override
+  Element? visitFormalParameter(FormalParameter node) {
+    return node.declaredElement;
+  }
+
+  @override
   Element? visitFunctionDeclaration(FunctionDeclaration node) {
+    return node.declaredElement;
+  }
+
+  @override
+  Element? visitFunctionTypeAlias(FunctionTypeAlias node) {
+    return node.declaredElement;
+  }
+
+  @override
+  Element? visitGenericTypeAlias(GenericTypeAlias node) {
     return node.declaredElement;
   }
 
@@ -88,12 +128,14 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
       if (identical(returnType, node)) {
         var name = parent.name;
         if (name != null) {
-          return name.staticElement;
+          return parent.declaredElement;
         }
         var element = node.staticElement;
-        if (element is ClassElement) {
+        if (element is InterfaceElement) {
           return element.unnamedConstructor;
         }
+      } else if (parent.name == node.endToken) {
+        return parent.declaredElement;
       }
     } else if (parent is LibraryIdentifier) {
       var grandParent = parent.parent;
@@ -140,6 +182,11 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
+  Element? visitMixinDeclaration(MixinDeclaration node) {
+    return node.declaredElement;
+  }
+
+  @override
   Element? visitPartOfDirective(PartOfDirective node) {
     return node.element;
   }
@@ -161,11 +208,23 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitStringLiteral(StringLiteral node) {
-    var parent = node.parent;
-    if (parent is UriBasedDirective) {
-      return parent.uriElement;
+    final parent = node.parent;
+    if (parent is ExportDirective) {
+      return parent.element?.exportedLibrary;
+    } else if (parent is ImportDirective) {
+      return parent.element?.importedLibrary;
+    } else if (parent is PartDirective) {
+      final elementUri = parent.element?.uri;
+      if (elementUri is DirectiveUriWithUnit) {
+        return elementUri.unit;
+      }
     }
     return null;
+  }
+
+  @override
+  Element? visitTypeParameter(TypeParameter node) {
+    return node.declaredElement;
   }
 
   @override

@@ -12,10 +12,12 @@
 aa
 aaa
 abcompile
+ac
 adapter
 adaptor
 adopted
 advantages
+af
 albeit
 aligns
 allocations
@@ -78,6 +80,7 @@ blorp
 bold
 boo
 bots
+boundaries
 boundarykey
 bowtie
 boz
@@ -99,6 +102,7 @@ cafebabe
 calloc
 camel
 capitalized
+carefully
 categorization
 causal
 cb
@@ -121,6 +125,7 @@ cmp
 cnn
 coded
 codepath
+coincidences
 collisions
 columns
 commented
@@ -283,7 +288,9 @@ forbidden
 forces
 foreground
 forrest
+forth
 forty
+fortytwo
 foundation
 fox
 frequency
@@ -328,6 +335,7 @@ hosted
 hosting
 hot
 hotreload
+hover
 hunk
 hurray
 i'm
@@ -350,18 +358,21 @@ incrementally
 increments
 indents
 ing
+inhibit
 inlinable
 inlineable
 insights
 instrument
 insufficient
 intdiv
+interactions
 interactive
 interchangeable
 internet
 interpolate
 introducer
 inv
+involves
 ioo
 ish
 it'll
@@ -419,6 +430,7 @@ misses
 misspelled
 mistake
 mistakes
+mixups
 mmethod
 mod
 modelled
@@ -436,6 +448,7 @@ negatable
 newworld
 ninja
 noisy
+nomatch
 nominal
 nondefault
 nonexisting
@@ -479,6 +492,7 @@ partfoo
 party
 pause
 paused
+pays
 pc
 periodic
 periodically
@@ -498,6 +512,7 @@ prematurely
 prerequisite
 press
 pretends
+preventing
 printouts
 processes
 processors
@@ -553,6 +568,8 @@ risky
 rk
 row
 rows
+rr
+ruin
 runtimes
 rv
 sanitize
@@ -569,6 +586,7 @@ secondary
 secondtest
 segment
 selection
+selects
 semifuzz
 sensitive
 series
@@ -590,6 +608,7 @@ smoke
 snull
 somehow
 sorter
+soundly
 spans
 spell
 spellcheck
@@ -622,6 +641,7 @@ subfolder
 subtool
 subtools
 successes
+suggest
 summarization
 summarized
 sup
@@ -635,6 +655,7 @@ ta
 tails
 templates
 theoretically
+thereby
 thereof
 thread
 ticks
@@ -645,6 +666,7 @@ timings
 tinv
 tk
 told
+tooltip
 touch
 tpt
 transitively
@@ -683,6 +705,7 @@ untransformed
 untrimmed
 unusual
 unversioned
+upgrade
 upload
 upward
 uuid

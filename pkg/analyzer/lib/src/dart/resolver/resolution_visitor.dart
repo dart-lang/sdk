@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -19,7 +21,9 @@ import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/ast_rewrite.dart';
 import 'package:analyzer/src/dart/resolver/named_type_resolver.dart';
+import 'package:analyzer/src/dart/resolver/record_type_annotation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/element_walker.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -64,6 +68,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   final ErrorReporter _errorReporter;
   final AstRewriter _astRewriter;
   final NamedTypeResolver _namedTypeResolver;
+  final RecordTypeAnnotationResolver _recordTypeResolver;
 
   /// This index is incremented every time we visit a [LibraryDirective].
   /// There is just one [LibraryElement], so we can support only one node.
@@ -85,6 +90,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   /// The container to add newly created elements that should be put into the
   /// enclosing element.
   ElementHolder _elementHolder;
+
+  /// Data structure for tracking declared pattern variables.
+  late final _VariableBinder _patternVariables = _VariableBinder(
+    errors: _VariableBinderErrors(this),
+  );
 
   factory ResolutionVisitor({
     required CompilationUnitElementImpl unitElement,
@@ -110,6 +120,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       errorReporter,
     );
 
+    final recordTypeResolver = RecordTypeAnnotationResolver(
+      typeProvider: typeProvider,
+      errorReporter: errorReporter,
+    );
+
     return ResolutionVisitor._(
       libraryElement,
       typeProvider,
@@ -118,6 +133,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       errorReporter,
       AstRewriter(errorReporter, typeProvider),
       namedTypeResolver,
+      recordTypeResolver,
       nameScope,
       elementWalker,
       ElementHolder(unitElement),
@@ -132,6 +148,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     this._errorReporter,
     this._astRewriter,
     this._namedTypeResolver,
+    this._recordTypeResolver,
     this._nameScope,
     this._elementWalker,
     this._elementHolder,
@@ -147,6 +164,33 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _withElementWalker(null, () {
       super.visitAnnotation(node);
     });
+  }
+
+  @override
+  void visitAugmentationImportDirective(AugmentationImportDirective node) {
+    final element = node.element;
+    if (element is AugmentationImportElementImpl) {
+      _setOrCreateMetadataElements(element, node.metadata);
+    }
+
+    _withElementWalker(null, () {
+      super.visitAugmentationImportDirective(node);
+    });
+  }
+
+  @override
+  void visitBinaryPattern(covariant BinaryPatternImpl node) {
+    final isOr = node.operator.type == TokenType.BAR;
+    if (isOr) {
+      _patternVariables.logicalOrPatternStart();
+      node.leftOperand.accept(this);
+      _patternVariables.logicalOrPatternFinishLeft();
+      node.rightOperand.accept(this);
+      _patternVariables.logicalOrPatternFinish(node);
+    } else {
+      node.leftOperand.accept(this);
+      node.rightOperand.accept(this);
+    }
   }
 
   @override
@@ -172,13 +216,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       var exceptionNode = node.exceptionParameter;
       if (exceptionNode != null) {
         var element = LocalVariableElementImpl(
-          exceptionNode.name,
-          exceptionNode.offset,
+          exceptionNode.name.lexeme,
+          exceptionNode.name.offset,
         );
         _elementHolder.enclose(element);
         _define(element);
 
-        exceptionNode.staticElement = element;
+        exceptionNode.declaredElement = element;
 
         element.isFinal = true;
         if (exceptionTypeNode == null) {
@@ -186,31 +230,34 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           var type =
               _isNonNullableByDefault ? _typeProvider.objectType : _dynamicType;
           element.type = type;
-          exceptionNode.staticType = type;
         } else {
           element.type = exceptionTypeNode.typeOrThrow;
-          exceptionNode.staticType = exceptionTypeNode.type;
         }
 
-        _setCodeRange(element, exceptionNode);
+        element.setCodeRange(
+          exceptionNode.name.offset,
+          exceptionNode.name.length,
+        );
       }
 
       var stackTraceNode = node.stackTraceParameter;
       if (stackTraceNode != null) {
         var element = LocalVariableElementImpl(
-          stackTraceNode.name,
-          stackTraceNode.offset,
+          stackTraceNode.name.lexeme,
+          stackTraceNode.name.offset,
         );
         _elementHolder.enclose(element);
         _define(element);
 
-        stackTraceNode.staticElement = element;
+        stackTraceNode.declaredElement = element;
 
         element.isFinal = true;
         element.type = _typeProvider.stackTraceType;
-        stackTraceNode.staticType = _typeProvider.stackTraceType;
 
-        _setCodeRange(element, stackTraceNode);
+        element.setCodeRange(
+          stackTraceNode.name.offset,
+          stackTraceNode.name.length,
+        );
       }
 
       node.body.accept(this);
@@ -220,7 +267,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     ClassElementImpl element = _elementWalker!.getClass();
-    node.name.staticElement = element;
+    node.declaredElement = element;
     _namedTypeResolver.enclosingClass = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
@@ -255,7 +302,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
     ClassElementImpl element = _elementWalker!.getClass();
-    node.name.staticElement = element;
+    node.declaredElement = element;
     _namedTypeResolver.enclosingClass = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
@@ -283,7 +330,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorElementImpl element = _elementWalker!.getConstructor();
     (node as ConstructorDeclarationImpl).declaredElement = element;
-    node.name?.staticElement = element;
+    node.declaredElement = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -310,10 +357,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitDeclaredIdentifier(covariant DeclaredIdentifierImpl node) {
-    var nameNode = node.identifier;
-    var element = LocalVariableElementImpl(nameNode.name, nameNode.offset);
+    var nameToken = node.name;
+    var element = LocalVariableElementImpl(nameToken.lexeme, nameToken.offset);
     _elementHolder.enclose(element);
-    nameNode.staticElement = element;
+    node.declaredElement = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -334,14 +381,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitDefaultFormalParameter(covariant DefaultFormalParameterImpl node) {
     var normalParameter = node.parameter;
-    var nameNode = normalParameter.identifier;
+    var nameToken = normalParameter.name;
 
     ParameterElementImpl element;
     if (_elementWalker != null) {
       element = _elementWalker!.getParameter();
     } else {
-      var name = nameNode?.name ?? '';
-      var nameOffset = nameNode?.offset ?? -1;
+      var name = nameToken?.lexeme ?? '';
+      var nameOffset = nameToken?.offset ?? -1;
       if (node.parameter is FieldFormalParameter) {
         // Only for recovery, this should not happen in valid code.
         element = DefaultFieldFormalParameterElementImpl(
@@ -369,10 +416,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       }
     }
 
-    if (normalParameter is SimpleFormalParameterImpl) {
-      normalParameter.declaredElement = element;
-    }
-    nameNode?.staticElement = element;
+    normalParameter.declaredElement = element;
+    node.declaredElement = element;
 
     normalParameter.accept(this);
 
@@ -389,8 +434,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitEnumConstantDeclaration(
       covariant EnumConstantDeclarationImpl node) {
-    var element = _elementWalker!.getVariable();
-    node.name.staticElement = element;
+    var element = _elementWalker!.getVariable() as ConstFieldElementImpl;
+    node.declaredElement = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -407,12 +452,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
     EnumElementImpl element = _elementWalker!.getEnum();
-    node.name.staticElement = element;
+    node.declaredElement = element;
     _namedTypeResolver.enclosingClass = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
-    _withElementWalker(ElementWalker.forClass(element), () {
+    _withElementWalker(ElementWalker.forEnum(element), () {
       _withNameScope(() {
         _buildTypeParameterElements(node.typeParameters);
         node.typeParameters?.accept(this);
@@ -433,7 +478,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitExportDirective(ExportDirective node) {
     var element = node.element;
-    if (element is ExportElementImpl) {
+    if (element is LibraryExportElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
     }
 
@@ -446,7 +491,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     var element = _elementWalker!.getExtension();
     (node as ExtensionDeclarationImpl).declaredElement = element;
-    node.name?.staticElement = element;
+    node.declaredElement = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -469,15 +514,15 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (node.parent is DefaultFormalParameter) {
       element = node.declaredElement as FieldFormalParameterElementImpl;
     } else {
-      var nameNode = node.identifier;
+      var nameToken = node.name;
       if (_elementWalker != null) {
         element =
             _elementWalker!.getParameter() as FieldFormalParameterElementImpl;
       } else {
         // Only for recovery, this should not happen in valid code.
         element = FieldFormalParameterElementImpl(
-          name: nameNode.name,
-          nameOffset: nameNode.offset,
+          name: nameToken.lexeme,
+          nameOffset: nameToken.offset,
           parameterKind: node.kind,
         );
         _elementHolder.enclose(element);
@@ -486,7 +531,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element.isFinal = node.isFinal;
         _setCodeRange(element, node);
       }
-      nameNode.staticElement = element;
+      node.declaredElement = element;
     }
 
     _setOrCreateMetadataElements(element, node.metadata);
@@ -528,7 +573,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       element = node.isGetter || node.isSetter
           ? _elementWalker!.getAccessor()
           : _elementWalker!.getFunction();
-      node.name.staticElement = element;
+      node.declaredElement = element;
     } else {
       element = node.declaredElement as ExecutableElementImpl;
 
@@ -628,7 +673,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
     var element = _elementWalker!.getTypedef();
-    node.name.staticElement = element;
+    node.declaredElement = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -650,13 +695,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (node.parent is DefaultFormalParameter) {
       element = node.declaredElement as ParameterElementImpl;
     } else {
-      var nameNode = node.identifier;
+      var nameToken = node.name;
       if (_elementWalker != null) {
         element = _elementWalker!.getParameter();
       } else {
         element = ParameterElementImpl(
-          name: nameNode.name,
-          nameOffset: nameNode.offset,
+          name: nameToken.lexeme,
+          nameOffset: nameToken.offset,
           parameterKind: node.kind,
         );
         _elementHolder.addParameter(element);
@@ -665,7 +710,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element.isFinal = node.isFinal;
         _setCodeRange(element, node);
       }
-      nameNode.staticElement = element;
+      node.declaredElement = element;
     }
 
     _setOrCreateMetadataElements(element, node.metadata);
@@ -742,7 +787,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
     var element = _elementWalker!.getTypedef();
-    node.name.staticElement = element;
+    node.declaredElement = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -756,9 +801,19 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitIfElement(covariant IfElementImpl node) {
+    _visitIf(node);
+  }
+
+  @override
+  void visitIfStatement(covariant IfStatementImpl node) {
+    _visitIf(node);
+  }
+
+  @override
   void visitImportDirective(ImportDirective node) {
     var element = node.element;
-    if (element is ImportElementImpl) {
+    if (element is LibraryImportElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
     }
 
@@ -768,7 +823,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+  void visitInstanceCreationExpression(
+    covariant InstanceCreationExpressionImpl node,
+  ) {
     var newNode = _astRewriter.instanceCreationExpression(_nameScope, node);
     if (newNode != node) {
       if (node.constructorName.type.typeArguments != null &&
@@ -815,6 +872,18 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
+    final element = node.element;
+    if (element is LibraryOrAugmentationElementImpl) {
+      _setOrCreateMetadataElements(element, node.metadata);
+    }
+
+    _withElementWalker(null, () {
+      super.visitLibraryAugmentationDirective(node);
+    });
+  }
+
+  @override
   void visitLibraryDirective(LibraryDirective node) {
     ++_libraryDirectiveIndex;
     var element = node.element;
@@ -832,7 +901,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     ExecutableElementImpl element = node.isGetter || node.isSetter
         ? _elementWalker!.getAccessor()
         : _elementWalker!.getFunction();
-    node.name.staticElement = element;
+    node.declaredElement = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -855,7 +924,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
+  void visitMethodInvocation(covariant MethodInvocationImpl node) {
     var newNode = _astRewriter.methodInvocation(_nameScope, node);
     if (newNode != node) {
       return newNode.accept(this);
@@ -867,11 +936,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     var element = _elementWalker!.getMixin();
-    node.name.staticElement = element;
+    node.declaredElement = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
-    _withElementWalker(ElementWalker.forClass(element), () {
+    _withElementWalker(ElementWalker.forMixin(element), () {
       _withNameScope(() {
         _buildTypeParameterElements(node.typeParameters);
         node.typeParameters?.accept(this);
@@ -901,7 +970,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitPartDirective(PartDirective node) {
     var element = node.element;
-    if (element is CompilationUnitElementImpl) {
+    if (element is PartElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
     }
 
@@ -918,7 +987,19 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+  void visitPatternVariableDeclaration(
+    covariant PatternVariableDeclarationImpl node,
+  ) {
+    _patternVariables.casePatternStart();
+    super.visitPatternVariableDeclaration(node);
+    var variablesMap = _patternVariables.casePatternFinish();
+    node.elements = variablesMap.values
+        .whereType<VariablePatternBindElementImpl>()
+        .toList();
+  }
+
+  @override
+  void visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node) {
     var newNode = _astRewriter.prefixedIdentifier(_nameScope, node);
     if (newNode != node) {
       return newNode.accept(this);
@@ -928,7 +1009,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitPropertyAccess(PropertyAccess node) {
+  void visitPropertyAccess(covariant PropertyAccessImpl node) {
     var newNode = _astRewriter.propertyAccess(_nameScope, node);
     if (newNode != node) {
       return newNode.accept(this);
@@ -938,19 +1019,28 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitRecordTypeAnnotation(covariant RecordTypeAnnotationImpl node) {
+    _withElementWalker(null, () {
+      node.visitChildren(this);
+    });
+
+    _recordTypeResolver.resolve(node);
+  }
+
+  @override
   void visitSimpleFormalParameter(covariant SimpleFormalParameterImpl node) {
     ParameterElementImpl element;
     if (node.parent is DefaultFormalParameter) {
       element = node.declaredElement as ParameterElementImpl;
     } else {
-      var nameNode = node.identifier;
+      var nameToken = node.name;
       if (_elementWalker != null) {
         element = _elementWalker!.getParameter();
       } else {
-        if (nameNode != null) {
+        if (nameToken != null) {
           element = ParameterElementImpl(
-            name: nameNode.name,
-            nameOffset: nameNode.offset,
+            name: nameToken.lexeme,
+            nameOffset: nameToken.offset,
             parameterKind: node.kind,
           );
         } else {
@@ -971,7 +1061,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         }
         node.declaredElement = element;
       }
-      nameNode?.staticElement = element;
       node.declaredElement = element;
     }
 
@@ -989,15 +1078,15 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (node.parent is DefaultFormalParameter) {
       element = node.declaredElement as SuperFormalParameterElementImpl;
     } else {
-      var nameNode = node.identifier;
+      var nameToken = node.name;
       if (_elementWalker != null) {
         element =
             _elementWalker!.getParameter() as SuperFormalParameterElementImpl;
       } else {
         // Only for recovery, this should not happen in valid code.
         element = SuperFormalParameterElementImpl(
-          name: nameNode.name,
-          nameOffset: nameNode.offset,
+          name: nameToken.lexeme,
+          nameOffset: nameToken.offset,
           parameterKind: node.kind,
         );
         _elementHolder.enclose(element);
@@ -1006,7 +1095,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element.isFinal = node.isFinal;
         _setCodeRange(element, node);
       }
-      nameNode.staticElement = element;
+      node.declaredElement = element;
     }
 
     _setOrCreateMetadataElements(element, node.metadata);
@@ -1036,26 +1125,51 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSwitchCase(SwitchCase node) {
-    _buildLabelElements(node.labels, false, true);
-
-    node.expression.accept(this);
-
-    _withNameScope(() {
-      var statements = node.statements;
-      _buildLocalElements(statements);
-      statements.accept(this);
-    });
+    throw StateError('Should not be invoked');
   }
 
   @override
   void visitSwitchDefault(SwitchDefault node) {
-    _buildLabelElements(node.labels, false, true);
+    throw StateError('Should not be invoked');
+  }
 
-    _withNameScope(() {
-      var statements = node.statements;
-      _buildLocalElements(statements);
-      statements.accept(this);
-    });
+  @override
+  void visitSwitchPatternCase(SwitchPatternCase node) {
+    throw StateError('Should not be invoked');
+  }
+
+  @override
+  void visitSwitchStatement(covariant SwitchStatementImpl node) {
+    node.expression.accept(this);
+
+    for (var group in node.memberGroups) {
+      _patternVariables.switchStatementSharedCaseScopeStart(node);
+      for (var member in group.members) {
+        _buildLabelElements(member.labels, false, true);
+        if (member is SwitchCaseImpl) {
+          member.expression.accept(this);
+        } else if (member is SwitchDefaultImpl) {
+          _patternVariables.switchStatementSharedCaseScopeEmpty(node);
+        } else if (member is SwitchPatternCaseImpl) {
+          _resolveGuardedPattern(
+            member.guardedPattern,
+            sharedCaseScopeKey: node,
+          );
+        } else {
+          throw UnimplementedError('(${member.runtimeType}) $member');
+        }
+      }
+      if (group.hasLabels) {
+        _patternVariables.switchStatementSharedCaseScopeEmpty(node);
+      }
+      // TODO(scheglov) use variables
+      _patternVariables.switchStatementSharedCaseScopeFinish(node);
+      _withNameScope(() {
+        var statements = group.statements;
+        _buildLocalElements(statements);
+        statements.accept(this);
+      });
+    }
   }
 
   @override
@@ -1080,7 +1194,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     VariableElementImpl element;
     if (_elementWalker != null) {
       element = _elementWalker!.getVariable();
-      node.name.staticElement = element;
+      node.declaredElement = element;
     } else {
       var localElement = node.declaredElement as LocalVariableElementImpl;
       element = localElement;
@@ -1133,6 +1247,27 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
+  @override
+  void visitVariablePattern(covariant VariablePatternImpl node) {
+    node.type?.accept(this);
+
+    final name = node.name.lexeme;
+    if (name != '_') {
+      var element = VariablePatternBindElementImpl(
+        node,
+        name,
+        node.name.offset,
+      );
+      _patternVariables.add(name, element);
+      _elementHolder.enclose(element);
+      _define(element);
+      element.isFinal = node.keyword?.keyword == Keyword.FINAL;
+      element.hasImplicitType = node.type == null;
+      element.type = node.type?.type ?? _dynamicType;
+      node.declaredElement = element;
+    }
+  }
+
   /// Builds the label elements associated with [labels] and stores them in the
   /// element holder.
   void _buildLabelElements(
@@ -1164,9 +1299,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void _buildLocalFunctionElement(
       covariant FunctionDeclarationStatementImpl statement) {
     var node = statement.functionDeclaration;
-    var nameNode = node.name;
-    var element = FunctionElementImpl(nameNode.name, nameNode.offset);
-    nameNode.staticElement = element;
+    var nameToken = node.name;
+    var element = FunctionElementImpl(nameToken.lexeme, nameToken.offset);
+    node.declaredElement = element;
     _define(element);
     _elementHolder.enclose(element);
   }
@@ -1177,21 +1312,21 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var isLate = variableList.isLate;
     for (var variable in variableList.variables) {
       variable as VariableDeclarationImpl;
-      var variableName = variable.name;
+      var nameToken = variable.name;
 
       LocalVariableElementImpl element;
       if (isConst && variable.initializer != null) {
         element = ConstLocalVariableElementImpl(
-          variableName.name,
-          variableName.offset,
+          nameToken.lexeme,
+          nameToken.offset,
         );
       } else {
         element = LocalVariableElementImpl(
-          variableName.name,
-          variableName.offset,
+          nameToken.lexeme,
+          nameToken.offset,
         );
       }
-      variableName.staticElement = element;
+      variable.declaredElement = element;
       _elementHolder.enclose(element);
       _define(element);
 
@@ -1215,12 +1350,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       if (_elementWalker != null) {
         element = _elementWalker!.getTypeParameter();
       } else {
-        element = TypeParameterElementImpl(name.name, name.offset);
+        element = TypeParameterElementImpl(name.lexeme, name.offset);
         _elementHolder.addTypeParameter(element);
 
         _setCodeRange(element, typeParameter);
       }
-      name.staticElement = element;
+      typeParameter.declaredElement = element;
       _define(element);
       _setOrCreateMetadataElements(element, typeParameter.metadata);
     }
@@ -1266,6 +1401,29 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       }
     }
     return NullabilitySuffix.star;
+  }
+
+  void _resolveGuardedPattern(
+    GuardedPatternImpl guardedPattern, {
+    Object? sharedCaseScopeKey,
+    void Function()? then,
+  }) {
+    _patternVariables.casePatternStart();
+    guardedPattern.pattern.accept(this);
+    var variables = _patternVariables.casePatternFinish(
+      sharedCaseScopeKey: sharedCaseScopeKey,
+    );
+    // Matched variables are available in `whenClause`.
+    _withNameScope(() {
+      for (var variable in variables.values) {
+        _define(variable);
+      }
+      guardedPattern.variables = variables;
+      guardedPattern.whenClause?.accept(this);
+      if (then != null) {
+        then();
+      }
+    });
   }
 
   void _resolveImplementsClause(ImplementsClause? clause) {
@@ -1317,8 +1475,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     DartType type = namedType.typeOrThrow;
     if (type is InterfaceType) {
-      ClassElement element = type.element;
-      if (element.isEnum || element.isMixin && asClass) {
+      final element = type.element;
+      if (element is EnumElement || element is MixinElement && asClass) {
         _errorReporter.reportErrorForNode(errorCode, namedType);
         return;
       }
@@ -1382,6 +1540,19 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _visitIf(IfElementOrStatementImpl node) {
+    var caseClause = node.caseClause;
+    if (caseClause != null) {
+      node.expression.accept(this);
+      _resolveGuardedPattern(caseClause.guardedPattern, then: () {
+        node.ifTrue.accept(this);
+      });
+      node.ifFalse?.accept(this);
+    } else {
+      node.visitChildren(this);
+    }
+  }
+
   /// Make the given [holder] be the current one while running [f].
   void _withElementHolder(ElementHolder holder, void Function() f) {
     var previousHolder = _elementHolder;
@@ -1437,5 +1608,80 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     for (int i = 0; i < nodeCount; i++) {
       (nodes[i] as AnnotationImpl).elementAnnotation = annotations[i];
     }
+  }
+}
+
+class _VariableBinder
+    extends VariableBinder<DartPatternImpl, PromotableElement> {
+  _VariableBinder({required super.errors});
+
+  @override
+  VariablePatternJoinElementImpl joinPatternVariables({
+    required Object key,
+    required List<PromotableElement> components,
+    required bool isConsistent,
+  }) {
+    var first = components.first;
+    var expandedComponents = components.expand((component) {
+      component as VariablePatternElementImpl;
+      if (component is VariablePatternJoinElementImpl) {
+        return component.components;
+      } else {
+        return [component];
+      }
+    }).toList(growable: false);
+    return VariablePatternJoinElementImpl(
+      first.name,
+      -1,
+      expandedComponents,
+      isConsistent &&
+          components.every((element) =>
+              element is! VariablePatternJoinElementImpl ||
+              element.isConsistent),
+    )..enclosingElement = first.enclosingElement;
+  }
+}
+
+class _VariableBinderErrors
+    implements VariableBinderErrors<DartPatternImpl, PromotableElement> {
+  final ResolutionVisitor visitor;
+
+  _VariableBinderErrors(this.visitor);
+
+  @override
+  void assertInErrorRecovery() {
+    // TODO: implement assertInErrorRecovery
+    throw UnimplementedError();
+  }
+
+  @override
+  void duplicateVariablePattern({
+    required String name,
+    required covariant VariablePatternBindElementImpl original,
+    required covariant VariablePatternBindElementImpl duplicate,
+  }) {
+    visitor._errorReporter.reportError(
+      DiagnosticFactory().duplicateDefinitionForNodes(
+        visitor._errorReporter.source,
+        CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN,
+        duplicate.node,
+        original.node,
+        [name],
+      ),
+    );
+  }
+
+  @override
+  void logicalOrPatternBranchMissingVariable({
+    required covariant BinaryPatternImpl node,
+    required bool hasInLeft,
+    required String name,
+    required PromotableElement variable,
+  }) {
+    visitor._errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.MISSING_VARIABLE_PATTERN,
+      hasInLeft ? node.rightOperand : node.leftOperand,
+      [name],
+    );
   }
 }

@@ -6,8 +6,7 @@ import 'package:expect/expect.dart';
 import 'package:expect/config.dart';
 
 main() {
-  const NOT_PRESENT = false;
-
+  // Comman libraries should appear on all backends.
   Expect.isTrue(const bool.fromEnvironment("dart.library.async"));
   Expect.isTrue(const bool.fromEnvironment("dart.library.collection"));
   Expect.isTrue(const bool.fromEnvironment("dart.library.convert"));
@@ -16,75 +15,38 @@ main() {
   Expect.isTrue(const bool.fromEnvironment("dart.library.developer"));
 
   // Internal libraries should not be exposed.
+  Expect.isFalse(const bool.fromEnvironment("dart.library._internal"));
+
+  // `dart:html` is only supported on Dart2js and DDC.
+  bool hasHtmlSupport = isDart2jsConfiguration || isDdcConfiguration;
   Expect.equals(
-      NOT_PRESENT,
-      const bool.fromEnvironment("dart.library._internal",
-          defaultValue: NOT_PRESENT));
-
-  bool? hasHtmlSupport;
-  hasHtmlSupport = true; //# has_html_support: ok
-  hasHtmlSupport = false; //# has_no_html_support: ok
-
-  if (hasHtmlSupport != null) {
-    bool expectedResult = hasHtmlSupport ? true : NOT_PRESENT;
-
-    Expect.equals(
-        expectedResult,
-        const bool.fromEnvironment("dart.library.html",
-            defaultValue: NOT_PRESENT));
-    Expect.equals(
-        expectedResult,
-        const bool.fromEnvironment("dart.library.indexed_db",
-            defaultValue: NOT_PRESENT));
-    Expect.equals(
-        expectedResult,
-        const bool.fromEnvironment("dart.library.svg",
-            defaultValue: NOT_PRESENT));
-    Expect.equals(
-        expectedResult,
-        const bool.fromEnvironment("dart.library.web_audio",
-            defaultValue: NOT_PRESENT));
-    Expect.equals(
-        expectedResult,
-        const bool.fromEnvironment("dart.library.web_gl",
-            defaultValue: NOT_PRESENT));
-  }
-
-  bool? hasIoSupport;
-  hasIoSupport = true; //# has_io_support: ok
-  hasIoSupport = false; //# has_no_io_support: ok
-
-  if (hasIoSupport != null) {
-    // Web platforms override 'dart.library.io' to return "false".
-    // We don't test for the non-existence, but just make sure that
-    // dart.library.io is not set to true.
-    Expect.equals(hasIoSupport,
-        const bool.fromEnvironment("dart.library.io", defaultValue: false));
-  }
-
-  bool hasMirrorSupport = !isDart2jsConfiguration &&
-      !isDdcConfiguration && !isVmAotConfiguration;
+      hasHtmlSupport, const bool.fromEnvironment("dart.library.html"));
   Expect.equals(
-      hasMirrorSupport,
-      const bool.fromEnvironment("dart.library.mirrors",
-          defaultValue: NOT_PRESENT));
+      hasHtmlSupport, const bool.fromEnvironment("dart.library.indexed_db"));
+  Expect.equals(hasHtmlSupport, const bool.fromEnvironment("dart.library.svg"));
+  Expect.equals(
+      hasHtmlSupport, const bool.fromEnvironment("dart.library.web_audio"));
+  Expect.equals(
+      hasHtmlSupport, const bool.fromEnvironment("dart.library.web_gl"));
 
+  // All web backends support `dart:js_util`
   Expect.equals(
-      NOT_PRESENT,
-      const bool.fromEnvironment("dart.library.XYZ",
-          defaultValue: NOT_PRESENT));
+      isWebConfiguration, const bool.fromEnvironment("dart.library.js_util"));
+
+  // Web platforms override 'dart.library.io' to return "false".
+  // We don't test for the non-existence, but just make sure that
+  // dart.library.io is not set to true.
   Expect.equals(
-      NOT_PRESENT,
-      const bool.fromEnvironment("dart.library.Collection",
-          defaultValue: NOT_PRESENT));
+      isVmConfiguration, const bool.fromEnvironment("dart.library.io"));
+
+  // `dart:mirrors` is only supported in JIT mode.
   Expect.equals(
-      NOT_PRESENT,
-      const bool.fromEnvironment("dart.library.converT",
-          defaultValue: NOT_PRESENT));
-  Expect.equals(NOT_PRESENT,
-      const bool.fromEnvironment("dart.library.", defaultValue: NOT_PRESENT));
-  Expect.equals(
-      NOT_PRESENT,
-      const bool.fromEnvironment("dart.library.core ",
-          defaultValue: NOT_PRESENT));
+      isVmJitConfiguration, const bool.fromEnvironment("dart.library.mirrors"));
+
+  // `fromEnvironment` should return false for non-existing dart libraries.
+  Expect.isFalse(const bool.fromEnvironment("dart.library.XYZ"));
+  Expect.isFalse(const bool.fromEnvironment("dart.library.Collection"));
+  Expect.isFalse(const bool.fromEnvironment("dart.library.converT"));
+  Expect.isFalse(const bool.fromEnvironment("dart.library."));
+  Expect.isFalse(const bool.fromEnvironment("dart.library.core "));
 }

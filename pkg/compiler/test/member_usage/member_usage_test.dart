@@ -79,7 +79,7 @@ class ClosedWorldDataComputer extends DataComputer<Features> {
   @override
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<Features>> actualMap,
-      {bool verbose: false}) {
+      {bool verbose = false}) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     ResolutionWorldBuilder resolutionWorldBuilder =
         compiler.resolutionWorldBuilderForTesting;
@@ -88,7 +88,7 @@ class ClosedWorldDataComputer extends DataComputer<Features> {
     MemberUsage memberUsage =
         resolutionWorldBuilder.memberUsageForTesting[member];
     if (memberUsage != null) {
-      if (member.isField && memberUsage.hasInit) {
+      if (member is FieldEntity && memberUsage.hasInit) {
         features.add(Tags.init);
       }
       if (memberUsage.hasRead) {

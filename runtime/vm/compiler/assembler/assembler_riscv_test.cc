@@ -6165,6 +6165,952 @@ ASSEMBLER_TEST_RUN(CompressedEnvironmentBreak, test) {
   // Not running: would trap.
 }
 
+#if XLEN >= 64
+ASSEMBLER_TEST_GENERATE(AddUnsignedWord, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ adduw(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AddUnsignedWord, test) {
+  EXPECT_DISASSEMBLY(
+      "08b5053b add.uw a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(0x200000001, Call(test->entry(), 0x1, 0x200000000));
+  EXPECT_EQ(0x200000001, Call(test->entry(), 0x100000001, 0x200000000));
+  EXPECT_EQ(0x2FFFFFFFF, Call(test->entry(), -0x1, 0x200000000));
+}
+#endif
+
+ASSEMBLER_TEST_GENERATE(Shift1Add, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ sh1add(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(Shift1Add, test) {
+  EXPECT_DISASSEMBLY(
+      "20b52533 sh1add a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(1002, Call(test->entry(), 1, 1000));
+  EXPECT_EQ(1000, Call(test->entry(), 0, 1000));
+  EXPECT_EQ(998, Call(test->entry(), -1, 1000));
+}
+
+ASSEMBLER_TEST_GENERATE(Shift2Add, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ sh2add(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(Shift2Add, test) {
+  EXPECT_DISASSEMBLY(
+      "20b54533 sh2add a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(1004, Call(test->entry(), 1, 1000));
+  EXPECT_EQ(1000, Call(test->entry(), 0, 1000));
+  EXPECT_EQ(996, Call(test->entry(), -1, 1000));
+}
+
+ASSEMBLER_TEST_GENERATE(Shift3Add, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ sh3add(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(Shift3Add, test) {
+  EXPECT_DISASSEMBLY(
+      "20b56533 sh3add a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(1008, Call(test->entry(), 1, 1000));
+  EXPECT_EQ(1000, Call(test->entry(), 0, 1000));
+  EXPECT_EQ(992, Call(test->entry(), -1, 1000));
+}
+
+#if XLEN >= 64
+ASSEMBLER_TEST_GENERATE(Shift1AddUnsignedWord, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ sh1adduw(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(Shift1AddUnsignedWord, test) {
+  EXPECT_DISASSEMBLY(
+      "20b5253b sh1add.uw a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(1002, Call(test->entry(), 1, 1000));
+  EXPECT_EQ(1002, Call(test->entry(), 0x100000001, 1000));
+  EXPECT_EQ(1000, Call(test->entry(), 0, 1000));
+  EXPECT_EQ(8589935590, Call(test->entry(), -1, 1000));
+}
+
+ASSEMBLER_TEST_GENERATE(Shift2AddUnsignedWord, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ sh2adduw(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(Shift2AddUnsignedWord, test) {
+  EXPECT_DISASSEMBLY(
+      "20b5453b sh2add.uw a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(1004, Call(test->entry(), 1, 1000));
+  EXPECT_EQ(1004, Call(test->entry(), 0x100000001, 1000));
+  EXPECT_EQ(1000, Call(test->entry(), 0, 1000));
+  EXPECT_EQ(17179870180, Call(test->entry(), -1, 1000));
+}
+
+ASSEMBLER_TEST_GENERATE(Shift3AddUnsignedWord, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ sh3adduw(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(Shift3AddUnsignedWord, test) {
+  EXPECT_DISASSEMBLY(
+      "20b5653b sh3add.uw a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(1008, Call(test->entry(), 1, 1000));
+  EXPECT_EQ(1008, Call(test->entry(), 0x100000001, 1000));
+  EXPECT_EQ(1000, Call(test->entry(), 0, 1000));
+  EXPECT_EQ(34359739360, Call(test->entry(), -1, 1000));
+}
+
+ASSEMBLER_TEST_GENERATE(ShiftLeftLogicalImmediateUnsignedWord, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ slliuw(A0, A0, 8);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(ShiftLeftLogicalImmediateUnsignedWord, test) {
+  EXPECT_DISASSEMBLY(
+      "0885151b slli.uw a0, a0, 0x8\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(0x100, Call(test->entry(), 0x1));
+  EXPECT_EQ(0x1000000000, Call(test->entry(), 0x10000000));
+  EXPECT_EQ(0, Call(test->entry(), 0x100000000));
+  EXPECT_EQ(0x100, Call(test->entry(), 0x100000001));
+}
+#endif
+
+ASSEMBLER_TEST_GENERATE(AndNot, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ andn(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AndNot, test) {
+  EXPECT_DISASSEMBLY(
+      "40b57533 andn a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(6, Call(test->entry(), 7, 17));
+  EXPECT_EQ(0, Call(test->entry(), 7, -17));
+  EXPECT_EQ(-24, Call(test->entry(), -7, 17));
+  EXPECT_EQ(16, Call(test->entry(), -7, -17));
+  EXPECT_EQ(16, Call(test->entry(), 17, 7));
+  EXPECT_EQ(0, Call(test->entry(), 17, -7));
+  EXPECT_EQ(-24, Call(test->entry(), -17, 7));
+  EXPECT_EQ(6, Call(test->entry(), -17, -7));
+}
+
+ASSEMBLER_TEST_GENERATE(OrNot, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ orn(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(OrNot, test) {
+  EXPECT_DISASSEMBLY(
+      "40b56533 orn a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(-17, Call(test->entry(), 7, 17));
+  EXPECT_EQ(23, Call(test->entry(), 7, -17));
+  EXPECT_EQ(-1, Call(test->entry(), -7, 17));
+  EXPECT_EQ(-7, Call(test->entry(), -7, -17));
+  EXPECT_EQ(-7, Call(test->entry(), 17, 7));
+  EXPECT_EQ(23, Call(test->entry(), 17, -7));
+  EXPECT_EQ(-1, Call(test->entry(), -17, 7));
+  EXPECT_EQ(-17, Call(test->entry(), -17, -7));
+}
+
+ASSEMBLER_TEST_GENERATE(XorNot, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ xnor(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(XorNot, test) {
+  EXPECT_DISASSEMBLY(
+      "40b54533 xnor a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(-23, Call(test->entry(), 7, 17));
+  EXPECT_EQ(23, Call(test->entry(), 7, -17));
+  EXPECT_EQ(23, Call(test->entry(), -7, 17));
+  EXPECT_EQ(-23, Call(test->entry(), -7, -17));
+  EXPECT_EQ(-23, Call(test->entry(), 17, 7));
+  EXPECT_EQ(23, Call(test->entry(), 17, -7));
+  EXPECT_EQ(23, Call(test->entry(), -17, 7));
+  EXPECT_EQ(-23, Call(test->entry(), -17, -7));
+}
+
+ASSEMBLER_TEST_GENERATE(CountLeadingZeroes, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ clz(A0, A0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CountLeadingZeroes, test) {
+  EXPECT_DISASSEMBLY(
+      "60051513 clz a0, a0\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(XLEN, Call(test->entry(), 0));
+  EXPECT_EQ(XLEN - 1, Call(test->entry(), 1));
+  EXPECT_EQ(XLEN - 2, Call(test->entry(), 2));
+  EXPECT_EQ(XLEN - 3, Call(test->entry(), 4));
+  EXPECT_EQ(XLEN - 8, Call(test->entry(), 240));
+  EXPECT_EQ(0, Call(test->entry(), -1));
+  EXPECT_EQ(0, Call(test->entry(), -2));
+  EXPECT_EQ(0, Call(test->entry(), -4));
+  EXPECT_EQ(0, Call(test->entry(), -240));
+}
+
+ASSEMBLER_TEST_GENERATE(CountTrailingZeroes, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ ctz(A0, A0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CountTrailingZeroes, test) {
+  EXPECT_DISASSEMBLY(
+      "60151513 ctz a0, a0\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(XLEN, Call(test->entry(), 0));
+  EXPECT_EQ(0, Call(test->entry(), 1));
+  EXPECT_EQ(1, Call(test->entry(), 2));
+  EXPECT_EQ(2, Call(test->entry(), 4));
+  EXPECT_EQ(4, Call(test->entry(), 240));
+  EXPECT_EQ(0, Call(test->entry(), -1));
+  EXPECT_EQ(1, Call(test->entry(), -2));
+  EXPECT_EQ(2, Call(test->entry(), -4));
+  EXPECT_EQ(4, Call(test->entry(), -240));
+}
+
+ASSEMBLER_TEST_GENERATE(CountPopulation, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ cpop(A0, A0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CountPopulation, test) {
+  EXPECT_DISASSEMBLY(
+      "60251513 cpop a0, a0\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(0, Call(test->entry(), 0));
+  EXPECT_EQ(1, Call(test->entry(), 1));
+  EXPECT_EQ(3, Call(test->entry(), 7));
+  EXPECT_EQ(4, Call(test->entry(), 30));
+  EXPECT_EQ(XLEN, Call(test->entry(), -1));
+  EXPECT_EQ(XLEN - 2, Call(test->entry(), -7));
+  EXPECT_EQ(XLEN - 4, Call(test->entry(), -30));
+}
+
+#if XLEN >= 64
+ASSEMBLER_TEST_GENERATE(CountLeadingZeroesWord, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ clzw(A0, A0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CountLeadingZeroesWord, test) {
+  EXPECT_DISASSEMBLY(
+      "6005151b clzw a0, a0\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(32, Call(test->entry(), 0));
+  EXPECT_EQ(31, Call(test->entry(), 1));
+  EXPECT_EQ(30, Call(test->entry(), 2));
+  EXPECT_EQ(29, Call(test->entry(), 4));
+  EXPECT_EQ(24, Call(test->entry(), 240));
+  EXPECT_EQ(0, Call(test->entry(), -1));
+  EXPECT_EQ(0, Call(test->entry(), -2));
+  EXPECT_EQ(0, Call(test->entry(), -4));
+  EXPECT_EQ(0, Call(test->entry(), -240));
+}
+
+ASSEMBLER_TEST_GENERATE(CountTrailingZeroesWord, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ ctzw(A0, A0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CountTrailingZeroesWord, test) {
+  EXPECT_DISASSEMBLY(
+      "6015151b ctzw a0, a0\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(32, Call(test->entry(), 0));
+  EXPECT_EQ(0, Call(test->entry(), 1));
+  EXPECT_EQ(1, Call(test->entry(), 2));
+  EXPECT_EQ(2, Call(test->entry(), 4));
+  EXPECT_EQ(4, Call(test->entry(), 240));
+  EXPECT_EQ(0, Call(test->entry(), -1));
+  EXPECT_EQ(1, Call(test->entry(), -2));
+  EXPECT_EQ(2, Call(test->entry(), -4));
+  EXPECT_EQ(4, Call(test->entry(), -240));
+}
+
+ASSEMBLER_TEST_GENERATE(CountPopulationWord, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ cpopw(A0, A0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CountPopulationWord, test) {
+  EXPECT_DISASSEMBLY(
+      "6025151b cpopw a0, a0\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(0, Call(test->entry(), 0));
+  EXPECT_EQ(1, Call(test->entry(), 1));
+  EXPECT_EQ(3, Call(test->entry(), 7));
+  EXPECT_EQ(4, Call(test->entry(), 30));
+  EXPECT_EQ(32, Call(test->entry(), -1));
+  EXPECT_EQ(30, Call(test->entry(), -7));
+  EXPECT_EQ(28, Call(test->entry(), -30));
+  EXPECT_EQ(0, Call(test->entry(), 0x7FFFFFFF00000000));
+}
+#endif
+
+ASSEMBLER_TEST_GENERATE(Max, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ max(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(Max, test) {
+  EXPECT_DISASSEMBLY(
+      "0ab56533 max a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(17, Call(test->entry(), 7, 17));
+  EXPECT_EQ(17, Call(test->entry(), -7, 17));
+  EXPECT_EQ(7, Call(test->entry(), 7, -17));
+  EXPECT_EQ(-7, Call(test->entry(), -7, -17));
+}
+
+ASSEMBLER_TEST_GENERATE(MaxUnsigned, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ maxu(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(MaxUnsigned, test) {
+  EXPECT_DISASSEMBLY(
+      "0ab57533 maxu a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(17, Call(test->entry(), 7, 17));
+  EXPECT_EQ(-7, Call(test->entry(), -7, 17));
+  EXPECT_EQ(-17, Call(test->entry(), 7, -17));
+  EXPECT_EQ(-7, Call(test->entry(), -7, -17));
+}
+
+ASSEMBLER_TEST_GENERATE(Min, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ min(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(Min, test) {
+  EXPECT_DISASSEMBLY(
+      "0ab54533 min a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(7, Call(test->entry(), 7, 17));
+  EXPECT_EQ(-7, Call(test->entry(), -7, 17));
+  EXPECT_EQ(-17, Call(test->entry(), 7, -17));
+  EXPECT_EQ(-17, Call(test->entry(), -7, -17));
+}
+
+ASSEMBLER_TEST_GENERATE(MinUnsigned, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ minu(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(MinUnsigned, test) {
+  EXPECT_DISASSEMBLY(
+      "0ab55533 minu a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(7, Call(test->entry(), 7, 17));
+  EXPECT_EQ(17, Call(test->entry(), -7, 17));
+  EXPECT_EQ(7, Call(test->entry(), 7, -17));
+  EXPECT_EQ(-17, Call(test->entry(), -7, -17));
+}
+
+ASSEMBLER_TEST_GENERATE(SignExtendByte, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ sextb(A0, A0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(SignExtendByte, test) {
+  EXPECT_DISASSEMBLY(
+      "60451513 sext.b a0, a0\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(1, Call(test->entry(), 1));
+  EXPECT_EQ(127, Call(test->entry(), 127));
+  EXPECT_EQ(-128, Call(test->entry(), 128));
+}
+
+ASSEMBLER_TEST_GENERATE(SignExtendHalfWord, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ sexth(A0, A0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(SignExtendHalfWord, test) {
+  EXPECT_DISASSEMBLY(
+      "60551513 sext.h a0, a0\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(0, Call(test->entry(), 0));
+  EXPECT_EQ(0x7BCD, Call(test->entry(), 0x12347BCD));
+  EXPECT_EQ(-1, Call(test->entry(), 0xFFFF));
+  EXPECT_EQ(-1, Call(test->entry(), -1));
+}
+
+ASSEMBLER_TEST_GENERATE(ZeroExtendHalfWord, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ zexth(A0, A0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(ZeroExtendHalfWord, test) {
+#if XLEN == 32
+  EXPECT_DISASSEMBLY(
+      "08054533 zext.h a0, a0\n"
+      "    8082 ret\n");
+#else
+  EXPECT_DISASSEMBLY(
+      "0805453b zext.h a0, a0\n"
+      "    8082 ret\n");
+#endif
+
+  EXPECT_EQ(0, Call(test->entry(), 0));
+  EXPECT_EQ(0xABCD, Call(test->entry(), 0x1234ABCD));
+  EXPECT_EQ(0xFFFF, Call(test->entry(), 0xFFFF));
+  EXPECT_EQ(0xFFFF, Call(test->entry(), -1));
+}
+
+ASSEMBLER_TEST_GENERATE(RotateRight, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ ror(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RotateRight, test) {
+  EXPECT_DISASSEMBLY(
+      "60b55533 ror a0, a0, a1\n"
+      "    8082 ret\n");
+
+#if XLEN == 32
+  EXPECT_EQ(static_cast<intx_t>(0x12345678),
+            Call(test->entry(), 0x12345678, 0));
+  EXPECT_EQ(static_cast<intx_t>(0x81234567),
+            Call(test->entry(), 0x12345678, 4));
+  EXPECT_EQ(static_cast<intx_t>(0x23456781),
+            Call(test->entry(), 0x12345678, 28));
+  EXPECT_EQ(static_cast<intx_t>(0x81234567),
+            Call(test->entry(), 0x12345678, 36));
+#else
+  EXPECT_EQ(static_cast<intx_t>(0x0123456789ABCDEF),
+            Call(test->entry(), 0x0123456789ABCDEF, 0));
+  EXPECT_EQ(static_cast<intx_t>(0xF0123456789ABCDE),
+            Call(test->entry(), 0x0123456789ABCDEF, 4));
+  EXPECT_EQ(static_cast<intx_t>(0x123456789ABCDEF0),
+            Call(test->entry(), 0x0123456789ABCDEF, 60));
+  EXPECT_EQ(static_cast<intx_t>(0xF0123456789ABCDE),
+            Call(test->entry(), 0x0123456789ABCDEF, 68));
+#endif
+}
+
+ASSEMBLER_TEST_GENERATE(RotateLeft, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ rol(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RotateLeft, test) {
+  EXPECT_DISASSEMBLY(
+      "60b51533 rol a0, a0, a1\n"
+      "    8082 ret\n");
+
+#if XLEN == 32
+  EXPECT_EQ(static_cast<intx_t>(0x12345678),
+            Call(test->entry(), 0x12345678, 0));
+  EXPECT_EQ(static_cast<intx_t>(0x23456781),
+            Call(test->entry(), 0x12345678, 4));
+  EXPECT_EQ(static_cast<intx_t>(0x81234567),
+            Call(test->entry(), 0x12345678, 28));
+  EXPECT_EQ(static_cast<intx_t>(0x23456781),
+            Call(test->entry(), 0x12345678, 36));
+#else
+  EXPECT_EQ(static_cast<intx_t>(0x0123456789ABCDEF),
+            Call(test->entry(), 0x0123456789ABCDEF, 0));
+  EXPECT_EQ(static_cast<intx_t>(0x123456789ABCDEF0),
+            Call(test->entry(), 0x0123456789ABCDEF, 4));
+  EXPECT_EQ(static_cast<intx_t>(0xF0123456789ABCDE),
+            Call(test->entry(), 0x0123456789ABCDEF, 60));
+  EXPECT_EQ(static_cast<intx_t>(0x123456789ABCDEF0),
+            Call(test->entry(), 0x0123456789ABCDEF, 68));
+#endif
+}
+
+ASSEMBLER_TEST_GENERATE(RotateRightImmediate, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ rori(A0, A0, 4);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RotateRightImmediate, test) {
+  EXPECT_DISASSEMBLY(
+      "60455513 rori a0, a0, 0x4\n"
+      "    8082 ret\n");
+
+#if XLEN == 32
+  EXPECT_EQ(static_cast<intx_t>(0x81234567), Call(test->entry(), 0x12345678));
+#else
+  EXPECT_EQ(static_cast<intx_t>(0xF0123456789ABCDE),
+            Call(test->entry(), 0x0123456789ABCDEF));
+#endif
+}
+
+#if XLEN >= 64
+ASSEMBLER_TEST_GENERATE(RotateRightWord, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ rorw(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RotateRightWord, test) {
+  EXPECT_DISASSEMBLY(
+      "60b5553b rorw a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(sign_extend(0x12345678), Call(test->entry(), 0x12345678, 0));
+  EXPECT_EQ(sign_extend(0x81234567), Call(test->entry(), 0x12345678, 4));
+  EXPECT_EQ(sign_extend(0x23456781), Call(test->entry(), 0x12345678, 28));
+  EXPECT_EQ(sign_extend(0x81234567), Call(test->entry(), 0x12345678, 36));
+}
+
+ASSEMBLER_TEST_GENERATE(RotateLeftWord, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ rolw(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RotateLeftWord, test) {
+  EXPECT_DISASSEMBLY(
+      "60b5153b rolw a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(sign_extend(0x12345678), Call(test->entry(), 0x12345678, 0));
+  EXPECT_EQ(sign_extend(0x23456781), Call(test->entry(), 0x12345678, 4));
+  EXPECT_EQ(sign_extend(0x81234567), Call(test->entry(), 0x12345678, 28));
+  EXPECT_EQ(sign_extend(0x23456781), Call(test->entry(), 0x12345678, 36));
+}
+
+ASSEMBLER_TEST_GENERATE(RotateRightImmediateWord, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ roriw(A0, A0, 4);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RotateRightImmediateWord, test) {
+  EXPECT_DISASSEMBLY(
+      "6045551b roriw a0, a0, 0x4\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(sign_extend(0x81234567), Call(test->entry(), 0x12345678));
+}
+#endif
+
+ASSEMBLER_TEST_GENERATE(OrCombineBytes, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ orcb(A0, A0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(OrCombineBytes, test) {
+  EXPECT_DISASSEMBLY(
+      "28755513 orc.b a0, a0\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(0, Call(test->entry(), 0));
+  EXPECT_EQ(-1, Call(test->entry(), -1));
+  EXPECT_EQ(0x00FF00FF, Call(test->entry(), 0x00010001));
+#if XLEN >= 64
+  EXPECT_EQ(0x00FF00FF00FF00FF, Call(test->entry(), 0x0001000100010001));
+#endif
+}
+
+ASSEMBLER_TEST_GENERATE(ByteReverse, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ rev8(A0, A0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(ByteReverse, test) {
+#if XLEN == 32
+  EXPECT_DISASSEMBLY(
+      "69855513 rev8 a0, a0\n"
+      "    8082 ret\n");
+#else
+  EXPECT_DISASSEMBLY(
+      "6b855513 rev8 a0, a0\n"
+      "    8082 ret\n");
+#endif
+
+  EXPECT_EQ(0, Call(test->entry(), 0));
+  EXPECT_EQ(-1, Call(test->entry(), -1));
+#if XLEN == 32
+  EXPECT_EQ(0x11223344, Call(test->entry(), 0x44332211));
+#elif XLEN == 64
+  EXPECT_EQ(0x1122334455667788, Call(test->entry(), 0x8877665544332211));
+#endif
+}
+
+ASSEMBLER_TEST_GENERATE(CarrylessMultiply, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ clmul(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CarrylessMultiply, test) {
+  EXPECT_DISASSEMBLY(
+      "0ab51533 clmul a0, a0, a1\n"
+      "    8082 ret\n");
+
+#if XLEN == 32
+  EXPECT_EQ(0x55555555, Call(test->entry(), -1, -1));
+#else
+  EXPECT_EQ(0x5555555555555555, Call(test->entry(), -1, -1));
+#endif
+  EXPECT_EQ(0, Call(test->entry(), -1, 0));
+  EXPECT_EQ(-1, Call(test->entry(), -1, 1));
+  EXPECT_EQ(0, Call(test->entry(), 0, -1));
+  EXPECT_EQ(0, Call(test->entry(), 0, 0));
+  EXPECT_EQ(0, Call(test->entry(), 0, 1));
+  EXPECT_EQ(-1, Call(test->entry(), 1, -1));
+  EXPECT_EQ(0, Call(test->entry(), 1, 0));
+  EXPECT_EQ(1, Call(test->entry(), 1, 1));
+
+  EXPECT_EQ(4, Call(test->entry(), 2, 2));
+  EXPECT_EQ(5, Call(test->entry(), 3, 3));
+  EXPECT_EQ(16, Call(test->entry(), 4, 4));
+  EXPECT_EQ(20, Call(test->entry(), 6, 6));
+}
+
+ASSEMBLER_TEST_GENERATE(CarrylessMultiplyHigh, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ clmulh(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CarrylessMultiplyHigh, test) {
+  EXPECT_DISASSEMBLY(
+      "0ab53533 clmulh a0, a0, a1\n"
+      "    8082 ret\n");
+
+#if XLEN == 32
+  EXPECT_EQ(0x55555555, Call(test->entry(), -1, -1));
+#else
+  EXPECT_EQ(0x5555555555555555, Call(test->entry(), -1, -1));
+#endif
+  EXPECT_EQ(0, Call(test->entry(), -1, 0));
+  EXPECT_EQ(0, Call(test->entry(), -1, 1));
+  EXPECT_EQ(0, Call(test->entry(), 0, -1));
+  EXPECT_EQ(0, Call(test->entry(), 0, 0));
+  EXPECT_EQ(0, Call(test->entry(), 0, 1));
+  EXPECT_EQ(0, Call(test->entry(), 1, -1));
+  EXPECT_EQ(0, Call(test->entry(), 1, 0));
+  EXPECT_EQ(0, Call(test->entry(), 1, 1));
+
+  EXPECT_EQ(0, Call(test->entry(), 2, 2));
+  EXPECT_EQ(0, Call(test->entry(), 3, 3));
+  EXPECT_EQ(0, Call(test->entry(), 4, 4));
+  EXPECT_EQ(0, Call(test->entry(), 6, 6));
+}
+
+ASSEMBLER_TEST_GENERATE(CarrylessMultiplyReversed, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ clmulr(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CarrylessMultiplyReversed, test) {
+  EXPECT_DISASSEMBLY(
+      "0ab52533 clmulr a0, a0, a1\n"
+      "    8082 ret\n");
+
+#if XLEN == 32
+  EXPECT_EQ(-0x55555556, Call(test->entry(), -1, -1));
+#else
+  EXPECT_EQ(-0x5555555555555556, Call(test->entry(), -1, -1));
+#endif
+  EXPECT_EQ(0, Call(test->entry(), -1, 0));
+  EXPECT_EQ(1, Call(test->entry(), -1, 1));
+  EXPECT_EQ(0, Call(test->entry(), 0, -1));
+  EXPECT_EQ(0, Call(test->entry(), 0, 0));
+  EXPECT_EQ(0, Call(test->entry(), 0, 1));
+  EXPECT_EQ(1, Call(test->entry(), 1, -1));
+  EXPECT_EQ(0, Call(test->entry(), 1, 0));
+  EXPECT_EQ(0, Call(test->entry(), 1, 1));
+
+  EXPECT_EQ(0, Call(test->entry(), 2, 2));
+  EXPECT_EQ(0, Call(test->entry(), 3, 3));
+  EXPECT_EQ(0, Call(test->entry(), 4, 4));
+  EXPECT_EQ(0, Call(test->entry(), 6, 6));
+}
+
+ASSEMBLER_TEST_GENERATE(BitClear, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ bclr(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(BitClear, test) {
+  EXPECT_DISASSEMBLY(
+      "48b51533 bclr a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(42, Call(test->entry(), 42, 0));
+  EXPECT_EQ(40, Call(test->entry(), 42, 1));
+  EXPECT_EQ(42, Call(test->entry(), 42, 2));
+  EXPECT_EQ(34, Call(test->entry(), 42, 3));
+  EXPECT_EQ(42, Call(test->entry(), 42, 4));
+  EXPECT_EQ(10, Call(test->entry(), 42, 5));
+  EXPECT_EQ(42, Call(test->entry(), 42, 6));
+  EXPECT_EQ(42, Call(test->entry(), 42, 7));
+  EXPECT_EQ(42, Call(test->entry(), 42, 8));
+
+  EXPECT_EQ(42, Call(test->entry(), 42, 64));
+  EXPECT_EQ(40, Call(test->entry(), 42, 65));
+}
+
+ASSEMBLER_TEST_GENERATE(BitClearImmediate, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ bclri(A0, A0, 3);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(BitClearImmediate, test) {
+  EXPECT_DISASSEMBLY(
+      "48351513 bclri a0, a0, 0x3\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(0, Call(test->entry(), 0));
+  EXPECT_EQ(7, Call(test->entry(), 7));
+  EXPECT_EQ(0, Call(test->entry(), 8));
+  EXPECT_EQ(1, Call(test->entry(), 9));
+  EXPECT_EQ(-15, Call(test->entry(), -7));
+  EXPECT_EQ(-16, Call(test->entry(), -8));
+  EXPECT_EQ(-9, Call(test->entry(), -9));
+}
+
+ASSEMBLER_TEST_GENERATE(BitClearImmediate2, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ bclri(A0, A0, XLEN - 1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(BitClearImmediate2, test) {
+#if XLEN == 32
+  EXPECT_DISASSEMBLY(
+      "49f51513 bclri a0, a0, 0x1f\n"
+      "    8082 ret\n");
+#elif XLEN == 64
+  EXPECT_DISASSEMBLY(
+      "4bf51513 bclri a0, a0, 0x3f\n"
+      "    8082 ret\n");
+#endif
+
+  EXPECT_EQ(0, Call(test->entry(), 0));
+  EXPECT_EQ(1, Call(test->entry(), 1));
+  EXPECT_EQ(kMaxIntX, Call(test->entry(), -1));
+}
+
+ASSEMBLER_TEST_GENERATE(BitExtract, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ bext(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(BitExtract, test) {
+  EXPECT_DISASSEMBLY(
+      "48b55533 bext a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(0, Call(test->entry(), 42, 0));
+  EXPECT_EQ(1, Call(test->entry(), 42, 1));
+  EXPECT_EQ(0, Call(test->entry(), 42, 2));
+  EXPECT_EQ(1, Call(test->entry(), 42, 3));
+  EXPECT_EQ(0, Call(test->entry(), 42, 4));
+  EXPECT_EQ(1, Call(test->entry(), 42, 5));
+  EXPECT_EQ(0, Call(test->entry(), 42, 6));
+  EXPECT_EQ(0, Call(test->entry(), 42, 7));
+  EXPECT_EQ(0, Call(test->entry(), 42, 8));
+
+  EXPECT_EQ(0, Call(test->entry(), 42, 64));
+  EXPECT_EQ(1, Call(test->entry(), 42, 65));
+}
+
+ASSEMBLER_TEST_GENERATE(BitExtractImmediate, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ bexti(A0, A0, 3);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(BitExtractImmediate, test) {
+  EXPECT_DISASSEMBLY(
+      "48355513 bexti a0, a0, 0x3\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(0, Call(test->entry(), 0));
+  EXPECT_EQ(0, Call(test->entry(), 7));
+  EXPECT_EQ(1, Call(test->entry(), 8));
+  EXPECT_EQ(1, Call(test->entry(), 9));
+  EXPECT_EQ(1, Call(test->entry(), -7));
+  EXPECT_EQ(1, Call(test->entry(), -8));
+  EXPECT_EQ(0, Call(test->entry(), -9));
+}
+
+ASSEMBLER_TEST_GENERATE(BitExtractImmediate2, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ bexti(A0, A0, XLEN - 1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(BitExtractImmediate2, test) {
+#if XLEN == 32
+  EXPECT_DISASSEMBLY(
+      "49f55513 bexti a0, a0, 0x1f\n"
+      "    8082 ret\n");
+#elif XLEN == 64
+  EXPECT_DISASSEMBLY(
+      "4bf55513 bexti a0, a0, 0x3f\n"
+      "    8082 ret\n");
+#endif
+
+  EXPECT_EQ(0, Call(test->entry(), 0));
+  EXPECT_EQ(0, Call(test->entry(), 1));
+  EXPECT_EQ(1, Call(test->entry(), -1));
+}
+
+ASSEMBLER_TEST_GENERATE(BitInvert, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ binv(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(BitInvert, test) {
+  EXPECT_DISASSEMBLY(
+      "68b51533 binv a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(43, Call(test->entry(), 42, 0));
+  EXPECT_EQ(40, Call(test->entry(), 42, 1));
+  EXPECT_EQ(46, Call(test->entry(), 42, 2));
+  EXPECT_EQ(34, Call(test->entry(), 42, 3));
+  EXPECT_EQ(58, Call(test->entry(), 42, 4));
+  EXPECT_EQ(10, Call(test->entry(), 42, 5));
+  EXPECT_EQ(106, Call(test->entry(), 42, 6));
+  EXPECT_EQ(170, Call(test->entry(), 42, 7));
+  EXPECT_EQ(298, Call(test->entry(), 42, 8));
+
+  EXPECT_EQ(43, Call(test->entry(), 42, 64));
+  EXPECT_EQ(40, Call(test->entry(), 42, 65));
+}
+
+ASSEMBLER_TEST_GENERATE(BitInvertImmediate, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ binvi(A0, A0, 3);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(BitInvertImmediate, test) {
+  EXPECT_DISASSEMBLY(
+      "68351513 binvi a0, a0, 0x3\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(8, Call(test->entry(), 0));
+  EXPECT_EQ(15, Call(test->entry(), 7));
+  EXPECT_EQ(0, Call(test->entry(), 8));
+  EXPECT_EQ(1, Call(test->entry(), 9));
+  EXPECT_EQ(-15, Call(test->entry(), -7));
+  EXPECT_EQ(-16, Call(test->entry(), -8));
+  EXPECT_EQ(-1, Call(test->entry(), -9));
+}
+
+ASSEMBLER_TEST_GENERATE(BitInvertImmediate2, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ binvi(A0, A0, XLEN - 1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(BitInvertImmediate2, test) {
+#if XLEN == 32
+  EXPECT_DISASSEMBLY(
+      "69f51513 binvi a0, a0, 0x1f\n"
+      "    8082 ret\n");
+#elif XLEN == 64
+  EXPECT_DISASSEMBLY(
+      "6bf51513 binvi a0, a0, 0x3f\n"
+      "    8082 ret\n");
+#endif
+
+  EXPECT_EQ(kMinIntX, Call(test->entry(), 0));
+  EXPECT_EQ(kMinIntX + 1, Call(test->entry(), 1));
+  EXPECT_EQ(kMaxIntX, Call(test->entry(), -1));
+}
+
+ASSEMBLER_TEST_GENERATE(BitSet, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ bset(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(BitSet, test) {
+  EXPECT_DISASSEMBLY(
+      "28b51533 bset a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(43, Call(test->entry(), 42, 0));
+  EXPECT_EQ(42, Call(test->entry(), 42, 1));
+  EXPECT_EQ(46, Call(test->entry(), 42, 2));
+  EXPECT_EQ(42, Call(test->entry(), 42, 3));
+  EXPECT_EQ(58, Call(test->entry(), 42, 4));
+  EXPECT_EQ(42, Call(test->entry(), 42, 5));
+  EXPECT_EQ(106, Call(test->entry(), 42, 6));
+  EXPECT_EQ(170, Call(test->entry(), 42, 7));
+  EXPECT_EQ(298, Call(test->entry(), 42, 8));
+
+  EXPECT_EQ(43, Call(test->entry(), 42, 64));
+  EXPECT_EQ(42, Call(test->entry(), 42, 65));
+}
+
+ASSEMBLER_TEST_GENERATE(BitSetImmediate, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ bseti(A0, A0, 3);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(BitSetImmediate, test) {
+  EXPECT_DISASSEMBLY(
+      "28351513 bseti a0, a0, 0x3\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(8, Call(test->entry(), 0));
+  EXPECT_EQ(15, Call(test->entry(), 7));
+  EXPECT_EQ(8, Call(test->entry(), 8));
+  EXPECT_EQ(9, Call(test->entry(), 9));
+  EXPECT_EQ(-7, Call(test->entry(), -7));
+  EXPECT_EQ(-8, Call(test->entry(), -8));
+  EXPECT_EQ(-1, Call(test->entry(), -9));
+}
+
+ASSEMBLER_TEST_GENERATE(BitSetImmediate2, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ bseti(A0, A0, XLEN - 1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(BitSetImmediate2, test) {
+#if XLEN == 32
+  EXPECT_DISASSEMBLY(
+      "29f51513 bseti a0, a0, 0x1f\n"
+      "    8082 ret\n");
+#elif XLEN == 64
+  EXPECT_DISASSEMBLY(
+      "2bf51513 bseti a0, a0, 0x3f\n"
+      "    8082 ret\n");
+#endif
+
+  EXPECT_EQ(kMinIntX, Call(test->entry(), 0));
+  EXPECT_EQ(kMinIntX + 1, Call(test->entry(), 1));
+  EXPECT_EQ(-1, Call(test->entry(), -1));
+}
+
 ASSEMBLER_TEST_GENERATE(LoadImmediate_MaxInt32, assembler) {
   FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
@@ -6346,6 +7292,7 @@ ASSEMBLER_TEST_RUN(AddBranchOverflow_NonDestructive, test) {
   EXPECT_EQ(kMinIntX + 1, Call(test->entry(), 42, kMinIntX, 1));
   EXPECT_EQ(kMinIntX, Call(test->entry(), 42, kMinIntX, 0));
 }
+
 ASSEMBLER_TEST_GENERATE(AddBranchOverflow_Destructive, assembler) {
   FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
@@ -6357,7 +7304,6 @@ ASSEMBLER_TEST_GENERATE(AddBranchOverflow_Destructive, assembler) {
   __ li(A0, 0);
   __ ret();
 }
-
 ASSEMBLER_TEST_RUN(AddBranchOverflow_Destructive, test) {
   EXPECT_DISASSEMBLY(
       "00052693 slti tmp, a0, 0\n"
@@ -6644,6 +7590,78 @@ TEST_ENCODING(intptr_t, CI16Imm)
 TEST_ENCODING(intptr_t, CI4SPNImm)
 
 #undef TEST_ENCODING
+
+static void RangeCheck(Assembler* assembler, Register value, Register temp) {
+  const Register return_reg = CallingConventions::kReturnReg;
+  Label in_range;
+  __ RangeCheck(value, temp, kFirstErrorCid, kLastErrorCid,
+                AssemblerBase::kIfInRange, &in_range);
+  __ LoadImmediate(return_reg, 0);
+  __ Ret();
+  __ Bind(&in_range);
+  __ LoadImmediate(return_reg, 1);
+  __ Ret();
+}
+
+ASSEMBLER_TEST_GENERATE(RangeCheckNoTemp, assembler) {
+  const Register value = CallingConventions::ArgumentRegisters[0];
+  const Register temp = kNoRegister;
+  RangeCheck(assembler, value, temp);
+}
+
+ASSEMBLER_TEST_RUN(RangeCheckNoTemp, test) {
+  intptr_t result;
+  result = test->Invoke<intptr_t, intptr_t>(kErrorCid);
+  EXPECT_EQ(1, result);
+  result = test->Invoke<intptr_t, intptr_t>(kUnwindErrorCid);
+  EXPECT_EQ(1, result);
+  result = test->Invoke<intptr_t, intptr_t>(kFunctionCid);
+  EXPECT_EQ(0, result);
+  result = test->Invoke<intptr_t, intptr_t>(kMintCid);
+  EXPECT_EQ(0, result);
+}
+
+ASSEMBLER_TEST_GENERATE(RangeCheckWithTemp, assembler) {
+  const Register value = CallingConventions::ArgumentRegisters[0];
+  const Register temp = CallingConventions::ArgumentRegisters[1];
+  RangeCheck(assembler, value, temp);
+}
+
+ASSEMBLER_TEST_RUN(RangeCheckWithTemp, test) {
+  intptr_t result;
+  result = test->Invoke<intptr_t, intptr_t>(kErrorCid);
+  EXPECT_EQ(1, result);
+  result = test->Invoke<intptr_t, intptr_t>(kUnwindErrorCid);
+  EXPECT_EQ(1, result);
+  result = test->Invoke<intptr_t, intptr_t>(kFunctionCid);
+  EXPECT_EQ(0, result);
+  result = test->Invoke<intptr_t, intptr_t>(kMintCid);
+  EXPECT_EQ(0, result);
+}
+
+ASSEMBLER_TEST_GENERATE(RangeCheckWithTempReturnValue, assembler) {
+  const Register value = CallingConventions::ArgumentRegisters[0];
+  const Register temp = CallingConventions::ArgumentRegisters[1];
+  const Register return_reg = CallingConventions::kReturnReg;
+  Label in_range;
+  __ RangeCheck(value, temp, kFirstErrorCid, kLastErrorCid,
+                AssemblerBase::kIfInRange, &in_range);
+  __ Bind(&in_range);
+  __ MoveRegister(return_reg, value);
+  __ Ret();
+}
+
+ASSEMBLER_TEST_RUN(RangeCheckWithTempReturnValue, test) {
+  intptr_t result;
+  result = test->Invoke<intptr_t, intptr_t>(kErrorCid);
+  EXPECT_EQ(kErrorCid, result);
+  result = test->Invoke<intptr_t, intptr_t>(kUnwindErrorCid);
+  EXPECT_EQ(kUnwindErrorCid, result);
+  result = test->Invoke<intptr_t, intptr_t>(kFunctionCid);
+  EXPECT_EQ(kFunctionCid, result);
+  result = test->Invoke<intptr_t, intptr_t>(kMintCid);
+  EXPECT_EQ(kMintCid, result);
+}
 
 }  // namespace compiler
 }  // namespace dart

@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
+import 'package:collection/collection.dart' show IterableNullableExtension;
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -17,7 +16,7 @@ import 'package:stack_trace/stack_trace.dart';
 /// [roots] are the paths (usually `http:` URI strings) that DDC applications
 /// are served from.  This is used to identify sdk and package URIs.
 StackTrace mapStackTrace(Mapping sourceMap, StackTrace stackTrace,
-    {List<String> roots}) {
+    {required List<String?> roots}) {
   if (stackTrace is Chain) {
     return Chain(stackTrace.traces.map((trace) {
       return Trace.from(mapStackTrace(sourceMap, trace, roots: roots));
@@ -35,8 +34,8 @@ StackTrace mapStackTrace(Mapping sourceMap, StackTrace stackTrace,
 
     // Subtract 1 because stack traces use 1-indexed lines and columns and
     // source maps uses 0-indexed.
-    var span = sourceMap.spanFor(frame.line - 1, column - 1,
-        uri: frame.uri?.toString());
+    var span = sourceMap.spanFor(frame.line! - 1, column - 1,
+        uri: frame.uri.toString());
 
     // If we can't find a source span, ignore the frame. It's probably something
     // internal that the user doesn't care about.
@@ -68,8 +67,8 @@ StackTrace mapStackTrace(Mapping sourceMap, StackTrace stackTrace,
     }
 
     return Frame(Uri.parse(sourceUrl), span.start.line + 1,
-        span.start.column + 1, _prettifyMember(frame.member));
-  }).where((frame) => frame != null));
+        span.start.column + 1, _prettifyMember(frame.member!));
+  }).whereNotNull());
 }
 
 final escapedPipe = '\$124';

@@ -103,12 +103,32 @@ group("dart2js") {
   deps = [ "utils/compiler:dart2js" ]
 }
 
-group("dart2wasm") {
+group("dart2wasm_platform") {
   deps = [
     ":runtime_precompiled",
     "utils/dart2wasm:compile_dart2wasm_platform",
-    "utils/dart2wasm:dart2wasm_asserts_snapshot",
     "utils/dart2wasm:dart2wasm_snapshot",
+  ]
+  if (defined(is_product)) {
+    if (is_product) {
+      deps += [ "utils/dart2wasm:dart2wasm_product_snapshot" ]
+    } else {
+      deps += [ "utils/dart2wasm:dart2wasm_asserts_snapshot" ]
+    }
+  }
+}
+
+group("dart2wasm") {
+  deps = [
+    ":dart2wasm_platform",
+    "utils/dart2wasm:test_wasm_modules",
+  ]
+}
+
+group("dart2wasm_benchmark") {
+  deps = [
+    ":dart2wasm_platform",
+    "third_party/binaryen:wasm-opt",
   ]
 }
 

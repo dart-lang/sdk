@@ -2,39 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_actions_producer.dart';
+import 'package:analysis_server/src/lsp/handlers/code_actions/analysis_options.dart';
+import 'package:analysis_server/src/lsp/handlers/code_actions/dart.dart';
+import 'package:analysis_server/src/lsp/handlers/code_actions/plugins.dart';
+import 'package:analysis_server/src/lsp/handlers/code_actions/pubspec.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
-import 'package:analysis_server/src/plugin/plugin_manager.dart';
-import 'package:analysis_server/src/protocol_server.dart' hide Position;
-import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/correction/assist_internal.dart';
-import 'package:analysis_server/src/services/correction/change_workspace.dart';
-import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart'
-    show InconsistentAnalysisException;
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
-import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
-import 'package:collection/collection.dart'
-    show IterableNullableExtension, groupBy;
+import 'package:collection/collection.dart' show groupBy;
 
 class CodeActionHandler
     extends MessageHandler<CodeActionParams, TextDocumentCodeActionResult> {
-  // Because server+plugin results are different types and we lose
-  // priorities when converting them to CodeActions, store the priorities
-  // against each action in an expando. This avoids wrapping CodeActions in
-  // another wrapper class (since we can't modify the LSP-spec-generated
-  // CodeAction class).
-  final codeActionPriorities = Expando<int>();
-
   CodeActionHandler(super.server);
 
   @override
@@ -47,27 +29,25 @@ class CodeActionHandler
   @override
   Future<ErrorOr<TextDocumentCodeActionResult>> handle(CodeActionParams params,
       MessageInfo message, CancellationToken token) async {
-    if (!isDartDocument(params.textDocument)) {
-      return success(const []);
-    }
+    final performance = message.performance;
 
     final path = pathOfDoc(params.textDocument);
-    if (!path.isError && !server.isAnalyzed(path.result)) {
+    if (path.isError) {
+      return failure(path);
+    }
+    final unitPath = path.result;
+    if (!server.isAnalyzed(unitPath)) {
       return success(const []);
     }
 
-    final clientCapabilities = server.clientCapabilities;
-    if (clientCapabilities == null) {
+    final capabilities = server.clientCapabilities;
+    if (capabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
     }
 
-    final supportsApplyEdit = clientCapabilities.applyEdit;
-    final supportsLiteralCodeActions = clientCapabilities.literalCodeActions;
-    final supportedKinds = clientCapabilities.codeActionKinds;
-    final supportedDiagnosticTags = clientCapabilities.diagnosticTags;
-
-    final unit = await path.mapResult(requireResolvedUnit);
+    final supportsLiterals = capabilities.literalCodeActions;
+    final supportedKinds = capabilities.codeActionKinds;
 
     /// Whether a fix of kind [kind] should be included in the results.
     ///
@@ -92,7 +72,7 @@ class CodeActionHandler
 
       // Otherwise, filter out anything not supported by the client (if they
       // advertised that they provided the kinds).
-      if (supportsLiteralCodeActions && !supportedKinds.any(isMatch)) {
+      if (supportsLiterals && !supportedKinds.any(isMatch)) {
         return false;
       }
 
@@ -123,33 +103,140 @@ class CodeActionHandler
       return true;
     }
 
-    return unit.mapResult((unit) {
-      final startOffset = toOffset(unit.lineInfo, params.range.start);
-      final endOffset = toOffset(unit.lineInfo, params.range.end);
-      return startOffset.mapResult((startOffset) {
-        return endOffset.mapResult((endOffset) {
-          final offset = startOffset;
-          final length = endOffset - startOffset;
-          return message.performance.runAsync(
-            'getCodeActions',
-            (performance) => _getCodeActions(
-              performance,
-              shouldIncludeKind,
-              shouldIncludeAnyOfKind,
-              supportsLiteralCodeActions,
-              supportsApplyEdit,
-              supportedDiagnosticTags,
-              path.result,
-              params.range,
-              offset,
-              length,
-              unit,
-              params.context.triggerKind,
-            ),
-          );
-        });
-      });
-    });
+    final pathContext = server.resourceProvider.pathContext;
+    final docIdentifier = server.getVersionedDocumentIdentifier(unitPath);
+
+    final library = await requireResolvedLibrary(unitPath);
+    final libraryResult = library.resultOrNull;
+    final unit = libraryResult?.unitWithPath(unitPath);
+
+    // For non-Dart files we don't have a unit and must get the best LineInfo we
+    // can for current content.
+    final lineInfo = unit?.lineInfo ?? server.getLineInfo(unitPath);
+    if (lineInfo == null) {
+      return success([]);
+    }
+
+    final startOffset = toOffset(lineInfo, params.range.start);
+    final endOffset = toOffset(lineInfo, params.range.end);
+    if (startOffset.isError || endOffset.isError) {
+      return success([]);
+    }
+
+    final startOffsetResult = startOffset.result;
+    final endOffsetResult = endOffset.result;
+
+    final offset = startOffsetResult;
+    final length = endOffsetResult - startOffsetResult;
+
+    final isDart = file_paths.isDart(pathContext, unitPath);
+    final isPubspec = file_paths.isPubspecYaml(pathContext, unitPath);
+    final isAnalysisOptions =
+        file_paths.isAnalysisOptionsYaml(pathContext, unitPath);
+    final includeSourceActions = shouldIncludeAnyOfKind(CodeActionKind.Source);
+    final includeQuickFixes = shouldIncludeAnyOfKind(CodeActionKind.QuickFix);
+    final includeRefactors = shouldIncludeAnyOfKind(CodeActionKind.Refactor);
+
+    final actionComputers = [
+      if (isDart && libraryResult != null && unit != null)
+        DartCodeActionsProducer(
+          server,
+          unitPath,
+          lineInfo,
+          docIdentifier,
+          range: params.range,
+          offset: offset,
+          length: length,
+          libraryResult,
+          unit,
+          shouldIncludeKind: shouldIncludeKind,
+          capabilities: capabilities,
+          triggerKind: params.context.triggerKind,
+        ),
+      if (isPubspec)
+        PubspecCodeActionsProducer(
+          server,
+          unitPath,
+          lineInfo,
+          offset: offset,
+          length: length,
+          shouldIncludeKind: shouldIncludeKind,
+          capabilities: capabilities,
+        ),
+      if (isAnalysisOptions)
+        AnalysisOptionsCodeActionsProducer(
+          server,
+          unitPath,
+          lineInfo,
+          offset: offset,
+          length: length,
+          shouldIncludeKind: shouldIncludeKind,
+          capabilities: capabilities,
+        ),
+      PluginCodeActionsProducer(
+        server,
+        unitPath,
+        lineInfo,
+        offset: offset,
+        length: length,
+        shouldIncludeKind: shouldIncludeKind,
+        capabilities: capabilities,
+      ),
+    ];
+    final sorter = _CodeActionSorter(params.range, shouldIncludeKind);
+
+    final allActions = <Either2<CodeAction, Command>>[
+      // Like-kinded actions are grouped (and prioritized) together
+      // regardless of which producer they came from.
+
+      // Source.
+      if (includeSourceActions)
+        for (final computer in actionComputers)
+          ...await performance.runAsync('${computer.name}.getSourceActions',
+              (_) => computer.getSourceActions()),
+
+      // Fixes.
+      if (includeQuickFixes)
+        ...sorter.sort([
+          for (final computer in actionComputers)
+            ...await performance.runAsync('${computer.name}.getFixActions',
+                (_) => computer.getFixActions()),
+        ]),
+
+      // Refactors  (Assists + Refactors).
+      if (includeRefactors)
+        ...sorter.sort([
+          for (final computer in actionComputers)
+            ...await performance.runAsync('${computer.name}.getAssistActions',
+                (_) => computer.getAssistActions()),
+        ]),
+      if (includeRefactors)
+        for (final computer in actionComputers)
+          ...await performance.runAsync('${computer.name}.getRefactorActions',
+              (_) => computer.getRefactorActions()),
+    ];
+
+    return success(allActions);
+  }
+}
+
+/// Sorts [CodeActionWithPriority]s by priorty, and removes duplicates keeping
+/// the one nearest [range].
+class _CodeActionSorter {
+  final Range range;
+  final bool Function(CodeActionKind?) shouldIncludeKind;
+
+  _CodeActionSorter(this.range, this.shouldIncludeKind);
+
+  List<Either2<CodeAction, Command>> sort(
+      List<CodeActionWithPriority> actions) {
+    final dedupedCodeActions = _dedupeActions(actions, range.start);
+    dedupedCodeActions.sort(_compareCodeActions);
+
+    return dedupedCodeActions
+        .where((action) => shouldIncludeKind(action.action.kind))
+        .map((action) => Either2<CodeAction, Command>.t1(action.action))
+        .toList();
   }
 
   /// Creates a comparer for [CodeActions] that compares the column distance from [pos].
@@ -170,75 +257,33 @@ class CodeActionHandler
   int _columnDistance(Position a, Position b) =>
       (a.character - b.character).abs();
 
-  /// Wraps a command in a CodeAction if the client supports it so that a
-  /// CodeActionKind can be supplied.
-  Either2<CodeAction, Command> _commandOrCodeAction(
-    bool supportsLiteralCodeActions,
-    CodeActionKind kind,
-    Command command,
-  ) {
-    return supportsLiteralCodeActions
-        ? Either2<CodeAction, Command>.t1(
-            CodeAction(title: command.title, kind: kind, command: command),
-          )
-        : Either2<CodeAction, Command>.t2(command);
-  }
-
-  /// A function that can be used to sort [CodeActions]s using priorities
-  /// in [codeActionPriorities].
+  /// A function that can be used to sort [CodeActionWithPriority]s.
   ///
   /// The highest number priority will be sorted before lower number priorities.
   /// Items with the same priority are sorted alphabetically by their title.
-  int _compareCodeActions(CodeAction a, CodeAction b) {
-    // We should never be sorting actions without priorities.
-    final aPriority = codeActionPriorities[a] ?? 0;
-    final bPriority = codeActionPriorities[b] ?? 0;
-    if (aPriority != bPriority) {
-      return bPriority - aPriority;
+  int _compareCodeActions(CodeActionWithPriority a, CodeActionWithPriority b) {
+    if (a.priority != b.priority) {
+      return b.priority - a.priority;
     }
-    return a.title.compareTo(b.title);
+    return a.action.title.compareTo(b.action.title);
   }
 
-  /// Creates a CodeAction to apply this assist. Note: This code will fetch the
-  /// version of each document being modified so it's important to call this
-  /// immediately after computing edits to ensure the document is not modified
-  /// before the version number is read.
-  CodeAction _createAssistAction(SourceChange change, ResolvedUnitResult unit) {
-    return CodeAction(
-      title: change.message,
-      kind: toCodeActionKind(change.id, CodeActionKind.Refactor),
-      diagnostics: const [],
-      edit: createWorkspaceEdit(server, change,
-          allowSnippets: true, filePath: unit.path, lineInfo: unit.lineInfo),
-    );
-  }
-
-  /// Creates a CodeAction to apply this fix. Note: This code will fetch the
-  /// version of each document being modified so it's important to call this
-  /// immediately after computing edits to ensure the document is not modified
-  /// before the version number is read.
-  CodeAction _createFixAction(
-      SourceChange change, Diagnostic diagnostic, ResolvedUnitResult unit) {
-    return CodeAction(
-      title: change.message,
-      kind: toCodeActionKind(change.id, CodeActionKind.QuickFix),
-      diagnostics: [diagnostic],
-      edit: createWorkspaceEdit(server, change,
-          allowSnippets: true, filePath: unit.path, lineInfo: unit.lineInfo),
-    );
-  }
-
-  /// Dedupes/merges actions that have the same title, selecting the one nearest [pos].
+  /// Dedupes/merges actions that have the same title, selecting the one nearest
+  /// [position].
   ///
   /// If actions perform the same edit/command, their diagnostics will be merged
   /// together. Otherwise, the additional accounts are just dropped.
   ///
-  /// The first diagnostic for an action is used to determine the position (using
-  /// its `start`). If there is no diagnostic, it will be treated as being at [pos].
+  /// The first diagnostic for an action is used to determine the position
+  /// (using its `start`). If there is no diagnostic, it will be treated as
+  /// being at [position].
   ///
-  /// If multiple actions have the same position, one will arbitrarily be chosen.
-  List<CodeAction> _dedupeActions(Iterable<CodeAction> actions, Position pos) {
-    final groups = groupBy(actions, (CodeAction action) => action.title);
+  /// If multiple actions have the same position, one will arbitrarily be
+  /// chosen.
+  List<CodeActionWithPriority> _dedupeActions(
+      Iterable<CodeActionWithPriority> actions, Position position) {
+    final groups = groupBy(
+        actions, (CodeActionWithPriority action) => action.action.title);
     return groups.entries.map((entry) {
       final actions = entry.value;
 
@@ -248,467 +293,38 @@ class CodeActionHandler
       }
 
       // Otherwise, find the action nearest to the caret.
-      actions.sort(_codeActionColumnDistanceComparer(pos));
-      final first = actions.first;
+      final comparer = _codeActionColumnDistanceComparer(position);
+      actions.sort((a, b) => comparer(a.action, b.action));
+      final first = actions.first.action;
+      final priority = actions.first.priority;
 
       // Get any actions with the same fix (edit/command) for merging diagnostics.
       final others = actions.skip(1).where(
             (other) =>
                 // Compare either edits or commands based on which the selected action has.
                 first.edit != null
-                    ? first.edit == other.edit
+                    ? first.edit == other.action.edit
                     : first.command != null
-                        ? first.command == other.command
+                        ? first.command == other.action.command
                         : false,
           );
 
       // Build a new CodeAction that merges the diagnostics from each same
       // code action onto a single one.
-      return CodeAction(
-        title: first.title,
-        kind: first.kind,
-        // Merge diagnostics from all of the matching CodeActions.
-        diagnostics: [
-          ...?first.diagnostics,
-          for (final other in others) ...?other.diagnostics,
-        ],
-        edit: first.edit,
-        command: first.command,
+      return CodeActionWithPriority(
+        CodeAction(
+          title: first.title,
+          kind: first.kind,
+          // Merge diagnostics from all of the matching CodeActions.
+          diagnostics: [
+            ...?first.diagnostics,
+            for (final other in others) ...?other.action.diagnostics,
+          ],
+          edit: first.edit,
+          command: first.command,
+        ),
+        priority,
       );
     }).toList();
-  }
-
-  Future<TextDocumentCodeActionResult> _getAssistActions(
-    bool Function(CodeActionKind?) shouldIncludeKind,
-    bool supportsLiteralCodeActions,
-    String path,
-    Range range,
-    int offset,
-    int length,
-    ResolvedUnitResult unit,
-  ) async {
-    try {
-      var context = DartAssistContextImpl(
-        server.instrumentationService,
-        DartChangeWorkspace(
-          await server.currentSessions,
-        ),
-        unit,
-        offset,
-        length,
-      );
-      final processor = AssistProcessor(context);
-      final serverFuture = processor.compute();
-      final pluginFuture = _getPluginAssistChanges(path, offset, length);
-
-      final assists = await serverFuture;
-      final pluginChanges = await pluginFuture;
-
-      final codeActions = <CodeAction>[];
-      codeActions.addAll(assists.map((assist) {
-        final action = _createAssistAction(assist.change, unit);
-        codeActionPriorities[action] = assist.kind.priority;
-        return action;
-      }));
-      codeActions.addAll(pluginChanges.map((change) {
-        final action = _createAssistAction(change.change, unit);
-        codeActionPriorities[action] = change.priority;
-        return action;
-      }));
-
-      final dedupedCodeActions = _dedupeActions(codeActions, range.start);
-      dedupedCodeActions.sort(_compareCodeActions);
-
-      return dedupedCodeActions
-          .where((action) => shouldIncludeKind(action.kind))
-          .map((action) => Either2<CodeAction, Command>.t1(action))
-          .toList();
-    } on InconsistentAnalysisException {
-      // If an InconsistentAnalysisException occurs, it's likely the user modified
-      // the source and therefore is no longer interested in the results, so
-      // just return an empty set.
-      return [];
-    }
-  }
-
-  Future<ErrorOr<TextDocumentCodeActionResult>> _getCodeActions(
-    OperationPerformanceImpl performance,
-    bool Function(CodeActionKind?) shouldIncludeKind,
-    bool Function(CodeActionKind?) shouldIncludeAnyOfKind,
-    bool supportsLiterals,
-    bool supportsWorkspaceApplyEdit,
-    Set<DiagnosticTag> supportedDiagnosticTags,
-    String path,
-    Range range,
-    int offset,
-    int length,
-    ResolvedUnitResult unit,
-    CodeActionTriggerKind? triggerKind,
-  ) async {
-    final docIdentifier = server.getVersionedDocumentIdentifier(path);
-
-    final results = await Future.wait([
-      if (shouldIncludeAnyOfKind(CodeActionKind.Source))
-        performance.runAsync(
-          '_getSourceActions',
-          (_) => _getSourceActions(shouldIncludeKind, supportsLiterals,
-              supportsWorkspaceApplyEdit, path, triggerKind),
-        ),
-      // Assists go under the Refactor CodeActionKind so check that here.
-      if (shouldIncludeAnyOfKind(CodeActionKind.Refactor))
-        performance.runAsync(
-          '_getAssistActions',
-          (_) => _getAssistActions(shouldIncludeKind, supportsLiterals, path,
-              range, offset, length, unit),
-        ),
-      if (shouldIncludeAnyOfKind(CodeActionKind.Refactor))
-        performance.runAsync(
-          '_getRefactorActions',
-          (_) => _getRefactorActions(shouldIncludeKind, supportsLiterals, path,
-              docIdentifier, offset, length, unit),
-        ),
-      if (shouldIncludeAnyOfKind(CodeActionKind.QuickFix))
-        performance.runAsync(
-          '_getFixActions',
-          (_) => _getFixActions(shouldIncludeKind, supportsLiterals, path,
-              offset, supportedDiagnosticTags, range, unit),
-        ),
-    ]);
-    final flatResults = results.whereNotNull().expand((x) => x).toList();
-
-    return success(flatResults);
-  }
-
-  Future<TextDocumentCodeActionResult> _getFixActions(
-    bool Function(CodeActionKind?) shouldIncludeKind,
-    bool supportsLiteralCodeActions,
-    String path,
-    int offset,
-    Set<DiagnosticTag> supportedDiagnosticTags,
-    Range range,
-    ResolvedUnitResult unit,
-  ) async {
-    final clientSupportsCodeDescription =
-        server.clientCapabilities?.diagnosticCodeDescription ?? false;
-    // TODO(dantup): We may be missing fixes for pubspec and analysis_options
-    // (see _computeServerErrorFixes in EditDomainHandler).
-    final lineInfo = unit.lineInfo;
-    final codeActions = <CodeAction>[];
-    final fixContributor = DartFixContributor();
-
-    final pluginFuture = _getPluginFixActions(unit, offset);
-
-    try {
-      var workspace = DartChangeWorkspace(
-        await server.currentSessions,
-      );
-      for (final error in unit.errors) {
-        // Server lineNumber is one-based so subtract one.
-        var errorLine = lineInfo.getLocation(error.offset).lineNumber - 1;
-        if (errorLine < range.start.line || errorLine > range.end.line) {
-          continue;
-        }
-        var context = DartFixContextImpl(
-            server.instrumentationService, workspace, unit, error);
-        final fixes = await fixContributor.computeFixes(context);
-        if (fixes.isNotEmpty) {
-          final diagnostic = toDiagnostic(
-            unit,
-            error,
-            supportedTags: supportedDiagnosticTags,
-            clientSupportsCodeDescription: clientSupportsCodeDescription,
-          );
-          codeActions.addAll(
-            fixes.map((fix) {
-              final action = _createFixAction(fix.change, diagnostic, unit);
-              codeActionPriorities[action] = fix.kind.priority;
-              return action;
-            }),
-          );
-        }
-      }
-
-      Diagnostic pluginErrorToDiagnostic(AnalysisError error) {
-        return pluginToDiagnostic(
-          (_) => lineInfo,
-          error,
-          supportedTags: supportedDiagnosticTags,
-          clientSupportsCodeDescription: clientSupportsCodeDescription,
-        );
-      }
-
-      final pluginFixes = await pluginFuture;
-      final pluginFixActions = pluginFixes.expand(
-        (fix) => fix.fixes.map((fixChange) {
-          final action = _createFixAction(
-              fixChange.change, pluginErrorToDiagnostic(fix.error), unit);
-          codeActionPriorities[action] = fixChange.priority;
-          return action;
-        }),
-      );
-      codeActions.addAll(pluginFixActions);
-
-      final dedupedActions = _dedupeActions(codeActions, range.start);
-      dedupedActions.sort(_compareCodeActions);
-
-      return dedupedActions
-          .where((action) => shouldIncludeKind(action.kind))
-          .map((action) => Either2<CodeAction, Command>.t1(action))
-          .toList();
-    } on InconsistentAnalysisException {
-      // If an InconsistentAnalysisException occurs, it's likely the user modified
-      // the source and therefore is no longer interested in the results, so
-      // just return an empty set.
-      return [];
-    }
-  }
-
-  Future<Iterable<plugin.PrioritizedSourceChange>> _getPluginAssistChanges(
-      String path, int offset, int length) async {
-    final requestParams = plugin.EditGetAssistsParams(path, offset, length);
-    final driver = server.getAnalysisDriver(path);
-
-    Map<PluginInfo, Future<plugin.Response>> pluginFutures;
-    if (driver == null) {
-      pluginFutures = <PluginInfo, Future<plugin.Response>>{};
-    } else {
-      pluginFutures = server.pluginManager.broadcastRequest(
-        requestParams,
-        contextRoot: driver.analysisContext!.contextRoot,
-      );
-    }
-
-    final pluginChanges = <plugin.PrioritizedSourceChange>[];
-    final responses =
-        await waitForResponses(pluginFutures, requestParameters: requestParams);
-
-    for (final response in responses) {
-      final result = plugin.EditGetAssistsResult.fromResponse(response);
-      pluginChanges.addAll(result.assists);
-    }
-
-    return pluginChanges;
-  }
-
-  Future<Iterable<plugin.AnalysisErrorFixes>> _getPluginFixActions(
-      ResolvedUnitResult unit, int offset) async {
-    final file = unit.path;
-    final requestParams = plugin.EditGetFixesParams(file, offset);
-    final driver = server.getAnalysisDriver(file);
-
-    Map<PluginInfo, Future<plugin.Response>> pluginFutures;
-    if (driver == null) {
-      pluginFutures = <PluginInfo, Future<plugin.Response>>{};
-    } else {
-      pluginFutures = server.pluginManager.broadcastRequest(
-        requestParams,
-        contextRoot: driver.analysisContext!.contextRoot,
-      );
-    }
-
-    final pluginFixes = <plugin.AnalysisErrorFixes>[];
-    final responses =
-        await waitForResponses(pluginFutures, requestParameters: requestParams);
-
-    for (final response in responses) {
-      final result = plugin.EditGetFixesResult.fromResponse(response);
-      pluginFixes.addAll(result.fixes);
-    }
-
-    return pluginFixes;
-  }
-
-  Future<TextDocumentCodeActionResult> _getRefactorActions(
-    bool Function(CodeActionKind) shouldIncludeKind,
-    bool supportsLiteralCodeActions,
-    String path,
-    OptionalVersionedTextDocumentIdentifier docIdentifier,
-    int offset,
-    int length,
-    ResolvedUnitResult unit,
-  ) async {
-    // The refactor actions supported are only valid for Dart files.
-    var pathContext = server.resourceProvider.pathContext;
-    if (!file_paths.isDart(pathContext, path)) {
-      return const [];
-    }
-
-    /// Helper to create refactors that execute commands provided with
-    /// the current file, location and document version.
-    Either2<CodeAction, Command> createRefactor(
-      CodeActionKind actionKind,
-      String name,
-      RefactoringKind refactorKind, [
-      Map<String, dynamic>? options,
-    ]) {
-      return _commandOrCodeAction(
-          supportsLiteralCodeActions,
-          actionKind,
-          Command(
-            title: name,
-            command: Commands.performRefactor,
-            arguments: [
-              // TODO(dantup): Change this to a Map once Dart-Code is updated
-              //   to handle both Maps and Lists (and some reasonable time has
-              //   passed to not worry about old versions).
-              refactorKind.toJson(),
-              path,
-              server.getVersionedDocumentIdentifier(path).version,
-              offset,
-              length,
-              options,
-            ],
-          ));
-    }
-
-    try {
-      final refactorActions = <Either2<CodeAction, Command>>[];
-
-      // Extracts
-      if (shouldIncludeKind(CodeActionKind.RefactorExtract)) {
-        // Extract Method
-        if (ExtractMethodRefactoring(server.searchEngine, unit, offset, length)
-            .isAvailable()) {
-          refactorActions.add(createRefactor(CodeActionKind.RefactorExtract,
-              'Extract Method', RefactoringKind.EXTRACT_METHOD));
-        }
-
-        // Extract Local Variable
-        if (ExtractLocalRefactoring(unit, offset, length).isAvailable()) {
-          refactorActions.add(createRefactor(
-              CodeActionKind.RefactorExtract,
-              'Extract Local Variable',
-              RefactoringKind.EXTRACT_LOCAL_VARIABLE));
-        }
-
-        // Extract Widget
-        if (ExtractWidgetRefactoring(server.searchEngine, unit, offset, length)
-            .isAvailable()) {
-          refactorActions.add(createRefactor(CodeActionKind.RefactorExtract,
-              'Extract Widget', RefactoringKind.EXTRACT_WIDGET));
-        }
-      }
-
-      // Inlines
-      if (shouldIncludeKind(CodeActionKind.RefactorInline)) {
-        // Inline Local Variable
-        if (InlineLocalRefactoring(server.searchEngine, unit, offset)
-            .isAvailable()) {
-          refactorActions.add(createRefactor(CodeActionKind.RefactorInline,
-              'Inline Local Variable', RefactoringKind.INLINE_LOCAL_VARIABLE));
-        }
-
-        // Inline Method
-        if (InlineMethodRefactoring(server.searchEngine, unit, offset)
-            .isAvailable()) {
-          refactorActions.add(createRefactor(CodeActionKind.RefactorInline,
-              'Inline Method', RefactoringKind.INLINE_METHOD));
-        }
-      }
-
-      // Converts/Rewrites
-      if (shouldIncludeKind(CodeActionKind.RefactorRewrite)) {
-        final node = NodeLocator(offset).searchWithin(unit.unit);
-        final element = server.getElementOfNode(node);
-        // Getter to Method
-        if (element is PropertyAccessorElement &&
-            ConvertGetterToMethodRefactoring(
-                    server.searchEngine, unit.session, element)
-                .isAvailable()) {
-          refactorActions.add(createRefactor(
-              CodeActionKind.RefactorRewrite,
-              'Convert Getter to Method',
-              RefactoringKind.CONVERT_GETTER_TO_METHOD));
-        }
-
-        // Method to Getter
-        if (element is ExecutableElement &&
-            ConvertMethodToGetterRefactoring(
-                    server.searchEngine, unit.session, element)
-                .isAvailable()) {
-          refactorActions.add(createRefactor(
-              CodeActionKind.RefactorRewrite,
-              'Convert Method to Getter',
-              RefactoringKind.CONVERT_METHOD_TO_GETTER));
-        }
-      }
-
-      return refactorActions;
-    } on InconsistentAnalysisException {
-      // If an InconsistentAnalysisException occurs, it's likely the user modified
-      // the source and therefore is no longer interested in the results, so
-      // just return an empty set.
-      return [];
-    }
-  }
-
-  /// Gets "Source" CodeActions, which are actions that apply to whole files of
-  /// source such as Sort Members and Organise Imports.
-  Future<TextDocumentCodeActionResult> _getSourceActions(
-    bool Function(CodeActionKind) shouldIncludeKind,
-    bool supportsLiteralCodeActions,
-    bool supportsApplyEdit,
-    String path,
-    CodeActionTriggerKind? triggerKind,
-  ) async {
-    // The source actions supported are only valid for Dart files.
-    var pathContext = server.resourceProvider.pathContext;
-    if (!file_paths.isDart(pathContext, path)) {
-      return const [];
-    }
-
-    // If the client does not support workspace/applyEdit, we won't be able to
-    // run any of these.
-    if (!supportsApplyEdit) {
-      return const [];
-    }
-
-    final autoTriggered = triggerKind == CodeActionTriggerKind.Automatic;
-
-    return [
-      if (shouldIncludeKind(DartCodeActionKind.SortMembers))
-        _commandOrCodeAction(
-          supportsLiteralCodeActions,
-          DartCodeActionKind.SortMembers,
-          Command(
-              title: 'Sort Members',
-              command: Commands.sortMembers,
-              arguments: [
-                {
-                  'path': path,
-                  if (autoTriggered) 'autoTriggered': true,
-                }
-              ]),
-        ),
-      if (shouldIncludeKind(CodeActionKind.SourceOrganizeImports))
-        _commandOrCodeAction(
-          supportsLiteralCodeActions,
-          CodeActionKind.SourceOrganizeImports,
-          Command(
-              title: 'Organize Imports',
-              command: Commands.organizeImports,
-              arguments: [
-                {
-                  'path': path,
-                  if (autoTriggered) 'autoTriggered': true,
-                }
-              ]),
-        ),
-      if (shouldIncludeKind(DartCodeActionKind.FixAll))
-        _commandOrCodeAction(
-          supportsLiteralCodeActions,
-          DartCodeActionKind.FixAll,
-          Command(
-            title: 'Fix All',
-            command: Commands.fixAll,
-            arguments: [
-              {
-                'path': path,
-                if (autoTriggered) 'autoTriggered': true,
-              }
-            ],
-          ),
-        ),
-    ];
   }
 }

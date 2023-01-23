@@ -103,8 +103,9 @@ class FeatureOptions {
 
   /// [FeatureOption]s which default to enabled.
   late final List<FeatureOption> shipping = [
-    deferredSerialization,
     useContentSecurityPolicy,
+    deferredSerialization,
+    internValues,
   ];
 
   /// [FeatureOption]s which default to disabled.
@@ -113,7 +114,6 @@ class FeatureOptions {
     newDumpInfo,
     simpleAsyncToFuture,
     cfeConstants,
-    internValues,
   ];
 
   /// Forces canary feature on. This must run after [Option].parse.
@@ -220,6 +220,9 @@ class CompilerOptions implements DiagnosticOptions {
   List<Uri>? modularAnalysisInputs;
 
   bool get hasModularAnalysisInputs => modularAnalysisInputs != null;
+
+  /// Uses a memory mapped view of files for I/O.
+  bool memoryMappedFiles = false;
 
   /// Location from which serialized inference data is read.
   ///
@@ -454,6 +457,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// The compiler is run from the build bot.
   bool testMode = false;
 
+  /// Whether to use the development type inferrer.
+  bool experimentalInferrer = false;
+
   /// Whether to trust primitive types during inference and optimizations.
   bool trustPrimitives = false;
 
@@ -685,6 +691,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..laxRuntimeTypeToString =
           _hasOption(options, Flags.laxRuntimeTypeToString)
       ..testMode = _hasOption(options, Flags.testMode)
+      ..experimentalInferrer = _hasOption(options, Flags.experimentalInferrer)
       ..trustPrimitives = _hasOption(options, Flags.trustPrimitives)
       ..useFrequencyNamer =
           !_hasOption(options, Flags.noFrequencyBasedMinification)
@@ -706,6 +713,7 @@ class CompilerOptions implements DiagnosticOptions {
           _extractUriListOption(options, '${Flags.readModularAnalysis}')
       ..readDataUri = _extractUriOption(options, '${Flags.readData}=')
       ..writeDataUri = _extractUriOption(options, '${Flags.writeData}=')
+      ..memoryMappedFiles = _hasOption(options, Flags.memoryMappedFiles)
       ..noClosedWorldInData = _hasOption(options, Flags.noClosedWorldInData)
       ..readClosedWorldUri =
           _extractUriOption(options, '${Flags.readClosedWorld}=')

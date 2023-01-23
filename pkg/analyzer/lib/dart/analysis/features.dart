@@ -37,11 +37,23 @@ abstract class Feature {
   /// Feature information for inference-update-1.
   static final inference_update_1 = ExperimentalFeatures.inference_update_1;
 
+  /// Feature information for inference-update-2.
+  static final inference_update_2 = ExperimentalFeatures.inference_update_2;
+
   /// Feature information for macros.
   static final macros = ExperimentalFeatures.macros;
 
+  /// Feature information for patterns.
+  static final patterns = ExperimentalFeatures.patterns;
+
+  /// Feature information for records.
+  static final records = ExperimentalFeatures.records;
+
   /// Feature information for spread collections.
   static final spread_collections = ExperimentalFeatures.spread_collections;
+
+  // Feature information for sealed classes.
+  static final sealed_class = ExperimentalFeatures.sealed_class;
 
   /// Feature information for set literals.
   static final set_literals = ExperimentalFeatures.set_literals;
@@ -59,6 +71,12 @@ abstract class Feature {
   /// Feature information for non-function type aliases.
   static final nonfunction_type_aliases =
       ExperimentalFeatures.nonfunction_type_aliases;
+
+  /// Feature information for unnamed libraries.
+  static final unnamedLibraries = ExperimentalFeatures.unnamed_libraries;
+
+  /// Feature information for views.
+  static final views = ExperimentalFeatures.views;
 
   /// Feature information for variance.
   static final variance = ExperimentalFeatures.variance;

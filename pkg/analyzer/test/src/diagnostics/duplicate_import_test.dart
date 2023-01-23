@@ -10,8 +10,49 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(DuplicateExportTest);
     defineReflectiveTests(DuplicateImportTest);
   });
+}
+
+@reflectiveTest
+class DuplicateExportTest extends PubPackageResolutionTest {
+  test_duplicateExport() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+class A {}
+class B {}
+''');
+    await assertErrorsInCode('''
+export 'lib1.dart';
+export 'lib1.dart';
+''', [
+      error(HintCode.DUPLICATE_EXPORT, 27, 11),
+    ]);
+  }
+
+  test_duplicateExport_differentShow() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+class A {}
+class B {}
+''');
+    await assertNoErrorsInCode('''
+export 'lib1.dart' show A;
+export 'lib1.dart' show B;
+''');
+  }
+
+  test_duplicateExport_sameShow() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+class A {}
+class B {}
+''');
+    await assertErrorsInCode('''
+export 'lib1.dart' show A;
+export 'lib1.dart' show A;
+''', [
+      error(HintCode.DUPLICATE_EXPORT, 34, 11),
+    ]);
+  }
 }
 
 @reflectiveTest

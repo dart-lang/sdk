@@ -7,14 +7,14 @@ import 'dart:wasm';
 import 'package:expect/expect.dart';
 
 @pragma("wasm:import", "Object.create")
-external WasmAnyRef createObject(WasmAnyRef? prototype);
+external WasmExternRef? createObject(WasmExternRef? prototype);
 
 @pragma("wasm:import", "Array.of")
-external WasmAnyRef singularArray(WasmAnyRef element);
+external WasmExternRef? singularArray(WasmExternRef? element);
 
 @pragma("wasm:import", "Reflect.apply")
-external WasmAnyRef apply(
-    WasmAnyRef target, WasmAnyRef thisArgument, WasmAnyRef argumentsList);
+external WasmExternRef? apply(WasmFuncRef? target, WasmExternRef? thisArgument,
+    WasmExternRef? argumentsList);
 
 WasmAnyRef? anyRef;
 WasmEqRef? eqRef;
@@ -32,7 +32,7 @@ test() {
   Object dartObject1 = "1";
   Object dartObject2 = true;
   Object dartObject3 = Object();
-  WasmAnyRef jsObject1 = createObject(null);
+  WasmAnyRef jsObject1 = createObject(null)!.internalize();
 
   // A JS object is not a Dart object.
   Expect.isFalse(jsObject1.isObject);
@@ -77,23 +77,16 @@ test() {
   var dartObjectRef = WasmEqRef.fromObject("Dart object");
   var ff = WasmFunction.fromFunction(fun);
   ff.call(dartObjectRef);
-  apply(ff, createObject(null), singularArray(dartObjectRef));
-  Expect.isFalse(ff.isObject);
+  apply(ff, createObject(null), singularArray(dartObjectRef.externalize()));
 
   // Cast a typed function reference to a `funcref` and back.
   WasmFuncRef funcref = WasmFuncRef.fromWasmFunction(ff);
-  var ff2 = WasmFunction<void Function(WasmEqRef)>.fromRef(funcref);
+  var ff2 = WasmFunction<void Function(WasmEqRef)>.fromFuncRef(funcref);
   ff2.call(dartObjectRef);
-  Expect.isFalse(ff2.isObject);
-
-  // Casting a non-function JS object to a typed function reference throws.
-  Expect.throws(() {
-    WasmFunction<double Function(double)>.fromRef(jsObject1);
-  }, (_) => true);
 
   // Create a typed function reference from an import and call it.
   var createObjectFun = WasmFunction.fromFunction(createObject);
-  WasmAnyRef jsObject3 = createObjectFun.call(null);
+  WasmAnyRef jsObject3 = createObjectFun.call(null).internalize()!;
   Expect.isFalse(jsObject3.isObject);
 
   Expect.equals(3, funCount);

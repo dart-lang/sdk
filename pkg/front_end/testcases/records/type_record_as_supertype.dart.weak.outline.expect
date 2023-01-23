@@ -1,0 +1,123 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/records/type_record_as_supertype.dart:11:16: Error: 'Record' is restricted and can't be extended or implemented.
+// abstract class A1 extends Record {} // Error.
+//                ^
+//
+// pkg/front_end/testcases/records/type_record_as_supertype.dart:12:16: Error: 'Record' is restricted and can't be extended or implemented.
+// abstract class A2 extends RR {} // Error.
+//                ^
+// pkg/front_end/testcases/records/type_record_as_supertype.dart:7:9: Context: The issue arises via this type alias.
+// typedef RR = R;
+//         ^
+//
+// pkg/front_end/testcases/records/type_record_as_supertype.dart:16:16: Error: 'Record' is restricted and can't be extended or implemented.
+// abstract class B1 implements Record {} // Error.
+//                ^
+//
+// pkg/front_end/testcases/records/type_record_as_supertype.dart:17:16: Error: 'Record' is restricted and can't be extended or implemented.
+// abstract class B2 implements RR {} // Error.
+//                ^
+// pkg/front_end/testcases/records/type_record_as_supertype.dart:7:9: Context: The issue arises via this type alias.
+// typedef RR = R;
+//         ^
+//
+// pkg/front_end/testcases/records/type_record_as_supertype.dart:21:16: Error: 'Record' is restricted and can't be extended or implemented.
+// abstract class C1 with Record {} // Error.
+//                ^
+//
+// pkg/front_end/testcases/records/type_record_as_supertype.dart:22:16: Error: 'Record' is restricted and can't be extended or implemented.
+// abstract class C2 with RR {} // Error.
+//                ^
+// pkg/front_end/testcases/records/type_record_as_supertype.dart:7:9: Context: The issue arises via this type alias.
+// typedef RR = R;
+//         ^
+//
+// pkg/front_end/testcases/records/type_record_as_supertype.dart:22:16: Error: 'RR' is restricted and can't be extended or implemented.
+// abstract class C2 with RR {} // Error.
+//                ^
+// sdk/lib/core/record.dart:11:16: Context: This is the type denoted by the type alias.
+// abstract class Record {}
+//                ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef R = core::Record;
+typedef RR = core::Record;
+class G<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::G<self::G::X%>
+    ;
+}
+abstract class A1 extends core::Record {
+  synthetic constructor •() → self::A1
+    ;
+}
+abstract class A2 extends core::Record {
+  synthetic constructor •() → self::A2
+    ;
+}
+abstract class A3 extends self::G<core::Record> {
+  synthetic constructor •() → self::A3
+    ;
+}
+abstract class A4 extends self::G<core::Record> {
+  synthetic constructor •() → self::A4
+    ;
+}
+abstract class B1 extends core::Object implements core::Record {
+  synthetic constructor •() → self::B1
+    ;
+}
+abstract class B2 extends core::Object implements core::Record {
+  synthetic constructor •() → self::B2
+    ;
+}
+abstract class B3 extends core::Object implements self::G<core::Record> {
+  synthetic constructor •() → self::B3
+    ;
+}
+abstract class B4 extends core::Object implements self::G<core::Record> {
+  synthetic constructor •() → self::B4
+    ;
+}
+abstract class _C1&Object&Record = core::Object with core::Record /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C1&Object&Record
+    : super core::Object::•()
+    ;
+}
+abstract class C1 extends self::_C1&Object&Record {
+  synthetic constructor •() → self::C1
+    ;
+}
+abstract class _C2&Object&RR = core::Object with core::Record /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C2&Object&RR
+    : super core::Object::•()
+    ;
+}
+abstract class C2 extends self::_C2&Object&RR {
+  synthetic constructor •() → self::C2
+    ;
+}
+abstract class _C3&Object&G = core::Object with self::G<core::Record> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C3&Object&G
+    : super core::Object::•()
+    ;
+}
+abstract class C3 extends self::_C3&Object&G {
+  synthetic constructor •() → self::C3
+    ;
+}
+abstract class _C4&Object&G = core::Object with self::G<core::Record> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C4&Object&G
+    : super core::Object::•()
+    ;
+}
+abstract class C4 extends self::_C4&Object&G {
+  synthetic constructor •() → self::C4
+    ;
+}
+static method main() → dynamic
+  ;

@@ -129,14 +129,15 @@ class DevAnalysisServer {
       }
     });
 
-    _channel.sendRequest(Request('${_nextId++}', 'server.setSubscriptions', {
+    await _channel
+        .sendRequest(Request('${_nextId++}', 'server.setSubscriptions', {
       'subscriptions': ['STATUS'],
     }));
 
     directories =
         directories.map((dir) => path.normalize(path.absolute(dir))).toList();
 
-    _channel.sendRequest(Request(
+    await _channel.sendRequest(Request(
       '${_nextId++}',
       'analysis.setAnalysisRoots',
       {'included': directories, 'excluded': []},

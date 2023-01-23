@@ -14,7 +14,7 @@ class DataStream<T extends core::Object? = dynamic> extends core::Object {
     self::DataStream::T? lastValue = block {
       #C1!;
     } =>throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
-    if(!(throw "Attempt to execute code removed by Dart AOT compiler (TFA)") && false && !([@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] lastValue{self::DataStream::T & self::Disposable /* '!' & '!' = '!' */} =={core::Object::==}{(core::Object) → core::bool} #C1)) {
+    if(!(throw "Attempt to execute code removed by Dart AOT compiler (TFA)") && false && !([@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] lastValue{self::DataStream::T% & self::Disposable /* '%' & '!' = '!' */} =={core::Object::==}{(core::Object) → core::bool} #C1)) {
     }
   }
 }

@@ -22,6 +22,8 @@ class NonAbstract implements Enum {
   // [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE
 
   int get index => 42;
+  //      ^
+  // [cfe] 'NonAbstract' has 'Enum' as a superinterface and can't contain non-static members with name 'index'.
 }
 
 // Cannot contain a `values` member
@@ -43,28 +45,28 @@ abstract class AbstractImplementsWithIndex implements Enum {
   int get index => 42;
   //      ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
-  // [cfe] unspecified
+  // [cfe] 'AbstractImplementsWithIndex' has 'Enum' as a superinterface and can't contain non-static members with name 'index'.
 }
 
 abstract class AbstractExtendsWithIndex extends Enum {
   int get index => 42;
   //      ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
-  // [cfe] unspecified
+  // [cfe] 'AbstractExtendsWithIndex' has 'Enum' as a superinterface and can't contain non-static members with name 'index'.
 }
 
 mixin MixinWithIndex on Enum {
   int get index => 42;
   //      ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
-  // [cfe] unspecified
+  // [cfe] 'MixinWithIndex' has 'Enum' as a superinterface and can't contain non-static members with name 'index'.
 }
 
 mixin MixinWithIndex2 implements Enum {
   int get index => 42;
   //      ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
-  // [cfe] unspecified
+  // [cfe] 'MixinWithIndex2' has 'Enum' as a superinterface and can't contain non-static members with name 'index'.
 }
 
 mixin MixinWithValues on Enum {
@@ -86,30 +88,28 @@ abstract class ClassWithEquals implements Enum {
   bool operator ==(Object other) => true;
   //            ^^
   // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
-  //      ^^^^^^^^
-  // [cfe] unspecified
+  // [cfe] 'ClassWithEquals' has 'Enum' as a superinterface and can't contain non-static members with name '=='.
 }
 
 mixin MixinWithEquals implements Enum {
   bool operator ==(Object other) => true;
   //            ^^
   // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
-  //      ^^^^^^^^
-  // [cfe] unspecified
+  // [cfe] 'MixinWithEquals' has 'Enum' as a superinterface and can't contain non-static members with name '=='.
 }
 
 abstract class ClassWithHashCode implements Enum {
   int get hashCode => 0;
   //      ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
-  // [cfe] unspecified
+  // [cfe] 'ClassWithHashCode' has 'Enum' as a superinterface and can't contain non-static members with name 'hashCode'.
 }
 
 mixin MixinWithHashCode implements Enum {
   int get hashCode => 0;
   //      ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
-  // [cfe] unspecified
+  // [cfe] 'MixinWithHashCode' has 'Enum' as a superinterface and can't contain non-static members with name 'hashCode'.
 }
 
 abstract class SuperclassWithEquals {
@@ -124,13 +124,13 @@ abstract class SuperclassWithHashCode {
 abstract class ClassSuperEquals extends SuperclassWithEquals implements Enum {
   //           ^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
-  // [cfe] unspecified
+  // [cfe] A concrete instance member named '==' can't be inherited from 'SuperclassWithEquals' in a class that implements 'Enum'.
 }
 
 abstract class ClassSuperHash extends SuperclassWithHashCode implements Enum {
   //           ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
-  // [cfe] unspecified
+  // [cfe] A concrete instance member named 'hashCode' can't be inherited from 'SuperclassWithHashCode' in a class that implements 'Enum'.
 }
 
 // No class can implement an actual enum.
@@ -157,6 +157,7 @@ abstract class MixesInEnum with MyEnum {
   // [cfe] Can't use 'MyEnum' as a mixin because it has constructors.
   //                            ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.MIXIN_OF_NON_CLASS
+  // [cfe] The class 'MyEnum' can't be used as a mixin because it extends a class other than 'Object'.
 }
 
 mixin MixinImplementsEnum implements MyEnum {
@@ -187,6 +188,7 @@ enum EnumMixesInEnum with MyEnum {
   // [cfe] Can't use 'MyEnum' as a mixin because it has constructors.
   //                      ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.MIXIN_OF_NON_CLASS
+  // [cfe] The class 'MyEnum' can't be used as a mixin because it extends a class other than 'Object'.
   e1;
 }
 

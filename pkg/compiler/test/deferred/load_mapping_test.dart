@@ -8,7 +8,7 @@ import 'dart:convert';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_api.dart' as api;
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 void testLoadMap() async {
   var collector = new OutputCollector();

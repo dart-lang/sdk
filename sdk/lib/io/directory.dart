@@ -283,8 +283,9 @@ abstract class Directory implements FileSystemEntity {
   /// same recursive descent, but will report it as a [Link]
   /// the second time it is seen.
   ///
-  /// The result is a stream of [FileSystemEntity] objects
-  /// for the directories, files, and links.
+  /// The result is a [Stream] of [FileSystemEntity] objects for the
+  /// directories, files, and links. The [Stream] will be in an arbitrary
+  /// order and does not include the special entries `'.'` and `'..'`.
   Stream<FileSystemEntity> list(
       {bool recursive = false, bool followLinks = true});
 
@@ -307,7 +308,8 @@ abstract class Directory implements FileSystemEntity {
   /// the second time it is seen.
   ///
   /// Returns a [List] containing [FileSystemEntity] objects for the
-  /// directories, files, and links.
+  /// directories, files, and links. The [List] will be in an arbitrary order
+  /// and does not include the special entries `'.'` and `'..'`.
   List<FileSystemEntity> listSync(
       {bool recursive = false, bool followLinks = true});
 

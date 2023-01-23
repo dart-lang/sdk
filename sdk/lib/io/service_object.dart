@@ -14,8 +14,6 @@ abstract class _ServiceObject {
     return __serviceId;
   }
 
-  Map _toJSON(bool ref);
-
   String get _servicePath => "$_serviceTypePath/$_serviceId";
 
   String get _serviceTypePath;

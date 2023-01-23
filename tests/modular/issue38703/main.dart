@@ -4,5 +4,5 @@ import 'package:expect/expect.dart';
 const Map<Key, String> m = {someKey: "PASSED"};
 
 main() {
-  Expect.equals(m[someKey], "PASSED");
+  Expect.equals("PASSED", m[someKey]);
 }

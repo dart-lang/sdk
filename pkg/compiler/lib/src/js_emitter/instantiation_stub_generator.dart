@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.js_emitter.instantiation_stub_generator;
 
 import '../common/elements.dart' show JCommonElements, JElementEnvironment;
@@ -12,15 +10,15 @@ import '../io/source_information.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/namer.dart' show Namer;
+import '../js_model/elements.dart' show JField;
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart' show SelectorConstraints;
-import '../world.dart' show JClosedWorld;
-
 import 'model.dart';
 
-import 'code_emitter_task.dart' show CodeEmitterTask, Emitter;
+import 'js_emitter.dart' show CodeEmitterTask, Emitter;
 
 // Generator of stubs required for Instantiation classes.
 class InstantiationStubGenerator {
@@ -93,11 +91,11 @@ class InstantiationStubGenerator {
       _namer.instanceFieldPropertyName(functionField),
       _namer.invocationName(targetSelector),
       arguments,
-    ]);
+    ]) as jsAst.Fun;
     // TODO(sra): .withSourceInformation(sourceInformation);
 
     jsAst.Name name = _namer.invocationName(callSelector);
-    return ParameterStubMethod(name, null, function);
+    return ParameterStubMethod(name, null, function, element: functionField);
   }
 
   /// Generates a stub for a 'signature' selector. The stub calls the underlying
@@ -120,7 +118,8 @@ class InstantiationStubGenerator {
     // TODO(sra): Generate source information for stub that has no member.
     // TODO(sra): .withSourceInformation(sourceInformation);
 
-    return ParameterStubMethod(operatorSignature, null, function);
+    return ParameterStubMethod(operatorSignature, null, function,
+        element: functionField);
   }
 
   jsAst.Fun _generateSignatureNewRti(FieldEntity functionField) =>
@@ -130,12 +129,12 @@ class InstantiationStubGenerator {
         _emitter.staticFunctionAccess(_commonElements.closureFunctionType),
         _namer.instanceFieldPropertyName(functionField),
         _namer.rtiFieldJsName,
-      ]);
+      ]) as jsAst.Fun;
 
   // Returns all stubs for an instantiation class.
   //
   List<StubMethod> generateStubs(
-      ClassEntity instantiationClass, FunctionEntity member) {
+      ClassEntity instantiationClass, FunctionEntity? member) {
     // 1. Find the number of type parameters in [instantiationClass].
     int typeArgumentCount = _closedWorld.dartTypes
         .getThisType(instantiationClass)
@@ -144,17 +143,16 @@ class InstantiationStubGenerator {
     assert(typeArgumentCount > 0);
 
     // 2. Find the function field access path.
-    FieldEntity functionField;
+    late FieldEntity functionField;
     _elementEnvironment.forEachInstanceField(instantiationClass,
         (ClassEntity enclosing, FieldEntity field) {
-      if (_closedWorld.fieldAnalysis.getFieldData(field).isElided) return;
+      if (_closedWorld.fieldAnalysis.getFieldData(field as JField).isElided)
+        return;
       if (field.name == '_genericClosure') functionField = field;
     });
-    assert(functionField != null,
-        "Can't find Closure field of $instantiationClass");
 
     String call = _namer.closureInvocationSelectorName;
-    Map<Selector, SelectorConstraints> callSelectors =
+    Map<Selector, SelectorConstraints>? callSelectors =
         _codegenWorld.invocationsByName(call);
 
     Set<ParameterStructure> computeLiveParameterStructures() {
@@ -179,7 +177,7 @@ class InstantiationStubGenerator {
     // with filled-in type arguments.
 
     if (callSelectors != null) {
-      Set<ParameterStructure> parameterStructures;
+      Set<ParameterStructure>? parameterStructures;
       for (Selector selector in callSelectors.keys) {
         CallStructure callStructure = selector.callStructure;
         if (callStructure.typeArgumentCount != 0) continue;

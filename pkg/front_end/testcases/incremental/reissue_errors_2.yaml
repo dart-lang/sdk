@@ -20,11 +20,14 @@ worlds:
         class B extends A {}
     expectedLibraryCount: 2
     errors: true
+
   - entry: main.dart
     errors: true
     worldType: updated
     expectInitializeFromDill: false
     expectedLibraryCount: 2
+    advancedInvalidation: outlineChange
+
   - entry: main.dart
     sources:
       main.dart: |
@@ -37,12 +40,16 @@ worlds:
         class B extends A {}
     expectedLibraryCount: 2
     errors: true
+    advancedInvalidation: outlineChange
+
   - entry: main.dart
     errors: true
     worldType: updated
     invalidate:
       - main.dart
     expectedLibraryCount: 2
+    advancedInvalidation: outlineChange
+
   - entry: main.dart
     errors: true
     worldType: updated
@@ -54,6 +61,8 @@ worlds:
 
         class B extends A {}
     expectedLibraryCount: 2
+    advancedInvalidation: problemsInLibrary
+
   - entry: main.dart
     errors: false
     worldType: updated
@@ -63,3 +72,4 @@ worlds:
       b.dart: |
         class B extends Object {}
     expectedLibraryCount: 2
+    advancedInvalidation: problemsInLibrary

@@ -13,8 +13,7 @@
 
 namespace dart {
 
-std::unique_ptr<Message> WriteMessage(bool can_send_any_object,
-                                      bool same_group,
+std::unique_ptr<Message> WriteMessage(bool same_group,
                                       const Object& obj,
                                       Dart_Port dest_port,
                                       Message::Priority priority);

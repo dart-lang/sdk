@@ -26,7 +26,7 @@ class CiderRenameComputerTest extends CiderServiceTest {
   @override
   void setUp() {
     super.setUp();
-    BazelMockPackages.instance.addFlutter(resourceProvider);
+    BlazeMockPackages.instance.addFlutter(resourceProvider);
   }
 
   void test_cannotRename_inSdk() async {

@@ -26,24 +26,28 @@ class RemoveUnusedLocalVariable extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final declaration = node.parent;
-    if (!(declaration is VariableDeclaration && declaration.name == node)) {
+    final node = this.node;
+    if (!(node is VariableDeclaration && node.name == token)) {
       return;
     }
 
-    var element = declaration.declaredElement;
+    var element = node.declaredElement;
     if (element is! LocalVariableElement) {
       return;
     }
 
     final sourceRanges = <SourceRange>[];
 
-    final functionBody = declaration.thisOrAncestorOfType<FunctionBody>();
+    final functionBody = node.thisOrAncestorOfType<FunctionBody>();
     if (functionBody == null) {
       return;
     }
 
-    final references = findLocalElementReferences(functionBody, element);
+    final references = [
+      node,
+      ...findLocalElementReferences(functionBody, element),
+    ];
+
     for (var reference in references) {
       final node = reference.thisOrAncestorMatching((node) =>
           node is VariableDeclaration || node is AssignmentExpression);

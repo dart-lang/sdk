@@ -81,24 +81,29 @@ class _Platform {
   static Map<String, String> get environment {
     if (_environmentCache == null) {
       var env = _environment();
-      if (env is! OSError) {
+      if (env is Iterable<Object?>) {
         var isWindows = operatingSystem == 'windows';
         var result = isWindows
             ? new _CaseInsensitiveStringMap<String>()
             : new Map<String, String>();
-        for (var str in env) {
-          if (str == null) {
+        for (var environmentEntry in env) {
+          if (environmentEntry == null) {
             continue;
           }
+          // TODO(kallentu): [_environment()] emits Iterable<dynamic> which is
+          // why the cast and check is needed. Every element is a String,
+          // however, so refactor [_environment()] at some point to emit
+          // Iterable<String>s instead.
+          var text = environmentEntry as String;
           // The Strings returned by [_environment()] are expected to be
           // valid environment entries, but exceptions have been seen
           // (e.g., an entry of just '=' has been seen on OS/X).
           // Invalid entries (lines without a '=' or with an empty name)
           // are discarded.
-          var equalsIndex = str.indexOf('=');
+          var equalsIndex = text.indexOf('=');
           if (equalsIndex > 0) {
-            result[str.substring(0, equalsIndex)] =
-                str.substring(equalsIndex + 1);
+            result[text.substring(0, equalsIndex)] =
+                text.substring(equalsIndex + 1);
           }
         }
         _environmentCache = new UnmodifiableMapView<String, String>(result);

@@ -5,10 +5,10 @@
 // Patch file for dart:collection classes.
 import 'dart:_foreign_helper' show JS, JSExportName;
 import 'dart:_runtime' as dart;
+import 'dart:_internal' show patch;
 import 'dart:_interceptors' show JSArray;
 import 'dart:_js_helper'
     show
-        patch,
         LinkedMap,
         IdentityMap,
         CustomHashMap,

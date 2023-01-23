@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart' show LibraryDependency;
 
 import 'builder/builder.dart';
 import 'builder/library_builder.dart';
+import 'builder/name_iterator.dart';
 import 'builder/prefix_builder.dart';
 
 import 'kernel/utils.dart' show toKernelCombinators;
@@ -74,18 +75,31 @@ class Import {
         prefixBuilder!.addToExportScope(name, member, charOffset);
       };
     }
-    imported!.exportScope.forEach((String name, Builder member) {
+    NameIterator<Builder> iterator = imported!.exportScope.filteredNameIterator(
+        includeDuplicates: false, includeAugmentations: false);
+    while (iterator.moveNext()) {
+      String name = iterator.name;
+      Builder member = iterator.current;
+      bool include = true;
       if (combinators != null) {
         for (CombinatorBuilder combinator in combinators!) {
-          if (combinator.isShow && !combinator.names.contains(name)) return;
-          if (combinator.isHide && combinator.names.contains(name)) return;
+          if (combinator.isShow && !combinator.names.contains(name)) {
+            include = false;
+            break;
+          }
+          if (combinator.isHide && combinator.names.contains(name)) {
+            include = false;
+            break;
+          }
         }
       }
-      add(name, member);
-    });
+      if (include) {
+        add(name, member);
+      }
+    }
     if (prefixBuilder != null) {
-      Builder? existing =
-          importer.addBuilder(prefix, prefixBuilder!, prefixCharOffset);
+      Builder? existing = importer.addBuilder(
+          prefixBuilder!.name, prefixBuilder!, prefixCharOffset);
       if (existing == prefixBuilder) {
         importer.addToScope(prefix!, prefixBuilder!, prefixCharOffset, true);
       }

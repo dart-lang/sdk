@@ -75,19 +75,9 @@ library /*isNonNullableByDefault*/;
 //   @AbstractClass()
 //    ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/constants/various2.dart:99:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-//   @AbstractClass()
-//    ^
-//
 // pkg/front_end/testcases/general/constants/various2.dart:102:4: Error: The class 'AbstractClassWithConstructor' is abstract and can't be instantiated.
 //   @AbstractClassWithConstructor()
 //    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/constants/various2.dart:102:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-//   @AbstractClassWithConstructor()
-//    ^
 //
 // pkg/front_end/testcases/general/constants/various2.dart:118:39: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 // Try using a constructor or factory that is 'const'.
@@ -110,11 +100,6 @@ library /*isNonNullableByDefault*/;
 // const AbstractClassWithConstructor();
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/constants/various2.dart:96:7: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-// const AbstractClassWithConstructor();
-//       ^
-//
 // pkg/front_end/testcases/general/constants/various2.dart:168:7: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 // Try using a constructor or factory that is 'const'.
 // const ClassWithNonEmptyConstConstructor();
@@ -133,14 +118,6 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/general/constants/various2.dart:114:7: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
 // class ExtendsFoo1 extends Foo {
 //       ^
-//
-// pkg/front_end/testcases/general/constants/various2.dart:99:4: Error: Not a constant expression.
-//   @AbstractClass()
-//    ^
-//
-// pkg/front_end/testcases/general/constants/various2.dart:102:4: Error: Not a constant expression.
-//   @AbstractClassWithConstructor()
-//    ^
 //
 // pkg/front_end/testcases/general/constants/various2.dart:64:37: Error: Constant evaluation error:
 // const binaryOnDouble = willBeDouble << 2;
@@ -263,9 +240,9 @@ abstract class AbstractClassWithConstructor extends core::Object /*hasConstConst
   abstract method foo() → core::int;
 }
 class NotAbstractClass extends core::Object {
-  @invalid-expression "Not a constant expression."
+  @invalid-expression "The class 'AbstractClass' is abstract and can't be instantiated."
   field core::Object foo = null;
-  @invalid-expression "Not a constant expression."
+  @invalid-expression "The class 'AbstractClassWithConstructor' is abstract and can't be instantiated."
   field core::Object bar = null;
   synthetic constructor •() → self::NotAbstractClass
     : super core::Object::•()
@@ -423,10 +400,7 @@ const y3 = y--;
 static const field core::int y4 = invalid-expression "pkg/front_end/testcases/general/constants/various2.dart:85:12: Error: Setter not found: 'y'.
 const y4 = y++;
            ^";
-static field self::AbstractClassWithConstructor abstractClassWithConstructor = throw invalid-expression "pkg/front_end/testcases/general/constants/various2.dart:96:7: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-Try using a constructor or factory that is 'const'.
-const AbstractClassWithConstructor();
-      ^";
+static field self::AbstractClassWithConstructor abstractClassWithConstructor = invalid-expression "The class 'AbstractClassWithConstructor' is abstract and can't be instantiated.";
 static const field self::ExtendsFoo1 extendsFoo1 = invalid-expression "pkg/front_end/testcases/general/constants/various2.dart:118:39: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
 const ExtendsFoo1 extendsFoo1 = const ExtendsFoo1();
@@ -518,7 +492,7 @@ Constructor coverage from constants:
 org-dartlang-testcase:///various2.dart:
 - ExtendsFoo2. (from org-dartlang-testcase:///various2.dart:121:9)
 - Foo. (from org-dartlang-testcase:///various2.dart:109:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - ConstClassWithFailingAssertWithEmptyMessage. (from org-dartlang-testcase:///various2.dart:144:9)
 - ClassWithTypeArguments. (from org-dartlang-testcase:///various2.dart:151:9)
 - ConstClassWithFinalFields2. (from org-dartlang-testcase:///various2.dart:177:9)

@@ -41,13 +41,13 @@ void InlineExitCollector::PrepareGraphs(FlowGraph* callee_graph) {
   COMPILER_TIMINGS_TIMER_SCOPE(callee_graph->thread(), PrepareGraphs);
   ASSERT(callee_graph->graph_entry()->SuccessorCount() == 1);
   ASSERT(callee_graph->max_block_id() > caller_graph_->max_block_id());
-  ASSERT(callee_graph->max_virtual_register_number() >
-         caller_graph_->max_virtual_register_number());
+  ASSERT(callee_graph->current_ssa_temp_index() >
+         caller_graph_->current_ssa_temp_index());
 
   // Adjust the caller's maximum block id and current SSA temp index.
   caller_graph_->set_max_block_id(callee_graph->max_block_id());
   caller_graph_->set_current_ssa_temp_index(
-      callee_graph->max_virtual_register_number());
+      callee_graph->current_ssa_temp_index());
 
   // Attach the outer environment on each instruction in the callee graph.
   ASSERT(call_->env() != NULL);
@@ -218,7 +218,7 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
     if (call_->HasUses()) {
       // Add a phi of the return values.
       PhiInstr* phi = new (Z) PhiInstr(join, num_exits);
-      caller_graph_->AllocateSSAIndexes(phi);
+      caller_graph_->AllocateSSAIndex(phi);
       phi->mark_alive();
       for (intptr_t i = 0; i < num_exits; ++i) {
         ReturnAt(i)->RemoveEnvironment();
@@ -373,8 +373,11 @@ bool SimpleInstanceOfType(const AbstractType& type) {
   // Bail if the type is still uninstantiated at compile time.
   if (!type.IsInstantiated()) return false;
 
-  // Bail if the type is a function or a Dart Function type.
-  if (type.IsFunctionType() || type.IsDartFunctionType()) return false;
+  // Bail if the type is a function, record or a Dart Function type.
+  if (type.IsFunctionType() || type.IsRecordType() ||
+      type.IsDartFunctionType()) {
+    return false;
+  }
 
   ASSERT(type.HasTypeClass());
   const Class& type_class = Class::Handle(type.type_class());

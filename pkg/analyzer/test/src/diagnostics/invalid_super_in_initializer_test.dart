@@ -24,7 +24,6 @@ class C {
       error(ParserErrorCode.INVALID_SUPER_IN_INITIALIZER, 18, 5),
       error(ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 24, 5),
       error(ParserErrorCode.MISSING_IDENTIFIER, 24, 5),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 29, 1),
     ]);
   }
 }

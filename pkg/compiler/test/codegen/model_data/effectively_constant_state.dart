@@ -29,7 +29,7 @@ class Class {
   /*member: Class.state2:elided*/
   final Enum state2;
 
-  Class({this.state1: 1, this.state2: Enum.c});
+  Class({this.state1 = 1, this.state2 = Enum.c});
 
   /*member: Class.method1a:calls=[tester2(0)],params=0*/
   @pragma('dart2js:noInline')

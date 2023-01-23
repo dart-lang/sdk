@@ -1,0 +1,15 @@
+test(dynamic x) {
+switch (x) {
+case var y:
+break;
+}
+}
+
+
+test[StringToken]([BeginToken]dynamic[KeywordToken] x[StringToken])[SimpleToken] {[BeginToken]
+switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+case[KeywordToken] var[KeywordToken] y[StringToken]:[SimpleToken]
+break[KeywordToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

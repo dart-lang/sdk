@@ -313,7 +313,8 @@ void f() {
   x++;
 }
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 48, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 48, 1,
+          messageContains: ["'x'"]),
       error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 57, 1),
       error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 69, 1),
       error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 74, 1),

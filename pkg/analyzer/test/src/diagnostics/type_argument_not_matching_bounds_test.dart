@@ -709,7 +709,7 @@ void main() {}
           contextMessages: [message('/home/test/lib/test.dart', 65, 3)]),
     ]);
     // Instantiate-to-bounds should have instantiated "Bar" to "Bar<Foo>".
-    assertType(result.unit.declaredElement!.getType('Baz')!.supertype,
+    assertType(result.unit.declaredElement!.getClass('Baz')!.supertype,
         'Bar<Foo<dynamic>>');
   }
 

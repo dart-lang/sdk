@@ -54,6 +54,7 @@ worlds:
           ]
         }
     expectedLibraryCount: 1
+    advancedInvalidation: bodiesOnly
   - entry: "package:example/main.dart"
     worldType: updated
     expectInitializeFromDill: false
@@ -78,3 +79,4 @@ worlds:
           ]
         }
     expectedLibraryCount: 1
+    advancedInvalidation: bodiesOnly

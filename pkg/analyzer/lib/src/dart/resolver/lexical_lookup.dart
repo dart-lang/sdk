@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 
 /// Class containing static methods for performing lexical resolution of
@@ -58,5 +59,16 @@ class LexicalLookupResult {
   final Element? requested;
   final Element? recovery;
 
-  LexicalLookupResult({this.requested, this.recovery});
+  /// The [FunctionType] referenced with `call`.
+  final FunctionType? callFunctionType;
+
+  /// The field referenced in a [RecordType].
+  final RecordTypeField? recordField;
+
+  LexicalLookupResult({
+    this.requested,
+    this.recovery,
+    this.callFunctionType,
+    this.recordField,
+  });
 }

@@ -9,7 +9,7 @@ import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart';
 import 'tools/load.dart';
 import 'tools/save.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 String SOURCEMAP = '''
 {

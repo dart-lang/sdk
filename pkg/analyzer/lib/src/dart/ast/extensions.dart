@@ -79,11 +79,13 @@ DartType? _writeType(AstNode node) {
 extension AstNodeNullableExtension on AstNode? {
   List<ClassMember> get classMembers {
     final self = this;
-    if (self is ClassOrMixinDeclaration) {
+    if (self is ClassDeclaration) {
       return self.members;
     } else if (self is EnumDeclaration) {
       return self.members;
     } else if (self is ExtensionDeclaration) {
+      return self.members;
+    } else if (self is MixinDeclaration) {
       return self.members;
     } else {
       throw UnimplementedError('(${self.runtimeType}) $self');
@@ -186,6 +188,15 @@ extension IndexExpressionExtension on IndexExpression {
 extension ListOfFormalParameterExtension on List<FormalParameter> {
   Iterable<FormalParameterImpl> get asImpl {
     return cast<FormalParameterImpl>();
+  }
+}
+
+extension RecordTypeAnnotationExtension on RecordTypeAnnotation {
+  List<RecordTypeAnnotationField> get fields {
+    return [
+      ...positionalFields,
+      ...?namedFields?.fields,
+    ];
   }
 }
 

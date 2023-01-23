@@ -26,5 +26,5 @@ worlds:
     invalidate:
       - structs.dart
     expectedLibraryCount: 1
-    expectsRebuildBodiesOnly: false
+    advancedInvalidation: problemsInLibrary
 

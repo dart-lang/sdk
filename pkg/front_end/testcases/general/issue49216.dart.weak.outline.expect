@@ -4,14 +4,14 @@ import "dart:core" as core;
 
 class E extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E> values = const <self::E>[self::E::foo];
-  static const field self::E foo = const self::E::•(0, "foo");
+  enum-element static const field self::E foo = const self::E::•(0, "foo");
   const constructor •(core::int #index, core::String #name, [core::int x = 0, core::String y = "", core::num? z = null]) → self::E
     : super core::_Enum::•(#index, #name)
     ;
   const constructor named(core::int #index, core::String #name, core::int x, {core::String y = "", core::bool b = false, core::String? z = null, core::bool? t = null}) → self::E
     : super core::_Enum::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
 }
 static method main() → dynamic

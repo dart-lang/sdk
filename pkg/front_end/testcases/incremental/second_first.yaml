@@ -5,7 +5,6 @@
 type: newworld
 worlds:
   - entry: first.dart
-    experiments: alternative-invalidation-strategy
     sources:
       first.dart: |
         import 'second.dart';
@@ -18,8 +17,8 @@ worlds:
       second.dart: |
         method2() {}
     expectedLibraryCount: 2
+
   - entry: first.dart
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
@@ -40,4 +39,4 @@ worlds:
           print('method2');
         }
     expectedLibraryCount: 2
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly

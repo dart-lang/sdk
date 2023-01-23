@@ -19,7 +19,7 @@ class NaiveTypeChecker extends type_checker.TypeChecker {
   final FailureListener failures;
 
   factory NaiveTypeChecker(FailureListener failures, Component component,
-      {bool ignoreSdk: false}) {
+      {bool ignoreSdk = false}) {
     CoreTypes coreTypes = new CoreTypes(component);
     return new NaiveTypeChecker._(
         failures,
@@ -268,10 +268,7 @@ super method declares ${superParameter.type}
 
   @override
   void checkUnresolvedInvocation(DartType receiver, TreeNode where) {
-    while (receiver is TypeParameterType) {
-      TypeParameterType typeParameterType = receiver;
-      receiver = typeParameterType.bound;
-    }
+    receiver = receiver.resolveTypeParameterType;
 
     if (receiver is DynamicType) {
       return;

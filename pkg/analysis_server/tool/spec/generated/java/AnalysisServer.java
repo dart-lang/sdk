@@ -464,7 +464,7 @@ public interface AnalysisServer {
    *
    * @param paths A list of objects each containing a path and the additional libraries from which
    *        the client is interested in receiving completion suggestions. If one configured path is
-   *        beneath another, the descendent will override the ancestors' configured libraries of
+   *        beneath another, the descendant will override the ancestors' configured libraries of
    *        interest.
    *
    * @deprecated
@@ -517,8 +517,9 @@ public interface AnalysisServer {
    *        difference is that in test mode the fix processor will look for a configuration file that
    *        can modify the content of the data file used to compute the fixes when data-driven fixes
    *        are being considered. If this field is omitted the flag defaults to false.
+   * @param codes A list of diagnostic codes to be fixed.
    */
-  public void edit_bulkFixes(List<String> included, boolean inTestMode, BulkFixesConsumer consumer);
+  public void edit_bulkFixes(List<String> included, boolean inTestMode, List<String> codes, BulkFixesConsumer consumer);
 
   /**
    * {@code edit.format}
@@ -879,20 +880,6 @@ public interface AnalysisServer {
    * Return {@code true} if the socket is open.
    */
   public boolean isSocketOpen();
-
-  /**
-   * {@code kythe.getKytheEntries}
-   *
-   * Return the list of KytheEntry objects for some file, given the current state of the file system
-   * populated by "analysis.updateContent".
-   *
-   * If a request is made for a file that does not exist, or that is not currently subject to
-   * analysis (e.g. because it is not associated with any analysis root specified to
-   * analysis.setAnalysisRoots), an error of type GET_KYTHE_ENTRIES_INVALID_FILE will be generated.
-   *
-   * @param file The file containing the code for which the Kythe Entry objects are being requested.
-   */
-  public void kythe_getKytheEntries(String file, GetKytheEntriesConsumer consumer);
 
   /**
    * Remove the given listener from the list of listeners that will receive notification when new

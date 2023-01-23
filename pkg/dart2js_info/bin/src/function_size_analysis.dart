@@ -33,7 +33,7 @@ class FunctionSizeCommand extends Command<void> with PrintUsageException {
   }
 }
 
-showCodeDistribution(AllInfo info,
+void showCodeDistribution(AllInfo info,
     {bool Function(Info info)? filter, bool showLibrarySizes = false}) {
   var realTotal = info.program!.size;
   filter ??= (i) => true;
@@ -76,7 +76,7 @@ showCodeDistribution(AllInfo info,
   var mainMethod = info.functions.firstWhere((f) => f.name == 'main');
   var dominatorTree = graph.dominatorTree(mainMethod);
   var dominatedSize = {};
-  int helper(n) {
+  int helper(Info n) {
     int size = n.size;
     assert(!dominatedSize.containsKey(n));
     dominatedSize[n] = 0;
@@ -92,7 +92,9 @@ showCodeDistribution(AllInfo info,
     dominatedSize.putIfAbsent(n, () => n.size);
   }
   reported.sort((a, b) =>
+      // ignore: avoid_dynamic_calls
       (dominatedSize[b] + nodeData[b].maxSize) -
+      // ignore: avoid_dynamic_calls
       (dominatedSize[a] + nodeData[a].maxSize));
 
   if (showLibrarySizes) {
@@ -124,6 +126,7 @@ showCodeDistribution(AllInfo info,
   for (var info in reported) {
     var size = info.size;
     var min = dominatedSize[info];
+    // ignore: avoid_dynamic_calls
     var max = nodeData[info].maxSize;
     _showElement(
         longName(info, useLibraryUri: true), size, min, max, realTotal);
@@ -152,25 +155,26 @@ class _SccData {
   }
 }
 
-_showLibHeader(int namePadding) {
+void _showLibHeader(int namePadding) {
   print(' ${pad("Library", namePadding, right: true)}'
       ' ${pad("bytes", 8)} ${pad("%", 6)}');
 }
 
-_showLib(String msg, int size, int total, int namePadding) {
+void _showLib(String msg, int size, int total, int namePadding) {
   var percent = (size * 100 / total).toStringAsFixed(2);
   print(' ${pad(msg, namePadding, right: true)}'
       ' ${pad(size, 8)} ${pad(percent, 6)}%');
 }
 
-_showElementHeader() {
+void _showElementHeader() {
   print('${pad("element size", 16)} '
       '${pad("dominated size", 18)} '
       '${pad("reachable size", 18)} '
       'Element identifier');
 }
 
-_showElement(String name, int size, int dominatedSize, int maxSize, int total) {
+void _showElement(
+    String name, int size, int dominatedSize, int maxSize, int total) {
   var percent = (size * 100 / total).toStringAsFixed(2);
   var minPercent = (dominatedSize * 100 / total).toStringAsFixed(2);
   var maxPercent = (maxSize * 100 / total).toStringAsFixed(2);

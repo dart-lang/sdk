@@ -32,17 +32,18 @@ import 'fasta/kernel/macro/macro.dart';
 import 'fasta/kernel/utils.dart' show printComponentText, serializeComponent;
 import 'fasta/kernel/verifier.dart' show verifyComponent;
 import 'fasta/source/source_loader.dart' show SourceLoader;
+import 'fasta/uri_offset.dart';
 import 'fasta/uri_translator.dart' show UriTranslator;
 
 /// Implementation for the
 /// `package:front_end/src/api_prototype/kernel_generator.dart` and
 /// `package:front_end/src/api_prototype/summary_generator.dart` APIs.
 Future<CompilerResult> generateKernel(ProcessedOptions options,
-    {bool buildSummary: false,
-    bool buildComponent: true,
-    bool truncateSummary: false,
-    bool includeOffsets: true,
-    bool includeHierarchyAndCoreTypes: false}) async {
+    {bool buildSummary = false,
+    bool buildComponent = true,
+    bool truncateSummary = false,
+    bool includeOffsets = true,
+    bool includeHierarchyAndCoreTypes = false}) async {
   return await CompilerContext.runWithOptions(options, (_) async {
     return await generateKernelInternal(
         buildSummary: buildSummary,
@@ -54,12 +55,12 @@ Future<CompilerResult> generateKernel(ProcessedOptions options,
 }
 
 Future<CompilerResult> generateKernelInternal(
-    {bool buildSummary: false,
-    bool buildComponent: true,
-    bool truncateSummary: false,
-    bool includeOffsets: true,
-    bool retainDataForTesting: false,
-    bool includeHierarchyAndCoreTypes: false}) async {
+    {bool buildSummary = false,
+    bool buildComponent = true,
+    bool truncateSummary = false,
+    bool includeOffsets = true,
+    bool retainDataForTesting = false,
+    bool includeHierarchyAndCoreTypes = false}) async {
   ProcessedOptions options = CompilerContext.current.options;
   options.reportNullSafetyCompilationModeInfo();
   FileSystem fs = options.fileSystem;
@@ -120,7 +121,10 @@ Future<CompilerResult> generateKernelInternal(
           includeHierarchyAndCoreTypes: includeHierarchyAndCoreTypes,
           retainDataForTesting: retainDataForTesting);
     }
-  }, () => sourceLoader?.currentUriForCrashReporting ?? options.inputs.first);
+  },
+      () =>
+          sourceLoader?.currentUriForCrashReporting ??
+          new UriOffset(options.inputs.first, TreeNode.noOffset));
 }
 
 Future<CompilerResult> _buildInternal(
@@ -188,10 +192,7 @@ Future<CompilerResult> _buildInternal(
     // summaries without building a full component (at this time, that's
     // the only need we have for these transformations).
     if (!buildComponent) {
-      options.target.performOutlineTransformations(
-          trimmedSummaryComponent,
-          kernelTarget.loader.coreTypes,
-          kernelTarget.loader.referenceFromIndex);
+      options.target.performOutlineTransformations(trimmedSummaryComponent);
       options.ticker.logMs("Transformed outline");
     }
     // Don't include source (but do add it above to include importUris).

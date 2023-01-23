@@ -4,22 +4,23 @@
 
 /*library: scope=[
   NamedExtension,
-  _extension#0,
+  _extension#1,
   async.dart.FutureExtensions,
+  core.dart.DateTimeCopyWith,
   core.dart.EnumByName,
   core.dart.EnumName]*/
 
-/*class: _extension#0:
- builder-name=_extension#0,
+/*class: _extension#1:
+ builder-name=_unnamed-extension_,
  builder-onType=String,
- extension-members=[static staticMethod=_extension#0|staticMethod],
- extension-name=_extension#0,
+ extension-members=[static staticMethod=_extension#1|staticMethod],
+ extension-name=_extension#1,
  extension-onType=String!
 */
 extension on String {
-  /*member: _extension#0|staticMethod:
+  /*member: _extension#1|staticMethod:
    builder-name=staticMethod,
-   member-name=_extension#0|staticMethod
+   member-name=_extension#1|staticMethod
   */
   static void staticMethod() {}
 }

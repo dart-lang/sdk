@@ -549,7 +549,7 @@ abstract class _SoundSplayTreeIterator<inout K, inout T> implements Iterator<T> 
       : _tree = tree,
         _modificationCount = tree._modificationCount,
         _splayCount = tree._splayCount {
-    _findLeftMostDescendent(tree._root);
+    _findLeftMostDescendant(tree._root);
   }
 
   _SoundSplayTreeIterator.startAt(_SoundSplayTree<K, _SoundSplayTreeNode<K>> tree, K startKey)
@@ -560,7 +560,7 @@ abstract class _SoundSplayTreeIterator<inout K, inout T> implements Iterator<T> 
     _splayCount = tree._splayCount;
     if (compare < 0) {
       // Don't include the root, start at the next element after the root.
-      _findLeftMostDescendent(tree._root.right);
+      _findLeftMostDescendant(tree._root.right);
     } else {
       _workList.add(tree._root);
     }
@@ -571,7 +571,7 @@ abstract class _SoundSplayTreeIterator<inout K, inout T> implements Iterator<T> 
     return _getValue(_currentNode);
   }
 
-  void _findLeftMostDescendent(_SoundSplayTreeNode<K> node) {
+  void _findLeftMostDescendant(_SoundSplayTreeNode<K> node) {
     while (node != null) {
       _workList.add(node);
       node = node.left;
@@ -588,10 +588,10 @@ abstract class _SoundSplayTreeIterator<inout K, inout T> implements Iterator<T> 
     assert(_workList.isNotEmpty);
     _workList.clear();
     if (currentNode == null) {
-      _findLeftMostDescendent(_tree._root);
+      _findLeftMostDescendant(_tree._root);
     } else {
       _tree._splay(currentNode.key);
-      _findLeftMostDescendent(_tree._root.right);
+      _findLeftMostDescendant(_tree._root.right);
       assert(_workList.isNotEmpty);
     }
   }
@@ -613,7 +613,7 @@ abstract class _SoundSplayTreeIterator<inout K, inout T> implements Iterator<T> 
       _rebuildWorkList(_currentNode);
     }
     _currentNode = _workList.removeLast();
-    _findLeftMostDescendent(_currentNode.right);
+    _findLeftMostDescendant(_currentNode.right);
     return true;
   }
 

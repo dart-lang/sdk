@@ -41,7 +41,7 @@ var t = a.C<int>;
       typeLiteral,
       findElement.importFind('package:test/a.dart').class_('C'),
       'C<int>',
-      expectedPrefix: findElement.import('package:test/a.dart').prefix,
+      expectedPrefix: findElement.import('package:test/a.dart').prefix?.element,
     );
   }
 
@@ -133,7 +133,7 @@ var t = a.CA<int>;
       typeLiteral,
       findElement.importFind('package:test/a.dart').typeAlias('CA'),
       'C<int>',
-      expectedPrefix: findElement.import('package:test/a.dart').prefix,
+      expectedPrefix: findElement.import('package:test/a.dart').prefix?.element,
     );
   }
 

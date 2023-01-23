@@ -2,38 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart._http;
-
-import "dart:async";
-import "dart:collection";
-import "dart:convert";
-import "dart:developer";
-import "dart:io";
-import "dart:isolate";
-import "dart:math";
-import "dart:typed_data";
+// ignore: IMPORT_INTERNAL_LIBRARY
+import "dart:_http" show Testing$HttpDate;
 
 import "package:expect/expect.dart";
 
-import "../../../sdk/lib/internal/internal.dart"
-    show Since, valueOfNonNullableParamWithDefault, HttpStatus;
-
-part "../../../sdk/lib/_http/crypto.dart";
-part "../../../sdk/lib/_http/embedder_config.dart";
-part "../../../sdk/lib/_http/http_impl.dart";
-part "../../../sdk/lib/_http/http_date.dart";
-part "../../../sdk/lib/_http/http_parser.dart";
-part "../../../sdk/lib/_http/http_headers.dart";
-part "../../../sdk/lib/_http/http_session.dart";
+var _parseCookieDate = Testing$HttpDate.test$_parseCookieDate;
 
 void testParseHttpCookieDate() {
-  Expect.throws(() => HttpDate._parseCookieDate(""));
+  Expect.throws(() => _parseCookieDate(""));
 
   test(int year, int month, int day, int hours, int minutes, int seconds,
       String formatted) {
     DateTime date =
         new DateTime.utc(year, month, day, hours, minutes, seconds, 0);
-    Expect.equals(date, HttpDate._parseCookieDate(formatted));
+    Expect.equals(date, _parseCookieDate(formatted));
   }
 
   test(2012, DateTime.june, 19, 14, 15, 01, "tue, 19-jun-12 14:15:01 gmt");

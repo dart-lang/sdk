@@ -1071,5 +1071,61 @@ abstract class SubtypeTest<T, E> {
     isSubtype("ExtendedClass", "Extension");
     isSubtype("ExtendedGenericClass<num>", "GenericExtension<num>");
     isSubtype("ExtendedSubclass", "Extension");
+
+    // Records.
+    isSubtype("Never", "(int, String)");
+    isSubtype("(int, String)", "Object");
+    isSubtype("(int, String)", "(Object, Object)");
+    isSubtype("(Never, Never)", "(int, String)");
+    isSubtype("(int, String)", "(num, Object)");
+    isSubtype("Never", "(int, {String foo})");
+    isSubtype("(int, {String foo})", "Object");
+    isSubtype("(int, {String foo})", "(Object, {Object foo})");
+    isSubtype("(Never, {Never foo})", "(int, {String foo})");
+    isSubtype("(int, {String foo})", "(num, {Object foo})");
+    isObliviousSubtype("Null", "(int, String)");
+    isNotSubtype("(int, String)", "Null");
+    isNotSubtype("(int, String, bool)", "(int, String)");
+    isNotSubtype("(int, String)", "(int, String, bool)");
+    isNotSubtype("(int, {String foo})", "(int, {String foo, bool bar})");
+    isNotSubtype("(int, {String foo, bool bar})", "(int, {String foo})");
+    isNotSubtype("(int, Never)", "Never");
+    isSubtype("((int, String), bool)", "((num, Object), Object)");
+    isNotSubtype("((int, String), bool)", "(num, (Object, Object))");
+    isSubtype("(int, String)", "Record");
+    isSubtype("(int, {String foo})", "Record");
+    isSubtype("({int foo, String bar})", "Record");
+    isNotSubtype("Record", "(int, String)");
+    isSubtype("Record", "Object");
+    isSubtype("Never", "Record");
+    isObliviousSubtype("Null", "Record");
+    isNotSubtype("(int, String)", "Function");
+    isNotSubtype("Function", "(int, String)");
+    isNotSubtype("(int, String)", "(int, String) -> void");
+    isNotSubtype("(int, String) -> void", "(int, String)");
+    isNotSubtype("(int, String)", "int");
+    isNotSubtype("int", "(int, String)");
+    isSubtype("(int, String)", "FutureOr<(int, String)>");
+    isNotSubtype("FutureOr<(int, String)>", "(int, String)");
+    isSubtype("T", "(int, String)", typeParameters: "T extends (int, String)");
+    isNotSubtype("(int, String)", "T",
+        typeParameters: "T extends (int, String)");
+    isSubtype("T & (int, String)", "(int, String)",
+        typeParameters: "T extends Record");
+    isSubtype("T & (int, String)", "(int, String)",
+        typeParameters: "T extends Object?");
+    isSubtype("T & (int, double)", "(num, num)",
+        typeParameters: "T extends Record");
+    isSubtype("T & (int, double)", "(num, num)",
+        typeParameters: "T extends Object?");
+    isNotSubtype("(int, String)", "T & (int, String)",
+        typeParameters: "T extends Record");
+    isNotSubtype("(int, String)", "T & (int, String)",
+        typeParameters: "T extends Object?");
+    isSubtype("(int, String)", "(int, String)?");
+    isObliviousSubtype("(int, String)?", "(int, String)");
+    isSubtype("Null", "(int, String)?");
+    isObliviousSubtype("Null", "(int, String)");
+    isObliviousSubtype("(int, String)?", "Record");
   }
 }

@@ -8,7 +8,6 @@ import 'package:analysis_server/src/protocol_server.dart'
     hide DiagnosticMessage;
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart' as engine;
@@ -250,6 +249,7 @@ class EnumTest {
       engine.ElementKind.NAME: ElementKind.UNKNOWN,
       engine.ElementKind.NEVER: ElementKind.UNKNOWN,
       engine.ElementKind.PART: ElementKind.COMPILATION_UNIT,
+      engine.ElementKind.RECORD: ElementKind.UNKNOWN,
       engine.ElementKind.UNIVERSE: ElementKind.UNKNOWN
     });
   }
@@ -262,6 +262,10 @@ class EnumTest {
       MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS:
           SearchResultKind.INVOCATION,
       MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF: SearchResultKind.REFERENCE,
+      MatchKind.REFERENCE_IN_EXTENDS_CLAUSE: SearchResultKind.REFERENCE,
+      MatchKind.REFERENCE_IN_IMPLEMENTS_CLAUSE: SearchResultKind.REFERENCE,
+      MatchKind.REFERENCE_IN_WITH_CLAUSE: SearchResultKind.REFERENCE,
+      MatchKind.REFERENCE_IN_ON_CLAUSE: SearchResultKind.REFERENCE,
     });
   }
 }
@@ -363,17 +367,6 @@ class MockAnalysisError implements engine.AnalysisError {
 
   @override
   engine.Source get source => _source!;
-}
-
-class MockAnalysisSession implements AnalysisSession {
-  Map<String, FileResult> fileResults = {};
-
-  void addFileResult(FileResult result) {
-    fileResults[result.path] = result;
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockErrorCode implements engine.ErrorCode {

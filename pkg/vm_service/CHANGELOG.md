@@ -1,5 +1,25 @@
 # Changelog
 
+## 10.0.0
+- Update to version `3.62` of the spec.
+- Update for incorrectly documented types for WeakReference's target, WeakProperty's key and value, and MirrorReference's mirrorReferent.
+
+## 9.4.0
+- Update to version `3.61` of the spec.
+- Add `isolateGroupId` property to `@Isolate` and `Isolate`.
+
+## 9.3.0
+- Update to version `3.60` of the spec.
+- Add `gcType` property to `Event`.
+
+## 9.2.0
+- Update to version `3.59` of the spec.
+- Add `abstract` flag to `FuncRef`.
+
+## 9.1.0
+- Remove `required` keyword from most of the named parameters in the
+  constructors of the Dart API objects.
+
 ## 9.0.0
 - Update to version `3.58` of the spec.
 - Added optional `local` parameter to `lookupResolvedPackageUris` RPC.

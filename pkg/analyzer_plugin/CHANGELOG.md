@@ -1,3 +1,11 @@
+## 0.11.2
+
+- Support version `5.x` of the `analyzer` package
+
+## 0.11.1
+- Call `analyzeFiles` from `handleAffectedFiles` only for files that are
+  analyzed in this analysis context.
+
 ## 0.11.0
 - Using `AnalysisContextCollection` and `AnalysisContext` for analysis.
 

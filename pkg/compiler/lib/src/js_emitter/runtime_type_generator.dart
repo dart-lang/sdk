@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.js_emitter.runtime_type_generator;
 
 import '../common/elements.dart' show CommonElements;
@@ -19,7 +17,7 @@ import '../js_backend/runtime_types_codegen.dart'
 import '../js_emitter/sorter.dart';
 import '../util/util.dart' show Setlet;
 
-import 'code_emitter_task.dart' show CodeEmitterTask;
+import 'js_emitter.dart' show CodeEmitterTask;
 
 // Function signatures used in the generation of runtime type information.
 typedef FunctionTypeSignatureEmitter = void Function(
@@ -33,9 +31,9 @@ class TypeTest {
 }
 
 class TypeTests {
-  TypeTest isTest;
-  TypeTest substitution;
-  TypeTest signature;
+  TypeTest? isTest;
+  TypeTest? substitution;
+  TypeTest? signature;
 }
 
 class TypeTestProperties {
@@ -46,7 +44,7 @@ class TypeTestProperties {
   /// If the is tests were generated with `storeFunctionTypeInMetadata` set to
   /// `false`, this field is `null`, and the [properties] contain a property
   /// that encodes the function type.
-  jsAst.Expression functionTypeIndex;
+  jsAst.Expression? functionTypeIndex;
 
   /// The properties that must be installed on the prototype of the
   /// JS constructor of the [ClassEntity] for which the is checks were
@@ -71,13 +69,13 @@ class TypeTestProperties {
 
   void forEachProperty(
       Sorter sorter, void f(jsAst.Name name, jsAst.Node expression)) {
-    void handleTypeTest(TypeTest typeTest) {
+    void handleTypeTest(TypeTest? typeTest) {
       if (typeTest == null) return;
       f(typeTest.name, typeTest.expression);
     }
 
     for (ClassEntity cls in sorter.sortClasses(_properties.keys)) {
-      TypeTests typeTests = _properties[cls];
+      TypeTests typeTests = _properties[cls]!;
       handleTypeTest(typeTests.isTest);
       handleTypeTest(typeTests.substitution);
       handleTypeTest(typeTests.signature);
@@ -127,7 +125,7 @@ class RuntimeTypeGenerator {
       // signatures. We either need them for mirrors or because [type] is
       // potentially a subtype of a checked function. Currently we eagerly
       // generate a function type index or signature for all callable classes.
-      jsAst.Expression functionTypeIndex;
+      jsAst.Expression? functionTypeIndex;
       bool isDeferred = false;
       if (!type.containsTypeVariables) {
         // TODO(sigmund): use output unit of [method] when the classes mentioned
@@ -147,12 +145,10 @@ class RuntimeTypeGenerator {
       if (storeFunctionTypeInMetadata && functionTypeIndex != null) {
         result.functionTypeIndex = functionTypeIndex;
       } else {
-        jsAst.Expression encoding =
+        jsAst.Expression? encoding =
             generatedCode[classFunctionType.signatureFunction];
-        if (classFunctionType.signatureFunction == null) {
-          // The signature function isn't live.
-          return;
-        }
+        // TODO(48820): remove
+        assert((classFunctionType.signatureFunction as dynamic) != null);
         if (functionTypeIndex != null) {
           if (isDeferred) {
             // The function type index must be offset by the number of types
@@ -194,17 +190,15 @@ class RuntimeTypeGenerator {
     // Precomputed is checks.
     ClassChecks classChecks = _rtiChecks.requiredChecks[cls];
     Iterable<TypeCheck> typeChecks = classChecks.checks;
-    if (typeChecks != null) {
-      for (TypeCheck typeCheck in typeChecks) {
-        if (!generated.contains(typeCheck.cls)) {
-          emitTypeCheck(typeCheck);
-          generated.add(typeCheck.cls);
-        }
+    for (TypeCheck typeCheck in typeChecks) {
+      if (!generated.contains(typeCheck.cls)) {
+        emitTypeCheck(typeCheck);
+        generated.add(typeCheck.cls);
       }
     }
 
     if (classChecks.functionType != null) {
-      generateFunctionTypeSignature(classChecks.functionType);
+      generateFunctionTypeSignature(classChecks.functionType!);
     }
   }
 }
@@ -268,6 +262,13 @@ class _TypeContainedInOutputUnitVisitor
       return false;
     }
     return visitList(type.typeArguments, argument);
+  }
+
+  @override
+  bool visitRecordType(RecordType type, OutputUnit argument) {
+    // TODO(sra): The record shape is a bit like an implicit interface
+    // type. Does it have an OutputUnit?
+    throw UnimplementedError();
   }
 
   @override

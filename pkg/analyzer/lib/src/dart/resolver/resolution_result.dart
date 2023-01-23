@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 /// The result of attempting to resolve an identifier to elements.
 class ResolutionResult {
@@ -43,6 +44,12 @@ class ResolutionResult {
   /// when `dynamicTarget.foo`).
   final bool needsSetterError;
 
+  /// The [FunctionType] referenced with `call`.
+  final FunctionType? callFunctionType;
+
+  /// The field referenced in a [RecordType].
+  final RecordTypeField? recordField;
+
   /// Initialize a newly created result to represent resolving a single
   /// reading and / or writing result.
   ResolutionResult({
@@ -50,6 +57,8 @@ class ResolutionResult {
     this.needsGetterError = true,
     this.setter,
     this.needsSetterError = true,
+    this.callFunctionType,
+    this.recordField,
   }) : state = _ResolutionResultState.single;
 
   /// Initialize a newly created result with no elements and the given [state].
@@ -57,7 +66,9 @@ class ResolutionResult {
       : getter = null,
         needsGetterError = true,
         setter = null,
-        needsSetterError = true;
+        needsSetterError = true,
+        callFunctionType = null,
+        recordField = null;
 
   /// Return `true` if this result represents the case where multiple ambiguous
   /// elements were found.

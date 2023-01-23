@@ -635,7 +635,9 @@ class ResultWriter extends EventListener {
   final List<Map> _logs = [];
   final String _outputDirectory;
 
-  ResultWriter(this._outputDirectory);
+  ResultWriter(this._outputDirectory) {
+    Directory(_outputDirectory).createSync(recursive: true);
+  }
 
   void allTestsKnown() {
     // Write an empty result log file, that will be overwritten if any tests

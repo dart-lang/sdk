@@ -5,7 +5,11 @@
 // This file is loaded before the about:tracing code is loaded so that we have
 // an event listener registered early.
 
-var traceObject;
+// Used to delay the initial timeline load until the timeline has finished
+// loading.
+timeline_loaded = false;
+timeline_vm_address = undefined;
+timeline_isolates = undefined;
 
 function registerForMessages() {
   window.addEventListener("message", onMessage, false);
@@ -24,11 +28,12 @@ function onMessage(event) {
       showLoadingOverlay('Fetching timeline...');
     break;
     case 'refresh':
-      traceObject = params;
-      if (typeof populateTimeline != 'undefined') {
-        populateTimeline();
+      timeline_vm_address = params['vmAddress'];
+      timeline_isolates = params['isolateIds'];
+      if (typeof fetchTimeline === "undefined") {
+        console.log('Delaying timeline refresh until loaded.');
       } else {
-        console.log('populateTimeline is not yet defined');
+        fetchTimeline(timeline_vm_address, timeline_isolates);
       }
     break;
     case 'clear':

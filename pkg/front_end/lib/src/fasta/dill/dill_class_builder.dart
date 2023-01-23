@@ -7,9 +7,11 @@ library fasta.dill_class_builder;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
+import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
+import '../builder/name_iterator.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../modifier.dart' show abstractMask, namedMixinApplicationMask;
@@ -54,6 +56,12 @@ class DillClassBuilder extends ClassBuilderImpl {
 
   @override
   bool get isMacro => cls.isMacro;
+
+  @override
+  bool get isMixinDeclaration => cls.isMixinDeclaration;
+
+  @override
+  bool get isSealed => cls.isSealed;
 
   @override
   bool get isAugmentation => false;
@@ -183,10 +191,19 @@ class DillClassBuilder extends ClassBuilderImpl {
   }
 
   @override
-  void forEachConstructor(void Function(String, MemberBuilder) f,
-      {bool includeInjectedConstructors: false}) {
-    constructorScope.forEach(f);
-  }
+  Iterator<MemberBuilder> get fullConstructorIterator =>
+      constructorScope.unfilteredIterator;
+
+  @override
+  NameIterator<MemberBuilder> get fullConstructorNameIterator =>
+      constructorScope.unfilteredNameIterator;
+
+  @override
+  Iterator<Builder> get fullMemberIterator => scope.unfilteredIterator;
+
+  @override
+  NameIterator<Builder> get fullMemberNameIterator =>
+      scope.unfilteredNameIterator;
 
   void clearCachedValues() {
     supertypeBuilder = null;

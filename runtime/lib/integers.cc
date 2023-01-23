@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "lib/integers.h"
 #include "vm/bootstrap_natives.h"
 
 #include "include/dart_api.h"
@@ -269,6 +270,35 @@ DEFINE_NATIVE_ENTRY(Smi_bitLength, 0, 1) {
   intptr_t result = Utils::BitLength(value);
   ASSERT(Smi::IsValid(result));
   return Smi::New(result);
+}
+
+// Should be kept in sync with il_*.cc EmitHashIntegerCodeSequence
+uint32_t Multiply64Hash(int64_t ivalue) {
+  const uint64_t magic_constant = /*0x1b873593cc9e*/ 0x2d51;
+  uint64_t value = static_cast<uint64_t>(ivalue);
+#if defined(ARCH_IS_64_BIT)
+#ifdef _MSC_VER
+  __int64 hi = __umulh(value, magic_constant);
+  uint64_t lo = value * magic_constant;
+  uint64_t hash = lo ^ hi;
+#else
+  const __int128 res = static_cast<__int128>(value) * magic_constant;
+  uint64_t hash = res ^ static_cast<int64_t>(res >> 64);
+#endif
+  hash = hash ^ (hash >> 32);
+#else
+  uint64_t prod_lo64 = value * magic_constant;
+
+  uint64_t value_lo32 = value & 0xffffffff;
+  uint64_t value_hi32 = value >> 32;
+  uint64_t carry = (((value_hi32 * magic_constant) & 0xffffffff) +
+                    ((value_lo32 * magic_constant) >> 32)) >>
+                   32;
+  uint64_t prod_hi64 = ((value_hi32 * magic_constant) >> 32) + carry;
+  uint64_t hash = prod_hi64 ^ prod_lo64;
+  hash = hash ^ (hash >> 32);
+#endif
+  return hash & 0x3fffffff;
 }
 
 // Mint natives.

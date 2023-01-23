@@ -35,7 +35,6 @@ import 'package:kernel/ast.dart'
         Component,
         Library,
         Procedure,
-        Reference,
         ReturnStatement,
         Source,
         Statement;
@@ -63,6 +62,7 @@ import 'package:testing/testing.dart'
         TestDescription;
 
 import '../fasta/testing/suite.dart' show CompilationSetup;
+import '../test_utils.dart';
 
 final Uri platformBinariesLocation = computePlatformBinariesLocation();
 
@@ -209,7 +209,7 @@ class MatchExpectation
   /// be serialized, deserialized, and the textual representation of that is
   /// compared. It is still the original component that is returned though.
   const MatchExpectation(this.suffix,
-      {this.serializeFirst: false, required this.isLastMatchStep})
+      {this.serializeFirst = false, required this.isLastMatchStep})
       // ignore: unnecessary_null_comparison
       : assert(isLastMatchStep != null);
 
@@ -312,26 +312,9 @@ class MatchExpectation
         buffer.writeln(extraConstantString);
       }
     }
-    bool printedConstantCoverageHeader = false;
-    for (Source source in result.component.uriToSource.values) {
-      if (!result.isUserLibraryImportUri(source.importUri)) continue;
-
-      if (source.constantCoverageConstructors != null &&
-          source.constantCoverageConstructors!.isNotEmpty) {
-        if (!printedConstantCoverageHeader) {
-          buffer.writeln("");
-          buffer.writeln("");
-          buffer.writeln("Constructor coverage from constants:");
-          printedConstantCoverageHeader = true;
-        }
-        buffer.writeln("${source.fileUri}:");
-        for (Reference reference in source.constantCoverageConstructors!) {
-          buffer.writeln(
-              "- ${reference.node} (from ${reference.node?.location})");
-        }
-        buffer.writeln("");
-      }
-    }
+    addConstantCoverageToExpectation(result.component, buffer,
+        skipImportUri: (Uri? importUri) =>
+            !result.isUserLibraryImportUri(importUri));
 
     String actual = "$buffer";
     String binariesPath =

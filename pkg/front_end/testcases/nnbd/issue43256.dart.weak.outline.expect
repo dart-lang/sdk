@@ -1,4 +1,19 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue43256.dart:16:17: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//   if (i > 0) ...nullableMap, // error
+//                 ^
+//
+// pkg/front_end/testcases/nnbd/issue43256.dart:23:17: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//   if (i > 0) ...nullableList, // error
+//                 ^
+//
+// pkg/front_end/testcases/nnbd/issue43256.dart:29:17: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//   if (i > 0) ...nullableList, // error
+//                 ^
+//
 import self as self;
 import "dart:core" as core;
 

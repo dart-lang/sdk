@@ -42,8 +42,10 @@ class AssignmentExpressionResolver {
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(AssignmentExpressionImpl node,
-      {required DartType? contextType}) {
+  void resolve(
+    AssignmentExpressionImpl node, {
+    required DartType? contextType,
+  }) {
     var operator = node.operator.type;
     var hasRead = operator != TokenType.EQ;
     var isIfNull = operator == TokenType.QUESTION_QUESTION_EQ;
@@ -61,6 +63,12 @@ class AssignmentExpressionResolver {
 
     if (hasRead) {
       _resolver.setReadElement(left, readElement);
+      {
+        final recordField = leftResolution.recordField;
+        if (recordField != null) {
+          node.readType = recordField.type;
+        }
+      }
       _resolveOperator(node);
     }
     _resolver.setWriteElement(left, writeElement);
@@ -86,7 +94,7 @@ class AssignmentExpressionResolver {
     }
 
     _resolver.analyzeExpression(right, rhsContext);
-    right = node.rightHandSide;
+    right = _resolver.popRewrite()!;
     var whyNotPromoted = flow?.whyNotPromoted(right);
 
     _resolveTypes(node,

@@ -54,7 +54,7 @@ class ParsedFunction;
 #define NULLABLE_BOXED_NATIVE_SLOTS_LIST(V)                                    \
   V(Array, UntaggedArray, type_arguments, TypeArguments, FINAL)                \
   V(Finalizer, UntaggedFinalizer, type_arguments, TypeArguments, FINAL)        \
-  V(FinalizerBase, UntaggedFinalizerBase, all_entries, LinkedHashSet, VAR)     \
+  V(FinalizerBase, UntaggedFinalizerBase, all_entries, Set, VAR)               \
   V(FinalizerBase, UntaggedFinalizerBase, detachments, Dynamic, VAR)           \
   V(FinalizerBase, UntaggedFinalizer, entries_collected, FinalizerEntry, VAR)  \
   V(FinalizerEntry, UntaggedFinalizerEntry, value, Dynamic, VAR)               \
@@ -125,6 +125,8 @@ class ParsedFunction;
   V(ArgumentsDescriptor, UntaggedArray, positional_count, Smi, FINAL)          \
   V(ArgumentsDescriptor, UntaggedArray, count, Smi, FINAL)                     \
   V(ArgumentsDescriptor, UntaggedArray, size, Smi, FINAL)                      \
+  V(Record, UntaggedRecord, field_names, ImmutableArray, FINAL)                \
+  V(Record, UntaggedRecord, num_fields, Smi, FINAL)                            \
   V(TypeArguments, UntaggedTypeArguments, length, Smi, FINAL)                  \
   V(TypeParameters, UntaggedTypeParameters, names, Array, FINAL)               \
   V(TypeParameter, UntaggedTypeParameter, bound, Dynamic, FINAL)               \
@@ -181,8 +183,7 @@ NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
     FINAL)                                                                     \
   V(FunctionType, UntaggedFunctionType, packed_type_parameter_counts, Uint16,  \
     FINAL)                                                                     \
-  V(PointerBase, UntaggedPointerBase, data, IntPtr, VAR)                       \
-  V(TypeParameter, UntaggedTypeParameter, flags, Uint8, FINAL)
+  V(PointerBase, UntaggedPointerBase, data, IntPtr, VAR)
 
 // For uses that do not need the exact_type (boxed) or representation (unboxed)
 // or whether a boxed native slot is nullable. (Generally, such users only need
@@ -198,25 +199,11 @@ class FieldGuardState {
   explicit FieldGuardState(const Field& field);
 
   intptr_t guarded_cid() const { return GuardedCidBits::decode(state_); }
-  bool is_non_nullable_integer() const {
-    return IsNonNullableIntegerBit::decode(state_);
-  }
-  bool is_unboxing_candidate() const {
-    return IsUnboxingCandidateBit::decode(state_);
-  }
   bool is_nullable() const { return IsNullableBit::decode(state_); }
-
-  bool IsUnboxed() const;
-  bool IsPotentialUnboxed() const;
 
  private:
   using GuardedCidBits = BitField<int32_t, ClassIdTagType, 0, 16>;
-  using IsNonNullableIntegerBit =
-      BitField<int32_t, bool, GuardedCidBits::kNextBit, 1>;
-  using IsUnboxingCandidateBit =
-      BitField<int32_t, bool, IsNonNullableIntegerBit::kNextBit, 1>;
-  using IsNullableBit =
-      BitField<int32_t, bool, IsUnboxingCandidateBit::kNextBit, 1>;
+  using IsNullableBit = BitField<int32_t, bool, GuardedCidBits::kNextBit, 1>;
 
   const int32_t state_;
 };
@@ -248,6 +235,9 @@ class Slot : public ZoneAllocated {
     // Only used during allocation sinking and in MaterializeObjectInstr.
     kArrayElement,
 
+    // A slot corresponding to a record field at the given offset.
+    kRecordField,
+
     // A slot within a Context object that contains a value of a captured
     // local variable.
     kCapturedVariable,
@@ -256,9 +246,6 @@ class Slot : public ZoneAllocated {
     kDartField,
   };
   // clang-format on
-
-  static const char* KindToCString(Kind k);
-  static bool ParseKind(const char* str, Kind* k);
 
   // Returns a slot that represents length field for the given [array_cid].
   static const Slot& GetLengthFieldForArrayCid(intptr_t array_cid);
@@ -277,6 +264,12 @@ class Slot : public ZoneAllocated {
   // Returns a slot corresponding to an array element at [offset_in_bytes].
   static const Slot& GetArrayElementSlot(Thread* thread,
                                          intptr_t offset_in_bytes);
+
+  // Returns a slot corresponding to a record field at [offset_in_bytes].
+  // TODO(dartbug.com/49719): distinguish slots of records with different
+  // shapes.
+  static const Slot& GetRecordFieldSlot(Thread* thread,
+                                        intptr_t offset_in_bytes);
 
   // Returns a slot that represents the given captured local variable.
   static const Slot& GetContextVariableSlotFor(Thread* thread,
@@ -301,6 +294,9 @@ class Slot : public ZoneAllocated {
   bool IsTypeArguments() const { return kind() == Kind::kTypeArguments; }
   bool IsArgumentOfType() const { return kind() == Kind::kTypeArgumentsIndex; }
   bool IsArrayElement() const { return kind() == Kind::kArrayElement; }
+  bool IsRecordField() const {
+    return kind() == Kind::kRecordField;
+  }
   bool IsImmutableLengthSlot() const;
 
   const char* Name() const;
@@ -353,13 +349,17 @@ class Slot : public ZoneAllocated {
     return kind() == Kind::kCapturedVariable || kind() == Kind::kContext_parent;
   }
 
-  bool IsUnboxed() const;
-  bool IsPotentialUnboxed() const;
+  bool is_unboxed() const {
+    return IsUnboxedBit::decode(flags_);
+  }
   Representation UnboxedRepresentation() const;
+
+  void Write(FlowGraphSerializer* s) const;
+  static const Slot& Read(FlowGraphDeserializer* d);
 
  private:
   Slot(Kind kind,
-       int8_t bits,
+       int8_t flags,
        ClassIdTagType cid,
        intptr_t offset_in_bytes,
        const void* data,
@@ -367,7 +367,7 @@ class Slot : public ZoneAllocated {
        Representation representation,
        const FieldGuardState& field_guard_state = FieldGuardState())
       : kind_(kind),
-        flags_(bits),
+        flags_(flags),
         cid_(cid),
         offset_in_bytes_(offset_in_bytes),
         representation_(representation),
@@ -391,11 +391,24 @@ class Slot : public ZoneAllocated {
   using IsCompressedBit = BitField<int8_t, bool, IsGuardedBit::kNextBit, 1>;
   using IsSentinelVisibleBit =
       BitField<int8_t, bool, IsCompressedBit::kNextBit, 1>;
+  using IsUnboxedBit =
+      BitField<int8_t, bool, IsSentinelVisibleBit::kNextBit, 1>;
 
   template <typename T>
   const T* DataAs() const {
     return static_cast<const T*>(data_);
   }
+
+  static const Slot& GetCanonicalSlot(
+      Thread* thread,
+      Kind kind,
+      int8_t flags,
+      ClassIdTagType cid,
+      intptr_t offset_in_bytes,
+      const void* data,
+      const AbstractType* static_type,
+      Representation representation,
+      const FieldGuardState& field_guard_state = FieldGuardState());
 
   // There is a fixed statically known number of native slots so we cache
   // them statically.

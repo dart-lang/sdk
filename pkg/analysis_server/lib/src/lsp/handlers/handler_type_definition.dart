@@ -6,12 +6,14 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element.dart' as analyzer;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/element/element.dart' show ElementImpl;
+import 'package:analyzer/src/dart/element/element.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 
@@ -68,9 +70,25 @@ class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
           return success(_emptyResult);
         }
 
-        final type = node is Expression ? _getType(node) : null;
-        final element = type?.element;
-        if (element is! ElementImpl) {
+        final SyntacticEntity originEntity;
+        DartType? type;
+        if (node is VariableDeclaration) {
+          originEntity = node.name;
+          type = node.declaredElement?.type;
+        } else if (node is Expression) {
+          originEntity = node;
+          type = _getType(node);
+        } else {
+          return success(_emptyResult);
+        }
+
+        analyzer.Element? element;
+        if (type is InterfaceType) {
+          element = type.element;
+        } else if (type is TypeParameterType) {
+          element = type.element;
+        }
+        if (element is! analyzer.ElementImpl) {
           return success(_emptyResult);
         }
 
@@ -90,8 +108,8 @@ class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
 
         if (supportsLocationLink) {
           return success(TextDocumentTypeDefinitionResult.t2([
-            _toLocationLink(
-                result.lineInfo, targetLineInfo, node, element, location)
+            _toLocationLink(result.lineInfo, targetLineInfo, originEntity,
+                element, location)
           ]));
         } else {
           return success(TextDocumentTypeDefinitionResult.t1(
@@ -105,20 +123,20 @@ class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
   /// Creates an LSP [Location] for the server [location].
   Location _toLocation(plugin.Location location, LineInfo lineInfo) {
     return Location(
-      uri: Uri.file(location.file).toString(),
+      uri: Uri.file(location.file),
       range: toRange(lineInfo, location.offset, location.length),
     );
   }
 
   /// Creates an LSP [LocationLink] for the server [targetLocation].
   ///
-  /// Uses [originLineInfo] and [originNode] to compute `originSelectionRange`
+  /// Uses [originLineInfo] and [originEntity] to compute `originSelectionRange`
   /// and [targetLineInfo] and [targetElement] for code ranges.
   LocationLink _toLocationLink(
     LineInfo originLineInfo,
     LineInfo targetLineInfo,
-    AstNode originNode,
-    ElementImpl targetElement,
+    SyntacticEntity originEntity,
+    analyzer.ElementImpl targetElement,
     plugin.Location targetLocation,
   ) {
     final nameRange =
@@ -132,8 +150,8 @@ class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
 
     return LocationLink(
       originSelectionRange:
-          toRange(originLineInfo, originNode.offset, originNode.length),
-      targetUri: Uri.file(targetLocation.file).toString(),
+          toRange(originLineInfo, originEntity.offset, originEntity.length),
+      targetUri: Uri.file(targetLocation.file),
       targetRange: codeRange,
       targetSelectionRange: nameRange,
     );
@@ -144,7 +162,7 @@ class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
   static DartType? _getType(Expression node) {
     if (node is SimpleIdentifier) {
       final element = node.staticElement;
-      if (element is ClassElement) {
+      if (element is InterfaceElement) {
         return element.thisType;
       } else if (element is VariableElement) {
         if (node.inDeclarationContext()) {

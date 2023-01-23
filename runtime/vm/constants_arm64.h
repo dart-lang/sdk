@@ -11,6 +11,7 @@
 
 #include "platform/assert.h"
 #include "platform/globals.h"
+#include "platform/utils.h"
 
 #include "vm/constants_base.h"
 
@@ -154,6 +155,7 @@ const Register CALLEE_SAVED_TEMP = R19;
 const Register CALLEE_SAVED_TEMP2 = R20;
 const Register HEAP_BITS = R28;  // write_barrier_mask << 32 | heap_base >> 32
 const Register NULL_REG = R22;   // Caches NullObject() value.
+#define DART_ASSEMBLER_HAS_NULL_REG 1
 
 // ABI for catch-clause entry point.
 const Register kExceptionObjectReg = R0;
@@ -347,6 +349,26 @@ struct AllocateArrayABI {
   static const Register kTypeArgumentsReg = R1;
 };
 
+// ABI for AllocateRecordStub.
+struct AllocateRecordABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kNumFieldsReg = R2;
+  static const Register kFieldNamesReg = R1;
+  static const Register kTemp1Reg = R3;
+  static const Register kTemp2Reg = R4;
+};
+
+// ABI for AllocateSmallRecordStub (AllocateRecord2, AllocateRecord2Named,
+// AllocateRecord3, AllocateRecord3Named).
+struct AllocateSmallRecordABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kFieldNamesReg = R1;
+  static const Register kValue0Reg = R2;
+  static const Register kValue1Reg = R3;
+  static const Register kValue2Reg = R4;
+  static const Register kTempReg = R5;
+};
+
 // ABI for AllocateTypedDataArrayStub.
 struct AllocateTypedDataArrayABI {
   static const Register kResultReg = AllocateObjectABI::kResultReg;
@@ -367,7 +389,8 @@ struct DoubleToIntegerStubABI {
   static const Register kResultReg = R0;
 };
 
-// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub, YieldSyncStarStub).
+// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub,
+// SuspendSyncStarAtStartStub, SuspendSyncStarAtYieldStub).
 struct SuspendStubABI {
   static const Register kArgumentReg = R0;
   static const Register kTempReg = R1;
@@ -401,7 +424,7 @@ struct ResumeStubABI {
 };
 
 // ABI for ReturnStub (ReturnAsyncStub, ReturnAsyncNotFutureStub,
-// ReturnAsyncStarStub, ReturnSyncStarStub).
+// ReturnAsyncStarStub).
 struct ReturnStubABI {
   static const Register kSuspendStateReg = R2;
 };
@@ -475,12 +498,13 @@ const VRegister kAbiFirstPreservedFpuReg = V8;
 const VRegister kAbiLastPreservedFpuReg = V15;
 const int kAbiPreservedFpuRegCount = 8;
 
-const intptr_t kReservedCpuRegisters = R(SPREG) |  // Dart SP
-                                       R(FPREG) | R(TMP) | R(TMP2) | R(PP) |
-                                       R(THR) | R(LR) | R(HEAP_BITS) |
-                                       R(NULL_REG) | R(R31) |  // C++ SP
-                                       R(R18) | R(DISPATCH_TABLE_REG);
-constexpr intptr_t kNumberOfReservedCpuRegisters = 13;
+const RegList kReservedCpuRegisters = R(SPREG) |  // Dart SP
+                                      R(FPREG) | R(TMP) | R(TMP2) | R(PP) |
+                                      R(THR) | R(LR) | R(HEAP_BITS) |
+                                      R(NULL_REG) | R(R31) |  // C++ SP
+                                      R(R18) | R(DISPATCH_TABLE_REG);
+constexpr intptr_t kNumberOfReservedCpuRegisters =
+    Utils::CountOneBits32(kReservedCpuRegisters);
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
@@ -554,7 +578,7 @@ class CallingConventions {
   static constexpr ExtensionStrategy kArgumentStackExtension = kNotExtended;
 
   static constexpr Register kReturnReg = R0;
-  static constexpr Register kSecondReturnReg = kNoRegister;
+  static constexpr Register kSecondReturnReg = R1;
   static constexpr FpuRegister kReturnFpuReg = V0;
 
   static constexpr Register kFfiAnyNonAbiRegister = R19;
@@ -1239,6 +1263,8 @@ enum ScaleFactor {
 #else
   TIMES_COMPRESSED_WORD_SIZE = TIMES_HALF_WORD_SIZE,
 #endif
+  // Used for Smi-boxed indices.
+  TIMES_COMPRESSED_HALF_WORD_SIZE = TIMES_COMPRESSED_WORD_SIZE - 1,
 };
 
 // The class Instr enables access to individual fields defined in the ARM

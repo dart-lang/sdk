@@ -205,7 +205,7 @@ class _WidgetCallSiteTransformer extends Transformer {
 
   void _addLocationArgument(
       InvocationExpression node, FunctionNode function, Class constructedClass,
-      {bool isConst: false}) {
+      {bool isConst = false}) {
     _maybeAddCreationLocationArgument(
       node.arguments,
       function,
@@ -233,7 +233,7 @@ class _WidgetCallSiteTransformer extends Transformer {
     InvocationExpression node,
     FunctionNode function,
     Class constructedClass, {
-    bool isConst: false,
+    bool isConst = false,
   }) {
     // For factory constructors we need to use the location specified as an
     // argument to the factory constructor rather than the location
@@ -433,7 +433,7 @@ class WidgetCreatorTracker {
   ///
   /// Upon transformation the [changedStructureNotifier] (if provided) is used
   /// to notify the listener that  that class hierarchy of certain classes has
-  /// changed. This is neccesary for instance when doing an incremental
+  /// changed. This is necessary for instance when doing an incremental
   /// compilation where the class hierarchy is kept between compiles and thus
   /// has to be kept up to date.
   void transform(Component module, List<Library> libraries,

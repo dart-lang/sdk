@@ -5,7 +5,6 @@
 type: newworld
 worlds:
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     errors: true
     sources:
       main.dart: |
@@ -16,19 +15,19 @@ worlds:
     expectedLibraryCount: 2
 
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     errors: true
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
       - main.dart
     expectedLibraryCount: 2
+    advancedInvalidation: problemsInLibrary
 
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     errors: true
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
       - lib.dart
     expectedLibraryCount: 2
+    advancedInvalidation: bodiesOnly

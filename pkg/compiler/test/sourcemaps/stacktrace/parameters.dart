@@ -41,42 +41,42 @@ class Class {
 
   @pragma('dart2js:noInline')
   /*7:Class.instanceNamed1[function-entry$1]*/ instanceNamed1(a,
-      {b: 42, c: 87, d: 735}) {
+      {b = 42, c = 87, d = 735}) {
     print('instanceNamed1($a,b:$b,c:$c,d:$d)');
     /*8:Class.instanceNamed1*/ instanceNamed2(1, b: 2);
   }
 
   @pragma('dart2js:noInline')
   /*9:Class.instanceNamed2[function-entry$1$b]*/ instanceNamed2(a,
-      {b: 42, c: 87, d: 735}) {
+      {b = 42, c = 87, d = 735}) {
     print('instanceNamed2($a,b:$b,c:$c,d:$d)');
     /*10:Class.instanceNamed2*/ instanceNamed3(3, c: 123);
   }
 
   @pragma('dart2js:noInline')
   /*11:Class.instanceNamed3[function-entry$1$c]*/ instanceNamed3(a,
-      {b: 42, c: 87, d: 735}) {
+      {b = 42, c = 87, d = 735}) {
     print('instanceNamed3($a,b:$b,c:$c,d:$d)');
     /*12:Class.instanceNamed3*/ instanceNamed4(4, c: 45, b: 76);
   }
 
   @pragma('dart2js:noInline')
   /*13:Class.instanceNamed4[function-entry$1$b$c]*/ instanceNamed4(a,
-      {b: 42, c: 87, d: 735}) {
+      {b = 42, c = 87, d = 735}) {
     print('instanceNamed4($a,b:$b,c:$c,d:$d)');
     /*14:Class.instanceNamed4*/ instanceNamed5(5, c: 6, b: 7, d: 8);
   }
 
   @pragma('dart2js:noInline')
-  instanceNamed5(a, {b: 42, c: 87, d: 735}) {
+  instanceNamed5(a, {b = 42, c = 87, d = 735}) {
     print('instanceNamed5($a,b:$b,c:$c,d:$d)');
     /*18:Class.instanceNamed5[function-entry$0].local*/ local([e = 42]) {
       print('instanceNamed5.local($e)');
       /*19:Class.instanceNamed5.local*/ throw '>ExceptionMarker<';
     }
 
-    var anonymous = /*16:Class.instanceNamed5[function-entry$0].<anonymous function>*/ (
-        {f: 87}) {
+    var anonymous = /*16:Class.instanceNamed5[function-entry$0].<anonymous function>*/
+        ({f = 87}) {
       print('instanceNamed5.<anonymous(f:$f)');
       /*17:Class.instanceNamed5.<anonymous function>*/ local();
     };

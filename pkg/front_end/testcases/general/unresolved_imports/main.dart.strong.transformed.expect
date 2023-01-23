@@ -1,0 +1,23 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "dart:html";
+import "dart:js";
+import "dart:io";
+import "dart:isolate";
+import "dart:ui";
+import "org-dartlang-testcase:///non_existing_file";
+import "package:existing_package/non_existing_package_file.dart";
+import "package:non_existing_package/file.dart";
+
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/dart2js/unresolved_imports/main.dart:10:8: Error: Error when reading 'pkg/front_end/testcases/dart2js/unresolved_imports/non_existing_file': The system cannot find the file specified.
+//
+// import 'non_existing_file';
+//        ^
+//
+import self as self2;

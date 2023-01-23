@@ -253,6 +253,11 @@ class ErrorOr<T> extends Either2<ResponseError, T> {
     return _which == 2 ? _t2 as T : (throw 'Value is not a result');
   }
 
+  /// Returns the result or `null` if this object is an error.
+  T? get resultOrNull {
+    return _which == 2 ? _t2 as T : null;
+  }
+
   /// If this object is a result, maps [result] through [f], otherwise returns
   /// a new error object representing [error].
   FutureOr<ErrorOr<N>> mapResult<N>(FutureOr<ErrorOr<N>> Function(T) f) {

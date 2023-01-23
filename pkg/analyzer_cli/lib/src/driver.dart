@@ -127,7 +127,7 @@ class Driver implements CommandLineStarter {
       final stopwatch = Stopwatch()..start();
 
       for (var i = 0; i < 3; i++) {
-        await buildSdkSummary2(
+        await buildSdkSummary(
           resourceProvider: PhysicalResourceProvider.INSTANCE,
           sdkPath: options.dartSdkPath!,
         );
@@ -251,8 +251,16 @@ class Driver implements CommandLineStarter {
             analysisDriver.currentSession.analysisContext.contextRoot.root.path,
           );
           await formatter.formatErrors([
-            ErrorsResultImpl(analysisDriver.currentSession, path,
-                pathContext.toUri(path), lineInfo, false, errors)
+            ErrorsResultImpl(
+              session: analysisDriver.currentSession,
+              path: path,
+              uri: pathContext.toUri(path),
+              lineInfo: lineInfo,
+              isAugmentation: false,
+              isLibrary: true,
+              isPart: false,
+              errors: errors,
+            )
           ]);
           for (var error in errors) {
             var severity = determineProcessedSeverity(
@@ -307,8 +315,16 @@ class Driver implements CommandLineStarter {
               }
               var lineInfo = LineInfo.fromContent(content);
               await formatter.formatErrors([
-                ErrorsResultImpl(analysisDriver.currentSession, path,
-                    pathContext.toUri(path), lineInfo, false, errors)
+                ErrorsResultImpl(
+                  session: analysisDriver.currentSession,
+                  path: path,
+                  uri: pathContext.toUri(path),
+                  lineInfo: lineInfo,
+                  isAugmentation: false,
+                  isLibrary: true,
+                  isPart: false,
+                  errors: errors,
+                ),
               ]);
             }
           } catch (exception) {
@@ -323,8 +339,16 @@ class Driver implements CommandLineStarter {
             var errors = validator.validate(
                 content, analysisDriver.analysisOptions.chromeOsManifestChecks);
             await formatter.formatErrors([
-              ErrorsResultImpl(analysisDriver.currentSession, path,
-                  pathContext.toUri(path), lineInfo, false, errors)
+              ErrorsResultImpl(
+                session: analysisDriver.currentSession,
+                path: path,
+                uri: pathContext.toUri(path),
+                lineInfo: lineInfo,
+                isAugmentation: false,
+                isLibrary: true,
+                isPart: false,
+                errors: errors,
+              ),
             ]);
             for (var error in errors) {
               var severity = determineProcessedSeverity(
@@ -339,11 +363,11 @@ class Driver implements CommandLineStarter {
           var file = analysisDriver.fsState.getFileForPath(path);
 
           final kind = file.kind;
-          if (kind is LibraryFileStateKind) {
+          if (kind is LibraryFileKind) {
             var status = await _runAnalyzer(file, options, formatter);
             allResult = allResult.max(status);
             analyzedFiles.addAll(kind.files);
-          } else if (kind is PartFileStateKind) {
+          } else if (kind is PartFileKind) {
             partFiles.add(file);
           }
         }

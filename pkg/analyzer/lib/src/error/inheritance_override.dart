@@ -4,7 +4,8 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/constant/value.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -19,9 +20,10 @@ import 'package:analyzer/src/error/correct_override.dart';
 import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 
-class InheritanceOverrideVerifier {
-  static const _missingOverridesKey = 'missingOverrides';
+final _missingMustBeOverridden = Expando<List<ExecutableElement>>();
+final _missingOverrides = Expando<List<ExecutableElement>>();
 
+class InheritanceOverrideVerifier {
   final TypeSystemImpl _typeSystem;
   final TypeProvider _typeProvider;
   final InheritanceManager3 _inheritance;
@@ -34,67 +36,87 @@ class InheritanceOverrideVerifier {
   void verifyUnit(CompilationUnit unit) {
     var library = unit.declaredElement!.library as LibraryElementImpl;
     for (var declaration in unit.declarations) {
+      _ClassVerifier verifier;
       if (declaration is ClassDeclaration) {
-        _ClassVerifier(
+        verifier = _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
           inheritance: _inheritance,
           reporter: _reporter,
           featureSet: unit.featureSet,
           library: library,
-          classNameNode: declaration.name,
+          classNameToken: declaration.name,
+          classElement: declaration.declaredElement!,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           superclass: declaration.extendsClause?.superclass,
           withClause: declaration.withClause,
-        ).verify();
+        );
       } else if (declaration is ClassTypeAlias) {
-        _ClassVerifier(
+        verifier = _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
           inheritance: _inheritance,
           reporter: _reporter,
           featureSet: unit.featureSet,
           library: library,
-          classNameNode: declaration.name,
+          classNameToken: declaration.name,
+          classElement: declaration.declaredElement!,
           implementsClause: declaration.implementsClause,
           superclass: declaration.superclass,
           withClause: declaration.withClause,
-        ).verify();
+        );
       } else if (declaration is EnumDeclaration) {
-        _ClassVerifier(
+        verifier = _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
           inheritance: _inheritance,
           reporter: _reporter,
           featureSet: unit.featureSet,
           library: library,
-          classNameNode: declaration.name,
+          classNameToken: declaration.name,
+          classElement: declaration.declaredElement!,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           withClause: declaration.withClause,
-        ).verify();
+        );
       } else if (declaration is MixinDeclaration) {
-        _ClassVerifier(
+        verifier = _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
           inheritance: _inheritance,
           reporter: _reporter,
           featureSet: unit.featureSet,
           library: library,
-          classNameNode: declaration.name,
+          classNameToken: declaration.name,
+          classElement: declaration.declaredElement!,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           onClause: declaration.onClause,
-        ).verify();
+        );
+      } else {
+        continue;
       }
+
+      if (verifier.verify()) {
+        continue;
+      }
+
+      verifier._verifyMustBeOverridden();
     }
+  }
+
+  /// Returns [Element] members that are in the interface of the
+  /// given class with `@mustBeOverridden`, but don't have implementations.
+  static List<ExecutableElement> missingMustBeOverridden(
+      ClassDeclaration node) {
+    return _missingMustBeOverridden[node.name] ?? const [];
   }
 
   /// Returns [ExecutableElement] members that are in the interface of the
   /// given class, but don't have concrete implementations.
   static List<ExecutableElement> missingOverrides(ClassDeclaration node) {
-    return node.name.getProperty(_missingOverridesKey) ?? const [];
+    return _missingOverrides[node.name] ?? const [];
   }
 }
 
@@ -107,9 +129,9 @@ class _ClassVerifier {
   final FeatureSet featureSet;
   final LibraryElementImpl library;
   final Uri libraryUri;
-  final AbstractClassElementImpl classElement;
+  final InterfaceElement classElement;
 
-  final SimpleIdentifier classNameNode;
+  final Token classNameToken;
   final List<ClassMember> members;
   final ImplementsClause? implementsClause;
   final OnClause? onClause;
@@ -128,34 +150,38 @@ class _ClassVerifier {
     required this.reporter,
     required this.featureSet,
     required this.library,
-    required this.classNameNode,
+    required this.classNameToken,
+    required this.classElement,
     this.implementsClause,
     this.members = const [],
     this.onClause,
     this.superclass,
     this.withClause,
-  })  : libraryUri = library.source.uri,
-        classElement = classNameNode.staticElement as AbstractClassElementImpl;
+  }) : libraryUri = library.source.uri;
 
   bool get _isNonNullableByDefault => typeSystem.isNonNullableByDefault;
 
-  void verify() {
+  /// Verify inheritance overrides, and return `true` if an error was
+  /// reported which should prevent follow on diagnostics from being reported.
+  bool verify() {
     if (_checkDirectSuperTypes()) {
-      return;
+      return true;
     }
 
-    if (!classElement.isEnum &&
+    final classElement = this.classElement;
+    if (classElement is! EnumElement &&
+        classElement is ClassElement &&
         !classElement.isAbstract &&
         implementsDartCoreEnum) {
-      reporter.reportErrorForNode(
+      reporter.reportErrorForToken(
         CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE,
-        classNameNode,
+        classNameToken,
       );
-      return;
+      return true;
     }
 
     if (_checkForRecursiveInterfaceInheritance(classElement)) {
-      return;
+      return true;
     }
 
     // Compute the interface of the class.
@@ -163,13 +189,15 @@ class _ClassVerifier {
 
     // Report conflicts between direct superinterfaces of the class.
     for (var conflict in interface.conflicts) {
-      _reportInconsistentInheritance(classNameNode, conflict);
+      _reportInconsistentInheritance(classNameToken, conflict);
     }
 
     if (classElement.supertype != null) {
       directSuperInterfaces.add(classElement.supertype!);
     }
-    directSuperInterfaces.addAll(classElement.superclassConstraints);
+    if (classElement is MixinElement) {
+      directSuperInterfaces.addAll(classElement.superclassConstraints);
+    }
 
     // Each mixin in `class C extends S with M0, M1, M2 {}` is equivalent to:
     //   class S&M0 extends S { ...members of M0... }
@@ -188,7 +216,7 @@ class _ClassVerifier {
 
     directSuperInterfaces.addAll(classElement.interfaces);
 
-    // Check the members if the class itself, against all the previously
+    // Check the members of the class itself, against all the previously
     // collected superinterfaces of the supertype, mixins, and interfaces.
     for (var member in members) {
       if (member is FieldDeclaration) {
@@ -197,7 +225,7 @@ class _ClassVerifier {
           var fieldElement = field.declaredElement as FieldElement;
           _checkDeclaredMember(field.name, libraryUri, fieldElement.getter);
           _checkDeclaredMember(field.name, libraryUri, fieldElement.setter);
-          if (!member.isStatic && !classElement.isEnum) {
+          if (!member.isStatic && classElement is! EnumElement) {
             _checkIllegalEnumValuesDeclaration(field.name);
           }
           if (!member.isStatic) {
@@ -215,7 +243,7 @@ class _ClassVerifier {
         if (!(member.isStatic || member.isAbstract || member.isSetter)) {
           _checkIllegalConcreteEnumMemberDeclaration(member.name);
         }
-        if (!member.isStatic && !classElement.isEnum) {
+        if (!member.isStatic && classElement is! EnumElement) {
           _checkIllegalEnumValuesDeclaration(member.name);
         }
       }
@@ -229,7 +257,8 @@ class _ClassVerifier {
       errorReporter: reporter,
     ).checkInterface(classElement, interface);
 
-    if (!classElement.isAbstract) {
+    if (classElement is ClassElement && !classElement.isAbstract ||
+        classElement is EnumElement) {
       List<ExecutableElement>? inheritedAbstract;
 
       for (var name in interface.map.keys) {
@@ -246,7 +275,7 @@ class _ClassVerifier {
             continue;
           }
           // We already reported ILLEGAL_ENUM_VALUES_INHERITANCE.
-          if (classElement.isEnum &&
+          if (classElement is EnumElement &&
               const {'values', 'values='}.contains(name.name)) {
             continue;
           }
@@ -282,20 +311,22 @@ class _ClassVerifier {
         ).verify(
           superMember: interfaceElement,
           errorReporter: reporter,
-          errorNode: classNameNode,
+          errorNode: classNameToken,
           errorCode: CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE,
         );
       }
 
       _reportInheritedAbstractMembers(inheritedAbstract);
     }
+
+    return false;
   }
 
   /// Check that the given [member] is a valid override of the corresponding
   /// instance members in each of [directSuperInterfaces].  The [libraryUri] is
   /// the URI of the library containing the [member].
   void _checkDeclaredMember(
-    AstNode node,
+    SyntacticEntity node,
     Uri libraryUri,
     ExecutableElement? member, {
     List<FormalParameter>? methodParameterNodes,
@@ -331,17 +362,6 @@ class _ClassVerifier {
         errorReporter: reporter,
         errorNode: node,
       );
-
-      if (!_isNonNullableByDefault &&
-          superMember is MethodElement &&
-          member is MethodElement &&
-          methodParameterNodes != null) {
-        _checkForOptionalParametersDifferentDefaultValues(
-          superMember,
-          member,
-          methodParameterNodes,
-        );
-      }
     }
 
     if (mixinIndex == -1) {
@@ -383,11 +403,15 @@ class _ClassVerifier {
       return false;
     }
 
-    var interfaceElement = type.element;
+    final typeElement = type.element;
 
-    if (interfaceElement.isDartCoreEnum &&
+    final classElement = this.classElement;
+    if (typeElement is ClassElement &&
+        typeElement.isDartCoreEnum &&
         library.featureSet.isEnabled(Feature.enhanced_enums)) {
-      if (classElement.isAbstract || classElement.isEnum) {
+      if (classElement is ClassElement && classElement.isAbstract ||
+          classElement is EnumElement ||
+          classElement is MixinElement) {
         return false;
       }
       reporter.reportErrorForNode(
@@ -397,7 +421,7 @@ class _ClassVerifier {
       return true;
     }
 
-    if (typeProvider.isNonSubtypableClass(interfaceElement)) {
+    if (typeProvider.isNonSubtypableClass(typeElement)) {
       reporter.reportErrorForNode(errorCode, namedType, [type]);
       return true;
     }
@@ -446,7 +470,7 @@ class _ClassVerifier {
         )) {
           hasError = true;
         }
-        if (classElement.isEnum && _checkEnumMixin(namedType)) {
+        if (classElement is EnumElement && _checkEnumMixin(namedType)) {
           hasError = true;
         }
       }
@@ -461,7 +485,7 @@ class _ClassVerifier {
     }
 
     var interfaceElement = type.element;
-    if (interfaceElement.isEnum) {
+    if (interfaceElement is EnumElement) {
       return false;
     }
 
@@ -476,98 +500,6 @@ class _ClassVerifier {
     return true;
   }
 
-  void _checkForOptionalParametersDifferentDefaultValues(
-    MethodElement baseExecutable,
-    MethodElement derivedExecutable,
-    List<FormalParameter> derivedParameterNodes,
-  ) {
-    var derivedIsAbstract = derivedExecutable.isAbstract;
-    var derivedOptionalNodes = <FormalParameter>[];
-    var derivedOptionalElements = <ParameterElementImpl>[];
-    var derivedParameterElements = derivedExecutable.parameters;
-    for (var i = 0; i < derivedParameterElements.length; i++) {
-      var parameterElement =
-          derivedParameterElements[i] as ParameterElementImpl;
-      if (parameterElement.isOptional) {
-        derivedOptionalNodes.add(derivedParameterNodes[i]);
-        derivedOptionalElements.add(parameterElement);
-      }
-    }
-
-    var baseOptionalElements = <ParameterElementImpl>[];
-    var baseParameterElements = baseExecutable.parameters;
-    for (var i = 0; i < baseParameterElements.length; ++i) {
-      var baseParameter = baseParameterElements[i];
-      if (baseParameter.isOptional) {
-        baseOptionalElements
-            .add(baseParameter.declaration as ParameterElementImpl);
-      }
-    }
-
-    // Stop if no optional parameters.
-    if (baseOptionalElements.isEmpty || derivedOptionalElements.isEmpty) {
-      return;
-    }
-
-    if (derivedOptionalElements[0].isNamed) {
-      for (int i = 0; i < derivedOptionalElements.length; i++) {
-        var derivedElement = derivedOptionalElements[i];
-        if (_isNonNullableByDefault &&
-            derivedIsAbstract &&
-            !derivedElement.hasDefaultValue) {
-          continue;
-        }
-        var name = derivedElement.name;
-        for (var j = 0; j < baseOptionalElements.length; j++) {
-          var baseParameter = baseOptionalElements[j];
-          if (name == baseParameter.name && baseParameter.hasDefaultValue) {
-            var baseValue = baseParameter.computeConstantValue();
-            var derivedResult = derivedElement.evaluationResult!;
-            if (!_constantValuesEqual(derivedResult.value, baseValue)) {
-              reporter.reportErrorForNode(
-                StaticWarningCode
-                    .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
-                derivedOptionalNodes[i],
-                [
-                  baseExecutable.enclosingElement.displayName,
-                  baseExecutable.displayName,
-                  name
-                ],
-              );
-            }
-          }
-        }
-      }
-    } else {
-      for (var i = 0;
-          i < derivedOptionalElements.length && i < baseOptionalElements.length;
-          i++) {
-        var derivedElement = derivedOptionalElements[i];
-        if (_isNonNullableByDefault &&
-            derivedIsAbstract &&
-            !derivedElement.hasDefaultValue) {
-          continue;
-        }
-        var baseElement = baseOptionalElements[i];
-        if (baseElement.hasDefaultValue) {
-          var baseValue = baseElement.computeConstantValue();
-          var derivedResult = derivedElement.evaluationResult!;
-          if (!_constantValuesEqual(derivedResult.value, baseValue)) {
-            reporter.reportErrorForNode(
-              StaticWarningCode
-                  .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
-              derivedOptionalNodes[i],
-              [
-                baseExecutable.enclosingElement.displayName,
-                baseExecutable.displayName
-              ],
-            );
-          }
-        }
-      }
-    }
-  }
-
   /// Check that [classElement] is not a superinterface to itself.
   /// The [path] is a list containing the potentially cyclic implements path.
   ///
@@ -576,9 +508,9 @@ class _ClassVerifier {
   /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS],
   /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON],
   /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH].
-  bool _checkForRecursiveInterfaceInheritance(ClassElement element,
-      [List<ClassElement>? path]) {
-    path ??= <ClassElement>[];
+  bool _checkForRecursiveInterfaceInheritance(InterfaceElement element,
+      [List<InterfaceElement>? path]) {
+    path ??= <InterfaceElement>[];
 
     // Detect error condition.
     int size = path.length;
@@ -618,7 +550,7 @@ class _ClassVerifier {
     path.add(element);
 
     // n-case
-    var supertype = element.supertype;
+    final supertype = element.supertype;
     if (supertype != null &&
         _checkForRecursiveInterfaceInheritance(supertype.element, path)) {
       return true;
@@ -630,9 +562,11 @@ class _ClassVerifier {
       }
     }
 
-    for (InterfaceType type in element.superclassConstraints) {
-      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
-        return true;
+    if (element is MixinElement) {
+      for (InterfaceType type in element.superclassConstraints) {
+        if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
+          return true;
+        }
       }
     }
 
@@ -646,15 +580,21 @@ class _ClassVerifier {
     return false;
   }
 
-  void _checkIllegalConcreteEnumMemberDeclaration(SimpleIdentifier name) {
-    if (implementsDartCoreEnum &&
-        !classElement.isDartCoreEnumImpl &&
-        const {'index', 'hashCode', '=='}.contains(name.name)) {
-      reporter.reportErrorForNode(
-        CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
-        name,
-        [name.name],
-      );
+  void _checkIllegalConcreteEnumMemberDeclaration(Token name) {
+    if (implementsDartCoreEnum) {
+      final classElement = this.classElement;
+      if (classElement is ClassElementImpl &&
+              !classElement.isDartCoreEnumImpl ||
+          classElement is EnumElementImpl ||
+          classElement is MixinElementImpl) {
+        if (const {'index', 'hashCode', '=='}.contains(name.lexeme)) {
+          reporter.reportErrorForToken(
+            CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
+            name,
+            [name.lexeme],
+          );
+        }
+      }
     }
   }
 
@@ -662,7 +602,7 @@ class _ClassVerifier {
     // We ignore mixins because they don't inherit and members.
     // But to support `super.foo()` invocations we put members from superclass
     // constraints into the `superImplemented` bucket, the same we look below.
-    if (classElement.isMixin) {
+    if (classElement is MixinElement) {
       return;
     }
 
@@ -675,11 +615,11 @@ class _ClassVerifier {
       ) {
         var member = concreteMap[Name(libraryUri, memberName)];
         if (member != null) {
-          var enclosingClass = member.enclosingElement;
-          if (enclosingClass is ClassElement && filter(enclosingClass)) {
-            reporter.reportErrorForNode(
+          var enclosingClass = member.enclosingElement as InterfaceElement;
+          if (enclosingClass is! ClassElement || filter(enclosingClass)) {
+            reporter.reportErrorForToken(
               CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
-              classNameNode,
+              classNameToken,
               [memberName, enclosingClass.name],
             );
           }
@@ -692,9 +632,9 @@ class _ClassVerifier {
     }
   }
 
-  void _checkIllegalEnumValuesDeclaration(SimpleIdentifier name) {
-    if (implementsDartCoreEnum && name.name == 'values') {
-      reporter.reportErrorForNode(
+  void _checkIllegalEnumValuesDeclaration(Token name) {
+    if (implementsDartCoreEnum && name.lexeme == 'values') {
+      reporter.reportErrorForToken(
         CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION,
         name,
       );
@@ -713,9 +653,9 @@ class _ClassVerifier {
       );
       var inherited = getter ?? setter;
       if (inherited != null) {
-        reporter.reportErrorForNode(
+        reporter.reportErrorForToken(
           CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE,
-          classNameNode,
+          classNameToken,
           [inherited.enclosingElement.name!],
         );
       }
@@ -724,14 +664,16 @@ class _ClassVerifier {
 
   /// Return the error code that should be used when the given class [element]
   /// references itself directly.
-  ErrorCode _getRecursiveErrorCode(ClassElement element) {
+  ErrorCode _getRecursiveErrorCode(InterfaceElement element) {
     if (element.supertype?.element == classElement) {
       return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS;
     }
 
-    for (InterfaceType type in element.superclassConstraints) {
-      if (type.element == classElement) {
-        return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON;
+    if (element is MixinElement) {
+      for (InterfaceType type in element.superclassConstraints) {
+        if (type.element == classElement) {
+          return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON;
+        }
       }
     }
 
@@ -753,7 +695,7 @@ class _ClassVerifier {
         ClassMember member, String memberName, String displayName) {
       if (memberName == name) {
         reporter.reportErrorForNode(
-          classElement.isEnum
+          classElement is EnumElement
               ? CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER
               : CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
           member,
@@ -767,18 +709,18 @@ class _ClassVerifier {
 
     for (var member in members) {
       if (member is MethodDeclaration) {
-        var displayName = member.name.name;
-        var name2 = displayName;
+        var displayName = member.name.lexeme;
+        var name = displayName;
         if (member.isSetter) {
-          name2 += '=';
+          name += '=';
         }
-        if (checkMemberNameCombo(member, name2, displayName)) return true;
+        if (checkMemberNameCombo(member, name, displayName)) return true;
       } else if (member is FieldDeclaration) {
         for (var variableDeclaration in member.fields.variables) {
-          var name2 = variableDeclaration.name.name;
-          if (checkMemberNameCombo(member, name2, name2)) return true;
+          var name = variableDeclaration.name.lexeme;
+          if (checkMemberNameCombo(member, name, name)) return true;
           if (!variableDeclaration.isFinal) {
-            if (checkMemberNameCombo(member, '$name2=', name2)) return true;
+            if (checkMemberNameCombo(member, '$name=', name)) return true;
           }
         }
       }
@@ -786,17 +728,17 @@ class _ClassVerifier {
     return false;
   }
 
-  void _reportInconsistentInheritance(AstNode node, Conflict conflict) {
+  void _reportInconsistentInheritance(Token token, Conflict conflict) {
     var name = conflict.name;
 
     if (conflict is GetterMethodConflict) {
       // Members that participate in inheritance are always enclosed in named
       // elements so it is safe to assume that
-      // `conflict.getter.enclosingElement.name` and
-      // `conflict.method.enclosingElement.name` are both non-`null`.
-      reporter.reportErrorForNode(
+      // `conflict.getter.enclosingElement3.name` and
+      // `conflict.method.enclosingElement3.name` are both non-`null`.
+      reporter.reportErrorForToken(
         CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
-        node,
+        token,
         [
           name.name,
           conflict.getter.enclosingElement.name!,
@@ -812,9 +754,9 @@ class _ClassVerifier {
         return '$className.${name.name} ($typeStr)';
       }).join(', ');
 
-      reporter.reportErrorForNode(
+      reporter.reportErrorForToken(
         CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
-        node,
+        token,
         [name.name, candidatesStr],
       );
     } else {
@@ -827,14 +769,11 @@ class _ClassVerifier {
       return;
     }
 
-    classNameNode.setProperty(
-      InheritanceOverrideVerifier._missingOverridesKey,
-      elements,
-    );
+    _missingOverrides[classNameToken] = elements;
 
     var descriptions = <String>[];
-    for (ExecutableElement element in elements) {
-      String prefix = '';
+    for (var element in elements) {
+      var prefix = '';
       if (element is PropertyAccessorElement) {
         if (element.isGetter) {
           prefix = 'getter ';
@@ -853,34 +792,34 @@ class _ClassVerifier {
     descriptions.sort();
 
     if (descriptions.length == 1) {
-      reporter.reportErrorForNode(
+      reporter.reportErrorForToken(
         CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-        classNameNode,
+        classNameToken,
         [descriptions[0]],
       );
     } else if (descriptions.length == 2) {
-      reporter.reportErrorForNode(
+      reporter.reportErrorForToken(
         CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
-        classNameNode,
+        classNameToken,
         [descriptions[0], descriptions[1]],
       );
     } else if (descriptions.length == 3) {
-      reporter.reportErrorForNode(
+      reporter.reportErrorForToken(
         CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE,
-        classNameNode,
+        classNameToken,
         [descriptions[0], descriptions[1], descriptions[2]],
       );
     } else if (descriptions.length == 4) {
-      reporter.reportErrorForNode(
+      reporter.reportErrorForToken(
         CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR,
-        classNameNode,
+        classNameToken,
         [descriptions[0], descriptions[1], descriptions[2], descriptions[3]],
       );
     } else {
-      reporter.reportErrorForNode(
+      reporter.reportErrorForToken(
         CompileTimeErrorCode
             .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
-        classNameNode,
+        classNameToken,
         [
           descriptions[0],
           descriptions[1],
@@ -898,7 +837,7 @@ class _ClassVerifier {
       var inferenceError = element.typeInferenceError;
       if (inferenceError?.kind ==
           TopLevelInferenceErrorKind.overrideNoCombinedSuperSignature) {
-        reporter.reportErrorForNode(
+        reporter.reportErrorForToken(
           CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE,
           node.name,
           [
@@ -912,11 +851,88 @@ class _ClassVerifier {
     return false;
   }
 
-  static bool _constantValuesEqual(DartObject? x, DartObject? y) {
-    // If either constant value couldn't be computed due to an error, the
-    // corresponding DartObject will be `null`.  Since an error has already been
-    // reported, there's no need to report another.
-    if (x == null || y == null) return true;
-    return x == y;
+  /// Verify that [classElement] complies with all `@mustBeOverridden`-annotated
+  /// members in all of its supertypes.
+  void _verifyMustBeOverridden() {
+    final noSuchMethodDeclaration =
+        classElement.getMethod(FunctionElement.NO_SUCH_METHOD_METHOD_NAME);
+    if (noSuchMethodDeclaration != null &&
+        !noSuchMethodDeclaration.isAbstract) {
+      return;
+    }
+    final notOverridden = <ExecutableElement>[];
+    for (var supertype in classElement.allSupertypes) {
+      // TODO(srawlins): This looping may be expensive. Since the vast majority
+      // of classes will have zero elements annotated with `@mustBeOverridden`,
+      // we could store a bit on ClassElement (included in summaries) which
+      // denotes whether any declared element has been so annotated. Then the
+      // expensive looping is deferred until we have such a class.
+      for (var method in supertype.methods) {
+        if (method.isPrivate && method.library != classElement.library) {
+          continue;
+        }
+        if (method.isStatic) {
+          continue;
+        }
+        if (method.hasMustBeOverridden) {
+          var methodDeclaration = classElement.getMethod(method.name);
+          if (methodDeclaration == null || methodDeclaration.isAbstract) {
+            notOverridden.add(method.declaration);
+          }
+        }
+      }
+      for (var accessor in supertype.accessors) {
+        if (accessor.isPrivate && accessor.library != classElement.library) {
+          continue;
+        }
+        if (accessor.isStatic) {
+          continue;
+        }
+        if (accessor.hasMustBeOverridden ||
+            accessor.variable.hasMustBeOverridden) {
+          final PropertyAccessorElement? accessorDeclaration;
+          if (accessor.isGetter) {
+            accessorDeclaration = classElement.getGetter(accessor.name);
+          } else if (accessor.isSetter) {
+            accessorDeclaration = classElement.getSetter(accessor.name);
+          } else {
+            continue;
+          }
+          if (accessorDeclaration == null || accessorDeclaration.isAbstract) {
+            notOverridden.add(accessor);
+          }
+        }
+      }
+    }
+    if (notOverridden.isEmpty) {
+      return;
+    }
+
+    _missingMustBeOverridden[classNameToken] = notOverridden.toList();
+    final namesForError = notOverridden.map((e) => e.name).toSet().toList();
+
+    if (namesForError.length == 1) {
+      reporter.reportErrorForToken(
+        HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE,
+        classNameToken,
+        namesForError,
+      );
+    } else if (namesForError.length == 2) {
+      reporter.reportErrorForToken(
+        HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO,
+        classNameToken,
+        namesForError,
+      );
+    } else {
+      reporter.reportErrorForToken(
+        HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS,
+        classNameToken,
+        [
+          namesForError[0],
+          namesForError[1],
+          (namesForError.length - 2).toString(),
+        ],
+      );
+    }
   }
 }

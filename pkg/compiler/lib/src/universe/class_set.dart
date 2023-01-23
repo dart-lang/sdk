@@ -310,7 +310,7 @@ class ClassHierarchyNode {
   /// continues. The return value of the function is either [ForEach.STOP], if
   /// visitation was stopped, or [ForEach.CONTINUE] if visitation continued to
   /// the end.
-  IterationStep? forEachSubclass(ForEachFunction f, EnumSet<Instantiation> mask,
+  IterationStep forEachSubclass(ForEachFunction f, EnumSet<Instantiation> mask,
       {bool strict = false}) {
     IterationStep? nextStep;
     if (!strict && mask.intersects(_mask)) {
@@ -322,7 +322,7 @@ class ClassHierarchyNode {
     if (nextStep == IterationStep.CONTINUE) {
       if (mask.contains(Instantiation.UNINSTANTIATED) || isInstantiated) {
         for (ClassHierarchyNode subclass in _directSubclasses) {
-          IterationStep? subForEach = subclass.forEachSubclass(f, mask);
+          IterationStep subForEach = subclass.forEachSubclass(f, mask);
           if (subForEach == IterationStep.STOP) {
             return subForEach;
           }
@@ -692,7 +692,7 @@ class ClassSet {
   /// continues. The return value of the function is either [ForEach.STOP], if
   /// visitation was stopped, or [ForEach.CONTINUE] if visitation continued to
   /// the end.
-  IterationStep? forEachSubclass(ForEachFunction f, EnumSet<Instantiation> mask,
+  IterationStep forEachSubclass(ForEachFunction f, EnumSet<Instantiation> mask,
       {bool strict = false}) {
     return node.forEachSubclass(f, mask, strict: strict);
   }
@@ -727,13 +727,12 @@ class ClassSet {
   /// continues. The return value of the function is either [ForEach.STOP], if
   /// visitation was stopped, or [ForEach.CONTINUE] if visitation continued to
   /// the end.
-  IterationStep? forEachSubtype(ForEachFunction f, EnumSet<Instantiation> mask,
+  IterationStep forEachSubtype(ForEachFunction f, EnumSet<Instantiation> mask,
       {bool strict = false}) {
-    IterationStep nextStep =
-        node.forEachSubclass(f, mask, strict: strict) ?? IterationStep.CONTINUE;
+    IterationStep nextStep = node.forEachSubclass(f, mask, strict: strict);
     if (nextStep == IterationStep.CONTINUE && _subtypes != null) {
       for (ClassHierarchyNode subclass in _subtypes!) {
-        IterationStep? subForEach = subclass.forEachSubclass(f, mask);
+        IterationStep subForEach = subclass.forEachSubclass(f, mask);
         if (subForEach == IterationStep.STOP) {
           return subForEach;
         }

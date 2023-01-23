@@ -6,7 +6,7 @@
 
 type: newworld
 trackWidgetCreation: true
-target: DDC # basically needed for widget creation to be run
+target: dartdevc # basically needed for widget creation to be run
 worlds:
   - entry: app/main.dart
     sources:

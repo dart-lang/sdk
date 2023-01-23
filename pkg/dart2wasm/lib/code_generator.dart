@@ -4,6 +4,7 @@
 
 import 'package:dart2wasm/class_info.dart';
 import 'package:dart2wasm/closures.dart';
+import 'package:dart2wasm/constants.dart';
 import 'package:dart2wasm/dispatch_table.dart';
 import 'package:dart2wasm/intrinsics.dart';
 import 'package:dart2wasm/param_info.dart';
@@ -45,14 +46,24 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   late final Closures closures;
 
+  bool exceptionLocationPrinted = false;
+
   final Map<VariableDeclaration, w.Local> locals = {};
   w.Local? thisLocal;
   w.Local? preciseThisLocal;
   w.Local? returnValueLocal;
   final Map<TypeParameter, w.Local> typeLocals = {};
-  final List<TryBlockFinalizer> finalizers = [];
+
+  /// Finalizers to run on `return`.
+  final List<TryBlockFinalizer> returnFinalizers = [];
+
+  /// Finalizers to run on a `break`. `breakFinalizers[L].last` (which should
+  /// always be present) is the `br` target for the label `L` that will run the
+  /// finalizers, or break out of the loop.
+  final Map<LabeledStatement, List<w.Label>> breakFinalizers = {};
+
   final List<w.Label> tryLabels = [];
-  final Map<LabeledStatement, w.Label> labels = {};
+
   final Map<SwitchCase, w.Label> switchLabels = {};
 
   /// Maps a switch statement to the information used when doing a backward
@@ -74,6 +85,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     b = function.body;
   }
 
+  w.Module get m => translator.m;
+
   Member get member => reference.asMember;
 
   w.ValueType get returnType => translator
@@ -88,7 +101,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   w.ValueType translateType(DartType type) => translator.translateType(type);
 
   w.Local addLocal(w.ValueType type) {
-    return function.addLocal(translator.typeForLocal(type));
+    return function.addLocal(type);
   }
 
   DartType dartTypeOf(Expression exp) {
@@ -112,7 +125,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType defaultExpression(Expression node, w.ValueType expectedType) {
-    unimplemented(node, node.runtimeType, [expectedType]);
+    unimplemented(
+        node, node.runtimeType, [if (expectedType != voidMarker) expectedType]);
     return expectedType;
   }
 
@@ -123,6 +137,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   /// Generate code for the member.
   void generate() {
+    // Build closure information.
     closures = Closures(this);
 
     Member member = this.member;
@@ -155,24 +170,38 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       }
     }
 
+    if (member.function!.asyncMarker == AsyncMarker.Async &&
+        !reference.isAsyncInnerReference) {
+      // Generate the async wrapper function, i.e. the function that gets
+      // called when an async function is called. The inner function, containing
+      // the body of the async function, is marked as an async inner reference
+      // and is generated separately.
+      Procedure procedure = member as Procedure;
+      w.BaseFunction inner =
+          translator.functions.getFunction(procedure.asyncInnerReference);
+      int parameterOffset = _initializeThis(member);
+      return generateAsyncWrapper(procedure.function, inner, parameterOffset);
+    }
+
     return generateBody(member);
   }
 
   void generateTearOffGetter(Procedure procedure) {
-    w.DefinedFunction closureFunction =
-        translator.getTearOffFunction(procedure);
-
-    int parameterCount = procedure.function.requiredParameterCount;
-    w.DefinedGlobal global = translator.makeFunctionRef(closureFunction);
+    _initializeThis(member);
+    DartType functionType =
+        procedure.function.computeFunctionType(Nullability.nonNullable);
+    ClosureImplementation closure = translator.getTearOffClosure(procedure);
+    w.StructType struct = closure.representation.closureStruct;
 
     ClassInfo info = translator.classInfo[translator.functionClass]!;
     translator.functions.allocateClass(info.classId);
 
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
-    b.local_get(paramLocals[0]);
-    b.global_get(global);
-    translator.struct_new(b, parameterCount);
+    b.local_get(paramLocals[0]); // `this` as context
+    b.global_get(closure.vtable);
+    types.makeType(this, functionType);
+    b.struct_new(struct);
     b.end();
   }
 
@@ -205,7 +234,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     void getThis() {
       w.Local thisLocal = paramLocals[0];
-      w.RefType structType = w.RefType.def(struct, nullable: true);
+      w.RefType structType = w.RefType.def(struct, nullable: false);
       b.local_get(thisLocal);
       translator.convertType(function, thisLocal.type, structType);
     }
@@ -226,47 +255,145 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     b.end();
   }
 
+  /// Generate the async wrapper for an async function and its associated
+  /// stub function.
+  ///
+  /// The async wrapper is the outer function that gets called when the async
+  /// function is called. It bundles up the arguments to the function into an
+  /// arguments struct along with a reference to the stub function.
+  ///
+  /// This struct is passed to the async helper, which allocates a new stack and
+  /// calls the stub function on that stack.
+  ///
+  /// The stub function unwraps the arguments from the struct and calls the
+  /// inner function, containing the implementation of the async function.
+  void generateAsyncWrapper(
+      FunctionNode functionNode, w.BaseFunction inner, int parameterOffset) {
+    w.DefinedFunction stub =
+        m.addFunction(translator.functions.asyncStubFunctionType);
+    w.BaseFunction asyncHelper =
+        translator.functions.getFunction(translator.asyncHelper.reference);
+
+    w.Instructions stubBody = stub.body;
+    w.Local stubArguments = stub.locals[0];
+    w.Local stubStack = stub.locals[1];
+
+    // Set up the type parameter to local mapping, in case a type parameter is
+    // used in the return type.
+    int paramIndex = parameterOffset;
+    for (TypeParameter typeParam in functionNode.typeParameters) {
+      typeLocals[typeParam] = paramLocals[paramIndex++];
+    }
+
+    // Push the type argument to the async helper, specifying the type argument
+    // of the returned `Future`.
+    DartType returnType = functionNode.returnType;
+    DartType innerType = returnType is InterfaceType &&
+            returnType.classNode == translator.coreTypes.futureClass
+        ? returnType.typeArguments.single
+        : const DynamicType();
+    types.makeType(this, innerType);
+
+    // Create struct for stub reference and arguments
+    w.StructType baseStruct = translator.functions.asyncStubBaseStruct;
+    w.StructType argsStruct = m.addStructType("${function.functionName} (args)",
+        fields: baseStruct.fields, superType: baseStruct);
+
+    // Push stub reference
+    w.Global stubGlobal = translator.makeFunctionRef(stub);
+    b.global_get(stubGlobal);
+
+    // Transfer function arguments to inner
+    w.Local argsLocal =
+        stub.addLocal(w.RefType.def(argsStruct, nullable: false));
+    stubBody.local_get(stubArguments);
+    translator.convertType(stub, stubArguments.type, argsLocal.type);
+    stubBody.local_set(argsLocal);
+    int arity = function.type.inputs.length;
+    for (int i = 0; i < arity; i++) {
+      int fieldIndex = argsStruct.fields.length;
+      w.ValueType type = function.locals[i].type;
+      argsStruct.fields.add(w.FieldType(type, mutable: false));
+      b.local_get(function.locals[i]);
+      stubBody.local_get(argsLocal);
+      stubBody.struct_get(argsStruct, fieldIndex);
+    }
+    b.struct_new(argsStruct);
+
+    // Call async helper
+    b.call(asyncHelper);
+    translator.convertType(function, asyncHelper.type.outputs.single,
+        function.type.outputs.single);
+    b.end();
+
+    // Call inner function from stub
+    stubBody.local_get(stubStack);
+    stubBody.call(inner);
+    translator.convertType(
+        stub, inner.type.outputs.single, stub.type.outputs.single);
+    stubBody.end();
+  }
+
   void generateBody(Member member) {
     ParameterInfo paramInfo = translator.paramInfoFor(reference);
-    bool hasThis = member.isInstanceMember || member is Constructor;
-    int typeParameterOffset = hasThis ? 1 : 0;
-    int implicitParams = typeParameterOffset + paramInfo.typeParamCount;
+    int parameterOffset = _initializeThis(member);
+    int implicitParams = parameterOffset + paramInfo.typeParamCount;
+
+    void setupParamLocal(
+        VariableDeclaration variable, int index, Constant? defaultValue) {
+      w.Local local = paramLocals[implicitParams + index];
+      locals[variable] = local;
+      if (defaultValue == ParameterInfo.defaultValueSentinel) {
+        // The default value for this parameter differs between implementations
+        // within the same selector. This means that callers will pass the
+        // default value sentinel to indicate that the parameter is not given.
+        // The callee must check for the sentinel value and substitute the
+        // actual default value.
+        b.local_get(local);
+        translator.constants.instantiateConstant(
+            function, b, ParameterInfo.defaultValueSentinel, local.type);
+        b.ref_eq();
+        b.if_();
+        wrap(variable.initializer!, local.type);
+        b.local_set(local);
+        b.end();
+      }
+    }
+
     List<VariableDeclaration> positional =
         member.function!.positionalParameters;
     for (int i = 0; i < positional.length; i++) {
-      locals[positional[i]] = paramLocals[implicitParams + i];
+      setupParamLocal(positional[i], i, paramInfo.positional[i]);
     }
     List<VariableDeclaration> named = member.function!.namedParameters;
     for (var param in named) {
-      locals[param] =
-          paramLocals[implicitParams + paramInfo.nameIndex[param.name]!];
+      setupParamLocal(
+          param, paramInfo.nameIndex[param.name]!, paramInfo.named[param.name]);
     }
     List<TypeParameter> typeParameters = member is Constructor
         ? member.enclosingClass.typeParameters
         : member.function!.typeParameters;
     for (int i = 0; i < typeParameters.length; i++) {
-      typeLocals[typeParameters[i]] = paramLocals[typeParameterOffset + i];
+      typeLocals[typeParameters[i]] = paramLocals[parameterOffset + i];
     }
+
+    // For all parameters whose Wasm type has been forced to `externref` due to
+    // this function being an export, internalize and cast the parameter to the
+    // canonical representation type for its Dart type.
+    locals.forEach((parameter, local) {
+      DartType parameterType = parameter.type;
+      if (local.type == w.RefType.extern(nullable: true) &&
+          !(parameterType is InterfaceType &&
+              parameterType.classNode == translator.wasmExternRefClass)) {
+        w.Local newLocal = addLocal(translateType(parameterType));
+        b.local_get(local);
+        translator.convertType(function, local.type, newLocal.type);
+        b.local_set(newLocal);
+        locals[parameter] = newLocal;
+      }
+    });
 
     closures.findCaptures(member);
-
-    if (hasThis) {
-      Class cls = member.enclosingClass!;
-      ClassInfo info = translator.classInfo[cls]!;
-      thisLocal = paramLocals[0];
-      w.RefType thisType = info.nonNullableType;
-      if (translator.needsConversion(paramLocals[0].type, thisType) &&
-          !(cls == translator.ffiPointerClass ||
-              translator.isFfiCompound(cls))) {
-        preciseThisLocal = addLocal(thisType);
-        b.local_get(paramLocals[0]);
-        translator.ref_cast(b, info);
-        b.local_set(preciseThisLocal!);
-      } else {
-        preciseThisLocal = paramLocals[0];
-      }
-    }
-
     closures.collectContexts(member);
     if (member is Constructor) {
       for (Field field in member.enclosingClass.fields) {
@@ -290,7 +417,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         b.struct_set(info.struct, translator.typeParameterIndex[typeParam]!);
       }
       for (Field field in cls.fields) {
-        if (field.isInstanceMember && field.initializer != null) {
+        if (field.isInstanceMember &&
+            field.initializer != null &&
+            field.type is! VoidType) {
           int fieldIndex = translator.fieldIndex[field]!;
           b.local_get(thisLocal!);
           wrap(
@@ -299,30 +428,93 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         }
       }
       for (Initializer initializer in member.initializers) {
-        initializer.accept(this);
+        visitInitializer(initializer);
       }
     }
 
-    member.function!.body?.accept(this);
+    Statement? body = member.function!.body;
+    if (body != null) {
+      visitStatement(body);
+    }
     _implicitReturn();
     b.end();
   }
 
   /// Generate code for the body of a lambda.
-  void generateLambda(Lambda lambda, Closures closures) {
+  w.DefinedFunction generateLambda(Lambda lambda, Closures closures) {
+    // Initialize closure information from enclosing member.
     this.closures = closures;
 
-    final int implicitParams = 1;
-    List<VariableDeclaration> positional =
-        lambda.functionNode.positionalParameters;
-    for (int i = 0; i < positional.length; i++) {
-      locals[positional[i]] = paramLocals[implicitParams + i];
+    FunctionNode functionNode = lambda.functionNode;
+    _initializeContextLocals(functionNode);
+
+    if (functionNode.asyncMarker == AsyncMarker.Async &&
+        lambda.function == function) {
+      w.DefinedFunction inner =
+          translator.functions.addAsyncInnerFunctionFor(function);
+      generateAsyncWrapper(functionNode, inner, 1);
+      return CodeGenerator(translator, inner, reference)
+          .generateLambda(lambda, closures);
     }
 
-    Context? context = closures.contexts[lambda.functionNode]?.parent;
+    int paramIndex = 1;
+    for (TypeParameter typeParam in functionNode.typeParameters) {
+      typeLocals[typeParam] = paramLocals[paramIndex++];
+    }
+    for (VariableDeclaration param in functionNode.positionalParameters) {
+      locals[param] = paramLocals[paramIndex++];
+    }
+    for (VariableDeclaration param in functionNode.namedParameters) {
+      locals[param] = paramLocals[paramIndex++];
+    }
+
+    allocateContext(functionNode);
+    captureParameters();
+
+    visitStatement(functionNode.body!);
+    _implicitReturn();
+    b.end();
+
+    return function;
+  }
+
+  /// Initialize locals containing `this` in constructors and instance members.
+  /// Returns the number of parameter locals taken up by the receiver parameter,
+  /// i.e. the parameter offset for the first type parameter (or the first
+  /// parameter if there are no type parameters).
+  int _initializeThis(Member member) {
+    bool hasThis = member.isInstanceMember || member is Constructor;
+    if (hasThis) {
+      Class cls = member.enclosingClass!;
+      ClassInfo info = translator.classInfo[cls]!;
+      thisLocal = paramLocals[0];
+      assert(!thisLocal!.type.nullable);
+      w.RefType thisType = info.nonNullableType;
+      if (translator.needsConversion(paramLocals[0].type, thisType) &&
+          !(cls == translator.objectInfo.cls ||
+              cls == translator.ffiPointerClass ||
+              translator.isFfiCompound(cls) ||
+              translator.isWasmType(cls))) {
+        preciseThisLocal = addLocal(thisType);
+        b.local_get(paramLocals[0]);
+        b.ref_cast(info.struct);
+        b.local_set(preciseThisLocal!);
+      } else {
+        preciseThisLocal = paramLocals[0];
+      }
+      return 1;
+    }
+    return 0;
+  }
+
+  /// Initialize locals pointing to every context in the context chain of a
+  /// closure, plus the locals containing `this` if `this` is captured by the
+  /// closure.
+  void _initializeContextLocals(FunctionNode functionNode) {
+    Context? context = closures.contexts[functionNode]?.parent;
     if (context != null) {
       b.local_get(paramLocals[0]);
-      translator.ref_cast(b, context.struct);
+      b.ref_cast(context.struct);
       while (true) {
         w.Local contextLocal =
             addLocal(w.RefType.def(context!.struct, nullable: false));
@@ -335,25 +527,19 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         if (context.parent == null) break;
 
         b.struct_get(context.struct, context.parentFieldIndex);
-        if (options.localNullability) {
-          b.ref_as_non_null();
-        }
+        b.ref_as_non_null();
         context = context.parent!;
       }
       if (context.containsThis) {
-        thisLocal = addLocal(
-            context.struct.fields[context.thisFieldIndex].type.unpacked);
+        thisLocal = addLocal(context
+            .struct.fields[context.thisFieldIndex].type.unpacked
+            .withNullability(false));
         preciseThisLocal = thisLocal;
         b.struct_get(context.struct, context.thisFieldIndex);
+        b.ref_as_non_null();
         b.local_set(thisLocal!);
       }
     }
-    allocateContext(lambda.functionNode);
-    captureParameters();
-
-    lambda.functionNode.body!.accept(this);
-    _implicitReturn();
-    b.end();
   }
 
   void _implicitReturn() {
@@ -361,7 +547,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       w.ValueType returnType = function.type.outputs[0];
       if (returnType is w.RefType && returnType.nullable) {
         // Dart body may have an implicit return null.
-        b.ref_null(returnType.heapType);
+        b.ref_null(returnType.heapType.bottomType);
       } else {
         // This point is unreachable, but the Wasm validator still expects the
         // stack to contain a value matching the Wasm function return type.
@@ -379,7 +565,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       w.Local contextLocal =
           addLocal(w.RefType.def(context.struct, nullable: false));
       context.currentLocal = contextLocal;
-      translator.struct_new_default(b, context.struct);
+      b.struct_new_default(context.struct);
       b.local_set(contextLocal);
       if (context.containsThis) {
         b.local_get(contextLocal);
@@ -431,9 +617,39 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   /// result to the expected type if needed. All expression code generation goes
   /// through this method.
   w.ValueType wrap(Expression node, w.ValueType expectedType) {
-    w.ValueType resultType = node.accept1(this, expectedType);
-    translator.convertType(function, resultType, expectedType);
-    return expectedType;
+    try {
+      w.ValueType resultType = node.accept1(this, expectedType);
+      translator.convertType(function, resultType, expectedType);
+      return expectedType;
+    } catch (_) {
+      _printLocation(node);
+      rethrow;
+    }
+  }
+
+  void visitStatement(Statement node) {
+    try {
+      node.accept(this);
+    } catch (_) {
+      _printLocation(node);
+      rethrow;
+    }
+  }
+
+  void visitInitializer(Initializer node) {
+    try {
+      node.accept(this);
+    } catch (_) {
+      _printLocation(node);
+      rethrow;
+    }
+  }
+
+  void _printLocation(TreeNode node) {
+    if (!exceptionLocationPrinted) {
+      print("Exception in ${node.runtimeType} at ${node.location}");
+      exceptionLocationPrinted = true;
+    }
   }
 
   w.ValueType call(Reference target) {
@@ -466,7 +682,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   void visitLocalInitializer(LocalInitializer node) {
-    node.variable.accept(this);
+    visitStatement(node.variable);
   }
 
   @override
@@ -484,14 +700,12 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   void visitRedirectingInitializer(RedirectingInitializer node) {
     Class cls = (node.parent as Constructor).enclosingClass;
     b.local_get(thisLocal!);
-    if (options.parameterNullability && thisLocal!.type.nullable) {
-      b.ref_as_non_null();
-    }
     for (TypeParameter typeParam in cls.typeParameters) {
       types.makeType(
           this, TypeParameterType(typeParam, Nullability.nonNullable));
     }
-    _visitArguments(node.arguments, node.targetReference, 1);
+    _visitArguments(
+        node.arguments, node.targetReference, 1 + cls.typeParameters.length);
     call(node.targetReference);
   }
 
@@ -503,9 +717,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       return;
     }
     b.local_get(thisLocal!);
-    if (options.parameterNullability && thisLocal!.type.nullable) {
-      b.ref_as_non_null();
-    }
     for (DartType typeArg in supertype!.typeArguments) {
       types.makeType(this, typeArg);
     }
@@ -517,22 +728,22 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   void visitBlock(Block node) {
     for (Statement statement in node.statements) {
-      statement.accept(this);
+      visitStatement(statement);
     }
   }
 
   @override
   void visitLabeledStatement(LabeledStatement node) {
     w.Label label = b.block();
-    labels[node] = label;
-    node.body.accept(this);
-    labels.remove(node);
+    breakFinalizers[node] = <w.Label>[label];
+    visitStatement(node.body);
+    breakFinalizers.remove(node);
     b.end();
   }
 
   @override
   void visitBreakStatement(BreakStatement node) {
-    b.br(labels[node.target]!);
+    b.br(breakFinalizers[node.target]!.last);
   }
 
   @override
@@ -550,17 +761,23 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       local = addLocal(type);
       locals[node] = local;
     }
-    if (node.initializer != null) {
+
+    // Handle variable initialization. Nullable variables have an implicit
+    // initializer.
+    if (node.initializer != null ||
+        node.type.nullability == Nullability.nullable) {
+      Expression initializer =
+          node.initializer ?? ConstantExpression(NullConstant());
       if (capture != null) {
         w.ValueType expectedType = capture.written ? capture.type : local!.type;
         b.local_get(capture.context.currentLocal);
-        wrap(node.initializer!, expectedType);
+        wrap(initializer, expectedType);
         if (!capture.written) {
           b.local_tee(local!);
         }
         b.struct_set(capture.context.struct, capture.fieldIndex);
       } else {
-        wrap(node.initializer!, local!.type);
+        wrap(initializer, local!.type);
         b.local_set(local);
       }
     } else if (local != null && !local.type.defaultable) {
@@ -588,7 +805,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     // nodes, we generate a single wasm catch instruction, and dispatch at
     // runtime based on the type of the caught exception.
     w.Label try_ = b.try_();
-    node.body.accept(this);
+    visitStatement(node.body);
     b.br(try_);
 
     // Insert a catch instruction which will catch any thrown Dart
@@ -648,7 +865,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         b.local_get(thrownStackTrace);
         b.local_set(guardedStackTrace);
       }
-      catch_.body.accept(this);
+      visitStatement(catch_.body);
 
       // Jump out of the try entirely if we enter any catch block.
       b.br(try_);
@@ -665,30 +882,64 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   void visitTryFinally(TryFinally node) {
-    // We lower a [TryFinally] to three nested blocks, and we emit the finalizer
-    // up to three times. Once in a catch, to handle the case where the try
+    // We lower a [TryFinally] to a number of nested blocks, depending on how
+    // many different code paths we have that run the finally block.
+    //
+    // We emit the finalizer once in a catch, to handle the case where the try
     // throws. Once outside of the catch, to handle the case where the try does
-    // not throw. Finally, if there is a return within the try block, then we
-    // emit the finalizer one more time along with logic to continue walking up
-    // the stack.
+    // not throw. If there is a return within the try block, then we emit the
+    // finalizer one more time along with logic to continue walking up the
+    // stack.
+    //
+    // A `break L` can run more than one finalizer, and each of those
+    // finalizers will need to be run in a different `try` block. So for each
+    // wrapping label we generate a block to run the finalizer on `break` and
+    // then branch to the right Wasm block to either run the next finalizer or
+    // break.
+
+    // The block for the try-finally statement. Used as `br` target in normal
+    // execution after the finalizer (no throws, returns, or breaks).
     w.Label tryFinallyBlock = b.block();
-    w.Label finalizerBlock = b.block();
-    finalizers.add(TryBlockFinalizer(finalizerBlock));
+
+    // Create one block for each wrapping label
+    for (final labelBlocks in breakFinalizers.values) {
+      labelBlocks.add(b.block());
+    }
+
+    // Continuation of this block runs the finalizer and returns (or jumps to
+    // the next finalizer block). Used as `br` target on `return`.
+    w.Label returnFinalizerBlock = b.block();
+    returnFinalizers.add(TryBlockFinalizer(returnFinalizerBlock));
+
     w.Label tryBlock = b.try_();
-    node.body.accept(this);
-    bool mustHandleReturn = finalizers.removeLast().mustHandleReturn;
-    b.br(tryBlock);
+    visitStatement(node.body);
+    final bool mustHandleReturn =
+        returnFinalizers.removeLast().mustHandleReturn;
     b.catch_(translator.exceptionTag);
-    node.finalizer.accept(this);
+
+    // `break` statements in the current finalizer and the rest will not run
+    // the current finalizer, update the `break` targets
+    final removedBreakTargets = <LabeledStatement, w.Label>{};
+    for (final breakFinalizerEntry in breakFinalizers.entries) {
+      removedBreakTargets[breakFinalizerEntry.key] =
+          breakFinalizerEntry.value.removeLast();
+    }
+
+    // Run finalizer on exception
+    visitStatement(node.finalizer);
     b.rethrow_(tryBlock);
     b.end(); // end tryBlock.
-    node.finalizer.accept(this);
+
+    // Run finalizer on normal execution (no breaks, throws, or returns)
+    visitStatement(node.finalizer);
     b.br(tryFinallyBlock);
-    b.end(); // end finalizerBlock.
+    b.end(); // end returnFinalizerBlock.
+
+    // Run finalizer on `return`
     if (mustHandleReturn) {
-      node.finalizer.accept(this);
-      if (finalizers.isNotEmpty) {
-        b.br(finalizers.last.label);
+      visitStatement(node.finalizer);
+      if (returnFinalizers.isNotEmpty) {
+        b.br(returnFinalizers.last.label);
       } else {
         if (returnValueLocal != null) {
           b.local_get(returnValueLocal!);
@@ -697,7 +948,16 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         _returnFromFunction();
       }
     }
-    b.end(); // end tryFinallyBlock.
+
+    // Generate finalizers for `break`s in the `try` block
+    for (final removedBreakTargetEntry in removedBreakTargets.entries) {
+      b.end();
+      visitStatement(node.finalizer);
+      b.br(breakFinalizers[removedBreakTargetEntry.key]!.last);
+    }
+
+    // Terminate `tryFinallyBlock`
+    b.end();
   }
 
   @override
@@ -777,8 +1037,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   void visitIfStatement(IfStatement node) {
     _conditional(
         node.condition,
-        () => node.then.accept(this),
-        node.otherwise != null ? () => node.otherwise!.accept(this) : null,
+        () => visitStatement(node.then),
+        node.otherwise != null ? () => visitStatement(node.otherwise!) : null,
         const []);
   }
 
@@ -786,7 +1046,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   void visitDoStatement(DoStatement node) {
     w.Label loop = b.loop();
     allocateContext(node);
-    node.body.accept(this);
+    visitStatement(node.body);
     _branchIf(node.condition, loop, negated: false);
     b.end();
   }
@@ -797,7 +1057,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     w.Label loop = b.loop();
     _branchIf(node.condition, block, negated: true);
     allocateContext(node);
-    node.body.accept(this);
+    visitStatement(node.body);
     b.br(loop);
     b.end();
     b.end();
@@ -808,28 +1068,36 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     Context? context = closures.contexts[node];
     allocateContext(node);
     for (VariableDeclaration variable in node.variables) {
-      variable.accept(this);
+      visitStatement(variable);
     }
     w.Label block = b.block();
     w.Label loop = b.loop();
     _branchIf(node.condition, block, negated: true);
-    node.body.accept(this);
-    if (node.variables.any((v) => closures.captures.containsKey(v))) {
-      w.Local oldContext = context!.currentLocal;
+    visitStatement(node.body);
+
+    if (context != null && !context.isEmpty) {
+      // Create a new context for each iteration of the loop.
+      w.Local oldContext = context.currentLocal;
       allocateContext(node);
       w.Local newContext = context.currentLocal;
+
+      // Copy the values of captured loop variables to the new context.
       for (VariableDeclaration variable in node.variables) {
         Capture? capture = closures.captures[variable];
         if (capture != null) {
+          assert(capture.context == context);
+          b.local_get(newContext);
           b.local_get(oldContext);
           b.struct_get(context.struct, capture.fieldIndex);
-          b.local_get(newContext);
           b.struct_set(context.struct, capture.fieldIndex);
         }
       }
-    } else {
-      allocateContext(node);
+
+      // Update the context local to point to the new context.
+      b.local_get(newContext);
+      b.local_set(oldContext);
     }
+
     for (Expression update in node.updates) {
       wrap(update, voidMarker);
     }
@@ -867,15 +1135,18 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     // as the stack unwinds. When we get to the top of the finalizer stack, we
     // will handle the return using [returnValueLocal] if this function returns
     // a value.
-    if (finalizers.isNotEmpty) {
-      for (TryBlockFinalizer finalizer in finalizers) {
+    if (returnFinalizers.isNotEmpty) {
+      for (TryBlockFinalizer finalizer in returnFinalizers) {
         finalizer.mustHandleReturn = true;
       }
       if (returnType != voidMarker) {
-        returnValueLocal ??= addLocal(returnType);
+        // Since the flow of the return value through the returnValueLocal
+        // crosses control-flow constructs, the local needs to always have a
+        // defaultable type in order for the Wasm code to validate.
+        returnValueLocal ??= addLocal(returnType.withNullability(true));
         b.local_set(returnValueLocal!);
       }
-      b.br(finalizers.last.label);
+      b.br(returnFinalizers.last.label);
     } else {
       _returnFromFunction();
     }
@@ -883,19 +1154,31 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
+    // If we have an empty switch, just evaluate the expression for any
+    // potential side effects. In this case, the return type does not matter.
+    if (node.cases.isEmpty) {
+      wrap(node.expression, voidMarker);
+      return;
+    }
+
     bool check<L extends Expression, C extends Constant>() =>
         node.cases.expand((c) => c.expressions).every((e) =>
             e is L ||
             e is NullLiteral ||
-            e is ConstantExpression &&
-                (e.constant is C || e.constant is NullConstant));
+            (e is ConstantExpression &&
+                (e.constant is C || e.constant is NullConstant)));
 
     // Identify kind of switch. One of `nullableType` or `nonNullableType` will
     // be the type for Wasm local that holds the switch value.
-    w.ValueType nullableType;
-    w.ValueType nonNullableType;
-    void Function() compare;
-    if (check<BoolLiteral, BoolConstant>()) {
+    late final w.ValueType nullableType;
+    late final w.ValueType nonNullableType;
+    late final void Function() compare;
+    if (node.cases.every((c) => c.expressions.isEmpty && c.isDefault)) {
+      // default-only switch
+      nonNullableType = w.RefType.eq(nullable: false);
+      nullableType = w.RefType.eq(nullable: true);
+      compare = () => throw "Comparison in default-only switch";
+    } else if (check<BoolLiteral, BoolConstant>()) {
       // bool switch
       nonNullableType = w.NumType.i32;
       nullableType =
@@ -915,7 +1198,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       compare = () => call(translator.stringEquals.reference);
     } else {
       // Object switch
-      assert(check<InvalidExpression, InstanceConstant>());
+      assert(check<InvalidExpression, Constant>());
       nonNullableType = w.RefType.eq(nullable: false);
       nullableType = w.RefType.eq(nullable: true);
       compare = () => b.ref_eq();
@@ -985,8 +1268,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         } else {
           wrap(exp, nonNullableType);
           b.local_get(switchValueNonNullableLocal);
-          translator.convertType(
-              function, switchValueNonNullableLocal.type, nonNullableType);
           compare();
           b.br_if(switchLabels[c]!);
         }
@@ -1013,7 +1294,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         switchBackwardJumpInfos[node]!.defaultLoopLabel = b.loop();
       }
 
-      c.body.accept(this);
+      visitStatement(c.body);
 
       if (c.isDefault) {
         b.end(); // defaultLoopLabel
@@ -1060,15 +1341,32 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   void visitYieldStatement(YieldStatement node) => defaultStatement(node);
 
   @override
+  w.ValueType visitAwaitExpression(
+      AwaitExpression node, w.ValueType expectedType) {
+    w.BaseFunction awaitHelper =
+        translator.functions.getFunction(translator.awaitHelper.reference);
+
+    // The stack for the suspension is the last parameter to the function.
+    w.Local stack = function.locals[function.type.inputs.length - 1];
+    assert(stack.type == translator.functions.asyncStackType);
+
+    wrap(node.operand, translator.topInfo.nullableType);
+    b.local_get(stack);
+    b.call(awaitHelper);
+
+    return translator.topInfo.nullableType;
+  }
+
+  @override
   w.ValueType visitBlockExpression(
       BlockExpression node, w.ValueType expectedType) {
-    node.body.accept(this);
+    visitStatement(node.body);
     return wrap(node.value, expectedType);
   }
 
   @override
   w.ValueType visitLet(Let node, w.ValueType expectedType) {
-    node.variable.accept(this);
+    visitStatement(node.variable);
     return wrap(node.body, expectedType);
   }
 
@@ -1079,15 +1377,17 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   }
 
   w.ValueType visitThis(w.ValueType expectedType) {
-    w.ValueType thisType = thisLocal!.type.withNullability(false);
-    w.ValueType preciseThisType = preciseThisLocal!.type.withNullability(false);
+    w.ValueType thisType = thisLocal!.type;
+    w.ValueType preciseThisType = preciseThisLocal!.type;
+    assert(!thisType.nullable);
+    assert(!preciseThisType.nullable);
     if (!thisType.isSubtypeOf(expectedType) &&
         preciseThisType.isSubtypeOf(expectedType)) {
       b.local_get(preciseThisLocal!);
-      return preciseThisLocal!.type;
+      return preciseThisType;
     } else {
       b.local_get(thisLocal!);
-      return thisLocal!.type;
+      return thisType;
     }
   }
 
@@ -1101,14 +1401,11 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     ClassInfo info = translator.classInfo[node.target.enclosingClass]!;
     translator.functions.allocateClass(info.classId);
     w.Local temp = addLocal(info.nonNullableType);
-    translator.struct_new_default(b, info);
+    b.struct_new_default(info.struct);
     b.local_tee(temp);
     b.local_get(temp);
     b.i32_const(info.classId);
     b.struct_set(info.struct, FieldIndex.classId);
-    if (options.parameterNullability && temp.type.nullable) {
-      b.ref_as_non_null();
-    }
     _visitArguments(node.arguments, node.targetReference, 1);
     call(node.targetReference);
     if (expectedType != voidMarker) {
@@ -1142,8 +1439,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         _lookupSuperTarget(node.interfaceTarget, setter: false).reference;
     w.BaseFunction targetFunction = translator.functions.getFunction(target);
     w.ValueType receiverType = targetFunction.type.inputs.first;
-    w.ValueType thisType = visitThis(receiverType);
-    translator.convertType(function, thisType, receiverType);
+    visitThis(receiverType);
     _visitArguments(node.arguments, target, 1);
     return call(target);
   }
@@ -1159,14 +1455,15 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       switch (target.name.text) {
         case "toString":
           late w.Label done;
-          w.ValueType resultType = _virtualCall(node, target, (signature) {
+          w.ValueType resultType =
+              _virtualCall(node, target, _VirtualCallKind.Call, (signature) {
             done = b.block(const [], signature.outputs);
             w.Label nullString = b.block();
             wrap(node.receiver, translator.topInfo.nullableType);
             b.br_on_null(nullString);
           }, (_) {
             _visitArguments(node.arguments, node.interfaceTargetReference, 1);
-          }, getter: false, setter: false);
+          });
           b.br(done);
           b.end();
           wrap(StringLiteral("null"), resultType);
@@ -1186,22 +1483,20 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       _visitArguments(node.arguments, node.interfaceTargetReference, 1);
       return call(singleTarget.reference);
     }
-    return _virtualCall(node, target,
+    return _virtualCall(node, target, _VirtualCallKind.Call,
         (signature) => wrap(node.receiver, signature.inputs.first), (_) {
       _visitArguments(node.arguments, node.interfaceTargetReference, 1);
-    }, getter: false, setter: false);
+    });
   }
 
   @override
   w.ValueType visitDynamicInvocation(
       DynamicInvocation node, w.ValueType expectedType) {
-    if (node.name.text != "call") {
-      unimplemented(node, "Dynamic invocation of ${node.name.text}",
-          [if (expectedType != voidMarker) expectedType]);
-      return expectedType;
+    // Handle dynamic 'call' seperately.
+    if (node.name.text == "call") {
+      return _functionCall(node.receiver, node.arguments);
     }
-    return _functionCall(
-        node.arguments.positional.length, node.receiver, node.arguments);
+    return translator.dynamics.emitDynamicCall(this, node);
   }
 
   @override
@@ -1245,14 +1540,12 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         b.local_get(leftLocal);
         if (leftNullable) {
           b.br_on_null(operandNull!);
-        } else if (leftLocal.type.nullable) {
-          b.ref_as_non_null();
         }
       }
 
       void right([_]) {
         b.local_get(rightLocal);
-        if (rightLocal.type.nullable) {
+        if (rightNullable) {
           b.ref_as_non_null();
         }
       }
@@ -1262,8 +1555,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         right();
         call(singleTarget.reference);
       } else {
-        _virtualCall(node, node.interfaceTarget, left, right,
-            getter: false, setter: false);
+        _virtualCall(
+          node,
+          node.interfaceTarget,
+          _VirtualCallKind.Call,
+          left,
+          right,
+        );
       }
       if (leftNullable || rightNullable) {
         b.br(done!);
@@ -1285,7 +1583,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitEqualsNull(EqualsNull node, w.ValueType expectedType) {
-    wrap(node.expression, const w.RefType.any());
+    wrap(node.expression, const w.RefType.any(nullable: true));
     b.ref_is_null();
     return w.NumType.i32;
   }
@@ -1293,54 +1591,51 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   w.ValueType _virtualCall(
       TreeNode node,
       Member interfaceTarget,
+      _VirtualCallKind kind,
       void pushReceiver(w.FunctionType signature),
-      void pushArguments(w.FunctionType signature),
-      {required bool getter,
-      required bool setter}) {
+      void pushArguments(w.FunctionType signature)) {
     SelectorInfo selector = translator.dispatchTable.selectorForTarget(
-        interfaceTarget.referenceAs(getter: getter, setter: setter));
+        interfaceTarget.referenceAs(
+            getter: kind.isGetter, setter: kind.isSetter));
     assert(selector.name == interfaceTarget.name.text);
 
     pushReceiver(selector.signature);
 
+    if (selector.targetCount == 1) {
+      pushArguments(selector.signature);
+      return call(selector.singularTarget!);
+    }
+
     int? offset = selector.offset;
     if (offset == null) {
-      // Singular target or unreachable call
-      assert(selector.targetCount <= 1);
-      if (selector.targetCount == 1) {
-        pushArguments(selector.signature);
-        return call(selector.singularTarget!);
-      } else {
-        b.comment("Virtual call of ${selector.name} with no targets"
-            " at ${node.location}");
-        b.drop();
-        b.block(const [], selector.signature.outputs);
-        b.unreachable();
-        b.end();
-        return translator.outputOrVoid(selector.signature.outputs);
-      }
+      // Unreachable call
+      assert(selector.targetCount == 0);
+      b.comment("Virtual call of ${selector.name} with no targets"
+          " at ${node.location}");
+      b.drop();
+      b.block(const [], selector.signature.outputs);
+      b.unreachable();
+      b.end();
+      return translator.outputOrVoid(selector.signature.outputs);
     }
 
     // Receiver is already on stack.
     w.Local receiverVar = addLocal(selector.signature.inputs.first);
+    assert(!receiverVar.type.nullable);
     b.local_tee(receiverVar);
-    if (options.parameterNullability && receiverVar.type.nullable) {
-      b.ref_as_non_null();
-    }
     pushArguments(selector.signature);
 
     if (options.polymorphicSpecialization) {
       _polymorphicSpecialization(selector, receiverVar);
     } else {
-      String access = getter ? "get" : (setter ? "set" : "call");
-      b.comment("Instance $access of '${selector.name}'");
+      b.comment("Instance $kind of '${selector.name}'");
       b.local_get(receiverVar);
       b.struct_get(translator.topInfo.struct, FieldIndex.classId);
       if (offset != 0) {
         b.i32_const(offset);
         b.i32_add();
       }
-      b.call_indirect(selector.signature);
+      b.call_indirect(selector.signature, translator.dispatchTable.wasmTable);
 
       translator.functions.activateSelector(selector);
     }
@@ -1406,6 +1701,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitVariableGet(VariableGet node, w.ValueType expectedType) {
+    // Return `void` for a void [VariableGet].
+    if (node.variable.type is VoidType) {
+      return voidMarker;
+    }
     w.Local? local = locals[node.variable];
     Capture? capture = closures.captures[node.variable];
     if (capture != null) {
@@ -1428,6 +1727,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitVariableSet(VariableSet node, w.ValueType expectedType) {
+    // Return `void` for a void [VariableSet].
+    if (node.variable.type is VoidType) {
+      return wrap(node.value, voidMarker);
+    }
     w.Local? local = locals[node.variable];
     Capture? capture = closures.captures[node.variable];
     bool preserved = expectedType != voidMarker;
@@ -1498,10 +1801,11 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     } else {
       w.BaseFunction targetFunction =
           translator.functions.getFunction(target.reference);
-      wrap(node.value, targetFunction.type.inputs.single);
+      w.ValueType paramType = targetFunction.type.inputs.single;
+      wrap(node.value, paramType);
       w.Local? temp;
       if (preserved) {
-        temp = addLocal(translateType(dartTypeOf(node.value)));
+        temp = addLocal(paramType);
         b.local_tee(temp);
       }
       call(target.reference);
@@ -1519,7 +1823,12 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       SuperPropertyGet node, w.ValueType expectedType) {
     Member target = _lookupSuperTarget(node.interfaceTarget, setter: false);
     if (target is Procedure && !target.isGetter) {
-      throw "Not supported: Super tear-off at ${node.location}";
+      // Super tear-off
+      w.StructType closureStruct = _pushClosure(
+          translator.getTearOffClosure(target),
+          target.function.computeFunctionType(Nullability.nonNullable),
+          () => visitThis(w.RefType.data(nullable: false)));
+      return w.RefType.def(closureStruct, nullable: false);
     }
     return _directGet(target, ThisExpression(), () => null);
   }
@@ -1537,12 +1846,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     Member target = node.interfaceTarget;
     if (node.kind == InstanceAccessKind.Object) {
       late w.Label doneLabel;
-      w.ValueType resultType = _virtualCall(node, target, (signature) {
+      w.ValueType resultType =
+          _virtualCall(node, target, _VirtualCallKind.Get, (signature) {
         doneLabel = b.block(const [], signature.outputs);
         w.Label nullLabel = b.block();
         wrap(node.receiver, translator.topInfo.nullableType);
         b.br_on_null(nullLabel);
-      }, (_) {}, getter: true, setter: false);
+      }, (_) {});
       b.br(doneLabel);
       b.end(); // nullLabel
       switch (target.name.text) {
@@ -1566,44 +1876,19 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       return _directGet(singleTarget, node.receiver,
           () => intrinsifier.generateInstanceGetterIntrinsic(node));
     } else {
-      return _virtualCall(node, target,
-          (signature) => wrap(node.receiver, signature.inputs.first), (_) {},
-          getter: true, setter: false);
+      return _virtualCall(node, target, _VirtualCallKind.Get,
+          (signature) => wrap(node.receiver, signature.inputs.first), (_) {});
     }
   }
 
   @override
   w.ValueType visitDynamicGet(DynamicGet node, w.ValueType expectedType) {
-    // Provisional implementation of dynamic get which assumes the getter
-    // is present (otherwise it traps or calls something random) and
-    // does not support tearoffs. This is sufficient to handle the
-    // dynamic .length calls in the core libraries.
+    return translator.dynamics.emitDynamicCall(this, node);
+  }
 
-    SelectorInfo selector =
-        translator.dispatchTable.selectorForDynamicName(node.name.text);
-
-    // Evaluate receiver
-    wrap(node.receiver, selector.signature.inputs.first);
-    w.Local receiverVar = addLocal(selector.signature.inputs.first);
-    b.local_tee(receiverVar);
-    if (options.parameterNullability && receiverVar.type.nullable) {
-      b.ref_as_non_null();
-    }
-
-    // Dispatch table call
-    b.comment("Dynamic get of '${selector.name}'");
-    int offset = selector.offset!;
-    b.local_get(receiverVar);
-    b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-    if (offset != 0) {
-      b.i32_const(offset);
-      b.i32_add();
-    }
-    b.call_indirect(selector.signature);
-
-    translator.functions.activateSelector(selector);
-
-    return translator.outputOrVoid(selector.signature.outputs);
+  @override
+  w.ValueType visitDynamicSet(DynamicSet node, w.ValueType expectedType) {
+    return translator.dynamics.emitDynamicCall(this, node);
   }
 
   w.ValueType _directGet(
@@ -1630,11 +1915,52 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   }
 
   @override
+  w.ValueType visitFunctionTearOff(
+          FunctionTearOff node, w.ValueType expectedType) =>
+      wrap(node.receiver, expectedType);
+
+  @override
   w.ValueType visitInstanceTearOff(
       InstanceTearOff node, w.ValueType expectedType) {
-    return _virtualCall(node, node.interfaceTarget,
-        (signature) => wrap(node.receiver, signature.inputs.first), (_) {},
-        getter: true, setter: false);
+    Member target = node.interfaceTarget;
+
+    if (node.kind == InstanceAccessKind.Object) {
+      late w.Label doneLabel;
+      w.ValueType resultType =
+          _virtualCall(node, target, _VirtualCallKind.Get, (signature) {
+        doneLabel = b.block(const [], signature.outputs);
+        w.Label nullLabel = b.block();
+        wrap(node.receiver, translator.topInfo.nullableType);
+        b.br_on_null(nullLabel);
+        translator.convertType(
+            function, translator.topInfo.nullableType, signature.inputs[0]);
+      }, (_) {});
+      b.br(doneLabel);
+      b.end(); // nullLabel
+      switch (target.name.text) {
+        case "toString":
+          wrap(
+              ConstantExpression(
+                  StaticTearOffConstant(translator.nullToString)),
+              resultType);
+          break;
+        case "noSuchMethod":
+          wrap(
+              ConstantExpression(
+                  StaticTearOffConstant(translator.nullNoSuchMethod)),
+              resultType);
+          break;
+        default:
+          unimplemented(
+              node, "Nullable tear-off of ${target.name.text}", [resultType]);
+          break;
+      }
+      b.end(); // doneLabel
+      return resultType;
+    }
+
+    return _virtualCall(node, target, _VirtualCallKind.Get,
+        (signature) => wrap(node.receiver, signature.inputs.first), (_) {});
   }
 
   @override
@@ -1646,7 +1972,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       return _directSet(singleTarget, node.receiver, node.value,
           preserved: preserved);
     } else {
-      _virtualCall(node, node.interfaceTarget,
+      _virtualCall(node, node.interfaceTarget, _VirtualCallKind.Set,
           (signature) => wrap(node.receiver, signature.inputs.first),
           (signature) {
         w.ValueType paramType = signature.inputs.last;
@@ -1655,7 +1981,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
           temp = addLocal(paramType);
           b.local_tee(temp!);
         }
-      }, getter: false, setter: true);
+      });
       if (preserved) {
         b.local_get(temp!);
         return temp!.type;
@@ -1689,7 +2015,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       if (preserved) {
         temp = addLocal(paramType);
         b.local_tee(temp);
-        translator.convertType(function, temp.type, paramType);
       }
       call(target.reference);
     }
@@ -1733,19 +2058,31 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   }
 
   w.StructType _instantiateClosure(FunctionNode functionNode) {
-    int parameterCount = functionNode.requiredParameterCount;
     Lambda lambda = closures.lambdas[functionNode]!;
-    w.DefinedGlobal global = translator.makeFunctionRef(lambda.function);
+    ClosureImplementation closure = translator.getClosure(
+        functionNode,
+        lambda.function,
+        ParameterInfo.fromLocalFunction(functionNode),
+        "closure wrapper at ${functionNode.location}");
+    return _pushClosure(
+        closure,
+        functionNode.computeFunctionType(Nullability.nonNullable),
+        () => _pushContext(functionNode));
+  }
+
+  w.StructType _pushClosure(ClosureImplementation closure,
+      DartType functionType, void pushContext()) {
+    w.StructType struct = closure.representation.closureStruct;
 
     ClassInfo info = translator.classInfo[translator.functionClass]!;
     translator.functions.allocateClass(info.classId);
-    w.StructType struct = translator.closureStructType(parameterCount);
 
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
-    _pushContext(functionNode);
-    b.global_get(global);
-    translator.struct_new(b, parameterCount);
+    pushContext();
+    b.global_get(closure.vtable);
+    types.makeType(this, functionType);
+    b.struct_new(struct);
 
     return struct;
   }
@@ -1754,9 +2091,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     Context? context = closures.contexts[functionNode]?.parent;
     if (context != null) {
       b.local_get(context.currentLocal);
-      if (context.currentLocal.type.nullable) {
-        b.ref_as_non_null();
-      }
+      assert(!context.currentLocal.type.nullable);
     } else {
       b.global_get(translator.globals.dummyGlobal); // Dummy context
     }
@@ -1765,43 +2100,65 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   w.ValueType visitFunctionInvocation(
       FunctionInvocation node, w.ValueType expectedType) {
-    Expression receiver = node.receiver;
-    if (receiver is InstanceGet &&
-        receiver.interfaceTarget == translator.wasmFunctionCall) {
-      // Receiver is a WasmFunction
-      assert(receiver.name.text == "call");
-      w.RefType receiverType =
-          translator.translateType(dartTypeOf(receiver.receiver)) as w.RefType;
-      w.Local temp = addLocal(receiverType);
-      wrap(receiver.receiver, receiverType);
-      b.local_set(temp);
-      w.FunctionType functionType = receiverType.heapType as w.FunctionType;
-      assert(node.arguments.positional.length == functionType.inputs.length);
-      for (int i = 0; i < node.arguments.positional.length; i++) {
-        wrap(node.arguments.positional[i], functionType.inputs[i]);
-      }
-      b.local_get(temp);
-      b.call_ref();
-      return translator.outputOrVoid(functionType.outputs);
-    }
-    int parameterCount = node.functionType?.requiredParameterCount ??
-        node.arguments.positional.length;
-    return _functionCall(parameterCount, receiver, node.arguments);
+    w.ValueType? intrinsicResult =
+        intrinsifier.generateFunctionCallIntrinsic(node);
+    if (intrinsicResult != null) return intrinsicResult;
+
+    return _functionCall(node.receiver, node.arguments);
   }
 
-  w.ValueType _functionCall(
-      int parameterCount, Expression receiver, Arguments arguments) {
-    w.StructType struct = translator.closureStructType(parameterCount);
+  w.ValueType _functionCall(Expression receiver, Arguments arguments) {
+    int typeCount = arguments.types.length;
+    int posArgCount = arguments.positional.length;
+    List<String> argNames = arguments.named.map((a) => a.name).toList()..sort();
+    ClosureRepresentation? representation = translator.closureLayouter
+        .getClosureRepresentation(typeCount, posArgCount, argNames);
+    if (representation == null) {
+      // This is a dynamic function call with a signature that matches no
+      // functions in the program.
+      b.unreachable();
+      return translator.topInfo.nullableType;
+    }
+
+    // Evaluate receiver
+    w.StructType struct = representation.closureStruct;
     w.Local temp = addLocal(w.RefType.def(struct, nullable: false));
     wrap(receiver, temp.type);
     b.local_tee(temp);
     b.struct_get(struct, FieldIndex.closureContext);
+
+    // Type arguments
+    for (DartType typeArg in arguments.types) {
+      types.makeType(this, typeArg);
+    }
+
+    // Positional arguments
     for (Expression arg in arguments.positional) {
       wrap(arg, translator.topInfo.nullableType);
     }
+
+    // Named arguments
+    final Map<String, w.Local> namedLocals = {};
+    for (final namedArg in arguments.named) {
+      final w.Local namedLocal = addLocal(translator.topInfo.nullableType);
+      namedLocals[namedArg.name] = namedLocal;
+      wrap(namedArg.value, namedLocal.type);
+      b.local_set(namedLocal);
+    }
+    for (String name in argNames) {
+      b.local_get(namedLocals[name]!);
+    }
+
+    // Call entry point in vtable
+    int vtableIndex =
+        representation.fieldIndexForSignature(posArgCount, argNames);
+    w.FunctionType functionType =
+        (representation.vtableStruct.fields[vtableIndex].type as w.RefType)
+            .heapType as w.FunctionType;
     b.local_get(temp);
-    b.struct_get(struct, FieldIndex.closureFunction);
-    b.call_ref();
+    b.struct_get(struct, FieldIndex.closureVtable);
+    b.struct_get(representation.vtableStruct, vtableIndex);
+    b.call_ref(functionType);
     return translator.topInfo.nullableType;
   }
 
@@ -1809,14 +2166,54 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   w.ValueType visitLocalFunctionInvocation(
       LocalFunctionInvocation node, w.ValueType expectedType) {
     var decl = node.variable.parent as FunctionDeclaration;
-    _pushContext(decl.function);
-    for (Expression arg in node.arguments.positional) {
-      wrap(arg, translator.topInfo.nullableType);
-    }
     Lambda lambda = closures.lambdas[decl.function]!;
+    _pushContext(decl.function);
+    Arguments arguments = node.arguments;
+    visitArgumentsLists(arguments.positional, lambda.function.type,
+        ParameterInfo.fromLocalFunction(decl.function), 1,
+        typeArguments: arguments.types, named: arguments.named);
     b.comment("Local call of ${decl.variable.name}");
     b.call(lambda.function);
-    return translator.topInfo.nullableType;
+    return translator.outputOrVoid(lambda.function.type.outputs);
+  }
+
+  @override
+  w.ValueType visitInstantiation(Instantiation node, w.ValueType expectedType) {
+    DartType type = dartTypeOf(node.expression);
+    if (type is FunctionType) {
+      int typeCount = type.typeParameters.length;
+      int posArgCount = type.positionalParameters.length;
+      List<String> argNames = type.namedParameters.map((a) => a.name).toList();
+      ClosureRepresentation representation = translator.closureLayouter
+          .getClosureRepresentation(typeCount, posArgCount, argNames)!;
+
+      // Operand closure
+      w.RefType closureType =
+          w.RefType.def(representation.closureStruct, nullable: false);
+      w.Local closureTemp = addLocal(closureType);
+      wrap(node.expression, closureType);
+      b.local_tee(closureTemp);
+
+      // Type arguments
+      for (DartType typeArg in node.typeArguments) {
+        types.makeType(this, typeArg);
+      }
+
+      // Instantiation function
+      b.local_get(closureTemp);
+      b.struct_get(representation.closureStruct, FieldIndex.closureVtable);
+      b.struct_get(
+          representation.vtableStruct, FieldIndex.vtableInstantiationFunction);
+
+      // Call instantiation function
+      b.call_ref(representation.instantiationFunctionType);
+      return representation.instantiationFunctionType.outputs.single;
+    } else {
+      // Only other alternative is `NeverType`.
+      assert(type is NeverType);
+      b.unreachable();
+      return voidMarker;
+    }
   }
 
   @override
@@ -1847,41 +2244,46 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitNullCheck(NullCheck node, w.ValueType expectedType) {
-    w.ValueType operandType =
-        translator.translateType(dartTypeOf(node.operand));
+    return _nullCheck(node.operand, translator.throwNullCheckError);
+  }
+
+  w.ValueType _nullCheck(Expression operand, Procedure errorProcedure) {
+    w.ValueType operandType = translator.translateType(dartTypeOf(operand));
     w.ValueType nonNullOperandType = operandType.withNullability(false);
     w.Label nullCheckBlock = b.block(const [], [nonNullOperandType]);
-    wrap(node.operand, operandType);
+    wrap(operand, operandType);
 
     // We lower a null check to a br_on_non_null, throwing a [TypeError] in the
     // null case.
     b.br_on_non_null(nullCheckBlock);
     call(translator.stackTraceCurrent.reference);
-    call(translator.throwNullCheckError.reference);
+    call(errorProcedure.reference);
     b.unreachable();
     b.end();
     return nonNullOperandType;
   }
 
-  void _visitArguments(Arguments node, Reference target, int signatureOffset) {
-    final w.FunctionType signature = translator.signatureFor(target);
-    final ParameterInfo paramInfo = translator.paramInfoFor(target);
-    for (int i = 0; i < node.types.length; i++) {
-      types.makeType(this, node.types[i]);
+  void visitArgumentsLists(List<Expression> positional,
+      w.FunctionType signature, ParameterInfo paramInfo, int signatureOffset,
+      {List<DartType> typeArguments = const [],
+      List<NamedExpression> named = const [],
+      bool requiresTypeChecks = false}) {
+    for (int i = 0; i < typeArguments.length; i++) {
+      types.makeType(this, typeArguments[i]);
     }
-    signatureOffset += node.types.length;
-    for (int i = 0; i < node.positional.length; i++) {
-      wrap(node.positional[i], signature.inputs[signatureOffset + i]);
+    signatureOffset += typeArguments.length;
+    for (int i = 0; i < positional.length; i++) {
+      wrap(positional[i], signature.inputs[signatureOffset + i]);
     }
     // Default values for positional parameters
-    for (int i = node.positional.length; i < paramInfo.positional.length; i++) {
+    for (int i = positional.length; i < paramInfo.positional.length; i++) {
       final w.ValueType type = signature.inputs[signatureOffset + i];
       translator.constants
           .instantiateConstant(function, b, paramInfo.positional[i]!, type);
     }
     // Named arguments
     final Map<String, w.Local> namedLocals = {};
-    for (var namedArg in node.named) {
+    for (var namedArg in named) {
       final w.ValueType type = signature
           .inputs[signatureOffset + paramInfo.nameIndex[namedArg.name]!];
       final w.Local namedLocal = addLocal(type);
@@ -1895,12 +2297,18 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
           signature.inputs[signatureOffset + paramInfo.nameIndex[name]!];
       if (namedLocal != null) {
         b.local_get(namedLocal);
-        translator.convertType(function, namedLocal.type, type);
       } else {
         translator.constants
             .instantiateConstant(function, b, paramInfo.named[name]!, type);
       }
     }
+  }
+
+  void _visitArguments(Arguments node, Reference target, int signatureOffset) {
+    final w.FunctionType signature = translator.signatureFor(target);
+    final ParameterInfo paramInfo = translator.paramInfoFor(target);
+    visitArgumentsLists(node.positional, signature, paramInfo, signatureOffset,
+        typeArguments: node.types, named: node.named);
   }
 
   @override
@@ -1913,7 +2321,11 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitThrow(Throw node, w.ValueType expectedType) {
-    wrap(node.expression, translator.topInfo.nonNullableType);
+    if (dartTypeOf(node.expression).isPotentiallyNullable) {
+      _nullCheck(node.expression, translator.throwThrowNullError);
+    } else {
+      wrap(node.expression, translator.topInfo.nonNullableType);
+    }
     call(translator.stackTraceCurrent.reference);
 
     // At this point, we have the exception and the current stack trace on the
@@ -1926,11 +2338,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   w.ValueType visitRethrow(Rethrow node, w.ValueType expectedType) {
     b.rethrow_(tryLabels.last);
     return expectedType;
-  }
-
-  @override
-  w.ValueType visitInstantiation(Instantiation node, w.ValueType expectedType) {
-    throw "Not supported: Generic function instantiation at ${node.location}";
   }
 
   @override
@@ -1979,9 +2386,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         isGrowable: true);
   }
 
-  /// Takes a List class, a type argument, a function which will be called for
-  /// each item in the list with the expected type of the element, and a list
-  /// length, and creates a Dart List on the stack.
+  /// Allocate a Dart `List` with element type [typeArg], length [length] and
+  /// push the list to the stack.
+  ///
+  /// [generateItem] will be called [length] times to initialize list elements.
+  ///
+  /// Concrete type of the list will be `_GrowableList` if [isGrowable] is
+  /// true, `_List` otherwise.
   w.ValueType makeList(DartType typeArg, int length,
       void Function(w.ValueType, int) generateItem,
       {bool isGrowable = false}) {
@@ -1990,20 +2401,20 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         : translator.fixedLengthListClass;
     ClassInfo info = translator.classInfo[cls]!;
     translator.functions.allocateClass(info.classId);
-    w.RefType refType = info.struct.fields.last.type.unpacked as w.RefType;
-    w.ArrayType arrayType = refType.heapType as w.ArrayType;
+    w.ArrayType arrayType = translator.listArrayType;
     w.ValueType elementType = arrayType.elementType.type.unpacked;
 
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
     types.makeType(this, typeArg);
     b.i64_const(length);
-    if (options.lazyConstants) {
-      // Avoid array.init instruction in lazy constants mode
+    if (length > maxArrayNewFixedLength) {
+      // Too long for `array.new_fixed`. Set elements individually.
       b.i32_const(length);
-      translator.array_new_default(b, arrayType);
+      b.array_new_default(arrayType);
       if (length > 0) {
-        w.Local arrayLocal = addLocal(refType.withNullability(false));
+        w.Local arrayLocal =
+            addLocal(w.RefType.def(arrayType, nullable: false));
         b.local_set(arrayLocal);
         for (int i = 0; i < length; i++) {
           b.local_get(arrayLocal);
@@ -2012,17 +2423,14 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
           b.array_set(arrayType);
         }
         b.local_get(arrayLocal);
-        if (arrayLocal.type.nullable) {
-          b.ref_as_non_null();
-        }
       }
     } else {
       for (int i = 0; i < length; i++) {
         generateItem(elementType, i);
       }
-      translator.array_init(b, arrayType, length);
+      b.array_new_fixed(arrayType, length);
     }
-    translator.struct_new(b, info);
+    b.struct_new(info.struct);
 
     return info.nonNullableType;
   }
@@ -2055,7 +2463,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     b.local_set(mapLocal);
     for (MapLiteralEntry entry in node.entries) {
       b.local_get(mapLocal);
-      translator.convertType(function, mapLocal.type, putReceiverType);
       wrap(entry.key, putKeyType);
       wrap(entry.value, putValueType);
       b.call(mapPut);
@@ -2083,7 +2490,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     b.local_set(setLocal);
     for (Expression element in node.expressions) {
       b.local_get(setLocal);
-      translator.convertType(function, setLocal.type, addReceiverType);
       wrap(element, addKeyType);
       b.call(setAdd);
       b.drop();
@@ -2125,6 +2531,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     return operand.type;
   }
 
+  /// Pushes the `_Type` object for a function or class type parameter to the
+  /// stack and returns the value type of the object.
   w.ValueType instantiateTypeParameter(TypeParameter parameter) {
     w.ValueType resultType;
     if (parameter.parent is FunctionNode) {
@@ -2144,8 +2552,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       Class cls = parameter.parent as Class;
       ClassInfo info = translator.classInfo[cls]!;
       int fieldIndex = translator.typeParameterIndex[parameter]!;
-      w.ValueType thisType = visitThis(info.nonNullableType);
-      translator.convertType(function, thisType, info.nonNullableType);
+      visitThis(info.nonNullableType);
       b.struct_get(info.struct, fieldIndex);
       resultType = info.struct.fields[fieldIndex].type.unpacked;
     }
@@ -2157,7 +2564,12 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 }
 
 class TryBlockFinalizer {
+  /// `br` target to run the finalizer
   final w.Label label;
+
+  /// Whether the last finalizer in the chain should return. When this is
+  /// `false` the block won't be used, as the block is for running finalizers
+  /// when returning.
   bool mustHandleReturn = false;
 
   TryBlockFinalizer(this.label);
@@ -2189,4 +2601,25 @@ class SwitchBackwardJumpInfo {
 
   SwitchBackwardJumpInfo(this.switchValueLocal, this.loopLabel)
       : defaultLoopLabel = null;
+}
+
+enum _VirtualCallKind {
+  Get,
+  Set,
+  Call;
+
+  String toString() {
+    switch (this) {
+      case _VirtualCallKind.Get:
+        return "get";
+      case _VirtualCallKind.Set:
+        return "set";
+      case _VirtualCallKind.Call:
+        return "call";
+    }
+  }
+
+  bool get isGetter => this == _VirtualCallKind.Get;
+
+  bool get isSetter => this == _VirtualCallKind.Set;
 }

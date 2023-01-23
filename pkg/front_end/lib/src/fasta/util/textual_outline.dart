@@ -43,7 +43,7 @@ abstract class _Chunk implements Comparable<_Chunk> {
     sb.write(indent);
   }
 
-  void printOn(StringBuffer sb, {String indent: "", bool extraLine: true});
+  void printOn(StringBuffer sb, {String indent = "", bool extraLine = true});
 
   void printMetadata(StringBuffer sb, String indent) {
     if (metadata != null) {
@@ -74,8 +74,8 @@ abstract class _Chunk implements Comparable<_Chunk> {
   /// has an endGroup where the endGroup is [toToken] the Tokens between that
   /// and [toToken] is skipped, i.e. it jumps directly to [toToken].
   void printTokenRange(Token fromToken, Token toToken, StringBuffer sb,
-      {bool skipContentOnEndGroupUntilToToken: false,
-      bool includeToToken: true}) {
+      {bool skipContentOnEndGroupUntilToToken = false,
+      bool includeToToken = true}) {
     int endOfLast = fromToken.end;
     Token token = fromToken;
     Token afterEnd = toToken;
@@ -108,7 +108,7 @@ class _LanguageVersionChunk extends _Chunk {
   _LanguageVersionChunk(this.major, this.minor);
 
   @override
-  void printOn(StringBuffer sb, {String indent: "", bool extraLine: true}) {
+  void printOn(StringBuffer sb, {String indent = "", bool extraLine = true}) {
     _printNormalHeaderWithMetadata(sb, extraLine, indent);
     sb.write("// @dart = ${major}.${minor}");
   }
@@ -131,7 +131,7 @@ abstract class _TokenChunk extends _Chunk {
   }
 
   @override
-  void printOn(StringBuffer sb, {String indent: "", bool extraLine: true}) {
+  void printOn(StringBuffer sb, {String indent = "", bool extraLine = true}) {
     _printNormalHeaderWithMetadata(sb, extraLine, indent);
     _printOnWithoutHeaderAndMetadata(sb);
   }
@@ -180,7 +180,7 @@ class _ImportExportChunk extends _Chunk {
   }
 
   @override
-  void printOn(StringBuffer sb, {String indent: "", bool extraLine: true}) {
+  void printOn(StringBuffer sb, {String indent = "", bool extraLine = true}) {
     if (sb.isNotEmpty) {
       sb.write("\n");
     }
@@ -284,7 +284,7 @@ abstract class _ClassChunk extends _SortableChunk {
   _ClassChunk(Token startToken, Token endToken) : super(startToken, endToken);
 
   @override
-  void printOn(StringBuffer sb, {String indent: "", bool extraLine: true}) {
+  void printOn(StringBuffer sb, {String indent = "", bool extraLine = true}) {
     _printNormalHeaderWithMetadata(sb, extraLine, indent);
 
     // Header.
@@ -429,10 +429,10 @@ class BoxedInt {
 String? textualOutline(
   List<int> rawBytes,
   ScannerConfiguration configuration, {
-  bool throwOnUnexpected: false,
-  bool performModelling: false,
-  bool addMarkerForUnknownForTest: false,
-  bool returnNullOnError: true,
+  bool throwOnUnexpected = false,
+  bool performModelling = false,
+  bool addMarkerForUnknownForTest = false,
+  bool returnNullOnError = true,
 }) {
   Uint8List bytes = new Uint8List(rawBytes.length + 1);
   bytes.setRange(0, rawBytes.length, rawBytes);
@@ -768,7 +768,7 @@ class TextualOutlineListener extends Listener {
   }
 
   @override
-  void endLibraryName(Token libraryKeyword, Token semicolon) {
+  void endLibraryName(Token libraryKeyword, Token semicolon, bool hasName) {
     unsortableElementStartToChunk[libraryKeyword] =
         new _LibraryNameChunk(libraryKeyword, semicolon);
   }

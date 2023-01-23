@@ -11,14 +11,14 @@ class Fisk<T extends core::Object? = dynamic> extends core::Object /*hasConstCon
 class Foo extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Foo> values = const <self::Foo>[self::Foo::bar, self::Foo::baz, self::Foo::cafebabe];
   @self::hest
-  static const field self::Foo bar = const self::Foo::•(0, "bar");
+  enum-element static const field self::Foo bar = const self::Foo::•(0, "bar");
   @self::Fisk::fisk<core::int>(self::hest)
-  static const field self::Foo baz = const self::Foo::•(1, "baz");
-  static const field self::Foo cafebabe = const self::Foo::•(2, "cafebabe");
+  enum-element static const field self::Foo baz = const self::Foo::•(1, "baz");
+  enum-element static const field self::Foo cafebabe = const self::Foo::•(2, "cafebabe");
   const constructor •(core::int #index, core::String #name) → self::Foo
     : super core::_Enum::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "Foo.${this.{core::_Enum::_name}{core::String}}";
 }
 static const field core::int hest = 42;

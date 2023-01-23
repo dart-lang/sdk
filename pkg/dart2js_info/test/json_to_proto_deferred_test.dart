@@ -9,7 +9,7 @@ import 'package:dart2js_info/json_info_codec.dart';
 import 'package:dart2js_info/proto_info_codec.dart';
 import 'package:test/test.dart';
 
-main() {
+void main() {
   group('json to proto conversion with deferred files', () {
     test('hello_world_deferred', () {
       var uri = Platform.script

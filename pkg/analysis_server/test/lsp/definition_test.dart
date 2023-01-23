@@ -52,7 +52,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     expect(res, hasLength(1));
     var loc = res.single;
     expect(loc.range, equals(rangeFromMarkers(referencedContents)));
-    expect(loc.uri, equals(referencedFileUri.toString()));
+    expect(loc.uri, equals(referencedFileUri));
   }
 
   Future<void> test_atDeclaration_class() async {
@@ -131,6 +131,84 @@ class A {
     expect(res, hasLength(0));
   }
 
+  Future<void> test_comment_enumMember_qualified() async {
+    final contents = '''
+      /// [A.o^ne].
+      enum A {
+        [[one]],
+      }
+    ''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_comment_extensionMember() async {
+    final contents = '''
+      /// [myFi^eld]
+      extension on String {
+        String get [[myField]] => '';
+      }
+    ''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_comment_extensionMember_qualified() async {
+    final contents = '''
+      /// [StringExtension.myFi^eld]
+      extension StringExtension on String {
+        String get [[myField]] => '';
+      }
+    ''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_comment_instanceMember_qualified() async {
+    final contents = '''
+      /// [A.myFi^eld].
+      class A {
+        final String [[myField]] = '';
+      }
+    ''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_comment_instanceMember_qualified_inherited() async {
+    final contents = '''
+      class A {
+        final String [[myField]] = '';
+      }
+      /// [B.myFi^eld].
+      class B extends A {}
+    ''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_comment_namedConstructor_qualified() async {
+    final contents = '''
+      /// [A.nam^ed].
+      class A {
+        A.[[named]]();
+      }
+    ''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_comment_staticMember_qualified() async {
+    final contents = '''
+      /// [A.myStaticFi^eld].
+      class A {
+        static final String [[myStaticField]] = '';
+      }
+    ''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_constructor() async {
     final contents = '''
 f() {
@@ -173,6 +251,17 @@ class [[A]] {
     await testContents(contents);
   }
 
+  Future<void> test_fieldFormalParam() async {
+    final contents = '''
+class A {
+  final String [[a]];
+  A(this.^a});
+}
+''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_fromPlugins() async {
     final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.foo');
     final pluginAnalyzedFileUri = Uri.file(pluginAnalyzedFilePath);
@@ -197,7 +286,7 @@ class [[A]] {
         equals(lsp.Range(
             start: lsp.Position(line: 0, character: 0),
             end: lsp.Position(line: 0, character: 5))));
-    expect(loc.uri, equals(pluginAnalyzedFileUri.toString()));
+    expect(loc.uri, equals(pluginAnalyzedFileUri));
   }
 
   Future<void> test_function() async {
@@ -245,7 +334,7 @@ class [[A]] {
     expect(res, hasLength(1));
     var loc = res.single;
     expect(loc.originSelectionRange, equals(rangeFromMarkers(mainContents)));
-    expect(loc.targetUri, equals(referencedFileUri.toString()));
+    expect(loc.targetUri, equals(referencedFileUri));
     expect(loc.targetRange, equals(rangeFromMarkers(referencedContents)));
     expect(
       loc.targetSelectionRange,
@@ -288,7 +377,7 @@ class [[A]] {
     expect(res, hasLength(1));
     var loc = res.single;
     expect(loc.originSelectionRange, equals(rangeFromMarkers(mainContents)));
-    expect(loc.targetUri, equals(referencedFileUri.toString()));
+    expect(loc.targetUri, equals(referencedFileUri));
     expect(loc.targetRange, equals(rangeFromMarkers(referencedContents)));
     expect(
       loc.targetSelectionRange,
@@ -346,7 +435,7 @@ class [[A]] {
     expect(res, hasLength(1));
     var loc = res.single;
     expect(loc.originSelectionRange, equals(rangeFromMarkers(mainContents)));
-    expect(loc.targetUri, equals(partFileUri.toString()));
+    expect(loc.targetUri, equals(partFileUri));
     expect(loc.targetRange, equals(rangeFromMarkers(partContents)));
     expect(
       loc.targetSelectionRange,
@@ -371,7 +460,7 @@ part of 'main.dart';
     final res = await getDefinitionAsLocation(
         mainFileUri, positionFromMarker(mainContents));
 
-    expect(res.single.uri, equals(partFileUri.toString()));
+    expect(res.single.uri, equals(partFileUri));
   }
 
   Future<void> test_partOfFilename() async {
@@ -391,12 +480,25 @@ part of 'ma^in.dart';
     final res = await getDefinitionAsLocation(
         partFileUri, positionFromMarker(partContents));
 
-    expect(res.single.uri, equals(mainFileUri.toString()));
+    expect(res.single.uri, equals(mainFileUri));
   }
 
   Future<void> test_sameLine() async {
     final contents = '''
 int plusOne(int [[value]]) => 1 + val^ue;
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_superFormalParam() async {
+    final contents = '''
+class A {
+  A({required int [[a]]});
+}
+class B extends A {
+  B({required super.^a}) : assert(a > 0);
+}
 ''';
 
     await testContents(contents);
@@ -448,6 +550,6 @@ class [[A]] {}
     expect(res, hasLength(1));
     var loc = res.single;
     expect(loc.range, equals(rangeFromMarkers(contents)));
-    expect(loc.uri, equals(mainFileUri.toString()));
+    expect(loc.uri, equals(mainFileUri));
   }
 }

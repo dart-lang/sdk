@@ -7,12 +7,11 @@ import 'dart:async';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
-import 'package:analyzer_utilities/check/check.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -20,8 +19,9 @@ import 'analysis_server_base.dart';
 import 'domain_completion_util.dart';
 import 'mocks.dart';
 import 'services/completion/dart/completion_check.dart';
+import 'services/completion/dart/completion_printer.dart' as printer;
+import 'services/completion/dart/text_expectations.dart';
 import 'src/plugin/plugin_manager_test.dart';
-import 'utils/change_check.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -34,6 +34,29 @@ void main() {
 @reflectiveTest
 class CompletionDomainHandlerGetSuggestionDetails2Test
     extends PubPackageAnalysisServerTest {
+  void assertDetailsText(
+    CompletionGetSuggestionDetails2Result result,
+    String expected, {
+    bool printIfFailed = true,
+  }) {
+    final buffer = StringBuffer();
+    _SuggestionDetailsPrinter(
+      resourceProvider: resourceProvider,
+      fileDisplayMap: {testFile: 'testFile'},
+      buffer: buffer,
+      result: result,
+    ).writeResult();
+    final actual = buffer.toString();
+
+    if (actual != expected) {
+      if (printIfFailed) {
+        print(actual);
+      }
+      TextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
+  }
+
   Future<void> test_alreadyImported() async {
     await _configureWithWorkspaceRoot();
 
@@ -43,9 +66,11 @@ void f() {
   Rand^
 }
 ''', completion: 'Random', libraryUri: 'dart:math');
-    check(details)
-      ..completion.isEqualTo('Random')
-      ..change.edits.isEmpty;
+
+    assertDetailsText(details, r'''
+completion: Random
+  change
+''');
   }
 
   Future<void> test_import_dart() async {
@@ -56,17 +81,14 @@ void f() {
   R^
 }
 ''', completion: 'Random', libraryUri: 'dart:math');
-    check(details)
-      ..completion.isEqualTo('Random')
-      ..change
-          .hasFileEdit(testFile.path)
-          .appliedTo(testFileContent)
-          .isEqualTo(r'''
-import 'dart:math';
 
-void f() {
-  R
-}
+    assertDetailsText(details, r'''
+completion: Random
+  change
+    testFile
+      offset: 0
+      length: 0
+      replacement: import 'dart:math';\n\n
 ''');
   }
 
@@ -94,17 +116,14 @@ void f() {
   T^
 }
 ''', completion: 'Test', libraryUri: 'package:aaa/a.dart');
-    check(details)
-      ..completion.isEqualTo('Test')
-      ..change
-          .hasFileEdit(testFile.path)
-          .appliedTo(testFileContent)
-          .isEqualTo(r'''
-import 'package:aaa/a.dart';
 
-void f() {
-  T
-}
+    assertDetailsText(details, r'''
+completion: Test
+  change
+    testFile
+      offset: 0
+      length: 0
+      replacement: import 'package:aaa/a.dart';\n\n
 ''');
   }
 
@@ -120,17 +139,14 @@ void f() {
   T^
 }
 ''', completion: 'Test', libraryUri: 'package:test/a.dart');
-    check(details)
-      ..completion.isEqualTo('Test')
-      ..change
-          .hasFileEdit(testFile.path)
-          .appliedTo(testFileContent)
-          .isEqualTo(r'''
-import 'package:test/a.dart';
 
-void f() {
-  T
-}
+    assertDetailsText(details, r'''
+completion: Test
+  change
+    testFile
+      offset: 0
+      length: 0
+      replacement: import 'package:test/a.dart';\n\n
 ''');
   }
 
@@ -221,6 +237,42 @@ void f() {
 @reflectiveTest
 class CompletionDomainHandlerGetSuggestions2Test
     extends PubPackageAnalysisServerTest {
+  printer.Configuration printerConfiguration = printer.Configuration(
+    filter: (suggestion) {
+      final completion = suggestion.completion;
+      if (completion.startsWith('A0')) {
+        return suggestion.isClass;
+      }
+      return const {'foo0'}.any(completion.startsWith);
+    },
+    withIsNotImported: true,
+    withLibraryUri: true,
+  );
+
+  /// Asserts that the [response] has the [expected] textual dump produced
+  /// using [printerConfiguration].
+  void assertResponseText(
+    CompletionResponseForTesting response,
+    String expected, {
+    bool printIfFailed = true,
+  }) {
+    final buffer = StringBuffer();
+    printer.CompletionResponsePrinter(
+      buffer: buffer,
+      configuration: printerConfiguration,
+      response: response,
+    ).writeResponse();
+    final actual = buffer.toString();
+
+    if (actual != expected) {
+      if (printIfFailed) {
+        print(actual);
+      }
+      TextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
+  }
+
   @override
   void setUp() {
     super.setUp();
@@ -250,19 +302,28 @@ class CompletionDomainHandlerGetSuggestions2Test
     // The first two should be aborted.
     expect(abortedIdSet, {'0', '1'});
 
-    check(response0)
-      ..assertIncomplete()
-      ..suggestions.isEmpty;
+    printerConfiguration.filter = (suggestion) {
+      if (suggestion.isClass) {
+        return const {'int'}.contains(suggestion.completion);
+      }
+      return false;
+    };
 
-    check(response1)
-      ..assertIncomplete()
-      ..suggestions.isEmpty;
+    assertResponseText(response0, r'''
+suggestions
+''');
 
-    check(response2)
-      ..assertComplete()
-      ..suggestions.containsMatch(
-        (suggestion) => suggestion.completion.isEqualTo('int'),
-      );
+    assertResponseText(response1, r'''
+suggestions
+''');
+
+    assertResponseText(response2, r'''
+suggestions
+  int
+    kind: class
+    isNotImported: null
+    libraryUri: dart:core
+''');
   }
 
   Future<void> test_abort_onUpdateContent() async {
@@ -289,9 +350,9 @@ class CompletionDomainHandlerGetSuggestions2Test
     var response = await request.toResponse();
     expect(abortedIdSet, {'0'});
 
-    check(response)
-      ..assertIncomplete()
-      ..suggestions.isEmpty;
+    assertResponseText(response, r'''
+suggestions
+''');
   }
 
   Future<void> test_applyPendingFileChanges() async {
@@ -304,11 +365,22 @@ class CompletionDomainHandlerGetSuggestions2Test
     // Should apply pending file changes before resolving.
     var response = await _getTestCodeSuggestions('Str^');
 
-    check(response).suggestions.includesAll([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('String')
-        ..isClass,
-    ]);
+    printerConfiguration.filter = (suggestion) {
+      if (suggestion.isClass) {
+        return const {'String'}.contains(suggestion.completion);
+      }
+      return false;
+    };
+
+    assertResponseText(response, r'''
+replacement
+  left: 3
+suggestions
+  String
+    kind: class
+    isNotImported: null
+    libraryUri: dart:core
+''');
   }
 
   Future<void> test_isNotImportedFeature_prefixed_classInstanceMethod() async {
@@ -336,21 +408,22 @@ void f(B b) {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
-
     // The fact that `b.dart` is imported, and `a.dart` is not, does not affect
     // the order of suggestions added with an expression prefix. We are not
     // going to import anything, so this does not matter.
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..libraryUriToImport.isNull,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..libraryUriToImport.isNull,
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo01
+    kind: methodInvocation
+    isNotImported: null
+    libraryUri: null
+  foo02
+    kind: methodInvocation
+    isNotImported: null
+    libraryUri: null
+''');
   }
 
   Future<void> test_notImported_dart() async {
@@ -362,15 +435,19 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
+    printerConfiguration.filter = (suggestion) {
+      return suggestion.isClass;
+    };
 
-    check(response).suggestions.withElementClass.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('Random')
-        ..libraryUriToImport.isEqualTo('dart:math'),
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  Random
+    kind: class
+    isNotImported: true
+    libraryUri: dart:math
+''');
   }
 
   Future<void> test_notImported_emptyBudget() async {
@@ -385,10 +462,13 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertIncomplete()
-      ..hasReplacement(left: 4)
-      ..suggestions.withElementClass.isEmpty;
+    printerConfiguration.filter = (_) => true;
+
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+''');
   }
 
   Future<void> test_notImported_lowerRelevance_extension_getter() async {
@@ -414,19 +494,20 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
-
     // `foo01` relevance is decreased because it is not yet imported.
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..libraryUriToImport.isNull,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo02
+    kind: getter
+    isNotImported: null
+    libraryUri: null
+  foo01
+    kind: getter
+    isNotImported: true
+    libraryUri: package:test/a.dart
+''');
   }
 
   Future<void> test_notImported_lowerRelevance_extension_method() async {
@@ -452,19 +533,20 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
-
     // `foo01` relevance is decreased because it is not yet imported.
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..libraryUriToImport.isNull,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo02
+    kind: methodInvocation
+    isNotImported: null
+    libraryUri: null
+  foo01
+    kind: methodInvocation
+    isNotImported: true
+    libraryUri: package:test/a.dart
+''');
   }
 
   Future<void> test_notImported_lowerRelevance_extension_setter() async {
@@ -490,19 +572,20 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
-
     // `foo01` relevance is decreased because it is not yet imported.
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..libraryUriToImport.isNull,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo02
+    kind: setter
+    isNotImported: null
+    libraryUri: null
+  foo01
+    kind: setter
+    isNotImported: true
+    libraryUri: package:test/a.dart
+''');
   }
 
   Future<void> test_notImported_lowerRelevance_topLevel_class() async {
@@ -524,19 +607,20 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 2);
-
     // `A01` relevance is decreased because it is not yet imported.
-    check(response).suggestions.withElementClass.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('A02')
-        ..libraryUriToImport.isNull,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('A01')
-        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 2
+suggestions
+  A02
+    kind: class
+    isNotImported: null
+    libraryUri: package:test/b.dart
+  A01
+    kind: class
+    isNotImported: true
+    libraryUri: package:test/a.dart
+''');
   }
 
   Future<void> test_notImported_lowerRelevance_topLevel_getter() async {
@@ -558,19 +642,20 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
-
     // `foo01` relevance is decreased because it is not yet imported.
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..libraryUriToImport.isNull,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo02
+    kind: getter
+    isNotImported: null
+    libraryUri: package:test/b.dart
+  foo01
+    kind: getter
+    isNotImported: true
+    libraryUri: package:test/a.dart
+''');
   }
 
   Future<void> test_notImported_lowerRelevance_topLevel_setter() async {
@@ -592,19 +677,20 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
-
     // `foo01` relevance is decreased because it is not yet imported.
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..libraryUriToImport.isNull,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo02
+    kind: setter
+    isNotImported: null
+    libraryUri: package:test/b.dart
+  foo01
+    kind: setter
+    isNotImported: true
+    libraryUri: package:test/a.dart
+''');
   }
 
   Future<void> test_notImported_lowerRelevance_topLevel_variable() async {
@@ -626,19 +712,20 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
-
     // `foo01` relevance is decreased because it is not yet imported.
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..libraryUriToImport.isNull,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo02
+    kind: topLevelVariable
+    isNotImported: null
+    libraryUri: package:test/b.dart
+  foo01
+    kind: topLevelVariable
+    isNotImported: true
+    libraryUri: package:test/a.dart
+''');
   }
 
   Future<void> test_notImported_pub_dependencies_inLib() async {
@@ -680,15 +767,15 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 2);
-
-    check(response).suggestions.withElementClass.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('A01')
-        ..libraryUriToImport.isEqualTo('package:aaa/f.dart'),
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
+    isNotImported: true
+    libraryUri: package:aaa/f.dart
+''');
   }
 
   Future<void> test_notImported_pub_dependencies_inTest() async {
@@ -734,18 +821,19 @@ void f() {
 ''',
     );
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 2);
-
-    check(response).suggestions.withElementClass.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('A01')
-        ..libraryUriToImport.isEqualTo('package:aaa/f.dart'),
-      (suggestion) => suggestion
-        ..completion.isEqualTo('A03')
-        ..libraryUriToImport.isEqualTo('package:bbb/f.dart'),
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
+    isNotImported: true
+    libraryUri: package:aaa/f.dart
+  A03
+    kind: class
+    isNotImported: true
+    libraryUri: package:bbb/f.dart
+''');
   }
 
   Future<void> test_notImported_pub_this() async {
@@ -765,18 +853,19 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 2);
-
-    check(response).suggestions.withElementClass.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('A01')
-        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
-      (suggestion) => suggestion
-        ..completion.isEqualTo('A02')
-        ..libraryUriToImport.isEqualTo('package:test/b.dart'),
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
+    isNotImported: true
+    libraryUri: package:test/a.dart
+  A02
+    kind: class
+    isNotImported: true
+    libraryUri: package:test/b.dart
+''');
   }
 
   Future<void> test_notImported_pub_this_hasImport() async {
@@ -799,21 +888,23 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 2);
-
-    check(response).suggestions.withElementClass.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('A01')
-        ..libraryUriToImport.isNull,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('A02')
-        ..libraryUriToImport.isNull,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('A03')
-        ..libraryUriToImport.isEqualTo('package:test/b.dart'),
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
+    isNotImported: null
+    libraryUri: package:test/a.dart
+  A02
+    kind: class
+    isNotImported: null
+    libraryUri: package:test/a.dart
+  A03
+    kind: class
+    isNotImported: true
+    libraryUri: package:test/b.dart
+''');
   }
 
   Future<void> test_notImported_pub_this_hasImport_hasShow() async {
@@ -836,25 +927,27 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 2);
-
     // Note:
     // 1. A02 is the first, because it is already imported.
     // 2. A01 is still suggested, but with lower relevance.
     // 3. A03 has the same relevance (not tested), but sorted by name.
-    check(response).suggestions.withElementClass.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('A02')
-        ..libraryUriToImport.isNull,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('A01')
-        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
-      (suggestion) => suggestion
-        ..completion.isEqualTo('A03')
-        ..libraryUriToImport.isEqualTo('package:test/b.dart'),
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 2
+suggestions
+  A02
+    kind: class
+    isNotImported: null
+    libraryUri: package:test/a.dart
+  A01
+    kind: class
+    isNotImported: true
+    libraryUri: package:test/a.dart
+  A03
+    kind: class
+    isNotImported: true
+    libraryUri: package:test/b.dart
+''');
   }
 
   Future<void> test_notImported_pub_this_inLib_excludesTest() async {
@@ -878,15 +971,15 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 2);
-
-    check(response).suggestions.withElementClass.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('A01')
-        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
+    isNotImported: true
+    libraryUri: package:test/a.dart
+''');
   }
 
   Future<void> test_notImported_pub_this_inLib_includesThisSrc() async {
@@ -910,18 +1003,19 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 2);
-
-    check(response).suggestions.withElementClass.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('A01')
-        ..libraryUriToImport.isEqualTo('package:test/f.dart'),
-      (suggestion) => suggestion
-        ..completion.isEqualTo('A02')
-        ..libraryUriToImport.isEqualTo('package:test/src/f.dart'),
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
+    isNotImported: true
+    libraryUri: package:test/f.dart
+  A02
+    kind: class
+    isNotImported: true
+    libraryUri: package:test/src/f.dart
+''');
   }
 
   Future<void> test_notImported_pub_this_inTest_includesTest() async {
@@ -950,18 +1044,19 @@ void f() {
 ''',
     );
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 2);
-
-    check(response).suggestions.withElementClass.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('A01')
-        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
-      (suggestion) => suggestion
-        ..completion.isEqualTo('A02')
-        ..libraryUriToImport.isEqualTo(b_uriStr),
-    ]);
+    assertResponseText(response, '''
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
+    isNotImported: true
+    libraryUri: package:test/a.dart
+  A02
+    kind: class
+    isNotImported: true
+    libraryUri: $b_uriStr
+''');
   }
 
   Future<void> test_notImported_pub_this_inTest_includesThisSrc() async {
@@ -989,18 +1084,19 @@ void f() {
 ''',
     );
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 2);
-
-    check(response).suggestions.withElementClass.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('A01')
-        ..libraryUriToImport.isEqualTo('package:test/f.dart'),
-      (suggestion) => suggestion
-        ..completion.isEqualTo('A02')
-        ..libraryUriToImport.isEqualTo('package:test/src/f.dart'),
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
+    isNotImported: true
+    libraryUri: package:test/f.dart
+  A02
+    kind: class
+    isNotImported: true
+    libraryUri: package:test/src/f.dart
+''');
   }
 
   Future<void> test_numResults_class_methods() async {
@@ -1018,18 +1114,19 @@ void f(A a) {
 }
 ''', maxResults: 2);
 
-    check(response)
-      ..assertIncomplete()
-      ..hasReplacement(left: 4);
-
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..isMethodInvocation,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..isMethodInvocation,
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo01
+    kind: methodInvocation
+    isNotImported: null
+    libraryUri: null
+  foo02
+    kind: methodInvocation
+    isNotImported: null
+    libraryUri: null
+''');
   }
 
   Future<void> test_numResults_topLevelVariables() async {
@@ -1045,18 +1142,19 @@ void f() {
 }
 ''', maxResults: 2);
 
-    check(response)
-      ..assertIncomplete()
-      ..hasReplacement(left: 4);
-
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..isTopLevelVariable,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..isTopLevelVariable,
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo01
+    kind: topLevelVariable
+    isNotImported: null
+    libraryUri: null
+  foo02
+    kind: topLevelVariable
+    isNotImported: null
+    libraryUri: null
+''');
   }
 
   Future<void> test_numResults_topLevelVariables_imported_withPrefix() async {
@@ -1076,18 +1174,17 @@ void f() {
 }
 ''', maxResults: 2);
 
-    check(response)
-      ..assertIncomplete()
-      ..hasEmptyReplacement();
-
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..isTopLevelVariable,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..isTopLevelVariable,
-    ]);
+    assertResponseText(response, r'''
+suggestions
+  foo01
+    kind: topLevelVariable
+    isNotImported: null
+    libraryUri: package:test/a.dart
+  foo02
+    kind: topLevelVariable
+    isNotImported: null
+    libraryUri: package:test/a.dart
+''');
   }
 
   Future<void> test_prefixed_class_constructors() async {
@@ -1104,18 +1201,19 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
-
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..isConstructorInvocation,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..isConstructorInvocation,
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo01
+    kind: constructorInvocation
+    isNotImported: null
+    libraryUri: null
+  foo02
+    kind: constructorInvocation
+    isNotImported: null
+    libraryUri: null
+''');
   }
 
   Future<void> test_prefixed_class_getters() async {
@@ -1132,22 +1230,19 @@ void f(A a) {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
-
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..isGetter
-        ..libraryUri.isNull
-        ..isNotImported.isNull,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..isGetter
-        ..libraryUri.isNull
-        ..isNotImported.isNull,
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo01
+    kind: getter
+    isNotImported: null
+    libraryUri: null
+  foo02
+    kind: getter
+    isNotImported: null
+    libraryUri: null
+''');
   }
 
   Future<void> test_prefixed_class_methods_instance() async {
@@ -1164,18 +1259,19 @@ void f(A a) {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
-
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..isMethodInvocation,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..isMethodInvocation,
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo01
+    kind: methodInvocation
+    isNotImported: null
+    libraryUri: null
+  foo02
+    kind: methodInvocation
+    isNotImported: null
+    libraryUri: null
+''');
   }
 
   Future<void> test_prefixed_class_methods_static() async {
@@ -1192,18 +1288,19 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
-
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..isMethodInvocation,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..isMethodInvocation,
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo01
+    kind: methodInvocation
+    isNotImported: null
+    libraryUri: null
+  foo02
+    kind: methodInvocation
+    isNotImported: null
+    libraryUri: null
+''');
   }
 
   Future<void> test_prefixed_expression_extensionGetters() async {
@@ -1225,18 +1322,19 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
-
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..isGetter,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..isGetter,
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo01
+    kind: getter
+    isNotImported: null
+    libraryUri: null
+  foo02
+    kind: getter
+    isNotImported: null
+    libraryUri: null
+''');
   }
 
   Future<void> test_prefixed_expression_extensionGetters_notImported() async {
@@ -1263,20 +1361,19 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
-
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..isGetter
-        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..isGetter
-        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo01
+    kind: getter
+    isNotImported: true
+    libraryUri: package:test/a.dart
+  foo02
+    kind: getter
+    isNotImported: true
+    libraryUri: package:test/a.dart
+''');
   }
 
   Future<void>
@@ -1303,16 +1400,15 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
-
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..isGetter
-        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo01
+    kind: getter
+    isNotImported: true
+    libraryUri: package:test/a.dart
+''');
   }
 
   Future<void> test_prefixed_expression_extensionMethods() async {
@@ -1334,18 +1430,19 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
-
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..isMethodInvocation,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..isMethodInvocation,
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo01
+    kind: methodInvocation
+    isNotImported: null
+    libraryUri: null
+  foo02
+    kind: methodInvocation
+    isNotImported: null
+    libraryUri: null
+''');
   }
 
   Future<void> test_prefixed_expression_extensionMethods_notImported() async {
@@ -1372,20 +1469,19 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
-
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..isMethodInvocation
-        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..isMethodInvocation
-        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo01
+    kind: methodInvocation
+    isNotImported: true
+    libraryUri: package:test/a.dart
+  foo02
+    kind: methodInvocation
+    isNotImported: true
+    libraryUri: package:test/a.dart
+''');
   }
 
   Future<void> test_prefixed_expression_extensionSetters() async {
@@ -1407,18 +1503,19 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
-
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..isSetter,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..isSetter,
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo01
+    kind: setter
+    isNotImported: null
+    libraryUri: null
+  foo02
+    kind: setter
+    isNotImported: null
+    libraryUri: null
+''');
   }
 
   Future<void> test_prefixed_expression_extensionSetters_notImported() async {
@@ -1445,20 +1542,19 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
-
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..isSetter
-        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..isSetter
-        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo01
+    kind: setter
+    isNotImported: true
+    libraryUri: package:test/a.dart
+  foo02
+    kind: setter
+    isNotImported: true
+    libraryUri: package:test/a.dart
+''');
   }
 
   Future<void>
@@ -1485,16 +1581,15 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
-
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..isSetter
-        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo01
+    kind: setter
+    isNotImported: true
+    libraryUri: package:test/a.dart
+''');
   }
 
   Future<void> test_prefixed_extensionGetters_imported() async {
@@ -1520,18 +1615,19 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
-
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..isGetter,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..isGetter,
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo01
+    kind: getter
+    isNotImported: null
+    libraryUri: null
+  foo02
+    kind: getter
+    isNotImported: null
+    libraryUri: null
+''');
   }
 
   Future<void> test_prefixed_extensionOverride_extensionGetters() async {
@@ -1551,15 +1647,15 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
-
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..isGetter,
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo01
+    kind: getter
+    isNotImported: null
+    libraryUri: null
+''');
   }
 
   Future<void> test_prefixed_extensionOverride_extensionMethods() async {
@@ -1579,15 +1675,15 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
-
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..isMethodInvocation,
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo01
+    kind: methodInvocation
+    isNotImported: null
+    libraryUri: null
+''');
   }
 
   Future<void> test_prefixed_importPrefix_class() async {
@@ -1601,16 +1697,17 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
+    printerConfiguration.filter = (_) => true;
 
-    check(response).suggestions.withElementClass.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('Random')
-        ..libraryUri.isEqualTo('dart:math')
-        ..isNotImported.isNull,
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  Random
+    kind: class
+    isNotImported: null
+    libraryUri: dart:math
+''');
   }
 
   Future<void> test_unprefixed_filters() async {
@@ -1627,18 +1724,19 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
-
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..isTopLevelVariable,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..isTopLevelVariable,
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo01
+    kind: topLevelVariable
+    isNotImported: null
+    libraryUri: null
+  foo02
+    kind: topLevelVariable
+    isNotImported: null
+    libraryUri: null
+''');
   }
 
   Future<void> test_unprefixed_imported_class() async {
@@ -1661,22 +1759,19 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 2);
-
-    check(response).suggestions.withElementClass.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('A01')
-        ..isClass
-        ..libraryUri.isEqualTo('package:test/a.dart')
-        ..isNotImported.isNull,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('A02')
-        ..isClass
-        ..libraryUri.isEqualTo('package:test/b.dart')
-        ..isNotImported.isNull,
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
+    isNotImported: null
+    libraryUri: package:test/a.dart
+  A02
+    kind: class
+    isNotImported: null
+    libraryUri: package:test/b.dart
+''');
   }
 
   Future<void> test_unprefixed_imported_topLevelVariable() async {
@@ -1699,22 +1794,19 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
-
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..isTopLevelVariable
-        ..libraryUri.isEqualTo('package:test/a.dart')
-        ..isNotImported.isNull,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..isTopLevelVariable
-        ..libraryUri.isEqualTo('package:test/b.dart')
-        ..isNotImported.isNull,
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo01
+    kind: topLevelVariable
+    isNotImported: null
+    libraryUri: package:test/a.dart
+  foo02
+    kind: topLevelVariable
+    isNotImported: null
+    libraryUri: package:test/b.dart
+''');
   }
 
   Future<void> test_unprefixed_imported_withPrefix_class() async {
@@ -1728,17 +1820,20 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
+    printerConfiguration.filter = (suggestion) {
+      return suggestion.isClass;
+    };
 
     // No suggestion without the `math` prefix.
-    check(response).suggestions.withElementClass.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('math.Random')
-        ..libraryUri.isEqualTo('dart:math')
-        ..isNotImported.isNull,
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  math.Random
+    kind: class
+    isNotImported: null
+    libraryUri: dart:math
+''');
   }
 
   Future<void> test_unprefixed_sorts_byScore() async {
@@ -1753,19 +1848,29 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
+    printerConfiguration
+      ..filter = (suggestion) {
+        return suggestion.completion.startsWith('foo');
+      }
+      ..sorting = printer.Sorting.asIs
+      ..withRelevance = true;
 
     // `fooBB` has better score than `fooAB` - prefix match
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('fooBB')
-        ..isTopLevelVariable,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('fooAB')
-        ..isTopLevelVariable,
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  fooBB
+    kind: topLevelVariable
+    isNotImported: null
+    libraryUri: null
+    relevance: 504
+  fooAB
+    kind: topLevelVariable
+    isNotImported: null
+    libraryUri: null
+    relevance: 504
+''');
   }
 
   Future<void> test_unprefixed_sorts_byType() async {
@@ -1780,19 +1885,25 @@ void f() {
 }
 ''');
 
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
+    printerConfiguration
+      ..sorting = printer.Sorting.asIs
+      ..withRelevance = true;
 
-    // `foo02` has better relevance, its type matches the context type
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..isTopLevelVariable,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..isTopLevelVariable,
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo02
+    kind: topLevelVariable
+    isNotImported: null
+    libraryUri: null
+    relevance: 565
+  foo01
+    kind: topLevelVariable
+    isNotImported: null
+    libraryUri: null
+    relevance: 511
+''');
   }
 
   Future<void> test_yaml_analysisOptions_root() async {
@@ -1804,24 +1915,22 @@ void f() {
       content: '^',
     );
 
-    check(response)
-      ..assertComplete()
-      ..hasEmptyReplacement();
+    printerConfiguration
+      ..filter = ((_) => true)
+      ..withIsNotImported = false
+      ..withLibraryUri = false;
 
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('analyzer: ')
-        ..kind.isIdentifier,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('code-style: ')
-        ..kind.isIdentifier,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('include: ')
-        ..kind.isIdentifier,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('linter: ')
-        ..kind.isIdentifier,
-    ]);
+    assertResponseText(response, r'''
+suggestions
+  |analyzer: |
+    kind: identifier
+  |code-style: |
+    kind: identifier
+  |include: |
+    kind: identifier
+  |linter: |
+    kind: identifier
+''');
   }
 
   Future<void> test_yaml_fixData_root() async {
@@ -1833,18 +1942,18 @@ void f() {
       content: '^',
     );
 
-    check(response)
-      ..assertComplete()
-      ..hasEmptyReplacement();
+    printerConfiguration
+      ..filter = ((_) => true)
+      ..withIsNotImported = false
+      ..withLibraryUri = false;
 
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('version: ')
-        ..kind.isIdentifier,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('transforms:')
-        ..kind.isIdentifier,
-    ]);
+    assertResponseText(response, r'''
+suggestions
+  transforms:
+    kind: identifier
+  |version: |
+    kind: identifier
+''');
   }
 
   Future<void> test_yaml_pubspec_root() async {
@@ -1856,21 +1965,42 @@ void f() {
       content: '^',
     );
 
-    check(response)
-      ..assertComplete()
-      ..hasEmptyReplacement();
+    printerConfiguration
+      ..filter = ((_) => true)
+      ..withIsNotImported = false
+      ..withLibraryUri = false;
 
-    check(response).suggestions.includesAll([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('name: ')
-        ..kind.isIdentifier,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('dependencies: ')
-        ..kind.isIdentifier,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('dev_dependencies: ')
-        ..kind.isIdentifier,
-    ]);
+    assertResponseText(response, r'''
+suggestions
+  |dependencies: |
+    kind: identifier
+  |dependency_overrides: |
+    kind: identifier
+  |description: |
+    kind: identifier
+  |dev_dependencies: |
+    kind: identifier
+  |documentation: |
+    kind: identifier
+  |environment: |
+    kind: identifier
+  |executables: |
+    kind: identifier
+  |flutter: |
+    kind: identifier
+  |homepage: |
+    kind: identifier
+  |issue_tracker: |
+    kind: identifier
+  |name: |
+    kind: identifier
+  |publish_to: |
+    kind: identifier
+  |repository: |
+    kind: identifier
+  |version: |
+    kind: identifier
+''');
   }
 
   Future<void> _configureWithWorkspaceRoot() async {
@@ -2828,20 +2958,73 @@ class RequestWithFutureResponse {
   }
 }
 
-extension on CheckTarget<CompletionGetSuggestionDetails2Result> {
-  @useResult
-  CheckTarget<SourceChange> get change {
-    return nest(
-      value.change,
-      (selected) => 'has change ${valueStr(selected)}',
-    );
+class _SuggestionDetailsPrinter {
+  final StringBuffer buffer;
+  final CompletionGetSuggestionDetails2Result result;
+  final ResourceProvider resourceProvider;
+  final Map<File, String> fileDisplayMap;
+
+  String _indent = '';
+
+  _SuggestionDetailsPrinter({
+    required this.buffer,
+    required this.result,
+    required this.resourceProvider,
+    required this.fileDisplayMap,
+  });
+
+  void writeResult() {
+    _writelnWithIndent('completion: ${result.completion}');
+    _withIndent(() {
+      _writeChange(result.change);
+    });
   }
 
-  @useResult
-  CheckTarget<String> get completion {
-    return nest(
-      value.completion,
-      (selected) => 'has completion ${valueStr(selected)}',
-    );
+  void _withIndent(void Function() f) {
+    var indent = _indent;
+    _indent = '$_indent  ';
+    f();
+    _indent = indent;
+  }
+
+  void _writeChange(SourceChange change) {
+    _writelnWithIndent('change');
+    _withIndent(() {
+      for (final fileEdit in change.edits) {
+        _writeSourceFileEdit(fileEdit);
+      }
+    });
+  }
+
+  void _writelnWithIndent(String line) {
+    buffer.write(_indent);
+    buffer.writeln(line);
+  }
+
+  void _writeSourceEdit(SourceEdit edit) {
+    _writelnWithIndent('offset: ${edit.offset}');
+    _writelnWithIndent('length: ${edit.length}');
+
+    final replacementStr = edit.replacement.replaceAll('\n', r'\n');
+    _writelnWithIndent('replacement: $replacementStr');
+  }
+
+  void _writeSourceFileEdit(SourceFileEdit fileEdit) {
+    final file = resourceProvider.getFile(fileEdit.file);
+    final fileStr = fileDisplayMap[file] ?? fail('No display name: $file');
+    _writelnWithIndent(fileStr);
+
+    _withIndent(() {
+      for (final edit in fileEdit.edits) {
+        _writeSourceEdit(edit);
+      }
+    });
+  }
+}
+
+extension on CompletionSuggestion {
+  bool get isClass {
+    return kind == CompletionSuggestionKind.IDENTIFIER &&
+        element?.kind == ElementKind.CLASS;
   }
 }

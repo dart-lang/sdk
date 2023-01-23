@@ -98,7 +98,7 @@ class U68<T> {
   late List<T> Function<A>(List<Function> x) Function() x21;
   late List<A> Function<A>(core.List<core.int> x) Function() x22;
 
-  U68({this.tIsBool: false, this.tIsInt: false})
+  U68({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   Function m0([Function x = _voidFunction]) => throw 'uncalled';

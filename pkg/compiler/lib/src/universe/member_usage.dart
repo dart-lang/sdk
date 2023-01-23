@@ -7,7 +7,7 @@ import 'dart:math' as Math;
 import '../common.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
-import '../js_model/jrecord_field_interface.dart' show JRecordFieldInterface;
+import '../js_model/closure.dart' show JContextField;
 import '../serialization/serialization.dart';
 import '../util/enumset.dart';
 import 'call_structure.dart';
@@ -58,13 +58,13 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
         if (original.isEmpty) return emptySet;
         return original.clone();
       }
-      if (member.isTopLevel || member.isStatic || member.isConstructor) {
+      if (member.isTopLevel || member.isStatic || member is ConstructorEntity) {
         // TODO(johnniwinther): Track super constructor invocations?
         return EnumSet.fromValues([Access.staticAccess]);
       } else if (member.isInstanceMember) {
         return EnumSet.fromValues(Access.values);
       } else {
-        assert(member is JRecordFieldInterface, "Unexpected member: $member");
+        assert(member is JContextField, "Unexpected member: $member");
         return EnumSet();
       }
     }
@@ -110,7 +110,7 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
             potentialReads: emptySet,
             potentialWrites: createPotentialWrites(),
             potentialInvokes: emptySet);
-      } else if (member.isConstructor) {
+      } else if (member is ConstructorEntity) {
         return MethodUsage(member,
             potentialReads: emptySet,
             potentialInvokes: createPotentialInvokes());
@@ -278,7 +278,7 @@ class PropertyUsage extends MemberUsage {
   @override
   final EnumSet<Access> invokes;
 
-  PropertyUsage.cloned(MemberEntity member, EnumSet<MemberUse> pendingUse,
+  PropertyUsage.cloned(super.member, super.pendingUse,
       {required this.potentialReads,
       required this.potentialWrites,
       required this.potentialInvokes,
@@ -292,9 +292,9 @@ class PropertyUsage extends MemberUsage {
         assert((reads as dynamic) != null),
         assert((writes as dynamic) != null),
         assert((invokes as dynamic) != null),
-        super.cloned(member, pendingUse);
+        super.cloned();
 
-  PropertyUsage(MemberEntity member,
+  PropertyUsage(super.member,
       {required this.potentialReads,
       required this.potentialWrites,
       required this.potentialInvokes})
@@ -305,7 +305,7 @@ class PropertyUsage extends MemberUsage {
         assert((potentialReads as dynamic) != null),
         assert((potentialWrites as dynamic) != null),
         assert((potentialInvokes as dynamic) != null),
-        super.internal(member);
+        super.internal();
 
   @override
   EnumSet<MemberUse> read(EnumSet<Access> accesses) {
@@ -390,7 +390,7 @@ class FieldUsage extends MemberUsage {
 
   List<ConstantValue>? _initialConstants;
 
-  FieldUsage.cloned(FieldEntity field, EnumSet<MemberUse> pendingUse,
+  FieldUsage.cloned(FieldEntity super.field, super.pendingUse,
       {required this.potentialReads,
       required this.potentialWrites,
       required this.potentialInvokes,
@@ -405,9 +405,9 @@ class FieldUsage extends MemberUsage {
         assert((reads as dynamic) != null),
         assert((writes as dynamic) != null),
         assert((invokes as dynamic) != null),
-        super.cloned(field, pendingUse);
+        super.cloned();
 
-  FieldUsage(FieldEntity field,
+  FieldUsage(FieldEntity super.field,
       {required this.potentialReads,
       required this.potentialWrites,
       required this.potentialInvokes})
@@ -419,7 +419,7 @@ class FieldUsage extends MemberUsage {
         assert((potentialReads as dynamic) != null),
         assert((potentialWrites as dynamic) != null),
         assert((potentialInvokes as dynamic) != null),
-        super.internal(field);
+        super.internal();
 
   @override
   Iterable<ConstantValue> get initialConstants => _initialConstants ?? const [];
@@ -532,14 +532,14 @@ class MethodUsage extends MemberUsage {
         assert((invokes as dynamic) != null),
         super.cloned(function, pendingUse);
 
-  MethodUsage(FunctionEntity function,
+  MethodUsage(FunctionEntity super.function,
       {required this.potentialReads, required this.potentialInvokes})
       : reads = EnumSet(),
         invokes = EnumSet(),
         parameterUsage = ParameterUsage(function.parameterStructure),
         assert((potentialReads as dynamic) != null),
         assert((potentialInvokes as dynamic) != null),
-        super.internal(function);
+        super.internal();
 
   @override
   bool get hasInvoke => invokes.isNotEmpty && parameterUsage.hasInvoke;

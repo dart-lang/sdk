@@ -10,6 +10,7 @@ import 'dart:io'
     show ContentType, HttpClient, HttpClientRequest, SocketException, stderr;
 
 import 'problems.dart' show DebugAbort;
+import 'uri_offset.dart';
 
 const String defaultServerAddress = "http://127.0.0.1:59410/";
 
@@ -31,15 +32,26 @@ class Crash {
 
   final StackTrace? trace;
 
+  bool _hasBeenReported = false;
+
   Crash(this.uri, this.charOffset, this.error, this.trace);
 
   @override
   String toString() {
-    return """
-Crash when compiling $uri,
-at character offset $charOffset:
-$error${trace == null ? '' : '\n$trace'}
-""";
+    StringBuffer sb = new StringBuffer();
+    if (uri != null) {
+      sb.write("Crash when compiling $uri");
+      if (charOffset != null && charOffset != -1) {
+        sb.write(" at character offset $charOffset:\n");
+      } else {
+        sb.write(":\n");
+      }
+    } else {
+      sb.write("Crash when compiling:\n");
+    }
+    sb.write(error);
+    sb.write("\n");
+    return sb.toString();
   }
 }
 
@@ -60,6 +72,7 @@ Future<T> reportCrash<T>(error, StackTrace trace,
     trace = error.trace ?? trace;
     uri = error.uri ?? uri;
     charOffset = error.charOffset ?? charOffset;
+    error._hasBeenReported = true;
     error = error.error;
   }
   uri ??= firstSourceUri;
@@ -82,7 +95,8 @@ Future<T> reportCrash<T>(error, StackTrace trace,
       // Assume the crash logger isn't running.
       client.close(force: true);
       return new Future<T>.error(
-          new Crash(uri, charOffset, error, trace), trace);
+          new Crash(uri, charOffset, error, trace).._hasBeenReported = true,
+          trace);
     }
     // ignore: unnecessary_null_comparison
     if (request != null) {
@@ -116,15 +130,17 @@ String safeToString(Object object) {
 }
 
 Future<T> withCrashReporting<T>(
-    Future<T> Function() action, Uri? Function() currentUri) async {
+    Future<T> Function() action, UriOffset? Function() currentUriOffset) async {
   resetCrashReporting();
   try {
     return await action();
-  } on Crash {
-    rethrow;
   } on DebugAbort {
     rethrow;
   } catch (e, s) {
-    return reportCrash(e, s, currentUri());
+    if (e is Crash && e._hasBeenReported) {
+      rethrow;
+    }
+    UriOffset? uriOffset = currentUriOffset();
+    return reportCrash(e, s, uriOffset?.uri, uriOffset?.fileOffset);
   }
 }

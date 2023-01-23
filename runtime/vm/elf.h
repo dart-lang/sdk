@@ -64,17 +64,39 @@ class Elf : public ZoneAllocated {
 
   // Stores the information needed to appropriately generate a
   // relocation from the target to the source at the given section offset.
-  // If a given symbol name is nullptr, then the corresponding offset is
-  // relative from the location of the relocation itself.
-  // If a given symbol name is "", then the corresponding offset is relative to
-  // the start of the snapshot.
   struct Relocation {
     size_t size_in_bytes;
     intptr_t section_offset;
-    const char* source_symbol;
+    intptr_t source_label;
     intptr_t source_offset;
-    const char* target_symbol;
+    intptr_t target_label;
     intptr_t target_offset;
+
+    // Used when the corresponding offset is relative from the location of the
+    // relocation itself.
+    static constexpr intptr_t kSelfRelative = -1;
+    // Used when the corresponding offset is relative to the start of the
+    // snapshot.
+    static constexpr intptr_t kSnapshotRelative = -2;
+
+    Relocation(size_t size_in_bytes,
+               intptr_t section_offset,
+               intptr_t source_label,
+               intptr_t source_offset,
+               intptr_t target_label,
+               intptr_t target_offset)
+        : size_in_bytes(size_in_bytes),
+          section_offset(section_offset),
+          source_label(source_label),
+          source_offset(source_offset),
+          target_label(target_label),
+          target_offset(target_offset) {
+      // Other than special values, all labels should be positive.
+      ASSERT(source_label > 0 || source_label == kSelfRelative ||
+             source_label == kSnapshotRelative);
+      ASSERT(target_label > 0 || target_label == kSelfRelative ||
+             target_label == kSnapshotRelative);
+    }
   };
 
   // Stores the information needed to appropriately generate a symbol
@@ -84,14 +106,34 @@ class Elf : public ZoneAllocated {
     intptr_t type;
     intptr_t offset;
     size_t size;
+    // A positive unique ID only used internally in the Dart VM, not part of
+    // the Elf output.
+    intptr_t label;
+
+    SymbolData(const char* name,
+               intptr_t type,
+               intptr_t offset,
+               size_t size,
+               intptr_t label)
+        : name(name), type(type), offset(offset), size(size), label(label) {
+      ASSERT(label > 0);
+    }
   };
 
+  // Must be the same value as the values returned by ImageWriter::SectionLabel
+  // for the appropriate section and vm values.
+  static constexpr intptr_t kVmBssLabel = 5;
+  static constexpr intptr_t kIsolateBssLabel = 6;
+  static constexpr intptr_t kBuildIdLabel = 7;
+
   void AddText(const char* name,
+               intptr_t label,
                const uint8_t* bytes,
                intptr_t size,
                const ZoneGrowableArray<Relocation>* relocations,
                const ZoneGrowableArray<SymbolData>* symbol);
   void AddROData(const char* name,
+                 intptr_t label,
                  const uint8_t* bytes,
                  intptr_t size,
                  const ZoneGrowableArray<Relocation>* relocations,

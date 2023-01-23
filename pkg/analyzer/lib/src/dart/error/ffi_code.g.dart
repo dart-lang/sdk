@@ -7,6 +7,10 @@
 // Instead modify 'pkg/analyzer/messages.yaml' and run
 // 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 
+// We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
+// code, as they match names declared in the source configuration files.
+// ignore_for_file: constant_identifier_names
+
 import "package:analyzer/error/error.dart";
 import "package:analyzer/src/error/analyzer_error_code.dart";
 
@@ -266,8 +270,7 @@ class FfiCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  Parameters:
-  ///  0: the type of the field
+  ///  No parameters.
   static const FfiCode MISSING_FIELD_TYPE_IN_STRUCT = FfiCode(
     'MISSING_FIELD_TYPE_IN_STRUCT',
     "Fields in struct classes must have an explicitly declared type of 'int', "
@@ -340,7 +343,8 @@ class FfiCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the type of the field
+  ///  0: the name of the field
+  ///  1: the type of the field
   static const FfiCode NON_SIZED_TYPE_ARGUMENT = FfiCode(
     'NON_SIZED_TYPE_ARGUMENT',
     "The type '{1}' isn't a valid type argument for '{0}'. The type argument "

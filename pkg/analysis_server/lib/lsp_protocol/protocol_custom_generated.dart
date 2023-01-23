@@ -16,9 +16,10 @@ import 'package:analysis_server/src/protocol/protocol_internal.dart';
 
 const jsonEncoder = JsonEncoder.withIndent('    ');
 
-typedef DocumentUri = String;
+typedef DocumentUri = Uri;
 typedef LSPAny = Object?;
 typedef LSPObject = Object;
+typedef LSPUri = Uri;
 typedef TextDocumentEditEdits
     = List<Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit>>;
 
@@ -136,6 +137,73 @@ class ClosingLabel implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Information about one of the arguments needed by the command.
+///
+/// A list of parameters is sent in the `data` field of the `CodeAction`
+/// returned by the server. The values of the parameters should appear in the
+/// `args` field of the `Command` sent to the server in the same order as the
+/// corresponding parameters.
+abstract class CommandParameter implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    CommandParameter.canParse,
+    CommandParameter.fromJson,
+  );
+
+  CommandParameter({
+    required this.parameterLabel,
+  });
+  static CommandParameter fromJson(Map<String, Object?> json) {
+    if (SaveUriCommandParameter.canParse(json, nullLspJsonReporter)) {
+      return SaveUriCommandParameter.fromJson(json);
+    }
+    throw ArgumentError(
+        'Supplied map is not valid for any subclass of CommandParameter');
+  }
+
+  /// An optional default value for the parameter. The type of this value may
+  /// vary between parameter kinds but must always be something that can be
+  /// converted directly to/from JSON.
+  Object? get defaultValue;
+
+  /// The kind of this parameter. The client may use different UIs based on this
+  /// value.
+  String get kind;
+
+  /// A human-readable label to be displayed in the UI affordance used to prompt
+  /// the user for the value of the parameter.
+  final String parameterLabel;
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['parameterLabel'] = parameterLabel;
+    return result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      return _canParseString(obj, reporter, 'parameterLabel',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type CommandParameter');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is CommandParameter &&
+        other.runtimeType == CommandParameter &&
+        parameterLabel == other.parameterLabel;
+  }
+
+  @override
+  int get hashCode => parameterLabel.hashCode;
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
 class CompletionItemResolutionInfo implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CompletionItemResolutionInfo.canParse,
@@ -143,13 +211,8 @@ class CompletionItemResolutionInfo implements ToJsonable {
   );
 
   static CompletionItemResolutionInfo fromJson(Map<String, Object?> json) {
-    if (DartNotImportedCompletionResolutionInfo.canParse(
-        json, nullLspJsonReporter)) {
-      return DartNotImportedCompletionResolutionInfo.fromJson(json);
-    }
-    if (DartSuggestionSetCompletionItemResolutionInfo.canParse(
-        json, nullLspJsonReporter)) {
-      return DartSuggestionSetCompletionItemResolutionInfo.fromJson(json);
+    if (DartCompletionResolutionInfo.canParse(json, nullLspJsonReporter)) {
+      return DartCompletionResolutionInfo.fromJson(json);
     }
     if (PubPackageCompletionItemResolutionInfo.canParse(
         json, nullLspJsonReporter)) {
@@ -178,6 +241,97 @@ class CompletionItemResolutionInfo implements ToJsonable {
 
   @override
   int get hashCode => 42;
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class DartCompletionResolutionInfo
+    implements CompletionItemResolutionInfo, ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    DartCompletionResolutionInfo.canParse,
+    DartCompletionResolutionInfo.fromJson,
+  );
+
+  DartCompletionResolutionInfo({
+    required this.file,
+    required this.importUris,
+    this.ref,
+  });
+  static DartCompletionResolutionInfo fromJson(Map<String, Object?> json) {
+    final fileJson = json['file'];
+    final file = fileJson as String;
+    final importUrisJson = json['importUris'];
+    final importUris = (importUrisJson as List<Object?>)
+        .map((item) => item as String)
+        .toList();
+    final refJson = json['ref'];
+    final ref = refJson as String?;
+    return DartCompletionResolutionInfo(
+      file: file,
+      importUris: importUris,
+      ref: ref,
+    );
+  }
+
+  /// The file where the completion is being inserted.
+  ///
+  /// This is used to compute where to add the import.
+  final String file;
+
+  /// The URIs to be imported if this completion is selected.
+  final List<String> importUris;
+
+  /// The ElementLocation of the item being completed.
+  ///
+  /// This is used to provide documentation in the resolved response.
+  final String? ref;
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['file'] = file;
+    result['importUris'] = importUris;
+    if (ref != null) {
+      result['ref'] = ref;
+    }
+    return result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseString(obj, reporter, 'file',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseListString(obj, reporter, 'importUris',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseString(obj, reporter, 'ref',
+          allowsUndefined: true, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type DartCompletionResolutionInfo');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is DartCompletionResolutionInfo &&
+        other.runtimeType == DartCompletionResolutionInfo &&
+        file == other.file &&
+        listEqual(
+            importUris, other.importUris, (String a, String b) => a == b) &&
+        ref == other.ref;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        file,
+        lspHashCode(importUris),
+        ref,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -228,145 +382,6 @@ class DartDiagnosticServer implements ToJsonable {
 
   @override
   int get hashCode => port.hashCode;
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
-class DartNotImportedCompletionResolutionInfo
-    implements CompletionItemResolutionInfo, ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    DartNotImportedCompletionResolutionInfo.canParse,
-    DartNotImportedCompletionResolutionInfo.fromJson,
-  );
-
-  DartNotImportedCompletionResolutionInfo({
-    required this.file,
-    required this.libraryUri,
-  });
-  static DartNotImportedCompletionResolutionInfo fromJson(
-      Map<String, Object?> json) {
-    final fileJson = json['file'];
-    final file = fileJson as String;
-    final libraryUriJson = json['libraryUri'];
-    final libraryUri = libraryUriJson as String;
-    return DartNotImportedCompletionResolutionInfo(
-      file: file,
-      libraryUri: libraryUri,
-    );
-  }
-
-  /// The file where the completion is being inserted.
-  ///
-  /// This is used to compute where to add the import.
-  final String file;
-
-  /// The URI to be imported if this completion is selected.
-  final String libraryUri;
-
-  @override
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    result['file'] = file;
-    result['libraryUri'] = libraryUri;
-    return result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      if (!_canParseString(obj, reporter, 'file',
-          allowsUndefined: false, allowsNull: false)) {
-        return false;
-      }
-      return _canParseString(obj, reporter, 'libraryUri',
-          allowsUndefined: false, allowsNull: false);
-    } else {
-      reporter.reportError(
-          'must be of type DartNotImportedCompletionResolutionInfo');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is DartNotImportedCompletionResolutionInfo &&
-        other.runtimeType == DartNotImportedCompletionResolutionInfo &&
-        file == other.file &&
-        libraryUri == other.libraryUri;
-  }
-
-  @override
-  int get hashCode => Object.hash(
-        file,
-        libraryUri,
-      );
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
-class DartSuggestionSetCompletionItemResolutionInfo
-    implements CompletionItemResolutionInfo, ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    DartSuggestionSetCompletionItemResolutionInfo.canParse,
-    DartSuggestionSetCompletionItemResolutionInfo.fromJson,
-  );
-
-  DartSuggestionSetCompletionItemResolutionInfo({
-    required this.file,
-    required this.libId,
-  });
-  static DartSuggestionSetCompletionItemResolutionInfo fromJson(
-      Map<String, Object?> json) {
-    final fileJson = json['file'];
-    final file = fileJson as String;
-    final libIdJson = json['libId'];
-    final libId = libIdJson as int;
-    return DartSuggestionSetCompletionItemResolutionInfo(
-      file: file,
-      libId: libId,
-    );
-  }
-
-  final String file;
-  final int libId;
-
-  @override
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    result['file'] = file;
-    result['libId'] = libId;
-    return result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      if (!_canParseString(obj, reporter, 'file',
-          allowsUndefined: false, allowsNull: false)) {
-        return false;
-      }
-      return _canParseInt(obj, reporter, 'libId',
-          allowsUndefined: false, allowsNull: false);
-    } else {
-      reporter.reportError(
-          'must be of type DartSuggestionSetCompletionItemResolutionInfo');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is DartSuggestionSetCompletionItemResolutionInfo &&
-        other.runtimeType == DartSuggestionSetCompletionItemResolutionInfo &&
-        file == other.file &&
-        libId == other.libId;
-  }
-
-  @override
-  int get hashCode => Object.hash(
-        file,
-        libId,
-      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -1164,7 +1179,7 @@ class PublishClosingLabelsParams implements ToJsonable {
         .map((item) => ClosingLabel.fromJson(item as Map<String, Object?>))
         .toList();
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     return PublishClosingLabelsParams(
       labels: labels,
       uri: uri,
@@ -1172,13 +1187,13 @@ class PublishClosingLabelsParams implements ToJsonable {
   }
 
   final List<ClosingLabel> labels;
-  final String uri;
+  final Uri uri;
 
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['labels'] = labels.map((item) => item.toJson()).toList();
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     return result;
   }
 
@@ -1188,7 +1203,7 @@ class PublishClosingLabelsParams implements ToJsonable {
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
-      return _canParseString(obj, reporter, 'uri',
+      return _canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type PublishClosingLabelsParams');
@@ -1230,7 +1245,7 @@ class PublishFlutterOutlineParams implements ToJsonable {
     final outline =
         FlutterOutline.fromJson(outlineJson as Map<String, Object?>);
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     return PublishFlutterOutlineParams(
       outline: outline,
       uri: uri,
@@ -1238,13 +1253,13 @@ class PublishFlutterOutlineParams implements ToJsonable {
   }
 
   final FlutterOutline outline;
-  final String uri;
+  final Uri uri;
 
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['outline'] = outline.toJson();
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     return result;
   }
 
@@ -1254,7 +1269,7 @@ class PublishFlutterOutlineParams implements ToJsonable {
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
-      return _canParseString(obj, reporter, 'uri',
+      return _canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type PublishFlutterOutlineParams');
@@ -1294,7 +1309,7 @@ class PublishOutlineParams implements ToJsonable {
     final outlineJson = json['outline'];
     final outline = Outline.fromJson(outlineJson as Map<String, Object?>);
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     return PublishOutlineParams(
       outline: outline,
       uri: uri,
@@ -1302,13 +1317,13 @@ class PublishOutlineParams implements ToJsonable {
   }
 
   final Outline outline;
-  final String uri;
+  final Uri uri;
 
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['outline'] = outline.toJson();
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     return result;
   }
 
@@ -1318,7 +1333,7 @@ class PublishOutlineParams implements ToJsonable {
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
-      return _canParseString(obj, reporter, 'uri',
+      return _canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type PublishOutlineParams');
@@ -1636,6 +1651,147 @@ class ResponseMessage implements Message, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Information about a Save URI argument needed by the command.
+class SaveUriCommandParameter implements CommandParameter, ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    SaveUriCommandParameter.canParse,
+    SaveUriCommandParameter.fromJson,
+  );
+
+  SaveUriCommandParameter({
+    required this.actionLabel,
+    this.defaultValue,
+    this.filters,
+    this.kind = 'saveUri',
+    required this.parameterLabel,
+    required this.parameterTitle,
+  }) {
+    if (kind != 'saveUri') {
+      throw 'kind may only be the literal \'saveUri\'';
+    }
+  }
+  static SaveUriCommandParameter fromJson(Map<String, Object?> json) {
+    final actionLabelJson = json['actionLabel'];
+    final actionLabel = actionLabelJson as String;
+    final defaultValueJson = json['defaultValue'];
+    final defaultValue = defaultValueJson as String?;
+    final filtersJson = json['filters'];
+    final filters = (filtersJson as Map<Object, Object?>?)?.map((key, value) =>
+        MapEntry(key as String,
+            (value as List<Object?>).map((item) => item as String).toList()));
+    final kindJson = json['kind'];
+    final kind = kindJson as String;
+    final parameterLabelJson = json['parameterLabel'];
+    final parameterLabel = parameterLabelJson as String;
+    final parameterTitleJson = json['parameterTitle'];
+    final parameterTitle = parameterTitleJson as String;
+    return SaveUriCommandParameter(
+      actionLabel: actionLabel,
+      defaultValue: defaultValue,
+      filters: filters,
+      kind: kind,
+      parameterLabel: parameterLabel,
+      parameterTitle: parameterTitle,
+    );
+  }
+
+  /// A label for the file dialogs action button.
+  final String actionLabel;
+
+  /// An optional default URI for the parameter.
+  @override
+  final String? defaultValue;
+
+  /// A set of file filters for a file dialog. Keys of the map are textual names
+  /// ("Dart") and the value is a list of file extensions (["dart"]).
+  final Map<String, List<String>>? filters;
+  @override
+  final String kind;
+
+  /// A human-readable label to be displayed in the UI affordance used to prompt
+  /// the user for the value of the parameter.
+  @override
+  final String parameterLabel;
+
+  /// A title that may be displayed on a file dialog.
+  final String parameterTitle;
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['actionLabel'] = actionLabel;
+    if (defaultValue != null) {
+      result['defaultValue'] = defaultValue;
+    }
+    if (filters != null) {
+      result['filters'] = filters;
+    }
+    result['kind'] = kind;
+    result['parameterLabel'] = parameterLabel;
+    result['parameterTitle'] = parameterTitle;
+    return result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseString(obj, reporter, 'actionLabel',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseString(obj, reporter, 'defaultValue',
+          allowsUndefined: true, allowsNull: true)) {
+        return false;
+      }
+      if (!_canParseMapStringListString(obj, reporter, 'filters',
+          allowsUndefined: true, allowsNull: true)) {
+        return false;
+      }
+      if (!_canParseLiteral(obj, reporter, 'kind',
+          allowsUndefined: false, allowsNull: false, literal: 'saveUri')) {
+        return false;
+      }
+      if (!_canParseString(obj, reporter, 'parameterLabel',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseString(obj, reporter, 'parameterTitle',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type SaveUriCommandParameter');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is SaveUriCommandParameter &&
+        other.runtimeType == SaveUriCommandParameter &&
+        actionLabel == other.actionLabel &&
+        defaultValue == other.defaultValue &&
+        mapEqual(
+            filters,
+            other.filters,
+            (List<String> a, List<String> b) =>
+                listEqual(a, b, (String a, String b) => a == b)) &&
+        kind == other.kind &&
+        parameterLabel == other.parameterLabel &&
+        parameterTitle == other.parameterTitle;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        actionLabel,
+        defaultValue,
+        lspHashCode(filters),
+        kind,
+        parameterLabel,
+        parameterTitle,
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
 class SnippetTextEdit implements TextEdit, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     SnippetTextEdit.canParse,
@@ -1714,6 +1870,147 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
         insertTextFormat,
         newText,
         range,
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TypeHierarchyAnchor implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    TypeHierarchyAnchor.canParse,
+    TypeHierarchyAnchor.fromJson,
+  );
+
+  TypeHierarchyAnchor({
+    required this.path,
+    required this.ref,
+  });
+  static TypeHierarchyAnchor fromJson(Map<String, Object?> json) {
+    final pathJson = json['path'];
+    final path =
+        (pathJson as List<Object?>).map((item) => item as int).toList();
+    final refJson = json['ref'];
+    final ref = refJson as String;
+    return TypeHierarchyAnchor(
+      path: path,
+      ref: ref,
+    );
+  }
+
+  /// Indices used to navigate from this anchor to the element.
+  final List<int> path;
+
+  /// The ElementLocation for this anchor element.
+  final String ref;
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['path'] = path;
+    result['ref'] = ref;
+    return result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseListInt(obj, reporter, 'path',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseString(obj, reporter, 'ref',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type TypeHierarchyAnchor');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TypeHierarchyAnchor &&
+        other.runtimeType == TypeHierarchyAnchor &&
+        listEqual(path, other.path, (int a, int b) => a == b) &&
+        ref == other.ref;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        lspHashCode(path),
+        ref,
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TypeHierarchyItemInfo implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    TypeHierarchyItemInfo.canParse,
+    TypeHierarchyItemInfo.fromJson,
+  );
+
+  TypeHierarchyItemInfo({
+    this.anchor,
+    required this.ref,
+  });
+  static TypeHierarchyItemInfo fromJson(Map<String, Object?> json) {
+    final anchorJson = json['anchor'];
+    final anchor = anchorJson != null
+        ? TypeHierarchyAnchor.fromJson(anchorJson as Map<String, Object?>)
+        : null;
+    final refJson = json['ref'];
+    final ref = refJson as String;
+    return TypeHierarchyItemInfo(
+      anchor: anchor,
+      ref: ref,
+    );
+  }
+
+  /// An anchor element that can be used to navigate to this element preserving
+  /// type arguments.
+  final TypeHierarchyAnchor? anchor;
+
+  /// The ElementLocation for this element, used to re-locate the element when
+  /// subtypes/supertypes are fetched later.
+  final String ref;
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    if (anchor != null) {
+      result['anchor'] = anchor?.toJson();
+    }
+    result['ref'] = ref;
+    return result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseTypeHierarchyAnchor(obj, reporter, 'anchor',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
+      return _canParseString(obj, reporter, 'ref',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type TypeHierarchyItemInfo');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TypeHierarchyItemInfo &&
+        other.runtimeType == TypeHierarchyItemInfo &&
+        anchor == other.anchor &&
+        ref == other.ref;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        anchor,
+        ref,
       );
 
   @override
@@ -2046,6 +2343,32 @@ bool _canParseListFlutterOutlineAttribute(
   return true;
 }
 
+bool _canParseListInt(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! List<Object?> || value.any((item) => item is! int))) {
+      reporter.reportError('must be of type List<int>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
 bool _canParseListOutline(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
@@ -2065,6 +2388,90 @@ bool _canParseListOutline(
         (value is! List<Object?> ||
             value.any((item) => !Outline.canParse(item, reporter)))) {
       reporter.reportError('must be of type List<Outline>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseListString(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! List<Object?> || value.any((item) => item is! String))) {
+      reporter.reportError('must be of type List<String>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseLiteral(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined,
+    required bool allowsNull,
+    required String literal}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) && value != literal) {
+      reporter.reportError("must be the literal '$literal'");
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseMapStringListString(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! Map ||
+            (value.keys.any((item) =>
+                item is! String ||
+                value.values.any((item) =>
+                    item is! List<Object?> ||
+                    item.any((item) => item is! String)))))) {
+      reporter.reportError('must be of type Map<String, List<String>>');
       return false;
     }
   } finally {
@@ -2191,6 +2598,58 @@ bool _canParseString(
     }
     if ((!nullCheck || value != null) && value is! String) {
       reporter.reportError('must be of type String');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseTypeHierarchyAnchor(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        !TypeHierarchyAnchor.canParse(value, reporter)) {
+      reporter.reportError('must be of type TypeHierarchyAnchor');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseUri(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! String || Uri.tryParse(value) == null)) {
+      reporter.reportError('must be of type Uri');
       return false;
     }
   } finally {

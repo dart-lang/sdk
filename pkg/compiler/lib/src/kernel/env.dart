@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.kernel.env;
 
 import 'package:front_end/src/api_unstable/dart2js.dart'
@@ -16,6 +14,7 @@ import 'package:collection/collection.dart' show mergeSort; // a stable sort.
 import '../common.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../elements/types.dart';
 import '../ir/element_map.dart';
 import '../ir/static_type_cache.dart';
@@ -25,60 +24,41 @@ import '../js_model/element_map.dart';
 import '../js_model/env.dart';
 import '../ordered_typeset.dart';
 import '../universe/member_usage.dart';
-import 'element_map.dart';
-import 'element_map_interfaces.dart' show memberIsIgnorable;
+import 'element_map.dart' show memberIsIgnorable, KernelToElementMap;
 
 /// Environment for fast lookup of component libraries.
 class KProgramEnv {
-  final Set<ir.Component> _components = Set<ir.Component>();
+  final Set<ir.Component> _components = {};
 
-  Map<Uri, KLibraryEnv> _libraryMap;
+  late final Map<Uri, KLibraryEnv> _libraryMap = {
+    for (final component in _components)
+      for (final library in component.libraries)
+        library.importUri: KLibraryEnv(library),
+  };
 
   /// TODO(johnniwinther): Handle arbitrary load order if needed.
-  ir.Member get mainMethod => _components.first?.mainMethod;
+  ir.Member? get mainMethod => mainComponent.mainMethod;
 
   ir.Component get mainComponent => _components.first;
 
   void addComponent(ir.Component component) {
     if (_components.add(component)) {
-      if (_libraryMap != null) {
-        _addLibraries(component);
-      }
-    }
-  }
-
-  void _addLibraries(ir.Component component) {
-    for (ir.Library library in component.libraries) {
-      _libraryMap[library.importUri] = KLibraryEnv(library);
-    }
-  }
-
-  void _ensureLibraryMap() {
-    if (_libraryMap == null) {
-      _libraryMap = <Uri, KLibraryEnv>{};
-      for (ir.Component component in _components) {
-        _addLibraries(component);
+      for (ir.Library library in component.libraries) {
+        _libraryMap[library.importUri] ??= KLibraryEnv(library);
       }
     }
   }
 
   /// Return the [KLibraryEnv] for the library with the canonical [uri].
-  KLibraryEnv lookupLibrary(Uri uri) {
-    _ensureLibraryMap();
-    return _libraryMap[uri];
-  }
+  KLibraryEnv? lookupLibrary(Uri uri) => _libraryMap[uri];
 
   /// Calls [f] for each library in this environment.
   void forEachLibrary(void f(KLibraryEnv library)) {
-    _ensureLibraryMap();
     _libraryMap.values.forEach(f);
   }
 
   /// Returns the number of libraries in this environment.
-  int get length {
-    _ensureLibraryMap();
-    return _libraryMap.length;
-  }
+  int get length => _libraryMap.length;
 
   /// Convert this [KProgramEnv] to the corresponding [JProgramEnv].
   JProgramEnv convert() => JProgramEnv(_components);
@@ -88,30 +68,20 @@ class KProgramEnv {
 class KLibraryEnv {
   final ir.Library library;
 
-  Map<String, KClassEnv> _classMap;
-  Map<String, ir.Member> _memberMap;
-  Map<String, ir.Member> _setterMap;
+  late final Map<String, KClassEnv> _classMap = {
+    for (ir.Class cls in library.classes) cls.name: KClassEnvImpl(cls),
+  };
+
+  Map<String, ir.Member>? _memberMap;
+  Map<String, ir.Member>? _setterMap;
 
   KLibraryEnv(this.library);
 
-  void _ensureClassMap() {
-    if (_classMap == null) {
-      _classMap = <String, KClassEnv>{};
-      for (ir.Class cls in library.classes) {
-        _classMap[cls.name] = KClassEnvImpl(cls);
-      }
-    }
-  }
-
   /// Return the [KClassEnv] for the class [name] in [library].
-  KClassEnv lookupClass(String name) {
-    _ensureClassMap();
-    return _classMap[name];
-  }
+  KClassEnv? lookupClass(String name) => _classMap[name];
 
   /// Calls [f] for each class in this library.
   void forEachClass(void f(KClassEnv cls)) {
-    _ensureClassMap();
     _classMap.values.forEach(f);
   }
 
@@ -125,14 +95,14 @@ class KLibraryEnv {
         }
         if (member is ir.Procedure) {
           if (member.kind == ir.ProcedureKind.Setter) {
-            _setterMap[member.name.text] = member;
+            _setterMap![member.name.text] = member;
           } else {
-            _memberMap[member.name.text] = member;
+            _memberMap![member.name.text] = member;
           }
         } else if (member is ir.Field) {
-          _memberMap[member.name.text] = member;
+          _memberMap![member.name.text] = member;
           if (member.hasSetter) {
-            _setterMap[member.name.text] = member;
+            _setterMap![member.name.text] = member;
           }
         } else {
           failedAt(
@@ -143,15 +113,15 @@ class KLibraryEnv {
   }
 
   /// Return the [ir.Member] for the member [name] in [library].
-  ir.Member lookupMember(String name, {bool setter = false}) {
+  ir.Member? lookupMember(String name, {bool setter = false}) {
     _ensureMemberMaps();
-    return setter ? _setterMap[name] : _memberMap[name];
+    return setter ? _setterMap![name] : _memberMap![name];
   }
 
   void forEachMember(void f(ir.Member member)) {
     _ensureMemberMaps();
-    _memberMap.values.forEach(f);
-    for (ir.Member member in _setterMap.values) {
+    _memberMap!.values.forEach(f);
+    for (ir.Member member in _setterMap!.values) {
       if (member is ir.Procedure) {
         f(member);
       } else {
@@ -162,7 +132,7 @@ class KLibraryEnv {
 
   /// Convert this [KLibraryEnv] to a corresponding [JLibraryEnv] containing
   /// only the members in [liveMembers].
-  JLibraryEnv convert(IrToElementMap elementMap,
+  JLibraryEnv convert(IrToElementMap kElementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage) {
     Map<String, ir.Member> memberMap;
     Map<String, ir.Member> setterMap;
@@ -170,8 +140,8 @@ class KLibraryEnv {
       memberMap = const <String, ir.Member>{};
     } else {
       memberMap = <String, ir.Member>{};
-      _memberMap.forEach((String name, ir.Member node) {
-        MemberEntity member = elementMap.getMember(node);
+      _memberMap!.forEach((String name, ir.Member node) {
+        MemberEntity member = kElementMap.getMember(node);
         if (liveMemberUsage.containsKey(member)) {
           memberMap[name] = node;
         }
@@ -181,8 +151,8 @@ class KLibraryEnv {
       setterMap = const <String, ir.Member>{};
     } else {
       setterMap = <String, ir.Member>{};
-      _setterMap.forEach((String name, ir.Member node) {
-        MemberEntity member = elementMap.getMember(node);
+      _setterMap!.forEach((String name, ir.Member node) {
+        MemberEntity member = kElementMap.getMember(node);
         if (liveMemberUsage.containsKey(member)) {
           setterMap[name] = node;
         }
@@ -194,9 +164,9 @@ class KLibraryEnv {
 
 class KLibraryData {
   final ir.Library library;
-  Iterable<ConstantValue> _metadata;
+  Iterable<ConstantValue>? _metadata;
   // TODO(johnniwinther): Avoid direct access to [imports].
-  Map<ir.LibraryDependency, ImportEntity> imports;
+  Map<ir.LibraryDependency, ImportEntity>? imports;
 
   KLibraryData(this.library);
 
@@ -216,7 +186,7 @@ class KLibraryData {
         imports = <ir.LibraryDependency, ImportEntity>{};
         dependencies.forEach((ir.LibraryDependency node) {
           if (node.isExport) return;
-          imports[node] = ImportEntity(
+          imports![node] = ImportEntity(
               node.isDeferred,
               node.name,
               node.targetLibrary.importUri,
@@ -224,13 +194,13 @@ class KLibraryData {
         });
       }
     }
-    return imports.values;
+    return imports!.values;
   }
 
   /// Convert this [KLibraryData] to the corresponding [JLibraryData].
   // TODO(johnniwinther): Why isn't [imports] ensured to be non-null here?
   JLibraryData convert() {
-    return JLibraryData(library, imports);
+    return JLibraryData(library, imports ?? const {});
   }
 }
 
@@ -251,17 +221,14 @@ abstract class KClassEnv {
   /// Ensures that all members have been computed for [cls].
   void ensureMembers(KernelToElementMap elementMap);
 
-  /// Return the [MemberEntity] for the member [name] in the class. If [setter]
-  /// is `true`, the setter or assignable field corresponding to [name] is
-  /// returned.
-  MemberEntity lookupMember(IrToElementMap elementMap, String name,
-      {bool setter = false});
+  /// Return the [MemberEntity] for the member [name] in the class.
+  MemberEntity? lookupMember(IrToElementMap elementMap, Name name);
 
   /// Calls [f] for each member of [cls].
   void forEachMember(IrToElementMap elementMap, void f(MemberEntity member));
 
   /// Return the [ConstructorEntity] for the constructor [name] in [cls].
-  ConstructorEntity lookupConstructor(IrToElementMap elementMap, String name);
+  ConstructorEntity? lookupConstructor(IrToElementMap elementMap, String? name);
 
   /// Calls [f] for each constructor of [cls].
   void forEachConstructor(
@@ -273,8 +240,14 @@ abstract class KClassEnv {
 
   /// Convert this [KClassEnv] to the corresponding [JClassEnv] containing only
   /// the members in [liveMembers].
-  JClassEnv convert(IrToElementMap elementMap,
-      Map<MemberEntity, MemberUsage> liveMemberUsage);
+  ///
+  /// [getJLibrary] returns the [LibraryEntity] in the J-model corresponding to
+  /// a [ir.Library] node.
+  JClassEnv convert(
+      IrToElementMap kElementMap,
+      Map<MemberEntity, MemberUsage> liveMemberUsage,
+      Set<MemberEntity> liveAbstractMembers,
+      LibraryEntity Function(ir.Library library) getJLibrary);
 
   /// Returns `true` if [node] is a known member of this class.
   ///
@@ -284,8 +257,8 @@ abstract class KClassEnv {
 }
 
 int orderByFileOffset(ir.TreeNode a, ir.TreeNode b) {
-  var aLoc = a.location;
-  var bLoc = b.location;
+  var aLoc = a.location!;
+  var bLoc = b.location!;
   var aUri = '${aLoc.file}';
   var bUri = '${bLoc.file}';
   var uriCompare = aUri.compareTo(bUri);
@@ -298,35 +271,27 @@ class KClassEnvImpl implements KClassEnv {
   @override
   final ir.Class cls;
 
-  Map<String, ir.Member> _constructorMap;
-  Map<String, ir.Member> _memberMap;
-  Map<String, ir.Member> _setterMap;
-  List<ir.Member> _members; // in declaration order.
-  bool _isMixinApplicationWithMembers;
+  Map<String, ir.Member>? _constructorMap;
+  Map<Name, ir.Member>? _memberMap;
+  List<ir.Member>? _members; // in declaration order.
+  bool? _isMixinApplicationWithMembers;
 
   /// Constructor bodies created for this class.
-  List<ConstructorBodyEntity> _constructorBodyList;
+  List<ConstructorBodyEntity>? _constructorBodyList;
 
   KClassEnvImpl(this.cls);
-
-  KClassEnvImpl.internal(this.cls, this._constructorMap, this._memberMap,
-      this._setterMap, this._members, this._isMixinApplicationWithMembers);
 
   @override
   bool get isUnnamedMixinApplication => cls.isAnonymousMixin;
 
   @override
-  bool get isMixinApplicationWithMembers {
-    assert(_isMixinApplicationWithMembers != null);
-    return _isMixinApplicationWithMembers;
-  }
+  bool get isMixinApplicationWithMembers => _isMixinApplicationWithMembers!;
 
   @override
   bool checkHasMember(ir.Member node) {
     if (_memberMap == null) return false;
-    return _memberMap.values.contains(node) ||
-        _setterMap.values.contains(node) ||
-        _constructorMap.values.contains(node);
+    return _memberMap!.values.contains(node) ||
+        _constructorMap!.values.contains(node);
   }
 
   @override
@@ -337,55 +302,42 @@ class KClassEnvImpl implements KClassEnv {
   void _ensureMaps(KernelToElementMap elementMap) {
     if (_memberMap != null) return;
 
-    _memberMap = <String, ir.Member>{};
-    _setterMap = <String, ir.Member>{};
+    _memberMap = <Name, ir.Member>{};
     _constructorMap = <String, ir.Member>{};
     var members = <ir.Member>[];
     _isMixinApplicationWithMembers = false;
 
-    void addField(ir.Field member, {bool includeStatic}) {
+    void addField(ir.Field member, {required bool includeStatic}) {
       if (!includeStatic && member.isStatic) return;
       if (isRedirectingFactoryField(member)) return;
-      var name = member.name.text;
-      _memberMap[name] = member;
+      var name = elementMap.getName(member.name);
+      _memberMap![name] = member;
       if (member.hasSetter) {
-        _setterMap[name] = member;
+        _memberMap![name.setter] = member;
       }
       members.add(member);
     }
 
     void addProcedure(ir.Procedure member,
-        {bool includeStatic,
-        bool includeNoSuchMethodForwarders,
+        {required bool includeStatic,
+        required bool includeNoSuchMethodForwarders,
         bool isFromMixinApplication = false}) {
       if (memberIsIgnorable(member, cls: cls)) return;
       if (!includeStatic && member.isStatic) return;
       if (member.isNoSuchMethodForwarder) {
-        // TODO(sigmund): remove once #33732 is fixed.
-        if (!includeNoSuchMethodForwarders ||
-            member.name.isPrivate &&
-                member.name.libraryName != member.enclosingLibrary.reference) {
+        if (!includeNoSuchMethodForwarders) {
           return;
         }
       }
-      var name = member.name.text;
       if (member.kind == ir.ProcedureKind.Factory) {
         if (member.isRedirectingFactory) {
           // Don't include redirecting factories.
           return;
         }
-        _constructorMap[name] = member;
-      } else if (member.kind == ir.ProcedureKind.Setter) {
-        _setterMap[name] = member;
-        members.add(member);
-        if (isFromMixinApplication) {
-          _isMixinApplicationWithMembers = true;
-        }
+        _constructorMap![member.name.text] = member;
       } else {
-        assert(member.kind == ir.ProcedureKind.Method ||
-            member.kind == ir.ProcedureKind.Getter ||
-            member.kind == ir.ProcedureKind.Operator);
-        _memberMap[name] = member;
+        var name = elementMap.getName(member.name, setter: member.isSetter);
+        _memberMap![name] = member;
         members.add(member);
         if (isFromMixinApplication) {
           _isMixinApplicationWithMembers = true;
@@ -396,21 +348,21 @@ class KClassEnvImpl implements KClassEnv {
     void addConstructors(ir.Class c) {
       for (ir.Constructor member in c.constructors) {
         var name = member.name.text;
-        _constructorMap[name] = member;
+        _constructorMap![name] = member;
       }
     }
 
     int mixinMemberCount = 0;
 
     if (cls.mixedInClass != null) {
-      for (ir.Field field in cls.mixedInClass.mixin.fields) {
+      for (ir.Field field in cls.mixedInClass!.mixin.fields) {
         if (field.containsSuperCalls) {
           _isMixinApplicationWithMembers = true;
           continue;
         }
         addField(field, includeStatic: false);
       }
-      for (ir.Procedure procedure in cls.mixedInClass.mixin.procedures) {
+      for (ir.Procedure procedure in cls.mixedInClass!.mixin.procedures) {
         if (procedure.containsSuperCalls) {
           _isMixinApplicationWithMembers = true;
           continue;
@@ -438,40 +390,41 @@ class KClassEnvImpl implements KClassEnv {
   }
 
   @override
-  MemberEntity lookupMember(IrToElementMap elementMap, String name,
-      {bool setter = false}) {
+  MemberEntity? lookupMember(
+      covariant KernelToElementMap elementMap, Name name) {
     _ensureMaps(elementMap);
-    ir.Member member = setter ? _setterMap[name] : _memberMap[name];
+    ir.Member? member = _memberMap![name];
     return member != null ? elementMap.getMember(member) : null;
   }
 
   @override
   void forEachMember(IrToElementMap elementMap, void f(MemberEntity member)) {
-    _ensureMaps(elementMap);
-    _members.forEach((ir.Member member) {
+    _ensureMaps(elementMap as KernelToElementMap);
+    _members!.forEach((ir.Member member) {
       f(elementMap.getMember(member));
     });
   }
 
   @override
-  ConstructorEntity lookupConstructor(IrToElementMap elementMap, String name) {
-    _ensureMaps(elementMap);
-    ir.Member constructor = _constructorMap[name];
+  ConstructorEntity? lookupConstructor(
+      IrToElementMap elementMap, String? name) {
+    _ensureMaps(elementMap as KernelToElementMap);
+    ir.Member? constructor = _constructorMap![name!];
     return constructor != null ? elementMap.getConstructor(constructor) : null;
   }
 
   @override
   void forEachConstructor(
       IrToElementMap elementMap, void f(ConstructorEntity constructor)) {
-    _ensureMaps(elementMap);
-    _constructorMap.values.forEach((ir.Member constructor) {
+    _ensureMaps(elementMap as KernelToElementMap);
+    _constructorMap!.values.forEach((ir.Member constructor) {
       f(elementMap.getConstructor(constructor));
     });
   }
 
   void addConstructorBody(ConstructorBodyEntity constructorBody) {
     _constructorBodyList ??= <ConstructorBodyEntity>[];
-    _constructorBodyList.add(constructorBody);
+    _constructorBodyList!.add(constructorBody);
   }
 
   @override
@@ -480,42 +433,35 @@ class KClassEnvImpl implements KClassEnv {
   }
 
   @override
-  JClassEnv convert(IrToElementMap elementMap,
-      Map<MemberEntity, MemberUsage> liveMemberUsage) {
+  JClassEnv convert(
+      IrToElementMap kElementMap,
+      Map<MemberEntity, MemberUsage> liveMemberUsage,
+      Set<MemberEntity> liveAbstractMembers,
+      LibraryEntity Function(ir.Library library) getJLibrary) {
     Map<String, ir.Member> constructorMap;
-    Map<String, ir.Member> memberMap;
-    Map<String, ir.Member> setterMap;
+    Map<Name, ir.Member> memberMap;
     List<ir.Member> members;
     if (_constructorMap == null) {
       constructorMap = const <String, ir.Member>{};
     } else {
       constructorMap = <String, ir.Member>{};
-      _constructorMap.forEach((String name, ir.Member node) {
-        MemberEntity member = elementMap.getMember(node);
-        if (liveMemberUsage.containsKey(member)) {
+      _constructorMap!.forEach((String name, ir.Member node) {
+        MemberEntity member = kElementMap.getMember(node);
+        if (liveMemberUsage.containsKey(member) ||
+            liveAbstractMembers.contains(member)) {
           constructorMap[name] = node;
         }
       });
     }
     if (_memberMap == null) {
-      memberMap = const <String, ir.Member>{};
+      memberMap = const <Name, ir.Member>{};
     } else {
-      memberMap = <String, ir.Member>{};
-      _memberMap.forEach((String name, ir.Member node) {
-        MemberEntity member = elementMap.getMember(node);
-        if (liveMemberUsage.containsKey(member)) {
+      memberMap = <Name, ir.Member>{};
+      _memberMap!.forEach((Name name, ir.Member node) {
+        MemberEntity member = kElementMap.getMember(node);
+        if (liveMemberUsage.containsKey(member) ||
+            liveAbstractMembers.contains(member)) {
           memberMap[name] = node;
-        }
-      });
-    }
-    if (_setterMap == null) {
-      setterMap = const <String, ir.Member>{};
-    } else {
-      setterMap = <String, ir.Member>{};
-      _setterMap.forEach((String name, ir.Member node) {
-        MemberEntity member = elementMap.getMember(node);
-        if (liveMemberUsage.containsKey(member)) {
-          setterMap[name] = node;
         }
       });
     }
@@ -523,14 +469,15 @@ class KClassEnvImpl implements KClassEnv {
       members = const <ir.Member>[];
     } else {
       members = <ir.Member>[];
-      _members.forEach((ir.Member node) {
-        MemberEntity member = elementMap.getMember(node);
-        if (liveMemberUsage.containsKey(member)) {
+      _members!.forEach((ir.Member node) {
+        MemberEntity member = kElementMap.getMember(node);
+        if (liveMemberUsage.containsKey(member) ||
+            liveAbstractMembers.contains(member)) {
           members.add(node);
         }
       });
     }
-    return JClassEnvImpl(cls, constructorMap, memberMap, setterMap, members,
+    return JClassEnvImpl(cls, constructorMap, memberMap, members,
         _isMixinApplicationWithMembers ?? false);
   }
 }
@@ -538,15 +485,15 @@ class KClassEnvImpl implements KClassEnv {
 abstract class KClassData {
   ir.Class get node;
 
-  InterfaceType get thisType;
-  InterfaceType get jsInteropType;
-  InterfaceType /*?*/ get rawType;
-  InterfaceType /*?*/ get instantiationToBounds;
-  InterfaceType get supertype;
-  InterfaceType get mixedInType;
-  List<InterfaceType> get interfaces;
-  OrderedTypeSet get orderedTypeSet;
-  DartType get callType;
+  InterfaceType? get thisType;
+  InterfaceType? get jsInteropType;
+  InterfaceType? get rawType;
+  InterfaceType? get instantiationToBounds;
+  InterfaceType? get supertype;
+  InterfaceType? get mixedInType;
+  List<InterfaceType>? get interfaces;
+  OrderedTypeSet? get orderedTypeSet;
+  DartType? get callType;
 
   bool get isEnumClass;
   bool get isMixinApplication;
@@ -562,27 +509,27 @@ class KClassDataImpl implements KClassData {
   @override
   final ir.Class node;
   @override
-  bool isMixinApplication;
+  late bool isMixinApplication;
 
   @override
-  InterfaceType thisType;
+  InterfaceType? thisType;
   @override
-  InterfaceType jsInteropType;
+  InterfaceType? jsInteropType;
   @override
-  InterfaceType rawType;
+  InterfaceType? rawType;
   @override
-  InterfaceType instantiationToBounds;
+  InterfaceType? instantiationToBounds;
   @override
-  InterfaceType supertype;
+  InterfaceType? supertype;
   @override
-  InterfaceType mixedInType;
+  InterfaceType? mixedInType;
   @override
-  List<InterfaceType> interfaces;
+  List<InterfaceType>? interfaces;
   @override
-  OrderedTypeSet orderedTypeSet;
+  OrderedTypeSet? orderedTypeSet;
 
-  Iterable<ConstantValue> _metadata;
-  List<Variance> _variances;
+  Iterable<ConstantValue>? _metadata;
+  List<Variance>? _variances;
 
   KClassDataImpl(this.node);
 
@@ -590,7 +537,7 @@ class KClassDataImpl implements KClassData {
   bool get isEnumClass => node.isEnum;
 
   @override
-  FunctionType callType;
+  FunctionType? callType;
   bool isCallTypeComputed = false;
 
   @override
@@ -614,11 +561,11 @@ class KClassDataImpl implements KClassData {
 abstract class KMemberData {
   ir.Member get node;
 
-  StaticTypeCache staticTypes;
+  StaticTypeCache? staticTypes;
 
   Iterable<ConstantValue> getMetadata(IrToElementMap elementMap);
 
-  InterfaceType getMemberThisType(JsToElementMap elementMap);
+  InterfaceType? getMemberThisType(JsToElementMap elementMap);
 
   ClassTypeVariableAccess get classTypeVariableAccess;
 
@@ -630,10 +577,10 @@ abstract class KMemberDataImpl implements KMemberData {
   @override
   final ir.Member node;
 
-  Iterable<ConstantValue> _metadata;
+  Iterable<ConstantValue>? _metadata;
 
   @override
-  StaticTypeCache staticTypes;
+  StaticTypeCache? staticTypes;
 
   KMemberDataImpl(this.node);
 
@@ -645,9 +592,9 @@ abstract class KMemberDataImpl implements KMemberData {
   }
 
   @override
-  InterfaceType getMemberThisType(JsToElementMap elementMap) {
+  InterfaceType? getMemberThisType(JsToElementMap elementMap) {
     MemberEntity member = elementMap.getMember(node);
-    ClassEntity cls = member.enclosingClass;
+    ClassEntity? cls = member.enclosingClass;
     if (cls != null) {
       return elementMap.elementEnvironment.getThisType(cls);
     }
@@ -661,21 +608,21 @@ abstract class KFunctionData implements KMemberData {
   List<TypeVariableType> getFunctionTypeVariables(IrToElementMap elementMap);
 
   void forEachParameter(JsToElementMap elementMap,
-      void f(DartType type, String name, ConstantValue defaultValue));
+      void f(DartType type, String? name, ConstantValue? defaultValue));
 }
 
 abstract class KFunctionDataMixin implements KFunctionData {
   ir.FunctionNode get functionNode;
-  List<TypeVariableType> _typeVariables;
+  List<TypeVariableType>? _typeVariables;
 
   @override
-  List<TypeVariableType> /*!*/ getFunctionTypeVariables(
+  List<TypeVariableType> getFunctionTypeVariables(
       covariant KernelToElementMap elementMap) {
     if (_typeVariables == null) {
       if (functionNode.typeParameters.isEmpty) {
         _typeVariables = const <TypeVariableType>[];
       } else {
-        ir.TreeNode parent = functionNode.parent;
+        ir.TreeNode? parent = functionNode.parent;
         if (parent is ir.Constructor ||
             (parent is ir.Procedure &&
                 parent.kind == ir.ProcedureKind.Factory)) {
@@ -686,12 +633,12 @@ abstract class KFunctionDataMixin implements KFunctionData {
             return elementMap
                 .getDartType(ir.TypeParameterType(
                     typeParameter, ir.Nullability.nonNullable))
-                .withoutNullability;
+                .withoutNullability as TypeVariableType;
           }).toList();
         }
       }
     }
-    return _typeVariables;
+    return _typeVariables!;
   }
 }
 
@@ -700,9 +647,9 @@ class KFunctionDataImpl extends KMemberDataImpl
     implements KFunctionData {
   @override
   final ir.FunctionNode functionNode;
-  FunctionType _type;
+  FunctionType? _type;
 
-  KFunctionDataImpl(ir.Member node, this.functionNode) : super(node);
+  KFunctionDataImpl(super.node, this.functionNode);
 
   @override
   FunctionType getFunctionType(covariant KernelToElementMap elementMap) {
@@ -711,12 +658,12 @@ class KFunctionDataImpl extends KMemberDataImpl
 
   @override
   void forEachParameter(JsToElementMap elementMap,
-      void f(DartType type, String name, ConstantValue defaultValue)) {
+      void f(DartType type, String? name, ConstantValue? defaultValue)) {
     void handleParameter(ir.VariableDeclaration parameter,
         {bool isOptional = true}) {
       DartType type = elementMap.getDartType(parameter.type);
-      String name = parameter.name;
-      ConstantValue defaultValue;
+      String? name = parameter.name;
+      ConstantValue? defaultValue;
       if (isOptional) {
         if (parameter.initializer != null) {
           defaultValue =
@@ -740,7 +687,12 @@ class KFunctionDataImpl extends KMemberDataImpl
   @override
   FunctionData convert() {
     return FunctionDataImpl(
-        node, functionNode, RegularMemberDefinition(node), staticTypes);
+        node,
+        functionNode,
+        RegularMemberDefinition(node),
+        // Abstract members without bodies will not have expressions so we use
+        // an empty cache.
+        staticTypes ?? const StaticTypeCache());
   }
 
   @override
@@ -754,10 +706,9 @@ abstract class KConstructorData extends KFunctionData {}
 
 class KConstructorDataImpl extends KFunctionDataImpl
     implements KConstructorData {
-  ConstructorBodyEntity constructorBody;
+  ConstructorBodyEntity? constructorBody;
 
-  KConstructorDataImpl(ir.Member node, ir.FunctionNode functionNode)
-      : super(node, functionNode);
+  KConstructorDataImpl(super.node, super.functionNode);
 
   @override
   JConstructorData convert() {
@@ -767,7 +718,7 @@ class KConstructorDataImpl extends KFunctionDataImpl
     } else {
       definition = RegularMemberDefinition(node);
     }
-    return JConstructorDataImpl(node, functionNode, definition, staticTypes);
+    return JConstructorDataImpl(node, functionNode, definition, staticTypes!);
   }
 
   @override
@@ -788,7 +739,7 @@ abstract class KFieldData extends KMemberData {
 }
 
 class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
-  DartType _type;
+  DartType? _type;
 
   @override
   final bool isLateBackingField;
@@ -796,13 +747,12 @@ class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
   @override
   final bool isLateFinalBackingField;
 
-  KFieldDataImpl(ir.Field node,
-      {/*required*/ this.isLateBackingField,
-      /*required*/ this.isLateFinalBackingField})
-      : super(node);
+  KFieldDataImpl(super.node,
+      {required this.isLateBackingField,
+      required this.isLateFinalBackingField});
 
   @override
-  ir.Field get node => super.node;
+  ir.Field get node => super.node as ir.Field;
 
   @override
   DartType getFieldType(covariant KernelToElementMap elementMap) {
@@ -817,14 +767,19 @@ class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
 
   @override
   JFieldData convert() {
-    return JFieldDataImpl(node, RegularMemberDefinition(node), staticTypes);
+    return JFieldDataImpl(
+        node,
+        RegularMemberDefinition(node),
+        // Late fields in abstract classes won't have initializers so we use an
+        // empty cache.
+        staticTypes ?? const StaticTypeCache());
   }
 }
 
 class KTypeVariableData {
   final ir.TypeParameter node;
-  DartType _bound;
-  DartType _defaultType;
+  DartType? _bound;
+  DartType? _defaultType;
 
   KTypeVariableData(this.node);
 
@@ -833,10 +788,7 @@ class KTypeVariableData {
   }
 
   DartType getDefaultType(IrToElementMap elementMap) {
-    // TODO(34522): Remove `?? const ir.DynamicType()` when issue 34522 is
-    // fixed.
-    return _defaultType ??=
-        elementMap.getDartType(node.defaultType ?? const ir.DynamicType());
+    return _defaultType ??= elementMap.getDartType(node.defaultType);
   }
 
   JTypeVariableData copy() {

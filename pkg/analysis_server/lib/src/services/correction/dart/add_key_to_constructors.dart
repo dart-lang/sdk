@@ -18,101 +18,27 @@ import 'package:collection/collection.dart';
 
 class AddKeyToConstructors extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.ADD_KEY_TO_CONSTRUCTORS;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.ADD_KEY_TO_CONSTRUCTORS_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     var parent = node.parent;
-    if (node is SimpleIdentifier && parent is ClassDeclaration) {
-      // The lint is on the name of the class when there are no constructors.
-      var targetLocation =
-          utils.prepareNewConstructorLocation(resolvedResult.session, parent);
-      if (targetLocation == null) {
-        return;
-      }
-      var keyType = await _getKeyType();
-      if (keyType == null) {
-        return;
-      }
-      var className = node.name;
-      var constructors = parent.declaredElement?.supertype?.constructors;
-      if (constructors == null) {
-        return;
-      }
-
-      var canBeConst = _canBeConst(parent, constructors);
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addInsertion(targetLocation.offset, (builder) {
-          builder.write(targetLocation.prefix);
-          if (canBeConst) {
-            builder.write('const ');
-          }
-          builder.write(className);
-          builder.write('({');
-          if (libraryElement.featureSet.isEnabled(Feature.super_parameters)) {
-            builder.write('super.key});');
-          } else {
-            builder.writeType(keyType);
-            builder.write(' key}) : super(key: key);');
-          }
-          builder.write(targetLocation.suffix);
-        });
-      });
+    if (node is ClassDeclaration) {
+      await _computeClassDeclaration(builder, node);
+    } else if (node is ConstructorDeclaration) {
+      await _computeConstructorDeclaration(builder, node);
     } else if (parent is ConstructorDeclaration) {
-      // The lint is on a constructor when that constructor doesn't have a `key`
-      // parameter.
-      var keyType = await _getKeyType();
-      if (keyType == null) {
-        return;
-      }
-      var superParameters =
-          libraryElement.featureSet.isEnabled(Feature.super_parameters);
-
-      void writeKey(DartEditBuilder builder) {
-        if (superParameters) {
-          builder.write('super.key');
-        } else {
-          builder.writeType(keyType);
-          builder.write(' key');
-        }
-      }
-
-      var parameterList = parent.parameters;
-      var parameters = parameterList.parameters;
-      if (parameters.isEmpty) {
-        // There are no parameters, so add the first parameter.
-        await builder.addDartFileEdit(file, (builder) {
-          builder.addInsertion(parameterList.leftParenthesis.end, (builder) {
-            builder.write('{');
-            writeKey(builder);
-            builder.write('}');
-          });
-          _updateSuper(builder, parent, superParameters);
-        });
-        return;
-      }
-      var leftDelimiter = parameterList.leftDelimiter;
-      if (leftDelimiter == null) {
-        // There are no named parameters, so add the delimiters.
-        await builder.addDartFileEdit(file, (builder) {
-          builder.addInsertion(parameters.last.end, (builder) {
-            builder.write(', {');
-            writeKey(builder);
-            builder.write('}');
-          });
-          _updateSuper(builder, parent, superParameters);
-        });
-      } else if (leftDelimiter.type == TokenType.OPEN_CURLY_BRACKET) {
-        // There are other named parameters, so add the new named parameter.
-        await builder.addDartFileEdit(file, (builder) {
-          builder.addInsertion(leftDelimiter.end, (builder) {
-            writeKey(builder);
-            builder.write(', ');
-          });
-          _updateSuper(builder, parent, superParameters);
-        });
-      }
+      await _computeConstructorDeclaration(builder, parent);
     }
   }
 
@@ -140,6 +66,101 @@ class AddKeyToConstructors extends CorrectionProducer {
       }
     }
     return true;
+  }
+
+  /// The lint is on the name of the class when there are no constructors.
+  Future<void> _computeClassDeclaration(
+      ChangeBuilder builder, ClassDeclaration node) async {
+    var targetLocation =
+        utils.prepareNewConstructorLocation(resolvedResult.session, node);
+    if (targetLocation == null) {
+      return;
+    }
+    var keyType = await _getKeyType();
+    if (keyType == null) {
+      return;
+    }
+    var className = node.name.lexeme;
+    var constructors = node.declaredElement?.supertype?.constructors;
+    if (constructors == null) {
+      return;
+    }
+
+    var canBeConst = _canBeConst(node, constructors);
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addInsertion(targetLocation.offset, (builder) {
+        builder.write(targetLocation.prefix);
+        if (canBeConst) {
+          builder.write('const ');
+        }
+        builder.write(className);
+        builder.write('({');
+        if (libraryElement.featureSet.isEnabled(Feature.super_parameters)) {
+          builder.write('super.key});');
+        } else {
+          builder.writeType(keyType);
+          builder.write(' key}) : super(key: key);');
+        }
+        builder.write(targetLocation.suffix);
+      });
+    });
+  }
+
+  /// The lint is on a constructor when that constructor doesn't have a `key`
+  /// parameter.
+  Future<void> _computeConstructorDeclaration(
+      ChangeBuilder builder, ConstructorDeclaration node) async {
+    var keyType = await _getKeyType();
+    if (keyType == null) {
+      return;
+    }
+    var superParameters =
+        libraryElement.featureSet.isEnabled(Feature.super_parameters);
+
+    void writeKey(DartEditBuilder builder) {
+      if (superParameters) {
+        builder.write('super.key');
+      } else {
+        builder.writeType(keyType);
+        builder.write(' key');
+      }
+    }
+
+    var parameterList = node.parameters;
+    var parameters = parameterList.parameters;
+    if (parameters.isEmpty) {
+      // There are no parameters, so add the first parameter.
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addInsertion(parameterList.leftParenthesis.end, (builder) {
+          builder.write('{');
+          writeKey(builder);
+          builder.write('}');
+        });
+        _updateSuper(builder, node, superParameters);
+      });
+      return;
+    }
+    var leftDelimiter = parameterList.leftDelimiter;
+    if (leftDelimiter == null) {
+      // There are no named parameters, so add the delimiters.
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addInsertion(parameters.last.end, (builder) {
+          builder.write(', {');
+          writeKey(builder);
+          builder.write('}');
+        });
+        _updateSuper(builder, node, superParameters);
+      });
+    } else if (leftDelimiter.type == TokenType.OPEN_CURLY_BRACKET) {
+      // There are other named parameters, so add the new named parameter.
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addInsertion(leftDelimiter.end, (builder) {
+          writeKey(builder);
+          builder.write(', ');
+        });
+        _updateSuper(builder, node, superParameters);
+      });
+    }
   }
 
   /// Return the type for the class `Key`.

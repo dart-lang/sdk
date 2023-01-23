@@ -25,6 +25,11 @@ bool hasStaticInteropAnnotation(Annotatable a) =>
 bool hasTrustTypesAnnotation(Annotatable a) =>
     a.annotations.any(_isTrustTypesAnnotation);
 
+/// Returns true iff the node has an `@JSExport(...)` annotation from
+/// `package:js` or from the internal `dart:_js_annotations`.
+bool hasJSExportAnnotation(Annotatable a) =>
+    a.annotations.any(_isJSExportAnnotation);
+
 /// If [a] has a `@JS('...')` annotation, returns the value inside the
 /// parentheses.
 ///
@@ -35,7 +40,7 @@ String getJSName(Annotatable a) {
   for (var annotation in a.annotations) {
     if (_isPublicJSAnnotation(annotation)) {
       var jsClasses = _stringAnnotationValues(annotation);
-      if (jsClasses.length > 0) {
+      if (jsClasses.isNotEmpty) {
         jsClass = jsClasses[0];
       }
     }
@@ -57,6 +62,29 @@ List<String> getNativeNames(Annotatable a) {
     }
   }
   return nativeClasses;
+}
+
+/// If [a] has a `@JSExport('...')` annotation, returns the value inside the
+/// parentheses.
+///
+/// If there is no value or the class does not have a `@JSExport()` annotation,
+/// returns an empty String.
+String getJSExportName(Annotatable a) {
+  String jsExportValue = '';
+  for (var annotation in a.annotations) {
+    if (_isJSExportAnnotation(annotation)) {
+      var jsExportValues = _stringAnnotationValues(annotation);
+      // TODO(srujzs): Theoretically, this should never be empty as there is a
+      // default empty value. However, in the modular tests, dart2js modular
+      // analysis does not see the default value, and reports this as empty in
+      // some cases. We should investigate why and fix it, but for now, we just
+      // manually provide the default value.
+      if (jsExportValues.isNotEmpty) {
+        jsExportValue = jsExportValues[0];
+      }
+    }
+  }
+  return jsExportValue;
 }
 
 final _packageJs = Uri.parse('package:js/js.dart');
@@ -85,6 +113,9 @@ bool _isStaticInteropAnnotation(Expression value) =>
 
 bool _isTrustTypesAnnotation(Expression value) =>
     _isInteropAnnotation(value, '_TrustTypes');
+
+bool _isJSExportAnnotation(Expression value) =>
+    _isInteropAnnotation(value, 'JSExport');
 
 /// Returns true if [value] is the `Native` annotation from `dart:_js_helper`.
 bool _isNativeAnnotation(Expression value) {
@@ -144,7 +175,7 @@ List<String> _stringAnnotationValues(Expression node) {
     }
   } else if (node is ConstructorInvocation) {
     var argLength = node.arguments.positional.length;
-    if (argLength > 1 || node.arguments.named.length > 0) {
+    if (argLength > 1 || node.arguments.named.isNotEmpty) {
       throw new ArgumentError('Method expects annotation with at most one '
           'positional argument: $node.');
     } else if (argLength == 1) {

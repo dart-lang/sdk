@@ -629,8 +629,6 @@ void Precompiler::DoCompileAll() {
         IG->object_store()->set_simple_instance_of_true_function(null_function);
         IG->object_store()->set_simple_instance_of_false_function(
             null_function);
-        IG->object_store()->set_async_star_move_next_helper(null_function);
-        IG->object_store()->set_complete_on_async_return(null_function);
         IG->object_store()->set_async_star_stream_controller(null_class);
         DropMetadata();
         DropLibraryEntries();
@@ -735,7 +733,7 @@ void Precompiler::PrecompileConstructors() {
 void Precompiler::AddRoots() {
   HANDLESCOPE(T);
   AddSelector(Symbols::NoSuchMethod());
-  AddSelector(Symbols::Call());  // For speed, not correctness.
+  AddSelector(Symbols::call());  // For speed, not correctness.
 
   // Add main as an entry point.
   const Library& lib = Library::Handle(IG->object_store()->root_library());
@@ -992,7 +990,7 @@ void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
 }
 
 static bool IsPotentialClosureCall(const String& selector) {
-  return selector.ptr() == Symbols::Call().ptr() ||
+  return selector.ptr() == Symbols::call().ptr() ||
          selector.ptr() == Symbols::DynamicCall().ptr();
 }
 
@@ -1045,6 +1043,7 @@ void Precompiler::AddCalleesOfHelper(const Object& entry,
         if (!callback_target.IsNull()) {
           AddFunction(callback_target, RetainReasons::kFfiCallbackTarget);
         }
+        AddTypesOf(target);
       }
       break;
     }
@@ -1111,6 +1110,10 @@ void Precompiler::AddTypesOf(const Function& function) {
   const Class& owner = Class::Handle(Z, function.Owner());
   AddTypesOf(owner);
 
+  if (function.IsFfiTrampoline()) {
+    AddType(FunctionType::Handle(Z, function.FfiCSignature()));
+  }
+
   const auto& parent_function = Function::Handle(Z, function.parent_function());
   if (parent_function.IsNull()) {
     return;
@@ -1131,14 +1134,6 @@ void Precompiler::AddTypesOf(const Function& function) {
   // Should match parent checks in CallerClosureFinder::FindCaller.
   if (parent_function.recognized_kind() == MethodRecognizer::kFutureTimeout ||
       parent_function.recognized_kind() == MethodRecognizer::kFutureWait) {
-    AddRetainReason(parent_function, RetainReasons::kIsSyncAsyncFunction);
-    AddTypesOf(parent_function);
-    return;
-  }
-
-  // Preserve parents for generated bodies in async/async*/sync* functions,
-  // since predicates like Function::IsAsyncClosure(), etc. need that info.
-  if (function.is_generated_body()) {
     AddRetainReason(parent_function, RetainReasons::kIsSyncAsyncFunction);
     AddTypesOf(parent_function);
     return;
@@ -1197,6 +1192,13 @@ void Precompiler::AddType(const AbstractType& abstype) {
     AbstractType& type = AbstractType::Handle(Z);
     type = TypeRef::Cast(abstype).type();
     AddType(type);
+  } else if (abstype.IsRecordType()) {
+    const auto& rec = RecordType::Cast(abstype);
+    AbstractType& type = AbstractType::Handle(Z);
+    for (intptr_t i = 0, n = rec.NumFields(); i < n; ++i) {
+      type = rec.FieldTypeAt(i);
+      AddType(type);
+    }
   }
 }
 
@@ -1382,7 +1384,7 @@ const char* Precompiler::MustRetainFunction(const Function& function) {
 
   // Use the same check for _Closure.call as in stack_trace.{h|cc}.
   const auto& selector = String::Handle(Z, function.name());
-  if (selector.ptr() == Symbols::Call().ptr()) {
+  if (selector.ptr() == Symbols::call().ptr()) {
     const auto& name = String::Handle(Z, function.QualifiedScrubbedName());
     if (name.Equals(Symbols::_ClosureCall())) {
       return "_Closure.call";
@@ -2402,6 +2404,7 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
       void VisitObject(ObjectPtr obj) {
         if (obj->GetClassId() == kTypeCid ||
             obj->GetClassId() == kFunctionTypeCid ||
+            obj->GetClassId() == kRecordTypeCid ||
             obj->GetClassId() == kTypeRefCid) {
           type_ ^= obj;
           types_->Add(type_);
@@ -2464,10 +2467,7 @@ static bool IsUserDefinedClass(Zone* zone,
     return false;
   }
 
-  const UntaggedClass* untagged_cls = cls.untag();
-  return ((untagged_cls->library() != object_store->core_library()) &&
-          (untagged_cls->library() != object_store->collection_library()) &&
-          (untagged_cls->library() != object_store->typed_data_library()));
+  return true;
 }
 
 /// Updates |visited| weak table with information about whether object
@@ -2515,10 +2515,9 @@ class ConstantInstanceVisitor {
         }
         break;
       }
-      case kImmutableLinkedHashMapCid: {
-        const LinkedHashMap& map =
-            LinkedHashMap::Handle(LinkedHashMap::RawCast(object_ptr));
-        LinkedHashMap::Iterator iterator(map);
+      case kConstMapCid: {
+        const Map& map = Map::Handle(Map::RawCast(object_ptr));
+        Map::Iterator iterator(map);
         while (iterator.MoveNext()) {
           ObjectPtr element = iterator.CurrentKey();
           Visit(element);
@@ -2537,10 +2536,9 @@ class ConstantInstanceVisitor {
         }
         break;
       }
-      case kImmutableLinkedHashSetCid: {
-        const LinkedHashSet& set =
-            LinkedHashSet::Handle(LinkedHashSet::RawCast(object_ptr));
-        LinkedHashSet::Iterator iterator(set);
+      case kConstSetCid: {
+        const Set& set = Set::Handle(Set::RawCast(object_ptr));
+        Set::Iterator iterator(set);
         while (iterator.MoveNext()) {
           ObjectPtr element = iterator.CurrentKey();
           Visit(element);
@@ -2983,10 +2981,6 @@ void Precompiler::DiscardCodeObjects() {
           ++codes_with_native_function_;
           return;
         }
-        if (function_.IsAsyncClosure() || function_.IsAsyncGenClosure()) {
-          ++codes_with_async_closure_function_;
-          return;
-        }
 
         // Retain Code objects corresponding to dynamically
         // called functions.
@@ -3040,8 +3034,6 @@ void Precompiler::DiscardCodeObjects() {
                 codes_with_pc_descriptors_);
       THR_Print("    %8" Pd " Codes with native functions\n",
                 codes_with_native_function_);
-      THR_Print("    %8" Pd " Codes with async closure functions\n",
-                codes_with_async_closure_function_);
       THR_Print("    %8" Pd " Codes with dynamically called functions\n",
                 codes_with_dynamically_called_function_);
       THR_Print("    %8" Pd " Codes with deferred functions\n",
@@ -3073,7 +3065,6 @@ void Precompiler::DiscardCodeObjects() {
     intptr_t codes_with_exception_handlers_ = 0;
     intptr_t codes_with_pc_descriptors_ = 0;
     intptr_t codes_with_native_function_ = 0;
-    intptr_t codes_with_async_closure_function_ = 0;
     intptr_t codes_with_dynamically_called_function_ = 0;
     intptr_t codes_with_deferred_function_ = 0;
     intptr_t codes_with_ffi_trampoline_function_ = 0;

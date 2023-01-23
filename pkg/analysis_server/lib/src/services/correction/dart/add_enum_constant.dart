@@ -64,7 +64,7 @@ class AddEnumConstant extends CorrectionProducer {
     var length = constructors.length;
     if (length > 1) return;
 
-    var name = length == 1 ? constructors.first.name?.name : null;
+    var name = length == 1 ? constructors.first.name?.lexeme : null;
 
     var offset = targetNode.constants.last.end;
 

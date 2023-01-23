@@ -187,7 +187,7 @@ abstract class CssClassSetImpl extends SetBase<String> implements CssClassSet {
   String get first => readClasses().first;
   String get last => readClasses().last;
   String get single => readClasses().single;
-  List<String> toList({bool growable: true}) =>
+  List<String> toList({bool growable = true}) =>
       readClasses().toList(growable: growable);
   Set<String> toSet() => readClasses().toSet();
   Iterable<String> take(int n) => readClasses().take(n);

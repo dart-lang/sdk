@@ -6066,6 +6066,66 @@ ASSEMBLER_TEST_RUN(ImmediateMacros, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(ImmediateMacros64, assembler) {
+  const intptr_t kTrillion = 1000000000000;
+  {
+    __ LoadImmediate(RAX, kTrillion);
+    Label ok;
+    __ CompareImmediate(RAX, kTrillion);
+    __ j(EQUAL, &ok);
+    __ int3();
+    __ Bind(&ok);
+  }
+  {
+    __ LoadImmediate(RAX, 3);
+    __ AddImmediate(RAX, kTrillion);
+    Label ok;
+    __ CompareImmediate(RAX, 3 + kTrillion);
+    __ j(EQUAL, &ok);
+    __ int3();
+    __ Bind(&ok);
+  }
+  {
+    __ LoadImmediate(RAX, 5);
+    __ AddImmediate(RCX, RAX, kTrillion);
+    Label ok;
+    __ CompareImmediate(RCX, 5 + kTrillion);
+    __ j(EQUAL, &ok);
+    __ int3();
+    __ Bind(&ok);
+  }
+  __ LoadImmediate(RAX, 42);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(ImmediateMacros64, test) {
+  typedef int (*ImmediateMacrosCode)();
+  int res = reinterpret_cast<ImmediateMacrosCode>(test->entry())();
+  EXPECT_EQ(42, res);
+  EXPECT_DISASSEMBLY(
+      "movq rax,0x000000e8d4a51000\n"
+      "movq tmp,0x000000e8d4a51000\n"
+      "cmpq rax,tmp\n"
+      "jz +7\n"
+      "int3\n"
+      "movl rax,3\n"
+      "movq tmp,0x000000e8d4a51000\n"
+      "addq rax,tmp\n"
+      "movq tmp,0x000000e8d4a51003\n"
+      "cmpq rax,tmp\n"
+      "jz +7\n"
+      "int3\n"
+      "movl rax,5\n"
+      "movq rcx,0x000000e8d4a51000\n"
+      "addq rcx,rax\n"
+      "movq tmp,0x000000e8d4a51005\n"
+      "cmpq rcx,tmp\n"
+      "jz +7\n"
+      "int3\n"
+      "movl rax,0x2a\n"
+      "ret\n");
+}
+
 // clang-format off
 #define ALU_TEST(NAME, WIDTH, INTRO, LHS, RHS, OUTRO)                          \
   ASSEMBLER_TEST_GENERATE(NAME, assembler) {                                   \
@@ -6168,6 +6228,12 @@ IMMEDIATE_TEST(AddrImmRAXByte,
                __ popq(RAX))
 
 ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire, assembler) {
+#if defined(USING_THREAD_SANITIZER)
+  // On TSAN builds StoreRelease/LoadAcquire will do a runtime
+  // call to tell TSAN about our action.
+  __ MoveRegister(THR, CallingConventions::kArg2Reg);
+#endif
+
   __ pushq(RCX);
   __ xorq(RCX, RCX);
   __ pushq(RCX);
@@ -6236,11 +6302,17 @@ ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire, test) {
-  int res = test->InvokeWithCodeAndThread<int>(123);
+  const intptr_t res = test->InvokeWithCodeAndThread<intptr_t>(123);
   EXPECT_EQ(123, res);
 }
 
 ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire1024, assembler) {
+#if defined(USING_THREAD_SANITIZER)
+  // On TSAN builds StoreRelease/LoadAcquire will do a runtime
+  // call to tell TSAN about our action.
+  __ MoveRegister(THR, CallingConventions::kArg2Reg);
+#endif
+
   __ pushq(RCX);
   __ xorq(RCX, RCX);
   __ pushq(RCX);
@@ -6254,7 +6326,7 @@ ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire1024, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire1024, test) {
-  int res = test->InvokeWithCodeAndThread<int>(123);
+  const intptr_t res = test->InvokeWithCodeAndThread<intptr_t>(123);
   EXPECT_EQ(123, res);
 #if !defined(USING_THREAD_SANITIZER)
   EXPECT_DISASSEMBLY_NOT_WINDOWS(
@@ -6301,6 +6373,78 @@ ASSEMBLER_TEST_GENERATE(MoveByteRunTest, assembler) {
 ASSEMBLER_TEST_RUN(MoveByteRunTest, test) {
   intptr_t res = test->InvokeWithCodeAndThread<intptr_t>();
   EXPECT_EQ(0x21 + 0x21 + 0x21 + 0x21, res);
+}
+
+static void RangeCheck(Assembler* assembler, Register value, Register temp) {
+  const Register return_reg = CallingConventions::kReturnReg;
+  Label in_range;
+  __ RangeCheck(value, temp, kFirstErrorCid, kLastErrorCid,
+                AssemblerBase::kIfInRange, &in_range);
+  __ movq(return_reg, Immediate(0));
+  __ ret();
+  __ Bind(&in_range);
+  __ movq(return_reg, Immediate(1));
+  __ ret();
+}
+
+ASSEMBLER_TEST_GENERATE(RangeCheckNoTemp, assembler) {
+  const Register value = CallingConventions::kArg1Reg;
+  const Register temp = kNoRegister;
+  RangeCheck(assembler, value, temp);
+}
+
+ASSEMBLER_TEST_RUN(RangeCheckNoTemp, test) {
+  intptr_t result;
+  result = test->Invoke<intptr_t, intptr_t>(kErrorCid);
+  EXPECT_EQ(1, result);
+  result = test->Invoke<intptr_t, intptr_t>(kUnwindErrorCid);
+  EXPECT_EQ(1, result);
+  result = test->Invoke<intptr_t, intptr_t>(kFunctionCid);
+  EXPECT_EQ(0, result);
+  result = test->Invoke<intptr_t, intptr_t>(kMintCid);
+  EXPECT_EQ(0, result);
+}
+
+ASSEMBLER_TEST_GENERATE(RangeCheckWithTemp, assembler) {
+  const Register value = CallingConventions::kArg1Reg;
+  const Register temp = CallingConventions::kArg2Reg;
+  RangeCheck(assembler, value, temp);
+}
+
+ASSEMBLER_TEST_RUN(RangeCheckWithTemp, test) {
+  intptr_t result;
+  result = test->Invoke<intptr_t, intptr_t>(kErrorCid);
+  EXPECT_EQ(1, result);
+  result = test->Invoke<intptr_t, intptr_t>(kUnwindErrorCid);
+  EXPECT_EQ(1, result);
+  result = test->Invoke<intptr_t, intptr_t>(kFunctionCid);
+  EXPECT_EQ(0, result);
+  result = test->Invoke<intptr_t, intptr_t>(kMintCid);
+  EXPECT_EQ(0, result);
+}
+
+ASSEMBLER_TEST_GENERATE(RangeCheckWithTempReturnValue, assembler) {
+  const Register value = CallingConventions::kArg1Reg;
+  const Register temp = CallingConventions::kArg2Reg;
+  const Register return_reg = CallingConventions::kReturnReg;
+  Label in_range;
+  __ RangeCheck(value, temp, kFirstErrorCid, kLastErrorCid,
+                AssemblerBase::kIfInRange, &in_range);
+  __ Bind(&in_range);
+  __ movq(return_reg, value);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(RangeCheckWithTempReturnValue, test) {
+  intptr_t result;
+  result = test->Invoke<intptr_t, intptr_t>(kErrorCid);
+  EXPECT_EQ(kErrorCid, result);
+  result = test->Invoke<intptr_t, intptr_t>(kUnwindErrorCid);
+  EXPECT_EQ(kUnwindErrorCid, result);
+  result = test->Invoke<intptr_t, intptr_t>(kFunctionCid);
+  EXPECT_EQ(kFunctionCid, result);
+  result = test->Invoke<intptr_t, intptr_t>(kMintCid);
+  EXPECT_EQ(kMintCid, result);
 }
 
 }  // namespace compiler

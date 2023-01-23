@@ -65,6 +65,8 @@ class ErrorHandlerVerifier {
     if (methodName == 'catchError' && targetType.isDartAsyncFuture) {
       var callback = node.argumentList.arguments.first;
       if (callback is NamedExpression) {
+        // TODO(srawlins): The comment below is wrong, given
+        // `named-arguments-anywhere`.
         // This implies that no positional arguments are passed.
         return;
       }

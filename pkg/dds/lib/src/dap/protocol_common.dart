@@ -14,7 +14,7 @@ abstract class EventBody {
 ///
 /// Used to support custom events sent by the debug adapter such as 'dart.log'.
 ///
-/// The supplied [body] must be convertable to JSON.
+/// The supplied [body] must be convertible to JSON.
 class RawEventBody extends EventBody {
   final Object body;
 

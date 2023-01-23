@@ -94,9 +94,9 @@ class ElementDisplayStringBuilder {
     }
   }
 
-  void writeExportElement(ExportElementImpl element) {
+  void writeExportElement(LibraryExportElementImpl element) {
     _write('export ');
-    (element.exportedLibrary as LibraryElementImpl).appendTo(this);
+    _writeDirectiveUri(element.uri);
   }
 
   void writeExtensionElement(ExtensionElementImpl element) {
@@ -138,9 +138,9 @@ class ElementDisplayStringBuilder {
     _writeFormalParameters(element.parameters, forElement: true);
   }
 
-  void writeImportElement(ImportElementImpl element) {
+  void writeImportElement(LibraryImportElementImpl element) {
     _write('import ');
-    (element.importedLibrary as LibraryElementImpl).appendTo(this);
+    _writeDirectiveUri(element.uri);
   }
 
   void writeInterfaceType(InterfaceType type) {
@@ -164,20 +164,43 @@ class ElementDisplayStringBuilder {
 
   void writePartElement(PartElementImpl element) {
     _write('part ');
-
-    final uri = element.uri;
-    if (uri is DirectiveUriWithUnitImpl) {
-      _write('unit ${uri.unit.source.uri}');
-    } else if (uri is DirectiveUriWithSourceImpl) {
-      _write('source ${uri.source}');
-    } else {
-      _write('<unknown>');
-    }
+    _writeDirectiveUri(element.uri);
   }
 
   void writePrefixElement(PrefixElementImpl element) {
     _write('as ');
     _write(element.displayName);
+  }
+
+  void writeRecordType(RecordTypeImpl type) {
+    final positionalFields = type.positionalFields;
+    final namedFields = type.namedFields;
+    final fieldCount = positionalFields.length + namedFields.length;
+    _write('(');
+
+    var index = 0;
+    for (final field in positionalFields) {
+      _writeType(field.type);
+      if (index++ < fieldCount - 1) {
+        _write(', ');
+      }
+    }
+
+    if (namedFields.isNotEmpty) {
+      _write('{');
+      for (final field in namedFields) {
+        _writeType(field.type);
+        _write(' ');
+        _write(field.name);
+        if (index++ < fieldCount - 1) {
+          _write(', ');
+        }
+      }
+      _write('}');
+    }
+
+    _write(')');
+    _writeNullability(type.nullabilitySuffix);
   }
 
   void writeTypeAliasElement(TypeAliasElementImpl element) {
@@ -213,14 +236,22 @@ class ElementDisplayStringBuilder {
   }
 
   void writeTypeParameterType(TypeParameterTypeImpl type) {
-    _write(type.element.displayName);
-    _writeNullability(type.nullabilitySuffix);
-
-    var promotedBound = type.promotedBound;
+    final promotedBound = type.promotedBound;
     if (promotedBound != null) {
+      final hasSuffix = type.nullabilitySuffix != NullabilitySuffix.none;
+      if (hasSuffix) {
+        _write('(');
+      }
+      _write(type.element.displayName);
       _write(' & ');
       _writeType(promotedBound);
+      if (hasSuffix) {
+        _write(')');
+      }
+    } else {
+      _write(type.element.displayName);
     }
+    _writeNullability(type.nullabilitySuffix);
   }
 
   void writeUnknownInferredType() {
@@ -239,6 +270,16 @@ class ElementDisplayStringBuilder {
 
   void _write(String str) {
     _buffer.write(str);
+  }
+
+  void _writeDirectiveUri(DirectiveUri uri) {
+    if (uri is DirectiveUriWithUnitImpl) {
+      _write('unit ${uri.unit.source.uri}');
+    } else if (uri is DirectiveUriWithSourceImpl) {
+      _write('source ${uri.source}');
+    } else {
+      _write('<unknown>');
+    }
   }
 
   void _writeFormalParameters(

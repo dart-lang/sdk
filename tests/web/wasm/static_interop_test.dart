@@ -17,23 +17,123 @@ class StaticJSClass {
 extension StaticJSClassMethods on StaticJSClass {
   external String foo;
   external String sum(String a, String? b, String c);
+  external void doublifyNumbers();
+  external set nonNullableInt(int d);
+  external int get nonNullableInt;
+  external set nullableInt(int? d);
+  external int? get nullableInt;
+  external int nonNullableIntReturnMethod();
+  external int? nullableIntReturnMethod(bool returnNull);
+  external String doSum1Or2(String a, [String? b]);
+  external String doSumUpTo2([String? a, String? b]);
+  external String doSum1Or2NonNull(String a, [String b = 'bar']);
+  external String doSumUpTo2NonNull([String a = 'foo', String b = 'bar']);
+
+  @JS('nameInJSMethod')
+  external String nameInDartMethod(String a, String b);
+  @JS('nameInJSGetter')
+  external String get nameInDartGetter;
+  @JS('nameInJSSetter')
+  external set nameInDartSetter(String v);
+  external String get nameInJSSetter;
 }
 
 void createClassTest() {
   eval(r'''
     globalThis.JSClass = function(foo) {
       this.foo = foo;
+      this.nonNullableInt = 6;
+      this.nameInJSGetter = 'foo';
+      this.nonNullableIntReturnMethod = function() {
+        return 7;
+      }
+      this.nullableIntReturnMethod = function(returnNull) {
+        if (returnNull) {
+          return null;
+        } else {
+          return 8;
+        }
+      }
       this.sum = function(a, b, c) {
         if (b == null) b = ' ';
         return a + b + c;
       }
+      this.doublifyNumbers = function() {
+        this.nonNullableInt = 60.5;
+        this.nullableInt = 100.5;
+      }
+      this.doSum1Or2 = function(a, b) {
+        return a + (b ?? 'bar');
+      }
+      this.doSumUpTo2 = function(a, b) {
+        return (a ?? 'foo') + (b ?? 'bar');
+      }
+      this.doSum1Or2NonNull = function(a, b) {
+        return a + b;
+      }
+      this.doSumUpTo2NonNull = function(a, b) {
+        return a + b;
+      }
+      this.nameInJSMethod = function(a, b) {
+        return a + b;
+      }
     }
   ''');
   final foo = StaticJSClass.factory('foo');
-  Expect.equals(foo.foo, 'foo');
+  Expect.equals('foo', foo.foo);
   foo.foo = 'bar';
-  Expect.equals(foo.foo, 'bar');
+  Expect.equals('bar', foo.foo);
   Expect.equals('hello world!!', foo.sum('hello', null, 'world!!'));
+  Expect.equals(null, foo.nullableInt);
+  foo.nullableInt = 5;
+  Expect.equals(5, foo.nullableInt);
+  Expect.equals(6, foo.nonNullableInt);
+  foo.nonNullableInt = 16;
+  Expect.equals(16, foo.nonNullableInt);
+  Expect.equals(7, foo.nonNullableIntReturnMethod());
+  Expect.equals(8, foo.nullableIntReturnMethod(false));
+  Expect.equals(null, foo.nullableIntReturnMethod(true));
+  foo.doublifyNumbers();
+  Expect.equals(100, foo.nullableInt);
+  Expect.equals(60, foo.nonNullableInt);
+
+  Expect.equals('foobar', foo.doSum1Or2('foo'));
+  Expect.equals('foobar', foo.doSum1Or2('foo', 'bar'));
+  Expect.equals('foobar', foo.doSumUpTo2());
+  Expect.equals('foobar', foo.doSumUpTo2('foo'));
+  Expect.equals('foobar', foo.doSumUpTo2('foo', 'bar'));
+
+  Expect.equals('foobar', foo.doSum1Or2NonNull('foo'));
+  Expect.equals('foobar', foo.doSum1Or2NonNull('foo', 'bar'));
+  Expect.equals('foobar', foo.doSumUpTo2NonNull());
+  Expect.equals('foobar', foo.doSumUpTo2NonNull('foo'));
+  Expect.equals('foobar', foo.doSumUpTo2NonNull('foo', 'bar'));
+
+  Expect.equals('foobar', foo.nameInDartMethod('foo', 'bar'));
+  Expect.equals('foo', foo.nameInDartGetter);
+  foo.nameInDartSetter = 'boo';
+  Expect.equals('boo', foo.nameInJSSetter);
+}
+
+@JS('JSClass.NestedJSClass')
+@staticInterop
+class NestedJSClass {
+  external factory NestedJSClass.factory(String foo);
+}
+
+extension NestedJSClassMethods on NestedJSClass {
+  external String foo;
+}
+
+void createClassWithNestedJSNameTest() {
+  eval(r'''
+    globalThis.JSClass = {};
+    globalThis.JSClass.NestedJSClass = function(foo) {
+      this.foo = foo;
+    };
+  ''');
+  final foo = NestedJSClass.factory('foo');
+  Expect.equals(foo.foo, 'foo');
 }
 
 @JS('JSParent')
@@ -108,6 +208,9 @@ void setDartObjectPropertyTest() {
 @JS()
 external String get foo;
 
+@JS()
+external String? get blu;
+
 @JS('')
 external void set baz(String);
 
@@ -122,18 +225,15 @@ void topLevelMethodsTest() {
     globalThis.foo = 'bar';
     globalThis.baz = null;
     globalThis.boo = {
-      'bar': {
-        'bam': 'jam'
-      }
+      'bar': 'jam'
     }
-    globalThis.bar = {
-      'fooBar': function(string) {
-        return string + ' ' + globalThis.baz;
-      }
+    globalThis.bar = function(string) {
+      return string + ' ' + globalThis.baz;
     }
   ''');
 
   Expect.equals(foo, 'bar');
+  Expect.equals(blu, null);
   Expect.equals(bam, 'jam');
   baz = 'world!';
   Expect.equals(fooBar('hello'), 'hello world!');
@@ -160,10 +260,32 @@ void anonymousTest() {
   Expect.equals(null, anonymousJSClass.bleep);
 }
 
+@JS()
+@anonymous
+@staticInterop
+class AnonymousRedirectJSClass {
+  external factory AnonymousRedirectJSClass._({String Function(String)? foo});
+
+  factory AnonymousRedirectJSClass.concrete(String Function(String) foo) =>
+      AnonymousRedirectJSClass._(foo: allowInterop(foo));
+}
+
+extension AnonymousRedirectJSClassExtension on AnonymousRedirectJSClass {
+  external String foo(String bar);
+}
+
+void concreteFactoryConstructorTest() {
+  final anonymousRedirectJSClass =
+      AnonymousRedirectJSClass.concrete((String bar) => bar + bar);
+  Expect.equals('foofoo', anonymousRedirectJSClass.foo('foo'));
+}
+
 void main() {
   createClassTest();
+  createClassWithNestedJSNameTest();
   setInteropPropertyTest();
   setDartObjectPropertyTest();
   topLevelMethodsTest();
   anonymousTest();
+  concreteFactoryConstructorTest();
 }

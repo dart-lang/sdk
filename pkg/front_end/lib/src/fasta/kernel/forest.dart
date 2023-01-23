@@ -243,14 +243,15 @@ class Forest {
 
   Expression createAsExpression(
       int fileOffset, Expression expression, DartType type,
-      {required bool forNonNullableByDefault}) {
+      {required bool forNonNullableByDefault, bool forDynamic = false}) {
     // ignore: unnecessary_null_comparison
     assert(forNonNullableByDefault != null);
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     return new AsExpression(expression, type)
       ..fileOffset = fileOffset
-      ..isForNonNullableByDefault = forNonNullableByDefault;
+      ..isForNonNullableByDefault = forNonNullableByDefault
+      ..isForDynamic = forDynamic;
   }
 
   Expression createSpreadElement(int fileOffset, Expression expression,
@@ -311,7 +312,7 @@ class Forest {
       Statement? expressionEffects,
       Expression body,
       Expression? problem,
-      {bool isAsync: false}) {
+      {bool isAsync = false}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     return new ForInElement(variable, iterable, synthesizedAssignment,
@@ -328,7 +329,7 @@ class Forest {
       Statement? expressionEffects,
       MapLiteralEntry body,
       Expression? problem,
-      {bool isAsync: false}) {
+      {bool isAsync = false}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     return new ForInMapEntry(variable, iterable, synthesizedAssignment,
@@ -412,8 +413,11 @@ class Forest {
   /// [fileOffset]. The [condition] is the expression preceding the question
   /// mark. The [thenExpression] is the expression following the question mark.
   /// The [elseExpression] is the expression following the colon.
-  Expression createConditionalExpression(int fileOffset, Expression condition,
-      Expression thenExpression, Expression elseExpression) {
+  ConditionalExpression createConditionalExpression(
+      int fileOffset,
+      Expression condition,
+      Expression thenExpression,
+      Expression elseExpression) {
     return new ConditionalExpression(
         condition, thenExpression, elseExpression, const UnknownType())
       ..fileOffset = fileOffset;
@@ -534,7 +538,7 @@ class Forest {
 
   /// Return a representation of a return statement.
   Statement createReturnStatement(int fileOffset, Expression? expression,
-      {bool isArrow: true}) {
+      {bool isArrow = true}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     return new ReturnStatementImpl(isArrow, expression)
@@ -649,11 +653,11 @@ class Forest {
   VariableDeclaration createVariableDeclaration(int fileOffset, String? name,
       {Expression? initializer,
       DartType? type,
-      bool isFinal: false,
-      bool isConst: false,
-      bool isInitializingFormal: false,
-      bool isCovariantByDeclaration: false,
-      bool isLocalFunction: false}) {
+      bool isFinal = false,
+      bool isConst = false,
+      bool isInitializingFormal = false,
+      bool isCovariantByDeclaration = false,
+      bool isLocalFunction = false}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     return new VariableDeclarationImpl(name,
@@ -664,7 +668,8 @@ class Forest {
         isInitializingFormal: isInitializingFormal,
         isCovariantByDeclaration: isCovariantByDeclaration,
         isLocalFunction: isLocalFunction,
-        hasDeclaredInitializer: initializer != null);
+        hasDeclaredInitializer: initializer != null)
+      ..fileOffset = fileOffset;
   }
 
   VariableDeclarationImpl createVariableDeclarationForValue(
@@ -673,6 +678,12 @@ class Forest {
     return new VariableDeclarationImpl.forValue(initializer)
       ..type = type
       ..fileOffset = initializer.fileOffset;
+  }
+
+  VariableDeclarationImpl createVariableDeclarationForHoisting(
+      Expression expression) {
+    return new VariableDeclarationImpl.forValue(expression)
+      ..fileOffset = expression.fileOffset;
   }
 
   Let createLet(VariableDeclaration variable, Expression body) {
@@ -684,8 +695,8 @@ class Forest {
       List<VariableDeclaration>? positionalParameters,
       List<VariableDeclaration>? namedParameters,
       int? requiredParameterCount,
-      DartType returnType: const DynamicType(),
-      AsyncMarker asyncMarker: AsyncMarker.Sync,
+      DartType returnType = const DynamicType(),
+      AsyncMarker asyncMarker = AsyncMarker.Sync,
       AsyncMarker? dartAsyncMarker}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
@@ -773,7 +784,7 @@ class Forest {
 
   Expression createPropertySet(
       int fileOffset, Expression receiver, Name name, Expression value,
-      {required bool forEffect, bool readOnlyReceiver: false}) {
+      {required bool forEffect, bool readOnlyReceiver = false}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     return new PropertySet(receiver, name, value,
@@ -799,6 +810,20 @@ class Forest {
       ..fileOffset = fileOffset;
   }
 
+  VariableGet createVariableGet(int fileOffset, VariableDeclaration variable) {
+    // ignore: unnecessary_null_comparison
+    assert(fileOffset != null);
+    return new VariableGetImpl(variable, forNullGuardedAccess: false)
+      ..fileOffset = fileOffset;
+  }
+
+  VariableSet createVariableSet(
+      int fileOffset, VariableDeclaration variable, Expression value) {
+    // ignore: unnecessary_null_comparison
+    assert(fileOffset != null);
+    return new VariableSet(variable, value)..fileOffset = fileOffset;
+  }
+
   EqualsExpression createEquals(
       int fileOffset, Expression left, Expression right,
       {required bool isNot}) {
@@ -808,6 +833,21 @@ class Forest {
     assert(isNot != null);
     return new EqualsExpression(left, right, isNot: isNot)
       ..fileOffset = fileOffset;
+  }
+
+  EqualsCall createEqualsCall(int fileOffset, Expression left, Expression right,
+      FunctionType functionType, Procedure interfaceTarget) {
+    // ignore: unnecessary_null_comparison
+    assert(fileOffset != null);
+    return new EqualsCall(left, right,
+        functionType: functionType, interfaceTarget: interfaceTarget)
+      ..fileOffset = fileOffset;
+  }
+
+  EqualsNull createEqualsNull(int fileOffset, Expression expression) {
+    // ignore: unnecessary_null_comparison
+    assert(fileOffset != null);
+    return new EqualsNull(expression)..fileOffset = fileOffset;
   }
 
   BinaryExpression createBinary(

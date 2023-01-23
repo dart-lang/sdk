@@ -5,102 +5,116 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:args/args.dart' as args;
 import 'package:front_end/src/api_unstable/vm.dart'
     show printDiagnosticMessage, resolveInputUri;
+import 'package:front_end/src/api_unstable/vm.dart' as fe;
 
 import 'package:dart2wasm/compile.dart';
-import 'package:dart2wasm/translator.dart';
+import 'package:dart2wasm/compiler_options.dart';
+import 'package:dart2wasm/option.dart';
 
-final Map<String, void Function(TranslatorOptions, bool)> boolOptionMap = {
-  "export-all": (o, value) => o.exportAll = value,
-  "import-shared-memory": (o, value) => o.importSharedMemory = value,
-  "inlining": (o, value) => o.inlining = value,
-  "lazy-constants": (o, value) => o.lazyConstants = value,
-  "local-nullability": (o, value) => o.localNullability = value,
-  "name-section": (o, value) => o.nameSection = value,
-  "nominal-types": (o, value) => o.nominalTypes = value,
-  "parameter-nullability": (o, value) => o.parameterNullability = value,
-  "polymorphic-specialization": (o, value) =>
-      o.polymorphicSpecialization = value,
-  "print-kernel": (o, value) => o.printKernel = value,
-  "print-wasm": (o, value) => o.printWasm = value,
-  "runtime-types": (o, value) => o.runtimeTypes = value,
-  "string-data-segments": (o, value) => o.stringDataSegments = value,
-};
-final Map<String, void Function(TranslatorOptions, int)> intOptionMap = {
-  "shared-memory-max-pages": (o, value) => o.sharedMemoryMaxPages = value,
-  "watch": (o, value) => (o.watchPoints ??= []).add(value),
-};
+// Used to allow us to keep defaults on their respective option structs.
+final CompilerOptions _d = CompilerOptions.defaultOptions();
 
-Never usage(String message) {
-  print("Usage: dart2wasm [<options>] <infile.dart> <outfile.wasm>");
-  print("");
-  print("*NOTE*: Wasm compilation is experimental.");
-  print("The support may change, or be removed, with no advance notice.");
-  print("");
-  print("Options:");
-  print("  --dart-sdk=<path>");
-  print("  --platform=<path>");
-  print("");
-  for (String option in boolOptionMap.keys) {
-    print("  --[no-]$option");
+final List<Option> options = [
+  Flag("help", (o, _) {}, abbr: "h", negatable: false, defaultsTo: false),
+  Flag("export-all", (o, value) => o.translatorOptions.exportAll = value,
+      defaultsTo: _d.translatorOptions.exportAll),
+  Flag("import-shared-memory",
+      (o, value) => o.translatorOptions.importSharedMemory = value,
+      defaultsTo: _d.translatorOptions.importSharedMemory),
+  Flag("inlining", (o, value) => o.translatorOptions.inlining = value,
+      defaultsTo: _d.translatorOptions.inlining),
+  Flag("name-section", (o, value) => o.translatorOptions.nameSection = value,
+      defaultsTo: _d.translatorOptions.nameSection),
+  Flag("polymorphic-specialization",
+      (o, value) => o.translatorOptions.polymorphicSpecialization = value,
+      defaultsTo: _d.translatorOptions.polymorphicSpecialization),
+  Flag("print-kernel", (o, value) => o.translatorOptions.printKernel = value,
+      defaultsTo: _d.translatorOptions.printKernel),
+  Flag("print-wasm", (o, value) => o.translatorOptions.printWasm = value,
+      defaultsTo: _d.translatorOptions.printWasm),
+  IntOption(
+      "inlining-limit", (o, value) => o.translatorOptions.inliningLimit = value,
+      defaultsTo: "${_d.translatorOptions.inliningLimit}"),
+  IntOption("shared-memory-max-pages",
+      (o, value) => o.translatorOptions.sharedMemoryMaxPages = value),
+  UriOption("dart-sdk", (o, value) => o.sdkPath = value,
+      defaultsTo: "${_d.sdkPath}"),
+  UriOption("packages", (o, value) => o.packagesPath = value),
+  UriOption("libraries-spec", (o, value) => o.librariesSpecPath = value),
+  UriOption("platform", (o, value) => o.platformPath = value),
+  IntMultiOption(
+      "watch", (o, values) => o.translatorOptions.watchPoints = values),
+  StringMultiOption(
+      "define", (o, values) => o.environment = processEnvironment(values),
+      abbr: "D"),
+  StringMultiOption("enable-experiment",
+      (o, values) => o.feExperimentalFlags = processFeExperimentalFlags(values))
+];
+
+Map<fe.ExperimentalFlag, bool> processFeExperimentalFlags(
+        List<String> experiments) =>
+    fe.parseExperimentalFlags(fe.parseExperimentalArguments(experiments),
+        onError: (error) => throw ArgumentError(error),
+        onWarning: (warning) => print(warning));
+
+Map<String, String> processEnvironment(List<String> defines) =>
+    Map<String, String>.fromEntries(defines.map((d) {
+      List<String> keyAndValue = d.split('=');
+      if (keyAndValue.length != 2) {
+        throw ArgumentError('Bad define string: $d');
+      }
+      return MapEntry<String, String>(keyAndValue[0], keyAndValue[1]);
+    }));
+
+CompilerOptions parseArguments(List<String> arguments) {
+  args.ArgParser parser = args.ArgParser();
+  for (Option arg in options) {
+    arg.applyToParser(parser);
   }
-  print("");
-  for (String option in intOptionMap.keys) {
-    print("  --$option <value>");
-  }
-  print("");
 
-  throw message;
+  Never usage() {
+    print("Usage: dart2wasm [<options>] <infile.dart> <outfile.wasm>");
+    print("");
+    print("*NOTE*: Wasm compilation is experimental.");
+    print("The support may change, or be removed, with no advance notice.");
+    print("");
+    print("Options:");
+    for (String line in parser.usage.split('\n')) {
+      print('\t$line');
+    }
+    exit(64);
+  }
+
+  try {
+    args.ArgResults results = parser.parse(arguments);
+    if (results['help']) {
+      usage();
+    }
+    List<String> rest = results.rest;
+    if (rest.length != 2) {
+      throw ArgumentError('Requires two positional file arguments');
+    }
+    CompilerOptions compilerOptions =
+        CompilerOptions(mainUri: resolveInputUri(rest[0]), outputFile: rest[1]);
+    for (Option arg in options) {
+      if (results.wasParsed(arg.name)) {
+        arg.applyToOptions(compilerOptions, results[arg.name]);
+      }
+    }
+    return compilerOptions;
+  } catch (e, s) {
+    print(s);
+    print('Argument Error: ' + e.toString());
+    usage();
+  }
 }
 
 Future<int> main(List<String> args) async {
-  Uri sdkPath = Platform.script.resolve("../../../sdk");
-  Uri? platformPath = null;
-  TranslatorOptions options = TranslatorOptions();
-  List<String> nonOptions = [];
-  void Function(TranslatorOptions, int)? intOptionFun = null;
-  for (String arg in args) {
-    if (intOptionFun != null) {
-      intOptionFun(options, int.parse(arg));
-      intOptionFun = null;
-    } else if (arg.startsWith("--dart-sdk=")) {
-      String path = arg.substring("--dart-sdk=".length);
-      sdkPath = Uri.file(Directory(path).absolute.path);
-    } else if (arg.startsWith("--platform=")) {
-      String path = arg.substring("--platform=".length);
-      platformPath = Uri.file(Directory(path).absolute.path);
-    } else if (arg.startsWith("--no-")) {
-      var optionFun = boolOptionMap[arg.substring(5)];
-      if (optionFun == null) usage("Unknown option $arg");
-      optionFun(options, false);
-    } else if (arg.startsWith("--")) {
-      var optionFun = boolOptionMap[arg.substring(2)];
-      if (optionFun != null) {
-        optionFun(options, true);
-      } else {
-        intOptionFun = intOptionMap[arg.substring(2)];
-        if (intOptionFun == null) usage("Unknown option $arg");
-      }
-    } else {
-      nonOptions.add(arg);
-    }
-  }
-  if (intOptionFun != null) {
-    usage("Missing argument to ${args.last}");
-  }
-
-  if (options.importSharedMemory && options.sharedMemoryMaxPages == null) {
-    usage("--shared-memory-max-pages must be "
-        "specified if --import-shared-memory is used.");
-  }
-
-  if (nonOptions.length != 2) usage("Requires two file arguments");
-  String input = nonOptions[0];
-  String output = nonOptions[1];
-  Uri mainUri = resolveInputUri(input);
-
-  Uint8List? module = await compileToModule(mainUri, sdkPath, platformPath,
+  CompilerOptions options = parseArguments(args);
+  Uint8List? module = await compileToModule(
       options, (message) => printDiagnosticMessage(message, print));
 
   if (module == null) {
@@ -108,7 +122,7 @@ Future<int> main(List<String> args) async {
     return exitCode;
   }
 
-  await File(output).writeAsBytes(module);
+  await File(options.outputFile).writeAsBytes(module);
 
   return 0;
 }

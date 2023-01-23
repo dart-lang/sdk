@@ -9,7 +9,7 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:expect/expect.dart';
 
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 test(String code, List<String> options, List<MessageKind> expectedHints) async {
   DiagnosticCollector collector = new DiagnosticCollector();

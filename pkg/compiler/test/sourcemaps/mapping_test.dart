@@ -13,7 +13,7 @@ import 'package:compiler/compiler_api.dart' as api;
 import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart';
 
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 const List<String> TESTS = const <String>[
   '''
@@ -97,7 +97,7 @@ void main(List<String> arguments) {
 }
 
 Future runTest(int index, Test test,
-    {bool printJs: false, bool writeJs, bool verbose: false}) async {
+    {bool printJs = false, bool writeJs, bool verbose = false}) async {
   print("--$index------------------------------------------------------------");
   print("Compiling dart2js\n ${test.annotatedCode}");
   OutputCollector collector = new OutputCollector();

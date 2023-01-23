@@ -14,12 +14,12 @@ import "dart:async" show Future, Zone;
 import "dart:isolate" show SendPort;
 
 /// These are the additional parts of this patch library:
-// part "profiler.dart"
-// part "timeline.dart"
+part "profiler.dart";
+part "timeline.dart";
 
 @patch
 @pragma("vm:external-name", "Developer_debugger")
-external bool debugger({bool when: true, String? message});
+external bool debugger({bool when = true, String? message});
 
 @patch
 @pragma("vm:external-name", "Developer_inspect")
@@ -29,8 +29,8 @@ external Object? inspect(Object? object);
 void log(String message,
     {DateTime? time,
     int? sequenceNumber,
-    int level: 0,
-    String name: '',
+    int level = 0,
+    String name = '',
     Zone? zone,
     Object? error,
     StackTrace? stackTrace}) {
@@ -49,6 +49,10 @@ void log(String message,
   _log(message, time.millisecondsSinceEpoch, sequenceNumber, level, name, zone,
       error, stackTrace);
 }
+
+@patch
+@pragma("vm:external-name", "Developer_reachability_barrier")
+external int get reachabilityBarrier;
 
 int _nextSequenceNumber = 0;
 
@@ -88,13 +92,13 @@ _runExtension(
   } catch (e, st) {
     var errorDetails = (st == null) ? '$e' : '$e\n$st';
     response = new ServiceExtensionResponse.error(
-        ServiceExtensionResponse.kExtensionError, errorDetails);
+        ServiceExtensionResponse.extensionError, errorDetails);
     _postResponse(replyPort, id, response, trace_service);
     return;
   }
   if (response is! Future) {
     response = new ServiceExtensionResponse.error(
-        ServiceExtensionResponse.kExtensionError,
+        ServiceExtensionResponse.extensionError,
         "Extension handler must return a Future");
     _postResponse(replyPort, id, response, trace_service);
     return;
@@ -103,13 +107,13 @@ _runExtension(
     // Catch any errors eagerly and wrap them in a ServiceExtensionResponse.
     var errorDetails = (st == null) ? '$e' : '$e\n$st';
     return new ServiceExtensionResponse.error(
-        ServiceExtensionResponse.kExtensionError, errorDetails);
+        ServiceExtensionResponse.extensionError, errorDetails);
   }).then((response) {
     // Post the valid response or the wrapped error after verifying that
     // the response is a ServiceExtensionResponse.
     if (response is! ServiceExtensionResponse) {
       response = new ServiceExtensionResponse.error(
-          ServiceExtensionResponse.kExtensionError,
+          ServiceExtensionResponse.extensionError,
           "Extension handler must complete to a ServiceExtensionResponse");
     }
     _postResponse(replyPort, id, response, trace_service);

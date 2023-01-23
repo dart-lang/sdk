@@ -199,12 +199,19 @@ library /*isNonNullableByDefault*/;
 //   int? fieldAndFinalFieldAndSetter4;
 //        ^
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:40:12: Error: 'methodAndFinalFieldAndSetter2' is already declared in this scope.
-//   void set methodAndFinalFieldAndSetter2(int? value) {}
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:36:12: Error: 'methodAndFinalFieldAndSetter1' is already declared in this scope.
+//   void set methodAndFinalFieldAndSetter1(int? value) {}
 //            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:39:8: Context: Previous declaration of 'methodAndFinalFieldAndSetter2'.
-//   int? methodAndFinalFieldAndSetter2() {}
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:34:8: Context: Previous declaration of 'methodAndFinalFieldAndSetter1'.
+//   int? methodAndFinalFieldAndSetter1() {}
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:43:8: Error: 'methodAndFinalFieldAndSetter3' is already declared in this scope.
+//   int? methodAndFinalFieldAndSetter3() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:42:12: Context: Previous declaration of 'methodAndFinalFieldAndSetter3'.
+//   void set methodAndFinalFieldAndSetter3(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:51:12: Error: 'methodAndSetter1' is already declared in this scope.
 //   void set methodAndSetter1(int? value) {}

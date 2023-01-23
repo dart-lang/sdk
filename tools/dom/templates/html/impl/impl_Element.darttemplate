@@ -76,7 +76,7 @@ class _ChildrenElementList extends ListBase<Element>
   }
 
   void _filter(bool test(Element element), bool retainMatching) {
-    var removed;
+    Iterable<Element> removed;
     if (retainMatching) {
       removed = _element.children.where((e) => !test(e));
     } else {
@@ -1389,7 +1389,7 @@ $endif
           _parseDocument$NULLASSERT.createElement("body") $#NULLSAFECAST(as BodyElement);
     }
 
-    var contextElement;
+    Element contextElement;
     if (this is BodyElement) {
       contextElement = _parseDocument$NULLASSERT.body$NULLASSERT;
     } else {
@@ -1408,7 +1408,7 @@ $endif
 
       fragment = _parseDocument$NULLASSERT.createDocumentFragment();
       while (contextElement.firstChild != null) {
-        fragment.append(contextElement.firstChild);
+        fragment.append(contextElement.firstChild!);
       }
     }
     if (contextElement != _parseDocument$NULLASSERT.body) {
@@ -1553,7 +1553,7 @@ $endif
     return JS('bool', r'!(#.attributes instanceof NamedNodeMap)', element);
   }
 
-  static String _safeTagName(element) {
+  static String _safeTagName(Element element) {
     String result = 'element tag unavailable';
     try {
       if (element.tagName is String) {

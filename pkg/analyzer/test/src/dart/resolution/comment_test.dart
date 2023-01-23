@@ -68,9 +68,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: new
-      staticElement: self::@class::A::@constructor::•
+      staticElement: self::@class::A::@constructor::new
       staticType: null
-    staticElement: self::@class::A::@constructor::•
+    staticElement: self::@class::A::@constructor::new
     staticType: null
 ''');
   }
@@ -506,7 +506,7 @@ CommentReference
     operator: .
     propertyName: SimpleIdentifier
       token: new
-      staticElement: self::@class::A::@constructor::•
+      staticElement: self::@class::A::@constructor::new
       staticType: null
     staticType: null
 ''');
@@ -1004,7 +1004,7 @@ class A {
 CommentReference
   expression: SimpleIdentifier
     token: p
-    staticElement: self::@class::A::@constructor::•::@parameter::p
+    staticElement: self::@class::A::@constructor::new::@parameter::p
     staticType: null
 ''');
   }
@@ -1203,7 +1203,7 @@ CommentReference
   newKeyword: new
   expression: SimpleIdentifier
     token: A
-    staticElement: self::@class::A::@constructor::•
+    staticElement: self::@class::A::@constructor::new
     staticType: null
 ''');
 

@@ -14,6 +14,8 @@ import 'package:test/test.dart';
 import '../utils.dart';
 
 void main() {
+  ensureRunFromSdkBinDart();
+
   group('create integration', defineCreateTests, timeout: longTimeout);
 }
 

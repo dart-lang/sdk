@@ -9,9 +9,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -211,7 +209,7 @@ class FunctionReferenceResolver {
           nameNode.name,
           element.kind.displayName,
           enclosingElement.name!,
-          enclosingElement is ClassElement && enclosingElement.isMixin
+          enclosingElement is MixinElement
               ? 'mixin'
               : enclosingElement.kind.displayName,
         ],
@@ -285,13 +283,13 @@ class FunctionReferenceResolver {
       callMethodType.typeFormals,
       CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
     );
-    var callReference = astFactory.implicitCallReference(
+    var callReference = ImplicitCallReferenceImpl(
       expression: node.function,
       staticElement: callMethod,
       typeArguments: node.typeArguments,
       typeArgumentTypes: typeArgumentTypes,
     );
-    NodeReplacer.replace(node, callReference);
+    _resolver.replaceExpression(node, callReference);
     var instantiatedType = callMethodType.instantiate(typeArgumentTypes);
     callReference.staticType = instantiatedType;
   }
@@ -304,8 +302,8 @@ class FunctionReferenceResolver {
 
   /// Resolves [node] as a [TypeLiteral] referencing an interface type directly
   /// (not through a type alias).
-  void _resolveDirectTypeLiteral(
-      FunctionReferenceImpl node, Identifier name, ClassElement element) {
+  void _resolveDirectTypeLiteral(FunctionReferenceImpl node,
+      IdentifierImpl name, InterfaceElement element) {
     var typeArguments = _checkTypeArguments(
       // `node.typeArguments`, coming from the parser, is never null.
       node.typeArguments!, name.name, element.typeParameters,
@@ -594,14 +592,14 @@ class FunctionReferenceResolver {
     // Classes and type aliases are checked first so as to include a
     // PropertyAccess parent check, which does not need to be done for
     // functions.
-    if (element is ClassElement || element is TypeAliasElement) {
+    if (element is InterfaceElement || element is TypeAliasElement) {
       // A type-instantiated constructor tearoff like `prefix.C<int>.name` is
       // initially represented as a [PropertyAccess] with a
       // [FunctionReference] 'target'.
       if (node.parent is PropertyAccess) {
         _resolveConstructorReference(node);
         return;
-      } else if (element is ClassElement) {
+      } else if (element is InterfaceElement) {
         node.function.accept(_resolver);
         _resolveDirectTypeLiteral(node, prefix, element);
         return;
@@ -706,7 +704,7 @@ class FunctionReferenceResolver {
     // Classes and type aliases are checked first so as to include a
     // PropertyAccess parent check, which does not need to be done for
     // functions.
-    if (element is ClassElement || element is TypeAliasElement) {
+    if (element is InterfaceElement || element is TypeAliasElement) {
       // A type-instantiated constructor tearoff like `C<int>.name` or
       // `prefix.C<int>.name` is initially represented as a [PropertyAccess]
       // with a [FunctionReference] target.
@@ -719,7 +717,7 @@ class FunctionReferenceResolver {
           _resolveConstructorReference(node);
         }
         return;
-      } else if (element is ClassElement) {
+      } else if (element is InterfaceElement) {
         function.staticElement = element;
         _resolveDirectTypeLiteral(node, function, element);
         return;
@@ -777,7 +775,7 @@ class FunctionReferenceResolver {
   /// Returns the element that represents the property named [propertyName] on
   /// [classElement].
   ExecutableElement? _resolveStaticElement(
-      ClassElement classElement, SimpleIdentifier propertyName) {
+      InterfaceElement classElement, SimpleIdentifier propertyName) {
     String name = propertyName.name;
     ExecutableElement? element;
     if (propertyName.inSetterContext()) {
@@ -785,7 +783,7 @@ class FunctionReferenceResolver {
     }
     element ??= classElement.getGetter(name);
     element ??= classElement.getMethod(name);
-    if (element != null && element.isAccessibleIn2(_resolver.definingLibrary)) {
+    if (element != null && element.isAccessibleIn(_resolver.definingLibrary)) {
       return element;
     }
     return null;
@@ -794,7 +792,7 @@ class FunctionReferenceResolver {
   void _resolveTypeAlias({
     required FunctionReferenceImpl node,
     required TypeAliasElement element,
-    required Identifier typeAlias,
+    required IdentifierImpl typeAlias,
   }) {
     var typeArguments = _checkTypeArguments(
       // `node.typeArguments`, coming from the parser, is never null.
@@ -811,21 +809,24 @@ class FunctionReferenceResolver {
   void _resolveTypeLiteral({
     required FunctionReferenceImpl node,
     required DartType instantiatedType,
-    required Identifier name,
+    required IdentifierImpl name,
   }) {
     // TODO(srawlins): set the static element of [typeName].
     // This involves a fair amount of resolution, as [name] may be a prefixed
     // identifier, etc. [TypeName]s should be resolved in [ResolutionVisitor],
     // and this could be done for nodes like this via [AstRewriter].
-    var typeName = astFactory.namedType(
+    var typeName = NamedTypeImpl(
       name: name,
       typeArguments: node.typeArguments,
+      question: null,
     );
     typeName.type = instantiatedType;
     typeName.name.staticType = instantiatedType;
-    var typeLiteral = astFactory.typeLiteral(typeName: typeName);
+    var typeLiteral = TypeLiteralImpl(
+      typeName: typeName,
+    );
     typeLiteral.staticType = _typeType;
-    NodeReplacer.replace(node, typeLiteral);
+    _resolver.replaceExpression(node, typeLiteral);
   }
 
   /// Resolves [name] as a property on [receiver].
@@ -839,7 +840,7 @@ class FunctionReferenceResolver {
   }) {
     if (receiver is Identifier) {
       var receiverElement = receiver.staticElement;
-      if (receiverElement is ClassElement) {
+      if (receiverElement is InterfaceElement) {
         var element = _resolveStaticElement(receiverElement, name);
         name.staticElement = element;
         return element?.referenceType;
@@ -891,7 +892,7 @@ extension on Element {
   /// Returns the 'type' of `this`, when accessed as a "reference", not
   /// immediately followed by parentheses and arguments.
   ///
-  /// For all elements that don't have a type (for example, [ExportElement]),
+  /// For all elements that don't have a type (for example, [LibraryExportElement]),
   /// `null` is returned. For [PropertyAccessorElement], the return value is
   /// returned. For all other elements, their `type` property is returned.
   DartType? get referenceType {

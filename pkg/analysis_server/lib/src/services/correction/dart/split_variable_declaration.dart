@@ -64,7 +64,7 @@ class SplitVariableDeclaration extends CorrectionProducer {
       }
 
       var indent = utils.getNodePrefix(statement);
-      var name = variable.name.name;
+      var name = variable.name.lexeme;
       builder.addSimpleInsertion(variable.name.end, ';$eol$indent$name');
     });
   }

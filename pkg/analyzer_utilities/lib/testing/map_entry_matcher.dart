@@ -5,13 +5,14 @@
 import 'package:test/test.dart';
 
 /// Matches a [MapEntry] with matching [MapEntry.key] and [MapEntry.value].
-MapEntryMatcher isMapEntry(key, value) => MapEntryMatcher(key, value);
+MapEntryMatcher isMapEntry(Object? key, Object? value) =>
+    MapEntryMatcher(key, value);
 
 class MapEntryMatcher extends Matcher {
   final Matcher keyMatcher;
   final Matcher valueMatcher;
 
-  MapEntryMatcher(key, value)
+  MapEntryMatcher(Object? key, Object? value)
       : keyMatcher = wrapMatcher(key),
         valueMatcher = wrapMatcher(value);
 
@@ -24,7 +25,7 @@ class MapEntryMatcher extends Matcher {
       .add(')');
 
   @override
-  bool matches(item, Map matchState) =>
+  bool matches(item, Map<dynamic, dynamic> matchState) =>
       item is MapEntry &&
       keyMatcher.matches(item.key, {}) &&
       valueMatcher.matches(item.value, {});

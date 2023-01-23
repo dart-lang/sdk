@@ -2,19 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:kernel/ast.dart'
-    show
-        DartType,
-        DartTypeVisitor,
-        DartTypeVisitor1,
-        FunctionType,
-        FutureOrType,
-        InterfaceType,
-        NamedType,
-        Nullability,
-        TypedefType,
-        TypeParameter,
-        Visitor;
+import 'package:kernel/ast.dart';
 import 'package:kernel/src/assumptions.dart';
 import 'package:kernel/src/printer.dart';
 
@@ -38,7 +26,7 @@ String typeSchemaToString(DartType schema) {
 class TypeSchemaPrinter extends Printer {
   TypeSchemaPrinter(StringSink sink,
       {NameSystem? syntheticNames,
-      bool showOffsets: false,
+      bool showOffsets = false,
       ImportTable? importTable,
       Annotator? annotator})
       : super(sink,
@@ -67,6 +55,9 @@ class UnknownType extends DartType {
 
   @override
   Nullability get nullability => Nullability.undetermined;
+
+  @override
+  DartType get resolveTypeParameterType => this;
 
   @override
   bool operator ==(Object other) => equals(other, null);
@@ -108,11 +99,35 @@ class UnknownType extends DartType {
 }
 
 /// Visitor that computes [isKnown].
-class _IsKnownVisitor extends DartTypeVisitor<bool> {
+class _IsKnownVisitor implements DartTypeVisitor<bool> {
   const _IsKnownVisitor();
 
   @override
   bool defaultDartType(DartType node) => node is! UnknownType;
+
+  @override
+  bool visitDynamicType(DynamicType node) => true;
+
+  @override
+  bool visitExtensionType(ExtensionType node) => true;
+
+  @override
+  bool visitInvalidType(InvalidType node) => true;
+
+  @override
+  bool visitNeverType(NeverType node) => true;
+
+  @override
+  bool visitIntersectionType(IntersectionType node) => true;
+
+  @override
+  bool visitNullType(NullType node) => true;
+
+  @override
+  bool visitTypeParameterType(TypeParameterType node) => true;
+
+  @override
+  bool visitVoidType(VoidType node) => true;
 
   @override
   bool visitFunctionType(FunctionType node) {
@@ -134,6 +149,25 @@ class _IsKnownVisitor extends DartTypeVisitor<bool> {
   bool visitInterfaceType(InterfaceType node) {
     for (DartType typeArgument in node.typeArguments) {
       if (!typeArgument.accept(this)) return false;
+    }
+    return true;
+  }
+
+  @override
+  bool visitViewType(ViewType node) {
+    for (DartType typeArgument in node.typeArguments) {
+      if (!typeArgument.accept(this)) return false;
+    }
+    return true;
+  }
+
+  @override
+  bool visitRecordType(RecordType node) {
+    for (DartType positional in node.positional) {
+      if (!positional.accept(this)) return false;
+    }
+    for (NamedType named in node.named) {
+      if (!named.type.accept(this)) return false;
     }
     return true;
   }

@@ -19,9 +19,10 @@ import 'package:compiler/src/io/position_information.dart';
 import 'package:compiler/src/js/js.dart' as js;
 import 'package:compiler/src/js/js_debug.dart';
 import 'package:compiler/src/js/js_source_mapping.dart';
+import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/source_file_provider.dart';
-import '../../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 class SourceFileSink implements api.OutputSink {
   final String filename;
@@ -104,8 +105,9 @@ class ProviderSourceFileManager implements SourceFileManager {
 
   @override
   SourceFile getSourceFile(uri) {
-    SourceFile sourceFile = sourceFileProvider.getUtf8SourceFile(uri);
-    sourceFile ??= sourceFileProvider.autoReadFromFile(uri);
+    SourceFile<List<int>> sourceFile =
+        sourceFileProvider.getUtf8SourceFile(uri);
+    sourceFile ??= sourceFileProvider.readUtf8FromFileSyncForTesting(uri);
     if (sourceFile == null) {
       sourceFile = outputProvider.getSourceFile(uri);
     }
@@ -164,7 +166,7 @@ class RecordingSourceMapper implements SourceMapper {
   }
 
   @override
-  void registerPop(int codeOffset, {bool isEmpty: false}) {
+  void registerPop(int codeOffset, {bool isEmpty = false}) {
     sourceMapper.registerPop(codeOffset, isEmpty: isEmpty);
   }
 }
@@ -218,6 +220,11 @@ class RecordingSourceInformationStrategy
       <js.Node, RecordedSourceInformationProcess>{};
 
   RecordingSourceInformationStrategy(this.strategy);
+
+  @override
+  void onElementMapAvailable(JsToElementMap elementMap) {
+    strategy.onElementMapAvailable(elementMap);
+  }
 
   @override
   SourceInformationBuilder createBuilderForContext(MemberEntity member) {
@@ -320,7 +327,7 @@ class SourceMapProcessor {
   SourceFileManager sourceFileManager;
 
   /// Creates a processor for the Dart file [uri].
-  SourceMapProcessor(Uri uri, {this.outputToFile: false}) {
+  SourceMapProcessor(Uri uri, {this.outputToFile = false}) {
     inputUri = Uri.base.resolveUri(uri);
     jsPath = 'out.js';
     targetUri = Uri.base.resolve(jsPath);
@@ -329,7 +336,9 @@ class SourceMapProcessor {
 
   /// Computes the [SourceMapInfo] for the compiled elements.
   Future<SourceMaps> process(List<String> options,
-      {bool verbose: true, bool perElement: true, bool forMain: false}) async {
+      {bool verbose = true,
+      bool perElement = true,
+      bool forMain = false}) async {
     OutputProvider outputProvider = outputToFile
         ? new CloningOutputProvider(targetUri, sourceMapFileUri)
         : new OutputProvider();
@@ -478,7 +487,7 @@ class _LocationRecorder implements SourceMapper, LocationMap {
       String inlinedMethodName) {}
 
   @override
-  void registerPop(int codeOffset, {bool isEmpty: false}) {}
+  void registerPop(int codeOffset, {bool isEmpty = false}) {}
 
   @override
   Iterable<js.Node> get nodes => _nodeMap.keys;
@@ -539,7 +548,7 @@ class CodePointComputer extends TraceListener {
     register(kind, node);
   }
 
-  void register(StepKind kind, js.Node node, {bool expectInfo: true}) {
+  void register(StepKind kind, js.Node node, {bool expectInfo = true}) {
     String dartCodeFromSourceLocation(SourceLocation sourceLocation) {
       SourceFile sourceFile =
           sourceFileManager.getSourceFile(sourceLocation.sourceUri);
@@ -598,7 +607,7 @@ class CodePoint {
 
   CodePoint(this.kind, this.jsCode, this.targetOffset, this.sourceLocation,
       this.dartCode,
-      {this.isMissing: false});
+      {this.isMissing = false});
 
   @override
   String toString() {

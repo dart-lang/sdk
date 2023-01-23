@@ -23,7 +23,7 @@ part 'equivalence_helpers.dart';
 class EquivalenceVisitor implements Visitor1<bool, Node> {
   final EquivalenceStrategy strategy;
 
-  EquivalenceVisitor({this.strategy: const EquivalenceStrategy()});
+  EquivalenceVisitor({this.strategy = const EquivalenceStrategy()});
 
   @override
   bool defaultNode(Node node, Node other) {
@@ -53,6 +53,11 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   @override
   bool visitExtension(Extension node, Node other) {
     return strategy.checkExtension(this, node, other);
+  }
+
+  @override
+  bool visitView(View node, Node other) {
+    return strategy.checkView(this, node, other);
   }
 
   @override
@@ -153,6 +158,16 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   @override
   bool visitVariableSet(VariableSet node, Node other) {
     return strategy.checkVariableSet(this, node, other);
+  }
+
+  @override
+  bool visitRecordIndexGet(RecordIndexGet node, Node other) {
+    return strategy.checkRecordIndexGet(this, node, other);
+  }
+
+  @override
+  bool visitRecordNameGet(RecordNameGet node, Node other) {
+    return strategy.checkRecordNameGet(this, node, other);
   }
 
   @override
@@ -415,6 +430,11 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
+  bool visitRecordLiteral(RecordLiteral node, Node other) {
+    return strategy.checkRecordLiteral(this, node, other);
+  }
+
+  @override
   bool visitAwaitExpression(AwaitExpression node, Node other) {
     return strategy.checkAwaitExpression(this, node, other);
   }
@@ -666,8 +686,23 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
+  bool visitViewType(ViewType node, Node other) {
+    return strategy.checkViewType(this, node, other);
+  }
+
+  @override
+  bool visitIntersectionType(IntersectionType node, Node other) {
+    return strategy.checkIntersectionType(this, node, other);
+  }
+
+  @override
   bool visitTypeParameterType(TypeParameterType node, Node other) {
     return strategy.checkTypeParameterType(this, node, other);
+  }
+
+  @override
+  bool visitRecordType(RecordType node, Node other) {
+    return strategy.checkRecordType(this, node, other);
   }
 
   @override
@@ -731,6 +766,11 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
+  bool visitRecordConstant(RecordConstant node, Node other) {
+    return strategy.checkRecordConstant(this, node, other);
+  }
+
+  @override
   bool visitInstanceConstant(InstanceConstant node, Node other) {
     return strategy.checkInstanceConstant(this, node, other);
   }
@@ -784,6 +824,11 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
 
   @override
   bool visitExtensionReference(Extension node, Node other) {
+    return false;
+  }
+
+  @override
+  bool visitViewReference(View node, Node other) {
     return false;
   }
 
@@ -863,6 +908,11 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
+  bool visitRecordConstantReference(RecordConstant node, Node other) {
+    return false;
+  }
+
+  @override
   bool visitInstanceConstantReference(InstanceConstant node, Node other) {
     return false;
   }
@@ -929,12 +979,26 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
     return _checkValues(a, b);
   }
 
+  /// Cache of Constants compares and the results.
+  /// This avoids potential exponential blowup when comparing ASTs
+  /// that contain Constants.
+  Map<Constant, Map<dynamic, bool>>? _constantCache;
+
   /// Returns `true` if [a] and [b] are equivalent.
   bool _checkNodes<T extends Node>(T? a, T? b) {
     if (identical(a, b)) return true;
     if (a == null || b == null) {
       return false;
     } else {
+      if (a is Constant) {
+        Map<Constant, Map<dynamic, bool>> cacheFrom = _constantCache ??= {};
+        Map<dynamic, bool> cacheTo = cacheFrom[a] ??= {};
+        bool? previousResult = cacheTo[b];
+        if (previousResult != null) return previousResult;
+        bool result = a.accept1(this, b);
+        cacheTo[b] = result;
+        return result;
+      }
       return a.accept1(this, b);
     }
   }
@@ -1288,7 +1352,7 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   ///
   /// If [f] returns `false`, the returned result is marked as having
   /// inequivalences even when non have being registered.
-  EquivalenceResult inSubState(bool Function() f, {bool isAsserting: false}) {
+  EquivalenceResult inSubState(bool Function() f, {bool isAsserting = false}) {
     CheckingState _oldState = _checkingState;
     _checkingState = _checkingState.createSubState(isAsserting: isAsserting);
     bool hasInequivalences = f();
@@ -1347,7 +1411,7 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
 ///
 /// Returns an [EquivalenceResult] containing the found inequivalences.
 EquivalenceResult checkEquivalence(Node a, Node b,
-    {EquivalenceStrategy strategy: const EquivalenceStrategy()}) {
+    {EquivalenceStrategy strategy = const EquivalenceStrategy()}) {
   EquivalenceVisitor visitor = new EquivalenceVisitor(strategy: strategy);
   visitor.checkNodes(a, b, 'root');
   return visitor.toResult();
@@ -1412,6 +1476,9 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkLibrary_extensions(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLibrary_views(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkLibrary_procedures(visitor, node, other)) {
@@ -1627,6 +1694,67 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkExtension_fileOffset(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
+  bool checkViewMemberDescriptor(
+      EquivalenceVisitor visitor, ViewMemberDescriptor? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! ViewMemberDescriptor) return false;
+    if (other is! ViewMemberDescriptor) return false;
+    bool result = true;
+    if (!checkViewMemberDescriptor_name(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkViewMemberDescriptor_kind(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkViewMemberDescriptor_flags(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkViewMemberDescriptor_member(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    return result;
+  }
+
+  bool checkView(EquivalenceVisitor visitor, View? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! View) return false;
+    if (other is! View) return false;
+    if (!visitor.matchNamedNodes(node, other)) {
+      return false;
+    }
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkView_name(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkView_fileUri(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkView_typeParameters(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkView_representationType(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkView_members(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkView_annotations(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkView_flags(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkView_reference(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkView_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
@@ -2129,6 +2257,52 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkVariableSet_fileOffset(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
+  bool checkRecordIndexGet(
+      EquivalenceVisitor visitor, RecordIndexGet? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! RecordIndexGet) return false;
+    if (other is! RecordIndexGet) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkRecordIndexGet_receiver(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkRecordIndexGet_receiverType(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkRecordIndexGet_index(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkRecordIndexGet_fileOffset(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
+  bool checkRecordNameGet(
+      EquivalenceVisitor visitor, RecordNameGet? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! RecordNameGet) return false;
+    if (other is! RecordNameGet) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkRecordNameGet_receiver(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkRecordNameGet_receiverType(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkRecordNameGet_name(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkRecordNameGet_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
@@ -3222,6 +3396,32 @@ class EquivalenceStrategy {
     return result;
   }
 
+  bool checkRecordLiteral(
+      EquivalenceVisitor visitor, RecordLiteral? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! RecordLiteral) return false;
+    if (other is! RecordLiteral) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkRecordLiteral_isConst(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkRecordLiteral_positional(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkRecordLiteral_named(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkRecordLiteral_recordType(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkRecordLiteral_fileOffset(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
   bool checkAwaitExpression(
       EquivalenceVisitor visitor, AwaitExpression? node, Object? other) {
     if (identical(node, other)) return true;
@@ -3230,6 +3430,9 @@ class EquivalenceStrategy {
     visitor.pushNodeState(node, other);
     bool result = true;
     if (!checkAwaitExpression_operand(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkAwaitExpression_runtimeCheckType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkAwaitExpression_fileOffset(visitor, node, other)) {
@@ -4231,6 +4434,46 @@ class EquivalenceStrategy {
     return result;
   }
 
+  bool checkViewType(
+      EquivalenceVisitor visitor, ViewType? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! ViewType) return false;
+    if (other is! ViewType) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkViewType_viewReference(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkViewType_declaredNullability(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkViewType_typeArguments(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkViewType_representationType(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
+  bool checkIntersectionType(
+      EquivalenceVisitor visitor, IntersectionType? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! IntersectionType) return false;
+    if (other is! IntersectionType) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkIntersectionType_left(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkIntersectionType_right(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
   bool checkTypeParameterType(
       EquivalenceVisitor visitor, TypeParameterType? node, Object? other) {
     if (identical(node, other)) return true;
@@ -4244,7 +4487,24 @@ class EquivalenceStrategy {
     if (!checkTypeParameterType_parameter(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkTypeParameterType_promotedBound(visitor, node, other)) {
+    visitor.popState();
+    return result;
+  }
+
+  bool checkRecordType(
+      EquivalenceVisitor visitor, RecordType? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! RecordType) return false;
+    if (other is! RecordType) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkRecordType_positional(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkRecordType_named(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkRecordType_declaredNullability(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
@@ -4438,6 +4698,26 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkSetConstant_entries(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
+  bool checkRecordConstant(
+      EquivalenceVisitor visitor, RecordConstant? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! RecordConstant) return false;
+    if (other is! RecordConstant) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkRecordConstant_positional(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkRecordConstant_named(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkRecordConstant_recordType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
@@ -4645,6 +4925,12 @@ class EquivalenceStrategy {
       EquivalenceVisitor visitor, Library node, Library other) {
     return visitor.checkLists(
         node.extensions, other.extensions, visitor.checkNodes, 'extensions');
+  }
+
+  bool checkLibrary_views(
+      EquivalenceVisitor visitor, Library node, Library other) {
+    return visitor.checkLists(
+        node.views, other.views, visitor.checkNodes, 'views');
   }
 
   bool checkLibrary_procedures(
@@ -4958,6 +5244,73 @@ class EquivalenceStrategy {
 
   bool checkExtension_fileOffset(
       EquivalenceVisitor visitor, Extension node, Extension other) {
+    return checkNamedNode_fileOffset(visitor, node, other);
+  }
+
+  bool checkView_name(EquivalenceVisitor visitor, View node, View other) {
+    return visitor.checkValues(node.name, other.name, 'name');
+  }
+
+  bool checkView_fileUri(EquivalenceVisitor visitor, View node, View other) {
+    return visitor.checkValues(node.fileUri, other.fileUri, 'fileUri');
+  }
+
+  bool checkView_typeParameters(
+      EquivalenceVisitor visitor, View node, View other) {
+    return visitor.checkLists(node.typeParameters, other.typeParameters,
+        visitor.checkNodes, 'typeParameters');
+  }
+
+  bool checkView_representationType(
+      EquivalenceVisitor visitor, View node, View other) {
+    return visitor.checkNodes(node.representationType, other.representationType,
+        'representationType');
+  }
+
+  bool checkViewMemberDescriptor_name(EquivalenceVisitor visitor,
+      ViewMemberDescriptor node, ViewMemberDescriptor other) {
+    return visitor.checkNodes(node.name, other.name, 'name');
+  }
+
+  bool checkViewMemberDescriptor_kind(EquivalenceVisitor visitor,
+      ViewMemberDescriptor node, ViewMemberDescriptor other) {
+    return visitor.checkValues(node.kind, other.kind, 'kind');
+  }
+
+  bool checkViewMemberDescriptor_flags(EquivalenceVisitor visitor,
+      ViewMemberDescriptor node, ViewMemberDescriptor other) {
+    return visitor.checkValues(node.flags, other.flags, 'flags');
+  }
+
+  bool checkViewMemberDescriptor_member(EquivalenceVisitor visitor,
+      ViewMemberDescriptor node, ViewMemberDescriptor other) {
+    return visitor.checkReferences(node.member, other.member, 'member');
+  }
+
+  bool checkView_members(EquivalenceVisitor visitor, View node, View other) {
+    return visitor.checkLists(node.members, other.members, (a, b, _) {
+      if (identical(a, b)) return true;
+      if (a is! ViewMemberDescriptor) return false;
+      if (b is! ViewMemberDescriptor) return false;
+      return checkViewMemberDescriptor(visitor, a, b);
+    }, 'members');
+  }
+
+  bool checkView_annotations(
+      EquivalenceVisitor visitor, View node, View other) {
+    return visitor.checkLists(
+        node.annotations, other.annotations, visitor.checkNodes, 'annotations');
+  }
+
+  bool checkView_flags(EquivalenceVisitor visitor, View node, View other) {
+    return visitor.checkValues(node.flags, other.flags, 'flags');
+  }
+
+  bool checkView_reference(EquivalenceVisitor visitor, View node, View other) {
+    return checkNamedNode_reference(visitor, node, other);
+  }
+
+  bool checkView_fileOffset(EquivalenceVisitor visitor, View node, View other) {
     return checkNamedNode_fileOffset(visitor, node, other);
   }
 
@@ -5543,6 +5896,48 @@ class EquivalenceStrategy {
 
   bool checkVariableSet_fileOffset(
       EquivalenceVisitor visitor, VariableSet node, VariableSet other) {
+    return checkExpression_fileOffset(visitor, node, other);
+  }
+
+  bool checkRecordIndexGet_receiver(
+      EquivalenceVisitor visitor, RecordIndexGet node, RecordIndexGet other) {
+    return visitor.checkNodes(node.receiver, other.receiver, 'receiver');
+  }
+
+  bool checkRecordIndexGet_receiverType(
+      EquivalenceVisitor visitor, RecordIndexGet node, RecordIndexGet other) {
+    return visitor.checkNodes(
+        node.receiverType, other.receiverType, 'receiverType');
+  }
+
+  bool checkRecordIndexGet_index(
+      EquivalenceVisitor visitor, RecordIndexGet node, RecordIndexGet other) {
+    return visitor.checkValues(node.index, other.index, 'index');
+  }
+
+  bool checkRecordIndexGet_fileOffset(
+      EquivalenceVisitor visitor, RecordIndexGet node, RecordIndexGet other) {
+    return checkExpression_fileOffset(visitor, node, other);
+  }
+
+  bool checkRecordNameGet_receiver(
+      EquivalenceVisitor visitor, RecordNameGet node, RecordNameGet other) {
+    return visitor.checkNodes(node.receiver, other.receiver, 'receiver');
+  }
+
+  bool checkRecordNameGet_receiverType(
+      EquivalenceVisitor visitor, RecordNameGet node, RecordNameGet other) {
+    return visitor.checkNodes(
+        node.receiverType, other.receiverType, 'receiverType');
+  }
+
+  bool checkRecordNameGet_name(
+      EquivalenceVisitor visitor, RecordNameGet node, RecordNameGet other) {
+    return visitor.checkValues(node.name, other.name, 'name');
+  }
+
+  bool checkRecordNameGet_fileOffset(
+      EquivalenceVisitor visitor, RecordNameGet node, RecordNameGet other) {
     return checkExpression_fileOffset(visitor, node, other);
   }
 
@@ -6510,9 +6905,42 @@ class EquivalenceStrategy {
     return checkExpression_fileOffset(visitor, node, other);
   }
 
+  bool checkRecordLiteral_isConst(
+      EquivalenceVisitor visitor, RecordLiteral node, RecordLiteral other) {
+    return visitor.checkValues(node.isConst, other.isConst, 'isConst');
+  }
+
+  bool checkRecordLiteral_positional(
+      EquivalenceVisitor visitor, RecordLiteral node, RecordLiteral other) {
+    return visitor.checkLists(
+        node.positional, other.positional, visitor.checkNodes, 'positional');
+  }
+
+  bool checkRecordLiteral_named(
+      EquivalenceVisitor visitor, RecordLiteral node, RecordLiteral other) {
+    return visitor.checkLists(
+        node.named, other.named, visitor.checkNodes, 'named');
+  }
+
+  bool checkRecordLiteral_recordType(
+      EquivalenceVisitor visitor, RecordLiteral node, RecordLiteral other) {
+    return visitor.checkNodes(node.recordType, other.recordType, 'recordType');
+  }
+
+  bool checkRecordLiteral_fileOffset(
+      EquivalenceVisitor visitor, RecordLiteral node, RecordLiteral other) {
+    return checkExpression_fileOffset(visitor, node, other);
+  }
+
   bool checkAwaitExpression_operand(
       EquivalenceVisitor visitor, AwaitExpression node, AwaitExpression other) {
     return visitor.checkNodes(node.operand, other.operand, 'operand');
+  }
+
+  bool checkAwaitExpression_runtimeCheckType(
+      EquivalenceVisitor visitor, AwaitExpression node, AwaitExpression other) {
+    return visitor.checkNodes(
+        node.runtimeCheckType, other.runtimeCheckType, 'runtimeCheckType');
   }
 
   bool checkAwaitExpression_fileOffset(
@@ -7337,6 +7765,40 @@ class EquivalenceStrategy {
     return visitor.checkNodes(node.onType, other.onType, 'onType');
   }
 
+  bool checkViewType_viewReference(
+      EquivalenceVisitor visitor, ViewType node, ViewType other) {
+    return visitor.checkReferences(
+        node.viewReference, other.viewReference, 'viewReference');
+  }
+
+  bool checkViewType_declaredNullability(
+      EquivalenceVisitor visitor, ViewType node, ViewType other) {
+    return visitor.checkValues(node.declaredNullability,
+        other.declaredNullability, 'declaredNullability');
+  }
+
+  bool checkViewType_typeArguments(
+      EquivalenceVisitor visitor, ViewType node, ViewType other) {
+    return visitor.checkLists(node.typeArguments, other.typeArguments,
+        visitor.checkNodes, 'typeArguments');
+  }
+
+  bool checkViewType_representationType(
+      EquivalenceVisitor visitor, ViewType node, ViewType other) {
+    return visitor.checkNodes(node.representationType, other.representationType,
+        'representationType');
+  }
+
+  bool checkIntersectionType_left(EquivalenceVisitor visitor,
+      IntersectionType node, IntersectionType other) {
+    return visitor.checkNodes(node.left, other.left, 'left');
+  }
+
+  bool checkIntersectionType_right(EquivalenceVisitor visitor,
+      IntersectionType node, IntersectionType other) {
+    return visitor.checkNodes(node.right, other.right, 'right');
+  }
+
   bool checkTypeParameterType_declaredNullability(EquivalenceVisitor visitor,
       TypeParameterType node, TypeParameterType other) {
     return visitor.checkValues(node.declaredNullability,
@@ -7349,10 +7811,22 @@ class EquivalenceStrategy {
         node.parameter, other.parameter, 'parameter');
   }
 
-  bool checkTypeParameterType_promotedBound(EquivalenceVisitor visitor,
-      TypeParameterType node, TypeParameterType other) {
-    return visitor.checkNodes(
-        node.promotedBound, other.promotedBound, 'promotedBound');
+  bool checkRecordType_positional(
+      EquivalenceVisitor visitor, RecordType node, RecordType other) {
+    return visitor.checkLists(
+        node.positional, other.positional, visitor.checkNodes, 'positional');
+  }
+
+  bool checkRecordType_named(
+      EquivalenceVisitor visitor, RecordType node, RecordType other) {
+    return visitor.checkLists(
+        node.named, other.named, visitor.checkNodes, 'named');
+  }
+
+  bool checkRecordType_declaredNullability(
+      EquivalenceVisitor visitor, RecordType node, RecordType other) {
+    return visitor.checkValues(node.declaredNullability,
+        other.declaredNullability, 'declaredNullability');
   }
 
   bool checkNamedType_name(
@@ -7475,6 +7949,23 @@ class EquivalenceStrategy {
       EquivalenceVisitor visitor, SetConstant node, SetConstant other) {
     return visitor.checkLists(
         node.entries, other.entries, visitor.checkNodes, 'entries');
+  }
+
+  bool checkRecordConstant_positional(
+      EquivalenceVisitor visitor, RecordConstant node, RecordConstant other) {
+    return visitor.checkLists(
+        node.positional, other.positional, visitor.checkNodes, 'positional');
+  }
+
+  bool checkRecordConstant_named(
+      EquivalenceVisitor visitor, RecordConstant node, RecordConstant other) {
+    return visitor.checkMaps(node.named, other.named, visitor.matchValues,
+        visitor.checkValues, visitor.checkNodes, 'named');
+  }
+
+  bool checkRecordConstant_recordType(
+      EquivalenceVisitor visitor, RecordConstant node, RecordConstant other) {
+    return visitor.checkNodes(node.recordType, other.recordType, 'recordType');
   }
 
   bool checkInstanceConstant_classReference(EquivalenceVisitor visitor,

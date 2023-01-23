@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "core_patch.dart";
+part of "core_patch.dart";
 
 // Access hidden identity hash code field
 external int _getHash(Object obj);
@@ -10,6 +10,8 @@ external void _setHash(Object obj, int hash);
 
 external _Type _getInterfaceTypeRuntimeType(
     Object object, List<Type> typeArguments);
+
+external _Type _getFunctionTypeRuntimeType(Object object);
 
 @patch
 class Object {
@@ -39,13 +41,21 @@ class Object {
 
   /// Concrete subclasses of [Object] will have overrides of [_typeArguments]
   /// which return their type arguments.
-  List<Type> get _typeArguments => const [];
+  List<_Type> get _typeArguments => const [];
 
   /// We use [_runtimeType] for internal type testing, because objects can
   /// override [runtimeType].
   @patch
   external Type get runtimeType;
-  _Type get _runtimeType => _getInterfaceTypeRuntimeType(this, _typeArguments);
+
+  @pragma("wasm:entry-point")
+  _Type get _runtimeType {
+    if (ClassID.getID(this) == ClassID.cid_Function) {
+      return _getFunctionTypeRuntimeType(this);
+    } else {
+      return _getInterfaceTypeRuntimeType(this, _typeArguments);
+    }
+  }
 
   @patch
   String toString() => _toString(this);
@@ -53,7 +63,18 @@ class Object {
   static String _toString(obj) => "Instance of '${obj.runtimeType}'";
 
   @patch
+  @pragma("wasm:entry-point")
   dynamic noSuchMethod(Invocation invocation) {
     throw new NoSuchMethodError.withInvocation(this, invocation);
+  }
+
+  // Used for `null.toString` tear-offs
+  @pragma("wasm:entry-point")
+  static String _nullToString() => "null";
+
+  // Used for `null.noSuchMethod` tear-offs
+  @pragma("wasm:entry-point")
+  static dynamic _nullNoSuchMethod(Invocation invocation) {
+    throw new NoSuchMethodError.withInvocation(null, invocation);
   }
 }

@@ -1,0 +1,53 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+typedef MyMixinTypedef = self::MyMixin<core::String, self::MyWidget>;
+class State<T extends self::StatefulWidget> extends core::Object {
+  synthetic constructor •() → self::State<self::State::T>
+    ;
+}
+class StatefulWidget extends core::Object {
+  synthetic constructor •() → self::StatefulWidget
+    ;
+}
+abstract class MyMixin<T extends core::Object? = dynamic, W extends self::StatefulWidget> extends self::State<self::MyMixin::W> /*isMixinDeclaration*/  {
+  method listenToEvents(covariant-by-class asy::Stream<self::MyModel<self::MyMixin::T%>> stream) → void
+    ;
+}
+class MyModel<T extends core::Object? = dynamic> extends core::Object {
+  final field self::MyModel::T% data;
+  constructor •(self::MyModel::T% data) → self::MyModel<self::MyModel::T%>
+    ;
+}
+class MyWidget extends self::StatefulWidget {
+  synthetic constructor •() → self::MyWidget
+    ;
+}
+abstract class _MyWidgetState1&State&MyMixin = self::State<self::MyWidget> with self::MyMixin<core::String, self::MyWidget> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_MyWidgetState1&State&MyMixin
+    : super self::State::•()
+    ;
+  mixin-super-stub method listenToEvents(covariant-by-class asy::Stream<self::MyModel<core::String>> stream) → void
+    return super.{self::MyMixin::listenToEvents}(stream);
+}
+class MyWidgetState1 extends self::_MyWidgetState1&State&MyMixin {
+  synthetic constructor •() → self::MyWidgetState1
+    ;
+  method doSomething() → void
+    ;
+}
+abstract class _MyWidgetState2&State&MyMixinTypedef = self::State<self::MyWidget> with self::MyMixin<core::String, self::MyWidget> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_MyWidgetState2&State&MyMixinTypedef
+    : super self::State::•()
+    ;
+  mixin-super-stub method listenToEvents(covariant-by-class asy::Stream<self::MyModel<core::String>> stream) → void
+    return super.{self::MyMixin::listenToEvents}(stream);
+}
+class MyWidgetState2 extends self::_MyWidgetState2&State&MyMixinTypedef {
+  synthetic constructor •() → self::MyWidgetState2
+    ;
+  method doSomething() → void
+    ;
+}

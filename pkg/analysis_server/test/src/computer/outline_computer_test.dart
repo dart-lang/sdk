@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:analysis_server/src/computer/computer_outline.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -32,8 +31,7 @@ class AbstractOutlineComputerTest extends AbstractContextTest {
   Future<Outline> _computeOutline(String code) async {
     testCode = code;
     newFile(testPath, code);
-    var resolveResult =
-        await (await session).getResolvedUnit(testPath) as ResolvedUnitResult;
+    var resolveResult = await getResolvedUnit(testPath);
     return DartUnitOutlineComputer(
       resolveResult,
       withBasicFlutter: true,
@@ -1570,6 +1568,73 @@ set propB(int v) {}
       expect(element.parameters, '(int v)');
       expect(element.returnType, '');
     }
+  }
+
+  Future<void> test_topLevelFunction_recordTypes() async {
+    var unitOutline = await _computeOutline('''
+(int, int) f((String, String) r) => throw '';
+''');
+
+    var topOutlines = unitOutline.children!;
+    expect(topOutlines, hasLength(1));
+
+    assertJsonText(topOutlines[0], '''
+{
+  "element": {
+    "kind": "FUNCTION",
+    "name": "f",
+    "location": {
+      "file": $testPathJson,
+      "offset": 11,
+      "length": 1,
+      "startLine": 1,
+      "startColumn": 12,
+      "endLine": 1,
+      "endColumn": 13
+    },
+    "flags": 8,
+    "parameters": "((String, String) r)",
+    "returnType": "(int, int)"
+  },
+  "offset": 0,
+  "length": 45,
+  "codeOffset": 0,
+  "codeLength": 45
+}
+''');
+  }
+
+  Future<void> test_topLevelVariable_recordTypes() async {
+    var unitOutline = await _computeOutline('''
+(int, int)? r = null;
+''');
+
+    var topOutlines = unitOutline.children!;
+    expect(topOutlines, hasLength(1));
+
+    assertJsonText(topOutlines[0], '''
+{
+  "element": {
+    "kind": "TOP_LEVEL_VARIABLE",
+    "name": "r",
+    "location": {
+      "file": $testPathJson,
+      "offset": 12,
+      "length": 1,
+      "startLine": 1,
+      "startColumn": 13,
+      "endLine": 1,
+      "endColumn": 14
+    },
+    "flags": 0,
+    "returnType": "(int, int)?"
+  },
+  "offset": 0,
+  "length": 21,
+  "codeOffset": 12,
+  "codeLength": 8
+}
+''');
   }
 
   void _expect(Outline outline,

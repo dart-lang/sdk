@@ -9,6 +9,70 @@ import 'package:test/test.dart';
 
 import 'mini_ast.dart';
 
+/// A single stack entry representing an intermediate representation of some
+/// Dart code produced using the facilities of `mini_ast.dart`.
+class IrNode {
+  /// The intermediate representation itself, expressed as a string.
+  final String ir;
+
+  /// The location of the Dart code that led to this [IrNode].
+  final String location;
+
+  /// The kind of entity represented by this [IrNode].
+  final Kind kind;
+
+  IrNode({required this.ir, required this.location, required this.kind});
+
+  @override
+  String toString() => '$kind $ir ($location)';
+}
+
+/// Kinds of entities that can be represented by an [IrNode].
+enum Kind {
+  /// A single `case` or `default` clause in a switch statement or switch
+  /// expression.
+  caseHead,
+
+  /// A set of `case` or `default` clauses in a switch statement, which all
+  /// share the same body.
+  caseHeads,
+
+  /// A collection element.
+  collectionElement,
+
+  /// An expression.
+  expression,
+
+  /// A single case from a switch expression, consisting of a [caseHead] and a
+  /// body [expression].
+  expressionCase,
+
+  /// A label for `break` or `continue` to branch to.
+  label,
+
+  /// A map pattern element.
+  mapPatternElement,
+
+  /// A pattern.
+  pattern,
+
+  /// A statement.
+  statement,
+
+  /// A single case from a switch statement, consisting of [caseHeads] and body
+  /// [statement]s.
+  statementCase,
+
+  /// A type in the type system.
+  type,
+
+  /// A local variable.
+  variable,
+
+  /// A set of pattern variables.
+  variables,
+}
+
 /// Stack-based builder class allowing construction of a miniature string-based
 /// internal representation ("IR") of Dart code suitable for use in unit
 /// testing.
@@ -29,7 +93,7 @@ class MiniIrBuilder {
   int _popLimit = 0;
 
   /// Stack of partially built IR nodes.
-  final _stack = <String>[];
+  final _stack = <IrNode>[];
 
   /// Number of temporaries allocated so far.
   int _tmpCounter = 0;
@@ -46,22 +110,39 @@ class MiniIrBuilder {
   ///
   /// See [let].
   MiniIrTmp allocateTmp() {
-    return MiniIrTmp._('t${_tmpCounter++}', _pop());
+    return MiniIrTmp._('t${_tmpCounter++}', _pop(Kind.expression).ir);
   }
 
   /// Pops the top [numArgs] nodes from the stack and pushes a node that
   /// combines them using [name].  For example, if the stack contains `1, 2, 3`,
   /// calling `apply('f', 2)` results in a stack of `1, f(2, 3)`.
-  void apply(String name, int numArgs) =>
-      _push('$name(${_popList(numArgs).join(', ')})');
+  ///
+  /// Optional argument [names] allows applying names to the last n arguments.
+  /// For example, if the stack contains `1, 2, 3`, calling
+  /// `apply('f', 3, names: ['a', 'b'])` results in a stack of
+  /// `f(1, a: 2, b: 3)`.
+  void apply(String name, List<Kind> inputKinds, Kind outputKind,
+      {required String location, List<String> names = const []}) {
+    var args = [
+      for (var irNode in _popList(inputKinds.length, inputKinds)) irNode.ir
+    ];
+    for (int i = 1; i <= names.length; i++) {
+      args[args.length - i] =
+          '${names[names.length - i]}: ${args[args.length - i]}';
+    }
+    _push(IrNode(
+        ir: '$name(${args.join(', ')})', kind: outputKind, location: location));
+  }
 
   /// Pushes a node on the stack representing a single atomic expression (for
   /// example a literal value or a variable reference).
-  void atom(String name) => _push(name);
+  void atom(String name, Kind kind, {required String location}) =>
+      _push(IrNode(ir: name, kind: kind, location: location));
 
   /// Verifies that the top node on the stack matches [expectedIr] exactly.
-  void check(String expectedIr) {
-    expect(_stack.last.toString(), expectedIr);
+  void check(String expectedIr, Kind expectedKind, {required String location}) {
+    expect(_stack.last, _nodeWithKind(expectedKind), reason: 'at $location');
+    expect(_stack.last.ir, expectedIr, reason: 'at $location');
   }
 
   /// Pushes a node representing a `for-in` loop onto the stack, using a loop
@@ -69,12 +150,16 @@ class MiniIrBuilder {
   ///
   /// If [tmp] is non-null, it is used as the loop variable instead of obtaining
   /// it from the stack.
-  void forIn(MiniIrTmp? tmp, {required bool isAsynchronous}) {
+  void forIn(MiniIrTmp? tmp,
+      {required String location, required bool isAsynchronous}) {
     var name = isAsynchronous ? 'forIn_async' : 'forIn';
-    var body = _pop();
-    var iterable = _pop();
-    var variable = tmp == null ? _pop() : tmp._name;
-    _push('$name($variable, $iterable, $body)');
+    var body = _pop(Kind.statement);
+    var iterable = _pop(Kind.expression);
+    var variable = tmp == null ? _pop(Kind.variable) : tmp._name;
+    _push(IrNode(
+        ir: '$name($variable, $iterable, $body)',
+        kind: Kind.statement,
+        location: location));
   }
 
   /// Executes [callback], checking that it leaves all nodes presently on the
@@ -106,9 +191,12 @@ class MiniIrBuilder {
   ///
   /// This is intended to be used as a building block for null shorting
   /// operations.
-  void ifNotNull(MiniIrTmp tmp) {
-    _push('if(==(${tmp._name}, null), null, ${_pop()})');
-    let(tmp);
+  void ifNotNull(MiniIrTmp tmp, {required String location}) {
+    _push(IrNode(
+        ir: 'if(==(${tmp._name}, null), null, ${_pop(Kind.expression)})',
+        kind: Kind.expression,
+        location: location));
+    let(tmp, location: location);
   }
 
   /// Pushes a node representing an "if null" check onto the stack, using [tmp]
@@ -117,27 +205,37 @@ class MiniIrBuilder {
   ///
   /// This is intended to be used as a building block for null `??` and `??=`
   /// operations.
-  void ifNull(MiniIrTmp tmp) {
-    var ifNull = _pop();
-    var ifNotNull = _pop();
-    _push('if(==(${tmp._name}, null), $ifNull, $ifNotNull)');
-    let(tmp);
+  void ifNull(MiniIrTmp tmp, {required String location}) {
+    var ifNull = _pop(Kind.expression);
+    var ifNotNull = _pop(Kind.expression);
+    _push(IrNode(
+        ir: 'if(==(${tmp._name}, null), $ifNull, $ifNotNull)',
+        kind: Kind.expression,
+        location: location));
+    let(tmp, location: location);
   }
 
   /// Pushes a node representing a call to `operator[]` onto the stack, using
   /// a receiver and an index obtained from the stack.
-  void indexGet() => apply('[]', 2);
+  void indexGet({required String location}) =>
+      apply('[]', [Kind.expression, Kind.expression], Kind.expression,
+          location: location);
 
   /// Pushes a node representing a call to `operator[]=` onto the stack, using
   /// a receiver, index, and value obtained from the stack.
   ///
   /// If [receiverTmp] and/or [indexTmp] is non-null, they are used instead of
   /// obtaining values from the stack.
-  void indexSet(MiniIrTmp? receiverTmp, MiniIrTmp? indexTmp) {
-    var value = _pop();
-    var index = indexTmp == null ? _pop() : indexTmp._name;
-    var receiver = receiverTmp == null ? _pop() : receiverTmp._name;
-    _push('[]=($receiver, $index, $value)');
+  void indexSet(MiniIrTmp? receiverTmp, MiniIrTmp? indexTmp,
+      {required String location}) {
+    var value = _pop(Kind.expression);
+    var index = indexTmp == null ? _pop(Kind.expression) : indexTmp._name;
+    var receiver =
+        receiverTmp == null ? _pop(Kind.expression) : receiverTmp._name;
+    _push(IrNode(
+        ir: '[]=($receiver, $index, $value)',
+        kind: Kind.expression,
+        location: location));
   }
 
   /// Pushes a node representing a labeled statement onto the stack, using an
@@ -149,10 +247,13 @@ class MiniIrBuilder {
   /// - build `stmt` on the stack, using [referToLabel] to refer to label as
   ///   needed.
   /// - Call [labeled] to build the final `labeled` statement.
-  void labeled(MiniIrLabel label) {
+  void labeled(MiniIrLabel label, {required String location}) {
     var name = label._name;
     if (name != null) {
-      _push('labeled($name, ${_pop()})');
+      _push(IrNode(
+          ir: 'labeled($name, ${_pop(Kind.statement)})',
+          kind: Kind.statement,
+          location: location));
     }
   }
 
@@ -169,60 +270,86 @@ class MiniIrBuilder {
   /// - Build `expr` on the stack, using [readTmp] to refer to the temporary
   ///   variable as needed.
   /// - Call [let] to build the final `let` expression.
-  void let(MiniIrTmp tmp) {
-    _push('let(${tmp._name}, ${tmp._value}, ${_pop()})');
+  void let(MiniIrTmp tmp, {required String location}) {
+    _push(IrNode(
+        ir: 'let(${tmp._name}, ${tmp._value}, ${_pop(Kind.expression)})',
+        kind: Kind.expression,
+        location: location));
   }
 
   /// Pushes a node representing a property get onto the stack, using a receiver
   /// obtained from the stack.
-  void propertyGet(String propertyName) => apply('get_$propertyName', 1);
+  void propertyGet(String propertyName, {required String location}) =>
+      apply('get_$propertyName', [Kind.expression], Kind.expression,
+          location: location);
 
   /// Pushes a node representing a property set onto the stack, using a receiver
   /// and value obtained from the stack.
   ///
   /// If [receiverTmp] is non-null, it is used as the receiver rather than
   /// obtaining it from the stack.
-  void propertySet(MiniIrTmp? receiverTmp, String propertyName) {
-    var value = _pop();
-    var receiver = receiverTmp == null ? _pop() : receiverTmp._name;
-    _push('set_$propertyName($receiver, $value)');
+  void propertySet(MiniIrTmp? receiverTmp, String propertyName,
+      {required String location}) {
+    var value = _pop(Kind.expression);
+    var receiver =
+        receiverTmp == null ? _pop(Kind.expression) : receiverTmp._name;
+    _push(IrNode(
+        ir: 'set_$propertyName($receiver, $value)',
+        kind: Kind.expression,
+        location: location));
   }
 
   /// Pushes a node representing a read of [tmp] onto the stack.
-  void readTmp(MiniIrTmp tmp) => _push(tmp._name);
+  void readTmp(MiniIrTmp tmp, {required String location}) =>
+      _push(IrNode(ir: tmp._name, kind: Kind.expression, location: location));
 
   /// Pushes a node representing a reference to [label] onto the stack.
-  void referToLabel(MiniIrLabel label) {
-    _push(label._name ??= 'L${_labelCounter++}');
+  void referToLabel(MiniIrLabel label, {required String location}) {
+    _push(IrNode(
+        ir: label._name ??= 'L${_labelCounter++}',
+        kind: Kind.label,
+        location: location));
   }
 
   @override
-  String toString() => _stack.join(', ');
+  String toString() => [for (var irNode in _stack) irNode.ir].join(', ');
 
   /// Pushes a node representing a read of a local variable onto the stack.
-  void variableGet(Var v) => atom(v.name);
+  void variableGet(Var v, {required String location}) =>
+      atom(v.name, Kind.expression, location: location);
 
   /// Pushes a node representing a set of a local variable onto the stack, using
   /// a value obtained from the stack.
-  void variableSet(Var v) => apply('${v.name}=', 1);
+  void variableSet(Var v, {required String location}) =>
+      apply('${v.name}=', [Kind.expression], Kind.expression,
+          location: location);
+
+  TypeMatcher<IrNode> _nodeWithKind(Kind expectedKind) =>
+      TypeMatcher<IrNode>().having((node) => node.kind, 'kind', expectedKind);
 
   /// Pops a single node off the stack.
-  String _pop() {
+  IrNode _pop(Kind expectedKind) {
     expect(_stack.length, greaterThan(_popLimit));
-    return _stack.removeLast();
+    var irNode = _stack.removeLast();
+    expect(irNode, _nodeWithKind(expectedKind));
+    return irNode;
   }
 
   /// Pops a list of nodes off the stack.
-  List<String> _popList(int count) {
+  List<IrNode> _popList(int count, List<Kind> expectedKinds) {
     var newLength = _stack.length - count;
     expect(newLength, greaterThanOrEqualTo(_popLimit));
     var result = _stack.sublist(newLength);
     _stack.length = newLength;
+    expect(result,
+        [for (var expectedKind in expectedKinds) _nodeWithKind(expectedKind)]);
     return result;
   }
 
   /// Pushes a node onto the stack.
-  void _push(String node) => _stack.add(node);
+  void _push(IrNode node) {
+    _stack.add(node);
+  }
 }
 
 /// Representation of a branch target label used by [MiniIrBuilder] when

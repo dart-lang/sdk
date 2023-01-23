@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: avoid_dynamic_calls
+
 /// Command-line tool presenting combined information from dump-info and
 /// coverage data.
 ///
@@ -38,7 +40,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/io.dart';
 import 'package:dart2js_info/src/util.dart';
@@ -69,7 +70,7 @@ class LiveCodeAnalysisCommand extends Command<void> with PrintUsageException {
   }
 }
 
-_liveCodeAnalysis(infoFile, coverageFile, bool verbose) async {
+Future<void> _liveCodeAnalysis(infoFile, coverageFile, bool verbose) async {
   var info = await infoFromFile(infoFile);
   var coverage = jsonDecode(File(coverageFile).readAsStringSync());
 
@@ -132,11 +133,11 @@ _liveCodeAnalysis(infoFile, coverageFile, bool verbose) async {
   }
 }
 
-_showHeader(String msg, String header1, String header2) {
+void _showHeader(String msg, String header1, String header2) {
   print(' ${pad(msg, 30, right: true)} ${pad(header1, 8)} ${pad(header2, 6)}');
 }
 
-_show(String msg, int size, int total) {
+void _show(String msg, int size, int total) {
   var percent = (size * 100 / total).toStringAsFixed(2);
   print(' ${pad(msg, 30, right: true)} ${pad(size, 8)} ${pad(percent, 6)}%');
 }

@@ -73,6 +73,11 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   @override
+  TreeNode visitView(View node) {
+    throw 'Cloning of views is not implemented';
+  }
+
+  @override
   TreeNode visitConstructor(Constructor node) {
     throw 'Cloning of constructors is not implemented here';
   }
@@ -363,8 +368,20 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   @override
+  TreeNode visitRecordLiteral(RecordLiteral node) {
+    return new RecordLiteral(
+        node.positional.map(clone).toList(),
+        node.named.map(clone).toList(),
+        visitType(node.recordType) as RecordType,
+        isConst: node.isConst);
+  }
+
+  @override
   TreeNode visitAwaitExpression(AwaitExpression node) {
-    return new AwaitExpression(clone(node.operand));
+    return new AwaitExpression(clone(node.operand))
+      ..runtimeCheckType = node.runtimeCheckType != null
+          ? visitType(node.runtimeCheckType!)
+          : null;
   }
 
   @override
@@ -412,6 +429,18 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   @override
   TreeNode visitBlockExpression(BlockExpression node) {
     return new BlockExpression(clone(node.body), clone(node.value));
+  }
+
+  @override
+  TreeNode visitRecordIndexGet(RecordIndexGet node) {
+    return new RecordIndexGet(clone(node.receiver),
+        visitType(node.receiverType) as RecordType, node.index);
+  }
+
+  @override
+  TreeNode visitRecordNameGet(RecordNameGet node) {
+    return new RecordNameGet(clone(node.receiver),
+        visitType(node.receiverType) as RecordType, node.name);
   }
 
   @override

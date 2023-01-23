@@ -22,11 +22,9 @@ class AddLate extends CorrectionProducer {
       return;
     }
     final node = this.node;
-    if (node is SimpleIdentifier) {
-      var variable = node.parent;
-      var variableList = variable?.parent;
-      if (variable is VariableDeclaration &&
-          variableList is VariableDeclarationList) {
+    if (node is VariableDeclaration) {
+      var variableList = node.parent;
+      if (variableList is VariableDeclarationList) {
         if (!variableList.isLate) {
           if (variableList.type == null) {
             var keyword = variableList.keyword;
@@ -54,31 +52,31 @@ class AddLate extends CorrectionProducer {
             }
           }
         }
-      } else {
-        var getter = node.writeOrReadElement;
-        if (getter is PropertyAccessorElement &&
-            getter.isGetter &&
-            getter.isSynthetic &&
-            !getter.variable.isSynthetic &&
-            getter.variable.setter == null &&
-            getter.enclosingElement is ClassElement) {
-          var declarationResult =
-              await sessionHelper.getElementDeclaration(getter.variable);
-          if (declarationResult == null) {
-            return;
-          }
-          var variable = declarationResult.node;
-          var variableList = variable.parent;
-          if (variable is VariableDeclaration &&
-              variableList is VariableDeclarationList &&
-              variableList.parent is FieldDeclaration) {
-            var keywordToken = variableList.keyword;
-            if (variableList.variables.length == 1 &&
-                keywordToken != null &&
-                keywordToken.keyword == Keyword.FINAL) {
-              await _insertAt(builder, keywordToken.offset,
-                  source: declarationResult.element.source);
-            }
+      }
+    } else if (node is SimpleIdentifier) {
+      var getter = node.writeOrReadElement;
+      if (getter is PropertyAccessorElement &&
+          getter.isGetter &&
+          getter.isSynthetic &&
+          !getter.variable.isSynthetic &&
+          getter.variable.setter == null &&
+          getter.enclosingElement is InterfaceElement) {
+        var declarationResult =
+            await sessionHelper.getElementDeclaration(getter.variable);
+        if (declarationResult == null) {
+          return;
+        }
+        var variable = declarationResult.node;
+        var variableList = variable.parent;
+        if (variable is VariableDeclaration &&
+            variableList is VariableDeclarationList &&
+            variableList.parent is FieldDeclaration) {
+          var keywordToken = variableList.keyword;
+          if (variableList.variables.length == 1 &&
+              keywordToken != null &&
+              keywordToken.keyword == Keyword.FINAL) {
+            await _insertAt(builder, keywordToken.offset,
+                source: declarationResult.element.source);
           }
         }
       }

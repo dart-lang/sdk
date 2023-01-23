@@ -1,0 +1,13 @@
+abstract class ActiveFrom {
+  DateTime toLocal();
+}
+
+abstract class ChannelA {
+  ChannelB? get channel;
+}
+
+abstract class ChannelB {
+  ActiveFrom? get activeFrom;
+}
+
+void method(ChannelA channel) {}

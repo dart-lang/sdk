@@ -28,6 +28,7 @@ $!MEMBERS
     new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
 
   /// Checks if [registerElement] is supported on the current platform.
+  @deprecated
   bool get supportsRegisterElement {
     return JS('bool', '("registerElement" in #)', this);
   }
@@ -36,6 +37,13 @@ $!MEMBERS
   @deprecated
   bool get supportsRegister => supportsRegisterElement;
 
+  /// **Deprecated**: This is a legacy API based on a deprecated Web Components
+  /// v0.5 specification. Web Components v0.5 doesn't work on modern browsers
+  /// and can only be used with a polyfill.
+  ///
+  /// The latest Web Components specification is supported indirectly via
+  /// JSInterop and doesn't have an explicit API in the `dart:html` library.
+  @deprecated
   void registerElement(String tag, Type customElementClass,
       {String$NULLABLE extendsTag}) {
         registerElement2(tag, {'prototype': customElementClass, 'extends': extendsTag});

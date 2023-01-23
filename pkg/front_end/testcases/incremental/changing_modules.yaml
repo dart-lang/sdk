@@ -136,6 +136,8 @@ worlds:
       package:example/a.dart:
         - Procedure a
         - Procedure la1
+    advancedInvalidation: modulesToLoad
+
   - entry: main.dart
     worldType: updated
     expectInitializeFromDill: false
@@ -177,6 +179,8 @@ worlds:
       package:foo/foo.dart:
         - Procedure foo
         - Field foo1
+    advancedInvalidation: modulesToLoad
+
   - entry: main.dart
     worldType: updated
     expectInitializeFromDill: false
@@ -220,3 +224,4 @@ worlds:
         - Procedure bar
       package:foo/baz.dart:
         - Procedure baz
+    advancedInvalidation: modulesToLoad

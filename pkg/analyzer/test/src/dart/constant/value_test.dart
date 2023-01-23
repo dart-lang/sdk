@@ -18,7 +18,7 @@ main() {
   });
 }
 
-const int LONG_MAX_VALUE = 0x7fffffffffffffff;
+const int longMaxValue = 0x7fffffffffffffff;
 
 final Matcher throwsEvaluationException =
     throwsA(TypeMatcher<EvaluationException>());
@@ -473,6 +473,25 @@ class DartObjectImplTest {
     expect(_symbolValue("a"), _symbolValue("a"));
   }
 
+  void test_getField_record() {
+    final record = _recordValue([
+      _intValue(0),
+      _intValue(1),
+    ], {
+      'a': _intValue(2),
+      'b': _intValue(3),
+    });
+
+    expect(record.getField(r'$0'), _intValue(0));
+    expect(record.getField(r'$1'), _intValue(1));
+    expect(record.getField(r'$2'), isNull);
+    expect(record.getField(r'$-2'), isNull);
+
+    expect(record.getField(r'a'), _intValue(2));
+    expect(record.getField(r'b'), _intValue(3));
+    expect(record.getField(r'c'), isNull);
+  }
+
   void test_getValue_bool_false() {
     expect(_boolValue(false).toBoolValue(), false);
   }
@@ -820,11 +839,35 @@ class DartObjectImplTest {
         _listValue(_typeProvider.intType, [_intValue(3)]));
   }
 
-  void test_identical_list_true_equalTypes() {
+  void test_identical_list_false_equalTypes_differentValues() {
+    _assertIdentical(
+      _boolValue(false),
+      _listValue(_typeProvider.intType, [_intValue(0)]),
+      _listValue(_typeProvider.intType, [_intValue(1)]),
+    );
+  }
+
+  void test_identical_list_false_equalTypes_value_unknown() {
+    _assertIdentical(
+      _boolValue(false),
+      _listValue(_typeProvider.intType, [_intValue(0)]),
+      _listValue(_typeProvider.intType, [_intValue(null)]),
+    );
+  }
+
+  void test_identical_list_true_equalTypes_empty() {
     _assertIdentical(
       _boolValue(true),
       _listValue(_typeProvider.intType, []),
       _listValue(_typeProvider.intType, []),
+    );
+  }
+
+  void test_identical_list_true_equalTypes_unknown_unknown() {
+    _assertIdentical(
+      _boolValue(true),
+      _listValue(_typeProvider.intType, [_intValue(null)]),
+      _listValue(_typeProvider.intType, [_intValue(null)]),
     );
   }
 
@@ -900,6 +943,83 @@ class DartObjectImplTest {
 
   void test_identical_null() {
     _assertIdentical(_boolValue(true), _nullValue(), _nullValue());
+  }
+
+  void test_identical_record_mixed_true() {
+    _assertIdentical(
+        _boolValue(null),
+        _recordValue([_intValue(1)], {'a': _intValue(2)}),
+        _recordValue([_intValue(1)], {'a': _intValue(2)}));
+  }
+
+  void test_identical_record_named_false_differentKeys() {
+    _assertIdentical(_boolValue(false), _recordValue([], {'a': _intValue(1)}),
+        _recordValue([], {'b': _intValue(1)}));
+  }
+
+  void test_identical_record_named_false_differentKeysAndValues() {
+    _assertIdentical(_boolValue(false), _recordValue([], {'a': _intValue(1)}),
+        _recordValue([], {'b': _intValue(2)}));
+  }
+
+  void test_identical_record_named_false_differentLength() {
+    _assertIdentical(_boolValue(false), _recordValue([], {'a': _intValue(1)}),
+        _recordValue([], {'a': _intValue(1), 'b': _intValue(1)}));
+  }
+
+  void test_identical_record_named_false_differentValues() {
+    _assertIdentical(_boolValue(false), _recordValue([], {'a': _intValue(1)}),
+        _recordValue([], {'a': _intValue(2)}));
+  }
+
+  void test_identical_record_named_false_value_unknown() {
+    _assertIdentical(_boolValue(false), _recordValue([], {'a': _intValue(1)}),
+        _recordValue([], {'a': _intValue(null)}));
+  }
+
+  void test_identical_record_named_true() {
+    _assertIdentical(_boolValue(null), _recordValue([], {'a': _intValue(1)}),
+        _recordValue([], {'a': _intValue(1)}));
+  }
+
+  void test_identical_record_named_true_unknown_unknown() {
+    _assertIdentical(_boolValue(null), _recordValue([], {'a': _intValue(null)}),
+        _recordValue([], {'a': _intValue(null)}));
+  }
+
+  void test_identical_record_positional_false_differentLength() {
+    _assertIdentical(
+        _boolValue(false),
+        _recordValue([_intValue(1), _intValue(2), _intValue(3)], {}),
+        _recordValue([_intValue(1), _intValue(2)], {}));
+  }
+
+  void test_identical_record_positional_false_differentOrder() {
+    _assertIdentical(
+        _boolValue(false),
+        _recordValue([_intValue(1), _intValue(2)], {}),
+        _recordValue([_intValue(2), _intValue(1)], {}));
+  }
+
+  void test_identical_record_positional_false_value_unknown() {
+    _assertIdentical(
+        _boolValue(false),
+        _recordValue([_intValue(0), _intValue(1)], {}),
+        _recordValue([_intValue(0), _intValue(null)], {}));
+  }
+
+  void test_identical_record_positional_true() {
+    _assertIdentical(
+        _boolValue(null),
+        _recordValue([_intValue(1), _intValue(2)], {}),
+        _recordValue([_intValue(1), _intValue(2)], {}));
+  }
+
+  void test_identical_record_positional_true_unknown_unknown() {
+    _assertIdentical(
+        _boolValue(null),
+        _recordValue([_intValue(0), _intValue(null)], {}),
+        _recordValue([_intValue(0), _intValue(null)], {}));
   }
 
   void test_identical_string_false() {
@@ -1618,7 +1738,7 @@ class DartObjectImplTest {
       DartObjectImpl(
         _typeSystem,
         _typeProvider.intType,
-        IntState(LONG_MAX_VALUE),
+        IntState(longMaxValue),
       ),
     );
   }
@@ -1658,7 +1778,7 @@ class DartObjectImplTest {
       DartObjectImpl(
         _typeSystem,
         _typeProvider.intType,
-        IntState(LONG_MAX_VALUE),
+        IntState(longMaxValue),
       ),
     );
   }
@@ -2225,6 +2345,17 @@ class DartObjectImplTest {
       _typeSystem,
       _typeProvider.nullType,
       NullState.NULL_STATE,
+    );
+  }
+
+  DartObjectImpl _recordValue(
+    List<DartObjectImpl> positionalFields,
+    Map<String, DartObjectImpl> namedFields,
+  ) {
+    return DartObjectImpl(
+      _typeSystem,
+      _typeProvider.recordType,
+      RecordState(positionalFields, namedFields),
     );
   }
 

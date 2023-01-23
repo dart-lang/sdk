@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/computer/computer_folding.dart';
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -25,6 +25,34 @@ class FoldingComputerTest extends AbstractContextTest {
   };
 
   late String sourcePath;
+  late TestCode code;
+  List<FoldingRegion> regions = [];
+
+  /// Expects no [FoldingRegion]s.
+  ///
+  /// If [onlyVerify] is provided, folding regions of other kinds are allowed.
+  void expectNoRegions({Set<FoldingKind>? onlyVerify}) {
+    expectRegions({}, onlyVerify: onlyVerify);
+  }
+
+  /// Expects to find a [FoldingRegion] for the code marked [index] with a
+  /// [FoldingKind] of [kind].
+  ///
+  /// If [onlyVerify] is provided, only folding regions with matching kinds will
+  /// be verified.
+  void expectRegions(Map<int, FoldingKind> expected,
+      {Set<FoldingKind>? onlyVerify}) {
+    final expectedRegions = expected.entries.map((entry) {
+      final range = code.ranges[entry.key].sourceRange;
+      return FoldingRegion(entry.value, range.offset, range.length);
+    }).toSet();
+
+    final actualRegions = onlyVerify == null
+        ? regions.toSet()
+        : regions.where((region) => onlyVerify.contains(region.kind)).toSet();
+
+    expect(actualRegions, expectedRegions);
+  }
 
   @override
   void setUp() {
@@ -32,203 +60,323 @@ class FoldingComputerTest extends AbstractContextTest {
     sourcePath = convertPath('$testPackageLibPath/test.dart');
   }
 
-  Future<void> test_annotations() async {
+  Future<void> test_annotations_class() async {
     var content = '''
-@myMultilineAnnotation/*1:INC*/(
+@folded.classAnnotation1/*[0*/()
+@foldedClassAnnotation2/*0]*/
+class MyClass {}
+''';
+
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.ANNOTATIONS,
+    });
+  }
+
+  Future<void> test_annotations_class_constructor() async {
+    var content = '''
+class MyClass {
+  @constructorAnnotation1/*[0*/
+  @constructorAnnotation1/*0]*/
+  MyClass() {}
+
+  @constructorAnnotation1/*[1*/
+  @constructorAnnotation1/*1]*/
+  MyClass.named() {}
+}
+''';
+
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.ANNOTATIONS,
+      1: FoldingKind.ANNOTATIONS,
+    }, onlyVerify: {
+      FoldingKind.ANNOTATIONS
+    });
+  }
+
+  Future<void> test_annotations_class_field() async {
+    var content = '''
+class MyClass {
+  @fieldAnnotation1/*[0*/
+  @fieldAnnotation2/*0]*/
+  int myField;
+}
+''';
+
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.ANNOTATIONS,
+    }, onlyVerify: {
+      FoldingKind.ANNOTATIONS
+    });
+  }
+
+  Future<void> test_annotations_class_getterSetter() async {
+    var content = '''
+class MyClass {
+  @getterAnnotation1/*[0*/
+  @getterAnnotation2/*0]*/
+  int get myThing => 1;
+
+  @setterAnnotation1/*[1*/
+  @setterAnnotation2/*1]*/
+  void set myThing(int value) {}
+}
+''';
+
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.ANNOTATIONS,
+      1: FoldingKind.ANNOTATIONS,
+    }, onlyVerify: {
+      FoldingKind.ANNOTATIONS
+    });
+  }
+
+  Future<void> test_annotations_class_method() async {
+    var content = '''
+class MyClass {
+  @methodAnnotation1/*[0*/
+  @methodAnnotation2/*0]*/
+  void myMethod() {}
+}
+''';
+
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.ANNOTATIONS,
+    }, onlyVerify: {
+      FoldingKind.ANNOTATIONS
+    });
+  }
+
+  Future<void> test_annotations_multiline() async {
+    var content = '''
+@myMultilineAnnotation/*[0*/(
   "this",
   "is a test"
-)/*1:EXC:ANNOTATIONS*/
+)/*0]*/
 void f() {}
+''';
 
+    await _computeRegions(content);
+    expectRegions(
+      {
+        0: FoldingKind.ANNOTATIONS,
+      },
+      onlyVerify: {
+        FoldingKind.ANNOTATIONS,
+      },
+    );
+  }
+
+  Future<void> test_annotations_multiple() async {
+    var content = '''
+@multipleAnnotations1/*[0*/(
+  /*[1*/"this",
+  "is a test"
+/*1]*/)
+@multipleAnnotations2()
+@multipleAnnotations3/*0]*/
+main3() {}
+''';
+
+    await _computeRegions(content);
+    expectRegions(
+      {
+        0: FoldingKind.ANNOTATIONS,
+      },
+      onlyVerify: {
+        FoldingKind.ANNOTATIONS,
+      },
+    );
+  }
+
+  Future<void> test_annotations_singleLine() async {
+    var content = '''
 @noFoldNecessary
 main2() {}
 
-@multipleAnnotations1/*2:INC*/(
-  "this",
-  "is a test"
-)
-@multipleAnnotations2()
-@multipleAnnotations3/*2:EXC:ANNOTATIONS*/
-main3() {}
-
 @noFoldsForSingleClassAnnotation
 class MyClass {}
-
-@folded.classAnnotation1/*3:INC*/()
-@foldedClassAnnotation2/*3:EXC:ANNOTATIONS*/
-class MyClass2 {/*4:INC*/
-  @fieldAnnotation1/*5:INC*/
-  @fieldAnnotation2/*5:EXC:ANNOTATIONS*/
-  int myField;
-
-  @getterAnnotation1/*6:INC*/
-  @getterAnnotation2/*6:EXC:ANNOTATIONS*/
-  int get myThing => 1;
-
-  @setterAnnotation1/*7:INC*/
-  @setterAnnotation2/*7:EXC:ANNOTATIONS*/
-  void set myThing(int value) {}
-
-  @methodAnnotation1/*8:INC*/
-  @methodAnnotation2/*8:EXC:ANNOTATIONS*/
-  void myMethod() {}
-
-  @constructorAnnotation1/*9:INC*/
-  @constructorAnnotation1/*9:EXC:ANNOTATIONS*/
-  MyClass2() {}
-/*4:INC:CLASS_BODY*/}
 ''';
 
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content);
+    await _computeRegions(content);
+    expectNoRegions();
   }
 
   Future<void> test_assertInitializer() async {
     var content = '''
-class C {/*1:INC*/
-  C() : assert(/*2:INC*/
-    true,
+class C/*[0*/ {
+  C/*[1*/() : assert(
+    /*[2*/true,
     ''
-  /*2:INC:INVOCATION*/);
-/*1:INC:CLASS_BODY*/}
+  /*2]*/);/*1]*/
+}/*0]*/
 ''';
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content);
+    await _computeRegions(content);
+    expectRegions(
+      {
+        0: FoldingKind.CLASS_BODY,
+        1: FoldingKind.FUNCTION_BODY,
+        2: FoldingKind.INVOCATION,
+      },
+    );
   }
 
   Future<void> test_assertStatement() async {
     var content = '''
-void f() {/*1:INC*/
-  assert(/*2:INC*/
+void f/*[0*/() {
+  assert(/*[1*/
     true,
     ''
-  /*2:INC:INVOCATION*/);
-/*1:INC:FUNCTION_BODY*/}
+  /*1]*/);
+}/*0]*/
 ''';
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content);
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FUNCTION_BODY,
+      1: FoldingKind.INVOCATION,
+    });
   }
 
   Future<void> test_class() async {
     var content = '''
 // Content before
 
-class Person {/*1:INC*/
-  Person() {/*2:INC*/
+class Person/*[0*/ {
+  Person/*[1*/() {
     print("Hello, world!");
-  /*2:INC:FUNCTION_BODY*/}
+  }/*1]*/
 
-  void sayHello() {/*3:INC*/
+  void sayHello/*[2*/() {
     print("Hello, world!");
-  /*3:INC:FUNCTION_BODY*/}
-/*1:INC:CLASS_BODY*/}
+  }/*2]*/
+}/*0]*/
 
 // Content after
 ''';
 
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content);
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.CLASS_BODY,
+      1: FoldingKind.FUNCTION_BODY,
+      2: FoldingKind.FUNCTION_BODY,
+    });
   }
 
   Future<void> test_comment_is_not_considered_file_header() async {
     var content = """
-// This is not the file header/*1:EXC*/
-// It's just a comment/*1:INC:COMMENT*/
+// This is not the file header/*[0*/
+// It's just a comment/*0]*/
 void f() {}
 """;
 
-    // Since there are no region comment markers above
-    // just check the length instead of the contents
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content);
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.COMMENT,
+    });
   }
 
   Future<void> test_comment_multiline() async {
     var content = '''
-void f() {
-/*/*1:EXC*/
+/*/*[0*/
  * comment 1
- *//*1:EXC:COMMENT*/
+ *//*0]*/
 
-/* this comment starts on the same line as delimeters/*2:EXC*/
+/* this comment starts on the same line as delimeters/*[1*/
  * second line
- *//*2:EXC:COMMENT*/
-}
+ *//*1]*/
+void f() {}
 ''';
 
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content, commentKinds);
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.COMMENT,
+      1: FoldingKind.COMMENT,
+    });
   }
 
   Future<void> test_comment_singleFollowedByBlankLine() async {
     var content = '''
 void f() {
-// this is/*1:EXC*/
-// a comment/*1:INC:COMMENT*/
+// this is/*[0*/
+// a comment/*0]*/
 /// this is not part of it
 }
 ''';
 
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content, commentKinds);
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.COMMENT,
+    }, onlyVerify: commentKinds);
   }
 
   Future<void> test_comment_singleFollowedByMulti() async {
     var content = '''
 void f() {
-  // this is/*1:EXC*/
-  // a comment/*1:INC:COMMENT*/
+  // this is/*[0*/
+  // a comment/*0]*/
   /* this is not part of it */
   String foo;
 }
 ''';
 
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content, commentKinds);
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.COMMENT,
+    }, onlyVerify: commentKinds);
   }
 
   Future<void> test_comment_singleFollowedByTripleSlash() async {
     var content = '''
 void f() {
-// this is/*1:EXC*/
-// a comment/*1:INC:COMMENT*/
+// this is/*[0*/
+// a comment/*0]*/
 /// this is not part of it
 }
 ''';
 
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content, commentKinds);
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.COMMENT,
+    }, onlyVerify: commentKinds);
   }
 
   Future<void> test_constructor_invocations() async {
     var content = '''
 // Content before
 
-void f() {/*1:INC*/
-  return new Text(/*2:INC*/
-    "Hello, world!",
-  /*2:INC:INVOCATION*/);
-/*1:INC:FUNCTION_BODY*/}
+final a = new Text(/*[0*/
+  "Hello, world!",
+/*0]*/);
 
 // Content after
 ''';
 
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content);
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.INVOCATION,
+    });
   }
 
   Future<void> test_file_header() async {
     var content = """
-// Copyright some year by some people/*1:EXC*/
-// See LICENCE etc./*1:INC:FILE_HEADER*/
+// Copyright some year by some people/*[0*/
+// See LICENCE etc./*0]*/
 
 // This is not the file header
 // It's just a comment
 void f() {}
 """;
 
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content, {FoldingKind.FILE_HEADER});
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FILE_HEADER,
+    }, onlyVerify: {
+      FoldingKind.FILE_HEADER
+    });
   }
 
   Future<void> test_file_header_does_not_include_block_comments() async {
@@ -242,283 +390,360 @@ void f() {}
 void f() {}
 """;
 
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content, {FoldingKind.FILE_HEADER});
+    await _computeRegions(content);
+    expectNoRegions(onlyVerify: {FoldingKind.FILE_HEADER});
   }
 
   Future<void> test_file_header_with_no_function_comment() async {
     var content = '''
-// Copyright some year by some people/*1:EXC*/
-// See LICENCE etc./*1:INC:FILE_HEADER*/
+// Copyright some year by some people/*[0*/
+// See LICENCE etc./*0]*/
 
 void f() {}
 ''';
 
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content, {FoldingKind.FILE_HEADER});
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FILE_HEADER,
+    });
   }
 
   Future<void> test_file_header_with_non_end_of_line_comment() async {
     var content = """
-// Copyright some year by some people/*1:EXC*/
-// See LICENCE etc./*1:INC:FILE_HEADER*/
+// Copyright some year by some people/*[0*/
+// See LICENCE etc./*0]*/
 /* This shouldn't be part of the file header */
 
 void f() {}
 """;
 
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content, {FoldingKind.FILE_HEADER});
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FILE_HEADER,
+    });
   }
 
   Future<void> test_file_header_with_script_prefix() async {
     var content = """
 #! /usr/bin/dart
-// Copyright some year by some people/*1:EXC*/
-// See LICENCE etc./*1:INC:FILE_HEADER*/
+// Copyright some year by some people/*[0*/
+// See LICENCE etc./*0]*/
 
 // This is not the file header
 // It's just a comment
 void f() {}
 """;
 
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content, {FoldingKind.FILE_HEADER});
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FILE_HEADER,
+    }, onlyVerify: {
+      FoldingKind.FILE_HEADER
+    });
   }
 
   Future<void> test_fileHeader_singleFollowedByBlank() async {
     var content = '''
-// this is/*1:EXC*/
-// a file header/*1:INC:FILE_HEADER*/
+// this is/*[0*/
+// a file header/*0]*/
 
 // this is not part of it
 void f() {}
 ''';
 
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content);
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FILE_HEADER,
+    });
   }
 
   Future<void> test_function() async {
     var content = '''
 // Content before
 
-void f() {/*1:INC*/
+void f/*[0*/() {
   print("Hello, world!");
-/*1:INC:FUNCTION_BODY*/}
+}/*0]*/
 
 // Content after
 ''';
 
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content);
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FUNCTION_BODY,
+    });
   }
 
   Future<void> test_function_expression_invocation() async {
     var content = '''
 // Content before
 
-getFunc() => (String a, String b) {/*1:INC*/
+getFunc/*[0*/() => (String a, String b) {
   print(a);
-/*1:INC:FUNCTION_BODY*/};
+};/*0]*/
 
-main2() {/*2:INC*/
-  getFunc()(/*3:INC*/
+main2/*[1*/() {
+  getFunc()(/*[2*/
     "one",
     "two"
-  /*3:INC:INVOCATION*/);
-/*2:INC:FUNCTION_BODY*/}
+  /*2]*/);
+}/*1]*/
 
 // Content after
 ''';
 
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content);
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FUNCTION_BODY,
+      1: FoldingKind.FUNCTION_BODY,
+      2: FoldingKind.INVOCATION,
+    });
   }
 
   Future<void> test_function_with_dart_doc() async {
     var content = '''
 // Content before
 
-/// This is a doc comment/*1:EXC*/
-/// that spans lines/*1:INC:DOCUMENTATION_COMMENT*/
-void f() {/*2:INC*/
+/// This is a doc comment/*[0*/
+/// that spans lines/*0]*/
+void f/*[1*/() {
   print("Hello, world!");
-/*2:INC:FUNCTION_BODY*/}
+}/*1]*/
 
 // Content after
 ''';
 
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content);
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.DOCUMENTATION_COMMENT,
+      1: FoldingKind.FUNCTION_BODY,
+    });
   }
 
   Future<void> test_invocations() async {
     var content = '''
 // Content before
 
-void f() {/*1:INC*/
-  print(/*2:INC*/
+void f/*[0*/() {
+  print(/*[1*/
     "Hello, world!",
-  /*2:INC:INVOCATION*/);
-/*1:INC:FUNCTION_BODY*/}
+  /*1]*/);
+}/*0]*/
 
 // Content after
 ''';
 
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content);
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FUNCTION_BODY,
+      1: FoldingKind.INVOCATION,
+    });
   }
 
   Future<void> test_literal_list() async {
     var content = '''
 // Content before
 
-void f() {/*1:INC*/
-  final List<String> things = <String>[/*2:INC*/
+void f/*[0*/() {
+  final List<String> things = <String>[/*[1*/
     "one",
     "two"
-  /*2:INC:LITERAL*/];
-/*1:INC:FUNCTION_BODY*/}
+  /*1]*/];
+}/*0]*/
 
 // Content after
 ''';
 
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content);
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FUNCTION_BODY,
+      1: FoldingKind.LITERAL,
+    });
   }
 
   Future<void> test_literal_map() async {
     var content = '''
 // Content before
 
-main2() {/*1:INC*/
-  final Map<String, String> things = <String, String>{/*2:INC*/
+void f/*[0*/() {
+  final Map<String, String> things = <String, String>{/*[1*/
     "one": "one",
     "two": "two"
-    /*2:INC:LITERAL*/};
-/*1:INC:FUNCTION_BODY*/}
+    /*1]*/};
+}/*0]*/
 
 // Content after
 ''';
 
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content);
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FUNCTION_BODY,
+      1: FoldingKind.LITERAL,
+    });
+  }
+
+  Future<void> test_literal_record() async {
+    var content = '''
+// Content before
+
+void f/*[0*/() {
+  final r = (/*[1*/
+    "one",
+    2,
+    (/*[2*/
+    'nested',
+    3,
+    'field record',
+    /*2]*/),
+  /*1]*/);
+}/*0]*/
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FUNCTION_BODY,
+      1: FoldingKind.LITERAL,
+      2: FoldingKind.LITERAL,
+    });
   }
 
   Future<void> test_mixin() async {
     var content = '''
 // Content before
 
-mixin M {/*1:INC*/
-  void m() {/*3:INC*/
+mixin M/*[0*/ {
+  void m/*[1*/() {
     print("Got to m");
-  /*3:INC:FUNCTION_BODY*/}
-/*1:INC:CLASS_BODY*/}
+  }/*1]*/
+}/*0]*/
 
 // Content after
 ''';
 
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content);
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.CLASS_BODY,
+      1: FoldingKind.FUNCTION_BODY,
+    });
   }
 
   Future<void> test_multiple_directive_types() async {
     var content = """
-import/*1:INC*/ 'dart:async';
+import/*[0*/ 'dart:async';
 
 // We can have comments
 import 'package:a/b.dart';
 import 'package:b/c.dart';
 
-export '../a.dart';/*1:EXC:DIRECTIVES*/
+export '../a.dart';/*0]*/
 
 void f() {}
 """;
 
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content);
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.DIRECTIVES,
+    });
   }
 
   Future<void> test_multiple_import_directives() async {
     var content = """
-import/*1:INC*/ 'dart:async';
+import/*[0*/ 'dart:async';
 
 // We can have comments
 import 'package:a/b.dart';
 import 'package:b/c.dart';
 
-import '../a.dart';/*1:EXC:DIRECTIVES*/
+import '../a.dart';/*0]*/
 
 void f() {}
 """;
 
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content);
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.DIRECTIVES,
+    });
   }
 
   Future<void> test_nested_function() async {
     var content = '''
 // Content before
 
-void f() {/*1:INC*/
-  doPrint() {/*2:INC*/
+void f/*[0*/() {
+  doPrint/*[1*/() {
     print("Hello, world!");
-  /*2:INC:FUNCTION_BODY*/}
+  }/*1]*/
   doPrint();
-/*1:INC:FUNCTION_BODY*/}
+}/*0]*/
 
 // Content after
 ''';
 
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content);
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FUNCTION_BODY,
+      1: FoldingKind.FUNCTION_BODY,
+    });
   }
 
   Future<void> test_nested_invocations() async {
     var content = '''
 // Content before
 
-void f() {/*1:INC*/
-  a(/*2:INC*/
-    b(/*3:INC*/
-      c(/*4:INC*/
+void f/*[0*/() {
+  a(/*[1*/
+    b(/*[2*/
+      c(/*[3*/
         d()
-      /*4:INC:INVOCATION*/),
-    /*3:INC:INVOCATION*/),
-  /*2:INC:INVOCATION*/);
-/*1:INC:FUNCTION_BODY*/}
+      /*3]*/),
+    /*2]*/),
+  /*1]*/);
+}/*0]*/
 
 // Content after
 ''';
 
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content);
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FUNCTION_BODY,
+      1: FoldingKind.INVOCATION,
+      2: FoldingKind.INVOCATION,
+      3: FoldingKind.INVOCATION,
+    });
   }
 
   Future<void> test_parameters_function() async {
     var content = '''
-foo(/*1:INC*/
-  String aaaaa,
+foo/*[0*/(
+  /*[1*/String aaaaa,
   String bbbbb, {
   String ccccc,
-  }/*1:INC:PARAMETERS*/) {}
+  }/*1]*/) {}/*0]*/
 ''';
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content);
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FUNCTION_BODY,
+      1: FoldingKind.PARAMETERS,
+    });
   }
 
   Future<void> test_parameters_method() async {
     var content = '''
-class C {/*1:INC*/
-  C(/*2:INC*/
-    String aaaaa,
+class C/*[0*/ {
+  C/*[1*/(
+    /*[2*/String aaaaa,
     String bbbbb,
-  /*2:INC:PARAMETERS*/) : super();
-/*1:INC:CLASS_BODY*/}
+  /*2]*/) : super();/*1]*/
+}/*0]*/
 ''';
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content);
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.CLASS_BODY,
+      1: FoldingKind.FUNCTION_BODY,
+      2: FoldingKind.PARAMETERS,
+    });
   }
 
   Future<void> test_single_import_directives() async {
@@ -528,62 +753,15 @@ import 'dart:async';
 void f() {}
 """;
 
-    // Since there are no region comment markers above
-    // just check the length instead of the contents
-    final regions = await _computeRegions(content);
-    expect(regions, hasLength(0));
+    await _computeRegions(content);
+    expectNoRegions();
   }
 
-  /// Compares provided folding regions with expected
-  /// regions extracted from the comments in the provided content.
-  ///
-  /// If [onlyKinds] is supplied only regions of that type will be compared.
-  void _compareRegions(List<FoldingRegion> regions, String content,
-      [Set<FoldingKind>? onlyKinds]) {
-    // Find all numeric markers for region starts.
-    final regex = RegExp(r'/\*(\d+):(INC|EXC)\*/');
-    final expectedRegions = regex.allMatches(content);
-
-    if (onlyKinds != null) {
-      regions =
-          regions.where((region) => onlyKinds.contains(region.kind)).toList();
-    }
-
-    // Check we didn't get more than expected, since the loop below only
-    // checks for the presence of matches, not absence.
-    expect(regions, hasLength(expectedRegions.length));
-
-    // Go through each marker, find the expected region start/end and
-    // ensure it's in the results.
-    for (var m in expectedRegions) {
-      final i = m.group(1);
-      final inclusiveStart = m.group(2) == 'INC';
-      // Find the end marker.
-      final endMatch =
-          RegExp('/\\*$i:(INC|EXC):(.+?)\\*/').firstMatch(content)!;
-
-      final inclusiveEnd = endMatch.group(1) == 'INC';
-      final expectedKindString = endMatch.group(2);
-      final expectedKind = FoldingKind.VALUES.firstWhere(
-          (f) => f.toString() == 'FoldingKind.$expectedKindString',
-          orElse: () => throw Exception(
-              'Annotated test code references $expectedKindString but '
-              'this does not exist in FoldingKind'));
-
-      final expectedStart = inclusiveStart ? m.start : m.end;
-      final expectedLength =
-          (inclusiveEnd ? endMatch.end : endMatch.start) - expectedStart;
-
-      expect(regions,
-          contains(FoldingRegion(expectedKind, expectedStart, expectedLength)));
-    }
-  }
-
-  Future<List<FoldingRegion>> _computeRegions(String sourceContent) async {
-    newFile(sourcePath, sourceContent);
-    var result =
-        await (await session).getResolvedUnit(sourcePath) as ResolvedUnitResult;
+  Future<void> _computeRegions(String sourceContent) async {
+    code = TestCode.parse(sourceContent);
+    newFile(sourcePath, code.code);
+    var result = await getResolvedUnit(sourcePath);
     var computer = DartUnitFoldingComputer(result.lineInfo, result.unit);
-    return computer.compute();
+    regions = computer.compute();
   }
 }

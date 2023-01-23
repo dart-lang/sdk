@@ -15,7 +15,11 @@ import 'experiments.dart';
 import 'sdk.dart';
 import 'utils.dart';
 
-late Logger log;
+// Initialize a default logger. We'll replace this with a verbose logger if
+// necessary once we start parsing.
+final Ansi ansi = Ansi(Ansi.terminalSupportsAnsi);
+Logger log = Logger.standard(ansi: ansi);
+
 bool isDiagnostics = false;
 
 /// When set, this function is executed from the [DartdevCommand] constructor to
@@ -23,6 +27,8 @@ bool isDiagnostics = false;
 void Function(ArgParser argParser, String cmdName)? flagContributor;
 
 abstract class DartdevCommand extends Command<int> {
+  static const errorExitCode = 65;
+
   final String _name;
   final String _description;
   final bool _verbose;
@@ -144,6 +150,8 @@ class Project {
 
   bool get hasPubspecFile =>
       FileSystemEntity.isFileSync(path.join(dir.path, 'pubspec.yaml'));
+
+  File get pubspecFile => File(path.join(dir.path, 'pubspec.yaml'));
 
   bool get hasPackageConfigFile => packageConfig != null;
 

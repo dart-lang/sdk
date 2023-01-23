@@ -182,6 +182,7 @@ class Foo {
       Keyword.SHOW,
       Keyword.SOURCE,
       Keyword.SYNC,
+      Keyword.WHEN,
       Keyword.YIELD,
     ]);
     for (Keyword keyword in Keyword.values) {

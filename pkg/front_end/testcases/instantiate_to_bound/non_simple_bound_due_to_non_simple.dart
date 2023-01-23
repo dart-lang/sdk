@@ -15,4 +15,12 @@ class C<TypeV extends B> {}
 
 C c = throw '';
 
+extension D<TypeU extends A> on int {}
+
+extension E<TypeV extends B> on int {}
+
+typedef F<TypeU extends A> = int;
+
+typedef G<TypeV extends B> = int;
+
 main() {}

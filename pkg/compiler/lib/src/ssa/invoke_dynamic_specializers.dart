@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import '../common/elements.dart' show JCommonElements;
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
@@ -11,8 +9,8 @@ import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../universe/selector.dart';
-import '../world.dart' show JClosedWorld;
 import 'logging.dart';
 import 'nodes.dart';
 import 'types.dart';
@@ -30,13 +28,13 @@ class InvokeDynamicSpecializer {
         instruction.selector, instruction.receiverType, results);
   }
 
-  HInstruction tryConvertToBuiltin(
+  HInstruction? tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
       GlobalTypeInferenceResults results,
       JCommonElements commonElements,
       JClosedWorld closedWorld,
-      OptimizationTestLog log) {
+      OptimizationTestLog? log) {
     return null;
   }
 
@@ -51,10 +49,11 @@ class InvokeDynamicSpecializer {
     Selector selector = instruction.selector;
     if (selector.name == name) return;
     instruction.selector = Selector.call(
-        Name(name, commonElements.interceptorsLibrary), selector.callStructure);
+        Name(name, commonElements.interceptorsLibrary!.canonicalUri),
+        selector.callStructure);
   }
 
-  constant_system.Operation operation() => null;
+  constant_system.Operation? operation() => null;
 
   static InvokeDynamicSpecializer lookupSpecializer(Selector selector) {
     if (selector.isIndex) return const IndexSpecializer();
@@ -124,8 +123,9 @@ class InvokeDynamicSpecializer {
       HInstruction array,
       HInstruction indexArgument,
       JClosedWorld closedWorld,
-      OptimizationTestLog log) {
+      OptimizationTestLog? log) {
     final abstractValueDomain = closedWorld.abstractValueDomain;
+    final block = indexerNode.block!;
 
     if (abstractValueDomain.isNull(array.instructionType).isPotentiallyTrue) {
       HNullCheck check = HNullCheck(
@@ -133,7 +133,7 @@ class InvokeDynamicSpecializer {
         ..selector = indexerNode.selector
         ..sourceInformation = indexerNode.sourceInformation;
       log?.registerNullCheck(indexerNode, check);
-      indexerNode.block.addBefore(indexerNode, check);
+      block.addBefore(indexerNode, check);
       array = check;
     }
 
@@ -141,7 +141,7 @@ class InvokeDynamicSpecializer {
         isAssignable: abstractValueDomain
             .isFixedLengthJsIndexable(array.instructionType)
             .isPotentiallyFalse);
-    indexerNode.block.addBefore(indexerNode, length);
+    block.addBefore(indexerNode, length);
 
     AbstractValue type =
         indexArgument.isPositiveInteger(abstractValueDomain).isDefinitelyTrue
@@ -149,7 +149,7 @@ class InvokeDynamicSpecializer {
             : abstractValueDomain.positiveIntType;
     HBoundsCheck check = HBoundsCheck(indexArgument, length, array, type)
       ..sourceInformation = indexerNode.sourceInformation;
-    indexerNode.block.addBefore(indexerNode, check);
+    block.addBefore(indexerNode, check);
     // TODO(sra): This should be useful but causes some crashes. Figure out why:
     //     indexArgument.replaceAllUsersDominatedBy(indexerNode, check);
     return check;
@@ -181,7 +181,8 @@ bool canBeNegativeZero(HInstruction input) {
     return canBeNegativeZero(input.left) && canBePositiveZero(input.right);
   }
   if (input is HPhi) {
-    if (input.inputs.any((phiInput) => phiInput.block.id >= input.block.id)) {
+    final inputBlockId = input.block!.id;
+    if (input.inputs.any((phiInput) => phiInput.block!.id >= inputBlockId)) {
       return true; // Assume back-edge may be negative zero.
     }
     return input.inputs.any(canBeNegativeZero);
@@ -193,13 +194,13 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
   const IndexAssignSpecializer();
 
   @override
-  HInstruction tryConvertToBuiltin(
+  HInstruction? tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
       GlobalTypeInferenceResults results,
       JCommonElements commonElements,
       JClosedWorld closedWorld,
-      OptimizationTestLog log) {
+      OptimizationTestLog? log) {
     HInstruction receiver = instruction.inputs[1];
     HInstruction index = instruction.inputs[2];
     if (receiver
@@ -251,7 +252,7 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
     // Handle typed arrays by recognizing the exact implementation of `[]=` and
     // checking if [value] has the appropriate type.
     if (instruction.element != null) {
-      ClassEntity cls = instruction.element.enclosingClass;
+      ClassEntity? cls = instruction.element!.enclosingClass;
       if (cls == commonElements.typedArrayOfIntClass) {
         return value
             .isInteger(closedWorld.abstractValueDomain)
@@ -282,13 +283,13 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
   }
 
   @override
-  HInstruction tryConvertToBuiltin(
+  HInstruction? tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
       GlobalTypeInferenceResults results,
       JCommonElements commonElements,
       JClosedWorld closedWorld,
-      OptimizationTestLog log) {
+      OptimizationTestLog? log) {
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
     var abstractValueDomain = closedWorld.abstractValueDomain;
     if (receiver.isIndexablePrimitive(abstractValueDomain).isPotentiallyFalse) {
@@ -325,13 +326,13 @@ class RemoveLastSpecializer extends InvokeDynamicSpecializer {
   const RemoveLastSpecializer();
 
   @override
-  HInstruction tryConvertToBuiltin(
+  HInstruction? tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
       GlobalTypeInferenceResults results,
       JCommonElements commonElements,
       JClosedWorld closedWorld,
-      OptimizationTestLog log) {
+      OptimizationTestLog? log) {
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
     final abstractValueDomain = closedWorld.abstractValueDomain;
     if (receiver.isExtendableArray(abstractValueDomain).isPotentiallyFalse) {
@@ -387,13 +388,13 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
   }
 
   @override
-  HInstruction tryConvertToBuiltin(
+  HInstruction? tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
       GlobalTypeInferenceResults results,
       JCommonElements commonElements,
       JClosedWorld closedWorld,
-      OptimizationTestLog log) {
+      OptimizationTestLog? log) {
     HInstruction input = instruction.inputs[1];
     if (input.isNumber(closedWorld.abstractValueDomain).isDefinitelyTrue) {
       HBitNot converted = HBitNot(
@@ -433,13 +434,13 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
   }
 
   @override
-  HInstruction tryConvertToBuiltin(
+  HInstruction? tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
       GlobalTypeInferenceResults results,
       JCommonElements commonElements,
       JClosedWorld closedWorld,
-      OptimizationTestLog log) {
+      OptimizationTestLog? log) {
     HInstruction input = instruction.inputs[1];
     if (input.isNumber(closedWorld.abstractValueDomain).isDefinitelyTrue) {
       HNegate converted = HNegate(
@@ -472,13 +473,13 @@ class AbsSpecializer extends InvokeDynamicSpecializer {
   }
 
   @override
-  HInstruction tryConvertToBuiltin(
+  HInstruction? tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
       GlobalTypeInferenceResults results,
       JCommonElements commonElements,
       JClosedWorld closedWorld,
-      OptimizationTestLog log) {
+      OptimizationTestLog? log) {
     HInstruction input = instruction.inputs[1];
     if (input.isNumber(closedWorld.abstractValueDomain).isDefinitelyTrue) {
       HAbs converted = HAbs(
@@ -489,8 +490,8 @@ class AbsSpecializer extends InvokeDynamicSpecializer {
     return null;
   }
 
-  void registerOptimization(
-      OptimizationTestLog log, HInstruction original, HInstruction converted) {}
+  void registerOptimization(OptimizationTestLog log, HInvokeDynamic original,
+      HInstruction converted) {}
 }
 
 abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
@@ -525,15 +526,15 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
   }
 
   @override
-  HInstruction tryConvertToBuiltin(
+  HInstruction? tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
       GlobalTypeInferenceResults results,
       JCommonElements commonElements,
       JClosedWorld closedWorld,
-      OptimizationTestLog log) {
+      OptimizationTestLog? log) {
     if (isBuiltin(instruction, closedWorld)) {
-      HInstruction builtin =
+      HInstruction? builtin =
           newBuiltinVariant(instruction, results, closedWorld);
       if (log != null) {
         registerOptimization(log, instruction, builtin);
@@ -577,11 +578,11 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
         right.isUInt31(closedWorld.abstractValueDomain).isDefinitelyTrue;
   }
 
-  HInstruction newBuiltinVariant(HInvokeDynamic instruction,
+  HInstruction? newBuiltinVariant(HInvokeDynamic instruction,
       GlobalTypeInferenceResults results, JClosedWorld closedWorld);
 
-  void registerOptimization(
-      OptimizationTestLog log, HInstruction original, HInstruction converted);
+  void registerOptimization(OptimizationTestLog log, HInvokeDynamic original,
+      HInstruction? converted);
 }
 
 class AddSpecializer extends BinaryArithmeticSpecializer {
@@ -612,8 +613,8 @@ class AddSpecializer extends BinaryArithmeticSpecializer {
   }
 
   @override
-  void registerOptimization(
-      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+  void registerOptimization(OptimizationTestLog log, HInvokeDynamic original,
+      HInstruction? converted) {
     log.registerAdd(original, converted);
   }
 }
@@ -627,7 +628,7 @@ class DivideSpecializer extends BinaryArithmeticSpecializer {
   }
 
   @override
-  AbstractValue computeTypeFromInputTypes(HInstruction instruction,
+  AbstractValue computeTypeFromInputTypes(HInvokeDynamic instruction,
       GlobalTypeInferenceResults results, JClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
     if (left.isNumberOrNull(closedWorld.abstractValueDomain).isDefinitelyTrue) {
@@ -644,8 +645,8 @@ class DivideSpecializer extends BinaryArithmeticSpecializer {
   }
 
   @override
-  void registerOptimization(
-      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+  void registerOptimization(OptimizationTestLog log, HInvokeDynamic original,
+      HInstruction? converted) {
     log.registerDivide(original, converted);
   }
 }
@@ -668,7 +669,7 @@ class ModuloSpecializer extends BinaryArithmeticSpecializer {
   }
 
   @override
-  HInstruction newBuiltinVariant(HInvokeDynamic instruction,
+  HInstruction? newBuiltinVariant(HInvokeDynamic instruction,
       GlobalTypeInferenceResults results, JClosedWorld closedWorld) {
     // Modulo cannot be mapped to the native operator (different semantics).
 
@@ -696,8 +697,8 @@ class ModuloSpecializer extends BinaryArithmeticSpecializer {
   }
 
   @override
-  void registerOptimization(
-      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+  void registerOptimization(OptimizationTestLog log, HInvokeDynamic original,
+      HInstruction? converted) {
     log.registerModulo(original, converted);
   }
 }
@@ -727,8 +728,8 @@ class RemainderSpecializer extends BinaryArithmeticSpecializer {
   }
 
   @override
-  void registerOptimization(
-      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+  void registerOptimization(OptimizationTestLog log, HInvokeDynamic original,
+      HInstruction? converted) {
     log.registerRemainder(original, converted);
   }
 }
@@ -758,8 +759,8 @@ class MultiplySpecializer extends BinaryArithmeticSpecializer {
   }
 
   @override
-  void registerOptimization(
-      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+  void registerOptimization(OptimizationTestLog log, HInvokeDynamic original,
+      HInstruction? converted) {
     log.registerMultiply(original, converted);
   }
 }
@@ -780,8 +781,8 @@ class SubtractSpecializer extends BinaryArithmeticSpecializer {
   }
 
   @override
-  void registerOptimization(
-      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+  void registerOptimization(OptimizationTestLog log, HInvokeDynamic original,
+      HInstruction? converted) {
     log.registerSubtract(original, converted);
   }
 }
@@ -810,19 +811,23 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
   }
 
   bool isNotZero(HInstruction instruction) {
-    if (!instruction.isConstantInteger()) return false;
-    HConstant rightConstant = instruction;
-    IntConstantValue intConstant = rightConstant.constant;
-    BigInt count = intConstant.intValue;
-    return count != BigInt.zero;
+    if (instruction is HConstant) {
+      ConstantValue constant = instruction.constant;
+      if (constant is IntConstantValue) {
+        return constant.intValue != BigInt.zero;
+      }
+    }
+    return false;
   }
 
   bool isTwoOrGreater(HInstruction instruction) {
-    if (!instruction.isConstantInteger()) return false;
-    HConstant rightConstant = instruction;
-    IntConstantValue intConstant = rightConstant.constant;
-    BigInt count = intConstant.intValue;
-    return count >= BigInt.two;
+    if (instruction is HConstant) {
+      ConstantValue constant = instruction.constant;
+      if (constant is IntConstantValue) {
+        return constant.intValue >= BigInt.two;
+      }
+    }
+    return false;
   }
 
   bool hasUint31Result(HInstruction instruction, JClosedWorld closedWorld) {
@@ -844,13 +849,13 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
   }
 
   @override
-  HInstruction tryConvertToBuiltin(
+  HInstruction? tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
       GlobalTypeInferenceResults results,
       JCommonElements commonElements,
       JClosedWorld closedWorld,
-      OptimizationTestLog log) {
+      OptimizationTestLog? log) {
     HInstruction right = instruction.inputs[2];
     if (isBuiltin(instruction, closedWorld)) {
       if (right
@@ -885,8 +890,8 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
   }
 
   @override
-  void registerOptimization(
-      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+  void registerOptimization(OptimizationTestLog log, HInvokeDynamic original,
+      HInstruction? converted) {
     log.registerTruncatingDivide(original, converted);
   }
 }
@@ -911,12 +916,13 @@ abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
   }
 
   bool argumentInRange(HInstruction instruction, int low, int high) {
-    if (instruction.isConstantInteger()) {
-      HConstant rightConstant = instruction;
-      IntConstantValue intConstant = rightConstant.constant;
-      int value = intConstant.intValue.toInt();
-      assert(intConstant.intValue == BigInt.from(intConstant.intValue.toInt()));
-      return value >= low && value <= high;
+    if (instruction is HConstant) {
+      ConstantValue constant = instruction.constant;
+      if (constant is IntConstantValue) {
+        int value = constant.intValue.toInt();
+        assert(constant.intValue == BigInt.from(constant.intValue.toInt()));
+        return value >= low && value <= high;
+      }
     }
     // TODO(sra): Integrate with the bit-width analysis in codegen.dart.
     if (instruction is HBitAnd) {
@@ -945,13 +951,13 @@ class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
   }
 
   @override
-  HInstruction tryConvertToBuiltin(
+  HInstruction? tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
       GlobalTypeInferenceResults results,
       JCommonElements commonElements,
       JClosedWorld closedWorld,
-      OptimizationTestLog log) {
+      OptimizationTestLog? log) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
     if (left.isNumber(closedWorld.abstractValueDomain).isDefinitelyTrue) {
@@ -985,8 +991,8 @@ class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
   }
 
   @override
-  void registerOptimization(
-      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+  void registerOptimization(OptimizationTestLog log, HInvokeDynamic original,
+      HInstruction? converted) {
     log.registerShiftLeft(original, converted);
   }
 }
@@ -1005,13 +1011,13 @@ class ShiftRightSpecializer extends BinaryBitOpSpecializer {
   }
 
   @override
-  HInstruction tryConvertToBuiltin(
+  HInstruction? tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
       GlobalTypeInferenceResults results,
       JCommonElements commonElements,
       JClosedWorld closedWorld,
-      OptimizationTestLog log) {
+      OptimizationTestLog? log) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
     if (left.isNumber(closedWorld.abstractValueDomain).isDefinitelyTrue) {
@@ -1061,8 +1067,8 @@ class ShiftRightSpecializer extends BinaryBitOpSpecializer {
   }
 
   @override
-  void registerOptimization(
-      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+  void registerOptimization(OptimizationTestLog log, HInvokeDynamic original,
+      HInstruction? converted) {
     log.registerShiftRight(original, converted);
   }
 }
@@ -1081,13 +1087,13 @@ class ShiftRightUnsignedSpecializer extends BinaryBitOpSpecializer {
   }
 
   @override
-  HInstruction tryConvertToBuiltin(
+  HInstruction? tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
       GlobalTypeInferenceResults results,
       JCommonElements commonElements,
       JClosedWorld closedWorld,
-      OptimizationTestLog log) {
+      OptimizationTestLog? log) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
     if (left.isInteger(closedWorld.abstractValueDomain).isDefinitelyTrue) {
@@ -1126,8 +1132,8 @@ class ShiftRightUnsignedSpecializer extends BinaryBitOpSpecializer {
   }
 
   @override
-  void registerOptimization(
-      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+  void registerOptimization(OptimizationTestLog log, HInvokeDynamic original,
+      HInstruction? converted) {
     log.registerShiftRightUnsigned(original, converted);
   }
 }
@@ -1160,8 +1166,8 @@ class BitOrSpecializer extends BinaryBitOpSpecializer {
   }
 
   @override
-  void registerOptimization(
-      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+  void registerOptimization(OptimizationTestLog log, HInvokeDynamic original,
+      HInstruction? converted) {
     log.registerBitOr(original, converted);
   }
 }
@@ -1197,8 +1203,8 @@ class BitAndSpecializer extends BinaryBitOpSpecializer {
   }
 
   @override
-  void registerOptimization(
-      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+  void registerOptimization(OptimizationTestLog log, HInvokeDynamic original,
+      HInstruction? converted) {
     log.registerBitAnd(original, converted);
   }
 }
@@ -1231,8 +1237,8 @@ class BitXorSpecializer extends BinaryBitOpSpecializer {
   }
 
   @override
-  void registerOptimization(
-      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+  void registerOptimization(OptimizationTestLog log, HInvokeDynamic original,
+      HInstruction? converted) {
     log.registerBitXor(original, converted);
   }
 }
@@ -1252,13 +1258,13 @@ abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
   }
 
   @override
-  HInstruction tryConvertToBuiltin(
+  HInstruction? tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
       GlobalTypeInferenceResults results,
       JCommonElements commonElements,
       JClosedWorld closedWorld,
-      OptimizationTestLog log) {
+      OptimizationTestLog? log) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
     if (left.isNumber(closedWorld.abstractValueDomain).isDefinitelyTrue &&
@@ -1276,20 +1282,20 @@ abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
       HInvokeDynamic instruction, JClosedWorld closedWorld);
 
   void registerOptimization(
-      OptimizationTestLog log, HInstruction original, HInstruction converted);
+      OptimizationTestLog log, HInvokeDynamic original, HInstruction converted);
 }
 
 class EqualsSpecializer extends RelationalSpecializer {
   const EqualsSpecializer();
 
   @override
-  HInstruction tryConvertToBuiltin(
+  HInstruction? tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
       GlobalTypeInferenceResults results,
       JCommonElements commonElements,
       JClosedWorld closedWorld,
-      OptimizationTestLog log) {
+      OptimizationTestLog? log) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
     AbstractValue instructionType = left.instructionType;
@@ -1336,8 +1342,8 @@ class EqualsSpecializer extends RelationalSpecializer {
   }
 
   @override
-  void registerOptimization(
-      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+  void registerOptimization(OptimizationTestLog log, HInvokeDynamic original,
+      HInstruction converted) {
     log.registerEquals(original, converted);
   }
 }
@@ -1358,8 +1364,8 @@ class LessSpecializer extends RelationalSpecializer {
   }
 
   @override
-  void registerOptimization(
-      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+  void registerOptimization(OptimizationTestLog log, HInvokeDynamic original,
+      HInstruction converted) {
     log.registerLess(original, converted);
   }
 }
@@ -1380,8 +1386,8 @@ class GreaterSpecializer extends RelationalSpecializer {
   }
 
   @override
-  void registerOptimization(
-      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+  void registerOptimization(OptimizationTestLog log, HInvokeDynamic original,
+      HInstruction converted) {
     log.registerGreater(original, converted);
   }
 }
@@ -1402,8 +1408,8 @@ class GreaterEqualSpecializer extends RelationalSpecializer {
   }
 
   @override
-  void registerOptimization(
-      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+  void registerOptimization(OptimizationTestLog log, HInvokeDynamic original,
+      HInstruction converted) {
     log.registerGreaterEqual(original, converted);
   }
 }
@@ -1424,8 +1430,8 @@ class LessEqualSpecializer extends RelationalSpecializer {
   }
 
   @override
-  void registerOptimization(
-      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+  void registerOptimization(OptimizationTestLog log, HInvokeDynamic original,
+      HInstruction converted) {
     log.registerLessEqual(original, converted);
   }
 }
@@ -1439,13 +1445,13 @@ class CodeUnitAtSpecializer extends InvokeDynamicSpecializer {
   }
 
   @override
-  HInstruction tryConvertToBuiltin(
+  HInstruction? tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
       GlobalTypeInferenceResults results,
       JCommonElements commonElements,
       JClosedWorld closedWorld,
-      OptimizationTestLog log) {
+      OptimizationTestLog? log) {
     // TODO(sra): Implement a builtin HCodeUnitAt instruction and the same index
     // bounds checking optimizations as for HIndex.
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
@@ -1471,13 +1477,13 @@ class CompareToSpecializer extends InvokeDynamicSpecializer {
   const CompareToSpecializer();
 
   @override
-  HInstruction tryConvertToBuiltin(
+  HInstruction? tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
       GlobalTypeInferenceResults results,
       JCommonElements commonElements,
       JClosedWorld closedWorld,
-      OptimizationTestLog log) {
+      OptimizationTestLog? log) {
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
     // `compareTo` has no side-effect (other than throwing) and can be GVN'ed
     // for some known types.
@@ -1503,7 +1509,7 @@ class CompareToSpecializer extends InvokeDynamicSpecializer {
                   .isString(closedWorld.abstractValueDomain)
                   .isDefinitelyTrue)) {
         if (identical(receiver.nonCheck(), argument.nonCheck())) {
-          HInstruction converted = graph.addConstantInt(0, closedWorld);
+          final converted = graph.addConstantInt(0, closedWorld);
           log?.registerCompareTo(instruction, converted);
           return converted;
         }
@@ -1520,13 +1526,13 @@ abstract class IdempotentStringOperationSpecializer
   const IdempotentStringOperationSpecializer();
 
   @override
-  HInstruction tryConvertToBuiltin(
+  HInstruction? tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
       GlobalTypeInferenceResults results,
       JCommonElements commonElements,
       JClosedWorld closedWorld,
-      OptimizationTestLog log) {
+      OptimizationTestLog? log) {
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
     if (receiver
         .isStringOrNull(closedWorld.abstractValueDomain)
@@ -1541,14 +1547,14 @@ abstract class IdempotentStringOperationSpecializer
     return null;
   }
 
-  void registerOptimization(OptimizationTestLog log, HInstruction original);
+  void registerOptimization(OptimizationTestLog log, HInvokeDynamic original);
 }
 
 class SubstringSpecializer extends IdempotentStringOperationSpecializer {
   const SubstringSpecializer();
 
   @override
-  void registerOptimization(OptimizationTestLog log, HInstruction original) {
+  void registerOptimization(OptimizationTestLog log, HInvokeDynamic original) {
     log.registerSubstring(original);
   }
 }
@@ -1557,7 +1563,7 @@ class TrimSpecializer extends IdempotentStringOperationSpecializer {
   const TrimSpecializer();
 
   @override
-  void registerOptimization(OptimizationTestLog log, HInstruction original) {
+  void registerOptimization(OptimizationTestLog log, HInvokeDynamic original) {
     log.registerTrim(original);
   }
 }
@@ -1566,13 +1572,13 @@ class PatternMatchSpecializer extends InvokeDynamicSpecializer {
   const PatternMatchSpecializer();
 
   @override
-  HInstruction tryConvertToBuiltin(
+  HInstruction? tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
       GlobalTypeInferenceResults results,
       JCommonElements commonElements,
       JClosedWorld closedWorld,
-      OptimizationTestLog log) {
+      OptimizationTestLog? log) {
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
     HInstruction pattern = instruction.inputs[2];
     if (receiver
@@ -1597,13 +1603,13 @@ class RoundSpecializer extends InvokeDynamicSpecializer {
   constant_system.UnaryOperation operation() => constant_system.round;
 
   @override
-  HInstruction tryConvertToBuiltin(
+  HInstruction? tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
       GlobalTypeInferenceResults results,
       JCommonElements commonElements,
       JClosedWorld closedWorld,
-      OptimizationTestLog log) {
+      OptimizationTestLog? log) {
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
     if (receiver
         .isNumberOrNull(closedWorld.abstractValueDomain)
@@ -1624,13 +1630,13 @@ class ToIntSpecializer extends InvokeDynamicSpecializer {
   constant_system.UnaryOperation operation() => constant_system.toInt;
 
   @override
-  HInstruction tryConvertToBuiltin(
+  HInstruction? tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
       GlobalTypeInferenceResults results,
       JCommonElements commonElements,
       JClosedWorld closedWorld,
-      OptimizationTestLog log) {
+      OptimizationTestLog? log) {
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
 
     // We would like to reduce `x.toInt()` to `x`. The web platform considers

@@ -9,3 +9,4 @@ environment:
 dev_dependencies:
   _fe_analyzer_shared: any
   expect: any
+  lints: any

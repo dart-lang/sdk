@@ -1,0 +1,15 @@
+NOTICE: Stream was rewritten by parser!
+
+void f() {
+final x = <(int, String)>[];
+List<(int, String)> y = [];
+Map<(int, String), (String, int)> z = {};
+List<(int, int) Function(bool) Function ((int, int) a)> y2 = [];
+}
+
+void[KeywordToken] f[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+final[KeywordToken] x[StringToken] =[SimpleToken] <[BeginToken]([BeginToken]int[StringToken],[SimpleToken] String[StringToken])[SimpleToken]>[SimpleToken][[BeginToken]][SimpleToken];[SimpleToken]
+List[StringToken]<[BeginToken]([BeginToken]int[StringToken],[SimpleToken] String[StringToken])[SimpleToken]>[SimpleToken] y[StringToken] =[SimpleToken] [[BeginToken]][SimpleToken];[SimpleToken]
+Map[StringToken]<[BeginToken]([BeginToken]int[StringToken],[SimpleToken] String[StringToken])[SimpleToken],[SimpleToken] ([BeginToken]String[StringToken],[SimpleToken] int[StringToken])[SimpleToken]>[SimpleToken] z[StringToken] =[SimpleToken] {[BeginToken]}[SimpleToken];[SimpleToken]
+List[StringToken]<[BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] Function[KeywordToken]([BeginToken]bool[StringToken])[SimpleToken] Function[KeywordToken] ([BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] a[StringToken])[SimpleToken]>[SimpleToken] y2[StringToken] =[SimpleToken] [[BeginToken]][SimpleToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

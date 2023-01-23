@@ -92,8 +92,10 @@ class FixBuilderTest extends EdgeBuilderTestBase {
           'addNames', unorderedEquals(['IterableExtension']));
 
   static final isRemoveNullAwareness =
-      TypeMatcher<NodeChangeForPropertyAccess>()
-          .having((c) => c.removeNullAwareness, 'removeNullAwareness', true);
+      TypeMatcher<NodeChangeForPropertyAccess>().having(
+          (c) => c.nullAwarenessRemoval != NullAwarenessRemovalType.none,
+          'removeNullAwareness',
+          true);
 
   static final isRemoveAs = TypeMatcher<NodeChangeForAsExpression>()
       .having((c) => c.removeAs, 'removeAs', true);
@@ -457,7 +459,6 @@ _f(_C/*?*/ c) => c['foo'] += 0;
         changes: {findNode.simple('c['): isNullCheck});
   }
 
-  @FailingTest(reason: 'TODO(paulberry): decide if this is worth caring about')
   Future<void>
       test_assignmentTarget_indexExpression_compound_simple_check_rhs() async {
     await analyze('''
@@ -483,7 +484,6 @@ _f(_C<int, String> c) => c['foo'] += 1;
     visitAssignmentTarget(findNode.index('c['), 'int', 'int');
   }
 
-  @FailingTest(reason: 'TODO(paulberry): decide if this is worth caring about')
   Future<void>
       test_assignmentTarget_indexExpression_compound_substituted_check_rhs() async {
     await analyze('''
@@ -3283,7 +3283,10 @@ int/*!*/ f(C/*!*/ c) => c?.i;
     visitSubexpression(propertyAccess, 'int', changes: {
       propertyAccess: TypeMatcher<NodeChangeForPropertyAccess>()
           .havingNullCheckWithInfo(isNotNull)
-          .having((c) => c.removeNullAwareness, 'removeNullAwareness', true)
+          .having(
+              (c) => c.nullAwarenessRemoval != NullAwarenessRemovalType.none,
+              'removeNullAwareness',
+              true)
     });
   }
 
@@ -3732,7 +3735,7 @@ void _f() {
 }
 ''');
     var intAnnotation = findNode.typeAnnotation('int');
-    visitTypeAnnotation((intAnnotation), 'int?',
+    visitTypeAnnotation(intAnnotation, 'int?',
         changes: {intAnnotation: isMakeNullable});
   }
 

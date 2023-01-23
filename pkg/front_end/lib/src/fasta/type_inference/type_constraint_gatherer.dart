@@ -57,7 +57,7 @@ abstract class TypeConstraintGatherer {
     }
   }
 
-  Member? getInterfaceMember(Class class_, Name name, {bool setter: false});
+  Member? getInterfaceMember(Class class_, Name name, {bool setter = false});
 
   InterfaceType? getTypeAsInstanceOf(InterfaceType type, Class superclass,
       Library clientLibrary, CoreTypes coreTypes);
@@ -834,6 +834,45 @@ abstract class TypeConstraintGatherer {
       _protoConstraints.length = baseConstraintCount;
     }
 
+    // A type P is a subtype match for Record with respect to L under no
+    // constraints:
+    //
+    // If P is a record type or Record.
+    if (q == coreTypes.recordNonNullableRawType && p is RecordType) {
+      return true;
+    }
+
+    // A record type `(M0,..., Mk, {M{k+1} d{k+1}, ..., Mm dm])` is a subtype
+    // match for a record type `(N0,..., Nk, {N{k+1} d{k+1}, ..., Nm dm])` with
+    // respect to `L` under constraints `C0 + ... + Cm`
+    // If for `i` in `0...m`, `Mi` is a subtype match for `Ni` with respect to
+    // `L` under constraints `Ci`.
+    if (p is RecordType &&
+        q is RecordType &&
+        p.positional.length == q.positional.length &&
+        p.named.length == q.named.length) {
+      bool sameNames = true;
+      for (int i = 0; sameNames && i < p.named.length; i++) {
+        if (p.named[i] != p.named[i]) {
+          sameNames = false;
+        }
+      }
+      if (sameNames) {
+        bool isMatch = true;
+        for (int i = 0; isMatch && i < p.positional.length; i++) {
+          isMatch = isMatch &&
+              _isNullabilityAwareSubtypeMatch(p.positional[i], q.positional[i],
+                  constrainSupertype: constrainSupertype);
+        }
+        for (int i = 0; isMatch && i < p.named.length; i++) {
+          isMatch = isMatch &&
+              _isNullabilityAwareSubtypeMatch(p.named[i].type, q.named[i].type,
+                  constrainSupertype: constrainSupertype);
+        }
+        if (isMatch) return true;
+      }
+    }
+
     return false;
   }
 
@@ -1068,7 +1107,7 @@ class TypeSchemaConstraintGatherer extends TypeConstraintGatherer {
   }
 
   @override
-  Member? getInterfaceMember(Class class_, Name name, {bool setter: false}) {
+  Member? getInterfaceMember(Class class_, Name name, {bool setter = false}) {
     return environment.hierarchy
         .getInterfaceMember(class_, name, setter: setter);
   }

@@ -23,15 +23,11 @@ void main(List<String> args) {
     platform('runtime/observatory'),
     platform('runtime/observatory/tests/service/observatory_test_package'),
     platform('runtime/observatory_2'),
+    platform('runtime/tools/heapsnapshot'),
     platform('sdk/lib/_internal/sdk_library_metadata'),
     platform('third_party/devtools/devtools_shared'),
-    // Explicitly add package:file (shadowed by //pubspec.yaml).
-    platform('third_party/pkg/file/packages/file'),
     platform('tools/package_deps'),
   ];
-
-  // Remove the package at the top-level of the package:file monorepo.
-  packageDirs.remove(platform('third_party/pkg/file'));
 
   var cfePackageDirs = [
     platform('pkg/front_end/testcases'),
@@ -49,12 +45,17 @@ void main(List<String> args) {
     platform('pkg/_fe_analyzer_shared/test/inheritance'),
   ];
 
+  var pkgVmPackageDirs = [
+    platform('pkg/vm/testcases'),
+  ];
+
   // Validate that all the given directories exist.
   var hasMissingDirectories = false;
   for (var path in [
     ...packageDirs,
     ...cfePackageDirs,
-    ...feAnalyzerSharedPackageDirs
+    ...feAnalyzerSharedPackageDirs,
+    ...pkgVmPackageDirs
   ]) {
     if (!Directory(join(repoRoot, path)).existsSync()) {
       stderr.writeln("Unable to locate directory: '$path'.");
@@ -69,7 +70,8 @@ void main(List<String> args) {
   var packages = <Package>[
     ...makePackageConfigs(packageDirs),
     ...makeCfePackageConfigs(cfePackageDirs),
-    ...makeFeAnalyzerSharedPackageConfigs(feAnalyzerSharedPackageDirs)
+    ...makeFeAnalyzerSharedPackageConfigs(feAnalyzerSharedPackageDirs),
+    ...makePkgVmPackageConfigs(pkgVmPackageDirs),
   ];
   packages.sort((a, b) => a.name.compareTo(b.name));
 
@@ -138,13 +140,13 @@ Iterable<Package> makePackageConfigs(List<String> packageDirs) sync* {
   }
 }
 
-/// Generates package configurations for the special pseudo-packages used by the
-/// CFE unit tests (`pkg/front_end/test/unit_test_suites.dart`).
-Iterable<Package> makeCfePackageConfigs(List<String> packageDirs) sync* {
+/// Generates package configurations for the special pseudo-packages.
+Iterable<Package> makeSpecialPackageConfigs(
+    String packageNamePrefix, List<String> packageDirs) sync* {
   // TODO: Remove the use of '.nonexisting/'.
   for (var packageDir in packageDirs) {
     yield Package(
-      name: 'front_end_${basename(packageDir)}',
+      name: '${packageNamePrefix}_${basename(packageDir)}',
       rootUri: packageDir,
       packageUri: '.nonexisting/',
     );
@@ -152,18 +154,20 @@ Iterable<Package> makeCfePackageConfigs(List<String> packageDirs) sync* {
 }
 
 /// Generates package configurations for the special pseudo-packages used by the
+/// CFE unit tests (`pkg/front_end/test/unit_test_suites.dart`).
+Iterable<Package> makeCfePackageConfigs(List<String> packageDirs) =>
+    makeSpecialPackageConfigs('front_end', packageDirs);
+
+/// Generates package configurations for the special pseudo-packages used by the
 /// _fe_analyzer_shared id tests.
 Iterable<Package> makeFeAnalyzerSharedPackageConfigs(
-    List<String> packageDirs) sync* {
-  // TODO: Remove the use of '.nonexisting/'.
-  for (var packageDir in packageDirs) {
-    yield Package(
-      name: '_fe_analyzer_shared_${basename(packageDir)}',
-      rootUri: packageDir,
-      packageUri: '.nonexisting/',
-    );
-  }
-}
+        List<String> packageDirs) =>
+    makeSpecialPackageConfigs('_fe_analyzer_shared', packageDirs);
+
+/// Generates package configurations for the special pseudo-packages used by the
+/// pkg/vm unit tests (`pkg/vm/test`).
+Iterable<Package> makePkgVmPackageConfigs(List<String> packageDirs) =>
+    makeSpecialPackageConfigs('pkg_vm', packageDirs);
 
 /// Finds the paths of the subdirectories of [dirPath] that contain pubspecs.
 ///

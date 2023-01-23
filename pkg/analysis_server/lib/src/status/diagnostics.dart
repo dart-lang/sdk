@@ -9,8 +9,8 @@ import 'package:analysis_server/protocol/protocol_constants.dart'
     show PROTOCOL_VERSION;
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/analytics/noop_analytics.dart';
+import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart'
     show LspAnalysisServer;
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
@@ -516,8 +516,12 @@ class ContextsPage extends DiagnosticPageWithNav {
 
     h3('Pub files');
     buf.writeln('<p>');
+
+    var packageConfig = folder
+        .getChildAssumingFolder(file_paths.dotDartTool)
+        .getChildAssumingFile(file_paths.packageConfigJson);
     buf.writeln(
-        writeOption('Has .packages file', folder.getChild('.packages').exists));
+        writeOption('Has package_config.json file', packageConfig.exists));
     buf.writeln(writeOption('Has pubspec.yaml file',
         folder.getChild(file_paths.pubspecYaml).exists));
     buf.writeln('</p>');
@@ -646,7 +650,7 @@ abstract class DiagnosticPage extends Page {
 
   bool get isNavPage => false;
 
-  AbstractAnalysisServer get server => site.socketServer.analysisServer!;
+  AnalysisServer get server => site.socketServer.analysisServer!;
 
   Future<void> generateContainer(Map<String, String> params) async {
     buf.writeln('<div class="columns docs-layout">');
@@ -786,7 +790,7 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
       pages.add(PluginsPage(this, server));
     }
     pages.add(CompletionPage(this));
-    if (server is AnalysisServer) {
+    if (server is LegacyAnalysisServer) {
       pages.add(SubscriptionsPage(this, server));
     } else if (server is LspAnalysisServer) {
       pages.add(LspCapabilitiesPage(this, server));
@@ -1102,7 +1106,7 @@ class NotFoundPage extends DiagnosticPage {
 
 class PluginsPage extends DiagnosticPageWithNav {
   @override
-  AbstractAnalysisServer server;
+  AnalysisServer server;
 
   PluginsPage(DiagnosticsSite site, this.server)
       : super(site, 'plugins', 'Plugins', description: 'Plugins in use.');
@@ -1229,7 +1233,7 @@ class StatusPage extends DiagnosticPageWithNav {
 
 class SubscriptionsPage extends DiagnosticPageWithNav {
   @override
-  AnalysisServer server;
+  LegacyAnalysisServer server;
 
   SubscriptionsPage(DiagnosticsSite site, this.server)
       : super(site, 'subscriptions', 'Subscriptions',

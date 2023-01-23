@@ -74,4 +74,4 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///simple_proper_rename_identity.dart:
 - StaticIdentityTest. (from org-dartlang-testcase:///simple_proper_rename_identity.dart:26:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

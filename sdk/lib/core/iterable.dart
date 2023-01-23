@@ -778,7 +778,8 @@ abstract class Iterable<E> {
       if (index == elementIndex) return element;
       elementIndex++;
     }
-    throw RangeError.index(index, this, "index", null, elementIndex);
+    throw IndexError.withLength(index, elementIndex,
+        indexable: this, name: "index");
   }
 
   /// Returns a string representation of (some of) the elements of `this`.
@@ -814,7 +815,7 @@ class _GeneratorIterable<E> extends ListIterable<E> {
         _generator = generator ?? (_id as E Function(int));
 
   E elementAt(int index) {
-    RangeError.checkValidIndex(index, this);
+    IndexError.check(index, length, indexable: this);
     return _generator(index);
   }
 

@@ -14,6 +14,7 @@ import 'declaration_builder.dart';
 import 'extension_builder.dart';
 import 'library_builder.dart';
 import 'modifier_builder.dart';
+import 'view_builder.dart';
 
 abstract class MemberBuilder implements ModifierBuilder {
   @override
@@ -115,6 +116,9 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
     } else if (parent is ExtensionBuilder) {
       ExtensionBuilder extension = parent as ExtensionBuilder;
       return extension.libraryBuilder;
+    } else if (parent is ViewBuilder) {
+      ViewBuilder view = parent as ViewBuilder;
+      return view.libraryBuilder;
     } else {
       ClassBuilder cls = parent as ClassBuilder;
       return cls.libraryBuilder;
@@ -138,6 +142,9 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
 
   @override
   bool get isExtensionMember => parent is ExtensionBuilder;
+
+  @override
+  bool get isViewMember => parent is ViewBuilder;
 
   @override
   bool get isTopLevel => !isDeclarationMember;

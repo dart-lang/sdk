@@ -118,7 +118,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
       assert(node is ir.Procedure || node is ir.Constructor);
       if (!(node is ir.Procedure && node.isRedirectingFactory)) {
         // Skip redirecting factories: they contain invalid expressions only
-        // used to suppport internal CFE modular compilation.
+        // used to support internal CFE modular compilation.
         node.accept(this);
       }
     }
@@ -215,6 +215,16 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
         const EvaluationComplexity.constant();
     for (int i = 0; i < nodes.length; i++) {
       nodes[i] = _handleExpression(nodes[i]);
+      combinedComplexity =
+          combinedComplexity.combine(_lastExpressionComplexity);
+    }
+    return combinedComplexity;
+  }
+
+  EvaluationComplexity visitNamedExpressions(
+      List<ir.NamedExpression> named, EvaluationComplexity combinedComplexity) {
+    for (int i = 0; i < named.length; i++) {
+      named[i].value = _handleExpression(named[i].value);
       combinedComplexity =
           combinedComplexity.combine(_lastExpressionComplexity);
     }
@@ -732,6 +742,12 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   }
 
   @override
+  EvaluationComplexity visitRecordType(ir.RecordType node) {
+    EvaluationComplexity complexity = visitNodes(node.positional);
+    return complexity.combine(visitNodes(node.named));
+  }
+
+  @override
   EvaluationComplexity visitFutureOrType(ir.FutureOrType node) {
     return visitNode(node.typeArgument);
   }
@@ -752,6 +768,12 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   @override
   EvaluationComplexity visitTypeParameterType(ir.TypeParameterType node) {
     _analyzeTypeVariable(node, _currentTypeUsage!);
+    return const EvaluationComplexity.lazy();
+  }
+
+  @override
+  EvaluationComplexity visitIntersectionType(ir.IntersectionType node) {
+    _analyzeTypeVariable(node.left, _currentTypeUsage!);
     return const EvaluationComplexity.lazy();
   }
 
@@ -864,9 +886,13 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
     complexity = complexity.combine(visitExpressions(node.expressions));
     if (node.isConst) {
       return const EvaluationComplexity.constant();
-    } else {
-      return complexity.makeEager();
     }
+    if (complexity.isLazy) return complexity;
+    // TODO(45681): Refine heuristic to count operations in the whole
+    // initializer. Lists are not expensive to eagerly initialize, but the could
+    // contain something expensive (e.g. a big list of many small maps would be
+    // slightly more expensive than a big map of similar size).
+    return complexity.makeEager();
   }
 
   @override
@@ -878,6 +904,8 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
       return const EvaluationComplexity.constant();
     }
     if (complexity.isLazy) return complexity;
+    // TODO(45681): Refine heuristic to count operations in whole initializer.
+    if (node.expressions.length > 10) return const EvaluationComplexity.lazy();
     if (node.expressions.every(_isWellBehavedEagerHashKey)) {
       // Includes empty set literals.
       return complexity.makeEager();
@@ -895,8 +923,9 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
     if (node.isConst) {
       return const EvaluationComplexity.constant();
     }
-    if (node.entries.length > 10) return const EvaluationComplexity.lazy();
     if (complexity.isLazy) return complexity;
+    // TODO(45681): Refine heuristic to count operations in whole initializer.
+    if (node.entries.length > 10) return const EvaluationComplexity.lazy();
     if (node.entries
         .map((entry) => entry.key)
         .every(_isWellBehavedEagerHashKey)) {
@@ -908,7 +937,8 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
 
   bool _isWellBehavedEagerHashKey(ir.Expression key) {
     // Well-behaved eager keys for LinkedHashMap and LinkedHashSet must not
-    // indirectly use any lazy-initialized variables.
+    // indirectly use any lazy-initialized variables, e.g. by calling a
+    // user-defined `get:hashCode` or `operator==`.
     //
     // TODO(45681): Improve the analysis. (1) Use static type of the [key]
     // expression. (2) Use information about the class heirarchy and overloading
@@ -932,6 +962,12 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
     EvaluationComplexity valueComplexity = _lastExpressionComplexity;
 
     return keyComplexity.combine(valueComplexity);
+  }
+
+  @override
+  EvaluationComplexity visitRecordLiteral(ir.RecordLiteral node) {
+    EvaluationComplexity complexity = visitExpressions(node.positional);
+    return visitNamedExpressions(node.named, complexity);
   }
 
   @override
@@ -1017,11 +1053,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   @override
   EvaluationComplexity visitArguments(ir.Arguments node) {
     EvaluationComplexity combinedComplexity = visitExpressions(node.positional);
-    for (int i = 0; i < node.named.length; i++) {
-      node.named[i].value = _handleExpression(node.named[i].value);
-      combinedComplexity =
-          combinedComplexity.combine(_lastExpressionComplexity);
-    }
+    combinedComplexity = visitNamedExpressions(node.named, combinedComplexity);
     return combinedComplexity;
   }
 

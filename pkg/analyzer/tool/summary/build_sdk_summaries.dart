@@ -47,12 +47,12 @@ Future<void> main(List<String> args) async {
 }
 
 /// The name of the SDK summaries builder application.
-const BINARY_NAME = "build_sdk_summaries";
+const binaryName = "build_sdk_summaries";
 
 Future<void> _buildSummary(String sdkPath, String outPath) async {
   print('Generating summary.');
   Stopwatch sw = Stopwatch()..start();
-  List<int> bytes = await buildSdkSummary2(
+  List<int> bytes = await buildSdkSummary(
     resourceProvider: PhysicalResourceProvider.INSTANCE,
     sdkPath: sdkPath,
   );
@@ -62,7 +62,7 @@ Future<void> _buildSummary(String sdkPath, String outPath) async {
 
 /// Print information about how to use the SDK summaries builder.
 void _printUsage() {
-  print('Usage: $BINARY_NAME command arguments');
+  print('Usage: $binaryName command arguments');
   print('Where command can be one of the following:');
   print('  build output_file [sdk_path]');
   print('    Generate summary file.');

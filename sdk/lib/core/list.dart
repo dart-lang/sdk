@@ -346,7 +346,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
     int targetLength = target.length;
     for (var element in source) {
       if (index == targetLength) {
-        throw IndexError(targetLength, target);
+        throw IndexError.withLength(index, targetLength, indexable: target);
       }
       target[index] = element;
       index++;

@@ -1,0 +1,17 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::int? f = null;
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+static method test(dynamic x) → dynamic {
+  #L1:
+  invalid-expression "PatternSwitchStatement(switch (x) {
+  case <dummy-pattern>?:
+    break label0;
+})";
+}

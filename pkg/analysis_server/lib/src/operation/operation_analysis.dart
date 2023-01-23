@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_closingLabels.dart';
 import 'package:analysis_server/src/computer/computer_folding.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/domains/analysis/implemented_dart.dart';
+import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -15,7 +15,7 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 Future<void> scheduleImplementedNotification(
-    AnalysisServer server, Iterable<String> files) async {
+    LegacyAnalysisServer server, Iterable<String> files) async {
   var searchEngine = server.searchEngine;
   for (var file in files) {
     var unit = server.getCachedResolvedUnit(file)?.unit;
@@ -37,7 +37,7 @@ Future<void> scheduleImplementedNotification(
   }
 }
 
-void sendAnalysisNotificationAnalyzedFiles(AnalysisServer server) {
+void sendAnalysisNotificationAnalyzedFiles(LegacyAnalysisServer server) {
   _sendNotification(server, () {
     var analyzedFiles = server.driverMap.values
         .map((driver) => driver.knownFiles)
@@ -62,8 +62,8 @@ void sendAnalysisNotificationAnalyzedFiles(AnalysisServer server) {
   });
 }
 
-void sendAnalysisNotificationClosingLabels(AnalysisServer server, String file,
-    LineInfo lineInfo, CompilationUnit dartUnit) {
+void sendAnalysisNotificationClosingLabels(LegacyAnalysisServer server,
+    String file, LineInfo lineInfo, CompilationUnit dartUnit) {
   _sendNotification(server, () {
     var labels = DartUnitClosingLabelsComputer(lineInfo, dartUnit).compute();
     var params = protocol.AnalysisClosingLabelsParams(file, labels);
@@ -72,7 +72,7 @@ void sendAnalysisNotificationClosingLabels(AnalysisServer server, String file,
 }
 
 void sendAnalysisNotificationFlushResults(
-    AnalysisServer server, List<String> files) {
+    LegacyAnalysisServer server, List<String> files) {
   _sendNotification(server, () {
     if (files.isNotEmpty) {
       var params = protocol.AnalysisFlushResultsParams(files);
@@ -81,7 +81,7 @@ void sendAnalysisNotificationFlushResults(
   });
 }
 
-void sendAnalysisNotificationFolding(AnalysisServer server, String file,
+void sendAnalysisNotificationFolding(LegacyAnalysisServer server, String file,
     LineInfo lineInfo, CompilationUnit dartUnit) {
   _sendNotification(server, () {
     var regions = DartUnitFoldingComputer(lineInfo, dartUnit).compute();
@@ -91,7 +91,7 @@ void sendAnalysisNotificationFolding(AnalysisServer server, String file,
 }
 
 void sendAnalysisNotificationOutline(
-    AnalysisServer server, ResolvedUnitResult resolvedUnit) {
+    LegacyAnalysisServer server, ResolvedUnitResult resolvedUnit) {
   _sendNotification(server, () {
     protocol.FileKind fileKind;
     var unit = resolvedUnit.unit;
@@ -119,7 +119,7 @@ void sendAnalysisNotificationOutline(
 }
 
 void sendAnalysisNotificationOverrides(
-    AnalysisServer server, String file, CompilationUnit dartUnit) {
+    LegacyAnalysisServer server, String file, CompilationUnit dartUnit) {
   _sendNotification(server, () {
     var overrides = DartUnitOverridesComputer(dartUnit).compute();
     var params = protocol.AnalysisOverridesParams(file, overrides);
@@ -130,7 +130,7 @@ void sendAnalysisNotificationOverrides(
 String? _computeLibraryName(CompilationUnit unit) {
   for (var directive in unit.directives) {
     if (directive is LibraryDirective) {
-      return directive.name.name;
+      return directive.name2?.name;
     }
   }
   for (var directive in unit.directives) {
@@ -145,7 +145,7 @@ String? _computeLibraryName(CompilationUnit unit) {
 }
 
 /// Runs the given notification producing function [f], catching exceptions.
-void _sendNotification(AnalysisServer server, Function() f) {
+void _sendNotification(LegacyAnalysisServer server, Function() f) {
   try {
     f();
   } catch (exception, stackTrace) {

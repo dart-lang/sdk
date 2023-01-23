@@ -11,7 +11,7 @@ class Ticker {
 
   late Duration previousTick;
 
-  Ticker({this.isVerbose: true}) {
+  Ticker({this.isVerbose = true}) {
     previousTick = sw.elapsed;
   }
 

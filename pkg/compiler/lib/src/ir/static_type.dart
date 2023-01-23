@@ -69,8 +69,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   ir.Library? _currentLibrary;
 
   StaticTypeVisitor(
-      ir.TypeEnvironment typeEnvironment, this.hierarchy, this._staticTypeCache)
-      : super(typeEnvironment);
+      super.typeEnvironment, this.hierarchy, this._staticTypeCache);
 
   StaticTypeCache getStaticTypeCache() {
     return StaticTypeCache(_staticTypeCache._expressionTypes,

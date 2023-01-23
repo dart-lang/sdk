@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 /// Analysis to determine how to generate code for typed JavaScript interop.
 library compiler.src.js_backend.js_interop_analysis;
 
@@ -16,7 +14,7 @@ import '../universe/world_builder.dart' show SelectorConstraints;
 import 'namer.dart';
 import 'native_data.dart';
 
-jsAst.Statement buildJsInteropBootstrap(
+jsAst.Statement? buildJsInteropBootstrap(
     CodegenWorld codegenWorld, NativeBasicData nativeBasicData, Namer namer) {
   if (!nativeBasicData.isJsInteropUsed) return null;
   List<jsAst.Statement> statements = [];

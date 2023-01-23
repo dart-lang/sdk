@@ -28,6 +28,8 @@ class ListExtensionTest {
 }
 
 @reflectiveTest
+// TODO(srawlins): Re-enable?
+// ignore: unreachable_from_main
 class SetExtensionTest {
   test_addIfNotNull_notNull() {
     var elements = {0, 1};

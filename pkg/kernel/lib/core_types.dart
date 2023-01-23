@@ -28,6 +28,7 @@ class CoreTypes {
       'Function',
       'Invocation',
       'FallThroughError',
+      'Record',
     ],
     'dart:_internal': [
       'LateInitializationErrorImpl',
@@ -85,6 +86,9 @@ class CoreTypes {
   InterfaceType? _functionLegacyRawType;
   InterfaceType? _functionNullableRawType;
   InterfaceType? _functionNonNullableRawType;
+  InterfaceType? _recordLegacyRawType;
+  InterfaceType? _recordNullableRawType;
+  InterfaceType? _recordNonNullableRawType;
   InterfaceType? _invocationLegacyRawType;
   InterfaceType? _invocationNullableRawType;
   InterfaceType? _invocationNonNullableRawType;
@@ -119,62 +123,22 @@ class CoreTypes {
   CoreTypes(Component component)
       : index = new LibraryIndex.coreLibraries(component);
 
-  late final Procedure asyncErrorWrapperHelperProcedure =
-      index.getTopLevelProcedure('dart:async', '_asyncErrorWrapperHelper');
-
   late final Library asyncLibrary = index.getLibrary('dart:async');
-
-  late final Procedure asyncStarStreamControllerAdd =
-      index.getProcedure('dart:async', '_AsyncStarStreamController', 'add');
-
-  late final Procedure asyncStarStreamControllerAddError = index.getProcedure(
-      'dart:async', '_AsyncStarStreamController', 'addError');
-
-  late final Procedure asyncStarStreamControllerAddStream = index.getProcedure(
-      'dart:async', '_AsyncStarStreamController', 'addStream');
-
-  late final Class asyncStarStreamControllerClass =
-      index.getClass('dart:async', '_AsyncStarStreamController');
-
-  late final Procedure asyncStarStreamControllerClose =
-      index.getProcedure('dart:async', '_AsyncStarStreamController', 'close');
-
-  late final Constructor asyncStarStreamControllerDefaultConstructor =
-      index.getConstructor('dart:async', '_AsyncStarStreamController', '');
-
-  late final Member asyncStarStreamControllerStream =
-      index.getMember('dart:async', '_AsyncStarStreamController', 'get:stream');
 
   late final Procedure asyncStarMoveNextHelper =
       index.getTopLevelProcedure('dart:async', '_asyncStarMoveNextHelper');
 
-  late final Procedure asyncThenWrapperHelperProcedure =
-      index.getTopLevelProcedure('dart:async', '_asyncThenWrapperHelper');
-
-  late final Procedure awaitHelperProcedure =
-      index.getTopLevelProcedure('dart:async', '_awaitHelper');
-
   late final Class boolClass = index.getClass('dart:core', 'bool');
 
   late final Class futureImplClass = index.getClass('dart:async', '_Future');
-
-  late final Constructor futureImplConstructor =
-      index.getConstructor('dart:async', '_Future', '');
-
-  late final Procedure completeOnAsyncReturn =
-      index.getTopLevelProcedure('dart:async', '_completeOnAsyncReturn');
-
-  late final Procedure completeWithNoFutureOnAsyncReturn = index
-      .getTopLevelProcedure('dart:async', '_completeWithNoFutureOnAsyncReturn');
-
-  late final Procedure completeOnAsyncError =
-      index.getTopLevelProcedure('dart:async', '_completeOnAsyncError');
 
   late final Library coreLibrary = index.getLibrary('dart:core');
 
   late final Class doubleClass = index.getClass('dart:core', 'double');
 
   late final Class functionClass = index.getClass('dart:core', 'Function');
+
+  late final Class recordClass = index.getClass('dart:core', 'Record');
 
   late final Class futureClass = index.getClass('dart:core', 'Future');
 
@@ -238,9 +202,9 @@ class CoreTypes {
   /// The `dart:mirrors` library, or `null` if the component does not use it.
   late final Library? mirrorsLibrary = index.tryGetLibrary('dart:mirrors');
 
-  late final Constructor noSuchMethodErrorDefaultConstructor =
+  late final Procedure noSuchMethodErrorDefaultConstructor =
       // TODO(regis): Replace 'withInvocation' with '' after dart2js is fixed.
-      index.getConstructor('dart:core', 'NoSuchMethodError', 'withInvocation');
+      index.getProcedure('dart:core', 'NoSuchMethodError', 'withInvocation');
 
   late final Class deprecatedNullClass = index.getClass('dart:core', 'Null');
 
@@ -287,22 +251,7 @@ class CoreTypes {
 
   late final Class symbolClass = index.getClass('dart:core', 'Symbol');
 
-  late final Constructor syncIterableDefaultConstructor =
-      index.getConstructor('dart:core', '_SyncIterable', '');
-
-  late final Class syncIteratorClass =
-      index.getClass('dart:core', '_SyncIterator');
-
-  late final Member syncIteratorCurrent =
-      index.getMember('dart:core', '_SyncIterator', '_current');
-
-  late final Member syncIteratorYieldEachIterable =
-      index.getMember('dart:core', '_SyncIterator', '_yieldEachIterable');
-
   late final Class typeClass = index.getClass('dart:core', 'Type');
-
-  late final Constructor fallThroughErrorUrlAndLineConstructor =
-      index.getConstructor('dart:core', 'FallThroughError', '_create');
 
   late final Procedure boolFromEnvironment =
       index.getProcedure('dart:core', 'bool', 'fromEnvironment');
@@ -846,6 +795,38 @@ class CoreTypes {
     }
   }
 
+  InterfaceType get recordLegacyRawType {
+    return _recordLegacyRawType ??= _legacyRawTypes[recordClass] ??=
+        new InterfaceType(recordClass, Nullability.legacy, const <DartType>[]);
+  }
+
+  InterfaceType get recordNullableRawType {
+    return _recordNullableRawType ??= _nullableRawTypes[recordClass] ??=
+        new InterfaceType(
+            recordClass, Nullability.nullable, const <DartType>[]);
+  }
+
+  InterfaceType get recordNonNullableRawType {
+    return _recordNonNullableRawType ??= _nonNullableRawTypes[recordClass] ??=
+        new InterfaceType(
+            recordClass, Nullability.nonNullable, const <DartType>[]);
+  }
+
+  InterfaceType recordRawType(Nullability nullability) {
+    switch (nullability) {
+      case Nullability.legacy:
+        return recordLegacyRawType;
+      case Nullability.nullable:
+        return recordNullableRawType;
+      case Nullability.nonNullable:
+        return recordNonNullableRawType;
+      case Nullability.undetermined:
+      default:
+        throw new StateError(
+            "Unsupported nullability $nullability on an InterfaceType.");
+    }
+  }
+
   InterfaceType get invocationLegacyRawType {
     return _invocationLegacyRawType ??= _legacyRawTypes[invocationClass] ??=
         new InterfaceType(
@@ -1158,6 +1139,12 @@ class CoreTypes {
       return isTop(type.typeArgument);
     }
 
+    // If the representation type, R, is a top type then the view type, V0, is a
+    // top type, otherwise V0 is a proper subtype of Object?.
+    if (type is ViewType) {
+      return isTop(type.representationType);
+    }
+
     return false;
   }
 
@@ -1196,15 +1183,12 @@ class CoreTypes {
     }
 
     // BOTTOM(X&T) is true iff BOTTOM(T).
-    if (type is TypeParameterType &&
-        type.promotedBound != null &&
-        type.isPotentiallyNonNullable) {
-      return isBottom(type.promotedBound!);
+    if (type is IntersectionType && type.isPotentiallyNonNullable) {
+      return isBottom(type.right);
     }
 
     // BOTTOM(X extends T) is true iff BOTTOM(T).
     if (type is TypeParameterType && type.isPotentiallyNonNullable) {
-      assert(type.promotedBound == null);
       return isBottom(type.parameter.bound);
     }
 

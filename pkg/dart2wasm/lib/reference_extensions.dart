@@ -19,12 +19,12 @@ extension GetterSetterReference on Reference {
 
   bool get isGetter {
     Member member = asMember;
-    return member is Procedure && member.isGetter || isImplicitGetter;
+    return (member is Procedure && member.isGetter) || isImplicitGetter;
   }
 
   bool get isSetter {
     Member member = asMember;
-    return member is Procedure && member.isSetter || isImplicitSetter;
+    return (member is Procedure && member.isSetter) || isImplicitSetter;
   }
 }
 
@@ -32,24 +32,38 @@ extension GetterSetterReference on Reference {
 // implementation for that procedure. This enables a Reference to refer to any
 // implementation relating to a member, including its tear-off, which it can't
 // do in plain kernel.
+// Also add an asyncInnerReference that refers to the inner, suspendable
+// body of an async function, which returns the value to be put into a future.
+// This can be called directly from other async functions if the result is
+// directly awaited.
 
-extension TearOffReference on Procedure {
-  // Use an Expando to avoid keeping the procedure alive.
-  static final Expando<Reference> _tearOffReference = Expando();
+// Use Expandos to avoid keeping the procedure alive.
+final Expando<Reference> _tearOffReference = Expando();
+final Expando<Reference> _asyncInnerReference = Expando();
 
+extension CustomReference on Procedure {
   Reference get tearOffReference =>
       _tearOffReference[this] ??= Reference()..node = this;
+
+  Reference get asyncInnerReference =>
+      _asyncInnerReference[this] ??= Reference()..node = this;
 }
 
-extension IsTearOffReference on Reference {
+extension IsCustomReference on Reference {
   bool get isTearOffReference {
     Member member = asMember;
-    return member is Procedure && member.tearOffReference == this;
+    return member is Procedure && _tearOffReference[member] == this;
+  }
+
+  bool get isAsyncInnerReference {
+    Member member = asMember;
+    return member is Procedure && _asyncInnerReference[member] == this;
   }
 }
 
 extension ReferenceAs on Member {
   Reference referenceAs({required bool getter, required bool setter}) {
+    assert(!getter || !setter); // members cannot be both setter and getter
     Member member = this;
     return member is Field
         ? setter

@@ -4,9 +4,9 @@ parser/error_recovery/issue_26073:3:16: Expected 'Function' before this.
 typedef c = foo(int x); // error.
                ^
 
-parser/error_recovery/issue_26073:4:13: Expected 'Function' before this.
+parser/error_recovery/issue_26073:4:19: Record type with one entry requires a trailing comma.
 typedef d = (int x); // error.
-            ^
+                  ^
 
 parser/error_recovery/issue_26073:5:19: Expected 'Function' before this.
 typedef e = foo<F>(int x); // error.
@@ -113,22 +113,17 @@ beginCompilationUnit(typedef)
     beginTypedef(typedef)
       handleIdentifier(d, typedefDeclaration)
       handleNoTypeVariables(=)
-      handleRecoverableError(Message[ExpectedButGot, Expected 'Function' before this., null, {string: Function}], (, ()
-      beginFunctionType(Function)
-        handleNoTypeVariables(()
-        handleNoType(=)
-        beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+      beginRecordType(()
+        beginRecordTypeEntry()
           beginMetadataStar(int)
           endMetadataStar(0)
-          beginFormalParameter(int, MemberKind.GeneralizedFunctionType, null, null, null)
-            handleIdentifier(int, typeReference)
-            handleNoTypeArguments(x)
-            handleType(int, null)
-            handleIdentifier(x, formalParameterDeclaration)
-            handleFormalParameterWithoutValue())
-          endFormalParameter(null, null, null, x, null, null, FormalParameterKind.requiredPositional, MemberKind.GeneralizedFunctionType)
-        endFormalParameters(1, (, ), MemberKind.GeneralizedFunctionType)
-      endFunctionType(Function, null)
+          handleIdentifier(int, typeReference)
+          handleNoTypeArguments(x)
+          handleType(int, null)
+          handleIdentifier(x, recordFieldDeclaration)
+        endRecordTypeEntry()
+        handleRecoverableError(RecordTypeOnePositionalFieldNoTrailingComma, ), ))
+      endRecordType((, null, 1, false)
     endTypedef(typedef, =, ;)
   endTopLevelDeclaration(typedef)
   beginMetadataStar(typedef)

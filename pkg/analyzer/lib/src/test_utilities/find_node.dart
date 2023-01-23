@@ -27,6 +27,55 @@ class FindNode {
     return result;
   }
 
+  /// Returns the [GuardedPattern], there must be only one.
+  GuardedPattern get singleGuardedPattern {
+    var nodes = <GuardedPattern>[];
+    unit.accept(
+      FunctionAstVisitor(
+        guardedPattern: (node) {
+          nodes.add(node);
+        },
+      ),
+    );
+    return nodes.single;
+  }
+
+  /// Returns the [IfStatement], there must be only one.
+  IfStatement get singleIfStatement {
+    var nodes = <IfStatement>[];
+    unit.accept(
+      FunctionAstVisitor(
+        ifStatement: (node) {
+          nodes.add(node);
+        },
+      ),
+    );
+    return nodes.single;
+  }
+
+  /// Returns the [PatternVariableDeclaration], there must be only one.
+  PatternVariableDeclaration get singlePatternVariableDeclaration {
+    var nodes = <PatternVariableDeclaration>[];
+    unit.accept(
+      FunctionAstVisitor(
+        patternVariableDeclaration: nodes.add,
+      ),
+    );
+    return nodes.single;
+  }
+
+  /// Returns the [PatternVariableDeclarationStatement], there must be only one.
+  PatternVariableDeclarationStatement
+      get singlePatternVariableDeclarationStatement {
+    var nodes = <PatternVariableDeclarationStatement>[];
+    unit.accept(
+      FunctionAstVisitor(
+        patternVariableDeclarationStatement: nodes.add,
+      ),
+    );
+    return nodes.single;
+  }
+
   AdjacentStrings adjacentStrings(String search) {
     return _node(search, (n) => n is AdjacentStrings);
   }
@@ -67,6 +116,10 @@ class FindNode {
     return _node(search, (n) => n is BinaryExpression);
   }
 
+  BinaryPattern binaryPattern(String search) {
+    return _node(search, (n) => n is BinaryPattern);
+  }
+
   Block block(String search) {
     return _node(search, (n) => n is Block);
   }
@@ -87,8 +140,20 @@ class FindNode {
     return _node(search, (n) => n is CascadeExpression);
   }
 
+  CaseClause caseClause(String search) {
+    return _node(search, (n) => n is CaseClause);
+  }
+
+  CastPattern castPattern(String search) {
+    return _node(search, (n) => n is CastPattern);
+  }
+
   CatchClause catchClause(String search) {
     return _node(search, (n) => n is CatchClause);
+  }
+
+  CatchClauseParameter catchClauseParameter(String search) {
+    return _node(search, (n) => n is CatchClauseParameter);
   }
 
   ClassDeclaration classDeclaration(String search) {
@@ -113,6 +178,14 @@ class FindNode {
 
   ConditionalExpression conditionalExpression(String search) {
     return _node(search, (n) => n is ConditionalExpression);
+  }
+
+  Configuration configuration(String search) {
+    return _node(search, (n) => n is Configuration);
+  }
+
+  ConstantPattern constantPattern(String search) {
+    return _node(search, (n) => n is ConstantPattern);
   }
 
   ConstructorDeclaration constructor(String search) {
@@ -153,6 +226,14 @@ class FindNode {
 
   DoubleLiteral doubleLiteral(String search) {
     return _node(search, (n) => n is DoubleLiteral);
+  }
+
+  EmptyFunctionBody emptyFunctionBody(String search) {
+    return _node(search, (n) => n is EmptyFunctionBody);
+  }
+
+  EmptyStatement emptyStatement(String search) {
+    return _node(search, (n) => n is EmptyStatement);
   }
 
   EnumConstantDeclaration enumConstantDeclaration(String search) {
@@ -207,8 +288,20 @@ class FindNode {
     return _node(search, (n) => n is ForEachPartsWithIdentifier);
   }
 
+  ForEachPartsWithPattern forEachPartsWithPattern(String search) {
+    return _node(search, (n) => n is ForEachPartsWithPattern);
+  }
+
+  ForElement forElement(String search) {
+    return _node(search, (n) => n is ForElement);
+  }
+
   FormalParameterList formalParameterList(String search) {
-    return _node(search, (n) => n is FormalParameterList);
+    // If the search starts with `(` then NodeLocator will locate the definition
+    // before it, so offset the search to within the parameter list.
+    final locateOffset = search.startsWith('(') ? 1 : 0;
+    return _node(search, (n) => n is FormalParameterList,
+        locateOffset: locateOffset);
   }
 
   ForPartsWithDeclarations forPartsWithDeclarations(String search) {
@@ -217,6 +310,10 @@ class FindNode {
 
   ForPartsWithExpression forPartsWithExpression(String search) {
     return _node(search, (n) => n is ForPartsWithExpression);
+  }
+
+  ForPartsWithPattern forPartsWithPattern(String search) {
+    return _node(search, (n) => n is ForPartsWithPattern);
   }
 
   ForStatement forStatement(String search) {
@@ -303,6 +400,10 @@ class FindNode {
     return _node(search, (n) => n is InterpolationExpression);
   }
 
+  InterpolationString interpolationString(String search) {
+    return _node(search, (n) => n is InterpolationString);
+  }
+
   IsExpression isExpression(String search) {
     return _node(search, (n) => n is IsExpression);
   }
@@ -331,8 +432,20 @@ class FindNode {
     return _node(search, (n) => n is ListLiteral);
   }
 
+  ListPattern listPattern(String search) {
+    return _node(search, (n) => n is ListPattern);
+  }
+
   MapLiteralEntry mapLiteralEntry(String search) {
     return _node(search, (n) => n is MapLiteralEntry);
+  }
+
+  MapPattern mapPattern(String search) {
+    return _node(search, (n) => n is MapPattern);
+  }
+
+  MapPatternEntry mapPatternEntry(String search) {
+    return _node(search, (n) => n is MapPatternEntry);
   }
 
   MethodDeclaration methodDeclaration(String search) {
@@ -371,6 +484,10 @@ class FindNode {
     return _node(search, (n) => n is NullLiteral);
   }
 
+  ObjectPattern objectPattern(String search) {
+    return _node(search, (n) => n is ObjectPattern);
+  }
+
   /// Return the unique offset where the [search] string occurs in [content].
   /// Throws if not found, or if not unique.
   int offset(String search) {
@@ -388,6 +505,10 @@ class FindNode {
     return _node(search, (n) => n is ParenthesizedExpression);
   }
 
+  ParenthesizedPattern parenthesizedPattern(String search) {
+    return _node(search, (n) => n is ParenthesizedPattern);
+  }
+
   PartDirective part(String search) {
     return _node(search, (n) => n is PartDirective);
   }
@@ -396,8 +517,25 @@ class FindNode {
     return _node(search, (n) => n is PartOfDirective);
   }
 
+  PatternAssignment patternAssignment(String search) {
+    return _node(search, (n) => n is PatternAssignment);
+  }
+
+  PatternVariableDeclaration patternVariableDeclaration(String search) {
+    return _node(search, (n) => n is PatternVariableDeclaration);
+  }
+
+  PatternVariableDeclarationStatement patternVariableDeclarationStatement(
+      String search) {
+    return _node(search, (n) => n is PatternVariableDeclarationStatement);
+  }
+
   PostfixExpression postfix(String search) {
     return _node(search, (n) => n is PostfixExpression);
+  }
+
+  PostfixPattern postfixPattern(String search) {
+    return _node(search, (n) => n is PostfixPattern);
   }
 
   PrefixExpression prefix(String search) {
@@ -412,9 +550,33 @@ class FindNode {
     return _node(search, (n) => n is PropertyAccess);
   }
 
+  RecordLiteral recordLiteral(String search) {
+    return _node(search, (n) => n is RecordLiteral);
+  }
+
+  RecordPattern recordPattern(String search) {
+    return _node(search, (n) => n is RecordPattern);
+  }
+
+  RecordPatternField recordPatternField(String search) {
+    return _node(search, (n) => n is RecordPatternField);
+  }
+
+  RecordPatternFieldName recordPatternFieldName(String search) {
+    return _node(search, (n) => n is RecordPatternFieldName);
+  }
+
+  RecordTypeAnnotation recordTypeAnnotation(String search) {
+    return _node(search, (n) => n is RecordTypeAnnotation);
+  }
+
   RedirectingConstructorInvocation redirectingConstructorInvocation(
       String search) {
     return _node(search, (n) => n is RedirectingConstructorInvocation);
+  }
+
+  RelationalPattern relationalPattern(String search) {
+    return _node(search, (n) => n is RelationalPattern);
   }
 
   RethrowExpression rethrow_(String search) {
@@ -443,6 +605,14 @@ class FindNode {
 
   SimpleFormalParameter simpleParameter(String search) {
     return _node(search, (n) => n is SimpleFormalParameter);
+  }
+
+  SimpleStringLiteral simpleStringLiteral(String search) {
+    return _node(search, (n) => n is SimpleStringLiteral);
+  }
+
+  SpreadElement spreadElement(String search) {
+    return _node(search, (n) => n is SpreadElement);
   }
 
   Statement statement(String search) {
@@ -477,6 +647,18 @@ class FindNode {
     return _node(search, (n) => n is SwitchDefault);
   }
 
+  SwitchExpression switchExpression(String search) {
+    return _node(search, (n) => n is SwitchExpression);
+  }
+
+  SwitchExpressionCase switchExpressionCase(String search) {
+    return _node(search, (n) => n is SwitchExpressionCase);
+  }
+
+  SwitchPatternCase switchPatternCase(String search) {
+    return _node(search, (n) => n is SwitchPatternCase);
+  }
+
   SwitchStatement switchStatement(String search) {
     return _node(search, (n) => n is SwitchStatement);
   }
@@ -501,7 +683,7 @@ class FindNode {
     for (var declaration in unit.declarations) {
       if (declaration is TopLevelVariableDeclaration) {
         for (var variable in declaration.variables.variables) {
-          if (variable.name.name == name) {
+          if (variable.name.lexeme == name) {
             return variable;
           }
         }
@@ -550,6 +732,14 @@ class FindNode {
     return _node(search, (n) => n is VariableDeclarationStatement);
   }
 
+  VariablePattern variablePattern(String search) {
+    return _node(search, (n) => n is VariablePattern);
+  }
+
+  WhenClause whenClause(String search) {
+    return _node(search, (n) => n is WhenClause);
+  }
+
   WhileStatement whileStatement(String search) {
     return _node(search, (n) => n is WhileStatement);
   }
@@ -562,8 +752,14 @@ class FindNode {
     return _node(search, (n) => n is YieldStatement);
   }
 
-  T _node<T>(String search, bool Function(AstNode) predicate) {
-    int offset = this.offset(search);
+  /// Locates a node at the offset of [search] and returns the first ancestor
+  /// matching [predicate].
+  ///
+  /// If [locateOffset] is provided, its value is added to the offset of
+  /// [search] before locating the node.
+  T _node<T>(String search, bool Function(AstNode) predicate,
+      {int? locateOffset}) {
+    int offset = this.offset(search) + (locateOffset ?? 0);
 
     var node = NodeLocator2(offset).searchWithin(unit);
     if (node == null) {

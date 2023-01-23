@@ -238,20 +238,20 @@ static get finalTopLevelFieldWithInitializer() → core::int {
 static get Extension|extensionStaticField() → core::int
   return self::_#Extension|extensionStaticField#isSet ?{core::int} let final core::int? #t23 = self::_#Extension|extensionStaticField in #t23{core::int} : throw new _in::LateError::fieldNI("extensionStaticField");
 @#C1
-static set Extension|extensionStaticField(core::int Extension|extensionStaticField#param) → void {
+static set Extension|extensionStaticField(core::int extensionStaticField#param) → void {
   self::_#Extension|extensionStaticField#isSet = true;
-  self::_#Extension|extensionStaticField = Extension|extensionStaticField#param;
+  self::_#Extension|extensionStaticField = extensionStaticField#param;
 }
 @#C1
 static get Extension|finalExtensionStaticField() → core::int
   return self::_#Extension|finalExtensionStaticField#isSet ?{core::int} let final core::int? #t24 = self::_#Extension|finalExtensionStaticField in #t24{core::int} : throw new _in::LateError::fieldNI("finalExtensionStaticField");
 @#C1
-static set Extension|finalExtensionStaticField(core::int Extension|finalExtensionStaticField#param) → void
+static set Extension|finalExtensionStaticField(core::int finalExtensionStaticField#param) → void
   if(self::_#Extension|finalExtensionStaticField#isSet)
     throw new _in::LateError::fieldAI("finalExtensionStaticField");
   else {
     self::_#Extension|finalExtensionStaticField#isSet = true;
-    self::_#Extension|finalExtensionStaticField = Extension|finalExtensionStaticField#param;
+    self::_#Extension|finalExtensionStaticField = finalExtensionStaticField#param;
   }
 @#C1
 static get Extension|finalExtensionStaticFieldWithInitializer() → core::int {
@@ -274,4 +274,4 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///late_annotations.dart:
 - Annotation. (from org-dartlang-testcase:///late_annotations.dart:6:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

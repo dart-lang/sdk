@@ -70,8 +70,8 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-test:///lib.dart:
-- Uint32. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart:91:9)
-- _NativeInteger. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart:27:9)
-- NativeType. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart:12:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Uint32. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart)
+- _NativeInteger. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart)
+- NativeType. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 

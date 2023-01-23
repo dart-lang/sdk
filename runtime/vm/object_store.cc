@@ -228,9 +228,9 @@ void ObjectStore::InitKnownObjects() {
   Zone* zone = thread->zone();
   Class& cls = Class::Handle(zone);
   const Library& collection_lib = Library::Handle(zone, collection_library());
-  cls = collection_lib.LookupClassAllowPrivate(Symbols::_LinkedHashSet());
+  cls = collection_lib.LookupClassAllowPrivate(Symbols::_Set());
   ASSERT(!cls.IsNull());
-  set_linked_hash_set_class(cls);
+  set_set_impl_class(cls);
 
 #ifdef DART_PRECOMPILED_RUNTIME
   // The rest of these objects are only needed for code generation.
@@ -251,38 +251,6 @@ void ObjectStore::InitKnownObjects() {
   String& function_name = String::Handle(zone);
   Function& function = Function::Handle(zone);
   Field& field = Field::Handle(zone);
-
-  function_name = async_lib.PrivateName(Symbols::AsyncStarMoveNextHelper());
-  ASSERT(!function_name.IsNull());
-  function = Resolver::ResolveStatic(async_lib, Object::null_string(),
-                                     function_name, 0, 1, Object::null_array());
-  ASSERT(!function.IsNull());
-  set_async_star_move_next_helper(function);
-
-  function_name = async_lib.PrivateName(Symbols::_CompleteOnAsyncReturn());
-  ASSERT(!function_name.IsNull());
-  function = Resolver::ResolveStatic(async_lib, Object::null_string(),
-                                     function_name, 0, 3, Object::null_array());
-  ASSERT(!function.IsNull());
-  set_complete_on_async_return(function);
-  DisableDebuggingAndInlining(function);
-
-  function_name =
-      async_lib.PrivateName(Symbols::_CompleteWithNoFutureOnAsyncReturn());
-  ASSERT(!function_name.IsNull());
-  function = Resolver::ResolveStatic(async_lib, Object::null_string(),
-                                     function_name, 0, 3, Object::null_array());
-  ASSERT(!function.IsNull());
-  set_complete_with_no_future_on_async_return(function);
-  DisableDebuggingAndInlining(function);
-
-  function_name = async_lib.PrivateName(Symbols::_CompleteOnAsyncError());
-  ASSERT(!function_name.IsNull());
-  function = Resolver::ResolveStatic(async_lib, Object::null_string(),
-                                     function_name, 0, 4, Object::null_array());
-  ASSERT(!function.IsNull());
-  set_complete_on_async_error(function);
-  DisableDebuggingAndInlining(function);
 
   cls =
       async_lib.LookupClassAllowPrivate(Symbols::_AsyncStarStreamController());
@@ -356,13 +324,9 @@ void ObjectStore::InitKnownObjects() {
   ASSERT(!function.IsNull());
   set_suspend_state_init_sync_star(function);
 
-  function = cls.LookupFunctionAllowPrivate(Symbols::_yieldSyncStar());
+  function = cls.LookupFunctionAllowPrivate(Symbols::_suspendSyncStarAtStart());
   ASSERT(!function.IsNull());
-  set_suspend_state_yield_sync_star(function);
-
-  function = cls.LookupFunctionAllowPrivate(Symbols::_returnSyncStar());
-  ASSERT(!function.IsNull());
-  set_suspend_state_return_sync_star(function);
+  set_suspend_state_suspend_sync_star_at_start(function);
 
   function = cls.LookupFunctionAllowPrivate(Symbols::_handleException());
   ASSERT(!function.IsNull());
@@ -371,10 +335,15 @@ void ObjectStore::InitKnownObjects() {
   cls = async_lib.LookupClassAllowPrivate(Symbols::_SyncStarIterator());
   ASSERT(!cls.IsNull());
   RELEASE_ASSERT(cls.EnsureIsFinalized(thread) == Error::null());
+  set_sync_star_iterator_class(cls);
 
   field = cls.LookupFieldAllowPrivate(Symbols::_current());
   ASSERT(!field.IsNull());
   set_sync_star_iterator_current(field);
+
+  field = cls.LookupFieldAllowPrivate(Symbols::_state());
+  ASSERT(!field.IsNull());
+  set_sync_star_iterator_state(field);
 
   field = cls.LookupFieldAllowPrivate(Symbols::_yieldStarIterable());
   ASSERT(!field.IsNull());
@@ -477,8 +446,14 @@ void ObjectStore::LazyInitCoreMembers() {
 
     cls = core_lib.LookupClass(Symbols::Map());
     ASSERT(!cls.IsNull());
+    map_class_.store(cls.ptr());
+
     type ^= cls.RareType();
     non_nullable_map_rare_type_.store(type.ptr());
+
+    cls = core_lib.LookupClass(Symbols::Set());
+    ASSERT(!cls.IsNull());
+    set_class_.store(cls.ptr());
 
     auto& field = Field::Handle(zone);
 
@@ -594,7 +569,19 @@ void ObjectStore::LazyInitIsolateMembers() {
     auto& cls = Class::Handle(zone);
     auto& function = Function::Handle(zone);
 
-    cls = isolate_lib.LookupClassAllowPrivate(Symbols::_RawReceivePortImpl());
+    cls = isolate_lib.LookupClass(Symbols::Capability());
+    ASSERT(!cls.IsNull());
+    capability_class_.store(cls.ptr());
+
+    cls = isolate_lib.LookupClass(Symbols::SendPort());
+    ASSERT(!cls.IsNull());
+    send_port_class_.store(cls.ptr());
+
+    cls = isolate_lib.LookupClass(Symbols::TransferableTypedData());
+    ASSERT(!cls.IsNull());
+    transferable_class_.store(cls.ptr());
+
+    cls = isolate_lib.LookupClassAllowPrivate(Symbols::_RawReceivePort());
     ASSERT(!cls.IsNull());
     const auto& error = cls.EnsureIsFinalized(thread);
     ASSERT(error == Error::null());

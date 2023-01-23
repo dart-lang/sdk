@@ -3,23 +3,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
-//
-// Compiles code with DDC and runs the resulting code with either node or
-// chrome.
-//
-// The first script supplied should be the one with `main()`.
-//
-// Saves the output in the same directory as the sources for convenient
-// inspection, modification or rerunning the code.
+/// Compiles code with DDC and runs the resulting code with either node or
+/// chrome.
+///
+/// The first script supplied should be the one with `main()`.
+///
+/// Saves the output in the same directory as the sources for convenient
+/// inspection, modification or rerunning the code.
 
 import 'dart:io';
 
 import 'package:args/args.dart' show ArgParser;
+import 'package:dev_compiler/src/compiler/js_names.dart'
+    as js_names;
 import 'package:path/path.dart' as p;
-import 'package:dev_compiler/src/compiler/module_builder.dart'
-    as module_builder;
 
 enum NullSafety { strict, weak, disabled }
 
@@ -113,14 +110,14 @@ void main(List<String> args) async {
     printUsage();
     exit(1);
   }
-  var arch = options['arch'] as String;
+  var arch = options['arch'] as String?;
   var debug = options['debug'] as bool ||
       options['observe'] as bool ||
       options.wasParsed('vm-service-port');
   var summarizeText = options['summarize-text'] as bool;
-  var binary = options['binary'] as String;
-  var experiments = options['enable-experiment'] as List;
-  var summaries = options['summary'] as List;
+  var binary = options['binary'] as String?;
+  var experiments = options['enable-experiment'] as List<String>;
+  var summaries = options['summary'] as List<String>;
   var port = int.parse(options['port'] as String);
   var mode = options['mode'] as String;
   var compile = mode == 'compile' || mode == 'all';
@@ -133,11 +130,11 @@ void main(List<String> args) async {
   var weakNullSafetyErrors = options['weak-null-safety-errors'] as bool;
   var canaryFeatures = options['canary'] as bool;
   var entry = p.canonicalize(options.rest.first);
-  var out = (options['out'] as String) ?? p.setExtension(entry, '.js');
+  var out = (options['out'] as String?) ?? p.setExtension(entry, '.js');
   var libRoot = p.dirname(entry);
   var basename = p.basenameWithoutExtension(entry);
   var libname =
-      module_builder.pathToJSIdentifier(p.relative(p.withoutExtension(entry)));
+      js_names.pathToJSIdentifier(p.relative(p.withoutExtension(entry)));
 
   // By default (no `-d`), we use the `dartdevc` binary on the user's path to
   // compute the SDK we use for execution.  I.e., we assume that `dart` is
@@ -180,8 +177,9 @@ void main(List<String> args) async {
     var vmServicePort = options.wasParsed('vm-service-port')
         ? '=${options['vm-service-port']}'
         : '';
+    var vmOptions = options['compile-vm-options'] as String?;
     var args = <String>[
-      ...?options['compile-vm-options']?.split(' '),
+      ...?vmOptions?.split(' '),
       if (debug) ...[
         if (observe) ...[
           '--enable-vm-service$vmServicePort',
@@ -200,10 +198,11 @@ void main(List<String> args) async {
   }
 
   String mod;
-  bool chrome = false;
-  bool node = false;
-  bool d8 = false;
-  switch (options['runtime'] as String) {
+  var chrome = false;
+  var node = false;
+  var d8 = false;
+  var runtime = options['runtime'] as String?;
+  switch (runtime) {
     case 'node':
       node = true;
       mod = 'common';
@@ -216,6 +215,8 @@ void main(List<String> args) async {
       chrome = true;
       mod = 'amd';
       break;
+    default:
+      throw Exception('Unexpected runtime: $runtime');
   }
 
   var sdkRoot = p.dirname(p.dirname(ddcPath));
@@ -386,14 +387,15 @@ final _resolvedUnames = {
 };
 
 /// Returns the location of the Dart SDK's build directory.
-String resolveBuildDir(String sdkRoot, String architecture) {
+String resolveBuildDir(String sdkRoot, String? architecture) {
   String platformString;
   String archString;
   if (Platform.isMacOS) {
     platformString = 'xcodebuild';
-    String resolvedArchitecture = architecture;
+    var resolvedArchitecture = architecture;
     if (architecture == null) {
-      final uname = Process.runSync('uname', ['-m']).stdout.trim();
+      var result = Process.runSync('uname', ['-m']).stdout as String;
+      final uname = result.trim();
       resolvedArchitecture = _resolvedUnames[uname] ?? uname;
     }
     if (resolvedArchitecture == 'x64') {

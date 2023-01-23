@@ -11,34 +11,33 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddMissingParameter extends MultiCorrectionProducer {
   @override
-  Stream<CorrectionProducer> get producers async* {
+  Future<List<CorrectionProducer>> get producers async {
     // node is the unmatched argument.
     var argumentList = node.parent;
     if (argumentList is! ArgumentList) {
-      return;
+      return const [];
     }
 
     var invocation = argumentList.parent;
     if (invocation == null) {
-      return;
+      return const [];
     }
 
     var context = ExecutableParameters.forInvocation(sessionHelper, invocation);
     if (context == null) {
-      return;
+      return const [];
     }
 
-    // Suggest adding a required positional parameter.
-    yield _AddMissingRequiredPositionalParameter(context);
-
-    // Suggest adding the first optional positional parameter.
-    if (context.optionalPositional.isEmpty && context.named.isEmpty) {
-      yield _AddMissingOptionalPositionalParameter(context);
-    }
+    var includeOptional =
+        context.optionalPositional.isEmpty && context.named.isEmpty;
+    return <CorrectionProducer>[
+      _AddMissingRequiredPositionalParameter(context),
+      if (includeOptional) _AddMissingOptionalPositionalParameter(context),
+    ];
   }
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [AddMissingParameter] producer.
 class _AddMissingOptionalPositionalParameter extends _AddMissingParameter {
   _AddMissingOptionalPositionalParameter(super.context);
@@ -60,7 +59,7 @@ class _AddMissingOptionalPositionalParameter extends _AddMissingParameter {
   }
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [AddMissingParameter] producer.
 abstract class _AddMissingParameter extends CorrectionProducer {
   ExecutableParameters context;
@@ -93,7 +92,7 @@ abstract class _AddMissingParameter extends CorrectionProducer {
   }
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [AddMissingParameter] producer.
 class _AddMissingRequiredPositionalParameter extends _AddMissingParameter {
   _AddMissingRequiredPositionalParameter(super.context);

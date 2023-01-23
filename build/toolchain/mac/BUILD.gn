@@ -20,6 +20,15 @@ if (use_goma) {
   goma_prefix = ""
 }
 
+# Goma doesn't support the host-arm64 toolchain, so continue using Rosetta.
+if (host_cpu == "arm64" && !use_goma) {
+  rebased_clang_dir =
+      rebase_path("//buildtools/mac-arm64/clang/bin", root_build_dir)
+} else {
+  rebased_clang_dir =
+      rebase_path("//buildtools/mac-x64/clang/bin", root_build_dir)
+}
+
 # Shared toolchain definition. Invocations should set toolchain_os to set the
 # build args in this definition.
 template("mac_toolchain") {
@@ -211,28 +220,10 @@ template("mac_toolchain") {
   }
 }
 
-# Toolchain used for Mac host targets.
 mac_toolchain("clang_x64") {
   toolchain_cpu = "x64"
   toolchain_os = "mac"
-  prefix = rebase_path("//buildtools/mac-x64/clang/bin", root_build_dir)
-  cc = "${goma_prefix}$prefix/clang"
-  cxx = "${goma_prefix}$prefix/clang++"
-  ar = "${prefix}/llvm-ar"
-  ld = cxx
-  strip = "strip"
-  is_clang = true
-  if (mac_enable_relative_sdk_path) {
-    mac_sdk_path = rebase_path(mac_sdk_path, root_build_dir)
-  }
-  sysroot_flags = "-isysroot $mac_sdk_path -mmacosx-version-min=$mac_sdk_min"
-}
-
-# Toolchain used for Mac host (i386) targets.
-mac_toolchain("clang_x86") {
-  toolchain_cpu = "i386"
-  toolchain_os = "mac"
-  prefix = rebase_path("//buildtools/mac-x64/clang/bin", root_build_dir)
+  prefix = rebased_clang_dir
   cc = "${goma_prefix}$prefix/clang"
   cxx = "${goma_prefix}$prefix/clang++"
   ar = "${prefix}/llvm-ar"
@@ -248,7 +239,7 @@ mac_toolchain("clang_x86") {
 mac_toolchain("clang_arm64") {
   toolchain_cpu = "arm64"
   toolchain_os = "mac"
-  prefix = rebase_path("//buildtools/mac-x64/clang/bin", root_build_dir)
+  prefix = rebased_clang_dir
   cc = "${goma_prefix}$prefix/clang"
   cxx = "${goma_prefix}$prefix/clang++"
   ar = "${prefix}/llvm-ar"

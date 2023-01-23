@@ -74,9 +74,9 @@ class TestConfig {
       this.allowedExperimentalFlags,
       this.librariesSpecificationUri,
       this.packageConfigUri,
-      this.compileSdk: false,
-      this.targetFlags: const TestTargetFlags(),
-      this.nnbdMode: NnbdMode.Weak});
+      this.compileSdk = false,
+      this.targetFlags = const TestTargetFlags(),
+      this.nnbdMode = NnbdMode.Weak});
 
   /// Called before running test on [testData].
   ///
@@ -220,7 +220,7 @@ class CfeCompiledData<T> extends CompiledData<T> {
 
   @override
   void reportError(Uri uri, int offset, String message,
-      {bool succinct: false}) {
+      {bool succinct = false}) {
     printMessageInLocation(
         compilerResult.component!.uriToSource, uri, offset, message,
         succinct: succinct);
@@ -300,8 +300,8 @@ Future<Map<String, TestResult<T>>> runTest<T>(
     required bool verbose,
     required bool succinct,
     required bool printCode,
-    bool forUserLibrariesOnly: true,
-    Iterable<Id> globalIds: const <Id>[],
+    bool forUserLibrariesOnly = true,
+    Iterable<Id> globalIds = const <Id>[],
     required void onFailure(String message),
     Map<String, List<String>>? skipMap,
     required Uri nullUri}) async {
@@ -338,8 +338,8 @@ Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
     required bool verbose,
     required bool succinct,
     required bool printCode,
-    bool forUserLibrariesOnly: true,
-    Iterable<Id> globalIds: const <Id>[],
+    bool forUserLibrariesOnly = true,
+    Iterable<Id> globalIds = const <Id>[],
     required void onFailure(String message),
     required Uri nullUri}) async {
   MemberAnnotations<IdValue> memberAnnotations =
@@ -570,7 +570,7 @@ Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
 
 void printMessageInLocation(
     Map<Uri, Source> uriToSource, Uri? uri, int offset, String message,
-    {bool succinct: false}) {
+    {bool succinct = false}) {
   if (uri == null) {
     print("(null uri)@$offset: $message");
   } else {

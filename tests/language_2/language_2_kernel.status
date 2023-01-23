@@ -2,7 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-
 [ $compiler == app_jitk ]
 main/no_main_test/01: Crash
 number/web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
@@ -26,6 +25,9 @@ superinterface_variance/mixin_error_test/44: Crash # Issue dart-lang/language#11
 superinterface_variance/mixin_error_test/46: Crash # Issue dart-lang/language#113
 superinterface_variance/mixin_error_test/47: Crash # Issue dart-lang/language#113
 superinterface_variance/mixin_error_test/48: Crash # Issue dart-lang/language#113
+
+[ $arch == ia32 && $mode == debug ]
+*: Pass, Slow # The CFE is not run from AppJit snapshot, JIT warmup in debug mode very slow
 
 [ $builder_tag == obfuscated && $compiler == dartkp ]
 generic/function_dcall_test/01: SkipByDesign # Prints type names

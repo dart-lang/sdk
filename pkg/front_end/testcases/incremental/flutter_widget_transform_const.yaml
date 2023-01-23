@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE.md file.
 
 type: newworld
-target: DDC
+target: dartdevc
 trackWidgetCreation: true
 worlds:
   - entry: main.dart
@@ -95,6 +95,7 @@ worlds:
           ]
         }
     expectedLibraryCount: 4
+
   - entry: main.dart
     worldType: updated
     invalidate:
@@ -104,6 +105,8 @@ worlds:
       main.dart: |
         import 'foo.dart';
     expectedLibraryCount: 4
+    advancedInvalidation: outlineChange
+
   - entry: main.dart
     worldType: updated
     invalidate:
@@ -119,3 +122,4 @@ worlds:
         Boz newBoz = new Boz(createNew: true);
         Boz constBoz = new Boz(createNew: false);
     expectedLibraryCount: 4
+    advancedInvalidation: outlineChange

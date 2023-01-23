@@ -19,13 +19,13 @@ class ProcedureAttributesMetadata {
   final int getterSelectorId;
 
   const ProcedureAttributesMetadata(
-      {this.methodOrSetterCalledDynamically: true,
-      this.getterCalledDynamically: true,
-      this.hasThisUses: true,
-      this.hasNonThisUses: true,
-      this.hasTearOffUses: true,
-      this.methodOrSetterSelectorId: kInvalidSelectorId,
-      this.getterSelectorId: kInvalidSelectorId});
+      {this.methodOrSetterCalledDynamically = true,
+      this.getterCalledDynamically = true,
+      this.hasThisUses = true,
+      this.hasNonThisUses = true,
+      this.hasTearOffUses = true,
+      this.methodOrSetterSelectorId = kInvalidSelectorId,
+      this.getterSelectorId = kInvalidSelectorId});
 
   const ProcedureAttributesMetadata.noDynamicUses()
       : this(

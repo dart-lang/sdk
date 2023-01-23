@@ -43,22 +43,16 @@ void applyCheckElementTextReplacements() {
 }
 
 /// Write the given [library] elements into the canonical text presentation
-/// taking into account the specified 'withX' options. Then compare the
-/// actual text with the given [expected] one.
-void checkElementText(
+/// taking into account the [configuration]. Then compare the actual text with
+/// the given [expected] one.
+void checkElementTextWithConfiguration(
   LibraryElement library,
   String expected, {
-  bool withCodeRanges = false,
-  bool withDisplayName = false,
-  bool withExportScope = false,
-  bool withNonSynthetic = false,
+  ElementTextConfiguration? configuration,
 }) {
   var writer = _ElementWriter(
     selfUriStr: '${library.source.uri}',
-    withCodeRanges: withCodeRanges,
-    withDisplayName: withDisplayName,
-    withExportScope: withExportScope,
-    withNonSynthetic: withNonSynthetic,
+    configuration: configuration ?? ElementTextConfiguration(),
   );
   writer.writeLibraryElement(library);
 
@@ -117,23 +111,34 @@ void checkElementText(
   expect(actualText, expected);
 }
 
+class ElementTextConfiguration {
+  bool Function(Object) filter;
+  bool withCodeRanges = false;
+  bool withDisplayName = false;
+  bool withExportScope = false;
+  bool withNonSynthetic = false;
+  bool withPropertyLinking = false;
+  bool withSyntheticDartCoreImport = false;
+
+  ElementTextConfiguration({
+    this.filter = _filterTrue,
+  });
+
+  static bool _filterTrue(Object element) => true;
+}
+
 /// Writes the canonical text presentation of elements.
 class _ElementWriter {
   final String? selfUriStr;
-  final bool withCodeRanges;
-  final bool withDisplayName;
-  final bool withExportScope;
-  final bool withNonSynthetic;
+  final ElementTextConfiguration configuration;
   final StringBuffer buffer = StringBuffer();
+  final _IdMap _idMap = _IdMap();
 
   String indent = '';
 
   _ElementWriter({
     this.selfUriStr,
-    required this.withCodeRanges,
-    required this.withDisplayName,
-    required this.withExportScope,
-    required this.withNonSynthetic,
+    required this.configuration,
   });
 
   void writeLibraryElement(LibraryElement e) {
@@ -151,22 +156,11 @@ class _ElementWriter {
         _writelnWithIndent('nameOffset: $nameOffset');
       }
 
-      _writeDocumentation(e);
-      _writeMetadata(e);
+      _writeLibraryOrAugmentationElement(e);
 
-      var imports = e.imports.where((import) => !import.isSynthetic).toList();
-      _writeElements('imports', imports, _writeImportElement);
+      _writeElements('parts', e.parts, _writePartElement);
 
-      _writeElements('exports', e.exports, _writeExportElement);
-
-      _writelnWithIndent('definingUnit');
-      _withIndent(() {
-        _writeUnitElement(e.definingCompilationUnit);
-      });
-
-      _writeElements('parts', e.parts2, _writePartElement);
-
-      if (withExportScope) {
+      if (configuration.withExportScope) {
         _writelnWithIndent('exportedReferences');
         _withIndent(() {
           _writeExportedReferences(e);
@@ -206,7 +200,7 @@ class _ElementWriter {
 
     if (propertyEnclosing is CompilationUnitElement) {
       expect(propertyEnclosing.accessors, contains(accessor));
-    } else if (propertyEnclosing is ClassElement) {
+    } else if (propertyEnclosing is InterfaceElement) {
       expect(propertyEnclosing.accessors, contains(accessor));
     }
   }
@@ -255,6 +249,24 @@ class _ElementWriter {
     indent = savedIndent;
   }
 
+  void _writeAugmentationElement(LibraryAugmentationElement e) {
+    _writeLibraryOrAugmentationElement(e);
+  }
+
+  void _writeAugmentationImportElement(AugmentationImportElement e) {
+    final uri = e.uri;
+    _writeIndentedLine(() {
+      _writeDirectiveUri(e.uri);
+    });
+
+    _withIndent(() {
+      _writeMetadata(e);
+      if (uri is DirectiveUriWithAugmentation) {
+        _writeAugmentationElement(uri.augmentation);
+      }
+    });
+  }
+
   void _writeBodyModifiers(ExecutableElement e) {
     if (e.isAsynchronous) {
       expect(e.isSynchronous, isFalse);
@@ -273,20 +285,24 @@ class _ElementWriter {
     }
   }
 
-  void _writeClassElement(ClassElement e) {
+  void _writeClassElement(InterfaceElement e) {
     _writeIndentedLine(() {
-      _writeIf(e.isAbstract && !e.isMixin, 'abstract ');
-      _writeIf(e.isMacro, 'macro ');
+      if (e is ClassElement) {
+        _writeIf(e.isAbstract, 'abstract ');
+        _writeIf(e.isMacro, 'macro ');
+      }
       _writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
 
-      if (e.isEnum) {
+      if (e is EnumElement) {
         buffer.write('enum ');
-      } else if (e.isMixin) {
+      } else if (e is MixinElement) {
         buffer.write('mixin ');
       } else {
         buffer.write('class ');
       }
-      _writeIf(e.isMixinApplication, 'alias ');
+      if (e is ClassElement) {
+        _writeIf(e.isMixinApplication, 'alias ');
+      }
 
       _writeName(e);
     });
@@ -297,13 +313,13 @@ class _ElementWriter {
       _writeCodeRange(e);
       _writeTypeParameterElements(e.typeParameters);
 
-      var supertype = e.supertype;
+      final supertype = e.supertype;
       if (supertype != null &&
           (supertype.element.name != 'Object' || e.mixins.isNotEmpty)) {
         _writeType('supertype', supertype);
       }
 
-      if (e.isMixin) {
+      if (e is MixinElement) {
         var superclassConstraints = e.superclassConstraints;
         if (superclassConstraints.isEmpty) {
           throw StateError('At least Object is expected.');
@@ -317,7 +333,7 @@ class _ElementWriter {
       _writeElements('fields', e.fields, _writePropertyInducingElement);
 
       var constructors = e.constructors;
-      if (e.isMixin) {
+      if (e is MixinElement) {
         expect(constructors, isEmpty);
       } else {
         expect(constructors, isNotEmpty);
@@ -332,7 +348,7 @@ class _ElementWriter {
   }
 
   void _writeCodeRange(Element e) {
-    if (withCodeRanges && !e.isSynthetic) {
+    if (configuration.withCodeRanges && !e.isSynthetic) {
       e as ElementImpl;
       _writelnWithIndent('codeOffset: ${e.codeOffset}');
       _writelnWithIndent('codeLength: ${e.codeLength}');
@@ -399,7 +415,9 @@ class _ElementWriter {
 
       var superConstructor = e.superConstructor;
       if (superConstructor != null) {
-        if (!superConstructor.enclosingElement.isDartCoreObject) {
+        final enclosingElement = superConstructor.enclosingElement;
+        if (enclosingElement is ClassElement &&
+            !enclosingElement.isDartCoreObject) {
           _writeElementReference('superConstructor', superConstructor);
         }
       }
@@ -426,21 +444,25 @@ class _ElementWriter {
   }
 
   void _writeDirectiveUri(DirectiveUri uri) {
-    if (uri is DirectiveUriWithUnit) {
-      _writelnWithIndent('${uri.unit.source.uri}');
+    if (uri is DirectiveUriWithAugmentationImpl) {
+      buffer.write('${uri.augmentation.source.uri}');
+    } else if (uri is DirectiveUriWithLibraryImpl) {
+      buffer.write('${uri.library.source.uri}');
+    } else if (uri is DirectiveUriWithUnit) {
+      buffer.write('${uri.unit.source.uri}');
     } else if (uri is DirectiveUriWithSource) {
-      _writelnWithIndent("source '${uri.source.uri}'");
+      buffer.write("source '${uri.source.uri}'");
     } else if (uri is DirectiveUriWithRelativeUri) {
-      _writelnWithIndent("relativeUri '${uri.relativeUri}'");
+      buffer.write("relativeUri '${uri.relativeUri}'");
     } else if (uri is DirectiveUriWithRelativeUriString) {
-      _writelnWithIndent("relativeUriString '${uri.relativeUriString}'");
+      buffer.write("relativeUriString '${uri.relativeUriString}'");
     } else {
-      _writelnWithIndent('noRelativeUriString');
+      buffer.write('noRelativeUriString');
     }
   }
 
   void _writeDisplayName(Element e) {
-    if (withDisplayName) {
+    if (configuration.withDisplayName) {
       _writelnWithIndent('displayName: ${e.displayName}');
     }
   }
@@ -460,11 +482,16 @@ class _ElementWriter {
     printer.writeElement(name, element);
   }
 
-  void _writeElements<T>(String name, List<T> elements, void Function(T) f) {
-    if (elements.isNotEmpty) {
+  void _writeElements<T extends Object>(
+    String name,
+    List<T> elements,
+    void Function(T) f,
+  ) {
+    var filtered = elements.where(configuration.filter).toList();
+    if (filtered.isNotEmpty) {
       _writelnWithIndent(name);
       _withIndent(() {
-        for (var element in elements) {
+        for (var element in filtered) {
           f(element);
         }
       });
@@ -480,7 +507,7 @@ class _ElementWriter {
         if (exported is ExportedReferenceDeclared) {
           buffer.write('declared ');
         } else if (exported is ExportedReferenceExported) {
-          buffer.write('exported${exported.indexes} ');
+          buffer.write('exported${exported.locations} ');
         }
         // TODO(scheglov) Use the same writer as for resolved AST.
         buffer.write(exported.reference);
@@ -488,9 +515,11 @@ class _ElementWriter {
     }
   }
 
-  void _writeExportElement(ExportElement e) {
+  void _writeExportElement(LibraryExportElement e) {
+    e.location;
+
     _writeIndentedLine(() {
-      _writeUri(e.exportedLibrary?.source);
+      _writeDirectiveUri(e.uri);
     });
 
     _withIndent(() {
@@ -571,30 +600,53 @@ class _ElementWriter {
     }
   }
 
-  void _writeImportElement(ImportElement e) {
-    _writeIndentedLine(() {
-      _writeUri(e.importedLibrary?.source);
-      _writeIf(e.isDeferred, ' deferred');
+  void _writeImportElement(LibraryImportElement e) {
+    e.location;
 
-      var prefix = e.prefix;
-      if (prefix != null) {
-        buffer.write(' as ');
-        _writeName(prefix);
-      }
+    _writeIndentedLine(() {
+      _writeDirectiveUri(e.uri);
+      _writeIf(e.isSynthetic, ' synthetic');
+      _writeImportElementPrefix(e.prefix);
     });
 
     _withIndent(() {
       _writeMetadata(e);
       _writeNamespaceCombinators(e.combinators);
     });
+  }
 
-    _assertNonSyntheticElementSelf(e);
+  void _writeImportElementPrefix(ImportElementPrefix? prefix) {
+    if (prefix != null) {
+      _writeIf(prefix is DeferredImportElementPrefix, ' deferred');
+      buffer.write(' as ');
+      _writeName(prefix.element);
+    }
   }
 
   void _writeIndentedLine(void Function() f) {
     buffer.write(indent);
     f();
     buffer.writeln();
+  }
+
+  void _writeLibraryOrAugmentationElement(LibraryOrAugmentationElement e) {
+    _writeDocumentation(e);
+    _writeMetadata(e);
+
+    var imports = e.libraryImports.where((import) {
+      return configuration.withSyntheticDartCoreImport || !import.isSynthetic;
+    }).toList();
+    _writeElements('imports', imports, _writeImportElement);
+
+    _writeElements('exports', e.libraryExports, _writeExportElement);
+
+    _writeElements('augmentationImports', e.augmentationImports,
+        _writeAugmentationImportElement);
+
+    _writelnWithIndent('definingUnit');
+    _withIndent(() {
+      _writeUnitElement(e.definingCompilationUnit);
+    });
   }
 
   void _writelnWithIndent(String line) {
@@ -678,7 +730,7 @@ class _ElementWriter {
   }
 
   void _writeNonSyntheticElement(Element e) {
-    if (withNonSynthetic) {
+    if (configuration.withNonSynthetic) {
       _writeElementReference('nonSynthetic', e.nonSynthetic);
     }
   }
@@ -727,7 +779,9 @@ class _ElementWriter {
 
   void _writePartElement(PartElement e) {
     final uri = e.uri;
-    _writeDirectiveUri(uri);
+    _writeIndentedLine(() {
+      _writeDirectiveUri(e.uri);
+    });
 
     _withIndent(() {
       _writeMetadata(e);
@@ -746,7 +800,7 @@ class _ElementWriter {
     var variableEnclosing = variable.enclosingElement;
     if (variableEnclosing is CompilationUnitElement) {
       expect(variableEnclosing.topLevelVariables, contains(variable));
-    } else if (variableEnclosing is ClassElement) {
+    } else if (variableEnclosing is InterfaceElement) {
       expect(variableEnclosing.fields, contains(variable));
     }
 
@@ -787,6 +841,13 @@ class _ElementWriter {
       _writeBodyModifiers(e);
     });
 
+    void writeLinking() {
+      if (configuration.withPropertyLinking) {
+        _writelnWithIndent('id: ${_idMap[e]}');
+        _writelnWithIndent('variable: ${_idMap[e.variable]}');
+      }
+    }
+
     _withIndent(() {
       _writeDocumentation(e);
       _writeMetadata(e);
@@ -796,6 +857,7 @@ class _ElementWriter {
       _writeParameterElements(e.parameters);
       _writeType('returnType', e.returnType);
       _writeNonSyntheticElement(e);
+      writeLinking();
     });
   }
 
@@ -830,10 +892,29 @@ class _ElementWriter {
       _writeIf(e.isLate, 'late ');
       _writeIf(e.isFinal, 'final ');
       _writeIf(e.isConst, 'const ');
-      _writeIf(e is FieldElementImpl && e.isEnumConstant, 'enumConstant ');
+      if (e is FieldElementImpl) {
+        _writeIf(e.isEnumConstant, 'enumConstant ');
+        _writeIf(e.isPromotable, 'promotable ');
+      }
 
       _writeName(e);
     });
+
+    void writeLinking() {
+      if (configuration.withPropertyLinking) {
+        _writelnWithIndent('id: ${_idMap[e]}');
+
+        final getter = e.getter;
+        if (getter != null) {
+          _writelnWithIndent('getter: ${_idMap[getter]}');
+        }
+
+        final setter = e.setter;
+        if (setter != null) {
+          _writelnWithIndent('setter: ${_idMap[setter]}');
+        }
+      }
+    }
 
     _withIndent(() {
       _writeDocumentation(e);
@@ -843,6 +924,7 @@ class _ElementWriter {
       _writeType('type', e.type);
       _writeConstantInitializer(e);
       _writeNonSyntheticElement(e);
+      writeLinking();
     });
   }
 
@@ -878,11 +960,6 @@ class _ElementWriter {
 
       var aliasedType = e.aliasedType;
       _writeType('aliasedType', aliasedType);
-      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
-      // TODO(scheglov) Remove it when we stop providing it everywhere.
-      if (aliasedType is FunctionType) {
-        expect(aliasedType.element, isNull);
-      }
 
       var aliasedElement = e.aliasedElement;
       if (aliasedElement is GenericFunctionTypeElementImpl) {
@@ -912,6 +989,11 @@ class _ElementWriter {
         kindName = kindName.substring('TopLevelInferenceErrorKind.'.length);
       }
       _writelnWithIndent('typeInferenceError: $kindName');
+      _withIndent(() {
+        if (kindName == 'dependencyCycle') {
+          _writelnWithIndent('arguments: ${inferenceError?.arguments}');
+        }
+      });
     }
   }
 
@@ -968,17 +1050,24 @@ class _ElementWriter {
     );
     _writeElements('functions', e.functions, _writeFunctionElement);
   }
+}
 
-  void _writeUri(Source? source) {
-    if (source != null) {
-      Uri uri = source.uri;
-      String uriStr = uri.toString();
-      if (uri.isScheme('file')) {
-        uriStr = uri.pathSegments.last;
-      }
-      buffer.write(uriStr);
+class _IdMap {
+  final Map<Element, String> fieldMap = Map.identity();
+  final Map<Element, String> getterMap = Map.identity();
+  final Map<Element, String> setterMap = Map.identity();
+
+  String operator [](Element element) {
+    if (element is FieldElement) {
+      return fieldMap[element] ??= 'field_${fieldMap.length}';
+    } else if (element is TopLevelVariableElement) {
+      return fieldMap[element] ??= 'variable_${fieldMap.length}';
+    } else if (element is PropertyAccessorElement && element.isGetter) {
+      return getterMap[element] ??= 'getter_${getterMap.length}';
+    } else if (element is PropertyAccessorElement && element.isSetter) {
+      return setterMap[element] ??= 'setter_${setterMap.length}';
     } else {
-      buffer.write('<unresolved>');
+      return '???';
     }
   }
 }

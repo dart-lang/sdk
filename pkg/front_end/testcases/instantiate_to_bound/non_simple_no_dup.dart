@@ -6,8 +6,12 @@
 // the same raw generic type with non-simple bounds is used in the bound of a
 // type variable.
 
-class Hest<TypeX extends Hest<TypeX>> {}
+class A<TypeX extends A<TypeX>> {}
 
-class Fisk<TypeY extends Map<Hest, Hest>> {}
+class B<TypeY extends Map<A, A>> {}
+
+extension C<TypeY extends Map<A, A>> on int {}
+
+typedef D<TypeY extends Map<A, A>> = int;
 
 main() {}

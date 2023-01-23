@@ -9,6 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IterableOfStringExtensionTest);
+    defineReflectiveTests(StringExtensionTest);
   });
 }
 
@@ -78,5 +79,16 @@ class IterableOfStringExtensionTest {
 
   void test_quotedAndCommaSeparatedWithAnd_zero() {
     expect(<String>[].quotedAndCommaSeparatedWithAnd, isEmpty);
+  }
+}
+
+@reflectiveTest
+class StringExtensionTest {
+  void test_ifNotEmptyOrElse_empty() {
+    expect(''.ifNotEmptyOrElse('orElse'), 'orElse');
+  }
+
+  void test_ifNotEmptyOrElse_notEmpty() {
+    expect('test'.ifNotEmptyOrElse('orElse'), 'test');
   }
 }

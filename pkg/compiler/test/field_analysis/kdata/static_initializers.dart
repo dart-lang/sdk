@@ -39,11 +39,15 @@ main() {
   print(field7c);
   print(field7d);
   print(field7e);
+  print(field7f);
+  print(field7g);
 
   print(field8a);
   print(field8b);
   print(field8c);
   print(field8d);
+  print(field8e);
+  print(field8f);
 
   print(field9a);
   print(field9b);
@@ -157,6 +161,24 @@ var field7d = {0: method()};
 /*member: field7e:complexity=lazy*/
 var field7e = {method(): 0};
 
+/*member: field7f:complexity=eager*/
+var field7f = {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9};
+
+/*member: field7g:complexity=lazy*/
+var field7g = {
+  0: 0,
+  1: 1,
+  2: 2,
+  3: 3,
+  4: 4,
+  5: 5,
+  6: 6,
+  7: 7,
+  8: 8,
+  9: 9,
+  10: 10
+};
+
 /*member: field8a:complexity=eager*/
 var field8a = {};
 
@@ -168,6 +190,12 @@ var field8c = {method};
 
 /*member: field8d:complexity=lazy*/
 var field8d = {method()};
+
+/*member: field8e:complexity=eager*/
+var field8e = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+/*member: field8f:complexity=lazy*/
+var field8f = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
 /*member: field9a:complexity=eager*/
 var field9a = [];

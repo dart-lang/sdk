@@ -29,9 +29,9 @@ class ImplementedComputer {
     }
   }
 
-  void _addImplementedClass(ClassElement type) {
-    var offset = type.nameOffset;
-    var length = type.nameLength;
+  void _addImplementedClass(InterfaceElement element) {
+    var offset = element.nameOffset;
+    var length = element.nameLength;
     classes.add(protocol.ImplementedClass(offset, length));
   }
 
@@ -50,9 +50,9 @@ class ImplementedComputer {
     }
   }
 
-  Future<void> _computeForClassElement(ClassElement element) async {
+  Future<void> _computeForClassElement(InterfaceElement element) async {
     // Always include Object and its members.
-    if (element.supertype == null && !element.isMixin) {
+    if (element is ClassElement && element.isDartCoreObject) {
       _addImplementedClass(element);
       element.accessors.forEach(_addImplementedMember);
       element.fields.forEach(_addImplementedMember);

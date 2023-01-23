@@ -284,8 +284,10 @@ void IfConverter::Simplify(FlowGraph* flow_graph) {
         BranchInstr* branch = pred->last_instruction()->AsBranch();
 
         if (branch == nullptr) {
-          // There is no "B_pred" block.
-          ASSERT(pred->last_instruction()->IsGraphEntry());
+          // There is no "B_pred" block, or the block is the IndirectGoto
+          // of a switch that uses it as a jump table.
+          ASSERT(pred->last_instruction()->IsGraphEntry() ||
+                 pred->last_instruction()->IsIndirectGoto());
           continue;
         }
 

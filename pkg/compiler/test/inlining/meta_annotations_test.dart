@@ -10,7 +10,7 @@ import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/kernel/kernel_world.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 const Map<String, String> MEMORY_SOURCE_FILES = const {
   'main.dart': r"""
@@ -43,7 +43,7 @@ main() {
     Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
 
     void test(String name,
-        {bool expectNoInline: false, bool expectTryInline: false}) {
+        {bool expectNoInline = false, bool expectTryInline = false}) {
       LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
       FunctionEntity method =
           elementEnvironment.lookupLibraryMember(mainLibrary, name);

@@ -596,8 +596,8 @@ _js_unreliable_element_factories = set(
 class HtmlDartInterfaceGenerator(object):
     """Generates dart interface and implementation for the DOM IDL interface."""
 
-    def __init__(self, options, library_emitter, event_generator, interface,
-                 backend):
+    def __init__(self, options, library_emitter, event_generator,
+                 prototype_event_generator, interface, backend):
         self._renamer = options.renamer
         self._database = options.database
         self._template_loader = options.templates
@@ -605,6 +605,7 @@ class HtmlDartInterfaceGenerator(object):
         self._options = options
         self._library_emitter = library_emitter
         self._event_generator = event_generator
+        self._prototype_event_generator = prototype_event_generator
         self._interface = interface
         self._backend = backend
         self._interface_type_info = self._type_registry.TypeInfo(
@@ -850,6 +851,9 @@ class HtmlDartInterfaceGenerator(object):
         self._event_generator.EmitStreamProviders(
             self._interface, self._backend.CustomJSMembers(),
             implementation_members_emitter, self._library_name)
+        self._prototype_event_generator.CollectStreamProviders(
+            self._interface, self._backend.CustomJSMembers(),
+            self._library_name)
         self._backend.AddConstructors(constructors, factory_provider,
                                       factory_constructor_name,
                                       class_members_emitter)
@@ -891,6 +895,8 @@ class HtmlDartInterfaceGenerator(object):
             self._interface, [], implementation_members_emitter,
             self._library_name, stream_getter_signatures_emitter,
             element_stream_getters_emitter)
+        self._prototype_event_generator.CollectStreamGetters(
+            self._interface, [], self._library_name)
         self._backend.FinishInterface()
 
     def _ImplementationEmitter(self):
@@ -1478,7 +1484,7 @@ class Dart2JSBackend(HtmlDartGenerator):
                 '  $TYPE operator[](int index) {\n'
                 '    if (JS("bool", "# >>> 0 !== # || # >= #", index,\n'
                 '        index, index, length))\n'
-                '      throw new RangeError.index(index, this);\n'
+                '      throw new IndexError.withLength(index, length, indexable: this);\n'
                 '    return $INDEXED_GETTER$NULLASSERT;\n'
                 '  }',
                 INDEXED_GETTER=indexed_getter,

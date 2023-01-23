@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: avoid_dynamic_calls
+
 /// Converters and codecs for converting between JSON and [Info] classes.
 import 'dart:collection';
 import 'dart:convert';
@@ -113,9 +115,10 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
         result.classes.add(child);
       } else if (child is ClassTypeInfo) {
         result.classTypes.add(child);
-      } else {
-        assert(child is TypedefInfo);
+      } else if (child is TypedefInfo) {
         result.typedefs.add(child);
+      } else {
+        throw StateError('Invalid LibraryInfo child: $child');
       }
     }
     return result;
@@ -132,11 +135,14 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
     for (var child in json['children'].map((id) => parseId(id))) {
       if (child is FunctionInfo) {
         result.functions.add(child);
-      } else {
-        assert(child is FieldInfo);
+      } else if (child is FieldInfo) {
         result.fields.add(child);
+      } else {
+        throw StateError('Invalid ClassInfo child: $child');
       }
     }
+    result.supers.addAll(
+        json['supers'].map<ClassInfo>((id) => parseId(id) as ClassInfo));
     return result;
   }
 
@@ -206,6 +212,7 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
     final programInfo = ProgramInfo(
         entrypoint: parseId(json['entrypoint']) as FunctionInfo,
         size: json['size'],
+        ramUsage: json['ramUsage'],
         compilationMoment: DateTime.parse(json['compilationMoment']),
         dart2jsVersion: json['dart2jsVersion'],
         noSuchMethodEnabled: json['noSuchMethodEnabled'],
@@ -349,6 +356,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
         info is LibraryInfo ||
             info is ConstantInfo ||
             info is OutputUnitInfo ||
+            info is ClassInfo ||
             info.parent != null,
         "$info");
 
@@ -407,17 +415,30 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     };
   }
 
-  Map visitDependencyInfo(DependencyInfo info) =>
-      {'id': idFor(info.target).serializedId, 'mask': info.mask};
+  Map visitDependencyInfo(DependencyInfo info) => {
+        'id': idFor(info.target).serializedId,
+        if (info.mask != null) 'mask': info.mask,
+      };
 
   Map _visitAllInfoHolding(AllInfo allInfo) {
     var map = SplayTreeMap<String, List>(compareNatural);
     void helper(CodeInfo info) {
       if (info.uses.isEmpty) return;
-      map[idFor(info).serializedId] = info.uses
-          .map(visitDependencyInfo)
-          .toList()
-        ..sort((a, b) => a['id'].compareTo(b['id']));
+      map[idFor(info).serializedId] =
+          info.uses.map(visitDependencyInfo).toList()
+            ..sort((a, b) {
+              final value = a['id'].compareTo(b['id']);
+              if (value != 0) return value;
+              final aMask = a['mask'] as String?;
+              final bMask = b['mask'] as String?;
+              if (aMask == null) {
+                return bMask == null ? 0 : 1;
+              }
+              if (bMask == null) {
+                return -1;
+              }
+              return aMask.compareTo(bMask);
+            });
     }
 
     allInfo.functions.forEach(helper);
@@ -439,14 +460,14 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     var jsonHolding = _visitAllInfoHolding(info);
     var jsonDependencies = _visitAllInfoDependencies(info);
     return {
+      'dump_version': isBackwardCompatible ? 5 : info.version,
+      'dump_minor_version': isBackwardCompatible ? 1 : info.minorVersion,
+      'program': info.program!.accept(this),
       'elements': elements,
       'holding': jsonHolding,
       'dependencies': jsonDependencies,
       'outputUnits': info.outputUnits.map((u) => u.accept(this)).toList(),
-      'dump_version': isBackwardCompatible ? 5 : info.version,
       'deferredFiles': info.deferredFiles,
-      'dump_minor_version': isBackwardCompatible ? 1 : info.minorVersion,
-      'program': info.program!.accept(this)
     };
   }
 
@@ -455,6 +476,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     return {
       'entrypoint': idFor(info.entrypoint).serializedId,
       'size': info.size,
+      'ramUsage': info.ramUsage,
       'dart2jsVersion': info.dart2jsVersion,
       'compilationMoment': '${info.compilationMoment}',
       'compilationDuration': info.compilationDuration.inMicroseconds,
@@ -508,7 +530,8 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
         // TODO(sigmund): change format, include only when abstract is true.
         'modifiers': {'abstract': info.isAbstract},
         'children':
-            _toSortedSerializedIds([...info.fields, ...info.functions], idFor)
+            _toSortedSerializedIds([...info.fields, ...info.functions], idFor),
+        'supers': _toSortedSerializedIds(info.supers, idFor)
       });
   }
 
@@ -583,10 +606,11 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
   }
 
   @override
-  visitTypedef(TypedefInfo info) => _visitBasicInfo(info)..['type'] = info.type;
+  Map visitTypedef(TypedefInfo info) =>
+      _visitBasicInfo(info)..['type'] = info.type;
 
   @override
-  visitOutput(OutputUnitInfo info) => _visitBasicInfo(info)
+  Map visitOutput(OutputUnitInfo info) => _visitBasicInfo(info)
     ..['filename'] = info.filename
     ..['imports'] = info.imports;
 

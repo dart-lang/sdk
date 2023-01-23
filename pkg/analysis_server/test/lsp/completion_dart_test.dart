@@ -2,11 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
-import 'package:analysis_server/src/services/snippets/dart/dart_snippet_producers.dart';
-import 'package:analysis_server/src/services/snippets/dart/flutter_snippet_producers.dart';
+import 'package:analysis_server/src/services/snippets/dart/class_declaration.dart';
+import 'package:analysis_server/src/services/snippets/dart/do_statement.dart';
+import 'package:analysis_server/src/services/snippets/dart/flutter_stateful_widget.dart';
+import 'package:analysis_server/src/services/snippets/dart/flutter_stateful_widget_with_animation.dart';
+import 'package:analysis_server/src/services/snippets/dart/flutter_stateless_widget.dart';
+import 'package:analysis_server/src/services/snippets/dart/for_in_statement.dart';
+import 'package:analysis_server/src/services/snippets/dart/for_statement.dart';
+import 'package:analysis_server/src/services/snippets/dart/function_declaration.dart';
+import 'package:analysis_server/src/services/snippets/dart/if_else_statement.dart';
+import 'package:analysis_server/src/services/snippets/dart/if_statement.dart';
+import 'package:analysis_server/src/services/snippets/dart/main_function.dart';
+import 'package:analysis_server/src/services/snippets/dart/switch_statement.dart';
+import 'package:analysis_server/src/services/snippets/dart/test_definition.dart';
+import 'package:analysis_server/src/services/snippets/dart/test_group_definition.dart';
+import 'package:analysis_server/src/services/snippets/dart/try_catch_statement.dart';
+import 'package:analysis_server/src/services/snippets/dart/while_statement.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:collection/collection.dart';
@@ -21,23 +38,289 @@ import 'server_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompletionTest);
-    defineReflectiveTests(CompletionWithPreviewNotImportedCompletionsTest);
+    defineReflectiveTests(CompletionDocumentationResolutionTest);
     defineReflectiveTests(DartSnippetCompletionTest);
     defineReflectiveTests(FlutterSnippetCompletionTest);
     defineReflectiveTests(FlutterSnippetCompletionWithoutNullSafetyTest);
   });
 }
 
-@reflectiveTest
-class CompletionTest extends AbstractLspAnalysisServerTest
+abstract class AbstractCompletionTest extends AbstractLspAnalysisServerTest
     with CompletionTestMixin {
-  CompletionTest({bool previewNotImportedCompletions = false}) {
+  AbstractCompletionTest() {
     defaultInitializationOptions = {
-      'previewNotImportedCompletions': previewNotImportedCompletions,
       // Default to a high budget for tests because everything is cold and
       // may take longer to return.
-      'notImportedCompletionBudgetMilliseconds': 50000
+      'completionBudgetMilliseconds': 50000
     };
+  }
+
+  void expectDocumentation(CompletionItem completion, Matcher matcher) {
+    final docs = completion.documentation?.map(
+      (markup) => markup.value,
+      (string) => string,
+    );
+    expect(docs, matcher);
+  }
+}
+
+@reflectiveTest
+class CompletionDocumentationResolutionTest extends AbstractCompletionTest {
+  late String content;
+
+  Future<CompletionItem> getCompletionItem(String label) async {
+    final completions =
+        await getCompletion(mainFileUri, positionFromMarker(content));
+    return completions.singleWhere((c) => c.label == label);
+  }
+
+  Future<void> initializeServer() async {
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+  }
+
+  Future<void> test_class() async {
+    newFile(
+      join(projectFolderPath, 'my_class.dart'),
+      '''
+/// Class.
+class MyClass {}
+      ''',
+    );
+
+    content = '''
+void f() {
+  MyClass^
+}
+    ''';
+
+    await initializeServer();
+
+    final completion = await getCompletionItem('MyClass');
+    expectDocumentation(completion, isNull);
+
+    final resolved = await resolveCompletion(completion);
+    expectDocumentation(resolved, contains('Class.'));
+  }
+
+  Future<void> test_class_constructor() async {
+    newFile(
+      join(projectFolderPath, 'my_class.dart'),
+      '''
+class MyClass {
+  /// Constructor.
+  MyClass();
+}
+      ''',
+    );
+
+    content = '''
+void f() {
+  MyClass^
+}
+    ''';
+
+    await initializeServer();
+
+    final completion = await getCompletionItem('MyClass()');
+    expectDocumentation(completion, isNull);
+
+    final resolved = await resolveCompletion(completion);
+    expectDocumentation(resolved, contains('Constructor.'));
+  }
+
+  Future<void> test_class_constructorNamed() async {
+    newFile(
+      join(projectFolderPath, 'my_class.dart'),
+      '''
+class MyClass {
+  /// Named Constructor.
+  MyClass.named();
+}
+      ''',
+    );
+
+    content = '''
+void f() {
+  MyClass^
+}
+    ''';
+
+    await initializeServer();
+
+    final completion = await getCompletionItem('MyClass.named()');
+    expectDocumentation(completion, isNull);
+
+    final resolved = await resolveCompletion(completion);
+    expectDocumentation(resolved, contains('Named Constructor.'));
+  }
+
+  Future<void> test_enum() async {
+    newFile(
+      join(projectFolderPath, 'my_enum.dart'),
+      '''
+/// Enum.
+enum MyEnum {}
+      ''',
+    );
+
+    content = '''
+void f() {
+  MyEnum^
+}
+    ''';
+
+    await initializeServer();
+
+    final completion = await getCompletionItem('MyEnum');
+    expectDocumentation(completion, isNull);
+
+    final resolved = await resolveCompletion(completion);
+    expectDocumentation(resolved, contains('Enum.'));
+  }
+
+  Future<void> test_enum_member() async {
+    // Function used to provide type context in main file without importing
+    // the enum.
+    newFile(
+      join(projectFolderPath, 'lib', 'func.dart'),
+      '''
+import 'my_enum.dart';
+void enumFunc(MyEnum e) {}
+      ''',
+    );
+
+    newFile(
+      join(projectFolderPath, 'lib', 'my_enum.dart'),
+      '''
+enum MyEnum {
+  /// Enum Member.
+  one,
+}
+      ''',
+    );
+
+    content = '''
+import 'func.dart';
+void f() {
+  enumFunc(MyEnum^)
+}
+    ''';
+
+    await initializeServer();
+
+    final completion = await getCompletionItem('MyEnum.one');
+    expectDocumentation(completion, isNull);
+
+    final resolved = await resolveCompletion(completion);
+    expectDocumentation(resolved, contains('Enum Member.'));
+  }
+}
+
+@reflectiveTest
+class CompletionTest extends AbstractCompletionTest {
+  /// Checks whether the correct types of documentation are returned for
+  /// completions based on [preference].
+  Future<void> assertDocumentation(
+    String? preference, {
+    required bool includesSummary,
+    required bool includesFull,
+  }) async {
+    final content = '''
+/// Summary.
+///
+/// Full.
+class A {}
+
+A^
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await provideConfig(
+      () => initialize(
+          workspaceCapabilities: withConfigurationSupport(
+              withApplyEditSupport(emptyWorkspaceClientCapabilities))),
+      {
+        if (preference != null) 'documentation': preference,
+      },
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final completion = res.singleWhere((c) => c.label == 'A');
+
+    if (includesSummary) {
+      expectDocumentation(completion, contains('Summary.'));
+    } else {
+      expectDocumentation(completion, isNot(contains('Summary.')));
+    }
+
+    if (includesFull) {
+      expectDocumentation(completion, contains('Full.'));
+    } else {
+      expectDocumentation(completion, isNot(contains('Full.')));
+    }
+  }
+
+  /// Checks whether the correct types of documentation are returned during
+  /// `completionItem/resolve` based on [preference].
+  Future<void> assertResolvedDocumentation(
+    String? preference, {
+    required bool includesSummary,
+    required bool includesFull,
+  }) async {
+    newFile(
+      join(projectFolderPath, 'other_file.dart'),
+      '''
+      /// Summary.
+      ///
+      /// Full.
+      class InOtherFile {}
+      ''',
+    );
+
+    final content = '''
+void f() {
+  InOtherF^
+}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await provideConfig(
+      () => initialize(
+          workspaceCapabilities: withConfigurationSupport(
+              withApplyEditSupport(emptyWorkspaceClientCapabilities))),
+      {
+        if (preference != null) 'documentation': preference,
+      },
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final completion = res.singleWhere((c) => c.label == 'InOtherFile');
+
+    // Expect no docs in original response and correct type of docs added
+    // during resolve.
+    expectDocumentation(completion, isNull);
+    final resolved = await resolveCompletion(completion);
+
+    if (includesSummary) {
+      expectDocumentation(resolved, contains('Summary.'));
+    } else {
+      expectDocumentation(resolved, isNot(contains('Summary.')));
+    }
+
+    if (includesFull) {
+      expectDocumentation(resolved, contains('Full.'));
+    } else {
+      expectDocumentation(resolved, isNot(contains('Full.')));
+    }
   }
 
   Future<void> checkCompleteFunctionCallInsertText(
@@ -79,6 +362,13 @@ class CompletionTest extends AbstractLspAnalysisServerTest
     );
   }
 
+  /// Expect [item] to use the default edit range, inserting the value [text].
+  void expectUsesDefaultEditRange(CompletionItem item, String text) {
+    expect(item.textEditText ?? item.label, text);
+    expect(item.insertText, isNull);
+    expect(item.textEdit, isNull);
+  }
+
   @override
   void setUp() {
     super.setUp();
@@ -86,6 +376,41 @@ class CompletionTest extends AbstractLspAnalysisServerTest
       projectFolderPath,
       flutter: true,
     );
+  }
+
+  Future<void> test_annotation_beforeMember() async {
+    final content = '''
+class B {
+  @^
+  int a = 1;
+}
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final completions =
+        await getCompletion(mainFileUri, positionFromMarker(content));
+    final labels = completions.map((c) => c.label).toList();
+    expect(labels, contains('override'));
+    expect(labels, contains('deprecated'));
+    expect(labels, contains('Deprecated(…)'));
+  }
+
+  Future<void> test_annotation_endOfClass() async {
+    final content = '''
+class B {
+  @^
+}
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final completions =
+        await getCompletion(mainFileUri, positionFromMarker(content));
+    final labels = completions.map((c) => c.label).toList();
+    expect(labels, contains('override'));
+    expect(labels, contains('deprecated'));
+    expect(labels, contains('Deprecated(…)'));
   }
 
   Future<void> test_comment() async {
@@ -124,32 +449,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest
     expect(res, isEmpty);
   }
 
-  Future<void> test_commitCharacter_completionItem() async {
-    await provideConfig(
-      () => initialize(
-        textDocumentCapabilities:
-            withAllSupportedTextDocumentDynamicRegistrations(
-                emptyTextDocumentClientCapabilities),
-        workspaceCapabilities:
-            withConfigurationSupport(emptyWorkspaceClientCapabilities),
-      ),
-      {'previewCommitCharacters': true},
-    );
-
-    final content = '''
-void f() {
-  pri^
-}
-    ''';
-
-    await openFile(mainFileUri, withoutMarkers(content));
-    final res = await getCompletion(mainFileUri, positionFromMarker(content));
-
-    final print = res.singleWhere((c) => c.label == 'print(…)');
-    expect(print.commitCharacters, equals(dartCompletionCommitCharacters));
-  }
-
-  Future<void> test_commitCharacter_config() async {
+  Future<void> test_commitCharacter_dynamicRegistration() async {
     final registrations = <Registration>[];
     // Provide empty config and collect dynamic registrations during
     // initialization.
@@ -346,7 +646,7 @@ class _MyWidgetState extends State<MyWidget> {
   @override
   Widget build(BuildContext context) {
     [[setSt^]]
-    return Container();
+    return const Placeholder();
   }
 }
     ''';
@@ -760,6 +1060,41 @@ final a = Stri^
         request, throwsA(isResponseError(ErrorCodes.InvalidParams)));
   }
 
+  Future<void> test_concurrentRequestsCancellation() async {
+    // We expect a new completion request to cancel any in-flight request so
+    // send multiple without awaiting, then check only the last one completes.
+    final content = '^';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final position = positionFromMarker(content);
+    final responseFutures = [
+      getCompletion(mainFileUri, position),
+      getCompletion(mainFileUri, position),
+      getCompletion(mainFileUri, position),
+    ];
+    expect(responseFutures[0],
+        throwsA(isResponseError(ErrorCodes.RequestCancelled)));
+    expect(responseFutures[1],
+        throwsA(isResponseError(ErrorCodes.RequestCancelled)));
+    final results = await responseFutures[2];
+    expect(results, isNotEmpty);
+  }
+
+  Future<void> test_dartDocPreference_full() =>
+      assertDocumentation('full', includesSummary: true, includesFull: true);
+
+  Future<void> test_dartDocPreference_none() =>
+      assertDocumentation('none', includesSummary: false, includesFull: false);
+
+  Future<void> test_dartDocPreference_summary() =>
+      assertDocumentation('summary',
+          includesSummary: true, includesFull: false);
+
+  /// No preference should result in full docs.
+  Future<void> test_dartDocPreference_unset() =>
+      assertDocumentation(null, includesSummary: true, includesFull: true);
+
   Future<void> test_filterTextNotIncludeAdditionalText() async {
     // Some completions (eg. overrides) have additional text that is not part
     // of the label. That text should _not_ appear in filterText as it will
@@ -823,6 +1158,57 @@ final a = Stri^
 
     expect(fromServer.kind, equals(CompletionItemKind.Variable));
     expect(fromPlugin.kind, equals(CompletionItemKind.Method));
+  }
+
+  Future<void> test_fromPlugin_dartFile_withImports() async {
+    final content = '''
+void f() {
+  ^
+}
+    ''';
+
+    final pluginResult = plugin.CompletionGetSuggestionsResult(
+      content.indexOf('^'),
+      0,
+      [
+        plugin.CompletionSuggestion(
+          plugin.CompletionSuggestionKind.IDENTIFIER,
+          100,
+          'fooFromDartIO',
+          -1,
+          -1,
+          false,
+          false,
+          libraryUri: 'dart:io',
+          isNotImported: true,
+        ),
+      ],
+    );
+    configureTestPlugin(respondWith: pluginResult);
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final items = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = items.singleWhere((c) => c.label == 'fooFromDartIO');
+    final resolved = await resolveCompletion(item);
+
+    // Apply both the main completion edit and the additionalTextEdits atomically.
+    final newContent = applyTextEdits(
+      withoutMarkers(content),
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
+    );
+
+    // Ensure the plugin-supplied import was added.
+    expect(newContent, equals('''
+import 'dart:io';
+
+void f() {
+  fooFromDartIO
+}
+    '''));
   }
 
   Future<void> test_fromPlugin_nonDartFile() async {
@@ -981,7 +1367,7 @@ final a = Stri^
       @override
       Widget build(BuildContext context) {
         [[setSt^]]
-        return Container();
+        return const Placeholder();
       }
     }
     ''';
@@ -1179,6 +1565,129 @@ void f() {
     // Also ensure 'aaa' is included, since relevance sorting should have
     // put it at the top.
     expect(res.items.map((item) => item.label).contains('aaa'), isTrue);
+  }
+
+  Future<void> test_itemDefaults_editRange() async {
+    final content = '''
+    void myFunction() {
+      [[myFunctio^]]
+    }
+    ''';
+
+    await initialize(
+      textDocumentCapabilities: withCompletionItemInsertReplaceSupport(
+        withCompletionListDefaults(
+          emptyTextDocumentClientCapabilities,
+          ['editRange'],
+        ),
+      ),
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    final list =
+        await getCompletionList(mainFileUri, positionFromMarker(content));
+    final item =
+        list.items.singleWhere((c) => c.label.startsWith('myFunction'));
+    final defaultEditRange = list.itemDefaults!.editRange!.map(
+      (insertReplace) => throw 'Expected Range, got CompletionItemEditRange',
+      (range) => range,
+    );
+
+    // Range covers the ranged marked with [[braces]] in `content`.
+    expect(defaultEditRange, rangeFromMarkers(content));
+
+    // Item should use the default range.
+    expectUsesDefaultEditRange(item, 'myFunction');
+  }
+
+  Future<void> test_itemDefaults_editRange_includesNonDefaultItem() async {
+    // In this code, we will get two completions with different edit ranges:
+    //
+    //   - 'b: ' will have a zero-width range because names don't replace args
+    //   -  'a' will replace 'b'
+    //
+    // Therefore we expect 'a' to use the default range (and not have its own)
+    // but 'b'` to have its own.
+    //
+    // Additionally, because the caret is before the identifier, we will have
+    // seperate default insert/replace ranges.
+    final content = '''
+void f(String a, {String? b}) {
+  f([[^b]]);
+}
+    ''';
+
+    await initialize(
+      textDocumentCapabilities: withCompletionItemInsertReplaceSupport(
+        withCompletionListDefaults(
+          emptyTextDocumentClientCapabilities,
+          ['editRange'],
+        ),
+      ),
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    final list =
+        await getCompletionList(mainFileUri, positionFromMarker(content));
+    final itemA = list.items.singleWhere((c) => c.label == 'a');
+    final itemB = list.items.singleWhere((c) => c.label == 'b: ');
+
+    // Default replace range should span `b`.
+    final expectedRange = rangeFromMarkers(content);
+    final defaultEditRange = list.itemDefaults!.editRange!.map(
+      (insertReplace) => insertReplace,
+      (range) => throw 'Expected Range, got CompletionItemEditRange',
+    );
+    expect(defaultEditRange.replace, equals(expectedRange));
+
+    // Default insert range should be in front of `b`.
+    expect(
+      defaultEditRange.insert,
+      Range(start: expectedRange.start, end: expectedRange.start),
+    );
+
+    // And item A should use that default.
+    expectUsesDefaultEditRange(itemA, 'a');
+
+    // Item B should have its own range, which is a single range for both
+    // insert and replace that matches the insert range (in front of `b`) of
+    // the default.
+    final itemBTextEdit = toTextEdit(itemB.textEdit!);
+    expect(itemBTextEdit.range, defaultEditRange.insert);
+    expect(itemBTextEdit.newText, 'b: ');
+  }
+
+  Future<void> test_itemDefaults_textMode() async {
+    // We only normally set InsertTextMode on multiline completions (where it
+    // matters), so ensure there's a multiline completion in the results for
+    // testing.
+    final content = '''
+    import 'package:flutter/material.dart';
+
+    class _MyWidgetState extends State<MyWidget> {
+      @override
+      Widget build(BuildContext context) {
+        [[setSt^]]
+        return const Placeholder();
+      }
+    }
+    ''';
+
+    await initialize(
+      textDocumentCapabilities: withCompletionItemInsertTextModeSupport(
+        withCompletionListDefaults(
+          emptyTextDocumentClientCapabilities,
+          ['insertTextMode'],
+        ),
+      ),
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    final list =
+        await getCompletionList(mainFileUri, positionFromMarker(content));
+    final item = list.items.singleWhere((c) => c.label.startsWith('setState'));
+
+    // Default should be set.
+    expect(list.itemDefaults?.insertTextMode, InsertTextMode.asIs);
+    // Item should not.
+    expect(item.insertTextMode, isNull);
   }
 
   /// Exact matches should always be included when completion lists are
@@ -1684,7 +2193,7 @@ void f() {
     final originalTextEdit = completion.textEdit;
 
     // Expect no docs, this is added during resolve.
-    expect(completion.documentation, isNull);
+    expectDocumentation(completion, isNull);
 
     // Resolve the completion item (via server) to get any additional edits.
     // This is LSP's equiv of getSuggestionDetails() and is invoked by LSP
@@ -1700,10 +2209,7 @@ void f() {
     );
 
     // Ensure the doc comment was added.
-    expect(
-      resolved.documentation!.valueEquals('This class is in another file.'),
-      isTrue,
-    );
+    expectDocumentation(resolved, equals('This class is in another file.'));
 
     // Ensure the edit did not change.
     expect(resolved.textEdit, originalTextEdit);
@@ -1729,6 +2235,23 @@ void f() {
 }
     '''));
   }
+
+  Future<void> test_unimportedSymbols_dartDocPreference_full() =>
+      assertResolvedDocumentation('full',
+          includesSummary: true, includesFull: true);
+
+  Future<void> test_unimportedSymbols_dartDocPreference_none() =>
+      assertResolvedDocumentation('none',
+          includesSummary: false, includesFull: false);
+
+  Future<void> test_unimportedSymbols_dartDocPreference_summary() =>
+      assertResolvedDocumentation('summary',
+          includesSummary: true, includesFull: false);
+
+  /// No preference should result in full docs.
+  Future<void> test_unimportedSymbols_dartDocPreference_unset() =>
+      assertResolvedDocumentation(null,
+          includesSummary: true, includesFull: true);
 
   Future<void>
       test_unimportedSymbols_doesNotDuplicate_importedViaMultipleLibraries() async {
@@ -2060,6 +2583,37 @@ void f() {
   }
 
   Future<void>
+      test_unimportedSymbols_importsPackageUri_extensionMember() async {
+    newFile(join(projectFolderPath, 'lib', 'my_extension.dart'), '''
+extension MyExtension on String {
+  void myExtensionMethod() {}
+}
+      ''');
+
+    final content = '''
+void f() {
+  ''.myExtensionMet^
+}
+    ''';
+
+    final expectedContent = '''
+import 'package:test/my_extension.dart';
+
+void f() {
+  ''.myExtensionMethod
+}
+    ''';
+
+    final completionLabel = 'myExtensionMethod()';
+    await _checkCompletionEdits(
+      mainFileUri,
+      content,
+      completionLabel,
+      expectedContent,
+    );
+  }
+
+  Future<void>
       test_unimportedSymbols_includesReexportedSymbolsForEachFile() async {
     newFile(
       join(projectFolderPath, 'source_file.dart'),
@@ -2139,7 +2693,7 @@ void f() {
     final originalTextEdit = completion.textEdit;
 
     // Expect no docs, this is added during resolve.
-    expect(completion.documentation, isNull);
+    expectDocumentation(completion, isNull);
 
     // Resolve the completion item (via server) to get any additional edits.
     // This is LSP's equiv of getSuggestionDetails() and is invoked by LSP
@@ -2155,10 +2709,7 @@ void f() {
     );
 
     // Ensure the doc comment was added.
-    expect(
-      resolved.documentation!.valueEquals('This class is in another file.'),
-      isTrue,
-    );
+    expectDocumentation(resolved, equals('This class is in another file.'));
 
     // Ensure the edit did not change.
     expect(resolved.textEdit, originalTextEdit);
@@ -2305,7 +2856,7 @@ void f() {
         initializationOptions: {
           ...?defaultInitializationOptions,
           // Set budget high to ensure it completes.
-          'notImportedCompletionBudgetMilliseconds': 100000,
+          'completionBudgetMilliseconds': 100000,
         },
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
@@ -2319,6 +2870,11 @@ void f() {
   }
 
   Future<void> test_unimportedSymbols_isIncompleteSetIfBudgetExhausted() async {
+    newFile(
+      join(projectFolderPath, 'lib', 'other_file.dart'),
+      'class InOtherFile {}',
+    );
+
     final content = '''
 void f() {
   InOtherF^
@@ -2330,7 +2886,7 @@ void f() {
         initializationOptions: {
           ...?defaultInitializationOptions,
           // Set budget low to ensure we don't complete.
-          'notImportedCompletionBudgetMilliseconds': 0,
+          'completionBudgetMilliseconds': 0,
         },
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
@@ -2340,7 +2896,8 @@ void f() {
         await getCompletionList(mainFileUri, positionFromMarker(content));
 
     // Ensure we flagged that we did not return everything.
-    expect(res.isIncomplete, isFalse);
+    expect(res.items, hasLength(0));
+    expect(res.isIncomplete, isTrue);
   }
 
   /// This test reproduces a bug where the pathKey hash used in
@@ -2410,7 +2967,7 @@ void f() {
     expect(completion.textEdit, isNotNull);
 
     // Expect no docs, this is added during resolve.
-    expect(completion.documentation, isNull);
+    expectDocumentation(completion, isNull);
 
     // Resolve the completion item (via server) to get any additional edits.
     // This is LSP's equiv of getSuggestionDetails() and is invoked by LSP
@@ -2433,6 +2990,76 @@ import '../other_file.dart';
 
 void f() {
   var a = InOtherFile.fromJson
+}
+    '''));
+  }
+
+  Future<void> test_unimportedSymbols_overrides() async {
+    newFile(join(projectFolderPath, 'lib', 'a.dart'), 'class A {}');
+    newFile(join(projectFolderPath, 'lib', 'b.dart'), 'class B {}');
+    newFile(join(projectFolderPath, 'lib', 'c.dart'), 'class C {}');
+    newFile(join(projectFolderPath, 'lib', 'd.dart'), 'class D {}');
+
+    newFile(
+      join(projectFolderPath, 'lib', 'base.dart'),
+      '''
+import 'a.dart';
+import 'b.dart';
+import 'c.dart';
+import 'd.dart';
+
+abstract class Base {
+  D? myMethod(A a, B b, C c) => null;
+}
+      ''',
+    );
+
+    // A will already be imported
+    // B will already be imported but with a prefix
+    // C & D are not imported and need importing (return + parameter types)
+    final content = '''
+import 'package:test/a.dart';
+import 'package:test/b.dart' as b;
+import 'package:test/base.dart';
+
+class BaseImpl extends Base {
+  myMet^
+}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+      workspaceCapabilities:
+          withApplyEditSupport(emptyWorkspaceClientCapabilities),
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+
+    final completion =
+        res.singleWhere((c) => c.label == 'myMethod(A a, b.B b, C c) { … }');
+    final resolved = await resolveCompletion(completion);
+
+    final newContent = applyTextEdits(
+      withoutMarkers(content),
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
+    );
+
+    expect(newContent, equals('''
+import 'package:test/a.dart';
+import 'package:test/b.dart' as b;
+import 'package:test/base.dart';
+import 'package:test/c.dart';
+import 'package:test/d.dart';
+
+class BaseImpl extends Base {
+  @override
+  D? myMethod(A a, b.B b, C c) {
+    // TODO: implement myMethod
+    return super.myMethod(a, b, c);
+  }
 }
     '''));
   }
@@ -2535,6 +3162,7 @@ void f() {
     );
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
+
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
 
     // Ensure the item doesn't appear in the results (because we might not
@@ -2656,12 +3284,6 @@ $lintsYaml
 }
 
 @reflectiveTest
-class CompletionWithPreviewNotImportedCompletionsTest extends CompletionTest {
-  CompletionWithPreviewNotImportedCompletionsTest()
-      : super(previewNotImportedCompletions: true);
-}
-
-@reflectiveTest
 class DartSnippetCompletionTest extends SnippetCompletionTest {
   Future<void> test_snippets_class() async {
     final content = '''
@@ -2671,8 +3293,8 @@ clas^
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartClassSnippetProducer.prefix,
-      label: DartClassSnippetProducer.label,
+      prefix: ClassDeclaration.prefix,
+      label: ClassDeclaration.label,
     );
 
     expect(updated, r'''
@@ -2712,8 +3334,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartDoWhileLoopSnippetProducer.prefix,
-      label: DartDoWhileLoopSnippetProducer.label,
+      prefix: DoStatement.prefix,
+      label: DoStatement.label,
     );
 
     expect(updated, r'''
@@ -2723,6 +3345,43 @@ void f() {
   } while (${1:condition});
 }
 ''');
+  }
+
+  /// Snippets completions may abort if documents are modified (because they
+  /// need to obtain resolved units when building edits) but they should not
+  /// prevent non-Snippet completion results from being returned (because this
+  /// happens frequently while typing).
+  Future<void> test_snippets_failureDoesNotPreventNonSnippets() async {
+    final content = '''
+void f() {
+  ^
+}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initializeWithSnippetSupport();
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+
+    // User a Completer to control when the completion handler starts computing.
+    final completer = Completer<void>();
+    CompletionHandler.delayAfterResolveForTests = completer.future;
+
+    // Start the completion request but don't await it yet.
+    final completionRequest =
+        getCompletionList(mainFileUri, positionFromMarker(content));
+    // Modify the document to ensure the snippet requests will fail to build
+    // edits and then allow the handler to continue.
+    await replaceFile(222, mainFileUri, '');
+    completer.complete();
+
+    // Wait for the results.
+    final result = await completionRequest;
+
+    // Ensure we flagged that we did not return everything but we still got
+    // results.
+    expect(result.isIncomplete, isTrue);
+    expect(result.items, isNotEmpty);
   }
 
   Future<void>
@@ -2738,7 +3397,7 @@ class B {}
     await initializeWithSnippetSupport();
     await expectNoSnippet(
       content,
-      FlutterStatelessWidgetSnippetProducer.prefix,
+      FlutterStatelessWidget.prefix,
     );
   }
 
@@ -2752,8 +3411,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartForLoopSnippetProducer.prefix,
-      label: DartForLoopSnippetProducer.label,
+      prefix: ForStatement.prefix,
+      label: ForStatement.label,
     );
 
     expect(updated, r'''
@@ -2775,8 +3434,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartForInLoopSnippetProducer.prefix,
-      label: DartForInLoopSnippetProducer.label,
+      prefix: ForInStatement.prefix,
+      label: ForInStatement.label,
     );
 
     expect(updated, r'''
@@ -2798,8 +3457,8 @@ class A {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartFunctionSnippetProducer.prefix,
-      label: DartFunctionSnippetProducer.label,
+      prefix: FunctionDeclaration.prefix,
+      label: FunctionDeclaration.label,
     );
 
     expect(updated, r'''
@@ -2821,8 +3480,8 @@ void a() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartFunctionSnippetProducer.prefix,
-      label: DartFunctionSnippetProducer.label,
+      prefix: FunctionDeclaration.prefix,
+      label: FunctionDeclaration.label,
     );
 
     expect(updated, r'''
@@ -2842,8 +3501,8 @@ fun^
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartFunctionSnippetProducer.prefix,
-      label: DartFunctionSnippetProducer.label,
+      prefix: FunctionDeclaration.prefix,
+      label: FunctionDeclaration.label,
     );
 
     expect(updated, r'''
@@ -2863,8 +3522,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartIfSnippetProducer.prefix,
-      label: DartIfSnippetProducer.label,
+      prefix: IfStatement.prefix,
+      label: IfStatement.label,
     );
 
     expect(updated, r'''
@@ -2886,10 +3545,9 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartIfElseSnippetProducer.prefix,
-      label: DartIfElseSnippetProducer.label,
+      prefix: IfElseStatement.prefix,
+      label: IfElseStatement.label,
     );
-
     expect(updated, r'''
 void f() {
   if (${1:condition}) {
@@ -2913,8 +3571,8 @@ class B {}
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartMainFunctionSnippetProducer.prefix,
-      label: DartMainFunctionSnippetProducer.label,
+      prefix: MainFunction.prefix,
+      label: MainFunction.label,
     );
 
     expect(updated, r'''
@@ -2949,8 +3607,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartSwitchSnippetProducer.prefix,
-      label: DartSwitchSnippetProducer.label,
+      prefix: SwitchStatement.prefix,
+      label: SwitchStatement.label,
     );
 
     expect(updated, r'''
@@ -2977,8 +3635,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartTestBlockSnippetProducer.prefix,
-      label: DartTestBlockSnippetProducer.label,
+      prefix: TestDefinition.prefix,
+      label: TestDefinition.label,
     );
 
     expect(updated, r'''
@@ -3002,8 +3660,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartTestGroupBlockSnippetProducer.prefix,
-      label: DartTestGroupBlockSnippetProducer.label,
+      prefix: TestGroupDefinition.prefix,
+      label: TestGroupDefinition.label,
     );
 
     expect(updated, r'''
@@ -3025,8 +3683,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartTryCatchSnippetProducer.prefix,
-      label: DartTryCatchSnippetProducer.label,
+      prefix: TryCatchStatement.prefix,
+      label: TryCatchStatement.label,
     );
 
     expect(updated, r'''
@@ -3050,8 +3708,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartWhileLoopSnippetProducer.prefix,
-      label: DartWhileLoopSnippetProducer.label,
+      prefix: WhileStatement.prefix,
+      label: WhileStatement.label,
     );
 
     expect(updated, r'''
@@ -3068,8 +3726,8 @@ void f() {
 class FlutterSnippetCompletionTest extends SnippetCompletionTest {
   /// Standard import statements expected for basic Widgets.
   String get expectedImports => '''
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';''';
+import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/src/widgets/placeholder.dart';''';
 
   /// Nullability suffix expected in this test class.
   ///
@@ -3104,8 +3762,8 @@ class B {}
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: FlutterStatefulWidgetSnippetProducer.prefix,
-      label: FlutterStatefulWidgetSnippetProducer.label,
+      prefix: FlutterStatefulWidget.prefix,
+      label: FlutterStatefulWidget.label,
     );
 
     expect(updated, '''
@@ -3123,7 +3781,7 @@ class \${1:MyWidget} extends StatefulWidget {
 class _\${1:MyWidget}State extends State<\${1:MyWidget}> {
   @override
   Widget build(BuildContext context) {
-    return \${0:Container()};
+    return \${0:const Placeholder()};
   }
 }
 
@@ -3145,9 +3803,8 @@ class B {}
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix:
-          FlutterStatefulWidgetWithAnimationControllerSnippetProducer.prefix,
-      label: FlutterStatefulWidgetWithAnimationControllerSnippetProducer.label,
+      prefix: FlutterStatefulWidgetWithAnimationController.prefix,
+      label: FlutterStatefulWidgetWithAnimationController.label,
     );
 
     expect(updated, '''
@@ -3180,7 +3837,7 @@ class _\${1:MyWidget}State extends State<\${1:MyWidget}>
 
   @override
   Widget build(BuildContext context) {
-    return \${0:Container()};
+    return \${0:const Placeholder()};
   }
 }
 
@@ -3202,8 +3859,8 @@ class B {}
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: FlutterStatelessWidgetSnippetProducer.prefix,
-      label: FlutterStatelessWidgetSnippetProducer.label,
+      prefix: FlutterStatelessWidget.prefix,
+      label: FlutterStatelessWidget.label,
     );
 
     expect(updated, '''
@@ -3216,7 +3873,7 @@ class \${1:MyWidget} extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return \${0:Container()};
+    return \${0:const Placeholder()};
   }
 }
 
@@ -3236,8 +3893,8 @@ class B {}
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: FlutterStatelessWidgetSnippetProducer.prefix,
-      label: FlutterStatelessWidgetSnippetProducer.label,
+      prefix: FlutterStatelessWidget.prefix,
+      label: FlutterStatelessWidget.label,
     );
 
     expect(updated, '''
@@ -3250,7 +3907,7 @@ class \${1:MyWidget} extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return \${0:Container()};
+    return \${0:const Placeholder()};
   }
 }
 
@@ -3266,8 +3923,8 @@ stless^
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: FlutterStatelessWidgetSnippetProducer.prefix,
-      label: FlutterStatelessWidgetSnippetProducer.label,
+      prefix: FlutterStatelessWidget.prefix,
+      label: FlutterStatelessWidget.label,
     );
 
     expect(updated, '''
@@ -3278,7 +3935,7 @@ class \${1:MyWidget} extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return \${0:Container()};
+    return \${0:const Placeholder()};
   }
 }
 ''');
@@ -3292,8 +3949,8 @@ class \${1:MyWidget} extends StatelessWidget {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: FlutterStatelessWidgetSnippetProducer.prefix,
-      label: FlutterStatelessWidgetSnippetProducer.label,
+      prefix: FlutterStatelessWidget.prefix,
+      label: FlutterStatelessWidget.label,
     );
 
     expect(updated, '''
@@ -3304,7 +3961,7 @@ class \${1:MyWidget} extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return \${0:Container()};
+    return \${0:const Placeholder()};
   }
 }
 ''');
@@ -3322,7 +3979,7 @@ class A {
     await initializeWithSnippetSupport();
     await expectNoSnippet(
       content,
-      FlutterStatelessWidgetSnippetProducer.prefix,
+      FlutterStatelessWidget.prefix,
     );
   }
 
@@ -3346,8 +4003,8 @@ class FlutterSnippetCompletionWithoutNullSafetyTest
   @override
   String get expectedImports => '''
 import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';''';
+import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/src/widgets/placeholder.dart';''';
 
   @override
   String get expectedNullableSuffix => '';

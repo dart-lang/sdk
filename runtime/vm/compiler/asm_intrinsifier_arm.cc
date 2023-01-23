@@ -945,50 +945,6 @@ void AsmIntrinsifier::Double_getIsNegative(Assembler* assembler,
   __ b(&is_false);
 }
 
-void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
-                                      Label* normal_ir_body) {
-  // TODO(dartbug.com/31174): Convert this to a graph intrinsic.
-
-  // Load double value and check that it isn't NaN, since ARM gives an
-  // FPU exception if you try to convert NaN to an int.
-  Label double_hash;
-  __ ldr(R1, Address(SP, 0 * target::kWordSize));
-  __ LoadDFromOffset(D0, R1, target::Double::value_offset() - kHeapObjectTag);
-  __ vcmpd(D0, D0);
-  __ vmstat();
-  __ b(&double_hash, VS);
-
-  // Convert double value to signed 32-bit int in R0.
-  __ vcvtid(S2, D0);
-  __ vmovrs(R0, S2);
-
-  // Tag the int as a Smi, making sure that it fits; this checks for
-  // overflow in the conversion from double to int. Conversion
-  // overflow is signalled by vcvt through clamping R0 to either
-  // INT32_MAX or INT32_MIN (saturation).
-  ASSERT(kSmiTag == 0 && kSmiTagShift == 1);
-  __ adds(R0, R0, Operand(R0));
-  __ b(normal_ir_body, VS);
-
-  // Compare the two double values. If they are equal, we return the
-  // Smi tagged result immediately as the hash code.
-  __ vcvtdi(D1, S2);
-  __ vcmpd(D0, D1);
-  __ vmstat();
-  READS_RETURN_ADDRESS_FROM_LR(__ bx(LR, EQ));
-  // Convert the double bits to a hash code that fits in a Smi.
-  __ Bind(&double_hash);
-  __ ldr(R0, FieldAddress(R1, target::Double::value_offset()));
-  __ ldr(R1, FieldAddress(R1, target::Double::value_offset() + 4));
-  __ eor(R0, R0, Operand(R1));
-  __ AndImmediate(R0, R0, target::kSmiMax);
-  __ SmiTag(R0);
-  __ Ret();
-
-  // Fall into the native C++ implementation.
-  __ Bind(normal_ir_body);
-}
-
 void AsmIntrinsifier::ObjectEquals(Assembler* assembler,
                                    Label* normal_ir_body) {
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
@@ -999,73 +955,64 @@ void AsmIntrinsifier::ObjectEquals(Assembler* assembler,
   __ Ret();
 }
 
-static void RangeCheck(Assembler* assembler,
-                       Register val,
-                       Register tmp,
-                       intptr_t low,
-                       intptr_t high,
-                       Condition cc,
-                       Label* target) {
-  __ AddImmediate(tmp, val, -low);
-  __ CompareImmediate(tmp, high - low);
-  __ b(target, cc);
-}
-
-const Condition kIfNotInRange = HI;
-const Condition kIfInRange = LS;
-
 static void JumpIfInteger(Assembler* assembler,
                           Register cid,
                           Register tmp,
                           Label* target) {
-  RangeCheck(assembler, cid, tmp, kSmiCid, kMintCid, kIfInRange, target);
+  assembler->RangeCheck(cid, tmp, kSmiCid, kMintCid, Assembler::kIfInRange,
+                        target);
 }
 
 static void JumpIfNotInteger(Assembler* assembler,
                              Register cid,
                              Register tmp,
                              Label* target) {
-  RangeCheck(assembler, cid, tmp, kSmiCid, kMintCid, kIfNotInRange, target);
+  assembler->RangeCheck(cid, tmp, kSmiCid, kMintCid, Assembler::kIfNotInRange,
+                        target);
 }
 
 static void JumpIfString(Assembler* assembler,
                          Register cid,
                          Register tmp,
                          Label* target) {
-  RangeCheck(assembler, cid, tmp, kOneByteStringCid, kExternalTwoByteStringCid,
-             kIfInRange, target);
+  assembler->RangeCheck(cid, tmp, kOneByteStringCid, kExternalTwoByteStringCid,
+                        Assembler::kIfInRange, target);
 }
 
 static void JumpIfNotString(Assembler* assembler,
                             Register cid,
                             Register tmp,
                             Label* target) {
-  RangeCheck(assembler, cid, tmp, kOneByteStringCid, kExternalTwoByteStringCid,
-             kIfNotInRange, target);
+  assembler->RangeCheck(cid, tmp, kOneByteStringCid, kExternalTwoByteStringCid,
+                        Assembler::kIfNotInRange, target);
 }
 
 static void JumpIfNotList(Assembler* assembler,
                           Register cid,
                           Register tmp,
                           Label* target) {
-  RangeCheck(assembler, cid, tmp, kArrayCid, kGrowableObjectArrayCid,
-             kIfNotInRange, target);
+  assembler->RangeCheck(cid, tmp, kArrayCid, kGrowableObjectArrayCid,
+                        Assembler::kIfNotInRange, target);
 }
 
 static void JumpIfType(Assembler* assembler,
                        Register cid,
                        Register tmp,
                        Label* target) {
-  RangeCheck(assembler, cid, tmp, kTypeCid, kFunctionTypeCid, kIfInRange,
-             target);
+  COMPILE_ASSERT((kFunctionTypeCid == kTypeCid + 1) &&
+                 (kRecordTypeCid == kTypeCid + 2));
+  assembler->RangeCheck(cid, tmp, kTypeCid, kRecordTypeCid,
+                        Assembler::kIfInRange, target);
 }
 
 static void JumpIfNotType(Assembler* assembler,
                           Register cid,
                           Register tmp,
                           Label* target) {
-  RangeCheck(assembler, cid, tmp, kTypeCid, kFunctionTypeCid, kIfNotInRange,
-             target);
+  COMPILE_ASSERT((kFunctionTypeCid == kTypeCid + 1) &&
+                 (kRecordTypeCid == kTypeCid + 2));
+  assembler->RangeCheck(cid, tmp, kTypeCid, kRecordTypeCid,
+                        Assembler::kIfNotInRange, target);
 }
 
 // Return type quickly for simple types (not parameterized and not signature).
@@ -1077,6 +1024,9 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
 
   __ CompareImmediate(R1, kClosureCid);
   __ b(normal_ir_body, EQ);  // Instance is a closure.
+
+  __ CompareImmediate(R1, kRecordCid);
+  __ b(normal_ir_body, EQ);  // Instance is a record.
 
   __ CompareImmediate(R1, kNumPredefinedCids);
   __ b(&use_declaration_type, HI);
@@ -1135,6 +1085,10 @@ static void EquivalentClassIds(Assembler* assembler,
 
   // Check if left hand side is a closure. Closures are handled in the runtime.
   __ CompareImmediate(cid1, kClosureCid);
+  __ b(normal_ir_body, EQ);
+
+  // Check if left hand side is a record. Records are handled in the runtime.
+  __ CompareImmediate(cid1, kRecordCid);
   __ b(normal_ir_body, EQ);
 
   // Check whether class ids match. If class ids don't match types may still be
@@ -1286,8 +1240,8 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
 
   // Check nullability.
   __ Bind(&equiv_cids);
-  __ ldrb(R1, FieldAddress(R1, target::Type::nullability_offset()));
-  __ ldrb(R2, FieldAddress(R2, target::Type::nullability_offset()));
+  __ LoadAbstractTypeNullability(R1, R1);
+  __ LoadAbstractTypeNullability(R2, R2);
   __ cmp(R1, Operand(R2));
   __ b(&check_legacy, NE);
   // Fall through to equal case if nullability is strictly equal.
@@ -1314,7 +1268,7 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::FunctionType_getHashCode(Assembler* assembler,
+void AsmIntrinsifier::AbstractType_getHashCode(Assembler* assembler,
                                                Label* normal_ir_body) {
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
   __ ldr(R0, FieldAddress(R0, target::FunctionType::hash_offset()));
@@ -1323,7 +1277,7 @@ void AsmIntrinsifier::FunctionType_getHashCode(Assembler* assembler,
   __ Bind(normal_ir_body);  // Hash not yet computed.
 }
 
-void AsmIntrinsifier::FunctionType_equality(Assembler* assembler,
+void AsmIntrinsifier::AbstractType_equality(Assembler* assembler,
                                             Label* normal_ir_body) {
   __ ldm(IA, SP, (1 << R1 | 1 << R2));
   __ cmp(R1, Operand(R2));
@@ -1618,6 +1572,12 @@ static void TryAllocateString(Assembler* assembler,
   // next object start and initialize the object.
   __ str(R1, Address(THR, target::Thread::top_offset()));
   __ AddImmediate(R0, kHeapObjectTag);
+  // Clear last double word to ensure string comparison doesn't need to
+  // specially handle remainder of strings with lengths not factors of double
+  // offsets.
+  __ LoadImmediate(TMP, 0);
+  __ str(TMP, Address(R1, -1 * target::kWordSize));
+  __ str(TMP, Address(R1, -2 * target::kWordSize));
 
   // Initialize the tags.
   // R0: new object start as a tagged pointer.
@@ -1772,7 +1732,7 @@ static void StringEquality(Assembler* assembler,
   __ cmp(R0, Operand(R1));
   __ b(&is_true, EQ);
 
-  // Is other OneByteString?
+  // Is other same kind of string?
   __ tst(R1, Operand(kSmiTagMask));
   __ b(normal_ir_body, EQ);
   __ CompareClassId(R1, string_cid, R2);
@@ -1788,29 +1748,30 @@ static void StringEquality(Assembler* assembler,
   // TODO(zra): try out other sequences.
   ASSERT((string_cid == kOneByteStringCid) ||
          (string_cid == kTwoByteStringCid));
-  const intptr_t offset = (string_cid == kOneByteStringCid)
-                              ? target::OneByteString::data_offset()
-                              : target::TwoByteString::data_offset();
-  __ AddImmediate(R0, offset - kHeapObjectTag);
-  __ AddImmediate(R1, offset - kHeapObjectTag);
-  __ SmiUntag(R2);
+  if (string_cid == kOneByteStringCid) {
+    __ SmiUntag(R2);
+  }
+  // R2 is length of data in bytes.
+  // Round up number of bytes to compare to word boundary since we
+  // are doing comparison in word chunks.
+  __ AddImmediate(R2, target::kWordSize - 1);
+  __ LsrImmediate(R2, R2, target::kWordSizeLog2);
+  ASSERT(target::OneByteString::data_offset() ==
+         target::String::length_offset() + target::kWordSize);
+  ASSERT(target::TwoByteString::data_offset() ==
+         target::String::length_offset() + target::kWordSize);
+  COMPILE_ASSERT(target::kWordSize == 4);
+  __ AddImmediate(
+      R0, target::String::length_offset() + target::kWordSize - kHeapObjectTag);
+  __ AddImmediate(
+      R1, target::String::length_offset() + target::kWordSize - kHeapObjectTag);
+
   __ Bind(&loop);
   __ AddImmediate(R2, -1);
   __ cmp(R2, Operand(0));
   __ b(&is_true, LT);
-  if (string_cid == kOneByteStringCid) {
-    __ ldrb(R3, Address(R0));
-    __ ldrb(R4, Address(R1));
-    __ AddImmediate(R0, 1);
-    __ AddImmediate(R1, 1);
-  } else if (string_cid == kTwoByteStringCid) {
-    __ ldrh(R3, Address(R0));
-    __ ldrh(R4, Address(R1));
-    __ AddImmediate(R0, 2);
-    __ AddImmediate(R1, 2);
-  } else {
-    UNIMPLEMENTED();
-  }
+  __ ldr(R3, Address(R0, 4, Address::PostIndex));
+  __ ldr(R4, Address(R1, 4, Address::PostIndex));
   __ cmp(R3, Operand(R4));
   __ b(&is_false, NE);
   __ b(&loop);
@@ -1896,6 +1857,23 @@ void AsmIntrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
   __ cmp(R0, Operand(0));
   __ LoadObject(R0, CastHandle<Object>(TrueObject()), NE);
   __ LoadObject(R0, CastHandle<Object>(FalseObject()), EQ);
+  __ Ret();
+#endif
+}
+
+void AsmIntrinsifier::Timeline_getNextTaskId(Assembler* assembler,
+                                             Label* normal_ir_body) {
+#if !defined(SUPPORT_TIMELINE)
+  __ LoadImmediate(R0, target::ToRawSmi(0));
+  __ Ret();
+#else
+  __ ldr(R1, Address(THR, target::Thread::next_task_id_offset()));
+  __ ldr(R2, Address(THR, target::Thread::next_task_id_offset() + 4));
+  __ SmiTag(R0, R1);  // Ignore loss of precision.
+  __ adds(R1, R1, Operand(1));
+  __ adcs(R2, R2, Operand(0));
+  __ str(R1, Address(THR, target::Thread::next_task_id_offset()));
+  __ str(R2, Address(THR, target::Thread::next_task_id_offset() + 4));
   __ Ret();
 #endif
 }

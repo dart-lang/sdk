@@ -9,12 +9,10 @@ import 'package:kernel/class_hierarchy.dart';
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
-import '../builder/fixed_type_builder.dart';
-import '../builder/function_type_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
-import '../builder/named_type_builder.dart';
+import '../builder/name_iterator.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
@@ -88,17 +86,6 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   Typedef build() {
     buildThisType();
-
-    TypeBuilder type = this.type;
-    if (type is FunctionTypeBuilder ||
-        type is NamedTypeBuilder ||
-        type is FixedTypeBuilder) {
-      // No error, but also no additional setup work.
-      // ignore: unnecessary_null_comparison
-    } else if (type != null) {
-      unhandled("${type.fullNameForErrors}", "build", charOffset, fileUri);
-    }
-
     return typedef;
   }
 
@@ -278,8 +265,11 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
             libraryBuilder.library)) {
       tearOffs = {};
       _tearOffDependencies = {};
-      declaration
-          .forEachConstructor((String constructorName, MemberBuilder builder) {
+      NameIterator<MemberBuilder> iterator =
+          declaration.fullConstructorNameIterator;
+      while (iterator.moveNext()) {
+        String constructorName = iterator.name;
+        MemberBuilder builder = iterator.current;
         Member? target = builder.invokeTarget;
         if (target != null) {
           if (target is Procedure && target.isRedirectingFactory) {
@@ -289,9 +279,11 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
               new Name(constructorName, declaration.libraryBuilder.library);
           Reference? tearOffReference;
           if (libraryBuilder.referencesFromIndexed != null) {
+            Name tearOffName = new Name(
+                typedefTearOffName(name, constructorName),
+                libraryBuilder.referencesFromIndexed!.library);
             tearOffReference = libraryBuilder.referencesFromIndexed!
-                .lookupGetterReference(typedefTearOffName(name, constructorName,
-                    libraryBuilder.referencesFromIndexed!.library));
+                .lookupGetterReference(tearOffName);
           }
 
           Procedure tearOff = tearOffs![targetName] =
@@ -315,7 +307,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
               libraryBuilder: libraryBuilder);
           f(tearOff);
         }
-      });
+      }
     }
   }
 }

@@ -44,7 +44,7 @@ class ReferenceNode extends NamedNode {
   Uri get uri => _uriAndPrefix.uri;
   String get prefix => _uriAndPrefix.prefix;
 
-  ReferenceNode(String name, this._uriAndPrefix) : super(name);
+  ReferenceNode(super.name, this._uriAndPrefix);
 
   @override
   Map<String, dynamic> toJson() {
@@ -117,7 +117,7 @@ class CombinerNode extends NamedNode {
   final CombinerType type;
   final Set<ReferenceNode> nodes;
 
-  CombinerNode(String name, this.type, this.nodes) : super(name);
+  CombinerNode(super.name, this.type, this.nodes);
 
   @override
   Map<String, dynamic> toJson() {

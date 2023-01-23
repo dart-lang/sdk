@@ -66,8 +66,8 @@ class A {
 
   void test0(int x, int y);
   void test1({String? x});
-  void test2({String x: "w/e"});
-  void test3({String x: "w/e"});
+  void test2({String x = "w/e"});
+  void test3({String x = "w/e"});
   void test4([String? x]);
   void test5<T extends num>(T x);
   String test6();
@@ -78,7 +78,7 @@ class A {
   void test8([String? x]);
   void test9<T, S extends T>(S x1, {T? foo});
 
-  T allTogetherNow<T, S extends T>(S x1, {List<T> foo: const <Never>[]});
+  T allTogetherNow<T, S extends T>(S x1, {List<T> foo = const <Never>[]});
 }
 
 main() {

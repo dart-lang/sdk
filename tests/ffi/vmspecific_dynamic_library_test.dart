@@ -37,22 +37,20 @@ typedef NativeDoubleUnOp = Double Function(Double);
 typedef DoubleUnOp = double Function(double);
 
 void testLookup() {
-  DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  final l = dlopenPlatformSpecific("ffi_test_dynamic_library");
   var timesFour = l.lookupFunction<NativeDoubleUnOp, DoubleUnOp>("timesFour");
   Expect.approxEquals(12.0, timesFour(3));
 
-  if (Platform.isMacOS ||
-      Platform.isIOS ||
-      Platform.isAndroid ||
-      Platform.isLinux) {
-    // Lookup a symbol from 'libc' since it's loaded with global visibility.
-    DynamicLibrary p = DynamicLibrary.process();
-    Expect.isTrue(p.lookup<Void>("strcmp") != nullptr);
+  final p = DynamicLibrary.process();
+  if (Platform.isWindows) {
+    Expect.isTrue(p.lookup<Void>("HeapAlloc") != nullptr);
+    Expect.isTrue(p.lookup<Void>("CoTaskMemAlloc") != nullptr);
   } else {
-    Expect.throws<UnsupportedError>(() => DynamicLibrary.process());
+    // Lookup a symbol from 'libc' since it's loaded with global visibility.
+    Expect.isTrue(p.lookup<Void>("strcmp") != nullptr);
   }
 
-  DynamicLibrary e = DynamicLibrary.executable();
+  final e = DynamicLibrary.executable();
   Expect.isTrue(e.lookup("Dart_Invoke") != nullptr);
 }
 

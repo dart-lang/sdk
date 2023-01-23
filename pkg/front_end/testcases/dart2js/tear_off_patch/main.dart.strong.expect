@@ -23,9 +23,9 @@ static method main() → dynamic {
 library /*isNonNullableByDefault*/;
 import self as test;
 import "dart:core" as core;
-import "dart:_js_helper" as _js;
+import "dart:_internal" as _in;
 
-import "dart:_js_helper";
+import "dart:_internal";
 
 typedef Alias<T extends core::num> = test::Class<T>;
 typedef AliasImpl<T extends core::num> = test::ClassImpl<T>;
@@ -96,7 +96,7 @@ constants  {
   #C10 = static-tearoff test::_#Alias#redirect2#tearOff
   #C11 = static-tearoff test::_#AliasImpl#new#tearOff
   #C12 = static-tearoff test::_#AliasImpl#patched#tearOff
-  #C13 = _js::_Patch {}
+  #C13 = _in::_Patch {}
   #C14 = constructor-tearoff test::Class::redirect
   #C15 = constructor-tearoff test::Class::redirect2
   #C16 = true

@@ -9,6 +9,7 @@
 #include "vm/object.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/runtime_offsets_list.h"
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
@@ -84,9 +85,11 @@ bool IsSmiType(const AbstractType& type) {
   return type.IsSmiType();
 }
 
+#if defined(DEBUG)
 bool IsNotTemporaryScopedHandle(const Object& obj) {
   return obj.IsNotTemporaryScopedHandle();
 }
+#endif
 
 #define DO(clazz)                                                              \
   bool Is##clazz##Handle(const Object& obj) { return obj.Is##clazz(); }
@@ -327,9 +330,9 @@ intptr_t RuntimeEntry::argument_count() const {
 
 namespace target {
 
-const word kOldPageSize = dart::kOldPageSize;
-const word kOldPageSizeInWords = dart::kOldPageSize / kWordSize;
-const word kOldPageMask = dart::kOldPageMask;
+const word kPageSize = dart::kPageSize;
+const word kPageSizeInWords = dart::kPageSize / kWordSize;
+const word kPageMask = dart::kPageMask;
 
 static word TranslateOffsetInWordsToHost(word offset) {
   RELEASE_ASSERT((offset % kCompressedWordSize) == 0);
@@ -345,7 +348,9 @@ uword MakeTagWordForNewSpaceObject(classid_t cid, uword instance_size) {
   return dart::UntaggedObject::SizeTag::encode(
              TranslateOffsetInWordsToHost(instance_size)) |
          dart::UntaggedObject::ClassIdTag::encode(cid) |
-         dart::UntaggedObject::NewBit::encode(true);
+         dart::UntaggedObject::NewBit::encode(true) |
+         dart::UntaggedObject::ImmutableBit::encode(
+             IsUnmodifiableTypedDataViewClassId(cid));
 }
 
 word Object::tags_offset() {
@@ -357,11 +362,15 @@ const word UntaggedObject::kCardRememberedBit =
 
 const word UntaggedObject::kCanonicalBit = dart::UntaggedObject::kCanonicalBit;
 
+const word UntaggedObject::kNewBit = dart::UntaggedObject::kNewBit;
+
 const word UntaggedObject::kOldAndNotRememberedBit =
     dart::UntaggedObject::kOldAndNotRememberedBit;
 
 const word UntaggedObject::kOldAndNotMarkedBit =
     dart::UntaggedObject::kOldAndNotMarkedBit;
+
+const word UntaggedObject::kImmutableBit = dart::UntaggedObject::kImmutableBit;
 
 const word UntaggedObject::kSizeTagPos = dart::UntaggedObject::kSizeTagPos;
 
@@ -386,12 +395,15 @@ const word UntaggedObject::kTagBitsSizeTagPos =
 
 const word UntaggedAbstractType::kTypeStateFinalizedInstantiated =
     dart::UntaggedAbstractType::kFinalizedInstantiated;
+const word UntaggedAbstractType::kTypeStateShift =
+    dart::UntaggedAbstractType::kTypeStateShift;
+const word UntaggedAbstractType::kTypeStateBits =
+    dart::UntaggedAbstractType::kTypeStateBits;
+const word UntaggedAbstractType::kNullabilityMask =
+    dart::UntaggedAbstractType::kNullabilityMask;
 
-const bool UntaggedType::kTypeClassIdIsSigned =
-    std::is_signed<decltype(dart::UntaggedType::type_class_id_)>::value;
-
-const word UntaggedType::kTypeClassIdBitSize =
-    sizeof(dart::UntaggedType::type_class_id_) * kBitsPerByte;
+const word UntaggedType::kTypeClassIdShift =
+    dart::UntaggedType::kTypeClassIdShift;
 
 const word UntaggedObject::kBarrierOverlapShift =
     dart::UntaggedObject::kBarrierOverlapShift;
@@ -439,10 +451,10 @@ static uword GetInstanceSizeImpl(const dart::Class& handle) {
       return Closure::InstanceSize();
     case kTypedDataBaseCid:
       return TypedDataBase::InstanceSize();
-    case kLinkedHashMapCid:
-      return LinkedHashMap::InstanceSize();
-    case kLinkedHashSetCid:
-      return LinkedHashSet::InstanceSize();
+    case kMapCid:
+      return Map::InstanceSize();
+    case kSetCid:
+      return Set::InstanceSize();
     case kUnhandledExceptionCid:
       return UnhandledException::InstanceSize();
     case kWeakPropertyCid:
@@ -457,6 +469,7 @@ static uword GetInstanceSizeImpl(const dart::Class& handle) {
       return NativeFinalizer::InstanceSize();
     case kByteBufferCid:
     case kByteDataViewCid:
+    case kUnmodifiableByteDataViewCid:
     case kPointerCid:
     case kDynamicLibraryCid:
 #define HANDLE_CASE(clazz) case kFfi##clazz##Cid:
@@ -465,7 +478,8 @@ static uword GetInstanceSizeImpl(const dart::Class& handle) {
 #define HANDLE_CASE(clazz)                                                     \
   case kTypedData##clazz##Cid:                                                 \
   case kTypedData##clazz##ViewCid:                                             \
-  case kExternalTypedData##clazz##Cid:
+  case kExternalTypedData##clazz##Cid:                                         \
+  case kUnmodifiableTypedData##clazz##ViewCid:
       CLASS_LIST_TYPED_DATA(HANDLE_CASE)
 #undef HANDLE_CASE
       return handle.target_instance_size();
@@ -539,6 +553,8 @@ word Instance::DataOffsetFor(intptr_t cid) {
       return OneByteString::data_offset();
     case kTwoByteStringCid:
       return TwoByteString::data_offset();
+    case kRecordCid:
+      return Record::field_offset(0);
     default:
       UNIMPLEMENTED();
       return Array::data_offset();
@@ -547,7 +563,8 @@ word Instance::DataOffsetFor(intptr_t cid) {
 
 word Instance::ElementSizeFor(intptr_t cid) {
   if (dart::IsExternalTypedDataClassId(cid) || dart::IsTypedDataClassId(cid) ||
-      dart::IsTypedDataViewClassId(cid)) {
+      dart::IsTypedDataViewClassId(cid) ||
+      dart::IsUnmodifiableTypedDataViewClassId(cid)) {
     return dart::TypedDataBase::ElementSizeInBytes(cid);
   }
   switch (cid) {
@@ -1019,6 +1036,11 @@ intptr_t Array::index_at_offset(intptr_t offset_in_bytes) {
       TranslateOffsetInWordsToHost(offset_in_bytes));
 }
 
+intptr_t Record::field_index_at_offset(intptr_t offset_in_bytes) {
+  return dart::Record::field_index_at_offset(
+      TranslateOffsetInWordsToHost(offset_in_bytes));
+}
+
 word String::InstanceSize(word payload_size) {
   return RoundedAllocationSize(String::InstanceSize() + payload_size);
 }
@@ -1039,6 +1061,49 @@ word Number::NextFieldOffset() {
   return TranslateOffsetInWords(dart::Number::NextFieldOffset());
 }
 
+void UnboxFieldIfSupported(const dart::Field& field,
+                           const dart::AbstractType& type) {
+  if (field.is_static() || field.is_late()) {
+    return;
+  }
+
+  if (type.IsNullable()) {
+    return;
+  }
+
+  // In JIT mode we can unbox fields which are guaranteed to be non-nullable
+  // based on their static type. We can only rely on this information
+  // when running in sound null safety. AOT instead uses TFA results, see
+  // |KernelLoader::ReadInferredType|.
+  if (!dart::Thread::Current()->isolate_group()->null_safety()) {
+    return;
+  }
+
+  classid_t cid = kIllegalCid;
+  if (type.IsDoubleType()) {
+    if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
+      cid = kDoubleCid;
+    }
+  } else if (type.IsFloat32x4Type()) {
+    if (FlowGraphCompiler::SupportsUnboxedSimd128()) {
+      cid = kFloat32x4Cid;
+    }
+  } else if (type.IsFloat64x2Type()) {
+    if (FlowGraphCompiler::SupportsUnboxedSimd128()) {
+      cid = kFloat64x2Cid;
+    }
+  }
+
+  if (cid != kIllegalCid) {
+    field.set_guarded_cid(cid);
+    field.set_is_nullable(false);
+    field.set_is_unboxed(true);
+    field.set_guarded_list_length(dart::Field::kNoFixedLength);
+    field.set_guarded_list_length_in_object_offset(
+        dart::Field::kUnknownLengthOffset);
+  }
+}
+
 }  // namespace target
 }  // namespace compiler
 }  // namespace dart
@@ -1051,6 +1116,7 @@ namespace target {
 
 const word Array::kMaxElements = Array_kMaxElements;
 const word Context::kMaxElements = Context_kMaxElements;
+const word Record::kMaxElements = Record_kMaxElements;
 
 }  // namespace target
 }  // namespace compiler

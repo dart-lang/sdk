@@ -15,9 +15,9 @@ main() {
   ;
   void funNumBool(num n, bool b) {}
   ;
-  void funNumOptBool(num n, {bool b: true}) {}
+  void funNumOptBool(num n, {bool b = true}) {}
   ;
-  void funNumOptBoolX(num n, {bool x: true}) {}
+  void funNumOptBoolX(num n, {bool x = true}) {}
   ;
   anyFunction = funNum;
   anyFunction = funNumBool;

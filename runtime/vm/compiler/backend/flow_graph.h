@@ -200,11 +200,6 @@ class FlowGraph : public ZoneAllocated {
             env_index == SuspendStateEnvIndex());
   }
 
-  static bool NeedsPairLocation(Representation representation) {
-    return representation == kUnboxedInt64 &&
-           compiler::target::kIntSpillFactor == 2;
-  }
-
   // Flow graph orders.
   const GrowableArray<BlockEntryInstr*>& preorder() const { return preorder_; }
   const GrowableArray<BlockEntryInstr*>& postorder() const {
@@ -212,6 +207,9 @@ class FlowGraph : public ZoneAllocated {
   }
   const GrowableArray<BlockEntryInstr*>& reverse_postorder() const {
     return reverse_postorder_;
+  }
+  const GrowableArray<BlockEntryInstr*>& optimized_block_order() const {
+    return optimized_block_order_;
   }
   static bool ShouldReorderBlocks(const Function& function, bool is_optimized);
   GrowableArray<BlockEntryInstr*>* CodegenBlockOrder(bool is_optimized);
@@ -246,8 +244,8 @@ class FlowGraph : public ZoneAllocated {
     current_ssa_temp_index_ = index;
   }
 
-  intptr_t max_virtual_register_number() const {
-    return current_ssa_temp_index();
+  intptr_t max_vreg() const {
+    return current_ssa_temp_index() * kMaxLocationCount;
   }
 
   enum class ToCheck { kNoCheck, kCheckNull, kCheckCid };
@@ -272,14 +270,9 @@ class FlowGraph : public ZoneAllocated {
 
   ConstantInstr* constant_dead() const { return constant_dead_; }
 
-  intptr_t alloc_ssa_temp_index() { return current_ssa_temp_index_++; }
-
-  void AllocateSSAIndexes(Definition* def) {
-    ASSERT(def);
-    def->set_ssa_temp_index(alloc_ssa_temp_index());
-    // Always allocate a second index. This index is unused except
-    // for Definitions with register pair outputs.
-    alloc_ssa_temp_index();
+  void AllocateSSAIndex(Definition* def) {
+    def->set_ssa_temp_index(current_ssa_temp_index_);
+    current_ssa_temp_index_++;
   }
 
   intptr_t InstructionCount() const;
@@ -349,12 +342,12 @@ class FlowGraph : public ZoneAllocated {
   // to
   //
   //     v2 <- AssertAssignable:<id>(v1, ...)
-  //     StoreInstanceField(v0, v2)
+  //     StoreField(v0, v2)
   //
   // If the [AssertAssignable] causes a lazy-deopt on return, we'll have to
   // *re-try* the implicit setter call in unoptimized mode, i.e. lazy deopt to
   // before-call (otherwise - if we continued after-call - the
-  // StoreInstanceField would not be performed).
+  // StoreField would not be performed).
   void InsertSpeculativeAfter(Instruction* prev,
                               Instruction* instr,
                               Environment* env,
@@ -543,6 +536,14 @@ class FlowGraph : public ZoneAllocated {
   const Array& coverage_array() const { return *coverage_array_; }
   void set_coverage_array(const Array& array) { coverage_array_ = &array; }
 
+  // Renumbers SSA values and basic blocks to make numbering dense.
+  // Preserves order among block ids.
+  //
+  // Also collects definitions which are detached from the flow graph
+  // but still referenced (currently only MaterializeObject instructions
+  // can be detached).
+  void CompactSSA(ZoneGrowableArray<Definition*>* detached_defs = nullptr);
+
  private:
   friend class FlowGraphCompiler;  // TODO(ajcbik): restructure
   friend class FlowGraphChecker;
@@ -613,6 +614,10 @@ class FlowGraph : public ZoneAllocated {
                         Representation to,
                         Value* use,
                         bool is_environment_use);
+
+  // Insert allocation of a record instance for [def]
+  // which returns an unboxed record.
+  void InsertRecordBoxing(Definition* def);
 
   void ComputeIsReceiver(PhiInstr* phi) const;
   void ComputeIsReceiverRecursive(PhiInstr* phi,

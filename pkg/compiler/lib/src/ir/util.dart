@@ -58,7 +58,6 @@ AsyncMarker getAsyncMarker(ir.FunctionNode node) {
       return AsyncMarker.SYNC;
     case ir.AsyncMarker.SyncStar:
       return AsyncMarker.SYNC_STAR;
-    case ir.AsyncMarker.SyncYielding:
     default:
       throw UnsupportedError(
           "Async marker ${node.asyncMarker} is not supported.");
@@ -196,10 +195,24 @@ class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
   }
 
   @override
+  bool visitIntersectionType(ir.IntersectionType node) {
+    return true;
+  }
+
+  @override
   bool visitFunctionType(ir.FunctionType node) {
     if (visit(node.returnType)) return true;
     if (visitList(node.positionalParameters)) return true;
     for (ir.NamedType namedType in node.namedParameters) {
+      if (visit(namedType.type)) return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitRecordType(ir.RecordType node) {
+    if (visitList(node.positional)) return true;
+    for (ir.NamedType namedType in node.named) {
       if (visit(namedType.type)) return true;
     }
     return false;
@@ -213,6 +226,11 @@ class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
   @override
   bool visitExtensionType(ir.ExtensionType node) {
     return visitList(node.typeArguments);
+  }
+
+  @override
+  bool visitViewType(ir.ViewType node) {
+    return visit(node.representationType);
   }
 
   @override

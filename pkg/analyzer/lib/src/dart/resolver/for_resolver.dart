@@ -29,6 +29,7 @@ class ForResolver {
     var forLoopParts = node.forLoopParts;
     void visitBody() {
       node.body.resolveElement(_resolver, context);
+      _resolver.popRewrite();
     }
 
     if (forLoopParts is ForPartsImpl) {
@@ -39,8 +40,6 @@ class ForResolver {
   }
 
   void resolveStatement(ForStatementImpl node) {
-    _resolver.checkUnreachableNode(node);
-
     var forLoopParts = node.forLoopParts;
     void visitBody() {
       node.body.accept(_resolver);
@@ -119,7 +118,7 @@ class ForResolver {
     }
 
     _resolver.analyzeExpression(iterable, targetType);
-    iterable = forEachParts.iterable;
+    iterable = _resolver.popRewrite()!;
 
     _resolver.nullableDereferenceVerifier.expression(
       CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR,
@@ -164,7 +163,7 @@ class ForResolver {
     var condition = forParts.condition;
     if (condition != null) {
       _resolver.analyzeExpression(condition, _resolver.typeProvider.boolType);
-      condition = forParts.condition!;
+      condition = _resolver.popRewrite()!;
       var whyNotPromoted =
           _resolver.flowAnalysis.flow?.whyNotPromoted(condition);
       _resolver.boolExpressionVerifier

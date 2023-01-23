@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 /// *Overview of deferred loading*
 ///
 /// Deferred loading allows developers to specify deferred imports. These
@@ -22,10 +20,10 @@
 /// generates _load lists_: a list of JavaScript files that need to be
 /// downloaded for every deferred import in the program.
 ///
-/// Each generated JavaScript file has an initialzation within it. The files can
-/// be concatenated together in a bundle without affecting the initialization
-/// logic. This is used by customers to reduce the download latency when they
-/// know that multiple files will be loaded at once.
+/// Each generated JavaScript file has an initialization within it. The files
+/// can be concatenated together in a bundle without affecting the
+/// initialization logic. This is used by customers to reduce the download
+/// latency when they know that multiple files will be loaded at once.
 ///
 /// *The code splitting algorithm*
 ///
@@ -264,7 +262,7 @@
 /// into a set containing `{A, B}`.
 ///
 // TODO(joshualitt): update doc above when main is represented by a set
-// containing an implict import corresponding to `main`.
+// containing an implicit import corresponding to `main`.
 // TODO(sigmund): investigate different heuristics for how to select the next
 // work item (e.g. we might converge faster if we pick first the update that
 // contains a bigger delta.)
@@ -283,13 +281,16 @@ import '../common/elements.dart' show KElementEnvironment;
 import '../common/metrics.dart'
     show Metric, Metrics, CountMetric, DurationMetric;
 import '../common/tasks.dart' show CompilerTask;
-import '../compiler.dart' show Compiler;
+import '../compiler_interfaces.dart' show CompilerDeferredLoadingFacade;
 import '../constants/values.dart';
-import '../elements/types.dart';
 import '../elements/entities.dart';
+import '../elements/types.dart';
 import '../kernel/element_map.dart';
-import '../kernel/kernel_world.dart';
+import '../kernel/kernel_world.dart' show KClosedWorld;
 import '../util/util.dart' show makeUnique;
+
+// TODO(48820): delete typedef after the migration is complete.
+typedef Compiler = CompilerDeferredLoadingFacade;
 
 class _DeferredLoadTaskMetrics implements Metrics {
   @override
@@ -313,7 +314,7 @@ class DeferredLoadTask extends CompilerTask {
   String get name => 'Deferred Loading';
 
   /// The OutputUnit that will be loaded when the program starts.
-  /*late final*/ OutputUnit _mainOutputUnit;
+  final OutputUnit _mainOutputUnit;
 
   /// A sentinel used only by the [ImportSet] corresponding to the
   /// [_mainOutputUnit].
@@ -339,7 +340,10 @@ class DeferredLoadTask extends CompilerTask {
   final Map<ImportEntity, ImportDescription> _deferredImportDescriptions = {};
 
   /// A lattice to compactly represent multiple subsets of imports.
-  ImportSetLattice importSets = ImportSetLattice();
+  ///
+  /// This property is nullable only to reclaim memory after this phase is
+  /// complete.
+  ImportSetLattice? importSets = ImportSetLattice();
 
   final Compiler compiler;
 
@@ -350,10 +354,11 @@ class DeferredLoadTask extends CompilerTask {
 
   bool get disableProgramSplit => compiler.options.disableProgramSplit;
 
-  AlgorithmState algorithmState;
+  AlgorithmState? algorithmState;
 
-  DeferredLoadTask(this.compiler, this._elementMap) : super(compiler.measurer) {
-    _mainOutputUnit = OutputUnit(true, 'main', {});
+  DeferredLoadTask(this.compiler, this._elementMap)
+      : _mainOutputUnit = OutputUnit(true, 'main', {}),
+        super(compiler.measurer) {
     _allOutputUnits.add(_mainOutputUnit);
   }
 
@@ -384,7 +389,7 @@ class DeferredLoadTask extends CompilerTask {
 
     // Generate an output unit for all import sets that are associated with an
     // element or constant.
-    algorithmState?.entityToSet?.values?.forEach(addUnit);
+    algorithmState?.entityToSet.values.forEach(addUnit);
 
     // Sort output units to make the output of the compiler more stable.
     _allOutputUnits.sort();
@@ -403,7 +408,6 @@ class DeferredLoadTask extends CompilerTask {
     Set<String> usedImportNames = {};
     for (ImportEntity import in allDeferredImports) {
       String result = computeImportDeferName(import, compiler);
-      assert(result != null);
       if (useIds) {
         importDeferName[import] = (++nextDeferId).toString();
       } else {
@@ -418,13 +422,12 @@ class DeferredLoadTask extends CompilerTask {
   /// Returns a name for a deferred import.
   String computeImportDeferName(ImportEntity declaration, Compiler compiler) {
     assert(declaration.isDeferred);
-    if (declaration.name != null) {
-      return declaration.name;
-    } else {
-      // This happens when the deferred import isn't declared with a prefix.
-      assert(compiler.compilationFailed);
-      return '';
-    }
+    final name = declaration.name;
+    if (name != null) return name;
+
+    // This happens when the deferred import isn't declared with a prefix.
+    assert(compiler.compilationFailed);
+    return '';
   }
 
   /// Performs the deferred loading algorithm.
@@ -435,13 +438,13 @@ class DeferredLoadTask extends CompilerTask {
   }
 
   OutputUnitData _run(FunctionEntity main, KClosedWorld closedWorld) {
-    if (!isProgramSplit || main == null || disableProgramSplit) {
+    if (!isProgramSplit || disableProgramSplit) {
       return _buildResult();
     }
 
     work() {
       algorithmState = AlgorithmState.create(
-          main, compiler, _elementMap, closedWorld, importSets);
+          main, compiler, _elementMap, closedWorld, importSets!);
     }
 
     reporter.withCurrentElement(main.library, () => measure(work));
@@ -451,7 +454,7 @@ class DeferredLoadTask extends CompilerTask {
   // Dumps a graph as a list of strings of 0 and 1. There is one 'bit' for each
   // import entity in the graph, and each string in the list represents an
   // output unit.
-  void _dumpDeferredGraph() {
+  void _dumpDeferredGraph(Uri deferredGraphUri) {
     int id = 0;
     Map<ImportEntity, int> importMap = {};
     var entities = _deferredImportDescriptions.keys.toList();
@@ -465,13 +468,13 @@ class DeferredLoadTask extends CompilerTask {
       if (!outputUnit.isMainOutput) {
         List<int> representation = List.filled(id, 0);
         for (var entity in outputUnit.imports) {
-          representation[importMap[entity]] = 1;
+          representation[importMap[entity]!] = 1;
         }
         graph.add(representation.join());
       }
     }
-    compiler.outputProvider.createOutputSink(
-        compiler.options.deferredGraphUri.path, '', api.OutputType.debug)
+    compiler.outputProvider
+        .createOutputSink(deferredGraphUri.path, '', api.OutputType.debug)
       ..add(graph.join('\n'))
       ..close();
   }
@@ -479,25 +482,26 @@ class DeferredLoadTask extends CompilerTask {
   OutputUnitData _buildResult() {
     _createOutputUnits();
     _setupImportNames();
-    if (compiler.options.deferredGraphUri != null) {
-      _dumpDeferredGraph();
+    var deferredGraphUri = compiler.options.deferredGraphUri;
+    if (deferredGraphUri != null) {
+      _dumpDeferredGraph(deferredGraphUri);
     }
     Map<ClassEntity, OutputUnit> classMap = {};
     Map<ClassEntity, OutputUnit> classTypeMap = {};
     Map<MemberEntity, OutputUnit> memberMap = {};
     Map<Local, OutputUnit> localFunctionMap = {};
     Map<ConstantValue, OutputUnit> constantMap = {};
-    algorithmState?.entityToSet?.forEach((d, s) {
+    algorithmState?.entityToSet.forEach((d, s) {
       if (d is ClassEntityData) {
-        classMap[d.entity] = s.unit;
+        classMap[d.entity] = s.unit!;
       } else if (d is ClassTypeEntityData) {
-        classTypeMap[d.entity] = s.unit;
+        classTypeMap[d.entity] = s.unit!;
       } else if (d is MemberEntityData) {
-        memberMap[d.entity] = s.unit;
+        memberMap[d.entity] = s.unit!;
       } else if (d is LocalFunctionEntityData) {
-        localFunctionMap[d.entity] = s.unit;
+        localFunctionMap[d.entity] = s.unit!;
       } else if (d is ConstantEntityData) {
-        constantMap[d.entity] = s.unit;
+        constantMap[d.entity] = s.unit!;
       } else {
         throw 'Unrecognized EntityData $d';
       }
@@ -520,7 +524,7 @@ class DeferredLoadTask extends CompilerTask {
   void beforeResolution(Uri rootLibraryUri, Iterable<Uri> libraries) {
     measureSubtask('prepare', () {
       for (Uri uri in libraries) {
-        LibraryEntity library = elementEnvironment.lookupLibrary(uri);
+        LibraryEntity library = elementEnvironment.lookupLibrary(uri)!;
         reporter.withCurrentElement(library, () {
           for (ImportEntity import in elementEnvironment.getImports(library)) {
             if (import.isDeferred) {
@@ -532,17 +536,19 @@ class DeferredLoadTask extends CompilerTask {
         });
       }
 
+      final importSetsLattice = importSets!;
+
       // If program split constraints are provided, then parse and interpret
       // them now.
       if (compiler.programSplitConstraintsData != null) {
-        var builder = psc.Builder(compiler.programSplitConstraintsData);
+        var builder = psc.Builder(compiler.programSplitConstraintsData!);
         var transitions = builder.build(_allDeferredImports);
-        importSets.buildInitialSets(transitions.singletonTransitions);
-        importSets.buildSetTransitions(transitions.setTransitions);
+        importSetsLattice.buildInitialSets(transitions.singletonTransitions);
+        importSetsLattice.buildSetTransitions(transitions.setTransitions);
       }
 
       // Build the [ImportSet] representing the [_mainOutputUnit].
-      importSets.buildMainSet(
+      importSetsLattice.buildMainSet(
           _mainImport, _mainOutputUnit, _allDeferredImports);
     });
   }
@@ -551,22 +557,24 @@ class DeferredLoadTask extends CompilerTask {
   String dump() {
     Map<OutputUnit, List<String>> elementMap = {};
     Map<OutputUnit, List<String>> constantMap = {};
-    algorithmState?.entityToSet?.forEach((d, importSet) {
+    algorithmState?.entityToSet.forEach((d, importSet) {
       if (d is ClassEntityData) {
         var element = d.entity;
-        var elements = elementMap.putIfAbsent(importSet.unit, () => <String>[]);
-        var id = element.name ?? '$element';
+        var elements =
+            elementMap.putIfAbsent(importSet.unit!, () => <String>[]);
+        var id = element.name;
         id = '$id cls';
         elements.add(id);
       } else if (d is ClassTypeEntityData) {
         var element = d.entity;
-        var elements = elementMap.putIfAbsent(importSet.unit, () => <String>[]);
-        var id = element.name ?? '$element';
+        var elements =
+            elementMap.putIfAbsent(importSet.unit!, () => <String>[]);
+        var id = element.name;
         id = '$id type';
         elements.add(id);
       } else if (d is MemberEntityData) {
         var element = d.entity;
-        var elements = elementMap.putIfAbsent(importSet.unit, () => []);
+        var elements = elementMap.putIfAbsent(importSet.unit!, () => []);
         var id = element.name ?? '$element';
         var cls = element.enclosingClass?.name;
         if (cls != null) id = '$cls.$id';
@@ -575,8 +583,9 @@ class DeferredLoadTask extends CompilerTask {
         elements.add(id);
       } else if (d is LocalFunctionEntityData) {
         var element = d.entity;
-        var elements = elementMap.putIfAbsent(importSet.unit, () => []);
+        var elements = elementMap.putIfAbsent(importSet.unit!, () => []);
         var id = element.name ?? '$element';
+        // ignore: avoid_dynamic_calls
         var context = (element as dynamic).memberContext.name;
         id = element.name == null || element.name == '' ? '<anonymous>' : id;
         id = '$context.$id';
@@ -588,7 +597,7 @@ class DeferredLoadTask extends CompilerTask {
         // if they are shared, they end up duplicated anyways across output units.
         if (value is PrimitiveConstantValue) return;
         constantMap
-            .putIfAbsent(importSet.unit, () => [])
+            .putIfAbsent(importSet.unit!, () => [])
             .add(value.toStructuredText(dartTypes));
       } else {
         throw 'Unrecognized EntityData $d';
@@ -609,14 +618,14 @@ class DeferredLoadTask extends CompilerTask {
           unitText.write('\n   $i:');
         }
       }
-      List<String> elements = elementMap[outputUnit];
+      List<String>? elements = elementMap[outputUnit];
       if (elements != null) {
         unitText.write('\n elements:');
         for (String element in elements..sort()) {
           unitText.write('\n  $element');
         }
       }
-      List<String> constants = constantMap[outputUnit];
+      List<String>? constants = constantMap[outputUnit];
       if (constants != null) {
         unitText.write('\n constants:');
         for (String value in constants..sort()) {
@@ -628,7 +637,7 @@ class DeferredLoadTask extends CompilerTask {
 
     StringBuffer sb = StringBuffer();
     for (OutputUnit outputUnit in _allOutputUnits.toList()
-      ..sort((a, b) => text[a].compareTo(text[b]))) {
+      ..sort((a, b) => text[a]!.compareTo(text[b]!))) {
       sb.write('\n\n-------------------------------\n');
       sb.write('Output unit: ${outputUnit.name}');
       sb.write('\n ${text[outputUnit]}');

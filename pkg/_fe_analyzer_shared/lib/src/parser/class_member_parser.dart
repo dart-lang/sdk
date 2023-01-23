@@ -15,7 +15,8 @@ import 'parser_impl.dart' show Parser;
 class ClassMemberParser extends Parser {
   Parser? skipParser;
 
-  ClassMemberParser(super.listener, {super.useImplicitCreationExpression});
+  ClassMemberParser(super.listener,
+      {super.useImplicitCreationExpression, super.allowPatterns});
 
   @override
   Token parseExpression(Token token) {
@@ -34,7 +35,8 @@ class ClassMemberParser extends Parser {
     // When the parser supports not doing token stream rewriting, use that
     // feature together with a no-op listener instead.
     this.skipParser ??= new Parser(new ErrorDelegationListener(listener),
-        useImplicitCreationExpression: useImplicitCreationExpression);
+        useImplicitCreationExpression: useImplicitCreationExpression,
+        allowPatterns: allowPatterns);
     Parser skipParser = this.skipParser!;
     skipParser.mayParseFunctionExpressions = mayParseFunctionExpressions;
     skipParser.asyncState = asyncState;
@@ -45,8 +47,11 @@ class ClassMemberParser extends Parser {
   // This method is overridden for two reasons:
   // 1. Avoid generating events for arguments.
   // 2. Avoid calling skip expression for each argument (which doesn't work).
-  Token parseArgumentsOpt(Token token) => skipArgumentsOpt(token);
+  @override
+  Token parseArgumentsOpt(Token token, {bool forPattern = false}) =>
+      skipArgumentsOpt(token);
 
+  @override
   Token parseFunctionBody(Token token, bool isExpression, bool allowAbstract) {
     return skipFunctionBody(token, isExpression, allowAbstract);
   }

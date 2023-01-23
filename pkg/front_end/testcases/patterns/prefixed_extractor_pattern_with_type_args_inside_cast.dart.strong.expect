@@ -1,0 +1,12 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "dart:async" as async;
+
+static method test(dynamic x) → dynamic {
+  #L1:
+  invalid-expression "PatternSwitchStatement(switch (x) {
+  case <dummy-pattern> as Object:
+    break label0;
+})";
+}

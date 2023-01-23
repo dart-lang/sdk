@@ -14,7 +14,7 @@ extension Utf8InArena on String {
   /// If 'string' contains NULL bytes, the converted string will be truncated
   /// prematurely. See [Utf8Encoder] for details on encoding.
   ///
-  /// Returns a [allocator]-allocated pointer to the result.
+  /// Returns an [allocator]-allocated pointer to the result.
   Pointer<Utf8> toUtf8(Allocator allocator) {
     final units = utf8.encode(this);
     final Pointer<Uint8> result = allocator<Uint8>(units.length + 1);

@@ -4,11 +4,11 @@
 
 const String lineLength = '120';
 
-foo({lineLength: lineLength}) {
+foo({lineLength = lineLength}) {
   print(lineLength);
 }
 
-bar({lineLength: lineLength}) async {
+bar({lineLength = lineLength}) async {
   print(lineLength);
 }
 

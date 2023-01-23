@@ -274,7 +274,7 @@ class SourceMapBuilder {
       Map<String, String> minifiedGlobalNames,
       Map<String, String> minifiedInstanceNames,
       String name,
-      Uri sourceMapUri,
+      Uri? sourceMapUri,
       Uri? fileUri,
       api.CompilerOutput compilerOutput) {
     // Create a source file for the compilation output. This allows using

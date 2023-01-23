@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
@@ -17,12 +15,11 @@ class OptimizationTestLog {
 
   List<OptimizationLogEntry> entries = [];
 
-  Map<String, Set<HInstruction>> _unconverted;
+  late final Map<String, Set<HInstruction>> _unconverted = {};
 
-  Features _register(String tag, HInstruction original, HInstruction converted,
-      void f(Features features)) {
+  Features? _register(String tag, HInstruction original,
+      HInstruction? converted, void f(Features features)) {
     if (converted == null) {
-      _unconverted ??= {};
       Set<HInstruction> set = _unconverted[tag] ??= {};
       if (!set.add(original)) {
         return null;
@@ -37,11 +34,11 @@ class OptimizationTestLog {
   void registerNullCheck(HInstruction original, HNullCheck check) {
     Features features = Features();
     if (check.selector != null) {
-      features['selector'] = check.selector.name;
+      features['selector'] = check.selector!.name;
     }
     if (check.field != null) {
       features['field'] =
-          '${check.field.enclosingClass.name}.${check.field.name}';
+          '${check.field!.enclosingClass!.name}.${check.field!.name}';
     }
     entries.add(OptimizationLogEntry('NullCheck', features));
   }
@@ -57,20 +54,16 @@ class OptimizationTestLog {
 
   void registerFieldGet(HInvokeDynamicGetter original, HFieldGet converted) {
     Features features = Features();
-    if (converted.element != null) {
-      features['name'] =
-          '${converted.element.enclosingClass.name}.${converted.element.name}';
-    } else {
-      features['name'] = '<null-guard>';
-    }
+    final element = converted.element;
+    features['name'] = '${element.enclosingClass!.name}.${element.name}';
     entries.add(OptimizationLogEntry('FieldGet', features));
   }
 
-  void registerFieldSet(HInvokeDynamicSetter original, [HFieldSet converted]) {
+  void registerFieldSet(HInvokeDynamicSetter original, [HFieldSet? converted]) {
     Features features = Features();
     if (converted != null) {
       features['name'] =
-          '${converted.element.enclosingClass.name}.${converted.element.name}';
+          '${converted.element.enclosingClass!.name}.${converted.element.name}';
     } else {
       features['removed'] = original.selector.name;
     }
@@ -79,19 +72,15 @@ class OptimizationTestLog {
 
   void registerFieldCall(HInvokeDynamicMethod original, HFieldGet converted) {
     Features features = Features();
-    if (converted.element != null) {
-      features['name'] =
-          '${converted.element.enclosingClass.name}.${converted.element.name}';
-    } else {
-      features['name'] = '<null-guard>';
-    }
+    final element = converted.element;
+    features['name'] = '${element.enclosingClass!.name}.${element.name}';
     entries.add(OptimizationLogEntry('FieldCall', features));
   }
 
   void registerConstantFieldGet(
       HInvokeDynamicGetter original, FieldEntity field, HConstant converted) {
     Features features = Features();
-    features['name'] = '${field.enclosingClass.name}.${field.name}';
+    features['name'] = '${field.enclosingClass!.name}.${field.name}';
     features['value'] = converted.constant.toStructuredText(_dartTypes);
     entries.add(OptimizationLogEntry('ConstantFieldGet', features));
   }
@@ -99,20 +88,20 @@ class OptimizationTestLog {
   void registerConstantFieldCall(
       HInvokeDynamicMethod original, FieldEntity field, HConstant converted) {
     Features features = Features();
-    features['name'] = '${field.enclosingClass.name}.${field.name}';
+    features['name'] = '${field.enclosingClass!.name}.${field.name}';
     features['value'] = converted.constant.toStructuredText(_dartTypes);
     entries.add(OptimizationLogEntry('ConstantFieldCall', features));
   }
 
-  Features _registerSpecializer(
-      HInvokeDynamic original, HInstruction converted, String name,
-      [String unconvertedName]) {
+  Features? _registerSpecializer(
+      HInvokeDynamic original, HInstruction? converted, String? name,
+      [String? unconvertedName]) {
     assert(!(converted == null && unconvertedName == null));
     return _register('Specializer', original, converted, (Features features) {
       if (converted != null) {
-        features.add(name);
+        features.add(name!);
       } else {
-        features.add(unconvertedName);
+        features.add(unconvertedName!);
       }
     });
   }
@@ -141,81 +130,81 @@ class OptimizationTestLog {
     _registerSpecializer(original, converted, 'Abs');
   }
 
-  void registerAdd(HInvokeDynamic original, HAdd converted) {
+  void registerAdd(HInvokeDynamic original, HInstruction? converted) {
     _registerSpecializer(original, converted, 'Add');
   }
 
-  void registerDivide(HInvokeDynamic original, HDivide converted) {
+  void registerDivide(HInvokeDynamic original, HInstruction? converted) {
     _registerSpecializer(original, converted, 'Divide');
   }
 
-  void registerModulo(HInvokeDynamic original, [HRemainder converted]) {
+  void registerModulo(HInvokeDynamic original, HInstruction? converted) {
     _registerSpecializer(original, converted, 'Modulo', 'DynamicModulo');
   }
 
-  void registerRemainder(HInvokeDynamic original, HRemainder converted) {
+  void registerRemainder(HInvokeDynamic original, HInstruction? converted) {
     _registerSpecializer(original, converted, 'Remainder');
   }
 
-  void registerMultiply(HInvokeDynamic original, HMultiply converted) {
+  void registerMultiply(HInvokeDynamic original, HInstruction? converted) {
     _registerSpecializer(original, converted, 'Multiply');
   }
 
-  void registerSubtract(HInvokeDynamic original, HSubtract converted) {
+  void registerSubtract(HInvokeDynamic original, HInstruction? converted) {
     _registerSpecializer(original, converted, 'Subtract');
   }
 
   void registerTruncatingDivide(
-      HInvokeDynamic original, HTruncatingDivide converted) {
+      HInvokeDynamic original, HInstruction? converted) {
     _registerSpecializer(original, converted, 'TruncatingDivide',
         'TruncatingDivide.${original.selector.name}');
   }
 
-  void registerShiftLeft(HInvokeDynamic original, HShiftLeft converted) {
+  void registerShiftLeft(HInvokeDynamic original, HInstruction? converted) {
     _registerSpecializer(original, converted, 'ShiftLeft',
         'ShiftLeft.${original.selector.name}');
   }
 
-  void registerShiftRight(HInvokeDynamic original, HShiftRight converted) {
+  void registerShiftRight(HInvokeDynamic original, HInstruction? converted) {
     _registerSpecializer(original, converted, 'ShiftRight',
         'ShiftRight.${original.selector.name}');
   }
 
   void registerShiftRightUnsigned(
-      HInvokeDynamic original, HShiftRight converted) {
+      HInvokeDynamic original, HInstruction? converted) {
     _registerSpecializer(original, converted, 'ShiftRightUnsigned',
         'ShiftRightUnsigned.${original.selector.name}');
   }
 
-  void registerBitOr(HInvokeDynamic original, HBitOr converted) {
+  void registerBitOr(HInvokeDynamic original, HInstruction? converted) {
     _registerSpecializer(original, converted, 'BitOr');
   }
 
-  void registerBitAnd(HInvokeDynamic original, HBitAnd converted) {
+  void registerBitAnd(HInvokeDynamic original, HInstruction? converted) {
     _registerSpecializer(original, converted, 'BitAnd');
   }
 
-  void registerBitXor(HInvokeDynamic original, HBitXor converted) {
+  void registerBitXor(HInvokeDynamic original, HInstruction? converted) {
     _registerSpecializer(original, converted, 'BitXor');
   }
 
-  void registerEquals(HInvokeDynamic original, HIdentity converted) {
+  void registerEquals(HInvokeDynamic original, HInstruction converted) {
     _registerSpecializer(original, converted, 'Equals');
   }
 
-  void registerLess(HInvokeDynamic original, HLess converted) {
+  void registerLess(HInvokeDynamic original, HInstruction converted) {
     _registerSpecializer(original, converted, 'Less');
   }
 
-  void registerGreater(HInvokeDynamic original, HGreater converted) {
+  void registerGreater(HInvokeDynamic original, HInstruction converted) {
     _registerSpecializer(original, converted, 'Greater');
   }
 
-  void registerLessEqual(HInvokeDynamic original, HLessEqual converted) {
+  void registerLessEqual(HInvokeDynamic original, HInstruction converted) {
     _registerSpecializer(original, converted, 'LessEquals');
   }
 
-  void registerGreaterEqual(HInvokeDynamic original, HGreaterEqual converted) {
+  void registerGreaterEqual(HInvokeDynamic original, HInstruction converted) {
     _registerSpecializer(original, converted, 'GreaterEquals');
   }
 
@@ -225,7 +214,7 @@ class OptimizationTestLog {
     entries.add(OptimizationLogEntry('CodeUnitAt', features));
   }
 
-  void registerCompareTo(HInvokeDynamic original, [HConstant converted]) {
+  void registerCompareTo(HInvokeDynamic original, [HConstant? converted]) {
     Features features = Features();
     if (converted != null) {
       features['constant'] = converted.constant.toDartText(_dartTypes);
@@ -261,9 +250,7 @@ class OptimizationTestLog {
     } else if (check.isArgumentTypeCheck) {
       features['kind'] = 'argument';
     }
-    if (check.typeExpression != null) {
-      features['type'] = '${check.typeExpression}';
-    }
+    features['type'] = '${check.typeExpression}';
     entries.add(OptimizationLogEntry('PrimitiveCheck', features));
   }
 
@@ -271,11 +258,11 @@ class OptimizationTestLog {
   /// projects the instruction to a string that is used as a key for counting
   /// instructions. [summarize] returns `null` to omit the instruction.
   void instructionHistogram(
-      String tag, HGraph graph, String /*?*/ Function(HInstruction) summarize) {
+      String tag, HGraph graph, String? Function(HInstruction) summarize) {
     Map<String, int> histogram = {};
     for (final block in graph.blocks) {
-      for (HInstruction node = block.first; node != null; node = node.next) {
-        String /*?*/ description = summarize(node);
+      for (HInstruction? node = block.first; node != null; node = node.next) {
+        String? description = summarize(node);
         if (description != null) {
           int count = histogram[description] ?? 0;
           histogram[description] = count + 1;

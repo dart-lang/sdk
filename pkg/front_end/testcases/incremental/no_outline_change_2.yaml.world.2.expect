@@ -23,14 +23,14 @@ library from "org-dartlang-test:///main.dart" as main {
   }
   class CompilationStrategy extends dart.core::_Enum /*isEnum*/  {
     static const field dart.core::List<main::CompilationStrategy> values = #C14;
-    static const field main::CompilationStrategy direct = #C4;
-    static const field main::CompilationStrategy toKernel = #C7;
-    static const field main::CompilationStrategy toData = #C10;
-    static const field main::CompilationStrategy fromData = #C13;
+    enum-element static const field main::CompilationStrategy direct = #C4;
+    enum-element static const field main::CompilationStrategy toKernel = #C7;
+    enum-element static const field main::CompilationStrategy toData = #C10;
+    enum-element static const field main::CompilationStrategy fromData = #C13;
     const constructor •(dart.core::int #index, dart.core::String #name) → main::CompilationStrategy
       : super dart.core::_Enum::•(#index, #name)
       ;
-    method toString() → dart.core::String
+    method _enumToString() → dart.core::String
       return "CompilationStrategy.${this.{dart.core::_Enum::_name}{dart.core::String}}";
   }
   static method main() → dynamic {
@@ -61,6 +61,6 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-test:///main.dart:
 - CompilationStrategy. (from org-dartlang-test:///main.dart:17:6)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 

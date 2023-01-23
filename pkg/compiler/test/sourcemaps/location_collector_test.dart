@@ -11,7 +11,7 @@ import 'package:compiler/src/io/location_provider.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' show Location;
 
-import '../helpers/output_collector.dart';
+import '../../lib/src/util/output_collector.dart';
 
 test(List events, Map<int, List<int>> expectedPositions) {
   BufferedOutputSink sink = new BufferedOutputSink();

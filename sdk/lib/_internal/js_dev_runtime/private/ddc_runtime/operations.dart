@@ -52,7 +52,14 @@ bind(obj, name, method) {
   // TODO(jmesserly): canonicalize tearoffs.
   JS('', '#._boundObject = #', f, obj);
   JS('', '#._boundMethod = #', f, method);
-  JS('', '#[#] = #', f, _runtimeType, getMethodType(getType(obj), name));
+  JS(
+      '',
+      '#[#] = #',
+      f,
+      JS_GET_FLAG('NEW_RUNTIME_TYPES')
+          ? JS_GET_NAME(JsGetName.SIGNATURE_NAME)
+          : _runtimeType,
+      getMethodType(getType(obj), name));
   return f;
 }
 
@@ -113,6 +120,14 @@ dload(obj, field) {
 
     if (hasField(type, f) || hasGetter(type, f)) return JS('', '#[#]', obj, f);
     if (hasMethod(type, f)) return bind(obj, f, null);
+
+    // Handle record types by trying to access [f] via convenience getters.
+    if (JS<bool>('!', '# instanceof #', obj, _RecordImpl) && f is String) {
+      // It is a compile-time error for record names to clash, so we don't
+      // need to check the positionals or named elements in any order.
+      var value = JS('', '#.#', obj, f);
+      if (JS('!', '# !== void 0', value)) return value;
+    }
 
     // Always allow for JS interop objects.
     if (isJsInterop(obj)) return JS('', '#[#]', obj, f);
@@ -260,81 +275,99 @@ Symbol _setterSymbol(name) {
 ///
 /// NOTE: The contents of [args] may be modified before calling [f]. If it
 /// originated outside of the SDK it must be copied first.
-_checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) =>
-    JS('', '''(() => {
-  $trackCall($obj);
+_checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) {
+  trackCall(obj);
+  var originalTarget = JS<bool>('!', '# === void 0', obj) ? f : obj;
 
-  let originalTarget = obj === void 0 ? f : obj;
-
-  function callNSM(errorMessage) {
-    return $noSuchMethod(originalTarget, new $InvocationImpl.new(
-        $displayName, $args, {
-          namedArguments: $named,
-          // Repeated the default value here to avoid passing null from JS to a
-          // non-nullable argument.
-          typeArguments: $typeArgs || [],
-          isMethod: true,
-          failureMessage: errorMessage
-        }));
+  callNSM(@notNull String errorMessage) {
+    return noSuchMethod(
+        originalTarget,
+        InvocationImpl(displayName, JS<List<Object?>>('!', '#', args),
+            namedArguments: named,
+            // Repeated the default value here in JS to preserve the historic
+            // behavior.
+            typeArguments: JS('!', '# || []', typeArgs),
+            isMethod: true,
+            failureMessage: errorMessage));
   }
-  if ($f == null) return callNSM('Dynamic call of null.');
-  if (!($f instanceof Function)) {
+
+  if (f == null) return callNSM('Dynamic call of null.');
+  if (!JS<bool>('!', '# instanceof Function', f)) {
     // We're not a function (and hence not a method either)
     // Grab the `call` method if it's not a function.
-    if ($f != null) {
+    if (f != null) {
       // Getting the member succeeded, so update the originalTarget.
       // (we're now trying `call()` on `f`, so we want to call its nSM rather
       // than the original target's nSM).
       originalTarget = f;
-      $f = ${bindCall(f, _canonicalMember(f, 'call'))};
-      $ftype = null;
-      $displayName = "call";
+      f = bindCall(f, _canonicalMember(f, 'call'));
+      ftype = null;
+      displayName = 'call';
     }
-    if ($f == null) return callNSM(
-        "Dynamic call of object has no instance method 'call'.");
+    if (f == null) {
+      return callNSM("Dynamic call of object has no instance method 'call'.");
+    }
   }
   // If f is a function, but not a method (no method type)
   // then it should have been a function valued field, so
   // get the type from the function.
-  if ($ftype == null) $ftype = $f[$_runtimeType];
+  if (ftype == null) ftype = JS('', '#[#]', f, _runtimeType);
 
-  if ($ftype == null) {
+  if (ftype == null) {
     // TODO(leafp): Allow JS objects to go through?
-    if ($typeArgs != null) {
+    if (typeArgs != null) {
       // TODO(jmesserly): is there a sensible way to handle these?
-      $throwTypeError('call to JS object `' + $obj +
-          '` with type arguments <' + $typeArgs + '> is not supported.');
+      throwTypeError('call to JS object `' +
+          // Not a String but historically relying on the default JavaScript
+          // behavior.
+          JS<String>('!', '#', obj) +
+          '` with type arguments <' +
+          // Not a String but historically relying on the default JavaScript
+          // behavior.
+          JS<String>('!', '#', typeArgs) +
+          '> is not supported.');
     }
 
-    if ($named != null) $args.push($named);
-    return $f.apply($obj, $args);
+    if (named != null) JS('', '#.push(#)', args, named);
+    return JS('', '#.apply(#, #)', f, obj, args);
   }
 
   // Apply type arguments
-  if (${_jsInstanceOf(ftype, GenericFunctionType)}) {
-    let formalCount = $ftype.formalCount;
+  if (_jsInstanceOf(ftype, GenericFunctionType)) {
+    var formalCount = JS<int>('!', '#.formalCount', ftype);
 
-    if ($typeArgs == null) {
-      $typeArgs = $ftype.instantiateDefaultBounds();
-    } else if ($typeArgs.length != formalCount) {
+    if (typeArgs == null) {
+      typeArgs = JS<List>('!', '#.instantiateDefaultBounds()', ftype);
+    } else if (JS<bool>('!', '#.length != #', typeArgs, formalCount)) {
       return callNSM('Dynamic call with incorrect number of type arguments. ' +
-          'Expected: ' + formalCount + ' Actual: ' + $typeArgs.length);
+          'Expected: ' +
+          // Not a String but historically relying on the default JavaScript
+          // behavior.
+          JS<String>('!', '#', formalCount) +
+          ' Actual: ' +
+          // Not a String but historically relying on the default JavaScript
+          // behavior.
+          JS<String>('!', '#.length', typeArgs));
     } else {
-      $ftype.checkBounds($typeArgs);
+      JS('', '#.checkBounds(#)', ftype, typeArgs);
     }
-    $ftype = $ftype.instantiate($typeArgs);
-  } else if ($typeArgs != null) {
+    ftype = JS('', '#.instantiate(#)', ftype, typeArgs);
+  } else if (typeArgs != null) {
     return callNSM('Dynamic call with unexpected type arguments. ' +
-        'Expected: 0 Actual: ' + $typeArgs.length);
+        'Expected: 0 Actual: ' +
+        // Not a String but historically relying on the default JavaScript
+        // behavior.
+        JS<String>('!', '#.length', typeArgs));
   }
-  let errorMessage = $_argumentErrors($ftype, $args, $named);
+  var errorMessage = _argumentErrors(
+      JS<FunctionType>('!', '#', ftype), JS<List>('!', '#', args), named);
   if (errorMessage == null) {
-    if ($typeArgs != null) $args = $typeArgs.concat($args);
-    if ($named != null) $args.push($named);
-    return $f.apply($obj, $args);
+    if (typeArgs != null) args = JS('', '#.concat(#)', typeArgs, args);
+    if (named != null) JS('', '#.push(#)', args, named);
+    return JS('', '#.apply(#, #)', f, obj, args);
   }
   return callNSM(errorMessage);
-})()''');
+}
 
 dcall(f, args, [@undefined named]) => _checkAndCall(
     f, null, JS('', 'void 0'), null, args, named, JS('', 'f.name'));

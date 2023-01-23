@@ -163,6 +163,7 @@ void Options::PrintUsage() {
 "      --pause-isolates-on-exit\n"
 "      --pause-isolates-on-unhandled-exceptions\n"
 "      --warn-on-pause-with-no-debugger\n"
+"      --timeline-streams=\"Compiler, Dart, GC\"\n"
 "  This set is subject to change.\n"
 "  Please see these options (--help --verbose) for further documentation.\n"
 "--write-service-info=<file_uri>\n"
@@ -204,6 +205,7 @@ void Options::PrintUsage() {
 "      --pause-isolates-on-exit\n"
 "      --pause-isolates-on-unhandled-exceptions\n"
 "      --warn-on-pause-with-no-debugger\n"
+"      --timeline-streams=\"Compiler, Dart, GC\"\n"
 "  This set is subject to change.\n"
 "  Please see these options for further documentation.\n"
 #endif  // !defined(PRODUCT)
@@ -377,6 +379,7 @@ bool Options::ProcessObserveOption(const char* arg,
   vm_options->AddArgument("--pause-isolates-on-unhandled-exceptions");
   vm_options->AddArgument("--profiler");
   vm_options->AddArgument("--warn-on-pause-with-no-debugger");
+  vm_options->AddArgument("--timeline-streams=\"Compiler,Dart,GC\"");
 #if !defined(DART_PRECOMPILED_RUNTIME)
   dfe()->set_use_incremental_compiler(true);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -412,7 +415,8 @@ bool Options::ProcessVMDebuggingOptions(const char* arg,
   V("--pause-isolates-on-unhandled-exception", arg)                            \
   V("--no-pause-isolates-on-unhandled-exception", arg)                         \
   V("--warn-on-pause-with-no-debugger", arg)                                   \
-  V("--no-warn-on-pause-with-no-debugger", arg)
+  V("--no-warn-on-pause-with-no-debugger", arg)                                \
+  V("--enable-experiment", arg)
   HANDLE_DARTDEV_VM_DEBUG_OPTIONS(IS_DEBUG_OPTION, arg);
 
 #undef IS_DEBUG_OPTION
@@ -478,6 +482,11 @@ bool Options::ParseArguments(int argc,
         // This flag is set by default in dartdev, so we ignore it. --no-dds is
         // a VM flag as disabling DDS changes how we configure the VM service,
         // so we don't need to handle that case here.
+        skipVmOption = true;
+      } else if (IsOption(argv[i], "serve-observatory")) {
+        // This flag is currently set by default in vmservice_io.dart, so we
+        // ignore it. --no-serve-observatory is a VM flag so we don't need to
+        // handle that case here.
         skipVmOption = true;
       }
       if (!skipVmOption) {

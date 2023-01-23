@@ -24,15 +24,17 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart'
     show
-        ClassElement,
         ClassMemberElement,
         CompilationUnitElement,
         Element,
+        EnumElement,
         ExecutableElement,
         ExtensionElement,
         FieldElement,
         FunctionElement,
+        InterfaceElement,
         LocalVariableElement,
+        MixinElement,
         ParameterElement,
         PrefixElement,
         TypeParameterElement,
@@ -1396,11 +1398,15 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   }
 
   @override
-  Future<void> removeOverlay(String filePath) async {
+  Future<void> removeOverlay(AnalysisContext context, String filePath) async {
     // If an overlay option is being used, remove the overlay applied
     // earlier.
     if (options.overlay != OverlayMode.none) {
       provider.removeOverlay(filePath);
+      context.changeFile(filePath);
+      await context.applyPendingFileChanges();
+      resolvedUnitResult = await context.currentSession
+          .getResolvedUnit(filePath) as ResolvedUnitResult;
     }
   }
 
@@ -1700,23 +1706,23 @@ class CompletionResult {
     var element = _getElement(entity);
     if (element != null) {
       var parent = element.enclosingElement;
-      if (parent is ClassElement || parent is ExtensionElement) {
+      if (parent is InterfaceElement || parent is ExtensionElement) {
         if (_isStatic(element)) {
           return CompletionGroup.staticMember;
         } else {
           return CompletionGroup.instanceMember;
         }
       } else if (parent is CompilationUnitElement &&
-          element is! ClassElement &&
+          element is! InterfaceElement &&
           element is! ExtensionElement) {
         return CompletionGroup.topLevelMember;
       }
-      if (element is ClassElement) {
-        if (element.isEnum) {
-          return CompletionGroup.enumElement;
-        } else if (element.isMixin) {
-          return CompletionGroup.mixinElement;
-        }
+
+      if (element is EnumElement) {
+        return CompletionGroup.enumElement;
+      } else if (element is MixinElement) {
+        return CompletionGroup.mixinElement;
+      } else if (element is InterfaceElement) {
         if (entity is SimpleIdentifier &&
             entity.parent is NamedType &&
             entity.parent!.parent is ConstructorName &&

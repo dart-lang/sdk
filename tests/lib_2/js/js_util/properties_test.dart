@@ -317,7 +317,7 @@ main() {
       expect(index, equals(1));
       expect(js_util.getProperty(f.list, index), equals(4));
 
-      // Accessing nested object properites.
+      // Accessing nested object properties.
       var objectProperty = js_util.getProperty(f, 'objectProperty');
       expect(js_util.getProperty(objectProperty, 'c'), equals(1));
       expect(js_util.getProperty(objectProperty, 'list') is List, isTrue);

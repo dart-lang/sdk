@@ -9,12 +9,13 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/js/js.dart' as js;
 import 'package:compiler/src/js_model/js_strategy.dart';
-import 'package:compiler/src/world.dart';
+import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:expect/expect.dart';
 import '../helpers/d8_helper.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 const String SOURCE = r'''
 @pragma('dart2js:noInline')
@@ -194,7 +195,8 @@ main(List<String> args) {
         ClassEntity cls = elementEnvironment.lookupClass(
             elementEnvironment.mainLibrary, className);
         Expect.isNotNull(cls, "Class '$className' not found.");
-        method = elementEnvironment.lookupClassMember(cls, methodName);
+        method = elementEnvironment.lookupClassMember(
+            cls, Name(methodName, cls.library.canonicalUri));
         Expect.isNotNull(method, "Method '$methodName' not found in $cls.");
       } else {
         method = elementEnvironment.lookupLibraryMember(

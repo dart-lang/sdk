@@ -130,7 +130,7 @@ const Function& CompilerState::StringBaseInterpolate() {
 }
 
 void CompilerState::ReportCrash() {
-  OS::PrintErr("=== Crash occured when compiling %s in %s mode in %s pass\n",
+  OS::PrintErr("=== Crash occurred when compiling %s in %s mode in %s pass\n",
                function() != nullptr ? function()->ToFullyQualifiedCString()
                                      : "unknown function",
                is_aot()          ? "AOT"

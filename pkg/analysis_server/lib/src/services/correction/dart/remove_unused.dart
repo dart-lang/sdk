@@ -30,11 +30,7 @@ class RemoveUnusedElement extends _RemoveUnused {
   Future<void> compute(ChangeBuilder builder) async {
     final sourceRanges = <SourceRange>[];
 
-    final referencedNode = node.parent;
-    if (referencedNode == null) {
-      return;
-    }
-
+    final referencedNode = node;
     if (referencedNode is ClassDeclaration ||
         referencedNode is EnumDeclaration ||
         referencedNode is FunctionDeclaration ||
@@ -46,7 +42,7 @@ class RemoveUnusedElement extends _RemoveUnused {
           : (referencedNode as NamedCompilationUnitMember).declaredElement!;
       final references = _findAllReferences(unit, element);
       // todo (pq): consider filtering for references that are limited to within the class.
-      if (references.length == 1) {
+      if (references.isEmpty) {
         var parent = referencedNode.parent;
         var grandParent = parent?.parent;
         SourceRange sourceRange;
@@ -87,7 +83,7 @@ class RemoveUnusedField extends _RemoveUnused {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final declaration = node.parent;
+    final declaration = node;
     if (declaration is! VariableDeclaration) {
       return;
     }
@@ -98,7 +94,10 @@ class RemoveUnusedField extends _RemoveUnused {
     }
 
     final sourceRanges = <SourceRange>[];
-    final references = _findAllReferences(unit, element);
+    final references = [
+      node,
+      ..._findAllReferences(unit, element),
+    ];
     for (var reference in references) {
       // todo (pq): consider scoping this to parent or parent.parent.
       final referenceNode = reference.thisOrAncestorMatching((node) =>
@@ -217,9 +216,21 @@ class RemoveUnusedField extends _RemoveUnused {
 
 class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
   final Element element;
-  final List<SimpleIdentifier> references = [];
+  final List<AstNode> references = [];
 
   _ElementReferenceCollector(this.element);
+
+  @override
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    final declaredElement = node.declaredElement;
+    if (declaredElement is FieldFormalParameterElement) {
+      if (declaredElement.field == element) {
+        references.add(node);
+      }
+    }
+
+    super.visitFieldFormalParameter(node);
+  }
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
@@ -239,7 +250,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
 }
 
 abstract class _RemoveUnused extends CorrectionProducer {
-  List<SimpleIdentifier> _findAllReferences(AstNode root, Element element) {
+  List<AstNode> _findAllReferences(AstNode root, Element element) {
     var collector = _ElementReferenceCollector(element);
     root.accept(collector);
     return collector.references;

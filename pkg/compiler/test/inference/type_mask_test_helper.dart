@@ -8,7 +8,7 @@ library type_mask_test_helper;
 
 import 'package:compiler/src/inferrer/abstract_value_domain.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
-import 'package:compiler/src/world.dart' show JClosedWorld;
+import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 
 export 'package:compiler/src/inferrer/types.dart';
 
@@ -25,7 +25,7 @@ AbstractValue simplify(AbstractValue value, AbstractValueDomain domain) {
 }
 
 TypeMask interceptorOrComparable(JClosedWorld closedWorld,
-    {bool nullable: false}) {
+    {bool nullable = false}) {
   // TODO(johnniwinther): The mock libraries are missing 'Comparable' and
   // therefore consider the union of for instance 'String' and 'num' to be
   // 'Interceptor' and not 'Comparable'. Maybe the union mask should be changed

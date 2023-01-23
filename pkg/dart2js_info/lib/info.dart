@@ -78,6 +78,9 @@ class AllInfo {
   /// Summary information about the program.
   ProgramInfo? program;
 
+  /// Information about each package in the program.
+  List<PackageInfo> packages = <PackageInfo>[];
+
   /// Information about each library processed by the compiler.
   List<LibraryInfo> libraries = <LibraryInfo>[];
 
@@ -125,7 +128,7 @@ class AllInfo {
   /// Major version indicating breaking changes in the format. A new version
   /// means that an old deserialization algorithm will not work with the new
   /// format.
-  final int version = 6;
+  final int version = 7;
 
   /// Minor version indicating non-breaking changes in the format. A change in
   /// this version number means that the json parsing in this library from a
@@ -141,6 +144,7 @@ class AllInfo {
 
 class ProgramInfo {
   final FunctionInfo entrypoint;
+  final String ramUsage;
   final int size;
   final String? dart2jsVersion;
   final DateTime compilationMoment;
@@ -167,6 +171,7 @@ class ProgramInfo {
 
   ProgramInfo(
       {required this.entrypoint,
+      required this.ramUsage,
       required this.size,
       required this.dart2jsVersion,
       required this.compilationMoment,
@@ -181,6 +186,22 @@ class ProgramInfo {
       required this.minified});
 
   T accept<T>(InfoVisitor<T> visitor) => visitor.visitProgram(this);
+}
+
+/// Info associated with a package element.
+///
+/// Note that PackageInfo is only used for converting dart2js info to
+/// vm_snapshot_analysis ProgramInfo and is not expected for --dump-info output.
+class PackageInfo extends BasicInfo {
+  /// All libraries defined within the package
+  List<LibraryInfo> libraries = <LibraryInfo>[];
+
+  PackageInfo(String name, OutputUnitInfo outputUnit, int size)
+      : super(InfoKind.package, name, outputUnit, size, null);
+
+  @override
+  T accept<T>(InfoVisitor<T> visitor) =>
+      throw Exception("PackageInfo is not supported by InfoVisitor.");
 }
 
 /// Info associated with a library element.
@@ -214,7 +235,7 @@ class LibraryInfo extends BasicInfo {
       classes.isEmpty &&
       classTypes.isEmpty;
 
-  LibraryInfo(String name, this.uri, OutputUnitInfo outputUnit, int size)
+  LibraryInfo(String name, this.uri, OutputUnitInfo? outputUnit, int size)
       : super(InfoKind.library, name, outputUnit, size, null);
 
   LibraryInfo.internal() : super.internal(InfoKind.library);
@@ -255,14 +276,19 @@ class ClassInfo extends BasicInfo {
   // but this should be fixed.
   List<FieldInfo> fields = <FieldInfo>[];
 
+  /// Classes in the supertype hierarchy for this class.
+  List<ClassInfo> supers = <ClassInfo>[];
+
   ClassInfo(
       {required String name,
       required this.isAbstract,
+      required this.supers,
       OutputUnitInfo? outputUnit,
       int size = 0})
       : super(InfoKind.clazz, name, outputUnit, size, null);
 
-  ClassInfo.fromKernel({required String name, required this.isAbstract})
+  ClassInfo.fromKernel(
+      {required String name, required this.isAbstract, required this.supers})
       : super(InfoKind.clazz, name, null, 0, null);
 
   ClassInfo.internal() : super.internal(InfoKind.clazz);
@@ -299,8 +325,7 @@ class CodeSpan {
   /// the encoding).
   String? text;
 
-  CodeSpan({required this.start, required this.end, this.text});
-  CodeSpan.empty();
+  CodeSpan({this.start, this.end, this.text});
 }
 
 /// Information about a constant value.
@@ -506,6 +531,7 @@ class FunctionModifiers {
 
 /// Possible values of the `kind` field in the serialized infos.
 enum InfoKind {
+  package,
   library,
   clazz,
   classType,
@@ -582,6 +608,23 @@ abstract class InfoVisitor<T> {
   T visitOutput(OutputUnitInfo info);
 }
 
+/// A visitor that adds implementation for PackageInfo specifically for building
+/// the VM ProgramInfo Tree from a Dart2js info tree.
+abstract class VMProgramInfoVisitor<T> {
+  T visitAll(AllInfo info, String outputUnit);
+  T visitProgram(ProgramInfo info);
+  T visitPackage(PackageInfo info, String outputUnit);
+  T visitLibrary(LibraryInfo info, String outputUnit);
+  T visitClass(ClassInfo info);
+  T visitClassType(ClassTypeInfo info);
+  T visitField(FieldInfo info);
+  T visitConstant(ConstantInfo info);
+  T visitFunction(FunctionInfo info);
+  T visitTypedef(TypedefInfo info);
+  T visitClosure(ClosureInfo info);
+  T visitOutput(OutputUnitInfo info);
+}
+
 /// A visitor that recursively walks each portion of the program. Because the
 /// info representation is redundant, this visitor only walks the structure of
 /// the program and skips some redundant links. For example, even though
@@ -590,7 +633,7 @@ abstract class InfoVisitor<T> {
 /// so on.
 class RecursiveInfoVisitor extends InfoVisitor<void> {
   @override
-  visitAll(AllInfo info) {
+  void visitAll(AllInfo info) {
     // Note: we don't visit functions, fields, classes, and typedefs because
     // they are reachable from the library info.
     info.libraries.forEach(visitLibrary);
@@ -598,10 +641,15 @@ class RecursiveInfoVisitor extends InfoVisitor<void> {
   }
 
   @override
-  visitProgram(ProgramInfo info) {}
+  void visitProgram(ProgramInfo info) {}
+
+  void visitPackage(PackageInfo info) {
+    throw Exception(
+        "PackageInfo objects are only defined for the VM Devtools format.");
+  }
 
   @override
-  visitLibrary(LibraryInfo info) {
+  void visitLibrary(LibraryInfo info) {
     info.topLevelFunctions.forEach(visitFunction);
     info.topLevelVariables.forEach(visitField);
     info.classes.forEach(visitClass);
@@ -610,33 +658,33 @@ class RecursiveInfoVisitor extends InfoVisitor<void> {
   }
 
   @override
-  visitClass(ClassInfo info) {
+  void visitClass(ClassInfo info) {
     info.functions.forEach(visitFunction);
     info.fields.forEach(visitField);
   }
 
   @override
-  visitClassType(ClassTypeInfo info) {}
+  void visitClassType(ClassTypeInfo info) {}
 
   @override
-  visitField(FieldInfo info) {
+  void visitField(FieldInfo info) {
     info.closures.forEach(visitClosure);
   }
 
   @override
-  visitConstant(ConstantInfo info) {}
+  void visitConstant(ConstantInfo info) {}
 
   @override
-  visitFunction(FunctionInfo info) {
+  void visitFunction(FunctionInfo info) {
     info.closures.forEach(visitClosure);
   }
 
   @override
-  visitTypedef(TypedefInfo info) {}
+  void visitTypedef(TypedefInfo info) {}
   @override
-  visitOutput(OutputUnitInfo info) {}
+  void visitOutput(OutputUnitInfo info) {}
   @override
-  visitClosure(ClosureInfo info) {
+  void visitClosure(ClosureInfo info) {
     visitFunction(info.function);
   }
 }

@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library ssa.tracer;
 
 import '../../compiler_api.dart' as api show OutputSink;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../inferrer/abstract_value_domain.dart';
 import '../js_backend/namer.dart' show suffixForGetInterceptor;
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../tracer.dart';
-import '../world.dart' show JClosedWorld;
 import 'nodes.dart';
 
 /// Outputs SSA code in a format readable by Hydra IR.
@@ -89,7 +87,7 @@ class HTracer extends HGraphVisitor with TracerUtil {
 
   void addInstructions(
       HInstructionStringifier stringifier, HInstructionList list) {
-    for (HInstruction instruction = list.first;
+    for (HInstruction? instruction = list.first;
         instruction != null;
         instruction = instruction.next) {
       int bci = 0;
@@ -107,7 +105,7 @@ class HTracer extends HGraphVisitor with TracerUtil {
   void visitBasicBlock(HBasicBlock block) {
     HInstructionStringifier stringifier =
         HInstructionStringifier(block, closedWorld);
-    assert(block.id != null);
+    assert(block.id >= 0);
     tag("block", () {
       printProperty("name", "B${block.id}");
       printProperty("from_bci", -1);
@@ -117,7 +115,7 @@ class HTracer extends HGraphVisitor with TracerUtil {
       printEmptyProperty("xhandlers");
       printEmptyProperty("flags");
       if (block.dominator != null) {
-        printProperty("dominator", "B${block.dominator.id}");
+        printProperty("dominator", "B${block.dominator!.id}");
       }
       tag("states", () {
         tag("locals", () {
@@ -247,7 +245,7 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitBreak(HBreak node) {
     HBasicBlock target = currentBlock.successors[0];
     if (node.label != null) {
-      return "Break ${node.label.labelName}: (B${target.id})";
+      return "Break ${node.label!.labelName}: (B${target.id})";
     }
     return "Break: (B${target.id})";
   }
@@ -259,7 +257,7 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitContinue(HContinue node) {
     HBasicBlock target = currentBlock.successors[0];
     if (node.label != null) {
-      return "Continue ${node.label.labelName}: (B${target.id})";
+      return "Continue ${node.label!.labelName}: (B${target.id})";
     }
     return "Continue: (B${target.id})";
   }
@@ -282,14 +280,14 @@ class HInstructionStringifier implements HVisitor<String> {
 
   @override
   String visitFieldGet(HFieldGet node) {
-    String fieldName = node.element.name;
+    String? fieldName = node.element.name;
     return 'FieldGet: ${temporaryId(node.receiver)}.$fieldName';
   }
 
   @override
   String visitFieldSet(HFieldSet node) {
     String valueId = temporaryId(node.value);
-    String fieldName = node.element.name;
+    String? fieldName = node.element.name;
     return 'FieldSet: ${temporaryId(node.receiver)}.$fieldName to $valueId';
   }
 
@@ -300,7 +298,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   @override
   String visitReadModifyWrite(HReadModifyWrite node) {
-    String fieldName = node.element.name;
+    String? fieldName = node.element.name;
     String receiverId = temporaryId(node.receiver);
     String op = node.jsOp;
     if (node.isAssignOp) {
@@ -320,14 +318,14 @@ class HInstructionStringifier implements HVisitor<String> {
 
   @override
   String visitLocalGet(HLocalGet node) {
-    String localName = node.variable.name;
+    String? localName = node.variable.name;
     return 'LocalGet: ${temporaryId(node.receiver)}.$localName';
   }
 
   @override
   String visitLocalSet(HLocalSet node) {
     String valueId = temporaryId(node.value);
-    String localName = node.variable.name;
+    String? localName = node.variable.name;
     return 'LocalSet: ${temporaryId(node.receiver)}.$localName to $valueId';
   }
 
@@ -356,7 +354,7 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String handleGenericInvoke(
-      String invokeType, String functionName, List<HInstruction> arguments) {
+      String invokeType, String? functionName, List<HInstruction> arguments) {
     StringBuffer argumentsString = StringBuffer();
     for (int i = 0; i < arguments.length; i++) {
       if (i != 0) argumentsString.write(", ");
@@ -385,7 +383,7 @@ class HInstructionStringifier implements HVisitor<String> {
     String value = temporaryId(node.inputs[0]);
     if (node.interceptedClasses != null) {
       String cls = suffixForGetInterceptor(closedWorld.commonElements,
-          closedWorld.nativeData, node.interceptedClasses);
+          closedWorld.nativeData, node.interceptedClasses!);
       return "Interceptor (${cls}): $value";
     }
     return "Interceptor: $value";
@@ -398,9 +396,9 @@ class HInstructionStringifier implements HVisitor<String> {
   String handleInvokeDynamic(HInvokeDynamic invoke, String kind) {
     String receiver = temporaryId(invoke.receiver);
     String name = invoke.selector.name;
-    String target = "$receiver.$name";
+    String target = '$receiver.$name';
     int offset = HInvoke.ARGUMENTS_OFFSET;
-    List arguments = invoke.inputs.sublist(offset);
+    List<HInstruction> arguments = invoke.inputs.sublist(offset);
     final attributes = {
       if (invoke.isInvariant) 'Invariant',
       if (invoke.isBoundsSafe) 'BoundSafe',
@@ -424,25 +422,25 @@ class HInstructionStringifier implements HVisitor<String> {
 
   @override
   String visitInvokeStatic(HInvokeStatic invoke) {
-    String target = invoke.element.name;
+    String? target = invoke.element.name;
     return handleGenericInvoke("InvokeStatic", target, invoke.inputs);
   }
 
   @override
   String visitInvokeSuper(HInvokeSuper invoke) {
-    String target = invoke.element.name;
+    String? target = invoke.element.name;
     return handleGenericInvoke("InvokeSuper", target, invoke.inputs);
   }
 
   @override
   String visitInvokeConstructorBody(HInvokeConstructorBody invoke) {
-    String target = invoke.element.name;
+    String? target = invoke.element.name;
     return handleGenericInvoke("InvokeConstructorBody", target, invoke.inputs);
   }
 
   @override
   String visitInvokeGeneratorBody(HInvokeGeneratorBody invoke) {
-    String target = invoke.element.name;
+    String? target = invoke.element.name;
     return handleGenericInvoke("InvokeGeneratorBody", target, invoke.inputs);
   }
 
@@ -450,7 +448,7 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitInvokeExternal(HInvokeExternal node) {
     var target = node.element;
     var inputs = node.inputs;
-    String targetString;
+    String? targetString;
     if (target.isInstanceMember) {
       targetString = temporaryId(inputs.first) + '.${target.name}';
       inputs = inputs.sublist(1);
@@ -506,12 +504,12 @@ class HInstructionStringifier implements HVisitor<String> {
 
   @override
   String visitParameterValue(HParameterValue node) {
-    return "ParameterValue: ${node.sourceElement.name}";
+    return "ParameterValue: ${node.sourceElement!.name}";
   }
 
   @override
   String visitLocalValue(HLocalValue node) {
-    return "LocalValue: ${node.sourceElement.name}";
+    return "LocalValue: ${node.sourceElement!.name}";
   }
 
   @override
@@ -556,7 +554,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   @override
   String visitStaticStore(HStaticStore node) {
-    String lhs = node.element.name;
+    String? lhs = node.element.name;
     return "StaticStore: $lhs = ${temporaryId(node.inputs[0])}";
   }
 
@@ -584,7 +582,7 @@ class HInstructionStringifier implements HVisitor<String> {
     for (int i = 1; i < node.inputs.length; i++) {
       buf.write(temporaryId(node.inputs[i]));
       buf.write(": B");
-      buf.write(node.block.successors[i - 1].id);
+      buf.write(node.block!.successors[i - 1].id);
       buf.write(", ");
     }
     buf.write("default: B");
@@ -630,7 +628,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
     String finallyBlock = 'none';
     if (node.finallyBlock != null) {
-      finallyBlock = 'B${node.finallyBlock.id}';
+      finallyBlock = 'B${node.finallyBlock!.id}';
     }
 
     return "Try: $tryBlock, Catch: $catchBlock, Finally: $finallyBlock, "
@@ -661,8 +659,8 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitNullCheck(HNullCheck node) {
     String checkedInput = temporaryId(node.checkedInput);
     var comments = [
-      if (node.selector != null) 'for ${node.selector}',
-      if (node.field != null) 'for ${node.field}',
+      if (node.selector != null) 'for ${node.selector!}',
+      if (node.field != null) 'for ${node.field!}',
     ].join(', ');
     return "NullCheck: $checkedInput $comments";
   }
@@ -697,7 +695,7 @@ class HInstructionStringifier implements HVisitor<String> {
     String result =
         "TypeKnown: ${temporaryId(node.checkedInput)} is ${node.knownType}";
     if (node.witness != null) {
-      result += " witnessed by ${temporaryId(node.witness)}";
+      result += " witnessed by ${temporaryId(node.witness!)}";
     }
     return result;
   }

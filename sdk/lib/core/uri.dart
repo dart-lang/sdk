@@ -169,8 +169,9 @@ abstract class Uri {
   /// When [queryParameters] is used, the query is built from the
   /// provided map. Each key and value in the map is percent-encoded
   /// and joined using equal and ampersand characters.
-  /// A value in the map must be either a string, or an [Iterable] of strings,
-  /// where the latter corresponds to multiple values for the same key.
+  /// A value in the map must be either `null`, a string, or an [Iterable] of
+  /// strings. An iterable corresponds to multiple values for the same key,
+  /// and an empty iterable or `null` corresponds to no value for the key.
   ///
   /// The percent-encoding of the keys and values encodes all characters
   /// except for the unreserved characters, and replaces spaces with `+`.
@@ -209,7 +210,7 @@ abstract class Uri {
       String? path,
       Iterable<String>? pathSegments,
       String? query,
-      Map<String, dynamic /*String|Iterable<String>*/ >? queryParameters,
+      Map<String, dynamic /*String?|Iterable<String>*/ >? queryParameters,
       String? fragment}) = _Uri;
 
   /// Creates a new `http` URI from authority, path and query.
@@ -243,9 +244,11 @@ abstract class Uri {
   ///
   /// The `query` component is set from the optional [queryParameters]
   /// argument.
-  factory Uri.http(String authority,
-      [String unencodedPath,
-      Map<String, dynamic>? queryParameters]) = _Uri.http;
+  factory Uri.http(
+    String authority, [
+    String unencodedPath,
+    Map<String, dynamic /*String?|Iterable<String>*/ >? queryParameters,
+  ]) = _Uri.http;
 
   /// Creates a new `https` URI from authority, path and query.
   ///
@@ -765,7 +768,7 @@ abstract class Uri {
       String? path,
       Iterable<String>? pathSegments,
       String? query,
-      Map<String, dynamic /*String|Iterable<String>*/ >? queryParameters,
+      Map<String, dynamic /*String?|Iterable<String>*/ >? queryParameters,
       String? fragment});
 
   /// Creates a `Uri` that differs from this only in not having a fragment.
@@ -1637,7 +1640,7 @@ class _Uri implements Uri {
       String? path,
       Iterable<String>? pathSegments,
       String? query,
-      Map<String, dynamic /*String|Iterable<String>*/ >? queryParameters,
+      Map<String, dynamic /*String?|Iterable<String>*/ >? queryParameters,
       String? fragment}) {
     if (scheme == null) {
       scheme = "";
@@ -1947,7 +1950,7 @@ class _Uri implements Uri {
       String? path,
       Iterable<String>? pathSegments,
       String? query,
-      Map<String, dynamic /*String|Iterable<String>*/ >? queryParameters,
+      Map<String, dynamic /*String?|Iterable<String>*/ >? queryParameters,
       String? fragment}) {
     // Set to true if the scheme has (potentially) changed.
     // In that case, the default port may also have changed and we need
@@ -2341,7 +2344,7 @@ class _Uri implements Uri {
   }
 
   static String? _makeQuery(String? query, int start, int end,
-      Map<String, dynamic /*String|Iterable<String>*/ >? queryParameters) {
+      Map<String, dynamic /*String?|Iterable<String>*/ >? queryParameters) {
     if (query != null) {
       if (queryParameters != null) {
         throw ArgumentError('Both query and queryParameters specified');
@@ -4322,7 +4325,8 @@ List<Uint8List> _createTables() {
   b = build(pathSeg, path | notSimple);
   setChars(b, pchar, path);
   setChars(b, ".", pathSegDot);
-  setChars(b, r"/\", pathSeg | notSimple);
+  setChars(b, "/", pathSeg);
+  setChars(b, r"\", pathSeg | notSimple);
   setChars(b, "?", query | queryStart);
   setChars(b, "#", fragment | fragmentStart);
 
@@ -4342,7 +4346,7 @@ List<Uint8List> _createTables() {
   b = build(path, path | notSimple);
   setChars(b, pchar, path);
   setChars(b, "/", pathSeg);
-  setChars(b, r"/\", pathSeg | notSimple);
+  setChars(b, r"\", pathSeg | notSimple);
   setChars(b, "?", query | queryStart);
   setChars(b, "#", fragment | fragmentStart);
 
@@ -4553,7 +4557,7 @@ class _SimpleUri implements Uri {
       String? path,
       Iterable<String>? pathSegments,
       String? query,
-      Map<String, dynamic /*String|Iterable<String>*/ >? queryParameters,
+      Map<String, dynamic /*String?|Iterable<String>*/ >? queryParameters,
       String? fragment}) {
     bool schemeChanged = false;
     if (scheme != null) {

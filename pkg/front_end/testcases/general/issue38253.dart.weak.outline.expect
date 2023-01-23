@@ -10,6 +10,10 @@ library /*isNonNullableByDefault*/;
 //   g f(){
 //   ^
 //
+// pkg/front_end/testcases/general/issue38253.dart:7:5: Error: A value must be explicitly returned from a non-void function.
+//     return;
+//     ^
+//
 import self as self;
 
 static field () → Null a;

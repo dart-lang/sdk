@@ -59,7 +59,7 @@ class VerifyTests {
   /// May be overridden in a derived class to indicate whether it is ok for
   /// a `test_all.dart` file to be missing from [folder].
   ///
-  /// Default beahvior is not to allow `test_all.dart` to be missing from any
+  /// Default behavior is not to allow `test_all.dart` to be missing from any
   /// folder.
   bool isOkForTestAllToBeMissing(Folder folder) => false;
 

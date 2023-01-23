@@ -27,44 +27,12 @@ const char* Version::SdkHash() {
 const char* Version::snapshot_hash_ = "{{SNAPSHOT_HASH}}";
 const char* Version::str_ =
     "{{VERSION_STR}} ({{CHANNEL}}) ({{COMMIT_TIME}})"
-    " on \""
-#if defined(DART_HOST_OS_ANDROID)
-    "android"
-#elif defined(DART_HOST_OS_FUCHSIA)
-    "fuchsia"
-#elif defined(DART_HOST_OS_LINUX)
-    "linux"
-#elif defined(DART_HOST_OS_MACOS)
-#if DART_HOST_OS_IOS
-    "ios"
-#else
-    "macos"
-#endif
-#elif defined(DART_HOST_OS_WINDOWS)
-    "windows"
-#else
-#error Unknown OS
-#endif
+    " on \"" kHostOperatingSystemName
     "_"
 #if defined(USING_SIMULATOR)
     "sim"
 #endif
-#if defined(TARGET_ARCH_IA32)
-    "ia32"
-#elif defined(TARGET_ARCH_X64)
-    "x64"
-#elif defined(TARGET_ARCH_ARM)
-    "arm"
-#elif defined(TARGET_ARCH_ARM64)
-    "arm64"
-#elif defined(TARGET_ARCH_RISCV32)
-    "riscv32"
-#elif defined(TARGET_ARCH_RISCV64)
-    "riscv64"
-#else
-#error Unknown arch
-#endif
-    "\"";
+    kTargetArchitectureName "\"";
 const char* Version::commit_ = "{{VERSION_STR}}";
 const char* Version::git_short_hash_ = "{{GIT_HASH}}";
 

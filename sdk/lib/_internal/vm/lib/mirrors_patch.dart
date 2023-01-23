@@ -16,8 +16,8 @@ import "dart:async" show Future;
 import "dart:collection" show UnmodifiableListView, UnmodifiableMapView;
 
 /// These are the additional parts of this patch library:
-// part "mirrors_impl.dart";
-// part "mirror_reference.dart";
+part "mirrors_impl.dart";
+part "mirror_reference.dart";
 
 /**
  * Returns a [MirrorSystem] for the current isolate.

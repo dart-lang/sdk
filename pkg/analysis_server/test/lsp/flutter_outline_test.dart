@@ -37,11 +37,11 @@ Widget build(BuildContext context) => Icon();
     await initialize(initializationOptions: {'flutterOutline': true});
 
     final outlineUpdateBeforeChange = waitForFlutterOutline(mainFileUri);
-    openFile(mainFileUri, initialContent);
+    await openFile(mainFileUri, initialContent);
     final outlineBeforeChange = await outlineUpdateBeforeChange;
 
     final outlineUpdateAfterChange = waitForFlutterOutline(mainFileUri);
-    replaceFile(1, mainFileUri, updatedContent);
+    await replaceFile(1, mainFileUri, updatedContent);
     final outlineAfterChange = await outlineUpdateAfterChange;
 
     expect(outlineBeforeChange, isNotNull);
@@ -76,7 +76,7 @@ Widget build(BuildContext context) => Container(
     await initialize(initializationOptions: {'flutterOutline': true});
 
     final outlineNotification = waitForFlutterOutline(mainFileUri);
-    openFile(mainFileUri, content);
+    await openFile(mainFileUri, content);
     final outline = await outlineNotification;
 
     expect(outline, isNotNull);

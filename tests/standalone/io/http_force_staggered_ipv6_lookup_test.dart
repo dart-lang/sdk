@@ -22,7 +22,7 @@ void testBadHostName() {
   }, test: (error) => error is! String);
 }
 
-void testConnect(InternetAddress loopback, {int expectedElapsedMs: 0}) async {
+void testConnect(InternetAddress loopback, {int expectedElapsedMs = 0}) async {
   asyncStart();
   final max = 10;
   final servers = <ServerSocket>[];

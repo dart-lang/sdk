@@ -98,6 +98,25 @@ class A {
 ''');
   }
 
+  Future<void> test_binaryExpression_operator() async {
+    await resolveTestCode('''
+class C {
+  String operator +(String s) => '';
+}
+void f(C? c) {
+  c + '';
+}
+''');
+    await assertHasFix('''
+class C {
+  String operator +(String s) => '';
+}
+void f(C? c) {
+  c! + '';
+}
+''');
+  }
+
   Future<void> test_binaryOperator_leftSide() async {
     await resolveTestCode('''
 f(int? i) => i + 1;
@@ -244,6 +263,85 @@ void f(String x) {
 }
 ''');
     await assertNoFix();
+  }
+
+  Future<void> test_isNullThen_left_notAssignable_nonNullable() async {
+    await resolveTestCode('''
+void f(String s) {}
+void g(int i) {
+  f(i ?? '');
+}
+''');
+    await assertNoFix(errorFilter: (error) {
+      return error.errorCode ==
+          CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
+    });
+  }
+
+  Future<void>
+      test_isNullThen_left_notAssignable_nullable_right_nonNullable() async {
+    await resolveTestCode('''
+void f(String s) {}
+void g(int? i) {
+  f(i ?? '');
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void>
+      test_isNullThen_left_notAssignable_nullable_right_nullable() async {
+    await resolveTestCode('''
+void f(String s) {}
+void g(int? i, String? s) {
+  f(i ?? s);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_isNullThen_right_assignable_nullable() async {
+    await resolveTestCode('''
+void f(int i) {}
+void g(int i, int? x) {
+  f(i ?? x);
+}
+''');
+    await assertHasFix('''
+void f(int i) {}
+void g(int i, int? x) {
+  f(i ?? x!);
+}
+''', errorFilter: (error) {
+      return error.errorCode ==
+          CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
+    });
+  }
+
+  Future<void> test_isNullThen_right_notAssignable_nonNullable() async {
+    await resolveTestCode('''
+void f(String s) {}
+void g(int i, int x) {
+  f(i ?? x);
+}
+''');
+    await assertNoFix(errorFilter: (error) {
+      return error.errorCode ==
+          CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
+    });
+  }
+
+  Future<void> test_isNullThen_right_notAssignable_nullable() async {
+    await resolveTestCode('''
+void f(String s) {}
+void g(int i, int? x) {
+  f(i ?? x);
+}
+''');
+    await assertNoFix(errorFilter: (error) {
+      return error.errorCode ==
+          CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
+    });
   }
 
   Future<void> test_methodInvocation() async {

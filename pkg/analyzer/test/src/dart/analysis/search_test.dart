@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Declaration;
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
@@ -17,6 +18,7 @@ import '../resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SearchTest);
+    defineReflectiveTests(SearchMultipleDriversTest);
   });
 }
 
@@ -63,8 +65,39 @@ class ExpectedResult {
 }
 
 @reflectiveTest
+class SearchMultipleDriversTest extends PubPackageResolutionTest {
+  @override
+  List<String> get collectionIncludedPaths =>
+      [workspaceRootPath, otherPackageRootPath];
+
+  AnalysisDriver get driver => driverFor(testFile);
+
+  String get otherPackageRootPath => '$workspaceRootPath/other';
+
+  test_declarations_searchesFilesOnlyOnce() async {
+    // Create another driver to search in to ensure we don't get dupe results.
+    var otherFile = newFile(convertPath('$otherPackageRootPath/main.dart'), '');
+    var otherDriver = driverFor(otherFile);
+    var results = WorkspaceSymbols();
+
+    // Search both drivers.
+    await FindDeclarations(
+      [driver, otherDriver],
+      results,
+      null,
+      null,
+    ).compute();
+
+    // Ensure only one result for an SDK class, and that the file was tracked as searched.
+    var declarations = results.declarations;
+    expect(declarations.where((element) => element.name == 'Duration'),
+        hasLength(1));
+  }
+}
+
+@reflectiveTest
 class SearchTest extends PubPackageResolutionTest {
-  AnalysisDriver get driver => driverFor(testFilePath);
+  AnalysisDriver get driver => driverFor(testFile);
 
   CompilationUnitElement get resultUnitElement => result.unit.declaredElement!;
 
@@ -151,8 +184,8 @@ class C {
 ''');
     var results = WorkspaceSymbols();
     var token = CancelableToken();
-    var searchFuture = driver.search
-        .declarations(results, null, null, cancellationToken: token);
+    var searchFuture =
+        FindDeclarations([driver], results, null, null).compute(token);
     token.cancel();
     await searchFuture;
     expect(results.cancelled, isTrue);
@@ -170,7 +203,7 @@ class C {
 }
 ''');
     var results = WorkspaceSymbols();
-    await driver.search.declarations(results, null, null);
+    await FindDeclarations([driver], results, null, null).compute();
     var declarations = results.declarations;
     declarations.assertHas('C', DeclarationKind.CLASS,
         offset: 6, codeOffset: 0, codeLength: 91);
@@ -207,7 +240,7 @@ class C {
     await resolveTestCode('class T {}');
 
     var results = WorkspaceSymbols();
-    await driver.search.declarations(results, null, null);
+    await FindDeclarations([driver], results, null, null).compute();
     var declarations = results.declarations;
 
     declarations.assertHas('T', DeclarationKind.CLASS);
@@ -224,7 +257,7 @@ enum E {
 ''');
 
     var results = WorkspaceSymbols();
-    await driver.search.declarations(results, null, null);
+    await FindDeclarations([driver], results, null, null).compute();
     var declarations = results.declarations;
 
     declarations.assertHas('E', DeclarationKind.ENUM,
@@ -247,7 +280,7 @@ extension E on int {
 }
 ''');
     var results = WorkspaceSymbols();
-    await driver.search.declarations(results, null, null);
+    await FindDeclarations([driver], results, null, null).compute();
     var declarations = results.declarations;
     declarations.assertHas('E', DeclarationKind.EXTENSION,
         offset: 10, codeOffset: 0, codeLength: 82);
@@ -268,7 +301,7 @@ class B {}
 class C {}
 ''');
     var results = WorkspaceSymbols();
-    await driver.search.declarations(results, null, 2);
+    await FindDeclarations([driver], results, null, 2).compute();
     expect(results.declarations, hasLength(2));
   }
 
@@ -282,7 +315,7 @@ mixin M {
 }
 ''');
     var results = WorkspaceSymbols();
-    await driver.search.declarations(results, null, null);
+    await FindDeclarations([driver], results, null, null).compute();
     var declarations = results.declarations;
     declarations.assertHas('M', DeclarationKind.MIXIN,
         offset: 6, codeOffset: 0, codeLength: 71);
@@ -301,7 +334,8 @@ mixin M {
     var b = newFile('$testPackageLibPath/b.dart', 'class B {}').path;
 
     var results = WorkspaceSymbols();
-    await driver.search.declarations(results, null, null, onlyForFile: b);
+    await FindDeclarations([driver], results, null, null, onlyForFile: b)
+        .compute();
     var declarations = results.declarations;
 
     expect(results.files, [b]);
@@ -319,7 +353,7 @@ class C {
 void f(bool a, String b) {}
 ''');
     var results = WorkspaceSymbols();
-    await driver.search.declarations(results, null, null);
+    await FindDeclarations([driver], results, null, null).compute();
     var declarations = results.declarations;
 
     var declaration = declarations.assertHas('C', DeclarationKind.CLASS);
@@ -345,7 +379,7 @@ void f3(bool Function(int a, String b) c) {}
 void f4(bool Function(int, String) a) {}
 ''');
     var results = WorkspaceSymbols();
-    await driver.search.declarations(results, null, null);
+    await FindDeclarations([driver], results, null, null).compute();
     var declarations = results.declarations;
 
     var declaration = declarations.assertHas('f1', DeclarationKind.FUNCTION);
@@ -370,7 +404,7 @@ class A<T, T2> {
 }
 ''');
     var results = WorkspaceSymbols();
-    await driver.search.declarations(results, null, null);
+    await FindDeclarations([driver], results, null, null).compute();
     var declarations = results.declarations;
 
     var declaration =
@@ -394,7 +428,7 @@ class C {}
 class D {}
 ''');
     var results = WorkspaceSymbols();
-    await driver.search.declarations(results, RegExp(r'[A-C]'), null);
+    await FindDeclarations([driver], results, RegExp(r'[A-C]'), null).compute();
     var declarations = results.declarations;
 
     declarations.assertHas('A', DeclarationKind.CLASS);
@@ -413,7 +447,7 @@ typedef void tf1();
 typedef tf2<T> = int Function<S>(T tp, S sp);
 ''');
     var results = WorkspaceSymbols();
-    await driver.search.declarations(results, null, null);
+    await FindDeclarations([driver], results, null, null).compute();
     var declarations = results.declarations;
 
     declarations.assertHas('g', DeclarationKind.GETTER,
@@ -433,6 +467,46 @@ typedef tf2<T> = int Function<S>(T tp, S sp);
         offset: 70, codeOffset: 57, codeLength: 19);
     declarations.assertHas('tf2', DeclarationKind.TYPE_ALIAS,
         offset: 85, codeOffset: 77, codeLength: 45);
+  }
+
+  test_issue49951_references_dontAddToKnown_unrelated() async {
+    final myRoot = newFolder('$workspaceRootPath/packages/my');
+
+    final myFile = newFile('${myRoot.path}/lib/my.dart', r'''
+class A {}
+''');
+
+    // Configure `package:my`.
+    writePackageConfig(
+      getFile('${myRoot.path}/.dart_tool/package_config.json').path,
+      PackageConfigFileBuilder()..add(name: 'my', rootPath: myRoot.path),
+    );
+
+    final myDriver = driverFor(myFile);
+    final mySession = contextFor(myFile).currentSession;
+    final libraryElementResult =
+        await mySession.getLibraryByUri('package:my/my.dart');
+    libraryElementResult as LibraryElementResult;
+
+    final A = libraryElementResult.element.getClass('A')!;
+
+    final searchedFiles = SearchedFiles();
+    searchedFiles.ownAnalyzed(myDriver.search);
+
+    final testDriver = driverFor(testFile);
+
+    // No references, but this is not the most important.
+    final references = await testDriver.search.references(A, searchedFiles);
+    expect(references, isEmpty);
+
+    // We should not add the file to known files. It is not in the
+    // `package:test` itself, and not in a package from its package config.
+    // So, it is absolutely unrelated to `package:test`.
+    for (final knowFile in testDriver.fsState.knownFiles) {
+      if (knowFile.path == myFile.path) {
+        fail('The file should not be added.');
+      }
+    }
   }
 
   test_searchMemberReferences_qualified_resolved() async {
@@ -532,7 +606,8 @@ Random v2;
 
     var v1 = findElement.topVar('v1');
     var v2 = findElement.topVar('v2');
-    var randomElement = v1.type.element as ClassElement;
+    final v1Type = v1.type as InterfaceType;
+    var randomElement = v1Type.element as ClassElement;
     var expected = [
       _expectId(v1, SearchResultKind.REFERENCE, 'Random v1;'),
       _expectId(v2, SearchResultKind.REFERENCE, 'Random v2;'),
@@ -608,6 +683,40 @@ main(MyEnum p) {
       ),
       _expectId(main, SearchResultKind.REFERENCE, 'MyEnum v'),
       _expectId(main, SearchResultKind.REFERENCE, 'MyEnum.a'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ClassElement_inRecordTypeAnnotation_named() async {
+    await resolveTestCode('''
+class A {}
+
+void f(({int foo, A bar}) r) {}
+''');
+    var element = findElement.class_('A');
+    var expected = [
+      _expectId(
+        findElement.parameter('r'),
+        SearchResultKind.REFERENCE,
+        'A bar',
+      ),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ClassElement_inRecordTypeAnnotation_positional() async {
+    await resolveTestCode('''
+class A {}
+
+void f((int, A) r) {}
+''');
+    var element = findElement.class_('A');
+    var expected = [
+      _expectId(
+        findElement.parameter('r'),
+        SearchResultKind.REFERENCE,
+        'A)',
+      ),
     ];
     await _verifyReferences(element, expected);
   }
@@ -961,8 +1070,7 @@ class A {
     var main = findElement.method('main');
     var fieldParameter = findElement.parameter('field');
     var expected = [
-      _expectIdQ(fieldParameter, SearchResultKind.WRITE, 'field}'),
-      _expectIdQ(main, SearchResultKind.REFERENCE, 'field: 1'),
+      _expectIdQ(fieldParameter, SearchResultKind.WRITE, 'field}', length: 5),
       _expectId(main, SearchResultKind.READ, 'field); // ref-nq'),
       _expectIdQ(main, SearchResultKind.READ, 'field); // ref-q'),
       _expectId(main, SearchResultKind.READ, 'field(); // inv-nq'),
@@ -1016,10 +1124,9 @@ void f(E e) {
 }
 ''');
     await _verifyReferences(findElement.field('field'), [
-      _expectIdQ(
-          findElement.field('v'), SearchResultKind.REFERENCE, 'field: 0'),
       _expectIdQ(findElement.parameter('field'), SearchResultKind.WRITE,
-          'field}); // 1'),
+          'field}); // 1',
+          length: 5),
       _expectIdQ(
           findElement.topFunction('f'), SearchResultKind.READ, 'field; // 2'),
     ]);
@@ -1118,7 +1225,7 @@ Random bar() => null;
         ..add(name: 'aaa', rootPath: aaaPackageRootPath),
     );
 
-    pathForContextSelection = testFilePath;
+    fileForContextSelection = testFile;
 
     await resolveFileCode(aaaFilePath, '''
 import 'dart:math' show max, pi, Random hide min;
@@ -1131,7 +1238,7 @@ main() {
 Random bar() => null;
 ''');
 
-    ImportElement element = findElement.import('dart:math');
+    final element = findElement.import('dart:math');
     var main = findElement.function('main');
     var bar = findElement.function('bar');
     var kind = SearchResultKind.REFERENCE;
@@ -1163,7 +1270,7 @@ main() {
   N4 = 0;
 }
 ''');
-    ImportElement element = findElement.import('package:test/a.dart');
+    final element = findElement.import('package:test/a.dart');
     var main = findElement.function('main');
     var kind = SearchResultKind.REFERENCE;
     var expected = [
@@ -1213,14 +1320,14 @@ main() {
     var kind = SearchResultKind.REFERENCE;
     var length = 'p.'.length;
     {
-      ImportElement element = findElement.import('dart:async');
+      final element = findElement.import('dart:async');
       var expected = [
         _expectId(main, kind, 'p.Future;', length: length),
       ];
       await _verifyReferences(element, expected);
     }
     {
-      ImportElement element = findElement.import('dart:math');
+      final element = findElement.import('dart:math');
       var expected = [
         _expectId(main, kind, 'p.Random', length: length),
       ];
@@ -1247,7 +1354,7 @@ main() {
   a.N4 = 0;
 }
 ''');
-    ImportElement element = findElement.import('package:test/a.dart');
+    final element = findElement.import('package:test/a.dart');
     var main = findElement.function('main');
     var kind = SearchResultKind.REFERENCE;
     var length = 'a.'.length;
@@ -1293,9 +1400,9 @@ part 'unitB.dart';
 ''');
     LibraryElement element = result.libraryElement;
     CompilationUnitElement unitElementA =
-        (element.parts2[0].uri as DirectiveUriWithUnit).unit;
+        (element.parts[0].uri as DirectiveUriWithUnit).unit;
     CompilationUnitElement unitElementB =
-        (element.parts2[1].uri as DirectiveUriWithUnit).unit;
+        (element.parts[1].uri as DirectiveUriWithUnit).unit;
     var expected = [
       ExpectedResult(unitElementA, SearchResultKind.REFERENCE,
           codeA.indexOf('lib; // A'), 'lib'.length),
@@ -1322,7 +1429,7 @@ part 'unitB.dart';
     newFile(partPathA, codeA);
     newFile(partPathB, codeB);
 
-    pathForContextSelection = testFilePath;
+    fileForContextSelection = testFile;
 
     await resolveFileCode(libPath, '''
 library lib;
@@ -1331,9 +1438,9 @@ part 'unitB.dart';
 ''');
     LibraryElement element = result.libraryElement;
     CompilationUnitElement unitElementA =
-        (element.parts2[0].uri as DirectiveUriWithUnit).unit;
+        (element.parts[0].uri as DirectiveUriWithUnit).unit;
     CompilationUnitElement unitElementB =
-        (element.parts2[1].uri as DirectiveUriWithUnit).unit;
+        (element.parts[1].uri as DirectiveUriWithUnit).unit;
     var expected = [
       ExpectedResult(unitElementA, SearchResultKind.REFERENCE,
           codeA.indexOf('lib; // A'), 'lib'.length),
@@ -1395,7 +1502,7 @@ main() {
         ..add(name: 'aaa', rootPath: aaaPackageRootPath),
     );
 
-    pathForContextSelection = testFilePath;
+    fileForContextSelection = testFile;
 
     await resolveFileCode(testPath, '''
 main() {
@@ -1613,6 +1720,7 @@ class B extends A {
         findElement.unnamedConstructor('B').superFormalParameter('a'),
         SearchResultKind.REFERENCE,
         'a}); // ref',
+        length: 1,
       ),
     ];
     await _verifyReferences(element, expected);
@@ -1633,6 +1741,7 @@ class B extends A {
         findElement.unnamedConstructor('B').superFormalParameter('a'),
         SearchResultKind.REFERENCE,
         'a); // ref',
+        length: 1,
       ),
     ];
     await _verifyReferences(element, expected);
@@ -1865,7 +1974,7 @@ main() {
         ..add(name: 'aaa', rootPath: aaaPackageRootPath),
     );
 
-    pathForContextSelection = testFilePath;
+    fileForContextSelection = testFile;
 
     var libPath = convertPath('$aaaPackageRootPath/lib/a.dart');
     var partPath = convertPath('$aaaPackageRootPath/lib/my_part.dart');
@@ -1978,7 +2087,7 @@ _C v1;
         ..add(name: 'aaa', rootPath: aaaPackageRootPath),
     );
 
-    pathForContextSelection = testFilePath;
+    fileForContextSelection = this.testFile;
 
     String testCode = '''
 library lib;
@@ -2125,7 +2234,7 @@ main() {
   V(); // nq
 }
 ''');
-    ImportElement importElement = findNode.import('show V').element!;
+    final importElement = findNode.import('show V').element!;
     CompilationUnitElement impUnit =
         importElement.importedLibrary!.definingCompilationUnit;
     TopLevelVariableElement variable = impUnit.topLevelVariables[0];
@@ -2391,7 +2500,7 @@ class F {}
     }
   }
 
-  test_subtypes_class_discover() async {
+  test_subTypes_class_discover() async {
     var aaaPackageRootPath = '$packagesRootPath/aaa';
     var bbbPackageRootPath = '$packagesRootPath/bbb';
 
@@ -2408,7 +2517,7 @@ class F {}
     var aUri = 'package:aaa/a.dart';
     var bUri = 'package:bbb/b.dart';
 
-    newFile(testFilePath, r'''
+    addTestFile(r'''
 import 'package:aaa/a.dart';
 
 class T1 extends A {
@@ -2437,7 +2546,7 @@ class A {
 
     var aLibraryResult =
         await driver.getLibraryByUri(aUri) as LibraryElementResult;
-    ClassElement aClass = aLibraryResult.element.getType('A')!;
+    ClassElement aClass = aLibraryResult.element.getClass('A')!;
 
     // Search by 'type'.
     List<SubtypeResult> subtypes =
@@ -2461,7 +2570,7 @@ class A {
     expect(b.members, ['method1']);
   }
 
-  test_subTypes_class_discover() async {
+  test_subTypes_class_discover2() async {
     var aaaPackageRootPath = '$packagesRootPath/aaa';
     var bbbPackageRootPath = '$packagesRootPath/bbb';
     var cccPackageRootPath = '$packagesRootPath/ccc';
@@ -2476,14 +2585,14 @@ class A {
         ..add(name: 'bbb', rootPath: bbbPackageRootPath),
     );
 
-    newFile(testFilePath, 'class T implements List {}');
+    addTestFile('class T implements List {}');
     newFile(aaaFilePath, 'class A implements List {}');
     newFile(bbbFilePath, 'class B implements List {}');
     newFile(cccFilePath, 'class C implements List {}');
 
     var coreLibResult =
         await driver.getLibraryByUri('dart:core') as LibraryElementResult;
-    ClassElement listElement = coreLibResult.element.getType('List')!;
+    ClassElement listElement = coreLibResult.element.getClass('List')!;
 
     var searchedFiles = SearchedFiles();
     var results = await driver.search.subTypes(listElement, searchedFiles);
@@ -2496,7 +2605,7 @@ class A {
       expect(results, not ? isNot(matcher) : matcher);
     }
 
-    assertHasResult(convertPath(testFilePath), 'T');
+    assertHasResult(testFile.path, 'T');
     assertHasResult(aaaFilePath, 'A');
     assertHasResult(bbbFilePath, 'B');
     assertHasResult(cccFilePath, 'C', not: true);

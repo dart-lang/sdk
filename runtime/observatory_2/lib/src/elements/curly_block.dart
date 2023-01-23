@@ -43,7 +43,7 @@ class CurlyBlockElement extends CustomElement implements Renderable {
   }
 
   factory CurlyBlockElement(
-      {bool expanded: false, bool disabled: false, RenderingQueue queue}) {
+      {bool expanded = false, bool disabled = false, RenderingQueue queue}) {
     assert(expanded != null);
     assert(disabled != null);
     CurlyBlockElement e = new CurlyBlockElement.created();

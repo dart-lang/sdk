@@ -647,7 +647,7 @@ class _WebSocketPerMessageDeflate {
     }
 
     // RFC 7692 7.2.3.6. "Generating an Empty Fragment" says that if the
-    // compression library doesn't generate any data when the bufer is empty,
+    // compression library doesn't generate any data when the buffer is empty,
     // then an empty uncompressed deflate block is used for this purpose. The
     // 0x00 block has the BFINAL header bit set to 0 and the BTYPE header set to
     // 00 along with 5 bits of padding. This block decodes to zero bytes.
@@ -1283,30 +1283,6 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
 
   String get _serviceTypePath => 'io/websockets';
   String get _serviceTypeName => 'WebSocket';
-
-  Map<String, dynamic> _toJSON(bool ref) {
-    var name = '${_socket.address.host}:${_socket.port}';
-    var r = <String, dynamic>{
-      'id': _servicePath,
-      'type': _serviceType(ref),
-      'name': name,
-      'user_name': name,
-    };
-    if (ref) {
-      return r;
-    }
-    try {
-      r['socket'] = (_socket as dynamic)._toJSON(true);
-    } catch (_) {
-      r['socket'] = {
-        'id': _servicePath,
-        'type': '@Socket',
-        'name': 'UserSocket',
-        'user_name': 'UserSocket',
-      };
-    }
-    return r;
-  }
 
   static bool _isReservedStatusCode(int? code) {
     return code != null &&

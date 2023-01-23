@@ -104,8 +104,8 @@ class OutputUnitDataComputer extends DataComputer<Features> {
   @override
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<Features>> actualMap,
-      {bool verbose: false}) {
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+      {bool verbose = false}) {
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     OutputUnitIrComputer(compiler.reporter, actualMap, elementMap,
@@ -116,8 +116,8 @@ class OutputUnitDataComputer extends DataComputer<Features> {
   @override
   void computeClassData(Compiler compiler, ClassEntity cls,
       Map<Id, ActualData<Features>> actualMap,
-      {bool verbose: false}) {
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+      {bool verbose = false}) {
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     ClassDefinition definition = elementMap.getClassDefinition(cls);
     OutputUnitIrComputer(compiler.reporter, actualMap, elementMap,

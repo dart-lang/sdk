@@ -8,7 +8,6 @@
 type: newworld
 worlds:
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
         class A extends Object with B {
@@ -19,7 +18,6 @@ worlds:
         }
     expectedLibraryCount: 1
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
@@ -33,4 +31,4 @@ worlds:
           bar() {}
         }
     expectedLibraryCount: 1
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly

@@ -1,0 +1,21 @@
+// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+method((int,{String a})? r) {
+  var l0 = r.$0;
+  var l1 = r.a;
+  var l2 = r?.$0;
+  var l3 = r?.a;
+  if (r != null) {
+    var l4 = r.$0;
+    var l5 = r.a;
+    var l6 = r?.$0; // Warning.
+    var l7 = r?.a; // Warning.
+  }
+}
+
+extension on (int, {String a})? {
+  int get $0 => 0;
+  String get a => '';
+}

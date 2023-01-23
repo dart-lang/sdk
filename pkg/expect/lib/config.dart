@@ -19,15 +19,20 @@ final Configuration _configuration = Configuration.parse(
     const String.fromEnvironment("test_runner.configuration"),
     <String, dynamic>{});
 
-bool get isDart2jsConfiguration {
-  return _configuration.compiler == Compiler.dart2js;
-}
+bool get isDart2jsConfiguration => _configuration.compiler == Compiler.dart2js;
 
-bool get isDdcConfiguration {
-  return _configuration.compiler == Compiler.dartdevk ||
-      _configuration.compiler == Compiler.dartdevc;
-}
+bool get isDart2WasmConfiguration =>
+    _configuration.compiler == Compiler.dart2wasm;
 
-bool get isVmAotConfiguration {
-  return _configuration.compiler == Compiler.dartkp;
-}
+bool get isDdcConfiguration =>
+    _configuration.compiler == Compiler.dartdevk ||
+    _configuration.compiler == Compiler.dartdevc;
+
+bool get isVmJitConfiguration => _configuration.compiler == Compiler.dartk;
+
+bool get isVmAotConfiguration => _configuration.compiler == Compiler.dartkp;
+
+bool get isVmConfiguration => isVmJitConfiguration || isVmAotConfiguration;
+
+bool get isWebConfiguration =>
+    isDart2jsConfiguration || isDart2WasmConfiguration || isDdcConfiguration;

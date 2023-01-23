@@ -5,7 +5,7 @@
 import 'package:dart2js_info/src/graph.dart';
 import 'package:test/test.dart';
 
-main() {
+void main() {
   var graph = makeTestGraph();
 
   test('preorder traversal', () {

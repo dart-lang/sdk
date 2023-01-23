@@ -284,6 +284,7 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
   }
   if (gc_stats() != NULL) {
     jsobj.AddProperty("reason", Heap::GCReasonToString(gc_stats()->reason_));
+    jsobj.AddProperty("gcType", Heap::GCTypeToString(gc_stats()->type_));
     isolate_group()->heap()->PrintToJSONObject(Heap::kNew, &jsobj);
     isolate_group()->heap()->PrintToJSONObject(Heap::kOld, &jsobj);
   }

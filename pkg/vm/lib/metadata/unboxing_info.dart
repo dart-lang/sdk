@@ -8,8 +8,9 @@ class UnboxingInfoMetadata {
   static const kBoxed = 0;
   static const kUnboxedIntCandidate = 1 << 0;
   static const kUnboxedDoubleCandidate = 1 << 1;
+  static const kUnboxedRecordCandidate = 1 << 2;
   static const kUnboxingCandidate =
-      kUnboxedIntCandidate | kUnboxedDoubleCandidate;
+      kUnboxedIntCandidate | kUnboxedDoubleCandidate | kUnboxedRecordCandidate;
 
   final List<int> unboxedArgsInfo;
   int returnInfo;
@@ -67,12 +68,15 @@ class UnboxingInfoMetadata {
   }
 
   static String _stringifyUnboxingInfo(int info) {
-    if (info == UnboxingInfoMetadata.kUnboxedIntCandidate) {
-      return 'i';
-    } else if (info == UnboxingInfoMetadata.kUnboxedDoubleCandidate) {
-      return 'd';
+    switch (info) {
+      case UnboxingInfoMetadata.kUnboxedIntCandidate:
+        return 'i';
+      case UnboxingInfoMetadata.kUnboxedDoubleCandidate:
+        return 'd';
+      case UnboxingInfoMetadata.kUnboxedRecordCandidate:
+        return 'r';
     }
-    assert(info == 0);
+    assert(info == UnboxingInfoMetadata.kBoxed);
     return 'b';
   }
 }

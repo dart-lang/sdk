@@ -7,11 +7,14 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/kernel.dart' hide LibraryDependency, Combinator;
 import 'package:kernel/target/targets.dart' hide DiagnosticReporter;
+
+import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
 
 import '../../compiler_api.dart' as api;
 import '../commandline_options.dart';
@@ -132,6 +135,19 @@ void _doGlobalTransforms(Component component) {
   transformMixins.transformLibraries(component.libraries);
 }
 
+// Perform any backend-specific transforms here that can be done on both
+// serialized components and components from source.
+// TODO(srujzs): Can we combine this with the above?
+void _doTransformsOnKernelLoad(Component? component) {
+  if (component == null) return;
+  // referenceFromIndex is only necessary in the case where a module
+  // containing a stub definition is invalidated, and then reloaded, because
+  // we need to keep existing references to that stub valid. Here, we have the
+  // whole program, and therefore do not need it.
+  StaticInteropClassEraser(ir.CoreTypes(component), null)
+      .visitComponent(component);
+}
+
 Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,
     api.CompilerInput compilerInput, String targetName) async {
   Library? entryLibrary;
@@ -196,6 +212,8 @@ Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,
   if (options.cfeOnly) {
     _doGlobalTransforms(component);
   }
+  _doTransformsOnKernelLoad(component);
+  registerSources(component, compilerInput);
   return _LoadFromKernelResult(component, entryLibrary, moduleLibraries);
 }
 
@@ -282,11 +300,14 @@ Future<_LoadFromSourceResult> _loadFromSource(
       fileSystem, onDiagnostic, sources, isModularCompile);
   _validateNullSafetyMode(options);
 
+  _doTransformsOnKernelLoad(component);
+
   // We have to compute canonical names on the component here to avoid missing
   // canonical names downstream.
   if (isModularCompile) {
     component?.computeCanonicalNames();
   }
+  registerSources(component, compilerInput);
   return _LoadFromSourceResult(
       component, initializedCompilerState, isModularCompile ? sources : []);
 }
@@ -393,4 +414,17 @@ Future<Output?> run(Input input) async {
   }
   return _createOutput(options, reporter, entryLibrary, component,
       moduleLibraries, initializedCompilerState);
+}
+
+/// Registers with the dart2js compiler all sources embeded in a kernel
+/// component. This may include sources that were read from disk directly as
+/// files, but also sources that were embedded in binary `.dill` files (like the
+/// platform kernel file and kernel files from modular compilation pipelines).
+///
+/// This registration improves how locations are presented when errors
+/// or crashes are reported by the dart2js compiler.
+void registerSources(ir.Component? component, api.CompilerInput compilerInput) {
+  component?.uriToSource.forEach((uri, source) {
+    compilerInput.registerUtf8ContentsForDiagnostics(uri, source.source);
+  });
 }

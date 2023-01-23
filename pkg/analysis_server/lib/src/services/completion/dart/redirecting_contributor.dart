@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 
 /// A contributor that produces suggestions for constructors that are being
@@ -23,9 +24,7 @@ class RedirectingContributor extends DartCompletionContributor {
         var containingConstructor =
             parent.thisOrAncestorOfType<ConstructorDeclaration>();
         var constructorElement = containingConstructor?.declaredElement;
-        var containingClass = containingConstructor
-            ?.thisOrAncestorOfType<ClassOrMixinDeclaration>();
-        var classElement = containingClass?.declaredElement;
+        var classElement = constructorElement?.enclosingElement;
         if (classElement != null) {
           for (var constructor in classElement.constructors) {
             if (constructor != constructorElement) {
@@ -35,13 +34,11 @@ class RedirectingContributor extends DartCompletionContributor {
         }
       } else if (parent is SuperConstructorInvocation) {
         // C() : super.^
-        var containingClass =
-            parent.thisOrAncestorOfType<ClassOrMixinDeclaration>();
         var superclassElement =
-            containingClass?.declaredElement?.supertype?.element;
+            parent.enclosingInterfaceElement?.supertype?.element;
         if (superclassElement != null) {
           for (var constructor in superclassElement.constructors) {
-            if (constructor.isAccessibleIn2(request.libraryElement)) {
+            if (constructor.isAccessibleIn(request.libraryElement)) {
               builder.suggestConstructor(constructor, hasClassName: true);
             }
           }
@@ -55,9 +52,7 @@ class RedirectingContributor extends DartCompletionContributor {
         var containingConstructor =
             parent.thisOrAncestorOfType<ConstructorDeclaration>();
         var constructorElement = containingConstructor?.declaredElement;
-        var containingClass =
-            parent.thisOrAncestorOfType<ClassOrMixinDeclaration>();
-        var classElement = containingClass?.declaredElement;
+        var classElement = constructorElement?.enclosingElement;
         var libraryElement = request.libraryElement;
         if (classElement == null) {
           return;
@@ -69,7 +64,7 @@ class RedirectingContributor extends DartCompletionContributor {
                 class_.thisType, classElement.thisType)) {
               for (var constructor in class_.constructors) {
                 if (constructor != constructorElement &&
-                    constructor.isAccessibleIn2(request.libraryElement)) {
+                    constructor.isAccessibleIn(request.libraryElement)) {
                   builder.suggestConstructor(constructor);
                 }
               }

@@ -14,10 +14,10 @@ Element? getExportedElement(LibraryElement? library, String name) {
   return _getExportNamespaceForLibrary(library)[name];
 }
 
-/// Return the [ImportElement] that is referenced by [prefixNode], or `null` if
-/// the node does not reference a prefix or if we cannot determine which import
-/// is being referenced.
-ImportElement? getImportElement(SimpleIdentifier prefixNode) {
+/// Return the [LibraryImportElement] that is referenced by [prefixNode], or
+/// `null` if the node does not reference a prefix or if we cannot determine
+/// which import is being referenced.
+LibraryImportElement? getImportElement(SimpleIdentifier prefixNode) {
   var parent = prefixNode.parent;
   if (parent is ImportDirective) {
     return parent.element;
@@ -31,27 +31,26 @@ Map<String, Element> _getExportNamespaceForLibrary(LibraryElement library) {
   return namespace.definedNames;
 }
 
-/// Return the [ImportElement] that declared [prefix] and imports [element].
+/// Return the [LibraryImportElement] that declared [prefix] and imports [element].
 ///
 /// [libraryElement] - the [LibraryElement] where reference is.
 /// [prefix] - the import prefix, maybe `null`.
 /// [element] - the referenced element.
-/// [importElementsMap] - the cache of [Element]s imported by [ImportElement]s.
-ImportElement? _getImportElement(LibraryElement libraryElement, String prefix,
-    Element element, Map<ImportElement, Set<Element>> importElementsMap) {
+LibraryImportElement? _getImportElement(
+    LibraryElement libraryElement, String prefix, Element element) {
   if (element.enclosingElement is! CompilationUnitElement) {
     return null;
   }
   var usedLibrary = element.library;
   // find ImportElement that imports used library with used prefix
-  List<ImportElement>? candidates;
-  for (var importElement in libraryElement.imports) {
+  List<LibraryImportElement>? candidates;
+  for (var importElement in libraryElement.libraryImports) {
     // required library
     if (importElement.importedLibrary != usedLibrary) {
       continue;
     }
     // required prefix
-    var prefixElement = importElement.prefix;
+    var prefixElement = importElement.prefix?.element;
     if (prefixElement == null) {
       continue;
     }
@@ -74,6 +73,8 @@ ImportElement? _getImportElement(LibraryElement libraryElement, String prefix,
   if (candidates.length == 1) {
     return candidates[0];
   }
+
+  var importElementsMap = <LibraryImportElement, Set<Element>>{};
   // ensure that each ImportElement has set of elements
   for (var importElement in candidates) {
     if (importElementsMap.containsKey(importElement)) {
@@ -95,9 +96,9 @@ ImportElement? _getImportElement(LibraryElement libraryElement, String prefix,
   return null;
 }
 
-/// Returns the [ImportElement] that is referenced by [prefixNode] with a
+/// Returns the [LibraryImportElement] that is referenced by [prefixNode] with a
 /// [PrefixElement], maybe `null`.
-ImportElement? _getImportElementInfo(SimpleIdentifier prefixNode) {
+LibraryImportElement? _getImportElementInfo(SimpleIdentifier prefixNode) {
   // prepare environment
   var parent = prefixNode.parent;
   var unit = prefixNode.thisOrAncestorOfType<CompilationUnit>();
@@ -124,7 +125,5 @@ ImportElement? _getImportElementInfo(SimpleIdentifier prefixNode) {
   }
   // find ImportElement
   var prefix = prefixNode.name;
-  var importElementsMap = <ImportElement, Set<Element>>{};
-  return _getImportElement(
-      libraryElement, prefix, usedElement, importElementsMap);
+  return _getImportElement(libraryElement, prefix, usedElement);
 }

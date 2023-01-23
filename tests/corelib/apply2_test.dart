@@ -20,10 +20,10 @@ main() {
   var c1 = () => 'c1';
   var c2 = (a) => 'c2 $a';
   var c3 = ([a = 1]) => 'c3 $a';
-  var c4 = ({a: 1}) => 'c4 $a';
-  var c5 = ({a: 1, b: 2}) => 'c5 $a $b';
-  var c6 = ({b: 1, a: 2}) => 'c6 $a $b';
-  var c7 = (x, {b: 1, a: 2}) => 'c7 $x $a $b';
+  var c4 = ({a = 1}) => 'c4 $a';
+  var c5 = ({a = 1, b = 2}) => 'c5 $a $b';
+  var c6 = ({b = 1, a = 2}) => 'c6 $a $b';
+  var c7 = (x, {b = 1, a = 2}) => 'c7 $x $a $b';
   var c8 = (x, y, [a = 2, b = 3]) => 'c8 $x $y $a $b';
 
   Expect.equals('c1', apply(c1, null, null));

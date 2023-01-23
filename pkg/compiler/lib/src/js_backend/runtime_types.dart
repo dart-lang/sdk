@@ -2,21 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library js_backend.runtime_types;
 
 import '../common.dart';
 import '../common/elements.dart'
     show ElementEnvironment, JCommonElements, JElementEnvironment;
-import '../common/names.dart' show Identifiers;
+import '../common/names.dart' show Names;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
+import '../js_model/js_world.dart';
 import '../options.dart';
 import '../universe/codegen_world_builder.dart';
 import '../universe/feature.dart';
-import '../world.dart';
 import 'runtime_types_codegen.dart';
 import 'runtime_types_resolution.dart';
 
@@ -96,8 +94,7 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
         ..functionType = _computeFunctionType(_elementEnvironment, cls);
       classUseMap[cls] = classUse;
     }
-    TypeChecks typeChecks = _substitutions._requiredChecks =
-        _substitutions._computeChecks(classUseMap);
+    TypeChecks typeChecks = _substitutions._computeChecks(classUseMap);
     return TrivialTypesChecks(typeChecks);
   }
 
@@ -118,7 +115,6 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
 abstract class RuntimeTypesSubstitutionsMixin
     implements RuntimeTypesSubstitutions {
   JClosedWorld get _closedWorld;
-  TypeChecks get _requiredChecks;
 
   JElementEnvironment get _elementEnvironment =>
       _closedWorld.elementEnvironment;
@@ -148,9 +144,9 @@ abstract class RuntimeTypesSubstitutionsMixin
       result[cls] = checks;
 
       // Find the superclass from which [cls] inherits checks.
-      ClassEntity superClass = _elementEnvironment.getSuperClass(cls,
+      ClassEntity? superClass = _elementEnvironment.getSuperClass(cls,
           skipUnnamedMixinApplications: true);
-      ClassChecks superChecks;
+      ClassChecks? superChecks;
       bool extendsSuperClassTrivially = false;
       if (superClass != null) {
         // Compute the checks inherited from [superClass].
@@ -173,7 +169,7 @@ abstract class RuntimeTypesSubstitutionsMixin
       if (classUse.typeArgument ||
           classUse.typeLiteral ||
           (isNativeClass && classUse.checkedInstance)) {
-        Substitution substitution = computeSubstitution(cls, cls);
+        Substitution? substitution = computeSubstitution(cls, cls);
         // We need [cls] at runtime - even if [cls] is not instantiated. Either
         // as a type argument, for a type literal or for an is-test if [cls] is
         // native.
@@ -185,7 +181,7 @@ abstract class RuntimeTypesSubstitutionsMixin
       // This set reflects the emitted class hierarchy and therefore uses
       // `getEffectiveMixinClass` to find the inherited mixins.
       Set<ClassEntity> inheritedClasses = {};
-      ClassEntity other = cls;
+      ClassEntity? other = cls;
       while (other != null) {
         inheritedClasses.add(other);
         if (classUse.instance &&
@@ -193,7 +189,7 @@ abstract class RuntimeTypesSubstitutionsMixin
           // We don't mixin [other] if [cls] isn't instantiated, directly or
           // indirectly.
           inheritedClasses
-              .add(_elementEnvironment.getEffectiveMixinClass(other));
+              .add(_elementEnvironment.getEffectiveMixinClass(other)!);
         }
         other = _elementEnvironment.getSuperClass(other);
       }
@@ -263,7 +259,7 @@ abstract class RuntimeTypesSubstitutionsMixin
               _elementEnvironment.isGenericClass(checkedClass);
 
           // The checks for [checkedClass] inherited for [superClass].
-          TypeCheck checkFromSuperClass =
+          TypeCheck? checkFromSuperClass =
               superChecks != null ? superChecks[checkedClass] : null;
 
           // Whether [cls] need an explicit $isX property for [checkedClass].
@@ -294,11 +290,10 @@ abstract class RuntimeTypesSubstitutionsMixin
                 // We need a non-trivial substitution function for
                 // [checkedClass].
                 Substitution substitution =
-                    computeSubstitution(cls, checkedClass);
+                    computeSubstitution(cls, checkedClass)!;
                 checks
                     .add(TypeCheck(checkedClass, substitution, needsIs: false));
 
-                assert(substitution != null);
                 for (DartType argument in substitution.arguments) {
                   argument = argument.withoutNullability;
                   if (argument is InterfaceType) {
@@ -318,11 +313,10 @@ abstract class RuntimeTypesSubstitutionsMixin
               // We need a non-trivial substitution function for
               // [checkedClass].
               Substitution substitution =
-                  computeSubstitution(cls, checkedClass);
+                  computeSubstitution(cls, checkedClass)!;
               checks
                   .add(TypeCheck(checkedClass, substitution, needsIs: needsIs));
 
-              assert(substitution != null);
               for (DartType argument in substitution.arguments) {
                 argument = argument.withoutNullability;
                 if (argument is InterfaceType) {
@@ -361,7 +355,7 @@ abstract class RuntimeTypesSubstitutionsMixin
     for (ClassEntity target in checks.classes) {
       ClassChecks classChecks = checks[target];
       for (TypeCheck check in classChecks.checks) {
-        Substitution substitution = check.substitution;
+        Substitution? substitution = check.substitution;
         if (substitution != null) {
           collector.collectAll(substitution.arguments);
         }
@@ -398,7 +392,7 @@ abstract class RuntimeTypesSubstitutionsMixin
     }
 
     InterfaceType originalType = _elementEnvironment.getThisType(cls);
-    InterfaceType type = _types.asInstanceOf(originalType, check);
+    InterfaceType? type = _types.asInstanceOf(originalType, check);
     // [type] is not a subtype of [check]. we do not generate a check and do not
     // need a substitution.
     if (type == null) return true;
@@ -419,20 +413,12 @@ abstract class RuntimeTypesSubstitutionsMixin
     return true;
   }
 
-  @override
-  Substitution getSubstitution(ClassEntity cls, ClassEntity other) {
-    // Look for a precomputed check.
-    for (TypeCheck check in _requiredChecks[cls].checks) {
-      if (check.cls == other) {
-        return check.substitution;
-      }
-    }
-    // There is no precomputed check for this pair (because the check is not
-    // done on type arguments only.  Compute a new substitution.
-    return computeSubstitution(cls, other);
-  }
-
-  Substitution computeSubstitution(ClassEntity cls, ClassEntity check,
+  // TODO(sigmund): consider using the existing required checks returned by
+  // `_substitutions.computeChecks` to cache existing substitutions.  Before the
+  // null-safety migration this library had logic to retrieve substitutions from
+  // such a cache, but the algorithm never used it. Because of that we deleted
+  // the caching mechanism altogether.
+  Substitution? computeSubstitution(ClassEntity cls, ClassEntity check,
       {bool alwaysGenerateFunction = false}) {
     if (isTrivialSubstitution(cls, check)) return null;
 
@@ -440,7 +426,7 @@ abstract class RuntimeTypesSubstitutionsMixin
     // are never instantiated and their checks are overwritten by the class that
     // they are mixed into.
     InterfaceType type = _elementEnvironment.getThisType(cls);
-    InterfaceType target = _types.asInstanceOf(type, check);
+    InterfaceType target = _types.asInstanceOf(type, check)!;
     List<DartType> typeVariables = type.typeArguments;
     if (_closedWorld.nativeData.isJsInteropClass(cls)) {
       int typeArguments = target.typeArguments.length;
@@ -458,8 +444,6 @@ abstract class RuntimeTypesSubstitutionsMixin
 class TrivialRuntimeTypesSubstitutions extends RuntimeTypesSubstitutionsMixin {
   @override
   final JClosedWorld _closedWorld;
-  @override
-  TypeChecks _requiredChecks;
 
   TrivialRuntimeTypesSubstitutions(this._closedWorld);
 }
@@ -495,8 +479,6 @@ class RuntimeTypesImpl
   // The set of tested type variable bounds.
   final Set<DartType> checkedBounds = {};
 
-  TypeChecks cachedRequiredChecks;
-
   @override
   bool rtiChecksBuilderClosed = false;
 
@@ -509,10 +491,7 @@ class RuntimeTypesImpl
   @override
   RuntimeTypesNeed get _rtiNeed => _closedWorld.rtiNeed;
 
-  @override
-  TypeChecks get _requiredChecks => cachedRequiredChecks;
-
-  Map<ClassEntity, ClassUse> classUseMapForTesting;
+  Map<ClassEntity, ClassUse>? classUseMapForTesting;
 
   final Set<GenericInstantiation> _genericInstantiations = {};
 
@@ -547,14 +526,14 @@ class RuntimeTypesImpl
     Set<ClassEntity> typeArguments = {};
 
     Iterable<DartType> instantiateTypeVariable(TypeVariableEntity variable) {
-      Entity declaration = variable.typeDeclaration;
+      Entity? declaration = variable.typeDeclaration;
       int index = variable.index;
       if (declaration is ClassEntity) {
         return typeVariableTests
             .classInstantiationsOf(declaration)
             .map((InterfaceType interface) => interface.typeArguments[index]);
       } else {
-        return typeVariableTests.instantiationsOf(declaration).map(
+        return typeVariableTests.instantiationsOf(declaration!).map(
             (GenericInstantiation instantiation) =>
                 instantiation.typeArguments[index]);
       }
@@ -573,8 +552,8 @@ class RuntimeTypesImpl
     //    new A<B Function(C)>();
     //
     // makes A and B live but C tested.
-    TypeVisitor liveTypeVisitor = TypeVisitor(
-        onClass: (ClassEntity cls, {TypeVisitorState state}) {
+    _TypeVisitor liveTypeVisitor = _TypeVisitor(
+        onClass: (ClassEntity cls, {required TypeVisitorState state}) {
           ClassUse classUse = classUseMap.putIfAbsent(cls, () => ClassUse());
           switch (state) {
             case TypeVisitorState.covariantTypeArgument:
@@ -608,8 +587,8 @@ class RuntimeTypesImpl
     //    o is A<B Function(C)>;
     //
     // makes A and B tested but C live.
-    TypeVisitor testedTypeVisitor = TypeVisitor(
-        onClass: (ClassEntity cls, {TypeVisitorState state}) {
+    _TypeVisitor testedTypeVisitor = _TypeVisitor(
+        onClass: (ClassEntity cls, {required TypeVisitorState state}) {
           ClassUse classUse = classUseMap.putIfAbsent(cls, () => ClassUse());
           switch (state) {
             case TypeVisitorState.covariantTypeArgument:
@@ -641,7 +620,7 @@ class RuntimeTypesImpl
       ClassUse classUse =
           classUseMap.putIfAbsent(type.element, () => ClassUse());
       classUse.directInstance = true;
-      FunctionType callType = _types.getCallType(type);
+      FunctionType? callType = _types.getCallType(type);
       if (callType != null) {
         liveTypeVisitor.visitType(callType, TypeVisitorState.direct);
       }
@@ -717,7 +696,7 @@ class RuntimeTypesImpl
     // closures have a signature method iff they need it and should have a
     // function type iff they have a signature, we process all classes.
     void processClass(ClassEntity cls) {
-      ClassFunctionType functionType =
+      ClassFunctionType? functionType =
           _computeFunctionType(_elementEnvironment, cls);
       if (functionType != null) {
         ClassUse classUse = classUseMap.putIfAbsent(cls, () => ClassUse());
@@ -752,10 +731,9 @@ class RuntimeTypesImpl
       }
     });
 
-    cachedRequiredChecks = _computeChecks(classUseMap);
+    final checks = _computeChecks(classUseMap);
     rtiChecksBuilderClosed = true;
-    return _RuntimeTypesChecks(
-        this, cachedRequiredChecks, typeArguments, typeLiterals);
+    return _RuntimeTypesChecks(this, checks, typeArguments, typeLiterals);
   }
 }
 
@@ -763,13 +741,13 @@ class RuntimeTypesImpl
 ///
 /// In Dart 1, any class with a `call` method has a function type, in Dart 2
 /// only closure classes have a function type.
-ClassFunctionType _computeFunctionType(
+ClassFunctionType? _computeFunctionType(
     ElementEnvironment elementEnvironment, ClassEntity cls) {
-  FunctionEntity signatureFunction;
+  FunctionEntity? signatureFunction;
   if (cls.isClosure) {
     // Use signature function if available.
-    signatureFunction =
-        elementEnvironment.lookupLocalClassMember(cls, Identifiers.signature);
+    signatureFunction = elementEnvironment.lookupLocalClassMember(
+        cls, Names.signature) as FunctionEntity?;
     if (signatureFunction == null) {
       // In Dart 2, a closure only needs its function type if it has a
       // signature function.
@@ -779,10 +757,10 @@ ClassFunctionType _computeFunctionType(
     // Only closures have function type in Dart 2.
     return null;
   }
-  MemberEntity call =
-      elementEnvironment.lookupLocalClassMember(cls, Identifiers.call);
+  MemberEntity? call =
+      elementEnvironment.lookupLocalClassMember(cls, Names.call);
   if (call != null && call.isFunction) {
-    FunctionEntity callFunction = call;
+    FunctionEntity callFunction = call as FunctionEntity;
     FunctionType callType = elementEnvironment.getFunctionType(callFunction);
     return ClassFunctionType(callFunction, callType, signatureFunction);
   }
@@ -794,7 +772,7 @@ class TypeCheckMapping implements TypeChecks {
 
   @override
   ClassChecks operator [](ClassEntity element) {
-    ClassChecks result = map[element];
+    ClassChecks? result = map[element];
     return result ?? const ClassChecks.empty();
   }
 
@@ -869,6 +847,11 @@ class ArgumentCollector extends DartTypeVisitor<void, void> {
   }
 
   @override
+  void visitRecordType(RecordType type, _) {
+    collectAll(type.fields);
+  }
+
+  @override
   void visitDynamicType(DynamicType type, _) {}
 
   @override
@@ -890,15 +873,16 @@ enum TypeVisitorState {
   typeLiteral,
 }
 
-class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
+class _TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
   final Set<TypeVariableType> _visitedTypeVariables = {};
   final Set<FunctionTypeVariable> _visitedFunctionTypeVariables = {};
 
-  final void Function(ClassEntity entity, {TypeVisitorState state}) onClass;
+  final void Function(ClassEntity entity, {required TypeVisitorState state})
+      onClass;
   final Iterable<DartType> Function(TypeVariableEntity entity)
       instantiateTypeVariable;
 
-  TypeVisitor({this.onClass, this.instantiateTypeVariable});
+  _TypeVisitor({required this.onClass, required this.instantiateTypeVariable});
 
   void visitType(DartType type, TypeVisitorState state) =>
       type.accept(this, state);
@@ -914,7 +898,6 @@ class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
       case TypeVisitorState.typeLiteral:
         return TypeVisitorState.typeLiteral;
     }
-    throw UnsupportedError("Unexpected TypeVisitorState $state");
   }
 
   TypeVisitorState contravariantArgument(TypeVisitorState state) {
@@ -928,7 +911,6 @@ class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
       case TypeVisitorState.typeLiteral:
         return TypeVisitorState.typeLiteral;
     }
-    throw UnsupportedError("Unexpected TypeVisitorState $state");
   }
 
   void visitTypes(List<DartType> types, TypeVisitorState state) {
@@ -953,7 +935,7 @@ class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
 
   @override
   void visitTypeVariableType(TypeVariableType type, TypeVisitorState state) {
-    if (_visitedTypeVariables.add(type) && instantiateTypeVariable != null) {
+    if (_visitedTypeVariables.add(type)) {
       for (DartType instantiation in instantiateTypeVariable(type.element)) {
         visitType(instantiation, state);
       }
@@ -980,10 +962,13 @@ class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
 
   @override
   void visitInterfaceType(InterfaceType type, TypeVisitorState state) {
-    if (onClass != null) {
-      onClass(type.element, state: state);
-    }
+    onClass(type.element, state: state);
     visitTypes(type.typeArguments, covariantArgument(state));
+  }
+
+  @override
+  void visitRecordType(RecordType type, TypeVisitorState state) {
+    visitTypes(type.fields, covariantArgument(state));
   }
 
   @override
@@ -1066,7 +1051,7 @@ class ClassUse {
   ///
   /// Furthermore optimization might also omit function type that are known not
   /// to be valid in any subtype test.
-  ClassFunctionType functionType;
+  ClassFunctionType? functionType;
 
   /// `true` if the class is 'live' either through instantiation or use in
   /// type arguments.

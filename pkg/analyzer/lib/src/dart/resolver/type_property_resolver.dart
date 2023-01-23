@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -186,7 +187,13 @@ class TypePropertyResolver {
 
       if (receiverTypeResolved is FunctionType &&
           _name == FunctionElement.CALL_METHOD_NAME) {
-        return _toResult();
+        return ResolutionResult(
+          getter: null,
+          needsGetterError: false,
+          setter: null,
+          needsSetterError: false,
+          callFunctionType: receiverTypeResolved,
+        );
       }
 
       if (receiverTypeResolved is NeverType) {
@@ -194,6 +201,18 @@ class TypePropertyResolver {
         _needsGetterError = false;
         _needsSetterError = false;
         return _toResult();
+      }
+
+      if (receiverTypeResolved is RecordType) {
+        final field = receiverTypeResolved.fieldByName(name);
+        if (field != null) {
+          return ResolutionResult(
+            recordField: field,
+            needsGetterError: false,
+          );
+        }
+        _needsGetterError = true;
+        _needsSetterError = true;
       }
 
       _lookupExtension(receiverType);

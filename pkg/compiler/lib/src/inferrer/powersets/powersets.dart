@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import '../../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../../elements/entities.dart';
 import '../../elements/names.dart';
 import '../../elements/types.dart' show DartType;
 import '../../ir/class_relation.dart';
+import '../../js_model/js_world.dart';
 import '../../serialization/serialization.dart';
 import '../../universe/selector.dart';
 import '../../universe/world_builder.dart';
@@ -30,10 +29,8 @@ class PowersetValue implements AbstractValue {
   bool operator ==(var other) {
     if (identical(this, other)) return true;
     if (other is! PowersetValue) return false;
-    PowersetValue otherPowerset = other;
-    return other is PowersetValue &&
-        _abstractValue == otherPowerset._abstractValue &&
-        _powersetBits == otherPowerset._powersetBits;
+    return _abstractValue == other._abstractValue &&
+        _powersetBits == other._powersetBits;
   }
 
   @override
@@ -47,17 +44,17 @@ class PowersetValue implements AbstractValue {
       '${_abstractValue}';
 }
 
-AbstractValue unwrapOrNull(PowersetValue powerset) {
+AbstractValue? unwrapOrNull(PowersetValue? powerset) {
   return powerset?._abstractValue;
 }
 
-PowersetValue wrapOrNull(AbstractValue abstractValue, int powersetBits) {
+PowersetValue? wrapOrNull(AbstractValue? abstractValue, int powersetBits) {
   return abstractValue == null
       ? null
       : PowersetValue(abstractValue, powersetBits);
 }
 
-class PowersetDomain implements AbstractValueDomain {
+class PowersetDomain with AbstractValueDomain {
   final AbstractValueDomain _abstractValueDomain;
   final PowersetBitsDomain _powersetBitsDomain;
 
@@ -115,7 +112,7 @@ class PowersetDomain implements AbstractValueDomain {
           : _abstractValueDomain.isJsIndexable(value._abstractValue);
 
   @override
-  MemberEntity locateSingleMember(
+  MemberEntity? locateSingleMember(
           covariant PowersetValue receiver, Selector selector) =>
       _abstractValueDomain.locateSingleMember(
           receiver._abstractValue, selector);
@@ -155,7 +152,7 @@ class PowersetDomain implements AbstractValueDomain {
   }
 
   @override
-  PrimitiveConstantValue getPrimitiveValue(covariant PowersetValue value) =>
+  PrimitiveConstantValue? getPrimitiveValue(covariant PowersetValue value) =>
       _powersetBitsDomain.getPrimitiveValue(value.powersetBits) ??
       _abstractValueDomain.getPrimitiveValue(value._abstractValue);
 
@@ -174,18 +171,18 @@ class PowersetDomain implements AbstractValueDomain {
       _abstractValueDomain.isPrimitiveValue(value._abstractValue);
 
   @override
-  MemberEntity getAllocationElement(covariant PowersetValue value) =>
+  MemberEntity? getAllocationElement(covariant PowersetValue value) =>
       _abstractValueDomain.getAllocationElement(value._abstractValue);
 
   @override
-  Object getAllocationNode(covariant PowersetValue value) =>
+  Object? getAllocationNode(covariant PowersetValue value) =>
       _abstractValueDomain.getAllocationNode(value._abstractValue);
 
   @override
   AbstractValue getGeneralization(covariant PowersetValue value) {
     int powersetBits = _powersetBitsDomain.powersetTop;
-    AbstractValue abstractValue =
-        _abstractValueDomain.getGeneralization(unwrapOrNull(value));
+    final abstractValue =
+        _abstractValueDomain.getGeneralization(unwrapOrNull(value))!;
     return PowersetValue(abstractValue, powersetBits);
   }
 
@@ -214,12 +211,12 @@ class PowersetDomain implements AbstractValueDomain {
   @override
   AbstractValue createDictionaryValue(
       covariant PowersetValue originalValue,
-      Object allocationNode,
-      MemberEntity allocationElement,
+      Object? allocationNode,
+      MemberEntity? allocationElement,
       covariant PowersetValue key,
       covariant PowersetValue value,
       covariant Map<String, AbstractValue> mappings) {
-    int powersetBits = originalValue._powersetBits;
+    final powersetBits = originalValue._powersetBits;
     AbstractValue abstractValue = _abstractValueDomain.createDictionaryValue(
         originalValue._abstractValue,
         allocationNode,
@@ -260,8 +257,8 @@ class PowersetDomain implements AbstractValueDomain {
   @override
   AbstractValue createMapValue(
       covariant PowersetValue originalValue,
-      Object allocationNode,
-      MemberEntity allocationElement,
+      Object? allocationNode,
+      MemberEntity? allocationElement,
       covariant PowersetValue key,
       covariant PowersetValue value) {
     int powersetBits = originalValue._powersetBits;
@@ -292,8 +289,8 @@ class PowersetDomain implements AbstractValueDomain {
   @override
   AbstractValue createSetValue(
       covariant PowersetValue originalValue,
-      Object allocationNode,
-      MemberEntity allocationElement,
+      Object? allocationNode,
+      MemberEntity? allocationElement,
       covariant PowersetValue elementType) {
     int powersetBits = originalValue._powersetBits;
     AbstractValue abstractValue = _abstractValueDomain.createSetValue(
@@ -310,7 +307,7 @@ class PowersetDomain implements AbstractValueDomain {
       _abstractValueDomain.isSet(value._abstractValue);
 
   @override
-  int getContainerLength(covariant PowersetValue value) =>
+  int? getContainerLength(covariant PowersetValue value) =>
       _powersetBitsDomain.isOther(value._powersetBits).isDefinitelyFalse
           ? null
           : _abstractValueDomain.getContainerLength(value._abstractValue);
@@ -328,10 +325,10 @@ class PowersetDomain implements AbstractValueDomain {
   @override
   AbstractValue createContainerValue(
       covariant PowersetValue originalValue,
-      Object allocationNode,
-      MemberEntity allocationElement,
+      Object? allocationNode,
+      MemberEntity? allocationElement,
       covariant PowersetValue elementType,
-      int length) {
+      int? length) {
     int powersetBits = originalValue._powersetBits;
     AbstractValue abstractValue = _abstractValueDomain.createContainerValue(
         originalValue._abstractValue,
@@ -359,9 +356,9 @@ class PowersetDomain implements AbstractValueDomain {
   }
 
   @override
-  AbstractValue getAbstractValueForNativeMethodParameterType(DartType type) {
+  AbstractValue? getAbstractValueForNativeMethodParameterType(DartType type) {
     int powersetBits = _powersetBitsDomain.powersetTop;
-    AbstractValue abstractValue =
+    final abstractValue =
         _abstractValueDomain.getAbstractValueForNativeMethodParameterType(type);
     return wrapOrNull(abstractValue, powersetBits);
   }
@@ -389,17 +386,17 @@ class PowersetDomain implements AbstractValueDomain {
   }
 
   @override
-  AbstractValue unionOfMany(covariant Iterable<AbstractValue> values) {
+  AbstractValue unionOfMany(Iterable<AbstractValue> values) {
     PowersetValue result = PowersetValue(
         _abstractValueDomain.emptyType, _powersetBitsDomain.powersetBottom);
-    for (PowersetValue value in values) {
-      result = union(result, value);
+    for (final value in values) {
+      result = union(result, value as PowersetValue);
     }
     return result;
   }
 
   @override
-  AbstractValue union(covariant PowersetValue a, covariant PowersetValue b) {
+  PowersetValue union(covariant PowersetValue a, covariant PowersetValue b) {
     int powersetBits =
         _powersetBitsDomain.union(a._powersetBits, b._powersetBits);
     AbstractValue abstractValue =
@@ -563,7 +560,7 @@ class PowersetDomain implements AbstractValueDomain {
           _abstractValueDomain.isLateSentinel(value._abstractValue));
 
   @override
-  ClassEntity getExactClass(covariant PowersetValue value) =>
+  ClassEntity? getExactClass(covariant PowersetValue value) =>
       _abstractValueDomain.getExactClass(value._abstractValue);
 
   @override
@@ -688,7 +685,8 @@ class PowersetDomain implements AbstractValueDomain {
 
   @override
   AbstractValueWithPrecision createFromStaticType(DartType type,
-      {ClassRelation classRelation = ClassRelation.subtype, bool nullable}) {
+      {ClassRelation classRelation = ClassRelation.subtype,
+      required bool nullable}) {
     int powersetBits = _powersetBitsDomain.createFromStaticType(type,
         classRelation: classRelation, nullable: nullable);
     var unwrapped = _abstractValueDomain.createFromStaticType(type,
@@ -833,7 +831,7 @@ class PowersetsSelectorStrategy implements SelectorConstraintsStrategy {
 
   @override
   UniverseSelectorConstraints createSelectorConstraints(
-      Selector selector, Object initialConstraint) {
+      Selector selector, Object? initialConstraint) {
     return PowersetsUniverseSelectorConstraints(
         _selectorConstraintsStrategy.createSelectorConstraints(
             selector,
@@ -847,7 +845,7 @@ class PowersetsSelectorStrategy implements SelectorConstraintsStrategy {
       covariant JClosedWorld world) {
     return _selectorConstraintsStrategy.appliedUnnamed(
         dynamicUse.withReceiverConstraint(
-            unwrapOrNull(dynamicUse.receiverConstraint)),
+            unwrapOrNull(dynamicUse.receiverConstraint as PowersetValue?)),
         member,
         world);
   }
@@ -859,7 +857,7 @@ class PowersetsUniverseSelectorConstraints
   const PowersetsUniverseSelectorConstraints(this._universeSelectorConstraints);
 
   @override
-  bool addReceiverConstraint(Object constraint) =>
+  bool addReceiverConstraint(Object? constraint) =>
       _universeSelectorConstraints.addReceiverConstraint(constraint == null
           ? null
           : (constraint as PowersetValue)._abstractValue);

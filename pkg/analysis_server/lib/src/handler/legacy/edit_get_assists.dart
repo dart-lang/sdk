@@ -7,8 +7,8 @@ import 'dart:async';
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
+import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/request_handler_mixin.dart';
@@ -23,7 +23,7 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
 /// The handler for the `edit.getAssists` request.
 class EditGetAssistsHandler extends LegacyHandler
-    with RequestHandlerMixin<AnalysisServer> {
+    with RequestHandlerMixin<LegacyAnalysisServer> {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   EditGetAssistsHandler(super.server, super.request, super.cancellationToken);

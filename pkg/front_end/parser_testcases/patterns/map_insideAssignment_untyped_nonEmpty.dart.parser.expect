@@ -1,0 +1,9 @@
+void f(x) {
+({'a': a, 'b': b} = x);
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+([BeginToken]{[BeginToken]'a'[StringToken]:[SimpleToken] a[StringToken],[SimpleToken] 'b'[StringToken]:[SimpleToken] b[StringToken]}[SimpleToken] =[SimpleToken] x[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

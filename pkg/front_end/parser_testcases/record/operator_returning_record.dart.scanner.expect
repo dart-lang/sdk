@@ -1,0 +1,25 @@
+class Foo {
+(int, int) operator [](int foo) {
+return (42, 42);
+}
+}
+
+class Bar {
+(int, int)? operator [](int bar) {
+return (42, 42);
+}
+}
+
+
+class[KeywordToken] Foo[StringToken] {[BeginToken]
+([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] operator[KeywordToken] [][SimpleToken]([BeginToken]int[StringToken] foo[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] ([BeginToken]42[StringToken],[SimpleToken] 42[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] Bar[StringToken] {[BeginToken]
+([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]?[SimpleToken] operator[KeywordToken] [][SimpleToken]([BeginToken]int[StringToken] bar[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] ([BeginToken]42[StringToken],[SimpleToken] 42[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

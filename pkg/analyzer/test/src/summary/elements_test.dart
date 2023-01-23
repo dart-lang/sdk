@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/resolution/context_collection_resolution.dart';
 import 'element_text.dart';
 import 'elements_base.dart';
 
@@ -21,6 +22,8 @@ main() {
 }
 
 @reflectiveTest
+// TODO(srawlins): Re-enable?
+// ignore: unreachable_from_main
 class ApplyCheckElementTextReplacements {
   test_applyReplacements() {
     applyCheckElementTextReplacements();
@@ -40,6 +43,875 @@ class ElementsKeepLinkingTest extends ElementsTest {
 }
 
 abstract class ElementsTest extends ElementsBaseTest {
+  test_annotationArgument_recordLiteral() async {
+    var library = await buildLibrary('''
+@A((2, a: 3))
+class C {}
+class A {
+  const A(o);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @20
+        metadata
+          Annotation
+            atSign: @ @0
+            name: SimpleIdentifier
+              token: A @1
+              staticElement: self::@class::A
+              staticType: null
+            arguments: ArgumentList
+              leftParenthesis: ( @2
+              arguments
+                RecordLiteral
+                  leftParenthesis: ( @3
+                  fields
+                    IntegerLiteral
+                      literal: 2 @4
+                      staticType: int
+                    NamedExpression
+                      name: Label
+                        label: SimpleIdentifier
+                          token: a @7
+                          staticElement: <null>
+                          staticType: null
+                        colon: : @8
+                      expression: IntegerLiteral
+                        literal: 3 @10
+                        staticType: int
+                  rightParenthesis: ) @11
+                  staticType: (int, {int a})
+              rightParenthesis: ) @12
+            element: self::@class::A::@constructor::new
+        constructors
+          synthetic @-1
+      class A @31
+        constructors
+          const @43
+            parameters
+              requiredPositional o @45
+                type: dynamic
+''');
+  }
+
+  test_annotationArgument_recordLiteral_withConst() async {
+    var library = await buildLibrary('''
+@A(const ('',))
+class C {}
+class A {
+  const A(o);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @22
+        metadata
+          Annotation
+            atSign: @ @0
+            name: SimpleIdentifier
+              token: A @1
+              staticElement: self::@class::A
+              staticType: null
+            arguments: ArgumentList
+              leftParenthesis: ( @2
+              arguments
+                RecordLiteral
+                  constKeyword: const @3
+                  leftParenthesis: ( @9
+                  fields
+                    SimpleStringLiteral
+                      literal: '' @10
+                  rightParenthesis: ) @13
+                  staticType: (String)
+              rightParenthesis: ) @14
+            element: self::@class::A::@constructor::new
+        constructors
+          synthetic @-1
+      class A @33
+        constructors
+          const @45
+            parameters
+              requiredPositional o @47
+                type: dynamic
+''');
+  }
+
+  test_augmentation_augmentationImports_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+import augment 'b.dart';
+class A {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+class B {}
+''');
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+class C {}
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      augmentationImports
+        package:test/b.dart
+          definingUnit
+            classes
+              class B @32
+                constructors
+                  synthetic @-1
+      definingUnit
+        classes
+          class A @60
+            constructors
+              synthetic @-1
+  definingUnit
+    classes
+      class C @31
+        constructors
+          synthetic @-1
+''');
+  }
+
+  test_augmentation_class_constructor_superConstructor_generic_named() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class B extends A<int> {
+  B() : super.named(0);
+}
+''');
+    var library = await buildLibrary('''
+import augment 'a.dart';
+class A<T> {
+  A.named(T a);
+}
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class B @35
+            supertype: A<int>
+            constructors
+              @56
+                superConstructor: ConstructorMember
+                  base: self::@class::A::@constructor::named
+                  substitution: {T: int}
+  definingUnit
+    classes
+      class A @31
+        typeParameters
+          covariant T @33
+            defaultType: dynamic
+        constructors
+          named @42
+            periodOffset: 41
+            nameEnd: 47
+            parameters
+              requiredPositional a @50
+                type: T
+''');
+  }
+
+  test_augmentation_class_constructor_superConstructor_notGeneric_named() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class B extends A {
+  B() : super.named();
+}
+''');
+    var library = await buildLibrary('''
+import augment 'a.dart';
+class A {
+  A.named();
+}
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class B @35
+            supertype: A
+            constructors
+              @51
+                superConstructor: self::@class::A::@constructor::named
+  definingUnit
+    classes
+      class A @31
+        constructors
+          named @39
+            periodOffset: 38
+            nameEnd: 44
+''');
+  }
+
+  test_augmentation_class_constructor_superConstructor_notGeneric_unnamed_explicit() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class B extends A {
+  B() : super();
+}
+''');
+    var library = await buildLibrary('''
+import augment 'a.dart';
+class A {}
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class B @35
+            supertype: A
+            constructors
+              @51
+                superConstructor: self::@class::A::@constructor::new
+  definingUnit
+    classes
+      class A @31
+        constructors
+          synthetic @-1
+''');
+  }
+
+  test_augmentation_class_notSimplyBounded_circularity_via_typedef() async {
+    // C's type parameter T is not simply bounded because its bound, F, expands
+    // to `dynamic F(C)`, which refers to C.
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class C<T extends F> {}
+''');
+    var library = await buildLibrary('''
+import augment 'a.dart';
+typedef F(C value);
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          notSimplyBounded class C @35
+            typeParameters
+              covariant T @37
+                bound: dynamic
+                defaultType: dynamic
+            constructors
+              synthetic @-1
+  definingUnit
+    typeAliases
+      functionTypeAliasBased notSimplyBounded F @33
+        aliasedType: dynamic Function(C<dynamic>)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional value @37
+              type: C<dynamic>
+          returnType: dynamic
+''');
+  }
+
+  test_augmentation_class_notSimplyBounded_self() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class C<T extends C> {}
+''');
+    var library = await buildLibrary('''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          notSimplyBounded class C @35
+            typeParameters
+              covariant T @37
+                bound: C<dynamic>
+                defaultType: dynamic
+            constructors
+              synthetic @-1
+  definingUnit
+''');
+  }
+
+  test_augmentation_defaultValue_class_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static const a = 0;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart';
+void f({int x = A.a}) {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart
+      definingUnit
+        functions
+          f @51
+            parameters
+              optionalNamed x @58
+                type: int
+                constantInitializer
+                  PrefixedIdentifier
+                    prefix: SimpleIdentifier
+                      token: A @62
+                      staticElement: package:test/a.dart::@class::A
+                      staticType: null
+                    period: . @63
+                    identifier: SimpleIdentifier
+                      token: a @64
+                      staticElement: package:test/a.dart::@class::A::@getter::a
+                      staticType: int
+                    staticElement: package:test/a.dart::@class::A::@getter::a
+                    staticType: int
+            returnType: void
+  definingUnit
+''');
+  }
+
+  test_augmentation_defaultValue_prefix_class_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static const a = 0;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart' as prefix;
+void f({int x = prefix.A.a}) {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart as prefix @48
+      definingUnit
+        functions
+          f @61
+            parameters
+              optionalNamed x @68
+                type: int
+                constantInitializer
+                  PropertyAccess
+                    target: PrefixedIdentifier
+                      prefix: SimpleIdentifier
+                        token: prefix @72
+                        staticElement: self::@augmentation::package:test/b.dart::@prefix::prefix
+                        staticType: null
+                      period: . @78
+                      identifier: SimpleIdentifier
+                        token: A @79
+                        staticElement: package:test/a.dart::@class::A
+                        staticType: null
+                      staticElement: package:test/a.dart::@class::A
+                      staticType: null
+                    operator: . @80
+                    propertyName: SimpleIdentifier
+                      token: a @81
+                      staticElement: package:test/a.dart::@class::A::@getter::a
+                      staticType: int
+                    staticType: int
+            returnType: void
+  definingUnit
+''');
+  }
+
+  test_augmentation_documented() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+/// My documentation.
+library augment 'test.dart';
+''');
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      documentationComment: /// My documentation.
+      definingUnit
+  definingUnit
+''');
+  }
+
+  test_augmentation_importScope_constant() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+final a = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart';
+const b = a;
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart
+      definingUnit
+        topLevelVariables
+          static const b @52
+            type: int
+            constantInitializer
+              SimpleIdentifier
+                token: a @56
+                staticElement: package:test/a.dart::@getter::a
+                staticType: int
+        accessors
+          synthetic static get b @-1
+            returnType: int
+  definingUnit
+''');
+  }
+
+  test_augmentation_importScope_constant_class_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static const a = 0;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart';
+const b = A.a;
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart
+      definingUnit
+        topLevelVariables
+          static const b @52
+            type: int
+            constantInitializer
+              PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: A @56
+                  staticElement: package:test/a.dart::@class::A
+                  staticType: null
+                period: . @57
+                identifier: SimpleIdentifier
+                  token: a @58
+                  staticElement: package:test/a.dart::@class::A::@getter::a
+                  staticType: int
+                staticElement: package:test/a.dart::@class::A::@getter::a
+                staticType: int
+        accessors
+          synthetic static get b @-1
+            returnType: int
+  definingUnit
+''');
+  }
+
+  test_augmentation_importScope_constant_instanceCreation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A {};
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart';
+const a = A();
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart
+      definingUnit
+        topLevelVariables
+          static const a @52
+            type: A
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: A @56
+                      staticElement: package:test/a.dart::@class::A
+                      staticType: null
+                    type: A
+                  staticElement: package:test/a.dart::@class::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @57
+                  rightParenthesis: ) @58
+                staticType: A
+        accessors
+          synthetic static get a @-1
+            returnType: A
+  definingUnit
+''');
+  }
+
+  test_augmentation_importScope_constant_prefix_class_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static const a = 0;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart' as prefix;
+const b = prefix.A.a;
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart as prefix @48
+      definingUnit
+        topLevelVariables
+          static const b @62
+            type: int
+            constantInitializer
+              PropertyAccess
+                target: PrefixedIdentifier
+                  prefix: SimpleIdentifier
+                    token: prefix @66
+                    staticElement: self::@augmentation::package:test/b.dart::@prefix::prefix
+                    staticType: null
+                  period: . @72
+                  identifier: SimpleIdentifier
+                    token: A @73
+                    staticElement: package:test/a.dart::@class::A
+                    staticType: null
+                  staticElement: package:test/a.dart::@class::A
+                  staticType: null
+                operator: . @74
+                propertyName: SimpleIdentifier
+                  token: a @75
+                  staticElement: package:test/a.dart::@class::A::@getter::a
+                  staticType: int
+                staticType: int
+        accessors
+          synthetic static get b @-1
+            returnType: int
+  definingUnit
+''');
+  }
+
+  test_augmentation_importScope_prefixed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart' as prefix;
+prefix.A f() {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart as prefix @48
+      definingUnit
+        functions
+          f @65
+            returnType: A
+  definingUnit
+''');
+  }
+
+  test_augmentation_importScope_topInference() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+final a = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart';
+final b = a;
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart
+      definingUnit
+        topLevelVariables
+          static final b @52
+            type: int
+        accessors
+          synthetic static get b @-1
+            returnType: int
+  definingUnit
+''');
+  }
+
+  test_augmentation_importScope_types_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart';
+A f() {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+A f() {}
+''');
+
+    // The augmentation imports `a.dart`, so can resolve `A`.
+    // But the library does not import, so there `A` is unresolved.
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart
+      definingUnit
+        functions
+          f @48
+            returnType: A
+  definingUnit
+    functions
+      f @27
+        returnType: dynamic
+''');
+  }
+
+  test_augmentation_importScope_types_library() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+A f() {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+import 'a.dart';
+A f() {}
+''');
+
+    // The library imports `a.dart`, so can resolve `A`.
+    // But the augmentation does not import, so there `A` is unresolved.
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  augmentationImports
+    package:test/b.dart
+      definingUnit
+        functions
+          f @31
+            returnType: dynamic
+  definingUnit
+    functions
+      f @44
+        returnType: A
+''');
+  }
+
+  test_augmentation_libraryExports_library() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+export 'dart:async';
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+export 'dart:collection';
+export 'dart:math';
+''');
+    final library = await buildLibrary(r'''
+import 'dart:io';
+import augment 'a.dart';
+import augment 'b.dart';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    dart:io
+  augmentationImports
+    package:test/a.dart
+      exports
+        dart:async
+      definingUnit
+    package:test/b.dart
+      exports
+        dart:collection
+        dart:math
+      definingUnit
+  definingUnit
+''');
+  }
+
+  test_augmentation_libraryImports_library() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+import 'dart:async';
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'dart:collection';
+import 'dart:math';
+''');
+    final library = await buildLibrary(r'''
+import 'dart:io';
+import augment 'a.dart';
+import augment 'b.dart';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    dart:io
+  augmentationImports
+    package:test/a.dart
+      imports
+        dart:async
+      definingUnit
+    package:test/b.dart
+      imports
+        dart:collection
+        dart:math
+      definingUnit
+  definingUnit
+''');
+  }
+
+  test_augmentation_topScope_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class A {}
+A f() {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+A f() {}
+''');
+
+    // The augmentation declares `A`, and can it be used in the library.
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class A @35
+            constructors
+              synthetic @-1
+        functions
+          f @42
+            returnType: A
+  definingUnit
+    functions
+      f @27
+        returnType: A
+''');
+  }
+
+  test_augmentation_topScope_library() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+A f() {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {}
+A f() {}
+''');
+
+    // The library declares `A`, and can it be used in the augmentation.
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        functions
+          f @31
+            returnType: A
+  definingUnit
+    classes
+      class A @31
+        constructors
+          synthetic @-1
+    functions
+      f @38
+        returnType: A
+''');
+  }
+
   test_class_abstract() async {
     var library = await buildLibrary('abstract class C {}');
     checkElementText(library, r'''
@@ -727,7 +1599,7 @@ library
                 condition: BinaryExpression
                   leftOperand: SimpleIdentifier
                     token: x @36
-                    staticElement: self::@class::C::@constructor::•::@parameter::x
+                    staticElement: self::@class::C::@constructor::new::@parameter::x
                     staticType: int
                   operator: >= @38
                   rightOperand: IntegerLiteral
@@ -763,7 +1635,7 @@ library
                 condition: BinaryExpression
                   leftOperand: SimpleIdentifier
                     token: x @36
-                    staticElement: self::@class::C::@constructor::•::@parameter::x
+                    staticElement: self::@class::C::@constructor::new::@parameter::x
                     staticType: int
                   operator: >= @38
                   rightOperand: IntegerLiteral
@@ -870,7 +1742,7 @@ library
     classes
       class A @6
         fields
-          final _f @22
+          final promotable _f @22
             type: int
         constructors
           const @34
@@ -890,11 +1762,56 @@ library
                 equals: = @54
                 expression: SimpleIdentifier
                   token: f @56
-                  staticElement: self::@class::A::@constructor::•::@parameter::f
+                  staticElement: self::@class::A::@constructor::new::@parameter::f
                   staticType: int
         accessors
           synthetic get _f @-1
             returnType: int
+''');
+  }
+
+  test_class_constructor_initializers_field_recordLiteral() async {
+    var library = await buildLibrary('''
+class C {
+  final Object x;
+  const C(int a) : x = (0, a);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          final x @25
+            type: Object
+        constructors
+          const @36
+            parameters
+              requiredPositional a @42
+                type: int
+            constantInitializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: x @47
+                  staticElement: self::@class::C::@field::x
+                  staticType: null
+                equals: = @49
+                expression: RecordLiteral
+                  leftParenthesis: ( @51
+                  fields
+                    IntegerLiteral
+                      literal: 0 @52
+                      staticType: int
+                    SimpleIdentifier
+                      token: a @55
+                      staticElement: self::@class::C::@constructor::new::@parameter::a
+                      staticType: int
+                  rightParenthesis: ) @56
+                  staticType: (int, int)
+        accessors
+          synthetic get x @-1
+            returnType: Object
 ''');
   }
 
@@ -932,7 +1849,7 @@ library
                   operator: + @46
                   rightOperand: SimpleIdentifier
                     token: p @48
-                    staticElement: self::@class::C::@constructor::•::@parameter::p
+                    staticElement: self::@class::C::@constructor::new::@parameter::p
                     staticType: int
                   staticElement: dart:core::@class::num::@method::+
                   staticInvokeType: num Function(num)
@@ -1002,15 +1919,15 @@ library
                             rightBracket: > @96
                           type: A<dynamic Function()>
                         staticElement: ConstructorMember
-                          base: self::@class::A::@constructor::•
+                          base: self::@class::A::@constructor::new
                           substitution: {T: dynamic Function()}
                       argumentList: ArgumentList
                         leftParenthesis: ( @97
                         rightParenthesis: ) @98
                       staticType: A<dynamic Function()>
                   rightParenthesis: ) @99
-                staticElement: self::@class::B::@constructor::•
-            redirectedConstructor: self::@class::B::@constructor::•
+                staticElement: self::@class::B::@constructor::new
+            redirectedConstructor: self::@class::B::@constructor::new
 ''');
   }
 
@@ -1049,8 +1966,8 @@ library
                       rightBracket: ] @91
                       staticType: List<String>
                   rightParenthesis: ) @92
-                staticElement: self::@class::A::@constructor::•
-            superConstructor: self::@class::A::@constructor::•
+                staticElement: self::@class::A::@constructor::new
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -1229,8 +2146,8 @@ library
                       literal: 42 @74
                       staticType: int
                   rightParenthesis: ) @76
-                staticElement: self::@class::A::@constructor::•
-            superConstructor: self::@class::A::@constructor::•
+                staticElement: self::@class::A::@constructor::new
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -1266,8 +2183,8 @@ library
                       rightBracket: ] @74
                       staticType: List<String>
                   rightParenthesis: ) @75
-                staticElement: self::@class::A::@constructor::•
-            redirectedConstructor: self::@class::A::@constructor::•
+                staticElement: self::@class::A::@constructor::new
+            redirectedConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -1395,8 +2312,8 @@ library
                     SimpleStringLiteral
                       literal: 'bbb' @38
                   rightParenthesis: ) @43
-                staticElement: self::@class::C::@constructor::•
-            redirectedConstructor: self::@class::C::@constructor::•
+                staticElement: self::@class::C::@constructor::new
+            redirectedConstructor: self::@class::C::@constructor::new
           const @54
             parameters
               requiredPositional a @60
@@ -1439,8 +2356,8 @@ library
                 parameters
                   requiredPositional d @82
                     type: T
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::a
-            superConstructor: self::@class::A::@constructor::•
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::a
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -1471,8 +2388,8 @@ library
             parameters
               requiredPositional final super.a @59
                 type: int
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::a
-            superConstructor: self::@class::A::@constructor::•
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::a
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -1503,8 +2420,8 @@ library
             parameters
               requiredPositional final super.a @61
                 type: int?
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::a
-            superConstructor: self::@class::A::@constructor::•
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::a
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -1556,13 +2473,13 @@ library
                 type: String
               optionalNamed final super.a @97
                 type: int
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::a
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::a
               optionalNamed o2 @107
                 type: String
               optionalNamed final super.b @117
                 type: double
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::b
-            superConstructor: self::@class::A::@constructor::•
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::b
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -1594,7 +2511,7 @@ library
               optionalNamed final super.b @67
                 type: dynamic
                 superConstructorParameter: <null>
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -1626,7 +2543,7 @@ library
               optionalNamed final super.a @56
                 type: dynamic
                 superConstructorParameter: <null>
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -1661,13 +2578,13 @@ library
                 type: String
               optionalPositional final super.a @77
                 type: int
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::a
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::a
               optionalPositional o2 @87
                 type: String
               optionalPositional final super.b @97
                 type: double
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::b
-            superConstructor: self::@class::A::@constructor::•
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::b
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -1707,13 +2624,13 @@ library
                 type: String
               requiredNamed final super.a @124
                 type: int
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::a
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::a
               requiredNamed o2 @147
                 type: String
               requiredNamed final super.b @170
                 type: double
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::b
-            superConstructor: self::@class::A::@constructor::•
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::b
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -1748,13 +2665,13 @@ library
                 type: String
               requiredPositional final super.a @76
                 type: int
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::a
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::a
               requiredPositional o2 @86
                 type: String
               requiredPositional final super.b @96
                 type: double
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::b
-            superConstructor: self::@class::A::@constructor::•
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::b
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -1791,8 +2708,8 @@ library
             parameters
               requiredPositional final super.a @64
                 type: int
-                superConstructorParameter: self::@class::B::@constructor::•::@parameter::a
-            superConstructor: self::@class::B::@constructor::•
+                superConstructorParameter: self::@class::B::@constructor::new::@parameter::a
+            superConstructor: self::@class::B::@constructor::new
       class B @77
         supertype: A
         constructors
@@ -1800,8 +2717,8 @@ library
             parameters
               requiredPositional final super.a @101
                 type: int
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::a
-            superConstructor: self::@class::A::@constructor::•
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::a
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -1839,10 +2756,10 @@ library
               requiredPositional final super.a @63
                 type: int
                 superConstructorParameter: SuperFormalParameterMember
-                  base: self::@class::B::@constructor::•::@parameter::a
+                  base: self::@class::B::@constructor::new::@parameter::a
                   substitution: {T: String}
             superConstructor: ConstructorMember
-              base: self::@class::B::@constructor::•
+              base: self::@class::B::@constructor::new
               substitution: {T: String}
       class B @76
         typeParameters
@@ -1854,8 +2771,8 @@ library
             parameters
               requiredPositional final super.a @103
                 type: int
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::a
-            superConstructor: self::@class::A::@constructor::•
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::a
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -1882,7 +2799,7 @@ library
               requiredPositional final super.a @42
                 type: dynamic
                 superConstructorParameter: <null>
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -1914,7 +2831,7 @@ library
               requiredPositional final super.a @65
                 type: dynamic
                 superConstructorParameter: <null>
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -2259,7 +3176,7 @@ library
       class C @6
         constructors
           factory @20
-            redirectedConstructor: self::@class::D::@constructor::•
+            redirectedConstructor: self::@class::D::@constructor::new
           _ @33
             periodOffset: 32
             nameEnd: 34
@@ -2294,7 +3211,7 @@ library
         constructors
           factory @26
             redirectedConstructor: ConstructorMember
-              base: self::@class::D::@constructor::•
+              base: self::@class::D::@constructor::new
               substitution: {T: U, U: T}
           _ @45
             periodOffset: 44
@@ -2338,7 +3255,7 @@ library
         constructors
           factory @53
             redirectedConstructor: ConstructorMember
-              base: self::@class::C::@constructor::•
+              base: self::@class::C::@constructor::new
               substitution: {T: U, U: T}
         methods
           abstract B_ @70
@@ -2386,7 +3303,7 @@ library
       class C @25
         constructors
           factory @39
-            redirectedConstructor: package:test/foo.dart::@class::D::@constructor::•
+            redirectedConstructor: package:test/foo.dart::@class::D::@constructor::new
           _ @52
             periodOffset: 51
             nameEnd: 53
@@ -2422,7 +3339,7 @@ library
         constructors
           factory @45
             redirectedConstructor: ConstructorMember
-              base: package:test/foo.dart::@class::D::@constructor::•
+              base: package:test/foo.dart::@class::D::@constructor::new
               substitution: {T: U, U: T}
           _ @64
             periodOffset: 63
@@ -2454,7 +3371,7 @@ library
       class C @25
         constructors
           factory @39
-            redirectedConstructor: package:test/foo.dart::@class::B::@constructor::•
+            redirectedConstructor: package:test/foo.dart::@class::B::@constructor::new
           _ @52
             periodOffset: 51
             nameEnd: 53
@@ -2484,7 +3401,7 @@ library
       class C @32
         constructors
           factory @46
-            redirectedConstructor: package:test/foo.dart::@class::D::@constructor::•
+            redirectedConstructor: package:test/foo.dart::@class::D::@constructor::new
           _ @63
             periodOffset: 62
             nameEnd: 64
@@ -2520,7 +3437,7 @@ library
         constructors
           factory @52
             redirectedConstructor: ConstructorMember
-              base: package:test/foo.dart::@class::D::@constructor::•
+              base: package:test/foo.dart::@class::D::@constructor::new
               substitution: {T: U, U: T}
           _ @75
             periodOffset: 74
@@ -2552,7 +3469,7 @@ library
       class C @32
         constructors
           factory @46
-            redirectedConstructor: package:test/foo.dart::@class::B::@constructor::•
+            redirectedConstructor: package:test/foo.dart::@class::B::@constructor::new
           _ @63
             periodOffset: 62
             nameEnd: 64
@@ -2596,7 +3513,7 @@ library
       class B @21
         constructors
           factory @35
-            redirectedConstructor: self::@class::C::@constructor::•
+            redirectedConstructor: self::@class::C::@constructor::new
           _ @48
             periodOffset: 47
             nameEnd: 49
@@ -2724,8 +3641,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @47
                   rightParenthesis: ) @48
-                staticElement: self::@class::C::@constructor::•
-            redirectedConstructor: self::@class::C::@constructor::•
+                staticElement: self::@class::C::@constructor::new
+            redirectedConstructor: self::@class::C::@constructor::new
 ''');
   }
 
@@ -2755,8 +3672,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @50
                   rightParenthesis: ) @51
-                staticElement: self::@class::C::@constructor::•
-            redirectedConstructor: self::@class::C::@constructor::•
+                staticElement: self::@class::C::@constructor::new
+            redirectedConstructor: self::@class::C::@constructor::new
 ''');
   }
 
@@ -2777,7 +3694,7 @@ library
           named @21
             periodOffset: 20
             nameEnd: 26
-            redirectedConstructor: self::@class::C::@constructor::•
+            redirectedConstructor: self::@class::C::@constructor::new
 ''');
   }
 
@@ -2859,7 +3776,7 @@ library
         supertype: A
         constructors
           @33
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -2881,7 +3798,7 @@ library
         supertype: A
         constructors
           @33
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -2901,15 +3818,14 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
   test_class_constructor_unnamed_implicit() async {
     var library = await buildLibrary('class C {}');
-    checkElementText(
-        library,
-        r'''
+    configuration.withDisplayName = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -2917,8 +3833,7 @@ library
         constructors
           synthetic @-1
             displayName: C
-''',
-        withDisplayName: true);
+''');
   }
 
   test_class_constructor_withCycles_const() async {
@@ -2958,7 +3873,7 @@ library
                         staticElement: self::@class::D
                         staticType: null
                       type: D
-                    staticElement: self::@class::D::@constructor::•
+                    staticElement: self::@class::D::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @46
                     rightParenthesis: ) @47
@@ -2988,7 +3903,7 @@ library
                         staticElement: self::@class::C
                         staticType: null
                       type: C
-                    staticElement: self::@class::C::@constructor::•
+                    staticElement: self::@class::C::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @98
                     rightParenthesis: ) @99
@@ -3041,9 +3956,8 @@ class C {
   C.foo();
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withDisplayName = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -3053,8 +3967,7 @@ library
             displayName: C.foo
             periodOffset: 13
             nameEnd: 17
-''',
-        withDisplayName: true);
+''');
   }
 
   test_class_constructors_unnamed() async {
@@ -3063,9 +3976,8 @@ class C {
   C();
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withDisplayName = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -3073,8 +3985,7 @@ library
         constructors
           @12
             displayName: C
-''',
-        withDisplayName: true);
+''');
   }
 
   test_class_constructors_unnamed_new() async {
@@ -3083,9 +3994,8 @@ class C {
   C.new();
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withDisplayName = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -3095,8 +4005,7 @@ library
             displayName: C
             periodOffset: 13
             nameEnd: 17
-''',
-        withDisplayName: true);
+''');
   }
 
   test_class_documented() async {
@@ -3303,7 +4212,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @39
               rightParenthesis: ) @40
-            element: self::@class::Annotation::@constructor::•
+            element: self::@class::Annotation::@constructor::new
         constructors
           synthetic @-1
       class BeforeMetaNamed @117
@@ -3341,7 +4250,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @148
               rightParenthesis: ) @149
-            element: self::@class::Annotation::@constructor::•
+            element: self::@class::Annotation::@constructor::new
         constructors
           synthetic @-1
       class AroundMeta @247
@@ -3356,7 +4265,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @224
               rightParenthesis: ) @225
-            element: self::@class::Annotation::@constructor::•
+            element: self::@class::Annotation::@constructor::new
         constructors
           synthetic @-1
       class DocBeforeMetaNotDocAfter @319
@@ -3371,7 +4280,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @290
               rightParenthesis: ) @291
-            element: self::@class::Annotation::@constructor::•
+            element: self::@class::Annotation::@constructor::new
         constructors
           synthetic @-1
       class Annotation @354
@@ -3511,6 +4420,97 @@ library
 ''');
   }
 
+  test_class_field_duplicate_getter() async {
+    var library = await buildLibrary('''
+class C {
+  int foo = 0;
+  int get foo => 0;
+}
+''');
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          foo @16
+            type: int
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+          synthetic foo @-1
+            type: int
+            id: field_1
+            getter: getter_1
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get foo @-1
+            returnType: int
+            id: getter_0
+            variable: field_0
+          synthetic set foo @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_0
+          get foo @35
+            returnType: int
+            id: getter_1
+            variable: field_1
+''');
+  }
+
+  test_class_field_duplicate_setter() async {
+    var library = await buildLibrary('''
+class C {
+  int foo = 0;
+  set foo(int _) {}
+}
+''');
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          foo @16
+            type: int
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+          synthetic foo @-1
+            type: int
+            id: field_1
+            setter: setter_1
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get foo @-1
+            returnType: int
+            id: getter_0
+            variable: field_0
+          synthetic set foo @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_0
+          set foo @31
+            parameters
+              requiredPositional _ @39
+                type: int
+            returnType: void
+            id: setter_1
+            variable: field_1
+''');
+  }
+
   test_class_field_external() async {
     var library = await buildLibrary('''
 abstract class C {
@@ -3618,10 +4618,7 @@ library
                                   staticElement: dart:core::@class::double
                                   staticType: null
                                 type: double
-                              identifier: SimpleIdentifier
-                                token: a @78
-                                staticElement: a@78
-                                staticType: null
+                              name: a @78
                               declaredElement: a@78
                               declaredElementType: double
                             rightParenthesis: ) @79
@@ -3636,7 +4633,7 @@ library
                       rightBracket: > @80
                     type: A<int Function(double)>
                   staticElement: ConstructorMember
-                    base: self::@class::A::@constructor::•
+                    base: self::@class::A::@constructor::new
                     substitution: {T: int Function(double)}
                 argumentList: ArgumentList
                   leftParenthesis: ( @81
@@ -3680,6 +4677,7 @@ class A {
   set foo(int newValue) {}
 }
 ''');
+    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   definingUnit
@@ -3688,6 +4686,9 @@ library
         fields
           final foo @22
             type: int
+            id: field_0
+            getter: getter_0
+            setter: setter_0
         constructors
           @29
             parameters
@@ -3697,11 +4698,15 @@ library
         accessors
           synthetic get foo @-1
             returnType: int
+            id: getter_0
+            variable: field_0
           set foo @48
             parameters
               requiredPositional newValue @56
                 type: int
             returnType: void
+            id: setter_0
+            variable: field_0
 ''');
   }
 
@@ -3723,7 +4728,7 @@ library
               requiredPositional final this.v @34
                 type: int
                 field: self::@class::C::@field::v
-            superConstructor: self::@class::D::@constructor::•
+            superConstructor: self::@class::D::@constructor::new
         accessors
           synthetic get v @-1
             returnType: int
@@ -3850,7 +4855,7 @@ library
             type: int
         constructors
           synthetic @-1
-            superConstructor: self::@class::D::@constructor::•
+            superConstructor: self::@class::D::@constructor::new
         accessors
           synthetic get v @-1
             returnType: int
@@ -3913,7 +4918,7 @@ library
                 staticType: List<int>
         constructors
           const @94
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         accessors
           synthetic get f @-1
             returnType: List<int>
@@ -3988,10 +4993,615 @@ library
                 staticType: double
         constructors
           const @80
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         accessors
           synthetic get foo @-1
             returnType: double
+''');
+  }
+
+  test_class_field_isPromotable_hasGetter() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  int? get _foo => 0;
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_hasGetter_abstract() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+abstract class B {
+  int? get _foo;
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final promotable _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_hasGetter_inPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+class B {
+  int? get _foo => 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+part 'a.dart';
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @21
+        fields
+          final _foo @38
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_hasGetter_static() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  static int? get _foo => 0;
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final promotable _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_hasNotFinalField() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  int? _foo;
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_hasNotFinalField_static() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  static int? _foo;
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final promotable _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_hasSetter() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  set _field(int? _) {}
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final promotable _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_language217() async {
+    var library = await buildLibrary(r'''
+// @dart = 2.18
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @22
+        fields
+          final _foo @39
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_field() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  final int? _foo = 0;
+}
+
+/// Implicitly implements `_foo` as a getter that forwards to [noSuchMethod].
+class C implements B {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_field_implementedInMixin() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+mixin M {
+  final int? _foo = 0;
+}
+
+class B {
+  final int? _foo = 0;
+}
+
+/// `_foo` is implemented in [M].
+class C with M implements B {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(
+      classNames: {'A', 'B'},
+      mixinNames: {'M'},
+    );
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final promotable _foo @23
+            type: int?
+      class B @90
+        fields
+          final promotable _foo @107
+            type: int?
+    mixins
+      mixin M @54
+        superclassConstraints
+          Object
+        fields
+          final promotable _foo @71
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_field_implementedInSuperclass() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  final int? _foo = 0;
+}
+
+class C {
+  final int? _foo = 0;
+}
+
+/// `_foo` is implemented in [B].
+class D extends B implements C {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(
+      classNames: {'A', 'B'},
+    );
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final promotable _foo @23
+            type: int?
+      class B @54
+        fields
+          final promotable _foo @71
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_field_inClassTypeAlias() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  final int? _foo = 0;
+}
+
+mixin M {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+
+/// Implicitly implements `_foo` as a getter that forwards to [noSuchMethod].
+class E = Object with M implements B;
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_field_inEnum() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B {
+  final int? _foo = 0;
+}
+
+/// Implicitly implements `_foo` as a getter that forwards to [noSuchMethod].
+enum E implements B {
+  v;
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(
+      classNames: {'A', 'B'},
+    );
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final _foo @23
+            type: int?
+      class B @54
+        fields
+          final _foo @71
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_getter() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+abstract class B {
+  int? get _foo;
+}
+
+/// Implicitly implements `_foo` as a getter that forwards to [noSuchMethod].
+class C implements B {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_inDifferentLibrary() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class B {
+  int? get _foo => 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+/// Has a noSuchMethod thrower for B._field, but since private names in
+/// different libraries are distinct, this has no effect on promotion of
+/// C._field.
+class C implements B {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(
+      classNames: {'A'},
+    );
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    classes
+      class A @24
+        fields
+          final promotable _foo @41
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_inheritedInterface() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+class B extends A {
+  A(super.value);
+}
+
+/// Implicitly implements `_foo` as a getter that forwards to [noSuchMethod].
+class C implements B {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_mixedInterface() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+mixin M {
+  final int? _foo = 0;
+}
+
+class B with M {}
+
+/// Implicitly implements `_foo` as a getter that forwards to [noSuchMethod].
+class C implements B {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(
+      classNames: {'A'},
+      mixinNames: {'M'},
+    );
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final _foo @23
+            type: int?
+    mixins
+      mixin M @54
+        superclassConstraints
+          Object
+        fields
+          final _foo @71
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_noSuchMethodForwarder_unusedMixin() async {
+    // Mixins are implicitly abstract so the presence of a mixin that inherits
+    // a field into its interface, and doesn't implement it, doesn't mean that
+    // a noSuchMethod forwarder created for it. So,  this does not block that
+    // field from promoting.
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+
+mixin M implements A {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+''');
+
+    configuration.forPromotableFields(
+      classNames: {'A'},
+    );
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final promotable _foo @23
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_notFinal() async {
+    var library = await buildLibrary(r'''
+class A {
+  int? _foo;
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          _foo @17
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_notPrivate() async {
+    var library = await buildLibrary(r'''
+class A {
+  int? field;
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          field @17
+            type: int?
+''');
+  }
+
+  test_class_field_isPromotable_typeInference() async {
+    // We decide that `_foo` is promotable before inferring the type of `bar`.
+    var library = await buildLibrary(r'''
+class A {
+  final int? _foo;
+  final bar = _foo != null ? _foo : 0;
+  A(this._foo);
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final promotable _foo @23
+            type: int?
+          final bar @37
+            type: int
 ''');
   }
 
@@ -4453,7 +6063,7 @@ library
             type: int
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         accessors
           synthetic get f @-1
             returnType: int
@@ -4495,7 +6105,7 @@ library
             type: int
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         accessors
           synthetic get f @-1
             returnType: int
@@ -4954,7 +6564,7 @@ library
         supertype: D
         constructors
           synthetic @-1
-            superConstructor: self::@class::D::@constructor::•
+            superConstructor: self::@class::D::@constructor::new
         methods
           f @25
             parameters
@@ -4990,7 +6600,7 @@ library
         supertype: D
         constructors
           synthetic @-1
-            superConstructor: self::@class::D::@constructor::•
+            superConstructor: self::@class::D::@constructor::new
         methods
           f @22
             returnType: int
@@ -5042,7 +6652,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         methods
           A @38
             returnType: void
@@ -5240,7 +6850,7 @@ library
           G
         constructors
           synthetic @-1
-            superConstructor: self::@class::D::@constructor::•
+            superConstructor: self::@class::D::@constructor::new
       class D @40
         constructors
           synthetic @-1
@@ -5274,7 +6884,7 @@ library
           C<double>
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
       class A @50
         constructors
           synthetic @-1
@@ -5314,6 +6924,28 @@ library
       class Z @56
         constructors
           synthetic @-1
+''');
+  }
+
+  test_class_notSimplyBounded_circularity_via_typeAlias_recordType() async {
+    var library = await buildLibrary('''
+class C<T extends A> {}
+typedef A = (C, int);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @6
+        typeParameters
+          covariant T @8
+            bound: dynamic
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+    typeAliases
+      notSimplyBounded A @32
+        aliasedType: (C<dynamic>, int)
 ''');
   }
 
@@ -6085,7 +7717,7 @@ library
             type: double
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         accessors
           synthetic get t @-1
             returnType: double
@@ -6100,7 +7732,7 @@ library
           B
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
       class D @96
         supertype: C
         fields
@@ -6108,7 +7740,7 @@ library
             type: dynamic
         constructors
           synthetic @-1
-            superConstructor: self::@class::C::@constructor::•
+            superConstructor: self::@class::C::@constructor::new
         accessors
           set t @121
             parameters
@@ -6133,7 +7765,7 @@ library
             type: int
         constructors
           synthetic @-1
-            superConstructor: self::@class::D::@constructor::•
+            superConstructor: self::@class::D::@constructor::new
         accessors
           set f @29
             parameters
@@ -6410,7 +8042,7 @@ library
         supertype: D
         constructors
           synthetic @-1
-            superConstructor: self::@class::D::@constructor::•
+            superConstructor: self::@class::D::@constructor::new
       class D @27
         constructors
           synthetic @-1
@@ -6431,7 +8063,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::D::@constructor::•
+              base: self::@class::D::@constructor::new
               substitution: {T1: int, T2: double}
       class D @40
         typeParameters
@@ -6464,7 +8096,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: B}
 ''');
   }
@@ -7081,8 +8713,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::D::@constructor::•
-            superConstructor: self::@class::D::@constructor::•
+                staticElement: self::@class::D::@constructor::new
+            superConstructor: self::@class::D::@constructor::new
       class D @32
         constructors
           synthetic @-1
@@ -7120,8 +8752,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::D::@constructor::•
-            superConstructor: self::@class::D::@constructor::•
+                staticElement: self::@class::D::@constructor::new
+            superConstructor: self::@class::D::@constructor::new
       class D @35
         constructors
           synthetic @-1
@@ -7158,8 +8790,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::D::@constructor::•
-            superConstructor: self::@class::D::@constructor::•
+                staticElement: self::@class::D::@constructor::new
+            superConstructor: self::@class::D::@constructor::new
       class D @43
         constructors
           synthetic @-1
@@ -7196,8 +8828,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::D::@constructor::•
-            superConstructor: self::@class::D::@constructor::•
+                staticElement: self::@class::D::@constructor::new
+            superConstructor: self::@class::D::@constructor::new
       class D @48
         constructors
           synthetic @-1
@@ -7234,8 +8866,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::D::@constructor::•
-            superConstructor: self::@class::D::@constructor::•
+                staticElement: self::@class::D::@constructor::new
+            superConstructor: self::@class::D::@constructor::new
       class D @87
         constructors
           synthetic @-1
@@ -7269,8 +8901,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::A::@constructor::•
-            superConstructor: self::@class::A::@constructor::•
+                staticElement: self::@class::A::@constructor::new
+            superConstructor: self::@class::A::@constructor::new
       class A @42
         constructors
           synthetic @-1
@@ -7315,8 +8947,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::D::@constructor::•
-            superConstructor: self::@class::D::@constructor::•
+                staticElement: self::@class::D::@constructor::new
+            superConstructor: self::@class::D::@constructor::new
       class D @39
         constructors
           synthetic @-1
@@ -7353,8 +8985,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::D::@constructor::•
-            superConstructor: self::@class::D::@constructor::•
+                staticElement: self::@class::D::@constructor::new
+            superConstructor: self::@class::D::@constructor::new
       class D @29
         constructors
           synthetic @-1
@@ -7388,8 +9020,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::D::@constructor::•
-            superConstructor: self::@class::D::@constructor::•
+                staticElement: self::@class::D::@constructor::new
+            superConstructor: self::@class::D::@constructor::new
       class D @26
         constructors
           synthetic @-1
@@ -7433,8 +9065,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: package:test/a.dart::@class::Base::@constructor::•
-            superConstructor: package:test/a.dart::@class::Base::@constructor::•
+                staticElement: package:test/a.dart::@class::Base::@constructor::new
+            superConstructor: package:test/a.dart::@class::Base::@constructor::new
           synthetic const named @-1
             constantInitializers
               SuperConstructorInvocation
@@ -7494,8 +9126,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: package:test/a.dart::@class::Base::@constructor::•
-            superConstructor: package:test/a.dart::@class::Base::@constructor::•
+                staticElement: package:test/a.dart::@class::Base::@constructor::new
+            superConstructor: package:test/a.dart::@class::Base::@constructor::new
           synthetic noArgs @-1
             constantInitializers
               SuperConstructorInvocation
@@ -7800,8 +9432,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::D::@constructor::•
-            superConstructor: self::@class::D::@constructor::•
+                staticElement: self::@class::D::@constructor::new
+            superConstructor: self::@class::D::@constructor::new
       class D @26
         constructors
           synthetic @-1
@@ -7932,9 +9564,8 @@ class CommentThenAnnotation {}
 /// Comment 2.
 class CommentAroundAnnotation {}
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -7960,7 +9591,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @75
               rightParenthesis: ) @76
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 68
         codeLength: 32
         constructors
@@ -7977,7 +9608,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @109
               rightParenthesis: ) @110
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 102
         codeLength: 70
         constructors
@@ -7994,7 +9625,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @211
               rightParenthesis: ) @212
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 174
         codeLength: 70
         constructors
@@ -8011,13 +9642,12 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @268
               rightParenthesis: ) @269
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 261
         codeLength: 57
         constructors
           synthetic @-1
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_class_namedMixin() async {
@@ -8050,9 +9680,8 @@ class CommentThenAnnotation = Object with A, B;
 /// Comment 2.
 class CommentAroundAnnotation = Object with A, B;
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -8081,7 +9710,7 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: dart:core::@class::Object::@constructor::•
+                staticElement: dart:core::@class::Object::@constructor::new
       class alias HasDocComment @91
         documentationComment: /// Comment 1.\n/// Comment 2.
         codeOffset: 55
@@ -8098,7 +9727,7 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: dart:core::@class::Object::@constructor::•
+                staticElement: dart:core::@class::Object::@constructor::new
       class alias HasAnnotation @142
         metadata
           Annotation
@@ -8110,7 +9739,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @133
               rightParenthesis: ) @134
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 126
         codeLength: 49
         supertype: Object
@@ -8125,7 +9754,7 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: dart:core::@class::Object::@constructor::•
+                staticElement: dart:core::@class::Object::@constructor::new
       class alias AnnotationThenComment @223
         documentationComment: /// Comment 1.\n/// Comment 2.
         metadata
@@ -8138,7 +9767,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @184
               rightParenthesis: ) @185
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 177
         codeLength: 87
         supertype: Object
@@ -8153,7 +9782,7 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: dart:core::@class::Object::@constructor::•
+                staticElement: dart:core::@class::Object::@constructor::new
       class alias CommentThenAnnotation @312
         documentationComment: /// Comment 1.\n/// Comment 2.
         metadata
@@ -8166,7 +9795,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @303
               rightParenthesis: ) @304
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 266
         codeLength: 87
         supertype: Object
@@ -8181,7 +9810,7 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: dart:core::@class::Object::@constructor::•
+                staticElement: dart:core::@class::Object::@constructor::new
       class alias CommentAroundAnnotation @401
         documentationComment: /// Comment 2.
         metadata
@@ -8194,7 +9823,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @377
               rightParenthesis: ) @378
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 370
         codeLength: 74
         supertype: Object
@@ -8209,9 +9838,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: dart:core::@class::Object::@constructor::•
-''',
-        withCodeRanges: true);
+                staticElement: dart:core::@class::Object::@constructor::new
+''');
   }
 
   test_codeRange_constructor() async {
@@ -8244,9 +9872,8 @@ class C {
   C.commentAroundAnnotation() {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -8279,7 +9906,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @99
                   rightParenthesis: ) @100
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 92
             codeLength: 32
             periodOffset: 105
@@ -8296,7 +9923,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @135
                   rightParenthesis: ) @136
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 128
             codeLength: 74
             periodOffset: 175
@@ -8313,7 +9940,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @247
                   rightParenthesis: ) @248
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 206
             codeLength: 74
             periodOffset: 253
@@ -8330,13 +9957,12 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @308
                   rightParenthesis: ) @309
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 301
             codeLength: 59
             periodOffset: 331
             nameEnd: 355
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_constructor_factory() async {
@@ -8369,9 +9995,8 @@ class C {
   factory C.commentAroundAnnotation() => throw 0;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -8404,7 +10029,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @152
                   rightParenthesis: ) @153
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 145
             codeLength: 49
             periodOffset: 166
@@ -8421,7 +10046,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @205
                   rightParenthesis: ) @206
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 198
             codeLength: 91
             periodOffset: 253
@@ -8438,7 +10063,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @334
                   rightParenthesis: ) @335
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 293
             codeLength: 91
             periodOffset: 348
@@ -8455,13 +10080,12 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @412
                   rightParenthesis: ) @413
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 405
             codeLength: 76
             periodOffset: 443
             nameEnd: 467
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_enum() async {
@@ -8470,9 +10094,8 @@ enum E {
   aaa, bbb, ccc
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     enums
@@ -8494,7 +10117,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -8512,7 +10135,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -8530,7 +10153,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -8566,8 +10189,7 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_extensions() async {
@@ -8598,9 +10220,8 @@ extension CommentThenAnnotation on A {}
 /// Comment 2.
 extension CommentAroundAnnotation on A {}
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -8630,7 +10251,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @105
               rightParenthesis: ) @106
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 98
         codeLength: 41
         extendedType: A
@@ -8646,7 +10267,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @148
               rightParenthesis: ) @149
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 141
         codeLength: 79
         extendedType: A
@@ -8662,7 +10283,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @259
               rightParenthesis: ) @260
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 222
         codeLength: 79
         extendedType: A
@@ -8678,12 +10299,11 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @325
               rightParenthesis: ) @326
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 318
         codeLength: 66
         extendedType: A
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_field() async {
@@ -8696,9 +10316,8 @@ class C {
   int multiWithInit = 2, multiWithoutInit, multiWithInit2 = 3;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -8764,8 +10383,7 @@ library
               requiredPositional _multiWithInit2 @-1
                 type: int
             returnType: void
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_field_annotations() async {
@@ -8794,9 +10412,8 @@ class C {
   int commentAroundAnnotation, commentAroundAnnotation2;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -8825,7 +10442,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @91
                   rightParenthesis: ) @92
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 84
             codeLength: 29
             type: int
@@ -8840,7 +10457,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @91
                   rightParenthesis: ) @92
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 115
             codeLength: 14
             type: int
@@ -8856,7 +10473,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @141
                   rightParenthesis: ) @142
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 134
             codeLength: 71
             type: int
@@ -8872,7 +10489,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @141
                   rightParenthesis: ) @142
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 207
             codeLength: 22
             type: int
@@ -8888,7 +10505,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @275
                   rightParenthesis: ) @276
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 234
             codeLength: 71
             type: int
@@ -8904,7 +10521,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @275
                   rightParenthesis: ) @276
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 307
             codeLength: 22
             type: int
@@ -8920,7 +10537,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @358
                   rightParenthesis: ) @359
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 351
             codeLength: 56
             type: int
@@ -8936,7 +10553,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @358
                   rightParenthesis: ) @359
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 409
             codeLength: 24
             type: int
@@ -9013,8 +10630,7 @@ library
               requiredPositional _commentAroundAnnotation2 @-1
                 type: int
             returnType: void
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_function() async {
@@ -9043,9 +10659,8 @@ void commentThenAnnotation() {}
 /// Comment 2.
 void commentAroundAnnotation() {}
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     functions
@@ -9069,7 +10684,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @77
               rightParenthesis: ) @78
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 70
         codeLength: 33
         returnType: void
@@ -9085,7 +10700,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @112
               rightParenthesis: ) @113
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 105
         codeLength: 71
         returnType: void
@@ -9101,7 +10716,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @215
               rightParenthesis: ) @216
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 178
         codeLength: 71
         returnType: void
@@ -9117,12 +10732,11 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @273
               rightParenthesis: ) @274
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 266
         codeLength: 58
         returnType: void
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_functionTypeAlias() async {
@@ -9151,9 +10765,8 @@ typedef CommentThenAnnotation();
 /// Comment 2.
 typedef CommentAroundAnnotation();
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     typeAliases
@@ -9181,7 +10794,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @79
               rightParenthesis: ) @80
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 72
         codeLength: 34
         aliasedType: dynamic Function()
@@ -9199,7 +10812,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @115
               rightParenthesis: ) @116
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 108
         codeLength: 72
         aliasedType: dynamic Function()
@@ -9217,7 +10830,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @219
               rightParenthesis: ) @220
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 182
         codeLength: 72
         aliasedType: dynamic Function()
@@ -9235,14 +10848,13 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @278
               rightParenthesis: ) @279
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 271
         codeLength: 59
         aliasedType: dynamic Function()
         aliasedElement: GenericFunctionTypeElement
           returnType: dynamic
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_genericTypeAlias() async {
@@ -9271,9 +10883,8 @@ typedef CommentThenAnnotation = Function();
 /// Comment 2.
 typedef CommentAroundAnnotation = Function();
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     typeAliases
@@ -9301,7 +10912,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @101
               rightParenthesis: ) @102
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 94
         codeLength: 45
         aliasedType: dynamic Function()
@@ -9319,7 +10930,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @148
               rightParenthesis: ) @149
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 141
         codeLength: 83
         aliasedType: dynamic Function()
@@ -9337,7 +10948,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @263
               rightParenthesis: ) @264
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 226
         codeLength: 83
         aliasedType: dynamic Function()
@@ -9355,14 +10966,13 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @333
               rightParenthesis: ) @334
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 326
         codeLength: 70
         aliasedType: dynamic Function()
         aliasedElement: GenericFunctionTypeElement
           returnType: dynamic
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_method() async {
@@ -9393,9 +11003,8 @@ class C {
   void commentAroundAnnotation() {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -9425,7 +11034,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @97
                   rightParenthesis: ) @98
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 90
             codeLength: 35
             returnType: void
@@ -9441,7 +11050,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @136
                   rightParenthesis: ) @137
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 129
             codeLength: 77
             returnType: void
@@ -9457,7 +11066,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @251
                   rightParenthesis: ) @252
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 210
             codeLength: 77
             returnType: void
@@ -9473,34 +11082,42 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @315
                   rightParenthesis: ) @316
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 308
             codeLength: 62
             returnType: void
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_parameter() async {
     var library = await buildLibrary('''
 main({int a = 1, int b, int c = 2}) {}
 ''');
+    configuration.withCodeRanges = true;
     checkElementText(library, r'''
 library
   definingUnit
     functions
       main @0
+        codeOffset: 0
+        codeLength: 38
         parameters
           optionalNamed a @10
             type: int
+            codeOffset: 6
+            codeLength: 9
             constantInitializer
               IntegerLiteral
                 literal: 1 @14
                 staticType: int
           optionalNamed b @21
             type: int
+            codeOffset: 17
+            codeLength: 5
           optionalNamed c @28
             type: int
+            codeOffset: 24
+            codeLength: 9
             constantInitializer
               IntegerLiteral
                 literal: 2 @32
@@ -9513,11 +11130,14 @@ library
     var library = await buildLibrary('''
 main(@Object() int a, int b, @Object() int c) {}
 ''');
+    configuration.withCodeRanges = true;
     checkElementText(library, r'''
 library
   definingUnit
     functions
       main @0
+        codeOffset: 0
+        codeLength: 48
         parameters
           requiredPositional a @19
             type: int
@@ -9531,9 +11151,13 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @12
                   rightParenthesis: ) @13
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
+            codeOffset: 5
+            codeLength: 15
           requiredPositional b @26
             type: int
+            codeOffset: 22
+            codeLength: 5
           requiredPositional c @43
             type: int
             metadata
@@ -9546,7 +11170,9 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @36
                   rightParenthesis: ) @37
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
+            codeOffset: 29
+            codeLength: 15
         returnType: dynamic
 ''');
   }
@@ -9559,9 +11185,8 @@ int withoutInit;
 
 int multiWithInit = 2, multiWithoutInit, multiWithInit2 = 3;
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     topLevelVariables
@@ -9621,8 +11246,7 @@ library
           requiredPositional _multiWithInit2 @-1
             type: int
         returnType: void
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_topLevelVariable_annotations() async {
@@ -9649,9 +11273,8 @@ int commentThenAnnotation, commentThenAnnotation2;
 /// Comment 2.
 int commentAroundAnnotation, commentAroundAnnotation2;
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     topLevelVariables
@@ -9676,7 +11299,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @73
               rightParenthesis: ) @74
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 66
         codeLength: 27
         type: int
@@ -9691,7 +11314,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @73
               rightParenthesis: ) @74
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 95
         codeLength: 14
         type: int
@@ -9707,7 +11330,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @119
               rightParenthesis: ) @120
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 112
         codeLength: 65
         type: int
@@ -9723,7 +11346,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @119
               rightParenthesis: ) @120
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 179
         codeLength: 22
         type: int
@@ -9739,7 +11362,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @241
               rightParenthesis: ) @242
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 204
         codeLength: 65
         type: int
@@ -9755,7 +11378,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @241
               rightParenthesis: ) @242
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 271
         codeLength: 22
         type: int
@@ -9771,7 +11394,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @318
               rightParenthesis: ) @319
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 311
         codeLength: 52
         type: int
@@ -9787,7 +11410,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @318
               rightParenthesis: ) @319
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 365
         codeLength: 24
         type: int
@@ -9862,8 +11485,7 @@ library
           requiredPositional _commentAroundAnnotation2 @-1
             type: int
         returnType: void
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_codeRange_type_parameter() async {
@@ -9871,9 +11493,8 @@ library
 class A<T> {}
 void f<U extends num> {}
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -9897,8 +11518,7 @@ library
             codeLength: 13
             bound: num
         returnType: void
-''',
-        withCodeRanges: true);
+''');
   }
 
   test_compilationUnit_nnbd_disabled_via_dart_directive() async {
@@ -10150,7 +11770,7 @@ library
                   staticType: null
                 type: C<int>
               staticElement: ConstructorMember
-                base: self::@class::C::@constructor::•
+                base: self::@class::C::@constructor::new
                 substitution: {T: int}
             argumentList: ArgumentList
               leftParenthesis: ( @96
@@ -10196,16 +11816,14 @@ library
       synthetic static get y @-1
         returnType: Object
 ''');
-    var x = library.definingCompilationUnit.topLevelVariables[0]
-        as TopLevelVariableElementImpl;
+    var x = library.definingCompilationUnit.topLevelVariables[0];
     var xExpr = x.constantInitializer as InstanceCreationExpression;
     var xType = xExpr.constructorName.staticElement!.returnType;
     _assertTypeStr(
       xType,
       'C<int>',
     );
-    var y = library.definingCompilationUnit.topLevelVariables[0]
-        as TopLevelVariableElementImpl;
+    var y = library.definingCompilationUnit.topLevelVariables[0];
     var yExpr = y.constantInitializer as InstanceCreationExpression;
     var yType = yExpr.constructorName.staticElement!.returnType;
     _assertTypeStr(yType, 'C<int>');
@@ -10450,7 +12068,7 @@ library
         constructors
           const @64
             superConstructor: ConstructorMember
-              base: self::@class::P::@constructor::•
+              base: self::@class::P::@constructor::new
               substitution: {T: T}
       class P2 @79
         typeParameters
@@ -10460,7 +12078,7 @@ library
         constructors
           const @108
             superConstructor: ConstructorMember
-              base: self::@class::P::@constructor::•
+              base: self::@class::P::@constructor::new
               substitution: {T: T}
     topLevelVariables
       static const values @131
@@ -10478,7 +12096,7 @@ library
                       staticType: null
                     type: P1<dynamic>
                   staticElement: ConstructorMember
-                    base: self::@class::P1::@constructor::•
+                    base: self::@class::P1::@constructor::new
                     substitution: {T: dynamic}
                 argumentList: ArgumentList
                   leftParenthesis: ( @146
@@ -10503,7 +12121,7 @@ library
                       rightBracket: > @158
                     type: P2<int>
                   staticElement: ConstructorMember
-                    base: self::@class::P2::@constructor::•
+                    base: self::@class::P2::@constructor::new
                     substitution: {T: int}
                 argumentList: ArgumentList
                   leftParenthesis: ( @159
@@ -10999,7 +12617,7 @@ library
                   staticType: null
                 type: C<dynamic, dynamic>
               staticElement: ConstructorMember
-                base: self::@class::C::@constructor::•
+                base: self::@class::C::@constructor::new
                 substitution: {K: dynamic, V: dynamic}
             argumentList: ArgumentList
               leftParenthesis: ( @48
@@ -11060,7 +12678,7 @@ library
                   rightBracket: > @60
                 type: C<int, String>
               staticElement: ConstructorMember
-                base: self::@class::C::@constructor::•
+                base: self::@class::C::@constructor::new
                 substitution: {K: int, V: String}
             argumentList: ArgumentList
               leftParenthesis: ( @61
@@ -11117,7 +12735,7 @@ library
                   rightBracket: > @46
                 type: C<int, String>
               staticElement: ConstructorMember
-                base: package:test/a.dart::@class::C::@constructor::•
+                base: package:test/a.dart::@class::C::@constructor::new
                 substitution: {K: int, V: String}
             argumentList: ArgumentList
               leftParenthesis: ( @47
@@ -11182,7 +12800,7 @@ library
                   rightBracket: > @53
                 type: C<int, String>
               staticElement: ConstructorMember
-                base: package:test/a.dart::@class::C::@constructor::•
+                base: package:test/a.dart::@class::C::@constructor::new
                 substitution: {K: int, V: String}
             argumentList: ArgumentList
               leftParenthesis: ( @54
@@ -11669,7 +13287,7 @@ library
                   staticElement: self::@class::C
                   staticType: null
                 type: C
-              staticElement: self::@class::C::@constructor::•
+              staticElement: self::@class::C::@constructor::new
             argumentList: ArgumentList
               leftParenthesis: ( @42
               rightParenthesis: ) @43
@@ -11708,7 +13326,7 @@ library
                   staticElement: package:test/a.dart::@class::C
                   staticType: null
                 type: C
-              staticElement: package:test/a.dart::@class::C::@constructor::•
+              staticElement: package:test/a.dart::@class::C::@constructor::new
             argumentList: ArgumentList
               leftParenthesis: ( @34
               rightParenthesis: ) @35
@@ -11755,7 +13373,7 @@ library
                   staticElement: package:test/a.dart::@class::C
                   staticType: null
                 type: C
-              staticElement: package:test/a.dart::@class::C::@constructor::•
+              staticElement: package:test/a.dart::@class::C::@constructor::new
             argumentList: ArgumentList
               leftParenthesis: ( @41
               rightParenthesis: ) @42
@@ -13148,6 +14766,99 @@ library
 ''');
   }
 
+  void test_const_recordLiteral() async {
+    var library = await buildLibrary('''
+const a = 0;
+const b = (a, a: a);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @10
+            staticType: int
+      static const b @19
+        type: (int, {int a})
+        constantInitializer
+          RecordLiteral
+            leftParenthesis: ( @23
+            fields
+              SimpleIdentifier
+                token: a @24
+                staticElement: self::@getter::a
+                staticType: int
+              NamedExpression
+                name: Label
+                  label: SimpleIdentifier
+                    token: a @27
+                    staticElement: <null>
+                    staticType: null
+                  colon: : @28
+                expression: SimpleIdentifier
+                  token: a @30
+                  staticElement: self::@getter::a
+                  staticType: int
+            rightParenthesis: ) @31
+            staticType: (int, {int a})
+    accessors
+      synthetic static get a @-1
+        returnType: int
+      synthetic static get b @-1
+        returnType: (int, {int a})
+''');
+  }
+
+  void test_const_recordLiteral_explicitConst() async {
+    var library = await buildLibrary('''
+const a = 0;
+const b = const (a, a: a);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @10
+            staticType: int
+      static const b @19
+        type: (int, {int a})
+        constantInitializer
+          RecordLiteral
+            constKeyword: const @23
+            leftParenthesis: ( @29
+            fields
+              SimpleIdentifier
+                token: a @30
+                staticElement: self::@getter::a
+                staticType: int
+              NamedExpression
+                name: Label
+                  label: SimpleIdentifier
+                    token: a @33
+                    staticElement: <null>
+                    staticType: null
+                  colon: : @34
+                expression: SimpleIdentifier
+                  token: a @36
+                  staticElement: self::@getter::a
+                  staticType: int
+            rightParenthesis: ) @37
+            staticType: (int, {int a})
+    accessors
+      synthetic static get a @-1
+        returnType: int
+      synthetic static get b @-1
+        returnType: (int, {int a})
+''');
+  }
+
   test_const_reference_staticField() async {
     var library = await buildLibrary(r'''
 class C {
@@ -13719,7 +15430,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -13735,7 +15446,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -13751,7 +15462,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -14875,11 +16586,11 @@ library
           SymbolLiteral
             poundSign: # @382
             components
-              components: aaa
+              aaa
                 offset: 383
-              components: bbb
+              bbb
                 offset: 387
-              components: ccc
+              ccc
                 offset: 391
     accessors
       synthetic static get vNull @-1
@@ -15990,7 +17701,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -16006,7 +17717,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -16022,7 +17733,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -16098,7 +17809,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -16381,7 +18092,7 @@ library
                           rightBracket: > @71
                         type: A<dynamic Function()>
                       staticElement: ConstructorMember
-                        base: self::@class::A::@constructor::•
+                        base: self::@class::A::@constructor::new
                         substitution: {T: dynamic Function()}
                     argumentList: ArgumentList
                       leftParenthesis: ( @72
@@ -16460,6 +18171,148 @@ library
 ''');
   }
 
+  test_defaultValue_recordLiteral_named() async {
+    var library = await buildLibrary('''
+void f({({int f1, bool f2}) x = (f1: 1, f2: true)}) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          optionalNamed x @28
+            type: ({int f1, bool f2})
+            constantInitializer
+              RecordLiteral
+                leftParenthesis: ( @32
+                fields
+                  NamedExpression
+                    name: Label
+                      label: SimpleIdentifier
+                        token: f1 @33
+                        staticElement: <null>
+                        staticType: null
+                      colon: : @35
+                    expression: IntegerLiteral
+                      literal: 1 @37
+                      staticType: int
+                  NamedExpression
+                    name: Label
+                      label: SimpleIdentifier
+                        token: f2 @40
+                        staticElement: <null>
+                        staticType: null
+                      colon: : @42
+                    expression: BooleanLiteral
+                      literal: true @44
+                      staticType: bool
+                rightParenthesis: ) @48
+                staticType: ({int f1, bool f2})
+        returnType: void
+''');
+  }
+
+  test_defaultValue_recordLiteral_named_const() async {
+    var library = await buildLibrary('''
+void f({({int f1, bool f2}) x = const (f1: 1, f2: true)}) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          optionalNamed x @28
+            type: ({int f1, bool f2})
+            constantInitializer
+              RecordLiteral
+                constKeyword: const @32
+                leftParenthesis: ( @38
+                fields
+                  NamedExpression
+                    name: Label
+                      label: SimpleIdentifier
+                        token: f1 @39
+                        staticElement: <null>
+                        staticType: null
+                      colon: : @41
+                    expression: IntegerLiteral
+                      literal: 1 @43
+                      staticType: int
+                  NamedExpression
+                    name: Label
+                      label: SimpleIdentifier
+                        token: f2 @46
+                        staticElement: <null>
+                        staticType: null
+                      colon: : @48
+                    expression: BooleanLiteral
+                      literal: true @50
+                      staticType: bool
+                rightParenthesis: ) @54
+                staticType: ({int f1, bool f2})
+        returnType: void
+''');
+  }
+
+  test_defaultValue_recordLiteral_positional() async {
+    var library = await buildLibrary('''
+void f({(int, bool) x = (1, true)}) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          optionalNamed x @20
+            type: (int, bool)
+            constantInitializer
+              RecordLiteral
+                leftParenthesis: ( @24
+                fields
+                  IntegerLiteral
+                    literal: 1 @25
+                    staticType: int
+                  BooleanLiteral
+                    literal: true @28
+                    staticType: bool
+                rightParenthesis: ) @32
+                staticType: (int, bool)
+        returnType: void
+''');
+  }
+
+  void test_defaultValue_recordLiteral_positional_const() async {
+    var library = await buildLibrary('''
+void f({(int, bool) x = const (1, true)}) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          optionalNamed x @20
+            type: (int, bool)
+            constantInitializer
+              RecordLiteral
+                constKeyword: const @24
+                leftParenthesis: ( @30
+                fields
+                  IntegerLiteral
+                    literal: 1 @31
+                    staticType: int
+                  BooleanLiteral
+                    literal: true @34
+                    staticType: bool
+                rightParenthesis: ) @38
+                staticType: (int, bool)
+        returnType: void
+''');
+  }
+
   test_defaultValue_refersToExtension_method_inside() async {
     var library = await buildLibrary('''
 class A {}
@@ -16534,7 +18387,7 @@ library
                           staticType: null
                         type: B<int, double>
                       staticElement: ConstructorMember
-                        base: self::@class::B::@constructor::•
+                        base: self::@class::B::@constructor::new
                         substitution: {T1: int, T2: double}
                     argumentList: ArgumentList
                       leftParenthesis: ( @81
@@ -16583,7 +18436,7 @@ library
                           staticType: null
                         type: B<Never>
                       staticElement: ConstructorMember
-                        base: self::@class::B::@constructor::•
+                        base: self::@class::B::@constructor::new
                         substitution: {T: Never}
                     argumentList: ArgumentList
                       leftParenthesis: ( @68
@@ -16642,7 +18495,7 @@ library
                           staticType: null
                         type: B<Never>
                       staticElement: ConstructorMember
-                        base: self::@class::B::@constructor::•
+                        base: self::@class::B::@constructor::new
                         substitution: {T: Never}
                     argumentList: ArgumentList
                       leftParenthesis: ( @133
@@ -16702,7 +18555,7 @@ library
                           staticType: null
                         type: B<Null*>*
                       staticElement: ConstructorMember
-                        base: self::@class::B::@constructor::•
+                        base: self::@class::B::@constructor::new
                         substitution: {T: Null*}
                     argumentList: ArgumentList
                       leftParenthesis: ( @148
@@ -16751,7 +18604,7 @@ library
                           staticType: null
                         type: B<Null*>*
                       staticElement: ConstructorMember
-                        base: self::@class::B::@constructor::•
+                        base: self::@class::B::@constructor::new
                         substitution: {T: Null*}
                     argumentList: ArgumentList
                       leftParenthesis: ( @83
@@ -16795,7 +18648,7 @@ library
                       staticType: null
                     type: B<Never>
                   staticElement: ConstructorMember
-                    base: self::@class::B::@constructor::•
+                    base: self::@class::B::@constructor::new
                     substitution: {T: Never}
                 argumentList: ArgumentList
                   leftParenthesis: ( @57
@@ -16845,7 +18698,7 @@ library
                           staticType: null
                         type: B<Never>
                       staticElement: ConstructorMember
-                        base: self::@class::B::@constructor::•
+                        base: self::@class::B::@constructor::new
                         substitution: {T: Never}
                     argumentList: ArgumentList
                       leftParenthesis: ( @69
@@ -16900,7 +18753,7 @@ library
                           staticType: null
                         type: B<Never, Never>
                       staticElement: ConstructorMember
-                        base: self::@class::B::@constructor::•
+                        base: self::@class::B::@constructor::new
                         substitution: {T1: Never, T2: Never}
                     argumentList: ArgumentList
                       leftParenthesis: ( @84
@@ -16951,7 +18804,7 @@ library
                           staticType: null
                         type: B<Never>
                       staticElement: ConstructorMember
-                        base: self::@class::B::@constructor::•
+                        base: self::@class::B::@constructor::new
                         substitution: {T: Never}
                     argumentList: ArgumentList
                       leftParenthesis: ( @69
@@ -17039,8 +18892,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::A::@constructor::•
-            superConstructor: self::@class::A::@constructor::•
+                staticElement: self::@class::A::@constructor::new
+            superConstructor: self::@class::A::@constructor::new
       class alias X @48
         supertype: B
         mixins
@@ -17053,8 +18906,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::B::@constructor::•
-            superConstructor: self::@class::B::@constructor::•
+                staticElement: self::@class::B::@constructor::new
+            superConstructor: self::@class::B::@constructor::new
     mixins
       mixin M @68
         superclassConstraints
@@ -17085,7 +18938,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -17101,7 +18954,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -17145,7 +18998,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -17161,7 +19014,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -17177,7 +19030,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -17454,7 +19307,7 @@ library
                       staticType: null
                     type: E<int>
                   staticElement: ConstructorMember
-                    base: self::@enum::E::@constructor::•
+                    base: self::@enum::E::@constructor::new
                     substitution: {T: int}
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -17476,7 +19329,7 @@ library
                       staticType: null
                     type: E<String>
                   staticElement: ConstructorMember
-                    base: self::@enum::E::@constructor::•
+                    base: self::@enum::E::@constructor::new
                     substitution: {T: String}
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -17541,7 +19394,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -17607,7 +19460,7 @@ library
                       rightBracket: > @22
                     type: E<double>
                   staticElement: ConstructorMember
-                    base: self::@enum::E::@constructor::•
+                    base: self::@enum::E::@constructor::new
                     substitution: {T: double}
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -17666,7 +19519,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -17718,7 +19571,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -17773,7 +19626,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -17826,7 +19679,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -17891,7 +19744,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -17955,7 +19808,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -18012,7 +19865,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -18085,7 +19938,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -18146,7 +19999,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -18207,7 +20060,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -18333,7 +20186,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   arguments
@@ -18397,7 +20250,7 @@ library
                       staticType: null
                     type: E<dynamic>
                   staticElement: ConstructorMember
-                    base: self::@enum::E::@constructor::•
+                    base: self::@enum::E::@constructor::new
                     substitution: {T: dynamic}
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -18429,7 +20282,7 @@ library
                 condition: IsExpression
                   expression: SimpleIdentifier
                     token: a @57
-                    staticElement: self::@enum::E::@constructor::•::@parameter::a
+                    staticElement: self::@enum::E::@constructor::new::@parameter::a
                     staticType: T?
                   isOperator: is @59
                   type: NamedType
@@ -18485,7 +20338,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -18537,7 +20390,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -18572,6 +20425,30 @@ library
 ''');
   }
 
+  test_enum_field_isPromotable() async {
+    var library = await buildLibrary(r'''
+enum E {
+  v(null);
+  final int? _foo;
+  E(this._foo);
+}
+''');
+    configuration.forPromotableFields(
+      enumNames: {'E'},
+      fieldNames: {'_foo'},
+    );
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          final promotable _foo @33
+            type: int?
+''');
+  }
+
   test_enum_getter() async {
     var library = await buildLibrary(r'''
 enum E{
@@ -18597,7 +20474,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -18659,7 +20536,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -18724,7 +20601,7 @@ library
                       staticType: null
                     type: E<dynamic>
                   staticElement: ConstructorMember
-                    base: self::@enum::E::@constructor::•
+                    base: self::@enum::E::@constructor::new
                     substitution: {U: dynamic}
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -18788,7 +20665,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -18844,7 +20721,7 @@ library
                       staticType: null
                     type: E<dynamic>
                   staticElement: ConstructorMember
-                    base: self::@enum::E::@constructor::•
+                    base: self::@enum::E::@constructor::new
                     substitution: {T: dynamic}
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -18907,7 +20784,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -18964,7 +20841,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19024,7 +20901,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19089,7 +20966,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19151,7 +21028,7 @@ library
                       staticType: null
                     type: E<dynamic>
                   staticElement: ConstructorMember
-                    base: self::@enum::E::@constructor::•
+                    base: self::@enum::E::@constructor::new
                     substitution: {T: dynamic}
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -19211,7 +21088,7 @@ library
                       staticType: null
                     type: E<num, num>
                   staticElement: ConstructorMember
-                    base: self::@enum::E::@constructor::•
+                    base: self::@enum::E::@constructor::new
                     substitution: {T: num, U: num}
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -19484,7 +21361,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19501,7 +21378,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19576,7 +21453,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19601,7 +21478,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19664,7 +21541,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19680,7 +21557,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19733,7 +21610,7 @@ library
                       staticElement: self::@enum::E1
                       staticType: null
                     type: E1
-                  staticElement: self::@enum::E1::@constructor::•
+                  staticElement: self::@enum::E1::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19771,7 +21648,7 @@ library
                       staticElement: self::@enum::E2
                       staticType: null
                     type: E2
-                  staticElement: self::@enum::E2::@constructor::•
+                  staticElement: self::@enum::E2::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19860,7 +21737,7 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: dart:core::@class::Object::@constructor::•
+                staticElement: dart:core::@class::Object::@constructor::new
     enums
       enum E @5
         supertype: Enum
@@ -19876,7 +21753,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19892,7 +21769,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19908,7 +21785,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19976,19 +21853,17 @@ library
   test_export_class() async {
     addSource('$testPackageLibPath/a.dart', 'class C {}');
     var library = await buildLibrary('export "a.dart";');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
   exportNamespace
     C: package:test/a.dart;C
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_class_type_alias() async {
@@ -19998,19 +21873,17 @@ class _D {}
 class _E {}
 ''');
     var library = await buildLibrary('export "a.dart";');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
   exportNamespace
     C: package:test/a.dart;C
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_configurations_useDefault() async {
@@ -20025,20 +21898,19 @@ export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/foo.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/foo.dart::@unit::package:test/foo.dart::@class::A
+    exported[(0, 0)] root::package:test/foo.dart::@unit::package:test/foo.dart::@class::A
   exportNamespace
     A: package:test/foo.dart;A
-''',
-        withExportScope: true);
-    expect(library.exports[0].exportedLibrary!.source.shortName, 'foo.dart');
+''');
+    expect(library.libraryExports[0].exportedLibrary!.source.shortName,
+        'foo.dart');
   }
 
   test_export_configurations_useFirst() async {
@@ -20054,20 +21926,19 @@ export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/foo_io.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/foo_io.dart::@unit::package:test/foo_io.dart::@class::A
+    exported[(0, 0)] root::package:test/foo_io.dart::@unit::package:test/foo_io.dart::@class::A
   exportNamespace
     A: package:test/foo_io.dart;A
-''',
-        withExportScope: true);
-    expect(library.exports[0].exportedLibrary!.source.shortName, 'foo_io.dart');
+''');
+    expect(library.libraryExports[0].exportedLibrary!.source.shortName,
+        'foo_io.dart');
   }
 
   test_export_configurations_useSecond() async {
@@ -20083,20 +21954,18 @@ export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/foo_html.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/foo_html.dart::@unit::package:test/foo_html.dart::@class::A
+    exported[(0, 0)] root::package:test/foo_html.dart::@unit::package:test/foo_html.dart::@class::A
   exportNamespace
     A: package:test/foo_html.dart;A
-''',
-        withExportScope: true);
-    ExportElement export = library.exports[0];
+''');
+    final export = library.libraryExports[0];
     expect(export.exportedLibrary!.source.shortName, 'foo_html.dart');
   }
 
@@ -20110,9 +21979,8 @@ class A {}
 export 'a.dart';
 class X {}
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
@@ -20122,31 +21990,28 @@ library
         constructors
           synthetic @-1
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
     declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
   exportNamespace
     A: package:test/a.dart;A
     X: package:test/test.dart;X
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_function() async {
     addSource('$testPackageLibPath/a.dart', 'f() {}');
     var library = await buildLibrary('export "a.dart";');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@function::f
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@function::f
   exportNamespace
     f: package:test/a.dart;f
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_getter() async {
@@ -20170,9 +22035,8 @@ class D {}
     var library = await buildLibrary(r'''
 export 'a.dart' hide A, C;
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
@@ -20180,13 +22044,12 @@ library
         hide: A, C
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::B
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::D
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::B
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::D
   exportNamespace
     B: package:test/a.dart;B
     D: package:test/a.dart;D
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_multiple_combinators() async {
@@ -20199,9 +22062,8 @@ class D {}
     var library = await buildLibrary(r'''
 export 'a.dart' hide A show C;
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
@@ -20210,11 +22072,10 @@ library
         show: C
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
   exportNamespace
     C: package:test/a.dart;C
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_reexport() async {
@@ -20237,9 +22098,9 @@ export 'b.dart';
 export 'c.dart';
 class X {}
 ''');
-    checkElementText(
-        library,
-        r'''
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/b.dart
@@ -20250,35 +22111,32 @@ library
         constructors
           synthetic @-1
   exportedReferences
-    exported[0, 1] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
-    exported[0] root::package:test/b.dart::@unit::package:test/b.dart::@class::B
-    exported[1] root::package:test/c.dart::@unit::package:test/c.dart::@class::C
+    exported[(0, 0), (0, 1)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
+    exported[(0, 0)] root::package:test/b.dart::@unit::package:test/b.dart::@class::B
+    exported[(0, 1)] root::package:test/c.dart::@unit::package:test/c.dart::@class::C
     declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
   exportNamespace
     A: package:test/a.dart;A
     B: package:test/b.dart;B
     C: package:test/c.dart;C
     X: package:test/test.dart;X
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_setter() async {
     addSource('$testPackageLibPath/a.dart', 'void set f(value) {}');
     var library = await buildLibrary('export "a.dart";');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@setter::f
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@setter::f
   exportNamespace
     f=: package:test/a.dart;f=
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_show() async {
@@ -20291,9 +22149,8 @@ class D {}
     var library = await buildLibrary(r'''
 export 'a.dart' show A, C;
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
@@ -20301,13 +22158,12 @@ library
         show: A, C
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
   exportNamespace
     A: package:test/a.dart;A
     C: package:test/a.dart;C
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_show_getter_setter() async {
@@ -20316,9 +22172,8 @@ get f => null;
 void set f(value) {}
 ''');
     var library = await buildLibrary('export "a.dart" show f;');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
@@ -20326,94 +22181,87 @@ library
         show: f
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@getter::f
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@setter::f
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@getter::f
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@setter::f
   exportNamespace
     f: package:test/a.dart;f?
     f=: package:test/a.dart;f=
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_typedef() async {
     addSource('$testPackageLibPath/a.dart', 'typedef F();');
     var library = await buildLibrary('export "a.dart";');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@typeAlias::F
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@typeAlias::F
   exportNamespace
     F: package:test/a.dart;F
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_uri() async {
     var library = await buildLibrary('''
 export 'foo.dart';
 ''');
-    expect(library.exports[0].uri, 'foo.dart');
+
+    final uri = library.libraryExports[0].uri as DirectiveUriWithLibrary;
+    expect(uri.relativeUriString, 'foo.dart');
   }
 
   test_export_variable() async {
     addSource('$testPackageLibPath/a.dart', 'var x;');
     var library = await buildLibrary('export "a.dart";');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@setter::x
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@setter::x
   exportNamespace
     x: package:test/a.dart;x?
     x=: package:test/a.dart;x=
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_variable_const() async {
     addSource('$testPackageLibPath/a.dart', 'const x = 0;');
     var library = await buildLibrary('export "a.dart";');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
   exportNamespace
     x: package:test/a.dart;x?
-''',
-        withExportScope: true);
+''');
   }
 
   test_export_variable_final() async {
     addSource('$testPackageLibPath/a.dart', 'final x = 0;');
     var library = await buildLibrary('export "a.dart";');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
   exportNamespace
     x: package:test/a.dart;x?
-''',
-        withExportScope: true);
+''');
   }
 
   test_exportImport_configurations_useDefault() async {
@@ -20442,9 +22290,9 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: package:test/foo.dart::@class::A::@constructor::•
+            superConstructor: package:test/foo.dart::@class::A::@constructor::new
 ''');
-    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
+    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo.dart');
   }
 
@@ -20475,9 +22323,9 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: package:test/foo_io.dart::@class::A::@constructor::•
+            superConstructor: package:test/foo_io.dart::@class::A::@constructor::new
 ''');
-    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
+    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
   }
 
@@ -20508,9 +22356,9 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: package:test/foo_html.dart::@class::A::@constructor::•
+            superConstructor: package:test/foo_html.dart::@class::A::@constructor::new
 ''');
-    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
+    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
   }
 
@@ -20518,9 +22366,8 @@ library
     addSource('$testPackageLibPath/a.dart', 'library a;');
     addSource('$testPackageLibPath/b.dart', 'library b;');
     var library = await buildLibrary('export "a.dart"; export "b.dart";');
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   exports
     package:test/a.dart
@@ -20528,8 +22375,342 @@ library
   definingUnit
   exportedReferences
   exportNamespace
-''',
-        withExportScope: true);
+''');
+  }
+
+  test_exportScope_augmentation_class() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class A {}
+''');
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class B {}
+''');
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class A @35
+            constructors
+              synthetic @-1
+  definingUnit
+    classes
+      class B @31
+        constructors
+          synthetic @-1
+  exportedReferences
+    declared root::package:test/test.dart::@augmentation::package:test/a.dart::@class::A
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::B
+  exportNamespace
+    A: package:test/test.dart;package:test/a.dart;package:test/a.dart;A
+    B: package:test/test.dart;B
+''');
+  }
+
+  test_exportScope_augmentation_export() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+class B1 {}
+class B2 {}
+''');
+    newFile('$testPackageLibPath/c.dart', r'''
+class C {}
+''');
+    newFile('$testPackageLibPath/d.dart', r'''
+library augment 'test.dart';
+export 'a.dart';
+''');
+    newFile('$testPackageLibPath/e.dart', r'''
+library augment 'test.dart';
+export 'b.dart';
+export 'c.dart';
+''');
+    var library = await buildLibrary(r'''
+import augment 'd.dart';
+import augment 'e.dart';
+class X {}
+''');
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/d.dart
+      exports
+        package:test/a.dart
+      definingUnit
+    package:test/e.dart
+      exports
+        package:test/b.dart
+        package:test/c.dart
+      definingUnit
+  definingUnit
+    classes
+      class X @56
+        constructors
+          synthetic @-1
+  exportedReferences
+    exported[(1, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
+    exported[(2, 0)] root::package:test/b.dart::@unit::package:test/b.dart::@class::B1
+    exported[(2, 0)] root::package:test/b.dart::@unit::package:test/b.dart::@class::B2
+    exported[(2, 1)] root::package:test/c.dart::@unit::package:test/c.dart::@class::C
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
+  exportNamespace
+    A: package:test/a.dart;A
+    B1: package:test/b.dart;B1
+    B2: package:test/b.dart;B2
+    C: package:test/c.dart;C
+    X: package:test/test.dart;X
+''');
+  }
+
+  test_exportScope_augmentation_export_hide() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A1 {}
+class A2 {}
+class A3 {}
+class A4 {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+export 'a.dart' hide A2, A4;
+''');
+    var library = await buildLibrary(r'''
+import augment 'b.dart';
+class X {}
+''');
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      exports
+        package:test/a.dart
+          combinators
+            hide: A2, A4
+      definingUnit
+  definingUnit
+    classes
+      class X @31
+        constructors
+          synthetic @-1
+  exportedReferences
+    exported[(1, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A1
+    exported[(1, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A3
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
+  exportNamespace
+    A1: package:test/a.dart;A1
+    A3: package:test/a.dart;A3
+    X: package:test/test.dart;X
+''');
+  }
+
+  test_exportScope_augmentation_export_show() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A1 {}
+class A2 {}
+class A3 {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+export 'a.dart' show A1, A3;
+''');
+    var library = await buildLibrary(r'''
+import augment 'b.dart';
+class X {}
+''');
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      exports
+        package:test/a.dart
+          combinators
+            show: A1, A3
+      definingUnit
+  definingUnit
+    classes
+      class X @31
+        constructors
+          synthetic @-1
+  exportedReferences
+    exported[(1, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A1
+    exported[(1, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A3
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
+  exportNamespace
+    A1: package:test/a.dart;A1
+    A3: package:test/a.dart;A3
+    X: package:test/test.dart;X
+''');
+  }
+
+  test_exportScope_augmentation_nested_class() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+import augment 'b.dart';
+class A {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+class B {}
+''');
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class C {}
+''');
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      augmentationImports
+        package:test/b.dart
+          definingUnit
+            classes
+              class B @32
+                constructors
+                  synthetic @-1
+      definingUnit
+        classes
+          class A @60
+            constructors
+              synthetic @-1
+  definingUnit
+    classes
+      class C @31
+        constructors
+          synthetic @-1
+  exportedReferences
+    declared root::package:test/test.dart::@augmentation::package:test/a.dart::@class::A
+    declared root::package:test/test.dart::@augmentation::package:test/b.dart::@class::B
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::C
+  exportNamespace
+    A: package:test/test.dart;package:test/a.dart;package:test/a.dart;A
+    B: package:test/test.dart;package:test/a.dart;package:test/b.dart;package:test/b.dart;B
+    C: package:test/test.dart;C
+''');
+  }
+
+  test_exportScope_augmentation_nested_export() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+class B {}
+''');
+    newFile('$testPackageLibPath/c.dart', r'''
+library augment 'test.dart';
+import augment 'd.dart';
+export 'a.dart';
+''');
+    newFile('$testPackageLibPath/d.dart', r'''
+library augment 'c.dart';
+export 'b.dart';
+''');
+    var library = await buildLibrary(r'''
+import augment 'c.dart';
+class X {}
+''');
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/c.dart
+      exports
+        package:test/a.dart
+      augmentationImports
+        package:test/d.dart
+          exports
+            package:test/b.dart
+          definingUnit
+      definingUnit
+  definingUnit
+    classes
+      class X @31
+        constructors
+          synthetic @-1
+  exportedReferences
+    exported[(1, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
+    exported[(2, 0)] root::package:test/b.dart::@unit::package:test/b.dart::@class::B
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
+  exportNamespace
+    A: package:test/a.dart;A
+    B: package:test/b.dart;B
+    X: package:test/test.dart;X
+''');
+  }
+
+  test_exportScope_augmentation_variable() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+int a = 0;
+''');
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        topLevelVariables
+          static a @33
+            type: int
+        accessors
+          synthetic static get a @-1
+            returnType: int
+          synthetic static set a @-1
+            parameters
+              requiredPositional _a @-1
+                type: int
+            returnType: void
+  definingUnit
+  exportedReferences
+    declared root::package:test/test.dart::@augmentation::package:test/a.dart::@getter::a
+    declared root::package:test/test.dart::@augmentation::package:test/a.dart::@setter::a
+  exportNamespace
+    a: package:test/test.dart;package:test/a.dart;package:test/a.dart;a?
+    a=: package:test/test.dart;package:test/a.dart;package:test/a.dart;a=
+''');
+  }
+
+  test_exportScope_augmentation_variable_const() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+const a = 0;
+''');
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        topLevelVariables
+          static const a @35
+            type: int
+            constantInitializer
+              IntegerLiteral
+                literal: 0 @39
+                staticType: int
+        accessors
+          synthetic static get a @-1
+            returnType: int
+  definingUnit
+  exportedReferences
+    declared root::package:test/test.dart::@augmentation::package:test/a.dart::@getter::a
+  exportNamespace
+    a: package:test/test.dart;package:test/a.dart;package:test/a.dart;a?
+''');
   }
 
   test_expr_invalid_typeParameter_asPrefix() async {
@@ -21663,10 +23844,7 @@ library
                           staticElement: dart:core::@class::String
                           staticType: null
                         type: String
-                      identifier: SimpleIdentifier
-                        token: a @52
-                        staticElement: a@52
-                        staticType: null
+                      name: a @52
                       declaredElement: a@52
                       declaredElementType: String
                     rightParenthesis: ) @53
@@ -21683,7 +23861,7 @@ library
               leftParenthesis: ( @55
               rightParenthesis: ) @56
             element: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: int Function(String)}
         constructors
           synthetic @-1
@@ -21738,10 +23916,7 @@ library
                           staticElement: dart:core::@class::String
                           staticType: null
                         type: String
-                      identifier: SimpleIdentifier
-                        token: a @52
-                        staticElement: a@52
-                        staticType: null
+                      name: a @52
                       declaredElement: a@52
                       declaredElementType: String
                     rightParenthesis: ) @53
@@ -21758,7 +23933,7 @@ library
               leftParenthesis: ( @55
               rightParenthesis: ) @56
             element: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: int Function(String)}
         type: int
     accessors
@@ -21824,10 +23999,7 @@ library
                                 staticType: null
                               question: ? @61
                               type: int?
-                            identifier: SimpleIdentifier
-                              token: a @63
-                              staticElement: a@63
-                              staticType: null
+                            name: a @63
                             declaredElement: a@63
                             declaredElementType: int?
                           declaredElement: a@63
@@ -21845,7 +24017,7 @@ library
                   rightBracket: > @66
                 type: A<String Function({int? a})>
               staticElement: ConstructorMember
-                base: self::@class::A::@constructor::•
+                base: self::@class::A::@constructor::new
                 substitution: {T: String Function({int? a})}
             argumentList: ArgumentList
               leftParenthesis: ( @67
@@ -21909,10 +24081,7 @@ library
                                 staticType: null
                               question: ? @61
                               type: int?
-                            identifier: SimpleIdentifier
-                              token: a @63
-                              staticElement: a@63
-                              staticType: null
+                            name: a @63
                             declaredElement: a@63
                             declaredElementType: int?
                           declaredElement: a@63
@@ -21930,7 +24099,7 @@ library
                   rightBracket: > @66
                 type: A<String Function([int?])>
               staticElement: ConstructorMember
-                base: self::@class::A::@constructor::•
+                base: self::@class::A::@constructor::new
                 substitution: {T: String Function([int?])}
             argumentList: ArgumentList
               leftParenthesis: ( @67
@@ -21994,10 +24163,7 @@ library
                                 staticElement: dart:core::@class::int
                                 staticType: null
                               type: int
-                            identifier: SimpleIdentifier
-                              token: a @71
-                              staticElement: a@71
-                              staticType: null
+                            name: a @71
                             declaredElement: a@71
                             declaredElementType: int
                           declaredElement: a@71
@@ -22015,7 +24181,7 @@ library
                   rightBracket: > @74
                 type: A<String Function({required int a})>
               staticElement: ConstructorMember
-                base: self::@class::A::@constructor::•
+                base: self::@class::A::@constructor::new
                 substitution: {T: String Function({required int a})}
             argumentList: ArgumentList
               leftParenthesis: ( @75
@@ -22076,10 +24242,7 @@ library
                               staticElement: dart:core::@class::int
                               staticType: null
                             type: int
-                          identifier: SimpleIdentifier
-                            token: a @61
-                            staticElement: a@61
-                            staticType: null
+                          name: a @61
                           declaredElement: a@61
                           declaredElementType: int
                         rightParenthesis: ) @62
@@ -22094,7 +24257,7 @@ library
                   rightBracket: > @63
                 type: A<String Function(int)>
               staticElement: ConstructorMember
-                base: self::@class::A::@constructor::•
+                base: self::@class::A::@constructor::new
                 substitution: {T: String Function(int)}
             argumentList: ArgumentList
               leftParenthesis: ( @64
@@ -22152,9 +24315,9 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::A::@constructor::•
+                staticElement: self::@class::A::@constructor::new
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: void Function()}
     mixins
       mixin M @20
@@ -22324,7 +24487,7 @@ library
             type: int
         constructors
           synthetic @-1
-            superConstructor: self::@class::D::@constructor::•
+            superConstructor: self::@class::D::@constructor::new
         accessors
           get f @24
             returnType: int
@@ -22416,7 +24579,7 @@ library
                     ImplicitCallReference
                       expression: SimpleIdentifier
                         token: c @68
-                        staticElement: self::@class::D::@constructor::•::@parameter::c
+                        staticElement: self::@class::D::@constructor::new::@parameter::c
                         staticType: C
                       staticElement: self::@class::C::@method::call
                       staticType: void Function()
@@ -22555,9 +24718,9 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: package:test/foo.dart::@class::A::@constructor::•
+            superConstructor: package:test/foo.dart::@class::A::@constructor::new
 ''');
-    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
+    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo.dart');
   }
 
@@ -22586,9 +24749,9 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: package:test/foo_io.dart::@class::A::@constructor::•
+            superConstructor: package:test/foo_io.dart::@class::A::@constructor::new
 ''');
-    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
+    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
   }
 
@@ -22617,9 +24780,9 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: package:test/foo_io.dart::@class::A::@constructor::•
+            superConstructor: package:test/foo_io.dart::@class::A::@constructor::new
 ''');
-    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
+    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
   }
 
@@ -22648,9 +24811,9 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: package:test/foo_html.dart::@class::A::@constructor::•
+            superConstructor: package:test/foo_html.dart::@class::A::@constructor::new
 ''');
-    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
+    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
   }
 
@@ -22679,9 +24842,9 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: package:test/foo_html.dart::@class::A::@constructor::•
+            superConstructor: package:test/foo_html.dart::@class::A::@constructor::new
 ''');
-    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
+    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
   }
 
@@ -22788,7 +24951,7 @@ library
         staticType: null
       element: <null>
   imports
-    <unresolved>
+    relativeUri 'ht:'
       metadata
         Annotation
           atSign: @ @0
@@ -22832,8 +24995,8 @@ library
     addSource('$testPackageLibPath/a.dart', 'library a; class C {}');
     var library = await buildLibrary('import "a.dart" as a; a.C c;');
 
-    expect(library.imports[0].prefix!.nameOffset, 19);
-    expect(library.imports[0].prefix!.nameLength, 1);
+    final prefixElement = library.libraryImports[0].prefix!.element;
+    expect(prefixElement.nameOffset, 19);
 
     checkElementText(library, r'''
 library
@@ -22860,9 +25023,10 @@ import 'test.dart' as p;
 class C {}
 class D extends p.C {} // Prevent "unused import" warning
 ''');
-    expect(library.imports, hasLength(2));
-    expect(library.imports[0].importedLibrary!.location, library.location);
-    expect(library.imports[1].importedLibrary!.isDartCore, true);
+    expect(library.libraryImports, hasLength(2));
+    expect(
+        library.libraryImports[0].importedLibrary!.location, library.location);
+    expect(library.libraryImports[1].importedLibrary!.isDartCore, true);
     checkElementText(library, r'''
 library
   imports
@@ -22876,7 +25040,7 @@ library
         supertype: C
         constructors
           synthetic @-1
-            superConstructor: self::@class::C::@constructor::•
+            superConstructor: self::@class::C::@constructor::new
 ''');
   }
 
@@ -22920,7 +25084,7 @@ library
     var library = await buildLibrary('''
 import "dart:math" show e, pi;
 ''');
-    var import = library.imports[0];
+    var import = library.libraryImports[0];
     var combinator = import.combinators[0] as ShowElementCombinator;
     expect(combinator.offset, 19);
     expect(combinator.end, 29);
@@ -22930,7 +25094,9 @@ import "dart:math" show e, pi;
     var library = await buildLibrary('''
 import 'foo.dart';
 ''');
-    expect(library.imports[0].uri, 'foo.dart');
+
+    final uri = library.libraryImports[0].uri as DirectiveUriWithLibrary;
+    expect(uri.relativeUriString, 'foo.dart');
   }
 
   test_imports() async {
@@ -23025,7 +25191,7 @@ library
                   staticType: null
                 type: C<int>
               staticElement: ConstructorMember
-                base: self::@class::C::@constructor::•
+                base: self::@class::C::@constructor::new
                 substitution: {V: int}
             argumentList: ArgumentList
               leftParenthesis: ( @129
@@ -23094,7 +25260,7 @@ library
                   staticElement: self::@class::C
                   staticType: null
                 type: C
-              staticElement: self::@class::C::@constructor::•
+              staticElement: self::@class::C::@constructor::new
             argumentList: ArgumentList
               leftParenthesis: ( @112
               arguments
@@ -23138,7 +25304,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
       class S @40
         typeParameters
           covariant T @42
@@ -23216,7 +25382,7 @@ library
         supertype: C
         constructors
           synthetic @-1
-            superConstructor: self::@class::C::@constructor::•
+            superConstructor: self::@class::C::@constructor::new
     topLevelVariables
       static a @111
         type: A
@@ -23512,6 +25678,47 @@ library
 ''');
   }
 
+  test_inferred_type_could_not_infer() async {
+    var library = await buildLibrary(r'''
+class C<P extends num> {
+  factory C(Iterable<P> p) => C._();
+  C._();
+}
+
+var c = C([]);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant P @8
+            bound: num
+            defaultType: num
+        constructors
+          factory @35
+            parameters
+              requiredPositional p @49
+                type: Iterable<P>
+          _ @66
+            periodOffset: 65
+            nameEnd: 67
+    topLevelVariables
+      static c @78
+        typeInferenceError: couldNotInfer
+        type: C<dynamic>
+    accessors
+      synthetic static get c @-1
+        returnType: C<dynamic>
+      synthetic static set c @-1
+        parameters
+          requiredPositional _c @-1
+            type: C<dynamic>
+        returnType: void
+''');
+  }
+
   test_inferred_type_functionExpressionInvocation_oppositeOrder() async {
     var library = await buildLibrary('''
 class A {
@@ -23544,6 +25751,114 @@ library
 ''');
   }
 
+  test_inferred_type_inference_failure_on_function_invocation() async {
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        strictInference: true,
+      ),
+    );
+    var library = await buildLibrary(r'''
+int m<T>() => 1;
+var x = m();
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static x @21
+        type: int
+    accessors
+      synthetic static get x @-1
+        returnType: int
+      synthetic static set x @-1
+        parameters
+          requiredPositional _x @-1
+            type: int
+        returnType: void
+    functions
+      m @4
+        typeParameters
+          covariant T @6
+        returnType: int
+''');
+  }
+
+  test_inferred_type_inference_failure_on_generic_invocation() async {
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        strictInference: true,
+      ),
+    );
+    var library = await buildLibrary(r'''
+int Function<T>()? m = <T>() => 1;
+int Function<T>() n = <T>() => 2;
+var x = (m ?? n)();
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static m @19
+        type: int Function<T>()?
+      static n @53
+        type: int Function<T>()
+      static x @73
+        type: int
+    accessors
+      synthetic static get m @-1
+        returnType: int Function<T>()?
+      synthetic static set m @-1
+        parameters
+          requiredPositional _m @-1
+            type: int Function<T>()?
+        returnType: void
+      synthetic static get n @-1
+        returnType: int Function<T>()
+      synthetic static set n @-1
+        parameters
+          requiredPositional _n @-1
+            type: int Function<T>()
+        returnType: void
+      synthetic static get x @-1
+        returnType: int
+      synthetic static set x @-1
+        parameters
+          requiredPositional _x @-1
+            type: int
+        returnType: void
+''');
+  }
+
+  test_inferred_type_inference_failure_on_instance_creation() async {
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        strictInference: true,
+      ),
+    );
+    var library = await buildLibrary(r'''
+import 'dart:collection';
+var m = HashMap();
+''');
+    checkElementText(library, r'''
+library
+  imports
+    dart:collection
+  definingUnit
+    topLevelVariables
+      static m @30
+        typeInferenceError: inferenceFailureOnInstanceCreation
+        type: HashMap<dynamic, dynamic>
+    accessors
+      synthetic static get m @-1
+        returnType: HashMap<dynamic, dynamic>
+      synthetic static set m @-1
+        parameters
+          requiredPositional _m @-1
+            type: HashMap<dynamic, dynamic>
+        returnType: void
+''');
+  }
+
   test_inferred_type_initializer_cycle() async {
     var library = await buildLibrary(r'''
 var a = b + 1;
@@ -23557,12 +25872,15 @@ library
     topLevelVariables
       static a @4
         typeInferenceError: dependencyCycle
+          arguments: [a, b, c]
         type: dynamic
       static b @19
         typeInferenceError: dependencyCycle
+          arguments: [a, b, c]
         type: dynamic
       static c @34
         typeInferenceError: dependencyCycle
+          arguments: [a, b, c]
         type: dynamic
       static d @49
         type: int
@@ -23614,7 +25932,7 @@ library
               alias: self::@typeAlias::F
         constructors
           synthetic @-1
-            superConstructor: self::@class::D::@constructor::•
+            superConstructor: self::@class::D::@constructor::new
         accessors
           synthetic get v @-1
             returnType: int Function(String)
@@ -23771,7 +26089,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::D::@constructor::•
+              base: self::@class::D::@constructor::new
               substitution: {U: int, V: T}
         accessors
           synthetic get v @-1
@@ -23861,7 +26179,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::D::@constructor::•
+              base: self::@class::D::@constructor::new
               substitution: {V: U, W: int}
         methods
           f @41
@@ -23919,7 +26237,7 @@ library
         supertype: D
         constructors
           synthetic @-1
-            superConstructor: package:test/a.dart::@class::D::@constructor::•
+            superConstructor: package:test/a.dart::@class::D::@constructor::new
         methods
           f @44
             parameters
@@ -23942,7 +26260,7 @@ library
         supertype: D
         constructors
           synthetic @-1
-            superConstructor: self::@class::D::@constructor::•
+            superConstructor: self::@class::D::@constructor::new
         methods
           f @25
             parameters
@@ -24048,7 +26366,7 @@ library
             type: int Function(String)
         constructors
           synthetic @-1
-            superConstructor: self::@class::D::@constructor::•
+            superConstructor: self::@class::D::@constructor::new
         accessors
           set f @29
             parameters
@@ -24080,12 +26398,12 @@ class A {
   m(Stream p) {}
 }
 ''');
-    LibraryElement library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 class B extends A {
   m(p) {}
 }
-  ''');
+''');
     checkElementText(library, r'''
 library
   imports
@@ -24096,7 +26414,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: package:test/a.dart::@class::A::@constructor::•
+            superConstructor: package:test/a.dart::@class::A::@constructor::new
         methods
           m @39
             parameters
@@ -24109,10 +26427,8 @@ library
     // This test should verify that we correctly record inferred types,
     // when the type is defined in a part of an SDK library. So, test that
     // the type is actually in a part.
-    Element streamElement = p.type.element!;
-    if (streamElement is ClassElement) {
-      expect(streamElement.source, isNot(streamElement.library.source));
-    }
+    final streamElement = (p.type as InterfaceType).element;
+    expect(streamElement.source, isNot(streamElement.library.source));
   }
 
   test_inferredType_implicitCreation() async {
@@ -24284,7 +26600,7 @@ library
             type: dynamic
         constructors
           synthetic @-1
-            superConstructor: self::@class::C::@constructor::•
+            superConstructor: self::@class::C::@constructor::new
         accessors
           synthetic get f @-1
             returnType: dynamic
@@ -24486,7 +26802,7 @@ library
         supertype: LegacyDefault*
         constructors
           synthetic @-1
-            superConstructor: package:test/legacy.dart::@class::LegacyDefault::@constructor::•
+            superConstructor: package:test/legacy.dart::@class::LegacyDefault::@constructor::new
         methods
           == @86
             parameters
@@ -24497,7 +26813,7 @@ library
         supertype: LegacyObject*
         constructors
           synthetic @-1
-            superConstructor: package:test/legacy.dart::@class::LegacyObject::@constructor::•
+            superConstructor: package:test/legacy.dart::@class::LegacyObject::@constructor::new
         methods
           == @155
             parameters
@@ -24508,7 +26824,7 @@ library
         supertype: LegacyInt*
         constructors
           synthetic @-1
-            superConstructor: package:test/legacy.dart::@class::LegacyInt::@constructor::•
+            superConstructor: package:test/legacy.dart::@class::LegacyInt::@constructor::new
         methods
           == @221
             parameters
@@ -24569,7 +26885,7 @@ library
           NullSafeDefault*
         constructors
           synthetic @-1
-            superConstructor: package:test/legacy.dart::@class::LegacyDefault::@constructor::•
+            superConstructor: package:test/legacy.dart::@class::LegacyDefault::@constructor::new
         methods
           == @136
             parameters
@@ -24582,7 +26898,7 @@ library
           NullSafeObject*
         constructors
           synthetic @-1
-            superConstructor: package:test/legacy.dart::@class::LegacyObject::@constructor::•
+            superConstructor: package:test/legacy.dart::@class::LegacyObject::@constructor::new
         methods
           == @231
             parameters
@@ -24595,7 +26911,7 @@ library
           NullSafeInt*
         constructors
           synthetic @-1
-            superConstructor: package:test/legacy.dart::@class::LegacyInt::@constructor::•
+            superConstructor: package:test/legacy.dart::@class::LegacyInt::@constructor::new
         methods
           == @320
             parameters
@@ -24639,7 +26955,7 @@ library
         supertype: NullSafeDefault
         constructors
           synthetic @-1
-            superConstructor: package:test/nullSafe.dart::@class::NullSafeDefault::@constructor::•
+            superConstructor: package:test/nullSafe.dart::@class::NullSafeDefault::@constructor::new
         methods
           == @74
             parameters
@@ -24650,7 +26966,7 @@ library
         supertype: NullSafeObject
         constructors
           synthetic @-1
-            superConstructor: package:test/nullSafe.dart::@class::NullSafeObject::@constructor::•
+            superConstructor: package:test/nullSafe.dart::@class::NullSafeObject::@constructor::new
         methods
           == @145
             parameters
@@ -24661,7 +26977,7 @@ library
         supertype: NullSafeInt
         constructors
           synthetic @-1
-            superConstructor: package:test/nullSafe.dart::@class::NullSafeInt::@constructor::•
+            superConstructor: package:test/nullSafe.dart::@class::NullSafeInt::@constructor::new
         methods
           == @213
             parameters
@@ -24727,6 +27043,7 @@ library
       class B @56
         fields
           c3 @66
+            typeInferenceError: couldNotInfer
             type: C<C<Object?>>
         constructors
           synthetic @-1
@@ -24742,6 +27059,7 @@ library
       static c @29
         type: C<C<dynamic>>
       static c2 @36
+        typeInferenceError: couldNotInfer
         type: C<C<Object?>>
     accessors
       synthetic static get c @-1
@@ -24785,6 +27103,7 @@ library
       class B @71
         fields
           c3 @81
+            typeInferenceError: couldNotInfer
             type: C<C<dynamic>*>*
         constructors
           synthetic @-1
@@ -24800,6 +27119,7 @@ library
       static c @44
         type: C<C<dynamic>*>*
       static c2 @51
+        typeInferenceError: couldNotInfer
         type: C<C<dynamic>*>*
     accessors
       synthetic static get c @-1
@@ -25345,50 +27665,130 @@ library
 ''');
   }
 
-  test_invalidUris() async {
-    var library = await buildLibrary(r'''
-import ':[invaliduri]';
-import ':[invaliduri]:foo.dart';
-import 'a1.dart';
-import ':[invaliduri]';
-import ':[invaliduri]:foo.dart';
-
-export ':[invaliduri]';
-export ':[invaliduri]:foo.dart';
-export 'a2.dart';
-export ':[invaliduri]';
-export ':[invaliduri]:foo.dart';
-
-part ':[invaliduri]';
-part 'a3.dart';
-part ':[invaliduri]';
-''');
-    checkElementText(library, r'''
-library
-  imports
-    <unresolved>
-    <unresolved>
-    package:test/a1.dart
-    <unresolved>
-    <unresolved>
-  exports
-    <unresolved>
-    <unresolved>
-    package:test/a2.dart
-    <unresolved>
-    <unresolved>
-  definingUnit
-  parts
-    relativeUriString ':[invaliduri]'
-    source 'package:test/a3.dart'
-    relativeUriString ':[invaliduri]'
-''');
-  }
-
   test_library() async {
     var library = await buildLibrary('');
     checkElementText(library, r'''
 library
+  definingUnit
+''');
+  }
+
+  test_library_augmentationImports_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class A {}
+''');
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+class B {}
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class A @35
+            constructors
+              synthetic @-1
+  definingUnit
+    classes
+      class B @31
+        constructors
+          synthetic @-1
+''');
+
+    final import_0 = library.augmentationImports[0];
+    final augmentation = import_0.importedAugmentation!;
+    expect(augmentation.enclosingElement, same(library));
+  }
+
+  test_library_augmentationImports_noRelativeUriStr() async {
+    final library = await buildLibrary(r'''
+import augment '${'foo'}.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    noRelativeUriString
+  definingUnit
+''');
+  }
+
+  test_library_augmentationImports_withRelativeUri_emptyUriSelf() async {
+    final library = await buildLibrary(r'''
+import augment '';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    source 'package:test/test.dart'
+  definingUnit
+''');
+  }
+
+  test_library_augmentationImports_withRelativeUri_noSource() async {
+    final library = await buildLibrary(r'''
+import augment 'foo:bar';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    relativeUri 'foo:bar'
+  definingUnit
+''');
+  }
+
+  test_library_augmentationImports_withRelativeUri_notAugmentation_library() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library my.lib;
+''');
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    source 'package:test/a.dart'
+  definingUnit
+''');
+  }
+
+  test_library_augmentationImports_withRelativeUri_notAugmentation_part() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of other.lib;
+''');
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    source 'package:test/a.dart'
+  definingUnit
+''');
+  }
+
+  test_library_augmentationImports_withRelativeUri_notExists() async {
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    source 'package:test/a.dart'
+  definingUnit
+''');
+  }
+
+  test_library_augmentationImports_withRelativeUriString() async {
+    final library = await buildLibrary(r'''
+import augment ':';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    relativeUriString ':'
   definingUnit
 ''');
   }
@@ -25420,6 +27820,209 @@ library
   name: test
   nameOffset: 30
   documentationComment: /**\n * aaa\n * bbb\n */
+  definingUnit
+''');
+  }
+
+  test_library_exports_noRelativeUriStr() async {
+    final library = await buildLibrary(r'''
+export '${'foo'}.dart';
+''');
+    checkElementText(library, r'''
+library
+  exports
+    noRelativeUriString
+  definingUnit
+''');
+  }
+
+  test_library_exports_withRelativeUri_emptyUriSelf() async {
+    final library = await buildLibrary(r'''
+export '';
+''');
+    checkElementText(library, r'''
+library
+  exports
+    package:test/test.dart
+  definingUnit
+''');
+  }
+
+  test_library_exports_withRelativeUri_noSource() async {
+    final library = await buildLibrary(r'''
+export 'foo:bar';
+''');
+    checkElementText(library, r'''
+library
+  exports
+    relativeUri 'foo:bar'
+  definingUnit
+''');
+  }
+
+  test_library_exports_withRelativeUri_notExists() async {
+    final library = await buildLibrary(r'''
+export 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  exports
+    package:test/a.dart
+  definingUnit
+''');
+  }
+
+  test_library_exports_withRelativeUri_notLibrary_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+''');
+    final library = await buildLibrary(r'''
+export 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  exports
+    source 'package:test/a.dart'
+  definingUnit
+''');
+  }
+
+  test_library_exports_withRelativeUri_notLibrary_part() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of other.lib;
+''');
+    final library = await buildLibrary(r'''
+export 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  exports
+    source 'package:test/a.dart'
+  definingUnit
+''');
+  }
+
+  test_library_exports_withRelativeUriString() async {
+    final library = await buildLibrary(r'''
+export ':';
+''');
+    checkElementText(library, r'''
+library
+  exports
+    relativeUriString ':'
+  definingUnit
+''');
+  }
+
+  test_library_imports_noRelativeUriStr() async {
+    final library = await buildLibrary(r'''
+import '${'foo'}.dart';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    noRelativeUriString
+  definingUnit
+''');
+  }
+
+  test_library_imports_prefix_importedLibraries() async {
+    final library = await buildLibrary(r'''
+import 'dart:async' as p1;
+import 'dart:collection' as p2;
+import 'dart:math' as p1;
+''');
+    final p1 = library.prefixes.singleWhere((prefix) => prefix.name == 'p1');
+    final import_async = library.libraryImports[0];
+    final import_math = library.libraryImports[2];
+    expect(p1.imports, unorderedEquals([import_async, import_math]));
+  }
+
+  test_library_imports_syntheticDartCore() async {
+    final library = await buildLibrary('');
+    configuration.withSyntheticDartCoreImport = true;
+    checkElementText(library, r'''
+library
+  imports
+    dart:core synthetic
+  definingUnit
+''');
+  }
+
+  test_library_imports_withRelativeUri_emptyUriSelf() async {
+    final library = await buildLibrary(r'''
+import '';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    package:test/test.dart
+  definingUnit
+''');
+  }
+
+  test_library_imports_withRelativeUri_noSource() async {
+    final library = await buildLibrary(r'''
+import 'foo:bar';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    relativeUri 'foo:bar'
+  definingUnit
+''');
+  }
+
+  test_library_imports_withRelativeUri_notExists() async {
+    final library = await buildLibrary(r'''
+import 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+''');
+  }
+
+  test_library_imports_withRelativeUri_notLibrary_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+''');
+    final library = await buildLibrary(r'''
+import 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    source 'package:test/a.dart'
+  definingUnit
+''');
+  }
+
+  test_library_imports_withRelativeUri_notLibrary_part() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of other.lib;
+''');
+    final library = await buildLibrary(r'''
+import 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    source 'package:test/a.dart'
+  definingUnit
+''');
+  }
+
+  test_library_imports_withRelativeUriString() async {
+    final library = await buildLibrary(r'''
+import ':';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    relativeUriString ':'
   definingUnit
 ''');
   }
@@ -25526,7 +28129,6 @@ library
   }
 
   test_library_parts_withRelativeUri_noSource() async {
-    newFile('$testPackageLibPath/a.dart', '');
     final library = await buildLibrary(r'''
 part 'foo:bar';
 ''');
@@ -25585,6 +28187,16 @@ library
   parts
     relativeUriString ':'
 ''');
+  }
+
+  test_library_prefixes() async {
+    final library = await buildLibrary(r'''
+import 'dart:async' as p1;
+import 'dart:collection' as p2;
+import 'dart:math' as p1;
+''');
+    final prefixNames = library.prefixes.map((e) => e.name).toList();
+    expect(prefixNames, unorderedEquals(['p1', 'p2']));
   }
 
   test_localFunctions() async {
@@ -25759,8 +28371,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::C::@constructor::•
-            superConstructor: self::@class::C::@constructor::•
+                staticElement: self::@class::C::@constructor::new
+            superConstructor: self::@class::C::@constructor::new
       class C @29
         constructors
           synthetic @-1
@@ -25868,6 +28480,174 @@ library
 library
   exports
     package:test/a.dart
+  definingUnit
+''');
+  }
+
+  test_metadata_augmentation_class() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+@deprecated
+class A {}
+''');
+    var library = await buildLibrary('''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class A @47
+            metadata
+              Annotation
+                atSign: @ @29
+                name: SimpleIdentifier
+                  token: deprecated @30
+                  staticElement: dart:core::@getter::deprecated
+                  staticType: null
+                element: dart:core::@getter::deprecated
+            constructors
+              synthetic @-1
+  definingUnit
+''');
+  }
+
+  test_metadata_augmentation_directive() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+@deprecated
+library augment 'test.dart';
+''');
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      metadata
+        Annotation
+          atSign: @ @0
+          name: SimpleIdentifier
+            token: deprecated @1
+            staticElement: dart:core::@getter::deprecated
+            staticType: null
+          element: dart:core::@getter::deprecated
+      definingUnit
+  definingUnit
+''');
+  }
+
+  test_metadata_augmentation_exportLibrary() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+@deprecated
+export 'dart:math';
+''');
+    var library = await buildLibrary('''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      exports
+        dart:math
+          metadata
+            Annotation
+              atSign: @ @29
+              name: SimpleIdentifier
+                token: deprecated @30
+                staticElement: dart:core::@getter::deprecated
+                staticType: null
+              element: dart:core::@getter::deprecated
+      definingUnit
+  definingUnit
+''');
+  }
+
+  test_metadata_augmentation_importAugmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'b.dart';
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+@deprecated
+import augment 'a.dart';
+''');
+    var library = await buildLibrary('''
+import augment 'b.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      augmentationImports
+        package:test/a.dart
+          metadata
+            Annotation
+              atSign: @ @29
+              name: SimpleIdentifier
+                token: deprecated @30
+                staticElement: dart:core::@getter::deprecated
+                staticType: null
+              element: dart:core::@getter::deprecated
+          definingUnit
+      definingUnit
+  definingUnit
+''');
+  }
+
+  test_metadata_augmentation_importLibrary() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+@deprecated
+import 'dart:math';
+''');
+    var library = await buildLibrary('''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      imports
+        dart:math
+          metadata
+            Annotation
+              atSign: @ @29
+              name: SimpleIdentifier
+                token: deprecated @30
+                staticElement: dart:core::@getter::deprecated
+                staticType: null
+              element: dart:core::@getter::deprecated
+      definingUnit
+  definingUnit
+''');
+  }
+
+  test_metadata_augmentation_libraryAugmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+@deprecated
+library augment 'test.dart';
+''');
+    final library = await buildLibrary('''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      metadata
+        Annotation
+          atSign: @ @0
+          name: SimpleIdentifier
+            token: deprecated @1
+            staticElement: dart:core::@getter::deprecated
+            staticType: null
+          element: dart:core::@getter::deprecated
+      definingUnit
   definingUnit
 ''');
   }
@@ -26072,8 +28852,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::D::@constructor::•
-            superConstructor: self::@class::D::@constructor::•
+                staticElement: self::@class::D::@constructor::new
+            superConstructor: self::@class::D::@constructor::new
       class D @45
         constructors
           synthetic @-1
@@ -26594,7 +29374,7 @@ library
                   literal: 0 @33
                   staticType: int
               rightParenthesis: ) @34
-            element: self::@class::A::@constructor::•
+            element: self::@class::A::@constructor::new
         constructors
           synthetic @-1
 ''');
@@ -26638,7 +29418,7 @@ library
                   staticType: int
               rightParenthesis: ) @36
             element: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: int}
         constructors
           synthetic @-1
@@ -26686,7 +29466,7 @@ library
               leftParenthesis: ( @36
               rightParenthesis: ) @37
             element: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: int}
         constructors
           synthetic @-1
@@ -26726,7 +29506,7 @@ library
                   literal: 0 @33
                   staticType: int
               rightParenthesis: ) @34
-            element: package:test/foo.dart::@class::A::@constructor::•
+            element: package:test/foo.dart::@class::A::@constructor::new
         constructors
           synthetic @-1
 ''');
@@ -26773,7 +29553,7 @@ library
                   staticType: int
               rightParenthesis: ) @34
             element: ConstructorMember
-              base: package:test/foo.dart::@class::A::@constructor::•
+              base: package:test/foo.dart::@class::A::@constructor::new
               substitution: {T: int}
         constructors
           synthetic @-1
@@ -26827,7 +29607,7 @@ library
               leftParenthesis: ( @37
               rightParenthesis: ) @38
             element: ConstructorMember
-              base: package:test/foo.dart::@class::A::@constructor::•
+              base: package:test/foo.dart::@class::A::@constructor::new
               substitution: {T: int}
         constructors
           synthetic @-1
@@ -26869,8 +29649,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::A::@constructor::•
-            superConstructor: self::@class::A::@constructor::•
+                staticElement: self::@class::A::@constructor::new
+            superConstructor: self::@class::A::@constructor::new
       class D @73
         metadata
           Annotation
@@ -26883,7 +29663,7 @@ library
               leftParenthesis: ( @64
               rightParenthesis: ) @65
             element: ConstructorMember
-              base: self::@class::C::@constructor::•
+              base: self::@class::C::@constructor::new
               substitution: {T: dynamic}
         constructors
           synthetic @-1
@@ -26922,7 +29702,7 @@ library
                   literal: null @27
                   staticType: Null
               rightParenthesis: ) @31
-            element: self::@class::A::@constructor::•
+            element: self::@class::A::@constructor::new
         constructors
           synthetic @-1
 ''');
@@ -27019,7 +29799,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -27105,7 +29885,7 @@ library
                       literal: 100 @73
                       staticType: int
                   rightParenthesis: ) @76
-                element: self::@class::A::@constructor::•
+                element: self::@class::A::@constructor::new
             type: E
             constantInitializer
               InstanceCreationExpression
@@ -27116,7 +29896,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -27132,7 +29912,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -27152,7 +29932,7 @@ library
                       literal: 300 @91
                       staticType: int
                   rightParenthesis: ) @94
-                element: self::@class::A::@constructor::•
+                element: self::@class::A::@constructor::new
             type: E
             constantInitializer
               InstanceCreationExpression
@@ -27163,7 +29943,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -27235,7 +30015,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -27289,7 +30069,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -27361,7 +30141,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -27459,7 +30239,7 @@ library
                       staticType: null
                     type: E<dynamic>
                   staticElement: ConstructorMember
-                    base: self::@enum::E::@constructor::•
+                    base: self::@enum::E::@constructor::new
                     substitution: {T: dynamic}
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -27553,7 +30333,7 @@ library
                       staticType: null
                     type: E<dynamic>
                   staticElement: ConstructorMember
-                    base: self::@enum::E::@constructor::•
+                    base: self::@enum::E::@constructor::new
                     substitution: {T: dynamic}
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -27619,7 +30399,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -27795,7 +30575,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @37
               rightParenthesis: ) @38
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         extendedType: A
     topLevelVariables
       static const a @6
@@ -28427,6 +31207,53 @@ library
           requiredPositional _ @2
             type: dynamic
         returnType: dynamic
+''');
+  }
+
+  test_metadata_library_importAugmentation_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+''');
+    var library = await buildLibrary('''
+@deprecated
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      metadata
+        Annotation
+          atSign: @ @0
+          name: SimpleIdentifier
+            token: deprecated @1
+            staticElement: dart:core::@getter::deprecated
+            staticType: null
+          element: dart:core::@getter::deprecated
+      definingUnit
+  definingUnit
+''');
+  }
+
+  /// Even though the target is not an augmentation, metadata is available.
+  test_metadata_library_importAugmentation_notAugmentation_library() async {
+    var library = await buildLibrary('''
+@deprecated
+import augment 'dart:math';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    source 'dart:math'
+      metadata
+        Annotation
+          atSign: @ @0
+          name: SimpleIdentifier
+            token: deprecated @1
+            staticElement: dart:core::@getter::deprecated
+            staticType: null
+          element: dart:core::@getter::deprecated
+  definingUnit
 ''');
   }
 
@@ -29073,8 +31900,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::A::@constructor::•
-            superConstructor: self::@class::A::@constructor::•
+                staticElement: self::@class::A::@constructor::new
+            superConstructor: self::@class::A::@constructor::new
     mixins
       mixin M @33
         superclassConstraints
@@ -29137,7 +31964,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -29153,7 +31980,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -29177,7 +32004,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -29869,7 +32696,7 @@ part 'b.dart';
 
     // The difference with the test above is that we ask the part first.
     // There was a bug that we were not loading library directives.
-    expect(library.parts2[0].metadata, isEmpty);
+    expect(library.parts[0].metadata, isEmpty);
   }
 
   test_metadata_prefixed_variable() async {
@@ -30087,8 +32914,8 @@ library
                       staticElement: self::@getter::a
                       staticType: null
                     element: self::@getter::a
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::x
-            superConstructor: self::@class::A::@constructor::•
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::x
+            superConstructor: self::@class::A::@constructor::new
     topLevelVariables
       static const a @6
         type: dynamic
@@ -30203,8 +33030,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::D::@constructor::•
-            superConstructor: self::@class::D::@constructor::•
+                staticElement: self::@class::D::@constructor::new
+            superConstructor: self::@class::D::@constructor::new
       class D @48
         constructors
           synthetic @-1
@@ -30424,7 +33251,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -30440,7 +33267,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -30456,7 +33283,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -30863,7 +33690,7 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: dart:core::@class::Object::@constructor::•
+                staticElement: dart:core::@class::Object::@constructor::new
       class alias C @51
         supertype: A<int>
         mixins
@@ -30876,9 +33703,9 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::A::@constructor::•
+                staticElement: self::@class::A::@constructor::new
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: int}
 ''');
   }
@@ -30928,7 +33755,7 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: dart:core::@class::Object::@constructor::•
+                staticElement: dart:core::@class::Object::@constructor::new
       class Base @75
         interfaces
           A1<int>
@@ -30946,8 +33773,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::Base::@constructor::•
-            superConstructor: self::@class::Base::@constructor::•
+                staticElement: self::@class::Base::@constructor::new
+            superConstructor: self::@class::Base::@constructor::new
 ''');
   }
 
@@ -30975,7 +33802,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: int*}
     mixins
       mixin M @35
@@ -31010,7 +33837,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: int Function(String)}
     mixins
       mixin M @20
@@ -31047,7 +33874,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: List<int>}
     mixins
       mixin M @29
@@ -31082,7 +33909,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: int}
     mixins
       mixin M @20
@@ -31121,7 +33948,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: package:test/a.dart::@class::A::@constructor::•
+              base: package:test/a.dart::@class::A::@constructor::new
               substitution: {T: int*}
 ''');
   }
@@ -31149,7 +33976,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: package:test/a.dart::@class::A::@constructor::•
+              base: package:test/a.dart::@class::A::@constructor::new
               substitution: {T: int*}
 ''');
   }
@@ -31205,9 +34032,9 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::I::@constructor::•
+                staticElement: self::@class::I::@constructor::new
             superConstructor: ConstructorMember
-              base: self::@class::I::@constructor::•
+              base: self::@class::I::@constructor::new
               substitution: {X: int}
     mixins
       mixin M1 @20
@@ -31255,7 +34082,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::S::@constructor::•
+              base: self::@class::S::@constructor::new
               substitution: {T3: String}
     mixins
       mixin M @6
@@ -31307,7 +34134,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::S::@constructor::•
+              base: self::@class::S::@constructor::new
               substitution: {T4: String}
     mixins
       mixin M @6
@@ -32155,9 +34982,8 @@ class C {
   int foo = 0;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -32180,8 +35006,7 @@ library
                 nonSynthetic: self::@class::C::@field::foo
             returnType: void
             nonSynthetic: self::@class::C::@field::foo
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_nonSynthetic_class_getter() async {
@@ -32190,9 +35015,8 @@ class C {
   int get foo => 0;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -32208,8 +35032,7 @@ library
           get foo @20
             returnType: int
             nonSynthetic: self::@class::C::@getter::foo
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_nonSynthetic_class_setter() async {
@@ -32218,9 +35041,8 @@ class C {
   set foo(int value) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     classes
@@ -32240,8 +35062,7 @@ library
                 nonSynthetic: self::@class::C::@setter::foo::@parameter::value
             returnType: void
             nonSynthetic: self::@class::C::@setter::foo
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_nonSynthetic_enum() async {
@@ -32250,9 +35071,8 @@ enum E {
   a, b
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     enums
@@ -32270,7 +35090,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -32287,7 +35107,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -32323,8 +35143,7 @@ library
           synthetic static get values @-1
             returnType: List<E>
             nonSynthetic: self::@enum::E
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_nonSynthetic_extension_getter() async {
@@ -32333,9 +35152,8 @@ extension E on int {
   int get foo => 0;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     extensions
@@ -32349,8 +35167,7 @@ library
           get foo @31
             returnType: int
             nonSynthetic: self::@extension::E::@getter::foo
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_nonSynthetic_extension_setter() async {
@@ -32359,9 +35176,8 @@ extension E on int {
   set foo(int value) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     extensions
@@ -32379,8 +35195,7 @@ library
                 nonSynthetic: self::@extension::E::@setter::foo::@parameter::value
             returnType: void
             nonSynthetic: self::@extension::E::@setter::foo
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_nonSynthetic_mixin_field() async {
@@ -32389,9 +35204,8 @@ mixin M {
   int foo = 0;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     mixins
@@ -32413,8 +35227,7 @@ library
                 nonSynthetic: self::@mixin::M::@field::foo
             returnType: void
             nonSynthetic: self::@mixin::M::@field::foo
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_nonSynthetic_mixin_getter() async {
@@ -32423,9 +35236,8 @@ mixin M {
   int get foo => 0;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     mixins
@@ -32440,8 +35252,7 @@ library
           get foo @20
             returnType: int
             nonSynthetic: self::@mixin::M::@getter::foo
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_nonSynthetic_mixin_setter() async {
@@ -32450,9 +35261,8 @@ mixin M {
   set foo(int value) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     mixins
@@ -32471,17 +35281,15 @@ library
                 nonSynthetic: self::@mixin::M::@setter::foo::@parameter::value
             returnType: void
             nonSynthetic: self::@mixin::M::@setter::foo
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_nonSynthetic_unit_getter() async {
     var library = await buildLibrary(r'''
 int get foo => 0;
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     topLevelVariables
@@ -32492,8 +35300,7 @@ library
       static get foo @8
         returnType: int
         nonSynthetic: self::@getter::foo
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_nonSynthetic_unit_getterSetter() async {
@@ -32501,9 +35308,8 @@ library
 int get foo => 0;
 set foo(int value) {}
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     topLevelVariables
@@ -32521,17 +35327,15 @@ library
             nonSynthetic: self::@setter::foo::@parameter::value
         returnType: void
         nonSynthetic: self::@setter::foo
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_nonSynthetic_unit_setter() async {
     var library = await buildLibrary(r'''
 set foo(int value) {}
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     topLevelVariables
@@ -32546,17 +35350,15 @@ library
             nonSynthetic: self::@setter::foo::@parameter::value
         returnType: void
         nonSynthetic: self::@setter::foo
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_nonSynthetic_unit_variable() async {
     var library = await buildLibrary(r'''
 int foo = 0;
 ''');
-    checkElementText(
-        library,
-        r'''
+    configuration.withNonSynthetic = true;
+    checkElementText(library, r'''
 library
   definingUnit
     topLevelVariables
@@ -32574,8 +35376,7 @@ library
             nonSynthetic: self::@variable::foo
         returnType: void
         nonSynthetic: self::@variable::foo
-''',
-        withNonSynthetic: true);
+''');
   }
 
   test_parameter() async {
@@ -32691,7 +35492,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: T}
         methods
           f @75
@@ -32728,7 +35529,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         methods
           m @68
             parameters
@@ -33019,6 +35820,308 @@ library
     functions
       f @5
         returnType: void
+''');
+  }
+
+  test_recordType_class_field() async {
+    var library = await buildLibrary('''
+class A {
+  final (int, String) x;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final x @32
+            type: (int, String)
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get x @-1
+            returnType: (int, String)
+''');
+  }
+
+  test_recordType_class_field_fromLiteral() async {
+    var library = await buildLibrary('''
+class A {
+  final x = (0, true);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final x @18
+            type: (int, bool)
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get x @-1
+            returnType: (int, bool)
+''');
+  }
+
+  test_recordType_class_method_formalParameter() async {
+    var library = await buildLibrary('''
+class A {
+  void foo((int, String) a) {}
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+        methods
+          foo @17
+            parameters
+              requiredPositional a @35
+                type: (int, String)
+            returnType: void
+''');
+  }
+
+  test_recordType_class_method_returnType() async {
+    var library = await buildLibrary('''
+class A {
+  (int, String) foo() {}
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+        methods
+          foo @26
+            returnType: (int, String)
+''');
+  }
+
+  test_recordType_class_typeParameter_bound() async {
+    var library = await buildLibrary('''
+class A<T extends (int, String)> {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            bound: (int, String)
+            defaultType: (int, String)
+        constructors
+          synthetic @-1
+''');
+  }
+
+  test_recordType_extension_onType() async {
+    var library = await buildLibrary('''
+extension IntStringExtension on (int, String) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      IntStringExtension @10
+        extendedType: (int, String)
+''');
+  }
+
+  test_recordType_functionType_formalParameter() async {
+    var library = await buildLibrary('''
+void f(void Function((int, String) a) b) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          requiredPositional b @38
+            type: void Function((int, String))
+        returnType: void
+''');
+  }
+
+  test_recordType_functionType_returnType() async {
+    var library = await buildLibrary('''
+void f((int, String) Function() a) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          requiredPositional a @32
+            type: (int, String) Function()
+        returnType: void
+''');
+  }
+
+  test_recordType_topFunction_formalParameter() async {
+    var library = await buildLibrary('''
+void f((int, String) a) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          requiredPositional a @21
+            type: (int, String)
+        returnType: void
+''');
+  }
+
+  test_recordType_topFunction_returnType_empty() async {
+    var library = await buildLibrary('''
+() f() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @3
+        returnType: ()
+''');
+  }
+
+  test_recordType_topFunction_returnType_generic() async {
+    var library = await buildLibrary('''
+(int, T) f<T>() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @9
+        typeParameters
+          covariant T @11
+        returnType: (int, T)
+''');
+  }
+
+  test_recordType_topFunction_returnType_mixed() async {
+    var library = await buildLibrary('''
+(int, String, {bool c}) f() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @24
+        returnType: (int, String, {bool c})
+''');
+  }
+
+  test_recordType_topFunction_returnType_named() async {
+    var library = await buildLibrary('''
+({int a, String b}) f() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @20
+        returnType: ({int a, String b})
+''');
+  }
+
+  test_recordType_topFunction_returnType_nested() async {
+    var library = await buildLibrary('''
+((int, String), (bool, double)) f() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @32
+        returnType: ((int, String), (bool, double))
+''');
+  }
+
+  test_recordType_topFunction_returnType_nullable() async {
+    var library = await buildLibrary('''
+(int, String)? f() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @15
+        returnType: (int, String)?
+''');
+  }
+
+  test_recordType_topFunction_returnType_positional() async {
+    var library = await buildLibrary('''
+(int, String) f() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @14
+        returnType: (int, String)
+''');
+  }
+
+  test_recordType_topFunction_returnType_positional_one() async {
+    var library = await buildLibrary('''
+(int,) f() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @7
+        returnType: (int)
+''');
+  }
+
+  test_recordType_topVariable() async {
+    var library = await buildLibrary('''
+final (int, String) x;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static final x @20
+        type: (int, String)
+    accessors
+      synthetic static get x @-1
+        returnType: (int, String)
+''');
+  }
+
+  test_recordType_topVariable_fromLiteral() async {
+    var library = await buildLibrary('''
+final x = (0, true);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static final x @6
+        type: (int, bool)
+    accessors
+      synthetic static get x @-1
+        returnType: (int, bool)
 ''');
   }
 
@@ -33529,6 +36632,73 @@ library
 ''');
   }
 
+  test_type_inference_field_cycle() async {
+    var library = await buildLibrary('''
+class A {
+  static final x = y + 1;
+  static final y = x + 1;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          static final x @25
+            typeInferenceError: dependencyCycle
+              arguments: [x, y]
+            type: dynamic
+          static final y @51
+            typeInferenceError: dependencyCycle
+              arguments: [x, y]
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          synthetic static get x @-1
+            returnType: dynamic
+          synthetic static get y @-1
+            returnType: dynamic
+''');
+  }
+
+  test_type_inference_field_cycle_chain() async {
+    var library = await buildLibrary('''
+class A {
+  static final a = b.c;
+  static final b = A();
+  final c = a;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          static final a @25
+            typeInferenceError: dependencyCycle
+              arguments: [a, c]
+            type: dynamic
+          static final b @49
+            type: A
+          final c @66
+            typeInferenceError: dependencyCycle
+              arguments: [a, c]
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          synthetic static get a @-1
+            returnType: dynamic
+          synthetic static get b @-1
+            returnType: A
+          synthetic get c @-1
+            returnType: dynamic
+''');
+  }
+
   test_type_inference_field_depends_onFieldFormal() async {
     var library = await buildLibrary('''
 class A<T> {
@@ -33644,12 +36814,12 @@ library
                   arguments
                     SimpleIdentifier
                       token: value @-1
-                      staticElement: self::@class::B::@constructor::•::@parameter::value
+                      staticElement: self::@class::B::@constructor::new::@parameter::value
                       staticType: T
                   rightParenthesis: ) @0
-                staticElement: self::@class::A::@constructor::•
+                staticElement: self::@class::A::@constructor::new
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: T}
       class C @78
         fields
@@ -33712,11 +36882,9 @@ library
 class A {
   A(_);
 }
-var a = A(() => b);
-var b = A(() => a);
+final a = A(() => b);
+final b = A(() => a);
 ''');
-    // There is no cycle with `a` and `b`, because `A` is not generic,
-    // so the type of `new A(...)` does not depend on its arguments.
     checkElementText(library, r'''
 library
   definingUnit
@@ -33728,25 +36896,19 @@ library
               requiredPositional _ @14
                 type: dynamic
     topLevelVariables
-      static a @24
-        type: A
-      static b @44
-        type: A
+      static final a @26
+        typeInferenceError: dependencyCycle
+          arguments: [a, b]
+        type: dynamic
+      static final b @48
+        typeInferenceError: dependencyCycle
+          arguments: [a, b]
+        type: dynamic
     accessors
       synthetic static get a @-1
-        returnType: A
-      synthetic static set a @-1
-        parameters
-          requiredPositional _a @-1
-            type: A
-        returnType: void
+        returnType: dynamic
       synthetic static get b @-1
-        returnType: A
-      synthetic static set b @-1
-        parameters
-          requiredPositional _b @-1
-            type: A
-        returnType: void
+        returnType: dynamic
 ''');
   }
 
@@ -33841,6 +37003,148 @@ library
 ''');
   }
 
+  test_type_inference_topVariable_cycle_afterChain() async {
+    // Note that `a` depends on `b`, but does not belong to the cycle.
+    var library = await buildLibrary('''
+final a = b;
+final b = c;
+final c = b;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static final a @6
+        type: dynamic
+      static final b @19
+        typeInferenceError: dependencyCycle
+          arguments: [b, c]
+        type: dynamic
+      static final c @32
+        typeInferenceError: dependencyCycle
+          arguments: [b, c]
+        type: dynamic
+    accessors
+      synthetic static get a @-1
+        returnType: dynamic
+      synthetic static get b @-1
+        returnType: dynamic
+      synthetic static get c @-1
+        returnType: dynamic
+''');
+  }
+
+  test_type_inference_topVariable_cycle_beforeChain() async {
+    // Note that `c` depends on `b`, but does not belong to the cycle.
+    var library = await buildLibrary('''
+final a = b;
+final b = a;
+final c = b;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static final a @6
+        typeInferenceError: dependencyCycle
+          arguments: [a, b]
+        type: dynamic
+      static final b @19
+        typeInferenceError: dependencyCycle
+          arguments: [a, b]
+        type: dynamic
+      static final c @32
+        type: dynamic
+    accessors
+      synthetic static get a @-1
+        returnType: dynamic
+      synthetic static get b @-1
+        returnType: dynamic
+      synthetic static get c @-1
+        returnType: dynamic
+''');
+  }
+
+  test_type_inference_topVariable_cycle_inCycle() async {
+    // `b` and `c` form a cycle.
+    // `a` and `d` form a different cycle, even though `a` references `b`.
+    var library = await buildLibrary('''
+final a = b + d;
+final b = c;
+final c = b;
+final d = a;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static final a @6
+        typeInferenceError: dependencyCycle
+          arguments: [a, d]
+        type: dynamic
+      static final b @23
+        typeInferenceError: dependencyCycle
+          arguments: [b, c]
+        type: dynamic
+      static final c @36
+        typeInferenceError: dependencyCycle
+          arguments: [b, c]
+        type: dynamic
+      static final d @49
+        typeInferenceError: dependencyCycle
+          arguments: [a, d]
+        type: dynamic
+    accessors
+      synthetic static get a @-1
+        returnType: dynamic
+      synthetic static get b @-1
+        returnType: dynamic
+      synthetic static get c @-1
+        returnType: dynamic
+      synthetic static get d @-1
+        returnType: dynamic
+''');
+  }
+
+  test_type_inference_topVariable_cycle_sharedElement() async {
+    // 1. Push `a`, start resolving.
+    // 2. Go to `b`, push, start resolving.
+    // 3. Go to `c`, push, start resolving.
+    // 4. Go to `b`, detect cycle `[b, c]`, set `dynamic`, return.
+    // 5. Pop `c`, already inferred (to `dynamic`), return.
+    // 6. Continue resolving `b` (it is not done, and not popped yet).
+    // 7. Go to `a`, detect cycle `[a, b]`, set `dynamic`, return.
+    var library = await buildLibrary('''
+final a = b;
+final b = c + a;
+final c = b;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static final a @6
+        typeInferenceError: dependencyCycle
+          arguments: [a, b]
+        type: dynamic
+      static final b @19
+        typeInferenceError: dependencyCycle
+          arguments: [b, c]
+        type: dynamic
+      static final c @36
+        typeInferenceError: dependencyCycle
+          arguments: [b, c]
+        type: dynamic
+    accessors
+      synthetic static get a @-1
+        returnType: dynamic
+      synthetic static get b @-1
+        returnType: dynamic
+      synthetic static get c @-1
+        returnType: dynamic
+''');
+  }
+
   test_type_inference_topVariable_depends_onFieldFormal() async {
     var library = await buildLibrary('''
 class A {}
@@ -33866,7 +37170,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
       class C @40
         typeParameters
           covariant T @42
@@ -34225,7 +37529,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -34352,7 +37656,7 @@ library
                         staticElement: self::@enum::E
                         staticType: null
                       type: E
-                    staticElement: self::@enum::E::@constructor::•
+                    staticElement: self::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -34412,7 +37716,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -34510,7 +37814,7 @@ library
                         staticElement: self::@enum::E
                         staticType: null
                       type: E
-                    staticElement: self::@enum::E::@constructor::•
+                    staticElement: self::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -34605,7 +37909,7 @@ library
                         staticElement: self::@enum::E
                         staticType: null
                       type: E
-                    staticElement: self::@enum::E::@constructor::•
+                    staticElement: self::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -34768,7 +38072,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -35742,6 +39046,92 @@ library
 ''');
   }
 
+  test_typeAlias_typeParameters_variance_record_contravariant() async {
+    var library = await buildLibrary(r'''
+typedef A<T> = (void Function(T), int);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A @8
+        typeParameters
+          contravariant T @10
+            defaultType: dynamic
+        aliasedType: (void Function(T), int)
+''');
+  }
+
+  test_typeAlias_typeParameters_variance_record_contravariant2() async {
+    var library = await buildLibrary(r'''
+typedef A<T> = (void Function(T), int);
+typedef B<T> = List<A<T>>;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A @8
+        typeParameters
+          contravariant T @10
+            defaultType: dynamic
+        aliasedType: (void Function(T), int)
+      B @48
+        typeParameters
+          contravariant T @50
+            defaultType: dynamic
+        aliasedType: List<(void Function(T), int)>
+''');
+  }
+
+  test_typeAlias_typeParameters_variance_record_covariant() async {
+    var library = await buildLibrary(r'''
+typedef A<T> = (T, int);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A @8
+        typeParameters
+          covariant T @10
+            defaultType: dynamic
+        aliasedType: (T, int)
+''');
+  }
+
+  test_typeAlias_typeParameters_variance_record_invariant() async {
+    var library = await buildLibrary(r'''
+typedef A<T> = (T Function(T), int);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A @8
+        typeParameters
+          invariant T @10
+            defaultType: dynamic
+        aliasedType: (T Function(T), int)
+''');
+  }
+
+  test_typeAlias_typeParameters_variance_record_unrelated() async {
+    var library = await buildLibrary(r'''
+typedef A<T> = (int, String);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A @8
+        typeParameters
+          unrelated T @10
+            defaultType: dynamic
+        aliasedType: (int, String)
+''');
+  }
+
   test_typedef_function_generic() async {
     var library = await buildLibrary(
         'typedef F<T> = int Function<S>(List<S> list, num Function<A>(A), T);');
@@ -36572,6 +39962,46 @@ void f2(Never?<aliasElement: self::@typeAlias::A2, aliasArguments: [int]> a) {}
 ''');
   }
 
+  test_typedef_nonFunction_aliasElement_recordType() async {
+    var library = await buildLibrary(r'''
+typedef A1 = (int, String);
+typedef A2<T, U> = (T, U);
+void f1(A1 a) {}
+void f2(A2<int, String> a) {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A1 @8
+        aliasedType: (int, String)
+      A2 @36
+        typeParameters
+          covariant T @39
+            defaultType: dynamic
+          covariant U @42
+            defaultType: dynamic
+        aliasedType: (T, U)
+    functions
+      f1 @60
+        parameters
+          requiredPositional a @66
+            type: (int, String)
+              alias: self::@typeAlias::A1
+        returnType: void
+      f2 @77
+        parameters
+          requiredPositional a @96
+            type: (int, String)
+              alias: self::@typeAlias::A2
+                typeArguments
+                  int
+                  String
+        returnType: void
+''');
+  }
+
   test_typedef_nonFunction_aliasElement_typeParameterType() async {
     var library = await buildLibrary(r'''
 typedef A<T> = T;
@@ -36981,7 +40411,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: int}
     typeAliases
       X @8
@@ -37013,7 +40443,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: int}
     typeAliases
       X @8
@@ -37089,7 +40519,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: int?}
     typeAliases
       X @8
@@ -37394,6 +40824,22 @@ library
 ''');
   }
 
+  test_typedef_selfReference_recordType() async {
+    var library = await buildLibrary(r'''
+typedef F = (F, int) Function();
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      notSimplyBounded F @8
+        aliasedType: (dynamic, int) Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: (dynamic, int)
+''');
+  }
+
   test_typedefs() async {
     var library = await buildLibrary('f() {} g() {}');
     checkElementText(library, r'''
@@ -37451,25 +40897,112 @@ library
 ''');
   }
 
+  test_unit_variable_duplicate_getter() async {
+    var library = await buildLibrary('''
+int foo = 0;
+int get foo => 0;
+''');
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static foo @4
+        type: int
+        id: variable_0
+        getter: getter_0
+        setter: setter_0
+      synthetic static foo @-1
+        type: int
+        id: variable_1
+        getter: getter_1
+    accessors
+      synthetic static get foo @-1
+        returnType: int
+        id: getter_0
+        variable: variable_0
+      synthetic static set foo @-1
+        parameters
+          requiredPositional _foo @-1
+            type: int
+        returnType: void
+        id: setter_0
+        variable: variable_0
+      static get foo @21
+        returnType: int
+        id: getter_1
+        variable: variable_1
+''');
+  }
+
+  test_unit_variable_duplicate_setter() async {
+    var library = await buildLibrary('''
+int foo = 0;
+set foo(int _) {}
+''');
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static foo @4
+        type: int
+        id: variable_0
+        getter: getter_0
+        setter: setter_0
+      synthetic static foo @-1
+        type: int
+        id: variable_1
+        setter: setter_1
+    accessors
+      synthetic static get foo @-1
+        returnType: int
+        id: getter_0
+        variable: variable_0
+      synthetic static set foo @-1
+        parameters
+          requiredPositional _foo @-1
+            type: int
+        returnType: void
+        id: setter_0
+        variable: variable_0
+      static set foo @17
+        parameters
+          requiredPositional _ @25
+            type: int
+        returnType: void
+        id: setter_1
+        variable: variable_1
+''');
+  }
+
   test_unit_variable_final_withSetter() async {
     var library = await buildLibrary(r'''
 final int foo = 0;
 set foo(int newValue) {}
 ''');
+    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   definingUnit
     topLevelVariables
       static final foo @10
         type: int
+        id: variable_0
+        getter: getter_0
+        setter: setter_0
     accessors
       synthetic static get foo @-1
         returnType: int
+        id: getter_0
+        variable: variable_0
       static set foo @23
         parameters
           requiredPositional newValue @31
             type: int
         returnType: void
+        id: setter_0
+        variable: variable_0
 ''');
   }
 
@@ -37507,7 +41040,7 @@ library
                   superKeyword: super @30
                   staticType: dynamic
               rightParenthesis: ) @35
-            element: self::@class::A::@constructor::•
+            element: self::@class::A::@constructor::new
         constructors
           synthetic @-1
 ''');
@@ -37547,7 +41080,7 @@ library
                   thisKeyword: this @30
                   staticType: dynamic
               rightParenthesis: ) @34
-            element: self::@class::A::@constructor::•
+            element: self::@class::A::@constructor::new
         constructors
           synthetic @-1
 ''');
@@ -37947,7 +41480,7 @@ library
 
   test_unresolved_import() async {
     var library = await buildLibrary("import 'foo.dart';", allowErrors: true);
-    var importedLibrary = library.imports[0].importedLibrary!;
+    var importedLibrary = library.libraryImports[0].importedLibrary!;
     expect(importedLibrary.loadLibraryFunction, isNotNull);
     expect(importedLibrary.publicNamespace, isNotNull);
     expect(importedLibrary.exportNamespace, isNotNull);
@@ -38298,6 +41831,34 @@ library
 ''');
   }
 
+  test_variable_initializer_recordType() async {
+    var library = await buildLibrary('''
+const x = (1, true);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const x @6
+        type: (int, bool)
+        constantInitializer
+          RecordLiteral
+            leftParenthesis: ( @10
+            fields
+              IntegerLiteral
+                literal: 1 @11
+                staticType: int
+              BooleanLiteral
+                literal: true @14
+                staticType: bool
+            rightParenthesis: ) @18
+            staticType: (int, bool)
+    accessors
+      synthetic static get x @-1
+        returnType: (int, bool)
+''');
+  }
+
   test_variable_initializer_staticMethod_ofExtension() async {
     var library = await buildLibrary('''
 class A {}
@@ -38634,7 +42195,7 @@ library
                   staticType: null
                 type: A<int>
               staticElement: ConstructorMember
-                base: self::@class::A::@constructor::•
+                base: self::@class::A::@constructor::new
                 substitution: {T: int}
             argumentList: ArgumentList
               leftParenthesis: ( @46
@@ -38700,5 +42261,33 @@ library
 
     var elementFactory = library.linkedData!.elementFactory;
     return elementFactory.elementOfReference(reference)!;
+  }
+}
+
+extension on ElementTextConfiguration {
+  void forPromotableFields({
+    Set<String> classNames = const {},
+    Set<String> enumNames = const {},
+    Set<String> mixinNames = const {},
+    Set<String> fieldNames = const {},
+  }) {
+    filter = (e) {
+      if (e is ClassElement) {
+        return classNames.contains(e.name);
+      } else if (e is ConstructorElement) {
+        return false;
+      } else if (e is EnumElement) {
+        return enumNames.contains(e.name);
+      } else if (e is FieldElement) {
+        return fieldNames.isEmpty || fieldNames.contains(e.name);
+      } else if (e is MixinElement) {
+        return mixinNames.contains(e.name);
+      } else if (e is PartElement) {
+        return false;
+      } else if (e is PropertyAccessorElement) {
+        return false;
+      }
+      return true;
+    };
   }
 }

@@ -19,4 +19,4 @@ class Class1 {
 
 testDefaultValues() {}
 expect(expected, actual) {}
-throws(Function() f, {bool inSoundModeOnly: false}) {}
+throws(Function() f, {bool inSoundModeOnly = false}) {}

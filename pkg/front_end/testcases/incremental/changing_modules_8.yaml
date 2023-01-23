@@ -74,3 +74,4 @@ worlds:
         - Class XLinkedHashSet
       package:module/lib3.dart:
         - Class XIdentityHashSet
+    advancedInvalidation: modulesToLoad

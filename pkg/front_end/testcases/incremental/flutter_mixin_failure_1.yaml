@@ -60,3 +60,4 @@ worlds:
           print(new Test());
         }
     expectedLibraryCount: 2
+    advancedInvalidation: outlineChange

@@ -45,6 +45,9 @@ class ImportElementsComputer {
 
     var builder = ChangeBuilder(session: libraryResult.session);
     await builder.addDartFileEdit(libraryResult.path, (builder) {
+      final quote = libraryResult
+          .session.analysisContext.analysisOptions.codeStyleOptions
+          .preferredQuoteForUris(existingImports);
       for (var importedElements in filteredImportedElements) {
         var matchingImports =
             _findMatchingImports(existingImports, importedElements);
@@ -62,9 +65,9 @@ class ImportElementsComputer {
             for (var i = 0; i < description.newLinesBefore; i++) {
               builder.writeln();
             }
-            builder.write("import '");
+            builder.write("import $quote");
             builder.write(importUri);
-            builder.write("'");
+            builder.write(quote);
             if (importedElements.prefix.isNotEmpty) {
               builder.write(' as ');
               builder.write(importedElements.prefix);

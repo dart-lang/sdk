@@ -349,7 +349,7 @@ class [!C!] extends AbiSpecificInteger {
 }
 {% endprettify %}
 
-The following code produces this diagnostic because the class `C` defineS
+The following code produces this diagnostic because the class `C` defines
 a field:
 
 {% prettify dart tag=pre+code %}
@@ -1424,7 +1424,7 @@ void f() {
 
 ### assignment_to_final_no_setter
 
-_There isn’t a setter named '{0}' in class '{1}'._
+_There isn't a setter named '{0}' in class '{1}'._
 
 #### Description
 
@@ -1765,6 +1765,52 @@ class C<T> {
 }
 {% endprettify %}
 
+### body_might_complete_normally_catch_error
+
+_This 'onError' handler must return a value assignable to '{0}', but ends
+without returning a value._
+
+#### Description
+
+The analyzer produces this diagnostic when the closure passed to the
+`onError` parameter of the `Future.catchError` method is required to
+return a non-`null` value (because of the `Future`s type argument) but can
+implicitly return `null`.
+
+#### Example
+
+The following code produces this diagnostic because the closure passed to
+the `catchError` method is required to return an `int` but doesn't end
+with an explicit `return`, causing it to implicitly return `null`:
+
+{% prettify dart tag=pre+code %}
+void g(Future<int> f) {
+  f.catchError((e, st) [!{!]});
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the closure should sometimes return a non-`null` value, then add an
+explicit return to the closure:
+
+{% prettify dart tag=pre+code %}
+void g(Future<int> f) {
+  f.catchError((e, st) {
+    return -1;
+  });
+}
+{% endprettify %}
+
+If the closure should always return `null`, then change the type argument
+of the `Future` to be either `void` or `Null`:
+
+{% prettify dart tag=pre+code %}
+void g(Future<void> f) {
+  f.catchError((e, st) {});
+}
+{% endprettify %}
+
 ### body_might_complete_normally_nullable
 
 _This function has a nullable return type of '{0}', but ends without returning a
@@ -1901,7 +1947,7 @@ _The built-in identifier '{0}' can't be used as an extension name._
 
 The analyzer produces this diagnostic when the name used in the declaration
 of a class, extension, mixin, typedef, type parameter, or import prefix is
-a built-in identifier. Built-in identifiers can’t be used to name any of
+a built-in identifier. Built-in identifiers can't be used to name any of
 these kinds of declarations.
 
 #### Example
@@ -2107,6 +2153,85 @@ void f(int s) {
     case 1:
       break;
   }
+}
+{% endprettify %}
+
+### cast_from_nullable_always_fails
+
+_This cast will always throw an exception because the nullable local variable
+'{0}' is not assigned._
+
+#### Description
+
+The analyzer produces this diagnostic when a local variable that has a
+nullable type hasn't been assigned and is cast to a non-nullable type.
+Because the variable hasn't been assigned it has the default value of
+`null`, causing the cast to throw an exception.
+
+#### Example
+
+The following code produces this diagnostic because the variable `x` is
+cast to a non-nullable type (`int`) when it's known to have the value
+`null`:
+
+{% prettify dart tag=pre+code %}
+void f() {
+  num? x;
+  [!x!] as int;
+  print(x);
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the variable is expected to have a value before the cast, then add an
+initializer or an assignment:
+
+{% prettify dart tag=pre+code %}
+void f() {
+  num? x = 3;
+  x as int;
+  print(x);
+}
+{% endprettify %}
+
+If the variable isn't expected to be assigned, then remove the cast:
+
+{% prettify dart tag=pre+code %}
+void f() {
+  num? x;
+  print(x);
+}
+{% endprettify %}
+
+### cast_from_null_always_fails
+
+_This cast always throws an exception because the expression always evaluates to
+'null'._
+
+#### Description
+
+The analyzer produces this diagnostic when an expression whose type is
+`Null` is being cast to a non-nullable type.
+
+#### Example
+
+The following code produces this diagnostic because `n` is known to always
+be `null`, but it's being cast to a non-nullable type:
+
+{% prettify dart tag=pre+code %}
+void f(Null n) {
+  [!n as int!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the unnecessary cast:
+
+{% prettify dart tag=pre+code %}
+void f(Null n) {
+  n;
 }
 {% endprettify %}
 
@@ -3382,7 +3507,7 @@ never reached._
 #### Description
 
 The analyzer produces this diagnostic when a `catch` clause is found that
-can't be executed because it’s after a `catch` clause of the form
+can't be executed because it's after a `catch` clause of the form
 `catch (e)` or `on Object catch (e)`. The first `catch` clause that matches
 the thrown object is selected, and both of those forms will match any
 object, so no `catch` clauses that follow them will be selected.
@@ -3426,7 +3551,7 @@ void f() {
 
 ### dead_code_on_catch_subtype
 
-_Dead code: This on-catch block won’t be executed because '{0}' is a subtype of
+_Dead code: This on-catch block won't be executed because '{0}' is a subtype of
 '{1}' and hence will have been caught already._
 
 #### Description
@@ -3853,6 +3978,87 @@ dependencies:
   meta: ^1.0.2
 ```
 
+### deprecated_colon_for_default_value
+
+_Using a colon as a separator before a default value is deprecated and will not
+be supported in language version 3.0 and later._
+
+#### Description
+
+The analyzer produces this diagnostic when a colon is used as the
+separator before the default value of an optional parameter. While this
+syntax is allowed, it's being deprecated in favor of using an equal sign.
+
+#### Example
+
+The following code produces this diagnostic because a colon is being used
+before the default value of the optional parameter `i`:
+
+{% prettify dart tag=pre+code %}
+void f({int i [!:!] 0}) {}
+{% endprettify %}
+
+#### Common fixes
+
+Replace the colon with an equal sign.
+
+{% prettify dart tag=pre+code %}
+void f({int i = 0}) {}
+{% endprettify %}
+
+### deprecated_export_use
+
+_The ability to import '{0}' indirectly is deprecated._
+
+#### Description
+
+The analyzer produces this diagnostic when one library imports a name from
+a second library, and the second library exports the name from a third
+library but has indicated that it won't export the third library in the
+future.
+
+#### Example
+
+Given a library `a.dart` defining the class `A`:
+
+{% prettify dart tag=pre+code %}
+class A {}
+{% endprettify %}
+
+And a second library `b.dart` that exports `a.dart` but has marked the
+export as being deprecated:
+
+{% prettify dart tag=pre+code %}
+import 'a.dart';
+
+@deprecated
+export 'a.dart';
+{% endprettify %}
+
+The following code produces this diagnostic because the class `A` won't be
+exported from `b.dart` in some future version:
+
+{% prettify dart tag=pre+code %}
+import 'b.dart';
+
+[!A!]? a;
+{% endprettify %}
+
+#### Common fixes
+
+If the name is available from a different library that you can import,
+then replace the existing import with an import for that library (or add
+an import for the defining library if you still need the old import):
+
+{% prettify dart tag=pre+code %}
+import 'a.dart';
+
+A? a;
+{% endprettify %}
+
+If the name isn't available, then look for instructions from the library
+author or contact them directly to find out how to update your code.
+
 ### deprecated_field
 
 _The '{0}' field is no longer used and can be removed._
@@ -3885,7 +4091,7 @@ name: example
 
 _'{0}' is deprecated and shouldn't be used._
 
-_'{0}' is deprecated and shouldn't be used. {1}._
+_'{0}' is deprecated and shouldn't be used. {1}_
 
 #### Description
 
@@ -3912,7 +4118,7 @@ should indicate what code to use in place of the deprecated code.
 
 _'{0}' is deprecated and shouldn't be used._
 
-_'{0}' is deprecated and shouldn't be used. {1}._
+_'{0}' is deprecated and shouldn't be used. {1}_
 
 #### Description
 
@@ -4158,7 +4364,7 @@ class C {
 {% endprettify %}
 
 If there are multiple named constructors and all except one of them are
-unneeded, then remove the constructorsthat aren't needed:
+unneeded, then remove the constructors that aren't needed:
 
 {% prettify dart tag=pre+code %}
 class C {
@@ -4192,6 +4398,34 @@ Choose a different name for one of the declarations.
 {% prettify dart tag=pre+code %}
 int x = 0;
 int y = 1;
+{% endprettify %}
+
+### duplicate_export
+
+_Duplicate export._
+
+#### Description
+
+The analyzer produces this diagnostic when an export directive is found
+that is the same as an export before it in the file. The second export
+doesn't add value and should be removed.
+
+#### Example
+
+The following code produces this diagnostic because the same library is
+being exported twice:
+
+{% prettify dart tag=pre+code %}
+export 'package:meta/meta.dart';
+export [!'package:meta/meta.dart'!];
+{% endprettify %}
+
+#### Common fixes
+
+Remove the unnecessary export:
+
+{% prettify dart tag=pre+code %}
+export 'package:meta/meta.dart';
 {% endprettify %}
 
 ### duplicate_field_formal_parameter
@@ -4327,7 +4561,7 @@ _Duplicate import._
 
 The analyzer produces this diagnostic when an import directive is found
 that is the same as an import before it in the file. The second import
-doesn’t add value and should be removed.
+doesn't add value and should be removed.
 
 #### Example
 
@@ -6937,7 +7171,7 @@ imported, then add a prefix to the import so that the local definition of
 the name doesn't shadow the imported name.
 
 If the name is the name of an existing class or mixin that isn't being
-imported, then add an import, with a prefix, for the library in which it’s
+imported, then add an import, with a prefix, for the library in which it's
 declared.
 
 Otherwise, either replace the name in the `implements` clause with the name
@@ -7602,7 +7836,7 @@ access a static member through an instance of the class.
 #### Example
 
 The following code produces this diagnostic because `zero` is a static
-field, but it’s being accessed as if it were an instance field:
+field, but it's being accessed as if it were an instance field:
 
 {% prettify dart tag=pre+code %}
 void f(C c) {
@@ -7794,7 +8028,7 @@ _Type aliases that expand to a type parameter can't be instantiated._
 
 The analyzer produces this diagnostic when a constructor invocation is
 found where the type being instantiated is a type alias for one of the type
-parameters of the type alias. This isn’t allowed because the value of the
+parameters of the type alias. This isn't allowed because the value of the
 type parameter is a type rather than a class.
 
 #### Example
@@ -8122,7 +8356,7 @@ int i = 0;
 String s = i.toString();
 {% endprettify %}
 
-If you can’t change the value, then change the type of the variable to be
+If you can't change the value, then change the type of the variable to be
 compatible with the type of the value being assigned:
 
 {% prettify dart tag=pre+code %}
@@ -8468,14 +8702,26 @@ class C {
 
 #### Common fixes
 
-If the factory returns an instance of the surrounding class, then rename
-the factory:
+If the factory returns an instance of the surrounding class, and you
+intend it to be an unnamed factory constructor, then rename the factory:
 
 {% prettify dart tag=pre+code %}
 class A {}
 
 class C {
   factory C() => throw 0;
+}
+{% endprettify %}
+
+If the factory returns an instance of the surrounding class, and you
+intend it to be a named factory constructor, then prefix the name of the
+factory constructor with the name of the surrounding class:
+
+{% prettify dart tag=pre+code %}
+class A {}
+
+class C {
+  factory C.a() => throw 0;
 }
 {% endprettify %}
 
@@ -9209,7 +9455,7 @@ enum E {
   const E(int x);
 }
 
-E f() => const [!E!](2); 
+E f() => const [!E!](2);
 {% endprettify %}
 
 #### Common fixes
@@ -9224,7 +9470,7 @@ enum E {
   const E(int x);
 }
 
-E f() => E.b; 
+E f() => E.b;
 {% endprettify %}
 
 If you need to use a constructor invocation, then use a factory
@@ -10002,7 +10248,9 @@ defined anywhere:
 void f() {
   for (int i = 0; i < 10; i++) {
     for (int j = 0; j < 10; j++) {
-      break [!loop!];
+      if (j != 0) {
+        break [!loop!];
+      }
     }
   }
 }
@@ -10017,7 +10265,9 @@ If the label should be on the innermost enclosing `do`, `for`, `switch`, or
 void f() {
   for (int i = 0; i < 10; i++) {
     for (int j = 0; j < 10; j++) {
-      break;
+      if (j != 0) {
+        break;
+      }
     }
   }
 }
@@ -10029,7 +10279,9 @@ If the label should be on some other statement, then add the label:
 void f() {
   loop: for (int i = 0; i < 10; i++) {
     for (int j = 0; j < 10; j++) {
-      break loop;
+      if (j != 0) {
+        break loop;
+      }
     }
   }
 }
@@ -10615,7 +10867,7 @@ _Required library '{0}' is missing._
 #### Description
 
 The analyzer produces this diagnostic when either the Dart or Flutter SDK
-isn’t installed correctly, and, as a result, one of the `dart:` libraries
+isn't installed correctly, and, as a result, one of the `dart:` libraries
 can't be found.
 
 #### Common fixes
@@ -10857,6 +11109,66 @@ name: example
 dependencies:
   meta: ^1.0.2
 ```
+
+### missing_override_of_must_be_overridden
+
+_Missing concrete override implementation of '{0}' and '{1}'._
+
+_Missing concrete override implementation of '{0}', '{1}', and {2} more._
+
+_Missing concrete override implementation of '{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when an instance member that has the
+`@mustBeOverridden` annotation isn't overridden in a subclass.
+
+#### Example
+
+The following code produces this diagnostic because the class `B` doesn't
+have an override of the inherited method `A.m` when `A.m` is annotated
+with `@mustBeOverridden`:
+
+{% prettify dart tag=pre+code %}
+import 'package:meta/meta.dart';
+
+class A {
+  @mustBeOverridden
+  void m() {}
+}
+
+class [!B!] extends A {}
+{% endprettify %}
+
+#### Common fixes
+
+If the annotation is appropriate for the member, then override the member
+in the subclass:
+
+{% prettify dart tag=pre+code %}
+import 'package:meta/meta.dart';
+
+class A {
+  @mustBeOverridden
+  void m() {}
+}
+
+class B extends A {
+  @override
+  void m() {}
+}
+{% endprettify %}
+
+If the annotation isn't appropriate for the member, then remove the
+annotation:
+
+{% prettify dart tag=pre+code %}
+class A {
+  void m() {}
+}
+
+class B extends A {}
+{% endprettify %}
 
 ### missing_required_argument
 
@@ -11529,7 +11841,7 @@ which can either be explicit or implicit.
 #### Example
 
 The following code produces this diagnostic because the initializer list
-for `B`’s constructor invokes both the constructor `one` and the
+for `B`'s constructor invokes both the constructor `one` and the
 constructor `two` from the superclass `A`:
 
 {% prettify dart tag=pre+code %}
@@ -11850,7 +12162,7 @@ _The class '{0}' doesn't have an unnamed constructor._
 #### Description
 
 The analyzer produces this diagnostic when an unnamed constructor is
-invoked on a class that defines named constructors but the class doesn’t
+invoked on a class that defines named constructors but the class doesn't
 have an unnamed constructor.
 
 #### Example
@@ -12992,7 +13304,7 @@ class C {
 
 ### non_type_as_type_argument
 
-_The name '{0}' isn't a type so it can't be used as a type argument._
+_The name '{0}' isn't a type, so it can't be used as a type argument._
 
 #### Description
 
@@ -13183,7 +13495,7 @@ String f() {
 }
 {% endprettify %}
 
-If `null` isn’t a valid value, and there's a reasonable default value, then
+If `null` isn't a valid value, and there's a reasonable default value, then
 add an initializer:
 
 {% prettify dart tag=pre+code %}
@@ -13280,7 +13592,13 @@ var a = 5 - 3;
 
 ### not_enough_positional_arguments
 
-_{0} positional argument(s) expected, but {1} found._
+_1 positional argument expected by '{0}', but 0 found._
+
+_1 positional argument expected, but 0 found._
+
+_{0} positional arguments expected by '{2}', but {1} found._
+
+_{0} positional arguments expected, but {1} found._
 
 #### Description
 
@@ -13296,7 +13614,7 @@ required parameters, but only one argument is provided:
 {% prettify dart tag=pre+code %}
 void f(int a, int b) {}
 void g() {
-  f[!(0)!];
+  f(0[!)!];
 }
 {% endprettify %}
 
@@ -13351,7 +13669,7 @@ class C {
 
 #### Common fixes
 
-If there's a reasonable default value for the field that’s the same for all
+If there's a reasonable default value for the field that's the same for all
 instances, then add an initializer expression:
 
 {% prettify dart tag=pre+code %}
@@ -13916,6 +14234,34 @@ void f() {
 Null g() => null;
 {% endprettify %}
 
+### obsolete_colon_for_default_value
+
+_Using a colon as a separator before a default value is no longer supported._
+
+#### Description
+
+The analyzer produces this diagnostic when a colon is used as the
+separator before the default value of an optional parameter. While this
+syntax used to be allowed, it's deprecated in favor of using an equal
+sign.
+
+#### Example
+
+The following code produces this diagnostic because a colon is being used
+before the default value of the optional parameter `i`:
+
+{% prettify dart tag=pre+code %}
+void f({int i [!:!] 0}) {}
+{% endprettify %}
+
+#### Common fixes
+
+Replace the colon with an equal sign:
+
+{% prettify dart tag=pre+code %}
+void f({int i = 0}) {}
+{% endprettify %}
+
 ### on_repeated
 
 _The type '{0}' can be included in the superclass constraints only once._
@@ -14004,7 +14350,7 @@ _The setter doesn't override an inherited setter._
 #### Description
 
 The analyzer produces this diagnostic when a class member is annotated with
-the `@override` annotation, but the member isn’t declared in any of the
+the `@override` annotation, but the member isn't declared in any of the
 supertypes of the class.
 
 #### Example
@@ -15217,7 +15563,7 @@ parameter._
 
 The analyzer produces this diagnostic when a redirecting factory
 constructor redirects to a type alias, and the type alias expands to one of
-the type parameters of the type alias. This isn’t allowed because the value
+the type parameters of the type alias. This isn't allowed because the value
 of the type parameter is a type rather than a class.
 
 #### Example
@@ -15256,7 +15602,7 @@ _Local variable '{0}' can't be referenced before it is declared._
 #### Description
 
 The analyzer produces this diagnostic when a variable is referenced before
-it’s declared. In Dart, variables are visible everywhere in the block in
+it's declared. In Dart, variables are visible everywhere in the block in
 which they are declared, but can only be referenced after they are
 declared.
 
@@ -16452,7 +16798,7 @@ class B extends a.A {}
 
 ### subtype_of_disallowed_type
 
-_''{0}' can't be used as a superclass constraint._
+_'{0}' can't be used as a superclass constraint._
 
 _Classes and mixins can't implement '{0}'._
 
@@ -17037,7 +17383,7 @@ _Invalid context for 'super' invocation._
 #### Description
 
 The analyzer produces this diagnostic when the keyword `super` is used
-outside of a instance method.
+outside of an instance method.
 
 #### Example
 
@@ -17549,7 +17895,7 @@ class C<T> {
 }
 {% endprettify %}
 
-Note, however, that there isn’t a relationship between `T` and `S`, so this
+Note, however, that there isn't a relationship between `T` and `S`, so this
 second option changes the semantics from what was likely to be intended.
 
 ### type_parameter_supertype_of_its_bound
@@ -17779,7 +18125,7 @@ void f() {}
 
 #### Common fixes
 
-If the name is correct, but it isn’t declared yet, then declare the name as
+If the name is correct, but it isn't declared yet, then declare the name as
 a constant value:
 
 {% prettify dart tag=pre+code %}
@@ -18802,7 +19148,7 @@ _The setter '{0}' isn't defined in a superclass of '{1}'._
 #### Description
 
 The analyzer produces this diagnostic when an inherited member (method,
-getter, setter, or operator) is referenced using `super`, but there’s no
+getter, setter, or operator) is referenced using `super`, but there's no
 member with that name in the superclass chain.
 
 #### Examples
@@ -18837,7 +19183,7 @@ make the name of the invoked member match the inherited member.
 If the member you intend to invoke is defined in the same class, then
 remove the `super.`.
 
-If the member isn’t defined, then either add the member to one of the
+If the member isn't defined, then either add the member to one of the
 superclasses or remove the invocation.
 
 ### unnecessary_cast
@@ -19398,11 +19744,19 @@ _The declaration '{0}' isn't referenced._
 The analyzer produces this diagnostic when a private declaration isn't
 referenced in the library that contains the declaration. The following
 kinds of declarations are analyzed:
-- Private top-level declarations, such as classes, enums, mixins, typedefs,
-  top-level variables, and top-level functions
-- Private static and instance methods
+- Private top-level declarations and all of their members
+- Private members of public declarations
 - Optional parameters of private functions for which a value is never
-  passed, even when the parameter doesn't have a private name
+  passed
+
+Not all references to an element will mark it as "used":
+- Assigning a value to a top-level variable (with a standard `=`
+  assignment, or a null-aware `??=` assignment) does not count as using
+  it.
+- Referring to an element in a doc comment reference does not count as
+  using it.
+- Referring to a class, mixin, or enum on the right side of an `is`
+  expression does not count as using it.
 
 #### Example
 
@@ -19541,7 +19895,9 @@ If the label is needed, then use it:
 void f(int limit) {
   loop: for (int i = 0; i < limit; i++) {
     print(i);
-    break loop;
+    if (i != 0) {
+      break loop;
+    }
   }
 }
 {% endprettify %}
@@ -19647,7 +20003,7 @@ void f(C c) {
 
 ### unused_shown_name
 
-_The name {0} is shown, but isn’t used._
+_The name {0} is shown, but isn't used._
 
 #### Description
 
@@ -19743,7 +20099,7 @@ _URIs can't use string interpolation._
 The analyzer produces this diagnostic when the string literal in an
 `import`, `export`, or `part` directive contains an interpolation. The
 resolution of the URIs in directives must happen before the declarations
-are compiled, so expressions can’t be  evaluated  while determining the
+are compiled, so expressions can't be  evaluated  while determining the
 values of the URIs.
 
 #### Example
@@ -19769,7 +20125,7 @@ var zero = min(0, 0);
 
 ### use_of_native_extension
 
-_Dart native extensions are deprecated and aren’t available in Dart 2.15._
+_Dart native extensions are deprecated and aren't available in Dart 2.15._
 
 #### Description
 

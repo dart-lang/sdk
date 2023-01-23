@@ -372,7 +372,7 @@ intptr_t DeoptContext::MaterializeDeferredObjects() {
   }
 
   // Since this is the only step where GC can occur during deoptimization,
-  // use it to report the source line where deoptimization occured.
+  // use it to report the source line where deoptimization occurred.
   if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
     DartFrameIterator iterator(Thread::Current(),
                                StackFrameIterator::kNoCrossThreadIteration);

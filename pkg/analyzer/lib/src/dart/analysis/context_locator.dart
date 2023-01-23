@@ -17,7 +17,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer/src/workspace/basic.dart';
-import 'package:analyzer/src/workspace/bazel.dart';
+import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/package_build.dart';
 import 'package:analyzer/src/workspace/pub.dart';
@@ -200,23 +200,34 @@ class ContextLocatorImpl implements ContextLocator {
       packagesFolderToChooseRoot = foundPackages?.parent;
     }
 
-    var rootFolder = _lowest2(
+    var buildGnFile = _findBuildGnFile(parent);
+
+    var rootFolder = _lowest([
       optionsFolderToChooseRoot,
       packagesFolderToChooseRoot,
-    );
+      buildGnFile?.parent,
+    ]);
 
-    var workspace = _createWorkspace(parent, packagesFile);
+    var workspace = _createWorkspace(
+      folder: parent,
+      packagesFile: packagesFile,
+      buildGnFile: buildGnFile,
+    );
     if (workspace is! BasicWorkspace) {
-      rootFolder = _lowest2(
+      rootFolder = _lowest([
         rootFolder,
         resourceProvider.getFolder(workspace.root),
-      );
+      ]);
     }
 
     if (rootFolder == null) {
       rootFolder = defaultRootFolder();
       if (workspace is BasicWorkspace) {
-        workspace = _createWorkspace(rootFolder, packagesFile);
+        workspace = _createWorkspace(
+          folder: rootFolder,
+          packagesFile: packagesFile,
+          buildGnFile: buildGnFile,
+        );
       }
     }
 
@@ -263,7 +274,7 @@ class ContextLocatorImpl implements ContextLocator {
       Folder folder,
       List<Folder> excludedFolders,
       ContextRoot containingRoot,
-      List<Glob> excludedGlobs,
+      List<LocatedGlob> excludedGlobs,
       File? optionsFile,
       File? packagesFile) {
     //
@@ -278,11 +289,14 @@ class ContextLocatorImpl implements ContextLocator {
     if (packagesFile == null) {
       localPackagesFile = _getPackagesFile(folder);
     }
+    var buildGnFile = folder.getExistingFile(file_paths.buildGn);
     //
     // Create a context root for the given [folder] if at least one of the
     // options and packages file is locally specified.
     //
-    if (localPackagesFile != null || localOptionsFile != null) {
+    if (localPackagesFile != null ||
+        localOptionsFile != null ||
+        buildGnFile != null) {
       if (optionsFile != null) {
         localOptionsFile = optionsFile;
       }
@@ -290,7 +304,11 @@ class ContextLocatorImpl implements ContextLocator {
         localPackagesFile = packagesFile;
       }
       var rootPackagesFile = localPackagesFile ?? containingRoot.packagesFile;
-      var workspace = _createWorkspace(folder, rootPackagesFile);
+      var workspace = _createWorkspace(
+        folder: folder,
+        packagesFile: rootPackagesFile,
+        buildGnFile: buildGnFile,
+      );
       var root = ContextRootImpl(resourceProvider, folder, workspace);
       root.packagesFile = rootPackagesFile;
       root.optionsFile = localOptionsFile ?? containingRoot.optionsFile;
@@ -317,7 +335,7 @@ class ContextLocatorImpl implements ContextLocator {
       Folder folder,
       List<Folder> excludedFolders,
       ContextRoot containingRoot,
-      List<Glob> excludedGlobs,
+      List<LocatedGlob> excludedGlobs,
       File? optionsFile,
       File? packagesFile) {
     bool isExcluded(Folder folder) {
@@ -326,7 +344,7 @@ class ContextLocatorImpl implements ContextLocator {
         return true;
       }
       // TODO(scheglov) Why not take it from `containingRoot`?
-      for (Glob pattern in excludedGlobs) {
+      for (var pattern in excludedGlobs) {
         if (pattern.matches(folder.path)) {
           return true;
         }
@@ -365,7 +383,18 @@ class ContextLocatorImpl implements ContextLocator {
     }
   }
 
-  Workspace _createWorkspace(Folder folder, File? packagesFile) {
+  Workspace _createWorkspace({
+    required Folder folder,
+    required File? packagesFile,
+    required File? buildGnFile,
+  }) {
+    if (buildGnFile != null) {
+      var workspace = GnWorkspace.find(buildGnFile);
+      if (workspace != null) {
+        return workspace;
+      }
+    }
+
     Packages packages;
     if (packagesFile != null) {
       packages = parsePackageConfigJsonFile(resourceProvider, packagesFile);
@@ -376,16 +405,24 @@ class ContextLocatorImpl implements ContextLocator {
     var rootPath = folder.path;
 
     Workspace? workspace;
-    workspace = BazelWorkspace.find(resourceProvider, rootPath,
+    workspace = BlazeWorkspace.find(resourceProvider, rootPath,
         lookForBuildFileSubstitutes: false);
-    workspace = _mostSpecificWorkspace(
-        workspace, GnWorkspace.find(resourceProvider, rootPath));
     workspace = _mostSpecificWorkspace(workspace,
         PackageBuildWorkspace.find(resourceProvider, packages, rootPath));
     workspace = _mostSpecificWorkspace(
         workspace, PubWorkspace.find(resourceProvider, packages, rootPath));
     workspace ??= BasicWorkspace.find(resourceProvider, packages, rootPath);
     return workspace;
+  }
+
+  File? _findBuildGnFile(Folder folder) {
+    for (var current in folder.withAncestors) {
+      var file = current.getExistingFile(file_paths.buildGn);
+      if (file != null) {
+        return file;
+      }
+    }
+    return null;
   }
 
   File? _findDefaultOptionsFile(Workspace workspace) {
@@ -427,8 +464,8 @@ class ContextLocatorImpl implements ContextLocator {
   /// file associated with the context root. The list will be empty if there are
   /// no exclusion patterns in the options file, or if there is no options file
   /// associated with the context root.
-  List<Glob> _getExcludedGlobs(ContextRootImpl root) {
-    List<Glob> patterns = [];
+  List<LocatedGlob> _getExcludedGlobs(ContextRootImpl root) {
+    List<LocatedGlob> patterns = [];
     File? optionsFile = root.optionsFile;
     if (optionsFile != null) {
       try {
@@ -444,17 +481,16 @@ class ContextLocatorImpl implements ContextLocator {
 
             void addGlob(List<String> components) {
               var pattern = posix.joinAll(components);
-              patterns.add(Glob(pattern, context: pathContext));
+              patterns.add(
+                LocatedGlob(
+                  optionsFile.parent,
+                  Glob(pattern, context: pathContext),
+                ),
+              );
             }
 
             for (String excludedPath in excludeOptions.whereType<String>()) {
               var excludedComponents = posix.split(excludedPath);
-              if (pathContext.isRelative(excludedPath)) {
-                excludedComponents = [
-                  ...pathContext.split(optionsFile.parent.path),
-                  ...excludedComponents,
-                ];
-              }
               addGlob(excludedComponents);
               if (excludedComponents.last == '**') {
                 addGlob(excludedComponents..removeLast());
@@ -517,19 +553,19 @@ class ContextLocatorImpl implements ContextLocator {
     }
   }
 
-  /// The [first] and [second] must be folders on the path from a file to
+  /// Every element in [folders] must be a folder on the path from a file to
   /// the root of the file system. As such, they are either the same folder,
   /// or one is strictly above the other.
-  static Folder? _lowest2(Folder? first, Folder? second) {
-    if (first != null) {
-      if (second != null) {
-        if (first.contains(second.path)) {
-          return second;
-        }
+  static Folder? _lowest(List<Folder?> folders) {
+    return folders.fold<Folder?>(null, (result, folder) {
+      if (result == null) {
+        return folder;
+      } else if (folder != null && result.contains(folder.path)) {
+        return folder;
+      } else {
+        return result;
       }
-      return first;
-    }
-    return second;
+    });
   }
 
   /// Return `true` if the configuration of [existingRoot] is the same as

@@ -2,20 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 
 class Export {
   final LibraryBuilder exporter;
-  final int index;
+  final ExportLocation location;
   final List<Combinator> combinators;
 
-  Export(this.exporter, this.index, this.combinators);
+  Export({
+    required this.exporter,
+    required this.location,
+    required this.combinators,
+  });
 
   bool addToExportScope(String name, ExportedReference exported) {
     if (combinators.allows(name)) {
-      return exporter.exportScope.export(index, name, exported);
+      return exporter.exportScope.export(location, name, exported);
     }
     return false;
   }
@@ -43,18 +48,52 @@ class ExportedReferenceDeclared extends ExportedReference {
 
 /// [ExportedReference] for an element that is re-exported.
 class ExportedReferenceExported extends ExportedReference {
-  /// The indexes of `export` directives (at least one) that export the element.
-  final List<int> indexes;
+  /// The locations of `export` (at least one) that export the element.
+  final List<ExportLocation> locations;
 
   ExportedReferenceExported({
     required super.reference,
-    required this.indexes,
+    required this.locations,
   });
 
-  void addExportIndex(int index) {
-    if (!indexes.contains(index)) {
-      indexes.add(index);
+  void addLocation(ExportLocation location) {
+    if (!locations.contains(location)) {
+      locations.add(location);
     }
+  }
+}
+
+class ExportLocation {
+  /// The index of the container with the `export` directive, `0` means the
+  /// library itself, a positive value means a `+1` index in the library
+  /// augmentations.
+  final int containerIndex;
+
+  /// The index in [LibraryElementImpl.libraryExports].
+  final int exportIndex;
+
+  ExportLocation({
+    required this.containerIndex,
+    required this.exportIndex,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    return other is ExportLocation &&
+        other.containerIndex == containerIndex &&
+        other.exportIndex == exportIndex;
+  }
+
+  LibraryExportElementImpl exportOf(LibraryElementImpl library) {
+    final container = containerIndex == 0
+        ? library
+        : library.augmentations[containerIndex - 1];
+    return container.libraryExports[exportIndex];
+  }
+
+  @override
+  String toString() {
+    return '($containerIndex, $exportIndex)';
   }
 }
 
@@ -67,11 +106,15 @@ class ExportScope {
     );
   }
 
-  bool export(int index, String name, ExportedReference exported) {
+  bool export(
+    ExportLocation location,
+    String name,
+    ExportedReference exported,
+  ) {
     final existing = map[name];
     if (existing?.reference == exported.reference) {
       if (existing is ExportedReferenceExported) {
-        existing.addExportIndex(index);
+        existing.addLocation(location);
       }
       return false;
     }
@@ -81,7 +124,7 @@ class ExportScope {
 
     map[name] = ExportedReferenceExported(
       reference: exported.reference,
-      indexes: [index],
+      locations: [location],
     );
     return true;
   }

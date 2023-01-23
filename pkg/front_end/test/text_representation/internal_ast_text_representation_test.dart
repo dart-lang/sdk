@@ -42,6 +42,16 @@ void testExpression(Expression node, String normal,
       "Unexpected limited strategy text for ${node.runtimeType}");
 }
 
+void testMatcher(Pattern node, String normal,
+    {String? verbose, String? limited}) {
+  Expect.stringEquals(normal, node.toText(normalStrategy),
+      "Unexpected normal strategy text for ${node.runtimeType}");
+  Expect.stringEquals(verbose ?? normal, node.toText(verboseStrategy),
+      "Unexpected verbose strategy text for ${node.runtimeType}");
+  Expect.stringEquals(limited ?? normal, node.toText(limitedStrategy),
+      "Unexpected limited strategy text for ${node.runtimeType}");
+}
+
 final Uri dummyUri = Uri.parse('test:dummy');
 
 void main() {
@@ -108,6 +118,16 @@ void main() {
     _testIfMapEntry();
     _testForMapEntry();
     _testForInMapEntry();
+    _testExpressionMatcher();
+    _testBinaryMatcher();
+    _testCastMatcher();
+    _testNullAssertMatcher();
+    _testNullCheckMatcher();
+    _testListMatcher();
+    _testRelationalMatcher();
+    _testMapMatcher();
+    _testIfCaseStatement();
+    _testPatternSwitchStatement();
   });
 }
 
@@ -276,6 +296,62 @@ switch (null) {
 }''',
       limited: '''
 switch (null) { case 0: case 1: return; case 2: default: return; }''');
+}
+
+void _testPatternSwitchStatement() {
+  Expression expression = new NullLiteral();
+  PatternGuard case0 =
+      new PatternGuard(new ExpressionPattern(new IntLiteral(0)));
+  PatternGuard case1 =
+      new PatternGuard(new ExpressionPattern(new IntLiteral(1)));
+  PatternGuard case2 = new PatternGuard(
+      new ExpressionPattern(new IntLiteral(2)), new IntLiteral(3));
+  Block emptyBlock = new Block([]);
+  Block returnBlock1 = new Block([new ReturnStatement()]);
+  Block returnBlock2 = new Block([new ReturnStatement()]);
+
+  testStatement(
+      new PatternSwitchStatement(TreeNode.noOffset, expression, [
+        new PatternSwitchCase(TreeNode.noOffset, [case0], emptyBlock,
+            isDefault: false, hasLabel: false)
+      ]),
+      '''
+switch (null) {
+  case 0:
+}''',
+      limited: '''
+switch (null) { case 0: }''');
+
+  testStatement(
+      new PatternSwitchStatement(TreeNode.noOffset, expression, [
+        new PatternSwitchCase(TreeNode.noOffset, [], emptyBlock,
+            hasLabel: false, isDefault: true)
+      ]),
+      '''
+switch (null) {
+  default:
+}''',
+      limited: '''
+switch (null) { default: }''');
+
+  testStatement(
+      new PatternSwitchStatement(TreeNode.noOffset, expression, [
+        new PatternSwitchCase(TreeNode.noOffset, [case0, case1], returnBlock1,
+            hasLabel: false, isDefault: false),
+        new PatternSwitchCase(TreeNode.noOffset, [case2], returnBlock2,
+            hasLabel: true, isDefault: true)
+      ]),
+      '''
+switch (null) {
+  case 0:
+  case 1:
+    return;
+  case 2 when 3:
+  default:
+    return;
+}''',
+      limited: '''
+switch (null) { case 0: case 1: return; case 2 when 3: default: return; }''');
 }
 
 void _testBreakStatementImpl() {
@@ -1037,3 +1113,159 @@ void _testIfMapEntry() {}
 void _testForMapEntry() {}
 
 void _testForInMapEntry() {}
+
+void _testExpressionMatcher() {
+  testMatcher(new ExpressionPattern(new IntLiteral(0)), '''
+0''');
+
+  testMatcher(new ExpressionPattern(new BoolLiteral(true)), '''
+true''');
+}
+
+void _testBinaryMatcher() {
+  testMatcher(
+      new AndPattern(new ExpressionPattern(new IntLiteral(0)),
+          new ExpressionPattern(new IntLiteral(1)), TreeNode.noOffset),
+      '''
+0 & 1''');
+
+  testMatcher(
+      new OrPattern(new ExpressionPattern(new IntLiteral(0)),
+          new ExpressionPattern(new IntLiteral(1)), TreeNode.noOffset,
+          orPatternJointVariables: []),
+      '''
+0 | 1''');
+}
+
+void _testCastMatcher() {
+  testMatcher(
+      new CastPattern(new ExpressionPattern(new IntLiteral(0)),
+          const DynamicType(), TreeNode.noOffset),
+      '''
+0 as dynamic''');
+}
+
+void _testNullAssertMatcher() {
+  testMatcher(
+      new NullAssertPattern(
+          new ExpressionPattern(new IntLiteral(0)), TreeNode.noOffset),
+      '''
+0!''');
+}
+
+void _testNullCheckMatcher() {
+  testMatcher(
+      new NullCheckPattern(
+          new ExpressionPattern(new IntLiteral(0)), TreeNode.noOffset),
+      '''
+0?''');
+}
+
+void _testListMatcher() {
+  testMatcher(
+      new ListPattern(
+          const DynamicType(),
+          [
+            new ExpressionPattern(new IntLiteral(0)),
+            new ExpressionPattern(new IntLiteral(1)),
+          ],
+          TreeNode.noOffset),
+      '''
+<dynamic>[0, 1]''');
+}
+
+void _testRelationalMatcher() {
+  testMatcher(
+      new RelationalPattern(
+          RelationalPatternKind.equals, new IntLiteral(0), TreeNode.noOffset),
+      '''
+== 0''');
+  testMatcher(
+      new RelationalPattern(RelationalPatternKind.notEquals, new IntLiteral(1),
+          TreeNode.noOffset),
+      '''
+!= 1''');
+  testMatcher(
+      new RelationalPattern(
+          RelationalPatternKind.lessThan, new IntLiteral(2), TreeNode.noOffset),
+      '''
+< 2''');
+}
+
+void _testMapMatcher() {
+  testMatcher(new MapPattern(null, null, [], TreeNode.noOffset), '''
+{}''');
+  testMatcher(
+      new MapPattern(
+          const DynamicType(), const DynamicType(), [], TreeNode.noOffset),
+      '''
+<dynamic, dynamic>{}''');
+  testMatcher(
+      new MapPattern(
+          null,
+          null,
+          [
+            new MapPatternEntry(new ExpressionPattern(new IntLiteral(0)),
+                new ExpressionPattern(new IntLiteral(1)), TreeNode.noOffset),
+          ],
+          TreeNode.noOffset),
+      '''
+{0: 1}''');
+  testMatcher(
+      new MapPattern(
+          null,
+          null,
+          [
+            new MapPatternEntry(new ExpressionPattern(new IntLiteral(0)),
+                new ExpressionPattern(new IntLiteral(1)), TreeNode.noOffset),
+            new MapPatternEntry(new ExpressionPattern(new IntLiteral(2)),
+                new ExpressionPattern(new IntLiteral(3)), TreeNode.noOffset),
+          ],
+          TreeNode.noOffset),
+      '''
+{0: 1, 2: 3}''');
+}
+
+void _testIfCaseStatement() {
+  testStatement(
+      new IfCaseStatement(
+          new IntLiteral(0),
+          new PatternGuard(new ExpressionPattern(new IntLiteral(1))),
+          new ReturnStatement(),
+          null,
+          TreeNode.noOffset),
+      '''
+if (0 case 1) return;''');
+
+  testStatement(
+      new IfCaseStatement(
+          new IntLiteral(0),
+          new PatternGuard(new ExpressionPattern(new IntLiteral(1))),
+          new ReturnStatement(new IntLiteral(2)),
+          new ReturnStatement(new IntLiteral(3)),
+          TreeNode.noOffset),
+      '''
+if (0 case 1) return 2; else return 3;''');
+
+  testStatement(
+      new IfCaseStatement(
+          new IntLiteral(0),
+          new PatternGuard(
+              new ExpressionPattern(new IntLiteral(1)), new IntLiteral(2)),
+          new ReturnStatement(),
+          null,
+          TreeNode.noOffset),
+      '''
+if (0 case 1 when 2) return;''');
+
+  testStatement(
+      new IfCaseStatement(
+          new IntLiteral(0),
+          new PatternGuard(
+              new ExpressionPattern(new IntLiteral(1)), new IntLiteral(2)),
+          new ReturnStatement(new IntLiteral(3)),
+          new ReturnStatement(new IntLiteral(4)),
+          TreeNode.noOffset),
+      '''
+if (0 case 1 when 2) return 3; else return 4;''');
+}

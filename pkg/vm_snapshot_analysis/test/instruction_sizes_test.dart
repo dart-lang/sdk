@@ -360,17 +360,12 @@ void main() async {
           expect(inputLib.children['B']!.children[name]!.children, isEmpty);
         }
 
-        for (var name in ['tornOff{body}', 'tornOff', '[tear-off] tornOff']) {
+        for (var name in ['tornOff', '[tear-off] tornOff']) {
           expect(inputLib.children['C']!.children, contains(name));
           expect(inputLib.children['C']!.children[name]!.children, isEmpty);
         }
 
-        for (var name in [
-          'tornOff{body}',
-          'tornOff{body depth 2}',
-          'tornOff',
-          '[tear-off] tornOff'
-        ]) {
+        for (var name in ['tornOff', '[tear-off] tornOff']) {
           expect(inputLib.children['D']!.children, contains(name));
           expect(inputLib.children['D']!.children[name]!.children, isEmpty);
         }
@@ -555,13 +550,6 @@ void main() async {
               diffToJson(diff),
               equals({
                 '#type': 'library',
-                '@stubs': {
-                  '#type': 'library',
-                  'Type Test Type: int*': {
-                    '#type': 'function',
-                    '#size': lessThan(0),
-                  },
-                },
                 'package:input': {
                   '#type': 'package',
                   'package:input/input.dart': {
@@ -631,7 +619,7 @@ void main() async {
 
         final classC = inputLib.children['C']!;
         expect(classC.children, contains('tornOff'));
-        for (var name in ['tornOff{body}', '[tear-off] tornOff']) {
+        for (var name in ['[tear-off] tornOff']) {
           expect(classC.children['tornOff']!.children, contains(name));
         }
 
@@ -644,11 +632,9 @@ void main() async {
 
         final classD = inputLib.children['D']!;
         expect(classD.children, contains('tornOff'));
-        for (var name in ['tornOff{body}', '[tear-off] tornOff']) {
+        for (var name in ['[tear-off] tornOff']) {
           expect(classD.children['tornOff']!.children, contains(name));
         }
-        expect(classD.children['tornOff']!.children['tornOff{body}']!.children,
-            contains('tornOff{body depth 2}'));
 
         // Verify that [ProgramInfoNode] owns its corresponding snapshot [Node].
         final classesOwnedByD = info.snapshotInfo!.snapshot.nodes
@@ -858,14 +844,8 @@ void main() async {
 
         // Verify that we don't include package names twice into paths
         // while building the treemap.
-        if (Platform.isWindows) {
-          // Note: in Windows we don't consider main.dart part of package:input
-          // for some reason.
-          expect(findChild(treemap, 'package:input/input.dart'), isNotNull);
-        } else {
-          expect(childrenNames(findChild(treemap, 'package:input')!),
-              equals({'main.dart', 'input.dart'}));
-        }
+        expect(childrenNames(findChild(treemap, 'package:input')!),
+            equals({'main.dart', 'input.dart'}));
       });
     });
 

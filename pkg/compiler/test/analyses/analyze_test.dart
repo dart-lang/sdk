@@ -13,6 +13,13 @@ main() async {
   // prematurely.
   await testing.main(
       <String>["--config=pkg/compiler/testing.json", "--verbose", "analyze"]);
+  // Test the 'compiler/test' subdirectory separately since it has a different
+  // analysis_options.yaml file.
+  await testing.main(<String>[
+    "--config=pkg/compiler/test/testing.json",
+    "--verbose",
+    "analyze"
+  ]);
   if (exitCode != 0) {
     throw "Exit-code was $exitCode!";
   }

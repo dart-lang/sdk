@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 part of dart2js.js_emitter.program_builder;
 
 class LibraryContents {
@@ -26,8 +24,8 @@ class LibrariesMap {
 
   // It is very common to access the same library multiple times in a row, so
   // we cache the last access.
-  LibraryEntity _lastLibrary;
-  LibraryContents _lastMapping;
+  LibraryEntity? _lastLibrary;
+  late LibraryContents _lastMapping;
 
   /// A unique name representing this instance.
   final String name;
@@ -61,6 +59,9 @@ class LibrariesMap {
 
   int get length => _mapping.length;
 
+  Iterable<MapEntry<LibraryEntity, LibraryContents>> get entries =>
+      _mapping.entries;
+
   void forEach(
       void f(LibraryEntity library, List<ClassEntity> classes,
           List<MemberEntity> members, List<ClassEntity> classTypeData)) {
@@ -82,8 +83,8 @@ class Registry {
   final Map<OutputUnit, LibrariesMap> _deferredLibrariesMap = {};
 
   /// Cache for the last seen output unit.
-  OutputUnit _lastOutputUnit;
-  LibrariesMap _lastLibrariesMap;
+  OutputUnit? _lastOutputUnit;
+  late LibrariesMap _lastLibrariesMap;
 
   Iterable<LibrariesMap> get deferredLibrariesMap =>
       _deferredLibrariesMap.values;
@@ -91,18 +92,17 @@ class Registry {
   // Add one for the main libraries map.
   int get librariesMapCount => _deferredLibrariesMap.length + 1;
 
-  LibrariesMap mainLibrariesMap;
+  late final LibrariesMap mainLibrariesMap;
 
   Registry(this._mainOutputUnit, this._sorter);
 
   LibrariesMap _mapUnitToLibrariesMap(OutputUnit targetUnit) {
     if (targetUnit == _lastOutputUnit) return _lastLibrariesMap;
 
-    LibrariesMap result = (targetUnit == _mainOutputUnit)
+    final result = (targetUnit == _mainOutputUnit)
         ? mainLibrariesMap
-        : _deferredLibrariesMap[targetUnit];
+        : _deferredLibrariesMap[targetUnit]!;
 
-    assert(result != null);
     _lastOutputUnit = targetUnit;
     _lastLibrariesMap = result;
     return result;
@@ -110,7 +110,6 @@ class Registry {
 
   void registerOutputUnit(OutputUnit outputUnit) {
     if (outputUnit == _mainOutputUnit) {
-      assert(mainLibrariesMap == null);
       mainLibrariesMap = LibrariesMap.main(_mainOutputUnit);
     } else {
       assert(!_deferredLibrariesMap.containsKey(outputUnit));

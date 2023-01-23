@@ -6,34 +6,35 @@
 
 import 'dart:core' hide Type;
 
-import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/ast.dart' as ast show Statement;
-import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
-import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClosedWorldClassHierarchy;
+import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
+import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/library_index.dart' show LibraryIndex;
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 
-import 'analysis.dart';
-import 'calls.dart';
-import 'signature_shaking.dart';
-import 'protobuf_handler.dart' show ProtobufHandler;
-import 'rta.dart' show RapidTypeAnalysis;
-import 'summary.dart';
-import 'table_selector_assigner.dart';
-import 'types.dart';
-import 'unboxing_info.dart';
-import 'utils.dart';
-import '../pragma.dart';
-import '../devirtualization.dart' show Devirtualization;
 import '../../metadata/direct_call.dart';
 import '../../metadata/inferred_type.dart';
 import '../../metadata/procedure_attributes.dart';
 import '../../metadata/table_selector.dart';
 import '../../metadata/unboxing_info.dart';
 import '../../metadata/unreachable.dart';
+import '../devirtualization.dart' show Devirtualization;
+import '../pragma.dart';
+import 'analysis.dart';
+import 'calls.dart';
+import 'finalizable_types.dart';
+import 'protobuf_handler.dart' show ProtobufHandler;
+import 'rta.dart' show RapidTypeAnalysis;
+import 'signature_shaking.dart';
+import 'summary.dart';
+import 'table_selector_assigner.dart';
+import 'types.dart';
+import 'unboxing_info.dart';
+import 'utils.dart';
 
 const bool kDumpClassHierarchy =
     const bool.fromEnvironment('global.type.flow.dump.class.hierarchy');
@@ -43,10 +44,10 @@ const bool kDumpClassHierarchy =
 Component transformComponent(
     Target target, CoreTypes coreTypes, Component component,
     {PragmaAnnotationParser? matcher,
-    bool treeShakeSignatures: true,
-    bool treeShakeWriteOnlyFields: true,
-    bool treeShakeProtobufs: false,
-    bool useRapidTypeAnalysis: true}) {
+    bool treeShakeSignatures = true,
+    bool treeShakeWriteOnlyFields = true,
+    bool treeShakeProtobufs = false,
+    bool useRapidTypeAnalysis = true}) {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
   final hierarchy = new ClassHierarchy(component, coreTypes,
           onAmbiguousSupertypes: ignoreAmbiguousSupertypes)
@@ -118,7 +119,8 @@ Component transformComponent(
 
   final transformsStopWatch = new Stopwatch()..start();
 
-  final treeShaker = new TreeShaker(component, typeFlowAnalysis,
+  final treeShaker = new TreeShaker(
+      component, typeFlowAnalysis, coreTypes, hierarchy,
       treeShakeWriteOnlyFields: treeShakeWriteOnlyFields);
   treeShaker.transformComponent(component);
 
@@ -137,8 +139,8 @@ Component transformComponent(
   final unboxingInfo = new UnboxingInfoManager(typeFlowAnalysis)
     ..analyzeComponent(component, typeFlowAnalysis, tableSelectorAssigner);
 
-  new AnnotateKernel(component, typeFlowAnalysis, treeShaker.fieldMorpher,
-          tableSelectorAssigner, unboxingInfo)
+  new AnnotateKernel(component, typeFlowAnalysis, hierarchy,
+          treeShaker.fieldMorpher, tableSelectorAssigner, unboxingInfo)
       .visitComponent(component);
 
   transformsStopWatch.stop();
@@ -187,8 +189,6 @@ class MoveFieldInitializers {
         if (!_isRedirectingConstructor(c)) c
     ];
 
-    assert(constructors.isNotEmpty || cls.isMixinDeclaration);
-
     // Move field initializers to constructors.
     // Clone AST for all constructors except the first.
     bool isFirst = true;
@@ -225,18 +225,16 @@ class MoveFieldInitializers {
       c.initializers.last is RedirectingInitializer;
 }
 
-// Pass which removes all annotations except @ExternalName and @pragma
-// on variables, members, classes and libraries.
+// Pass which removes all annotations except @pragma on variables, members,
+// classes and libraries.
 // May also keep @TagNumber which is used by protobuf handler.
 class CleanupAnnotations extends RecursiveVisitor {
-  final Class externalNameClass;
   final Class pragmaClass;
   final ProtobufHandler? protobufHandler;
 
   CleanupAnnotations(
       CoreTypes coreTypes, LibraryIndex index, this.protobufHandler)
-      : externalNameClass = index.getClass('dart:_internal', 'ExternalName'),
-        pragmaClass = coreTypes.pragmaClass;
+      : pragmaClass = coreTypes.pragmaClass;
 
   @override
   defaultNode(Node node) {
@@ -262,8 +260,7 @@ class CleanupAnnotations extends RecursiveVisitor {
       final constant = annotation.constant;
       if (constant is InstanceConstant) {
         final cls = constant.classNode;
-        return (cls == externalNameClass) ||
-            (cls == pragmaClass) ||
+        return (cls == pragmaClass) ||
             (protobufHandler != null &&
                 protobufHandler!.usesAnnotationClass(cls));
       }
@@ -300,6 +297,7 @@ class TFADevirtualization extends Devirtualization {
 /// Annotates kernel AST with metadata using results of type flow analysis.
 class AnnotateKernel extends RecursiveVisitor {
   final TypeFlowAnalysis _typeFlowAnalysis;
+  final ClassHierarchy hierarchy;
   final FieldMorpher fieldMorpher;
   final DirectCallMetadataRepository _directCallMetadataRepository;
   final InferredTypeMetadataRepository _inferredTypeMetadata;
@@ -312,8 +310,8 @@ class AnnotateKernel extends RecursiveVisitor {
   final Class _intClass;
   late final Constant _nullConstant = NullConstant();
 
-  AnnotateKernel(Component component, this._typeFlowAnalysis, this.fieldMorpher,
-      this._tableSelectorAssigner, this._unboxingInfo)
+  AnnotateKernel(Component component, this._typeFlowAnalysis, this.hierarchy,
+      this.fieldMorpher, this._tableSelectorAssigner, this._unboxingInfo)
       : _directCallMetadataRepository =
             component.metadata[DirectCallMetadataRepository.repositoryTag]
                 as DirectCallMetadataRepository,
@@ -337,7 +335,7 @@ class AnnotateKernel extends RecursiveVisitor {
   }
 
   InferredType? _convertType(Type type,
-      {bool skipCheck: false, bool receiverNotInt: false}) {
+      {bool skipCheck = false, bool receiverNotInt = false}) {
     Class? concreteClass;
     Constant? constantValue;
     bool isInt = false;
@@ -388,7 +386,7 @@ class AnnotateKernel extends RecursiveVisitor {
   }
 
   void _setInferredType(TreeNode node, Type type,
-      {bool skipCheck: false, bool receiverNotInt: false}) {
+      {bool skipCheck = false, bool receiverNotInt = false}) {
     final inferredType = _convertType(type,
         skipCheck: skipCheck, receiverNotInt: receiverNotInt);
     if (inferredType != null) {
@@ -429,9 +427,7 @@ class AnnotateKernel extends RecursiveVisitor {
         // here), then the receiver cannot be _Smi. This heuristic covers most
         // cases, so we skip these to avoid showering the AST with annotations.
         if (interfaceTarget == null ||
-            _typeFlowAnalysis.hierarchyCache.hierarchy.isSubtypeOf(
-                _typeFlowAnalysis.hierarchyCache.coreTypes.intClass,
-                interfaceTarget.enclosingClass!)) {
+            hierarchy.isSubtypeOf(_intClass, interfaceTarget.enclosingClass!)) {
           markReceiverNotInt = true;
         }
       }
@@ -713,14 +709,21 @@ class TreeShaker {
   final Set<Member> _usedMembers = new Set<Member>();
   final Set<Extension> _usedExtensions = new Set<Extension>();
   final Set<Typedef> _usedTypedefs = new Set<Typedef>();
+  final FinalizableTypes _finalizableTypes;
   late final FieldMorpher fieldMorpher;
   late final _TreeShakerTypeVisitor typeVisitor;
   late final _TreeShakerConstantVisitor constantVisitor;
   late final _TreeShakerPass1 _pass1;
   late final _TreeShakerPass2 _pass2;
 
-  TreeShaker(Component component, this.typeFlowAnalysis,
-      {this.treeShakeWriteOnlyFields: true}) {
+  TreeShaker(
+    Component component,
+    this.typeFlowAnalysis,
+    CoreTypes coreTypes,
+    ClassHierarchy hierarchy, {
+    this.treeShakeWriteOnlyFields = true,
+  }) : _finalizableTypes = new FinalizableTypes(
+            coreTypes, typeFlowAnalysis.libraryIndex, hierarchy) {
     fieldMorpher = new FieldMorpher(this);
     typeVisitor = new _TreeShakerTypeVisitor(this);
     constantVisitor = new _TreeShakerConstantVisitor(this, typeVisitor);
@@ -749,6 +752,7 @@ class TreeShaker {
   bool isFieldSetterReachable(Field f) => typeFlowAnalysis.isFieldSetterUsed(f);
   bool isMemberReferencedFromNativeCode(Member m) =>
       typeFlowAnalysis.nativeCodeOracle.isMemberReferencedFromNativeCode(m);
+  bool isFieldFinalizable(Field f) => _finalizableTypes.isFieldFinalizable(f);
   bool isTypedefUsed(Typedef t) => _usedTypedefs.contains(t);
 
   bool retainField(Field f) =>
@@ -759,18 +763,9 @@ class TreeShaker {
                   f.initializer != null &&
                   isFieldInitializerReachable(f) &&
                   mayHaveSideEffects(f.initializer!)) ||
-              (f.isLate && f.isFinal)) ||
-      isMemberReferencedFromNativeCode(f) ||
-      _isInstanceFieldOfAllocatedEnum(f);
-
-  /// Preserve instance fields of allocated enums as VM relies on their
-  /// existence. Non-allocated enums are converted into ordinary classes during
-  /// the 2nd pass.
-  bool _isInstanceFieldOfAllocatedEnum(Field node) =>
-      !node.isStatic &&
-      node.enclosingClass != null &&
-      node.enclosingClass!.isEnum &&
-      isClassAllocated(node.enclosingClass!);
+              (f.isLate && f.isFinal) ||
+              isFieldFinalizable(f)) ||
+      isMemberReferencedFromNativeCode(f);
 
   void addClassUsedInType(Class c) {
     if (_classesUsedInType.add(c)) {
@@ -983,11 +978,6 @@ class _TreeShakerTypeVisitor extends RecursiveVisitor {
   @override
   visitTypedefType(TypedefType node) {
     shaker.addUsedTypedef(node.typedefNode);
-    node.visitChildren(this);
-  }
-
-  @override
-  visitFunctionType(FunctionType node) {
     node.visitChildren(this);
   }
 
@@ -1952,6 +1942,16 @@ class _TreeShakerConstantVisitor extends ConstantVisitor<Null> {
   visitListConstant(ListConstant constant) {
     for (final Constant entry in constant.entries) {
       analyzeConstant(entry);
+    }
+  }
+
+  @override
+  visitRecordConstant(RecordConstant constant) {
+    for (var value in constant.positional) {
+      analyzeConstant(value);
+    }
+    for (var value in constant.named.values) {
+      analyzeConstant(value);
     }
   }
 

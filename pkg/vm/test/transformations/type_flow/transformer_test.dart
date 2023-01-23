@@ -19,12 +19,14 @@ import '../../common_test_utils.dart';
 
 final Uri pkgVmDir = Platform.script.resolve('../../..');
 
-runTestCase(
-    Uri source, bool enableNullSafety, List<Uri>? linkedDependencies) async {
+void runTestCase(Uri source, bool enableNullSafety,
+    List<Uri>? linkedDependencies, List<String>? experimentalFlags) async {
   final target =
       new TestingVmTarget(new TargetFlags(enableNullSafety: enableNullSafety));
   Component component = await compileTestCaseToKernelProgram(source,
-      target: target, linkedDependencies: linkedDependencies);
+      target: target,
+      linkedDependencies: linkedDependencies,
+      experimentalFlags: experimentalFlags);
 
   final coreTypes = new CoreTypes(component);
 
@@ -84,10 +86,13 @@ class TestOptions {
   static const Option<bool> nnbdStrong =
       Option('--nnbd-strong', BoolValue(false));
 
-  static const List<Option> options = [linked, nnbdStrong];
+  static const Option<List<String>?> enableExperiment =
+      Option('--enable-experiment', StringListValue());
+
+  static const List<Option> options = [linked, nnbdStrong, enableExperiment];
 }
 
-main(List<String> args) {
+void main(List<String> args) {
   final testNameFilter = argsTestName(args);
 
   group('transform-component', () {
@@ -107,6 +112,7 @@ main(List<String> args) {
         }
         List<Uri>? linkDependencies;
         bool enableNullSafety = path.endsWith('_nnbd_strong.dart');
+        List<String>? experimentalFlags;
 
         File optionsFile = new File('${path}.options');
         if (optionsFile.existsSync()) {
@@ -121,10 +127,13 @@ main(List<String> args) {
           if (TestOptions.nnbdStrong.read(parsedOptions)) {
             enableNullSafety = true;
           }
+          experimentalFlags = TestOptions.enableExperiment.read(parsedOptions);
         }
 
-        test(path,
-            () => runTestCase(entry.uri, enableNullSafety, linkDependencies));
+        test(
+            path,
+            () => runTestCase(entry.uri, enableNullSafety, linkDependencies,
+                experimentalFlags));
       }
     }
   }, timeout: Timeout.none);

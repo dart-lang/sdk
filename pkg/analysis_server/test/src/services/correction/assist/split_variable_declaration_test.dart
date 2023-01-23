@@ -76,6 +76,20 @@ void g() {
 ''');
   }
 
+  Future<void> test_onName_recordType() async {
+    await resolveTestCode('''
+void f() {
+  (int, int) v = (1, 2);
+}
+''');
+    await assertHasAssistAt('v =', '''
+void f() {
+  (int, int) v;
+  v = (1, 2);
+}
+''');
+  }
+
   Future<void> test_onType() async {
     await resolveTestCode('''
 void f() {
@@ -105,6 +119,20 @@ void f() {
 ''');
   }
 
+  Future<void> test_onType_recordType() async {
+    await resolveTestCode('''
+void f() {
+  (int, int) v = (1, 2);
+}
+''');
+    await assertHasAssistAt('int)', '''
+void f() {
+  (int, int) v;
+  v = (1, 2);
+}
+''');
+  }
+
   Future<void> test_onVar() async {
     await resolveTestCode('''
 void f() {
@@ -115,6 +143,20 @@ void f() {
 void f() {
   int v;
   v = 1;
+}
+''');
+  }
+
+  Future<void> test_onVar_recordLiteral() async {
+    await resolveTestCode('''
+void f() {
+  var v = (1, 2);
+}
+''');
+    await assertHasAssistAt('var', '''
+void f() {
+  (int, int) v;
+  v = (1, 2);
 }
 ''');
   }

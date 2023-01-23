@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:kernel/ast.dart' as ir;
 import '../common.dart';
 import '../constants/values.dart' show BoolConstantValue;
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../world.dart';
+import '../js_model/js_world.dart';
 import 'abstract_value_domain.dart';
 import 'type_graph_nodes.dart';
 
@@ -30,7 +28,7 @@ abstract class TypeSystemStrategy {
   void forEachParameter(FunctionEntity function, void f(Local parameter));
 
   /// Returns whether [node] is valid as a general phi node.
-  bool checkPhiNode(ir.Node node);
+  bool checkPhiNode(ir.Node? node);
 
   /// Returns whether [node] is valid as a loop phi node.
   bool checkLoopPhiNode(ir.Node node);
@@ -74,15 +72,14 @@ class TypeSystem {
       Map<ir.TreeNode, SetTypeInformation>();
 
   /// [MapTypeInformation] for allocated Maps.
-  final Map<ir.TreeNode, TypeInformation> allocatedMaps =
-      Map<ir.TreeNode, TypeInformation>();
+  final Map<ir.TreeNode, MapTypeInformation> allocatedMaps =
+      Map<ir.TreeNode, MapTypeInformation>();
 
   /// Closures found during the analysis.
   final Set<TypeInformation> allocatedClosures = Set<TypeInformation>();
 
   /// Cache of [ConcreteTypeInformation].
-  final Map<AbstractValue, TypeInformation> concreteTypes =
-      Map<AbstractValue, TypeInformation>();
+  final Map<AbstractValue, ConcreteTypeInformation> concreteTypes = {};
 
   /// Cache of some primitive constant types.
   final Map<Object, TypeInformation> primitiveConstantTypes = {};
@@ -113,17 +110,15 @@ class TypeSystem {
         allocatedTypes,
       ].expand((x) => x);
 
-  TypeSystem(this._closedWorld, this.strategy) {
-    nonNullEmptyType = getConcreteTypeFor(_abstractValueDomain.emptyType);
-  }
+  TypeSystem(this._closedWorld, this.strategy);
 
   AbstractValueDomain get _abstractValueDomain =>
       _closedWorld.abstractValueDomain;
 
   /// Used to group [TypeInformation] nodes by the element that triggered their
   /// creation.
-  MemberTypeInformation _currentMember = null;
-  MemberTypeInformation get currentMember => _currentMember;
+  MemberTypeInformation? _currentMember = null;
+  MemberTypeInformation? get currentMember => _currentMember;
 
   void withMember(MemberEntity element, void action()) {
     assert(_currentMember == null,
@@ -133,157 +128,81 @@ class TypeSystem {
     _currentMember = null;
   }
 
-  TypeInformation nullTypeCache;
-  TypeInformation get nullType {
-    if (nullTypeCache != null) return nullTypeCache;
-    return nullTypeCache = getConcreteTypeFor(_abstractValueDomain.nullType);
-  }
+  late final ConcreteTypeInformation nullType =
+      getConcreteTypeFor(_abstractValueDomain.nullType);
 
-  TypeInformation intTypeCache;
-  TypeInformation get intType {
-    if (intTypeCache != null) return intTypeCache;
-    return intTypeCache = getConcreteTypeFor(_abstractValueDomain.intType);
-  }
+  late final ConcreteTypeInformation intType =
+      getConcreteTypeFor(_abstractValueDomain.intType);
 
-  TypeInformation uint32TypeCache;
-  TypeInformation get uint32Type {
-    if (uint32TypeCache != null) return uint32TypeCache;
-    return uint32TypeCache =
-        getConcreteTypeFor(_abstractValueDomain.uint32Type);
-  }
+  late final ConcreteTypeInformation uint32Type =
+      getConcreteTypeFor(_abstractValueDomain.uint32Type);
 
-  TypeInformation uint31TypeCache;
-  TypeInformation get uint31Type {
-    if (uint31TypeCache != null) return uint31TypeCache;
-    return uint31TypeCache =
-        getConcreteTypeFor(_abstractValueDomain.uint31Type);
-  }
+  late final ConcreteTypeInformation uint31Type =
+      getConcreteTypeFor(_abstractValueDomain.uint31Type);
 
-  TypeInformation positiveIntTypeCache;
-  TypeInformation get positiveIntType {
-    if (positiveIntTypeCache != null) return positiveIntTypeCache;
-    return positiveIntTypeCache =
-        getConcreteTypeFor(_abstractValueDomain.positiveIntType);
-  }
+  late final ConcreteTypeInformation positiveIntType =
+      getConcreteTypeFor(_abstractValueDomain.positiveIntType);
 
-  TypeInformation numTypeCache;
-  TypeInformation get numType {
-    if (numTypeCache != null) return numTypeCache;
-    return numTypeCache = getConcreteTypeFor(_abstractValueDomain.numType);
-  }
+  late final ConcreteTypeInformation numType =
+      getConcreteTypeFor(_abstractValueDomain.numType);
 
-  TypeInformation boolTypeCache;
-  TypeInformation get boolType {
-    if (boolTypeCache != null) return boolTypeCache;
-    return boolTypeCache = getConcreteTypeFor(_abstractValueDomain.boolType);
-  }
+  late final ConcreteTypeInformation boolType =
+      getConcreteTypeFor(_abstractValueDomain.boolType);
 
-  TypeInformation functionTypeCache;
-  TypeInformation get functionType {
-    if (functionTypeCache != null) return functionTypeCache;
-    return functionTypeCache =
-        getConcreteTypeFor(_abstractValueDomain.functionType);
-  }
+  late final ConcreteTypeInformation functionType =
+      getConcreteTypeFor(_abstractValueDomain.functionType);
 
-  TypeInformation listTypeCache;
-  TypeInformation get listType {
-    if (listTypeCache != null) return listTypeCache;
-    return listTypeCache = getConcreteTypeFor(_abstractValueDomain.listType);
-  }
+  late final ConcreteTypeInformation listType =
+      getConcreteTypeFor(_abstractValueDomain.listType);
 
-  TypeInformation constListTypeCache;
-  TypeInformation get constListType {
-    if (constListTypeCache != null) return constListTypeCache;
-    return constListTypeCache =
-        getConcreteTypeFor(_abstractValueDomain.constListType);
-  }
+  late final ConcreteTypeInformation constListType =
+      getConcreteTypeFor(_abstractValueDomain.constListType);
 
-  TypeInformation fixedListTypeCache;
-  TypeInformation get fixedListType {
-    if (fixedListTypeCache != null) return fixedListTypeCache;
-    return fixedListTypeCache =
-        getConcreteTypeFor(_abstractValueDomain.fixedListType);
-  }
+  late final ConcreteTypeInformation fixedListType =
+      getConcreteTypeFor(_abstractValueDomain.fixedListType);
 
-  TypeInformation growableListTypeCache;
-  TypeInformation get growableListType {
-    if (growableListTypeCache != null) return growableListTypeCache;
-    return growableListTypeCache =
-        getConcreteTypeFor(_abstractValueDomain.growableListType);
-  }
+  late final ConcreteTypeInformation growableListType =
+      getConcreteTypeFor(_abstractValueDomain.growableListType);
 
-  TypeInformation _mutableArrayType;
-  TypeInformation get mutableArrayType => _mutableArrayType ??=
+  late final ConcreteTypeInformation mutableArrayType =
       getConcreteTypeFor(_abstractValueDomain.mutableArrayType);
 
-  TypeInformation setTypeCache;
-  TypeInformation get setType =>
-      setTypeCache ??= getConcreteTypeFor(_abstractValueDomain.setType);
+  late final ConcreteTypeInformation setType =
+      getConcreteTypeFor(_abstractValueDomain.setType);
 
-  TypeInformation constSetTypeCache;
-  TypeInformation get constSetType => constSetTypeCache ??=
+  late final ConcreteTypeInformation constSetType =
       getConcreteTypeFor(_abstractValueDomain.constSetType);
 
-  TypeInformation mapTypeCache;
-  TypeInformation get mapType {
-    if (mapTypeCache != null) return mapTypeCache;
-    return mapTypeCache = getConcreteTypeFor(_abstractValueDomain.mapType);
-  }
+  late final ConcreteTypeInformation mapType =
+      getConcreteTypeFor(_abstractValueDomain.mapType);
 
-  TypeInformation constMapTypeCache;
-  TypeInformation get constMapType {
-    if (constMapTypeCache != null) return constMapTypeCache;
-    return constMapTypeCache =
-        getConcreteTypeFor(_abstractValueDomain.constMapType);
-  }
+  late final ConcreteTypeInformation constMapType =
+      getConcreteTypeFor(_abstractValueDomain.constMapType);
 
-  TypeInformation stringTypeCache;
-  TypeInformation get stringType {
-    if (stringTypeCache != null) return stringTypeCache;
-    return stringTypeCache =
-        getConcreteTypeFor(_abstractValueDomain.stringType);
-  }
+  late final ConcreteTypeInformation stringType =
+      getConcreteTypeFor(_abstractValueDomain.stringType);
 
-  TypeInformation typeTypeCache;
-  TypeInformation get typeType {
-    if (typeTypeCache != null) return typeTypeCache;
-    return typeTypeCache = getConcreteTypeFor(_abstractValueDomain.typeType);
-  }
+  late final ConcreteTypeInformation typeType =
+      getConcreteTypeFor(_abstractValueDomain.typeType);
 
-  TypeInformation dynamicTypeCache;
-  TypeInformation get dynamicType {
-    if (dynamicTypeCache != null) return dynamicTypeCache;
-    return dynamicTypeCache =
-        getConcreteTypeFor(_abstractValueDomain.dynamicType);
-  }
+  late final ConcreteTypeInformation dynamicType =
+      getConcreteTypeFor(_abstractValueDomain.dynamicType);
 
-  TypeInformation asyncFutureTypeCache;
   // Subtype of Future returned by async methods.
-  TypeInformation get asyncFutureType {
-    if (asyncFutureTypeCache != null) return asyncFutureTypeCache;
-    return asyncFutureTypeCache =
-        getConcreteTypeFor(_abstractValueDomain.asyncFutureType);
-  }
+  late final ConcreteTypeInformation asyncFutureType =
+      getConcreteTypeFor(_abstractValueDomain.asyncFutureType);
 
-  TypeInformation syncStarIterableTypeCache;
-  TypeInformation get syncStarIterableType {
-    if (syncStarIterableTypeCache != null) return syncStarIterableTypeCache;
-    return syncStarIterableTypeCache =
-        getConcreteTypeFor(_abstractValueDomain.syncStarIterableType);
-  }
+  late final ConcreteTypeInformation syncStarIterableType =
+      getConcreteTypeFor(_abstractValueDomain.syncStarIterableType);
 
-  TypeInformation asyncStarStreamTypeCache;
-  TypeInformation get asyncStarStreamType {
-    if (asyncStarStreamTypeCache != null) return asyncStarStreamTypeCache;
-    return asyncStarStreamTypeCache =
-        getConcreteTypeFor(_abstractValueDomain.asyncStarStreamType);
-  }
+  late final ConcreteTypeInformation asyncStarStreamType =
+      getConcreteTypeFor(_abstractValueDomain.asyncStarStreamType);
 
-  TypeInformation _lateSentinelType;
-  TypeInformation get lateSentinelType => _lateSentinelType ??=
+  late final ConcreteTypeInformation lateSentinelType =
       getConcreteTypeFor(_abstractValueDomain.lateSentinelType);
 
-  TypeInformation nonNullEmptyType;
+  late final ConcreteTypeInformation nonNullEmptyType =
+      getConcreteTypeFor(_abstractValueDomain.emptyType);
 
   TypeInformation stringLiteralType(String value) {
     return StringLiteralTypeInformation(
@@ -312,7 +231,7 @@ class TypeSystem {
   /// Returns the least upper bound between [firstType] and
   /// [secondType].
   TypeInformation computeLUB(
-      TypeInformation firstType, TypeInformation secondType) {
+      TypeInformation? firstType, TypeInformation secondType) {
     if (firstType == null) return secondType;
     if (firstType == secondType) return firstType;
     if (firstType == nonNullEmptyType) return secondType;
@@ -326,7 +245,7 @@ class TypeSystem {
 
   /// Returns `true` if `selector` should be updated to reflect the new
   /// `receiverType`.
-  bool selectorNeedsUpdate(TypeInformation info, AbstractValue mask) {
+  bool selectorNeedsUpdate(TypeInformation info, AbstractValue? mask) {
     return info.type != mask;
   }
 
@@ -431,7 +350,7 @@ class TypeSystem {
 
   /// Returns the internal inferrer representation for [mask].
   ConcreteTypeInformation getConcreteTypeFor(AbstractValue mask) {
-    assert(mask != null);
+    assert((mask as dynamic) != null); // TODO(48820): Remove when sound.
     return concreteTypes.putIfAbsent(mask, () {
       return ConcreteTypeInformation(mask);
     });
@@ -471,24 +390,24 @@ class TypeSystem {
     return type == nullType;
   }
 
-  TypeInformation allocateList(
-      TypeInformation type, ir.TreeNode node, MemberEntity enclosing,
-      [TypeInformation elementType, int length]) {
+  TypeInformation allocateList(TypeInformation type, ir.TreeNode node,
+      MemberEntity enclosing, TypeInformation elementType,
+      [int? length]) {
     assert(strategy.checkListNode(node));
-    ClassEntity typedDataClass = _closedWorld.commonElements.typedDataClass;
-    bool isTypedArray = typedDataClass != null &&
+    final typedDataClass = _closedWorld.commonElements.typedDataClass;
+    bool isTypedArray =
         _closedWorld.classHierarchy.isInstantiated(typedDataClass) &&
-        _abstractValueDomain
-            .isInstanceOfOrNull(type.type, typedDataClass)
-            .isDefinitelyTrue;
+            _abstractValueDomain
+                .isInstanceOfOrNull(type.type, typedDataClass)
+                .isDefinitelyTrue;
     bool isConst = (type.type == _abstractValueDomain.constListType);
     bool isFixed = (type.type == _abstractValueDomain.fixedListType) ||
         isConst ||
         isTypedArray;
     bool isElementInferred = isConst || isTypedArray;
 
-    int inferredLength = isFixed ? length : null;
-    AbstractValue elementTypeMask =
+    final inferredLength = isFixed ? length : null;
+    final elementTypeMask =
         isElementInferred ? elementType.type : dynamicType.type;
     AbstractValue mask = _abstractValueDomain.createContainerValue(
         type.type, node, enclosing, elementTypeMask, inferredLength);
@@ -512,9 +431,8 @@ class TypeSystem {
     return result;
   }
 
-  TypeInformation allocateSet(
-      TypeInformation type, ir.TreeNode node, MemberEntity enclosing,
-      [TypeInformation elementType]) {
+  TypeInformation allocateSet(TypeInformation type, ir.TreeNode node,
+      MemberEntity enclosing, TypeInformation elementType) {
     assert(strategy.checkSetNode(node));
     bool isConst = type.type == _abstractValueDomain.constSetType;
 
@@ -532,44 +450,47 @@ class TypeSystem {
   }
 
   TypeInformation allocateMap(
-      ConcreteTypeInformation type, ir.TreeNode node, MemberEntity element,
-      [List<TypeInformation> keyTypes, List<TypeInformation> valueTypes]) {
+      ConcreteTypeInformation type,
+      ir.TreeNode node,
+      MemberEntity element,
+      List<TypeInformation> keyTypes,
+      List<TypeInformation> valueTypes) {
     assert(strategy.checkMapNode(node));
     assert(keyTypes.length == valueTypes.length);
     bool isFixed = (type.type == _abstractValueDomain.constMapType);
 
-    TypeInformation keyType, valueType;
+    PhiElementTypeInformation? keyType, valueType;
     for (int i = 0; i < keyTypes.length; ++i) {
-      TypeInformation type = keyTypes[i];
+      final typeForKey = keyTypes[i];
       keyType = keyType == null
-          ? allocatePhi(null, null, type, isTry: false)
-          : addPhiInput(null, keyType, type);
+          ? allocatePhi(null, null, typeForKey, isTry: false)
+          : addPhiInput(null, keyType, typeForKey);
 
-      type = valueTypes[i];
+      final typeForValue = valueTypes[i];
       valueType = valueType == null
-          ? allocatePhi(null, null, type, isTry: false)
-          : addPhiInput(null, valueType, type);
+          ? allocatePhi(null, null, typeForValue, isTry: false)
+          : addPhiInput(null, valueType, typeForValue);
     }
 
-    keyType =
+    final simplifiedKeyType =
         keyType == null ? nonNullEmpty() : simplifyPhi(null, null, keyType);
-    valueType =
+    final simplifiedValueType =
         valueType == null ? nonNullEmpty() : simplifyPhi(null, null, valueType);
 
     AbstractValue keyTypeMask, valueTypeMask;
     if (isFixed) {
-      keyTypeMask = keyType.type;
-      valueTypeMask = valueType.type;
+      keyTypeMask = simplifiedKeyType.type;
+      valueTypeMask = simplifiedValueType.type;
     } else {
       keyTypeMask = valueTypeMask = dynamicType.type;
     }
     AbstractValue mask = _abstractValueDomain.createMapValue(
         type.type, node, element, keyTypeMask, valueTypeMask);
 
-    TypeInformation keyTypeInfo =
-        KeyInMapTypeInformation(_abstractValueDomain, currentMember, keyType);
-    TypeInformation valueTypeInfo = ValueInMapTypeInformation(
-        _abstractValueDomain, currentMember, valueType);
+    final keyTypeInfo = KeyInMapTypeInformation(
+        _abstractValueDomain, currentMember, simplifiedKeyType);
+    final valueTypeInfo = ValueInMapTypeInformation(
+        _abstractValueDomain, currentMember, simplifiedValueType);
     allocatedTypes.add(keyTypeInfo);
     allocatedTypes.add(valueTypeInfo);
 
@@ -577,7 +498,7 @@ class TypeSystem {
         MapTypeInformation(currentMember, mask, keyTypeInfo, valueTypeInfo);
 
     for (int i = 0; i < keyTypes.length; ++i) {
-      TypeInformation newType = map.addEntryInput(
+      final newType = map.addEntryInput(
           _abstractValueDomain, keyTypes[i], valueTypes[i], true);
       if (newType != null) allocatedTypes.add(newType);
     }
@@ -590,7 +511,7 @@ class TypeSystem {
     return map;
   }
 
-  AbstractValue newTypedSelector(TypeInformation info, AbstractValue mask) {
+  AbstractValue? newTypedSelector(TypeInformation info, AbstractValue? mask) {
     // Only type the selector if [info] is concrete, because the other
     // kinds of [TypeInformation] have the empty type at this point of
     // analysis.
@@ -610,7 +531,7 @@ class TypeSystem {
   }
 
   PhiElementTypeInformation _addPhi(
-      ir.Node node, Local variable, TypeInformation inputType, bool isTry) {
+      ir.Node? node, Local? variable, TypeInformation inputType, bool isTry) {
     PhiElementTypeInformation result = PhiElementTypeInformation(
         _abstractValueDomain, currentMember, node, variable,
         isTry: isTry);
@@ -622,8 +543,8 @@ class TypeSystem {
   /// Returns a new type for holding the potential types of [element].
   /// [inputType] is the first incoming type of the phi.
   PhiElementTypeInformation allocatePhi(
-      ir.Node node, Local variable, TypeInformation inputType,
-      {bool isTry}) {
+      ir.Node? node, Local? variable, TypeInformation inputType,
+      {required bool isTry}) {
     assert(strategy.checkPhiNode(node));
     // Check if [inputType] is a phi for a local updated in
     // the try/catch block [node]. If it is, no need to allocate a new
@@ -643,24 +564,24 @@ class TypeSystem {
   /// from other merging uses.
   PhiElementTypeInformation allocateLoopPhi(
       ir.Node node, Local variable, TypeInformation inputType,
-      {bool isTry}) {
+      {required bool isTry}) {
     assert(strategy.checkLoopPhiNode(node));
     return _addPhi(node, variable, inputType, isTry);
   }
 
-  /// Simplies the phi representing [element] and of the type
+  /// Simplifies the phi representing [element] and of the type
   /// [phiType]. For example, if this phi has one incoming input, an
   /// implementation of this method could just return that incoming
   /// input type.
   TypeInformation simplifyPhi(
-      ir.Node node, Local variable, PhiElementTypeInformation phiType) {
+      ir.Node? node, Local? variable, PhiElementTypeInformation phiType) {
     assert(phiType.branchNode == node);
     if (phiType.inputs.length == 1) return phiType.inputs.first;
     return phiType;
   }
 
   /// Adds [newType] as an input of [phiType].
-  PhiElementTypeInformation addPhiInput(Local variable,
+  PhiElementTypeInformation addPhiInput(Local? variable,
       PhiElementTypeInformation phiType, TypeInformation newType) {
     phiType.addInput(newType);
     return phiType;
@@ -697,7 +618,7 @@ class TypeSystem {
       list.add(mask);
     }
 
-    AbstractValue newType = null;
+    AbstractValue? newType;
     for (AbstractValue mask in list) {
       newType =
           newType == null ? mask : _abstractValueDomain.union(newType, mask);

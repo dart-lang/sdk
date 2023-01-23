@@ -2052,7 +2052,7 @@ class LengthList extends JavaScriptObject
 
   Length operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return this.getItem(index);
   }
 
@@ -2377,7 +2377,7 @@ class NumberList extends JavaScriptObject
 
   Number operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return this.getItem(index);
   }
 
@@ -2860,7 +2860,7 @@ class StringList extends JavaScriptObject
 
   String operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return this.getItem(index);
   }
 
@@ -3002,15 +3002,15 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
     }
 
     final match = _START_TAG_REGEXP.firstMatch(svg);
-    var parentElement;
+    Element parentElement;
     if (match != null && match.group(1)!.toLowerCase() == 'svg') {
-      parentElement = document.body;
+      parentElement = document.body!;
     } else {
       parentElement = new SvgSvgElement();
     }
     var fragment = parentElement.createFragment(svg,
         validator: validator, treeSanitizer: treeSanitizer);
-    return fragment.nodes.where((e) => e is SvgElement).single;
+    return fragment.nodes.where((e) => e is SvgElement).single as SvgElement;
   }
 
   CssClassSet get classes => new AttributeClassSet(this);
@@ -3849,7 +3849,7 @@ class TransformList extends JavaScriptObject
 
   Transform operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return this.getItem(index);
   }
 

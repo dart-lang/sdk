@@ -32,6 +32,7 @@ main() {
             contains('"method":"streamListen","params":{"streamId":"Debug"}'),
           ),
         ),
+        dap.client.event('terminated'),
         dap.client.start(
           file: testFile,
           launch: () => dap.client.launch(
@@ -40,7 +41,6 @@ main() {
           ),
         ),
       ]);
-      await dap.client.terminate();
     });
 
     test('prints messages from dart:developer log()', () async {

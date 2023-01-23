@@ -20,9 +20,6 @@ class AddTypeAnnotationTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.ADD_TYPE_ANNOTATION;
 
-  @override
-  String? get testPackageLanguageVersion => '2.12';
-
   Future<void> test_classField_final() async {
     await resolveTestCode('''
 class A {
@@ -56,6 +53,19 @@ class A {
     await assertHasAssistAt('var ', '''
 class A {
   int f = 0;
+}
+''');
+  }
+
+  Future<void> test_classField_recordType() async {
+    await resolveTestCode('''
+class A {
+  var f = (2, b: 3);
+}
+''');
+    await assertHasAssistAt('var ', '''
+class A {
+  (int, {int b}) f = (2, b: 3);
 }
 ''');
   }
@@ -159,6 +169,21 @@ void f(List<String> items) {
 }
 ''');
     await assertNoAssistAt('42;');
+  }
+
+  Future<void> test_declaredIdentifier_recordType() async {
+    await resolveTestCode('''
+void f(List<(int, {int a})> items) {
+  for (final item in items) {
+  }
+}
+''');
+    await assertHasAssistAt('item in', '''
+void f(List<(int, {int a})> items) {
+  for (final (int, {int a}) item in items) {
+  }
+}
+''');
   }
 
   Future<void> test_declaredIdentifier_unknownType() async {
@@ -600,6 +625,19 @@ void f() {
 ''');
   }
 
+  Future<void> test_local_recordType() async {
+    await resolveTestCode('''
+void f() {
+  var v = (x: 0, y: 0);
+}
+''');
+    await assertHasAssistAt('v =', '''
+void f() {
+  ({int x, int y}) v = (x: 0, y: 0);
+}
+''');
+  }
+
   Future<void> test_local_unknown() async {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
@@ -625,6 +663,25 @@ void f() {
 ''');
   }
 
+  @FailingTest(reason: '''
+This functionality is disabled in `AddTypeAnnotation._forSimpleFormalParameter`
+because `writeType` is writing the names of the parameters when it shouldn't.
+''')
+  Future<void> test_parameter_functionType() async {
+    await resolveTestCode('''
+foo(f(void Function(int) p)) {}
+void f() {
+  foo((test) {});
+}
+''');
+    await assertHasAssistAt('test', '''
+foo(f(void Function(int) p)) {}
+void f() {
+  foo((void Function(int) test) {});
+}
+''');
+  }
+
   Future<void> test_parameter_hasExplicitType() async {
     await resolveTestCode('''
 foo(f(int p)) {}
@@ -643,6 +700,21 @@ void f() {
 }
 ''');
     await assertNoAssistAt('test');
+  }
+
+  Future<void> test_parameter_recordType() async {
+    await resolveTestCode('''
+foo(f((int, int) p)) {}
+void f() {
+  foo((test) {});
+}
+''');
+    await assertHasAssistAt('test', '''
+foo(f((int, int) p)) {}
+void f() {
+  foo(((int, int) test) {});
+}
+''');
   }
 
   Future<void> test_privateType_closureParameter() async {
@@ -736,26 +808,35 @@ void f() {
     await assertNoAssistAt('var ');
   }
 
-  Future<void> test_topLevelField_int() async {
+  Future<void> test_topLevelVariable_int() async {
     await resolveTestCode('''
-var V = 0;
+var v = 0;
 ''');
     await assertHasAssistAt('var ', '''
-int V = 0;
+int v = 0;
 ''');
   }
 
-  Future<void> test_topLevelField_multiple() async {
+  Future<void> test_topLevelVariable_multiple() async {
     await resolveTestCode('''
-var A = 1, V = '';
+var a = 1, v = '';
 ''');
     await assertNoAssistAt('var ');
   }
 
-  Future<void> test_topLevelField_noValue() async {
+  Future<void> test_topLevelVariable_noValue() async {
     await resolveTestCode('''
-var V;
+var v;
 ''');
     await assertNoAssistAt('var ');
+  }
+
+  Future<void> test_topLevelVariable_record() async {
+    await resolveTestCode('''
+var v = (a: 1, 2);
+''');
+    await assertHasAssistAt('var ', '''
+(int, {int a}) v = (a: 1, 2);
+''');
   }
 }

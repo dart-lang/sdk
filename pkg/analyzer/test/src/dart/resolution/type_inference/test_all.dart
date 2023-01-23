@@ -6,7 +6,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../node_text_expectations.dart';
 import 'collection_elements_test.dart' as collection_elements;
-import 'conditional_expression_test.dart' as conditional_expression;
 import 'equality_expressions_test.dart' as equality_expressions;
 import 'extension_methods_test.dart' as extension_methods;
 import 'function_expression_test.dart' as function_expression;
@@ -25,7 +24,6 @@ import 'type_test_expressions_test.dart' as type_test_expressions;
 main() {
   defineReflectiveSuite(() {
     collection_elements.main();
-    conditional_expression.main();
     equality_expressions.main();
     extension_methods.main();
     function.main();

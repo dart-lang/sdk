@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library js_backend.backend;
 
 import '../common.dart';
@@ -11,12 +9,8 @@ import '../common/codegen.dart';
 import '../elements/entities.dart';
 import '../inferrer/types.dart';
 import '../js_model/elements.dart';
-import '../tracer.dart';
 import 'annotations.dart';
-import 'checked_mode_helpers.dart';
-import 'namer.dart';
-import 'runtime_types_codegen.dart';
-import 'runtime_types_new.dart';
+import 'codegen_inputs.dart';
 
 abstract class FunctionCompiler {
   void initialize(
@@ -46,19 +40,11 @@ class FunctionInlineCache {
   static const int _canInlineInLoopMayInlineOutside = 3;
   static const int _canInline = 4;
 
+  final AnnotationsData _annotationsData;
+
   final Map<FunctionEntity, int> _cachedDecisions = {};
 
-  final Set<FunctionEntity> _noInlineFunctions = {};
-  final Set<FunctionEntity> _tryInlineFunctions = {};
-
-  FunctionInlineCache(AnnotationsData annotationsData) {
-    annotationsData.forEachNoInline((FunctionEntity function) {
-      markAsNoInline(function);
-    });
-    annotationsData.forEachTryInline((FunctionEntity function) {
-      markAsTryInline(function);
-    });
-  }
+  FunctionInlineCache(this._annotationsData) {}
 
   /// Checks that [method] is the canonical representative for this method.
   ///
@@ -67,17 +53,11 @@ class FunctionInlineCache {
     return '$method'.startsWith(jsElementPrefix);
   }
 
-  /// Returns the current cache decision. This should only be used for testing.
-  int getCurrentCacheDecisionForTesting(FunctionEntity element) {
-    assert(checkFunction(element), failedAt(element));
-    return _cachedDecisions[element];
-  }
-
   // Returns `true`/`false` if we have a cached decision.
   // Returns `null` otherwise.
-  bool canInline(FunctionEntity element, {bool insideLoop}) {
+  bool? canInline(FunctionEntity element, {required bool insideLoop}) {
     assert(checkFunction(element), failedAt(element));
-    int decision = _cachedDecisions[element];
+    int? decision = _cachedDecisions[element];
 
     if (decision == null) {
       // TODO(sra): Have annotations for mustInline / noInline for constructor
@@ -126,9 +106,9 @@ class FunctionInlineCache {
     return null;
   }
 
-  void markAsInlinable(FunctionEntity element, {bool insideLoop}) {
+  void markAsInlinable(FunctionEntity element, {required bool insideLoop}) {
     assert(checkFunction(element), failedAt(element));
-    int oldDecision = _cachedDecisions[element];
+    int? oldDecision = _cachedDecisions[element];
 
     if (oldDecision == null) {
       oldDecision = _unknown;
@@ -182,7 +162,7 @@ class FunctionInlineCache {
 
   void markAsNonInlinable(FunctionEntity element, {bool insideLoop = true}) {
     assert(checkFunction(element), failedAt(element));
-    int oldDecision = _cachedDecisions[element];
+    int? oldDecision = _cachedDecisions[element];
 
     if (oldDecision == null) {
       oldDecision = _unknown;
@@ -237,35 +217,13 @@ class FunctionInlineCache {
     }
   }
 
-  void markAsNoInline(FunctionEntity element) {
-    assert(checkFunction(element), failedAt(element));
-    _noInlineFunctions.add(element);
-  }
-
   bool markedAsNoInline(FunctionEntity element) {
     assert(checkFunction(element), failedAt(element));
-    return _noInlineFunctions.contains(element);
-  }
-
-  void markAsTryInline(FunctionEntity element) {
-    assert(checkFunction(element), failedAt(element));
-    _tryInlineFunctions.add(element);
+    return _annotationsData.hasNoInline(element);
   }
 
   bool markedAsTryInline(FunctionEntity element) {
     assert(checkFunction(element), failedAt(element));
-    return _tryInlineFunctions.contains(element);
+    return _annotationsData.hasTryInline(element);
   }
-}
-
-/// Holds resources only used during code generation.
-class CodegenInputs {
-  final CheckedModeHelpers checkedModeHelpers = CheckedModeHelpers();
-  final RuntimeTypesSubstitutions rtiSubstitutions;
-  final RecipeEncoder rtiRecipeEncoder;
-  final Tracer tracer;
-  final FixedNames fixedNames;
-
-  CodegenInputs(this.rtiSubstitutions, this.rtiRecipeEncoder, this.tracer,
-      this.fixedNames);
 }

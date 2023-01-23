@@ -7,11 +7,6 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/src/replacement_visitor.dart';
 
-/// Normalizes all `FutureOr` types found in [type].
-DartType normalizeFutureOr(DartType type, CoreTypes coreTypes) =>
-    type.accept1(_FutureOrNormalizer.instance(coreTypes), Variance.unrelated) ??
-    type;
-
 /// Visit methods returns a normalized version of `FutureOr` types or `null` if
 /// no normalization was applied.
 ///
@@ -23,15 +18,14 @@ DartType normalizeFutureOr(DartType type, CoreTypes coreTypes) =>
 ///
 /// Any changes to the normalization logic here should be mirrored in the
 /// classes.dart runtime library method named `normalizeFutureOr`.
-class _FutureOrNormalizer extends ReplacementVisitor {
+class FutureOrNormalizer extends ReplacementVisitor {
   final CoreTypes _coreTypes;
 
-  static _FutureOrNormalizer? _instance;
+  FutureOrNormalizer(this._coreTypes);
 
-  _FutureOrNormalizer._(this._coreTypes);
-
-  factory _FutureOrNormalizer.instance(CoreTypes coreTypes) =>
-      _instance ?? (_instance = _FutureOrNormalizer._(coreTypes));
+  /// Normalizes all `FutureOr` types found in [type].
+  DartType normalize(DartType type) =>
+      type.accept1(this, Variance.unrelated) ?? type;
 
   @override
   DartType? visitFutureOrType(FutureOrType futureOr, int variance) {
@@ -59,7 +53,7 @@ class _FutureOrNormalizer extends ReplacementVisitor {
               ? Nullability.legacy
               : Nullability.nonNullable;
       return typeArgument.withDeclaredNullability(nullability);
-    } else if (typeArgument is NeverType) {
+    } else if (typeArgument == const NeverType.nonNullable()) {
       // FutureOr<Never> --> Future<Never>
       return InterfaceType(
           _coreTypes.futureClass, futureOr.nullability, [typeArgument]);

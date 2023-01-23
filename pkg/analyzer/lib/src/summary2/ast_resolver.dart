@@ -10,10 +10,12 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/error/inference_error_listener.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/summary2/link.dart';
+import 'package:analyzer/src/task/inference_error.dart';
 
 /// Used to resolve some AST nodes - variable initializers, and annotations.
 class AstResolver {
@@ -23,7 +25,13 @@ class AstResolver {
   final FeatureSet _featureSet;
   final AnalysisErrorListener _errorListener =
       AnalysisErrorListener.NULL_LISTENER;
-  final ClassElement? enclosingClassElement;
+  late final _inferenceErrorRecorder = InferenceErrorRecorder(
+    isNonNullableByDefault:
+        _unitElement.library.typeSystem.isNonNullableByDefault,
+    isGenericMetadataEnabled:
+        _unitElement.library.featureSet.isEnabled(Feature.generic_metadata),
+  );
+  final InterfaceElement? enclosingClassElement;
   final ExecutableElement? enclosingExecutableElement;
   late final _resolutionVisitor = ResolutionVisitor(
     unitElement: _unitElement,
@@ -48,6 +56,7 @@ class AstResolver {
     _errorListener,
     featureSet: _featureSet,
     flowAnalysisHelper: _flowAnalysis,
+    inferenceErrorListener: _inferenceErrorRecorder,
   );
 
   AstResolver(
@@ -58,12 +67,17 @@ class AstResolver {
     this.enclosingExecutableElement,
   }) : _featureSet = _unitElement.library.featureSet;
 
+  /// All inference errors recorded by [_inferenceErrorRecorder].
+  List<TopLevelInferenceError> get errors =>
+      _inferenceErrorRecorder.errors.toList(growable: false);
+
   void resolveAnnotation(AnnotationImpl node) {
     node.accept(_resolutionVisitor);
     node.accept(_scopeResolverVisitor);
     _prepareEnclosingDeclarations();
     _flowAnalysis.topLevelDeclaration_enter(node, null);
     node.accept(_resolverVisitor);
+    _resolverVisitor.checkIdle();
     _flowAnalysis.topLevelDeclaration_exit();
   }
 
@@ -83,21 +97,24 @@ class AstResolver {
     _flowAnalysis.topLevelDeclaration_enter(node, node.parameters,
         visit: visit);
     visit(_resolverVisitor);
+    _resolverVisitor.checkIdle();
     _flowAnalysis.topLevelDeclaration_exit();
   }
 
-  void resolveExpression(Expression Function() getNode,
-      {DartType? contextType, bool buildElements = true}) {
+  void resolveExpression(
+    Expression Function() getNode, {
+    DartType? contextType,
+  }) {
     Expression node = getNode();
-    if (buildElements) {
-      node.accept(_resolutionVisitor);
-      // Node may have been rewritten so get it again.
-      node = getNode();
-      node.accept(_scopeResolverVisitor);
-    }
+    node.accept(_resolutionVisitor);
+    // Node may have been rewritten so get it again.
+    node = getNode();
+    node.accept(_scopeResolverVisitor);
     _prepareEnclosingDeclarations();
     _flowAnalysis.topLevelDeclaration_enter(node.parent!, null);
     _resolverVisitor.analyzeExpression(node, contextType);
+    _resolverVisitor.popRewrite();
+    _resolverVisitor.checkIdle();
     _flowAnalysis.topLevelDeclaration_exit();
   }
 

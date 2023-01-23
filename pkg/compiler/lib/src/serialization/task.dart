@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'dart:async';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' as ir;
@@ -19,70 +17,15 @@ import '../environment.dart';
 import '../inferrer/abstract_value_strategy.dart';
 import '../inferrer/types.dart';
 import '../ir/modular.dart';
-import '../js_backend/backend.dart';
-import '../js_backend/inferred_data.dart';
+import '../js_backend/codegen_inputs.dart';
 import '../js_model/js_world.dart';
-import '../js_model/element_map_impl.dart';
-import '../js_model/js_strategy.dart';
-import '../js_model/locals.dart';
+import '../js_model/js_strategy_interfaces.dart';
 import '../options.dart';
 import '../util/sink_adapter.dart';
-import '../world.dart';
 import 'serialization.dart';
+import 'task_migrated.dart';
 
-/// A data class holding some data [T] and the associated [DataSourceIndices].
-class DataAndIndices<T> {
-  final T data;
-  final DataSourceIndices indices;
-
-  DataAndIndices(this.data, this.indices);
-}
-
-void serializeGlobalTypeInferenceResultsToSink(
-    GlobalTypeInferenceResults results, DataSinkWriter sink) {
-  JsClosedWorld closedWorld = results.closedWorld;
-  GlobalLocalsMap globalLocalsMap = results.globalLocalsMap;
-  InferredData inferredData = results.inferredData;
-  globalLocalsMap.writeToDataSink(sink);
-  inferredData.writeToDataSink(sink);
-  results.writeToDataSink(sink, closedWorld.elementMap);
-  sink.close();
-}
-
-GlobalTypeInferenceResults deserializeGlobalTypeInferenceResultsFromSource(
-    CompilerOptions options,
-    DiagnosticReporter reporter,
-    Environment environment,
-    AbstractValueStrategy abstractValueStrategy,
-    ir.Component component,
-    JsClosedWorld closedWorld,
-    DataSourceReader source) {
-  source.registerComponentLookup(ComponentLookup(component));
-  source.registerEntityLookup(ClosedEntityLookup(closedWorld.elementMap));
-  GlobalLocalsMap globalLocalsMap = GlobalLocalsMap.readFromDataSource(
-      closedWorld.closureDataLookup.getEnclosingMember, source);
-  InferredData inferredData =
-      InferredData.readFromDataSource(source, closedWorld);
-  return GlobalTypeInferenceResults.readFromDataSource(source,
-      closedWorld.elementMap, closedWorld, globalLocalsMap, inferredData);
-}
-
-void serializeClosedWorldToSink(
-    JsClosedWorld closedWorld, DataSinkWriter sink) {
-  closedWorld.writeToDataSink(sink);
-  sink.close();
-}
-
-JsClosedWorld deserializeClosedWorldFromSource(
-    CompilerOptions options,
-    DiagnosticReporter reporter,
-    Environment environment,
-    AbstractValueStrategy abstractValueStrategy,
-    ir.Component component,
-    DataSourceReader source) {
-  return JsClosedWorld.readFromDataSource(
-      options, reporter, environment, abstractValueStrategy, component, source);
-}
+export 'task_migrated.dart';
 
 class _StringInterner implements ir.StringInterner, StringInterner {
   final Map<String, String> _map = {};
@@ -99,7 +42,7 @@ class SerializationTask extends CompilerTask {
   final api.CompilerInput _provider;
   final api.CompilerOutput _outputProvider;
   final _stringInterner = _StringInterner();
-  final ValueInterner /*?*/ _valueInterner;
+  final ValueInterner? _valueInterner;
 
   SerializationTask(this._options, this._reporter, this._provider,
       this._outputProvider, Measurer measurer)
@@ -117,7 +60,7 @@ class SerializationTask extends CompilerTask {
       // how we apply our modular kernel transformation for super mixin calls.
       _reporter.log('Writing dill to ${_options.outputUri}');
       api.BinaryOutputSink dillOutput =
-          _outputProvider.createBinarySink(_options.outputUri);
+          _outputProvider.createBinarySink(_options.outputUri!);
       BinaryOutputSinkAdapter irSink = BinaryOutputSinkAdapter(dillOutput);
       ir.BinaryPrinter printer = ir.BinaryPrinter(irSink);
       printer.writeComponentFile(component);
@@ -128,8 +71,8 @@ class SerializationTask extends CompilerTask {
   Future<ir.Component> deserializeComponent() async {
     return measureIoSubtask('deserialize dill', () async {
       _reporter.log('Reading dill from ${_options.inputDillUri}');
-      api.Input<List<int>> dillInput = await _provider
-          .readFromUri(_options.inputDillUri, inputKind: api.InputKind.binary);
+      final dillInput = await _provider.readFromUri(_options.inputDillUri!,
+          inputKind: api.InputKind.binary);
       ir.Component component = ir.Component();
       // Not using growable lists saves memory.
       ir.BinaryBuilder(dillInput.data,
@@ -169,7 +112,7 @@ class SerializationTask extends CompilerTask {
       ModuleData data, ir.Component component, Set<Uri> includedLibraries) {
     measureSubtask('serialize transformed dill', () {
       _reporter.log('Writing dill to ${_options.outputUri}');
-      var dillOutput = _outputProvider.createBinarySink(_options.outputUri);
+      var dillOutput = _outputProvider.createBinarySink(_options.outputUri!);
       var irSink = BinaryOutputSinkAdapter(dillOutput);
       ir.BinaryPrinter printer = ir.BinaryPrinter(irSink,
           libraryFilter: (ir.Library l) =>
@@ -181,7 +124,7 @@ class SerializationTask extends CompilerTask {
     measureSubtask('serialize module data', () {
       _reporter.log('Writing data to ${_options.writeModularAnalysisUri}');
       api.BinaryOutputSink dataOutput =
-          _outputProvider.createBinarySink(_options.writeModularAnalysisUri);
+          _outputProvider.createBinarySink(_options.writeModularAnalysisUri!);
       DataSinkWriter sink = DataSinkWriter(
           BinaryDataSink(BinaryOutputSinkAdapter(dataOutput)), _options);
       data.toDataSink(sink);
@@ -217,8 +160,8 @@ class SerializationTask extends CompilerTask {
     return await measureIoSubtask('deserialize module data', () async {
       _reporter.log('Reading data from ${_options.modularAnalysisInputs}');
       final results = ModuleData();
-      for (Uri uri in _options.modularAnalysisInputs) {
-        api.Input<List<int>> dataInput =
+      for (Uri uri in _options.modularAnalysisInputs!) {
+        final dataInput =
             await _provider.readFromUri(uri, inputKind: api.InputKind.binary);
         DataSourceReader source = DataSourceReader(
             BinaryDataSource(dataInput.data), _options,
@@ -230,18 +173,18 @@ class SerializationTask extends CompilerTask {
     });
   }
 
-  void serializeClosedWorld(JsClosedWorld closedWorld) {
+  void serializeClosedWorld(JClosedWorld closedWorld) {
     measureSubtask('serialize closed world', () {
       _reporter.log('Writing closed world to ${_options.writeClosedWorldUri}');
       api.BinaryOutputSink dataOutput =
-          _outputProvider.createBinarySink(_options.writeClosedWorldUri);
+          _outputProvider.createBinarySink(_options.writeClosedWorldUri!);
       DataSinkWriter sink = DataSinkWriter(
           BinaryDataSink(BinaryOutputSinkAdapter(dataOutput)), _options);
       serializeClosedWorldToSink(closedWorld, sink);
     });
   }
 
-  Future<DataAndIndices<JsClosedWorld>> deserializeClosedWorld(
+  Future<DataAndIndices<JClosedWorld>> deserializeClosedWorld(
       Environment environment,
       AbstractValueStrategy abstractValueStrategy,
       ir.Component component,
@@ -249,7 +192,7 @@ class SerializationTask extends CompilerTask {
     return await measureIoSubtask('deserialize closed world', () async {
       _reporter.log('Reading data from ${_options.readClosedWorldUri}');
       api.Input<List<int>> dataInput = await _provider.readFromUri(
-          _options.readClosedWorldUri,
+          _options.readClosedWorldUri!,
           inputKind: api.InputKind.binary);
       DataSourceReader source = DataSourceReader(
           BinaryDataSource(dataInput.data, stringInterner: _stringInterner),
@@ -264,14 +207,14 @@ class SerializationTask extends CompilerTask {
 
   void serializeGlobalTypeInference(
       GlobalTypeInferenceResults results, DataSourceIndices indices) {
-    JsClosedWorld closedWorld = results.closedWorld;
+    JClosedWorld closedWorld = results.closedWorld;
     ir.Component component = closedWorld.elementMap.programEnv.mainComponent;
     serializeComponent(component);
 
     measureSubtask('serialize data', () {
       _reporter.log('Writing data to ${_options.writeDataUri}');
       api.BinaryOutputSink dataOutput =
-          _outputProvider.createBinarySink(_options.writeDataUri);
+          _outputProvider.createBinarySink(_options.writeDataUri!);
       DataSinkWriter sink = DataSinkWriter(
           BinaryDataSink(BinaryOutputSinkAdapter(dataOutput)), _options,
           importedIndices: indices);
@@ -284,12 +227,12 @@ class SerializationTask extends CompilerTask {
           Environment environment,
           AbstractValueStrategy abstractValueStrategy,
           ir.Component component,
-          DataAndIndices<JsClosedWorld> closedWorldAndIndices,
+          DataAndIndices<JClosedWorld> closedWorldAndIndices,
           bool useDeferredSourceReads) async {
     return await measureIoSubtask('deserialize data', () async {
       _reporter.log('Reading data from ${_options.readDataUri}');
       api.Input<List<int>> dataInput = await _provider
-          .readFromUri(_options.readDataUri, inputKind: api.InputKind.binary);
+          .readFromUri(_options.readDataUri!, inputKind: api.InputKind.binary);
       DataSourceReader source = DataSourceReader(
           BinaryDataSource(dataInput.data, stringInterner: _stringInterner),
           _options,
@@ -316,8 +259,8 @@ class SerializationTask extends CompilerTask {
     GlobalTypeInferenceResults globalTypeInferenceResults =
         codegenResults.globalTypeInferenceResults;
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
-    int shard = _options.codegenShard;
-    int shards = _options.codegenShards;
+    int shard = _options.codegenShard!;
+    int shards = _options.codegenShards!;
     Map<MemberEntity, CodegenResult> results = {};
     int index = 0;
     EntityWriter entityWriter =
@@ -351,7 +294,7 @@ class SerializationTask extends CompilerTask {
       CodegenInputs codegenInputs,
       DataSourceIndices indices,
       bool useDeferredSourceReads) async {
-    int shards = _options.codegenShards;
+    int shards = _options.codegenShards!;
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
     Map<MemberEntity, CodegenResult> results = {};
     for (int shard = 0; shard < shards; shard++) {

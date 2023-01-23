@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:kernel/ast.dart' as ir;
 
 import '../common/elements.dart';
@@ -30,8 +28,8 @@ class NoSuchMethodResolver {
     if (node.function.positionalParameters.isEmpty) return false;
     ir.VariableDeclaration firstParameter =
         node.function.positionalParameters.first;
-    ir.Statement body = node.function.body;
-    ir.Expression expr;
+    ir.Statement? body = node.function.body;
+    ir.Expression? expr;
     if (body is ir.Block && body.statements.isNotEmpty) {
       ir.Block block = body;
       body = block.statements.first;
@@ -50,7 +48,7 @@ class NoSuchMethodResolver {
       if (arguments.positional.length == 1 &&
           arguments.named.isEmpty &&
           arguments.positional.first is ir.VariableGet) {
-        ir.VariableGet get = arguments.positional.first;
+        ir.VariableGet get = arguments.positional.first as ir.VariableGet;
         return get.variable == firstParameter;
       }
     }
@@ -63,12 +61,12 @@ class NoSuchMethodResolver {
   ///
   bool hasThrowingSyntax(KFunction method) {
     ir.Procedure node = elementMap.lookupProcedure(method);
-    ir.Statement body = node.function.body;
+    ir.Statement? body = node.function.body;
     if (body is ir.Block && body.statements.isNotEmpty) {
       ir.Block block = body;
       body = block.statements.first;
     }
-    ir.Expression expr;
+    ir.Expression? expr;
     if (body is ir.ReturnStatement) {
       expr = body.expression;
     } else if (body is ir.ExpressionStatement) {
@@ -79,6 +77,6 @@ class NoSuchMethodResolver {
 
   /// Returns the `noSuchMethod` that [method] overrides.
   FunctionEntity getSuperNoSuchMethod(FunctionEntity method) {
-    return elementMap.getSuperNoSuchMethod(method.enclosingClass);
+    return elementMap.getSuperNoSuchMethod(method.enclosingClass!);
   }
 }

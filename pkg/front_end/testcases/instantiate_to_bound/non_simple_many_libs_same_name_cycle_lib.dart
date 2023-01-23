@@ -13,4 +13,6 @@ library non_simple_many_libs_same_name_cycle_lib;
 
 import './non_simple_many_libs_same_name_cycle.dart' as lib;
 
-class Hest<TypeY extends lib.Hest> {}
+class A<TypeY extends lib.A> {}
+
+typedef C<TypeY extends lib.C> = int;

@@ -4,15 +4,16 @@
 
 class A {
   const A(a);
-  const A.named({a: 42});
+  const A.named({a = 42});
   const A.optional([a]);
 }
 
 main() {
   const A(1);
   const A();
-  //     ^^
+  //      ^
   // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+  //     ^^
   // [cfe] Too few positional arguments: 1 required, 0 given.
   const A(1, 2);
   //         ^

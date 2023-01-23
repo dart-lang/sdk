@@ -10,7 +10,7 @@ import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.da
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analysis_server/src/services/refactoring/refactoring.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -112,7 +112,7 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
         if (element != null) {
           if (element is PropertyAccessorElement) {
             final refactor = ConvertGetterToMethodRefactoring(
-                server.searchEngine, result.session, element);
+                server.refactoringWorkspace, result.session, element);
             return success(refactor);
           }
         }
@@ -125,7 +125,7 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
         if (element != null) {
           if (element is ExecutableElement) {
             final refactor = ConvertMethodToGetterRefactoring(
-                server.searchEngine, result.session, element);
+                server.refactoringWorkspace, result.session, element);
             return success(refactor);
           }
         }

@@ -534,7 +534,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TrivialRecordAllocation) {
     AllocationFilter filter(isolate->main_port(), class_a.id(),
                             Dart_TimelineGetMicros(), 16000);
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
-    // We should have no allocation samples because none occured within
+    // We should have no allocation samples because none occurred within
     // the specified time range.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -631,7 +631,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
     Profile profile;
     NativeAllocationSampleFilter filter(Dart_TimelineGetMicros(), 16000);
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
-    // We should have no allocation samples because none occured within
+    // We should have no allocation samples because none occurred within
     // the specified time range.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -1776,8 +1776,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BasicSourcePositionOptimized) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
-  // Optimize quickly.
-  SetFlagScope<int> sfs(&FLAG_optimization_counter_threshold, 5);
   const char* kScript =
       "class A {\n"
       "  var a;\n"
@@ -1802,6 +1800,8 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BasicSourcePositionOptimized) {
   const Function& main = Function::Handle(GetFunction(root_library, "main"));
   EXPECT(!main.IsNull());
 
+  // Optimize quickly.
+  SetFlagScope<int> sfs(&FLAG_optimization_counter_threshold, 5);
   // Warm up function.
   while (true) {
     Invoke(root_library, "main");
@@ -1949,9 +1949,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_SourcePositionOptimized) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
-  // Optimize quickly.
-  SetFlagScope<int> sfs(&FLAG_optimization_counter_threshold, 5);
-
   const char* kScript =
       "class A {\n"
       "  var a;\n"
@@ -1988,6 +1985,8 @@ ISOLATE_UNIT_TEST_CASE(Profiler_SourcePositionOptimized) {
   const Function& main = Function::Handle(GetFunction(root_library, "main"));
   EXPECT(!main.IsNull());
 
+  // Optimize quickly.
+  SetFlagScope<int> sfs(&FLAG_optimization_counter_threshold, 5);
   // Warm up function.
   while (true) {
     Invoke(root_library, "main");
@@ -2157,8 +2156,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
-  // Optimize quickly.
-  SetFlagScope<int> sfs(&FLAG_optimization_counter_threshold, 5);
 
   const char* kScript =
       "class A {\n"
@@ -2199,6 +2196,8 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
   const Function& main = Function::Handle(GetFunction(root_library, "main"));
   EXPECT(!main.IsNull());
 
+  // Optimize quickly.
+  SetFlagScope<int> sfs(&FLAG_optimization_counter_threshold, 5);
   // Warm up function.
   while (true) {
     Invoke(root_library, "main");

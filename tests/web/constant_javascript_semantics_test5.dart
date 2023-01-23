@@ -24,7 +24,7 @@ enum Enum {
 }
 
 class EnumHaver {
-  const EnumHaver({this.myEnum: Enum.a}) : assert(myEnum != null);
+  const EnumHaver({this.myEnum = Enum.a}) : assert(myEnum != null);
   final Enum myEnum;
 }
 

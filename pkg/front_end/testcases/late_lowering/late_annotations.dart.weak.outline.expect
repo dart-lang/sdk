@@ -127,11 +127,11 @@ static get finalTopLevelFieldWithInitializer() → core::int;
 @self::Annotation::•()
 static get Extension|extensionStaticField() → core::int;
 @self::Annotation::•()
-static set Extension|extensionStaticField(core::int Extension|extensionStaticField#param) → void;
+static set Extension|extensionStaticField(core::int extensionStaticField#param) → void;
 @self::Annotation::•()
 static get Extension|finalExtensionStaticField() → core::int;
 @self::Annotation::•()
-static set Extension|finalExtensionStaticField(core::int Extension|finalExtensionStaticField#param) → void;
+static set Extension|finalExtensionStaticField(core::int finalExtensionStaticField#param) → void;
 @self::Annotation::•()
 static get Extension|finalExtensionStaticFieldWithInitializer() → core::int;
 static method main() → dynamic

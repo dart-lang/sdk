@@ -31,6 +31,7 @@ const Set<String> _nonSubtypableDartCoreClassNames = {
   'int',
   'Null',
   'num',
+  'Record',
   'String',
 };
 
@@ -118,6 +119,7 @@ class TypeProviderImpl extends TypeProviderBase {
   ClassElement? _nullElement;
   ClassElement? _numElement;
   ClassElement? _objectElement;
+  ClassElement? _recordElement;
   ClassElement? _setElement;
   ClassElement? _streamElement;
   ClassElement? _stringElement;
@@ -141,6 +143,7 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType? _numType;
   InterfaceType? _numTypeQuestion;
   InterfaceType? _objectType;
+  InterfaceType? _recordType;
   InterfaceType? _stackTraceType;
   InterfaceType? _streamDynamicType;
   InterfaceType? _stringType;
@@ -226,7 +229,7 @@ class TypeProviderImpl extends TypeProviderBase {
   ClassElement? get enumElement {
     if (!_hasEnumElement) {
       _hasEnumElement = true;
-      _enumElement = _coreLibrary.getType('Enum');
+      _enumElement = _coreLibrary.getClass('Enum');
     }
     return _enumElement;
   }
@@ -346,7 +349,7 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
-  DartType get neverType => isNonNullableByDefault
+  NeverType get neverType => isNonNullableByDefault
       ? NeverTypeImpl.instance
       : NeverTypeImpl.instanceLegacy;
 
@@ -388,6 +391,19 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   InterfaceType get objectType {
     return _objectType ??= _getType(_coreLibrary, "Object");
+  }
+
+  @override
+  ClassElement get recordElement {
+    return _recordElement ??= _getClassElement(_coreLibrary, 'Record');
+  }
+
+  @override
+  InterfaceType get recordType {
+    return _recordType ??= recordElement.instantiate(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 
   @override
@@ -467,7 +483,7 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
-  bool isNonSubtypableClass(ClassElement element) {
+  bool isNonSubtypableClass(InterfaceElement element) {
     var name = element.name;
     if (_nonSubtypableClassNames.contains(name)) {
       var libraryUriStr = element.library.source.uri.toString();
@@ -520,7 +536,7 @@ class TypeProviderImpl extends TypeProviderBase {
   /// Return the class with the given [name] from the given [library], or
   /// throw a [StateError] if there is no class with the given name.
   ClassElement _getClassElement(LibraryElement library, String name) {
-    var element = library.getType(name);
+    var element = library.getClass(name);
     if (element == null) {
       throw StateError('No definition of type $name');
     }

@@ -34,7 +34,7 @@ static get value() → core::int?
 static method test(self::Class? c) → dynamic {
   let final core::int? #t2 = let final self::Class? #t3 = c in #t3 == null ?{core::int?} null : self::Extension|get#property(#t3{self::Class}) in #t2 == null ?{core::int} 0 : #t2{core::int};
   let final core::int? #t4 = let final self::Class? #t5 = c in #t5 == null ?{core::int?} null : self::Extension|get#property(#t5{self::Class}) in #t4 == null ?{core::int} 0 : #t4{core::int};
-  let final self::Class? #t6 = c in #t6 == null ?{core::int?} null : self::Extension|set#property(#t6{self::Class}, let final core::int? #t7 = self::value in #t7 == null ?{core::int} 0 : #t7{core::int});
+  let final self::Class? #t6 = c in #t6 == null ?{void} null : self::Extension|set#property(#t6{self::Class}, let final core::int? #t7 = self::value in #t7 == null ?{core::int} 0 : #t7{core::int});
   let final self::Class? #t8 = c in #t8 == null ?{core::int?} null : self::Extension|set#property(#t8{self::Class}, let final core::int? #t9 = self::value in #t9 == null ?{core::int} 0 : #t9{core::int});
   let final core::int? #t10 = let final self::Class? #t11 = c in #t11 == null ?{core::int?} null : let final core::int #t12 = 42 in let final void #t13 = self::Extension|set#property(#t11{self::Class}, #t12) in #t12 in #t10 == null ?{core::int} 0 : #t10{core::int};
   let final core::int? #t14 = let final self::Class? #t15 = c in #t15 == null ?{core::int?} null : let final core::int? #t16 = self::value in let final void #t17 = self::Extension|set#property(#t15{self::Class}, #t16) in #t16 in #t14 == null ?{core::int} 0 : #t14{core::int};

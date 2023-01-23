@@ -7,6 +7,7 @@ import '../common/names.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
 import '../util/util.dart' show equalElements, equalSets, identicalElements;
+import '../universe/record_shape.dart';
 import 'entities.dart';
 
 /// Hierarchy to describe types in Dart.
@@ -80,6 +81,8 @@ abstract class DartType {
         return FunctionType._readFromDataSource(source, functionTypeVariables);
       case DartTypeKind.interfaceType:
         return InterfaceType._readFromDataSource(source, functionTypeVariables);
+      case DartTypeKind.recordType:
+        return RecordType._readFromDataSource(source, functionTypeVariables);
       case DartTypeKind.dynamicType:
         return DynamicType._readFromDataSource(source, functionTypeVariables);
       case DartTypeKind.erasedType:
@@ -392,6 +395,79 @@ class InterfaceType extends DartType {
   bool _equalsInternal(InterfaceType other, _Assumptions? assumptions) {
     return identical(element, other.element) &&
         _equalTypes(typeArguments, other.typeArguments, assumptions);
+  }
+}
+
+class RecordType extends DartType {
+  final RecordShape shape;
+  final List<DartType> fields;
+
+  static late final _emptyRecordType =
+      RecordType._(RecordShape(0, const []), const []);
+
+  RecordType._allocate(this.shape, this.fields);
+
+  factory RecordType._(RecordShape shape, List<DartType> fields) {
+    assert(shape.fieldCount == fields.length);
+    if (fields.isEmpty) return _emptyRecordType;
+    return RecordType._allocate(shape, fields);
+  }
+
+  factory RecordType._readFromDataSource(DataSourceReader source,
+      List<FunctionTypeVariable> functionTypeVariables) {
+    final shape = RecordShape.readFromDataSource(source);
+    final fields = source._readDartTypes(functionTypeVariables);
+    return RecordType._(shape, fields);
+  }
+
+  @override
+  void writeToDataSink(
+      DataSinkWriter sink, List<FunctionTypeVariable> functionTypeVariables) {
+    sink.writeEnum(DartTypeKind.recordType);
+    shape.writeToDataSink(sink);
+    sink._writeDartTypes(fields, functionTypeVariables);
+  }
+
+  @override
+  bool get containsTypeVariables {
+    return fields.any((type) => type.containsTypeVariables);
+  }
+
+  @override
+  void forEachTypeVariable(f(TypeVariableType variable)) {
+    fields.forEach((type) => type.forEachTypeVariable(f));
+  }
+
+  @override
+  R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
+      visitor.visitRecordType(this, argument);
+
+  @override
+  int get hashCode {
+    int hash = 13 * shape.hashCode;
+    for (DartType field in fields) {
+      hash = 19 * hash + 5 * field.hashCode;
+    }
+    return hash;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! RecordType) return false;
+    return _equalsInternal(other, null);
+  }
+
+  @override
+  bool _equals(DartType other, _Assumptions? assumptions) {
+    if (identical(this, other)) return true;
+    if (other is! RecordType) return false;
+    return _equalsInternal(other, assumptions);
+  }
+
+  bool _equalsInternal(RecordType other, _Assumptions? assumptions) {
+    return shape == other.shape &&
+        _equalTypes(fields, other.fields, assumptions);
   }
 }
 
@@ -941,6 +1017,8 @@ abstract class DartTypeVisitor<R, A> {
 
   R visitInterfaceType(covariant InterfaceType type, A argument);
 
+  R visitRecordType(covariant RecordType type, A argument);
+
   R visitDynamicType(covariant DynamicType type, A argument);
 
   R visitErasedType(covariant ErasedType type, A argument);
@@ -1043,6 +1121,13 @@ class _LegacyErasureVisitor extends DartTypeVisitor<DartType, Null> {
     var typeArguments = eraseList(type.typeArguments);
     if (identical(typeArguments, type.typeArguments)) return type;
     return _dartTypes.interfaceType(type.element, typeArguments);
+  }
+
+  @override
+  RecordType visitRecordType(RecordType type, Null _) {
+    final fields = eraseList(type.fields);
+    if (identical(fields, type.fields)) return type;
+    return _dartTypes.recordType(type.shape, fields);
   }
 
   @override
@@ -1187,9 +1272,9 @@ abstract class DartTypeSubstitutionVisitor<A>
     //      C extends D,
     //      D extends Map<B, F>>(){}
     //
-    // A and B have a cycle but are not changed by the subsitution of F->G. C is
-    // indirectly changed by the substitution of F. When D is replaced by `D2
-    // extends Map<B,G>`, C must be replaced by `C2 extends D2`.
+    // A and B have a cycle but are not changed by the substitution of F->G.
+    // C is indirectly changed by the substitution of F. When D is replaced by
+    // `D2 extends Map<B,G>`, C must be replaced by `C2 extends D2`.
 
     List<FunctionTypeVariable?> undecided = List.of(variables, growable: false);
     List<FunctionTypeVariable>? newVariables;
@@ -1243,6 +1328,20 @@ abstract class DartTypeSubstitutionVisitor<A>
     }
     return _mapped(
         type, dartTypes.interfaceType(type.element, newTypeArguments));
+  }
+
+  @override
+  DartType visitRecordType(covariant RecordType type, A argument) {
+    DartType? probe = _map[type];
+    if (probe != null) return probe;
+
+    List<DartType> fields = type.fields;
+    List<DartType> newFields = _substTypes(fields, argument);
+    // Create a new type only if necessary.
+    if (identical(fields, newFields)) {
+      return _mapped(type, type);
+    }
+    return _mapped(type, dartTypes.recordType(type.shape, newFields));
   }
 
   @override
@@ -1324,6 +1423,7 @@ abstract class DartTypeStructuralPredicateVisitor
   bool handleFreeFunctionTypeVariable(FunctionTypeVariable type) => false;
   bool handleFunctionType(FunctionType type) => false;
   bool handleInterfaceType(InterfaceType type) => false;
+  bool handleRecordType(RecordType type) => false;
   bool handleDynamicType(DynamicType type) => false;
   bool handleErasedType(ErasedType type) => false;
   bool handleAnyType(AnyType type) => false;
@@ -1386,6 +1486,12 @@ abstract class DartTypeStructuralPredicateVisitor
       InterfaceType type, List<FunctionTypeVariable>? bindings) {
     if (handleInterfaceType(type)) return true;
     return _visitAll(type.typeArguments, bindings);
+  }
+
+  @override
+  bool visitRecordType(RecordType type, List<FunctionTypeVariable>? bindings) {
+    if (handleRecordType(type)) return true;
+    return _visitAll(type.fields, bindings);
   }
 
   @override
@@ -1676,6 +1782,31 @@ class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
     _optionalTypeArguments(type.typeArguments);
   }
 
+  @override
+  void visitRecordType(covariant RecordType type, _) {
+    _token('(');
+    final shape = type.shape;
+    final fieldCount = shape.fieldCount;
+    bool needsComma = false;
+    for (int i = 0; i < fieldCount; i++) {
+      needsComma = _comma(needsComma);
+      if (i < shape.positionalFieldCount) {
+        _visit(type.fields[i]);
+      } else {
+        if (i == shape.positionalFieldCount) {
+          _token('{');
+        }
+        _visit(type.fields[i]);
+        _token(' ');
+        _identifier(shape.fieldNames[i - shape.positionalFieldCount]);
+      }
+    }
+    if (shape.fieldNames.isNotEmpty) {
+      _token('}');
+    }
+    _token(')');
+  }
+
   void _optionalTypeArguments(List<DartType> types) {
     if (types.isNotEmpty) {
       _token('<');
@@ -1756,6 +1887,9 @@ abstract class DartTypes {
   InterfaceType interfaceType(
           ClassEntity element, List<DartType> typeArguments) =>
       InterfaceType._(element, typeArguments);
+
+  RecordType recordType(RecordShape shape, List<DartType> fields) =>
+      RecordType._(shape, fields);
 
   // TODO(fishythefish): Normalize `T extends Never` to `Never`.
   TypeVariableType typeVariableType(TypeVariableEntity element) =>
@@ -2170,6 +2304,26 @@ abstract class DartTypes {
         return false;
       }
 
+      // Records
+      //
+      // TODO(50081): Reference rules to updated specification
+      // https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md#rules
+
+      // Record Type/Record:
+      if (s is RecordType && t == commonElements.recordType) return true;
+
+      // Record Type/Record Type:
+      if (s is RecordType && t is RecordType) {
+        if (s.shape != t.shape) return false;
+        List<DartType> sFields = s.fields;
+        List<DartType> tFields = t.fields;
+        assert(sFields.length == tFields.length); // Guaranteed by shape.
+        for (int i = 0; i < sFields.length; i++) {
+          if (!_isSubtype(sFields[i], tFields[i], env)) return false;
+        }
+        return true;
+      }
+
       return false;
     }
 
@@ -2269,7 +2423,7 @@ abstract class DartTypes {
         type is FunctionTypeVariable && canAssignGenericFunctionTo(type.bound);
   }
 
-  /// Returns `true` if [type] occuring in a program with no sound null safety
+  /// Returns `true` if [type] occurring in a program with no sound null safety
   /// cannot accept `null` under sound rules.
   bool isNonNullableIfSound(DartType type) {
     if (type is DynamicType ||

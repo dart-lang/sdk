@@ -26,7 +26,7 @@ class ClassEntityData extends EntityData<ClassEntity> {
     visitor.visitClassEntityData(entity);
   }
 
-  ClassEntityData(ClassEntity entity) : super(entity);
+  ClassEntityData(super.entity);
 }
 
 class ClassTypeEntityData extends EntityData<ClassEntity> {
@@ -35,7 +35,7 @@ class ClassTypeEntityData extends EntityData<ClassEntity> {
     visitor.visitClassTypeEntityData(entity);
   }
 
-  ClassTypeEntityData(ClassEntity entity) : super(entity);
+  ClassTypeEntityData(super.entity);
 }
 
 class MemberEntityData extends EntityData<MemberEntity> {
@@ -44,7 +44,7 @@ class MemberEntityData extends EntityData<MemberEntity> {
     visitor.visitMemberEntityData(entity);
   }
 
-  MemberEntityData(MemberEntity entity) : super(entity);
+  MemberEntityData(super.entity);
 }
 
 class LocalFunctionEntityData extends EntityData<Local> {
@@ -56,7 +56,7 @@ class LocalFunctionEntityData extends EntityData<Local> {
   @override
   bool get needsRecursiveUpdate => false;
 
-  LocalFunctionEntityData(Local entity) : super(entity);
+  LocalFunctionEntityData(super.entity);
 }
 
 class ConstantEntityData extends EntityData<ConstantValue> {
@@ -65,7 +65,7 @@ class ConstantEntityData extends EntityData<ConstantValue> {
     visitor.visitConstantEntityData(entity);
   }
 
-  ConstantEntityData(ConstantValue entity) : super(entity);
+  ConstantEntityData(super.entity);
 }
 
 /// A registry used to canonicalize [EntityData].

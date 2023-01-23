@@ -462,154 +462,154 @@ class Class {
 }
 
 extension on int? {
-  /*member: _#_extension#0|unnamedExtensionNonNullableWithoutInitializer:
+  /*member: _#_extension#1|unnamedExtensionNonNullableWithoutInitializer:
    lateField,
-   lateFieldName=_extension#0|unnamedExtensionNonNullableWithoutInitializer,
-   lateFieldTarget=_#_extension#0|unnamedExtensionNonNullableWithoutInitializer
+   lateFieldName=_extension#1|unnamedExtensionNonNullableWithoutInitializer,
+   lateFieldTarget=_#_extension#1|unnamedExtensionNonNullableWithoutInitializer
   */
-  /*member: _extension#0|unnamedExtensionNonNullableWithoutInitializer:
+  /*member: _extension#1|unnamedExtensionNonNullableWithoutInitializer:
    lateFieldGetter,
-   lateFieldName=_extension#0|unnamedExtensionNonNullableWithoutInitializer,
-   lateFieldTarget=_#_extension#0|unnamedExtensionNonNullableWithoutInitializer
+   lateFieldName=_extension#1|unnamedExtensionNonNullableWithoutInitializer,
+   lateFieldTarget=_#_extension#1|unnamedExtensionNonNullableWithoutInitializer
   */
-  /*member: _extension#0|unnamedExtensionNonNullableWithoutInitializer=:
-   lateFieldName=_extension#0|unnamedExtensionNonNullableWithoutInitializer,
+  /*member: _extension#1|unnamedExtensionNonNullableWithoutInitializer=:
+   lateFieldName=_extension#1|unnamedExtensionNonNullableWithoutInitializer,
    lateFieldSetter,
-   lateFieldTarget=_#_extension#0|unnamedExtensionNonNullableWithoutInitializer
+   lateFieldTarget=_#_extension#1|unnamedExtensionNonNullableWithoutInitializer
   */
   static late int unnamedExtensionNonNullableWithoutInitializer;
-  /*member: _#_extension#0|finalUnnamedExtensionNonNullableWithoutInitializer:
+  /*member: _#_extension#1|finalUnnamedExtensionNonNullableWithoutInitializer:
    lateField,
-   lateFieldName=_extension#0|finalUnnamedExtensionNonNullableWithoutInitializer,
-   lateFieldTarget=_#_extension#0|finalUnnamedExtensionNonNullableWithoutInitializer
+   lateFieldName=_extension#1|finalUnnamedExtensionNonNullableWithoutInitializer,
+   lateFieldTarget=_#_extension#1|finalUnnamedExtensionNonNullableWithoutInitializer
   */
-  /*member: _extension#0|finalUnnamedExtensionNonNullableWithoutInitializer:
+  /*member: _extension#1|finalUnnamedExtensionNonNullableWithoutInitializer:
    lateFieldGetter,
-   lateFieldName=_extension#0|finalUnnamedExtensionNonNullableWithoutInitializer,
-   lateFieldTarget=_#_extension#0|finalUnnamedExtensionNonNullableWithoutInitializer
+   lateFieldName=_extension#1|finalUnnamedExtensionNonNullableWithoutInitializer,
+   lateFieldTarget=_#_extension#1|finalUnnamedExtensionNonNullableWithoutInitializer
   */
-  /*member: _extension#0|finalUnnamedExtensionNonNullableWithoutInitializer=:
-   lateFieldName=_extension#0|finalUnnamedExtensionNonNullableWithoutInitializer,
+  /*member: _extension#1|finalUnnamedExtensionNonNullableWithoutInitializer=:
+   lateFieldName=_extension#1|finalUnnamedExtensionNonNullableWithoutInitializer,
    lateFieldSetter,
-   lateFieldTarget=_#_extension#0|finalUnnamedExtensionNonNullableWithoutInitializer
+   lateFieldTarget=_#_extension#1|finalUnnamedExtensionNonNullableWithoutInitializer
   */
   static late final int finalUnnamedExtensionNonNullableWithoutInitializer;
-  /*member: _#_extension#0|unnamedExtensionNullableWithoutInitializer:
+  /*member: _#_extension#1|unnamedExtensionNullableWithoutInitializer:
    lateField,
-   lateFieldName=_extension#0|unnamedExtensionNullableWithoutInitializer,
-   lateFieldTarget=_#_extension#0|unnamedExtensionNullableWithoutInitializer
+   lateFieldName=_extension#1|unnamedExtensionNullableWithoutInitializer,
+   lateFieldTarget=_#_extension#1|unnamedExtensionNullableWithoutInitializer
   */
-  /*is-null.member: _#_extension#0|unnamedExtensionNullableWithoutInitializer#isSet:
-   lateFieldName=_extension#0|unnamedExtensionNullableWithoutInitializer,
-   lateFieldTarget=_#_extension#0|unnamedExtensionNullableWithoutInitializer,
+  /*is-null.member: _#_extension#1|unnamedExtensionNullableWithoutInitializer#isSet:
+   lateFieldName=_extension#1|unnamedExtensionNullableWithoutInitializer,
+   lateFieldTarget=_#_extension#1|unnamedExtensionNullableWithoutInitializer,
    lateIsSetField
   */
-  /*member: _extension#0|unnamedExtensionNullableWithoutInitializer:
-   lateFieldGetter,
-   lateFieldName=_extension#0|unnamedExtensionNullableWithoutInitializer,
-   lateFieldTarget=_#_extension#0|unnamedExtensionNullableWithoutInitializer
-  */
-  /*member: _extension#0|unnamedExtensionNullableWithoutInitializer=:
-   lateFieldName=_extension#0|unnamedExtensionNullableWithoutInitializer,
+  /*member: _extension#1|unnamedExtensionNullableWithoutInitializer=:
+   lateFieldName=_extension#1|unnamedExtensionNullableWithoutInitializer,
    lateFieldSetter,
-   lateFieldTarget=_#_extension#0|unnamedExtensionNullableWithoutInitializer
+   lateFieldTarget=_#_extension#1|unnamedExtensionNullableWithoutInitializer
+  */
+  /*member: _extension#1|unnamedExtensionNullableWithoutInitializer:
+   lateFieldGetter,
+   lateFieldName=_extension#1|unnamedExtensionNullableWithoutInitializer,
+   lateFieldTarget=_#_extension#1|unnamedExtensionNullableWithoutInitializer
   */
   static late int? unnamedExtensionNullableWithoutInitializer;
-  /*member: _#_extension#0|finalUnnamedExtensionNullableWithoutInitializer:
+  /*member: _#_extension#1|finalUnnamedExtensionNullableWithoutInitializer:
    lateField,
-   lateFieldName=_extension#0|finalUnnamedExtensionNullableWithoutInitializer,
-   lateFieldTarget=_#_extension#0|finalUnnamedExtensionNullableWithoutInitializer
+   lateFieldName=_extension#1|finalUnnamedExtensionNullableWithoutInitializer,
+   lateFieldTarget=_#_extension#1|finalUnnamedExtensionNullableWithoutInitializer
   */
-  /*is-null.member: _#_extension#0|finalUnnamedExtensionNullableWithoutInitializer#isSet:
-   lateFieldName=_extension#0|finalUnnamedExtensionNullableWithoutInitializer,
-   lateFieldTarget=_#_extension#0|finalUnnamedExtensionNullableWithoutInitializer,
+  /*is-null.member: _#_extension#1|finalUnnamedExtensionNullableWithoutInitializer#isSet:
+   lateFieldName=_extension#1|finalUnnamedExtensionNullableWithoutInitializer,
+   lateFieldTarget=_#_extension#1|finalUnnamedExtensionNullableWithoutInitializer,
    lateIsSetField
   */
-  /*member: _extension#0|finalUnnamedExtensionNullableWithoutInitializer:
+  /*member: _extension#1|finalUnnamedExtensionNullableWithoutInitializer:
    lateFieldGetter,
-   lateFieldName=_extension#0|finalUnnamedExtensionNullableWithoutInitializer,
-   lateFieldTarget=_#_extension#0|finalUnnamedExtensionNullableWithoutInitializer
+   lateFieldName=_extension#1|finalUnnamedExtensionNullableWithoutInitializer,
+   lateFieldTarget=_#_extension#1|finalUnnamedExtensionNullableWithoutInitializer
   */
-  /*member: _extension#0|finalUnnamedExtensionNullableWithoutInitializer=:
-   lateFieldName=_extension#0|finalUnnamedExtensionNullableWithoutInitializer,
+  /*member: _extension#1|finalUnnamedExtensionNullableWithoutInitializer=:
+   lateFieldName=_extension#1|finalUnnamedExtensionNullableWithoutInitializer,
    lateFieldSetter,
-   lateFieldTarget=_#_extension#0|finalUnnamedExtensionNullableWithoutInitializer
+   lateFieldTarget=_#_extension#1|finalUnnamedExtensionNullableWithoutInitializer
   */
   static late final int? finalUnnamedExtensionNullableWithoutInitializer;
-  /*member: _#_extension#0|unnamedExtensionNonNullableWithInitializer:
+  /*member: _#_extension#1|unnamedExtensionNonNullableWithInitializer:
    lateField,
    lateFieldInitializer=13,
-   lateFieldName=_extension#0|unnamedExtensionNonNullableWithInitializer,
-   lateFieldTarget=_#_extension#0|unnamedExtensionNonNullableWithInitializer
+   lateFieldName=_extension#1|unnamedExtensionNonNullableWithInitializer,
+   lateFieldTarget=_#_extension#1|unnamedExtensionNonNullableWithInitializer
   */
-  /*member: _extension#0|unnamedExtensionNonNullableWithInitializer:
+  /*member: _extension#1|unnamedExtensionNonNullableWithInitializer=:
+   lateFieldInitializer=13,
+   lateFieldName=_extension#1|unnamedExtensionNonNullableWithInitializer,
+   lateFieldSetter,
+   lateFieldTarget=_#_extension#1|unnamedExtensionNonNullableWithInitializer
+  */
+  /*member: _extension#1|unnamedExtensionNonNullableWithInitializer:
    lateFieldGetter,
    lateFieldInitializer=13,
-   lateFieldName=_extension#0|unnamedExtensionNonNullableWithInitializer,
-   lateFieldTarget=_#_extension#0|unnamedExtensionNonNullableWithInitializer
-  */
-  /*member: _extension#0|unnamedExtensionNonNullableWithInitializer=:
-   lateFieldInitializer=13,
-   lateFieldName=_extension#0|unnamedExtensionNonNullableWithInitializer,
-   lateFieldSetter,
-   lateFieldTarget=_#_extension#0|unnamedExtensionNonNullableWithInitializer
+   lateFieldName=_extension#1|unnamedExtensionNonNullableWithInitializer,
+   lateFieldTarget=_#_extension#1|unnamedExtensionNonNullableWithInitializer
   */
   static late int unnamedExtensionNonNullableWithInitializer = 13;
-  /*member: _#_extension#0|finalUnnamedExtensionNonNullableWithInitializer:
+  /*member: _#_extension#1|finalUnnamedExtensionNonNullableWithInitializer:
    lateField,
    lateFieldInitializer=14,
-   lateFieldName=_extension#0|finalUnnamedExtensionNonNullableWithInitializer,
-   lateFieldTarget=_#_extension#0|finalUnnamedExtensionNonNullableWithInitializer
+   lateFieldName=_extension#1|finalUnnamedExtensionNonNullableWithInitializer,
+   lateFieldTarget=_#_extension#1|finalUnnamedExtensionNonNullableWithInitializer
   */
-  /*member: _extension#0|finalUnnamedExtensionNonNullableWithInitializer:
+  /*member: _extension#1|finalUnnamedExtensionNonNullableWithInitializer:
    lateFieldGetter,
    lateFieldInitializer=14,
-   lateFieldName=_extension#0|finalUnnamedExtensionNonNullableWithInitializer,
-   lateFieldTarget=_#_extension#0|finalUnnamedExtensionNonNullableWithInitializer
+   lateFieldName=_extension#1|finalUnnamedExtensionNonNullableWithInitializer,
+   lateFieldTarget=_#_extension#1|finalUnnamedExtensionNonNullableWithInitializer
   */
   static late final int finalUnnamedExtensionNonNullableWithInitializer = 14;
-  /*member: _#_extension#0|unnamedExtensionNullableWithInitializer:
+  /*member: _#_extension#1|unnamedExtensionNullableWithInitializer:
    lateField,
    lateFieldInitializer=15,
-   lateFieldName=_extension#0|unnamedExtensionNullableWithInitializer,
-   lateFieldTarget=_#_extension#0|unnamedExtensionNullableWithInitializer
+   lateFieldName=_extension#1|unnamedExtensionNullableWithInitializer,
+   lateFieldTarget=_#_extension#1|unnamedExtensionNullableWithInitializer
   */
-  /*is-null.member: _#_extension#0|unnamedExtensionNullableWithInitializer#isSet:
+  /*is-null.member: _#_extension#1|unnamedExtensionNullableWithInitializer#isSet:
    lateFieldInitializer=15,
-   lateFieldName=_extension#0|unnamedExtensionNullableWithInitializer,
-   lateFieldTarget=_#_extension#0|unnamedExtensionNullableWithInitializer,
+   lateFieldName=_extension#1|unnamedExtensionNullableWithInitializer,
+   lateFieldTarget=_#_extension#1|unnamedExtensionNullableWithInitializer,
    lateIsSetField
   */
-  /*member: _extension#0|unnamedExtensionNullableWithInitializer:
+  /*member: _extension#1|unnamedExtensionNullableWithInitializer=:
+   lateFieldInitializer=15,
+   lateFieldName=_extension#1|unnamedExtensionNullableWithInitializer,
+   lateFieldSetter,
+   lateFieldTarget=_#_extension#1|unnamedExtensionNullableWithInitializer
+  */
+  /*member: _extension#1|unnamedExtensionNullableWithInitializer:
    lateFieldGetter,
    lateFieldInitializer=15,
-   lateFieldName=_extension#0|unnamedExtensionNullableWithInitializer,
-   lateFieldTarget=_#_extension#0|unnamedExtensionNullableWithInitializer
-  */
-  /*member: _extension#0|unnamedExtensionNullableWithInitializer=:
-   lateFieldInitializer=15,
-   lateFieldName=_extension#0|unnamedExtensionNullableWithInitializer,
-   lateFieldSetter,
-   lateFieldTarget=_#_extension#0|unnamedExtensionNullableWithInitializer
+   lateFieldName=_extension#1|unnamedExtensionNullableWithInitializer,
+   lateFieldTarget=_#_extension#1|unnamedExtensionNullableWithInitializer
   */
   static late int? unnamedExtensionNullableWithInitializer = 15;
-  /*member: _#_extension#0|finalUnnamedExtensionNullableWithInitializer:
+  /*member: _#_extension#1|finalUnnamedExtensionNullableWithInitializer:
    lateField,
    lateFieldInitializer=16,
-   lateFieldName=_extension#0|finalUnnamedExtensionNullableWithInitializer,
-   lateFieldTarget=_#_extension#0|finalUnnamedExtensionNullableWithInitializer
+   lateFieldName=_extension#1|finalUnnamedExtensionNullableWithInitializer,
+   lateFieldTarget=_#_extension#1|finalUnnamedExtensionNullableWithInitializer
   */
-  /*is-null.member: _#_extension#0|finalUnnamedExtensionNullableWithInitializer#isSet:
+  /*is-null.member: _#_extension#1|finalUnnamedExtensionNullableWithInitializer#isSet:
    lateFieldInitializer=16,
-   lateFieldName=_extension#0|finalUnnamedExtensionNullableWithInitializer,
-   lateFieldTarget=_#_extension#0|finalUnnamedExtensionNullableWithInitializer,
+   lateFieldName=_extension#1|finalUnnamedExtensionNullableWithInitializer,
+   lateFieldTarget=_#_extension#1|finalUnnamedExtensionNullableWithInitializer,
    lateIsSetField
   */
-  /*member: _extension#0|finalUnnamedExtensionNullableWithInitializer:
+  /*member: _extension#1|finalUnnamedExtensionNullableWithInitializer:
    lateFieldGetter,
    lateFieldInitializer=16,
-   lateFieldName=_extension#0|finalUnnamedExtensionNullableWithInitializer,
-   lateFieldTarget=_#_extension#0|finalUnnamedExtensionNullableWithInitializer
+   lateFieldName=_extension#1|finalUnnamedExtensionNullableWithInitializer,
+   lateFieldTarget=_#_extension#1|finalUnnamedExtensionNullableWithInitializer
   */
   static late final int? finalUnnamedExtensionNullableWithInitializer = 16;
 }

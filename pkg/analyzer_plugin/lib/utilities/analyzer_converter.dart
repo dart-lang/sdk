@@ -140,46 +140,9 @@ class AnalyzerConverter {
   /// This method does not take into account that an instance of [ClassElement]
   /// can be an enum and an instance of [FieldElement] can be an enum constant.
   /// Use [_convertElementToElementKind] where possible.
-  plugin.ElementKind convertElementKind(analyzer.ElementKind kind) {
-    if (kind == analyzer.ElementKind.CLASS) {
-      return plugin.ElementKind.CLASS;
-    } else if (kind == analyzer.ElementKind.COMPILATION_UNIT) {
-      return plugin.ElementKind.COMPILATION_UNIT;
-    } else if (kind == analyzer.ElementKind.CONSTRUCTOR) {
-      return plugin.ElementKind.CONSTRUCTOR;
-    } else if (kind == analyzer.ElementKind.FIELD) {
-      return plugin.ElementKind.FIELD;
-    } else if (kind == analyzer.ElementKind.FUNCTION) {
-      return plugin.ElementKind.FUNCTION;
-    } else if (kind == analyzer.ElementKind.FUNCTION_TYPE_ALIAS) {
-      return plugin.ElementKind.FUNCTION_TYPE_ALIAS;
-    } else if (kind == analyzer.ElementKind.GENERIC_FUNCTION_TYPE) {
-      return plugin.ElementKind.FUNCTION_TYPE_ALIAS;
-    } else if (kind == analyzer.ElementKind.GETTER) {
-      return plugin.ElementKind.GETTER;
-    } else if (kind == analyzer.ElementKind.LABEL) {
-      return plugin.ElementKind.LABEL;
-    } else if (kind == analyzer.ElementKind.LIBRARY) {
-      return plugin.ElementKind.LIBRARY;
-    } else if (kind == analyzer.ElementKind.LOCAL_VARIABLE) {
-      return plugin.ElementKind.LOCAL_VARIABLE;
-    } else if (kind == analyzer.ElementKind.METHOD) {
-      return plugin.ElementKind.METHOD;
-    } else if (kind == analyzer.ElementKind.PARAMETER) {
-      return plugin.ElementKind.PARAMETER;
-    } else if (kind == analyzer.ElementKind.PREFIX) {
-      return plugin.ElementKind.PREFIX;
-    } else if (kind == analyzer.ElementKind.SETTER) {
-      return plugin.ElementKind.SETTER;
-    } else if (kind == analyzer.ElementKind.TOP_LEVEL_VARIABLE) {
-      return plugin.ElementKind.TOP_LEVEL_VARIABLE;
-    } else if (kind == analyzer.ElementKind.TYPE_ALIAS) {
-      return plugin.ElementKind.TYPE_ALIAS;
-    } else if (kind == analyzer.ElementKind.TYPE_PARAMETER) {
-      return plugin.ElementKind.TYPE_PARAMETER;
-    }
-    return plugin.ElementKind.UNKNOWN;
-  }
+  // TODO(srawlins): Deprecate this.
+  plugin.ElementKind convertElementKind(analyzer.ElementKind kind) =>
+      kind.toPluginElementKind;
 
   /// Convert the error [severity] from the 'analyzer' package to an analysis
   /// error severity defined by the plugin API.
@@ -193,30 +156,17 @@ class AnalyzerConverter {
       plugin.AnalysisErrorType(type.name);
 
   /// Create a location based on an the given [element].
+  // TODO(srawlins): Deprecate this.
   plugin.Location? locationFromElement(analyzer.Element? element,
-      {int? offset, int? length}) {
-    if (element == null || element.source == null) {
-      return null;
-    }
-    offset ??= element.nameOffset;
-    length ??= element.nameLength;
-    if (element is analyzer.CompilationUnitElement ||
-        (element is analyzer.LibraryElement && offset < 0)) {
-      offset = 0;
-      length = 0;
-    }
-    var unitElement = _getUnitElement(element);
-    var range = analyzer.SourceRange(offset, length);
-    return _locationForArgs(unitElement, range);
-  }
+          {int? offset, int? length}) =>
+      element.toLocation(offset: offset, length: length);
 
   /// Convert the element kind of the [element] from the 'analyzer' package to
   /// an element kind defined by the plugin API.
   plugin.ElementKind _convertElementToElementKind(analyzer.Element element) {
-    if (element is analyzer.ClassElement && element.isEnum) {
+    if (element is analyzer.EnumElement) {
       return plugin.ElementKind.ENUM;
-    } else if (element is analyzer.FieldElement &&
-        element.isEnumConstant &&
+    } else if (element is analyzer.FieldElement && element.isEnumConstant
         // MyEnum.values and MyEnum.one.index return isEnumConstant = true
         // so these additional checks are necessary.
         // TODO(danrubel) MyEnum.values is constant, but is a list
@@ -225,8 +175,11 @@ class AnalyzerConverter {
         // so should it return isEnumConstant = true?
         // Or should we return ElementKind.ENUM_CONSTANT here
         // in either or both of these cases?
-        element.type.element == element.enclosingElement) {
-      return plugin.ElementKind.ENUM_CONSTANT;
+        ) {
+      final type = element.type;
+      if (type is InterfaceType && type.element == element.enclosingElement) {
+        return plugin.ElementKind.ENUM_CONSTANT;
+      }
     }
     return convertElementKind(element.kind);
   }
@@ -318,28 +271,6 @@ class AnalyzerConverter {
     return null;
   }
 
-  /// Return the compilation unit containing the given [element].
-  analyzer.CompilationUnitElement? _getUnitElement(analyzer.Element element) {
-    analyzer.Element? currentElement = element;
-    if (currentElement is analyzer.CompilationUnitElement) {
-      return currentElement;
-    }
-    if (currentElement.enclosingElement is analyzer.LibraryElement) {
-      currentElement = currentElement.enclosingElement;
-    }
-    if (currentElement is analyzer.LibraryElement) {
-      return currentElement.definingCompilationUnit;
-    }
-    for (;
-        currentElement != null;
-        currentElement = currentElement.enclosingElement) {
-      if (currentElement is analyzer.CompilationUnitElement) {
-        return currentElement;
-      }
-    }
-    return null;
-  }
-
   bool _isAbstract(analyzer.Element element) {
     // TODO(scheglov) add isAbstract to Element API
     if (element is analyzer.ClassElement) {
@@ -379,6 +310,48 @@ class AnalyzerConverter {
     }
     return false;
   }
+}
+
+// TODO(srawlins): Move this to a better location.
+extension ElementExtensions on analyzer.Element? {
+  /// Return the compilation unit containing the given [element].
+  analyzer.CompilationUnitElement? get _unitElement {
+    var currentElement = this;
+    if (currentElement is analyzer.CompilationUnitElement) {
+      return currentElement;
+    }
+    if (currentElement?.enclosingElement is analyzer.LibraryElement) {
+      currentElement = currentElement?.enclosingElement;
+    }
+    if (currentElement is analyzer.LibraryElement) {
+      return currentElement.definingCompilationUnit;
+    }
+    for (;
+        currentElement != null;
+        currentElement = currentElement.enclosingElement) {
+      if (currentElement is analyzer.CompilationUnitElement) {
+        return currentElement;
+      }
+    }
+    return null;
+  }
+
+  /// Create a location based on an the given [element].
+  plugin.Location? toLocation({int? offset, int? length}) {
+    var self = this;
+    if (self == null || self.source == null) {
+      return null;
+    }
+    offset ??= self.nameOffset;
+    length ??= self.nameLength;
+    if (self is analyzer.CompilationUnitElement ||
+        (self is analyzer.LibraryElement && offset < 0)) {
+      offset = 0;
+      length = 0;
+    }
+    return _locationForArgs(
+        self._unitElement, analyzer.SourceRange(offset, length));
+  }
 
   /// Create and return a location within the given [unitElement] at the given
   /// [range].
@@ -401,4 +374,40 @@ class AnalyzerConverter {
         range.length, startLine, startColumn,
         endLine: endLine, endColumn: endColumn);
   }
+}
+
+// TODO(srawlins): Move this to a better location.
+extension ElementKindExtensions on analyzer.ElementKind {
+  static const _kindMap = {
+    analyzer.ElementKind.CLASS: plugin.ElementKind.CLASS,
+    analyzer.ElementKind.COMPILATION_UNIT: plugin.ElementKind.COMPILATION_UNIT,
+    analyzer.ElementKind.CONSTRUCTOR: plugin.ElementKind.CONSTRUCTOR,
+    analyzer.ElementKind.FIELD: plugin.ElementKind.FIELD,
+    analyzer.ElementKind.FUNCTION: plugin.ElementKind.FUNCTION,
+    analyzer.ElementKind.FUNCTION_TYPE_ALIAS:
+        plugin.ElementKind.FUNCTION_TYPE_ALIAS,
+    analyzer.ElementKind.GENERIC_FUNCTION_TYPE:
+        plugin.ElementKind.FUNCTION_TYPE_ALIAS,
+    analyzer.ElementKind.GETTER: plugin.ElementKind.GETTER,
+    analyzer.ElementKind.LABEL: plugin.ElementKind.LABEL,
+    analyzer.ElementKind.LIBRARY: plugin.ElementKind.LIBRARY,
+    analyzer.ElementKind.LOCAL_VARIABLE: plugin.ElementKind.LOCAL_VARIABLE,
+    analyzer.ElementKind.METHOD: plugin.ElementKind.METHOD,
+    analyzer.ElementKind.PARAMETER: plugin.ElementKind.PARAMETER,
+    analyzer.ElementKind.PREFIX: plugin.ElementKind.PREFIX,
+    analyzer.ElementKind.SETTER: plugin.ElementKind.SETTER,
+    analyzer.ElementKind.TOP_LEVEL_VARIABLE:
+        plugin.ElementKind.TOP_LEVEL_VARIABLE,
+    analyzer.ElementKind.TYPE_ALIAS: plugin.ElementKind.TYPE_ALIAS,
+    analyzer.ElementKind.TYPE_PARAMETER: plugin.ElementKind.TYPE_PARAMETER,
+  };
+
+  /// Convert the element [kind] from the 'analyzer' package to an element kind
+  /// defined by the plugin API.
+  ///
+  /// This method does not take into account that an instance of [ClassElement]
+  /// can be an enum and an instance of [FieldElement] can be an enum constant.
+  /// Use [_convertElementToElementKind] where possible.
+  plugin.ElementKind get toPluginElementKind =>
+      _kindMap[this] ?? plugin.ElementKind.UNKNOWN;
 }

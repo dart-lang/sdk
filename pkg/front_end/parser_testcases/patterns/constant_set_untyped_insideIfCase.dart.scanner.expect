@@ -1,0 +1,9 @@
+test(dynamic x) {
+if (x case const {1}) {}
+}
+
+
+test[StringToken]([BeginToken]dynamic[KeywordToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] case[KeywordToken] const[KeywordToken] {[BeginToken]1[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

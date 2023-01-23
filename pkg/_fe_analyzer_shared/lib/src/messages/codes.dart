@@ -31,8 +31,9 @@ class Code<T> {
   final Severity severity;
 
   const Code(this.name,
-      {this.index: -1, this.analyzerCodes, this.severity: Severity.error});
+      {this.index = -1, this.analyzerCodes, this.severity = Severity.error});
 
+  @override
   String toString() => name;
 }
 
@@ -58,14 +59,17 @@ class Message {
     return new LocatedMessage(null, -1, noLength, this);
   }
 
+  @override
   String toString() {
     return "Message[$code, $problemMessage, $correctionMessage, $arguments]";
   }
 }
 
 class MessageCode extends Code<Null> implements Message {
+  @override
   final String problemMessage;
 
+  @override
   final String? correctionMessage;
 
   const MessageCode(super.name,
@@ -75,8 +79,10 @@ class MessageCode extends Code<Null> implements Message {
       required this.problemMessage,
       this.correctionMessage});
 
+  @override
   Map<String, dynamic> get arguments => const <String, dynamic>{};
 
+  @override
   Code<dynamic> get code => this;
 
   @override
@@ -84,6 +90,7 @@ class MessageCode extends Code<Null> implements Message {
     return new LocatedMessage(uri, charOffset, length, this);
   }
 
+  @override
   LocatedMessage withoutLocation() {
     return new LocatedMessage(null, -1, noLength, this);
   }
@@ -193,6 +200,7 @@ class FormattedMessage implements DiagnosticMessage {
 
   final List<FormattedMessage>? relatedInformation;
 
+  @override
   final List<Uri>? involvedFiles;
 
   const FormattedMessage(
@@ -207,6 +215,7 @@ class FormattedMessage implements DiagnosticMessage {
 
   Code<dynamic> get code => locatedMessage.code;
 
+  @override
   String get codeName => code.name;
 
   String get problemMessage => locatedMessage.problemMessage;
@@ -271,8 +280,10 @@ class DiagnosticMessageFromJson implements DiagnosticMessage {
 
   final Uri? uri;
 
+  @override
   final List<Uri>? involvedFiles;
 
+  @override
   final String codeName;
 
   DiagnosticMessageFromJson(this.ansiFormatted, this.plainTextFormatted,

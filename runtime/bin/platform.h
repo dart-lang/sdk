@@ -29,7 +29,7 @@ class Platform {
   // Returns a string representing the operating system ("linux",
   // "macos", "windows", or "android"). The returned string should not be
   // deallocated by the caller.
-  static const char* OperatingSystem();
+  static const char* OperatingSystem() { return kHostOperatingSystemName; }
 
   // Returns a string representing the version of the operating system. The
   // format of the string is determined by the platform. The returned string
@@ -38,23 +38,7 @@ class Platform {
 
   // Returns the architecture name of the processor the VM is running on
   // (ia32, x64, arm, or arm64).
-  static const char* HostArchitecture() {
-#if defined(HOST_ARCH_ARM)
-    return "arm";
-#elif defined(HOST_ARCH_ARM64)
-    return "arm64";
-#elif defined(HOST_ARCH_IA32)
-    return "ia32";
-#elif defined(HOST_ARCH_X64)
-    return "x64";
-#elif defined(HOST_ARCH_RISCV32)
-    return "riscv32";
-#elif defined(HOST_ARCH_RISCV64)
-    return "riscv64";
-#else
-#error Architecture detection failed.
-#endif
-  }
+  static const char* HostArchitecture() { return kHostArchitectureName; }
 
   static const char* LibraryPrefix();
 

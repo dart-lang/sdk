@@ -61,7 +61,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   }
 
   @override
-  Element? get element => null;
+  Element? get element2 => null;
 
   @override
   R accept<R>(TypeVisitor<R> visitor) {
@@ -150,7 +150,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   ) {
     return node.parameters.asImpl.map((parameter) {
       return ParameterElementImpl.synthetic(
-        parameter.identifier?.name ?? '',
+        parameter.name?.lexeme ?? '',
         _getParameterType(isNNBD, parameter),
         parameter.kind,
       );

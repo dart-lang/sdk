@@ -16,63 +16,62 @@
 
 namespace dart {
 
-void VerifyObjectVisitor::VisitObject(ObjectPtr raw_obj) {
-  if (raw_obj->IsHeapObject()) {
-    uword raw_addr = UntaggedObject::ToAddr(raw_obj);
-    if (raw_obj->IsFreeListElement() || raw_obj->IsForwardingCorpse()) {
-      if (raw_obj->IsOldObject() && raw_obj->untag()->IsMarked()) {
-        FATAL1("Marked free list element encountered %#" Px "\n", raw_addr);
-      }
-    } else {
-      switch (mark_expectation_) {
-        case kForbidMarked:
-          if (raw_obj->IsOldObject() && raw_obj->untag()->IsMarked()) {
-            FATAL1("Marked object encountered %#" Px "\n", raw_addr);
-          }
-          break;
-        case kAllowMarked:
-          break;
-        case kRequireMarked:
-          if (raw_obj->IsOldObject() && !raw_obj->untag()->IsMarked()) {
-            FATAL1("Unmarked object encountered %#" Px "\n", raw_addr);
-          }
-          break;
-      }
+void VerifyObjectVisitor::VisitObject(ObjectPtr obj) {
+  ASSERT(obj->IsHeapObject());
+  uword addr = UntaggedObject::ToAddr(obj);
+  if (obj->IsFreeListElement() || obj->IsForwardingCorpse()) {
+    if (obj->IsOldObject() && obj->untag()->IsMarked()) {
+      FATAL("Marked free list element encountered %#" Px "\n", addr);
     }
+  } else {
+    switch (mark_expectation_) {
+      case kForbidMarked:
+        if (obj->IsOldObject() && obj->untag()->IsMarked()) {
+          FATAL("Marked object encountered %#" Px "\n", addr);
+        }
+        break;
+      case kAllowMarked:
+        break;
+      case kRequireMarked:
+        if (obj->IsOldObject() && !obj->untag()->IsMarked()) {
+          FATAL("Unmarked object encountered %#" Px "\n", addr);
+        }
+        break;
+    }
+    allocated_set_->Add(obj);
   }
-  allocated_set_->Add(raw_obj);
-  raw_obj->Validate(isolate_group_);
+  obj->Validate(isolate_group_);
 }
 
-void VerifyPointersVisitor::VisitPointers(ObjectPtr* first, ObjectPtr* last) {
-  for (ObjectPtr* current = first; current <= last; current++) {
-    ObjectPtr raw_obj = *current;
-    if (raw_obj->IsHeapObject()) {
-      if (!allocated_set_->Contains(raw_obj)) {
-        if (raw_obj->IsInstructions() &&
-            allocated_set_->Contains(OldPage::ToWritable(raw_obj))) {
+void VerifyPointersVisitor::VisitPointers(ObjectPtr* from, ObjectPtr* to) {
+  for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
+    ObjectPtr obj = *ptr;
+    if (obj->IsHeapObject()) {
+      if (!allocated_set_->Contains(obj)) {
+        if (obj->IsInstructions() &&
+            allocated_set_->Contains(Page::ToWritable(obj))) {
           continue;
         }
-        uword raw_addr = UntaggedObject::ToAddr(raw_obj);
-        FATAL1("Invalid object pointer encountered %#" Px "\n", raw_addr);
+        uword addr = UntaggedObject::ToAddr(obj);
+        FATAL("Invalid object pointer encountered %#" Px "\n", addr);
       }
     }
   }
 }
 
 void VerifyPointersVisitor::VisitCompressedPointers(uword heap_base,
-                                                    CompressedObjectPtr* first,
-                                                    CompressedObjectPtr* last) {
-  for (CompressedObjectPtr* current = first; current <= last; current++) {
-    ObjectPtr raw_obj = current->Decompress(heap_base);
-    if (raw_obj->IsHeapObject()) {
-      if (!allocated_set_->Contains(raw_obj)) {
-        if (raw_obj->IsInstructions() &&
-            allocated_set_->Contains(OldPage::ToWritable(raw_obj))) {
+                                                    CompressedObjectPtr* from,
+                                                    CompressedObjectPtr* to) {
+  for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++) {
+    ObjectPtr obj = ptr->Decompress(heap_base);
+    if (obj->IsHeapObject()) {
+      if (!allocated_set_->Contains(obj)) {
+        if (obj->IsInstructions() &&
+            allocated_set_->Contains(Page::ToWritable(obj))) {
           continue;
         }
-        uword raw_addr = UntaggedObject::ToAddr(raw_obj);
-        FATAL1("Invalid object pointer encountered %#" Px "\n", raw_addr);
+        uword addr = UntaggedObject::ToAddr(obj);
+        FATAL("Invalid object pointer encountered %#" Px "\n", addr);
       }
     }
   }

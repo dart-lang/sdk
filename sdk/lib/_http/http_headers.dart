@@ -4,6 +4,8 @@
 
 part of dart._http;
 
+final _digitsValidator = RegExp(r"^\d+$");
+
 class _HttpHeaders implements HttpHeaders {
   final Map<String, List<String>> _headers;
   // The original header names keyed by the lowercase header names.
@@ -373,12 +375,18 @@ class _HttpHeaders implements HttpHeaders {
 
   void _addContentLength(String name, value) {
     if (value is int) {
-      contentLength = value;
+      if (value < 0) {
+        throw HttpException("Content-Length must contain only digits");
+      }
     } else if (value is String) {
-      contentLength = int.parse(value);
+      if (!_digitsValidator.hasMatch(value)) {
+        throw HttpException("Content-Length must contain only digits");
+      }
+      value = int.parse(value);
     } else {
       throw HttpException("Unexpected type for header named $name");
     }
+    contentLength = value;
   }
 
   void _addTransferEncoding(String name, value) {

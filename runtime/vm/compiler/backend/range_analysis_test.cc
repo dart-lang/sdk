@@ -82,13 +82,14 @@ TEST_CASE(RangeTests) {
                       RangeBoundary(compiler::target::kSmiMin),
                       RangeBoundary(compiler::target::kSmiMax));
   }
-  TEST_RANGE_OP(Range::Shl, 0, 100, 0, 64, RangeBoundary(0),
+  TEST_RANGE_OP(Range::Shl, 0, 100, 0, 64, RangeBoundary::FromConstant(0),
                 RangeBoundary::PositiveInfinity());
   TEST_RANGE_OP(Range::Shl, -100, 0, 0, 64, RangeBoundary::NegativeInfinity(),
-                RangeBoundary(0));
+                RangeBoundary::FromConstant(0));
 
   TEST_RANGE_OP(Range::Shr, -8, 8, 1, 2, RangeBoundary(-4), RangeBoundary(4));
-  TEST_RANGE_OP(Range::Shr, 1, 8, 1, 2, RangeBoundary(0), RangeBoundary(4));
+  TEST_RANGE_OP(Range::Shr, 1, 8, 1, 2, RangeBoundary::FromConstant(0),
+                RangeBoundary(4));
   TEST_RANGE_OP(Range::Shr, -16, -8, 1, 2, RangeBoundary(-8),
                 RangeBoundary(-2));
   TEST_RANGE_OP(Range::Shr, 2, 4, -1, 1, RangeBoundary(1), RangeBoundary(4));
@@ -466,24 +467,26 @@ TEST_CASE(RangeAnd) {
   // [0xff, 0xfff] & [0xf, 0xf] = [0x0, 0xf].
   TEST_RANGE_AND(static_cast<int64_t>(0xff), static_cast<int64_t>(0xfff),
                  static_cast<int64_t>(0xf), static_cast<int64_t>(0xf),
-                 RangeBoundary(0), RangeBoundary(0xf));
+                 RangeBoundary::FromConstant(0), RangeBoundary(0xf));
 
   // [0xffffffff, 0xffffffff] & [0xfffffffff, 0xfffffffff] = [0x0, 0xfffffffff].
   TEST_RANGE_AND(
       static_cast<int64_t>(0xffffffff), static_cast<int64_t>(0xffffffff),
       static_cast<int64_t>(0xfffffffff), static_cast<int64_t>(0xfffffffff),
-      RangeBoundary(0), RangeBoundary(static_cast<int64_t>(0xfffffffff)));
+      RangeBoundary::FromConstant(0),
+      RangeBoundary(static_cast<int64_t>(0xfffffffff)));
 
   // [0xffffffff, 0xffffffff] & [-20, 20] = [0x0, 0xffffffff].
   TEST_RANGE_AND(static_cast<int64_t>(0xffffffff),
                  static_cast<int64_t>(0xffffffff), static_cast<int64_t>(-20),
-                 static_cast<int64_t>(20), RangeBoundary(0),
+                 static_cast<int64_t>(20), RangeBoundary::FromConstant(0),
                  RangeBoundary(static_cast<int64_t>(0xffffffff)));
 
   // [-20, 20] & [0xffffffff, 0xffffffff] = [0x0, 0xffffffff].
   TEST_RANGE_AND(static_cast<int64_t>(-20), static_cast<int64_t>(20),
                  static_cast<int64_t>(0xffffffff),
-                 static_cast<int64_t>(0xffffffff), RangeBoundary(0),
+                 static_cast<int64_t>(0xffffffff),
+                 RangeBoundary::FromConstant(0),
                  RangeBoundary(static_cast<int64_t>(0xffffffff)));
 
   // Test that [-20, 20] & [-20, 20] = [-32, 31].

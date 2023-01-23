@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
@@ -68,8 +69,12 @@ class CommentReferenceResolver {
     }
 
     if (!hasNewKeyword) {
-      if (prefixElement is ClassElement) {
-        name.staticElement = prefixElement.getMethod(name.name) ??
+      if (prefixElement is InterfaceElement) {
+        name.staticElement = _resolver.inheritance.getMember2(
+              prefixElement,
+              Name(prefixElement.library.source.uri, name.name),
+            ) ??
+            prefixElement.getMethod(name.name) ??
             prefixElement.getGetter(name.name) ??
             prefixElement.getSetter(name.name) ??
             prefixElement.getNamedConstructor(name.name);
@@ -80,7 +85,7 @@ class CommentReferenceResolver {
       } else {
         // TODO(brianwilkerson) Report this error.
       }
-    } else if (prefixElement is ClassElement) {
+    } else if (prefixElement is InterfaceElement) {
       var constructor = prefixElement.getNamedConstructor(name.name);
       if (constructor == null) {
         // TODO(brianwilkerson) Report this error.
@@ -121,7 +126,7 @@ class CommentReferenceResolver {
     name.staticElement = element;
 
     var propertyName = expression.propertyName;
-    if (element is ClassElement) {
+    if (element is InterfaceElement) {
       propertyName.staticElement = element.getMethod(propertyName.name) ??
           element.getGetter(propertyName.name) ??
           element.getSetter(propertyName.name) ??
@@ -186,7 +191,7 @@ class CommentReferenceResolver {
     }
     expression.staticElement = element;
     if (hasNewKeyword) {
-      if (element is ClassElement) {
+      if (element is InterfaceElement) {
         var constructor = element.unnamedConstructor;
         if (constructor == null) {
           // TODO(brianwilkerson) Report this error.

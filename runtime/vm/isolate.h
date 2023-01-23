@@ -57,6 +57,7 @@ class HandleScope;
 class HandleVisitor;
 class Heap;
 class ICData;
+class IsolateGroupReloadContext;
 class IsolateObjectStore;
 class IsolateProfilerData;
 class ProgramReloadContext;
@@ -323,6 +324,14 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return background_compiler_.get();
 #endif
   }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  intptr_t optimization_counter_threshold() const {
+    if (IsSystemIsolateGroup(this)) {
+      return kDefaultOptimizationCounterThreshold;
+    }
+    return FLAG_optimization_counter_threshold;
+  }
+#endif
 
 #if !defined(PRODUCT)
   GroupDebugger* debugger() const { return debugger_; }
@@ -335,7 +344,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void UnregisterIsolate(Isolate* isolate);
   // Returns `true` if this was the last isolate and the caller is responsible
   // for deleting the isolate group.
-  bool UnregisterIsolateDecrementCount(Isolate* isolate);
+  bool UnregisterIsolateDecrementCount();
 
   bool ContainsOnlyOneIsolate();
 
@@ -393,13 +402,13 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     dispatch_table_snapshot_size_ = size;
   }
 
-  SharedClassTable* shared_class_table() const {
-    return shared_class_table_.get();
+  ClassTableAllocator* class_table_allocator() {
+    return &class_table_allocator_;
   }
 
-  static intptr_t shared_class_table_offset() {
-    COMPILE_ASSERT(sizeof(IsolateGroup::shared_class_table_) == kWordSize);
-    return OFFSET_OF(IsolateGroup, shared_class_table_);
+  static intptr_t class_table_offset() {
+    COMPILE_ASSERT(sizeof(IsolateGroup::class_table_) == kWordSize);
+    return OFFSET_OF(IsolateGroup, class_table_);
   }
 
   ClassPtr* cached_class_table_table() {
@@ -520,8 +529,27 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   }
 #endif  // defined(PRODUCT)
 
+  // Class table for the program loaded into this isolate group.
+  //
+  // This table is modified by kernel loading.
+  ClassTable* class_table() const {
+    return class_table_;
+  }
+
+  // Class table used for heap walks by GC visitors. Usually it
+  // is the same table as one in |class_table_|, except when in the
+  // middle of the reload.
+  //
+  // See comment for |ClassTable| class for more details.
+  ClassTable* heap_walk_class_table() const {
+    return heap_walk_class_table_;
+  }
+
+  void CloneClassTableForReload();
+  void RestoreOriginalClassTable();
+  void DropOriginalClassTable();
+
   StoreBuffer* store_buffer() const { return store_buffer_.get(); }
-  ClassTable* class_table() const { return class_table_.get(); }
   ObjectStore* object_store() const { return object_store_.get(); }
   Mutex* symbols_mutex() { return &symbols_mutex_; }
   Mutex* type_canonicalization_mutex() { return &type_canonicalization_mutex_; }
@@ -594,8 +622,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void set_deferred_load_handler(Dart_DeferredLoadHandler handler) {
     deferred_load_handler_ = handler;
   }
-
-  intptr_t GetClassSizeForHeapWalkAt(intptr_t cid);
 
   // Prepares all threads in an isolate for Garbage Collection.
   void ReleaseStoreBuffers();
@@ -694,9 +720,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 #else
   bool CanReload() { return false; }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-
-  // Prefers old classes when we are in the middle of a reload.
-  ClassPtr GetClassForHeapWalkAt(intptr_t cid);
 
   bool IsReloading() const {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -823,11 +846,13 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void set_heap(std::unique_ptr<Heap> value);
 
   // Accessed from generated code.
-  std::unique_ptr<SharedClassTable> shared_class_table_;
-  std::unique_ptr<ClassTable> class_table_;
+  ClassTable* class_table_;
   AcqRelAtomic<ClassPtr*> cached_class_table_table_;
   std::unique_ptr<ObjectStore> object_store_;
   // End accessed from generated code.
+
+  ClassTableAllocator class_table_allocator_;
+  ClassTable* heap_walk_class_table_;
 
   const char** obfuscation_map_ = nullptr;
 
@@ -1711,6 +1736,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   bool accepts_messages_ = false;
 
   std::unique_ptr<VirtualMemory> regexp_backtracking_stack_cache_ = nullptr;
+
+  intptr_t wake_pause_event_handler_count_;
 
   static Dart_IsolateGroupCreateCallback create_group_callback_;
   static Dart_InitializeIsolateCallback initialize_callback_;

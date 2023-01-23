@@ -26,10 +26,36 @@ bool isModifier(Token token) {
     Token next = token.next!;
     Keyword? keyword = next.keyword;
     if (keyword == null && !next.isIdentifier || keyword == Keyword.IN) {
+      // Record type is a possibility.
+      if (optional("(", next)) {
+        Token afterGroup = next.endGroup!.next!;
+        if (afterGroup.isIdentifier || _thisOrSuperWithDot(afterGroup)) {
+          // We've seen either
+          // [modifier] [record type] [identifier], or
+          // [modifier] [record type] `this` `.`, or
+          // [modifier] [record type] `super` `.`
+          return true;
+        } else if (optional('?', afterGroup) &&
+            (afterGroup.next!.isIdentifier ||
+                _thisOrSuperWithDot(afterGroup.next!))) {
+          // We've seen either
+          // [modifier] [record type] `?` [identifier], or
+          // [modifier] [record type] `?` `this` `.`, or
+          // [modifier] [record type] `?` `super` `.`
+          return true;
+        }
+      }
       return false;
     }
   }
   return true;
+}
+
+bool _thisOrSuperWithDot(Token token) {
+  if (optional("this", token) || optional("super", token)) {
+    return optional(".", token.next!);
+  }
+  return false;
 }
 
 /// This class is used to parse modifiers in most locations where modifiers

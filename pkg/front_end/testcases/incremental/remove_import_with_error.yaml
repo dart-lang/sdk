@@ -36,6 +36,7 @@ worlds:
         class C extends A implements B {}
 
     expectedLibraryCount: 2
+
   - entry: main.dart
     invalidate:
       - main.dart
@@ -64,3 +65,4 @@ worlds:
 
         class C extends A implements B {}
     expectedLibraryCount: 1
+    advancedInvalidation: outlineChange

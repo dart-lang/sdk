@@ -95,8 +95,9 @@ class NamedTypeBuilder extends TypeBuilder {
       return _type!;
     }
 
+    // ignore: unnecessary_this
     final element = this.element;
-    if (element is ClassElement) {
+    if (element is InterfaceElement) {
       var parameters = element.typeParameters;
       var arguments = _buildArguments(parameters);
       var type = element.instantiate(
@@ -247,7 +248,7 @@ class NamedTypeBuilder extends TypeBuilder {
   List<ParameterElementImpl> _formalParameters(FormalParameterList node) {
     return node.parameters.asImpl.map((parameter) {
       return ParameterElementImpl.synthetic(
-        parameter.identifier?.name ?? '',
+        parameter.name?.lexeme ?? '',
         _buildFormalParameterType(parameter),
         parameter.kind,
       );

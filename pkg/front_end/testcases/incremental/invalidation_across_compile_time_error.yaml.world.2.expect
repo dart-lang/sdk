@@ -15,6 +15,13 @@ library from "org-dartlang-test:///c.dart" as c {
   }
 }
 library from "org-dartlang-test:///main.dart" as main {
+//
+// Problems in library:
+//
+// org-dartlang-test:///main.dart:2:8: Error: Error when reading 'org-dartlang-test:///nonexisting.dart': File org-dartlang-test:///nonexisting.dart does not exist.
+// import "nonexisting.dart";
+//        ^
+//
 
   import "org-dartlang-test:///b.dart";
   import "org-dartlang-test:///nonexisting.dart";
@@ -25,12 +32,5 @@ library from "org-dartlang-test:///main.dart" as main {
   }
 }
 library from "org-dartlang-test:///nonexisting.dart" as non {
-//
-// Problems in library:
-//
-// org-dartlang-test:///main.dart:2:8: Error: Error when reading 'org-dartlang-test:///nonexisting.dart': File org-dartlang-test:///nonexisting.dart does not exist.
-// import "nonexisting.dart";
-//        ^
-//
 
 }

@@ -35,8 +35,8 @@ class Gee {
 
   Gee([this.c = const Constant(111)]);
   const Gee.n321([this.c = const Constant(321)]);
-  Gee.n135({arg: const Constant(135)}) : this.c = arg;
-  const Gee.n246({arg: const Constant(246)}) : this.c = arg;
+  Gee.n135({arg = const Constant(135)}) : this.c = arg;
+  const Gee.n246({arg = const Constant(246)}) : this.c = arg;
   const Gee.n888() : this.c = const Constant(888);
   const Gee.constant(this.c);
 }

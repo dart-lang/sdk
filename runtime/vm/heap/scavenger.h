@@ -11,6 +11,7 @@
 #include "vm/dart.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
+#include "vm/heap/page.h"
 #include "vm/heap/spaces.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
@@ -29,166 +30,19 @@ class ObjectSet;
 template <bool parallel>
 class ScavengerVisitorBase;
 
-static constexpr intptr_t kNewPageSize = 512 * KB;
-static constexpr intptr_t kNewPageSizeInWords = kNewPageSize / kWordSize;
-static constexpr intptr_t kNewPageMask = ~(kNewPageSize - 1);
-
-// Simplify initialization in allocation stubs by ensuring it is safe
-// to overshoot the object end by up to kAllocationRedZoneSize. (Just as the
-// stack red zone allows one to overshoot the stack pointer.)
-static constexpr intptr_t kAllocationRedZoneSize = kObjectAlignment;
-
-// A page containing new generation objects.
-class NewPage {
- public:
-  static NewPage* Allocate();
-  void Deallocate();
-
-  uword start() const { return memory_->start(); }
-  uword end() const { return memory_->end() - kAllocationRedZoneSize; }
-  bool Contains(uword addr) const { return memory_->Contains(addr); }
-  void WriteProtect(bool read_only) {
-    memory_->Protect(read_only ? VirtualMemory::kReadOnly
-                               : VirtualMemory::kReadWrite);
-  }
-
-  NewPage* next() const { return next_; }
-  void set_next(NewPage* next) { next_ = next; }
-
-  Thread* owner() const { return owner_; }
-
-  uword object_start() const { return start() + ObjectStartOffset(); }
-  uword object_end() const { return owner_ != nullptr ? owner_->top() : top_; }
-  intptr_t used() const { return object_end() - object_start(); }
-  void VisitObjects(ObjectVisitor* visitor) const {
-    uword addr = object_start();
-    uword end = object_end();
-    while (addr < end) {
-      ObjectPtr obj = UntaggedObject::FromAddr(addr);
-      visitor->VisitObject(obj);
-      addr += obj->untag()->HeapSize();
-    }
-  }
-  void VisitObjectPointers(ObjectPointerVisitor* visitor) const {
-    uword addr = object_start();
-    uword end = object_end();
-    while (addr < end) {
-      ObjectPtr obj = UntaggedObject::FromAddr(addr);
-      intptr_t size = obj->untag()->VisitPointers(visitor);
-      addr += size;
-    }
-  }
-
-  static intptr_t ObjectStartOffset() {
-    return Utils::RoundUp(sizeof(NewPage), kObjectAlignment) +
-           kNewObjectAlignmentOffset;
-  }
-
-  static NewPage* Of(ObjectPtr obj) {
-    ASSERT(obj->IsHeapObject());
-    ASSERT(obj->IsNewObject());
-    return Of(static_cast<uword>(obj));
-  }
-  static NewPage* Of(uword addr) {
-    return reinterpret_cast<NewPage*>(addr & kNewPageMask);
-  }
-
-  // Remember the limit to which objects have been copied.
-  void RecordSurvivors() { survivor_end_ = object_end(); }
-
-  // Move survivor end to the end of the to_ space, making all surviving
-  // objects candidates for promotion next time.
-  void EarlyTenure() { survivor_end_ = end_; }
-
-  uword promo_candidate_words() const {
-    return (survivor_end_ - object_start()) / kWordSize;
-  }
-
-  void Acquire(Thread* thread) {
-    ASSERT(owner_ == nullptr);
-    owner_ = thread;
-    thread->set_top(top_);
-    thread->set_end(end_);
-  }
-  void Release(Thread* thread) {
-    ASSERT(owner_ == thread);
-    owner_ = nullptr;
-    top_ = thread->top();
-    thread->set_top(0);
-    thread->set_end(0);
-  }
-  void Release() {
-    if (owner_ != nullptr) {
-      Release(owner_);
-    }
-  }
-
-  uword TryAllocateGC(intptr_t size) {
-    ASSERT(owner_ == nullptr);
-    uword result = top_;
-    uword new_top = result + size;
-    if (LIKELY(new_top <= end_)) {
-      top_ = new_top;
-      return result;
-    }
-    return 0;
-  }
-
-  void Unallocate(uword addr, intptr_t size) {
-    ASSERT((addr + size) == top_);
-    top_ -= size;
-  }
-
-  bool IsSurvivor(uword raw_addr) const { return raw_addr < survivor_end_; }
-  bool IsResolved() const { return top_ == resolved_top_; }
-
- private:
-  VirtualMemory* memory_;
-  NewPage* next_;
-
-  // The thread using this page for allocation, otherwise NULL.
-  Thread* owner_;
-
-  // The address of the next allocation. If owner is non-NULL, this value is
-  // stale and the current value is at owner->top_. Called "NEXT" in the
-  // original Cheney paper.
-  uword top_;
-
-  // The address after the last allocatable byte in this page.
-  uword end_;
-
-  // Objects below this address have survived a scavenge.
-  uword survivor_end_;
-
-  // A pointer to the first unprocessed object. Resolution completes when this
-  // value meets the allocation top. Called "SCAN" in the original Cheney paper.
-  uword resolved_top_;
-
-  template <bool>
-  friend class ScavengerVisitorBase;
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_IMPLICIT_CONSTRUCTORS(NewPage);
-};
-
 class SemiSpace {
  public:
-  static void Init();
-  static void ClearCache();
-  static void Cleanup();
-  static intptr_t CachedSize();
-
   explicit SemiSpace(intptr_t max_capacity_in_words);
   ~SemiSpace();
 
-  NewPage* TryAllocatePageLocked(bool link);
+  Page* TryAllocatePageLocked(bool link);
 
   bool Contains(uword addr) const;
   void WriteProtect(bool read_only);
 
   intptr_t used_in_words() const {
     intptr_t size = 0;
-    for (const NewPage* p = head_; p != nullptr; p = p->next()) {
+    for (const Page* p = head_; p != nullptr; p = p->next()) {
       size += p->used();
     }
     return size >> kWordSizeLog2;
@@ -196,9 +50,9 @@ class SemiSpace {
   intptr_t capacity_in_words() const { return capacity_in_words_; }
   intptr_t max_capacity_in_words() const { return max_capacity_in_words_; }
 
-  NewPage* head() const { return head_; }
+  Page* head() const { return head_; }
 
-  void AddList(NewPage* head, NewPage* tail);
+  void AddList(Page* head, Page* tail);
 
  private:
   // Size of NewPages in this semi-space.
@@ -207,8 +61,8 @@ class SemiSpace {
   // Size of NewPages before we trigger a scavenge.
   intptr_t max_capacity_in_words_;
 
-  NewPage* head_ = nullptr;
-  NewPage* tail_ = nullptr;
+  Page* head_ = nullptr;
+  Page* tail_ = nullptr;
 };
 
 // Statistics for a particular scavenge.
@@ -335,10 +189,20 @@ class Scavenger {
   void PrintToJSONObject(JSONObject* object) const;
 #endif  // !PRODUCT
 
-  void AllocatedExternal(intptr_t size) {
+  // Tracks an external allocation by incrementing the new space's total
+  // external size tracker. Returns false without incrementing the tracker if
+  // this allocation will make it exceed kMaxAddrSpaceInWords.
+  bool AllocatedExternal(intptr_t size) {
     ASSERT(size >= 0);
+    intptr_t next_external_size_in_words =
+        (external_size_ >> kWordSizeLog2) + (size >> kWordSizeLog2);
+    if (next_external_size_in_words < 0 ||
+        next_external_size_in_words > kMaxAddrSpaceInWords) {
+      return false;
+    }
     external_size_ += size;
     ASSERT(external_size_ >= 0);
+    return true;
   }
   void FreedExternal(intptr_t size) {
     ASSERT(size >= 0);
@@ -362,7 +226,9 @@ class Scavenger {
     return max_pool_size > 0 ? max_pool_size : 1;
   }
 
-  NewPage* head() const { return to_->head(); }
+  Page* head() const {
+    return to_->head();
+  }
 
  private:
   // Ids for time and data records in Heap::GCStats.
@@ -385,7 +251,6 @@ class Scavenger {
     if (UNLIKELY(remaining < size)) {
       return 0;
     }
-
     ASSERT(to_->Contains(result));
     ASSERT((result & kObjectAlignmentMask) == kNewObjectAlignmentOffset);
     thread->set_top(result + size);

@@ -61,8 +61,10 @@ ArgumentError var46 = ArgumentError.value(22, 'K90\u{1f600}QtS', 33);
 ArgumentError? var47 = ArgumentError.notNull(')');
 RangeError var48 = RangeError.range(2, 23, 36, 'H', 'w&');
 RangeError? var49 = new RangeError(22);
-IndexError var50 = IndexError(15, 14, 'ZuC', '#1z9xJ', 1);
-IndexError? var51 = IndexError(14, 36, 'V(', '9Jf!0\u2665', 2);
+IndexError var50 =
+    IndexError.withLength(15, 1, indexable: 14, name: 'ZuC', message: '#1z9xJ');
+IndexError? var51 = IndexError.withLength(14, 2,
+    indexable: 36, name: 'V(', message: '9Jf!0\u2665');
 FallThroughError var52 = FallThroughError();
 FallThroughError? var53 = FallThroughError();
 AbstractClassInstantiationError var54 = AbstractClassInstantiationError('J!');

@@ -37,7 +37,7 @@ class TypeArgumentsVerifier {
     List<TypeParameterElement> typeParameters;
     if (classElement is TypeAliasElement) {
       typeParameters = classElement.typeParameters;
-    } else if (classElement is ClassElement) {
+    } else if (classElement is InterfaceElement) {
       typeParameters = classElement.typeParameters;
     } else {
       return;
@@ -131,9 +131,11 @@ class TypeArgumentsVerifier {
       bound = substitution.substituteType(bound);
 
       if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
-        _errorReporter.reportErrorForNode(
+        final errorTarget = typeArgumentNodes?[i] ?? node.name;
+        _errorReporter.reportErrorForOffset(
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-          typeArgumentNodes?[i] ?? node.name,
+          errorTarget.offset,
+          errorTarget.length,
           [typeArgument, typeParameter.name, bound],
         );
       }

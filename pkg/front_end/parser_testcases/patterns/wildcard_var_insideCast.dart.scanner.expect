@@ -1,0 +1,15 @@
+void f(x) {
+switch (x) {
+case var _ as Object:
+break;
+}
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+case[KeywordToken] var[KeywordToken] _[StringToken] as[KeywordToken] Object[StringToken]:[SimpleToken]
+break[KeywordToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

@@ -163,6 +163,8 @@ class FfiTransformer extends Transformer {
   final Procedure listElementAt;
   final Procedure numAddition;
   final Procedure numMultiplication;
+  final Procedure objectEquals;
+  final Procedure stateErrorThrowNewFunction;
 
   final Library ffiLibrary;
   final Class allocatorClass;
@@ -304,6 +306,10 @@ class FfiTransformer extends Transformer {
         numAddition = coreTypes.index.getProcedure('dart:core', 'num', '+'),
         numMultiplication =
             coreTypes.index.getProcedure('dart:core', 'num', '*'),
+        objectEquals =
+            coreTypes.index.getProcedure('dart:core', 'Object', '=='),
+        stateErrorThrowNewFunction = coreTypes.index
+            .getProcedure('dart:core', 'StateError', '_throwNew'),
         ffiLibrary = index.getLibrary('dart:ffi'),
         allocatorClass = index.getClass('dart:ffi', 'Allocator'),
         nativeFunctionClass = index.getClass('dart:ffi', 'NativeFunction'),
@@ -918,14 +924,21 @@ class FfiTransformer extends Transformer {
         functionType: numMultiplication.getterType as FunctionType);
   }
 
-  Iterable<MapConstant> getAbiSpecificIntegerMappingAnnotations(Class node) {
-    return node.annotations
+  MapConstant? getAbiSpecificIntegerMappingAnnotation(Class node) {
+    final annotations = node.annotations
         .whereType<ConstantExpression>()
         .map((e) => e.constant)
         .whereType<InstanceConstant>()
         .where((e) => e.classNode == abiSpecificIntegerMappingClass)
         .map((instanceConstant) =>
-            instanceConstant.fieldValues.values.single as MapConstant);
+            instanceConstant.fieldValues.values.single as MapConstant)
+        .toList();
+
+    // There can be at most one annotation (checked by `_FfiDefinitionTransformer`)
+    if (annotations.length == 1) {
+      return annotations[0];
+    }
+    return null;
   }
 
   /// Generates an expression performing an Abi specific integer load or store.
@@ -1112,7 +1125,7 @@ class FfiTransformer extends Transformer {
 
   void ensureNativeTypeToDartType(
       DartType nativeType, DartType dartType, TreeNode reportErrorOn,
-      {bool allowHandle: false}) {
+      {bool allowHandle = false}) {
     final DartType correspondingDartType = convertNativeTypeToDartType(
         nativeType,
         allowCompounds: true,
@@ -1120,7 +1133,14 @@ class FfiTransformer extends Transformer {
     if (dartType == correspondingDartType) return;
     if (env.isSubtypeOf(correspondingDartType, dartType,
         SubtypeCheckMode.ignoringNullabilities)) {
-      return;
+      // If subtype, manually check the return type is not void.
+      if (dartType is! FunctionType || correspondingDartType is! FunctionType) {
+        return;
+      } else if ((dartType.returnType is VoidType) ==
+          (correspondingDartType.returnType is VoidType)) {
+        return;
+      }
+      // One of the return types is void, the other isn't, report error.
     }
     diagnosticReporter.report(
         templateFfiTypeMismatch.withArguments(dartType, correspondingDartType,
@@ -1132,8 +1152,8 @@ class FfiTransformer extends Transformer {
   }
 
   void ensureNativeTypeValid(DartType nativeType, TreeNode reportErrorOn,
-      {bool allowHandle: false,
-      bool allowCompounds: false,
+      {bool allowHandle = false,
+      bool allowCompounds = false,
       bool allowInlineArray = false}) {
     if (!_nativeTypeValid(nativeType,
         allowCompounds: allowCompounds,
@@ -1152,7 +1172,7 @@ class FfiTransformer extends Transformer {
   /// The Dart type system does not enforce that NativeFunction return and
   /// parameter types are only NativeTypes, so we need to check this.
   bool _nativeTypeValid(DartType nativeType,
-      {bool allowCompounds: false,
+      {bool allowCompounds = false,
       bool allowHandle = false,
       bool allowInlineArray = false}) {
     return convertNativeTypeToDartType(nativeType,

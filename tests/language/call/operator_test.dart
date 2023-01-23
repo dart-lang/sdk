@@ -30,7 +30,7 @@ class D {
 
 // Non-trivial method body combination of positional and named.
 class E {
-  String call(String str, {int count: 1}) {
+  String call(String str, {int count = 1}) {
     StringBuffer buffer = new StringBuffer();
     for (var i = 0; i < count; i++) {
       buffer.write(str);

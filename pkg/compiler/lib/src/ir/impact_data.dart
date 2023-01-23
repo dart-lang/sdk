@@ -11,8 +11,7 @@ import '../common/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ir/scope.dart';
-import '../kernel/element_map_interfaces.dart'
-    show KernelToElementMapForImpactData;
+import '../kernel/element_map.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
 import '../util/enumset.dart';
@@ -26,10 +25,10 @@ import 'util.dart';
 /// Visitor that builds an [ImpactData] object for the world impact.
 class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   final ImpactData _data = ImpactData();
-  final KernelToElementMapForImpactData _elementMap;
+  final KernelToElementMap _elementMap;
 
-  @override
-  final VariableScopeModel variableScopeModel;
+  // Note: this may be null for builders associated with abstract methods.
+  final VariableScopeModel? _variableScopeModel;
 
   @override
   final ir.StaticTypeContext staticTypeContext;
@@ -45,11 +44,14 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
       this.staticTypeContext,
       StaticTypeCacheImpl staticTypeCache,
       ir.ClassHierarchy classHierarchy,
-      this.variableScopeModel,
+      this._variableScopeModel,
       {this.useAsserts = false,
       this.inferEffectivelyFinalVariableTypes = true})
       : super(
             staticTypeContext.typeEnvironment, classHierarchy, staticTypeCache);
+
+  @override
+  VariableScopeModel get variableScopeModel => _variableScopeModel!;
 
   CommonElements get _commonElements => _elementMap.commonElements;
 
@@ -192,10 +194,6 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
         }
         registerAsyncStar(elementType);
         break;
-
-      case ir.AsyncMarker.SyncYielding:
-        failedAt(CURRENT_ELEMENT_SPANNABLE,
-            "Unexpected async marker: ${asyncMarker}");
     }
   }
 
@@ -610,19 +608,19 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   @override
-  void registerSuperSet(ir.Member target) {
-    (_data._superSets ??= []).add(target);
+  void registerSuperSet(ir.Member? target) {
+    (_data._superSets ??= []).add(target!);
   }
 
   @override
-  void registerSuperGet(ir.Member target) {
-    (_data._superGets ??= []).add(target);
+  void registerSuperGet(ir.Member? target) {
+    (_data._superGets ??= []).add(target!);
   }
 
   @override
-  void registerSuperInvocation(ir.Member target, int positionalArguments,
+  void registerSuperInvocation(ir.Member? target, int positionalArguments,
       List<String> namedArguments, List<ir.DartType> typeArguments) {
-    (_data._superInvocations ??= []).add(_SuperInvocation(target,
+    (_data._superInvocations ??= []).add(_SuperInvocation(target!,
         _CallStructure(positionalArguments, namedArguments, typeArguments)));
   }
 
@@ -919,6 +917,13 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   @override
+  void registerRecordLiteral(ir.RecordType recordType,
+      {required bool isConst}) {
+    (_data._recordLiterals ??= [])
+        .add(_RecordLiteral(recordType, isConst: isConst));
+  }
+
+  @override
   void registerNullLiteral() {
     _registerFeature(_Feature.nullLiteral);
   }
@@ -1022,6 +1027,7 @@ class ImpactData {
   List<_MapLiteral>? _mapLiterals;
   List<_ContainerLiteral>? _listLiterals;
   List<_ContainerLiteral>? _setLiterals;
+  List<_RecordLiteral>? _recordLiterals;
   Set<String>? _symbolLiterals;
   Set<String>? _stringLiterals;
   Set<bool>? _boolLiterals;
@@ -1092,6 +1098,8 @@ class ImpactData {
         source.readListOrNull(() => _ContainerLiteral.fromDataSource(source));
     _setLiterals =
         source.readListOrNull(() => _ContainerLiteral.fromDataSource(source));
+    _recordLiterals =
+        source.readListOrNull(() => _RecordLiteral.fromDataSource(source));
     _symbolLiterals = source.readStrings(emptyAsNull: true)?.toSet();
     _stringLiterals = source.readStrings(emptyAsNull: true)?.toSet();
     _boolLiterals = source.readListOrNull(() => source.readBool())?.toSet();
@@ -1176,6 +1184,8 @@ class ImpactData {
     sink.writeList(_listLiterals, (_ContainerLiteral o) => o.toDataSink(sink),
         allowNull: true);
     sink.writeList(_setLiterals, (_ContainerLiteral o) => o.toDataSink(sink),
+        allowNull: true);
+    sink.writeList(_recordLiterals, (_RecordLiteral o) => o.toDataSink(sink),
         allowNull: true);
     sink.writeStrings(_symbolLiterals, allowNull: true);
     sink.writeStrings(_stringLiterals, allowNull: true);
@@ -1457,6 +1467,11 @@ class ImpactData {
       for (_ContainerLiteral data in _setLiterals!) {
         registry.registerSetLiteral(data.elementType,
             isConst: data.isConst, isEmpty: data.isEmpty);
+      }
+    }
+    if (_recordLiterals != null) {
+      for (_RecordLiteral data in _recordLiterals!) {
+        registry.registerRecordLiteral(data.recordType, isConst: data.isConst);
       }
     }
     if (_symbolLiterals != null) {
@@ -2060,6 +2075,30 @@ class _ContainerLiteral {
     sink.writeDartTypeNode(elementType);
     sink.writeBool(isConst);
     sink.writeBool(isEmpty);
+    sink.end(tag);
+  }
+}
+
+class _RecordLiteral {
+  static const String tag = '_RecordLiteral';
+
+  final ir.RecordType recordType;
+  final bool isConst;
+
+  _RecordLiteral(this.recordType, {required this.isConst});
+
+  factory _RecordLiteral.fromDataSource(DataSourceReader source) {
+    source.begin(tag);
+    ir.RecordType recordType = source.readDartTypeNode() as ir.RecordType;
+    bool isConst = source.readBool();
+    source.end(tag);
+    return _RecordLiteral(recordType, isConst: isConst);
+  }
+
+  void toDataSink(DataSinkWriter sink) {
+    sink.begin(tag);
+    sink.writeDartTypeNode(recordType);
+    sink.writeBool(isConst);
     sink.end(tag);
   }
 }

@@ -457,7 +457,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
       #t1.{core::List::add}{Invariant}(42){(core::int*) →* void};
   } =>#t1;
   core::Set<core::int*>* set10 = block {
-    final core::Set<core::int*>* #t2 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t2 = new col::_Set::•<core::int*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t2.{core::Set::add}{Invariant}(42){(core::int*) →* core::bool*};
     #t2.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
@@ -474,7 +474,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
       #t4.{core::List::add}{Invariant}(dynVar){(dynamic) →* void};
   } =>#t4;
   core::Set<dynamic>* set11 = block {
-    final core::Set<dynamic>* #t5 = new col::_CompactLinkedHashSet::•<dynamic>();
+    final core::Set<dynamic>* #t5 = new col::_Set::•<dynamic>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t5.{core::Set::add}{Invariant}(dynVar){(dynamic) →* core::bool*};
     #t5.{core::Set::add}{Invariant}(null){(dynamic) →* core::bool*};
@@ -491,7 +491,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
       #t7.{core::List::add}{Invariant}(core::_GrowableList::_literal1<core::int*>(42)){(core::List<core::int*>*) →* void};
   } =>#t7;
   core::Set<core::List<core::int*>*>* set12 = block {
-    final core::Set<core::List<core::int*>*>* #t8 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
+    final core::Set<core::List<core::int*>*>* #t8 = new col::_Set::•<core::List<core::int*>*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t8.{core::Set::add}{Invariant}(core::_GrowableList::_literal1<core::int*>(42)){(core::List<core::int*>*) →* core::bool*};
     #t8.{core::Set::add}{Invariant}(null){(core::List<core::int*>*) →* core::bool*};
@@ -508,7 +508,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
       #t10.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<core::int*>(42)){(core::Iterable<core::int*>*) →* void};
   } =>#t10;
   core::Set<core::int*>* set20 = block {
-    final core::Set<core::int*>* #t11 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t11 = new col::_Set::•<core::int*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t11.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::int*>(42)){(core::Iterable<core::int*>*) →* void};
     #t11.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
@@ -525,7 +525,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
       #t13.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<dynamic>(dynVar)){(core::Iterable<dynamic>*) →* void};
   } =>#t13;
   core::Set<dynamic>* set21 = block {
-    final core::Set<dynamic>* #t14 = new col::_CompactLinkedHashSet::•<dynamic>();
+    final core::Set<dynamic>* #t14 = new col::_Set::•<dynamic>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t14.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<dynamic>(dynVar)){(core::Iterable<dynamic>*) →* void};
     #t14.{core::Set::add}{Invariant}(null){(dynamic) →* core::bool*};
@@ -542,7 +542,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
       #t16.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::_literal1<core::int*>(42))){(core::Iterable<core::List<core::int*>*>*) →* void};
   } =>#t16;
   core::Set<core::List<core::int*>*>* set22 = block {
-    final core::Set<core::List<core::int*>*>* #t17 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
+    final core::Set<core::List<core::int*>*>* #t17 = new col::_Set::•<core::List<core::int*>*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t17.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::_literal1<core::int*>(42))){(core::Iterable<core::List<core::int*>*>*) →* void};
     #t17.{core::Set::add}{Invariant}(null){(core::List<core::int*>*) →* core::bool*};
@@ -560,7 +560,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
         #t19.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<core::int*>(42)){(core::Iterable<core::int*>*) →* void};
   } =>#t19;
   core::Set<core::int*>* set30 = block {
-    final core::Set<core::int*>* #t20 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t20 = new col::_Set::•<core::int*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
         #t20.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::int*>(42)){(core::Iterable<core::int*>*) →* void};
@@ -580,7 +580,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
         #t22.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<dynamic>(dynVar)){(core::Iterable<dynamic>*) →* void};
   } =>#t22;
   core::Set<dynamic>* set31 = block {
-    final core::Set<dynamic>* #t23 = new col::_CompactLinkedHashSet::•<dynamic>();
+    final core::Set<dynamic>* #t23 = new col::_Set::•<dynamic>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
         #t23.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<dynamic>(dynVar)){(core::Iterable<dynamic>*) →* void};
@@ -600,7 +600,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
         #t25.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::_literal1<core::int*>(42))){(core::Iterable<core::List<core::int*>*>*) →* void};
   } =>#t25;
   core::Set<core::List<core::int*>*>* set33 = block {
-    final core::Set<core::List<core::int*>*>* #t26 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
+    final core::Set<core::List<core::int*>*>* #t26 = new col::_Set::•<core::List<core::int*>*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
         #t26.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::_literal1<core::int*>(42))){(core::Iterable<core::List<core::int*>*>*) →* void};
@@ -619,7 +619,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
       #t28.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::•<core::int*>(0))){(core::Iterable<core::List<core::int*>*>*) →* void};
   } =>#t28;
   core::Set<core::List<core::int*>*>* set40 = block {
-    final core::Set<core::List<core::int*>*>* #t29 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
+    final core::Set<core::List<core::int*>*>* #t29 = new col::_Set::•<core::List<core::int*>*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t29.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::•<core::int*>(0))){(core::Iterable<core::List<core::int*>*>*) →* void};
     #t29.{core::Set::add}{Invariant}(null){(core::List<core::int*>*) →* core::bool*};
@@ -631,15 +631,15 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
     final core::List<core::List<core::int*>*>* #t30 = core::_GrowableList::•<core::List<core::int*>*>(0);
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t30.{core::List::addAll}{Invariant}( block {
-        final core::Set<core::List<core::int*>*>* #t31 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
+        final core::Set<core::List<core::int*>*>* #t31 = new col::_Set::•<core::List<core::int*>*>();
         #t31.{core::Set::add}{Invariant}(core::_GrowableList::•<core::int*>(0)){(core::List<core::int*>*) →* core::bool*};
       } =>#t31){(core::Iterable<core::List<core::int*>*>*) →* void};
   } =>#t30;
   core::Set<core::List<core::int*>*>* set41 = block {
-    final core::Set<core::List<core::int*>*>* #t32 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
+    final core::Set<core::List<core::int*>*>* #t32 = new col::_Set::•<core::List<core::int*>*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t32.{core::Set::addAll}{Invariant}( block {
-        final core::Set<core::List<core::int*>*>* #t33 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
+        final core::Set<core::List<core::int*>*>* #t33 = new col::_Set::•<core::List<core::int*>*>();
         #t33.{core::Set::add}{Invariant}(core::_GrowableList::•<core::int*>(0)){(core::List<core::int*>*) →* core::bool*};
       } =>#t33){(core::Iterable<core::List<core::int*>*>*) →* void};
     #t32.{core::Set::add}{Invariant}(null){(core::List<core::int*>*) →* core::bool*};
@@ -651,7 +651,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
         #t34.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::•<core::int*>(0))){(core::Iterable<core::List<core::int*>*>*) →* void};
   } =>#t34;
   core::Set<core::List<core::int*>*>* set42 = block {
-    final core::Set<core::List<core::int*>*>* #t35 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
+    final core::Set<core::List<core::int*>*>* #t35 = new col::_Set::•<core::List<core::int*>*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
         #t35.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::•<core::int*>(0))){(core::Iterable<core::List<core::int*>*>*) →* void};
@@ -670,7 +670,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
       #t37.{core::List::addAll}{Invariant}(core::_GrowableList::•<core::int*>(0)){(core::Iterable<core::int*>*) →* void};
   } =>#t37;
   core::Set<core::int*>* set50 = block {
-    final core::Set<core::int*>* #t38 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t38 = new col::_Set::•<core::int*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t38.{core::Set::addAll}{Invariant}(core::_GrowableList::•<core::int*>(0)){(core::Iterable<core::int*>*) →* void};
     #t38.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
@@ -685,14 +685,14 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
     final core::List<core::int*>* #t40 = core::_GrowableList::•<core::int*>(0);
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t40.{core::List::addAll}{Invariant}( block {
-        final core::Set<core::int*>* #t41 = new col::_CompactLinkedHashSet::•<core::int*>();
+        final core::Set<core::int*>* #t41 = new col::_Set::•<core::int*>();
       } =>#t41){(core::Iterable<core::int*>*) →* void};
   } =>#t40;
   core::Set<core::int*>* set51 = block {
-    final core::Set<core::int*>* #t42 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t42 = new col::_Set::•<core::int*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t42.{core::Set::addAll}{Invariant}( block {
-        final core::Set<core::int*>* #t43 = new col::_CompactLinkedHashSet::•<core::int*>();
+        final core::Set<core::int*>* #t43 = new col::_Set::•<core::int*>();
       } =>#t43){(core::Iterable<core::int*>*) →* void};
     #t42.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
   } =>#t42;
@@ -703,7 +703,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
         #t44.{core::List::addAll}{Invariant}(core::_GrowableList::•<core::int*>(0)){(core::Iterable<core::int*>*) →* void};
   } =>#t44;
   core::Set<core::int*>* set52 = block {
-    final core::Set<core::int*>* #t45 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t45 = new col::_Set::•<core::int*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
         #t45.{core::Set::addAll}{Invariant}(core::_GrowableList::•<core::int*>(0)){(core::Iterable<core::int*>*) →* void};
@@ -722,7 +722,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
       #t47.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::•<core::int*>(0))){(core::Iterable<core::List<core::int*>*>*) →* void};
   } =>#t47;
   core::Set<core::List<core::int*>*>* set60 = block {
-    final core::Set<core::List<core::int*>*>* #t48 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
+    final core::Set<core::List<core::int*>*>* #t48 = new col::_Set::•<core::List<core::int*>*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t48.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::•<core::int*>(0))){(core::Iterable<core::List<core::int*>*>*) →* void};
     #t48.{core::Set::add}{Invariant}(null){(core::List<core::int*>*) →* core::bool*};
@@ -740,7 +740,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
         #t50.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::•<core::int*>(0))){(core::Iterable<core::List<core::int*>*>*) →* void};
   } =>#t50;
   core::Set<core::List<core::int*>*>* set61 = block {
-    final core::Set<core::List<core::int*>*>* #t51 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
+    final core::Set<core::List<core::int*>*>* #t51 = new col::_Set::•<core::List<core::int*>*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
         #t51.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::•<core::int*>(0))){(core::Iterable<core::List<core::int*>*>*) →* void};
@@ -759,7 +759,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
       #t53.{core::List::add}{Invariant}(core::_GrowableList::•<core::int*>(0)){(core::List<core::int*>*) →* void};
   } =>#t53;
   core::Set<core::List<core::int*>*>* set70 = block {
-    final core::Set<core::List<core::int*>*>* #t54 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
+    final core::Set<core::List<core::int*>*>* #t54 = new col::_Set::•<core::List<core::int*>*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t54.{core::Set::add}{Invariant}(core::_GrowableList::•<core::int*>(0)){(core::List<core::int*>*) →* core::bool*};
     #t54.{core::Set::add}{Invariant}(null){(core::List<core::int*>*) →* core::bool*};
@@ -771,7 +771,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
         #t55.{core::List::add}{Invariant}(core::_GrowableList::•<core::int*>(0)){(core::List<core::int*>*) →* void};
   } =>#t55;
   core::Set<core::List<core::int*>*>* set71 = block {
-    final core::Set<core::List<core::int*>*>* #t56 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
+    final core::Set<core::List<core::int*>*>* #t56 = new col::_Set::•<core::List<core::int*>*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
         #t56.{core::Set::add}{Invariant}(core::_GrowableList::•<core::int*>(0)){(core::List<core::int*>*) →* core::bool*};
@@ -785,7 +785,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
       #t57.{core::List::add}{Invariant}(3.14){(core::num*) →* void};
   } =>#t57;
   core::Set<core::num*>* set80 = block {
-    final core::Set<core::num*>* #t58 = new col::_CompactLinkedHashSet::•<core::num*>();
+    final core::Set<core::num*>* #t58 = new col::_Set::•<core::num*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t58.{core::Set::add}{Invariant}(42){(core::num*) →* core::bool*};
     else
@@ -808,7 +808,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
       #t60.{core::List::addAll}{Invariant}(listDouble){(core::Iterable<core::num*>*) →* void};
   } =>#t60;
   core::Set<core::num*>* set81 = block {
-    final core::Set<core::num*>* #t61 = new col::_CompactLinkedHashSet::•<core::num*>();
+    final core::Set<core::num*>* #t61 = new col::_Set::•<core::num*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t61.{core::Set::addAll}{Invariant}(listInt){(core::Iterable<core::num*>*) →* void};
     else
@@ -831,7 +831,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
       #t63.{core::List::addAll}{Invariant}(dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*){(core::Iterable<dynamic>*) →* void};
   } =>#t63;
   core::Set<dynamic>* set82 = block {
-    final core::Set<dynamic>* #t64 = new col::_CompactLinkedHashSet::•<dynamic>();
+    final core::Set<dynamic>* #t64 = new col::_Set::•<dynamic>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t64.{core::Set::addAll}{Invariant}(listInt){(core::Iterable<dynamic>*) →* void};
     else
@@ -839,7 +839,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
     #t64.{core::Set::add}{Invariant}(null){(dynamic) →* core::bool*};
   } =>#t64;
   core::Set<dynamic>* map82 = block {
-    final core::Set<dynamic>* #t65 = new col::_CompactLinkedHashSet::•<dynamic>();
+    final core::Set<dynamic>* #t65 = new col::_Set::•<dynamic>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t65.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:73:38: Error: Unexpected type 'Map<String, int>' of a spread.  Expected 'dynamic' or an Iterable.
  - 'Map' is from 'dart:core'.
@@ -857,7 +857,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
       #t66.{core::List::addAll}{Invariant}(listDouble){(core::Iterable<core::num*>*) →* void};
   } =>#t66;
   core::Set<core::num*>* set83 = block {
-    final core::Set<core::num*>* #t67 = new col::_CompactLinkedHashSet::•<core::num*>();
+    final core::Set<core::num*>* #t67 = new col::_Set::•<core::num*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t67.{core::Set::addAll}{Invariant}(listInt){(core::Iterable<core::num*>*) →* void};
     else
@@ -878,7 +878,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
       #t69.{core::List::add}{Invariant}(dynVar as{TypeError,ForDynamic} core::int*){(core::int*) →* void};
   } =>#t69;
   core::Set<core::int*>* set90 = block {
-    final core::Set<core::int*>* #t70 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t70 = new col::_Set::•<core::int*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t70.{core::Set::add}{Invariant}(dynVar as{TypeError,ForDynamic} core::int*){(core::int*) →* core::bool*};
     #t70.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
@@ -903,7 +903,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
     }
   } =>#t72;
   core::Set<core::int*>* set91 = block {
-    final core::Set<core::int*>* #t75 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t75 = new col::_Set::•<core::int*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*) {
       core::Iterator<dynamic>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
@@ -937,7 +937,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
       #t82.{core::List::add}{Invariant}(42){(core::int*) →* void};
   } =>#t82;
   core::Set<core::int*>* set100 = block {
-    final core::Set<core::int*>* #t83 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t83 = new col::_Set::•<core::int*>();
     if(dynVar as{TypeError,ForDynamic} core::bool*)
       #t83.{core::Set::add}{Invariant}(42){(core::int*) →* core::bool*};
   } =>#t83;
@@ -956,7 +956,7 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
                            ^" in "bar" as{TypeError} core::int*){(core::int*) →* void};
   } =>#t85;
   block {
-    final core::Set<core::int*>* #t86 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t86 = new col::_Set::•<core::int*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t86.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:90:28: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int>{if (oracle(\"foo\")) \"bar\", null};
@@ -979,7 +979,7 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
                                ^" in "bar" as{TypeError} core::int*)){(core::Iterable<core::int*>*) →* void};
   } =>#t88;
   block {
-    final core::Set<core::int*>* #t89 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t89 = new col::_Set::•<core::int*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t89.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::int*>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:93:32: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int>{if (oracle(\"foo\")) ...[\"bar\"], null};
@@ -1003,7 +1003,7 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
                               ^"){(core::int*) →* void};
   } =>#t91;
   block {
-    final core::Set<core::int*>* #t92 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t92 = new col::_Set::•<core::int*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t92.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:96:31: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
  - 'Map' is from 'dart:core'.
@@ -1030,7 +1030,7 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
                                       ^" in 3.14 as{TypeError} core::String*){(core::String*) →* void};
   } =>#t93;
   block {
-    final core::Set<core::String*>* #t94 = new col::_CompactLinkedHashSet::•<core::String*>();
+    final core::Set<core::String*>* #t94 = new col::_Set::•<core::String*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t94.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:99:31: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
   <String>{if (oracle(\"foo\")) 42 else 3.14, null};
@@ -1064,7 +1064,7 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
       #t96.{core::List::add}{Invariant}(42){(core::int*) →* void};
   } =>#t96;
   block {
-    final core::Set<core::int*>* #t97 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t97 = new col::_Set::•<core::int*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t97.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:102:31: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
  - 'Map' is from 'dart:core'.
@@ -1092,7 +1092,7 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
                                       ^"){(core::int*) →* void};
   } =>#t98;
   block {
-    final core::Set<core::int*>* #t99 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t99 = new col::_Set::•<core::int*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t99.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:105:31: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
  - 'Map' is from 'dart:core'.
@@ -1135,7 +1135,7 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
       #t100.{core::List::add}{Invariant}(42){(core::int*) →* void};
   } =>#t100;
   core::Set<core::int*>* set20 = block {
-    final core::Set<core::int*>* #t101 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t101 = new col::_Set::•<core::int*>();
     if(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:115:25: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
   Set<int> set20 = {if (42) 42};
                         ^" in 42 as{TypeError} core::bool*)
@@ -1160,7 +1160,7 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
                                                               ^" in 42 as{TypeError} core::String*){(core::String*) →* void};
   } =>#t103;
   core::Set<core::String*>* set40 = block {
-    final core::Set<core::String*>* #t104 = new col::_CompactLinkedHashSet::•<core::String*>();
+    final core::Set<core::String*>* #t104 = new col::_Set::•<core::String*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       #t104.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:118:51: Error: A value of type 'bool' can't be assigned to a variable of type 'String'.
   Set<String> set40 = <String>{if (oracle(\"foo\")) true else 42};
@@ -1200,7 +1200,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
       #t107.{core::List::add}{Invariant}(42){(core::int*) →* void};
   } =>#t107;
   core::Set<core::int*>* set10 = block {
-    final core::Set<core::int*>* #t108 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t108 = new col::_Set::•<core::int*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t108.{core::Set::add}{Invariant}(42){(core::int*) →* core::bool*};
     #t108.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
@@ -1217,7 +1217,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
       #t110.{core::List::add}{Invariant}(dynVar){(dynamic) →* void};
   } =>#t110;
   core::Set<dynamic>* set11 = block {
-    final core::Set<dynamic>* #t111 = new col::_CompactLinkedHashSet::•<dynamic>();
+    final core::Set<dynamic>* #t111 = new col::_Set::•<dynamic>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t111.{core::Set::add}{Invariant}(dynVar){(dynamic) →* core::bool*};
     #t111.{core::Set::add}{Invariant}(null){(dynamic) →* core::bool*};
@@ -1234,7 +1234,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
       #t113.{core::List::add}{Invariant}(core::_GrowableList::_literal1<core::int*>(42)){(core::List<core::int*>*) →* void};
   } =>#t113;
   core::Set<core::List<core::int*>*>* set12 = block {
-    final core::Set<core::List<core::int*>*>* #t114 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
+    final core::Set<core::List<core::int*>*>* #t114 = new col::_Set::•<core::List<core::int*>*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t114.{core::Set::add}{Invariant}(core::_GrowableList::_literal1<core::int*>(42)){(core::List<core::int*>*) →* core::bool*};
     #t114.{core::Set::add}{Invariant}(null){(core::List<core::int*>*) →* core::bool*};
@@ -1251,7 +1251,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
       #t116.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<core::int*>(42)){(core::Iterable<core::int*>*) →* void};
   } =>#t116;
   core::Set<core::int*>* set20 = block {
-    final core::Set<core::int*>* #t117 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t117 = new col::_Set::•<core::int*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t117.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::int*>(42)){(core::Iterable<core::int*>*) →* void};
     #t117.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
@@ -1268,7 +1268,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
       #t119.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<dynamic>(dynVar)){(core::Iterable<dynamic>*) →* void};
   } =>#t119;
   core::Set<dynamic>* set21 = block {
-    final core::Set<dynamic>* #t120 = new col::_CompactLinkedHashSet::•<dynamic>();
+    final core::Set<dynamic>* #t120 = new col::_Set::•<dynamic>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t120.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<dynamic>(dynVar)){(core::Iterable<dynamic>*) →* void};
     #t120.{core::Set::add}{Invariant}(null){(dynamic) →* core::bool*};
@@ -1285,7 +1285,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
       #t122.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::_literal1<core::int*>(42))){(core::Iterable<core::List<core::int*>*>*) →* void};
   } =>#t122;
   core::Set<core::List<core::int*>*>* set22 = block {
-    final core::Set<core::List<core::int*>*>* #t123 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
+    final core::Set<core::List<core::int*>*>* #t123 = new col::_Set::•<core::List<core::int*>*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t123.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::_literal1<core::int*>(42))){(core::Iterable<core::List<core::int*>*>*) →* void};
     #t123.{core::Set::add}{Invariant}(null){(core::List<core::int*>*) →* core::bool*};
@@ -1303,7 +1303,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
         #t125.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<core::int*>(42)){(core::Iterable<core::int*>*) →* void};
   } =>#t125;
   core::Set<core::int*>* set30 = block {
-    final core::Set<core::int*>* #t126 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t126 = new col::_Set::•<core::int*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
         #t126.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::int*>(42)){(core::Iterable<core::int*>*) →* void};
@@ -1323,7 +1323,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
         #t128.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<dynamic>(dynVar)){(core::Iterable<dynamic>*) →* void};
   } =>#t128;
   core::Set<dynamic>* set31 = block {
-    final core::Set<dynamic>* #t129 = new col::_CompactLinkedHashSet::•<dynamic>();
+    final core::Set<dynamic>* #t129 = new col::_Set::•<dynamic>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
         #t129.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<dynamic>(dynVar)){(core::Iterable<dynamic>*) →* void};
@@ -1343,7 +1343,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
         #t131.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::_literal1<core::int*>(42))){(core::Iterable<core::List<core::int*>*>*) →* void};
   } =>#t131;
   core::Set<core::List<core::int*>*>* set33 = block {
-    final core::Set<core::List<core::int*>*>* #t132 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
+    final core::Set<core::List<core::int*>*>* #t132 = new col::_Set::•<core::List<core::int*>*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
         #t132.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::_literal1<core::int*>(42))){(core::Iterable<core::List<core::int*>*>*) →* void};
@@ -1362,7 +1362,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
       #t134.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::•<core::int*>(0))){(core::Iterable<core::List<core::int*>*>*) →* void};
   } =>#t134;
   core::Set<core::List<core::int*>*>* set40 = block {
-    final core::Set<core::List<core::int*>*>* #t135 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
+    final core::Set<core::List<core::int*>*>* #t135 = new col::_Set::•<core::List<core::int*>*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t135.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::•<core::int*>(0))){(core::Iterable<core::List<core::int*>*>*) →* void};
     #t135.{core::Set::add}{Invariant}(null){(core::List<core::int*>*) →* core::bool*};
@@ -1377,15 +1377,15 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
     final core::List<core::List<core::int*>*>* #t137 = core::_GrowableList::•<core::List<core::int*>*>(0);
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t137.{core::List::addAll}{Invariant}( block {
-        final core::Set<core::List<core::int*>*>* #t138 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
+        final core::Set<core::List<core::int*>*>* #t138 = new col::_Set::•<core::List<core::int*>*>();
         #t138.{core::Set::add}{Invariant}(core::_GrowableList::•<core::int*>(0)){(core::List<core::int*>*) →* core::bool*};
       } =>#t138){(core::Iterable<core::List<core::int*>*>*) →* void};
   } =>#t137;
   core::Set<core::List<core::int*>*>* set41 = block {
-    final core::Set<core::List<core::int*>*>* #t139 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
+    final core::Set<core::List<core::int*>*>* #t139 = new col::_Set::•<core::List<core::int*>*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t139.{core::Set::addAll}{Invariant}( block {
-        final core::Set<core::List<core::int*>*>* #t140 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
+        final core::Set<core::List<core::int*>*>* #t140 = new col::_Set::•<core::List<core::int*>*>();
         #t140.{core::Set::add}{Invariant}(core::_GrowableList::•<core::int*>(0)){(core::List<core::int*>*) →* core::bool*};
       } =>#t140){(core::Iterable<core::List<core::int*>*>*) →* void};
     #t139.{core::Set::add}{Invariant}(null){(core::List<core::int*>*) →* core::bool*};
@@ -1397,7 +1397,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
         #t141.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::•<core::int*>(0))){(core::Iterable<core::List<core::int*>*>*) →* void};
   } =>#t141;
   core::Set<core::List<core::int*>*>* set42 = block {
-    final core::Set<core::List<core::int*>*>* #t142 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
+    final core::Set<core::List<core::int*>*>* #t142 = new col::_Set::•<core::List<core::int*>*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
         #t142.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::•<core::int*>(0))){(core::Iterable<core::List<core::int*>*>*) →* void};
@@ -1416,7 +1416,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
       #t144.{core::List::addAll}{Invariant}(core::_GrowableList::•<core::int*>(0)){(core::Iterable<core::int*>*) →* void};
   } =>#t144;
   core::Set<core::int*>* set50 = block {
-    final core::Set<core::int*>* #t145 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t145 = new col::_Set::•<core::int*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t145.{core::Set::addAll}{Invariant}(core::_GrowableList::•<core::int*>(0)){(core::Iterable<core::int*>*) →* void};
     #t145.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
@@ -1431,14 +1431,14 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
     final core::List<core::int*>* #t147 = core::_GrowableList::•<core::int*>(0);
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t147.{core::List::addAll}{Invariant}( block {
-        final core::Set<core::int*>* #t148 = new col::_CompactLinkedHashSet::•<core::int*>();
+        final core::Set<core::int*>* #t148 = new col::_Set::•<core::int*>();
       } =>#t148){(core::Iterable<core::int*>*) →* void};
   } =>#t147;
   core::Set<core::int*>* set51 = block {
-    final core::Set<core::int*>* #t149 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t149 = new col::_Set::•<core::int*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t149.{core::Set::addAll}{Invariant}( block {
-        final core::Set<core::int*>* #t150 = new col::_CompactLinkedHashSet::•<core::int*>();
+        final core::Set<core::int*>* #t150 = new col::_Set::•<core::int*>();
       } =>#t150){(core::Iterable<core::int*>*) →* void};
     #t149.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
   } =>#t149;
@@ -1449,7 +1449,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
         #t151.{core::List::addAll}{Invariant}(core::_GrowableList::•<core::int*>(0)){(core::Iterable<core::int*>*) →* void};
   } =>#t151;
   core::Set<core::int*>* set52 = block {
-    final core::Set<core::int*>* #t152 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t152 = new col::_Set::•<core::int*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
         #t152.{core::Set::addAll}{Invariant}(core::_GrowableList::•<core::int*>(0)){(core::Iterable<core::int*>*) →* void};
@@ -1461,7 +1461,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
       #t153.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::•<core::int*>(0))){(core::Iterable<core::List<core::int*>*>*) →* void};
   } =>#t153;
   core::Set<core::List<core::int*>*>* set60 = block {
-    final core::Set<core::List<core::int*>*>* #t154 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
+    final core::Set<core::List<core::int*>*>* #t154 = new col::_Set::•<core::List<core::int*>*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t154.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::•<core::int*>(0))){(core::Iterable<core::List<core::int*>*>*) →* void};
     #t154.{core::Set::add}{Invariant}(null){(core::List<core::int*>*) →* core::bool*};
@@ -1479,7 +1479,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
         #t156.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::•<core::int*>(0))){(core::Iterable<core::List<core::int*>*>*) →* void};
   } =>#t156;
   core::Set<core::List<core::int*>*>* set61 = block {
-    final core::Set<core::List<core::int*>*>* #t157 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
+    final core::Set<core::List<core::int*>*>* #t157 = new col::_Set::•<core::List<core::int*>*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
         #t157.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::•<core::int*>(0))){(core::Iterable<core::List<core::int*>*>*) →* void};
@@ -1498,7 +1498,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
       #t159.{core::List::add}{Invariant}(core::_GrowableList::•<core::int*>(0)){(core::List<core::int*>*) →* void};
   } =>#t159;
   core::Set<core::List<core::int*>*>* set70 = block {
-    final core::Set<core::List<core::int*>*>* #t160 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
+    final core::Set<core::List<core::int*>*>* #t160 = new col::_Set::•<core::List<core::int*>*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t160.{core::Set::add}{Invariant}(core::_GrowableList::•<core::int*>(0)){(core::List<core::int*>*) →* core::bool*};
     #t160.{core::Set::add}{Invariant}(null){(core::List<core::int*>*) →* core::bool*};
@@ -1516,7 +1516,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
         #t162.{core::List::add}{Invariant}(core::_GrowableList::•<core::int*>(0)){(core::List<core::int*>*) →* void};
   } =>#t162;
   core::Set<core::List<core::int*>*>* set71 = block {
-    final core::Set<core::List<core::int*>*>* #t163 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
+    final core::Set<core::List<core::int*>*>* #t163 = new col::_Set::•<core::List<core::int*>*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
         #t163.{core::Set::add}{Invariant}(core::_GrowableList::•<core::int*>(0)){(core::List<core::int*>*) →* core::bool*};
@@ -1538,7 +1538,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
         #t165.{core::List::add}{Invariant}(3.14){(core::num*) →* void};
   } =>#t165;
   core::Set<core::num*>* set80 = block {
-    final core::Set<core::num*>* #t166 = new col::_CompactLinkedHashSet::•<core::num*>();
+    final core::Set<core::num*>* #t166 = new col::_Set::•<core::num*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
         #t166.{core::Set::add}{Invariant}(42){(core::num*) →* core::bool*};
@@ -1564,7 +1564,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
         #t168.{core::List::addAll}{Invariant}(listDouble){(core::Iterable<core::num*>*) →* void};
   } =>#t168;
   core::Set<core::num*>* set81 = block {
-    final core::Set<core::num*>* #t169 = new col::_CompactLinkedHashSet::•<core::num*>();
+    final core::Set<core::num*>* #t169 = new col::_Set::•<core::num*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
         #t169.{core::Set::addAll}{Invariant}(listInt){(core::Iterable<core::num*>*) →* void};
@@ -1590,7 +1590,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
         #t171.{core::List::addAll}{Invariant}(dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*){(core::Iterable<dynamic>*) →* void};
   } =>#t171;
   core::Set<dynamic>* set82 = block {
-    final core::Set<dynamic>* #t172 = new col::_CompactLinkedHashSet::•<dynamic>();
+    final core::Set<dynamic>* #t172 = new col::_Set::•<dynamic>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
         #t172.{core::Set::addAll}{Invariant}(listInt){(core::Iterable<dynamic>*) →* void};
@@ -1616,7 +1616,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
         #t174.{core::List::addAll}{Invariant}(listDouble){(core::Iterable<core::num*>*) →* void};
   } =>#t174;
   core::Set<core::num*>* set83 = block {
-    final core::Set<core::num*>* #t175 = new col::_CompactLinkedHashSet::•<core::num*>();
+    final core::Set<core::num*>* #t175 = new col::_Set::•<core::num*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
         #t175.{core::Set::addAll}{Invariant}(listInt){(core::Iterable<core::num*>*) →* void};
@@ -1639,7 +1639,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
       #t177.{core::List::add}{Invariant}(dynVar as{TypeError,ForDynamic} core::int*){(core::int*) →* void};
   } =>#t177;
   core::Set<core::int*>* set90 = block {
-    final core::Set<core::int*>* #t178 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t178 = new col::_Set::•<core::int*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t178.{core::Set::add}{Invariant}(dynVar as{TypeError,ForDynamic} core::int*){(core::int*) →* core::bool*};
     #t178.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
@@ -1664,7 +1664,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
     }
   } =>#t180;
   core::Set<core::int*>* set91 = block {
-    final core::Set<core::int*>* #t183 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t183 = new col::_Set::•<core::int*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*}) {
       core::Iterator<dynamic>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
@@ -1698,7 +1698,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
       #t190.{core::List::add}{Invariant}(42){(core::int*) →* void};
   } =>#t190;
   core::Set<core::int*>* set100 = block {
-    final core::Set<core::int*>* #t192 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t192 = new col::_Set::•<core::int*>();
     for (final core::int* #t193 = index = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; index = index.{core::num::+}(1){(core::num*) →* core::int*})
       #t192.{core::Set::add}{Invariant}(42){(core::int*) →* core::bool*};
   } =>#t192;
@@ -1718,7 +1718,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
     }
   } =>#t196;
   core::Set<core::int*>* set110 = block {
-    final core::Set<core::int*>* #t197 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t197 = new col::_Set::•<core::int*>();
     {
       core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
@@ -1750,7 +1750,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
     }
   } =>#t199;
   core::Set<core::int*>* set120 = block {
-    final core::Set<core::int*>* #t200 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t200 = new col::_Set::•<core::int*>();
     {
       core::Iterator<dynamic>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
@@ -1777,7 +1777,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
       #t202.{core::List::add}{Invariant}(i){(core::int*) →* void};
   } =>#t202;
   core::Set<core::int*>* set130 = block {
-    final core::Set<core::int*>* #t203 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t203 = new col::_Set::•<core::int*>();
     for (core::int* i = 1; i.{core::num::<}(2){(core::num*) →* core::bool*}; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t203.{core::Set::add}{Invariant}(i){(core::int*) →* core::bool*};
   } =>#t203;
@@ -1796,7 +1796,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
                                             ^" in "bar" as{TypeError} core::int*){(core::int*) →* void};
   } =>#t205;
   block {
-    final core::Set<core::int*>* #t206 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t206 = new col::_Set::•<core::int*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t206.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:213:45: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int>{for (int i = 0; oracle(\"foo\"); i++) \"bar\", null};
@@ -1823,7 +1823,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
                                                 ^" in "bar" as{TypeError} core::int*)){(core::Iterable<core::int*>*) →* void};
   } =>#t208;
   block {
-    final core::Set<core::int*>* #t209 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t209 = new col::_Set::•<core::int*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t209.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::int*>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:216:49: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int>{for (int i = 0; oracle(\"foo\"); i++) ...[\"bar\"], null};
@@ -1851,7 +1851,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
                                                ^"){(core::int*) →* void};
   } =>#t211;
   block {
-    final core::Set<core::int*>* #t212 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t212 = new col::_Set::•<core::int*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t212.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:219:48: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
  - 'Map' is from 'dart:core'.
@@ -1879,7 +1879,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
                                                                      ^" in 3.14 as{TypeError} core::String*){(core::String*) →* void};
   } =>#t213;
   block {
-    final core::Set<core::String*>* #t214 = new col::_CompactLinkedHashSet::•<core::String*>();
+    final core::Set<core::String*>* #t214 = new col::_Set::•<core::String*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
         #t214.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:222:62: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
@@ -1916,7 +1916,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
         #t216.{core::List::add}{Invariant}(42){(core::int*) →* void};
   } =>#t216;
   block {
-    final core::Set<core::int*>* #t217 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t217 = new col::_Set::•<core::int*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
         #t217.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:225:62: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
@@ -1946,7 +1946,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
                                                                      ^"){(core::int*) →* void};
   } =>#t218;
   block {
-    final core::Set<core::int*>* #t219 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t219 = new col::_Set::•<core::int*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
         #t219.{core::Set::add}{Invariant}(42){(core::int*) →* core::bool*};
@@ -1981,7 +1981,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
     }
   } =>#t220;
   block {
-    final core::Set<core::int*>* #t222 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t222 = new col::_Set::•<core::int*>();
     {
       core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal1<core::int*>(1).{core::Iterable::iterator}{core::Iterator<core::int*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
@@ -2026,7 +2026,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
     }
   } =>#t226;
   core::Set<dynamic>* set10 = block {
-    final core::Set<dynamic>* #t227 = new col::_CompactLinkedHashSet::•<dynamic>();
+    final core::Set<dynamic>* #t227 = new col::_Set::•<dynamic>();
     {
       core::Iterator<Never>* :sync-for-iterator = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:237:30: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Iterable' is from 'dart:core'.
@@ -2068,7 +2068,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
     }
   } =>#t229;
   core::Set<core::int*>* set20 = block {
-    final core::Set<core::int*>* #t230 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t230 = new col::_Set::•<core::int*>();
     {
       core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal2<core::int*>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:240:31: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var set20 = {for (int i in [\"not\", \"int\"]) i, null};
@@ -2116,7 +2116,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
     }
   } =>#t232;
   core::Set<dynamic>* set30 = block {
-    final core::Set<dynamic>* #t234 = new col::_CompactLinkedHashSet::•<dynamic>();
+    final core::Set<dynamic>* #t234 = new col::_Set::•<dynamic>();
     {
       Never :stream = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:243:36: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
  - 'Stream' is from 'dart:async'.
@@ -2173,7 +2173,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
     }
   } =>#t238;
   core::Set<core::int*>* set40 = block {
-    final core::Set<core::int*>* #t240 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t240 = new col::_Set::•<core::int*>();
     {
       asy::Stream<core::int*> :stream = asy::Stream::fromIterable<core::int*>(core::_GrowableList::_literal2<core::int*>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:246:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var set40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) i, null};
@@ -2218,7 +2218,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
       #t244.{core::List::add}{Invariant}(42){(core::int*) →* void};
   } =>#t244;
   core::Set<core::int*>* set50 = block {
-    final core::Set<core::int*>* #t245 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t245 = new col::_Set::•<core::int*>();
     for (; ; )
       #t245.{core::Set::add}{Invariant}(42){(core::int*) →* core::bool*};
     #t245.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
@@ -2237,7 +2237,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
       #t247.{core::List::add}{Invariant}(42){(core::int*) →* void};
   } =>#t247;
   core::Set<core::int*>* set60 = block {
-    final core::Set<core::int*>* #t248 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t248 = new col::_Set::•<core::int*>();
     for (; invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:252:23: Error: A value of type 'String' can't be assigned to a variable of type 'bool'.
   var set60 = {for (; \"not bool\";) 42, null};
                       ^" in "not bool" as{TypeError} core::bool*; )
@@ -2260,7 +2260,7 @@ static method testForElementErrorsNotAsync(asy::Stream<core::int*>* stream) → 
       #t250.{core::List::add}{Invariant}(i){(core::int*) →* void};
   } =>#t250;
   block {
-    final core::Set<core::int*>* #t251 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t251 = new col::_Set::•<core::int*>();
     await for (core::int* i in stream)
       #t251.{core::Set::add}{Invariant}(i){(core::int*) →* core::bool*};
   } =>#t251;
@@ -2277,7 +2277,7 @@ static method testPromotion(self::A* a) → dynamic {
       #t253.{core::List::add}{Invariant}(a{self::B*}.{self::B::foo}{core::int*}){(core::int*) →* void};
   } =>#t253;
   core::Set<core::int*>* set10 = block {
-    final core::Set<core::int*>* #t254 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t254 = new col::_Set::•<core::int*>();
     if(a is self::B*)
       #t254.{core::Set::add}{Invariant}(a{self::B*}.{self::B::foo}{core::int*}){(core::int*) →* core::bool*};
   } =>#t254;

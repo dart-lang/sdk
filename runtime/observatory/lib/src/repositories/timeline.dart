@@ -29,6 +29,17 @@ class TimelineRepository extends TimelineRepositoryBase
     return vm.invokeRpc('clearVMTimeline', {});
   }
 
+  Future<Map<String, dynamic>> getIFrameParams(M.VMRef ref) async {
+    S.VM vm = ref as S.VM;
+    assert(vm != null);
+    await vm.reload();
+    await vm.reloadIsolates();
+    return <String, dynamic>{
+      'vmAddress': vm.target.networkAddress,
+      'isolateIds': vm.isolates.map((i) => i.id).toList()
+    };
+  }
+
   Future<void> _formatSamples(
       M.Isolate isolate, Map traceObject, S.ServiceMap cpuSamples) async {
     const kRootFrameId = 0;

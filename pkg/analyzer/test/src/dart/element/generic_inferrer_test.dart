@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
@@ -15,7 +15,7 @@ import 'package:path/path.dart' show toUri;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/type_system_test.dart';
+import '../../../generated/type_system_base.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -651,7 +651,9 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       declaredReturnType: ft.returnType,
       contextReturnType: returnType,
       errorReporter: reporter,
-      errorNode: astFactory.nullLiteral(KeywordToken(Keyword.NULL, 0)),
+      errorNode: NullLiteralImpl(
+        literal: KeywordToken(Keyword.NULL, 0),
+      ),
       genericMetadataIsEnabled: true,
     );
     inferrer.constrainArguments(

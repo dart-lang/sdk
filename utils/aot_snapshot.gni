@@ -9,6 +9,9 @@ _dart_root = get_path_info("..", "abspath")
 
 template("aot_snapshot") {
   assert(defined(invoker.main_dart), "Must specify 'main_dart'")
+  product_mode =
+      (defined(dart_runtime_mode) && dart_runtime_mode == "release") ||
+      (defined(invoker.force_product_mode) && invoker.force_product_mode)
   gen_kernel_args = []
   if (defined(invoker.gen_kernel_args)) {
     gen_kernel_args = invoker.gen_kernel_args
@@ -92,6 +95,9 @@ template("aot_snapshot") {
     ]
     args += gen_kernel_args
     args += [ rebase_path(main_dart) ]
+    if (product_mode) {
+      args += [ "-Ddart.vm.product=true" ]
+    }
   }
 
   # Create a snapshot from kernel built above.
@@ -114,5 +120,7 @@ template("aot_snapshot") {
               ] + gen_snapshot_args
 
     args = [ rebase_path(dill) ]
+
+    force_product_mode = product_mode
   }
 }

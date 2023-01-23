@@ -23,20 +23,6 @@ class RenameMethodParameterTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.avoid_renaming_method_parameters;
 
-  Future<void> test_conflict_parameters() async {
-    await resolveTestCode('''
-class A {
-  void m(a, b) {}
-}
-class B extends A {
-  void m(b, a) {
-  }
-}
-''');
-    await assertNoFix(
-        errorFilter: (error) => error.message.contains("parameter 'a'"));
-  }
-
   Future<void> test_local_variable() async {
     await resolveTestCode('''
 class A {

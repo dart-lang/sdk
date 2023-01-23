@@ -103,9 +103,7 @@ void f(int p) {
 ''');
   }
 
-  @failingTest
   Future<void> test_do_returnInBody() async {
-    // https://github.com/dart-lang/sdk/issues/43511
     await resolveTestCode('''
 void f(bool c) {
   do {
@@ -116,17 +114,237 @@ void f(bool c) {
 ''');
     await assertHasFix('''
 void f(bool c) {
-  print(c);
+    print(c);
+    return;
 }
-''');
+''', errorFilter: (error) => error.length == 4);
   }
 
-  @failingTest
-  Future<void> test_for_returnInBody() async {
-    // https://github.com/dart-lang/sdk/issues/43511
+  Future<void> test_doWhile_atDo() async {
+    await resolveTestCode('''
+void f(bool c) {
+  do {
+    print(c);
+    return;
+  } while (c);
+}
+''');
+    await assertHasFix('''
+void f(bool c) {
+    print(c);
+    return;
+}
+''', errorFilter: (err) => err.problemMessage.length == 4);
+  }
+
+  Future<void> test_doWhile_atDo_followed() async {
+    await resolveTestCode('''
+void f(bool c) {
+  do {
+    print(c);
+    return;
+  } while (c);
+  print('');
+}
+''');
+    await assertHasFix('''
+void f(bool c) {
+    print(c);
+    return;
+  print('');
+}
+''', errorFilter: (err) => err.problemMessage.length == 4);
+  }
+
+  Future<void> test_doWhile_atDo_noBrackets() async {
+    await resolveTestCode('''
+void f(bool c) {
+  do
+    return;
+  while (c);
+}
+''');
+    await assertHasFix('''
+void f(bool c) {
+  return;
+}
+''', errorFilter: (err) => err.problemMessage.length == 2);
+  }
+
+  Future<void> test_doWhile_atDo_noBrackets_followed() async {
+    await resolveTestCode('''
+void f(bool c) {
+  do
+    return;
+  while (c);
+  print('');
+}
+''');
+    await assertHasFix('''
+void f(bool c) {
+  return;
+  print('');
+}
+''', errorFilter: (err) => err.problemMessage.length == 2);
+  }
+
+  Future<void> test_doWhile_atWhile() async {
+    await resolveTestCode('''
+void f(bool c) {
+  do {
+    print(c);
+    return;
+  } while (c);
+}
+''');
+    await assertHasFix('''
+void f(bool c) {
+    print(c);
+    return;
+}
+''', errorFilter: (err) => err.problemMessage.length == 12);
+  }
+
+  Future<void> test_doWhile_atWhile_noBrackets() async {
+    await resolveTestCode('''
+void f(bool c) {
+  do
+    return;
+  while (c);
+}
+''');
+    await assertHasFix('''
+void f(bool c) {
+  return;
+}
+''', errorFilter: (err) => err.problemMessage.length == 10);
+  }
+
+  Future<void> test_doWhile_break() async {
+    await resolveTestCode('''
+void f(bool c) {
+  do {
+    if (c) {
+     break;
+    }
+    return;
+  } while (c);
+  print('');
+}
+''');
+    await assertNoFix(errorFilter: (error) => error.length == 4);
+  }
+
+  Future<void> test_doWhile_break_doLabel() async {
+    await resolveTestCode('''
+void f(bool c) {
+  label:
+  do {
+    if (c) {
+      break label;
+    }
+    return;
+  } while (c);
+  print('');
+}
+''');
+    await assertNoFix(errorFilter: (error) => error.length == 4);
+  }
+
+  Future<void> test_doWhile_break_inner() async {
+    await resolveTestCode('''
+void f(bool c) {
+  do {
+    while (c) {
+      break;
+    }
+    return;
+  } while (c);
+  print('');
+}
+''');
+    await assertHasFix('''
+void f(bool c) {
+    while (c) {
+      break;
+    }
+    return;
+  print('');
+}
+''', errorFilter: (error) => error.length == 4);
+  }
+
+  Future<void> test_doWhile_break_outerDoLabel() async {
+    await resolveTestCode('''
+void f(bool c) {
+  label:
+  do {
+    do {
+      if (c) {
+        break label;
+      }
+      return;
+    } while (c);
+    print('');
+  } while (c);
+  print('');
+}
+''');
+    await assertHasFix('''
+void f(bool c) {
+  label:
+  do {
+      if (c) {
+        break label;
+      }
+      return;
+    print('');
+  } while (c);
+  print('');
+}
+''', errorFilter: (error) => error.length == 4);
+  }
+
+  Future<void> test_doWhile_break_outerLabel() async {
+    await resolveTestCode('''
+void f(bool c) {
+  label: {
+    do {
+      if (c) {
+       break label;
+      }
+      return;
+    } while (c);
+    print('');
+  }
+}
+''');
+    await assertHasFix('''
+void f(bool c) {
+  label: {
+      if (c) {
+       break label;
+      }
+      return;
+    print('');
+  }
+}
+''', errorFilter: (error) => error.length == 4);
+  }
+
+  Future<void> test_emptyStatement() async {
     await resolveTestCode('''
 void f() {
-  for (int i = 0; i < 2; i++) {
+  for (; false;);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_for_returnInBody() async {
+    await resolveTestCode('''
+void f() {
+  for (var i = 0; i < 2; i++) {
     print(i);
     return;
   }
@@ -134,7 +352,62 @@ void f() {
 ''');
     await assertHasFix('''
 void f() {
-  print(0);
+  for (var i = 0; i < 2; ) {
+    print(i);
+    return;
+  }
+}
+''');
+  }
+
+  Future<void> test_forParts_updaters_multiple() async {
+    await resolveTestCode('''
+void f() {
+  for (; false; 1, 2) {}
+}
+''');
+    await assertHasFix('''
+void f() {
+  for (; false; ) {}
+}
+''', errorFilter: (error) => error.length == 4);
+  }
+
+  Future<void> test_forParts_updaters_multiple_comma() async {
+    await resolveTestCode('''
+void f() {
+  for (; false; 1, 2,) {}
+}
+''');
+    await assertHasFix('''
+void f() {
+  for (; false; ) {}
+}
+''', errorFilter: (error) => error.length == 4);
+  }
+
+  Future<void> test_forParts_updaters_throw() async {
+    await resolveTestCode('''
+void f() {
+  for (;; 0, throw 1, 2) {}
+}
+''');
+    await assertHasFix('''
+void f() {
+  for (;; 0, throw 1) {}
+}
+''');
+  }
+
+  Future<void> test_forParts_updaters_throw_comma() async {
+    await resolveTestCode('''
+void f() {
+  for (;; 0, throw 1, 2,) {}
+}
+''');
+    await assertHasFix('''
+void f() {
+  for (;; 0, throw 1,) {}
 }
 ''');
   }

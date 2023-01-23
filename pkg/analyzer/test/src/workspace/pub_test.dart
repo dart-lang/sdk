@@ -40,7 +40,7 @@ class PubWorkspacePackageTest extends WorkspacePackageTest {
       }),
       convertPath('/workspace'),
     )!;
-    expect(workspace.isBazel, isFalse);
+    expect(workspace.isBlaze, isFalse);
   }
 
   void test_contains_differentWorkspace() {
@@ -103,7 +103,7 @@ class PubWorkspaceTest with ResourceProviderMixin {
     newPubspecYamlFile('/workspace', 'name: project');
     var workspace = PubWorkspace.find(
         resourceProvider, Packages.empty, convertPath('/workspace'))!;
-    expect(workspace.isBazel, isFalse);
+    expect(workspace.isBlaze, isFalse);
     expect(workspace.root, convertPath('/workspace'));
   }
 

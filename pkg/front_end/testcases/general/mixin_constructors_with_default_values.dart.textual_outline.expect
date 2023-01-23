@@ -2,7 +2,7 @@ import "package:expect/expect.dart";
 
 class C<T> {
   String trace;
-  C({a: 0, b: T}) : trace = "a: $a, b: $b";
+  C({a = 0, b = T}) : trace = "a: $a, b: $b";
 }
 
 class M {}

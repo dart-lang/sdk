@@ -2,29 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart._http;
-
-import "dart:async";
-import "dart:collection";
-import "dart:convert";
-import "dart:developer";
+import "dart:convert" show utf8;
 import "dart:io";
-import "dart:isolate";
-import "dart:math";
-import "dart:typed_data";
+// ignore: IMPORT_INTERNAL_LIBRARY
+import "dart:_http"
+    show TestingClass$_HttpHeaders, TestingClass$_Cookie, Testing$_HttpHeaders;
 
 import "package:expect/expect.dart";
 
-import "../../../sdk/lib/internal/internal.dart"
-    show Since, valueOfNonNullableParamWithDefault, HttpStatus;
-
-part "../../../sdk/lib/_http/crypto.dart";
-part "../../../sdk/lib/_http/embedder_config.dart";
-part "../../../sdk/lib/_http/http_impl.dart";
-part "../../../sdk/lib/_http/http_date.dart";
-part "../../../sdk/lib/_http/http_parser.dart";
-part "../../../sdk/lib/_http/http_headers.dart";
-part "../../../sdk/lib/_http/http_session.dart";
+typedef _HttpHeaders = TestingClass$_HttpHeaders;
+typedef _Cookie = TestingClass$_Cookie;
 
 void testMultiValue() {
   _HttpHeaders headers = new _HttpHeaders("1.1");
@@ -361,6 +348,45 @@ void testHeaderValue() {
   Expect.equals("v; a=\"ø\"", HeaderValue("v", {"a": "ø"}).toString());
 }
 
+void testContentLength() {
+  // See also http_headers_content_length_test.dart.
+  var headers = new _HttpHeaders("1.1");
+  headers.set("content-length", ["256"]);
+  Expect.equals(256, headers.contentLength);
+  Expect.listEquals(["256"], headers["content-length"]!);
+  Expect.equals("256", headers.value("content-length"));
+
+  headers = new _HttpHeaders("1.1");
+  headers.set("content-length", [256]);
+  Expect.equals(256, headers.contentLength);
+  Expect.listEquals(["256"], headers["content-length"]!);
+  Expect.equals("256", headers.value("content-length"));
+
+  headers = new _HttpHeaders("1.1");
+  var e = Expect.throws<HttpException>(
+      () => headers.set("content-length", ["cat"]));
+  Expect.isTrue(e.message.contains("Content-Length must contain only digits"));
+
+  headers = new _HttpHeaders("1.1");
+  e = Expect.throws<HttpException>(() => headers.set("content-length", ["-3"]));
+  Expect.isTrue(e.message.contains("Content-Length must contain only digits"));
+
+  headers = new _HttpHeaders("1.1");
+  e = Expect.throws<HttpException>(() => headers.set("content-length", [-3]));
+  Expect.isTrue(e.message.contains("Content-Length must contain only digits"));
+
+  headers = new _HttpHeaders("1.1");
+  e = Expect.throws<HttpException>(() => headers.set("content-length", [[]]));
+  Expect.isTrue(
+      e.message.contains("Unexpected type for header named content-length"));
+
+  headers = new _HttpHeaders("1.1");
+  headers.set("content-length", ["1", "2"]);
+  Expect.equals(2, headers.contentLength);
+  Expect.listEquals(["2"], headers["content-length"]!);
+  Expect.equals("2", headers.value("content-length"));
+}
+
 void testContentType() {
   void check(ContentType contentType, String primaryType, String subType,
       [Map<String, String?>? parameters]) {
@@ -589,9 +615,9 @@ void testInvalidCookie() {
   _HttpHeaders headers = new _HttpHeaders("1.1");
   headers.set(
       'Cookie', 'DARTSESSID=d3d6fdd78d51aaaf2924c32e991f4349; undefined');
-  Expect.equals('DARTSESSID', headers._parseCookies().single.name);
-  Expect.equals(
-      'd3d6fdd78d51aaaf2924c32e991f4349', headers._parseCookies().single.value);
+  Expect.equals('DARTSESSID', headers.test$_parseCookies().single.name);
+  Expect.equals('d3d6fdd78d51aaaf2924c32e991f4349',
+      headers.test$_parseCookies().single.value);
 }
 
 void testHeaderLists() {
@@ -617,7 +643,7 @@ void testInvalidFieldName() {
 }
 
 void testInvalidFieldValue() {
-  void test(value, {bool remove: true}) {
+  void test(value, {bool remove = true}) {
     _HttpHeaders headers = new _HttpHeaders("1.1");
     Expect.throwsFormatException(() => headers.add("field", value));
     Expect.throwsFormatException(() => headers.set("field", value));
@@ -704,7 +730,7 @@ void testForEach() {
   headers.add('HEADER3', 'value 4', preserveHeaderCase: true);
 
   BytesBuilder builder = BytesBuilder();
-  headers._build(builder);
+  headers.test$_build(builder);
 
   Expect.isTrue(utf8.decode(builder.toBytes()).contains('HEADER1'));
 
@@ -743,6 +769,7 @@ main() {
   testTransferEncoding();
   testEnumeration();
   testHeaderValue();
+  testContentLength();
   testContentType();
   testKnownContentTypes();
   testContentTypeCache();

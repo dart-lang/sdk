@@ -20,12 +20,7 @@ import '../builder/member_builder.dart';
 import '../builder/type_alias_builder.dart';
 
 import '../fasta_codes.dart'
-    show
-        Message,
-        noLength,
-        templateDuplicatedDeclaration,
-        templateTypeNotFound,
-        templateUnspecified;
+    show Message, noLength, templateDuplicatedDeclaration, templateUnspecified;
 
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/redirecting_factory_body.dart'
@@ -34,6 +29,7 @@ import '../kernel/redirecting_factory_body.dart'
         getRedirectingFactories,
         isRedirectingFactoryField;
 
+import '../kernel/utils.dart';
 import '../problems.dart' show internalProblem, unhandled, unimplemented;
 
 import '../scope.dart';
@@ -51,7 +47,7 @@ import 'dill_type_alias_builder.dart' show DillTypeAliasBuilder;
 class LazyLibraryScope extends LazyScope {
   DillLibraryBuilder? libraryBuilder;
 
-  LazyLibraryScope.top({bool isModifiable: false})
+  LazyLibraryScope.top({bool isModifiable = false})
       : super(<String, Builder>{}, <String, MemberBuilder>{}, null, "top",
             isModifiable: isModifiable);
 
@@ -91,6 +87,13 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     LazyLibraryScope lazyExportScope = exportScope as LazyLibraryScope;
     lazyExportScope.libraryBuilder = this;
   }
+
+  @override
+  LibraryBuilder get origin => this;
+
+  @override
+  Iterable<Uri> get dependencies => library.dependencies.map(
+      (LibraryDependency dependency) => dependency.targetLibrary.importUri);
 
   void ensureLoaded() {
     if (!isReadyToBuild) throw new StateError("Not ready to build.");
@@ -215,7 +218,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       return null;
     }
     String name = member.name.text;
-    if (name == "_exports#") {
+    if (name == unserializableExportName) {
       Field field = member as Field;
       String stringValue;
       if (field.initializer is ConstantExpression) {
@@ -294,7 +297,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   @override
   Builder computeAmbiguousDeclaration(
       String name, Builder builder, Builder other, int charOffset,
-      {bool isExport: false, bool isImport: false}) {
+      {bool isExport = false, bool isImport = false}) {
     if (builder == other) return builder;
     if (builder is InvalidTypeDeclarationBuilder) return builder;
     if (other is InvalidTypeDeclarationBuilder) return other;
@@ -317,7 +320,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     isReadyToBuild = true;
   }
 
-  void markAsReadyToFinalizeExports({bool suppressFinalizationErrors: false}) {
+  void markAsReadyToFinalizeExports({bool suppressFinalizationErrors = false}) {
     isReadyToFinalizeExports = true;
     this.suppressFinalizationErrors = suppressFinalizationErrors;
   }
@@ -325,25 +328,22 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   void finalizeExports() {
     unserializableExports?.forEach((String name, String messageText) {
       Builder declaration;
-      switch (name) {
-        case "dynamic":
-        case "void":
-          // TODO(ahe): It's likely that we shouldn't be exporting these types
-          // from dart:core, and this case can be removed.
-          declaration = loader.coreLibrary.exportScope
-              .lookupLocalMember(name, setter: false)!;
-          break;
-
-        default:
-          // ignore: unnecessary_null_comparison
-          Message message = messageText == null
-              ? templateTypeNotFound.withArguments(name)
-              : templateUnspecified.withArguments(messageText);
-          if (!suppressFinalizationErrors) {
-            addProblem(message, -1, noLength, null);
-          }
-          declaration = new InvalidTypeDeclarationBuilder(
-              name, message.withoutLocation());
+      if (messageText == exportDynamicSentinel) {
+        assert(
+            name == 'dynamic', "Unexpected export name for 'dynamic': '$name'");
+        declaration = loader.coreLibrary.exportScope
+            .lookupLocalMember(name, setter: false)!;
+      } else if (messageText == exportNeverSentinel) {
+        assert(name == 'Never', "Unexpected export name for 'Never': '$name'");
+        declaration = loader.coreLibrary.exportScope
+            .lookupLocalMember(name, setter: false)!;
+      } else {
+        Message message = templateUnspecified.withArguments(messageText);
+        if (!suppressFinalizationErrors) {
+          addProblem(message, -1, noLength, null);
+        }
+        declaration =
+            new InvalidTypeDeclarationBuilder(name, message.withoutLocation());
       }
       exportScope.addLocalMember(name, declaration, setter: false);
     });

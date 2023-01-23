@@ -14,7 +14,14 @@ void a() {
     ;
   }
 
-  on();
+  // With records this is no longer a call after a try block, but a on clause
+  // where the type is the empty record.
+  on () {
+    ;
+  }
+
+  // This is a call though.
+  on(42);
 }
 
 void b() {
@@ -54,6 +61,6 @@ void d(int on) {
   on.toString();
 }
 
-void on() {}
+void on(e) {}
 
 class Foo {}

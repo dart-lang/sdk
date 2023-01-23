@@ -19,5 +19,5 @@ void main() {
     refactoring_all.main();
     search_all.main();
     snippets_all.main();
-  });
+  }, name: 'services');
 }

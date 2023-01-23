@@ -897,19 +897,13 @@ Dart_CObject* CObject::NewArray(intptr_t length) {
   return cobject;
 }
 
-Dart_CObject* CObject::NewUint8Array(intptr_t length) {
+Dart_CObject* CObject::NewUint8Array(const void* data, intptr_t length) {
   Dart_CObject* cobject = New(Dart_CObject_kTypedData, length);
+  memmove(reinterpret_cast<uint8_t*>(cobject + 1), data, length);
   cobject->value.as_typed_data.type = Dart_TypedData_kUint8;
   cobject->value.as_typed_data.length = length;
-  cobject->value.as_typed_data.values = reinterpret_cast<uint8_t*>(cobject + 1);
-  return cobject;
-}
-
-Dart_CObject* CObject::NewUint32Array(intptr_t length) {
-  Dart_CObject* cobject = New(Dart_CObject_kTypedData, 4 * length);
-  cobject->value.as_typed_data.type = Dart_TypedData_kUint32;
-  cobject->value.as_typed_data.length = length;
-  cobject->value.as_typed_data.values = reinterpret_cast<uint8_t*>(cobject + 1);
+  cobject->value.as_typed_data.values =
+      reinterpret_cast<const uint8_t*>(cobject + 1);
   return cobject;
 }
 

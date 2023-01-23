@@ -24,6 +24,9 @@ part "unmodifiable_typed_data.dart";
 ///
 /// Used to process large quantities of binary or numerical data
 /// more efficiently using a typed view.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// ByteBuffer.
 abstract class ByteBuffer {
   /// Returns the length of this byte buffer, in bytes.
   int get lengthInBytes;
@@ -340,6 +343,9 @@ abstract class ByteBuffer {
 }
 
 /// A typed view of a sequence of bytes.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// TypedData.
 abstract class TypedData {
   /// Returns the number of bytes in the representation of each element in this
   /// list.
@@ -377,6 +383,9 @@ abstract class _TypedFloatList extends TypedData {
 
 /// Describes endianness to be used when accessing or updating a
 /// sequence of bytes.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// Endian.
 class Endian {
   final bool _littleEndian;
   const Endian._(this._littleEndian);
@@ -421,6 +430,9 @@ class Endian {
 /// bdata.setFloat32(0, 3.04);
 /// int huh = bdata.getInt32(0); // 0x40428f5c
 /// ```
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// ByteData.
 abstract class ByteData implements TypedData {
   /// Creates a [ByteData] of the specified length (in elements), all of
   /// whose bytes are initially zero.
@@ -704,6 +716,9 @@ abstract class ByteData implements TypedData {
 /// Integers stored in the list are truncated to their low eight bits,
 /// interpreted as a signed 8-bit two's complement integer with values in the
 /// range -128 to +127.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// Int8List.
 abstract class Int8List implements List<int>, _TypedIntList {
   /// Creates an [Int8List] of the specified length (in elements), all of
   /// whose elements are initially zero.
@@ -814,6 +829,9 @@ abstract class Int8List implements List<int>, _TypedIntList {
 /// Integers stored in the list are truncated to their low eight bits,
 /// interpreted as an unsigned 8-bit integer with values in the
 /// range 0 to 255.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// Uint8List.
 abstract class Uint8List implements List<int>, _TypedIntList {
   /// Creates a [Uint8List] of the specified length (in elements), all of
   /// whose elements are initially zero.
@@ -931,6 +949,9 @@ abstract class Uint8List implements List<int>, _TypedIntList {
 /// Integers stored in the list are clamped to an unsigned eight bit value.
 /// That is, all values below zero are stored as zero
 /// and all values above 255 are stored as 255.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// Uint8ClampedList.
 abstract class Uint8ClampedList implements List<int>, _TypedIntList {
   /// Creates a [Uint8ClampedList] of the specified length (in elements), all of
   /// whose elements are initially zero.
@@ -1044,6 +1065,9 @@ abstract class Uint8ClampedList implements List<int>, _TypedIntList {
 /// Integers stored in the list are truncated to their low 16 bits,
 /// interpreted as a signed 16-bit two's complement integer with values in the
 /// range -32768 to +32767.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// Int16List.
 abstract class Int16List implements List<int>, _TypedIntList {
   /// Creates an [Int16List] of the specified length (in elements), all of
   /// whose elements are initially zero.
@@ -1166,6 +1190,9 @@ abstract class Int16List implements List<int>, _TypedIntList {
 /// Integers stored in the list are truncated to their low 16 bits,
 /// interpreted as an unsigned 16-bit integer with values in the
 /// range 0 to 65535.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// Uint16List.
 abstract class Uint16List implements List<int>, _TypedIntList {
   /// Creates a [Uint16List] of the specified length (in elements), all
   /// of whose elements are initially zero.
@@ -1289,6 +1316,9 @@ abstract class Uint16List implements List<int>, _TypedIntList {
 /// Integers stored in the list are truncated to their low 32 bits,
 /// interpreted as a signed 32-bit two's complement integer with values in the
 /// range -2147483648 to 2147483647.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// Int32List.
 abstract class Int32List implements List<int>, _TypedIntList {
   /// Creates an [Int32List] of the specified length (in elements), all of
   /// whose elements are initially zero.
@@ -1411,6 +1441,9 @@ abstract class Int32List implements List<int>, _TypedIntList {
 /// Integers stored in the list are truncated to their low 32 bits,
 /// interpreted as an unsigned 32-bit integer with values in the
 /// range 0 to 4294967295.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// Uint32List.
 abstract class Uint32List implements List<int>, _TypedIntList {
   /// Creates a [Uint32List] of the specified length (in elements), all
   /// of whose elements are initially zero.
@@ -1534,6 +1567,9 @@ abstract class Uint32List implements List<int>, _TypedIntList {
 /// Integers stored in the list are truncated to their low 64 bits,
 /// interpreted as a signed 64-bit two's complement integer with values in the
 /// range -9223372036854775808 to +9223372036854775807.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// Int64List.
 abstract class Int64List implements List<int>, _TypedIntList {
   /// Creates an [Int64List] of the specified length (in elements), all of
   /// whose elements are initially zero.
@@ -1656,6 +1692,9 @@ abstract class Int64List implements List<int>, _TypedIntList {
 /// Integers stored in the list are truncated to their low 64 bits,
 /// interpreted as an unsigned 64-bit integer with values in the
 /// range 0 to 18446744073709551615.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// Uint64List.
 abstract class Uint64List implements List<int>, _TypedIntList {
   /// Creates a [Uint64List] of the specified length (in elements), all
   /// of whose elements are initially zero.
@@ -1780,6 +1819,9 @@ abstract class Uint64List implements List<int>, _TypedIntList {
 /// Double values stored in the list are converted to the nearest
 /// single-precision value. Values read are converted to a double
 /// value with the same value.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// Float32List.
 abstract class Float32List implements List<double>, _TypedFloatList {
   /// Creates a [Float32List] of the specified length (in elements), all of
   /// whose elements are initially zero.
@@ -1899,6 +1941,9 @@ abstract class Float32List implements List<double>, _TypedFloatList {
 /// For long lists, this
 /// implementation can be considerably more space- and time-efficient than
 /// the default [List] implementation.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// Float64List.
 abstract class Float64List implements List<double>, _TypedFloatList {
   /// Creates a [Float64List] of the specified length (in elements), all of
   /// whose elements are initially zero.
@@ -2014,6 +2059,9 @@ abstract class Float64List implements List<double>, _TypedFloatList {
 ///
 /// For long lists, this implementation will be considerably more
 /// space- and time-efficient than the default [List] implementation.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// Float32x4List.
 abstract class Float32x4List implements List<Float32x4>, TypedData {
   /// Creates a [Float32x4List] of the specified length (in elements),
   /// all of whose elements are initially zero.
@@ -2256,6 +2304,9 @@ abstract class Int32x4List implements List<Int32x4>, TypedData {
 ///
 /// For long lists, this implementation will be considerably more
 /// space- and time-efficient than the default [List] implementation.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// Float64x2List.
 abstract class Float64x2List implements List<Float64x2>, TypedData {
   /// Creates a [Float64x2List] of the specified length (in elements),
   /// all of whose elements have all lanes set to zero.
@@ -2376,6 +2427,9 @@ abstract class Float64x2List implements List<Float64x2>, TypedData {
 ///
 /// Float32x4 stores 4 32-bit floating point values in "lanes".
 /// The lanes are "x", "y", "z", and "w" respectively.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// Float32x4.
 abstract class Float32x4 {
   external factory Float32x4(double x, double y, double z, double w);
   external factory Float32x4.splat(double v);
@@ -3097,6 +3151,9 @@ abstract class Int32x4 {
 ///
 /// Float64x2 stores 2 64-bit floating point values in "lanes".
 /// The lanes are "x" and "y" respectively.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// Float64x2.
 abstract class Float64x2 {
   external factory Float64x2(double x, double y);
   external factory Float64x2.splat(double v);

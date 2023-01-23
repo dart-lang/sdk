@@ -6,11 +6,11 @@
 import "package:expect/expect.dart";
 
 class BadNamedParametersTest {
-  int f42(int a, {int b: 20, int c: 30}) {
+  int f42(int a, {int b = 20, int c = 30}) {
     return 100 * (100 * a + b) + c;
   }
 
-  int f52(int a, {int b: 20, int? c, int d: 40}) {
+  int f52(int a, {int b = 20, int? c, int d = 40}) {
     return 100 * (100 * (100 * a + b) + (c == null ? 0 : c)) + d;
   }
 }
@@ -49,7 +49,8 @@ main() {
 
   // Too few parameters.
   np.f42(b: 25);
-  //    ^^^^^^^
+  //     ^
   // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+  //    ^^^^^^^
   // [cfe] Too few positional arguments: 1 required, 0 given.
 }

@@ -124,7 +124,7 @@ class ReplaceConditionalWithIfElse extends CorrectionProducer {
           var conditionSrc = utils.getNodeText(conditional.condition);
           var thenSrc = utils.getNodeText(conditional.thenExpression);
           var elseSrc = utils.getNodeText(conditional.elseExpression);
-          var name = variable.name.name;
+          var name = variable.name.lexeme;
           var src = eol;
           src += '${prefix}if ($conditionSrc) {$eol';
           src += '$prefix$indent$name = $thenSrc;$eol';

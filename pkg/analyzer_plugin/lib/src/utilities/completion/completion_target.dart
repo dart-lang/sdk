@@ -118,10 +118,18 @@ class CompletionTarget {
   /// otherwise this is `null`.
   ParameterElement? _parameterElement;
 
-  /// The enclosing [ClassElement], or `null` if not in a class.
-  late final ClassElement? enclosingClassElement = containingNode
-      .thisOrAncestorOfType<ClassOrMixinDeclaration>()
-      ?.declaredElement;
+  /// The enclosing [InterfaceElement], or `null` if not in a class.
+  late final InterfaceElement? enclosingInterfaceElement = () {
+    final unitMember =
+        containingNode.thisOrAncestorOfType<CompilationUnitMember>();
+    if (unitMember is ClassDeclaration) {
+      return unitMember.declaredElement;
+    } else if (unitMember is MixinDeclaration) {
+      return unitMember.declaredElement;
+    } else {
+      return null;
+    }
+  }();
 
   /// The enclosing [ExtensionElement], or `null` if not in an extension.
   late final ExtensionElement? enclosingExtensionElement = containingNode
@@ -166,8 +174,19 @@ class CompletionTarget {
             // Try to replace with a comment token.
             var commentToken = _getContainingCommentToken(entity, offset);
             if (commentToken != null) {
-              return CompletionTarget._(
-                  offset, containingNode, commentToken, true);
+              // TODO(scheglov) This is duplicate of the code below.
+              // If the preceding comment is dartdoc token, then update
+              // the containing node to be the dartdoc comment.
+              // Otherwise completion is not required.
+              var docComment =
+                  _getContainingDocComment(containingNode, commentToken);
+              if (docComment != null) {
+                return CompletionTarget._(
+                    offset, docComment, commentToken, false);
+              } else {
+                return CompletionTarget._(
+                    offset, entryPoint, commentToken, true);
+              }
             }
             // Target found.
             return CompletionTarget._(offset, containingNode, entity, false);
@@ -242,11 +261,9 @@ class CompletionTarget {
 
   /// Create a [CompletionTarget] holding the given [containingNode] and
   /// [entity].
-  CompletionTarget._(this.offset, AstNode containingNode,
-      SyntacticEntity? entity, this.isCommentText)
-      : containingNode = containingNode,
-        entity = entity,
-        argIndex = _computeArgIndex(containingNode, entity),
+  CompletionTarget._(
+      this.offset, this.containingNode, this.entity, this.isCommentText)
+      : argIndex = _computeArgIndex(containingNode, entity),
         droppedToken = _computeDroppedToken(containingNode, entity, offset);
 
   /// Return the expression to the left of the "dot" or "dot dot",
@@ -373,14 +390,8 @@ class CompletionTarget {
           token.type == TokenType.COMMA;
     }
 
-    var entity = this.entity;
-
-    Token token;
-    if (entity is AstNode) {
-      token = entity.endToken;
-    } else if (entity is Token) {
-      token = entity;
-    } else {
+    final token = lastTokenOfEntity;
+    if (token == null) {
       return false;
     }
 
@@ -388,6 +399,37 @@ class CompletionTarget {
       return isExistingComma(token.next);
     }
     return isExistingComma(token);
+  }
+
+  /// Return `true` if the [offset] is followed by a `)`.
+  bool get isFollowedByRightParenthesis {
+    bool isExistingRightParenthesis(Token? token) {
+      return token != null &&
+          !token.isSynthetic &&
+          token.type == TokenType.CLOSE_PAREN;
+    }
+
+    final token = lastTokenOfEntity;
+    if (token == null) {
+      return false;
+    }
+
+    if (isExistingRightParenthesis(token)) {
+      return true;
+    }
+
+    return isExistingRightParenthesis(token.next);
+  }
+
+  Token? get lastTokenOfEntity {
+    final entity = this.entity;
+    if (entity is AstNode) {
+      return entity.endToken;
+    } else if (entity is Token) {
+      return entity;
+    } else {
+      return null;
+    }
   }
 
   /// If the target is an argument in an argument list, and the invocation is

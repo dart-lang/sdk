@@ -38,7 +38,7 @@ class HasMethod {
     Validate(tag, a, b);
   }
 
-  foo2(tag, {a: 10, b: 20}) {
+  foo2(tag, {a = 10, b = 20}) {
     calls += 1;
     Validate(tag, a, b);
   }
@@ -63,7 +63,7 @@ class HasField {
 
   makeFoo2(owner) {
     // This function is closed-over 'owner'.
-    return (tag, {a: 10, b: 20}) {
+    return (tag, {a = 10, b = 20}) {
       owner.calls += 1;
       Validate(tag, a, b);
     };

@@ -18,8 +18,12 @@ namespace dart {
   V(AllocateClosure)                                                           \
   V(AllocateContext)                                                           \
   V(AllocateObject)                                                            \
+  V(AllocateRecord)                                                            \
+  V(AllocateSmallRecord)                                                       \
   V(AllocateSuspendState)                                                      \
   V(BoxDouble)                                                                 \
+  V(BoxFloat32x4)                                                              \
+  V(BoxFloat64x2)                                                              \
   V(BreakpointRuntimeHandler)                                                  \
   V(SingleStepHandler)                                                         \
   V(CloneContext)                                                              \
@@ -44,6 +48,7 @@ namespace dart {
   V(TraceICCall)                                                               \
   V(PatchStaticCall)                                                           \
   V(RangeError)                                                                \
+  V(WriteError)                                                                \
   V(NullError)                                                                 \
   V(NullErrorWithSelector)                                                     \
   V(NullCastError)                                                             \
@@ -103,8 +108,12 @@ namespace dart {
   V(ApiLocalScope*, EnterHandleScope, Thread*)                                 \
   V(void, ExitHandleScope, Thread*)                                            \
   V(LocalHandle*, AllocateHandle, ApiLocalScope*)                              \
-  V(void, TsanLoadAcquire, uword /* address */)                                \
-  V(void, TsanStoreRelease, uword /* address */)
+  V(void, PropagateError, Dart_Handle)                                         \
+  V(void, MsanUnpoison, void*, size_t)                                         \
+  V(void, MsanUnpoisonParam, size_t)                                           \
+  V(void, TsanLoadAcquire, void*)                                              \
+  V(void, TsanStoreRelease, void*)                                             \
+  V(bool, TryDoubleAsInteger, Thread*)
 
 }  // namespace dart
 

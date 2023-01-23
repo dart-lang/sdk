@@ -15,28 +15,30 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class FlutterWrap extends MultiCorrectionProducer {
   @override
-  Stream<CorrectionProducer> get producers async* {
+  Future<List<CorrectionProducer>> get producers async {
+    var producers = <CorrectionProducer>[];
     var widgetExpr = flutter.identifyWidgetExpression(node);
     if (widgetExpr != null) {
       var widgetType = widgetExpr.typeOrThrow;
-      yield _FlutterWrapGeneric(widgetExpr);
+      producers.add(_FlutterWrapGeneric(widgetExpr));
       if (!flutter.isExactWidgetTypeCenter(widgetType)) {
-        yield _FlutterWrapCenter(widgetExpr);
+        producers.add(_FlutterWrapCenter(widgetExpr));
       }
       if (!flutter.isExactWidgetTypeContainer(widgetType)) {
-        yield _FlutterWrapContainer(widgetExpr);
+        producers.add(_FlutterWrapContainer(widgetExpr));
       }
       if (!flutter.isExactWidgetTypePadding(widgetType)) {
-        yield _FlutterWrapPadding(widgetExpr);
+        producers.add(_FlutterWrapPadding(widgetExpr));
       }
       if (!flutter.isExactWidgetTypeSizedBox(widgetType)) {
-        yield _FlutterWrapSizedBox(widgetExpr);
+        producers.add(_FlutterWrapSizedBox(widgetExpr));
       }
     }
-    yield* _wrapMultipleWidgets();
+    await _wrapMultipleWidgets(producers);
+    return producers;
   }
 
-  Stream<CorrectionProducer> _wrapMultipleWidgets() async* {
+  Future<void> _wrapMultipleWidgets(List<CorrectionProducer> producers) async {
     var selectionRange = SourceRange(selectionOffset, selectionLength);
     var analyzer = SelectionAnalyzer(selectionRange);
     resolvedResult.unit.accept(analyzer);
@@ -84,12 +86,12 @@ class FlutterWrap extends MultiCorrectionProducer {
 
     var firstWidget = widgetExpressions.first;
     var lastWidget = widgetExpressions.last;
-    yield _FlutterWrapColumn(firstWidget, lastWidget);
-    yield _FlutterWrapRow(firstWidget, lastWidget);
+    producers.add(_FlutterWrapColumn(firstWidget, lastWidget));
+    producers.add(_FlutterWrapRow(firstWidget, lastWidget));
   }
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapCenter extends _WrapSingleWidget {
   _FlutterWrapCenter(super.widgetExpr);
@@ -104,7 +106,7 @@ class _FlutterWrapCenter extends _WrapSingleWidget {
   String get _parentLibraryUri => flutter.widgetsUri;
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapColumn extends _WrapMultipleWidgets {
   _FlutterWrapColumn(super.firstWidget, super.lastWidget);
@@ -116,7 +118,7 @@ class _FlutterWrapColumn extends _WrapMultipleWidgets {
   String get _parentClassName => 'Column';
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapContainer extends _WrapSingleWidget {
   _FlutterWrapContainer(super.widgetExpr);
@@ -131,7 +133,7 @@ class _FlutterWrapContainer extends _WrapSingleWidget {
   String get _parentLibraryUri => flutter.widgetsUri;
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapGeneric extends _WrapSingleWidget {
   _FlutterWrapGeneric(super.widgetExpr);
@@ -140,7 +142,7 @@ class _FlutterWrapGeneric extends _WrapSingleWidget {
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_GENERIC;
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapPadding extends _WrapSingleWidget {
   _FlutterWrapPadding(super.widgetExpr);
@@ -161,7 +163,7 @@ class _FlutterWrapPadding extends _WrapSingleWidget {
   String get _parentLibraryUri => flutter.widgetsUri;
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapRow extends _WrapMultipleWidgets {
   _FlutterWrapRow(super.firstWidget, super.lastWidget);
@@ -173,7 +175,7 @@ class _FlutterWrapRow extends _WrapMultipleWidgets {
   String get _parentClassName => 'Row';
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapSizedBox extends _WrapSingleWidget {
   _FlutterWrapSizedBox(super.widgetExpr);
@@ -188,7 +190,7 @@ class _FlutterWrapSizedBox extends _WrapSingleWidget {
   String get _parentLibraryUri => flutter.widgetsUri;
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 abstract class _WrapMultipleWidgets extends CorrectionProducer {
   final Expression firstWidget;
@@ -245,7 +247,7 @@ abstract class _WrapMultipleWidgets extends CorrectionProducer {
   }
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 abstract class _WrapSingleWidget extends CorrectionProducer {
   final Expression widgetExpr;
@@ -282,6 +284,12 @@ abstract class _WrapSingleWidget extends CorrectionProducer {
           builder.writeReference(parentClassElement);
         }
         builder.write('(');
+        // When there's no linked edit for the widget name, leave the selection
+        // inside the opening paren which is useful if you want to add
+        // additional named arguments to the newly-created widget.
+        if (parentClassElement != null) {
+          builder.selectHere();
+        }
         var leadingLines = _leadingLines;
         if (widgetSrc.contains(eol) || leadingLines.isNotEmpty) {
           var indentOld = utils.getLinePrefix(widgetExpr.offset);

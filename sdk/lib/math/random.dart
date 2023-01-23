@@ -9,7 +9,7 @@ part of dart.math;
 /// The default implementation supplies a stream of pseudo-random bits that are
 /// not suitable for cryptographic purposes.
 ///
-/// Use the [Random.secure]() constructor for cryptographic purposes.
+/// Use the [Random.secure] constructor for cryptographic purposes.
 ///
 /// To create a non-negative random integer uniformly distributed in the range
 /// from 0, inclusive, to max, exclusive, use [nextInt(int max)].

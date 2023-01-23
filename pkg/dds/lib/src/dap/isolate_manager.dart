@@ -4,10 +4,8 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
 import '../rpc_error_codes.dart';
@@ -67,9 +65,6 @@ class IsolateManager {
   /// first time the user resumes.
   bool autoResumeStartingIsolates = true;
 
-  /// The root of the Dart SDK containing the VM running the debug adapter.
-  late final String sdkRoot;
-
   /// Tracks breakpoints last provided by the client so they can be sent to new
   /// isolates that appear after initial breakpoints were sent.
   final Map<String, List<SourceBreakpoint>> _clientBreakpointsByUri = {};
@@ -81,7 +76,12 @@ class IsolateManager {
   /// Tracks breakpoints created in the VM so they can be removed when the
   /// editor sends new breakpoints (currently the editor just sends a new list
   /// and not requests to add/remove).
-  final Map<String, Map<String, List<vm.Breakpoint>>>
+  ///
+  /// Breakpoints are indexed by their ID so that duplicates are not stored even
+  /// if multiple client breakpoints resolve to a single VM breakpoint.
+  ///
+  /// IsolateId -> Uri -> breakpointId -> VM Breakpoint.
+  final Map<String, Map<String, Map<String, vm.Breakpoint>>>
       _vmBreakpointsByIsolateIdAndUri = {};
 
   /// The exception pause mode last provided by the client.
@@ -110,10 +110,7 @@ class IsolateManager {
   /// Any leading character matched in place of the dollar is in the first capture.
   final _braceNotPrefixedByDollarOrBackslashPattern = RegExp(r'(^|[^\\\$]){');
 
-  IsolateManager(this._adapter) {
-    final vmPath = Platform.resolvedExecutable;
-    sdkRoot = path.dirname(path.dirname(vmPath));
-  }
+  IsolateManager(this._adapter);
 
   /// A list of all current active isolates.
   ///
@@ -135,8 +132,17 @@ class IsolateManager {
   }
 
   Future<T> getObject<T extends vm.Response>(
-      vm.IsolateRef isolate, vm.ObjRef object) async {
-    final res = await _adapter.vmService?.getObject(isolate.id!, object.id!);
+    vm.IsolateRef isolate,
+    vm.ObjRef object, {
+    int? offset,
+    int? count,
+  }) async {
+    final res = await _adapter.vmService?.getObject(
+      isolate.id!,
+      object.id!,
+      offset: offset,
+      count: count,
+    );
     return res as T;
   }
 
@@ -542,7 +548,7 @@ class IsolateManager {
     final isolateId = isolate.id!;
     final uriStrings = uris.map((uri) => uri.toString()).toList();
     final res = await _adapter.vmService
-        ?.lookupResolvedPackageUris(isolateId, uriStrings);
+        ?.lookupResolvedPackageUris(isolateId, uriStrings, local: true);
 
     return res?.uris
         ?.cast<String?>()
@@ -629,14 +635,23 @@ class IsolateManager {
       final existingBreakpointsForIsolate =
           _vmBreakpointsByIsolateIdAndUri.putIfAbsent(isolateId, () => {});
       final existingBreakpointsForIsolateAndUri =
-          existingBreakpointsForIsolate.putIfAbsent(uri, () => []);
+          existingBreakpointsForIsolate.putIfAbsent(uri, () => {});
       // Before doing async work, take a copy of the breakpoints to remove
       // and remove them from the list, so any subsequent calls here don't
-      // try to remove the same ones.
-      final breakpointsToRemove = existingBreakpointsForIsolateAndUri.toList();
+      // try to remove the same ones multiple times.
+      final breakpointsToRemove =
+          existingBreakpointsForIsolateAndUri.values.toList();
       existingBreakpointsForIsolateAndUri.clear();
-      await Future.forEach<vm.Breakpoint>(breakpointsToRemove,
-          (bp) => service.removeBreakpoint(isolateId, bp.id!));
+      await Future.forEach<vm.Breakpoint>(breakpointsToRemove, (bp) async {
+        try {
+          await service.removeBreakpoint(isolateId, bp.id!);
+        } catch (e) {
+          // Swallow errors removing breakpoints rather than failing the whole
+          // request as it's very possible that an isolate exited while we were
+          // sending this and the request will fail.
+          _adapter.logger?.call('Failed to remove old breakpoint $e');
+        }
+      });
 
       // Set new breakpoints.
       final newBreakpoints = _clientBreakpointsByUri[uri] ?? const [];
@@ -648,10 +663,14 @@ class IsolateManager {
             Uri.parse(uri).toFilePath(),
           );
 
+          if (vmUri == null) {
+            return;
+          }
+
           final vmBp = await service.addBreakpointWithScriptUri(
               isolateId, vmUri.toString(), bp.line,
               column: bp.column);
-          existingBreakpointsForIsolateAndUri.add(vmBp);
+          existingBreakpointsForIsolateAndUri[vmBp.id!] = vmBp;
           _clientBreakpointsByVmId[vmBp.id!] = bp;
         } catch (e) {
           // Swallow errors setting breakpoints rather than failing the whole
@@ -823,15 +842,24 @@ class ThreadInfo {
   /// sdk-path/lib/core/print.dart -> dart:core/print.dart
   ///
   /// This is required so that when the user sets a breakpoint in an SDK source
-  /// (which they may have nagivated to via the Analysis Server) we generate a
-  /// vaid URI that the VM would create a breakpoint for.
+  /// (which they may have navigated to via the Analysis Server) we generate a
+  /// valid URI that the VM would create a breakpoint for.
   Future<Uri?> resolvePathToUri(String filePath) async {
-    // We don't currently need to call lookupPackageUris because the VM can
+    var google3Path = _convertPathToGoogle3Uri(filePath);
+    if (google3Path != null) {
+      var result = await _manager._adapter.vmService
+          ?.lookupPackageUris(isolate.id!, [google3Path.toString()]);
+      var uriStr = result?.uris?.first;
+      return uriStr != null ? Uri.parse(uriStr) : null;
+    }
+
+    // We don't need to call lookupPackageUris in non-google3 because the VM can
     // handle incoming file:/// URIs for packages, and also the org-dartlang-sdk
     // URIs directly for SDK sources (we do not need to convert to 'dart:'),
     // however this method is Future-returning in case this changes in future
     // and we need to include a call to lookupPackageUris here.
-    return _convertPathToOrgDartlangSdk(filePath) ?? Uri.file(filePath);
+    return _manager._adapter.convertPathToOrgDartlangSdk(filePath) ??
+        Uri.file(filePath);
   }
 
   /// Batch resolves source URIs from the VM to a file path for the package lib
@@ -896,7 +924,11 @@ class ThreadInfo {
         // We can't leave dangling completers here because others may already
         // be waiting on them, so propagate the error to them.
         completers.forEach((uri, completer) => completer.completeError(e));
-        rethrow;
+
+        // Don't rethrow here, because it will cause these completers futures
+        // to not have error handlers attached which can cause their errors to
+        // go unhandled. Instead, these completers futures will be returned
+        // below and awaited by the caller (which will propogate the errors).
       }
     }
 
@@ -943,38 +975,15 @@ class ThreadInfo {
   /// that are round-tripped to the client.
   int storeData(Object data) => _manager.storeData(this, data);
 
-  /// Converts a URI in the form org-dartlang-sdk:///sdk/lib/collection/hash_set.dart
-  /// to a local file path based on the current SDK.
-  String? _convertOrgDartlangSdkToPath(Uri uri) {
-    // org-dartlang-sdk URIs can be in multiple forms:
-    //
-    //   - org-dartlang-sdk:///sdk/lib/collection/hash_set.dart
-    //   - org-dartlang-sdk:///runtime/lib/convert_patch.dart
-    //
-    // We currently only handle the sdk folder, as we don't know which runtime
-    // is being used (this code is shared) and do not want to map to the wrong
-    // sources.
-    if (uri.pathSegments.isNotEmpty && uri.pathSegments.first == 'sdk') {
-      // TODO(dantup): Do we need to worry about this content not matching
-      //   up with what's local (eg. for Flutter the VM running the app is
-      //   on another device to the VM running this DA).
-      final sdkRoot = _manager.sdkRoot;
-      return path.joinAll([sdkRoot, ...uri.pathSegments.skip(1)]);
-    }
-
-    return null;
-  }
-
-  /// Converts a file path inside the current SDK root into a URI in the form
-  /// org-dartlang-sdk:///sdk/lib/collection/hash_set.dart.
-  Uri? _convertPathToOrgDartlangSdk(String input) {
-    final sdkRoot = _manager.sdkRoot;
-    if (path.isWithin(sdkRoot, input)) {
-      final relative = path.relative(input, from: sdkRoot);
+  Uri? _convertPathToGoogle3Uri(String input) {
+    const search = '/google3/';
+    if (input.startsWith('/google') && input.contains(search)) {
+      var idx = input.indexOf(search);
+      var remainingPath = input.substring(idx + search.length);
       return Uri(
-        scheme: 'org-dartlang-sdk',
+        scheme: 'google3',
         host: '',
-        pathSegments: ['sdk', ...path.split(relative)],
+        path: remainingPath,
       );
     }
 
@@ -989,10 +998,8 @@ class ThreadInfo {
       return null;
     } else if (input.isScheme('file')) {
       return input.toFilePath();
-    } else if (input.isScheme('org-dartlang-sdk')) {
-      return _convertOrgDartlangSdkToPath(input);
     } else {
-      return null;
+      return _manager._adapter.convertOrgDartlangSdkToPath(input);
     }
   }
 

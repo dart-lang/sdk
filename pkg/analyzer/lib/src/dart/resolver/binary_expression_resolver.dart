@@ -111,7 +111,7 @@ class BinaryExpressionResolver {
     left = node.leftOperand;
 
     var flow = _resolver.flowAnalysis.flow;
-    EqualityInfo<PromotableElement, DartType>? leftInfo;
+    EqualityInfo<DartType>? leftInfo;
     var leftExtensionOverride = left is ExtensionOverride;
     if (!leftExtensionOverride) {
       leftInfo = flow?.equalityOperand_end(left, left.typeOrThrow);
@@ -150,7 +150,7 @@ class BinaryExpressionResolver {
     }
 
     _resolver.analyzeExpression(left, leftContextType);
-    left = node.leftOperand;
+    left = _resolver.popRewrite()!;
     var leftType = left.typeOrThrow;
 
     var rightContextType = contextType;
@@ -160,7 +160,7 @@ class BinaryExpressionResolver {
 
     flow?.ifNullExpression_rightBegin(left, leftType);
     _resolver.analyzeExpression(right, rightContextType);
-    right = node.rightOperand;
+    right = _resolver.popRewrite()!;
     flow?.ifNullExpression_end();
 
     var rightType = right.typeOrThrow;
@@ -183,14 +183,14 @@ class BinaryExpressionResolver {
 
     flow?.logicalBinaryOp_begin();
     _resolver.analyzeExpression(left, _typeProvider.boolType);
-    left = node.leftOperand;
+    left = _resolver.popRewrite()!;
     var leftWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(left);
 
     flow?.logicalBinaryOp_rightBegin(left, node, isAnd: true);
     _resolver.checkUnreachableNode(right);
 
     _resolver.analyzeExpression(right, _typeProvider.boolType);
-    right = node.rightOperand;
+    right = _resolver.popRewrite()!;
     var rightWhyNotPromoted =
         _resolver.flowAnalysis.flow?.whyNotPromoted(right);
 
@@ -212,14 +212,14 @@ class BinaryExpressionResolver {
 
     flow?.logicalBinaryOp_begin();
     _resolver.analyzeExpression(left, _typeProvider.boolType);
-    left = node.leftOperand;
+    left = _resolver.popRewrite()!;
     var leftWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(left);
 
     flow?.logicalBinaryOp_rightBegin(left, node, isAnd: false);
     _resolver.checkUnreachableNode(right);
 
     _resolver.analyzeExpression(right, _typeProvider.boolType);
-    right = node.rightOperand;
+    right = _resolver.popRewrite()!;
     var rightWhyNotPromoted =
         _resolver.flowAnalysis.flow?.whyNotPromoted(right);
 
@@ -263,7 +263,7 @@ class BinaryExpressionResolver {
     }
 
     _resolver.analyzeExpression(right, rightContextType);
-    right = node.rightOperand;
+    right = _resolver.popRewrite()!;
     var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(right);
 
     _resolveUserDefinableType(node, contextType: contextType);

@@ -6,20 +6,20 @@ import 'dart:convert';
 import 'dart:io' show File, Platform;
 import 'dart:typed_data' show BytesBuilder;
 
-import 'package:dart2js_info/json_info_codec.dart';
 import 'package:dart2js_info/binary_serialization.dart' as binary;
+import 'package:dart2js_info/json_info_codec.dart';
 import 'package:test/test.dart';
 
 class ByteSink implements Sink<List<int>> {
   BytesBuilder builder = BytesBuilder();
 
   @override
-  add(List<int> data) => builder.add(data);
+  void add(List<int> data) => builder.add(data);
   @override
-  close() {}
+  void close() {}
 }
 
-main() {
+void main() {
   group('json to proto conversion with deferred files', () {
     test('hello_world_deferred', () {
       var uri = Platform.script

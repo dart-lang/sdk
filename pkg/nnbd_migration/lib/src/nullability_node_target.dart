@@ -123,8 +123,7 @@ class _NullabilityNodeTarget_NamedParameter
     extends _NullabilityNodeTarget_Part {
   final String name;
 
-  _NullabilityNodeTarget_NamedParameter(NullabilityNodeTarget inner, this.name)
-      : super(inner);
+  _NullabilityNodeTarget_NamedParameter(super.inner, this.name);
 
   @override
   String get description => 'parameter $name of ${inner.description}';
@@ -147,9 +146,7 @@ class _NullabilityNodeTarget_PositionalParameter
     extends _NullabilityNodeTarget_Part {
   final int index;
 
-  _NullabilityNodeTarget_PositionalParameter(
-      NullabilityNodeTarget inner, this.index)
-      : super(inner);
+  _NullabilityNodeTarget_PositionalParameter(super.inner, this.index);
 
   @override
   String get description => 'parameter $index of ${inner.description}';
@@ -157,7 +154,7 @@ class _NullabilityNodeTarget_PositionalParameter
 
 /// Nullability node target representing a function's return type.
 class _NullabilityNodeTarget_ReturnType extends _NullabilityNodeTarget_Part {
-  _NullabilityNodeTarget_ReturnType(NullabilityNodeTarget inner) : super(inner);
+  _NullabilityNodeTarget_ReturnType(super.inner);
 
   @override
   String get description => 'return type of ${inner.description}';
@@ -165,7 +162,7 @@ class _NullabilityNodeTarget_ReturnType extends _NullabilityNodeTarget_Part {
 
 /// Nullability node target representing one of a class's supertypes.
 class _NullabilityNodeTarget_Supertype extends _NullabilityNodeTarget_Part {
-  _NullabilityNodeTarget_Supertype(NullabilityNodeTarget inner) : super(inner);
+  _NullabilityNodeTarget_Supertype(super.inner);
 
   @override
   String get description => 'supertype of ${inner.description}';
@@ -186,8 +183,7 @@ class _NullabilityNodeTarget_Text extends NullabilityNodeTarget {
 class _NullabilityNodeTarget_TypeArgument extends _NullabilityNodeTarget_Part {
   final int index;
 
-  _NullabilityNodeTarget_TypeArgument(NullabilityNodeTarget inner, this.index)
-      : super(inner);
+  _NullabilityNodeTarget_TypeArgument(super.inner, this.index);
 
   @override
   String get description => 'type argument $index of ${inner.description}';
@@ -199,9 +195,7 @@ class _NullabilityNodeTarget_TypeFormalBound
     extends _NullabilityNodeTarget_Part {
   final String typeFormalName;
 
-  _NullabilityNodeTarget_TypeFormalBound(
-      NullabilityNodeTarget inner, this.typeFormalName)
-      : super(inner);
+  _NullabilityNodeTarget_TypeFormalBound(super.inner, this.typeFormalName);
 
   @override
   String get description =>

@@ -63,6 +63,22 @@ void f() {
 ''');
   }
 
+  Future<void> test_functionType_recordType() async {
+    await resolveTestCode('''
+void g((int, String) f) {}
+void f() {
+  g(x);
+}
+''');
+    await assertHasFix('''
+void g((int, String) f) {}
+void f() {
+  (int, String) x;
+  g(x);
+}
+''');
+  }
+
   Future<void> test_functionType_synthetic() async {
     await resolveTestCode('''
 foo(f(int p)) {}
@@ -106,6 +122,22 @@ void f() {
 ''');
   }
 
+  Future<void> test_read_typeAssignment_recordType() async {
+    await resolveTestCode('''
+void f() {
+  (int, int) a = b;
+  print(a);
+}
+''');
+    await assertHasFix('''
+void f() {
+  (int, int) b;
+  (int, int) a = b;
+  print(a);
+}
+''');
+  }
+
   Future<void> test_read_typeCondition() async {
     await resolveTestCode('''
 void f() {
@@ -140,6 +172,24 @@ g(String p) {}
 ''');
     assertLinkedGroup(change.linkedEditGroups[0], ['String test;']);
     assertLinkedGroup(change.linkedEditGroups[1], ['test;', 'test);']);
+  }
+
+  Future<void> test_read_typeInvocationArgument_recordType() async {
+    await resolveTestCode('''
+void f() {
+  g(x);
+}
+g((int, int) r) {}
+''');
+    await assertHasFix('''
+void f() {
+  (int, int) x;
+  g(x);
+}
+g((int, int) r) {}
+''');
+    assertLinkedGroup(change.linkedEditGroups[0], ['(int, int) x;']);
+    assertLinkedGroup(change.linkedEditGroups[1], ['x;', 'x);']);
   }
 
   Future<void> test_read_typeInvocationTarget() async {

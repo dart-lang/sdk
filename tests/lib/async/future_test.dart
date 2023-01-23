@@ -910,7 +910,7 @@ void testWaitSyncError() {
   var cleanups = new List.filled(3, false);
   asyncStart();
   asyncStart();
-  runZoned(() {
+  runZonedGuarded(() {
     Future.wait(
         new Iterable.generate(5, (i) {
           if (i != 3) return new Future.delayed(cms * (i + 1), () => i);
@@ -920,7 +920,7 @@ void testWaitSyncError() {
       cleanups[index] = true;
       if (cleanups.every((x) => x)) asyncEnd();
     });
-  }, onError: (e, s) {
+  }, (e, s) {
     asyncEnd();
   });
 }

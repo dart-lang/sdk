@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 // This methods needs a stub method (because it is used in Function.apply, where
 // we can't see all possible uses).
 // The stub-method(s) must not clash with other global names (like classes).
-foo({a: 499}) => a;
+foo({a = 499}) => a;
 
 bar(f) {
   return f();

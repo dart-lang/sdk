@@ -158,7 +158,7 @@ class DartUnitHighlightsComputer {
 
   bool _addIdentifierRegion_class(SimpleIdentifier node) {
     var element = node.writeOrReadElement;
-    if (element is! ClassElement) {
+    if (element is! InterfaceElement) {
       return false;
     }
     // prepare type
@@ -174,7 +174,7 @@ class DartUnitHighlightsComputer {
       type = HighlightRegionType.CONSTRUCTOR;
       semanticType = SemanticTokenTypes.class_;
       semanticModifiers = {CustomSemanticTokenModifiers.constructor};
-    } else if (element.isEnum) {
+    } else if (element is EnumElement) {
       type = HighlightRegionType.ENUM;
     } else {
       type = HighlightRegionType.CLASS;
@@ -662,9 +662,10 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    computer._addRegion_token(node.classKeyword, HighlightRegionType.KEYWORD);
     computer._addRegion_token(
         node.abstractKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.classKeyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(node.name, HighlightRegionType.CLASS);
     super.visitClassDeclaration(node);
   }
 
@@ -682,6 +683,14 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(
         node.factoryKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(
+      node.name,
+      HighlightRegionType.CONSTRUCTOR,
+      semanticTokenType: SemanticTokenTypes.method,
+      semanticTokenModifiers: {
+        CustomSemanticTokenModifiers.constructor,
+      },
+    );
     super.visitConstructorDeclaration(node);
   }
 
@@ -716,6 +725,12 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+
+    computer._addRegion_token(
+      node.name,
+      HighlightRegionType.LOCAL_VARIABLE_DECLARATION,
+    );
+
     super.visitDeclaredIdentifier(node);
   }
 
@@ -743,7 +758,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    computer._addRegion_node(
+    computer._addRegion_token(
       node.name,
       HighlightRegionType.ENUM_CONSTANT,
     );
@@ -753,6 +768,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     computer._addRegion_token(node.enumKeyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(node.name, HighlightRegionType.ENUM);
     super.visitEnumDeclaration(node);
   }
 
@@ -780,6 +796,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     computer._addRegion_token(
         node.extensionKeyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(node.name, HighlightRegionType.EXTENSION);
     computer._addRegion_token(node.onKeyword, HighlightRegionType.BUILT_IN);
     super.visitExtensionDeclaration(node);
   }
@@ -791,20 +808,28 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(
         node.externalKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.staticKeyword, HighlightRegionType.BUILT_IN);
+
     super.visitFieldDeclaration(node);
   }
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     computer._addRegion_token(
-        node.requiredKeyword, HighlightRegionType.KEYWORD);
+      node.requiredKeyword,
+      HighlightRegionType.KEYWORD,
+    );
+
+    computer._addRegion_token(
+      node.thisKeyword,
+      HighlightRegionType.KEYWORD,
+    );
 
     var element = node.declaredElement;
     if (element is FieldFormalParameterElement) {
       var field = element.field;
       if (field != null) {
-        computer._addRegion_node(
-          node.identifier,
+        computer._addRegion_token(
+          node.name,
           HighlightRegionType.INSTANCE_FIELD_REFERENCE,
         );
       }
@@ -851,6 +876,19 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
         node.externalKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
         node.propertyKeyword, HighlightRegionType.BUILT_IN);
+
+    final HighlightRegionType nameType;
+    if (node.isGetter) {
+      nameType = HighlightRegionType.TOP_LEVEL_GETTER_DECLARATION;
+    } else if (node.isSetter) {
+      nameType = HighlightRegionType.TOP_LEVEL_SETTER_DECLARATION;
+    } else if (node.parent is CompilationUnit) {
+      nameType = HighlightRegionType.TOP_LEVEL_FUNCTION_DECLARATION;
+    } else {
+      nameType = HighlightRegionType.LOCAL_FUNCTION_DECLARATION;
+    }
+    computer._addRegion_token(node.name, nameType);
+
     super.visitFunctionDeclaration(node);
   }
 
@@ -858,6 +896,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     computer._addRegion_token(
         node.typedefKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(
+        node.name, HighlightRegionType.FUNCTION_TYPE_ALIAS);
     super.visitFunctionTypeAlias(node);
   }
 
@@ -865,6 +905,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     computer._addRegion_token(
         node.requiredKeyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(
+        node.name, HighlightRegionType.PARAMETER_DECLARATION);
     super.visitFunctionTypedFormalParameter(node);
   }
 
@@ -879,6 +921,15 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitGenericTypeAlias(GenericTypeAlias node) {
     computer._addRegion_token(
         node.typedefKeyword, HighlightRegionType.BUILT_IN);
+
+    final HighlightRegionType nameType;
+    if (node.functionType != null) {
+      nameType = HighlightRegionType.FUNCTION_TYPE_ALIAS;
+    } else {
+      nameType = HighlightRegionType.TYPE_ALIAS;
+    }
+    computer._addRegion_token(node.name, nameType);
+
     super.visitGenericTypeAlias(node);
   }
 
@@ -1006,6 +1057,23 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
         node.operatorKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
         node.propertyKeyword, HighlightRegionType.BUILT_IN);
+
+    final HighlightRegionType nameType;
+    if (node.isGetter) {
+      nameType = node.isStatic
+          ? HighlightRegionType.STATIC_GETTER_DECLARATION
+          : HighlightRegionType.INSTANCE_GETTER_DECLARATION;
+    } else if (node.isSetter) {
+      nameType = node.isStatic
+          ? HighlightRegionType.STATIC_SETTER_DECLARATION
+          : HighlightRegionType.INSTANCE_SETTER_DECLARATION;
+    } else {
+      nameType = node.isStatic
+          ? HighlightRegionType.STATIC_METHOD_DECLARATION
+          : HighlightRegionType.INSTANCE_METHOD_DECLARATION;
+    }
+    computer._addRegion_token(node.name, nameType);
+
     super.visitMethodDeclaration(node);
   }
 
@@ -1067,6 +1135,33 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitRecordLiteral(RecordLiteral node) {
+    computer._addRegion_node(node, HighlightRegionType.LITERAL_RECORD);
+    computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
+
+    for (final field in node.fields) {
+      if (field is NamedExpression) {
+        computer._addRegion_token(
+          field.name.label.token,
+          HighlightRegionType.PARAMETER_REFERENCE,
+        );
+        field.expression.accept(this);
+      } else {
+        field.accept(this);
+      }
+    }
+  }
+
+  @override
+  void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
+    for (final field in node.fields) {
+      computer._addRegion_token(field.name, HighlightRegionType.FIELD);
+    }
+
+    super.visitRecordTypeAnnotation(node);
+  }
+
+  @override
   void visitRethrowExpression(RethrowExpression node) {
     computer._addRegion_token(node.rethrowKeyword, HighlightRegionType.KEYWORD,
         semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
@@ -1104,6 +1199,14 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     computer._addRegion_token(
         node.requiredKeyword, HighlightRegionType.KEYWORD);
+
+    computer._addRegion_token(
+      node.name,
+      node.declaredElement!.type is DynamicType
+          ? HighlightRegionType.DYNAMIC_PARAMETER_DECLARATION
+          : HighlightRegionType.PARAMETER_DECLARATION,
+    );
+
     super.visitSimpleFormalParameter(node);
   }
 
@@ -1131,12 +1234,17 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSuperFormalParameter(SuperFormalParameter node) {
     computer._addRegion_token(
+      node.requiredKeyword,
+      HighlightRegionType.KEYWORD,
+    );
+
+    computer._addRegion_token(
       node.superKeyword,
       HighlightRegionType.KEYWORD,
     );
 
-    computer._addRegion_node(
-      node.identifier,
+    computer._addRegion_token(
+      node.name,
       HighlightRegionType.PARAMETER_DECLARATION,
     );
 
@@ -1183,6 +1291,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     computer._addRegion_token(
         node.externalKeyword, HighlightRegionType.BUILT_IN);
+
     super.visitTopLevelVariableDeclaration(node);
   }
 
@@ -1193,6 +1302,39 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(node.finallyKeyword, HighlightRegionType.KEYWORD,
         semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
     super.visitTryStatement(node);
+  }
+
+  @override
+  void visitTypeParameter(TypeParameter node) {
+    computer._addRegion_token(node.name, HighlightRegionType.TYPE_PARAMETER);
+    super.visitTypeParameter(node);
+  }
+
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    var element = node.declaredElement;
+    if (element is FieldElement) {
+      computer._addRegion_token(
+        node.name,
+        element.isStatic
+            ? HighlightRegionType.STATIC_FIELD_DECLARATION
+            : HighlightRegionType.INSTANCE_FIELD_DECLARATION,
+      );
+    } else if (element is LocalVariableElement) {
+      computer._addRegion_token(
+        node.name,
+        element.type is DynamicType
+            ? HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION
+            : HighlightRegionType.LOCAL_VARIABLE_DECLARATION,
+      );
+    } else if (element is TopLevelVariableElement) {
+      computer._addRegion_token(
+        node.name,
+        HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION,
+      );
+    }
+
+    super.visitVariableDeclaration(node);
   }
 
   @override

@@ -4,9 +4,17 @@
 
 /// Script to identify good opportunities for null safety migration.
 ///
-/// This script sorts libraries based on a "migratable" order. We compute
-/// this order by counting how many of a library's dependencies have been
-/// migrated.
+/// This script prints metadata about the migration status of libraries. Counts
+/// how many of a library's dependencies have been migrated and how many files
+/// are blocked by each un-migrated file.
+///
+/// Prints only un-migrated files by default. The list of migrated files can be
+/// included using the `-i` flag.
+///
+/// The default sort order for the printed libraries is by number of migrated
+/// dependencies (i.e. readiness for migration). By passing the `-b` flag the
+/// libraries can be sorted by number of blocking files
+/// (i.e. impact of migration).
 
 import 'dart:io';
 
@@ -15,6 +23,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/scanner/io.dart'
     show readBytesFromFileSync;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
+import 'package:args/args.dart';
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/api_prototype/language_version.dart';
 import 'package:front_end/src/api_prototype/terminal_color_support.dart'
@@ -28,7 +37,15 @@ import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:vm/target/vm.dart' show VmTarget;
 
 void main(List<String> args) async {
-  var prefix = args.isEmpty ? 'pkg/compiler/' : args.first;
+  final argParser = ArgParser();
+  argParser.addFlag('sort-blocking', abbr: 'b');
+  argParser.addFlag('include-migrated', abbr: 'i');
+  final argResults = argParser.parse(args);
+  final sortByBlocking = argResults['sort-blocking'];
+  final includeMigrated = argResults['include-migrated'] as bool;
+
+  var prefix =
+      argResults.rest.isEmpty ? 'pkg/compiler/' : argResults.rest.first;
   var files = <Uri, List<int>>{};
   var isLegacy = <Uri>{};
   var isNullSafe = <Uri>{};
@@ -55,43 +72,60 @@ void main(List<String> args) async {
     }
   }
 
-  var fileSummary = <Uri, FileData>{};
+  var fileDepSummary = <Uri, FileData>{};
+  final fileBlockingCount = <Uri, int>{};
   for (var file in files.keys) {
     if (!file.path.contains(prefix)) continue;
     var directives = extractDirectiveUris(files[file]!)
         .map(file.resolve)
         .where((uri) => uri.path.contains('pkg/compiler/'));
-    var migrated = directives.where(isNullSafe.contains).length;
+    var migrated = 0;
     var total = directives.length;
-    fileSummary[file] = FileData(isNullSafe.contains(file), total, migrated);
+    for (final dep in directives) {
+      if (isNullSafe.contains(dep)) {
+        migrated++;
+        continue;
+      }
+      fileBlockingCount.update(dep, (value) => value + 1, ifAbsent: () => 1);
+    }
+    fileDepSummary[file] = FileData(isNullSafe.contains(file), total, migrated);
   }
 
-  var keys = fileSummary.keys.toList();
+  var keys = fileDepSummary.keys.toList();
+
   keys.sort((a, b) {
-    var fa = fileSummary[a]!;
-    var fb = fileSummary[b]!;
+    var fa = fileDepSummary[a]!;
+    var fb = fileDepSummary[b]!;
     if (fa.isNullSafe && !fb.isNullSafe) return -1;
     if (fb.isNullSafe && !fa.isNullSafe) return 1;
     if (fa.totalDependencies == 0 && fb.totalDependencies != 0) return -1;
     if (fb.totalDependencies == 0 && fa.totalDependencies != 0) return 1;
+    if (sortByBlocking) {
+      final blockingA = fileBlockingCount[a] ?? 0;
+      final blockingB = fileBlockingCount[b] ?? 0;
+      if (blockingA != blockingB) return blockingB.compareTo(blockingA);
+    }
     if (fa.ratio != fb.ratio) return fb.ratio.compareTo(fa.ratio);
-    return fb.migratedDependencies.compareTo(fb.migratedDependencies);
+    return fb.migratedDependencies.compareTo(fa.migratedDependencies);
   });
 
   for (var file in keys) {
-    var data = fileSummary[file]!;
+    var data = fileDepSummary[file]!;
+    if (data.isNullSafe && !includeMigrated) continue;
     String status;
     String text = shorten(file);
+    final blocking = fileBlockingCount[file] ?? 0;
     if (data.isNullSafe) {
       status = '\x1b[33mmigrated ---\x1b[0m | $text';
     } else if (data.totalDependencies == 0) {
-      status = '\x1b[32mready    ---\x1b[0m | $text';
+      status = '\x1b[32mready    ---\x1b[0m | $text | Blocking: $blocking';
     } else if (data.ratio == 1.0) {
-      status = '\x1b[32mready   100%\x1b[0m | $text';
+      status = '\x1b[32mready   100%\x1b[0m | $text | Blocking: $blocking';
     } else {
       var perc = (data.ratio * 100).toStringAsFixed(0).padLeft(3);
       status = '\x1b[31mwait    $perc%\x1b[0m'
-          ' | $text [${data.migratedDependencies} / ${data.totalDependencies}]';
+          ' | $text [${data.migratedDependencies} / ${data.totalDependencies}]'
+          ' | Blocking: $blocking';
     }
     print(status);
   }
@@ -103,6 +137,7 @@ class FileData {
   final int migratedDependencies;
 
   double get ratio => migratedDependencies / totalDependencies;
+
   FileData(this.isNullSafe, this.totalDependencies, this.migratedDependencies);
 }
 

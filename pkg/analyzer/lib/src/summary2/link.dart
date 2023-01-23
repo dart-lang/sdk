@@ -30,7 +30,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 Future<LinkResult> link({
   required LinkedElementFactory elementFactory,
   required OperationPerformanceImpl performance,
-  required List<LibraryFileStateKind> inputLibraries,
+  required List<LibraryFileKind> inputLibraries,
   macro.MultiMacroExecutor? macroExecutor,
 }) async {
   final linker = Linker(elementFactory, macroExecutor);
@@ -85,7 +85,7 @@ class Linker {
 
   Future<void> link({
     required OperationPerformanceImpl performance,
-    required List<LibraryFileStateKind> inputLibraries,
+    required List<LibraryFileKind> inputLibraries,
   }) async {
     for (var inputLibrary in inputLibraries) {
       LibraryBuilder.build(this, inputLibrary);
@@ -121,6 +121,7 @@ class Linker {
     _createTypeSystem();
     _resolveTypes();
     _buildEnumChildren();
+    _computeFieldPromotability();
 
     await performance.runAsync(
       'executeMacroDeclarationsPhase',
@@ -142,6 +143,12 @@ class Linker {
   void _collectMixinSuperInvokedNames() {
     for (var library in builders.values) {
       library.collectMixinSuperInvokedNames();
+    }
+  }
+
+  void _computeFieldPromotability() {
+    for (var library in builders.values) {
+      library.computeFieldPromotability();
     }
   }
 

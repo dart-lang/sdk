@@ -15,7 +15,9 @@
 /// outlines).
 library front_end.tool.perf;
 
+import 'dart:convert';
 import 'dart:io' show Directory, File, Platform, exit;
+import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -43,11 +45,16 @@ Future<void> main(List<String> args) async {
 
   setup(path.fromUri(entryUri));
 
-  Set<Source> files = scanReachableFiles(entryUri);
-  var handlers = {
-    'scan': () async => scanFiles(files),
+  final Set<Source> files = scanReachableFiles(entryUri);
+  final Set<Uint8List> filesAsBytes = loadFileContentsAsBytes(files);
+  final handlers = {
+    'scan': () async => scanFiles(files, tokenize),
+    'scan_bytes': () async => scanFiles(filesAsBytes, tokenizeBytes),
     'parse': () async => parseFiles(files),
   };
+
+  // Ensure we start scanning with a clean string canonicalizer cache.
+  StringTokenImpl.canonicalizer.clear();
 
   var handler = handlers[bench];
   if (handler == null) {
@@ -147,13 +154,13 @@ void report(String name, int time) {
 }
 
 /// Scans every file in [files] and reports the time spent doing so.
-void scanFiles(Set<Source> files) {
+void scanFiles<T>(Set<T> files, void Function(T) scannerFunction) {
   // `tokenize` records how many chars are scanned and how long it takes to scan
   // them. As this function is called repeatedly when running as a benchmark, we
   // make sure to clear the data and compute it again every time.
   scanTimer = new Stopwatch();
   for (var source in files) {
-    tokenize(source);
+    scannerFunction(source);
   }
 
   report('scan', scanTimer.elapsedMicroseconds);
@@ -198,6 +205,17 @@ Set<Source> scanReachableFiles(Uri entryUri) {
   return files;
 }
 
+/// Loads the file contents of all [files] as bytes.
+Set<Uint8List> loadFileContentsAsBytes(Set<Source> files) {
+  return files.map((Source source) {
+    final bytes = utf8.encode(source.contents.data) as Uint8List;
+    // CFE needs files to e 0-terminated.
+    return Uint8List(bytes.length + 1)
+      ..setRange(0, bytes.length, bytes)
+      ..[bytes.length] = 0;
+  }).toSet();
+}
+
 /// Sets up analyzer to be able to load and resolve app, packages, and sdk
 /// sources.
 void setup(String path) {
@@ -228,6 +246,20 @@ ScannerResult tokenize(Source source) {
   // first converting to String?
   ScannerResult result =
       scanString(source.contents.data, includeComments: false);
+  var token = result.tokens;
+  if (result.hasErrors) {
+    // Ignore errors.
+    while (token is ErrorToken) {
+      token = token.next!;
+    }
+  }
+  scanTimer.stop();
+  return result;
+}
+
+ScannerResult tokenizeBytes(Uint8List source) {
+  scanTimer.start();
+  ScannerResult result = scan(source, includeComments: false);
   var token = result.tokens;
   if (result.hasErrors) {
     // Ignore errors.

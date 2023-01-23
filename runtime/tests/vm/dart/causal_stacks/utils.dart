@@ -205,21 +205,26 @@ Future<void> assertStack(List<String> expects, StackTrace stackTrace,
 
   // Use the DWARF stack decoder if we're running in --dwarf-stack-traces mode
   // and in precompiled mode (otherwise --dwarf-stack-traces has no effect).
-  final decodeTrace = frames.first.startsWith('Warning:');
-  if (decodeTrace) {
-    Expect.isNotNull(debugInfoFilename);
-    final dwarf = Dwarf.fromFile(debugInfoFilename!)!;
-    frames = await Stream.fromIterable(original)
-        .transform(DwarfStackTraceDecoder(dwarf))
-        .where(_lineRE.hasMatch)
-        .toList();
+  bool usingDwarf = false;
+  if (debugInfoFilename != null) {
+    try {
+      final dwarf = Dwarf.fromFile(debugInfoFilename)!;
+      usingDwarf = true;
+      frames = await Stream.fromIterable(original)
+          .transform(DwarfStackTraceDecoder(dwarf))
+          .where(_lineRE.hasMatch)
+          .toList();
+    } on FileSystemException {
+      // We're not running in precompiled mode, so the file doesn't exist and
+      // we can continue normally.
+    }
   }
 
   void printFrameInformation() {
     print('RegExps for expected stack:');
     expects.forEach((s) => print('"${s}"'));
     print('');
-    if (decodeTrace) {
+    if (usingDwarf) {
       print('Non-symbolic actual stack:');
       original.forEach(print);
       print('');

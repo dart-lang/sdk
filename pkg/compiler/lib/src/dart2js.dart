@@ -6,7 +6,7 @@
 
 library dart2js.cmdline;
 
-import 'dart:async' show Future;
+import 'dart:async' show Future, StreamSubscription;
 import 'dart:convert' show utf8, LineSplitter;
 import 'dart:io' show exit, File, FileMode, Platform, stdin, stderr;
 import 'dart:isolate' show Isolate;
@@ -17,6 +17,7 @@ import '../compiler_api.dart' as api;
 import '../compiler_api_unmigrated.dart' as api_unmigrated;
 import 'commandline_options.dart';
 import 'common/ram_usage.dart';
+import 'io/mapped_file.dart';
 import 'options.dart' show CompilerOptions, FeatureOptions;
 import 'source_file_provider.dart';
 import 'util/command_line.dart';
@@ -44,6 +45,7 @@ class OptionHandler {
   final bool multipleArguments;
 
   void handle(argument) {
+    // ignore: avoid_dynamic_calls
     (_handle as dynamic)(argument);
   }
 
@@ -561,6 +563,7 @@ Future<api.CompilationResult> compile(List<String> argv,
         setWriteModularAnalysis),
     OptionHandler('${Flags.readData}|${Flags.readData}=.+', setReadData),
     OptionHandler('${Flags.writeData}|${Flags.writeData}=.+', setWriteData),
+    OptionHandler(Flags.memoryMappedFiles, passThrough),
     OptionHandler(Flags.noClosedWorldInData, ignoreOption),
     OptionHandler('${Flags.readClosedWorld}|${Flags.readClosedWorld}=.+',
         setReadClosedWorld),
@@ -657,6 +660,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     OptionHandler(Flags.useOldRti, passThrough),
     OptionHandler(Flags.useSimpleLoadIds, passThrough),
     OptionHandler(Flags.testMode, passThrough),
+    OptionHandler(Flags.experimentalInferrer, passThrough),
     OptionHandler('${Flags.dumpSsa}=.+', passThrough),
     OptionHandler('${Flags.cfeInvocationModes}=.+', passThrough),
     OptionHandler('${Flags.invoker}=.+', setInvoker),
@@ -716,22 +720,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     print("Compiler invoked from: '$invoker'");
   }
 
-  // TODO(johnniwinther): Measure time for reading files.
-  SourceFileProvider inputProvider;
-  if (bazelPaths != null) {
-    if (multiRoots != null) {
-      helpAndFail(
-          'The options --bazel-root and --multi-root cannot be supplied '
-          'together, please choose one or the other.');
-    }
-    inputProvider = BazelInputProvider(bazelPaths);
-  } else if (multiRoots != null) {
-    inputProvider = MultiRootInputProvider(multiRootScheme, multiRoots);
-  } else {
-    inputProvider = CompilerSourceFileProvider();
-  }
-
-  diagnosticHandler = FormattingDiagnosticHandler(inputProvider);
+  diagnosticHandler = FormattingDiagnosticHandler();
   if (verbose != null) {
     diagnosticHandler.verbose = verbose;
   }
@@ -930,6 +919,41 @@ Future<api.CompilationResult> compile(List<String> argv,
     options.add('--source-map=${sourceMapOut}');
   }
 
+  CompilerOptions compilerOptions = CompilerOptions.parse(options,
+      featureOptions: features,
+      librariesSpecificationUri: librariesSpecificationUri,
+      platformBinaries: platformBinaries,
+      onError: (String message) => fail(message),
+      onWarning: (String message) => print(message))
+    ..entryUri = entryUri
+    ..inputDillUri = inputDillUri
+    ..packageConfig = packageConfig
+    ..environment = environment
+    ..kernelInitializedCompilerState = kernelInitializedCompilerState
+    ..optimizationLevel = optimizationLevel;
+
+  // TODO(johnniwinther): Measure time for reading files.
+  SourceFileByteReader byteReader = compilerOptions.memoryMappedFiles
+      ? const MemoryMapSourceFileByteReader()
+      : const MemoryCopySourceFileByteReader();
+
+  SourceFileProvider inputProvider;
+  if (bazelPaths != null) {
+    if (multiRoots != null) {
+      helpAndFail(
+          'The options --bazel-root and --multi-root cannot be supplied '
+          'together, please choose one or the other.');
+    }
+    inputProvider = BazelInputProvider(bazelPaths, byteReader);
+  } else if (multiRoots != null) {
+    inputProvider =
+        MultiRootInputProvider(multiRootScheme, multiRoots, byteReader);
+  } else {
+    inputProvider = CompilerSourceFileProvider(byteReader: byteReader);
+  }
+
+  diagnosticHandler.registerFileProvider(inputProvider);
+
   RandomAccessFileOutputProvider outputProvider =
       RandomAccessFileOutputProvider(out, sourceMapOut,
           onInfo: diagnosticHandler.info, onFailure: fail);
@@ -1085,19 +1109,6 @@ Future<api.CompilationResult> compile(List<String> argv,
     return result;
   }
 
-  diagnosticHandler.autoReadFileUri = true;
-  CompilerOptions compilerOptions = CompilerOptions.parse(options,
-      featureOptions: features,
-      librariesSpecificationUri: librariesSpecificationUri,
-      platformBinaries: platformBinaries,
-      onError: (String message) => fail(message),
-      onWarning: (String message) => print(message))
-    ..entryUri = entryUri
-    ..inputDillUri = inputDillUri
-    ..packageConfig = packageConfig
-    ..environment = environment
-    ..kernelInitializedCompilerState = kernelInitializedCompilerState
-    ..optimizationLevel = optimizationLevel;
   return compileFunc(
           compilerOptions, inputProvider, diagnosticHandler, outputProvider)
       .then(compilationDone);
@@ -1493,7 +1504,7 @@ void batchMain(List<String> batchArguments) {
   };
 
   var stream = stdin.transform(utf8.decoder).transform(LineSplitter());
-  var subscription;
+  StreamSubscription subscription;
   fe.InitializedCompilerState kernelInitializedCompilerState;
   subscription = stream.listen((line) {
     Future.sync(() {

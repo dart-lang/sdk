@@ -3,20 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart';
-
-import '../fasta_codes.dart'
-    show templateInternalProblemNotFoundIn, templateTypeArgumentMismatch;
-import '../problems.dart';
 import '../scope.dart';
 import '../source/source_library_builder.dart';
 import 'builder.dart';
+import 'builder_mixins.dart';
 import 'declaration_builder.dart';
-import 'field_builder.dart';
 import 'library_builder.dart';
-import 'member_builder.dart';
 import 'metadata_builder.dart';
-import 'nullability_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
 
@@ -43,60 +36,18 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
   // member lookup to avoid reporting that the member doesn't exist when it is
   // duplicate.
   Builder? lookupLocalMemberByName(Name name,
-      {bool setter: false, bool required: false});
+      {bool setter = false, bool required = false});
 
   /// Calls [f] for each member declared in this extension.
   void forEach(void f(String name, Builder builder));
 }
 
 abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
+    with DeclarationBuilderMixin
     implements ExtensionBuilder {
   ExtensionBuilderImpl(List<MetadataBuilder>? metadata, int modifiers,
       String name, LibraryBuilder parent, int charOffset, Scope scope)
       : super(metadata, modifiers, name, parent, charOffset, scope);
-
-  /// Lookup a static member of this declaration.
-  @override
-  Builder? findStaticBuilder(
-      String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
-      {bool isSetter: false}) {
-    if (accessingLibrary.nameOriginBuilder.origin !=
-            libraryBuilder.nameOriginBuilder.origin &&
-        name.startsWith("_")) {
-      return null;
-    }
-    Builder? declaration = isSetter
-        ? scope.lookupSetter(name, charOffset, fileUri, isInstanceScope: false)
-        : scope.lookup(name, charOffset, fileUri, isInstanceScope: false);
-    // TODO(johnniwinther): Handle patched extensions.
-    return declaration;
-  }
-
-  @override
-  DartType buildAliasedType(
-      LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder,
-      List<TypeBuilder>? arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      ClassHierarchyBase? hierarchy,
-      {required bool hasExplicitTypeArguments}) {
-    if (library is SourceLibraryBuilder &&
-        library.libraryFeatures.extensionTypes.isEnabled) {
-      return buildAliasedTypeWithBuiltArguments(
-          library,
-          nullabilityBuilder.build(library),
-          _buildAliasedTypeArguments(library, arguments, hierarchy),
-          typeUse,
-          fileUri,
-          charOffset,
-          hasExplicitTypeArguments: hasExplicitTypeArguments);
-    } else {
-      throw new UnsupportedError("ExtensionBuilder.buildType is not supported"
-          "in library '${library.importUri}'.");
-    }
-  }
 
   @override
   DartType buildAliasedTypeWithBuiltArguments(
@@ -118,104 +69,7 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  int get typeVariablesCount => typeParameters?.length ?? 0;
-
-  List<DartType> _buildAliasedTypeArguments(LibraryBuilder library,
-      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
-    if (arguments == null && typeParameters == null) {
-      return <DartType>[];
-    }
-
-    if (arguments == null && typeParameters != null) {
-      List<DartType> result =
-          new List<DartType>.generate(typeParameters!.length, (int i) {
-        return typeParameters![i].defaultType!.buildAliased(
-            library, TypeUse.defaultTypeAsTypeArgument, hierarchy);
-      }, growable: true);
-      if (library is SourceLibraryBuilder) {
-        library.inferredTypes.addAll(result);
-      }
-      return result;
-    }
-
-    if (arguments != null && arguments.length != typeVariablesCount) {
-      // That should be caught and reported as a compile-time error earlier.
-      return unhandled(
-          templateTypeArgumentMismatch
-              .withArguments(typeVariablesCount)
-              .problemMessage,
-          "buildTypeArguments",
-          -1,
-          null);
-    }
-
-    assert(arguments!.length == typeVariablesCount);
-    List<DartType> result =
-        new List<DartType>.generate(arguments!.length, (int i) {
-      return arguments[i]
-          .buildAliased(library, TypeUse.typeArgument, hierarchy);
-    }, growable: true);
-    return result;
-  }
-
-  @override
-  void forEach(void f(String name, Builder builder)) {
-    scope.forEach(f);
-  }
-
-  @override
   bool get isExtension => true;
-
-  @override
-  InterfaceType? get thisType => null;
-
-  @override
-  Builder? lookupLocalMember(String name,
-      {bool setter: false, bool required: false}) {
-    // TODO(johnniwinther): Support patching on extensions.
-    Builder? builder = scope.lookupLocalMember(name, setter: setter);
-    if (required && builder == null) {
-      internalProblem(
-          templateInternalProblemNotFoundIn.withArguments(
-              name, fullNameForErrors),
-          -1,
-          null);
-    }
-    return builder;
-  }
-
-  @override
-  Builder? lookupLocalMemberByName(Name name,
-      {bool setter: false, bool required: false}) {
-    Builder? builder =
-        lookupLocalMember(name.text, setter: setter, required: required);
-    if (builder == null && setter) {
-      // When looking up setters, we include assignable fields.
-      builder = lookupLocalMember(name.text, setter: false, required: required);
-      if (builder is! FieldBuilder || !builder.isAssignable) {
-        builder = null;
-      }
-    }
-    if (builder != null) {
-      if (name.isPrivate && libraryBuilder.library != name.library) {
-        builder = null;
-      } else if (builder is FieldBuilder &&
-          !builder.isStatic &&
-          !builder.isExternal) {
-        // Non-external extension instance fields are invalid.
-        builder = null;
-      } else if (builder.isDuplicate) {
-        // Duplicates are not visible in the instance scope.
-        builder = null;
-      } else if (builder is MemberBuilder && builder.isConflictingSetter) {
-        // Conflicting setters are not visible in the instance scope.
-        // TODO(johnniwinther): Should we return an [AmbiguousBuilder] here and
-        // above?
-        builder = null;
-      }
-    }
-    return builder;
-  }
 
   @override
   String get debugName => "ExtensionBuilder";

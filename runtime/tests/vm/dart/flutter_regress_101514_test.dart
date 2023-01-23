@@ -13,7 +13,7 @@ main() async {
 }
 
 Stream<int> foo() async* {
-  // While the generator (i.e. this funtion) runs, we cancel the consumer and
+  // While the generator (i.e. this function) runs, we cancel the consumer and
   // try to yield more.
   sub.cancel();
   yield* Stream.fromIterable([1, 2, 3]);

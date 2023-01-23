@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// All imports must be in all FFI patch files to not depend on the order
-// the patches are applied.
-import 'dart:_internal';
+import "dart:_internal" show patch, has63BitSmis;
+import 'dart:typed_data';
 import 'dart:isolate';
 import 'dart:typed_data';
 
@@ -498,7 +497,7 @@ T _checkAbiSpecificIntegerMapping<T>(T? object) {
 extension NativeFunctionPointer<NF extends Function>
     on Pointer<NativeFunction<NF>> {
   @patch
-  DF asFunction<DF extends Function>({bool isLeaf: false}) =>
+  DF asFunction<DF extends Function>({bool isLeaf = false}) =>
       throw UnsupportedError("The body is inlined in the frontend.");
 }
 
@@ -1031,7 +1030,7 @@ extension AbiSpecificIntegerArray on Array<AbiSpecificInteger> {
 
 extension NativePort on SendPort {
   @patch
-  @pragma("vm:external-name", "SendPortImpl_get_id")
+  @pragma("vm:external-name", "SendPort_get_id")
   external int get nativePort;
 }
 
@@ -1076,4 +1075,50 @@ abstract class NativeApi {
   @patch
   static Pointer<Void> get initializeApiDLData =>
       Pointer.fromAddress(_initializeApiDLData());
+}
+
+// Implementations needed to implement the private member added in the
+// patch class of [Array].
+
+@patch
+class _ArraySize<T extends NativeType> implements Array<T> {
+  _checkIndex(int index) => throw UnsupportedError('_ArraySize._checkIndex');
+
+  List<int> get _nestedDimensions =>
+      throw UnsupportedError('_ArraySize._nestedDimensions');
+
+  int get _nestedDimensionsFirst =>
+      throw UnsupportedError('_ArraySize._nestedDimensionsFirst');
+
+  int? get _nestedDimensionsFirstCache =>
+      throw UnsupportedError('_ArraySize._nestedDimensionsFirstCache');
+
+  void set _nestedDimensionsFirstCache(int? _) {
+    throw UnsupportedError('_ArraySize._nestedDimensionsFirstCache');
+  }
+
+  int get _nestedDimensionsFlattened =>
+      throw UnsupportedError('_ArraySize._nestedDimensionsFlattened');
+
+  int? get _nestedDimensionsFlattenedCache =>
+      throw UnsupportedError('_ArraySize._nestedDimensionsFlattenedCache');
+
+  void set _nestedDimensionsFlattenedCache(int? _) {
+    throw UnsupportedError('_ArraySize._nestedDimensionsFlattenedCache');
+  }
+
+  List<int> get _nestedDimensionsRest =>
+      throw UnsupportedError('_ArraySize._nestedDimensionsRest');
+
+  List<int>? get _nestedDimensionsRestCache =>
+      throw UnsupportedError('_ArraySize._nestedDimensionsRestCache');
+
+  void set _nestedDimensionsRestCache(List<int>? _) {
+    throw UnsupportedError('_ArraySize._nestedDimensionsRestCache');
+  }
+
+  int get _size => throw UnsupportedError('_ArraySize._size');
+
+  Object get _typedDataBase =>
+      throw UnsupportedError('_ArraySize._typedDataBase');
 }

@@ -1,7 +1,8 @@
 [![pub package](https://img.shields.io/pub/v/js.svg)](https://pub.dev/packages/js)
 [![package publisher](https://img.shields.io/pub/publisher/js.svg)](https://pub.dev/packages/js/publisher)
 
-Use this package when you want to call JavaScript APIs from Dart code, or vice versa.
+Use this package when you want to call JavaScript APIs from Dart code, or vice
+versa.
 
 This package's main library, `js`, provides annotations and functions
 that let you specify how your Dart code interoperates with JavaScript code.
@@ -12,8 +13,8 @@ annotations, using them to connect your Dart code with JavaScript.
 Instead, import `package:js/js.dart`.
 
 A second library in this package, `js_util`, provides low-level utilities
-that you can use when it isn't possible to wrap JavaScript with a static, annotated API.
-
+that you can use when it isn't possible to wrap JavaScript with a static,
+annotated API.
 
 ## Example
 
@@ -134,14 +135,64 @@ void main() {
 }
 ```
 
-## Interop with native types using `@staticInterop`
+### @staticInterop
 
-Previously, you could not use `@JS()` or `@anonymous` types to interface with
-native types that were reserved within `dart:html` e.g. `Window`.
+With `package:js`, we have historically had two different types of classes:
+plain `@JS` (those with just the `@JS` annotation) and `@anonymous` classes.
+Now, you can use a new one: `@staticInterop`.
 
-Using `@staticInterop` will now let you do so. However, it requires that there
-be no instance members within the class (constructors are still allowed). You
-can use static extension methods instead to declare these members. For example:
+These classes are different in that they do not allow instance members within
+the class itself. All such members need to go into an extension (hence
+“static”). Let’s look at an example:
+
+```dart
+@JS()
+library static_interop;
+
+import 'package:js/js.dart';
+
+// Assumes there is a top-level `StaticInterop` class in a JS module.
+@JS()
+@staticInterop
+class StaticInterop {
+  external factory StaticInterop();
+}
+
+extension on StaticInterop {
+  external int field;
+  external int get getSet;
+  external set getSet(int val);
+  external int method();
+}
+
+void main() {
+  var jsObj = StaticInterop();
+  jsObj.field = 1;
+  jsObj.method();
+}
+```
+
+The `external` static extension members get lowered to JS naturally:
+`jsObj.field` becomes a property get of `field` in JS and `jsObj.method()`
+becomes a function invocation of `method` on `jsObj`.
+
+In many ways, these classes are just like the plain `@JS` and `@anonymous`
+classes. Like with plain `@JS` classes, you can provide a value in `@JS` if you
+want the constructor to use a particular JS class e.g.
+`@JS(‘module.MyJSClass’)`. You can also add `@anonymous` to `@staticInterop`
+classes if you want the factory constructor with named arguments in order to
+make an object literal e.g.
+`external factory AnonymousStaticInterop({int? field1, int? field2})`. Also like
+with plain `@JS` classes, you can’t inherit non-`package:js` classes. You should
+only inherit other `@staticInterop` classes for subtyping and inheriting
+extension methods. Lastly, you can freely cast JS objects to and from the three
+types of `package:js` classes.
+
+What makes `@staticInterop` unique, however, is that you can use them to
+represent DOM objects as well as other JS objects, which you can’t with previous
+`package:js` classes. Historically, you’ve needed to use `dart:html` to interact
+with the DOM e.g. `DivElement`. Now, you can create your own abstraction for
+these objects instead of using the ones we provide in `dart:html`:
 
 ```dart
 @JS()
@@ -166,15 +217,193 @@ void main() {
 }
 ```
 
-Note that in the above you can have both `external` and non-`external` members
-in the extension. You can have `external` variables, getters/setters, and
-methods within a static extension currently. These `external` members are
-lowered to their respective `js_util` calls under the hood. For example, the
-`external` `name` getter is equivalent to `js_util.getProperty(this, 'name')`.
+Note that you can have both `external` and non-`external` members in the
+extension.
 
-In general, it's advised to use `@staticInterop` wherever you can over using
-just `@JS()`. There will be fewer surprises and it's aligned with the statically
-typed future planned for JS interop.
+Compared to non-`@staticInterop` `package:js` classes, `@staticInterop` classes:
+- Are more performant
+- Have better type guarantees
+- Generate less code
+- Allow non-`external` members
+- Allow `external` extension members to be renamed using `@JS()` e.g.
+  `@JS('renamedField')`
+
+The only catch is that virtual/dynamic dispatch is *disallowed*. That means
+methods are resolved using only the *static* type of the object.
+
+In general, it's advised to use `@staticInterop` wherever you can, as future
+JS interop will only target static dispatch.
+
+### @JSExport and js_util.createDartExport
+
+One of the difficulties with JS interop is that most of it is exclusively
+focused on importing JS code to Dart, not the other way around. We have some
+functionality like `allowInterop`, which allows you to call Dart functions in
+JS, but this becomes cumbersome when you want to use a Dart object. You need to
+essentially `allowInterop` all members manually.
+
+`createDartExport` instead lets you do this automatically. Let’s see how with an
+example:
+
+```dart
+import 'dart:js_util';
+
+import 'package:expect/minitest.dart';
+import 'package:js/js.dart';
+
+// The Dart class must have `@JSExport` on it or one of its instance members.
+@JSExport()
+class Counter {
+  int value = 0;
+  @JSExport('increment')
+  void renamedIncrement() {
+    value++;
+  }
+}
+
+@JS()
+@staticInterop
+class JSCounter {}
+
+extension on JSCounter {
+  external int value;
+  external void increment();
+}
+
+void main() {
+  var dartCounter = Counter();
+  var counter = createDartExport<Counter>(dartCounter) as JSCounter;
+  expect(counter.value, 0);
+  counter.increment();
+  expect(counter.value, 1);
+  expect(dartCounter.value, 1); // Dart object gets modified
+  dartCounter.value = 0;
+  expect(counter.value, 0); // Changes in Dart object affect the exported object
+}
+```
+
+There are a number of things happening here. At a high level, you pass
+`createDartExport` an instance of some Dart object that has `@JSExport` either
+on it or one of its instance members and the object’s static type if needed.
+Using the static type, we transform the `createDartExport` call into a JS object
+literal that is a mapping from each member’s Dart name (accounting for renames
+using the `@JSExport` annotation) to the member. The JS object essentially wraps
+and acts as a proxy to the exported Dart object.
+
+Now, when we use it as a JS object (in this case, using `@staticInterop`), we
+can use the same names to access these members. We can also use the same syntax
+to access these members e.g. `counter.value = 0`. This now gives us an easy to
+do what we wanted before with `allowInterop` for each member.
+
+There are, of course, limitations.
+
+The only members that are “exported” are concrete instance members i.e. fields,
+getters, setters, and methods. That means you can’t export static members,
+constructors, factories, operators (the syntax complicates things), and
+extension methods. You can still have these members - they just won’t be present
+in the resulting exported object. Of course, you can use another instance member
+to call these members as well, and *that* instance member will be exported.
+
+In order to use `createDartExport`, you need to have a class that uses
+`@JSExport`.If you want to export only some members of a class, omit the
+annotation on the class, and only use it on the members you want. If you need to
+rename members, you can provide the `@JSExport` annotation on that member a
+string value, similar to renaming done via `@JS()`. Inheritance respects the
+individual superclass’ annotations. In other words, if the class of the object
+you want to export has a superclass, but that superclass has no `@JSExport`
+annotation anywhere, none of its superclass’ members are exported.
+
+Lastly, different members can’t have the same export name, unless they are a
+getter and setter pair. So, for example, if you have a field and a method and
+one of them is renamed to the other’s name, that’s a conflict:
+
+```dart
+@JSExport()
+class DartClass {
+  int member = 0;
+  @JSExport('member') // Two incompatible members have the same export name.
+  void method() {}
+}
+```
+
+This holds true with inheritance as well, unless the member is overridden.
+
+### js_util.createStaticInteropMock
+
+One of the neat things about the above example with `Counter` is we’ve
+essentially created a mock for `JSCounter`. In the past, to mock a plain `@JS`
+or `@anonymous` class, you could create a Dart class that `implements` that
+interop class, and due to Dart's virtual dispatch, this would call the Dart
+class' members instead. Now that we're using `external` extension members, this
+no longer works. We now have to mock at the *JS level* instead. With
+`createDartExport`, you’re essentially using a Dart object to replace a JS
+object. This functionality is equivalent to mocking at the JS level, and you can
+also use it to mock the old non-`@staticInterop` `package:js` classes!
+
+One useful feature of the old style of mocking using `implements` is it lets you
+know if you've implemented the needed members. We can't do that with
+`createDartExport`. For example:
+
+```dart
+@JSExport()
+class Counter {
+  // Where is `value` and `increment`?
+}
+```
+
+This would obviously not be a satisfactory mock for `JSCounter`.
+`createDartExport` has no idea what class you're trying to mock, so it can't
+tell you if you’ve got your mock class right.
+
+This is where `createStaticInteropMock` comes in. It takes in a separate type
+argument, e.g. `createStaticInteropMock<JSCounter, Counter>(Counter())`, to
+determine whether mocking *conformance* is satisfied. This type argument must be
+a `@staticInterop` class. With this, you’ll see an error saying that you haven’t
+implemented all the needed members. If the mock class implements all the needed
+members, the function does the same thing as `createDartExport`, and returns an
+object literal that wraps the Dart object.
+
+You can also use `package:mockito` to do the mocking with this API, by providing
+a generated mocking object from `package:mockito` to `createStaticInteropMock`.
+
+There are some corner cases here that are worth noting.
+
+It is possible, through the expressiveness of extension methods, to have name
+conflicts like this:
+
+```dart
+@JS()
+@staticInterop
+class StaticInterop {}
+
+extension A on StaticInterop {
+  external Function member;
+}
+
+extension B on StaticInterop {
+  external void member();
+}
+```
+
+This present an issue as a single Dart class cannot implement `member` as both a
+field and a function. So, what to do? We require that you only implement *one*
+of these members. So, either a Function field or a function are satisfactory.
+
+It is also sometimes desired that the mocking object is the same underlying type
+as the JS object you are interfacing. For example, if you want to mock a JS
+`Element`, you’d want the type of the mocking object to also be a `Element` in
+order to pass `instanceof` checks. In order to do this, we let users pass the JS
+prototype of the type they want the mocking object to be as an argument to
+`createStaticInteropMock`.
+
+An important note here is that `createStaticInteropMock` looks for *all*
+extensions of the `@staticInterop` type in the program, even if they are out of
+scope of the current file. In order to avoid a case where other libraries
+extending the `@staticInterop` type break your usage of
+`createStaticInteropMock`, you should try to only use this API in tests.
+`createStaticInteropMock` is meant to detect issues earlier at compile-time, but
+if it's too restrictive, you can still use `createDartExport` to workaround
+that (and please provide us feedback on why it's restrictive!).
 
 ## Reporting issues
 
@@ -206,8 +435,8 @@ specifically use `jsonEncode` in Dart rather than a JS alternative.
 #### Missing validation for anonymous factory constructors in dartdevc
 
 When using an `@anonymous` class to create JavaScript object literals dart2js
-will enforce that only named arguments are used, while dartdevc will allow positional
-arguments but may generate incorrect code.
+will enforce that only named arguments are used, while dartdevc will allow
+positional arguments but may generate incorrect code.
 
 **Workaround:** Try builds in both development and release mode to get the full
 scope of static validation.
@@ -222,7 +451,8 @@ common problems are also known as _sharp edges_.
 
 The return types of methods annotated with `@JS()` are not validated at runtime,
 so an incorrect type may "leak" into other Dart code and violate type system
-guarantees.
+guarantees. This is not true for `@staticInterop` classes unless the
+`@trustTypes` annotation is used.
 
 **Workaround:** For any calls into JavaScript code that are not known to be safe
 in their return values, validate the results manually with `is` checks.

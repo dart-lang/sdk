@@ -358,6 +358,7 @@ class Library extends NamedNode
   List<Typedef> _typedefs;
   List<Class> _classes;
   List<Extension> _extensions;
+  List<View> _views;
   List<Procedure> _procedures;
   List<Field> _fields;
 
@@ -369,6 +370,7 @@ class Library extends NamedNode
       List<Typedef>? typedefs,
       List<Class>? classes,
       List<Extension>? extensions,
+      List<View>? views,
       List<Procedure>? procedures,
       List<Field>? fields,
       required this.fileUri,
@@ -381,6 +383,7 @@ class Library extends NamedNode
         this._typedefs = typedefs ?? <Typedef>[],
         this._classes = classes ?? <Class>[],
         this._extensions = extensions ?? <Extension>[],
+        this._views = views ?? <View>[],
         this._procedures = procedures ?? <Procedure>[],
         this._fields = fields ?? <Field>[],
         super(reference) {
@@ -418,6 +421,15 @@ class Library extends NamedNode
   /// Used for adding extensions when reading the dill file.
   void set extensionsInternal(List<Extension> extensions) {
     _extensions = extensions;
+  }
+
+  List<View> get views => _views;
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding views when reading the dill file.
+  void set viewsInternal(List<View> views) {
+    _views = views;
   }
 
   List<Procedure> get procedures => _procedures;
@@ -478,6 +490,11 @@ class Library extends NamedNode
     extensions.add(extension);
   }
 
+  void addView(View view) {
+    view.parent = this;
+    views.add(view);
+  }
+
   void addField(Field field) {
     field.parent = this;
     fields.add(field);
@@ -516,6 +533,9 @@ class Library extends NamedNode
     for (int i = 0; i < extensions.length; ++i) {
       extensions[i].bindCanonicalNames(canonicalName);
     }
+    for (int i = 0; i < views.length; ++i) {
+      views[i].bindCanonicalNames(canonicalName);
+    }
   }
 
   /// This is an advanced feature. Use of this method should be coordinated
@@ -547,6 +567,10 @@ class Library extends NamedNode
       Extension extension = extensions[i];
       extension._relinkNode();
     }
+    for (int i = 0; i < views.length; ++i) {
+      View view = views[i];
+      view._relinkNode();
+    }
   }
 
   void addDependency(LibraryDependency node) {
@@ -571,6 +595,7 @@ class Library extends NamedNode
     visitList(typedefs, v);
     visitList(classes, v);
     visitList(extensions, v);
+    visitList(views, v);
     visitList(procedures, v);
     visitList(fields, v);
   }
@@ -583,6 +608,7 @@ class Library extends NamedNode
     v.transformList(typedefs, this);
     v.transformList(classes, this);
     v.transformList(extensions, this);
+    v.transformList(views, this);
     v.transformList(procedures, this);
     v.transformList(fields, this);
   }
@@ -595,6 +621,7 @@ class Library extends NamedNode
     v.transformTypedefList(typedefs, this);
     v.transformClassList(classes, this);
     v.transformExtensionList(extensions, this);
+    v.transformViewList(views, this);
     v.transformProcedureList(procedures, this);
     v.transformFieldList(fields, this);
   }
@@ -998,6 +1025,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   static const int FlagMixinDeclaration = 1 << 4;
   static const int FlagHasConstConstructor = 1 << 5;
   static const int FlagMacro = 1 << 6;
+  static const int FlagSealed = 1 << 7;
 
   int flags = 0;
 
@@ -1019,6 +1047,13 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
 
   void set isMacro(bool value) {
     flags = value ? (flags | FlagMacro) : (flags & ~FlagMacro);
+  }
+
+  /// Whether this class is a macro class.
+  bool get isSealed => flags & FlagSealed != 0;
+
+  void set isSealed(bool value) {
+    flags = value ? (flags | FlagSealed) : (flags & ~FlagSealed);
   }
 
   /// Whether this class is a synthetic implementation created for each
@@ -1221,8 +1256,8 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
 
   Class(
       {required this.name,
-      bool isAbstract: false,
-      bool isAnonymousMixin: false,
+      bool isAbstract = false,
+      bool isAnonymousMixin = false,
       this.supertype,
       this.mixedInType,
       List<TypeParameter>? typeParameters,
@@ -1543,6 +1578,7 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
 
   // Must match serialized bit positions.
   static const int FlagExtensionTypeDeclaration = 1 << 0;
+  static const int FlagUnnamedExtension = 1 << 1;
 
   int flags = 0;
 
@@ -1592,6 +1628,16 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
         : (flags & ~FlagExtensionTypeDeclaration);
   }
 
+  bool get isUnnamedExtension {
+    return flags & FlagUnnamedExtension != 0;
+  }
+
+  void set isUnnamedExtension(bool value) {
+    flags = value
+        ? (flags | FlagUnnamedExtension)
+        : (flags & ~FlagUnnamedExtension);
+  }
+
   @override
   R accept<R>(TreeVisitor<R> v) => v.visitExtension(this);
 
@@ -1602,6 +1648,7 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
 
   @override
   void visitChildren(Visitor v) {
+    visitList(annotations, v);
     visitList(typeParameters, v);
     onType.accept(v);
     if (showHideClause != null) {
@@ -1704,7 +1751,7 @@ class ExtensionMemberDescriptor {
   ExtensionMemberDescriptor(
       {required this.name,
       required this.kind,
-      bool isStatic: false,
+      bool isStatic = false,
       required this.member}) {
     this.isStatic = isStatic;
   }
@@ -1841,7 +1888,7 @@ class ExtensionTypeShowHideClause {
   final List<Reference> hiddenOperators = <Reference>[];
 
   Reference? findShownReference(Name name,
-      CallSiteAccessKind callSiteAccessKind, ClassHierarchy hierarchy) {
+      CallSiteAccessKind callSiteAccessKind, ClassHierarchyMembers hierarchy) {
     List<Reference> shownReferences;
     List<Reference> hiddenReferences;
     switch (callSiteAccessKind) {
@@ -1879,7 +1926,7 @@ class ExtensionTypeShowHideClause {
       Name name,
       List<Reference> references,
       List<Supertype> interfaces,
-      ClassHierarchy hierarchy,
+      ClassHierarchyMembers hierarchy,
       CallSiteAccessKind callSiteAccessKind) {
     for (Reference reference in references) {
       if (reference.asMember.name == name) {
@@ -1894,6 +1941,200 @@ class ExtensionTypeShowHideClause {
       }
     }
     return null;
+  }
+}
+
+/// Declaration of a view.
+///
+/// The members are converted into top-level procedures and only accessible
+/// by reference in the [View] node.
+class View extends NamedNode implements Annotatable, FileUriNode {
+  /// Name of the view.
+  String name;
+
+  /// The URI of the source file this class was loaded from.
+  @override
+  Uri fileUri;
+
+  /// Type parameters declared on the extension.
+  final List<TypeParameter> typeParameters;
+
+  /// The type in the underlying representation of the view declaration.
+  ///
+  /// For instance A in the view B:
+  ///
+  ///   class A {}
+  ///   view class B(A it) {}
+  ///
+  late DartType representationType;
+
+  /// The members declared by the view.
+  ///
+  /// The members are converted into top-level members and only accessible
+  /// by reference through [ViewMemberDescriptor].
+  List<ViewMemberDescriptor> members;
+
+  @override
+  List<Expression> annotations = const <Expression>[];
+
+  int flags = 0;
+
+  @override
+  void addAnnotation(Expression node) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
+    annotations.add(node);
+    node.parent = this;
+  }
+
+  View(
+      {required this.name,
+      List<TypeParameter>? typeParameters,
+      DartType? representationType,
+      List<ViewMemberDescriptor>? members,
+      required this.fileUri,
+      Reference? reference})
+      // ignore: unnecessary_null_comparison
+      : assert(name != null),
+        // ignore: unnecessary_null_comparison
+        assert(fileUri != null),
+        this.typeParameters = typeParameters ?? <TypeParameter>[],
+        this.members = members ?? <ViewMemberDescriptor>[],
+        super(reference) {
+    setParents(this.typeParameters, this);
+    if (representationType != null) {
+      this.representationType = representationType;
+    }
+  }
+
+  @override
+  void bindCanonicalNames(CanonicalName parent) {
+    parent.getChild(name).bindTo(reference);
+  }
+
+  Library get enclosingLibrary => parent as Library;
+
+  @override
+  R accept<R>(TreeVisitor<R> v) => v.visitView(this);
+
+  @override
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) => v.visitView(this, arg);
+
+  R acceptReference<R>(Visitor<R> v) => v.visitViewReference(this);
+
+  @override
+  void visitChildren(Visitor v) {
+    visitList(annotations, v);
+    visitList(typeParameters, v);
+    representationType.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    v.transformList(annotations, this);
+    v.transformList(typeParameters, this);
+    // ignore: unnecessary_null_comparison
+    if (representationType != null) {
+      representationType = v.visitDartType(representationType);
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    v.transformExpressionList(annotations, this);
+    v.transformTypeParameterList(typeParameters, this);
+    // ignore: unnecessary_null_comparison
+    if (representationType != null) {
+      representationType =
+          v.visitDartType(representationType, cannotRemoveSentinel);
+    }
+  }
+
+  @override
+  Location? _getLocationInEnclosingFile(int offset) {
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+  }
+
+  @override
+  String toString() {
+    return "View(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeViewName(reference);
+  }
+}
+
+enum ViewMemberKind {
+  Constructor,
+  Factory,
+  Field,
+  Method,
+  Getter,
+  Setter,
+  Operator,
+  TearOff,
+}
+
+/// Information about an member declaration in a view.
+class ViewMemberDescriptor {
+  static const int FlagStatic = 1 << 0; // Must match serialized bit positions.
+
+  /// The name of the extension member.
+  ///
+  /// The name of the generated top-level member is mangled to ensure
+  /// uniqueness. This name is used to lookup an extension method in the
+  /// extension itself.
+  Name name;
+
+  /// [ViewMemberKind] kind of the original member.
+  ///
+  /// A view method is converted into a regular top-level method. For
+  /// instance:
+  ///
+  ///     class A {
+  ///       var foo;
+  ///     }
+  ///     extension B on A {
+  ///       get bar => this.foo;
+  ///     }
+  ///
+  /// will be converted into
+  ///
+  ///     class A {}
+  ///     B|get#bar(A #this) => #this.foo;
+  ///
+  /// where `B|get#bar` is the synthesized name of the top-level method and
+  /// `#this` is the synthesized parameter that holds represents `this`.
+  ///
+  ViewMemberKind kind;
+
+  int flags = 0;
+
+  /// Reference to the top-level member created for the extension method.
+  final Reference member;
+
+  ViewMemberDescriptor(
+      {required this.name,
+      required this.kind,
+      bool isStatic = false,
+      required this.member}) {
+    this.isStatic = isStatic;
+  }
+
+  /// Return `true` if the extension method was declared as `static`.
+  bool get isStatic => flags & FlagStatic != 0;
+
+  void set isStatic(bool value) {
+    flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
+  }
+
+  @override
+  String toString() {
+    return 'ViewMemberDescriptor($name,$kind,'
+        '${member.toStringInternal()},isStatic=${isStatic})';
   }
 }
 
@@ -2150,13 +2391,13 @@ class Field extends Member {
   Reference get fieldReference => super.reference;
 
   Field.mutable(Name name,
-      {this.type: const DynamicType(),
+      {this.type = const DynamicType(),
       this.initializer,
-      bool isCovariantByDeclaration: false,
-      bool isFinal: false,
-      bool isStatic: false,
-      bool isLate: false,
-      int transformerFlags: 0,
+      bool isCovariantByDeclaration = false,
+      bool isFinal = false,
+      bool isStatic = false,
+      bool isLate = false,
+      int transformerFlags = 0,
       required Uri fileUri,
       Reference? fieldReference,
       Reference? getterReference,
@@ -2177,17 +2418,18 @@ class Field extends Member {
   }
 
   Field.immutable(Name name,
-      {this.type: const DynamicType(),
+      {this.type = const DynamicType(),
       this.initializer,
-      bool isCovariantByDeclaration: false,
-      bool isFinal: false,
-      bool isConst: false,
-      bool isStatic: false,
-      bool isLate: false,
-      int transformerFlags: 0,
+      bool isCovariantByDeclaration = false,
+      bool isFinal = false,
+      bool isConst = false,
+      bool isStatic = false,
+      bool isLate = false,
+      int transformerFlags = 0,
       required Uri fileUri,
       Reference? fieldReference,
-      Reference? getterReference})
+      Reference? getterReference,
+      bool isEnumElement = false})
       : this.getterReference = getterReference ?? new Reference(),
         this.setterReference = null,
         super(name, fileUri, fieldReference) {
@@ -2200,6 +2442,7 @@ class Field extends Member {
     this.isConst = isConst;
     this.isStatic = isStatic;
     this.isLate = isLate;
+    this.isEnumElement = isEnumElement;
     this.transformerFlags = transformerFlags;
   }
 
@@ -2230,6 +2473,7 @@ class Field extends Member {
   static const int FlagExtensionMember = 1 << 6;
   static const int FlagNonNullableByDefault = 1 << 7;
   static const int FlagInternalImplementation = 1 << 8;
+  static const int FlagEnumElement = 1 << 9;
 
   /// Whether the field is declared with the `covariant` keyword.
   bool get isCovariantByDeclaration => flags & FlagCovariant != 0;
@@ -2261,6 +2505,18 @@ class Field extends Member {
   /// lowering.
   @override
   bool get isInternalImplementation => flags & FlagInternalImplementation != 0;
+
+  /// If `true` this field is an enum element.
+  ///
+  /// For instance
+  ///
+  ///    enum A {
+  ///      a, b;
+  ///      static const A c = A.a;
+  ///    }
+  ///
+  /// the fields `a` and `b` are enum elements whereas `c` is a regular field.
+  bool get isEnumElement => flags & FlagEnumElement != 0;
 
   void set isCovariantByDeclaration(bool value) {
     flags = value ? (flags | FlagCovariant) : (flags & ~FlagCovariant);
@@ -2297,6 +2553,10 @@ class Field extends Member {
     flags = value
         ? (flags | FlagInternalImplementation)
         : (flags & ~FlagInternalImplementation);
+  }
+
+  void set isEnumElement(bool value) {
+    flags = value ? (flags | FlagEnumElement) : (flags & ~FlagEnumElement);
   }
 
   @override
@@ -2408,11 +2668,11 @@ class Constructor extends Member {
 
   Constructor(this.function,
       {required Name name,
-      bool isConst: false,
-      bool isExternal: false,
-      bool isSynthetic: false,
+      bool isConst = false,
+      bool isExternal = false,
+      bool isSynthetic = false,
       List<Initializer>? initializers,
-      int transformerFlags: 0,
+      int transformerFlags = 0,
       required Uri fileUri,
       Reference? reference})
       : this.initializers = initializers ?? <Initializer>[],
@@ -2584,9 +2844,9 @@ class RedirectingFactory extends Member {
 
   RedirectingFactory(this.targetReference,
       {required Name name,
-      bool isConst: false,
-      bool isExternal: false,
-      int transformerFlags: 0,
+      bool isConst = false,
+      bool isExternal = false,
+      int transformerFlags = 0,
       List<DartType>? typeArguments,
       required this.function,
       required Uri fileUri,
@@ -2949,16 +3209,17 @@ class Procedure extends Member {
   FunctionType? signatureType;
 
   Procedure(Name name, ProcedureKind kind, FunctionNode function,
-      {bool isAbstract: false,
-      bool isStatic: false,
-      bool isExternal: false,
-      bool isConst: false,
-      bool isExtensionMember: false,
-      bool isSynthetic: false,
-      int transformerFlags: 0,
+      {bool isAbstract = false,
+      bool isStatic = false,
+      bool isExternal = false,
+      bool isConst = false,
+      bool isExtensionMember = false,
+      bool isSynthetic = false,
+      bool isAbstractFieldAccessor = false,
+      int transformerFlags = 0,
       required Uri fileUri,
       Reference? reference,
-      ProcedureStubKind stubKind: ProcedureStubKind.Regular,
+      ProcedureStubKind stubKind = ProcedureStubKind.Regular,
       Member? stubTarget})
       : this._byReferenceRenamed(name, kind, function,
             isAbstract: isAbstract,
@@ -2967,6 +3228,7 @@ class Procedure extends Member {
             isConst: isConst,
             isExtensionMember: isExtensionMember,
             isSynthetic: isSynthetic,
+            isAbstractFieldAccessor: isAbstractFieldAccessor,
             transformerFlags: transformerFlags,
             fileUri: fileUri,
             reference: reference,
@@ -2975,16 +3237,17 @@ class Procedure extends Member {
                 getMemberReferenceBasedOnProcedureKind(stubTarget, kind));
 
   Procedure._byReferenceRenamed(Name name, this.kind, this.function,
-      {bool isAbstract: false,
-      bool isStatic: false,
-      bool isExternal: false,
-      bool isConst: false,
-      bool isExtensionMember: false,
-      bool isSynthetic: false,
-      int transformerFlags: 0,
+      {bool isAbstract = false,
+      bool isStatic = false,
+      bool isExternal = false,
+      bool isConst = false,
+      bool isExtensionMember = false,
+      bool isSynthetic = false,
+      bool isAbstractFieldAccessor = false,
+      int transformerFlags = 0,
       required Uri fileUri,
       Reference? reference,
-      this.stubKind: ProcedureStubKind.Regular,
+      this.stubKind = ProcedureStubKind.Regular,
       this.stubTargetReference})
       // ignore: unnecessary_null_comparison
       : assert(kind != null),
@@ -2998,6 +3261,7 @@ class Procedure extends Member {
     this.isConst = isConst;
     this.isExtensionMember = isExtensionMember;
     this.isSynthetic = isSynthetic;
+    this.isAbstractFieldAccessor = isAbstractFieldAccessor;
     setTransformerFlagsWithoutLazyLoading(transformerFlags);
     assert(!(isMemberSignature && stubTargetReference == null),
         "No member signature origin for member signature $this.");
@@ -3048,6 +3312,7 @@ class Procedure extends Member {
   static const int FlagNonNullableByDefault = 1 << 6;
   static const int FlagSynthetic = 1 << 7;
   static const int FlagInternalImplementation = 1 << 8;
+  static const int FlagIsAbstractFieldAccessor = 1 << 9;
 
   bool get isStatic => flags & FlagStatic != 0;
 
@@ -3113,6 +3378,15 @@ class Procedure extends Member {
     flags = value
         ? (flags | FlagInternalImplementation)
         : (flags & ~FlagInternalImplementation);
+  }
+
+  /// If `true` this procedure was generated from an abstract field.
+  bool get isAbstractFieldAccessor => flags & FlagIsAbstractFieldAccessor != 0;
+
+  void set isAbstractFieldAccessor(bool value) {
+    flags = value
+        ? (flags | FlagIsAbstractFieldAccessor)
+        : (flags & ~FlagIsAbstractFieldAccessor);
   }
 
   @override
@@ -3729,8 +4003,8 @@ class FunctionNode extends TreeNode {
       List<VariableDeclaration>? positionalParameters,
       List<VariableDeclaration>? namedParameters,
       int? requiredParameterCount,
-      this.returnType: const DynamicType(),
-      this.asyncMarker: AsyncMarker.Sync,
+      this.returnType = const DynamicType(),
+      this.asyncMarker = AsyncMarker.Sync,
       AsyncMarker? dartAsyncMarker,
       this.futureValueType})
       : this.positionalParameters =
@@ -3805,93 +4079,6 @@ class FunctionNode extends TreeNode {
             .applyToFunctionType(computeThisFunctionType(nullability));
   }
 
-  /// Return function type of node returning [typedefType] reuse type parameters
-  ///
-  /// When this getter is invoked, the parent must be a [Constructor].
-  /// This getter works similarly to [computeThisFunctionType], but uses
-  /// [typedef] to compute the return type of the returned function type. It
-  /// is useful in some contexts, especially during inference of aliased
-  /// constructor invocations.
-  FunctionType computeAliasedConstructorFunctionType(
-      Typedef typedef, Library library) {
-    assert(parent is Constructor, "Only run this method on constructors");
-    Constructor parentConstructor = parent as Constructor;
-    // We need create a copy of the list of type parameters, otherwise
-    // transformations like erasure don't work.
-    List<TypeParameter> classTypeParametersCopy =
-        List.of(parentConstructor.enclosingClass.typeParameters);
-    List<TypeParameter> typedefTypeParametersCopy =
-        List.of(typedef.typeParameters);
-    List<DartType> asTypeArguments =
-        getAsTypeArguments(typedefTypeParametersCopy, library);
-    TypedefType typedefType =
-        TypedefType(typedef, library.nonNullable, asTypeArguments);
-    DartType unaliasedTypedef = typedefType.unalias;
-    assert(unaliasedTypedef is InterfaceType,
-        "[typedef] is assumed to resolve to an interface type");
-    InterfaceType targetType = unaliasedTypedef as InterfaceType;
-    Substitution substitution = Substitution.fromPairs(
-        classTypeParametersCopy, targetType.typeArguments);
-    List<DartType> positional = positionalParameters
-        .map((VariableDeclaration decl) =>
-            substitution.substituteType(decl.type))
-        .toList(growable: false);
-    List<NamedType> named = namedParameters
-        .map((VariableDeclaration decl) => NamedType(
-            decl.name!, substitution.substituteType(decl.type),
-            isRequired: decl.isRequired))
-        .toList(growable: false);
-    named.sort();
-    return FunctionType(positional, typedefType.unalias, library.nonNullable,
-        namedParameters: named,
-        typeParameters: typedefTypeParametersCopy,
-        requiredParameterCount: requiredParameterCount);
-  }
-
-  /// Return function type of node returning [typedefType] reuse type parameters
-  ///
-  /// When this getter is invoked, the parent must be a [Procedure] which is a
-  /// redirecting factory constructor. This getter works similarly to
-  /// [computeThisFunctionType], but uses [typedef] to compute the return type
-  /// of the returned function type. It is useful in some contexts, especially
-  /// during inference of aliased factory invocations.
-  FunctionType computeAliasedFactoryFunctionType(
-      Typedef typedef, Library library) {
-    assert(
-        parent is Procedure &&
-            (parent as Procedure).kind == ProcedureKind.Factory,
-        "Only run this method on a factory");
-    // We need create a copy of the list of type parameters, otherwise
-    // transformations like erasure don't work.
-    List<TypeParameter> classTypeParametersCopy = List.of(typeParameters);
-    List<TypeParameter> typedefTypeParametersCopy =
-        List.of(typedef.typeParameters);
-    List<DartType> asTypeArguments =
-        getAsTypeArguments(typedefTypeParametersCopy, library);
-    TypedefType typedefType =
-        TypedefType(typedef, library.nonNullable, asTypeArguments);
-    DartType unaliasedTypedef = typedefType.unalias;
-    assert(unaliasedTypedef is InterfaceType,
-        "[typedef] is assumed to resolve to an interface type");
-    InterfaceType targetType = unaliasedTypedef as InterfaceType;
-    Substitution substitution = Substitution.fromPairs(
-        classTypeParametersCopy, targetType.typeArguments);
-    List<DartType> positional = positionalParameters
-        .map((VariableDeclaration decl) =>
-            substitution.substituteType(decl.type))
-        .toList(growable: false);
-    List<NamedType> named = namedParameters
-        .map((VariableDeclaration decl) => NamedType(
-            decl.name!, substitution.substituteType(decl.type),
-            isRequired: decl.isRequired))
-        .toList(growable: false);
-    named.sort();
-    return FunctionType(positional, typedefType.unalias, library.nonNullable,
-        namedParameters: named,
-        typeParameters: typedefTypeParametersCopy,
-        requiredParameterCount: requiredParameterCount);
-  }
-
   @override
   R accept<R>(TreeVisitor<R> v) => v.visitFunctionNode(this);
 
@@ -3956,43 +4143,6 @@ enum AsyncMarker {
   SyncStar,
   Async,
   AsyncStar,
-
-  // `SyncYielding` is a marker that tells Dart VM that this function is an
-  // artificial closure introduced by an async transformer which desugared all
-  // async syntax into a combination of native yields and helper method calls.
-  //
-  // Native yields (formatted as `[yield]`) are semantically close to
-  // `yield x` statement: they denote a yield/resume point within a function
-  // but are completely decoupled from the notion of iterators. When
-  // execution of the closure reaches `[yield] x` it stops and return the
-  // value of `x` to the caller. If closure is called again it continues
-  // to the next statement after this yield as if it was suspended and resumed.
-  //
-  // Consider this example:
-  //
-  //   g() {
-  //     var :await_jump_var = 0;
-  //     var :await_ctx_var;
-  //
-  //     f(x) yielding {
-  //       [yield] '${x}:0';
-  //       [yield] '${x}:1';
-  //       [yield] '${x}:2';
-  //     }
-  //
-  //     return f;
-  //   }
-  //
-  //   print(f('a'));  /* prints 'a:0', :await_jump_var = 1  */
-  //   print(f('b'));  /* prints 'b:1', :await_jump_var = 2  */
-  //   print(f('c'));  /* prints 'c:2', :await_jump_var = 3  */
-  //
-  // Note: currently Dart VM implicitly relies on async transformer to
-  // inject certain artificial variables into g (like `:await_jump_var`).
-  // As such SyncYielding and native yield are not intended to be used on their
-  // own, but are rather an implementation artifact of the async transformer
-  // itself.
-  SyncYielding,
 }
 
 // ------------------------------------------------------------------------
@@ -4036,11 +4186,7 @@ abstract class Expression extends TreeNode {
       return context.typeEnvironment.coreTypes
           .rawType(superclass, context.nonNullable);
     }
-    DartType type = getStaticType(context);
-    while (type is TypeParameterType) {
-      TypeParameterType typeParameterType = type;
-      type = typeParameterType.bound;
-    }
+    DartType type = getStaticType(context).resolveTypeParameterType;
     if (type is NullType) {
       return context.typeEnvironment.coreTypes
           .bottomInterfaceType(superclass, context.nullable);
@@ -4298,6 +4444,120 @@ class VariableSet extends Expression {
     printer.write(printer.getVariableName(variable));
     printer.write(' = ');
     printer.writeExpression(value);
+  }
+}
+
+class RecordIndexGet extends Expression {
+  Expression receiver;
+  RecordType receiverType;
+  final int index;
+
+  RecordIndexGet(this.receiver, this.receiverType, this.index) {
+    receiver.parent = this;
+  }
+
+  @override
+  DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    assert(index < receiverType.positional.length);
+    return receiverType.positional[index];
+  }
+
+  @override
+  R accept<R>(ExpressionVisitor<R> v) => v.visitRecordIndexGet(this);
+
+  @override
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitRecordIndexGet(this, arg);
+
+  @override
+  void visitChildren(Visitor v) {
+    receiver.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    receiver = v.transform(receiver)..parent = this;
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    receiver = v.transform(receiver)..parent = this;
+  }
+
+  @override
+  String toString() {
+    return "RecordIndexGet(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver);
+    printer.write(".\$${index}");
+  }
+}
+
+class RecordNameGet extends Expression {
+  Expression receiver;
+  RecordType receiverType;
+  final String name;
+
+  RecordNameGet(this.receiver, this.receiverType, this.name) {
+    receiver.parent = this;
+  }
+
+  @override
+  DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    DartType? result;
+    for (NamedType namedType in receiverType.named) {
+      if (namedType.name == name) {
+        result = namedType.type;
+        break;
+      }
+    }
+    assert(result != null);
+
+    return result!;
+  }
+
+  @override
+  R accept<R>(ExpressionVisitor<R> v) => v.visitRecordNameGet(this);
+
+  @override
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitRecordNameGet(this, arg);
+
+  @override
+  void visitChildren(Visitor v) {
+    receiver.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    receiver = v.transform(receiver)..parent = this;
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    receiver = v.transform(receiver)..parent = this;
+  }
+
+  @override
+  String toString() {
+    return "RecordNameGet(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver);
+    printer.write(".${name}");
   }
 }
 
@@ -5402,7 +5662,7 @@ class Arguments extends TreeNode {
   }
 
   @override
-  void toTextInternal(AstPrinter printer, {bool includeTypeArguments: true}) {
+  void toTextInternal(AstPrinter printer, {bool includeTypeArguments = true}) {
     if (includeTypeArguments) {
       printer.writeTypeArguments(types);
     }
@@ -6618,7 +6878,8 @@ class StaticInvocation extends InvocationExpression {
   @override
   Name get name => target.name;
 
-  StaticInvocation(Procedure target, Arguments arguments, {bool isConst: false})
+  StaticInvocation(Procedure target, Arguments arguments,
+      {bool isConst = false})
       : this.byReference(
             // An invocation doesn't refer to the setter.
             getNonNullableMemberReferenceGetter(target),
@@ -6626,7 +6887,7 @@ class StaticInvocation extends InvocationExpression {
             isConst: isConst);
 
   StaticInvocation.byReference(this.targetReference, this.arguments,
-      {this.isConst: false}) {
+      {this.isConst = false}) {
     arguments.parent = this;
   }
 
@@ -6706,7 +6967,7 @@ class ConstructorInvocation extends InvocationExpression {
   Name get name => target.name;
 
   ConstructorInvocation(Constructor target, Arguments arguments,
-      {bool isConst: false})
+      {bool isConst = false})
       : this.byReference(
             // A constructor doesn't refer to the setter.
             getNonNullableMemberReferenceGetter(target),
@@ -6714,7 +6975,7 @@ class ConstructorInvocation extends InvocationExpression {
             isConst: isConst);
 
   ConstructorInvocation.byReference(this.targetReference, this.arguments,
-      {this.isConst: false}) {
+      {this.isConst = false}) {
     arguments.parent = this;
   }
 
@@ -7195,7 +7456,7 @@ class ListConcatenation extends Expression {
   DartType typeArgument;
   final List<Expression> lists;
 
-  ListConcatenation(this.lists, {this.typeArgument: const DynamicType()}) {
+  ListConcatenation(this.lists, {this.typeArgument = const DynamicType()}) {
     setParents(lists, this);
   }
 
@@ -7265,7 +7526,7 @@ class SetConcatenation extends Expression {
   DartType typeArgument;
   final List<Expression> sets;
 
-  SetConcatenation(this.sets, {this.typeArgument: const DynamicType()}) {
+  SetConcatenation(this.sets, {this.typeArgument = const DynamicType()}) {
     setParents(sets, this);
   }
 
@@ -7337,8 +7598,8 @@ class MapConcatenation extends Expression {
   final List<Expression> maps;
 
   MapConcatenation(this.maps,
-      {this.keyType: const DynamicType(),
-      this.valueType: const DynamicType()}) {
+      {this.keyType = const DynamicType(),
+      this.valueType = const DynamicType()}) {
     setParents(maps, this);
   }
 
@@ -8287,7 +8548,7 @@ class ListLiteral extends Expression {
   final List<Expression> expressions;
 
   ListLiteral(this.expressions,
-      {this.typeArgument: const DynamicType(), this.isConst: false}) {
+      {this.typeArgument = const DynamicType(), this.isConst = false}) {
     // ignore: unnecessary_null_comparison
     assert(typeArgument != null);
     setParents(expressions, this);
@@ -8351,7 +8612,7 @@ class SetLiteral extends Expression {
   final List<Expression> expressions;
 
   SetLiteral(this.expressions,
-      {this.typeArgument: const DynamicType(), this.isConst: false}) {
+      {this.typeArgument = const DynamicType(), this.isConst = false}) {
     // ignore: unnecessary_null_comparison
     assert(typeArgument != null);
     setParents(expressions, this);
@@ -8416,9 +8677,9 @@ class MapLiteral extends Expression {
   final List<MapLiteralEntry> entries;
 
   MapLiteral(this.entries,
-      {this.keyType: const DynamicType(),
-      this.valueType: const DynamicType(),
-      this.isConst: false}) {
+      {this.keyType = const DynamicType(),
+      this.valueType = const DynamicType(),
+      this.isConst = false}) {
     // ignore: unnecessary_null_comparison
     assert(keyType != null);
     // ignore: unnecessary_null_comparison
@@ -8559,9 +8820,136 @@ class MapLiteralEntry extends TreeNode {
   }
 }
 
+class RecordLiteral extends Expression {
+  bool isConst;
+  final List<Expression> positional;
+  final List<NamedExpression> named;
+  RecordType recordType;
+
+  RecordLiteral(this.positional, this.named, this.recordType,
+      {this.isConst = false})
+      : assert(positional.length == recordType.positional.length &&
+            named.length == recordType.named.length &&
+            recordType.named
+                .map((f) => f.name)
+                .toSet()
+                .containsAll(named.map((f) => f.name))),
+        assert(() {
+          // Assert that the named fields are sorted.
+          for (int i = 1; i < named.length; i++) {
+            if (named[i].name.compareTo(named[i - 1].name) < 0) {
+              return false;
+            }
+          }
+          return true;
+        }(),
+            "Named fields of a RecordLiterals aren't sorted lexicographically: "
+            "${named.map((f) => f.name).join(", ")}") {
+    setParents(positional, this);
+    setParents(named, this);
+  }
+
+  @override
+  DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    return recordType;
+  }
+
+  @override
+  R accept<R>(ExpressionVisitor<R> v) => v.visitRecordLiteral(this);
+
+  @override
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitRecordLiteral(this, arg);
+
+  @override
+  void visitChildren(Visitor v) {
+    visitList(positional, v);
+    visitList(named, v);
+    recordType.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    v.transformList(positional, this);
+    v.transformList(named, this);
+    recordType = v.visitDartType(recordType) as RecordType;
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    v.transformExpressionList(positional, this);
+    v.transformNamedExpressionList(named, this);
+    recordType =
+        v.visitDartType(recordType, cannotRemoveSentinel) as RecordType;
+  }
+
+  @override
+  String toString() {
+    return "RecordType(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    if (isConst) {
+      printer.write("const ");
+    }
+    printer.write("(");
+    for (int index = 0; index < positional.length; index++) {
+      if (index > 0) {
+        printer.write(", ");
+      }
+      printer.writeExpression(positional[index]);
+    }
+    if (named.isNotEmpty) {
+      if (positional.isNotEmpty) {
+        printer.write(", ");
+      }
+      for (int index = 0; index < named.length; index++) {
+        if (index > 0) {
+          printer.write(", ");
+        }
+        printer.writeNamedExpression(named[index]);
+      }
+    }
+    printer.write(")");
+  }
+}
+
 /// Expression of form `await x`.
 class AwaitExpression extends Expression {
   Expression operand;
+
+  /// If non-null, the runtime should check whether the value of [operand] is a
+  /// subtype of [runtimeCheckType], and if _not_ so, wrap the value in a call
+  /// to the `Future.value()` constructor.
+  ///
+  /// For instance
+  ///
+  ///     FutureOr<Object> future1 = Future<Object?>.value();
+  ///     var x = await future1; // Check against `Future<Object>`.
+  ///
+  ///     Object object = Future<Object?>.value();
+  ///     var y = await object; // Check against `Future<Object>`.
+  ///
+  ///     Future<Object?> future2 = Future<Object?>.value();
+  ///     var z = await future2; // No check.
+  ///
+  /// This runtime checks is necessary to ensure that we don't evaluate the
+  /// await expression to `null` when the static type of the expression is
+  /// non-nullable.
+  ///
+  /// The [runtimeCheckType] is computed as `Future<T>` where `T = flatten(S)`
+  /// and `S` is the static type of [operand]. To avoid unnecessary runtime
+  /// checks, the [runtimeCheckType] is not set if the static type of the
+  /// [operand] is a subtype of `Future<T>`.
+  ///
+  /// See https://github.com/dart-lang/sdk/issues/49396 for further discussion
+  /// of which the check is needed.
+  DartType? runtimeCheckType;
 
   AwaitExpression(this.operand) {
     operand.parent = this;
@@ -8591,6 +8979,9 @@ class AwaitExpression extends Expression {
       operand = v.transform(operand);
       operand.parent = this;
     }
+    if (runtimeCheckType != null) {
+      runtimeCheckType = v.visitDartType(runtimeCheckType!);
+    }
   }
 
   @override
@@ -8599,6 +8990,9 @@ class AwaitExpression extends Expression {
     if (operand != null) {
       operand = v.transform(operand);
       operand.parent = this;
+    }
+    if (runtimeCheckType != null) {
+      runtimeCheckType = v.visitDartType(runtimeCheckType!, null);
     }
   }
 
@@ -9496,24 +9890,42 @@ class LabeledStatement extends Statement {
 
 /// Breaks out of an enclosing [LabeledStatement].
 ///
-/// Both `break` and loop `continue` statements are translated into this node.
+/// Both `break` and `continue` statements are translated into this node.
 ///
-/// For example, the following loop with a `continue` will be desugared:
+/// Example `break` desugaring:
 ///
-///     while(x) {
-///       if (y) continue;
-///       BODY'
+///     while (x) {
+///       if (y) break;
+///       BODY
 ///     }
 ///
 ///     ==>
 ///
-///     while(x) {
+///     L: while (x) {
+///       if (y) break L;
+///       BODY
+///     }
+///
+/// Example `continue` desugaring:
+///
+///     while (x) {
+///       if (y) continue;
+///       BODY
+///     }
+///
+///     ==>
+///
+///     while (x) {
 ///       L: {
 ///         if (y) break L;
-///         BODY'
+///         BODY
 ///       }
 ///     }
-//
+///
+/// Note: Compiler-generated [LabeledStatement]s for [WhileStatement]s and
+/// [ForStatement]s are only generated when needed. If there isn't a `break` or
+/// `continue` in a loop, the kernel for the loop won't have a generated
+/// [LabeledStatement].
 class BreakStatement extends Statement {
   LabeledStatement target;
 
@@ -9774,7 +10186,7 @@ class ForInStatement extends Statement {
   bool isAsync; // True if this is an 'await for' loop.
 
   ForInStatement(this.variable, this.iterable, this.body,
-      {this.isAsync: false}) {
+      {this.isAsync = false}) {
     variable.parent = this;
     iterable.parent = this;
     body.parent = this;
@@ -9882,7 +10294,8 @@ class ForInStatement extends Statement {
   /// This is called by `StaticTypeContext.getForInElementType` if the element
   /// type of this for-in statement is not already cached in [context].
   DartType getElementTypeInternal(StaticTypeContext context) {
-    DartType iterableType = iterable.getStaticType(context);
+    DartType iterableType =
+        iterable.getStaticType(context).resolveTypeParameterType;
     // TODO(johnniwinther): Update this to use the type of
     //  `iterable.iterator.current` if inference is updated accordingly.
     while (iterableType is TypeParameterType) {
@@ -10022,7 +10435,7 @@ class SwitchCase extends TreeNode {
   bool isDefault;
 
   SwitchCase(this.expressions, this.expressionOffsets, Statement? body,
-      {this.isDefault: false}) {
+      {this.isDefault = false}) {
     setParents(expressions, this);
     if (body != null) {
       this.body = body..parent = this;
@@ -10283,7 +10696,7 @@ class TryCatch extends Statement {
   List<Catch> catches;
   bool isSynthetic;
 
-  TryCatch(this.body, this.catches, {this.isSynthetic: false}) {
+  TryCatch(this.body, this.catches, {this.isSynthetic = false}) {
     body.parent = this;
     setParents(catches, this);
   }
@@ -10344,7 +10757,7 @@ class Catch extends TreeNode {
   Statement body;
 
   Catch(this.exception, this.body,
-      {this.guard: const DynamicType(), this.stackTrace}) {
+      {this.guard = const DynamicType(), this.stackTrace}) {
     // ignore: unnecessary_null_comparison
     assert(guard != null);
     exception?.parent = this;
@@ -10523,31 +10936,21 @@ class TryFinally extends Statement {
 }
 
 /// Statement of form `yield x` or `yield* x`.
-///
-/// For native yield semantics see `AsyncMarker.SyncYielding`.
 class YieldStatement extends Statement {
   Expression expression;
   int flags = 0;
 
-  YieldStatement(this.expression,
-      {bool isYieldStar: false, bool isNative: false}) {
+  YieldStatement(this.expression, {bool isYieldStar = false}) {
     expression.parent = this;
     this.isYieldStar = isYieldStar;
-    this.isNative = isNative;
   }
 
   static const int FlagYieldStar = 1 << 0;
-  static const int FlagNative = 1 << 1;
 
   bool get isYieldStar => flags & FlagYieldStar != 0;
-  bool get isNative => flags & FlagNative != 0;
 
   void set isYieldStar(bool value) {
     flags = value ? (flags | FlagYieldStar) : (flags & ~FlagYieldStar);
-  }
-
-  void set isNative(bool value) {
-    flags = value ? (flags | FlagNative) : (flags & ~FlagNative);
   }
 
   @override
@@ -10620,11 +11023,10 @@ class VariableDeclaration extends Statement implements Annotatable {
   @override
   List<Expression> annotations = const <Expression>[];
 
-  /// For named parameters, this is the name of the parameter. No two named
-  /// parameters (in the same parameter list) can have the same name.
+  /// The name of the variable or parameter as provided in the source code.
   ///
-  /// In all other cases, the name is cosmetic, may be empty or null,
-  /// and is not necessarily unique.
+  /// If this variable is synthesized, for instance the variable of a [Let]
+  /// expression, the name is in most cases `null`.
   String? name;
   int flags = 0;
   DartType type; // Not null, defaults to dynamic.
@@ -10640,16 +11042,16 @@ class VariableDeclaration extends Statement implements Annotatable {
 
   VariableDeclaration(this.name,
       {this.initializer,
-      this.type: const DynamicType(),
-      int flags: -1,
-      bool isFinal: false,
-      bool isConst: false,
-      bool isInitializingFormal: false,
-      bool isCovariantByDeclaration: false,
-      bool isLate: false,
-      bool isRequired: false,
-      bool isLowered: false,
-      bool hasDeclaredInitializer: false}) {
+      this.type = const DynamicType(),
+      int flags = -1,
+      bool isFinal = false,
+      bool isConst = false,
+      bool isInitializingFormal = false,
+      bool isCovariantByDeclaration = false,
+      bool isLate = false,
+      bool isRequired = false,
+      bool isLowered = false,
+      bool hasDeclaredInitializer = false}) {
     // ignore: unnecessary_null_comparison
     assert(type != null);
     initializer?.parent = this;
@@ -10669,13 +11071,13 @@ class VariableDeclaration extends Statement implements Annotatable {
 
   /// Creates a synthetic variable with the given expression as initializer.
   VariableDeclaration.forValue(this.initializer,
-      {bool isFinal: true,
-      bool isConst: false,
-      bool isInitializingFormal: false,
-      bool isLate: false,
-      bool isRequired: false,
-      bool isLowered: false,
-      this.type: const DynamicType()}) {
+      {bool isFinal = true,
+      bool isConst = false,
+      bool isInitializingFormal = false,
+      bool isLate = false,
+      bool isRequired = false,
+      bool isLowered = false,
+      this.type = const DynamicType()}) {
     // ignore: unnecessary_null_comparison
     assert(type != null);
     initializer?.parent = this;
@@ -11192,6 +11594,9 @@ abstract class DartType extends Node {
         nullability == Nullability.undetermined;
   }
 
+  /// Returns the non-type parameter type bound of this type.
+  DartType get resolveTypeParameterType;
+
   bool equals(Object other, Assumptions? assumptions);
 
   /// Returns a textual representation of the this type.
@@ -11227,6 +11632,9 @@ class InvalidType extends DartType {
 
   @override
   void visitChildren(Visitor v) {}
+
+  @override
+  DartType get resolveTypeParameterType => this;
 
   @override
   bool operator ==(Object other) => equals(other, null);
@@ -11279,6 +11687,9 @@ class DynamicType extends DartType {
   void visitChildren(Visitor v) {}
 
   @override
+  DartType get resolveTypeParameterType => this;
+
+  @override
   bool operator ==(Object other) => equals(other, null);
 
   @override
@@ -11319,6 +11730,9 @@ class VoidType extends DartType {
 
   @override
   void visitChildren(Visitor v) {}
+
+  @override
+  DartType get resolveTypeParameterType => this;
 
   @override
   bool operator ==(Object other) => equals(other, null);
@@ -11375,6 +11789,9 @@ class NeverType extends DartType {
 
   @override
   Nullability get nullability => declaredNullability;
+
+  @override
+  DartType get resolveTypeParameterType => this;
 
   @override
   int get hashCode {
@@ -11435,6 +11852,9 @@ class NullType extends DartType {
   void visitChildren(Visitor v) {}
 
   @override
+  DartType get resolveTypeParameterType => this;
+
+  @override
   bool operator ==(Object other) => equals(other, null);
 
   @override
@@ -11484,6 +11904,9 @@ class InterfaceType extends DartType {
 
   @override
   Nullability get nullability => declaredNullability;
+
+  @override
+  DartType get resolveTypeParameterType => this;
 
   static List<DartType> _defaultTypeArguments(Class classNode) {
     if (classNode.typeParameters.length == 0) {
@@ -11578,8 +12001,8 @@ class FunctionType extends DartType {
 
   FunctionType(List<DartType> positionalParameters, this.returnType,
       this.declaredNullability,
-      {this.namedParameters: const <NamedType>[],
-      this.typeParameters: const <TypeParameter>[],
+      {this.namedParameters = const <NamedType>[],
+      this.typeParameters = const <TypeParameter>[],
       int? requiredParameterCount})
       : this.positionalParameters = positionalParameters,
         this.requiredParameterCount =
@@ -11587,6 +12010,9 @@ class FunctionType extends DartType {
 
   @override
   Nullability get nullability => declaredNullability;
+
+  @override
+  DartType get resolveTypeParameterType => this;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitFunctionType(this);
@@ -11790,6 +12216,9 @@ class TypedefType extends DartType {
   Nullability get nullability => declaredNullability;
 
   @override
+  DartType get resolveTypeParameterType => unalias.resolveTypeParameterType;
+
+  @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitTypedefType(this);
 
   @override
@@ -11898,6 +12327,9 @@ class FutureOrType extends DartType {
   }
 
   @override
+  DartType get resolveTypeParameterType => this;
+
+  @override
   bool operator ==(Object other) => equals(other, null);
 
   @override
@@ -11953,7 +12385,7 @@ class ExtensionType extends DartType {
 
   final List<DartType> typeArguments;
 
-  final DartType onType;
+  DartType? _onType;
 
   ExtensionType(Extension extensionNode, Nullability declaredNullability,
       [List<DartType>? typeArguments])
@@ -11963,16 +12395,21 @@ class ExtensionType extends DartType {
   ExtensionType.byReference(
       this.extensionReference, this.declaredNullability, this.typeArguments)
       // ignore: unnecessary_null_comparison
-      : assert(declaredNullability != null),
-        onType = _computeOnType(extensionReference, typeArguments);
+      : assert(declaredNullability != null);
 
   Extension get extension => extensionReference.asExtension;
+
+  DartType get onType =>
+      _onType ??= _computeOnType(extensionReference, typeArguments);
 
   @override
   Nullability get nullability {
     return uniteNullabilities(
         declaredNullability, extension.onType.nullability);
   }
+
+  @override
+  DartType get resolveTypeParameterType => onType.resolveTypeParameterType;
 
   static List<DartType> _defaultTypeArguments(Extension extensionNode) {
     if (extensionNode.typeParameters.length == 0) {
@@ -12062,6 +12499,130 @@ class ExtensionType extends DartType {
   }
 }
 
+class ViewType extends DartType {
+  final Reference viewReference;
+
+  @override
+  final Nullability declaredNullability;
+
+  final List<DartType> typeArguments;
+
+  DartType? _representationType;
+
+  ViewType(View view, Nullability declaredNullability,
+      [List<DartType>? typeArguments])
+      : this.byReference(view.reference, declaredNullability,
+            typeArguments ?? _defaultTypeArguments(view));
+
+  ViewType.byReference(
+      this.viewReference, this.declaredNullability, this.typeArguments,
+      [this._representationType])
+      // ignore: unnecessary_null_comparison
+      : assert(declaredNullability != null);
+
+  View get view => viewReference.asView;
+
+  DartType get representationType =>
+      _representationType ??= _computeRepresentationType(
+          viewReference, typeArguments, declaredNullability);
+
+  @override
+  Nullability get nullability => declaredNullability;
+
+  @override
+  DartType get resolveTypeParameterType =>
+      representationType.resolveTypeParameterType;
+
+  static List<DartType> _defaultTypeArguments(View view) {
+    if (view.typeParameters.length == 0) {
+      // Avoid allocating a list in this very common case.
+      return const <DartType>[];
+    } else {
+      return new List<DartType>.filled(
+          view.typeParameters.length, const DynamicType());
+    }
+  }
+
+  static DartType _computeRepresentationType(Reference viewReference,
+      List<DartType> typeArguments, Nullability declaredNullability) {
+    View view = viewReference.asView;
+    if (view.typeParameters.isEmpty) {
+      return view.representationType;
+    } else {
+      assert(view.typeParameters.length == typeArguments.length);
+      return Substitution.fromPairs(view.typeParameters, typeArguments)
+          .substituteType(view.representationType)
+          .withDeclaredNullability(uniteNullabilities(
+              declaredNullability, view.representationType.nullability));
+    }
+  }
+
+  @override
+  R accept<R>(DartTypeVisitor<R> v) {
+    return v.visitViewType(this);
+  }
+
+  @override
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) {
+    return v.visitViewType(this, arg);
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    view.acceptReference(v);
+    visitList(typeArguments, v);
+  }
+
+  @override
+  bool equals(Object other, Assumptions? assumptions) {
+    if (identical(this, other)) return true;
+    if (other is ViewType) {
+      if (nullability != other.nullability) return false;
+      if (viewReference != other.viewReference) return false;
+      if (typeArguments.length != other.typeArguments.length) return false;
+      for (int i = 0; i < typeArguments.length; ++i) {
+        if (!typeArguments[i].equals(other.typeArguments[i], assumptions)) {
+          return false;
+        }
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0x3fffffff & viewReference.hashCode;
+    for (int i = 0; i < typeArguments.length; ++i) {
+      hash = 0x3fffffff & (hash * 31 + (hash ^ typeArguments[i].hashCode));
+    }
+    int nullabilityHash = (0x33333333 >> nullability.index) ^ 0x33333333;
+    hash = 0x3fffffff & (hash * 31 + (hash ^ nullabilityHash));
+    return hash;
+  }
+
+  @override
+  ViewType withDeclaredNullability(Nullability declaredNullability) {
+    return declaredNullability == this.declaredNullability
+        ? this
+        : new ViewType.byReference(
+            viewReference, declaredNullability, typeArguments);
+  }
+
+  @override
+  String toString() {
+    return "ViewType(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeViewName(viewReference);
+    printer.writeTypeArguments(typeArguments);
+    printer.write(nullabilityToString(declaredNullability));
+  }
+}
+
 /// A named parameter in [FunctionType].
 class NamedType extends Node implements Comparable<NamedType> {
   // Flag used for serialization if [isRequired].
@@ -12071,7 +12632,7 @@ class NamedType extends Node implements Comparable<NamedType> {
   final DartType type;
   final bool isRequired;
 
-  const NamedType(this.name, this.type, {this.isRequired: false});
+  const NamedType(this.name, this.type, {this.isRequired = false});
 
   @override
   bool operator ==(Object other) => equals(other, null);
@@ -12125,6 +12686,338 @@ class NamedType extends Node implements Comparable<NamedType> {
   }
 }
 
+class IntersectionType extends DartType {
+  final TypeParameterType left;
+  final DartType right;
+
+  IntersectionType(this.left, this.right) {
+    // TODO(cstefantsova): Also assert that [rhs] is a subtype of [lhs.bound].
+
+    Nullability leftNullability = left.nullability;
+    Nullability rightNullability = right.nullability;
+    assert(
+        (leftNullability == Nullability.nonNullable &&
+                rightNullability == Nullability.nonNullable) ||
+            (leftNullability == Nullability.nonNullable &&
+                rightNullability == Nullability.undetermined) ||
+            (leftNullability == Nullability.legacy &&
+                rightNullability == Nullability.legacy) ||
+            (leftNullability == Nullability.undetermined &&
+                rightNullability == Nullability.nonNullable) ||
+            (leftNullability == Nullability.undetermined &&
+                rightNullability == Nullability.nullable) ||
+            (leftNullability == Nullability.undetermined &&
+                rightNullability == Nullability.undetermined)
+            // These are observed in real situations:
+            ||
+            // pkg/front_end/test/id_tests/type_promotion_test
+            // replicated in nnbd_mixed/type_parameter_nullability
+            (leftNullability == Nullability.nullable &&
+                rightNullability == Nullability.nonNullable) ||
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/incremental_hello_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            // pkg/front_end/test/explicit_creation_test
+            // pkg/front_end/tool/fasta_perf_test
+            // nnbd/issue42089
+            // replicated in nnbd_mixed/type_parameter_nullability
+            (leftNullability == Nullability.nullable &&
+                rightNullability == Nullability.nullable) ||
+            // pkg/front_end/test/explicit_creation_test
+            // pkg/front_end/test/dill_round_trip_test
+            // pkg/front_end/test/compile_dart2js_with_no_sdk_test
+            // pkg/front_end/test/fasta/types/large_app_benchmark_test
+            // pkg/front_end/test/incremental_dart2js_test
+            // pkg/front_end/test/read_dill_from_binary_md_test
+            // pkg/front_end/test/static_types/static_type_test
+            // pkg/front_end/test/split_dill_test
+            // pkg/front_end/tool/incremental_perf_test
+            // pkg/vm/test/kernel_front_end_test
+            // general/promoted_null_aware_access
+            // inference/constructors_infer_from_arguments_factory
+            // inference/infer_types_on_loop_indices_for_each_loop
+            // inference/infer_types_on_loop_indices_for_each_loop_async
+            // replicated in nnbd_mixed/type_parameter_nullability
+            (leftNullability == Nullability.legacy &&
+                rightNullability == Nullability.nonNullable) ||
+            // pkg/front_end/test/fasta/incremental_hello_test
+            // pkg/front_end/test/explicit_creation_test
+            // pkg/front_end/tool/fasta_perf_test
+            // replicated in nnbd_mixed/type_parameter_nullability
+            (leftNullability == Nullability.nullable &&
+                rightNullability == Nullability.undetermined) ||
+            // These are only observed in tests and might be artifacts of the
+            // tests rather than real situations:
+            //
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            (leftNullability == Nullability.legacy &&
+                rightNullability == Nullability.nullable) ||
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            (leftNullability == Nullability.nonNullable &&
+                rightNullability == Nullability.nullable) ||
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            (leftNullability == Nullability.undetermined &&
+                rightNullability == Nullability.legacy) ||
+            // pkg/kernel/test/clone_test
+            // The legacy nullability is due to RHS being InvalidType.
+            (leftNullability == Nullability.nonNullable &&
+                rightNullability == Nullability.legacy),
+        "Unexpected nullabilities for ${left} & ${right}: "
+        "leftNullability = ${leftNullability}, "
+        "rightNullability = ${rightNullability}.");
+  }
+
+  @override
+  DartType get resolveTypeParameterType => right.resolveTypeParameterType;
+
+  @override
+  R accept<R>(DartTypeVisitor<R> v) => v.visitIntersectionType(this);
+
+  @override
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
+      v.visitIntersectionType(this, arg);
+
+  @override
+  void visitChildren(Visitor v) {
+    left.accept(v);
+    right.accept(v);
+  }
+
+  @override
+  bool operator ==(Object other) => equals(other, null);
+
+  @override
+  bool equals(Object other, Assumptions? assumptions) {
+    if (identical(this, other)) {
+      return true;
+    } else if (other is IntersectionType) {
+      return left.equals(other.left, assumptions) &&
+          right.equals(other.right, assumptions);
+    } else {
+      return false;
+    }
+  }
+
+  @override
+  int get hashCode {
+    int nullabilityHash = (0x33333333 >> nullability.index) ^ 0x33333333;
+    int hash = nullabilityHash;
+    hash = 0x3fffffff & (hash * 31 + (hash ^ left.hashCode));
+    hash = 0x3fffffff & (hash * 31 + (hash ^ right.hashCode));
+    return hash;
+  }
+
+  /// Computes the nullability of [IntersectionType] from its parts.
+  ///
+  /// [nullability] is calculated from [left.nullability] and
+  /// [right.nullability].
+  ///
+  /// In the following program the nullability of `x` is
+  /// [Nullability.undetermined] because it's copied from that of `bar`. The
+  /// nullability of `y` is [Nullability.nonNullable] because its type is an
+  /// intersection type where the LHS is `T` and the RHS is the promoted type
+  /// `int`. The nullability of the type of `y` is computed from the
+  /// nullabilities of those two types.
+  ///
+  ///     class A<T extends Object?> {
+  ///       foo(T bar) {
+  ///         var x = bar;
+  ///         if (bar is int) {
+  ///           var y = bar;
+  ///         }
+  ///       }
+  ///     }
+  ///
+  /// The method combines the nullabilities of [left] and [right] to yield the
+  /// nullability of the intersection type.
+  @override
+  Nullability get nullability {
+    // Note that RHS is always a subtype of the bound of the type parameter.
+
+    // The code below implements the rule for the nullability of an
+    // intersection type as per the following table:
+    //
+    // | LHS \ RHS |  !  |  ?  |  *  |  %  |
+    // |-----------|-----|-----|-----|-----|
+    // |     !     |  !  |  +  | N/A |  !  |
+    // |     ?     | (!) | (?) | N/A | (%) |
+    // |     *     | (*) |  +  |  *  | N/A |
+    // |     %     |  !  |  %  |  +  |  %  |
+    //
+    // In the table, LHS corresponds to [lhsNullability] in the code below; RHS
+    // corresponds to [rhsNullability]; !, ?, *, and % correspond to
+    // nonNullable, nullable, legacy, and undetermined values of the
+    // Nullability enum.
+
+    Nullability lhsNullability = left.nullability;
+    Nullability rhsNullability = right.nullability;
+    assert(
+        (lhsNullability == Nullability.nonNullable &&
+                rhsNullability == Nullability.nonNullable) ||
+            (lhsNullability == Nullability.nonNullable &&
+                rhsNullability == Nullability.undetermined) ||
+            (lhsNullability == Nullability.legacy &&
+                rhsNullability == Nullability.legacy) ||
+            (lhsNullability == Nullability.undetermined &&
+                rhsNullability == Nullability.nonNullable) ||
+            (lhsNullability == Nullability.undetermined &&
+                rhsNullability == Nullability.nullable) ||
+            (lhsNullability == Nullability.undetermined &&
+                rhsNullability == Nullability.undetermined)
+            // Apparently these happens as well:
+            ||
+            // pkg/front_end/test/id_tests/type_promotion_test
+            (lhsNullability == Nullability.nullable &&
+                rhsNullability == Nullability.nonNullable) ||
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/incremental_hello_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            // pkg/front_end/test/explicit_creation_test
+            // pkg/front_end/tool/fasta_perf_test
+            // nnbd/issue42089
+            (lhsNullability == Nullability.nullable &&
+                rhsNullability == Nullability.nullable) ||
+            // pkg/front_end/test/explicit_creation_test
+            // pkg/front_end/test/dill_round_trip_test
+            // pkg/front_end/test/compile_dart2js_with_no_sdk_test
+            // pkg/front_end/test/fasta/types/large_app_benchmark_test
+            // pkg/front_end/test/incremental_dart2js_test
+            // pkg/front_end/test/read_dill_from_binary_md_test
+            // pkg/front_end/test/static_types/static_type_test
+            // pkg/front_end/test/split_dill_test
+            // pkg/front_end/tool/incremental_perf_test
+            // pkg/vm/test/kernel_front_end_test
+            // general/promoted_null_aware_access
+            // inference/constructors_infer_from_arguments_factory
+            // inference/infer_types_on_loop_indices_for_each_loop
+            // inference/infer_types_on_loop_indices_for_each_loop_async
+            (lhsNullability == Nullability.legacy &&
+                rhsNullability == Nullability.nonNullable) ||
+            // pkg/front_end/test/fasta/incremental_hello_test
+            // pkg/front_end/test/explicit_creation_test
+            // pkg/front_end/tool/fasta_perf_test
+            // pkg/front_end/test/fasta/incremental_hello_test
+            (lhsNullability == Nullability.nullable &&
+                rhsNullability == Nullability.undetermined) ||
+
+            // This is created but never observed.
+            // (lhsNullability == Nullability.legacy &&
+            //     rhsNullability == Nullability.nullable) ||
+
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            (lhsNullability == Nullability.undetermined &&
+                rhsNullability == Nullability.legacy) ||
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            (lhsNullability == Nullability.nonNullable &&
+                rhsNullability == Nullability.nullable),
+        "Unexpected nullabilities for: LHS nullability = $lhsNullability, "
+        "RHS nullability = ${rhsNullability}.");
+
+    // Whenever there's N/A in the table, it means that the corresponding
+    // combination of the LHS and RHS nullability is not possible when
+    // compiling from Dart source files, so we can define it to be whatever is
+    // faster and more convenient to implement.  The verifier should check that
+    // the cases marked as N/A never occur in the output of the CFE.
+    //
+    // The code below uses the following extension of the table function:
+    //
+    // | LHS \ RHS |  !  |  ?  |  *  |  %  |
+    // |-----------|-----|-----|-----|-----|
+    // |     !     |  !  |  !  |  !  |  !  |
+    // |     ?     | (!) | (?) |  *  | (%) |
+    // |     *     | (*) |  *  |  *  |  %  |
+    // |     %     |  !  |  %  |  %  |  %  |
+
+    if (lhsNullability == Nullability.nullable &&
+        rhsNullability == Nullability.nonNullable) {
+      return Nullability.nonNullable;
+    }
+
+    if (lhsNullability == Nullability.nullable &&
+        rhsNullability == Nullability.nullable) {
+      return Nullability.nullable;
+    }
+
+    if (lhsNullability == Nullability.legacy &&
+        rhsNullability == Nullability.nonNullable) {
+      return Nullability.legacy;
+    }
+
+    if (lhsNullability == Nullability.nullable &&
+        rhsNullability == Nullability.undetermined) {
+      return Nullability.undetermined;
+    }
+
+    // Intersection with a non-nullable type always yields a non-nullable type,
+    // as it's the most restrictive kind of types.
+    if (lhsNullability == Nullability.nonNullable ||
+        rhsNullability == Nullability.nonNullable) {
+      return Nullability.nonNullable;
+    }
+
+    // If the nullability of LHS is 'undetermined', the nullability of the
+    // intersection is also 'undetermined' if RHS is 'undetermined' or
+    // nullable.
+    //
+    // Consider the following example:
+    //
+    //     class A<X extends Object?, Y extends X> {
+    //       foo(X x) {
+    //         if (x is Y) {
+    //           x = null;     // Compile-time error.  Consider X = Y = int.
+    //           Object a = x; // Compile-time error.  Consider X = Y = int?.
+    //         }
+    //         if (x is int?) {
+    //           x = null;     // Compile-time error.  Consider X = int.
+    //           Object b = x; // Compile-time error.  Consider X = int?.
+    //         }
+    //       }
+    //     }
+    if (lhsNullability == Nullability.undetermined ||
+        rhsNullability == Nullability.undetermined) {
+      return Nullability.undetermined;
+    }
+
+    return Nullability.legacy;
+  }
+
+  @override
+  Nullability get declaredNullability => nullability;
+
+  @override
+  IntersectionType withDeclaredNullability(Nullability declaredNullability) {
+    if (left.declaredNullability == this.declaredNullability) {
+      return this;
+    }
+    TypeParameterType newLeft =
+        left.withDeclaredNullability(declaredNullability);
+    if (identical(newLeft, left)) {
+      return this;
+    }
+    return new IntersectionType(newLeft, right);
+  }
+
+  @override
+  String toString() {
+    return "IntersectionType(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('(');
+    printer.writeType(left);
+    printer.write(" & ");
+    printer.writeType(right);
+    printer.write(')');
+    printer.write(nullabilityToString(nullability));
+  }
+}
+
 /// Reference to a type variable.
 ///
 /// A type variable has an optional bound because type promotion can change the
@@ -12143,95 +13036,7 @@ class TypeParameterType extends DartType {
 
   TypeParameter parameter;
 
-  /// An optional promoted bound on the type parameter.
-  ///
-  /// 'null' indicates that the type parameter's bound has not been promoted and
-  /// is therefore the same as the bound of [parameter].
-  DartType? promotedBound;
-
-  TypeParameterType.internal(
-      this.parameter, this.declaredNullability, DartType? promotedBound)
-      : this.promotedBound = promotedBound {
-    assert(
-        promotedBound == null ||
-            (declaredNullability == Nullability.nonNullable &&
-                promotedBound.nullability == Nullability.nonNullable) ||
-            (declaredNullability == Nullability.nonNullable &&
-                promotedBound.nullability == Nullability.undetermined) ||
-            (declaredNullability == Nullability.legacy &&
-                promotedBound.nullability == Nullability.legacy) ||
-            (declaredNullability == Nullability.undetermined &&
-                promotedBound.nullability == Nullability.nonNullable) ||
-            (declaredNullability == Nullability.undetermined &&
-                promotedBound.nullability == Nullability.nullable) ||
-            (declaredNullability == Nullability.undetermined &&
-                promotedBound.nullability == Nullability.undetermined)
-            // These are observed in real situations:
-            ||
-            // pkg/front_end/test/id_tests/type_promotion_test
-            // replicated in nnbd_mixed/type_parameter_nullability
-            (declaredNullability == Nullability.nullable &&
-                promotedBound.nullability == Nullability.nonNullable) ||
-            // pkg/front_end/test/fasta/types/kernel_type_parser_test
-            // pkg/front_end/test/fasta/incremental_hello_test
-            // pkg/front_end/test/fasta/types/fasta_types_test
-            // pkg/front_end/test/explicit_creation_test
-            // pkg/front_end/tool/fasta_perf_test
-            // nnbd/issue42089
-            // replicated in nnbd_mixed/type_parameter_nullability
-            (declaredNullability == Nullability.nullable &&
-                promotedBound.nullability == Nullability.nullable) ||
-            // pkg/front_end/test/explicit_creation_test
-            // pkg/front_end/test/dill_round_trip_test
-            // pkg/front_end/test/compile_dart2js_with_no_sdk_test
-            // pkg/front_end/test/fasta/types/large_app_benchmark_test
-            // pkg/front_end/test/incremental_dart2js_test
-            // pkg/front_end/test/read_dill_from_binary_md_test
-            // pkg/front_end/test/static_types/static_type_test
-            // pkg/front_end/test/split_dill_test
-            // pkg/front_end/tool/incremental_perf_test
-            // pkg/vm/test/kernel_front_end_test
-            // general/promoted_null_aware_access
-            // inference/constructors_infer_from_arguments_factory
-            // inference/infer_types_on_loop_indices_for_each_loop
-            // inference/infer_types_on_loop_indices_for_each_loop_async
-            // replicated in nnbd_mixed/type_parameter_nullability
-            (declaredNullability == Nullability.legacy &&
-                promotedBound.nullability == Nullability.nonNullable) ||
-            // pkg/front_end/test/fasta/incremental_hello_test
-            // pkg/front_end/test/explicit_creation_test
-            // pkg/front_end/tool/fasta_perf_test
-            // replicated in nnbd_mixed/type_parameter_nullability
-            (declaredNullability == Nullability.nullable &&
-                promotedBound.nullability == Nullability.undetermined) ||
-            // These are only observed in tests and might be artifacts of the
-            // tests rather than real situations:
-            //
-            // pkg/front_end/test/fasta/types/kernel_type_parser_test
-            // pkg/front_end/test/fasta/types/fasta_types_test
-            (declaredNullability == Nullability.legacy &&
-                promotedBound.nullability == Nullability.nullable) ||
-            // pkg/front_end/test/fasta/types/kernel_type_parser_test
-            // pkg/front_end/test/fasta/types/fasta_types_test
-            (declaredNullability == Nullability.nonNullable &&
-                promotedBound.nullability == Nullability.nullable) ||
-            // pkg/front_end/test/fasta/types/kernel_type_parser_test
-            // pkg/front_end/test/fasta/types/fasta_types_test
-            (declaredNullability == Nullability.undetermined &&
-                promotedBound.nullability == Nullability.legacy),
-        "Unexpected nullabilities for $parameter & $promotedBound: "
-        "declaredNullability = $declaredNullability, "
-        "promoted bound nullability = ${promotedBound.nullability}.");
-  }
-
-  TypeParameterType(TypeParameter parameter, Nullability declaredNullability,
-      [DartType? promotedBound])
-      : this.internal(parameter, declaredNullability, promotedBound);
-
-  /// Creates an intersection type between a type parameter and [promotedBound].
-  TypeParameterType.intersection(TypeParameter parameter,
-      Nullability declaredNullability, DartType promotedBound)
-      : this.internal(parameter, declaredNullability, promotedBound);
+  TypeParameterType(this.parameter, this.declaredNullability);
 
   /// Creates a type-parameter type to be used in alpha-renaming.
   ///
@@ -12258,6 +13063,9 @@ class TypeParameterType extends DartType {
             : Nullability.legacy;
 
   @override
+  DartType get resolveTypeParameterType => bound.resolveTypeParameterType;
+
+  @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitTypeParameterType(this);
 
   @override
@@ -12265,9 +13073,7 @@ class TypeParameterType extends DartType {
       v.visitTypeParameterType(this, arg);
 
   @override
-  void visitChildren(Visitor v) {
-    promotedBound?.accept(v);
-  }
+  void visitChildren(Visitor v) {}
 
   @override
   bool operator ==(Object other) => equals(other, null);
@@ -12291,14 +13097,6 @@ class TypeParameterType extends DartType {
           return false;
         }
       }
-      if (promotedBound != null) {
-        if (other.promotedBound == null) return false;
-        if (!promotedBound!.equals(other.promotedBound!, assumptions)) {
-          return false;
-        }
-      } else if (other.promotedBound != null) {
-        return false;
-      }
       return true;
     } else {
       return false;
@@ -12313,36 +13111,14 @@ class TypeParameterType extends DartType {
     int hash = parameter.isFunctionTypeTypeParameter ? 0 : parameter.hashCode;
     int nullabilityHash = (0x33333333 >> nullability.index) ^ 0x33333333;
     hash = 0x3fffffff & (hash * 31 + (hash ^ nullabilityHash));
-    hash = 0x3fffffff & (hash * 31 + (hash ^ promotedBound.hashCode));
     return hash;
   }
 
-  /// Returns the bound of the type parameter, accounting for promotions.
-  DartType get bound => promotedBound ?? parameter.bound;
+  /// A quick access to the bound of the parameter.
+  DartType get bound => parameter.bound;
 
-  /// Nullability of the type, calculated from its parts.
-  ///
-  /// [nullability] is calculated from [typeParameterTypeNullability] and the
-  /// nullability of [promotedBound] if it's present.
-  ///
-  /// For example, in the following program [typeParameterTypeNullability] of
-  /// both `x` and `y` is [Nullability.undetermined], because it's copied from
-  /// that of `bar` and T has a nullable type as its bound.  However, despite
-  /// [nullability] of `x` is [Nullability.undetermined], [nullability] of `y`
-  /// is [Nullability.nonNullable] because of its [promotedBound].
-  ///
-  ///     class A<T extends Object?> {
-  ///       foo(T bar) {
-  ///         var x = bar;
-  ///         if (bar is int) {
-  ///           var y = bar;
-  ///         }
-  ///       }
-  ///     }
   @override
-  Nullability get nullability {
-    return getNullability(declaredNullability, promotedBound);
-  }
+  Nullability get nullability => declaredNullability;
 
   /// Gets a new [TypeParameterType] with given [typeParameterTypeNullability].
   ///
@@ -12355,7 +13131,7 @@ class TypeParameterType extends DartType {
     if (declaredNullability == this.declaredNullability) {
       return this;
     }
-    return new TypeParameterType(parameter, declaredNullability, promotedBound);
+    return new TypeParameterType(parameter, declaredNullability);
   }
 
   /// Gets the nullability of a type-parameter type based on the bound.
@@ -12384,9 +13160,6 @@ class TypeParameterType extends DartType {
         type = type.typeArgument;
       }
       if (type is TypeParameterType && type.parameter == typeParameter) {
-        // Intersection types can't appear in the bound.
-        assert(type.promotedBound == null);
-
         nullabilityDependsOnItself = true;
       }
     }
@@ -12402,173 +13175,6 @@ class TypeParameterType extends DartType {
         : boundNullability;
   }
 
-  /// Gets nullability of [TypeParameterType] from arguments to its constructor.
-  ///
-  /// The method combines [typeParameterTypeNullability] and the nullability of
-  /// [promotedBound] to yield the nullability of the intersection type.  If the
-  /// right-hand side of the intersection is absent (that is, if [promotedBound]
-  /// is null), the nullability of the intersection type is simply
-  /// [typeParameterTypeNullability].
-  static Nullability getNullability(
-      Nullability typeParameterTypeNullability, DartType? promotedBound) {
-    // If promotedBound is null, getNullability simply returns the nullability
-    // of the type parameter type.
-    Nullability lhsNullability = typeParameterTypeNullability;
-    if (promotedBound == null) {
-      return lhsNullability;
-    }
-
-    // If promotedBound isn't null, getNullability returns the nullability of an
-    // intersection of the left-hand side (referred to as LHS below) and the
-    // right-hand side (referred to as RHS below).  Note that RHS is always a
-    // subtype of the bound of the type parameter.
-
-    // The code below implements the rule for the nullability of an intersection
-    // type as per the following table:
-    //
-    // | LHS \ RHS |  !  |  ?  |  *  |  %  |
-    // |-----------|-----|-----|-----|-----|
-    // |     !     |  !  |  +  | N/A |  !  |
-    // |     ?     | (!) | (?) | N/A | (%) |
-    // |     *     | (*) |  +  |  *  | N/A |
-    // |     %     |  !  |  %  |  +  |  %  |
-    //
-    // In the table, LHS corresponds to lhsNullability in the code below; RHS
-    // corresponds to promotedBound.nullability; !, ?, *, and % correspond to
-    // nonNullable, nullable, legacy, and undetermined values of the Nullability
-    // enum.
-
-    assert(
-        (lhsNullability == Nullability.nonNullable &&
-                promotedBound.nullability == Nullability.nonNullable) ||
-            (lhsNullability == Nullability.nonNullable &&
-                promotedBound.nullability == Nullability.undetermined) ||
-            (lhsNullability == Nullability.legacy &&
-                promotedBound.nullability == Nullability.legacy) ||
-            (lhsNullability == Nullability.undetermined &&
-                promotedBound.nullability == Nullability.nonNullable) ||
-            (lhsNullability == Nullability.undetermined &&
-                promotedBound.nullability == Nullability.nullable) ||
-            (lhsNullability == Nullability.undetermined &&
-                promotedBound.nullability == Nullability.undetermined)
-            // Apparently these happens as well:
-            ||
-            // pkg/front_end/test/id_tests/type_promotion_test
-            (lhsNullability == Nullability.nullable &&
-                promotedBound.nullability == Nullability.nonNullable) ||
-            // pkg/front_end/test/fasta/types/kernel_type_parser_test
-            // pkg/front_end/test/fasta/incremental_hello_test
-            // pkg/front_end/test/fasta/types/fasta_types_test
-            // pkg/front_end/test/explicit_creation_test
-            // pkg/front_end/tool/fasta_perf_test
-            // nnbd/issue42089
-            (lhsNullability == Nullability.nullable &&
-                promotedBound.nullability == Nullability.nullable) ||
-            // pkg/front_end/test/explicit_creation_test
-            // pkg/front_end/test/dill_round_trip_test
-            // pkg/front_end/test/compile_dart2js_with_no_sdk_test
-            // pkg/front_end/test/fasta/types/large_app_benchmark_test
-            // pkg/front_end/test/incremental_dart2js_test
-            // pkg/front_end/test/read_dill_from_binary_md_test
-            // pkg/front_end/test/static_types/static_type_test
-            // pkg/front_end/test/split_dill_test
-            // pkg/front_end/tool/incremental_perf_test
-            // pkg/vm/test/kernel_front_end_test
-            // general/promoted_null_aware_access
-            // inference/constructors_infer_from_arguments_factory
-            // inference/infer_types_on_loop_indices_for_each_loop
-            // inference/infer_types_on_loop_indices_for_each_loop_async
-            (lhsNullability == Nullability.legacy &&
-                promotedBound.nullability == Nullability.nonNullable) ||
-            // pkg/front_end/test/fasta/incremental_hello_test
-            // pkg/front_end/test/explicit_creation_test
-            // pkg/front_end/tool/fasta_perf_test
-            // pkg/front_end/test/fasta/incremental_hello_test
-            (lhsNullability == Nullability.nullable &&
-                promotedBound.nullability == Nullability.undetermined) ||
-
-            // This is created but never observed.
-            // (lhsNullability == Nullability.legacy &&
-            //     promotedBound.nullability == Nullability.nullable) ||
-
-            // pkg/front_end/test/fasta/types/kernel_type_parser_test
-            // pkg/front_end/test/fasta/types/fasta_types_test
-            (lhsNullability == Nullability.undetermined &&
-                promotedBound.nullability == Nullability.legacy) ||
-            // pkg/front_end/test/fasta/types/kernel_type_parser_test
-            // pkg/front_end/test/fasta/types/fasta_types_test
-            (lhsNullability == Nullability.nonNullable &&
-                promotedBound.nullability == Nullability.nullable),
-        "Unexpected nullabilities for: LHS nullability = $lhsNullability, "
-        "RHS nullability = ${promotedBound.nullability}.");
-
-    // Whenever there's N/A in the table, it means that the corresponding
-    // combination of the LHS and RHS nullability is not possible when compiling
-    // from Dart source files, so we can define it to be whatever is faster and
-    // more convenient to implement.  The verifier should check that the cases
-    // marked as N/A never occur in the output of the CFE.
-    //
-    // The code below uses the following extension of the table function:
-    //
-    // | LHS \ RHS |  !  |  ?  |  *  |  %  |
-    // |-----------|-----|-----|-----|-----|
-    // |     !     |  !  |  !  |  !  |  !  |
-    // |     ?     | (!) | (?) |  *  | (%) |
-    // |     *     | (*) |  *  |  *  |  %  |
-    // |     %     |  !  |  %  |  %  |  %  |
-
-    if (lhsNullability == Nullability.nullable &&
-        promotedBound.nullability == Nullability.nonNullable) {
-      return Nullability.nonNullable;
-    }
-
-    if (lhsNullability == Nullability.nullable &&
-        promotedBound.nullability == Nullability.nullable) {
-      return Nullability.nullable;
-    }
-
-    if (lhsNullability == Nullability.legacy &&
-        promotedBound.nullability == Nullability.nonNullable) {
-      return Nullability.legacy;
-    }
-
-    if (lhsNullability == Nullability.nullable &&
-        promotedBound.nullability == Nullability.undetermined) {
-      return Nullability.undetermined;
-    }
-
-    // Intersection with a non-nullable type always yields a non-nullable type,
-    // as it's the most restrictive kind of types.
-    if (lhsNullability == Nullability.nonNullable ||
-        promotedBound.nullability == Nullability.nonNullable) {
-      return Nullability.nonNullable;
-    }
-
-    // If the nullability of LHS is 'undetermined', the nullability of the
-    // intersection is also 'undetermined' if RHS is 'undetermined' or nullable.
-    //
-    // Consider the following example:
-    //
-    //     class A<X extends Object?, Y extends X> {
-    //       foo(X x) {
-    //         if (x is Y) {
-    //           x = null;     // Compile-time error.  Consider X = Y = int.
-    //           Object a = x; // Compile-time error.  Consider X = Y = int?.
-    //         }
-    //         if (x is int?) {
-    //           x = null;     // Compile-time error.  Consider X = int.
-    //           Object b = x; // Compile-time error.  Consider X = int?.
-    //         }
-    //       }
-    //     }
-    if (lhsNullability == Nullability.undetermined ||
-        promotedBound.nullability == Nullability.undetermined) {
-      return Nullability.undetermined;
-    }
-
-    return Nullability.legacy;
-  }
-
   @override
   String toString() {
     return "TypeParameterType(${toStringInternal()})";
@@ -12576,18 +13182,123 @@ class TypeParameterType extends DartType {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    if (promotedBound != null) {
-      printer.write('(');
-      printer.writeTypeParameterName(parameter);
-      printer.write(nullabilityToString(declaredNullability));
-      printer.write(" & ");
-      printer.writeType(promotedBound!);
-      printer.write(')');
-      printer.write(nullabilityToString(nullability));
+    printer.writeTypeParameterName(parameter);
+    printer.write(nullabilityToString(declaredNullability));
+  }
+}
+
+class RecordType extends DartType {
+  final List<DartType> positional;
+  final List<NamedType> named;
+
+  @override
+  final Nullability declaredNullability;
+
+  RecordType(this.positional, this.named, this.declaredNullability)
+      : assert(() {
+          // Assert that the named field types are sorted.
+          for (int i = 1; i < named.length; i++) {
+            if (named[i].name.compareTo(named[i - 1].name) < 0) {
+              return false;
+            }
+          }
+          return true;
+        }(),
+            "Named field types aren't sorted lexicographically "
+            "in a RecordType: ${named}");
+
+  @override
+  Nullability get nullability => declaredNullability;
+
+  @override
+  DartType get resolveTypeParameterType => this;
+
+  @override
+  R accept<R>(DartTypeVisitor<R> v) {
+    return v.visitRecordType(this);
+  }
+
+  @override
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) {
+    return v.visitRecordType(this, arg);
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    visitList(positional, v);
+    visitList(named, v);
+  }
+
+  @override
+  bool operator ==(Object other) => equals(other, null);
+
+  @override
+  bool equals(Object other, Assumptions? assumptions) {
+    if (identical(this, other)) {
+      return true;
+    } else if (other is RecordType) {
+      if (nullability != other.nullability) return false;
+      if (positional.length != other.positional.length) return false;
+      if (named.length != other.named.length) return false;
+      for (int index = 0; index < positional.length; index++) {
+        if (!positional[index].equals(other.positional[index], assumptions)) {
+          return false;
+        }
+      }
+      for (int index = 0; index < named.length; index++) {
+        if (!named[index].equals(other.named[index], assumptions)) {
+          return false;
+        }
+      }
+      return true;
     } else {
-      printer.writeTypeParameterName(parameter);
-      printer.write(nullabilityToString(declaredNullability));
+      return false;
     }
+  }
+
+  @override
+  int get hashCode {
+    int hash = 1237;
+    for (int i = 0; i < positional.length; ++i) {
+      hash = 0x3fffffff & (hash * 31 + positional[i].hashCode);
+    }
+    for (int i = 0; i < named.length; ++i) {
+      hash = 0x3fffffff & (hash * 31 + named[i].hashCode);
+    }
+    hash = 0x3fffffff & (hash * 31 + nullability.index);
+    return hash;
+  }
+
+  @override
+  RecordType withDeclaredNullability(Nullability declaredNullability) {
+    return declaredNullability == this.declaredNullability
+        ? this
+        : new RecordType(this.positional, this.named, declaredNullability);
+  }
+
+  @override
+  String toString() {
+    return "RecordType(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write("(");
+    printer.writeTypes(positional);
+    if (named.isNotEmpty) {
+      if (positional.isNotEmpty) {
+        printer.write(", ");
+      }
+      printer.write("{");
+      for (int i = 0; i < named.length; i++) {
+        if (i > 0) {
+          printer.write(", ");
+        }
+        printer.writeNamedType(named[i]);
+      }
+      printer.write("}");
+    }
+    printer.write(")");
   }
 }
 
@@ -13408,6 +14119,106 @@ class SetConstant extends Constant {
       context.typeEnvironment.setType(typeArgument, context.nonNullable);
 }
 
+class RecordConstant extends Constant {
+  /// Positional field values.
+  final List<Constant> positional;
+
+  /// Named field values, sorted by name.
+  final Map<String, Constant> named;
+
+  /// The static type of the constant.
+  final RecordType recordType;
+
+  RecordConstant(this.positional, this.named, this.recordType)
+      : assert(positional.length == recordType.positional.length &&
+            named.length == recordType.named.length &&
+            recordType.named
+                .map((f) => f.name)
+                .toSet()
+                .containsAll(named.keys)),
+        assert(() {
+          // Assert that the named fields are sorted.
+          String? previous;
+          for (String name in named.keys) {
+            if (previous != null && name.compareTo(previous) < 0) {
+              return false;
+            }
+            previous = name;
+          }
+          return true;
+        }(),
+            "Named fields of a RecordConstant aren't sorted lexicographically: "
+            "${named.keys.join(", ")}");
+
+  @override
+  void visitChildren(Visitor v) {
+    recordType.accept(v);
+    for (final Constant entry in positional) {
+      entry.acceptReference(v);
+    }
+    for (final Constant entry in named.values) {
+      entry.acceptReference(v);
+    }
+  }
+
+  @override
+  R accept<R>(ConstantVisitor<R> v) => v.visitRecordConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitRecordConstant(this, arg);
+
+  @override
+  R acceptReference<R>(Visitor<R> v) => v.visitRecordConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitRecordConstantReference(this, arg);
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write("const (");
+    String comma = '';
+    for (Constant entry in positional) {
+      printer.write(comma);
+      printer.writeConstant(entry);
+      comma = ', ';
+    }
+    if (named.isNotEmpty) {
+      printer.write(comma);
+      comma = '';
+      printer.write("{");
+      for (MapEntry<String, Constant> entry in named.entries) {
+        printer.write(comma);
+        printer.write(entry.key);
+        printer.write(": ");
+        printer.writeConstant(entry.value);
+        comma = ', ';
+      }
+      printer.write("}");
+    }
+    printer.write(")");
+  }
+
+  @override
+  String toString() => "RecordConstant(${toStringInternal()})";
+
+  @override
+  late final int hashCode = _Hash.combineFinish(recordType.hashCode,
+      _Hash.combineMapHashUnordered(named, _Hash.combineListHash(positional)));
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RecordConstant &&
+          other.recordType == recordType &&
+          listEquals(other.positional, positional) &&
+          mapEquals(other.named, named));
+
+  @override
+  DartType getType(StaticTypeContext context) => recordType;
+}
+
 class InstanceConstant extends Constant {
   final Reference classReference;
   final List<DartType> typeArguments;
@@ -14183,12 +14994,12 @@ abstract class BinarySink {
 
   void enterScope(
       {List<TypeParameter> typeParameters,
-      bool memberScope: false,
-      bool variableScope: false});
+      bool memberScope = false,
+      bool variableScope = false});
   void leaveScope(
       {List<TypeParameter> typeParameters,
-      bool memberScope: false,
-      bool variableScope: false});
+      bool memberScope = false,
+      bool variableScope = false});
 }
 
 abstract class BinarySource {
@@ -14715,6 +15526,10 @@ final List<Typedef> emptyListOfTypedef =
 final List<Extension> emptyListOfExtension =
     List.filled(0, dummyExtension, growable: false);
 
+/// Almost const <View>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<View> emptyListOfView = List.filled(0, dummyView, growable: false);
+
 /// Almost const <Field>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<Field> emptyListOfField =
@@ -14749,6 +15564,11 @@ final List<Class> emptyListOfClass =
 /// avoid polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<ExtensionMemberDescriptor> emptyListOfExtensionMemberDescriptor =
     List.filled(0, dummyExtensionMemberDescriptor, growable: false);
+
+/// Almost const <ViewMemberDescriptor>[], but not const in an attempt to
+/// avoid polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<ViewMemberDescriptor> emptyListOfViewMemberDescriptor =
+    List.filled(0, dummyViewMemberDescriptor, growable: false);
 
 /// Almost const <Constructor>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
@@ -14864,6 +15684,21 @@ final ExtensionMemberDescriptor dummyExtensionMemberDescriptor =
         name: dummyName,
         kind: ExtensionMemberKind.Getter,
         member: dummyReference);
+
+/// Non-nullable [View] dummy value.
+///
+/// This is used as the removal sentinel in [RemovingTransformer] and can be
+/// used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final View dummyView = new View(name: '', fileUri: dummyUri);
+
+/// Non-nullable [ViewMemberDescriptor] dummy value.
+///
+/// This is used as the removal sentinel in [RemovingTransformer] and can be
+/// used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final ViewMemberDescriptor dummyViewMemberDescriptor = new ViewMemberDescriptor(
+    name: dummyName, kind: ViewMemberKind.Getter, member: dummyReference);
 
 /// Non-nullable [Member] dummy value.
 ///

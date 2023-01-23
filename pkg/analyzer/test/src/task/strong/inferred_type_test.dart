@@ -1766,27 +1766,27 @@ void main() {
 ''';
     await _assertNoErrors(
         build(declared: "MyFuture", downwards: "Future", upwards: "Future"));
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     await _assertNoErrors(
         build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"));
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     await _assertNoErrors(
         build(declared: "MyFuture", downwards: "MyFuture", upwards: "Future"));
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     await _assertNoErrors(build(
         declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"));
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     await _assertNoErrors(
         build(declared: "Future", downwards: "Future", upwards: "MyFuture"));
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     await _assertNoErrors(
         build(declared: "Future", downwards: "Future", upwards: "Future"));
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
   }
 
   test_futureThen_downwardsMethodTarget() async {
@@ -1860,7 +1860,7 @@ $declared foo() => new $declared<int>.value(1);
         error(HintCode.UNNECESSARY_CAST, 480, 47),
       ],
     );
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     await assertErrorsInCode(
       build(declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"),
@@ -1871,7 +1871,7 @@ $declared foo() => new $declared<int>.value(1);
         error(HintCode.UNNECESSARY_CAST, 484, 49),
       ],
     );
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     await assertErrorsInCode(
       build(declared: "Future", downwards: "Future", upwards: "Future"),
@@ -1882,7 +1882,7 @@ $declared foo() => new $declared<int>.value(1);
         error(HintCode.UNNECESSARY_CAST, 480, 47),
       ],
     );
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
   }
 
   test_futureThen_upwardsFromBlock() async {
@@ -1927,12 +1927,12 @@ $downwards<int> g3(bool x) async {
     await assertNoErrorsInCode(
       build(downwards: "Future", upwards: "Future", expectedInfo: ''),
     );
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     await assertNoErrorsInCode(
       build(downwards: "Future", upwards: "MyFuture"),
     );
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
   }
 
   test_futureUnion_downwards() async {
@@ -1975,7 +1975,7 @@ $downwards<List<int>> g3() async {
         error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 338, 4),
       ],
     );
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     await assertErrorsInCode(
       build(
@@ -1985,7 +1985,7 @@ $downwards<List<int>> g3() async {
       ),
       [],
     );
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     await assertErrorsInCode(
       build(
@@ -1998,7 +1998,7 @@ $downwards<List<int>> g3() async {
         error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 336, 4),
       ],
     );
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     await assertErrorsInCode(
       build(
@@ -2008,7 +2008,7 @@ $downwards<List<int>> g3() async {
       ),
       [],
     );
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
   }
 
   test_futureUnion_downwardsGenericMethodWithFutureReturn() async {
@@ -2233,7 +2233,7 @@ class D<T> {
 }
 typedef void F<V>(V v);
 ''');
-    var f = _resultUnitElement.getType('C')!.methods[0];
+    var f = _resultUnitElement.getClass('C')!.methods[0];
     _assertTypeStr(f.type, 'void Function(U) Function<U>(U)');
   }
 
@@ -2247,7 +2247,7 @@ abstract class D<T> {
 }
 typedef List<V> G<V>();
 ''');
-    var f = _resultUnitElement.getType('C')!.methods[0];
+    var f = _resultUnitElement.getClass('C')!.methods[0];
     _assertTypeStr(f.type, 'void Function<U>(List<U> Function())');
   }
 
@@ -2261,7 +2261,7 @@ class D<T> {
 }
 typedef V F<V>();
 ''');
-    var f = _resultUnitElement.getType('C')!.methods[0];
+    var f = _resultUnitElement.getClass('C')!.methods[0];
     _assertTypeStr(f.type, 'U Function() Function<U>(U)');
   }
 
@@ -2941,7 +2941,7 @@ main() {
       error(HintCode.UNUSED_ELEMENT, 177, 2),
       error(HintCode.UNUSED_ELEMENT, 194, 2),
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 203, 2,
-          contextMessages: [message(testFilePath, 211, 2)]),
+          contextMessages: [message(testFile.path, 211, 2)]),
     ]);
 
     void assertLocalFunctionType(String name, String expected) {
@@ -2974,7 +2974,7 @@ class D {
   int foo;
 }
 ''');
-    var f = _resultUnitElement.getType('C')!.accessors[0];
+    var f = _resultUnitElement.getClass('C')!.accessors[0];
     _assertTypeStr(f.type, 'void Function(int)');
   }
 
@@ -2987,7 +2987,7 @@ class D {
   set foo(int x) {}
 }
 ''');
-    var f = _resultUnitElement.getType('C')!.accessors[0];
+    var f = _resultUnitElement.getClass('C')!.accessors[0];
     _assertTypeStr(f.type, 'void Function(int)');
   }
 
@@ -3001,10 +3001,10 @@ class C {
   };
 }
 ''');
-    var x = _resultUnitElement.getType('C')!.fields[0];
+    var x = _resultUnitElement.getClass('C')!.fields[0];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'String');
-    var y = _resultUnitElement.getType('C')!.fields[1];
+    var y = _resultUnitElement.getClass('C')!.fields[1];
     expect(y.name, 'y');
     _assertTypeStr(y.type, 'Map<String, Map<String, String>>');
   }
@@ -3019,7 +3019,7 @@ class C {
     var x = _resultUnitElement.topLevelVariables[0];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'String');
-    var y = _resultUnitElement.getType('C')!.fields[0];
+    var y = _resultUnitElement.getClass('C')!.fields[0];
     expect(y.name, 'y');
     _assertTypeStr(y.type, 'String');
   }
@@ -3307,7 +3307,7 @@ class C {
       (int i) => {i: b};
 }
 ''');
-    var f = _resultUnitElement.getType('C')!.fields[0];
+    var f = _resultUnitElement.getClass('C')!.fields[0];
     _assertTypeStr(f.type, 'Map<int, bool> Function(int) Function(bool)');
   }
 
@@ -3317,7 +3317,7 @@ class C {
   static final f = (bool b) => b;
 }
 ''');
-    var f = _resultUnitElement.getType('C')!.fields[0];
+    var f = _resultUnitElement.getClass('C')!.fields[0];
     _assertTypeStr(f.type, 'bool Function(bool)');
   }
 
@@ -3327,7 +3327,7 @@ class C {
   static final f = (bool b) => 1;
 }
 ''');
-    var f = _resultUnitElement.getType('C')!.fields[0];
+    var f = _resultUnitElement.getClass('C')!.fields[0];
     _assertTypeStr(f.type, 'int Function(bool)');
   }
 

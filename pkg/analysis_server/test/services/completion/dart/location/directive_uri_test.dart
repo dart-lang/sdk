@@ -3,11 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
-import 'package:analyzer_utilities/check/check.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
 import '../completion_check.dart';
+import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
@@ -20,19 +21,31 @@ class DirectiveUriTest extends AbstractCompletionDriverTest {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+
+    printerConfiguration = printer.Configuration(
+      filter: (suggestion) {
+        return true;
+      },
+    );
+  }
+
   Future<void> test_uri_end() async {
     await _checkDirectives(
       uriContent: 'foo0^',
       validator: (response) {
         // We have both `foo0x`, but no `bar`.
-        check(response).suggestions.matchesInAnyOrder([
-          (suggestion) => suggestion
-            ..isImport
-            ..completion.isEqualTo('package:foo/foo01.dart'),
-          (suggestion) => suggestion
-            ..isImport
-            ..completion.isEqualTo('package:foo/foo02.dart'),
-        ]);
+        assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  package:foo/foo01.dart
+    kind: import
+  package:foo/foo02.dart
+    kind: import
+''');
       },
     );
   }
@@ -42,14 +55,16 @@ class DirectiveUriTest extends AbstractCompletionDriverTest {
       uriContent: 'foo0^xyz',
       validator: (response) {
         // We ignore 'xyz' after the caret.
-        check(response).suggestions.matchesInAnyOrder([
-          (suggestion) => suggestion
-            ..isImport
-            ..completion.isEqualTo('package:foo/foo01.dart'),
-          (suggestion) => suggestion
-            ..isImport
-            ..completion.isEqualTo('package:foo/foo02.dart'),
-        ]);
+        assertResponseText(response, r'''
+replacement
+  left: 4
+  right: 3
+suggestions
+  package:foo/foo01.dart
+    kind: import
+  package:foo/foo02.dart
+    kind: import
+''');
       },
     );
   }
@@ -59,6 +74,7 @@ class DirectiveUriTest extends AbstractCompletionDriverTest {
     required void Function(CompletionResponseForTesting response) validator,
   }) async {
     _configurePackagesFooBar();
+    await pumpEventQueue(times: 5000);
 
     {
       var response = await getTestCodeSuggestions('''

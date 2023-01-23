@@ -88,7 +88,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       {required bool isExtensionMember,
       required bool isInstanceMember,
       String? nativeMethodName,
-      bool isSynthetic: false})
+      bool isSynthetic = false})
       // ignore: unnecessary_null_comparison
       : assert(isExtensionMember != null),
         // ignore: unnecessary_null_comparison
@@ -98,7 +98,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
         super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
             charOffset, nativeMethodName) {
     _procedure = new Procedure(
-        nameScheme.getProcedureName(kind, name),
+        dummyName,
         isExtensionInstanceMember ? ProcedureKind.Method : kind,
         new FunctionNode(null),
         fileUri: libraryBuilder.fileUri,
@@ -108,17 +108,19 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
       ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
+    nameScheme.getProcedureMemberName(kind, name).attachMember(_procedure);
     this.asyncModifier = asyncModifier;
     if (isExtensionMember && isInstanceMember && kind == ProcedureKind.Method) {
-      _extensionTearOff ??= new Procedure(
-          nameScheme.getProcedureName(ProcedureKind.Getter, name),
-          ProcedureKind.Method,
-          new FunctionNode(null),
+      _extensionTearOff = new Procedure(
+          dummyName, ProcedureKind.Method, new FunctionNode(null),
           isStatic: true,
           isExtensionMember: true,
           reference: _tearOffReference,
           fileUri: fileUri)
         ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
+      nameScheme
+          .getProcedureMemberName(ProcedureKind.Getter, name)
+          .attachMember(_extensionTearOff!);
     }
   }
 
@@ -276,7 +278,6 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     _procedure.isAbstract = isAbstract;
     _procedure.isExternal = isExternal;
     _procedure.isConst = isConst;
-    updatePrivateMemberName(_procedure, libraryBuilder);
     if (isExtensionMethod) {
       _procedure.isExtensionMember = true;
       _procedure.isStatic = true;
@@ -288,7 +289,6 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     }
     if (extensionTearOff != null) {
       _buildExtensionTearOff(libraryBuilder, parent as ExtensionBuilder);
-      updatePrivateMemberName(extensionTearOff!, libraryBuilder);
     }
   }
 

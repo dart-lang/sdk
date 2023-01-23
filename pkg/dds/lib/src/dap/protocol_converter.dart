@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
@@ -69,7 +70,7 @@ class ProtocolConverter {
               thread,
               ref,
               // Quotes are handled below, so they can be wrapped around the
-              // elipsis.
+              // ellipsis.
               includeQuotesAroundString: false,
             )
           : null;
@@ -100,9 +101,9 @@ class ProtocolConverter {
         }
       }
       return stringValue;
-    } else if (ref.kind == 'List') {
-      return 'List (${ref.length} ${ref.length == 1 ? "item" : "items"})';
-    } else if (ref.kind == 'Map') {
+    } else if (_isList(ref)) {
+      return '${ref.kind} (${ref.length} ${ref.length == 1 ? "item" : "items"})';
+    } else if (_isMap(ref)) {
       return 'Map (${ref.length} ${ref.length == 1 ? "item" : "items"})';
     } else if (ref.kind == 'Type') {
       return 'Type (${ref.name})';
@@ -111,11 +112,12 @@ class ProtocolConverter {
     }
   }
 
-  /// Converts a [vm.Instace] to a list of [dap.Variable]s, one for each
+  /// Converts a [vm.Instance] to a list of [dap.Variable]s, one for each
   /// field/member/element/association.
   ///
-  /// If [startItem] and/or [numItems] are supplied, only a slice of the
-  /// items will be returned to allow the client to page.
+  /// If [startItem] and/or [numItems] are supplied, it is assumed that the
+  /// elements/associations/bytes in [instance] have been restricted to that set
+  /// when fetched from the VM.
   Future<List<dap.Variable>> convertVmInstanceToVariablesList(
     ThreadInfo thread,
     vm.Instance instance, {
@@ -142,10 +144,7 @@ class ProtocolConverter {
     } else if (elements != null) {
       // For lists, map each item (in the requested subset) to a variable.
       final start = startItem ?? 0;
-      return Future.wait(elements
-          .cast<vm.Response>()
-          .sublist(start, numItems != null ? start + numItems : null)
-          .mapIndexed(
+      return Future.wait(elements.cast<vm.Response>().mapIndexed(
             (index, response) => convertVmResponseToVariable(
               thread,
               response,
@@ -163,9 +162,7 @@ class ProtocolConverter {
       // Both the key and value will be expandable (handled by variablesRequest
       // detecting the MapAssociation type).
       final start = startItem ?? 0;
-      return Future.wait(associations
-          .sublist(start, numItems != null ? start + numItems : null)
-          .mapIndexed((index, mapEntry) async {
+      return Future.wait(associations.mapIndexed((index, mapEntry) async {
         final key = mapEntry.key;
         final value = mapEntry.value;
         final callToString =
@@ -192,6 +189,21 @@ class ProtocolConverter {
           variablesReference: thread.storeData(mapEntry),
         );
       }));
+    } else if (_isList(instance) &&
+        instance.length != null &&
+        instance.bytes != null) {
+      final elements = _decodeList(instance);
+
+      final start = startItem ?? 0;
+      return elements
+          .mapIndexed(
+            (index, element) => dap.Variable(
+              name: '[${start + index}]',
+              value: element.toString(),
+              variablesReference: 0,
+            ),
+          )
+          .toList();
     } else if (fields != null) {
       // Otherwise, show the fields from the instance.
       final variables = await Future.wait(fields.mapIndexed(
@@ -257,6 +269,45 @@ class ProtocolConverter {
     }
   }
 
+  /// Decodes the bytes of a list from the base64 encoded string
+  /// [instance.bytes].
+  List<Object?> _decodeList(vm.Instance instance) {
+    final bytes = base64Decode(instance.bytes!);
+    switch (instance.kind) {
+      case 'Uint8ClampedList':
+        return bytes.buffer.asUint8ClampedList();
+      case 'Uint8List':
+        return bytes.buffer.asUint8List();
+      case 'Uint16List':
+        return bytes.buffer.asUint16List();
+      case 'Uint32List':
+        return bytes.buffer.asUint32List();
+      case 'Uint64List':
+        return bytes.buffer.asUint64List();
+      case 'Int8List':
+        return bytes.buffer.asInt8List();
+      case 'Int16List':
+        return bytes.buffer.asInt16List();
+      case 'Int32List':
+        return bytes.buffer.asInt32List();
+      case 'Int64List':
+        return bytes.buffer.asInt64List();
+      case 'Float32List':
+        return bytes.buffer.asFloat32List();
+      case 'Float64List':
+        return bytes.buffer.asFloat64List();
+      case 'Int32x4List':
+        return bytes.buffer.asInt32x4List();
+      case 'Float32x4List':
+        return bytes.buffer.asFloat32x4List();
+      case 'Float64x2List':
+        return bytes.buffer.asFloat64x2List();
+      default:
+        // A list type we don't know how to decode.
+        return [];
+    }
+  }
+
   /// Converts a [vm.Response] into a user-friendly display string.
   ///
   /// This may be shown in the collapsed view of a complex type.
@@ -311,6 +362,7 @@ class ProtocolConverter {
           response,
           allowCallingToString: allowCallingToString,
         ),
+        indexedVariables: _isList(response) ? response.length : null,
         variablesReference: variablesReference,
       );
     } else if (response is vm.Sentinel) {
@@ -335,6 +387,15 @@ class ProtocolConverter {
       );
     }
   }
+
+  /// Returns whether [ref] is a List kind.
+  ///
+  /// This includes standard Dart [List], as well as lists from
+  /// `dart:typed_data` such as `Uint8List`.
+  bool _isList(vm.InstanceRef ref) => ref.kind?.endsWith('List') ?? false;
+
+  /// Returns whether [ref] is a Map kind.
+  bool _isMap(vm.InstanceRef ref) => ref.kind == 'Map';
 
   /// Converts a VM Service stack frame to a DAP stack frame.
   Future<dap.StackFrame> convertVmToDapStackFrame(
@@ -397,14 +458,19 @@ class ProtocolConverter {
       canShowSource = true;
     }
 
-    var line = 0, col = 0;
-    if (scriptRef != null && tokenPos != null) {
-      try {
-        final script = await thread.getScript(scriptRef);
-        line = script.getLineNumberFromTokenPos(tokenPos) ?? 0;
-        col = script.getColumnNumberFromTokenPos(tokenPos) ?? 0;
-      } catch (e) {
-        _adapter.logger?.call('Failed to map frame location to line/col: $e');
+    // First try to use line/col from location to avoid fetching scripts.
+    // LSP doesn't support nullable lines so we use 0 as where we can't map.
+    var line = location.line ?? 0;
+    var col = location.column ?? 0;
+    if (line == 0 || col == 0) {
+      if (scriptRef != null && tokenPos != null) {
+        try {
+          final script = await thread.getScript(scriptRef);
+          line = script.getLineNumberFromTokenPos(tokenPos) ?? 0;
+          col = script.getColumnNumberFromTokenPos(tokenPos) ?? 0;
+        } catch (e) {
+          _adapter.logger?.call('Failed to map frame location to line/col: $e');
+        }
       }
     }
 

@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "async_patch.dart";
+part of "async_patch.dart";
 
 // Implementation of `Timer` and `scheduleMicrotask` via the JS event loop.
-
-import 'dart:_internal' show patch, scheduleCallback;
 
 @patch
 class Timer {

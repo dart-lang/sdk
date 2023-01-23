@@ -24,91 +24,80 @@ KernelLineStartsReader::KernelLineStartsReader(
     dart::Zone* zone)
     : line_starts_data_(line_starts_data) {
   TypedDataElementType type = line_starts_data_.ElementType();
-  if (type == kInt8ArrayElement) {
-    helper_ = new KernelInt8LineStartsHelper();
-  } else if (type == kInt16ArrayElement) {
-    helper_ = new KernelInt16LineStartsHelper();
-  } else if (type == kInt32ArrayElement) {
-    helper_ = new KernelInt32LineStartsHelper();
+  if (type == kUint16ArrayElement) {
+    helper_ = new KernelUint16LineStartsHelper();
+  } else if (type == kUint32ArrayElement) {
+    helper_ = new KernelUint32LineStartsHelper();
   } else {
     UNREACHABLE();
   }
 }
 
-int32_t KernelLineStartsReader::MaxPosition() const {
+uint32_t KernelLineStartsReader::MaxPosition() const {
   const intptr_t line_count = line_starts_data_.Length();
-  intptr_t current_start = 0;
-  for (intptr_t i = 0; i < line_count; i++) {
-    current_start += helper_->At(line_starts_data_, i);
+  if (line_count == 0) {
+    return 0;
   }
-  return current_start;
+  return helper_->At(line_starts_data_, line_count - 1);
 }
 
 bool KernelLineStartsReader::LocationForPosition(intptr_t position,
                                                  intptr_t* line,
                                                  intptr_t* col) const {
-  intptr_t line_count = line_starts_data_.Length();
-  intptr_t current_start = 0;
-  intptr_t previous_start = 0;
-  for (intptr_t i = 0; i < line_count; ++i) {
-    current_start += helper_->At(line_starts_data_, i);
-    if (current_start > position) {
-      *line = i;
-      if (col != nullptr) {
-        *col = position - previous_start + 1;
-      }
-      return true;
-    }
-    if (current_start == position) {
-      *line = i + 1;
-      if (col != nullptr) {
-        *col = 1;
-      }
-      return true;
-    }
-    previous_start = current_start;
+  const intptr_t line_count = line_starts_data_.Length();
+  if (position < 0 || static_cast<uint32_t>(position) > MaxPosition() ||
+      line_count == 0) {
+    return false;
   }
 
-  return false;
+  intptr_t lo = 0;
+  intptr_t hi = line_count;
+  while (hi > lo + 1) {
+    const intptr_t mid = lo + (hi - lo) / 2;
+    const intptr_t mid_position = helper_->At(line_starts_data_, mid);
+    if (mid_position > position) {
+      hi = mid;
+    } else {
+      lo = mid;
+    }
+  }
+  *line = lo + 1;
+  if (col != nullptr) {
+    *col = position - helper_->At(line_starts_data_, lo) + 1;
+  }
+
+  return true;
 }
 
 bool KernelLineStartsReader::TokenRangeAtLine(
     intptr_t line_number,
     TokenPosition* first_token_index,
     TokenPosition* last_token_index) const {
-  if (line_number < 0 || line_number > line_starts_data_.Length()) {
+  const intptr_t line_count = line_starts_data_.Length();
+  if (line_number <= 0 || line_number > line_count) {
     return false;
   }
-  intptr_t cumulative = 0;
-  for (intptr_t i = 0; i < line_number; ++i) {
-    cumulative += helper_->At(line_starts_data_, i);
-  }
-  *first_token_index = dart::TokenPosition::Deserialize(cumulative);
-  if (line_number == line_starts_data_.Length()) {
+  *first_token_index = dart::TokenPosition::Deserialize(
+      helper_->At(line_starts_data_, line_number - 1));
+  if (line_number == line_count) {
     *last_token_index = *first_token_index;
   } else {
     *last_token_index = dart::TokenPosition::Deserialize(
-        cumulative + helper_->At(line_starts_data_, line_number) - 1);
+        helper_->At(line_starts_data_, line_number) - 1);
   }
   return true;
 }
 
-int32_t KernelLineStartsReader::KernelInt8LineStartsHelper::At(
+uint32_t KernelLineStartsReader::KernelUint16LineStartsHelper::At(
     const dart::TypedData& data,
     intptr_t index) const {
-  return data.GetInt8(index);
+  return data.GetUint16(index << 1);
 }
 
-int32_t KernelLineStartsReader::KernelInt16LineStartsHelper::At(
+uint32_t KernelLineStartsReader::KernelUint32LineStartsHelper::At(
     const dart::TypedData& data,
     intptr_t index) const {
-  return data.GetInt16(index << 1);
-}
-
-int32_t KernelLineStartsReader::KernelInt32LineStartsHelper::At(
-    const dart::TypedData& data,
-    intptr_t index) const {
-  return data.GetInt32(index << 2);
+  return data.GetUint32(index << 2);
 }
 
 class KernelTokenPositionCollector : public KernelReaderHelper {
@@ -676,6 +665,11 @@ bool NeedsDynamicInvocationForwarder(const Function& function) {
   // Method extractors have no parameters to check and return value is a closure
   // and therefore not an unboxed primitive type.
   if (function.IsMethodExtractor()) {
+    return false;
+  }
+
+  // Record field getters have no parameters to check and 'dynamic' return type.
+  if (function.IsRecordFieldGetter()) {
     return false;
   }
 

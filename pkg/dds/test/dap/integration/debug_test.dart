@@ -11,6 +11,7 @@ import 'package:test/test.dart';
 
 import 'test_client.dart';
 import 'test_scripts.dart';
+import 'test_server.dart';
 import 'test_support.dart';
 
 main() {
@@ -164,6 +165,102 @@ main() {
       );
     });
 
+    group('progress notifications', () {
+      /// Helper to verify [events] are the expected start/update/end events
+      /// in-order for a debug session starting.
+      void verifyLaunchProgressEvents(List<Event> events) {
+        final bodies =
+            events.map((e) => e.body as Map<String, Object?>).toList();
+        final start = ProgressStartEventBody.fromMap(bodies[0]);
+        final update = ProgressUpdateEventBody.fromMap(bodies[1]);
+        final end = ProgressEndEventBody.fromMap(bodies[2]);
+
+        expect(start.progressId, isNotNull);
+        expect(start.title, 'Debugger');
+        expect(start.message, 'Starting…');
+        expect(update.progressId, start.progressId);
+        expect(update.message, 'Connecting…');
+        expect(end.progressId, start.progressId);
+        expect(end.message, isNull);
+      }
+
+      test('sends no events by default', () async {
+        final testFile = dap.createTestFile(simpleArgPrintingProgram);
+
+        final standardEvents = dap.client.standardProgressEvents().toList();
+        final customEvents = dap.client.customProgressEvents().toList();
+
+        // Run the script to completion.
+        await Future.wait([
+          dap.client.event('terminated'),
+          dap.client.initialize(),
+          dap.client.launch(testFile.path),
+        ], eagerError: true);
+
+        expect(await standardEvents, isEmpty);
+        expect(await customEvents, isEmpty);
+      });
+
+      test('sends standard events when supported', () async {
+        final testFile = dap.createTestFile(simpleArgPrintingProgram);
+
+        final standardEventsFuture =
+            dap.client.standardProgressEvents().toList();
+        final customEventsFuture = dap.client.customProgressEvents().toList();
+
+        // Run the script to completion.
+        await Future.wait([
+          dap.client.event('terminated'),
+          dap.client.initialize(
+            supportsProgressReporting: true,
+          ),
+          dap.client.launch(testFile.path),
+        ], eagerError: true);
+
+        final standardEvents = await standardEventsFuture;
+        final customEvents = await customEventsFuture;
+
+        // Verify the standard launch events.
+        expect(
+          standardEvents.map((e) => e.event),
+          ['progressStart', 'progressUpdate', 'progressEnd'],
+        );
+        verifyLaunchProgressEvents(standardEvents);
+        // And no custom events.
+        expect(customEvents, isEmpty);
+      });
+
+      test('sends custom events when requested', () async {
+        final testFile = dap.createTestFile(simpleArgPrintingProgram);
+
+        final standardEventsFuture =
+            dap.client.standardProgressEvents().toList();
+        final customEventsFuture = dap.client.customProgressEvents().toList();
+
+        // Run the script to completion.
+        await Future.wait([
+          dap.client.event('terminated'),
+          dap.client.initialize(),
+          dap.client.launch(
+            testFile.path,
+            sendCustomProgressEvents: true,
+          ),
+        ], eagerError: true);
+
+        final standardEvents = await standardEventsFuture;
+        final customEvents = await customEventsFuture;
+
+        // Verify no standard events.
+        expect(standardEvents, isEmpty);
+        // But custom events are sent.
+        expect(
+          customEvents.map((e) => e.event),
+          ['dart.progressStart', 'dart.progressUpdate', 'dart.progressEnd'],
+        );
+        verifyLaunchProgressEvents(customEvents);
+      });
+    });
+
     test('provides a list of threads', () async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleBreakpointProgram);
@@ -282,7 +379,12 @@ main() {
       // the process terminates. These should not go unhandled since they are
       // normal during shutdown.
       unawaited(dap.client.event('thread').then((_) => dap.client.terminate()));
-      await dap.client.start(file: testFile);
+
+      // Start the program and expect termination.
+      await Future.wait([
+        dap.client.event('terminated'),
+        dap.client.start(file: testFile),
+      ], eagerError: true);
     });
 
     test('can hot reload', () async {
@@ -311,6 +413,12 @@ main() {
           .firstWhere((event) => event.output.trim() == newText);
 
       await dap.client.terminate();
+
+      // If we're running out of process, ensure the server process terminates.
+      final server = dap.server;
+      if (server is OutOfProcessDapTestServer) {
+        await server.exitCode;
+      }
     });
     // These tests can be slow due to starting up the external server process.
   }, timeout: Timeout.none);
@@ -358,7 +466,7 @@ main() {
 /// the DAP server upon connection.
 Uri _extractVmServiceUri(OutputEventBody vmConnectionBanner) {
   // TODO(dantup): Change this to use the dart.debuggerUris custom event
-  //   if implemented (whch VS Code also needs).
+  //   if implemented (which VS Code also needs).
   final match = dapVmServiceBannerPattern.firstMatch(vmConnectionBanner.output);
   return Uri.parse(match!.group(1)!);
 }

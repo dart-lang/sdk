@@ -35,5 +35,5 @@ static set b(dynamic #synthetic) → void
   ;
 static set c(dynamic #synthetic) → void
   ;
-static method main() → dynamic
+static method test() → dynamic
   ;

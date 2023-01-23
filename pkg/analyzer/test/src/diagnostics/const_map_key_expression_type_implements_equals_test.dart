@@ -130,6 +130,66 @@ main() {
     ]);
   }
 
+  test_record_notPrimitiveEqual_named() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+  operator ==(other) => false;
+}
+
+const x = {
+  (a: 0, b: const A()): 0,
+};
+''', [
+      error(
+          CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+          71,
+          20),
+    ]);
+  }
+
+  test_record_notPrimitiveEqual_positional() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+  operator ==(other) => false;
+}
+
+const x = {
+  (0, const A()): 0,
+};
+''', [
+      error(
+          CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+          71,
+          14),
+    ]);
+  }
+
+  test_record_primitiveEqual_named() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A();
+}
+
+const x = {
+  (a: 0, b: const A()): 0,
+};
+''');
+  }
+
+  test_record_primitiveEqual_positional() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A();
+}
+
+const x = {
+  (0, const A()): 0,
+};
+''');
+  }
+
   test_super() async {
     await assertErrorsInCode(r'''
 class A {

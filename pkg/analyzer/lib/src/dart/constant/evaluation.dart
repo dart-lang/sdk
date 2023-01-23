@@ -14,6 +14,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -29,11 +30,24 @@ import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/task/api/model.dart';
 
-/// During evaluation of enum constants we might need to report an error
-/// that is associated with the [InstanceCreationExpression], but this
-/// expression is synthetic. Instead, we remember the corresponding
-/// [EnumConstantDeclaration] and report the error on it.
-final enumConstantErrorNodes = Expando<EnumConstantDeclaration>();
+class ConstantEvaluationConfiguration {
+  /// During evaluation of enum constants we might need to report an error
+  /// that is associated with the [InstanceCreationExpression], but this
+  /// expression is synthetic. Instead, we remember the corresponding
+  /// [EnumConstantDeclaration] and report the error on it.
+  final Map<Expression, EnumConstantDeclaration> _enumConstants = {};
+
+  void addEnumConstant({
+    required EnumConstantDeclaration declaration,
+    required Expression initializer,
+  }) {
+    _enumConstants[initializer] = declaration;
+  }
+
+  AstNode errorNode(AstNode node) {
+    return _enumConstants[node] ?? node;
+  }
+}
 
 /// Helper class encapsulating the methods for evaluating constants and
 /// constant instance creation expressions.
@@ -44,6 +58,8 @@ class ConstantEvaluationEngine {
   /// Whether the `non-nullable` feature is enabled.
   final bool _isNonNullableByDefault;
 
+  final ConstantEvaluationConfiguration configuration;
+
   /// Initialize a newly created [ConstantEvaluationEngine].
   ///
   /// [declaredVariables] is the set of variables declared on the command
@@ -51,6 +67,7 @@ class ConstantEvaluationEngine {
   ConstantEvaluationEngine({
     required DeclaredVariables declaredVariables,
     required bool isNonNullableByDefault,
+    required this.configuration,
   })  : _declaredVariables = declaredVariables,
         _isNonNullableByDefault = isNonNullableByDefault;
 
@@ -63,7 +80,7 @@ class ConstantEvaluationEngine {
 
     var library = constant.library as LibraryElementImpl;
     if (constant is ParameterElementImpl) {
-      if (constant.isOptional) {
+      if (constant is ConstVariableElement) {
         var defaultValue = constant.constantInitializer;
         if (defaultValue != null) {
           RecordingErrorListener errorListener = RecordingErrorListener();
@@ -107,6 +124,9 @@ class ConstantEvaluationEngine {
                 constantInitializer,
                 [dartObject.type, constant.type]);
           }
+
+          // Associate with the variable.
+          dartObject = DartObjectImpl.forVariable(dartObject, constant);
         }
 
         if (dartObject != null) {
@@ -675,7 +695,10 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl? visitConstructorReference(ConstructorReference node) {
-    var constructorFunctionType = node.typeOrThrow as FunctionType;
+    var constructorFunctionType = node.typeOrThrow;
+    if (constructorFunctionType is! FunctionType) {
+      return null;
+    }
     var classType = constructorFunctionType.returnType as InterfaceType;
     var typeArguments = classType.typeArguments;
     // The result is already instantiated during resolution;
@@ -939,7 +962,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     var prefixElement = prefixNode.staticElement;
     // String.length
     if (prefixElement is! PrefixElement &&
-        prefixElement is! ClassElement &&
+        prefixElement is! InterfaceElement &&
         prefixElement is! ExtensionElement) {
       var prefixResult = prefixNode.accept(this);
       if (prefixResult != null &&
@@ -991,6 +1014,34 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       }
     }
     return _getConstantValue(node, node.propertyName);
+  }
+
+  @override
+  DartObjectImpl? visitRecordLiteral(RecordLiteral node) {
+    var nodeType = node.staticType;
+    if (nodeType == null) {
+      return null;
+    }
+    var positionalFields = <DartObjectImpl>[];
+    var namedFields = <String, DartObjectImpl>{};
+    for (var field in node.fields) {
+      if (field is NamedExpression) {
+        var name = field.name.label.name;
+        var value = field.expression.accept(this);
+        if (value == null) {
+          return null;
+        }
+        namedFields[name] = value;
+      } else {
+        var value = field.accept(this);
+        if (value == null) {
+          return null;
+        }
+        positionalFields.add(value);
+      }
+    }
+    return DartObjectImpl(
+        typeSystem, nodeType, RecordState(positionalFields, namedFields));
   }
 
   @override
@@ -1306,7 +1357,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         );
         return _instantiateFunctionTypeForSimpleIdentifier(identifier, rawType);
       }
-    } else if (variableElement is ClassElement) {
+    } else if (variableElement is InterfaceElement) {
       var type = variableElement.instantiate(
         typeArguments: variableElement.typeParameters
             .map((t) => _typeProvider.dynamicType)
@@ -1420,7 +1471,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /// [identifier] is "length".
   bool _isStringLength(
       DartObjectImpl targetResult, SimpleIdentifier identifier) {
-    if (targetResult.type.element != _typeProvider.stringElement) {
+    final targetType = targetResult.type;
+    if (!(targetType is InterfaceType &&
+        targetType.element == _typeProvider.stringElement)) {
       return false;
     }
     return identifier.name == 'length' &&
@@ -2012,27 +2065,26 @@ class _InitializersEvaluationResult {
 /// [_InstanceCreationEvaluator.evaluate] is the main entrypoint.
 class _InstanceCreationEvaluator {
   /// Parameter to "fromEnvironment" methods that denotes the default value.
-  static const String _default_value_param = 'defaultValue';
+  static const String _defaultValueParam = 'defaultValue';
 
   /// Source of RegExp matching declarable operator names.
   /// From sdk/lib/internal/symbol.dart.
-  static const String _operator_pattern =
+  static const String _operatorPattern =
       "(?:[\\-+*/%&|^]|\\[\\]=?|==|~/?|<[<=]?|>[>=]?|unary-)";
 
   /// Source of RegExp matching any public identifier.
   /// From sdk/lib/internal/symbol.dart.
-  static const String _public_identifier_pattern =
-      "(?!$_reserved_word_pattern\\b(?!\\\$))[a-zA-Z\$][\\w\$]*";
+  static const String _publicIdentifierPattern =
+      "(?!$_reservedWordPattern\\b(?!\\\$))[a-zA-Z\$][\\w\$]*";
 
   /// RegExp that validates a non-empty non-private symbol.
   /// From sdk/lib/internal/symbol.dart.
-  static final RegExp _public_symbol_pattern =
-      RegExp('^(?:$_operator_pattern\$|'
-          '$_public_identifier_pattern(?:=?\$|[.](?!\$)))+?\$');
+  static final RegExp _publicSymbolPattern = RegExp('^(?:$_operatorPattern\$|'
+      '$_publicIdentifierPattern(?:=?\$|[.](?!\$)))+?\$');
 
   /// Source of RegExp matching Dart reserved words.
   /// From sdk/lib/internal/symbol.dart.
-  static const String _reserved_word_pattern =
+  static const String _reservedWordPattern =
       "(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|"
       "d(?:efault|o)|e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|"
       "i[fns]|n(?:ew|ull)|ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|"
@@ -2126,7 +2178,7 @@ class _InstanceCreationEvaluator {
     List<Expression> arguments, {
     required bool isNullSafe,
   }) {
-    ClassElement definingClass = _constructor.enclosingElement;
+    final definingClass = _constructor.enclosingElement;
     var argumentCount = arguments.length;
     if (_constructor.name == "fromEnvironment") {
       if (!_checkFromEnvironmentArguments(arguments, definingType)) {
@@ -2137,6 +2189,14 @@ class _InstanceCreationEvaluator {
       String? variableName =
           argumentCount < 1 ? null : firstArgument?.toStringValue();
       if (definingClass == typeProvider.boolElement) {
+        // Special case: https://github.com/dart-lang/sdk/issues/50045
+        if (variableName == 'dart.library.js_util') {
+          return DartObjectImpl(
+            typeSystem,
+            typeProvider.boolType,
+            BoolState.UNKNOWN_VALUE,
+          );
+        }
         return FromEnvironmentEvaluator(typeSystem, _declaredVariables)
             .getBool2(variableName, _namedValues, _constructor);
       } else if (definingClass == typeProvider.intElement) {
@@ -2213,14 +2273,14 @@ class _InstanceCreationEvaluator {
           superArguments.insert(positionalIndex++, value);
         } else {
           superArguments.add(
-            astFactory.namedExpression(
-              astFactory.label(
-                astFactory.simpleIdentifier(
+            NamedExpressionImpl(
+              name: LabelImpl(
+                label: astFactory.simpleIdentifier(
                   StringToken(TokenType.STRING, parameter.name, -1),
                 )..staticElement = parameter,
-                StringToken(TokenType.COLON, ':', -1),
+                colon: StringToken(TokenType.COLON, ':', -1),
               ),
-              value,
+              expression: value,
             )..staticType = value.typeOrThrow,
           );
         }
@@ -2280,10 +2340,10 @@ class _InstanceCreationEvaluator {
     if (argumentCount == 2) {
       var secondArgument = arguments[1];
       if (secondArgument is NamedExpression) {
-        if (!(secondArgument.name.label.name == _default_value_param)) {
+        if (!(secondArgument.name.label.name == _defaultValueParam)) {
           return false;
         }
-        var defaultValueType = _namedValues[_default_value_param]!.type;
+        var defaultValueType = _namedValues[_defaultValueParam]!.type;
         if (!(defaultValueType == expectedDefaultValueType ||
             defaultValueType == typeProvider.nullType)) {
           return false;
@@ -2478,7 +2538,7 @@ class _InstanceCreationEvaluator {
           _library,
           _errorNode,
           superclass.typeArguments,
-          superArguments ?? astFactory.nodeList(_errorNode),
+          superArguments ?? const [],
           superConstructor,
           _initializerVisitor,
           _externalErrorReporter,
@@ -2595,7 +2655,7 @@ class _InstanceCreationEvaluator {
       declaredVariables,
       errorReporter,
       library,
-      enumConstantErrorNodes[node] ?? node,
+      evaluationEngine.configuration.errorNode(node),
       constructor,
       typeArguments,
       namedNodes: namedNodes,
@@ -2648,7 +2708,7 @@ class _InstanceCreationEvaluator {
   /// Determine whether the given string is a valid name for a public symbol
   /// (i.e. whether it is allowed for a call to the Symbol constructor).
   static bool _isValidPublicSymbol(String name) =>
-      name.isEmpty || name == "void" || _public_symbol_pattern.hasMatch(name);
+      name.isEmpty || name == "void" || _publicSymbolPattern.hasMatch(name);
 }
 
 extension RuntimeExtensions on TypeSystemImpl {

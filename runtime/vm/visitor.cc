@@ -11,6 +11,6 @@ namespace dart {
 ObjectPointerVisitor::ObjectPointerVisitor(IsolateGroup* isolate_group)
     : isolate_group_(isolate_group),
       gc_root_type_("unknown"),
-      shared_class_table_(isolate_group->shared_class_table()) {}
+      class_table_(isolate_group->heap_walk_class_table()) {}
 
 }  // namespace dart

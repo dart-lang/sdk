@@ -25,7 +25,8 @@ class AnalyticsSendTimingHandler extends LegacyHandler {
     }
 
     var params = AnalyticsSendTimingParams.fromRequest(request);
-    analytics.sendTiming(params.event, params.millis, category: _clientId);
+    unawaited(
+        analytics.sendTiming(params.event, params.millis, category: _clientId));
     sendResult(AnalyticsSendTimingResult());
   }
 }

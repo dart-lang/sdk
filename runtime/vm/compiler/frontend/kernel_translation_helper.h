@@ -307,7 +307,6 @@ class FunctionNodeHelper {
     kSyncStar = 1,
     kAsync = 2,
     kAsyncStar = 3,
-    kSyncYielding = 4,
   };
 
   explicit FunctionNodeHelper(KernelReaderHelper* helper) {
@@ -493,6 +492,9 @@ class FieldHelper {
     kIsGenericCovariantImpl = 1 << 4,
     kIsLate = 1 << 5,
     kExtensionMember = 1 << 6,
+    kNonNullableByDefault = 1 << 7,
+    kInternalImplementation = 1 << 8,
+    kEnumElement = 1 << 9,
   };
 
   explicit FieldHelper(KernelReaderHelper* helper)
@@ -747,6 +749,7 @@ class ClassHelper {
     kFlagMixinDeclaration = 1 << 4,
     kHasConstConstructor = 1 << 5,
     kIsMacro = 1 << 6,
+    kisSealed = 1 << 7,
   };
 
   explicit ClassHelper(KernelReaderHelper* helper)
@@ -813,6 +816,8 @@ class LibraryHelper {
     // * kParts
     // * kTypedefs
     // * kClasses
+    // * kExtensions
+    // * kViews
     // * kToplevelField
     // * kToplevelProcedures
     // * kSourceReferences
@@ -829,8 +834,8 @@ class LibraryHelper {
     kUnsupported = 1 << 4,
   };
 
-  explicit LibraryHelper(KernelReaderHelper* helper, uint32_t binary_version)
-      : helper_(helper), binary_version_(binary_version), next_read_(kFlags) {}
+  explicit LibraryHelper(KernelReaderHelper* helper)
+      : helper_(helper), next_read_(kFlags) {}
 
   void ReadUntilIncluding(Field field) {
     ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
@@ -862,7 +867,6 @@ class LibraryHelper {
 
  private:
   KernelReaderHelper* helper_;
-  uint32_t binary_version_;
   intptr_t next_read_;
 
   DISALLOW_COPY_AND_ASSIGN(LibraryHelper);
@@ -1166,7 +1170,9 @@ class UnboxingInfoMetadata : public ZoneAllocated {
     kBoxed = 0,
     kUnboxedIntCandidate = 1 << 0,
     kUnboxedDoubleCandidate = 1 << 1,
-    kUnboxingCandidate = kUnboxedIntCandidate | kUnboxedDoubleCandidate,
+    kUnboxedRecordCandidate = 1 << 2,
+    kUnboxingCandidate = kUnboxedIntCandidate | kUnboxedDoubleCandidate |
+                         kUnboxedRecordCandidate,
   };
 
   UnboxingInfoMetadata() : unboxed_args_info(0) { return_info = kBoxed; }
@@ -1273,6 +1279,7 @@ class KernelReaderHelper {
   void SkipFunctionType(bool simple);
   void SkipStatementList();
   void SkipListOfExpressions();
+  void SkipListOfNamedExpressions();
   void SkipListOfDartTypes();
   void SkipListOfStrings();
   void SkipListOfVariableDeclarations();
@@ -1299,7 +1306,7 @@ class KernelReaderHelper {
   String& SourceTableUriFor(intptr_t index);
   const String& GetSourceFor(intptr_t index);
   TypedDataPtr GetLineStartsFor(intptr_t index);
-  String& SourceTableImportUriFor(intptr_t index, uint32_t binaryVersion);
+  String& SourceTableImportUriFor(intptr_t index);
   ExternalTypedDataPtr GetConstantCoverageFor(intptr_t index);
 
   Zone* zone_;
@@ -1540,7 +1547,10 @@ class TypeTranslator {
   void BuildTypeInternal();
   void BuildInterfaceType(bool simple);
   void BuildFunctionType(bool simple);
+  void BuildRecordType();
   void BuildTypeParameterType();
+  void BuildIntersectionType();
+  void BuildViewType();
 
   class TypeParameterScope {
    public:

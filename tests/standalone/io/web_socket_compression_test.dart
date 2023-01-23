@@ -33,7 +33,7 @@ class SecurityConfiguration {
 
   SecurityConfiguration(this.secure);
 
-  Future<HttpServer> createServer({int backlog: 0}) => secure
+  Future<HttpServer> createServer({int backlog = 0}) => secure
       ? HttpServer.bindSecure(HOST_NAME, 0, serverContext, backlog: backlog)
       : HttpServer.bind(HOST_NAME, 0, backlog: backlog);
 
@@ -82,7 +82,7 @@ class SecurityConfiguration {
   }
 
   void testCompressionSupport(
-      {server: false, client: false, contextTakeover: false}) {
+      {server = false, client = false, contextTakeover = false}) {
     asyncStart();
 
     var clientOptions = new CompressionOptions(
@@ -124,8 +124,8 @@ class SecurityConfiguration {
   }
 
   void testContextSupport(
-      {CompressionOptions serverOpts: CompressionOptions.compressionDefault,
-      CompressionOptions clientOpts: CompressionOptions.compressionDefault,
+      {CompressionOptions serverOpts = CompressionOptions.compressionDefault,
+      CompressionOptions clientOpts = CompressionOptions.compressionDefault,
       int? messages}) {
     asyncStart();
 
@@ -206,7 +206,7 @@ class SecurityConfiguration {
   }
 
   void testReturnHeaders(String headerValue, String expected,
-      {CompressionOptions serverCompression:
+      {CompressionOptions serverCompression =
           CompressionOptions.compressionDefault}) {
     asyncStart();
     createServer().then((server) {

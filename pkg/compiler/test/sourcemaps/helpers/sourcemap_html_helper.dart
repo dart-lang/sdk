@@ -56,7 +56,7 @@ String toPattern(int index) {
 /// Return the html for the [index] line number. If [width] is provided, shorter
 /// line numbers will be prefixed with spaces to match the width.
 String lineNumber(int index,
-    {int width, bool useNbsp: false, String className}) {
+    {int width, bool useNbsp = false, String className}) {
   if (className == null) {
     className = 'lineNumber';
   }
@@ -126,7 +126,7 @@ class CustomColorScheme implements CssColorScheme {
   final Function multi;
 
   CustomColorScheme(
-      {this.showLocationAsSpan: false,
+      {this.showLocationAsSpan = false,
       String this.single(int id),
       String this.multi(List<int> ids)});
 
@@ -211,7 +211,7 @@ class CodeProcessor {
   final CssColorScheme colorScheme;
 
   CodeProcessor(this.name, this.collection,
-      {this.colorScheme: const PatternCssColorScheme()});
+      {this.colorScheme = const PatternCssColorScheme()});
 
   void addSourceLocation(int targetOffset, SourceLocation sourceLocation) {
     codeLocations.putIfAbsent(targetOffset, () => []).add(sourceLocation);
@@ -278,8 +278,8 @@ class HighlightLinkScheme implements ElementScheme {
 }
 
 String convertAnnotatedCodeToHtml(String code, Iterable<Annotation> annotations,
-    {CssColorScheme colorScheme: const SingleColorScheme(),
-    ElementScheme elementScheme: const ElementScheme(),
+    {CssColorScheme colorScheme = const SingleColorScheme(),
+    ElementScheme elementScheme = const ElementScheme(),
     int windowSize}) {
   StringBuffer htmlBuffer = new StringBuffer();
   List<CodeLine> lines = convertAnnotatedCodeToCodeLines(code, annotations,
@@ -336,7 +336,7 @@ List<CodeLine> convertAnnotatedCodeToCodeLines(
     }
   }
 
-  void addSubstring(int until, {bool isFirst: false, bool isLast: false}) {
+  void addSubstring(int until, {bool isFirst = false, bool isLast = false}) {
     if (until <= offset) return;
     if (offset >= code.length) return;
 
@@ -491,7 +491,7 @@ String computeDartHtml(
 /// Computes the HTML representation for the Dart code snippets in [collection].
 String computeDartHtmlPart(String name, SourceFileManager sourceFileManager,
     SourceLocationCollection collection,
-    {bool showAsBlock: false}) {
+    {bool showAsBlock = false}) {
   const int windowSize = 3;
   StringBuffer dartCodeBuffer = new StringBuffer();
   Map<Uri, Map<int, List<SourceLocation>>> sourceLocationMap = {};

@@ -22,3 +22,7 @@ String? unmangleGlobalNameIfPreservedAnyways(String name) {
   var names = JS_EMBEDDED_GLOBAL('', MANGLED_GLOBAL_NAMES);
   return JS('String|Null', '#[#]', names, name);
 }
+
+/// Unused in dart2js, only here to allow compilation of the shared dart:rti
+/// library.
+Object getSpecializedTestTag(String name) => name;

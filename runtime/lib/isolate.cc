@@ -31,20 +31,20 @@
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(CapabilityImpl_factory, 0, 1) {
+DEFINE_NATIVE_ENTRY(Capability_factory, 0, 1) {
   ASSERT(
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
   uint64_t id = isolate->random()->NextUInt64();
   return Capability::New(id);
 }
 
-DEFINE_NATIVE_ENTRY(CapabilityImpl_equals, 0, 2) {
+DEFINE_NATIVE_ENTRY(Capability_equals, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Capability, recv, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Capability, other, arguments->NativeArgAt(1));
   return (recv.Id() == other.Id()) ? Bool::True().ptr() : Bool::False().ptr();
 }
 
-DEFINE_NATIVE_ENTRY(CapabilityImpl_get_hashcode, 0, 1) {
+DEFINE_NATIVE_ENTRY(Capability_get_hashcode, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Capability, cap, arguments->NativeArgAt(0));
   int64_t id = cap.Id();
   int32_t hi = static_cast<int32_t>(id >> 32);
@@ -53,7 +53,7 @@ DEFINE_NATIVE_ENTRY(CapabilityImpl_get_hashcode, 0, 1) {
   return Smi::New(hash);
 }
 
-DEFINE_NATIVE_ENTRY(RawReceivePortImpl_factory, 0, 2) {
+DEFINE_NATIVE_ENTRY(RawReceivePort_factory, 0, 2) {
   ASSERT(
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(String, debug_name, arguments->NativeArgAt(1));
@@ -61,24 +61,24 @@ DEFINE_NATIVE_ENTRY(RawReceivePortImpl_factory, 0, 2) {
   return ReceivePort::New(port_id, debug_name, false /* not control port */);
 }
 
-DEFINE_NATIVE_ENTRY(RawReceivePortImpl_get_id, 0, 1) {
+DEFINE_NATIVE_ENTRY(RawReceivePort_get_id, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
   return Integer::New(port.Id());
 }
 
-DEFINE_NATIVE_ENTRY(RawReceivePortImpl_get_sendport, 0, 1) {
+DEFINE_NATIVE_ENTRY(RawReceivePort_get_sendport, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
   return port.send_port();
 }
 
-DEFINE_NATIVE_ENTRY(RawReceivePortImpl_closeInternal, 0, 1) {
+DEFINE_NATIVE_ENTRY(RawReceivePort_closeInternal, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
   Dart_Port id = port.Id();
   PortMap::ClosePort(id);
   return Integer::New(id);
 }
 
-DEFINE_NATIVE_ENTRY(RawReceivePortImpl_setActive, 0, 2) {
+DEFINE_NATIVE_ENTRY(RawReceivePort_setActive, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, active, arguments->NativeArgAt(1));
   Dart_Port id = port.Id();
@@ -87,12 +87,12 @@ DEFINE_NATIVE_ENTRY(RawReceivePortImpl_setActive, 0, 2) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(SendPortImpl_get_id, 0, 1) {
+DEFINE_NATIVE_ENTRY(SendPort_get_id, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   return Integer::New(port.Id());
 }
 
-DEFINE_NATIVE_ENTRY(SendPortImpl_get_hashcode, 0, 1) {
+DEFINE_NATIVE_ENTRY(SendPort_get_hashcode, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   int64_t id = port.Id();
   int32_t hi = static_cast<int32_t>(id >> 32);
@@ -101,21 +101,29 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_get_hashcode, 0, 1) {
   return Smi::New(hash);
 }
 
-DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 0, 2) {
+static bool InSameGroup(Isolate* sender, const SendPort& receiver) {
+  // Cannot determine whether sender is in same group (yet).
+  if (sender->origin_id() == ILLEGAL_PORT) return false;
+
+  // Only allow arbitrary messages between isolates of the same IG.
+  return sender->origin_id() == receiver.origin_id();
+}
+
+DEFINE_NATIVE_ENTRY(SendPort_sendInternal_, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
-  // TODO(iposva): Allow for arbitrary messages to be sent.
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
 
   const Dart_Port destination_port_id = port.Id();
-  const bool can_send_any_object = isolate->origin_id() == port.origin_id();
-  // We have to check whether the receiver has the same isolate group (e.g.
-  // native message handlers such as an IOService handler does not but does
-  // share the same origin port).
-  const bool same_group = PortMap::IsReceiverInThisIsolateGroup(
-      destination_port_id, isolate->group());
+  const bool same_group = InSameGroup(isolate, port);
+#if defined(DEBUG)
+  if (same_group) {
+    ASSERT(PortMap::IsReceiverInThisIsolateGroupOrClosed(destination_port_id,
+                                                         isolate->group()));
+  }
+#endif
+
   // TODO(turnidge): Throw an exception when the return value is false?
-  PortMap::PostMessage(WriteMessage(can_send_any_object, same_group, obj,
-                                    destination_port_id,
+  PortMap::PostMessage(WriteMessage(same_group, obj, destination_port_id,
                                     Message::kNormalPriority));
   return Object::null();
 }
@@ -180,13 +188,9 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
 
   Class& klass = Class::Handle(zone);
   Closure& closure = Closure::Handle(zone);
-
-  bool error_found = false;
-  Function& erroneous_closure_function = Function::Handle(zone);
-  Class& erroneous_nativewrapper_class = Class::Handle(zone);
-  Class& erroneous_finalizable_class = Class::Handle(zone);
   Array& array = Array::Handle(zone);
-  const char* error_message = nullptr;
+  Object& illegal_object = Object::Handle(zone);
+  const char* exception_message = nullptr;
   Thread* thread = Thread::Current();
 
   // working_set contains only elements that have not been visited yet that
@@ -206,7 +210,7 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
   visited->SetValueExclusive(obj.ptr(), 1);
   working_set->Add(obj.ptr());
 
-  while (!working_set->is_empty() && !error_found) {
+  while (!working_set->is_empty() && (exception_message == nullptr)) {
     thread->CheckForSafepoint();
 
     ObjectPtr raw = working_set->RemoveLast();
@@ -236,8 +240,7 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
       case kFloat64x2Cid:
         continue;
 
-      case kArrayCid:
-      {
+      case kArrayCid: {
         array ^= Array::RawCast(raw);
         visitor.VisitObject(array.GetTypeArguments());
         const intptr_t batch_size = (2 << 14) - 1;
@@ -258,9 +261,8 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
 
 #define MESSAGE_SNAPSHOT_ILLEGAL(type)                                         \
   case k##type##Cid:                                                           \
-    error_message =                                                            \
-        "Illegal argument in isolate message : (object is a " #type ")";       \
-    error_found = true;                                                        \
+    illegal_object = raw;                                                      \
+    exception_message = "is a " #type;                                         \
     break;
 
         MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
@@ -277,45 +279,33 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
         if (cid >= kNumPredefinedCids) {
           klass = class_table->At(cid);
           if (klass.num_native_fields() != 0) {
-            erroneous_nativewrapper_class = klass.ptr();
-            error_found = true;
+            illegal_object = raw;
+            exception_message = "is a NativeWrapper";
             break;
           }
           if (klass.implements_finalizable()) {
-            erroneous_finalizable_class = klass.ptr();
-            error_found = true;
+            illegal_object = raw;
+            exception_message = "is a Finalizable";
             break;
           }
         }
     }
     raw->untag()->VisitPointers(&visitor);
   }
-  if (error_found) {
-    const char* exception_message;
-    if (error_message != nullptr) {
-      exception_message = error_message;
-    } else if (!erroneous_closure_function.IsNull()) {
-      exception_message = OS::SCreate(zone,
-                                      "Illegal argument in isolate message"
-                                      " : (object is a closure - %s)",
-                                      erroneous_closure_function.ToCString());
-    } else if (!erroneous_nativewrapper_class.IsNull()) {
-      exception_message =
-          OS::SCreate(zone,
-                      "Illegal argument in isolate message"
-                      " : (object extends NativeWrapper - %s)",
-                      erroneous_nativewrapper_class.ToCString());
-    } else {
-      ASSERT(!erroneous_finalizable_class.IsNull());
-      exception_message = OS::SCreate(zone,
-                                      "Illegal argument in isolate message"
-                                      " : (object implements Finalizable - %s)",
-                                      erroneous_finalizable_class.ToCString());
-    }
+
+  ASSERT((exception_message == nullptr) == illegal_object.IsNull());
+  if (exception_message != nullptr) {
     working_set->Clear();
-    return Exceptions::CreateUnhandledException(
-        zone, Exceptions::kArgumentValue, exception_message);
+
+    const Array& args = Array::Handle(zone, Array::New(3));
+    args.SetAt(0, illegal_object);
+    args.SetAt(2, String::Handle(zone, String::New(exception_message)));
+    const Object& exception = Object::Handle(
+        zone, Exceptions::Create(Exceptions::kArgumentValue, args));
+    return UnhandledException::New(Instance::Cast(exception),
+                                   StackTrace::Handle(zone));
   }
+
   ASSERT(working_set->length() == 0);
   isolate->set_forward_table_new(nullptr);
   return obj.ptr();
@@ -326,7 +316,15 @@ DEFINE_NATIVE_ENTRY(Isolate_exit_, 0, 2) {
   GET_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   if (!port.IsNull()) {
     GET_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
-    if (!PortMap::IsReceiverInThisIsolateGroup(port.Id(), isolate->group())) {
+
+    const bool same_group = InSameGroup(isolate, port);
+#if defined(DEBUG)
+    if (same_group) {
+      ASSERT(PortMap::IsReceiverInThisIsolateGroupOrClosed(port.Id(),
+                                                           isolate->group()));
+    }
+#endif
+    if (!same_group) {
       const auto& error =
           String::Handle(String::New("exit with final message is only allowed "
                                      "for isolates in one isolate group."));
@@ -868,8 +866,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
     }
     {
       // If parent isolate died, we ignore the fact that we cannot notify it.
-      PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false,
-                                        /* same_group */ false, message,
+      PortMap::PostMessage(WriteMessage(/*same_group=*/false, message,
                                         state_->parent_port(),
                                         Message::kNormalPriority));
     }
@@ -880,7 +877,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
   void FailedSpawn(const char* error, bool has_current_isolate = true) {
     ReportError(error != nullptr
                     ? error
-                    : "Unknown error occured during Isolate spawning.");
+                    : "Unknown error occurred during Isolate spawning.");
     // Destruction of [IsolateSpawnState] may cause destruction of [Message]
     // which make need to delete persistent handles (which requires a current
     // isolate group).
@@ -959,7 +956,6 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
   // serializable this will throw an exception.
   SerializedObjectBuffer message_buffer;
   message_buffer.set_message(WriteMessage(
-      /*can_send_any_object=*/true,
       /*same_group=*/true, message, ILLEGAL_PORT, Message::kNormalPriority));
 
   const char* utf8_package_config =
@@ -1041,14 +1037,11 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
   SerializedObjectBuffer message_buffer;
   {
     arguments_buffer.set_message(WriteMessage(
-        /* can_send_any_object */ false,
-        /* same_group */ false, args, ILLEGAL_PORT, Message::kNormalPriority));
+        /*same_group=*/false, args, ILLEGAL_PORT, Message::kNormalPriority));
   }
   {
-    message_buffer.set_message(WriteMessage(/* can_send_any_object */ false,
-                                            /* same_group */ false, message,
-                                            ILLEGAL_PORT,
-                                            Message::kNormalPriority));
+    message_buffer.set_message(WriteMessage(
+        /*same_group=*/false, message, ILLEGAL_PORT, Message::kNormalPriority));
   }
 
   // Canonicalize the uri with respect to the current isolate.
@@ -1116,11 +1109,8 @@ DEFINE_NATIVE_ENTRY(Isolate_registerKernelBlob, 0, 1) {
                                arguments->NativeArgAt(0));
   auto register_kernel_blob_callback = Isolate::RegisterKernelBlobCallback();
   if (register_kernel_blob_callback == nullptr) {
-    const auto& error =
-        String::Handle(zone, String::New("Registration of kernel blobs is not "
-                                         "supported by this Dart embedder.\n"));
-    Exceptions::ThrowArgumentError(error);
-    UNREACHABLE();
+    Exceptions::ThrowUnsupportedError(
+        "Registration of kernel blobs is not supported by this Dart embedder.");
   }
   bool is_kernel = false;
   {
@@ -1143,10 +1133,7 @@ DEFINE_NATIVE_ENTRY(Isolate_registerKernelBlob, 0, 1) {
         kernel_blob.LengthInBytes());
   }
   if (uri == nullptr) {
-    const Instance& exception = Instance::Handle(
-        thread->isolate_group()->object_store()->out_of_memory());
-    Exceptions::Throw(thread, exception);
-    UNREACHABLE();
+    Exceptions::ThrowOOM();
   }
   return String::New(uri);
 }
@@ -1157,11 +1144,8 @@ DEFINE_NATIVE_ENTRY(Isolate_unregisterKernelBlob, 0, 1) {
   auto unregister_kernel_blob_callback =
       Isolate::UnregisterKernelBlobCallback();
   if (unregister_kernel_blob_callback == nullptr) {
-    const auto& error =
-        String::Handle(zone, String::New("Registration of kernel blobs is not "
-                                         "supported by this Dart embedder.\n"));
-    Exceptions::ThrowArgumentError(error);
-    UNREACHABLE();
+    Exceptions::ThrowUnsupportedError(
+        "Registration of kernel blobs is not supported by this Dart embedder.");
   }
   unregister_kernel_blob_callback(kernel_blob_uri.ToCString());
   return Object::null();
@@ -1177,8 +1161,7 @@ DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 0, 2) {
   // Ensure message writer (and it's resources, e.g. forwarding tables) are
   // cleaned up before handling interrupts.
   {
-    PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false,
-                                      /* same_group */ false, msg, port.Id(),
+    PortMap::PostMessage(WriteMessage(/*same_group=*/false, msg, port.Id(),
                                       Message::kOOBPriority));
   }
 
@@ -1302,10 +1285,12 @@ DEFINE_NATIVE_ENTRY(TransferableTypedData_materialize, 0, 1) {
   const ExternalTypedData& typed_data = ExternalTypedData::Handle(
       ExternalTypedData::New(kExternalTypedDataUint8ArrayCid, data, length,
                              thread->heap()->SpaceForExternal(length)));
-  FinalizablePersistentHandle::New(thread->isolate_group(), typed_data,
-                                   /* peer= */ data,
-                                   &ExternalTypedDataFinalizer, length,
-                                   /*auto_delete=*/true);
+  FinalizablePersistentHandle* finalizable_ref =
+      FinalizablePersistentHandle::New(thread->isolate_group(), typed_data,
+                                       /* peer= */ data,
+                                       &ExternalTypedDataFinalizer, length,
+                                       /*auto_delete=*/true);
+  ASSERT(finalizable_ref != nullptr);
   return typed_data.ptr();
 }
 

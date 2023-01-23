@@ -208,6 +208,10 @@ class GreatestLowerBoundHelper {
       return _functionType(T1, T2);
     }
 
+    if (T1 is RecordTypeImpl && T2 is RecordTypeImpl) {
+      return _recordType(T1, T2);
+    }
+
     // DOWN(T1, T2) = T1 if T1 <: T2
     if (_typeSystem.isSubtypeOf(T1, T2)) {
       return T1;
@@ -377,6 +381,54 @@ class GreatestLowerBoundHelper {
       typeFormals: fresh.typeParameters,
       parameters: parameters,
       returnType: returnType,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  DartType _recordType(RecordTypeImpl T1, RecordTypeImpl T2) {
+    final positional1 = T1.positionalFields;
+    final positional2 = T2.positionalFields;
+    if (positional1.length != positional2.length) {
+      return _typeSystem.typeProvider.neverType;
+    }
+
+    final named1 = T1.namedFields;
+    final named2 = T2.namedFields;
+    if (named1.length != named2.length) {
+      return _typeSystem.typeProvider.neverType;
+    }
+
+    final positionalFields = <RecordTypePositionalFieldImpl>[];
+    for (var i = 0; i < positional1.length; i++) {
+      final field1 = positional1[i];
+      final field2 = positional2[i];
+      final type = getGreatestLowerBound(field1.type, field2.type);
+      positionalFields.add(
+        RecordTypePositionalFieldImpl(
+          type: type,
+        ),
+      );
+    }
+
+    final namedFields = <RecordTypeNamedFieldImpl>[];
+    for (var i = 0; i < named1.length; i++) {
+      final field1 = named1[i];
+      final field2 = named2[i];
+      if (field1.name != field2.name) {
+        return _typeSystem.typeProvider.neverType;
+      }
+      final type = getGreatestLowerBound(field1.type, field2.type);
+      namedFields.add(
+        RecordTypeNamedFieldImpl(
+          name: field1.name,
+          type: type,
+        ),
+      );
+    }
+
+    return RecordTypeImpl(
+      positionalFields: positionalFields,
+      namedFields: namedFields,
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "common_patch.dart";
+part of "common_patch.dart";
 
 @patch
 class _File {
@@ -11,11 +11,15 @@ class _File {
   external static _exists(_Namespace namespace, Uint8List rawPath);
   @patch
   @pragma("vm:external-name", "File_Create")
-  external static _create(_Namespace namespace, Uint8List rawPath);
+  external static _create(
+      _Namespace namespace, Uint8List rawPath, bool exclusive);
   @patch
   @pragma("vm:external-name", "File_CreateLink")
   external static _createLink(
       _Namespace namespace, Uint8List rawPath, String target);
+  @patch
+  @pragma("vm:external-name", "File_CreatePipe")
+  external static List<dynamic> _createPipe(_Namespace namespace);
   @patch
   @pragma("vm:external-name", "File_LinkTarget")
   external static _linkTarget(_Namespace namespace, Uint8List rawPath);
@@ -168,8 +172,8 @@ abstract class _FileSystemWatcher {
         _id = _initWatcher();
         _newWatcher();
       } on dynamic catch (e) {
-        _broadcastController.addError(new FileSystemException(
-            "Failed to initialize file system entity watcher", null, e));
+        _broadcastController.addError(FileSystemException._fromOSError(
+            e, "Failed to initialize file system entity watcher", null));
         _broadcastController.close();
         return;
       }
@@ -179,8 +183,8 @@ abstract class _FileSystemWatcher {
       pathId =
           _watchPath(_id!, _Namespace._namespace, _path, _events, _recursive);
     } on dynamic catch (e) {
-      _broadcastController
-          .addError(new FileSystemException("Failed to watch path", _path, e));
+      _broadcastController.addError(
+          FileSystemException._fromOSError(e, "Failed to watch path", _path));
       _broadcastController.close();
       return;
     }

@@ -35,11 +35,12 @@ class StringScanner extends AbstractScanner {
   final String string;
 
   /** The current offset in [string]. */
+  @override
   int scanOffset = -1;
 
   StringScanner(String string,
       {ScannerConfiguration? configuration,
-      bool includeComments: false,
+      bool includeComments = false,
       LanguageVersionChanged? languageVersionChanged})
       : string = ensureZeroTermination(string),
         super(configuration, includeComments, languageVersionChanged);
@@ -49,6 +50,7 @@ class StringScanner extends AbstractScanner {
         scanOffset = copyFrom.scanOffset,
         super.recoveryOptionScanner();
 
+  @override
   StringScanner createRecoveryOptionScanner() {
     return new StringScanner.recoveryOptionScanner(this);
   }
@@ -66,13 +68,18 @@ class StringScanner extends AbstractScanner {
     return startToken is! ErrorToken && startToken.next!.isEof;
   }
 
+  @override
   int advance() => string.codeUnitAt(++scanOffset);
+  @override
   int peek() => string.codeUnitAt(scanOffset + 1);
 
+  @override
   int get stringOffset => scanOffset;
 
+  @override
   int currentAsUnicode(int next) => next;
 
+  @override
   void handleUnicode(int startScanOffset) {}
 
   @override
@@ -116,5 +123,6 @@ class StringScanner extends AbstractScanner {
         canonicalize: true);
   }
 
+  @override
   bool atEndOfFile() => scanOffset >= string.length - 1;
 }

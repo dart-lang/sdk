@@ -22,6 +22,7 @@ import 'package:analysis_server/src/services/completion/dart/local_reference_con
 import 'package:analysis_server/src/services/completion/dart/named_constructor_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/not_imported_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/override_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/record_literal_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/redirecting_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
 import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
@@ -40,6 +41,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -153,6 +155,7 @@ class DartCompletionManager {
       LocalReferenceContributor(request, builder),
       NamedConstructorContributor(request, builder),
       if (enableOverrideContributor) OverrideContributor(request, builder),
+      RecordLiteralContributor(request, builder),
       RedirectingContributor(request, builder),
       StaticMemberContributor(request, builder),
       SuperFormalContributor(request, builder),
@@ -225,6 +228,12 @@ class DartCompletionManager {
         kinds.add(protocol.ElementKind.SETTER);
         kinds.add(protocol.ElementKind.TOP_LEVEL_VARIABLE);
       }
+      if (opType.includeAnnotationSuggestions) {
+        kinds.add(protocol.ElementKind.CONSTRUCTOR);
+        // Top-level properties.
+        kinds.add(protocol.ElementKind.GETTER);
+        kinds.add(protocol.ElementKind.TOP_LEVEL_VARIABLE);
+      }
     }
   }
 
@@ -253,7 +262,7 @@ class DartCompletionManager {
     if (type is InterfaceType) {
       var element = type.element;
       var tag = '${element.librarySource.uri}::${element.name}';
-      if (element.isEnum) {
+      if (element is EnumElement) {
         includedSuggestionRelevanceTags.add(
           IncludedSuggestionRelevanceTag(
             tag,
@@ -427,8 +436,12 @@ class DartCompletionRequest {
     return entity is Expression && entity.inConstantContext;
   }
 
+  InheritanceManager3 get inheritanceManager {
+    return analysisSession.inheritanceManager;
+  }
+
   /// Answer the [DartType] for Object in dart:core
-  DartType get objectType => libraryElement.typeProvider.objectType;
+  InterfaceType get objectType => libraryElement.typeProvider.objectType;
 
   /// The length of the text to be replaced if the remainder of the identifier
   /// containing the cursor is to be replaced when the suggestion is applied
@@ -478,17 +491,32 @@ class DartCompletionRequest {
       }
     }
 
+    /// TODO(scheglov) Can we make it better?
+    String fromToken(Token token) {
+      final lexeme = token.lexeme;
+      if (offset >= token.offset && offset < token.end) {
+        return lexeme.substring(0, offset - token.offset);
+      } else if (offset == token.end) {
+        return lexeme;
+      }
+      return '';
+    }
+
+    if (entity is Token) {
+      if (entity.end == offset && entity.isKeywordOrIdentifier) {
+        return fromToken(entity);
+      }
+    }
+
     while (entity is AstNode) {
       if (entity is SimpleIdentifier) {
-        var identifier = entity.name;
-        if (offset >= entity.offset && offset < entity.end) {
-          return identifier.substring(0, offset - entity.offset);
-        } else if (offset == entity.end) {
-          return identifier;
-        }
+        return fromToken(entity.token);
       }
       var children = entity.childEntities;
       entity = children.isEmpty ? null : children.first;
+      if (entity is Token) {
+        return fromToken(entity);
+      }
     }
     return '';
   }

@@ -142,6 +142,7 @@ class Object {
   ///
   /// The default behavior is to throw a [NoSuchMethodError].
   @pragma("vm:entry-point")
+  @pragma("wasm:entry-point")
   external dynamic noSuchMethod(Invocation invocation);
 
   /// A representation of the runtime type of the object.
@@ -523,13 +524,13 @@ class Object {
   /// by numerically combining the [Object.hashCode] of each element
   /// in an order independent way.
   ///
-  /// The result of `unorderedHashAll({o})` is not `o.hashCode`.
+  /// The result of `hashAllUnordered({o})` is not `o.hashCode`.
   ///
   /// Example:
   /// ```dart
   /// bool setEquals<T>(Set<T> set1, Set<T> set2) {
-  ///   var hashCode1 = Object.unorderedHashAll(set1);
-  ///   var hashCode2 = Object.unorderedHashAll(set2);
+  ///   var hashCode1 = Object.hashAllUnordered(set1);
+  ///   var hashCode2 = Object.hashAllUnordered(set2);
   ///   if (hashCode1 != hashCode2) return false;
   ///   // Compare elements ...
   /// }
@@ -544,7 +545,7 @@ class Object {
   /// over different runs of the same program.
   /// The exact algorithm used may differ between different platforms,
   /// or between different versions of the platform libraries,
-  /// and it may depend on values that change per program run
+  /// and it may depend on values that change on each program execution.
   @Since("2.14")
   static int hashAllUnordered(Iterable<Object?> objects) {
     int sum = 0;

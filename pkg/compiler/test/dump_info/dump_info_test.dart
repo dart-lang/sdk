@@ -113,7 +113,7 @@ class DumpInfoDataComputer extends DataComputer<Features> {
   @override
   void computeClassData(Compiler compiler, ClassEntity cls,
       Map<Id, ActualData<Features>> actualMap,
-      {bool verbose: false}) {
+      {bool verbose = false}) {
     final converter = info.AllInfoToJsonConverter(isBackwardCompatible: true);
     DumpInfoStateData dumpInfoState = compiler.dumpInfoStateForTesting;
 
@@ -133,7 +133,7 @@ class DumpInfoDataComputer extends DataComputer<Features> {
           Tags.classType, jsonEncode(classTypeInfos.first.accept(converter)));
     }
 
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     ir.Class node = elementMap.getClassDefinition(cls).node;
     ClassId id = ClassId(node.name);
@@ -145,7 +145,7 @@ class DumpInfoDataComputer extends DataComputer<Features> {
   @override
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<Features>> actualMap,
-      {bool verbose: false}) {
+      {bool verbose = false}) {
     final converter = info.AllInfoToJsonConverter(isBackwardCompatible: true);
     DumpInfoStateData dumpInfoState = compiler.dumpInfoStateForTesting;
 
@@ -183,7 +183,7 @@ class DumpInfoDataComputer extends DataComputer<Features> {
       }
     }
 
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     ir.Member node = elementMap.getMemberDefinition(member).node;
     Id id = computeMemberId(node);

@@ -7,6 +7,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
 import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
@@ -20,8 +21,14 @@ class DartUnitHoverComputer {
   final DartdocDirectiveInfo _dartdocInfo;
   final CompilationUnit _unit;
   final int _offset;
+  final DocumentationPreference documentationPreference;
 
-  DartUnitHoverComputer(this._dartdocInfo, this._unit, this._offset);
+  DartUnitHoverComputer(
+    this._dartdocInfo,
+    this._unit,
+    this._offset, {
+    this.documentationPreference = DocumentationPreference.full,
+  });
 
   /// Returns the computed hover, maybe `null`.
   HoverInformation? compute() {
@@ -29,6 +36,27 @@ class DartUnitHoverComputer {
     if (node == null) {
       return null;
     }
+
+    SyntacticEntity? locationEntity;
+    if (node is NamedCompilationUnitMember) {
+      locationEntity = node.name;
+    } else if (node is Expression) {
+      locationEntity = node;
+    } else if (node is ExtensionDeclaration) {
+      locationEntity = node.name;
+    } else if (node is FormalParameter) {
+      locationEntity = node.name;
+    } else if (node is MethodDeclaration) {
+      locationEntity = node.name;
+    } else if (node is ConstructorDeclaration) {
+      locationEntity = node.name ?? node.returnType;
+    } else if (node is VariableDeclaration) {
+      locationEntity = node.name;
+    }
+    if (locationEntity == null) {
+      return null;
+    }
+
     var parent = node.parent;
     var grandParent = parent?.parent;
     if (parent is NamedType &&
@@ -38,20 +66,36 @@ class DartUnitHoverComputer {
     } else if (parent is ConstructorName &&
         grandParent is InstanceCreationExpression) {
       node = grandParent;
+    } else if (node is SimpleIdentifier &&
+        parent is ConstructorDeclaration &&
+        parent.name != null) {
+      node = parent;
     }
-    if (node is Expression) {
-      var expression = node;
-      // For constructor calls the whole expression is selected (above) but this
-      // results in the range covering the whole call so narrow it to just the
-      // ConstructorName.
-      var hover = expression is InstanceCreationExpression
-          ? HoverInformation(
-              expression.constructorName.offset,
-              expression.constructorName.length,
-            )
-          : HoverInformation(expression.offset, expression.length);
+    if (node != null &&
+        (node is CompilationUnitMember ||
+            node is Expression ||
+            node is FormalParameter ||
+            node is MethodDeclaration ||
+            node is ConstructorDeclaration ||
+            node is VariableDeclaration)) {
+      // For constructors, the location should cover the type name and
+      // constructor name (for both calls and declarations).
+      HoverInformation hover;
+      if (node is InstanceCreationExpression) {
+        hover = HoverInformation(
+          node.constructorName.offset,
+          node.constructorName.length,
+        );
+      } else if (node is ConstructorDeclaration) {
+        var offset = node.returnType.offset;
+        var end = node.name?.end ?? node.returnType.end;
+        var length = end - node.returnType.offset;
+        hover = HoverInformation(offset, length);
+      } else {
+        hover = HoverInformation(locationEntity.offset, locationEntity.length);
+      }
       // element
-      var element = ElementLocator.locate(expression);
+      var element = ElementLocator.locate(node);
       if (element != null) {
         // variable, if synthetic accessor
         if (element is PropertyAccessorElement) {
@@ -73,7 +117,8 @@ class DartUnitHoverComputer {
         // not local element
         if (element.enclosingElement is! ExecutableElement) {
           // containing class
-          var containingClass = element.thisOrAncestorOfType<ClassElement>();
+          var containingClass =
+              element.thisOrAncestorOfType<InterfaceElement>();
           if (containingClass != null && containingClass != element) {
             hover.containingClassDescription = containingClass.displayName;
           }
@@ -102,20 +147,28 @@ class DartUnitHoverComputer {
           }
         }
         // documentation
-        hover.dartdoc = computeDocumentation(_dartdocInfo, element)?.full;
+        hover.dartdoc = computePreferredDocumentation(
+            _dartdocInfo, element, documentationPreference);
       }
       // parameter
-      hover.parameter = _elementDisplayString(
-        expression.staticParameterElement,
-      );
+      if (node is Expression) {
+        hover.parameter = _elementDisplayString(
+          node.staticParameterElement,
+        );
+      }
       // types
       {
-        var parent = expression.parent;
+        var parent = node.parent;
         DartType? staticType;
-        if (element == null || element is VariableElement) {
-          staticType = _getTypeOfDeclarationOrReference(node);
+        if (element is VariableElement) {
+          staticType = element.type;
         }
-        if (parent is MethodInvocation && parent.methodName == expression) {
+        if (node is Expression) {
+          if (element == null || element is VariableElement) {
+            staticType = _getTypeOfDeclarationOrReference(node);
+          }
+        }
+        if (parent is MethodInvocation && parent.methodName == node) {
           staticType = parent.staticInvokeType;
           if (staticType != null && staticType.isDynamic) {
             staticType = null;
@@ -207,6 +260,26 @@ class DartUnitHoverComputer {
     return result;
   }
 
+  /// Compute documentation for [element] and return either the summary or full
+  /// docs (or `null`) depending on `preference`.
+  static String? computePreferredDocumentation(
+    DartdocDirectiveInfo dartdocInfo,
+    Element element,
+    DocumentationPreference preference,
+  ) {
+    if (preference == DocumentationPreference.none) {
+      return null;
+    }
+
+    final doc = computeDocumentation(
+      dartdocInfo,
+      element,
+      includeSummary: preference == DocumentationPreference.summary,
+    );
+
+    return doc is DocumentationWithSummary ? doc.summary : doc?.full;
+  }
+
   static DartType? _getTypeOfDeclarationOrReference(Expression node) {
     if (node is SimpleIdentifier) {
       var element = node.staticElement;
@@ -222,4 +295,12 @@ class DartUnitHoverComputer {
     }
     return node.staticType;
   }
+}
+
+/// The type of documentation the user prefers to see in hovers and other
+/// related displays in their editor.
+enum DocumentationPreference {
+  none,
+  summary,
+  full,
 }

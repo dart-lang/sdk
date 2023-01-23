@@ -120,7 +120,7 @@ bool checkListEquivalence<T>(
 /// but not in [set1] are returned.
 Set<E> computeSetDifference<E>(
     Iterable<E> set1, Iterable<E> set2, List<List<E>> common, List<E> unfound,
-    {bool sameElement(E a, E b): equality, void checkElements(E a, E b)}) {
+    {bool sameElement(E a, E b) = equality, void checkElements(E a, E b)}) {
   // TODO(johnniwinther): Avoid the quadratic cost here. Some ideas:
   // - convert each set to a list and sort it first, then compare by walking
   // both lists in parallel
@@ -185,7 +185,7 @@ bool checkMapEquivalence<K, V>(
     Map<K, V> map2,
     bool sameKey(K a, K b),
     bool sameValue(V a, V b),
-    {bool allowExtra: false}) {
+    {bool allowExtra = false}) {
   var common = <List<K>>[];
   var unfound = <K>[];
   var extra = computeSetDifference(map1.keys, map2.keys, common, unfound,
@@ -207,12 +207,12 @@ bool checkMapEquivalence<K, V>(
 
 void checkLists<T>(List<T> list1, List<T> list2, String messagePrefix,
     bool sameElement(T a, T b),
-    {bool verbose: false,
+    {bool verbose = false,
     void onSameElement(T a, T b),
     void onDifferentElements(T a, T b),
     void onUnfoundElement(T a),
     void onExtraElement(T b),
-    String elementToString(key): defaultToString}) {
+    String elementToString(key) = defaultToString}) {
   List<List> common = <List>[];
   List mismatch = [];
   List unfound = [];
@@ -281,15 +281,15 @@ void checkLists<T>(List<T> list1, List<T> list2, String messagePrefix,
 
 void checkSets<E>(Iterable<E> set1, Iterable<E> set2, String messagePrefix,
     bool sameElement(E a, E b),
-    {bool failOnUnfound: true,
-    bool failOnExtra: true,
-    bool verbose: false,
+    {bool failOnUnfound = true,
+    bool failOnExtra = true,
+    bool verbose = false,
     void onSameElement(E a, E b),
     void onUnfoundElement(E a),
     void onExtraElement(E b),
     bool elementFilter(E element),
     elementConverter(E element),
-    String elementToString(E key): defaultToString}) {
+    String elementToString(E key) = defaultToString}) {
   if (elementFilter != null) {
     set1 = set1.where(elementFilter);
     set2 = set2.where(elementFilter);
@@ -342,12 +342,12 @@ String defaultToString(obj) => '$obj';
 
 void checkMaps<K, V>(Map<K, V> map1, Map<K, V> map2, String messagePrefix,
     bool sameKey(K a, K b), bool sameValue(V a, V b),
-    {bool failOnUnfound: true,
-    bool failOnMismatch: true,
+    {bool failOnUnfound = true,
+    bool failOnMismatch = true,
     bool keyFilter(K key),
-    bool verbose: false,
-    String keyToString(K key): defaultToString,
-    String valueToString(V key): defaultToString}) {
+    bool verbose = false,
+    String keyToString(K key) = defaultToString,
+    String valueToString(V key) = defaultToString}) {
   var common = <List<K>>[];
   var unfound = <K>[];
   var mismatch = <List<K>>[];
@@ -487,6 +487,11 @@ class DartTypePrinter implements DartTypeVisitor {
       visitTypes(type.typeArguments);
       sb.write('>');
     }
+  }
+
+  @override
+  void visitRecordType(RecordType type, _) {
+    throw UnimplementedError();
   }
 
   @override

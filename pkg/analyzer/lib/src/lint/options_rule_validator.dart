@@ -12,7 +12,7 @@ import 'package:analyzer/src/util/yaml.dart';
 import 'package:collection/collection.dart';
 import 'package:yaml/yaml.dart';
 
-/// TODO(pq): migrate these codes to `option_codes.dart`?
+// TODO(pq): migrate these codes to `option_codes.dart`?
 
 /// A hint code indicating reference to a deprecated lint.
 ///
@@ -71,46 +71,54 @@ class LinterRuleOptionsValidator extends OptionsValidator {
     var node = options.valueAt(linter);
     if (node is YamlMap) {
       var rules = node.valueAt(rulesKey);
-      validateRules(rules, reporter);
+      _validateRules(rules, reporter);
     }
     return errors;
   }
 
-  void validateRules(YamlNode? rules, ErrorReporter reporter) {
-    if (rules is YamlList) {
-      final seenRules = <String>{};
+  void _validateRules(YamlNode? rules, ErrorReporter reporter) {
+    final seenRules = <String>{};
 
-      String? findIncompatibleRule(LintRule rule) {
-        for (var incompatibleRule in rule.incompatibleRules) {
-          if (seenRules.contains(incompatibleRule)) {
-            return incompatibleRule;
-          }
+    String? findIncompatibleRule(LintRule rule) {
+      for (var incompatibleRule in rule.incompatibleRules) {
+        if (seenRules.contains(incompatibleRule)) {
+          return incompatibleRule;
         }
-        return null;
+      }
+      return null;
+    }
+
+    void validateRule(YamlNode node, bool enabled) {
+      var value = node.value;
+      if (value == null) return;
+
+      final rule = getRegisteredLint(value);
+      if (rule == null) {
+        reporter.reportErrorForSpan(UNDEFINED_LINT_WARNING, node.span, [value]);
+        return;
       }
 
-      for (var ruleNode in rules.nodes) {
-        final value = ruleNode.value;
-        if (value != null) {
-          final rule = getRegisteredLint(value);
-          if (rule == null) {
-            reporter.reportErrorForSpan(
-                UNDEFINED_LINT_WARNING, ruleNode.span, [value]);
-            continue;
-          }
-
-          final incompatibleRule = findIncompatibleRule(rule);
-          if (incompatibleRule != null) {
-            reporter.reportErrorForSpan(INCOMPATIBLE_LINT_WARNING,
-                ruleNode.span, [value, incompatibleRule]);
-          } else if (!seenRules.add(rule.name)) {
-            reporter.reportErrorForSpan(
-                DUPLICATE_RULE_HINT, ruleNode.span, [value]);
-          } else if (rule.maturity == Maturity.deprecated) {
-            reporter.reportErrorForSpan(
-                DEPRECATED_LINT_HINT, ruleNode.span, [value]);
-          }
+      if (enabled) {
+        final incompatibleRule = findIncompatibleRule(rule);
+        if (incompatibleRule != null) {
+          reporter.reportErrorForSpan(
+              INCOMPATIBLE_LINT_WARNING, node.span, [value, incompatibleRule]);
+        } else if (!seenRules.add(rule.name)) {
+          reporter.reportErrorForSpan(DUPLICATE_RULE_HINT, node.span, [value]);
         }
+      }
+      if (rule.maturity == Maturity.deprecated) {
+        reporter.reportErrorForSpan(DEPRECATED_LINT_HINT, node.span, [value]);
+      }
+    }
+
+    if (rules is YamlList) {
+      for (var ruleNode in rules.nodes) {
+        validateRule(ruleNode, true);
+      }
+    } else if (rules is YamlMap) {
+      for (var ruleEntry in rules.nodeMap.entries) {
+        validateRule(ruleEntry.key, ruleEntry.value.value);
       }
     }
   }

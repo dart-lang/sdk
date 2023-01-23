@@ -26,7 +26,7 @@ Future<List<Uri>> getDependencies(Uri script,
     {Uri? sdk,
     Uri? packages,
     Uri? platform,
-    bool verbose: false,
+    bool verbose = false,
     Target? target}) async {
   CompilerOptions options = new CompilerOptions()
     ..target = target

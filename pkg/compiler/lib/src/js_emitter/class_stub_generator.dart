@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.js_emitter.class_stub_generator;
 
 import 'package:js_runtime/synced/embedded_names.dart'
@@ -11,20 +9,20 @@ import 'package:js_runtime/synced/embedded_names.dart'
 
 import '../common/elements.dart' show CommonElements;
 import '../common/names.dart' show Identifiers, Selectors;
-import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/field_analysis.dart';
 import '../js_backend/namer.dart' show Namer;
 import '../js_backend/interceptor_data.dart' show InterceptorData;
+import '../js_model/elements.dart' show JField;
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../options.dart';
 import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart' show SelectorConstraints;
-import '../world.dart' show JClosedWorld;
 
-import 'code_emitter_task.dart';
+import 'js_emitter.dart';
 import 'model.dart';
 
 class ClassStubGenerator {
@@ -37,7 +35,7 @@ class ClassStubGenerator {
 
   ClassStubGenerator(this._emitter, this._commonElements, this._namer,
       this._codegenWorld, this._closedWorld,
-      {this.enableMinification});
+      {required this.enableMinification});
 
   InterceptorData get _interceptorData => _closedWorld.interceptorData;
 
@@ -50,7 +48,7 @@ class ClassStubGenerator {
     // receiver explicitly and we need to pass it to the getter call.
     bool isInterceptedMethod = _interceptorData.isInterceptedMethod(member);
     bool isInterceptedClass =
-        _interceptorData.isInterceptedClass(member.enclosingClass);
+        _interceptorData.isInterceptedClass(member.enclosingClass!);
 
     const String receiverArgumentName = r'$receiver';
 
@@ -65,9 +63,9 @@ class ClassStubGenerator {
         return js('#.#()', [receiver, getterName]);
       } else {
         FieldAnalysisData fieldData =
-            _closedWorld.fieldAnalysis.getFieldData(member);
+            _closedWorld.fieldAnalysis.getFieldData(member as JField);
         if (fieldData.isEffectivelyConstant) {
-          return _emitter.constantReference(fieldData.constantValue);
+          return _emitter.constantReference(fieldData.constantValue!);
         } else {
           jsAst.Name fieldName = _namer.instanceFieldPropertyName(member);
           return js('#.#', [receiver, fieldName]);
@@ -84,7 +82,7 @@ class ClassStubGenerator {
     for (Selector selector in selectors.keys) {
       if (generatedSelectors.contains(selector)) continue;
       if (!selector.appliesUnnamed(member)) continue;
-      if (selectors[selector]
+      if (selectors[selector]!
           .canHit(member, selector.memberName, _closedWorld)) {
         generatedSelectors.add(selector);
 
@@ -110,8 +108,12 @@ class ClassStubGenerator {
           arguments.add(js('#', name));
         }
 
-        jsAst.Fun function = js('function(#) { return #.#(#); }',
-            [parameters, buildGetter(), closureCallName, arguments]);
+        final function = js('function(#) { return #.#(#); }', [
+          parameters,
+          buildGetter(),
+          closureCallName,
+          arguments
+        ]) as jsAst.Fun;
 
         generatedStubs[invocationName] = function;
       }
@@ -141,7 +143,7 @@ class ClassStubGenerator {
           continue;
         }
 
-        SelectorConstraints maskSet = selectors[selector];
+        SelectorConstraints maskSet = selectors[selector]!;
         if (maskSet.needsNoSuchMethodHandling(selector, _closedWorld)) {
           jsAst.Name jsName = _namer.invocationMirrorInternalName(selector);
           jsNames[jsName] = selector;
@@ -209,17 +211,8 @@ class ClassStubGenerator {
 
     jsAst.Expression code;
     if (field.isElided) {
-      ConstantValue constantValue = field.constantValue;
-      assert(
-          constantValue != null, "No constant value for elided field: $field");
-      if (constantValue == null) {
-        // This should never occur because codegen member usage is now limited
-        // by closed world member usage. In the case we've missed a spot we
-        // cautiously generate a null constant.
-        constantValue = NullConstantValue();
-      }
       code = js("function() { return #; }",
-          _emitter.constantReference(constantValue));
+          _emitter.constantReference(field.constantValue!));
     } else {
       String template;
       if (field.needsInterceptedGetterOnReceiver) {
@@ -234,7 +227,7 @@ class ClassStubGenerator {
       code = js(template, fieldName);
     }
     jsAst.Name getterName = _namer.deriveGetterName(field.accessorName);
-    return StubMethod(getterName, code);
+    return StubMethod(getterName, code, element: field.element);
   }
 
   /// Generates a setter for the given [field].
@@ -259,7 +252,7 @@ class ClassStubGenerator {
     }
 
     jsAst.Name setterName = _namer.deriveSetterName(field.accessorName);
-    return StubMethod(setterName, code);
+    return StubMethod(setterName, code, element: field.element);
   }
 }
 
@@ -282,15 +275,9 @@ class ClassStubGenerator {
 List<jsAst.Statement> buildTearOffCode(
     CompilerOptions options, Emitter emitter, CommonElements commonElements) {
   FunctionEntity closureFromTearOff = commonElements.closureFromTearOff;
-  jsAst.Expression closureFromTearOffAccessExpression;
-  if (closureFromTearOff != null) {
-    closureFromTearOffAccessExpression =
-        emitter.staticFunctionAccess(closureFromTearOff);
-  } else {
-    // Default values for mocked-up test libraries.
-    closureFromTearOffAccessExpression =
-        js(r'''function() { throw "Helper 'closureFromTearOff' missing." }''');
-  }
+
+  jsAst.Expression closureFromTearOffAccessExpression =
+      emitter.staticFunctionAccess(closureFromTearOff);
 
   jsAst.Statement instanceTearOffGetter;
   if (options.features.useContentSecurityPolicy.isEnabled) {

@@ -86,10 +86,16 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginClassDeclaration(Token beginToken, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
-    super.beginClassDeclaration(
-        beginToken, abstractToken, macroToken, augmentToken, name);
+  void beginClassDeclaration(
+      Token beginToken,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
+    super.beginClassDeclaration(beginToken, abstractToken, macroToken,
+        viewToken, sealedToken, augmentToken, name);
     begin('ClassDeclaration');
   }
 
@@ -382,8 +388,8 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken, Token mixinKeyword, Token name) {
-    super.beginMixinDeclaration(augmentToken, mixinKeyword, name);
+      Token? augmentToken, Token? sealedToken, Token mixinKeyword, Token name) {
+    super.beginMixinDeclaration(augmentToken, sealedToken, mixinKeyword, name);
     begin('MixinDeclaration');
   }
 
@@ -394,10 +400,16 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginNamedMixinApplication(Token beginToken, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
-    super.beginNamedMixinApplication(
-        beginToken, abstractToken, macroToken, augmentToken, name);
+  void beginNamedMixinApplication(
+      Token beginToken,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
+    super.beginNamedMixinApplication(beginToken, abstractToken, macroToken,
+        viewToken, sealedToken, augmentToken, name);
     begin('NamedMixinApplication');
   }
 
@@ -598,9 +610,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endCaseExpression(Token colon) {
+  void endCaseExpression(Token caseKeyword, Token? when, Token colon) {
     end('CaseExpression');
-    super.endCaseExpression(colon);
+    super.endCaseExpression(caseKeyword, when, colon);
   }
 
   @override
@@ -1021,9 +1033,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endLibraryName(Token libraryKeyword, Token semicolon) {
+  void endLibraryName(Token libraryKeyword, Token semicolon, bool hasName) {
     end('LibraryName');
-    super.endLibraryName(libraryKeyword, semicolon);
+    super.endLibraryName(libraryKeyword, semicolon, hasName);
   }
 
   @override

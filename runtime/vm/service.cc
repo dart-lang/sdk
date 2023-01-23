@@ -198,7 +198,7 @@ class EnumListParameter : public MethodParameter {
     intptr_t element_pos = 0;
 
     // Allocate our element array.  +1 for NULL terminator.
-    // The caller is reponsible for deleting this memory.
+    // The caller is responsible for deleting this memory.
     char** elements = new char*[element_count + 1];
     elements[element_count] = NULL;
 
@@ -296,7 +296,7 @@ class EnumListParameter : public MethodParameter {
 #if defined(SUPPORT_TIMELINE)
 static const char* const timeline_streams_enum_names[] = {
     "all",
-#define DEFINE_NAME(name, unused) #name,
+#define DEFINE_NAME(name, ...) #name,
     TIMELINE_STREAM_LIST(DEFINE_NAME)
 #undef DEFINE_NAME
         NULL};
@@ -328,7 +328,7 @@ bool Service::EnableTimelineStreams(char* categories_list) {
     return false;
   }
 
-#define SET_ENABLE_STREAM(name, unused)                                        \
+#define SET_ENABLE_STREAM(name, ...)                                           \
   Timeline::SetStream##name##Enabled(HasStream(streams, #name));
   TIMELINE_STREAM_LIST(SET_ENABLE_STREAM);
 #undef SET_ENABLE_STREAM
@@ -2268,6 +2268,24 @@ static Breakpoint* LookupBreakpoint(Isolate* isolate,
   return NULL;
 }
 
+static inline void AddParentFieldToResponseBasedOnRecord(
+    Array* field_names_handle,
+    String* name_handle,
+    const JSONObject& jsresponse,
+    const Record& record,
+    const intptr_t field_slot_offset) {
+  const intptr_t num_positional_fields = record.NumPositionalFields();
+  *field_names_handle = record.field_names();
+  const intptr_t field_index =
+      (field_slot_offset - Record::field_offset(0)) / Record::kBytesPerElement;
+  if (field_index < num_positional_fields) {
+    jsresponse.AddProperty("parentField", field_index);
+  } else {
+    *name_handle ^= field_names_handle->At(field_index - num_positional_fields);
+    jsresponse.AddProperty("parentField", name_handle->ToCString());
+  }
+}
+
 static void PrintInboundReferences(Thread* thread,
                                    Object* target,
                                    intptr_t limit,
@@ -2282,6 +2300,8 @@ static void PrintInboundReferences(Thread* thread,
     JSONArray elements(&jsobj, "references");
     Object& source = Object::Handle();
     Smi& slot_offset = Smi::Handle();
+    Array& field_names = Array::Handle();
+    String& name = String::Handle();
     Class& source_class = Class::Handle();
     Field& field = Field::Handle();
     Array& parent_field_map = Array::Handle();
@@ -2297,6 +2317,10 @@ static void PrintInboundReferences(Thread* thread,
             (slot_offset.Value() - Array::element_offset(0)) /
             Array::kBytesPerElement;
         jselement.AddProperty("parentListIndex", element_index);
+      } else if (source.IsRecord()) {
+        AddParentFieldToResponseBasedOnRecord(&field_names, &name, jselement,
+                                              Record::Cast(source),
+                                              slot_offset.Value());
       } else {
         if (source.IsInstance()) {
           source_class = source.clazz();
@@ -2394,13 +2418,14 @@ static void PrintRetainingPath(Thread* thread,
   JSONArray elements(&jsobj, "elements");
   Object& element = Object::Handle();
   Smi& slot_offset = Smi::Handle();
+  Array& field_names = Array::Handle();
+  String& name = String::Handle();
   Class& element_class = Class::Handle();
   Array& element_field_map = Array::Handle();
-  LinkedHashMap& map = LinkedHashMap::Handle();
+  Map& map = Map::Handle();
   Array& map_data = Array::Handle();
   Field& field = Field::Handle();
   WeakProperty& wp = WeakProperty::Handle();
-  String& name = String::Handle();
   limit = Utils::Minimum(limit, length);
   OffsetsTable offsets_table(thread->zone());
   for (intptr_t i = 0; i < limit; ++i) {
@@ -2416,13 +2441,17 @@ static void PrintRetainingPath(Thread* thread,
             (slot_offset.Value() - Array::element_offset(0)) /
             Array::kBytesPerElement;
         jselement.AddProperty("parentListIndex", element_index);
-      } else if (element.IsLinkedHashMap()) {
-        map = static_cast<LinkedHashMapPtr>(path.At(i * 2));
+      } else if (element.IsRecord()) {
+        AddParentFieldToResponseBasedOnRecord(&field_names, &name, jselement,
+                                              Record::Cast(element),
+                                              slot_offset.Value());
+      } else if (element.IsMap()) {
+        map = static_cast<MapPtr>(path.At(i * 2));
         map_data = map.data();
         intptr_t element_index =
             (slot_offset.Value() - Array::element_offset(0)) /
             Array::kBytesPerElement;
-        LinkedHashMap::Iterator iterator(map);
+        Map::Iterator iterator(map);
         while (iterator.MoveNext()) {
           if (iterator.CurrentKey() == map_data.At(element_index) ||
               iterator.CurrentValue() == map_data.At(element_index)) {
@@ -2866,6 +2895,11 @@ static void CollectStringifiedType(Zone* zone,
     // (IsolateGroup::Current()->object_store()->closure_class())
     // is statically typed weird (the call method redirects to itself)
     // and the type is therefore not useful for the CFE. We use null instead.
+    output.Add(instance);
+    return;
+  }
+  if (type.IsRecordType()) {
+    // _Record class is not useful for the CFE. We use null instead.
     output.Add(instance);
     return;
   }
@@ -3397,7 +3431,7 @@ static void MarkClasses(const Class& root,
                         bool include_implementors) {
   Thread* thread = Thread::Current();
   HANDLESCOPE(thread);
-  SharedClassTable* table = thread->isolate()->group()->shared_class_table();
+  ClassTable* table = thread->isolate()->group()->class_table();
   GrowableArray<const Class*> worklist;
   table->SetCollectInstancesFor(root.id(), true);
   worklist.Add(&root);
@@ -3437,7 +3471,7 @@ static void MarkClasses(const Class& root,
 }
 
 static void UnmarkClasses() {
-  SharedClassTable* table = IsolateGroup::Current()->shared_class_table();
+  ClassTable* table = IsolateGroup::Current()->class_table();
   for (intptr_t i = 1; i < table->NumCids(); i++) {
     table->SetCollectInstancesFor(i, false);
   }
@@ -3447,7 +3481,7 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
  public:
   GetInstancesVisitor(ZoneGrowableHandlePtrArray<Object>* storage,
                       intptr_t limit)
-      : table_(IsolateGroup::Current()->shared_class_table()),
+      : table_(IsolateGroup::Current()->class_table()),
         storage_(storage),
         limit_(limit),
         count_(0) {}
@@ -3469,7 +3503,7 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
   intptr_t count() const { return count_; }
 
  private:
-  SharedClassTable* const table_;
+  ClassTable* const table_;
   ZoneGrowableHandlePtrArray<Object>* storage_;
   const intptr_t limit_;
   intptr_t count_;
@@ -4545,7 +4579,8 @@ static const MethodParameter* const request_heap_snapshot_params[] = {
 
 static void RequestHeapSnapshot(Thread* thread, JSONStream* js) {
   if (Service::heapsnapshot_stream.enabled()) {
-    HeapSnapshotWriter writer(thread);
+    VmServiceHeapSnapshotChunkedWriter vmservice_writer(thread);
+    HeapSnapshotWriter writer(thread, &vmservice_writer);
     writer.Write();
   }
   // TODO(koda): Provide some id that ties this request to async response(s).
@@ -4586,10 +4621,8 @@ static void AddVMMappings(JSONArray* rss_children) {
       // [anon:dart-*] - as labelled (Android)
       if ((strcmp(property, "Rss:") == 0) && (size != 0) &&
           (strcmp(path, "(deleted)") != 0) && (strcmp(path, "[heap]") != 0) &&
-          (strcmp(path, "") != 0) &&
-          (strcmp(path, "[anon:dart-newspace]") != 0) &&
-          (strcmp(path, "[anon:dart-oldspace]") != 0) &&
-          (strcmp(path, "[anon:dart-codespace]") != 0) &&
+          (strcmp(path, "") != 0) && (strcmp(path, "[anon:dart-heap]") != 0) &&
+          (strcmp(path, "[anon:dart-code]") != 0) &&
           (strcmp(path, "[anon:dart-profiler]") != 0) &&
           (strcmp(path, "[anon:dart-timeline]") != 0) &&
           (strcmp(path, "[anon:dart-zone]") != 0)) {
@@ -4674,9 +4707,9 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
 
       {
         JSONObject semi(&vm_children);
-        semi.AddProperty("name", "SemiSpace Cache");
+        semi.AddProperty("name", "Page Cache");
         semi.AddProperty("description", "Cached heap regions");
-        intptr_t size = SemiSpace::CachedSize();
+        intptr_t size = Page::CachedSize();
         vm_size += size;
         semi.AddProperty64("size", size);
         JSONArray(&semi, "children");
@@ -4900,7 +4933,7 @@ static void GetPersistentHandles(Thread* thread, JSONStream* js) {
       JSONArray persistent_handles(&obj, "persistentHandles");
       api_state->RunWithLockedPersistentHandles(
           [&](PersistentHandles& handles) {
-            PersistentHandleVisitor<FinalizablePersistentHandle> visitor(
+            PersistentHandleVisitor<PersistentHandle> visitor(
                 thread, &persistent_handles);
             handles.Visit(&visitor);
           });
@@ -5710,6 +5743,7 @@ static void GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
     DEFINE_ADD_VALUE_F_CID(TypedData##clazz)                                   \
     DEFINE_ADD_VALUE_F_CID(TypedData##clazz##View)                             \
     DEFINE_ADD_VALUE_F_CID(ExternalTypedData##clazz)                           \
+    DEFINE_ADD_VALUE_F_CID(UnmodifiableTypedData##clazz##View)                 \
   }
   CLASS_LIST_TYPED_DATA(DEFINE_ADD_MAP_KEY)
 #undef DEFINE_ADD_MAP_KEY

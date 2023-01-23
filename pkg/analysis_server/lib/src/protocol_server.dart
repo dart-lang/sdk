@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart'
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/analysis/results.dart' as engine;
 import 'package:analyzer/dart/ast/ast.dart' as engine;
+import 'package:analyzer/dart/ast/token.dart' as engine;
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart' as engine;
@@ -205,6 +206,15 @@ Location newLocation_fromNode(engine.AstNode node) {
   return _locationForArgs(unitElement, range);
 }
 
+/// Create a Location based on an [engine.AstNode].
+Location newLocation_fromToken({
+  required engine.CompilationUnitElement unitElement,
+  required engine.Token token,
+}) {
+  var range = engine.SourceRange(token.offset, token.length);
+  return _locationForArgs(unitElement, range);
+}
+
 /// Create a Location based on an [engine.CompilationUnit].
 Location newLocation_fromUnit(
     engine.CompilationUnit unit, engine.SourceRange range) {
@@ -245,8 +255,7 @@ SearchResultKind newSearchResultKind_fromEngine(engine.MatchKind kind) {
       kind == engine.MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS) {
     return SearchResultKind.INVOCATION;
   }
-  if (kind == engine.MatchKind.REFERENCE ||
-      kind == engine.MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF) {
+  if (kind.isReference) {
     return SearchResultKind.REFERENCE;
   }
   return SearchResultKind.UNKNOWN;
@@ -262,7 +271,7 @@ List<Element> _computePath(engine.Element element) {
   var path = <Element>[];
 
   if (element is engine.PrefixElement) {
-    element = element.enclosingElement2.definingCompilationUnit;
+    element = element.enclosingElement.definingCompilationUnit;
   }
 
   var withNullability = element.library?.isNonNullableByDefault ?? false;

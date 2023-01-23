@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
@@ -11,17 +9,20 @@ import 'entity_data.dart';
 
 import '../common.dart';
 import '../common/elements.dart' show CommonElements, KElementEnvironment;
-import '../compiler.dart' show Compiler;
+import '../compiler_interfaces.dart' show CompilerDeferredLoadingFacade;
 import '../constants/values.dart'
     show ConstantValue, ConstructedConstantValue, InstantiationConstantValue;
-import '../elements/types.dart';
 import '../elements/entities.dart';
+import '../elements/types.dart';
 import '../ir/util.dart';
-import '../kernel/kelements.dart' show KLocalFunction;
 import '../kernel/element_map.dart';
-import '../kernel/kernel_world.dart';
+import '../kernel/kelements.dart' show KLocalFunction;
+import '../kernel/kernel_world.dart' show KClosedWorld;
 import '../universe/use.dart';
 import '../universe/world_impact.dart' show WorldImpact;
+
+// TODO(48820): delete typedef after the migration is complete.
+typedef Compiler = CompilerDeferredLoadingFacade;
 
 /// [EntityDataInfo] is meta data about [EntityData] for a given compilation
 /// [Entity].
@@ -33,7 +34,7 @@ class EntityDataInfo {
   final Set<EntityData> directDependencies = {};
 
   /// Various [add] methods for various types of direct dependencies.
-  void add(EntityData entityData, {ImportEntity import}) {
+  void add(EntityData entityData, {ImportEntity? import}) {
     // If we already have a direct dependency on [entityData] then we have
     // nothing left to do.
     if (directDependencies.contains(entityData)) return;
@@ -67,11 +68,11 @@ class EntityDataInfoBuilder {
       compiler.frontendStrategy.elementEnvironment;
   CommonElements get commonElements => compiler.frontendStrategy.commonElements;
 
-  void add(EntityData data, {ImportEntity import}) {
+  void add(EntityData data, {ImportEntity? import}) {
     info.add(data, import: import);
   }
 
-  void addClass(ClassEntity cls, {ImportEntity import}) {
+  void addClass(ClassEntity cls, {ImportEntity? import}) {
     add(registry.createClassEntityData(cls), import: import);
 
     // Add a classType entityData as well just in case we optimize out
@@ -79,15 +80,15 @@ class EntityDataInfoBuilder {
     addClassType(cls, import: import);
   }
 
-  void addClassType(ClassEntity cls, {ImportEntity import}) {
+  void addClassType(ClassEntity cls, {ImportEntity? import}) {
     add(registry.createClassTypeEntityData(cls), import: import);
   }
 
-  void addMember(MemberEntity m, {ImportEntity import}) {
+  void addMember(MemberEntity m, {ImportEntity? import}) {
     add(registry.createMemberEntityData(m), import: import);
   }
 
-  void addConstant(ConstantValue c, {ImportEntity import}) {
+  void addConstant(ConstantValue c, {ImportEntity? import}) {
     add(registry.createConstantEntityData(c), import: import);
   }
 
@@ -96,15 +97,15 @@ class EntityDataInfoBuilder {
   }
 
   /// Recursively collects all the dependencies of [type].
-  void addTypeDependencies(DartType type, [ImportEntity import]) {
+  void addTypeDependencies(DartType type, [ImportEntity? import]) {
     TypeEntityDataVisitor(this, import, commonElements).visit(type);
   }
 
   /// Recursively collects all the dependencies of [types].
-  void addTypeListDependencies(Iterable<DartType> types,
-      [ImportEntity import]) {
+  void addTypeListDependencies(Iterable<DartType>? types,
+      [ImportEntity? import]) {
     if (types == null) return;
-    TypeEntityDataVisitor(this, import, commonElements).visitList(types);
+    TypeEntityDataVisitor(this, import, commonElements).visitIterable(types);
   }
 
   /// Collects all direct dependencies of [element].
@@ -121,7 +122,7 @@ class EntityDataInfoBuilder {
     ConstantCollector.collect(elementMap, element, this);
   }
 
-  void _addFromStaticUse(MemberEntity parent, StaticUse staticUse) {
+  void _addFromStaticUse(MemberEntity? parent, StaticUse staticUse) {
     void processEntity() {
       Entity usedEntity = staticUse.element;
       if (usedEntity is MemberEntity) {
@@ -129,7 +130,7 @@ class EntityDataInfoBuilder {
       } else {
         assert(usedEntity is KLocalFunction,
             failedAt(usedEntity, "Unexpected static use $staticUse."));
-        KLocalFunction localFunction = usedEntity;
+        var localFunction = usedEntity as KLocalFunction;
         // TODO(sra): Consult KClosedWorld to see if signature is needed.
         addTypeDependencies(localFunction.functionType);
         addLocalFunction(localFunction);
@@ -146,7 +147,7 @@ class EntityDataInfoBuilder {
         // the target type is not relevant.
         // TODO(johnniwinther): Use rti need data to skip unneeded type
         // arguments.
-        addTypeListDependencies(staticUse.type.typeArguments);
+        addTypeListDependencies(staticUse.type!.typeArguments);
         processEntity();
         break;
       case StaticUseKind.STATIC_INVOKE:
@@ -176,13 +177,12 @@ class EntityDataInfoBuilder {
         break;
       case StaticUseKind.CALL_METHOD:
       case StaticUseKind.INLINING:
-        failedAt(parent, "Unexpected static use: $staticUse.");
-        break;
+        failedAt(parent!, "Unexpected static use: $staticUse.");
     }
   }
 
-  void _addFromTypeUse(MemberEntity parent, TypeUse typeUse) {
-    void addClassIfInterfaceType(DartType t, [ImportEntity import]) {
+  void _addFromTypeUse(MemberEntity? parent, TypeUse typeUse) {
+    void addClassIfInterfaceType(DartType t, [ImportEntity? import]) {
       var typeWithoutNullability = t.withoutNullability;
       if (typeWithoutNullability is InterfaceType) {
         addClass(typeWithoutNullability.element, import: import);
@@ -233,14 +233,13 @@ class EntityDataInfoBuilder {
       case TypeUseKind.TYPE_ARGUMENT:
       case TypeUseKind.NAMED_TYPE_VARIABLE_NEW_RTI:
       case TypeUseKind.CONSTRUCTOR_REFERENCE:
-        failedAt(parent, "Unexpected type use: $typeUse.");
-        break;
+        failedAt(parent!, "Unexpected type use: $typeUse.");
     }
   }
 
   /// Extract any dependencies that are known from the impact of [element].
   void _addDependenciesFromImpact(MemberEntity element) {
-    WorldImpact worldImpact = impactCache[element];
+    WorldImpact worldImpact = impactCache[element]!;
     worldImpact.forEachStaticUse(_addFromStaticUse);
     worldImpact.forEachTypeUse(_addFromTypeUse);
 
@@ -280,7 +279,7 @@ class EntityDataInfoVisitor extends EntityDataVisitor {
     void addClassAndMaybeAddEffectiveMixinClass(ClassEntity cls) {
       infoBuilder.addClass(cls);
       if (elementEnvironment.isMixinApplication(cls)) {
-        infoBuilder.addClass(elementEnvironment.getEffectiveMixinClass(cls));
+        infoBuilder.addClass(elementEnvironment.getEffectiveMixinClass(cls)!);
       }
     }
 
@@ -312,7 +311,9 @@ class EntityDataInfoVisitor extends EntityDataVisitor {
       infoBuilder
           .addTypeDependencies(elementEnvironment.getFunctionType(element));
     }
-    if (element.isStatic || element.isTopLevel || element.isConstructor) {
+    if (element.isStatic ||
+        element.isTopLevel ||
+        element is ConstructorEntity) {
       infoBuilder.addMember(element);
       infoBuilder.addDirectMemberDependencies(element);
     }
@@ -350,7 +351,7 @@ class EntityDataInfoVisitor extends EntityDataVisitor {
 
 class TypeEntityDataVisitor implements DartTypeVisitor<void, Null> {
   final EntityDataInfoBuilder _infoBuilder;
-  final ImportEntity _import;
+  final ImportEntity? _import;
   final CommonElements _commonElements;
 
   TypeEntityDataVisitor(this._infoBuilder, this._import, this._commonElements);
@@ -360,7 +361,7 @@ class TypeEntityDataVisitor implements DartTypeVisitor<void, Null> {
     type.accept(this, null);
   }
 
-  void visitList(List<DartType> types) {
+  void visitIterable(Iterable<DartType> types) {
     types.forEach(visit);
   }
 
@@ -402,8 +403,16 @@ class TypeEntityDataVisitor implements DartTypeVisitor<void, Null> {
 
   @override
   void visitInterfaceType(InterfaceType type, Null argument) {
-    visitList(type.typeArguments);
+    visitIterable(type.typeArguments);
     _infoBuilder.addClassType(type.element, import: _import);
+  }
+
+  @override
+  void visitRecordType(RecordType type, Null argument) {
+    visitIterable(type.fields);
+    // TODO(49718): Deferred loading could track record types to ensure that the
+    // shape predicate attached to the Rti for a shape (instanceof SomeClass)
+    // has access to the shape class.
   }
 
   @override
@@ -411,9 +420,9 @@ class TypeEntityDataVisitor implements DartTypeVisitor<void, Null> {
     for (FunctionTypeVariable typeVariable in type.typeVariables) {
       visit(typeVariable.bound);
     }
-    visitList(type.parameterTypes);
-    visitList(type.optionalParameterTypes);
-    visitList(type.namedParameterTypes);
+    visitIterable(type.parameterTypes);
+    visitIterable(type.optionalParameterTypes);
+    visitIterable(type.namedParameterTypes);
     visit(type.returnType);
   }
 
@@ -463,9 +472,10 @@ class ConstantCollector extends ir.RecursiveVisitor {
     node.function?.accept(visitor);
   }
 
-  void add(ir.Expression node, {bool required = true}) {
-    ConstantValue constant = elementMap
-        .getConstantValue(staticTypeContext, node, requireConstant: required);
+  void add(ir.Expression node, {bool requireConstant = true}) {
+    ConstantValue? constant = elementMap.getConstantValue(
+        staticTypeContext, node,
+        requireConstant: requireConstant);
     if (constant != null) {
       infoBuilder.addConstant(constant,
           import: elementMap.getImport(getDeferredImport(node)));
@@ -542,14 +552,17 @@ class ConstantCollector extends ir.RecursiveVisitor {
 
   @override
   void visitTypeLiteral(ir.TypeLiteral node) {
-    if (node.type is! ir.TypeParameterType) add(node);
+    // Type literals may be [ir.TypeParameterType] or contain TypeParameterType
+    // variables nested within (e.g. in a generic type literals). As such,
+    // we can't assume that all type literals are constnat.
+    add(node, requireConstant: false);
   }
 
   @override
   void visitInstantiation(ir.Instantiation node) {
     // TODO(johnniwinther): The CFE should mark constant instantiations as
     // constant.
-    add(node, required: false);
+    add(node, requireConstant: false);
     super.visitInstantiation(node);
   }
 

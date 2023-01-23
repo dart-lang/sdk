@@ -180,7 +180,7 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * the sandboxed file system for use. Because the file system is sandboxed,
    * applications cannot access file systems created in other web pages.
    */
-  Future<FileSystem> requestFileSystem(int size, {bool persistent: false}) {
+  Future<FileSystem> requestFileSystem(int size, {bool persistent = false}) {
     return _requestFileSystem(persistent? 1 : 0, size);
   }
 

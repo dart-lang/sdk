@@ -508,13 +508,15 @@ void FUNCTION_NAME(File_Lock)(Dart_NativeArguments args) {
 void FUNCTION_NAME(File_Create)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
   Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
+  Dart_Handle exclusive_handle = Dart_GetNativeArgument(args, 2);
   bool result;
   OSError os_error;
   {
     TypedDataScope data(path_handle);
     ASSERT(data.type() == Dart_TypedData_kUint8);
     const char* path = data.GetCString();
-    result = File::Create(namespc, path);
+    bool exclusive = DartUtils::GetBooleanValue(exclusive_handle);
+    result = File::Create(namespc, path, exclusive);
     if (!result) {
       // Errors must be caught before TypedDataScope data is destroyed.
       os_error.Reload();
@@ -545,6 +547,25 @@ void FUNCTION_NAME(File_CreateLink)(Dart_NativeArguments args) {
   }
   if (!result) {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+  }
+}
+
+void FUNCTION_NAME(File_CreatePipe)(Dart_NativeArguments args) {
+  Namespace* namespc = Namespace::GetNamespace(args, 0);
+
+  File* readPipe;
+  File* writePipe;
+  if (File::CreatePipe(namespc, &readPipe, &writePipe)) {
+    Dart_Handle pipes = ThrowIfError(Dart_NewList(2));
+    Dart_Handle readHandle =
+        ThrowIfError(Dart_NewInteger(reinterpret_cast<intptr_t>(readPipe)));
+    Dart_Handle writeHandle =
+        ThrowIfError(Dart_NewInteger(reinterpret_cast<intptr_t>(writePipe)));
+    ThrowIfError(Dart_ListSetAt(pipes, 0, readHandle));
+    ThrowIfError(Dart_ListSetAt(pipes, 1, writeHandle));
+    Dart_SetReturnValue(args, pipes);
+  } else {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
@@ -901,13 +922,41 @@ CObject* File::CreateRequest(const CObjectArray& request) {
   }
   Namespace* namespc = CObjectToNamespacePointer(request[0]);
   RefCntReleaseScope<Namespace> rs(namespc);
-  if ((request.Length() != 2) || !request[1]->IsUint8Array()) {
+  if ((request.Length() != 3) || !request[1]->IsUint8Array() ||
+      !request[2]->IsBool()) {
     return CObject::IllegalArgumentError();
   }
   CObjectUint8Array filename(request[1]);
-  return File::Create(namespc, reinterpret_cast<const char*>(filename.Buffer()))
+  CObjectBool exclusive(request[2]);
+  return File::Create(namespc, reinterpret_cast<const char*>(filename.Buffer()),
+                      exclusive.Value())
              ? CObject::True()
              : CObject::NewOSError();
+}
+
+CObject* File::CreatePipeRequest(const CObjectArray& request) {
+  if ((request.Length() < 1) || !request[0]->IsIntptr()) {
+    return CObject::IllegalArgumentError();
+  }
+  Namespace* namespc = CObjectToNamespacePointer(request[0]);
+  RefCntReleaseScope<Namespace> rs(namespc);
+
+  File* readPipe;
+  File* writePipe;
+  if (!CreatePipe(namespc, &readPipe, &writePipe)) {
+    return CObject::NewOSError();
+  }
+
+  CObjectArray* pipes = new CObjectArray(CObject::NewArray(2));
+  CObjectNativePointer* readHandle = new CObjectNativePointer(
+      CObject::NewNativePointer(reinterpret_cast<intptr_t>(readPipe),
+                                sizeof(*readPipe), ReleaseFile));
+  CObjectNativePointer* writeHandle = new CObjectNativePointer(
+      CObject::NewNativePointer(reinterpret_cast<intptr_t>(writePipe),
+                                sizeof(*writePipe), ReleaseFile));
+  pipes->SetAt(0, readHandle);
+  pipes->SetAt(1, writeHandle);
+  return pipes;
 }
 
 CObject* File::OpenRequest(const CObjectArray& request) {
@@ -1346,7 +1395,7 @@ CObject* File::WriteFromRequest(const CObjectArray& request) {
   int64_t start = CObjectInt32OrInt64ToInt64(request[2]);
   int64_t end = CObjectInt32OrInt64ToInt64(request[3]);
   int64_t length = end - start;
-  uint8_t* buffer_start;
+  const uint8_t* buffer_start;
   if (request[1]->IsTypedData()) {
     CObjectTypedData typed_data(request[1]);
     start = start * SizeInBytes(typed_data.Type());
@@ -1354,11 +1403,12 @@ CObject* File::WriteFromRequest(const CObjectArray& request) {
     buffer_start = typed_data.Buffer() + start;
   } else {
     CObjectArray array(request[1]);
-    buffer_start = Dart_ScopeAllocate(length);
+    uint8_t* allocated_buffer = Dart_ScopeAllocate(length);
+    buffer_start = allocated_buffer;
     for (int i = 0; i < length; i++) {
       if (array[i + start]->IsInt32OrInt64()) {
         int64_t value = CObjectInt32OrInt64ToInt64(array[i + start]);
-        buffer_start[i] = static_cast<uint8_t>(value & 0xFF);
+        allocated_buffer[i] = static_cast<uint8_t>(value & 0xFF);
       } else {
         // Unsupported type.
         return CObject::IllegalArgumentError();
@@ -1366,7 +1416,7 @@ CObject* File::WriteFromRequest(const CObjectArray& request) {
     }
     start = 0;
   }
-  return file->WriteFully(reinterpret_cast<void*>(buffer_start), length)
+  return file->WriteFully(reinterpret_cast<const void*>(buffer_start), length)
              ? new CObjectInt64(CObject::NewInt64(length))
              : CObject::NewOSError();
 }

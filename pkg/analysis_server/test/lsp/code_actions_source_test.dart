@@ -42,7 +42,7 @@ abstract class AbstractSourceCodeActionsTest extends AbstractCodeActionsTest {
   /// Wrapper around [getCodeActions] for Source actions where position/range is
   /// irrelevant (so uses [startOfDocPos]).
   Future<List<Either2<Command, CodeAction>>> getSourceCodeActions(
-    String fileUri, {
+    Uri fileUri, {
     List<CodeActionKind>? kinds,
     CodeActionTriggerKind? triggerKind,
   }) {
@@ -81,7 +81,7 @@ linter:
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
-    final codeActions = await getSourceCodeActions(mainFileUri.toString());
+    final codeActions = await getSourceCodeActions(mainFileUri);
     final codeAction = findCommand(codeActions, Commands.fixAll)!;
 
     await verifyCodeActionEdits(codeAction, content, expectedContent);
@@ -112,7 +112,7 @@ int minified(int x, int y) => min(x, y);
         workspaceCapabilities: withApplyEditSupport(
             withDocumentChangesSupport(emptyWorkspaceClientCapabilities)));
 
-    final codeActions = await getSourceCodeActions(mainFileUri.toString());
+    final codeActions = await getSourceCodeActions(mainFileUri);
     final codeAction = findCommand(codeActions, Commands.organizeImports)!;
 
     await verifyCodeActionEdits(codeAction, content, expectedContent,
@@ -140,7 +140,7 @@ int minified(int x, int y) => min(x, y);
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
-    final codeActions = await getSourceCodeActions(mainFileUri.toString());
+    final codeActions = await getSourceCodeActions(mainFileUri);
     final codeAction = findCommand(codeActions, Commands.organizeImports)!;
 
     await verifyCodeActionEdits(codeAction, content, expectedContent);
@@ -184,7 +184,7 @@ int minified(int x, int y) => min(x, y);
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
     final codeActions = await getSourceCodeActions(
-      mainFileUri.toString(),
+      mainFileUri,
       triggerKind: CodeActionTriggerKind.Automatic,
     );
     final codeAction = findCommand(codeActions, Commands.organizeImports)!;
@@ -206,7 +206,7 @@ int minified(int x, int y) => min(x, y);
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
-    final codeActions = await getSourceCodeActions(mainFileUri.toString());
+    final codeActions = await getSourceCodeActions(mainFileUri);
     final codeAction = findCommand(codeActions, Commands.organizeImports)!;
 
     final command = codeAction.map(
@@ -227,7 +227,7 @@ int minified(int x, int y) => min(x, y);
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
     ofKind(CodeActionKind kind) => getSourceCodeActions(
-          mainFileUri.toString(),
+          mainFileUri,
           kinds: [kind],
         );
 
@@ -252,7 +252,7 @@ int minified(int x, int y) => min(x, y);
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
-    final codeActions = await getSourceCodeActions(mainFileUri.toString());
+    final codeActions = await getSourceCodeActions(mainFileUri);
     final codeAction = findCommand(codeActions, Commands.organizeImports)!;
 
     final command = codeAction.map(
@@ -275,7 +275,7 @@ int minified(int x, int y) => min(x, y);
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
-    final codeActions = await getSourceCodeActions(mainFileUri.toString());
+    final codeActions = await getSourceCodeActions(mainFileUri);
     final codeAction = findCommand(codeActions, Commands.organizeImports);
     expect(codeAction, isNull);
   }
@@ -284,7 +284,7 @@ int minified(int x, int y) => min(x, y);
     newFile(mainFilePath, '');
     await initialize();
 
-    final codeActions = await getSourceCodeActions(mainFileUri.toString());
+    final codeActions = await getSourceCodeActions(mainFileUri);
     final codeAction = findCommand(codeActions, Commands.organizeImports);
     expect(codeAction, isNull);
   }
@@ -306,7 +306,7 @@ class SortMembersSourceCodeActionsTest extends AbstractSourceCodeActionsTest {
         workspaceCapabilities: withApplyEditSupport(
             withDocumentChangesSupport(emptyWorkspaceClientCapabilities)));
 
-    final codeActions = await getSourceCodeActions(mainFileUri.toString());
+    final codeActions = await getSourceCodeActions(mainFileUri);
     final codeAction = findCommand(codeActions, Commands.sortMembers)!;
 
     await verifyCodeActionEdits(codeAction, content, expectedContent,
@@ -327,7 +327,7 @@ class SortMembersSourceCodeActionsTest extends AbstractSourceCodeActionsTest {
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
-    final codeActions = await getSourceCodeActions(mainFileUri.toString());
+    final codeActions = await getSourceCodeActions(mainFileUri);
     final codeAction = findCommand(codeActions, Commands.sortMembers)!;
 
     await verifyCodeActionEdits(codeAction, content, expectedContent);
@@ -373,7 +373,7 @@ class SortMembersSourceCodeActionsTest extends AbstractSourceCodeActionsTest {
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
-    final codeActions = await getSourceCodeActions(mainFileUri.toString());
+    final codeActions = await getSourceCodeActions(mainFileUri);
     final codeAction = findCommand(codeActions, Commands.sortMembers)!;
 
     final command = codeAction.map(
@@ -407,7 +407,7 @@ class SortMembersSourceCodeActionsTest extends AbstractSourceCodeActionsTest {
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
     final codeActions = await getSourceCodeActions(
-      mainFileUri.toString(),
+      mainFileUri,
       triggerKind: CodeActionTriggerKind.Automatic,
     );
     final codeAction = findCommand(codeActions, Commands.sortMembers)!;
@@ -429,7 +429,7 @@ class SortMembersSourceCodeActionsTest extends AbstractSourceCodeActionsTest {
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
-    final codeActions = await getSourceCodeActions(mainFileUri.toString());
+    final codeActions = await getSourceCodeActions(mainFileUri);
     final codeAction = findCommand(codeActions, Commands.sortMembers)!;
 
     final command = codeAction.map(
@@ -451,7 +451,7 @@ class SortMembersSourceCodeActionsTest extends AbstractSourceCodeActionsTest {
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
-    final codeActions = await getSourceCodeActions(pubspecFileUri.toString());
+    final codeActions = await getSourceCodeActions(pubspecFileUri);
     expect(codeActions, isEmpty);
   }
 
@@ -463,7 +463,7 @@ class SortMembersSourceCodeActionsTest extends AbstractSourceCodeActionsTest {
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
-    final codeActions = await getSourceCodeActions(mainFileUri.toString());
+    final codeActions = await getSourceCodeActions(mainFileUri);
     final codeAction = findCommand(codeActions, Commands.sortMembers);
     expect(codeAction, isNull);
   }
@@ -472,7 +472,7 @@ class SortMembersSourceCodeActionsTest extends AbstractSourceCodeActionsTest {
     newFile(mainFilePath, '');
     await initialize();
 
-    final codeActions = await getSourceCodeActions(mainFileUri.toString());
+    final codeActions = await getSourceCodeActions(mainFileUri);
     final codeAction = findCommand(codeActions, Commands.sortMembers);
     expect(codeAction, isNull);
   }

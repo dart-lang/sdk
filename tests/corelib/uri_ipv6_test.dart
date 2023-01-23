@@ -169,7 +169,7 @@ void testValidIpv6Uri() {
   Expect.equals('https://[fe80::8eae:4c4d:fee9:8434%25rename3]/index.html',
       uri.toString());
 
-  // Test construtors with host name
+  // Test constructors with host name
   uri = Uri(scheme: 'https', host: '[ff02::5678%pvc1.3]');
   uri = Uri(scheme: 'https', host: '[fe80::a%1]');
   uri = Uri(scheme: 'https', host: '[fe80::a%25eE1]');

@@ -15,15 +15,6 @@ String? getExternalName(CoreTypes coreTypes, Member procedure) {
   //    @pragma("vm:external-name", "<name-of-native>")
   //    external Object foo(arg0, ...);
   //
-  // Previously the following encoding was used, which is still supported
-  // until all users are migrated away from it:
-  //
-  //    import 'dart:_internal' as internal;
-  //
-  //    @internal.ExternalName("<name-of-native>")
-  //    external Object foo(arg0, ...);
-  //
-
   if (!procedure.isExternal) {
     return null;
   }
@@ -40,9 +31,7 @@ String? _getExternalNameValue(CoreTypes coreTypes, Expression annotation) {
   if (annotation is ConstantExpression) {
     final Constant constant = annotation.constant;
     if (constant is InstanceConstant) {
-      if (_isExternalName(constant.classNode)) {
-        return (constant.fieldValues.values.single as StringConstant).value;
-      } else if (_isPragma(constant.classNode)) {
+      if (_isPragma(constant.classNode)) {
         final String pragmaName =
             (constant.fieldValues[coreTypes.pragmaName.fieldReference]
                     as StringConstant)
@@ -60,10 +49,6 @@ String? _getExternalNameValue(CoreTypes coreTypes, Expression annotation) {
   }
   return null;
 }
-
-bool _isExternalName(Class klass) =>
-    klass.name == 'ExternalName' &&
-    klass.enclosingLibrary.importUri.toString() == 'dart:_internal';
 
 bool _isPragma(Class klass) =>
     klass.name == 'pragma' &&

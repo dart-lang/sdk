@@ -111,7 +111,7 @@ type SnapshotObject {
   data : NonReferenceData,
 
   referenceCount : uleb128,
-  // A list of 1-origin indicies into SnapshotGraph.objects
+  // A list of 1-origin indices into SnapshotGraph.objects
   references : uleb128[referenceCount],
 }
 ```

@@ -82,7 +82,7 @@ class Server {
 }
 
 Future<Server> setupServer(int proxyHops,
-    {List<String> directRequestPaths: const <String>[], secure: false}) {
+    {List<String> directRequestPaths = const <String>[], secure = false}) {
   Server server = new Server(proxyHops, directRequestPaths, secure);
   return server.start();
 }
@@ -104,7 +104,7 @@ class ProxyServer {
 
   var nonce = "12345678"; // No need for random nonce in test.
 
-  ProxyServer({this.ipV6: false});
+  ProxyServer({this.ipV6 = false});
 
   void useBasicAuthentication(String username, String password) {
     this.username = username;
@@ -132,7 +132,7 @@ class ProxyServer {
     });
   }
 
-  digestAuthenticationRequired(request, {stale: false}) {
+  digestAuthenticationRequired(request, {stale = false}) {
     request.fold(null, (x, y) {}).then((_) {
       var response = request.response;
       response.statusCode = HttpStatus.proxyAuthenticationRequired;
@@ -277,7 +277,7 @@ class ProxyServer {
   int get port => server.port;
 }
 
-Future<ProxyServer> setupProxyServer({ipV6: false}) {
+Future<ProxyServer> setupProxyServer({ipV6 = false}) {
   ProxyServer proxyServer = new ProxyServer(ipV6: ipV6);
   return proxyServer.start();
 }
@@ -332,8 +332,8 @@ void testProxyIPV6() {
   });
 }
 
-int testProxyFromEnviromentDoneCount = 0;
-void testProxyFromEnviroment() {
+int testProxyFromEnvironmentDoneCount = 0;
+void testProxyFromEnvironment() {
   setupProxyServer().then((proxyServer) {
     setupServer(1).then((server) {
       setupServer(1, secure: true).then((secureServer) {
@@ -361,8 +361,8 @@ void testProxyFromEnviroment() {
               return clientRequest.close();
             }).then((HttpClientResponse response) {
               response.listen((_) {}, onDone: () {
-                testProxyFromEnviromentDoneCount++;
-                if (testProxyFromEnviromentDoneCount == loopCount * 2) {
+                testProxyFromEnvironmentDoneCount++;
+                if (testProxyFromEnvironmentDoneCount == loopCount * 2) {
                   Expect.equals(loopCount, server.requestCount);
                   Expect.equals(loopCount, secureServer.requestCount);
                   proxyServer.shutdown();
@@ -612,7 +612,7 @@ void testRealProxyAuth() {
 
 main() {
   testProxyIPV6();
-  testProxyFromEnviroment();
+  testProxyFromEnvironment();
   // The two invocations use the same global variable for state -
   // run one after the other.
   testProxyAuthenticate(false).then((_) => testProxyAuthenticate(true));

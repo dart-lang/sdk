@@ -111,7 +111,9 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     ];
 
     // Handle customTool and deletion of any arguments for it.
-    final executable = args.customTool ?? Platform.resolvedExecutable;
+    final executable = normalizePath(
+      args.customTool ?? Platform.resolvedExecutable,
+    );
     final removeArgs = args.customToolReplacesArgs;
     if (args.customTool != null && removeArgs != null) {
       vmArgs.removeRange(0, math.min(removeArgs, vmArgs.length));
@@ -120,14 +122,19 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     final processArgs = [
       ...vmArgs,
       ...?args.toolArgs,
-      args.program,
+      normalizePath(args.program),
       ...?args.args,
     ];
+
+    var cwd = args.cwd;
+    if (cwd != null) {
+      cwd = normalizePath(cwd);
+    }
 
     await launchAsProcess(
       executable,
       processArgs,
-      workingDirectory: args.cwd,
+      workingDirectory: cwd,
       env: args.env,
     );
   }

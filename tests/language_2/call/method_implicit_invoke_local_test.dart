@@ -30,8 +30,9 @@ main() {
   Expect.equals(d2(1), 2);
   // Cannot invoke with the wrong signature.
   c2();
-  //^^
+  // ^
   // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+  //^^
   // [cfe] Too few positional arguments: 1 required, 0 given.
   c2(3, 4);
   //    ^

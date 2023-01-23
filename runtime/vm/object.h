@@ -108,8 +108,12 @@ class BaseTextBuffer;
   static constexpr bool ContainsCompressedPointers() {                         \
     return UntaggedObjectType::kContainsCompressedPointers;                    \
   }                                                                            \
-  object##Ptr ptr() const { return static_cast<object##Ptr>(ptr_); }           \
-  bool Is##object() const { return true; }                                     \
+  object##Ptr ptr() const {                                                    \
+    return static_cast<object##Ptr>(ptr_);                                     \
+  }                                                                            \
+  bool Is##object() const {                                                    \
+    return true;                                                               \
+  }                                                                            \
   DART_NOINLINE static object& Handle() {                                      \
     return static_cast<object&>(                                               \
         HandleImpl(Thread::Current()->zone(), object::null(), kClassId));      \
@@ -184,11 +188,13 @@ class BaseTextBuffer;
  private: /* NOLINT */                                                         \
   /* Initialize the handle based on the ptr in the presence of null. */        \
   static void initializeHandle(object* obj, ObjectPtr ptr) {                   \
-    obj->SetPtr(ptr, kClassId);                                                \
+    obj->setPtr(ptr, kClassId);                                                \
   }                                                                            \
   /* Disallow allocation, copy constructors and override super assignment. */  \
  public: /* NOLINT */                                                          \
-  void operator delete(void* pointer) { UNREACHABLE(); }                       \
+  void operator delete(void* pointer) {                                        \
+    UNREACHABLE();                                                             \
+  }                                                                            \
                                                                                \
  private: /* NOLINT */                                                         \
   void* operator new(size_t size);                                             \
@@ -314,6 +320,9 @@ class Object {
   bool IsCanonical() const { return ptr()->untag()->IsCanonical(); }
   void SetCanonical() const { ptr()->untag()->SetCanonical(); }
   void ClearCanonical() const { ptr()->untag()->ClearCanonical(); }
+  bool IsImmutable() const { return ptr()->untag()->IsImmutable(); }
+  void SetImmutable() const { ptr()->untag()->SetImmutable(); }
+  void ClearImmutable() const { ptr()->untag()->ClearImmutable(); }
   intptr_t GetClassId() const {
     return !ptr()->IsHeapObject() ? static_cast<intptr_t>(kSmiCid)
                                   : ptr()->untag()->GetClassId();
@@ -362,13 +371,11 @@ class Object {
   // Print the object on stdout for debugging.
   void Print() const;
 
-  bool IsZoneHandle() const {
-    return VMHandles::IsZoneHandle(reinterpret_cast<uword>(this));
-  }
-
+#if defined(DEBUG)
+  bool IsZoneHandle() const;
   bool IsReadOnlyHandle() const;
-
   bool IsNotTemporaryScopedHandle() const;
+#endif
 
   static Object& Handle(Zone* zone, ObjectPtr ptr) {
     Object* obj = reinterpret_cast<Object*>(VMHandles::AllocateHandle(zone));
@@ -436,11 +443,12 @@ class Object {
   V(Instance, null_instance)                                                   \
   V(Function, null_function)                                                   \
   V(FunctionType, null_function_type)                                          \
+  V(RecordType, null_record_type)                                              \
   V(TypeArguments, null_type_arguments)                                        \
   V(CompressedStackMaps, null_compressed_stackmaps)                            \
   V(TypeArguments, empty_type_arguments)                                       \
   V(Array, empty_array)                                                        \
-  V(Array, zero_array)                                                         \
+  V(Array, empty_instantiations_cache_array)                                   \
   V(ContextScope, empty_context_scope)                                         \
   V(ObjectPool, empty_object_pool)                                             \
   V(CompressedStackMaps, empty_compressed_stackmaps)                           \
@@ -448,8 +456,8 @@ class Object {
   V(LocalVarDescriptors, empty_var_descriptors)                                \
   V(ExceptionHandlers, empty_exception_handlers)                               \
   V(ExceptionHandlers, empty_async_exception_handlers)                         \
-  V(Array, extractor_parameter_types)                                          \
-  V(Array, extractor_parameter_names)                                          \
+  V(Array, synthetic_getter_parameter_types)                                   \
+  V(Array, synthetic_getter_parameter_names)                                   \
   V(Sentinel, sentinel)                                                        \
   V(Sentinel, transition_sentinel)                                             \
   V(Sentinel, unknown_constant)                                                \
@@ -630,20 +638,20 @@ class Object {
   };
 
  protected:
-  friend ObjectPtr AllocateObject(intptr_t, intptr_t);
+  friend ObjectPtr AllocateObject(intptr_t, intptr_t, intptr_t);
 
   // Used for extracting the C++ vtable during bringup.
   Object() : ptr_(null_) {}
 
   uword raw_value() const { return static_cast<uword>(ptr()); }
 
-  inline void SetPtr(ObjectPtr value, intptr_t default_cid);
+  inline void setPtr(ObjectPtr value, intptr_t default_cid);
   void CheckHandle() const;
   DART_NOINLINE static Object& HandleImpl(Zone* zone,
                                           ObjectPtr ptr,
                                           intptr_t default_cid) {
     Object* obj = reinterpret_cast<Object*>(VMHandles::AllocateHandle(zone));
-    obj->SetPtr(ptr, default_cid);
+    obj->setPtr(ptr, default_cid);
     return *obj;
   }
   DART_NOINLINE static Object& ZoneHandleImpl(Zone* zone,
@@ -651,12 +659,12 @@ class Object {
                                               intptr_t default_cid) {
     Object* obj =
         reinterpret_cast<Object*>(VMHandles::AllocateZoneHandle(zone));
-    obj->SetPtr(ptr, default_cid);
+    obj->setPtr(ptr, default_cid);
     return *obj;
   }
   DART_NOINLINE static Object* ReadOnlyHandleImpl(intptr_t cid) {
     Object* obj = reinterpret_cast<Object*>(Dart::AllocateReadOnlyHandle());
-    obj->SetPtr(Object::null(), cid);
+    obj->setPtr(Object::null(), cid);
     return obj;
   }
 
@@ -708,6 +716,12 @@ class Object {
   void StoreCompressedPointer(compressed_type const* addr, type value) const {
     ptr()->untag()->StoreCompressedPointer<type, compressed_type, order>(addr,
                                                                          value);
+  }
+  template <typename type>
+  void StorePointerUnaligned(type const* addr,
+                             type value,
+                             Thread* thread) const {
+    ptr()->untag()->StorePointerUnaligned<type>(addr, value, thread);
   }
 
   // Use for storing into an explicitly Smi-typed field of an object
@@ -814,7 +828,7 @@ class Object {
 
   /* Initialize the handle based on the ptr in the presence of null. */
   static void initializeHandle(Object* obj, ObjectPtr ptr) {
-    obj->SetPtr(ptr, kObjectCid);
+    obj->setPtr(ptr, kObjectCid);
   }
 
   static cpp_vtable builtin_vtables_[kNumPredefinedCids];
@@ -1110,6 +1124,19 @@ class Class : public Object {
     StoreNonPointer(&untag()->id_, value);
   }
   static intptr_t id_offset() { return OFFSET_OF(UntaggedClass, id_); }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // If the interface of this class has a single concrete implementation, either
+  // via `extends` or by `implements`, returns its CID.
+  // If it has no implementation, returns kIllegalCid.
+  // If it has more than one implementation, returns kDynamicCid.
+  intptr_t implementor_cid() const { return untag()->implementor_cid_; }
+
+  // Returns true if the implementor tracking state changes and so must be
+  // propagated to this class's superclass and interfaces.
+  bool NoteImplementor(const Class& implementor) const;
+#endif
+
   static intptr_t num_type_arguments_offset() {
     return OFFSET_OF(UntaggedClass, num_type_arguments_);
   }
@@ -1286,10 +1313,10 @@ class Class : public Object {
   }
 
   // Asserts that the class of the super type has been resolved.
-  // |original_classes| only has an effect when reloading. If true and we
-  // are reloading, it will prefer the original classes to the replacement
-  // classes.
-  ClassPtr SuperClass(bool original_classes = false) const;
+  // If |class_table| is provided it will be used to resolve class id to the
+  // actual class object, instead of using current class table on the isolate
+  // group.
+  ClassPtr SuperClass(ClassTable* class_table = nullptr) const;
 
   // Interfaces is an array of Types.
   ArrayPtr interfaces() const {
@@ -1427,6 +1454,11 @@ class Class : public Object {
     return GetClassId(cls) == kClosureCid;
   }
 
+  // Check if this class represents the 'Record' class.
+  bool IsRecordClass() const {
+    return id() == kRecordCid;
+  }
+
   static bool IsInFullSnapshot(ClassPtr cls) {
     NoSafepointScope no_safepoint;
     return UntaggedLibrary::InFullSnapshotBit::decode(
@@ -1465,6 +1497,9 @@ class Class : public Object {
   void AddField(const Field& field) const;
   void AddFields(const GrowableArray<const Field*>& fields) const;
 
+  intptr_t FindFieldIndex(const Field& needle) const;
+  FieldPtr FieldFromIndex(intptr_t idx) const;
+
   // If this is a dart:internal.ClassID class, then inject our own const
   // fields. Returns true if synthetic fields are injected and regular
   // field declarations should be ignored.
@@ -1472,10 +1507,9 @@ class Class : public Object {
 
   // Returns an array of all instance fields of this class and its superclasses
   // indexed by offset in words.
-  // |original_classes| only has an effect when reloading. If true and we
-  // are reloading, it will prefer the original classes to the replacement
-  // classes.
-  ArrayPtr OffsetToFieldMap(bool original_classes = false) const;
+  // If |class_table| is provided it will be used to resolve super classes by
+  // class id, instead of the current class_table stored in the isolate.
+  ArrayPtr OffsetToFieldMap(ClassTable* class_table = nullptr) const;
 
   // Returns true if non-static fields are defined.
   bool HasInstanceFields() const;
@@ -1492,6 +1526,7 @@ class Class : public Object {
   }
   void SetFunctions(const Array& value) const;
   void AddFunction(const Function& function) const;
+  intptr_t FindFunctionIndex(const Function& needle) const;
   FunctionPtr FunctionFromIndex(intptr_t idx) const;
   intptr_t FindImplicitClosureFunctionIndex(const Function& needle) const;
   FunctionPtr ImplicitClosureFunctionFromIndex(intptr_t idx) const;
@@ -1531,6 +1566,9 @@ class Class : public Object {
     return RoundedAllocationSize(sizeof(UntaggedClass));
   }
 
+  // Returns true if any class implements this interface via `implements`.
+  // Returns false if all possible implementations of this interface must be
+  // instances of this class or its subclasses.
   bool is_implemented() const { return ImplementedBit::decode(state_bits()); }
   void set_is_implemented() const;
   void set_is_implemented_unsafe() const;
@@ -1657,6 +1695,8 @@ class Class : public Object {
                                       UntaggedFunction::Kind kind,
                                       bool create_if_absent) const;
 
+  FunctionPtr GetRecordFieldGetter(const String& getter_name) const;
+
   void Finalize() const;
 
   ObjectPtr Invoke(const String& selector,
@@ -1716,6 +1756,9 @@ class Class : public Object {
   // Allocate the raw TypedDataView/ByteDataView classes.
   static ClassPtr NewTypedDataViewClass(intptr_t class_id,
                                         IsolateGroup* isolate_group);
+  static ClassPtr NewUnmodifiableTypedDataViewClass(
+      intptr_t class_id,
+      IsolateGroup* isolate_group);
 
   // Allocate the raw ExternalTypedData classes.
   static ClassPtr NewExternalTypedDataClass(intptr_t class_id,
@@ -1800,6 +1843,10 @@ class Class : public Object {
 #endif  // defined(DART_PRECOMPILER)
   }
 
+  static intptr_t UnboxedFieldSizeInBytesByCid(intptr_t cid);
+  void MarkFieldBoxedDuringReload(ClassTable* class_table,
+                                  const Field& field) const;
+
  private:
   TypePtr declaration_type() const {
     return untag()->declaration_type<std::memory_order_acquire>();
@@ -1814,7 +1861,8 @@ class Class : public Object {
                              ProgramReloadContext* context) const;
 
   // Tells whether instances need morphing for reload.
-  bool RequiresInstanceMorphing(const Class& replacement) const;
+  bool RequiresInstanceMorphing(ClassTable* class_table,
+                                const Class& replacement) const;
 
   template <class FakeInstance, class TargetFakeInstance>
   static ClassPtr NewCommon(intptr_t index);
@@ -1874,10 +1922,13 @@ class Class : public Object {
   void set_user_name(const String& value) const;
   const char* GenerateUserVisibleName() const;
   void set_state_bits(intptr_t bits) const;
+  void set_implementor_cid(intptr_t value) const;
 
   FunctionPtr CreateInvocationDispatcher(const String& target_name,
                                          const Array& args_desc,
                                          UntaggedFunction::Kind kind) const;
+
+  FunctionPtr CreateRecordFieldGetter(const String& getter_name) const;
 
   // Returns the bitmap of unboxed fields
   UnboxedFieldBitmap CalculateFieldOffsets() const;
@@ -2719,9 +2770,6 @@ class Function : public Object {
   int32_t FfiCallbackId() const;
 
   // Can only be called on FFI trampolines.
-  void SetFfiCallbackId(int32_t value) const;
-
-  // Can only be called on FFI trampolines.
   bool FfiIsLeaf() const;
 
   // Can only be called on FFI trampolines.
@@ -2968,6 +3016,10 @@ class Function : public Object {
     return kind() == UntaggedFunction::kNoSuchMethodDispatcher;
   }
 
+  bool IsRecordFieldGetter() const {
+    return kind() == UntaggedFunction::kRecordFieldGetter;
+  }
+
   bool IsInvokeFieldDispatcher() const {
     return kind() == UntaggedFunction::kInvokeFieldDispatcher;
   }
@@ -3059,6 +3111,7 @@ class Function : public Object {
       case UntaggedFunction::kNoSuchMethodDispatcher:
       case UntaggedFunction::kInvokeFieldDispatcher:
       case UntaggedFunction::kDynamicInvocationForwarder:
+      case UntaggedFunction::kRecordFieldGetter:
         return true;
       case UntaggedFunction::kClosureFunction:
       case UntaggedFunction::kImplicitClosureFunction:
@@ -3093,6 +3146,7 @@ class Function : public Object {
       case UntaggedFunction::kNoSuchMethodDispatcher:
       case UntaggedFunction::kInvokeFieldDispatcher:
       case UntaggedFunction::kDynamicInvocationForwarder:
+      case UntaggedFunction::kRecordFieldGetter:
         return false;
       default:
         UNREACHABLE();
@@ -3412,6 +3466,17 @@ class Function : public Object {
 #endif  //  !defined(DART_PRECOMPILED_RUNTIME)
   }
 
+  void set_unboxed_record_return() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    const_cast<UntaggedFunction::UnboxedParameterBitmap*>(
+        &untag()->unboxed_parameters_info_)
+        ->SetUnboxedRecord(0);
+
+#else
+    UNREACHABLE();
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
   bool is_unboxed_parameter_at(intptr_t index) const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
     ASSERT(index >= 0);
@@ -3466,13 +3531,19 @@ class Function : public Object {
 #endif  //  !defined(DART_PRECOMPILED_RUNTIME)
   }
 
+  bool has_unboxed_record_return() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return untag()->unboxed_parameters_info_.IsUnboxedRecord(0);
+#else
+    return false;
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
   bool HasUnboxedParameters() const {
     return untag()->unboxed_parameters_info_.HasUnboxedParameters();
   }
-  bool HasUnboxedReturnValue() const {
-    return untag()->unboxed_parameters_info_.HasUnboxedReturnValue();
-  }
+  bool HasUnboxedReturnValue() const { return has_unboxed_return(); }
 #endif  //  !defined(DART_PRECOMPILED_RUNTIME)
 
   bool IsDispatcherOrImplicitAccessor() const {
@@ -3576,104 +3647,26 @@ class Function : public Object {
            UntaggedFunction::kFfiTrampoline;
   }
 
-  // Recognise async functions like:
-  //   user_func async {
-  //     // ...
-  //   }
-  bool IsAsyncFunction() const {
-    return modifier() == UntaggedFunction::kAsync;
-  }
-
-  // TODO(dartbug.com/48378): replace this predicate with IsAsyncFunction()
-  // after old async functions are removed.
-  bool IsCompactAsyncFunction() const {
-    return IsAsyncFunction() && is_debuggable();
-  }
-
-  // TODO(dartbug.com/48378): replace this predicate with IsAsyncGenerator()
-  // after old async* functions are removed.
-  bool IsCompactAsyncStarFunction() const {
-    return IsAsyncGenerator() && is_debuggable();
-  }
-
-  // TODO(dartbug.com/48378): replace this predicate with IsSyncGenerator()
-  // after old sync* functions are removed.
-  bool IsCompactSyncStarFunction() const {
-    return IsSyncGenerator() && is_debuggable();
-  }
-
   // Returns true for functions which execution can be suspended
   // using Suspend/Resume stubs. Such functions have an artificial
   // :suspend_state local variable at the fixed location of the frame.
   bool IsSuspendableFunction() const {
-    return IsCompactAsyncFunction() || IsCompactAsyncStarFunction() ||
-           IsCompactSyncStarFunction();
+    return modifier() != UntaggedFunction::kNoModifier;
   }
 
-  // Recognise synthetic sync-yielding functions like the inner-most:
-  //   user_func /* was async */ {
-  //      :async_op(..) yielding {
-  //        // ...
-  //      }
-  //   }
-  bool IsAsyncClosure() const {
-    return is_generated_body() &&
-           Function::Handle(parent_function()).IsAsyncFunction();
+  // Returns true if this function is marked with 'async' modifier.
+  bool IsAsyncFunction() const {
+    return modifier() == UntaggedFunction::kAsync;
   }
 
-  // Recognise sync* functions like:
-  //   user_func sync* {
-  //     // ...
-  //   }
+  // Returns true if this function is marked with 'sync*' modifier.
   bool IsSyncGenerator() const {
     return modifier() == UntaggedFunction::kSyncGen;
   }
 
-  // Recognise synthetic :sync_op_gen()s like:
-  //   user_func /* was sync* */ {
-  //     :sync_op_gen() {
-  //        // ...
-  //      }
-  //   }
-  bool IsSyncGenClosureMaker() const {
-    return is_generated_body() &&
-           Function::Handle(parent_function()).IsSyncGenerator();
-  }
-
-  // Recognise async* functions like:
-  //   user_func async* {
-  //     // ...
-  //   }
+  // Returns true if this function is marked with 'async*' modifier.
   bool IsAsyncGenerator() const {
     return modifier() == UntaggedFunction::kAsyncGen;
-  }
-
-  // Recognise synthetic sync-yielding functions like the inner-most:
-  //   user_func /* originally async* */ {
-  //      :async_op(..) yielding {
-  //        // ...
-  //      }
-  //   }
-  bool IsAsyncGenClosure() const {
-    return is_generated_body() &&
-           Function::Handle(parent_function()).IsAsyncGenerator();
-  }
-
-  bool IsAsyncOrGenerator() const {
-    return modifier() != UntaggedFunction::kNoModifier;
-  }
-
-  // Recognise synthetic sync-yielding functions like the inner-most:
-  //   user_func /* was sync* */ {
-  //     :sync_op_gen() {
-  //        :sync_op(..) yielding {
-  //          // ...
-  //        }
-  //      }
-  //   }
-  bool IsSyncGenClosure() const {
-    return is_generated_body() &&
-           Function::Handle(parent_function()).IsSyncGenClosureMaker();
   }
 
   bool IsTypedDataViewFactory() const {
@@ -3681,6 +3674,15 @@ class Function : public Object {
       // This is a native factory constructor.
       const Class& klass = Class::Handle(Owner());
       return IsTypedDataViewClassId(klass.id());
+    }
+    return false;
+  }
+
+  bool IsUnmodifiableTypedDataViewFactory() const {
+    if (is_native() && kind() == UntaggedFunction::kConstructor) {
+      // This is a native factory constructor.
+      const Class& klass = Class::Handle(Owner());
+      return IsUnmodifiableTypedDataViewClassId(klass.id());
     }
     return false;
   }
@@ -3855,7 +3857,6 @@ class Function : public Object {
   // native: Bridge to C/C++ code.
   // external: Just a declaration that expects to be defined in another patch
   //           file.
-  // generated_body: Has a generated body.
   // polymorphic_target: A polymorphic method.
   // has_pragma: Has a @pragma decoration.
   // no_such_method_forwarder: A stub method that just calls noSuchMethod.
@@ -3872,7 +3873,6 @@ class Function : public Object {
   V(Intrinsic, is_intrinsic)                                                   \
   V(Native, is_native)                                                         \
   V(External, is_external)                                                     \
-  V(GeneratedBody, is_generated_body)                                          \
   V(PolymorphicTarget, is_polymorphic_target)                                  \
   V(HasPragma, has_pragma)                                                     \
   V(IsSynthetic, is_synthetic)                                                 \
@@ -3903,7 +3903,7 @@ class Function : public Object {
   //              which have been de-optimized too many times.
   bool is_optimizable() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
+    return false;
 #else
     return untag()->packed_fields_.Read<UntaggedFunction::PackedOptimizable>();
 #endif
@@ -3938,6 +3938,11 @@ class Function : public Object {
   COMPILE_ASSERT(kNumTagBits <=
                  (kBitsPerByte *
                   sizeof(decltype(UntaggedFunction::kind_tag_))));
+
+#define ASSERT_FUNCTION_KIND_IN_RANGE(Name)                                    \
+  COMPILE_ASSERT(UntaggedFunction::k##Name < (1 << kKindTagSize));
+  FOR_EACH_RAW_FUNCTION_KIND(ASSERT_FUNCTION_KIND_IN_RANGE)
+#undef ASSERT_FUNCTION_KIND_IN_RANGE
 
   class KindBits : public BitField<uint32_t,
                                    UntaggedFunction::Kind,
@@ -4096,9 +4101,6 @@ class Field : public Object {
     return !untag()->owner()->IsField();
   }
 
-  // Mark previously unboxed field boxed. Only operates on clones, updates
-  // original as well as this clone.
-  void DisableFieldUnboxing() const;
   // Returns a field cloned from 'this'. 'this' is set as the
   // original field of result.
   FieldPtr CloneFromOriginal() const;
@@ -4129,22 +4131,6 @@ class Field : public Object {
     ASSERT(IsOriginal());
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(ReflectableBit::update(value, untag()->kind_bits_));
-  }
-  bool is_double_initialized() const {
-    return DoubleInitializedBit::decode(kind_bits());
-  }
-  // Called in parser after allocating field, immutable property otherwise.
-  // Marks fields that are initialized with a simple double constant.
-  void set_is_double_initialized_unsafe(bool value) const {
-    ASSERT(IsOriginal());
-    // TODO(36097): Once concurrent access is possible ensure updates are safe.
-    set_kind_bits(DoubleInitializedBit::update(value, untag()->kind_bits_));
-  }
-
-  void set_is_double_initialized(bool value) const {
-    DEBUG_ASSERT(
-        IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-    set_is_double_initialized_unsafe(value);
   }
 
   bool initializer_changed_after_initialization() const {
@@ -4310,17 +4296,6 @@ class Field : public Object {
     return has_initializer() && !has_nontrivial_initializer();
   }
 
-  bool is_non_nullable_integer() const {
-    return IsNonNullableIntBit::decode(kind_bits());
-  }
-
-  void set_is_non_nullable_integer(bool is_non_nullable_integer) const {
-    ASSERT(Thread::Current()->IsMutatorThread());
-    // TODO(36097): Once concurrent access is possible ensure updates are safe.
-    set_kind_bits(IsNonNullableIntBit::update(is_non_nullable_integer,
-                                              untag()->kind_bits_));
-  }
-
   StaticTypeExactnessState static_type_exactness_state() const {
     return StaticTypeExactnessState::Decode(
         LoadNonPointer<int8_t, std::memory_order_relaxed>(
@@ -4400,22 +4375,20 @@ class Field : public Object {
 
   const char* GuardedPropertiesAsCString() const;
 
-  intptr_t UnboxedFieldCid() const { return guarded_cid(); }
-
-  bool is_unboxing_candidate() const {
-    return UnboxingCandidateBit::decode(kind_bits());
+  bool is_unboxed() const {
+    return UnboxedBit::decode(kind_bits());
   }
 
-  // Default 'true', set to false once optimizing compiler determines it should
-  // be boxed.
-  void set_is_unboxing_candidate_unsafe(bool b) const {
-    set_kind_bits(UnboxingCandidateBit::update(b, untag()->kind_bits_));
+  // Field unboxing decisions are based either on static types (JIT) or
+  // inferred types (AOT). See the callers of this function.
+  void set_is_unboxed_unsafe(bool b) const {
+    set_kind_bits(UnboxedBit::update(b, untag()->kind_bits_));
   }
 
-  void set_is_unboxing_candidate(bool b) const {
+  void set_is_unboxed(bool b) const {
     DEBUG_ASSERT(
         IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-    set_is_unboxing_candidate_unsafe(b);
+    set_is_unboxed_unsafe(b);
   }
 
   enum {
@@ -4530,10 +4503,6 @@ class Field : public Object {
   void set_type_test_cache(const SubtypeTestCache& cache) const;
 #endif
 
-  // Unboxed fields require exclusive ownership of the box.
-  // Ensure this by cloning the box if necessary.
-  const Object* CloneForUnboxed(const Object& value) const;
-
  private:
   static void InitializeNew(const Field& result,
                             const String& name,
@@ -4545,16 +4514,15 @@ class Field : public Object {
                             const Object& owner,
                             TokenPosition token_pos,
                             TokenPosition end_token_pos);
-  friend class StoreInstanceFieldInstr;  // Generated code access to bit field.
+  friend class StoreFieldInstr;  // Generated code access to bit field.
 
   enum {
     kConstBit = 0,
     kStaticBit,
     kFinalBit,
     kHasNontrivialInitializerBit,
-    kUnboxingCandidateBit,
+    kUnboxedBit,
     kReflectableBit,
-    kDoubleInitializedBit,
     kInitializerChangedAfterInitializatonBit,
     kHasPragmaBit,
     kCovariantBit,
@@ -4563,18 +4531,14 @@ class Field : public Object {
     kIsExtensionMemberBit,
     kNeedsLoadGuardBit,
     kHasInitializerBit,
-    kIsNonNullableIntBit,
   };
   class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
   class StaticBit : public BitField<uint16_t, bool, kStaticBit, 1> {};
   class FinalBit : public BitField<uint16_t, bool, kFinalBit, 1> {};
   class HasNontrivialInitializerBit
       : public BitField<uint16_t, bool, kHasNontrivialInitializerBit, 1> {};
-  class UnboxingCandidateBit
-      : public BitField<uint16_t, bool, kUnboxingCandidateBit, 1> {};
+  class UnboxedBit : public BitField<uint16_t, bool, kUnboxedBit, 1> {};
   class ReflectableBit : public BitField<uint16_t, bool, kReflectableBit, 1> {};
-  class DoubleInitializedBit
-      : public BitField<uint16_t, bool, kDoubleInitializedBit, 1> {};
   class InitializerChangedAfterInitializatonBit
       : public BitField<uint16_t,
                         bool,
@@ -4591,8 +4555,6 @@ class Field : public Object {
       : public BitField<uint16_t, bool, kNeedsLoadGuardBit, 1> {};
   class HasInitializerBit
       : public BitField<uint16_t, bool, kHasInitializerBit, 1> {};
-  class IsNonNullableIntBit
-      : public BitField<uint16_t, bool, kIsNonNullableIntBit, 1> {};
 
   // Force this field's guard to be dynamic and deoptimize dependent code.
   void ForceDynamicGuardedCidAndLength() const;
@@ -4663,6 +4625,10 @@ class Script : public Object {
   void set_kernel_script_index(const intptr_t kernel_script_index) const;
 
   TypedDataPtr kernel_string_offsets() const;
+
+  static intptr_t line_starts_offset() {
+    return OFFSET_OF(UntaggedScript, line_starts_);
+  }
 
   TypedDataPtr line_starts() const;
 
@@ -5220,8 +5186,7 @@ class KernelProgramInfo : public Object {
                                   const Array& scripts,
                                   const Array& libraries_cache,
                                   const Array& classes_cache,
-                                  const Object& retained_kernel_blob,
-                                  const uint32_t binary_version);
+                                  const Object& retained_kernel_blob);
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedKernelProgramInfo));
@@ -5252,11 +5217,6 @@ class KernelProgramInfo : public Object {
 
   ArrayPtr constants() const { return untag()->constants(); }
   void set_constants(const Array& constants) const;
-
-  uint32_t kernel_binary_version() const {
-    return untag()->kernel_binary_version_;
-  }
-  void set_kernel_binary_version(uint32_t version) const;
 
   // If we load a kernel blob with evaluated constants, then we delay setting
   // the native names of [Function] objects until we've read the constant table
@@ -5478,34 +5438,34 @@ class Instructions : public Object {
 // necessary) to allow them to be seen as Smis by the GC.
 #if defined(TARGET_ARCH_IA32)
   static const intptr_t kMonomorphicEntryOffsetJIT = 6;
-  static const intptr_t kPolymorphicEntryOffsetJIT = 34;
+  static const intptr_t kPolymorphicEntryOffsetJIT = 36;
   static const intptr_t kMonomorphicEntryOffsetAOT = 0;
   static const intptr_t kPolymorphicEntryOffsetAOT = 0;
 #elif defined(TARGET_ARCH_X64)
   static const intptr_t kMonomorphicEntryOffsetJIT = 8;
-  static const intptr_t kPolymorphicEntryOffsetJIT = 40;
+  static const intptr_t kPolymorphicEntryOffsetJIT = 42;
   static const intptr_t kMonomorphicEntryOffsetAOT = 8;
   static const intptr_t kPolymorphicEntryOffsetAOT = 22;
 #elif defined(TARGET_ARCH_ARM)
   static const intptr_t kMonomorphicEntryOffsetJIT = 0;
-  static const intptr_t kPolymorphicEntryOffsetJIT = 40;
+  static const intptr_t kPolymorphicEntryOffsetJIT = 44;
   static const intptr_t kMonomorphicEntryOffsetAOT = 0;
-  static const intptr_t kPolymorphicEntryOffsetAOT = 12;
+  static const intptr_t kPolymorphicEntryOffsetAOT = 16;
 #elif defined(TARGET_ARCH_ARM64)
   static const intptr_t kMonomorphicEntryOffsetJIT = 8;
-  static const intptr_t kPolymorphicEntryOffsetJIT = 48;
+  static const intptr_t kPolymorphicEntryOffsetJIT = 52;
   static const intptr_t kMonomorphicEntryOffsetAOT = 8;
-  static const intptr_t kPolymorphicEntryOffsetAOT = 20;
+  static const intptr_t kPolymorphicEntryOffsetAOT = 24;
 #elif defined(TARGET_ARCH_RISCV32)
   static const intptr_t kMonomorphicEntryOffsetJIT = 6;
-  static const intptr_t kPolymorphicEntryOffsetJIT = 42;
+  static const intptr_t kPolymorphicEntryOffsetJIT = 44;
   static const intptr_t kMonomorphicEntryOffsetAOT = 6;
-  static const intptr_t kPolymorphicEntryOffsetAOT = 16;
+  static const intptr_t kPolymorphicEntryOffsetAOT = 18;
 #elif defined(TARGET_ARCH_RISCV64)
   static const intptr_t kMonomorphicEntryOffsetJIT = 6;
-  static const intptr_t kPolymorphicEntryOffsetJIT = 42;
+  static const intptr_t kPolymorphicEntryOffsetJIT = 44;
   static const intptr_t kMonomorphicEntryOffsetAOT = 6;
-  static const intptr_t kPolymorphicEntryOffsetAOT = 16;
+  static const intptr_t kPolymorphicEntryOffsetAOT = 18;
 #else
 #error Missing entry offsets for current architecture
 #endif
@@ -5530,7 +5490,7 @@ class Instructions : public Object {
 
   static const intptr_t kMaxElements =
       (kMaxInt32 - (sizeof(UntaggedInstructions) + sizeof(UntaggedObject) +
-                    (2 * kMaxObjectAlignment)));
+                    (2 * kObjectStartAlignment)));
 
   // Currently, we align bare instruction payloads on 4 byte boundaries.
   //
@@ -7044,6 +7004,8 @@ class Code : public Object {
   friend class UntaggedFunction;
   friend class CallSiteResetter;
   friend class CodeKeyValueTrait;  // for UncheckedEntryPointOffset
+  friend class InstanceCall;       // for StorePointerUnaligned
+  friend class StaticCall;         // for StorePointerUnaligned
 };
 
 class Context : public Object {
@@ -7075,13 +7037,6 @@ class Context : public Object {
 
   static const intptr_t kBytesPerElement = kCompressedWordSize;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
-
-  static const intptr_t kAwaitJumpVarIndex = 0;
-  static const intptr_t kAsyncFutureIndex = 1;
-  static const intptr_t kControllerIndex = 1;
-  // Expected context index of chained futures in recognized async functions.
-  // These are used to unwind async stacks.
-  static const intptr_t kIsSyncIndex = 2;
 
   struct ArrayTraits {
     static intptr_t elements_start_offset() { return sizeof(UntaggedContext); }
@@ -7768,7 +7723,9 @@ class Instance : public Object {
 
  protected:
 #ifndef PRODUCT
-  virtual void PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const;
+  virtual void PrintSharedInstanceJSON(JSONObject* jsobj,
+                                       bool ref,
+                                       bool include_id = true) const;
 #endif
 
  private:
@@ -7819,7 +7776,20 @@ class Instance : public Object {
     StoreCompressedPointer(RawFieldAddrAtOffset(offset), value.ptr());
   }
 
-  static InstancePtr NewFromCidAndSize(SharedClassTable* shared_class_table,
+  template <typename T>
+  T* RawUnboxedFieldAddrAtOffset(intptr_t offset) const {
+    return reinterpret_cast<T*>(raw_value() - kHeapObjectTag + offset);
+  }
+  template <typename T>
+  T RawGetUnboxedFieldAtOffset(intptr_t offset) const {
+    return *RawUnboxedFieldAddrAtOffset<T>(offset);
+  }
+  template <typename T>
+  void RawSetUnboxedFieldAtOffset(intptr_t offset, const T& value) const {
+    *RawUnboxedFieldAddrAtOffset<T>(offset) = value;
+  }
+
+  static InstancePtr NewFromCidAndSize(ClassTable* class_table,
                                        classid_t cid,
                                        Heap::Space heap = Heap::kNew);
 
@@ -7830,6 +7800,8 @@ class Instance : public Object {
   friend class Closure;
   friend class Pointer;
   friend class DeferredObject;
+  friend class FlowGraphSerializer;
+  friend class FlowGraphDeserializer;
   friend class RegExp;
   friend class StubCode;
   friend class TypedDataView;
@@ -7956,6 +7928,8 @@ class TypeParameters : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeParameters, Object);
   friend class Class;
   friend class ClassFinalizer;
+  friend class FlowGraphSerializer;
+  friend class FlowGraphDeserializer;
   friend class Function;
   friend class FunctionType;
   friend class Object;
@@ -8114,6 +8088,7 @@ class TypeArguments : public Instance {
       bool* with_runtime_check = nullptr) const;
   bool CanShareFunctionTypeArguments(const Function& function,
                                      bool* with_runtime_check = nullptr) const;
+  TypeArgumentsPtr TruncatedTo(intptr_t length) const;
 
   // Return true if all types of this vector are finalized.
   bool IsFinalized() const;
@@ -8148,27 +8123,172 @@ class TypeArguments : public Instance {
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments) const;
 
-  // Each cached instantiation consists of a 3-tuple in the instantiations_
-  // array stored in each canonical uninstantiated type argument vector.
-  enum Instantiation {
-    kInstantiatorTypeArgsIndex = 0,
-    kFunctionTypeArgsIndex,
-    kInstantiatedTypeArgsIndex,
-    kSizeInWords,
-  };
+  class Cache : public ValueObject {
+   public:
+    // The contents of the backing array storage is a header followed by
+    // a number of entry tuples. Any entry that is unoccupied has
+    // Sentinel() as its first component.
+    //
+    // If the cache is linear, the entries can be accessed in a linear fashion:
+    // all occupied entries come first, followed by at least one unoccupied
+    // entry to mark the end of the cache. Guaranteeing at least one unoccupied
+    // entry avoids the need for a length check when iterating over the contents
+    // of the linear cache in stubs.
+    //
+    // If the cache is hash-based, the array is instead treated as a hash table
+    // probed by using a hash value derived from the instantiator and function
+    // type arguments.
 
-  // The array is terminated by the value kNoInstantiator occuring in place of
-  // the instantiator type args of the 4-tuple that would otherwise follow.
-  // Therefore, kNoInstantiator must be distinct from any type arguments vector,
-  // even a null one. Since arrays are initialized with 0, the instantiations_
-  // array is properly terminated upon initialization.
-  static const intptr_t kNoInstantiator = 0;
+    enum Header {
+      // The number of occupied entries in the cache.
+      kOccupiedEntriesIndex = 0,
+      kHeaderSize,
+    };
+
+    // The tuple of values stored in a given entry.
+    //
+    // Note: accesses of the first component outside of the type arguments
+    // canonicalization mutex must have acquire semantics.
+    enum Entry {
+      kSentinelIndex = 0,  // Used when only checking for sentinel values.
+      kInstantiatorTypeArgsIndex = kSentinelIndex,
+      kFunctionTypeArgsIndex,
+      kInstantiatedTypeArgsIndex,
+      kEntrySize,
+    };
+
+    // Requires that the type arguments canonicalization mutex is held.
+    Cache(Zone* zone, const TypeArguments& source);
+
+    // Requires that the type arguments canonicalization mutex is held.
+    Cache(Zone* zone, const Array& array);
+
+    // Used to check that the state of the backing array is valid.
+    //
+    // Requires that the type arguments canonicalization mutex is held.
+    DEBUG_ONLY(static bool IsValidStorageLocked(const Array& array);)
+
+    // Returns the number of entries stored in the cache.
+    intptr_t NumOccupied() const { return NumOccupied(data_); }
+
+    struct KeyLocation {
+      // The entry index if [present] is true, otherwise where the entry would
+      // be located if added afterwards without any intermediate additions.
+      intptr_t entry;
+      bool present;  // Whether an entry already exists in the cache.
+    };
+
+    // If an entry contains the given instantiator and function type arguments,
+    // returns a KeyLocation with the index of the entry and true. Otherwise,
+    // returns the index an entry with those keys would have if added and false.
+    KeyLocation FindKeyOrUnused(const TypeArguments& instantiator_tav,
+                                const TypeArguments& function_tav) const {
+      return FindKeyOrUnused(data_, instantiator_tav, function_tav);
+    }
+
+    // Returns whether the entry at the given index in the cache is occupied.
+    bool IsOccupied(intptr_t entry) const;
+
+    // Given an occupied entry index, returns the instantiated TypeArguments.
+    TypeArgumentsPtr Retrieve(intptr_t entry) const;
+
+    // Adds a new instantiation mapping to the cache at index [entry]. Assumes
+    // that the entry at index [entry] is unoccupied.
+    //
+    // May replace the underlying storage array, in which case the returned
+    // index of the entry may differ from the requested one. If this Cache was
+    // constructed using a TypeArguments object, its instantiations field is
+    // also updated to point to the new storage.
+    KeyLocation AddEntry(intptr_t entry,
+                         const TypeArguments& instantiator_tav,
+                         const TypeArguments& function_tav,
+                         const TypeArguments& instantiated_tav) const;
+
+    // The sentinel value used to mark unoccupied entries.
+    static SmiPtr Sentinel();
+
+    static const Array& EmptyStorage() {
+      return Object::empty_instantiations_cache_array();
+    }
+
+    // Returns whether the cache is linear.
+    bool IsLinear() const { return IsLinear(data_); }
+
+    // Returns whether the cache is hash-based.
+    bool IsHash() const { return IsHash(data_); }
+
+   private:
+    static constexpr double LoadFactor(intptr_t occupied, intptr_t capacity) {
+      return occupied / static_cast<double>(capacity);
+    }
+
+    // Returns the number of entries stored in the cache backed by the given
+    // array.
+    static intptr_t NumOccupied(const Array& array);
+
+    // Returns whether the cache backed by the given storage is linear.
+    static bool IsLinear(const Array& array) { return !IsHash(array); }
+
+    // Returns whether the cache backed by the given storage is hash-based.
+    static bool IsHash(const Array& array);
+
+    // Ensures that the backing store for the cache can hold at least [occupied]
+    // occupied entries. If it cannot, replaces the backing store with one that
+    // can, copying over entries from the old backing store.
+    //
+    // Returns whether the backing store changed.
+    bool EnsureCapacity(intptr_t occupied) const;
+
+    // Retrieves the number of entries (occupied or unoccupied) in the cache.
+    intptr_t NumEntries() const { return NumEntries(data_); }
+
+    // Retrieves the number of entries (occupied or unoccupied) in a cache
+    // backed by the given array.
+    static intptr_t NumEntries(const Array& array);
+
+    // If an entry in the given array contains the given instantiator and
+    // function type arguments, returns a KeyLocation with the index of the
+    // entry and true. Otherwise, returns a KeyLocation with the index that
+    // would be used if the instantiation for the the given type arguments is
+    // added and false.
+    static KeyLocation FindKeyOrUnused(const Array& array,
+                                       const TypeArguments& instantiator_tav,
+                                       const TypeArguments& function_tav);
+
+    // The sentinel value in the Smi returned from Sentinel().
+    static constexpr intptr_t kSentinelValue = 0;
+
+   public:
+    // The maximum number of occupied entries for a linear cache of
+    // instantiations before swapping to a hash table-based cache.
+    static constexpr intptr_t kMaxLinearCacheEntries = 500;
+
+    // The maximum size of the array backing a linear cache. All hash based
+    // caches are guaranteed to have sizes larger than this.
+    static constexpr intptr_t kMaxLinearCacheSize =
+        kHeaderSize + (kMaxLinearCacheEntries + 1) * kEntrySize;
+
+   private:
+    // The initial number of entries used when converting from a linear to
+    // a hash-based cache.
+    static constexpr intptr_t kNumInitialHashCacheEntries =
+        Utils::RoundUpToPowerOfTwo(2 * kMaxLinearCacheEntries);
+    static_assert(Utils::IsPowerOfTwo(kNumInitialHashCacheEntries),
+                  "number of hash-based cache entries must be a power of two");
+
+    // The max load factor allowed in hash-based caches.
+    static constexpr double kMaxLoadFactor = 0.71;
+
+    Zone* const zone_;
+    const TypeArguments* const cache_container_;
+    Array& data_;
+    Smi& smi_handle_;
+
+    friend class TypeArguments;  // For asserts against data_.
+  };
 
   // Return true if this type argument vector has cached instantiations.
   bool HasInstantiations() const;
-
-  // Return the number of cached instantiations for this type argument vector.
-  intptr_t NumInstantiations() const;
 
   static intptr_t instantiations_offset() {
     return OFFSET_OF(UntaggedTypeArguments, instantiations_);
@@ -8235,12 +8355,25 @@ class TypeArguments : public Instance {
 // Subclasses of AbstractType are Type and TypeParameter.
 class AbstractType : public Instance {
  public:
-  virtual bool IsFinalized() const;
-  virtual void SetIsFinalized() const;
-  virtual bool IsBeingFinalized() const;
-  virtual void SetIsBeingFinalized() const;
+  static intptr_t flags_offset() {
+    return OFFSET_OF(UntaggedAbstractType, flags_);
+  }
 
-  virtual Nullability nullability() const;
+  bool IsFinalized() const {
+    const auto state = type_state();
+    return (state == UntaggedAbstractType::kFinalizedInstantiated) ||
+           (state == UntaggedAbstractType::kFinalizedUninstantiated);
+  }
+  void SetIsFinalized() const;
+  bool IsBeingFinalized() const {
+    return type_state() == UntaggedAbstractType::kBeingFinalized;
+  }
+  void SetIsBeingFinalized() const;
+
+  Nullability nullability() const {
+    return static_cast<Nullability>(
+        UntaggedAbstractType::NullabilityBits::decode(untag()->flags()));
+  }
   // Returns true if type has '?' nullability suffix, or it is a
   // built-in type which is always nullable (Null, dynamic or void).
   bool IsNullable() const { return nullability() == Nullability::kNullable; }
@@ -8361,9 +8494,10 @@ class AbstractType : public Instance {
 
   // Return the internal or public name of this type, including the names of its
   // type arguments, if any.
-  void PrintName(NameVisibility visibility, BaseTextBuffer* printer) const;
+  virtual void PrintName(NameVisibility visibility,
+                         BaseTextBuffer* printer) const;
 
-  // Add the class name and URI of each occuring type to the uris
+  // Add the class name and URI of each occurring type to the uris
   // list and mark ambiguous triplets to be printed.
   virtual void EnumerateURIs(URIs* uris) const;
 
@@ -8446,6 +8580,9 @@ class AbstractType : public Instance {
   // Check if this type represents the Dart '_Closure' type.
   bool IsDartClosureType() const;
 
+  // Check if this type represents the Dart 'Record' type.
+  bool IsDartRecordType() const;
+
   // Check if this type represents the 'Pointer' type from "dart:ffi".
   bool IsFfiPointerType() const;
 
@@ -8456,10 +8593,19 @@ class AbstractType : public Instance {
   // Returns unmodified type if this type is not a 'FutureOr' type.
   AbstractTypePtr UnwrapFutureOr() const;
 
+  // Returns true if parameter of this type might need a
+  // null assertion (if null assertions are enabled).
+  bool NeedsNullAssertion() const;
+
   // Returns true if catching this type will catch all exceptions.
   // Exception objects are guaranteed to be non-nullable, so
   // non-nullable Object is also a catch-all type.
   bool IsCatchAllType() const { return IsDynamicType() || IsObjectType(); }
+
+  // Returns true if this type has a type class permitted by SendPort.send for
+  // messages between isolates in different groups. Does not recursively visit
+  // type arguments.
+  bool IsTypeClassAllowedBySpawnUri() const;
 
   // Check the subtype relationship.
   bool IsSubtypeOf(const AbstractType& other,
@@ -8521,44 +8667,36 @@ class AbstractType : public Instance {
                            TrailPtr trail = nullptr) const;
 
  protected:
+  bool IsNullabilityEquivalent(Thread* thread,
+                               const AbstractType& other_type,
+                               TypeEquality kind) const;
+
+  UntaggedAbstractType::TypeState type_state() const {
+    return static_cast<UntaggedAbstractType::TypeState>(
+        UntaggedAbstractType::TypeStateBits::decode(untag()->flags()));
+  }
+  void set_flags(uint32_t value) const;
+  void set_type_state(UntaggedAbstractType::TypeState value) const;
+  void set_nullability(Nullability value) const;
+
   HEAP_OBJECT_IMPLEMENTATION(AbstractType, Instance);
   friend class Class;
   friend class Function;
   friend class TypeArguments;
+  friend class TypeRef;
 };
 
 // A Type consists of a class, possibly parameterized with type
 // arguments. Example: C<T1, T2>.
 class Type : public AbstractType {
  public:
-  static intptr_t type_class_id_offset() {
-    return OFFSET_OF(UntaggedType, type_class_id_);
-  }
   static intptr_t arguments_offset() {
     return OFFSET_OF(UntaggedType, arguments_);
   }
-  static intptr_t type_state_offset() {
-    return OFFSET_OF(UntaggedType, type_state_);
-  }
   static intptr_t hash_offset() { return OFFSET_OF(UntaggedType, hash_); }
-  static intptr_t nullability_offset() {
-    return OFFSET_OF(UntaggedType, nullability_);
-  }
-  virtual bool IsFinalized() const {
-    return (untag()->type_state_ == UntaggedType::kFinalizedInstantiated) ||
-           (untag()->type_state_ == UntaggedType::kFinalizedUninstantiated);
-  }
-  virtual void SetIsFinalized() const;
-  virtual bool IsBeingFinalized() const {
-    return untag()->type_state_ == UntaggedType::kBeingFinalized;
-  }
-  virtual void SetIsBeingFinalized() const;
   virtual bool HasTypeClass() const {
     ASSERT(type_class_id() != kIllegalCid);
     return true;
-  }
-  virtual Nullability nullability() const {
-    return static_cast<Nullability>(untag()->nullability_);
   }
   TypePtr ToNullability(Nullability value, Heap::Space space) const;
   virtual classid_t type_class_id() const;
@@ -8592,6 +8730,8 @@ class Type : public AbstractType {
   virtual bool CheckIsCanonical(Thread* thread) const;
 #endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const;
+  virtual void PrintName(NameVisibility visibility,
+                         BaseTextBuffer* printer) const;
 
   virtual uword Hash() const;
   uword ComputeHash() const;
@@ -8675,11 +8815,6 @@ class Type : public AbstractType {
   // in ClassIdTagType. This allows us to guard against that case, instead of
   // silently truncating the cid.
   void set_type_class_id(intptr_t id) const;
-  void set_type_state(uint8_t state) const;
-  void set_nullability(Nullability value) const {
-    ASSERT(!IsCanonical());
-    StoreNonPointer(&untag()->nullability_, static_cast<uint8_t>(value));
-  }
 
   static TypePtr New(Heap::Space space = Heap::kOld);
 
@@ -8707,28 +8842,10 @@ class FunctionType : public AbstractType {
   using PackedNumOptionalParameters =
       UntaggedFunctionType::PackedNumOptionalParameters;
 
-  static intptr_t type_state_offset() {
-    return OFFSET_OF(UntaggedFunctionType, type_state_);
-  }
   static intptr_t hash_offset() {
     return OFFSET_OF(UntaggedFunctionType, hash_);
   }
-  static intptr_t nullability_offset() {
-    return OFFSET_OF(UntaggedFunctionType, nullability_);
-  }
-  virtual bool IsFinalized() const {
-    return (untag()->type_state_ == UntaggedType::kFinalizedInstantiated) ||
-           (untag()->type_state_ == UntaggedType::kFinalizedUninstantiated);
-  }
-  virtual void SetIsFinalized() const;
-  virtual bool IsBeingFinalized() const {
-    return untag()->type_state_ == UntaggedType::kBeingFinalized;
-  }
-  virtual void SetIsBeingFinalized() const;
   virtual bool HasTypeClass() const { return false; }
-  virtual Nullability nullability() const {
-    return static_cast<Nullability>(untag()->nullability_);
-  }
   FunctionTypePtr ToNullability(Nullability value, Heap::Space space) const;
   virtual classid_t type_class_id() const { return kIllegalCid; }
   virtual bool IsInstantiated(Genericity genericity = kAny,
@@ -8753,6 +8870,8 @@ class FunctionType : public AbstractType {
   virtual bool CheckIsCanonical(Thread* thread) const;
 #endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const;
+  virtual void PrintName(NameVisibility visibility,
+                         BaseTextBuffer* printer) const;
 
   virtual uword Hash() const;
   uword ComputeHash() const;
@@ -8978,18 +9097,96 @@ class FunctionType : public AbstractType {
  private:
   void SetHash(intptr_t value) const;
 
-  void set_type_state(uint8_t state) const;
-  void set_nullability(Nullability value) const {
-    ASSERT(!IsCanonical());
-    StoreNonPointer(&untag()->nullability_, static_cast<uint8_t>(value));
-  }
-
   static FunctionTypePtr New(Heap::Space space);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(FunctionType, AbstractType);
   friend class Class;
   friend class ClearTypeHashVisitor;
   friend class Function;
+};
+
+// A RecordType represents the type of a record. It describes
+// number of named and positional fields, field types and
+// names of the named fields.
+class RecordType : public AbstractType {
+ public:
+  static intptr_t hash_offset() { return OFFSET_OF(UntaggedRecordType, hash_); }
+  virtual bool HasTypeClass() const { return false; }
+  RecordTypePtr ToNullability(Nullability value, Heap::Space space) const;
+  virtual classid_t type_class_id() const { return kIllegalCid; }
+  virtual bool IsInstantiated(Genericity genericity = kAny,
+                              intptr_t num_free_fun_type_params = kAllFree,
+                              TrailPtr trail = nullptr) const;
+  virtual bool IsEquivalent(const Instance& other,
+                            TypeEquality kind,
+                            TrailPtr trail = nullptr) const;
+  virtual bool IsRecursive(TrailPtr trail = nullptr) const;
+  virtual bool RequireConstCanonicalTypeErasure(Zone* zone,
+                                                TrailPtr trail = nullptr) const;
+
+  virtual AbstractTypePtr InstantiateFrom(
+      const TypeArguments& instantiator_type_arguments,
+      const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
+      Heap::Space space,
+      TrailPtr trail = nullptr) const;
+  virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
+#if defined(DEBUG)
+  // Check if type is canonical.
+  virtual bool CheckIsCanonical(Thread* thread) const;
+#endif  // DEBUG
+  virtual void EnumerateURIs(URIs* uris) const;
+  virtual void PrintName(NameVisibility visibility,
+                         BaseTextBuffer* printer) const;
+
+  virtual uword Hash() const;
+  uword ComputeHash() const;
+
+  bool IsSubtypeOf(const RecordType& other, Heap::Space space) const;
+
+  ArrayPtr field_types() const {
+    return untag()->field_types();
+  }
+
+  AbstractTypePtr FieldTypeAt(intptr_t index) const;
+  void SetFieldTypeAt(intptr_t index, const AbstractType& value) const;
+
+  // Names of the named fields, sorted.
+  ArrayPtr field_names() const {
+    return untag()->field_names();
+  }
+
+  StringPtr FieldNameAt(intptr_t index) const;
+  void SetFieldNameAt(intptr_t index, const String& value) const;
+
+  intptr_t NumFields() const;
+  intptr_t NumNamedFields() const;
+  intptr_t NumPositionalFields() const;
+
+  void Print(NameVisibility name_visibility, BaseTextBuffer* printer) const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UntaggedRecordType));
+  }
+
+  static RecordTypePtr New(const Array& field_types,
+                           const Array& field_names,
+                           Nullability nullability = Nullability::kLegacy,
+                           Heap::Space space = Heap::kOld);
+
+ private:
+  void SetHash(intptr_t value) const;
+
+  void set_field_types(const Array& value) const;
+  void set_field_names(const Array& value) const;
+
+  static RecordTypePtr New(Heap::Space space);
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(RecordType, AbstractType);
+  friend class Class;
+  friend class ClassFinalizer;
+  friend class ClearTypeHashVisitor;
+  friend class Record;
 };
 
 // A TypeRef is used to break cycles in the representation of recursive types.
@@ -9000,19 +9197,6 @@ class TypeRef : public AbstractType {
  public:
   static intptr_t type_offset() { return OFFSET_OF(UntaggedTypeRef, type_); }
 
-  virtual bool IsFinalized() const {
-    const AbstractType& ref_type = AbstractType::Handle(type());
-    return !ref_type.IsNull() && ref_type.IsFinalized();
-  }
-  virtual bool IsBeingFinalized() const {
-    const AbstractType& ref_type = AbstractType::Handle(type());
-    return ref_type.IsNull() || ref_type.IsBeingFinalized();
-  }
-  virtual Nullability nullability() const {
-    const AbstractType& ref_type = AbstractType::Handle(type());
-    ASSERT(!ref_type.IsNull());
-    return ref_type.nullability();
-  }
   virtual bool HasTypeClass() const {
     return (type() != AbstractType::null()) &&
            AbstractType::Handle(type()).HasTypeClass();
@@ -9049,6 +9233,8 @@ class TypeRef : public AbstractType {
   virtual bool CheckIsCanonical(Thread* thread) const;
 #endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const;
+  virtual void PrintName(NameVisibility visibility,
+                         BaseTextBuffer* printer) const;
 
   virtual uword Hash() const;
 
@@ -9077,23 +9263,6 @@ class TypeRef : public AbstractType {
 // to the ObjectType.
 class TypeParameter : public AbstractType {
  public:
-  virtual bool IsFinalized() const {
-    return UntaggedTypeParameter::FinalizedBit::decode(untag()->flags_);
-  }
-  virtual void SetIsFinalized() const;
-  virtual bool IsBeingFinalized() const {
-    return UntaggedTypeParameter::BeingFinalizedBit::decode(untag()->flags_);
-  }
-  virtual void SetIsBeingFinalized() const;
-  static intptr_t flags_offset() {
-    return OFFSET_OF(UntaggedTypeParameter, flags_);
-  }
-  static intptr_t nullability_offset() {
-    return OFFSET_OF(UntaggedTypeParameter, nullability_);
-  }
-  virtual Nullability nullability() const {
-    return static_cast<Nullability>(untag()->nullability_);
-  }
   TypeParameterPtr ToNullability(Nullability value, Heap::Space space) const;
   virtual bool HasTypeClass() const { return false; }
   virtual classid_t type_class_id() const { return kIllegalCid; }
@@ -9149,6 +9318,8 @@ class TypeParameter : public AbstractType {
   virtual bool CheckIsCanonical(Thread* thread) const;
 #endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const { return; }
+  virtual void PrintName(NameVisibility visibility,
+                         BaseTextBuffer* printer) const;
 
   virtual uword Hash() const;
 
@@ -9186,8 +9357,6 @@ class TypeParameter : public AbstractType {
 
   void set_parameterized_class(const Class& value) const;
   void set_name(const String& value) const;
-  void set_flags(uint8_t flags) const;
-  void set_nullability(Nullability value) const;
 
   static TypeParameterPtr New();
 
@@ -9233,7 +9402,7 @@ class Integer : public Number {
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
   }
-  virtual uint32_t CanonicalizeHash() const { return AsTruncatedUint32Value(); }
+  virtual uint32_t CanonicalizeHash() const;
   virtual bool Equals(const Instance& other) const;
 
   virtual ObjectPtr HashCode() const { return ptr(); }
@@ -9373,6 +9542,7 @@ class Mint : public Integer {
 
   int64_t value() const { return untag()->value_; }
   static intptr_t value_offset() { return OFFSET_OF(UntaggedMint, value_); }
+  static int64_t Value(MintPtr mint) { return mint->untag()->value_; }
 
   virtual bool IsZero() const { return value() == 0; }
   virtual bool IsNegative() const { return value() < 0; }
@@ -9413,6 +9583,7 @@ class Mint : public Integer {
 class Double : public Number {
  public:
   double value() const { return untag()->value_; }
+  static double Value(DoublePtr dbl) { return dbl->untag()->value_; }
 
   bool BitwiseEqualsToDouble(double value) const;
   virtual bool OperatorEquals(const Instance& other) const;
@@ -9969,6 +10140,7 @@ class OneByteString : public AllStatic {
 
   friend class Class;
   friend class ExternalOneByteString;
+  friend class FlowGraphSerializer;
   friend class ImageWriter;
   friend class String;
   friend class StringHasher;
@@ -10089,6 +10261,7 @@ class TwoByteString : public AllStatic {
   }
 
   friend class Class;
+  friend class FlowGraphSerializer;
   friend class ImageWriter;
   friend class String;
   friend class StringHasher;
@@ -10756,6 +10929,95 @@ class Float64x2 : public Instance {
   friend class Class;
 };
 
+class Record : public Instance {
+ public:
+  intptr_t num_fields() const { return NumFields(ptr()); }
+  static intptr_t NumFields(RecordPtr ptr) {
+    return Smi::Value(ptr->untag()->num_fields());
+  }
+  static intptr_t num_fields_offset() {
+    return OFFSET_OF(UntaggedRecord, num_fields_);
+  }
+
+  intptr_t NumNamedFields() const;
+  intptr_t NumPositionalFields() const;
+
+  ArrayPtr field_names() const { return untag()->field_names(); }
+  static intptr_t field_names_offset() {
+    return OFFSET_OF(UntaggedRecord, field_names_);
+  }
+
+  ObjectPtr FieldAt(intptr_t field_index) const {
+    return untag()->field(field_index);
+  }
+  void SetFieldAt(intptr_t field_index, const Object& value) const {
+    untag()->set_field(field_index, value.ptr());
+  }
+
+  static const intptr_t kBytesPerElement = kCompressedWordSize;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
+  struct ArrayTraits {
+    static intptr_t elements_start_offset() { return sizeof(UntaggedRecord); }
+    static constexpr intptr_t kElementSize = kBytesPerElement;
+  };
+
+  static intptr_t field_offset(intptr_t index) {
+    return OFFSET_OF_RETURNED_VALUE(UntaggedRecord, data) +
+           kBytesPerElement * index;
+  }
+  static intptr_t field_index_at_offset(intptr_t offset_in_bytes) {
+    const intptr_t index =
+        (offset_in_bytes - OFFSET_OF_RETURNED_VALUE(UntaggedRecord, data)) /
+        kBytesPerElement;
+    ASSERT(index >= 0);
+    return index;
+  }
+
+  static intptr_t InstanceSize() {
+    ASSERT(sizeof(UntaggedRecord) ==
+           OFFSET_OF_RETURNED_VALUE(UntaggedRecord, data));
+    return 0;
+  }
+
+  static intptr_t InstanceSize(intptr_t num_fields) {
+    return RoundedAllocationSize(sizeof(UntaggedRecord) +
+                                 (num_fields * kBytesPerElement));
+  }
+
+  static RecordPtr New(intptr_t num_fields,
+                       const Array& field_names,
+                       Heap::Space space = Heap::kNew);
+
+  virtual bool CanonicalizeEquals(const Instance& other) const;
+  virtual uint32_t CanonicalizeHash() const;
+  virtual void CanonicalizeFieldsLocked(Thread* thread) const;
+
+  // Returns RecordType representing runtime type of this record instance.
+  // It is not created eagerly when record instance is allocated because
+  // it depends on runtime types of values if its fields, which can be
+  // quite expensive to query.
+  RecordTypePtr GetRecordType() const;
+
+  // Parses positional field name and return its index,
+  // or -1 if [field_name] is not a valid positional field name.
+  static intptr_t GetPositionalFieldIndexFromFieldName(
+      const String& field_name);
+
+  // Returns index of the field with given name, or -1
+  // if such field doesn't exist.
+  // Supports positional field names ("$0", "$1", etc).
+  intptr_t GetFieldIndexByName(const String& field_name) const;
+
+ private:
+  void set_field_names(const Array& field_names) const;
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Record, Instance);
+  friend class Class;
+  friend class DeferredObject;  // For set_field_names.
+  friend class Object;
+};
+
 class PointerBase : public Instance {
  public:
   static intptr_t data_offset() {
@@ -10793,20 +11055,25 @@ class TypedDataBase : public PointerBase {
   }
 
   static TypedDataElementType ElementType(classid_t cid) {
-    if (cid == kByteDataViewCid) {
+    if (cid == kByteDataViewCid || cid == kUnmodifiableByteDataViewCid) {
       return kUint8ArrayElement;
     } else if (IsTypedDataClassId(cid)) {
       const intptr_t index =
-          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderInternal) / 3;
+          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderInternal) / 4;
       return static_cast<TypedDataElementType>(index);
     } else if (IsTypedDataViewClassId(cid)) {
       const intptr_t index =
-          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderView) / 3;
+          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderView) / 4;
+      return static_cast<TypedDataElementType>(index);
+    } else if (IsExternalTypedDataClassId(cid)) {
+      const intptr_t index =
+          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderExternal) / 4;
       return static_cast<TypedDataElementType>(index);
     } else {
-      ASSERT(IsExternalTypedDataClassId(cid));
+      ASSERT(IsUnmodifiableTypedDataViewClassId(cid));
       const intptr_t index =
-          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderExternal) / 3;
+          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderUnmodifiable) /
+          4;
       return static_cast<TypedDataElementType>(index);
     }
   }
@@ -10863,7 +11130,7 @@ class TypedDataBase : public PointerBase {
     return size;
   }
   static const intptr_t kNumElementSizes =
-      (kTypedDataFloat64x2ArrayCid - kTypedDataInt8ArrayCid) / 3 + 1;
+      (kTypedDataFloat64x2ArrayCid - kTypedDataInt8ArrayCid) / 4 + 1;
   static const intptr_t element_size_table[kNumElementSizes];
 
   HEAP_OBJECT_IMPLEMENTATION(TypedDataBase, PointerBase);
@@ -11158,9 +11425,7 @@ class ByteBuffer : public AllStatic {
 
 class Pointer : public Instance {
  public:
-  static PointerPtr New(const AbstractType& type_arg,
-                        uword native_address,
-                        Heap::Space space = Heap::kNew);
+  static PointerPtr New(uword native_address, Heap::Space space = Heap::kNew);
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedPointer));
@@ -11265,20 +11530,19 @@ class LinkedHashBase : public Instance {
   }
 
   static const LinkedHashBase& Cast(const Object& obj) {
-    ASSERT(obj.IsLinkedHashMap() || obj.IsLinkedHashSet());
+    ASSERT(obj.IsMap() || obj.IsSet());
     return static_cast<const LinkedHashBase&>(obj);
   }
 
   bool IsImmutable() const {
-    return GetClassId() == kImmutableLinkedHashMapCid ||
-           GetClassId() == kImmutableLinkedHashSetCid;
+    return GetClassId() == kConstMapCid || GetClassId() == kConstSetCid;
   }
 
   virtual TypeArgumentsPtr GetTypeArguments() const {
     return untag()->type_arguments();
   }
   virtual void SetTypeArguments(const TypeArguments& value) const {
-    const intptr_t num_type_args = IsLinkedHashMap() ? 2 : 1;
+    const intptr_t num_type_args = IsMap() ? 2 : 1;
     ASSERT(value.IsNull() ||
            ((value.Length() >= num_type_args) &&
             value.IsInstantiated() /*&& value.IsCanonical()*/));
@@ -11317,7 +11581,7 @@ class LinkedHashBase : public Instance {
     if (untag()->deleted_keys() == Object::null()) return 0;
 
     intptr_t used = Smi::Value(untag()->used_data());
-    if (IsLinkedHashMap()) {
+    if (IsMap()) {
       used >>= 1;
     }
     const intptr_t deleted = Smi::Value(untag()->deleted_keys());
@@ -11360,25 +11624,26 @@ class ImmutableLinkedHashBase : public AllStatic {
 };
 
 // Corresponds to
+// - _Map in dart:collection
 // - "new Map()",
 // - non-const map literals, and
 // - the default constructor of LinkedHashMap in dart:collection.
-class LinkedHashMap : public LinkedHashBase {
+class Map : public LinkedHashBase {
  public:
   static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(UntaggedLinkedHashMap));
+    return RoundedAllocationSize(sizeof(UntaggedMap));
   }
 
   // Allocates a map with some default capacity, just like "new Map()".
-  static LinkedHashMapPtr NewDefault(intptr_t class_id = kLinkedHashMapCid,
-                                     Heap::Space space = Heap::kNew);
-  static LinkedHashMapPtr New(intptr_t class_id,
-                              const Array& data,
-                              const TypedData& index,
-                              intptr_t hash_mask,
-                              intptr_t used_data,
-                              intptr_t deleted_keys,
-                              Heap::Space space = Heap::kNew);
+  static MapPtr NewDefault(intptr_t class_id = kMapCid,
+                           Heap::Space space = Heap::kNew);
+  static MapPtr New(intptr_t class_id,
+                    const Array& data,
+                    const TypedData& index,
+                    intptr_t hash_mask,
+                    intptr_t used_data,
+                    intptr_t deleted_keys,
+                    Heap::Space space = Heap::kNew);
 
   // This iterator differs somewhat from its Dart counterpart (_CompactIterator
   // in runtime/lib/compact_hash.dart):
@@ -11387,7 +11652,7 @@ class LinkedHashMap : public LinkedHashBase {
   //    MoveNext returns false will result in crashes.
   class Iterator : public ValueObject {
    public:
-    explicit Iterator(const LinkedHashMap& map)
+    explicit Iterator(const Map& map)
         : data_(Array::Handle(map.data())),
           scratch_(Object::Handle()),
           offset_(-2),
@@ -11419,32 +11684,34 @@ class LinkedHashMap : public LinkedHashBase {
   };
 
  private:
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap, LinkedHashBase);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Map, LinkedHashBase);
 
   // Allocate a map, but leave all fields set to null.
   // Used during deserialization (since map might contain itself as key/value).
-  static LinkedHashMapPtr NewUninitialized(intptr_t class_id,
-                                           Heap::Space space = Heap::kNew);
+  static MapPtr NewUninitialized(intptr_t class_id,
+                                 Heap::Space space = Heap::kNew);
 
   friend class Class;
-  friend class ImmutableLinkedHashMap;
-  friend class LinkedHashMapDeserializationCluster;
+  friend class ConstMap;
+  friend class MapDeserializationCluster;
 };
 
-class ImmutableLinkedHashMap : public AllStatic {
+// Corresponds to
+// - _ConstMap in dart:collection
+// - const map literals
+class ConstMap : public AllStatic {
  public:
   static constexpr bool ContainsCompressedPointers() {
-    return LinkedHashMap::ContainsCompressedPointers();
+    return Map::ContainsCompressedPointers();
   }
 
-  static ImmutableLinkedHashMapPtr NewDefault(Heap::Space space = Heap::kNew);
+  static ConstMapPtr NewDefault(Heap::Space space = Heap::kNew);
 
-  static ImmutableLinkedHashMapPtr NewUninitialized(
-      Heap::Space space = Heap::kNew);
+  static ConstMapPtr NewUninitialized(Heap::Space space = Heap::kNew);
 
-  static const ClassId kClassId = kImmutableLinkedHashMapCid;
+  static const ClassId kClassId = kConstMapCid;
 
-  static intptr_t InstanceSize() { return LinkedHashMap::InstanceSize(); }
+  static intptr_t InstanceSize() { return Map::InstanceSize(); }
 
  private:
   static intptr_t NextFieldOffset() {
@@ -11452,29 +11719,34 @@ class ImmutableLinkedHashMap : public AllStatic {
     return -kWordSize;
   }
 
-  static ImmutableLinkedHashMapPtr raw(const LinkedHashMap& map) {
-    return static_cast<ImmutableLinkedHashMapPtr>(map.ptr());
+  static ConstMapPtr raw(const Map& map) {
+    return static_cast<ConstMapPtr>(map.ptr());
   }
 
   friend class Class;
 };
 
-class LinkedHashSet : public LinkedHashBase {
+// Corresponds to
+// - _Set in dart:collection,
+// - "new Set()",
+// - non-const set literals, and
+// - the default constructor of LinkedHashSet in dart:collection.
+class Set : public LinkedHashBase {
  public:
   static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(UntaggedLinkedHashSet));
+    return RoundedAllocationSize(sizeof(UntaggedSet));
   }
 
   // Allocates a set with some default capacity, just like "new Set()".
-  static LinkedHashSetPtr NewDefault(intptr_t class_id = kLinkedHashSetCid,
-                                     Heap::Space space = Heap::kNew);
-  static LinkedHashSetPtr New(intptr_t class_id,
-                              const Array& data,
-                              const TypedData& index,
-                              intptr_t hash_mask,
-                              intptr_t used_data,
-                              intptr_t deleted_keys,
-                              Heap::Space space = Heap::kNew);
+  static SetPtr NewDefault(intptr_t class_id = kSetCid,
+                           Heap::Space space = Heap::kNew);
+  static SetPtr New(intptr_t class_id,
+                    const Array& data,
+                    const TypedData& index,
+                    intptr_t hash_mask,
+                    intptr_t used_data,
+                    intptr_t deleted_keys,
+                    Heap::Space space = Heap::kNew);
 
   // This iterator differs somewhat from its Dart counterpart (_CompactIterator
   // in runtime/lib/compact_hash.dart):
@@ -11483,7 +11755,7 @@ class LinkedHashSet : public LinkedHashBase {
   //    MoveNext returns false will result in crashes.
   class Iterator : public ValueObject {
    public:
-    explicit Iterator(const LinkedHashSet& set)
+    explicit Iterator(const Set& set)
         : data_(Array::Handle(set.data())),
           scratch_(Object::Handle()),
           offset_(-1),
@@ -11513,32 +11785,34 @@ class LinkedHashSet : public LinkedHashBase {
   };
 
  private:
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(LinkedHashSet, LinkedHashBase);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Set, LinkedHashBase);
 
   // Allocate a set, but leave all fields set to null.
   // Used during deserialization (since set might contain itself as key/value).
-  static LinkedHashSetPtr NewUninitialized(intptr_t class_id,
-                                           Heap::Space space = Heap::kNew);
+  static SetPtr NewUninitialized(intptr_t class_id,
+                                 Heap::Space space = Heap::kNew);
 
   friend class Class;
-  friend class ImmutableLinkedHashSet;
-  friend class LinkedHashSetDeserializationCluster;
+  friend class ConstSet;
+  friend class SetDeserializationCluster;
 };
 
-class ImmutableLinkedHashSet : public AllStatic {
+// Corresponds to
+// - _ConstSet in dart:collection
+// - const set literals
+class ConstSet : public AllStatic {
  public:
   static constexpr bool ContainsCompressedPointers() {
-    return LinkedHashSet::ContainsCompressedPointers();
+    return Set::ContainsCompressedPointers();
   }
 
-  static ImmutableLinkedHashSetPtr NewDefault(Heap::Space space = Heap::kNew);
+  static ConstSetPtr NewDefault(Heap::Space space = Heap::kNew);
 
-  static ImmutableLinkedHashSetPtr NewUninitialized(
-      Heap::Space space = Heap::kNew);
+  static ConstSetPtr NewUninitialized(Heap::Space space = Heap::kNew);
 
-  static const ClassId kClassId = kImmutableLinkedHashSetCid;
+  static const ClassId kClassId = kConstSetCid;
 
-  static intptr_t InstanceSize() { return LinkedHashSet::InstanceSize(); }
+  static intptr_t InstanceSize() { return Set::InstanceSize(); }
 
  private:
   static intptr_t NextFieldOffset() {
@@ -11546,8 +11820,8 @@ class ImmutableLinkedHashSet : public AllStatic {
     return -kWordSize;
   }
 
-  static ImmutableLinkedHashSetPtr raw(const LinkedHashSet& map) {
-    return static_cast<ImmutableLinkedHashSetPtr>(map.ptr());
+  static ConstSetPtr raw(const Set& map) {
+    return static_cast<ConstSetPtr>(map.ptr());
   }
 
   friend class Class;
@@ -11653,6 +11927,7 @@ class Closure : public Instance {
   friend class Class;
 };
 
+// Corresponds to _Capability in dart:isolate.
 class Capability : public Instance {
  public:
   uint64_t Id() const { return untag()->id_; }
@@ -11667,6 +11942,7 @@ class Capability : public Instance {
   friend class Class;
 };
 
+// Corresponds to _RawReceivePort in dart:isolate.
 class ReceivePort : public Instance {
  public:
   SendPortPtr send_port() const { return untag()->send_port(); }
@@ -11696,6 +11972,7 @@ class ReceivePort : public Instance {
   friend class Class;
 };
 
+// Corresponds to _SendPort in dart:isolate.
 class SendPort : public Instance {
  public:
   Dart_Port Id() const { return untag()->id_; }
@@ -12143,6 +12420,7 @@ class RegExp : public Instance {
   friend class Class;
 };
 
+// Corresponds to _WeakProperty in dart:core.
 class WeakProperty : public Instance {
  public:
   ObjectPtr key() const { return untag()->key(); }
@@ -12174,6 +12452,7 @@ class WeakProperty : public Instance {
   friend class Class;
 };
 
+// Corresponds to _WeakReference in dart:core.
 class WeakReference : public Instance {
  public:
   ObjectPtr target() const { return untag()->target(); }
@@ -12279,8 +12558,8 @@ class FinalizerBase : public Instance {
     return OFFSET_OF(UntaggedFinalizerBase, detachments_);
   }
 
-  LinkedHashSetPtr all_entries() const { return untag()->all_entries(); }
-  void set_all_entries(const LinkedHashSet& value) const {
+  SetPtr all_entries() const { return untag()->all_entries(); }
+  void set_all_entries(const Set& value) const {
     untag()->set_all_entries(value.ptr());
   }
   static intptr_t all_entries_offset() {
@@ -12460,7 +12739,7 @@ ClassPtr Object::clazz() const {
 }
 
 DART_FORCE_INLINE
-void Object::SetPtr(ObjectPtr value, intptr_t default_cid) {
+void Object::setPtr(ObjectPtr value, intptr_t default_cid) {
   ptr_ = value;
   intptr_t cid = value->GetClassIdMayBeSmi();
   // Free-list elements cannot be wrapped in a handle.
@@ -12636,6 +12915,33 @@ inline void FunctionType::SetHash(intptr_t value) const {
   untag()->set_hash(Smi::New(value));
 }
 
+inline uword RecordType::Hash() const {
+  ASSERT(IsFinalized());
+  intptr_t result = Smi::Value(untag()->hash());
+  if (result != 0) {
+    return result;
+  }
+  return ComputeHash();
+}
+
+inline void RecordType::SetHash(intptr_t value) const {
+  // This is only safe because we create a new Smi, which does not cause
+  // heap allocation.
+  untag()->set_hash(Smi::New(value));
+}
+
+inline intptr_t RecordType::NumFields() const {
+  return Array::LengthOf(field_types());
+}
+
+inline intptr_t RecordType::NumNamedFields() const {
+  return Array::LengthOf(field_names());
+}
+
+inline intptr_t RecordType::NumPositionalFields() const {
+  return NumFields() - NumNamedFields();
+}
+
 inline uword TypeParameter::Hash() const {
   ASSERT(IsFinalized() || IsBeingFinalized());  // Bound may not be finalized.
   intptr_t result = Smi::Value(untag()->hash());
@@ -12780,10 +13086,10 @@ class ArrayOfTuplesView {
     TupleView entry_;
   };
 
-  explicit ArrayOfTuplesView(const Array& array) : array_(array), index_(-1) {
+  explicit ArrayOfTuplesView(const Array& array) : array_(array) {
     ASSERT(!array.IsNull());
     ASSERT(array.Length() >= kStartOffset);
-    ASSERT((array.Length() - kStartOffset) % EntrySize == kStartOffset);
+    ASSERT(array.Length() % EntrySize == kStartOffset);
   }
 
   intptr_t Length() const {
@@ -12804,7 +13110,6 @@ class ArrayOfTuplesView {
 
  private:
   const Array& array_;
-  intptr_t index_;
 };
 
 using InvocationDispatcherTable =
@@ -12828,6 +13133,11 @@ using SubtypeTestCacheTable = ArrayOfTuplesView<SubtypeTestCache::Entries,
 
 using MegamorphicCacheEntries =
     ArrayOfTuplesView<MegamorphicCache::EntryType, std::tuple<Smi, Object>>;
+
+using InstantiationsCacheTable =
+    ArrayOfTuplesView<TypeArguments::Cache::Entry,
+                      std::tuple<Object, TypeArguments, TypeArguments>,
+                      TypeArguments::Cache::kHeaderSize>;
 
 void DumpTypeTable(Isolate* isolate);
 void DumpTypeParameterTable(Isolate* isolate);

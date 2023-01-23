@@ -73,6 +73,9 @@ class UseResultVerifier {
       // Don't flag references in comments.
       return;
     }
+    if (parent is ShowCombinator || parent is HideCombinator) {
+      return;
+    }
 
     var annotation = _getUseResultMetadata(element);
     if (annotation == null) {
@@ -199,6 +202,7 @@ class UseResultVerifier {
         parent is ForElement ||
         parent is IfElement ||
         parent is ParenthesizedExpression ||
+        parent is PrefixExpression ||
         parent is SpreadElement) {
       return _isUsed(parent);
     }

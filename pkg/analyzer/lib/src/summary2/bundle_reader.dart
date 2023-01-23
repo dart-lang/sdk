@@ -28,6 +28,7 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 class BundleReader {
@@ -98,8 +99,8 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
   /// as well access them through their [Reference]s. For a class declaration
   /// this means reading them, for a named mixin application this means
   /// computing constructors.
-  void readMembers(ClassElementImpl element) {
-    if (element.isMixinApplication) {
+  void readMembers(ClassOrMixinElementImpl element) {
+    if (element is ClassElementImpl && element.isMixinApplication) {
       element.constructors;
     } else {
       _readMembers?.call();
@@ -201,11 +202,15 @@ abstract class ElementLinkedData<E extends ElementImpl> {
     ElementImpl element,
   ) {
     var enclosing = element.enclosingElement;
-    if (enclosing is ClassElement) {
+    if (enclosing is InterfaceElement) {
       reader._addTypeParameters(enclosing.typeParameters);
     } else if (enclosing is CompilationUnitElement) {
       // Nothing.
+    } else if (enclosing is EnumElement) {
+      reader._addTypeParameters(enclosing.typeParameters);
     } else if (enclosing is ExtensionElement) {
+      reader._addTypeParameters(enclosing.typeParameters);
+    } else if (enclosing is MixinElement) {
       reader._addTypeParameters(enclosing.typeParameters);
     } else {
       throw UnimplementedError('${enclosing.runtimeType}');
@@ -350,8 +355,21 @@ class FunctionElementLinkedData extends ElementLinkedData<FunctionElementImpl> {
   }
 }
 
+/// Not an [ElementLinkedData], just a bundle with data.
+class LibraryAugmentationElementLinkedData {
+  final int offset;
+  ApplyConstantOffsets? applyConstantOffsets;
+
+  LibraryAugmentationElementLinkedData({
+    required this.offset,
+  });
+}
+
 class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
   ApplyConstantOffsets? applyConstantOffsets;
+
+  /// When we are applying offsets to a library, we want to lock it.
+  bool _isLocked = false;
 
   LibraryElementLinkedData({
     required Reference reference,
@@ -364,30 +382,27 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
     return _libraryReader._elementFactory;
   }
 
+  void lock() {
+    assert(!_isLocked);
+    _isLocked = true;
+  }
+
+  @override
+  void read(ElementImpl element) {
+    if (!_isLocked) {
+      super.read(element);
+    }
+  }
+
+  void unlock() {
+    assert(_isLocked);
+    _isLocked = false;
+  }
+
   @override
   void _read(element, reader) {
-    element.metadata = reader._readAnnotationList(
-      unitElement: unitElement,
-    );
-
-    for (var import in element.imports) {
-      import as ImportElementImpl;
-      import.metadata = reader._readAnnotationList(
-        unitElement: unitElement,
-      );
-      import.importedLibrary = reader.readElement() as LibraryElementImpl?;
-    }
-
-    for (var export in element.exports) {
-      export as ExportElementImpl;
-      export.metadata = reader._readAnnotationList(
-        unitElement: unitElement,
-      );
-      export.exportedLibrary = reader.readElement() as LibraryElementImpl?;
-    }
-
-    for (final part in element.parts2) {
-      part as PartElementImpl;
+    _readLibraryOrAugmentation(element, reader);
+    for (final part in element.parts) {
       part.metadata = reader._readAnnotationList(
         unitElement: unitElement,
       );
@@ -396,6 +411,49 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
     element.entryPoint = reader.readElement() as FunctionElement?;
 
     applyConstantOffsets?.perform();
+  }
+
+  void _readLibraryOrAugmentation(
+    LibraryOrAugmentationElementImpl element,
+    ResolutionReader reader,
+  ) {
+    element.metadata = reader._readAnnotationList(
+      unitElement: unitElement,
+    );
+
+    for (var import in element.libraryImports) {
+      import.metadata = reader._readAnnotationList(
+        unitElement: unitElement,
+      );
+      final uri = import.uri;
+      if (uri is DirectiveUriWithLibraryImpl) {
+        uri.library = reader.libraryOfUri(uri.source.uri);
+      }
+    }
+
+    for (var export in element.libraryExports) {
+      export.metadata = reader._readAnnotationList(
+        unitElement: unitElement,
+      );
+      final uri = export.uri;
+      if (uri is DirectiveUriWithLibraryImpl) {
+        uri.library = reader.libraryOfUri(uri.source.uri);
+      }
+    }
+
+    for (var import in element.augmentationImports) {
+      import.metadata = reader._readAnnotationList(
+        // TODO(scheglov) Here and for parts, unit is not valid. Test and fix.
+        unitElement: unitElement,
+      );
+      final importedAugmentation = import.importedAugmentation;
+      if (importedAugmentation != null) {
+        final linkedData = importedAugmentation.linkedData!;
+        reader.setOffset(linkedData.offset);
+        _readLibraryOrAugmentation(importedAugmentation, reader);
+        linkedData.applyConstantOffsets?.perform();
+      }
+    }
   }
 }
 
@@ -445,22 +503,17 @@ class LibraryReader {
     libraryElement.reference = _reference;
 
     libraryElement.languageVersion = _readLanguageVersion();
-    libraryElement.imports = _reader.readTypedList(_readImportElement);
-    libraryElement.exports = _reader.readTypedList(_readExportElement);
+    _readLibraryOrAugmentationElement(libraryElement);
     LibraryElementFlags.read(_reader, libraryElement);
 
-    var unitContainerRef = _reference.getChild('@unit');
-
     libraryElement.definingCompilationUnit = _readUnitElement(
-      unitContainerRef: unitContainerRef,
-      libraryElement: libraryElement,
-      librarySource: librarySource,
+      containerSource: librarySource,
       unitSource: librarySource,
+      unitContainerRef: _reference.getChild('@unit'),
     );
 
-    libraryElement.parts2 = _reader.readTypedList(() {
+    libraryElement.parts = _reader.readTypedList(() {
       return _readPartElement(
-        unitContainerRef: unitContainerRef,
         libraryElement: libraryElement,
       );
     });
@@ -490,6 +543,45 @@ class LibraryReader {
       _reference.getChild('dynamic').element = DynamicElementImpl.instance;
       _reference.getChild('Never').element = NeverElementImpl.instance;
     }
+  }
+
+  LibraryAugmentationElementImpl _readAugmentationElement({
+    required LibraryOrAugmentationElementImpl augmentationTarget,
+    required Source unitSource,
+  }) {
+    final definingUnit = _readUnitElement(
+      containerSource: unitSource,
+      unitSource: unitSource,
+      unitContainerRef: _reference.getChild('@augmentation'),
+    );
+
+    final augmentation = LibraryAugmentationElementImpl(
+      augmentationTarget: augmentationTarget,
+      nameOffset: -1, // TODO(scheglov) implement, test
+    );
+    augmentation.definingCompilationUnit = definingUnit;
+    augmentation.reference = definingUnit.reference!;
+
+    final resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
+    _readLibraryOrAugmentationElement(augmentation);
+
+    augmentation.linkedData = LibraryAugmentationElementLinkedData(
+      offset: resolutionOffset,
+    );
+
+    return augmentation;
+  }
+
+  AugmentationImportElementImpl _readAugmentationImportElement({
+    required LibraryOrAugmentationElementImpl container,
+  }) {
+    final uri = _readDirectiveUri(
+      container: container,
+    );
+    return AugmentationImportElementImpl(
+      importKeywordOffset: -1, // TODO(scheglov) implement, test
+      uri: uri,
+    );
   }
 
   ClassElementImpl _readClassElement(
@@ -534,7 +626,7 @@ class LibraryReader {
     Reference reference,
   ) {
     var accessors = <PropertyAccessorElementImpl>[];
-    var fields = <FieldElement>[];
+    var fields = <FieldElementImpl>[];
     _readFields(unitElement, element, reference, accessors, fields);
     _readPropertyAccessors(
         unitElement, element, reference, accessors, fields, '@field');
@@ -565,7 +657,8 @@ class LibraryReader {
     return List.generate(length, (_) {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
       var name = _reader.readStringReference();
-      var reference = containerRef.getChild(name);
+      var referenceName = name.ifNotEmptyOrElse('new');
+      var reference = containerRef.getChild(referenceName);
       var element = ConstructorElementImpl(name, -1);
       var linkedData = ConstructorElementLinkedData(
         reference: reference,
@@ -581,8 +674,7 @@ class LibraryReader {
   }
 
   DirectiveUri _readDirectiveUri({
-    required Reference unitContainerRef,
-    required LibraryElementImpl libraryElement,
+    required LibraryOrAugmentationElementImpl container,
   }) {
     DirectiveUriWithRelativeUriStringImpl readWithRelativeUriString() {
       final relativeUriString = _reader.readStringReference();
@@ -608,34 +700,52 @@ class LibraryReader {
 
       final sourceUriStr = _reader.readStringReference();
       final sourceUri = Uri.parse(sourceUriStr);
-      final source = sourceFactory.forUri2(sourceUri)!;
+      final source = sourceFactory.forUri2(sourceUri);
+
+      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/49431
+      final fixedSource = source ?? sourceFactory.forUri('dart:math')!;
 
       return DirectiveUriWithSourceImpl(
         relativeUriString: parent.relativeUriString,
         relativeUri: parent.relativeUri,
-        source: source,
+        source: fixedSource,
       );
     }
 
     final kindIndex = _reader.readByte();
     final kind = DirectiveUriKind.values[kindIndex];
     switch (kind) {
+      case DirectiveUriKind.withAugmentation:
+        final parent = readWithSource();
+        final augmentation = _readAugmentationElement(
+          augmentationTarget: container,
+          unitSource: parent.source,
+        );
+        return DirectiveUriWithAugmentationImpl(
+          relativeUriString: parent.relativeUriString,
+          relativeUri: parent.relativeUri,
+          source: parent.source,
+          augmentation: augmentation,
+        );
+      case DirectiveUriKind.withLibrary:
+        final parent = readWithSource();
+        return DirectiveUriWithLibraryImpl.read(
+          relativeUriString: parent.relativeUriString,
+          relativeUri: parent.relativeUri,
+          source: parent.source,
+        );
       case DirectiveUriKind.withUnit:
         final parent = readWithSource();
         final unitElement = _readUnitElement(
-          unitContainerRef: unitContainerRef,
-          libraryElement: libraryElement,
-          librarySource: libraryElement.source,
+          containerSource: container.source,
           unitSource: parent.source,
+          unitContainerRef: _reference.getChild('@unit'),
         );
         return DirectiveUriWithUnitImpl(
           relativeUriString: parent.relativeUriString,
           relativeUri: parent.relativeUri,
           unit: unitElement,
         );
-      case DirectiveUriKind.withLibrary:
-        // TODO: Handle this case.
-        throw UnimplementedError();
       case DirectiveUriKind.withSource:
         return readWithSource();
       case DirectiveUriKind.withRelativeUri:
@@ -668,8 +778,8 @@ class LibraryReader {
 
     element.typeParameters = _readTypeParameters();
 
-    var accessors = <PropertyAccessorElement>[];
-    var fields = <FieldElement>[];
+    var accessors = <PropertyAccessorElementImpl>[];
+    var fields = <FieldElementImpl>[];
 
     _readFields(unitElement, element, reference, accessors, fields);
     _readPropertyAccessors(
@@ -706,18 +816,30 @@ class LibraryReader {
       final reference = _referenceReader.referenceOfIndex(index);
       return ExportedReferenceExported(
         reference: reference,
-        indexes: _reader.readUInt30List(),
+        locations: _reader.readTypedList(_readExportLocation),
       );
     } else {
       throw StateError('kind: $kind');
     }
   }
 
-  ExportElementImpl _readExportElement() {
-    var element = ExportElementImpl(-1);
-    element.uri = _reader.readOptionalStringReference();
-    element.combinators = _reader.readTypedList(_readNamespaceCombinator);
-    return element;
+  LibraryExportElementImpl _readExportElement({
+    required LibraryOrAugmentationElementImpl container,
+  }) {
+    return LibraryExportElementImpl(
+      combinators: _reader.readTypedList(_readNamespaceCombinator),
+      exportKeywordOffset: -1,
+      uri: _readDirectiveUri(
+        container: container,
+      ),
+    );
+  }
+
+  ExportLocation _readExportLocation() {
+    return ExportLocation(
+      containerIndex: _reader.readUInt30(),
+      exportIndex: _reader.readUInt30(),
+    );
   }
 
   ExtensionElementImpl _readExtensionElement(
@@ -742,8 +864,8 @@ class LibraryReader {
 
     element.typeParameters = _readTypeParameters();
 
-    var accessors = <PropertyAccessorElement>[];
-    var fields = <FieldElement>[];
+    var accessors = <PropertyAccessorElementImpl>[];
+    var fields = <FieldElementImpl>[];
     _readPropertyAccessors(
         unitElement, element, reference, accessors, fields, '@field');
     _readFields(unitElement, element, reference, accessors, fields);
@@ -859,19 +981,54 @@ class LibraryReader {
     });
   }
 
-  ImportElementImpl _readImportElement() {
-    var element = ImportElementImpl(-1);
-    ImportElementFlags.read(_reader, element);
-    element.uri = _reader.readOptionalStringReference();
-    var prefixName = _reader.readOptionalStringReference();
-    if (prefixName != null) {
-      var reference = _reference.getChild('@prefix').getChild(prefixName);
-      var prefixElement =
-          PrefixElementImpl(prefixName, -1, reference: reference);
-      element.prefix = prefixElement;
-    }
-    element.combinators = _reader.readTypedList(_readNamespaceCombinator);
+  LibraryImportElementImpl _readImportElement({
+    required LibraryOrAugmentationElementImpl container,
+  }) {
+    final element = LibraryImportElementImpl(
+      combinators: _reader.readTypedList(_readNamespaceCombinator),
+      importKeywordOffset: -1,
+      prefix: _readImportElementPrefix(
+        container: container,
+      ),
+      uri: _readDirectiveUri(
+        container: container,
+      ),
+    );
+    LibraryImportElementFlags.read(_reader, element);
     return element;
+  }
+
+  ImportElementPrefixImpl? _readImportElementPrefix({
+    required LibraryOrAugmentationElementImpl container,
+  }) {
+    PrefixElementImpl buildElement(String name) {
+      // TODO(scheglov) Make reference required.
+      final containerRef = container.reference!;
+      final reference = containerRef.getChild('@prefix').getChild(name);
+      final existing = reference.element;
+      if (existing is PrefixElementImpl) {
+        return existing;
+      } else {
+        return PrefixElementImpl(name, -1, reference: reference);
+      }
+    }
+
+    final kindIndex = _reader.readByte();
+    final kind = ImportElementPrefixKind.values[kindIndex];
+    switch (kind) {
+      case ImportElementPrefixKind.isDeferred:
+        final name = _reader.readStringReference();
+        return DeferredImportElementPrefixImpl(
+          element: buildElement(name),
+        );
+      case ImportElementPrefixKind.isNotDeferred:
+        final name = _reader.readStringReference();
+        return ImportElementPrefixImpl(
+          element: buildElement(name),
+        );
+      case ImportElementPrefixKind.isNull:
+        return null;
+    }
   }
 
   LibraryLanguageVersion _readLanguageVersion() {
@@ -887,6 +1044,35 @@ class LibraryReader {
     }
 
     return LibraryLanguageVersion(package: package, override: override);
+  }
+
+  void _readLibraryOrAugmentationElement(
+    LibraryOrAugmentationElementImpl container,
+  ) {
+    container.libraryImports = _reader.readTypedList(() {
+      return _readImportElement(
+        container: container,
+      );
+    });
+
+    container.libraryExports = _reader.readTypedList(() {
+      return _readExportElement(
+        container: container,
+      );
+    });
+
+    container.augmentationImports = _reader.readTypedList(() {
+      return _readAugmentationImportElement(
+        container: container,
+      );
+    });
+
+    for (final import in container.libraryImports) {
+      final prefixElement = import.prefix?.element;
+      if (prefixElement is PrefixElementImpl) {
+        container.encloseElement(prefixElement);
+      }
+    }
   }
 
   List<MethodElementImpl> _readMethods(
@@ -937,8 +1123,8 @@ class LibraryReader {
 
     element.typeParameters = _readTypeParameters();
 
-    var fields = <FieldElement>[];
-    var accessors = <PropertyAccessorElement>[];
+    var fields = <FieldElementImpl>[];
+    var accessors = <PropertyAccessorElementImpl>[];
     _readFields(unitElement, element, reference, accessors, fields);
     _readPropertyAccessors(
         unitElement, element, reference, accessors, fields, '@field');
@@ -1043,13 +1229,11 @@ class LibraryReader {
     });
   }
 
-  PartElement _readPartElement({
-    required Reference unitContainerRef,
+  PartElementImpl _readPartElement({
     required LibraryElementImpl libraryElement,
   }) {
     final uri = _readDirectiveUri(
-      unitContainerRef: unitContainerRef,
-      libraryElement: libraryElement,
+      container: libraryElement,
     );
 
     return PartElementImpl(
@@ -1106,34 +1290,36 @@ class LibraryReader {
       var name = accessor.displayName;
       var isGetter = accessor.isGetter;
 
-      var reference = containerRef.getChild(name);
-
-      PropertyInducingElementImpl property;
-      if (enclosingElement is CompilationUnitElementImpl) {
-        var existing = reference.element;
-        if (existing is TopLevelVariableElementImpl) {
-          property = existing;
-        } else {
-          var field = TopLevelVariableElementImpl(name, -1);
-          property = field;
-        }
-      } else {
-        var existing = reference.element;
-        if (existing is FieldElementImpl) {
-          property = existing;
-        } else {
-          var field = FieldElementImpl(name, -1);
-          field.isStatic = accessor.isStatic;
-          property = field;
-        }
+      bool canUseExisting(PropertyInducingElement property) {
+        return property.isSynthetic ||
+            accessor.isSetter && property.setter == null;
       }
 
-      if (reference.element == null) {
-        reference.element = property;
-        properties.add(property);
-
-        property.enclosingElement = enclosingElement;
-        property.isSynthetic = true;
+      final PropertyInducingElementImpl property;
+      final reference = containerRef.getChild(name);
+      final existing = reference.element;
+      if (enclosingElement is CompilationUnitElementImpl) {
+        if (existing is TopLevelVariableElementImpl &&
+            canUseExisting(existing)) {
+          property = existing;
+        } else {
+          property = TopLevelVariableElementImpl(name, -1)
+            ..enclosingElement = enclosingElement
+            ..isSynthetic = true;
+          reference.element ??= property;
+          properties.add(property);
+        }
+      } else {
+        if (existing is FieldElementImpl && canUseExisting(existing)) {
+          property = existing;
+        } else {
+          property = FieldElementImpl(name, -1)
+            ..enclosingElement = enclosingElement
+            ..isStatic = accessor.isStatic
+            ..isSynthetic = true;
+          reference.element ??= property;
+          properties.add(property);
+        }
       }
 
       accessor.variable = property;
@@ -1272,20 +1458,19 @@ class LibraryReader {
   }
 
   CompilationUnitElementImpl _readUnitElement({
-    required Reference unitContainerRef,
-    required LibraryElementImpl libraryElement,
-    required Source librarySource,
+    required Source containerSource,
     required Source unitSource,
+    required Reference unitContainerRef,
   }) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
 
     var unitElement = CompilationUnitElementImpl(
       source: unitSource,
-      librarySource: librarySource,
+      librarySource: containerSource,
       lineInfo: LineInfo([0]),
     );
 
-    var unitReference = unitContainerRef.getChild('${unitSource.uri}');
+    final unitReference = unitContainerRef.getChild('${unitSource.uri}');
     unitElement.setLinkedData(
       unitReference,
       CompilationUnitElementLinkedData(
@@ -1423,6 +1608,10 @@ class ResolutionReader {
     this._reader,
   );
 
+  LibraryElementImpl libraryOfUri(Uri uri) {
+    return _elementFactory.libraryOfUri2(uri);
+  }
+
   int readByte() {
     return _reader.readByte();
   }
@@ -1504,7 +1693,7 @@ class ResolutionReader {
       var type = _readFunctionType();
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType) {
-      var element = readElement() as ClassElement;
+      var element = readElement() as InterfaceElement;
       var typeArguments = _readTypeList();
       var nullability = _readNullability();
       var type = InterfaceTypeImpl(
@@ -1514,7 +1703,7 @@ class ResolutionReader {
       );
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_none) {
-      var element = readElement() as ClassElement;
+      var element = readElement() as InterfaceElement;
       var type = InterfaceTypeImpl(
         element: element,
         typeArguments: const <DartType>[],
@@ -1522,7 +1711,7 @@ class ResolutionReader {
       );
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_question) {
-      var element = readElement() as ClassElement;
+      var element = readElement() as InterfaceElement;
       var type = InterfaceTypeImpl(
         element: element,
         typeArguments: const <DartType>[],
@@ -1530,7 +1719,7 @@ class ResolutionReader {
       );
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_star) {
-      var element = readElement() as ClassElement;
+      var element = readElement() as InterfaceElement;
       var type = InterfaceTypeImpl(
         element: element,
         typeArguments: const <DartType>[],
@@ -1540,6 +1729,9 @@ class ResolutionReader {
     } else if (tag == Tag.NeverType) {
       var nullability = _readNullability();
       var type = NeverTypeImpl.instance.withNullability(nullability);
+      return _readAliasElementArguments(type);
+    } else if (tag == Tag.RecordType) {
+      final type = _readRecordType();
       return _readAliasElementArguments(type);
     } else if (tag == Tag.TypeParameterType) {
       var element = readElement() as TypeParameterElement;
@@ -1570,6 +1762,10 @@ class ResolutionReader {
 
   int readUInt32() {
     return _reader.readUInt32();
+  }
+
+  void setOffset(int offset) {
+    _reader.offset = offset;
   }
 
   void _addFormalParameters(List<ParameterElement> parameters) {
@@ -1626,6 +1822,16 @@ class ResolutionReader {
         return InterfaceTypeImpl(
           element: type.element,
           typeArguments: type.typeArguments,
+          nullabilitySuffix: type.nullabilitySuffix,
+          alias: InstantiatedTypeAliasElementImpl(
+            element: aliasElement,
+            typeArguments: aliasArguments,
+          ),
+        );
+      } else if (type is RecordTypeImpl) {
+        return RecordTypeImpl(
+          positionalFields: type.positionalFields,
+          namedFields: type.namedFields,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
             element: aliasElement,
@@ -1787,6 +1993,29 @@ class ResolutionReader {
     var reference = _referenceReader.referenceOfIndex(referenceIndex);
 
     return _elementFactory.elementOfReference(reference);
+  }
+
+  RecordTypeImpl _readRecordType() {
+    final positionalFields = readTypedList(() {
+      return RecordTypePositionalFieldImpl(
+        type: readRequiredType(),
+      );
+    });
+
+    final namedFields = readTypedList(() {
+      return RecordTypeNamedFieldImpl(
+        name: _reader.readStringReference(),
+        type: readRequiredType(),
+      );
+    });
+
+    final nullabilitySuffix = _readNullability();
+
+    return RecordTypeImpl(
+      positionalFields: positionalFields,
+      namedFields: namedFields,
+      nullabilitySuffix: nullabilitySuffix,
+    );
   }
 
   AstNode _readRequiredNode() {

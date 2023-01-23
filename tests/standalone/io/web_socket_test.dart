@@ -42,7 +42,7 @@ class SecurityConfiguration {
 
   SecurityConfiguration({required this.secure});
 
-  Future<HttpServer> createServer({int backlog: 0}) => secure
+  Future<HttpServer> createServer({int backlog = 0}) => secure
       ? HttpServer.bindSecure(HOST_NAME, 0, serverContext, backlog: backlog)
       : HttpServer.bind(HOST_NAME, 0, backlog: backlog);
 

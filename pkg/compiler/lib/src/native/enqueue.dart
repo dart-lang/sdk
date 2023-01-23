@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_backend/native_data.dart' show NativeData;
-import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
+import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
+import '../js_emitter/native_emitter.dart';
 import '../options.dart';
 import '../universe/use.dart' show TypeUse;
 import '../universe/world_impact.dart'
@@ -24,7 +23,7 @@ abstract class NativeEnqueuer {
   bool get hasInstantiatedNativeClasses => !_registeredClasses.isEmpty;
 
   /// Log message reported if all native types are used.
-  String _allUsedMessage;
+  String? _allUsedMessage;
 
   final CompilerOptions _options;
   final ElementEnvironment _elementEnvironment;
@@ -156,7 +155,7 @@ abstract class NativeEnqueuer {
   /// Emits a summary information using the [log] function.
   void logSummary(void log(String message)) {
     if (_allUsedMessage != null) {
-      log(_allUsedMessage);
+      log(_allUsedMessage!);
     }
   }
 }
@@ -168,13 +167,8 @@ class NativeResolutionEnqueuer extends NativeEnqueuer {
   /// and exactly one of [unusedClasses] and [registeredClasses].
   final Set<ClassEntity> _nativeClasses = {};
 
-  NativeResolutionEnqueuer(
-      CompilerOptions options,
-      ElementEnvironment elementEnvironment,
-      CommonElements commonElements,
-      DartTypes dartTypes,
-      this._nativeClassFinder)
-      : super(options, elementEnvironment, commonElements, dartTypes);
+  NativeResolutionEnqueuer(super.options, super.elementEnvironment,
+      super.commonElements, super.dartTypes, this._nativeClassFinder);
 
   Iterable<ClassEntity> get nativeClassesForTesting => _nativeClasses;
 
@@ -205,20 +199,19 @@ class NativeResolutionEnqueuer extends NativeEnqueuer {
 
 class NativeCodegenEnqueuer extends NativeEnqueuer {
   final CodeEmitterTask _emitter;
-  final Iterable<ClassEntity> _nativeClasses;
+  final Set<ClassEntity> _nativeClasses;
   final NativeData _nativeData;
 
   final Set<ClassEntity> _doneAddSubtypes = {};
 
   NativeCodegenEnqueuer(
-      CompilerOptions options,
-      ElementEnvironment elementEnvironment,
-      CommonElements commonElements,
-      DartTypes dartTypes,
+      super.options,
+      super.elementEnvironment,
+      super.commonElements,
+      super.dartTypes,
       this._emitter,
       this._nativeClasses,
-      this._nativeData)
-      : super(options, elementEnvironment, commonElements, dartTypes);
+      this._nativeData);
 
   @override
   WorldImpact processNativeClasses(Iterable<Uri> libraries) {
@@ -262,7 +255,11 @@ class NativeCodegenEnqueuer extends NativeEnqueuer {
 
     // Walk the superclass chain since classes on the superclass chain might not
     // be instantiated (abstract or simply unused).
-    _addSubtypes(_elementEnvironment.getSuperClass(cls), emitter);
+    // Note: here and below we expect the superclass always to be non-null
+    // because we always start from a native class, which at least has Object as
+    // a superclass.
+    ClassEntity superclass = _elementEnvironment.getSuperClass(cls)!;
+    _addSubtypes(superclass, emitter);
 
     _elementEnvironment.forEachSupertype(cls, (InterfaceType type) {
       List<ClassEntity> subtypes =
@@ -273,11 +270,9 @@ class NativeCodegenEnqueuer extends NativeEnqueuer {
     // Skip through all the mixin applications in the super class
     // chain. That way, the direct subtypes set only contain the
     // natives classes.
-    ClassEntity superclass = _elementEnvironment.getSuperClass(cls);
-    while (superclass != null &&
-        _elementEnvironment.isMixinApplication(superclass)) {
+    while (_elementEnvironment.isMixinApplication(superclass)) {
       assert(!_nativeData.isNativeClass(superclass));
-      superclass = _elementEnvironment.getSuperClass(superclass);
+      superclass = _elementEnvironment.getSuperClass(superclass)!;
     }
 
     List<ClassEntity> directSubtypes =

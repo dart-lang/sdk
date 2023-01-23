@@ -4,7 +4,7 @@
 
 /// Abstraction for a compilation pipeline.
 ///
-/// A pipeline defines how modular steps are excuted and ensures that a step
+/// A pipeline defines how modular steps are executed and ensures that a step
 /// only has access to the data it declares.
 ///
 /// The abstract implementation validates how the data is declared, and the
@@ -42,7 +42,7 @@ class ModularStep {
   /// Whether this step is only executed on the main module.
   final bool onlyOnMain;
 
-  /// Whether this step is only exceuted on the SDK.
+  /// Whether this step is only executed on the SDK.
   final bool onlyOnSdk;
 
   /// Whether this step is not executed on the SDK.

@@ -17,6 +17,9 @@ void main() {
     defineReflectiveTests(AvoidReturnTypesOnSettersTest);
     defineReflectiveTests(AvoidTypesOnClosureParametersBulkTest);
     defineReflectiveTests(AvoidTypesOnClosureParametersTest);
+    defineReflectiveTests(
+        SuperFormalParameterTypeIsNotSubtypeOfAssociatedBulkTest);
+    defineReflectiveTests(SuperFormalParameterTypeIsNotSubtypeOfAssociatedTest);
     defineReflectiveTests(TypeInitFormalsBulkTest);
     defineReflectiveTests(TypeInitFormalsTest);
   });
@@ -196,6 +199,114 @@ abstract class RemoveTypeAnnotationTest extends FixProcessorLintTest {
 }
 
 @reflectiveTest
+class SuperFormalParameterTypeIsNotSubtypeOfAssociatedBulkTest
+    extends BulkFixProcessorTest {
+  Future<void> test_requiredPositional() async {
+    await resolveTestCode('''
+class C {
+  C(String f);
+}
+class D extends C {
+  D(int super.f);
+  D.named(int super.f);
+}
+''');
+    await assertHasFix('''
+class C {
+  C(String f);
+}
+class D extends C {
+  D(super.f);
+  D.named(super.f);
+}
+''');
+  }
+}
+
+@reflectiveTest
+class SuperFormalParameterTypeIsNotSubtypeOfAssociatedTest
+    extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_TYPE_ANNOTATION;
+
+  Future<void> test_functionTyped_parameterTypeIsNotSupertype() async {
+    await resolveTestCode('''
+class C {
+  C(void f(num p));
+}
+class D extends C {
+  D(void super.f(int p));
+}
+''');
+    await assertHasFix('''
+class C {
+  C(void f(num p));
+}
+class D extends C {
+  D(super.f);
+}
+''');
+  }
+
+  Future<void> test_functionTyped_returnTypeIsNotSubtype() async {
+    await resolveTestCode('''
+class C {
+  C(int f());
+}
+class D extends C {
+  D(num super.f());
+}
+''');
+    await assertHasFix('''
+class C {
+  C(int f());
+}
+class D extends C {
+  D(super.f);
+}
+''');
+  }
+
+  Future<void> test_optionalPositional() async {
+    await resolveTestCode('''
+class C {
+  C([int f = 0]);
+}
+class D extends C {
+  D([num super.f = 1]);
+}
+''');
+    await assertHasFix('''
+class C {
+  C([int f = 0]);
+}
+class D extends C {
+  D([super.f = 1]);
+}
+''');
+  }
+
+  Future<void> test_requiredPositional() async {
+    await resolveTestCode('''
+class C {
+  C(String f);
+}
+class D extends C {
+  D(int super.f);
+}
+''');
+    await assertHasFix('''
+class C {
+  C(String f);
+}
+class D extends C {
+  D(super.f);
+}
+''');
+  }
+}
+
+@reflectiveTest
 class TypeInitFormalsBulkTest extends BulkFixProcessorTest {
   @override
   String get lintCode => LintNames.type_init_formals;
@@ -242,6 +353,38 @@ class C {
 class C {
   int f;
   C(this.f);
+}
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3858')
+  Future<void> test_functionTyped_parameterTypeIsNotSupertype() async {
+    await resolveTestCode('''
+class C {
+  void Function(int) f;
+  C(void this.f(int p));
+}
+''');
+    await assertHasFix('''
+class C {
+  void Function(int) f;
+  C(void this.f(int p));
+}
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3858')
+  Future<void> test_functionTyped_returnTypeIsNotSubtype() async {
+    await resolveTestCode('''
+class C {
+  int Function() f;
+  C(int this.f());
+}
+''');
+    await assertHasFix('''
+class C {
+  int Function() f;
+  C(this.f());
 }
 ''');
   }

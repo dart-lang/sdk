@@ -8,7 +8,7 @@ import 'package:args/args.dart';
 import 'package:async_helper/async_helper.dart';
 
 import '../helpers/args_helper.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 main(List<String> args) {
   ArgParser argParser = createArgParser();
@@ -16,7 +16,7 @@ main(List<String> args) {
   asyncTest(() async {
     ArgResults argResults = argParser.parse(args);
     Uri entryPoint = getEntryPoint(argResults) ??
-        Uri.base.resolve('samples-dev/swarm/swarm.dart');
+        Uri.base.resolve('pkg/compiler/test/codesize/swarm/swarm.dart');
     Uri librariesSpecificationUri = getLibrariesSpec(argResults);
     Uri packageConfig = getPackages(argResults);
     List<String> options = getOptions(argResults);

@@ -21,8 +21,15 @@ import '../kernel/kernel_helper.dart';
 import '../kernel/redirecting_factory_body.dart'
     show getRedirectingFactoryBody, RedirectingFactoryBody;
 import '../messages.dart'
-    show messageConstFactoryRedirectionToNonConst, noLength;
+    show
+        messageConstFactoryRedirectionToNonConst,
+        noLength,
+        templateCyclicRedirectingFactoryConstructors,
+        templateIncompatibleRedirecteeFunctionType,
+        templateRedirectingFactoryIncompatibleTypeArgument,
+        templateTypeArgumentMismatch;
 import '../problems.dart' show unexpected, unhandled;
+import '../scope.dart';
 import '../type_inference/inference_helper.dart';
 import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart';
@@ -45,8 +52,8 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   @override
   final TypeBuilder returnType;
 
-  final Procedure _procedureInternal;
-  final Procedure? _factoryTearOff;
+  late final Procedure _procedureInternal;
+  late final Procedure? _factoryTearOff;
 
   SourceFactoryBuilder? actualOrigin;
 
@@ -69,22 +76,26 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
       AsyncMarker asyncModifier,
       NameScheme nameScheme,
       {String? nativeMethodName})
-      : _procedureInternal = new Procedure(
-            nameScheme.getProcedureName(ProcedureKind.Factory, name),
-            ProcedureKind.Factory,
-            new FunctionNode(null),
-            fileUri: libraryBuilder.fileUri,
-            reference: procedureReference)
-          ..fileStartOffset = startCharOffset
-          ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset
-          ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault,
-        _factoryTearOff = createFactoryTearOffProcedure(name, libraryBuilder,
-            libraryBuilder.fileUri, charOffset, tearOffReference),
-        super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
+      : super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
             charOffset, nativeMethodName) {
+    _procedureInternal = new Procedure(
+        dummyName, ProcedureKind.Factory, new FunctionNode(null),
+        fileUri: libraryBuilder.fileUri, reference: procedureReference)
+      ..fileStartOffset = startCharOffset
+      ..fileOffset = charOffset
+      ..fileEndOffset = charEndOffset
+      ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
+    nameScheme
+        .getProcedureMemberName(ProcedureKind.Factory, name)
+        .attachMember(_procedureInternal);
+    _factoryTearOff = createFactoryTearOffProcedure(name, libraryBuilder,
+        libraryBuilder.fileUri, charOffset, tearOffReference);
     this.asyncModifier = asyncModifier;
   }
+
+  @override
+  SourceClassBuilder get classBuilder =>
+      super.classBuilder as SourceClassBuilder;
 
   List<SourceFactoryBuilder>? get patchesForTesting => _patches;
 
@@ -148,7 +159,6 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
     _procedureInternal.isAbstract = isAbstract;
     _procedureInternal.isExternal = isExternal;
     _procedureInternal.isConst = isConst;
-    updatePrivateMemberName(_procedureInternal, libraryBuilder);
     _procedureInternal.isStatic = isStatic;
 
     if (_factoryTearOff != null) {
@@ -156,7 +166,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
           tearOff: _factoryTearOff!,
           declarationConstructor: _procedure,
           implementationConstructor: _procedureInternal,
-          enclosingClass: classBuilder!.cls,
+          enclosingClass: classBuilder.cls,
           libraryBuilder: libraryBuilder);
     }
   }
@@ -257,6 +267,21 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
       }
     }
   }
+
+  /// Checks the redirecting factories of this factory builder and its
+  /// augmentations.
+  void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
+    _checkRedirectingFactory(typeEnvironment);
+    List<SourceFactoryBuilder>? patches = _patches;
+    if (patches != null) {
+      for (SourceFactoryBuilder patch in patches) {
+        patch._checkRedirectingFactory(typeEnvironment);
+      }
+    }
+  }
+
+  /// Checks this factory builder if it is for a redirecting factory.
+  void _checkRedirectingFactory(TypeEnvironment typeEnvironment) {}
 }
 
 class RedirectingFactoryBuilder extends SourceFactoryBuilder {
@@ -320,8 +345,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     bodyInternal?.parent = function;
     _procedure.isRedirectingFactory = true;
     if (isPatch) {
-      // ignore: unnecessary_null_comparison
-      if (function.typeParameters != null) {
+      if (function.typeParameters.isNotEmpty) {
         Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
         for (int i = 0; i < function.typeParameters.length; i++) {
           substitution[function.typeParameters[i]] =
@@ -364,7 +388,6 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
               .build(libraryBuilder, TypeUse.redirectionTypeArgument),
           growable: false);
     }
-    updatePrivateMemberName(_procedureInternal, libraryBuilder);
     if (_factoryTearOff != null) {
       _tearOffTypeParameters =
           buildRedirectingFactoryTearOffProcedureParameters(
@@ -396,10 +419,10 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     if (typeArguments != null && typeArguments.any((t) => t is UnknownType)) {
       TypeInferrer inferrer = libraryBuilder.loader.typeInferenceEngine
           .createLocalTypeInferrer(
-              fileUri, classBuilder!.thisType, libraryBuilder, null);
+              fileUri, classBuilder.thisType, libraryBuilder, null);
       InferenceHelper helper = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
-              libraryBuilder, classBuilder, this, classBuilder!.scope, fileUri);
+              libraryBuilder, classBuilder, this, classBuilder.scope, fileUri);
       Builder? targetBuilder = redirectionTarget.target;
       if (targetBuilder is SourceMemberBuilder) {
         // Ensure that target has been built.
@@ -507,5 +530,212 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
   void checkTypes(
       SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
     library.checkTypesInRedirectingFactoryBuilder(this, typeEnvironment);
+  }
+
+  // Computes the function type of a given redirection target. Returns [null] if
+  // the type of the target could not be computed.
+  FunctionType? _computeRedirecteeType(
+      RedirectingFactoryBuilder factory, TypeEnvironment typeEnvironment) {
+    ConstructorReferenceBuilder redirectionTarget = factory.redirectionTarget;
+    Builder? targetBuilder = redirectionTarget.target;
+    FunctionNode targetNode;
+    if (targetBuilder == null) return null;
+    if (targetBuilder is FunctionBuilder) {
+      targetNode = targetBuilder.function;
+    } else if (targetBuilder is AmbiguousBuilder) {
+      // Multiple definitions with the same name: An error has already been
+      // issued.
+      // TODO(http://dartbug.com/35294): Unfortunate error; see also
+      // https://dart-review.googlesource.com/c/sdk/+/85390/.
+      return null;
+    } else {
+      unhandled("${redirectionTarget.target}", "computeRedirecteeType",
+          charOffset, fileUri);
+    }
+
+    List<DartType>? typeArguments = factory.getTypeArguments();
+    FunctionType targetFunctionType =
+        targetNode.computeFunctionType(libraryBuilder.nonNullable);
+    if (typeArguments != null &&
+        targetFunctionType.typeParameters.length != typeArguments.length) {
+      classBuilder.addProblemForRedirectingFactory(
+          factory,
+          templateTypeArgumentMismatch
+              .withArguments(targetFunctionType.typeParameters.length),
+          redirectionTarget.charOffset,
+          noLength);
+      return null;
+    }
+
+    // Compute the substitution of the target class type parameters if
+    // [redirectionTarget] has any type arguments.
+    Substitution? substitution;
+    bool hasProblem = false;
+    if (typeArguments != null && typeArguments.length > 0) {
+      substitution = Substitution.fromPairs(
+          targetFunctionType.typeParameters, typeArguments);
+      for (int i = 0; i < targetFunctionType.typeParameters.length; i++) {
+        TypeParameter typeParameter = targetFunctionType.typeParameters[i];
+        DartType typeParameterBound =
+            substitution.substituteType(typeParameter.bound);
+        DartType typeArgument = typeArguments[i];
+        // Check whether the [typeArgument] respects the bounds of
+        // [typeParameter].
+        if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
+            SubtypeCheckMode.ignoringNullabilities)) {
+          classBuilder.addProblemForRedirectingFactory(
+              factory,
+              templateRedirectingFactoryIncompatibleTypeArgument.withArguments(
+                  typeArgument,
+                  typeParameterBound,
+                  libraryBuilder.isNonNullableByDefault),
+              redirectionTarget.charOffset,
+              noLength);
+          hasProblem = true;
+        } else if (libraryBuilder.isNonNullableByDefault) {
+          if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
+              SubtypeCheckMode.withNullabilities)) {
+            classBuilder.addProblemForRedirectingFactory(
+                factory,
+                templateRedirectingFactoryIncompatibleTypeArgument
+                    .withArguments(typeArgument, typeParameterBound,
+                        libraryBuilder.isNonNullableByDefault),
+                redirectionTarget.charOffset,
+                noLength);
+            hasProblem = true;
+          }
+        }
+      }
+    } else if (typeArguments == null &&
+        targetFunctionType.typeParameters.length > 0) {
+      // TODO(hillerstrom): In this case, we need to perform type inference on
+      // the redirectee to obtain actual type arguments which would allow the
+      // following program to type check:
+      //
+      //    class A<T> {
+      //       factory A() = B;
+      //    }
+      //    class B<T> implements A<T> {
+      //       B();
+      //    }
+      //
+      return null;
+    }
+
+    // Substitute if necessary.
+    targetFunctionType = substitution == null
+        ? targetFunctionType
+        : (substitution.substituteType(targetFunctionType.withoutTypeParameters)
+            as FunctionType);
+
+    return hasProblem ? null : targetFunctionType;
+  }
+
+  bool _isCyclicRedirectingFactory(RedirectingFactoryBuilder factory) {
+    // We use the [tortoise and hare algorithm]
+    // (https://en.wikipedia.org/wiki/Cycle_detection#Tortoise_and_hare) to
+    // handle cycles.
+    Builder? tortoise = factory;
+    Builder? hare = factory.redirectionTarget.target;
+    if (hare == factory) {
+      return true;
+    }
+    while (tortoise != hare) {
+      // Hare moves 2 steps forward.
+      if (hare is! RedirectingFactoryBuilder) {
+        return false;
+      }
+      hare = hare.redirectionTarget.target;
+      if (hare == factory) {
+        return true;
+      }
+      if (hare is! RedirectingFactoryBuilder) {
+        return false;
+      }
+      hare = hare.redirectionTarget.target;
+      if (hare == factory) {
+        return true;
+      }
+      // Tortoise moves one step forward. No need to test type of tortoise
+      // as it follows hare which already checked types.
+      tortoise =
+          (tortoise as RedirectingFactoryBuilder).redirectionTarget.target;
+    }
+    // Cycle found, but original factory doesn't belong to a cycle.
+    return false;
+  }
+
+  @override
+  void _checkRedirectingFactory(TypeEnvironment typeEnvironment) {
+    // Check that factory declaration is not cyclic.
+    if (_isCyclicRedirectingFactory(this)) {
+      classBuilder.addProblemForRedirectingFactory(
+          this,
+          templateCyclicRedirectingFactoryConstructors
+              .withArguments("${classBuilder.name}"
+                  "${name == '' ? '' : '.${name}'}"),
+          charOffset,
+          noLength);
+      return;
+    }
+
+    // The factory type cannot contain any type parameters other than those of
+    // its enclosing class, because constructors cannot specify type parameters
+    // of their own.
+    FunctionType factoryType = function
+        .computeThisFunctionType(libraryBuilder.nonNullable)
+        .withoutTypeParameters;
+    if (isPatch) {
+      // The redirection target type uses the origin type parameters so we must
+      // substitute patch type parameters before checking subtyping.
+      if (function.typeParameters.isNotEmpty) {
+        Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
+        for (int i = 0; i < function.typeParameters.length; i++) {
+          substitution[function.typeParameters[i]] =
+              new TypeParameterType.withDefaultNullabilityForLibrary(
+                  actualOrigin!.function.typeParameters[i],
+                  libraryBuilder.library);
+        }
+        factoryType = substitute(factoryType, substitution) as FunctionType;
+      }
+    }
+    FunctionType? redirecteeType =
+        _computeRedirecteeType(this, typeEnvironment);
+
+    // TODO(hillerstrom): It would be preferable to know whether a failure
+    // happened during [_computeRedirecteeType].
+    if (redirecteeType == null) {
+      return;
+    }
+
+    // Redirection to generative enum constructors is forbidden and is reported
+    // as an error elsewhere.
+    if (!(classBuilder.cls.isEnum &&
+        (redirectionTarget.target?.isConstructor ?? false))) {
+      // Check whether [redirecteeType] <: [factoryType].
+      if (!typeEnvironment.isSubtypeOf(redirecteeType, factoryType,
+          SubtypeCheckMode.ignoringNullabilities)) {
+        classBuilder.addProblemForRedirectingFactory(
+            this,
+            templateIncompatibleRedirecteeFunctionType.withArguments(
+                redirecteeType,
+                factoryType,
+                libraryBuilder.isNonNullableByDefault),
+            redirectionTarget.charOffset,
+            noLength);
+      } else if (libraryBuilder.isNonNullableByDefault) {
+        if (!typeEnvironment.isSubtypeOf(
+            redirecteeType, factoryType, SubtypeCheckMode.withNullabilities)) {
+          classBuilder.addProblemForRedirectingFactory(
+              this,
+              templateIncompatibleRedirecteeFunctionType.withArguments(
+                  redirecteeType,
+                  factoryType,
+                  libraryBuilder.isNonNullableByDefault),
+              redirectionTarget.charOffset,
+              noLength);
+        }
+      }
+    }
   }
 }

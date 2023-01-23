@@ -6,6 +6,8 @@
 // raw generic type is used more than once in the bound of its own type
 // variable.
 
-class Hest<TypeX extends Map<Hest, Hest>> {}
+class A<TypeX extends Map<A, A>> {}
+
+typedef C<TypeX extends Map<C, C>> = int;
 
 main() {}

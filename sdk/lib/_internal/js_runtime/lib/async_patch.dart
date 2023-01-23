@@ -4,9 +4,9 @@
 
 // Patch file for the dart:async library.
 
+import 'dart:_internal' show patch;
 import 'dart:_js_helper'
     show
-        patch,
         ExceptionAndStackTrace,
         convertDartClosureToJS,
         getTraceFromException,
@@ -647,6 +647,9 @@ class _SyncStarIterator<T> implements Iterator<T> {
           JS('', 'throw #', value.value);
         } else {
           assert(state == _IterationMarker.YIELD_STAR);
+          // Casting to avoid the `.iterator` dynamic call would impact the
+          // performance of yield*.
+          // ignore: avoid_dynamic_calls
           Iterator<T> inner = value.value.iterator;
           if (inner is _SyncStarIterator) {
             // The test needs to be 'is _SyncStarIterator<T>' for promotion to

@@ -61,11 +61,9 @@ void main() {
         expect(options.enabledExperiments, isEmpty);
         expect(options.displayVersion, isFalse);
         expect(options.ignoreUnrecognizedFlags, isFalse);
-        expect(options.implicitCasts, isNull);
         expect(options.log, isFalse);
         expect(options.jsonFormat, isFalse);
         expect(options.machineFormat, isFalse);
-        expect(options.noImplicitDynamic, isNull);
         expect(options.batchMode, isFalse);
         expect(options.sourceFiles, equals(['foo.dart']));
         expect(options.trainSnapshot, isFalse);
@@ -120,47 +118,47 @@ void main() {
         };
 
         test('no values', () {
-          var options = overrideKnownFeatures(
-              knownFeatures, (() => parse(['foo.dart'])!));
+          var options =
+              overrideKnownFeatures(knownFeatures, () => parse(['foo.dart'])!);
           expect(options.enabledExperiments, isEmpty);
         });
 
         test('single value', () {
           var options = overrideKnownFeatures(knownFeatures,
-              (() => parse(['--enable-experiment', 'a', 'foo.dart'])!));
+              () => parse(['--enable-experiment', 'a', 'foo.dart'])!);
           expect(options.enabledExperiments, ['a']);
         });
 
         group('multiple values', () {
           test('single flag', () {
             var options = overrideKnownFeatures(knownFeatures,
-                (() => parse(['--enable-experiment', 'a,b', 'foo.dart'])!));
+                () => parse(['--enable-experiment', 'a,b', 'foo.dart'])!);
             expect(options.enabledExperiments, ['a', 'b']);
           });
 
           test('mixed single and multiple flags', () {
             var options = overrideKnownFeatures(
                 knownFeatures,
-                (() => parse([
+                () => parse([
                       '--enable-experiment',
                       'a,b',
                       '--enable-experiment',
                       'c',
                       'foo.dart'
-                    ])!));
+                    ])!);
             expect(options.enabledExperiments, ['a', 'b', 'c']);
           });
 
           test('multiple flags', () {
             var options = overrideKnownFeatures(
                 knownFeatures,
-                (() => parse([
+                () => parse([
                       '--enable-experiment',
                       'a',
                       '--enable-experiment',
                       'b',
                       'foo.dart'
-                    ])!));
+                    ])!);
             expect(options.enabledExperiments, ['a', 'b']);
           });
         });
@@ -379,86 +377,6 @@ class ArgumentsTest with ResourceProviderMixin {
         },
       );
     });
-  }
-
-  void test_updateAnalysisOptions_implicitCasts() {
-    // Turn on.
-    _applyAnalysisOptions(
-      ['--implicit-casts', 'a.dart'],
-      (analysisOptions) {
-        analysisOptions.implicitCasts = false;
-      },
-      (analysisOptions) {
-        expect(analysisOptions.implicitCasts, isTrue);
-      },
-    );
-
-    // Turn off.
-    _applyAnalysisOptions(
-      ['--no-implicit-casts', 'a.dart'],
-      (analysisOptions) {
-        analysisOptions.implicitCasts = true;
-      },
-      (analysisOptions) {
-        expect(analysisOptions.implicitCasts, isFalse);
-      },
-    );
-
-    // Don't change if not provided, false.
-    _applyAnalysisOptions(
-      ['a.dart'],
-      (analysisOptions) {
-        analysisOptions.implicitCasts = false;
-      },
-      (analysisOptions) {
-        expect(analysisOptions.implicitCasts, isFalse);
-      },
-    );
-
-    // Don't change if not provided, true.
-    _applyAnalysisOptions(
-      ['a.dart'],
-      (analysisOptions) {
-        analysisOptions.implicitCasts = true;
-      },
-      (analysisOptions) {
-        expect(analysisOptions.implicitCasts, isTrue);
-      },
-    );
-  }
-
-  void test_updateAnalysisOptions_noImplicitDynamic() {
-    _applyAnalysisOptions(
-      ['--no-implicit-dynamic', 'a.dart'],
-      (analysisOptions) {
-        analysisOptions.implicitDynamic = true;
-      },
-      (analysisOptions) {
-        expect(analysisOptions.implicitDynamic, isFalse);
-      },
-    );
-
-    // Don't change if not provided, false.
-    _applyAnalysisOptions(
-      ['a.dart'],
-      (analysisOptions) {
-        analysisOptions.implicitDynamic = false;
-      },
-      (analysisOptions) {
-        expect(analysisOptions.implicitDynamic, isFalse);
-      },
-    );
-
-    // Don't change if not provided, true.
-    _applyAnalysisOptions(
-      ['a.dart'],
-      (analysisOptions) {
-        analysisOptions.implicitDynamic = true;
-      },
-      (analysisOptions) {
-        expect(analysisOptions.implicitDynamic, isTrue);
-      },
-    );
   }
 
   void _applyAnalysisOptions(

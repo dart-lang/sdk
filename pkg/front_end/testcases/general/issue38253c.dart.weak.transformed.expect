@@ -36,6 +36,6 @@ static field () → Null a = () → Null {
   ^" in null;
   }
 };
-static field (dynamic) → asy::Future<dynamic> b = (dynamic f) → asy::Future<dynamic> async /* futureValueType= dynamic */ => await f;
+static field (dynamic) → asy::Future<dynamic> b = (dynamic f) → asy::Future<dynamic> async /* futureValueType= dynamic */ => await f /* runtimeCheckType= asy::Future<dynamic> */ ;
 static field (dynamic) → dynamic c = (dynamic f) → dynamic => f;
 static method main() → dynamic {}

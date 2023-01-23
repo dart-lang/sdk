@@ -18,8 +18,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:collection/collection.dart';
 
 const List<String> intNames = ['i', 'j', 'index', 'length'];
 const List<String> listNames = ['list', 'items'];
@@ -175,12 +177,11 @@ class FeatureComputer {
   protocol.ElementKind computeElementKind(Element element) {
     if (element is LibraryElement) {
       return protocol.ElementKind.PREFIX;
+    } else if (element is EnumElement) {
+      return protocol.ElementKind.ENUM;
+    } else if (element is MixinElement) {
+      return protocol.ElementKind.MIXIN;
     } else if (element is ClassElement) {
-      if (element.isEnum) {
-        return protocol.ElementKind.ENUM;
-      } else if (element.isMixin) {
-        return protocol.ElementKind.MIXIN;
-      }
       return protocol.ElementKind.CLASS;
     } else if (element is FieldElement && element.isEnumConstant) {
       return protocol.ElementKind.ENUM_CONSTANT;
@@ -276,7 +277,8 @@ class FeatureComputer {
   /// must be traversed in the type graph to get from the subtype to the
   /// supertype if the two types are not the same. Return `-1` if the [subclass]
   /// is not a subclass of the [superclass].
-  int inheritanceDistance(ClassElement subclass, ClassElement superclass) {
+  int inheritanceDistance(
+      InterfaceElement subclass, InterfaceElement superclass) {
     // This method is only visible for the metrics computation and might be made
     // private at some future date.
     return _inheritanceDistance(subclass, superclass, {});
@@ -286,7 +288,7 @@ class FeatureComputer {
   /// defined in the [superclass] that is being accessed through an expression
   /// whose static type is the [subclass].
   double inheritanceDistanceFeature(
-      ClassElement subclass, ClassElement superclass) {
+      InterfaceElement subclass, InterfaceElement superclass) {
     var distance = _inheritanceDistance(subclass, superclass, {});
     return _distanceToPercent(distance);
   }
@@ -391,8 +393,8 @@ class FeatureComputer {
           }
         }
       } else if (node is CatchClause) {
-        if (node.exceptionParameter?.staticElement == variable ||
-            node.stackTraceParameter?.staticElement == variable) {
+        if (node.exceptionParameter?.declaredElement == variable ||
+            node.stackTraceParameter?.declaredElement == variable) {
           return distance;
         }
       }
@@ -460,8 +462,8 @@ class FeatureComputer {
   /// cycles in the type graph.
   ///
   /// This is the implementation of [inheritanceDistance].
-  int _inheritanceDistance(ClassElement? subclass, ClassElement superclass,
-      Set<ClassElement> visited) {
+  int _inheritanceDistance(InterfaceElement? subclass,
+      InterfaceElement superclass, Set<InterfaceElement> visited) {
     if (subclass == null) {
       return -1;
     } else if (subclass == superclass) {
@@ -481,7 +483,9 @@ class FeatureComputer {
       }
     }
 
-    visitTypes(subclass.superclassConstraints);
+    if (subclass is MixinElement) {
+      visitTypes(subclass.superclassConstraints);
+    }
     visitTypes(subclass.mixins);
     visitTypes(subclass.interfaces);
 
@@ -876,7 +880,14 @@ parent3: ${node.parent?.parent?.parent}
 
   @override
   DartType? visitParenthesizedExpression(ParenthesizedExpression node) {
-    return _visitParent(node);
+    final type = _visitParent(node);
+
+    // `RecordType := (^)` without any fields.
+    if (type is RecordType) {
+      return type.positionalFields.firstOrNull?.type;
+    }
+
+    return type;
   }
 
   @override
@@ -897,6 +908,45 @@ parent3: ${node.parent?.parent?.parent}
   @override
   DartType? visitPropertyAccess(PropertyAccess node) {
     return _visitParent(node);
+  }
+
+  @override
+  DartType? visitRecordLiteral(RecordLiteral node) {
+    final type = node.parent?.accept(this);
+    if (type is! RecordType) {
+      return null;
+    }
+
+    var index = 0;
+
+    DartType? typeOfIndexPositionalField() {
+      if (index < type.positionalFields.length) {
+        return type.positionalFields[index].type;
+      }
+      return null;
+    }
+
+    for (final argument in node.fields) {
+      if (argument is NamedExpression) {
+        if (offset <= argument.offset) {
+          return typeOfIndexPositionalField();
+        }
+        if (argument.contains(offset)) {
+          if (offset >= argument.name.colon.end) {
+            final name = argument.name.label.name;
+            return type.namedField(name)?.type;
+          }
+          return null;
+        }
+      } else {
+        if (offset <= argument.end) {
+          return typeOfIndexPositionalField();
+        }
+        index++;
+      }
+    }
+
+    return typeOfIndexPositionalField();
   }
 
   @override
@@ -979,7 +1029,7 @@ parent3: ${node.parent?.parent?.parent}
       var parent = node.parent;
       if (parent is VariableDeclarationList) {
         return parent.type?.type ??
-            _impliedDartTypeWithName(typeProvider, node.name.name);
+            _impliedDartTypeWithName(typeProvider, node.name.lexeme);
       }
     }
     return null;
@@ -992,7 +1042,7 @@ parent3: ${node.parent?.parent?.parent}
         var equals = varDecl.equals;
         if (equals != null && equals.end <= offset) {
           return node.type?.type ??
-              _impliedDartTypeWithName(typeProvider, varDecl.name.name);
+              _impliedDartTypeWithName(typeProvider, varDecl.name.lexeme);
         }
       }
     }

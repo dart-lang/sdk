@@ -554,6 +554,13 @@ class Reference {
     return node as Extension;
   }
 
+  View get asView {
+    if (node == null) {
+      throw '$this is not bound to an AST node. A view was expected';
+    }
+    return node as View;
+  }
+
   bool get isConsistent {
     NamedNode? node = _node;
     if (node != null) {

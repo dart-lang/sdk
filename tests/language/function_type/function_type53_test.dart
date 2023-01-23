@@ -106,7 +106,7 @@ class U53<T> {
   late core.List<core.int> Function<A>(A x) Function(int x) x21;
   late A Function<A>(List<A> x) Function(int x) x22;
 
-  U53({this.tIsBool: false, this.tIsInt: false})
+  U53({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   int m0(int x0, {List<T> x = const []}) => throw 'uncalled';

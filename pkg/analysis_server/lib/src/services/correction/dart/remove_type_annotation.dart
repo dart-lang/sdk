@@ -37,6 +37,10 @@ class RemoveTypeAnnotation extends CorrectionProducer {
       if (node is SimpleFormalParameter) {
         return _removeTypeAnnotation(builder, node.type);
       }
+      if (node is SuperFormalParameter) {
+        return _removeTypeAnnotation(builder, node.type,
+            parameters: node.parameters);
+      }
       if (node is TypeAnnotation && diagnostic != null) {
         return _removeTypeAnnotation(builder, node);
       }
@@ -127,7 +131,7 @@ class RemoveTypeAnnotation extends CorrectionProducer {
       return;
     }
     var keyword = declaration.keyword;
-    var variableName = declaration.identifier;
+    var variableName = declaration.name;
     await builder.addDartFileEdit(file, (builder) {
       var typeRange = range.startStart(typeNode, variableName);
       if (keyword != null && keyword.lexeme != 'var') {
@@ -139,13 +143,17 @@ class RemoveTypeAnnotation extends CorrectionProducer {
   }
 
   Future<void> _removeTypeAnnotation(
-      ChangeBuilder builder, TypeAnnotation? type) async {
+      ChangeBuilder builder, TypeAnnotation? type,
+      {FormalParameterList? parameters}) async {
     if (type == null) {
       return;
     }
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(range.startStart(type, type.endToken.next!));
+      if (parameters != null) {
+        builder.addDeletion(range.deletionRange(parameters));
+      }
     });
   }
 }

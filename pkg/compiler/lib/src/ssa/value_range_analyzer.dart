@@ -6,28 +6,37 @@
 
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
-import '../world.dart' show JClosedWorld;
+import '../js_model/js_world.dart' show JClosedWorld;
 import 'nodes.dart';
-import 'optimize.dart';
+import 'optimize_interfaces.dart' show OptimizationPhase;
+import 'optimize.dart' show SsaOptimizerTask;
 
 class ValueRangeInfo {
-  IntValue intZero;
-  IntValue intOne;
+  /*late*/ IntValue intZero;
+  /*late*/ IntValue intOne;
+
+  /*late*/ Value maxIntValue;
+  /*late*/ Value minIntValue;
+  /*late*/ Value unknownValue;
 
   ValueRangeInfo() {
     intZero = newIntValue(BigInt.zero);
     intOne = newIntValue(BigInt.one);
+
+    maxIntValue = MaxIntValue(this);
+    minIntValue = MinIntValue(this);
+    unknownValue = UnknownValue(this);
   }
 
-  Value newIntValue(BigInt value) {
+  IntValue newIntValue(BigInt value) {
     return IntValue(value, this);
   }
 
-  Value newInstructionValue(HInstruction instruction) {
+  InstructionValue newInstructionValue(HInstruction instruction) {
     return InstructionValue(instruction, this);
   }
 
-  Value newPositiveValue(HInstruction instruction) {
+  PositiveValue newPositiveValue(HInstruction instruction) {
     return PositiveValue(instruction, this);
   }
 
@@ -63,29 +72,29 @@ abstract class Value {
   final ValueRangeInfo info;
   const Value(this.info);
 
-  Value operator +(Value other) => const UnknownValue();
-  Value operator -(Value other) => const UnknownValue();
-  Value operator -() => const UnknownValue();
-  Value operator &(Value other) => const UnknownValue();
+  Value operator +(Value other) => info.unknownValue;
+  Value operator -(Value other) => info.unknownValue;
+  Value operator -() => info.unknownValue;
+  Value operator &(Value other) => info.unknownValue;
 
   Value min(Value other) {
     if (this == other) return this;
-    if (other == const MinIntValue()) return other;
-    if (other == const MaxIntValue()) return this;
+    if (other == info.minIntValue) return other;
+    if (other == info.maxIntValue) return this;
     Value value = this - other;
     if (value.isPositive) return other;
     if (value.isNegative) return this;
-    return const UnknownValue();
+    return info.unknownValue;
   }
 
   Value max(Value other) {
     if (this == other) return this;
-    if (other == const MinIntValue()) return this;
-    if (other == const MaxIntValue()) return other;
+    if (other == info.minIntValue) return this;
+    if (other == info.maxIntValue) return other;
     Value value = this - other;
     if (value.isPositive) return this;
     if (value.isNegative) return other;
-    return const UnknownValue();
+    return info.unknownValue;
   }
 
   bool get isNegative => false;
@@ -105,18 +114,18 @@ class MarkerValue extends Value {
 
   @override
   Value operator +(Value other) {
-    if (other.isPositive && positive) return const MaxIntValue();
-    if (other.isNegative && !positive) return const MinIntValue();
+    if (other.isPositive && positive) return info.maxIntValue;
+    if (other.isNegative && !positive) return info.minIntValue;
     if (other is IntValue) return this;
-    return const UnknownValue();
+    return info.unknownValue;
   }
 
   @override
   Value operator -(Value other) {
-    if (other.isPositive && !positive) return const MinIntValue();
-    if (other.isNegative && positive) return const MaxIntValue();
+    if (other.isPositive && !positive) return info.minIntValue;
+    if (other.isNegative && positive) return info.maxIntValue;
     if (other is IntValue) return this;
-    return const UnknownValue();
+    return info.unknownValue;
   }
 }
 
@@ -136,7 +145,7 @@ class IntValue extends Value {
       if (constant is IntConstantValue) {
         return info.newIntValue(constant.intValue);
       }
-      return const UnknownValue();
+      return info.unknownValue;
     }
     return other + this;
   }
@@ -151,7 +160,7 @@ class IntValue extends Value {
       if (constant is IntConstantValue) {
         return info.newIntValue(constant.intValue);
       }
-      return const UnknownValue();
+      return info.unknownValue;
     }
     return -other + this;
   }
@@ -164,7 +173,7 @@ class IntValue extends Value {
     if (constant is IntConstantValue) {
       return info.newIntValue(constant.intValue);
     }
-    return const UnknownValue();
+    return info.unknownValue;
   }
 
   @override
@@ -175,7 +184,7 @@ class IntValue extends Value {
           constant_system.createInt(other.value));
       return info.newIntValue(constant.intValue);
     }
-    return const UnknownValue();
+    return info.unknownValue;
   }
 
   @override
@@ -197,6 +206,7 @@ class IntValue extends Value {
   @override
   bool operator ==(other) {
     if (other is! IntValue) return false;
+    // ignore: avoid_dynamic_calls
     return this.value == other.value;
   }
 
@@ -216,13 +226,13 @@ class IntValue extends Value {
 /// The [MaxIntValue] represents the maximum value an integer can have,
 /// which is currently +infinity.
 class MaxIntValue extends Value {
-  const MaxIntValue() : super(null);
+  MaxIntValue(ValueRangeInfo info) : super(info);
   @override
   Value operator +(Value other) => this;
   @override
   Value operator -(Value other) => this;
   @override
-  Value operator -() => const MinIntValue();
+  Value operator -() => info.minIntValue;
   @override
   Value min(Value other) => other;
   @override
@@ -238,13 +248,13 @@ class MaxIntValue extends Value {
 /// The [MinIntValue] represents the minimum value an integer can have,
 /// which is currently -infinity.
 class MinIntValue extends Value {
-  const MinIntValue() : super(null);
+  MinIntValue(ValueRangeInfo info) : super(info);
   @override
   Value operator +(Value other) => this;
   @override
   Value operator -(Value other) => this;
   @override
-  Value operator -() => const MaxIntValue();
+  Value operator -() => info.maxIntValue;
   @override
   Value min(Value other) => this;
   @override
@@ -260,17 +270,17 @@ class MinIntValue extends Value {
 /// The [UnknownValue] is the sentinel in our analysis to mark an
 /// operation that could not be done because of too much complexity.
 class UnknownValue extends Value {
-  const UnknownValue() : super(null);
+  UnknownValue(ValueRangeInfo info) : super(info);
   @override
-  Value operator +(Value other) => const UnknownValue();
+  Value operator +(Value other) => info.unknownValue;
   @override
-  Value operator -(Value other) => const UnknownValue();
+  Value operator -(Value other) => info.unknownValue;
   @override
-  Value operator -() => const UnknownValue();
+  Value operator -() => info.unknownValue;
   @override
-  Value min(Value other) => const UnknownValue();
+  Value min(Value other) => info.unknownValue;
   @override
-  Value max(Value other) => const UnknownValue();
+  Value max(Value other) => info.unknownValue;
   @override
   bool get isNegative => false;
   @override
@@ -287,6 +297,7 @@ class InstructionValue extends Value {
   @override
   bool operator ==(other) {
     if (other is! InstructionValue) return false;
+    // ignore: avoid_dynamic_calls
     return this.instruction == other.instruction;
   }
 
@@ -345,9 +356,9 @@ class PositiveValue extends InstructionValue {
   bool get isPositive => true;
 }
 
-/// Represents a binary operation on two [Value], where the operation
-/// did not yield a canonical value.
-class BinaryOperationValue extends Value {
+/// Represents a binary operation on two [Value]s, where the operation did not
+/// yield a canonical value.
+abstract class BinaryOperationValue extends Value {
   final Value left;
   final Value right;
   BinaryOperationValue(this.left, this.right, info) : super(info);
@@ -359,7 +370,9 @@ class AddValue extends BinaryOperationValue {
   @override
   bool operator ==(other) {
     if (other is! AddValue) return false;
+    // ignore: avoid_dynamic_calls
     return (left == other.left && right == other.right) ||
+        // ignore: avoid_dynamic_calls
         (left == other.right && right == other.left);
   }
 
@@ -373,32 +386,32 @@ class AddValue extends BinaryOperationValue {
   Value operator +(Value other) {
     if (other.isZero) return this;
     Value value = left + other;
-    if (value != const UnknownValue() && value is! BinaryOperationValue) {
+    if (value != info.unknownValue && value is! BinaryOperationValue) {
       return value + right;
     }
     // If the result is not simple enough, we try the same approach
     // with [right].
     value = right + other;
-    if (value != const UnknownValue() && value is! BinaryOperationValue) {
+    if (value != info.unknownValue && value is! BinaryOperationValue) {
       return left + value;
     }
-    return const UnknownValue();
+    return info.unknownValue;
   }
 
   @override
   Value operator -(Value other) {
     if (other.isZero) return this;
     Value value = left - other;
-    if (value != const UnknownValue() && value is! BinaryOperationValue) {
+    if (value != info.unknownValue && value is! BinaryOperationValue) {
       return value + right;
     }
     // If the result is not simple enough, we try the same approach
     // with [right].
     value = right - other;
-    if (value != const UnknownValue() && value is! BinaryOperationValue) {
+    if (value != info.unknownValue && value is! BinaryOperationValue) {
       return left + value;
     }
-    return const UnknownValue();
+    return info.unknownValue;
   }
 
   @override
@@ -415,6 +428,7 @@ class SubtractValue extends BinaryOperationValue {
   @override
   bool operator ==(other) {
     if (other is! SubtractValue) return false;
+    // ignore: avoid_dynamic_calls
     return left == other.left && right == other.right;
   }
 
@@ -428,32 +442,32 @@ class SubtractValue extends BinaryOperationValue {
   Value operator +(Value other) {
     if (other.isZero) return this;
     Value value = left + other;
-    if (value != const UnknownValue() && value is! BinaryOperationValue) {
+    if (value != info.unknownValue && value is! BinaryOperationValue) {
       return value - right;
     }
     // If the result is not simple enough, we try the same approach
     // with [right].
     value = other - right;
-    if (value != const UnknownValue() && value is! BinaryOperationValue) {
+    if (value != info.unknownValue && value is! BinaryOperationValue) {
       return left + value;
     }
-    return const UnknownValue();
+    return info.unknownValue;
   }
 
   @override
   Value operator -(Value other) {
     if (other.isZero) return this;
     Value value = left - other;
-    if (value != const UnknownValue() && value is! BinaryOperationValue) {
+    if (value != info.unknownValue && value is! BinaryOperationValue) {
       return value - right;
     }
     // If the result is not simple enough, we try the same approach
     // with [right].
     value = right + other;
-    if (value != const UnknownValue() && value is! BinaryOperationValue) {
+    if (value != info.unknownValue && value is! BinaryOperationValue) {
       return left - value;
     }
-    return const UnknownValue();
+    return info.unknownValue;
   }
 
   @override
@@ -471,6 +485,7 @@ class NegateValue extends Value {
   @override
   bool operator ==(other) {
     if (other is! NegateValue) return false;
+    // ignore: avoid_dynamic_calls
     return value == other.value;
   }
 
@@ -495,7 +510,7 @@ class NegateValue extends Value {
   }
 
   @override
-  Value operator &(Value other) => const UnknownValue();
+  Value operator &(Value other) => info.unknownValue;
 
   @override
   Value operator -(other) {
@@ -532,17 +547,18 @@ class Range {
   final Value upper;
   final ValueRangeInfo info;
   Range(this.lower, this.upper, this.info) {
-    assert(lower != const UnknownValue());
-    assert(upper != const UnknownValue());
+    assert(lower != info.unknownValue);
+    assert(upper != info.unknownValue);
   }
 
-  Range.unbound(info) : this(const MinIntValue(), const MaxIntValue(), info);
+  Range.unbound(ValueRangeInfo info)
+      : this(info.minIntValue, info.maxIntValue, info);
 
   /// Checks if the given values are unknown, and creates a
   /// range that does not have any unknown values.
-  Range.normalize(Value low, Value up, info)
-      : this(low == const UnknownValue() ? const MinIntValue() : low,
-            up == const UnknownValue() ? const MaxIntValue() : up, info);
+  Range.normalize(Value low, Value up, ValueRangeInfo info)
+      : this(low == info.unknownValue ? info.minIntValue : low,
+            up == info.unknownValue ? info.maxIntValue : up, info);
 
   Range union(Range other) {
     return info.newNormalizedRange(
@@ -554,7 +570,7 @@ class Range {
     Value up = upper.min(other.upper);
     // If we could not compute max or min, pick a value in the two
     // ranges, with priority to [IntValue]s because they are simpler.
-    if (low == const UnknownValue()) {
+    if (low == info.unknownValue) {
       if (lower is IntValue)
         low = lower;
       else if (other.lower is IntValue)
@@ -562,7 +578,7 @@ class Range {
       else
         low = lower;
     }
-    if (up == const UnknownValue()) {
+    if (up == info.unknownValue) {
       if (upper is IntValue)
         up = upper;
       else if (other.upper is IntValue)
@@ -572,6 +588,9 @@ class Range {
     }
     return info.newNormalizedRange(low, up);
   }
+
+  static Range add(Range /*!*/ a, Range /*!*/ b) => a + b;
+  static Range subtract(Range /*!*/ a, Range /*!*/ b) => a - b;
 
   Range operator +(Range other) {
     return info.newNormalizedRange(lower + other.lower, upper + other.upper);
@@ -594,13 +613,13 @@ class Range {
     }
     if (isPositive && other.isPositive) {
       Value up = upper.min(other.upper);
-      if (up == const UnknownValue()) {
+      if (up == info.unknownValue) {
         // If we could not find a trivial bound, just try to use the
         // one that is an int.
         up = upper is IntValue ? upper : other.upper;
         // Make sure we get the same upper bound, whether it's a & b
         // or b & a.
-        if (up is! IntValue && upper != other.upper) up = const MaxIntValue();
+        if (up is! IntValue && upper != other.upper) up = info.maxIntValue;
       }
       return info.newNormalizedRange(info.intZero, up);
     } else if (isPositive) {
@@ -615,6 +634,7 @@ class Range {
   @override
   bool operator ==(other) {
     if (other is! Range) return false;
+    // ignore: avoid_dynamic_calls
     return other.lower == lower && other.upper == upper;
   }
 
@@ -645,11 +665,14 @@ class Range {
   String toString() => '[$lower, $upper]';
 }
 
+typedef BinaryRangeOperation = Range Function(Range /*!*/, Range /*!*/);
+
 /// Visits the graph in dominator order, and computes value ranges for
 /// integer instructions. While visiting the graph, this phase also
 /// removes unnecessary bounds checks, and comparisons that are proven
 /// to be true or false.
-class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
+class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
+    implements OptimizationPhase {
   @override
   String get name => 'SSA value range builder';
 
@@ -744,7 +767,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       return range;
     }
 
-    Range range = ranges[phi.inputs[0]];
+    Range /*!*/ range = ranges[phi.inputs[0]];
     for (int i = 1; i < phi.inputs.length; i++) {
       range = range.union(ranges[phi.inputs[i]]);
     }
@@ -752,19 +775,16 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   }
 
   @override
-  Range visitConstant(HConstant hConstant) {
-    if (hConstant
-        .isInteger(closedWorld.abstractValueDomain)
-        .isPotentiallyFalse) {
+  Range visitConstant(HConstant node) {
+    ConstantValue constant = node.constant;
+    if (constant is DeferredGlobalConstantValue) {
+      constant = (constant as DeferredGlobalConstantValue).referenced;
+    }
+    if (constant is! IntConstantValue ||
+        node.isInteger(closedWorld.abstractValueDomain).isPotentiallyFalse) {
       return info.newUnboundRange();
     }
-    ConstantValue constant = hConstant.constant;
-    NumConstantValue constantNum;
-    if (constant is DeferredGlobalConstantValue) {
-      constantNum = constant.referenced;
-    } else {
-      constantNum = constant;
-    }
+    NumConstantValue constantNum = constant;
     if (constantNum.isPositiveInfinity || constantNum.isNegativeInfinity) {
       return info.newUnboundRange();
     }
@@ -819,7 +839,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     // Check if the index is strictly below the upper bound of the length
     // range.
     Value maxIndex = lengthRange.upper - info.intOne;
-    bool belowLength = maxIndex != const MaxIntValue() &&
+    bool belowLength = maxIndex != info.maxIntValue &&
         indexRange.upper.min(maxIndex) == indexRange.upper;
 
     // Check if the index is strictly below the lower bound of the length
@@ -845,7 +865,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       // If the test passes, we know the lower bound of the length is
       // greater or equal than the lower bound of the index.
       Value low = lengthRange.lower.max(indexRange.lower);
-      if (low != const UnknownValue()) {
+      if (low != info.unknownValue) {
         HInstruction instruction = createRangeConversion(next, check.length);
         ranges[instruction] = info.newNormalizedRange(low, lengthRange.upper);
       }
@@ -875,16 +895,17 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       return info.newUnboundRange();
     }
     constant_system.BinaryOperation operation = relational.operation();
-    Range rightRange = ranges[relational.right];
-    Range leftRange = ranges[relational.left];
+    Range rightRange = ranges[relational.right] /*!*/;
+    Range leftRange = ranges[relational.left] /*!*/;
 
     if (relational is HIdentity) {
       handleEqualityCheck(relational);
-    } else if (operation.apply(leftRange, rightRange)) {
+    } else if (applyRelationalOperation(operation, leftRange, rightRange)) {
       relational.block
           .rewrite(relational, graph.addConstantBool(true, closedWorld));
       relational.block.remove(relational);
-    } else if (negateOperation(operation).apply(leftRange, rightRange)) {
+    } else if (applyRelationalOperation(
+        negateOperation(operation), leftRange, rightRange)) {
       relational.block
           .rewrite(relational, graph.addConstantBool(false, closedWorld));
       relational.block.remove(relational);
@@ -892,8 +913,26 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     return info.newUnboundRange();
   }
 
+  bool applyRelationalOperation(constant_system.BinaryOperation /*!*/ operation,
+      Range left, Range right) {
+    if (operation == const constant_system.LessOperation()) {
+      return left < right;
+    }
+    if (operation == const constant_system.LessEqualOperation()) {
+      return left <= right;
+    }
+    if (operation == const constant_system.GreaterOperation()) {
+      return left > right;
+    }
+    if (operation == const constant_system.GreaterEqualOperation()) {
+      return left >= right;
+    }
+
+    throw StateError('Unknown relational operation: $operation, $left, $right');
+  }
+
   void handleEqualityCheck(HRelational node) {
-    Range right = ranges[node.right];
+    Range /*!*/ right = ranges[node.right];
     Range left = ranges[node.left];
     if (left.isSingleValue && right.isSingleValue && left == right) {
       node.block.rewrite(node, graph.addConstantBool(true, closedWorld));
@@ -974,25 +1013,24 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     return super.visitInvokeDynamicMethod(invoke);
   }
 
-  Range handleBinaryOperation(HBinaryArithmetic instruction) {
+  Range handleBinaryOperation(
+      HBinaryArithmetic instruction, BinaryRangeOperation operation) {
     if (instruction
         .isInteger(closedWorld.abstractValueDomain)
         .isPotentiallyFalse) {
       return info.newUnboundRange();
     }
-    return instruction
-        .operation()
-        .apply(ranges[instruction.left], ranges[instruction.right]);
+    return operation(ranges[instruction.left], ranges[instruction.right]);
   }
 
   @override
   Range visitAdd(HAdd add) {
-    return handleBinaryOperation(add);
+    return handleBinaryOperation(add, Range.add);
   }
 
   @override
   Range visitSubtract(HSubtract sub) {
-    return handleBinaryOperation(sub);
+    return handleBinaryOperation(sub, Range.subtract);
   }
 
   @override
@@ -1019,9 +1057,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 
     if (left.isInteger(closedWorld.abstractValueDomain).isDefinitelyTrue) {
       return tryComputeRange(left);
-    } else if (right
-        .isInteger(closedWorld.abstractValueDomain)
-        .isDefinitelyTrue) {
+    }
+    if (right.isInteger(closedWorld.abstractValueDomain).isDefinitelyTrue) {
       return tryComputeRange(right);
     }
     return info.newUnboundRange();
@@ -1029,10 +1066,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 
   @override
   Range visitCheck(HCheck instruction) {
-    if (ranges[instruction.checkedInput] == null) {
-      return visitInstruction(instruction);
-    }
-    return ranges[instruction.checkedInput];
+    final range = ranges[instruction.checkedInput];
+    return range ?? visitInstruction(instruction);
   }
 
   HInstruction createRangeConversion(
@@ -1082,14 +1117,14 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     Range range;
     if (operation == const constant_system.LessOperation()) {
       range = info.newNormalizedRange(
-          const MinIntValue(), rightRange.upper - info.intOne);
+          info.minIntValue, rightRange.upper - info.intOne);
     } else if (operation == const constant_system.LessEqualOperation()) {
-      range = info.newNormalizedRange(const MinIntValue(), rightRange.upper);
+      range = info.newNormalizedRange(info.minIntValue, rightRange.upper);
     } else if (operation == const constant_system.GreaterOperation()) {
       range = info.newNormalizedRange(
-          rightRange.lower + info.intOne, const MaxIntValue());
+          rightRange.lower + info.intOne, info.maxIntValue);
     } else if (operation == const constant_system.GreaterEqualOperation()) {
-      range = info.newNormalizedRange(rightRange.lower, const MaxIntValue());
+      range = info.newNormalizedRange(rightRange.lower, info.maxIntValue);
     } else {
       range = info.newUnboundRange();
     }
@@ -1113,8 +1148,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 
       Range rightRange = ranges[right];
       Range leftRange = ranges[left];
-      constant_system.Operation operation = condition.operation();
-      constant_system.Operation mirrorOp = flipOperation(operation);
+      constant_system.BinaryOperation operation = condition.operation();
+      constant_system.BinaryOperation mirrorOp = flipOperation(operation);
       // Only update the true branch if this block is the only
       // predecessor.
       if (branch.trueBranch.predecessors.length == 1) {
@@ -1140,8 +1175,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       // predecessor.
       if (branch.falseBranch.predecessors.length == 1) {
         assert(branch.falseBranch.predecessors[0] == branch.block);
-        constant_system.Operation reverse = negateOperation(operation);
-        constant_system.Operation reversedMirror = flipOperation(reverse);
+        constant_system.BinaryOperation reverse = negateOperation(operation);
+        constant_system.BinaryOperation reversedMirror = flipOperation(reverse);
         // Update the false branch to use narrower ranges for [left] and
         // [right].
         Range range = computeConstrainedRange(reverse, leftRange, rightRange);
@@ -1166,12 +1201,12 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 
   @override
   Range visitRangeConversion(HRangeConversion conversion) {
-    return ranges[conversion];
+    return ranges[conversion] /*!*/;
   }
 }
 
 /// Tries to find a range for the update instruction of a loop phi.
-class LoopUpdateRecognizer extends HBaseVisitor {
+class LoopUpdateRecognizer extends HBaseVisitor<Range> {
   final JClosedWorld closedWorld;
   final Map<HInstruction, Range> ranges;
   final ValueRangeInfo info;
@@ -1182,7 +1217,7 @@ class LoopUpdateRecognizer extends HBaseVisitor {
     // uses the loop phi, it has a range to use.
     ranges[loopPhi] = info.newMarkerRange();
     Range updateRange = visit(loopPhi.inputs[1]);
-    ranges[loopPhi] = null;
+    ranges.remove(loopPhi);
     if (updateRange == null) return null;
     Range startRange = ranges[loopPhi.inputs[0]];
     // If the lower (respectively upper) value is the marker, we know
@@ -1205,8 +1240,7 @@ class LoopUpdateRecognizer extends HBaseVisitor {
         .isPotentiallyFalse) {
       return null;
     }
-    if (ranges[instruction] != null) return ranges[instruction];
-    return instruction.accept(this);
+    return ranges[instruction] ?? instruction.accept(this);
   }
 
   @override
@@ -1234,19 +1268,19 @@ class LoopUpdateRecognizer extends HBaseVisitor {
 
   @override
   Range visitAdd(HAdd operation) {
-    return handleBinaryOperation(operation);
+    return handleBinaryOperation(operation, Range.add);
   }
 
   @override
   Range visitSubtract(HSubtract operation) {
-    return handleBinaryOperation(operation);
+    return handleBinaryOperation(operation, Range.subtract);
   }
 
-  Range handleBinaryOperation(HBinaryArithmetic instruction) {
+  Range handleBinaryOperation(
+      HBinaryArithmetic instruction, BinaryRangeOperation operation) {
     Range leftRange = visit(instruction.left);
     Range rightRange = visit(instruction.right);
     if (leftRange == null || rightRange == null) return null;
-    constant_system.BinaryOperation operation = instruction.operation();
-    return operation.apply(leftRange, rightRange);
+    return operation(leftRange, rightRange);
   }
 }

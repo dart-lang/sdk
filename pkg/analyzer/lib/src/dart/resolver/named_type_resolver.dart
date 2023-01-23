@@ -36,7 +36,7 @@ class NamedTypeResolver with ScopeHelpers {
 
   /// If not `null`, the element of the [ClassDeclaration], or the
   /// [ClassTypeAlias] being resolved.
-  ClassElement? enclosingClass;
+  InterfaceElement? enclosingClass;
 
   /// If not `null`, a direct child of an [ExtendsClause], [WithClause],
   /// or [ImplementsClause].
@@ -93,7 +93,8 @@ class NamedTypeResolver with ScopeHelpers {
         return;
       }
 
-      if (prefixElement is ClassElement || prefixElement is TypeAliasElement) {
+      if (prefixElement is InterfaceElement ||
+          prefixElement is TypeAliasElement) {
         _rewriteToConstructorName(node, typeIdentifier);
         return;
       }
@@ -164,7 +165,7 @@ class NamedTypeResolver with ScopeHelpers {
 
   /// We are resolving the [NamedType] in a redirecting constructor of the
   /// [enclosingClass].
-  InterfaceType _inferRedirectedConstructor(ClassElement element) {
+  InterfaceType _inferRedirectedConstructor(InterfaceElement element) {
     if (element == enclosingClass) {
       return element.thisType;
     } else {
@@ -192,7 +193,7 @@ class NamedTypeResolver with ScopeHelpers {
 
     var argumentList = node.typeArguments;
     if (argumentList != null) {
-      if (element is ClassElement) {
+      if (element is InterfaceElement) {
         var typeArguments = _buildTypeArguments(
           node,
           argumentList,
@@ -234,7 +235,7 @@ class NamedTypeResolver with ScopeHelpers {
       }
     }
 
-    if (element is ClassElement) {
+    if (element is InterfaceElement) {
       if (identical(node, withClause_namedType)) {
         for (var mixin in enclosingClass!.mixins) {
           if (mixin.element == element) {
@@ -247,13 +248,13 @@ class NamedTypeResolver with ScopeHelpers {
         return _inferRedirectedConstructor(element);
       }
 
-      return typeSystem.instantiateToBounds2(
-        classElement: element,
+      return typeSystem.instantiateInterfaceToBounds(
+        element: element,
         nullabilitySuffix: nullability,
       );
     } else if (element is TypeAliasElement) {
-      var type = typeSystem.instantiateToBounds2(
-        typeAliasElement: element,
+      var type = typeSystem.instantiateTypeAliasToBounds(
+        element: element,
         nullabilitySuffix: nullability,
       );
       return _verifyTypeAliasForContext(node, element, type);
@@ -315,7 +316,7 @@ class NamedTypeResolver with ScopeHelpers {
   /// out to be a [ClassElement], so it is probably a `Class.constructor`.
   void _rewriteToConstructorName(
     NamedTypeImpl node,
-    PrefixedIdentifier typeIdentifier,
+    PrefixedIdentifierImpl typeIdentifier,
   ) {
     var constructorName = node.parent;
     if (constructorName is ConstructorNameImpl &&

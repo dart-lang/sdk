@@ -45,7 +45,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   /// code that is removed.
   final bool? removeViaComments;
 
-  final bool? warnOnWeakCode;
+  final bool warnOnWeakCode;
 
   final _decoratedTypeParameterBounds = DecoratedTypeParameterBounds();
 
@@ -78,7 +78,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
       {bool? permissive = false,
       NullabilityMigrationInstrumentation? instrumentation,
       bool? removeViaComments = false,
-      bool? warnOnWeakCode = true})
+      bool warnOnWeakCode = true})
       : this._(
           listener,
           NullabilityGraph(instrumentation: instrumentation),
@@ -195,15 +195,16 @@ class NullabilityMigrationImpl implements NullabilityMigration {
         result.libraryElement.importedLibraries);
     _recordTransitiveImportExportOptInStatus(
         result.libraryElement.exportedLibraries);
-    if (_variables == null) {
-      _variables = Variables(_graph, result.typeProvider,
+    var variables = _variables;
+    if (variables == null) {
+      variables = _variables = Variables(_graph, result.typeProvider,
           instrumentation: _instrumentation);
-      _decoratedClassHierarchy = DecoratedClassHierarchy(_variables, _graph);
+      _decoratedClassHierarchy = DecoratedClassHierarchy(variables, _graph);
     }
     var unit = result.unit;
     try {
       DecoratedTypeParameterBounds.current = _decoratedTypeParameterBounds;
-      unit.accept(NodeBuilder(_variables, unit.declaredElement!.source,
+      unit.accept(NodeBuilder(variables, unit.declaredElement!.source,
           _permissive! ? listener : null, _graph, result.typeProvider,
           instrumentation: _instrumentation));
     } finally {
@@ -223,7 +224,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
       unit.accept(EdgeBuilder(
           result.typeProvider,
           result.typeSystem,
-          _variables,
+          _variables!,
           _graph,
           unit.declaredElement!.source,
           _permissive! ? listener : null,

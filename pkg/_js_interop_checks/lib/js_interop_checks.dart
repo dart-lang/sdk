@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Used for importing CFE utility functions for constructor tear-offs.
+import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
@@ -19,25 +21,39 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropNonExternalConstructor,
         messageJsInteropNonExternalMember,
         messageJsInteropOperatorsNotSupported,
+        messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters,
+        messageJsInteropStaticInteropGenerativeConstructor,
+        messageJsInteropStaticInteropSyntheticConstructor,
         templateJsInteropDartClassExtendsJSClass,
+        templateJsInteropNonStaticWithStaticInteropSupertype,
+        templateJsInteropStaticInteropNoJSAnnotation,
         templateJsInteropStaticInteropWithInstanceMembers,
         templateJsInteropStaticInteropWithNonStaticSupertype,
         templateJsInteropJSClassExtendsDartClass,
         templateJsInteropNativeClassInAnnotation,
         templateJsInteropStaticInteropTrustTypesUsageNotAllowed,
         templateJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop;
+import 'package:_js_interop_checks/src/transformations/export_checker.dart';
 
 import 'src/js_interop.dart';
 
 class JsInteropChecks extends RecursiveVisitor {
   final CoreTypes _coreTypes;
   final DiagnosticReporter<Message, LocatedMessage> _diagnosticsReporter;
+  final ExportChecker exportChecker;
   final Map<String, Class> _nativeClasses;
+  final _TypeParameterVisitor _typeParameterVisitor = _TypeParameterVisitor();
   bool _classHasJSAnnotation = false;
   bool _classHasAnonymousAnnotation = false;
   bool _classHasStaticInteropAnnotation = false;
+  bool _inTearoff = false;
   bool _libraryHasJSAnnotation = false;
   Map<Reference, Extension>? _libraryExtensionsIndex;
+  // TODO(joshualitt): These checks add value for our users, but unfortunately
+  // some backends support multiple native APIs. We should really make a neutral
+  // 'ExternalUsageVerifier` class, but until then we just disable this check on
+  // Dart2Wasm.
+  final bool enableDisallowedExternalCheck;
 
   /// Libraries that use `external` to exclude from checks on external.
   static final Iterable<String> _pathsWithAllowedDartExternalUsage = <String>[
@@ -78,7 +94,10 @@ class JsInteropChecks extends RecursiveVisitor {
   bool _libraryIsGlobalNamespace = false;
 
   JsInteropChecks(
-      this._coreTypes, this._diagnosticsReporter, this._nativeClasses);
+      this._coreTypes, this._diagnosticsReporter, this._nativeClasses,
+      {this.enableDisallowedExternalCheck = true})
+      : exportChecker =
+            ExportChecker(_diagnosticsReporter, _coreTypes.objectClass);
 
   /// Extract all native class names from the [component].
   ///
@@ -104,6 +123,7 @@ class JsInteropChecks extends RecursiveVisitor {
     if (!_isJSInteropMember(member)) _checkDisallowedExternal(member);
     // TODO(43530): Disallow having JS interop annotations on non-external
     // members (class members or otherwise). Currently, they're being ignored.
+    exportChecker.visitMember(member);
     super.defaultMember(member);
   }
 
@@ -148,24 +168,53 @@ class JsInteropChecks extends RecursiveVisitor {
             cls.fileOffset,
             cls.name.length,
             cls.fileUri);
-      } else if (_classHasStaticInteropAnnotation) {
-        if (!hasStaticInteropAnnotation(superclass)) {
+      } else if (_classHasStaticInteropAnnotation &&
+          !hasStaticInteropAnnotation(superclass)) {
+        _diagnosticsReporter.report(
+            templateJsInteropStaticInteropWithNonStaticSupertype.withArguments(
+                cls.name, superclass.name),
+            cls.fileOffset,
+            cls.name.length,
+            cls.fileUri);
+      } else if (!_classHasStaticInteropAnnotation &&
+          hasStaticInteropAnnotation(superclass)) {
+        _diagnosticsReporter.report(
+            templateJsInteropNonStaticWithStaticInteropSupertype.withArguments(
+                cls.name, superclass.name),
+            cls.fileOffset,
+            cls.name.length,
+            cls.fileUri);
+      }
+    }
+    if (_classHasStaticInteropAnnotation) {
+      if (!_classHasJSAnnotation) {
+        _diagnosticsReporter.report(
+            templateJsInteropStaticInteropNoJSAnnotation
+                .withArguments(cls.name),
+            cls.fileOffset,
+            cls.name.length,
+            cls.fileUri);
+      }
+      // Validate that superinterfaces are all annotated as static as well. Note
+      // that mixins are already disallowed and therefore are not checked here.
+      for (var supertype in cls.implementedTypes) {
+        if (!hasStaticInteropAnnotation(supertype.classNode)) {
           _diagnosticsReporter.report(
               templateJsInteropStaticInteropWithNonStaticSupertype
-                  .withArguments(cls.name, superclass.name),
+                  .withArguments(cls.name, supertype.classNode.name),
               cls.fileOffset,
               cls.name.length,
               cls.fileUri);
         }
       }
     }
-    // Validate that superinterfaces are all annotated as static as well. Note
-    // that mixins are already disallowed and therefore are not checked here.
-    if (_classHasStaticInteropAnnotation) {
+    // The converse of the above. If the class is not marked as static, it
+    // should not implement a class that is.
+    if (!_classHasStaticInteropAnnotation) {
       for (var supertype in cls.implementedTypes) {
-        if (!hasStaticInteropAnnotation(supertype.classNode)) {
+        if (hasStaticInteropAnnotation(supertype.classNode)) {
           _diagnosticsReporter.report(
-              templateJsInteropStaticInteropWithNonStaticSupertype
+              templateJsInteropNonStaticWithStaticInteropSupertype
                   .withArguments(cls.name, supertype.classNode.name),
               cls.fileOffset,
               cls.name.length,
@@ -203,6 +252,9 @@ class JsInteropChecks extends RecursiveVisitor {
       }
     }
     super.visitClass(cls);
+    // Validate `@JSExport` usage after so we know if the members have the
+    // annotation.
+    exportChecker.visitClass(cls);
     _classHasAnonymousAnnotation = false;
     _classHasJSAnnotation = false;
   }
@@ -222,6 +274,7 @@ class JsInteropChecks extends RecursiveVisitor {
       _libraryIsGlobalNamespace = true;
     }
     super.visitLibrary(lib);
+    exportChecker.visitLibrary(lib);
     _libraryIsGlobalNamespace = false;
     _libraryHasJSAnnotation = false;
     _libraryExtensionsIndex = null;
@@ -262,7 +315,7 @@ class JsInteropChecks extends RecursiveVisitor {
       if (isAnonymousFactory) {
         // ignore: unnecessary_null_comparison
         if (procedure.function != null &&
-            !procedure.function.positionalParameters.isEmpty) {
+            procedure.function.positionalParameters.isNotEmpty) {
           var firstPositionalParam = procedure.function.positionalParameters[0];
           _diagnosticsReporter.report(
               messageJsInteropAnonymousFactoryPositionalParameters,
@@ -300,6 +353,29 @@ class JsInteropChecks extends RecursiveVisitor {
           procedure.name.text.length,
           procedure.fileUri);
     }
+
+    if (procedure.isExternal &&
+        procedure.isExtensionMember &&
+        _isStaticInteropExtensionMember(procedure)) {
+      // If the extension has type parameters of its own, it copies those type
+      // parameters to the procedure's type parameters (in the front) as well.
+      // Ignore these for the analysis.
+      var extensionTypeParams =
+          _libraryExtensionsIndex![procedure.reference]!.typeParameters;
+      var procedureTypeParams = List.from(procedure.function.typeParameters);
+      procedureTypeParams.removeRange(0, extensionTypeParams.length);
+      if (procedureTypeParams.isNotEmpty ||
+          _typeParameterVisitor.usesTypeParameters(procedure)) {
+        _diagnosticsReporter.report(
+            messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters,
+            procedure.fileOffset,
+            procedure.name.text.length,
+            procedure.fileUri);
+      }
+    }
+    _inTearoff = isTearOffLowering(procedure);
+    super.visitProcedure(procedure);
+    _inTearoff = false;
   }
 
   @override
@@ -318,15 +394,22 @@ class JsInteropChecks extends RecursiveVisitor {
   @override
   void visitConstructor(Constructor constructor) {
     _checkInstanceMemberJSAnnotation(constructor);
-    if (_classHasJSAnnotation &&
-        !constructor.isExternal &&
-        !constructor.isSynthetic) {
-      // Non-synthetic constructors must be annotated with `external`.
-      _diagnosticsReporter.report(
-          messageJsInteropNonExternalConstructor,
-          constructor.fileOffset,
-          constructor.name.text.length,
-          constructor.fileUri);
+    if (!constructor.isSynthetic) {
+      if (_classHasJSAnnotation && !constructor.isExternal) {
+        // Non-synthetic constructors must be annotated with `external`.
+        _diagnosticsReporter.report(
+            messageJsInteropNonExternalConstructor,
+            constructor.fileOffset,
+            constructor.name.text.length,
+            constructor.fileUri);
+      }
+      if (_classHasStaticInteropAnnotation) {
+        _diagnosticsReporter.report(
+            messageJsInteropStaticInteropGenerativeConstructor,
+            constructor.fileOffset,
+            constructor.name.text.length,
+            constructor.fileUri);
+      }
     }
 
     if (!_isJSInteropMember(constructor)) {
@@ -336,10 +419,34 @@ class JsInteropChecks extends RecursiveVisitor {
     }
   }
 
+  @override
+  void visitConstructorInvocation(ConstructorInvocation node) {
+    var constructor = node.target;
+    if (constructor.isSynthetic &&
+        // Synthetic tear-offs are created for synthetic constructors by
+        // invoking them, so they need to be excluded here.
+        !_inTearoff &&
+        hasStaticInteropAnnotation(constructor.enclosingClass)) {
+      // TODO(srujzs): This is insufficient to disallow use of synthetic
+      // constructors, as tear-offs may be used. However, use of such tear-offs
+      // are lowered as a StaticTearOffConstant. This means that we'll need a
+      // constant visitor in order to handle that correctly. It should be rare
+      // for users to use those tear-offs in favor of just invocation, but it's
+      // plausible. For now, in order to avoid the complexity and the extra
+      // visiting, we don't check tear-off usage.
+      _diagnosticsReporter.report(
+          messageJsInteropStaticInteropSyntheticConstructor,
+          node.fileOffset,
+          node.name.text.length,
+          node.location?.file);
+    }
+    super.visitConstructorInvocation(node);
+  }
+
   /// Reports an error if [functionNode] has named parameters.
   void _checkNoNamedParameters(FunctionNode functionNode) {
     // ignore: unnecessary_null_comparison
-    if (functionNode != null && !functionNode.namedParameters.isEmpty) {
+    if (functionNode != null && functionNode.namedParameters.isNotEmpty) {
       var firstNamedParam = functionNode.namedParameters[0];
       _diagnosticsReporter.report(
           messageJsInteropNamedParameters,
@@ -373,6 +480,8 @@ class JsInteropChecks extends RecursiveVisitor {
   /// Assumes given [member] is not JS interop, and reports an error if
   /// [member] is `external` and not an allowed `external` usage.
   void _checkDisallowedExternal(Member member) {
+    // Some backends have multiple native APIs.
+    if (!enableDisallowedExternalCheck) return;
     if (member.isExternal) {
       if (member.isExtensionMember) {
         if (!_isNativeExtensionMember(member)) {
@@ -442,13 +551,19 @@ class JsInteropChecks extends RecursiveVisitor {
     return _checkExtensionMember(member, hasJSInteropAnnotation);
   }
 
+  /// Returns whether given extension [member] is in an extension that is on a
+  /// `@staticInterop` class.
+  bool _isStaticInteropExtensionMember(Member member) {
+    return _checkExtensionMember(member, hasStaticInteropAnnotation);
+  }
+
   /// Returns whether given extension [member] is in an extension on a Native
   /// class.
   bool _isNativeExtensionMember(Member member) {
     return _checkExtensionMember(member, _nativeClasses.containsValue);
   }
 
-  /// Returns whether given extension [member] is on a class that passses the
+  /// Returns whether given extension [member] is on a class that passes the
   /// given [validateExtensionClass].
   bool _checkExtensionMember(Member member, Function validateExtensionClass) {
     assert(member.isExtensionMember);
@@ -461,5 +576,20 @@ class JsInteropChecks extends RecursiveVisitor {
 
     var onType = _libraryExtensionsIndex![member.reference]!.onType;
     return onType is InterfaceType && validateExtensionClass(onType.classNode);
+  }
+}
+
+class _TypeParameterVisitor extends RecursiveVisitor {
+  bool _visitedTypeParameterType = false;
+
+  bool usesTypeParameters(Node node) {
+    _visitedTypeParameterType = false;
+    node.accept(this);
+    return _visitedTypeParameterType;
+  }
+
+  @override
+  void visitTypeParameterType(TypeParameterType node) {
+    _visitedTypeParameterType = true;
   }
 }

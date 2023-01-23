@@ -23,7 +23,7 @@ class AnalysisSessionHelperTest extends PubPackageResolutionTest {
   @override
   void setUp() {
     super.setUp();
-    var session = contextFor(testFilePath).currentSession;
+    var session = contextFor(testFile).currentSession;
     helper = AnalysisSessionHelper(session);
   }
 
@@ -81,7 +81,7 @@ class A {}
     var element = findElement.class_('A');
     var result = (await helper.getElementDeclaration(element))!;
     var node = result.node as ClassDeclaration;
-    expect(node.name.name, 'A');
+    expect(node.name.lexeme, 'A');
   }
 
   test_getResolvedUnitByElement() async {

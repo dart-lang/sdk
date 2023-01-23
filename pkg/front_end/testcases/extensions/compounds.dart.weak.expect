@@ -242,8 +242,8 @@ static method testProperties() → dynamic {
   self::expect(n0, let final self::Class #t83 = v in let final self::Number #t84 = self::NumberExtension|-(self::ClassExtension|get#property(#t83), n1) in let final void #t85 = self::ClassExtension|set#property(#t83, #t84) in #t84);
   self::expect(n1, let final self::Class #t86 = v in let final self::Number #t87 = self::NumberExtension|+(self::ClassExtension|get#property(#t86), 1) in let final void #t88 = self::ClassExtension|set#property(#t86, #t87) in #t87);
   self::expect(n0, let final self::Class #t89 = v in let final self::Number #t90 = self::NumberExtension|-(self::ClassExtension|get#property(#t89), 1) in let final void #t91 = self::ClassExtension|set#property(#t89, #t90) in #t90);
-  self::expect(n0, let final self::Class #t92 = v in let final self::Number #t93 = self::ClassExtension|get#property(#t92) in let final self::Number #t94 = self::ClassExtension|set#property(#t92, self::NumberExtension|+(#t93, 1)) in #t93);
-  self::expect(n1, let final self::Class #t95 = v in let final self::Number #t96 = self::ClassExtension|get#property(#t95) in let final self::Number #t97 = self::ClassExtension|set#property(#t95, self::NumberExtension|-(#t96, 1)) in #t96);
+  self::expect(n0, let final self::Class #t92 = v in let final self::Number #t93 = self::ClassExtension|get#property(#t92) in let final void #t94 = self::ClassExtension|set#property(#t92, self::NumberExtension|+(#t93, 1)) in #t93);
+  self::expect(n1, let final self::Class #t95 = v in let final self::Number #t96 = self::ClassExtension|get#property(#t95) in let final void #t97 = self::ClassExtension|set#property(#t95, self::NumberExtension|-(#t96, 1)) in #t96);
   self::expect(n0, self::ClassExtension|get#property(v));
   self::expect(n0, self::ClassExtension|get#property(v));
   let final self::Class #t98 = v in self::ClassExtension|set#property(#t98, self::NumberExtension|+(self::ClassExtension|get#property(#t98), n1));
@@ -308,8 +308,8 @@ static method testIntProperties() → dynamic {
   self::expect(n0, let final self::IntClass #t145 = v in let final core::int #t146 = self::IntClassExtension|get#property(#t145).{core::num::-}(n1){(core::num) → core::int} in let final void #t147 = self::IntClassExtension|set#property(#t145, #t146) in #t146);
   self::expect(n1, let final self::IntClass #t148 = v in let final core::int #t149 = self::IntClassExtension|get#property(#t148).{core::num::+}(1){(core::num) → core::int} in let final void #t150 = self::IntClassExtension|set#property(#t148, #t149) in #t149);
   self::expect(n0, let final self::IntClass #t151 = v in let final core::int #t152 = self::IntClassExtension|get#property(#t151).{core::num::-}(1){(core::num) → core::int} in let final void #t153 = self::IntClassExtension|set#property(#t151, #t152) in #t152);
-  self::expect(n0, let final self::IntClass #t154 = v in let final core::int #t155 = self::IntClassExtension|get#property(#t154) in let final core::int #t156 = self::IntClassExtension|set#property(#t154, #t155.{core::num::+}(1){(core::num) → core::int}) in #t155);
-  self::expect(n1, let final self::IntClass #t157 = v in let final core::int #t158 = self::IntClassExtension|get#property(#t157) in let final core::int #t159 = self::IntClassExtension|set#property(#t157, #t158.{core::num::-}(1){(core::num) → core::int}) in #t158);
+  self::expect(n0, let final self::IntClass #t154 = v in let final core::int #t155 = self::IntClassExtension|get#property(#t154) in let final void #t156 = self::IntClassExtension|set#property(#t154, #t155.{core::num::+}(1){(core::num) → core::int}) in #t155);
+  self::expect(n1, let final self::IntClass #t157 = v in let final core::int #t158 = self::IntClassExtension|get#property(#t157) in let final void #t159 = self::IntClassExtension|set#property(#t157, #t158.{core::num::-}(1){(core::num) → core::int}) in #t158);
   self::expect(n0, self::IntClassExtension|get#property(v));
   self::expect(n0, self::IntClassExtension|get#property(v));
   let final self::IntClass #t160 = v in self::IntClassExtension|set#property(#t160, self::IntClassExtension|get#property(#t160).{core::num::+}(n1){(core::num) → core::int});

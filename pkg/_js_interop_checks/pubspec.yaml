@@ -8,4 +8,9 @@ environment:
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
   _fe_analyzer_shared: any
+  front_end: any
   kernel: any
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dev_dependencies:
+  lints: any

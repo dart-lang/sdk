@@ -23,7 +23,7 @@ import 'package:meta/meta.dart';
 /// But it should be used where nullability does not make sense - to specify
 /// superclasses, mixins, and implemented interfaces.
 class InstantiatedClass {
-  final ClassElement element;
+  final InterfaceElement element;
   final List<DartType> arguments;
 
   final Substitution _substitution;
@@ -70,6 +70,8 @@ class InstantiatedClass {
   /// Return the superclass of this type, or `null` if this type represents
   /// the class 'Object'.
   InstantiatedClass? get superclass {
+    final element = this.element;
+
     var supertype = element.supertype;
     if (supertype == null) return null;
 
@@ -83,8 +85,13 @@ class InstantiatedClass {
   /// the declaration does not have an `on` clause, then the list will contain
   /// the type for the class `Object`.
   List<InstantiatedClass> get superclassConstraints {
-    var constraints = element.superclassConstraints;
-    return _toInstantiatedClasses(constraints);
+    final element = this.element;
+    if (element is MixinElement) {
+      var constraints = element.superclassConstraints;
+      return _toInstantiatedClasses(constraints);
+    } else {
+      return [];
+    }
   }
 
   @visibleForTesting
@@ -278,8 +285,9 @@ class InterfaceLeastUpperBoundHelper {
   /// Return the length of the longest inheritance path from the [element] to
   /// Object.
   @visibleForTesting
-  static int computeLongestInheritancePathToObject(ClassElement element) {
-    return _computeLongestInheritancePathToObject(element, <ClassElement>{});
+  static int computeLongestInheritancePathToObject(InterfaceElement element) {
+    return _computeLongestInheritancePathToObject(
+        element, <InterfaceElement>{});
   }
 
   /// Add all of the superinterfaces of the given [type] to the given [set].
@@ -339,9 +347,10 @@ class InterfaceLeastUpperBoundHelper {
   /// is used to prevent infinite recursion in the case of a cyclic type
   /// structure.
   static int _computeLongestInheritancePathToObject(
-      ClassElement element, Set<ClassElement> visitedElements) {
+      InterfaceElement element, Set<InterfaceElement> visitedElements) {
     // Object case
-    if (element.isDartCoreObject || visitedElements.contains(element)) {
+    if (element is ClassElement && element.isDartCoreObject ||
+        visitedElements.contains(element)) {
       return 0;
     }
     int longestPath = 0;
@@ -350,10 +359,12 @@ class InterfaceLeastUpperBoundHelper {
 
       // loop through each of the superinterfaces recursively calling this
       // method and keeping track of the longest path to return
-      for (InterfaceType interface in element.superclassConstraints) {
-        var pathLength = _computeLongestInheritancePathToObject(
-            interface.element, visitedElements);
-        longestPath = max(longestPath, 1 + pathLength);
+      if (element is MixinElement) {
+        for (InterfaceType interface in element.superclassConstraints) {
+          var pathLength = _computeLongestInheritancePathToObject(
+              interface.element, visitedElements);
+          longestPath = max(longestPath, 1 + pathLength);
+        }
       }
 
       // loop through each of the superinterfaces recursively calling this
@@ -362,6 +373,10 @@ class InterfaceLeastUpperBoundHelper {
         var pathLength = _computeLongestInheritancePathToObject(
             interface.element, visitedElements);
         longestPath = max(longestPath, 1 + pathLength);
+      }
+
+      if (element is! ClassElement) {
+        return longestPath;
       }
 
       var supertype = element.supertype;
@@ -692,6 +707,31 @@ class LeastUpperBoundHelper {
       return getLeastUpperBound(T1, _typeSystem.objectNone);
     }
 
+    // UP((...), Record) = Record
+    if (T1 is RecordType && T2.isDartCoreRecord) {
+      return T2;
+    }
+
+    // UP(Record, (...)) = Record
+    if (T1.isDartCoreRecord && T2 is RecordType) {
+      return T1;
+    }
+
+    // Record types.
+    if (T1 is RecordTypeImpl && T2 is RecordTypeImpl) {
+      return _recordType(T1, T2);
+    }
+
+    // UP(RecordType, T2) = UP(Object, T2)
+    if (T1 is RecordTypeImpl) {
+      return getLeastUpperBound(_typeSystem.objectNone, T2);
+    }
+
+    // UP(T1, RecordType) = UP(T1, Object)
+    if (T2 is RecordTypeImpl) {
+      return getLeastUpperBound(T1, _typeSystem.objectNone);
+    }
+
     var futureOrResult = _futureOr(T1, T2);
     if (futureOrResult != null) {
       return futureOrResult;
@@ -876,6 +916,54 @@ class LeastUpperBoundHelper {
 
   DartType _parameterType(ParameterElement a, ParameterElement b) {
     return _typeSystem.getGreatestLowerBound(a.type, b.type);
+  }
+
+  DartType _recordType(RecordTypeImpl T1, RecordTypeImpl T2) {
+    final positional1 = T1.positionalFields;
+    final positional2 = T2.positionalFields;
+    if (positional1.length != positional2.length) {
+      return _typeSystem.typeProvider.recordType;
+    }
+
+    final named1 = T1.namedFields;
+    final named2 = T2.namedFields;
+    if (named1.length != named2.length) {
+      return _typeSystem.typeProvider.recordType;
+    }
+
+    final positionalFields = <RecordTypePositionalFieldImpl>[];
+    for (var i = 0; i < positional1.length; i++) {
+      final field1 = positional1[i];
+      final field2 = positional2[i];
+      final type = getLeastUpperBound(field1.type, field2.type);
+      positionalFields.add(
+        RecordTypePositionalFieldImpl(
+          type: type,
+        ),
+      );
+    }
+
+    final namedFields = <RecordTypeNamedFieldImpl>[];
+    for (var i = 0; i < named1.length; i++) {
+      final field1 = named1[i];
+      final field2 = named2[i];
+      if (field1.name != field2.name) {
+        return _typeSystem.typeProvider.recordType;
+      }
+      final type = getLeastUpperBound(field1.type, field2.type);
+      namedFields.add(
+        RecordTypeNamedFieldImpl(
+          name: field1.name,
+          type: type,
+        ),
+      );
+    }
+
+    return RecordTypeImpl(
+      positionalFields: positionalFields,
+      namedFields: namedFields,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 
   /// Return the promoted or declared bound of the type parameter.

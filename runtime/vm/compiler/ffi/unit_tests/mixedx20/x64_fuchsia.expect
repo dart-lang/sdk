@@ -1,0 +1,22 @@
+rdi int64
+xmm0 float
+rsi int64
+xmm1 double
+rdx int64
+xmm2 float
+rcx int64
+xmm3 double
+r8 int64
+xmm4 float
+r9 int64
+xmm5 double
+S+0 int64
+xmm6 float
+S+8 int64
+xmm7 double
+S+16 int64
+S+24 float
+S+32 int64
+S+40 double
+=>
+xmm0 double

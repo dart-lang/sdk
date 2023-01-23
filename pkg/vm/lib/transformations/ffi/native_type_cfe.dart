@@ -51,14 +51,14 @@ abstract class NativeTypeCfe {
     }
     if (transformer.isAbiSpecificIntegerSubtype(dartType)) {
       final clazz = (dartType as InterfaceType).classNode;
-      final mappingConstants =
-          transformer.getAbiSpecificIntegerMappingAnnotations(clazz);
-      if (alreadyInAbiSpecificType || mappingConstants.length != 1) {
+      final mappingConstant =
+          transformer.getAbiSpecificIntegerMappingAnnotation(clazz);
+      if (alreadyInAbiSpecificType || mappingConstant == null) {
         // Unsupported mapping.
         return AbiSpecificNativeTypeCfe({}, clazz);
       }
       final mapping =
-          Map.fromEntries(mappingConstants.first.entries.map((e) => MapEntry(
+          Map.fromEntries(mappingConstant.entries.map((e) => MapEntry(
               transformer.constantAbis[e.key]!,
               NativeTypeCfe(
                 transformer,

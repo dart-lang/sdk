@@ -175,6 +175,11 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   @override
+  void visitIntersectionType(IntersectionType node) {
+    return node.left.accept(this);
+  }
+
+  @override
   void visitFunctionType(FunctionType node) {
     node.returnType.accept(this);
     result.add(" Function");
@@ -286,6 +291,54 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   @override
+  void visitViewType(ViewType node) {
+    // TODO(johnniwinther): Ensure enclosing libraries on extensions earlier
+    // in the compiler to ensure types in error messages have context.
+    Library? enclosingLibrary = node.view.parent as Library?;
+    result.add(nameForEntity(
+        node.view,
+        node.view.name,
+        enclosingLibrary?.importUri ?? unknownUri,
+        enclosingLibrary?.fileUri ?? unknownUri));
+    if (node.typeArguments.isNotEmpty) {
+      result.add("<");
+      bool first = true;
+      for (DartType typeArg in node.typeArguments) {
+        if (!first) result.add(", ");
+        typeArg.accept(this);
+        first = false;
+      }
+      result.add(">");
+    }
+    addNullability(node.declaredNullability);
+  }
+
+  @override
+  void visitRecordType(RecordType node) {
+    result.add("(");
+    bool first = true;
+    for (int i = 0; i < node.positional.length; i++) {
+      if (!first) result.add(", ");
+      node.positional[i].accept(this);
+      first = false;
+    }
+    if (node.named.isNotEmpty) {
+      if (node.positional.isNotEmpty) result.add(", ");
+      result.add("{");
+      first = true;
+      for (int i = 0; i < node.named.length; i++) {
+        if (!first) result.add(", ");
+        node.named[i].type.accept(this);
+        result.add(" ${node.named[i].name}");
+        first = false;
+      }
+      result.add("}");
+    }
+    result.add(")");
+    addNullability(node.nullability);
+  }
+
+  @override
   void defaultConstant(Constant node) {}
 
   @override
@@ -381,6 +434,30 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
       first = false;
     }
     result.add("}");
+  }
+
+  @override
+  void visitRecordConstant(RecordConstant node) {
+    result.add("(");
+    bool first = true;
+    for (Constant field in node.positional) {
+      if (!first) result.add(", ");
+      field.accept(this);
+      first = false;
+    }
+    if (node.named.isNotEmpty) {
+      if (node.positional.isNotEmpty) result.add(", ");
+      result.add("{");
+      first = true;
+      for (MapEntry<String, Constant> entry in node.named.entries) {
+        if (!first) result.add(", ");
+        result.add("${entry.key}: ");
+        entry.value.accept(this);
+        first = false;
+      }
+      result.add("}");
+    }
+    result.add(")");
   }
 
   @override

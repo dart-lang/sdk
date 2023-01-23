@@ -21,41 +21,46 @@ class MakeFieldPublic extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    if (node is! SimpleIdentifier) {
+    final declaration = node;
+    if (declaration is! MethodDeclaration) {
       return;
     }
-    var getterName = node.name;
+    var getterName = declaration.name.lexeme;
     _fieldName = '_$getterName';
-    var parent = node.parent;
-    if (parent is MethodDeclaration && parent.name == node && parent.isGetter) {
-      var container = parent.parent;
-      if (container is ClassOrMixinDeclaration) {
-        var members = container.members;
-        MethodDeclaration? setter;
-        VariableDeclaration? field;
-        for (var member in members) {
-          if (member is MethodDeclaration &&
-              member.name.name == getterName &&
-              member.isSetter) {
-            setter = member;
-          } else if (member is FieldDeclaration) {
-            for (var variable in member.fields.variables) {
-              if (variable.name.name == _fieldName) {
-                field = variable;
-              }
+    if (declaration.name == token && declaration.isGetter) {
+      NodeList<ClassMember> members;
+      var container = declaration.parent;
+      if (container is ClassDeclaration) {
+        members = container.members;
+      } else if (container is MixinDeclaration) {
+        members = container.members;
+      } else {
+        return;
+      }
+
+      MethodDeclaration? setter;
+      VariableDeclaration? field;
+      for (var member in members) {
+        if (member is MethodDeclaration &&
+            member.name.lexeme == getterName &&
+            member.isSetter) {
+          setter = member;
+        } else if (member is FieldDeclaration) {
+          for (var variable in member.fields.variables) {
+            if (variable.name.lexeme == _fieldName) {
+              field = variable;
             }
           }
         }
-        if (setter == null || field == null) {
-          return;
-        }
-        await builder.addDartFileEdit(file, (builder) {
-          builder.addSimpleReplacement(range.node(field!.name), getterName);
-          builder.removeMember(members, parent);
-          builder.removeMember(members, setter!);
-        });
       }
+      if (setter == null || field == null) {
+        return;
+      }
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleReplacement(range.token(field!.name), getterName);
+        builder.removeMember(members, declaration);
+        builder.removeMember(members, setter!);
+      });
     }
   }
 }

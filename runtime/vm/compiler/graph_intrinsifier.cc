@@ -200,6 +200,7 @@ static Definition* CreateBoxedResultIfNeeded(BlockBuilder* builder,
                                              Definition* value,
                                              Representation representation) {
   const auto& function = builder->function();
+  ASSERT(!function.has_unboxed_record_return());
   if (function.has_unboxed_return()) {
     return value;
   } else {
@@ -211,6 +212,7 @@ static Definition* CreateBoxedResultIfNeeded(BlockBuilder* builder,
 static Definition* CreateUnboxedResultIfNeeded(BlockBuilder* builder,
                                                Definition* value) {
   const auto& function = builder->function();
+  ASSERT(!function.has_unboxed_record_return());
   if (function.has_unboxed_return() && value->representation() == kTagged) {
     return builder->AddUnboxInstr(FlowGraph::ReturnRepresentationOf(function),
                                   new Value(value), /* is_checked = */ true);
@@ -673,8 +675,8 @@ bool GraphIntrinsifier::Build_Float64x2Add(FlowGraph* flow_graph) {
   return BuildSimdOp(flow_graph, kFloat64x2Cid, Token::kADD);
 }
 
-static bool BuildFloat32x4Shuffle(FlowGraph* flow_graph,
-                                  MethodRecognizer::Kind kind) {
+static bool BuildFloat32x4Get(FlowGraph* flow_graph,
+                              MethodRecognizer::Kind kind) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles() ||
       !FlowGraphCompiler::SupportsUnboxedSimd128()) {
     return false;
@@ -702,24 +704,20 @@ static bool BuildFloat32x4Shuffle(FlowGraph* flow_graph,
   return true;
 }
 
-bool GraphIntrinsifier::Build_Float32x4ShuffleX(FlowGraph* flow_graph) {
-  return BuildFloat32x4Shuffle(flow_graph,
-                               MethodRecognizer::kFloat32x4ShuffleX);
+bool GraphIntrinsifier::Build_Float32x4GetX(FlowGraph* flow_graph) {
+  return BuildFloat32x4Get(flow_graph, MethodRecognizer::kFloat32x4GetX);
 }
 
-bool GraphIntrinsifier::Build_Float32x4ShuffleY(FlowGraph* flow_graph) {
-  return BuildFloat32x4Shuffle(flow_graph,
-                               MethodRecognizer::kFloat32x4ShuffleY);
+bool GraphIntrinsifier::Build_Float32x4GetY(FlowGraph* flow_graph) {
+  return BuildFloat32x4Get(flow_graph, MethodRecognizer::kFloat32x4GetY);
 }
 
-bool GraphIntrinsifier::Build_Float32x4ShuffleZ(FlowGraph* flow_graph) {
-  return BuildFloat32x4Shuffle(flow_graph,
-                               MethodRecognizer::kFloat32x4ShuffleZ);
+bool GraphIntrinsifier::Build_Float32x4GetZ(FlowGraph* flow_graph) {
+  return BuildFloat32x4Get(flow_graph, MethodRecognizer::kFloat32x4GetZ);
 }
 
-bool GraphIntrinsifier::Build_Float32x4ShuffleW(FlowGraph* flow_graph) {
-  return BuildFloat32x4Shuffle(flow_graph,
-                               MethodRecognizer::kFloat32x4ShuffleW);
+bool GraphIntrinsifier::Build_Float32x4GetW(FlowGraph* flow_graph) {
+  return BuildFloat32x4Get(flow_graph, MethodRecognizer::kFloat32x4GetW);
 }
 
 static bool BuildLoadField(FlowGraph* flow_graph, const Slot& field) {
@@ -876,7 +874,7 @@ bool GraphIntrinsifier::Build_GrowableArraySetData(FlowGraph* flow_graph) {
   builder.AddInstruction(new CheckClassInstr(new Value(data), DeoptId::kNone,
                                              *value_check, builder.Source()));
 
-  builder.AddInstruction(new StoreInstanceFieldInstr(
+  builder.AddInstruction(new StoreFieldInstr(
       Slot::GrowableObjectArray_data(), new Value(growable_array),
       new Value(data), kEmitStoreBarrier, builder.Source()));
   // Return null.
@@ -898,7 +896,7 @@ bool GraphIntrinsifier::Build_GrowableArraySetLength(FlowGraph* flow_graph) {
 
   builder.AddInstruction(
       new CheckSmiInstr(new Value(length), DeoptId::kNone, builder.Source()));
-  builder.AddInstruction(new StoreInstanceFieldInstr(
+  builder.AddInstruction(new StoreFieldInstr(
       Slot::GrowableObjectArray_length(), new Value(growable_array),
       new Value(length), kNoStoreBarrier, builder.Source()));
   Definition* null_def = builder.AddNullDefinition();
@@ -1058,10 +1056,11 @@ bool GraphIntrinsifier::Build_ImplicitGetter(FlowGraph* flow_graph) {
 
   // We only support cases where we do not have to create a box (whose
   // allocation could fail).
-  ASSERT(function.HasUnboxedReturnValue() || !slot.IsUnboxed());
+  ASSERT(function.HasUnboxedReturnValue() || !slot.is_unboxed());
+  ASSERT(!function.has_unboxed_record_return());
 
   // We might need to unbox the field value before returning.
-  if (function.HasUnboxedReturnValue() && !slot.IsUnboxed()) {
+  if (function.HasUnboxedReturnValue() && !slot.is_unboxed()) {
     ASSERT(FLAG_precompiled_mode);
     field_value = builder.AddUnboxInstr(
         FlowGraph::ReturnRepresentationOf(flow_graph->function()),
@@ -1086,10 +1085,10 @@ bool GraphIntrinsifier::Build_ImplicitSetter(FlowGraph* flow_graph) {
   }
   ASSERT(field.is_instance() && !field.is_final());
   const auto& slot = Slot::Get(field, &flow_graph->parsed_function());
-  ASSERT(!function.HasUnboxedParameters() || slot.IsUnboxed());
+  ASSERT(!function.HasUnboxedParameters() || slot.is_unboxed());
 
   const auto barrier_mode =
-      slot.IsUnboxed() ? kNoStoreBarrier : kEmitStoreBarrier;
+      slot.is_unboxed() ? kNoStoreBarrier : kEmitStoreBarrier;
 
   flow_graph->CreateCommonConstants();
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
@@ -1100,7 +1099,7 @@ bool GraphIntrinsifier::Build_ImplicitSetter(FlowGraph* flow_graph) {
   auto value = builder.AddParameter(1, /*with_frame=*/false);
   VerifyParameterIsBoxed(&builder, 0);
 
-  if (!function.HasUnboxedParameters() && slot.IsUnboxed()) {
+  if (!function.HasUnboxedParameters() && slot.is_unboxed()) {
     // We do not support storing to possibly guarded fields in JIT in graph
     // intrinsics.
     ASSERT(FLAG_precompiled_mode);
@@ -1109,7 +1108,7 @@ bool GraphIntrinsifier::Build_ImplicitSetter(FlowGraph* flow_graph) {
                               /*is_checked=*/true);
   }
 
-  builder.AddInstruction(new (zone) StoreInstanceFieldInstr(
+  builder.AddInstruction(new (zone) StoreFieldInstr(
       slot, new (zone) Value(receiver), new (zone) Value(value), barrier_mode,
       builder.Source()));
 

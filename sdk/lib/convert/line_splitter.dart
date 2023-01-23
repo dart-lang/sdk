@@ -44,26 +44,9 @@ class LineSplitter extends StreamTransformerBase<String, String> {
   /// `lines.substring(start, end)`. The [start] and [end] values must
   /// specify a valid sub-range of [lines]
   /// (`0 <= start <= end <= lines.length`).
-  static Iterable<String> split(String lines, [int start = 0, int? end]) sync* {
+  static Iterable<String> split(String lines, [int start = 0, int? end]) {
     end = RangeError.checkValidRange(start, end, lines.length);
-    var sliceStart = start;
-    var char = 0;
-    for (var i = start; i < end; i++) {
-      var previousChar = char;
-      char = lines.codeUnitAt(i);
-      if (char != _CR) {
-        if (char != _LF) continue;
-        if (previousChar == _CR) {
-          sliceStart = i + 1;
-          continue;
-        }
-      }
-      yield lines.substring(sliceStart, i);
-      sliceStart = i + 1;
-    }
-    if (sliceStart < end) {
-      yield lines.substring(sliceStart, end);
-    }
+    return _LineSplitIterable(lines, start, end);
   }
 
   List<String> convert(String data) {
@@ -189,4 +172,55 @@ class _LineSplitterEventSink extends _LineSplitterSink
   void addError(Object o, [StackTrace? stackTrace]) {
     _eventSink.addError(o, stackTrace);
   }
+}
+
+class _LineSplitIterable extends Iterable<String> {
+  final String _source;
+  final int _start, _end;
+  _LineSplitIterable(this._source, this._start, this._end);
+  Iterator<String> get iterator => _LineSplitIterator(_source, _start, _end);
+}
+
+class _LineSplitIterator implements Iterator<String> {
+  final String _source;
+  final int _end;
+  int _start;
+  int _lineStart = 0;
+  int _lineEnd = -1;
+  String? _current;
+  _LineSplitIterator(this._source, this._start, this._end);
+
+  bool moveNext() {
+    _current = null;
+    _lineStart = _start;
+    _lineEnd = -1;
+    var eolLength = 1;
+    for (var i = _start; i < _end; i++) {
+      var char = _source.codeUnitAt(i);
+      if (char != _CR) {
+        if (char != _LF) continue;
+      } else {
+        // Check for CR+LF
+        if (i + 1 < _end && _source.codeUnitAt(i + 1) == _LF) {
+          eolLength = 2;
+        }
+      }
+      _lineEnd = i;
+      _start = i + eolLength;
+      return true;
+    }
+    if (_start < _end) {
+      _lineEnd = _end;
+      _start = _end;
+      return true;
+    }
+    _start = _end;
+    return false;
+  }
+
+  // Creates string lazily on first request.
+  // Makes it cheaper to do `LineSplitter.split(input).skip(5)...`.
+  String get current => _current ??= (_lineEnd >= 0
+      ? _source.substring(_lineStart, _lineEnd)
+      : (throw StateError("No element")));
 }

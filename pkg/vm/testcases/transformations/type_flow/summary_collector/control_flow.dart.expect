@@ -20,7 +20,7 @@ RESULT: _T {}?
 %#name = _Parameter #2 [_T (dart.core::String)+?]
 t3 = _Call direct [dart.core::_Enum.] (%this, %#index, %#name)
 RESULT: _T {}?
------------- TestEnum.toString ------------
+------------ TestEnum._enumToString ------------
 %this = _Parameter #0 [_T (#lib::TestEnum)+]
 t1 = _Call virtual get [dart.core::_Enum._name] (%this)
 RESULT: _T (dart.core::String)+

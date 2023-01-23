@@ -194,7 +194,7 @@ void main() {
   // Using a type variable, not a constant type expression.
   // Canonicalization is unspecified, but equality holds.
   (<T>() {
-    // Tear off with explicit instantation to the same non-constant type.
+    // Tear off with explicit instantiation to the same non-constant type.
     Expect.equals(GGen<T>.new, GGen<T>.new);
     Expect.equals(GGen<T>.named, GGen<T>.named);
     Expect.equals(GGenRedir<T>.new, GGenRedir<T>.new);

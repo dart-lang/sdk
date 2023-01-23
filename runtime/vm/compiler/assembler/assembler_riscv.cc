@@ -125,8 +125,8 @@ intptr_t MicroAssembler::UpdateFarOffset(intptr_t branch_position,
   ASSERT(jr_instr.funct3() == F3_0);
   ASSERT(jr_instr.rs1() == FAR_TMP);
   intptr_t old_offset = auipc_instr.utype_imm() + jr_instr.itype_imm();
-  intx_t lo = new_offset << (XLEN - 12) >> (XLEN - 12);
-  intx_t hi = (new_offset - lo) << (XLEN - 32) >> (XLEN - 32);
+  intx_t lo = ImmLo(new_offset);
+  intx_t hi = ImmHi(new_offset);
   if (!IsUTypeImm(hi)) {
     FATAL("Jump/branch distance exceeds 2GB!");
   }
@@ -1086,12 +1086,12 @@ void MicroAssembler::fsgnjxs(FRegister rd, FRegister rs1, FRegister rs2) {
 
 void MicroAssembler::fmins(FRegister rd, FRegister rs1, FRegister rs2) {
   ASSERT(Supports(RV_F));
-  EmitRType(FMINMAXS, rs2, rs1, MIN, rd, OPFP);
+  EmitRType(FMINMAXS, rs2, rs1, FMIN, rd, OPFP);
 }
 
 void MicroAssembler::fmaxs(FRegister rd, FRegister rs1, FRegister rs2) {
   ASSERT(Supports(RV_F));
-  EmitRType(FMINMAXS, rs2, rs1, MAX, rd, OPFP);
+  EmitRType(FMINMAXS, rs2, rs1, FMAX, rd, OPFP);
 }
 
 void MicroAssembler::feqs(Register rd, FRegister rs1, FRegister rs2) {
@@ -1296,12 +1296,12 @@ void MicroAssembler::fsgnjxd(FRegister rd, FRegister rs1, FRegister rs2) {
 
 void MicroAssembler::fmind(FRegister rd, FRegister rs1, FRegister rs2) {
   ASSERT(Supports(RV_D));
-  EmitRType(FMINMAXD, rs2, rs1, MIN, rd, OPFP);
+  EmitRType(FMINMAXD, rs2, rs1, FMIN, rd, OPFP);
 }
 
 void MicroAssembler::fmaxd(FRegister rd, FRegister rs1, FRegister rs2) {
   ASSERT(Supports(RV_D));
-  EmitRType(FMINMAXD, rs2, rs1, MAX, rd, OPFP);
+  EmitRType(FMINMAXD, rs2, rs1, FMAX, rd, OPFP);
 }
 
 void MicroAssembler::fcvtsd(FRegister rd,
@@ -1311,9 +1311,11 @@ void MicroAssembler::fcvtsd(FRegister rd,
   EmitRType(FCVTS, FRegister(1), rs1, rounding, rd, OPFP);
 }
 
-void MicroAssembler::fcvtds(FRegister rd, FRegister rs1) {
+void MicroAssembler::fcvtds(FRegister rd,
+                            FRegister rs1,
+                            RoundingMode rounding) {
   ASSERT(Supports(RV_D));
-  EmitRType(FCVTD, FRegister(0), rs1, F3_0, rd, OPFP);
+  EmitRType(FCVTD, FRegister(0), rs1, rounding, rd, OPFP);
 }
 
 void MicroAssembler::feqd(Register rd, FRegister rs1, FRegister rs2) {
@@ -1395,6 +1397,242 @@ void MicroAssembler::fmvdx(FRegister rd, Register rs1) {
   EmitRType(FMVDX, FRegister(0), rs1, F3_0, rd, OPFP);
 }
 #endif  // XLEN >= 64
+
+#if XLEN >= 64
+void MicroAssembler::adduw(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zba));
+  EmitRType(ADDUW, rs2, rs1, F3_0, rd, OP32);
+}
+#endif
+
+void MicroAssembler::sh1add(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zba));
+  EmitRType(SHADD, rs2, rs1, SH1ADD, rd, OP);
+}
+
+#if XLEN >= 64
+void MicroAssembler::sh1adduw(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zba));
+  EmitRType(SHADD, rs2, rs1, SH1ADD, rd, OP32);
+}
+#endif
+
+void MicroAssembler::sh2add(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zba));
+  EmitRType(SHADD, rs2, rs1, SH2ADD, rd, OP);
+}
+
+#if XLEN >= 64
+void MicroAssembler::sh2adduw(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zba));
+  EmitRType(SHADD, rs2, rs1, SH2ADD, rd, OP32);
+}
+#endif
+
+void MicroAssembler::sh3add(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zba));
+  EmitRType(SHADD, rs2, rs1, SH3ADD, rd, OP);
+}
+
+#if XLEN >= 64
+void MicroAssembler::sh3adduw(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zba));
+  EmitRType(SHADD, rs2, rs1, SH3ADD, rd, OP32);
+}
+
+void MicroAssembler::slliuw(Register rd, Register rs1, intx_t shamt) {
+  ASSERT((shamt > 0) && (shamt < 32));
+  ASSERT(Supports(RV_Zba));
+  EmitRType(SLLIUW, shamt, rs1, SLLI, rd, OPIMM32);
+}
+#endif
+
+void MicroAssembler::andn(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zbb));
+  EmitRType(SUB, rs2, rs1, AND, rd, OP);
+}
+
+void MicroAssembler::orn(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zbb));
+  EmitRType(SUB, rs2, rs1, OR, rd, OP);
+}
+
+void MicroAssembler::xnor(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zbb));
+  EmitRType(SUB, rs2, rs1, XOR, rd, OP);
+}
+
+void MicroAssembler::clz(Register rd, Register rs1) {
+  ASSERT(Supports(RV_Zbb));
+  EmitRType(COUNT, 0b00000, rs1, F3_COUNT, rd, OPIMM);
+}
+
+void MicroAssembler::clzw(Register rd, Register rs1) {
+  ASSERT(Supports(RV_Zbb));
+  EmitRType(COUNT, 0b00000, rs1, F3_COUNT, rd, OPIMM32);
+}
+
+void MicroAssembler::ctz(Register rd, Register rs1) {
+  ASSERT(Supports(RV_Zbb));
+  EmitRType(COUNT, 0b00001, rs1, F3_COUNT, rd, OPIMM);
+}
+
+void MicroAssembler::ctzw(Register rd, Register rs1) {
+  ASSERT(Supports(RV_Zbb));
+  EmitRType(COUNT, 0b00001, rs1, F3_COUNT, rd, OPIMM32);
+}
+
+void MicroAssembler::cpop(Register rd, Register rs1) {
+  ASSERT(Supports(RV_Zbb));
+  EmitRType(COUNT, 0b00010, rs1, F3_COUNT, rd, OPIMM);
+}
+
+void MicroAssembler::cpopw(Register rd, Register rs1) {
+  ASSERT(Supports(RV_Zbb));
+  EmitRType(COUNT, 0b00010, rs1, F3_COUNT, rd, OPIMM32);
+}
+
+void MicroAssembler::max(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zbb));
+  EmitRType(MINMAXCLMUL, rs2, rs1, MAX, rd, OP);
+}
+
+void MicroAssembler::maxu(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zbb));
+  EmitRType(MINMAXCLMUL, rs2, rs1, MAXU, rd, OP);
+}
+
+void MicroAssembler::min(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zbb));
+  EmitRType(MINMAXCLMUL, rs2, rs1, MIN, rd, OP);
+}
+
+void MicroAssembler::minu(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zbb));
+  EmitRType(MINMAXCLMUL, rs2, rs1, MINU, rd, OP);
+}
+
+void MicroAssembler::sextb(Register rd, Register rs1) {
+  ASSERT(Supports(RV_Zbb));
+  EmitRType((Funct7)0b0110000, 0b00100, rs1, SEXT, rd, OPIMM);
+}
+
+void MicroAssembler::sexth(Register rd, Register rs1) {
+  ASSERT(Supports(RV_Zbb));
+  EmitRType((Funct7)0b0110000, 0b00101, rs1, SEXT, rd, OPIMM);
+}
+
+void MicroAssembler::zexth(Register rd, Register rs1) {
+  ASSERT(Supports(RV_Zbb));
+#if XLEN == 32
+  EmitRType((Funct7)0b0000100, 0b00000, rs1, ZEXT, rd, OP);
+#elif XLEN == 64
+  EmitRType((Funct7)0b0000100, 0b00000, rs1, ZEXT, rd, OP32);
+#else
+  UNIMPLEMENTED();
+#endif
+}
+
+void MicroAssembler::rol(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zbb));
+  EmitRType(ROTATE, rs2, rs1, ROL, rd, OP);
+}
+
+void MicroAssembler::rolw(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zbb));
+  EmitRType(ROTATE, rs2, rs1, ROL, rd, OP32);
+}
+
+void MicroAssembler::ror(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zbb));
+  EmitRType(ROTATE, rs2, rs1, ROR, rd, OP);
+}
+
+void MicroAssembler::rori(Register rd, Register rs1, intx_t shamt) {
+  ASSERT(Supports(RV_Zbb));
+  EmitRType(ROTATE, shamt, rs1, ROR, rd, OPIMM);
+}
+
+void MicroAssembler::roriw(Register rd, Register rs1, intx_t shamt) {
+  ASSERT(Supports(RV_Zbb));
+  EmitRType(ROTATE, shamt, rs1, ROR, rd, OPIMM32);
+}
+
+void MicroAssembler::rorw(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zbb));
+  EmitRType(ROTATE, rs2, rs1, ROR, rd, OP32);
+}
+
+void MicroAssembler::orcb(Register rd, Register rs1) {
+  ASSERT(Supports(RV_Zbb));
+  EmitRType((Funct7)0b0010100, 0b00111, rs1, (Funct3)0b101, rd, OPIMM);
+}
+
+void MicroAssembler::rev8(Register rd, Register rs1) {
+  ASSERT(Supports(RV_Zbb));
+#if XLEN == 32
+  EmitRType((Funct7)0b0110100, 0b11000, rs1, (Funct3)0b101, rd, OPIMM);
+#elif XLEN == 64
+  EmitRType((Funct7)0b0110101, 0b11000, rs1, (Funct3)0b101, rd, OPIMM);
+#else
+  UNIMPLEMENTED();
+#endif
+}
+
+void MicroAssembler::clmul(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zbc));
+  EmitRType(MINMAXCLMUL, rs2, rs1, CLMUL, rd, OP);
+}
+
+void MicroAssembler::clmulh(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zbc));
+  EmitRType(MINMAXCLMUL, rs2, rs1, CLMULH, rd, OP);
+}
+
+void MicroAssembler::clmulr(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zbc));
+  EmitRType(MINMAXCLMUL, rs2, rs1, CLMULR, rd, OP);
+}
+
+void MicroAssembler::bclr(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zbs));
+  EmitRType(BCLRBEXT, rs2, rs1, BCLR, rd, OP);
+}
+
+void MicroAssembler::bclri(Register rd, Register rs1, intx_t shamt) {
+  ASSERT(Supports(RV_Zbs));
+  EmitRType(BCLRBEXT, shamt, rs1, BCLR, rd, OPIMM);
+}
+
+void MicroAssembler::bext(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zbs));
+  EmitRType(BCLRBEXT, rs2, rs1, BEXT, rd, OP);
+}
+
+void MicroAssembler::bexti(Register rd, Register rs1, intx_t shamt) {
+  ASSERT(Supports(RV_Zbs));
+  EmitRType(BCLRBEXT, shamt, rs1, BEXT, rd, OPIMM);
+}
+
+void MicroAssembler::binv(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zbs));
+  EmitRType(BINV, rs2, rs1, F3_BINV, rd, OP);
+}
+
+void MicroAssembler::binvi(Register rd, Register rs1, intx_t shamt) {
+  ASSERT(Supports(RV_Zbs));
+  EmitRType(BINV, shamt, rs1, F3_BINV, rd, OPIMM);
+}
+
+void MicroAssembler::bset(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zbs));
+  EmitRType(BSET, rs2, rs1, F3_BSET, rd, OP);
+}
+
+void MicroAssembler::bseti(Register rd, Register rs1, intx_t shamt) {
+  ASSERT(Supports(RV_Zbs));
+  EmitRType(BSET, shamt, rs1, F3_BSET, rd, OPIMM);
+}
 
 void MicroAssembler::c_lwsp(Register rd, Address addr) {
   ASSERT(rd != ZR);
@@ -1711,8 +1949,8 @@ void MicroAssembler::EmitBranch(Register rs1,
     const intptr_t kFarBranchLength = 12;
     EmitBType(kFarBranchLength, rs2, rs1, InvertFunct3(func), BRANCH);
     offset = label->Position() - Position();
-    intx_t lo = offset << (XLEN - 12) >> (XLEN - 12);
-    intx_t hi = (offset - lo) << (XLEN - 32) >> (XLEN - 32);
+    intx_t lo = ImmLo(offset);
+    intx_t hi = ImmHi(offset);
     if (!IsUTypeImm(hi)) {
       FATAL("Branch distance exceeds 2GB!");
     }
@@ -1753,8 +1991,8 @@ void MicroAssembler::EmitBranch(Register rs1,
       const intptr_t kFarBranchLength = 12;
       EmitBType(kFarBranchLength, rs2, rs1, InvertFunct3(func), BRANCH);
       offset = label->link_far(Position());
-      intx_t lo = offset << (XLEN - 12) >> (XLEN - 12);
-      intx_t hi = (offset - lo) << (XLEN - 32) >> (XLEN - 32);
+      intx_t lo = ImmLo(offset);
+      intx_t hi = ImmHi(offset);
       if (!IsUTypeImm(hi)) {
         FATAL("Branch distance exceeds 2GB!");
       }
@@ -1779,8 +2017,8 @@ void MicroAssembler::EmitJump(Register rd,
       EmitJType(offset, rd, JAL);
       return;
     }
-    intx_t lo = offset << (XLEN - 12) >> (XLEN - 12);
-    intx_t hi = (offset - lo) << (XLEN - 32) >> (XLEN - 32);
+    intx_t lo = ImmLo(offset);
+    intx_t hi = ImmHi(offset);
     if (!IsUTypeImm(hi)) {
       FATAL("Jump distance exceeds 2GB!");
     }
@@ -1804,8 +2042,8 @@ void MicroAssembler::EmitJump(Register rd,
       EmitJType(offset, rd, JAL);
     } else {
       offset = label->link_far(Position());
-      intx_t lo = offset << (XLEN - 12) >> (XLEN - 12);
-      intx_t hi = (offset - lo) << (XLEN - 32) >> (XLEN - 32);
+      intx_t lo = ImmLo(offset);
+      intx_t hi = ImmHi(offset);
       if (!IsUTypeImm(hi)) {
         FATAL("Jump distance exceeds 2GB!");
       }
@@ -2368,7 +2606,7 @@ void Assembler::LoadAcquireCompressed(Register dst,
 }
 
 void Assembler::StoreRelease(Register src, Register address, int32_t offset) {
-  fence(HartEffects::kMemory, HartEffects::kRead);
+  fence(HartEffects::kMemory, HartEffects::kWrite);
   StoreToOffset(src, address, offset);
 }
 
@@ -2389,17 +2627,16 @@ void Assembler::CompareWithMemoryValue(Register value, Address address) {
   CompareRegisters(value, TMP2);
 }
 
-void Assembler::CompareFunctionTypeNullabilityWith(Register type,
-                                                   int8_t value) {
-  EnsureHasClassIdInDEBUG(kFunctionTypeCid, type, TMP);
-  lbu(TMP,
-      FieldAddress(type, compiler::target::FunctionType::nullability_offset()));
-  CompareImmediate(TMP, value);
+void Assembler::LoadAbstractTypeNullability(Register dst, Register type) {
+  lbu(dst, FieldAddress(type, compiler::target::AbstractType::flags_offset()));
+  andi(dst, dst, compiler::target::UntaggedAbstractType::kNullabilityMask);
 }
-void Assembler::CompareTypeNullabilityWith(Register type, int8_t value) {
-  EnsureHasClassIdInDEBUG(kTypeCid, type, TMP);
-  lbu(TMP, FieldAddress(type, compiler::target::Type::nullability_offset()));
-  CompareImmediate(TMP, value);
+
+void Assembler::CompareAbstractTypeNullabilityWith(Register type,
+                                                   /*Nullability*/ int8_t value,
+                                                   Register scratch) {
+  LoadAbstractTypeNullability(scratch, type);
+  CompareImmediate(scratch, value);
 }
 
 void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
@@ -2799,9 +3036,8 @@ void Assembler::LoadFromOffset(Register dest,
                                OperandSize sz) {
   ASSERT(base != TMP2);
   if (!IsITypeImm(offset)) {
-    intx_t imm = offset;
-    intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-    intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
+    intx_t lo = ImmLo(offset);
+    intx_t hi = ImmHi(offset);
     if (hi == 0) {
       UNREACHABLE();
     } else {
@@ -2858,9 +3094,8 @@ void Assembler::LoadIndexedCompressed(Register dest,
 void Assembler::LoadSFromOffset(FRegister dest, Register base, int32_t offset) {
   ASSERT(base != TMP2);
   if (!IsITypeImm(offset)) {
-    intx_t imm = offset;
-    intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-    intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
+    intx_t lo = ImmLo(offset);
+    intx_t hi = ImmHi(offset);
     if (hi == 0) {
       UNREACHABLE();
     } else {
@@ -2876,9 +3111,8 @@ void Assembler::LoadSFromOffset(FRegister dest, Register base, int32_t offset) {
 void Assembler::LoadDFromOffset(FRegister dest, Register base, int32_t offset) {
   ASSERT(base != TMP2);
   if (!IsITypeImm(offset)) {
-    intx_t imm = offset;
-    intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-    intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
+    intx_t lo = ImmLo(offset);
+    intx_t hi = ImmHi(offset);
     if (hi == 0) {
       UNREACHABLE();
     } else {
@@ -2912,9 +3146,8 @@ void Assembler::StoreToOffset(Register src,
                               OperandSize sz) {
   ASSERT(base != TMP2);
   if (!IsITypeImm(offset)) {
-    intx_t imm = offset;
-    intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-    intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
+    intx_t lo = ImmLo(offset);
+    intx_t hi = ImmHi(offset);
     if (hi == 0) {
       UNREACHABLE();
     } else {
@@ -2946,9 +3179,8 @@ void Assembler::StoreToOffset(Register src,
 void Assembler::StoreSToOffset(FRegister src, Register base, int32_t offset) {
   ASSERT(base != TMP2);
   if (!IsITypeImm(offset)) {
-    intx_t imm = offset;
-    intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-    intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
+    intx_t lo = ImmLo(offset);
+    intx_t hi = ImmHi(offset);
     if (hi == 0) {
       UNREACHABLE();
     } else {
@@ -2964,9 +3196,8 @@ void Assembler::StoreSToOffset(FRegister src, Register base, int32_t offset) {
 void Assembler::StoreDToOffset(FRegister src, Register base, int32_t offset) {
   ASSERT(base != TMP2);
   if (!IsITypeImm(offset)) {
-    intx_t imm = offset;
-    intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-    intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
+    intx_t lo = ImmLo(offset);
+    intx_t hi = ImmHi(offset);
     if (hi == 0) {
       UNREACHABLE();
     } else {
@@ -3151,15 +3382,14 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   // reachable via a constant pool, so it doesn't matter if it is not traced via
   // 'object'.
   Label done;
-  beq(object, value, &done, kNearJump);
   BranchIfSmi(value, &done, kNearJump);
-  lbu(TMP, FieldAddress(object, target::Object::tags_offset()));
   lbu(TMP2, FieldAddress(value, target::Object::tags_offset()));
-  srli(TMP, TMP, target::UntaggedObject::kBarrierOverlapShift);
-  and_(TMP, TMP, TMP2);
-  andi(TMP, TMP, target::UntaggedObject::kGenerationalBarrierMask);
-  beqz(TMP, &done, kNearJump);
-  Stop("Store buffer update is required");
+  andi(TMP2, TMP2, 1 << target::UntaggedObject::kNewBit);
+  beqz(TMP2, &done, kNearJump);
+  lbu(TMP2, FieldAddress(object, target::Object::tags_offset()));
+  andi(TMP2, TMP2, 1 << target::UntaggedObject::kOldAndNotRememberedBit);
+  beqz(TMP2, &done, kNearJump);
+  Stop("Write barrier is required");
   Bind(&done);
 #endif
 }
@@ -3174,7 +3404,7 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
                                                Register value,
                                                MemoryOrder memory_order) {
   if (memory_order == kRelease) {
-    StoreRelease(value, object, offset);
+    StoreRelease(value, object, offset - kHeapObjectTag);
   } else {
     StoreToOffset(value, object, offset - kHeapObjectTag);
   }
@@ -3185,15 +3415,14 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
   // reachable via a constant pool, so it doesn't matter if it is not traced via
   // 'object'.
   Label done;
-  beq(object, value, &done, kNearJump);
   BranchIfSmi(value, &done, kNearJump);
-  lbu(TMP, FieldAddress(object, target::Object::tags_offset()));
   lbu(TMP2, FieldAddress(value, target::Object::tags_offset()));
-  srli(TMP, TMP, target::UntaggedObject::kBarrierOverlapShift);
-  and_(TMP, TMP, TMP2);
-  andi(TMP, TMP, target::UntaggedObject::kGenerationalBarrierMask);
-  beqz(TMP, &done, kNearJump);
-  Stop("Store buffer update is required");
+  andi(TMP2, TMP2, 1 << target::UntaggedObject::kNewBit);
+  beqz(TMP2, &done, kNearJump);
+  lbu(TMP2, FieldAddress(object, target::Object::tags_offset()));
+  andi(TMP2, TMP2, 1 << target::UntaggedObject::kOldAndNotRememberedBit);
+  beqz(TMP2, &done, kNearJump);
+  Stop("Write barrier is required");
   Bind(&done);
 #endif
 }
@@ -3206,18 +3435,24 @@ void Assembler::StoreCompressedIntoObjectOffsetNoBarrier(
 }
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
-                                         const Object& value) {
+                                         const Object& value,
+                                         MemoryOrder memory_order) {
   ASSERT(IsOriginalObject(value));
-  ASSERT(IsNotTemporaryScopedHandle(value));
+  DEBUG_ASSERT(IsNotTemporaryScopedHandle(value));
   // No store buffer update.
+  Register value_reg;
   if (IsSameObject(compiler::NullObject(), value)) {
-    sx(NULL_REG, dest);
+    value_reg = NULL_REG;
   } else if (target::IsSmi(value) && (target::ToRawSmi(value) == 0)) {
-    sx(ZR, dest);
+    value_reg = ZR;
   } else {
     LoadObject(TMP2, value);
-    sx(TMP2, dest);
+    value_reg = TMP2;
   }
+  if (memory_order == kRelease) {
+    fence(HartEffects::kMemory, HartEffects::kWrite);
+  }
+  sx(value_reg, dest);
 }
 void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
                                                    const Address& dest,
@@ -3282,7 +3517,7 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
     return false;
   }
 
-  ASSERT(IsNotTemporaryScopedHandle(object));
+  DEBUG_ASSERT(IsNotTemporaryScopedHandle(object));
   ASSERT(IsInOldSpace(object));
   return true;
 }
@@ -3322,7 +3557,7 @@ void Assembler::LoadImmediate(Register reg, intx_t imm) {
       return;
     }
 
-    intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
+    intx_t lo = ImmLo(imm);
     intx_t hi = imm - lo;
     shift = Utils::CountTrailingZeros64(hi);
     ASSERT(shift != 0);
@@ -3335,8 +3570,8 @@ void Assembler::LoadImmediate(Register reg, intx_t imm) {
   }
 #endif
 
-  intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-  intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
+  intx_t lo = ImmLo(imm);
+  intx_t hi = ImmHi(imm);
   if (hi == 0) {
     addi(reg, ZR, lo);
   } else {
@@ -3382,9 +3617,8 @@ void Assembler::LoadWordFromPoolIndex(Register dst,
   ASSERT(dst != pp);
   const uint32_t offset = target::ObjectPool::element_offset(index);
   // PP is untagged.
-  intx_t imm = offset;
-  intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-  intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
+  intx_t lo = ImmLo(offset);
+  intx_t hi = ImmHi(offset);
   if (hi == 0) {
     lx(dst, Address(pp, lo));
   } else {
@@ -3407,30 +3641,34 @@ void Assembler::CompareObject(Register reg, const Object& object) {
 }
 
 void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
-  ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
-  ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
+  ASSERT(target::UntaggedObject::kClassIdTagPos == 12);
+  ASSERT(target::UntaggedObject::kClassIdTagSize == 20);
 #if XLEN == 64
   srliw(result, tags, target::UntaggedObject::kClassIdTagPos);
 #else
   srli(result, tags, target::UntaggedObject::kClassIdTagPos);
 #endif
 }
+
 void Assembler::ExtractInstanceSizeFromTags(Register result, Register tags) {
   ASSERT(target::UntaggedObject::kSizeTagPos == 8);
-  ASSERT(target::UntaggedObject::kSizeTagSize == 8);
+  ASSERT(target::UntaggedObject::kSizeTagSize == 4);
   srli(result, tags, target::UntaggedObject::kSizeTagPos);
   andi(result, result, (1 << target::UntaggedObject::kSizeTagSize) - 1);
   slli(result, result, target::ObjectAlignment::kObjectAlignmentLog2);
 }
 
 void Assembler::LoadClassId(Register result, Register object) {
-  ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
-  ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
-  const intptr_t class_id_offset =
-      target::Object::tags_offset() +
-      target::UntaggedObject::kClassIdTagPos / kBitsPerByte;
-  lhu(result, FieldAddress(object, class_id_offset));
+  ASSERT(target::UntaggedObject::kClassIdTagPos == 12);
+  ASSERT(target::UntaggedObject::kClassIdTagSize == 20);
+#if XLEN == 64
+  lwu(result, FieldAddress(object, target::Object::tags_offset()));
+#else
+  lw(result, FieldAddress(object, target::Object::tags_offset()));
+#endif
+  srli(result, result, target::UntaggedObject::kClassIdTagPos);
 }
+
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
 
@@ -3645,8 +3883,8 @@ void Assembler::CheckCodePointer() {
   const intptr_t entry_offset =
       CodeSize() + target::Instructions::HeaderSize() - kHeapObjectTag;
   intx_t imm = -entry_offset;
-  intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-  intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
+  intx_t lo = ImmLo(imm);
+  intx_t hi = ImmHi(imm);
   auipc(TMP, hi);
   addi(TMP, TMP, lo);
   lx(TMP2, FieldAddress(CODE_REG, target::Code::instructions_offset()));
@@ -4007,22 +4245,14 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Register temp_reg,
                                      JumpDistance distance) {
   ASSERT(cid > 0);
-
-  const intptr_t shared_table_offset =
-      target::IsolateGroup::shared_class_table_offset();
-  const intptr_t table_offset =
-      target::SharedClassTable::class_heap_stats_table_offset();
-  const intptr_t class_offset = target::ClassTable::ClassOffsetFor(cid);
-
   LoadIsolateGroup(temp_reg);
-  lx(temp_reg, Address(temp_reg, shared_table_offset));
-  lx(temp_reg, Address(temp_reg, table_offset));
-  if (IsITypeImm(class_offset)) {
-    lbu(temp_reg, Address(temp_reg, class_offset));
-  } else {
-    AddImmediate(temp_reg, class_offset);
-    lbu(temp_reg, Address(temp_reg, 0));
-  }
+  lx(temp_reg, Address(temp_reg, target::IsolateGroup::class_table_offset()));
+  lx(temp_reg,
+     Address(temp_reg,
+             target::ClassTable::allocation_tracing_state_table_offset()));
+  LoadFromOffset(temp_reg, temp_reg,
+                 target::ClassTable::AllocationTracingStateSlotOffsetFor(cid),
+                 kUnsignedByte);
   bnez(temp_reg, trace);
 }
 #endif  // !PRODUCT
@@ -4130,9 +4360,8 @@ void Assembler::CopyMemoryWords(Register src,
 
 void Assembler::GenerateUnRelocatedPcRelativeCall(intptr_t offset_into_target) {
   // JAL only has a +/- 1MB range. AUIPC+JALR has a +/- 2GB range.
-  intx_t imm = offset_into_target;
-  intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-  intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
+  intx_t lo = ImmLo(offset_into_target);
+  intx_t hi = ImmHi(offset_into_target);
   auipc(RA, hi);
   jalr_fixed(RA, RA, lo);
 }
@@ -4140,9 +4369,8 @@ void Assembler::GenerateUnRelocatedPcRelativeCall(intptr_t offset_into_target) {
 void Assembler::GenerateUnRelocatedPcRelativeTailCall(
     intptr_t offset_into_target) {
   // J only has a +/- 1MB range. AUIPC+JR has a +/- 2GB range.
-  intx_t imm = offset_into_target;
-  intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-  intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
+  intx_t lo = ImmLo(offset_into_target);
+  intx_t hi = ImmHi(offset_into_target);
   auipc(TMP, hi);
   jalr_fixed(ZR, TMP, lo);
 }
@@ -4151,6 +4379,7 @@ static OperandSize OperandSizeFor(intptr_t cid) {
   switch (cid) {
     case kArrayCid:
     case kImmutableArrayCid:
+    case kRecordCid:
     case kTypeArgumentsCid:
       return kObjectBytes;
     case kOneByteStringCid:
@@ -4548,6 +4777,19 @@ void Assembler::CountLeadingZeroes(Register rd, Register rs) {
   beqz(TMP, &l5, Assembler::kNearJump);
   subi(rd, TMP2, 2);
   Bind(&l5);
+}
+
+void Assembler::RangeCheck(Register value,
+                           Register temp,
+                           intptr_t low,
+                           intptr_t high,
+                           RangeCheckCondition condition,
+                           Label* target) {
+  auto cc = condition == kIfInRange ? LS : HI;
+  Register to_check = temp != kNoRegister ? temp : value;
+  AddImmediate(to_check, value, -low);
+  CompareImmediate(to_check, high - low);
+  BranchIf(cc, target);
 }
 
 }  // namespace compiler

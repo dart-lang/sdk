@@ -88,6 +88,12 @@ class FutureValueTypeVisitor implements DartTypeVisitor1<DartType, CoreTypes> {
   }
 
   @override
+  DartType visitIntersectionType(DartType node, CoreTypes coreTypes) {
+    // Otherwise, for all S, futureValueType(S) = Object?.
+    return coreTypes.objectNullableRawType;
+  }
+
+  @override
   DartType visitTypedefType(DartType node, CoreTypes coreTypes) {
     // Otherwise, for all S, futureValueType(S) = Object?.
     return coreTypes.objectNullableRawType;
@@ -95,6 +101,18 @@ class FutureValueTypeVisitor implements DartTypeVisitor1<DartType, CoreTypes> {
 
   @override
   DartType visitExtensionType(DartType node, CoreTypes coreTypes) {
+    // Otherwise, for all S, futureValueType(S) = Object?.
+    return coreTypes.objectNullableRawType;
+  }
+
+  @override
+  DartType visitViewType(DartType node, CoreTypes coreTypes) {
+    // Otherwise, for all S, futureValueType(S) = Object?.
+    return coreTypes.objectNullableRawType;
+  }
+
+  @override
+  DartType visitRecordType(DartType node, CoreTypes coreTypes) {
     // Otherwise, for all S, futureValueType(S) = Object?.
     return coreTypes.objectNullableRawType;
   }

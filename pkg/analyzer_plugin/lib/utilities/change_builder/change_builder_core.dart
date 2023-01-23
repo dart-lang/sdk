@@ -37,9 +37,13 @@ abstract class ChangeBuilder {
   ///
   /// The builder passed to the [buildFileEdit] function has additional support
   /// for working with Dart source files.
+  ///
+  /// Setting [createEditsForImports] to `false` will prevent edits being
+  /// produced to add `import` statements for any unimported types.
   Future<void> addDartFileEdit(
       String path, void Function(DartFileEditBuilder builder) buildFileEdit,
-      {ImportPrefixGenerator importPrefixGenerator});
+      {ImportPrefixGenerator importPrefixGenerator,
+      bool createEditsForImports = true});
 
   /// Use the [buildFileEdit] function to create a collection of edits to the
   /// file with the given [path]. The edits will be added to the source change

@@ -3,14 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:nnbd_migration/src/preview/preview_page.dart';
-import 'package:nnbd_migration/src/preview/preview_site.dart';
 
 /// The page that is displayed when an invalid URL is requested.
 class NotFoundPage extends PreviewPage {
   /// Initialize a newly created file-not-found page within the given [site].
   /// The [id] is the portion of the path to the page that follows the initial
   /// slash ('/').
-  NotFoundPage(PreviewSite site, String id) : super(site, id);
+  NotFoundPage(super.site, String super.id);
 
   @override
   bool get requiresAuth => false;

@@ -93,7 +93,7 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///generic_metadata.dart:
 - C. (from org-dartlang-testcase:///generic_metadata.dart:14:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - D. (from org-dartlang-testcase:///generic_metadata.dart:18:9)
 - A. (from org-dartlang-testcase:///generic_metadata.dart:6:9)
 - B. (from org-dartlang-testcase:///generic_metadata.dart:10:9)

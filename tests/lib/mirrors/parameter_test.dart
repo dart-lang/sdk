@@ -24,8 +24,8 @@ class B {
   // TODO(6490): Currently only supported by the VM.
   B.baz(final int x, int y, final int z);
   B.qux(int x, [int y = 3 + 1]);
-  B.quux(int x, {String str: "foo"});
-  B.corge({int x: 3 * 17, String str: "bar"});
+  B.quux(int x, {String str = "foo"});
+  B.corge({int x = 3 * 17, String str = "bar"});
 
   var _x;
   get x => _x;

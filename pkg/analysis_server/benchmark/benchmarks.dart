@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// This file _is_ an entrypoint, but is also imported from several libraries
+// in 'perf/'.
+// ignore_for_file: unreachable_from_main
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
@@ -33,7 +37,7 @@ Future main(List<String> args) async {
   );
   runner.addCommand(ListCommand(benchmarks));
   runner.addCommand(RunCommand(benchmarks));
-  runner.run(args);
+  await runner.run(args);
 }
 
 String get analysisServerSrcPath {

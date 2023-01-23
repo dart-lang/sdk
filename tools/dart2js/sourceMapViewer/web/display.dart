@@ -128,8 +128,8 @@ void highlightSelectedSpan(TargetEntry entry, TargetLineEntry lineEntry) {
   highlightedMapEntry[1].onMouseOver.listen((e) {
     selectedOutputSpan.style.zIndex = "2";
     selectedOutputSpan.style.visibility = "visible";
-    selectedOutputSpan.style.top = "${decodedMap.offsetTo(document.body).y +
-                                      decodedMap.clientHeight - 20}px";
+    selectedOutputSpan.style.top =
+        "${decodedMap.offsetTo(document.body).y + decodedMap.clientHeight - 20}px";
     selectedOutputSpan.style.left = "${decodedMap.offsetTo(document.body).x}px";
     selectedOutputSpan.style.width = "${decodedMap.clientWidth}px";
   });

@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart';
+import 'package:collection/collection.dart';
 
 /// A contributor that produces suggestions based on the instance members of a
 /// given type, whether declared by that type directly or inherited from a
@@ -31,7 +31,7 @@ class TypeMemberContributor extends DartCompletionContributor {
     }
     if (expression is Identifier) {
       var elem = expression.staticElement;
-      if (elem is ClassElement) {
+      if (elem is InterfaceElement) {
         // Suggestions provided by StaticMemberContributor.
         return;
       }
@@ -69,27 +69,49 @@ class TypeMemberContributor extends DartCompletionContributor {
         }
       }
     }
-    List<InterfaceType>? mixins;
-    List<InterfaceType>? superclassConstraints;
-    if (expression is SuperExpression && type is InterfaceType) {
-      // Suggest members from superclass if target is "super".
-      mixins = type.mixins;
-      superclassConstraints = type.superclassConstraints;
-      type = type.superclass;
-    }
+
     if (type is FunctionType) {
       builder.suggestFunctionCall();
-      type = request.objectType;
-    } else if (type == null || type.isDynamic) {
-      // Suggest members from object if target is "dynamic".
-      type = request.objectType;
+      _suggestFromDartCoreObject();
+    } else if (type is InterfaceType) {
+      if (expression is SuperExpression) {
+        _SuggestionBuilder(request, builder).buildSuggestions(
+          type.superclass ?? request.objectType,
+          mixins: type.mixins,
+          superclassConstraints: type.superclassConstraints,
+        );
+      } else {
+        _suggestFromInterfaceType(type);
+      }
+    } else if (type is RecordType) {
+      _suggestFromRecordType(type);
+      _suggestFromDartCoreObject();
+    } else {
+      _suggestFromDartCoreObject();
     }
+  }
 
-    // Build the suggestions.
-    if (type is InterfaceType) {
-      var memberBuilder = _SuggestionBuilder(request, builder);
-      memberBuilder.buildSuggestions(type,
-          mixins: mixins, superclassConstraints: superclassConstraints);
+  void _suggestFromDartCoreObject() {
+    _suggestFromInterfaceType(request.objectType);
+  }
+
+  void _suggestFromInterfaceType(InterfaceType type) {
+    _SuggestionBuilder(request, builder).buildSuggestions(type);
+  }
+
+  void _suggestFromRecordType(RecordType type) {
+    type.positionalFields.forEachIndexed((index, field) {
+      builder.suggestRecordField(
+        field: field,
+        name: '\$$index',
+      );
+    });
+
+    for (final field in type.namedFields) {
+      builder.suggestRecordField(
+        field: field,
+        name: field.name,
+      );
     }
   }
 }
@@ -109,7 +131,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredClass(ClassDeclaration declaration) {
-    if (declaration.name.name == targetName) {
+    if (declaration.name.lexeme == targetName) {
       // no type
       finished();
     }
@@ -117,7 +139,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredClassTypeAlias(ClassTypeAlias declaration) {
-    if (declaration.name.name == targetName) {
+    if (declaration.name.lexeme == targetName) {
       // no type
       finished();
     }
@@ -125,7 +147,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
-    if (varDecl.name.name == targetName) {
+    if (varDecl.name.lexeme == targetName) {
       // Type provided by the element in computeFull above
       finished();
     }
@@ -133,7 +155,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredFunction(FunctionDeclaration declaration) {
-    if (declaration.name.name == targetName) {
+    if (declaration.name.lexeme == targetName) {
       var returnType = declaration.returnType;
       if (returnType != null) {
         var type = returnType.type;
@@ -147,7 +169,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
-    if (declaration.name.name == targetName) {
+    if (declaration.name.lexeme == targetName) {
       var returnType = declaration.returnType;
       if (returnType != null) {
         var type = returnType.type;
@@ -161,7 +183,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredGenericTypeAlias(GenericTypeAlias declaration) {
-    if (declaration.name.name == targetName) {
+    if (declaration.name.lexeme == targetName) {
       var returnType = declaration.functionType?.returnType;
       if (returnType != null) {
         var type = returnType.type;
@@ -182,17 +204,20 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredLocalVar(SimpleIdentifier name, TypeAnnotation? type) {
-    if (name.name == targetName) {
-      var element = name.staticElement as VariableElement;
-      typeFound = element.type;
+  void declaredLocalVar(
+    Token name,
+    TypeAnnotation? type,
+    LocalVariableElement declaredElement,
+  ) {
+    if (name.lexeme == targetName) {
+      typeFound = declaredElement.type;
       finished();
     }
   }
 
   @override
   void declaredMethod(MethodDeclaration declaration) {
-    if (declaration.name.name == targetName) {
+    if (declaration.name.lexeme == targetName) {
       var returnType = declaration.returnType;
       if (returnType != null) {
         var type = returnType.type;
@@ -205,8 +230,8 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredParam(SimpleIdentifier name, TypeAnnotation? type) {
-    if (name.name == targetName) {
+  void declaredParam(Token name, Element? element, TypeAnnotation? type) {
+    if (name.lexeme == targetName) {
       // Type provided by the element in computeFull above.
       finished();
     }
@@ -215,7 +240,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredTopLevelVar(
       VariableDeclarationList varList, VariableDeclaration varDecl) {
-    if (varDecl.name.name == targetName) {
+    if (varDecl.name.lexeme == targetName) {
       // Type provided by the element in computeFull above.
       finished();
     }
@@ -284,7 +309,7 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
     // classes seen (not the interfaces) so that we won't be fooled by nonsense
     // like "class C<T> extends C<List<T>> {}"
     var result = <InterfaceType>[];
-    Set<ClassElement> classesSeen = HashSet<ClassElement>();
+    final classesSeen = <InterfaceElement>{};
     var typesToVisit = <InterfaceType>[type];
     while (typesToVisit.isNotEmpty) {
       var nextType = typesToVisit.removeLast();

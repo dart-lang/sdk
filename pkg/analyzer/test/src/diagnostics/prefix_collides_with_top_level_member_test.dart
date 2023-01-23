@@ -25,7 +25,8 @@ import 'lib.dart' as p;
 typedef p();
 p.A a = p.A();
 ''', [
-      error(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, 32, 1),
+      error(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, 32, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 21, 1)]),
     ]);
   }
 
@@ -53,7 +54,8 @@ import 'lib.dart' as p;
 p() {}
 p.A a = p.A();
 ''', [
-      error(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, 24, 1),
+      error(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, 24, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 21, 1)]),
     ]);
   }
 
@@ -67,7 +69,8 @@ import 'lib.dart' as p;
 var p = null;
 p.A a = p.A();
 ''', [
-      error(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, 28, 1),
+      error(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, 28, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 21, 1)]),
     ]);
   }
 
@@ -81,7 +84,8 @@ import 'lib.dart' as p;
 class p {}
 p.A a = p.A();
 ''', [
-      error(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, 30, 1),
+      error(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, 30, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 21, 1)]),
     ]);
   }
 }

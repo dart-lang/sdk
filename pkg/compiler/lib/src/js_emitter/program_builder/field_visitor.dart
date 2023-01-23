@@ -2,14 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 part of dart2js.js_emitter.program_builder;
 
 /// [member] is an instance field.
-///
-/// [name] is the field name that the [Namer] has picked for this field's
-/// storage, that is, the JavaScript property name.
 ///
 /// [needsGetter] and [needsSetter] represent if a getter or a setter
 /// respectively is needed.  There are many factors in this, for example, if the
@@ -18,93 +13,101 @@ part of dart2js.js_emitter.program_builder;
 /// [needsCheckedSetter] indicates that a checked getter is needed, and in this
 /// case, [needsSetter] is always false. [needsCheckedSetter] is only true when
 /// type assertions are enabled (checked mode).
-typedef AcceptField = void Function(FieldEntity member, js.Name name,
-    bool needsGetter, bool needsSetter, bool needsCheckedSetter);
+typedef AcceptField = void Function(FieldEntity member, bool needsGetter,
+    bool needsSetter, bool needsCheckedSetter);
 
 class FieldVisitor {
   final JElementEnvironment _elementEnvironment;
   final CodegenWorld _codegenWorld;
   final NativeData _nativeData;
-  final Namer _namer;
   final JClosedWorld _closedWorld;
 
   FieldVisitor(this._elementEnvironment, this._codegenWorld, this._nativeData,
-      this._namer, this._closedWorld);
+      this._closedWorld);
 
-  /// Invokes [f] for each of the fields of [element].
+  /// Invokes [f] for each of the fields of [cls].
   ///
-  /// When visiting the instance fields of a class, the fields of its superclass
-  /// are also visited if the class is instantiated.
+  /// If the class is directly instantiated, the fields of the superclasses are
+  /// also visited. These are required for creating a constructor that
+  /// initializes all the fields of the class.
+  ///
+  /// If the class is not directly instantiated
   void visitFields(AcceptField f, ClassEntity cls) {
-    assert(
-        cls != null, failedAt(NO_LOCATION_SPANNABLE, 'Expected a ClassEntity'));
-
     bool isNativeClass = _nativeData.isNativeClass(cls);
 
     // If the class is never instantiated we still need to set it up for
     // inheritance purposes, but we can simplify its JavaScript constructor.
-    bool isInstantiated =
+    bool isDirectlyInstantiated =
         _codegenWorld.directlyInstantiatedClasses.contains(cls);
 
-    void visitField(FieldEntity field, {ClassEntity holder}) {
-      bool isMixinNativeField =
-          isNativeClass && _elementEnvironment.isMixinApplication(holder);
-
-      // See if we can dynamically create getters and setters.
-      // We can only generate getters and setters for [element] since
-      // the fields of super classes could be overwritten with getters or
-      // setters.
+    void visitField(FieldEntity field, {required ClassEntity holder}) {
+      // Simple getters and setters are generated in the emitter rather than
+      // being compiled through the SSA pipeline.
       bool needsGetter = false;
       bool needsSetter = false;
-      if (isMixinNativeField || holder == cls) {
+
+      // In the J-model, instance members of a mixin are copied into the mixin
+      // application. At run time the methods are copied from the mixin's
+      // prototype to the mixin application's prototype. So we don't want to
+      // generate getters and setters for a field in a mixin application.
+      //
+      // A exception is when the mixin is used in a native class.
+      //
+      // TODO(sra): Figure out why native classes are different. It would seem
+      // that the native class methods are on an interceptor class and therefore
+      // the mixin application would be constructed just like any other class.
+      //
+      // TODO(49536): The only mixins-that-have-fields used on native classes
+      // come from extending custom elements. Mixins used in, say, `dart:html`
+      // have no fields. After removing custom elements, enforce that mixins in
+      // native classes have no fields.
+      bool isMixinApplication = _elementEnvironment.isMixinApplication(holder);
+      bool isMixinNativeField = isNativeClass && isMixinApplication;
+
+      // Generate getters and setters for fields of [cls] only, since the fields
+      // of super classes are the responsibility of the superclass.
+      if (isMixinNativeField || (cls == holder && !isMixinApplication)) {
         needsGetter = fieldNeedsGetter(field);
         needsSetter = fieldNeedsSetter(field);
       }
 
-      if ((isInstantiated && !_nativeData.isNativeClass(cls)) ||
+      if ((isDirectlyInstantiated && !isNativeClass) ||
           needsGetter ||
           needsSetter) {
-        js.Name fieldName = _namer.instanceFieldPropertyName(field);
         bool needsCheckedSetter = false;
-        if (_closedWorld.annotationsData
+        if (needsSetter &&
+            _closedWorld.annotationsData
                 .getParameterCheckPolicy(field)
                 .isEmitted &&
-            needsSetter &&
-            !canAvoidGeneratedCheckedSetter(field)) {
+            !_canAvoidGeneratedCheckedSetter(field)) {
           needsCheckedSetter = true;
           needsSetter = false;
         }
         // Getters and setters with suffixes will be generated dynamically.
-        f(field, fieldName, needsGetter, needsSetter, needsCheckedSetter);
+        f(field, needsGetter, needsSetter, needsCheckedSetter);
       }
     }
 
-    // TODO(kasperl): We should make sure to only emit one version of
-    // overridden fields. Right now, we rely on the ordering so the
-    // fields pulled in from mixins are replaced with the fields from
-    // the class definition.
-
-    // If a class is not instantiated then we add the field just so we can
-    // generate the field getter/setter dynamically. Since this is only
-    // allowed on fields that are in [element] we don't need to visit
-    // superclasses for non-instantiated classes.
     _elementEnvironment.forEachClassMember(cls,
         (ClassEntity holder, MemberEntity member) {
-      if (cls != holder && !isInstantiated) return;
-      if (member.isField && !member.isStatic) {
+      // Classes that are not directly instantiated do not use the JavaScript
+      // constructor function to allocate and initialize an object. We don't
+      // need to visit the superclasses since their fields are not used by the
+      // JavaScript constructor and their getters and setters are inherited.
+      if (cls != holder && !isDirectlyInstantiated) return;
+
+      if (member is FieldEntity && !member.isStatic) {
         visitField(member, holder: holder);
       }
     });
   }
 
   bool fieldNeedsGetter(FieldEntity field) {
-    assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
     return field.isInstanceMember && _codegenWorld.hasInvokedGetter(field);
   }
 
   bool fieldNeedsSetter(FieldEntity field) {
-    assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
     if (!field.isAssignable) return false;
     return field.isInstanceMember && _codegenWorld.hasInvokedSetter(field);
@@ -120,7 +123,7 @@ class FieldVisitor {
         false;
   }
 
-  bool canAvoidGeneratedCheckedSetter(FieldEntity member) {
+  bool _canAvoidGeneratedCheckedSetter(FieldEntity member) {
     // We never generate accessors for top-level/static fields.
     if (!member.isInstanceMember) return true;
     DartType type = _elementEnvironment.getFieldType(member);

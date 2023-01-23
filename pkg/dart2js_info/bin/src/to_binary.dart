@@ -5,9 +5,8 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-
-import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/binary_serialization.dart' as binary;
+import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/io.dart';
 
 import 'inject_text.dart';

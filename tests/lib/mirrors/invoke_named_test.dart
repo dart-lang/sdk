@@ -15,16 +15,16 @@ import 'invoke_test.dart';
 bool isDart2js = false;
 
 class C {
-  a(a, {b: 'B', c}) => "$a-$b-$c";
-  b({a: 'A', b, c}) => "$a-$b-$c";
+  a(a, {b = 'B', c}) => "$a-$b-$c";
+  b({a = 'A', b, c}) => "$a-$b-$c";
   c(a, [b, c = 'C']) => "$a-$b-$c";
   d([a, b = 'B', c = 'C']) => "$a-$b-$c";
   e(a, b, c) => "$a-$b-$c";
 }
 
 class D {
-  static a(a, {b: 'B', c}) => "$a-$b-$c";
-  static b({a: 'A', b, c}) => "$a-$b-$c";
+  static a(a, {b = 'B', c}) => "$a-$b-$c";
+  static b({a = 'A', b, c}) => "$a-$b-$c";
   static c(a, [b, c = 'C']) => "$a-$b-$c";
   static d([a, b = 'B', c = 'C']) => "$a-$b-$c";
   static e(a, b, c) => "$a-$b-$c";
@@ -32,15 +32,15 @@ class D {
 
 class E {
   var field;
-  E(a, {b: 'B', c}) : this.field = "$a-$b-$c";
-  E.b({a: 'A', b, c}) : this.field = "$a-$b-$c";
+  E(a, {b = 'B', c}) : this.field = "$a-$b-$c";
+  E.b({a = 'A', b, c}) : this.field = "$a-$b-$c";
   E.c(a, [b, c = 'C']) : this.field = "$a-$b-$c";
   E.d([a, b = 'B', c = 'C']) : this.field = "$a-$b-$c";
   E.e(a, b, c) : this.field = "$a-$b-$c";
 }
 
-a(a, {b: 'B', c}) => "$a-$b-$c";
-b({a: 'A', b, c}) => "$a-$b-$c";
+a(a, {b = 'B', c}) => "$a-$b-$c";
+b({a = 'A', b, c}) => "$a-$b-$c";
 c(a, [b, c = 'C']) => "$a-$b-$c";
 d([a, b = 'B', c = 'C']) => "$a-$b-$c";
 e(a, b, c) => "$a-$b-$c";

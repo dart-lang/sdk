@@ -8,6 +8,7 @@ import 'package:kernel/core_types.dart' as ir;
 import '../common.dart';
 import '../common/elements.dart';
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../elements/types.dart';
 import '../ordered_typeset.dart';
 import '../universe/call_structure.dart';
@@ -19,6 +20,11 @@ import '../universe/call_structure.dart';
 abstract class IrToElementMap {
   /// Returns the [DartType] corresponding to [type].
   DartType getDartType(ir.DartType type);
+
+  /// Returns the [Name] corresponding to [name].
+  ///
+  /// If [setter] is `true`, the setter name is returned.
+  Name getName(ir.Name name, {bool setter = false});
 
   /// Returns the [MemberEntity] corresponding to the member [node].
   MemberEntity getMember(ir.Member node);
@@ -57,6 +63,8 @@ abstract class IrToElementMap {
   InterfaceType getThisType(covariant ClassEntity cls);
   InterfaceType? getSuperType(covariant ClassEntity cls);
   OrderedTypeSet getOrderedTypeSet(covariant ClassEntity cls);
+
+  /// Returns the [ClassEntity] objects for interfaces that [cls] `implements`.
   Iterable<InterfaceType> getInterfaces(covariant ClassEntity cls);
   InterfaceType? asInstanceOf(InterfaceType type, ClassEntity cls);
   DartType substByContext(DartType type, InterfaceType context);

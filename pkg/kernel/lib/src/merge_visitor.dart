@@ -122,6 +122,57 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
         requiredParameterCount: a.requiredParameterCount);
   }
 
+  @override
+  DartType? visitRecordType(RecordType a, DartType b) {
+    if (b is RecordType &&
+        a.positional.length == b.positional.length &&
+        a.named.length == b.named.length) {
+      Nullability? nullability = mergeNullability(a.nullability, b.nullability);
+      if (nullability != null) {
+        return mergeRecordTypes(a, b, nullability);
+      }
+    }
+    if (b is InvalidType) {
+      return b;
+    }
+    return null;
+  }
+
+  RecordType? mergeRecordTypes(
+      RecordType a, RecordType b, Nullability nullability) {
+    assert(a.positional.length == b.positional.length);
+    assert(a.named.length == b.named.length);
+
+    DartType? mergeTypes(DartType a, DartType b) {
+      return a.accept1(this, b);
+    }
+
+    List<DartType> newPositional =
+        new List<DartType>.filled(a.positional.length, dummyDartType);
+    for (int i = 0; i < a.positional.length; i++) {
+      DartType? newType = mergeTypes(a.positional[i], b.positional[i]);
+      if (newType == null) {
+        return null;
+      }
+      newPositional[i] = newType;
+    }
+    List<NamedType> newNamed =
+        new List<NamedType>.filled(a.named.length, dummyNamedType);
+    for (int i = 0; i < a.named.length; i++) {
+      DartType? newType = mergeTypes(a.named[i].type, b.named[i].type);
+      if (newType == null) {
+        return null;
+      }
+      NamedType? newNamedType =
+          mergeNamedTypes(a.named[i], b.named[i], newType);
+      if (newNamedType == null) {
+        return null;
+      }
+      newNamed[i] = newNamedType;
+    }
+    return new RecordType(newPositional, newNamed, nullability);
+  }
+
   NamedType? mergeNamedTypes(NamedType a, NamedType b, DartType newType) {
     if (a.name != b.name || a.isRequired != b.isRequired) {
       return null;
@@ -198,6 +249,40 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
       newTypeArguments[i] = newType;
     }
     return new ExtensionType(a.extension, nullability, newTypeArguments);
+  }
+
+  @override
+  DartType? visitViewType(ViewType a, DartType b) {
+    if (b is ViewType &&
+        a.view == b.view &&
+        a.typeArguments.length == b.typeArguments.length) {
+      Nullability? nullability = mergeNullability(a.nullability, b.nullability);
+      if (nullability != null) {
+        return mergeViewTypes(a, b, nullability);
+      }
+    }
+    if (b is InvalidType) {
+      return b;
+    }
+    return null;
+  }
+
+  DartType? mergeViewTypes(ViewType a, ViewType b, Nullability nullability) {
+    assert(a.view == b.view);
+    assert(a.typeArguments.length == b.typeArguments.length);
+    if (a.typeArguments.isEmpty) {
+      return new ViewType(a.view, nullability);
+    }
+    List<DartType> newTypeArguments =
+        new List<DartType>.filled(a.typeArguments.length, dummyDartType);
+    for (int i = 0; i < a.typeArguments.length; i++) {
+      DartType? newType = a.typeArguments[i].accept1(this, b.typeArguments[i]);
+      if (newType == null) {
+        return null;
+      }
+      newTypeArguments[i] = newType;
+    }
+    return new ViewType(a.view, nullability, newTypeArguments);
   }
 
   @override
@@ -281,11 +366,7 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
       if (nullability == null) {
         return null;
       }
-      if (a.promotedBound != null && b.promotedBound != null) {
-        return mergePromotedTypeParameterTypes(a, b, nullability);
-      } else if (a.promotedBound == null && b.promotedBound == null) {
-        return mergeTypeParameterTypes(a, b, nullability);
-      }
+      return mergeTypeParameterTypes(a, b, nullability);
     }
     if (b is InvalidType) {
       return b;
@@ -296,22 +377,30 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
   DartType mergeTypeParameterTypes(
       TypeParameterType a, TypeParameterType b, Nullability nullability) {
     assert(a.parameter == b.parameter);
-    assert(a.promotedBound == null);
-    assert(b.promotedBound == null);
     return new TypeParameterType(a.parameter, nullability);
   }
 
-  DartType? mergePromotedTypeParameterTypes(
-      TypeParameterType a, TypeParameterType b, Nullability nullability) {
-    assert(a.parameter == b.parameter);
-    assert(a.promotedBound != null);
-    assert(b.promotedBound != null);
-    DartType? newPromotedBound =
-        a.promotedBound!.accept1(this, b.promotedBound);
-    if (newPromotedBound == null) {
+  @override
+  DartType? visitIntersectionType(IntersectionType a, DartType b) {
+    if (b is IntersectionType) {
+      return mergeIntersectionTypes(a, b);
+    }
+    if (b is InvalidType) {
+      return b;
+    }
+    return null;
+  }
+
+  DartType? mergeIntersectionTypes(IntersectionType a, IntersectionType b) {
+    DartType? newLeft = a.left.accept1(this, b.left);
+    if (newLeft == null) {
       return null;
     }
-    return new TypeParameterType(a.parameter, nullability, newPromotedBound);
+    DartType? newRight = a.right.accept1(this, b.right);
+    if (newRight == null) {
+      return null;
+    }
+    return new IntersectionType(newLeft as TypeParameterType, newRight);
   }
 
   @override

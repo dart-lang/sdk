@@ -166,6 +166,9 @@ external void eval(String code);
     "function/memory:sdk/tests/web/native/main.dart::Foo.mixedPositionalArgs",
     "function/memory:sdk/tests/web/native/main.dart::Foo.singleArg",
     "function/memory:sdk/tests/web/native/main.dart::Foo.singlePositionalArg"
+  ],
+  "supers": [
+    "class/dart:_interceptors::LegacyJavaScriptObject"
   ]
 }]*/
 class Foo {
@@ -278,7 +281,10 @@ class Foo {
   "modifiers": {
     "abstract": false
   },
-  "children": []
+  "children": [],
+  "supers": [
+    "class/dart:_interceptors::LegacyJavaScriptObject"
+  ]
 }]*/
 class Bar {
   external static singleArg(a);
@@ -315,13 +321,13 @@ external mixedPositionalArgs(a, [dynamic? b]);
   "functionKind": 0
 }],
  holding=[
-  {"id":"function/dart:_interceptors::getNativeInterceptor","mask":null},
+  {"id":"function/dart:_interceptors::getNativeInterceptor"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::Foo.mixedPositionalArgs","mask":"[subclass=LegacyJavaScriptObject]"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::Foo.mixedPositionalArgs","mask":"[subclass=LegacyJavaScriptObject]"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::Foo.singleArg","mask":"[subclass=LegacyJavaScriptObject]"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::Foo.singlePositionalArg","mask":"[subclass=LegacyJavaScriptObject]"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::Foo.singlePositionalArg","mask":"[subclass=LegacyJavaScriptObject]"},
-  {"id":"function/package:expect/expect.dart::Expect.equals","mask":null}]
+  {"id":"function/package:expect/expect.dart::Expect.equals"}]
 */
 main() {
   eval(r"""

@@ -13,6 +13,7 @@ JS
 abispecificinteger
 abispecificintegermapping
 adjusting
+annotate
 api
 argument(s)
 assigning
@@ -22,6 +23,7 @@ augmentations
 augmented
 b
 c
+collide
 compilercontext.runincontext
 compilesdk
 constructor(s)
@@ -30,11 +32,13 @@ count.#count
 d
 dart.dev
 dart2js_server
+dart:_internal
 dart:ffi
 dart_runner
 dartbug.com
 dname
 e.g
+exportable
 f
 ffi
 flutter_runner
@@ -46,14 +50,17 @@ interact
 interop
 intervening
 js_util
+jsexport
 libraries.json
 list.filled
 loadlibrary
 macro
+member(s)
 migrate
 n
 name.#name
 name.stack
+name3.#name
 nameokempty
 native('native
 nativefieldwrapperclass
@@ -91,6 +98,7 @@ this.x
 trusttypes
 type3.#name
 u
+unavailable
 unsound
 v
 x

@@ -85,7 +85,7 @@ class PriorityNode<N extends TypedElement, T extends Priority> {
  * The queue guarantees that nodes are returned in the same order they
  * are added for a given priority.
  * For type safety this queue is guarded by the elements being subclasses of
- * TypedElement - this is not strictly neccesary since we never actually
+ * TypedElement - this is not strictly necessary since we never actually
  * use the value or type of the nodes.
  */
 class PriorityQueue<N extends TypedElement, P extends Priority> {
@@ -154,7 +154,7 @@ class PriorityQueue<N extends TypedElement, P extends Priority> {
 
 /**
  * Implements a specialized priority queue that efficiently allows getting
- * the highest priorized node that adheres to a set of restrictions.
+ * the highest prioritized node that adheres to a set of restrictions.
  * Most notably it allows to get the highest priority node where the node's
  * type is not in an exclude list.
  * In addition, the queue has a number of properties:
@@ -169,7 +169,7 @@ class PriorityQueue<N extends TypedElement, P extends Priority> {
  */
 class RestrictViewPriorityQueue<N extends TypedElement, P extends Priority> {
   // We can't use the basic dart priority queue since it does not guarantee
-  // FIFO for items with the same order. This is currently not uptimized for
+  // FIFO for items with the same order. This is currently not optimized for
   // different N, if many different N is expected here we should have a
   // priority queue instead of a list.
   List<PriorityQueue<N, P>> restrictedQueues = new List<PriorityQueue<N, P>>();

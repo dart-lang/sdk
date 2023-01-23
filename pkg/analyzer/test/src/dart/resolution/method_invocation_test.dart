@@ -505,6 +505,117 @@ MethodInvocation
 ''');
   }
 
+  test_hasReceiver_record_defined_extension() async {
+    await assertNoErrorsInCode(r'''
+extension E on (int, String) {
+  void foo(int a) {}
+}
+
+void f((int, String) r) {
+  r.foo(0);
+}
+''');
+
+    final node = findNode.methodInvocation('r.foo(0)');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extension::E::@method::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: self::@extension::E::@method::foo::@parameter::a
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+  }
+
+  test_hasReceiver_recordQ_defined_extension() async {
+    await assertNoErrorsInCode(r'''
+extension E on (int, String)? {
+  void foo(int a) {}
+}
+
+void f((int, String)? r) {
+  r.foo(0);
+}
+''');
+
+    final node = findNode.methodInvocation('r.foo(0)');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)?
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extension::E::@method::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: self::@extension::E::@method::foo::@parameter::a
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+  }
+
+  test_hasReceiver_recordQ_notDefined_extension() async {
+    await assertErrorsInCode(r'''
+extension E on (int, String) {
+  void foo(int a) {}
+}
+
+void f((int, String)? r) {
+  r.foo(0);
+}
+''', [
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          86, 3),
+    ]);
+
+    final node = findNode.methodInvocation('r.foo(0)');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)?
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+  }
+
   test_hasReceiver_typeAlias_staticMethod() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -857,7 +968,7 @@ CascadeExpression
           staticElement: self::@class::A
           staticType: null
         type: A
-      staticElement: self::@class::A::@constructor::•
+      staticElement: self::@class::A::@constructor::new
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
@@ -3356,7 +3467,7 @@ MethodInvocation
           base: root::@parameter::t
           substitution: {T: S*}
         staticElement: self::@function::f::@parameter::s
-        staticType: S* & int*
+        staticType: (S & int*)*
     rightParenthesis: )
   staticInvokeType: void Function(S*)*
   staticType: void
@@ -7428,6 +7539,84 @@ MethodInvocation
     rightParenthesis: )
   staticInvokeType: void Function({int* a, bool* b})*
   staticType: void
+''');
+    }
+  }
+
+  test_noReceiver_call_extension_on_FunctionType() async {
+    await assertNoErrorsInCode(r'''
+extension E on int Function() {
+  void f() {
+    call();
+  }
+}
+''');
+
+    final node = findNode.methodInvocation('call()');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int Function()
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int* Function()*
+  staticType: int*
+''');
+    }
+  }
+
+  test_noReceiver_call_extension_on_FunctionType_bounded() async {
+    await assertNoErrorsInCode(r'''
+extension E<T extends int Function()> on T {
+  void f() {
+    call();
+  }
+}
+''');
+
+    final node = findNode.methodInvocation('call()');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int Function()
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int* Function()*
+  staticType: int*
 ''');
     }
   }

@@ -16,15 +16,16 @@ _callConstructor(constructor, interceptor) {
   };
 }
 
-_callAttached(receiver) {
+_callAttached(Element receiver) {
   return receiver.attached();
 }
 
-_callDetached(receiver) {
+_callDetached(Element receiver) {
   return receiver.detached();
 }
 
-_callAttributeChanged(receiver, name, oldValue, newValue) {
+_callAttributeChanged(
+    Element receiver, String name, String oldValue, String newValue) {
   return receiver.attributeChanged(name, oldValue, newValue);
 }
 
@@ -66,7 +67,8 @@ void _checkExtendsNativeClassOrTemplate(
   }
 }
 
-Function _registerCustomElement(context, document, String tag, [Map? options]) {
+Function _registerCustomElement(context, Document document, String tag,
+    [Map? options]) {
   // Function follows the same pattern as the following JavaScript code for
   // registering a custom element.
   //

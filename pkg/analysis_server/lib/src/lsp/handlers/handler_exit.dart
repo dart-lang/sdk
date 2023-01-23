@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
@@ -30,9 +31,10 @@ class ExitMessageHandler extends MessageHandler<void, void> {
     server.willExit = true;
 
     await server.shutdown();
-    Future(() {
-      exit(clientDidCallShutdown ? 0 : 1);
-    });
+    // Use Future to schedule the exit after we have responded to this request
+    // (so the client gets the response). Do not await it as it will prevent the
+    // response from completing.
+    unawaited(Future(() => exit(clientDidCallShutdown ? 0 : 1)));
     return success(null);
   }
 }

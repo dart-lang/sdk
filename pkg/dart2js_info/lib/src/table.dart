@@ -112,6 +112,7 @@ class Table {
         }
         // Align first column to the left, everything else to the right.
         sb.write(
+            // ignore: avoid_dynamic_calls
             i == 0 ? entry.padRight(widths[i]) : entry.padLeft(widths[i] + 1));
       }
       if (lastColor != _noColor) sb.write(_noColor);

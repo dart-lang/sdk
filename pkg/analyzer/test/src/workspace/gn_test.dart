@@ -22,7 +22,7 @@ main() {
 class GnWorkspacePackageTest with ResourceProviderMixin {
   void test_contains_differentPackageInWorkspace() {
     GnWorkspace workspace = _buildStandardGnWorkspace();
-    newFile('/ws/some/code/BUILD.gn', '');
+    newBuildGnFile('/ws/some/code', '');
     var targetFile = newFile('/ws/some/code/lib/code.dart', '');
 
     var package = workspace.findPackageFor(targetFile.path)!;
@@ -36,7 +36,7 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
 
   void test_contains_differentWorkspace() {
     GnWorkspace workspace = _buildStandardGnWorkspace();
-    newFile('/ws/some/code/BUILD.gn', '');
+    newBuildGnFile('/ws/some/code', '');
     var targetFile = newFile('/ws/some/code/lib/code.dart', '');
 
     var package = workspace.findPackageFor(targetFile.path)!;
@@ -46,7 +46,7 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
 
   void test_contains_samePackage() {
     GnWorkspace workspace = _buildStandardGnWorkspace();
-    newFile('/ws/some/code/BUILD.gn', '');
+    newBuildGnFile('/ws/some/code', '');
     var targetFile = newFile('/ws/some/code/lib/code.dart', '');
     var targetFile2 = newFile('/ws/some/code/lib/code2.dart', '');
     var targetFile3 = newFile('/ws/some/code/lib/src/code3.dart', '');
@@ -62,9 +62,9 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
 
   void test_contains_subPackage() {
     GnWorkspace workspace = _buildStandardGnWorkspace();
-    newFile('/ws/some/code/BUILD.gn', '');
+    newBuildGnFile('/ws/some/code', '');
     newFile('/ws/some/code/lib/code.dart', '');
-    newFile('/ws/some/code/testing/BUILD.gn', '');
+    newBuildGnFile('/ws/some/code/testing', '');
     newFile('/ws/some/code/testing/lib/testing.dart', '');
 
     var package =
@@ -77,7 +77,7 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
 
   void test_findPackageFor_buildFileExists() {
     GnWorkspace workspace = _buildStandardGnWorkspace();
-    newFile('/ws/some/code/BUILD.gn', '');
+    newBuildGnFile('/ws/some/code', '');
     var targetFile = newFile('/ws/some/code/lib/code.dart', '');
 
     var package = workspace.findPackageFor(targetFile.path)!;
@@ -85,18 +85,9 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     expect(package.workspace, equals(workspace));
   }
 
-  void test_findPackageFor_missingBuildFile() {
-    GnWorkspace workspace = _buildStandardGnWorkspace();
-    newFile('/ws/some/code/lib/code.dart', '');
-
-    var package =
-        workspace.findPackageFor(convertPath('/ws/some/code/lib/code.dart'));
-    expect(package, isNull);
-  }
-
   void test_packagesAvailableTo() {
     GnWorkspace workspace = _buildStandardGnWorkspace();
-    newFile('/ws/some/code/BUILD.gn', '');
+    newBuildGnFile('/ws/some/code', '');
     var libraryPath = newFile('/ws/some/code/lib/code.dart', '').path;
     var package = workspace.findPackageFor(libraryPath)!;
     var packages = package.packagesAvailableTo(libraryPath);
@@ -130,9 +121,9 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
   ]
 }''');
     newFolder('/ws/some/code');
-    var gnWorkspace =
-        GnWorkspace.find(resourceProvider, convertPath('/ws/some/code'))!;
-    expect(gnWorkspace.isBazel, isFalse);
+    var buildGnFile = newBuildGnFile('/ws/some/code', '');
+    var gnWorkspace = GnWorkspace.find(buildGnFile)!;
+    expect(gnWorkspace.isBlaze, isFalse);
     return gnWorkspace;
   }
 }
@@ -141,28 +132,15 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
 class GnWorkspaceTest with ResourceProviderMixin {
   void test_find_noJiriRoot() {
     newFolder('/workspace');
-    var workspace =
-        GnWorkspace.find(resourceProvider, convertPath('/workspace'));
+    var buildGnFile = newBuildGnFile('/workspace/some/code', '');
+    var workspace = GnWorkspace.find(buildGnFile);
     expect(workspace, isNull);
-  }
-
-  void test_find_noPackagesFiles() {
-    newFolder('/workspace/.jiri_root');
-    newFolder('/workspace/some/code');
-    var workspace =
-        GnWorkspace.find(resourceProvider, convertPath('/workspace'));
-    expect(workspace, isNull);
-  }
-
-  void test_find_notAbsolute() {
-    expect(
-        () => GnWorkspace.find(resourceProvider, convertPath('not_absolute')),
-        throwsA(const TypeMatcher<ArgumentError>()));
   }
 
   void test_find_withRoot() {
     newFolder('/workspace/.jiri_root');
     newFolder('/workspace/some/code');
+    var buildGnFile = newBuildGnFile('/workspace/some/code', '');
     newPubspecYamlFile('/workspace/some/code', '');
     String buildDir = convertPath('out/debug-x87_128');
     newFile('/workspace/.fx-build-dir', '$buildDir\n');
@@ -170,14 +148,14 @@ class GnWorkspaceTest with ResourceProviderMixin {
       '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
       '',
     );
-    var workspace = GnWorkspace.find(
-        resourceProvider, convertPath('/workspace/some/code'))!;
+    var workspace = GnWorkspace.find(buildGnFile)!;
     expect(workspace.root, convertPath('/workspace'));
   }
 
   void test_packages() {
     newFolder('/workspace/.jiri_root');
     newFolder('/workspace/some/code');
+    var buildGnFile = newBuildGnFile('/workspace/some/code', '');
     newPubspecYamlFile('/workspace/some/code', '');
     String buildDir = convertPath('out/debug-x87_128');
     newFile('/workspace/.fx-build-dir', '$buildDir\n');
@@ -196,8 +174,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
     }
   ]
 }''');
-    var workspace = GnWorkspace.find(
-        resourceProvider, convertPath('/workspace/some/code'))!;
+    var workspace = GnWorkspace.find(buildGnFile)!;
     expect(workspace.root, convertPath('/workspace'));
     expect(
       workspace.packages.packages,
@@ -213,6 +190,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
   void test_packages_absoluteBuildDir() {
     newFolder('/workspace/.jiri_root');
     newFolder('/workspace/some/code');
+    var buildGnFile = newBuildGnFile('/workspace/some/code', '');
     newPubspecYamlFile('/workspace/some/code', '');
     String buildDir = convertPath('/workspace/out/debug-x87_128');
     newFile('/workspace/.fx-build-dir', '$buildDir\n');
@@ -231,8 +209,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
     }
   ]
 }''');
-    var workspace = GnWorkspace.find(
-        resourceProvider, convertPath('/workspace/some/code'))!;
+    var workspace = GnWorkspace.find(buildGnFile)!;
     expect(workspace.root, convertPath('/workspace'));
     expect(
       workspace.packages.packages,
@@ -248,6 +225,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
   void test_packages_fallbackBuildDir() {
     newFolder('/workspace/.jiri_root');
     newFolder('/workspace/some/code');
+    var buildGnFile = newBuildGnFile('/workspace/some/code', '');
     newPubspecYamlFile('/workspace/some/code', '');
     String packageLocation = convertPath('/workspace/this/is/the/package');
     Uri packageUri = resourceProvider.pathContext.toUri(packageLocation);
@@ -264,8 +242,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
     }
   ]
 }''');
-    var workspace = GnWorkspace.find(
-        resourceProvider, convertPath('/workspace/some/code'))!;
+    var workspace = GnWorkspace.find(buildGnFile)!;
     expect(workspace.root, convertPath('/workspace'));
     expect(
       workspace.packages.packages,
@@ -281,6 +258,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
   void test_packages_fallbackBuildDirWithUselessConfig() {
     newFolder('/workspace/.jiri_root');
     newFolder('/workspace/some/code');
+    var buildGnFile = newBuildGnFile('/workspace/some/code', '');
     newPubspecYamlFile('/workspace/some/code', '');
     newFile('/workspace/.fx-build-dir', '');
     String packageLocation = convertPath('/workspace/this/is/the/package');
@@ -298,8 +276,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
     }
   ]
 }''');
-    var workspace = GnWorkspace.find(
-        resourceProvider, convertPath('/workspace/some/code'))!;
+    var workspace = GnWorkspace.find(buildGnFile)!;
     expect(workspace.root, convertPath('/workspace'));
     expect(
       workspace.packages.packages,
@@ -315,6 +292,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
   void test_packages_multipleCandidates() {
     newFolder('/workspace/.jiri_root');
     newFolder('/workspace/some/code');
+    var buildGnFile = newBuildGnFile('/workspace/some/code', '');
     newPubspecYamlFile('/workspace/some/code', '');
     String buildDir = convertPath('out/release-y22_256');
     newFile('/workspace/.fx-build-dir', '$buildDir\n');
@@ -349,8 +327,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
     }
   ]
 }''');
-    var workspace = GnWorkspace.find(
-        resourceProvider, convertPath('/workspace/some/code'))!;
+    var workspace = GnWorkspace.find(buildGnFile)!;
     expect(workspace.root, convertPath('/workspace'));
     expect(
       workspace.packages.packages,
@@ -367,6 +344,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
   void test_packages_multipleFiles() {
     newFolder('/workspace/.jiri_root');
     newFolder('/workspace/some/code');
+    var buildGnFile = newBuildGnFile('/workspace/some/code', '');
     newPubspecYamlFile('/workspace/some/code', '');
     String buildDir = convertPath('out/debug-x87_128');
     newFile('/workspace/.fx-build-dir', '$buildDir\n');
@@ -401,8 +379,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
     }
   ]
 }''');
-    var workspace = GnWorkspace.find(
-        resourceProvider, convertPath('/workspace/some/code'))!;
+    var workspace = GnWorkspace.find(buildGnFile)!;
     expect(workspace.root, convertPath('/workspace'));
     expect(
       workspace.packages.packages,

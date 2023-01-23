@@ -22,6 +22,7 @@ worlds:
           print("b");
         }
     expectedLibraryCount: 2
+
   - entry: main.dart
     invalidate:
       - main.dart
@@ -35,3 +36,4 @@ worlds:
           print("b");
         }
     expectedLibraryCount: 1
+    advancedInvalidation: outlineChange

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Standalone utility that manages loading source maps for all Dart scripts
 /// on the page compiled with DDC.
 ///
@@ -49,7 +47,7 @@ typedef SetSourceMapProvider = void Function(SourceMapProvider);
 @anonymous
 class DartStackTraceUtility {
   external factory DartStackTraceUtility(
-      {StackTraceMapper mapper, SetSourceMapProvider setSourceMapProvider});
+      {StackTraceMapper? mapper, SetSourceMapProvider? setSourceMapProvider});
 }
 
 @JS('JSON.stringify')
@@ -70,8 +68,8 @@ class LazyMapping extends Mapping {
   List toJson() => _bundle.toJson();
 
   @override
-  SourceMapSpan spanFor(int line, int column,
-      {Map<String, SourceFile> files, String uri}) {
+  SourceMapSpan? spanFor(int line, int column,
+      {Map<String, SourceFile>? files, String? uri}) {
     if (uri == null) {
       throw ArgumentError.notNull('uri');
     }
@@ -91,24 +89,25 @@ class LazyMapping extends Mapping {
     // TODO(jacobr): we shouldn't have to filter out invalid sourceUrl entries
     // here.
     if (span == null || span.start.sourceUrl == null) return null;
-    var pathSegments = span.start.sourceUrl.pathSegments;
+    var pathSegments = span.start.sourceUrl!.pathSegments;
     if (pathSegments.isNotEmpty && pathSegments.last == 'null') return null;
     return span;
   }
 }
 
-LazyMapping _mapping;
+LazyMapping? _mapping;
 
 List<String> roots = rootDirectories.map((s) => '$s').toList();
 
 String mapper(String rawStackTrace) {
-  if (_mapping == null) {
+  var mapping = _mapping;
+  if (mapping == null) {
     // This should not happen if the user has waited for the ReadyCallback
     // to start the application.
     throw StateError('Source maps are not done loading.');
   }
   var trace = Trace.parse(rawStackTrace);
-  return mapStackTrace(_mapping, trace, roots: roots).toString();
+  return mapStackTrace(mapping, trace, roots: roots).toString();
 }
 
 void setSourceMapProvider(SourceMapProvider provider) {

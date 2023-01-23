@@ -51,7 +51,7 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
     } else if (node is CompilationUnit) {
       properties['declaredElement'] = node.declaredElement;
     } else if (node is Configuration) {
-      properties['uriSource'] = node.uriSource;
+      properties['uriSource'] = node.resolvedUri;
     } else if (node is ConstructorName) {
       properties['static element'] = node.staticElement;
     } else if (node is DeclaredIdentifier) {
@@ -59,8 +59,6 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       properties['keyword'] = node.keyword;
     } else if (node is ExportDirective) {
       properties['element'] = node.element;
-      properties['selectedSource'] = node.selectedSource;
-      properties['uriSource'] = node.uriSource;
     } else if (node is FieldDeclaration) {
       properties['static keyword'] = node.staticKeyword;
     } else if (node is FormalParameter) {
@@ -88,8 +86,6 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       properties['type'] = node.type;
     } else if (node is ImportDirective) {
       properties['element'] = node.element;
-      properties['selectedSource'] = node.selectedSource;
-      properties['uriSource'] = node.uriSource;
     } else if (node is IndexExpression) {
       properties['static element'] = node.staticElement;
       properties['static type'] = node.staticType;
@@ -108,7 +104,6 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       properties['static type'] = node.staticType;
     } else if (node is PartDirective) {
       properties['element'] = node.element;
-      properties['uriSource'] = node.uriSource;
     } else if (node is PartOfDirective) {
       properties['element'] = node.element;
     } else if (node is PostfixExpression) {
@@ -149,36 +144,36 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
   /// declaration.
   String? _getName(AstNode node) {
     if (node is ClassTypeAlias) {
-      return node.name.name;
+      return node.name.lexeme;
     } else if (node is ClassDeclaration) {
-      return node.name.name;
+      return node.name.lexeme;
     } else if (node is ConstructorDeclaration) {
       var name = node.name;
       if (name == null) {
         return node.returnType.name;
       } else {
-        return '${node.returnType.name}.${name.name}';
+        return '${node.returnType.name}.${name.lexeme}';
       }
     } else if (node is ConstructorName) {
       return node.toSource();
     } else if (node is FieldDeclaration) {
       return _getNames(node.fields);
     } else if (node is FunctionDeclaration) {
-      return node.name.name;
+      return node.name.lexeme;
     } else if (node is FunctionTypeAlias) {
-      return node.name.name;
+      return node.name.lexeme;
     } else if (node is Identifier) {
       return node.name;
     } else if (node is MethodDeclaration) {
-      return node.name.name;
+      return node.name.lexeme;
     } else if (node is TopLevelVariableDeclaration) {
       return _getNames(node.variables);
     } else if (node is TypeAnnotation) {
       return node.toSource();
     } else if (node is TypeParameter) {
-      return node.name.name;
+      return node.name.lexeme;
     } else if (node is VariableDeclaration) {
-      return node.name.name;
+      return node.name.lexeme;
     }
     return null;
   }
@@ -194,7 +189,7 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       } else {
         buffer.write(', ');
       }
-      buffer.write(variable.name.name);
+      buffer.write(variable.name.lexeme);
     }
     return buffer.toString();
   }

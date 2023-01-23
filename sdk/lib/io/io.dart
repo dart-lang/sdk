@@ -196,12 +196,41 @@ import 'dart:collection'
     show HashMap, HashSet, Queue, ListQueue, MapBase, UnmodifiableMapView;
 import 'dart:convert';
 import 'dart:developer' hide log;
-import 'dart:_http' show HttpClient, HttpProfiler;
+import 'dart:_http' show HttpClient, HttpProfiler, ServerSocketBase;
 import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';
 
-export 'dart:_http' hide HttpProfiler;
+export 'dart:_http'
+    show
+        HttpDate,
+        BadCertificateCallback,
+        HttpOverrides,
+        WebSocketStatus,
+        CompressionOptions,
+        WebSocketTransformer,
+        WebSocket,
+        WebSocketException,
+        HttpServer,
+        HttpConnectionsInfo,
+        HttpHeaders,
+        HeaderValue,
+        HttpSession,
+        ContentType,
+        Cookie,
+        HttpRequest,
+        HttpResponse,
+        HttpClient,
+        HttpClientRequest,
+        HttpClientResponse,
+        HttpClientResponseCompressionState,
+        HttpClientCredentials,
+        HttpClientBasicCredentials,
+        HttpClientDigestCredentials,
+        HttpConnectionInfo,
+        RedirectInfo,
+        HttpException,
+        RedirectException;
 @Deprecated("Import BytesBuilder from dart:typed_data instead")
 export 'dart:_internal' show BytesBuilder;
 export 'dart:_internal' show HttpStatus;

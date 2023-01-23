@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "core_patch.dart";
+part of "core_patch.dart";
 
 @pragma("vm:entry-point")
 class _Closure implements Function {
@@ -18,6 +18,7 @@ class _Closure implements Function {
     return _hash;
   }
 
+  @pragma("vm:entry-point")
   _Closure get call => this;
 
   @pragma("vm:external-name", "Closure_computeHash")

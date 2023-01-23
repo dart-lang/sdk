@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -26,25 +27,52 @@ class RemoveLeadingUnderscore extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var identifier = node;
-    if (identifier is! SimpleIdentifier) {
+    final node = this.node;
+    final Token? nameToken;
+    final Element? element;
+    if (node is SimpleIdentifier) {
+      nameToken = node.token;
+      element = node.staticElement;
+    } else if (node is FormalParameter) {
+      nameToken = node.name;
+      element = node.declaredElement;
+    } else if (node is VariableDeclaration) {
+      nameToken = node.name;
+      element = node.declaredElement;
+    } else {
       return;
     }
 
-    var name = identifier.name;
-    if (name.length < 2) {
+    if (nameToken == null || element == null) {
       return;
     }
 
-    var newName = name.substring(1);
+    final oldName = nameToken.lexeme;
+    if (oldName.length < 2) {
+      return;
+    }
+
+    var newName = oldName.substring(1);
 
     // Find references to the identifier.
     List<SimpleIdentifier>? references;
-    var element = identifier.staticElement;
     if (element is LocalVariableElement) {
-      var root = node.thisOrAncestorOfType<Block>();
-      if (root != null) {
-        references = findLocalElementReferences(root, element);
+      var block = node.thisOrAncestorOfType<Block>();
+      if (block != null) {
+        references = findLocalElementReferences(block, element);
+
+        var declaration = block.thisOrAncestorOfType<MethodDeclaration>() ??
+            block.thisOrAncestorOfType<FunctionDeclaration>();
+
+        if (declaration != null) {
+          if (isDeclaredIn(declaration, newName)) {
+            var suffix = -1;
+            do {
+              suffix++;
+            } while (isDeclaredIn(declaration, '$newName$suffix'));
+            newName = '$newName$suffix';
+          }
+        }
       }
     } else if (element is ParameterElement) {
       if (!element.isNamed) {
@@ -68,10 +96,13 @@ class RemoveLeadingUnderscore extends CorrectionProducer {
     }
 
     // Compute the change.
-    var references_final = references;
+    final sourceRanges = {
+      range.token(nameToken),
+      ...references.map(range.node),
+    };
     await builder.addDartFileEdit(file, (builder) {
-      for (var reference in references_final) {
-        builder.addSimpleReplacement(range.node(reference), newName);
+      for (var sourceRange in sourceRanges) {
+        builder.addSimpleReplacement(sourceRange, newName);
       }
     });
   }

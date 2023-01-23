@@ -208,7 +208,7 @@ static method fisk() → dynamic async /* futureValueType= dynamic */ {
   lowered core::bool #f#isSet = false;
   function #f#get() → core::Function {
     if(!#f#isSet) {
-      #f = () → asy::Future<dynamic> async /* futureValueType= dynamic */ => await self::hest();
+      #f = () → asy::Future<dynamic> async /* futureValueType= dynamic */ => await self::hest() /* runtimeCheckType= asy::Future<dynamic> */ ;
       #f#isSet = true;
     }
     return #f{core::Function};

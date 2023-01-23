@@ -129,8 +129,8 @@ ISOLATE_UNIT_TEST_CASE(SerializeNull) {
   // Write snapshot with object content.
   const Object& null_object = Object::Handle();
   std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ true, /* same_group */ false,
-                   null_object, ILLEGAL_PORT, Message::kNormalPriority);
+      WriteMessage(/* same_group */ false, null_object, ILLEGAL_PORT,
+                   Message::kNormalPriority);
 
   // Read object back from the snapshot.
   const Object& serialized_object =
@@ -150,9 +150,8 @@ ISOLATE_UNIT_TEST_CASE(SerializeSmi1) {
 
   // Write snapshot with object content.
   const Smi& smi = Smi::Handle(Smi::New(124));
-  std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ true, /* same_group */ false, smi,
-                   ILLEGAL_PORT, Message::kNormalPriority);
+  std::unique_ptr<Message> message = WriteMessage(
+      /* same_group */ false, smi, ILLEGAL_PORT, Message::kNormalPriority);
 
   // Read object back from the snapshot.
   const Object& serialized_object =
@@ -173,9 +172,8 @@ ISOLATE_UNIT_TEST_CASE(SerializeSmi2) {
 
   // Write snapshot with object content.
   const Smi& smi = Smi::Handle(Smi::New(-1));
-  std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ true, /* same_group */ false, smi,
-                   ILLEGAL_PORT, Message::kNormalPriority);
+  std::unique_ptr<Message> message = WriteMessage(
+      /* same_group */ false, smi, ILLEGAL_PORT, Message::kNormalPriority);
 
   // Read object back from the snapshot.
   const Object& serialized_object =
@@ -193,9 +191,8 @@ ISOLATE_UNIT_TEST_CASE(SerializeSmi2) {
 
 Dart_CObject* SerializeAndDeserializeMint(Zone* zone, const Mint& mint) {
   // Write snapshot with object content.
-  std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ true, /* same_group */ false, mint,
-                   ILLEGAL_PORT, Message::kNormalPriority);
+  std::unique_ptr<Message> message = WriteMessage(
+      /* same_group */ false, mint, ILLEGAL_PORT, Message::kNormalPriority);
 
   {
     // Switch to a regular zone, where VM handle allocation is allowed.
@@ -264,9 +261,8 @@ ISOLATE_UNIT_TEST_CASE(SerializeDouble) {
 
   // Write snapshot with object content.
   const Double& dbl = Double::Handle(Double::New(101.29));
-  std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ true, /* same_group */ false, dbl,
-                   ILLEGAL_PORT, Message::kNormalPriority);
+  std::unique_ptr<Message> message = WriteMessage(
+      /* same_group */ false, dbl, ILLEGAL_PORT, Message::kNormalPriority);
 
   // Read object back from the snapshot.
   const Object& serialized_object =
@@ -288,8 +284,7 @@ ISOLATE_UNIT_TEST_CASE(SerializeTrue) {
   // Write snapshot with true object.
   const Bool& bl = Bool::True();
   std::unique_ptr<Message> message = WriteMessage(
-      /* can_send_any_object */ true, /* same_group */ false, bl, ILLEGAL_PORT,
-      Message::kNormalPriority);
+      /* same_group */ false, bl, ILLEGAL_PORT, Message::kNormalPriority);
 
   // Read object back from the snapshot.
   const Object& serialized_object =
@@ -313,8 +308,7 @@ ISOLATE_UNIT_TEST_CASE(SerializeFalse) {
   // Write snapshot with false object.
   const Bool& bl = Bool::False();
   std::unique_ptr<Message> message = WriteMessage(
-      /* can_send_any_object */ true, /* same_group */ false, bl, ILLEGAL_PORT,
-      Message::kNormalPriority);
+      /* same_group */ false, bl, ILLEGAL_PORT, Message::kNormalPriority);
 
   // Read object back from the snapshot.
   const Object& serialized_object =
@@ -334,8 +328,8 @@ ISOLATE_UNIT_TEST_CASE(SerializeCapability) {
   // Write snapshot with object content.
   const Capability& capability = Capability::Handle(Capability::New(12345));
   std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ true, /* same_group */ false,
-                   capability, ILLEGAL_PORT, Message::kNormalPriority);
+      WriteMessage(/* same_group */ false, capability, ILLEGAL_PORT,
+                   Message::kNormalPriority);
 
   // Read object back from the snapshot.
   Capability& obj = Capability::Handle();
@@ -357,8 +351,8 @@ ISOLATE_UNIT_TEST_CASE(SerializeCapability) {
   {                                                                            \
     const Object& before = Object::Handle(object);                             \
     std::unique_ptr<Message> message =                                         \
-        WriteMessage(/* can_send_any_object */ true, /* same_group */ false,   \
-                     before, ILLEGAL_PORT, Message::kNormalPriority);          \
+        WriteMessage(/* same_group */ false, before, ILLEGAL_PORT,             \
+                     Message::kNormalPriority);                                \
     const Object& after = Object::Handle(ReadMessage(thread, message.get()));  \
     EXPECT(before.ptr() == after.ptr());                                       \
   }
@@ -383,9 +377,8 @@ static void TestString(const char* cstr) {
   EXPECT(Utf8::IsValid(reinterpret_cast<const uint8_t*>(cstr), strlen(cstr)));
   // Write snapshot with object content.
   String& str = String::Handle(String::New(cstr));
-  std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ true, /* same_group */ false, str,
-                   ILLEGAL_PORT, Message::kNormalPriority);
+  std::unique_ptr<Message> message = WriteMessage(
+      /* same_group */ false, str, ILLEGAL_PORT, Message::kNormalPriority);
 
   // Read object back from the snapshot.
   String& serialized_str = String::Handle();
@@ -424,9 +417,8 @@ ISOLATE_UNIT_TEST_CASE(SerializeArray) {
     smi ^= Smi::New(i);
     array.SetAt(i, smi);
   }
-  std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ true, /* same_group */ false,
-                   array, ILLEGAL_PORT, Message::kNormalPriority);
+  std::unique_ptr<Message> message = WriteMessage(
+      /* same_group */ false, array, ILLEGAL_PORT, Message::kNormalPriority);
 
   // Read object back from the snapshot.
   Array& serialized_array = Array::Handle();
@@ -457,9 +449,8 @@ ISOLATE_UNIT_TEST_CASE(SerializeArrayWithTypeArgument) {
     smi ^= Smi::New(i);
     array.SetAt(i, smi);
   }
-  std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ true, /* same_group */ false,
-                   array, ILLEGAL_PORT, Message::kNormalPriority);
+  std::unique_ptr<Message> message = WriteMessage(
+      /* same_group */ false, array, ILLEGAL_PORT, Message::kNormalPriority);
 
   // Read object back from the snapshot.
   Array& serialized_array = Array::Handle();
@@ -532,13 +523,22 @@ TEST_CASE(FailSerializeLargeExternalTypedData) {
   ExpectEncodeFail(scope.zone(), &root);
 }
 
+TEST_CASE(FailSerializeLargeUnmodifiableExternalTypedData) {
+  Dart_CObject root;
+  root.type = Dart_CObject_kUnmodifiableExternalTypedData;
+  root.value.as_external_typed_data.type = Dart_TypedData_kUint8;
+  root.value.as_external_typed_data.length =
+      ExternalTypedData::MaxElements(kExternalTypedDataUint8ArrayCid) + 1;
+  ApiNativeScope scope;
+  ExpectEncodeFail(scope.zone(), &root);
+}
+
 ISOLATE_UNIT_TEST_CASE(SerializeEmptyArray) {
   // Write snapshot with object content.
   const int kArrayLength = 0;
   Array& array = Array::Handle(Array::New(kArrayLength));
-  std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ true, /* same_group */ false,
-                   array, ILLEGAL_PORT, Message::kNormalPriority);
+  std::unique_ptr<Message> message = WriteMessage(
+      /* same_group */ false, array, ILLEGAL_PORT, Message::kNormalPriority);
 
   // Read object back from the snapshot.
   Array& serialized_array = Array::Handle();
@@ -563,8 +563,8 @@ ISOLATE_UNIT_TEST_CASE(SerializeByteArray) {
     typed_data.SetUint8(i, i);
   }
   std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ true, /* same_group */ false,
-                   typed_data, ILLEGAL_PORT, Message::kNormalPriority);
+      WriteMessage(/* same_group */ false, typed_data, ILLEGAL_PORT,
+                   Message::kNormalPriority);
 
   // Read object back from the snapshot.
   TypedData& serialized_typed_data = TypedData::Handle();
@@ -593,8 +593,8 @@ ISOLATE_UNIT_TEST_CASE(SerializeByteArray) {
       array.Set##darttype((i * scale), i);                                     \
     }                                                                          \
     std::unique_ptr<Message> message =                                         \
-        WriteMessage(/* can_send_any_object */ true, /* same_group */ false,   \
-                     array, ILLEGAL_PORT, Message::kNormalPriority);           \
+        WriteMessage(/* same_group */ false, array, ILLEGAL_PORT,              \
+                     Message::kNormalPriority);                                \
     TypedData& serialized_array = TypedData::Handle();                         \
     serialized_array ^= ReadMessage(thread, message.get());                    \
     for (int i = 0; i < kArrayLength; i++) {                                   \
@@ -613,13 +613,34 @@ ISOLATE_UNIT_TEST_CASE(SerializeByteArray) {
                                reinterpret_cast<uint8_t*>(data), length));     \
     intptr_t scale = array.ElementSizeInBytes();                               \
     std::unique_ptr<Message> message =                                         \
-        WriteMessage(/* can_send_any_object */ true, /* same_group */ false,   \
-                     array, ILLEGAL_PORT, Message::kNormalPriority);           \
+        WriteMessage(/* same_group */ false, array, ILLEGAL_PORT,              \
+                     Message::kNormalPriority);                                \
     ExternalTypedData& serialized_array = ExternalTypedData::Handle();         \
     serialized_array ^= ReadMessage(thread, message.get());                    \
     for (int i = 0; i < length; i++) {                                         \
       EXPECT_EQ(static_cast<ctype>(data[i]),                                   \
                 serialized_array.Get##darttype(i* scale));                     \
+    }                                                                          \
+  }
+
+#define TEST_UNMODIFIABLE_EXTERNAL_TYPED_ARRAY(darttype, ctype)                \
+  {                                                                            \
+    StackZone zone(thread);                                                    \
+    ctype data[] = {0, 11, 22, 33, 44, 55, 66, 77};                            \
+    intptr_t length = ARRAY_SIZE(data);                                        \
+    ExternalTypedData& array = ExternalTypedData::Handle(                      \
+        ExternalTypedData::New(kExternalTypedData##darttype##ArrayCid,         \
+                               reinterpret_cast<uint8_t*>(data), length));     \
+    TypedDataView& view = TypedDataView::Handle(TypedDataView::New(            \
+        kUnmodifiableTypedData##darttype##ArrayViewCid, array, 0, length));    \
+    intptr_t scale = array.ElementSizeInBytes();                               \
+    std::unique_ptr<Message> message = WriteMessage(                           \
+        /* same_group */ false, view, ILLEGAL_PORT, Message::kNormalPriority); \
+    TypedDataView& serialized_view = TypedDataView::Handle();                  \
+    serialized_view ^= ReadMessage(thread, message.get());                     \
+    for (int i = 0; i < length; i++) {                                         \
+      EXPECT_EQ(static_cast<ctype>(data[i]),                                   \
+                serialized_view.Get##darttype(i* scale));                      \
     }                                                                          \
   }
 
@@ -649,14 +670,27 @@ ISOLATE_UNIT_TEST_CASE(SerializeExternalTypedArray) {
   TEST_EXTERNAL_TYPED_ARRAY(Float64, double);
 }
 
+ISOLATE_UNIT_TEST_CASE(SerializeUnmodifiableExternalTypedArray) {
+  TEST_UNMODIFIABLE_EXTERNAL_TYPED_ARRAY(Int8, int8_t);
+  TEST_UNMODIFIABLE_EXTERNAL_TYPED_ARRAY(Uint8, uint8_t);
+  TEST_UNMODIFIABLE_EXTERNAL_TYPED_ARRAY(Int16, int16_t);
+  TEST_UNMODIFIABLE_EXTERNAL_TYPED_ARRAY(Uint16, uint16_t);
+  TEST_UNMODIFIABLE_EXTERNAL_TYPED_ARRAY(Int32, int32_t);
+  TEST_UNMODIFIABLE_EXTERNAL_TYPED_ARRAY(Uint32, uint32_t);
+  TEST_UNMODIFIABLE_EXTERNAL_TYPED_ARRAY(Int64, int64_t);
+  TEST_UNMODIFIABLE_EXTERNAL_TYPED_ARRAY(Uint64, uint64_t);
+  TEST_UNMODIFIABLE_EXTERNAL_TYPED_ARRAY(Float32, float);
+  TEST_UNMODIFIABLE_EXTERNAL_TYPED_ARRAY(Float64, double);
+}
+
 ISOLATE_UNIT_TEST_CASE(SerializeEmptyByteArray) {
   // Write snapshot with object content.
   const int kTypedDataLength = 0;
   TypedData& typed_data = TypedData::Handle(
       TypedData::New(kTypedDataUint8ArrayCid, kTypedDataLength));
   std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ true, /* same_group */ false,
-                   typed_data, ILLEGAL_PORT, Message::kNormalPriority);
+      WriteMessage(/* same_group */ false, typed_data, ILLEGAL_PORT,
+                   Message::kNormalPriority);
 
   // Read object back from the snapshot.
   TypedData& serialized_typed_data = TypedData::Handle();
@@ -772,17 +806,16 @@ static std::unique_ptr<Message> GetSerialized(Dart_Handle lib,
   Object& obj = Object::Handle(Api::UnwrapHandle(result));
 
   // Serialize the object into a message.
-  return WriteMessage(/* can_send_any_object */ false, /* same_group */ false,
-                      obj, ILLEGAL_PORT, Message::kNormalPriority);
+  return WriteMessage(/* same_group */ false, obj, ILLEGAL_PORT,
+                      Message::kNormalPriority);
 }
 
 static void CheckString(Dart_Handle dart_string, const char* expected) {
   StackZone zone(Thread::Current());
   String& str = String::Handle();
   str ^= Api::UnwrapHandle(dart_string);
-  std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ false, /* same_group */ false, str,
-                   ILLEGAL_PORT, Message::kNormalPriority);
+  std::unique_ptr<Message> message = WriteMessage(
+      /* same_group */ false, str, ILLEGAL_PORT, Message::kNormalPriority);
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
@@ -797,9 +830,8 @@ static void CheckStringInvalid(Dart_Handle dart_string) {
   StackZone zone(Thread::Current());
   String& str = String::Handle();
   str ^= Api::UnwrapHandle(dart_string);
-  std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ false, /* same_group */ false, str,
-                   ILLEGAL_PORT, Message::kNormalPriority);
+  std::unique_ptr<Message> message = WriteMessage(
+      /* same_group */ false, str, ILLEGAL_PORT, Message::kNormalPriority);
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
@@ -901,9 +933,8 @@ VM_UNIT_TEST_CASE(DartGeneratedMessages) {
       StackZone zone(thread);
       Smi& smi = Smi::Handle();
       smi ^= Api::UnwrapHandle(smi_result);
-      std::unique_ptr<Message> message =
-          WriteMessage(/* can_send_any_object */ false, /* same_group */ false,
-                       smi, ILLEGAL_PORT, Message::kNormalPriority);
+      std::unique_ptr<Message> message = WriteMessage(
+          /* same_group */ false, smi, ILLEGAL_PORT, Message::kNormalPriority);
 
       // Read object back from the snapshot into a C structure.
       ApiNativeScope scope;
@@ -1877,6 +1908,11 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
   Dart_ShutdownIsolate();
 }
 
+static void MallocFinalizer(void* isolate_callback_data, void* peer) {
+  free(peer);
+}
+static void NoopFinalizer(void* isolate_callback_data, void* peer) {}
+
 VM_UNIT_TEST_CASE(PostCObject) {
   // Create a native port for posting from C to Dart
   TestIsolateScope __test_isolate__;
@@ -1897,7 +1933,7 @@ VM_UNIT_TEST_CASE(PostCObject) {
       "      }\n"
       "    }\n"
       "    messageCount++;\n"
-      "    if (messageCount == 10) throw new Exception(exception);\n"
+      "    if (messageCount == 13) throw new Exception(exception);\n"
       "  };\n"
       "  return sendPort;\n"
       "}\n";
@@ -1963,11 +1999,41 @@ VM_UNIT_TEST_CASE(PostCObject) {
   }
   EXPECT(Dart_PostCObject(port_id, array));
 
+  object.type = Dart_CObject_kTypedData;
+  object.value.as_typed_data.type = Dart_TypedData_kUint8;
+  uint8_t data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
+  object.value.as_typed_data.length = ARRAY_SIZE(data);
+  object.value.as_typed_data.values = data;
+  EXPECT(Dart_PostCObject(port_id, &object));
+
+  object.type = Dart_CObject_kExternalTypedData;
+  object.value.as_typed_data.type = Dart_TypedData_kUint8;
+  uint8_t* external_data = reinterpret_cast<uint8_t*>(malloc(sizeof(data)));
+  memmove(external_data, data, sizeof(data));
+  object.value.as_external_typed_data.length = ARRAY_SIZE(data);
+  object.value.as_external_typed_data.data = external_data;
+  object.value.as_external_typed_data.peer = external_data;
+  object.value.as_external_typed_data.callback = MallocFinalizer;
+  EXPECT(Dart_PostCObject(port_id, &object));
+
+  object.type = Dart_CObject_kUnmodifiableExternalTypedData;
+  object.value.as_typed_data.type = Dart_TypedData_kUint8;
+  static const uint8_t unmodifiable_data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
+  object.value.as_external_typed_data.length = ARRAY_SIZE(unmodifiable_data);
+  object.value.as_external_typed_data.data =
+      const_cast<uint8_t*>(unmodifiable_data);
+  object.value.as_external_typed_data.peer = nullptr;
+  object.value.as_external_typed_data.callback = NoopFinalizer;
+  EXPECT(Dart_PostCObject(port_id, &object));
+
   result = Dart_RunLoop();
   EXPECT(Dart_IsError(result));
   EXPECT(Dart_ErrorHasException(result));
-  EXPECT_SUBSTRING("Exception: nulltruefalse123456æøå3.14[]100123456789\n",
-                   Dart_GetError(result));
+  EXPECT_SUBSTRING(
+      "Exception: "
+      "nulltruefalse123456æøå3.14[]"
+      "100123456789901234567890123456789012345678\n",
+      Dart_GetError(result));
 
   Dart_ExitScope();
 }

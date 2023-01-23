@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -29,7 +30,23 @@ class RemoveUnnecessaryStringEscape extends CorrectionProducer {
       return;
     }
     await builder.addDartFileEdit(file, (builder) {
-      builder.addDeletion(SourceRange(offset, 1));
+      if (node is! InterpolationString) {
+        builder.addDeletion(SourceRange(offset, 1));
+        return;
+      }
+
+      var childEntities = (node.parent as StringInterpolation).elements;
+      var index = childEntities.indexOf(node as InterpolationString);
+      var prevNode = index > 0 ? childEntities.elementAt(index - 1) : null;
+      if (offset == node.offset &&
+          (prevNode is InterpolationExpression &&
+              prevNode.rightBracket == null)) {
+        builder.addSimpleReplacement(SourceRange(offset, 1), '}');
+        builder.addSimpleInsertion(
+            childEntities.elementAt(index - 1).offset + 1, '{');
+      } else {
+        builder.addDeletion(SourceRange(offset, 1));
+      }
     });
   }
 }

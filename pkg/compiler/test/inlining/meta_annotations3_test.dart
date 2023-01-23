@@ -9,7 +9,7 @@
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import 'package:compiler/compiler_api.dart' as api;
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 const MEMORY_SOURCE_FILES = const {
   'main.dart': r'''

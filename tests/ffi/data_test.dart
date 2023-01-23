@@ -398,11 +398,10 @@ void testTypeTest() {
 
 void testToString() {
   Pointer<Int16> p = calloc();
-  Expect.stringEquals(
-      "Pointer<Int16>: address=0x", p.toString().substring(0, 26));
+  Expect.stringEquals("Pointer: address=0x", p.toString().substring(0, 19));
   calloc.free(p);
   Pointer<Int64> p2 = Pointer.fromAddress(0x123abc);
-  Expect.stringEquals("Pointer<Int64>: address=0x123abc", p2.toString());
+  Expect.stringEquals("Pointer: address=0x123abc", p2.toString());
 }
 
 void testEquality() {

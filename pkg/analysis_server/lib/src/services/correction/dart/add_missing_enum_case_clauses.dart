@@ -26,23 +26,25 @@ class AddMissingEnumCaseClauses extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (node is! SwitchStatement) {
+    var statement = node;
+    if (statement is! SwitchStatement) {
       return;
     }
-    var statement = node as SwitchStatement;
 
     String? enumName;
+    var prefix = '';
     var enumConstantNames = <String>[];
     var expressionType = statement.expression.staticType;
     if (expressionType is InterfaceType) {
       var enumElement = expressionType.element;
-      if (enumElement.isEnum) {
+      if (enumElement is EnumElement) {
         enumName = enumElement.name;
         for (var field in enumElement.fields) {
           if (field.isEnumConstant) {
             enumConstantNames.add(field.name);
           }
         }
+        prefix = _importPrefix(enumElement);
       }
     }
     if (enumName == null) {
@@ -67,7 +69,8 @@ class AddMissingEnumCaseClauses extends CorrectionProducer {
     var singleIndent = utils.getIndent(1);
     var location = utils.newCaseClauseAtEndLocation(statement);
 
-    final enumName_final = enumName;
+    var prefixString = prefix.isNotEmpty ? '$prefix.' : '';
+    final enumName_final = '$prefixString$enumName';
     await builder.addDartFileEdit(file, (builder) {
       // TODO(brianwilkerson) Consider inserting the names in order into the
       //  switch statement.
@@ -93,5 +96,28 @@ class AddMissingEnumCaseClauses extends CorrectionProducer {
         builder.write(location.suffix);
       });
     });
+  }
+
+  /// Return the shortest prefix for the [element], or an empty String if not
+  /// found.
+  String _importPrefix(Element element) {
+    var shortestPrefix = '';
+    for (var directive in unit.directives) {
+      if (directive is ImportDirective) {
+        var namespace = directive.element?.namespace;
+        if (namespace != null) {
+          if (namespace.definedNames.containsValue(element)) {
+            var prefix = directive.prefix?.name;
+            if (prefix == null) {
+              return '';
+            } else if (shortestPrefix.isEmpty ||
+                prefix.length < shortestPrefix.length) {
+              shortestPrefix = prefix;
+            }
+          }
+        }
+      }
+    }
+    return shortestPrefix;
   }
 }

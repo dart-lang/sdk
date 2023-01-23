@@ -152,6 +152,7 @@ abstract class ServiceObject implements M.ObjectRef {
   bool get isInt => false;
   bool get isList => false;
   bool get isMap => false;
+  bool get isSet => false;
   bool get isTypedData => false;
   bool get isRegExp => false;
   bool get isMirrorReference => false;
@@ -315,7 +316,7 @@ abstract class ServiceObject implements M.ObjectRef {
 
   Future<ServiceObject> _inProgressReload;
 
-  Future<Map> _fetchDirect({int count: kDefaultFieldLimit}) {
+  Future<Map> _fetchDirect({int count = kDefaultFieldLimit}) {
     Map params = {
       'objectId': id,
       'count': count,
@@ -325,7 +326,7 @@ abstract class ServiceObject implements M.ObjectRef {
 
   /// Reload [this]. Returns a future which completes to [this] or
   /// an exception.
-  Future<ServiceObject> reload({int count: kDefaultFieldLimit}) {
+  Future<ServiceObject> reload({int count = kDefaultFieldLimit}) {
     // TODO(turnidge): Checking for a null id should be part of the
     // "immutable" check.
     bool hasId = (id != null) && (id != '');
@@ -934,7 +935,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     }
   }
 
-  Future<Map> _fetchDirect({int count: kDefaultFieldLimit}) async {
+  Future<Map> _fetchDirect({int count = kDefaultFieldLimit}) async {
     if (!loaded) {
       // The vm service relies on these events to keep the VM and
       // Isolate types up to date.
@@ -1363,7 +1364,7 @@ class IsolateGroup extends ServiceObjectOwner implements M.IsolateGroup {
   }
 
   @override
-  Future<Map> _fetchDirect({int count: kDefaultFieldLimit}) {
+  Future<Map> _fetchDirect({int count = kDefaultFieldLimit}) {
     Map params = {
       'isolateGroupId': id,
     };
@@ -1581,7 +1582,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   }
 
   Future<ServiceObject> getObject(String objectId,
-      {bool reload: true, int count: kDefaultFieldLimit}) {
+      {bool reload = true, int count = kDefaultFieldLimit}) {
     assert(objectId != null && objectId != '');
     var obj = _cache[objectId];
     if (obj != null) {
@@ -1604,7 +1605,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     return response['scripts'].cast<Script>();
   }
 
-  Future<Map> _fetchDirect({int count: kDefaultFieldLimit}) async {
+  Future<Map> _fetchDirect({int count = kDefaultFieldLimit}) async {
     return invokeRpcNoUpgrade('getIsolate', {});
   }
 
@@ -1923,7 +1924,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
 
   Future<ServiceObject> eval(ServiceObject target, String expression,
       {Map<String, ServiceObject> scope,
-      bool disableBreakpoints: false}) async {
+      bool disableBreakpoints = false}) async {
     Map params = {
       'targetId': target.id,
       'expression': expression,
@@ -1958,7 +1959,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
 
   Future<ServiceObject> evalFrame(int frameIndex, String expression,
       {Map<String, ServiceObject> scope,
-      bool disableBreakpoints: false}) async {
+      bool disableBreakpoints = false}) async {
     Map params = {
       'frameIndex': frameIndex,
       'expression': expression,
@@ -2118,7 +2119,7 @@ class ServiceMap extends ServiceObject
     _map.clear();
     _map.addAll(map);
 
-    name = _map['name'];
+    name = _map['name']?.toString();
     vmName = (_map.containsKey('_vmName') ? _map['_vmName'] : name);
   }
 
@@ -2557,7 +2558,7 @@ class Library extends HeapObject implements M.Library {
   }
 
   Future<ServiceObject> evaluate(String expression,
-      {Map<String, ServiceObject> scope, bool disableBreakpoints: false}) {
+      {Map<String, ServiceObject> scope, bool disableBreakpoints = false}) {
     return isolate.eval(this, expression,
         scope: scope, disableBreakpoints: disableBreakpoints);
   }
@@ -2706,7 +2707,7 @@ class Class extends HeapObject implements M.Class {
   }
 
   Future<ServiceObject> evaluate(String expression,
-      {Map<String, ServiceObject> scope, disableBreakpoints: false}) {
+      {Map<String, ServiceObject> scope, disableBreakpoints = false}) {
     return isolate.eval(this, expression,
         scope: scope, disableBreakpoints: disableBreakpoints);
   }
@@ -2746,6 +2747,8 @@ M.InstanceKind stringToInstanceKind(String s) {
       return M.InstanceKind.list;
     case 'Map':
       return M.InstanceKind.map;
+    case 'Set':
+      return M.InstanceKind.set;
     case 'Float32x4':
       return M.InstanceKind.float32x4;
     case 'Float64x2':
@@ -2800,25 +2803,33 @@ M.InstanceKind stringToInstanceKind(String s) {
       return M.InstanceKind.typeRef;
     case 'ReceivePort':
       return M.InstanceKind.receivePort;
+    case '_Record':
+      return M.InstanceKind.record;
+    case '_RecordType':
+      return M.InstanceKind.recordType;
+    case 'Finalizer':
+      return M.InstanceKind.finalizer;
+    case 'WeakReference':
+      return M.InstanceKind.weakReference;
   }
   var message = 'Unrecognized instance kind: $s';
   Logger.root.severe(message);
   throw new ArgumentError(message);
 }
 
-class Guarded<T extends ServiceObject> implements M.Guarded<T> {
+class Guarded<T> implements M.Guarded<T> {
   bool get isValue => asValue != null;
   bool get isSentinel => asSentinel != null;
   final Sentinel asSentinel;
   final T asValue;
 
-  factory Guarded(ServiceObject obj) {
+  factory Guarded(dynamic obj) {
     if (obj is Sentinel) {
       return new Guarded.fromSentinel(obj);
     } else if (obj is T) {
       return new Guarded.fromValue(obj);
     }
-    throw new Exception('${obj.type} is neither Sentinel or $T');
+    throw new Exception('${obj.runtimeType} is neither Sentinel or $T');
   }
 
   Guarded.fromSentinel(this.asSentinel) : asValue = null;
@@ -2827,8 +2838,10 @@ class Guarded<T extends ServiceObject> implements M.Guarded<T> {
 
 class BoundField implements M.BoundField {
   final Field decl;
-  final Guarded<Instance> value;
-  BoundField(this.decl, value) : value = new Guarded(value);
+  // String|int
+  final dynamic name;
+  final Guarded<dynamic> value;
+  BoundField(this.decl, this.name, value) : value = new Guarded(value);
 }
 
 class NativeField implements M.NativeField {
@@ -2869,8 +2882,9 @@ class Instance extends HeapObject implements M.Instance {
   Iterable<MapAssociation> associations; // If a Map.
   List<dynamic> typedElements; // If a TypedData.
   HeapObject referent; // If a MirrorReference.
-  Instance key; // If a WeakProperty.
-  Instance value; // If a WeakProperty.
+  HeapObject target; // If a WeakReference.
+  HeapObject key; // If a WeakProperty.
+  HeapObject value; // If a WeakProperty.
   Breakpoint activationBreakpoint; // If a Closure.
   ServiceFunction oneByteFunction; // If a RegExp.
   ServiceFunction twoByteFunction; // If a RegExp.
@@ -2889,6 +2903,7 @@ class Instance extends HeapObject implements M.Instance {
   bool get isInt => kind == M.InstanceKind.int;
   bool get isList => kind == M.InstanceKind.list;
   bool get isMap => kind == M.InstanceKind.map;
+  bool get isSet => kind == M.InstanceKind.set;
   bool get isTypedData {
     return M.isTypedData(kind);
   }
@@ -2929,7 +2944,7 @@ class Instance extends HeapObject implements M.Instance {
   Instance._empty(ServiceObjectOwner owner) : super._empty(owner);
 
   void _update(Map map, bool mapIsRef) {
-    // Extract full properties.1
+    // Extract full properties.
     _upgradeCollection(map, isolate);
     super._update(map, mapIsRef);
 
@@ -2938,7 +2953,7 @@ class Instance extends HeapObject implements M.Instance {
     // Coerce absence to false.
     valueAsStringIsTruncated = map['valueAsStringIsTruncated'] == true;
     closureFunction = map['closureFunction'];
-    name = map['name'];
+    name = map['name']?.toString();
     length = map['length'];
     pattern = map['pattern'];
     typeClass = map['typeClass'];
@@ -2971,7 +2986,7 @@ class Instance extends HeapObject implements M.Instance {
     if (map['fields'] != null) {
       var fields = <BoundField>[];
       for (var f in map['fields']) {
-        fields.add(new BoundField(f['decl'], f['value']));
+        fields.add(new BoundField(f['decl'], f['name'], f['value']));
       }
       this.fields = fields;
     } else {
@@ -3060,6 +3075,7 @@ class Instance extends HeapObject implements M.Instance {
     bound = map['bound'];
 
     referent = map['mirrorReferent'];
+    target = map['target'];
     key = map['propertyKey'];
     value = map['propertyValue'];
     activationBreakpoint = map['_activationBreakpoint'];
@@ -3079,7 +3095,7 @@ class Instance extends HeapObject implements M.Instance {
   }
 
   Future<ServiceObject> evaluate(String expression,
-      {Map<String, ServiceObject> scope, bool disableBreakpoints: false}) {
+      {Map<String, ServiceObject> scope, bool disableBreakpoints = false}) {
     return isolate.eval(this, expression,
         scope: scope, disableBreakpoints: disableBreakpoints);
   }
@@ -4309,7 +4325,7 @@ class Code extends HeapObject implements M.Code {
 
   /// Reload [this]. Returns a future which completes to [this] or an
   /// exception.
-  Future<ServiceObject> reload({int count: kDefaultFieldLimit}) {
+  Future<ServiceObject> reload({int count = kDefaultFieldLimit}) {
     assert(kind != null);
     if (isDartCode) {
       // We only reload Dart code.
@@ -4568,7 +4584,7 @@ class ServiceMetric extends ServiceObject implements M.Metric {
 
   bool get immutable => false;
 
-  Future<Map> _fetchDirect({int count: kDefaultFieldLimit}) {
+  Future<Map> _fetchDirect({int count = kDefaultFieldLimit}) {
     assert(owner is Isolate);
     return isolate.invokeRpcNoUpgrade('_getIsolateMetric', {'metricId': id});
   }

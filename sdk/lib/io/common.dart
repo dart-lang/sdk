@@ -15,24 +15,36 @@ const int _errorResponseErrorType = 0;
 const int _osErrorResponseErrorCode = 1;
 const int _osErrorResponseMessage = 2;
 
-// Functions used to receive exceptions from native ports.
-bool _isErrorResponse(response) =>
-    response is List && response[0] != _successResponse;
+// POSIX error codes.
+// See https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/errno.h.html
+const _eNoEnt = 2;
 
-/// Returns an [Exception] or an [Error].
-_exceptionFromResponse(response, String message, String path) {
-  assert(_isErrorResponse(response));
-  switch (response[_errorResponseErrorType]) {
-    case _illegalArgumentResponse:
-      return new ArgumentError("$message: $path");
-    case _osErrorResponse:
-      var err = new OSError(response[_osErrorResponseMessage],
-          response[_osErrorResponseErrorCode]);
-      return new FileSystemException(message, path, err);
-    case _fileClosedResponse:
-      return new FileSystemException("File closed", path);
-    default:
-      return new Exception("Unknown error");
+// Windows error codes.
+// See https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes--0-499-
+const _errorFileNotFound = 2;
+const _errorPathNotFound = 3;
+const _errorInvalidDrive = 15;
+const _errorNoMoreFiles = 18;
+const _errorBadNetpath = 53;
+const _errorBadNetName = 67;
+const _errorBadPathName = 161;
+const _errorFilenameExedRange = 206;
+
+/// If the [response] is an error, throws an [Exception] or an [Error].
+void _checkForErrorResponse(Object? response, String message, String path) {
+  if (response is List<Object?> && response[0] != _successResponse) {
+    switch (response[_errorResponseErrorType]) {
+      case _illegalArgumentResponse:
+        throw ArgumentError("$message: $path");
+      case _osErrorResponse:
+        var err = OSError(response[_osErrorResponseMessage] as String,
+            response[_osErrorResponseErrorCode] as int);
+        throw FileSystemException._fromOSError(err, message, path);
+      case _fileClosedResponse:
+        throw FileSystemException("File closed", path);
+      default:
+        throw AssertionError("Unknown error");
+    }
   }
 }
 
@@ -67,12 +79,18 @@ class OSError implements Exception {
     StringBuffer sb = new StringBuffer();
     sb.write("OS Error");
     if (message.isNotEmpty) {
-      sb..write(": ")..write(message);
+      sb
+        ..write(": ")
+        ..write(message);
       if (errorCode != noErrorCode) {
-        sb..write(", errno = ")..write(errorCode.toString());
+        sb
+          ..write(", errno = ")
+          ..write(errorCode.toString());
       }
     } else if (errorCode != noErrorCode) {
-      sb..write(": errno = ")..write(errorCode.toString());
+      sb
+        ..write(": errno = ")
+        ..write(errorCode.toString());
     }
     return sb.toString();
   }
@@ -86,12 +104,12 @@ class _BufferAndStart {
 }
 
 // Ensure that the input List can be serialized through a native port.
-// Only Int8List and Uint8List Lists are serialized directly.
-// All other lists are first copied into a Uint8List. This has the added
-// benefit that it is faster to access from the C code as well.
 _BufferAndStart _ensureFastAndSerializableByteData(
     List<int> buffer, int start, int end) {
-  if (_isDirectIOCapableTypedList(buffer)) {
+  if ((buffer is Uint8List) && (buffer.buffer.lengthInBytes == buffer.length)) {
+    // Send typed data directly, unless it is a partial view, in which case we
+    // would rather copy than drag in the potentially much large backing store.
+    // See issue 50206.
     return new _BufferAndStart(buffer, start);
   }
   int length = end - start;
@@ -99,9 +117,6 @@ _BufferAndStart _ensureFastAndSerializableByteData(
   newBuffer.setRange(0, length, buffer, start);
   return new _BufferAndStart(newBuffer, 0);
 }
-
-// The VM will use ClassID to check whether buffer is Uint8List or Int8List.
-external bool _isDirectIOCapableTypedList(List<int> buffer);
 
 class _IOCrypto {
   external static Uint8List getRandomBytes(int count);

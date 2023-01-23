@@ -10,7 +10,6 @@ import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'element_text.dart';
 import 'elements_base.dart';
 import 'macros_environment.dart';
 
@@ -113,9 +112,8 @@ class A {}
       {'package:test/a.dart'}
     ]);
 
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   imports
     package:test/a.dart
@@ -144,8 +142,7 @@ library
   exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
-''',
-        withExportScope: true);
+''');
   }
 
   test_application_getter_withoutPrefix_namedConstructor() async {
@@ -177,9 +174,8 @@ class A {}
       {'package:test/a.dart'}
     ]);
 
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   imports
     package:test/a.dart
@@ -208,8 +204,7 @@ library
   exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
-''',
-        withExportScope: true);
+''');
   }
 
   test_application_getter_withPrefix() async {
@@ -241,9 +236,8 @@ class A {}
       {'package:test/a.dart'}
     ]);
 
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   imports
     package:test/a.dart as prefix @19
@@ -280,8 +274,7 @@ library
   exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
-''',
-        withExportScope: true);
+''');
   }
 
   test_application_getter_withPrefix_namedConstructor() async {
@@ -313,9 +306,8 @@ class A {}
       {'package:test/a.dart'}
     ]);
 
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   imports
     package:test/a.dart as prefix @19
@@ -352,8 +344,7 @@ library
   exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
-''',
-        withExportScope: true);
+''');
   }
 
   test_application_newInstance_withoutPrefix() async {
@@ -383,9 +374,8 @@ class A {}
       {'package:test/a.dart'}
     ]);
 
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   imports
     package:test/a.dart
@@ -402,7 +392,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @26
               rightParenthesis: ) @27
-            element: package:test/a.dart::@class::MyMacro::@constructor::•
+            element: package:test/a.dart::@class::MyMacro::@constructor::new
         constructors
           synthetic @-1
   parts
@@ -417,8 +407,7 @@ library
   exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
-''',
-        withExportScope: true);
+''');
   }
 
   test_application_newInstance_withoutPrefix_namedConstructor() async {
@@ -448,9 +437,8 @@ class A {}
       {'package:test/a.dart'}
     ]);
 
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   imports
     package:test/a.dart
@@ -490,8 +478,7 @@ library
   exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
-''',
-        withExportScope: true);
+''');
   }
 
   test_application_newInstance_withPrefix() async {
@@ -520,9 +507,8 @@ class A {}
       {'package:test/a.dart'}
     ]);
 
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   imports
     package:test/a.dart as prefix @19
@@ -547,7 +533,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @43
               rightParenthesis: ) @44
-            element: package:test/a.dart::@class::MyMacro::@constructor::•
+            element: package:test/a.dart::@class::MyMacro::@constructor::new
         constructors
           synthetic @-1
   parts
@@ -562,8 +548,7 @@ library
   exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
-''',
-        withExportScope: true);
+''');
   }
 
   test_application_newInstance_withPrefix_namedConstructor() async {
@@ -592,9 +577,8 @@ class A {}
       {'package:test/a.dart'}
     ]);
 
-    checkElementText(
-        library,
-        r'''
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
 library
   imports
     package:test/a.dart as prefix @19
@@ -639,8 +623,7 @@ library
   exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
-''',
-        withExportScope: true);
+''');
   }
 
   test_arguments_error() async {
@@ -923,7 +906,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @26
               rightParenthesis: ) @27
-            element: package:test/a.dart::@class::MyMacro::@constructor::•
+            element: package:test/a.dart::@class::MyMacro::@constructor::new
         constructors
           synthetic @-1
           named @-1
@@ -975,7 +958,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @26
               rightParenthesis: ) @27
-            element: package:test/a.dart::@class::MyMacro::@constructor::•
+            element: package:test/a.dart::@class::MyMacro::@constructor::new
         fields
           foo @-1
             type: int
@@ -1034,7 +1017,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @26
               rightParenthesis: ) @27
-            element: package:test/a.dart::@class::MyMacro::@constructor::•
+            element: package:test/a.dart::@class::MyMacro::@constructor::new
         fields
           synthetic foo @-1
             type: int
@@ -1088,7 +1071,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @26
               rightParenthesis: ) @27
-            element: package:test/a.dart::@class::MyMacro::@constructor::•
+            element: package:test/a.dart::@class::MyMacro::@constructor::new
         constructors
           synthetic @-1
         methods
@@ -1142,7 +1125,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @26
               rightParenthesis: ) @27
-            element: package:test/a.dart::@class::MyMacro::@constructor::•
+            element: package:test/a.dart::@class::MyMacro::@constructor::new
         fields
           synthetic foo @-1
             type: int
@@ -1616,7 +1599,7 @@ class A {}
       {'package:test/a.dart'}
     ]);
 
-    final A = library.getType('A') as ClassElementImpl;
+    final A = library.getClass('A') as ClassElementImpl;
     final error = A.macroApplicationErrors.single;
     error as UnknownMacroApplicationError;
 
@@ -1648,7 +1631,7 @@ class A {}
       {'package:test/a.dart'}
     ]);
 
-    final A = library.getType('A') as ClassElementImpl;
+    final A = library.getClass('A') as ClassElementImpl;
     final error = A.macroApplicationErrors.single;
     error as UnknownMacroApplicationError;
 
@@ -1680,7 +1663,7 @@ class A {}
       {'package:test/a.dart'}
     ]);
 
-    final A = library.getType('A') as ClassElementImpl;
+    final A = library.getClass('A') as ClassElementImpl;
     final error = A.macroApplicationErrors.single;
     error as UnknownMacroApplicationError;
 
@@ -1724,7 +1707,7 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: dart:core::@class::Object::@constructor::•
+                staticElement: dart:core::@class::Object::@constructor::new
     mixins
       mixin M @6
         superclassConstraints
@@ -1797,7 +1780,7 @@ class A {}
       {'package:test/arguments_text.dart'}
     ]);
 
-    final A = library.definingCompilationUnit.getType('A');
+    final A = library.definingCompilationUnit.getClass('A');
     if (expectedErrors != null) {
       expect(_errorsStrForClassElement(A), expectedErrors);
       return;
@@ -1806,7 +1789,7 @@ class A {}
     }
 
     if (expected != null) {
-      final partUri = library.parts2.single.uri as DirectiveUriWithUnit;
+      final partUri = library.parts.single.uri as DirectiveUriWithUnit;
       final x = partUri.unit.topLevelVariables.single;
       expect(x.name, 'x');
       x as ConstTopLevelVariableElementImpl;
@@ -1866,10 +1849,10 @@ $declarationCode
     ]);
 
     _assertNoErrorsForClassElement(
-      library.definingCompilationUnit.getType('A'),
+      library.definingCompilationUnit.getClass('A'),
     );
 
-    final partUri = library.parts2.single.uri as DirectiveUriWithUnit;
+    final partUri = library.parts.single.uri as DirectiveUriWithUnit;
     final x = partUri.unit.topLevelVariables.single;
     expect(x.name, 'x');
     x as ConstTopLevelVariableElementImpl;

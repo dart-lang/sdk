@@ -8,7 +8,7 @@
 // for stripped ELF output, and that using the debugging information to look
 // up stripped stack trace information matches the non-stripped version.
 
-// OtherResources=use_dwarf_stack_traces_flag_program.dart
+// OtherResources=use_save_debugging_info_flag_program.dart
 
 import "dart:io";
 import "dart:math";
@@ -43,8 +43,8 @@ main(List<String> args) async {
 
   await withTempDir('save-debug-info-flag-test', (String tempDir) async {
     final cwDir = path.dirname(Platform.script.toFilePath());
-    // We can just reuse the program for the use_dwarf_stack_traces test.
-    final script = path.join(cwDir, 'use_dwarf_stack_traces_flag_program.dart');
+    final script =
+        path.join(cwDir, 'use_save_debugging_info_flag_program.dart');
     final scriptDill = path.join(tempDir, 'flag_program.dill');
 
     // Compile script to Kernel IR.

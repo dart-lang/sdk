@@ -10,8 +10,6 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/ir/annotations.dart';
 import 'package:compiler/src/js_backend/native_data.dart';
-import 'package:compiler/src/kernel/element_map_interfaces.dart'
-    show memberIsIgnorable;
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:expect/expect.dart';
@@ -19,7 +17,7 @@ import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../helpers/args_helper.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 const String pathPrefix = 'sdk/tests/web_2/native/';
 
@@ -71,7 +69,7 @@ import 'package:js/js.dart';
 class JsClass1 {
   @JS('jsInteropMethod1')
   external jsMethod1();
-  
+
   external jsMethod2();
 }
 
@@ -94,15 +92,15 @@ external jsMethod3();
 external jsMethod4();
 ''',
   '$pathPrefix/nativelib.dart': '''
-library lib3; 
- 
+library lib3;
+
 import 'dart:_js_helper';
 
 @Native('Class1')
 class NativeClass1 {
   @JSName('field1')
   var nativeField;
-  
+
   @JSName('method1')
   nativeMethod() native;
 }
@@ -115,7 +113,7 @@ class NativeClass2 {
 
 @Native('Class3a,Class3b')
 class NativeClass3 {
-  
+
   @JSName('method2')
   get nativeGetter native;
 
@@ -301,7 +299,7 @@ main(List<String> args) {
 
           if (expectedCreatesText != null) {
             String createsText;
-            if (memberEntity.isField) {
+            if (memberEntity is FieldEntity) {
               createsText = nativeData
                   .getNativeFieldLoadBehavior(memberEntity)
                   .typesInstantiated
@@ -321,7 +319,7 @@ main(List<String> args) {
 
           if (expectedReturnsText != null) {
             String returnsText;
-            if (memberEntity.isField) {
+            if (memberEntity is FieldEntity) {
               returnsText = nativeData
                   .getNativeFieldLoadBehavior(memberEntity)
                   .typesReturned
@@ -428,7 +426,7 @@ main(List<String> args) {
               Expect.equals(
                   expectedAnonymousJsInteropClass,
                   nativeData.isAnonymousJsInteropClass(classEntity),
-                  "Unexpected js anonymousclass result from native data for "
+                  "Unexpected js anonymous class result from native data for "
                   "$cls");
 
               for (ir.Member member in cls.members) {

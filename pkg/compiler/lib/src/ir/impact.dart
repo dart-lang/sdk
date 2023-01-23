@@ -40,6 +40,8 @@ abstract class ImpactRegistry {
   void registerMapLiteral(ir.DartType keyType, ir.DartType valueType,
       {required bool isConst, required bool isEmpty});
 
+  void registerRecordLiteral(ir.RecordType type, {required bool isConst});
+
   void registerStaticTearOff(
       ir.Procedure procedure, ir.LibraryDependency? import);
 
@@ -162,12 +164,12 @@ abstract class ImpactRegistry {
   void registerInstanceSet(
       ir.DartType receiverType, ClassRelation relation, ir.Member target);
 
-  void registerSuperInvocation(ir.Member target, int positionalArguments,
+  void registerSuperInvocation(ir.Member? target, int positionalArguments,
       List<String> namedArguments, List<ir.DartType> typeArguments);
 
-  void registerSuperGet(ir.Member target);
+  void registerSuperGet(ir.Member? target);
 
-  void registerSuperSet(ir.Member target);
+  void registerSuperSet(ir.Member? target);
 
   void registerSuperInitializer(
       ir.Constructor source,
@@ -297,6 +299,17 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
     for (ir.ConstantMapEntry entry in node.entries) {
       visitConstant(entry.key);
       visitConstant(entry.value);
+    }
+  }
+
+  @override
+  void visitRecordConstant(ir.RecordConstant node) {
+    registry.registerRecordLiteral(node.recordType, isConst: true);
+    for (ir.Constant element in node.positional) {
+      visitConstant(element);
+    }
+    for (ir.Constant element in node.named.values) {
+      visitConstant(element);
     }
   }
 

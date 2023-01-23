@@ -6,6 +6,7 @@ library universe.function_set;
 
 import '../common/names.dart' show Identifiers, Selectors;
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../util/util.dart' show Hashing, Setlet;
 import 'selector.dart' show Selector;
@@ -14,33 +15,32 @@ import 'selector.dart' show Selector;
 // too and stricly they aren't functions. Maybe this needs a better
 // name -- something like ElementSet seems a bit too generic.
 class FunctionSet {
-  final Map<String, FunctionSetNode> _nodes;
+  final Map<String, FunctionSetNode> _publicNodes;
+  final Map<Uri, Map<String, FunctionSetNode>> _privateNodes;
 
   factory FunctionSet(Iterable<MemberEntity> liveInstanceMembers) {
-    Map<String, FunctionSetNode> nodes = {};
+    Map<String, FunctionSetNode> publicNodes = {};
+    Map<Uri, Map<String, FunctionSetNode>> privateNodes = {};
     for (MemberEntity member in liveInstanceMembers) {
       String name = member.name!;
-      (nodes[name] ??= FunctionSetNode(name)).add(member);
+      if (member.memberName.isPrivate) {
+        final uri = member.memberName.uri!;
+        ((privateNodes[uri] ??= {})[name] ??= FunctionSetNode()).add(member);
+      } else {
+        (publicNodes[name] ??= FunctionSetNode()).add(member);
+      }
     }
-    return FunctionSet.internal(nodes);
+    return FunctionSet.internal(publicNodes, privateNodes);
   }
 
-  FunctionSet.internal(this._nodes);
-
-  bool contains(MemberEntity element) {
-    assert(element.isInstanceMember);
-    assert(!element.isAbstract);
-    String name = element.name!;
-    FunctionSetNode? node = _nodes[name];
-    return (node != null) ? node.contains(element) : false;
-  }
+  FunctionSet.internal(this._publicNodes, this._privateNodes);
 
   /// Returns all the functions that may be invoked with the [selector] on a
   /// receiver with the given [constraint]. The returned elements may include
   /// noSuchMethod handlers that are potential targets indirectly through the
   /// noSuchMethod mechanism.
   Iterable<MemberEntity> filter(
-      Selector selector, AbstractValue receiver, AbstractValueDomain domain) {
+      Selector selector, AbstractValue? receiver, AbstractValueDomain domain) {
     return query(selector, receiver, domain).functions;
   }
 
@@ -66,13 +66,19 @@ class FunctionSet {
   /// [selector] on a receiver constrained by [constraint] including
   /// 'noSuchMethod' methods where applicable.
   FunctionSetQuery query(
-      Selector selector, AbstractValue receiver, AbstractValueDomain domain) {
-    String name = selector.name;
+      Selector selector, AbstractValue? receiver, AbstractValueDomain domain) {
+    Name name = selector.memberName;
     SelectorMask selectorMask = _createSelectorMask(selector, receiver, domain);
     SelectorMask noSuchMethodMask =
         SelectorMask(Selectors.noSuchMethod_, selectorMask.receiver);
-    FunctionSetNode? node = _nodes[name];
-    FunctionSetNode? noSuchMethods = _nodes[Identifiers.noSuchMethod_];
+    FunctionSetNode? node;
+    if (name.isPrivate) {
+      final forUri = _privateNodes[name.uri];
+      if (forUri != null) node = forUri[name.text];
+    } else {
+      node = _publicNodes[name.text];
+    }
+    FunctionSetNode? noSuchMethods = _publicNodes[Identifiers.noSuchMethod_];
     if (node != null) {
       return node.query(selectorMask, domain, noSuchMethods, noSuchMethodMask);
     }
@@ -82,12 +88,6 @@ class FunctionSet {
       return const EmptyFunctionSetQuery();
     }
     return noSuchMethods.query(noSuchMethodMask, domain);
-  }
-
-  void forEach(void action(MemberEntity member)) {
-    _nodes.forEach((String name, FunctionSetNode node) {
-      node.forEach(action);
-    });
   }
 }
 
@@ -105,8 +105,13 @@ class SelectorMask {
 
   String get name => selector.name;
 
-  bool applies(MemberEntity element, AbstractValueDomain domain) {
-    if (!selector.appliesUnnamed(element)) return false;
+  /// Check that the mask applies to the element. Skip checking the name since
+  /// this is called from [FunctionSet.query] which implicitly checks the name
+  /// via the Map lookups.
+  bool _applies(MemberEntity element, AbstractValueDomain domain) {
+    if (!selector.appliesStructural(element)) {
+      return false;
+    }
     return domain
         .isTargetingMember(receiver, element, selector.memberName)
         .isPotentiallyTrue;
@@ -133,7 +138,6 @@ class SelectorMask {
 /// A node in the [FunctionSet] caching all [FunctionSetQuery] object for
 /// selectors with the same [name].
 class FunctionSetNode {
-  final String name;
   final Map<SelectorMask, FunctionSetQuery> cache = {};
 
   // Initially, we keep the elements in a list because it is more
@@ -143,10 +147,9 @@ class FunctionSetNode {
   Iterable<MemberEntity> elements = [];
   bool isList = true;
 
-  FunctionSetNode(this.name);
+  FunctionSetNode();
 
   void add(MemberEntity element) {
-    assert(element.name == name);
     // We try to avoid clearing the cache unless we have to. For that
     // reason we keep the explicit contains check even though the add
     // method ends up doing the work again (for sets).
@@ -167,7 +170,6 @@ class FunctionSetNode {
   }
 
   void remove(MemberEntity element) {
-    assert(element.name == name);
     if (isList) {
       final list = elements as List<MemberEntity>;
       int index = list.indexOf(element);
@@ -189,7 +191,6 @@ class FunctionSetNode {
   }
 
   bool contains(MemberEntity element) {
-    assert(element.name == name);
     return elements.contains(element);
   }
 
@@ -201,13 +202,12 @@ class FunctionSetNode {
   /// including no such method handling where applicable.
   FunctionSetQuery query(SelectorMask selectorMask, AbstractValueDomain domain,
       [FunctionSetNode? noSuchMethods, SelectorMask? noSuchMethodMask]) {
-    assert(selectorMask.name == name);
     FunctionSetQuery? result = cache[selectorMask];
     if (result != null) return result;
 
     Setlet<MemberEntity>? functions;
     for (MemberEntity element in elements) {
-      if (selectorMask.applies(element, domain)) {
+      if (selectorMask._applies(element, domain)) {
         // Defer the allocation of the functions set until we are
         // sure we need it. This allows us to return immutable empty
         // lists when the filtering produced no results.

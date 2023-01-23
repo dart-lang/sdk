@@ -31,7 +31,7 @@ class E1 extends core::_Enum /*isEnum*/  {
 Try using a constructor or factory that is 'const'.
   element;
   ^";
-  static const field invalid-type element = invalid-expression "pkg/front_end/testcases/enhanced_enums/super_parameters/malformed_constructors.dart:6:3: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+  enum-element static const field invalid-type element = invalid-expression "pkg/front_end/testcases/enhanced_enums/super_parameters/malformed_constructors.dart:6:3: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
   element;
   ^";
@@ -41,17 +41,17 @@ Try using a constructor or factory that is 'const'.
   constructor named(core::int #index, core::String #name) → self::E1
     : super core::_Enum::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
 }
 class E2 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E2> values = invalid-expression "pkg/front_end/testcases/enhanced_enums/super_parameters/malformed_constructors.dart:16:23: Error: Enum constructors can't contain super-initializers.
   const E2.named1() : super(); // Error.
                       ^";
-  static const field self::E2 one = invalid-expression "pkg/front_end/testcases/enhanced_enums/super_parameters/malformed_constructors.dart:16:23: Error: Enum constructors can't contain super-initializers.
+  enum-element static const field self::E2 one = invalid-expression "pkg/front_end/testcases/enhanced_enums/super_parameters/malformed_constructors.dart:16:23: Error: Enum constructors can't contain super-initializers.
   const E2.named1() : super(); // Error.
                       ^";
-  static const field self::E2 two = invalid-expression "pkg/front_end/testcases/enhanced_enums/super_parameters/malformed_constructors.dart:17:23: Error: Enum constructors can't contain super-initializers.
+  enum-element static const field self::E2 two = invalid-expression "pkg/front_end/testcases/enhanced_enums/super_parameters/malformed_constructors.dart:17:23: Error: Enum constructors can't contain super-initializers.
   const E2.named2() : super(42, \"42\"); // Error.
                       ^";
   const constructor named1(core::int #index, core::String #name) → self::E2
@@ -64,7 +64,7 @@ class E2 extends core::_Enum /*isEnum*/  {
   const E2.named2() : super(42, \"42\"); // Error.
                       ^"
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
 }
 static method main() → dynamic {}

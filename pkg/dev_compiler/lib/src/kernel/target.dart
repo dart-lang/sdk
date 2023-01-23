@@ -7,8 +7,8 @@ import 'dart:collection';
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Message, LocatedMessage;
 import 'package:_js_interop_checks/js_interop_checks.dart';
+import 'package:_js_interop_checks/src/transformations/export_creator.dart';
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
-import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
@@ -16,6 +16,7 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/track_widget_constructor_locations.dart';
+import 'package:kernel/type_environment.dart';
 
 import 'constants.dart' show DevCompilerConstantsBackend;
 import 'kernel_helpers.dart';
@@ -116,7 +117,8 @@ class DevCompilerTarget extends Target {
       (uri.path == 'core' ||
           uri.path == 'typed_data' ||
           uri.path == '_interceptors' ||
-          uri.path == '_native_typed_data');
+          uri.path == '_native_typed_data' ||
+          uri.path == '_runtime');
 
   /// Returns [true] if [uri] represents a test script has been whitelisted to
   /// import private platform libraries.
@@ -153,13 +155,6 @@ class DevCompilerTarget extends Target {
   bool get enableNoSuchMethodForwarders => true;
 
   @override
-  void performOutlineTransformations(Component component, CoreTypes coreTypes,
-      ReferenceFromIndex? referenceFromIndex) {
-    component.accept(StaticInteropStubCreator(
-        StaticInteropClassEraser(coreTypes, referenceFromIndex)));
-  }
-
-  @override
   void performModularTransformationsOnLibraries(
       Component component,
       CoreTypes coreTypes,
@@ -171,18 +166,21 @@ class DevCompilerTarget extends Target {
       {void Function(String msg)? logger,
       ChangedStructureNotifier? changedStructureNotifier}) {
     _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
+    var jsInteropChecks = JsInteropChecks(
+        coreTypes,
+        diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
+        _nativeClasses!);
+    // Process and validate first before doing anything with exports.
+    for (var library in libraries) {
+      jsInteropChecks.visitLibrary(library);
+    }
+    var exportCreator = ExportCreator(TypeEnvironment(coreTypes, hierarchy),
+        diagnosticReporter, jsInteropChecks.exportChecker);
     var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
-    var staticInteropClassEraser =
-        StaticInteropClassEraser(coreTypes, referenceFromIndex);
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
-      JsInteropChecks(
-              coreTypes,
-              diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
-              _nativeClasses!)
-          .visitLibrary(library);
+      exportCreator.visitLibrary(library);
       jsUtilOptimizer.visitLibrary(library);
-      staticInteropClassEraser.visitLibrary(library);
     }
   }
 

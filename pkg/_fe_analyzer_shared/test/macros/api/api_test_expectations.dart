@@ -7,18 +7,20 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 const Map<String, ClassData> expectedClassData = {
   'Class1': ClassData(fieldsOf: ['field1'], constructorsOf: ['']),
   'Class2': ClassData(isAbstract: true, superclass: 'Object'),
-  'Class3':
-      ClassData(superclass: 'Class2', superSuperclass: 'Object', interfaces: [
-    'Interface1'
-  ],
-          // TODO(johnniwinther): Should we require a specific order?
-          fieldsOf: [
+  'Class3': ClassData(
+      superclass: 'Class2',
+      superSuperclass: 'Object',
+      interfaces: [
+        'Interface1'
+      ],
+      // TODO(johnniwinther): Should we require a specific order?
+      fieldsOf: [
         'field1',
         'field2',
         'staticField1',
       ],
-          // TODO(johnniwinther): Should we require a specific order?
-          methodsOf: [
+      // TODO(johnniwinther): Should we require a specific order?
+      methodsOf: [
         'method1',
         'method2',
         'getter1',
@@ -27,8 +29,8 @@ const Map<String, ClassData> expectedClassData = {
         'setter1',
         'property1',
       ],
-          // TODO(johnniwinther): Should we require a specific order?
-          constructorsOf: [
+      // TODO(johnniwinther): Should we require a specific order?
+      constructorsOf: [
         // TODO(johnniwinther): Should we normalize no-name constructor names?
         '',
         'named',
@@ -107,7 +109,8 @@ void checkTypeAnnotation(
 
 void checkParameterDeclaration(
     ParameterData expected, ParameterDeclaration declaration, String context) {
-  expect(expected.name, declaration.identifier.name, '$context.identifer.name');
+  expect(
+      expected.name, declaration.identifier.name, '$context.identifier.name');
   expect(expected.isNamed, declaration.isNamed, '$context.isNamed');
   expect(expected.isRequired, declaration.isRequired, '$context.isRequired');
   checkTypeAnnotation(expected.type, declaration.type, '$context.type');
@@ -230,7 +233,7 @@ Future<void> checkIdentifierResolver(
   Uri dartCore = Uri.parse('dart:core');
   Uri macroApiData = Uri.parse('package:macro_api_test/api_test_data.dart');
 
-  Future<void> check(Uri uri, String name, {bool expectThrows: false}) async {
+  Future<void> check(Uri uri, String name, {bool expectThrows = false}) async {
     if (expectThrows) {
       await throws(() async {
         await identifierResolver.resolveIdentifier(uri, name);
@@ -260,7 +263,7 @@ Future<void> checkTypeDeclarationResolver(
     TypeDeclarationResolver typeDeclarationResolver,
     Map<Identifier, String?> test) async {
   Future<void> check(Identifier identifier, String name,
-      {bool expectThrows: false}) async {
+      {bool expectThrows = false}) async {
     if (expectThrows) {
       await throws(() async {
         await typeDeclarationResolver.declarationOf(identifier);
@@ -293,15 +296,15 @@ class ClassData {
   final List<String> constructorsOf;
 
   const ClassData(
-      {this.isAbstract: false,
-      this.isExternal: false,
+      {this.isAbstract = false,
+      this.isExternal = false,
       this.superclass,
       this.superSuperclass,
-      this.interfaces: const [],
-      this.mixins: const [],
-      this.fieldsOf: const [],
-      this.methodsOf: const [],
-      this.constructorsOf: const []});
+      this.interfaces = const [],
+      this.mixins = const [],
+      this.fieldsOf = const [],
+      this.methodsOf = const [],
+      this.constructorsOf = const []});
 }
 
 class FunctionData {
@@ -315,27 +318,27 @@ class FunctionData {
   final List<ParameterData> namedParameters;
 
   const FunctionData(
-      {this.isAbstract: false,
-      this.isExternal: false,
-      this.isOperator: false,
-      this.isGetter: false,
-      this.isSetter: false,
+      {this.isAbstract = false,
+      this.isExternal = false,
+      this.isOperator = false,
+      this.isGetter = false,
+      this.isSetter = false,
       required this.returnType,
-      this.positionalParameters: const [],
-      this.namedParameters: const []});
+      this.positionalParameters = const [],
+      this.namedParameters = const []});
 }
 
 class TypeData {
   final bool isNullable;
 
-  const TypeData({this.isNullable: false});
+  const TypeData({this.isNullable = false});
 }
 
 class NamedTypeData extends TypeData {
   final String? name;
   final List<TypeData>? typeArguments;
 
-  const NamedTypeData({bool isNullable: false, this.name, this.typeArguments})
+  const NamedTypeData({bool isNullable = false, this.name, this.typeArguments})
       : super(isNullable: isNullable);
 }
 
@@ -346,5 +349,5 @@ class ParameterData {
   final bool isNamed;
 
   const ParameterData(this.name,
-      {required this.type, this.isNamed: false, this.isRequired: false});
+      {required this.type, this.isNamed = false, this.isRequired = false});
 }

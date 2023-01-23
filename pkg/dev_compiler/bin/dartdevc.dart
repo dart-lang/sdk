@@ -3,8 +3,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Command line entry point for Dart Development Compiler (dartdevc), used to
 /// compile a collection of dart libraries into a single JS module
 
@@ -16,6 +14,6 @@ import 'package:dev_compiler/ddc.dart' as ddc;
 ///
 /// [sendPort] may be passed in when started in an isolate. If provided, it is
 /// used for bazel worker communication instead of stdin/stdout.
-Future main(List<String> args, [SendPort sendPort]) async {
+Future main(List<String> args, [SendPort? sendPort]) async {
   return ddc.internalMain(args, sendPort);
 }

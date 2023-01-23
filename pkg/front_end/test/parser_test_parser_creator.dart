@@ -40,6 +40,7 @@ String generateTestParser(Uri repoDir) {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
 import 'package:_fe_analyzer_shared/src/parser/assert.dart';
 import 'package:_fe_analyzer_shared/src/parser/block_kind.dart';
 import 'package:_fe_analyzer_shared/src/parser/constructor_reference_context.dart';
@@ -66,10 +67,12 @@ class TestParser extends Parser {
   int indent = 0;
   StringBuffer sb = new StringBuffer();
   final bool trace;
+  bool _inhibitPrinting = false;
 
-  TestParser(Listener listener, this.trace)
+  TestParser(Listener listener, this.trace, {required bool allowPatterns})
       : super(listener,
-            useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+            useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+            allowPatterns: allowPatterns);
 
   String createTrace() {
     List<String> traceLines = StackTrace.current.toString().split("\n");
@@ -86,11 +89,22 @@ class TestParser extends Parser {
   }
 
   void doPrint(String s) {
+    if (_inhibitPrinting) return;
     String traceString = "";
     if (trace) traceString = " (${createTrace()})";
     sb.writeln(("  " * indent) + s + traceString);
   }
 
+  @override
+  T inhibitPrinting<T>(T Function() callback) {
+    bool previousInhibitPrinting = _inhibitPrinting;
+    _inhibitPrinting = true;
+    try {
+      return callback();
+    } finally {
+      _inhibitPrinting = previousInhibitPrinting;
+    }
+  }
 """);
 
   ParserCreatorListener listener = new ParserCreatorListener(out);
@@ -112,8 +126,14 @@ class ParserCreatorListener extends Listener {
   ParserCreatorListener(this.out);
 
   @override
-  void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
+  void beginClassDeclaration(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
     if (name.lexeme == "Parser") insideParserClass = true;
   }
 
@@ -146,7 +166,9 @@ class ParserCreatorListener extends Listener {
   @override
   void endClassMethod(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
-    if (insideParserClass && !currentMethodName!.startsWith("_")) {
+    if (insideParserClass &&
+        !currentMethodName!.startsWith("_") &&
+        currentMethodName != 'inhibitPrinting') {
       Token token = beginToken;
       Token? latestToken;
       out.writeln("  @override");

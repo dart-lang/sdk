@@ -1,0 +1,64 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/records/record_type_unsupported.dart:9:1: Error: This requires the experimental 'records' language feature to be enabled.
+// Try passing the '--enable-experiment=records' command line option.
+// (int, String b) topLevelFieldType = throw '';
+// ^
+//
+// pkg/front_end/testcases/records/record_type_unsupported.dart:11:1: Error: This requires the experimental 'records' language feature to be enabled.
+// Try passing the '--enable-experiment=records' command line option.
+// (int, {String b}) topLevelMethodReturnType() => throw '';
+// ^
+//
+// pkg/front_end/testcases/records/record_type_unsupported.dart:12:25: Error: This requires the experimental 'records' language feature to be enabled.
+// Try passing the '--enable-experiment=records' command line option.
+// void topLevelSetterType(({@annotation int a, String b}) value) {}
+//                         ^
+//
+// pkg/front_end/testcases/records/record_type_unsupported.dart:13:34: Error: This requires the experimental 'records' language feature to be enabled.
+// Try passing the '--enable-experiment=records' command line option.
+// void topLevelMethodParameterType((String, @annotation int) o) {}
+//                                  ^
+//
+// pkg/front_end/testcases/records/record_type_unsupported.dart:16:3: Error: This requires the experimental 'records' language feature to be enabled.
+// Try passing the '--enable-experiment=records' command line option.
+//   (int, String b) topLevelFieldType = throw '';
+//   ^
+//
+// pkg/front_end/testcases/records/record_type_unsupported.dart:18:3: Error: This requires the experimental 'records' language feature to be enabled.
+// Try passing the '--enable-experiment=records' command line option.
+//   (int, {String b}) topLevelMethodReturnType() => throw '';
+//   ^
+//
+// pkg/front_end/testcases/records/record_type_unsupported.dart:19:27: Error: This requires the experimental 'records' language feature to be enabled.
+// Try passing the '--enable-experiment=records' command line option.
+//   void topLevelSetterType(({@annotation int a, String b}) value) {}
+//                           ^
+//
+// pkg/front_end/testcases/records/record_type_unsupported.dart:20:36: Error: This requires the experimental 'records' language feature to be enabled.
+// Try passing the '--enable-experiment=records' command line option.
+//   void topLevelMethodParameterType((String, @annotation int) o) {}
+//                                    ^
+//
+import self as self;
+import "dart:core" as core;
+
+static const field core::int* annotation = #C1;
+static field invalid-type topLevelFieldType = throw "";
+static method topLevelMethodReturnType() → invalid-type
+  return throw "";
+static method topLevelSetterType(invalid-type value) → void {}
+static method topLevelMethodParameterType(invalid-type o) → void {}
+static method method() → void {
+  invalid-type topLevelFieldType = throw "";
+  function topLevelMethodReturnType() → invalid-type
+    return throw "";
+  function topLevelSetterType(invalid-type value) → void {}
+  function topLevelMethodParameterType(invalid-type o) → void {}
+}
+
+constants  {
+  #C1 = 1
+}

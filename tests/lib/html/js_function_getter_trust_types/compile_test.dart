@@ -41,7 +41,7 @@ main() {
   foo.bar.add(4);
   //         ^
   // [cfe] Error: Too few positional arguments: 2 required, 1 given.
-  //         ^^^
+  //           ^
   // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
 
   foo.bar.add(4, 5, 10);

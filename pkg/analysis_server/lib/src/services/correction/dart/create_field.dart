@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -37,8 +38,7 @@ class CreateField extends CorrectionProducer {
       return;
     }
 
-    var nameNode = parameter.identifier;
-    _fieldName = nameNode.name;
+    _fieldName = parameter.name.lexeme;
 
     var targetLocation = utils.prepareNewFieldLocation(targetClassNode);
     if (targetLocation == null) {
@@ -77,9 +77,9 @@ class CreateField extends CorrectionProducer {
     }
     // prepare target ClassElement
     var staticModifier = false;
-    ClassElement? targetClassElement;
+    InterfaceElement? targetClassElement;
     if (target != null) {
-      targetClassElement = getTargetClassElement(target);
+      targetClassElement = getTargetInterfaceElement(target);
       // maybe static
       if (target is Identifier) {
         var targetIdentifier = target;
@@ -90,7 +90,7 @@ class CreateField extends CorrectionProducer {
         staticModifier = targetElement.kind == ElementKind.CLASS;
       }
     } else {
-      targetClassElement = getEnclosingClassElement(node);
+      targetClassElement = node.enclosingInterfaceElement;
       staticModifier = inStaticContext;
     }
     if (targetClassElement == null) {
@@ -107,7 +107,10 @@ class CreateField extends CorrectionProducer {
       return;
     }
     var targetNode = targetDeclarationResult.node;
-    if (targetNode is! ClassOrMixinDeclaration) {
+    if (targetNode is! CompilationUnitMember) {
+      return;
+    }
+    if (!(targetNode is ClassDeclaration || targetNode is MixinDeclaration)) {
       return;
     }
     // prepare location

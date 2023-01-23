@@ -571,13 +571,13 @@ bool SyncDirectoryListing::HandleFile(const char* file_name) {
 bool SyncDirectoryListing::HandleError() {
   Dart_Handle dart_os_error = DartUtils::NewDartOSError();
   Dart_Handle args[3];
-  args[0] = DartUtils::NewString("Directory listing failed");
-  args[1] = DartUtils::NewString(error() ? "Invalid path" : CurrentPath());
-  args[2] = dart_os_error;
+  args[0] = dart_os_error;
+  args[1] = DartUtils::NewString("Directory listing failed");
+  args[2] = DartUtils::NewString(error() ? "Invalid path" : CurrentPath());
 
   dart_error_ = Dart_New(
       DartUtils::GetDartType(DartUtils::kIOLibURL, "FileSystemException"),
-      Dart_Null(), 3, args);
+      DartUtils::NewString("_fromOSError"), 3, args);
   return false;
 }
 

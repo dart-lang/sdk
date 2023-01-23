@@ -49,7 +49,7 @@ void f() {
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, refactorTitle)!;
@@ -66,7 +66,7 @@ set ^a(String value) {}
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, refactorTitle);
@@ -88,7 +88,7 @@ class A {
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, refactorTitle);
@@ -114,7 +114,7 @@ void f() {
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, refactorTitle)!;
@@ -182,8 +182,8 @@ void newMethod() {
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
@@ -211,8 +211,8 @@ void newMethod() {
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
@@ -255,18 +255,19 @@ void f() {
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
     // Send an edit request immediately after the refactor request.
     final req1 = executeCodeAction(codeAction);
-    await replaceFile(100, mainFileUri, 'new test content');
+    final req2 = replaceFile(100, mainFileUri, 'new test content');
 
     // Expect the first to fail because of the modified content.
     await expectLater(
         req1, throwsA(isResponseError(ErrorCodes.ContentModified)));
+    await req2;
   }
 
   Future<void> test_filtersCorrectly() async {
@@ -285,7 +286,7 @@ void f() {
     );
 
     ofKind(CodeActionKind kind) => getCodeActions(
-          mainFileUri.toString(),
+          mainFileUri,
           range: rangeFromMarkers(content),
           kinds: [kind],
         );
@@ -339,8 +340,8 @@ Object Text(Object text) => null;
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
@@ -357,7 +358,7 @@ void f() {}
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
@@ -373,7 +374,7 @@ i^o.File a;
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
@@ -406,8 +407,8 @@ void newMethod() {
     // token was supplied by us (the client).
     expect(progressUpdates, emitsInOrder(['BEGIN', 'END']));
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
@@ -441,8 +442,8 @@ void newMethod() {
         .where((n) => n.method == Method.progress)
         .listen((_) => didGetProgressNotifications = true);
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
@@ -474,8 +475,8 @@ void newMethod() {
         windowCapabilities:
             withWorkDoneProgressSupport(emptyWindowClientCapabilities));
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
@@ -500,8 +501,8 @@ void doFoo(void Function() a) => a();
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
@@ -544,8 +545,8 @@ void doFoo(void Function() a) => a();
       failTestOnAnyErrorNotification: false,
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
@@ -583,8 +584,8 @@ void doFoo(void Function() a) => a();
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
@@ -611,7 +612,9 @@ void doFoo(void Function() a) => a();
 
 @reflectiveTest
 class ExtractVariableRefactorCodeActionsTest extends AbstractCodeActionsTest {
+  final convertMethodToGetterTitle = 'Convert Method to Getter';
   final extractVariableTitle = 'Extract Local Variable';
+  final inlineMethodTitle = 'Inline Method';
 
   Future<void> test_appliesCorrectEdits() async {
     const content = '''
@@ -632,8 +635,8 @@ void foo(int arg) {}
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction = findCommand(
         codeActions, Commands.performRefactor, extractVariableTitle)!;
 
@@ -662,10 +665,214 @@ void foo(int arg) {}
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction = findCommand(
         codeActions, Commands.performRefactor, extractVariableTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+
+  Future<void> test_inlineMethod_function_startOfParameterList() async {
+    const content = '''
+test[[]](a, b) {
+  print(a);
+  print(b);
+}
+void f() {
+  test(1, 2);
+}
+    ''';
+    const expectedContent = '''
+void f() {
+  print(1);
+  print(2);
+}
+    ''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, inlineMethodTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+
+  Future<void> test_inlineMethod_function_startOfTypeParameterList() async {
+    const content = '''
+test[[]]<T>(T a, T b) {
+  print(a);
+  print(b);
+}
+void f() {
+  test(1, 2);
+}
+    ''';
+    const expectedContent = '''
+void f() {
+  print(1);
+  print(2);
+}
+    ''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, inlineMethodTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+
+  Future<void> test_inlineMethod_method_startOfParameterList() async {
+    const content = '''
+class A {
+  test[[]](a, b) {
+    print(a);
+    print(b);
+  }
+  void f() {
+    test(1, 2);
+  }
+}
+    ''';
+    const expectedContent = '''
+class A {
+  void f() {
+    print(1);
+    print(2);
+  }
+}
+    ''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, inlineMethodTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+
+  Future<void> test_inlineMethod_method_startOfTypeParameterList() async {
+    const content = '''
+class A {
+  test[[]]<T>(T a, T b) {
+    print(a);
+    print(b);
+  }
+  void f() {
+    test(1, 2);
+  }
+}
+    ''';
+    const expectedContent = '''
+class A {
+  void f() {
+    print(1);
+    print(2);
+  }
+}
+    ''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, inlineMethodTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+
+  Future<void> test_methodToGetter_function_startOfParameterList() async {
+    const content = '''
+int test[[]]() => 42;
+    ''';
+    const expectedContent = '''
+int get test => 42;
+    ''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
+    final codeAction = findCommand(
+        codeActions, Commands.performRefactor, convertMethodToGetterTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+
+  Future<void> test_methodToGetter_function_startOfTypeParameterList() async {
+    const content = '''
+int test[[]]<T>() => 42;
+    ''';
+    const expectedContent = '''
+int get test<T> => 42;
+    ''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
+    final codeAction = findCommand(
+        codeActions, Commands.performRefactor, convertMethodToGetterTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+
+  Future<void> test_methodToGetter_method_startOfParameterList() async {
+    const content = '''
+class A {
+  int test[[]]() => 42;
+}
+    ''';
+    const expectedContent = '''
+class A {
+  int get test => 42;
+}
+    ''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
+    final codeAction = findCommand(
+        codeActions, Commands.performRefactor, convertMethodToGetterTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+
+  Future<void> test_methodToGetter_method_startOfTypeParameterList() async {
+    const content = '''
+class A {
+  int test[[]]<T>() => 42;
+}
+    ''';
+    const expectedContent = '''
+class A {
+  int get test<T> => 42;
+}
+    ''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
+    final codeAction = findCommand(
+        codeActions, Commands.performRefactor, convertMethodToGetterTitle)!;
 
     await verifyCodeActionEdits(
         codeAction, withoutMarkers(content), expectedContent);
@@ -676,9 +883,11 @@ void foo(int arg) {}
 class ExtractWidgetRefactorCodeActionsTest extends AbstractCodeActionsTest {
   final extractWidgetTitle = 'Extract Widget';
 
-  /// Nullability suffix expected in this test class.
-  String get expectedNullableSuffix => '?';
-
+  String get expectedNewWidgetConstructorDeclaration => '''
+const NewWidget({
+    super.key,
+  });
+''';
   @override
   void setUp() {
     super.setUp();
@@ -727,10 +936,7 @@ class MyWidget extends StatelessWidget {
 }
 
 class NewWidget extends StatelessWidget {
-  const NewWidget({
-    Key$expectedNullableSuffix key,
-  }) : super(key: key);
-
+  $expectedNewWidgetConstructorDeclaration
   @override
   Widget build(BuildContext context) {
     return new Column(
@@ -745,8 +951,8 @@ class NewWidget extends StatelessWidget {
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractWidgetTitle)!;
 
@@ -763,7 +969,7 @@ void f() {}
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractWidgetTitle);
@@ -775,7 +981,11 @@ void f() {}
 class ExtractWidgetRefactorCodeActionsWithoutNullSafetyTest
     extends ExtractWidgetRefactorCodeActionsTest {
   @override
-  String get expectedNullableSuffix => '';
+  String get expectedNewWidgetConstructorDeclaration => '''
+const NewWidget({
+    Key key,
+  }) : super(key: key);
+''';
 
   @override
   String get testPackageLanguageVersion => '2.9';
@@ -805,7 +1015,7 @@ void f() {
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final codeAction = findCommand(
         codeActions, Commands.performRefactor, inlineVariableTitle)!;
@@ -849,7 +1059,7 @@ void bar() {
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, inlineMethodTitle)!;
@@ -884,7 +1094,7 @@ void foo2() {
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, inlineMethodTitle)!;

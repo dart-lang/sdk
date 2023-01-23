@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "common_patch.dart";
+part of "common_patch.dart";
 
 @patch
 class _WindowsCodePageDecoder {
@@ -24,9 +24,9 @@ class Process {
   static Future<Process> start(String executable, List<String> arguments,
       {String? workingDirectory,
       Map<String, String>? environment,
-      bool includeParentEnvironment: true,
-      bool runInShell: false,
-      ProcessStartMode mode: ProcessStartMode.normal}) {
+      bool includeParentEnvironment = true,
+      bool runInShell = false,
+      ProcessStartMode mode = ProcessStartMode.normal}) {
     _ProcessImpl process = new _ProcessImpl(
         executable,
         arguments,
@@ -42,10 +42,10 @@ class Process {
   static Future<ProcessResult> run(String executable, List<String> arguments,
       {String? workingDirectory,
       Map<String, String>? environment,
-      bool includeParentEnvironment: true,
-      bool runInShell: false,
-      Encoding? stdoutEncoding: systemEncoding,
-      Encoding? stderrEncoding: systemEncoding}) {
+      bool includeParentEnvironment = true,
+      bool runInShell = false,
+      Encoding? stdoutEncoding = systemEncoding,
+      Encoding? stderrEncoding = systemEncoding}) {
     return _runNonInteractiveProcess(
         executable,
         arguments,
@@ -61,10 +61,10 @@ class Process {
   static ProcessResult runSync(String executable, List<String> arguments,
       {String? workingDirectory,
       Map<String, String>? environment,
-      bool includeParentEnvironment: true,
-      bool runInShell: false,
-      Encoding? stdoutEncoding: systemEncoding,
-      Encoding? stderrEncoding: systemEncoding}) {
+      bool includeParentEnvironment = true,
+      bool runInShell = false,
+      Encoding? stdoutEncoding = systemEncoding,
+      Encoding? stderrEncoding = systemEncoding}) {
     return _runNonInteractiveProcessSync(
         executable,
         arguments,
@@ -215,7 +215,7 @@ class _ProcessStartStatus {
 // implicit constructor.
 class _ProcessImplNativeWrapper extends NativeFieldWrapperClass1 {}
 
-class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
+class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
   static bool connectedResourceHandler = false;
 
   _ProcessImpl(

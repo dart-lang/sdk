@@ -34,7 +34,7 @@ class A {
   // matchAsPrefix matches signature from String.
   matchAsPrefix(x, [y = 0]) => "matchAsPrefix-$x,$y";
   // Matches signature from List
-  toList({growable: true}) => "toList-$growable";
+  toList({growable = true}) => "toList-$growable";
   // Same name as intercepted, but with named argument.
   toSet({named}) => "toSet-$named";
 }

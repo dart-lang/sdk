@@ -18,6 +18,7 @@ worlds:
     expectedLibraryCount: 1
     expectsPlatform: true
     expectInitializeFromDill: false
+
   - entry: main.dart
     noFullComponent: true
     worldType: updated
@@ -36,6 +37,8 @@ worlds:
     expectedLibraryCount: 2
     expectsPlatform: false
     expectInitializeFromDill: false
+    advancedInvalidation: outlineChange
+
   - entry: main.dart
     noFullComponent: true
     worldType: updated
@@ -50,6 +53,8 @@ worlds:
     expectedLibraryCount: 1
     expectsPlatform: false
     expectInitializeFromDill: false
+    advancedInvalidation: bodiesOnly
+
   - entry: main.dart
     noFullComponent: false
     worldType: updated
@@ -64,6 +69,8 @@ worlds:
     expectedLibraryCount: 2
     expectsPlatform: true
     expectInitializeFromDill: false
+    advancedInvalidation: bodiesOnly
+
   - entry: main.dart
     noFullComponent: false
     invalidate:
@@ -81,3 +88,4 @@ worlds:
     expectedLibraryCount: 2
     expectsPlatform: true
     expectInitializeFromDill: true
+    advancedInvalidation: bodiesOnly

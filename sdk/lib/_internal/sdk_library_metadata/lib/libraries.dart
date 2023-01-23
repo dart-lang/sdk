@@ -191,6 +191,11 @@ const Map<String, LibraryInfo> libraries = const {
       categories: "",
       documented: false,
       platforms: DART2JS_PLATFORM),
+  "_load_library_priority": const LibraryInfo(
+      "_internal/js_runtime/lib/synced/load_library_priority.dart",
+      categories: "",
+      documented: false,
+      platforms: DART2JS_PLATFORM),
   "_metadata": const LibraryInfo("html/html_common/metadata.dart",
       categories: "", documented: false, platforms: DART2JS_PLATFORM),
   "_js_annotations": const LibraryInfo("js/_js_annotations.dart",
@@ -252,13 +257,13 @@ class LibraryInfo {
   final Maturity maturity;
 
   const LibraryInfo(this.path,
-      {String categories: "",
+      {String categories = "",
       this.dart2jsPath,
       this.dart2jsPatchPath,
-      this.implementation: false,
-      this.documented: true,
-      this.maturity: Maturity.UNSPECIFIED,
-      this.platforms: DART2JS_PLATFORM | VM_PLATFORM})
+      this.implementation = false,
+      this.documented = true,
+      this.maturity = Maturity.UNSPECIFIED,
+      this.platforms = DART2JS_PLATFORM | VM_PLATFORM})
       : _categories = categories;
 
   bool get isDart2jsLibrary => (platforms & DART2JS_PLATFORM) != 0;

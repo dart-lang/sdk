@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer_utilities/check/check.dart';
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
-import '../completion_check.dart';
+import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
@@ -36,15 +35,32 @@ enum E w^ {
 }
 ''');
 
-    check(response).suggestions.matchesInAnyOrder([
-      ...{
-        Keyword.WITH,
-      }.asKeywordChecks,
-    ]);
+    assertResponseText(response, r'''
+replacement
+  left: 1
+suggestions
+  with
+    kind: keyword
+''');
   }
 }
 
 mixin EnumDeclarationTestCases on AbstractCompletionDriverTest {
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+
+    printerConfiguration = printer.Configuration(
+      filter: (suggestion) {
+        final completion = suggestion.completion;
+        if (suggestion.kind == CompletionSuggestionKind.IDENTIFIER) {
+          return const {'Object'}.contains(completion);
+        }
+        return true;
+      },
+    );
+  }
+
   Future<void> test_afterConstants_noSemicolon() async {
     var response = await getTestCodeSuggestions('''
 enum E {
@@ -52,7 +68,9 @@ enum E {
 }
 ''');
 
-    check(response).suggestions.isEmpty;
+    assertResponseText(response, r'''
+suggestions
+''');
   }
 
   Future<void> test_afterImplements() async {
@@ -62,13 +80,11 @@ enum E implements ^ {
 }
 ''');
 
-    check(response).suggestions
-      ..withKindKeyword.isEmpty
-      ..includesAll([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('Object')
-          ..isClass,
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  Object
+    kind: class
+''');
   }
 
   Future<void> test_afterImplementsClause() async {
@@ -78,11 +94,11 @@ enum E implements A ^ {
 }
 ''');
 
-    check(response).suggestions.matchesInAnyOrder([
-      ...{
-        Keyword.WITH,
-      }.asKeywordChecks,
-    ]);
+    assertResponseText(response, r'''
+suggestions
+  with
+    kind: keyword
+''');
   }
 
   Future<void> test_afterName() async {
@@ -92,12 +108,13 @@ enum E ^ {
 }
 ''');
 
-    check(response).suggestions.matchesInAnyOrder([
-      ...{
-        Keyword.IMPLEMENTS,
-        Keyword.WITH,
-      }.asKeywordChecks,
-    ]);
+    assertResponseText(response, r'''
+suggestions
+  implements
+    kind: keyword
+  with
+    kind: keyword
+''');
   }
 
   Future<void> test_afterName_atEnd() async {
@@ -107,7 +124,11 @@ enum E^ {
 }
 ''');
 
-    check(response).suggestions.isEmpty;
+    assertResponseText(response, r'''
+replacement
+  left: 1
+suggestions
+''');
   }
 
   Future<void> test_afterName_atLeftCurlyBracket() async {
@@ -117,12 +138,13 @@ enum E ^{
 }
 ''');
 
-    check(response).suggestions.matchesInAnyOrder([
-      ...{
-        Keyword.IMPLEMENTS,
-        Keyword.WITH,
-      }.asKeywordChecks,
-    ]);
+    assertResponseText(response, r'''
+suggestions
+  implements
+    kind: keyword
+  with
+    kind: keyword
+''');
   }
 
   Future<void> test_afterName_beforeImplements() async {
@@ -132,11 +154,11 @@ enum E ^ implements A {
 }
 ''');
 
-    check(response).suggestions.matchesInAnyOrder([
-      ...{
-        Keyword.WITH,
-      }.asKeywordChecks,
-    ]);
+    assertResponseText(response, r'''
+suggestions
+  with
+    kind: keyword
+''');
   }
 
   Future<void> test_afterName_hasWith_hasImplements() async {
@@ -146,7 +168,9 @@ enum E ^ with M implements A {
 }
 ''');
 
-    check(response).suggestions.isEmpty;
+    assertResponseText(response, r'''
+suggestions
+''');
   }
 
   Future<void> test_afterName_language216() async {
@@ -157,7 +181,9 @@ enum E ^ {
 }
 ''');
 
-    check(response).suggestions.isEmpty;
+    assertResponseText(response, r'''
+suggestions
+''');
   }
 
   Future<void> test_afterWith() async {
@@ -167,13 +193,11 @@ enum E with ^ {
 }
 ''');
 
-    check(response).suggestions
-      ..withKindKeyword.isEmpty
-      ..includesAll([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('Object')
-          ..isClass,
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  Object
+    kind: class
+''');
   }
 
   Future<void> test_afterWithClause() async {
@@ -183,11 +207,11 @@ enum E with M ^ {
 }
 ''');
 
-    check(response).suggestions.matchesInAnyOrder([
-      ...{
-        Keyword.IMPLEMENTS,
-      }.asKeywordChecks,
-    ]);
+    assertResponseText(response, r'''
+suggestions
+  implements
+    kind: keyword
+''');
   }
 
   Future<void> test_beforeConstants_hasSemicolon() async {
@@ -197,7 +221,9 @@ enum E {
 }
 ''');
 
-    check(response).suggestions.isEmpty;
+    assertResponseText(response, r'''
+suggestions
+''');
   }
 
   Future<void> test_beforeConstants_noSemicolon() async {
@@ -207,7 +233,9 @@ enum E {
 }
 ''');
 
-    check(response).suggestions.isEmpty;
+    assertResponseText(response, r'''
+suggestions
+''');
   }
 
   Future<void> test_constantName_dot_name_x_argumentList_named() async {
@@ -221,16 +249,15 @@ enum E {
 ''');
 
     if (isProtocolVersion2) {
-      check(response)
-        ..hasReplacement(left: 4)
-        ..suggestions.matchesInAnyOrder([
-          (suggestion) => suggestion
-            ..completion.isEqualTo('foo01')
-            ..isConstructorInvocation,
-          (suggestion) => suggestion
-            ..completion.isEqualTo('foo02')
-            ..isConstructorInvocation,
-        ]);
+      assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo01
+    kind: constructorInvocation
+  foo02
+    kind: constructorInvocation
+''');
     }
   }
 
@@ -245,16 +272,15 @@ enum E {
 ''');
 
     if (isProtocolVersion2) {
-      check(response)
-        ..hasReplacement(left: 4)
-        ..suggestions.matchesInAnyOrder([
-          (suggestion) => suggestion
-            ..completion.isEqualTo('foo01')
-            ..isConstructorInvocation,
-          (suggestion) => suggestion
-            ..completion.isEqualTo('foo02')
-            ..isConstructorInvocation,
-        ]);
+      assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  foo01
+    kind: constructorInvocation
+  foo02
+    kind: constructorInvocation
+''');
     }
   }
 
@@ -267,14 +293,13 @@ enum E {
 }
 ''');
 
-    check(response).suggestions.matchesInAnyOrder([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..isConstructorInvocation,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..isConstructorInvocation,
-    ]);
+    assertResponseText(response, r'''
+suggestions
+  foo01
+    kind: constructorInvocation
+  foo02
+    kind: constructorInvocation
+''');
   }
 
   Future<void> test_constantName_dot_x_semicolon_named() async {
@@ -286,14 +311,13 @@ enum E {
 }
 ''');
 
-    check(response).suggestions.matchesInAnyOrder([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..isConstructorInvocation,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..isConstructorInvocation,
-    ]);
+    assertResponseText(response, r'''
+suggestions
+  foo01
+    kind: constructorInvocation
+  foo02
+    kind: constructorInvocation
+''');
   }
 
   Future<void> test_constantName_dot_x_semicolon_unnamed_declared() async {
@@ -304,11 +328,11 @@ enum E {
 }
 ''');
 
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('new')
-        ..isConstructorInvocation,
-    ]);
+    assertResponseText(response, r'''
+suggestions
+  new
+    kind: constructorInvocation
+''');
   }
 
   Future<void> test_constantName_dot_x_unnamed_implicit() async {
@@ -318,11 +342,11 @@ enum E {
 }
 ''');
 
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('new')
-        ..isConstructorInvocation,
-    ]);
+    assertResponseText(response, r'''
+suggestions
+  new
+    kind: constructorInvocation
+''');
   }
 
   Future<void> test_constantName_dot_x_unnamed_language216() async {
@@ -333,7 +357,9 @@ enum E {
 }
 ''');
 
-    check(response).suggestions.isEmpty;
+    assertResponseText(response, r'''
+suggestions
+''');
   }
 
   Future<void> test_constantName_typeArguments_dot_x_semicolon_named() async {
@@ -345,13 +371,12 @@ enum E<T> {
 }
 ''');
 
-    check(response).suggestions.matchesInAnyOrder([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo01')
-        ..isConstructorInvocation,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('foo02')
-        ..isConstructorInvocation,
-    ]);
+    assertResponseText(response, r'''
+suggestions
+  foo01
+    kind: constructorInvocation
+  foo02
+    kind: constructorInvocation
+''');
   }
 }

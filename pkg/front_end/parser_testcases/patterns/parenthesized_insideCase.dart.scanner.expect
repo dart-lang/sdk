@@ -1,0 +1,15 @@
+f(x) {
+switch (x) {
+case (1):
+break;
+}
+}
+
+
+f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+case[KeywordToken] ([BeginToken]1[StringToken])[SimpleToken]:[SimpleToken]
+break[KeywordToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

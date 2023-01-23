@@ -136,7 +136,7 @@ struct RelocatorTestHelper {
 
     if (FLAG_write_protect_code && FLAG_dual_map_code) {
       auto& instructions = Instructions::Handle(code.instructions());
-      instructions ^= OldPage::ToExecutable(instructions.ptr());
+      instructions ^= Page::ToExecutable(instructions.ptr());
       code.set_instructions(instructions);
     }
     if (FLAG_disassemble) {
@@ -245,7 +245,7 @@ struct RelocatorTestHelper {
             const auto current_size =
                 ImageWriter::SizeInSnapshot(Code::InstructionsOf(entry.code));
             const auto alias_offset =
-                OldPage::Of(Code::InstructionsOf(entry.code))->AliasOffset();
+                Page::Of(Code::InstructionsOf(entry.code))->AliasOffset();
             memmove(
                 reinterpret_cast<void*>(addr),
                 reinterpret_cast<void*>(Instructions::PayloadStart(
@@ -262,7 +262,7 @@ struct RelocatorTestHelper {
         const uword address = UntaggedObject::ToAddr(instructions.ptr());
         const auto size = instructions.ptr()->untag()->HeapSize();
         instructions =
-            Instructions::RawCast(OldPage::ToExecutable(instructions.ptr()));
+            Instructions::RawCast(Page::ToExecutable(instructions.ptr()));
 
         const auto prot = FLAG_dual_map_code ? VirtualMemory::kReadOnly
                                              : VirtualMemory::kReadExecute;

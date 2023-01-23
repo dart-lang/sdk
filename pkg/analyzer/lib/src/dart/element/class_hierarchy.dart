@@ -9,17 +9,17 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 
 class ClassHierarchy {
-  final Map<ClassElement, _Hierarchy> _map = {};
+  final Map<InterfaceElement, _Hierarchy> _map = {};
 
-  List<ClassHierarchyError> errors(ClassElement element) {
+  List<ClassHierarchyError> errors(InterfaceElement element) {
     return _getHierarchy(element).errors;
   }
 
-  List<InterfaceType> implementedInterfaces(ClassElement element) {
+  List<InterfaceType> implementedInterfaces(InterfaceElement element) {
     return _getHierarchy(element).interfaces;
   }
 
-  void remove(ClassElement element) {
+  void remove(InterfaceElement element) {
     _map.remove(element);
   }
 
@@ -30,7 +30,7 @@ class ClassHierarchy {
     });
   }
 
-  _Hierarchy _getHierarchy(ClassElement element) {
+  _Hierarchy _getHierarchy(InterfaceElement element) {
     var hierarchy = _map[element];
 
     if (hierarchy != null) {
@@ -66,8 +66,10 @@ class ClassHierarchy {
     }
 
     append(element.supertype);
-    for (var type in element.superclassConstraints) {
-      append(type);
+    if (element is MixinElement) {
+      for (var type in element.superclassConstraints) {
+        append(type);
+      }
     }
     for (var type in element.interfaces) {
       append(type);
@@ -114,7 +116,7 @@ class IncompatibleInterfacesClassHierarchyError extends ClassHierarchyError {
 
 class InterfacesMerger {
   final TypeSystemImpl _typeSystem;
-  final _map = <ClassElement, _ClassInterfaceType>{};
+  final Map<InterfaceElement, _ClassInterfaceType> _map = {};
 
   InterfacesMerger(this._typeSystem);
 

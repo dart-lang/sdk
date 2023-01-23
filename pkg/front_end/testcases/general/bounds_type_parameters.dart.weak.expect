@@ -114,6 +114,22 @@ library /*isNonNullableByDefault*/;
 // class G<X extends Class<X>> {}
 //         ^
 //
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:167:5: Error: Generic type 'F' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'F' here.
+//     T1 extends F, // Error
+//     ^^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:9:11: Context: Bound of this variable references variable 'X' from the same declaration.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:175:5: Error: Generic type 'G' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'G' here.
+//     S1 extends G, // Error
+//     ^^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:11:9: Context: Bound of this variable references variable 'X' from the same declaration.
+// class G<X extends Class<X>> {}
+//         ^
+//
 // pkg/front_end/testcases/general/bounds_type_parameters.dart:186:5: Error: Generic type 'F' can't be used without type arguments in a type variable bound.
 // Try providing type arguments to 'F' here.
 //     T1 extends F, // Error
@@ -603,14 +619,14 @@ abstract class Mixin1<T1 extends self::Class<dynamic> = dynamic, T2 extends dyna
 }
 class Enum1<T1 extends self::Class<dynamic> = dynamic, T2 extends dynamic, T3 extends self::Class<dynamic> = dynamic, T4 extends self::Class<dynamic> = dynamic, T5 extends self::ConcreteClass = dynamic, T6 extends self::Class<self::ConcreteClass> = dynamic, T7 extends core::Object = dynamic, T8 extends core::int = dynamic, S1 extends self::G<self::Class<dynamic>> = dynamic, S2 extends self::G<dynamic> = dynamic, S3 extends self::G<self::Class<dynamic>> = dynamic, S4 extends self::G<self::Class<dynamic>> = dynamic, S5 extends self::G<self::ConcreteClass> = dynamic, S6 extends self::G<self::Class<self::ConcreteClass>> = dynamic, S7 extends self::G<core::Object> = dynamic, S8 extends self::G<core::int> = dynamic> extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Enum1<dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic>> values = #C4;
-  static const field self::Enum1<self::ConcreteClass, self::ConcreteClass, self::ConcreteClass, self::ConcreteClass, self::ConcreteClass, self::ConcreteClass, self::ConcreteClass, self::ConcreteClass, self::G<self::ConcreteClass>, self::G<self::ConcreteClass>, self::G<self::ConcreteClass>, self::G<self::ConcreteClass>, self::G<self::ConcreteClass>, self::G<self::ConcreteClass>, self::G<self::ConcreteClass>, self::G<self::ConcreteClass>> a = #C3;
+  enum-element static const field self::Enum1<self::ConcreteClass, self::ConcreteClass, self::ConcreteClass, self::ConcreteClass, self::ConcreteClass, self::ConcreteClass, self::ConcreteClass, self::ConcreteClass, self::G<self::ConcreteClass>, self::G<self::ConcreteClass>, self::G<self::ConcreteClass>, self::G<self::ConcreteClass>, self::G<self::ConcreteClass>, self::G<self::ConcreteClass>, self::G<self::ConcreteClass>, self::G<self::ConcreteClass>> a = #C3;
   const constructor •(core::int #index, core::String #name) → self::Enum1<self::Enum1::T1, self::Enum1::T2%, self::Enum1::T3, self::Enum1::T4, self::Enum1::T5, self::Enum1::T6, self::Enum1::T7, self::Enum1::T8, self::Enum1::S1, self::Enum1::S2, self::Enum1::S3, self::Enum1::S4, self::Enum1::S5, self::Enum1::S6, self::Enum1::S7, self::Enum1::S8>
     : super core::_Enum::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "Enum1.${this.{core::_Enum::_name}{core::String}}";
 }
-extension Extension<T1 extends self::Class<dynamic>, T2 extends dynamic, T3 extends self::Class<dynamic>, T4 extends self::Class<dynamic>, T5 extends self::ConcreteClass, T6 extends self::Class<self::ConcreteClass>, T7 extends core::Object, T8 extends core::int, S1 extends self::G<self::Class<dynamic>>, S2 extends self::G<dynamic>, S3 extends self::G<self::Class<dynamic>>, S4 extends self::G<self::Class<dynamic>>, S5 extends self::G<self::ConcreteClass>, S6 extends self::G<self::Class<self::ConcreteClass>>, S7 extends self::G<core::Object>, S8 extends self::G<core::int>> on self::Class<dynamic> {
+extension Extension<T1 extends self::Class<dynamic> = dynamic, T2 extends dynamic, T3 extends self::Class<dynamic> = dynamic, T4 extends self::Class<dynamic> = dynamic, T5 extends self::ConcreteClass = dynamic, T6 extends self::Class<self::ConcreteClass> = dynamic, T7 extends core::Object = dynamic, T8 extends core::int = dynamic, S1 extends self::G<self::Class<dynamic>> = dynamic, S2 extends self::G<dynamic> = dynamic, S3 extends self::G<self::Class<dynamic>> = dynamic, S4 extends self::G<self::Class<dynamic>> = dynamic, S5 extends self::G<self::ConcreteClass> = dynamic, S6 extends self::G<self::Class<self::ConcreteClass>> = dynamic, S7 extends self::G<core::Object> = dynamic, S8 extends self::G<core::int> = dynamic> on self::Class<dynamic> {
 }
 static method method1<T1 extends self::Class<dynamic> = dynamic, T2 extends dynamic, T3 extends self::Class<dynamic> = dynamic, T4 extends self::Class<dynamic> = dynamic, T5 extends self::ConcreteClass = dynamic, T6 extends self::Class<self::ConcreteClass> = dynamic, T7 extends core::Object = dynamic, T8 extends core::int = dynamic, S1 extends self::G<self::Class<dynamic>> = dynamic, S2 extends self::G<dynamic> = dynamic, S3 extends self::G<self::Class<dynamic>> = dynamic, S4 extends self::G<self::Class<dynamic>> = dynamic, S5 extends self::G<self::ConcreteClass> = dynamic, S6 extends self::G<self::Class<self::ConcreteClass>> = dynamic, S7 extends self::G<core::Object> = dynamic, S8 extends self::G<core::int> = dynamic>() → void {}
 static method test() → dynamic {
@@ -630,5 +646,5 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///bounds_type_parameters.dart:
 - Enum1. (from org-dartlang-testcase:///bounds_type_parameters.dart:129:6)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

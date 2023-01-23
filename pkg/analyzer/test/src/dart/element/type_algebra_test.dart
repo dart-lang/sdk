@@ -11,7 +11,7 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/type_system_test.dart';
+import '../../../generated/type_system_base.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -375,6 +375,85 @@ class SubstituteTest extends _Base {
 
     var T = typeParameter('T');
     _assertIdenticalType(type, {T: intNone});
+  }
+
+  test_record_doesNotUseTypeParameter() async {
+    final T = typeParameter('T');
+
+    final type = recordTypeNone(
+      positionalTypes: [intNone],
+    );
+
+    assertType(type, '(int)');
+    _assertIdenticalType(type, {T: intNone});
+  }
+
+  test_record_fromAlias() async {
+    // typedef Alias<T> = (int, String);
+    final T = typeParameter('T');
+    final Alias = typeAlias(
+      name: 'Alias',
+      typeParameters: [T],
+      aliasedType: recordTypeNone(
+        positionalTypes: [intNone, stringNone],
+      ),
+    );
+
+    final U = typeParameter('U');
+    final type = typeAliasTypeNone(Alias, typeArguments: [
+      typeParameterTypeNone(U),
+    ]);
+    assertType(type, '(int, String) via Alias<U>');
+    _assertSubstitution(type, {U: intNone}, '(int, String) via Alias<int>');
+  }
+
+  test_record_fromAlias2() async {
+    // typedef Alias<T> = (T, List<T>);
+    final T = typeParameter('T');
+    final T_none = typeParameterTypeNone(T);
+    final Alias = typeAlias(
+      name: 'Alias',
+      typeParameters: [T],
+      aliasedType: recordTypeNone(
+        positionalTypes: [
+          T_none,
+          listNone(T_none),
+        ],
+      ),
+    );
+
+    final type = typeAliasTypeNone(Alias, typeArguments: [intNone]);
+    assertType(type, '(int, List<int>) via Alias<int>');
+  }
+
+  test_record_named() async {
+    final T = typeParameter('T');
+    final T_none = typeParameterTypeNone(T);
+
+    final type = recordTypeNone(
+      namedTypes: {
+        'f1': T_none,
+        'f2': listNone(T_none),
+      },
+    );
+
+    assertType(type, '({T f1, List<T> f2})');
+    _assertSubstitution(type, {T: intNone}, '({int f1, List<int> f2})');
+  }
+
+  test_record_positional() async {
+    final T = typeParameter('T');
+    final T_none = typeParameterTypeNone(T);
+
+    final type = recordTypeNone(
+      positionalTypes: [
+        T_none,
+        listNone(T_none),
+      ],
+    );
+
+    assertType(type, '(T, List<T>)');
+    _assertSubstitution(type, {T: intNone}, '(int, List<int>)');
   }
 
   test_typeParameter_nullability() async {

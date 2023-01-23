@@ -10,6 +10,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -50,7 +51,7 @@ embedded_libs:
   "dart:ui": "ui/ui.dart"
 ''');
 
-    final sdkSummaryBytes = await buildSdkSummary2(
+    final sdkSummaryBytes = await buildSdkSummary(
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
       embedderYamlPath: embedderFile.path,
@@ -65,9 +66,9 @@ embedded_libs:
     sdkSummaryFile.writeAsBytesSync(sdkSummaryBytes);
 
     // Pub workspace does not support SDK summaries.
-    // So, we use Bazel workspace.
+    // So, we use Blaze workspace.
     const workspacePath = '/workspace';
-    newFile('$workspacePath/WORKSPACE', '');
+    newFile('$workspacePath/${file_paths.blazeWorkspaceMarker}', '');
     final myPackageRoot = getFolder('$workspacePath/dart/my');
 
     final collection = AnalysisContextCollectionImpl(
@@ -86,11 +87,11 @@ embedded_libs:
     final dartCore = await analysisSession.getLibrary('dart:core');
     final dartMath = await analysisSession.getLibrary('dart:math');
     final dartUi = await analysisSession.getLibrary('dart:ui');
-    expect(dartAsync.getType('Stream'), isNotNull);
-    expect(dartCore.getType('String'), isNotNull);
-    expect(dartMath.getType('Random'), isNotNull);
-    expect(dartUi.getType('FontStyle'), isNotNull);
-    expect(dartUi.getType('Offset'), isNotNull);
+    expect(dartAsync.getClass('Stream'), isNotNull);
+    expect(dartCore.getClass('String'), isNotNull);
+    expect(dartMath.getClass('Random'), isNotNull);
+    expect(dartUi.getClass('FontStyle'), isNotNull);
+    expect(dartUi.getClass('Offset'), isNotNull);
   }
 
   test_it() async {
@@ -99,7 +100,7 @@ embedded_libs:
       root: sdkRoot,
     );
 
-    final sdkSummaryBytes = await buildSdkSummary2(
+    final sdkSummaryBytes = await buildSdkSummary(
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
     );
@@ -112,9 +113,9 @@ embedded_libs:
     sdkSummaryFile.writeAsBytesSync(sdkSummaryBytes);
 
     // Pub workspace does not support SDK summaries.
-    // So, we use Bazel workspace.
+    // So, we use Blaze workspace.
     const workspacePath = '/workspace';
-    newFile('$workspacePath/WORKSPACE', '');
+    newFile('$workspacePath/${file_paths.blazeWorkspaceMarker}', '');
     final myPackageRoot = getFolder('$workspacePath/dart/my');
 
     final collection = AnalysisContextCollectionImpl(
@@ -132,9 +133,9 @@ embedded_libs:
     final dartAsync = await analysisSession.getLibrary('dart:async');
     final dartCore = await analysisSession.getLibrary('dart:core');
     final dartMath = await analysisSession.getLibrary('dart:math');
-    expect(dartAsync.getType('Stream'), isNotNull);
-    expect(dartCore.getType('String'), isNotNull);
-    expect(dartMath.getType('Random'), isNotNull);
+    expect(dartAsync.getClass('Stream'), isNotNull);
+    expect(dartCore.getClass('String'), isNotNull);
+    expect(dartMath.getClass('Random'), isNotNull);
   }
 }
 

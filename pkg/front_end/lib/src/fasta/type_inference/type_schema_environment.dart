@@ -138,7 +138,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
   @override
   DartType getTypeOfSpecialCasedBinaryOperator(DartType type1, DartType type2,
-      {bool isNonNullableByDefault: false}) {
+      {bool isNonNullableByDefault = false}) {
     if (isNonNullableByDefault) {
       return super.getTypeOfSpecialCasedBinaryOperator(type1, type2,
           isNonNullableByDefault: isNonNullableByDefault);
@@ -161,7 +161,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
   DartType getContextTypeOfSpecialCasedBinaryOperator(
       DartType contextType, DartType type1, DartType type2,
-      {bool isNonNullableByDefault: false}) {
+      {bool isNonNullableByDefault = false}) {
     if (isNonNullableByDefault) {
       if (contextType is! NeverType &&
           type1 is! NeverType &&
@@ -199,7 +199,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
   DartType getContextTypeOfSpecialCasedTernaryOperator(
       DartType contextType, DartType receiverType, DartType operandType,
-      {bool isNonNullableByDefault: false}) {
+      {bool isNonNullableByDefault = false}) {
     if (isNonNullableByDefault) {
       if (receiverType is! NeverType &&
           isSubtypeOf(receiverType, coreTypes.numNonNullableRawType,
@@ -266,7 +266,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       List<TypeParameter> typeParametersToInfer,
       List<DartType>? previouslyInferredTypes,
       Library clientLibrary,
-      {bool partial: false}) {
+      {bool partial = false}) {
     List<DartType> inferredTypes =
         previouslyInferredTypes?.toList(growable: false) ??
             new List.filled(typeParametersToInfer.length, const UnknownType());
@@ -410,7 +410,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       List<TypeParameter> typeParametersToInfer,
       DartType? returnContextType,
       Library clientLibrary,
-      {bool isConst: false}) {
+      {bool isConst = false}) {
     assert(typeParametersToInfer.isNotEmpty);
 
     // Create a TypeConstraintGatherer that will allow certain type parameters
@@ -452,7 +452,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   /// lower bound for normally covariant type parameters.
   DartType solveTypeConstraint(
       TypeConstraint constraint, DartType topType, DartType bottomType,
-      {bool grounded: false, bool isContravariant: false}) {
+      {bool grounded = false, bool isContravariant = false}) {
     assert(bottomType == const NeverType.nonNullable() ||
         bottomType == const NullType());
     if (!isContravariant) {
@@ -538,8 +538,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       TypeConstraint constraint,
       DartType? extendsConstraint,
       Library clientLibrary,
-      {bool isContravariant: false,
-      bool isLegacyCovariant: true}) {
+      {bool isContravariant = false,
+      bool isLegacyCovariant = true}) {
     // See if we already fixed this type in a previous inference step.
     // If so, then we aren't allowed to change it unless [isLegacyCovariant] is
     // false.
@@ -569,7 +569,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       TypeConstraint constraint,
       DartType? extendsConstraint,
       Library clientLibrary,
-      {bool isLegacyCovariant: true}) {
+      {bool isLegacyCovariant = true}) {
     // See if we already fixed this type in a previous inference step.
     // If so, then we aren't allowed to change it unless [isLegacyCovariant] is
     // false.

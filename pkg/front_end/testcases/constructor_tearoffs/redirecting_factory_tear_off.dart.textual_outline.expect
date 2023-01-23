@@ -59,4 +59,4 @@ class Class8b<T> {
 
 testArgs() {}
 expect(expected, actual) {}
-throws(Function() f, {bool inSoundModeOnly: false}) {}
+throws(Function() f, {bool inSoundModeOnly = false}) {}

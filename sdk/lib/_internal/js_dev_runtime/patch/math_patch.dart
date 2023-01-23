@@ -4,7 +4,8 @@
 
 // Patch file for dart:math library.
 import 'dart:_foreign_helper' show JS;
-import 'dart:_js_helper' show patch, nullCheck, notNull;
+import 'dart:_internal' show patch;
+import 'dart:_js_helper' show nullCheck, notNull;
 import 'dart:typed_data' show ByteData;
 
 @patch

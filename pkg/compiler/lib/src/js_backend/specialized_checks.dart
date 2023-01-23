@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import '../common/elements.dart' show ElementEnvironment, JCommonElements;
 import '../deferred_load/output_unit.dart' show OutputUnitData;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_backend/interceptor_data.dart' show InterceptorData;
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../universe/class_hierarchy.dart' show ClassHierarchy;
-import '../world.dart' show JClosedWorld;
 
 enum IsTestSpecialization {
   isNull,
@@ -24,7 +22,7 @@ enum IsTestSpecialization {
 }
 
 class SpecializedChecks {
-  static IsTestSpecialization findIsTestSpecialization(
+  static IsTestSpecialization? findIsTestSpecialization(
       DartType dartType, MemberEntity compiland, JClosedWorld closedWorld) {
     if (dartType is LegacyType) {
       DartType base = dartType.baseType;
@@ -37,7 +35,7 @@ class SpecializedChecks {
     return _findIsTestSpecialization(dartType, compiland, closedWorld);
   }
 
-  static IsTestSpecialization _findIsTestSpecialization(
+  static IsTestSpecialization? _findIsTestSpecialization(
       DartType dartType, MemberEntity compiland, JClosedWorld closedWorld) {
     if (dartType is InterfaceType) {
       ClassEntity element = dartType.element;
@@ -108,7 +106,7 @@ class SpecializedChecks {
     return null;
   }
 
-  static MemberEntity findAsCheck(DartType dartType,
+  static FunctionEntity? findAsCheck(DartType dartType,
       JCommonElements commonElements, bool useLegacySubtyping) {
     if (dartType is InterfaceType) {
       if (dartType.typeArguments.isNotEmpty) return null;
@@ -149,9 +147,9 @@ class SpecializedChecks {
   ///     String    nullable: false  legacy: true     String    yes
   ///     String    nullable: false  legacy: false    String    no
   ///
-  static MemberEntity _findAsCheck(
+  static FunctionEntity? _findAsCheck(
       ClassEntity element, JCommonElements commonElements,
-      {bool nullable, bool legacy}) {
+      {required bool nullable, required bool legacy}) {
     if (element == commonElements.jsStringClass ||
         element == commonElements.stringClass) {
       if (legacy) return commonElements.specializedAsStringLegacy;

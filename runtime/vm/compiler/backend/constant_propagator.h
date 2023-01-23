@@ -42,7 +42,7 @@ class ConstantPropagator : public FlowGraphVisitor {
   void Analyze();
   void Transform();
   // Tries to replace uses of [defn] with a constant, returns true if
-  // successfull. The [value] is used as a temporary handle.
+  // successful. The [value] is used as a temporary handle.
   bool TransformDefinition(Definition* defn);
   void EliminateRedundantBranches();
 

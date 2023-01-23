@@ -62,7 +62,7 @@ class AnnotationResolver {
 
   void _classGetter(
     AnnotationImpl node,
-    ClassElement classElement,
+    InterfaceElement classElement,
     SimpleIdentifierImpl? getterName,
     List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
@@ -223,8 +223,8 @@ class AnnotationResolver {
     }
 
     // Class(args) or Class.CONST
-    if (element1 is ClassElement) {
-      if (argumentList != null) {
+    if (element1 is InterfaceElement) {
+      if (element1 is ClassElement && argumentList != null) {
         _classConstructorInvocation(
             node, element1, name2, argumentList, whyNotPromotedList);
       } else {
@@ -242,43 +242,43 @@ class AnnotationResolver {
     // prefix.*
     if (element1 is PrefixElement) {
       if (name2 != null) {
-        var element2 = element1.scope.lookup(name2.name).getter;
-        name2.staticElement = element2;
+        var element = element1.scope.lookup(name2.name).getter;
+        name2.staticElement = element;
         // prefix.Class(args) or prefix.Class.CONST
-        if (element2 is ClassElement) {
-          if (argumentList != null) {
+        if (element is InterfaceElement) {
+          if (element is ClassElement && argumentList != null) {
             _classConstructorInvocation(
-                node, element2, name3, argumentList, whyNotPromotedList);
+                node, element, name3, argumentList, whyNotPromotedList);
           } else {
-            _classGetter(node, element2, name3, whyNotPromotedList);
+            _classGetter(node, element, name3, whyNotPromotedList);
           }
           return;
         }
         // prefix.Extension.CONST
-        if (element2 is ExtensionElement) {
-          _extensionGetter(node, element2, name3, whyNotPromotedList);
+        if (element is ExtensionElement) {
+          _extensionGetter(node, element, name3, whyNotPromotedList);
           return;
         }
         // prefix.CONST
-        if (element2 is PropertyAccessorElement) {
-          _propertyAccessorElement(node, name2, element2, whyNotPromotedList);
+        if (element is PropertyAccessorElement) {
+          _propertyAccessorElement(node, name2, element, whyNotPromotedList);
           return;
         }
 
         // prefix.TypeAlias(args) or prefix.TypeAlias.CONST
-        if (element2 is TypeAliasElement) {
-          var aliasedType = element2.aliasedType;
+        if (element is TypeAliasElement) {
+          var aliasedType = element.aliasedType;
           var argumentList = node.arguments;
           if (aliasedType is InterfaceType && argumentList != null) {
-            _typeAliasConstructorInvocation(node, element2, name3, aliasedType,
+            _typeAliasConstructorInvocation(node, element, name3, aliasedType,
                 argumentList, whyNotPromotedList);
           } else {
-            _typeAliasGetter(node, element2, name3, whyNotPromotedList);
+            _typeAliasGetter(node, element, name3, whyNotPromotedList);
           }
           return;
         }
         // undefined
-        if (element2 == null) {
+        if (element == null) {
           _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.UNDEFINED_ANNOTATION,
             node,

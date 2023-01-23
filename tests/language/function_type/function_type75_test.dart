@@ -140,7 +140,7 @@ class U75<T> {
       int x) x21;
   late List<A> Function<A>(List<T> x) Function<B extends core.int>(int x) x22;
 
-  U75({this.tIsBool: false, this.tIsInt: false})
+  U75({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   Function m0({Function x = _voidFunction}) => throw 'uncalled';

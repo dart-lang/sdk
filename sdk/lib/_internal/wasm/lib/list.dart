@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "core_patch.dart";
+part of "core_patch.dart";
 
 @pragma("wasm:entry-point")
 abstract class _ListBase<E> extends ListBase<E> {
@@ -13,11 +13,13 @@ abstract class _ListBase<E> extends ListBase<E> {
 
   _ListBase(int length, int capacity)
       : _length = length,
-        _data = WasmObjectArray<Object?>(capacity);
+        _data = WasmObjectArray<Object?>(RangeError.checkValueInInterval(
+            capacity, 0, 2147483647)); // max i32
 
   _ListBase._withData(this._length, this._data);
 
   E operator [](int index) {
+    IndexError.check(index, _length, indexable: this, name: "[]");
     return unsafeCast(_data.read(index));
   }
 
@@ -28,17 +30,18 @@ abstract class _ListBase<E> extends ListBase<E> {
     final int actualEnd = RangeError.checkValidRange(start, end, listLength);
     int length = actualEnd - start;
     if (length == 0) return <E>[];
-    return _GrowableList<E>(length)..setRange(0, length, this);
+    return _GrowableList<E>(length)..setRange(0, length, this, start);
   }
 
   void forEach(f(E element)) {
-    final length = this.length;
-    for (int i = 0; i < length; i++) {
+    final initialLength = length;
+    for (int i = 0; i < initialLength; i++) {
       f(this[i]);
+      if (length != initialLength) throw ConcurrentModificationError(this);
     }
   }
 
-  List<E> toList({bool growable: true}) {
+  List<E> toList({bool growable = true}) {
     return List.from(this, growable: growable);
   }
 }
@@ -51,6 +54,7 @@ abstract class _ModifiableList<E> extends _ListBase<E> {
       : super._withData(length, data);
 
   void operator []=(int index, E value) {
+    IndexError.check(index, _length, indexable: this, name: "[]=");
     _data.write(index, value);
   }
 

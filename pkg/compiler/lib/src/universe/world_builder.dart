@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library world_builder;
 
 import '../common/elements.dart';
@@ -12,10 +10,10 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import '../ir/class_relation.dart';
 import '../js_backend/native_data.dart' show NativeBasicData;
-import '../universe/resolution_world_builder.dart' show ResolutionWorldBuilder;
 import '../world.dart' show World;
 import 'selector.dart' show Selector;
 import 'use.dart' show DynamicUse, StaticUse;
+import 'resolution_world_builder_interfaces.dart' show ResolutionWorldBuilder;
 import 'strong_mode_constraint.dart' show StrongModeConstraintInterface;
 
 /// The combined constraints on receivers all the dynamic call sites of the same
@@ -73,7 +71,7 @@ abstract class SelectorConstraints {
 abstract class UniverseSelectorConstraints extends SelectorConstraints {
   /// Adds [constraint] to these selector constraints. Return `true` if the set
   /// of potential receivers expanded due to the new constraint.
-  bool addReceiverConstraint(covariant Object constraint);
+  bool addReceiverConstraint(covariant Object? constraint);
 }
 
 /// Strategy for computing the constraints on potential receivers of dynamic
@@ -82,7 +80,7 @@ abstract class SelectorConstraintsStrategy {
   /// Create a [UniverseSelectorConstraints] to represent the global receiver
   /// constraints for dynamic call sites with [selector].
   UniverseSelectorConstraints createSelectorConstraints(
-      Selector selector, Object initialConstraint);
+      Selector selector, Object? initialConstraint);
 
   /// Returns `true`  if [member] is a potential target of [dynamicUse].
   bool appliedUnnamed(DynamicUse dynamicUse, MemberEntity member, World world);
@@ -97,16 +95,16 @@ class StrongModeWorldStrategy implements SelectorConstraintsStrategy {
 
   @override
   StrongModeWorldConstraints createSelectorConstraints(
-      Selector selector, Object initialConstraint) {
+      Selector selector, Object? initialConstraint) {
     return StrongModeWorldConstraints()
-      ..addReceiverConstraint(initialConstraint);
+      ..addReceiverConstraint(initialConstraint as StrongModeConstraint?);
   }
 
   @override
   bool appliedUnnamed(DynamicUse dynamicUse, MemberEntity member,
       covariant ResolutionWorldBuilder world) {
     Selector selector = dynamicUse.selector;
-    StrongModeConstraint constraint = dynamicUse.receiverConstraint;
+    final constraint = dynamicUse.receiverConstraint as StrongModeConstraint?;
     return selector.appliesUnnamed(member) &&
         (constraint == null ||
             constraint.canHit(member, selector.memberName, world));
@@ -115,55 +113,41 @@ class StrongModeWorldStrategy implements SelectorConstraintsStrategy {
 
 class StrongModeWorldConstraints extends UniverseSelectorConstraints {
   bool isAll = false;
-  Set<StrongModeConstraint> _constraints;
+  late Set<StrongModeConstraint> _constraints = {};
 
   @override
   bool canHit(MemberEntity element, Name name, World world) {
     if (isAll) return true;
-    if (_constraints == null) return false;
-    for (StrongModeConstraint constraint in _constraints) {
-      if (constraint.canHit(element, name, world)) {
-        return true;
-      }
-    }
-    return false;
+    return _constraints.any((constraint) =>
+        constraint.canHit(element, name, world as ResolutionWorldBuilder));
   }
 
   @override
   bool needsNoSuchMethodHandling(Selector selector, World world) {
-    if (isAll) {
-      return true;
-    }
-    if (_constraints != null) {
-      for (StrongModeConstraint constraint in _constraints) {
-        if (constraint.needsNoSuchMethodHandling(selector, world)) {
-          return true;
-        }
-      }
-    }
-    return false;
+    if (isAll) return true;
+    return _constraints.any(
+        (constraint) => constraint.needsNoSuchMethodHandling(selector, world));
   }
 
   @override
-  bool addReceiverConstraint(StrongModeConstraint constraint) {
+  bool addReceiverConstraint(StrongModeConstraint? constraint) {
     if (isAll) return false;
     if (constraint?.cls == null) {
       isAll = true;
-      _constraints = null;
+      _constraints = const {};
       return true;
     }
-    _constraints ??= {};
-    return _constraints.add(constraint);
+    return _constraints.add(constraint!);
   }
 
   @override
   String toString() {
     if (isAll) {
       return '<all>';
-    } else if (_constraints != null) {
-      return '<${_constraints.map((c) => c.cls).join(',')}>';
-    } else {
+    } else if (_constraints.isEmpty) {
       return '<none>';
+    } else {
+      return '<${_constraints.map((c) => c.cls).join(',')}>';
     }
   }
 }
@@ -238,11 +222,9 @@ abstract class WorldBuilder {
   }
 
   void registerStaticInvocation(StaticUse staticUse) {
-    if (staticUse.typeArguments == null || staticUse.typeArguments.isEmpty) {
-      return;
-    }
-    _registerStaticTypeArgumentDependency(
-        staticUse.element, staticUse.typeArguments);
+    final typeArguments = staticUse.typeArguments;
+    if (typeArguments == null || typeArguments.isEmpty) return;
+    _registerStaticTypeArgumentDependency(staticUse.element, typeArguments);
   }
 
   void registerDynamicInvocation(

@@ -111,6 +111,26 @@ abstract class Builder {
   ///
   bool get isExtensionMember;
 
+  /// Returns `true` if this builder is a member of a view class declaration.
+  ///
+  /// For instance `method3a` and `method3b` in:
+  ///
+  ///     class A {
+  ///       A.constructor();     // Not an view member.
+  ///       method1a() {}        // Not an view member.
+  ///       static method1b() {} // Not an view member.
+  ///     }
+  ///     mixin B {
+  ///       method2a() {}        // Not an view member.
+  ///       static method2b() {} // Not an view member.
+  ///     }
+  ///     view class C on A {
+  ///       method3a() {}
+  ///       static method3b() {}
+  ///     }
+  ///
+  bool get isViewMember;
+
   /// Returns `true` if this builder is an instance member of a class, mixin, or
   /// extension declaration.
   ///
@@ -245,6 +265,9 @@ abstract class BuilderImpl implements Builder {
   bool get isExtensionMember => false;
 
   @override
+  bool get isViewMember => false;
+
+  @override
   bool get isDeclarationInstanceMember => false;
 
   @override
@@ -293,4 +316,23 @@ abstract class BuilderImpl implements Builder {
 
   @override
   bool get isDuplicate => next != null;
+}
+
+extension BuilderExtension on Builder {
+  /// Returns the 'duplicate index' for this builder, which is the number of
+  /// builders declared prior this.
+  ///
+  /// For a non-duplicate builder, this is 0.
+  int get duplicateIndex {
+    if (next != null) {
+      int count = 0;
+      Builder? current = next;
+      while (current != null) {
+        count++;
+        current = current.next;
+      }
+      return count;
+    }
+    return 0;
+  }
 }

@@ -337,8 +337,12 @@ bool File::ExistsUri(Namespace* namespc, const char* uri) {
   return File::Exists(namespc, path.get());
 }
 
-bool File::Create(Namespace* namespc, const char* name) {
-  int fd = TEMP_FAILURE_RETRY(open(name, O_RDONLY | O_CREAT, 0666));
+bool File::Create(Namespace* namespc, const char* name, bool exclusive) {
+  int flags = O_RDONLY | O_CREAT;
+  if (exclusive) {
+    flags |= O_EXCL;
+  }
+  int fd = TEMP_FAILURE_RETRY(open(name, flags, 0666));
   if (fd < 0) {
     return false;
   }
@@ -365,6 +369,17 @@ bool File::CreateLink(Namespace* namespc,
                       const char* target) {
   int status = NO_RETRY_EXPECTED(symlink(target, name));
   return (status == 0);
+}
+
+bool File::CreatePipe(Namespace* namespc, File** readPipe, File** writePipe) {
+  int pipe_fds[2];
+  int status = NO_RETRY_EXPECTED(pipe(pipe_fds));
+  if (status != 0) {
+    return false;
+  }
+  *readPipe = OpenFD(pipe_fds[0]);
+  *writePipe = OpenFD(pipe_fds[1]);
+  return true;
 }
 
 File::Type File::GetType(Namespace* namespc,

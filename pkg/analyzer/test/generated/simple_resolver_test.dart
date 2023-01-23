@@ -265,6 +265,23 @@ void f() {
     expect(breakStatement.target, same(switchStatement));
   }
 
+  test_breakTarget_unlabeledBreakFromSwitch_language218() async {
+    await resolveTestCode(r'''
+// @dart = 2.18
+void f() {
+  while (true) {
+    switch (0) {
+      case 0:
+        break;
+    }
+  }
+}
+''');
+    var switchStatement = findNode.switchStatement('switch (');
+    var breakStatement = findNode.breakStatement('break;');
+    expect(breakStatement.target, same(switchStatement));
+  }
+
   test_breakTarget_unlabeledBreakFromWhile() async {
     await resolveTestCode(r'''
 void f() {
@@ -387,6 +404,23 @@ void f() {
 
   test_continueTarget_unlabeledContinueSkipsSwitch() async {
     await resolveTestCode(r'''
+void f() {
+  while (true) {
+    switch (0) {
+      case 0:
+        continue;
+    }
+  }
+}
+''');
+    var whileStatement = findNode.whileStatement('while (');
+    var continueStatement = findNode.continueStatement('continue;');
+    expect(continueStatement.target, same(whileStatement));
+  }
+
+  test_continueTarget_unlabeledContinueSkipsSwitch_language218() async {
+    await resolveTestCode(r'''
+// @dart = 2.18
 void f() {
   while (true) {
     switch (0) {
@@ -823,6 +857,22 @@ void doSwitch(int target) {
     verifyTestResolved();
   }
 
+  test_labels_switch_language218() async {
+    await assertNoErrorsInCode(r'''
+// @dart = 2.18
+void doSwitch(int target) {
+  switch (target) {
+    l0: case 0:
+      continue l1;
+    l1: case 1:
+      continue l0;
+    default:
+      continue l1;
+  }
+}''');
+    verifyTestResolved();
+  }
+
   test_localVariable_types_invoked() async {
     await resolveTestCode(r'''
 const A = null;
@@ -1072,7 +1122,7 @@ const A = null;
   test_metadata_namedParameter() async {
     await assertNoErrorsInCode(r'''
 const A = null;
-f({@A int p : 0}) {}''');
+f({@A int p = 0}) {}''');
     verifyTestResolved();
 
     var metadata = findElement.parameter('p').metadata;

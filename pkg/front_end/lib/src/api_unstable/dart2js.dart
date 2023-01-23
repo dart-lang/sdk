@@ -130,10 +130,10 @@ InitializedCompilerState initializeCompiler(
     Uri? packagesFileUri,
     {required Map<ExperimentalFlag, bool> explicitExperimentalFlags,
     Map<String, String>? environmentDefines,
-    bool verify: false,
+    bool verify = false,
     NnbdMode? nnbdMode,
-    Set<InvocationMode> invocationModes: const <InvocationMode>{},
-    Verbosity verbosity: Verbosity.all}) {
+    Set<InvocationMode> invocationModes = const <InvocationMode>{},
+    Verbosity verbosity = Verbosity.all}) {
   additionalDills.sort((a, b) => a.toString().compareTo(b.toString()));
 
   // We don't check `target` because it doesn't support '==' and each

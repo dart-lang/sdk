@@ -10,15 +10,10 @@ import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 
-class DeprecatedMemberUseVerifier {
-  final WorkspacePackage? _workspacePackage;
-  final ErrorReporter _errorReporter;
-
+abstract class BaseDeprecatedMemberUseVerifier {
   /// We push a new value every time when we enter into a scope which
   /// can be marked as deprecated - a class, a method, fields (multiple).
   final List<bool> _inDeprecatedMemberStack = [false];
-
-  DeprecatedMemberUseVerifier(this._workspacePackage, this._errorReporter);
 
   void assignmentExpression(AssignmentExpression node) {
     _checkForDeprecated(node.readElement, node.leftHandSide);
@@ -35,7 +30,7 @@ class DeprecatedMemberUseVerifier {
   }
 
   void exportDirective(ExportDirective node) {
-    _checkForDeprecated(node.uriElement, node);
+    _checkForDeprecated(node.element?.exportedLibrary, node);
   }
 
   void functionExpressionInvocation(FunctionExpressionInvocation node) {
@@ -47,7 +42,7 @@ class DeprecatedMemberUseVerifier {
   }
 
   void importDirective(ImportDirective node) {
-    _checkForDeprecated(node.uriElement, node);
+    _checkForDeprecated(node.element?.importedLibrary, node);
   }
 
   void indexExpression(IndexExpression node) {
@@ -98,6 +93,9 @@ class DeprecatedMemberUseVerifier {
     _checkForDeprecated(node.staticElement, node);
     _invocationArguments(node.staticElement, node.argumentList);
   }
+
+  void reportError(
+      AstNode errorNode, Element element, String displayName, String? message);
 
   void simpleIdentifier(SimpleIdentifier node) {
     // Don't report declared identifiers.
@@ -181,25 +179,8 @@ class DeprecatedMemberUseVerifier {
       var invokeClass = invokeType.element;
       displayName = "${invokeClass.name}.${element.displayName}";
     }
-    var library = element is LibraryElement ? element : element.library;
     var message = _deprecatedMessage(element);
-    if (message == null || message.isEmpty) {
-      _errorReporter.reportErrorForNode(
-        _isLibraryInWorkspacePackage(library)
-            ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
-            : HintCode.DEPRECATED_MEMBER_USE,
-        errorNode,
-        [displayName],
-      );
-    } else {
-      _errorReporter.reportErrorForNode(
-        _isLibraryInWorkspacePackage(library)
-            ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE
-            : HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE,
-        errorNode,
-        [displayName, message],
-      );
-    }
+    reportError(errorNode, element, displayName, message);
   }
 
   void _invocationArguments(Element? element, ArgumentList arguments) {
@@ -211,15 +192,6 @@ class DeprecatedMemberUseVerifier {
         _checkForDeprecated,
       );
     }
-  }
-
-  bool _isLibraryInWorkspacePackage(LibraryElement? library) {
-    // Better to not make a big claim that they _are_ in the same package,
-    // if we were unable to determine what package [_currentLibrary] is in.
-    if (_workspacePackage == null || library == null) {
-      return false;
-    }
-    return _workspacePackage!.contains(library.source);
   }
 
   void _simpleIdentifier(SimpleIdentifier identifier) {
@@ -321,5 +293,51 @@ class DeprecatedMemberUseVerifier {
         }
       }
     }
+  }
+}
+
+class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
+  final WorkspacePackage? _workspacePackage;
+  final ErrorReporter _errorReporter;
+
+  DeprecatedMemberUseVerifier(this._workspacePackage, this._errorReporter);
+
+  @override
+  void reportError(
+      AstNode errorNode, Element element, String displayName, String? message) {
+    var library = element is LibraryElement ? element : element.library;
+
+    message = message?.trim();
+    if (message == null || message.isEmpty || message == '.') {
+      _errorReporter.reportErrorForNode(
+        _isLibraryInWorkspacePackage(library)
+            ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
+            : HintCode.DEPRECATED_MEMBER_USE,
+        errorNode,
+        [displayName],
+      );
+    } else {
+      if (!message.endsWith('.') &&
+          !message.endsWith('?') &&
+          !message.endsWith('!')) {
+        message = '$message.';
+      }
+      _errorReporter.reportErrorForNode(
+        _isLibraryInWorkspacePackage(library)
+            ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE
+            : HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE,
+        errorNode,
+        [displayName, message],
+      );
+    }
+  }
+
+  bool _isLibraryInWorkspacePackage(LibraryElement? library) {
+    // Better to not make a big claim that they _are_ in the same package,
+    // if we were unable to determine what package [_currentLibrary] is in.
+    if (_workspacePackage == null || library == null) {
+      return false;
+    }
+    return _workspacePackage!.contains(library.source);
   }
 }

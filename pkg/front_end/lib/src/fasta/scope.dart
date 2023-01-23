@@ -15,19 +15,13 @@ import 'builder/library_builder.dart';
 import 'builder/member_builder.dart';
 import 'builder/name_iterator.dart';
 import 'builder/type_variable_builder.dart';
-import 'fasta_codes.dart'
-    show
-        LocatedMessage,
-        Message,
-        messageInternalProblemExtendingUnmodifiableScope,
-        templateAccessError,
-        templateDuplicatedDeclarationUse,
-        templateDuplicatedNamePreviouslyUsedCause;
+import 'fasta_codes.dart';
 import 'kernel/body_builder.dart' show JumpTarget;
 import 'kernel/hierarchy/class_member.dart' show ClassMember;
 import 'kernel/kernel_helper.dart';
 import 'problems.dart' show internalProblem, unsupported;
 import 'source/source_class_builder.dart';
+import 'source/source_extension_builder.dart';
 import 'source/source_library_builder.dart';
 import 'source/source_member_builder.dart';
 import 'util/helpers.dart' show DelayedActionPerformer;
@@ -105,11 +99,11 @@ class Scope extends MutableScope {
       Set<ExtensionBuilder>? extensions,
       Scope? parent,
       required String debugName,
-      this.isModifiable: true})
+      this.isModifiable = true})
       : super(local, setters = setters ?? const <String, MemberBuilder>{},
             extensions, parent, debugName);
 
-  Scope.top({bool isModifiable: false})
+  Scope.top({bool isModifiable = false})
       : this(
             local: <String, Builder>{},
             setters: <String, MemberBuilder>{},
@@ -123,7 +117,7 @@ class Scope extends MutableScope {
             debugName: "immutable",
             isModifiable: false);
 
-  Scope.nested(Scope parent, String debugName, {bool isModifiable: true})
+  Scope.nested(Scope parent, String debugName, {bool isModifiable = true})
       : this(
             local: <String, Builder>{},
             setters: <String, MemberBuilder>{},
@@ -131,12 +125,64 @@ class Scope extends MutableScope {
             debugName: debugName,
             isModifiable: isModifiable);
 
-  Iterator<Builder> get iterator {
-    return new ScopeLocalDeclarationIterator(this);
+  /// Returns an iterator of all members and setters mapped in this scope,
+  /// including duplicate members mapped to the same name.
+  ///
+  /// The iterator does _not_ include the members and setters mapped in the
+  /// [parent] scope.
+  Iterator<Builder> get unfilteredIterator {
+    return new ScopeIterator(this);
   }
 
-  NameIterator get nameIterator {
-    return new ScopeLocalDeclarationNameIterator(this);
+  /// Returns an iterator of all members and setters mapped in this scope,
+  /// including duplicate members mapped to the same name.
+  ///
+  /// The iterator does _not_ include the members and setters mapped in the
+  /// [parent] scope.
+  ///
+  /// Compared to [unfilteredIterator] this iterator also gives access to the
+  /// name that the builders are mapped to.
+  NameIterator get unfilteredNameIterator {
+    return new ScopeNameIterator(this);
+  }
+
+  /// Returns a filtered iterator of members and setters mapped in this scope.
+  ///
+  /// Only members of type [T] are included. If [parent] is provided, on members
+  /// declared in [parent] are included. If [includeDuplicates] is `true`, all
+  /// duplicates of the same name are included, otherwise, only the first
+  /// declared member is included. If [includeAugmentations] is `true`, both
+  /// original and augmenting/patching members are included, otherwise, only
+  /// original members are included.
+  Iterator<T> filteredIterator<T extends Builder>(
+      {Builder? parent,
+      required bool includeDuplicates,
+      required bool includeAugmentations}) {
+    return new FilteredIterator<T>(unfilteredIterator,
+        parent: parent,
+        includeDuplicates: includeDuplicates,
+        includeAugmentations: includeAugmentations);
+  }
+
+  /// Returns a filtered iterator of members and setters mapped in this scope.
+  ///
+  /// Only members of type [T] are included. If [parent] is provided, on members
+  /// declared in [parent] are included. If [includeDuplicates] is `true`, all
+  /// duplicates of the same name are included, otherwise, only the first
+  /// declared member is included. If [includeAugmentations] is `true`, both
+  /// original and augmenting/patching members are included, otherwise, only
+  /// original members are included.
+  ///
+  /// Compared to [filteredIterator] this iterator also gives access to the
+  /// name that the builders are mapped to.
+  NameIterator<T> filteredNameIterator<T extends Builder>(
+      {Builder? parent,
+      required bool includeDuplicates,
+      required bool includeAugmentations}) {
+    return new FilteredNameIterator<T>(unfilteredNameIterator,
+        parent: parent,
+        includeDuplicates: includeDuplicates,
+        includeAugmentations: includeAugmentations);
   }
 
   void debug() {
@@ -316,7 +362,7 @@ class Scope extends MutableScope {
     super._extensions = scope._extensions;
   }
 
-  Scope createNestedScope(String debugName, {bool isModifiable: true}) {
+  Scope createNestedScope(String debugName, {bool isModifiable = true}) {
     return new Scope.nested(this, debugName, isModifiable: isModifiable);
   }
 
@@ -373,8 +419,9 @@ class Scope extends MutableScope {
     }
   }
 
+  /// Lookup a member with [name] in the scope.
   Builder? lookup(String name, int charOffset, Uri fileUri,
-      {bool isInstanceScope: true}) {
+      {bool isInstanceScope = true}) {
     recordUse(name, charOffset);
     Builder? builder =
         lookupIn(name, charOffset, fileUri, _local, isInstanceScope);
@@ -391,7 +438,7 @@ class Scope extends MutableScope {
   }
 
   Builder? lookupSetter(String name, int charOffset, Uri fileUri,
-      {bool isInstanceScope: true}) {
+      {bool isInstanceScope = true}) {
     recordUse(name, charOffset);
     Builder? builder =
         lookupIn(name, charOffset, fileUri, _setters, isInstanceScope);
@@ -425,6 +472,17 @@ class Scope extends MutableScope {
 
   void forEachLocalSetter(void Function(String name, MemberBuilder member) f) {
     _setters.forEach(f);
+  }
+
+  ExtensionBuilder? lookupLocalUnnamedExtension(Uri fileUri, int offset) {
+    if (_extensions != null) {
+      for (ExtensionBuilder extension in _extensions!) {
+        if (extension.fileUri == fileUri && extension.charOffset == offset) {
+          return extension;
+        }
+      }
+    }
+    return null;
   }
 
   void forEachLocalExtension(void Function(ExtensionBuilder member) f) {
@@ -557,55 +615,18 @@ class Scope extends MutableScope {
     });
     return nestingLevel;
   }
-
-  Scope computeMixinScope() {
-    Map<String, Builder> local = <String, Builder>{};
-    bool needsCopy = false;
-    for (MapEntry<String, Builder> entry in _local.entries) {
-      String name = entry.key;
-      Builder declaration = entry.value;
-      if (declaration.isStatic) {
-        needsCopy = true;
-      } else {
-        local[name] = declaration;
-      }
-    }
-    Map<String, MemberBuilder> setters = <String, MemberBuilder>{};
-    for (MapEntry<String, MemberBuilder> entry in _setters.entries) {
-      String name = entry.key;
-      MemberBuilder declaration = entry.value;
-      if (declaration.isStatic) {
-        needsCopy = true;
-      } else {
-        setters[name] = declaration;
-      }
-    }
-    return needsCopy
-        ? new Scope(
-            local: local,
-            setters: setters,
-            extensions: _extensions,
-            parent: _parent,
-            debugName: classNameOrDebugName,
-            isModifiable: isModifiable)
-        : this;
-  }
 }
 
 class ConstructorScope {
   /// Constructors declared in this scope.
-  final Map<String, MemberBuilder> local;
+  final Map<String, MemberBuilder> _local;
 
   final String className;
 
-  ConstructorScope(this.className, this.local);
-
-  void forEach(f(String name, MemberBuilder member)) {
-    local.forEach(f);
-  }
+  ConstructorScope(this.className, this._local);
 
   MemberBuilder? lookup(String name, int charOffset, Uri fileUri) {
-    MemberBuilder? builder = local[name];
+    MemberBuilder? builder = _local[name];
     if (builder == null) return null;
     if (builder.next != null) {
       return new AmbiguousMemberBuilder(
@@ -616,20 +637,76 @@ class ConstructorScope {
   }
 
   MemberBuilder? lookupLocalMember(String name) {
-    return local[name];
+    return _local[name];
   }
 
   void addLocalMember(String name, MemberBuilder builder) {
-    local[name] = builder;
+    _local[name] = builder;
+  }
+
+  void addLocalMembers(Map<String, MemberBuilder> map) {
+    _local.addAll(map);
+  }
+
+  /// Returns an iterator of all constructors mapped in this scope,
+  /// including duplicate constructors mapped to the same name.
+  Iterator<MemberBuilder> get unfilteredIterator =>
+      new ConstructorScopeIterator(this);
+
+  /// Returns an iterator of all constructors mapped in this scope,
+  /// including duplicate constructors mapped to the same name.
+  ///
+  /// Compared to [unfilteredIterator] this iterator also gives access to the
+  /// name that the builders are mapped to.
+  NameIterator<MemberBuilder> get unfilteredNameIterator =>
+      new ConstructorScopeNameIterator(this);
+
+  /// Returns a filtered iterator of constructors mapped in this scope.
+  ///
+  /// Only members of type [T] are included. If [parent] is provided, on members
+  /// declared in [parent] are included. If [includeDuplicates] is `true`, all
+  /// duplicates of the same name are included, otherwise, only the first
+  /// declared member is included. If [includeAugmentations] is `true`, both
+  /// original and augmenting/patching members are included, otherwise, only
+  /// original members are included.
+  Iterator<T> filteredIterator<T extends MemberBuilder>(
+      {Builder? parent,
+      required bool includeDuplicates,
+      required bool includeAugmentations}) {
+    return new FilteredIterator<T>(unfilteredIterator,
+        parent: parent,
+        includeDuplicates: includeDuplicates,
+        includeAugmentations: includeAugmentations);
+  }
+
+  /// Returns a filtered iterator of constructors mapped in this scope.
+  ///
+  /// Only members of type [T] are included. If [parent] is provided, on members
+  /// declared in [parent] are included. If [includeDuplicates] is `true`, all
+  /// duplicates of the same name are included, otherwise, only the first
+  /// declared member is included. If [includeAugmentations] is `true`, both
+  /// original and augmenting/patching members are included, otherwise, only
+  /// original members are included.
+  ///
+  /// Compared to [filteredIterator] this iterator also gives access to the
+  /// name that the builders are mapped to.
+  NameIterator<T> filteredNameIterator<T extends MemberBuilder>(
+      {Builder? parent,
+      required bool includeDuplicates,
+      required bool includeAugmentations}) {
+    return new FilteredNameIterator<T>(unfilteredNameIterator,
+        parent: parent,
+        includeDuplicates: includeDuplicates,
+        includeAugmentations: includeAugmentations);
   }
 
   @override
-  String toString() => "ConstructorScope($className, ${local.keys})";
+  String toString() => "ConstructorScope($className, ${_local.keys})";
 }
 
 abstract class LazyScope extends Scope {
   LazyScope(Map<String, Builder> local, Map<String, MemberBuilder> setters,
-      Scope? parent, String debugName, {bool isModifiable: true})
+      Scope? parent, String debugName, {bool isModifiable = true})
       : super(
             local: local,
             setters: setters,
@@ -867,15 +944,19 @@ class AmbiguousMemberBuilder extends AmbiguousBuilder
       : super(name, builder, charOffset, fileUri);
 }
 
-class ScopeLocalDeclarationIterator implements Iterator<Builder> {
+/// Iterator over builders mapped in a [Scope], including duplicates for each
+/// directly mapped builder.
+class ScopeIterator implements Iterator<Builder> {
   Iterator<Builder>? local;
-  final Iterator<Builder> setters;
+  Iterator<Builder>? setters;
+  Iterator<Builder>? extensions;
 
   Builder? _current;
 
-  ScopeLocalDeclarationIterator(Scope scope)
+  ScopeIterator(Scope scope)
       : local = scope._local.values.iterator,
-        setters = scope._setters.values.iterator;
+        setters = scope._setters.values.iterator,
+        extensions = scope._extensions?.iterator;
 
   @override
   bool moveNext() {
@@ -891,13 +972,28 @@ class ScopeLocalDeclarationIterator implements Iterator<Builder> {
       }
       local = null;
     }
-    if (setters.moveNext()) {
-      _current = setters.current;
-      return true;
-    } else {
-      _current = null;
-      return false;
+    if (setters != null) {
+      if (setters!.moveNext()) {
+        _current = setters!.current;
+        return true;
+      }
+      setters = null;
     }
+    if (extensions != null) {
+      while (extensions!.moveNext()) {
+        Builder extension = extensions!.current;
+        // Named extensions have already been included throw [local] so we skip
+        // them here.
+        if (extension is SourceExtensionBuilder &&
+            extension.isUnnamedExtension) {
+          _current = extension;
+          return true;
+        }
+      }
+      extensions = null;
+    }
+    _current = null;
+    return false;
   }
 
   @override
@@ -906,14 +1002,18 @@ class ScopeLocalDeclarationIterator implements Iterator<Builder> {
   }
 }
 
-class ScopeLocalDeclarationNameIterator extends ScopeLocalDeclarationIterator
-    implements NameIterator {
+/// Iterator over builders mapped in a [Scope], including duplicates for each
+/// directly mapped builder.
+///
+/// Compared to [ScopeIterator] this iterator also gives
+/// access to the name that the builders are mapped to.
+class ScopeNameIterator extends ScopeIterator implements NameIterator<Builder> {
   Iterator<String>? localNames;
-  final Iterator<String> setterNames;
+  Iterator<String>? setterNames;
 
   String? _name;
 
-  ScopeLocalDeclarationNameIterator(Scope scope)
+  ScopeNameIterator(Scope scope)
       : localNames = scope._local.keys.iterator,
         setterNames = scope._setters.keys.iterator,
         super(scope);
@@ -932,21 +1032,521 @@ class ScopeLocalDeclarationNameIterator extends ScopeLocalDeclarationIterator
         _name = localNames!.current;
         return true;
       }
+      local = null;
       localNames = null;
     }
-    if (setters.moveNext()) {
-      setterNames.moveNext();
-      _current = setters.current;
-      _name = setterNames.current;
-      return true;
-    } else {
-      _current = null;
-      return false;
+    if (setters != null) {
+      if (setters!.moveNext()) {
+        setterNames!.moveNext();
+        _current = setters!.current;
+        _name = setterNames!.current;
+        return true;
+      }
+      setters = null;
+      setterNames = null;
     }
+    if (extensions != null) {
+      while (extensions!.moveNext()) {
+        Builder extension = extensions!.current;
+        // Named extensions have already been included throw [local] so we skip
+        // them here.
+        if (extension is SourceExtensionBuilder &&
+            extension.isUnnamedExtension) {
+          _current = extension;
+          _name = extension.name;
+          return true;
+        }
+      }
+      extensions = null;
+    }
+    _current = null;
+    _name = null;
+    return false;
   }
 
   @override
   String get name {
     return _name ?? (throw new StateError('No element'));
+  }
+}
+
+/// Iterator over builders mapped in a [ConstructorScope], including duplicates
+/// for each directly mapped builder.
+class ConstructorScopeIterator implements Iterator<MemberBuilder> {
+  Iterator<MemberBuilder> local;
+
+  MemberBuilder? _current;
+
+  ConstructorScopeIterator(ConstructorScope scope)
+      : local = scope._local.values.iterator;
+
+  @override
+  bool moveNext() {
+    MemberBuilder? next = _current?.next as MemberBuilder?;
+    if (next != null) {
+      _current = next;
+      return true;
+    }
+    if (local.moveNext()) {
+      _current = local.current;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  MemberBuilder get current {
+    return _current ?? (throw new StateError('No element'));
+  }
+}
+
+/// Iterator over builders mapped in a [ConstructorScope], including duplicates
+/// for each directly mapped builder.
+///
+/// Compared to [ConstructorScopeIterator] this iterator also gives
+/// access to the name that the builders are mapped to.
+class ConstructorScopeNameIterator extends ConstructorScopeIterator
+    implements NameIterator<MemberBuilder> {
+  final Iterator<String> localNames;
+
+  String? _name;
+
+  ConstructorScopeNameIterator(ConstructorScope scope)
+      : localNames = scope._local.keys.iterator,
+        super(scope);
+
+  @override
+  bool moveNext() {
+    MemberBuilder? next = _current?.next as MemberBuilder?;
+    if (next != null) {
+      _current = next;
+      return true;
+    }
+    if (local.moveNext()) {
+      localNames.moveNext();
+      _current = local.current;
+      _name = localNames.current;
+      return true;
+    }
+    _current = null;
+    _name = null;
+    return false;
+  }
+
+  @override
+  String get name {
+    return _name ?? (throw new StateError('No element'));
+  }
+}
+
+/// Filtered builder [Iterator].
+class FilteredIterator<T extends Builder> implements Iterator<T> {
+  final Iterator<Builder> _iterator;
+  final Builder? parent;
+  final bool includeDuplicates;
+  final bool includeAugmentations;
+
+  FilteredIterator(this._iterator,
+      {required this.parent,
+      required this.includeDuplicates,
+      required this.includeAugmentations});
+
+  bool _include(Builder element) {
+    if (parent != null && element.parent != parent) return false;
+    if (!includeDuplicates &&
+        (element.isDuplicate || element.isConflictingAugmentationMember)) {
+      return false;
+    }
+    if (!includeAugmentations && element.isPatch) return false;
+    return element is T;
+  }
+
+  @override
+  T get current => _iterator.current as T;
+
+  @override
+  bool moveNext() {
+    while (_iterator.moveNext()) {
+      Builder candidate = _iterator.current;
+      if (_include(candidate)) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+/// Filtered [NameIterator].
+///
+/// Compared to [FilteredIterator] this iterator also gives
+/// access to the name that the builders are mapped to.
+class FilteredNameIterator<T extends Builder> implements NameIterator<T> {
+  final NameIterator<Builder> _iterator;
+  final Builder? parent;
+  final bool includeDuplicates;
+  final bool includeAugmentations;
+
+  FilteredNameIterator(this._iterator,
+      {required this.parent,
+      required this.includeDuplicates,
+      required this.includeAugmentations});
+
+  bool _include(Builder element) {
+    if (parent != null && element.parent != parent) return false;
+    if (!includeDuplicates &&
+        (element.isDuplicate || element.isConflictingAugmentationMember)) {
+      return false;
+    }
+    if (!includeAugmentations && element.isPatch) return false;
+    return element is T;
+  }
+
+  @override
+  T get current => _iterator.current as T;
+
+  @override
+  String get name => _iterator.name;
+
+  @override
+  bool moveNext() {
+    while (_iterator.moveNext()) {
+      Builder candidate = _iterator.current;
+      if (_include(candidate)) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+extension IteratorExtension<T extends Builder> on Iterator<T> {
+  void forEach(void Function(T) f) {
+    while (moveNext()) {
+      f(current);
+    }
+  }
+
+  List<T> toList() {
+    List<T> list = [];
+    while (moveNext()) {
+      list.add(current);
+    }
+    return list;
+  }
+}
+
+extension NameIteratorExtension<T extends Builder> on NameIterator<T> {
+  void forEach(void Function(String, T) f) {
+    while (moveNext()) {
+      f(name, current);
+    }
+  }
+}
+
+abstract class MergedScope<T extends Builder> {
+  final T _origin;
+  final Scope _originScope;
+  Map<T, Scope> _augmentationScopes = {};
+
+  MergedScope(this._origin, this._originScope);
+
+  SourceLibraryBuilder get originLibrary;
+
+  void _addBuilderToMergedScope(T parentBuilder, String name,
+      Builder newBuilder, Builder? existingBuilder,
+      {required bool setter}) {
+    if (existingBuilder != null) {
+      if (parentBuilder.isAugmentation) {
+        if (newBuilder.isAugmentation) {
+          existingBuilder.applyPatch(newBuilder);
+        } else {
+          newBuilder.isConflictingAugmentationMember = true;
+          Message message;
+          Message context;
+          if (newBuilder is SourceMemberBuilder &&
+              existingBuilder is SourceMemberBuilder) {
+            if (_origin is SourceLibraryBuilder) {
+              message = templateNonAugmentationLibraryMemberConflict
+                  .withArguments(name);
+            } else {
+              message = templateNonAugmentationClassMemberConflict
+                  .withArguments(name);
+            }
+            context = messageNonAugmentationMemberConflictCause;
+          } else if (newBuilder is SourceClassBuilder &&
+              existingBuilder is SourceClassBuilder) {
+            message = templateNonAugmentationClassConflict.withArguments(name);
+            context = messageNonAugmentationClassConflictCause;
+          } else {
+            if (_origin is SourceLibraryBuilder) {
+              message =
+                  templateNonAugmentationLibraryConflict.withArguments(name);
+            } else {
+              message = templateNonAugmentationClassMemberConflict
+                  .withArguments(name);
+            }
+            context = messageNonAugmentationMemberConflictCause;
+          }
+          originLibrary.addProblem(
+              message, newBuilder.charOffset, name.length, newBuilder.fileUri,
+              context: [
+                context.withLocation(existingBuilder.fileUri!,
+                    existingBuilder.charOffset, name.length)
+              ]);
+        }
+      } else {
+        // Patch libraries implicitly assume matching members are patch
+        // members.
+        existingBuilder.applyPatch(newBuilder);
+      }
+    } else {
+      if (newBuilder.isAugmentation) {
+        Message message;
+        if (newBuilder is SourceMemberBuilder) {
+          if (_origin is SourceLibraryBuilder) {
+            message =
+                templateUnmatchedAugmentationLibraryMember.withArguments(name);
+          } else {
+            message =
+                templateUnmatchedAugmentationClassMember.withArguments(name);
+          }
+        } else if (newBuilder is SourceClassBuilder) {
+          message = templateUnmatchedAugmentationClass.withArguments(name);
+        } else {
+          message =
+              templateUnmatchedAugmentationDeclaration.withArguments(name);
+        }
+        originLibrary.addProblem(
+            message, newBuilder.charOffset, name.length, newBuilder.fileUri);
+      } else {
+        if (!parentBuilder.isAugmentation && !name.startsWith('_')) {
+          // We special-case public members injected in patch libraries.
+          _addInjectedPatchMember(name, newBuilder);
+        } else {
+          _originScope.addLocalMember(name, newBuilder, setter: setter);
+          for (Scope augmentationScope in _augmentationScopes.values) {
+            _addBuilderToAugmentationScope(augmentationScope, name, newBuilder,
+                setter: setter);
+          }
+        }
+      }
+    }
+  }
+
+  void _addBuilderToAugmentationScope(
+      Scope augmentationScope, String name, Builder member,
+      {required bool setter}) {
+    Builder? augmentationMember =
+        augmentationScope.lookupLocalMember(name, setter: setter);
+    if (augmentationMember == null) {
+      augmentationScope.addLocalMember(name, member, setter: setter);
+    }
+  }
+
+  void _addAugmentationScope(T parentBuilder, Scope scope) {
+    // TODO(johnniwinther): Use `scope.filteredNameIterator` instead of
+    // `scope.forEachLocalMember`/`scope.forEachLocalSetter`.
+
+    // Include all augmentation scope members to the origin scope.
+    scope.forEachLocalMember((String name, Builder member) {
+      // In case of duplicates we use the first declaration.
+      while (member.isDuplicate) {
+        member = member.next!;
+      }
+      _addBuilderToMergedScope(parentBuilder, name, member,
+          _originScope.lookupLocalMember(name, setter: false),
+          setter: false);
+    });
+    scope.forEachLocalSetter((String name, Builder member) {
+      // In case of duplicates we use the first declaration.
+      while (member.isDuplicate) {
+        member = member.next!;
+      }
+      _addBuilderToMergedScope(parentBuilder, name, member,
+          _originScope.lookupLocalMember(name, setter: true),
+          setter: true);
+    });
+
+    // Include all origin scope members in the augmentation scope.
+    _originScope.forEachLocalMember((String name, Builder originMember) {
+      _addBuilderToAugmentationScope(scope, name, originMember, setter: false);
+    });
+    _originScope.forEachLocalSetter((String name, Builder originMember) {
+      _addBuilderToAugmentationScope(scope, name, originMember, setter: true);
+    });
+
+    _augmentationScopes[parentBuilder] = scope;
+  }
+
+  void _addInjectedPatchMember(String name, Builder newBuilder);
+}
+
+class MergedLibraryScope extends MergedScope<SourceLibraryBuilder> {
+  MergedLibraryScope(SourceLibraryBuilder origin) : super(origin, origin.scope);
+
+  @override
+  SourceLibraryBuilder get originLibrary => _origin;
+
+  void addAugmentationScope(SourceLibraryBuilder builder) {
+    _addAugmentationScope(builder, builder.scope);
+  }
+
+  @override
+  void _addInjectedPatchMember(String name, Builder newBuilder) {
+    assert(!name.startsWith('_'), "Unexpected private member $newBuilder");
+    _exportMemberFromPatch(name, newBuilder);
+  }
+
+  void _exportMemberFromPatch(String name, Builder member) {
+    if (!originLibrary.importUri.isScheme("dart") ||
+        !originLibrary.importUri.path.startsWith("_")) {
+      originLibrary.addProblem(
+          templatePatchInjectionFailed.withArguments(
+              name, originLibrary.importUri),
+          member.charOffset,
+          noLength,
+          member.fileUri);
+    }
+    // Platform-private libraries, such as "dart:_internal" have special
+    // semantics: public members are injected into the origin library.
+    // TODO(ahe): See if we can remove this special case.
+
+    // If this member already exist in the origin library scope, it should
+    // have been marked as patch.
+    assert((member.isSetter &&
+            _originScope.lookupLocalMember(name, setter: true) == null) ||
+        (!member.isSetter &&
+            _originScope.lookupLocalMember(name, setter: false) == null));
+    originLibrary.addToExportScope(name, member);
+  }
+}
+
+class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
+  final ConstructorScope _originConstructorScope;
+  Map<SourceClassBuilder, ConstructorScope> _augmentationConstructorScopes = {};
+
+  MergedClassMemberScope(SourceClassBuilder origin)
+      : _originConstructorScope = origin.constructorScope,
+        super(origin, origin.scope);
+
+  @override
+  SourceLibraryBuilder get originLibrary => _origin.libraryBuilder;
+
+  void _addAugmentationConstructorScope(
+      SourceClassBuilder classBuilder, ConstructorScope constructorScope) {
+    constructorScope._local
+        .forEach((String name, MemberBuilder newConstructor) {
+      MemberBuilder? existingConstructor =
+          _originConstructorScope.lookupLocalMember(name);
+      if (classBuilder.isAugmentation) {
+        if (existingConstructor != null) {
+          if (newConstructor.isAugmentation) {
+            existingConstructor.applyPatch(newConstructor);
+          } else {
+            newConstructor.isConflictingAugmentationMember = true;
+            originLibrary.addProblem(
+                templateNonAugmentationConstructorConflict
+                    .withArguments(newConstructor.fullNameForErrors),
+                newConstructor.charOffset,
+                noLength,
+                newConstructor.fileUri,
+                context: [
+                  messageNonAugmentationConstructorConflictCause.withLocation(
+                      existingConstructor.fileUri!,
+                      existingConstructor.charOffset,
+                      noLength)
+                ]);
+          }
+        } else {
+          if (newConstructor.isAugmentation) {
+            originLibrary.addProblem(
+                templateUnmatchedAugmentationConstructor
+                    .withArguments(newConstructor.fullNameForErrors),
+                newConstructor.charOffset,
+                noLength,
+                newConstructor.fileUri);
+          } else {
+            _originConstructorScope.addLocalMember(name, newConstructor);
+            for (ConstructorScope augmentationConstructorScope
+                in _augmentationConstructorScopes.values) {
+              _addConstructorToAugmentationScope(
+                  augmentationConstructorScope, name, newConstructor);
+            }
+          }
+        }
+      } else {
+        if (existingConstructor != null) {
+          // Patch libraries implicitly assume matching members are patch
+          // members.
+          existingConstructor.applyPatch(newConstructor);
+        } else {
+          // Members injected into patch are not part of the origin scope.
+        }
+      }
+    });
+    _originConstructorScope._local
+        .forEach((String name, MemberBuilder originConstructor) {
+      _addConstructorToAugmentationScope(
+          constructorScope, name, originConstructor);
+    });
+  }
+
+  void _addConstructorToAugmentationScope(
+      ConstructorScope augmentationConstructorScope,
+      String name,
+      MemberBuilder constructor) {
+    Builder? augmentationConstructor =
+        augmentationConstructorScope.lookupLocalMember(name);
+    if (augmentationConstructor == null) {
+      augmentationConstructorScope.addLocalMember(name, constructor);
+    }
+  }
+
+  // TODO(johnniwinther): Check for conflicts between constructors and class
+  //  members.
+  void addAugmentationScope(SourceClassBuilder builder) {
+    _addAugmentationScope(builder, builder.scope);
+    _addAugmentationConstructorScope(builder, builder.constructorScope);
+  }
+
+  @override
+  void _addInjectedPatchMember(String name, Builder newBuilder) {
+    // Members injected into patch are not part of the origin scope.
+  }
+}
+
+extension on Builder {
+  bool get isAugmentation {
+    Builder self = this;
+    if (self is SourceLibraryBuilder) {
+      return self.isAugmentation;
+    } else if (self is SourceClassBuilder) {
+      return self.isAugmentation;
+    } else if (self is SourceMemberBuilder) {
+      return self.isAugmentation;
+    } else {
+      return false;
+    }
+  }
+
+  bool get isConflictingAugmentationMember {
+    Builder self = this;
+    if (self is SourceMemberBuilder) {
+      return self.isConflictingAugmentationMember;
+    } else if (self is SourceClassBuilder) {
+      return self.isConflictingAugmentationMember;
+    }
+    // TODO(johnniwinther): Handle all cases here.
+    return false;
+  }
+
+  void set isConflictingAugmentationMember(bool value) {
+    Builder self = this;
+    if (self is SourceMemberBuilder) {
+      self.isConflictingAugmentationMember = value;
+    } else if (self is SourceClassBuilder) {
+      self.isConflictingAugmentationMember = value;
+    }
+    // TODO(johnniwinther): Handle all cases here.
   }
 }

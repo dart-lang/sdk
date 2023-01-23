@@ -375,6 +375,10 @@ int32_t SelectorMap::SelectorId(const Function& interface_target) const {
 const TableSelector* SelectorMap::GetSelector(
     const Function& interface_target) const {
   const int32_t sid = SelectorId(interface_target);
+  return GetSelector(sid);
+}
+
+const TableSelector* SelectorMap::GetSelector(int32_t sid) const {
   if (sid == kInvalidSelectorId) return nullptr;
   const TableSelector* selector = &selectors_[sid];
   if (!selector->IsUsed()) return nullptr;
@@ -625,7 +629,7 @@ void DispatchTableGenerator::ComputeSelectorOffsets() {
   table_rows_.Sort(PopularitySorter::Compare);
 
   // Try to allocate at optimal offset.
-  const int32_t optimal_offset = DispatchTable::OriginElement();
+  const int32_t optimal_offset = DispatchTable::kOriginElement;
   for (intptr_t i = 0; i < table_rows_.length(); i++) {
     fitter.FitAndAllocate(table_rows_[i], optimal_offset, optimal_offset);
   }
@@ -640,7 +644,7 @@ void DispatchTableGenerator::ComputeSelectorOffsets() {
   table_rows_.Sort(PopularitySizeRatioSorter::Compare);
 
   // Try to allocate at small offsets.
-  const int32_t max_offset = DispatchTable::LargestSmallOffset();
+  const int32_t max_offset = DispatchTable::kLargestSmallOffset;
   for (intptr_t i = 0; i < table_rows_.length(); i++) {
     fitter.FitAndAllocate(table_rows_[i], 0, max_offset);
   }
@@ -654,7 +658,7 @@ void DispatchTableGenerator::ComputeSelectorOffsets() {
   table_rows_.Sort(SizeSorter::Compare);
 
   // Allocate remaining rows at large offsets.
-  const int32_t min_large_offset = DispatchTable::LargestSmallOffset() + 1;
+  const int32_t min_large_offset = DispatchTable::kLargestSmallOffset + 1;
   for (intptr_t i = 0; i < table_rows_.length(); i++) {
     fitter.FitAndAllocate(table_rows_[i], min_large_offset);
   }

@@ -9,11 +9,8 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/type_environment.dart';
 
 import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
-import '../transformations/continuation.dart' as transformAsync
-    show transformLibraries, transformProcedure;
 import '../transformations/lowering.dart' as lowering
     show transformLibraries, transformProcedure;
 import '../transformations/mixin_full_resolution.dart' as transformMixins
@@ -33,10 +30,11 @@ class VmTarget extends Target {
 
   Class? _growableList;
   Class? _immutableList;
-  Class? _internalImmutableLinkedHashMap;
-  Class? _internalImmutableLinkedHashSet;
-  Class? _internalLinkedHashMap;
-  Class? _internalLinkedHashSet;
+  Class? _constMap;
+  Class? _constSet;
+  Class? _map;
+  Class? _set;
+  Class? _record;
   Class? _oneByteString;
   Class? _twoByteString;
   Class? _smi;
@@ -183,15 +181,9 @@ class VmTarget extends Target {
       logger?.call("Transformed ffi annotations");
     }
 
-    // TODO(kmillikin): Make this run on a per-method basis.
     bool productMode = environmentDefines!["dart.vm.product"] == "true";
-    transformAsync.transformLibraries(
-        new TypeEnvironment(coreTypes, hierarchy), libraries,
-        productMode: productMode, desugarAsync: !flags.compactAsync);
-    logger?.call("Transformed async methods");
-
-    lowering.transformLibraries(
-        libraries, coreTypes, hierarchy, flags.enableNullSafety);
+    lowering.transformLibraries(libraries, coreTypes, hierarchy,
+        nullSafety: flags.enableNullSafety, productMode: productMode);
     logger?.call("Lowering transformations performed");
 
     callSiteAnnotator.transformLibraries(
@@ -207,13 +199,8 @@ class VmTarget extends Target {
       Map<String, String>? environmentDefines,
       {void Function(String msg)? logger}) {
     bool productMode = environmentDefines!["dart.vm.product"] == "true";
-    transformAsync.transformProcedure(
-        new TypeEnvironment(coreTypes, hierarchy), procedure,
-        productMode: productMode, desugarAsync: !flags.compactAsync);
-    logger?.call("Transformed async functions");
-
-    lowering.transformProcedure(
-        procedure, coreTypes, hierarchy, flags.enableNullSafety);
+    lowering.transformProcedure(procedure, coreTypes, hierarchy,
+        nullSafety: flags.enableNullSafety, productMode: productMode);
     logger?.call("Lowering transformations performed");
   }
 
@@ -285,16 +272,16 @@ class VmTarget extends Target {
   @override
   Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
       Expression receiver, String name, Arguments arguments, int offset,
-      {bool isMethod: false,
-      bool isGetter: false,
-      bool isSetter: false,
-      bool isField: false,
-      bool isLocalVariable: false,
-      bool isDynamic: false,
-      bool isSuper: false,
-      bool isStatic: false,
-      bool isConstructor: false,
-      bool isTopLevel: false}) {
+      {bool isMethod = false,
+      bool isGetter = false,
+      bool isSetter = false,
+      bool isField = false,
+      bool isLocalVariable = false,
+      bool isDynamic = false,
+      bool isSuper = false,
+      bool isStatic = false,
+      bool isConstructor = false,
+      bool isTopLevel = false}) {
     int type = _invocationType(
         isMethod: isMethod,
         isGetter: isGetter,
@@ -306,7 +293,7 @@ class VmTarget extends Target {
         isStatic: isStatic,
         isConstructor: isConstructor,
         isTopLevel: isTopLevel);
-    return new ConstructorInvocation(
+    return new StaticInvocation(
         coreTypes.noSuchMethodErrorDefaultConstructor,
         new Arguments(<Expression>[
           receiver,
@@ -316,16 +303,16 @@ class VmTarget extends Target {
   }
 
   int _invocationType(
-      {bool isMethod: false,
-      bool isGetter: false,
-      bool isSetter: false,
-      bool isField: false,
-      bool isLocalVariable: false,
-      bool isDynamic: false,
-      bool isSuper: false,
-      bool isStatic: false,
-      bool isConstructor: false,
-      bool isTopLevel: false}) {
+      {bool isMethod = false,
+      bool isGetter = false,
+      bool isSetter = false,
+      bool isField = false,
+      bool isLocalVariable = false,
+      bool isDynamic = false,
+      bool isSuper = false,
+      bool isStatic = false,
+      bool isConstructor = false,
+      bool isTopLevel = false}) {
     // This is copied from [_InvocationMirror](
     // ../../../../../../runtime/lib/invocation_mirror_patch.dart).
 
@@ -412,6 +399,7 @@ class VmTarget extends Target {
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
       importer.path.contains('runtime/tests/vm/dart') ||
+      importer.path.contains('tests/standalone/io') ||
       importer.path.contains('test-lib') ||
       importer.path.contains('tests/ffi');
 
@@ -443,26 +431,29 @@ class VmTarget extends Target {
 
   @override
   Class concreteMapLiteralClass(CoreTypes coreTypes) {
-    return _internalLinkedHashMap ??=
-        coreTypes.index.getClass('dart:collection', '_InternalLinkedHashMap');
+    return _map ??= coreTypes.index.getClass('dart:collection', '_Map');
   }
 
   @override
   Class concreteConstMapLiteralClass(CoreTypes coreTypes) {
-    return _internalImmutableLinkedHashMap ??= coreTypes.index
-        .getClass('dart:collection', '_InternalImmutableLinkedHashMap');
+    return _constMap ??=
+        coreTypes.index.getClass('dart:collection', '_ConstMap');
   }
 
   @override
   Class concreteSetLiteralClass(CoreTypes coreTypes) {
-    return _internalLinkedHashSet ??=
-        coreTypes.index.getClass('dart:collection', '_CompactLinkedHashSet');
+    return _set ??= coreTypes.index.getClass('dart:collection', '_Set');
   }
 
   @override
   Class concreteConstSetLiteralClass(CoreTypes coreTypes) {
-    return _internalImmutableLinkedHashSet ??= coreTypes.index
-        .getClass('dart:collection', '_CompactImmutableLinkedHashSet');
+    return _constSet ??=
+        coreTypes.index.getClass('dart:collection', '_ConstSet');
+  }
+
+  @override
+  Class concreteRecordClass(CoreTypes coreTypes) {
+    return _record ??= coreTypes.index.getClass('dart:core', '_Record');
   }
 
   @override

@@ -7,8 +7,12 @@
 // non-simple bound is due to the use of the type variable from the same
 // declaration.
 
-class Hest<TypeX extends Hest<TypeX>> {}
+class A<TypeX extends A<TypeX>> {}
 
-class Fisk<TypeY extends Hest> {}
+class B<TypeY extends A> {}
+
+extension C<TypeY extends A> on int {}
+
+typedef D<TypeY extends A> = int;
 
 main() {}

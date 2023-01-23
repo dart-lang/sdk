@@ -101,7 +101,7 @@ set c(x, y);
     ;
   }
 }
-static method main() → dynamic {
+static method test() → dynamic {
   core::bool threw = false;
   try {
     threw = true;
@@ -148,7 +148,7 @@ static method main() → dynamic {
   }
   try {
     threw = true;
-    throw new core::AbstractClassInstantiationError::•("B");
+    invalid-expression "The class 'B' is abstract and can't be instantiated.";
     threw = false;
   }
   on core::AbstractClassInstantiationError catch(final core::AbstractClassInstantiationError _) {

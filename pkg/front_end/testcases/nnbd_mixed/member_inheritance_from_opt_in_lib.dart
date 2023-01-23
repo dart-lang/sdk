@@ -25,11 +25,11 @@ abstract class Interface {
 
   int method7a(int a, {int? b});
 
-  int method7b({int a: 0, int? b});
+  int method7b({int a = 0, int? b});
 
-  int? method8a(int? a, {int b: 0});
+  int? method8a(int? a, {int b = 0});
 
-  int? method8b({int? a, int b: 0});
+  int? method8b({int? a, int b = 0});
 
   int method9a(int a, {required int? b});
 

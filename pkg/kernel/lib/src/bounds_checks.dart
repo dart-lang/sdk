@@ -57,7 +57,7 @@ class TypeVariableGraph extends Graph<int> {
   }
 }
 
-class OccurrenceCollectorVisitor extends DartTypeVisitor<void> {
+class OccurrenceCollectorVisitor implements DartTypeVisitor<void> {
   final Set<TypeParameter> typeParameters;
   Set<TypeParameter> occurred = new Set<TypeParameter>();
 
@@ -70,16 +70,59 @@ class OccurrenceCollectorVisitor extends DartTypeVisitor<void> {
   }
 
   @override
-  void visitInvalidType(InvalidType node);
+  void visitInvalidType(InvalidType node) {}
+
   @override
-  void visitDynamicType(DynamicType node);
+  void visitDynamicType(DynamicType node) {}
+
   @override
-  void visitVoidType(VoidType node);
+  void visitVoidType(VoidType node) {}
+
+  @override
+  void visitExtensionType(ExtensionType node) {
+    for (DartType argument in node.typeArguments) {
+      argument.accept(this);
+    }
+  }
+
+  @override
+  void visitViewType(ViewType node) {
+    for (DartType argument in node.typeArguments) {
+      argument.accept(this);
+    }
+  }
+
+  @override
+  void visitFutureOrType(FutureOrType node) {
+    node.typeArgument.accept(this);
+  }
+
+  @override
+  void visitIntersectionType(IntersectionType node) {
+    node.left.accept(this);
+    node.right.accept(this);
+  }
+
+  @override
+  void visitNeverType(NeverType node) {}
+
+  @override
+  void visitNullType(NullType node) {}
 
   @override
   void visitInterfaceType(InterfaceType node) {
     for (DartType argument in node.typeArguments) {
       argument.accept(this);
+    }
+  }
+
+  @override
+  void visitRecordType(RecordType node) {
+    for (DartType positional in node.positional) {
+      positional.accept(this);
+    }
+    for (NamedType named in node.named) {
+      named.type.accept(this);
     }
   }
 
@@ -467,7 +510,7 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
   }
   for (int i = 0; i < arguments.length; ++i) {
     DartType argument = arguments[i];
-    if (argument is TypeParameterType && argument.promotedBound != null) {
+    if (argument is IntersectionType) {
       // TODO(cstefantsova): Consider recognizing this case with a flag on the
       // issue object.
       result.add(new TypeArgumentIssue(i, argument, parameters[i], null));
@@ -602,6 +645,12 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
   }
 
   @override
+  DartType? visitRecordType(RecordType node, int variance) {
+    isOutermost = false;
+    return super.visitRecordType(node, variance);
+  }
+
+  @override
   DartType? visitFutureOrType(FutureOrType node, int variance) {
     isOutermost = false;
     // Check FutureOr-based top types.
@@ -635,6 +684,16 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
   @override
   DartType? visitTypeParameterType(TypeParameterType node, int variance) {
     // Types such as X extends Never are bottom types.
+    if (isBottom(node) && flipBottom(variance)) {
+      return topType;
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  DartType? visitIntersectionType(IntersectionType node, int variance) {
+    // Types such as X & Never are bottom types.
     if (isBottom(node) && flipBottom(variance)) {
       return topType;
     } else {
@@ -715,6 +774,13 @@ class VarianceCalculator
   }
 
   @override
+  int visitIntersectionType(IntersectionType node,
+      Map<TypeParameter, Map<DartType, int>> computedVariances) {
+    if (node.left.parameter == typeParameter) return Variance.covariant;
+    return Variance.unrelated;
+  }
+
+  @override
   int visitInterfaceType(InterfaceType node,
       Map<TypeParameter, Map<DartType, int>> computedVariances) {
     int result = Variance.unrelated;
@@ -738,6 +804,21 @@ class VarianceCalculator
           result,
           Variance.combine(
               node.extension.typeParameters[i].variance,
+              computeVariance(typeParameter, node.typeArguments[i],
+                  computedVariances: computedVariances)));
+    }
+    return result;
+  }
+
+  @override
+  int visitViewType(
+      ViewType node, Map<TypeParameter, Map<DartType, int>> computedVariances) {
+    int result = Variance.unrelated;
+    for (int i = 0; i < node.typeArguments.length; ++i) {
+      result = Variance.meet(
+          result,
+          Variance.combine(
+              node.view.typeParameters[i].variance,
               computeVariance(typeParameter, node.typeArguments[i],
                   computedVariances: computedVariances)));
     }
@@ -810,6 +891,25 @@ class VarianceCalculator
               Variance.contravariant,
               computeVariance(typeParameter, namedType.type,
                   computedVariances: computedVariances)));
+    }
+    return result;
+  }
+
+  @override
+  int visitRecordType(RecordType node,
+      Map<TypeParameter, Map<DartType, int>> computedVariances) {
+    int result = Variance.unrelated;
+    for (DartType positionalType in node.positional) {
+      result = Variance.meet(
+          result,
+          computeVariance(typeParameter, positionalType,
+              computedVariances: computedVariances));
+    }
+    for (NamedType namedType in node.named) {
+      result = Variance.meet(
+          result,
+          computeVariance(typeParameter, namedType.type,
+              computedVariances: computedVariances));
     }
     return result;
   }

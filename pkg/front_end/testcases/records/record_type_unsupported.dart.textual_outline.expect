@@ -1,0 +1,7 @@
+// @dart = 2.9
+const annotation = 1;
+(int, String b) topLevelFieldType = throw '';
+(int, {String b}) topLevelMethodReturnType() => throw '';
+void topLevelSetterType(({@annotation int a, String b}) value) {}
+void topLevelMethodParameterType((String, @annotation int) o) {}
+void method() {}

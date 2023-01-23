@@ -50,3 +50,4 @@ worlds:
       - b.dart
       - d.dart
       - e.dart
+    advancedInvalidation: outlineChange

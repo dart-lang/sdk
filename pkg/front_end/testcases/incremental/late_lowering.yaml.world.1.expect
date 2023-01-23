@@ -15,9 +15,9 @@ library from "org-dartlang-test:///main.dart" as main {
       }
       return let final dart.core::int? #t1 = this.{main::_Class::_#_Class#_privateField}{dart.core::int?} in #t1{dart.core::int};
     }
-    set _privateField(dart.core::int library org-dartlang-test:///part.dart::_privateField#param) → void {
+    set _privateField(dart.core::int _privateField#param) → void {
       this.{main::_Class::_#_Class#_privateField#isSet} = true;
-      this.{main::_Class::_#_Class#_privateField} = library org-dartlang-test:///part.dart::_privateField#param;
+      this.{main::_Class::_#_Class#_privateField} = _privateField#param;
     }
   }
   static method main() → dynamic {}

@@ -1,0 +1,22 @@
+xmm0 double
+xmm1 double
+xmm2 double
+xmm3 double
+xmm4 double
+xmm5 double
+xmm6 double
+xmm7 double
+S+0 double
+S+8 double
+S+16 double
+S+24 double
+S+32 double
+S+40 double
+S+48 double
+S+56 double
+S+64 double
+S+72 double
+S+80 double
+S+88 double
+=>
+xmm0 double

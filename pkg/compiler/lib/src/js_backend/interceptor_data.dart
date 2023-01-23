@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library js_backend.interceptor_data;
 
 import '../common/elements.dart'
@@ -13,10 +11,10 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../js/js.dart' as jsAst;
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../serialization/serialization.dart';
 import '../universe/class_set.dart';
 import '../universe/selector.dart';
-import '../world.dart' show JClosedWorld;
 import 'namer.dart' show ModularNamer, suffixForGetInterceptor;
 import 'native_data.dart';
 
@@ -175,18 +173,13 @@ class InterceptorDataImpl implements InterceptorData {
 
   @override
   bool isInterceptedMixinSelector(
-      Selector selector, AbstractValue mask, JClosedWorld closedWorld) {
-    Set<MemberEntity> elements =
-        _interceptedMixinElements.putIfAbsent(selector.name, () {
-      Set<MemberEntity> elements = interceptedMembers[selector.name];
-      if (elements == null) return null;
-      return elements
-          .where((element) => classesMixedIntoInterceptedClasses
-              .contains(element.enclosingClass))
-          .toSet();
-    });
-
-    if (elements == null) return false;
+      Selector selector, AbstractValue? mask, JClosedWorld closedWorld) {
+    Set<MemberEntity> elements = _interceptedMixinElements[selector.name] ??=
+        (interceptedMembers[selector.name]
+                ?.where((element) => classesMixedIntoInterceptedClasses
+                    .contains(element.enclosingClass))
+                .toSet() ??
+            const {});
     if (elements.isEmpty) return false;
     return elements.any((element) {
       return selector.applies(element) &&
@@ -215,21 +208,21 @@ class InterceptorDataImpl implements InterceptorData {
   @override
   Set<ClassEntity> getInterceptedClassesOn(
       String name, JClosedWorld closedWorld) {
-    Set<MemberEntity> intercepted = interceptedMembers[name];
+    final intercepted = interceptedMembers[name];
     if (intercepted == null) return _noClasses;
     return _interceptedClassesCache.putIfAbsent(name, () {
       // Populate the cache by running through all the elements and
       // determine if the given selector applies to them.
       Set<ClassEntity> result = {};
       for (MemberEntity element in intercepted) {
-        ClassEntity classElement = element.enclosingClass;
+        final classElement = element.enclosingClass!;
         if (_isCompileTimeOnlyClass(classElement)) continue;
         if (_nativeData.isNativeOrExtendsNative(classElement) ||
             interceptedClasses.contains(classElement)) {
           result.add(classElement);
         }
         if (classesMixedIntoInterceptedClasses.contains(classElement)) {
-          Set<ClassEntity> nativeSubclasses =
+          final nativeSubclasses =
               nativeSubclassesOfMixin(classElement, closedWorld);
           if (nativeSubclasses != null) result.addAll(nativeSubclasses);
         }
@@ -238,16 +231,15 @@ class InterceptorDataImpl implements InterceptorData {
     });
   }
 
-  Set<ClassEntity> nativeSubclassesOfMixin(
+  Set<ClassEntity>? nativeSubclassesOfMixin(
       ClassEntity mixin, JClosedWorld closedWorld) {
     Iterable<ClassEntity> uses = closedWorld.mixinUsesOf(mixin);
-    Set<ClassEntity> result = null;
+    Set<ClassEntity>? result;
     for (ClassEntity use in uses) {
       closedWorld.classHierarchy.forEachStrictSubclassOf(use,
           (ClassEntity subclass) {
         if (_nativeData.isNativeOrExtendsNative(subclass)) {
-          if (result == null) result = {};
-          result.add(subclass);
+          (result ??= {}).add(subclass);
         }
         return IterationStep.CONTINUE;
       });
@@ -256,7 +248,7 @@ class InterceptorDataImpl implements InterceptorData {
   }
 
   @override
-  bool isInterceptedClass(ClassEntity element) {
+  bool isInterceptedClass(ClassEntity? element) {
     if (element == null) return false;
     if (_nativeData.isNativeOrExtendsNative(element)) return true;
     if (interceptedClasses.contains(element)) return true;
@@ -275,7 +267,7 @@ class InterceptorDataImpl implements InterceptorData {
 
     if (!closedWorld.dartTypes.treatAsRawType(type)) return false;
     if (type is FutureOrType) return false;
-    InterfaceType interfaceType = type;
+    final interfaceType = type as InterfaceType;
     ClassEntity classElement = interfaceType.element;
     if (isInterceptedClass(classElement)) return false;
     return closedWorld.classHierarchy.hasOnlySubclasses(classElement);
@@ -320,7 +312,7 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
       if (member.name == Identifiers.call) return;
       // All methods on [Object] are shadowed by [Interceptor].
       if (cls == _commonElements.objectClass) return;
-      Set<MemberEntity> set = _interceptedElements[member.name] ??= {};
+      final set = _interceptedElements[member.name!] ??= {};
       set.add(member);
     });
 
@@ -337,7 +329,7 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
           (ClassEntity cls, MemberEntity member) {
         // All methods on [Object] are shadowed by [Interceptor].
         if (cls == _commonElements.objectClass) return;
-        Set<MemberEntity> set = _interceptedElements[member.name] ??= {};
+        final set = _interceptedElements[member.name!] ??= {};
         set.add(member);
       });
     }
@@ -386,12 +378,11 @@ class OneShotInterceptorData {
     OneShotInterceptor interceptor =
         interceptors[key] ??= OneShotInterceptor(key, selector);
     interceptor.classes.addAll(classes);
-    registerSpecializedGetInterceptor(classes, namer);
+    registerSpecializedGetInterceptor(classes);
     return namer.nameForOneShotInterceptor(selector, classes);
   }
 
-  void registerSpecializedGetInterceptor(
-      Set<ClassEntity> classes, ModularNamer namer) {
+  void registerSpecializedGetInterceptor(Iterable<ClassEntity> classes) {
     if (classes.contains(_commonElements.jsInterceptorClass)) {
       // We can't use a specialized [getInterceptorMethod], so we make
       // sure we emit the one with all checks.

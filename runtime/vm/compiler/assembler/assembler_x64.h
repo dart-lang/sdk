@@ -566,8 +566,8 @@ class Assembler : public AssemblerBase {
                         const Immediate& imm,
                         OperandSize width = kEightBytes);
   void CompareImmediate(Register reg,
-                        int32_t immediate,
-                        OperandSize width = kEightBytes) {
+                        int64_t immediate,
+                        OperandSize width = kEightBytes) override {
     return CompareImmediate(reg, Immediate(immediate), width);
   }
 
@@ -583,16 +583,22 @@ class Assembler : public AssemblerBase {
                      OperandSize width = kEightBytes);
 
   void AndImmediate(Register dst, const Immediate& imm);
-  void AndImmediate(Register dst, int32_t value) {
+  void AndImmediate(Register dst, int64_t value) {
     AndImmediate(dst, Immediate(value));
   }
+  void AndRegisters(Register dst,
+                    Register src1,
+                    Register src2 = kNoRegister) override;
   void OrImmediate(Register dst, const Immediate& imm);
-  void OrImmediate(Register dst, int32_t value) {
+  void OrImmediate(Register dst, int64_t value) {
     OrImmediate(dst, Immediate(value));
   }
   void XorImmediate(Register dst, const Immediate& imm);
   void LslImmediate(Register dst, int32_t shift) {
     shlq(dst, Immediate(shift));
+  }
+  void LsrImmediate(Register dst, int32_t shift) override {
+    shrq(dst, Immediate(shift));
   }
 
   void shldq(Register dst, Register src, Register shifter) {
@@ -753,6 +759,10 @@ class Assembler : public AssemblerBase {
     PopRegister(r1);
   }
 
+  void PushValueAtOffset(Register base, int32_t offset) {
+    pushq(Address(base, offset));
+  }
+
   // Methods for adding/subtracting an immediate value that may be loaded from
   // the constant pool.
   // TODO(koda): Assert that these are not used for heap objects.
@@ -760,14 +770,20 @@ class Assembler : public AssemblerBase {
                     const Immediate& imm,
                     OperandSize width = kEightBytes);
   void AddImmediate(Register reg,
-                    int32_t value,
+                    int64_t value,
                     OperandSize width = kEightBytes) {
     AddImmediate(reg, Immediate(value), width);
   }
   void AddRegisters(Register dest, Register src) {
     addq(dest, src);
   }
-  void AddImmediate(Register dest, Register src, int32_t value);
+  void AddScaled(Register dest,
+                 Register src,
+                 ScaleFactor scale,
+                 int32_t value) {
+    leaq(dest, Address(src, scale, value));
+  }
+  void AddImmediate(Register dest, Register src, int64_t value);
   void AddImmediate(const Address& address, const Immediate& imm);
   void SubImmediate(Register reg,
                     const Immediate& imm,
@@ -784,7 +800,7 @@ class Assembler : public AssemblerBase {
 
   // Unlike movq this can affect the flags or use the constant pool.
   void LoadImmediate(Register reg, const Immediate& imm);
-  void LoadImmediate(Register reg, int32_t immediate) {
+  void LoadImmediate(Register reg, int64_t immediate) {
     LoadImmediate(reg, Immediate(immediate));
   }
   void LoadDImmediate(FpuRegister dst, double immediate);
@@ -820,7 +836,7 @@ class Assembler : public AssemblerBase {
   void CompareObject(Register reg, const Object& object);
 
   void LoadCompressed(Register dest, const Address& slot);
-  void LoadCompressedSmi(Register dest, const Address& slot);
+  void LoadCompressedSmi(Register dest, const Address& slot) override;
 
   // Store into a heap object and apply the generational and incremental write
   // barriers. All stores into heap objects must pass through this function or,
@@ -832,12 +848,29 @@ class Assembler : public AssemblerBase {
                        Register value,       // Value we are storing.
                        CanBeSmi can_be_smi = kValueCanBeSmi,
                        MemoryOrder memory_order = kRelaxedNonAtomic) override;
+  void StoreIntoObjectOffset(Register object,  // Object we are storing into.
+                             int32_t offset,   // Where we are storing into.
+                             Register value,   // Value we are storing.
+                             CanBeSmi can_be_smi = kValueCanBeSmi,
+                             MemoryOrder memory_order = kRelaxedNonAtomic) {
+    StoreIntoObject(object, FieldAddress(object, offset), value, can_be_smi,
+                    memory_order);
+  }
   void StoreCompressedIntoObject(
       Register object,      // Object we are storing into.
       const Address& dest,  // Where we are storing into.
       Register value,       // Value we are storing.
       CanBeSmi can_be_smi = kValueCanBeSmi,
       MemoryOrder memory_order = kRelaxedNonAtomic) override;
+  void StoreCompressedIntoObjectOffset(
+      Register object,  // Object we are storing into.
+      int32_t offset,   // Where we are storing into.
+      Register value,   // Value we are storing.
+      CanBeSmi can_be_smi = kValueCanBeSmi,
+      MemoryOrder memory_order = kRelaxedNonAtomic) {
+    StoreCompressedIntoObject(object, FieldAddress(object, offset), value,
+                              can_be_smi, memory_order);
+  }
   void StoreBarrier(Register object,  // Object we are storing into.
                     Register value,   // Value we are storing.
                     CanBeSmi can_be_smi);
@@ -869,6 +902,39 @@ class Assembler : public AssemblerBase {
       const Address& dest,
       const Object& value,
       MemoryOrder memory_order = kRelaxedNonAtomic);
+
+  void StoreIntoObjectOffsetNoBarrier(
+      Register object,
+      int32_t offset,
+      Register value,
+      MemoryOrder memory_order = kRelaxedNonAtomic) {
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
+                             memory_order);
+  }
+  void StoreCompressedIntoObjectOffsetNoBarrier(
+      Register object,
+      int32_t offset,
+      Register value,
+      MemoryOrder memory_order = kRelaxedNonAtomic) {
+    StoreCompressedIntoObjectNoBarrier(object, FieldAddress(object, offset),
+                                       value, memory_order);
+  }
+  void StoreIntoObjectOffsetNoBarrier(
+      Register object,
+      int32_t offset,
+      const Object& value,
+      MemoryOrder memory_order = kRelaxedNonAtomic) {
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
+                             memory_order);
+  }
+  void StoreCompressedIntoObjectOffsetNoBarrier(
+      Register object,
+      int32_t offset,
+      const Object& value,
+      MemoryOrder memory_order = kRelaxedNonAtomic) {
+    StoreCompressedIntoObjectNoBarrier(object, FieldAddress(object, offset),
+                                       value, memory_order);
+  }
 
   // Stores a non-tagged value into a heap object.
   void StoreInternalPointer(Register object,
@@ -923,6 +989,13 @@ class Assembler : public AssemblerBase {
 
   void ExtractClassIdFromTags(Register result, Register tags);
   void ExtractInstanceSizeFromTags(Register result, Register tags);
+
+  void RangeCheck(Register value,
+                  Register temp,
+                  intptr_t low,
+                  intptr_t high,
+                  RangeCheckCondition condition,
+                  Label* target) override;
 
   // Loading and comparing classes of objects.
   void LoadClassId(Register result, Register object);
@@ -1082,6 +1155,18 @@ class Assembler : public AssemblerBase {
     movq(Address(base, offset), src);
   }
 
+  void LoadUnboxedSimd128(FpuRegister dst, Register base, int32_t offset) {
+    movups(dst, Address(base, offset));
+  }
+  void StoreUnboxedSimd128(FpuRegister dst, Register base, int32_t offset) {
+    movups(Address(base, offset), dst);
+  }
+  void MoveUnboxedSimd128(FpuRegister dst, FpuRegister src) {
+    if (src != dst) {
+      movaps(dst, src);
+    }
+  }
+
   void LoadUnboxedDouble(FpuRegister dst, Register base, int32_t offset) {
     movsd(dst, Address(base, offset));
   }
@@ -1099,7 +1184,9 @@ class Assembler : public AssemblerBase {
   void TsanStoreRelease(Address addr);
 #endif
 
-  void LoadAcquire(Register dst, Register address, int32_t offset = 0) {
+  void LoadAcquire(Register dst,
+                   Register address,
+                   int32_t offset = 0) override {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
     movq(dst, Address(address, offset));
@@ -1109,7 +1196,7 @@ class Assembler : public AssemblerBase {
   }
   void LoadAcquireCompressed(Register dst,
                              Register address,
-                             int32_t offset = 0) {
+                             int32_t offset = 0) override {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
     LoadCompressed(dst, Address(address, offset));
@@ -1147,17 +1234,17 @@ class Assembler : public AssemblerBase {
     OBJ(cmp)(value, FieldAddress(base, offset));
   }
 
-  void CompareFunctionTypeNullabilityWith(Register type,
-                                          int8_t value) override {
-    EnsureHasClassIdInDEBUG(kFunctionTypeCid, type, TMP);
-    cmpb(FieldAddress(type,
-                      compiler::target::FunctionType::nullability_offset()),
-         Immediate(value));
+  void LoadAbstractTypeNullability(Register dst, Register type) override {
+    movzxb(dst,
+           FieldAddress(type, compiler::target::AbstractType::flags_offset()));
+    andl(dst,
+         Immediate(compiler::target::UntaggedAbstractType::kNullabilityMask));
   }
-  void CompareTypeNullabilityWith(Register type, int8_t value) override {
-    EnsureHasClassIdInDEBUG(kTypeCid, type, TMP);
-    cmpb(FieldAddress(type, compiler::target::Type::nullability_offset()),
-         Immediate(value));
+  void CompareAbstractTypeNullabilityWith(Register type,
+                                          /*Nullability*/ int8_t value,
+                                          Register scratch) override {
+    LoadAbstractTypeNullability(scratch, type);
+    cmpl(scratch, Immediate(value));
   }
 
   void RestoreCodePointer();
@@ -1314,6 +1401,12 @@ class Assembler : public AssemblerBase {
                                TIMES_COMPRESSED_HALF_WORD_SIZE, 0));
   }
 
+  void LoadFieldAddressForOffset(Register address,
+                                 Register instance,
+                                 int32_t offset) override {
+    leaq(address, FieldAddress(instance, offset));
+  }
+
   static Address VMTagAddress();
 
   // On some other platforms, we draw a distinction between safe and unsafe
@@ -1409,11 +1502,6 @@ class Assembler : public AssemblerBase {
     kJumpToBarrier,
   };
 
-  void StoreIntoObjectFilter(Register object,
-                             Register value,
-                             Label* label,
-                             CanBeSmi can_be_smi,
-                             BarrierFilterMode barrier_filter_mode);
   void StoreIntoArrayBarrier(Register object,
                              Register slot,
                              Register value,

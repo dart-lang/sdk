@@ -18,10 +18,7 @@ namespace kernel {
 // package:kernel/binary.md.
 
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
-
-// Both version numbers are inclusive.
-static const uint32_t kMinSupportedKernelFormatVersion = 82;
-static const uint32_t kMaxSupportedKernelFormatVersion = 82;
+static const uint32_t kSupportedKernelFormatVersion = 89;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -29,6 +26,7 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 82;
   V(Something, 1)                                                              \
   V(Class, 2)                                                                  \
   V(Extension, 115)                                                            \
+  V(View, 85)                                                                  \
   V(FunctionNode, 3)                                                           \
   V(Field, 4)                                                                  \
   V(Constructor, 5)                                                            \
@@ -99,6 +97,10 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 82;
   V(ConstructorTearOff, 60)                                                    \
   V(TypedefTearOff, 83)                                                        \
   V(RedirectingFactoryTearOff, 84)                                             \
+  V(RecordIndexGet, 101)                                                       \
+  V(RecordNameGet, 102)                                                        \
+  V(RecordLiteral, 104)                                                        \
+  V(ConstRecordLiteral, 105)                                                   \
   V(ExpressionStatement, 61)                                                   \
   V(Block, 62)                                                                 \
   V(EmptyStatement, 63)                                                        \
@@ -121,7 +123,6 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 82;
   V(AsyncForInStatement, 80)                                                   \
   V(AssertBlock, 81)                                                           \
   V(TypedefType, 87)                                                           \
-  V(NeverType, 98)                                                             \
   V(InvalidType, 90)                                                           \
   V(DynamicType, 91)                                                           \
   V(VoidType, 92)                                                              \
@@ -130,6 +131,10 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 82;
   V(TypeParameterType, 95)                                                     \
   V(SimpleInterfaceType, 96)                                                   \
   V(SimpleFunctionType, 97)                                                    \
+  V(NeverType, 98)                                                             \
+  V(IntersectionType, 99)                                                      \
+  V(RecordType, 100)                                                           \
+  V(ViewType, 103)                                                             \
   V(ConstantExpression, 106)                                                   \
   V(InstanceGet, 118)                                                          \
   V(InstanceSet, 119)                                                          \
@@ -177,6 +182,7 @@ enum ConstantTag {
   kTypedefTearOffConstant = 14,
   kConstructorTearOffConstant = 15,
   kRedirectingFactoryTearOffConstant = 16,
+  kRecordConstant = 17,
 };
 
 // Keep in sync with package:kernel/lib/ast.dart
@@ -218,7 +224,6 @@ enum InstanceInvocationFlags {
 // Keep in sync with package:kernel/lib/ast.dart
 enum YieldStatementFlags {
   kYieldStatementFlagYieldStar = 1 << 0,
-  kYieldStatementFlagNative = 1 << 1,
 };
 
 // Keep in sync with package:kernel/lib/ast.dart

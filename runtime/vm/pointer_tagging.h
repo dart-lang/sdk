@@ -71,9 +71,10 @@ static constexpr intptr_t kTrueOffsetFromNull =
 static constexpr intptr_t kFalseOffsetFromNull =
     HostObjectAlignment::kFalseOffsetFromNull;
 
-// The largest value of kObjectAlignment across all configurations.
-static constexpr intptr_t kMaxObjectAlignment = 16;
-COMPILE_ASSERT(kMaxObjectAlignment >= kObjectAlignment);
+static constexpr intptr_t kObjectStartAlignment = 64;
+COMPILE_ASSERT(kObjectStartAlignment >= kObjectAlignment);
+COMPILE_ASSERT(kObjectStartAlignment >= 2 * kBoolValueMask);
+COMPILE_ASSERT(kObjectStartAlignment >= 2 * kBoolVsNullMask);
 
 // On all targets heap pointers are tagged by set least significant bit.
 //

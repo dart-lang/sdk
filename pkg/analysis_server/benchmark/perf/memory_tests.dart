@@ -195,7 +195,7 @@ class LspAnalysisServerBenchmarkTest extends AbstractBenchmarkTest
   @override
   Future<void> shutdown() async {
     _test.tearDown();
-    _logger.shutdown();
+    await _logger.shutdown();
   }
 
   @override
@@ -254,7 +254,7 @@ mixin ServerMemoryUsageMixin {
       total += heapUsage['heapUsage'] + heapUsage['externalUsage'] as int;
     }
 
-    service.dispose();
+    await service.dispose();
 
     return total;
   }

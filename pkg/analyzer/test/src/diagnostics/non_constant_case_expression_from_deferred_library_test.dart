@@ -10,12 +10,37 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantCaseExpressionFromDeferredLibraryTest);
+    defineReflectiveTests(
+        NonConstantCaseExpressionFromDeferredLibraryTest_Language218);
   });
 }
 
 @reflectiveTest
 class NonConstantCaseExpressionFromDeferredLibraryTest
-    extends PubPackageResolutionTest {
+    extends PubPackageResolutionTest
+    with NonConstantCaseExpressionFromDeferredLibraryTestCases {
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
+  @override
+  test_nested() {
+    return super.test_nested();
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
+  @override
+  test_simple() {
+    return super.test_simple();
+  }
+}
+
+@reflectiveTest
+class NonConstantCaseExpressionFromDeferredLibraryTest_Language218
+    extends PubPackageResolutionTest
+    with
+        WithLanguage218Mixin,
+        NonConstantCaseExpressionFromDeferredLibraryTestCases {}
+
+mixin NonConstantCaseExpressionFromDeferredLibraryTestCases
+    on PubPackageResolutionTest {
   test_nested() async {
     newFile('$testPackageLibPath/a.dart', '''
 const int c = 0;

@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -67,9 +68,9 @@ class ConvertMapFromIterableToForLiteral extends CorrectionProducer {
     // necessary.
     //
     var keyParameter = keyClosure.parameter;
-    var keyParameterName = keyClosure.parameterIdentifier.name;
+    var keyParameterName = keyClosure.parameterIdentifier.lexeme;
     var valueParameter = valueClosure.parameter;
-    var valueParameterName = valueClosure.parameterIdentifier.name;
+    var valueParameterName = valueClosure.parameterIdentifier.lexeme;
     var keyExpressionText = utils.getNodeText(keyClosure.body);
     var valueExpressionText = utils.getNodeText(valueClosure.body);
 
@@ -172,7 +173,7 @@ class ConvertMapFromIterableToForLiteral extends CorrectionProducer {
             var parameter = parameters[0];
             if (parameter is SimpleFormalParameter &&
                 parameter.isRequiredPositional) {
-              var parameterIdentifier = parameter.identifier;
+              var parameterIdentifier = parameter.name;
               if (parameterIdentifier != null) {
                 var body = _extractBody(expression);
                 if (body != null) {
@@ -190,7 +191,7 @@ class ConvertMapFromIterableToForLiteral extends CorrectionProducer {
 
 class _Closure {
   final SimpleFormalParameter parameter;
-  final SimpleIdentifier parameterIdentifier;
+  final Token parameterIdentifier;
   final Expression body;
 
   _Closure(this.parameter, this.parameterIdentifier, this.body);

@@ -1,3 +1,26 @@
+# 2.5.0
+- [DAP] `variables` requests now treat lists from `dart:typed_data` (such as `Uint8List`) like standard `List` instances and return their elements instead of class fields.
+- [DAP] `variables` requests now return information about the number of items in lists to allow the client to page through them.
+- [DAP] `terminated` events are now always sent when detaching whether or not the debuggee terminates after unpause.
+- [DAP] Debug adapters can now add/overwrite `orgDartlangSdkMappings` to control mappings of `org-dartlang-sdk:///` paths.
+
+# 2.4.0
+- [DAP] Added support for sending progress notifications via `DartDebugAdapter.startProgressNotification`.
+  Standard progress events are sent when a clients sets `supportsProgressReporting: true` in its capabilities,
+  unless `sendCustomProgressEvents: true` is included in launch configuration, in which case prefixed (`dart.`) custom notifications will be sent instead.
+
+# 2.3.1
+- Fixed issue where DDS wasn't correctly handling `Sentinel` responses in `IsolateManager.initialize()`.
+
+# 2.3.0
+- [DAP] Removed an unused parameter `resumeIfStarting` from `DartDebugAdapter.connectDebugger`.
+- [DAP] Fixed some issues where removing breakpoints could fail if an isolate exited during an update or multiple client breakpoints mapped to the same VM breakpoint.
+- [DAP] Paths provided to DAP now always have Windows drive letters normalized to uppercase to avoid some issues where paths may be treated case sensitively.
+- Fixed issue where DDS wasn't correctly handling `Sentinel` responses in `IsolateManager.initialize()`.
+
+# 2.2.6
+- Fixed an issue where debug adapters would not automatically close after terminating/disconnecting from the debugee.
+
 # 2.2.5
 - Updated `devtools_shared` version to 2.14.1.
 

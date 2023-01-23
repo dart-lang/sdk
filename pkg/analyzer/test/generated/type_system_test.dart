@@ -5,72 +5,17 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'elements_types_mixin.dart';
-import 'test_analysis_context.dart';
+import 'type_system_base.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssignabilityWithoutNullSafetyTest);
     defineReflectiveTests(TryPromoteToTest);
   });
-}
-
-abstract class AbstractTypeSystemTest with ElementsTypesMixin {
-  late TestAnalysisContext analysisContext;
-
-  @override
-  late LibraryElementImpl testLibrary;
-
-  @override
-  late TypeProviderImpl typeProvider;
-
-  late TypeSystemImpl typeSystem;
-
-  void setUp() {
-    analysisContext = TestAnalysisContext();
-    typeProvider = analysisContext.typeProviderNonNullableByDefault;
-    typeSystem = analysisContext.typeSystemNonNullableByDefault;
-
-    testLibrary = library_(
-      uriStr: 'package:test/test.dart',
-      analysisContext: analysisContext,
-      analysisSession: analysisContext.analysisSession,
-      typeSystem: typeSystem,
-    );
-  }
-}
-
-abstract class AbstractTypeSystemWithoutNullSafetyTest with ElementsTypesMixin {
-  late TestAnalysisContext analysisContext;
-
-  @override
-  late LibraryElementImpl testLibrary;
-
-  @override
-  late TypeProvider typeProvider;
-
-  late TypeSystemImpl typeSystem;
-
-  void setUp() {
-    analysisContext = TestAnalysisContext();
-    typeProvider = analysisContext.typeProviderLegacy;
-    typeSystem = analysisContext.typeSystemLegacy;
-
-    testLibrary = library_(
-      uriStr: 'package:test/test.dart',
-      analysisContext: analysisContext,
-      analysisSession: analysisContext.analysisSession,
-      typeSystem: typeSystem,
-    );
-  }
 }
 
 @reflectiveTest
@@ -466,12 +411,12 @@ class TryPromoteToTest extends AbstractTypeSystemTest {
     check(tryPromote(numStar, T_none), 'T & num*');
 
     check(tryPromote(numNone, T_question), 'T & num');
-    check(tryPromote(numQuestion, T_question), 'T? & num?');
-    check(tryPromote(numStar, T_question), 'T* & num*');
+    check(tryPromote(numQuestion, T_question), '(T & num?)?');
+    check(tryPromote(numStar, T_question), '(T & num*)*');
 
-    check(tryPromote(numNone, T_star), 'T* & num');
-    check(tryPromote(numQuestion, T_star), 'T* & num?');
-    check(tryPromote(numStar, T_star), 'T* & num*');
+    check(tryPromote(numNone, T_star), '(T & num)*');
+    check(tryPromote(numQuestion, T_star), '(T & num?)*');
+    check(tryPromote(numStar, T_star), '(T & num*)*');
   }
 
   test_typeParameter_twice() {

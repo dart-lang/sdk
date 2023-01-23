@@ -4,9 +4,9 @@
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
@@ -97,8 +97,8 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
         node, () => super.visitVariableDeclaration(node));
   }
 
-  Set<String> _convertVars(Iterable<PromotableElement> x) =>
-      x.map((e) => e.name).toSet();
+  Set<String> _convertVars(Iterable<int> x) =>
+      x.map((e) => _currentAssignedVariables!.variableForKey(e).name).toSet();
 
   void _handlePossibleTopLevelDeclaration(
       AstNode node, void Function() callback) {

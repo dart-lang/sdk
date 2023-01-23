@@ -29,7 +29,7 @@ import '../kernel_generator_impl.dart';
 ///
 /// The return value is a list of bytes to write to the summary file.
 Future<List<int>?> summaryFor(List<Uri> sources, CompilerOptions options,
-    {bool truncate: false}) async {
+    {bool truncate = false}) async {
   return (await generateKernel(
           new ProcessedOptions(options: options, inputs: sources),
           buildSummary: true,

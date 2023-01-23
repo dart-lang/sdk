@@ -133,7 +133,7 @@ class FreeList {
     return result;
   }
 
-  // Ensures OldPage::VisitObjects can successful walk over a partially
+  // Ensures Page::VisitObjects can successful walk over a partially
   // allocated bump region.
   void MakeIterable() {
     if (top_ < end_) {

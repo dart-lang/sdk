@@ -59,9 +59,9 @@ void isSimple(int? x, int? y, C c) {
   } else {
     y = null;
   }
-  // Since the assignments to x and y were both reachable, they should have
-  // static type `int?` now.
-  x.expectStaticType<Exactly<int?>>();
+  // Since the assignment to y was reachable, it should have static type `int?`
+  // now.  But x should still have static type `int`.
+  x.expectStaticType<Exactly<int>>();
   y.expectStaticType<Exactly<int?>>();
 }
 
@@ -76,9 +76,9 @@ void isWithBogusPromotion(int? x, int? y, C c) {
       y = null;
     }
   }
-  // Since the assignments to x and y were both reachable, they should have
-  // static type `int?` now.
-  x.expectStaticType<Exactly<int?>>();
+  // Since the assignment to y was reachable, it should have static type `int?`
+  // now.  But x should still have static type `int`.
+  x.expectStaticType<Exactly<int>>();
   y.expectStaticType<Exactly<int?>>();
 }
 
@@ -128,9 +128,9 @@ void isSimplePrivate(int? x, int? y, _C c) {
   } else {
     y = null;
   }
-  // Since the assignments to x and y were both reachable, they should have
-  // static type `int?` now.
-  x.expectStaticType<Exactly<int?>>();
+  // Since the assignment to y was reachable, it should have static type `int?`
+  // now.  But x should still have static type `int`.
+  x.expectStaticType<Exactly<int>>();
   y.expectStaticType<Exactly<int?>>();
 }
 
@@ -145,9 +145,9 @@ void isWithBogusPromotionPrivate(int? x, int? y, _C c) {
       y = null;
     }
   }
-  // Since the assignments to x and y were both reachable, they should have
-  // static type `int?` now.
-  x.expectStaticType<Exactly<int?>>();
+  // Since the assignment to y was reachable, it should have static type `int?`
+  // now.  But x should still have static type `int`.
+  x.expectStaticType<Exactly<int>>();
   y.expectStaticType<Exactly<int?>>();
 }
 

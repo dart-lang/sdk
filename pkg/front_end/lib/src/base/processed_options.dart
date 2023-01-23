@@ -266,6 +266,15 @@ class ProcessedOptions {
     (_raw.onDiagnostic ?? _defaultDiagnosticMessageHandler)(message);
   }
 
+  /// Returns [error] as a message from the OS.
+  ///
+  /// If `CompilerOptions.omitOsMessageForTesting` is `true, the message will
+  /// be a fixed string, otherwise the toString of [error] will be returned.
+  String osErrorMessage(Object? error) {
+    if (_raw.omitOsMessageForTesting) return '<os-message>';
+    return '$error';
+  }
+
   void _defaultDiagnosticMessageHandler(DiagnosticMessage message) {
     if (Verbosity.shouldPrint(_raw.verbosity, message)) {
       printDiagnosticMessage(message, print);
@@ -298,7 +307,7 @@ class ProcessedOptions {
 
   /// Runs various validations checks on the input options. For instance,
   /// if an option is a path to a file, it checks that the file exists.
-  Future<bool> validateOptions({bool errorOnMissingInput: true}) async {
+  Future<bool> validateOptions({bool errorOnMissingInput = true}) async {
     if (verbose) print(debugString());
 
     if (errorOnMissingInput && inputs.isEmpty) {
@@ -473,7 +482,7 @@ class ProcessedOptions {
   ///
   /// This is an asynchronous method since file system operations may be
   /// required to locate/read the packages file as well as SDK metadata.
-  Future<UriTranslator> getUriTranslator({bool bypassCache: false}) async {
+  Future<UriTranslator> getUriTranslator({bool bypassCache = false}) async {
     if (bypassCache) {
       _uriTranslator = null;
       _packages = null;
@@ -573,7 +582,8 @@ class ProcessedOptions {
       }
     } on FileSystemException catch (e) {
       reportWithoutLocation(
-          templateCantReadFile.withArguments(uri, e.message), Severity.error);
+          templateCantReadFile.withArguments(uri, osErrorMessage(e.message)),
+          Severity.error);
     } catch (e) {
       Message message = templateExceptionReadingFile.withArguments(uri, '$e');
       reportWithoutLocation(message, Severity.error);
@@ -608,7 +618,8 @@ class ProcessedOptions {
               Severity.error);
         } else {
           reportWithoutLocation(
-              templateCantReadFile.withArguments(requestedUri, "$error"),
+              templateCantReadFile.withArguments(
+                  requestedUri, osErrorMessage(error)),
               Severity.error);
         }
       };
@@ -786,7 +797,7 @@ class ProcessedOptions {
     } on FileSystemException catch (error) {
       report(
           templateCantReadFile
-              .withArguments(error.uri, error.message)
+              .withArguments(error.uri, osErrorMessage(error.message))
               .withoutLocation(),
           Severity.error);
       return null;

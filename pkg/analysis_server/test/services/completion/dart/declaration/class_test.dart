@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer_utilities/check/check.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
 import '../completion_check.dart';
+import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
@@ -19,6 +19,18 @@ class ClassStaticMembersWithoutClassNameTest
     extends AbstractCompletionDriverTest with _Helpers {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
+
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+
+    printerConfiguration = printer.Configuration(
+      filter: (suggestion) {
+        final completion = suggestion.completion;
+        return completion.contains('foo0');
+      },
+    );
+  }
 
   Future<void> test_field_hasContextType_exact() async {
     await _checkLocations(
@@ -36,9 +48,13 @@ void f() {
 }
 ''',
       validator: (response) {
-        check(response).suggestions.fields.completions.matchesInAnyOrder([
-          (e) => e.isEqualTo('A.foo01'),
-        ]);
+        assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  A.foo01
+    kind: field
+''');
       },
     );
   }
@@ -59,11 +75,17 @@ void f() {
 }
 ''',
       validator: (response) {
-        check(response).suggestions.fields.completions.matchesInAnyOrder([
-          (e) => e.isEqualTo('A.foo01'),
-          (e) => e.isEqualTo('A.foo02'),
-          (e) => e.isEqualTo('A.foo03'),
-        ]);
+        assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  A.foo03
+    kind: field
+  A.foo01
+    kind: field
+  A.foo02
+    kind: field
+''');
       },
     );
   }
@@ -83,7 +105,11 @@ void f() {
 }
 ''',
       validator: (response) {
-        check(response).suggestions.fields.isEmpty;
+        assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+''');
       },
     );
   }
@@ -103,9 +129,13 @@ void f() {
 }
 ''',
       validator: (response) {
-        check(response).suggestions.getters.completions.matchesInAnyOrder([
-          (e) => e.isEqualTo('A.foo01'),
-        ]);
+        assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  A.foo01
+    kind: getter
+''');
       },
     );
   }
@@ -126,11 +156,17 @@ void f() {
 }
 ''',
       validator: (response) {
-        check(response).suggestions.getters.completions.matchesInAnyOrder([
-          (e) => e.isEqualTo('A.foo01'),
-          (e) => e.isEqualTo('A.foo02'),
-          (e) => e.isEqualTo('A.foo03'),
-        ]);
+        assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+  A.foo03
+    kind: getter
+  A.foo01
+    kind: getter
+  A.foo02
+    kind: getter
+''');
       },
     );
   }
@@ -148,7 +184,11 @@ void f() {
 }
 ''',
       validator: (response) {
-        check(response).suggestions.getters.isEmpty;
+        assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+''');
       },
     );
   }
@@ -166,7 +206,11 @@ void f() {
 }
 ''',
       validator: (response) {
-        check(response).suggestions.methods.isEmpty;
+        assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+''');
       },
     );
   }
@@ -186,7 +230,11 @@ void f() {
 }
 ''',
       validator: (response) {
-        check(response).suggestions.setters.isEmpty;
+        assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+''');
       },
     );
   }
@@ -204,7 +252,11 @@ void f() {
 }
 ''',
       validator: (response) {
-        check(response).suggestions.setters.isEmpty;
+        assertResponseText(response, r'''
+replacement
+  left: 4
+suggestions
+''');
       },
     );
   }

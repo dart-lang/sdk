@@ -86,15 +86,15 @@ static method test(core::int x0, asy::Future<core::int> x1, asy::Future<asy::Fut
                                                ^" in x8 as{TypeError,ForNonNullableByDefault} core::int;
   function test9() → asy::Future<core::int> async /* futureValueType= core::int */ 
     return x9;
-  core::int y0 = await x0;
+  core::int y0 = await x0 /* runtimeCheckType= asy::Future<core::int> */ ;
   core::int y1 = await x1;
   asy::Future<core::int> y2 = await x2;
   FutureOr<core::int>y3 = await x3;
   self::MyFuture y4 = await x4;
-  core::int y5 = await x5;
-  asy::Future<core::int> y6 = await x6;
-  FutureOr<core::int>y7 = await x7;
-  self::MyFuture y8 = await x8;
+  core::int y5 = await x5 /* runtimeCheckType= asy::Future<core::int> */ ;
+  asy::Future<core::int> y6 = await x6 /* runtimeCheckType= asy::Future<asy::Future<core::int>> */ ;
+  FutureOr<core::int>y7 = await x7 /* runtimeCheckType= asy::Future<FutureOr<core::int>> */ ;
+  self::MyFuture y8 = await x8 /* runtimeCheckType= asy::Future<self::MyFuture> */ ;
   core::int y9 = await x9;
 }
 static method main() → dynamic {}

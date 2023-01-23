@@ -82,10 +82,26 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 1);
   Dart_Handle status_handle = Dart_GetNativeArgument(args, 11);
   Dart_Handle path_handle = Dart_GetNativeArgument(args, 2);
+  Dart_Handle result;
+
+#if DART_HOST_OS_IOS
+  // Do the iOS check here because the return value of Process::Start is
+  // interpreted as a error with 0 meaning success while `ProcessException`
+  // (which will be constructed with `_errorCode`) interprets 0 to mean that
+  // no OS error code was available.
+  result = DartUtils::SetIntegerField(status_handle, "_errorCode", 0);
+  ThrowIfError(result);
+  result = DartUtils::SetStringField(
+      status_handle, "_errorMessage",
+      "Starting new processes is not supported on iOS");
+  ThrowIfError(result);
+  Dart_SetBooleanReturnValue(args, false);
+  return;
+#endif
+
   // The Dart code verifies that the path implements the String
   // interface. However, only builtin Strings are handled by
   // GetStringValue.
-  Dart_Handle result;
   if (!Dart_IsString(path_handle)) {
     result = DartUtils::SetIntegerField(status_handle, "_errorCode", 0);
     ThrowIfError(result);

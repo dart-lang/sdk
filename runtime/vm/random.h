@@ -28,6 +28,13 @@ class Random {
            static_cast<uint64_t>(NextUInt32());
   }
 
+  static uint64_t GlobalNextUInt64();
+  static void Init();
+  static void Cleanup();
+
+  // Generates a uniform random variable in the range [0,1].
+  double NextDouble();
+
  private:
   uint64_t NextState();
   void Initialize(uint64_t seed);

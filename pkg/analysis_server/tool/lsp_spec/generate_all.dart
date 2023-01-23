@@ -111,9 +111,12 @@ const jsonEncoder = JsonEncoder.withIndent('    ');
 
 List<LspEntity> getCustomClasses() {
   /// Helper to create an interface type.
-  Interface interface(String name, List<Member> fields, {String? baseType}) {
+  Interface interface(String name, List<Member> fields,
+      {String? baseType, String? comment, bool abstract = false}) {
     return Interface(
       name: name,
+      abstract: abstract,
+      comment: comment,
       baseTypes: [if (baseType != null) TypeReference(baseType)],
       members: fields,
     );
@@ -125,16 +128,21 @@ List<LspEntity> getCustomClasses() {
     String? comment,
     required String type,
     bool array = false,
+    bool literal = false,
+    bool canBeNull = false,
     bool canBeUndefined = false,
   }) {
-    final fieldType =
-        array ? ArrayType(TypeReference(type)) : TypeReference(type);
+    final fieldType = array
+        ? ArrayType(TypeReference(type))
+        : literal
+            ? LiteralType(TypeReference.string, type)
+            : TypeReference(type);
 
     return Field(
       name: name,
       comment: comment,
       type: fieldType,
-      allowsNull: false,
+      allowsNull: canBeNull,
       allowsUndefined: canBeUndefined,
     );
   }
@@ -187,7 +195,7 @@ List<LspEntity> getCustomClasses() {
       [
         Field(
           name: 'id',
-          type: UnionType([TypeReference('int'), TypeReference('string')]),
+          type: UnionType([TypeReference.int, TypeReference.string]),
           allowsNull: false,
           allowsUndefined: false,
         )
@@ -204,7 +212,7 @@ List<LspEntity> getCustomClasses() {
       [
         Field(
           name: 'id',
-          type: UnionType([TypeReference('int'), TypeReference('string')]),
+          type: UnionType([TypeReference.int, TypeReference.string]),
           allowsNull: true,
           allowsUndefined: false,
         ),
@@ -234,15 +242,20 @@ List<LspEntity> getCustomClasses() {
     ),
     TypeAlias(
       name: 'DocumentUri',
-      baseType: TypeReference('string'),
+      baseType: TypeReference('Uri'),
+      isRename: false,
+    ),
+    TypeAlias(
+      name: 'LSPUri',
+      baseType: TypeReference('Uri'),
       isRename: false,
     ),
 
     interface('DartDiagnosticServer', [field('port', type: 'int')]),
     interface('AnalyzerStatusParams', [field('isAnalyzing', type: 'boolean')]),
     interface('PublishClosingLabelsParams', [
-      field('uri', type: 'string'),
-      field('labels', type: 'ClosingLabel', array: true)
+      field('uri', type: 'Uri'),
+      field('labels', type: 'ClosingLabel', array: true),
     ]),
     interface('ClosingLabel',
         [field('range', type: 'Range'), field('label', type: 'string')]),
@@ -255,16 +268,16 @@ List<LspEntity> getCustomClasses() {
       field('returnType', type: 'string', canBeUndefined: true),
     ]),
     interface('PublishOutlineParams',
-        [field('uri', type: 'string'), field('outline', type: 'Outline')]),
+        [field('uri', type: 'Uri'), field('outline', type: 'Outline')]),
     interface('Outline', [
       field('element', type: 'Element'),
       field('range', type: 'Range'),
       field('codeRange', type: 'Range'),
-      field('children', type: 'Outline', array: true, canBeUndefined: true)
+      field('children', type: 'Outline', array: true, canBeUndefined: true),
     ]),
     interface('PublishFlutterOutlineParams', [
-      field('uri', type: 'string'),
-      field('outline', type: 'FlutterOutline')
+      field('uri', type: 'Uri'),
+      field('outline', type: 'FlutterOutline'),
     ]),
     interface('FlutterOutline', [
       field('kind', type: 'string'),
@@ -277,7 +290,7 @@ List<LspEntity> getCustomClasses() {
       field('range', type: 'Range'),
       field('codeRange', type: 'Range'),
       field('children',
-          type: 'FlutterOutline', array: true, canBeUndefined: true)
+          type: 'FlutterOutline', array: true, canBeUndefined: true),
     ]),
     interface(
       'FlutterOutlineAttribute',
@@ -293,17 +306,7 @@ List<LspEntity> getCustomClasses() {
       [],
     ),
     interface(
-      'DartSuggestionSetCompletionItemResolutionInfo',
-      [
-        // These fields have short-ish names because they're on the payload
-        // for all suggestion-set backed completions.
-        field('file', type: 'string'),
-        field('libId', type: 'int'),
-      ],
-      baseType: 'CompletionItemResolutionInfo',
-    ),
-    interface(
-      'DartNotImportedCompletionResolutionInfo',
+      'DartCompletionResolutionInfo',
       [
         field(
           'file',
@@ -312,9 +315,17 @@ List<LspEntity> getCustomClasses() {
               'This is used to compute where to add the import.',
         ),
         field(
-          'libraryUri',
+          'importUris',
           type: 'string',
-          comment: 'The URI to be imported if this completion is selected.',
+          array: true,
+          comment: 'The URIs to be imported if this completion is selected.',
+        ),
+        field(
+          'ref',
+          type: 'string',
+          canBeUndefined: true,
+          comment: 'The ElementLocation of the item being completed.\n\n'
+              'This is used to provide documentation in the resolved response.',
         ),
       ],
       baseType: 'CompletionItemResolutionInfo',
@@ -343,6 +354,43 @@ List<LspEntity> getCustomClasses() {
         field('message', type: 'string', canBeUndefined: true),
       ],
     ),
+    interface(
+      'TypeHierarchyAnchor',
+      [
+        field(
+          'ref',
+          type: 'string',
+          comment: 'The ElementLocation for this anchor element.',
+        ),
+        field(
+          'path',
+          type: 'int',
+          array: true,
+          comment: 'Indices used to navigate from this anchor to the element.',
+        ),
+      ],
+    ),
+    interface(
+      'TypeHierarchyItemInfo',
+      [
+        field(
+          'ref',
+          type: 'string',
+          comment:
+              'The ElementLocation for this element, used to re-locate the '
+              'element when subtypes/supertypes are '
+              'fetched later.',
+        ),
+        field(
+          'anchor',
+          type: 'TypeHierarchyAnchor',
+          comment:
+              'An anchor element that can be used to navigate to this element '
+              'preserving type arguments.',
+          canBeUndefined: true,
+        ),
+      ],
+    ),
     TypeAlias(
       name: 'TextDocumentEditEdits',
       baseType: ArrayType(
@@ -353,7 +401,80 @@ List<LspEntity> getCustomClasses() {
         ]),
       ),
       isRename: false,
-    )
+    ),
+    //
+    // Command parameter support
+    //
+    interface(
+      'CommandParameter',
+      [
+        field(
+          'parameterLabel',
+          type: 'String',
+          comment:
+              'A human-readable label to be displayed in the UI affordance '
+              'used to prompt the user for the value of the parameter.',
+        ),
+        AbstractGetter(
+          name: 'kind',
+          type: TypeReference.string,
+          comment: 'The kind of this parameter. The client may use different '
+              'UIs based on this value.',
+        ),
+        AbstractGetter(
+          name: 'defaultValue',
+          type: TypeReference.LspAny,
+          comment: 'An optional default value for the parameter. The type of '
+              'this value may vary between parameter kinds but must always be '
+              'something that can be converted directly to/from JSON.',
+        ),
+      ],
+      abstract: true,
+      comment: 'Information about one of the arguments needed by the command.'
+          '\n\n'
+          'A list of parameters is sent in the `data` field of the '
+          '`CodeAction` returned by the server. The values of the parameters '
+          'should appear in the `args` field of the `Command` sent to the '
+          'server in the same order as the corresponding parameters.',
+    ),
+    interface(
+      'SaveUriCommandParameter',
+      [
+        field(
+          'kind',
+          type: 'saveUri',
+          literal: true,
+        ),
+        field(
+          'defaultValue',
+          type: 'String',
+          canBeNull: true,
+          canBeUndefined: true,
+          comment: 'An optional default URI for the parameter.',
+        ),
+        field(
+          'parameterTitle',
+          type: 'String',
+          comment: 'A title that may be displayed on a file dialog.',
+        ),
+        field(
+          'actionLabel',
+          type: 'String',
+          comment: 'A label for the file dialogs action button.',
+        ),
+        Field(
+          name: 'filters',
+          type: MapType(TypeReference.string, ArrayType(TypeReference.string)),
+          allowsNull: true,
+          allowsUndefined: true,
+          comment: 'A set of file filters for a file dialog. '
+              'Keys of the map are textual names ("Dart") and the value '
+              'is a list of file extensions (["dart"]).',
+        ),
+      ],
+      baseType: 'CommandParameter',
+      comment: 'Information about a Save URI argument needed by the command.',
+    ),
   ];
   return customTypes;
 }
@@ -369,4 +490,13 @@ Future<List<LspEntity>> getSpecClasses(ArgResults args) async {
   model = LspMetaModelCleaner().cleanModel(model);
 
   return model.types;
+}
+
+class AbstractGetter extends Member {
+  final TypeBase type;
+  AbstractGetter({
+    required super.name,
+    super.comment,
+    required this.type,
+  });
 }

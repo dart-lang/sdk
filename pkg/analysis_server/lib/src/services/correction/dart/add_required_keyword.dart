@@ -28,8 +28,7 @@ class AddRequiredKeyword extends CorrectionProducer {
       if (metadata.isNotEmpty) {
         for (var annotation in metadata) {
           if (annotation.elementAnnotation!.isRequired) {
-            var length =
-                annotation.endToken.next!.offset - annotation.beginToken.offset;
+            var length = annotation.endToken.next!.offset - annotation.offset;
             builder.addDeletion(SourceRange(annotation.offset, length));
             break;
           }

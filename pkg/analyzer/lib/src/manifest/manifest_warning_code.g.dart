@@ -7,6 +7,10 @@
 // Instead modify 'pkg/analyzer/messages.yaml' and run
 // 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 
+// We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
+// code, as they match names declared in the source configuration files.
+// ignore_for_file: constant_identifier_names
+
 import "package:analyzer/error/error.dart";
 
 class ManifestWarningCode extends ErrorCode {
@@ -48,6 +52,9 @@ class ManifestWarningCode extends ErrorCode {
 
   ///  A code indicating that a specified permission is not supported on Chrome
   ///  OS.
+  ///
+  ///  Parameters:
+  ///  0: the name of the feature tag
   static const ManifestWarningCode PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE =
       ManifestWarningCode(
     'PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE',
@@ -70,6 +77,9 @@ class ManifestWarningCode extends ErrorCode {
   );
 
   ///  A code indicating that a specified feature is not supported on Chrome OS.
+  ///
+  ///  Parameters:
+  ///  0: the name of the feature
   static const ManifestWarningCode UNSUPPORTED_CHROME_OS_FEATURE =
       ManifestWarningCode(
     'UNSUPPORTED_CHROME_OS_FEATURE',
@@ -81,6 +91,9 @@ class ManifestWarningCode extends ErrorCode {
 
   ///  A code indicating that a specified hardware feature is not supported on
   ///  Chrome OS.
+  ///
+  ///  Parameters:
+  ///  0: the name of the feature
   static const ManifestWarningCode UNSUPPORTED_CHROME_OS_HARDWARE =
       ManifestWarningCode(
     'UNSUPPORTED_CHROME_OS_HARDWARE',

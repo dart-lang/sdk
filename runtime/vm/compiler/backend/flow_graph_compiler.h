@@ -386,6 +386,16 @@ class RangeErrorSlowPath : public ThrowErrorSlowPathCode {
                                   bool save_fpu_registers);
 };
 
+class WriteErrorSlowPath : public ThrowErrorSlowPathCode {
+ public:
+  explicit WriteErrorSlowPath(CheckWritableInstr* instruction)
+      : ThrowErrorSlowPathCode(instruction, kWriteErrorRuntimeEntry) {}
+  virtual const char* name() { return "check writable"; }
+
+  virtual void EmitSharedStubCall(FlowGraphCompiler* compiler,
+                                  bool save_fpu_registers);
+};
+
 class LateInitializationErrorSlowPath : public ThrowErrorSlowPathCode {
  public:
   explicit LateInitializationErrorSlowPath(Instruction* instruction)
@@ -499,7 +509,7 @@ class FlowGraphCompiler : public ValueObject {
 
   Instruction* current_instruction() const { return current_instruction_; }
 
-  static bool CanOptimize();
+  bool CanOptimize() const;
   bool CanOptimizeFunction() const;
   bool CanOSRFunction() const;
   bool is_optimizing() const { return is_optimizing_; }
@@ -860,12 +870,7 @@ class FlowGraphCompiler : public ValueObject {
   // Return true-, false- and fall-through label for a branch instruction.
   BranchLabels CreateBranchLabels(BranchInstr* branch) const;
 
-  void AddExceptionHandler(intptr_t try_index,
-                           intptr_t outer_try_index,
-                           intptr_t pc_offset,
-                           bool is_generated,
-                           const Array& handler_types,
-                           bool needs_stacktrace);
+  void AddExceptionHandler(CatchBlockEntryInstr* entry);
   void SetNeedsStackTrace(intptr_t try_index);
   void AddCurrentDescriptor(UntaggedPcDescriptors::Kind kind,
                             intptr_t deopt_id,
@@ -1008,7 +1013,7 @@ class FlowGraphCompiler : public ValueObject {
   friend class NullErrorSlowPath;        // For AddPcRelativeCallStubTarget().
   friend class CheckStackOverflowInstr;  // For AddPcRelativeCallStubTarget().
   friend class StoreIndexedInstr;        // For AddPcRelativeCallStubTarget().
-  friend class StoreInstanceFieldInstr;  // For AddPcRelativeCallStubTarget().
+  friend class StoreFieldInstr;          // For AddPcRelativeCallStubTarget().
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
   friend class GraphInstrinsicCodeGenScope;   // For optimizing_.
 
@@ -1208,11 +1213,11 @@ class FlowGraphCompiler : public ValueObject {
           function(function_arg),
           code(code_arg),
           dst_type(dst_type) {
-      ASSERT(function == nullptr || function->IsZoneHandle());
-      ASSERT(code == nullptr || code->IsZoneHandle() ||
-             code->IsReadOnlyHandle());
-      ASSERT(dst_type == nullptr || dst_type->IsZoneHandle() ||
-             dst_type->IsReadOnlyHandle());
+      DEBUG_ASSERT(function == nullptr ||
+                   function->IsNotTemporaryScopedHandle());
+      DEBUG_ASSERT(code == nullptr || code->IsNotTemporaryScopedHandle());
+      DEBUG_ASSERT(dst_type == nullptr ||
+                   dst_type->IsNotTemporaryScopedHandle());
       ASSERT(code == nullptr || dst_type == nullptr);
     }
 

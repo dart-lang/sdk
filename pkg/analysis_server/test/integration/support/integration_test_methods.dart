@@ -1086,7 +1086,7 @@ abstract class IntegrationTestMixin {
   ///
   ///   A list of objects each containing a path and the additional libraries
   ///   from which the client is interested in receiving completion
-  ///   suggestions. If one configured path is beneath another, the descendent
+  ///   suggestions. If one configured path is beneath another, the descendant
   ///   will override the ancestors' configured libraries of interest.
   @deprecated
   Future sendCompletionRegisterLibraryPaths(List<LibraryPathSet> paths) async {
@@ -1735,7 +1735,15 @@ abstract class IntegrationTestMixin {
   ///
   ///   If this field is omitted the flag defaults to false.
   ///
+  /// codes: List<String> (optional)
+  ///
+  ///   A list of diagnostic codes to be fixed.
+  ///
   /// Returns
+  ///
+  /// message: String
+  ///
+  ///   An optional message explaining unapplied fixes.
   ///
   /// edits: List<SourceFileEdit>
   ///
@@ -1746,8 +1754,10 @@ abstract class IntegrationTestMixin {
   ///   Details that summarize the fixes associated with the recommended
   ///   changes.
   Future<EditBulkFixesResult> sendEditBulkFixes(List<String> included,
-      {bool? inTestMode}) async {
-    var params = EditBulkFixesParams(included, inTestMode: inTestMode).toJson();
+      {bool? inTestMode, List<String>? codes}) async {
+    var params =
+        EditBulkFixesParams(included, inTestMode: inTestMode, codes: codes)
+            .toJson();
     var result = await server.send('edit.bulkFixes', params);
     var decoder = ResponseDecoder(null);
     return EditBulkFixesResult.fromJson(decoder, 'result', result);
@@ -2457,41 +2467,6 @@ abstract class IntegrationTestMixin {
     var result = await server.send('analytics.sendTiming', params);
     outOfTestExpect(result, isNull);
     return null;
-  }
-
-  /// Return the list of KytheEntry objects for some file, given the current
-  /// state of the file system populated by "analysis.updateContent".
-  ///
-  /// If a request is made for a file that does not exist, or that is not
-  /// currently subject to analysis (e.g. because it is not associated with any
-  /// analysis root specified to analysis.setAnalysisRoots), an error of type
-  /// GET_KYTHE_ENTRIES_INVALID_FILE will be generated.
-  ///
-  /// Parameters
-  ///
-  /// file: FilePath
-  ///
-  ///   The file containing the code for which the Kythe Entry objects are
-  ///   being requested.
-  ///
-  /// Returns
-  ///
-  /// entries: List<KytheEntry>
-  ///
-  ///   The list of KytheEntry objects for the queried file.
-  ///
-  /// files: List<FilePath>
-  ///
-  ///   The set of files paths that were required, but not in the file system,
-  ///   to give a complete and accurate Kythe graph for the file. This could be
-  ///   due to a referenced file that does not exist or generated files not
-  ///   being generated or passed before the call to "getKytheEntries".
-  Future<KytheGetKytheEntriesResult> sendKytheGetKytheEntries(
-      String file) async {
-    var params = KytheGetKytheEntriesParams(file).toJson();
-    var result = await server.send('kythe.getKytheEntries', params);
-    var decoder = ResponseDecoder(null);
-    return KytheGetKytheEntriesResult.fromJson(decoder, 'result', result);
   }
 
   /// Return the description of the widget instance at the given location.

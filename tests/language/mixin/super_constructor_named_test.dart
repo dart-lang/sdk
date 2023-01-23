@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 class Base {
   int? i, j;
   Base.ctor(int? this.i
-            , {int? this.j: 10} //   //# 01: ok
+            , {int? this.j = 10} //   //# 01: ok
       ) {
     if (j == null) {
       j = 10;

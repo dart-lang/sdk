@@ -5,10 +5,14 @@
 // This test checks that an error is reported on all raw generic types with
 // non-simple bounds used in the bound of the same type variable.
 
-class Hest<TypeX extends Hest<TypeX>> {}
+class A<TypeX extends A<TypeX>> {}
 
-class Fisk<TypeY extends Fisk<TypeY>> {}
+class B<TypeY extends B<TypeY>> {}
 
-class Naebdyr<TypeZ extends Map<Hest, Fisk>> {}
+class C<TypeZ extends Map<A, B>> {}
+
+extension D<TypeZ extends Map<A, B>> on int {}
+
+typedef E<TypeZ extends Map<A, B>> = int;
 
 main() {}

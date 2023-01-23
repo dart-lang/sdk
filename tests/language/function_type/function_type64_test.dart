@@ -100,7 +100,7 @@ class U64<T> {
   late List<T> Function<A>(Function x) Function() x21;
   late List<A> Function<A>(List<Function> x) Function() x22;
 
-  U64({this.tIsBool: false, this.tIsInt: false})
+  U64({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   Function m0({int x = -1}) => throw 'uncalled';

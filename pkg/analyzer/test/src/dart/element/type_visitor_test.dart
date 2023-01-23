@@ -8,7 +8,8 @@ import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/type_system_test.dart';
+import '../../../generated/type_system_base.dart';
+import 'string_types.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,13 +18,14 @@ main() {
 }
 
 @reflectiveTest
-class RecursiveTypeVisitorTest extends AbstractTypeSystemTest {
+class RecursiveTypeVisitorTest extends AbstractTypeSystemTest with StringTypes {
   late final _MockRecursiveVisitor visitor;
 
   @override
   void setUp() {
     super.setUp();
     visitor = _MockRecursiveVisitor();
+    defineStringTypes();
   }
 
   void test_callsDefaultBehavior() {
@@ -115,6 +117,20 @@ class RecursiveTypeVisitorTest extends AbstractTypeSystemTest {
     final outerList = typeProvider.listType(innerList);
     expect(outerList.accept(visitor), true);
     visitor.assertVisitedType(intNone);
+  }
+
+  void test_recordType_named() {
+    final type = typeOfString('({int f1, double f2})');
+    expect(type.accept(visitor), true);
+    visitor.assertVisitedType(intNone);
+    visitor.assertVisitedType(doubleNone);
+  }
+
+  void test_recordType_positional() {
+    final type = typeOfString('(int, double)');
+    expect(type.accept(visitor), true);
+    visitor.assertVisitedType(intNone);
+    visitor.assertVisitedType(doubleNone);
   }
 
   void test_stopVisiting_first() {

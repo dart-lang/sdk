@@ -11,37 +11,6 @@
 namespace dart {
 
 FunctionPtr ClosureFunctionsCache::LookupClosureFunction(
-    const Class& owner,
-    TokenPosition token_pos) {
-  auto thread = Thread::Current();
-  SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
-  return LookupClosureFunctionLocked(owner, token_pos);
-}
-
-FunctionPtr ClosureFunctionsCache::LookupClosureFunctionLocked(
-    const Class& owner,
-    TokenPosition token_pos) {
-  auto thread = Thread::Current();
-  auto zone = thread->zone();
-  auto object_store = thread->isolate_group()->object_store();
-
-  DEBUG_ASSERT(
-      thread->isolate_group()->program_lock()->IsCurrentThreadReader());
-
-  const auto& closures =
-      GrowableObjectArray::Handle(zone, object_store->closure_functions());
-  auto& closure = Function::Handle(zone);
-  intptr_t num_closures = closures.Length();
-  for (intptr_t i = 0; i < num_closures; i++) {
-    closure ^= closures.At(i);
-    if (closure.token_pos() == token_pos && closure.Owner() == owner.ptr()) {
-      return closure.ptr();
-    }
-  }
-  return Function::null();
-}
-
-FunctionPtr ClosureFunctionsCache::LookupClosureFunction(
     const Function& parent,
     TokenPosition token_pos) {
   auto thread = Thread::Current();
@@ -124,33 +93,6 @@ FunctionPtr ClosureFunctionsCache::ClosureFunctionFromIndex(intptr_t idx) {
     return Function::null();
   }
   return Function::RawCast(closures_array.At(idx));
-}
-
-FunctionPtr ClosureFunctionsCache::GetUniqueInnerClosure(
-    const Function& outer) {
-  auto thread = Thread::Current();
-  auto zone = thread->zone();
-  auto object_store = thread->isolate_group()->object_store();
-
-  SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
-
-  const auto& closures =
-      GrowableObjectArray::Handle(zone, object_store->closure_functions());
-  auto& entry = Function::Handle(zone);
-  for (intptr_t i = (closures.Length() - 1); i >= 0; i--) {
-    entry ^= closures.At(i);
-    if (entry.parent_function() == outer.ptr()) {
-#if defined(DEBUG)
-      auto& other = Function::Handle(zone);
-      for (intptr_t j = i - 1; j >= 0; j--) {
-        other ^= closures.At(j);
-        ASSERT(other.parent_function() != outer.ptr());
-      }
-#endif
-      return entry.ptr();
-    }
-  }
-  return Function::null();
 }
 
 void ClosureFunctionsCache::ForAllClosureFunctions(

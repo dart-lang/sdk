@@ -70,13 +70,13 @@ class TestCase {
 }
 
 TestCase successCase(String type1, String type2, Map<String, String?> expected,
-    {bool debug: false}) {
+    {bool debug = false}) {
   return new TestCase.success(type1, type2, expected);
 }
 
 TestCase failureCase(
     String type1, String type2, List<String> quantifiedVariables,
-    {bool debug: false}) {
+    {bool debug = false}) {
   return new TestCase.fail(type1, type2, quantifiedVariables);
 }
 

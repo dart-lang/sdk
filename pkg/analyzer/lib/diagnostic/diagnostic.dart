@@ -37,14 +37,6 @@ abstract class DiagnosticMessage {
   /// The length of the source range associated with this message.
   int get length;
 
-  /// Gets the text of the message.
-  ///
-  /// This getter exists for backwards compatibility with code that was written
-  /// prior to the addition of URLs to diagnostic messages.  New clients should
-  /// use `messageText` instead.
-  @Deprecated('Use messageText(includeUrl: true) instead')
-  String get message;
-
   /// The zero-based offset from the start of the file to the beginning of the
   /// source range associated with this message.
   int get offset;

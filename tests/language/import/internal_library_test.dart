@@ -11,17 +11,14 @@ import 'dart:_foreign_helper';
 //     ^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.IMPORT_INTERNAL_LIBRARY
 // [cfe] Can't access platform private library.
-//     ^
-// [cfe] Not found: 'dart:_foreign_helper'
+// [cfe] Dart library 'dart:_foreign_helper' is not available on this platform.
 
 part 'dart:_foreign_helper';
 //   ^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.PART_OF_NON_PART
 // [cfe] Can't access platform private library.
-//   ^
 // [cfe] Can't use 'org-dartlang-untranslatable-uri:dart%3A_foreign_helper' as a part, because it has no 'part of' declaration.
-//   ^
-// [cfe] Not found: 'dart:_foreign_helper'
+// [cfe] Dart library 'dart:_foreign_helper' is not available on this platform.
 
 void main() {
   JS('int', '0');

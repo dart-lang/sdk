@@ -1855,7 +1855,8 @@ abstract class Stream<T> {
     subscription =
         this.listen(null, onError: result._completeError, onDone: () {
       result._completeError(
-          new RangeError.index(index, this, "index", null, elementIndex),
+          new IndexError.withLength(index, elementIndex,
+              indexable: this, name: "index"),
           StackTrace.empty);
     }, cancelOnError: true);
     subscription.onData((T value) {

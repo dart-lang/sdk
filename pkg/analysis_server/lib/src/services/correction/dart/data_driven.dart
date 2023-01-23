@@ -10,7 +10,8 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/element_
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
-import 'package:analyzer/dart/element/element.dart' show LibraryElement;
+import 'package:analyzer/dart/element/element.dart'
+    show DirectiveUriWithRelativeUri, LibraryElement;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:meta/meta.dart';
@@ -21,31 +22,33 @@ class DataDriven extends MultiCorrectionProducer {
   static List<TransformSet>? transformSetsForTests;
 
   @override
-  Stream<CorrectionProducer> get producers async* {
+  Future<List<CorrectionProducer>> get producers async {
     var importedUris = <Uri>[];
     var library = resolvedResult.libraryElement;
-    for (var importElement in library.imports) {
+    for (var importElement in library.libraryImports) {
       // TODO(brianwilkerson) Filter based on combinators to help avoid making
       //  invalid suggestions.
       var uri = importElement.uri;
-      if (uri != null) {
+      if (uri is DirectiveUriWithRelativeUri) {
         // The [uri] is `null` if the literal string is not a valid URI.
-        importedUris.add(Uri.parse(uri));
+        importedUris.add(uri.relativeUri);
       }
     }
-    var matchers = ElementMatcher.matchersForNode(node);
+    var matchers = ElementMatcher.matchersForNode(node, token);
     if (matchers.isEmpty) {
       // The node doesn't represent any element that can be transformed.
-      return;
+      return const [];
     }
+    var transformSet = <Transform>{};
     for (var set in _availableTransformSetsForLibrary(library)) {
       for (var matcher in matchers) {
         for (var transform in set.transformsFor(matcher,
             applyingBulkFixes: applyingBulkFixes)) {
-          yield DataDrivenFix(transform);
+          transformSet.add(transform);
         }
       }
     }
+    return transformSet.map((transform) => DataDrivenFix(transform)).toList();
   }
 
   /// Return the transform sets that are available for fixing issues in the
@@ -65,7 +68,7 @@ class DataDriven extends MultiCorrectionProducer {
   }
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [DataDriven] producer.
 class DataDrivenFix extends CorrectionProducer {
   /// The transform being applied to implement this fix.

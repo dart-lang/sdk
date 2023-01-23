@@ -5,29 +5,20 @@
 library dart._http;
 
 import "dart:async";
-import "dart:collection";
 import "dart:convert";
-import "dart:developer";
-import "dart:io";
+// ignore: IMPORT_INTERNAL_LIBRARY
+import "dart:_http"
+    show
+        TestingClass$_WebSocketProtocolTransformer,
+        Testing$_WebSocketProtocolTransformer;
 import "dart:math";
 import "dart:typed_data";
-import "dart:isolate";
 
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-import "../../../sdk/lib/internal/internal.dart"
-    show Since, valueOfNonNullableParamWithDefault, HttpStatus;
-
-part "../../../sdk/lib/_http/crypto.dart";
-part "../../../sdk/lib/_http/embedder_config.dart";
-part "../../../sdk/lib/_http/http_impl.dart";
-part "../../../sdk/lib/_http/http_date.dart";
-part "../../../sdk/lib/_http/http_parser.dart";
-part "../../../sdk/lib/_http/http_headers.dart";
-part "../../../sdk/lib/_http/http_session.dart";
-part "../../../sdk/lib/_http/websocket.dart";
-part "../../../sdk/lib/_http/websocket_impl.dart";
+typedef _WebSocketProtocolTransformer
+    = TestingClass$_WebSocketProtocolTransformer;
 
 class WebSocketFrame {
   WebSocketFrame(int opcode, List<int> data);
@@ -116,7 +107,7 @@ void testFullMessages() {
     controller.add(frame);
     mc.onClosed = () {
       Expect.isNotNull(mc.data);
-      Expect.equals(0, transformer._state);
+      Expect.equals(0, transformer.test$_state);
 
       mc.data = null;
 
@@ -127,7 +118,7 @@ void testFullMessages() {
         for (int i = 0; i < frame.length; i++) {
           controller.add(<int>[frame[i]]);
         }
-        Expect.equals(0, transformer._state);
+        Expect.equals(0, transformer.test$_state);
         Expect.isNotNull(mc.data);
         mc.data = null;
 
@@ -136,7 +127,7 @@ void testFullMessages() {
         for (int i = 0; i < frame.length; i += 2) {
           controller.add(frame.sublist(i, min(i + 2, frame.length)));
         }
-        Expect.equals(0, transformer._state);
+        Expect.equals(0, transformer.test$_state);
         Expect.isNotNull(mc.data);
       }
       Expect.equals(messageCount, mc.messageCount);

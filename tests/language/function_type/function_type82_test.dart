@@ -121,7 +121,7 @@ class U82<T> {
   late List<T> Function<A>() Function<B extends core.int>() x21;
   late List<A> Function<A>(A x) Function<B extends core.int>() x22;
 
-  U82({this.tIsBool: false, this.tIsInt: false})
+  U82({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   Function m0(List<Function> x0) => throw 'uncalled';

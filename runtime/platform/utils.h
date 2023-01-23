@@ -73,43 +73,91 @@ class Utils {
   }
 
   template <typename T>
-  static constexpr bool IsAligned(T x, intptr_t n) {
-    assert(IsPowerOfTwo(n));
-    return (x & (n - 1)) == 0;
+  static constexpr bool IsAligned(T x,
+                                  uintptr_t alignment,
+                                  uintptr_t offset = 0) {
+    ASSERT(IsPowerOfTwo(alignment));
+    ASSERT(offset < alignment);
+    return (x & (alignment - 1)) == offset;
   }
 
   template <typename T>
-  static constexpr bool IsAligned(T* x, intptr_t n) {
-    return IsAligned(reinterpret_cast<uword>(x), n);
+  static constexpr bool IsAligned(T* x,
+                                  uintptr_t alignment,
+                                  uintptr_t offset = 0) {
+    return IsAligned(reinterpret_cast<uword>(x), alignment, offset);
   }
 
   template <typename T>
-  static constexpr inline T RoundDown(T x, intptr_t n) {
-    ASSERT(IsPowerOfTwo(n));
-    return (x & -n);
+  static constexpr inline T RoundDown(T x, intptr_t alignment) {
+    ASSERT(IsPowerOfTwo(alignment));
+    return (x & -alignment);
   }
 
   template <typename T>
-  static inline T* RoundDown(T* x, intptr_t n) {
-    return reinterpret_cast<T*>(RoundDown(reinterpret_cast<uword>(x), n));
+  static inline T* RoundDown(T* x, intptr_t alignment) {
+    return reinterpret_cast<T*>(
+        RoundDown(reinterpret_cast<uword>(x), alignment));
   }
 
   template <typename T>
-  static constexpr inline T RoundUp(T x, intptr_t n) {
-    return RoundDown(x + n - 1, n);
+  static constexpr inline T RoundUp(T x,
+                                    uintptr_t alignment,
+                                    uintptr_t offset = 0) {
+    ASSERT(offset < alignment);
+    return RoundDown(x + alignment - 1 + offset, alignment) - offset;
   }
 
   template <typename T>
-  static inline T* RoundUp(T* x, intptr_t n) {
-    return reinterpret_cast<T*>(RoundUp(reinterpret_cast<uword>(x), n));
+  static inline T* RoundUp(T* x, uintptr_t alignment, uintptr_t offset = 0) {
+    return reinterpret_cast<T*>(
+        RoundUp(reinterpret_cast<uword>(x), alignment, offset));
   }
 
-  static uintptr_t RoundUpToPowerOfTwo(uintptr_t x);
+  // Implementation is from "Hacker's Delight" by Henry S. Warren, Jr.,
+  // figure 3-3, page 48, where the function is called clp2.
+  static constexpr uintptr_t RoundUpToPowerOfTwo(uintptr_t x) {
+    x = x - 1;
+    x = x | (x >> 1);
+    x = x | (x >> 2);
+    x = x | (x >> 4);
+    x = x | (x >> 8);
+    x = x | (x >> 16);
+#if defined(ARCH_IS_64_BIT)
+    x = x | (x >> 32);
+#endif  // defined(ARCH_IS_64_BIT)
+    return x + 1;
+  }
 
-  static int CountOneBits64(uint64_t x);
-  static int CountOneBits32(uint32_t x);
+  static constexpr int CountOneBits64(uint64_t x) {
+    // Apparently there are x64 chips without popcount.
+#if __GNUC__ && !defined(HOST_ARCH_IA32) && !defined(HOST_ARCH_X64)
+    return __builtin_popcountll(x);
+#else
+    x = x - ((x >> 1) & 0x5555555555555555);
+    x = (x & 0x3333333333333333) + ((x >> 2) & 0x3333333333333333);
+    x = (((x + (x >> 4)) & 0x0f0f0f0f0f0f0f0f) * 0x0101010101010101) >> 56;
+    return x;
+#endif
+  }
 
-  static int CountOneBitsWord(uword x) {
+  static constexpr int CountOneBits32(uint32_t x) {
+    // Apparently there are x64 chips without popcount.
+#if __GNUC__ && !defined(HOST_ARCH_IA32) && !defined(HOST_ARCH_X64)
+    return __builtin_popcount(x);
+#else
+    // Implementation is from "Hacker's Delight" by Henry S. Warren, Jr.,
+    // figure 5-2, page 66, where the function is called pop.
+    x = x - ((x >> 1) & 0x55555555);
+    x = (x & 0x33333333) + ((x >> 2) & 0x33333333);
+    x = (x + (x >> 4)) & 0x0F0F0F0F;
+    x = x + (x >> 8);
+    x = x + (x >> 16);
+    return static_cast<int>(x & 0x0000003F);
+#endif
+  }
+
+  static constexpr int CountOneBitsWord(uword x) {
 #ifdef ARCH_IS_64_BIT
     return CountOneBits64(x);
 #else

@@ -58,7 +58,7 @@ class AstWidget extends Widget {
   }
 
   String textualize(ParserAstNode element,
-      {bool indent: false, bool withEndHeader: false}) {
+      {bool indent = false, bool withEndHeader = false}) {
     String header;
     switch (element.type) {
       case ParserAstType.BEGIN:

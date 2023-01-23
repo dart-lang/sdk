@@ -45,10 +45,11 @@ class NullSafeApiVerifier {
     if (!_typeSystem.isNonNullableByDefault) return;
 
     final targetType = node.realTarget?.staticType;
-    final targetClass = targetType?.element;
-    if (targetClass == null || targetType is! InterfaceType) return;
+    if (targetType is! InterfaceType) return;
 
-    if (targetClass.library?.isDartAsync == true &&
+    final targetClass = targetType.element;
+
+    if (targetClass.library.isDartAsync == true &&
         targetClass.name == 'Completer' &&
         node.methodName.name == 'complete') {
       _checkTypes(node, 'Completer.complete', targetType.typeArguments.single,

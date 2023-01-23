@@ -1036,7 +1036,9 @@ static Dart_WeakPersistentHandle AllocateWeakPersistentHandle(
       FinalizablePersistentHandle::New(thread->isolate_group(), ref, peer,
                                        callback, external_allocation_size,
                                        /*auto_delete=*/false);
-  return finalizable_ref->ApiWeakPersistentHandle();
+  return finalizable_ref == nullptr
+             ? nullptr
+             : finalizable_ref->ApiWeakPersistentHandle();
 }
 
 static Dart_WeakPersistentHandle AllocateWeakPersistentHandle(
@@ -1070,7 +1072,8 @@ static Dart_FinalizableHandle AllocateFinalizableHandle(
       FinalizablePersistentHandle::New(thread->isolate_group(), ref, peer,
                                        callback, external_allocation_size,
                                        /*auto_delete=*/true);
-  return finalizable_ref->ApiFinalizableHandle();
+  return finalizable_ref == nullptr ? nullptr
+                                    : finalizable_ref->ApiFinalizableHandle();
 }
 
 static Dart_FinalizableHandle AllocateFinalizableHandle(
@@ -1815,9 +1818,56 @@ DART_EXPORT void Dart_NotifyIdle(int64_t deadline) {
   T->isolate()->group()->idle_time_handler()->NotifyIdle(deadline);
 }
 
+DART_EXPORT void Dart_NotifyDestroyed() {
+  Thread* T = Thread::Current();
+  CHECK_ISOLATE(T->isolate());
+  API_TIMELINE_BEGIN_END(T);
+  TransitionNativeToVM transition(T);
+  T->heap()->NotifyDestroyed();
+}
+
+DART_EXPORT void Dart_EnableHeapSampling() {
+#if !defined(PRODUCT)
+  IsolateGroup::ForEach([&](IsolateGroup* group) {
+    group->thread_registry()->ForEachThread(
+        [&](Thread* thread) { thread->heap_sampler().Enable(true); });
+  });
+#endif
+}
+
+DART_EXPORT void Dart_DisableHeapSampling() {
+#if !defined(PRODUCT)
+  IsolateGroup::ForEach([&](IsolateGroup* group) {
+    group->thread_registry()->ForEachThread(
+        [&](Thread* thread) { thread->heap_sampler().Enable(false); });
+  });
+#endif
+}
+
+DART_EXPORT void Dart_RegisterHeapSamplingCallback(
+    Dart_HeapSamplingCallback callback) {
+#if !defined(PRODUCT)
+  IsolateGroup::ForEach([&](IsolateGroup* group) {
+    group->thread_registry()->ForEachThread([&](Thread* thread) {
+      thread->heap_sampler().SetSamplingCallback(callback);
+    });
+  });
+#endif
+}
+
+DART_EXPORT void Dart_SetHeapSamplingPeriod(intptr_t bytes) {
+#if !defined(PRODUCT)
+  IsolateGroup::ForEach([&](IsolateGroup* group) {
+    group->thread_registry()->ForEachThread([&](Thread* thread) {
+      thread->heap_sampler().SetSamplingInterval(bytes);
+    });
+  });
+#endif
+}
+
 DART_EXPORT void Dart_NotifyLowMemory() {
   API_TIMELINE_BEGIN_END(Thread::Current());
-  SemiSpace::ClearCache();
+  Page::ClearCache();
   Zone::ClearCache();
 
   // For each isolate's global variables, we might also clear:
@@ -1827,6 +1877,14 @@ DART_EXPORT void Dart_NotifyLowMemory() {
   //  - double.toString cache
   // But cache invalidation code might be larger than the expected size of some
   // caches.
+}
+
+DART_EXPORT Dart_PerformanceMode
+Dart_SetPerformanceMode(Dart_PerformanceMode mode) {
+  Thread* T = Thread::Current();
+  CHECK_ISOLATE(T->isolate());
+  TransitionNativeToVM transition(T);
+  return T->heap()->SetMode(mode);
 }
 
 DART_EXPORT void Dart_ExitIsolate() {
@@ -2161,8 +2219,7 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
   }
 
   const Object& object = Object::Handle(Z, Api::UnwrapHandle(handle));
-  return PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false,
-                                           /* same_group */ false, object,
+  return PortMap::PostMessage(WriteMessage(/* same_group */ false, object,
                                            port_id, Message::kNormalPriority));
 }
 
@@ -2173,7 +2230,8 @@ DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id) {
     return Api::NewError("%s: illegal port_id %" Pd64 ".", CURRENT_FUNC,
                          port_id);
   }
-  return Api::NewHandle(T, SendPort::New(port_id));
+  int64_t origin_id = PortMap::GetOriginId(port_id);
+  return Api::NewHandle(T, SendPort::New(port_id, origin_id));
 }
 
 DART_EXPORT Dart_Handle Dart_SendPortGetId(Dart_Handle port,
@@ -2460,7 +2518,7 @@ DART_EXPORT bool Dart_IsTypedData(Dart_Handle handle) {
   TransitionNativeToVM transition(thread);
   intptr_t cid = Api::ClassId(handle);
   return IsTypedDataClassId(cid) || IsExternalTypedDataClassId(cid) ||
-         IsTypedDataViewClassId(cid);
+         IsTypedDataViewClassId(cid) || IsUnmodifiableTypedDataViewClassId(cid);
 }
 
 DART_EXPORT bool Dart_IsByteBuffer(Dart_Handle handle) {
@@ -3647,75 +3705,90 @@ static Dart_TypedData_Type GetType(intptr_t class_id) {
   Dart_TypedData_Type type;
   switch (class_id) {
     case kByteDataViewCid:
+    case kUnmodifiableByteDataViewCid:
       type = Dart_TypedData_kByteData;
       break;
     case kTypedDataInt8ArrayCid:
     case kTypedDataInt8ArrayViewCid:
+    case kUnmodifiableTypedDataInt8ArrayViewCid:
     case kExternalTypedDataInt8ArrayCid:
       type = Dart_TypedData_kInt8;
       break;
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ArrayViewCid:
+    case kUnmodifiableTypedDataUint8ArrayViewCid:
     case kExternalTypedDataUint8ArrayCid:
       type = Dart_TypedData_kUint8;
       break;
     case kTypedDataUint8ClampedArrayCid:
     case kTypedDataUint8ClampedArrayViewCid:
+    case kUnmodifiableTypedDataUint8ClampedArrayViewCid:
     case kExternalTypedDataUint8ClampedArrayCid:
       type = Dart_TypedData_kUint8Clamped;
       break;
     case kTypedDataInt16ArrayCid:
     case kTypedDataInt16ArrayViewCid:
+    case kUnmodifiableTypedDataInt16ArrayViewCid:
     case kExternalTypedDataInt16ArrayCid:
       type = Dart_TypedData_kInt16;
       break;
     case kTypedDataUint16ArrayCid:
     case kTypedDataUint16ArrayViewCid:
+    case kUnmodifiableTypedDataUint16ArrayViewCid:
     case kExternalTypedDataUint16ArrayCid:
       type = Dart_TypedData_kUint16;
       break;
     case kTypedDataInt32ArrayCid:
     case kTypedDataInt32ArrayViewCid:
+    case kUnmodifiableTypedDataInt32ArrayViewCid:
     case kExternalTypedDataInt32ArrayCid:
       type = Dart_TypedData_kInt32;
       break;
     case kTypedDataUint32ArrayCid:
     case kTypedDataUint32ArrayViewCid:
+    case kUnmodifiableTypedDataUint32ArrayViewCid:
     case kExternalTypedDataUint32ArrayCid:
       type = Dart_TypedData_kUint32;
       break;
     case kTypedDataInt64ArrayCid:
     case kTypedDataInt64ArrayViewCid:
+    case kUnmodifiableTypedDataInt64ArrayViewCid:
     case kExternalTypedDataInt64ArrayCid:
       type = Dart_TypedData_kInt64;
       break;
     case kTypedDataUint64ArrayCid:
     case kTypedDataUint64ArrayViewCid:
+    case kUnmodifiableTypedDataUint64ArrayViewCid:
     case kExternalTypedDataUint64ArrayCid:
       type = Dart_TypedData_kUint64;
       break;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat32ArrayViewCid:
+    case kUnmodifiableTypedDataFloat32ArrayViewCid:
     case kExternalTypedDataFloat32ArrayCid:
       type = Dart_TypedData_kFloat32;
       break;
     case kTypedDataFloat64ArrayCid:
     case kTypedDataFloat64ArrayViewCid:
+    case kUnmodifiableTypedDataFloat64ArrayViewCid:
     case kExternalTypedDataFloat64ArrayCid:
       type = Dart_TypedData_kFloat64;
       break;
     case kTypedDataInt32x4ArrayCid:
     case kTypedDataInt32x4ArrayViewCid:
+    case kUnmodifiableTypedDataInt32x4ArrayViewCid:
     case kExternalTypedDataInt32x4ArrayCid:
       type = Dart_TypedData_kInt32x4;
       break;
     case kTypedDataFloat32x4ArrayCid:
     case kTypedDataFloat32x4ArrayViewCid:
+    case kUnmodifiableTypedDataFloat32x4ArrayViewCid:
     case kExternalTypedDataFloat32x4ArrayCid:
       type = Dart_TypedData_kFloat32x4;
       break;
     case kTypedDataFloat64x2ArrayCid:
     case kTypedDataFloat64x2ArrayViewCid:
+    case kUnmodifiableTypedDataFloat64x2ArrayViewCid:
     case kExternalTypedDataFloat64x2ArrayCid:
       type = Dart_TypedData_kFloat64x2;
       break;
@@ -3731,7 +3804,8 @@ DART_EXPORT Dart_TypedData_Type Dart_GetTypeOfTypedData(Dart_Handle object) {
   API_TIMELINE_DURATION(thread);
   TransitionNativeToVM transition(thread);
   intptr_t class_id = Api::ClassId(object);
-  if (IsTypedDataClassId(class_id) || IsTypedDataViewClassId(class_id)) {
+  if (IsTypedDataClassId(class_id) || IsTypedDataViewClassId(class_id) ||
+      IsUnmodifiableTypedDataViewClassId(class_id)) {
     return GetType(class_id);
   }
   return Dart_TypedData_kInvalid;
@@ -3746,7 +3820,8 @@ Dart_GetTypeOfExternalTypedData(Dart_Handle object) {
   if (IsExternalTypedDataClassId(class_id)) {
     return GetType(class_id);
   }
-  if (IsTypedDataViewClassId(class_id)) {
+  if (IsTypedDataViewClassId(class_id) ||
+      IsUnmodifiableTypedDataViewClassId(class_id)) {
     // Check if data object of the view is external.
     Zone* zone = thread->zone();
     const auto& view_obj = Api::UnwrapTypedDataViewHandle(zone, object);
@@ -3759,39 +3834,12 @@ Dart_GetTypeOfExternalTypedData(Dart_Handle object) {
   return Dart_TypedData_kInvalid;
 }
 
-static ObjectPtr GetByteDataConstructor(Thread* thread,
-                                        const String& constructor_name,
-                                        intptr_t num_args) {
-  const Library& lib = Library::Handle(
-      thread->isolate_group()->object_store()->typed_data_library());
-  ASSERT(!lib.IsNull());
-  const Class& cls = Class::Handle(
-      thread->zone(), lib.LookupClassAllowPrivate(Symbols::ByteData()));
-  ASSERT(!cls.IsNull());
-  return ResolveConstructor(CURRENT_FUNC, cls, Symbols::ByteData(),
-                            constructor_name, num_args);
-}
-
 static Dart_Handle NewByteData(Thread* thread, intptr_t length) {
-  CHECK_LENGTH(length, TypedData::MaxElements(kTypedDataInt8ArrayCid));
-  Zone* zone = thread->zone();
-  Object& result = Object::Handle(zone);
-  result = GetByteDataConstructor(thread, Symbols::ByteDataDot(), 1);
-  ASSERT(!result.IsNull());
-  ASSERT(result.IsFunction());
-  const Function& factory = Function::Cast(result);
-  ASSERT(!factory.IsGenerativeConstructor());
-
-  // Create the argument list.
-  const Array& args = Array::Handle(zone, Array::New(2));
-  // Factories get type arguments.
-  args.SetAt(0, Object::null_type_arguments());
-  args.SetAt(1, Smi::Handle(zone, Smi::New(length)));
-
-  // Invoke the constructor and return the new object.
-  result = DartEntry::InvokeFunction(factory, args);
-  ASSERT(result.IsInstance() || result.IsNull() || result.IsError());
-  return Api::NewHandle(thread, result.ptr());
+  CHECK_LENGTH(length, TypedData::MaxElements(kTypedDataUint8ArrayCid));
+  const TypedData& array =
+      TypedData::Handle(TypedData::New(kTypedDataUint8ArrayCid, length));
+  return Api::NewHandle(thread,
+                        TypedDataView::New(kByteDataViewCid, array, 0, length));
 }
 
 static Dart_Handle NewTypedData(Thread* thread, intptr_t cid, intptr_t length) {
@@ -3805,21 +3853,25 @@ static Dart_Handle NewExternalTypedData(Thread* thread,
                                         intptr_t length,
                                         void* peer,
                                         intptr_t external_allocation_size,
-                                        Dart_HandleFinalizer callback) {
+                                        Dart_HandleFinalizer callback,
+                                        bool unmodifiable) {
   CHECK_LENGTH(length, ExternalTypedData::MaxElements(cid));
   Zone* zone = thread->zone();
   intptr_t bytes = length * ExternalTypedData::ElementSizeInBytes(cid);
-  auto& cls =
-      Class::Handle(zone, thread->isolate_group()->class_table()->At(cid));
-  auto& result = Object::Handle(zone, cls.EnsureIsAllocateFinalized(thread));
-  if (result.IsError()) {
-    return Api::NewHandle(thread, result.ptr());
-  }
-  result = ExternalTypedData::New(cid, reinterpret_cast<uint8_t*>(data), length,
-                                  thread->heap()->SpaceForExternal(bytes));
+  Object& result = Object::Handle(
+      zone,
+      ExternalTypedData::New(cid, reinterpret_cast<uint8_t*>(data), length,
+                             thread->heap()->SpaceForExternal(bytes)));
   if (callback != nullptr) {
     AllocateFinalizableHandle(thread, result, peer, external_allocation_size,
                               callback);
+  }
+  if (unmodifiable) {
+    result.SetImmutable();  // Can pass by reference.
+    const intptr_t view_cid = cid - kTypedDataCidRemainderExternal +
+                              kTypedDataCidRemainderUnmodifiable;
+    result = TypedDataView::New(view_cid, ExternalTypedData::Cast(result), 0,
+                                length);
   }
   return Api::NewHandle(thread, result.ptr());
 }
@@ -3829,39 +3881,24 @@ static Dart_Handle NewExternalByteData(Thread* thread,
                                        intptr_t length,
                                        void* peer,
                                        intptr_t external_allocation_size,
-                                       Dart_HandleFinalizer callback) {
+                                       Dart_HandleFinalizer callback,
+                                       bool unmodifiable) {
   Zone* zone = thread->zone();
-  Dart_Handle ext_data =
-      NewExternalTypedData(thread, kExternalTypedDataUint8ArrayCid, data,
-                           length, peer, external_allocation_size, callback);
+  Dart_Handle ext_data = NewExternalTypedData(
+      thread, kExternalTypedDataUint8ArrayCid, data, length, peer,
+      external_allocation_size, callback, false);
   if (Api::IsError(ext_data)) {
     return ext_data;
   }
-  Object& result = Object::Handle(zone);
-  result = GetByteDataConstructor(thread, Symbols::ByteDataDot_view(), 3);
-  ASSERT(!result.IsNull());
-  ASSERT(result.IsFunction());
-  const Function& factory = Function::Cast(result);
-  ASSERT(!factory.IsGenerativeConstructor());
-
-  // Create the argument list.
-  const intptr_t num_args = 3;
-  const Array& args = Array::Handle(zone, Array::New(num_args + 1));
-  // Factories get type arguments.
-  args.SetAt(0, Object::null_type_arguments());
   const ExternalTypedData& array =
       Api::UnwrapExternalTypedDataHandle(zone, ext_data);
-  args.SetAt(1, array);
-  Smi& smi = Smi::Handle(zone);
-  smi = Smi::New(0);
-  args.SetAt(2, smi);
-  smi = Smi::New(length);
-  args.SetAt(3, smi);
-
-  // Invoke the constructor and return the new object.
-  result = DartEntry::InvokeFunction(factory, args);
-  ASSERT(result.IsNull() || result.IsInstance() || result.IsError());
-  return Api::NewHandle(thread, result.ptr());
+  if (unmodifiable) {
+    array.SetImmutable();  // Can pass by reference.
+  }
+  return Api::NewHandle(
+      thread, TypedDataView::New(unmodifiable ? kUnmodifiableByteDataViewCid
+                                              : kByteDataViewCid,
+                                 array, 0, length));
 }
 
 DART_EXPORT Dart_Handle Dart_NewTypedData(Dart_TypedData_Type type,
@@ -3907,11 +3944,95 @@ DART_EXPORT Dart_Handle Dart_NewTypedData(Dart_TypedData_Type type,
   return Api::Null();
 }
 
+static Dart_Handle NewExternalTypedDataWithFinalizer(
+    Dart_TypedData_Type type,
+    void* data,
+    intptr_t length,
+    void* peer,
+    intptr_t external_allocation_size,
+    Dart_HandleFinalizer callback,
+    bool unmodifiable) {
+  DARTSCOPE(Thread::Current());
+  if (data == NULL && length != 0) {
+    RETURN_NULL_ERROR(data);
+  }
+  CHECK_CALLBACK_STATE(T);
+  switch (type) {
+    case Dart_TypedData_kByteData:
+      return NewExternalByteData(T, data, length, peer,
+                                 external_allocation_size, callback,
+                                 unmodifiable);
+    case Dart_TypedData_kInt8:
+      return NewExternalTypedData(T, kExternalTypedDataInt8ArrayCid, data,
+                                  length, peer, external_allocation_size,
+                                  callback, unmodifiable);
+    case Dart_TypedData_kUint8:
+      return NewExternalTypedData(T, kExternalTypedDataUint8ArrayCid, data,
+                                  length, peer, external_allocation_size,
+                                  callback, unmodifiable);
+    case Dart_TypedData_kUint8Clamped:
+      return NewExternalTypedData(T, kExternalTypedDataUint8ClampedArrayCid,
+                                  data, length, peer, external_allocation_size,
+                                  callback, unmodifiable);
+    case Dart_TypedData_kInt16:
+      return NewExternalTypedData(T, kExternalTypedDataInt16ArrayCid, data,
+                                  length, peer, external_allocation_size,
+                                  callback, unmodifiable);
+    case Dart_TypedData_kUint16:
+      return NewExternalTypedData(T, kExternalTypedDataUint16ArrayCid, data,
+                                  length, peer, external_allocation_size,
+                                  callback, unmodifiable);
+    case Dart_TypedData_kInt32:
+      return NewExternalTypedData(T, kExternalTypedDataInt32ArrayCid, data,
+                                  length, peer, external_allocation_size,
+                                  callback, unmodifiable);
+    case Dart_TypedData_kUint32:
+      return NewExternalTypedData(T, kExternalTypedDataUint32ArrayCid, data,
+                                  length, peer, external_allocation_size,
+                                  callback, unmodifiable);
+    case Dart_TypedData_kInt64:
+      return NewExternalTypedData(T, kExternalTypedDataInt64ArrayCid, data,
+                                  length, peer, external_allocation_size,
+                                  callback, unmodifiable);
+    case Dart_TypedData_kUint64:
+      return NewExternalTypedData(T, kExternalTypedDataUint64ArrayCid, data,
+                                  length, peer, external_allocation_size,
+                                  callback, unmodifiable);
+    case Dart_TypedData_kFloat32:
+      return NewExternalTypedData(T, kExternalTypedDataFloat32ArrayCid, data,
+                                  length, peer, external_allocation_size,
+                                  callback, unmodifiable);
+    case Dart_TypedData_kFloat64:
+      return NewExternalTypedData(T, kExternalTypedDataFloat64ArrayCid, data,
+                                  length, peer, external_allocation_size,
+                                  callback, unmodifiable);
+    case Dart_TypedData_kInt32x4:
+      return NewExternalTypedData(T, kExternalTypedDataInt32x4ArrayCid, data,
+                                  length, peer, external_allocation_size,
+                                  callback, unmodifiable);
+    case Dart_TypedData_kFloat32x4:
+      return NewExternalTypedData(T, kExternalTypedDataFloat32x4ArrayCid, data,
+                                  length, peer, external_allocation_size,
+                                  callback, unmodifiable);
+    case Dart_TypedData_kFloat64x2:
+      return NewExternalTypedData(T, kExternalTypedDataFloat64x2ArrayCid, data,
+                                  length, peer, external_allocation_size,
+                                  callback, unmodifiable);
+    default:
+      return Api::NewError(
+          "%s expects argument 'type' to be of"
+          " 'external TypedData'",
+          CURRENT_FUNC);
+  }
+  UNREACHABLE();
+  return Api::Null();
+}
+
 DART_EXPORT Dart_Handle Dart_NewExternalTypedData(Dart_TypedData_Type type,
                                                   void* data,
                                                   intptr_t length) {
-  return Dart_NewExternalTypedDataWithFinalizer(type, data, length, NULL, 0,
-                                                NULL);
+  return NewExternalTypedDataWithFinalizer(type, data, length, NULL, 0, NULL,
+                                           false);
 }
 
 DART_EXPORT Dart_Handle
@@ -3921,79 +4042,20 @@ Dart_NewExternalTypedDataWithFinalizer(Dart_TypedData_Type type,
                                        void* peer,
                                        intptr_t external_allocation_size,
                                        Dart_HandleFinalizer callback) {
-  DARTSCOPE(Thread::Current());
-  if (data == NULL && length != 0) {
-    RETURN_NULL_ERROR(data);
-  }
-  CHECK_CALLBACK_STATE(T);
-  switch (type) {
-    case Dart_TypedData_kByteData:
-      return NewExternalByteData(T, data, length, peer,
-                                 external_allocation_size, callback);
-    case Dart_TypedData_kInt8:
-      return NewExternalTypedData(T, kExternalTypedDataInt8ArrayCid, data,
-                                  length, peer, external_allocation_size,
-                                  callback);
-    case Dart_TypedData_kUint8:
-      return NewExternalTypedData(T, kExternalTypedDataUint8ArrayCid, data,
-                                  length, peer, external_allocation_size,
-                                  callback);
-    case Dart_TypedData_kUint8Clamped:
-      return NewExternalTypedData(T, kExternalTypedDataUint8ClampedArrayCid,
-                                  data, length, peer, external_allocation_size,
-                                  callback);
-    case Dart_TypedData_kInt16:
-      return NewExternalTypedData(T, kExternalTypedDataInt16ArrayCid, data,
-                                  length, peer, external_allocation_size,
-                                  callback);
-    case Dart_TypedData_kUint16:
-      return NewExternalTypedData(T, kExternalTypedDataUint16ArrayCid, data,
-                                  length, peer, external_allocation_size,
-                                  callback);
-    case Dart_TypedData_kInt32:
-      return NewExternalTypedData(T, kExternalTypedDataInt32ArrayCid, data,
-                                  length, peer, external_allocation_size,
-                                  callback);
-    case Dart_TypedData_kUint32:
-      return NewExternalTypedData(T, kExternalTypedDataUint32ArrayCid, data,
-                                  length, peer, external_allocation_size,
-                                  callback);
-    case Dart_TypedData_kInt64:
-      return NewExternalTypedData(T, kExternalTypedDataInt64ArrayCid, data,
-                                  length, peer, external_allocation_size,
-                                  callback);
-    case Dart_TypedData_kUint64:
-      return NewExternalTypedData(T, kExternalTypedDataUint64ArrayCid, data,
-                                  length, peer, external_allocation_size,
-                                  callback);
-    case Dart_TypedData_kFloat32:
-      return NewExternalTypedData(T, kExternalTypedDataFloat32ArrayCid, data,
-                                  length, peer, external_allocation_size,
-                                  callback);
-    case Dart_TypedData_kFloat64:
-      return NewExternalTypedData(T, kExternalTypedDataFloat64ArrayCid, data,
-                                  length, peer, external_allocation_size,
-                                  callback);
-    case Dart_TypedData_kInt32x4:
-      return NewExternalTypedData(T, kExternalTypedDataInt32x4ArrayCid, data,
-                                  length, peer, external_allocation_size,
-                                  callback);
-    case Dart_TypedData_kFloat32x4:
-      return NewExternalTypedData(T, kExternalTypedDataFloat32x4ArrayCid, data,
-                                  length, peer, external_allocation_size,
-                                  callback);
-    case Dart_TypedData_kFloat64x2:
-      return NewExternalTypedData(T, kExternalTypedDataFloat64x2ArrayCid, data,
-                                  length, peer, external_allocation_size,
-                                  callback);
-    default:
-      return Api::NewError(
-          "%s expects argument 'type' to be of"
-          " 'external TypedData'",
-          CURRENT_FUNC);
-  }
-  UNREACHABLE();
-  return Api::Null();
+  return NewExternalTypedDataWithFinalizer(
+      type, data, length, peer, external_allocation_size, callback, false);
+}
+
+DART_EXPORT Dart_Handle Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+    Dart_TypedData_Type type,
+    const void* data,
+    intptr_t length,
+    void* peer,
+    intptr_t external_allocation_size,
+    Dart_HandleFinalizer callback) {
+  return NewExternalTypedDataWithFinalizer(
+      type, const_cast<void*>(data), length, peer, external_allocation_size,
+      callback, true);
 }
 
 static ObjectPtr GetByteBufferConstructor(Thread* thread,
@@ -4078,7 +4140,8 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
   Isolate* I = T->isolate();
   intptr_t class_id = Api::ClassId(object);
   if (!IsExternalTypedDataClassId(class_id) &&
-      !IsTypedDataViewClassId(class_id) && !IsTypedDataClassId(class_id)) {
+      !IsTypedDataViewClassId(class_id) && !IsTypedDataClassId(class_id) &&
+      !IsUnmodifiableTypedDataViewClassId(class_id)) {
     RETURN_TYPE_ERROR(Z, object, 'TypedData');
   }
   if (type == NULL) {
@@ -4113,7 +4176,8 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
     size_in_bytes = length * TypedData::ElementSizeInBytes(class_id);
     data_tmp = obj.DataAddr(0);
   } else {
-    ASSERT(IsTypedDataViewClassId(class_id));
+    ASSERT(IsTypedDataViewClassId(class_id) ||
+           IsUnmodifiableTypedDataViewClassId(class_id));
     const auto& view_obj = Api::UnwrapTypedDataViewHandle(Z, object);
     ASSERT(!view_obj.IsNull());
     Smi& val = Smi::Handle();
@@ -4174,7 +4238,8 @@ DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object) {
   Isolate* I = T->isolate();
   intptr_t class_id = Api::ClassId(object);
   if (!IsExternalTypedDataClassId(class_id) &&
-      !IsTypedDataViewClassId(class_id) && !IsTypedDataClassId(class_id)) {
+      !IsTypedDataViewClassId(class_id) && !IsTypedDataClassId(class_id) &&
+      !IsUnmodifiableTypedDataViewClassId(class_id)) {
     RETURN_TYPE_ERROR(Z, object, 'TypedData');
   }
   if (FLAG_verify_acquired_data) {
@@ -5503,8 +5568,10 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
   // is not correct because main can be in the exported namespace of a library
   // or it could be a getter.
   if (tmp.IsNull()) {
-    return Api::NewError("%s: The binary program does not contain 'main'.",
-                         CURRENT_FUNC);
+    return Api::NewError(
+        "Invoked Dart programs must have a 'main' function defined:\n"
+        "https://dart.dev/guides/language/"
+        "language-tour#a-basic-dart-program");
   }
   library ^= tmp.ptr();
   IG->object_store()->set_root_library(library);
@@ -6359,10 +6426,10 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
   if (event != NULL) {
     switch (type) {
       case Dart_Timeline_Event_Begin:
-        event->Begin(label, timestamp0);
+        event->Begin(label, timestamp1_or_async_id, timestamp0);
         break;
       case Dart_Timeline_Event_End:
-        event->End(label, timestamp0);
+        event->End(label, timestamp1_or_async_id, timestamp0);
         break;
       case Dart_Timeline_Event_Instant:
         event->Instant(label, timestamp0);
@@ -6401,6 +6468,13 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
     event->Complete();
   }
   Dart::ResetActiveApiCall();
+#endif
+}
+
+DART_EXPORT void Dart_SetTimelineRecorderCallback(
+    Dart_TimelineRecorderCallback callback) {
+#if defined(SUPPORT_TIMELINE)
+  Timeline::set_callback(callback);
 #endif
 }
 

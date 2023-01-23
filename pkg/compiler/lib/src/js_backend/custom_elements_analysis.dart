@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import '../common/elements.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
@@ -71,7 +69,7 @@ abstract class CustomElementsAnalysisBase {
   }
 
   void registerStaticUse(MemberEntity element) {
-    assert(element != null);
+    assert((element as dynamic) != null); // TODO(48820): Remove.
     if (_commonElements.isFindIndexForNativeSubclassType(element)) {
       join.demanded = true;
     }
@@ -86,14 +84,13 @@ class CustomElementsResolutionAnalysis extends CustomElementsAnalysisBase {
   final CustomElementsAnalysisJoin join;
 
   CustomElementsResolutionAnalysis(
-      ElementEnvironment elementEnvironment,
-      CommonElements commonElements,
-      NativeBasicData nativeData,
+      super.elementEnvironment,
+      super.commonElements,
+      super.nativeData,
       BackendUsageBuilder backendUsageBuilder)
       : join = CustomElementsAnalysisJoin(
             elementEnvironment, commonElements, nativeData,
-            backendUsageBuilder: backendUsageBuilder),
-        super(elementEnvironment, commonElements, nativeData) {
+            backendUsageBuilder: backendUsageBuilder) {
     // TODO(sra): Remove this work-around.  We should mark allClassesSelected in
     // both joins only when we see a construct generating an unknown [Type] but
     // we can't currently recognize all cases.  In particular, the work-around
@@ -151,9 +148,7 @@ class CustomElementsAnalysisJoin {
   final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
   final NativeBasicData _nativeData;
-  final BackendUsageBuilder _backendUsageBuilder;
-
-  final bool forResolution;
+  final BackendUsageBuilder? _backendUsageBuilder;
 
   // Classes that are candidates for needing constructors.  Classes are moved to
   // [activeClasses] when we know they need constructors.
@@ -173,9 +168,8 @@ class CustomElementsAnalysisJoin {
 
   CustomElementsAnalysisJoin(
       this._elementEnvironment, this._commonElements, this._nativeData,
-      {BackendUsageBuilder backendUsageBuilder})
-      : this._backendUsageBuilder = backendUsageBuilder,
-        this.forResolution = backendUsageBuilder != null;
+      {BackendUsageBuilder? backendUsageBuilder})
+      : this._backendUsageBuilder = backendUsageBuilder;
 
   WorldImpact flush() {
     if (!demanded) return const WorldImpact();
@@ -196,13 +190,13 @@ class CustomElementsAnalysisJoin {
           impactBuilder.registerStaticUse(
               StaticUse.constructorInvoke(constructor, CallStructure.NO_ARGS));
         }
-        if (forResolution) {
+        if (_backendUsageBuilder != null) {
           escapingConstructors
-              .forEach(_backendUsageBuilder.registerGlobalFunctionDependency);
+              .forEach(_backendUsageBuilder!.registerGlobalFunctionDependency);
         }
         // Force the generation of the type constant that is the key to an entry
         // in the generated table.
-        ConstantValue constant = _makeTypeConstant(cls);
+        final constant = _makeTypeConstant(cls);
         impactBuilder.registerConstantUse(ConstantUse.customElements(constant));
       }
     }

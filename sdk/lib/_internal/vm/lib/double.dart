@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "core_patch.dart";
+part of "core_patch.dart";
 
 @pragma("vm:entry-point")
 class _Double implements double {
@@ -11,12 +11,9 @@ class _Double implements double {
   @pragma("vm:external-name", "Double_doubleFromInteger")
   external factory _Double.fromInteger(int value);
 
-  @pragma("vm:recognized", "asm-intrinsic")
-  @pragma("vm:external-name", "Double_hashCode")
+  @pragma("vm:recognized", "other")
   external int get hashCode;
-  @pragma("vm:recognized", "asm-intrinsic")
-  @pragma("vm:external-name", "Double_hashCode")
-  external int get _identityHashCode;
+  int get _identityHashCode => hashCode;
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", _Double)

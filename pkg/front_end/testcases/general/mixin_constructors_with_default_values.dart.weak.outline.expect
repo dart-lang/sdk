@@ -2,9 +2,9 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/mixin_constructors_with_default_values.dart:9:15: Error: Type variables can't be used in static members.
-//   C({a: 0, b: T}) : trace = "a: $a, b: $b";
-//               ^
+// pkg/front_end/testcases/general/mixin_constructors_with_default_values.dart:9:17: Error: Type variables can't be used in static members.
+//   C({a = 0, b = T}) : trace = "a: $a, b: $b";
+//                 ^
 //
 import self as self;
 import "dart:core" as core;
@@ -43,7 +43,7 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: TypeLiteral @ org-dartlang-testcase:///mixin_constructors_with_default_values.dart:9:15 -> TypeLiteralConstant(<invalid>)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///mixin_constructors_with_default_values.dart:9:17 -> TypeLiteralConstant(<invalid>)
 Evaluated: TypeLiteral @ org-dartlang-testcase:///mixin_constructors_with_default_values.dart:14:7 -> TypeLiteralConstant(<invalid>)
 Evaluated: TypeLiteral @ org-dartlang-testcase:///mixin_constructors_with_default_values.dart:18:7 -> TypeLiteralConstant(<invalid>)
 Extra constant evaluation: evaluated: 7, effectively constant: 3

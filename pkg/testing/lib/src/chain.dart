@@ -342,7 +342,7 @@ abstract class Step<I, O, C extends ChainContext> {
   /// the next step is executed by the now-ending step.
   ///
   /// When isAsync is false each step returns a future which is awaited,
-  /// effectivly meaning that only a single test is run at a time.
+  /// effectively meaning that only a single test is run at a time.
   ///
   /// When isAsync is true that step doesn't return a future (but adds it's
   /// future to a list which is awaited before sending an 'entire suite done'

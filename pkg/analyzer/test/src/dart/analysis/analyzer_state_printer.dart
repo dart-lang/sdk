@@ -23,6 +23,7 @@ class AnalyzerStatePrinter {
   final bool withKeysGetPut;
 
   String _indent = '';
+  final Set<LibraryCycle> _libraryCyclesWithWrittenDetails = Set.identity();
 
   AnalyzerStatePrinter({
     required this.byteStore,
@@ -92,12 +93,12 @@ class AnalyzerStatePrinter {
     _indent = indent;
   }
 
-  void _writeAugmentations(LibraryOrAugmentationFileKind container) {
-    _writeElements<ImportAugmentationDirectiveState>(
-      'augmentations',
-      container.augmentations,
+  void _writeAugmentationImports(LibraryOrAugmentationFileKind container) {
+    _writeElements<AugmentationImportState>(
+      'augmentationImports',
+      container.augmentationImports,
       (import) {
-        if (import is ImportAugmentationDirectiveWithFile) {
+        if (import is AugmentationImportWithFile) {
           expect(import.container, same(container));
           final file = import.importedFile;
           sink.write(_indent);
@@ -105,16 +106,18 @@ class AnalyzerStatePrinter {
           final importedAugmentation = import.importedAugmentation;
           if (importedAugmentation != null) {
             expect(importedAugmentation.file, file);
-            sink.write(idProvider.fileStateKind(importedAugmentation));
+            sink.write(idProvider.fileKind(importedAugmentation));
           } else {
             sink.write('notAugmentation ${idProvider.fileState(file)}');
           }
           sink.writeln();
-        } else if (import is ImportAugmentationWithUri) {
+        } else if (import is AugmentationImportWithUri) {
+          _writelnWithIndent('uri: ${import.uri.relativeUri}');
+        } else if (import is AugmentationImportWithUriStr) {
           final uriStr = _stringOfUriStr(import.uri.relativeUriStr);
-          _writelnWithIndent('uri: $uriStr');
+          _writelnWithIndent('uriStr: $uriStr');
         } else {
-          _writelnWithIndent('noUri');
+          _writelnWithIndent('noUriStr');
         }
       },
     );
@@ -170,115 +173,16 @@ class AnalyzerStatePrinter {
     });
   }
 
-  void _writeFileExports(LibraryOrAugmentationFileKind container) {
-    _writeElements<ExportDirectiveState>(
-      'exports',
-      container.exports,
-      (export) {
-        if (export is ExportDirectiveWithFile) {
-          expect(export.container, same(container));
-          final file = export.exportedFile;
-          sink.write(_indent);
-
-          final exportedLibrary = export.exportedLibrary;
-          if (exportedLibrary != null) {
-            expect(exportedLibrary.file, file);
-            sink.write(idProvider.fileStateKind(exportedLibrary));
-          } else {
-            sink.write('notLibrary ${idProvider.fileState(file)}');
-          }
-
-          if (omitSdkFiles && file.uri.isScheme('dart')) {
-            sink.write(' ${file.uri}');
-          }
-          sink.writeln();
-        } else if (export is ExportDirectiveWithInSummarySource) {
-          sink.write(_indent);
-          sink.write('inSummary ${export.exportedSource.uri}');
-
-          final librarySource = export.exportedLibrarySource;
-          if (librarySource != null) {
-            expect(librarySource, same(export.exportedSource));
-          } else {
-            sink.write(' notLibrary');
-          }
-          sink.writeln();
-        } else if (export is ExportDirectiveWithUri) {
-          final uriStr = _stringOfUriStr(export.selectedUri.relativeUriStr);
-          _writelnWithIndent('uri: $uriStr');
-        } else {
-          _writelnWithIndent('noUri');
-        }
-      },
-    );
-  }
-
-  void _writeFileImports(LibraryOrAugmentationFileKind container) {
-    _writeElements<ImportDirectiveState>(
-      'imports',
-      container.imports,
-      (import) {
-        if (import is ImportDirectiveWithFile) {
-          expect(import.container, same(container));
-          final file = import.importedFile;
-          sink.write(_indent);
-
-          final importedLibrary = import.importedLibrary;
-          if (importedLibrary != null) {
-            expect(importedLibrary.file, file);
-            sink.write(idProvider.fileStateKind(importedLibrary));
-          } else {
-            sink.write('notLibrary ${idProvider.fileState(file)}');
-          }
-
-          if (omitSdkFiles && file.uri.isScheme('dart')) {
-            sink.write(' ${file.uri}');
-          }
-
-          if (import.isSyntheticDartCoreImport) {
-            sink.write(' synthetic');
-          }
-          sink.writeln();
-        } else if (import is ImportDirectiveWithInSummarySource) {
-          sink.write(_indent);
-          sink.write('inSummary ${import.importedSource.uri}');
-
-          final librarySource = import.importedLibrarySource;
-          if (librarySource != null) {
-            expect(librarySource, same(import.importedSource));
-          } else {
-            sink.write(' notLibrary');
-          }
-
-          if (import.isSyntheticDartCoreImport) {
-            sink.write(' synthetic');
-          }
-          sink.writeln();
-        } else if (import is ImportDirectiveWithUri) {
-          final uriStr = _stringOfUriStr(import.selectedUri.relativeUriStr);
-          sink.write(_indent);
-          sink.write('uri: $uriStr');
-          if (import.isSyntheticDartCoreImport) {
-            sink.write(' synthetic');
-          }
-          sink.writeln();
-        } else {
-          _writelnWithIndent('noUri');
-        }
-      },
-    );
-  }
-
   void _writeFileKind(FileState file) {
     final kind = file.kind;
     expect(kind.file, same(file));
 
-    _writelnWithIndent('kind: ${idProvider.fileStateKind(kind)}');
-    if (kind is AugmentationKnownFileStateKind) {
+    _writelnWithIndent('kind: ${idProvider.fileKind(kind)}');
+    if (kind is AugmentationKnownFileKind) {
       _withIndent(() {
         final augmented = kind.augmented;
         if (augmented != null) {
-          final id = idProvider.fileStateKind(augmented);
+          final id = idProvider.fileKind(augmented);
           _writelnWithIndent('augmented: $id');
         } else {
           final id = idProvider.fileState(kind.uriFile);
@@ -287,19 +191,19 @@ class AnalyzerStatePrinter {
 
         final library = kind.library;
         if (library != null) {
-          final id = idProvider.fileStateKind(library);
+          final id = idProvider.fileKind(library);
           _writelnWithIndent('library: $id');
         }
 
-        _writeFileImports(kind);
-        _writeFileExports(kind);
-        _writeAugmentations(kind);
+        _writeLibraryImports(kind);
+        _writeLibraryExports(kind);
+        _writeAugmentationImports(kind);
       });
-    } else if (kind is AugmentationUnknownFileStateKind) {
+    } else if (kind is AugmentationUnknownFileKind) {
       _withIndent(() {
-        _writelnWithIndent('uri: ${kind.directive.uri}');
+        _writelnWithIndent('uri: ${kind.unlinked.uri}');
       });
-    } else if (kind is LibraryFileStateKind) {
+    } else if (kind is LibraryFileKind) {
       expect(kind.library, same(kind));
 
       _withIndent(() {
@@ -308,18 +212,18 @@ class AnalyzerStatePrinter {
           _writelnWithIndent('name: $name');
         }
 
-        _writeFileImports(kind);
-        _writeFileExports(kind);
+        _writeLibraryImports(kind);
+        _writeLibraryExports(kind);
+        _writeAugmentationImports(kind);
         _writeLibraryParts(kind);
-        _writeAugmentations(kind);
         _writeLibraryCycle(kind);
       });
-    } else if (kind is PartOfNameFileStateKind) {
+    } else if (kind is PartOfNameFileKind) {
       _withIndent(() {
         final libraries = kind.libraries;
         if (libraries.isNotEmpty) {
           final keys = libraries
-              .map(idProvider.fileStateKind)
+              .map(idProvider.fileKind)
               .sorted(compareNatural)
               .join(' ');
           _writelnWithIndent('libraries: $keys');
@@ -327,26 +231,26 @@ class AnalyzerStatePrinter {
 
         final library = kind.library;
         if (library != null) {
-          final id = idProvider.fileStateKind(library);
+          final id = idProvider.fileKind(library);
           _writelnWithIndent('library: $id');
         } else {
-          _writelnWithIndent('name: ${kind.directive.name}');
+          _writelnWithIndent('name: ${kind.unlinked.name}');
         }
       });
-    } else if (kind is PartOfUriKnownFileStateKind) {
+    } else if (kind is PartOfUriKnownFileKind) {
       _withIndent(() {
         final library = kind.library;
         if (library != null) {
-          final id = idProvider.fileStateKind(library);
+          final id = idProvider.fileKind(library);
           _writelnWithIndent('library: $id');
         } else {
           final id = idProvider.fileState(kind.uriFile);
           _writelnWithIndent('uriFile: $id');
         }
       });
-    } else if (kind is PartOfUriUnknownFileStateKind) {
+    } else if (kind is PartOfUriUnknownFileKind) {
       _withIndent(() {
-        _writelnWithIndent('uri: ${kind.directive.uri}');
+        _writelnWithIndent('uri: ${kind.unlinked.uri}');
         expect(kind.library, isNull);
       });
     } else {
@@ -363,7 +267,7 @@ class AnalyzerStatePrinter {
       final current = fileSystemState.getExisting(fileData.file);
       if (current != null) {
         final kind = current.kind;
-        if (kind is PartOfNameFileStateKind) {
+        if (kind is PartOfNameFileKind) {
           kind.discoverLibraries();
         }
       }
@@ -415,8 +319,8 @@ class AnalyzerStatePrinter {
       if (current != null) {
         idProvider.registerFileState(current);
         final kind = current.kind;
-        idProvider.registerFileStateKind(kind);
-        if (kind is LibraryFileStateKind) {
+        idProvider.registerFileKind(kind);
+        if (kind is LibraryFileKind) {
           idProvider.registerLibraryCycle(kind.libraryCycle);
         }
       }
@@ -506,9 +410,14 @@ class AnalyzerStatePrinter {
     });
   }
 
-  void _writeLibraryCycle(LibraryFileStateKind library) {
+  void _writeLibraryCycle(LibraryFileKind library) {
     final cycle = library.libraryCycle;
     _writelnWithIndent(idProvider.libraryCycle(cycle));
+
+    if (!_libraryCyclesWithWrittenDetails.add(cycle)) {
+      return;
+    }
+
     _withIndent(() {
       final dependencyIds = cycle.directDependencies
           .map(_stringOfLibraryCycle)
@@ -521,7 +430,7 @@ class AnalyzerStatePrinter {
       }
 
       final libraryIds = cycle.libraries
-          .map(idProvider.fileStateKind)
+          .map(idProvider.fileKind)
           .sorted(compareNatural)
           .join(' ');
       _writelnWithIndent('libraries: $libraryIds');
@@ -538,22 +447,130 @@ class AnalyzerStatePrinter {
     });
   }
 
-  void _writeLibraryParts(LibraryFileStateKind library) {
-    _writeElements<PartDirectiveState>('parts', library.parts, (part) {
+  void _writeLibraryExports(LibraryOrAugmentationFileKind container) {
+    _writeElements<LibraryExportState>(
+      'libraryExports',
+      container.libraryExports,
+      (export) {
+        if (export is LibraryExportWithFile) {
+          expect(export.container, same(container));
+          final file = export.exportedFile;
+          sink.write(_indent);
+
+          final exportedLibrary = export.exportedLibrary;
+          if (exportedLibrary != null) {
+            expect(exportedLibrary.file, file);
+            sink.write(idProvider.fileKind(exportedLibrary));
+          } else {
+            sink.write('notLibrary ${idProvider.fileState(file)}');
+          }
+
+          if (omitSdkFiles && file.uri.isScheme('dart')) {
+            sink.write(' ${file.uri}');
+          }
+          sink.writeln();
+        } else if (export is LibraryExportWithInSummarySource) {
+          sink.write(_indent);
+          sink.write('inSummary ${export.exportedSource.uri}');
+
+          final librarySource = export.exportedLibrarySource;
+          if (librarySource != null) {
+            expect(librarySource, same(export.exportedSource));
+          } else {
+            sink.write(' notLibrary');
+          }
+          sink.writeln();
+        } else if (export is LibraryExportWithUri) {
+          _writelnWithIndent('uri: ${export.selectedUri.relativeUri}');
+        } else if (export is LibraryExportWithUriStr) {
+          final uriStr = _stringOfUriStr(export.selectedUri.relativeUriStr);
+          _writelnWithIndent('uriStr: $uriStr');
+        } else {
+          _writelnWithIndent('noUriStr');
+        }
+      },
+    );
+  }
+
+  void _writeLibraryImports(LibraryOrAugmentationFileKind container) {
+    _writeElements<LibraryImportState>(
+      'libraryImports',
+      container.libraryImports,
+      (import) {
+        if (import is LibraryImportWithFile) {
+          expect(import.container, same(container));
+          final file = import.importedFile;
+          sink.write(_indent);
+
+          final importedLibrary = import.importedLibrary;
+          if (importedLibrary != null) {
+            expect(importedLibrary.file, file);
+            sink.write(idProvider.fileKind(importedLibrary));
+          } else {
+            sink.write('notLibrary ${idProvider.fileState(file)}');
+          }
+
+          if (omitSdkFiles && file.uri.isScheme('dart')) {
+            sink.write(' ${file.uri}');
+          }
+
+          if (import.isSyntheticDartCore) {
+            sink.write(' synthetic');
+          }
+          sink.writeln();
+        } else if (import is LibraryImportWithInSummarySource) {
+          sink.write(_indent);
+          sink.write('inSummary ${import.importedSource.uri}');
+
+          final librarySource = import.importedLibrarySource;
+          if (librarySource != null) {
+            expect(librarySource, same(import.importedSource));
+          } else {
+            sink.write(' notLibrary');
+          }
+
+          if (import.isSyntheticDartCore) {
+            sink.write(' synthetic');
+          }
+          sink.writeln();
+        } else if (import is LibraryImportWithUri) {
+          sink.write(_indent);
+          sink.write('uri: ${import.selectedUri.relativeUri}');
+          if (import.isSyntheticDartCore) {
+            sink.write(' synthetic');
+          }
+          sink.writeln();
+        } else if (import is LibraryImportWithUriStr) {
+          final uriStr = _stringOfUriStr(import.selectedUri.relativeUriStr);
+          sink.write(_indent);
+          sink.write('uriStr: $uriStr');
+          if (import.isSyntheticDartCore) {
+            sink.write(' synthetic');
+          }
+          sink.writeln();
+        } else {
+          _writelnWithIndent('noUriStr');
+        }
+      },
+    );
+  }
+
+  void _writeLibraryParts(LibraryFileKind library) {
+    _writeElements<PartState>('parts', library.parts, (part) {
       expect(part.library, same(library));
-      if (part is PartDirectiveWithFile) {
+      if (part is PartWithFile) {
         final file = part.includedFile;
         sink.write(_indent);
 
         final includedPart = part.includedPart;
         if (includedPart != null) {
           expect(includedPart.file, file);
-          sink.write(idProvider.fileStateKind(includedPart));
+          sink.write(idProvider.fileKind(includedPart));
         } else {
           sink.write('notPart ${idProvider.fileState(file)}');
         }
         sink.writeln();
-      } else if (part is PartDirectiveWithUri) {
+      } else if (part is PartWithUri) {
         final uriStr = _stringOfUriStr(part.uri.relativeUriStr);
         _writelnWithIndent('uri: $uriStr');
       } else {
@@ -603,18 +620,41 @@ class AnalyzerStatePrinter {
 class IdProvider {
   final Map<FileState, String> _fileState = Map.identity();
   final Map<LibraryCycle, String> _libraryCycle = Map.identity();
-  final Map<FileStateKind, String> _fileStateKind = Map.identity();
+  final Map<FileKind, String> _fileKind = Map.identity();
   final Map<String, String> _keyToShort = {};
   final Map<String, String> _shortToKey = {};
   final Map<String, String> _apiSignature = {};
 
   Set<FileState> _currentFiles = {};
-  Set<FileStateKind> _currentKinds = {};
+  Set<FileKind> _currentFileKinds = {};
   Set<LibraryCycle> _currentCycles = {};
 
   String apiSignature(String signature) {
     final length = _apiSignature.length;
     return _apiSignature[signature] ??= 'apiSignature_$length';
+  }
+
+  String fileKind(FileKind kind) {
+    if (!_currentFileKinds.contains(kind)) {
+      throw StateError('$kind');
+    }
+    return _fileKind[kind] ??= () {
+      if (kind is AugmentationKnownFileKind) {
+        return 'augmentation_${_fileKind.length}';
+      } else if (kind is AugmentationUnknownFileKind) {
+        return 'augmentationUnknown_${_fileKind.length}';
+      } else if (kind is LibraryFileKind) {
+        return 'library_${_fileKind.length}';
+      } else if (kind is PartOfNameFileKind) {
+        return 'partOfName_${_fileKind.length}';
+      } else if (kind is PartOfUriKnownFileKind) {
+        return 'partOfUriKnown_${_fileKind.length}';
+      } else if (kind is PartFileKind) {
+        return 'partOfUriUnknown_${_fileKind.length}';
+      } else {
+        throw UnimplementedError('${kind.runtimeType}');
+      }
+    }();
   }
 
   String fileState(FileState file) {
@@ -624,34 +664,20 @@ class IdProvider {
     return _fileState[file] ??= 'file_${_fileState.length}';
   }
 
-  String fileStateKind(FileStateKind kind) {
-    if (!_currentKinds.contains(kind)) {
-      throw StateError('$kind');
-    }
-    return _fileStateKind[kind] ??= () {
-      if (kind is AugmentationKnownFileStateKind) {
-        return 'augmentation_${_fileStateKind.length}';
-      } else if (kind is AugmentationUnknownFileStateKind) {
-        return 'augmentationUnknown_${_fileStateKind.length}';
-      } else if (kind is LibraryFileStateKind) {
-        return 'library_${_fileStateKind.length}';
-      } else if (kind is PartOfNameFileStateKind) {
-        return 'partOfName_${_fileStateKind.length}';
-      } else if (kind is PartOfUriKnownFileStateKind) {
-        return 'partOfUriKnown_${_fileStateKind.length}';
-      } else if (kind is PartFileStateKind) {
-        return 'partOfUriUnknown_${_fileStateKind.length}';
-      } else {
-        throw UnimplementedError('${kind.runtimeType}');
-      }
-    }();
-  }
-
   String libraryCycle(LibraryCycle cycle) {
     if (!_currentCycles.contains(cycle)) {
       throw StateError('$cycle');
     }
     return _libraryCycle[cycle] ??= 'cycle_${_libraryCycle.length}';
+  }
+
+  /// Register that [kind] is an object that can be referenced.
+  void registerFileKind(FileKind kind) {
+    if (_currentFileKinds.contains(kind)) {
+      throw StateError('Duplicate: $kind');
+    }
+    _currentFileKinds.add(kind);
+    fileKind(kind);
   }
 
   /// Register that [file] is an object that can be referenced.
@@ -663,15 +689,6 @@ class IdProvider {
     fileState(file);
   }
 
-  /// Register that [kind] is an object that can be referenced.
-  void registerFileStateKind(FileStateKind kind) {
-    if (_currentKinds.contains(kind)) {
-      throw StateError('Duplicate: $kind');
-    }
-    _currentKinds.add(kind);
-    fileStateKind(kind);
-  }
-
   /// Register that [cycle] is an object that can be referenced.
   void registerLibraryCycle(LibraryCycle cycle) {
     _currentCycles.add(cycle);
@@ -680,7 +697,7 @@ class IdProvider {
 
   void resetRegisteredObject() {
     _currentFiles = {};
-    _currentKinds = {};
+    _currentFileKinds = {};
     _currentCycles = {};
   }
 

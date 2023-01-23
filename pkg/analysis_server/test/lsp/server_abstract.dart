@@ -5,9 +5,9 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/analytics/noop_analytics.dart';
+import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
@@ -167,7 +167,7 @@ abstract class AbstractLspAnalysisServerTest
   @override
   Future sendNotificationToServer(NotificationMessage notification) async {
     channel.sendNotificationToServer(notification);
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
   }
 
   @override
@@ -299,8 +299,10 @@ mixin ClientCapabilitiesHelperMixin {
     // the fields listed in `ClientDynamicRegistrations.supported`.
     return extendTextDocumentCapabilities(source, {
       'synchronization': {'dynamicRegistration': true},
+      'callHierarchy': {'dynamicRegistration': true},
       'completion': {'dynamicRegistration': true},
       'hover': {'dynamicRegistration': true},
+      'inlayHint': {'dynamicRegistration': true},
       'signatureHelp': {'dynamicRegistration': true},
       'references': {'dynamicRegistration': true},
       'documentHighlight': {'dynamicRegistration': true},
@@ -323,6 +325,7 @@ mixin ClientCapabilitiesHelperMixin {
           tokenModifiers: [],
           tokenTypes: []).toJson(),
       'typeDefinition': {'dynamicRegistration': true},
+      'typeHierarchy': {'dynamicRegistration': true},
     });
   }
 
@@ -427,6 +430,19 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
+  TextDocumentClientCapabilities withCompletionListDefaults(
+    TextDocumentClientCapabilities source,
+    List<String> defaults,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'completion': {
+        'completionList': {
+          'itemDefaults': defaults,
+        }
+      }
+    });
+  }
+
   WorkspaceClientCapabilities withConfigurationSupport(
     WorkspaceClientCapabilities source,
   ) {
@@ -499,6 +515,32 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
+  TextDocumentClientCapabilities withGivenTextDocumentDynamicRegistrations(
+    TextDocumentClientCapabilities source,
+    String name,
+  ) {
+    final json = name == 'semanticTokens'
+        ? SemanticTokensClientCapabilities(
+            dynamicRegistration: true,
+            requests: SemanticTokensClientCapabilitiesRequests(),
+            formats: [],
+            tokenModifiers: [],
+            tokenTypes: []).toJson()
+        : {'dynamicRegistration': true};
+    return extendTextDocumentCapabilities(source, {
+      name: json,
+    });
+  }
+
+  WorkspaceClientCapabilities withGivenWorkspaceDynamicRegistrations(
+    WorkspaceClientCapabilities source,
+    String name,
+  ) {
+    return extendWorkspaceCapabilities(source, {
+      name: {'dynamicRegistration': true},
+    });
+  }
+
   TextDocumentClientCapabilities withHierarchicalDocumentSymbolSupport(
     TextDocumentClientCapabilities source,
   ) {
@@ -521,6 +563,14 @@ mixin ClientCapabilitiesHelperMixin {
   ) {
     return extendTextDocumentCapabilities(source, {
       'hover': {'dynamicRegistration': true}
+    });
+  }
+
+  TextDocumentClientCapabilities withLineFoldingOnly(
+    TextDocumentClientCapabilities source,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'foldingRange': {'lineFoldingOnly': true},
     });
   }
 
@@ -697,10 +747,10 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   void applyChanges(
     Map<String, String> fileContents,
-    Map<String, List<TextEdit>> changes,
+    Map<Uri, List<TextEdit>> changes,
   ) {
     changes.forEach((fileUri, edits) {
-      final path = Uri.parse(fileUri).toFilePath();
+      final path = fileUri.toFilePath();
       fileContents[path] = applyTextEdits(fileContents[path]!, edits);
     });
   }
@@ -735,7 +785,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   void applyResourceCreate(
       Map<String, String> oldFileContent, CreateFile create) {
-    final path = Uri.parse(create.uri).toFilePath();
+    final path = create.uri.toFilePath();
     if (oldFileContent.containsKey(path)) {
       throw 'Received create instruction for $path which already existed.';
     }
@@ -744,8 +794,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   void applyResourceRename(
       Map<String, String> oldFileContent, RenameFile rename) {
-    final oldPath = Uri.parse(rename.oldUri).toFilePath();
-    final newPath = Uri.parse(rename.newUri).toFilePath();
+    final oldPath = rename.oldUri.toFilePath();
+    final newPath = rename.newUri.toFilePath();
     if (!oldFileContent.containsKey(oldPath)) {
       throw 'Received rename instruction for $oldPath which did not exist.';
     }
@@ -760,7 +810,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   void applyTextDocumentEdits(
       Map<String, String> oldFileContent, List<TextDocumentEdit> edits) {
     for (var edit in edits) {
-      final path = Uri.parse(edit.textDocument.uri).toFilePath();
+      final path = edit.textDocument.uri.toFilePath();
       if (!oldFileContent.containsKey(path)) {
         throw 'Received edits for $path which was not provided as a file to be edited. '
             'Perhaps a CreateFile change was missing from the edits?';
@@ -840,6 +890,26 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return newContent;
   }
 
+  Future<List<CallHierarchyIncomingCall>?> callHierarchyIncoming(
+      CallHierarchyItem item) {
+    final request = makeRequest(
+      Method.callHierarchy_incomingCalls,
+      CallHierarchyIncomingCallsParams(item: item),
+    );
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(CallHierarchyIncomingCall.fromJson));
+  }
+
+  Future<List<CallHierarchyOutgoingCall>?> callHierarchyOutgoing(
+      CallHierarchyItem item) {
+    final request = makeRequest(
+      Method.callHierarchy_outgoingCalls,
+      CallHierarchyOutgoingCallsParams(item: item),
+    );
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(CallHierarchyOutgoingCall.fromJson));
+  }
+
   Future changeFile(
     int newVersion,
     Uri uri,
@@ -848,8 +918,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     var notification = makeNotification(
       Method.textDocument_didChange,
       DidChangeTextDocumentParams(
-        textDocument: VersionedTextDocumentIdentifier(
-            version: newVersion, uri: uri.toString()),
+        textDocument:
+            VersionedTextDocumentIdentifier(version: newVersion, uri: uri),
         contentChanges: changes,
       ),
     );
@@ -873,10 +943,16 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     var notification = makeNotification(
       Method.textDocument_didClose,
       DidCloseTextDocumentParams(
-          textDocument: TextDocumentIdentifier(uri: uri.toString())),
+          textDocument: TextDocumentIdentifier(uri: uri)),
     );
     await sendNotificationToServer(notification);
   }
+
+  /// Gets the entire range for [code].
+  Range entireRange(String code) => Range(
+        start: startOfDocPos,
+        end: positionFromOffset(code.length, code),
+      );
 
   Future<Object?> executeCodeAction(
       Either2<Command, CodeAction> codeAction) async {
@@ -911,7 +987,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     TextDocumentEdit edit,
     Map<String, int> expectedVersions,
   ) {
-    final path = Uri.parse(edit.textDocument.uri).toFilePath();
+    final path = edit.textDocument.uri.toFilePath();
     final expectedVersion = expectedVersions[path];
 
     expect(edit.textDocument.version, equals(expectedVersion));
@@ -983,7 +1059,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   Future<T> expectSuccessfulResponseTo<T, R>(
       RequestMessage request, T Function(R) fromJson);
 
-  Future<List<TextEdit>?> formatDocument(String fileUri) {
+  Future<List<TextEdit>?> formatDocument(Uri fileUri) {
     final request = makeRequest(
       Method.textDocument_formatting,
       DocumentFormattingParams(
@@ -998,7 +1074,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   }
 
   Future<List<TextEdit>?> formatOnType(
-      String fileUri, Position pos, String character) {
+      Uri fileUri, Position pos, String character) {
     final request = makeRequest(
       Method.textDocument_onTypeFormatting,
       DocumentOnTypeFormattingParams(
@@ -1014,7 +1090,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         request, _fromJsonList(TextEdit.fromJson));
   }
 
-  Future<List<TextEdit>?> formatRange(String fileUri, Range range) {
+  Future<List<TextEdit>?> formatRange(Uri fileUri, Range range) {
     final request = makeRequest(
       Method.textDocument_rangeFormatting,
       DocumentRangeFormattingParams(
@@ -1030,7 +1106,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   }
 
   Future<List<Either2<Command, CodeAction>>> getCodeActions(
-    String fileUri, {
+    Uri fileUri, {
     Range? range,
     Position? position,
     List<CodeActionKind>? kinds,
@@ -1062,7 +1138,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   }
 
   Future<List<ColorPresentation>> getColorPresentation(
-      String fileUri, Range range, Color color) {
+      Uri fileUri, Range range, Color color) {
     final request = makeRequest(
       Method.textDocument_colorPresentation,
       ColorPresentationParams(
@@ -1089,7 +1165,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       Method.textDocument_completion,
       CompletionParams(
         context: context,
-        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        textDocument: TextDocumentIdentifier(uri: uri),
         position: pos,
       ),
     );
@@ -1101,7 +1177,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       Method.textDocument_definition,
       TextDocumentPositionParams(
-        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        textDocument: TextDocumentIdentifier(uri: uri),
         position: pos,
       ),
     );
@@ -1140,7 +1216,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return expectSuccessfulResponseTo(request, DartDiagnosticServer.fromJson);
   }
 
-  Future<List<ColorInformation>> getDocumentColors(String fileUri) {
+  Future<List<ColorInformation>> getDocumentColors(Uri fileUri) {
     final request = makeRequest(
       Method.textDocument_documentColor,
       DocumentColorParams(
@@ -1158,7 +1234,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       Method.textDocument_documentHighlight,
       TextDocumentPositionParams(
-        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        textDocument: TextDocumentIdentifier(uri: uri),
         position: pos,
       ),
     );
@@ -1171,7 +1247,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       Method.textDocument_documentSymbol,
       DocumentSymbolParams(
-        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        textDocument: TextDocumentIdentifier(uri: uri),
       ),
     );
     return expectSuccessfulResponseTo(
@@ -1184,11 +1260,11 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     );
   }
 
-  Future<List<FoldingRange>> getFoldingRegions(Uri uri) {
+  Future<List<FoldingRange>> getFoldingRanges(Uri uri) {
     final request = makeRequest(
       Method.textDocument_foldingRange,
       FoldingRangeParams(
-        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        textDocument: TextDocumentIdentifier(uri: uri),
       ),
     );
     return expectSuccessfulResponseTo(
@@ -1199,8 +1275,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       Method.textDocument_hover,
       TextDocumentPositionParams(
-          textDocument: TextDocumentIdentifier(uri: uri.toString()),
-          position: pos),
+          textDocument: TextDocumentIdentifier(uri: uri), position: pos),
     );
     return expectSuccessfulResponseTo(request, Hover.fromJson);
   }
@@ -1213,12 +1288,24 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       Method.textDocument_implementation,
       TextDocumentPositionParams(
-        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        textDocument: TextDocumentIdentifier(uri: uri),
         position: pos,
       ),
     );
     return expectSuccessfulResponseTo(
         request, _fromJsonList(Location.fromJson));
+  }
+
+  Future<List<InlayHint>> getInlayHints(Uri uri, Range range) {
+    final request = makeRequest(
+      Method.textDocument_inlayHint,
+      InlayHintParams(
+        textDocument: TextDocumentIdentifier(uri: uri),
+        range: range,
+      ),
+    );
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(InlayHint.fromJson));
   }
 
   Future<List<Location>> getReferences(
@@ -1230,7 +1317,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       Method.textDocument_references,
       ReferenceParams(
         context: ReferenceContext(includeDeclaration: includeDeclarations),
-        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        textDocument: TextDocumentIdentifier(uri: uri),
         position: pos,
       ),
     );
@@ -1257,8 +1344,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       Method.textDocument_selectionRange,
       SelectionRangeParams(
-          textDocument: TextDocumentIdentifier(uri: uri.toString()),
-          positions: positions),
+          textDocument: TextDocumentIdentifier(uri: uri), positions: positions),
     );
     return expectSuccessfulResponseTo(
         request, _fromJsonList(SelectionRange.fromJson));
@@ -1268,7 +1354,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       Method.textDocument_semanticTokens_full,
       SemanticTokensParams(
-        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        textDocument: TextDocumentIdentifier(uri: uri),
       ),
     );
     return expectSuccessfulResponseTo(request, SemanticTokens.fromJson);
@@ -1278,7 +1364,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       Method.textDocument_semanticTokens_range,
       SemanticTokensRangeParams(
-        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        textDocument: TextDocumentIdentifier(uri: uri),
         range: range,
       ),
     );
@@ -1290,7 +1376,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       Method.textDocument_signatureHelp,
       SignatureHelpParams(
-        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        textDocument: TextDocumentIdentifier(uri: uri),
         position: pos,
         context: context,
       ),
@@ -1305,7 +1391,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       CustomMethods.super_,
       TextDocumentPositionParams(
-        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        textDocument: TextDocumentIdentifier(uri: uri),
         position: pos,
       ),
     );
@@ -1317,7 +1403,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       Method.textDocument_typeDefinition,
       TypeDefinitionParams(
-        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        textDocument: TextDocumentIdentifier(uri: uri),
         position: pos,
       ),
     );
@@ -1418,6 +1504,9 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       // error handler prevents that, though since the Future completed with
       // an error it will still be handled as such when the future is later
       // awaited.
+
+      // TODO: Fix this static error.
+      // ignore: body_might_complete_normally_catch_error
       outboundRequest.catchError((_) {});
     });
 
@@ -1492,7 +1581,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         Method.initialize,
         InitializeParams(
           rootPath: rootPath,
-          rootUri: rootUri?.toString(),
+          rootUri: rootUri,
           initializationOptions:
               initializationOptions ?? defaultInitializationOptions,
           capabilities: clientCapabilities,
@@ -1529,8 +1618,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   RequestMessage makeRenameRequest(
       int? version, Uri uri, Position pos, String newName) {
     final docIdentifier = version != null
-        ? VersionedTextDocumentIdentifier(version: version, uri: uri.toString())
-        : TextDocumentIdentifier(uri: uri.toString());
+        ? VersionedTextDocumentIdentifier(version: version, uri: uri)
+        : TextDocumentIdentifier(uri: uri);
     final request = makeRequest(
       Method.textDocument_rename,
       RenameParams(
@@ -1609,7 +1698,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       Method.textDocument_didOpen,
       DidOpenTextDocumentParams(
           textDocument: TextDocumentItem(
-              uri: uri.toString(),
+              uri: uri,
               languageId: dartLanguageId,
               version: version,
               text: content)),
@@ -1636,15 +1725,39 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return toPosition(lineInfo.getLocation(offset));
   }
 
+  Future<List<CallHierarchyItem>?> prepareCallHierarchy(Uri uri, Position pos) {
+    final request = makeRequest(
+      Method.textDocument_prepareCallHierarchy,
+      CallHierarchyPrepareParams(
+        textDocument: TextDocumentIdentifier(uri: uri),
+        position: pos,
+      ),
+    );
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(CallHierarchyItem.fromJson));
+  }
+
   Future<PlaceholderAndRange?> prepareRename(Uri uri, Position pos) {
     final request = makeRequest(
       Method.textDocument_prepareRename,
       TextDocumentPositionParams(
-        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        textDocument: TextDocumentIdentifier(uri: uri),
         position: pos,
       ),
     );
     return expectSuccessfulResponseTo(request, PlaceholderAndRange.fromJson);
+  }
+
+  Future<List<TypeHierarchyItem>?> prepareTypeHierarchy(Uri uri, Position pos) {
+    final request = makeRequest(
+      Method.textDocument_prepareTypeHierarchy,
+      TypeHierarchyPrepareParams(
+        textDocument: TextDocumentIdentifier(uri: uri),
+        position: pos,
+      ),
+    );
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(TypeHierarchyItem.fromJson));
   }
 
   /// Calls the supplied function and responds to any `workspace/configuration`
@@ -1694,16 +1807,26 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     }
   }
 
-  /// Returns the range of [searchText] in [content].
-  Range? rangeOfString(String content, String searchText) {
+  /// Returns the range of [pattern] in [content].
+  Range rangeOfPattern(String content, Pattern pattern) {
     content = withoutMarkers(content);
-    final startOffset = content.indexOf(searchText);
-    return startOffset == -1
-        ? null
-        : Range(
-            start: positionFromOffset(startOffset, content),
-            end: positionFromOffset(startOffset + searchText.length, content),
-          );
+    final match = pattern.allMatches(content).first;
+    return Range(
+      start: positionFromOffset(match.start, content),
+      end: positionFromOffset(match.end, content),
+    );
+  }
+
+  /// Returns the range of [searchText] in [content].
+  Range rangeOfString(String content, String searchText) =>
+      rangeOfPattern(content, searchText);
+
+  /// Returns a [Range] that covers the entire of [content].
+  Range rangeOfWholeContent(String content) {
+    return Range(
+      start: positionFromOffset(0, content),
+      end: positionFromOffset(content.length, content),
+    );
   }
 
   /// Returns all ranges surrounded by `[[markers]]` in the provided string,
@@ -1741,6 +1864,18 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     }
 
     return rangesFromMarkersImpl(content).toList();
+  }
+
+  /// Gets the range in [content] that beings with the string [prefix] and
+  /// has a length matching [text].
+  Range rangeStartingAtString(String content, String prefix, String text) {
+    content = withoutMarkers(content);
+    final offset = content.indexOf(prefix);
+    final end = offset + text.length;
+    return Range(
+      start: positionFromOffset(offset, content),
+      end: positionFromOffset(end, content),
+    );
   }
 
   Future<WorkspaceEdit?> rename(
@@ -1834,9 +1969,29 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   WorkspaceFolder toWorkspaceFolder(Uri uri) {
     return WorkspaceFolder(
-      uri: uri.toString(),
+      uri: uri,
       name: path.basename(uri.path),
     );
+  }
+
+  Future<List<TypeHierarchyItem>?> typeHierarchySubtypes(
+      TypeHierarchyItem item) {
+    final request = makeRequest(
+      Method.typeHierarchy_subtypes,
+      TypeHierarchySubtypesParams(item: item),
+    );
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(TypeHierarchyItem.fromJson));
+  }
+
+  Future<List<TypeHierarchyItem>?> typeHierarchySupertypes(
+      TypeHierarchyItem item) {
+    final request = makeRequest(
+      Method.typeHierarchy_supertypes,
+      TypeHierarchySupertypesParams(item: item),
+    );
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(TypeHierarchyItem.fromJson));
   }
 
   /// Tells the server the config has changed, and provides the supplied config
@@ -1906,7 +2061,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         closingLabelsParams = PublishClosingLabelsParams.fromJson(
             message.params as Map<String, Object?>);
 
-        return closingLabelsParams.uri == uri.toString();
+        return closingLabelsParams.uri == uri;
       }
       return false;
     });
@@ -1921,7 +2076,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
           message.method == Method.textDocument_publishDiagnostics) {
         diagnosticParams = PublishDiagnosticsParams.fromJson(
             message.params as Map<String, Object?>);
-        return diagnosticParams!.uri == uri.toString();
+        return diagnosticParams!.uri == uri;
       }
       return false;
     }, orElse: () => null);
@@ -1936,7 +2091,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         outlineParams = PublishFlutterOutlineParams.fromJson(
             message.params as Map<String, Object?>);
 
-        return outlineParams.uri == uri.toString();
+        return outlineParams.uri == uri;
       }
       return false;
     });
@@ -1951,7 +2106,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         outlineParams = PublishOutlineParams.fromJson(
             message.params as Map<String, Object?>);
 
-        return outlineParams.uri == uri.toString();
+        return outlineParams.uri == uri;
       }
       return false;
     });

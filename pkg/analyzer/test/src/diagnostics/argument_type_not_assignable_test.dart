@@ -15,7 +15,136 @@ main() {
         ArgumentTypeNotAssignableWithoutNullSafetyAndNoImplicitCastsTest);
     defineReflectiveTests(ArgumentTypeNotAssignableWithoutNullSafetyTest);
     defineReflectiveTests(ArgumentTypeNotAssignableWithStrictCastsTest);
+    defineReflectiveTests(ArgumentTypeNotAssignablePatternsTest);
   });
+}
+
+@reflectiveTest
+class ArgumentTypeNotAssignablePatternsTest extends PatternsResolutionTest {
+  test_relationalPattern_bangEq_matchedValueNullable() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+
+void f(A? x) {
+  switch (x) {
+    case != null:
+      break;
+  }
+}
+''');
+  }
+
+  test_relationalPattern_bangEq_operandNull() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+
+void f(A x) {
+  switch (x) {
+    case != null:
+      break;
+  }
+}
+''');
+  }
+
+  test_relationalPattern_bangEq_operandNullable() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+
+void f(A x, int? y) {
+  switch (x) {
+    case != y:
+      break;
+  }
+}
+''');
+  }
+
+  test_relationalPattern_eqEq() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+
+void f(A x) {
+  switch (x) {
+    case == 0:
+      break;
+  }
+}
+''');
+  }
+
+  test_relationalPattern_eqEq_covariantParameterType() async {
+    await assertErrorsInCode(r'''
+class A {
+  bool operator ==(covariant A other) => true;
+}
+
+void f(A x) {
+  switch (x) {
+    case == 0:
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 101, 1),
+    ]);
+  }
+
+  test_relationalPattern_eqEq_matchedValueNullable() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+
+void f(A? x) {
+  switch (x) {
+    case == null:
+      break;
+  }
+}
+''');
+  }
+
+  test_relationalPattern_eqEq_operandNull() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+
+void f(A x) {
+  switch (x) {
+    case == null:
+      break;
+  }
+}
+''');
+  }
+
+  test_relationalPattern_eqEq_operandNullable() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+
+void f(A x, int? y) {
+  switch (x) {
+    case == y:
+      break;
+  }
+}
+''');
+  }
+
+  test_relationalPattern_greaterThan() async {
+    await assertErrorsInCode(r'''
+class A {
+  bool operator >(A other) => true;
+}
+
+void f(A x) {
+  switch (x) {
+    case > 0:
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 89, 1),
+    ]);
+  }
 }
 
 @reflectiveTest
@@ -203,6 +332,18 @@ main() {
   acceptFunOptBool(C.funBool);
 }''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 125, 9),
+    ]);
+  }
+
+  void test_recordType() async {
+    await assertErrorsInCode('''
+void f((int a, int b) r) {}
+
+void g() {
+  f((a: 1, b: 2));
+}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 44, 12),
     ]);
   }
 }

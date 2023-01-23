@@ -60,9 +60,7 @@ class ObjectPointerVisitor {
   // Otherwise trace field values through isolate's field_table.
   virtual bool trace_values_through_fields() const { return false; }
 
-  const SharedClassTable* shared_class_table() const {
-    return shared_class_table_;
-  }
+  const ClassTable* class_table() const { return class_table_; }
 
   // Returns true if pointers of the given SuspendState object can be visited.
   // Compactor overrides this method in order to postpone visiting SuspendState
@@ -76,7 +74,7 @@ class ObjectPointerVisitor {
  private:
   IsolateGroup* isolate_group_;
   const char* gc_root_type_;
-  SharedClassTable* shared_class_table_;
+  ClassTable* class_table_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(ObjectPointerVisitor);
 };

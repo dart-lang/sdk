@@ -24,13 +24,15 @@ class CreateMissingOverrides extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (node.parent is! ClassDeclaration) {
+    final targetClass = node;
+    if (targetClass is! ClassDeclaration) {
       return;
     }
-    var targetClass = node.parent as ClassDeclaration;
     utils.targetClassElement = targetClass.declaredElement;
-    var signatures =
-        InheritanceOverrideVerifier.missingOverrides(targetClass).toList();
+    var signatures = [
+      ...InheritanceOverrideVerifier.missingOverrides(targetClass),
+      ...InheritanceOverrideVerifier.missingMustBeOverridden(targetClass)
+    ];
     // sort by name, getters before setters
     signatures.sort((ExecutableElement a, ExecutableElement b) {
       var names = compareStrings(a.displayName, b.displayName);

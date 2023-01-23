@@ -62,7 +62,7 @@ void test2() {
   // original library.
   Expect.equals(privateLibrarySentinel, callPrivateSuperMixinMethod(p));
   Expect.equals(privateLibrarySentinel, callPrivateInstanceMethod(p));
-  // The new private mixin and instance methods are acessible in this library.
+  // The new private mixin and instance methods are accessible in this library.
   Expect.equals(publicLibrarySentinel, p._privateMixinMethod());
   Expect.equals(publicLibrarySentinel, p._privateInstanceMethod());
 }

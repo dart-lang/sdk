@@ -22,18 +22,19 @@ class LibraryMemberContributor extends DartCompletionContributor {
     if (targetId is SimpleIdentifier && !request.target.isCascade) {
       var elem = targetId.staticElement;
       if (elem is PrefixElement && !elem.isSynthetic) {
-        var imports = request.libraryElement.imports;
+        var imports = request.libraryElement.libraryImports;
         _buildSuggestions(elem, imports);
       }
     }
   }
 
-  void _buildSuggestions(PrefixElement elem, List<ImportElement> imports) {
+  void _buildSuggestions(
+      PrefixElement elem, List<LibraryImportElement> imports) {
     var parent = request.target.containingNode.parent;
     var typesOnly = parent is NamedType;
     var isConstructor = parent?.parent is ConstructorName;
     for (var importElem in imports) {
-      if (importElem.prefix?.name == elem.name) {
+      if (importElem.prefix?.element.name == elem.name) {
         var library = importElem.importedLibrary;
         if (library != null) {
           builder.libraryUriStr = library.source.uri.toString();
@@ -51,7 +52,7 @@ class LibraryMemberContributor extends DartCompletionContributor {
                 }
               }
             } else {
-              if (element is ClassElement ||
+              if (element is InterfaceElement ||
                   element is ExtensionElement ||
                   element is TypeAliasElement) {
                 builder.suggestElement(element,
@@ -65,7 +66,7 @@ class LibraryMemberContributor extends DartCompletionContributor {
             }
           }
           // If the import is `deferred` then suggest `loadLibrary`.
-          if (!typesOnly && importElem.isDeferred) {
+          if (!typesOnly && importElem.prefix is DeferredImportElementPrefix) {
             builder.suggestLoadLibraryFunction(library.loadLibraryFunction);
           }
           builder.libraryUriStr = null;

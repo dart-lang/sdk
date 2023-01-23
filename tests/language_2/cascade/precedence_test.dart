@@ -63,12 +63,12 @@ class Box {
 //       expression (',' expression)*
 //     ;
 // assignableExpression:
-//       primary (arguments* assignableSelector)+
-//     | super assignableSelector
-//     | identifier
+//       primary (arguments* assignableSelector)+
+//     | super assignableSelector
+//     | identifier
 //     ;
 // conditionalExpression:
-//     logicalOrExpression ('?' expressionWithoutCascade ':' expressionWithoutCascade)?
+//     logicalOrExpression ('?' expressionWithoutCascade ':' expressionWithoutCascade)?
 //     ;
 // primary:
 //       thisExpression
@@ -79,11 +79,11 @@ class Box {
 //     | newExpression
 //     | constObjectExpression
 //     | '(' expression ')'
-//     ;
+//     ;
 // assignableSelector:
-//       '[' expression ']'
-//     | '.' identifier
-//     ;
+//       '[' expression ']'
+//     | '.' identifier
+//     ;
 //
 // In words:
 //  An assignableExpression is either a variable or something ending in

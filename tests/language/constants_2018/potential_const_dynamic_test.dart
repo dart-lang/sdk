@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Tests that a dynamic type does not affect whether an expression is
-// potentially constant, the actual type of the value of an experssion
+// potentially constant, the actual type of the value of an expression
 // only matters if the expression is evaluated as a constant.
 
 main() {

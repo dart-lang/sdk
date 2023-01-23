@@ -217,7 +217,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
 
   /// Assert that the tokens in the stream are correctly connected prev/next.
   void assertValidTokenStream(fasta.Token firstToken,
-      {bool errorsFirst: false}) {
+      {bool errorsFirst = false}) {
     fasta.Token token = firstToken;
     fasta.Token previous = token.previous!;
     expect(previous.isEof, isTrue, reason: 'Missing leading EOF');

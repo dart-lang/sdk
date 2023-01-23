@@ -6,6 +6,6 @@ T getFoo<T>(T v) => v;
 
 typedef dynamic G<T>(T v);
 
-m(int x, {G<int> f: getFoo}) {
+m(int x, {G<int> f = getFoo}) {
   print(f(x));
 }

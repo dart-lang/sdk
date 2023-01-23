@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library types;
 
 import 'package:kernel/ast.dart' as ir;
@@ -11,18 +9,16 @@ import '../common.dart' show failedAt, retainDataForTesting;
 import '../common/metrics.dart' show Metrics;
 import '../common/names.dart';
 import '../common/tasks.dart' show CompilerTask;
-import '../compiler.dart' show Compiler;
+import '../compiler_interfaces.dart' show CompilerTypeInferenceFacade;
 import '../elements/entities.dart';
-import '../inferrer/engine.dart';
-import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
+import '../inferrer/engine.dart' show KernelGlobalTypeInferenceElementData;
 import '../js_backend/inferred_data.dart';
 import '../js_model/element_map.dart';
-import '../js_model/js_world.dart';
+import '../js_model/js_world.dart' show JClosedWorld, LocalLookupImpl;
 import '../js_model/locals.dart';
 import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
 import '../universe/selector.dart' show Selector;
-import '../world.dart' show JClosedWorld;
 import 'abstract_value_domain.dart';
 
 /// Results about a single element (e.g. a method, parameter, or field)
@@ -39,12 +35,12 @@ abstract class GlobalTypeInferenceMemberResult {
   /// Deserializes a [GlobalTypeInferenceMemberResult] object from [source].
   factory GlobalTypeInferenceMemberResult.readFromDataSource(
           DataSourceReader source,
-          ir.Member context,
+          ir.Member? context,
           AbstractValueDomain abstractValueDomain) =
       GlobalTypeInferenceMemberResultImpl.readFromDataSource;
 
   /// Serializes this [GlobalTypeInferenceMemberResult] to [sink].
-  void writeToDataSink(DataSinkWriter sink, ir.Member context,
+  void writeToDataSink(DataSinkWriter sink, ir.Member? context,
       AbstractValueDomain abstractValueDomain);
 
   /// The inferred type when this result belongs to a field, null otherwise.
@@ -62,16 +58,16 @@ abstract class GlobalTypeInferenceMemberResult {
 
   /// Returns the receiver type of a node that is a property get, set, or method
   /// invocation.
-  AbstractValue typeOfReceiver(ir.TreeNode node);
+  AbstractValue? typeOfReceiver(ir.TreeNode node);
 
   /// Returns the type of the iterator in a [loop].
-  AbstractValue typeOfIterator(ir.TreeNode node);
+  AbstractValue? typeOfIterator(ir.TreeNode node);
 
   /// Returns the type of the `moveNext` call of an iterator in a [loop].
-  AbstractValue typeOfIteratorMoveNext(ir.TreeNode node);
+  AbstractValue? typeOfIteratorMoveNext(ir.TreeNode node);
 
   /// Returns the type of the `current` getter of an iterator in a [loop].
-  AbstractValue typeOfIteratorCurrent(ir.TreeNode node);
+  AbstractValue? typeOfIteratorCurrent(ir.TreeNode node);
 }
 
 /// Internal data used during type-inference to store intermediate results about
@@ -80,31 +76,32 @@ abstract class GlobalTypeInferenceElementData {
   /// Deserializes a [GlobalTypeInferenceElementData] object from [source].
   factory GlobalTypeInferenceElementData.readFromDataSource(
           DataSourceReader source,
-          ir.Member context,
+          ir.Member? context,
           AbstractValueDomain abstractValueDomain) =
       KernelGlobalTypeInferenceElementData.readFromDataSource;
 
   /// Serializes this [GlobalTypeInferenceElementData] to [sink].
-  void writeToDataSink(DataSinkWriter sink, ir.Member context,
+  void writeToDataSink(DataSinkWriter sink, ir.Member? context,
       AbstractValueDomain abstractValueDomain);
 
   /// Compresses the inner representation by removing [AbstractValue] mappings
   /// to `null`. Returns the data object itself or `null` if the data object
   /// was empty after compression.
-  GlobalTypeInferenceElementData compress();
+  GlobalTypeInferenceElementData? compress();
 
   // TODO(johnniwinther): Remove this. Maybe split by access/invoke.
-  AbstractValue typeOfReceiver(ir.TreeNode node);
+  AbstractValue? typeOfReceiver(ir.TreeNode node);
 
-  AbstractValue typeOfIterator(ir.TreeNode node);
+  AbstractValue? typeOfIterator(ir.TreeNode node);
 
-  AbstractValue typeOfIteratorMoveNext(ir.TreeNode node);
+  AbstractValue? typeOfIteratorMoveNext(ir.TreeNode node);
 
-  AbstractValue typeOfIteratorCurrent(ir.TreeNode node);
+  AbstractValue? typeOfIteratorCurrent(ir.TreeNode node);
 }
 
 /// API to interact with the global type-inference engine.
 abstract class TypesInferrer {
+  Metrics get metrics;
   GlobalTypeInferenceResults analyzeMain(FunctionEntity element);
 }
 
@@ -149,10 +146,10 @@ abstract class GlobalTypeInferenceResults {
 
   /// Returns the type of a list new expression [node].  Returns `null` if
   /// [node] does not represent the construction of a new list.
-  AbstractValue typeOfNewList(ir.TreeNode node);
+  AbstractValue? typeOfNewList(ir.TreeNode node);
 
   /// Returns the type of a list literal [node].
-  AbstractValue typeOfListLiteral(ir.TreeNode node);
+  AbstractValue? typeOfListLiteral(ir.TreeNode node);
 }
 
 /// Global analysis that infers concrete types.
@@ -161,17 +158,17 @@ class GlobalTypeInferenceTask extends CompilerTask {
   @override
   final String name = 'Type inference';
 
-  final Compiler compiler;
+  final CompilerTypeInferenceFacade compiler;
 
   /// The [TypeGraphInferrer] used by the global type inference. This should by
   /// accessed from outside this class for testing only.
-  TypeGraphInferrer typesInferrerInternal;
+  TypesInferrer? typesInferrerInternal;
 
-  GlobalTypeInferenceResults resultsForTesting;
+  GlobalTypeInferenceResults? resultsForTesting;
 
-  Metrics _metrics;
+  Metrics _metrics = Metrics.none();
 
-  GlobalTypeInferenceTask(Compiler compiler)
+  GlobalTypeInferenceTask(CompilerTypeInferenceFacade compiler)
       : compiler = compiler,
         super(compiler.measurer);
 
@@ -189,12 +186,12 @@ class GlobalTypeInferenceTask extends CompilerTask {
       if (compiler.disableTypeInference) {
         results =
             TrivialGlobalTypeInferenceResults(closedWorld, globalLocalsMap);
-        _metrics = Metrics.none();
       } else {
-        typesInferrerInternal ??= compiler.backendStrategy.createTypesInferrer(
-            closedWorld, globalLocalsMap, inferredDataBuilder);
-        results = typesInferrerInternal.analyzeMain(mainElement);
-        _metrics = typesInferrerInternal.metrics;
+        final inferrer = typesInferrerInternal ??= compiler.backendStrategy
+            .createTypesInferrer(
+                closedWorld, globalLocalsMap, inferredDataBuilder);
+        results = inferrer.analyzeMain(mainElement);
+        _metrics = inferrer.metrics;
       }
       closedWorld.noSuchMethodData.categorizeComplexImplementations(results);
       if (retainDataForTesting) {
@@ -382,15 +379,12 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
   }
 
   bool returnsListElementType(Selector selector, AbstractValue mask) {
-    return mask != null &&
-        closedWorld.abstractValueDomain.isContainer(mask) &&
+    return closedWorld.abstractValueDomain.isContainer(mask) &&
         returnsListElementTypeSet.contains(selector);
   }
 
   bool returnsMapValueType(Selector selector, AbstractValue mask) {
-    return mask != null &&
-        closedWorld.abstractValueDomain.isMap(mask) &&
-        selector.isIndex;
+    return closedWorld.abstractValueDomain.isMap(mask) && selector.isIndex;
   }
 
   AbstractValue typeOfMemberWithSelector(
@@ -404,7 +398,7 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
       if (element.isFunction) {
         // [functionType] is null if the inferrer did not run.
         return closedWorld.abstractValueDomain.functionType;
-      } else if (element.isField) {
+      } else if (element is FieldEntity) {
         return resultOfMember(element).type;
       } else if (element.isGetter) {
         return resultOfMember(element).returnType;
@@ -412,7 +406,7 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
         assert(false, failedAt(element, "Unexpected member $element"));
         return closedWorld.abstractValueDomain.dynamicType;
       }
-    } else if (element.isGetter || element.isField) {
+    } else if (element.isGetter || element is FieldEntity) {
       assert(selector.isCall || selector.isSetter);
       return closedWorld.abstractValueDomain.dynamicType;
     } else {
@@ -421,10 +415,10 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
   }
 
   @override
-  AbstractValue typeOfNewList(ir.Node node) => _allocatedLists.loaded()[node];
+  AbstractValue? typeOfNewList(ir.Node node) => _allocatedLists.loaded()[node];
 
   @override
-  AbstractValue typeOfListLiteral(ir.Node node) =>
+  AbstractValue? typeOfListLiteral(ir.Node node) =>
       _allocatedLists.loaded()[node];
 }
 
@@ -434,7 +428,7 @@ class GlobalTypeInferenceMemberResultImpl
   /// objects in a debugging data stream.
   static const String tag = 'global-type-inference-member-result';
 
-  final GlobalTypeInferenceElementData _data;
+  final GlobalTypeInferenceElementData? _data;
   @override
   final AbstractValue returnType;
   @override
@@ -445,14 +439,14 @@ class GlobalTypeInferenceMemberResultImpl
   final bool isCalledOnce;
 
   GlobalTypeInferenceMemberResultImpl(this._data, this.returnType, this.type,
-      {this.throwsAlways, this.isCalledOnce});
+      {required this.throwsAlways, required this.isCalledOnce});
 
   factory GlobalTypeInferenceMemberResultImpl.readFromDataSource(
       DataSourceReader source,
-      ir.Member context,
+      ir.Member? context,
       AbstractValueDomain abstractValueDomain) {
     source.begin(tag);
-    GlobalTypeInferenceElementData data = source.readValueOrNull(() {
+    GlobalTypeInferenceElementData? data = source.readValueOrNull(() {
       return GlobalTypeInferenceElementData.readFromDataSource(
           source, context, abstractValueDomain);
     });
@@ -468,7 +462,7 @@ class GlobalTypeInferenceMemberResultImpl
   }
 
   @override
-  void writeToDataSink(DataSinkWriter sink, ir.Member context,
+  void writeToDataSink(DataSinkWriter sink, ir.Member? context,
       AbstractValueDomain abstractValueDomain) {
     sink.begin(tag);
     sink.writeValueOrNull(_data, (GlobalTypeInferenceElementData data) {
@@ -482,14 +476,16 @@ class GlobalTypeInferenceMemberResultImpl
   }
 
   @override
-  AbstractValue typeOfReceiver(ir.Node node) => _data?.typeOfReceiver(node);
+  AbstractValue? typeOfReceiver(ir.TreeNode node) =>
+      _data?.typeOfReceiver(node);
   @override
-  AbstractValue typeOfIterator(ir.Node node) => _data?.typeOfIterator(node);
+  AbstractValue? typeOfIterator(ir.TreeNode node) =>
+      _data?.typeOfIterator(node);
   @override
-  AbstractValue typeOfIteratorMoveNext(ir.Node node) =>
+  AbstractValue? typeOfIteratorMoveNext(ir.TreeNode node) =>
       _data?.typeOfIteratorMoveNext(node);
   @override
-  AbstractValue typeOfIteratorCurrent(ir.Node node) =>
+  AbstractValue? typeOfIteratorCurrent(ir.TreeNode node) =>
       _data?.typeOfIteratorCurrent(node);
 }
 
@@ -529,10 +525,10 @@ class TrivialGlobalTypeInferenceResults implements GlobalTypeInferenceResults {
   }
 
   @override
-  AbstractValue typeOfListLiteral(ir.TreeNode node) => null;
+  AbstractValue? typeOfListLiteral(ir.TreeNode node) => null;
 
   @override
-  AbstractValue typeOfNewList(ir.TreeNode node) => null;
+  AbstractValue? typeOfNewList(ir.TreeNode node) => null;
 }
 
 class TrivialGlobalTypeInferenceMemberResult
@@ -551,22 +547,22 @@ class TrivialGlobalTypeInferenceMemberResult
   bool get throwsAlways => false;
 
   @override
-  AbstractValue typeOfIteratorCurrent(ir.Node node) => null;
+  AbstractValue? typeOfIteratorCurrent(ir.Node node) => null;
 
   @override
-  AbstractValue typeOfIteratorMoveNext(ir.Node node) => null;
+  AbstractValue? typeOfIteratorMoveNext(ir.Node node) => null;
 
   @override
-  AbstractValue typeOfIterator(ir.Node node) => null;
+  AbstractValue? typeOfIterator(ir.Node node) => null;
 
   @override
-  AbstractValue typeOfReceiver(ir.Node node) => null;
+  AbstractValue? typeOfReceiver(ir.Node node) => null;
 
   @override
   bool get isCalledOnce => false;
 
   @override
-  void writeToDataSink(DataSinkWriter sink, ir.Member context,
+  void writeToDataSink(DataSinkWriter sink, ir.Member? context,
       AbstractValueDomain abstractValueDomain) {
     throw UnsupportedError(
         "TrivialGlobalTypeInferenceMemberResult.writeToDataSink");
@@ -592,22 +588,22 @@ class DeadFieldGlobalTypeInferenceResult
   bool get throwsAlways => false;
 
   @override
-  AbstractValue typeOfIteratorCurrent(ir.Node node) => null;
+  AbstractValue? typeOfIteratorCurrent(ir.Node node) => null;
 
   @override
-  AbstractValue typeOfIteratorMoveNext(ir.Node node) => null;
+  AbstractValue? typeOfIteratorMoveNext(ir.Node node) => null;
 
   @override
-  AbstractValue typeOfIterator(ir.Node node) => null;
+  AbstractValue? typeOfIterator(ir.Node node) => null;
 
   @override
-  AbstractValue typeOfReceiver(ir.Node node) => null;
+  AbstractValue? typeOfReceiver(ir.Node node) => null;
 
   @override
   bool get isCalledOnce => false;
 
   @override
-  void writeToDataSink(DataSinkWriter sink, ir.Member context,
+  void writeToDataSink(DataSinkWriter sink, ir.Member? context,
       AbstractValueDomain abstractValueDomain) {
     throw UnsupportedError(
         "DeadFieldGlobalTypeInferenceResult.writeToDataSink");
@@ -633,22 +629,22 @@ class DeadMethodGlobalTypeInferenceResult
   bool get throwsAlways => false;
 
   @override
-  AbstractValue typeOfIteratorCurrent(ir.Node node) => null;
+  AbstractValue? typeOfIteratorCurrent(ir.Node node) => null;
 
   @override
-  AbstractValue typeOfIteratorMoveNext(ir.Node node) => null;
+  AbstractValue? typeOfIteratorMoveNext(ir.Node node) => null;
 
   @override
-  AbstractValue typeOfIterator(ir.Node node) => null;
+  AbstractValue? typeOfIterator(ir.Node node) => null;
 
   @override
-  AbstractValue typeOfReceiver(ir.Node node) => null;
+  AbstractValue? typeOfReceiver(ir.Node node) => null;
 
   @override
   bool get isCalledOnce => false;
 
   @override
-  void writeToDataSink(DataSinkWriter sink, ir.Member context,
+  void writeToDataSink(DataSinkWriter sink, ir.Member? context,
       AbstractValueDomain abstractValueDomain) {
     throw UnsupportedError(
         "DeadFieldGlobalTypeInferenceResult.writeToDataSink");

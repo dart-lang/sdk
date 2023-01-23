@@ -19,7 +19,6 @@ import "package:js/js.dart";
 @#C3
 class ParallaxOptions extends core::Object /*hasConstConstructor*/  {
   external const constructor •() → self::ParallaxOptions
-    : super core::Object::•()
     ;
   static method _#new#tearOff() → self::ParallaxOptions
     return new self::ParallaxOptions::•();
@@ -38,4 +37,4 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///issue46123b.dart:
 - JS. (from org-dartlang-testcase-sdk:///pkg/js/lib/js.dart:23:9)
-- Object. (from org-dartlang-sdk:///lib/core/object.dart:25:9)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)

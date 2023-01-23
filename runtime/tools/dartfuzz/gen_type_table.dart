@@ -122,6 +122,8 @@ String getConstName(String displayName) {
   return constName;
 }
 
+String typeConstName(DartType tp) => getConstName(tp.asCode);
+
 // Returns true if the given type fails the filter criteria.
 bool shouldFilterType(String typName, {bool fp = true, bool flatTp = false}) {
   if (!fp && fpTypes.contains(typName)) {
@@ -694,13 +696,13 @@ void printTypeTable(Set<InterfaceType> allTypes,
   // Generate one static DartType instance for all instantiable types.
   // TODO (felih): maybe add void type?
   allTypes.forEach((baseType) {
-    var constName = getConstName(baseType.displayName);
+    var constName = typeConstName(baseType);
     instTypes.add(constName);
     if (!subclass) {
       print('  static const $constName = '
-          "DartType._withName('${baseType.displayName}', false);");
+          "DartType._withName('${baseType.asCode}', false);");
       print('  static const ${constName}_NULLABLE = '
-          "DartType._withName('${baseType.displayName}', true);");
+          "DartType._withName('${baseType.asCode}', true);");
     }
   });
 
@@ -896,7 +898,7 @@ Set<List<String>> filterOperator(Set<List<String>> op) {
 // See comment on filterOpterator.
 void filterOperators(Set<InterfaceType> allTypes) {
   for (var tp in allTypes) {
-    var typName = getConstName(tp.displayName);
+    var typName = typeConstName(tp);
     if (!binOps.containsKey(typName)) continue;
     for (var op in binOps[typName]!.keys) {
       binOps[typName]![op] = filterOperator(binOps[typName]![op]!);
@@ -911,8 +913,8 @@ void filterOperators(Set<InterfaceType> allTypes) {
 bool isExcludedMethod(InterfaceType tp, MethodElement method) {
   // TODO(bkonyi): Enable operator / for these types after we resolve
   // https://github.com/dart-lang/sdk/issues/39890
-  if (((tp.displayName == 'Float32x4') && (method.name == '/')) ||
-      ((tp.displayName == 'Float64x2') && (method.name == '/'))) {
+  if (((tp.element2.name == 'Float32x4') && (method.name == '/')) ||
+      ((tp.element2.name == 'Float64x2') && (method.name == '/'))) {
     return true;
   }
   return false;
@@ -935,7 +937,7 @@ void getOperatorsForTyp(String typName, InterfaceType tp, fromLiteral) {
     // 'castFrom' or 'parse'.
     if (method.isStatic &&
         (method.name == 'castFrom' || method.name == 'parse')) {
-      fromLiteral.add(getConstName(tp.displayName));
+      fromLiteral.add(typeConstName(tp));
     }
     // Hack: dartfuzz.dart already handles subscripts, therefore we exclude
     // them from the generated type table.
@@ -944,7 +946,7 @@ void getOperatorsForTyp(String typName, InterfaceType tp, fromLiteral) {
       // TODO (felih): Include support for type 'dynamic'.
       var skip = false;
       for (var p in method.parameters) {
-        if (getConstName(p.type.displayName) == 'DYNAMIC') {
+        if (typeConstName(p.type) == 'DYNAMIC') {
           skip = true;
           break;
         }
@@ -953,14 +955,14 @@ void getOperatorsForTyp(String typName, InterfaceType tp, fromLiteral) {
       if (method.parameters.length == 1) {
         // Get binary operators.
 
-        var retTypName = getConstName(method.returnType.displayName);
+        var retTypName = typeConstName(method.returnType);
         if (method.returnType.nullabilitySuffix != NullabilitySuffix.none) {
           retTypName += '_NULLABLE';
         }
         binOps[retTypName] ??= <String, Set<List<String>>>{};
         binOps[retTypName]![method.name] ??= <List<String>>{};
 
-        var rhsTypName = getConstName(method.parameters[0].type.displayName);
+        var rhsTypName = typeConstName(method.parameters[0].type);
         if (method.parameters[0].type.nullabilitySuffix !=
             NullabilitySuffix.none) {
           rhsTypName += '_NULLABLE';
@@ -1007,7 +1009,7 @@ bool typesEqualModuloNullability(DartType a, DartType b) {
   // The analyzer's DartType doesn't provide conversions to change nullability.
   // Comparing by name isn't correct in general, but it works for the core
   // libraries because there are no simple name conflicts.
-  return a.displayName == b.displayName;
+  return a.asCode == b.asCode;
 }
 
 // Extract all binary and unary operators for all types.
@@ -1023,7 +1025,7 @@ void getOperators(Set<InterfaceType> allTypes) {
   fromLiteral.add('STRING');
   // Get binary, unary and assignment operators.
   for (var tp in allTypes) {
-    var typName = getConstName(tp.displayName);
+    var typName = typeConstName(tp);
     // Manually add basic assignment operators which each type supports.
     assignOps[typName] ??= <String, Set<String>>{};
     assignOps[typName]!['='] = {typName};
@@ -1063,7 +1065,7 @@ void getOperators(Set<InterfaceType> allTypes) {
 
   // Get constructors.
   for (var tp in allTypes) {
-    var typName = getConstName(tp.displayName);
+    var typName = typeConstName(tp);
     // Skip types that are constructable from a literal.
     if (fromLiteral.contains(typName)) {
       continue;
@@ -1073,7 +1075,7 @@ void getOperators(Set<InterfaceType> allTypes) {
       var params = <String>[];
       var canConstruct = true;
       for (var p in constructor.parameters) {
-        var tstr = getConstName(p.type.displayName);
+        var tstr = typeConstName(p.type);
         if (tstr == 'DYNAMIC' || tstr == 'OBJECT') {
           tstr = 'INT';
         } else if (!allTypes
@@ -1105,7 +1107,7 @@ bool shouldFilterConstructor(InterfaceType tp, ConstructorElement cons) {
   // Constructor exclude list
   // TODO(bkonyi): Enable Float32x4.fromInt32x4Bits after we resolve
   // https://github.com/dart-lang/sdk/issues/39890
-  if ((tp.displayName == 'Float32x4') && (cons.name == 'fromInt32x4Bits')) {
+  if ((tp.element2.name == 'Float32x4') && (cons.name == 'fromInt32x4Bits')) {
     return true;
   }
   return false;
@@ -1116,17 +1118,17 @@ bool shouldFilterConstructor(InterfaceType tp, ConstructorElement cons) {
 void analyzeTypes(Set<InterfaceType> allTypes) {
   // Extract basic floating point types.
   for (var tp in allTypes) {
-    if (tp.displayName.contains('Float') ||
-        tp.displayName.contains('float') ||
-        tp.displayName.contains('double') ||
-        tp.displayName.contains('Double')) {
-      fpTypes.add(getConstName(tp.displayName));
+    if (tp.asCode.contains('Float') ||
+        tp.asCode.contains('float') ||
+        tp.asCode.contains('double') ||
+        tp.asCode.contains('Double')) {
+      fpTypes.add(typeConstName(tp));
     }
   }
 
   // Analyze all types to extract information useful for dart code generation.
   for (var tp in allTypes) {
-    final typName = getConstName(tp.displayName);
+    final typName = typeConstName(tp);
 
     // Find topmost interface type, e.g. List<int> is interface for Int8List.
     var iTyp = tp;
@@ -1141,7 +1143,7 @@ void analyzeTypes(Set<InterfaceType> allTypes) {
 
     if (iTyp.typeArguments.length == 1) {
       // Analyze Array, List and Set types.
-      var argName = getConstName(iTyp.typeArguments[0].displayName);
+      var argName = typeConstName(iTyp.typeArguments[0]);
       subscriptsTo[typName] = argName;
       elementOf[argName] ??= <String>{};
       elementOf[argName]!.add(typName);
@@ -1158,8 +1160,8 @@ void analyzeTypes(Set<InterfaceType> allTypes) {
     } else if (iTyp.typeArguments.length == 2) {
       if (isIndexable(iTyp)) {
         // Analyze Map and MapEntry types.
-        var argName0 = getConstName(iTyp.typeArguments[0].displayName);
-        var argName1 = getConstName(iTyp.typeArguments[1].displayName);
+        var argName0 = typeConstName(iTyp.typeArguments[0]);
+        var argName1 = typeConstName(iTyp.typeArguments[1]);
         subscriptsTo[typName] = argName1;
         elementOf[argName1] ??= <String>{};
         elementOf[argName1]!.add(typName);
@@ -1229,13 +1231,13 @@ Set<InterfaceType> instantiatePTypes(
       } else {
         return;
       }
-      InterfaceType ptx = pType.element.instantiate(
+      InterfaceType ptx = pType.element2.instantiate(
         typeArguments: [iType],
         nullabilitySuffix: NullabilitySuffix.star,
       );
       newITypes.add(ptx);
       if (iType.typeArguments.isNotEmpty) {
-        complexTypes.add(getConstName(ptx.displayName));
+        complexTypes.add(typeConstName(ptx));
       }
     });
   });
@@ -1250,14 +1252,14 @@ Set<InterfaceType> instantiatePTypes(
         } else {
           return;
         }
-        InterfaceType ptx = pType.element.instantiate(
+        InterfaceType ptx = pType.element2.instantiate(
           typeArguments: [iType1, iType2],
           nullabilitySuffix: NullabilitySuffix.star,
         );
         newITypes.add(ptx);
         if (iType1.typeArguments.isNotEmpty ||
             iType2.typeArguments.isNotEmpty) {
-          complexTypes.add(getConstName(ptx.displayName));
+          complexTypes.add(typeConstName(ptx));
         }
       });
     });
@@ -1284,7 +1286,7 @@ Set<InterfaceType> instantiateAllTypes(
   // complex types like Int8List.
   var filteredITypes = <InterfaceType>{};
   for (var iType in iTypes) {
-    if (iTypeFilter.contains(iType.displayName)) {
+    if (iTypeFilter.contains(iType.element2.name)) {
       filteredITypes.add(iType);
     }
   }
@@ -1307,7 +1309,7 @@ Set<InterfaceType> instantiateAllTypes(
 // Heuristic of which types to include:
 // count the number of operators and
 // check if the type can be constructed from a literal.
-int countOperators(ClassElement ce) {
+int countOperators(InterfaceElement ce) {
   var no = 0;
   ce.methods.forEach((method) {
     if (method.isOperator) {
@@ -1322,7 +1324,7 @@ int countOperators(ClassElement ce) {
       no += 100;
     }
     for (var ci in ce.interfaces) {
-      no += countOperators(ci.element);
+      no += countOperators(ci.element2);
     }
   });
   return no;
@@ -1395,6 +1397,8 @@ void visitCompilationUnit(
           (classElement.name == 'BidirectionalIterator') ||
           (classElement.name == 'Iterator') ||
           (classElement.name == 'Stopwatch') ||
+          (classElement.name == 'Finalizer') ||
+          (classElement.name == 'Enum') ||
           (classElement.name == 'OutOfMemoryError')) {
         continue;
       }
@@ -1407,7 +1411,7 @@ void visitCompilationUnit(
 Set<String> getInterfaces(InterfaceType tp) {
   var iTypes = <String>{};
   for (var iTyp in tp.interfaces) {
-    var ifTypName = getConstName(iTyp.displayName);
+    var ifTypName = typeConstName(iTyp);
     iTypes.add(ifTypName);
     iTypes = iTypes.union(getInterfaces(iTyp));
   }
@@ -1417,7 +1421,7 @@ Set<String> getInterfaces(InterfaceType tp) {
 // Get interface and inheritance relationships for all types.
 void getInterfaceRels(Set<InterfaceType> allTypes) {
   for (var tp in allTypes) {
-    var typName = getConstName(tp.displayName);
+    var typName = typeConstName(tp);
     for (var ifTypName in getInterfaces(tp)) {
       interfaceRels[ifTypName] ??= <String>{};
       interfaceRels[ifTypName]!.add(typName);
@@ -1425,8 +1429,8 @@ void getInterfaceRels(Set<InterfaceType> allTypes) {
         iterableTypes1.add(typName);
       }
     }
-    for (var it in tp.element.allSupertypes) {
-      var ifTypName = getConstName(it.displayName);
+    for (var it in tp.element2.allSupertypes) {
+      var ifTypName = typeConstName(it);
       interfaceRels[ifTypName] ??= <String>{};
       interfaceRels[ifTypName]!.add(typName);
     }
@@ -1436,7 +1440,7 @@ void getInterfaceRels(Set<InterfaceType> allTypes) {
   // do tp1 = oneof(interfaceRels[tp2]) in dartfuzz with a chance of
   // tp1 == tp1.
   for (var tp in allTypes) {
-    var typName = getConstName(tp.displayName);
+    var typName = typeConstName(tp);
     if (interfaceRels.containsKey(typName)) {
       interfaceRels[typName]!.add(typName);
     }

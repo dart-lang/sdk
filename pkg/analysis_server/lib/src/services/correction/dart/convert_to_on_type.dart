@@ -19,7 +19,7 @@ class ConvertToOnType extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var exceptionParameter = node;
-    if (exceptionParameter is SimpleIdentifier) {
+    if (exceptionParameter is CatchClauseParameter) {
       var catchClause = exceptionParameter.parent;
       if (catchClause is CatchClause) {
         var catchKeyword = catchClause.catchKeyword;

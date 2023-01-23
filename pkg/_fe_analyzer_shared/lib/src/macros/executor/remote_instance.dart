@@ -55,6 +55,7 @@ abstract class RemoteInstance implements Serializable {
   ///
   /// They should then return immediately if [serializationMode] is
   /// [SerializationMode.client], so that only an ID is sent.
+  @override
   @mustCallSuper
   void serialize(Serializer serializer) {
     serializer.addInt(id);

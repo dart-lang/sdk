@@ -130,7 +130,7 @@ class AnalyzerOptions {
   static const String language = 'language';
   static const String optionalChecks = 'optional-checks';
   static const String plugins = 'plugins';
-  static const String strong_mode = 'strong-mode';
+  static const String strongMode = 'strong-mode';
 
   // Optional checks options.
   static const String chromeOsManifestChecks = 'chrome-os-manifest-checks';
@@ -172,7 +172,7 @@ class AnalyzerOptions {
     optionalChecks,
     plugins,
     propagateLinterExceptions,
-    strong_mode,
+    strongMode,
   ];
 
   /// Supported `analyzer` strong-mode options.
@@ -635,13 +635,13 @@ class StrongModeOptionValueValidator extends OptionsValidator {
   void validate(ErrorReporter reporter, YamlMap options) {
     var analyzer = options.valueAt(AnalyzerOptions.analyzer);
     if (analyzer is YamlMap) {
-      var v = analyzer.valueAt(AnalyzerOptions.strong_mode);
+      var v = analyzer.valueAt(AnalyzerOptions.strongMode);
       if (v is YamlScalar) {
         var value = toLowerCase(v.value);
         if (!AnalyzerOptions.trueOrFalse.contains(value)) {
           reporter.reportErrorForSpan(
               AnalysisOptionsWarningCode.UNSUPPORTED_VALUE, v.span, [
-            AnalyzerOptions.strong_mode,
+            AnalyzerOptions.strongMode,
             v.value,
             AnalyzerOptions.trueOrFalseProposal
           ]);
@@ -659,13 +659,8 @@ class StrongModeOptionValueValidator extends OptionsValidator {
           if (k is YamlScalar) {
             key = k.value?.toString();
             if (!AnalyzerOptions.strongModeOptions.contains(key)) {
-              _builder.reportError(reporter, AnalyzerOptions.strong_mode, k);
-            } else if (key == AnalyzerOptions.declarationCasts) {
-              reporter.reportErrorForSpan(
-                  AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED,
-                  k.span,
-                  [AnalyzerOptions.declarationCasts]);
-            } else {
+              _builder.reportError(reporter, AnalyzerOptions.strongMode, k);
+            } else if (key != AnalyzerOptions.declarationCasts) {
               // If we have a valid key, go on and check the value.
               validKey = true;
             }
@@ -741,7 +736,7 @@ class _OptionsProcessor {
     var analyzer = optionMap.valueAt(AnalyzerOptions.analyzer);
     if (analyzer is YamlMap) {
       // Process strong mode option.
-      var strongMode = analyzer.valueAt(AnalyzerOptions.strong_mode);
+      var strongMode = analyzer.valueAt(AnalyzerOptions.strongMode);
       _applyStrongOptions(options, strongMode);
 
       // Process filters.

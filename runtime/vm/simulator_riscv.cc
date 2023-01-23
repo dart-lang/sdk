@@ -397,7 +397,7 @@ void Simulator::ExecuteNoTrace() {
       CInstr instr(parcel);
       Interpret(instr);
     } else {
-      Instr instr(*reinterpret_cast<uint32_t*>(pc_));
+      Instr instr(LoadUnaligned(reinterpret_cast<uint32_t*>(pc_)));
       Interpret(instr);
     }
     instret_++;
@@ -414,7 +414,7 @@ void Simulator::ExecuteTrace() {
       }
       Interpret(instr);
     } else {
-      Instr instr(*reinterpret_cast<uint32_t*>(pc_));
+      Instr instr(LoadUnaligned(reinterpret_cast<uint32_t*>(pc_)));
       if (IsTracingExecution()) {
         Disassembler::Disassemble(pc_, pc_ + instr.length());
       }
@@ -1007,6 +1007,162 @@ void Simulator::InterpretSTOREFP(Instr instr) {
   pc_ += instr.length();
 }
 
+static uintx_t clz(uintx_t a) {
+  for (int bit = XLEN - 1; bit >= 0; bit--) {
+    if ((a & (static_cast<uintx_t>(1) << bit)) != 0) {
+      return XLEN - bit - 1;
+    }
+  }
+  return XLEN;
+}
+
+static uintx_t ctz(uintx_t a) {
+  for (int bit = 0; bit < XLEN; bit++) {
+    if ((a & (static_cast<uintx_t>(1) << bit)) != 0) {
+      return bit;
+    }
+  }
+  return XLEN;
+}
+
+static uintx_t cpop(uintx_t a) {
+  uintx_t count = 0;
+  for (int bit = 0; bit < XLEN; bit++) {
+    if ((a & (static_cast<uintx_t>(1) << bit)) != 0) {
+      count++;
+    }
+  }
+  return count;
+}
+
+static uintx_t clzw(uint32_t a) {
+  for (int bit = 32 - 1; bit >= 0; bit--) {
+    if ((a & (static_cast<uint32_t>(1) << bit)) != 0) {
+      return 32 - bit - 1;
+    }
+  }
+  return 32;
+}
+
+static uintx_t ctzw(uint32_t a) {
+  for (int bit = 0; bit < 32; bit++) {
+    if ((a & (static_cast<uint32_t>(1) << bit)) != 0) {
+      return bit;
+    }
+  }
+  return 32;
+}
+
+static uintx_t cpopw(uint32_t a) {
+  uintx_t count = 0;
+  for (int bit = 0; bit < 32; bit++) {
+    if ((a & (static_cast<uint32_t>(1) << bit)) != 0) {
+      count++;
+    }
+  }
+  return count;
+}
+
+static intx_t max(intx_t a, intx_t b) {
+  return a > b ? a : b;
+}
+static uintx_t maxu(uintx_t a, uintx_t b) {
+  return a > b ? a : b;
+}
+static intx_t min(intx_t a, intx_t b) {
+  return a < b ? a : b;
+}
+static uintx_t minu(uintx_t a, uintx_t b) {
+  return a < b ? a : b;
+}
+static uintx_t clmul(uintx_t a, uintx_t b) {
+  uintx_t result = 0;
+  for (int bit = 0; bit < XLEN; bit++) {
+    if (((b >> bit) & 1) != 0) {
+      result ^= a << bit;
+    }
+  }
+  return result;
+}
+static uintx_t clmulh(uintx_t a, uintx_t b) {
+  uintx_t result = 0;
+  for (int bit = 1; bit < XLEN; bit++) {
+    if (((b >> bit) & 1) != 0) {
+      result ^= a >> (XLEN - bit);
+    }
+  }
+  return result;
+}
+static uintx_t clmulr(uintx_t a, uintx_t b) {
+  uintx_t result = 0;
+  for (int bit = 0; bit < XLEN; bit++) {
+    if (((b >> bit) & 1) != 0) {
+      result ^= a >> (XLEN - bit - 1);
+    }
+  }
+  return result;
+}
+static uintx_t sextb(uintx_t a) {
+  return static_cast<intx_t>(a << (XLEN - 8)) >> (XLEN - 8);
+}
+static uintx_t sexth(uintx_t a) {
+  return static_cast<intx_t>(a << (XLEN - 16)) >> (XLEN - 16);
+}
+static uintx_t zexth(uintx_t a) {
+  return a << (XLEN - 16) >> (XLEN - 16);
+}
+static uintx_t ror(uintx_t a, uintx_t b) {
+  uintx_t r = b & (XLEN - 1);
+  uintx_t l = (XLEN - r) & (XLEN - 1);
+  return (a << l) | (a >> r);
+}
+static uintx_t rol(uintx_t a, uintx_t b) {
+  uintx_t l = b & (XLEN - 1);
+  uintx_t r = (XLEN - l) & (XLEN - 1);
+  return (a << l) | (a >> r);
+}
+static uintx_t rorw(uintx_t a, uintx_t b) {
+  uint32_t r = b & (XLEN - 1);
+  uint32_t l = (XLEN - r) & (XLEN - 1);
+  uint32_t x = a;
+  return sign_extend((x << l) | (x >> r));
+}
+static uintx_t rolw(uintx_t a, uintx_t b) {
+  uint32_t l = b & (XLEN - 1);
+  uint32_t r = (XLEN - l) & (XLEN - 1);
+  uint32_t x = a;
+  return sign_extend((x << l) | (x >> r));
+}
+static uintx_t orcb(uintx_t a) {
+  uintx_t result = 0;
+  for (int shift = 0; shift < XLEN; shift += 8) {
+    if (((a >> shift) & 0xFF) != 0) {
+      result |= static_cast<uintx_t>(0xFF) << shift;
+    }
+  }
+  return result;
+}
+static uintx_t rev8(uintx_t a) {
+  uintx_t result = 0;
+  for (int shift = 0; shift < XLEN; shift += 8) {
+    result <<= 8;
+    result |= (a >> shift) & 0xFF;
+  }
+  return result;
+}
+static uintx_t bclr(uintx_t a, uintx_t b) {
+  return a & ~(static_cast<uintx_t>(1) << (b & (XLEN - 1)));
+}
+static uintx_t bext(uintx_t a, uintx_t b) {
+  return (a >> (b & (XLEN - 1))) & 1;
+}
+static uintx_t binv(uintx_t a, uintx_t b) {
+  return a ^ (static_cast<uintx_t>(1) << (b & (XLEN - 1)));
+}
+static uintx_t bset(uintx_t a, uintx_t b) {
+  return a | (static_cast<uintx_t>(1) << (b & (XLEN - 1)));
+}
+
 DART_FORCE_INLINE
 void Simulator::InterpretOPIMM(Instr instr) {
   switch (instr.funct3()) {
@@ -1034,15 +1190,48 @@ void Simulator::InterpretOPIMM(Instr instr) {
       break;
     case ANDI:
       set_xreg(instr.rd(), get_xreg(instr.rs1()) & instr.itype_imm());
-
       break;
     case SLLI:
-      set_xreg(instr.rd(), get_xreg(instr.rs1()) << instr.shamt());
+      if (instr.funct7() == COUNT) {
+        if (instr.shamt() == 0b00000) {
+          set_xreg(instr.rd(), clz(get_xreg(instr.rs1())));
+        } else if (instr.shamt() == 0b00001) {
+          set_xreg(instr.rd(), ctz(get_xreg(instr.rs1())));
+        } else if (instr.shamt() == 0b00010) {
+          set_xreg(instr.rd(), cpop(get_xreg(instr.rs1())));
+        } else if (instr.shamt() == 0b00100) {
+          set_xreg(instr.rd(), sextb(get_xreg(instr.rs1())));
+        } else if (instr.shamt() == 0b00101) {
+          set_xreg(instr.rd(), sexth(get_xreg(instr.rs1())));
+        } else {
+          IllegalInstruction(instr);
+        }
+      } else if ((instr.funct7() & 0b1111110) == BCLRBEXT) {
+        set_xreg(instr.rd(), bclr(get_xreg(instr.rs1()), instr.shamt()));
+      } else if ((instr.funct7() & 0b1111110) == BINV) {
+        set_xreg(instr.rd(), binv(get_xreg(instr.rs1()), instr.shamt()));
+      } else if ((instr.funct7() & 0b1111110) == BSET) {
+        set_xreg(instr.rd(), bset(get_xreg(instr.rs1()), instr.shamt()));
+      } else {
+        set_xreg(instr.rd(), get_xreg(instr.rs1()) << instr.shamt());
+      }
       break;
     case SRI:
       if ((instr.funct7() & 0b1111110) == SRA) {
         set_xreg(instr.rd(),
                  static_cast<intx_t>(get_xreg(instr.rs1())) >> instr.shamt());
+      } else if ((instr.funct7() & 0b1111110) == ROTATE) {
+        set_xreg(instr.rd(), ror(get_xreg(instr.rs1()), instr.shamt()));
+      } else if (instr.funct7() == 0b0010100) {
+        set_xreg(instr.rd(), orcb(get_xreg(instr.rs1())));
+#if XLEN == 32
+      } else if (instr.funct7() == 0b0110100) {
+#else
+      } else if (instr.funct7() == 0b0110101) {
+#endif
+        set_xreg(instr.rd(), rev8(get_xreg(instr.rs1())));
+      } else if ((instr.funct7() & 0b1111110) == BCLRBEXT) {
+        set_xreg(instr.rd(), bext(get_xreg(instr.rs1()), instr.shamt()));
       } else {
         set_xreg(instr.rd(),
                  static_cast<uintx_t>(get_xreg(instr.rs1())) >> instr.shamt());
@@ -1064,9 +1253,25 @@ void Simulator::InterpretOPIMM32(Instr instr) {
       break;
     }
     case SLLI: {
-      uint32_t a = get_xreg(instr.rs1());
-      uint32_t b = instr.shamt();
-      set_xreg(instr.rd(), sign_extend(a << b));
+      if (instr.funct7() == SLLIUW) {
+        uintx_t a = static_cast<uint32_t>(get_xreg(instr.rs1()));
+        uintx_t b = instr.shamt();
+        set_xreg(instr.rd(), a << b);
+      } else if (instr.funct7() == COUNT) {
+        if (instr.shamt() == 0b00000) {
+          set_xreg(instr.rd(), clzw(get_xreg(instr.rs1())));
+        } else if (instr.shamt() == 0b00001) {
+          set_xreg(instr.rd(), ctzw(get_xreg(instr.rs1())));
+        } else if (instr.shamt() == 0b00010) {
+          set_xreg(instr.rd(), cpopw(get_xreg(instr.rs1())));
+        } else {
+          IllegalInstruction(instr);
+        }
+      } else {
+        uint32_t a = get_xreg(instr.rs1());
+        uint32_t b = instr.shamt();
+        set_xreg(instr.rd(), sign_extend(a << b));
+      }
       break;
     }
     case SRI:
@@ -1074,6 +1279,8 @@ void Simulator::InterpretOPIMM32(Instr instr) {
         int32_t a = get_xreg(instr.rs1());
         int32_t b = instr.shamt();
         set_xreg(instr.rd(), sign_extend(a >> b));
+      } else if (instr.funct7() == ROTATE) {
+        set_xreg(instr.rd(), rorw(get_xreg(instr.rs1()), instr.shamt()));
       } else {
         uint32_t a = get_xreg(instr.rs1());
         uint32_t b = instr.shamt();
@@ -1098,6 +1305,32 @@ void Simulator::InterpretOP(Instr instr) {
     case MULDIV:
       InterpretOP_MULDIV(instr);
       break;
+    case SHADD:
+      InterpretOP_SHADD(instr);
+      break;
+    case MINMAXCLMUL:
+      InterpretOP_MINMAXCLMUL(instr);
+      break;
+    case ROTATE:
+      InterpretOP_ROTATE(instr);
+      break;
+    case BCLRBEXT:
+      InterpretOP_BCLRBEXT(instr);
+      break;
+    case BINV:
+      set_xreg(instr.rd(), binv(get_xreg(instr.rs1()), get_xreg(instr.rs2())));
+      pc_ += instr.length();
+      break;
+    case BSET:
+      set_xreg(instr.rd(), bset(get_xreg(instr.rs1()), get_xreg(instr.rs2())));
+      pc_ += instr.length();
+      break;
+#if XLEN == 32
+    case 0b0000100:
+      set_xreg(instr.rd(), zexth(get_xreg(instr.rs1())));
+      pc_ += instr.length();
+      break;
+#endif
     default:
       IllegalInstruction(instr);
   }
@@ -1148,7 +1381,7 @@ void Simulator::InterpretOP_0(Instr instr) {
 }
 
 static intx_t mul(intx_t a, intx_t b) {
-  return a * b;
+  return static_cast<uintx_t>(a) * static_cast<uintx_t>(b);
 }
 
 static intx_t mulh(intx_t a, intx_t b) {
@@ -1331,6 +1564,98 @@ void Simulator::InterpretOP_SUB(Instr instr) {
       set_xreg(instr.rd(), static_cast<intx_t>(get_xreg(instr.rs1())) >> shamt);
       break;
     }
+    case AND:
+      set_xreg(instr.rd(), get_xreg(instr.rs1()) & ~get_xreg(instr.rs2()));
+      break;
+    case OR:
+      set_xreg(instr.rd(), get_xreg(instr.rs1()) | ~get_xreg(instr.rs2()));
+      break;
+    case XOR:
+      set_xreg(instr.rd(), get_xreg(instr.rs1()) ^ ~get_xreg(instr.rs2()));
+      break;
+    default:
+      IllegalInstruction(instr);
+  }
+  pc_ += instr.length();
+}
+
+DART_FORCE_INLINE
+void Simulator::InterpretOP_SHADD(Instr instr) {
+  switch (instr.funct3()) {
+    case SH1ADD:
+      set_xreg(instr.rd(),
+               (get_xreg(instr.rs1()) << 1) + get_xreg(instr.rs2()));
+      break;
+    case SH2ADD:
+      set_xreg(instr.rd(),
+               (get_xreg(instr.rs1()) << 2) + get_xreg(instr.rs2()));
+      break;
+    case SH3ADD:
+      set_xreg(instr.rd(),
+               (get_xreg(instr.rs1()) << 3) + get_xreg(instr.rs2()));
+      break;
+    default:
+      IllegalInstruction(instr);
+  }
+  pc_ += instr.length();
+}
+
+DART_FORCE_INLINE
+void Simulator::InterpretOP_MINMAXCLMUL(Instr instr) {
+  switch (instr.funct3()) {
+    case MAX:
+      set_xreg(instr.rd(), max(get_xreg(instr.rs1()), get_xreg(instr.rs2())));
+      break;
+    case MAXU:
+      set_xreg(instr.rd(), maxu(get_xreg(instr.rs1()), get_xreg(instr.rs2())));
+      break;
+    case MIN:
+      set_xreg(instr.rd(), min(get_xreg(instr.rs1()), get_xreg(instr.rs2())));
+      break;
+    case MINU:
+      set_xreg(instr.rd(), minu(get_xreg(instr.rs1()), get_xreg(instr.rs2())));
+      break;
+    case CLMUL:
+      set_xreg(instr.rd(), clmul(get_xreg(instr.rs1()), get_xreg(instr.rs2())));
+      break;
+    case CLMULH:
+      set_xreg(instr.rd(),
+               clmulh(get_xreg(instr.rs1()), get_xreg(instr.rs2())));
+      break;
+    case CLMULR:
+      set_xreg(instr.rd(),
+               clmulr(get_xreg(instr.rs1()), get_xreg(instr.rs2())));
+      break;
+    default:
+      IllegalInstruction(instr);
+  }
+  pc_ += instr.length();
+}
+
+DART_FORCE_INLINE
+void Simulator::InterpretOP_ROTATE(Instr instr) {
+  switch (instr.funct3()) {
+    case ROR:
+      set_xreg(instr.rd(), ror(get_xreg(instr.rs1()), get_xreg(instr.rs2())));
+      break;
+    case ROL:
+      set_xreg(instr.rd(), rol(get_xreg(instr.rs1()), get_xreg(instr.rs2())));
+      break;
+    default:
+      IllegalInstruction(instr);
+  }
+  pc_ += instr.length();
+}
+
+DART_FORCE_INLINE
+void Simulator::InterpretOP_BCLRBEXT(Instr instr) {
+  switch (instr.funct3()) {
+    case BCLR:
+      set_xreg(instr.rd(), bclr(get_xreg(instr.rs1()), get_xreg(instr.rs2())));
+      break;
+    case BEXT:
+      set_xreg(instr.rd(), bext(get_xreg(instr.rs1()), get_xreg(instr.rs2())));
+      break;
     default:
       IllegalInstruction(instr);
   }
@@ -1349,6 +1674,15 @@ void Simulator::InterpretOP32(Instr instr) {
       break;
     case MULDIV:
       InterpretOP32_MULDIV(instr);
+      break;
+    case SHADD:
+      InterpretOP32_SHADD(instr);
+      break;
+    case ADDUW:
+      InterpretOP32_ADDUW(instr);
+      break;
+    case ROTATE:
+      InterpretOP32_ROTATE(instr);
       break;
 #endif  // XLEN >= 64
     default:
@@ -1433,6 +1767,68 @@ void Simulator::InterpretOP32_MULDIV(Instr instr) {
                                              get_xreg(instr.rs2()))));
       break;
 #endif  // XLEN >= 64
+    default:
+      IllegalInstruction(instr);
+  }
+  pc_ += instr.length();
+}
+
+DART_FORCE_INLINE
+void Simulator::InterpretOP32_SHADD(Instr instr) {
+  switch (instr.funct3()) {
+    case SH1ADD: {
+      uintx_t a = static_cast<uint32_t>(get_xreg(instr.rs1()));
+      uintx_t b = get_xreg(instr.rs2());
+      set_xreg(instr.rd(), (a << 1) + b);
+      break;
+    }
+    case SH2ADD: {
+      uintx_t a = static_cast<uint32_t>(get_xreg(instr.rs1()));
+      uintx_t b = get_xreg(instr.rs2());
+      set_xreg(instr.rd(), (a << 2) + b);
+      break;
+    }
+    case SH3ADD: {
+      uintx_t a = static_cast<uint32_t>(get_xreg(instr.rs1()));
+      uintx_t b = get_xreg(instr.rs2());
+      set_xreg(instr.rd(), (a << 3) + b);
+      break;
+    }
+    default:
+      IllegalInstruction(instr);
+  }
+  pc_ += instr.length();
+}
+
+DART_FORCE_INLINE
+void Simulator::InterpretOP32_ADDUW(Instr instr) {
+  switch (instr.funct3()) {
+#if XLEN >= 64
+    case F3_0: {
+      uintx_t a = static_cast<uint32_t>(get_xreg(instr.rs1()));
+      uintx_t b = get_xreg(instr.rs2());
+      set_xreg(instr.rd(), a + b);
+      break;
+    }
+    case ZEXT:
+      set_xreg(instr.rd(), zexth(get_xreg(instr.rs1())));
+      break;
+#endif  // XLEN >= 64
+    default:
+      IllegalInstruction(instr);
+  }
+  pc_ += instr.length();
+}
+
+DART_FORCE_INLINE
+void Simulator::InterpretOP32_ROTATE(Instr instr) {
+  switch (instr.funct3()) {
+    case ROR:
+      set_xreg(instr.rd(), rorw(get_xreg(instr.rs1()), get_xreg(instr.rs2())));
+      break;
+    case ROL:
+      set_xreg(instr.rd(), rolw(get_xreg(instr.rs1()), get_xreg(instr.rs2())));
+      break;
     default:
       IllegalInstruction(instr);
   }
@@ -2295,10 +2691,10 @@ void Simulator::InterpretOPFP(Instr instr) {
       float rs1 = get_fregs(instr.frs1());
       float rs2 = get_fregs(instr.frs2());
       switch (instr.funct3()) {
-        case MIN:
+        case FMIN:
           set_fregs(instr.frd(), rv_fminf(rs1, rs2));
           break;
-        case MAX:
+        case FMAX:
           set_fregs(instr.frd(), rv_fmaxf(rs1, rs2));
           break;
         default:
@@ -2449,10 +2845,10 @@ void Simulator::InterpretOPFP(Instr instr) {
       double rs1 = get_fregd(instr.frs1());
       double rs2 = get_fregd(instr.frs2());
       switch (instr.funct3()) {
-        case MIN:
+        case FMIN:
           set_fregd(instr.frd(), rv_fmin(rs1, rs2));
           break;
-        case MAX:
+        case FMAX:
           set_fregd(instr.frd(), rv_fmax(rs1, rs2));
           break;
         default:
@@ -2618,7 +3014,7 @@ type Simulator::MemoryRead(uintx_t addr, Register base) {
     }
   }
 #endif
-  return *reinterpret_cast<type*>(addr);
+  return LoadUnaligned(reinterpret_cast<type*>(addr));
 }
 
 template <typename type>
@@ -2639,7 +3035,7 @@ void Simulator::MemoryWrite(uintx_t addr, type value, Register base) {
     }
   }
 #endif
-  *reinterpret_cast<type*>(addr) = value;
+  StoreUnaligned(reinterpret_cast<type*>(addr), value);
 }
 
 enum ControlStatusRegister {

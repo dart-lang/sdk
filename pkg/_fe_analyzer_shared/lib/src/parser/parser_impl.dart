@@ -6,6 +6,8 @@ library _fe_analyzer_shared.parser.parser;
 
 import 'package:_fe_analyzer_shared/src/parser/type_info_impl.dart';
 
+import '../experiments/flags.dart';
+
 import '../messages/codes.dart' as codes;
 
 import '../scanner/scanner.dart' show ErrorToken, Token;
@@ -15,11 +17,13 @@ import '../scanner/token.dart'
         ASSIGNMENT_PRECEDENCE,
         BeginToken,
         CASCADE_PRECEDENCE,
+        CAST_PATTERN_PRECEDENCE,
         EQUALITY_PRECEDENCE,
         Keyword,
         POSTFIX_PRECEDENCE,
         RELATIONAL_PRECEDENCE,
         SELECTOR_PRECEDENCE,
+        SHIFT_PRECEDENCE,
         StringToken,
         SyntheticBeginToken,
         SyntheticKeywordToken,
@@ -71,6 +75,7 @@ import 'identifier_context.dart'
     show
         IdentifierContext,
         looksLikeExpressionStart,
+        looksLikePatternStart,
         okNextValueInFormalParameter;
 
 import 'identifier_context_impl.dart'
@@ -110,7 +115,8 @@ import 'type_info.dart'
         computeMethodTypeArguments,
         computeType,
         computeTypeParamOrArg,
-        isValidTypeReference,
+        computeVariablePatternType,
+        isValidNonRecordTypeReference,
         noType,
         noTypeParamOrArg;
 
@@ -317,8 +323,29 @@ class Parser {
   // implicit create expression without the special casing.
   final bool useImplicitCreationExpression;
 
-  Parser(this.listener, {this.useImplicitCreationExpression: true})
+  /// Indicates whether pattern parsing is enabled.
+  ///
+  /// This ensures that we don't regress non-pattern functionality while pattern
+  /// parsing logic is being developed.  Eventually we will want to turn this
+  /// functionality on permanently, and leave it to the client to report an
+  /// appropriate error if a pattern is used while patterns are not enabled.
+  /// TODO(paulberry): remove this flag when appropriate.
+  final bool allowPatterns;
+
+  Parser(this.listener,
+      {this.useImplicitCreationExpression = true, this.allowPatterns = false})
       : assert(listener != null); // ignore:unnecessary_null_comparison
+
+  /// Executes [callback]; however if `this` is the `TestParser` (from
+  /// `pkg/front_end/test/parser_test_parser.dart`) then no output is printed
+  /// during its execution.
+  ///
+  /// This is sometimes necessary inside `assert` statements, to ensure that the
+  /// output of `TestParser` is the same regardless of whether assertions are
+  /// enabled.
+  T inhibitPrinting<T>(T Function() callback) {
+    return callback();
+  }
 
   bool get inGenerator {
     return asyncState == AsyncModifier.AsyncStar ||
@@ -494,8 +521,13 @@ class Parser {
     token = parseMetadataStar(token);
     Token next = token.next!;
     if (next.isTopLevelKeyword) {
-      return parseTopLevelKeywordDeclaration(/* start = */ token,
-          /* keyword = */ next, /* macroToken = */ null, directiveState);
+      return parseTopLevelKeywordDeclaration(
+          /* start = */ token,
+          /* keyword = */ next,
+          /* macroToken = */ null,
+          /* viewToken = */ null,
+          /* sealedToken = */ null,
+          directiveState);
     }
     Token start = token;
     // Skip modifiers to find a top level keyword or identifier
@@ -515,15 +547,38 @@ class Parser {
     }
     next = token.next!;
     Token? macroToken;
+    Token? viewToken;
+    Token? sealedToken;
     if (next.isIdentifier &&
+        next.lexeme == 'view' &&
+        optional('class', next.next!)) {
+      viewToken = next;
+      next = next.next!;
+    } else if (next.isIdentifier &&
         next.lexeme == 'macro' &&
         optional('class', next.next!)) {
       macroToken = next;
       next = next.next!;
+    } else if (next.isIdentifier && next.lexeme == 'sealed') {
+      sealedToken = next;
+      if (optional('class', next.next!) || optional('mixin', next.next!)) {
+        next = next.next!;
+      } else if (optional('abstract', next.next!) &&
+          optional('class', next.next!.next!)) {
+        // Defer error handling of sealed abstract to
+        // [parseClassOrNamedMixinApplication] after the abstract is parsed.
+        start = next;
+        next = next.next!.next!;
+      }
     }
     if (next.isTopLevelKeyword) {
-      return parseTopLevelKeywordDeclaration(/* start = */ start,
-          /* keyword = */ next, /* macroToken = */ macroToken, directiveState);
+      return parseTopLevelKeywordDeclaration(
+          /* start = */ start,
+          /* keyword = */ next,
+          /* macroToken = */ macroToken,
+          /* viewToken = */ viewToken,
+          /* sealedToken = */ sealedToken,
+          directiveState);
     } else if (next.isKeywordOrIdentifier) {
       // TODO(danrubel): improve parseTopLevelMember
       // so that we don't parse modifiers twice.
@@ -533,7 +588,11 @@ class Parser {
       directiveState?.checkDeclaration();
       // Handle the edge case where a modifier is being used as an identifier
       return parseTopLevelMemberImpl(start);
+    } else if (/* record type */ optional('(', next)) {
+      directiveState?.checkDeclaration();
+      return parseTopLevelMemberImpl(start);
     }
+
     // Recovery
     if (next.isOperator && optional('(', next.next!)) {
       // This appears to be a top level operator declaration, which is invalid.
@@ -551,8 +610,13 @@ class Parser {
 
   /// Parse any top-level declaration that begins with a keyword.
   /// [start] is the token before any modifiers preceding [keyword].
-  Token parseTopLevelKeywordDeclaration(Token start, Token keyword,
-      Token? macroToken, DirectiveContext? directiveState) {
+  Token parseTopLevelKeywordDeclaration(
+      Token start,
+      Token keyword,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      DirectiveContext? directiveState) {
     assert(keyword.isTopLevelKeyword);
     final String? value = keyword.stringValue;
     if (identical(value, 'class')) {
@@ -561,8 +625,8 @@ class Parser {
       context.parseClassModifiers(start, keyword);
       Token? abstractToken = context.abstractToken;
       Token? augmentToken = context.augmentToken;
-      return parseClassOrNamedMixinApplication(
-          abstractToken, macroToken, augmentToken, keyword);
+      return parseClassOrNamedMixinApplication(abstractToken, macroToken,
+          viewToken, sealedToken, augmentToken, keyword);
     } else if (identical(value, 'enum')) {
       directiveState?.checkDeclaration();
       ModifierContext context = new ModifierContext(this);
@@ -573,8 +637,24 @@ class Parser {
       // and can be used in a top level declaration
       // as an identifier such as "abstract<T>() => 0;"
       // or as a prefix such as "abstract.A b() => 0;".
+      // This also means that `typedef ({int? j}) => 0;` is a method, but with
+      // records something like `typedef ({int? j}) X();` is a typedef.
       String? nextValue = keyword.next!.stringValue;
-      if (identical(nextValue, '(') || identical(nextValue, '.')) {
+      bool typedefWithRecord = false;
+      if (identical(value, 'typedef') && identical(nextValue, '(')) {
+        Token? endParen = keyword.next!.endGroup;
+        if (endParen != null &&
+            _isIdentifierOrQuestionIdentifier(endParen.next!)) {
+          // Looks like a typedef with a record.
+          TypeInfo typeInfo = computeType(keyword, /* required = */ false);
+          if (typeInfo is ComplexTypeInfo && typeInfo.isRecordType) {
+            typedefWithRecord = true;
+          }
+        }
+      }
+
+      if ((identical(nextValue, '(') || identical(nextValue, '.')) &&
+          !typedefWithRecord) {
         directiveState?.checkDeclaration();
         return parseTopLevelMemberImpl(start);
       } else if (identical(nextValue, '<')) {
@@ -606,7 +686,7 @@ class Parser {
         } else if (identical(value, 'mixin')) {
           context.parseMixinModifiers(start, keyword);
           directiveState?.checkDeclaration();
-          return parseMixin(context.augmentToken, keyword);
+          return parseMixin(context.augmentToken, sealedToken, keyword);
         } else if (identical(value, 'extension')) {
           context.parseTopLevelKeywordModifiers(start, keyword);
           directiveState?.checkDeclaration();
@@ -631,6 +711,14 @@ class Parser {
     throw "Internal error: Unhandled top level keyword '$value'.";
   }
 
+  bool _isIdentifierOrQuestionIdentifier(Token token) {
+    if (token.isIdentifier) return true;
+    if (optional("?", token)) {
+      return token.next!.isIdentifier;
+    }
+    return false;
+  }
+
   /// ```
   /// libraryAugmentationDirective:
   ///   'library' 'augment' uri ';'
@@ -650,17 +738,23 @@ class Parser {
 
   /// ```
   /// libraryDirective:
-  ///   'library' qualified ';'
+  ///   'library' qualified? ';'
   /// ;
   /// ```
   Token parseLibraryName(Token libraryKeyword) {
     assert(optional('library', libraryKeyword));
     listener.beginUncategorizedTopLevelDeclaration(libraryKeyword);
     listener.beginLibraryName(libraryKeyword);
-    Token token = parseQualified(libraryKeyword, IdentifierContext.libraryName,
-        IdentifierContext.libraryNameContinuation);
-    token = ensureSemicolon(token);
-    listener.endLibraryName(libraryKeyword, token);
+    Token token = libraryKeyword.next!;
+    bool hasName = !optional(';', token);
+    if (hasName) {
+      token = parseQualified(libraryKeyword, IdentifierContext.libraryName,
+          IdentifierContext.libraryNameContinuation);
+      token = ensureSemicolon(token);
+    } else {
+      token = ensureSemicolon(libraryKeyword);
+    }
+    listener.endLibraryName(libraryKeyword, token, hasName);
     return token;
   }
 
@@ -1219,7 +1313,7 @@ class Parser {
               // Insert missing 'Function' below.
               reportRecoverableError(endGroup,
                   missingParameterMessage(MemberKind.FunctionTypeAlias));
-              rewriter.insertParens(endGroup, /*includeIdentifier =*/ false);
+              rewriter.insertParens(endGroup, /* includeIdentifier = */ false);
               recover = true;
             } else if (optional('(', endGroup.next!) &&
                 endGroup.next!.endGroup != null &&
@@ -1277,7 +1371,7 @@ class Parser {
       reportRecoverableError(
           withKeyword, codes.templateExpectedButGot.withArguments('with'));
       withKeyword = rewriter.insertSyntheticKeyword(token, Keyword.WITH);
-      if (!isValidTypeReference(withKeyword.next!)) {
+      if (!isValidNonRecordTypeReference(withKeyword.next!)) {
         rewriter.insertSyntheticIdentifier(withKeyword);
       }
     }
@@ -1361,6 +1455,165 @@ class Parser {
     assert(optional(')', closeBrace));
     listener.endFormalParameters(/* count = */ 0, token, closeBrace, kind);
     return closeBrace;
+  }
+
+  /// Parse a record type similarly as a formal parameter list of a function.
+  ///
+  /// recordType          ::= '(' recordTypeFields ',' recordTypeNamedFields ')'
+  ///                       | '(' recordTypeFields ','? ')'
+  ///                       | '(' recordTypeNamedFields? ')'
+  ///
+  /// recordTypeFields      ::= recordTypeField ( ',' recordTypeField )*
+  /// recordTypeField       ::= metadata type identifier?
+  ///
+  /// recordTypeNamedFields ::= '{' recordTypeNamedField
+  ///                           ( ',' recordTypeNamedField )* ','? '}'
+  /// recordTypeNamedField  ::= metadata type identifier
+  Token parseRecordType(
+      final Token start, Token token, bool isQuestionMarkPartOfType) {
+    token = token.next!;
+    assert(optional('(', token));
+
+    listener.beginRecordType(start);
+
+    Token begin = token;
+
+    /// parameterCount counting the presence of named fields as 1.
+    int parameterCount = 0;
+    bool hasNamedFields = false;
+    bool sawComma = false;
+    Token? illegalTrailingComma;
+    while (true) {
+      Token next = token.next!;
+      if (optional(')', next)) {
+        token = next;
+        break;
+      } else if (parameterCount == 0 &&
+          optional(',', next) &&
+          optional(')', next.next!)) {
+        illegalTrailingComma = next;
+        token = next.next!;
+        break;
+      }
+      ++parameterCount;
+      String? value = next.stringValue;
+      if (identical(value, '{')) {
+        hasNamedFields = true;
+        token = parseRecordTypeNamedFields(token);
+        token = ensureCloseParen(token, begin);
+        break;
+      }
+      token = parseRecordTypeField(token, identifierIsOptional: true);
+      next = token.next!;
+      if (!optional(',', next)) {
+        Token next = token.next!;
+        if (optional(')', next)) {
+          token = next;
+        } else {
+          // Recovery.
+          // TODO: This is copied from parseFormalParametersRest.
+          // We could possibly either have more specific recovery here
+          // or have the recovery in a shared method.
+          if (begin.endGroup!.isSynthetic) {
+            // Scanner has already reported a missing `)` error,
+            // but placed the `)` in the wrong location, so move it.
+            token = rewriter.moveSynthetic(token, begin.endGroup!);
+          } else if (next.kind == IDENTIFIER_TOKEN &&
+              next.next!.kind == IDENTIFIER_TOKEN) {
+            // Looks like a missing comma
+            token = rewriteAndRecover(
+                token,
+                codes.templateExpectedButGot.withArguments(','),
+                new SyntheticToken(TokenType.COMMA, next.charOffset));
+            continue;
+          } else {
+            token = ensureCloseParen(token, begin);
+          }
+        }
+        break;
+      } else {
+        sawComma = true;
+      }
+      token = next;
+    }
+    assert(optional(')', token));
+
+    if (parameterCount == 0 && illegalTrailingComma != null) {
+      // Empty record type with a comma `(,)`.
+      reportRecoverableError(illegalTrailingComma,
+          codes.messageRecordTypeZeroFieldsButTrailingComma);
+    } else if (parameterCount == 1 && !hasNamedFields && !sawComma) {
+      // Single non-named element without trailing comma.
+      reportRecoverableError(
+          token, codes.messageRecordTypeOnePositionalFieldNoTrailingComma);
+    }
+
+    // Only consume the `?` if it is part of the type.
+    Token? questionMark = token.next!;
+    if (optional('?', questionMark) && isQuestionMarkPartOfType) {
+      token = questionMark;
+    } else {
+      questionMark = null;
+    }
+    listener.endRecordType(start, questionMark, parameterCount,
+        /* hasNamedFields = */ hasNamedFields);
+
+    return token;
+  }
+
+  Token parseRecordTypeField(Token token,
+      {required bool identifierIsOptional}) {
+    listener.beginRecordTypeEntry();
+    token = parseMetadataStar(token);
+    token = computeType(
+      token,
+      /* required = */ true,
+    ).ensureTypeOrVoid(token, this);
+    if (token.next!.isIdentifier || !identifierIsOptional) {
+      token = ensureIdentifier(token, IdentifierContext.recordFieldDeclaration);
+    } else {
+      listener.handleNoName(token.next!);
+    }
+    listener.endRecordTypeEntry();
+    return token;
+  }
+
+  Token parseRecordTypeNamedFields(Token token) {
+    Token begin = token = token.next!;
+    assert(optional('{', token));
+    listener.beginRecordTypeNamedFields(begin);
+    int parameterCount = 0;
+    Token next;
+    while (true) {
+      next = token.next!;
+      if (optional('}', next)) {
+        // breaking with next pointing to '}'.
+        break;
+      }
+      token = parseRecordTypeField(token, identifierIsOptional: false);
+      next = token.next!;
+      ++parameterCount;
+      if (!optional(',', next)) {
+        if (!optional('}', next)) {
+          // Recovery
+          reportRecoverableError(
+              next, codes.templateExpectedButGot.withArguments('}'));
+          // Scanner guarantees a closing bracket.
+          next = begin.endGroup!;
+        }
+        // breaking with next pointing to '}'.
+        break;
+      }
+      token = next;
+    }
+    token = next;
+    assert(optional('}', token));
+    if (parameterCount == 0) {
+      reportRecoverableError(
+          token, codes.messageEmptyRecordTypeNamedFieldsList);
+    }
+    listener.endRecordTypeNamedFields(parameterCount, begin);
+    return token;
   }
 
   /// Parses the formal parameter list of a function.
@@ -2209,8 +2462,13 @@ class Parser {
     return token;
   }
 
-  Token parseClassOrNamedMixinApplication(Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token classKeyword) {
+  Token parseClassOrNamedMixinApplication(
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token classKeyword) {
     assert(optional('class', classKeyword));
     Token begin = abstractToken ?? classKeyword;
     listener.beginClassOrMixinOrNamedMixinApplicationPrelude(begin);
@@ -2219,13 +2477,16 @@ class Parser {
     Token token = computeTypeParamOrArg(
             name, /* inDeclaration = */ true, /* allowsVariance = */ true)
         .parseVariables(name, this);
+    if (abstractToken != null && sealedToken != null) {
+      reportRecoverableError(sealedToken, codes.messageAbstractSealedClass);
+    }
     if (optional('=', token.next!)) {
-      listener.beginNamedMixinApplication(
-          begin, abstractToken, macroToken, augmentToken, name);
+      listener.beginNamedMixinApplication(begin, abstractToken, macroToken,
+          viewToken, sealedToken, augmentToken, name);
       return parseNamedMixinApplication(token, begin, classKeyword);
     } else {
-      listener.beginClassDeclaration(
-          begin, abstractToken, macroToken, augmentToken, name);
+      listener.beginClassDeclaration(begin, abstractToken, macroToken,
+          viewToken, sealedToken, augmentToken, name);
       return parseClass(token, begin, classKeyword, name.lexeme);
     }
   }
@@ -2439,11 +2700,13 @@ class Parser {
   ///
   /// ```
   /// mixinDeclaration:
-  ///   metadata? 'augment'? 'mixin' [SimpleIdentifier] [TypeParameterList]?
-  ///        [OnClause]? [ImplementsClause]? '{' [ClassMember]* '}'
+  ///   metadata? 'augment'? 'sealed'? 'mixin' [SimpleIdentifier]
+  ///        [TypeParameterList]? [OnClause]? [ImplementsClause]?
+  ///        '{' [ClassMember]* '}'
   /// ;
   /// ```
-  Token parseMixin(Token? augmentToken, Token mixinKeyword) {
+  Token parseMixin(
+      Token? augmentToken, Token? sealedToken, Token mixinKeyword) {
     assert(optional('mixin', mixinKeyword));
     listener.beginClassOrMixinOrNamedMixinApplicationPrelude(mixinKeyword);
     Token name = ensureIdentifier(
@@ -2451,7 +2714,8 @@ class Parser {
     Token headerStart = computeTypeParamOrArg(
             name, /* inDeclaration = */ true, /* allowsVariance = */ true)
         .parseVariables(name, this);
-    listener.beginMixinDeclaration(augmentToken, mixinKeyword, name);
+    listener.beginMixinDeclaration(
+        augmentToken, sealedToken, mixinKeyword, name);
     Token token = parseMixinHeaderOpt(headerStart, mixinKeyword);
     if (!optional('{', token.next!)) {
       // Recovery
@@ -2650,7 +2914,7 @@ class Parser {
           } else {
             token = IdentifierContext.extensionShowHideElementMemberOrType
                 .ensureIdentifier(token.next!, this);
-            listener.handleShowHideIdentifier(null, token);
+            listener.handleShowHideIdentifier(/* modifier = */ null, token);
           }
         }
         ++elementCount;
@@ -3187,10 +3451,8 @@ class Parser {
         // TODO(danrubel): Remove when extension methods are enabled by default
         // because then 'extension' will be interpreted as a built-in
         // and this code will never be executed
-        reportRecoverableError(
-            beforeType.next!,
-            codes.templateExperimentNotEnabled
-                .withArguments('extension-methods', '2.6'));
+        reportExperimentNotEnabled(ExperimentalFlag.extensionMethods,
+            beforeType.next!, beforeType.next!);
         token = rewriter.insertSyntheticToken(token, TokenType.SEMICOLON);
       } else {
         token = ensureSemicolon(token);
@@ -3693,6 +3955,17 @@ class Parser {
     if (optional(':', next)) return next;
     codes.Message message = codes.templateExpectedButGot.withArguments(':');
     Token newToken = new SyntheticToken(TokenType.COLON, next.charOffset);
+    return rewriteAndRecover(token, message, newToken);
+  }
+
+  /// If the next token is a function arrow (`=>`), return it.  Otherwise report
+  /// an error, insert a synthetic function arrow, and return the inserted
+  /// function arrow.
+  Token ensureFunctionArrow(Token token) {
+    Token next = token.next!;
+    if (optional('=>', next)) return next;
+    codes.Message message = codes.templateExpectedButGot.withArguments('=>');
+    Token newToken = new SyntheticToken(TokenType.FUNCTION, next.charOffset);
     return rewriteAndRecover(token, message, newToken);
   }
 
@@ -4235,13 +4508,10 @@ class Parser {
             optional(">", operator.next!) &&
             operator.charEnd == operator.next!.charOffset) {
           // Special case use of triple-shift in cases where it isn't enabled.
-          reportRecoverableErrorWithEnd(
-              operator,
-              operator.next!,
-              codes.templateExperimentNotEnabled
-                  .withArguments("triple-shift", "2.14"));
+          reportExperimentNotEnabled(
+              ExperimentalFlag.tripleShift, operator, operator.next!);
           operator = rewriter.replaceNextTokensWithSyntheticToken(
-              name, 2, TokenType.GT_GT_GT);
+              name, /* count = */ 2, TokenType.GT_GT_GT);
         }
       }
     }
@@ -4476,7 +4746,7 @@ class Parser {
     Token factoryKeyword = token = token.next!;
     assert(optional('factory', factoryKeyword));
 
-    if (!isValidTypeReference(token.next!)) {
+    if (!isValidNonRecordTypeReference(token.next!)) {
       // Recovery
       ModifierContext context = new ModifierContext(this)
         ..externalToken = externalToken
@@ -5169,6 +5439,7 @@ class Parser {
   }
 
   int expressionDepth = 0;
+
   Token parseExpression(Token token) {
     if (expressionDepth++ > 500) {
       // This happens in degenerate programs, for example, with a lot of nested
@@ -5195,10 +5466,14 @@ class Parser {
         listener.handleIdentifier(token, IdentifierContext.expression);
       }
     } else {
-      token = optional('throw', token.next!)
-          ? parseThrowExpression(token, /* allowCascades = */ true)
-          : parsePrecedenceExpression(
-              token, ASSIGNMENT_PRECEDENCE, /* allowCascades = */ true);
+      if (allowPatterns && looksLikeOuterPatternEquals(token)) {
+        token = parsePatternAssignment(token);
+      } else {
+        token = optional('throw', token.next!)
+            ? parseThrowExpression(token, /* allowCascades = */ true)
+            : parsePrecedenceExpression(
+                token, ASSIGNMENT_PRECEDENCE, /* allowCascades = */ true);
+      }
     }
     expressionDepth--;
     return token;
@@ -5282,7 +5557,7 @@ class Parser {
       TypeParamOrArgInfo typeArg, Token token) {
     Token next = token.next!;
     TokenType type = next.type;
-    int tokenLevel = _computePrecedence(next);
+    int tokenLevel = _computePrecedence(next, forPattern: false);
     bool enteredLoop = false;
     for (int level = tokenLevel; level >= precedence; --level) {
       int lastBinaryExpressionLevel = -1;
@@ -5306,14 +5581,11 @@ class Parser {
           if (optional(">=", next.next!)) {
             // Special case use of triple-shift in cases where it isn't
             // enabled.
-            reportRecoverableErrorWithEnd(
-                next,
-                next.next!,
-                codes.templateExperimentNotEnabled
-                    .withArguments("triple-shift", "2.14"));
+            reportExperimentNotEnabled(
+                ExperimentalFlag.tripleShift, next, next.next!);
             assert(next == operator);
             next = rewriter.replaceNextTokensWithSyntheticToken(
-                token, 2, TokenType.GT_GT_GT_EQ);
+                token, /* count = */ 2, TokenType.GT_GT_GT_EQ);
             operator = next;
           }
           token = optional('throw', next.next!)
@@ -5401,14 +5673,11 @@ class Parser {
             if (optional(">", next.next!)) {
               // Special case use of triple-shift in cases where it isn't
               // enabled.
-              reportRecoverableErrorWithEnd(
-                  next,
-                  next.next!,
-                  codes.templateExperimentNotEnabled
-                      .withArguments("triple-shift", "2.14"));
+              reportExperimentNotEnabled(
+                  ExperimentalFlag.tripleShift, next, next.next!);
               assert(next == operator);
               next = rewriter.replaceNextTokensWithSyntheticToken(
-                  token, 2, TokenType.GT_GT_GT);
+                  token, /* count = */ 2, TokenType.GT_GT_GT);
               operator = next;
             }
           }
@@ -5421,7 +5690,7 @@ class Parser {
         }
         next = token.next!;
         type = next.type;
-        tokenLevel = _computePrecedence(next);
+        tokenLevel = _computePrecedence(next, forPattern: false);
       }
       if (_recoverAtPrecedenceLevel && !_currentlyRecovering) {
         // Attempt recovery
@@ -5431,7 +5700,7 @@ class Parser {
           level++;
           next = token.next!;
           type = next.type;
-          tokenLevel = _computePrecedence(next);
+          tokenLevel = _computePrecedence(next, forPattern: false);
         }
       }
     }
@@ -5439,7 +5708,7 @@ class Parser {
     if (!enteredLoop && _recoverAtPrecedenceLevel && !_currentlyRecovering) {
       // Attempt recovery
       if (_attemptPrecedenceLevelRecovery(
-          token, precedence, /*currentLevel = */ -1, allowCascades, typeArg)) {
+          token, precedence, /* currentLevel = */ -1, allowCascades, typeArg)) {
         return _parsePrecedenceExpressionLoop(
             precedence, allowCascades, typeArg, token);
       }
@@ -5544,7 +5813,9 @@ class Parser {
     ],
   };
 
-  int _computePrecedence(Token token) {
+  /// Computes the precedence of [token].  [forPattern] indicates whether a
+  /// pattern is being parsed (this changes the precedence of a few operators).
+  int _computePrecedence(Token token, {required bool forPattern}) {
     TokenType type = token.type;
     if (identical(type, TokenType.BANG)) {
       // The '!' has prefix precedence but here it's being used as a
@@ -5566,13 +5837,19 @@ class Parser {
           token.charEnd == token.next!.offset) {
         return TokenType.GT_GT_GT_EQ.precedence;
       }
-    } else if (identical(type, TokenType.QUESTION) &&
-        optional('[', token.next!)) {
-      // "?[" can be a null-aware bracket or a conditional. If it's a
-      // null-aware bracket it has selector precedence.
-      bool isConditional = canParseAsConditional(token);
-      if (!isConditional) {
+    } else if (identical(type, TokenType.QUESTION)) {
+      if (forPattern) {
+        // The '?' has conditional precedence but here it's being used as a
+        // postfix operator as part of a pattern, so it should have selector
+        // precedence.
         return SELECTOR_PRECEDENCE;
+      } else if (optional('[', token.next!)) {
+        // "?[" can be a null-aware bracket or a conditional. If it's a
+        // null-aware bracket it has selector precedence.
+        bool isConditional = canParseAsConditional(token);
+        if (!isConditional) {
+          return SELECTOR_PRECEDENCE;
+        }
       }
     } else if (identical(type, TokenType.IDENTIFIER)) {
       // An identifier at this point is not right. So some recovery is going to
@@ -5581,6 +5858,9 @@ class Parser {
           _tokenRecoveryReplacements.containsKey(token.lexeme)) {
         _recoverAtPrecedenceLevel = true;
       }
+    } else if (forPattern && identical(type, TokenType.AS)) {
+      // Casts bind tighter in patterns.
+      return CAST_PATTERN_PRECEDENCE;
     }
 
     return type.precedence;
@@ -5841,6 +6121,8 @@ class Parser {
         // Fall through to the recovery code.
       } else if (identical(value, "assert")) {
         return parseAssert(token, Assert.Expression);
+      } else if (allowPatterns && identical(value, "switch")) {
+        return parseSwitchExpression(token);
       } else if (token.next!.isIdentifier) {
         return parseSendOrFunctionLiteral(token, context);
       } else if (identical(value, "return")) {
@@ -5852,7 +6134,7 @@ class Parser {
         // Fall through to the recovery code.
       }
     } else if (kind == OPEN_PAREN_TOKEN) {
-      return parseParenthesizedExpressionOrFunctionLiteral(token);
+      return parseParenthesizedExpressionFunctionLiteralOrRecordLiteral(token);
     } else if (kind == OPEN_SQUARE_BRACKET_TOKEN ||
         optional('[]', token.next!)) {
       listener.handleNoTypeArguments(token.next!);
@@ -5871,12 +6153,14 @@ class Parser {
     return parseSend(token, context);
   }
 
-  Token parseParenthesizedExpressionOrFunctionLiteral(Token token) {
+  Token parseParenthesizedExpressionFunctionLiteralOrRecordLiteral(
+      Token token) {
     Token next = token.next!;
     assert(optional('(', next));
-    Token nextToken = next.endGroup!.next!;
-    int kind = nextToken.kind;
+
     if (mayParseFunctionExpressions) {
+      Token nextToken = next.endGroup!.next!;
+      int kind = nextToken.kind;
       if ((identical(kind, FUNCTION_TOKEN) ||
           identical(kind, OPEN_CURLY_BRACKET_TOKEN))) {
         listener.handleNoTypeVariables(next);
@@ -5901,12 +6185,20 @@ class Parser {
     }
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
-    token = parseParenthesizedExpression(token);
+    token = parseParenthesizedExpressionOrRecordLiteral(
+        token, /* constKeywordForRecord = */ null);
     mayParseFunctionExpressions = old;
     return token;
   }
 
-  Token ensureParenthesizedCondition(Token token) {
+  /// Parses an expression inside parentheses that represents the condition part
+  /// of an if-statement, if-element, do-while statement, or while statement, or
+  /// the scrutinee part of a switch statement.  [token] is the token before
+  /// where the `(` is expected.
+  ///
+  /// [allowCase] indicates whether the condition may optionally be followed
+  /// by a caseHead.
+  Token ensureParenthesizedCondition(Token token, {required bool allowCase}) {
     Token openParen = token.next!;
     if (!optional('(', openParen)) {
       // Recover
@@ -5914,27 +6206,117 @@ class Parser {
           openParen, codes.templateExpectedToken.withArguments('('));
       openParen = rewriter.insertParens(token, /* includeIdentifier = */ false);
     }
-    token = parseExpressionInParenthesisRest(openParen);
-    listener.handleParenthesizedCondition(openParen);
+    token = parseExpressionInParenthesisRest(openParen, allowCase: allowCase);
     return token;
   }
 
-  Token parseParenthesizedExpression(Token token) {
+  /// Parse either a parenthesized expression or a record literal.
+  /// If [constKeywordForRecord] is non-null it is forced to be a record
+  /// literal and an error will be issued if there is no trailing comma.
+  Token parseParenthesizedExpressionOrRecordLiteral(
+      Token token, Token? constKeywordForRecord) {
     Token begin = token.next!;
-    token = parseExpressionInParenthesis(token);
-    listener.handleParenthesizedExpression(begin);
+    assert(optional('(', begin));
+    listener.beginParenthesizedExpressionOrRecordLiteral(begin);
+
+    // For parsing of parenthesized expression we need parity with
+    // parseExpressionInParenthesisRest used in ensureParenthesizedCondition.
+
+    token = begin;
+    int count = 0;
+    bool wasRecord = constKeywordForRecord != null;
+    bool wasValidRecord = false;
+    Token? illegalTrailingComma;
+    while (true) {
+      Token next = token.next!;
+      if (optional(')', next)) {
+        if (count == 0) {
+          wasRecord = true;
+        }
+        break;
+      } else if (count == 0 &&
+          optional(',', next) &&
+          optional(')', next.next!)) {
+        illegalTrailingComma = next;
+        wasRecord = true;
+        token = next;
+        break;
+      }
+      Token? colon = null;
+      if (optional(':', next.next!) || /* recovery */ optional(':', next)) {
+        // Record with named expression.
+        wasRecord = true;
+        token = ensureIdentifier(
+          token,
+          IdentifierContext.namedRecordFieldReference,
+        ).next!;
+        colon = token;
+        wasValidRecord = true;
+      }
+      token = parseExpression(token);
+      next = token.next!;
+      if (colon != null) listener.handleNamedRecordField(colon);
+      ++count;
+      if (!optional(',', next)) {
+        // TODO(jensj): Possible more specific recovery.
+        break;
+      } else {
+        // It is a comma, i.e. it's a record.
+        wasRecord = true;
+        wasValidRecord = true;
+      }
+      token = next;
+    }
+    token = ensureCloseParen(token, begin);
+    assert(optional(')', token));
+
+    assert(wasRecord || count <= 1);
+
+    if (wasRecord) {
+      if (count == 0 && illegalTrailingComma != null) {
+        // Empty record literal with a comma `(,)`.
+        reportRecoverableError(illegalTrailingComma,
+            codes.messageRecordLiteralZeroFieldsWithTrailingComma);
+      } else if (count == 1 && !wasValidRecord) {
+        reportRecoverableError(
+            token, codes.messageRecordLiteralOnePositionalFieldNoTrailingComma);
+      }
+      listener.endRecordLiteral(begin, count, constKeywordForRecord);
+    } else {
+      listener.endParenthesizedExpression(begin);
+    }
+
     return token;
   }
 
-  Token parseExpressionInParenthesis(Token token) {
-    return parseExpressionInParenthesisRest(token.next!);
-  }
-
-  Token parseExpressionInParenthesisRest(Token token) {
+  /// Parses an expression inside parentheses that represents the condition part
+  /// of an if-statement, if-element, do-while statement, or while statement, or
+  /// the scrutinee part of a switch statement.  [token] is the `(` token.
+  ///
+  /// [allowCase] indicates whether the condition may optionally be followed by
+  /// a caseHead.
+  Token parseExpressionInParenthesisRest(Token token,
+      {required bool allowCase}) {
     assert(optional('(', token));
     BeginToken begin = token as BeginToken;
     token = parseExpression(token);
-    token = ensureCloseParen(token, begin);
+    Token next = token.next!;
+    if (allowPatterns && optional('case', next)) {
+      Token case_ = token = next;
+      token = parsePattern(token, isRefutableContext: true);
+      next = token.next!;
+      Token? when;
+      if (optional('when', next)) {
+        when = token = next;
+        token = parseExpression(token);
+      }
+      token = ensureCloseParen(token, begin);
+      listener.handleParenthesizedCondition(begin, case_, when);
+    } else {
+      token = ensureCloseParen(token, begin);
+      listener.handleParenthesizedCondition(
+          begin, /* case_ = */ null, /* when = */ null);
+    }
     assert(optional(')', token));
     return token;
   }
@@ -6411,6 +6793,13 @@ class Parser {
       listener.endConstLiteral(token.next!);
       return token;
     }
+    if (identical(value, '(')) {
+      // Const record literal.
+      listener.beginConstLiteral(next);
+      token = parseParenthesizedExpressionOrRecordLiteral(token, constKeyword);
+      listener.endConstLiteral(token.next!);
+      return token;
+    }
     if (identical(value, '{')) {
       listener.beginConstLiteral(next);
       listener.handleNoTypeArguments(next);
@@ -6756,6 +7145,7 @@ class Parser {
     return parseArgumentsRest(token.next!);
   }
 
+  /// Parses the rest of an arguments list, where [token] is the `(`.
   Token parseArgumentsRest(Token token) {
     Token begin = token;
     assert(optional('(', begin));
@@ -6831,8 +7221,21 @@ class Parser {
     if (typeInfo.isNullable) {
       Token skipToken = typeInfo.skipType(token);
       Token next = skipToken.next!;
-      if (isOneOfOrEof(
-          next, const [')', '}', '?', '??', ',', ';', ':', 'is', 'as', '..'])) {
+      if (isOneOfOrEof(next, const [
+        ')',
+        '}',
+        ']',
+        '?',
+        '??',
+        ',',
+        ';',
+        ':',
+        'is',
+        'as',
+        '..',
+        '|',
+        '&'
+      ])) {
         // TODO(danrubel): investigate other situations
         // where `?` should be considered part of the type info
         // rather than the start of a conditional expression.
@@ -7019,7 +7422,11 @@ class Parser {
         onlyParseVariableDeclarationStart);
   }
 
-  /// See [parseExpressionStatementOrDeclaration]
+  /// See [parseExpressionStatementOrDeclaration].
+  ///
+  /// If `start.next` is an `@` token (i.e. this is a declaration with metadata)
+  /// then the caller should parse it before calling this method; otherwise,
+  /// this method will handle the lack of metadata appropriately.
   Token parseExpressionStatementOrDeclarationAfterModifiers(
       Token beforeType,
       Token start,
@@ -7044,6 +7451,26 @@ class Parser {
           start = context.parseVariableDeclarationModifiers(beforeType);
       varFinalOrConst = context.varFinalOrConst;
     }
+
+    // TODO(paulberry): maybe some of the conditions in this `if` test should be
+    // removed to allow for better error recovery.
+    if (allowPatterns &&
+        lateToken == null &&
+        varFinalOrConst != null &&
+        (optional('var', varFinalOrConst) ||
+            optional('final', varFinalOrConst)) &&
+        !onlyParseVariableDeclarationStart &&
+        looksLikeOuterPatternEquals(beforeType)) {
+      // If there was any metadata, then the caller was responsible for parsing
+      // it; if not, then we need to let the listener know there wasn't any.
+      if (!optional('@', start.next!)) {
+        listener.beginMetadataStar(start.next!);
+        listener.endMetadataStar(/* count = */ 0);
+      }
+      return parsePatternVariableDeclarationStatement(
+          beforeType, start, varFinalOrConst);
+    }
+
     typeInfo ??= computeType(beforeType, /* required = */ false);
 
     Token token = typeInfo.skipType(beforeType);
@@ -7064,6 +7491,9 @@ class Parser {
           reportRecoverableErrorWithToken(
               lateToken, codes.templateExtraneousModifier);
         }
+        // If there was any metadata, then the caller was responsible for
+        // parsing it; if not, then we need to let the listener know there
+        // wasn't any.
         if (!optional('@', start.next!)) {
           listener.beginMetadataStar(start.next!);
           listener.endMetadataStar(/* count = */ 0);
@@ -7177,6 +7607,8 @@ class Parser {
       }
     }
 
+    // If there was any metadata, then the caller was responsible for parsing
+    // it; if not, then we need to let the listener know there wasn't any.
     if (!optional('@', start.next!)) {
       listener.beginMetadataStar(start.next!);
       listener.endMetadataStar(/* count = */ 0);
@@ -7226,7 +7658,7 @@ class Parser {
     Token ifToken = token.next!;
     assert(optional('if', ifToken));
     listener.beginIfStatement(ifToken);
-    token = ensureParenthesizedCondition(ifToken);
+    token = ensureParenthesizedCondition(ifToken, allowCase: allowPatterns);
     listener.beginThenStatement(token.next!);
     token = parseStatement(token);
     listener.endThenStatement(token);
@@ -7480,7 +7912,7 @@ class Parser {
     Token whileToken = token.next!;
     assert(optional('while', whileToken));
     listener.beginWhileStatement(whileToken);
-    token = ensureParenthesizedCondition(whileToken);
+    token = ensureParenthesizedCondition(whileToken, allowCase: false);
     listener.beginWhileStatementBody(token.next!);
     LoopState savedLoopState = loopState;
     loopState = LoopState.InsideLoop;
@@ -7512,7 +7944,7 @@ class Parser {
           whileToken, codes.templateExpectedButGot.withArguments('while'));
       whileToken = rewriter.insertSyntheticKeyword(token, Keyword.WHILE);
     }
-    token = ensureParenthesizedCondition(whileToken);
+    token = ensureParenthesizedCondition(whileToken, allowCase: false);
     token = ensureSemicolon(token);
     listener.endDoWhileStatement(doToken, whileToken, token);
     return token;
@@ -7865,7 +8297,7 @@ class Parser {
     Token switchKeyword = token.next!;
     assert(optional('switch', switchKeyword));
     listener.beginSwitchStatement(switchKeyword);
-    token = ensureParenthesizedCondition(switchKeyword);
+    token = ensureParenthesizedCondition(switchKeyword, allowCase: false);
     LoopState savedLoopState = loopState;
     if (loopState == LoopState.OutsideLoop) {
       loopState = LoopState.InsideSwitch;
@@ -7920,10 +8352,19 @@ class Parser {
                 caseKeyword, codes.messageSwitchHasCaseAfterDefault);
           }
           listener.beginCaseExpression(caseKeyword);
-          token = parseExpression(caseKeyword);
+          if (allowPatterns) {
+            token = parsePattern(caseKeyword, isRefutableContext: true);
+          } else {
+            token = parseExpression(caseKeyword);
+          }
+          Token? next = token.next!;
+          Token? when;
+          if (optional('when', next)) {
+            when = token = next;
+            token = parseExpression(token);
+          }
           token = ensureColon(token);
-          listener.endCaseExpression(token);
-          listener.handleCaseMatch(caseKeyword, token);
+          listener.endCaseExpression(caseKeyword, when, token);
           expressionCount++;
           peek = peekPastLabels(token.next!);
         } else if (expressionCount > 0) {
@@ -8332,6 +8773,11 @@ class Parser {
   void reportRecoverableErrorWithEnd(
       Token startToken, Token endToken, codes.Message message) {
     listener.handleRecoverableError(message, startToken, endToken);
+  }
+
+  void reportExperimentNotEnabled(
+      ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
+    listener.handleExperimentNotEnabled(experimentalFlag, startToken, endToken);
   }
 
   void reportRecoverableErrorWithToken(
@@ -8754,6 +9200,734 @@ class Parser {
       ch = comment.codeUnitAt(index);
     }
     return ch == 0x5B;
+  }
+
+  /// pattern               ::= logicalOrPattern
+  /// logicalOrPattern      ::= logicalOrPattern ( '|' logicalAndPattern )?
+  /// logicalAndPattern     ::= logicalAndPattern ( '&' relationalPattern )?
+  /// relationalPattern     ::= ( equalityOperator | relationalOperator)
+  ///                               relationalExpression
+  ///                         | unaryPattern
+  /// unaryPattern          ::= castPattern
+  ///                         | nullCheckPattern
+  ///                         | nullAssertPattern
+  ///                         | primaryPattern
+  /// castPattern ::= primaryPattern 'as' type
+  /// nullAssertPattern ::= primaryPattern '!'
+  /// nullCheckPattern ::= primaryPattern '?'
+  ///
+  /// [isRefutableContext] should be `true` if the pattern occurs in a
+  /// `guardedPattern` or any of its sub-patterns (i.e. in a
+  /// `switchStatementCase`, `switchExpressionCase`, or `ifCondition`); these
+  /// are contexts where a pattern match might be expected to fail, and bare
+  /// identifiers are treated as constant patterns.  It should be `false` if the
+  /// pattern occurs in a `localVariableDeclaration`, `forLoopParts`, or
+  /// `patternAssignment`; these are contexts where a pattern match failure is
+  /// either prohibited statically or causes a runtime exception, and bare
+  /// identifiers are treated as variable patterns.
+  Token parsePattern(Token token,
+      {int precedence = 1, required bool isRefutableContext}) {
+    assert(precedence >= 1);
+    assert(precedence <= SELECTOR_PRECEDENCE);
+    token = parsePrimaryPattern(token, isRefutableContext: isRefutableContext);
+    while (true) {
+      Token next = token.next!;
+      int tokenLevel = _computePrecedence(next, forPattern: true);
+      if (tokenLevel < precedence) return token;
+      switch (next.lexeme) {
+        // castPattern ::= primaryPattern 'as' type
+        case 'as':
+          Token operator = token = next;
+          listener.beginAsOperatorType(token);
+          TypeInfo typeInfo = computeTypeAfterIsOrAs(token);
+          token = typeInfo.ensureTypeNotVoid(token, this);
+          listener.endAsOperatorType(operator);
+          listener.handleCastPattern(operator);
+          // TODO(paulberry): report error if cast is followed by something the
+          // grammar doesn't permit
+          break;
+        case '!':
+          // nullAssertPattern ::= primaryPattern '!'
+          listener.handleNullAssertPattern(next);
+          token = next;
+          break;
+        case '?':
+          // nullCheckPattern ::= primaryPattern '?'
+          listener.handleNullCheckPattern(next);
+          token = next;
+          break;
+        case '&':
+        case '|':
+          listener.beginBinaryPattern(next);
+          // Left associative so we parse the RHS one precedence level higher
+          token = parsePattern(next,
+              precedence: tokenLevel + 1,
+              isRefutableContext: isRefutableContext);
+          listener.endBinaryPattern(next);
+          break;
+        default:
+          // Some other operator that doesn't belong in a pattern
+          return token;
+      }
+    }
+  }
+
+  /// primaryPattern        ::= constantPattern
+  ///                         | variablePattern
+  ///                         | parenthesizedPattern
+  ///                         | listPattern
+  ///                         | mapPattern
+  ///                         | recordPattern
+  ///                         | objectPattern
+  /// listPattern ::= typeArguments? '[' patterns? ']'
+  /// mapPattern        ::= typeArguments? '{' mapPatternEntries? '}'
+  /// mapPatternEntries ::= mapPatternEntry ( ',' mapPatternEntry )* ','?
+  /// mapPatternEntry   ::= expression ':' pattern
+  /// variablePattern ::= ( 'var' | 'final' | 'final'? type )? identifier
+  /// parenthesizedPattern  ::= '(' pattern ')'
+  /// recordPattern         ::= '(' patternFields? ')'
+  /// patternFields         ::= patternField ( ',' patternField )* ','?
+  /// patternField          ::= ( identifier? ':' )? pattern
+  /// constantPattern ::= booleanLiteral
+  ///                   | nullLiteral
+  ///                   | numericLiteral
+  ///                   | stringLiteral
+  ///                   | identifier
+  ///                   | qualifiedName
+  ///                   | constObjectExpression
+  ///                   | 'const' typeArguments? '[' elements? ']'
+  ///                   | 'const' typeArguments? '{' elements? '}'
+  ///                   | 'const' '(' expression ')'
+  /// objectPattern ::= typeName typeArguments? '(' patternFields? ')'
+  Token parsePrimaryPattern(Token token, {required bool isRefutableContext}) {
+    Token start = token;
+    TypeParamOrArgInfo typeArg =
+        computeTypeParamOrArg(token, /* inDeclaration = */ true);
+    Token next = typeArg.skip(token).next!;
+    switch (next.lexeme) {
+      case '[]':
+      case '[':
+        // listPattern ::= typeArguments? '[' patterns? ']'
+        token = typeArg.parseArguments(token, this);
+        token = parseListPatternSuffix(token,
+            isRefutableContext: isRefutableContext);
+        // A list pattern is a valid form of outerPattern, so verify that
+        // skipOuterPattern would have skipped this pattern properly.
+        assert(
+            identical(inhibitPrinting(() => skipOuterPattern(start)), token));
+        return token;
+      case '{':
+        // mapPattern        ::= typeArguments? '{' mapPatternEntries? '}'
+        // mapPatternEntries ::= mapPatternEntry ( ',' mapPatternEntry )* ','?
+        // mapPatternEntry   ::= expression ':' pattern
+        token = typeArg.parseArguments(token, this);
+        token = parseMapPatternSuffix(token,
+            isRefutableContext: isRefutableContext);
+        // A map pattern is a valid form of outerPattern, so verify that
+        // skipOuterPattern would have skipped this pattern properly.
+        assert(
+            identical(inhibitPrinting(() => skipOuterPattern(start)), token));
+        return token;
+    }
+    // Whatever was after the optional type arguments didn't parse as a pattern
+    // that can start with type arguments, so back up and reparse assuming that
+    // we weren't looking at type arguments after all.
+    next = token.next!;
+    switch (next.lexeme) {
+      case 'var':
+      case 'final':
+        // variablePattern ::= ( 'var' | 'final' | 'final'? type )? identifier
+        return parseVariablePattern(token);
+      case '(':
+        // parenthesizedPattern  ::= '(' pattern ')'
+        // recordPattern         ::= '(' patternFields? ')'
+        // patternFields         ::= patternField ( ',' patternField )* ','?
+        // patternField          ::= ( identifier? ':' )? pattern
+        Token nextNext = next.next!;
+        if (optional(')', nextNext)) {
+          listener.handleRecordPattern(next, /* count = */ 0);
+          token = nextNext;
+        } else {
+          token = parseParenthesizedPatternOrRecordPattern(token,
+              isRefutableContext: isRefutableContext);
+        }
+        // A record or parenthesized pattern is a valid form of outerPattern, so
+        // verify that skipOuterPattern would have skipped this pattern
+        // properly.
+        assert(
+            identical(inhibitPrinting(() => skipOuterPattern(start)), token));
+        return token;
+      case 'const':
+        // constantPattern ::= booleanLiteral
+        //                   | nullLiteral
+        //                   | numericLiteral
+        //                   | stringLiteral
+        //                   | identifier
+        //                   | qualifiedName
+        //                   | constObjectExpression
+        //                   | 'const' typeArguments? '[' elements? ']'
+        //                   | 'const' typeArguments? '{' elements? '}'
+        //                   | 'const' '(' expression ')'
+        Token const_ = next;
+        // TODO(paulberry): report error if this constant is not permitted by
+        // the grammar.  Pay careful attention to making sure that constructs
+        // like `const const Foo()`, `const const []`, and `const const {}`
+        // lead to errors.
+        token = parsePrecedenceExpression(
+            const_, SELECTOR_PRECEDENCE, /* allowCascades = */ false);
+        listener.handleConstantPattern(const_);
+        return token;
+    }
+    TokenType type = next.type;
+    if (type.isRelationalOperator || type.isEqualityOperator) {
+      // TODO(paulberry): maybe handle other operators for error recovery?
+      Token operator = next;
+      // Note: the spec says we should use RELATIONAL_PRECEDENCE here, but
+      // that leads to parsing ambiguities.  So we use SHIFT_PRECEDENCE, as
+      // suggested in https://github.com/dart-lang/language/issues/2501.
+      // TODO(paulberry): update this code if necessary when that issue is
+      // resolved.
+      token = parsePrecedenceExpression(
+          next, SHIFT_PRECEDENCE, /* allowCascades = */ false);
+      listener.handleRelationalPattern(operator);
+      return token;
+    }
+    TypeInfo typeInfo = computeVariablePatternType(token);
+    if (typeInfo != noType) {
+      return parseVariablePattern(token, typeInfo: typeInfo);
+    }
+    // objectPattern ::= typeName typeArguments? '(' patternFields? ')'
+    // TODO(paulberry): Make sure OTHER_IDENTIFIER is handled
+    // TODO(paulberry): Technically `dynamic` is valid for
+    // `typeIdentifier`--file an issue
+    if (next.isIdentifier) {
+      Token beforeFirstIdentifier = token;
+      Token firstIdentifier = token = next;
+      next = token.next!;
+      Token? dot;
+      Token? secondIdentifier;
+      if (optional('.', next)) {
+        dot = token = next;
+        next = token.next!;
+        if (next.isIdentifier) {
+          secondIdentifier = token = next;
+          // TODO(paulberry): grammar specifies
+          // `typeIdentifier | qualifiedName`, but that permits `a.b.c`,
+          // which doesn't make sense.
+        } else {
+          throw new UnimplementedError('TODO(paulberry)');
+        }
+      }
+      TypeParamOrArgInfo potentialTypeArg = computeTypeParamOrArg(token);
+      Token afterToken = potentialTypeArg.skip(token).next!;
+      if (optional('(', afterToken) && !potentialTypeArg.recovered) {
+        TypeParamOrArgInfo typeArg = potentialTypeArg;
+        token = typeArg.parseArguments(token, this);
+        token = parseObjectPatternRest(token,
+            isRefutableContext: isRefutableContext);
+        listener.handleObjectPattern(firstIdentifier, dot, secondIdentifier);
+        // An object pattern is a valid form of outerPattern, so verify that
+        // skipOuterPattern would have skipped this pattern properly.
+        assert(
+            identical(inhibitPrinting(() => skipOuterPattern(start)), token));
+        return token;
+      } else if (dot == null) {
+        // It's a single identifier.  If it's a wildcard pattern or we're in an
+        // irrefutable context, parse it as a variable pattern.
+        if (!isRefutableContext || firstIdentifier.lexeme == '_') {
+          // It's a wildcard pattern with no preceding type, so parse it as a
+          // variable pattern.
+          return parseVariablePattern(beforeFirstIdentifier,
+              typeInfo: typeInfo);
+        }
+      }
+      // It's not an object pattern so parse it as an expression.
+      token = beforeFirstIdentifier;
+    }
+    // TODO(paulberry): report error if this constant is not permitted by the
+    // grammar
+    token = parsePrecedenceExpression(
+        token, SELECTOR_PRECEDENCE, /* allowCascades = */ false);
+    listener.handleConstantPattern(/* constKeyword = */ null);
+    return token;
+  }
+
+  /// Parses variable pattern starting after [token].  [typeInfo] is information
+  /// about the type appearing after [token], if any.
+  ///
+  /// variablePattern ::= ( 'var' | 'final' | 'final'? type )? identifier
+  Token parseVariablePattern(Token token, {TypeInfo typeInfo = noType}) {
+    Token? keyword;
+    if (typeInfo != noType) {
+      token = typeInfo.parseType(token, this);
+    } else {
+      Token next = token.next!;
+      if (optional('var', next) || optional('final', next)) {
+        token = keyword = next;
+        // TODO(paulberry): this accepts `var <type> name` as a variable
+        // pattern.  We want to accept that for error recovery, but don't forget
+        // to report the appropriate error.
+        typeInfo = computeVariablePatternType(token);
+        token = typeInfo.parseType(token, this);
+      } else {
+        // Bare identifier pattern
+        listener.handleNoType(token);
+      }
+    }
+    Token next = token.next!;
+    if (next.isIdentifier) {
+      token = next;
+    } else {
+      // Recovery
+      token = insertSyntheticIdentifier(
+          token, IdentifierContext.localVariableDeclaration);
+    }
+    listener.handleVariablePattern(keyword, token);
+    return token;
+  }
+
+  /// This method parses the portion of a list pattern starting with the left
+  /// bracket.
+  ///
+  /// listPattern ::= typeArguments? '[' patterns? ']'
+  Token parseListPatternSuffix(Token token,
+      {required bool isRefutableContext}) {
+    Token beforeToken = token;
+    Token beginToken = token = token.next!;
+    assert(optional('[', token) || optional('[]', token));
+    int count = 0;
+    if (optional('[]', token)) {
+      token = rewriteSquareBrackets(beforeToken).next!;
+      listener.handleListPattern(
+        /* count = */ 0,
+        token,
+        token.next!,
+      );
+      return token.next!;
+    }
+    while (true) {
+      Token next = token.next!;
+      if (optional(']', next)) {
+        token = next;
+        break;
+      }
+      if (optional('...', next)) {
+        Token dots = next;
+        token = next;
+        next = token.next!;
+        bool hasSubPattern = looksLikePatternStart(next);
+        if (hasSubPattern) {
+          token = parsePattern(token, isRefutableContext: isRefutableContext);
+        }
+        listener.handleRestPattern(dots, hasSubPattern: hasSubPattern);
+      } else {
+        token = parsePattern(token, isRefutableContext: isRefutableContext);
+      }
+      next = token.next!;
+      ++count;
+      if (!optional(',', next)) {
+        if (optional(']', next)) {
+          token = next;
+          break;
+        }
+
+        // TODO(paulberry): test this error recovery logic
+        // Recovery
+        if (!looksLikeLiteralEntry(next)) {
+          if (beginToken.endGroup!.isSynthetic) {
+            // The scanner has already reported an error,
+            // but inserted `]` in the wrong place.
+            token = rewriter.moveSynthetic(token, beginToken.endGroup!);
+          } else {
+            // Report an error and jump to the end of the list.
+            reportRecoverableError(
+                next, codes.templateExpectedButGot.withArguments(']'));
+            token = beginToken.endGroup!;
+          }
+          break;
+        }
+        // This looks like the start of an expression.
+        // Report an error, insert the comma, and continue parsing.
+        SyntheticToken comma = new SyntheticToken(TokenType.COMMA, next.offset);
+        codes.Message message = codes.templateExpectedButGot.withArguments(',');
+        next = rewriteAndRecover(token, message, comma);
+      }
+      token = next;
+    }
+    listener.handleListPattern(count, beginToken, token);
+    return token;
+  }
+
+  /// This method parses the portion of a map pattern starting with the left
+  /// curly brace.
+  ///
+  /// mapPattern        ::= typeArguments? '{' mapPatternEntries? '}'
+  /// mapPatternEntries ::= mapPatternEntry ( ',' mapPatternEntry )* ','?
+  /// mapPatternEntry   ::= expression ':' pattern
+  Token parseMapPatternSuffix(Token token, {required bool isRefutableContext}) {
+    Token leftBrace = token = token.next!;
+    assert(optional('{', leftBrace));
+    Token next = token.next!;
+    if (optional('}', next)) {
+      listener.handleMapPattern(/* count = */ 0, leftBrace, next);
+      return next;
+    }
+
+    int count = 0;
+    while (true) {
+      if (optional('...', next)) {
+        Token dots = next;
+        token = next;
+        // TODO(paulberry): users might assume that `...pattern` is valid inside
+        // a map (because it's valid inside a list).  Consider accepting this
+        // and reporting the error at a later stage of the compilation pipeline
+        // so that the error is more useful.
+        listener.handleRestPattern(dots, hasSubPattern: false);
+      } else {
+        token = parseExpression(token);
+        Token colon = token.next!;
+        if (!optional(':', colon)) {
+          // TODO(paulberry): test this error recovery logic
+          // Recover from a missing colon by inserting one.
+          colon = rewriteAndRecover(
+              token,
+              codes.templateExpectedButGot.withArguments(':'),
+              new SyntheticToken(TokenType.PERIOD, next.charOffset));
+        }
+        token = parsePattern(colon, isRefutableContext: isRefutableContext);
+        listener.handleMapPatternEntry(colon, token.next!);
+      }
+      ++count;
+      next = token.next!;
+
+      Token? comma;
+      if (optional(',', next)) {
+        comma = token = next;
+        next = token.next!;
+      }
+      if (optional('}', next)) {
+        listener.handleMapPattern(count, leftBrace, next);
+        return next;
+      }
+
+      if (comma == null) {
+        // TODO(paulberry): test this error recovery logic
+        // Recovery
+        if (looksLikeLiteralEntry(next)) {
+          // If this looks like the start of an expression,
+          // then report an error, insert the comma, and continue parsing.
+          SyntheticToken comma =
+              new SyntheticToken(TokenType.COMMA, next.offset);
+          codes.Message message =
+              codes.templateExpectedButGot.withArguments(',');
+          token = rewriteAndRecover(token, message, comma);
+        } else {
+          reportRecoverableError(
+              next, codes.templateExpectedButGot.withArguments('}'));
+          // Scanner guarantees a closing curly bracket
+          next = leftBrace.endGroup!;
+          listener.handleMapPattern(count, leftBrace, next);
+          return next;
+        }
+      }
+    }
+  }
+
+  /// Parses either a parenthesizedPattern or a recordPattern.
+  ///
+  /// parenthesizedPattern  ::= '(' pattern ')'
+  /// recordPattern         ::= '(' patternFields? ')'
+  /// patternFields         ::= patternField ( ',' patternField )* ','?
+  /// patternField          ::= ( identifier? ':' )? pattern
+  Token parseParenthesizedPatternOrRecordPattern(Token token,
+      {required bool isRefutableContext}) {
+    Token begin = token.next!;
+    assert(optional('(', begin));
+
+    token = begin;
+    int count = 0;
+    bool wasRecord = false;
+    bool wasValidRecord = false;
+    while (true) {
+      Token next = token.next!;
+      if ((count > 0 || wasRecord) && optional(')', next)) {
+        break;
+      }
+      Token? colon = null;
+      // TODO(paulberry): test error recovery
+      if (optional(':', next)) {
+        wasRecord = true;
+        wasValidRecord = true;
+        listener.handleNoName(token);
+        colon = token = next;
+      } else if (optional(':', next.next!) || /* recovery */
+          optional(':', next)) {
+        // Record with named expression.
+        wasRecord = true;
+        token = ensureIdentifier(
+          token,
+          IdentifierContext.namedRecordFieldReference,
+        ).next!;
+        colon = token;
+        wasValidRecord = true;
+      }
+      token = parsePattern(token, isRefutableContext: isRefutableContext);
+      next = token.next!;
+      if (wasRecord || colon != null) {
+        listener.handlePatternField(colon);
+      }
+      ++count;
+      if (!optional(',', next)) {
+        // TODO(paulberry): make sure to test the error case where there's a
+        // colon but it's not a record.
+        break;
+      } else {
+        // It is a comma, i.e. it's a record.
+        if (!wasRecord && colon == null) {
+          listener.handlePatternField(colon);
+        }
+        wasRecord = true;
+        wasValidRecord = true;
+      }
+      token = next;
+    }
+    token = ensureCloseParen(token, begin);
+    assert(optional(')', token));
+
+    assert(wasRecord || count <= 1);
+
+    if (wasRecord) {
+      if (count == 1 && !wasValidRecord) {
+        reportRecoverableError(
+            token, codes.messageRecordLiteralOnePositionalFieldNoTrailingComma);
+      }
+      listener.handleRecordPattern(begin, count);
+    } else {
+      listener.handleParenthesizedPattern(begin);
+    }
+
+    return token;
+  }
+
+  /// Parses the rest of an objectPattern, where [token] is the token before the
+  /// `(`.
+  ///
+  /// objectPattern ::= typeName typeArguments? '(' patternFields? ')'
+  Token parseObjectPatternRest(Token token,
+      {required bool isRefutableContext}) {
+    Token begin = token = token.next!;
+    assert(optional('(', begin));
+    int argumentCount = 0;
+    bool old = mayParseFunctionExpressions;
+    mayParseFunctionExpressions = true;
+    while (true) {
+      Token next = token.next!;
+      if (optional(')', next)) {
+        token = next;
+        break;
+      }
+      Token? colon = null;
+      if (optional(':', next)) {
+        listener.handleNoName(token);
+        colon = token = next;
+      } else if (optional(':', next.next!)) {
+        token =
+            ensureIdentifier(token, IdentifierContext.namedArgumentReference)
+                .next!;
+        colon = token;
+      }
+      token = parsePattern(token, isRefutableContext: isRefutableContext);
+      next = token.next!;
+      listener.handlePatternField(colon);
+      ++argumentCount;
+      if (!optional(',', next)) {
+        if (optional(')', next)) {
+          token = next;
+          break;
+        }
+        // TODO(paulberry): test error recovery
+        // Recovery
+        if (looksLikeExpressionStart(next)) {
+          // If this looks like the start of an expression,
+          // then report an error, insert the comma, and continue parsing.
+          next = rewriteAndRecover(
+              token,
+              codes.templateExpectedButGot.withArguments(','),
+              new SyntheticToken(TokenType.COMMA, next.offset));
+        } else {
+          token = ensureCloseParen(token, begin);
+          break;
+        }
+      }
+      token = next;
+    }
+    assert(optional(')', token));
+    mayParseFunctionExpressions = old;
+    listener.handleObjectPatternFields(argumentCount, begin, token);
+    return token;
+  }
+
+  /// Returns `true` if the given [token] looks like an outer pattern followed
+  /// by `=`.  This occurs in the following grammar productions:
+  ///
+  /// patternVariableDeclaration ::= ( 'final' | 'var' ) outerPattern '='
+  ///                                expression
+  /// patternAssignment ::= outerPattern '=' expression
+  bool looksLikeOuterPatternEquals(Token token) {
+    Token? afterOuterPattern = skipOuterPattern(token);
+    if (afterOuterPattern == null) return false;
+    return optional('=', afterOuterPattern.next!);
+  }
+
+  /// Tries to advance beyond an "outer pattern" starting from [token].  If the
+  /// next construct after [token] is not an outer pattern, returns `null`.
+  ///
+  /// outerPattern ::= parenthesizedPattern
+  ///                | listPattern
+  ///                | mapPattern
+  ///                | recordPattern
+  ///                | objectPattern
+  Token? skipOuterPattern(Token token) {
+    Token next = token.next!;
+    if (next.isIdentifier) {
+      token = next;
+      next = token.next!;
+      if (!optional('.', next)) {
+        return skipObjectPatternRest(token);
+      }
+      token = next;
+      next = token.next!;
+      if (next.isIdentifier) {
+        return skipObjectPatternRest(next);
+      } else {
+        // IDENTIFIER `.` NON-IDENTIFIER (not a pattern)
+        return null;
+      }
+    }
+    TypeParamOrArgInfo typeParamOrArg = computeTypeParamOrArg(token);
+    token = typeParamOrArg.skip(token);
+    next = token.next!;
+    if (optional('[]', next)) {
+      // Empty list pattern
+      return next;
+    }
+    if (optional('[', next) || optional('{', next)) {
+      // List or map pattern
+      return next.endGroup;
+    }
+    if (typeParamOrArg == noTypeParamOrArg && optional('(', next)) {
+      // Record or parenthesized pattern
+      return next.endGroup;
+    }
+    // Not an outer pattern
+    return null;
+  }
+
+  /// Tries to advance through an object pattern, where [token] is the last
+  /// token of the object pattern's type name.  If the tokens following
+  /// [token] don't look like the rest of an object pattern, returns `null`.
+  ///
+  /// objectPattern ::= typeName typeArguments? '(' patternFields? ')'
+  Token? skipObjectPatternRest(Token token) {
+    TypeParamOrArgInfo typeParamOrArg = computeTypeParamOrArg(token);
+    token = typeParamOrArg.skip(token);
+    Token? next = token.next;
+    if (next == null) return null;
+    if (!optional('(', next)) return null;
+    return next.endGroup;
+  }
+
+  /// patternVariableDeclaration ::= ( 'final' | 'var' ) outerPattern '='
+  ///                                expression
+  Token parsePatternVariableDeclarationStatement(
+      Token keyword, Token start, Token varOrFinal) {
+    Token token = parsePattern(keyword, isRefutableContext: false);
+    Token equals = token.next!;
+    // Caller should have assured that the pattern was followed by an `=`.
+    assert(optional('=', equals));
+    token = parseExpression(equals);
+    Token semicolon = ensureSemicolon(token);
+    listener.handlePatternVariableDeclarationStatement(
+        keyword, equals, semicolon);
+    return semicolon;
+  }
+
+  /// patternAssignment ::= outerPattern '=' expression
+  Token parsePatternAssignment(Token token) {
+    token = parsePattern(token, isRefutableContext: false);
+    Token equals = token.next!;
+    // Caller should have assured that the pattern was followed by an `=`.
+    assert(optional('=', equals));
+    token = parseExpression(equals);
+    listener.handlePatternAssignment(equals);
+    return token;
+  }
+
+  /// switchExpression    ::= 'switch' '(' expression ')' '{'
+  ///                         switchExpressionCase ( ',' switchExpressionCase )*
+  ///                             ','? '}'
+  /// switchExpressionCase    ::= guardedPattern '=>' expression
+  Token parseSwitchExpression(Token token) {
+    Token switchKeyword = token.next!;
+    assert(optional('switch', switchKeyword));
+    listener.beginSwitchExpression(switchKeyword);
+    token = ensureParenthesizedCondition(switchKeyword, allowCase: false);
+    Token beginSwitch =
+        token = ensureBlock(token, /* template = */ null, 'switch expression');
+    listener.beginSwitchExpressionBlock(beginSwitch);
+    Token next = token.next!;
+    int caseCount = 0;
+    if (!optional('}', next)) {
+      while (true) {
+        listener.beginSwitchExpressionCase();
+        token = parsePattern(token, isRefutableContext: true);
+        Token? when;
+        next = token.next!;
+        if (optional('when', next)) {
+          when = token = next;
+          token = parseExpression(token);
+        }
+        Token arrow = token = ensureFunctionArrow(token);
+        token = parseExpression(token);
+        listener.endSwitchExpressionCase(when, arrow, token);
+        ++caseCount;
+        next = token.next!;
+
+        Token? comma;
+        if (optional(',', next)) {
+          comma = token = next;
+          next = token.next!;
+        }
+        if (optional('}', next)) {
+          break;
+        }
+
+        if (comma == null) {
+          // TODO(paulberry): test this error recovery logic
+          // Recovery
+          if (looksLikePatternStart(next)) {
+            // If this looks like the start of a pattern, then report an error,
+            // insert the comma, and continue parsing.
+            SyntheticToken comma =
+                new SyntheticToken(TokenType.COMMA, next.offset);
+            codes.Message message =
+                codes.templateExpectedButGot.withArguments(',');
+            token = rewriteAndRecover(token, message, comma);
+          } else {
+            reportRecoverableError(
+                next, codes.templateExpectedButGot.withArguments('}'));
+            // Scanner guarantees a closing curly bracket
+            next = beginSwitch.endGroup!;
+            break;
+          }
+        }
+      }
+    }
+    listener.endSwitchExpressionBlock(caseCount, beginSwitch, next);
+    token = next;
+    assert(token.isEof || optional('}', token));
+    listener.endSwitchExpression(switchKeyword, token);
+    return token;
   }
 }
 

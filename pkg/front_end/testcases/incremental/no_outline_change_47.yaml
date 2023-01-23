@@ -7,7 +7,6 @@
 type: newworld
 worlds:
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
         late final int x = 42;
@@ -17,10 +16,9 @@ worlds:
     expectedLibraryCount: 1
 
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
       - main.dart
     expectedLibraryCount: 1
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly

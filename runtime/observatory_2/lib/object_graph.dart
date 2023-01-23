@@ -260,12 +260,10 @@ abstract class SnapshotObject {
 
 class _SnapshotObject implements SnapshotObject {
   final int _id;
-  final int identityHashCode;
   final _SnapshotGraph _graph;
   final String label;
 
-  _SnapshotObject._new(this._id, this._graph, this.label)
-      : identityHashCode = _graph._identityHashes[_id];
+  _SnapshotObject._new(this._id, this._graph, this.label);
 
   bool operator ==(Object other) {
     if (other is _SnapshotObject) {
@@ -275,6 +273,7 @@ class _SnapshotObject implements SnapshotObject {
   }
 
   int get hashCode => _id ^ _graph.hashCode;
+  int get identityHashCode => _graph._identityHashes[_id];
 
   int get shallowSize => internalSize + externalSize;
   int get internalSize => _graph._internalSizes[_id];

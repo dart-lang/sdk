@@ -225,8 +225,8 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (checkTripleShift && node.isOperator && node.name.name == '>>>') {
-      _errorReporter.reportErrorForNode(
+    if (checkTripleShift && node.isOperator && node.name.lexeme == '>>>') {
+      _errorReporter.reportErrorForToken(
           HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, node.name);
     }
     super.visitMethodDeclaration(node);
@@ -255,7 +255,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     }
     var element = node.staticElement;
     if (checkFutureAndStream &&
-        element is ClassElement &&
+        element is InterfaceElement &&
         (element == _typeProvider.futureElement ||
             element == _typeProvider.streamElement)) {
       for (LibraryElement importedLibrary

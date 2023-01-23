@@ -94,7 +94,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     // by a conservative estimate of the duration of one batch of work.
     deadline -= 1500;
 
-    // A 512kB budget is choosen to be large enough that we don't waste too much
+    // A 512kB budget is chosen to be large enough that we don't waste too much
     // time on the overhead of exiting ProcessMarkingStack, querying the clock,
     // and re-entering, and small enough that a few batches can fit in the idle
     // time between animation frames. This amount of marking takes ~1ms on a
@@ -376,7 +376,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   static bool TryAcquireMarkBit(ObjectPtr raw_obj) {
     if (FLAG_write_protect_code && raw_obj->IsInstructions()) {
       // A non-writable alias mapping may exist for instruction pages.
-      raw_obj = OldPage::ToWritable(raw_obj);
+      raw_obj = Page::ToWritable(raw_obj);
     }
     if (!sync) {
       raw_obj->untag()->SetMarkBitUnsynchronized();
@@ -460,7 +460,7 @@ class MarkingWeakVisitor : public HandleVisitor {
  public:
   explicit MarkingWeakVisitor(Thread* thread)
       : HandleVisitor(thread),
-        class_table_(thread->isolate_group()->shared_class_table()) {}
+        class_table_(thread->isolate_group()->class_table()) {}
 
   void VisitHandle(uword addr) {
     FinalizablePersistentHandle* handle =
@@ -472,16 +472,24 @@ class MarkingWeakVisitor : public HandleVisitor {
   }
 
  private:
-  SharedClassTable* class_table_;
+  ClassTable* class_table_;
 
   DISALLOW_COPY_AND_ASSIGN(MarkingWeakVisitor);
 };
 
 void GCMarker::Prologue() {
   isolate_group_->ReleaseStoreBuffers();
+  if (heap_->stats_.state_ == Heap::kSecondScavenge) {
+    heap_->stats_.state_ = Heap::kMarkingStart;
+  }
 }
 
-void GCMarker::Epilogue() {}
+void GCMarker::Epilogue() {
+  if (heap_->stats_.state_ == Heap::kMarkingStart) {
+    heap_->stats_.state_ = Heap::kInitial;
+    heap_->stats_.reachability_barrier_ += 1;
+  }
+}
 
 enum RootSlices {
   kIsolate = 0,
@@ -495,7 +503,7 @@ void GCMarker::ResetSlices() {
   root_slices_finished_ = 0;
   root_slices_count_ = kNumFixedRootSlices;
   new_page_ = heap_->new_space()->head();
-  for (NewPage* p = new_page_; p != nullptr; p = p->next()) {
+  for (Page* p = new_page_; p != nullptr; p = p->next()) {
     root_slices_count_++;
   }
 
@@ -518,7 +526,7 @@ void GCMarker::IterateRoots(ObjectPointerVisitor* visitor) {
         break;
       }
       default: {
-        NewPage* page;
+        Page* page;
         {
           MonitorLocker ml(&root_slices_monitor_);
           page = new_page_;
@@ -988,6 +996,43 @@ void GCMarker::IncrementalMarkWithTimeBudget(PageSpace* page_space,
   }
 }
 
+class VerifyAfterMarkingVisitor : public ObjectVisitor,
+                                  public ObjectPointerVisitor {
+ public:
+  VerifyAfterMarkingVisitor()
+      : ObjectVisitor(), ObjectPointerVisitor(IsolateGroup::Current()) {}
+
+  void VisitObject(ObjectPtr obj) {
+    if (obj->IsNewObject() || obj->untag()->IsMarked()) {
+      obj->untag()->VisitPointers(this);
+    }
+  }
+
+  void VisitPointers(ObjectPtr* from, ObjectPtr* to) {
+    for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
+      ObjectPtr obj = *ptr;
+      if (obj->IsHeapObject() && obj->IsOldObject() &&
+          !obj->untag()->IsMarked()) {
+        FATAL("Not marked: *0x%" Px " = 0x%" Px "\n",
+              reinterpret_cast<uword>(ptr), static_cast<uword>(obj));
+      }
+    }
+  }
+
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* from,
+                               CompressedObjectPtr* to) {
+    for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++) {
+      ObjectPtr obj = ptr->Decompress(heap_base);
+      if (obj->IsHeapObject() && obj->IsOldObject() &&
+          !obj->untag()->IsMarked()) {
+        FATAL("Not marked: *0x%" Px " = 0x%" Px "\n",
+              reinterpret_cast<uword>(ptr), static_cast<uword>(obj));
+      }
+    }
+  }
+};
+
 void GCMarker::MarkObjects(PageSpace* page_space) {
   if (isolate_group_->marking_stack() != NULL) {
     isolate_group_->DisableIncrementalBarrier();
@@ -1073,6 +1118,16 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
       ASSERT(global_list_.IsEmpty());
     }
   }
+
+  // Separate from verify_after_gc because that verification interferes with
+  // concurrent marking.
+  if (FLAG_verify_after_marking) {
+    OS::PrintErr("Verifying after marking...");
+    VerifyAfterMarkingVisitor visitor;
+    heap_->VisitObjects(&visitor);
+    OS::PrintErr(" done.\n");
+  }
+
   Epilogue();
 }
 

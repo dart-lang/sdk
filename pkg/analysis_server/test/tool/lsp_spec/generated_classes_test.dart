@@ -8,8 +8,8 @@ import 'package:test/test.dart';
 void main() {
   group('generated classes', () {
     test('can be checked for equality', () {
-      final a = TextDocumentIdentifier(uri: '/a');
-      final b = TextDocumentIdentifier(uri: '/a');
+      final a = TextDocumentIdentifier(uri: Uri.file('/a'));
+      final b = TextDocumentIdentifier(uri: Uri.file('/a'));
 
       expect(a, equals(b));
       expect(a.hashCode, equals(b.hashCode));
@@ -41,7 +41,7 @@ void main() {
 
     test('with map fields can be checked for equality', () {
       final a = WorkspaceEdit(changes: {
-        'a': [
+        Uri.file('/a'): [
           TextEdit(
               range: Range(
                   start: Position(line: 0, character: 0),
@@ -50,7 +50,7 @@ void main() {
         ]
       });
       final b = WorkspaceEdit(changes: {
-        'a': [
+        Uri.file('/a'): [
           TextEdit(
               range: Range(
                   start: Position(line: 0, character: 0),

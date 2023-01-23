@@ -68,27 +68,45 @@ class A {
 }
 
 class B extends A {
-  B(super.a<T>(int b));
+  B(T super.a<T>(int b));
 }
 ''');
 
-    var B = findElement.unnamedConstructor('B');
-    var element = B.superFormalParameter('a');
-
-    assertElement(
-      findNode.superFormalParameter('super.a'),
-      element,
-    );
-
-    assertElement(
-      findNode.typeParameter('T>'),
-      element.typeParameters[0],
-    );
-
-    assertElement(
-      findNode.simpleFormalParameter('b));'),
-      element.parameters[0],
-    );
+    final node = findNode.superFormalParameter('super.');
+    assertResolvedNodeText(node, r'''
+SuperFormalParameter
+  type: NamedType
+    name: SimpleIdentifier
+      token: T
+      staticElement: T@62
+      staticType: null
+    type: T
+  superKeyword: super
+  period: .
+  name: a
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredElement: T@62
+    rightBracket: >
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+      name: b
+      declaredElement: self::@class::B::@constructor::new::@parameter::a::@parameter::b
+      declaredElementType: int
+    rightParenthesis: )
+  declaredElement: self::@class::B::@constructor::new::@parameter::a
+  declaredElementType: T Function<T>(int)
+''');
   }
 
   test_invalid_notConstructor() async {
@@ -98,14 +116,15 @@ void f(super.a) {}
       error(CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION, 7, 5),
     ]);
 
-    var f = findElement.topFunction('f');
-    var element = f.superFormalParameter('a');
-    assertTypeDynamic(element.type);
-
-    assertElement(
-      findNode.superFormalParameter('super.a'),
-      element,
-    );
+    final node = findNode.superFormalParameter('super.');
+    assertResolvedNodeText(node, r'''
+SuperFormalParameter
+  superKeyword: super
+  period: .
+  name: a
+  declaredElement: self::@function::f::@parameter::a
+  declaredElementType: dynamic
+''');
   }
 
   test_optionalNamed() async {
@@ -119,10 +138,15 @@ class B extends A {
 }
 ''');
 
-    assertElement(
-      findNode.superFormalParameter('super.a'),
-      findElement.unnamedConstructor('B').superFormalParameter('a'),
-    );
+    final node = findNode.superFormalParameter('super.');
+    assertResolvedNodeText(node, r'''
+SuperFormalParameter
+  superKeyword: super
+  period: .
+  name: a
+  declaredElement: self::@class::B::@constructor::new::@parameter::a
+  declaredElementType: int?
+''');
   }
 
   test_optionalPositional() async {
@@ -136,10 +160,15 @@ class B extends A {
 }
 ''');
 
-    assertElement(
-      findNode.superFormalParameter('super.a'),
-      findElement.unnamedConstructor('B').superFormalParameter('a'),
-    );
+    final node = findNode.superFormalParameter('super.');
+    assertResolvedNodeText(node, r'''
+SuperFormalParameter
+  superKeyword: super
+  period: .
+  name: a
+  declaredElement: self::@class::B::@constructor::new::@parameter::a
+  declaredElementType: int?
+''');
   }
 
   test_requiredNamed() async {
@@ -153,10 +182,16 @@ class B extends A {
 }
 ''');
 
-    assertElement(
-      findNode.superFormalParameter('super.a'),
-      findElement.unnamedConstructor('B').superFormalParameter('a'),
-    );
+    final node = findNode.superFormalParameter('super.');
+    assertResolvedNodeText(node, r'''
+SuperFormalParameter
+  requiredKeyword: required
+  superKeyword: super
+  period: .
+  name: a
+  declaredElement: self::@class::B::@constructor::new::@parameter::a
+  declaredElementType: int
+''');
   }
 
   test_requiredPositional() async {
@@ -170,10 +205,15 @@ class B extends A {
 }
 ''');
 
-    assertElement(
-      findNode.superFormalParameter('super.a'),
-      findElement.unnamedConstructor('B').superFormalParameter('a'),
-    );
+    final node = findNode.superFormalParameter('super.');
+    assertResolvedNodeText(node, r'''
+SuperFormalParameter
+  superKeyword: super
+  period: .
+  name: a
+  declaredElement: self::@class::B::@constructor::new::@parameter::a
+  declaredElementType: int
+''');
   }
 
   test_scoping_inBody() async {
@@ -190,10 +230,13 @@ class B extends A {
 }
 ''');
 
-    assertElement(
-      findNode.simple('a; // ref'),
-      findElement.getter('a', of: 'A'),
-    );
+    final node = findNode.simple('a; // ref');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  staticElement: self::@class::A::@getter::a
+  staticType: int
+''');
   }
 
   test_scoping_inInitializer() async {
@@ -208,9 +251,12 @@ class B extends A {
 }
 ''');
 
-    assertElement(
-      findNode.simple('a; }'),
-      findElement.unnamedConstructor('B').superFormalParameter('a'),
-    );
+    final node = findNode.simple('a; }');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  staticElement: self::@class::B::@constructor::new::@parameter::a
+  staticType: int
+''');
   }
 }

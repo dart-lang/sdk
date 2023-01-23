@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:dev_compiler/src/kernel/module_symbols.dart';
 import 'package:test/test.dart';
 
@@ -25,9 +23,9 @@ void main() async {
     group(mode.description, () {
       var options = SetupCompilerOptions(soundNullSafety: mode.soundNullSafety);
       group('simple class debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
-        FunctionSymbol functionSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
+        late final FunctionSymbol functionSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -35,9 +33,9 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
-          functionSymbol = result.symbols.functions.single;
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
+          functionSymbol = symbols.functions.single;
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -68,13 +66,13 @@ void main() async {
         });
         group('location', () {
           test('has scriptId', () async {
-            expect(classSymbol.location.scriptId, endsWith('/foo.dart'));
+            expect(classSymbol.location!.scriptId, endsWith('/foo.dart'));
           });
           test('has start token', () async {
-            expect(classSymbol.location.tokenPos, source.indexOf('class A'));
+            expect(classSymbol.location!.tokenPos, source.indexOf('class A'));
           });
           test('has end token', () async {
-            expect(classSymbol.location.endTokenPos, source.lastIndexOf('}'));
+            expect(classSymbol.location!.endTokenPos, source.lastIndexOf('}'));
           });
         });
         test('no fields', () async {
@@ -90,8 +88,8 @@ void main() async {
         });
       });
       group('abstract class debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -99,8 +97,8 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -110,8 +108,8 @@ void main() async {
         });
       });
       group('class extends debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -121,9 +119,8 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol =
-              result.symbols.classes.where((c) => c.localId == 'A').single;
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.where((c) => c.localId == 'A').single;
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -133,8 +130,8 @@ void main() async {
         });
       });
       group('class implements debug symbols', () {
-        TestDriver driver;
-        List<ClassSymbol> classSymbols;
+        late final TestDriver driver;
+        late final List<ClassSymbol> classSymbols;
         final source = '''
           ${options.dartLangComment}
 
@@ -146,8 +143,8 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbols = result.symbols.classes;
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbols = symbols.classes;
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -162,10 +159,10 @@ void main() async {
         });
       });
       group('class public static field debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
-        String fieldId;
-        VariableSymbol fieldSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
+        late final String fieldId;
+        late final VariableSymbol fieldSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -175,10 +172,10 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
           fieldId = classSymbol.fieldIds.single;
-          fieldSymbol = result.symbols.variables.single;
+          fieldSymbol = symbols.variables.single;
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -199,10 +196,10 @@ void main() async {
         });
       });
       group('class private static field debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
-        String fieldId;
-        VariableSymbol fieldSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
+        late final String fieldId;
+        late final VariableSymbol fieldSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -212,10 +209,10 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
           fieldId = classSymbol.fieldIds.single;
-          fieldSymbol = result.symbols.variables.single;
+          fieldSymbol = symbols.variables.single;
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -236,10 +233,10 @@ void main() async {
         });
       });
       group('class public instance field debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
-        String fieldId;
-        VariableSymbol fieldSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
+        late final String fieldId;
+        late final VariableSymbol fieldSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -249,10 +246,10 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
           fieldId = classSymbol.fieldIds.single;
-          fieldSymbol = result.symbols.variables.single;
+          fieldSymbol = symbols.variables.single;
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -273,10 +270,10 @@ void main() async {
         });
       });
       group('class private instance field debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
-        String fieldId;
-        VariableSymbol fieldSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
+        late final String fieldId;
+        late final VariableSymbol fieldSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -286,10 +283,10 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
           fieldId = classSymbol.fieldIds.single;
-          fieldSymbol = result.symbols.variables.single;
+          fieldSymbol = symbols.variables.single;
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -310,9 +307,9 @@ void main() async {
         });
       });
       group('class public instance method debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
-        FunctionSymbol methodSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
+        late final FunctionSymbol methodSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -322,10 +319,10 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
           methodSymbol =
-              _symbolForDartFunction(result.symbols, 'publicInstanceMethod');
+              _symbolForDartFunction(symbols, 'publicInstanceMethod');
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -343,9 +340,9 @@ void main() async {
         });
       });
       group('class private instance method debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
-        FunctionSymbol methodSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
+        late final FunctionSymbol methodSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -355,10 +352,10 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
           methodSymbol =
-              _symbolForDartFunction(result.symbols, '_privateInstanceMethod');
+              _symbolForDartFunction(symbols, '_privateInstanceMethod');
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -376,9 +373,9 @@ void main() async {
         });
       });
       group('class public static method debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
-        FunctionSymbol methodSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
+        late final FunctionSymbol methodSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -388,10 +385,9 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
-          methodSymbol =
-              _symbolForDartFunction(result.symbols, 'publicStaticMethod');
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
+          methodSymbol = _symbolForDartFunction(symbols, 'publicStaticMethod');
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -409,9 +405,9 @@ void main() async {
         });
       });
       group('class private static method debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
-        FunctionSymbol methodSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
+        late final FunctionSymbol methodSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -421,10 +417,10 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
           methodSymbol =
-              _symbolForDartFunction(result.symbols, '_privateStaticMethod');
+              _symbolForDartFunction(symbols, '_privateStaticMethod');
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -442,9 +438,9 @@ void main() async {
         });
       });
       group('class public instance getter debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
-        FunctionSymbol methodSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
+        late final FunctionSymbol methodSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -454,10 +450,10 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
           methodSymbol =
-              _symbolForDartFunction(result.symbols, 'publicInstanceGetter');
+              _symbolForDartFunction(symbols, 'publicInstanceGetter');
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -475,9 +471,9 @@ void main() async {
         });
       });
       group('class private instance getter debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
-        FunctionSymbol methodSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
+        late final FunctionSymbol methodSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -487,10 +483,10 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
           methodSymbol =
-              _symbolForDartFunction(result.symbols, '_privateInstanceGetter');
+              _symbolForDartFunction(symbols, '_privateInstanceGetter');
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -508,9 +504,9 @@ void main() async {
         });
       });
       group('class public instance setter debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
-        FunctionSymbol methodSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
+        late final FunctionSymbol methodSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -522,10 +518,10 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
           methodSymbol =
-              _symbolForDartFunction(result.symbols, 'publicInstanceSetter');
+              _symbolForDartFunction(symbols, 'publicInstanceSetter');
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -543,9 +539,9 @@ void main() async {
         });
       });
       group('class private instance setter debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
-        FunctionSymbol methodSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
+        late final FunctionSymbol methodSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -557,10 +553,10 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
           methodSymbol =
-              _symbolForDartFunction(result.symbols, '_privateInstanceSetter');
+              _symbolForDartFunction(symbols, '_privateInstanceSetter');
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -578,9 +574,9 @@ void main() async {
         });
       });
       group('class public static getter debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
-        FunctionSymbol methodSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
+        late final FunctionSymbol methodSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -590,10 +586,9 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
-          methodSymbol =
-              _symbolForDartFunction(result.symbols, 'publicStaticGetter');
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
+          methodSymbol = _symbolForDartFunction(symbols, 'publicStaticGetter');
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -611,9 +606,9 @@ void main() async {
         });
       });
       group('class private static getter debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
-        FunctionSymbol methodSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
+        late final FunctionSymbol methodSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -623,10 +618,10 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
           methodSymbol =
-              _symbolForDartFunction(result.symbols, '_privateStaticGetter');
+              _symbolForDartFunction(symbols, '_privateStaticGetter');
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -644,9 +639,9 @@ void main() async {
         });
       });
       group('class public static setter debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
-        FunctionSymbol methodSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
+        late final FunctionSymbol methodSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -657,10 +652,9 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
-          methodSymbol =
-              _symbolForDartFunction(result.symbols, 'publicStaticSetter');
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
+          methodSymbol = _symbolForDartFunction(symbols, 'publicStaticSetter');
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -678,9 +672,9 @@ void main() async {
         });
       });
       group('class private static setter debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
-        FunctionSymbol methodSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
+        late final FunctionSymbol methodSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -691,10 +685,10 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
           methodSymbol =
-              _symbolForDartFunction(result.symbols, '_privateStaticSetter');
+              _symbolForDartFunction(symbols, '_privateStaticSetter');
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -712,9 +706,9 @@ void main() async {
         });
       });
       group('class public const constructor debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
-        FunctionSymbol methodSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
+        late final FunctionSymbol methodSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -724,9 +718,9 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
-          methodSymbol = _symbolForDartFunction(result.symbols, '');
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
+          methodSymbol = _symbolForDartFunction(symbols, '');
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -745,9 +739,9 @@ void main() async {
         });
       });
       group('class public named constructor debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
-        FunctionSymbol methodSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
+        late final FunctionSymbol methodSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -757,9 +751,9 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
-          methodSymbol = _symbolForDartFunction(result.symbols, 'named');
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
+          methodSymbol = _symbolForDartFunction(symbols, 'named');
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -774,9 +768,9 @@ void main() async {
         });
       });
       group('class private named constructor debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
-        FunctionSymbol methodSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
+        late final FunctionSymbol methodSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -787,9 +781,9 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
-          methodSymbol = _symbolForDartFunction(result.symbols, '_');
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
+          methodSymbol = _symbolForDartFunction(symbols, '_');
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -804,9 +798,9 @@ void main() async {
         });
       });
       group('class unnamed factory debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
-        FunctionSymbol methodSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
+        late final FunctionSymbol methodSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -818,9 +812,9 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
-          methodSymbol = _symbolForDartFunction(result.symbols, '');
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
+          methodSymbol = _symbolForDartFunction(symbols, '');
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -835,9 +829,9 @@ void main() async {
         });
       });
       group('class public named factory debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
-        FunctionSymbol methodSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
+        late final FunctionSymbol methodSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -849,10 +843,9 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
-          methodSymbol =
-              _symbolForDartFunction(result.symbols, 'publicFactory');
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
+          methodSymbol = _symbolForDartFunction(symbols, 'publicFactory');
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -867,9 +860,9 @@ void main() async {
         });
       });
       group('class private named factory debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
-        FunctionSymbol methodSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
+        late final FunctionSymbol methodSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -881,10 +874,9 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
-          methodSymbol =
-              _symbolForDartFunction(result.symbols, '_privateFactory');
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
+          methodSymbol = _symbolForDartFunction(symbols, '_privateFactory');
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -899,9 +891,9 @@ void main() async {
         });
       });
       group('class public redirecting constructor debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
-        FunctionSymbol methodSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
+        late final FunctionSymbol methodSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -913,10 +905,9 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
-          methodSymbol =
-              _symbolForDartFunction(result.symbols, 'publicRedirecting');
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
+          methodSymbol = _symbolForDartFunction(symbols, 'publicRedirecting');
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -931,9 +922,9 @@ void main() async {
         });
       });
       group('class private redirecting constructor debug symbols', () {
-        TestDriver driver;
-        ClassSymbol classSymbol;
-        FunctionSymbol methodSymbol;
+        late final TestDriver driver;
+        late final ClassSymbol classSymbol;
+        late final FunctionSymbol methodSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -945,10 +936,9 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          classSymbol = result.symbols.classes.single;
-          methodSymbol =
-              _symbolForDartFunction(result.symbols, '_privateRedirecting');
+          var symbols = await driver.compileAndGetSymbols();
+          classSymbol = symbols.classes.single;
+          methodSymbol = _symbolForDartFunction(symbols, '_privateRedirecting');
         });
         tearDownAll(() {
           driver.cleanUp();

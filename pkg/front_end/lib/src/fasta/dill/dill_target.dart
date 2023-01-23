@@ -84,7 +84,7 @@ class DillTarget extends TargetImplementation {
         involvedFiles: involvedFiles);
   }
 
-  void buildOutlines({bool suppressFinalizationErrors: false}) {
+  void buildOutlines({bool suppressFinalizationErrors = false}) {
     if (loader.libraries.isNotEmpty) {
       benchmarker?.enterPhase(BenchmarkPhases.dill_buildOutlines);
       loader.buildOutlines();

@@ -246,6 +246,26 @@ class DataSinkWriter {
     }
   }
 
+  /// Writes the [map] from [Name] to [V] values to this data sink, calling [f]
+  /// to write each value to the data sink. If [allowNull] is `true`, [map] is
+  /// allowed to be `null`.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSourceReader.readNameMap].
+  void writeNameMap<V>(Map<Name, V>? map, void f(V value),
+      {bool allowNull = false}) {
+    if (map == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(map.length);
+      map.forEach((Name key, V value) {
+        writeMemberName(key);
+        f(value);
+      });
+    }
+  }
+
   /// Writes the string [values] to this data sink. If [allowNull] is `true`,
   /// [values] is allowed to be `null`.
   ///
@@ -384,6 +404,13 @@ class DataSinkWriter {
   void writeName(ir.Name value) {
     writeString(value.text);
     writeValueOrNull(value.library, writeLibraryNode);
+  }
+
+  /// Writes a [Name] to this data sink.
+  void writeMemberName(Name value) {
+    writeString(value.text);
+    writeValueOrNull(value.uri, writeUri);
+    writeBool(value.isSetter);
   }
 
   /// Writes a kernel library dependency node [value] to this data sink.
@@ -1187,7 +1214,7 @@ class DataSinkWriter {
   /// Invoke [f] in the context of [member]. This sets up support for
   /// serialization of `ir.TreeNode`s using the `writeTreeNode*InContext`
   /// methods.
-  void inMemberContext(ir.Member context, void f()) {
+  void inMemberContext(ir.Member? context, void f()) {
     ir.Member? oldMemberContext = _currentMemberContext;
     MemberData? oldMemberData = _currentMemberData;
     _currentMemberContext = context;

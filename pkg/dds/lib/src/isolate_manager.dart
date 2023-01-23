@@ -226,6 +226,11 @@ class IsolateManager {
           final isolate = await dds.vmServiceClient.sendRequest('getIsolate', {
             'isolateId': id,
           });
+          // If the isolate has shutdown after the getVM request, ignore it and
+          // continue to the next isolate.
+          if (isolate['type'] == 'Sentinel') {
+            continue;
+          }
           final name = isolate['name'];
           if (isolate.containsKey('pauseEvent')) {
             isolates[id] = _RunningIsolate(this, id, name);

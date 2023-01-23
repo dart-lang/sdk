@@ -116,12 +116,6 @@ abstract class MemberEntity extends Entity {
   /// Whether this is an instance member of a class.
   bool get isInstanceMember;
 
-  /// Whether this is a constructor.
-  bool get isConstructor;
-
-  /// Whether this is a field.
-  bool get isField;
-
   /// Whether this is a normal method (neither constructor, getter or setter)
   /// or operator method.
   bool get isFunction;

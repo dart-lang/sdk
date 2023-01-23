@@ -118,9 +118,9 @@ static final field core::int s14 = invalid-expression "pkg/front_end/testcases/n
 Try calling using ?.call instead.
 final s14 = (s13)();
                  ^" in self::s13{<nullable>}.(){() →? core::int};
-static final field Never s15 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:49:19: Error: Can't throw a value of 'Null' since it is neither dynamic nor non-nullable.
+static final field dynamic s15 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:49:19: Error: Can't throw a value of 'Null' since it is neither dynamic nor non-nullable.
 final s15 = throw null;
-                  ^" as{TypeError,ForDynamic,ForNonNullableByDefault} Never;
+                  ^";
 static method main() → void {}
 
 constants  {

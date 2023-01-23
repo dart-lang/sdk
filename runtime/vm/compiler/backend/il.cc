@@ -493,7 +493,7 @@ intptr_t Boxing::BoxCid(Representation rep) {
 
 #if defined(DEBUG)
 void Instruction::CheckField(const Field& field) const {
-  ASSERT(field.IsZoneHandle());
+  DEBUG_ASSERT(field.IsNotTemporaryScopedHandle());
   ASSERT(!Compiler::IsBackgroundCompilation() || !field.IsOriginal());
 }
 #endif  // DEBUG
@@ -536,6 +536,10 @@ Value* AssertBooleanInstr::RedefinedValue() const {
 
 Value* CheckBoundBase::RedefinedValue() const {
   return index();
+}
+
+Value* CheckWritableInstr::RedefinedValue() const {
+  return value();
 }
 
 Value* CheckNullInstr::RedefinedValue() const {
@@ -701,18 +705,18 @@ Cids* Cids::CreateForArgument(Zone* zone,
   return cids;
 }
 
-static intptr_t Usage(const Function& function) {
+static intptr_t Usage(Thread* thread, const Function& function) {
   intptr_t count = function.usage_counter();
   if (count < 0) {
     if (function.HasCode()) {
       // 'function' is queued for optimized compilation
-      count = FLAG_optimization_counter_threshold;
+      count = thread->isolate_group()->optimization_counter_threshold();
     } else {
       count = 0;
     }
   } else if (Code::IsOptimized(function.CurrentCode())) {
     // 'function' was optimized and stopped counting
-    count = FLAG_optimization_counter_threshold;
+    count = thread->isolate_group()->optimization_counter_threshold();
   }
   return count;
 }
@@ -766,7 +770,7 @@ void CallTargets::CreateHelper(Zone* zone, const ICData& ic_data) {
         const intptr_t filled_entry_count = cache.filled_entry_count();
         ASSERT(filled_entry_count > 0);
         cid_ranges_.Add(new (zone) TargetInfo(
-            id, id, &function, Usage(function) / filled_entry_count,
+            id, id, &function, Usage(thread, function) / filled_entry_count,
             StaticTypeExactnessState::NotTracking()));
       }
     }
@@ -894,20 +898,7 @@ intptr_t CheckClassInstr::ComputeCidMask() const {
   return mask;
 }
 
-bool LoadFieldInstr::IsUnboxedDartFieldLoad() const {
-  return slot().representation() == kTagged && slot().IsDartField() &&
-         slot().IsUnboxed();
-}
-
-bool LoadFieldInstr::IsPotentialUnboxedDartFieldLoad() const {
-  return slot().representation() == kTagged && slot().IsDartField() &&
-         slot().IsPotentialUnboxed();
-}
-
 Representation LoadFieldInstr::representation() const {
-  if (IsUnboxedDartFieldLoad() && CompilerState::Current().is_optimizing()) {
-    return slot().UnboxedRepresentation();
-  }
   return slot().representation();
 }
 
@@ -963,30 +954,17 @@ void AllocateTypedDataInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                              locs(), deopt_id(), env());
 }
 
-bool StoreInstanceFieldInstr::IsUnboxedDartFieldStore() const {
-  return slot().representation() == kTagged && slot().IsDartField() &&
-         slot().IsUnboxed();
-}
-
-bool StoreInstanceFieldInstr::IsPotentialUnboxedDartFieldStore() const {
-  return slot().representation() == kTagged && slot().IsDartField() &&
-         slot().IsPotentialUnboxed();
-}
-
-Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
+Representation StoreFieldInstr::RequiredInputRepresentation(
     intptr_t index) const {
   ASSERT((index == 0) || (index == 1));
   if (index == 0) {
     // The instance is always tagged.
     return kTagged;
   }
-  if (IsUnboxedDartFieldStore() && CompilerState::Current().is_optimizing()) {
-    return slot().UnboxedRepresentation();
-  }
   return slot().representation();
 }
 
-Instruction* StoreInstanceFieldInstr::Canonicalize(FlowGraph* flow_graph) {
+Instruction* StoreFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   // Dart objects are allocated null-initialized, which means we can eliminate
   // all initializing stores which store null value.
   // Context objects can be allocated uninitialized as a performance
@@ -1014,7 +992,7 @@ bool GuardFieldTypeInstr::AttributesEqual(const Instruction& other) const {
 }
 
 Instruction* AssertSubtypeInstr::Canonicalize(FlowGraph* flow_graph) {
-  // If all inputs needed to check instantation are constant, instantiate the
+  // If all inputs needed to check instantiation are constant, instantiate the
   // sub and super type and remove the instruction if the subtype test succeeds.
   if (super_type()->BindsToConstant() && sub_type()->BindsToConstant() &&
       instantiator_type_arguments()->BindsToConstant() &&
@@ -1051,6 +1029,11 @@ bool StrictCompareInstr::AttributesEqual(const Instruction& other) const {
   ASSERT(other_op != NULL);
   return ComparisonInstr::AttributesEqual(other) &&
          (needs_number_check() == other_op->needs_number_check());
+}
+
+const RuntimeEntry& CaseInsensitiveCompareInstr::TargetFunction() const {
+  return handle_surrogates_ ? kCaseInsensitiveCompareUTF16RuntimeEntry
+                            : kCaseInsensitiveCompareUCS2RuntimeEntry;
 }
 
 bool MathMinMaxInstr::AttributesEqual(const Instruction& other) const {
@@ -2617,6 +2600,31 @@ bool LoadFieldInstr::IsTypedDataViewFactory(const Function& function) {
   }
 }
 
+bool LoadFieldInstr::IsUnmodifiableTypedDataViewFactory(
+    const Function& function) {
+  auto kind = function.recognized_kind();
+  switch (kind) {
+    case MethodRecognizer::kTypedData_UnmodifiableByteDataView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt8ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint8ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint8ClampedArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt16ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint16ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt32ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint32ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt64ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint64ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableFloat32ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableFloat64ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableFloat32x4ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt32x4ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableFloat64x2ArrayView_factory:
+      return true;
+    default:
+      return false;
+  }
+}
+
 Definition* ConstantInstr::Canonicalize(FlowGraph* flow_graph) {
   return HasUses() ? this : NULL;
 }
@@ -2679,6 +2687,32 @@ bool LoadFieldInstr::TryEvaluateLoad(const Object& instance,
       }
       return false;
 
+    case Slot::Kind::kRecord_num_fields:
+      if (instance.IsRecord()) {
+        *result = Smi::New(Record::Cast(instance).num_fields());
+        return true;
+      }
+      return false;
+
+    case Slot::Kind::kRecord_field_names:
+      if (instance.IsRecord()) {
+        *result = Record::Cast(instance).field_names();
+        return true;
+      }
+      return false;
+
+    case Slot::Kind::kRecordField:
+      if (instance.IsRecord()) {
+        const intptr_t index = compiler::target::Record::field_index_at_offset(
+            field.offset_in_bytes());
+        const Record& record = Record::Cast(instance);
+        if (index < record.num_fields()) {
+          *result = record.FieldAt(index);
+        }
+        return true;
+      }
+      return false;
+
     default:
       break;
   }
@@ -2715,10 +2749,10 @@ bool LoadFieldInstr::Evaluate(const Object& instance, Object* result) {
 Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses() && !calls_initializer()) return nullptr;
 
+  Definition* orig_instance = instance()->definition()->OriginalDefinition();
   if (IsImmutableLengthLoad()) {
     ASSERT(!calls_initializer());
-    Definition* array = instance()->definition()->OriginalDefinition();
-    if (StaticCallInstr* call = array->AsStaticCall()) {
+    if (StaticCallInstr* call = orig_instance->AsStaticCall()) {
       // For fixed length arrays if the array is the result of a known
       // constructor call we can replace the length load with the length
       // argument passed to the constructor.
@@ -2741,16 +2775,7 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
         // Here, we forward the third.
         return call->ArgumentAt(3);
       }
-    } else if (CreateArrayInstr* create_array = array->AsCreateArray()) {
-      if (slot().kind() == Slot::Kind::kArray_length) {
-        return create_array->num_elements()->definition();
-      }
-    } else if (AllocateTypedDataInstr* alloc_typed_data =
-                   array->AsAllocateTypedData()) {
-      if (slot().kind() == Slot::Kind::kTypedDataBase_length) {
-        return alloc_typed_data->num_elements()->definition();
-      }
-    } else if (LoadFieldInstr* load_array = array->AsLoadField()) {
+    } else if (LoadFieldInstr* load_array = orig_instance->AsLoadField()) {
       // For arrays with guarded lengths, replace the length load
       // with a constant.
       const Slot& slot = load_array->slot();
@@ -2761,71 +2786,124 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
         }
       }
     }
-  } else if (slot().kind() == Slot::Kind::kTypedDataView_typed_data) {
-    // This case cover the first explicit argument to typed data view
-    // factories, the data (buffer).
-    ASSERT(!calls_initializer());
-    Definition* array = instance()->definition()->OriginalDefinition();
-    if (StaticCallInstr* call = array->AsStaticCall()) {
-      if (IsTypedDataViewFactory(call->function())) {
-        return call->ArgumentAt(1);
+  }
+
+  switch (slot().kind()) {
+    case Slot::Kind::kArray_length:
+      if (CreateArrayInstr* create_array = orig_instance->AsCreateArray()) {
+        return create_array->num_elements()->definition();
       }
-    }
-  } else if (slot().kind() == Slot::Kind::kTypedDataView_offset_in_bytes) {
-    // This case cover the second explicit argument to typed data view
-    // factories, the offset into the buffer.
-    ASSERT(!calls_initializer());
-    Definition* array = instance()->definition()->OriginalDefinition();
-    if (StaticCallInstr* call = array->AsStaticCall()) {
-      if (IsTypedDataViewFactory(call->function())) {
-        return call->ArgumentAt(2);
-      } else if (call->function().recognized_kind() ==
-                 MethodRecognizer::kByteDataFactory) {
-        // A _ByteDataView returned from the ByteData constructor always
-        // has an offset of 0.
-        return flow_graph->GetConstant(Object::smi_zero());
+      break;
+    case Slot::Kind::kTypedDataBase_length:
+      if (AllocateTypedDataInstr* alloc_typed_data =
+              orig_instance->AsAllocateTypedData()) {
+        return alloc_typed_data->num_elements()->definition();
       }
-    }
-  } else if (slot().IsTypeArguments()) {
-    ASSERT(!calls_initializer());
-    Definition* array = instance()->definition()->OriginalDefinition();
-    if (StaticCallInstr* call = array->AsStaticCall()) {
-      if (call->is_known_list_constructor()) {
-        return call->ArgumentAt(0);
-      } else if (IsTypedDataViewFactory(call->function())) {
-        return flow_graph->constant_null();
-      }
-      switch (call->function().recognized_kind()) {
-        case MethodRecognizer::kByteDataFactory:
-        case MethodRecognizer::kLinkedHashBase_getData:
-        case MethodRecognizer::kImmutableLinkedHashBase_getData:
-          return flow_graph->constant_null();
-        default:
-          break;
-      }
-    } else if (CreateArrayInstr* create_array = array->AsCreateArray()) {
-      return create_array->type_arguments()->definition();
-    } else if (LoadFieldInstr* load_array = array->AsLoadField()) {
-      const Slot& slot = load_array->slot();
-      switch (slot.kind()) {
-        case Slot::Kind::kDartField: {
-          // For trivially exact fields we know that type arguments match
-          // static type arguments exactly.
-          const Field& field = slot.field();
-          if (field.static_type_exactness_state().IsTriviallyExact()) {
-            return flow_graph->GetConstant(TypeArguments::Handle(
-                AbstractType::Handle(field.type()).arguments()));
-          }
-          break;
+      break;
+    case Slot::Kind::kTypedDataView_typed_data:
+      // This case cover the first explicit argument to typed data view
+      // factories, the data (buffer).
+      ASSERT(!calls_initializer());
+      if (StaticCallInstr* call = orig_instance->AsStaticCall()) {
+        if (IsTypedDataViewFactory(call->function()) ||
+            IsUnmodifiableTypedDataViewFactory(call->function())) {
+          return call->ArgumentAt(1);
         }
-
-        case Slot::Kind::kLinkedHashBase_data:
-          return flow_graph->constant_null();
-
-        default:
-          break;
       }
-    }
+      break;
+    case Slot::Kind::kTypedDataView_offset_in_bytes:
+      // This case cover the second explicit argument to typed data view
+      // factories, the offset into the buffer.
+      ASSERT(!calls_initializer());
+      if (StaticCallInstr* call = orig_instance->AsStaticCall()) {
+        if (IsTypedDataViewFactory(call->function())) {
+          return call->ArgumentAt(2);
+        } else if (call->function().recognized_kind() ==
+                   MethodRecognizer::kByteDataFactory) {
+          // A _ByteDataView returned from the ByteData constructor always
+          // has an offset of 0.
+          return flow_graph->GetConstant(Object::smi_zero());
+        }
+      }
+      break;
+    case Slot::Kind::kRecord_num_fields:
+      ASSERT(!calls_initializer());
+      if (auto* alloc_rec = orig_instance->AsAllocateRecord()) {
+        return flow_graph->GetConstant(
+            Smi::Handle(Smi::New(alloc_rec->num_fields())));
+      } else if (auto* alloc_rec = orig_instance->AsAllocateSmallRecord()) {
+        return flow_graph->GetConstant(
+            Smi::Handle(Smi::New(alloc_rec->num_fields())));
+      } else {
+        const AbstractType* type = instance()->Type()->ToAbstractType();
+        if (type->IsRecordType()) {
+          return flow_graph->GetConstant(
+              Smi::Handle(Smi::New(RecordType::Cast(*type).NumFields())));
+        }
+      }
+      break;
+    case Slot::Kind::kRecord_field_names:
+      ASSERT(!calls_initializer());
+      if (auto* alloc_rec = orig_instance->AsAllocateRecord()) {
+        return alloc_rec->field_names()->definition();
+      } else if (auto* alloc_rec = orig_instance->AsAllocateSmallRecord()) {
+        if (alloc_rec->has_named_fields()) {
+          return alloc_rec->field_names()->definition();
+        } else {
+          return flow_graph->GetConstant(Object::empty_array());
+        }
+      } else {
+        const AbstractType* type = instance()->Type()->ToAbstractType();
+        if (type->IsRecordType()) {
+          return flow_graph->GetConstant(
+              Array::Handle(RecordType::Cast(*type).field_names()));
+        }
+      }
+      break;
+    case Slot::Kind::kTypeArguments:
+      ASSERT(!calls_initializer());
+      if (StaticCallInstr* call = orig_instance->AsStaticCall()) {
+        if (call->is_known_list_constructor()) {
+          return call->ArgumentAt(0);
+        } else if (IsTypedDataViewFactory(call->function()) ||
+                   IsUnmodifiableTypedDataViewFactory(call->function())) {
+          return flow_graph->constant_null();
+        }
+        switch (call->function().recognized_kind()) {
+          case MethodRecognizer::kByteDataFactory:
+          case MethodRecognizer::kLinkedHashBase_getData:
+          case MethodRecognizer::kImmutableLinkedHashBase_getData:
+            return flow_graph->constant_null();
+          default:
+            break;
+        }
+      } else if (CreateArrayInstr* create_array =
+                     orig_instance->AsCreateArray()) {
+        return create_array->type_arguments()->definition();
+      } else if (LoadFieldInstr* load_array = orig_instance->AsLoadField()) {
+        const Slot& slot = load_array->slot();
+        switch (slot.kind()) {
+          case Slot::Kind::kDartField: {
+            // For trivially exact fields we know that type arguments match
+            // static type arguments exactly.
+            const Field& field = slot.field();
+            if (field.static_type_exactness_state().IsTriviallyExact()) {
+              return flow_graph->GetConstant(TypeArguments::Handle(
+                  AbstractType::Handle(field.type()).arguments()));
+            }
+            break;
+          }
+
+          case Slot::Kind::kLinkedHashBase_data:
+            return flow_graph->constant_null();
+
+          default:
+            break;
+        }
+      }
+      break;
+    default:
+      break;
   }
 
   // Try folding away loads from constant objects.
@@ -3112,10 +3190,10 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
     }
   }
 
-  if ((speculative_mode_ == kGuardInputs) && !ComputeCanDeoptimize()) {
+  if ((SpeculativeModeOfInput(0) == kGuardInputs) && !ComputeCanDeoptimize()) {
     // Remember if we ever learn out input doesn't require checking, as
     // the input Value might be later changed that would make us forget.
-    speculative_mode_ = kNotSpeculative;
+    set_speculative_mode(kNotSpeculative);
   }
 
   return this;
@@ -4242,6 +4320,115 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
+                                                     bool opt) const {
+  const intptr_t kNumInputs = 1;
+  LocationSummary* locs = nullptr;
+  if (slot().representation() != kTagged) {
+    ASSERT(!calls_initializer());
+
+    const intptr_t kNumTemps = 0;
+    locs = new (zone)
+        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    locs->set_in(0, Location::RequiresRegister());
+    if (RepresentationUtils::IsUnboxedInteger(slot().representation())) {
+      const size_t value_size =
+          RepresentationUtils::ValueSize(slot().representation());
+      if (value_size <= compiler::target::kWordSize) {
+        locs->set_out(0, Location::RequiresRegister());
+      } else {
+        ASSERT(value_size == 2 * compiler::target::kWordSize);
+        locs->set_out(0, Location::Pair(Location::RequiresRegister(),
+                                        Location::RequiresRegister()));
+      }
+    } else {
+      locs->set_out(0, Location::RequiresFpuRegister());
+    }
+  } else if (calls_initializer()) {
+    if (throw_exception_on_initialization()) {
+      const bool using_shared_stub = UseSharedSlowPathStub(opt);
+      const intptr_t kNumTemps = using_shared_stub ? 1 : 0;
+      locs = new (zone) LocationSummary(
+          zone, kNumInputs, kNumTemps,
+          using_shared_stub ? LocationSummary::kCallOnSharedSlowPath
+                            : LocationSummary::kCallOnSlowPath);
+      if (using_shared_stub) {
+        locs->set_temp(0, Location::RegisterLocation(
+                              LateInitializationErrorABI::kFieldReg));
+      }
+      locs->set_in(0, Location::RequiresRegister());
+      locs->set_out(0, Location::RequiresRegister());
+    } else {
+      const intptr_t kNumTemps = 0;
+      locs = new (zone)
+          LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+      locs->set_in(
+          0, Location::RegisterLocation(InitInstanceFieldABI::kInstanceReg));
+      locs->set_out(
+          0, Location::RegisterLocation(InitInstanceFieldABI::kResultReg));
+    }
+  } else {
+    const intptr_t kNumTemps = 0;
+    locs = new (zone)
+        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    locs->set_in(0, Location::RequiresRegister());
+    locs->set_out(0, Location::RequiresRegister());
+  }
+  return locs;
+}
+
+void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register instance_reg = locs()->in(0).reg();
+  if (representation() != kTagged) {
+    if (RepresentationUtils::IsUnboxedInteger(representation())) {
+      const size_t value_size =
+          RepresentationUtils::ValueSize(representation());
+      if (value_size <= compiler::target::kWordSize) {
+        const Register result = locs()->out(0).reg();
+        __ LoadFieldFromOffset(
+            result, instance_reg, OffsetInBytes(),
+            RepresentationUtils::OperandSize(representation()));
+      } else {
+        auto const result_pair = locs()->out(0).AsPairLocation();
+        const Register result_lo = result_pair->At(0).reg();
+        const Register result_hi = result_pair->At(1).reg();
+        __ LoadFieldFromOffset(result_lo, instance_reg, OffsetInBytes());
+        __ LoadFieldFromOffset(result_hi, instance_reg,
+                               OffsetInBytes() + compiler::target::kWordSize);
+      }
+    } else {
+      const FpuRegister result = locs()->out(0).fpu_reg();
+      const intptr_t cid = slot().field().guarded_cid();
+      switch (cid) {
+        case kDoubleCid:
+          __ LoadUnboxedDouble(result, instance_reg,
+                               OffsetInBytes() - kHeapObjectTag);
+          break;
+        case kFloat32x4Cid:
+        case kFloat64x2Cid:
+          __ LoadUnboxedSimd128(result, instance_reg,
+                                OffsetInBytes() - kHeapObjectTag);
+          break;
+        default:
+          UNREACHABLE();
+      }
+    }
+    return;
+  }
+
+  // Tagged load.
+  const Register result = locs()->out(0).reg();
+  if (slot().is_compressed()) {
+    __ LoadCompressedFieldFromOffset(result, instance_reg, OffsetInBytes());
+  } else {
+    __ LoadFieldFromOffset(result, instance_reg, OffsetInBytes());
+  }
+
+  if (calls_initializer()) {
+    EmitNativeCodeForInitializerCall(compiler);
+  }
+}
+
 void LoadFieldInstr::EmitNativeCodeForInitializerCall(
     FlowGraphCompiler* compiler) {
   ASSERT(calls_initializer());
@@ -4911,14 +5098,14 @@ DispatchTableCallInstr* DispatchTableCallInstr::FromCall(
     Value* cid,
     const Function& interface_target,
     const compiler::TableSelector* selector) {
-  InputsArray* args = new (zone) InputsArray(zone, call->ArgumentCount() + 1);
+  InputsArray args(zone, call->ArgumentCount() + 1);
   for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
-    args->Add(call->ArgumentValueAt(i)->CopyWithType());
+    args.Add(call->ArgumentValueAt(i)->CopyWithType());
   }
-  args->Add(cid);
-  auto dispatch_table_call = new (zone)
-      DispatchTableCallInstr(call->source(), interface_target, selector, args,
-                             call->type_args_len(), call->argument_names());
+  args.Add(cid);
+  auto dispatch_table_call = new (zone) DispatchTableCallInstr(
+      call->source(), interface_target, selector, std::move(args),
+      call->type_args_len(), call->argument_names());
   return dispatch_table_call;
 }
 
@@ -5021,13 +5208,13 @@ bool CallTargets::HasSingleTarget() const {
 
 const Function& CallTargets::FirstTarget() const {
   ASSERT(length() != 0);
-  ASSERT(TargetAt(0)->target->IsZoneHandle());
+  DEBUG_ASSERT(TargetAt(0)->target->IsNotTemporaryScopedHandle());
   return *TargetAt(0)->target;
 }
 
 const Function& CallTargets::MostPopularTarget() const {
   ASSERT(length() != 0);
-  ASSERT(TargetAt(0)->target->IsZoneHandle());
+  DEBUG_ASSERT(TargetAt(0)->target->IsNotTemporaryScopedHandle());
   for (int i = 1; i < length(); i++) {
     ASSERT(TargetAt(i)->count <= TargetAt(0)->count);
   }
@@ -5722,6 +5909,7 @@ void BoxAllocationSlowPath::Allocate(FlowGraphCompiler* compiler,
     __ TryAllocate(cls, compiler->intrinsic_slow_path_label(),
                    compiler::Assembler::kFarJump, result, temp);
   } else {
+    RELEASE_ASSERT(instruction->CanTriggerGC());
     auto slow_path = new BoxAllocationSlowPath(instruction, cls, result);
     compiler->AddSlowPathCode(slow_path);
 
@@ -5761,20 +5949,6 @@ void DoubleToIntegerSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Jump(exit_label());
 }
 
-void RangeErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
-                                            bool save_fpu_registers) {
-#if defined(TARGET_ARCH_IA32)
-  UNREACHABLE();
-#else
-  auto object_store = compiler->isolate_group()->object_store();
-  const auto& stub = Code::ZoneHandle(
-      compiler->zone(),
-      save_fpu_registers
-          ? object_store->range_error_stub_with_fpu_regs_stub()
-          : object_store->range_error_stub_without_fpu_regs_stub());
-  compiler->EmitCallToStub(stub);
-#endif
-}
 
 void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
   const intptr_t box_cid = BoxCid();
@@ -5866,9 +6040,9 @@ Environment* Environment::From(Zone* zone,
                                intptr_t fixed_parameter_count,
                                intptr_t lazy_deopt_pruning_count,
                                const ParsedFunction& parsed_function) {
-  Environment* env =
-      new (zone) Environment(definitions.length(), fixed_parameter_count,
-                             lazy_deopt_pruning_count, parsed_function, NULL);
+  Environment* env = new (zone)
+      Environment(definitions.length(), fixed_parameter_count,
+                  lazy_deopt_pruning_count, parsed_function.function(), NULL);
   for (intptr_t i = 0; i < definitions.length(); ++i) {
     env->values_.Add(new (zone) Value(definitions[i]));
   }
@@ -5881,9 +6055,9 @@ void Environment::PushValue(Value* value) {
 
 Environment* Environment::DeepCopy(Zone* zone, intptr_t length) const {
   ASSERT(length <= values_.length());
-  Environment* copy = new (zone) Environment(
-      length, fixed_parameter_count_, LazyDeoptPruneCount(), parsed_function_,
-      (outer_ == NULL) ? NULL : outer_->DeepCopy(zone));
+  Environment* copy = new (zone)
+      Environment(length, fixed_parameter_count_, LazyDeoptPruneCount(),
+                  function_, (outer_ == NULL) ? NULL : outer_->DeepCopy(zone));
   copy->SetDeoptId(DeoptIdBits::decode(bitfield_));
   copy->SetLazyDeoptToBeforeDeoptId(LazyDeoptToBeforeDeoptId());
   if (locations_ != NULL) {
@@ -6153,6 +6327,7 @@ Definition* CheckBoundBase::Canonicalize(FlowGraph* flow_graph) {
 
 intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
   if (IsTypedDataClassId(class_id) || IsTypedDataViewClassId(class_id) ||
+      IsUnmodifiableTypedDataViewClassId(class_id) ||
       IsExternalTypedDataClassId(class_id)) {
     return compiler::target::TypedDataBase::length_offset();
   }
@@ -6170,6 +6345,15 @@ intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
       UNREACHABLE();
       return -1;
   }
+}
+
+Definition* CheckWritableInstr::Canonicalize(FlowGraph* flow_graph) {
+  intptr_t cid = value()->Type()->ToCid();
+  if ((cid != kIllegalCid) && (cid != kDynamicCid) &&
+      !IsUnmodifiableTypedDataViewClassId(cid)) {
+    return value()->definition();
+  }
+  return this;
 }
 
 static AlignmentType StrengthenAlignment(intptr_t cid,
@@ -6235,6 +6419,7 @@ Representation LoadIndexedInstr::RepresentationOfArrayElement(
     intptr_t array_cid) {
   switch (array_cid) {
     case kImmutableArrayCid:
+    case kRecordCid:
     case kTypeArgumentsCid:
       return kTagged;
     case kExternalOneByteStringCid:
@@ -6309,6 +6494,7 @@ Representation StoreIndexedInstr::RepresentationOfArrayElement(
     case kTypedDataUint64ArrayCid:
       return kUnboxedInt64;
     case kTypedDataFloat32ArrayCid:
+      return kUnboxedFloat;
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
     case kTypedDataInt32x4ArrayCid:
@@ -6345,24 +6531,18 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
 }
 
 bool Utf8ScanInstr::IsScanFlagsUnboxed() const {
-  return scan_flags_field_.IsUnboxed();
+  return scan_flags_field_.is_unboxed();
 }
 
 InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
-    ZoneGrowableArray<Value*>* inputs,
+    InputsArray&& inputs,
     intptr_t deopt_id,
     MethodRecognizer::Kind recognized_kind,
     const InstructionSource& source)
-    : PureDefinition(source, deopt_id),
-      inputs_(inputs),
+    : VariadicDefinition(std::move(inputs), source, deopt_id),
       recognized_kind_(recognized_kind),
       token_pos_(source.token_pos) {
-  ASSERT(inputs_->length() == ArgumentCountFor(recognized_kind_));
-  for (intptr_t i = 0; i < inputs_->length(); ++i) {
-    ASSERT((*inputs)[i] != NULL);
-    (*inputs)[i]->set_instruction(this);
-    (*inputs)[i]->set_use_index(i);
-  }
+  ASSERT(InputCount() == ArgumentCountFor(recognized_kind_));
 }
 
 intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
@@ -6597,7 +6777,7 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
   }
 
   // Moves for arguments.
-  compiler::ffi::FrameRebase rebase(zone_, /*old_base=*/FPREG,
+  compiler::ffi::FrameRebase rebase(compiler->zone(), /*old_base=*/FPREG,
                                     /*new_base=*/saved_fp,
                                     /*stack_delta=*/0);
   intptr_t def_index = 0;
@@ -6625,7 +6805,8 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
           : arg_target.IsMultiple() ? *arg_target.AsMultiple().locations()[i]
           : arg_target.IsPointerToMemory()
               ? arg_target.AsPointerToMemory().pointer_location()
-              : /*arg_target.IsStack()*/ arg_target.Split(zone_, num_defs, i);
+              : /*arg_target.IsStack()*/ arg_target.Split(compiler->zone(),
+                                                          num_defs, i);
 
       ConstantTemporaryAllocator temp_alloc(temp0);
       if (origin.IsConstant()) {
@@ -6690,8 +6871,8 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
 
       // TypedData/Pointer data pointed to in temp.
       const auto& dst = compiler::ffi::NativeRegistersLocation(
-          zone_, pointer_loc.payload_type(), pointer_loc.container_type(),
-          temp0);
+          compiler->zone(), pointer_loc.payload_type(),
+          pointer_loc.container_type(), temp0);
       compiler->EmitNativeMove(dst, pointer_loc, &temp_alloc);
       __ LoadField(temp0,
                    compiler::FieldAddress(
@@ -6713,8 +6894,8 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
       __ MoveRegister(temp0, SPREG);
       __ AddImmediate(temp0, sp_offset);
       const auto& src = compiler::ffi::NativeRegistersLocation(
-          zone_, pointer_loc.payload_type(), pointer_loc.container_type(),
-          temp0);
+          compiler->zone(), pointer_loc.payload_type(),
+          pointer_loc.container_type(), temp0);
       __ Comment("pointer_loc %s <- src %s", pointer_loc.ToCString(),
                  src.ToCString());
       compiler->EmitNativeMove(pointer_loc, src, &temp_alloc);
@@ -6833,10 +7014,183 @@ void RawStoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->assembler()->StoreMemoryValue(value_reg, base_reg, offset_);
 }
 
+LocationSummary* StoreFieldInstr::MakeLocationSummary(Zone* zone,
+                                                      bool opt) const {
+  const intptr_t kNumInputs = 2;
+#if defined(TARGET_ARCH_IA32)
+  const intptr_t kNumTemps = ShouldEmitStoreBarrier() ? 1 : 0;
+#else
+  const intptr_t kNumTemps = 0;
+#endif
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+
+  summary->set_in(kInstancePos, Location::RequiresRegister());
+  if (slot().representation() != kTagged) {
+    if (RepresentationUtils::IsUnboxedInteger(slot().representation())) {
+      const size_t value_size =
+          RepresentationUtils::ValueSize(slot().representation());
+      if (value_size <= compiler::target::kWordSize) {
+        summary->set_in(kValuePos, Location::RequiresRegister());
+      } else {
+        ASSERT(value_size == 2 * compiler::target::kWordSize);
+        summary->set_in(kValuePos,
+                        Location::Pair(Location::RequiresRegister(),
+                                       Location::RequiresRegister()));
+      }
+    } else {
+      summary->set_in(kValuePos, Location::RequiresFpuRegister());
+    }
+  } else {
+    Location value_loc;
+    if (ShouldEmitStoreBarrier()) {
+      summary->set_in(kValuePos,
+                      Location::RegisterLocation(kWriteBarrierValueReg));
+    } else {
+#if defined(TARGET_ARCH_IA32)
+      // IA32 supports emitting `mov mem, Imm32` even for heap
+      // pointer immediates.
+      summary->set_in(kValuePos, LocationRegisterOrConstant(value()));
+#elif defined(TARGET_ARCH_X64)
+      // X64 supports emitting `mov mem, Imm32` only with non-pointer
+      // immediate.
+      summary->set_in(kValuePos, LocationRegisterOrSmiConstant(value()));
+#elif defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||            \
+    defined(TARGET_ARCH_RISCV64)
+      // ARM64 and RISC-V have dedicated zero and null registers which can be
+      // used in store instructions.
+      Location value_loc = Location::RequiresRegister();
+      if (auto constant = value()->definition()->AsConstant()) {
+        const auto& value = constant->value();
+        if (value.IsNull() ||
+            (value.IsSmi() && Smi::Cast(value).Value() == 0)) {
+          value_loc = Location::Constant(constant);
+        }
+      }
+      summary->set_in(kValuePos, value_loc);
+#else
+      // No support for moving immediate to memory directly.
+      summary->set_in(kValuePos, Location::RequiresRegister());
+#endif
+    }
+  }
+  if (kNumTemps == 1) {
+    summary->set_temp(0, Location::RequiresRegister());
+  } else {
+    ASSERT(kNumTemps == 0);
+  }
+  return summary;
+}
+
+void StoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register instance_reg = locs()->in(kInstancePos).reg();
+  const intptr_t offset_in_bytes = OffsetInBytes();
+  ASSERT(offset_in_bytes > 0);  // Field is finalized and points after header.
+
+  if (slot().representation() != kTagged) {
+    // Unboxed field.
+    ASSERT(memory_order_ != compiler::AssemblerBase::kRelease);
+    if (RepresentationUtils::IsUnboxedInteger(slot().representation())) {
+      const size_t value_size =
+          RepresentationUtils::ValueSize(slot().representation());
+      if (value_size <= compiler::target::kWordSize) {
+        const Register value = locs()->in(kValuePos).reg();
+        __ StoreFieldToOffset(
+            value, instance_reg, offset_in_bytes,
+            RepresentationUtils::OperandSize(slot().representation()));
+      } else {
+        auto const value_pair = locs()->in(kValuePos).AsPairLocation();
+        const Register value_lo = value_pair->At(0).reg();
+        const Register value_hi = value_pair->At(1).reg();
+        __ StoreFieldToOffset(value_lo, instance_reg, offset_in_bytes);
+        __ StoreFieldToOffset(value_hi, instance_reg,
+                              offset_in_bytes + compiler::target::kWordSize);
+      }
+    } else {
+      // This is an FPU store.
+      const intptr_t cid = slot().field().guarded_cid();
+      const FpuRegister value = locs()->in(kValuePos).fpu_reg();
+      switch (cid) {
+        case kDoubleCid:
+          __ StoreUnboxedDouble(value, instance_reg,
+                                offset_in_bytes - kHeapObjectTag);
+          return;
+        case kFloat32x4Cid:
+        case kFloat64x2Cid:
+          __ StoreUnboxedSimd128(value, instance_reg,
+                                 offset_in_bytes - kHeapObjectTag);
+          return;
+        default:
+          UNREACHABLE();
+      }
+    }
+    return;
+  }
+
+  // Store of a tagged pointer.
+  const bool compressed = slot().is_compressed();
+  if (ShouldEmitStoreBarrier()) {
+    Register value_reg = locs()->in(kValuePos).reg();
+    if (!compressed) {
+#if defined(TARGET_ARCH_IA32)
+      __ StoreIntoObjectOffset(instance_reg, offset_in_bytes, value_reg,
+                               CanValueBeSmi(), memory_order_,
+                               locs()->temp(0).reg());
+#else
+      __ StoreIntoObjectOffset(instance_reg, offset_in_bytes, value_reg,
+                               CanValueBeSmi(), memory_order_);
+#endif
+    } else {
+#if defined(DART_COMPRESSED_POINTERS)
+      __ StoreCompressedIntoObjectOffset(instance_reg, offset_in_bytes,
+                                         value_reg, CanValueBeSmi(),
+                                         memory_order_);
+#else
+      UNREACHABLE();
+#endif
+    }
+  } else {
+    if (locs()->in(kValuePos).IsConstant()) {
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32) ||                   \
+    defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||              \
+    defined(TARGET_ARCH_RISCV64)
+      const auto& value = locs()->in(kValuePos).constant();
+      if (!compressed) {
+        __ StoreIntoObjectOffsetNoBarrier(instance_reg, offset_in_bytes, value,
+                                          memory_order_);
+      } else {
+#if defined(DART_COMPRESSED_POINTERS)
+        __ StoreCompressedIntoObjectOffsetNoBarrier(
+            instance_reg, offset_in_bytes, value, memory_order_);
+#else
+        UNREACHABLE();
+#endif
+      }
+      return;
+#else
+      UNREACHABLE();
+#endif
+    }
+
+    Register value_reg = locs()->in(kValuePos).reg();
+    if (!compressed) {
+      __ StoreIntoObjectOffsetNoBarrier(instance_reg, offset_in_bytes,
+                                        value_reg, memory_order_);
+    } else {
+#if defined(DART_COMPRESSED_POINTERS)
+      __ StoreCompressedIntoObjectOffsetNoBarrier(instance_reg, offset_in_bytes,
+                                                  value_reg, memory_order_);
+#else
+      UNREACHABLE();
+#endif
+    }
+  }
+}
+
 const Code& ReturnInstr::GetReturnStub(FlowGraphCompiler* compiler) const {
   const Function& function = compiler->parsed_function().function();
   ASSERT(function.IsSuspendableFunction());
-  if (function.IsCompactAsyncFunction()) {
+  if (function.IsAsyncFunction()) {
     if (!value()->Type()->CanBeFuture()) {
       return Code::ZoneHandle(compiler->zone(),
                               compiler->isolate_group()
@@ -6846,14 +7200,10 @@ const Code& ReturnInstr::GetReturnStub(FlowGraphCompiler* compiler) const {
     return Code::ZoneHandle(
         compiler->zone(),
         compiler->isolate_group()->object_store()->return_async_stub());
-  } else if (function.IsCompactAsyncStarFunction()) {
+  } else if (function.IsAsyncGenerator()) {
     return Code::ZoneHandle(
         compiler->zone(),
         compiler->isolate_group()->object_store()->return_async_star_stub());
-  } else if (function.IsCompactSyncStarFunction()) {
-    return Code::ZoneHandle(
-        compiler->zone(),
-        compiler->isolate_group()->object_store()->return_sync_star_stub());
   } else {
     UNREACHABLE();
   }
@@ -6939,9 +7289,10 @@ void RecordCoverageInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ LoadObject(array_temp, coverage_array_);
   __ LoadImmediate(value_temp, Smi::RawValue(1));
-  __ StoreFieldToOffset(value_temp, array_temp,
-                        Array::element_offset(coverage_index_),
-                        compiler::kObjectBytes);
+  __ StoreFieldToOffset(
+      value_temp, array_temp,
+      compiler::target::Array::element_offset(coverage_index_),
+      compiler::kObjectBytes);
 }
 
 #undef Z
@@ -7003,21 +7354,15 @@ LocationSummary* CCallInstr::MakeLocationSummaryInternal(
 }
 
 CCallInstr::CCallInstr(
-    Zone* zone,
     const compiler::ffi::NativeCallingConvention& native_calling_convention,
-    InputsArray* inputs)
-    : Definition(DeoptId::kNone),
-      zone_(zone),
-      native_calling_convention_(native_calling_convention),
-      inputs_(inputs) {
+    InputsArray&& inputs)
+    : VariadicDefinition(std::move(inputs), DeoptId::kNone),
+      native_calling_convention_(native_calling_convention) {
 #ifdef DEBUG
   const intptr_t num_inputs =
       native_calling_convention.argument_locations().length() + 1;
-  ASSERT(num_inputs == inputs->length());
+  ASSERT(num_inputs == InputCount());
 #endif
-  for (intptr_t i = 0, n = inputs_->length(); i < n; ++i) {
-    SetInputAt(i, (*inputs_)[i]);
-  }
 }
 
 Representation CCallInstr::RequiredInputRepresentation(intptr_t idx) const {
@@ -7039,7 +7384,7 @@ void CCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
   }
 
   ConstantTemporaryAllocator temp_alloc(temp0);
-  compiler::ffi::FrameRebase rebase(zone_, /*old_base=*/FPREG,
+  compiler::ffi::FrameRebase rebase(compiler->zone(), /*old_base=*/FPREG,
                                     /*new_base=*/saved_fp,
                                     /*stack_delta=*/0);
 
@@ -7356,8 +7701,11 @@ void SuspendInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case StubId::kYieldAsyncStar:
       stub = object_store->yield_async_star_stub();
       break;
-    case StubId::kYieldSyncStar:
-      stub = object_store->yield_sync_star_stub();
+    case StubId::kSuspendSyncStarAtStart:
+      stub = object_store->suspend_sync_star_at_start_stub();
+      break;
+    case StubId::kSuspendSyncStarAtYield:
+      stub = object_store->suspend_sync_star_at_yield_stub();
       break;
   }
   compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
@@ -7377,6 +7725,115 @@ void SuspendInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->EmitCallsiteMetadata(source(), resume_deopt_id(),
                                  UntaggedPcDescriptors::kOther, locs(), env());
 #endif
+}
+
+LocationSummary* AllocateRecordInstr::MakeLocationSummary(Zone* zone,
+                                                          bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0,
+               Location::RegisterLocation(AllocateRecordABI::kFieldNamesReg));
+  locs->set_out(0, Location::RegisterLocation(AllocateRecordABI::kResultReg));
+  return locs;
+}
+
+void AllocateRecordInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Code& stub = Code::ZoneHandle(
+      compiler->zone(),
+      compiler->isolate_group()->object_store()->allocate_record_stub());
+  __ LoadImmediate(AllocateRecordABI::kNumFieldsReg,
+                   Smi::RawValue(num_fields()));
+  compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
+                             locs(), deopt_id(), env());
+}
+
+LocationSummary* AllocateSmallRecordInstr::MakeLocationSummary(Zone* zone,
+                                                               bool opt) const {
+  ASSERT(num_fields() == 2 || num_fields() == 3);
+  const intptr_t kNumInputs = InputCount();
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  if (has_named_fields()) {
+    locs->set_in(
+        0, Location::RegisterLocation(AllocateSmallRecordABI::kFieldNamesReg));
+    locs->set_in(
+        1, Location::RegisterLocation(AllocateSmallRecordABI::kValue0Reg));
+    locs->set_in(
+        2, Location::RegisterLocation(AllocateSmallRecordABI::kValue1Reg));
+    if (num_fields() > 2) {
+      locs->set_in(
+          3, Location::RegisterLocation(AllocateSmallRecordABI::kValue2Reg));
+    }
+  } else {
+    locs->set_in(
+        0, Location::RegisterLocation(AllocateSmallRecordABI::kValue0Reg));
+    locs->set_in(
+        1, Location::RegisterLocation(AllocateSmallRecordABI::kValue1Reg));
+    if (num_fields() > 2) {
+      locs->set_in(
+          2, Location::RegisterLocation(AllocateSmallRecordABI::kValue2Reg));
+    }
+  }
+  locs->set_out(0, Location::RegisterLocation(AllocateRecordABI::kResultReg));
+  return locs;
+}
+
+void AllocateSmallRecordInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  auto object_store = compiler->isolate_group()->object_store();
+  Code& stub = Code::ZoneHandle(compiler->zone());
+  if (has_named_fields()) {
+    switch (num_fields()) {
+      case 2:
+        stub = object_store->allocate_record2_named_stub();
+        break;
+      case 3:
+        stub = object_store->allocate_record3_named_stub();
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else {
+    switch (num_fields()) {
+      case 2:
+        stub = object_store->allocate_record2_stub();
+        break;
+      case 3:
+        stub = object_store->allocate_record3_stub();
+        break;
+      default:
+        UNREACHABLE();
+    }
+  }
+  compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
+                             locs(), deopt_id(), env());
+}
+
+LocationSummary* MakePairInstr::MakeLocationSummary(Zone* zone,
+                                                    bool opt) const {
+  ASSERT(opt);
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  // MakePair instruction is used to combine 2 separate kTagged values into
+  // a single kPairOfTagged value for the subsequent Return, so it uses
+  // fixed registers used to return values according to the calling conventions
+  // in order to avoid any extra moves.
+  locs->set_in(0, Location::RegisterLocation(CallingConventions::kReturnReg));
+  locs->set_in(
+      1, Location::RegisterLocation(CallingConventions::kSecondReturnReg));
+  locs->set_out(
+      0, Location::Pair(
+             Location::RegisterLocation(CallingConventions::kReturnReg),
+             Location::RegisterLocation(CallingConventions::kSecondReturnReg)));
+  return locs;
+}
+
+void MakePairInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // No-op.
 }
 
 #undef __

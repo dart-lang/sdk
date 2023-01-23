@@ -128,7 +128,7 @@ class DebuggerLocation {
   }
 
   static Future<Set<Script>> _lookupScript(Isolate isolate, String name,
-      {bool allowPrefix: false, bool useUri: false}) {
+      {bool allowPrefix = false, bool useUri = false}) {
     var pending = <Future>[];
     for (var lib in isolate.libraries) {
       if (!lib.loaded) {
@@ -156,7 +156,7 @@ class DebuggerLocation {
   }
 
   static List<ServiceFunction> _lookupFunction(Isolate isolate, String name,
-      {bool allowPrefix: false}) {
+      {bool allowPrefix = false}) {
     var matches = <ServiceFunction>[];
     for (var lib in isolate.libraries) {
       assert(lib.loaded);
@@ -176,7 +176,7 @@ class DebuggerLocation {
   }
 
   static Future<List<Class>> _lookupClass(Isolate isolate, String name,
-      {bool allowPrefix: false}) async {
+      {bool allowPrefix = false}) async {
     if (isolate == null) {
       return [];
     }

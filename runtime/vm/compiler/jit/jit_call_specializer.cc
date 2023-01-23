@@ -190,10 +190,9 @@ void JitCallSpecializer::LowerContextAllocation(
   } else {
     initial_value = new (Z) Value(flow_graph()->constant_null());
   }
-  StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
+  StoreFieldInstr* store = new (Z) StoreFieldInstr(
       Slot::Context_parent(), new (Z) Value(replacement), initial_value,
-      kNoStoreBarrier, alloc->source(),
-      StoreInstanceFieldInstr::Kind::kInitializing);
+      kNoStoreBarrier, alloc->source(), StoreFieldInstr::Kind::kInitializing);
   flow_graph()->InsertAfter(cursor, store, nullptr, FlowGraph::kEffect);
   cursor = replacement;
 
@@ -208,9 +207,9 @@ void JitCallSpecializer::LowerContextAllocation(
       initial_value = new (Z) Value(flow_graph()->constant_null());
     }
 
-    store = new (Z) StoreInstanceFieldInstr(
+    store = new (Z) StoreFieldInstr(
         *slot, new (Z) Value(replacement), initial_value, kNoStoreBarrier,
-        alloc->source(), StoreInstanceFieldInstr::Kind::kInitializing);
+        alloc->source(), StoreFieldInstr::Kind::kInitializing);
     flow_graph()->InsertAfter(cursor, store, nullptr, FlowGraph::kEffect);
     cursor = store;
   }

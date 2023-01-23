@@ -2,29 +2,29 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/magic_const.dart:15:9: Error: Constant expression expected.
+// pkg/front_end/testcases/general/magic_const.dart:15:10: Error: Constant expression expected.
 // Try inserting 'const'.
-// foo({a: Constant(), b: Constant(), c: []}) {}
-//         ^^^^^^^^
+// foo({a = Constant(), b = Constant(), c = []}) {}
+//          ^^^^^^^^
 //
-// pkg/front_end/testcases/general/magic_const.dart:15:24: Error: Constant expression expected.
+// pkg/front_end/testcases/general/magic_const.dart:15:26: Error: Constant expression expected.
 // Try inserting 'const'.
-// foo({a: Constant(), b: Constant(), c: []}) {}
-//                        ^^^^^^^^
+// foo({a = Constant(), b = Constant(), c = []}) {}
+//                          ^^^^^^^^
 //
-// pkg/front_end/testcases/general/magic_const.dart:15:39: Error: Constant expression expected.
+// pkg/front_end/testcases/general/magic_const.dart:15:42: Error: Constant expression expected.
 // Try inserting 'const'.
-// foo({a: Constant(), b: Constant(), c: []}) {}
-//                                       ^
+// foo({a = Constant(), b = Constant(), c = []}) {}
+//                                          ^
 //
 // pkg/front_end/testcases/general/magic_const.dart:18:9: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 // Try using a constructor or factory that is 'const'.
 //   const NotConstant();
 //         ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/magic_const.dart:15:39: Error: Non-constant list literal is not a constant expression.
-// foo({a: Constant(), b: Constant(), c: []}) {}
-//                                       ^
+// pkg/front_end/testcases/general/magic_const.dart:15:42: Error: Non-constant list literal is not a constant expression.
+// foo({a = Constant(), b = Constant(), c = []}) {}
+//                                          ^
 //
 import self as self;
 import "dart:core" as core;
@@ -58,4 +58,4 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///magic_const.dart:
 - Constant. (from org-dartlang-testcase:///magic_const.dart:10:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

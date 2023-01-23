@@ -81,12 +81,6 @@ abstract class KMember extends IndexedMember {
   bool get isFunction => false;
 
   @override
-  bool get isField => false;
-
-  @override
-  bool get isConstructor => false;
-
-  @override
   bool get isInstanceMember => enclosingClass != null && !_isStatic;
 
   @override
@@ -111,10 +105,9 @@ abstract class KFunction extends KMember
   @override
   final AsyncMarker asyncMarker;
 
-  KFunction(KLibrary library, KClass enclosingClass, Name name,
+  KFunction(super.library, super.enclosingClass, super.name,
       this.parameterStructure, this.asyncMarker,
-      {bool isStatic = false, this.isExternal = false})
-      : super(library, enclosingClass, name, isStatic: isStatic);
+      {super.isStatic, this.isExternal = false});
 }
 
 abstract class KConstructor extends KFunction
@@ -130,9 +123,6 @@ abstract class KConstructor extends KFunction
       : super(enclosingClass.library, enclosingClass, name, parameterStructure,
             AsyncMarker.SYNC,
             isExternal: isExternal);
-
-  @override
-  bool get isConstructor => true;
 
   @override
   bool get isInstanceMember => false;
@@ -152,10 +142,8 @@ abstract class KConstructor extends KFunction
 
 class KGenerativeConstructor extends KConstructor {
   KGenerativeConstructor(
-      KClass enclosingClass, Name name, ParameterStructure parameterStructure,
-      {required bool isExternal, required bool isConst})
-      : super(enclosingClass, name, parameterStructure,
-            isExternal: isExternal, isConst: isConst);
+      super.enclosingClass, super.name, super.parameterStructure,
+      {required super.isExternal, required super.isConst});
 
   @override
   bool get isFactoryConstructor => false;
@@ -169,12 +157,10 @@ class KFactoryConstructor extends KConstructor {
   final bool isFromEnvironmentConstructor;
 
   KFactoryConstructor(
-      KClass enclosingClass, Name name, ParameterStructure parameterStructure,
-      {required bool isExternal,
-      required bool isConst,
-      required this.isFromEnvironmentConstructor})
-      : super(enclosingClass, name, parameterStructure,
-            isExternal: isExternal, isConst: isConst);
+      super.enclosingClass, super.name, super.parameterStructure,
+      {required super.isExternal,
+      required super.isConst,
+      required this.isFromEnvironmentConstructor});
 
   @override
   bool get isFactoryConstructor => true;
@@ -187,13 +173,11 @@ class KMethod extends KFunction {
   @override
   final bool isAbstract;
 
-  KMethod(KLibrary library, KClass enclosingClass, Name name,
-      ParameterStructure parameterStructure, AsyncMarker asyncMarker,
-      {required bool isStatic,
-      required bool isExternal,
-      required this.isAbstract})
-      : super(library, enclosingClass, name, parameterStructure, asyncMarker,
-            isStatic: isStatic, isExternal: isExternal);
+  KMethod(super.library, super.enclosingClass, super.name,
+      super.parameterStructure, super.asyncMarker,
+      {required super.isStatic,
+      required super.isExternal,
+      required this.isAbstract});
 
   @override
   bool get isFunction => true;
@@ -206,7 +190,7 @@ class KGetter extends KFunction {
   @override
   final bool isAbstract;
 
-  KGetter(KLibrary library, KClass enclosingClass, Name name,
+  KGetter(KLibrary library, KClass? enclosingClass, Name name,
       AsyncMarker asyncMarker,
       {required bool isStatic,
       required bool isExternal,
@@ -226,7 +210,7 @@ class KSetter extends KFunction {
   @override
   final bool isAbstract;
 
-  KSetter(KLibrary library, KClass enclosingClass, Name name,
+  KSetter(KLibrary library, KClass? enclosingClass, Name name,
       {required bool isStatic,
       required bool isExternal,
       required this.isAbstract})
@@ -250,14 +234,10 @@ class KField extends KMember implements FieldEntity, IndexedField {
   @override
   final bool isConst;
 
-  KField(KLibrary library, KClass enclosingClass, Name name,
-      {required bool isStatic,
+  KField(super.library, super.enclosingClass, super.name,
+      {required super.isStatic,
       required this.isAssignable,
-      required this.isConst})
-      : super(library, enclosingClass, name, isStatic: isStatic);
-
-  @override
-  bool get isField => true;
+      required this.isConst});
 
   @override
   String get _kind => 'field';

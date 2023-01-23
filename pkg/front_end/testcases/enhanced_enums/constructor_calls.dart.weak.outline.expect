@@ -28,12 +28,12 @@ import "dart:core" as core;
 
 class E extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E> values = const <self::E>[self::E::one, self::E::two, self::E::three, self::E::four];
-  static const field self::E one = const self::E::•(0, "one");
-  static const field self::E two = const self::E::named(1, "two");
-  static const field self::E three = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:8:8: Error: Couldn't find constructor 'E.f'.
+  enum-element static const field self::E one = const self::E::•(0, "one");
+  enum-element static const field self::E two = const self::E::named(1, "two");
+  enum-element static const field self::E three = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:8:8: Error: Couldn't find constructor 'E.f'.
   three.f(), // Error.
        ^";
-  static const field self::E four = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:9:7: Error: Couldn't find constructor 'E.f2'.
+  enum-element static const field self::E four = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:9:7: Error: Couldn't find constructor 'E.f2'.
   four.f2(); // Error.
       ^^";
   static final field dynamic _redirecting# = <dynamic>[self::E::f3, self::E::f4, self::E::f5, self::E::f6]/*isLegacy*/;
@@ -43,7 +43,7 @@ class E extends core::_Enum /*isEnum*/  {
   const constructor named(core::int #index, core::String #name) → self::E
     : this self::E::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
   static factory f() → self::E
     ;

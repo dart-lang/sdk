@@ -11,6 +11,8 @@ analyzer:
 linter:
   rules:
     - annotate_overrides
+    - avoid_dynamic_calls
     - prefer_final_fields
     - prefer_if_null_operators
     - prefer_null_aware_operators
+    - use_super_parameters

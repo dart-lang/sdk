@@ -12,7 +12,7 @@ class Constant {
 
 class NotConstant {}
 
-foo({a: Constant(), b: Constant(), c: []}) {}
+foo({a = Constant(), b = Constant(), c = []}) {}
 
 test() {
   const NotConstant();

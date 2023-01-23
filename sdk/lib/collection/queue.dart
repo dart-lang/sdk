@@ -698,7 +698,7 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   }
 
   E elementAt(int index) {
-    RangeError.checkValidIndex(index, this);
+    IndexError.check(index, length, indexable: this);
     return _table[(_head + index) & (_table.length - 1)] as E;
   }
 

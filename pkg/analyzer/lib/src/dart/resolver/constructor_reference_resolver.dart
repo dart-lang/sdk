@@ -29,15 +29,16 @@ class ConstructorReferenceResolver {
     }
     node.constructorName.accept(_resolver);
     var element = node.constructorName.staticElement;
-    if (element != null &&
-        !element.isFactory &&
-        element.enclosingElement.isAbstract) {
-      _resolver.errorReporter.reportErrorForNode(
-        CompileTimeErrorCode
-            .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
-        node,
-        [],
-      );
+    if (element != null && !element.isFactory) {
+      final enclosingElement = element.enclosingElement;
+      if (enclosingElement is ClassElement && enclosingElement.isAbstract) {
+        _resolver.errorReporter.reportErrorForNode(
+          CompileTimeErrorCode
+              .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
+          node,
+          [],
+        );
+      }
     }
     var name = node.constructorName.name;
     if (element == null &&
@@ -52,12 +53,14 @@ class ConstructorReferenceResolver {
       // to avoid reporting redundant errors.
       var enclosingElement = node.constructorName.type.name.staticElement;
       if (enclosingElement is TypeAliasElement) {
-        enclosingElement = enclosingElement.aliasedType.element;
+        final aliasedType = enclosingElement.aliasedType;
+        enclosingElement =
+            aliasedType is InterfaceType ? aliasedType.element : null;
       }
       // TODO(srawlins): Handle `enclosingElement` being a function typedef:
       // typedef F<T> = void Function(); var a = F<int>.extensionOnType;`.
       // This is illegal.
-      if (enclosingElement is ClassElement) {
+      if (enclosingElement is InterfaceElement) {
         var method = enclosingElement.getMethod(name.name) ??
             enclosingElement.getGetter(name.name) ??
             enclosingElement.getSetter(name.name);

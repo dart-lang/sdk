@@ -120,11 +120,11 @@ class FileStat {
       path = FileSystemEntity._trimTrailingPathSeparators(path);
     }
     var data = _statSync(_Namespace._namespace, path);
-    if (data is OSError) return FileStat._notFound;
-    return new FileStat._internal(
-        new DateTime.fromMillisecondsSinceEpoch(data[_changedTime]),
-        new DateTime.fromMillisecondsSinceEpoch(data[_modifiedTime]),
-        new DateTime.fromMillisecondsSinceEpoch(data[_accessedTime]),
+    if (data is! Int64List) return FileStat._notFound;
+    return FileStat._internal(
+        DateTime.fromMillisecondsSinceEpoch(data[_changedTime]),
+        DateTime.fromMillisecondsSinceEpoch(data[_modifiedTime]),
+        DateTime.fromMillisecondsSinceEpoch(data[_accessedTime]),
         FileSystemEntityType._lookup(data[_type]),
         data[_mode],
         data[_size]);
@@ -152,18 +152,18 @@ class FileStat {
     }
     return _File._dispatchWithNamespace(_IOService.fileStat, [null, path])
         .then((response) {
-      if (_isErrorResponse(response)) {
+      if (response is List<Object?> && response[0] != _successResponse) {
         return FileStat._notFound;
       }
       // Unwrap the real list from the "I'm not an error" wrapper.
-      List data = response[1];
-      return new FileStat._internal(
-          new DateTime.fromMillisecondsSinceEpoch(data[_changedTime]),
-          new DateTime.fromMillisecondsSinceEpoch(data[_modifiedTime]),
-          new DateTime.fromMillisecondsSinceEpoch(data[_accessedTime]),
-          FileSystemEntityType._lookup(data[_type]),
-          data[_mode],
-          data[_size]);
+      var data = (response as List)[1] as List<Object?>;
+      return FileStat._internal(
+          DateTime.fromMillisecondsSinceEpoch(data[_changedTime] as int),
+          DateTime.fromMillisecondsSinceEpoch(data[_modifiedTime] as int),
+          DateTime.fromMillisecondsSinceEpoch(data[_accessedTime] as int),
+          FileSystemEntityType._lookup(data[_type] as int),
+          data[_mode] as int,
+          data[_size] as int);
     });
   }
 
@@ -321,11 +321,8 @@ abstract class FileSystemEntity {
   Future<String> resolveSymbolicLinks() {
     return _File._dispatchWithNamespace(
         _IOService.fileResolveSymbolicLinks, [null, _rawPath]).then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(
-            response, "Cannot resolve symbolic links", path);
-      }
-      return response;
+      _checkForErrorResponse(response, "Cannot resolve symbolic links", path);
+      return response as String;
     });
   }
 
@@ -437,8 +434,18 @@ abstract class FileSystemEntity {
   ///     files and directories. Recursive watching is not supported.
   ///     Note: When watching files directly, delete events might not happen
   ///     as expected.
-  ///   * `OS X`: Uses `FSEvents`. The implementation supports watching both
-  ///     files and directories. Recursive watching is supported.
+  ///   * `OS X`: Uses the
+  ///     [File System Events API](https://developer.apple.com/library/archive/documentation/Darwin/Conceptual/FSEvents_ProgGuide/TechnologyOverview/TechnologyOverview.html).
+  ///     The implementation supports watching both files and directories.
+  ///     Recursive watching is supported.
+  ///     This API has several limitations:
+  ///
+  ///     * Changes that occurred shortly *before* the [watch] method was
+  ///       called may still appear in the [Stream].
+  ///     * Changes that occur in a short period of time may arrive
+  ///       out-of-order.
+  ///     * Multiple changes made in a single directory may be coalesced into
+  ///       a single `FileSystemEvent`.
   ///
   /// The system will start listening for events once the returned [Stream] is
   /// being listened to, not when the call to [watch] is issued.
@@ -474,11 +481,9 @@ abstract class FileSystemEntity {
   static Future<bool> _identical(String path1, String path2) {
     return _File._dispatchWithNamespace(
         _IOService.fileIdentical, [null, path1, path2]).then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response,
-            "Error in FileSystemEntity.identical($path1, $path2)", "");
-      }
-      return response;
+      _checkForErrorResponse(
+          response, "Error in FileSystemEntity.identical($path1, $path2)", "");
+      return response as bool;
     });
   }
 
@@ -814,11 +819,9 @@ abstract class FileSystemEntity {
       Uint8List rawPath, bool followLinks) {
     return _File._dispatchWithNamespace(
         _IOService.fileType, [null, rawPath, followLinks]).then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response, "Error getting type",
-            utf8.decode(rawPath, allowMalformed: true));
-      }
-      return FileSystemEntityType._lookup(response);
+      _checkForErrorResponse(response, "Error getting type",
+          utf8.decode(rawPath, allowMalformed: true));
+      return FileSystemEntityType._lookup(response as int);
     });
   }
 

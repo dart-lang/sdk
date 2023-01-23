@@ -23,10 +23,13 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
+import 'package:collection/collection.dart';
 
 /// A fix producer that produces changes that will fix multiple diagnostics in
 /// one or more files.
@@ -66,13 +69,25 @@ class BulkFixProcessor {
     CompileTimeErrorCode.INVALID_OVERRIDE: [
       DataDriven.new,
     ],
+    CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT: [
+      DataDriven.new,
+    ],
     CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
       DataDriven.new,
     ],
     CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT: [
       DataDriven.new,
     ],
-    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS: [
+    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL: [
+      DataDriven.new,
+    ],
+    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR: [
+      DataDriven.new,
+    ],
+    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL: [
+      DataDriven.new,
+    ],
+    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR: [
       DataDriven.new,
     ],
     CompileTimeErrorCode.UNDEFINED_CLASS: [
@@ -128,6 +143,12 @@ class BulkFixProcessor {
     ],
   };
 
+  static final Set<String> _errorCodes =
+      errorCodeValues.map((ErrorCode code) => code.name.toLowerCase()).toSet();
+
+  static final Set<String> _lintCodes =
+      Registry.ruleRegistry.rules.map((rule) => rule.name).toSet();
+
   /// The service used to report errors when building fixes.
   final InstrumentationService instrumentationService;
 
@@ -139,6 +160,9 @@ class BulkFixProcessor {
   /// the transforms.
   final bool useConfigFiles;
 
+  /// An optional list of diagnostic codes to fix.
+  final List<String>? codes;
+
   /// The change builder used to build the changes required to fix the
   /// diagnostics.
   ChangeBuilder builder;
@@ -149,8 +173,9 @@ class BulkFixProcessor {
   /// Initialize a newly created processor to create fixes for diagnostics in
   /// libraries in the [workspace].
   BulkFixProcessor(this.instrumentationService, this.workspace,
-      {this.useConfigFiles = false})
-      : builder = ChangeBuilder(workspace: workspace);
+      {this.useConfigFiles = false, List<String>? codes})
+      : builder = ChangeBuilder(workspace: workspace),
+        codes = codes?.map((e) => e.toLowerCase()).toList();
 
   List<BulkFix> get fixDetails {
     var details = <BulkFix>[];
@@ -164,16 +189,58 @@ class BulkFixProcessor {
     return details;
   }
 
-  /// Return a change builder that has been used to create fixes for the
-  /// diagnostics in the libraries in the given [contexts].
-  Future<ChangeBuilder> fixErrors(List<AnalysisContext> contexts) async {
+  /// Return a [BulkFixRequestResult] that includes a change builder that has
+  /// been used to create fixes for the diagnostics in the libraries in the
+  /// given [contexts].
+  Future<BulkFixRequestResult> fixErrors(List<AnalysisContext> contexts) async {
+    // Ensure specified codes are defined.
+    final codes = this.codes;
+    if (codes != null) {
+      var undefinedCodes = <String>[];
+      for (var code in codes) {
+        if (!_errorCodes.contains(code) && !_lintCodes.contains(code)) {
+          undefinedCodes.add(code);
+        }
+      }
+      if (undefinedCodes.isNotEmpty) {
+        var count = undefinedCodes.length;
+        var diagnosticCodes = undefinedCodes.quotedAndCommaSeparatedWithAnd;
+        return BulkFixRequestResult.error(
+            "The ${'diagnostic'.pluralized(count)} $diagnosticCodes ${count.isAre} not defined by the analyzer.");
+      }
+    }
+
+    var lints = codes?.where(_lintCodes.contains).toList() ?? [];
+
     for (var context in contexts) {
+      var lintCodesChecked = false;
       var pathContext = context.contextRoot.resourceProvider.pathContext;
       for (var path in context.contextRoot.analyzedFiles()) {
         if (!file_paths.isDart(pathContext, path) ||
             file_paths.isGenerated(path)) {
           continue;
         }
+
+        // Check that defined lints are enabled.
+        if (!lintCodesChecked) {
+          var missingLints = <String>[];
+          for (var lint in lints) {
+            if (context.analysisOptions.lintRules
+                .none((rule) => rule.name == lint)) {
+              missingLints.add(lint);
+            }
+          }
+          if (missingLints.isNotEmpty) {
+            var count = missingLints.length;
+            var lintCodes = missingLints.quotedAndCommaSeparatedWithAnd;
+            return BulkFixRequestResult.error(
+                "The ${'lint'.pluralized(count)} $lintCodes ${count.isAre} not enabled; add ${count.itThem} to your analysis options and try again.");
+          }
+
+          // Only check codes once per context.
+          lintCodesChecked = true;
+        }
+
         var library = await context.currentSession.getResolvedLibrary(path);
         if (library is ResolvedLibraryResult) {
           await _fixErrorsInLibrary(library);
@@ -181,7 +248,7 @@ class BulkFixProcessor {
       }
     }
 
-    return builder;
+    return BulkFixRequestResult(builder);
   }
 
   /// Return a change builder that has been used to create fixes for the
@@ -194,37 +261,6 @@ class BulkFixProcessor {
       var library = await context.currentSession.getResolvedLibrary(path);
       if (library is ResolvedLibraryResult) {
         await _fixErrorsInLibrary(library);
-      }
-    }
-
-    return builder;
-  }
-
-  /// Return a change builder that has been used to create all fixes for a
-  /// specific diagnostic code in the given [unit].
-  Future<ChangeBuilder> fixOfTypeInUnit(
-    ResolvedUnitResult unit,
-    String errorCode,
-  ) async {
-    final errorCodeLowercase = errorCode.toLowerCase();
-    final errors = unit.errors.where(
-      (error) => error.errorCode.name.toLowerCase() == errorCodeLowercase,
-    );
-
-    final analysisOptions = unit.session.analysisContext.analysisOptions;
-
-    var overrideSet = _readOverrideSet(unit);
-    for (var error in errors) {
-      final processor = ErrorProcessor.getProcessor(analysisOptions, error);
-      // Only fix errors not filtered out in analysis options.
-      if (processor == null || processor.severity != null) {
-        final fixContext = DartFixContextImpl(
-          instrumentationService,
-          workspace,
-          unit,
-          error,
-        );
-        await _fixSingleError(fixContext, unit, error, overrideSet);
       }
     }
 
@@ -252,8 +288,14 @@ class BulkFixProcessor {
     Iterable<AnalysisError> filteredErrors(ResolvedUnitResult result) sync* {
       var errors = result.errors.toList();
       errors.sort((a, b) => a.offset.compareTo(b.offset));
-      // Only fix errors not filtered out in analysis options.
+      final codes = this.codes;
+      // Only fix errors specified in the `codes` list (if defined) and not
+      // filtered out in analysis options.
       for (var error in errors) {
+        if (codes != null &&
+            !codes.contains(error.errorCode.name.toLowerCase())) {
+          continue;
+        }
         var processor = ErrorProcessor.getProcessor(analysisOptions, error);
         if (processor == null || processor.severity != null) {
           yield error;
@@ -384,7 +426,7 @@ class BulkFixProcessor {
           for (var multiGenerator in multiGenerators) {
             var multiProducer = multiGenerator();
             multiProducer.configure(context);
-            await for (var producer in multiProducer.producers) {
+            for (var producer in await multiProducer.producers) {
               await _generateFix(context, producer, codeName);
             }
           }
@@ -436,6 +478,15 @@ class BulkFixProcessor {
   }
 }
 
+class BulkFixRequestResult {
+  final ChangeBuilder? builder;
+  final String? errorMessage;
+
+  BulkFixRequestResult(this.builder) : errorMessage = null;
+
+  BulkFixRequestResult.error(this.errorMessage) : builder = null;
+}
+
 /// Maps changes to library paths.
 class ChangeMap {
   /// Map of paths to maps of codes to counts.
@@ -446,4 +497,14 @@ class ChangeMap {
     var changes = libraryMap.putIfAbsent(libraryPath, () => {});
     changes.update(code, (value) => value + 1, ifAbsent: () => 1);
   }
+}
+
+extension on String {
+  String pluralized(int count) => count == 1 ? toString() : '${toString()}s';
+}
+
+extension on int {
+  String get isAre => this == 1 ? 'is' : 'are';
+
+  String get itThem => this == 1 ? 'it' : 'them';
 }

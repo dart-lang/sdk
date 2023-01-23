@@ -47,7 +47,7 @@ class ConvertIntoFinalField extends CorrectionProducer {
         return;
       }
       var enclosing = element.enclosingElement;
-      if (enclosing is ClassElement) {
+      if (enclosing is InterfaceElement) {
         if (enclosing.getSetter(element.name) != null) {
           return;
         }
@@ -76,7 +76,7 @@ class ConvertIntoFinalField extends CorrectionProducer {
       if (returnType != null) {
         code += ' ${utils.getNodeText(returnType)}';
       }
-      code += ' ${utils.getNodeText(getter.name)}';
+      code += ' ${getter.name.lexeme}';
       if (expression is! NullLiteral) {
         code += ' = ${utils.getNodeText(expression)}';
       }

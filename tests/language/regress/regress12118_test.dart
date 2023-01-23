@@ -8,7 +8,7 @@ const X = 42;
 
 class A {
   final x;
-  A({this.x: X});
+  A({this.x = X});
 }
 
 class B extends A {}

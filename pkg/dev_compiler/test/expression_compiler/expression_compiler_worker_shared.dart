@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io'
@@ -28,8 +26,8 @@ bool get verbose => false;
 
 void runTests(String moduleFormat, bool soundNullSafety) {
   group('expression compiler worker on startup', () {
-    Directory tempDir;
-    ReceivePort receivePort;
+    late Directory tempDir;
+    late ReceivePort receivePort;
 
     setUp(() async {
       tempDir = Directory.systemTemp.createTempSync('foo bar');
@@ -543,13 +541,13 @@ class ModuleConfiguration {
   final String summaryDillFileName;
 
   ModuleConfiguration(
-      {this.root,
-      this.outputDir,
-      this.moduleName,
-      this.libraryUri,
-      this.jsFileName,
-      this.fullDillFileName,
-      this.summaryDillFileName});
+      {required this.root,
+      required this.outputDir,
+      required this.moduleName,
+      required this.libraryUri,
+      required this.jsFileName,
+      required this.fullDillFileName,
+      required this.summaryDillFileName});
 
   Uri get jsUri => root.resolve('$outputDir/$jsFileName');
   Uri get multiRootFullDillUri =>
@@ -558,7 +556,7 @@ class ModuleConfiguration {
       Uri.parse('org-dartlang-app:///$outputDir/$summaryDillFileName');
 
   Uri get relativeFullDillUri => Uri.parse('$outputDir/$fullDillFileName');
-  Uri get realtiveSummaryUri => Uri.parse('$outputDir/$summaryDillFileName');
+  Uri get relativeSummaryUri => Uri.parse('$outputDir/$summaryDillFileName');
 
   String get fullDillPath => root.resolve('$outputDir/$fullDillFileName').path;
   String get summaryDillPath =>
@@ -806,24 +804,24 @@ abstract class TestDriver {
   final bool soundNullSafety;
   final String moduleFormat;
 
-  FileSystem fileSystem;
-  FileSystem assetFileSystem;
+  late FileSystem fileSystem;
+  late FileSystem assetFileSystem;
 
-  Directory tempDir;
-  TestProjectConfiguration config;
-  List inputs;
+  late Directory tempDir;
+  late TestProjectConfiguration config;
+  late List inputs;
 
-  StreamController<Map<String, dynamic>> requestController;
-  StreamController<Map<String, dynamic>> responseController;
-  ExpressionCompilerWorker worker;
-  Future<void> workerDone;
+  late StreamController<Map<String, dynamic>> requestController;
+  late StreamController<Map<String, dynamic>> responseController;
+  ExpressionCompilerWorker? worker;
+  Future<void>? workerDone;
 
   TestDriver(this.soundNullSafety, this.moduleFormat);
 
   /// Initialize file systems, inputs, and start servers if needed.
   Future<void> start();
 
-  Future<void> stop() => workerDone;
+  Future<void>? stop() => workerDone;
 
   Future<void> setUpAll() async {
     tempDir = Directory.systemTemp.createTempSync('foo bar');
@@ -859,7 +857,7 @@ abstract class TestDriver {
       soundNullSafety: soundNullSafety,
       verbose: verbose,
     );
-    workerDone = worker.run();
+    workerDone = worker?.run();
   }
 
   Future<void> tearDown() async {
@@ -897,8 +895,8 @@ class MultiRootFileSystemTestDriver extends TestDriver {
 }
 
 class AssetFileSystemTestDriver extends TestDriver {
-  TestAssetServer server;
-  int port;
+  late TestAssetServer server;
+  late int port;
 
   AssetFileSystemTestDriver(bool soundNullSafety, String moduleFormat)
       : super(soundNullSafety, moduleFormat);
@@ -924,7 +922,7 @@ class AssetFileSystemTestDriver extends TestDriver {
 
 class TestAssetServer {
   FileSystem fileSystem;
-  HttpServer server;
+  HttpServer? server;
 
   TestAssetServer(this.fileSystem);
 
@@ -938,22 +936,15 @@ class TestAssetServer {
     try {
       var entity = fileSystem.entityForUri(uri);
       if (await entity.existsAsyncIfPossible()) {
-        if (request.method == 'HEAD') {
-          var headers = {
-            'content-length': null,
-            ...request.headers,
-          };
-          return Response.ok(null, headers: headers);
-        }
-
-        if (request.method == 'GET') {
+        if (request.method == 'HEAD' || request.method == 'GET') {
           // 'readAsBytes'
           var contents = await entity.readAsBytesAsyncIfPossible();
           var headers = {
             'content-length': '${contents.length}',
             ...request.headers,
           };
-          return Response.ok(contents, headers: headers);
+          return Response.ok(request.method == 'GET' ? contents : null,
+              headers: headers);
         }
       }
       return Response.notFound(path);
@@ -964,7 +955,7 @@ class TestAssetServer {
 
   Future<void> start(String hostname, int port) async {
     server = await HttpMultiServer.bind(hostname, port);
-    serveRequests(server, handler);
+    serveRequests(server!, handler);
   }
 
   void stop() {

@@ -33,7 +33,7 @@ final [[a^]] = A();
     final originRange = ranges[1];
     final result = await _getResult(contents);
     expect(result.originSelectionRange, originRange);
-    expect(result.targetUri, mainFileUri.toString());
+    expect(result.targetUri, mainFileUri);
     expect(result.targetSelectionRange, targetRange);
     expect(result.targetRange, rangeOfString(contents, 'class A {}'));
   }
@@ -83,7 +83,7 @@ const a^ = 'test string';
 ''';
 
     final result = await _getLocationResult(contents);
-    expect(result.uri, '$sdkCoreUri');
+    expect(result.uri, sdkCoreUri);
     _expectNameRange(result.range, 'String');
   }
 
@@ -115,7 +115,7 @@ class [[A]] {}
     newFile(otherFilePath, withoutMarkers(otherContents));
     final result = await _getResult(contents);
     expect(result.originSelectionRange, rangeFromMarkers(contents));
-    expect(result.targetUri, otherFileUri.toString());
+    expect(result.targetUri, otherFileUri);
     expect(result.targetSelectionRange, rangeFromMarkers(otherContents));
     expect(result.targetRange, rangeOfString(otherContents, 'class A {}'));
   }
@@ -123,7 +123,7 @@ class [[A]] {}
   Future<void> test_parameter() async {
     final contents = '''
 void f(String a) {
-  void f([['te^st']]);
+  f([['te^st']]);
 }
 ''';
 
@@ -135,7 +135,7 @@ void f(String a) {
   Future<void> test_parameterName() async {
     final contents = '''
 void f({String a}) {
-  void f([[a^]]: 'test');
+  f([[a^]]: 'test');
 }
 ''';
 
@@ -269,7 +269,7 @@ void f() {
   /// This is used for SDK sources where the exact location is not known to the
   /// test.
   void _expectSdkCoreType(LocationLink result, String typeName) {
-    expect(result.targetUri, '$sdkCoreUri');
+    expect(result.targetUri, sdkCoreUri);
     _expectNameRange(result.targetSelectionRange, typeName);
     _expectCodeRange(result.targetRange);
   }

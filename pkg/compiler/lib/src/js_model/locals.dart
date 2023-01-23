@@ -6,7 +6,7 @@ library dart2js.js_model.locals;
 
 import 'package:kernel/ast.dart' as ir;
 
-import '../closure_migrated.dart';
+import '../closure.dart';
 import '../common.dart';
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
@@ -15,8 +15,7 @@ import '../elements/types.dart';
 import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
 
-import 'element_map_interfaces.dart';
-import 'element_map_migrated.dart';
+import 'element_map.dart';
 import 'elements.dart' show JGeneratorBody;
 
 class GlobalLocalsMap {
@@ -197,6 +196,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   @override
   MemberEntity get currentMember => _currentMember;
 
+  @override
   Local getLocalByIndex(int index) {
     return _locals.getEntity(index)!;
   }
@@ -640,7 +640,7 @@ void forEachOrderedParameterAsLocal(
     GlobalLocalsMap globalLocalsMap,
     JsToElementMap elementMap,
     FunctionEntity function,
-    void f(Local parameter, {bool? isElided})) {
+    void f(Local parameter, {required bool isElided})) {
   KernelToLocalsMap localsMap = globalLocalsMap.getLocalsMap(function);
   forEachOrderedParameter(elementMap, function,
       (ir.VariableDeclaration variable, {required bool isElided}) {

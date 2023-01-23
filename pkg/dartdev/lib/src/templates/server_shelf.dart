@@ -42,20 +42,20 @@ final String _pubspec = '''
 name: __projectName__
 description: A server app using the shelf package and Docker.
 version: 1.0.0
-# homepage: https://www.example.com
+# repository: https://github.com/my_org/my_repo
 
 environment:
   ${common.sdkConstraint}
 
 dependencies:
-  args: ^2.0.0
-  shelf: ^1.1.0
-  shelf_router: ^1.0.0
+  args: ^2.3.0
+  shelf: ^1.4.0
+  shelf_router: ^1.1.0
 
 dev_dependencies:
   http: ^0.13.0
   lints: ^2.0.0
-  test: ^1.15.0
+  test: ^1.21.0
 ''';
 
 final String _readme = '''

@@ -164,7 +164,7 @@ class DirectoryTest {
       future.then((ignore) {
         Expect.fail("Deletion of non-existing directory should fail");
       }).catchError((error) {
-        Expect.isTrue(error is FileSystemException);
+        Expect.isTrue(error is PathNotFoundException);
       });
     }
 

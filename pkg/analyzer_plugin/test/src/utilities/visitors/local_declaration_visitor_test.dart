@@ -4,6 +4,8 @@
 
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -42,7 +44,11 @@ class TestVisitor extends LocalDeclarationVisitor {
   TestVisitor(int offset) : super(offset);
 
   @override
-  void declaredLocalVar(SimpleIdentifier name, TypeAnnotation? type) {
+  void declaredLocalVar(
+    Token name,
+    TypeAnnotation? type,
+    LocalVariableElement declaredElement,
+  ) {
     expect(name, isNotNull);
   }
 }

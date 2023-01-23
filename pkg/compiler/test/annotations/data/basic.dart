@@ -7,6 +7,8 @@
 main() {
   noInline();
   tryInline();
+  noInline2();
+  tryInline2();
   noElision();
   noThrows();
   noSideEffects();
@@ -22,6 +24,14 @@ noInline() {}
 /*member: tryInline:tryInline*/
 @pragma('dart2js:tryInline')
 tryInline() {}
+
+/*member: noInline2:noInline*/
+@pragma('dart2js:never-inline')
+noInline2() {}
+
+/*member: tryInline2:tryInline*/
+@pragma('dart2js:prefer-inline')
+tryInline2() {}
 
 /*member: noElision:noElision*/
 @pragma('dart2js:noElision')

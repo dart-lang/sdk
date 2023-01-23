@@ -81,12 +81,14 @@ class FixedValueField extends Field {
 class Interface extends LspEntity {
   final List<TypeReference> baseTypes;
   final List<Member> members;
+  final bool abstract;
 
   Interface({
     required super.name,
     super.comment,
     this.baseTypes = const [],
     required this.members,
+    this.abstract = false,
   }) {
     baseTypes.sortBy((type) => type.dartTypeWithTypeArgs.toLowerCase());
     members.sortBy((member) => member.name.toLowerCase());
@@ -249,14 +251,17 @@ abstract class TypeBase {
 
 /// A reference to a Type by name.
 class TypeReference extends TypeBase {
-  static final TypeBase Undefined = TypeReference('undefined');
-  static final TypeBase Null_ = TypeReference('Null');
+  static final TypeBase undefined = TypeReference('undefined');
+  static final TypeBase null_ = TypeReference('Null');
+  static final TypeBase string = TypeReference('string');
+  static final TypeBase int = TypeReference('int');
 
   /// Any object (but not null).
   static final TypeBase LspObject = TypeReference('Object');
 
   /// Any object (or null/undefined).
-  static final TypeBase LspAny = NullableType(TypeReference('Object'));
+  static final TypeBase LspAny = NullableType(TypeReference.LspObject);
+
   final String name;
   final List<TypeBase> typeArgs;
 

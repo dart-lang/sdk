@@ -32,15 +32,38 @@ class FeatureSets {
     flags: [],
   );
 
+  static final FeatureSet language_2_18 = FeatureSet.fromEnableFlags2(
+    sdkLanguageVersion: Version.parse('2.18.0'),
+    flags: [],
+  );
+
+  static final FeatureSet language_2_19 = FeatureSet.fromEnableFlags2(
+    sdkLanguageVersion: Version.parse('2.19.0'),
+    flags: [],
+  );
+
   static final FeatureSet latest = FeatureSet.latestLanguageVersion();
 
   static final FeatureSet latestWithExperiments = FeatureSet.fromEnableFlags2(
     sdkLanguageVersion: ExperimentStatus.currentVersion,
     flags: [
       EnableString.enhanced_enums,
+      EnableString.extension_types,
       EnableString.macros,
       EnableString.named_arguments_anywhere,
+      EnableString.patterns,
+      EnableString.records,
+      EnableString.sealed_class,
       EnableString.super_parameters,
+      EnableString.unnamed_libraries,
+      EnableString.views,
+    ],
+  );
+
+  static final FeatureSet latestWithVariance = FeatureSet.fromEnableFlags2(
+    sdkLanguageVersion: ExperimentStatus.currentVersion,
+    flags: [
+      EnableString.variance,
     ],
   );
 

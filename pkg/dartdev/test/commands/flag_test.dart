@@ -14,6 +14,18 @@ void main() {
   initGlobalState();
   group('command', command, timeout: longTimeout);
   group('flag', help, timeout: longTimeout);
+  group('invalid flags', invalidFlags, timeout: longTimeout);
+}
+
+void expectUsage(String msg) {
+  expect(msg, contains('Usage: dart <command|dart-file> [arguments]'));
+  expect(msg, contains('Global options:'));
+  expect(msg, contains('Available commands:'));
+  expect(msg, contains('analyze '));
+  expect(msg, contains('create '));
+  expect(msg, contains('compile '));
+  expect(msg, contains('format '));
+  expect(msg, contains('migrate '));
 }
 
 void command() {
@@ -65,15 +77,7 @@ void help() {
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains(DartdevRunner.dartdevDescription));
-    expect(
-        result.stdout, contains('Usage: dart <command|dart-file> [arguments]'));
-    expect(result.stdout, contains('Global options:'));
-    expect(result.stdout, contains('Available commands:'));
-    expect(result.stdout, contains('analyze '));
-    expect(result.stdout, contains('create '));
-    expect(result.stdout, contains('compile '));
-    expect(result.stdout, contains('format '));
-    expect(result.stdout, contains('migrate '));
+    expectUsage(result.stdout);
   });
 
   test('--help --verbose', () async {
@@ -120,15 +124,7 @@ void help() {
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains(DartdevRunner.dartdevDescription));
-    expect(
-        result.stdout, contains('Usage: dart <command|dart-file> [arguments]'));
-    expect(result.stdout, contains('Global options:'));
-    expect(result.stdout, contains('Available commands:'));
-    expect(result.stdout, contains('analyze '));
-    expect(result.stdout, contains('create '));
-    expect(result.stdout, contains('compile '));
-    expect(result.stdout, contains('format '));
-    expect(result.stdout, contains('migrate '));
+    expectUsage(result.stdout);
   });
 
   test('help --verbose', () async {
@@ -149,5 +145,20 @@ void help() {
     expect(result.stdout,
         contains('Usage: dart [vm-options] <command|dart-file> [arguments]'));
     expect(result.stdout, contains('migrate '));
+  });
+}
+
+void invalidFlags() {
+  late TestProject p;
+
+  tearDown(() async => await p.dispose());
+
+  test('Regress #49437', () async {
+    // Regression test for https://github.com/dart-lang/sdk/issues/49437
+    p = project();
+    final result = await p.run(['-no-load-cse', 'hello.dart']);
+    expect(result.exitCode, 64);
+    expect(result.stdout, isNot(contains(DartdevRunner.dartdevDescription)));
+    expectUsage(result.stderr);
   });
 }

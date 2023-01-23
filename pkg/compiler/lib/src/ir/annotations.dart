@@ -368,14 +368,15 @@ PragmaAnnotationData? _getPragmaAnnotation(ir.Constant constant) {
   return null;
 }
 
-List<PragmaAnnotationData> computePragmaAnnotationDataFromIr(ir.Member member) {
+List<PragmaAnnotationData> computePragmaAnnotationDataFromIr(
+    ir.Annotatable node) {
   List<PragmaAnnotationData> annotations = [];
-  for (ir.Expression metadata in member.annotations) {
+  for (ir.Expression metadata in node.annotations) {
     if (metadata is! ir.ConstantExpression) continue;
     ir.ConstantExpression constantExpression = metadata;
     ir.Constant constant = constantExpression.constant;
     assert(constant is! ir.UnevaluatedConstant,
-        "Unexpected unevaluated constant on $member: $metadata");
+        "Unexpected unevaluated constant on $node: $metadata");
     PragmaAnnotationData? data = _getPragmaAnnotation(constant);
     if (data != null) {
       annotations.add(data);

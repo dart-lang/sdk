@@ -13,7 +13,7 @@ typedef void Callback([String msg = ""]);
 // [cfe] Can't have a default value in a function type.
 
 class NamedParametersAggregatedTests {
-  static int F31(int a, {int b: 20, int c: 30}) {
+  static int F31(int a, {int b = 20, int c = 30}) {
     return 100 * (100 * a + b) + c;
   }
 
@@ -26,7 +26,7 @@ class NamedParametersAggregatedTests {
 
   // Expect compile-time error as no default values
   // are allowed in closure type.
-  void InstallCallback(void cb({String? msg : null})?) {
+  void InstallCallback(void cb({String? msg = null})?) {
   //                                        ^
   // [analyzer] SYNTACTIC_ERROR.DEFAULT_VALUE_IN_FUNCTION_TYPE
   // [cfe] Can't have a default value in a function type.
@@ -50,8 +50,9 @@ main() {
 
   // Expect compile-time error due to missing positional argument.
   NamedParametersAggregatedTests.F31(b: 25, c: 35);
-  //                                ^^^^^^^^^^^^^^
+  //                                 ^
   // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+  //                                ^^^^^^^^^^^^^^
   // [cfe] Too few positional arguments: 1 required, 0 given.
 
   new TypeTester<Callback>();

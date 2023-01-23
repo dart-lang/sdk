@@ -8,6 +8,7 @@ import 'dart:io' as io;
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/macros/compiler/request_channel.dart';
+import 'package:front_end/src/base/nnbd_mode.dart' as fe;
 import 'package:front_end/src/api_prototype/compiler_options.dart' as fe;
 import 'package:front_end/src/api_prototype/file_system.dart' as fe;
 import 'package:front_end/src/api_prototype/kernel_generator.dart' as fe;
@@ -73,6 +74,7 @@ class _Client {
     final compilerOptions = fe.CompilerOptions()
       ..environmentDefines = {}
       ..fileSystem = _FileSystem(_channel, _dills)
+      ..nnbdMode = fe.NnbdMode.Strong
       ..sdkSummary = Uri.parse(sdkSummaryUriStr)
       ..target = vm.VmTarget(fe.TargetFlags(enableNullSafety: true));
 

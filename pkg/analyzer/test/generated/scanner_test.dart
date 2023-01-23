@@ -7,7 +7,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/string_source.dart';
@@ -24,6 +23,8 @@ main() {
   });
 }
 
+// TODO(srawlins): Re-enable?
+// ignore: unreachable_from_main
 class CharacterRangeReaderTest {
   void test_advance() {
     CharSequenceReader baseReader = CharSequenceReader("xyzzy");
@@ -264,66 +265,4 @@ class ScannerTest_ExpectedLocation {
 
   ScannerTest_ExpectedLocation(
       this._offset, this._lineNumber, this._columnNumber);
-}
-
-/// A `TokenStreamValidator` is used to validate the correct construction of a
-/// stream of tokens.
-class TokenStreamValidator {
-  /// Validate that the stream of tokens that starts with the given [token] is
-  /// correct.
-  void validate(Token token) {
-    StringBuffer buffer = StringBuffer();
-    _validateStream(buffer, token);
-    if (buffer.length > 0) {
-      fail(buffer.toString());
-    }
-  }
-
-  void _validateStream(StringBuffer buffer, Token? token) {
-    if (token == null) {
-      return;
-    }
-    late Token previousToken;
-    int previousEnd = -1;
-    Token? currentToken = token;
-    while (currentToken != null && !currentToken.isEof) {
-      _validateStream(buffer, currentToken.precedingComments);
-      TokenType type = currentToken.type;
-      if (type == TokenType.OPEN_CURLY_BRACKET ||
-          type == TokenType.OPEN_PAREN ||
-          type == TokenType.OPEN_SQUARE_BRACKET ||
-          type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
-        if (currentToken is! BeginToken) {
-          buffer.write("\r\nExpected BeginToken, found ");
-          buffer.write(currentToken.runtimeType.toString());
-          buffer.write(" ");
-          _writeToken(buffer, currentToken);
-        }
-      }
-      int currentStart = currentToken.offset;
-      int currentLength = currentToken.length;
-      int currentEnd = currentStart + currentLength - 1;
-      if (currentStart <= previousEnd) {
-        buffer.write("\r\nInvalid token sequence: ");
-        _writeToken(buffer, previousToken);
-        buffer.write(" followed by ");
-        _writeToken(buffer, currentToken);
-      }
-      previousEnd = currentEnd;
-      previousToken = currentToken;
-      currentToken = currentToken.next;
-    }
-  }
-
-  void _writeToken(StringBuffer buffer, Token token) {
-    buffer.write("[");
-    buffer.write(token.type);
-    buffer.write(", '");
-    buffer.write(token.lexeme);
-    buffer.write("', ");
-    buffer.write(token.offset);
-    buffer.write(", ");
-    buffer.write(token.length);
-    buffer.write("]");
-  }
 }

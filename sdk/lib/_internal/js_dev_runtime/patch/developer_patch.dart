@@ -4,8 +4,9 @@
 
 // Patch file for dart:developer library.
 
-import 'dart:_js_helper' show patch, ForceInline, ReifyFunctionTypes;
+import 'dart:_js_helper' show ForceInline, ReifyFunctionTypes;
 import 'dart:_foreign_helper' show JS, JSExportName;
+import 'dart:_internal' show patch;
 import 'dart:_runtime' as dart;
 import 'dart:async';
 import 'dart:convert' show json;
@@ -58,6 +59,9 @@ void log(String message,
 
   JS('', 'console.debug("dart.developer.log", #)', items);
 }
+
+@patch
+int get reachabilityBarrier => 0;
 
 final _extensions = <String, ServiceExtensionHandler>{};
 
@@ -146,24 +150,13 @@ int _getTraceClock() {
 int _clockValue = 0;
 
 @patch
-void _reportFlowEvent(
-    String category, String name, int type, int id, String argumentsAsJson) {
-  // TODO.
-}
-
-@patch
-void _reportInstantEvent(String category, String name, String argumentsAsJson) {
-  // TODO.
-}
-
-@patch
-int _getNextAsyncId() {
+int _getNextTaskId() {
   return 0;
 }
 
 @patch
-void _reportTaskEvent(int taskId, String phase, String category, String name,
-    String argumentsAsJson) {
+void _reportTaskEvent(
+    int taskId, int type, String name, String argumentsAsJson) {
   // TODO.
 }
 
@@ -213,9 +206,9 @@ class _FakeUserTag implements UserTag {
       return existingTag;
     }
     // Throw an exception if we've reached the maximum number of user tags.
-    if (_instances.length == UserTag.MAX_USER_TAGS) {
+    if (_instances.length == UserTag.maxUserTags) {
       throw UnsupportedError(
-          'UserTag instance limit (${UserTag.MAX_USER_TAGS}) reached.');
+          'UserTag instance limit (${UserTag.maxUserTags}) reached.');
     }
     return _instances[label] = _FakeUserTag.real(label);
   }

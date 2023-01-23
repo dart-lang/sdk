@@ -38,7 +38,7 @@ main(List<String> args) {
     if (declaration is TopLevelVariableDeclaration) {
       for (var variable in declaration.variables.variables) {
         if (variable.initializer == null) continue;
-        var match = variableNameRegExp.matchAsPrefix(variable.name.name);
+        var match = variableNameRegExp.matchAsPrefix(variable.name.lexeme);
         if (match == null) continue;
         var shortName = match.group(1);
         if (list) {

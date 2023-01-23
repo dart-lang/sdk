@@ -1,0 +1,31 @@
+NOTICE: Stream was rewritten by parser!
+
+typedef (int, int) T1();
+typedef ({int j}) T2();
+typedef (int, int)? T3();
+typedef ({int j})? T4();
+
+
+
+typedef F1<T extends (int, int)>= T Function();
+typedef F2<T extends List<(int, int)>>= T Function();
+typedef F3<T extends List<List<(int, int)>>>= T Function();
+typedef F4<T extends List<List<List<(int, int)>>>>= T Function();
+typedef F5<T extends List<List<List<List<(int, int)>>>>>= T Function();
+typedef F6<T extends List<List<List<List<List<(int, int)>>>>>>= T Function();
+
+
+typedef[KeywordToken] ([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] T1[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] ([BeginToken]{[BeginToken]int[StringToken] j[StringToken]}[SimpleToken])[SimpleToken] T2[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] ([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]?[SimpleToken] T3[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] ([BeginToken]{[BeginToken]int[StringToken] j[StringToken]}[SimpleToken])[SimpleToken]?[SimpleToken] T4[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+
+
+
+typedef[KeywordToken] F1[StringToken]<[BeginToken]T[StringToken] extends[KeywordToken] ([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]>[SimpleToken]=[SimpleToken] T[StringToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] F2[StringToken]<[BeginToken]T[StringToken] extends[KeywordToken] List[StringToken]<[BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]>[SimpleToken]>[SimpleToken]=[SimpleToken] T[StringToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] F3[StringToken]<[BeginToken]T[StringToken] extends[KeywordToken] List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]>[SimpleToken]>[SimpleToken]>[SimpleToken]=[SimpleToken] T[StringToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] F4[StringToken]<[BeginToken]T[StringToken] extends[KeywordToken] List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]>[SimpleToken]>[SimpleToken]>[SimpleToken]>[SimpleToken]=[SimpleToken] T[StringToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] F5[StringToken]<[BeginToken]T[StringToken] extends[KeywordToken] List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]>[SimpleToken]>[SimpleToken]>[SimpleToken]>[SimpleToken]>[SimpleToken]=[SimpleToken] T[StringToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] F6[StringToken]<[BeginToken]T[StringToken] extends[KeywordToken] List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]>[SimpleToken]>[SimpleToken]>[SimpleToken]>[SimpleToken]>[SimpleToken]>[SimpleToken]=[SimpleToken] T[StringToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+[SimpleToken]

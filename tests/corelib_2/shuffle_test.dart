@@ -69,7 +69,7 @@ void testShuffle(list) {
   // of a proper shuffling hitting the same list again is less than 10^80
   // (arbitrary bignum - approx. number of atoms in the universe).
   //
-  // The probablility of shuffling a list of length n into the same list is
+  // The probability of shuffling a list of length n into the same list is
   // 1/n!. If one shuffle didn't change the list, repeat shuffling until
   // probability of randomly hitting the same list every time is less than
   // 1/1e80.

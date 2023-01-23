@@ -213,20 +213,20 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
       if (className != null) {
         for (var declaration in unit.declarations) {
           if (declaration is ClassDeclaration &&
-              declaration.name.name == className) {
+              declaration.name.lexeme == className) {
             for (var member in declaration.members) {
               if (member is ConstructorDeclaration) {
-                if (member.name!.name == name) {
+                if (member.name!.lexeme == name) {
                   return member.offset;
                 }
               } else if (member is FieldDeclaration) {
                 for (var variable in member.fields.variables) {
-                  if (variable.name.name == name) {
+                  if (variable.name.lexeme == name) {
                     return variable.offset;
                   }
                 }
               } else if (member is MethodDeclaration) {
-                if (member.name.name == name) {
+                if (member.name.lexeme == name) {
                   return member.offset;
                 }
               }
@@ -239,12 +239,12 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
       }
       for (var declaration in unit.declarations) {
         if (declaration is FunctionDeclaration) {
-          if (declaration.name.name == name) {
+          if (declaration.name.lexeme == name) {
             return declaration.offset;
           }
         } else if (declaration is TopLevelVariableDeclaration) {
           for (var variable in declaration.variables.variables) {
-            if (variable.name.name == name) {
+            if (variable.name.lexeme == name) {
               return variable.offset;
             }
           }
@@ -258,7 +258,7 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
               .unit;
       for (var declaration in unit.declarations) {
         if (declaration is ClassDeclaration &&
-            declaration.name.name == className) {
+            declaration.name.lexeme == className) {
           return declaration.offset;
         }
       }

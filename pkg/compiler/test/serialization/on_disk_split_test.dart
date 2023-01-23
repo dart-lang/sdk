@@ -9,7 +9,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/dart2js.dart';
 
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 main(List<String> args) {
   asyncTest(() async {
@@ -21,7 +21,7 @@ main(List<String> args) {
       '--libraries-spec=$sdkLibrariesSpecificationUri',
     ];
     await internalMain([
-          'samples-dev/swarm/swarm.dart',
+          'pkg/compiler/test/codesize/swarm/swarm.dart',
           Flags.writeClosedWorld,
           '--out=${dillUri}',
         ] +

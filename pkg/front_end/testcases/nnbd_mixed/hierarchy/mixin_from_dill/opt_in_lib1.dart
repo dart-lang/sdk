@@ -28,14 +28,14 @@ abstract class Interface2 {
 testInterface2(Interface2 c) {
   try {
     c._privateGetter;
-    throw 'Expected NoSuchMethodError';
-  } on NoSuchMethodError (e) {
+    throw 'Expected NoMethodForPrivateNameError';
+  } on NoMethodForPrivateNameError (e) {
     print(e);
   }
   try {
     c._privateSetter = new C();
-    throw 'Expected NoSuchMethodError';
-  } on NoSuchMethodError (e) {
+    throw 'Expected NoMethodForPrivateNameError';
+  } on NoMethodForPrivateNameError (e) {
     print(e);
   }
 }

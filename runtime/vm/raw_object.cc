@@ -69,11 +69,11 @@ void UntaggedObject::Validate(IsolateGroup* isolate_group) const {
     }
   }
   const intptr_t class_id = ClassIdTag::decode(tags);
-  if (!isolate_group->shared_class_table()->IsValidIndex(class_id)) {
+  if (!isolate_group->class_table()->IsValidIndex(class_id)) {
     FATAL1("Invalid class id encountered %" Pd "\n", class_id);
   }
   if (class_id == kNullCid &&
-      isolate_group->shared_class_table()->HasValidClassAt(class_id)) {
+      isolate_group->class_table()->HasValidClassAt(class_id)) {
     // Null class not yet initialized; skip.
     return;
   }
@@ -156,6 +156,12 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
           static_cast<const ObjectPoolPtr>(this);
       intptr_t len = raw_object_pool->untag()->length_;
       instance_size = ObjectPool::InstanceSize(len);
+      break;
+    }
+    case kRecordCid: {
+      const RecordPtr raw_record = static_cast<const RecordPtr>(this);
+      intptr_t num_fields = Smi::Value(raw_record->untag()->num_fields());
+      instance_size = Record::InstanceSize(num_fields);
       break;
     }
 #define SIZE_FROM_CLASS(clazz) case kTypedData##clazz##Cid:
@@ -241,24 +247,15 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
       // TODO(koda): Add Size(ClassTable*) interface to allow caching in loops.
       auto isolate_group = IsolateGroup::Current();
 #if defined(DEBUG)
-#if !defined(DART_PRECOMPILED_RUNTIME)
-      auto reload_context = isolate_group->reload_context();
-      const bool use_saved_class_table =
-          reload_context != nullptr ? reload_context->UseSavedSizeTableForGC()
-                                    : false;
-#else
-      const bool use_saved_class_table = false;
-#endif
-
-      auto class_table = isolate_group->shared_class_table();
-      ASSERT(use_saved_class_table || class_table->SizeAt(class_id) > 0);
+      auto class_table = isolate_group->heap_walk_class_table();
       if (!class_table->IsValidIndex(class_id) ||
-          (!class_table->HasValidClassAt(class_id) && !use_saved_class_table)) {
+          !class_table->HasValidClassAt(class_id)) {
         FATAL3("Invalid cid: %" Pd ", obj: %p, tags: %x. Corrupt heap?",
                class_id, this, static_cast<uint32_t>(tags));
       }
+      ASSERT(class_table->SizeAt(class_id) > 0);
 #endif  // DEBUG
-      instance_size = isolate_group->GetClassSizeForHeapWalkAt(class_id);
+      instance_size = isolate_group->heap_walk_class_table()->SizeAt(class_id);
     }
   }
   ASSERT(instance_size != 0);
@@ -315,7 +312,10 @@ intptr_t UntaggedObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
     }
 #undef RAW_VISITPOINTERS
     case kByteDataViewCid:
-#define RAW_VISITPOINTERS(clazz) case kTypedData##clazz##ViewCid:
+    case kUnmodifiableByteDataViewCid:
+#define RAW_VISITPOINTERS(clazz)                                               \
+  case kTypedData##clazz##ViewCid:                                             \
+  case kUnmodifiableTypedData##clazz##ViewCid:
       CLASS_LIST_TYPED_DATA(RAW_VISITPOINTERS) {
         auto raw_obj = static_cast<TypedDataViewPtr>(this);
         size =
@@ -374,8 +374,7 @@ intptr_t UntaggedObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
 #endif
 }
 
-void UntaggedObject::VisitPointersPrecise(IsolateGroup* isolate_group,
-                                          ObjectPointerVisitor* visitor) {
+void UntaggedObject::VisitPointersPrecise(ObjectPointerVisitor* visitor) {
   intptr_t class_id = GetClassId();
   if ((class_id != kInstanceCid) && (class_id < kNumPredefinedCids)) {
     VisitPointersPredefined(visitor, class_id);
@@ -383,7 +382,8 @@ void UntaggedObject::VisitPointersPrecise(IsolateGroup* isolate_group,
   }
 
   // N.B.: Not using the heap size!
-  uword next_field_offset = isolate_group->GetClassForHeapWalkAt(class_id)
+  uword next_field_offset = visitor->class_table()
+                                ->At(class_id)
                                 ->untag()
                                 ->host_next_field_offset_in_words_
                             << kCompressedWordSizeLog2;
@@ -394,9 +394,8 @@ void UntaggedObject::VisitPointersPrecise(IsolateGroup* isolate_group,
   const auto first = reinterpret_cast<CompressedObjectPtr*>(from);
   const auto last = reinterpret_cast<CompressedObjectPtr*>(to);
 
-#if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
   const auto unboxed_fields_bitmap =
-      visitor->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
+      visitor->class_table()->GetUnboxedFieldsMapAt(class_id);
 
   if (!unboxed_fields_bitmap.IsEmpty()) {
     intptr_t bit = sizeof(UntaggedObject) / kCompressedWordSize;
@@ -408,9 +407,6 @@ void UntaggedObject::VisitPointersPrecise(IsolateGroup* isolate_group,
   } else {
     visitor->VisitCompressedPointers(heap_base(), first, last);
   }
-#else
-  visitor->VisitCompressedPointers(heap_base(), first, last);
-#endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
 }
 
 bool UntaggedObject::FindObject(FindObjectVisitor* visitor) {
@@ -534,6 +530,7 @@ COMPRESSED_VISITOR(KernelProgramInfo)
 COMPRESSED_VISITOR(WeakSerializationReference)
 COMPRESSED_VISITOR(Type)
 COMPRESSED_VISITOR(FunctionType)
+COMPRESSED_VISITOR(RecordType)
 COMPRESSED_VISITOR(TypeRef)
 COMPRESSED_VISITOR(TypeParameter)
 COMPRESSED_VISITOR(Function)
@@ -551,8 +548,8 @@ COMPRESSED_VISITOR(UnwindError)
 COMPRESSED_VISITOR(ExternalOneByteString)
 COMPRESSED_VISITOR(ExternalTwoByteString)
 COMPRESSED_VISITOR(GrowableObjectArray)
-COMPRESSED_VISITOR(LinkedHashMap)
-COMPRESSED_VISITOR(LinkedHashSet)
+COMPRESSED_VISITOR(Map)
+COMPRESSED_VISITOR(Set)
 COMPRESSED_VISITOR(ExternalTypedData)
 TYPED_DATA_VIEW_VISITOR(TypedDataView)
 COMPRESSED_VISITOR(ReceivePort)
@@ -579,6 +576,7 @@ VARIABLE_COMPRESSED_VISITOR(
     TypedData::ElementSizeInBytes(raw_obj->GetClassId()) *
         Smi::Value(raw_obj->untag()->length()))
 VARIABLE_COMPRESSED_VISITOR(ContextScope, raw_obj->untag()->num_variables_)
+VARIABLE_COMPRESSED_VISITOR(Record, Smi::Value(raw_obj->untag()->num_fields()))
 NULL_VISITOR(Sentinel)
 REGULAR_VISITOR(InstructionsTable)
 NULL_VISITOR(Mint)
@@ -729,8 +727,7 @@ intptr_t UntaggedInstance::VisitInstancePointers(
   uword tags = raw_obj->untag()->tags_;
   intptr_t instance_size = SizeTag::decode(tags);
   if (instance_size == 0) {
-    instance_size = visitor->isolate_group()->GetClassSizeForHeapWalkAt(
-        raw_obj->GetClassId());
+    instance_size = visitor->class_table()->SizeAt(raw_obj->GetClassId());
   }
 
   // Calculate the first and last raw object pointer fields.
@@ -749,25 +746,25 @@ intptr_t UntaggedImmutableArray::VisitImmutableArrayPointers(
   return UntaggedArray::VisitArrayPointers(raw_obj, visitor);
 }
 
-intptr_t UntaggedImmutableLinkedHashMap::VisitImmutableLinkedHashMapPointers(
-    ImmutableLinkedHashMapPtr raw_obj,
+intptr_t UntaggedConstMap::VisitConstMapPointers(
+    ConstMapPtr raw_obj,
     ObjectPointerVisitor* visitor) {
-  return UntaggedLinkedHashMap::VisitLinkedHashMapPointers(raw_obj, visitor);
+  return UntaggedMap::VisitMapPointers(raw_obj, visitor);
 }
 
-intptr_t UntaggedImmutableLinkedHashSet::VisitImmutableLinkedHashSetPointers(
-    ImmutableLinkedHashSetPtr raw_obj,
+intptr_t UntaggedConstSet::VisitConstSetPointers(
+    ConstSetPtr raw_obj,
     ObjectPointerVisitor* visitor) {
-  return UntaggedLinkedHashSet::VisitLinkedHashSetPointers(raw_obj, visitor);
+  return UntaggedSet::VisitSetPointers(raw_obj, visitor);
 }
 
 void UntaggedObject::RememberCard(ObjectPtr const* slot) {
-  OldPage::Of(static_cast<ObjectPtr>(this))->RememberCard(slot);
+  Page::Of(static_cast<ObjectPtr>(this))->RememberCard(slot);
 }
 
 #if defined(DART_COMPRESSED_POINTERS)
 void UntaggedObject::RememberCard(CompressedObjectPtr const* slot) {
-  OldPage::Of(static_cast<ObjectPtr>(this))->RememberCard(slot);
+  Page::Of(static_cast<ObjectPtr>(this))->RememberCard(slot);
 }
 #endif
 
@@ -779,7 +776,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(void,
   ObjectPtr object = static_cast<ObjectPtr>(object_in);
   ASSERT(object->IsOldObject());
   ASSERT(object->untag()->IsCardRemembered());
-  OldPage::Of(object)->RememberCard(slot);
+  Page::Of(object)->RememberCard(slot);
 }
 END_LEAF_RUNTIME_ENTRY
 

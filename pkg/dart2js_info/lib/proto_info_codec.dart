@@ -35,6 +35,7 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
     assert(info is LibraryInfo ||
         info is ConstantInfo ||
         info is OutputUnitInfo ||
+        info is ClassInfo ||
         info.parent != null);
 
     int id;

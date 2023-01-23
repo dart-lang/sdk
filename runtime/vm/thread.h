@@ -21,6 +21,7 @@
 #include "vm/globals.h"
 #include "vm/handles.h"
 #include "vm/heap/pointer_block.h"
+#include "vm/heap/sampler.h"
 #include "vm/os_thread.h"
 #include "vm/pending_deopts.h"
 #include "vm/random.h"
@@ -121,6 +122,10 @@ class Thread;
     StubCode::RangeErrorSharedWithoutFPURegs().ptr(), nullptr)                 \
   V(CodePtr, range_error_shared_with_fpu_regs_stub_,                           \
     StubCode::RangeErrorSharedWithFPURegs().ptr(), nullptr)                    \
+  V(CodePtr, write_error_shared_without_fpu_regs_stub_,                        \
+    StubCode::WriteErrorSharedWithoutFPURegs().ptr(), nullptr)                 \
+  V(CodePtr, write_error_shared_with_fpu_regs_stub_,                           \
+    StubCode::WriteErrorSharedWithFPURegs().ptr(), nullptr)                    \
   V(CodePtr, allocate_mint_with_fpu_regs_stub_,                                \
     StubCode::AllocateMintSharedWithFPURegs().ptr(), nullptr)                  \
   V(CodePtr, allocate_mint_without_fpu_regs_stub_,                             \
@@ -137,8 +142,6 @@ class Thread;
   V(CodePtr, return_async_not_future_stub_,                                    \
     StubCode::ReturnAsyncNotFuture().ptr(), nullptr)                           \
   V(CodePtr, return_async_star_stub_, StubCode::ReturnAsyncStar().ptr(),       \
-    nullptr)                                                                   \
-  V(CodePtr, return_sync_star_stub_, StubCode::ReturnSyncStar().ptr(),         \
     nullptr)                                                                   \
   V(CodePtr, stack_overflow_shared_without_fpu_regs_stub_,                     \
     StubCode::StackOverflowSharedWithoutFPURegs().ptr(), nullptr)              \
@@ -169,6 +172,7 @@ class Thread;
   V(ObjectPtr, object_null_, Object::null(), nullptr)                          \
   V(BoolPtr, bool_true_, Object::bool_true().ptr(), nullptr)                   \
   V(BoolPtr, bool_false_, Object::bool_false().ptr(), nullptr)                 \
+  V(ArrayPtr, empty_array_, Object::empty_array().ptr(), nullptr)              \
   V(TypePtr, dynamic_type_, Type::dynamic_type().ptr(), nullptr)
 
 // List of VM-global objects/addresses cached in each Thread object.
@@ -186,8 +190,7 @@ class Thread;
   V(suspend_state_yield_async_star)                                            \
   V(suspend_state_return_async_star)                                           \
   V(suspend_state_init_sync_star)                                              \
-  V(suspend_state_yield_sync_star)                                             \
-  V(suspend_state_return_sync_star)                                            \
+  V(suspend_state_suspend_sync_star_at_start)                                  \
   V(suspend_state_handle_exception)
 
 // This assertion marks places which assume that boolean false immediate
@@ -445,10 +448,10 @@ class Thread : public ThreadState {
   enum {
     // Always true in generated state.
     kDidNotExit = 0,
-    // The VM did exit the generated state through FFI.
+    // The VM exited the generated state through FFI.
     // This can be true in both native and VM state.
     kExitThroughFfi = 1,
-    // The VM exited the generated state through FFI.
+    // The VM exited the generated state through a runtime call.
     // This can be true in both native and VM state.
     kExitThroughRuntimeCall = 2,
   };
@@ -658,10 +661,20 @@ class Thread : public ThreadState {
   Heap* heap() const { return heap_; }
   static intptr_t heap_offset() { return OFFSET_OF(Thread, heap_); }
 
+  // The TLAB memory boundaries.
+  //
+  // When the heap sampling profiler is enabled, we use the TLAB boundary to
+  // trigger slow path allocations so we can take a sample. This means that
+  // true_end() >= end(), where true_end() is the actual end address of the
+  // TLAB and end() is the chosen sampling boundary for the thread.
+  //
+  // When the heap sampling profiler is disabled, true_end() == end().
   uword top() const { return top_; }
   uword end() const { return end_; }
+  uword true_end() const { return true_end_; }
   void set_top(uword top) { top_ = top; }
   void set_end(uword end) { end_ = end; }
+  void set_true_end(uword true_end) { true_end_ = true_end; }
   static intptr_t top_offset() { return OFFSET_OF(Thread, top_); }
   static intptr_t end_offset() { return OFFSET_OF(Thread, end_); }
 
@@ -700,7 +713,6 @@ class Thread : public ThreadState {
   CACHED_CONSTANTS_LIST(DEFINE_OFFSET_METHOD)
 #undef DEFINE_OFFSET_METHOD
 
-#if !defined(TARGET_ARCH_IA32)
   static intptr_t write_barrier_wrappers_thread_offset(Register reg) {
     ASSERT((kDartAvailableCpuRegs & (1 << reg)) != 0);
     intptr_t index = 0;
@@ -725,7 +737,6 @@ class Thread : public ThreadState {
     UNREACHABLE();
     return 0;
   }
-#endif
 
 #define DEFINE_OFFSET_METHOD(name)                                             \
   static intptr_t name##_entry_point_offset() {                                \
@@ -775,22 +786,25 @@ class Thread : public ThreadState {
   static intptr_t vm_tag_offset() { return OFFSET_OF(Thread, vm_tag_); }
 
   int64_t unboxed_int64_runtime_arg() const {
-    return unboxed_int64_runtime_arg_;
+    return unboxed_runtime_arg_.int64_storage[0];
   }
   void set_unboxed_int64_runtime_arg(int64_t value) {
-    unboxed_int64_runtime_arg_ = value;
-  }
-  static intptr_t unboxed_int64_runtime_arg_offset() {
-    return OFFSET_OF(Thread, unboxed_int64_runtime_arg_);
+    unboxed_runtime_arg_.int64_storage[0] = value;
   }
   double unboxed_double_runtime_arg() const {
-    return unboxed_double_runtime_arg_;
+    return unboxed_runtime_arg_.double_storage[0];
   }
   void set_unboxed_double_runtime_arg(double value) {
-    unboxed_double_runtime_arg_ = value;
+    unboxed_runtime_arg_.double_storage[0] = value;
   }
-  static intptr_t unboxed_double_runtime_arg_offset() {
-    return OFFSET_OF(Thread, unboxed_double_runtime_arg_);
+  simd128_value_t unboxed_simd128_runtime_arg() const {
+    return unboxed_runtime_arg_;
+  }
+  void set_unboxed_simd128_runtime_arg(simd128_value_t value) {
+    unboxed_runtime_arg_ = value;
+  }
+  static intptr_t unboxed_runtime_arg_offset() {
+    return OFFSET_OF(Thread, unboxed_runtime_arg_);
   }
 
   static intptr_t global_object_pool_offset() {
@@ -1097,6 +1111,10 @@ class Thread : public ThreadState {
 
   void InitVMConstants();
 
+  int64_t GetNextTaskId() { return next_task_id_++; }
+  static intptr_t next_task_id_offset() {
+    return OFFSET_OF(Thread, next_task_id_);
+  }
   Random* random() { return &thread_random_; }
   static intptr_t random_offset() { return OFFSET_OF(Thread, thread_random_); }
 
@@ -1113,6 +1131,7 @@ class Thread : public ThreadState {
 
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream) const;
+  HeapProfileSampler& heap_sampler() { return heap_sampler_; }
 #endif
 
   PendingDeopts& pending_deopts() { return pending_deopts_; }
@@ -1158,6 +1177,7 @@ class Thread : public ThreadState {
   // Offsets up to this point can all fit in a byte on X64. All of the above
   // fields are very abundantly accessed from code. Thus, keeping them first
   // is important for code size (although code size on X64 is not a priority).
+  uword true_end_ = 0;
   uword saved_stack_limit_;
   uword stack_overflow_flags_;
   ObjectPtr* field_table_values_;
@@ -1171,8 +1191,7 @@ class Thread : public ThreadState {
   // values from generated code to runtime.
   // TODO(dartbug.com/33549): Clean this up when unboxed values
   // could be passed as arguments.
-  ALIGN8 int64_t unboxed_int64_runtime_arg_;
-  ALIGN8 double unboxed_double_runtime_arg_;
+  ALIGN8 simd128_value_t unboxed_runtime_arg_;
 
 // State that is cached in the TLS for fast access in generated code.
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
@@ -1188,9 +1207,7 @@ class Thread : public ThreadState {
   LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 #undef DECLARE_MEMBERS
 
-#if !defined(TARGET_ARCH_IA32)
   uword write_barrier_wrappers_entry_points_[kNumberOfDartAvailableCpuRegs];
-#endif
 
 #define DECLARE_MEMBERS(name) uword name##_entry_point_ = 0;
   CACHED_FUNCTION_ENTRY_POINTS_LIST(DECLARE_MEMBERS)
@@ -1210,6 +1227,7 @@ class Thread : public ThreadState {
   uword exit_through_ffi_ = 0;
   ApiLocalScope* api_top_scope_;
   uint8_t double_truncate_round_supported_;
+  ALIGN8 int64_t next_task_id_;
   ALIGN8 Random thread_random_;
 
   TsanUtils* tsan_utils_ = nullptr;
@@ -1309,6 +1327,10 @@ class Thread : public ThreadState {
 
 #if defined(DEBUG)
   bool inside_compiler_ = false;
+#endif
+
+#if !defined(PRODUCT)
+  HeapProfileSampler heap_sampler_;
 #endif
 
   explicit Thread(bool is_vm_isolate);

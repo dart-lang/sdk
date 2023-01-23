@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -37,6 +38,7 @@ class ConvertToContains extends CorrectionProducer {
         return;
       }
       var methodName = leftOperand.methodName;
+      var startArgumentRange = _startArgumentRange(leftOperand);
       var deletionRange = range.endEnd(leftOperand, rightOperand);
       var notOffset = -1;
       var style = _negationStyle(comparison.operator.type, value);
@@ -51,6 +53,9 @@ class ConvertToContains extends CorrectionProducer {
           builder.addSimpleInsertion(notOffset, '!');
         }
         builder.addSimpleReplacement(range.node(methodName), 'contains');
+        if (startArgumentRange != null) {
+          builder.addDeletion(startArgumentRange);
+        }
         builder.addDeletion(deletionRange);
       });
     } else if (_isInteger(leftOperand) && rightOperand is MethodInvocation) {
@@ -59,6 +64,7 @@ class ConvertToContains extends CorrectionProducer {
         return;
       }
       var methodName = rightOperand.methodName;
+      var startArgumentRange = _startArgumentRange(rightOperand);
       var deletionRange = range.startStart(leftOperand, rightOperand);
       var notOffset = -1;
       var style =
@@ -75,6 +81,9 @@ class ConvertToContains extends CorrectionProducer {
           builder.addSimpleInsertion(notOffset, '!');
         }
         builder.addSimpleReplacement(range.node(methodName), 'contains');
+        if (startArgumentRange != null) {
+          builder.addDeletion(startArgumentRange);
+        }
       });
     }
   }
@@ -155,6 +164,16 @@ class ConvertToContains extends CorrectionProducer {
     // Comparison with any value greater than zero should not have been flagged,
     // so we should never reach this point.
     return NegationStyle.none;
+  }
+
+  SourceRange? _startArgumentRange(MethodInvocation invocation) {
+    var arguments = invocation.argumentList.arguments;
+    if (arguments.length == 2) {
+      var firstArgument = arguments[0];
+      var secondArgument = arguments[1];
+      return range.endEnd(firstArgument, secondArgument);
+    }
+    return null;
   }
 }
 

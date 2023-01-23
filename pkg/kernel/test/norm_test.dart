@@ -140,6 +140,20 @@ void run() {
   check('FutureOr<FutureOr<int>?>', 'FutureOr<FutureOr<int>?>?');
   check('FutureOr<FutureOr<FutureOr<int>>?>',
       'FutureOr<FutureOr<FutureOr<int>>?>?');
+
+  check('(T, S & Never, {R foo})', '(Never, Never, {Never foo})',
+      'T extends Never, S extends Object?, R extends T');
+  check('(T, bool?, {FutureOr<Null> foo, FutureOr<dynamic> bar})',
+      '(Never, bool?, {Future<Null>? foo, dynamic bar})', 'T extends Never');
+  check('() -> List<({FutureOr<dynamic> foo})>', '() -> List<({dynamic foo})>');
+  check('<T extends Never>((T, T)) -> void',
+      '<T extends Never>((Never, Never)) -> void');
+
+  checkNormToSame('(int, {String? foo})');
+  checkNormToSame('(int, String?, {List<int> foo, T bar})', 'T extends num');
+  checkNormToSame('()');
+  checkNormToSame('(int?)');
+  checkNormToSame('List<(int, {String foo})>');
 }
 
 void check(String input, String output, [String typeParameters = '']) {

@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/constant/has_type_parameter_reference.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/type_system_test.dart';
+import '../../../generated/type_system_base.dart';
 
 main() {
   defineReflectiveSuite(() {

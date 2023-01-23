@@ -1,0 +1,6 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+
+import "dart:ffi";
+
+static method main() → void {}

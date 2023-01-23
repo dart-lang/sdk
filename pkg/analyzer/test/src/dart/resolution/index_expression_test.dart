@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -14,6 +15,136 @@ main() {
 
 @reflectiveTest
 class IndexExpressionTest extends PubPackageResolutionTest {
+  test_contextType_read() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  bool operator [](int index) => false;
+  operator []=(String index, bool value) {}
+}
+
+void f(A a) {
+  a[ g() ];
+}
+
+T g<T>() => throw 0;
+''');
+
+    var node = findNode.methodInvocation('g()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: g
+    staticElement: self::@function::g
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  parameter: self::@class::A::@method::[]::@parameter::index
+  staticInvokeType: int Function()
+  staticType: int
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_contextType_readWrite_readLower() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int operator [](int index) => 0;
+  operator []=(num index, int value) {}
+}
+
+void f(A a) {
+  a[ g() ]++;
+}
+
+T g<T>() => throw 0;
+''');
+
+    var node = findNode.methodInvocation('g()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: g
+    staticElement: self::@function::g
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  parameter: self::@class::A::@method::[]=::@parameter::index
+  staticInvokeType: int Function()
+  staticType: int
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_contextType_readWrite_writeLower() async {
+    await assertErrorsInCode(r'''
+class A {
+  int operator [](num index) => 0;
+  operator []=(int index, int value) {}
+}
+
+void f(A a) {
+  a[ g() ]++;
+}
+
+T g<T>() => throw 0;
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 107, 3),
+    ]);
+
+    var node = findNode.methodInvocation('g()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: g
+    staticElement: self::@function::g
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  parameter: self::@class::A::@method::[]=::@parameter::index
+  staticInvokeType: num Function()
+  staticType: num
+  typeArgumentTypes
+    num
+''');
+  }
+
+  test_contextType_write() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  bool operator [](int index) => false;
+  operator []=(String index, bool value) {}
+}
+
+void f(A a) {
+  a[ g() ] = true;
+}
+
+T g<T>() => throw 0;
+''');
+
+    var node = findNode.methodInvocation('g()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: g
+    staticElement: self::@function::g
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  parameter: self::@class::A::@method::[]=::@parameter::index
+  staticInvokeType: String Function()
+  staticType: String
+  typeArgumentTypes
+    String
+''');
+  }
+
   test_invalid_inDefaultValue_nullAware() async {
     await assertInvalidTestCode(r'''
 void f({a = b?[0]}) {}

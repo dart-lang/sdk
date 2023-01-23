@@ -78,16 +78,16 @@ class E1 extends core::_Enum /*isEnum*/  {
   const constructor •(core::int #index, core::String #name) → self::E1
     : super core::_Enum::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
 }
 class E2 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E2> values = #C5;
-  static const field self::E2 element = #C4;
+  enum-element static const field self::E2 element = #C4;
   const constructor •(core::int #index, core::String #name) → self::E2
     : super core::_Enum::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
 }
 class E3 extends core::_Enum /*isEnum*/  {
@@ -95,7 +95,7 @@ class E3 extends core::_Enum /*isEnum*/  {
   const constructor •(core::int #index, core::String #name) → self::E3
     : super core::_Enum::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E3.${this.{core::_Enum::_name}{core::String}}";
   method element() → void {}
 }
@@ -104,7 +104,7 @@ class E4 extends core::_Enum /*isEnum*/  {
   const constructor •(core::int #index, core::String #name) → self::E4
     : super core::_Enum::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E4.${this.{core::_Enum::_name}{core::String}}";
   static method element() → void {}
 }
@@ -114,26 +114,26 @@ class E5 extends core::_Enum /*isEnum*/  {
   const constructor •(core::int #index, core::String #name) → self::E5
     : super core::_Enum::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E5.${this.{core::_Enum::_name}{core::String}}";
 }
 class E6 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E6> values = #C10;
-  static const field self::E6 element = #C9;
+  enum-element static const field self::E6 element = #C9;
   const constructor •(core::int #index, core::String #name) → self::E6
     : super core::_Enum::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E6.${this.{core::_Enum::_name}{core::String}}";
   set element(self::E6 value) → void {}
 }
 class E7 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E7> values = #C12;
-  static const field self::E7 element = #C11;
+  enum-element static const field self::E7 element = #C11;
   const constructor •(core::int #index, core::String #name) → self::E7
     : super core::_Enum::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E7.${this.{core::_Enum::_name}{core::String}}";
   static set element(self::E7 value) → void {}
 }
@@ -151,11 +151,11 @@ abstract class _E8&_Enum&A8 extends core::_Enum implements self::A8 /*isAnonymou
 }
 class E8 extends self::_E8&_Enum&A8 /*isEnum*/  {
   static const field core::List<self::E8> values = #C14;
-  static const field self::E8 element = #C13;
+  enum-element static const field self::E8 element = #C13;
   const constructor •(core::int #index, core::String #name) → self::E8
     : super self::_E8&_Enum&A8::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E8.${this.{core::_Enum::_name}{core::String}}";
 }
 class A9 extends core::Object {
@@ -172,11 +172,11 @@ abstract class _E9&_Enum&A9 extends core::_Enum implements self::A9 /*isAnonymou
 }
 class E9 extends self::_E9&_Enum&A9 /*isEnum*/  {
   static const field core::List<self::E9> values = invalid-expression "A constant constructor can't call a non-constant super constructor.";
-  static const field self::E9 element = invalid-expression "A constant constructor can't call a non-constant super constructor.";
+  enum-element static const field self::E9 element = invalid-expression "A constant constructor can't call a non-constant super constructor.";
   const constructor •(core::int #index, core::String #name) → self::E9
     : super self::_E9&_Enum&A9::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E9.${this.{core::_Enum::_name}{core::String}}";
 }
 class A10 extends core::Object {
@@ -193,11 +193,11 @@ abstract class _E10&_Enum&A10 extends core::_Enum implements self::A10 /*isAnony
 }
 class E10 extends self::_E10&_Enum&A10 /*isEnum*/  {
   static const field core::List<self::E10> values = #C16;
-  static const field self::E10 element = #C15;
+  enum-element static const field self::E10 element = #C15;
   const constructor •(core::int #index, core::String #name) → self::E10
     : super self::_E10&_Enum&A10::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E10.${this.{core::_Enum::_name}{core::String}}";
 }
 static method main() → dynamic {}
@@ -225,8 +225,8 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///conflicting_elements.dart:
 - E2. (from org-dartlang-testcase:///conflicting_elements.dart:10:6)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - E6. (from org-dartlang-testcase:///conflicting_elements.dart:33:6)
 - E7. (from org-dartlang-testcase:///conflicting_elements.dart:39:6)
 - E8. (from org-dartlang-testcase:///conflicting_elements.dart:49:6)

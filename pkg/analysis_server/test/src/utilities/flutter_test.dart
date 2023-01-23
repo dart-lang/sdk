@@ -17,11 +17,6 @@ void main() {
 
 @reflectiveTest
 class FlutterTest extends AbstractSingleUnitTest {
-  @override
-  // TODO(brianwilkerson) Update these tests. I believe that will require
-  //  updating the mock flutter package.
-  String? get testPackageLanguageVersion => '2.9';
-
   Flutter get _flutter => Flutter.instance;
 
   @override
@@ -113,7 +108,7 @@ void f() {
 class MyWidget extends StatelessWidget {
   MyWidget(int a);
   MyWidget.named(int a);
-  Widget build(BuildContext context) => null;
+  Widget build(BuildContext context) => Text('');
 }
 ''');
     var f = testUnit.declarations[0] as FunctionDeclaration;
@@ -209,6 +204,8 @@ import 'package:flutter/widgets.dart';
 
 abstract class Foo extends Widget {
   Widget bar;
+
+  Foo(this.bar);
 }
 
 void f(Foo foo) {
@@ -226,6 +223,8 @@ import 'package:flutter/widgets.dart';
 
 abstract class Foo extends Widget {
   Widget bar;
+
+  Foo(this.bar);
 }
 
 void f(Foo foo) {
@@ -416,7 +415,7 @@ void f() {
   useWidget(child: text); // ref
 }
 
-void useWidget({Widget child}) {}
+void useWidget({required Widget child}) {}
 ''');
     var expression = findNode.simple('text); // ref');
     expect(_flutter.identifyWidgetExpression(expression), expression);
@@ -444,19 +443,19 @@ class MyContainer extends Container {}
 class NotFlutter {}
 class NotWidget extends State {}
 ''');
-    var myStatelessWidget = testUnitElement.getType('MyStatelessWidget');
+    var myStatelessWidget = testUnitElement.getClass('MyStatelessWidget');
     expect(_flutter.isWidget(myStatelessWidget), isTrue);
 
-    var myStatefulWidget = testUnitElement.getType('MyStatefulWidget');
+    var myStatefulWidget = testUnitElement.getClass('MyStatefulWidget');
     expect(_flutter.isWidget(myStatefulWidget), isTrue);
 
-    var myContainer = testUnitElement.getType('MyContainer');
+    var myContainer = testUnitElement.getClass('MyContainer');
     expect(_flutter.isWidget(myContainer), isTrue);
 
-    var notFlutter = testUnitElement.getType('NotFlutter');
+    var notFlutter = testUnitElement.getClass('NotFlutter');
     expect(_flutter.isWidget(notFlutter), isFalse);
 
-    var notWidget = testUnitElement.getType('NotWidget');
+    var notWidget = testUnitElement.getClass('NotWidget');
     expect(_flutter.isWidget(notWidget), isFalse);
   }
 
@@ -544,7 +543,7 @@ Text createEmptyText() => new Text('');
     for (var topDeclaration in unit.declarations) {
       if (topDeclaration is TopLevelVariableDeclaration) {
         for (var variable in topDeclaration.variables.variables) {
-          if (variable.name.name == name) {
+          if (variable.name.lexeme == name) {
             return variable;
           }
         }

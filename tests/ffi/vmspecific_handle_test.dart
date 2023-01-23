@@ -12,6 +12,7 @@ import 'dylib_utils.dart';
 
 void main() {
   testHandle();
+  testHandleWithInteger();
   testReadField();
   testTrueHandle();
   testClosureCallback();
@@ -23,11 +24,21 @@ void main() {
   testNull();
   testDeepRecursive();
   testNoHandlePropagateError();
+  testThrowOnReturnOfError();
 }
 
 void testHandle() {
   print("testHandle");
   final s = SomeClass(123);
+  print("passObjectToC($s)");
+  final result = passObjectToC(s);
+  print("result = $result");
+  Expect.isTrue(identical(s, result));
+}
+
+void testHandleWithInteger() {
+  print("testHandleWithInteger");
+  final s = 1337;
   print("passObjectToC($s)");
   final result = passObjectToC(s);
   print("result = $result");
@@ -224,6 +235,21 @@ void testNoHandlePropagateError() {
   bool throws = false;
   try {
     final result = propagateErrorWithoutHandle(exceptionHandleCallbackPointer);
+    print(result.runtimeType);
+    print(result);
+  } catch (e) {
+    throws = true;
+    print("caught ($e, ${e.runtimeType})");
+    Expect.isTrue(identical(someException, e));
+  }
+  Expect.isTrue(throws);
+}
+
+void testThrowOnReturnOfError() {
+  bool throws = false;
+  try {
+    final result = autoPropagateErrorInHandle(exceptionHandleCallbackPointer);
+    print(result.runtimeType);
     print(result);
   } catch (e) {
     throws = true;
@@ -265,3 +291,8 @@ final propagateErrorWithoutHandle = testLibrary.lookupFunction<
         Int64 Function(Pointer<NativeFunction<Handle Function()>>),
         int Function(Pointer<NativeFunction<Handle Function()>>)>(
     "PropagateErrorWithoutHandle");
+
+final autoPropagateErrorInHandle = testLibrary.lookupFunction<
+    Handle Function(Pointer<NativeFunction<Handle Function()>>),
+    Object Function(
+        Pointer<NativeFunction<Handle Function()>>)>("ThrowOnReturnOfError");

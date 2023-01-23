@@ -11,6 +11,7 @@
 
 #include "platform/assert.h"
 #include "platform/globals.h"
+#include "platform/utils.h"
 
 #include "vm/constants_base.h"
 
@@ -513,6 +514,26 @@ struct AllocateArrayABI {
   static const Register kTypeArgumentsReg = R1;
 };
 
+// ABI for AllocateRecordStub.
+struct AllocateRecordABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kNumFieldsReg = R2;
+  static const Register kFieldNamesReg = R1;
+  static const Register kTemp1Reg = R3;
+  static const Register kTemp2Reg = R4;
+};
+
+// ABI for AllocateSmallRecordStub (AllocateRecord2, AllocateRecord2Named,
+// AllocateRecord3, AllocateRecord3Named).
+struct AllocateSmallRecordABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kFieldNamesReg = R1;
+  static const Register kValue0Reg = R2;
+  static const Register kValue1Reg = R3;
+  static const Register kValue2Reg = R4;
+  static const Register kTempReg = R9;
+};
+
 // ABI for AllocateTypedDataArrayStub.
 struct AllocateTypedDataArrayABI {
   static const Register kResultReg = AllocateObjectABI::kResultReg;
@@ -533,7 +554,8 @@ struct DoubleToIntegerStubABI {
   static const Register kResultReg = R0;
 };
 
-// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub, YieldSyncStarStub).
+// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub,
+// SuspendSyncStarAtStartStub, SuspendSyncStarAtYieldStub).
 struct SuspendStubABI {
   static const Register kArgumentReg = R0;
   static const Register kTempReg = R1;
@@ -567,7 +589,7 @@ struct ResumeStubABI {
 };
 
 // ABI for ReturnStub (ReturnAsyncStub, ReturnAsyncNotFutureStub,
-// ReturnAsyncStarStub, ReturnSyncStarStub).
+// ReturnAsyncStarStub).
 struct ReturnStubABI {
   static const Register kSuspendStateReg = R2;
 };
@@ -624,7 +646,8 @@ const int kAbiPreservedFpuRegCount = 4;
 const RegList kReservedCpuRegisters = (1 << SPREG) | (1 << FPREG) | (1 << TMP) |
                                       (1 << PP) | (1 << THR) | (1 << LR) |
                                       (1 << PC) | (1 << NOTFP);
-constexpr intptr_t kNumberOfReservedCpuRegisters = 8;
+constexpr intptr_t kNumberOfReservedCpuRegisters =
+    Utils::CountOneBits32(kReservedCpuRegisters);
 // CPU registers available to Dart allocator.
 constexpr RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
@@ -908,6 +931,8 @@ enum ScaleFactor {
 #else
 #error Cannot compress ARM32
 #endif
+  // Used for Smi-boxed indices.
+  TIMES_COMPRESSED_HALF_WORD_SIZE = TIMES_COMPRESSED_WORD_SIZE - 1,
 };
 
 // The class Instr enables access to individual fields defined in the ARM

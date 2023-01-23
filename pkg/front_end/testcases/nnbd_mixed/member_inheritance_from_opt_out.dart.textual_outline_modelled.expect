@@ -23,8 +23,8 @@ abstract class Interface {
   int method3a(int a, int b);
   int method3b(int a, [int b]);
   int method3c([int a, int b]);
-  int method5a(int a, {int b: 0});
-  int method5b({int a: 0, int b: 0});
+  int method5a(int a, {int b = 0});
+  int method5b({int a = 0, int b = 0});
   int method5c({required int a, required int b});
   int property3 = 0;
   void set field3(int value);
@@ -60,8 +60,8 @@ class Class2b extends LegacyClass implements Interface {
   int method3a(int a, int b) => 0;
   int method3b(int a, [int b = 42]) => 0;
   int method3c([int a = 42, int b = 42]) => 0;
-  int method5a(int a, {int b: 0}) => 0;
-  int method5b({int a: 0, int b: 0}) => 0;
+  int method5a(int a, {int b = 0}) => 0;
+  int method5b({int a = 0, int b = 0}) => 0;
   int method5c({required int a, required int b}) => 0;
   int property3 = 0;
   void set field3(int value) {}

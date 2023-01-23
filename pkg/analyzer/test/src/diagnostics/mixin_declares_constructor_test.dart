@@ -26,12 +26,7 @@ mixin M {
       error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 27, 1),
     ]);
 
-    var element = findElement.mixin('M');
-    var constructorElement = element.constructors.single;
-
     var fpNode = findNode.fieldFormalParameter('f);');
-    assertElement(fpNode.identifier, constructorElement.parameters[0]);
-
     var fpElement = fpNode.declaredElement as FieldFormalParameterElement;
     assertElement(fpElement.field, findElement.field('f'));
   }

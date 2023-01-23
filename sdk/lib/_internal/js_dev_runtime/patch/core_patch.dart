@@ -3,13 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Patch file for dart:core classes.
-import "dart:_internal" as _symbol_dev;
+import 'dart:_internal' as _symbol_dev;
+import 'dart:_internal' show patch;
 import 'dart:_interceptors';
 import 'dart:_js_helper'
     show
-        patch,
         checkInt,
-        getRuntimeType,
         LinkedMap,
         JSSyntaxRegExp,
         notNull,
@@ -20,8 +19,9 @@ import 'dart:_js_helper'
         undefined,
         wrapZoneUnaryCallback;
 import 'dart:_runtime' as dart;
-import 'dart:_foreign_helper' show JS, JSExportName;
+import 'dart:_foreign_helper' show JS, JS_GET_FLAG, JSExportName;
 import 'dart:_native_typed_data' show NativeUint8List;
+import 'dart:_rti' as rti show createRuntimeType, Rti;
 import 'dart:collection' show UnmodifiableMapView;
 import 'dart:convert' show Encoding, utf8;
 import 'dart:typed_data' show Endian, Uint8List, Uint16List;
@@ -62,7 +62,9 @@ class Object {
   }
 
   @patch
-  Type get runtimeType => dart.wrapType(dart.getReifiedType(this));
+  Type get runtimeType => JS_GET_FLAG('NEW_RUNTIME_TYPES')
+      ? rti.createRuntimeType(JS<rti.Rti>('!', '#', dart.getReifiedType(this)))
+      : dart.wrapType(dart.getReifiedType(this));
 
   // Everything is an Object.
   @JSExportName('is')
@@ -149,20 +151,32 @@ class Expando<T extends Object> {
 
   @patch
   T? operator [](Object object) {
-    _checkType(object); // WeakMap doesn't check on reading, only writing.
+    // JavaScript's WeakMap semantics return 'undefined' for invalid getter
+    // keys, so we must check them explicitly.
+    if (object == null ||
+        object is bool ||
+        object is num ||
+        object is String ||
+        object is Record) {
+      throw new ArgumentError.value(
+          object,
+          "Expandos are not allowed on strings, numbers, booleans, records,"
+          " or null");
+    }
     return JS('', '#.get(#)', _jsWeakMap, object);
   }
 
   @patch
   void operator []=(Object object, T? value) {
-    JS('void', '#.set(#, #)', _jsWeakMap, object, value);
-  }
-
-  static _checkType(object) {
-    if (object == null || object is bool || object is num || object is String) {
-      throw new ArgumentError.value(object,
-          "Expandos are not allowed on strings, numbers, booleans or null");
+    // JavaScript's WeakMap already throws on non-Object setter keys, so
+    // we can rely on the underlying behavior for all non-Records.
+    if (object is Record) {
+      throw new ArgumentError.value(
+          object,
+          "Expandos are not allowed on strings, numbers, booleans, records,"
+          " or null");
     }
+    JS('void', '#.set(#, #)', _jsWeakMap, object, value);
   }
 }
 
@@ -437,7 +451,7 @@ class DateTime {
 
   @patch
   Duration difference(DateTime other) {
-    return Duration(milliseconds: _value - other._value);
+    return Duration(milliseconds: _value - other.millisecondsSinceEpoch);
   }
 
   @patch

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -14,49 +15,229 @@ import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(BulkFixesTest);
+    defineReflectiveTests(BulkFixesFromOptionsTest);
+    defineReflectiveTests(BulkFixesFromCodesTest);
   });
 }
 
 @reflectiveTest
-class BulkFixesTest extends PubPackageAnalysisServerTest {
-  void assertContains(List<BulkFix> details,
-      {required String path, required String code, required int count}) {
-    for (var detail in details) {
-      if (detail.path == path) {
-        for (var fix in detail.fixes) {
-          if (fix.code == code) {
-            expect(fix.occurrences, count);
-            return;
-          }
-        }
-      }
-    }
-    fail('No match found for: $path:$code->$count in $details');
+class BulkFixesFromCodesTest extends BulkFixesTest {
+  Future<void> test_hint_checkWithNull() async {
+    addDiagnosticCode('TYPE_CHECK_WITH_NULL');
+    addTestFile('''
+void f(p, q) {
+  p is Null;
+  q is Null;
+}
+''');
+
+    await assertEditEquals(testFile, '''
+void f(p, q) {
+  p == null;
+  q == null;
+}
+''');
   }
 
-  Future<void> assertEditEquals(File file, String expectedSource) async {
-    await waitForTasksFinished();
-    var edits = await _getBulkEdits();
-    expect(edits, hasLength(1));
-    var editedSource =
-        SourceEdit.applySequence(file.readAsStringSync(), edits[0].edits);
-    expect(editedSource, expectedSource);
+  Future<void> test_hint_checkWithNull_notSpecified() async {
+    addDiagnosticCode('unnecessary_new');
+    addTestFile('''
+void f(p, q) {
+  p is Null;
+  q is Null;
+}
+''');
+
+    await assertNoEdits();
   }
 
-  Future<void> assertNoEdits() async {
-    await waitForTasksFinished();
-    var edits = await _getBulkEdits();
-    expect(edits, isEmpty);
+  Future<void> test_hint_unusedImport() async {
+    addDiagnosticCode('unused_import');
+
+    newFile('$testPackageLibPath/a.dart', '');
+
+    addTestFile('''
+import 'a.dart';
+''');
+
+    var details = await _getBulkFixDetails();
+    expect(details, hasLength(1));
+    var fixes = details.first.fixes;
+    expect(fixes, hasLength(1));
+    var fix = fixes.first;
+    expect(fix.code, 'unused_import');
+    expect(fix.occurrences, 1);
   }
 
-  @override
-  Future<void> setUp() async {
-    super.setUp();
-    registerLintRules();
-    await setRoots(included: [workspaceRootPath], excluded: []);
+  Future<void> test_hint_unusedImport_notSpecified() async {
+    addDiagnosticCode('unnecessary_new');
+
+    newFile('$testPackageLibPath/a.dart', '');
+
+    addTestFile('''
+import 'a.dart';
+
+class A {
+  A f() => new A();
+}
+''');
+
+    var details = await _getBulkFixDetails();
+    expect(details, isEmpty);
   }
 
+  Future<void> test_lint_notEnabled() async {
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
+linter:
+  rules:
+    - annotate_overrides
+''');
+    addDiagnosticCode('unnecessary_new');
+
+    addTestFile('''
+class A {
+  A f() => new A();
+}
+
+class B extends A {
+  A f() => new B();
+}
+''');
+
+    var result = await _getBulkFixes();
+    expect(result.details, isEmpty);
+    expect(result.message,
+        "The lint 'unnecessary_new' is not enabled; add it to your analysis options and try again.");
+  }
+
+  Future<void> test_lint_notEnabled_multiple() async {
+    addDiagnosticCode('annotate_overrides');
+    addDiagnosticCode('unnecessary_new');
+
+    addTestFile('''
+class A {
+  A f() => new A();
+}
+
+class B extends A {
+  A f() => new B();
+}
+''');
+
+    var result = await _getBulkFixes();
+    expect(result.details, isEmpty);
+    expect(result.message,
+        "The lints 'annotate_overrides' and 'unnecessary_new' are not enabled; add them to your analysis options and try again.");
+  }
+
+  Future<void> test_lint_unnecessaryNew() async {
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
+linter:
+  rules:
+    - annotate_overrides
+    - unnecessary_new
+''');
+    addDiagnosticCode('unnecessary_new');
+
+    addTestFile('''
+class A {
+  A f() => new A();
+}
+
+class B extends A {
+  A f() => new B();
+}
+''');
+
+    var details = await _getBulkFixDetails();
+    expect(details, hasLength(1));
+    var fixes = details.first.fixes;
+    expect(fixes, hasLength(1));
+    var fix = fixes.first;
+    expect(fix.code, 'unnecessary_new');
+    expect(fix.occurrences, 2);
+  }
+
+  Future<void> test_lint_unnecessaryNew_ignoreCase() async {
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
+linter:
+  rules:
+    - annotate_overrides
+    - unnecessary_new
+''');
+    addDiagnosticCode('UNNECESSARY_NEW');
+
+    addTestFile('''
+class A {
+  A f() => new A();
+}
+
+class B extends A {
+  A f() => new B();
+}
+''');
+
+    var details = await _getBulkFixDetails();
+    expect(details, hasLength(1));
+    var fixes = details.first.fixes;
+    expect(fixes, hasLength(1));
+    var fix = fixes.first;
+    expect(fix.code, 'unnecessary_new');
+    expect(fix.occurrences, 2);
+  }
+
+  Future<void> test_lint_unnecessaryNew_notEnabled() async {
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
+linter:
+  rules:
+    - annotate_overrides
+''');
+    addDiagnosticCode('unnecessary_new');
+
+    addTestFile('''
+class A {
+  A f() => new A();
+}
+
+class B extends A {
+  A f() => new B();
+}
+''');
+
+    var result = await _getBulkFixes();
+    expect(result.details, isEmpty);
+    expect(result.message,
+        "The lint 'unnecessary_new' is not enabled; add it to your analysis options and try again.");
+  }
+
+  Future<void> test_undefinedDiagnostic() async {
+    addDiagnosticCode('foo_bar');
+    addTestFile('''
+''');
+
+    var result = await _getBulkFixes();
+    expect(result.details, isEmpty);
+    expect(result.message,
+        "The diagnostic 'foo_bar' is not defined by the analyzer.");
+  }
+
+  Future<void> test_undefinedDiagnostic_multiple() async {
+    addDiagnosticCode('foo');
+    addDiagnosticCode('bar');
+    addDiagnosticCode('baz');
+
+    addTestFile('''
+''');
+
+    var result = await _getBulkFixes();
+    expect(result.details, isEmpty);
+    expect(result.message,
+        "The diagnostics 'foo', 'bar', and 'baz' are not defined by the analyzer.");
+  }
+}
+
+@reflectiveTest
+class BulkFixesFromOptionsTest extends BulkFixesTest {
   Future<void> test_annotateOverrides_excludedFile() async {
     newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
@@ -250,6 +431,52 @@ A f() => new A();
 ''');
     await assertNoEdits();
   }
+}
+
+abstract class BulkFixesTest extends PubPackageAnalysisServerTest {
+  List<String>? codes;
+
+  void addDiagnosticCode(String code) {
+    codes ??= <String>[];
+    codes!.add(code);
+  }
+
+  void assertContains(List<BulkFix> details,
+      {required String path, required String code, required int count}) {
+    for (var detail in details) {
+      if (detail.path == path) {
+        for (var fix in detail.fixes) {
+          if (fix.code == code) {
+            expect(fix.occurrences, count);
+            return;
+          }
+        }
+      }
+    }
+    fail('No match found for: $path:$code->$count in $details');
+  }
+
+  Future<void> assertEditEquals(File file, String expectedSource) async {
+    await waitForTasksFinished();
+    var edits = await _getBulkEdits();
+    expect(edits, hasLength(1));
+    var editedSource =
+        SourceEdit.applySequence(file.readAsStringSync(), edits[0].edits);
+    expect(editedSource, expectedSource);
+  }
+
+  Future<void> assertNoEdits() async {
+    await waitForTasksFinished();
+    var edits = await _getBulkEdits();
+    expect(edits, isEmpty);
+  }
+
+  @override
+  Future<void> setUp() async {
+    super.setUp();
+    registerLintRules();
+    await setRoots(included: [workspaceRootPath], excluded: []);
+  }
 
   Future<List<SourceFileEdit>> _getBulkEdits() async {
     var result = await _getBulkFixes();
@@ -262,8 +489,11 @@ A f() => new A();
   }
 
   Future<EditBulkFixesResult> _getBulkFixes() async {
-    var request = EditBulkFixesParams([workspaceRoot.path]).toRequest('0');
+    var request = _getRequest();
     var response = await handleSuccessfulRequest(request);
     return EditBulkFixesResult.fromResponse(response);
   }
+
+  Request _getRequest() =>
+      EditBulkFixesParams([workspaceRoot.path], codes: codes).toRequest('0');
 }

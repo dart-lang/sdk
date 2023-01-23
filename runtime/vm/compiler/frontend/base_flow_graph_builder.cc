@@ -4,6 +4,8 @@
 
 #include "vm/compiler/frontend/base_flow_graph_builder.h"
 
+#include <utility>
+
 #include "vm/compiler/backend/range_analysis.h"  // For Range.
 #include "vm/compiler/ffi/call.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For InlineExitCollector.
@@ -200,25 +202,16 @@ Fragment BaseFlowGraphBuilder::BranchIfStrictEqual(
   return Fragment(branch).closed();
 }
 
-Fragment BaseFlowGraphBuilder::Return(TokenPosition position,
-                                      intptr_t yield_index) {
+Fragment BaseFlowGraphBuilder::Return(TokenPosition position) {
   Fragment instructions;
 
   Value* value = Pop();
   ASSERT(stack_ == nullptr);
   const Function& function = parsed_function_->function();
-  Representation representation;
-  if (function.has_unboxed_integer_return()) {
-    representation = kUnboxedInt64;
-  } else if (function.has_unboxed_double_return()) {
-    representation = kUnboxedDouble;
-  } else {
-    ASSERT(!function.has_unboxed_return());
-    representation = kTagged;
-  }
-  ReturnInstr* return_instr =
-      new (Z) ReturnInstr(InstructionSource(position), value, GetNextDeoptId(),
-                          yield_index, representation);
+  const Representation representation =
+      FlowGraph::ReturnRepresentationOf(function);
+  ReturnInstr* return_instr = new (Z) ReturnInstr(
+      InstructionSource(position), value, GetNextDeoptId(), representation);
   if (exit_collector_ != nullptr) exit_collector_->AddExit(return_instr);
 
   instructions <<= return_instr;
@@ -246,7 +239,7 @@ Fragment BaseFlowGraphBuilder::CheckStackOverflowInPrologue(
 }
 
 Fragment BaseFlowGraphBuilder::Constant(const Object& value) {
-  ASSERT(value.IsNotTemporaryScopedHandle());
+  DEBUG_ASSERT(value.IsNotTemporaryScopedHandle());
   ConstantInstr* constant = new (Z) ConstantInstr(value);
   Push(constant);
   return Fragment(constant);
@@ -446,9 +439,8 @@ Fragment BaseFlowGraphBuilder::AddIntptrIntegers() {
 
 Fragment BaseFlowGraphBuilder::UnboxSmiToIntptr() {
   Value* value = Pop();
-  auto untagged = new (Z)
-      UnboxIntegerInstr(kUnboxedIntPtr, UnboxIntegerInstr::kNoTruncation, value,
-                        DeoptId::kNone, Instruction::kNotSpeculative);
+  auto untagged = UnboxInstr::Create(kUnboxedIntPtr, value, DeoptId::kNone,
+                                     Instruction::kNotSpeculative);
   Push(untagged);
   return Fragment(untagged);
 }
@@ -509,7 +501,7 @@ const Field& BaseFlowGraphBuilder::MayCloneField(Zone* zone,
   if (CompilerState::Current().should_clone_fields() && field.IsOriginal()) {
     return Field::ZoneHandle(zone, field.CloneFromOriginal());
   } else {
-    ASSERT(field.IsZoneHandle());
+    DEBUG_ASSERT(field.IsNotTemporaryScopedHandle());
     return field;
   }
 }
@@ -517,40 +509,43 @@ const Field& BaseFlowGraphBuilder::MayCloneField(Zone* zone,
 Fragment BaseFlowGraphBuilder::StoreNativeField(
     TokenPosition position,
     const Slot& slot,
-    StoreInstanceFieldInstr::Kind
-        kind /* = StoreInstanceFieldInstr::Kind::kOther */,
+    StoreFieldInstr::Kind kind /* = StoreFieldInstr::Kind::kOther */,
     StoreBarrierType emit_store_barrier /* = kEmitStoreBarrier */,
     compiler::Assembler::MemoryOrder memory_order /* = kRelaxed */) {
   Value* value = Pop();
   if (value->BindsToConstant()) {
     emit_store_barrier = kNoStoreBarrier;
   }
-  StoreInstanceFieldInstr* store =
-      new (Z) StoreInstanceFieldInstr(slot, Pop(), value, emit_store_barrier,
-                                      InstructionSource(position), kind);
+  StoreFieldInstr* store =
+      new (Z) StoreFieldInstr(slot, Pop(), value, emit_store_barrier,
+                              InstructionSource(position), kind);
   return Fragment(store);
 }
 
-Fragment BaseFlowGraphBuilder::StoreInstanceField(
+Fragment BaseFlowGraphBuilder::StoreField(
     const Field& field,
-    StoreInstanceFieldInstr::Kind
-        kind /* = StoreInstanceFieldInstr::Kind::kOther */,
+    StoreFieldInstr::Kind kind /* = StoreFieldInstr::Kind::kOther */,
     StoreBarrierType emit_store_barrier) {
   return StoreNativeField(TokenPosition::kNoSource,
                           Slot::Get(MayCloneField(Z, field), parsed_function_),
                           kind, emit_store_barrier);
 }
 
-Fragment BaseFlowGraphBuilder::StoreInstanceFieldGuarded(
+Fragment BaseFlowGraphBuilder::StoreFieldGuarded(
     const Field& field,
-    StoreInstanceFieldInstr::Kind
-        kind /* = StoreInstanceFieldInstr::Kind::kOther */) {
+    StoreFieldInstr::Kind kind /* = StoreFieldInstr::Kind::kOther */) {
   Fragment instructions;
   const Field& field_clone = MayCloneField(Z, field);
   if (IG->use_field_guards()) {
     LocalVariable* store_expression = MakeTemporary();
-    instructions += LoadLocal(store_expression);
-    instructions += GuardFieldClass(field_clone, GetNextDeoptId());
+
+    // Note: unboxing decision can only change due to hot reload at which
+    // point all code will be cleared, so there is no need to worry about
+    // stability of deopt id numbering.
+    if (!field_clone.is_unboxed()) {
+      instructions += LoadLocal(store_expression);
+      instructions += GuardFieldClass(field_clone, GetNextDeoptId());
+    }
 
     // Field length guard can be omitted if it is not needed.
     // However, it is possible that we were tracking list length previously,
@@ -811,11 +806,11 @@ IndirectEntryInstr* BaseFlowGraphBuilder::BuildIndirectEntry(
                                     GetNextDeoptId());
 }
 
-InputsArray* BaseFlowGraphBuilder::GetArguments(int count) {
-  InputsArray* arguments = new (Z) ZoneGrowableArray<Value*>(Z, count);
-  arguments->SetLength(count);
+InputsArray BaseFlowGraphBuilder::GetArguments(int count) {
+  InputsArray arguments(Z, count);
+  arguments.SetLength(count);
   for (intptr_t i = count - 1; i >= 0; --i) {
-    arguments->data()[i] = Pop();
+    arguments[i] = Pop();
   }
   return arguments;
 }
@@ -933,6 +928,30 @@ Fragment BaseFlowGraphBuilder::CreateArray() {
                                element_count, GetNextDeoptId());
   Push(array);
   return Fragment(array);
+}
+
+Fragment BaseFlowGraphBuilder::AllocateRecord(TokenPosition position,
+                                              intptr_t num_fields) {
+  Value* field_names = Pop();
+  AllocateRecordInstr* allocate = new (Z) AllocateRecordInstr(
+      InstructionSource(position), num_fields, field_names, GetNextDeoptId());
+  Push(allocate);
+  return Fragment(allocate);
+}
+
+Fragment BaseFlowGraphBuilder::AllocateSmallRecord(TokenPosition position,
+                                                   intptr_t num_fields,
+                                                   bool has_named_fields) {
+  ASSERT(num_fields == 2 || num_fields == 3);
+  Value* value2 = (num_fields > 2) ? Pop() : nullptr;
+  Value* value1 = Pop();
+  Value* value0 = Pop();
+  Value* field_names = has_named_fields ? Pop() : nullptr;
+  AllocateSmallRecordInstr* allocate = new (Z) AllocateSmallRecordInstr(
+      InstructionSource(position), num_fields, field_names, value0, value1,
+      value2, GetNextDeoptId());
+  Push(allocate);
+  return Fragment(allocate);
 }
 
 Fragment BaseFlowGraphBuilder::AllocateTypedData(TokenPosition position,
@@ -1183,10 +1202,10 @@ Fragment BaseFlowGraphBuilder::ClosureCall(TokenPosition position,
   const intptr_t total_count =
       (type_args_len > 0 ? 1 : 0) + argument_count +
       /*closure (bare instructions) or function (otherwise)*/ 1;
-  InputsArray* arguments = GetArguments(total_count);
-  ClosureCallInstr* call =
-      new (Z) ClosureCallInstr(arguments, type_args_len, argument_names,
-                               InstructionSource(position), GetNextDeoptId());
+  InputsArray arguments = GetArguments(total_count);
+  ClosureCallInstr* call = new (Z)
+      ClosureCallInstr(std::move(arguments), type_args_len, argument_names,
+                       InstructionSource(position), GetNextDeoptId());
   Push(call);
   result <<= call;
   return result;
@@ -1239,10 +1258,10 @@ Fragment BaseFlowGraphBuilder::InitConstantParameters() {
 Fragment BaseFlowGraphBuilder::InvokeMathCFunction(
     MethodRecognizer::Kind recognized_kind,
     intptr_t num_inputs) {
-  InputsArray* args = GetArguments(num_inputs);
-  auto* instr = new (Z)
-      InvokeMathCFunctionInstr(args, GetNextDeoptId(), recognized_kind,
-                               InstructionSource(TokenPosition::kNoSource));
+  InputsArray args = GetArguments(num_inputs);
+  auto* instr = new (Z) InvokeMathCFunctionInstr(
+      std::move(args), GetNextDeoptId(), recognized_kind,
+      InstructionSource(TokenPosition::kNoSource));
   Push(instr);
   return Fragment(instr);
 }

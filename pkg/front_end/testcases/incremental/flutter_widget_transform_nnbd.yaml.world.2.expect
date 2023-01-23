@@ -71,11 +71,11 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-test:///foo.dart:
 - _Location. (from org-dartlang-test:///flutter/lib/src/widgets/widget_inspector.dart:8:9)
-- Object. (from org-dartlang-sdk:///lib/core/object.dart:-1:-1)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)
 
 org-dartlang-test:///main.dart:
 - _Location. (from org-dartlang-test:///flutter/lib/src/widgets/widget_inspector.dart:8:9)
-- Object. (from org-dartlang-sdk:///lib/core/object.dart:-1:-1)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)
 - Foo. (from org-dartlang-test:///foo.dart:2:34)
 - Widget. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:6:9)
 - Bar. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:2:9)

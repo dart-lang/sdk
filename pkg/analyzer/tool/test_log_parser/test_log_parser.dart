@@ -1,4 +1,3 @@
-// @dart = 2.9
 // Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -19,10 +18,10 @@ main(List<String> args) async {
   int index = 0;
   final int expectedPrefixLength = 'Expected: '.length;
   final int actualPrefixLength = 'Actual: '.length;
-  TestResult currentResult;
+  TestResult? currentResult;
   Map<String, List<TestResult>> testsByExpectedAndActual =
       <String, List<TestResult>>{};
-  Map<String, List<TestResult>> testsByStackTrace =
+  Map<String?, List<TestResult>> testsByStackTrace =
       <String, List<TestResult>>{};
   while (index < output.length) {
     String currentLine = output[index];
@@ -53,7 +52,7 @@ main(List<String> args) async {
         }
         if (hasStackTrace) {
           currentResult.stackTrace = output.sublist(index + 1, endIndex - 2);
-          String traceLine = currentResult.traceLine;
+          var traceLine = currentResult.traceLine;
           testsByStackTrace
               .putIfAbsent(traceLine, () => <TestResult>[])
               .add(currentResult);
@@ -68,11 +67,9 @@ main(List<String> args) async {
   List<String> missingCodes = <String>[];
   for (List<TestResult> results in testsByExpectedAndActual.values) {
     for (TestResult result in results) {
-      String message = result.message;
-      if (message != null) {
-        if (message.startsWith('Bad state: Unable to convert (')) {
-          missingCodes.add(message);
-        }
+      var message = result.message;
+      if (message.startsWith('Bad state: Unable to convert (')) {
+        missingCodes.add(message);
       }
     }
   }
@@ -82,15 +79,11 @@ main(List<String> args) async {
   List<String> keys = testsByExpectedAndActual.keys.toList();
   keys.sort();
   for (String key in keys) {
-    List<TestResult> results = testsByExpectedAndActual[key];
+    var results = testsByExpectedAndActual[key]!;
     results.sort((first, second) => first.testName.compareTo(second.testName));
     print('$key (${results.length})');
     for (TestResult result in results) {
-      if (result.message == null) {
-        print('  ${result.testName}');
-      } else {
-        print('  ${result.testName} (${result.message})');
-      }
+      print('  ${result.testName} (${result.message})');
     }
   }
   if (missingCodes.isNotEmpty) {
@@ -104,12 +97,13 @@ main(List<String> args) async {
   if (testsByStackTrace.isNotEmpty) {
     print('');
     print('Unique stack traces (${testsByStackTrace.length}):');
-    List<String> keys = testsByStackTrace.keys.toList();
+    var keys = testsByStackTrace.keys.toList();
     keys.sort((first, second) {
-      return testsByStackTrace[second].length - testsByStackTrace[first].length;
+      return testsByStackTrace[second]!.length -
+          testsByStackTrace[first]!.length;
     });
-    for (String traceLine in keys) {
-      print('  (${testsByStackTrace[traceLine].length}) $traceLine');
+    for (var traceLine in keys) {
+      print('  (${testsByStackTrace[traceLine]!.length}) $traceLine');
     }
   }
 }
@@ -121,14 +115,14 @@ class TestResult {
   String testName;
   String expected;
   String actual;
-  String message;
-  List<String> stackTrace;
+  late String message;
+  late List<String> stackTrace;
 
   TestResult(this.testName, this.expected, this.actual);
 
-  String get traceLine {
+  String? get traceLine {
     for (int i = 0; i < stackTrace.length; i++) {
-      String traceLine = stackTrace[i];
+      var traceLine = stackTrace[i];
       if (traceLine.startsWith(framePattern) &&
           traceLine.contains('(package:')) {
         if (traceLine.contains('ResolutionApplier._get') ||

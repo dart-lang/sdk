@@ -35,3 +35,4 @@ worlds:
       lib.dart: |
         void libMethod() {}
     expectedLibraryCount: 2
+    advancedInvalidation: noDirectlyInvalidated

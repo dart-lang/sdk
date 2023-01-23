@@ -108,11 +108,15 @@ class PropertyDescription {
 
     var builder = ChangeBuilder(session: resolvedUnit.session);
 
-    ClassElement? enumClassElement;
+    InterfaceElement? enumElement;
     var enumValue = value.enumValue;
     if (enumValue != null) {
       var helper = AnalysisSessionHelper(resolvedUnit.session);
-      enumClassElement = await helper.getClass(
+      enumElement = await helper.getClass(
+        enumValue.libraryUri,
+        enumValue.className,
+      );
+      enumElement ??= await helper.getEnum(
         enumValue.libraryUri,
         enumValue.className,
       );
@@ -123,8 +127,8 @@ class PropertyDescription {
         var expression = value.expression;
         if (expression != null) {
           builder.write(expression);
-        } else if (enumClassElement != null && enumValue != null) {
-          builder.writeReference(enumClassElement);
+        } else if (enumElement != null && enumValue != null) {
+          builder.writeReference(enumElement);
           builder.write('.');
           builder.write(enumValue.name);
         } else {

@@ -17,7 +17,7 @@ main() {
 class DefaultValueOnRequiredParameterTest extends PubPackageResolutionTest {
   test_function_notRequired_default() async {
     await assertNoErrorsInCode('''
-void log({String message: 'no message'}) {}
+void log({String message = 'no message'}) {}
 ''');
   }
 
@@ -29,7 +29,7 @@ void log({String? message}) {}
 
   test_function_required_default() async {
     await assertErrorsInCode('''
-void log({required String? message: 'no message'}) {}
+void log({required String? message = 'no message'}) {}
 ''', [
       error(CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER, 27, 7),
     ]);

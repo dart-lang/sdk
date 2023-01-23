@@ -39,8 +39,8 @@ class ModelDataComputer extends DataComputer<Features> {
   @override
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<Features>> actualMap,
-      {bool verbose: false}) {
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+      {bool verbose = false}) {
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new ModelIrComputer(compiler.reporter, actualMap, elementMap, member,

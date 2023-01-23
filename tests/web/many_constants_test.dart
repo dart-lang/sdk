@@ -12,7 +12,8 @@ enum E { A, B, C, D }
 
 class Z {
   final a, b, c, d, e, f;
-  const Z({this.a: 1, this.b: 1, this.c: 1, this.d: 1, this.e: 1, this.f: 1});
+  const Z(
+      {this.a = 1, this.b = 1, this.c = 1, this.d = 1, this.e = 1, this.f = 1});
 }
 
 const c1 = const {};

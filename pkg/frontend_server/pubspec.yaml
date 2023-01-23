@@ -4,7 +4,7 @@ description: A resident kernel compiler
 publish_to: none
 
 environment:
-  sdk: "^2.15.0"
+  sdk: '>=2.15.0 <3.0.0'
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
@@ -23,5 +23,4 @@ dependencies:
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   lints: any
-  mockito: any
   test: any

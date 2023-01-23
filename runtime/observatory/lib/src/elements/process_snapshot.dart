@@ -113,7 +113,7 @@ class ProcessItemDiff {
     for (var i = 0; i < worklist.length; i++) {
       worklist[i]._computeChildren(worklist);
     }
-    // Compute area botton-up.
+    // Compute area bottom-up.
     for (var i = worklist.length - 1; i >= 0; i--) {
       worklist[i]._computeArea();
     }
@@ -298,7 +298,6 @@ class ProcessSnapshotElement extends CustomElement implements Renderable {
     var blob = new Blob([jsonEncode(_snapshotA)], 'application/json');
     var blobUrl = Url.createObjectUrl(blob);
     var link = new AnchorElement();
-    // ignore: unsafe_html
     link.href = blobUrl;
     var now = new DateTime.now();
     link.download = 'dart-process-${now.year}-${now.month}-${now.day}.json';

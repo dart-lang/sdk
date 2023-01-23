@@ -31,4 +31,4 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///issue_49245.dart:
 - Foo. (from org-dartlang-testcase:///issue_49245.dart:6:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

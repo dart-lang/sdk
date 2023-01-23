@@ -35,11 +35,11 @@ import 'package:source_span/source_span.dart';
 class ManifestParser {
   /// Elements which are relevant to manifest validation.
   static const Set<String> _manifestValidationElements = {
-    ACTIVITY_TAG,
-    APPLICATION_TAG,
-    MANIFEST_TAG,
-    USES_FEATURE_TAG,
-    USES_PERMISSION_TAG
+    activityTag,
+    applicationTag,
+    manifestTag,
+    usesFeatureTag,
+    usesPermissionTag
   };
 
   /// The text of the Android Manifest file.
@@ -425,7 +425,7 @@ class ManifestValidator {
   void _checkManifestTag(ManifestParser parser, ErrorReporter reporter) {
     ParseTagResult parseTagResult;
     while (
-        (parseTagResult = parser.parseXmlTag()).element?.name != MANIFEST_TAG) {
+        (parseTagResult = parser.parseXmlTag()).element?.name != manifestTag) {
       if (parseTagResult == ParseTagResult.eof ||
           parseTagResult == ParseTagResult.error) {
         return;
@@ -434,30 +434,29 @@ class ManifestValidator {
 
     var manifestElement = parseTagResult.element!;
     var features =
-        manifestElement.children.where((e) => e.name == USES_FEATURE_TAG);
+        manifestElement.children.where((e) => e.name == usesFeatureTag);
     var permissions =
-        manifestElement.children.where((e) => e.name == USES_PERMISSION_TAG);
+        manifestElement.children.where((e) => e.name == usesPermissionTag);
     _validateTouchScreenFeature(features, manifestElement, reporter);
     _validateFeatures(features, reporter);
     _validatePermissions(permissions, features, reporter);
 
     var application = manifestElement.children
-        .firstWhereOrNull((e) => e.name == APPLICATION_TAG);
+        .firstWhereOrNull((e) => e.name == applicationTag);
     if (application != null) {
       for (var activity
-          in application.children.where((e) => e.name == ACTIVITY_TAG)) {
+          in application.children.where((e) => e.name == activityTag)) {
         _validateActivity(activity, reporter);
       }
     }
   }
 
   bool _hasFeatureCamera(Iterable<XmlElement> features) => features
-      .any((f) => f.attributes[ANDROID_NAME]?.value == HARDWARE_FEATURE_CAMERA);
+      .any((f) => f.attributes[androidName]?.value == hardwareFeatureCamera);
 
   bool _hasFeatureCameraAutoFocus(Iterable<XmlElement> features) =>
       features.any((f) =>
-          f.attributes[ANDROID_NAME]?.value ==
-          HARDWARE_FEATURE_CAMERA_AUTOFOCUS);
+          f.attributes[androidName]?.value == hardwareFeatureCameraAutofocus);
 
   /// Report an error for the given node.
   void _reportErrorForNode(
@@ -472,16 +471,16 @@ class ManifestValidator {
   /// Validate the 'activity' tags.
   void _validateActivity(XmlElement activity, ErrorReporter reporter) {
     var attributes = activity.attributes;
-    if (attributes.containsKey(ATTRIBUTE_SCREEN_ORIENTATION)) {
-      if (UNSUPPORTED_ORIENTATIONS
-          .contains(attributes[ATTRIBUTE_SCREEN_ORIENTATION]?.value)) {
-        _reportErrorForNode(reporter, activity, ATTRIBUTE_SCREEN_ORIENTATION,
+    if (attributes.containsKey(attributeScreenOrientation)) {
+      if (unsupportedOrientations
+          .contains(attributes[attributeScreenOrientation]?.value)) {
+        _reportErrorForNode(reporter, activity, attributeScreenOrientation,
             ManifestWarningCode.SETTING_ORIENTATION_ON_ACTIVITY);
       }
     }
-    if (attributes.containsKey(ATTRIBUTE_RESIZEABLE_ACTIVITY)) {
-      if (attributes[ATTRIBUTE_RESIZEABLE_ACTIVITY]?.value == 'false') {
-        _reportErrorForNode(reporter, activity, ATTRIBUTE_RESIZEABLE_ACTIVITY,
+    if (attributes.containsKey(attributeResizableActivity)) {
+      if (attributes[attributeResizableActivity]?.value == 'false') {
+        _reportErrorForNode(reporter, activity, attributeResizableActivity,
             ManifestWarningCode.NON_RESIZABLE_ACTIVITY);
       }
     }
@@ -490,10 +489,10 @@ class ManifestValidator {
   /// Validate the `uses-feature` tags.
   void _validateFeatures(
       Iterable<XmlElement> features, ErrorReporter reporter) {
-    var unsupported = features.where((element) => UNSUPPORTED_HARDWARE_FEATURES
-        .contains(element.attributes[ANDROID_NAME]?.value));
+    var unsupported = features.where((element) => unsupportedHardwareFeatures
+        .contains(element.attributes[androidName]?.value));
     for (var element in unsupported) {
-      if (!element.attributes.containsKey(ANDROID_REQUIRED)) {
+      if (!element.attributes.containsKey(androidRequired)) {
         // Since `unsupported` is the list of elements for which
         // `elements.attributes[ANDROID_NAME]?.value` is contained in
         // [UNSUPPORTED_HARDWARE_FEATURES], which is a list of non-nullable
@@ -502,10 +501,10 @@ class ManifestValidator {
         _reportErrorForNode(
             reporter,
             element,
-            ANDROID_NAME,
+            androidName,
             ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE,
-            [element.attributes[ANDROID_NAME]!.value]);
-      } else if (element.attributes[ANDROID_REQUIRED]?.value == 'true') {
+            [element.attributes[androidName]!.value]);
+      } else if (element.attributes[androidRequired]?.value == 'true') {
         // Since `unsupported` is the list of elements for which
         // `elements.attributes[ANDROID_NAME]?.value` is contained in
         // [UNSUPPORTED_HARDWARE_FEATURES], which is a list of non-nullable
@@ -514,9 +513,9 @@ class ManifestValidator {
         _reportErrorForNode(
             reporter,
             element,
-            ANDROID_NAME,
+            androidName,
             ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE,
-            [element.attributes[ANDROID_NAME]!.value]);
+            [element.attributes[androidName]!.value]);
       }
     }
   }
@@ -525,21 +524,21 @@ class ManifestValidator {
   void _validatePermissions(Iterable<XmlElement> permissions,
       Iterable<XmlElement> features, ErrorReporter reporter) {
     for (var permission in permissions) {
-      if (permission.attributes[ANDROID_NAME]?.value ==
-          ANDROID_PERMISSION_CAMERA) {
+      if (permission.attributes[androidName]?.value ==
+          androidPermissionCamera) {
         if (!_hasFeatureCamera(features) ||
             !_hasFeatureCameraAutoFocus(features)) {
-          _reportErrorForNode(reporter, permission, ANDROID_NAME,
+          _reportErrorForNode(reporter, permission, androidName,
               ManifestWarningCode.CAMERA_PERMISSIONS_INCOMPATIBLE);
         }
       } else {
         var featureName = getImpliedUnsupportedHardware(
-            permission.attributes[ANDROID_NAME]?.value);
+            permission.attributes[androidName]?.value);
         if (featureName != null) {
           _reportErrorForNode(
               reporter,
               permission,
-              ANDROID_NAME,
+              androidName,
               ManifestWarningCode.PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE,
               [featureName]);
         }
@@ -551,23 +550,22 @@ class ManifestValidator {
   void _validateTouchScreenFeature(Iterable<XmlElement> features,
       XmlElement manifest, ErrorReporter reporter) {
     var feature = features.firstWhereOrNull((element) =>
-        element.attributes[ANDROID_NAME]?.value ==
-        HARDWARE_FEATURE_TOUCHSCREEN);
+        element.attributes[androidName]?.value == hardwareFeatureTouchscreen);
     if (feature != null) {
-      if (!feature.attributes.containsKey(ANDROID_REQUIRED)) {
+      if (!feature.attributes.containsKey(androidRequired)) {
         _reportErrorForNode(
             reporter,
             feature,
-            ANDROID_NAME,
+            androidName,
             ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE,
-            [HARDWARE_FEATURE_TOUCHSCREEN]);
-      } else if (feature.attributes[ANDROID_REQUIRED]?.value == 'true') {
+            [hardwareFeatureTouchscreen]);
+      } else if (feature.attributes[androidRequired]?.value == 'true') {
         _reportErrorForNode(
             reporter,
             feature,
-            ANDROID_NAME,
+            androidName,
             ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE,
-            [HARDWARE_FEATURE_TOUCHSCREEN]);
+            [hardwareFeatureTouchscreen]);
       }
     } else {
       _reportErrorForNode(

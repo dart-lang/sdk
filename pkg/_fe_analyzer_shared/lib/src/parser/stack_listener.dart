@@ -62,7 +62,10 @@ enum NullValue {
   Name,
   OperatorList,
   ParameterDefaultValue,
+  Pattern,
+  PatternList,
   Prefix,
+  RecordTypeFieldList,
   ShowClause,
   StringLiteral,
   SwitchScope,
@@ -259,7 +262,7 @@ abstract class StackListener extends Listener {
       String s = "  $o";
       int index = s.indexOf("\n");
       if (index != -1) {
-        s = s.substring(/* startIndex = */ 0, index) + "...";
+        s = s.substring(/* start = */ 0, index) + "...";
       }
       print(s);
     }
@@ -426,12 +429,17 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleParenthesizedCondition(Token token) {
+  void handleParenthesizedCondition(Token token, Token? case_, Token? when) {
     debugEvent("handleParenthesizedCondition");
   }
 
   @override
-  void handleParenthesizedExpression(Token token) {
+  void endRecordLiteral(Token token, int count, Token? constKeyword) {
+    debugEvent("RecordLiteral");
+  }
+
+  @override
+  void endParenthesizedExpression(Token token) {
     debugEvent("ParenthesizedExpression");
   }
 
@@ -469,13 +477,14 @@ abstract class StackListener extends Listener {
     pop(); // Discard the metadata.
   }
 
+  @override
   void handleExtraneousExpression(Token token, Message message) {
     debugEvent("ExtraneousExpression");
     pop(); // Discard the extraneous expression.
   }
 
   @override
-  void endCaseExpression(Token colon) {
+  void endCaseExpression(Token caseKeyword, Token? when, Token colon) {
     debugEvent("CaseExpression");
   }
 
@@ -517,7 +526,7 @@ abstract class StackListener extends Listener {
   }
 
   void addProblem(Message message, int charOffset, int length,
-      {bool wasHandled: false, List<LocatedMessage> context});
+      {bool wasHandled = false, List<LocatedMessage> context});
 }
 
 abstract class Stack {
@@ -551,19 +560,24 @@ class StackImpl implements Stack {
       new List<Object?>.filled(/* length = */ 8, /* fill = */ null);
   int arrayLength = 0;
 
+  @override
   bool get isNotEmpty => arrayLength > 0;
 
+  @override
   int get length => arrayLength;
 
+  @override
   Object? get last {
     final Object? value = array[arrayLength - 1];
     return value is NullValue ? null : value;
   }
 
+  @override
   Object? operator [](int index) {
     return array[arrayLength - 1 - index];
   }
 
+  @override
   void push(Object value) {
     array[arrayLength++] = value;
     if (array.length == arrayLength) {
@@ -571,6 +585,7 @@ class StackImpl implements Stack {
     }
   }
 
+  @override
   Object? pop(NullValue? nullValue) {
     assert(arrayLength > 0);
     final Object? value = array[--arrayLength];
@@ -584,6 +599,7 @@ class StackImpl implements Stack {
     }
   }
 
+  @override
   List<T?>? popList<T>(int count, List<T?> list, NullValue? nullValue) {
     assert(arrayLength >= count);
     final List<Object?> array = this.array;
@@ -609,6 +625,7 @@ class StackImpl implements Stack {
     return isParserRecovery ? null : list;
   }
 
+  @override
   List<T>? popNonNullableList<T>(int count, List<T> list) {
     assert(arrayLength >= count);
     final List<Object?> array = this.array;
@@ -630,6 +647,7 @@ class StackImpl implements Stack {
     return isParserRecovery ? null : list;
   }
 
+  @override
   List<Object?> get values {
     final int length = arrayLength;
     final List<Object?> list =
@@ -650,7 +668,7 @@ class StackImpl implements Stack {
 class DebugStack implements Stack {
   Stack realStack = new StackImpl();
   Stack stackTraceStack = new StackImpl();
-  List<StackTrace> latestStacktraces = <StackTrace>[];
+  List<StackTrace?> latestStacktraces = <StackTrace?>[];
 
   @override
   Object? operator [](int index) {
@@ -764,5 +782,6 @@ class ParserRecovery {
   final int charOffset;
   ParserRecovery(this.charOffset);
 
+  @override
   String toString() => "ParserRecovery(@$charOffset)";
 }

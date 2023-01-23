@@ -108,9 +108,20 @@ Future<void> main(List<String> args) async {
     // (pub paths can become too long, so two distinct files will look to have
     // the same url and thus give a false positive).
     Uri pubDirUri = Uri.parse("file://${Platform.environment['HOME']}/"
-        ".pub-cache/hosted/pub.dartlang.org/");
+        ".pub-cache/hosted/pub.dev/");
     Directory pubDir = new Directory.fromUri(pubDirUri);
-    if (!pubDir.existsSync()) throw "Expected to find $pubDir";
+    if (!pubDir.existsSync()) {
+      File galleryPackageConfig =
+          new File("$rootPath/gallery/.dart_tool/package_config.json");
+      String? packagesData;
+      if (galleryPackageConfig.existsSync()) {
+        packagesData = galleryPackageConfig.readAsStringSync();
+      }
+
+      throw "Expected to find $pubDir but didn't.\n"
+          "Content of packages file (${packagesData.runtimeType}): "
+          "$packagesData";
+    }
 
     File galleryPackageConfig =
         new File("$rootPath/gallery/.dart_tool/package_config.json");
@@ -178,7 +189,6 @@ Future<void> main(List<String> args) async {
     "$rootPath/flutter_patched_sdk/",
     "--incremental",
     "--target=flutter",
-    "--debugger-module-names",
     "--output-dill",
     "$rootPath/flutter_server_tmp.dill",
     "--packages",
@@ -192,6 +202,8 @@ Future<void> main(List<String> args) async {
   ];
   if (alternativeInvalidation) {
     processArgs.add("--enable-experiment=alternative-invalidation-strategy");
+  } else {
+    processArgs.add("--enable-experiment=no-alternative-invalidation-strategy");
   }
 
   await heapHelper.start(processArgs,

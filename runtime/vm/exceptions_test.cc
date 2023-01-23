@@ -87,33 +87,40 @@ static Dart_NativeFunction native_lookup(Dart_Handle name,
 // Unit test case to verify unhandled exceptions.
 TEST_CASE(UnhandledExceptions) {
   const char* kScriptChars =
-      "class UnhandledExceptions {\n"
-      "  static equals(var obj1, var obj2) native \"Unhandled_equals\";"
-      "  static invoke() native \"Unhandled_invoke\";\n"
-      "  static invoke2() native \"Unhandled_invoke2\";\n"
-      "}\n"
-      "class Second {\n"
-      "  Second() { }\n"
-      "  static int method1(int param) {\n"
-      "    UnhandledExceptions.invoke();\n"
-      "    return 2;\n"
-      "  }\n"
-      "  static int method2() {\n"
-      "    throw new Second();\n"
-      "  }\n"
-      "  static int method3(int param) {\n"
-      "    try {\n"
-      "      UnhandledExceptions.invoke2();\n"
-      "    } on Second catch (e) {\n"
-      "      return 3;\n"
-      "    }\n"
-      "    return 2;\n"
-      "  }\n"
-      "}\n"
-      "testMain() {\n"
-      "  UnhandledExceptions.equals(2, Second.method1(1));\n"
-      "  UnhandledExceptions.equals(3, Second.method3(1));\n"
-      "}";
+      R"(
+      class UnhandledExceptions {
+        @pragma('vm:external-name', 'Unhandled_equals')
+        external static equals(var obj1, var obj2);
+
+        @pragma('vm:external-name', 'Unhandled_invoke')
+        external static invoke();
+
+        @pragma('vm:external-name', 'Unhandled_invoke2')
+        external static invoke2();
+      }
+      class Second {
+        Second() { }
+        static int method1(int param) {
+          UnhandledExceptions.invoke();
+          return 2;
+        }
+        static int method2() {
+          throw new Second();
+        }
+        static int method3(int param) {
+          try {
+            UnhandledExceptions.invoke2();
+          } on Second catch (e) {
+            return 3;
+          }
+          return 2;
+        }
+      }
+      testMain() {
+        UnhandledExceptions.equals(2, Second.method1(1));
+        UnhandledExceptions.equals(3, Second.method3(1));
+      }
+      )";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, native_lookup);
   EXPECT_VALID(Dart_Invoke(lib, NewString("testMain"), 0, NULL));
 }

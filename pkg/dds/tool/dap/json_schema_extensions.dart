@@ -101,7 +101,7 @@ extension JsonTypeExtensions on JsonType {
   }
 
   /// Whether this type is a simple type that needs no special handling for
-  /// deserialisation (such as `String`, `bool`, `int`, `Map<String, Object?>`).
+  /// deserialization (such as `String`, `bool`, `int`, `Map<String, Object?>`).
   bool get isSimple {
     const _dartSimpleTypes = {
       'bool',

@@ -185,7 +185,6 @@ class TimelinePageElement extends CustomElement implements Renderable {
                 "This VM is forwarding timeline events to Fuchsia's system tracing. See the ",
           new AnchorElement()
             ..text = "Fuchsia Tracing Usage Guide"
-            // ignore: unsafe_html
             ..href = "https://fuchsia.dev/fuchsia-src/development/tracing",
           new SpanElement()..text = ".",
         ];
@@ -201,7 +200,6 @@ class TimelinePageElement extends CustomElement implements Renderable {
                 "This VM is forwarding timeline events to Android's systrace. See the ",
           new AnchorElement()
             ..text = "systrace usage guide"
-            // ignore: unsafe_html
             ..href =
                 "https://developer.android.com/studio/command-line/systrace",
           new SpanElement()..text = ".",
@@ -219,7 +217,6 @@ class TimelinePageElement extends CustomElement implements Renderable {
                     "To track these events, open 'Instruments' and add the 'os_signpost' Filter. See the ",
           new AnchorElement()
             ..text = "Instruments Usage Guide"
-            // ignore: unsafe_html
             ..href = "https://help.apple.com/instruments",
           new SpanElement()..text = ".",
         ];
@@ -249,8 +246,9 @@ class TimelinePageElement extends CustomElement implements Renderable {
 
   Future _refresh() async {
     _postMessage('loading');
-    final traceData = await _repository.getTimeline(vm);
-    return _postMessage('refresh', traceData);
+    final params =
+        new Map<String, dynamic>.from(await _repository.getIFrameParams(vm));
+    return _postMessage('refresh', params);
   }
 
   Future _clear() async {

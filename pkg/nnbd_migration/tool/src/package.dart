@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Abstractions for the different sources of truth for different packages.
+library;
+
 import 'dart:io';
 
 import 'package:nnbd_migration/src/utilities/subprocess_launcher.dart';
@@ -173,7 +175,7 @@ class Playground {
 
 /// Abstraction for a package fetched via pub.
 class PubPackage extends Package {
-  PubPackage(String name, [String? version]) : super(name) {
+  PubPackage(super.name, [String? version]) {
     throw UnimplementedError();
   }
 

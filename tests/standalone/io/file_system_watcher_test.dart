@@ -311,7 +311,7 @@ void testWatchNonExisting() {
     Expect.fail('unexpected error');
   }, onError: (e) {
     asyncEnd();
-    Expect.isTrue(e is FileSystemException);
+    Expect.isTrue(e is PathNotFoundException);
   });
 }
 

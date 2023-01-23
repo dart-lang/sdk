@@ -438,7 +438,7 @@ class Server {
   /// [notificationProcessor].
   void listenToOutput(NotificationProcessor notificationProcessor) {
     _process!.stdout
-        .transform((Utf8Codec()).decoder)
+        .transform(Utf8Codec().decoder)
         .transform(LineSplitter())
         .listen((String line) {
       lastCommunicationTime = currentElapseTime;
@@ -489,7 +489,7 @@ class Server {
       }
     });
     _process!.stderr
-        .transform((Utf8Codec()).decoder)
+        .transform(Utf8Codec().decoder)
         .transform(LineSplitter())
         .listen((String line) {
       var trimmedLine = line.trim();
@@ -641,9 +641,7 @@ class _ListOf extends Matcher {
   /// Iterable matcher which we use to test the contents of the list.
   final Matcher iterableMatcher;
 
-  _ListOf(Matcher elementMatcher)
-      : elementMatcher = elementMatcher,
-        iterableMatcher = everyElement(elementMatcher);
+  _ListOf(this.elementMatcher) : iterableMatcher = everyElement(elementMatcher);
 
   @override
   Description describe(Description description) =>

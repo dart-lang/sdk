@@ -72,6 +72,7 @@ analyzer:
   exclude:
     - 'samples/**'
 ''');
+    await pumpEventQueue(times: 5000);
     var file = newFile('$testPackageRootPath/samples/sample.dart', '');
     // attempt to set priority file
     await _setPriorityFile(file);
@@ -90,6 +91,7 @@ analyzer:
   exclude:
     - 'samples/**'
 ''');
+    await pumpEventQueue(times: 5000);
     // attempt to set priority file
     await _setPriorityFile(sampleFile);
     _verifyPriorityFiles(sampleFile);
@@ -107,6 +109,7 @@ analyzer:
   exclude:
     - 'child/samples/**'
 ''');
+    await pumpEventQueue(times: 5000);
     // attempt to set priority file
     await _setPriorityFile(sampleFile);
     _verifyPriorityFiles(sampleFile);

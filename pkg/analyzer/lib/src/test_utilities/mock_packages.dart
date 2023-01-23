@@ -74,6 +74,8 @@ const _IsTestGroup isTestGroup = _IsTestGroup();
 
 const _Literal literal = _Literal();
 
+const _MustBeOverridden mustBeOverridden = _MustBeOverridden();
+
 const _MustCallSuper mustCallSuper = _MustCallSuper();
 
 const _NonVirtual nonVirtual = _NonVirtual();
@@ -167,6 +169,22 @@ class _Literal {
   const _Literal();
 }
 
+@Target({
+  TargetKind.field,
+  TargetKind.getter,
+  TargetKind.method,
+  TargetKind.setter,
+})
+class _MustBeOverridden {
+  const _MustBeOverridden();
+}
+
+@Target({
+  TargetKind.field,
+  TargetKind.getter,
+  TargetKind.method,
+  TargetKind.setter,
+})
 class _MustCallSuper {
   const _MustCallSuper();
 }

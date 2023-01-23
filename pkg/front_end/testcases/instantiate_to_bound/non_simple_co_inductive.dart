@@ -5,6 +5,8 @@
 // This test checks that the use of a raw generic type in the bounds of its own
 // type variables is recognized and reported as a compile-time error.
 
-class Hest<TypeX extends Hest> {}
+class A<TypeX extends A> {}
+
+typedef C<TypeX extends C> = int;
 
 main() {}

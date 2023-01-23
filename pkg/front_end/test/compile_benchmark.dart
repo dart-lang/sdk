@@ -88,9 +88,9 @@ void main(List<String> args) {
 ///   counting annotation is likely at least as useful).
 ///
 void doWork(Directory tmp, List<int> dillData, List<String> arguments,
-    {bool tryToAnnotate: false,
-    bool tryToSlowDown: false,
-    bool timeInsteadOfCount: false}) {
+    {bool tryToAnnotate = false,
+    bool tryToSlowDown = false,
+    bool timeInsteadOfCount = false}) {
   File f = new File.fromUri(tmp.uri.resolve("a.dill"));
   f.writeAsBytesSync(dillData);
   Uri dillOrgInTmp = f.uri;

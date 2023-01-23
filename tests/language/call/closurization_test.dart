@@ -34,7 +34,7 @@ main() {
     Expect.isTrue(opt_arg_tearOff.call("b"));
   }
 
-  named_arg({x: 11, y: 22}) => "$x$y";
+  named_arg({x = 11, y = 22}) => "$x$y";
   var named_arg_tearOff = named_arg.call;
 
   for (var i = 0; i < 20; i++) {

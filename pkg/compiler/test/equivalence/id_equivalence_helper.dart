@@ -14,18 +14,19 @@ import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../helpers/compiler_helper.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 import '../equivalence/id_equivalence.dart';
 
 export 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, StringDataInterpreter;
-export '../helpers/memory_compiler.dart' show CollectedMessage;
+export 'package:compiler/src/util/memory_compiler.dart' show CollectedMessage;
 
 const String specMarker = 'spec';
 const String prodMarker = 'prod';
@@ -123,14 +124,14 @@ void reportError(
 /// Actual data is computed using [computeMemberData].
 Future<CompiledData<T>> computeData<T>(String name, Uri entryPoint,
     Map<String, String> memorySourceFiles, DataComputer<T> dataComputer,
-    {List<String> options: const <String>[],
-    bool verbose: false,
-    bool testFrontend: false,
-    bool printCode: false,
-    bool forUserLibrariesOnly: true,
-    bool skipUnprocessedMembers: false,
-    bool skipFailedCompilations: false,
-    Iterable<Id> globalIds: const <Id>[],
+    {List<String> options = const <String>[],
+    bool verbose = false,
+    bool testFrontend = false,
+    bool printCode = false,
+    bool forUserLibrariesOnly = true,
+    bool skipUnprocessedMembers = false,
+    bool skipFailedCompilations = false,
+    Iterable<Id> globalIds = const <Id>[],
     Future<void> verifyCompiler(String test, Compiler compiler)}) async {
   OutputCollector outputCollector = new OutputCollector();
   DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
@@ -225,13 +226,13 @@ Future<CompiledData<T>> computeData<T>(String name, Uri entryPoint,
     }
     if (member.enclosingClass != null) {
       if (elementEnvironment.isEnumClass(member.enclosingClass)) {
-        if (member.isConstructor ||
+        if (member is ConstructorEntity ||
             member.isInstanceMember ||
             member.name == 'values') {
           return;
         }
       }
-      if (member.isConstructor &&
+      if (member is ConstructorEntity &&
           elementEnvironment.isMixinApplication(member.enclosingClass)) {
         return;
       }
@@ -325,7 +326,8 @@ Future<CompiledData<T>> computeData<T>(String name, Uri entryPoint,
       MemberEntity member;
       if (id.className != null) {
         ClassEntity cls = getGlobalClass(id.className);
-        member = elementEnvironment.lookupClassMember(cls, id.memberName);
+        member = elementEnvironment.lookupClassMember(
+            cls, Name(id.memberName, cls.library.canonicalUri));
         member ??= elementEnvironment.lookupConstructor(cls, id.memberName);
         Expect.isNotNull(
             member, "Global member '$member' not found in class $cls.");
@@ -366,7 +368,7 @@ class Dart2jsCompiledData<T> extends CompiledData<T> {
 
   @override
   void reportError(Uri uri, int offset, String message,
-      {bool succinct: false}) {
+      {bool succinct = false}) {
     compiler.reporter.reportErrorMessage(
         computeSourceSpanFromUriOffset(uri, offset),
         MessageKind.GENERIC,
@@ -398,14 +400,14 @@ class TestConfig {
 /// If [forUserSourceFilesOnly] is true, we examine the elements in the main
 /// file and any supporting libraries.
 Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
-    {List<String> skip: const <String>[],
+    {List<String> skip = const <String>[],
     bool filterActualData(IdValue idValue, ActualData<T> actualData),
-    List<String> options: const <String>[],
-    List<String> args: const <String>[],
-    bool forUserLibrariesOnly: true,
+    List<String> options = const <String>[],
+    List<String> args = const <String>[],
+    bool forUserLibrariesOnly = true,
     Callback setUpFunction,
-    int shards: 1,
-    int shardIndex: 0,
+    int shards = 1,
+    int shardIndex = 0,
     void onTest(Uri uri),
     List<TestConfig> testedConfigs = const [],
     Map<String, List<String>> perTestOptions = const {},
@@ -496,11 +498,11 @@ Future<TestResult<T>> runTestForConfiguration<T>(
     TestData testData,
     List<String> options,
     {bool filterActualData(IdValue idValue, ActualData<T> actualData),
-    bool verbose: false,
-    bool succinct: false,
-    bool printCode: false,
-    bool forUserLibrariesOnly: true,
-    bool testAfterFailures: false,
+    bool verbose = false,
+    bool succinct = false,
+    bool printCode = false,
+    bool forUserLibrariesOnly = true,
+    bool testAfterFailures = false,
     Future<void> verifyCompiler(String test, Compiler compiler)}) async {
   MemberAnnotations<IdValue> annotations =
       testData.expectedMaps[testConfiguration.marker];
@@ -552,8 +554,8 @@ Spannable computeSpannable(
         print("No class '${id.className}' in $mainUri.");
         return NO_LOCATION_SPANNABLE;
       }
-      MemberEntity member = elementEnvironment
-          .lookupClassMember(cls, memberName, setter: isSetter);
+      MemberEntity member = elementEnvironment.lookupClassMember(
+          cls, Name(memberName, cls.library.canonicalUri, isSetter: isSetter));
       if (member == null) {
         ConstructorEntity constructor =
             elementEnvironment.lookupConstructor(cls, memberName);

@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/error/codes.dart';
 
@@ -40,7 +39,7 @@ class AstRewriter {
   /// and 'name' of `b`). The [InstanceCreationExpression] is rewritten as a
   /// [MethodInvocation] if `a` resolves to a function.
   AstNode instanceCreationExpression(
-      Scope nameScope, InstanceCreationExpression node) {
+      Scope nameScope, InstanceCreationExpressionImpl node) {
     if (node.keyword != null) {
       // Either `new` or `const` has been specified.
       return node;
@@ -58,7 +57,7 @@ class AstRewriter {
         return _toMethodInvocationOfAliasedTypeLiteral(
             node: node, function: typeName, element: element);
       }
-    } else if (typeName is PrefixedIdentifier) {
+    } else if (typeName is PrefixedIdentifierImpl) {
       var prefixElement = nameScope.lookup(typeName.prefix.name).getter;
       if (prefixElement is PrefixElement) {
         var prefixedName = typeName.identifier.name;
@@ -97,8 +96,8 @@ class AstRewriter {
 
   /// Possibly rewrites [node] as an [ExtensionOverride] or as an
   /// [InstanceCreationExpression].
-  AstNode methodInvocation(Scope nameScope, MethodInvocation node) {
-    SimpleIdentifier methodName = node.methodName;
+  AstNode methodInvocation(Scope nameScope, MethodInvocationImpl node) {
+    final methodName = node.methodName;
     if (methodName.isSynthetic) {
       // This isn't a constructor invocation because the method name is
       // synthetic.
@@ -113,16 +112,17 @@ class AstRewriter {
         return node;
       }
       var element = nameScope.lookup(methodName.name).getter;
-      if (element is ClassElement) {
+      if (element is InterfaceElement) {
         return _toInstanceCreation_type(
           node: node,
           typeIdentifier: methodName,
         );
       } else if (element is ExtensionElement) {
-        ExtensionOverride extensionOverride = astFactory.extensionOverride(
-            extensionName: methodName,
-            typeArguments: node.typeArguments,
-            argumentList: node.argumentList);
+        var extensionOverride = ExtensionOverrideImpl(
+          extensionName: methodName,
+          typeArguments: node.typeArguments,
+          argumentList: node.argumentList,
+        );
         NodeReplacer.replace(node, extensionOverride);
         return extensionOverride;
       } else if (element is TypeAliasElement &&
@@ -132,14 +132,14 @@ class AstRewriter {
           typeIdentifier: methodName,
         );
       }
-    } else if (target is SimpleIdentifier) {
+    } else if (target is SimpleIdentifierImpl) {
       // Possible cases: C.n(), p.C() or p.C<>()
       if (node.isNullAware) {
         // This isn't a constructor invocation because a null aware operator is
         // being used.
       }
       var element = nameScope.lookup(target.name).getter;
-      if (element is ClassElement) {
+      if (element is InterfaceElement) {
         // class C { C.named(); }
         // C.named()
         return _toInstanceCreation_type_constructor(
@@ -151,19 +151,23 @@ class AstRewriter {
       } else if (element is PrefixElement) {
         // Possible cases: p.C() or p.C<>()
         var prefixedElement = element.scope.lookup(methodName.name).getter;
-        if (prefixedElement is ClassElement) {
+        if (prefixedElement is InterfaceElement) {
           return _toInstanceCreation_prefix_type(
             node: node,
             prefixIdentifier: target,
             typeIdentifier: methodName,
           );
         } else if (prefixedElement is ExtensionElement) {
-          PrefixedIdentifier extensionName =
-              astFactory.prefixedIdentifier(target, node.operator!, methodName);
-          ExtensionOverride extensionOverride = astFactory.extensionOverride(
-              extensionName: extensionName,
-              typeArguments: node.typeArguments,
-              argumentList: node.argumentList);
+          var extensionName = PrefixedIdentifierImpl(
+            prefix: target,
+            period: node.operator!,
+            identifier: methodName,
+          );
+          var extensionOverride = ExtensionOverrideImpl(
+            extensionName: extensionName,
+            typeArguments: node.typeArguments,
+            argumentList: node.argumentList,
+          );
           NodeReplacer.replace(node, extensionOverride);
           return extensionOverride;
         } else if (prefixedElement is TypeAliasElement &&
@@ -195,7 +199,7 @@ class AstRewriter {
       if (prefixElement is PrefixElement) {
         var prefixedName = target.identifier.name;
         var element = prefixElement.scope.lookup(prefixedName).getter;
-        if (element is ClassElement) {
+        if (element is InterfaceElement) {
           return _instanceCreation_prefix_type_name(
             node: node,
             typeNameIdentifier: target,
@@ -224,19 +228,19 @@ class AstRewriter {
   /// [PrefixedIdentifier] with 'prefix' of `List` and 'identifier' of `filled`.
   /// The [PrefixedIdentifier] may need to be rewritten as a
   /// [ConstructorReference].
-  AstNode prefixedIdentifier(Scope nameScope, PrefixedIdentifier node) {
+  AstNode prefixedIdentifier(Scope nameScope, PrefixedIdentifierImpl node) {
     var parent = node.parent;
     if (parent is Annotation) {
       // An annotations which is a const constructor invocation can initially be
       // represented with a [PrefixedIdentifier]. Do not rewrite such nodes.
       return node;
     }
-    if (parent is CommentReference) {
+    if (parent is CommentReferenceImpl) {
       // TODO(srawlins): This probably should be allowed to be rewritten to a
       // [ConstructorReference] at some point.
       return node;
     }
-    if (parent is AssignmentExpression && parent.leftHandSide == node) {
+    if (parent is AssignmentExpressionImpl && parent.leftHandSide == node) {
       // A constructor cannot be assigned to, in some expression like
       // `C.new = foo`; do not rewrite.
       return node;
@@ -248,7 +252,7 @@ class AstRewriter {
     }
     var prefix = node.prefix;
     var element = nameScope.lookup(prefix.name).getter;
-    if (element is ClassElement) {
+    if (element is InterfaceElement) {
       // Example:
       //     class C { C.named(); }
       //     C.named
@@ -262,7 +266,9 @@ class AstRewriter {
         //     typedef X = C;
         //     X.named
         return _toConstructorReference_prefixed(
-            node: node, classElement: aliasedType.element);
+          node: node,
+          classElement: aliasedType.element,
+        );
       }
     }
     return node;
@@ -275,29 +281,29 @@ class AstRewriter {
   /// 'prefix' of `List` and 'identifier' of `filled`) and a 'propertyName' of
   /// `value`. The [PropertyAccess] may need to be rewritten as a
   /// [ConstructorReference].
-  AstNode propertyAccess(Scope nameScope, PropertyAccess node) {
+  AstNode propertyAccess(Scope nameScope, PropertyAccessImpl node) {
     if (node.isCascaded) {
       // For example, `List..filled`: this is a property access on an instance
       // `Type`.
       return node;
     }
-    if (node.parent is CommentReference) {
+    if (node.parent is CommentReferenceImpl) {
       // TODO(srawlins): This probably should be allowed to be rewritten to a
       // [ConstructorReference] at some point.
       return node;
     }
     var receiver = node.target!;
 
-    Identifier receiverIdentifier;
-    TypeArgumentList? typeArguments;
-    if (receiver is PrefixedIdentifier) {
+    IdentifierImpl receiverIdentifier;
+    TypeArgumentListImpl? typeArguments;
+    if (receiver is PrefixedIdentifierImpl) {
       receiverIdentifier = receiver;
-    } else if (receiver is FunctionReference) {
+    } else if (receiver is FunctionReferenceImpl) {
       // A [ConstructorReference] with explicit type arguments is initially
       // parsed as a [PropertyAccess] with a [FunctionReference] target; for
       // example: `List<int>.filled` or `core.List<int>.filled`.
       var function = receiver.function;
-      if (function is! Identifier) {
+      if (function is! IdentifierImpl) {
         // If [receiverIdentifier] is not an Identifier then [node] is not a
         // ConstructorReference.
         return node;
@@ -311,9 +317,9 @@ class AstRewriter {
     }
 
     Element? element;
-    if (receiverIdentifier is SimpleIdentifier) {
+    if (receiverIdentifier is SimpleIdentifierImpl) {
       element = nameScope.lookup(receiverIdentifier.name).getter;
-    } else if (receiverIdentifier is PrefixedIdentifier) {
+    } else if (receiverIdentifier is PrefixedIdentifierImpl) {
       var prefixElement =
           nameScope.lookup(receiverIdentifier.prefix.name).getter;
       if (prefixElement is PrefixElement) {
@@ -329,7 +335,7 @@ class AstRewriter {
       }
     }
 
-    if (element is ClassElement) {
+    if (element is InterfaceElement) {
       // Example:
       //     class C<T> { C.named(); }
       //     C<int>.named
@@ -371,10 +377,10 @@ class AstRewriter {
   }
 
   AstNode _instanceCreation_prefix_type_name({
-    required MethodInvocation node,
-    required PrefixedIdentifier typeNameIdentifier,
-    required SimpleIdentifier constructorIdentifier,
-    required ClassElement classElement,
+    required MethodInvocationImpl node,
+    required PrefixedIdentifierImpl typeNameIdentifier,
+    required SimpleIdentifierImpl constructorIdentifier,
+    required InterfaceElement classElement,
   }) {
     var constructorElement = classElement.getNamedConstructor(
       constructorIdentifier.name,
@@ -391,20 +397,30 @@ class AstRewriter {
           [typeNameIdentifier.toString(), constructorIdentifier.name]);
     }
 
-    var typeName = astFactory.namedType(
+    var typeName = NamedTypeImpl(
       name: typeNameIdentifier,
       typeArguments: typeArguments,
+      question: null,
     );
-    var constructorName = astFactory.constructorName(
-        typeName, node.operator, constructorIdentifier);
-    var instanceCreationExpression = astFactory.instanceCreationExpression(
-        null, constructorName, node.argumentList);
+    var constructorName = ConstructorNameImpl(
+      type: typeName,
+      period: node.operator,
+      name: constructorIdentifier,
+    );
+    var instanceCreationExpression = InstanceCreationExpressionImpl(
+      keyword: null,
+      constructorName: constructorName,
+      argumentList: node.argumentList,
+      typeArguments: null,
+    );
     NodeReplacer.replace(node, instanceCreationExpression);
     return instanceCreationExpression;
   }
 
-  AstNode _toConstructorReference_prefixed(
-      {required PrefixedIdentifier node, required ClassElement classElement}) {
+  AstNode _toConstructorReference_prefixed({
+    required PrefixedIdentifierImpl node,
+    required InterfaceElement classElement,
+  }) {
     var name = node.identifier.name;
     var constructorElement = name == 'new'
         ? classElement.unnamedConstructor
@@ -413,20 +429,28 @@ class AstRewriter {
       return node;
     }
 
-    var typeName = astFactory.namedType(name: node.prefix);
-    var constructorName =
-        astFactory.constructorName(typeName, node.period, node.identifier);
-    var constructorReference =
-        astFactory.constructorReference(constructorName: constructorName);
+    var typeName = NamedTypeImpl(
+      name: node.prefix,
+      typeArguments: null,
+      question: null,
+    );
+    var constructorName = ConstructorNameImpl(
+      type: typeName,
+      period: node.period,
+      name: node.identifier,
+    );
+    var constructorReference = ConstructorReferenceImpl(
+      constructorName: constructorName,
+    );
     NodeReplacer.replace(node, constructorReference);
     return constructorReference;
   }
 
   AstNode _toConstructorReference_propertyAccess({
-    required PropertyAccess node,
-    required Identifier receiver,
-    required TypeArgumentList? typeArguments,
-    required ClassElement classElement,
+    required PropertyAccessImpl node,
+    required IdentifierImpl receiver,
+    required TypeArgumentListImpl? typeArguments,
+    required InterfaceElement classElement,
   }) {
     var name = node.propertyName.name;
     var constructorElement = name == 'new'
@@ -442,58 +466,81 @@ class AstRewriter {
 
     var operator = node.operator;
 
-    var typeName = astFactory.namedType(
+    var typeName = NamedTypeImpl(
       name: receiver,
       typeArguments: typeArguments,
+      question: null,
     );
-    var constructorName =
-        astFactory.constructorName(typeName, operator, node.propertyName);
-    var constructorReference =
-        astFactory.constructorReference(constructorName: constructorName);
+    var constructorName = ConstructorNameImpl(
+      type: typeName,
+      period: operator,
+      name: node.propertyName,
+    );
+    var constructorReference = ConstructorReferenceImpl(
+      constructorName: constructorName,
+    );
     NodeReplacer.replace(node, constructorReference);
     return constructorReference;
   }
 
   InstanceCreationExpression _toInstanceCreation_prefix_type({
-    required MethodInvocation node,
-    required SimpleIdentifier prefixIdentifier,
-    required SimpleIdentifier typeIdentifier,
+    required MethodInvocationImpl node,
+    required SimpleIdentifierImpl prefixIdentifier,
+    required SimpleIdentifierImpl typeIdentifier,
   }) {
-    var typeName = astFactory.namedType(
-      name: astFactory.prefixedIdentifier(
-        prefixIdentifier,
-        node.operator!,
-        typeIdentifier,
+    var typeName = NamedTypeImpl(
+      name: PrefixedIdentifierImpl(
+        prefix: prefixIdentifier,
+        period: node.operator!,
+        identifier: typeIdentifier,
       ),
       typeArguments: node.typeArguments,
+      question: null,
     );
-    var constructorName = astFactory.constructorName(typeName, null, null);
-    var instanceCreationExpression = astFactory.instanceCreationExpression(
-        null, constructorName, node.argumentList);
+    var constructorName = ConstructorNameImpl(
+      type: typeName,
+      period: null,
+      name: null,
+    );
+    var instanceCreationExpression = InstanceCreationExpressionImpl(
+      keyword: null,
+      constructorName: constructorName,
+      argumentList: node.argumentList,
+      typeArguments: null,
+    );
     NodeReplacer.replace(node, instanceCreationExpression);
     return instanceCreationExpression;
   }
 
   InstanceCreationExpression _toInstanceCreation_type({
-    required MethodInvocation node,
-    required SimpleIdentifier typeIdentifier,
+    required MethodInvocationImpl node,
+    required SimpleIdentifierImpl typeIdentifier,
   }) {
-    var typeName = astFactory.namedType(
+    var typeName = NamedTypeImpl(
       name: typeIdentifier,
       typeArguments: node.typeArguments,
+      question: null,
     );
-    var constructorName = astFactory.constructorName(typeName, null, null);
-    var instanceCreationExpression = astFactory.instanceCreationExpression(
-        null, constructorName, node.argumentList);
+    var constructorName = ConstructorNameImpl(
+      type: typeName,
+      period: null,
+      name: null,
+    );
+    var instanceCreationExpression = InstanceCreationExpressionImpl(
+      keyword: null,
+      constructorName: constructorName,
+      argumentList: node.argumentList,
+      typeArguments: null,
+    );
     NodeReplacer.replace(node, instanceCreationExpression);
     return instanceCreationExpression;
   }
 
   AstNode _toInstanceCreation_type_constructor({
-    required MethodInvocation node,
-    required SimpleIdentifier typeIdentifier,
-    required SimpleIdentifier constructorIdentifier,
-    required ClassElement classElement,
+    required MethodInvocationImpl node,
+    required SimpleIdentifierImpl typeIdentifier,
+    required SimpleIdentifierImpl constructorIdentifier,
+    required InterfaceElement classElement,
   }) {
     var name = constructorIdentifier.name;
     var constructorElement = classElement.getNamedConstructor(name);
@@ -508,44 +555,57 @@ class AstRewriter {
           typeArguments,
           [typeIdentifier.name, constructorIdentifier.name]);
     }
-    var typeName = astFactory.namedType(name: typeIdentifier);
-    var constructorName = astFactory.constructorName(
-        typeName, node.operator, constructorIdentifier);
+    var typeName = NamedTypeImpl(
+      name: typeIdentifier,
+      typeArguments: null,
+      question: null,
+    );
+    var constructorName = ConstructorNameImpl(
+      type: typeName,
+      period: node.operator,
+      name: constructorIdentifier,
+    );
     // TODO(scheglov) I think we should drop "typeArguments" below.
-    var instanceCreationExpression = astFactory.instanceCreationExpression(
-        null, constructorName, node.argumentList,
-        typeArguments: typeArguments);
+    var instanceCreationExpression = InstanceCreationExpressionImpl(
+      keyword: null,
+      constructorName: constructorName,
+      argumentList: node.argumentList,
+      typeArguments: typeArguments,
+    );
     NodeReplacer.replace(node, instanceCreationExpression);
     return instanceCreationExpression;
   }
 
   MethodInvocation _toMethodInvocationOfAliasedTypeLiteral({
-    required InstanceCreationExpression node,
+    required InstanceCreationExpressionImpl node,
     required Identifier function,
     required TypeAliasElement element,
   }) {
-    var typeName = astFactory.namedType(
+    var typeName = NamedTypeImpl(
       name: node.constructorName.type.name,
       typeArguments: node.constructorName.type.typeArguments,
+      question: null,
     );
     typeName.type = element.aliasedType;
     typeName.name.staticType = element.aliasedType;
-    var typeLiteral = astFactory.typeLiteral(typeName: typeName);
+    var typeLiteral = TypeLiteralImpl(
+      typeName: typeName,
+    );
     typeLiteral.staticType = _typeProvider.typeType;
-    var methodInvocation = astFactory.methodInvocation(
-      typeLiteral,
-      node.constructorName.period,
-      node.constructorName.name!,
-      null,
-      node.argumentList,
+    var methodInvocation = MethodInvocationImpl(
+      target: typeLiteral,
+      operator: node.constructorName.period,
+      methodName: node.constructorName.name!,
+      typeArguments: null,
+      argumentList: node.argumentList,
     );
     NodeReplacer.replace(node, methodInvocation);
     return methodInvocation;
   }
 
   AstNode _toMethodInvocationOfFunctionReference({
-    required InstanceCreationExpression node,
-    required Identifier function,
+    required InstanceCreationExpressionImpl node,
+    required IdentifierImpl function,
   }) {
     var period = node.constructorName.period;
     var constructorId = node.constructorName.name;
@@ -553,16 +613,16 @@ class AstRewriter {
       return node;
     }
 
-    var functionReference = astFactory.functionReference(
+    var functionReference = FunctionReferenceImpl(
       function: function,
       typeArguments: node.constructorName.type.typeArguments,
     );
-    var methodInvocation = astFactory.methodInvocation(
-      functionReference,
-      period,
-      constructorId,
-      null,
-      node.argumentList,
+    var methodInvocation = MethodInvocationImpl(
+      target: functionReference,
+      operator: period,
+      methodName: constructorId,
+      typeArguments: null,
+      argumentList: node.argumentList,
     );
     NodeReplacer.replace(node, methodInvocation);
     return methodInvocation;

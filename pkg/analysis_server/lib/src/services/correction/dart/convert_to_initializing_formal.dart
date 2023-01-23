@@ -39,7 +39,7 @@ class ConvertToInitializingFormal extends CorrectionProducer {
       if (parameter == null) {
         return;
       }
-      var identifier = parameter.identifier;
+      var identifier = parameter.name;
       if (identifier == null) {
         return;
       }
@@ -51,7 +51,7 @@ class ConvertToInitializingFormal extends CorrectionProducer {
           builder.addSimpleInsertion(identifier.offset, 'this.');
         } else {
           builder.addSimpleReplacement(
-              range.node(parameter), 'this.${identifier.name}');
+              range.node(parameter), 'this.${identifier.lexeme}');
         }
 
         var statements = block.statements;
@@ -68,7 +68,7 @@ class ConvertToInitializingFormal extends CorrectionProducer {
       if (parameter == null) {
         return;
       }
-      var identifier = parameter.identifier;
+      var identifier = parameter.name;
       if (identifier == null) {
         return;
       }
@@ -85,7 +85,7 @@ class ConvertToInitializingFormal extends CorrectionProducer {
           builder.addSimpleInsertion(identifier.offset, 'this.');
         } else {
           builder.addSimpleReplacement(
-              range.node(parameter), 'this.${identifier.name}');
+              range.node(parameter), 'this.${identifier.lexeme}');
         }
 
         var initializers = constructor.initializers;

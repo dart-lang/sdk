@@ -1,0 +1,18 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[self::Class::•]/*isLegacy*/;
+  static factory •<T extends core::Object? = dynamic>((self::Class::•::T%) → void f) → self::Class<self::Class::•::T%>
+    return new self::ClassImpl::•<self::Class::•::T%>(f);
+}
+class ClassImpl<T extends core::Object? = dynamic> extends core::Object implements self::Class<self::ClassImpl::T%> {
+  constructor •((self::ClassImpl::T%) → void f) → self::ClassImpl<self::ClassImpl::T%>
+    ;
+}
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirect_generic.dart:5:7 -> ConstructorTearOffConstant(Class.)
+Extra constant evaluation: evaluated: 4, effectively constant: 1

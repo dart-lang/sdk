@@ -2,12 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart = 2.9
 library frontend_server;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show Directory, File, IOSink, stdin, stdout;
+import 'dart:io' show File, IOSink, stdout;
 import 'dart:typed_data' show BytesBuilder;
 
 import 'package:args/args.dart';
@@ -24,6 +23,8 @@ import 'package:dev_compiler/dev_compiler.dart'
 // an effort to discourage further use.
 // ignore_for_file: implementation_imports
 import 'package:front_end/src/api_unstable/vm.dart';
+import 'package:front_end/src/api_unstable/ddc.dart' as ddc
+    show IncrementalCompiler;
 import 'package:front_end/widget_cache.dart';
 import 'package:kernel/ast.dart' show Library, Procedure, LibraryDependency;
 import 'package:kernel/binary/ast_to_binary.dart';
@@ -31,15 +32,12 @@ import 'package:kernel/kernel.dart'
     show Component, loadComponentSourceFromBytes;
 import 'package:kernel/target/targets.dart' show targets, TargetFlags;
 import 'package:package_config/package_config.dart';
-import 'package:path/path.dart' as path;
 import 'package:usage/uuid/uuid.dart';
 
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
 import 'package:vm/kernel_front_end.dart';
 
-import 'src/binary_protocol.dart';
 import 'src/javascript_bundle.dart';
-import 'src/strong_components.dart';
 
 ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('train',
@@ -58,8 +56,7 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       help: 'Whether dart:mirrors is supported. By default dart:mirrors is '
           'supported when --aot and --minimal-kernel are not used.',
       defaultsTo: null)
-  ..addFlag('compact-async',
-      help: 'Enable new compact async/await implementation.', defaultsTo: true)
+  ..addFlag('compact-async', help: 'Obsolete, ignored.', hide: true)
   ..addFlag('tfa',
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
@@ -191,7 +188,7 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addOption('libraries-spec',
       help: 'A path or uri to the libraries specification JSON file')
   ..addFlag('debugger-module-names',
-      help: 'Use debugger-friendly modules names', defaultsTo: true)
+      help: 'Use debugger-friendly modules names', defaultsTo: false)
   ..addFlag('experimental-emit-debug-metadata',
       help: 'Emit module and library metadata for the debugger',
       defaultsTo: false)
@@ -206,6 +203,11 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('print-incremental-dependencies',
       help: 'Print list of sources added and removed from compilation',
       defaultsTo: true)
+  ..addOption('resident-info-file-name',
+      help:
+          'Allowing for incremental compilation of changes when using the Dart CLI.'
+          ' Stores server information in this file for accessing later',
+      hide: true)
   ..addOption('verbosity',
       help: 'Sets the verbosity level of the compilation',
       defaultsTo: Verbosity.defaultValue,
@@ -269,12 +271,12 @@ abstract class CompilerInterface {
   Future<bool> compile(
     String entryPoint,
     ArgResults options, {
-    IncrementalCompiler generator,
+    IncrementalCompiler? generator,
   });
 
   /// Assuming some Dart program was previously compiled, recompile it again
   /// taking into account some changed(invalidated) sources.
-  Future<Null> recompileDelta({String entryPoint});
+  Future<Null> recompileDelta({String? entryPoint});
 
   /// Accept results of previous compilation so that next recompilation cycle
   /// won't recompile sources that were previously reported as changed.
@@ -284,7 +286,7 @@ abstract class CompilerInterface {
   /// accepted state.
   Future<void> rejectLastDelta();
 
-  /// This let's compiler know that source file identifed by `uri` was changed.
+  /// This let's compiler know that source file identified by `uri` was changed.
   void invalidate(Uri uri);
 
   /// Resets incremental compiler accept/reject status so that next time
@@ -308,8 +310,8 @@ abstract class CompilerInterface {
       List<String> typeBounds,
       List<String> typeDefaults,
       String libraryUri,
-      String klass,
-      String method,
+      String? klass,
+      String? method,
       bool isStatic);
 
   /// Compiles [expression] in [libraryUri] at [line]:[column] to JavaScript
@@ -356,50 +358,51 @@ class BinaryPrinterFactory {
 }
 
 class FrontendCompiler implements CompilerInterface {
-  FrontendCompiler(this._outputStream,
-      {this.printerFactory,
+  FrontendCompiler(StringSink? outputStream,
+      {BinaryPrinterFactory? printerFactory,
       this.transformer,
       this.unsafePackageSerialization,
-      this.incrementalSerialization: true,
-      this.useDebuggerModuleNames: false,
-      this.emitDebugMetadata: false,
-      this.emitDebugSymbols: false}) {
-    _outputStream ??= stdout;
-    printerFactory ??= new BinaryPrinterFactory();
-  }
+      this.incrementalSerialization = true,
+      this.useDebuggerModuleNames = false,
+      this.emitDebugMetadata = false,
+      this.emitDebugSymbols = false})
+      : _outputStream = outputStream ?? stdout,
+        printerFactory = printerFactory ?? new BinaryPrinterFactory();
 
-  StringSink _outputStream;
-  BinaryPrinterFactory printerFactory;
-  bool unsafePackageSerialization;
-  bool incrementalSerialization;
-  bool useDebuggerModuleNames;
-  bool emitDebugMetadata;
-  bool emitDebugSymbols;
-  bool _printIncrementalDependencies;
-
-  CompilerOptions _compilerOptions;
-  ProcessedOptions _processedOptions;
-  FileSystem _fileSystem;
-  Uri _mainSource;
-  List<Uri> _additionalSources;
-  ArgResults _options;
-
-  IncrementalCompiler _generator;
-  JavaScriptBundler _bundler;
-
-  WidgetCache _widgetCache;
-
-  String _kernelBinaryFilename;
-  String _kernelBinaryFilenameIncremental;
-  String _kernelBinaryFilenameFull;
-  String _initializeFromDill;
-  bool _assumeInitializeFromDillUpToDate;
-
+  /// Fields with initializers
+  final List<String> errors = <String>[];
   Set<Uri> previouslyReportedDependencies = Set<Uri>();
 
-  final ProgramTransformer transformer;
+  /// Initialized in the constructor
+  bool emitDebugMetadata;
+  bool emitDebugSymbols;
+  bool incrementalSerialization;
+  StringSink _outputStream;
+  BinaryPrinterFactory printerFactory;
+  bool useDebuggerModuleNames;
 
-  final List<String> errors = <String>[];
+  /// Initialized in [compile].
+  late List<Uri> _additionalSources;
+  late bool _assumeInitializeFromDillUpToDate;
+  late CompilerOptions _compilerOptions;
+  late FileSystem _fileSystem;
+  late IncrementalCompiler _generator;
+  late String _initializeFromDill;
+  late String _kernelBinaryFilename;
+  late String _kernelBinaryFilenameIncremental;
+  late String _kernelBinaryFilenameFull;
+  late Uri _mainSource;
+  late ArgResults _options;
+  late bool _printIncrementalDependencies;
+  late ProcessedOptions _processedOptions;
+
+  /// Initialized in [writeJavascriptBundle]
+  IncrementalJavaScriptBundler? _bundler;
+
+  /// Nullable fields
+  final ProgramTransformer? transformer;
+  bool? unsafePackageSerialization;
+  WidgetCache? _widgetCache;
 
   _onDiagnostic(DiagnosticMessage message) {
     switch (message.severity) {
@@ -427,7 +430,7 @@ class FrontendCompiler implements CompilerInterface {
   Future<bool> compile(
     String entryPoint,
     ArgResults options, {
-    IncrementalCompiler generator,
+    IncrementalCompiler? generator,
   }) async {
     _options = options;
     _fileSystem = createFrontEndFileSystem(
@@ -452,8 +455,8 @@ class FrontendCompiler implements CompilerInterface {
     final Uri sdkRoot = _ensureFolderPath(options['sdk-root']);
     final String platformKernelDill =
         options['platform'] ?? 'platform_strong.dill';
-    final String packagesOption = _options['packages'];
-    final bool nullSafety = _options['sound-null-safety'];
+    final String? packagesOption = _options['packages'];
+    final bool? nullSafety = _options['sound-null-safety'];
     final CompilerOptions compilerOptions = CompilerOptions()
       ..sdkRoot = sdkRoot
       ..fileSystem = _fileSystem
@@ -543,14 +546,13 @@ class FrontendCompiler implements CompilerInterface {
       nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
       supportMirrors: options['support-mirrors'] ??
           !(options['aot'] || options['minimal-kernel']),
-      compactAsync: options['compact-async'],
     );
     if (compilerOptions.target == null) {
       print('Failed to create front-end target ${options['target']}.');
       return false;
     }
 
-    final String importDill = options['import-dill'];
+    final String? importDill = options['import-dill'];
     if (importDill != null) {
       compilerOptions.additionalDills = <Uri>[
         Uri.base.resolveUri(Uri.file(importDill))
@@ -559,11 +561,11 @@ class FrontendCompiler implements CompilerInterface {
 
     _processedOptions = ProcessedOptions(options: compilerOptions);
 
-    KernelCompilationResults results;
-    IncrementalSerializer incrementalSerializer;
+    KernelCompilationResults? results;
+    IncrementalSerializer? incrementalSerializer;
     if (options['incremental']) {
       _compilerOptions.environmentDefines =
-          _compilerOptions.target.updateEnvironmentDefines(environmentDefines);
+          _compilerOptions.target!.updateEnvironmentDefines(environmentDefines);
 
       _compilerOptions.omitPlatform = false;
       _generator = generator ?? _createGenerator(Uri.file(_initializeFromDill));
@@ -605,24 +607,26 @@ class FrontendCompiler implements CompilerInterface {
           treeShakeWriteOnlyFields: options['tree-shake-write-only-fields'],
           fromDillFile: options['from-dill']));
     }
-    if (results.component != null) {
-      transformer?.transform(results.component);
+    if (results!.component != null) {
+      transformer?.transform(results.component!);
 
-      if (_compilerOptions.target.name == 'dartdevc') {
+      if (_compilerOptions.target!.name == 'dartdevc') {
         await writeJavascriptBundle(results, _kernelBinaryFilename,
-            options['filesystem-scheme'], options['dartdevc-module-format']);
+            options['filesystem-scheme'], options['dartdevc-module-format'],
+            fullComponent: true);
       }
       await writeDillFile(results, _kernelBinaryFilename,
           filterExternal: importDill != null || options['minimal-kernel'],
           incrementalSerializer: incrementalSerializer);
 
       _outputStream.writeln(boundaryKey);
-      await _outputDependenciesDelta(results.compiledSources);
+      final compiledSources = results.compiledSources!;
+      await _outputDependenciesDelta(compiledSources);
       _outputStream
           .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
-      final String depfile = options['depfile'];
+      final String? depfile = options['depfile'];
       if (depfile != null) {
-        await writeDepfile(compilerOptions.fileSystem, results.compiledSources,
+        await writeDepfile(compilerOptions.fileSystem, compiledSources,
             _kernelBinaryFilename, depfile);
       }
 
@@ -638,10 +642,10 @@ class FrontendCompiler implements CompilerInterface {
     if (!_printIncrementalDependencies) {
       return;
     }
-    Set<Uri> uris = Set<Uri>();
+    Set<Uri> uris = {};
     for (Uri uri in compiledSources) {
       // Skip empty or corelib dependencies.
-      if (uri == null || uri.isScheme('org-dartlang-sdk')) continue;
+      if (uri.isScheme('org-dartlang-sdk')) continue;
       uris.add(uri);
     }
     for (Uri uri in uris) {
@@ -667,18 +671,36 @@ class FrontendCompiler implements CompilerInterface {
     previouslyReportedDependencies = uris;
   }
 
-  /// Write a JavaScript bundle containg the provided component.
+  /// Write a JavaScript bundle containing the provided component.
   Future<void> writeJavascriptBundle(KernelCompilationResults results,
-      String filename, String fileSystemScheme, String moduleFormat) async {
+      String filename, String fileSystemScheme, String moduleFormat,
+      {required bool fullComponent}) async {
+    // ignore: unnecessary_null_comparison
+    assert(fullComponent != null);
     var packageConfig = await loadPackageConfigUri(
         _compilerOptions.packagesFileUri ??
             File('.dart_tool/package_config.json').absolute.uri);
     var soundNullSafety = _compilerOptions.nnbdMode == NnbdMode.Strong;
-    final Component component = results.component;
-    // Compute strongly connected components.
-    final strongComponents = StrongComponents(component,
-        results.loadedLibraries, _mainSource, _compilerOptions.fileSystem);
-    await strongComponents.computeModules();
+    final Component component = results.component!;
+
+    final bundler = _bundler ??= IncrementalJavaScriptBundler(
+      _compilerOptions.fileSystem,
+      results.loadedLibraries,
+      fileSystemScheme,
+      useDebuggerModuleNames: useDebuggerModuleNames,
+      emitDebugMetadata: emitDebugMetadata,
+      moduleFormat: moduleFormat,
+      soundNullSafety: soundNullSafety,
+    );
+    if (fullComponent) {
+      await bundler.initialize(component, _mainSource, packageConfig);
+    } else {
+      await bundler.invalidate(
+          component,
+          _generator.lastKnownGoodResult!.component,
+          _mainSource,
+          packageConfig);
+    }
 
     // Create JavaScript bundler.
     final File sourceFile = File('$filename.sources');
@@ -689,23 +711,17 @@ class FrontendCompiler implements CompilerInterface {
     if (!sourceFile.parent.existsSync()) {
       sourceFile.parent.createSync(recursive: true);
     }
-    _bundler = JavaScriptBundler(
-        component, strongComponents, fileSystemScheme, packageConfig,
-        useDebuggerModuleNames: useDebuggerModuleNames,
-        emitDebugMetadata: emitDebugMetadata,
-        emitDebugSymbols: emitDebugSymbols,
-        moduleFormat: moduleFormat,
-        soundNullSafety: soundNullSafety);
+
     final sourceFileSink = sourceFile.openWrite();
     final manifestFileSink = manifestFile.openWrite();
     final sourceMapsFileSink = sourceMapsFile.openWrite();
     final metadataFileSink =
         emitDebugMetadata ? metadataFile.openWrite() : null;
     final symbolsFileSink = emitDebugSymbols ? symbolsFile.openWrite() : null;
-    final kernel2JsCompilers = await _bundler.compile(
-        results.classHierarchy,
-        results.coreTypes,
-        results.loadedLibraries,
+    final kernel2JsCompilers = await bundler.compile(
+        results.classHierarchy!,
+        results.coreTypes!,
+        packageConfig,
         sourceFileSink,
         manifestFileSink,
         sourceMapsFileSink,
@@ -722,9 +738,9 @@ class FrontendCompiler implements CompilerInterface {
   }
 
   writeDillFile(KernelCompilationResults results, String filename,
-      {bool filterExternal: false,
-      IncrementalSerializer incrementalSerializer}) async {
-    final Component component = results.component;
+      {bool filterExternal = false,
+      IncrementalSerializer? incrementalSerializer}) async {
+    final Component component = results.component!;
     final IOSink sink = File(filename).openWrite();
     final Set<Library> loadedLibraries = results.loadedLibraries;
     final BinaryPrinter printer = filterExternal
@@ -750,10 +766,10 @@ class FrontendCompiler implements CompilerInterface {
           _mainSource, _compilerOptions, results, filename);
     }
 
-    final String manifestFilename = _options['far-manifest'];
+    final String? manifestFilename = _options['far-manifest'];
     if (manifestFilename != null) {
       final String output = _options['output-dill'];
-      final String dataDir = _options.options.contains('component-name')
+      final String? dataDir = _options.options.contains('component-name')
           ? _options['component-name']
           : _options['data-dir'];
       await createFarManifest(output, dataDir, manifestFilename);
@@ -782,9 +798,9 @@ class FrontendCompiler implements CompilerInterface {
 
     nextUri:
     for (Uri uri in component.uriToSource.keys) {
-      if (uri == null || '$uri' == '') continue nextUri;
+      if ('$uri' == '') continue nextUri;
 
-      final List<int> oldBytes = component.uriToSource[uri].source;
+      final List<int> oldBytes = component.uriToSource[uri]!.source;
       FileSystemEntity entity;
       try {
         entity = _compilerOptions.fileSystem.entityForUri(uri);
@@ -819,7 +835,7 @@ class FrontendCompiler implements CompilerInterface {
   }
 
   @override
-  Future<Null> recompileDelta({String entryPoint}) async {
+  Future<Null> recompileDelta({String? entryPoint}) async {
     final String boundaryKey = Uuid().generateV4();
     _outputStream.writeln('result $boundaryKey');
     await invalidateIfInitializingFromDill();
@@ -831,9 +847,7 @@ class FrontendCompiler implements CompilerInterface {
     IncrementalCompilerResult deltaProgramResult = await _generator
         .compile(entryPoints: [_mainSource, ..._additionalSources]);
     Component deltaProgram = deltaProgramResult.component;
-    if (deltaProgram != null && transformer != null) {
-      transformer.transform(deltaProgram);
-    }
+    transformer?.transform(deltaProgram);
 
     KernelCompilationResults results = KernelCompilationResults(
         deltaProgram,
@@ -842,9 +856,10 @@ class FrontendCompiler implements CompilerInterface {
         deltaProgramResult.coreTypes,
         deltaProgram.uriToSource.keys);
 
-    if (_compilerOptions.target.name == 'dartdevc') {
+    if (_compilerOptions.target!.name == 'dartdevc') {
       await writeJavascriptBundle(results, _kernelBinaryFilename,
-          _options['filesystem-scheme'], _options['dartdevc-module-format']);
+          _options['filesystem-scheme'], _options['dartdevc-module-format'],
+          fullComponent: false);
     } else {
       await writeDillFile(results, _kernelBinaryFilename,
           incrementalSerializer: _generator.incrementalSerializer);
@@ -852,7 +867,7 @@ class FrontendCompiler implements CompilerInterface {
     _updateWidgetCache(deltaProgram);
 
     _outputStream.writeln(boundaryKey);
-    await _outputDependenciesDelta(results.compiledSources);
+    await _outputDependenciesDelta(results.compiledSources!);
     _outputStream
         .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
     _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
@@ -867,12 +882,12 @@ class FrontendCompiler implements CompilerInterface {
       List<String> typeBounds,
       List<String> typeDefaults,
       String libraryUri,
-      String klass,
-      String method,
+      String? klass,
+      String? method,
       bool isStatic) async {
     final String boundaryKey = Uuid().generateV4();
     _outputStream.writeln('result $boundaryKey');
-    Procedure procedure = await _generator.compileExpression(
+    Procedure? procedure = await _generator.compileExpression(
         expression,
         definitions,
         definitionTypes,
@@ -898,7 +913,7 @@ class FrontendCompiler implements CompilerInterface {
 
   /// Program compilers per module.
   ///
-  /// Produced suring initial compilation of the module to JavaScript,
+  /// Produced during initial compilation of the module to JavaScript,
   /// cached to be used for expression compilation in [compileExpressionToJs].
   final Map<String, ProgramCompiler> cachedProgramCompilers = {};
 
@@ -929,8 +944,8 @@ class FrontendCompiler implements CompilerInterface {
     _processedOptions.ticker
         .logMs('Compiling expression to JavaScript in $moduleName');
 
-    final kernel2jsCompiler = cachedProgramCompilers[moduleName];
-    IncrementalCompilerResult compilerResult = _generator.lastKnownGoodResult;
+    final kernel2jsCompiler = cachedProgramCompilers[moduleName]!;
+    IncrementalCompilerResult compilerResult = _generator.lastKnownGoodResult!;
     Component component = compilerResult.component;
     component.computeCanonicalNames();
 
@@ -940,7 +955,7 @@ class FrontendCompiler implements CompilerInterface {
       _compilerOptions,
       parseModuleFormat(_options['dartdevc-module-format'] as String),
       errors,
-      _generator.generator,
+      _generator.generator as ddc.IncrementalCompiler,
       kernel2jsCompiler,
       component,
     );
@@ -948,7 +963,7 @@ class FrontendCompiler implements CompilerInterface {
     final procedure = await expressionCompiler.compileExpressionToJs(
         libraryUri, line, column, jsFrameValues, expression);
 
-    final result = errors.isNotEmpty ? errors[0] : procedure;
+    final result = errors.isNotEmpty ? errors[0] : procedure!;
 
     // TODO(annagrin): kernelBinaryFilename is too specific
     // rename to _outputFileName?
@@ -990,8 +1005,6 @@ class FrontendCompiler implements CompilerInterface {
 
   writePackagesToSinkAndTrimComponent(
       Component deltaProgram, Sink<List<int>> ioSink) {
-    if (deltaProgram == null) return;
-
     List<Library> packageLibraries = <Library>[];
     List<Library> libraries = <Library>[];
     deltaProgram.computeCanonicalNames();
@@ -1015,25 +1028,24 @@ class FrontendCompiler implements CompilerInterface {
       if (alreadyAdded.add(data)) {
         ioSink.add(data);
         // Now also add all dependencies.
-        for (Uri dep in cachedPackageDependencies[uri]) {
-          addDataAndDependentData(cachedPackageLibraries[dep], dep);
+        for (Uri dep in cachedPackageDependencies[uri]!) {
+          addDataAndDependentData(cachedPackageLibraries[dep]!, dep);
         }
       }
     }
 
     for (Library lib in packageLibraries) {
-      List<int> data = cachedPackageLibraries[lib.fileUri];
+      List<int>? data = cachedPackageLibraries[lib.fileUri];
       if (data != null) {
         addDataAndDependentData(data, lib.fileUri);
       } else {
         String package = lib.importUri.pathSegments.first;
-        newPackages[package] ??= <Library>[];
-        newPackages[package].add(lib);
+        (newPackages[package] ??= <Library>[]).add(lib);
       }
     }
 
     for (String package in newPackages.keys) {
-      List<Library> libraries = newPackages[package];
+      List<Library> libraries = newPackages[package]!;
       Component singleLibrary = Component(
           libraries: libraries,
           uriToSource: deltaProgram.uriToSource,
@@ -1096,7 +1108,7 @@ class FrontendCompiler implements CompilerInterface {
     _kernelBinaryFilename = _kernelBinaryFilenameFull;
   }
 
-  IncrementalCompiler _createGenerator(Uri initializeFromDillUri) {
+  IncrementalCompiler _createGenerator(Uri? initializeFromDillUri) {
     return IncrementalCompiler(
         _compilerOptions, [_mainSource, ..._additionalSources],
         initializeFromDillUri: initializeFromDillUri,
@@ -1114,8 +1126,8 @@ class FrontendCompiler implements CompilerInterface {
     if (_widgetCache == null || _generator.fullComponent) {
       return;
     }
-    final String singleModifiedClassName =
-        _widgetCache.checkSingleWidgetTypeModified(
+    final String? singleModifiedClassName =
+        _widgetCache!.checkSingleWidgetTypeModified(
       _generator.lastKnownGoodResult?.component,
       partialComponent,
       _generator.lastKnownGoodResult?.classHierarchy,
@@ -1158,7 +1170,7 @@ class ByteSink implements Sink<List<int>> {
 }
 
 class _CompileExpressionRequest {
-  String expression;
+  late String expression;
   // Note that FE will reject a compileExpression command by returning a null
   // procedure when defs or typeDefs include an illegal identifier.
   List<String> defs = <String>[];
@@ -1166,32 +1178,32 @@ class _CompileExpressionRequest {
   List<String> typeDefs = <String>[];
   List<String> typeBounds = <String>[];
   List<String> typeDefaults = <String>[];
-  String library;
-  String klass;
-  String method;
-  bool isStatic;
+  late String library;
+  String? klass;
+  String? method;
+  late bool isStatic;
 }
 
 class _CompileExpressionToJsRequest {
-  String libraryUri;
-  int line;
-  int column;
+  late String libraryUri;
+  late int line;
+  late int column;
   Map<String, String> jsModules = <String, String>{};
   Map<String, String> jsFrameValues = <String, String>{};
-  String moduleName;
-  String expression;
+  late String moduleName;
+  late String expression;
 }
 
 /// Listens for the compilation commands on [input] stream.
 /// This supports "interactive" recompilation mode of execution.
 StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
     Stream<List<int>> input, ArgResults options, Completer<int> completer,
-    {IncrementalCompiler generator}) {
+    {IncrementalCompiler? generator}) {
   _State state = _State.READY_FOR_INSTRUCTION;
-  _CompileExpressionRequest compileExpressionRequest;
-  _CompileExpressionToJsRequest compileExpressionToJsRequest;
-  String boundaryKey;
-  String recompileEntryPoint;
+  late _CompileExpressionRequest compileExpressionRequest;
+  late _CompileExpressionToJsRequest compileExpressionToJsRequest;
+  late String boundaryKey;
+  String? recompileEntryPoint;
   return input
       .transform(utf8.decoder)
       .transform(const LineSplitter())
@@ -1371,92 +1383,4 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
         break;
     }
   });
-}
-
-/// Entry point for this module, that creates `_FrontendCompiler` instance and
-/// processes user input.
-/// `compiler` is an optional parameter so it can be replaced with mocked
-/// version for testing.
-Future<int> starter(
-  List<String> args, {
-  CompilerInterface compiler,
-  Stream<List<int>> input,
-  StringSink output,
-  IncrementalCompiler generator,
-  BinaryPrinterFactory binaryPrinterFactory,
-}) async {
-  ArgResults options;
-  try {
-    options = argParser.parse(args);
-  } catch (error) {
-    print('ERROR: $error\n');
-    print(usage);
-    return 1;
-  }
-
-  if (options['train']) {
-    if (options.rest.isEmpty) {
-      throw Exception('Must specify input.dart');
-    }
-
-    final String input = options.rest[0];
-    final String sdkRoot = options['sdk-root'];
-    final String platform = options['platform'];
-    final Directory temp =
-        Directory.systemTemp.createTempSync('train_frontend_server');
-    try {
-      final String outputTrainingDill = path.join(temp.path, 'app.dill');
-      final List<String> args = <String>[
-        '--incremental',
-        '--sdk-root=$sdkRoot',
-        '--output-dill=$outputTrainingDill',
-      ];
-      if (platform != null) {
-        args.add('--platform=${Uri.file(platform)}');
-      }
-      options = argParser.parse(args);
-      compiler ??=
-          FrontendCompiler(output, printerFactory: binaryPrinterFactory);
-
-      await compiler.compile(input, options, generator: generator);
-      compiler.acceptLastDelta();
-      await compiler.recompileDelta();
-      compiler.acceptLastDelta();
-      compiler.resetIncrementalCompiler();
-      await compiler.recompileDelta();
-      compiler.acceptLastDelta();
-      await compiler.recompileDelta();
-      compiler.acceptLastDelta();
-      return 0;
-    } finally {
-      temp.deleteSync(recursive: true);
-    }
-  }
-
-  final binaryProtocolAddressStr = options['binary-protocol-address'];
-  if (binaryProtocolAddressStr is String) {
-    runBinaryProtocol(binaryProtocolAddressStr);
-    return 0;
-  }
-
-  compiler ??= FrontendCompiler(output,
-      printerFactory: binaryPrinterFactory,
-      unsafePackageSerialization: options["unsafe-package-serialization"],
-      incrementalSerialization: options["incremental-serialization"],
-      useDebuggerModuleNames: options['debugger-module-names'],
-      emitDebugMetadata: options['experimental-emit-debug-metadata'],
-      emitDebugSymbols: options['emit-debug-symbols']);
-
-  if (options.rest.isNotEmpty) {
-    return await compiler.compile(options.rest[0], options,
-            generator: generator)
-        ? 0
-        : 254;
-  }
-
-  Completer<int> completer = Completer<int>();
-  var subscription = listenAndCompile(
-      compiler, input ?? stdin, options, completer,
-      generator: generator);
-  return completer.future..then((value) => subscription.cancel());
 }

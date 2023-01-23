@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
 import 'package:_fe_analyzer_shared/src/parser/assert.dart';
 import 'package:_fe_analyzer_shared/src/parser/block_kind.dart';
 import 'package:_fe_analyzer_shared/src/parser/constructor_reference_context.dart';
@@ -29,10 +30,12 @@ class TestParser extends Parser {
   int indent = 0;
   StringBuffer sb = new StringBuffer();
   final bool trace;
+  bool _inhibitPrinting = false;
 
-  TestParser(Listener listener, this.trace)
+  TestParser(Listener listener, this.trace, {required bool allowPatterns})
       : super(listener,
-            useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+            useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+            allowPatterns: allowPatterns);
 
   String createTrace() {
     List<String> traceLines = StackTrace.current.toString().split("\n");
@@ -49,9 +52,21 @@ class TestParser extends Parser {
   }
 
   void doPrint(String s) {
+    if (_inhibitPrinting) return;
     String traceString = "";
     if (trace) traceString = " (${createTrace()})";
     sb.writeln(("  " * indent) + s + traceString);
+  }
+
+  @override
+  T inhibitPrinting<T>(T Function() callback) {
+    bool previousInhibitPrinting = _inhibitPrinting;
+    _inhibitPrinting = true;
+    try {
+      return callback();
+    } finally {
+      _inhibitPrinting = previousInhibitPrinting;
+    }
   }
 
   @override
@@ -164,16 +179,23 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseTopLevelKeywordDeclaration(Token start, Token keyword,
-      Token? macroToken, DirectiveContext? directiveState) {
+  Token parseTopLevelKeywordDeclaration(
+      Token start,
+      Token keyword,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      DirectiveContext? directiveState) {
     doPrint('parseTopLevelKeywordDeclaration('
         '$start, '
         '$keyword, '
         '$macroToken, '
+        '$viewToken, '
+        '$sealedToken, '
         '$directiveState)');
     indent++;
     var result = super.parseTopLevelKeywordDeclaration(
-        start, keyword, macroToken, directiveState);
+        start, keyword, macroToken, viewToken, sealedToken, directiveState);
     indent--;
     return result;
   }
@@ -437,6 +459,39 @@ class TestParser extends Parser {
   }
 
   @override
+  Token parseRecordType(
+      final Token start, Token token, bool isQuestionMarkPartOfType) {
+    doPrint(
+        'parseRecordType(' '$start, ' '$token, ' '$isQuestionMarkPartOfType)');
+    indent++;
+    var result = super.parseRecordType(start, token, isQuestionMarkPartOfType);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseRecordTypeField(Token token,
+      {required bool identifierIsOptional}) {
+    doPrint('parseRecordTypeField('
+        '$token, '
+        'identifierIsOptional: $identifierIsOptional)');
+    indent++;
+    var result = super.parseRecordTypeField(token,
+        identifierIsOptional: identifierIsOptional);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseRecordTypeNamedFields(Token token) {
+    doPrint('parseRecordTypeNamedFields(' '$token)');
+    indent++;
+    var result = super.parseRecordTypeNamedFields(token);
+    indent--;
+    return result;
+  }
+
+  @override
   Token parseFormalParametersRequiredOpt(Token token, MemberKind kind) {
     doPrint('parseFormalParametersRequiredOpt(' '$token, ' '$kind)');
     indent++;
@@ -595,16 +650,23 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseClassOrNamedMixinApplication(Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token classKeyword) {
+  Token parseClassOrNamedMixinApplication(
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token classKeyword) {
     doPrint('parseClassOrNamedMixinApplication('
         '$abstractToken, '
         '$macroToken, '
+        '$viewToken, '
+        '$sealedToken, '
         '$augmentToken, '
         '$classKeyword)');
     indent++;
-    var result = super.parseClassOrNamedMixinApplication(
-        abstractToken, macroToken, augmentToken, classKeyword);
+    var result = super.parseClassOrNamedMixinApplication(abstractToken,
+        macroToken, viewToken, sealedToken, augmentToken, classKeyword);
     indent--;
     return result;
   }
@@ -679,10 +741,11 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseMixin(Token? augmentToken, Token mixinKeyword) {
-    doPrint('parseMixin(' '$augmentToken, ' '$mixinKeyword)');
+  Token parseMixin(
+      Token? augmentToken, Token? sealedToken, Token mixinKeyword) {
+    doPrint('parseMixin(' '$augmentToken, ' '$sealedToken, ' '$mixinKeyword)');
     indent++;
-    var result = super.parseMixin(augmentToken, mixinKeyword);
+    var result = super.parseMixin(augmentToken, sealedToken, mixinKeyword);
     indent--;
     return result;
   }
@@ -1040,6 +1103,15 @@ class TestParser extends Parser {
     doPrint('ensureColon(' '$token)');
     indent++;
     var result = super.ensureColon(token);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token ensureFunctionArrow(Token token) {
+    doPrint('ensureFunctionArrow(' '$token)');
+    indent++;
+    var result = super.ensureFunctionArrow(token);
     indent--;
     return result;
   }
@@ -1558,46 +1630,50 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseParenthesizedExpressionOrFunctionLiteral(Token token) {
-    doPrint('parseParenthesizedExpressionOrFunctionLiteral(' '$token)');
+  Token parseParenthesizedExpressionFunctionLiteralOrRecordLiteral(
+      Token token) {
+    doPrint('parseParenthesizedExpressionFunctionLiteralOrRecordLiteral('
+        '$token)');
     indent++;
-    var result = super.parseParenthesizedExpressionOrFunctionLiteral(token);
+    var result =
+        super.parseParenthesizedExpressionFunctionLiteralOrRecordLiteral(token);
     indent--;
     return result;
   }
 
   @override
-  Token ensureParenthesizedCondition(Token token) {
-    doPrint('ensureParenthesizedCondition(' '$token)');
+  Token ensureParenthesizedCondition(Token token, {required bool allowCase}) {
+    doPrint(
+        'ensureParenthesizedCondition(' '$token, ' 'allowCase: $allowCase)');
     indent++;
-    var result = super.ensureParenthesizedCondition(token);
+    var result =
+        super.ensureParenthesizedCondition(token, allowCase: allowCase);
     indent--;
     return result;
   }
 
   @override
-  Token parseParenthesizedExpression(Token token) {
-    doPrint('parseParenthesizedExpression(' '$token)');
+  Token parseParenthesizedExpressionOrRecordLiteral(
+      Token token, Token? constKeywordForRecord) {
+    doPrint('parseParenthesizedExpressionOrRecordLiteral('
+        '$token, '
+        '$constKeywordForRecord)');
     indent++;
-    var result = super.parseParenthesizedExpression(token);
+    var result = super.parseParenthesizedExpressionOrRecordLiteral(
+        token, constKeywordForRecord);
     indent--;
     return result;
   }
 
   @override
-  Token parseExpressionInParenthesis(Token token) {
-    doPrint('parseExpressionInParenthesis(' '$token)');
+  Token parseExpressionInParenthesisRest(Token token,
+      {required bool allowCase}) {
+    doPrint('parseExpressionInParenthesisRest('
+        '$token, '
+        'allowCase: $allowCase)');
     indent++;
-    var result = super.parseExpressionInParenthesis(token);
-    indent--;
-    return result;
-  }
-
-  @override
-  Token parseExpressionInParenthesisRest(Token token) {
-    doPrint('parseExpressionInParenthesisRest(' '$token)');
-    indent++;
-    var result = super.parseExpressionInParenthesisRest(token);
+    var result =
+        super.parseExpressionInParenthesisRest(token, allowCase: allowCase);
     indent--;
     return result;
   }
@@ -2386,6 +2462,20 @@ class TestParser extends Parser {
   }
 
   @override
+  void reportExperimentNotEnabled(
+      ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
+    doPrint('reportExperimentNotEnabled('
+        '$experimentalFlag, '
+        '$startToken, '
+        '$endToken)');
+    indent++;
+    var result = super
+        .reportExperimentNotEnabled(experimentalFlag, startToken, endToken);
+    indent--;
+    return result;
+  }
+
+  @override
   void reportRecoverableErrorWithToken(Token token, dynamic template) {
     doPrint('reportRecoverableErrorWithToken(' '$token, ' '$template)');
     indent++;
@@ -2568,6 +2658,151 @@ class TestParser extends Parser {
     doPrint('isLinkText(' '$comment, ' '$rightIndex)');
     indent++;
     var result = super.isLinkText(comment, rightIndex);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parsePattern(Token token,
+      {int precedence = 1, required bool isRefutableContext}) {
+    doPrint('parsePattern('
+        '$token, '
+        'precedence: $precedence, '
+        'isRefutableContext: $isRefutableContext)');
+    indent++;
+    var result = super.parsePattern(token,
+        precedence: precedence, isRefutableContext: isRefutableContext);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parsePrimaryPattern(Token token, {required bool isRefutableContext}) {
+    doPrint('parsePrimaryPattern('
+        '$token, '
+        'isRefutableContext: $isRefutableContext)');
+    indent++;
+    var result = super
+        .parsePrimaryPattern(token, isRefutableContext: isRefutableContext);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseVariablePattern(Token token, {TypeInfo typeInfo = noType}) {
+    doPrint('parseVariablePattern(' '$token, ' 'typeInfo: $typeInfo)');
+    indent++;
+    var result = super.parseVariablePattern(token, typeInfo: typeInfo);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseListPatternSuffix(Token token,
+      {required bool isRefutableContext}) {
+    doPrint('parseListPatternSuffix('
+        '$token, '
+        'isRefutableContext: $isRefutableContext)');
+    indent++;
+    var result = super
+        .parseListPatternSuffix(token, isRefutableContext: isRefutableContext);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseMapPatternSuffix(Token token, {required bool isRefutableContext}) {
+    doPrint('parseMapPatternSuffix('
+        '$token, '
+        'isRefutableContext: $isRefutableContext)');
+    indent++;
+    var result = super
+        .parseMapPatternSuffix(token, isRefutableContext: isRefutableContext);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseParenthesizedPatternOrRecordPattern(Token token,
+      {required bool isRefutableContext}) {
+    doPrint('parseParenthesizedPatternOrRecordPattern('
+        '$token, '
+        'isRefutableContext: $isRefutableContext)');
+    indent++;
+    var result = super.parseParenthesizedPatternOrRecordPattern(token,
+        isRefutableContext: isRefutableContext);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseObjectPatternRest(Token token,
+      {required bool isRefutableContext}) {
+    doPrint('parseObjectPatternRest('
+        '$token, '
+        'isRefutableContext: $isRefutableContext)');
+    indent++;
+    var result = super
+        .parseObjectPatternRest(token, isRefutableContext: isRefutableContext);
+    indent--;
+    return result;
+  }
+
+  @override
+  bool looksLikeOuterPatternEquals(Token token) {
+    doPrint('looksLikeOuterPatternEquals(' '$token)');
+    indent++;
+    var result = super.looksLikeOuterPatternEquals(token);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token? skipOuterPattern(Token token) {
+    doPrint('skipOuterPattern(' '$token)');
+    indent++;
+    var result = super.skipOuterPattern(token);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token? skipObjectPatternRest(Token token) {
+    doPrint('skipObjectPatternRest(' '$token)');
+    indent++;
+    var result = super.skipObjectPatternRest(token);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parsePatternVariableDeclarationStatement(
+      Token keyword, Token start, Token varOrFinal) {
+    doPrint('parsePatternVariableDeclarationStatement('
+        '$keyword, '
+        '$start, '
+        '$varOrFinal)');
+    indent++;
+    var result = super
+        .parsePatternVariableDeclarationStatement(keyword, start, varOrFinal);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parsePatternAssignment(Token token) {
+    doPrint('parsePatternAssignment(' '$token)');
+    indent++;
+    var result = super.parsePatternAssignment(token);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseSwitchExpression(Token token) {
+    doPrint('parseSwitchExpression(' '$token)');
+    indent++;
+    var result = super.parseSwitchExpression(token);
     indent--;
     return result;
   }

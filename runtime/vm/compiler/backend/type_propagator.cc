@@ -286,7 +286,7 @@ void FlowGraphTypePropagator::VisitCheckNull(CheckNullInstr* check) {
     // motion of the check may still enable valid code motion
     // of the checked code.
     if (check->ssa_temp_index() == -1) {
-      flow_graph_->AllocateSSAIndexes(check);
+      flow_graph_->AllocateSSAIndex(check);
       GrowTypes(check->ssa_temp_index() + 1);
     }
     FlowGraph::RenameDominatedUses(receiver, check, check);
@@ -370,7 +370,7 @@ void FlowGraphTypePropagator::VisitAssertAssignable(
   auto defn = check->value()->definition();
   SetTypeOf(defn, new (zone()) CompileType(check->ComputeType()));
   if (check->ssa_temp_index() == -1) {
-    flow_graph_->AllocateSSAIndexes(check);
+    flow_graph_->AllocateSSAIndex(check);
     GrowTypes(check->ssa_temp_index() + 1);
   }
   FlowGraph::RenameDominatedUses(defn, check, check);
@@ -599,7 +599,7 @@ void CompileType::Union(CompileType* other) {
   // Climb up the hierarchy to find a suitable supertype. Note that interface
   // types are not considered, making the union potentially non-commutative
   if (abstract_type->IsInstantiated() && !abstract_type->IsDynamicType() &&
-      !abstract_type->IsFunctionType()) {
+      !abstract_type->IsFunctionType() && !abstract_type->IsRecordType()) {
     Class& cls = Class::Handle(abstract_type->type_class());
     for (; !cls.IsNull() && !cls.IsGeneric(); cls = cls.SuperClass()) {
       type_ = &AbstractType::ZoneHandle(cls.RareType());
@@ -677,7 +677,9 @@ CompileType CompileType::FromAbstractType(const AbstractType& type,
 
 CompileType CompileType::FromCid(intptr_t cid) {
   ASSERT(cid != kIllegalCid);
-  ASSERT(cid != kDynamicCid);
+  if (cid == kDynamicCid) {
+    return CompileType::Dynamic();
+  }
   return CompileType(cid == kNullCid, cid == kSentinelCid, cid, nullptr);
 }
 
@@ -773,30 +775,14 @@ intptr_t CompileType::ToNullableCid() {
       cid_ = kSentinelCid;
     } else if (type_->IsFunctionType() || type_->IsDartFunctionType()) {
       cid_ = kClosureCid;
+    } else if (type_->IsRecordType() || type_->IsDartRecordType()) {
+      cid_ = kRecordCid;
     } else if (type_->type_class_id() != kIllegalCid) {
       const Class& type_class = Class::Handle(type_->type_class());
-      Thread* thread = Thread::Current();
-      CHA& cha = thread->compiler_state().cha();
-      // Don't infer a cid from an abstract type since there can be multiple
-      // compatible classes with different cids.
-      if (!type_class.is_abstract() && !CHA::IsImplemented(type_class) &&
-          !CHA::HasSubclasses(type_class)) {
-        if (type_class.IsPrivate()) {
-          // Type of a private class cannot change through later loaded libs.
-          cid_ = type_class.id();
-        } else if (FLAG_use_cha_deopt ||
-                   thread->isolate_group()->all_classes_finalized()) {
-          if (FLAG_trace_cha) {
-            THR_Print("  **(CHA) Compile type not subclassed: %s\n",
-                      type_class.ToCString());
-          }
-          if (FLAG_use_cha_deopt) {
-            cha.AddToGuardedClasses(type_class, /*subclass_count=*/0);
-          }
-          cid_ = type_class.id();
-        } else {
-          cid_ = kDynamicCid;
-        }
+      intptr_t implementation_cid = kIllegalCid;
+      if (CHA::HasSingleConcreteImplementation(type_class,
+                                               &implementation_cid)) {
+        cid_ = implementation_cid;
       } else {
         cid_ = kDynamicCid;
       }
@@ -1666,6 +1652,14 @@ CompileType AllocateClosureInstr::ComputeType() const {
   return CompileType::FromCid(kClosureCid);
 }
 
+CompileType AllocateRecordInstr::ComputeType() const {
+  return CompileType::FromCid(kRecordCid);
+}
+
+CompileType AllocateSmallRecordInstr::ComputeType() const {
+  return CompileType::FromCid(kRecordCid);
+}
+
 CompileType LoadUntaggedInstr::ComputeType() const {
   return CompileType::Dynamic();
 }
@@ -1886,6 +1880,10 @@ CompileType ExtractNthOutputInstr::ComputeType() const {
   return CompileType::FromCid(definition_cid_);
 }
 
+CompileType MakePairInstr::ComputeType() const {
+  return CompileType::Dynamic();
+}
+
 static AbstractTypePtr ExtractElementTypeFromArrayType(
     const AbstractType& array_type) {
   if (array_type.IsTypeParameter()) {
@@ -2002,6 +2000,9 @@ CompileType LoadIndexedInstr::ComputeType() const {
     case kTypedDataInt64ArrayCid:
     case kTypedDataUint64ArrayCid:
       return CompileType::Int();
+
+    case kRecordCid:
+      return CompileType::Dynamic();
 
     default:
       UNIMPLEMENTED();

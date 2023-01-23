@@ -3,20 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // ignore: import_internal_library
-import 'dart:_js_helper';
+import 'dart:_internal';
 
 @patch
 class Class {
   final bool defaultValue;
 
-  const Class._internal({this.defaultValue: false});
+  const Class._internal({this.defaultValue = false});
 
   @patch
-  factory Class.fact({bool defaultValue: true}) =>
+  factory Class.fact({bool defaultValue = true}) =>
       new Class._internal(defaultValue: defaultValue);
 
   @patch
-  factory Class.constFact({bool defaultValue: true}) => throw 'unsupported';
+  factory Class.constFact({bool defaultValue = true}) => throw 'unsupported';
 
   /*@patch
   const factory Class.redirect({bool defaultValue: true}) =

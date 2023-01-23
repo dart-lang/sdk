@@ -6,7 +6,7 @@
 
 // Dart test program for testing dart:ffi function pointers with callbacks.
 //
-// VMOptions=--deterministic --optimization-counter-threshold=10
+// VMOptions=--deterministic --optimization-counter-threshold=90
 // VMOptions=--stacktrace-every=100
 // VMOptions=--write-protect-code --no-dual-map-code
 // VMOptions=--write-protect-code --no-dual-map-code --stacktrace-every=100

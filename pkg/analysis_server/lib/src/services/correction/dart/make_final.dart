@@ -26,18 +26,15 @@ class MakeFinal extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     final node = this.node;
-    var parent = node.parent;
-    var grandParent = parent?.parent;
+    final parent = node.parent;
 
-    if (node is SimpleIdentifier &&
-        parent is DeclaredIdentifier &&
-        grandParent is ForEachPartsWithDeclaration) {
+    if (node is DeclaredIdentifier && parent is ForEachPartsWithDeclaration) {
       await builder.addDartFileEdit(file, (builder) {
-        var keyword = parent.keyword;
+        var keyword = node.keyword;
         if (keyword != null && keyword.keyword == Keyword.VAR) {
           builder.addSimpleReplacement(range.token(keyword), 'final');
         } else if (keyword == null) {
-          builder.addSimpleInsertion(parent.offset, 'final ');
+          builder.addSimpleInsertion(node.offset, 'final ');
         }
       });
       return;
@@ -62,7 +59,7 @@ class MakeFinal extends CorrectionProducer {
             builder.addSimpleInsertion(type.offset, 'final ');
             return;
           }
-          final identifier = simpleNode.identifier;
+          final identifier = simpleNode.name;
           if (identifier != null) {
             builder.addSimpleInsertion(identifier.offset, 'final ');
           } else {
@@ -73,20 +70,15 @@ class MakeFinal extends CorrectionProducer {
       return;
     }
 
-    if (node is SimpleIdentifier && parent is SimpleFormalParameter) {
+    if (node is SimpleFormalParameter) {
       await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleInsertion(node.offset, 'final ');
+        builder.addSimpleInsertion(node.name!.offset, 'final ');
       });
       return;
     }
 
     VariableDeclarationList list;
-    if (node is SimpleIdentifier &&
-        parent is VariableDeclaration &&
-        grandParent is VariableDeclarationList) {
-      list = grandParent;
-    } else if (node is VariableDeclaration &&
-        parent is VariableDeclarationList) {
+    if (node is VariableDeclaration && parent is VariableDeclarationList) {
       list = parent;
     } else if (node is VariableDeclarationList) {
       list = node;

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--async_igoto_threshold=0 --optimization_counter_threshold=10 --deterministic
+// VMOptions=--optimization_counter_threshold=10 --deterministic
 
 // Regression test for https://github.com/flutter/flutter/issues/51298.
 // This would cause a crash due to bad offsets causing entry to hit the pre-code

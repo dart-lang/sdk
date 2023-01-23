@@ -143,7 +143,8 @@ class DillLoader extends Loader {
       _unparsedLibraries.addLast(libraryBuilder);
     }
     if (accessor != null) {
-      libraryBuilder.recordAccess(charOffset, noLength, accessor.fileUri);
+      libraryBuilder.recordAccess(
+          accessor, charOffset, noLength, accessor.fileUri);
       if (!accessor.isPatch &&
           !accessor.isPart &&
           !target.backendTarget
@@ -199,10 +200,10 @@ class DillLoader extends Loader {
   @override
   FormattedMessage? addProblem(
       Message message, int charOffset, int length, Uri? fileUri,
-      {bool wasHandled: false,
+      {bool wasHandled = false,
       List<LocatedMessage>? context,
       Severity? severity,
-      bool problemOnLibrary: false,
+      bool problemOnLibrary = false,
       List<Uri>? involvedFiles}) {
     return _addMessage(message, charOffset, length, fileUri, severity,
         wasHandled: wasHandled,
@@ -224,9 +225,9 @@ class DillLoader extends Loader {
   /// [wasHandled] is false.
   FormattedMessage? _addMessage(Message message, int charOffset, int length,
       Uri? fileUri, Severity? severity,
-      {bool wasHandled: false,
+      {bool wasHandled = false,
       List<LocatedMessage>? context,
-      bool problemOnLibrary: false,
+      bool problemOnLibrary = false,
       List<Uri>? involvedFiles}) {
     assert(
         fileUri != missingUri, "Message unexpectedly reported on missing uri.");
@@ -270,7 +271,7 @@ severity: $severity
   /// Append compiled libraries from the given [component]. If the [filter] is
   /// provided, append only libraries whose [Uri] is accepted by the [filter].
   List<DillLibraryBuilder> appendLibraries(Component component,
-      {bool Function(Uri uri)? filter, int byteCount: 0}) {
+      {bool Function(Uri uri)? filter, int byteCount = 0}) {
     List<Library> componentLibraries = component.libraries;
     List<Uri> requestedLibraries = <Uri>[];
     List<Uri> requestedLibrariesFileUri = <Uri>[];
@@ -319,7 +320,7 @@ severity: $severity
     builder.markAsReadyToBuild();
   }
 
-  void finalizeExports({bool suppressFinalizationErrors: false}) {
+  void finalizeExports({bool suppressFinalizationErrors = false}) {
     for (DillLibraryBuilder builder in libraryBuilders) {
       builder.markAsReadyToFinalizeExports(
           suppressFinalizationErrors: suppressFinalizationErrors);

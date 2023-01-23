@@ -38,7 +38,7 @@ mixin ErrorDetectionHelpers {
       return;
     }
 
-    _checkForAssignableExpressionAtType(
+    checkForAssignableExpressionAtType(
         expression, actualStaticType, expectedStaticType, errorCode,
         whyNotPromoted: whyNotPromoted);
   }
@@ -59,6 +59,36 @@ mixin ErrorDetectionHelpers {
       promoteParameterToNullable: promoteParameterToNullable,
       whyNotPromoted: whyNotPromoted,
     );
+  }
+
+  void checkForAssignableExpressionAtType(
+      Expression expression,
+      DartType actualStaticType,
+      DartType expectedStaticType,
+      ErrorCode errorCode,
+      {Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
+    if (!expectedStaticType.isVoid && checkForUseOfVoidResult(expression)) {
+      return;
+    }
+
+    if (!typeSystem.isAssignableTo(actualStaticType, expectedStaticType)) {
+      AstNode getErrorNode(AstNode node) {
+        if (node is CascadeExpression) {
+          return getErrorNode(node.target);
+        }
+        if (node is ParenthesizedExpression) {
+          return getErrorNode(node.expression);
+        }
+        return node;
+      }
+
+      errorReporter.reportErrorForNode(
+        errorCode,
+        getErrorNode(expression),
+        [actualStaticType, expectedStaticType],
+        computeWhyNotPromotedMessages(expression, whyNotPromoted?.call()),
+      );
+    }
   }
 
   /// Verify that the given constructor field [initializer] has compatible field
@@ -122,45 +152,6 @@ mixin ErrorDetectionHelpers {
 //              fieldType);
 //        }
 //        return true;
-  }
-
-  /// Verify that the given left hand side ([lhs]) and right hand side ([rhs])
-  /// represent a valid assignment.
-  ///
-  /// See [CompileTimeErrorCode.INVALID_ASSIGNMENT].
-  void checkForInvalidAssignment(Expression? lhs, Expression? rhs,
-      {Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
-    if (lhs == null || rhs == null) {
-      return;
-    }
-
-    if (lhs is IndexExpression &&
-            identical(lhs.realTarget.staticType, NeverTypeImpl.instance) ||
-        lhs is PrefixedIdentifier &&
-            identical(lhs.prefix.staticType, NeverTypeImpl.instance) ||
-        lhs is PropertyAccess &&
-            identical(lhs.realTarget.staticType, NeverTypeImpl.instance)) {
-      return;
-    }
-
-    DartType leftType;
-    var parent = lhs.parent;
-    if (parent is AssignmentExpression && parent.leftHandSide == lhs) {
-      leftType = parent.writeType!;
-    } else {
-      var leftVariableElement = getVariableElement(lhs);
-      leftType = (leftVariableElement == null)
-          ? lhs.typeOrThrow
-          : leftVariableElement.type;
-    }
-
-    if (!leftType.isVoid && checkForUseOfVoidResult(rhs)) {
-      return;
-    }
-
-    _checkForAssignableExpressionAtType(
-        rhs, rhs.typeOrThrow, leftType, CompileTimeErrorCode.INVALID_ASSIGNMENT,
-        whyNotPromoted: whyNotPromoted);
   }
 
   /// Check for situations where the result of a method or function is used,
@@ -283,33 +274,5 @@ mixin ErrorDetectionHelpers {
           CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
           whyNotPromoted: whyNotPromoted);
     }
-  }
-
-  bool _checkForAssignableExpressionAtType(
-      Expression expression,
-      DartType actualStaticType,
-      DartType expectedStaticType,
-      ErrorCode errorCode,
-      {Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
-    if (!typeSystem.isAssignableTo(actualStaticType, expectedStaticType)) {
-      AstNode getErrorNode(AstNode node) {
-        if (node is CascadeExpression) {
-          return getErrorNode(node.target);
-        }
-        if (node is ParenthesizedExpression) {
-          return getErrorNode(node.expression);
-        }
-        return node;
-      }
-
-      errorReporter.reportErrorForNode(
-        errorCode,
-        getErrorNode(expression),
-        [actualStaticType, expectedStaticType],
-        computeWhyNotPromotedMessages(expression, whyNotPromoted?.call()),
-      );
-      return false;
-    }
-    return true;
   }
 }

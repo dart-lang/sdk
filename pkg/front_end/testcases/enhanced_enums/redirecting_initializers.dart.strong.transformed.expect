@@ -21,15 +21,15 @@ import "dart:core" as core;
 class E1 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E1> values = #C8;
   final field core::int foo;
-  static const field self::E1 one = #C4;
-  static const field self::E1 two = #C7;
+  enum-element static const field self::E1 one = #C4;
+  enum-element static const field self::E1 two = #C7;
   const constructor •(core::int #index, core::String #name, core::int foo) → self::E1
     : self::E1::foo = foo, super core::_Enum::•(#index, #name)
     ;
   const constructor named(core::int #index, core::String #name, core::int value) → self::E1
     : this self::E1::•(#index, #name, value)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
 }
 class E2 extends core::_Enum /*isEnum*/  {
@@ -38,8 +38,8 @@ Try removing the extra positional arguments.
   const E2.named(int value) : this(value, value); // Error.
                                   ^";
   final field core::int foo;
-  static const field self::E2 one = #C9;
-  static const field self::E2 two = invalid-expression "pkg/front_end/testcases/enhanced_enums/redirecting_initializers.dart:22:35: Error: Too many positional arguments: 3 allowed, but 4 found.
+  enum-element static const field self::E2 one = #C9;
+  enum-element static const field self::E2 two = invalid-expression "pkg/front_end/testcases/enhanced_enums/redirecting_initializers.dart:22:35: Error: Too many positional arguments: 3 allowed, but 4 found.
 Try removing the extra positional arguments.
   const E2.named(int value) : this(value, value); // Error.
                                   ^";
@@ -52,7 +52,7 @@ Try removing the extra positional arguments.
   const E2.named(int value) : this(value, value); // Error.
                                   ^"
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
 }
 static method main() → dynamic {}
@@ -73,8 +73,8 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///redirecting_initializers.dart:
 - E1. (from org-dartlang-testcase:///redirecting_initializers.dart:11:9)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - E1.named (from org-dartlang-testcase:///redirecting_initializers.dart:12:9)
 - E2. (from org-dartlang-testcase:///redirecting_initializers.dart:21:9)
 - E2.named (from org-dartlang-testcase:///redirecting_initializers.dart:22:9)

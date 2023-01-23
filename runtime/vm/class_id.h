@@ -11,11 +11,15 @@
 // for these classes.
 
 #include "platform/assert.h"
+#include "vm/globals.h"
 
 namespace dart {
 
-// Size of the class-id part of the object header. See UntaggedObject.
-typedef uint16_t ClassIdTagType;
+// Large enough to contain the class-id part of the object header. See
+// UntaggedObject. Signed to be comparable to intptr_t.
+typedef int32_t ClassIdTagType;
+
+static constexpr intptr_t kClassIdTagMax = (1 << 20) - 1;
 
 // Classes that are not subclasses of Instance and only handled by the VM,
 // but do not require any special handling other than being a predefined class.
@@ -68,13 +72,14 @@ typedef uint16_t ClassIdTagType;
   V(TypeArguments)                                                             \
   V(AbstractType)                                                              \
   V(Type)                                                                      \
+  V(FunctionType)                                                              \
+  V(RecordType)                                                                \
+  V(TypeRef)                                                                   \
+  V(TypeParameter)                                                             \
   V(FinalizerBase)                                                             \
   V(Finalizer)                                                                 \
   V(NativeFinalizer)                                                           \
   V(FinalizerEntry)                                                            \
-  V(FunctionType)                                                              \
-  V(TypeRef)                                                                   \
-  V(TypeParameter)                                                             \
   V(Closure)                                                                   \
   V(Number)                                                                    \
   V(Integer)                                                                   \
@@ -85,6 +90,7 @@ typedef uint16_t ClassIdTagType;
   V(Float32x4)                                                                 \
   V(Int32x4)                                                                   \
   V(Float64x2)                                                                 \
+  V(Record)                                                                    \
   V(TypedDataBase)                                                             \
   V(TypedData)                                                                 \
   V(ExternalTypedData)                                                         \
@@ -108,12 +114,12 @@ typedef uint16_t ClassIdTagType;
   CLASS_LIST_INTERNAL_ONLY(V) CLASS_LIST_INSTANCE_SINGLETONS(V)
 
 #define CLASS_LIST_MAPS(V)                                                     \
-  V(LinkedHashMap)                                                             \
-  V(ImmutableLinkedHashMap)
+  V(Map)                                                                       \
+  V(ConstMap)
 
 #define CLASS_LIST_SETS(V)                                                     \
-  V(LinkedHashSet)                                                             \
-  V(ImmutableLinkedHashSet)
+  V(Set)                                                                       \
+  V(ConstSet)
 
 #define CLASS_LIST_FIXED_LENGTH_ARRAYS(V)                                      \
   V(Array)                                                                     \
@@ -188,8 +194,8 @@ typedef uint16_t ClassIdTagType;
 
 #define CLASS_LIST_FOR_HANDLES(V)                                              \
   CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY_NOR_MAP(V)                         \
-  V(LinkedHashMap)                                                             \
-  V(LinkedHashSet)                                                             \
+  V(Map)                                                                       \
+  V(Set)                                                                       \
   V(Array)                                                                     \
   V(GrowableObjectArray)                                                       \
   V(String)
@@ -233,10 +239,12 @@ enum ClassId : intptr_t {
 #define DEFINE_OBJECT_KIND(clazz)                                              \
   kTypedData##clazz##Cid,                                                      \
   kTypedData##clazz##ViewCid,                                                  \
-  kExternalTypedData##clazz##Cid,
+  kExternalTypedData##clazz##Cid,                                              \
+  kUnmodifiableTypedData##clazz##ViewCid,
   CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
 #undef DEFINE_OBJECT_KIND
   kByteDataViewCid,
+  kUnmodifiableByteDataViewCid,
 
   kByteBufferCid,
   // clang-format on
@@ -255,6 +263,7 @@ enum ClassId : intptr_t {
 const int kTypedDataCidRemainderInternal = 0;
 const int kTypedDataCidRemainderView = 1;
 const int kTypedDataCidRemainderExternal = 2;
+const int kTypedDataCidRemainderUnmodifiable = 3;
 
 // Class Id predicates.
 
@@ -299,15 +308,20 @@ inline bool IsInternalOnlyClassId(intptr_t index) {
   return index <= kLastInternalOnlyCid;
 }
 
-inline bool IsErrorClassId(intptr_t index) {
   // Make sure this function is updated when new Error types are added.
-  COMPILE_ASSERT(kApiErrorCid == kErrorCid + 1 &&
-                 kLanguageErrorCid == kErrorCid + 2 &&
-                 kUnhandledExceptionCid == kErrorCid + 3 &&
-                 kUnwindErrorCid == kErrorCid + 4 &&
-                 // Change if needed for detecting a new error added at the end.
-                 kLastInternalOnlyCid == kUnwindErrorCid);
-  return (index >= kErrorCid && index <= kUnwindErrorCid);
+static const ClassId kFirstErrorCid = kErrorCid;
+static const ClassId kLastErrorCid = kUnwindErrorCid;
+COMPILE_ASSERT(kFirstErrorCid == kErrorCid &&
+               kApiErrorCid == kFirstErrorCid + 1 &&
+               kLanguageErrorCid == kFirstErrorCid + 2 &&
+               kUnhandledExceptionCid == kFirstErrorCid + 3 &&
+               kUnwindErrorCid == kFirstErrorCid + 4 &&
+               kLastErrorCid == kUnwindErrorCid &&
+               // Change if needed for detecting a new error added at the end.
+               kLastInternalOnlyCid == kLastErrorCid);
+
+inline bool IsErrorClassId(intptr_t index) {
+  return (index >= kFirstErrorCid && index <= kLastErrorCid);
 }
 
 inline bool IsNumberClassId(intptr_t index) {
@@ -355,40 +369,53 @@ inline bool IsBuiltinListClassId(intptr_t index) {
 }
 
 inline bool IsTypeClassId(intptr_t index) {
-  // Only Type and FunctionType can be encountered as instance types at runtime.
-  return index == kTypeCid || index == kFunctionTypeCid;
+  // Only Type, FunctionType and RecordType can be encountered as instance
+  // types at runtime.
+  return index == kTypeCid || index == kFunctionTypeCid ||
+         index == kRecordTypeCid;
 }
 
 inline bool IsTypedDataBaseClassId(intptr_t index) {
   // Make sure this is updated when new TypedData types are added.
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 3 == kTypedDataUint8ArrayCid);
+  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 4 == kTypedDataUint8ArrayCid);
   return index >= kTypedDataInt8ArrayCid && index < kByteDataViewCid;
 }
 
 inline bool IsTypedDataClassId(intptr_t index) {
   // Make sure this is updated when new TypedData types are added.
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 3 == kTypedDataUint8ArrayCid);
+  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 4 == kTypedDataUint8ArrayCid);
   return IsTypedDataBaseClassId(index) && ((index - kTypedDataInt8ArrayCid) %
-                                           3) == kTypedDataCidRemainderInternal;
+                                           4) == kTypedDataCidRemainderInternal;
 }
 
 inline bool IsTypedDataViewClassId(intptr_t index) {
   // Make sure this is updated when new TypedData types are added.
-  COMPILE_ASSERT(kTypedDataInt8ArrayViewCid + 3 == kTypedDataUint8ArrayViewCid);
+  COMPILE_ASSERT(kTypedDataInt8ArrayViewCid + 4 == kTypedDataUint8ArrayViewCid);
 
   const bool is_byte_data_view = index == kByteDataViewCid;
   return is_byte_data_view ||
          (IsTypedDataBaseClassId(index) &&
-          ((index - kTypedDataInt8ArrayCid) % 3) == kTypedDataCidRemainderView);
+          ((index - kTypedDataInt8ArrayCid) % 4) == kTypedDataCidRemainderView);
 }
 
 inline bool IsExternalTypedDataClassId(intptr_t index) {
   // Make sure this is updated when new TypedData types are added.
-  COMPILE_ASSERT(kExternalTypedDataInt8ArrayCid + 3 ==
+  COMPILE_ASSERT(kExternalTypedDataInt8ArrayCid + 4 ==
                  kExternalTypedDataUint8ArrayCid);
 
   return IsTypedDataBaseClassId(index) && ((index - kTypedDataInt8ArrayCid) %
-                                           3) == kTypedDataCidRemainderExternal;
+                                           4) == kTypedDataCidRemainderExternal;
+}
+
+inline bool IsUnmodifiableTypedDataViewClassId(intptr_t index) {
+  // Make sure this is updated when new TypedData types are added.
+  COMPILE_ASSERT(kExternalTypedDataInt8ArrayCid + 4 ==
+                 kExternalTypedDataUint8ArrayCid);
+
+  const bool is_byte_data_view = index == kUnmodifiableByteDataViewCid;
+  return is_byte_data_view || (IsTypedDataBaseClassId(index) &&
+                               ((index - kTypedDataInt8ArrayCid) % 4) ==
+                                   kTypedDataCidRemainderUnmodifiable);
 }
 
 inline bool IsFfiTypeClassId(intptr_t index) {
@@ -446,21 +473,21 @@ COMPILE_ASSERT(kTypedDataInt8ArrayCid + 1 == kTypedDataInt8ArrayViewCid);
 COMPILE_ASSERT(kTypedDataInt8ArrayCid + 2 == kExternalTypedDataInt8ArrayCid);
 
 // Ensure the order of the typed data members in 3-step.
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 1 * 3 == kTypedDataUint8ArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 2 * 3 ==
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 1 * 4 == kTypedDataUint8ArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 2 * 4 ==
                kTypedDataUint8ClampedArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 3 * 3 == kTypedDataInt16ArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 4 * 3 == kTypedDataUint16ArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 5 * 3 == kTypedDataInt32ArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 6 * 3 == kTypedDataUint32ArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 7 * 3 == kTypedDataInt64ArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 8 * 3 == kTypedDataUint64ArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 9 * 3 == kTypedDataFloat32ArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 10 * 3 == kTypedDataFloat64ArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 11 * 3 == kTypedDataFloat32x4ArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 12 * 3 == kTypedDataInt32x4ArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 13 * 3 == kTypedDataFloat64x2ArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 14 * 3 == kByteDataViewCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 3 * 4 == kTypedDataInt16ArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 4 * 4 == kTypedDataUint16ArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 5 * 4 == kTypedDataInt32ArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 6 * 4 == kTypedDataUint32ArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 7 * 4 == kTypedDataInt64ArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 8 * 4 == kTypedDataUint64ArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 9 * 4 == kTypedDataFloat32ArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 10 * 4 == kTypedDataFloat64ArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 11 * 4 == kTypedDataFloat32x4ArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 12 * 4 == kTypedDataInt32x4ArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 13 * 4 == kTypedDataFloat64x2ArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 14 * 4 == kByteDataViewCid);
 COMPILE_ASSERT(kByteBufferCid + 1 == kNullCid);
 
 }  // namespace dart

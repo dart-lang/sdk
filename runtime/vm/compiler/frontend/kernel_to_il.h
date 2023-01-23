@@ -19,6 +19,7 @@
 #include "vm/compiler/frontend/base_flow_graph_builder.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/frontend/scope_builder.h"
+#include "vm/object_store.h"
 
 namespace dart {
 
@@ -34,16 +35,6 @@ class FlowGraphBuilder;
 class SwitchBlock;
 class TryCatchBlock;
 class TryFinallyBlock;
-
-struct YieldContinuation {
-  Instruction* entry;
-  intptr_t try_index;
-
-  YieldContinuation(Instruction* entry, intptr_t try_index)
-      : entry(entry), try_index(try_index) {}
-
-  YieldContinuation() : entry(NULL), try_index(kInvalidTryIndex) {}
-};
 
 enum class TypeChecksToBuild {
   kCheckAllTypeParameterBounds,
@@ -83,6 +74,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   FlowGraph* BuildGraphOfMethodExtractor(const Function& method);
   FlowGraph* BuildGraphOfNoSuchMethodDispatcher(const Function& function);
+  FlowGraph* BuildGraphOfRecordFieldGetter(const Function& function);
 
   struct ClosureCallInfo;
 
@@ -203,15 +195,12 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment LoadLocal(LocalVariable* variable);
-  Fragment IndirectGoto(intptr_t target_count);
+  IndirectGotoInstr* IndirectGoto(intptr_t target_count);
   Fragment StoreLateField(const Field& field,
                           LocalVariable* instance,
                           LocalVariable* setter_value);
-  Fragment NativeCall(const String* name, const Function* function);
-  Fragment Return(
-      TokenPosition position,
-      bool omit_result_type_check = false,
-      intptr_t yield_index = UntaggedPcDescriptors::kInvalidYieldIndex);
+  Fragment NativeCall(const String& name, const Function& function);
+  Fragment Return(TokenPosition position, bool omit_result_type_check = false);
   void SetResultTypeForStaticCall(StaticCallInstr* call,
                                   const Function& target,
                                   intptr_t argument_count,
@@ -296,8 +285,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Converts 0 to false and the rest to true.
   Fragment IntToBool();
 
-  // Creates an ffi.Pointer holding a given address (TOS).
-  Fragment FfiPointerFromAddress(const Type& result_type);
+  // Creates an ffi.Pointer holding a given address.
+  Fragment FfiPointerFromAddress();
 
   // Pushes an (unboxed) bogus value returned when a native -> Dart callback
   // throws an exception.
@@ -583,6 +572,9 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
     return instructions;
   }
 
+  Fragment BuildDoubleHashCode();
+  Fragment BuildIntegerHashCode(bool smi);
+
   TranslationHelper translation_helper_;
   Thread* thread_;
   Zone* zone_;
@@ -603,8 +595,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   GraphEntryInstr* graph_entry_;
 
   ScopeBuildingResult* scopes_;
-
-  GrowableArray<YieldContinuation> yield_continuations_;
 
   LocalVariable* CurrentException() {
     return scopes_->exception_variables[catch_depth_ - 1];
@@ -945,6 +935,190 @@ class CatchBlock {
   intptr_t catch_try_index_;
 
   DISALLOW_COPY_AND_ASSIGN(CatchBlock);
+};
+
+enum SwitchDispatch {
+  kSwitchDispatchAuto = -1,
+  kSwitchDispatchLinearScan,
+  kSwitchDispatchBinarySearch,
+  kSwitchDispatchJumpTable,
+};
+
+// Collected information for a switch expression.
+class SwitchExpression {
+ public:
+  SwitchExpression(intptr_t case_index,
+                   TokenPosition position,
+                   const Instance& value)
+      : case_index_(case_index), position_(position), value_(&value) {}
+
+  intptr_t case_index() const { return case_index_; }
+  const TokenPosition& position() const { return position_; }
+  // Constant value of the expression.
+  const Instance& value() const { return *value_; }
+
+  // Integer representation of the expression.
+  // For Integers it is the value itself and for Enums it is the index.
+  const Integer& integer() const {
+    ASSERT(integer_ != nullptr);
+    return *integer_;
+  }
+
+  void set_integer(const Integer& integer) {
+    ASSERT(integer_ == nullptr);
+    integer_ = &integer;
+  }
+
+ private:
+  intptr_t case_index_;
+  TokenPosition position_;
+  const Instance* value_;
+  const Integer* integer_ = nullptr;
+};
+
+// A range that is covered by a branch in a binary search switch.
+// Leafs are represented by a range where min == max.
+class SwitchRange {
+ public:
+  static SwitchRange Leaf(intptr_t index,
+                          Fragment branch_instructions,
+                          bool is_bounds_checked = false) {
+    return SwitchRange(index, index, branch_instructions, is_bounds_checked);
+  }
+
+  static SwitchRange Branch(intptr_t min,
+                            intptr_t max,
+                            Fragment branch_instructions) {
+    return SwitchRange(min, max, branch_instructions,
+                       /*is_bounds_checked=*/false);
+  }
+
+  // min and max are indexes into a sorted array of case expressions.
+  intptr_t min() const { return min_; }
+  intptr_t max() const { return max_; }
+  // The fragment to continue building code for the branch.
+  Fragment branch_instructions() const { return branch_instructions_; }
+  // For leafs, whether the branch is known to be in the bounds of the
+  // overall switch.
+  bool is_bounds_checked() const { return is_bounds_checked_; }
+  bool is_leaf() const { return min_ == max_; }
+
+ private:
+  SwitchRange(intptr_t min,
+              intptr_t max,
+              Fragment branch_instructions,
+              bool is_bounds_checked)
+      : min_(min),
+        max_(max),
+        branch_instructions_(branch_instructions),
+        is_bounds_checked_(is_bounds_checked) {}
+
+  intptr_t min_;
+  intptr_t max_;
+  Fragment branch_instructions_;
+  bool is_bounds_checked_;
+};
+
+// Helper for building flow graph for a switch statement.
+class SwitchHelper {
+ public:
+  SwitchHelper(Zone* zone,
+               TokenPosition position,
+               bool is_exhaustive,
+               SwitchBlock* switch_block,
+               intptr_t case_count)
+      : zone_(zone),
+        position_(position),
+        is_exhaustive_(is_exhaustive),
+        switch_block_(switch_block),
+        case_count_(case_count),
+        case_bodies_(case_count),
+        case_expression_counts_(case_count),
+        expressions_(case_count),
+        sorted_expressions_(case_count) {
+    case_expression_counts_.FillWith(0, 0, case_count);
+  }
+
+  // A switch statement is optimizable if all expression are of the same type
+  // and have integer representations.
+  bool is_optimizable() const { return is_optimizable_; }
+  const TokenPosition& position() const { return position_; }
+  bool is_exhaustive() const { return is_exhaustive_; }
+  SwitchBlock* switch_block() { return switch_block_; }
+  intptr_t case_count() const { return case_count_; }
+
+  // Index of default case.
+  intptr_t default_case() const { return default_case_; }
+  void set_default_case(intptr_t index) {
+    ASSERT(default_case_ == -1);
+    default_case_ = index;
+  }
+
+  const GrowableArray<Fragment>& case_bodies() const { return case_bodies_; }
+
+  // Array of the expression counts for all cases.
+  const GrowableArray<intptr_t>& case_expression_counts() const {
+    return case_expression_counts_;
+  }
+
+  const GrowableArray<SwitchExpression>& expressions() const {
+    return expressions_;
+  }
+
+  const GrowableArray<SwitchExpression*>& sorted_expressions() const {
+    return sorted_expressions_;
+  }
+
+  // The common class of all expressions. The statement must be optimizable.
+  const Class& expression_class() const {
+    ASSERT(expression_class_ != nullptr);
+    return *expression_class_;
+  }
+
+  const Integer& expression_min() const {
+    ASSERT(expression_min_ != nullptr);
+    return *expression_min_;
+  }
+  const Integer& expression_max() const {
+    ASSERT(expression_max_ != nullptr);
+    return *expression_max_;
+  }
+
+  bool has_default() const { return default_case_ >= 0; }
+
+  bool is_enum_switch() const { return expression_class().is_enum_class(); }
+
+  // Returns size of [min..max] range, or kMaxInt64 on overflow.
+  int64_t ExpressionRange() const;
+
+  bool RequiresLowerBoundCheck() const;
+  bool RequiresUpperBoundCheck() const;
+
+  SwitchDispatch SelectDispatchStrategy();
+
+  void AddCaseBody(Fragment body) { case_bodies_.Add(body); }
+
+  void AddExpression(intptr_t case_index,
+                     TokenPosition position,
+                     const Instance& value);
+
+ private:
+  void PrepareForOptimizedSwitch();
+
+  Zone* zone_;
+  bool is_optimizable_ = false;
+  const TokenPosition position_;
+  const bool is_exhaustive_;
+  SwitchBlock* const switch_block_;
+  const intptr_t case_count_;
+  intptr_t default_case_ = -1;
+  GrowableArray<Fragment> case_bodies_;
+  GrowableArray<intptr_t> case_expression_counts_;
+  GrowableArray<SwitchExpression> expressions_;
+  GrowableArray<SwitchExpression*> sorted_expressions_;
+  const Class* expression_class_ = nullptr;
+  const Integer* expression_min_ = nullptr;
+  const Integer* expression_max_ = nullptr;
 };
 
 }  // namespace kernel

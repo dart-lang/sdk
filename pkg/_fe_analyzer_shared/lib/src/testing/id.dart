@@ -125,8 +125,8 @@ class IdValue {
   static const String errorPrefix = "error: ";
 
   static IdValue decode(Uri sourceUri, Annotation annotation, String text,
-      {bool preserveWhitespaceInAnnotations: false,
-      bool preserveInfixWhitespace: false}) {
+      {bool preserveWhitespaceInAnnotations = false,
+      bool preserveInfixWhitespace = false}) {
     int offset = annotation.offset;
     Id id;
     String expected;
@@ -203,7 +203,7 @@ class MemberId implements Id {
   @override
   final bool isGlobal;
 
-  factory MemberId(String text, {bool isGlobal: false}) {
+  factory MemberId(String text, {bool isGlobal = false}) {
     int dotPos = text.indexOf('.');
     if (dotPos != -1) {
       return new MemberId.internal(text.substring(dotPos + 1),
@@ -213,7 +213,7 @@ class MemberId implements Id {
     }
   }
 
-  MemberId.internal(this.memberName, {this.className, this.isGlobal: false});
+  MemberId.internal(this.memberName, {this.className, this.isGlobal = false});
 
   @override
   int get hashCode => className.hashCode * 13 + memberName.hashCode * 17;
@@ -243,7 +243,7 @@ class ClassId implements Id {
   @override
   final bool isGlobal;
 
-  ClassId(this.className, {this.isGlobal: false});
+  ClassId(this.className, {this.isGlobal = false});
 
   @override
   int get hashCode => className.hashCode * 13;

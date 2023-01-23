@@ -4,12 +4,14 @@
 
 // @dart = 2.7
 
+import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/elements/names.dart';
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 const String TEST = """
 class A {
@@ -56,7 +58,7 @@ void main() {
     var options = [Flags.omitImplicitChecks];
     var result = await runCompiler(
         memorySourceFiles: {'main.dart': TEST}, options: options);
-    var compiler = result.compiler;
+    Compiler compiler = result.compiler;
     var results = compiler.globalInference.resultsForTesting;
     var closedWorld = results.closedWorld;
     var elementEnvironment = closedWorld.elementEnvironment;
@@ -65,13 +67,15 @@ void main() {
         elementEnvironment.lookupClass(elementEnvironment.mainLibrary, "A");
 
     checkReturn(String name, TypeMask type) {
-      MemberEntity element = elementEnvironment.lookupClassMember(classA, name);
+      MemberEntity element =
+          elementEnvironment.lookupClassMember(classA, PublicName(name));
       var mask = results.resultOfMember(element).returnType;
       Expect.isTrue(type.containsMask(mask, closedWorld));
     }
 
     checkType(String name, type) {
-      MemberEntity element = elementEnvironment.lookupClassMember(classA, name);
+      MemberEntity element =
+          elementEnvironment.lookupClassMember(classA, PublicName(name));
       Expect.isTrue(
           type.containsMask(results.resultOfMember(element).type, closedWorld));
     }

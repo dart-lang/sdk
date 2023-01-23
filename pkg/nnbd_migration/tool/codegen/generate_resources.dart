@@ -18,7 +18,7 @@ void main(List<String> args) async {
   var argParser = ArgParser()
     ..addFlag('verify', negatable: false)
     ..addFlag('dev', negatable: false)
-    ..addOption('dart2js_path')
+    ..addOption('dart_path')
     ..addFlag('help', negatable: false);
   var argResults = argParser.parse(args);
   if (argResults['help'] == true) {
@@ -45,8 +45,7 @@ Run with '--verify' to validate that the web resource have been regenerated.
   if (verify) {
     verifyResourcesGDartGenerated();
   } else {
-    await compileWebFrontEnd(
-        devMode: dev!, dart2jsPath: dart2jsPath(argResults)!);
+    await compileWebFrontEnd(devMode: dev!, dartPath: dartPath(argResults)!);
 
     print('');
 
@@ -91,9 +90,11 @@ String base64Encode(List<int> bytes) {
 }
 
 Future<void> compileWebFrontEnd(
-    {required bool devMode, required String dart2jsPath}) async {
-  // dart2js -m -o output source
-  var process = await Process.start(dart2jsPath, [
+    {required bool devMode, required String dartPath}) async {
+  // dart compile js -m -o output source
+  var process = await Process.start(dartPath, [
+    'compile',
+    'js',
     devMode ? '-O1' : '-m',
     '--no-frequency-based-minification',
     '-o',
@@ -110,24 +111,23 @@ Future<void> compileWebFrontEnd(
 }
 
 void createResourcesGDart() {
-  var content =
-      generateResourceFile(sortDir(resourceDir.listSync()).where((entity) {
-    var name = path.basename(entity.path);
-    return entity is File && resourceTypes.contains(path.extension(name));
-  }).cast<File>());
+  var content = generateResourceFile(
+      sortDir(resourceDir.listSync()).where((entity) {
+        var name = path.basename(entity.path);
+        return entity is File && resourceTypes.contains(path.extension(name));
+      }).cast<File>(),
+      sourcesMd5: _computeSourcesMd5());
 
   // write the content
   resourcesFile.writeAsStringSync(content);
 }
 
-/// Returns the dart2jsPath, either from [argResults] or the Platform.
-String? dart2jsPath(ArgResults argResults) {
-  if (argResults.wasParsed('dart2js_path')) {
-    return argResults['dart2js_path'] as String?;
+/// Returns the dartPath, either from [argResults] or the Platform.
+String? dartPath(ArgResults argResults) {
+  if (argResults.wasParsed('dart_path')) {
+    return argResults['dart_path'] as String?;
   } else {
-    var sdkBinDir = path.dirname(Platform.resolvedExecutable);
-    var dart2jsBinary = Platform.isWindows ? 'dart2js.bat' : 'dart2js';
-    return path.join(sdkBinDir, dart2jsBinary);
+    return Platform.resolvedExecutable;
   }
 }
 
@@ -149,7 +149,7 @@ To re-generate lib/src/front_end/resources/resources.g.dart, run:
   exit(1);
 }
 
-String generateResourceFile(Iterable<File> resources) {
+String generateResourceFile(Iterable<File> resources, {String? sourcesMd5}) {
   var filePath = path.relative(Platform.script.toFilePath());
   var buf = StringBuffer('''
 // Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
@@ -196,17 +196,10 @@ String _decode(String data) {
 
     buf.writeln();
     buf.writeln('String? _$name;');
-    if (name == path.basename(javascriptOutput.path).replaceAll('.', '_')) {
+    if (sourcesMd5 != null &&
+        name == path.basename(javascriptOutput.path).replaceAll('.', '_')) {
       // Write out the crc for the dart code.
-      var sourceCode = StringBuffer();
-      // collect the dart source code
-      for (var entity in sortDir(dartSources.parent.listSync())) {
-        if (entity.path.endsWith('.dart')) {
-          sourceCode.write((entity as File).readAsStringSync());
-        }
-      }
-      buf.writeln(
-          "// migration_dart md5 is '${md5String(sourceCode.toString())}'");
+      buf.writeln("// migration_dart md5 is '$sourcesMd5'");
     } else {
       // highlight_css md5 is 'fb012626bafd286510d32da815dae448'
       buf.writeln("// $name md5 is '${md5String(source)}'");
@@ -221,10 +214,6 @@ String _decode(String data) {
 
 String md5String(String str) {
   return md5.convert(str.codeUnits).toString();
-}
-
-String md5StringFromBytes(List<int> bytes) {
-  return md5.convert(bytes).toString();
 }
 
 List<FileSystemEntity> sortDir(Iterable<FileSystemEntity> entities) {
@@ -272,18 +261,24 @@ void verifyResourcesGDartGenerated({
   }
 
   // verify the compiled dart code
-  var sourceCode = StringBuffer();
-  for (var entity in sortDir(dartSources.parent.listSync())) {
-    if (entity.path.endsWith('.dart')) {
-      sourceCode.write((entity as File).readAsStringSync());
-    }
-  }
-  var hash = md5String(sourceCode.toString());
+  String hash = _computeSourcesMd5();
   if (hash != resourceHashes['migration_dart']) {
     failVerification('Compiled javascript not up to date in resources.g.dart');
   }
 
   print('Generated resources up to date.');
+}
+
+String _computeSourcesMd5() {
+  var sourceCode = StringBuffer();
+  // collect the dart source code
+  for (var entity in sortDir(dartSources.parent.listSync())) {
+    if (entity.path.endsWith('.dart')) {
+      sourceCode.write((entity as File).readAsStringSync());
+    }
+  }
+  var sourcesMd5 = md5String(sourceCode.toString());
+  return sourcesMd5;
 }
 
 typedef VerificationFunction = void Function(String);

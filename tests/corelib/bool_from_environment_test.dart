@@ -4,6 +4,7 @@
 // SharedOptions=-Da=true -Db=false -Dc=NOTBOOL -Dd=True
 
 import "package:expect/expect.dart";
+import 'package:expect/config.dart';
 
 main() {
   Expect.isTrue(const bool.fromEnvironment('a'));
@@ -11,5 +12,5 @@ main() {
   Expect.isTrue(const bool.fromEnvironment('c', defaultValue: true));
   Expect.isFalse(const bool.fromEnvironment('c', defaultValue: false));
   Expect.isFalse(const bool.fromEnvironment('d', defaultValue: false));
-  Expect.equals(const bool.fromEnvironment('dart.isVM'), !identical(1.0, 1));
+  Expect.equals(const bool.fromEnvironment('dart.isVM'), isVmConfiguration);
 }

@@ -23,8 +23,30 @@ class PrefixedIdentifierResolver {
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
-  void resolve(PrefixedIdentifierImpl node, {required DartType? contextType}) {
+  PropertyAccessImpl? resolve(
+    PrefixedIdentifierImpl node, {
+    required DartType? contextType,
+  }) {
     node.prefix.accept(_resolver);
+
+    final prefixElement = node.prefix.staticElement;
+    if (prefixElement is! PrefixElement) {
+      final prefixType = node.prefix.staticType;
+      // TODO(scheglov) It would be nice to rewrite all such cases.
+      if (prefixType != null) {
+        final prefixTypeResolved =
+            _resolver.typeSystem.resolveToBound(prefixType);
+        if (prefixTypeResolved is RecordType) {
+          final propertyAccess = PropertyAccessImpl(
+            target: node.prefix,
+            operator: node.period,
+            propertyName: node.identifier,
+          );
+          _resolver.replaceExpression(node, propertyAccess);
+          return propertyAccess;
+        }
+      }
+    }
 
     var resolver = PropertyElementResolver(_resolver);
     var result = resolver.resolvePrefixedIdentifier(
@@ -40,7 +62,7 @@ class PrefixedIdentifierResolver {
 
     if (element is ExtensionElement) {
       _setExtensionIdentifierType(node);
-      return;
+      return null;
     }
 
     if (identical(node.prefix.staticType, NeverTypeImpl.instance)) {
@@ -48,7 +70,7 @@ class PrefixedIdentifierResolver {
           contextType: contextType);
       _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance,
           contextType: contextType);
-      return;
+      return null;
     }
 
     DartType type = DynamicTypeImpl.instance;
@@ -56,18 +78,18 @@ class PrefixedIdentifierResolver {
         result.readElementRecovery != null) {
       // Since the element came from error recovery logic, its type isn't
       // trustworthy; leave it as `dynamic`.
-    } else if (element is ClassElement) {
+    } else if (element is InterfaceElement) {
       if (_isExpressionIdentifier(node)) {
         var type = _typeProvider.typeType;
         node.staticType = type;
         identifier.staticType = type;
       }
-      return;
+      return null;
     } else if (element is DynamicElementImpl) {
       var type = _typeProvider.typeType;
       node.staticType = type;
       identifier.staticType = type;
-      return;
+      return null;
     } else if (element is TypeAliasElement) {
       if (node.parent is NamedType) {
         // no type
@@ -76,11 +98,11 @@ class PrefixedIdentifierResolver {
         node.staticType = type;
         identifier.staticType = type;
       }
-      return;
+      return null;
     } else if (element is MethodElement) {
       type = element.type;
     } else if (element is PropertyAccessorElement) {
-      type = _getTypeOfProperty(element);
+      type = result.getType!;
     } else if (element is ExecutableElement) {
       type = element.type;
     } else if (element is VariableElement) {
@@ -101,29 +123,7 @@ class PrefixedIdentifierResolver {
     }
     _inferenceHelper.recordStaticType(identifier, type, contextType: null);
     _inferenceHelper.recordStaticType(node, type, contextType: contextType);
-  }
-
-  /// Return the type that should be recorded for a node that resolved to the given accessor.
-  ///
-  /// @param accessor the accessor that the node resolved to
-  /// @return the type that should be recorded for a node that resolved to the given accessor
-  ///
-  /// TODO(scheglov) this is duplicate
-  DartType _getTypeOfProperty(PropertyAccessorElement accessor) {
-    FunctionType functionType = accessor.type;
-    if (accessor.isSetter) {
-      List<DartType> parameterTypes = functionType.normalParameterTypes;
-      if (parameterTypes.isNotEmpty) {
-        return parameterTypes[0];
-      }
-      var getter = accessor.variable.getter;
-      if (getter != null) {
-        functionType = getter.type;
-        return functionType.returnType;
-      }
-      return DynamicTypeImpl.instance;
-    }
-    return functionType.returnType;
+    return null;
   }
 
   /// Return `true` if the given [node] is not a type literal.
@@ -135,7 +135,7 @@ class PrefixedIdentifierResolver {
       return false;
     }
     if (parent is ConstructorDeclaration) {
-      if (parent.name == node || parent.returnType == node) {
+      if (parent.returnType == node) {
         return false;
       }
     }

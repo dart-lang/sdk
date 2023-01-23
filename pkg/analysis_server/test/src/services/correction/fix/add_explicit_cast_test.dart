@@ -20,6 +20,27 @@ class AddExplicitCastTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_EXPLICIT_CAST;
 
+  Future<void> test_argument() async {
+    await resolveTestCode('''
+void g(B b) {
+}
+void f(A a) {
+  g(a);
+}
+class A {}
+class B {}
+''');
+    await assertHasFix('''
+void g(B b) {
+}
+void f(A a) {
+  g(a as B);
+}
+class A {}
+class B {}
+''');
+  }
+
   Future<void> test_as() async {
     await resolveTestCode('''
 f(A a) {
@@ -30,7 +51,15 @@ class A {}
 class B {}
 class C {}
 ''');
-    await assertNoFix();
+    await assertHasFix('''
+f(A a) {
+  C c = a as C;
+  print(c);
+}
+class A {}
+class B {}
+class C {}
+''');
   }
 
   Future<void> test_assignment_general() async {
@@ -70,6 +99,48 @@ f(A a) {
   B b, b2;
   b = a as B;
   b2 = a as B;
+}
+class A {}
+class B {}
+''');
+  }
+
+  Future<void> test_assignment_iterable_cast() async {
+    await resolveTestCode('''
+f(Set<A> a) {
+  Set<B> b;
+  b = a.cast<A>();
+  print(b);
+}
+class A {}
+class B {}
+''');
+    await assertHasFix('''
+f(Set<A> a) {
+  Set<B> b;
+  b = a.cast<B>();
+  print(b);
+}
+class A {}
+class B {}
+''');
+  }
+
+  Future<void> test_assignment_iterable_toSet() async {
+    await resolveTestCode('''
+f(List<A> a) {
+  Set<B> b;
+  b = a.where((e) => e is B).toSet();
+  print(b);
+}
+class A {}
+class B {}
+''');
+    await assertHasFix('''
+f(List<A> a) {
+  Set<B> b;
+  b = a.where((e) => e is B).cast<B>().toSet();
+  print(b);
 }
 class A {}
 class B {}
@@ -156,6 +227,27 @@ f(Map<A, B> a) {
   Map<B, A> b, b2;
   b = a.cast<B, A>();
   b2 = a.cast<B, A>();
+}
+class A {}
+class B {}
+''');
+  }
+
+  Future<void> test_assignment_map_cast() async {
+    await resolveTestCode('''
+f(Map<A, B> a) {
+  Map<B, A> b;
+  b = a.cast<A, B>();
+  print(b);
+}
+class A {}
+class B {}
+''');
+    await assertHasFix('''
+f(Map<A, B> a) {
+  Map<B, A> b;
+  b = a.cast<B, A>();
+  print(b);
 }
 class A {}
 class B {}

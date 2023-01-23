@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart' show DartType;
 import '../ir/class_relation.dart';
+import '../js_model/js_world.dart';
 import '../serialization/serialization.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
@@ -24,7 +23,7 @@ class TrivialAbstractValue implements AbstractValue {
   String toString() => '?';
 }
 
-class TrivialAbstractValueDomain implements AbstractValueDomain {
+class TrivialAbstractValueDomain with AbstractValueDomain {
   const TrivialAbstractValueDomain();
 
   @override
@@ -34,7 +33,8 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
   AbstractValue get dynamicType => const TrivialAbstractValue();
 
   @override
-  void writeAbstractValueToDataSink(DataSinkWriter sink, AbstractValue value) {}
+  void writeAbstractValueToDataSink(
+      DataSinkWriter sink, AbstractValue? value) {}
 
   @override
   AbstractValue readAbstractValueFromDataSource(DataSourceReader source) =>
@@ -55,7 +55,7 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
   AbstractBool isJsIndexable(AbstractValue value) => AbstractBool.Maybe;
 
   @override
-  MemberEntity locateSingleMember(AbstractValue receiver, Selector selector) =>
+  MemberEntity? locateSingleMember(AbstractValue receiver, Selector selector) =>
       null;
 
   @override
@@ -77,7 +77,7 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
       const TrivialAbstractValue();
 
   @override
-  PrimitiveConstantValue getPrimitiveValue(AbstractValue value) => null;
+  PrimitiveConstantValue? getPrimitiveValue(AbstractValue value) => null;
 
   @override
   AbstractValue createPrimitiveValue(
@@ -88,13 +88,13 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
   bool isPrimitiveValue(AbstractValue value) => false;
 
   @override
-  MemberEntity getAllocationElement(AbstractValue value) => null;
+  MemberEntity? getAllocationElement(AbstractValue value) => null;
 
   @override
-  Object getAllocationNode(AbstractValue value) => null;
+  Object? getAllocationNode(AbstractValue value) => null;
 
   @override
-  AbstractValue getGeneralization(AbstractValue value) =>
+  AbstractValue getGeneralization(AbstractValue? value) =>
       const TrivialAbstractValue();
 
   @override
@@ -115,9 +115,9 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractValue createDictionaryValue(
-          AbstractValue originalValue,
-          Object allocationNode,
-          MemberEntity allocationElement,
+          AbstractValue? originalValue,
+          Object? allocationNode,
+          MemberEntity? allocationElement,
           AbstractValue key,
           AbstractValue value,
           Map<String, AbstractValue> mappings) =>
@@ -138,9 +138,9 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractValue createMapValue(
-          AbstractValue originalValue,
-          Object allocationNode,
-          MemberEntity allocationElement,
+          AbstractValue? originalValue,
+          Object? allocationNode,
+          MemberEntity? allocationElement,
           AbstractValue key,
           AbstractValue value) =>
       const TrivialAbstractValue();
@@ -155,9 +155,9 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractValue createSetValue(
-          AbstractValue originalValue,
-          Object allocationNode,
-          MemberEntity allocationElement,
+          AbstractValue? originalValue,
+          Object? allocationNode,
+          MemberEntity? allocationElement,
           AbstractValue elementType) =>
       const TrivialAbstractValue();
 
@@ -165,7 +165,7 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
   bool isSet(AbstractValue value) => false;
 
   @override
-  int getContainerLength(AbstractValue value) => null;
+  int? getContainerLength(AbstractValue value) => null;
 
   @override
   AbstractValue getContainerElementType(AbstractValue value) {
@@ -175,11 +175,11 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractValue createContainerValue(
-          AbstractValue originalValue,
-          Object allocationNode,
-          MemberEntity allocationElement,
+          AbstractValue? originalValue,
+          Object? allocationNode,
+          MemberEntity? allocationElement,
           AbstractValue elementType,
-          int length) =>
+          int? length) =>
       const TrivialAbstractValue();
 
   @override
@@ -190,7 +190,7 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
       const TrivialAbstractValue();
 
   @override
-  AbstractValue getAbstractValueForNativeMethodParameterType(DartType type) =>
+  AbstractValue? getAbstractValueForNativeMethodParameterType(DartType type) =>
       null;
 
   @override
@@ -295,7 +295,7 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
   AbstractBool isLateSentinel(AbstractValue value) => AbstractBool.Maybe;
 
   @override
-  ClassEntity getExactClass(AbstractValue value) => null;
+  ClassEntity? getExactClass(AbstractValue value) => null;
 
   @override
   AbstractBool isExact(AbstractValue value) => AbstractBool.Maybe;
@@ -363,8 +363,8 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractValueWithPrecision createFromStaticType(DartType type,
-      {ClassRelation classRelation = ClassRelation.subtype, bool nullable}) {
-    assert(nullable != null);
+      {ClassRelation classRelation = ClassRelation.subtype,
+      required bool nullable}) {
     return const AbstractValueWithPrecision(TrivialAbstractValue(), false);
   }
 
@@ -466,7 +466,7 @@ class TrivialSelectorStrategy implements SelectorConstraintsStrategy {
 
   @override
   UniverseSelectorConstraints createSelectorConstraints(
-      Selector selector, Object initialConstraint) {
+      Selector selector, Object? initialConstraint) {
     return const TrivialUniverseSelectorConstraints();
   }
 

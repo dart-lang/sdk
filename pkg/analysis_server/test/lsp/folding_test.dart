@@ -3,11 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utils/test_code_extensions.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -18,64 +20,94 @@ void main() {
 
 @reflectiveTest
 class FoldingTest extends AbstractLspAnalysisServerTest {
+  /// A placeholder for folding range kinds that are unset to make it clearer
+  /// what's being expected in tests.
+  static const FoldingRangeKind? noFoldingKind = null;
+  late TestCode code;
+  List<FoldingRange> ranges = [];
+
+  bool lineFoldingOnly = false;
+
+  Future<void> computeRanges(String sourceContent,
+      {Uri? uri, void Function()? initializePlugin}) async {
+    uri ??= mainFileUri;
+
+    code = TestCode.parse(sourceContent);
+    final textDocCapabilities = lineFoldingOnly
+        ? withLineFoldingOnly(emptyTextDocumentClientCapabilities)
+        : emptyTextDocumentClientCapabilities;
+    await initialize(textDocumentCapabilities: textDocCapabilities);
+    await openFile(uri, code.code);
+
+    initializePlugin?.call();
+
+    ranges = await getFoldingRanges(uri);
+  }
+
+  void expectNoRanges() {
+    expect(ranges, isEmpty);
+  }
+
+  void expectRanges(Map<int, FoldingRangeKind?> expected,
+      {bool requireAll = true}) {
+    final expectedRanges = expected.entries.map((entry) {
+      final range = code.ranges[entry.key].range;
+      return FoldingRange(
+        startLine: range.start.line,
+        startCharacter: lineFoldingOnly ? null : range.start.character,
+        endLine: range.end.line,
+        endCharacter: lineFoldingOnly ? null : range.end.character,
+        // We (and VS Code) don't currently support this.
+        collapsedText: null,
+        kind: entry.value,
+      );
+    }).toSet();
+
+    if (requireAll) {
+      expect(ranges, expectedRanges);
+    } else {
+      expect(ranges, containsAll(expectedRanges));
+    }
+  }
+
+  void expectRangesContain(Map<int, FoldingRangeKind?> expected) =>
+      expectRanges(expected, requireAll: false);
+
   Future<void> test_class() async {
     final content = '''
-    class MyClass2 {[[
+    class MyClass2/*[0*/ {
       // Class content
-    ]]}
+    }/*0]*/
     ''';
 
-    final range1 = rangeFromMarkers(content);
-    final expectedRegions = [
-      FoldingRange(
-        startLine: range1.start.line,
-        startCharacter: range1.start.character,
-        endLine: range1.end.line,
-        endCharacter: range1.end.character,
-      )
-    ];
-
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final regions = await getFoldingRegions(mainFileUri);
-    expect(regions, unorderedEquals(expectedRegions));
+    await computeRanges(content);
+    expectRanges({
+      0: noFoldingKind,
+    });
   }
 
   Future<void> test_comments() async {
     final content = '''
-    /// This is a comment[[
-    /// that spans many lines]]
+    /// This is a comment[/*[0*/
+    /// that spans many lines/*0]*/
     class MyClass2 {}
     ''';
 
-    final range1 = rangeFromMarkers(content);
-    final expectedRegions = [
-      FoldingRange(
-        startLine: range1.start.line,
-        startCharacter: range1.start.character,
-        endLine: range1.end.line,
-        endCharacter: range1.end.character,
-        kind: FoldingRangeKind.Comment,
-      )
-    ];
-
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final regions = await getFoldingRegions(mainFileUri);
-    expect(regions, unorderedEquals(expectedRegions));
+    await computeRanges(content);
+    expectRanges({
+      0: FoldingRangeKind.Comment,
+    });
   }
 
   Future<void> test_doLoop() async {
     final content = '''
-    f(int i) {
-      do {[[
-        print('with statements');]]
+    f/*[0*/(int i) {
+      do {/*[1*/
+        print('with statements');/*1]*/
       } while (i == 0)
 
-      do {[[
-        // only comments]]
+      do {/*[2*/
+        // only comments/*2]*/
       } while (i == 0)
 
       // empty
@@ -84,50 +116,30 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
 
       // no body
       do;
-    }
+    }/*0]*/
     ''';
 
-    final ranges = rangesFromMarkers(content);
-    final expectedRegions = ranges
-        .map((range) => FoldingRange(
-              startLine: range.start.line,
-              startCharacter: range.start.character,
-              endLine: range.end.line,
-              endCharacter: range.end.character,
-            ))
-        .toList();
-
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final regions = await getFoldingRegions(mainFileUri);
-    expect(regions, containsAll(expectedRegions));
+    await computeRanges(content);
+    expectRangesContain({
+      0: noFoldingKind,
+      1: noFoldingKind,
+      2: noFoldingKind,
+    });
   }
 
   Future<void> test_enum() async {
     final content = '''
-    enum MyEnum {[[
+    enum MyEnum {/*[0*/
       one,
       two,
       three
-    ]]}
+    /*0]*/}
     ''';
 
-    final range1 = rangeFromMarkers(content);
-    final expectedRegions = [
-      FoldingRange(
-        startLine: range1.start.line,
-        startCharacter: range1.start.character,
-        endLine: range1.end.line,
-        endCharacter: range1.end.character,
-      )
-    ];
-
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final regions = await getFoldingRegions(mainFileUri);
-    expect(regions, unorderedEquals(expectedRegions));
+    await computeRanges(content);
+    expectRanges({
+      0: noFoldingKind,
+    });
   }
 
   Future<void> test_fromPlugins_dartFile() async {
@@ -135,138 +147,208 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     final pluginAnalyzedUri = Uri.file(pluginAnalyzedFilePath);
 
     const content = '''
-    // [[contributed by fake plugin]]
+    // /*[0*/contributed by fake plugin/*0]*/
 
-    class AnnotatedDartClass {[[
+    class AnnotatedDartClass/*[1*/ {
       // content of dart class, contributed by server
-    ]]}
+    }/*1]*/
     ''';
-    final ranges = rangesFromMarkers(content);
-    final withoutMarkers = withoutRangeMarkers(content);
-    newFile(pluginAnalyzedFilePath, '');
-
-    await initialize();
-    await openFile(pluginAnalyzedUri, withoutMarkers);
 
     final pluginResult = plugin.AnalysisFoldingParams(
       pluginAnalyzedFilePath,
       [plugin.FoldingRegion(plugin.FoldingKind.DIRECTIVES, 7, 26)],
     );
-    configureTestPlugin(notification: pluginResult.toNotification());
 
-    final res = await getFoldingRegions(pluginAnalyzedUri);
-    expect(
-      res,
-      unorderedEquals([
-        _toFoldingRange(ranges[0], FoldingRangeKind.Imports),
-        _toFoldingRange(ranges[1], null),
-      ]),
+    await computeRanges(
+      content,
+      uri: pluginAnalyzedUri,
+      initializePlugin: () =>
+          configureTestPlugin(notification: pluginResult.toNotification()),
     );
+    expectRanges({
+      0: FoldingRangeKind.Imports, // From plugin
+      1: noFoldingKind, // From server
+    });
   }
 
   Future<void> test_fromPlugins_nonDartFile() async {
     final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.sql');
     final pluginAnalyzedUri = Uri.file(pluginAnalyzedFilePath);
+
     const content = '''
       CREATE TABLE foo(
-         [[-- some columns]]
+         /*[0*/-- some columns/*0]*/
       );
     ''';
-    final withoutMarkers = withoutRangeMarkers(content);
-    newFile(pluginAnalyzedFilePath, withoutMarkers);
-
-    await initialize();
-    await openFile(pluginAnalyzedUri, withoutMarkers);
 
     final pluginResult = plugin.AnalysisFoldingParams(
       pluginAnalyzedFilePath,
       [plugin.FoldingRegion(plugin.FoldingKind.CLASS_BODY, 33, 15)],
     );
-    configureTestPlugin(notification: pluginResult.toNotification());
 
-    final res = await getFoldingRegions(pluginAnalyzedUri);
-    final expectedRange = rangeFromMarkers(content);
-    expect(res, [_toFoldingRange(expectedRange, null)]);
+    await computeRanges(
+      content,
+      uri: pluginAnalyzedUri,
+      initializePlugin: () =>
+          configureTestPlugin(notification: pluginResult.toNotification()),
+    );
+    expectRanges({
+      0: noFoldingKind, // From plugin
+    });
   }
 
   Future<void> test_headersImportsComments() async {
     final content = '''
-    // Copyright some year by some people[[
-    // See LICENCE etc.]]
+    // Copyright some year by some people/*[0*/
+    // See LICENCE etc./*0]*/
 
-    import[[ 'dart:io';
-    import 'dart:async';]]
+    import/*[1*/ 'dart:io';
+    import 'dart:async';/*1]*/
 
-    /// This is not the file header[[
-    /// It's just a comment]]
+    /// This is not the file header/*[2*/
+    /// It's just a comment/*2]*/
     void f() {}
     ''';
 
-    final ranges = rangesFromMarkers(content);
-
-    final expectedRegions = [
-      _toFoldingRange(ranges[0], FoldingRangeKind.Comment),
-      _toFoldingRange(ranges[1], FoldingRangeKind.Imports),
-      _toFoldingRange(ranges[2], FoldingRangeKind.Comment),
-    ];
-
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final regions = await getFoldingRegions(mainFileUri);
-    expect(regions, unorderedEquals(expectedRegions));
+    await computeRanges(content);
+    expectRanges({
+      0: FoldingRangeKind.Comment,
+      1: FoldingRangeKind.Imports,
+      2: FoldingRangeKind.Comment,
+    });
   }
 
   Future<void> test_ifElseElseIf() async {
     final content = '''
     f(int i) {
-      if (i == 0) {[[
+      if (i == 0) {/*[0*/
         // only
-        // comments]]
-      } else if (i == 1) {[[
-        print('statements');]]
+        // comments/*0]*/
+      } else if (i == 1) {/*[1*/
+        print('statements');/*1]*/
       } else if (i == 2) {
-      } else {[[
+      } else {/*[2*/
         // else
-        // comments]]
+        // comments/*2]*/
       }
     }
     ''';
 
-    final ranges = rangesFromMarkers(content);
-    final expectedRegions = ranges
-        .map((range) => FoldingRange(
-              startLine: range.start.line,
-              startCharacter: range.start.character,
-              endLine: range.end.line,
-              endCharacter: range.end.character,
-            ))
-        .toList();
+    await computeRanges(content);
+    expectRangesContain({
+      0: noFoldingKind,
+      1: noFoldingKind,
+      2: noFoldingKind,
+    });
+  }
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
+  Future<void> test_nested() async {
+    final content = '''
+    class MyClass2/*[0*/ {
+      void f/*[1*/() {
+        void g/*[2*/() {
+          //
+        }/*2]*/
+      }/*1]*/
+    }/*0]*/
+    ''';
 
-    final regions = await getFoldingRegions(mainFileUri);
-    expect(regions, containsAll(expectedRegions));
+    await computeRanges(content);
+    expectRanges({
+      0: noFoldingKind,
+      1: noFoldingKind,
+      2: noFoldingKind,
+    });
+  }
+
+  Future<void> test_nested_lineFoldingOnly() async {
+    lineFoldingOnly = true;
+    final content = '''
+    class MyClass2 {/*[0*/
+      void f() {/*[1*/
+        void g() {/*[2*/
+          //
+        /*2]*/}
+      /*1]*/}
+    /*0]*/}
+    ''';
+
+    await computeRanges(content);
+    expectRanges({
+      0: noFoldingKind,
+      1: noFoldingKind,
+      2: noFoldingKind,
+    });
   }
 
   Future<void> test_nonDartFile() async {
-    await initialize();
-    await openFile(pubspecFileUri, simplePubspecContent);
+    await computeRanges(simplePubspecContent, uri: pubspecFileUri);
+    expectNoRanges();
+  }
 
-    final regions = await getFoldingRegions(pubspecFileUri);
-    expect(regions, isEmpty);
+  /// When the client supports columns (not "lineFoldingOnly"), we can end
+  /// one range on the same line as the next one starts.
+  Future<void> test_overlapLines_columnsSupported() async {
+    final content = '''
+void f/*[0*/() {
+  //
+}/*0]*/ void g/*[1*/() {
+  //
+}/*1]*/
+    ''';
+
+    await computeRanges(content);
+    expectRanges({
+      0: noFoldingKind,
+      1: noFoldingKind,
+    });
+  }
+
+  /// When the client supports lineFoldingOnly, we cannot end a range on the
+  /// same line that the next one starts. Instead, it should be shortened to end
+  /// on the previous line.
+  Future<void> test_overlapLines_lineFoldingOnly() async {
+    lineFoldingOnly = true;
+    final content = '''
+void f/*[0*/() {
+  ///*0]*/
+} void g/*[1*/() {
+  //
+}/*1]*/
+    ''';
+
+    await computeRanges(content);
+    expectRanges({
+      0: noFoldingKind,
+      1: noFoldingKind,
+    });
+  }
+
+  Future<void> test_recordLiteral() async {
+    final content = '''
+    void f() {
+      var r = (/*[0*/
+        2,
+        'string',
+      /*0]*/);
+    }
+    ''';
+
+    await computeRanges(content);
+    expectRangesContain({
+      0: noFoldingKind,
+    });
   }
 
   Future<void> test_whileLoop() async {
     final content = '''
     f(int i) {
-      while (i == 0) {[[
-        print('with statements');]]
+      while (i == 0) {/*[0*/
+        print('with statements');/*0]*/
       }
 
-      while (i == 0) {[[
-        // only comments]]
+      while (i == 0) {/*[1*/
+        // only comments/*1]*/
       }
 
       // empty
@@ -278,30 +360,10 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     }
     ''';
 
-    final ranges = rangesFromMarkers(content);
-    final expectedRegions = ranges
-        .map((range) => FoldingRange(
-              startLine: range.start.line,
-              startCharacter: range.start.character,
-              endLine: range.end.line,
-              endCharacter: range.end.character,
-            ))
-        .toList();
-
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final regions = await getFoldingRegions(mainFileUri);
-    expect(regions, containsAll(expectedRegions));
-  }
-
-  FoldingRange _toFoldingRange(Range range, FoldingRangeKind? kind) {
-    return FoldingRange(
-      startLine: range.start.line,
-      startCharacter: range.start.character,
-      endLine: range.end.line,
-      endCharacter: range.end.character,
-      kind: kind,
-    );
+    await computeRanges(content);
+    expectRangesContain({
+      0: noFoldingKind,
+      1: noFoldingKind,
+    });
   }
 }

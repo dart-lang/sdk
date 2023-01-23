@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 part of js_backend.namer;
 
 abstract class _NamerName extends jsAst.Name {
@@ -11,7 +9,7 @@ abstract class _NamerName extends jsAst.Name {
 
   @override
   _NamerName withSourceInformation(
-      jsAst.JavaScriptNodeSourceInformation newSourceInformation) {
+      jsAst.JavaScriptNodeSourceInformation? newSourceInformation) {
     if (sourceInformation == newSourceInformation) return this;
     final name = this; // Variable needed for type promotion in next line.
     final underlying = name is _NameReference ? name._target : this;
@@ -122,21 +120,21 @@ class GetterName extends _PrefixedName {
   @override
   int get _kind => _NamerNameKinds.Getter.index;
 
-  GetterName(jsAst.Name prefix, jsAst.Name base) : super(prefix, base);
+  GetterName(super.prefix, super.base);
 }
 
 class SetterName extends _PrefixedName {
   @override
   int get _kind => _NamerNameKinds.Setter.index;
 
-  SetterName(jsAst.Name prefix, jsAst.Name base) : super(prefix, base);
+  SetterName(super.prefix, super.base);
 }
 
 class AsyncName extends _PrefixedName {
   @override
   int get _kind => _NamerNameKinds.Async.index;
 
-  AsyncName(jsAst.Name prefix, jsAst.Name base) : super(prefix, base);
+  AsyncName(super.prefix, super.base);
 
   @override
   bool get allowRename => true;
@@ -146,7 +144,6 @@ class CompoundName extends _NamerName implements jsAst.AstContainer {
   final List<_NamerName> _parts;
   @override
   int get _kind => _NamerNameKinds.Compound.index;
-  String _cachedName;
   int _cachedHashCode = -1;
 
   @override
@@ -154,15 +151,13 @@ class CompoundName extends _NamerName implements jsAst.AstContainer {
 
   CompoundName(this._parts);
 
-  CompoundName.from(List<jsAst.Name> parts) : this([...parts]);
+  CompoundName.from(List<_NamerName> parts) : this([...parts]);
 
   @override
   bool get isFinalized => _parts.every((name) => name.isFinalized);
 
   @override
-  String get name {
-    return _cachedName ??= _parts.map((jsAst.Name name) => name.name).join();
-  }
+  late final String name = _parts.map((jsAst.Name name) => name.name).join();
 
   @override
   String get key => _parts.map((_NamerName name) => name.key).join();
@@ -205,7 +200,7 @@ class CompoundName extends _NamerName implements jsAst.AstContainer {
 class TokenName extends _NamerName implements jsAst.ReferenceCountedAstNode {
   @override
   int get _kind => _NamerNameKinds.Token.index;
-  String _name;
+  String? _name;
   @override
   final String key;
   final TokenScope _scope;
@@ -217,10 +212,7 @@ class TokenName extends _NamerName implements jsAst.ReferenceCountedAstNode {
   bool get isFinalized => _name != null;
 
   @override
-  String get name {
-    assert(isFinalized, "TokenName($key) has not been finalized.");
-    return _name;
-  }
+  String get name => _name!;
 
   @override
   int _compareSameKind(TokenName other) {
@@ -254,12 +246,12 @@ class TokenName extends _NamerName implements jsAst.ReferenceCountedAstNode {
 // TODO(sra): See if this functionality can be moved into js_ast.
 class _NameReference extends _NamerName implements jsAst.AstContainer {
   final _NamerName _target;
-  final jsAst.JavaScriptNodeSourceInformation _sourceInformation;
+  final jsAst.JavaScriptNodeSourceInformation? _sourceInformation;
 
   _NameReference(this._target, this._sourceInformation);
 
   @override
-  jsAst.JavaScriptNodeSourceInformation get sourceInformation =>
+  jsAst.JavaScriptNodeSourceInformation? get sourceInformation =>
       _sourceInformation;
 
   @override

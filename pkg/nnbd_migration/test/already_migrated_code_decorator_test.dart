@@ -510,7 +510,7 @@ class _ContextWithElement with EdgeTester {
 
   void checkDynamic(DecoratedType? decoratedType, String displayName) {
     expect(decoratedType!.type, same(typeProvider.dynamicType));
-    checkAlwaysNullable(decoratedType.node!, displayName);
+    checkAlwaysNullable(decoratedType.node, displayName);
   }
 
   void checkExplicitlyNonNullable(NullabilityNode? node, String displayName) {
@@ -535,7 +535,8 @@ class _ContextWithElement with EdgeTester {
     void Function(DecoratedType?, String) checkArgument,
     String displayName,
   ) {
-    expect(decoratedType.type!.element, typeProvider.futureOrElement);
+    final type = decoratedType.type as InterfaceType;
+    expect(type.element, typeProvider.futureOrElement);
     checkNullability(decoratedType.node, displayName);
     checkArgument(
         decoratedType.typeArguments[0], 'type argument 0 of $displayName');
@@ -546,7 +547,8 @@ class _ContextWithElement with EdgeTester {
     void Function(NullabilityNode?, String) checkNullability,
     String displayName,
   ) {
-    expect(decoratedType.type!.element, typeProvider.intType.element);
+    final type = decoratedType.type as InterfaceType;
+    expect(type.element, typeProvider.intElement);
     checkNullability(decoratedType.node, displayName);
   }
 
@@ -556,8 +558,8 @@ class _ContextWithElement with EdgeTester {
     void Function(DecoratedType?, String) checkArgument,
     String displayName,
   ) {
-    expect(
-        decoratedType.type!.element, typeProvider.iterableDynamicType.element);
+    final type = decoratedType.type as InterfaceType;
+    expect(type.element, typeProvider.iterableElement);
     checkNullability(decoratedType.node, displayName);
     checkArgument(
         decoratedType.typeArguments[0], 'type argument 0 of $displayName');
@@ -573,7 +575,8 @@ class _ContextWithElement with EdgeTester {
     void Function(NullabilityNode?, String) checkNullability,
     String displayName,
   ) {
-    expect(decoratedType.type!.element, typeProvider.numType.element);
+    final type = decoratedType.type as InterfaceType;
+    expect(type.element, typeProvider.numElement);
     checkNullability(decoratedType.node, displayName);
   }
 
@@ -582,7 +585,8 @@ class _ContextWithElement with EdgeTester {
     void Function(NullabilityNode?, String) checkNullability,
     String displayName,
   ) {
-    expect(decoratedType.type!.element, typeProvider.objectType.element);
+    final type = decoratedType.type as InterfaceType;
+    expect(type.element, typeProvider.objectType.element);
     checkNullability(decoratedType.node, displayName);
   }
 
@@ -599,7 +603,7 @@ class _ContextWithElement with EdgeTester {
 
   void checkVoid(DecoratedType decoratedType, String displayName) {
     expect(decoratedType.type, same(typeProvider.voidType));
-    checkAlwaysNullable(decoratedType.node!, displayName);
+    checkAlwaysNullable(decoratedType.node, displayName);
   }
 
   DecoratedType decorate(DartType type) {

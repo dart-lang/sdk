@@ -19,4 +19,4 @@ var Class1_new = Class1.new;
 var Class2_new = Class2.new;
 testInferred() {}
 expect(expected, actual) {}
-throws(Function() f, {bool inSoundModeOnly: false}) {}
+throws(Function() f, {bool inSoundModeOnly = false}) {}

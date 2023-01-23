@@ -24,3 +24,4 @@ worlds:
           print("Hello world!");
         }
     expectedLibraryCount: 1
+    advancedInvalidation: bodiesOnly

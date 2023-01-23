@@ -12,7 +12,6 @@ type: newworld
 worlds:
   - entry: main.dart
     errors: true
-    experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
         class A1 {
@@ -25,7 +24,6 @@ worlds:
     expectedLibraryCount: 1
   - entry: main.dart
     errors: true
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
@@ -40,4 +38,4 @@ worlds:
           new A1.foo();
         }
     expectedLibraryCount: 1
-    expectsRebuildBodiesOnly: false # For now, libraries with errors cannot have bodies rebuild.
+    advancedInvalidation: problemsInLibrary # For now, libraries with errors cannot have bodies rebuild.

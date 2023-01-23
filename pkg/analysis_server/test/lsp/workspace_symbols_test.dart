@@ -91,7 +91,7 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
     final topLevel = symbols.firstWhere((s) => s.name == 'topLevel');
     expect(topLevel.kind, equals(SymbolKind.Variable));
     expect(topLevel.containerName, isNull);
-    expect(topLevel.location.uri, equals(mainFileUri.toString()));
+    expect(topLevel.location.uri, equals(mainFileUri));
     expect(topLevel.location.range, equals(rangeFromMarkers(content)));
 
     // Ensure we didn't get some things that definitely do not match.
@@ -117,7 +117,7 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
     final field = symbols.firstWhere((s) => s.name == 'myField');
     expect(field.kind, equals(SymbolKind.Field));
     expect(field.containerName, equals('MyClass'));
-    expect(field.location.uri, equals(mainFileUri.toString()));
+    expect(field.location.uri, equals(mainFileUri));
     expect(field.location.range, equals(rangeFromMarkers(content)));
 
     // Ensure we didn't get some things that definitely do not match.
@@ -147,6 +147,29 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
     );
   }
 
+  /// Ensure that multiple projects/drivers do not result in duplicate results
+  /// for things referenced in both projects.
+  Future<void> test_overlappingDrivers() async {
+    // Reference an SDK lib.
+    const content = "import 'dart:core';";
+    // Project 1
+    newFile(mainFilePath, content);
+    // Project 2
+    final otherFilePath = convertPath('/home/otherProject/foo.dart');
+    newFile(otherFilePath, content);
+
+    // Initialize with both projects as roots.
+    await initialize(workspaceFolders: [
+      projectFolderUri,
+      Uri.file(convertPath('/home/otherProject')),
+    ]);
+
+    // Search for something in the SDK that's referenced by both projects and
+    // expect it only shows up once.
+    final symbols = await getWorkspaceSymbols('Duration');
+    expect(symbols.where((s) => s.name == 'Duration'), hasLength(1));
+  }
+
   Future<void> test_partialMatch() async {
     const content = '''
     String topLevel = '';
@@ -169,25 +192,25 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
     final field = symbols.firstWhere((s) => s.name == 'myField');
     expect(field.kind, equals(SymbolKind.Field));
     expect(field.containerName, equals('MyClass'));
-    expect(field.location.uri, equals(mainFileUri.toString()));
+    expect(field.location.uri, equals(mainFileUri));
     expect(field.location.range, equals(fieldRange));
 
     final klass = symbols.firstWhere((s) => s.name == 'MyClass');
     expect(klass.kind, equals(SymbolKind.Class));
     expect(klass.containerName, isNull);
-    expect(klass.location.uri, equals(mainFileUri.toString()));
+    expect(klass.location.uri, equals(mainFileUri));
 
     final method = symbols.firstWhere((s) => s.name == 'myMethod()');
     expect(method.kind, equals(SymbolKind.Method));
     expect(method.containerName, equals('MyClass'));
-    expect(method.location.uri, equals(mainFileUri.toString()));
+    expect(method.location.uri, equals(mainFileUri));
     expect(method.location.range, equals(methodRange));
 
     final methodWithArgs =
         symbols.firstWhere((s) => s.name == 'myMethodWithArgs(…)');
     expect(methodWithArgs.kind, equals(SymbolKind.Method));
     expect(methodWithArgs.containerName, equals('MyClass'));
-    expect(methodWithArgs.location.uri, equals(mainFileUri.toString()));
+    expect(methodWithArgs.location.uri, equals(mainFileUri));
     expect(methodWithArgs.location.range, equals(methodWithArgsRange));
 
     // Ensure we didn't get some things that definitely do not match.

@@ -45,7 +45,6 @@ class NotificationErrorsTest extends PubPackageAnalysisServerTest {
   void setUp() {
     registerLintRules();
     super.setUp();
-    server.pendingFilesRemoveOverlayDelay = const Duration(milliseconds: 10);
     pedanticFolder = MockPackages.instance.addPedantic(resourceProvider);
   }
 
@@ -141,7 +140,7 @@ analyzer:
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-feature android:name="android.software.home_screen" />
 </manifest>
-''').path;
+''');
     newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   optional-checks:
@@ -339,7 +338,6 @@ linter:
     expect(error.location.file, testFile.path);
     expect(error.severity, AnalysisErrorSeverity.INFO);
     expect(error.type, AnalysisErrorType.LINT);
-    expect(error.message, lint.description);
   }
 
   Future<void> test_notInAnalysisRoot() async {
@@ -407,9 +405,6 @@ void f() {
         brokenFile.path: RemoveContentOverlay(),
       }).toRequest('1'),
     );
-
-    // Wait for the timer to remove the overlay to fire.
-    await Future.delayed(server.pendingFilesRemoveOverlayDelay);
 
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);

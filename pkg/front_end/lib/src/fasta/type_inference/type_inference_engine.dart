@@ -3,8 +3,11 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/class_hierarchy.dart'
+    show ClassHierarchy, ClassHierarchyBase;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_environment.dart';
 
@@ -16,6 +19,7 @@ import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
 import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
+import '../kernel/redirecting_factory_body.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import 'factor_type.dart';
@@ -24,7 +28,7 @@ import 'type_schema_environment.dart' show TypeSchemaEnvironment;
 
 /// Visitor to check whether a given type mentions any of a class's type
 /// parameters in a non-covariant fashion.
-class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
+class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
   int _variance;
 
   final List<TypeParameter> _typeParametersToSearchFor;
@@ -34,7 +38,31 @@ class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
       : _variance = initialVariance;
 
   @override
-  bool defaultDartType(DartType node) => false;
+  bool defaultDartType(DartType node) {
+    throw new UnsupportedError(
+        "IncludesTypeParametersNonCovariantly.defaultDartType");
+  }
+
+  @override
+  bool visitDynamicType(DynamicType node) => false;
+
+  @override
+  bool visitExtensionType(ExtensionType node) => false;
+
+  @override
+  bool visitViewType(ViewType node) => false;
+
+  @override
+  bool visitNeverType(NeverType node) => false;
+
+  @override
+  bool visitInvalidType(InvalidType node) => false;
+
+  @override
+  bool visitNullType(NullType node) => false;
+
+  @override
+  bool visitVoidType(VoidType node) => false;
 
   @override
   bool visitFunctionType(FunctionType node) {
@@ -52,6 +80,17 @@ class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
       if (parameter.type.accept(this)) return true;
     }
     _variance = oldVariance;
+    return false;
+  }
+
+  @override
+  bool visitRecordType(RecordType node) {
+    for (DartType parameter in node.positional) {
+      if (parameter.accept(this)) return true;
+    }
+    for (NamedType parameter in node.named) {
+      if (parameter.type.accept(this)) return true;
+    }
     return false;
   }
 
@@ -82,6 +121,11 @@ class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
     return !Variance.greaterThanOrEqual(_variance, node.parameter.variance) &&
         _typeParametersToSearchFor.contains(node.parameter);
   }
+
+  @override
+  bool visitIntersectionType(IntersectionType node) {
+    return node.left.accept(this);
+  }
 }
 
 /// Keeps track of the global state for the type inference that occurs outside
@@ -91,8 +135,6 @@ class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
 /// (e.g. DietListener).  Derived classes should derive from
 /// [TypeInferenceEngineImpl].
 abstract class TypeInferenceEngine {
-  late ClassHierarchy classHierarchy;
-
   late ClassHierarchyBuilder hierarchyBuilder;
 
   late ClassMembersBuilder membersBuilder;
@@ -145,7 +187,7 @@ abstract class TypeInferenceEngine {
     // Field types have all been inferred so we don't need to guard against
     // cyclic dependency.
     for (SourceConstructorBuilder builder in toBeInferred.values) {
-      builder.inferFormalTypes(classHierarchy);
+      builder.inferFormalTypes(hierarchyBuilder);
     }
     toBeInferred.clear();
     for (TypeDependency typeDependency in typeDependencies.values) {
@@ -158,13 +200,12 @@ abstract class TypeInferenceEngine {
   /// given [hierarchy], using the given [coreTypes].
   void prepareTopLevel(CoreTypes coreTypes, ClassHierarchy hierarchy) {
     this.coreTypes = coreTypes;
-    this.classHierarchy = hierarchy;
     this.typeSchemaEnvironment =
         new TypeSchemaEnvironment(coreTypes, hierarchy);
   }
 
   static Member? resolveInferenceNode(
-      Member? member, ClassHierarchy hierarchy) {
+      Member? member, ClassHierarchyBase hierarchy) {
     if (member is Field) {
       DartType type = member.type;
       if (type is InferredType) {
@@ -172,6 +213,118 @@ abstract class TypeInferenceEngine {
       }
     }
     return member;
+  }
+
+  Procedure? _addMethod;
+
+  /// Returns the [Procedure] for the [Set.add] method.
+  ///
+  /// This is used for lowering set literals for targets that don't support the
+  /// [SetLiteral] node.
+  Procedure get setAddMethod => _addMethod ??= _findAddMethod();
+
+  Procedure _findAddMethod() {
+    return coreTypes.index.getProcedure('dart:core', 'Set', 'add');
+  }
+
+  FunctionType? _addMethodFunctionType;
+
+  /// Returns the [FunctionType] for the [Set.add] method.
+  ///
+  /// This is used for lowering set literals for targets that don't support the
+  /// [SetLiteral] node.
+  FunctionType get setAddMethodFunctionType =>
+      _addMethodFunctionType ??= setAddMethod.getterType as FunctionType;
+
+  Procedure? _listAdd;
+  Procedure get listAdd =>
+      _listAdd ??= coreTypes.index.getProcedure('dart:core', 'List', 'add');
+
+  FunctionType? _listAddFunctionType;
+  FunctionType get listAddFunctionType =>
+      _listAddFunctionType ??= listAdd.getterType as FunctionType;
+
+  Procedure? _listAddAll;
+  Procedure get listAddAll => _listAddAll ??=
+      coreTypes.index.getProcedure('dart:core', 'List', 'addAll');
+
+  FunctionType? _listAddAllFunctionType;
+  FunctionType get listAddAllFunctionType =>
+      _listAddAllFunctionType ??= listAddAll.getterType as FunctionType;
+
+  Procedure? _listOf;
+  Procedure get listOf =>
+      _listOf ??= coreTypes.index.getProcedure('dart:core', 'List', 'of');
+
+  Procedure? _setFactory;
+  Procedure get setFactory => _setFactory ??= _findSetFactory(coreTypes, '');
+
+  Procedure? _setAdd;
+  Procedure get setAdd =>
+      _setAdd ??= coreTypes.index.getProcedure('dart:core', 'Set', 'add');
+
+  FunctionType? _setAddFunctionType;
+  FunctionType get setAddFunctionType =>
+      _setAddFunctionType ??= setAdd.getterType as FunctionType;
+
+  Procedure? _setAddAll;
+  Procedure get setAddAll =>
+      _setAddAll ??= coreTypes.index.getProcedure('dart:core', 'Set', 'addAll');
+
+  FunctionType? _setAddAllFunctionType;
+  FunctionType get setAddAllFunctionType =>
+      _setAddAllFunctionType ??= setAddAll.getterType as FunctionType;
+
+  Procedure? _setOf;
+  Procedure get setOf => _setOf ??= _findSetFactory(coreTypes, 'of');
+
+  Procedure? _mapEntries;
+  Procedure get mapEntries => _mapEntries ??=
+      coreTypes.index.getProcedure('dart:core', 'Map', 'get:entries');
+
+  Procedure? _mapPut;
+  Procedure get mapPut =>
+      _mapPut ??= coreTypes.index.getProcedure('dart:core', 'Map', '[]=');
+
+  FunctionType? _mapPutFunctionType;
+  FunctionType get mapPutFunctionType =>
+      _mapPutFunctionType ??= mapPut.getterType as FunctionType;
+
+  Class? _mapEntryClass;
+  Class get mapEntryClass =>
+      _mapEntryClass ??= coreTypes.index.getClass('dart:core', 'MapEntry');
+
+  Field? _mapEntryKey;
+  Field get mapEntryKey =>
+      _mapEntryKey ??= coreTypes.index.getField('dart:core', 'MapEntry', 'key');
+
+  Field? _mapEntryValue;
+  Field get mapEntryValue => _mapEntryValue ??=
+      coreTypes.index.getField('dart:core', 'MapEntry', 'value');
+
+  Procedure? _mapAddAll;
+  Procedure get mapAddAll =>
+      _mapAddAll ??= coreTypes.index.getProcedure('dart:core', 'Map', 'addAll');
+
+  FunctionType? _mapAddAllFunctionType;
+  FunctionType get mapAddAllFunctionType =>
+      _mapAddAllFunctionType ??= mapAddAll.getterType as FunctionType;
+
+  Procedure? _mapOf;
+  Procedure get mapOf => _mapOf ??= _findMapFactory(coreTypes, 'of');
+
+  static Procedure _findSetFactory(CoreTypes coreTypes, String name) {
+    Procedure factory = coreTypes.index.getProcedure('dart:core', 'Set', name);
+    RedirectingFactoryBody body =
+        factory.function.body as RedirectingFactoryBody;
+    return body.target as Procedure;
+  }
+
+  static Procedure _findMapFactory(CoreTypes coreTypes, String name) {
+    Procedure factory = coreTypes.index.getProcedure('dart:core', 'Map', name);
+    RedirectingFactoryBody body =
+        factory.function.body as RedirectingFactoryBody;
+    return body.target as Procedure;
   }
 }
 
@@ -260,10 +413,22 @@ class FlowAnalysisResult {
 }
 
 /// CFE-specific implementation of [TypeOperations].
-class OperationsCfe extends Operations<VariableDeclaration, DartType> {
+class OperationsCfe
+    with TypeOperations<DartType>
+    implements Operations<VariableDeclaration, DartType> {
   final TypeEnvironment typeEnvironment;
 
-  OperationsCfe(this.typeEnvironment);
+  final bool isNonNullableByDefault;
+
+  /// If `null`, field promotion is disabled for this library.  If not `null`,
+  /// field promotion is enabled for this library and this is the set of private
+  /// field names for which promotion is blocked due to the presence of a
+  /// non-final field or a concrete getter.
+  final Set<String>? unpromotablePrivateFieldNames;
+
+  OperationsCfe(this.typeEnvironment,
+      {required this.isNonNullableByDefault,
+      this.unpromotablePrivateFieldNames});
 
   @override
   TypeClassification classifyType(DartType? type) {
@@ -288,6 +453,20 @@ class OperationsCfe extends Operations<VariableDeclaration, DartType> {
   @override
   bool isNever(DartType type) {
     return typeEnvironment.coreTypes.isBottom(type);
+  }
+
+  @override
+  bool isPropertyPromotable(covariant Member property) {
+    Set<String>? unpromotablePrivateFieldNames =
+        this.unpromotablePrivateFieldNames;
+    if (unpromotablePrivateFieldNames == null) return false;
+    if (property is Procedure && !property.isAbstractFieldAccessor) {
+      // We don't promote methods or explicit abstract getters.
+      return false;
+    }
+    String name = property.name.text;
+    if (!name.startsWith('_')) return false;
+    return !unpromotablePrivateFieldNames.contains(name);
   }
 
   // TODO(cstefantsova): Consider checking for mutual subtypes instead of ==.
@@ -317,7 +496,9 @@ class OperationsCfe extends Operations<VariableDeclaration, DartType> {
   }
 
   @override
-  bool isTypeParameterType(DartType type) => type is TypeParameterType;
+  bool isTypeParameterType(DartType type) {
+    return type is TypeParameterType || type is IntersectionType;
+  }
 
   @override
   DartType tryPromoteToType(DartType to, DartType from) {
@@ -325,12 +506,78 @@ class OperationsCfe extends Operations<VariableDeclaration, DartType> {
       return to;
     }
     if (from is TypeParameterType) {
-      if (isSubtypeOf(to, from.promotedBound ?? from.bound)) {
-        return new TypeParameterType.intersection(
-            from.parameter, from.nullability, to);
+      if (isSubtypeOf(to, from.bound)) {
+        return new IntersectionType(from, to);
+      }
+    }
+    if (from is IntersectionType) {
+      if (isSubtypeOf(to, from.right)) {
+        return new IntersectionType(from.left, to);
       }
     }
     return from;
+  }
+
+  @override
+  DartType glb(DartType type1, DartType type2) {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  bool isAssignableTo(DartType fromType, DartType toType) {
+    if (isNonNullableByDefault) {
+      if (fromType is DynamicType) return true;
+      return typeEnvironment
+          .performNullabilityAwareSubtypeCheck(fromType, toType)
+          .isSubtypeWhenUsingNullabilities();
+    } else {
+      return typeEnvironment
+          .performNullabilityAwareSubtypeCheck(fromType, toType)
+          .orSubtypeCheckFor(toType, fromType, typeEnvironment)
+          .isSubtypeWhenIgnoringNullabilities();
+    }
+  }
+
+  @override
+  bool isDynamic(DartType type) => type is DynamicType;
+
+  @override
+  DartType lub(DartType type1, DartType type2) {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  DartType makeNullable(DartType type) {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  DartType? matchListType(DartType type) {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  MapPatternTypeArguments<DartType>? matchMapType(DartType type) {
+    // TODO: implement matchMapType
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
+  bool areStructurallyEqual(DartType type1, DartType type2) {
+    // TODO(scheglov): implement areStructurallyEqual
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
+  DartType normalize(DartType type) {
+    // TODO(scheglov): implement normalize
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
+  DartType? matchIterableType(DartType type) {
+    // TODO(scheglov): implement matchIterableType
+    throw new UnimplementedError('TODO(scheglov)');
   }
 }
 

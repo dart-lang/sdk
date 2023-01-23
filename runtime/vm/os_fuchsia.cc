@@ -346,10 +346,6 @@ DEFINE_FLAG(bool,
 
 #endif  // !PRODUCT
 
-const char* OS::Name() {
-  return "fuchsia";
-}
-
 intptr_t OS::ProcessId() {
   return static_cast<intptr_t>(getpid());
 }
@@ -413,14 +409,6 @@ int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
   const zx_status_t status = GetLocalAndDstOffsetInSeconds(
       seconds_since_epoch, &local_offset, &dst_offset);
   return status == ZX_OK ? local_offset + dst_offset : 0;
-}
-
-int OS::GetLocalTimeZoneAdjustmentInSeconds() {
-  int32_t local_offset, dst_offset;
-  int64_t now_seconds = GetCurrentTimeNanos() / ZX_SEC(1);
-  zx_status_t status =
-      GetLocalAndDstOffsetInSeconds(now_seconds, &local_offset, &dst_offset);
-  return status == ZX_OK ? local_offset : 0;
 }
 
 int64_t OS::GetCurrentTimeMillis() {

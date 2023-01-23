@@ -278,7 +278,7 @@ main() {
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
     var forLoopParts = forStatement.forLoopParts as ForEachPartsWithDeclaration;
-    expect(forLoopParts.loopVariable.identifier.name, 'external');
+    expect(forLoopParts.loopVariable.name.lexeme, 'external');
     expect(forLoopParts.inKeyword, isNotNull);
     expect(forLoopParts.iterable, isNotNull);
     expect(forStatement.rightParenthesis, isNotNull);
@@ -294,7 +294,7 @@ main() {
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
     var forLoopParts = forStatement.forLoopParts as ForEachPartsWithDeclaration;
-    expect(forLoopParts.loopVariable.identifier.name, 'required');
+    expect(forLoopParts.loopVariable.name.lexeme, 'required');
     expect(forLoopParts.inKeyword, isNotNull);
     expect(forLoopParts.iterable, isNotNull);
     expect(forStatement.rightParenthesis, isNotNull);
@@ -1072,7 +1072,7 @@ main() {
     assertNoErrors();
     List<VariableDeclaration> variables = statement.variables.variables;
     expect(variables, hasLength(1));
-    expect(variables[0].name.name, 'Function');
+    expect(variables[0].name.lexeme, 'Function');
   }
 
   void test_parseNonLabeledStatement_variableDeclaration_gftType() {
@@ -1082,7 +1082,7 @@ main() {
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
-    expect(variables[0].name.name, 'v');
+    expect(variables[0].name.lexeme, 'v');
     expect(variableList.type, isGenericFunctionType);
   }
 
@@ -1095,7 +1095,7 @@ main() {
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
-    expect(variables[0].name.name, 'v');
+    expect(variables[0].name.lexeme, 'v');
     expect(variableList.type, isGenericFunctionType);
   }
 
@@ -1107,7 +1107,7 @@ main() {
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
-    expect(variables[0].name.name, 'v');
+    expect(variables[0].name.lexeme, 'v');
     expect(variableList.type, isGenericFunctionType);
   }
 
@@ -1119,7 +1119,7 @@ main() {
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
-    expect(variables[0].name.name, 'v');
+    expect(variables[0].name.lexeme, 'v');
     expect(variableList.type, isGenericFunctionType);
   }
 
@@ -1131,7 +1131,7 @@ main() {
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
-    expect(variables[0].name.name, 'v');
+    expect(variables[0].name.lexeme, 'v');
     expect(variableList.type, isGenericFunctionType);
   }
 
@@ -1142,7 +1142,7 @@ main() {
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
-    expect(variables[0].name.name, 'v');
+    expect(variables[0].name.lexeme, 'v');
     expect(variableList.type, isGenericFunctionType);
   }
 
@@ -1154,7 +1154,7 @@ main() {
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
-    expect(variables[0].name.name, 'v');
+    expect(variables[0].name.lexeme, 'v');
     expect(variableList.type, isGenericFunctionType);
   }
 
@@ -1164,7 +1164,7 @@ main() {
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
-    expect(variables[0].name.name, 'v');
+    expect(variables[0].name.lexeme, 'v');
     var typeName = variableList.type as NamedType;
     expect(typeName.name.name, 'C');
     expect(typeName.typeArguments!.arguments, hasLength(1));
@@ -1179,7 +1179,7 @@ main() {
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
-    expect(variables[0].name.name, 'v');
+    expect(variables[0].name.lexeme, 'v');
     var typeName = variableList.type as NamedType;
     expect(typeName.name.name, 'C');
     expect(typeName.typeArguments!.arguments, hasLength(1));
@@ -1194,7 +1194,7 @@ main() {
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
-    expect(variables[0].name.name, 'v');
+    expect(variables[0].name.lexeme, 'v');
     var typeName = variableList.type as NamedType;
     expect(typeName.name.name, 'C');
     expect(typeName.typeArguments!.arguments, hasLength(1));
@@ -1430,9 +1430,9 @@ main() {
     expect(clause.onKeyword, isNull);
     expect(clause.exceptionType, isNull);
     expect(clause.catchKeyword, isNotNull);
-    expect(clause.exceptionParameter!.name, 'int');
+    expect(clause.exceptionParameter!.name.lexeme, 'int');
     expect(clause.comma, isNotNull);
-    expect(clause.stackTraceParameter!.name, 'e');
+    expect(clause.stackTraceParameter!.name.lexeme, 'e');
     expect(clause.body, isNotNull);
     expect(statement.finallyKeyword, isNull);
     expect(statement.finallyBlock, isNull);

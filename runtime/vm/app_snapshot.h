@@ -19,10 +19,6 @@
 #include "vm/snapshot.h"
 #include "vm/version.h"
 
-#if defined(DEBUG)
-#define SNAPSHOT_BACKTRACE
-#endif
-
 namespace dart {
 
 // For full snapshots, we use a clustered snapshot format that trades longer
@@ -236,15 +232,16 @@ class Serializer : public ThreadStackResource {
 
   intptr_t GetCodeIndex(CodePtr code);
 
-  void Push(ObjectPtr object);
+  void Push(ObjectPtr object, intptr_t cid_override = kIllegalCid);
 
   void AddUntracedRef() { num_written_objects_++; }
 
-  void Trace(ObjectPtr object);
+  void Trace(ObjectPtr object, intptr_t cid_override);
 
   void UnexpectedObject(ObjectPtr object, const char* message);
 #if defined(SNAPSHOT_BACKTRACE)
-  ObjectPtr ParentOf(const Object& object);
+  ObjectPtr ParentOf(ObjectPtr object) const;
+  ObjectPtr ParentOf(const Object& object) const;
 #endif
 
   SerializationCluster* NewClusterForClass(intptr_t cid, bool is_canonical);
@@ -335,7 +332,9 @@ class Serializer : public ThreadStackResource {
   void WriteBytes(const uint8_t* addr, intptr_t len) {
     stream_->WriteBytes(addr, len);
   }
-  void Align(intptr_t alignment) { stream_->Align(alignment); }
+  void Align(intptr_t alignment, intptr_t offset = 0) {
+    stream_->Align(alignment, offset);
+  }
 
   V8SnapshotProfileWriter::ObjectId GetProfileId(ObjectPtr object) const;
   V8SnapshotProfileWriter::ObjectId GetProfileId(intptr_t ref) const;
@@ -508,7 +507,13 @@ class Serializer : public ThreadStackResource {
   SerializationCluster** canonical_clusters_by_cid_;
   SerializationCluster** clusters_by_cid_;
   CodeSerializationCluster* code_cluster_ = nullptr;
-  GrowableArray<ObjectPtr> stack_;
+
+  struct StackEntry {
+    ObjectPtr obj;
+    intptr_t cid_override;
+  };
+  GrowableArray<StackEntry> stack_;
+
   intptr_t num_cids_;
   intptr_t num_tlc_cids_;
   intptr_t num_base_objects_;
@@ -648,7 +653,9 @@ class Deserializer : public ThreadStackResource {
   }
 
   void Advance(intptr_t value) { stream_.Advance(value); }
-  void Align(intptr_t alignment) { stream_.Align(alignment); }
+  void Align(intptr_t alignment, intptr_t offset = 0) {
+    stream_.Align(alignment, offset);
+  }
 
   void AddBaseObject(ObjectPtr base_object) { AssignRef(base_object); }
 

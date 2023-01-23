@@ -28,16 +28,15 @@ class A {
     var node = parseResult.findNode.superFormalParameter('super.a');
     assertParsedNodeText(node, r'''
 SuperFormalParameter
+  keyword: var
   superKeyword: super
   period: .
-  identifier: SimpleIdentifier
-    token: a
+  name: a
   typeParameters: TypeParameterList
     leftBracket: <
     typeParameters
       TypeParameter
-        name: SimpleIdentifier
-          token: T
+        name: T
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (

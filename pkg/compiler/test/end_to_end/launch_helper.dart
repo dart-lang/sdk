@@ -25,7 +25,7 @@ List<String> dart2JsCommand(List<String> args) {
   return command;
 }
 
-Future<ProcessResult> launchDart2Js(args, {bool noStdoutEncoding: false}) {
+Future<ProcessResult> launchDart2Js(args, {bool noStdoutEncoding = false}) {
   if (noStdoutEncoding) {
     return Process.run(Platform.executable, dart2JsCommand(args),
         stdoutEncoding: null);

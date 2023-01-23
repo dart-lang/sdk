@@ -100,7 +100,7 @@ abstract class TypeEnvironment extends Types {
 
     // otherwise if T <: Future then let S be a type such that T <: Future<S>
     //   and for all R, if T <: Future<R> then S <: R; then flatten(T) = S
-    DartType resolved = _resolveTypeParameterType(t);
+    DartType resolved = t.resolveTypeParameterType;
     if (resolved is InterfaceType) {
       List<DartType>? futureArguments =
           getTypeArgumentsAsInstanceOf(resolved, coreTypes.futureClass);
@@ -113,41 +113,10 @@ abstract class TypeEnvironment extends Types {
     return t;
   }
 
-  /// Returns the non-type parameter type bound of [type].
-  DartType _resolveTypeParameterType(DartType type) {
-    while (type is TypeParameterType) {
-      TypeParameterType typeParameterType = type;
-      type = typeParameterType.bound;
-    }
-    return type;
-  }
-
-  /// Returns the type of the element in the for-in statement [node] with
-  /// [iterableExpressionType] as the static type of the iterable expression.
-  ///
-  /// The [iterableExpressionType] must be a subclass of `Stream` or `Iterable`
-  /// depending on whether `node.isAsync` is `true` or not.
-  DartType forInElementType(
-      ForInStatement node, DartType iterableExpressionType) {
-    // TODO(johnniwinther): Update this to use the type of
-    //  `iterable.iterator.current` if inference is updated accordingly.
-    InterfaceType iterableType =
-        _resolveTypeParameterType(iterableExpressionType) as InterfaceType;
-    if (node.isAsync) {
-      List<DartType>? typeArguments =
-          getTypeArgumentsAsInstanceOf(iterableType, coreTypes.streamClass);
-      return typeArguments!.single;
-    } else {
-      List<DartType>? typeArguments =
-          getTypeArgumentsAsInstanceOf(iterableType, coreTypes.iterableClass);
-      return typeArguments!.single;
-    }
-  }
-
   /// True if [member] is a binary operator whose return type is defined by
   /// the both operand types.
   bool isSpecialCasedBinaryOperator(Procedure member,
-      {bool isNonNullableByDefault: false}) {
+      {bool isNonNullableByDefault = false}) {
     if (isNonNullableByDefault) {
       Class? class_ = member.enclosingClass;
       // TODO(johnniwinther): Do we need to recognize backend implementation
@@ -179,7 +148,7 @@ abstract class TypeEnvironment extends Types {
   /// True if [member] is a ternary operator whose return type is defined by
   /// the least upper bound of the operand types.
   bool isSpecialCasedTernaryOperator(Procedure member,
-      {bool isNonNullableByDefault: false}) {
+      {bool isNonNullableByDefault = false}) {
     if (isNonNullableByDefault) {
       Class? class_ = member.enclosingClass;
       if (class_ == coreTypes.intClass || class_ == coreTypes.numClass) {
@@ -194,7 +163,7 @@ abstract class TypeEnvironment extends Types {
   /// (see [isSpecialCasedBinaryOperator]) given the static type of the
   /// operands.
   DartType getTypeOfSpecialCasedBinaryOperator(DartType type1, DartType type2,
-      {bool isNonNullableByDefault: false}) {
+      {bool isNonNullableByDefault = false}) {
     if (isNonNullableByDefault) {
       // Let e be an expression of one of the forms e1 + e2, e1 - e2, e1 * e2,
       // e1 % e2 or e1.remainder(e2), where the static type of e1 is a non-Never
@@ -234,8 +203,8 @@ abstract class TypeEnvironment extends Types {
       // Otherwise the static type of e is num.
       return coreTypes.numNonNullableRawType;
     } else {
-      type1 = _resolveTypeParameterType(type1);
-      type2 = _resolveTypeParameterType(type2);
+      type1 = type1.resolveTypeParameterType;
+      type2 = type2.resolveTypeParameterType;
 
       if (type1 == type2) return type1;
 
@@ -298,7 +267,7 @@ abstract class TypeEnvironment extends Types {
   ///
   /// If multiple members with that name are inherited and not overridden, the
   /// member from the first declared supertype is returned.
-  Member? getInterfaceMember(Class cls, Name name, {bool setter: false});
+  Member? getInterfaceMember(Class cls, Name name, {bool setter = false});
 }
 
 /// Tri-state logical result of a nullability-aware subtype check.

@@ -24,7 +24,7 @@ import 'package:path/path.dart';
 
 import 'error_code_info.dart';
 
-main() async {
+Future<void> main() async {
   await GeneratedContent.generateAll(analyzerPkgPath, allTargets);
 
   _SyntacticErrorGenerator()
@@ -42,19 +42,30 @@ List<GeneratedContent> _analyzerGeneratedFiles() {
   for (var errorClassInfo in errorClasses) {
     (classesByFile[errorClassInfo.filePath] ??= []).add(errorClassInfo);
   }
+  var generatedCodes = <String>[];
   return [
     for (var entry in classesByFile.entries)
       GeneratedFile(entry.key, (String pkgPath) async {
-        final codeGenerator = _AnalyzerErrorGenerator(entry.value);
+        final codeGenerator =
+            _AnalyzerErrorGenerator(entry.value, generatedCodes);
         codeGenerator.generate();
         return codeGenerator.out.toString();
-      })
+      }),
+    GeneratedFile('lib/src/error/error_code_values.g.dart',
+        (String pkgPath) async {
+      final codeGenerator = _ErrorCodeValuesGenerator(generatedCodes);
+      codeGenerator.generate();
+      return codeGenerator.out.toString();
+    }),
   ];
 }
 
 /// Code generator for analyzer error classes.
 class _AnalyzerErrorGenerator {
   final List<ErrorClassInfo> errorClasses;
+
+  final List<String> generatedCodes;
+
   final StringBuffer out = StringBuffer('''
 // Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -64,9 +75,13 @@ class _AnalyzerErrorGenerator {
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
 // 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
+
+// We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
+// code, as they match names declared in the source configuration files.
+// ignore_for_file: constant_identifier_names
 ''');
 
-  _AnalyzerErrorGenerator(this.errorClasses);
+  _AnalyzerErrorGenerator(this.errorClasses, this.generatedCodes);
 
   void generate() {
     var imports = {'package:analyzer/error/error.dart'};
@@ -97,6 +112,9 @@ class _AnalyzerErrorGenerator {
       for (var entry in entries..sort((a, b) => a.key.compareTo(b.key))) {
         var errorName = entry.key;
         var errorCodeInfo = entry.value;
+
+        generatedCodes.add('${errorClass.name}.$errorName');
+
         out.writeln();
         out.write(errorCodeInfo.toAnalyzerComments(indent: '  '));
         out.writeln('  static const ${errorClass.name} $errorName =');
@@ -132,6 +150,69 @@ class _AnalyzerErrorGenerator {
     for (var entry in cfeToAnalyzerErrorCodeTables.indexToInfo) {
       var name = cfeToAnalyzerErrorCodeTables.infoToAnalyzerCode[entry];
       out.writeln('${name == null ? 'null' : 'ParserErrorCode.$name'},');
+    }
+    out.writeln('];');
+  }
+}
+
+class _ErrorCodeValuesGenerator {
+  final List<String> generatedCodes;
+
+  final StringBuffer out = StringBuffer('''
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// THIS FILE IS GENERATED. DO NOT EDIT.
+//
+// Instead modify 'pkg/analyzer/messages.yaml' and run
+// 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
+
+// We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
+// code, as they match names declared in the source configuration files.
+// ignore_for_file: constant_identifier_names
+''');
+
+  _ErrorCodeValuesGenerator(this.generatedCodes);
+
+  void generate() {
+    // The scanner error codes are not yet being generated, so we need to add
+    // them to the list explicitly.
+    generatedCodes.addAll([
+      'ScannerErrorCode.EXPECTED_TOKEN',
+      'ScannerErrorCode.ILLEGAL_CHARACTER',
+      'ScannerErrorCode.MISSING_DIGIT',
+      'ScannerErrorCode.MISSING_HEX_DIGIT',
+      'ScannerErrorCode.MISSING_IDENTIFIER',
+      'ScannerErrorCode.MISSING_QUOTE',
+      'ScannerErrorCode.UNABLE_GET_CONTENT',
+      'ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING',
+      'ScannerErrorCode.UNSUPPORTED_OPERATOR',
+      'ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT',
+      'ScannerErrorCode.UNTERMINATED_STRING_LITERAL',
+      'TodoCode.TODO',
+      'TodoCode.FIXME',
+      'TodoCode.HACK',
+      'TodoCode.UNDONE',
+    ]);
+    generatedCodes.sort();
+
+    out.writeln();
+    out.writeln("import 'package:_fe_analyzer_shared/src/base/errors.dart';");
+    out.writeln(
+        "import 'package:_fe_analyzer_shared/src/scanner/errors.dart';");
+    out.writeln("import 'package:analyzer/src/dart/error/ffi_code.dart';");
+    out.writeln("import 'package:analyzer/src/error/codes.dart';");
+    out.writeln(
+        "import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;");
+    out.writeln(
+        "import 'package:analyzer/src/manifest/manifest_warning_code.dart';");
+    out.writeln(
+        "import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';");
+    out.writeln();
+    out.writeln('const List<ErrorCode> errorCodeValues = [');
+    for (var name in generatedCodes) {
+      out.writeln('  $name,');
     }
     out.writeln('];');
   }

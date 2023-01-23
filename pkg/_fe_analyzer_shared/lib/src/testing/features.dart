@@ -30,7 +30,7 @@ class Features {
 
   /// Mark the feature [key] as existing. If [value] is provided, the feature
   /// [key] is set to have this value.
-  void add(String key, {var value: ''}) {
+  void add(String key, {var value = ''}) {
     _features[key] = value.toString();
   }
 

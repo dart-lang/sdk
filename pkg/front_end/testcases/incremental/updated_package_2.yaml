@@ -40,6 +40,7 @@ worlds:
           ]
         }
     expectedLibraryCount: 3
+
   - entry: main.dart
     invalidate:
     # TODO(jensj): For now we don't initialize from dill when a package was
@@ -79,3 +80,4 @@ worlds:
           ]
         }
     expectedLibraryCount: 2
+    advancedInvalidation: noDirectlyInvalidated

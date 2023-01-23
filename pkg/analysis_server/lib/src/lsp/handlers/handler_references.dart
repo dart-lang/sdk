@@ -5,12 +5,14 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
-import 'package:analysis_server/src/protocol_server.dart' show SearchResult;
 import 'package:analysis_server/src/protocol_server.dart' show NavigationTarget;
 import 'package:analysis_server/src/search/element_references.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart'
+    show SearchMatch;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 import 'package:collection/collection.dart';
@@ -37,7 +39,7 @@ class ReferencesHandler
     final unit = await path.mapResult(requireResolvedUnit);
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
     return offset.mapResult(
-        (offset) => _getReferences(path.result, offset, params, unit.result));
+        (offset) => _getReferences(unit.result, offset, params, unit.result));
   }
 
   List<Location> _getDeclarations(CompilationUnit unit, int offset) {
@@ -53,11 +55,12 @@ class ReferencesHandler
     }).whereNotNull().toList();
   }
 
-  Future<ErrorOr<List<Location>?>> _getReferences(String path, int offset,
-      ReferenceParams params, ResolvedUnitResult unit) async {
-    var element = await server.getElementAtOffset(path, offset);
-    if (element is ImportElement) {
-      element = element.prefix;
+  Future<ErrorOr<List<Location>?>> _getReferences(ResolvedUnitResult result,
+      int offset, ReferenceParams params, ResolvedUnitResult unit) async {
+    final node = NodeLocator(offset).searchWithin(result.unit);
+    var element = server.getElementOfNode(node);
+    if (element is LibraryImportElement) {
+      element = element.prefix?.element;
     }
     if (element is FieldFormalParameterElement) {
       element = element.field;
@@ -70,11 +73,22 @@ class ReferencesHandler
     }
 
     final computer = ElementReferencesComputer(server.searchEngine);
+    final session = element.session ?? unit.session;
     final results = await computer.compute(element, false);
 
-    Location? toLocation(SearchResult result) {
-      final lineInfo = server.getLineInfo(result.location.file);
-      return searchResultToLocation(result, lineInfo);
+    Location? toLocation(SearchMatch result) {
+      final file = session.getFile(result.file);
+      if (file is! FileResult) {
+        return null;
+      }
+      return Location(
+        uri: Uri.file(result.file),
+        range: toRange(
+          file.lineInfo,
+          result.sourceRange.offset,
+          result.sourceRange.length,
+        ),
+      );
     }
 
     final referenceResults =

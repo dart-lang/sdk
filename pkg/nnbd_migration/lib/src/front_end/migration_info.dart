@@ -128,8 +128,7 @@ class NavigationSource extends NavigationRegion {
   final NavigationTarget target;
 
   /// Initialize a newly created link.
-  NavigationSource(int offset, int? line, int length, this.target)
-      : super(offset, line, length);
+  NavigationSource(super.offset, super.line, super.length, this.target);
 }
 
 /// A location to which a user might want to navigate.

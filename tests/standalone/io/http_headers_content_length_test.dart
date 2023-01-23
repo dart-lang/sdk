@@ -6,6 +6,8 @@ import "dart:io";
 
 import "package:expect/expect.dart";
 
+// See also http_headers_test.dart.
+
 Future<void> main() async {
   final server = await HttpServer.bind("localhost", 0);
   final request = await HttpClient().get("localhost", server.port, "/");

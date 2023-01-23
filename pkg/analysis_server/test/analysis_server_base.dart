@@ -4,9 +4,9 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/analytics/noop_analytics.dart';
+import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
@@ -17,6 +17,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
@@ -71,7 +72,7 @@ class AnalysisOptionsFileConfig {
   }
 }
 
-class BazelWorkspaceAnalysisServerTest extends ContextResolutionTest {
+class BlazeWorkspaceAnalysisServerTest extends ContextResolutionTest {
   String get myPackageLibPath => '$myPackageRootPath/lib';
 
   String get myPackageRootPath => '$workspaceRootPath/dart/my';
@@ -82,14 +83,14 @@ class BazelWorkspaceAnalysisServerTest extends ContextResolutionTest {
 
   @override
   void createDefaultFiles() {
-    newFile('$workspaceRootPath/WORKSPACE', '');
+    newFile('$workspaceRootPath/${file_paths.blazeWorkspaceMarker}', '');
   }
 }
 
 class ContextResolutionTest with ResourceProviderMixin {
   final TestPluginManager pluginManager = TestPluginManager();
   late final MockServerChannel serverChannel;
-  late final AnalysisServer server;
+  late final LegacyAnalysisServer server;
 
   final List<GeneralAnalysisService> _analysisGeneralServices = [];
   final Map<AnalysisService, List<String>> _analysisFileSubscriptions = {};
@@ -172,7 +173,7 @@ class ContextResolutionTest with ResourceProviderMixin {
 
     serverChannel.notifications.listen(processNotification);
 
-    server = AnalysisServer(
+    server = LegacyAnalysisServer(
       serverChannel,
       resourceProvider,
       AnalysisServerOptions(),
@@ -182,7 +183,6 @@ class ContextResolutionTest with ResourceProviderMixin {
       InstrumentationService.NULL_SERVICE,
     );
 
-    server.pendingFilesRemoveOverlayDelay = const Duration(milliseconds: 10);
     server.pluginManager = pluginManager;
     server.completionState.budgetDuration = const Duration(seconds: 30);
   }

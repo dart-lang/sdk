@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -243,7 +245,8 @@ void f() {
     expect(diagnostic.code, equals('built_in_identifier_in_declaration'));
     expect(
       diagnostic.codeDescription!.href,
-      equals('https://dart.dev/diagnostics/built_in_identifier_in_declaration'),
+      equals(Uri.parse(
+          'https://dart.dev/diagnostics/built_in_identifier_in_declaration')),
     );
   }
 
@@ -270,11 +273,15 @@ void f() {
     newFile(dotFolderFilePath, 'String a = 1;');
 
     List<Diagnostic>? diagnostics;
-    waitForDiagnostics(dotFolderFileUri).then((d) => diagnostics = d);
+    // Record if diagnostics are received, but since we don't expect them
+    // don't await them.
+    unawaited(
+        waitForDiagnostics(dotFolderFileUri).then((d) => diagnostics = d));
 
     // Send a request for a hover.
     await initialize();
     await getHover(dotFolderFileUri, Position(line: 0, character: 0));
+    await pumpEventQueue(times: 5000);
 
     // Ensure that as part of responding to getHover, diagnostics were not
     // transmitted.
@@ -524,12 +531,24 @@ analyzer:
     // Ensure initial analysis completely finished before we continue.
     await initialAnalysis;
 
-    // Enable showTodos and update the file to ensure TODOs now come through.
-    final secondDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    // Capture any diagnostic updates. We might get multiple, because during
+    // a reanalyze, all diagnostics are flushed (to empty) and then analysis
+    // occurs.
+    List<Diagnostic>? latestDiagnostics;
+    notificationsFromServer
+        .where((notification) =>
+            notification.method == Method.textDocument_publishDiagnostics)
+        .map((notification) => PublishDiagnosticsParams.fromJson(
+            notification.params as Map<String, Object?>))
+        .where((diagnostics) => diagnostics.uri == mainFileUri)
+        .listen((diagnostics) {
+      latestDiagnostics = diagnostics.diagnostics;
+    });
+
+    final nextAnalysis = waitForAnalysisComplete();
     await updateConfig({'showTodos': true});
-    await replaceFile(222, mainFileUri, contents);
-    final updatedDiagnostics = await secondDiagnosticsUpdate;
-    expect(updatedDiagnostics, hasLength(1));
+    await nextAnalysis;
+    expect(latestDiagnostics, hasLength(1));
   }
 
   Future<void> test_todos_specific() async {

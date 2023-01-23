@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import '../common.dart';
 import '../common/elements.dart';
 import '../common/names.dart';
 import '../elements/entities.dart';
+import '../elements/indexed.dart';
 import '../elements/types.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/field_analysis.dart' show KFieldAnalysis;
@@ -30,6 +29,7 @@ class KClosedWorld implements BuiltWorld {
   final KElementEnvironment elementEnvironment;
   final DartTypes dartTypes;
   final KCommonElements commonElements;
+
   final NativeData nativeData;
   final InterceptorData interceptorData;
   final BackendUsage backendUsage;
@@ -40,9 +40,11 @@ class KClosedWorld implements BuiltWorld {
   // TODO(johnniwinther): Can this be derived from [ClassSet]s?
   final Set<ClassEntity> _implementedClasses;
   final Iterable<MemberEntity> liveInstanceMembers;
+  final Iterable<MemberEntity> liveAbstractInstanceMembers;
 
   /// Members that are written either directly or through a setter selector.
   final Iterable<MemberEntity> assignedInstanceMembers;
+
   final KFieldAnalysis fieldAnalysis;
   final Iterable<ClassEntity> liveNativeClasses;
   final Map<MemberEntity, MemberUsage> liveMemberUsage;
@@ -53,7 +55,7 @@ class KClosedWorld implements BuiltWorld {
   @override
   final AnnotationsData annotationsData;
 
-  RuntimeTypesNeed _rtiNeed;
+  late RuntimeTypesNeed _rtiNeed;
 
   @override
   final Set<DartType> isChecks;
@@ -88,34 +90,35 @@ class KClosedWorld implements BuiltWorld {
   RuntimeTypesNeed get rtiNeed => _rtiNeed;
 
   KClosedWorld(this.elementMap,
-      {CompilerOptions options,
-      this.elementEnvironment,
-      this.dartTypes,
-      this.commonElements,
-      this.nativeData,
-      this.interceptorData,
-      this.backendUsage,
-      this.noSuchMethodData,
-      RuntimeTypesNeedBuilder rtiNeedBuilder,
-      this.fieldAnalysis,
-      Set<ClassEntity> implementedClasses,
-      this.liveNativeClasses,
-      this.liveInstanceMembers,
-      this.assignedInstanceMembers,
-      this.liveMemberUsage,
-      this.mixinUses,
-      this.typesImplementedBySubclasses,
-      this.classHierarchy,
-      this.annotationsData,
-      this.isChecks,
-      this.namedTypeVariablesNewRti,
-      this.staticTypeArgumentDependencies,
-      this.dynamicTypeArgumentDependencies,
-      this.typeVariableTypeLiterals,
-      this.genericLocalFunctions,
-      this.closurizedMembersWithFreeTypeVariables,
-      this.localFunctions,
-      this.instantiatedTypes})
+      {required CompilerOptions options,
+      required this.elementEnvironment,
+      required this.dartTypes,
+      required this.commonElements,
+      required this.nativeData,
+      required this.interceptorData,
+      required this.backendUsage,
+      required this.noSuchMethodData,
+      required RuntimeTypesNeedBuilder rtiNeedBuilder,
+      required this.fieldAnalysis,
+      required Set<ClassEntity> implementedClasses,
+      required this.liveNativeClasses,
+      required this.liveInstanceMembers,
+      required this.liveAbstractInstanceMembers,
+      required this.assignedInstanceMembers,
+      required this.liveMemberUsage,
+      required this.mixinUses,
+      required this.typesImplementedBySubclasses,
+      required this.classHierarchy,
+      required this.annotationsData,
+      required this.isChecks,
+      required this.namedTypeVariablesNewRti,
+      required this.staticTypeArgumentDependencies,
+      required this.dynamicTypeArgumentDependencies,
+      required this.typeVariableTypeLiterals,
+      required this.genericLocalFunctions,
+      required this.closurizedMembersWithFreeTypeVariables,
+      required this.localFunctions,
+      required this.instantiatedTypes})
       : _implementedClasses = implementedClasses {
     _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(this, options);
     assert(_checkIntegrity());
@@ -125,11 +128,11 @@ class KClosedWorld implements BuiltWorld {
     for (MemberEntity member in liveMemberUsage.keys) {
       if (member.enclosingClass != null) {
         if (!elementMap.classes
-            .getEnv(member.enclosingClass)
+            .getEnv(member.enclosingClass as IndexedClass)
             .checkHasMember(elementMap.getMemberNode(member))) {
           throw SpannableAssertionFailure(
               member,
-              "Member $member is in the environment of its enclosing class"
+              "Member $member is not in the environment of its enclosing class"
               " ${member.enclosingClass}.");
         }
       }
@@ -162,7 +165,7 @@ class KClosedWorld implements BuiltWorld {
   bool isMemberUsed(MemberEntity member) => liveMemberUsage.containsKey(member);
 
   @override
-  void forEachGenericMethod(Function f) {
+  void forEachGenericMethod(void Function(FunctionEntity e) f) {
     liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
       if (member is FunctionEntity &&
           elementEnvironment.getFunctionTypeVariables(member).isNotEmpty) {
@@ -172,7 +175,7 @@ class KClosedWorld implements BuiltWorld {
   }
 
   @override
-  void forEachGenericInstanceMethod(Function f) {
+  void forEachGenericInstanceMethod(void Function(FunctionEntity e) f) {
     liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
       if (member is FunctionEntity &&
           member.isInstanceMember &&
@@ -182,89 +185,73 @@ class KClosedWorld implements BuiltWorld {
     });
   }
 
-  List<FunctionEntity> _userNoSuchMethodsCache;
-
   @override
-  Iterable<FunctionEntity> get userNoSuchMethods {
-    if (_userNoSuchMethodsCache == null) {
-      _userNoSuchMethodsCache = <FunctionEntity>[];
-
-      liveMemberUsage.forEach((MemberEntity member, MemberUsage memberUsage) {
-        if (member is FunctionEntity && memberUsage.hasUse) {
-          if (member.isInstanceMember &&
-              member.name == Identifiers.noSuchMethod_ &&
-              !commonElements.isDefaultNoSuchMethodImplementation(member)) {
-            _userNoSuchMethodsCache.add(member);
-          }
+  late final Iterable<FunctionEntity> userNoSuchMethods = (() {
+    final result = <FunctionEntity>[];
+    liveMemberUsage.forEach((MemberEntity member, MemberUsage memberUsage) {
+      if (member is FunctionEntity && memberUsage.hasUse) {
+        if (member.isInstanceMember &&
+            member.name == Identifiers.noSuchMethod_ &&
+            !commonElements.isDefaultNoSuchMethodImplementation(member)) {
+          result.add(member);
         }
-      });
-    }
-
-    return _userNoSuchMethodsCache;
-  }
-
-  Set<FunctionEntity> _closurizedMembersCache;
+      }
+    });
+    return result;
+  })();
 
   @override
-  Iterable<FunctionEntity> get closurizedMembers {
-    if (_closurizedMembersCache == null) {
-      _closurizedMembersCache = {};
-      liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
-        if (member.isFunction && member.isInstanceMember && usage.hasRead) {
-          _closurizedMembersCache.add(member);
+  late final Iterable<FunctionEntity> closurizedMembers = (() {
+    final result = <FunctionEntity>{};
+    liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
+      if (member.isFunction && member.isInstanceMember && usage.hasRead) {
+        result.add(member as FunctionEntity);
+      }
+    });
+    return result;
+  }());
+
+  @override
+  late final Iterable<FunctionEntity> closurizedStatics = (() {
+    final result = <FunctionEntity>{};
+    liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
+      if (member.isFunction &&
+          (member.isStatic || member.isTopLevel) &&
+          usage.hasRead) {
+        result.add(member as FunctionEntity);
+      }
+    });
+    return result;
+  })();
+
+  @override
+  late final Map<MemberEntity, DartType> genericCallableProperties = (() {
+    final result = <MemberEntity, DartType>{};
+    liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
+      if (usage.hasRead) {
+        DartType? type;
+        if (member is FieldEntity) {
+          type = elementEnvironment.getFieldType(member);
+        } else if (member.isGetter) {
+          type = elementEnvironment
+              .getFunctionType(member as FunctionEntity)
+              .returnType;
         }
-      });
-    }
-    return _closurizedMembersCache;
-  }
-
-  Set<FunctionEntity> _closurizedStaticsCache;
-
-  @override
-  Iterable<FunctionEntity> get closurizedStatics {
-    if (_closurizedStaticsCache == null) {
-      _closurizedStaticsCache = {};
-      liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
-        if (member.isFunction &&
-            (member.isStatic || member.isTopLevel) &&
-            usage.hasRead) {
-          _closurizedStaticsCache.add(member);
-        }
-      });
-    }
-    return _closurizedStaticsCache;
-  }
-
-  Map<MemberEntity, DartType> _genericCallablePropertiesCache;
-
-  @override
-  Map<MemberEntity, DartType> get genericCallableProperties {
-    if (_genericCallablePropertiesCache == null) {
-      _genericCallablePropertiesCache = {};
-      liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
-        if (usage.hasRead) {
-          DartType type;
-          if (member.isField) {
-            type = elementEnvironment.getFieldType(member);
-          } else if (member.isGetter) {
-            type = elementEnvironment.getFunctionType(member).returnType;
-          }
-          if (type == null) return;
-          if (dartTypes.canAssignGenericFunctionTo(type)) {
-            _genericCallablePropertiesCache[member] = type;
-          } else {
-            type = type.withoutNullability;
-            if (type is InterfaceType) {
-              FunctionType callType = dartTypes.getCallType(type);
-              if (callType != null &&
-                  dartTypes.canAssignGenericFunctionTo(callType)) {
-                _genericCallablePropertiesCache[member] = callType;
-              }
+        if (type == null) return;
+        if (dartTypes.canAssignGenericFunctionTo(type)) {
+          result[member] = type;
+        } else {
+          type = type.withoutNullability;
+          if (type is InterfaceType) {
+            FunctionType? callType = dartTypes.getCallType(type);
+            if (callType != null &&
+                dartTypes.canAssignGenericFunctionTo(callType)) {
+              result[member] = callType;
             }
           }
         }
-      });
-    }
-    return _genericCallablePropertiesCache;
-  }
+      }
+    });
+    return result;
+  })();
 }

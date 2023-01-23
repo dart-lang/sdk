@@ -19,9 +19,8 @@ class TopLevelInferenceError {
 /// Enum used to indicate the kind of the error during top-level inference.
 enum TopLevelInferenceErrorKind {
   none,
-  assignment,
-  instanceGetter,
+  couldNotInfer,
   dependencyCycle,
-  overrideConflictFieldType,
+  inferenceFailureOnInstanceCreation,
   overrideNoCombinedSuperSignature,
 }

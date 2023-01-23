@@ -619,6 +619,42 @@ void main() {
     ]);
   }
 
+  test_import_hide() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:meta/meta.dart';
+
+@useResult
+bool foo() => true;
+
+bool bar() => true;
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' hide foo;
+
+bool f() {
+  return bar();
+}
+''');
+  }
+
+  test_import_show() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:meta/meta.dart';
+
+@useResult
+bool foo() => true;
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' show foo;
+
+bool f() {
+  return foo();
+}
+''');
+  }
+
   test_method_result_assertInitializer() async {
     await assertNoErrorsInCode('''
 import 'package:meta/meta.dart';
@@ -976,6 +1012,22 @@ void f(A a) {
 ''');
   }
 
+  test_method_result_switchCondition_language218() async {
+    await assertNoErrorsInCode('''
+// @dart = 2.18
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  bool foo() => false;
+}
+
+void f(A a) {
+  switch (a.foo()) {}
+}
+''');
+  }
+
   test_method_result_targetedMethod() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -1165,6 +1217,71 @@ import 'c.dart' as c;
 
 /// [c.A.b].
 const a = 'a';
+''');
+  }
+
+  test_topLevelFunction_prefixExpression_bang() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+bool foo() => true;
+
+bool f() {
+  return !foo();
+}
+''');
+  }
+
+  test_topLevelFunction_prefixExpression_decrement() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo = 1;
+
+int f() {
+  return --foo;
+}
+''');
+  }
+
+  test_topLevelFunction_prefixExpression_increment() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo = 1;
+
+int f() {
+  return ++foo;
+}
+''');
+  }
+
+  test_topLevelFunction_prefixExpression_minus() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo() => 1;
+
+int f() {
+  return -foo();
+}
+''');
+  }
+
+  test_topLevelFunction_prefixExpression_tilde() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo() => 1;
+
+int f() {
+  return ~foo();
+}
 ''');
   }
 

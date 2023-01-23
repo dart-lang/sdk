@@ -418,7 +418,7 @@ class MergedDominatorDiff {
     for (var i = 0; i < worklist.length; i++) {
       worklist[i]._computeChildren(worklist);
     }
-    // Compute area botton-up.
+    // Compute area bottom-up.
     for (var i = worklist.length - 1; i >= 0; i--) {
       worklist[i]._computeArea();
     }
@@ -603,7 +603,6 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
     var blob = new Blob(_snapshotA!.chunks, 'application/octet-stream');
     var blobUrl = Url.createObjectUrl(blob);
     var link = new AnchorElement();
-    // ignore: unsafe_html
     link.href = blobUrl;
     var now = new DateTime.now();
     link.download = 'dart-heap-${now.year}-${now.month}-${now.day}.bin';
@@ -651,7 +650,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
   }
 
   static List<Element> _createStatusMessage(String message,
-      {String description: '', double progress: 0.0}) {
+      {String description = '', double progress = 0.0}) {
     return [
       new DivElement()
         ..classes = ['content-centered-big']

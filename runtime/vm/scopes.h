@@ -97,7 +97,7 @@ class LocalVariable : public ZoneAllocated {
         late_init_offset_(0),
         type_check_mode_(kDoTypeCheck),
         index_() {
-    ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
+    DEBUG_ASSERT(type.IsNotTemporaryScopedHandle());
     ASSERT(type.IsFinalized());
     ASSERT(name.IsSymbol());
   }
@@ -197,7 +197,7 @@ class LocalVariable : public ZoneAllocated {
   bool IsConst() const { return const_value_ != NULL; }
 
   void SetConstValue(const Instance& value) {
-    ASSERT(value.IsZoneHandle() || value.IsReadOnlyHandle());
+    DEBUG_ASSERT(value.IsNotTemporaryScopedHandle());
     const_value_ = &value;
   }
 

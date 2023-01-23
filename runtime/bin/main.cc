@@ -358,15 +358,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
 
-  if (Options::gen_snapshot_kind() == kAppJIT && !isolate_run_app_snapshot) {
-    // If we sort, we must do it for all isolates, not just the main isolate,
-    // otherwise isolates related by spawnFunction will disagree on CIDs and
-    // cannot correctly send each other messages. If we run from an app
-    // snapshot, things are already sorted, and other isolate created by
-    // spawnFunction will also load from the same snapshot. Sorting such isolate
-    // is counter-productive because it invalidates their code.
-    // After we switch to always using isolate groups, this be changed to
-    // `generating-app-jit && is_main_isolate`.
+  if ((Options::gen_snapshot_kind() == kAppJIT) && is_main_isolate) {
     result = Dart_SortClasses();
     CHECK_RESULT(result);
   }
@@ -563,7 +555,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
           Options::vm_service_auth_disabled(),
           Options::vm_write_service_info_filename(), Options::trace_loading(),
           Options::deterministic(), Options::enable_service_port_fallback(),
-          wait_for_dds_to_advertise_service)) {
+          wait_for_dds_to_advertise_service, !Options::disable_observatory())) {
     *error = Utils::StrDup(VmService::GetErrorMessage());
     return NULL;
   }
@@ -685,7 +677,8 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
     Dart_IsolateFlags* flags,
     void* callback_data,
     char** error,
-    int* exit_code) {
+    int* exit_code,
+    bool force_no_sound_null_safety = false) {
   int64_t start = Dart_TimelineGetMicros();
   ASSERT(script_uri != NULL);
   uint8_t* kernel_buffer = NULL;
@@ -761,11 +754,15 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
   }
   PathSanitizer script_uri_sanitizer(script_uri);
   PathSanitizer packages_config_sanitizer(packages_config);
-  flags->null_safety = Dart_DetectNullSafety(
-      script_uri_sanitizer.sanitized_uri(),
-      packages_config_sanitizer.sanitized_uri(),
-      DartUtils::original_working_directory, isolate_snapshot_data,
-      isolate_snapshot_instructions, kernel_buffer, kernel_buffer_size);
+  if (force_no_sound_null_safety) {
+    flags->null_safety = false;
+  } else {
+    flags->null_safety = Dart_DetectNullSafety(
+        script_uri_sanitizer.sanitized_uri(),
+        packages_config_sanitizer.sanitized_uri(),
+        DartUtils::original_working_directory, isolate_snapshot_data,
+        isolate_snapshot_instructions, kernel_buffer, kernel_buffer_size);
+  }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   auto isolate_group_data = new IsolateGroupData(
@@ -985,6 +982,7 @@ static void CompileAndSaveKernel(const char* script_name,
 
 void RunMainIsolate(const char* script_name,
                     const char* package_config_override,
+                    bool force_no_sound_null_safety,
                     CommandLineOptions* dart_options) {
   if (script_name != NULL) {
     const char* base_name = strrchr(script_name, '/');
@@ -1023,7 +1021,8 @@ void RunMainIsolate(const char* script_name,
       /* is_main_isolate */ true, script_name, "main",
       Options::packages_file() == nullptr ? package_config_override
                                           : Options::packages_file(),
-      &flags, NULL /* callback_data */, &error, &exit_code);
+      &flags, NULL /* callback_data */, &error, &exit_code,
+      force_no_sound_null_safety);
 
   if (isolate == NULL) {
     Syslog::PrintErr("%s\n", error);
@@ -1365,12 +1364,13 @@ void main(int argc, char** argv) {
   Dart_SetEmbedderInformationCallback(&EmbedderInformationCallback);
   bool ran_dart_dev = false;
   bool should_run_user_program = true;
+  bool force_no_sound_null_safety = false;
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (DartDevIsolate::should_run_dart_dev() && !Options::disable_dart_dev() &&
       Options::gen_snapshot_kind() == SnapshotKind::kNone) {
     DartDevIsolate::DartDev_Result dartdev_result = DartDevIsolate::RunDartDev(
         CreateIsolateGroupAndSetup, &package_config_override, &script_name,
-        &dart_options);
+        &force_no_sound_null_safety, &dart_options);
     ASSERT(dartdev_result != DartDevIsolate::DartDev_Result_Unknown);
     ran_dart_dev = true;
     should_run_user_program =
@@ -1400,7 +1400,8 @@ void main(int argc, char** argv) {
 
       } else {
         // Run the main isolate until we aren't told to restart.
-        RunMainIsolate(script_name, package_config_override, &dart_options);
+        RunMainIsolate(script_name, package_config_override,
+                       force_no_sound_null_safety, &dart_options);
       }
     }
   }

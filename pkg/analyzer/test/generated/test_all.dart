@@ -26,6 +26,7 @@ import 'nnbd_parser_test.dart' as nnbd_parser;
 import 'non_error_parser_test.dart' as non_error_parser;
 import 'non_error_resolver_test.dart' as non_error_resolver;
 import 'non_hint_code_test.dart' as non_hint_code;
+import 'patterns_parser_test.dart' as patterns_parser;
 import 'recovery_parser_test.dart' as recovery_parser;
 import 'resolver_test.dart' as resolver_test;
 import 'scanner_test.dart' as scanner_test;
@@ -67,6 +68,7 @@ main() {
     non_error_parser.main();
     non_error_resolver.main();
     non_hint_code.main();
+    patterns_parser.main();
     recovery_parser.main();
     resolver_test.main();
     scanner_test.main();

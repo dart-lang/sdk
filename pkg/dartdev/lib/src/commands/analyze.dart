@@ -190,7 +190,7 @@ class AnalyzeCommand extends DartdevCommand {
     await server.analysisFinished;
     analysisFinished = true;
 
-    await server.shutdown(timeout: Duration(seconds: 1));
+    await server.shutdown();
 
     progress?.finish(showTiming: true);
 
@@ -255,7 +255,7 @@ class AnalyzeCommand extends DartdevCommand {
       if (!file.existsSync()) {
         usageException("The file doesn't exist: $path");
       }
-      return file;
+      return file.absolute;
     } else {
       return null;
     }

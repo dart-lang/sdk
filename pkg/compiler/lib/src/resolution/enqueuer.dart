@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'dart:collection' show Queue;
 
 import '../common.dart';
@@ -15,7 +13,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_backend/annotations.dart';
 import '../universe/member_usage.dart';
-import '../universe/resolution_world_builder.dart';
+import '../universe/resolution_world_builder_interfaces.dart';
 import '../universe/use.dart'
     show
         ConstantUse,
@@ -38,7 +36,7 @@ class ResolutionEnqueuer extends Enqueuer {
   final Set<ClassEntity> _recentClasses = Setlet<ClassEntity>();
   bool _recentConstants = false;
   final ResolutionWorldBuilder worldBuilder;
-  WorkItemBuilder _workItemBuilder;
+  WorkItemBuilder? _workItemBuilder;
   final DiagnosticReporter _reporter;
   final AnnotationsData _annotationsData;
 
@@ -49,7 +47,7 @@ class ResolutionEnqueuer extends Enqueuer {
 
   // If not `null` this is called when the queue has been emptied. It allows for
   // applying additional impacts before re-emptying the queue.
-  void Function() onEmptyForTesting;
+  void Function()? onEmptyForTesting;
 
   ResolutionEnqueuer(this.task, this._reporter, this.listener,
       this.worldBuilder, this._workItemBuilder, this._annotationsData,
@@ -70,7 +68,7 @@ class ResolutionEnqueuer extends Enqueuer {
   }
 
   void _registerInstantiatedType(InterfaceType type,
-      {ConstructorEntity constructor,
+      {ConstructorEntity? constructor,
       bool nativeUsage = false,
       bool globalDependency = false}) {
     task.measureSubtask('resolution.typeUse', () {
@@ -102,10 +100,10 @@ class ResolutionEnqueuer extends Enqueuer {
   /// Callback for applying the use of a [member].
   void _applyMemberUse(Entity member, EnumSet<MemberUse> useSet) {
     if (useSet.contains(MemberUse.NORMAL)) {
-      _addToWorkList(member);
+      _addToWorkList(member as MemberEntity);
     }
     if (useSet.contains(MemberUse.CLOSURIZE_INSTANCE)) {
-      _registerClosurizedMember(member);
+      _registerClosurizedMember(member as FunctionEntity);
     }
     if (useSet.contains(MemberUse.CLOSURIZE_STATIC)) {
       applyImpact(listener.registerGetOfStaticFunction());
@@ -124,6 +122,9 @@ class ResolutionEnqueuer extends Enqueuer {
     }
     if (useSet.contains(ClassUse.IMPLEMENTED)) {
       applyImpact(listener.registerImplementedClass(cls));
+      if (cls.isAbstract) {
+        worldBuilder.processAbstractClassMembers(cls, _applyMemberUse);
+      }
     }
   }
 
@@ -145,7 +146,7 @@ class ResolutionEnqueuer extends Enqueuer {
   }
 
   @override
-  void processStaticUse(MemberEntity member, StaticUse staticUse) {
+  void processStaticUse(MemberEntity? member, StaticUse staticUse) {
     task.measureSubtask('resolution.staticUse', () {
       worldBuilder.registerStaticUse(staticUse, _applyMemberUse);
       // TODO(johnniwinther): Add `ResolutionWorldBuilder.registerConstructorUse`
@@ -153,8 +154,9 @@ class ResolutionEnqueuer extends Enqueuer {
       switch (staticUse.kind) {
         case StaticUseKind.CONSTRUCTOR_INVOKE:
         case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
-          _registerInstantiatedType(staticUse.type,
-              constructor: staticUse.element, globalDependency: false);
+          _registerInstantiatedType(staticUse.type!,
+              constructor: staticUse.element as ConstructorEntity?,
+              globalDependency: false);
           break;
         default:
           break;
@@ -163,15 +165,17 @@ class ResolutionEnqueuer extends Enqueuer {
   }
 
   @override
-  void processTypeUse(MemberEntity member, TypeUse typeUse) {
+  void processTypeUse(MemberEntity? member, TypeUse typeUse) {
+    if (member?.isAbstract ?? false) return;
     DartType type = typeUse.type;
     switch (typeUse.kind) {
       case TypeUseKind.INSTANTIATION:
       case TypeUseKind.CONST_INSTANTIATION:
-        _registerInstantiatedType(type, globalDependency: false);
+        _registerInstantiatedType(type as InterfaceType,
+            globalDependency: false);
         break;
       case TypeUseKind.NATIVE_INSTANTIATION:
-        _registerInstantiatedType(type,
+        _registerInstantiatedType(type as InterfaceType,
             nativeUsage: true, globalDependency: true);
         break;
       case TypeUseKind.IS_CHECK:
@@ -203,10 +207,8 @@ class ResolutionEnqueuer extends Enqueuer {
       case TypeUseKind.TYPE_ARGUMENT:
       case TypeUseKind.CONSTRUCTOR_REFERENCE:
         failedAt(CURRENT_ELEMENT_SPANNABLE, "Unexpected type use: $typeUse.");
-        break;
       case TypeUseKind.NAMED_TYPE_VARIABLE_NEW_RTI:
-        assert(type is TypeVariableType);
-        _registerNamedTypeVariableNewRti(type);
+        _registerNamedTypeVariableNewRti(type as TypeVariableType);
         break;
     }
   }
@@ -219,7 +221,7 @@ class ResolutionEnqueuer extends Enqueuer {
     worldBuilder.registerNamedTypeVariableNewRti(type);
   }
 
-  void _registerClosurizedMember(MemberEntity element) {
+  void _registerClosurizedMember(FunctionEntity element) {
     assert(element.isInstanceMember);
     applyImpact(listener.registerClosurizedMember(element));
     worldBuilder.registerClosurizedMember(element);
@@ -249,7 +251,7 @@ class ResolutionEnqueuer extends Enqueuer {
   void forEach(void f(WorkItem work)) {
     _forEach(f);
     if (onEmptyForTesting != null) {
-      onEmptyForTesting();
+      onEmptyForTesting!();
       _forEach(f);
     }
   }
@@ -284,7 +286,7 @@ class ResolutionEnqueuer extends Enqueuer {
   /// already been processed.
   void _addToWorkList(MemberEntity entity) {
     if (worldBuilder.isMemberProcessed(entity)) return;
-    WorkItem workItem = _workItemBuilder.createWorkItem(entity);
+    final workItem = _workItemBuilder!.createWorkItem(entity);
     if (workItem == null) return;
 
     if (queueIsClosed) {

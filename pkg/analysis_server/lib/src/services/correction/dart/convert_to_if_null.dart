@@ -47,6 +47,8 @@ class ConvertToIfNull extends CorrectionProducer {
       await builder.addDartFileEdit(file, (builder) {
         builder.addReplacement(range.node(node), (builder) {
           builder.write(utils.getNodeText(nullableExpression));
+
+          if (defaultExpression is NullLiteral) return;
           builder.write(' ?? ');
           if (parentheses) {
             builder.write('(');

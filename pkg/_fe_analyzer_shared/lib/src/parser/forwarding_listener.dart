@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../experiments/flags.dart';
 import '../messages/codes.dart';
 import '../scanner/scanner.dart';
 import 'parser.dart';
@@ -36,6 +37,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void beginBinaryPattern(Token token) {
+    listener?.beginBinaryPattern(token);
+  }
+
+  @override
   void beginBlock(Token token, BlockKind blockKind) {
     listener?.beginBlock(token, blockKind);
   }
@@ -61,10 +67,16 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
-    listener?.beginClassDeclaration(
-        begin, abstractToken, macroToken, augmentToken, name);
+  void beginClassDeclaration(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
+    listener?.beginClassDeclaration(begin, abstractToken, macroToken, viewToken,
+        sealedToken, augmentToken, name);
   }
 
   @override
@@ -222,6 +234,37 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void beginRecordType(Token leftBracket) {
+    listener?.beginRecordType(leftBracket);
+  }
+
+  @override
+  void endRecordType(
+      Token leftBracket, Token? questionMark, int count, bool hasNamedFields) {
+    listener?.endRecordType(leftBracket, questionMark, count, hasNamedFields);
+  }
+
+  @override
+  void beginRecordTypeEntry() {
+    listener?.beginRecordTypeEntry();
+  }
+
+  @override
+  void endRecordTypeEntry() {
+    listener?.endRecordTypeEntry();
+  }
+
+  @override
+  void beginRecordTypeNamedFields(Token leftBracket) {
+    listener?.beginRecordTypeNamedFields(leftBracket);
+  }
+
+  @override
+  void endRecordTypeNamedFields(int count, Token leftBracket) {
+    listener?.endRecordTypeNamedFields(count, leftBracket);
+  }
+
+  @override
   void beginFunctionType(Token beginToken) {
     listener?.beginFunctionType(beginToken);
   }
@@ -343,8 +386,9 @@ class ForwardingListener implements Listener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken, Token mixinKeyword, Token name) {
-    listener?.beginMixinDeclaration(augmentToken, mixinKeyword, name);
+      Token? augmentToken, Token? sealedToken, Token mixinKeyword, Token name) {
+    listener?.beginMixinDeclaration(
+        augmentToken, sealedToken, mixinKeyword, name);
   }
 
   @override
@@ -353,10 +397,16 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginNamedMixinApplication(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
-    listener?.beginNamedMixinApplication(
-        begin, abstractToken, macroToken, augmentToken, name);
+  void beginNamedMixinApplication(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
+    listener?.beginNamedMixinApplication(begin, abstractToken, macroToken,
+        viewToken, sealedToken, augmentToken, name);
   }
 
   @override
@@ -405,13 +455,28 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void beginSwitchExpressionBlock(Token token) {
+    listener?.beginSwitchExpressionBlock(token);
+  }
+
+  @override
   void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
     listener?.beginSwitchCase(labelCount, expressionCount, firstToken);
   }
 
   @override
+  void beginSwitchExpressionCase() {
+    listener?.beginSwitchExpressionCase();
+  }
+
+  @override
   void beginSwitchStatement(Token token) {
     listener?.beginSwitchStatement(token);
+  }
+
+  @override
+  void beginSwitchExpression(Token token) {
+    listener?.beginSwitchExpression(token);
   }
 
   @override
@@ -492,6 +557,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleObjectPatternFields(int count, Token beginToken, Token endToken) {
+    listener?.handleObjectPatternFields(count, beginToken, endToken);
+  }
+
+  @override
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
       Token? commaToken, Token semicolonToken) {
     listener?.endAssert(
@@ -506,6 +576,11 @@ class ForwardingListener implements Listener {
   @override
   void endBinaryExpression(Token token) {
     listener?.endBinaryExpression(token);
+  }
+
+  @override
+  void endBinaryPattern(Token token) {
+    listener?.endBinaryPattern(token);
   }
 
   @override
@@ -530,8 +605,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endCaseExpression(Token colon) {
-    listener?.endCaseExpression(colon);
+  void endCaseExpression(Token caseKeyword, Token? when, Token colon) {
+    listener?.endCaseExpression(caseKeyword, when, colon);
   }
 
   @override
@@ -942,8 +1017,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endLibraryName(Token libraryKeyword, Token semicolon) {
-    listener?.endLibraryName(libraryKeyword, semicolon);
+  void endLibraryName(Token libraryKeyword, Token semicolon, bool hasName) {
+    listener?.endLibraryName(libraryKeyword, semicolon, hasName);
   }
 
   @override
@@ -1087,6 +1162,12 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void endSwitchExpressionBlock(
+      int caseCount, Token beginToken, Token endToken) {
+    listener?.endSwitchExpressionBlock(caseCount, beginToken, endToken);
+  }
+
+  @override
   void endSwitchCase(
       int labelCount,
       int expressionCount,
@@ -1100,8 +1181,18 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void endSwitchExpressionCase(Token? when, Token arrow, Token endToken) {
+    listener?.endSwitchExpressionCase(when, arrow, endToken);
+  }
+
+  @override
   void endSwitchStatement(Token switchKeyword, Token endToken) {
     listener?.endSwitchStatement(switchKeyword, endToken);
+  }
+
+  @override
+  void endSwitchExpression(Token switchKeyword, Token endToken) {
+    listener?.endSwitchExpression(switchKeyword, endToken);
   }
 
   @override
@@ -1224,6 +1315,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleCastPattern(Token operator) {
+    listener?.handleCastPattern(operator);
+  }
+
+  @override
   void handleAssignmentExpression(Token token) {
     listener?.handleAssignmentExpression(token);
   }
@@ -1237,11 +1333,6 @@ class ForwardingListener implements Listener {
   void handleBreakStatement(
       bool hasTarget, Token breakKeyword, Token endToken) {
     listener?.handleBreakStatement(hasTarget, breakKeyword, endToken);
-  }
-
-  @override
-  void handleCaseMatch(Token caseKeyword, Token colon) {
-    listener?.handleCaseMatch(caseKeyword, colon);
   }
 
   @override
@@ -1470,6 +1561,7 @@ class ForwardingListener implements Listener {
     listener?.handleInvalidStatement(token, message);
   }
 
+  @override
   void handleInvalidTopLevelBlock(Token token) {
     listener?.handleInvalidTopLevelBlock(token);
   }
@@ -1531,8 +1623,18 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleListPattern(int count, Token beginToken, Token endToken) {
+    listener?.handleListPattern(count, beginToken, endToken);
+  }
+
+  @override
   void handleLiteralMapEntry(Token colon, Token endToken) {
     listener?.handleLiteralMapEntry(colon, endToken);
+  }
+
+  @override
+  void handleMapPatternEntry(Token colon, Token endToken) {
+    listener?.handleMapPatternEntry(colon, endToken);
   }
 
   @override
@@ -1555,6 +1657,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleMapPattern(int count, Token leftBrace, Token rightBrace) {
+    listener?.handleMapPattern(count, leftBrace, rightBrace);
+  }
+
+  @override
   void handleMixinHeader(Token mixinKeyword) {
     listener?.handleMixinHeader(mixinKeyword);
   }
@@ -1567,6 +1674,16 @@ class ForwardingListener implements Listener {
   @override
   void handleNamedArgument(Token colon) {
     listener?.handleNamedArgument(colon);
+  }
+
+  @override
+  void handlePatternField(Token? colon) {
+    listener?.handlePatternField(colon);
+  }
+
+  @override
+  void handleNamedRecordField(Token colon) {
+    listener?.handleNamedRecordField(colon);
   }
 
   @override
@@ -1645,6 +1762,21 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleNullAssertPattern(Token bang) {
+    listener?.handleNullAssertPattern(bang);
+  }
+
+  @override
+  void handleNullCheckPattern(Token question) {
+    listener?.handleNullCheckPattern(question);
+  }
+
+  @override
+  void handleVariablePattern(Token? keyword, Token variable) {
+    listener?.handleVariablePattern(keyword, variable);
+  }
+
+  @override
   void handleNoType(Token lastConsumed) {
     listener?.handleNoType(lastConsumed);
   }
@@ -1680,13 +1812,44 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleParenthesizedCondition(Token token) {
-    listener?.handleParenthesizedCondition(token);
+  void handleParenthesizedCondition(Token token, Token? case_, Token? when) {
+    listener?.handleParenthesizedCondition(token, case_, when);
   }
 
   @override
-  void handleParenthesizedExpression(Token token) {
-    listener?.handleParenthesizedExpression(token);
+  void beginParenthesizedExpressionOrRecordLiteral(Token token) {
+    listener?.beginParenthesizedExpressionOrRecordLiteral(token);
+  }
+
+  @override
+  void endRecordLiteral(Token token, int count, Token? constKeyword) {
+    listener?.endRecordLiteral(token, count, constKeyword);
+  }
+
+  @override
+  void handleRecordPattern(Token token, int count) {
+    listener?.handleRecordPattern(token, count);
+  }
+
+  @override
+  void endParenthesizedExpression(Token token) {
+    listener?.endParenthesizedExpression(token);
+  }
+
+  @override
+  void handleParenthesizedPattern(Token token) {
+    listener?.handleParenthesizedPattern(token);
+  }
+
+  @override
+  void handleConstantPattern(Token? constKeyword) {
+    listener?.handleConstantPattern(constKeyword);
+  }
+
+  @override
+  void handleObjectPattern(
+      Token firstIdentifier, Token? dot, Token? secondIdentifier) {
+    listener?.handleObjectPattern(firstIdentifier, dot, secondIdentifier);
   }
 
   @override
@@ -1730,6 +1893,11 @@ class ForwardingListener implements Listener {
   @override
   void handleSpreadExpression(Token spreadToken) {
     listener?.handleSpreadExpression(spreadToken);
+  }
+
+  @override
+  void handleRestPattern(Token dots, {required bool hasSubPattern}) {
+    listener?.handleRestPattern(dots, hasSubPattern: hasSubPattern);
   }
 
   @override
@@ -1794,6 +1962,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleRelationalPattern(Token token) {
+    listener?.handleRelationalPattern(token);
+  }
+
+  @override
   void handleUnescapeError(
       Message message, Token location, int offset, int length) {
     listener?.handleUnescapeError(message, location, offset, length);
@@ -1815,6 +1988,18 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handlePatternVariableDeclarationStatement(
+      Token keyword, Token equals, Token semicolon) {
+    listener?.handlePatternVariableDeclarationStatement(
+        keyword, equals, semicolon);
+  }
+
+  @override
+  void handlePatternAssignment(Token equals) {
+    listener?.handlePatternAssignment(equals);
+  }
+
+  @override
   void logEvent(String name) {
     listener?.logEvent(name);
   }
@@ -1822,6 +2007,13 @@ class ForwardingListener implements Listener {
   @override
   void reportVarianceModifierNotEnabled(Token? variance) {
     listener?.reportVarianceModifierNotEnabled(variance);
+  }
+
+  @override
+  void handleExperimentNotEnabled(
+      ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
+    listener?.handleExperimentNotEnabled(
+        experimentalFlag, startToken, endToken);
   }
 }
 

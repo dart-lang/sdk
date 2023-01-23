@@ -1,0 +1,4 @@
+import 'main_lib.dart';
+import 'main_lib2.dart';
+
+main() {}

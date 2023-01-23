@@ -111,6 +111,28 @@ VM_UNIT_TEST_CASE_WITH_EXPECTATION(AllocGeneric_Overflow, "Crash") {
   Dart_ShutdownIsolate();
 }
 
+VM_UNIT_TEST_CASE(ZoneRealloc) {
+  TestCase::CreateTestIsolate();
+  Thread* thread = Thread::Current();
+  {
+    TransitionNativeToVM transition(thread);
+    StackZone stack_zone(thread);
+    auto zone = thread->zone();
+
+    const intptr_t kOldLen = 32;
+    const intptr_t kNewLen = 16;
+    const intptr_t kNewLen2 = 16;
+
+    auto data_old = zone->Alloc<uint8_t>(kOldLen);
+    auto data_new = zone->Realloc<uint8_t>(data_old, kOldLen, kNewLen);
+    RELEASE_ASSERT(data_old == data_new);
+
+    auto data_new2 = zone->Realloc<uint8_t>(data_old, kNewLen, kNewLen2);
+    RELEASE_ASSERT(data_old == data_new2);
+  }
+  Dart_ShutdownIsolate();
+}
+
 VM_UNIT_TEST_CASE(ZoneAllocated) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
@@ -240,5 +262,37 @@ ISOLATE_UNIT_TEST_CASE(ZonesNotLimitedByCompressedHeap) {
   }
 }
 #endif  // defined(DART_COMPRESSED_POINTERS)
+
+ISOLATE_UNIT_TEST_CASE(ZoneVerificationScaling) {
+  // This ought to complete in O(n), not O(n^2).
+  const intptr_t n = 1000000;
+
+  StackZone stack_zone(thread);
+  Zone* zone = stack_zone.GetZone();
+
+  {
+    HANDLESCOPE(thread);
+    for (intptr_t i = 0; i < n; i++) {
+      const Object& a = Object::Handle(zone);
+      DEBUG_ASSERT(!a.IsNotTemporaryScopedHandle());
+      USE(a);
+      const Object& b = Object::ZoneHandle(zone);
+      DEBUG_ASSERT(b.IsNotTemporaryScopedHandle());
+      USE(b);
+    }
+    // Leaves lots of HandleBlocks for recycling.
+  }
+
+  for (intptr_t i = 0; i < n; i++) {
+    HANDLESCOPE(thread);
+    const Object& a = Object::Handle(zone);
+    DEBUG_ASSERT(!a.IsNotTemporaryScopedHandle());
+    USE(a);
+    const Object& b = Object::ZoneHandle(zone);
+    DEBUG_ASSERT(b.IsNotTemporaryScopedHandle());
+    USE(b);
+    // Should not visit those recyclable blocks over and over again.
+  }
+}
 
 }  // namespace dart

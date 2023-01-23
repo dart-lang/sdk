@@ -4,9 +4,9 @@
 
 part of dart.async;
 
-typedef R ZoneCallback<R>();
-typedef R ZoneUnaryCallback<R, T>(T arg);
-typedef R ZoneBinaryCallback<R, T1, T2>(T1 arg1, T2 arg2);
+typedef ZoneCallback<R> = R Function();
+typedef ZoneUnaryCallback<R, T> = R Function(T);
+typedef ZoneBinaryCallback<R, T1, T2> = R Function(T1, T2);
 
 /// The type of a custom [Zone.handleUncaughtError] implementation function.
 ///
@@ -172,8 +172,8 @@ typedef RegisterBinaryCallbackHandler
 /// The function must only access zone-related functionality through
 /// [self], [parent] or [zone].
 /// It should not depend on the current zone ([Zone.current]).
-typedef AsyncError? ErrorCallbackHandler(Zone self, ZoneDelegate parent,
-    Zone zone, Object error, StackTrace? stackTrace);
+typedef ErrorCallbackHandler = AsyncError? Function(Zone self,
+    ZoneDelegate parent, Zone zone, Object error, StackTrace? stackTrace);
 
 /// The type of a custom [Zone.scheduleMicrotask] implementation function.
 ///
@@ -194,8 +194,8 @@ typedef AsyncError? ErrorCallbackHandler(Zone self, ZoneDelegate parent,
 /// The function must only access zone-related functionality through
 /// [self], [parent] or [zone].
 /// It should not depend on the current zone ([Zone.current]).
-typedef void ScheduleMicrotaskHandler(
-    Zone self, ZoneDelegate parent, Zone zone, void f());
+typedef ScheduleMicrotaskHandler = void Function(
+    Zone self, ZoneDelegate parent, Zone zone, void Function() f);
 
 /// The type of a custom [Zone.createTimer] implementation function.
 ///
@@ -220,8 +220,8 @@ typedef void ScheduleMicrotaskHandler(
 /// The function must only access zone-related functionality through
 /// [self], [parent] or [zone].
 /// It should not depend on the current zone ([Zone.current]).
-typedef Timer CreateTimerHandler(
-    Zone self, ZoneDelegate parent, Zone zone, Duration duration, void f());
+typedef CreateTimerHandler = Timer Function(Zone self, ZoneDelegate parent,
+    Zone zone, Duration duration, void Function() f);
 
 /// The type of a custom [Zone.createPeriodicTimer] implementation function.
 ///
@@ -246,8 +246,12 @@ typedef Timer CreateTimerHandler(
 /// The function must only access zone-related functionality through
 /// [self], [parent] or [zone].
 /// It should not depend on the current zone ([Zone.current]).
-typedef Timer CreatePeriodicTimerHandler(Zone self, ZoneDelegate parent,
-    Zone zone, Duration period, void f(Timer timer));
+typedef CreatePeriodicTimerHandler = Timer Function(
+    Zone self,
+    ZoneDelegate parent,
+    Zone zone,
+    Duration period,
+    void Function(Timer timer) f);
 
 /// The type of a custom [Zone.print] implementation function.
 ///
@@ -265,7 +269,7 @@ typedef Timer CreatePeriodicTimerHandler(Zone self, ZoneDelegate parent,
 /// The function must only access zone-related functionality through
 /// [self], [parent] or [zone].
 /// It should not depend on the current zone ([Zone.current]).
-typedef void PrintHandler(
+typedef PrintHandler = void Function(
     Zone self, ZoneDelegate parent, Zone zone, String line);
 
 /// The type of a custom [Zone.fork] implementation function.
@@ -290,7 +294,7 @@ typedef void PrintHandler(
 /// The function must only access zone-related functionality through
 /// [self], [parent] or [zone].
 /// It should not depend on the current zone ([Zone.current]).
-typedef Zone ForkHandler(Zone self, ZoneDelegate parent, Zone zone,
+typedef ForkHandler = Zone Function(Zone self, ZoneDelegate parent, Zone zone,
     ZoneSpecification? specification, Map<Object?, Object?>? zoneValues);
 
 class _ZoneFunction<T extends Function> {
@@ -361,7 +365,7 @@ abstract class ZoneSpecification {
       CreatePeriodicTimerHandler? createPeriodicTimer,
       PrintHandler? print,
       ForkHandler? fork}) {
-    return new ZoneSpecification(
+    return ZoneSpecification(
         handleUncaughtError: handleUncaughtError ?? other.handleUncaughtError,
         run: run ?? other.run,
         runUnary: runUnary ?? other.runUnary,
@@ -520,11 +524,14 @@ abstract class ZoneDelegate {
 /// A zone represents an environment that remains stable across asynchronous
 /// calls.
 ///
-/// Code is always executed in the context of a zone, available as
-/// [Zone.current]. The initial `main` function runs in the context of the
-/// default zone ([Zone.root]). Code can be run in a different zone using either
-/// [runZoned], to create a new zone, or [Zone.run] to run code in the context of
-/// an existing zone which was created earlier using [Zone.fork].
+/// All code is executed in the context of a zone,
+/// available to the code as [Zone.current].
+/// The initial `main` function runs in the context of
+/// the default zone ([Zone.root]).
+/// Code can be run in a different zone using either
+///  [runZoned] or [runZonedGuarded] to create a new zone and run code in it,
+/// or [Zone.run] to run code in the context of an existing zone
+/// which may have been created earlier using [Zone.fork].
 ///
 /// Developers can create a new zone that overrides some of the functionality of
 /// an existing zone. For example, custom zones can replace or modify the
@@ -619,8 +626,8 @@ abstract class Zone {
   /// This is the closest parent zone of this zone that provides a
   /// [handleUncaughtError] method.
   ///
-  /// Asynchronous errors never cross zone boundaries between zones with
-  /// different error handlers.
+  /// Asynchronous errors in futures never cross zone boundaries
+  /// between zones with different error handlers.
   ///
   /// Example:
   /// ```dart
@@ -628,15 +635,15 @@ abstract class Zone {
   ///
   /// main() {
   ///   var future;
-  ///   runZoned(() {
+  ///   runZonedGuarded(() {
   ///     // The asynchronous error is caught by the custom zone which prints
   ///     // 'asynchronous error'.
   ///     future = Future.error("asynchronous error");
-  ///   }, onError: (e) { print(e); });  // Creates a zone with an error handler.
+  ///   }, (error) { print(error); });  // Creates a zone with an error handler.
   ///   // The following `catchError` handler is never invoked, because the
-  ///   // custom zone created by the call to `runZoned` provides an
+  ///   // custom zone created by the call to `runZonedGuarded` provides an
   ///   // error handler.
-  ///   future.catchError((e) { throw "is never reached"; });
+  ///   future.catchError((error) { throw "is never reached"; });
   /// }
   /// ```
   ///
@@ -646,17 +653,17 @@ abstract class Zone {
   /// import 'dart:async';
   ///
   /// main() {
-  ///   runZoned(() {
+  ///   runZonedGuarded(() {
   ///     // The following asynchronous error is *not* caught by the `catchError`
   ///     // in the nested zone, since errors are not to cross zone boundaries
   ///     // with different error handlers.
   ///     // Instead the error is handled by the current error handler,
   ///     // printing "Caught by outer zone: asynchronous error".
   ///     var future = Future.error("asynchronous error");
-  ///     runZoned(() {
+  ///     runZonedGuarded(() {
   ///       future.catchError((e) { throw "is never reached"; });
-  ///     }, onError: (e) { throw "is never reached"; });
-  ///   }, onError: (e) { print("Caught by outer zone: $e"); });
+  ///     }, (error, stack) { throw "is never reached"; });
+  ///   }, (error, stack) { print("Caught by outer zone: $error"); });
   /// }
   /// ```
   Zone get errorZone;
@@ -1556,7 +1563,7 @@ class _RootZone extends _Zone {
 
   static ZoneDelegate? _rootDelegate;
 
-  ZoneDelegate get _delegate => _rootDelegate ??= new _ZoneDelegate(this);
+  ZoneDelegate get _delegate => _rootDelegate ??= _ZoneDelegate(this);
   // It's a lie, but the root zone never uses the parent delegate.
   ZoneDelegate get _parentDelegate => _delegate;
 
@@ -1686,49 +1693,37 @@ class _RootZone extends _Zone {
   }
 }
 
-const _Zone _rootZone = const _RootZone();
+const _Zone _rootZone = _RootZone();
 
 /// Runs [body] in its own zone.
 ///
 /// Creates a new zone using [Zone.fork] based on [zoneSpecification] and
 /// [zoneValues], then runs [body] in that zone and returns the result.
 ///
-/// If [onError] is provided, it must have one of the types
-/// * `void Function(Object)`
-/// * `void Function(Object, StackTrace)`
-/// and the [onError] handler is used *both* to handle asynchronous errors
-/// by overriding [ZoneSpecification.handleUncaughtError] in [zoneSpecification],
-/// if any, *and* to handle errors thrown synchronously by the call to [body].
-///
-/// If an error occurs synchronously in [body],
-/// then throwing in the [onError] handler
-/// makes the call to `runZone` throw that error,
-/// and otherwise the call to `runZoned` attempt to return `null`.
-///
-/// If the zone specification has a `handleUncaughtError` value or the [onError]
-/// parameter is provided, the zone becomes an error-zone.
-///
-/// Errors will never cross error-zone boundaries by themselves.
-/// Errors that try to cross error-zone boundaries are considered uncaught in
-/// their originating error zone.
+/// Example use:
 /// ```dart
-/// var future = Future.value(499);
-/// runZoned(() {
-///   var future2 = future.then((_) { throw "error in first error-zone"; });
-///   runZoned(() {
-///     var future3 = future2.catchError((e) { print("Never reached!"); });
-///   }, onError: (e, s) { print("unused error handler"); });
-/// }, onError: (e, s) { print("catches error of first error-zone."); });
+/// var secret = "arglebargle"; // Or a random generated string.
+/// var result = runZoned(
+///     () async {
+///       await Future.delayed(Duration(seconds: 5), () {
+///         print("${Zone.current[#_secret]} glop glyf");
+///       });
+///     },
+///     zoneValues: {#_secret: secret},
+///     zoneSpecification:
+///         ZoneSpecification(print: (Zone self, parent, zone, String value) {
+///       if (value.contains(Zone.current[#_secret] as String)) {
+///         value = "--censored--";
+///       }
+///       parent.print(zone, value);
+///     }));
+/// secret = ""; // Erase the evidence.
+/// await result; // Wait for asynchronous computation to complete.
 /// ```
-/// Example:
-/// ```dart
-/// runZoned(() {
-///   Future(() { throw "asynchronous error"; });
-/// }, onError: (e, s) => print(e));  // Will print "asynchronous error".
-/// ```
-/// It is possible to manually pass an error from one error zone to another
-/// by re-throwing it in the new zone. If [onError] throws, that error will
-/// occur in the original zone where [runZoned] was called.
+/// The new zone intercepts `print` and stores a value under the private
+/// symbol `#_secret`. The secret is available from the new [Zone] object,
+/// which is the [Zone.current] for the body,
+/// and is also the first, `self`, parameter to the `print` handler function.
 R runZoned<R>(R body(),
     {Map<Object?, Object?>? zoneValues,
     ZoneSpecification? zoneSpecification,
@@ -1765,29 +1760,9 @@ R runZoned<R>(R body(),
 /// makes the call to `runZonedGuarded` throw that error,
 /// and otherwise the call to `runZonedGuarded` returns `null`.
 ///
-/// The zone will always be an error-zone.
-///
-/// Errors will never cross error-zone boundaries by themselves.
-/// Errors that try to cross error-zone boundaries are considered uncaught in
-/// their originating error zone.
-/// ```dart
-/// var future = Future.value(499);
-/// runZonedGuarded(() {
-///   var future2 = future.then((_) { throw "error in first error-zone"; });
-///   runZonedGuarded(() {
-///     var future3 = future2.catchError((e) { print("Never reached!"); });
-///   }, (e, s) { print("unused error handler"); });
-/// }, (e, s) { print("catches error of first error-zone."); });
-/// ```
-/// Example:
-/// ```dart
-/// runZonedGuarded(() {
-///   Future(() { throw "asynchronous error"; });
-/// }, (e, s) => print(e));  // Will print "asynchronous error".
-/// ```
-/// It is possible to manually pass an error from one error zone to another
-/// by re-throwing it in the new zone. If [onError] throws, that error will
-/// occur in the original zone where [runZoned] was called.
+/// The zone will always be an error-zone ([Zone.errorZone]), so returning
+/// a future created inside the zone, and waiting for it outside of the zone,
+/// will risk the future not being seen to complete.
 @Since("2.8")
 R? runZonedGuarded<R>(R body(), void onError(Object error, StackTrace stack),
     {Map<Object?, Object?>? zoneValues, ZoneSpecification? zoneSpecification}) {
@@ -1807,8 +1782,7 @@ R? runZonedGuarded<R>(R body(), void onError(Object error, StackTrace stack),
     }
   };
   if (zoneSpecification == null) {
-    zoneSpecification =
-        new ZoneSpecification(handleUncaughtError: errorHandler);
+    zoneSpecification = ZoneSpecification(handleUncaughtError: errorHandler);
   } else {
     zoneSpecification = ZoneSpecification.from(zoneSpecification,
         handleUncaughtError: errorHandler);

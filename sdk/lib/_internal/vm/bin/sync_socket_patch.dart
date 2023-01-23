@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "common_patch.dart";
+part of "common_patch.dart";
 
 @patch
 class RawSynchronousSocket {
@@ -177,7 +177,7 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
   }
 
   static List<_InternetAddress> lookup(String host,
-      {InternetAddressType type: InternetAddressType.any}) {
+      {InternetAddressType type = InternetAddressType.any}) {
     var response = _nativeLookupRequest(host, type._value);
     if (response is OSError) {
       throw response;

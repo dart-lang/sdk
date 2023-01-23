@@ -52,9 +52,6 @@ abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
 
 @reflectiveTest
 class CanBeConstConstructorTest extends AbstractLinterContextTest {
-  @override
-  late final LinterContextImpl context;
-
   void assertCanBeConstConstructor(String search, bool expectedResult) {
     var constructor =
         findNode.constructor(search) as ConstructorDeclarationImpl;

@@ -296,8 +296,6 @@ abstract class _ServiceObject {
     return __serviceId;
   }
 
-  Map _toJSON(bool ref);
-
   String get _servicePath => "$_serviceTypePath/$_serviceId";
 
   String get _serviceTypePath;
@@ -440,8 +438,8 @@ class _HttpIncoming extends Stream<Uint8List> {
       {Function? onError, void Function()? onDone, bool? cancelOnError}) {
     hasSubscriber = true;
     return _stream.handleError((error) {
-      throw HttpException(error.message, uri: uri);
-    }).listen(onData,
+      throw HttpException((error as HttpException).message, uri: uri);
+    }, test: (error) => error is HttpException).listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 
@@ -708,8 +706,7 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
       if (onError is void Function(Object, StackTrace)) {
         onError(e, st);
       } else {
-        assert(onError is void Function(Object));
-        onError(e);
+        (onError as void Function(Object))(e);
       }
     }, onDone: () {
       _profileData?.finishResponse();
@@ -2063,17 +2060,33 @@ class _HttpClientConnection {
         incoming.drain().then((_) {
           _subscription!.resume();
         }).catchError((dynamic error, StackTrace stackTrace) {
+          String message;
+          if (error is HttpException) {
+            message = error.message;
+          } else if (error is SocketException) {
+            message = error.message;
+          } else {
+            throw error;
+          }
           _nextResponseCompleter!.completeError(
-              HttpException(error.message, uri: _currentUri), stackTrace);
+              HttpException(message, uri: _currentUri), stackTrace);
           _nextResponseCompleter = null;
-        });
+        }, test: (error) => error is HttpException || error is SocketException);
       } else {
         _nextResponseCompleter!.complete(incoming);
         _nextResponseCompleter = null;
       }
     }, onError: (dynamic error, StackTrace stackTrace) {
+      String message;
+      if (error is HttpException) {
+        message = error.message;
+      } else if (error is SocketException) {
+        message = error.message;
+      } else {
+        throw error;
+      }
       _nextResponseCompleter?.completeError(
-          HttpException(error.message, uri: _currentUri), stackTrace);
+          HttpException(message, uri: _currentUri), stackTrace);
       _nextResponseCompleter = null;
     }, onDone: () {
       _nextResponseCompleter?.completeError(HttpException(
@@ -2678,6 +2691,30 @@ class _HttpClient implements HttpClient {
     }
   }
 
+  bool _isValidToken(String token) {
+    checkNotNullable(token, "token");
+    // from https://www.rfc-editor.org/rfc/rfc2616#page-15
+    //
+    // CTL            = <any US-ASCII control character
+    //                  (octets 0 - 31) and DEL (127)>
+    // separators     = "(" | ")" | "<" | ">" | "@"
+    //                | "," | ";" | ":" | "\" | <">
+    //                | "/" | "[" | "]" | "?" | "="
+    //                | "{" | "}" | SP | HT
+    // token          = 1*<any CHAR except CTLs or separators>
+    const _validChars = r"                                "
+        r" ! #$%&'  *+ -. 0123456789      "
+        r" ABCDEFGHIJKLMNOPQRSTUVWXYZ   ^_"
+        r"`abcdefghijklmnopqrstuvwxyz | ~ ";
+    for (int codeUnit in token.codeUnits) {
+      if (codeUnit >= _validChars.length ||
+          _validChars.codeUnitAt(codeUnit) == 0x20) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   Future<_HttpClientRequest> _openUrl(String method, Uri uri) {
     if (_closing) {
       throw StateError("Client is closed");
@@ -2686,9 +2723,11 @@ class _HttpClient implements HttpClient {
     // Ignore any fragments on the request URI.
     uri = uri.removeFragment();
 
-    if (method == null) {
-      throw ArgumentError(method);
+    // from https://www.rfc-editor.org/rfc/rfc2616#page-35
+    if (!_isValidToken(method)) {
+      throw ArgumentError.value(method, "method");
     }
+
     if (method != "CONNECT") {
       if (uri.host.isEmpty) {
         throw ArgumentError("No host specified in URI $uri");
@@ -2992,7 +3031,7 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection>
   static final Map<int, _HttpConnection> _connections =
       HashMap<int, _HttpConnection>();
 
-  final /*_ServerSocket*/ _socket;
+  final Socket _socket;
   final _HttpServer _httpServer;
   final _HttpParser _httpParser;
   int _state = _IDLE;
@@ -3095,49 +3134,14 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection>
 
   String get _serviceTypePath => 'io/http/serverconnections';
   String get _serviceTypeName => 'HttpServerConnection';
+}
 
-  Map _toJSON(bool ref) {
-    var name = "${_socket.address.host}:${_socket.port} <-> "
-        "${_socket.remoteAddress.host}:${_socket.remotePort}";
-    var r = <String, dynamic>{
-      'id': _servicePath,
-      'type': _serviceType(ref),
-      'name': name,
-      'user_name': name,
-    };
-    if (ref) {
-      return r;
-    }
-    r['server'] = _httpServer._toJSON(true);
-    try {
-      r['socket'] = _socket._toJSON(true);
-    } catch (_) {
-      r['socket'] = {
-        'id': _servicePath,
-        'type': '@Socket',
-        'name': 'UserSocket',
-        'user_name': 'UserSocket',
-      };
-    }
-    switch (_state) {
-      case _ACTIVE:
-        r['state'] = "Active";
-        break;
-      case _IDLE:
-        r['state'] = "Idle";
-        break;
-      case _CLOSING:
-        r['state'] = "Closing";
-        break;
-      case _DETACHED:
-        r['state'] = "Detached";
-        break;
-      default:
-        r['state'] = 'Unknown';
-        break;
-    }
-    return r;
-  }
+// Common interface of [ServerSocket] and [SecureServerSocket] used by
+// [_HttpServer].
+abstract class ServerSocketBase<T extends Socket> implements Stream<T> {
+  int get port;
+  InternetAddress get address;
+  Future<void> close();
 }
 
 // HTTP server waiting for socket connections.
@@ -3253,7 +3257,7 @@ class _HttpServer extends Stream<HttpRequest>
   Future close({bool force = false}) {
     closed = true;
     Future result;
-    if (_serverSocket != null && _closeServer) {
+    if (_closeServer) {
       result = _serverSocket.close();
     } else {
       result = Future.value();
@@ -3347,42 +3351,12 @@ class _HttpServer extends Stream<HttpRequest>
   String get _serviceTypePath => 'io/http/servers';
   String get _serviceTypeName => 'HttpServer';
 
-  Map<String, dynamic> _toJSON(bool ref) {
-    var r = <String, dynamic>{
-      'id': _servicePath,
-      'type': _serviceType(ref),
-      'name': '${address.host}:$port',
-      'user_name': '${address.host}:$port',
-    };
-    if (ref) {
-      return r;
-    }
-    try {
-      r['socket'] = _serverSocket._toJSON(true);
-    } catch (_) {
-      r['socket'] = {
-        'id': _servicePath,
-        'type': '@Socket',
-        'name': 'UserSocket',
-        'user_name': 'UserSocket',
-      };
-    }
-    r['port'] = port;
-    r['address'] = address.host;
-    r['active'] = _activeConnections.map((c) => c._toJSON(true)).toList();
-    r['idle'] = _idleConnections.map((c) => c._toJSON(true)).toList();
-    r['closed'] = closed;
-    return r;
-  }
-
   _HttpSessionManager? _sessionManagerInstance;
 
   // Indicated if the http server has been closed.
   bool closed = false;
 
-  // The server listen socket. Untyped as it can be both ServerSocket and
-  // SecureServerSocket.
-  final dynamic /*ServerSocket|SecureServerSocket*/ _serverSocket;
+  final ServerSocketBase _serverSocket;
   final bool _closeServer;
 
   // Set of currently connected clients.
@@ -3563,10 +3537,6 @@ class _DetachedSocket extends Stream<Uint8List> implements Socket {
 
   void setRawOption(RawSocketOption option) {
     _socket.setRawOption(option);
-  }
-
-  Map _toJSON(bool ref) {
-    return (_socket as dynamic)._toJSON(ref);
   }
 }
 

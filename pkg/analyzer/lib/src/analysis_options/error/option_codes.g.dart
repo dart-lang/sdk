@@ -7,6 +7,10 @@
 // Instead modify 'pkg/analyzer/messages.yaml' and run
 // 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 
+// We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
+// code, as they match names declared in the source configuration files.
+// ignore_for_file: constant_identifier_names
+
 import "package:analyzer/error/error.dart";
 
 class AnalysisOptionsErrorCode extends ErrorCode {
@@ -105,13 +109,6 @@ class AnalysisOptionsHintCode extends ErrorCode {
 }
 
 class AnalysisOptionsWarningCode extends ErrorCode {
-  ///  An error code indicating that the given option is deprecated.
-  static const AnalysisOptionsWarningCode ANALYSIS_OPTION_DEPRECATED =
-      AnalysisOptionsWarningCode(
-    'ANALYSIS_OPTION_DEPRECATED',
-    "The option '{0}' is no longer supported.",
-  );
-
   ///  An error code indicating a specified include file has a warning.
   ///
   ///  Parameters:
@@ -139,6 +136,10 @@ class AnalysisOptionsWarningCode extends ErrorCode {
 
   ///  An error code indicating that a plugin is being configured with an invalid
   ///  value for an option and a detail message is provided.
+  ///
+  ///  Parameters:
+  ///  0: the option name
+  ///  1: the detail message
   static const AnalysisOptionsWarningCode INVALID_OPTION =
       AnalysisOptionsWarningCode(
     'INVALID_OPTION',

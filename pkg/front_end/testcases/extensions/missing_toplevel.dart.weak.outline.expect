@@ -1,4 +1,13 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/missing_toplevel.dart:13:23: Error: The getter 'setter' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/missing_toplevel.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'setter'.
+// var missingGetter = c.setter += 42;
+//                       ^^^^^^
+//
 import self as self;
 import "dart:core" as core;
 

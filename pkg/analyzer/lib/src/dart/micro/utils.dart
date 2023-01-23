@@ -5,15 +5,19 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:collection/src/iterable_extensions.dart';
+import 'package:collection/collection.dart';
 
 /// Return the [Element] of the given [node], or `null` if [node] is `null` or
 /// does not have an element.
 Element? getElementOfNode(AstNode? node) {
   if (node == null) {
     return null;
+  }
+  if (node is DeclaredSimpleIdentifier) {
+    node = node.parent;
   }
   if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
     node = node.parent;
@@ -44,7 +48,7 @@ ConstructorElement? _getActualConstructorElement(
   var seenConstructors = <ConstructorElement?>{};
   while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
     var enclosing = constructor.enclosingElement;
-    if (enclosing.isMixinApplication) {
+    if (enclosing is ClassElement && enclosing.isMixinApplication) {
       var superInvocation = constructor.constantInitializers
           .whereType<SuperConstructorInvocation>()
           .singleOrNull;
@@ -62,27 +66,30 @@ ConstructorElement? _getActualConstructorElement(
   return constructor;
 }
 
-/// Return the [ImportElement] that declared [prefix] and imports [element].
+/// Return the [LibraryImportElement] that declared [prefix] and imports [element].
 ///
 /// [libraryElement] - the [LibraryElement] where reference is.
 /// [prefix] - the import prefix, maybe `null`.
 /// [element] - the referenced element.
-/// [importElementsMap] - the cache of [Element]s imported by [ImportElement]s.
-ImportElement? _getImportElement(LibraryElement libraryElement, String prefix,
-    Element element, Map<ImportElement, Set<Element>> importElementsMap) {
+/// [importElementsMap] - the cache of [Element]s imported by [LibraryImportElement]s.
+LibraryImportElement? _getImportElement(
+    LibraryElement libraryElement,
+    String prefix,
+    Element element,
+    Map<LibraryImportElement, Set<Element>> importElementsMap) {
   if (element.enclosingElement is! CompilationUnitElement) {
     return null;
   }
   var usedLibrary = element.library;
   // find ImportElement that imports used library with used prefix
-  List<ImportElement>? candidates;
-  for (var importElement in libraryElement.imports) {
+  List<LibraryImportElement>? candidates;
+  for (var importElement in libraryElement.libraryImports) {
     // required library
     if (importElement.importedLibrary != usedLibrary) {
       continue;
     }
     // required prefix
-    var prefixElement = importElement.prefix;
+    var prefixElement = importElement.prefix?.element;
     if (prefixElement == null) {
       continue;
     }
@@ -126,9 +133,9 @@ ImportElement? _getImportElement(LibraryElement libraryElement, String prefix,
   return null;
 }
 
-/// Returns the [ImportElement] that is referenced by [prefixNode] with a
+/// Returns the [LibraryImportElement] that is referenced by [prefixNode] with a
 /// [PrefixElement], maybe `null`.
-ImportElement? _getImportElementInfo(SimpleIdentifier prefixNode) {
+LibraryImportElement? _getImportElementInfo(SimpleIdentifier prefixNode) {
   // prepare environment
   var parent = prefixNode.parent;
   var unit = prefixNode.thisOrAncestorOfType<CompilationUnit>();
@@ -155,7 +162,7 @@ ImportElement? _getImportElementInfo(SimpleIdentifier prefixNode) {
   }
   // find ImportElement
   var prefix = prefixNode.name;
-  var importElementsMap = <ImportElement, Set<Element>>{};
+  var importElementsMap = <LibraryImportElement, Set<Element>>{};
   return _getImportElement(
       libraryElement, prefix, usedElement, importElementsMap);
 }

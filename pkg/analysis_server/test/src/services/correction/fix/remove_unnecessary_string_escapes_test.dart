@@ -29,6 +29,19 @@ var a = '\a\c\e';
 var a = 'ace';
 ''');
   }
+
+  Future<void> test_interpolation_multiple() async {
+    await resolveTestCode(r'''
+void f(String s1, String s2) {
+  print('a$s1\b$s2\c\9d');
+}
+''');
+    await assertHasFix(r'''
+void f(String s1, String s2) {
+  print('a$s1\b${s2}c9d');
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -38,6 +51,45 @@ class RemoveUnnecessaryStringEscapeTest extends FixProcessorLintTest {
 
   @override
   String get lintCode => LintNames.unnecessary_string_escapes;
+
+  Future<void> test_interpolation() async {
+    await resolveTestCode(r'''
+void f(String hello) {
+  print('Sort$hello\Numbers');
+}
+''');
+    await assertHasFix(r'''
+void f(String hello) {
+  print('Sort${hello}Numbers');
+}
+''');
+  }
+
+  Future<void> test_interpolation_with_brace() async {
+    await resolveTestCode(r'''
+void f(String b) {
+  print('a${b}\c');
+}
+''');
+    await assertHasFix(r'''
+void f(String b) {
+  print('a${b}c');
+}
+''');
+  }
+
+  Future<void> test_interpolation_with_space() async {
+    await resolveTestCode(r'''
+void f(String b) {
+  print('a$b c\d');
+}
+''');
+    await assertHasFix(r'''
+void f(String b) {
+  print('a$b cd');
+}
+''');
+  }
 
   Future<void> test_letter() async {
     await resolveTestCode(r'''

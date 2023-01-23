@@ -121,7 +121,7 @@ def CheckedRead(file, count):
 
 
 def ReadUInt32(file, endian):
-    """Reads an unsinged 32-bit integer from the file-like |file| object,
+    """Reads an unsigned 32-bit integer from the file-like |file| object,
   treating it as having endianness specified by |endian| (per the |struct|
   module), and returns it as a number. Raises a MachOError if the proper
   length of data can't be read from |file|."""
@@ -160,7 +160,7 @@ def ReadFatArch(file):
 
 
 def WriteUInt32(file, uint32, endian):
-    """Writes |uint32| as an unsinged 32-bit integer to the file-like |file|
+    """Writes |uint32| as an unsigned 32-bit integer to the file-like |file|
   object, treating it as having endianness specified by |endian| (per the
   |struct| module)."""
 

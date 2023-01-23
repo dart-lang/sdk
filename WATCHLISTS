@@ -34,6 +34,14 @@
         '^tests/web'
       )
     },
+    'dart2wasm': {
+      'filepath': (
+        '^pkg/dart2wasm|'
+        '^pkg/wasm_builder|'
+        '^sdk/lib/_internal/vm_shared|'
+        '^sdk/lib/_internal/wasm'
+      )
+    },
     'dartdevc': {
       'filepath': (
         '^pkg/dev_compiler|'
@@ -76,6 +84,7 @@
 
   'WATCHLISTS': {
     'dart2js': [ 'dart2js-team+reviews@google.com' ],
+    'dart2wasm': [ 'dart2wasm-team+reviews@google.com' ],
     'dartdevc': [ 'dart-dc-team+reviews@google.com' ],
     'experimental_features': [ 'scheglov@google.com' ],
     'front_end': [ 'dart-fe-team+reviews@google.com' ],

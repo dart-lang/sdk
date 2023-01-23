@@ -1,0 +1,13 @@
+test1() => (0, $0: 0);
+test2() => ($0: 0);
+test3() => (0, $1: 1);
+(int, {String $0}) test4() => throw 0;
+({bool $0}) test5() => throw 0;
+(num, {double $1}) test6() => throw 0;
+(num, {double $00}) test7() => throw 0;
+(num, {double $0x0}) test8() => throw 0;
+(num, bool, {double $01}) test9() => throw 0;
+({String $0, bool $00, int $0x0}) test10() => throw 0;
+test11() => (10, 11, 12, $2: 13);
+(int, double, num, {String $2}) test12() => throw 0;
+main() {}

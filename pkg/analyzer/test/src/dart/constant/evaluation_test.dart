@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -808,6 +809,25 @@ const void Function(int) g = self.C.f;
     assertType(result.type, 'void Function(int)');
     assertElement(result.toFunctionValue(), findElement.method('f'));
     _assertTypeArguments(result, ['int']);
+  }
+
+  test_visitRecordLiteral_withoutEnvironment() async {
+    await resolveTestCode(r'''
+const a = (1, 'b', c: false);
+''');
+    var result = _evaluateConstant('a');
+    var type = result.type;
+    if (type is! RecordType) {
+      fail('Expected a record type');
+    }
+    var positionalFields = type.positionalFields;
+    var namedFields = type.namedFields;
+    expect(positionalFields, hasLength(2));
+    expect(positionalFields[0].type, typeProvider.intType);
+    expect(positionalFields[1].type, typeProvider.stringType);
+    expect(namedFields, hasLength(1));
+    expect(namedFields[0].name, 'c');
+    expect(namedFields[0].type, typeProvider.boolType);
   }
 
   test_visitSimpleIdentifier_className() async {
@@ -2020,6 +2040,7 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
           declaredVariables: DeclaredVariables.fromMap(declaredVariables),
           isNonNullableByDefault:
               unit.featureSet.isEnabled(Feature.non_nullable),
+          configuration: ConstantEvaluationConfiguration(),
         ),
         this.result.libraryElement as LibraryElementImpl,
         errorReporter,

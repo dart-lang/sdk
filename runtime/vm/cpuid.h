@@ -42,8 +42,6 @@ class CpuId : public AllStatic {
   static bool abm_;
   static const char* id_string_;
   static const char* brand_string_;
-
-  static void GetCpuId(int32_t level, uint32_t info[4]);
 };
 
 }  // namespace dart

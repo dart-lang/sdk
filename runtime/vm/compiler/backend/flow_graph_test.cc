@@ -9,6 +9,7 @@
 #include "platform/text_buffer.h"
 #include "platform/utils.h"
 #include "vm/compiler/backend/block_builder.h"
+#include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/il_test_helper.h"
 #include "vm/compiler/backend/type_propagator.h"
@@ -234,6 +235,178 @@ ISOLATE_UNIT_TEST_CASE(FlowGraph_LargeFrame_Float64x2) {
                  "  }\n"
                  "  return 'Okay';\n"
                  "}\n");
+}
+
+ISOLATE_UNIT_TEST_CASE(FlowGraph_PhiUnboxingHeuristic_Double) {
+  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) {
+    return;
+  }
+
+  const char* kScript = R"(
+    double foo(double sum, int n) {
+       if (sum == null) return 0.0;
+       for (int i = 0; i < n; i++) {
+          sum += 1.0;
+       }
+       return sum;
+    }
+    main() {
+      foo(0.0, 10);
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+
+  Invoke(root_library, "main");
+
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  ILMatcher cursor(flow_graph, entry, /*trace=*/true,
+                   ParallelMovesHandling::kSkip);
+
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMatchAndMoveFunctionEntry,
+  }));
+  if (FLAG_sound_null_safety != kNullSafetyOptionStrong) {
+    RELEASE_ASSERT(cursor.TryMatch({
+        kMatchAndMoveBranchFalse,
+        kMatchAndMoveTargetEntry,
+    }));
+  }
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMatchAndMoveUnbox,  // outside of loop
+      kMatchAndMoveCheckSmi,
+      kMoveGlob,
+
+      // Loop header
+      kMatchAndMoveJoinEntry,
+      kMatchAndMoveCheckStackOverflow,
+      kMatchAndMoveBranchTrue,
+
+      // Loop body
+      kMatchAndMoveTargetEntry,
+      kMatchAndMoveBinaryDoubleOp,
+      kMatchAndMoveBinarySmiOp,
+      kMatchAndMoveGoto,
+
+      // Loop header, again
+      kMatchAndMoveJoinEntry,
+      kMatchAndMoveCheckStackOverflow,
+      kMatchAndMoveBranchFalse,
+
+      // After loop
+      kMatchAndMoveTargetEntry,
+      kMatchAndMoveBox,
+      kMatchReturn,
+  }));
+}
+
+static void TestPhiUnboxingHeuristicSimd(const char* script) {
+  if (!FlowGraphCompiler::SupportsUnboxedSimd128()) {
+    return;
+  }
+
+  const auto& root_library = Library::Handle(LoadTestScript(script));
+  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+
+  Invoke(root_library, "main");
+
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  ILMatcher cursor(flow_graph, entry, /*trace=*/true,
+                   ParallelMovesHandling::kSkip);
+
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMatchAndMoveFunctionEntry,
+  }));
+  if (FLAG_sound_null_safety != kNullSafetyOptionStrong) {
+    RELEASE_ASSERT(cursor.TryMatch({
+        kMatchAndMoveBranchFalse,
+        kMatchAndMoveTargetEntry,
+    }));
+  }
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMatchAndMoveUnbox,  // outside of loop
+      kMatchAndMoveCheckSmi,
+      kMoveGlob,
+
+      // Loop header
+      kMatchAndMoveJoinEntry,
+      kMatchAndMoveCheckStackOverflow,
+      kMatchAndMoveBranchTrue,
+
+      // Loop body
+      kMatchAndMoveTargetEntry,
+      kMatchAndMoveSimdOp,
+      kMatchAndMoveBinarySmiOp,
+      kMatchAndMoveGoto,
+
+      // Loop header, again
+      kMatchAndMoveJoinEntry,
+      kMatchAndMoveCheckStackOverflow,
+      kMatchAndMoveBranchFalse,
+
+      // After loop
+      kMatchAndMoveTargetEntry,
+      kMatchAndMoveBox,
+      kMatchReturn,
+  }));
+}
+
+ISOLATE_UNIT_TEST_CASE(FlowGraph_PhiUnboxingHeuristic_Float32x4) {
+  const char* kScript = R"(
+    import 'dart:typed_data';
+    Float32x4 foo(Float32x4 sum, int n) {
+       if (sum == null) return Float32x4(0.0, 0.0, 0.0, 0.0);
+       for (int i = 0; i < n; i++) {
+          sum += Float32x4(1.0, 2.0, 3.0, 4.0);
+       }
+       return sum;
+    }
+    main() {
+      foo(Float32x4(0.0, 0.0, 0.0, 0.0), 10);
+    }
+  )";
+  TestPhiUnboxingHeuristicSimd(kScript);
+}
+
+ISOLATE_UNIT_TEST_CASE(FlowGraph_PhiUnboxingHeuristic_Float64x2) {
+  const char* kScript = R"(
+    import 'dart:typed_data';
+    Float64x2 foo(Float64x2 sum, int n) {
+       if (sum == null) return Float64x2(0.0, 0.0);
+       for (int i = 0; i < n; i++) {
+          sum += Float64x2(1.0, 2.0);
+       }
+       return sum;
+    }
+    main() {
+      foo(Float64x2(0.0, 0.0), 10);
+    }
+  )";
+  TestPhiUnboxingHeuristicSimd(kScript);
+}
+
+ISOLATE_UNIT_TEST_CASE(FlowGraph_PhiUnboxingHeuristic_Int32x4) {
+  const char* kScript = R"(
+    import 'dart:typed_data';
+    Int32x4 foo(Int32x4 sum, int n) {
+       if (sum == null) return Int32x4(0, 0, 0, 0);
+       for (int i = 0; i < n; i++) {
+          sum += Int32x4(1, 2, 3, 4);
+       }
+       return sum;
+    }
+    main() {
+      foo(Int32x4(0, 0, 0, 0), 10);
+    }
+  )";
+  TestPhiUnboxingHeuristicSimd(kScript);
 }
 
 }  // namespace dart

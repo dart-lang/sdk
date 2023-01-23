@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+import 'dart:isolate';
+
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -11,6 +14,7 @@ import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
+import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
@@ -63,6 +67,31 @@ class ServerPluginTest extends AbstractPluginTest {
   late String packagePath2;
   late String filePath2;
   late ContextRoot contextRoot2;
+
+  /// Asserts that [params] is valid to send to an [Isolate] started with
+  /// [Isolate.spawnUri].
+  Future<void> assertValidForIsolateSend(RequestParams params) async {
+    const isolateSource = r'''
+import 'dart:isolate';
+
+void main(List<String> args, SendPort sendPort) {
+  final receivePort = ReceivePort();
+  sendPort.send(receivePort.sendPort);
+  receivePort.listen((msg) => sendPort.send('ECHO: $msg'));
+}
+        ''';
+    final isolateUri = Uri.dataFromString(isolateSource, encoding: utf8);
+    final receivePort = ReceivePort();
+    final isolate =
+        await Isolate.spawnUri(isolateUri, [], receivePort.sendPort);
+    final sendPort = (await receivePort.first) as SendPort;
+    try {
+      sendPort.send(params.toJson());
+    } catch (e) {
+      fail('Failed to send ${params.runtimeType} across Isolate: $e');
+    }
+    isolate.kill();
+  }
 
   @override
   ServerPlugin createPlugin() {
@@ -229,6 +258,78 @@ class ServerPluginTest extends AbstractPluginTest {
     fail('Not yet implemented.');
   }
 
+  Future<void> test_isolateSend_analysisGetNavigation() async {
+    await assertValidForIsolateSend(AnalysisGetNavigationParams('', 1, 2));
+  }
+
+  Future<void> test_isolateSend_analysisHandleWatchEvents() async {
+    await assertValidForIsolateSend(AnalysisHandleWatchEventsParams([]));
+  }
+
+  Future<void> test_isolateSend_analysisSetPriorityFiles() async {
+    await assertValidForIsolateSend(
+        AnalysisSetPriorityFilesParams([filePath1]));
+  }
+
+  Future<void> test_isolateSend_analysisSetSubscriptions() async {
+    await assertValidForIsolateSend(AnalysisSetSubscriptionsParams({
+      AnalysisService.OUTLINE: [filePath1]
+    }));
+  }
+
+  Future<void> test_isolateSend_analysisUpdateContent_add() async {
+    await assertValidForIsolateSend(AnalysisUpdateContentParams(
+        {filePath1: AddContentOverlay('class C {}')}));
+  }
+
+  Future<void> test_isolateSend_analysisUpdateContent_change() async {
+    await assertValidForIsolateSend(AnalysisUpdateContentParams({
+      filePath1: ChangeContentOverlay([SourceEdit(7, 0, ' extends Object')])
+    }));
+  }
+
+  Future<void> test_isolateSend_analysisUpdateContent_remove() async {
+    await assertValidForIsolateSend(
+        AnalysisUpdateContentParams({filePath1: RemoveContentOverlay()}));
+  }
+
+  Future<void> test_isolateSend_completionGetSuggestions() async {
+    await assertValidForIsolateSend(
+        CompletionGetSuggestionsParams(filePath1, 12));
+  }
+
+  Future<void> test_isolateSend_editGetAssists() async {
+    await assertValidForIsolateSend(EditGetAssistsParams(filePath1, 10, 0));
+  }
+
+  Future<void> test_isolateSend_editGetAvailableRefactorings() async {
+    await assertValidForIsolateSend(
+        EditGetAvailableRefactoringsParams(filePath1, 10, 0));
+  }
+
+  Future<void> test_isolateSend_editGetFixes() async {
+    await assertValidForIsolateSend(EditGetFixesParams(filePath1, 13));
+  }
+
+  Future<void> test_isolateSend_editGetRefactoring() async {
+    await assertValidForIsolateSend(EditGetRefactoringParams(
+        RefactoringKind.RENAME, filePath1, 7, 0, false));
+  }
+
+  Future<void> test_isolateSend_pluginShutdown() async {
+    await assertValidForIsolateSend(PluginShutdownParams());
+  }
+
+  Future<void> test_isolateSend_pluginVersionCheck() async {
+    await assertValidForIsolateSend(
+        PluginVersionCheckParams('byteStorePath', 'sdkPath', '0.1.0'));
+  }
+
+  Future<void> test_isolateSend_setContextRoots() async {
+    await assertValidForIsolateSend(
+        AnalysisSetContextRootsParams([contextRoot1]));
+  }
+
   void test_onDone() {
     channel.sendDone();
   }
@@ -346,8 +447,8 @@ class ServerPluginTest extends AbstractPluginTest {
   }
 
   Future<void> test_onRequest_pluginVersionCheck() async {
-    var response = (await channel.sendRequest(
-        PluginVersionCheckParams('byteStorePath', 'sdkPath', '0.1.0')));
+    var response = await channel.sendRequest(
+        PluginVersionCheckParams('byteStorePath', 'sdkPath', '0.1.0'));
     var result = PluginVersionCheckResult.fromResponse(response);
     expect(result, isNotNull);
     expect(result.interestingFiles, ['*.dart']);

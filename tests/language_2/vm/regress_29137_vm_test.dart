@@ -11,7 +11,7 @@
 // optimizer must *not* replace v2 with v0 because the first conversion is
 // truncating and is erasing the high part of the mint value.
 //
-// VMOptions=--optimization-counter-threshold=5 --no-background-compilation
+// VMOptions=--optimization-counter-threshold=90 --no-background-compilation
 
 // @dart = 2.9
 
@@ -32,7 +32,7 @@ main() {
   const value = 0xF0F00000;
   const rotated = 0xF00000F0;
   Expect.equals(rotated, rot8(value));
-  for (var i = 0; i < 10; i++) {
+  for (var i = 0; i < 100; i++) {
     Expect.equals(rotated, rot8(value));
   }
 }

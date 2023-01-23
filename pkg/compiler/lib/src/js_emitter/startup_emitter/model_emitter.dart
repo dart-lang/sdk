@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.js_emitter.startup_emitter.model_emitter;
 
 import 'dart:convert' show JsonEncoder;
@@ -53,14 +51,16 @@ import '../../io/location_provider.dart' show LocationCollector;
 import '../../io/source_information.dart';
 import '../../io/source_map_builder.dart' show SourceMapBuilder;
 import '../../js/js.dart' as js;
+import '../../js/js_source_mapping.dart';
 import '../../js/size_estimator.dart';
 import '../../js_backend/js_backend.dart'
     show Namer, ConstantEmitter, StringBackedName;
 import '../../js_backend/js_interop_analysis.dart' as jsInteropAnalysis;
 import '../../js_backend/runtime_types.dart';
 import '../../js_backend/runtime_types_codegen.dart';
+import '../../js_backend/runtime_types_new.dart' show RecipeEncoder;
 import '../../js_backend/runtime_types_new.dart'
-    show RecipeEncoder, RecipeEncoderImpl, Ruleset, RulesetEncoder;
+    show RecipeEncoderImpl, Ruleset, RulesetEncoder;
 import '../../js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import '../../js_backend/deferred_holder_expression.dart'
     show
@@ -80,16 +80,14 @@ import '../../js_backend/string_reference.dart'
         StringReferenceFinalizer,
         StringReferenceFinalizerImpl,
         StringReferenceResource;
+import '../../js_model/js_world.dart';
 import '../../options.dart';
 import '../../universe/class_hierarchy.dart' show ClassHierarchy;
 import '../../universe/codegen_world_builder.dart' show CodegenWorld;
-import '../../world.dart';
-import '../code_emitter_task.dart';
+import '../js_emitter.dart';
 import '../constant_ordering.dart' show ConstantOrdering;
 import '../headers.dart';
-import '../js_emitter.dart' show buildTearOffCode, NativeGenerator;
 import '../model.dart';
-import '../native_emitter.dart';
 import 'fragment_merger.dart';
 
 part 'fragment_emitter.dart';
@@ -109,7 +107,7 @@ class ModelEmitter {
   final Namer _namer;
   final CompilerTask _task;
   final Emitter _emitter;
-  ConstantEmitter constantEmitter;
+  late final ConstantEmitter constantEmitter;
   final NativeEmitter _nativeEmitter;
   final bool _shouldGenerateSourceMap;
   final JClosedWorld _closedWorld;
@@ -122,7 +120,7 @@ class ModelEmitter {
 
   final Set<OutputUnit> omittedOutputUnits = {};
 
-  List<PreFragment> preDeferredFragmentsForTesting;
+  List<PreFragment>? preDeferredFragmentsForTesting;
 
   /// A mapping from the name of a defer import to all the fragments it
   /// depends on in a list of lists to be loaded in the order they appear.
@@ -164,7 +162,7 @@ class ModelEmitter {
       : _constantOrdering = ConstantOrdering(_closedWorld.sorter),
         fragmentMerger = FragmentMerger(_options,
             _closedWorld.elementEnvironment, _closedWorld.outputUnitData) {
-    this.constantEmitter = ConstantEmitter(
+    constantEmitter = ConstantEmitter(
         _options,
         _namer,
         _closedWorld.commonElements,
@@ -223,7 +221,7 @@ class ModelEmitter {
     // We are only interested in the "isInlined" part, but it does not hurt to
     // test for the other predicates.
     if (isConstantInlinedOrAlreadyEmitted(value)) {
-      return constantEmitter.generate(value);
+      return constantEmitter.generate(value)!;
     }
     return js.js('#.#',
         [_namer.globalObjectForConstant(value), _namer.constantName(value)]);
@@ -232,7 +230,7 @@ class ModelEmitter {
   bool get shouldMergeFragments => _options.mergeFragmentsThreshold != null;
 
   int emitProgram(Program program, CodegenWorld codegenWorld) {
-    MainFragment mainFragment = program.fragments.first;
+    final mainFragment = program.fragments.first as MainFragment;
     List<DeferredFragment> deferredFragments =
         List<DeferredFragment>.from(program.deferredFragments);
 
@@ -288,8 +286,7 @@ class ModelEmitter {
       var finalizedFragment =
           preDeferredFragment.finalize(program, outputUnitMap, codeFragmentMap);
       for (var codeFragment in finalizedFragment.codeFragments) {
-        js.Expression fragmentCode =
-            fragmentEmitter.emitCodeFragment(codeFragment);
+        final fragmentCode = fragmentEmitter.emitCodeFragment(codeFragment);
         if (fragmentCode != null) {
           (deferredFragmentsCode[finalizedFragment] ??= [])
               .add(EmittedCodeFragment(codeFragment, fragmentCode));
@@ -409,13 +406,13 @@ var ${startupMetricsGlobal} =
   //
   // Updates the shared [outputBuffers] field with the output.
   void writeMainFragment(MainFragment fragment, js.Statement code,
-      {bool isSplit}) {
-    LocationCollector locationCollector;
-    List<CodeOutputListener /*!*/ > codeOutputListeners;
+      {required bool isSplit}) {
+    LocationCollector? locationCollector;
+    List<CodeOutputListener>? codeOutputListeners;
     if (_shouldGenerateSourceMap) {
       _task.measureSubtask('source-maps', () {
-        locationCollector = LocationCollector();
-        codeOutputListeners = [locationCollector];
+        final collector = locationCollector = LocationCollector();
+        codeOutputListeners = [collector];
       });
     }
 
@@ -433,8 +430,8 @@ var ${startupMetricsGlobal} =
       code
     ]);
 
-    CodeBuffer buffer = js.createCodeBuffer(
-        program, _options, _sourceInformationStrategy,
+    CodeBuffer buffer = js.createCodeBuffer(program, _options,
+        _sourceInformationStrategy as JavaScriptSourceInformationStrategy,
         monitor: _dumpInfoTask);
     _task.measureSubtask('emit buffers', () {
       mainOutput.addBuffer(buffer);
@@ -453,7 +450,7 @@ var ${startupMetricsGlobal} =
       _task.measureSubtask('source-maps', () {
         SourceMapBuilder.outputSourceMap(
             mainOutput,
-            locationCollector,
+            locationCollector!,
             _namer.createMinifiedGlobalNameMap(),
             _namer.createMinifiedInstanceNameMap(),
             '',
@@ -481,12 +478,12 @@ var ${startupMetricsGlobal} =
       FinalizedFragment fragment,
       List<EmittedCodeFragment> fragmentCode,
       Map<CodeFragment, String> fragmentHashes) {
-    List<CodeOutputListener /*!*/ > outputListeners = [];
-    LocationCollector locationCollector;
+    List<CodeOutputListener> outputListeners = [];
+    LocationCollector? locationCollector;
     if (_shouldGenerateSourceMap) {
       _task.measureSubtask('source-maps', () {
-        locationCollector = LocationCollector();
-        outputListeners.add(locationCollector);
+        final collector = locationCollector = LocationCollector();
+        outputListeners.add(collector);
       });
     }
 
@@ -500,9 +497,9 @@ var ${startupMetricsGlobal} =
 
     if (_shouldGenerateSourceMap) {
       _task.measureSubtask('source-maps', () {
-        Uri mapUri, partUri;
-        Uri sourceMapUri = _options.sourceMapUri;
-        Uri outputUri = _options.outputUri;
+        Uri? mapUri, partUri;
+        final sourceMapUri = _options.sourceMapUri;
+        final outputUri = _options.outputUri;
         String partName = "$outputFileName.$partExtension";
         String hunkFileName = "$outputFileName.$deferredExtension";
 
@@ -510,18 +507,18 @@ var ${startupMetricsGlobal} =
           String mapFileName = hunkFileName + ".map";
           List<String> mapSegments = sourceMapUri.pathSegments.toList();
           mapSegments[mapSegments.length - 1] = mapFileName;
-          mapUri = _options.sourceMapUri.replace(pathSegments: mapSegments);
+          mapUri = _options.sourceMapUri!.replace(pathSegments: mapSegments);
         }
 
         if (outputUri != null) {
           List<String> partSegments = outputUri.pathSegments.toList();
           partSegments[partSegments.length - 1] = hunkFileName;
-          partUri = _options.outputUri.replace(pathSegments: partSegments);
+          partUri = _options.outputUri!.replace(pathSegments: partSegments);
         }
 
         output.add(SourceMapBuilder.generateSourceMapTag(mapUri, partUri));
         output.close();
-        SourceMapBuilder.outputSourceMap(output, locationCollector, {}, {},
+        SourceMapBuilder.outputSourceMap(output, locationCollector!, {}, {},
             partName, mapUri, partUri, _outputProvider);
       });
     } else {
@@ -567,8 +564,8 @@ var ${startupMetricsGlobal} =
     ]);
 
     Hasher hasher = Hasher();
-    CodeBuffer buffer = js.createCodeBuffer(
-        program, _options, _sourceInformationStrategy,
+    CodeBuffer buffer = js.createCodeBuffer(program, _options,
+        _sourceInformationStrategy as JavaScriptSourceInformationStrategy,
         monitor: _dumpInfoTask, listeners: [hasher]);
     _task.measureSubtask('emit buffers', () {
       output.addBuffer(buffer);
@@ -597,7 +594,7 @@ var ${startupMetricsGlobal} =
         "needed for a given deferred library import.";
     mapping.addAll(fragmentMerger.computeDeferredMap(finalizedFragmentsToLoad));
     _outputProvider.createOutputSink(
-        _options.deferredMapUri.path, '', api.OutputType.deferredMap)
+        _options.deferredMapUri!.path, '', api.OutputType.deferredMap)
       ..add(const JsonEncoder.withIndent("  ").convert(mapping))
       ..close();
   }

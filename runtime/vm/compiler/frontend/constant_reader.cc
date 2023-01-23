@@ -231,6 +231,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       const auto& list_class = Class::Handle(
           Z, H.isolate_group()->object_store()->immutable_array_class());
       ASSERT(!list_class.IsNull());
+      ASSERT(list_class.is_finalized());
       // Build type from the raw bytes (needs temporary translator).
       TypeTranslator type_translator(
           &reader, this, active_class_, /* finalize = */ true,
@@ -263,9 +264,9 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
     }
     case kMapConstant: {
       const auto& map_class = Class::Handle(
-          Z,
-          H.isolate_group()->object_store()->immutable_linked_hash_map_class());
+          Z, H.isolate_group()->object_store()->const_map_impl_class());
       ASSERT(!map_class.IsNull());
+      ASSERT(map_class.is_finalized());
 
       // Build types from the raw bytes (needs temporary translator).
       TypeTranslator type_translator(
@@ -285,9 +286,8 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       type_arguments = type.arguments();
 
       // Fill map with constant elements.
-      const auto& map = LinkedHashMap::Handle(
-          Z, ImmutableLinkedHashMap::NewUninitialized(Heap::kOld));
-      ASSERT_EQUAL(map.GetClassId(), kImmutableLinkedHashMapCid);
+      const auto& map = Map::Handle(Z, ConstMap::NewUninitialized(Heap::kOld));
+      ASSERT_EQUAL(map.GetClassId(), kConstMapCid);
       map.SetTypeArguments(type_arguments);
       const intptr_t length = reader.ReadUInt();
       const intptr_t used_data = (length << 1);
@@ -312,11 +312,54 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       instance = map.ptr();
       break;
     }
+    case kRecordConstant: {
+      const intptr_t num_positional = reader.ReadListLength();
+      intptr_t num_named = 0;
+      const Array* field_names = &Array::empty_array();
+      {
+        AlternativeReadingScope alt(&reader.reader_);
+        for (intptr_t j = 0; j < num_positional; ++j) {
+          reader.ReadUInt();
+        }
+        num_named = reader.ReadListLength();
+        if (num_named > 0) {
+          auto& names = Array::Handle(Z, Array::New(num_named));
+          for (intptr_t j = 0; j < num_named; ++j) {
+            String& name = H.DartSymbolObfuscate(reader.ReadStringReference());
+            names.SetAt(j, name);
+            reader.ReadUInt();
+          }
+          names.MakeImmutable();
+          names ^= H.Canonicalize(names);
+          field_names = &names;
+        }
+      }
+      const intptr_t num_fields = num_positional + num_named;
+      const auto& record =
+          Record::Handle(Z, Record::New(num_fields, *field_names));
+      intptr_t pos = 0;
+      for (intptr_t j = 0; j < num_positional; ++j) {
+        const intptr_t entry_index = reader.ReadUInt();
+        ASSERT(entry_index < constant_offset);  // DAG!
+        instance = ReadConstant(entry_index);
+        record.SetFieldAt(pos++, instance);
+      }
+      reader.ReadListLength();
+      for (intptr_t j = 0; j < num_named; ++j) {
+        reader.ReadStringReference();
+        const intptr_t entry_index = reader.ReadUInt();
+        ASSERT(entry_index < constant_offset);  // DAG!
+        instance = ReadConstant(entry_index);
+        record.SetFieldAt(pos++, instance);
+      }
+      instance = record.ptr();
+      break;
+    }
     case kSetConstant: {
       const auto& set_class = Class::Handle(
-          Z,
-          H.isolate_group()->object_store()->immutable_linked_hash_set_class());
+          Z, H.isolate_group()->object_store()->const_set_impl_class());
       ASSERT(!set_class.IsNull());
+      ASSERT(set_class.is_finalized());
 
       // Build types from the raw bytes (needs temporary translator).
       TypeTranslator type_translator(
@@ -334,9 +377,8 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       type_arguments = type.arguments();
 
       // Fill set with constant elements.
-      const auto& set = LinkedHashSet::Handle(
-          Z, ImmutableLinkedHashSet::NewUninitialized(Heap::kOld));
-      ASSERT_EQUAL(set.GetClassId(), kImmutableLinkedHashSetCid);
+      const auto& set = Set::Handle(Z, ConstSet::NewUninitialized(Heap::kOld));
+      ASSERT_EQUAL(set.GetClassId(), kConstSetCid);
       set.SetTypeArguments(type_arguments);
       const intptr_t length = reader.ReadUInt();
       const intptr_t used_data = length;

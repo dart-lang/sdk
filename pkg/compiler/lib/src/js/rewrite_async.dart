@@ -1984,7 +1984,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
   /// Called with the stream to yield from.
   final js.Expression yieldStarExpression;
 
-  /// Used by sync* functions to throw exeptions.
+  /// Used by sync* functions to throw exceptions.
   final js.Expression uncaughtErrorExpression;
 
   SyncStarRewriter(DiagnosticReporter diagnosticListener, spannable,

@@ -69,8 +69,8 @@ class InliningNode : public ZoneAllocated {
         children_head(NULL),
         children_tail(NULL),
         children_next(NULL) {
-    RELEASE_ASSERT(!function.IsNull());
-    RELEASE_ASSERT(function.IsNotTemporaryScopedHandle());
+    ASSERT(!function.IsNull());
+    DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
   }
 
   void AppendChild(InliningNode* child) {
@@ -138,23 +138,21 @@ Dwarf::Dwarf(Zone* zone)
     : zone_(zone),
       reverse_obfuscation_trie_(CreateReverseObfuscationTrie(zone)),
       codes_(zone, 1024),
-      code_to_name_(zone),
+      code_to_label_(zone),
       functions_(zone, 1024),
       function_to_index_(zone),
       scripts_(zone, 1024),
-      script_to_index_(zone),
-      temp_(0) {}
+      script_to_index_(zone) {}
 
-void Dwarf::AddCode(const Code& orig_code, const char* name) {
+void Dwarf::AddCode(const Code& orig_code, intptr_t label) {
   ASSERT(!orig_code.IsNull());
-  ASSERT(name != nullptr);
+  ASSERT(label > 0);
 
-  if (auto const old_pair = code_to_name_.Lookup(&orig_code)) {
+  if (auto const old_pair = code_to_label_.Lookup(&orig_code)) {
     // Dwarf objects can be shared, so we may get the same information for a
     // given code object in different calls. In DEBUG mode, make sure the
     // information is the same before returning.
-    ASSERT(old_pair->value != nullptr);
-    ASSERT_EQUAL(strcmp(old_pair->value, name), 0);
+    ASSERT_EQUAL(label, old_pair->value);
     return;
   }
 
@@ -163,7 +161,7 @@ void Dwarf::AddCode(const Code& orig_code, const char* name) {
   codes_.Add(&code);
   // Currently assumes the name has the same lifetime as the Zone of the
   // Dwarf object (which is currently true).  Otherwise, need to copy.
-  code_to_name_.Insert({&code, name});
+  code_to_label_.Insert({&code, label});
 
   if (code.IsFunctionCode() && !code.IsUnknownDartCode()) {
     const Function& function = Function::Handle(zone_, code.function());
@@ -323,7 +321,9 @@ void Dwarf::WriteDebugInfo(DwarfWriteStream* stream) {
     // The lowest instruction address in this object file that is part of our
     // compilation unit. Dwarf consumers use this to quickly decide which
     // compilation unit DIE to consult for a given pc.
-    stream->OffsetFromSymbol(kIsolateSnapshotInstructionsAsmSymbol, 0);
+    auto const isolate_instructions_label = ImageWriter::SectionLabel(
+        ImageWriter::ProgramSection::Text, /*vm=*/false);
+    stream->OffsetFromSymbol(isolate_instructions_label, 0);
 
     // DW_AT_high_pc
     // The highest instruction address in this object file that is part of our
@@ -331,12 +331,12 @@ void Dwarf::WriteDebugInfo(DwarfWriteStream* stream) {
     // compilation unit DIE to consult for a given pc.
     if (codes_.is_empty()) {
       // No code objects in this program, so set high_pc to same as low_pc.
-      stream->OffsetFromSymbol(kIsolateSnapshotInstructionsAsmSymbol, 0);
+      stream->OffsetFromSymbol(isolate_instructions_label, 0);
     } else {
       const Code& last_code = *codes_.Last();
-      auto const last_code_name = code_to_name_.LookupValue(&last_code);
-      ASSERT(last_code_name != nullptr);
-      stream->OffsetFromSymbol(last_code_name, last_code.Size());
+      auto const last_code_label = code_to_label_.LookupValue(&last_code);
+      ASSERT(last_code_label > 0);
+      stream->OffsetFromSymbol(last_code_label, last_code.Size());
     }
 
     // DW_AT_stmt_list (offset into .debug_line)
@@ -389,8 +389,8 @@ void Dwarf::WriteConcreteFunctions(DwarfWriteStream* stream) {
     function = code.function();
     intptr_t function_index = LookupFunction(function);
     script = function.script();
-    const char* asm_name = code_to_name_.LookupValue(&code);
-    ASSERT(asm_name != nullptr);
+    intptr_t label = code_to_label_.LookupValue(&code);
+    ASSERT(label > 0);
 
     stream->uleb128(kConcreteFunction);
     // DW_AT_abstract_origin
@@ -398,9 +398,9 @@ void Dwarf::WriteConcreteFunctions(DwarfWriteStream* stream) {
     stream->AbstractOrigin(function_index);
 
     // DW_AT_low_pc
-    stream->OffsetFromSymbol(asm_name, 0);
+    stream->OffsetFromSymbol(label, 0);
     // DW_AT_high_pc
-    stream->OffsetFromSymbol(asm_name, code.Size());
+    stream->OffsetFromSymbol(label, code.Size());
     // DW_AT_artificial
     stream->u1(function.is_visible() ? 0 : 1);
 
@@ -408,7 +408,7 @@ void Dwarf::WriteConcreteFunctions(DwarfWriteStream* stream) {
     if (node != NULL) {
       for (InliningNode* child = node->children_head; child != NULL;
            child = child->children_next) {
-        WriteInliningNode(stream, child, asm_name, script);
+        WriteInliningNode(stream, child, label, script);
       }
     }
 
@@ -497,8 +497,9 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
 
 void Dwarf::WriteInliningNode(DwarfWriteStream* stream,
                               InliningNode* node,
-                              const char* root_asm_name,
+                              intptr_t root_label,
                               const Script& parent_script) {
+  ASSERT(root_label > 0);
   intptr_t file = LookupScript(parent_script);
   intptr_t function_index = LookupFunction(node->function);
   const Script& script = Script::Handle(zone_, node->function.script());
@@ -509,9 +510,9 @@ void Dwarf::WriteInliningNode(DwarfWriteStream* stream,
   stream->AbstractOrigin(function_index);
 
   // DW_AT_low_pc
-  stream->OffsetFromSymbol(root_asm_name, node->start_pc_offset);
+  stream->OffsetFromSymbol(root_label, node->start_pc_offset);
   // DW_AT_high_pc
-  stream->OffsetFromSymbol(root_asm_name, node->end_pc_offset);
+  stream->OffsetFromSymbol(root_label, node->end_pc_offset);
   // DW_AT_call_file
   stream->uleb128(file);
 
@@ -522,7 +523,7 @@ void Dwarf::WriteInliningNode(DwarfWriteStream* stream,
 
   for (InliningNode* child = node->children_head; child != NULL;
        child = child->children_next) {
-    WriteInliningNode(stream, child, root_asm_name, script);
+    WriteInliningNode(stream, child, root_label, script);
   }
 
   stream->uleb128(0);  // End of children.
@@ -539,9 +540,9 @@ class LineNumberProgramWriter {
   void EmitRow(intptr_t file,
                intptr_t line,
                intptr_t column,
-               const char* asm_name,
+               intptr_t label,
                intptr_t pc_offset) {
-    if (AddRow(file, line, column, asm_name, pc_offset)) {
+    if (AddRow(file, line, column, label, pc_offset)) {
       // Address register must be updated from 0 before emitting an LNP row
       // (dartbug.com/41756).
       stream_->u1(Dwarf::DW_LNS_copy);
@@ -551,11 +552,11 @@ class LineNumberProgramWriter {
   // Associates the given file, line, and column information for the instruction
   // at the pc_offset into the instructions payload of the Code object with the
   // symbol asm_name. Returns whether any changes were made to the stream.
-  bool AddRow(intptr_t file,
-              intptr_t line,
-              intptr_t column,
-              const char* asm_name,
-              intptr_t pc_offset) {
+  DART_WARN_UNUSED_RESULT bool AddRow(intptr_t file,
+                                      intptr_t line,
+                                      intptr_t column,
+                                      intptr_t label,
+                                      intptr_t pc_offset) {
     ASSERT_EQUAL(end_sequence_, false);
     bool source_info_changed = false;
     // Note that files are 1-indexed.
@@ -585,7 +586,7 @@ class LineNumberProgramWriter {
     // addresses between two line number program rows inherit the source
     // information from the first.
     if (source_info_changed) {
-      SetCurrentPosition(asm_name, pc_offset);
+      SetCurrentPosition(label, pc_offset);
     }
     return source_info_changed;
   }
@@ -599,32 +600,32 @@ class LineNumberProgramWriter {
     end_sequence_ = true;
   }
 
-  void MarkEnd(const char* asm_name, intptr_t pc_offset) {
+  void MarkEnd(intptr_t label, intptr_t pc_offset) {
     ASSERT_EQUAL(end_sequence_, false);
-    SetCurrentPosition(asm_name, pc_offset);
+    SetCurrentPosition(label, pc_offset);
     MarkEnd();
   }
 
  private:
-  void SetCurrentPosition(const char* asm_name, intptr_t pc_offset) {
+  void SetCurrentPosition(intptr_t label, intptr_t pc_offset) {
     // Each LNP row is either in a different function from the previous row
     // or is at an increasing PC offset into the same function.
-    ASSERT(asm_name != nullptr);
+    ASSERT(label > 0);
     ASSERT(pc_offset >= 0);
-    ASSERT(asm_name_ != asm_name || pc_offset > pc_offset_);
-    if (asm_name_ != asm_name) {
+    ASSERT(label_ != label || pc_offset > pc_offset_);
+    if (label_ != label) {
       // Set the address register to the given offset into the new code payload.
       auto const instr_size = 1 + compiler::target::kWordSize;
       stream_->u1(0);           // This is an extended opcode
       stream_->u1(instr_size);  // that is 5 or 9 bytes long
       stream_->u1(Dwarf::DW_LNE_set_address);
-      stream_->OffsetFromSymbol(asm_name, pc_offset);
+      stream_->OffsetFromSymbol(label, pc_offset);
     } else {
       // Change the address register by the difference in the two offsets.
       stream_->u1(Dwarf::DW_LNS_advance_pc);
       stream_->uleb128(pc_offset - pc_offset_);
     }
-    asm_name_ = asm_name;
+    label_ = label;
     pc_offset_ = pc_offset;
   }
 
@@ -638,7 +639,7 @@ class LineNumberProgramWriter {
   intptr_t end_sequence_ = false;
 
   // Other info not stored in the state machine registers.
-  const char* asm_name_ = nullptr;
+  intptr_t label_ = 0;
 };
 
 void Dwarf::WriteSyntheticLineNumberProgram(LineNumberProgramWriter* writer) {
@@ -669,14 +670,14 @@ void Dwarf::WriteSyntheticLineNumberProgram(LineNumberProgramWriter* writer) {
 
   for (intptr_t i = 0; i < codes_.length(); i++) {
     const Code& code = *(codes_[i]);
-    auto const asm_name = code_to_name_.LookupValue(&code);
-    ASSERT(asm_name != nullptr);
+    auto const label = code_to_label_.LookupValue(&code);
+    ASSERT(label > 0);
 
     auto& comments = code.comments();
     for (intptr_t i = 0, len = comments.Length(); i < len;) {
       intptr_t current_pc_offset = comments.PCOffsetAt(i);
-      writer->AddRow(comments_file_index, current_line,
-                     DwarfPosition::kNoColumn, asm_name, current_pc_offset);
+      writer->EmitRow(comments_file_index, current_line,
+                      DwarfPosition::kNoColumn, label, current_pc_offset);
       while (i < len && current_pc_offset == comments.PCOffsetAt(i)) {
         comments_buffer.AddString(comments.CommentAt(i));
         comments_buffer.AddChar('\n');
@@ -701,8 +702,8 @@ void Dwarf::WriteLineNumberProgramFromCodeSourceMaps(
 
   for (intptr_t i = 0; i < codes_.length(); i++) {
     const Code& code = *(codes_[i]);
-    auto const asm_name = code_to_name_.LookupValue(&code);
-    ASSERT(asm_name != nullptr);
+    auto const label = code_to_label_.LookupValue(&code);
+    ASSERT(label > 0);
 
     map = code.code_source_map();
     if (map.IsNull()) {
@@ -774,7 +775,7 @@ void Dwarf::WriteLineNumberProgramFromCodeSourceMaps(
           }
 
           if (should_emit) {
-            writer->EmitRow(file, line, column, asm_name,
+            writer->EmitRow(file, line, column, label,
                             current_pc_offset + pc_offset_adjustment);
           }
 
@@ -813,7 +814,10 @@ void Dwarf::WriteLineNumberProgramFromCodeSourceMaps(
 
 static constexpr char kResolvedFileRoot[] = "file:///";
 static constexpr intptr_t kResolvedFileRootLen = sizeof(kResolvedFileRoot) - 1;
-static constexpr char kResolvedSdkRoot[] = "org-dartlang-sdk:///sdk/";
+static constexpr char kResolvedFlutterRoot[] = "org-dartlang-sdk:///flutter/";
+static constexpr intptr_t kResolvedFlutterRootLen =
+    sizeof(kResolvedFlutterRoot) - 1;
+static constexpr char kResolvedSdkRoot[] = "org-dartlang-sdk:///";
 static constexpr intptr_t kResolvedSdkRootLen = sizeof(kResolvedSdkRoot) - 1;
 static constexpr char kResolvedGoogle3Root[] = "google3:///";
 static constexpr intptr_t kResolvedGoogle3RootLen =
@@ -829,10 +833,15 @@ static const char* ConvertResolvedURI(const char* str) {
     return str + kResolvedFileRootLen - 1;  // Leave a '/' on the front.
 #endif
   }
+  // Must do kResolvedFlutterRoot before kResolvedSdkRoot, since the latter is
+  // a prefix of the former.
+  if (len > kResolvedFlutterRootLen &&
+      strncmp(str, kResolvedFlutterRoot, kResolvedFlutterRootLen) == 0) {
+    return str + kResolvedFlutterRootLen;  // Strip off the entire prefix.
+  }
   if (len > kResolvedSdkRootLen &&
       strncmp(str, kResolvedSdkRoot, kResolvedSdkRootLen) == 0) {
-    // Leave "sdk/" as a prefix in the returned path.
-    return str + (kResolvedSdkRootLen - 4);
+    return str + kResolvedSdkRootLen;  // Strip off the entire prefix.
   }
   if (len > kResolvedGoogle3RootLen &&
       strncmp(str, kResolvedGoogle3Root, kResolvedGoogle3RootLen) == 0) {
@@ -892,7 +901,7 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
         auto uri_cstr = Deobfuscate(uri.ToCString());
         if (FLAG_resolve_dwarf_paths) {
           auto const converted_cstr = ConvertResolvedURI(uri_cstr);
-          // Strictly enforce this to catch inconvertable cases.
+          // Strictly enforce this to catch inconvertible cases.
           if (converted_cstr == nullptr) {
             FATAL("cannot convert resolved URI %s", uri_cstr);
           }
@@ -928,9 +937,9 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
       const intptr_t last_code_index = codes_.length() - 1;
       const Code& last_code = *(codes_[last_code_index]);
       const intptr_t last_pc_offset = last_code.Size();
-      const char* last_asm_name = code_to_name_.LookupValue(&last_code);
-      ASSERT(last_asm_name != nullptr);
-      lnp_writer.MarkEnd(last_asm_name, last_pc_offset);
+      auto const last_label = code_to_label_.LookupValue(&last_code);
+      ASSERT(last_label > 0);
+      lnp_writer.MarkEnd(last_label, last_pc_offset);
     } else {
       lnp_writer.MarkEnd();
     }

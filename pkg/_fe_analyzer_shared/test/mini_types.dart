@@ -11,7 +11,8 @@ import 'package:test/test.dart';
 /// Representation of a function type suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
 ///
-/// Optional and named parameters are not (yet) supported.
+/// Optional parameters, named parameters, and type parameters are not (yet)
+/// supported.
 class FunctionType extends Type {
   /// The return type.
   final Type returnType;
@@ -22,25 +23,70 @@ class FunctionType extends Type {
   FunctionType(this.returnType, this.positionalParameters) : super._();
 
   @override
-  String get type => '$returnType Function(${positionalParameters.join(', ')})';
+  Type? recursivelyDemote({required bool covariant}) {
+    Type? newReturnType = returnType.recursivelyDemote(covariant: covariant);
+    List<Type>? newPositionalParameters =
+        positionalParameters.recursivelyDemote(covariant: !covariant);
+    if (newReturnType == null && newPositionalParameters == null) {
+      return null;
+    }
+    return FunctionType(newReturnType ?? returnType,
+        newPositionalParameters ?? positionalParameters);
+  }
+
+  @override
+  String _toString({required bool allowSuffixes}) {
+    var result = '$returnType Function(${positionalParameters.join(', ')})';
+    if (!allowSuffixes) {
+      result = '($result)';
+    }
+    return result;
+  }
 }
 
-/// Representation of a "simple" type suitable for unit testing of code in the
-/// `_fe_analyzer_shared` package.  A "simple" type is either an interface type
+class NamedType {
+  final String name;
+  final Type type;
+
+  NamedType(this.name, this.type);
+
+  @override
+  String toString() => '$type $name';
+}
+
+/// Exception thrown if a type fails to parse properly.
+class ParseError extends Error {
+  final String message;
+
+  ParseError(this.message);
+
+  @override
+  String toString() => message;
+}
+
+/// Representation of a primary type suitable for unit testing of code in the
+/// `_fe_analyzer_shared` package.  A primary type is either an interface type
 /// with zero or more type parameters (e.g. `double`, or `Map<int, String>`), a
 /// reference to a type parameter, or one of the special types whose name is a
 /// single word (e.g. `dynamic`).
-class NonFunctionType extends Type {
+class PrimaryType extends Type {
   /// The name of the type.
   final String name;
 
   /// The type arguments, or `const []` if there are no type arguments.
   final List<Type> args;
 
-  NonFunctionType(this.name, {this.args = const []}) : super._();
+  PrimaryType(this.name, {this.args = const []}) : super._();
 
   @override
-  String get type {
+  Type? recursivelyDemote({required bool covariant}) {
+    List<Type>? newArgs = args.recursivelyDemote(covariant: covariant);
+    if (newArgs == null) return null;
+    return PrimaryType(name, args: newArgs);
+  }
+
+  @override
+  String _toString({required bool allowSuffixes}) {
     if (args.isEmpty) {
       return name;
     } else {
@@ -62,7 +108,17 @@ class PromotedTypeVariableType extends Type {
   PromotedTypeVariableType(this.innerType, this.promotion) : super._();
 
   @override
-  String get type => '$innerType&$promotion';
+  Type? recursivelyDemote({required bool covariant}) =>
+      covariant ? innerType : new PrimaryType('Never');
+
+  @override
+  String _toString({required bool allowSuffixes}) {
+    var result = '$innerType&${promotion._toString(allowSuffixes: false)}';
+    if (!allowSuffixes) {
+      result = '($result)';
+    }
+    return result;
+  }
 }
 
 /// Representation of a nullable type suitable for unit testing of code in the
@@ -76,7 +132,74 @@ class QuestionType extends Type {
   QuestionType(this.innerType) : super._();
 
   @override
-  String get type => '$innerType?';
+  Type? recursivelyDemote({required bool covariant}) {
+    Type? newInnerType = innerType.recursivelyDemote(covariant: covariant);
+    if (newInnerType == null) return null;
+    return QuestionType(newInnerType);
+  }
+
+  @override
+  String _toString({required bool allowSuffixes}) {
+    var result = '$innerType?';
+    if (!allowSuffixes) {
+      result = '($result)';
+    }
+    return result;
+  }
+}
+
+class RecordType extends Type {
+  final List<Type> positional;
+  final List<NamedType> named;
+
+  RecordType({
+    required this.positional,
+    required this.named,
+  }) : super._();
+
+  @override
+  Type? recursivelyDemote({required bool covariant}) {
+    List<Type>? newPositional;
+    for (var i = 0; i < positional.length; i++) {
+      var newType = positional[i].recursivelyDemote(covariant: covariant);
+      if (newType != null) {
+        newPositional ??= positional.toList();
+        newPositional[i] = newType;
+      }
+    }
+
+    List<NamedType>? newNamed;
+    for (var i = 0; i < named.length; i++) {
+      var newType = named[i].type.recursivelyDemote(covariant: covariant);
+      if (newType != null) {
+        newNamed ??= named.toList();
+        newNamed[i] = NamedType(named[i].name, newType);
+      }
+    }
+
+    if (newPositional == null && newNamed == null) {
+      return null;
+    }
+    return RecordType(
+      positional: newPositional ?? positional,
+      named: newNamed ?? named,
+    );
+  }
+
+  @override
+  String _toString({required bool allowSuffixes}) {
+    var positionalStr = positional.map((e) => '$e').join(', ');
+    var namedStr = named.map((e) => '$e').join(', ');
+    if (namedStr.isNotEmpty) {
+      if (positional.isNotEmpty) {
+        return '($positionalStr, {$namedStr})';
+      } else {
+        return '({$namedStr})';
+      }
+    } else {
+      return '($positionalStr)';
+    }
+  }
 }
 
 /// Representation of a "star" type suitable for unit testing of code in the
@@ -87,7 +210,20 @@ class StarType extends Type {
   StarType(this.innerType) : super._();
 
   @override
-  String get type => '$innerType*';
+  Type? recursivelyDemote({required bool covariant}) {
+    Type? newInnerType = innerType.recursivelyDemote(covariant: covariant);
+    if (newInnerType == null) return null;
+    return StarType(newInnerType);
+  }
+
+  @override
+  String _toString({required bool allowSuffixes}) {
+    var result = '$innerType*';
+    if (!allowSuffixes) {
+      result = '($result)';
+    }
+    return result;
+  }
 }
 
 /// Representation of a type suitable for unit testing of code in the
@@ -118,7 +254,7 @@ abstract class Type {
     return type.hashCode;
   }
 
-  String get type;
+  String get type => _toString(allowSuffixes: true);
 
   @override
   bool operator ==(Object other) {
@@ -130,8 +266,21 @@ abstract class Type {
     return other is Type && this.type == other.type;
   }
 
+  /// Finds the nearest type that doesn't involve any type parameter promotion.
+  /// If `covariant` is `true`, a supertype will be returned (replacing promoted
+  /// type parameters with their unpromoted counterparts); otherwise a subtype
+  /// will be returned (replacing promoted type parameters with `Never`).
+  ///
+  /// Returns `null` if this type is already free from type promotion.
+  Type? recursivelyDemote({required bool covariant});
+
   @override
   String toString() => type;
+
+  /// Returns a string representation of this type.  If `allowSuffixes` is
+  /// `false`, then the result will be surrounded in parenthesis if it would
+  /// otherwise have ended in a suffix.
+  String _toString({required bool allowSuffixes});
 
   /// Executes [callback] while temporarily allowing types to be compared using
   /// `==` and `hashCode`.
@@ -152,12 +301,15 @@ class UnknownType extends Type {
   const UnknownType() : super._();
 
   @override
-  String get type => '?';
+  Type? recursivelyDemote({required bool covariant}) => null;
+
+  @override
+  String _toString({required bool allowSuffixes}) => '?';
 }
 
 class _TypeParser {
   static final _typeTokenizationRegexp =
-      RegExp(_identifierPattern + r'|\(|\)|<|>|,|\?|\*|&');
+      RegExp(_identifierPattern + r'|\(|\)|<|>|,|\?|\*|&|{|}');
 
   static const _identifierPattern = '[_a-zA-Z][_a-zA-Z0-9]*';
 
@@ -178,25 +330,73 @@ class _TypeParser {
   }
 
   Never _parseFailure(String message) {
-    fail('Error parsing type `$_typeStr` at token $_currentToken: $message');
+    throw ParseError(
+        'Error parsing type `$_typeStr` at token $_currentToken: $message');
   }
 
-  Type _parseNullability(Type innerType) {
-    if (_currentToken == '?') {
+  List<NamedType> _parseRecordTypeNamedFields() {
+    assert(_currentToken == '{');
+    _next();
+    var namedTypes = <NamedType>[];
+    while (_currentToken != '}') {
+      var type = _parseType();
+      var name = _currentToken;
+      if (_identifierRegexp.matchAsPrefix(name) == null) {
+        _parseFailure('Expected an identifier');
+      }
+      namedTypes.add(NamedType(name, type));
       _next();
-      return QuestionType(innerType);
-    } else if (_currentToken == '*') {
-      _next();
-      return StarType(innerType);
-    } else {
-      return innerType;
+      if (_currentToken == ',') {
+        _next();
+        continue;
+      }
+      if (_currentToken == '}') {
+        break;
+      }
+      _parseFailure('Expected `}` or `,`');
     }
+    if (namedTypes.isEmpty) {
+      _parseFailure('Must have at least one named type between {}');
+    }
+    _next();
+    return namedTypes;
+  }
+
+  Type _parseRecordTypeRest(List<Type> positionalTypes) {
+    List<NamedType>? namedTypes;
+    while (_currentToken != ')') {
+      if (_currentToken == '{') {
+        namedTypes = _parseRecordTypeNamedFields();
+        if (_currentToken != ')') {
+          _parseFailure('Expected `)`');
+        }
+        break;
+      }
+      positionalTypes.add(_parseType());
+      if (_currentToken == ',') {
+        _next();
+        continue;
+      }
+      if (_currentToken == ')') {
+        break;
+      }
+      _parseFailure('Expected `)` or `,`');
+    }
+    _next();
+    return RecordType(
+        positional: positionalTypes, named: namedTypes ?? const []);
   }
 
   Type? _parseSuffix(Type type) {
-    if (_currentToken == '&') {
+    if (_currentToken == '?') {
       _next();
-      var promotion = _parseType();
+      return QuestionType(type);
+    } else if (_currentToken == '*') {
+      _next();
+      return StarType(type);
+    } else if (_currentToken == '&') {
+      _next();
+      var promotion = _parseUnsuffixedType();
       return PromotedTypeVariableType(type, promotion);
     } else if (_currentToken == 'Function') {
       _next();
@@ -216,7 +416,7 @@ class _TypeParser {
         }
       }
       _next();
-      return _parseNullability(FunctionType(type, parameterTypes));
+      return FunctionType(type, parameterTypes);
     } else {
       return null;
     }
@@ -224,19 +424,57 @@ class _TypeParser {
 
   Type _parseType() {
     // We currently accept the following grammar for types:
-    //   type := identifier typeArgs? nullability suffix* | `?`
+    //   type := unsuffixedType nullability suffix*
+    //   unsuffixedType := identifier typeArgs?
+    //                   | `?`
+    //                   | `(` type `)`
+    //                   | `(` recordTypeFields `,` recordTypeNamedFields `)`
+    //                   | `(` recordTypeFields `,`? `)`
+    //                   | `(` recordTypeNamedFields? `)`
+    //   recordTypeFields := type (`,` type)*
+    //   recordTypeNamedFields := `{` recordTypeNamedField
+    //                            (`,` recordTypeNamedField)* `,`? `}`
+    //   recordTypeNamedField := type identifier
     //   typeArgs := `<` type (`,` type)* `>`
     //   nullability := (`?` | `*`)?
-    //   suffix := `Function` `(` type (`,` type)* `)` suffix
-    //           | `&` type
+    //   suffix := `Function` `(` type (`,` type)* `)`
+    //           | `?`
+    //           | `*`
+    //           | `&` unsuffixedType
     // TODO(paulberry): support more syntax if needed
+    var result = _parseUnsuffixedType();
+    while (true) {
+      var newResult = _parseSuffix(result);
+      if (newResult == null) break;
+      result = newResult;
+    }
+    return result;
+  }
+
+  Type _parseUnsuffixedType() {
     if (_currentToken == '?') {
       _next();
       return const UnknownType();
     }
+    if (_currentToken == '(') {
+      _next();
+      if (_currentToken == ')' || _currentToken == '{') {
+        return _parseRecordTypeRest([]);
+      }
+      var type = _parseType();
+      if (_currentToken == ',') {
+        _next();
+        return _parseRecordTypeRest([type]);
+      }
+      if (_currentToken != ')') {
+        _parseFailure('Expected `)` or `,`');
+      }
+      _next();
+      return type;
+    }
     var typeName = _currentToken;
     if (_identifierRegexp.matchAsPrefix(typeName) == null) {
-      _parseFailure('Expected an identifier or `?`');
+      _parseFailure('Expected an identifier, `?`, or `(`');
     }
     _next();
     List<Type> typeArgs;
@@ -255,20 +493,14 @@ class _TypeParser {
     } else {
       typeArgs = const [];
     }
-    var result = _parseNullability(NonFunctionType(typeName, args: typeArgs));
-    while (true) {
-      var newResult = _parseSuffix(result);
-      if (newResult == null) break;
-      result = newResult;
-    }
-    return result;
+    return PrimaryType(typeName, args: typeArgs);
   }
 
   static Type parse(String typeStr) {
     var parser = _TypeParser._(typeStr, _tokenizeTypeStr(typeStr));
     var result = parser._parseType();
     if (parser._currentToken != '<END>') {
-      fail('Extra tokens after parsing type `$typeStr`: '
+      throw ParseError('Extra tokens after parsing type `$typeStr`: '
           '${parser._tokens.sublist(parser._i, parser._tokens.length - 1)}');
     }
     return result;
@@ -280,16 +512,37 @@ class _TypeParser {
     for (var match in _typeTokenizationRegexp.allMatches(typeStr)) {
       var extraChars = typeStr.substring(lastMatchEnd, match.start).trim();
       if (extraChars.isNotEmpty) {
-        fail('Unrecognized character(s) in type `$typeStr`: $extraChars');
+        throw ParseError(
+            'Unrecognized character(s) in type `$typeStr`: $extraChars');
       }
       result.add(typeStr.substring(match.start, match.end));
       lastMatchEnd = match.end;
     }
     var extraChars = typeStr.substring(lastMatchEnd).trim();
     if (extraChars.isNotEmpty) {
-      fail('Unrecognized character(s) in type `$typeStr`: $extraChars');
+      throw ParseError(
+          'Unrecognized character(s) in type `$typeStr`: $extraChars');
     }
     result.add('<END>');
     return result;
+  }
+}
+
+extension on List<Type> {
+  /// Calls [Type.recursivelyDemote] to translate every list member into a type
+  /// that doesn't involve any type promotion.  If no type would be changed by
+  /// this operation, returns `null`.
+  List<Type>? recursivelyDemote({required bool covariant}) {
+    List<Type>? newList;
+    for (int i = 0; i < length; i++) {
+      Type type = this[i];
+      Type? newType = type.recursivelyDemote(covariant: covariant);
+      if (newList == null) {
+        if (newType == null) continue;
+        newList = sublist(0, i);
+      }
+      newList.add(newType ?? type);
+    }
+    return newList;
   }
 }

@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -30,7 +31,7 @@ class CreateMethodOrFunction extends CorrectionProducer {
     var nameNode = node;
     if (nameNode is SimpleIdentifier) {
       // prepare argument expression (to get parameter)
-      ClassElement? targetElement;
+      InterfaceElement? targetElement;
       Expression argument;
       {
         var target = getQualifiedPropertyTarget(node);
@@ -43,9 +44,7 @@ class CreateMethodOrFunction extends CorrectionProducer {
             return;
           }
         } else {
-          var enclosingClass =
-              node.thisOrAncestorOfType<ClassOrMixinDeclaration>();
-          targetElement = enclosingClass?.declaredElement;
+          targetElement = node.enclosingInterfaceElement;
           argument = nameNode;
         }
       }
@@ -140,20 +139,28 @@ class CreateMethodOrFunction extends CorrectionProducer {
   /// Adds proposal for creating method corresponding to the given
   /// [FunctionType] in the given [ClassElement].
   Future<void> _createMethod(ChangeBuilder builder,
-      ClassElement targetClassElement, FunctionType functionType) async {
+      InterfaceElement targetClassElement, FunctionType functionType) async {
     var name = (node as SimpleIdentifier).name;
     // prepare environment
     var targetSource = targetClassElement.source;
     // prepare insert offset
-    var targetNode = await getClassOrMixinDeclaration(targetClassElement);
-    if (targetNode == null) {
+    CompilationUnitMember? targetNode;
+    List<ClassMember>? classMembers;
+    if (targetClassElement is MixinElement) {
+      final node = targetNode = await getMixinDeclaration(targetClassElement);
+      classMembers = node?.members;
+    } else if (targetClassElement is ClassElement) {
+      final node = targetNode = await getClassDeclaration(targetClassElement);
+      classMembers = node?.members;
+    }
+    if (targetNode == null || classMembers == null) {
       return;
     }
     var insertOffset = targetNode.end - 1;
     // prepare prefix
     var prefix = '  ';
     String sourcePrefix;
-    if (targetNode.members.isEmpty) {
+    if (classMembers.isEmpty) {
       sourcePrefix = '';
     } else {
       sourcePrefix = eol;

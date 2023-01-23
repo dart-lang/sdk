@@ -46,10 +46,10 @@ class LegacyClass extends Class implements Interface {
   /*member: LegacyClass.method7b:int* Function({int* a, int* b})**/
 
   /*member: LegacyClass.method8a:int* Function(int*, {int* b})**/
-  int method8a(int a, {int b: 0}) => 0;
+  int method8a(int a, {int b = 0}) => 0;
 
   /*member: LegacyClass.method8b:int* Function({int* a, int* b})**/
-  int method8b({int a, int b: 0}) => 0;
+  int method8b({int a, int b = 0}) => 0;
 
   /*member: LegacyClass.method9a:int* Function(int*, {int* b})**/
   /*member: LegacyClass.method9b:int* Function({int* a, int* b})**/

@@ -298,7 +298,7 @@ class DdcModuleBuilder extends _ModuleBuilder {
       resultModule,
       SharedCompiler.metricsLocationID
     ]);
-    return Program(<ModuleItem>[moduleDef]);
+    return Program(<ModuleItem>[...module.header, moduleDef]);
   }
 }
 
@@ -345,7 +345,7 @@ class CommonJSModuleBuilder extends _ModuleBuilder {
       }
     }
 
-    return Program(statements);
+    return Program(<ModuleItem>[...module.header, ...statements]);
   }
 }
 
@@ -455,7 +455,7 @@ class AmdModuleBuilder extends _ModuleBuilder {
     var block = js.statement(
         'define(#, #);', [ArrayInitializer(dependencies), resultModule]);
 
-    return Program([block]);
+    return Program([...module.header, block]);
   }
 }
 
@@ -468,24 +468,6 @@ String libraryUriToJsIdentifier(Uri importUri) {
     return isSdkInternalRuntimeUri(importUri) ? 'dart' : importUri.path;
   }
   return pathToJSIdentifier(p.withoutExtension(importUri.pathSegments.last));
-}
-
-/// Converts an entire arbitrary path string into a string compatible with
-/// JS identifier naming rules while conserving path information.
-///
-/// NOT guaranteed to result in a unique string. E.g.,
-///   1) '__' appears in a file name.
-///   2) An escaped '/' or '\' appears in a filename (a/b and a$47b).
-String pathToJSIdentifier(String path) {
-  path = p.normalize(path);
-  if (path.startsWith('/') || path.startsWith('\\')) {
-    path = path.substring(1, path.length);
-  }
-  return toJSIdentifier(path
-      .replaceAll('\\', '__')
-      .replaceAll('/', '__')
-      .replaceAll('..', '__')
-      .replaceAll('-', '_'));
 }
 
 /// Creates function name given [moduleName].

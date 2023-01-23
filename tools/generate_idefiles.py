@@ -12,6 +12,7 @@ analysis_options.yaml for the Dart analyzer.
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 
@@ -57,8 +58,10 @@ def GenerateCompileCommands(options):
         return 1
 
     command_set = json.loads(
-        subprocess.check_output(
-            ["ninja", "-C", out_folder, "-t", "compdb", "cxx", "cc", "h"]))
+        subprocess.check_output([
+            "buildtools/ninja/ninja", "-C", out_folder, "-t", "compdb", "-x",
+            "cxx", "cc", "h"
+        ]))
 
     commands = []
     for obj in command_set:
@@ -70,6 +73,31 @@ def GenerateCompileCommands(options):
 
         # Remove warnings
         command = command.replace("-Werror", "")
+
+        # Remove ninja prepend on Windows.
+        # This is not fully correct, as now it fails to find a sysroot for
+        # Windows. However, clangd completely fails with the `-t` flag.
+        command = re.sub(r"([^\s]*)ninja -t msvc -e environment.x64 --", "",
+                         command)
+
+        # Add sysroot from out\DebugX64\environment.x64 on Windows.
+        # TODO(dacoharkes): Fetch the paths from that file.
+        windowsSysroots = [
+            'C:\\src\\depot_tools\\win_toolchain\\vs_files\\1023ce2e82\\Windows Kits\\10\\Include\\10.0.20348.0\\um',
+            'C:\\src\\depot_tools\\win_toolchain\\vs_files\\1023ce2e82\\Windows Kits\\10\\Include\\10.0.20348.0\\shared',
+            'C:\\src\\depot_tools\\win_toolchain\\vs_files\\1023ce2e82\\Windows Kits\\10\\Include\\10.0.20348.0\\winrt',
+            'C:\\src\\depot_tools\\win_toolchain\\vs_files\\1023ce2e82\\Windows Kits\\10\\Include\\10.0.20348.0\\ucrt',
+            'C:\\src\\depot_tools\\win_toolchain\\vs_files\\1023ce2e82\\VC\\Tools\\MSVC\\14.29.30133\\include',
+            'C:\\src\\depot_tools\\win_toolchain\\vs_files\\1023ce2e82\\VC\\Tools\\MSVC\\14.29.30133\\atlmfc\\include',
+        ]
+        for windowsSysroot in windowsSysroots:
+            command = command.replace(
+                "-DDART_TARGET_OS_WINDOWS",
+                "-DDART_TARGET_OS_WINDOWS \"-I%s\"" % windowsSysroot)
+
+        # Prevent packing errors from causing fatal_too_many_errors on Windows.
+        command = command.replace("-DDART_TARGET_OS_WINDOWS",
+                                  "-DDART_TARGET_OS_WINDOWS -ferror-limit=0")
 
         obj["command"] = command
         commands += [obj]

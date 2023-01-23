@@ -7,10 +7,12 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
+import '../../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -42,13 +44,40 @@ void f() {
     changeFile(testFile);
   }
 
+  Future<void> test_addLibraryImports_dart_doubleQuotes() async {
+    registerLintRules();
+    var config = AnalysisOptionsFileConfig(
+      lints: ['prefer_double_quotes'],
+    );
+    newAnalysisOptionsYamlFile(
+      testPackageRootPath,
+      config.toContent(),
+    );
+
+    await resolveTestCode('''
+/// Comment.
+
+class A {}
+''');
+    var newLibrary1 = _getDartSource('dart:math');
+    var newLibrary2 = _getDartSource('dart:async');
+    await _assertAddLibraryImport([newLibrary1, newLibrary2], '''
+/// Comment.
+
+import "dart:async";
+import "dart:math";
+
+class A {}
+''');
+  }
+
   Future<void> test_addLibraryImports_dart_hasImports_between() async {
     await resolveTestCode('''
 import 'dart:async';
 import 'dart:math';
 ''');
     var newLibrary = _getDartSource('dart:collection');
-    await _assertAddLibraryImport(<Source>[newLibrary], '''
+    await _assertAddLibraryImport([newLibrary], '''
 import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
@@ -61,7 +90,7 @@ import 'dart:collection';
 import 'dart:math';
 ''');
     var newLibrary = _getDartSource('dart:async');
-    await _assertAddLibraryImport(<Source>[newLibrary], '''
+    await _assertAddLibraryImport([newLibrary], '''
 import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
@@ -74,7 +103,7 @@ import 'dart:async';
 import 'dart:collection';
 ''');
     var newLibrary = _getDartSource('dart:math');
-    await _assertAddLibraryImport(<Source>[newLibrary], '''
+    await _assertAddLibraryImport([newLibrary], '''
 import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
@@ -88,7 +117,7 @@ import 'dart:math';
 ''');
     var newLibrary1 = _getDartSource('dart:async');
     var newLibrary2 = _getDartSource('dart:html');
-    await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
+    await _assertAddLibraryImport([newLibrary1, newLibrary2], '''
 import 'dart:async';
 import 'dart:collection';
 import 'dart:html';
@@ -103,7 +132,7 @@ import 'dart:math';
 ''');
     var newLibrary1 = _getDartSource('dart:async');
     var newLibrary2 = _getDartSource('dart:collection');
-    await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
+    await _assertAddLibraryImport([newLibrary1, newLibrary2], '''
 import 'dart:async';
 import 'dart:collection';
 import 'dart:html';
@@ -118,7 +147,7 @@ import 'dart:collection';
 ''');
     var newLibrary1 = _getDartSource('dart:html');
     var newLibrary2 = _getDartSource('dart:math');
-    await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
+    await _assertAddLibraryImport([newLibrary1, newLibrary2], '''
 import 'dart:async';
 import 'dart:collection';
 import 'dart:html';
@@ -134,7 +163,7 @@ class A {}
 ''');
     var newLibrary1 = _getDartSource('dart:math');
     var newLibrary2 = _getDartSource('dart:async');
-    await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
+    await _assertAddLibraryImport([newLibrary1, newLibrary2], '''
 library test;
 
 import 'dart:async';
@@ -152,7 +181,7 @@ class A {}
 ''');
     var newLibrary1 = _getDartSource('dart:math');
     var newLibrary2 = _getDartSource('dart:async');
-    await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
+    await _assertAddLibraryImport([newLibrary1, newLibrary2], '''
 /// Comment.
 
 import 'dart:async';
@@ -170,7 +199,7 @@ class A {}
 ''');
     var newLibrary1 = _getDartSource('dart:math');
     var newLibrary2 = _getDartSource('dart:async');
-    await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
+    await _assertAddLibraryImport([newLibrary1, newLibrary2], '''
 #!/bin/dart
 
 import 'dart:async';
@@ -186,7 +215,7 @@ class A {}
 ''');
     var newLibrary1 = _getDartSource('dart:math');
     var newLibrary2 = _getDartSource('dart:async');
-    await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
+    await _assertAddLibraryImport([newLibrary1, newLibrary2], '''
 import 'dart:async';
 import 'dart:math';
 
@@ -211,7 +240,7 @@ import 'dart:async';
 import 'package:aaa/aaa.dart';
 ''');
     var newLibrary = _getSource('/lib/bbb.dart', 'package:bbb/bbb.dart');
-    await _assertAddLibraryImport(<Source>[newLibrary], '''
+    await _assertAddLibraryImport([newLibrary], '''
 import 'dart:async';
 
 import 'package:aaa/aaa.dart';
@@ -236,7 +265,7 @@ import 'dart:async';
 import 'package:bbb/bbb.dart';
 ''');
     var newLibrary = _getSource('/lib/aaa.dart', 'package:aaa/aaa.dart');
-    await _assertAddLibraryImport(<Source>[newLibrary], '''
+    await _assertAddLibraryImport([newLibrary], '''
 import 'dart:async';
 
 import 'package:aaa/aaa.dart';
@@ -264,7 +293,7 @@ import 'package:ddd/ddd.dart';
 ''');
     var newLibrary1 = _getSource('/lib/bbb.dart', 'package:bbb/bbb.dart');
     var newLibrary2 = _getSource('/lib/ccc.dart', 'package:ccc/ccc.dart');
-    await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
+    await _assertAddLibraryImport([newLibrary1, newLibrary2], '''
 import 'package:aaa/aaa.dart';
 import 'package:bbb/bbb.dart';
 import 'package:ccc/ccc.dart';

@@ -20,7 +20,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
     // (JS String.length cannot be null).
     final len = this.length;
     if (index < 0 || index >= len) {
-      throw RangeError.index(index, this, 'index', null, len);
+      throw IndexError.withLength(index, len, indexable: this, name: 'index');
     }
     return JS<int>('!', r'#.charCodeAt(#)', this, index);
   }

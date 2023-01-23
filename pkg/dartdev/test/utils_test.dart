@@ -157,6 +157,33 @@ void main() {
           equals('word\nhttp://long-url'));
     });
   });
+
+  group('MarkdownTable', () {
+    test('generate', () {
+      const numbers = ['zero', 'one', 'two', 'three', 'four'];
+
+      var table = MarkdownTable();
+      table.startRow()
+        ..cell('Number')
+        ..cell('Value')
+        ..cell('Words');
+      for (var foo in [1, 2, 3, 4]) {
+        table.startRow()
+          ..cell(numbers[foo])
+          ..cell(foo.toStringAsFixed(1), right: true)
+          ..cell('bar ' * foo);
+      }
+      var result = table.finish();
+      expect(result, equals('''
+| Number | Value | Words            |
+| ------ | ----- | ---------------- |
+| one    |   1.0 | bar              |
+| two    |   2.0 | bar bar          |
+| three  |   3.0 | bar bar bar      |
+| four   |   4.0 | bar bar bar bar  |
+'''));
+    });
+  });
 }
 
 const String _packageData = '''{

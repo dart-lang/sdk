@@ -4,7 +4,8 @@
 
 // Patch file for the dart:async library.
 
-import 'dart:_js_helper' show notNull, patch, ReifyFunctionTypes;
+import 'dart:_js_helper' show notNull, ReifyFunctionTypes;
+import 'dart:_internal' show patch;
 import 'dart:_isolate_helper' show TimerImpl;
 import 'dart:_foreign_helper' show JS, JSExportName;
 import 'dart:_runtime' as dart;
@@ -21,7 +22,6 @@ import 'dart:_runtime' as dart;
 /// Inspired by `co`: https://github.com/tj/co/blob/master/index.js, which is a
 /// stepping stone for ES async/await.
 @JSExportName('async')
-@ReifyFunctionTypes(false)
 _async<T>(Function() initGenerator) {
   var iter;
   late Object? Function(Object?) onValue;
@@ -140,7 +140,7 @@ class _AsyncRun {
   static final _scheduleImmediateClosure = _initializeScheduleImmediate();
 
   static void Function(void Function()) _initializeScheduleImmediate() {
-    // d8 support, see preambles/d8.js for the definiton of `scheduleImmediate`.
+    // d8 support, see preambles/d8.js for the definition of `scheduleImmediate`.
     //
     // TODO(jmesserly): do we need this? It's only for our d8 stack trace test.
     if (JS('', '#.scheduleImmediate', dart.global_) != null) {

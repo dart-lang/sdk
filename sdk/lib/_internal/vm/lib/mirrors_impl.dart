@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "mirrors_patch.dart";
+part of "mirrors_patch.dart";
 
 var _dirty = false; // Set to true by the VM when more libraries are loaded.
 

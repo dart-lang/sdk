@@ -30,6 +30,7 @@ worlds:
           void bMethod() {}
         }
     expectedLibraryCount: 2
+    advancedInvalidation: bodiesOnly
 
   - entry: main.dart
     badSdk: true
@@ -45,6 +46,10 @@ worlds:
     # result (shouldn't matter considering this is an exceptional case).
     noFullComponent: true
 
+    # this skips checking constant coverage references as they fail because
+    # of wrong sdk loaded in this check.
+    checkConstantCoverageReferences: false
+
     invalidate:
       - main.dart
     sources:
@@ -56,3 +61,4 @@ worlds:
           void bMethod() {}
         }
     expectedLibraryCount: 2
+    advancedInvalidation: noDirectlyInvalidated

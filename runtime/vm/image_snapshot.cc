@@ -172,13 +172,16 @@ bool ObjectOffsetTrait::IsKeyEqual(Pair pair, Key key) {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-ImageWriter::ImageWriter(Thread* t)
+ImageWriter::ImageWriter(Thread* t, bool generates_assembly)
     : thread_(ASSERT_NOTNULL(t)),
       zone_(t->zone()),
       next_data_offset_(0),
       next_text_offset_(0),
       objects_(),
       instructions_(),
+#if defined(DART_PRECOMPILER)
+      namer_(t->zone(), /*for_assembly=*/generates_assembly),
+#endif
       image_type_(TagObjectTypeAsReadOnly(zone_, "Image")),
       instructions_section_type_(
           TagObjectTypeAsReadOnly(zone_, "InstructionsSection")),
@@ -286,11 +289,20 @@ intptr_t ImageWriter::SizeInSnapshot(ObjectPtr raw_object) {
   }
 }
 
+#if defined(SNAPSHOT_BACKTRACE)
+uint32_t ImageWriter::GetDataOffsetFor(ObjectPtr raw_object,
+                                       ObjectPtr raw_parent) {
+#else
 uint32_t ImageWriter::GetDataOffsetFor(ObjectPtr raw_object) {
+#endif
   const intptr_t snap_size = SizeInSnapshot(raw_object);
   const intptr_t offset = next_data_offset_;
   next_data_offset_ += snap_size;
+#if defined(SNAPSHOT_BACKTRACE)
+  objects_.Add(ObjectData(raw_object, raw_parent));
+#else
   objects_.Add(ObjectData(raw_object));
+#endif
   return offset;
 }
 
@@ -455,8 +467,11 @@ void ImageWriter::Write(NonStreamingWriteStream* clustered_stream, bool vm) {
     heap->SetObjectId(data.insns_->ptr(), 0);
   }
   for (auto& data : objects_) {
-    if (data.is_object) {
+    if (data.is_object()) {
       data.obj = &Object::Handle(zone_, data.raw_obj);
+#if defined(SNAPSHOT_BACKTRACE)
+      data.parent = &Object::Handle(zone_, data.raw_parent);
+#endif
     }
   }
 
@@ -464,11 +479,14 @@ void ImageWriter::Write(NonStreamingWriteStream* clustered_stream, bool vm) {
   // to string objects. String is used for simplicity as a bit container,
   // can't use TypedData because it has an internal pointer (data_) field.
   for (auto& data : objects_) {
-    if (!data.is_object) {
+    if (!data.is_object()) {
       const auto bytes = data.bytes;
       data.obj = &Object::Handle(
           zone_, OneByteString::New(bytes.buf, bytes.length, Heap::kOld));
-      data.is_object = true;
+#if defined(SNAPSHOT_BACKTRACE)
+      data.parent = &Object::null_object();
+#endif
+      data.set_is_object(true);
       String::Cast(*data.obj).Hash();
       free(bytes.buf);
     }
@@ -489,13 +507,8 @@ void ImageWriter::Write(NonStreamingWriteStream* clustered_stream, bool vm) {
 }
 
 void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
-#if defined(DART_PRECOMPILER)
-  const intptr_t start_position = stream->Position();
-#endif
-  stream->Align(ImageWriter::kRODataAlignment);
-
+  ASSERT(Utils::IsAligned(stream->Position(), kRODataAlignment));
   // Heap page starts here.
-
   intptr_t section_start = stream->Position();
 
   stream->WriteWord(next_data_offset_);  // Data length.
@@ -505,20 +518,20 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
   ASSERT_EQUAL(stream->Position() - section_start, Image::kHeaderSize);
 #if defined(DART_PRECOMPILER)
   if (profile_writer_ != nullptr) {
-    const intptr_t end_position = stream->Position();
+    // Attribute the Image header to the artificial root.
     profile_writer_->AttributeBytesTo(
-        V8SnapshotProfileWriter::kArtificialRootId,
-        end_position - start_position);
+        V8SnapshotProfileWriter::kArtificialRootId, Image::kHeaderSize);
   }
 #endif
 
   // Heap page objects start here.
 
   for (auto entry : objects_) {
-    ASSERT(entry.is_object);
+    ASSERT(entry.is_object());
     const Object& obj = *entry.obj;
 #if defined(DART_PRECOMPILER)
     AutoTraceImage(obj, section_start, stream);
+    const char* object_name = namer_.SnapshotNameFor(entry);
 #endif
     auto const object_start = stream->Position();
 
@@ -549,10 +562,10 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
       RELEASE_ASSERT(String::GetCachedHash(str.ptr()) != 0);
       RELEASE_ASSERT(str.IsOneByteString() || str.IsTwoByteString());
 
-      stream->WriteTargetWord(static_cast<uword>(str.ptr()->untag()->length()));
 #if !defined(HASH_IN_OBJECT_HEADER)
       stream->WriteTargetWord(static_cast<uword>(str.ptr()->untag()->hash()));
 #endif
+      stream->WriteTargetWord(static_cast<uword>(str.ptr()->untag()->length()));
       ASSERT_EQUAL(stream->Position() - object_start,
                    compiler::target::String::InstanceSize());
       stream->WriteBytes(
@@ -568,6 +581,9 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
     }
     stream->Align(compiler::target::ObjectAlignment::kObjectAlignment);
     ASSERT_EQUAL(stream->Position() - object_start, SizeInSnapshot(obj));
+#if defined(DART_PRECOMPILER)
+    AddDataSymbol(object_name, object_start, stream->Position() - object_start);
+#endif
   }
 }
 
@@ -612,7 +628,7 @@ uword ImageWriter::GetMarkedTags(const Object& obj) {
   return tags;
 }
 
-const char* ImageWriter::SectionSymbol(ProgramSection section, bool vm) const {
+const char* ImageWriter::SectionSymbol(ProgramSection section, bool vm) {
   switch (section) {
     case ProgramSection::Text:
       return vm ? kVmSnapshotInstructionsAsmSymbol
@@ -669,7 +685,9 @@ void ImageWriter::WriteText(bool vm) {
   const bool bare_instruction_payloads = FLAG_precompiled_mode;
 
   // Start snapshot at page boundary.
-  if (!EnterSection(ProgramSection::Text, vm, ImageWriter::kTextAlignment)) {
+  intptr_t alignment_padding = 0;
+  if (!EnterSection(ProgramSection::Text, vm, ImageWriter::kTextAlignment,
+                    &alignment_padding)) {
     return;
   }
 
@@ -682,7 +700,7 @@ void ImageWriter::WriteText(bool vm) {
 #endif
 
   // This head also provides the gap to make the instructions snapshot
-  // look like a OldPage.
+  // look like a Page.
   const intptr_t image_size = Utils::RoundUp(
       next_text_offset_, compiler::target::ObjectAlignment::kObjectAlignment);
   text_offset += WriteTargetWord(image_size);
@@ -692,19 +710,24 @@ void ImageWriter::WriteText(bool vm) {
       WriteTargetWord(FLAG_precompiled_mode ? Image::kHeaderSize
                                             : Image::kNoInstructionsSection);
   // Zero values for the rest of the Image object header bytes.
-  text_offset += Align(Image::kHeaderSize, text_offset);
+  text_offset += Align(Image::kHeaderSize, 0, text_offset);
   ASSERT_EQUAL(text_offset, Image::kHeaderSize);
 
 #if defined(DART_PRECOMPILER)
   const char* instructions_symbol = SectionSymbol(ProgramSection::Text, vm);
   ASSERT(instructions_symbol != nullptr);
+  intptr_t instructions_label = SectionLabel(ProgramSection::Text, vm);
+  ASSERT(instructions_label > 0);
   const char* bss_symbol = SectionSymbol(ProgramSection::Bss, vm);
   ASSERT(bss_symbol != nullptr);
+  intptr_t bss_label = SectionLabel(ProgramSection::Bss, vm);
+  ASSERT(bss_label > 0);
 
   if (profile_writer_ != nullptr) {
     profile_writer_->SetObjectTypeAndName(parent_id, image_type_,
                                           instructions_symbol);
-    profile_writer_->AttributeBytesTo(parent_id, Image::kHeaderSize);
+    profile_writer_->AttributeBytesTo(
+        parent_id, ImageWriter::kTextAlignment + alignment_padding);
     profile_writer_->AddRoot(parent_id);
   }
 
@@ -746,22 +769,25 @@ void ImageWriter::WriteText(bool vm) {
     // 1) The length of the payload.
     text_offset += WriteTargetWord(section_payload_length);
     // 2) The BSS offset from this section.
-    text_offset += Relocation(text_offset, instructions_symbol, bss_symbol);
+    text_offset += Relocation(text_offset, instructions_label, bss_label);
     // 3) The relocated address of the instructions.
-    text_offset += RelocatedAddress(text_offset, instructions_symbol);
+    text_offset += RelocatedAddress(text_offset, instructions_label);
     // 4) The GNU build ID note offset from this section.
-    text_offset += Relocation(text_offset, instructions_symbol,
-                              SectionSymbol(ProgramSection::BuildId, vm));
+    text_offset += Relocation(text_offset, instructions_label,
+                              SectionLabel(ProgramSection::BuildId, vm));
 
     const intptr_t section_contents_alignment =
         bare_instruction_payloads
             ? compiler::target::Instructions::kBarePayloadAlignment
             : compiler::target::ObjectAlignment::kObjectAlignment;
+    const intptr_t alignment_offset =
+        compiler::target::ObjectAlignment::kOldObjectAlignmentOffset;
     const intptr_t expected_size =
         bare_instruction_payloads
             ? compiler::target::InstructionsSection::HeaderSize()
             : compiler::target::InstructionsSection::InstanceSize(0);
-    text_offset += Align(section_contents_alignment, text_offset);
+    text_offset +=
+        Align(section_contents_alignment, alignment_offset, text_offset);
     ASSERT_EQUAL(text_offset - id.nonce(), expected_size);
   }
 #endif
@@ -772,7 +798,6 @@ void ImageWriter::WriteText(bool vm) {
 
 #if defined(DART_PRECOMPILER)
   PcDescriptors& descriptors = PcDescriptors::Handle(zone_);
-  SnapshotTextObjectNamer namer(zone_);
 #endif
 
   ASSERT(offset_space_ != IdSpace::kSnapshot);
@@ -782,10 +807,7 @@ void ImageWriter::WriteText(bool vm) {
     ASSERT_EQUAL(data.text_offset_, text_offset);
 
 #if defined(DART_PRECOMPILER)
-    // We won't add trampolines as symbols, so their name need not be unique
-    // across different WriteText() calls.
-    const char* object_name = namer.SnapshotNameFor(
-        is_trampoline ? i : unique_symbol_counter_++, data);
+    const char* object_name = namer_.SnapshotNameFor(data);
 
     if (profile_writer_ != nullptr) {
       const V8SnapshotProfileWriter::ObjectId id(offset_space_, text_offset);
@@ -822,6 +844,7 @@ void ImageWriter::WriteText(bool vm) {
       text_offset += WriteFixed(insns.untag()->size_and_flags_);
       text_offset +=
           Align(compiler::target::Instructions::kNonBarePayloadAlignment,
+                compiler::target::ObjectAlignment::kOldObjectAlignmentOffset,
                 text_offset);
     }
 
@@ -873,8 +896,8 @@ void ImageWriter::WriteText(bool vm) {
         const auto target_offset =
             *reinterpret_cast<const compiler::target::word*>(
                 next_reloc_address);
-        text_offset += Relocation(text_offset, instructions_symbol, text_offset,
-                                  bss_symbol, target_offset);
+        text_offset += Relocation(text_offset, instructions_label, text_offset,
+                                  bss_label, target_offset);
         cursor = next_reloc_address + compiler::target::kWordSize;
       }
 #endif
@@ -956,8 +979,12 @@ static constexpr const char* kWordDirective =
 
 class DwarfAssemblyStream : public DwarfWriteStream {
  public:
-  explicit DwarfAssemblyStream(Zone* zone, BaseWriteStream* stream)
-      : zone_(ASSERT_NOTNULL(zone)), stream_(ASSERT_NOTNULL(stream)) {}
+  explicit DwarfAssemblyStream(Zone* zone,
+                               BaseWriteStream* stream,
+                               const IntMap<const char*>& label_to_name)
+      : zone_(ASSERT_NOTNULL(zone)),
+        stream_(ASSERT_NOTNULL(stream)),
+        label_to_name_(label_to_name) {}
 
   void sleb128(intptr_t value) { stream_->Printf(".sleb128 %" Pd "\n", value); }
   void uleb128(uintptr_t value) {
@@ -978,8 +1005,7 @@ class DwarfAssemblyStream : public DwarfWriteStream {
   void string(const char* cstr) {               // NOLINT
     stream_->Printf(".string \"%s\"\n", cstr);  // NOLINT
   }
-  EncodedPosition WritePrefixedLength(const char* prefix,
-                                      std::function<void()> body) {
+  void WritePrefixedLength(const char* prefix, std::function<void()> body) {
     ASSERT(prefix != nullptr);
     const char* const length_prefix_symbol =
         OS::SCreate(zone_, ".L%s_length_prefix", prefix);
@@ -994,9 +1020,10 @@ class DwarfAssemblyStream : public DwarfWriteStream {
     stream_->Printf(".L%s_start:\n", prefix);
     body();
     stream_->Printf(".L%s_end:\n", prefix);
-    return EncodedPosition(length_prefix_symbol);
   }
-  void OffsetFromSymbol(const char* symbol, intptr_t offset) {
+  void OffsetFromSymbol(intptr_t label, intptr_t offset) {
+    const char* symbol = label_to_name_.Lookup(label);
+    ASSERT(symbol != nullptr);
     if (offset == 0) {
       PrintNamedAddress(symbol);
     } else {
@@ -1057,14 +1084,15 @@ class DwarfAssemblyStream : public DwarfWriteStream {
   static constexpr const char* kDebugInfoLabel = ".Ldebug_info";
 
   void PrintNamedAddress(const char* name) {
-    stream_->Printf("%s %s\n", kWordDirective, name);
+    stream_->Printf("%s \"%s\"\n", kWordDirective, name);
   }
   void PrintNamedAddressWithOffset(const char* name, intptr_t offset) {
-    stream_->Printf("%s %s + %" Pd "\n", kWordDirective, name, offset);
+    stream_->Printf("%s \"%s\" + %" Pd "\n", kWordDirective, name, offset);
   }
 
   Zone* const zone_;
   BaseWriteStream* const stream_;
+  const IntMap<const char*>& label_to_name_;
   intptr_t temp_ = 0;
 
   DISALLOW_COPY_AND_ASSIGN(DwarfAssemblyStream);
@@ -1086,14 +1114,34 @@ AssemblyImageWriter::AssemblyImageWriter(Thread* thread,
                                          BaseWriteStream* stream,
                                          bool strip,
                                          Elf* debug_elf)
-    : ImageWriter(thread),
+    : ImageWriter(thread, /*generates_assembly=*/true),
       assembly_stream_(stream),
       assembly_dwarf_(AddDwarfIfUnstripped(zone_, strip, debug_elf)),
-      debug_elf_(debug_elf) {}
+      debug_elf_(debug_elf),
+      label_to_symbol_name_(zone_) {
+  // Set up the label mappings for the section symbols for use in relocations.
+  for (intptr_t i = 0; i < kNumProgramSections; i++) {
+    auto const section = static_cast<ProgramSection>(i);
+
+    auto const vm_name = SectionSymbol(section, /*vm=*/true);
+    auto const vm_label = SectionLabel(section, /*vm=*/true);
+    label_to_symbol_name_.Insert(vm_label, vm_name);
+
+    auto const isolate_name = SectionSymbol(section, /*vm=*/false);
+    auto const isolate_label = SectionLabel(section, /*vm=*/false);
+    if (vm_label != isolate_label) {
+      label_to_symbol_name_.Insert(isolate_label, isolate_name);
+    } else {
+      // Make sure the names also match.
+      ASSERT_EQUAL(strcmp(vm_name, isolate_name), 0);
+    }
+  }
+}
 
 void AssemblyImageWriter::Finalize() {
   if (assembly_dwarf_ != nullptr) {
-    DwarfAssemblyStream dwarf_stream(zone_, assembly_stream_);
+    DwarfAssemblyStream dwarf_stream(zone_, assembly_stream_,
+                                     label_to_symbol_name_);
     dwarf_stream.AbbreviationsPrologue();
     assembly_dwarf_->WriteAbbreviations(&dwarf_stream);
     dwarf_stream.DebugInfoPrologue();
@@ -1104,102 +1152,125 @@ void AssemblyImageWriter::Finalize() {
   if (debug_elf_ != nullptr) {
     debug_elf_->Finalize();
   }
+
+#if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_ANDROID) ||        \
+    defined(DART_TARGET_OS_FUCHSIA)
+  // Non-executable stack.
+  assembly_stream_->WriteString(".section .note.GNU-stack,\"\"\n");
+#endif
 }
 
-static void AddAssemblerIdentifier(ZoneTextBuffer* printer, const char* label) {
-  ASSERT(label[0] != '.');
-  if (label[0] == 'L' && printer->length() == 0) {
+void ImageWriter::SnapshotTextObjectNamer::AddNonUniqueNameFor(
+    BaseTextBuffer* buffer,
+    const Object& object) {
+  if (object.IsCode()) {
+    const Code& code = Code::Cast(object);
+    if (code.IsStubCode()) {
+      buffer->AddString("stub ");
+      insns_ = code.instructions();
+      const char* name = StubCode::NameOfStub(insns_.EntryPoint());
+      ASSERT(name != nullptr);
+      buffer->AddString(name);
+    } else {
+      if (code.IsAllocationStubCode()) {
+        buffer->AddString("new ");
+      } else if (code.IsTypeTestStubCode()) {
+        buffer->AddString("assert type is ");
+      } else {
+        ASSERT(code.IsFunctionCode());
+      }
+      owner_ = code.owner();
+      AddNonUniqueNameFor(buffer, owner_);
+    }
+  } else if (object.IsClass()) {
+    const char* name = Class::Cast(object).UserVisibleNameCString();
+    buffer->AddString(name);
+  } else if (object.IsAbstractType()) {
+    AbstractType::Cast(object).PrintName(Object::kUserVisibleName, buffer);
+  } else if (object.IsFunction()) {
+    const Function& func = Function::Cast(object);
+    func.PrintName({Object::kUserVisibleName, Object::NameDisambiguation::kNo},
+                   buffer);
+  } else if (object.IsCompressedStackMaps()) {
+    buffer->AddString("CompressedStackMaps");
+  } else if (object.IsPcDescriptors()) {
+    buffer->AddString("PcDescriptors");
+  } else if (object.IsCodeSourceMap()) {
+    buffer->AddString("CodeSourceMap");
+  } else if (object.IsString()) {
+    const String& str = String::Cast(object);
+    if (str.IsOneByteString()) {
+      buffer->AddString("OneByteString");
+    } else if (str.IsTwoByteString()) {
+      buffer->AddString("TwoByteString");
+    }
+  } else {
+    UNREACHABLE();
+  }
+}
+
+void ImageWriter::SnapshotTextObjectNamer::ModifyForAssembly(
+    BaseTextBuffer* buffer) {
+  if (buffer->buffer()[0] == 'L') {
     // Assembler treats labels starting with `L` as local which can cause
     // some issues down the line e.g. on Mac the linker might fail to encode
     // compact unwind information because multiple functions end up being
     // treated as a single function. See https://github.com/flutter/flutter/issues/102281.
     //
     // Avoid this by prepending an underscore.
-    printer->AddString("_");
+    auto* const result = OS::SCreate(zone_, "_%s", buffer->buffer());
+    buffer->Clear();
+    buffer->AddString(result);
   }
-
-  for (char c = *label; c != '\0'; c = *++label) {
-#define OP(dart_name, asm_name)                                                \
-  if (strncmp(label, dart_name, strlen(dart_name)) == 0) {                     \
-    printer->AddString(asm_name);                                              \
-    label += (strlen(dart_name) - 1);                                          \
-    continue;                                                                  \
-  }
-
-    OP("+", "operator_add")
-    OP("-", "operator_sub")
-    OP("*", "operator_mul")
-    OP("/", "operator_div")
-    OP("~/", "operator_truncdiv")
-    OP("%", "operator_mod")
-    OP("~", "operator_not")
-    OP("&", "operator_and")
-    OP("|", "operator_or")
-    OP("^", "operator_xor")
-    OP("<<", "operator_sll")
-    OP(">>>", "operator_srl")
-    OP(">>", "operator_sra")
-    OP("[]=", "operator_set")
-    OP("[]", "operator_get")
-    OP("unary-", "operator_neg")
-    OP("==", "operator_eq")
-    OP("<anonymous closure>", "anonymous_closure")
-    OP("<=", "operator_le")
-    OP("<", "operator_lt")
-    OP(">=", "operator_ge")
-    OP(">", "operator_gt")
-#undef OP
-
-    if (((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) ||
-        ((c >= '0') && (c <= '9')) || (c == '.')) {
-      printer->AddChar(c);
-      continue;
-    }
-    printer->AddChar('_');
+  auto* const pair = usage_count_.Lookup(buffer->buffer());
+  if (pair == nullptr) {
+    usage_count_.Insert({buffer->buffer(), 1});
+  } else {
+    buffer->Printf(" (#%" Pd ")", ++pair->value);
   }
 }
 
-const char* SnapshotTextObjectNamer::SnapshotNameFor(intptr_t code_index,
-                                                     const Code& code) {
-  ASSERT(!code.IsNull());
-  owner_ = code.owner();
-  if (owner_.IsNull()) {
-    insns_ = code.instructions();
-    const char* name = StubCode::NameOfStub(insns_.EntryPoint());
-    ASSERT(name != nullptr);
-    return OS::SCreate(zone_, "Stub_%s", name);
-  }
-  // The weak reference to the Code's owner should never have been removed via
-  // an intermediate serialization, since WSRs are only introduced during
-  // precompilation.
-  owner_ = WeakSerializationReference::Unwrap(owner_);
-  ASSERT(!owner_.IsNull());
+const char* ImageWriter::SnapshotTextObjectNamer::SnapshotNameFor(
+    const InstructionsData& data) {
   ZoneTextBuffer printer(zone_);
-  if (owner_.IsClass()) {
-    const char* name = Class::Cast(owner_).ScrubbedNameCString();
-    printer.AddString("AllocationStub_");
-    AddAssemblerIdentifier(&printer, name);
-  } else if (owner_.IsAbstractType()) {
-    const char* name = namer_.StubNameForType(AbstractType::Cast(owner_));
-    printer.AddString(name);
-  } else if (owner_.IsFunction()) {
-    const char* name = Function::Cast(owner_).QualifiedScrubbedNameCString();
-    AddAssemblerIdentifier(&printer, name);
+  if (data.trampoline_bytes != nullptr) {
+    printer.AddString("Trampoline");
   } else {
-    UNREACHABLE();
+    AddNonUniqueNameFor(&printer, *data.code_);
   }
-
-  printer.Printf("_%" Pd, code_index);
+  if (for_assembly_) {
+    ModifyForAssembly(&printer);
+  }
   return printer.buffer();
 }
 
-const char* SnapshotTextObjectNamer::SnapshotNameFor(
-    intptr_t index,
-    const ImageWriter::InstructionsData& data) {
-  if (data.trampoline_bytes != nullptr) {
-    return OS::SCreate(zone_, "Trampoline_%" Pd "", index);
+const char* ImageWriter::SnapshotTextObjectNamer::SnapshotNameFor(
+    const ObjectData& data) {
+  ASSERT(data.is_object());
+  ZoneTextBuffer printer(zone_);
+  if (data.is_original_object()) {
+    const Object& obj = *data.obj;
+    AddNonUniqueNameFor(&printer, obj);
+#if defined(SNAPSHOT_BACKTRACE)
+    // It's less useful knowing the parent of a String than other read-only
+    // data objects, and this avoids us having to handle other classes
+    // in AddNonUniqueNameFor.
+    if (!obj.IsString()) {
+      const Object& parent = *data.parent;
+      if (!parent.IsNull()) {
+        printer.AddString(" (");
+        AddNonUniqueNameFor(&printer, parent);
+        printer.AddString(")");
+      }
+    }
+#endif
+  } else {
+    printer.AddString("RawBytes");
   }
-  return SnapshotNameFor(index, *data.code_);
+  if (for_assembly_) {
+    ModifyForAssembly(&printer);
+  }
+  return printer.buffer();
 }
 
 void AssemblyImageWriter::WriteBss(bool vm) {
@@ -1215,19 +1286,53 @@ void AssemblyImageWriter::WriteBss(bool vm) {
 
 void AssemblyImageWriter::WriteROData(NonStreamingWriteStream* clustered_stream,
                                       bool vm) {
-  ImageWriter::WriteROData(clustered_stream, vm);
   if (!EnterSection(ProgramSection::Data, vm, ImageWriter::kRODataAlignment)) {
     return;
   }
-  WriteBytes(clustered_stream->buffer(), clustered_stream->bytes_written());
-  ExitSection(ProgramSection::Data, vm, clustered_stream->bytes_written());
+  // The clustered stream already has some data on it from the serializer, so
+  // make sure that the read-only objects start at the appropriate alignment
+  // within the stream, as we'll write the entire clustered stream to the
+  // assembly output (which was aligned in EnterSection).
+  const intptr_t start_position = clustered_stream->Position();
+  clustered_stream->Align(ImageWriter::kRODataAlignment);
+  if (profile_writer_ != nullptr) {
+    // Attribute any padding needed to the artificial root.
+    const intptr_t padding = clustered_stream->Position() - start_position;
+    profile_writer_->AttributeBytesTo(
+        V8SnapshotProfileWriter::kArtificialRootId, padding);
+  }
+  // First write the read-only data objects to the clustered stream.
+  ImageWriter::WriteROData(clustered_stream, vm);
+  // Next, write the bytes of the clustered stream (along with any symbols
+  // if appropriate) to the assembly output.
+  const uint8_t* bytes = clustered_stream->buffer();
+  const intptr_t len = clustered_stream->bytes_written();
+  intptr_t last_position = 0;
+  for (const auto& symbol : *current_symbols_) {
+    WriteBytes(bytes + last_position, symbol.offset - last_position);
+    assembly_stream_->Printf("\"%s\":\n", symbol.name);
+#if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_ANDROID) ||        \
+    defined(DART_TARGET_OS_FUCHSIA)
+    // Output size and type of the read-only data symbol to the assembly stream.
+    assembly_stream_->Printf(".size \"%s\", %zu\n", symbol.name, symbol.size);
+    assembly_stream_->Printf(".type \"%s\", %%object\n", symbol.name);
+#elif defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
+    // MachO symbol tables don't include the size of the symbol, so don't bother
+    // printing it to the assembly output.
+#else
+    UNIMPLEMENTED();
+#endif
+    last_position = symbol.offset;
+  }
+  WriteBytes(bytes + last_position, len - last_position);
+  ExitSection(ProgramSection::Data, vm, len);
 }
 
 bool AssemblyImageWriter::EnterSection(ProgramSection section,
                                        bool vm,
-                                       intptr_t alignment) {
+                                       intptr_t alignment,
+                                       intptr_t* alignment_padding) {
   ASSERT(FLAG_precompiled_mode);
-  ASSERT(current_section_symbol_ == nullptr);
   ASSERT(current_symbols_ == nullptr);
   bool global_symbol = false;
   switch (section) {
@@ -1240,10 +1345,14 @@ bool AssemblyImageWriter::EnterSection(ProgramSection section,
       global_symbol = true;
       break;
     case ProgramSection::Data:
-      if (debug_elf_ != nullptr) {
-        current_symbols_ =
-            new (zone_) ZoneGrowableArray<Elf::SymbolData>(zone_, 0);
-      }
+      // We create a SymbolData array even if there is no debug_elf_ because we
+      // may be writing RO data symbols, and RO data is written in two steps:
+      // 1. Serializing the read-only data objects to the clustered stream
+      // 2. Writing the bytes of the clustered stream to the assembly output.
+      // Thus, we'll need to interleave the symbols with the cluster bytes
+      // during step 2.
+      current_symbols_ =
+          new (zone_) ZoneGrowableArray<Elf::SymbolData>(zone_, 0);
 #if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_ANDROID) ||        \
     defined(DART_TARGET_OS_FUCHSIA)
       assembly_stream_->WriteString(".section .rodata\n");
@@ -1260,13 +1369,16 @@ bool AssemblyImageWriter::EnterSection(ProgramSection section,
     case ProgramSection::BuildId:
       break;
   }
-  current_section_symbol_ = SectionSymbol(section, vm);
-  ASSERT(current_section_symbol_ != nullptr);
+  current_section_label_ = SectionLabel(section, vm);
+  ASSERT(current_section_label_ > 0);
   if (global_symbol) {
-    assembly_stream_->Printf(".globl %s\n", current_section_symbol_);
+    assembly_stream_->Printf(".globl %s\n", SectionSymbol(section, vm));
   }
-  Align(alignment);
-  assembly_stream_->Printf("%s:\n", current_section_symbol_);
+  intptr_t padding = Align(alignment, 0, 0);
+  if (alignment_padding != nullptr) {
+    *alignment_padding = padding;
+  }
+  assembly_stream_->Printf("%s:\n", SectionSymbol(section, vm));
   return true;
 }
 
@@ -1274,6 +1386,7 @@ static void ElfAddSection(
     Elf* elf,
     ImageWriter::ProgramSection section,
     const char* symbol,
+    intptr_t label,
     uint8_t* bytes,
     intptr_t size,
     ZoneGrowableArray<Elf::SymbolData>* symbols,
@@ -1281,10 +1394,10 @@ static void ElfAddSection(
   if (elf == nullptr) return;
   switch (section) {
     case ImageWriter::ProgramSection::Text:
-      elf->AddText(symbol, bytes, size, relocations, symbols);
+      elf->AddText(symbol, label, bytes, size, relocations, symbols);
       break;
     case ImageWriter::ProgramSection::Data:
-      elf->AddROData(symbol, bytes, size, relocations, symbols);
+      elf->AddROData(symbol, label, bytes, size, relocations, symbols);
       break;
     default:
       // Other sections are handled by the Elf object internally.
@@ -1296,8 +1409,18 @@ void AssemblyImageWriter::ExitSection(ProgramSection name,
                                       bool vm,
                                       intptr_t size) {
   // We should still be in the same section as the last EnterSection.
-  ASSERT(current_section_symbol_ != nullptr);
-  ASSERT_EQUAL(strcmp(SectionSymbol(name, vm), current_section_symbol_), 0);
+  ASSERT_EQUAL(current_section_label_, SectionLabel(name, vm));
+#if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_ANDROID) ||        \
+    defined(DART_TARGET_OS_FUCHSIA)
+  // Output the size of the section symbol to the assembly stream.
+  assembly_stream_->Printf(".size %s, %zu\n", SectionSymbol(name, vm), size);
+  assembly_stream_->Printf(".type %s, %%object\n", SectionSymbol(name, vm));
+#elif defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
+  // MachO symbol tables don't include the size of the symbol, so don't bother
+  // printing it to the assembly output.
+#else
+  UNIMPLEMENTED();
+#endif
   // We need to generate a text segment of the appropriate size in the ELF
   // for two reasons:
   //
@@ -1313,9 +1436,10 @@ void AssemblyImageWriter::ExitSection(ProgramSection name,
   // Since we don't want to add the actual contents of the segment in the
   // separate debugging information, we pass nullptr for the bytes, which
   // creates an appropriate NOBITS section instead of PROGBITS.
-  ElfAddSection(debug_elf_, name, current_section_symbol_, /*bytes=*/nullptr,
-                size, current_symbols_);
-  current_section_symbol_ = nullptr;
+  ElfAddSection(debug_elf_, name, SectionSymbol(name, vm),
+                current_section_label_, /*bytes=*/nullptr, size,
+                current_symbols_);
+  current_section_label_ = 0;
   current_symbols_ = nullptr;
 }
 
@@ -1328,37 +1452,36 @@ intptr_t AssemblyImageWriter::WriteTargetWord(word value) {
 }
 
 intptr_t AssemblyImageWriter::Relocation(intptr_t section_offset,
-                                         const char* source_symbol,
+                                         intptr_t source_label,
                                          intptr_t source_offset,
-                                         const char* target_symbol,
+                                         intptr_t target_label,
                                          intptr_t target_offset) {
-  ASSERT(source_symbol != nullptr);
-  ASSERT(target_symbol != nullptr);
-
   // TODO(dartbug.com/43274): Remove once we generate consistent build IDs
   // between assembly snapshots and their debugging information.
-  const char* build_id_symbol =
-      SectionSymbol(ProgramSection::BuildId, /*vm=*/false);
-  if (strcmp(target_symbol, build_id_symbol) == 0) {
+  if (target_label == SectionLabel(ProgramSection::BuildId, /*vm=*/false)) {
     return WriteTargetWord(Image::kNoBuildId);
   }
 
   // All relocations are word-sized.
   assembly_stream_->Printf("%s ", kWordDirective);
-  if (strcmp(target_symbol, current_section_symbol_) == 0) {
+  if (target_label == current_section_label_) {
     assembly_stream_->WriteString("(.)");
     target_offset -= section_offset;
   } else {
+    const char* target_symbol = label_to_symbol_name_.Lookup(target_label);
+    ASSERT(target_symbol != nullptr);
     assembly_stream_->Printf("%s", target_symbol);
   }
   if (target_offset != 0) {
     assembly_stream_->Printf(" + %" Pd "", target_offset);
   }
 
-  if (strcmp(source_symbol, current_section_symbol_) == 0) {
+  if (source_label == current_section_label_) {
     assembly_stream_->WriteString(" - (.)");
     source_offset -= section_offset;
   } else {
+    const char* source_symbol = label_to_symbol_name_.Lookup(source_label);
+    ASSERT(source_symbol != nullptr);
     assembly_stream_->Printf(" - %s", source_symbol);
   }
   if (source_offset != 0) {
@@ -1371,14 +1494,36 @@ intptr_t AssemblyImageWriter::Relocation(intptr_t section_offset,
 void AssemblyImageWriter::AddCodeSymbol(const Code& code,
                                         const char* symbol,
                                         intptr_t offset) {
+  auto const label = next_label_++;
+  label_to_symbol_name_.Insert(label, symbol);
   if (assembly_dwarf_ != nullptr) {
-    assembly_dwarf_->AddCode(code, symbol);
+    assembly_dwarf_->AddCode(code, label);
   }
   if (debug_elf_ != nullptr) {
-    current_symbols_->Add({symbol, elf::STT_FUNC, offset, code.Size()});
-    debug_elf_->dwarf()->AddCode(code, symbol);
+    current_symbols_->Add({symbol, elf::STT_FUNC, offset, code.Size(), label});
+    debug_elf_->dwarf()->AddCode(code, label);
   }
-  assembly_stream_->Printf("%s:\n", symbol);
+  assembly_stream_->Printf("\"%s\":\n", symbol);
+#if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_ANDROID) ||        \
+    defined(DART_TARGET_OS_FUCHSIA)
+  // Output the size of the code symbol to the assembly stream.
+  assembly_stream_->Printf(".size \"%s\", %zu\n", symbol, code.Size());
+  assembly_stream_->Printf(".type \"%s\", %%function\n", symbol);
+#elif defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
+  // MachO symbol tables don't include the size of the symbol, so don't bother
+  // printing it to the assembly output.
+#else
+  UNIMPLEMENTED();
+#endif
+}
+
+void AssemblyImageWriter::AddDataSymbol(const char* symbol,
+                                        intptr_t offset,
+                                        size_t size) {
+  if (!FLAG_add_readonly_data_symbols) return;
+  auto const label = next_label_++;
+  label_to_symbol_name_.Insert(label, symbol);
+  current_symbols_->Add({symbol, elf::STT_OBJECT, offset, size, label});
 }
 
 void AssemblyImageWriter::FrameUnwindPrologue() {
@@ -1465,7 +1610,10 @@ intptr_t AssemblyImageWriter::WriteBytes(const void* bytes, intptr_t size) {
   return size;
 }
 
-intptr_t AssemblyImageWriter::Align(intptr_t alignment, intptr_t position) {
+intptr_t AssemblyImageWriter::Align(intptr_t alignment,
+                                    intptr_t offset,
+                                    intptr_t position) {
+  ASSERT(offset == 0);
   const intptr_t next_position = Utils::RoundUp(position, alignment);
   assembly_stream_->Printf(".balign %" Pd ", 0\n", alignment);
   return next_position - position;
@@ -1477,7 +1625,7 @@ BlobImageWriter::BlobImageWriter(Thread* thread,
                                  NonStreamingWriteStream* isolate_instructions,
                                  Elf* debug_elf,
                                  Elf* elf)
-    : ImageWriter(thread),
+    : ImageWriter(thread, /*generates_assembly=*/false),
       vm_instructions_(vm_instructions),
       isolate_instructions_(isolate_instructions),
       elf_(elf),
@@ -1504,25 +1652,35 @@ void BlobImageWriter::WriteBss(bool vm) {
 
 void BlobImageWriter::WriteROData(NonStreamingWriteStream* clustered_stream,
                                   bool vm) {
-  ImageWriter::WriteROData(clustered_stream, vm);
-  current_section_stream_ = clustered_stream;
+#if defined(DART_PRECOMPILER)
+  const intptr_t start_position = clustered_stream->Position();
+#endif
+  current_section_stream_ = ASSERT_NOTNULL(clustered_stream);
   if (!EnterSection(ProgramSection::Data, vm, ImageWriter::kRODataAlignment)) {
     return;
   }
+#if defined(DART_PRECOMPILER)
+  if (profile_writer_ != nullptr) {
+    // Attribute any padding needed to the artificial root.
+    const intptr_t padding = clustered_stream->Position() - start_position;
+    profile_writer_->AttributeBytesTo(
+        V8SnapshotProfileWriter::kArtificialRootId, padding);
+  }
+#endif
+  ImageWriter::WriteROData(clustered_stream, vm);
   ExitSection(ProgramSection::Data, vm, clustered_stream->bytes_written());
 }
 
 bool BlobImageWriter::EnterSection(ProgramSection section,
                                    bool vm,
-                                   intptr_t alignment) {
+                                   intptr_t alignment,
+                                   intptr_t* alignment_padding) {
 #if defined(DART_PRECOMPILER)
   ASSERT_EQUAL(elf_ != nullptr, FLAG_precompiled_mode);
   ASSERT(current_relocations_ == nullptr);
   ASSERT(current_symbols_ == nullptr);
 #endif
-  // For now, we set current_section_stream_ in ::WriteData.
   ASSERT(section == ProgramSection::Data || current_section_stream_ == nullptr);
-  ASSERT(current_section_symbol_ == nullptr);
   switch (section) {
     case ProgramSection::Text:
       current_section_stream_ =
@@ -1535,6 +1693,8 @@ bool BlobImageWriter::EnterSection(ProgramSection section,
 #endif
       break;
     case ProgramSection::Data:
+      // The stream to use is passed into WriteROData and set there.
+      ASSERT(current_section_stream_ != nullptr);
 #if defined(DART_PRECOMPILER)
       current_relocations_ =
           new (zone_) ZoneGrowableArray<Elf::Relocation>(zone_, 0);
@@ -1551,28 +1711,26 @@ bool BlobImageWriter::EnterSection(ProgramSection section,
       // get used for non-precompiled snapshots.
       return false;
   }
-  current_section_symbol_ = SectionSymbol(section, vm);
-  current_section_stream_->Align(alignment);
+  intptr_t padding = current_section_stream_->Align(alignment);
+  if (alignment_padding != nullptr) {
+    *alignment_padding = padding;
+  }
   return true;
 }
 
 void BlobImageWriter::ExitSection(ProgramSection name, bool vm, intptr_t size) {
-  // We should still be in the same section as the last EnterSection.
-  ASSERT(current_section_symbol_ != nullptr);
-  ASSERT_EQUAL(strcmp(SectionSymbol(name, vm), current_section_symbol_), 0);
 #if defined(DART_PRECOMPILER)
-  ElfAddSection(elf_, name, current_section_symbol_,
+  ElfAddSection(elf_, name, SectionSymbol(name, vm), SectionLabel(name, vm),
                 current_section_stream_->buffer(), size, current_symbols_,
                 current_relocations_);
   // We create the corresponding segment in the debugging information as well,
   // since it needs the contents to create the correct build ID.
-  ElfAddSection(debug_elf_, name, current_section_symbol_,
-                current_section_stream_->buffer(), size, current_symbols_,
-                current_relocations_);
+  ElfAddSection(debug_elf_, name, SectionSymbol(name, vm),
+                SectionLabel(name, vm), current_section_stream_->buffer(), size,
+                current_symbols_, current_relocations_);
   current_relocations_ = nullptr;
   current_symbols_ = nullptr;
 #endif
-  current_section_symbol_ = nullptr;
   current_section_stream_ = nullptr;
 }
 
@@ -1581,22 +1739,26 @@ intptr_t BlobImageWriter::WriteTargetWord(word value) {
   return compiler::target::kWordSize;
 }
 
-intptr_t BlobImageWriter::Align(intptr_t alignment, intptr_t offset) {
-  const intptr_t stream_padding = current_section_stream_->Align(alignment);
-  // Double-check that the offset has the same alignment.
-  ASSERT_EQUAL(Utils::RoundUp(offset, alignment) - offset, stream_padding);
+intptr_t BlobImageWriter::Align(intptr_t alignment,
+                                intptr_t offset,
+                                intptr_t position) {
+  const intptr_t stream_padding =
+      current_section_stream_->Align(alignment, offset);
+  // Double-check that the position has the same alignment.
+  ASSERT_EQUAL(Utils::RoundUp(position, alignment, offset) - position,
+               stream_padding);
   return stream_padding;
 }
 
 #if defined(DART_PRECOMPILER)
 intptr_t BlobImageWriter::Relocation(intptr_t section_offset,
-                                     const char* source_symbol,
+                                     intptr_t source_label,
                                      intptr_t source_offset,
-                                     const char* target_symbol,
+                                     intptr_t target_label,
                                      intptr_t target_offset) {
   ASSERT(FLAG_precompiled_mode);
   current_relocations_->Add({compiler::target::kWordSize, section_offset,
-                             source_symbol, source_offset, target_symbol,
+                             source_label, source_offset, target_label,
                              target_offset});
   // We write break instructions so it's easy to tell if a relocation doesn't
   // get replaced appropriately.
@@ -1606,13 +1768,22 @@ intptr_t BlobImageWriter::Relocation(intptr_t section_offset,
 void BlobImageWriter::AddCodeSymbol(const Code& code,
                                     const char* symbol,
                                     intptr_t offset) {
-  current_symbols_->Add({symbol, elf::STT_FUNC, offset, code.Size()});
+  const intptr_t label = next_label_++;
+  current_symbols_->Add({symbol, elf::STT_FUNC, offset, code.Size(), label});
   if (elf_ != nullptr && elf_->dwarf() != nullptr) {
-    elf_->dwarf()->AddCode(code, symbol);
+    elf_->dwarf()->AddCode(code, label);
   }
   if (debug_elf_ != nullptr) {
-    debug_elf_->dwarf()->AddCode(code, symbol);
+    debug_elf_->dwarf()->AddCode(code, label);
   }
+}
+
+void BlobImageWriter::AddDataSymbol(const char* symbol,
+                                    intptr_t offset,
+                                    size_t size) {
+  if (!FLAG_add_readonly_data_symbols) return;
+  const intptr_t label = next_label_++;
+  current_symbols_->Add({symbol, elf::STT_OBJECT, offset, size, label});
 }
 #endif  // defined(DART_PRECOMPILER)
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -1623,8 +1794,8 @@ ImageReader::ImageReader(const uint8_t* data_image,
       instructions_image_(ASSERT_NOTNULL(instructions_image)) {}
 
 ApiErrorPtr ImageReader::VerifyAlignment() const {
-  if (!Utils::IsAligned(data_image_, kObjectAlignment) ||
-      !Utils::IsAligned(instructions_image_, kMaxObjectAlignment)) {
+  if (!Utils::IsAligned(data_image_, kObjectStartAlignment) ||
+      !Utils::IsAligned(instructions_image_, kObjectStartAlignment)) {
     return ApiError::New(
         String::Handle(String::New("Snapshot is misaligned", Heap::kOld)),
         Heap::kOld);

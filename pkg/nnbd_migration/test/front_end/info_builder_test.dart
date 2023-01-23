@@ -384,6 +384,192 @@ void main() {
             replacement: ''));
   }
 
+  Future<void> test_addLateHint_classMultipleTypedInstanceVariable() async {
+    addMetaPackage();
+    var unit = await buildInfoForSingleTestFile('''
+class C {
+  int f, g;
+  C() {
+    f = 1;
+  }
+}
+''', migratedContent: '''
+class C {
+  int? f, g;
+  C() {
+    f = 1;
+  }
+}
+''');
+    var regions = unit.fixRegions;
+    expect(regions, hasLength(1));
+    var region = regions[0];
+    var edits = region.edits;
+    assertRegion(
+        region: region,
+        offset: 15,
+        length: 1,
+        explanation: "Changed type 'int' to be nullable",
+        kind: NullabilityFixKind.makeTypeNullable);
+    assertEdit(edit: edits[2], offset: 12, length: 0, replacement: '/*late*/');
+  }
+
+  Future<void> test_addLateHint_classTypedFinalInstanceVariable() async {
+    addMetaPackage();
+    var unit = await buildInfoForSingleTestFile('''
+class C {
+  final int f;
+  C({this.f});
+}
+''', migratedContent: '''
+class C {
+  final int? f;
+  C({this.f});
+}
+''');
+    var regions = unit.fixRegions;
+    expect(regions, hasLength(1));
+    var region = regions[0];
+    var edits = region.edits;
+    assertRegion(
+        region: region,
+        offset: 21,
+        length: 1,
+        explanation: "Changed type 'int' to be nullable",
+        kind: NullabilityFixKind.makeTypeNullable);
+    assertEdit(edit: edits[2], offset: 12, length: 0, replacement: '/*late*/');
+  }
+
+  Future<void> test_addLateHint_classTypedInstanceVariable() async {
+    addMetaPackage();
+    var unit = await buildInfoForSingleTestFile('''
+class C {
+  int f;
+  C() {
+    f = 1;
+  }
+}
+''', migratedContent: '''
+class C {
+  int? f;
+  C() {
+    f = 1;
+  }
+}
+''');
+    var regions = unit.fixRegions;
+    expect(regions, hasLength(1));
+    var region = regions[0];
+    var edits = region.edits;
+    assertRegion(
+        region: region,
+        offset: 15,
+        length: 1,
+        explanation: "Changed type 'int' to be nullable",
+        kind: NullabilityFixKind.makeTypeNullable);
+    assertEdit(edit: edits[2], offset: 12, length: 0, replacement: '/*late*/');
+  }
+
+  Future<void> test_addLateHint_classTypedStaticVariable() async {
+    addMetaPackage();
+    var unit = await buildInfoForSingleTestFile('''
+class C {
+  static int x;
+  void f() => x = null;
+}
+''', migratedContent: '''
+class C {
+  static int? x;
+  void f() => x = null;
+}
+''');
+    var regions = unit.fixRegions;
+    expect(regions, hasLength(1));
+    var region = regions[0];
+    var edits = region.edits;
+    assertRegion(
+        region: region,
+        offset: 22,
+        length: 1,
+        explanation: "Changed type 'int' to be nullable",
+        kind: NullabilityFixKind.makeTypeNullable);
+    assertEdit(edit: edits[2], offset: 19, length: 0, replacement: '/*late*/');
+  }
+
+  Future<void> test_addLateHint_mixinVarInstanceVariable() async {
+    addMetaPackage();
+    var unit = await buildInfoForSingleTestFile('''
+mixin M {
+  int f;
+  void m() => f = null;
+}
+''', migratedContent: '''
+mixin M {
+  int? f;
+  void m() => f = null;
+}
+''');
+    var regions = unit.fixRegions;
+    expect(regions, hasLength(1));
+    var region = regions[0];
+    var edits = region.edits;
+    assertRegion(
+        region: region,
+        offset: 15,
+        length: 1,
+        explanation: "Changed type 'int' to be nullable",
+        kind: NullabilityFixKind.makeTypeNullable);
+    assertEdit(edit: edits[2], offset: 12, length: 0, replacement: '/*late*/');
+  }
+
+  Future<void> test_addLateHint_typedLocalVariable() async {
+    addMetaPackage();
+    var unit = await buildInfoForSingleTestFile('''
+void f() {
+  int x;
+  void g() => x = null;
+}
+''', migratedContent: '''
+void f() {
+  int? x;
+  void g() => x = null;
+}
+''');
+    var regions = unit.fixRegions;
+    expect(regions, hasLength(1));
+    var region = regions[0];
+    var edits = region.edits;
+    assertRegion(
+        region: region,
+        offset: 16,
+        length: 1,
+        explanation: "Changed type 'int' to be nullable",
+        kind: NullabilityFixKind.makeTypeNullable);
+    assertEdit(edit: edits[2], offset: 13, length: 0, replacement: '/*late*/');
+  }
+
+  Future<void> test_addLateHint_typedTopLevelVariable() async {
+    addMetaPackage();
+    var unit = await buildInfoForSingleTestFile('''
+int x;
+void f() => x = null;
+''', migratedContent: '''
+int? x;
+void f() => x = null;
+''');
+    var regions = unit.fixRegions;
+    expect(regions, hasLength(1));
+    var region = regions[0];
+    var edits = region.edits;
+    assertRegion(
+        region: region,
+        offset: 3,
+        length: 1,
+        explanation: "Changed type 'int' to be nullable",
+        kind: NullabilityFixKind.makeTypeNullable);
+    assertEdit(edit: edits[2], offset: 0, length: 0, replacement: '/*late*/');
+  }
+
   Future<void> test_compound_assignment_nullable_result() async {
     var unit = await buildInfoForSingleTestFile('''
 abstract class C {
@@ -1032,9 +1218,9 @@ int  f(int/*!*/ x, int  y) => x ??= y;
 
   void test_nullAwarenessUnnecessaryInStrongMode() async {
     var unit = await buildInfoForSingleTestFile('''
-int f(String s) => s?.length;
+int f(String/*!*/ s) => s?.length;
 ''', migratedContent: '''
-int  f(String  s) => s?.length;
+int  f(String/*!*/ s) => s?.length;
 ''', warnOnWeakCode: true);
     var question = '?';
     var questionOffset = unit.content!.indexOf(question);
@@ -1067,11 +1253,11 @@ int  f(String  s) => s?.length;
         explanation: 'Accepted a null check hint',
         kind: NullabilityFixKind.checkExpressionDueToHint,
         traces: isNotEmpty,
-        edits: ((List<EditDetail> edits) => assertEdit(
+        edits: (List<EditDetail> edits) => assertEdit(
             edit: edits.single,
             offset: content.indexOf(hintText),
             length: hintText.length,
-            replacement: '')));
+            replacement: ''));
   }
 
   Future<void> test_nullCheck_onMemberAccess() async {
@@ -1623,7 +1809,7 @@ String? g() => 1 == 2 ? "Hello" : null;
     expect(region.lineNumber, 1);
     expect(region.explanation, "Type 'int' was not made nullable");
     expect(region.edits.map((edit) => edit.description).toSet(),
-        {'Add /*?*/ hint', 'Add /*!*/ hint'});
+        {'Add /*?*/ hint', 'Add /*!*/ hint', 'Add late hint'});
     var trace = region.traces.first;
     expect(trace.description, 'Non-nullability reason');
     var entries = trace.entries;

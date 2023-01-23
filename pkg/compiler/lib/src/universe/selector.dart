@@ -63,8 +63,6 @@ class Selector {
 
   String get name => memberName.text;
 
-  LibraryEntity? get library => memberName.library;
-
   static bool isOperatorName(String name) {
     return instanceMethodOperatorNames.contains(name);
   }
@@ -139,9 +137,9 @@ class Selector {
       return Selector.setter(name);
     } else if (element.isGetter) {
       return Selector.getter(name);
-    } else if (element.isField) {
+    } else if (element is FieldEntity) {
       return Selector.getter(name);
-    } else if (element.isConstructor) {
+    } else if (element is ConstructorEntity) {
       return Selector.callConstructor(name);
     } else {
       throw failedAt(element, "Cannot get selector from $element");
@@ -198,22 +196,17 @@ class Selector {
   factory Selector.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     SelectorKind kind = source.readEnum(SelectorKind.values);
-    bool isSetter = source.readBool();
-    LibraryEntity? library = source.readLibraryOrNull();
-    String text = source.readString();
+    Name memberName = source.readMemberName();
     CallStructure callStructure = CallStructure.readFromDataSource(source);
     source.end(tag);
-    return Selector(
-        kind, Name(text, library, isSetter: isSetter), callStructure);
+    return Selector(kind, memberName, callStructure);
   }
 
   /// Serializes this [Selector] to [sink].
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeEnum(kind);
-    sink.writeBool(memberName.isSetter);
-    sink.writeLibraryOrNull(memberName.library);
-    sink.writeString(memberName.text);
+    sink.writeMemberName(memberName);
     callStructure.writeToDataSink(sink);
     sink.end(tag);
   }
@@ -244,14 +237,16 @@ class Selector {
 
   bool appliesUnnamed(MemberEntity element) {
     assert(name == element.name);
-    if (memberName.isPrivate && memberName.library != element.library) {
-      // TODO(johnniwinther): Maybe this should be
-      // `memberName != element.memberName`.
+    if (!memberName.matches(element.memberName)) {
       return false;
     }
+    return appliesStructural(element);
+  }
+
+  bool appliesStructural(MemberEntity element) {
     if (element.isSetter) return isSetter;
     if (element.isGetter) return isGetter || isCall;
-    if (element.isField) {
+    if (element is FieldEntity) {
       return isSetter ? element.isAssignable : isGetter || isCall;
     }
     if (isGetter) return true;

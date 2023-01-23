@@ -34,7 +34,7 @@ List<String> getVariableNameSuggestionsForExpression(DartType? expectedType,
     // If we're in a build() method, use 'build' as the name prefix.
     var method = assignedExpression?.thisOrAncestorOfType<MethodDeclaration>();
     if (method != null) {
-      var enclosingName = method.name.name;
+      var enclosingName = method.name.lexeme;
       if (enclosingName.startsWith('build')) {
         prefix = 'build';
       }

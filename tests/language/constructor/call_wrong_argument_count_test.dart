@@ -9,7 +9,8 @@ class Stockhorn {
 main() {
   new Stockhorn(1);
   new Stockhorn();
-  //           ^^
+  //            ^
   // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+  //           ^^
   // [cfe] Too few positional arguments: 1 required, 0 given.
 }

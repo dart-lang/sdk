@@ -130,7 +130,7 @@ class ExecutionDomainTest extends PubPackageAnalysisServerTest {
   @override
   Future<void> tearDown() async {
     await _disposeExecutionContext();
-    super.tearDown();
+    await super.tearDown();
   }
 
   Future<void> test_createAndDeleteMultipleContexts() async {

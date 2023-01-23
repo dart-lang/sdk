@@ -31,7 +31,7 @@ void main() {
   });
 }
 
-ScannerResult scanString(String source, {bool includeComments: false}) =>
+ScannerResult scanString(String source, {bool includeComments = false}) =>
     scanner.scanString(source,
         configuration: const ScannerConfiguration(enableTripleShift: true),
         includeComments: includeComments);
@@ -2817,7 +2817,7 @@ class TypeInfoListener implements Listener {
   List<ExpectedError>? errors;
   Token? firstToken;
 
-  TypeInfoListener({this.firstToken, this.metadataAllowed: false}) {
+  TypeInfoListener({this.firstToken, this.metadataAllowed = false}) {
     if (firstToken != null && firstToken!.isEof) {
       firstToken = firstToken!.next;
     }

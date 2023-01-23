@@ -337,67 +337,67 @@ class _Class {
 }
 
 extension on int? {
-  /*member: _#_extension#0|a:
+  /*member: _#_extension#1|a:
    lateField,
-   lateFieldName=_extension#0|a,
-   lateFieldTarget=_#_extension#0|a
+   lateFieldName=_extension#1|a,
+   lateFieldTarget=_#_extension#1|a
   */
-  /*is-null.member: _#_extension#0|a#isSet:
-   lateFieldName=_extension#0|a,
-   lateFieldTarget=_#_extension#0|a,
+  /*is-null.member: _#_extension#1|a#isSet:
+   lateFieldName=_extension#1|a,
+   lateFieldTarget=_#_extension#1|a,
    lateIsSetField
   */
-  /*member: _extension#0|a:
+  /*member: _extension#1|a:
    lateFieldGetter,
-   lateFieldName=_extension#0|a,
-   lateFieldTarget=_#_extension#0|a
+   lateFieldName=_extension#1|a,
+   lateFieldTarget=_#_extension#1|a
   */
-  /*member: _extension#0|a=:
-   lateFieldName=_extension#0|a,
+  /*member: _extension#1|a=:
+   lateFieldName=_extension#1|a,
    lateFieldSetter,
-   lateFieldTarget=_#_extension#0|a
+   lateFieldTarget=_#_extension#1|a
   */
   static late int? a;
-  /*member: _#_extension#0|aa:
+  /*member: _#_extension#1|aa:
    lateField,
-   lateFieldName=_extension#0|aa,
-   lateFieldTarget=_#_extension#0|aa
+   lateFieldName=_extension#1|aa,
+   lateFieldTarget=_#_extension#1|aa
   */
-  /*is-null.member: _#_extension#0|aa#isSet:
-   lateFieldName=_extension#0|aa,
-   lateFieldTarget=_#_extension#0|aa,
+  /*is-null.member: _#_extension#1|aa#isSet:
+   lateFieldName=_extension#1|aa,
+   lateFieldTarget=_#_extension#1|aa,
    lateIsSetField
   */
-  /*member: _extension#0|aa:
+  /*member: _extension#1|aa:
    lateFieldGetter,
-   lateFieldName=_extension#0|aa,
-   lateFieldTarget=_#_extension#0|aa
+   lateFieldName=_extension#1|aa,
+   lateFieldTarget=_#_extension#1|aa
   */
-  /*member: _extension#0|aa=:
-   lateFieldName=_extension#0|aa,
+  /*member: _extension#1|aa=:
+   lateFieldName=_extension#1|aa,
    lateFieldSetter,
-   lateFieldTarget=_#_extension#0|aa
+   lateFieldTarget=_#_extension#1|aa
   */
   static late int? aa;
-  /*member: _#_extension#0|_b:
+  /*member: _#_extension#1|_b:
    lateField,
-   lateFieldName=_extension#0|_b,
-   lateFieldTarget=_#_extension#0|_b
+   lateFieldName=_extension#1|_b,
+   lateFieldTarget=_#_extension#1|_b
   */
-  /*is-null.member: _#_extension#0|_b#isSet:
-   lateFieldName=_extension#0|_b,
-   lateFieldTarget=_#_extension#0|_b,
+  /*is-null.member: _#_extension#1|_b#isSet:
+   lateFieldName=_extension#1|_b,
+   lateFieldTarget=_#_extension#1|_b,
    lateIsSetField
   */
-  /*member: _extension#0|_b:
+  /*member: _extension#1|_b:
    lateFieldGetter,
-   lateFieldName=_extension#0|_b,
-   lateFieldTarget=_#_extension#0|_b
+   lateFieldName=_extension#1|_b,
+   lateFieldTarget=_#_extension#1|_b
   */
-  /*member: _extension#0|_b=:
-   lateFieldName=_extension#0|_b,
+  /*member: _extension#1|_b=:
+   lateFieldName=_extension#1|_b,
    lateFieldSetter,
-   lateFieldTarget=_#_extension#0|_b
+   lateFieldTarget=_#_extension#1|_b
   */
   static late int? _b;
 }

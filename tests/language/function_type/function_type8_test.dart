@@ -105,7 +105,7 @@ class U8<T> {
   late Function<A>(List<T> x) Function() x22;
   late void Function<A>() Function() x23;
 
-  U8({this.tIsBool: false, this.tIsInt: false})
+  U8({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   int m0({int x = -1}) => throw 'uncalled';

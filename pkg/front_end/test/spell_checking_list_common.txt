@@ -49,6 +49,7 @@ accumulate
 accurate
 accurately
 achieve
+achieved
 act
 acting
 action
@@ -491,6 +492,9 @@ closures
 clue
 code
 coerce
+coerced
+coercing
+coercion
 coincides
 coinductively
 collapses
@@ -565,6 +569,7 @@ computer
 computes
 computing
 concatenated
+concatenating
 concatenation
 concepts
 conclude
@@ -780,6 +785,7 @@ degenerate
 degrade
 delay
 delayed
+delays
 delegate
 delegates
 delegation
@@ -1079,6 +1085,7 @@ evolution
 exact
 exactly
 examine
+examined
 examining
 example
 examples
@@ -1102,6 +1109,7 @@ exempt
 exercise
 exhaustive
 exist
+existent
 existing
 exists
 exit
@@ -1255,6 +1263,7 @@ following
 follows
 food
 for
+forbid
 forbidden
 force
 forced
@@ -1386,6 +1395,7 @@ head
 header
 headers
 heading
+heavier
 help
 helper
 helpers
@@ -1594,6 +1604,7 @@ interests
 interface
 interfaces
 interferes
+intermediary
 intern
 internal
 internally
@@ -1665,6 +1676,7 @@ join
 joined
 joining
 joins
+joint
 judgment
 judgments
 jump
@@ -1892,6 +1904,7 @@ millisecond
 milliseconds
 mimics
 minimal
+minimize
 minimum
 minor
 minus
@@ -2119,6 +2132,7 @@ outgoing
 outline
 outlines
 outlining
+outmost
 output
 outside
 over
@@ -2245,7 +2259,6 @@ port
 portion
 position
 positional
-positionals
 positions
 positive
 positives
@@ -2563,6 +2576,7 @@ reserved
 reset
 resets
 resolution
+resolutions
 resolve
 resolved
 resolver
@@ -2769,6 +2783,7 @@ similarly
 simple
 simpler
 simplicity
+simplification
 simplified
 simplifies
 simplifying
@@ -2905,6 +2920,7 @@ subclasses
 subclassing
 subject
 sublist
+subpattern
 subsequence
 subsequent
 subset
@@ -3143,6 +3159,7 @@ triple
 triples
 triplet
 triplets
+triplicated
 trivial
 trouble
 true
@@ -3167,6 +3184,7 @@ typedef
 typedef's
 typedefs
 types
+typical
 typically
 typing
 ultimate

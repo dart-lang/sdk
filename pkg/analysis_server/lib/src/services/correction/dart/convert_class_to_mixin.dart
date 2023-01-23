@@ -61,7 +61,7 @@ class ConvertClassToMixin extends CorrectionProducer {
               classDeclaration.abstractKeyword ?? classDeclaration.classKeyword,
               classDeclaration.leftBracket), (builder) {
         builder.write('mixin ');
-        builder.write(classDeclaration.name.name);
+        builder.write(classDeclaration.name.lexeme);
         builder.writeTypeParameters(classElement.typeParameters);
         builder.writeTypes(superclassConstraints, prefix: ' on ');
         builder.writeTypes(interfaces, prefix: ' implements ');

@@ -269,6 +269,514 @@ AssignmentExpression
   staticType: int
 ''');
   }
+
+  test_ofExtension_onRecordType() async {
+    await assertNoErrorsInCode('''
+extension IntStringRecordExtension on (int, String) {
+  int get foo => 0;
+}
+
+void f((int, String) r) {
+  r.foo;
+}
+''');
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extension::IntStringRecordExtension::@getter::foo
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_ofExtension_onRecordType_generic() async {
+    await assertNoErrorsInCode('''
+extension BiRecordExtension<T, U> on (T, U) {
+  Map<T, U> get foo => {};
+}
+
+void f((int, String) r) {
+  r.foo;
+}
+''');
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: PropertyAccessorMember
+      base: self::@extension::BiRecordExtension::@getter::foo
+      substitution: {T: int, U: String}
+    staticType: Map<int, String>
+  staticType: Map<int, String>
+''');
+  }
+
+  test_ofRecordType_namedField() async {
+    await assertNoErrorsInCode('''
+void f(({int foo}) r) {
+  r.foo;
+}
+''');
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: ({int foo})
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_ofRecordType_namedField_hasExtension() async {
+    await assertNoErrorsInCode('''
+extension E on ({int foo}) {
+  bool get foo => false;
+}
+
+void f(({int foo}) r) {
+  r.foo;
+}
+''');
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: ({int foo})
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_ofRecordType_namedField_language218() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+final r = (foo: 42);
+''');
+
+    await assertNoErrorsInCode('''
+// @dart = 2.18
+import 'a.dart';
+void f() {
+  r.foo;
+}
+''');
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: package:test/a.dart::@getter::r
+    staticType: ({int foo})
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_ofRecordType_namedField_nullAware() async {
+    await assertNoErrorsInCode('''
+void f(({int foo})? r) {
+  r?.foo;
+}
+''');
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: ({int foo})?
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: int
+  staticType: int?
+''');
+  }
+
+  test_ofRecordType_namedField_ofTypeParameter() async {
+    await assertNoErrorsInCode(r'''
+void f<T extends ({int foo})>(T r) {
+  r.foo;
+}
+''');
+
+    final node = findNode.propertyAccess(r'foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: T
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_ofRecordType_Object_hashCode() async {
+    await assertNoErrorsInCode('''
+void f(({int foo}) r) {
+  r.hashCode;
+}
+''');
+
+    final node = findNode.propertyAccess('hashCode;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: ({int foo})
+  operator: .
+  propertyName: SimpleIdentifier
+    token: hashCode
+    staticElement: dart:core::@class::Object::@getter::hashCode
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_ofRecordType_positionalField_0() async {
+    await assertNoErrorsInCode(r'''
+void f((int, String) r) {
+  r.$0;
+}
+''');
+
+    final node = findNode.propertyAccess(r'$0;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: $0
+    staticElement: <null>
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_ofRecordType_positionalField_0_hasExtension() async {
+    await assertNoErrorsInCode(r'''
+extension E on (int, String) {
+  bool get $0 => false;
+}
+
+void f((int, String) r) {
+  r.$0;
+}
+''');
+
+    final node = findNode.propertyAccess(r'$0;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: $0
+    staticElement: <null>
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_ofRecordType_positionalField_1() async {
+    await assertNoErrorsInCode(r'''
+void f((int, String) r) {
+  r.$1;
+}
+''');
+
+    final node = findNode.propertyAccess(r'$1;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: $1
+    staticElement: <null>
+    staticType: String
+  staticType: String
+''');
+  }
+
+  test_ofRecordType_positionalField_2_fromExtension() async {
+    await assertNoErrorsInCode(r'''
+extension on (int, String) {
+  bool get $2 => false;
+}
+
+void f((int, String) r) {
+  r.$2;
+}
+''');
+
+    final node = findNode.propertyAccess(r'$2;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: $2
+    staticElement: self::@extension::0::@getter::$2
+    staticType: bool
+  staticType: bool
+''');
+  }
+
+  test_ofRecordType_positionalField_2_unresolved() async {
+    await assertErrorsInCode(r'''
+void f((int, String) r) {
+  r.$2;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 2),
+    ]);
+
+    final node = findNode.propertyAccess(r'$2;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: $2
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
+  }
+
+  test_ofRecordType_positionalField_dollarDigitLetter() async {
+    await assertErrorsInCode(r'''
+void f((int, String) r) {
+  r.$0a;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 3),
+    ]);
+
+    final node = findNode.propertyAccess(r'$0a;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: $0a
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
+  }
+
+  test_ofRecordType_positionalField_dollarName() async {
+    await assertErrorsInCode(r'''
+void f((int, String) r) {
+  r.$zero;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 5),
+    ]);
+
+    final node = findNode.propertyAccess(r'$zero;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: $zero
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
+  }
+
+  test_ofRecordType_positionalField_language218() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+final r = (0, 'bar');
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.18
+import 'a.dart';
+void f() {
+  r.$0;
+}
+''');
+
+    final node = findNode.propertyAccess(r'$0;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: package:test/a.dart::@getter::r
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: $0
+    staticElement: <null>
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_ofRecordType_positionalField_letterDollarZero() async {
+    await assertErrorsInCode(r'''
+void f((int, String) r) {
+  r.a$0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 3),
+    ]);
+
+    final node = findNode.propertyAccess(r'a$0;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: a$0
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
+  }
+
+  test_ofRecordType_positionalField_ofTypeParameter() async {
+    await assertNoErrorsInCode(r'''
+void f<T extends (int, String)>(T r) {
+  r.$0;
+}
+''');
+
+    final node = findNode.propertyAccess(r'$0;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: T
+  operator: .
+  propertyName: SimpleIdentifier
+    token: $0
+    staticElement: <null>
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_ofRecordType_unresolved() async {
+    await assertErrorsInCode('''
+void f(({int foo}) r) {
+  r.bar;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 3),
+    ]);
+
+    final node = findNode.propertyAccess('bar;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: ({int foo})
+  operator: .
+  propertyName: SimpleIdentifier
+    token: bar
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
+  }
+
+  /// Even though positional fields can have names, these names cannot be
+  /// used to access these fields.
+  test_ofRecordType_unresolved_positionalField() async {
+    await assertErrorsInCode('''
+void f((int foo, String) r) {
+  r.foo;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 34, 3),
+    ]);
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
+  }
 }
 
 mixin PropertyAccessResolutionTestCases on PubPackageResolutionTest {
@@ -553,7 +1061,7 @@ AssignmentExpression
             staticElement: self::@class::A
             staticType: null
           type: A
-        staticElement: self::@class::A::@constructor::•
+        staticElement: self::@class::A::@constructor::new
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -588,7 +1096,7 @@ AssignmentExpression
             staticElement: self::@class::A
             staticType: null
           type: A*
-        staticElement: self::@class::A::@constructor::•
+        staticElement: self::@class::A::@constructor::new
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -642,7 +1150,7 @@ AssignmentExpression
             staticElement: self::@class::A
             staticType: null
           type: A
-        staticElement: self::@class::A::@constructor::•
+        staticElement: self::@class::A::@constructor::new
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -677,7 +1185,7 @@ AssignmentExpression
             staticElement: self::@class::A
             staticType: null
           type: A*
-        staticElement: self::@class::A::@constructor::•
+        staticElement: self::@class::A::@constructor::new
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -892,7 +1400,7 @@ AssignmentExpression
             staticElement: self::@class::A
             staticType: null
           type: A
-        staticElement: self::@class::A::@constructor::•
+        staticElement: self::@class::A::@constructor::new
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -927,7 +1435,7 @@ AssignmentExpression
             staticElement: self::@class::A
             staticType: null
           type: A*
-        staticElement: self::@class::A::@constructor::•
+        staticElement: self::@class::A::@constructor::new
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -983,7 +1491,7 @@ AssignmentExpression
             staticElement: self::@class::A
             staticType: null
           type: A
-        staticElement: self::@class::A::@constructor::•
+        staticElement: self::@class::A::@constructor::new
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -1018,7 +1526,7 @@ AssignmentExpression
             staticElement: self::@class::A
             staticType: null
           type: A*
-        staticElement: self::@class::A::@constructor::•
+        staticElement: self::@class::A::@constructor::new
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )

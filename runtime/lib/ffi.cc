@@ -12,7 +12,6 @@
 #include "vm/class_finalizer.h"
 #include "vm/class_id.h"
 #include "vm/compiler/ffi/native_type.h"
-#include "vm/dart_api_impl.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/heap/gc_shared.h"
@@ -114,7 +113,8 @@ DEFINE_NATIVE_ENTRY(Ffi_nativeCallbackFunction, 1, 2) {
   // _pointerFromFunction and will not leak out into user code.
   arguments->SetReturn(
       Function::Handle(zone, compiler::ffi::NativeCallbackFunction(
-                                 native_signature, func, exceptional_return)));
+                                 native_signature, func, exceptional_return,
+                                 /*register_function=*/false)));
 
   // Because we have already set the return value.
   return Object::sentinel().ptr();
@@ -122,7 +122,6 @@ DEFINE_NATIVE_ENTRY(Ffi_nativeCallbackFunction, 1, 2) {
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
-  GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
   const Function& function =
       Function::CheckedHandle(zone, arguments->NativeArg0());
 
@@ -164,7 +163,7 @@ DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
   }
 #endif
 
-  return Pointer::New(type_arg, entry_point);
+  return Pointer::New(entry_point);
 }
 
 DEFINE_NATIVE_ENTRY(DartNativeApiFunctionPointer, 0, 1) {
@@ -205,45 +204,6 @@ DEFINE_NATIVE_ENTRY(DartApiDLInitializeData, 0, 0) {
   return Integer::New(reinterpret_cast<intptr_t>(&dart_api_data));
 }
 
-// FFI native C function pointer resolver.
-static intptr_t FfiResolve(Dart_Handle lib_url,
-                           Dart_Handle name,
-                           uintptr_t args_n) {
-  DARTSCOPE(Thread::Current());
-
-  const String& lib_url_str = Api::UnwrapStringHandle(T->zone(), lib_url);
-  const String& function_name = Api::UnwrapStringHandle(T->zone(), name);
-
-  // Find the corresponding library's native function resolver (if set).
-  const Library& lib = Library::Handle(Library::LookupLibrary(T, lib_url_str));
-  if (lib.IsNull()) {
-    const String& error = String::Handle(String::NewFormatted(
-        "Unknown library: '%s'.", lib_url_str.ToCString()));
-    Exceptions::ThrowArgumentError(error);
-  }
-  auto resolver = lib.ffi_native_resolver();
-  if (resolver == nullptr) {
-    const String& error = String::Handle(String::NewFormatted(
-        "Library has no handler: '%s'.", lib_url_str.ToCString()));
-    Exceptions::ThrowArgumentError(error);
-  }
-
-  auto* f = resolver(function_name.ToCString(), args_n);
-  if (f == nullptr) {
-    const String& error = String::Handle(String::NewFormatted(
-        "Couldn't resolve function: '%s'.", function_name.ToCString()));
-    Exceptions::ThrowArgumentError(error);
-  }
-
-  return reinterpret_cast<intptr_t>(f);
-}
-
-// Bootstrap to get the FFI Native resolver through a `native` call.
-DEFINE_NATIVE_ENTRY(Ffi_GetFfiNativeResolver, 1, 0) {
-  GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
-  return Pointer::New(type_arg, reinterpret_cast<intptr_t>(FfiResolve));
-}
-
 DEFINE_FFI_NATIVE_ENTRY(FinalizerEntry_SetExternalSize,
                         void,
                         (Dart_Handle entry_handle, intptr_t external_size)) {
@@ -273,8 +233,10 @@ DEFINE_FFI_NATIVE_ENTRY(FinalizerEntry_SetExternalSize,
   }
   // The next call cannot be in safepoint.
   if (external_size_diff > 0) {
-    thread->isolate_group()->heap()->AllocatedExternal(external_size_diff,
-                                                       space);
+    if (!thread->isolate_group()->heap()->AllocatedExternal(external_size_diff,
+                                                            space)) {
+      Exceptions::ThrowOOM();
+    }
   } else {
     thread->isolate_group()->heap()->FreedExternal(-external_size_diff, space);
   }

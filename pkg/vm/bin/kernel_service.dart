@@ -139,7 +139,7 @@ CompilerOptions setupCompilerOptions(
           printToStdErr = true;
           break;
         case Severity.info:
-          printToStdOut = true;
+          printToStdErr = true;
           break;
         case Severity.context:
         case Severity.ignored:
@@ -148,7 +148,9 @@ CompilerOptions setupCompilerOptions(
       if (Verbosity.shouldPrint(verbosity, message)) {
         if (printToStdErr) {
           printDiagnosticMessage(message, stderr.writeln);
-        } else if (printToStdOut) {
+        }
+        // ignore: dead_code
+        else if (printToStdOut) {
           printDiagnosticMessage(message, stdout.writeln);
         }
       }
@@ -180,14 +182,14 @@ abstract class Compiler {
   late final CompilerOptions options;
 
   Compiler(this.isolateGroupId, this.fileSystem, this.platformKernelPath,
-      {this.enableAsserts: false,
-      this.nullSafety: kNullSafetyOptionUnspecified,
-      this.experimentalFlags: null,
-      this.supportCodeCoverage: false,
-      this.supportHotReload: false,
-      this.packageConfig: null,
-      this.invocationModes: '',
-      this.verbosityLevel: Verbosity.defaultValue,
+      {this.enableAsserts = false,
+      this.nullSafety = kNullSafetyOptionUnspecified,
+      this.experimentalFlags = null,
+      this.supportCodeCoverage = false,
+      this.supportHotReload = false,
+      this.packageConfig = null,
+      this.invocationModes = '',
+      this.verbosityLevel = Verbosity.defaultValue,
       required this.enableMirrors}) {
     Uri? packagesUri = null;
     final packageConfig = this.packageConfig ?? Platform.packageConfig;
@@ -295,12 +297,12 @@ class IncrementalCompilerWrapper extends Compiler {
 
   IncrementalCompilerWrapper(
       int isolateGroupId, FileSystem fileSystem, Uri? platformKernelPath,
-      {bool enableAsserts: false,
-      int nullSafety: kNullSafetyOptionUnspecified,
+      {bool enableAsserts = false,
+      int nullSafety = kNullSafetyOptionUnspecified,
       List<String>? experimentalFlags,
       String? packageConfig,
-      String invocationModes: '',
-      String verbosityLevel: Verbosity.defaultValue,
+      String invocationModes = '',
+      String verbosityLevel = Verbosity.defaultValue,
       required bool enableMirrors})
       : super(isolateGroupId, fileSystem, platformKernelPath,
             enableAsserts: enableAsserts,
@@ -318,10 +320,10 @@ class IncrementalCompilerWrapper extends Compiler {
       int isolateGroupId,
       FileSystem fileSystem,
       Uri? platformKernelPath,
-      {bool enableAsserts: false,
+      {bool enableAsserts = false,
       List<String>? experimentalFlags,
       String? packageConfig,
-      String invocationModes: '',
+      String invocationModes = '',
       required bool enableMirrors}) {
     IncrementalCompilerWrapper result = IncrementalCompilerWrapper(
         isolateGroupId, fileSystem, platformKernelPath,
@@ -388,13 +390,13 @@ class SingleShotCompilerWrapper extends Compiler {
 
   SingleShotCompilerWrapper(
       int isolateGroupId, FileSystem fileSystem, Uri platformKernelPath,
-      {this.requireMain: false,
-      bool enableAsserts: false,
-      int nullSafety: kNullSafetyOptionUnspecified,
+      {this.requireMain = false,
+      bool enableAsserts = false,
+      int nullSafety = kNullSafetyOptionUnspecified,
       List<String>? experimentalFlags,
       String? packageConfig,
-      String invocationModes: '',
-      String verbosityLevel: Verbosity.defaultValue,
+      String invocationModes = '',
+      String verbosityLevel = Verbosity.defaultValue,
       required bool enableMirrors})
       : super(isolateGroupId, fileSystem, platformKernelPath,
             enableAsserts: enableAsserts,
@@ -433,14 +435,14 @@ IncrementalCompilerWrapper? lookupIncrementalCompiler(int isolateGroupId) {
 
 Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateGroupId,
     List sourceFiles, Uri platformKernelPath, List<int>? platformKernel,
-    {bool enableAsserts: false,
-    int nullSafety: kNullSafetyOptionUnspecified,
+    {bool enableAsserts = false,
+    int nullSafety = kNullSafetyOptionUnspecified,
     List<String>? experimentalFlags,
     String? packageConfig,
     String? multirootFilepaths,
     String? multirootScheme,
-    String invocationModes: '',
-    String verbosityLevel: Verbosity.defaultValue,
+    String invocationModes = '',
+    String verbosityLevel = Verbosity.defaultValue,
     required bool enableMirrors}) async {
   IncrementalCompilerWrapper? compiler =
       lookupIncrementalCompiler(isolateGroupId);

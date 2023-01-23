@@ -11,11 +11,11 @@ library from "org-dartlang-test:///main.dart" as main {
       return "Foo!";
   }
   static method main() → dynamic async /* futureValueType= dynamic */ {
-    await main::whatever();
+    await main::whatever() /* runtimeCheckType= dart.async::Future<dynamic> */ ;
     dart.core::print(#C2);
   }
   static method /* from org-dartlang-test:///myPart.dart */ whatever() → dynamic async /* futureValueType= dynamic */ {
-    await null;
+    await null /* runtimeCheckType= dart.async::Future<Null> */ ;
     return "hello";
   }
 }
@@ -28,5 +28,5 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-test:///main.dart:
 - Foo. (from org-dartlang-test:///main.dart:4:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 

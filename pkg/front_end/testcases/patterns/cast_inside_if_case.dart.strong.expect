@@ -1,0 +1,57 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test(dynamic x) → dynamic {
+  final dynamic #t1 = x;
+  final core::int #t2 = #t1 as{ForNonNullableByDefault} core::int;
+  {
+    core::int y = #t2;
+    {
+      return 0;
+    }
+  }
+  final dynamic #t3 = x;
+  final dynamic #t4 = #t3;
+  if(#t4 is core::List<dynamic> && #t4{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool}) {
+    final dynamic #t5 = #t4{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    final core::String #t6 = #t5 as{ForNonNullableByDefault} core::String;
+    {
+      core::String y = #t6;
+      {
+        return 1;
+      }
+    }
+  }
+  final dynamic #t7 = x;
+  final dynamic #t8 = #t7;
+  if(#t8 is core::List<dynamic> && #t8{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(2){(core::num) → core::bool}) {
+    final dynamic #t9 = #t8{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    final dynamic #t10 = #t8{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
+    final core::List<core::bool> #t11 = #t9 as{ForNonNullableByDefault} core::List<core::bool>;
+    final core::List<core::bool> #t12 = #t11;
+    if(#t12.{core::List::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool}) {
+      final dynamic #t13 = #t12{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+      if(#t10 =={core::Object::==}{(core::Object) → core::bool} 0) {
+        {
+          dynamic y = #t13;
+          {
+            return 2;
+          }
+        }
+      }
+    }
+  }
+  final dynamic #t14 = x;
+  final core::int #t15 = #t14 as{ForNonNullableByDefault} core::int;
+  if(#t15 =={core::num::==}{(core::Object) → core::bool} 1) {
+    {
+      return 3;
+    }
+  }
+  final dynamic #t16 = x;
+  final core::String #t17 = #t16 as{ForNonNullableByDefault} core::String;
+  {
+    return 4;
+  }
+}

@@ -20,7 +20,7 @@ void main() {
 class FormatTest extends AbstractLspAnalysisServerTest {
   Future<List<TextEdit>> expectFormattedContents(
       Uri uri, String original, String expected) async {
-    final formatEdits = (await formatDocument(uri.toString()))!;
+    final formatEdits = (await formatDocument(uri))!;
     final formattedContents = applyTextEdits(original, formatEdits);
     expect(formattedContents, equals(expected));
     return formatEdits;
@@ -28,8 +28,7 @@ class FormatTest extends AbstractLspAnalysisServerTest {
 
   Future<List<TextEdit>> expectRangeFormattedContents(
       Uri uri, String original, String expected) async {
-    final formatEdits =
-        (await formatRange(uri.toString(), rangeFromMarkers(original)))!;
+    final formatEdits = (await formatRange(uri, rangeFromMarkers(original)))!;
     final formattedContents =
         applyTextEdits(withoutMarkers(original), formatEdits);
     expect(formattedContents, equals(expected));
@@ -44,7 +43,7 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     await initialize();
     await openFile(mainFileUri, contents);
 
-    final formatEdits = await formatDocument(mainFileUri.toString());
+    final formatEdits = await formatDocument(mainFileUri);
     expect(formatEdits, isNull);
   }
 
@@ -179,8 +178,8 @@ ErrorOr<Pair<A, List<B>>> c(
     await initialize();
     await openFile(mainFileUri, withoutMarkers(contents));
 
-    final formatEdits = (await formatOnType(
-        mainFileUri.toString(), positionFromMarker(contents), '}'))!;
+    final formatEdits =
+        (await formatOnType(mainFileUri, positionFromMarker(contents), '}'))!;
     final formattedContents =
         applyTextEdits(withoutMarkers(contents), formatEdits);
     expect(formattedContents, equals(expected));
@@ -244,7 +243,7 @@ void f()
     await initialize();
     await openFile(mainFileUri, withoutMarkers(contents));
     final formatRangeRequest = formatRange(
-      mainFileUri.toString(),
+      mainFileUri,
       Range(
           start: Position(line: 0, character: 0),
           end: Position(line: 10000, character: 0)),
@@ -323,7 +322,7 @@ int b;
     await initialize();
     await openFile(mainFileUri, contents);
 
-    final formatEdits = await formatDocument(mainFileUri.toString());
+    final formatEdits = await formatDocument(mainFileUri);
     expect(formatEdits, isNull);
   }
 
@@ -629,8 +628,7 @@ void f() {
     await initialize();
     await openFile(pubspecFileUri, simplePubspecContent);
 
-    final formatEdits =
-        await formatOnType(pubspecFileUri.toString(), startOfDocPos, '}');
+    final formatEdits = await formatOnType(pubspecFileUri, startOfDocPos, '}');
     expect(formatEdits, isNull);
   }
 
@@ -638,8 +636,7 @@ void f() {
     await initialize();
 
     await expectLater(
-      formatDocument(
-          Uri.file(join(projectFolderPath, 'missing.dart')).toString()),
+      formatDocument(Uri.file(join(projectFolderPath, 'missing.dart'))),
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
           message: 'File does not exist')),
     );
@@ -649,8 +646,10 @@ void f() {
     await initialize();
 
     await expectLater(
-      // Add some invalid path characters to the end of a valid file:// URI.
-      formatDocument(mainFileUri.toString() + r'***###\\\///:::.dart'),
+      formatDocument(
+        // Add some invalid path characters to the end of a valid file:// URI.
+        Uri.parse(mainFileUri.toString() + r'###***\\\///:::.dart'),
+      ),
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
           message: 'File URI did not contain a valid file path')),
     );
@@ -660,7 +659,7 @@ void f() {
     await initialize();
 
     await expectLater(
-      formatDocument('a:/a.dart'),
+      formatDocument(Uri.parse('a:/a.dart')),
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
           message: 'URI was not a valid file:// URI')),
     );

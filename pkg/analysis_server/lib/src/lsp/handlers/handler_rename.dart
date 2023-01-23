@@ -7,9 +7,10 @@ import 'package:analysis_server/src/lsp/client_configuration.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
-import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/rename_unit_member.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 
 class PrepareRenameHandler extends MessageHandler<TextDocumentPositionParams,
     TextDocumentPrepareRenameResult> {
@@ -36,7 +37,7 @@ class PrepareRenameHandler extends MessageHandler<TextDocumentPositionParams,
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
 
     return offset.mapResult((offset) async {
-      final node = await server.getNodeAtOffset(path.result, offset);
+      final node = NodeLocator(offset).searchWithin(unit.result.unit);
       final element = server.getElementOfNode(node);
       if (node == null || element == null) {
         return success(null);
@@ -124,7 +125,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
 
     return offset.mapResult((offset) async {
-      final node = await server.getNodeAtOffset(path.result, offset);
+      final node = NodeLocator(offset).searchWithin(unit.result.unit);
       final element = server.getElementOfNode(node);
       if (node == null || element == null) {
         return success(null);
@@ -192,6 +193,13 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
       }
 
       // Compute the actual change.
+      // Don't include potential edits while we don't have a way for the user
+      // to opt-in/out.
+      // https://github.com/Dart-Code/Dart-Code/issues/4131.
+      // TODO(dantup): Check whether LSP's annotated edits would allow us to
+      //  send potential edits in their own group that can be easily toggled by
+      //  the user.
+      refactoring.includePotential = false;
       final change = await refactoring.createChange();
       if (token.isCancellationRequested) {
         return cancelled();
@@ -254,7 +262,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
 
   bool _isClassRename(RenameRefactoring refactoring) =>
       refactoring is RenameUnitMemberRefactoringImpl &&
-      refactoring.element is ClassElement;
+      refactoring.element is InterfaceElement;
 
   /// Asks the user whether they would like to rename the file along with the
   /// class.

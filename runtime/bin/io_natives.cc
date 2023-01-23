@@ -38,8 +38,9 @@ namespace bin {
   V(File_AreIdentical, 3)                                                      \
   V(File_Close, 1)                                                             \
   V(File_Copy, 3)                                                              \
-  V(File_Create, 2)                                                            \
+  V(File_Create, 3)                                                            \
   V(File_CreateLink, 3)                                                        \
+  V(File_CreatePipe, 1)                                                        \
   V(File_Delete, 2)                                                            \
   V(File_DeleteLink, 2)                                                        \
   V(File_Exists, 2)                                                            \

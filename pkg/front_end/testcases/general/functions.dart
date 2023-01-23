@@ -8,7 +8,7 @@ main() {
     f();
   }
 
-  local(({a: "Default greeting!"}) {
+  local(({a = "Default greeting!"}) {
     print(a);
   });
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
@@ -22,30 +20,29 @@ class KernelAnnotationProcessor {
   final IrAnnotationData annotationData;
 
   KernelAnnotationProcessor(
-      this.elementMap, this._nativeBasicDataBuilder, this.annotationData)
-      : assert(annotationData != null);
+      this.elementMap, this._nativeBasicDataBuilder, this.annotationData);
 
   void extractNativeAnnotations(LibraryEntity library) {
     KElementEnvironment elementEnvironment = elementMap.elementEnvironment;
 
     elementEnvironment.forEachClass(library, (ClassEntity cls) {
       ir.Class node = elementMap.getClassNode(cls);
-      String annotationName = annotationData.getNativeClassName(node);
+      String? annotationName = annotationData.getNativeClassName(node);
       if (annotationName != null) {
         _nativeBasicDataBuilder.setNativeClassTagInfo(cls, annotationName);
       }
     });
   }
 
-  String getJsInteropName(
+  String? getJsInteropName(
       Spannable spannable, Iterable<ConstantValue> metadata) {
     KCommonElements commonElements = elementMap.commonElements;
-    String annotationName;
+    String? annotationName;
     for (ConstantValue value in metadata) {
-      String name = readAnnotationName(commonElements.dartTypes, spannable,
-              value, commonElements.jsAnnotationClass1, defaultValue: '') ??
+      String? name = readAnnotationName(commonElements.dartTypes, spannable,
+              value, commonElements.jsAnnotationClass1!, defaultValue: '') ??
           readAnnotationName(commonElements.dartTypes, spannable, value,
-              commonElements.jsAnnotationClass2,
+              commonElements.jsAnnotationClass2!,
               defaultValue: '');
       if (annotationName == null) {
         annotationName = name;
@@ -63,21 +60,21 @@ class KernelAnnotationProcessor {
     KElementEnvironment elementEnvironment = elementMap.elementEnvironment;
 
     ir.Library libraryNode = elementMap.getLibraryNode(library);
-    String libraryName = annotationData.getJsInteropLibraryName(libraryNode);
+    String? libraryName = annotationData.getJsInteropLibraryName(libraryNode);
     final bool isExplicitlylyJsLibrary = libraryName != null;
     bool isJsLibrary = isExplicitlylyJsLibrary;
 
     elementEnvironment.forEachLibraryMember(library, (MemberEntity member) {
       ir.Member memberNode = elementMap.getMemberNode(member);
-      String memberName = annotationData.getJsInteropMemberName(memberNode);
-      if (member.isField) {
+      String? memberName = annotationData.getJsInteropMemberName(memberNode);
+      if (member is FieldEntity) {
         if (memberName != null) {
           // TODO(34174): Disallow js-interop fields.
           /*reporter.reportErrorMessage(
               member, MessageKind.JS_INTEROP_FIELD_NOT_SUPPORTED);*/
         }
       } else {
-        FunctionEntity function = member;
+        FunctionEntity function = member as FunctionEntity;
         if (function.isExternal && isExplicitlylyJsLibrary) {
           // External members of explicit js-interop library are implicitly
           // js-interop members.
@@ -100,7 +97,7 @@ class KernelAnnotationProcessor {
 
     elementEnvironment.forEachClass(library, (ClassEntity cls) {
       ir.Class classNode = elementMap.getClassNode(cls);
-      String className = annotationData.getJsInteropClassName(classNode);
+      String? className = annotationData.getJsInteropClassName(classNode);
       if (className != null) {
         bool isAnonymous = annotationData.isAnonymousJsInteropClass(classNode);
         // TODO(johnniwinther): Report an error if the class is anonymous but
@@ -112,17 +109,17 @@ class KernelAnnotationProcessor {
         isJsLibrary = true;
 
         elementEnvironment.forEachLocalClassMember(cls, (MemberEntity member) {
-          if (member.isField) {
+          if (member is FieldEntity) {
             // TODO(34174): Disallow js-interop fields.
             /*reporter.reportErrorMessage(
                 member, MessageKind.IMPLICIT_JS_INTEROP_FIELD_NOT_SUPPORTED);*/
           } else {
-            FunctionEntity function = member;
+            FunctionEntity function = member as FunctionEntity;
             ir.Member memberNode = elementMap.getMemberNode(member);
             // Members that are not annotated and not external will result in
             // null here. For example, the default constructor which is not
             // user-specified.
-            String /*?*/ memberName =
+            String? memberName =
                 annotationData.getJsInteropMemberName(memberNode);
             if (function.isExternal) {
               memberName ??= function.name;
@@ -137,7 +134,7 @@ class KernelAnnotationProcessor {
         });
         elementEnvironment.forEachConstructor(cls,
             (ConstructorEntity constructor) {
-          String memberName = getJsInteropName(
+          String? memberName = getJsInteropName(
               library, elementEnvironment.getMemberMetadata(constructor));
           if (constructor.isExternal) {
             // TODO(johnniwinther): It should probably be an error to have a

@@ -16,26 +16,26 @@ class A<T> {
   void method(T x) {}
 
   @pragma('vm:never-inline')
-  void testMethod({bool violateType: false}) {
+  void testMethod({bool violateType = false}) {
     dynamic x = this;
     x.method(violateType ? 10 : "10");
   }
 
   @pragma('vm:never-inline')
-  void testSetter({bool violateType: false}) {
+  void testSetter({bool violateType = false}) {
     dynamic x = this;
     x.property = violateType ? 10 : "10";
   }
 
   @pragma('vm:never-inline')
-  void testField({bool violateType: false}) {
+  void testField({bool violateType = false}) {
     dynamic x = this;
     x.field = violateType ? 10 : "10";
   }
 }
 
 @pragma('vm:never-inline')
-void loop(A<String> obj, {bool violateType: false}) {
+void loop(A<String> obj, {bool violateType = false}) {
   for (var i = 0; i < 100; i++) {
     obj.testMethod(violateType: violateType);
     obj.testSetter(violateType: violateType);

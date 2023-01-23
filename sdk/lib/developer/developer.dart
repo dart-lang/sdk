@@ -15,8 +15,9 @@
 /// {@category Core}
 library dart.developer;
 
-import "dart:_internal" show checkNotNullable;
+import 'dart:_internal' show checkNotNullable;
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:isolate' show Isolate, RawReceivePort, SendPort;
 
@@ -66,3 +67,18 @@ external void log(
   Object? error,
   StackTrace? stackTrace,
 });
+
+/// Current reachability barrier state.
+///
+/// A reachability barrier state that provides a way to synchronize on
+/// reachability. At value 'x', any object that became unreachable during
+/// 'value' < 'x' has been collected and any associated finalizers have been
+/// scheduled for execution, i.e. the non-execution of a finalizer reliably
+/// indicates the object is still reachable in the previous barrier state.
+///
+/// Objects that became unreachable in the current barrier state may have not
+/// yet been collected or finalized.
+///
+/// NOTE: There are no guarantees of forward progress. An implementation may
+/// return the same value forever for this barrier state.
+external int get reachabilityBarrier;

@@ -1,0 +1,10 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+static method f(dynamic x) → void {
+  #L1:
+  invalid-expression "PatternSwitchStatement(switch (x) {
+  case 0 as int when true:
+    break label0;
+})";
+}

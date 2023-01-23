@@ -10,12 +10,20 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CaseBlockNotTerminatedTest);
+    defineReflectiveTests(CaseBlockNotTerminatedTest_Language218);
     defineReflectiveTests(CaseBlockNotTerminatedWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class CaseBlockNotTerminatedTest extends PubPackageResolutionTest {
+class CaseBlockNotTerminatedTest extends PubPackageResolutionTest
+    with CaseBlockNotTerminatedTestCases {}
+
+@reflectiveTest
+class CaseBlockNotTerminatedTest_Language218 extends PubPackageResolutionTest
+    with WithLanguage218Mixin, CaseBlockNotTerminatedTestCases {}
+
+mixin CaseBlockNotTerminatedTestCases on PubPackageResolutionTest {
   test_lastCase() async {
     await assertNoErrorsInCode(r'''
 f(int a) {
@@ -98,7 +106,8 @@ void f(int a) {
 
 @reflectiveTest
 class CaseBlockNotTerminatedWithoutNullSafetyTest
-    extends PubPackageResolutionTest with WithoutNullSafetyMixin {
+    extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, CaseBlockNotTerminatedTestCases {
   test_notTerminated() async {
     await assertErrorsInCode('''
 void f(int a) {

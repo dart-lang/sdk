@@ -10,6 +10,7 @@ import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -34,19 +35,45 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     await pumpEventQueue(times: 5000);
   }
 
+  Future<void> assertDynamicRegistration(
+      String name, Set<Method> expectedResult) async {
+    // Check that when the server calls client/registerCapability it only includes
+    // the items we advertised dynamic registration support for.
+    final registrations = <Registration>[];
+    await monitorDynamicRegistrations(
+      registrations,
+      () => initialize(
+          textDocumentCapabilities: withGivenTextDocumentDynamicRegistrations(
+              emptyTextDocumentClientCapabilities, name),
+          workspaceCapabilities: withGivenWorkspaceDynamicRegistrations(
+              emptyWorkspaceClientCapabilities, name)),
+    );
+
+    final registeredMethods =
+        registrations.map((registration) => registration.method).toSet();
+    final result = expectedResult.map((method) => method.toJson()).toSet();
+
+    expect(registeredMethods, equals(result));
+  }
+
   TextDocumentRegistrationOptions registrationOptionsFor(
     List<Registration> registrations,
     Method method,
   ) {
+    final options = registrationFor(registrations, method)?.registerOptions;
+    if (options == null) {
+      throw 'Registration options for $method were not found. '
+          'Perhaps dynamicRegistration is missing from '
+          'withAllSupportedTextDocumentDynamicRegistrations?';
+    }
     return TextDocumentRegistrationOptions.fromJson(
-        registrationFor(registrations, method)?.registerOptions
-            as Map<String, Object?>);
+        options as Map<String, Object?>);
   }
 
-  Future<void> test_bazelWorkspace() async {
+  Future<void> test_blazeWorkspace() async {
     var workspacePath = '/home/user/ws';
-    // Make it a Bazel workspace.
-    newFile(convertPath('$workspacePath/WORKSPACE'), '');
+    // Make it a Blaze workspace.
+    newFile('$workspacePath/${file_paths.blazeWorkspaceMarker}', '');
 
     var packagePath = '$workspacePath/team/project1';
 
@@ -237,6 +264,97 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     await Future.wait([registrationsDone, unregistrationsDone]);
   }
 
+  Future<void> test_dynamicRegistration_config_allHierarchy() =>
+      assertDynamicRegistration(
+          'callHierarchy', {Method.textDocument_prepareCallHierarchy});
+
+  Future<void> test_dynamicRegistration_config_codeAction() =>
+      assertDynamicRegistration('codeAction', {Method.textDocument_codeAction});
+
+  Future<void> test_dynamicRegistration_config_colorProvider() =>
+      assertDynamicRegistration(
+          'colorProvider', {Method.textDocument_documentColor});
+
+  Future<void> test_dynamicRegistration_config_completion() =>
+      assertDynamicRegistration('completion', {Method.textDocument_completion});
+
+  Future<void> test_dynamicRegistration_config_definition() =>
+      assertDynamicRegistration('definition', {Method.textDocument_definition});
+
+  Future<void> test_dynamicRegistration_config_didChangeConfiguration() =>
+      assertDynamicRegistration(
+          'didChangeConfiguration', {Method.workspace_didChangeConfiguration});
+
+  Future<void> test_dynamicRegistration_config_documentHighlight() =>
+      assertDynamicRegistration(
+          'documentHighlight', {Method.textDocument_documentHighlight});
+
+  Future<void> test_dynamicRegistration_config_documentSymbol() =>
+      assertDynamicRegistration(
+          'documentSymbol', {Method.textDocument_documentSymbol});
+
+  Future<void> test_dynamicRegistration_config_fileOperations() =>
+      assertDynamicRegistration(
+          'fileOperations', {Method.workspace_willRenameFiles});
+
+  Future<void> test_dynamicRegistration_config_foldingRange() =>
+      assertDynamicRegistration(
+          'foldingRange', {Method.textDocument_foldingRange});
+
+  Future<void> test_dynamicRegistration_config_formatting() =>
+      assertDynamicRegistration('formatting', {Method.textDocument_formatting});
+
+  Future<void> test_dynamicRegistration_config_hover() =>
+      assertDynamicRegistration('hover', {Method.textDocument_hover});
+
+  Future<void> test_dynamicRegistration_config_implementation() =>
+      assertDynamicRegistration(
+          'implementation', {Method.textDocument_implementation});
+
+  Future<void> test_dynamicRegistration_config_inlayHint() =>
+      assertDynamicRegistration('inlayHint', {Method.textDocument_inlayHint});
+
+  Future<void> test_dynamicRegistration_config_onTypeFormatting() =>
+      assertDynamicRegistration(
+          'onTypeFormatting', {Method.textDocument_onTypeFormatting});
+
+  Future<void> test_dynamicRegistration_config_rangeFormatting() =>
+      assertDynamicRegistration(
+          'rangeFormatting', {Method.textDocument_rangeFormatting});
+
+  Future<void> test_dynamicRegistration_config_references() =>
+      assertDynamicRegistration('references', {Method.textDocument_references});
+
+  Future<void> test_dynamicRegistration_config_rename() =>
+      assertDynamicRegistration('rename', {Method.textDocument_rename});
+
+  Future<void> test_dynamicRegistration_config_selectionRange() =>
+      assertDynamicRegistration(
+          'selectionRange', {Method.textDocument_selectionRange});
+
+  Future<void> test_dynamicRegistration_config_semanticTokens() =>
+      assertDynamicRegistration(
+          'semanticTokens', {CustomMethods.semanticTokenDynamicRegistration});
+
+  Future<void> test_dynamicRegistration_config_signatureHelp() =>
+      assertDynamicRegistration(
+          'signatureHelp', {Method.textDocument_signatureHelp});
+
+  Future<void> test_dynamicRegistration_config_synchronization() =>
+      assertDynamicRegistration('synchronization', {
+        Method.textDocument_didOpen,
+        Method.textDocument_didChange,
+        Method.textDocument_didClose
+      });
+
+  Future<void> test_dynamicRegistration_config_typeDefinition() =>
+      assertDynamicRegistration(
+          'typeDefinition', {Method.textDocument_typeDefinition});
+
+  Future<void> test_dynamicRegistration_config_typeHierarchy() =>
+      assertDynamicRegistration(
+          'typeHierarchy', {Method.textDocument_prepareTypeHierarchy});
+
   Future<void> test_dynamicRegistration_containsAppropriateSettings() async {
     // Basic check that the server responds with the capabilities we'd expect,
     // for ex including analysis_options.yaml in text synchronization but not
@@ -327,6 +445,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
         expect(options.change, equals(TextDocumentSyncKind.Incremental));
       },
     );
+    expect(initResult.capabilities.callHierarchyProvider, isNotNull);
     expect(initResult.capabilities.completionProvider, isNotNull);
     expect(initResult.capabilities.hoverProvider, isNotNull);
     expect(initResult.capabilities.signatureHelpProvider, isNotNull);
@@ -346,22 +465,6 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(initResult.capabilities.semanticTokensProvider, isNotNull);
 
     expect(didGetRegisterCapabilityRequest, isFalse);
-  }
-
-  Future<void> test_dynamicRegistration_onlyForClientSupportedMethods() async {
-    // Check that when the server calls client/registerCapability it only includes
-    // the items we advertised dynamic registration support for.
-    final registrations = <Registration>[];
-    await monitorDynamicRegistrations(
-      registrations,
-      () => initialize(
-          textDocumentCapabilities: withHoverDynamicRegistration(
-              emptyTextDocumentClientCapabilities)),
-    );
-
-    expect(registrations, hasLength(1));
-    expect(registrations.single.method,
-        equals(Method.textDocument_hover.toJson()));
   }
 
   Future<void> test_dynamicRegistration_suppressesStaticRegistration() async {
@@ -387,8 +490,10 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Ensure no static registrations. This list should include all server equivalents
     // of the dynamic registrations listed in `ClientDynamicRegistrations.supported`.
     expect(initResult.capabilities.textDocumentSync, isNull);
+    expect(initResult.capabilities.callHierarchyProvider, isNull);
     expect(initResult.capabilities.completionProvider, isNull);
     expect(initResult.capabilities.hoverProvider, isNull);
+    expect(initResult.capabilities.inlayHintProvider, isNull);
     expect(initResult.capabilities.signatureHelpProvider, isNull);
     expect(initResult.capabilities.referencesProvider, isNull);
     expect(initResult.capabilities.colorProvider, isNull);
@@ -470,14 +575,12 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // The server will send an unregister request followed by another register
     // request to change document filter on folding. We need to respond to the
     // unregister request as the server awaits that.
-    requestsFromServer
+    // This is set up as a future callback and should not be awaited here.
+    unawaited(requestsFromServer
         .firstWhere((r) => r.method == Method.client_unregisterCapability)
         .then((request) {
       respondTo(request, null);
-      return UnregistrationParams.fromJson(
-              request.params as Map<String, Object?>)
-          .unregisterations;
-    });
+    }));
 
     final request = await expectRequest(Method.client_registerCapability, () {
       final plugin = configureTestPlugin();
@@ -811,12 +914,12 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(server.contextManager.includedPaths, equals([file1]));
   }
 
-  Future<void> test_nonProjectFiles_bazelWorkspace() async {
+  Future<void> test_nonProjectFiles_blazeWorkspace() async {
     final file1 = convertPath('/home/nonProject/file1.dart');
     newFile(file1, '');
 
-    // Make /home a bazel workspace.
-    newFile(convertPath('/home/WORKSPACE'), '');
+    // Make /home a Blaze workspace.
+    newFile('/home/${file_paths.blazeWorkspaceMarker}', '');
 
     await initialize(allowEmptyRootUri: true);
 

@@ -219,7 +219,6 @@ Features which we did not use in this tutorial:
 Features which `dart:ffi` does not support yet:
 
 * Callbacks from C back into Dart.
-* Finalizers
 * C++ Exceptions (Not on roadmap yet.)
 
 Platform limitations:

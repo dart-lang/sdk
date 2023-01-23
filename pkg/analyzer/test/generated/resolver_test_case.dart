@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:test/test.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
@@ -87,7 +88,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    _checkResolved(node, node.element, (node) => node is ExportElement);
+    _checkResolved(node, node.element, (node) => node is LibraryExportElement);
   }
 
   @override
@@ -110,7 +111,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
   void visitImportDirective(ImportDirective node) {
     // Not sure how to test the combinators given that it isn't an error if the
     // names are not defined.
-    _checkResolved(node, node.element, (node) => node is ImportElement);
+    _checkResolved(node, node.element, (node) => node is LibraryImportElement);
     var prefix = node.prefix;
     if (prefix == null) {
       return;
@@ -209,6 +210,10 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.name == "void") {
+      return;
+    }
+
+    if (node is DeclaredSimpleIdentifier) {
       return;
     }
 
@@ -314,16 +319,6 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest
     return functionType;
   }
 
-  /// Looks up the identifier with [name] and validates that its element type
-  /// stringifies to [type] and that its generics match the given stringified
-  /// output.
-  FunctionType expectFunctionType2(String name, String type) {
-    var identifier = findNode.simple(name);
-    var functionType = _getFunctionTypedElementType(identifier);
-    assertType(functionType, type);
-    return functionType;
-  }
-
   /// Looks up the identifier with [name] and validates its static [type].
   ///
   /// If [type] is a string, validates that the identifier's static type
@@ -341,8 +336,7 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest
   /// stringifies to that text. Otherwise, [type] is used directly a [Matcher]
   /// to match the type.
   void expectInitializerType(String name, type) {
-    SimpleIdentifier identifier = findNode.simple(name);
-    var declaration = identifier.thisOrAncestorOfType<VariableDeclaration>()!;
+    final declaration = findNode.variableDeclaration(name);
     var initializer = declaration.initializer!;
     _expectType(initializer.staticType, type);
   }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.js_emitter.parameter_stub_generator;
 
 import '../common/elements.dart' show JElementEnvironment;
@@ -17,16 +15,14 @@ import '../js_backend/namer.dart' show Namer;
 import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/type_reference.dart' show TypeReference;
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart' show SelectorConstraints;
-import '../world.dart' show JClosedWorld;
-
 import 'model.dart';
-
-import 'code_emitter_task.dart' show Emitter;
+import 'js_emitter.dart' show Emitter;
 import 'native_emitter.dart';
 
 class ParameterStubGenerator {
@@ -58,6 +54,9 @@ class ParameterStubGenerator {
   bool needsSuperGetter(FunctionEntity element) =>
       _codegenWorld.methodsNeedsSuperGetter(element);
 
+  static final jsAst.Parameter _placeholderParam = jsAst.Parameter('_');
+  static final jsAst.Expression _placeholderExpression = jsAst.LiteralNull();
+
   /// Generates stubs to fill in missing optional named or positional arguments
   /// and missing type arguments.  Returns `null` if no stub is needed.
   ///
@@ -71,8 +70,8 @@ class ParameterStubGenerator {
   /// method has the corresponding name [ParameterStubMethod.name] and
   /// [ParameterStubMethod.callName] set if the input selector is non-null (and
   /// the member needs a stub).
-  ParameterStubMethod generateParameterStub(
-      FunctionEntity member, Selector selector, Selector callSelector) {
+  ParameterStubMethod? generateParameterStub(
+      FunctionEntity member, Selector selector, Selector? callSelector) {
     // The naming here can be a bit confusing. There is a call site somewhere
     // that calls the stub via the [selector], which has a [CallStructure], so
     // the *Call*Structure determines the *parameters* of the stub. The body of
@@ -114,17 +113,17 @@ class ParameterStubGenerator {
     String receiverArgumentName = r'$receiver';
 
     // The parameters that this stub takes.
-    List<jsAst.Parameter> stubParameters = List<jsAst.Parameter>.filled(
+    List<jsAst.Parameter> stubParameters = List.filled(
         extraArgumentCount +
             selector.argumentCount +
             selector.typeArgumentCount,
-        null);
+        _placeholderParam);
     // The arguments that will be passed to the real method.
-    List<jsAst.Expression> targetArguments = List<jsAst.Expression>.filled(
+    List<jsAst.Expression> targetArguments = List.filled(
         extraArgumentCount +
             parameterStructure.totalParameters +
             parameterStructure.typeParameters,
-        null);
+        _placeholderExpression);
 
     int count = 0;
     if (isInterceptedMethod) {
@@ -138,8 +137,8 @@ class ParameterStubGenerator {
     int indexOfLastOptionalArgumentInParameters = optionalParameterStart - 1;
 
     _elementEnvironment.forEachParameter(member,
-        (_, String name, ConstantValue value) {
-      String jsName = _namer.safeVariableName(name);
+        (_, String? name, ConstantValue? value) {
+      String jsName = _namer.safeVariableName(name!);
       assert(jsName != receiverArgumentName);
       if (count < optionalParameterStart) {
         stubParameters[count] = jsAst.Parameter(jsName);
@@ -189,6 +188,9 @@ class ParameterStubGenerator {
       }
     }
 
+    assert(!stubParameters.any((e) => identical(e, _placeholderParam)));
+    assert(!targetArguments.any((e) => identical(e, _placeholderExpression)));
+
     var body; // List or jsAst.Statement.
     if (_nativeData.hasFixedBackendName(member)) {
       body = _nativeEmitter.generateParameterStubStatements(
@@ -200,7 +202,7 @@ class ParameterStubGenerator {
           indexOfLastOptionalArgumentInParameters);
     } else if (member.isInstanceMember) {
       if (needsSuperGetter(member)) {
-        ClassEntity superClass = member.enclosingClass;
+        final superClass = member.enclosingClass!;
         jsAst.Name methodName = _namer.instanceMethodName(member);
         // When redirecting, we must ensure that we don't end up in a subclass.
         // We thus can't just invoke `this.foo$1.call(filledInArguments)`.
@@ -222,14 +224,14 @@ class ParameterStubGenerator {
 
     SourceInformationBuilder sourceInformationBuilder =
         _sourceInformationStrategy.createBuilderForContext(member);
-    SourceInformation sourceInformation =
+    final sourceInformation =
         sourceInformationBuilder.buildStub(member, callStructure);
 
-    jsAst.Fun function = js('function(#) { #; }', [stubParameters, body])
-        .withSourceInformation(sourceInformation);
+    final function = js('function(#) { #; }', [stubParameters, body])
+        .withSourceInformation(sourceInformation) as jsAst.Fun;
 
-    jsAst.Name name = member.isStatic ? null : _namer.invocationName(selector);
-    jsAst.Name callName =
+    final name = member.isStatic ? null : _namer.invocationName(selector);
+    final callName =
         (callSelector != null) ? _namer.invocationName(callSelector) : null;
     return ParameterStubMethod(name, callName, function, element: member);
   }
@@ -275,36 +277,31 @@ class ParameterStubGenerator {
   // (2) foo$3$c(a, b, c) => MyClass.foo$4$c$d(this, a, b, c, null);
   // (3) foo$3$d(a, b, d) => MyClass.foo$4$c$d(this, a, b, null, d);
   List<ParameterStubMethod> generateParameterStubs(FunctionEntity member,
-      {bool canTearOff, bool canBeApplied}) {
-    assert(canTearOff != null);
-    assert(canBeApplied != null);
+      {required bool canTearOff, required bool canBeApplied}) {
     // The set of selectors that apply to `member`. For example, for
     // a member `foo(x, [y])` the following selectors may apply:
     // `foo(x)`, and `foo(x, y)`.
-    Map<Selector, SelectorConstraints> liveSelectors;
+    final Map<Selector, SelectorConstraints> liveSelectors =
+        // Only instance members (not static methods) need stubs.
+        (member.isInstanceMember
+                ? _codegenWorld.invocationsByName(member.name!)
+                : const {}) ??
+            const {};
     // The set of selectors that apply to `member` if it's name was `call`.
     // This happens when a member is torn off. In that case calls to the
     // function use the name `call`, and we must be able to handle every
     // `call` invocation that matches the signature. For example, for
     // a member `foo(x, [y])` the following selectors would be possible
     // call-selectors: `call(x)`, and `call(x, y)`.
-    Map<Selector, SelectorConstraints> callSelectors;
+    final Map<Selector, SelectorConstraints> callSelectors = (canTearOff
+            ? _codegenWorld
+                .invocationsByName(_namer.closureInvocationSelectorName)
+            : const {}) ??
+        const {};
 
     int memberTypeParameters = member.parameterStructure.typeParameters;
 
-    // Only instance members (not static methods) need stubs.
-    if (member.isInstanceMember) {
-      liveSelectors = _codegenWorld.invocationsByName(member.name);
-    }
-
-    if (canTearOff) {
-      String call = _namer.closureInvocationSelectorName;
-      callSelectors = _codegenWorld.invocationsByName(call);
-    }
-
     assert(emptySelectorSet.isEmpty);
-    liveSelectors ??= const {};
-    callSelectors ??= const {};
 
     List<ParameterStubMethod> stubs = [];
 
@@ -335,9 +332,8 @@ class ParameterStubGenerator {
 
       renamedCallSelectors.add(namedSelector);
       stubSelectors.add(namedSelector);
-      ParameterStubMethod stub =
-          generateParameterStub(member, namedSelector, closureSelector);
-      assert(stub != null);
+      final stub =
+          generateParameterStub(member, namedSelector, closureSelector)!;
       stubs.add(stub);
     }
 
@@ -351,8 +347,7 @@ class ParameterStubGenerator {
       }
 
       if (stubSelectors.add(renamedSelector)) {
-        ParameterStubMethod stub =
-            generateParameterStub(member, renamedSelector, selector);
+        final stub = generateParameterStub(member, renamedSelector, selector);
         if (stub != null) {
           stubs.add(stub);
         }
@@ -375,7 +370,7 @@ class ParameterStubGenerator {
           if (stubSelectors.add(renamedSelectorWithTypeArguments)) {
             Selector closureSelector =
                 Selector.callClosureFrom(renamedSelectorWithTypeArguments);
-            ParameterStubMethod stub = generateParameterStub(
+            final stub = generateParameterStub(
                 member, renamedSelectorWithTypeArguments, closureSelector);
             if (stub != null) {
               stubs.add(stub);
@@ -391,14 +386,13 @@ class ParameterStubGenerator {
     for (Selector selector in liveSelectors.keys) {
       if (renamedCallSelectors.contains(selector)) continue;
       if (!selector.appliesUnnamed(member)) continue;
-      if (!liveSelectors[selector]
+      if (!liveSelectors[selector]!
           .canHit(member, selector.memberName, _closedWorld)) {
         continue;
       }
 
       if (stubSelectors.add(selector)) {
-        ParameterStubMethod stub =
-            generateParameterStub(member, selector, null);
+        final stub = generateParameterStub(member, selector, null);
         if (stub != null) {
           stubs.add(stub);
         }

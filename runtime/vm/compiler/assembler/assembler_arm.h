@@ -392,6 +392,8 @@ class Assembler : public AssemblerBase {
     }
   }
 
+  void PushValueAtOffset(Register base, int32_t offset) { UNIMPLEMENTED(); }
+
   void Bind(Label* label);
   // Unconditional jump to a given label. [distance] is ignored on ARM.
   void Jump(Label* label, JumpDistance distance = kFarJump) { b(label); }
@@ -407,11 +409,13 @@ class Assembler : public AssemblerBase {
     LoadFromOffset(dst, base, offset);
   }
   void LoadCompressed(Register dest, const Address& slot) { ldr(dest, slot); }
-  void LoadCompressedSmi(Register dest, const Address& slot);
+  void LoadCompressedSmi(Register dest, const Address& slot) override;
   void StoreMemoryValue(Register src, Register base, int32_t offset) {
     StoreToOffset(src, base, offset);
   }
-  void LoadAcquire(Register dst, Register address, int32_t offset = 0) {
+  void LoadAcquire(Register dst,
+                   Register address,
+                   int32_t offset = 0) override {
     ldr(dst, Address(address, offset));
     dmb();
   }
@@ -439,17 +443,17 @@ class Assembler : public AssemblerBase {
     cmp(value, Operand(TMP));
   }
 
-  void CompareFunctionTypeNullabilityWith(Register type,
-                                          int8_t value) override {
-    EnsureHasClassIdInDEBUG(kFunctionTypeCid, type, TMP);
-    ldrb(TMP, FieldAddress(
-                  type, compiler::target::FunctionType::nullability_offset()));
-    cmp(TMP, Operand(value));
+  void LoadAbstractTypeNullability(Register dst, Register type) override {
+    ldrb(dst,
+         FieldAddress(type, compiler::target::AbstractType::flags_offset()));
+    and_(dst, dst,
+         Operand(compiler::target::UntaggedAbstractType::kNullabilityMask));
   }
-  void CompareTypeNullabilityWith(Register type, int8_t value) override {
-    EnsureHasClassIdInDEBUG(kTypeCid, type, TMP);
-    ldrb(TMP, FieldAddress(type, compiler::target::Type::nullability_offset()));
-    cmp(TMP, Operand(value));
+  void CompareAbstractTypeNullabilityWith(Register type,
+                                          /*Nullability*/ int8_t value,
+                                          Register scratch) override {
+    LoadAbstractTypeNullability(scratch, type);
+    cmp(scratch, Operand(value));
   }
 
   // Misc. functionality
@@ -834,6 +838,13 @@ class Assembler : public AssemblerBase {
   void AddRegisters(Register dest, Register src) {
     add(dest, dest, Operand(src));
   }
+  void AddScaled(Register dest,
+                 Register src,
+                 ScaleFactor scale,
+                 int32_t value) {
+    LoadImmediate(dest, value);
+    add(dest, dest, Operand(src, LSL, scale));
+  }
   void SubImmediate(Register rd,
                     Register rn,
                     int32_t value,
@@ -849,6 +860,15 @@ class Assembler : public AssemblerBase {
   void AndImmediate(Register rd, int32_t imm, Condition cond = AL) {
     AndImmediate(rd, rd, imm, cond);
   }
+  void AndRegisters(Register dst,
+                    Register src1,
+                    Register src2 = kNoRegister) override {
+    ASSERT(src1 != src2);  // Likely a mistake.
+    if (src2 == kNoRegister) {
+      src2 = dst;
+    }
+    and_(dst, src2, Operand(src1));
+  }
   void OrImmediate(Register rd, Register rs, int32_t imm, Condition cond = AL);
   void OrImmediate(Register rd, int32_t imm, Condition cond = AL) {
     OrImmediate(rd, rd, imm, cond);
@@ -860,12 +880,25 @@ class Assembler : public AssemblerBase {
   void LslImmediate(Register rd, int32_t shift) {
     LslImmediate(rd, rd, shift);
   }
+  void LsrImmediate(Register rd, Register rn, int32_t shift) {
+    ASSERT((shift >= 0) && (shift < kBitsPerInt32));
+    Lsr(rd, rn, Operand(shift));
+  }
+  void LsrImmediate(Register rd, int32_t shift) override {
+    LsrImmediate(rd, rd, shift);
+  }
 
   // Test rn and immediate. May clobber IP.
   void TestImmediate(Register rn, int32_t imm, Condition cond = AL);
 
   // Compare rn with signed immediate value. May clobber IP.
-  void CompareImmediate(Register rn, int32_t value, Condition cond = AL);
+  void CompareImmediate(Register rn, int32_t value, Condition cond);
+  void CompareImmediate(Register rn,
+                        int32_t value,
+                        OperandSize width = kFourBytes) override {
+    ASSERT_EQUAL(width, kFourBytes);
+    CompareImmediate(rn, value, AL);
+  }
 
   // Signed integer division of left by right. Checks to see if integer
   // division is supported. If not, uses the FPU for division with
@@ -951,12 +984,12 @@ class Assembler : public AssemblerBase {
                                 const Address& dest,
                                 const Object& value,
                                 MemoryOrder memory_order = kRelaxedNonAtomic);
-  void StoreIntoObjectNoBarrierOffset(
+  void StoreIntoObjectOffsetNoBarrier(
       Register object,
       int32_t offset,
       Register value,
       MemoryOrder memory_order = kRelaxedNonAtomic);
-  void StoreIntoObjectNoBarrierOffset(
+  void StoreIntoObjectOffsetNoBarrier(
       Register object,
       int32_t offset,
       const Object& value,
@@ -988,8 +1021,17 @@ class Assembler : public AssemblerBase {
   // Stores a Smi value into a heap object field that always contains a Smi.
   void StoreIntoSmiField(const Address& dest, Register value);
 
-  void ExtractClassIdFromTags(Register result, Register tags);
+  void ExtractClassIdFromTags(Register result,
+                              Register tags,
+                              Condition cond = AL);
   void ExtractInstanceSizeFromTags(Register result, Register tags);
+
+  void RangeCheck(Register value,
+                  Register temp,
+                  intptr_t low,
+                  intptr_t high,
+                  RangeCheckCondition condition,
+                  Label* target) override;
 
   void LoadClassId(Register result, Register object, Condition cond = AL);
   void LoadClassById(Register result, Register class_id);
@@ -1127,21 +1169,17 @@ class Assembler : public AssemblerBase {
                               Register base,
                               int32_t offset);
 
-  void CopyDoubleField(Register dst,
-                       Register src,
-                       Register tmp1,
-                       Register tmp2,
-                       DRegister dtmp);
-  void CopyFloat32x4Field(Register dst,
-                          Register src,
-                          Register tmp1,
-                          Register tmp2,
-                          DRegister dtmp);
-  void CopyFloat64x2Field(Register dst,
-                          Register src,
-                          Register tmp1,
-                          Register tmp2,
-                          DRegister dtmp);
+  void LoadUnboxedSimd128(FpuRegister dst, Register base, int32_t offset) {
+    LoadMultipleDFromOffset(EvenDRegisterOf(dst), 2, base, offset);
+  }
+  void StoreUnboxedSimd128(FpuRegister src, Register base, int32_t offset) {
+    StoreMultipleDToOffset(EvenDRegisterOf(src), 2, base, offset);
+  }
+  void MoveUnboxedSimd128(FpuRegister dst, FpuRegister src) {
+    if (src != dst) {
+      vmovq(dst, src);
+    }
+  }
 
   void Push(Register rd, Condition cond = AL);
   void Pop(Register rd, Condition cond = AL);
@@ -1359,12 +1397,12 @@ class Assembler : public AssemblerBase {
   void MonomorphicCheckedEntryAOT();
   void BranchOnMonomorphicCheckedEntryJIT(Label* label);
 
-  // The register into which the allocation stats table is loaded with
-  // LoadAllocationStatsAddress should be passed to MaybeTraceAllocation and
-  // IncrementAllocationStats(WithSize) as stats_addr_reg to update the
-  // allocation stats. These are separate assembler macros so we can
-  // avoid a dependent load too nearby the load of the table address.
-  void LoadAllocationStatsAddress(Register dest, intptr_t cid);
+  // The register into which the allocation tracing state table is loaded with
+  // LoadAllocationTracingStateAddress should be passed to MaybeTraceAllocation.
+  //
+  // These are separate assembler macros so we can avoid a dependent load too
+  // nearby the load of the table address.
+  void LoadAllocationTracingStateAddress(Register dest, intptr_t cid);
 
   Address ElementAddressForIntIndex(bool is_load,
                                     bool is_external,
@@ -1413,6 +1451,12 @@ class Assembler : public AssemblerBase {
   void LoadFieldAddressForRegOffset(Register address,
                                     Register instance,
                                     Register offset_in_words_as_smi);
+
+  void LoadFieldAddressForOffset(Register address,
+                                 Register instance,
+                                 int32_t offset) override {
+    AddImmediate(address, instance, offset - kHeapObjectTag);
+  }
 
   void LoadHalfWordUnaligned(Register dst, Register addr, Register tmp);
   void LoadHalfWordUnsignedUnaligned(Register dst, Register addr, Register tmp);
@@ -1625,27 +1669,6 @@ class Assembler : public AssemblerBase {
   void BailoutIfInvalidBranchOffset(int32_t offset);
   int32_t EncodeTstOffset(int32_t offset, int32_t inst);
   int32_t DecodeTstOffset(int32_t inst);
-
-  enum BarrierFilterMode {
-    // Filter falls through into the barrier update code. Target label
-    // is a "after-store" label.
-    kJumpToNoUpdate,
-
-    // Filter falls through to the "after-store" code. Target label
-    // is barrier update code label.
-    kJumpToBarrier,
-
-    // Filter falls through into the conditional barrier update code and does
-    // not jump. Target label is unused. The barrier should run if the NE
-    // condition is set.
-    kNoJump
-  };
-
-  void StoreIntoObjectFilter(Register object,
-                             Register value,
-                             Label* label,
-                             CanBeSmi can_be_smi,
-                             BarrierFilterMode barrier_filter_mode);
 
   friend class dart::FlowGraphCompiler;
   std::function<void(Condition, Register)>

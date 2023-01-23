@@ -985,9 +985,8 @@ class _ExtractEditPlan extends _NestedEditPlan {
   /// even when [EditPlan.removeViaComments] is true.
   final bool _alwaysDelete;
 
-  _ExtractEditPlan(AstNode? sourceNode, NodeProducingEditPlan innerPlan,
-      this._planner, this._infoBefore, this._infoAfter, this._alwaysDelete)
-      : super(sourceNode, innerPlan);
+  _ExtractEditPlan(super.sourceNode, super.innerPlan, this._planner,
+      this._infoBefore, this._infoAfter, this._alwaysDelete);
 
   @override
   Map<int?, List<AtomicEdit>>? _getChanges(bool parens) {
@@ -1027,7 +1026,7 @@ class _ExtractEditPlan extends _NestedEditPlan {
 abstract class _NestedEditPlan extends NodeProducingEditPlan {
   final NodeProducingEditPlan innerPlan;
 
-  _NestedEditPlan(AstNode? sourceNode, this.innerPlan) : super._(sourceNode);
+  _NestedEditPlan(super.sourceNode, this.innerPlan) : super._();
 
   @override
   bool get endsInCascade => innerPlan.endsInCascade;
@@ -1563,9 +1562,8 @@ class _PassThroughBuilderImpl implements PassThroughBuilder {
 /// [EditPlan] representing an AstNode that is not to be changed, but may have
 /// some changes applied to some of its descendants.
 class _PassThroughEditPlan extends _SimpleEditPlan {
-  _PassThroughEditPlan._(AstNode? node, Precedence precedence,
-      bool endsInCascade, Map<int?, List<AtomicEdit>>? innerChanges)
-      : super(node, precedence, endsInCascade, innerChanges);
+  _PassThroughEditPlan._(
+      super.node, super.precedence, super.endsInCascade, super.innerChanges);
 }
 
 /// [EditPlan] applying to a [ParenthesizedExpression].  Unlike the normal
@@ -1582,8 +1580,7 @@ class _ProvisionalParenEditPlan extends _NestedEditPlan {
   /// structures it points to) may be incorporated into this edit plan and later
   /// modified.
   _ProvisionalParenEditPlan(
-      ParenthesizedExpression node, NodeProducingEditPlan innerPlan)
-      : super(node, innerPlan);
+      ParenthesizedExpression super.node, super.innerPlan);
 
   @override
   Map<int?, List<AtomicEdit>>? _getChanges(bool parens) {
@@ -1652,8 +1649,8 @@ class _SimpleEditPlan extends NodeProducingEditPlan {
   bool _finalized = false;
 
   _SimpleEditPlan(
-      AstNode? node, this._precedence, this.endsInCascade, this._innerChanges)
-      : super._(node);
+      super.node, this._precedence, this.endsInCascade, this._innerChanges)
+      : super._();
 
   @override
   Map<int?, List<AtomicEdit>>? _getChanges(bool parens) {

@@ -14,18 +14,15 @@ namespace compiler {
 namespace ffi {
 
 // TODO(dartbug.com/36607): Cache the trampolines.
-FunctionPtr TrampolineFunction(const FunctionType& dart_signature,
+FunctionPtr TrampolineFunction(const String& name,
+                               const FunctionType& signature,
                                const FunctionType& c_signature,
-                               bool is_leaf,
-                               const String& function_name) {
+                               bool is_leaf) {
+  ASSERT(signature.num_implicit_parameters() == 1);
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  String& name =
-      String::Handle(zone, Symbols::NewFormatted(thread, "FfiTrampoline_%s",
-                                                 function_name.ToCString()));
   const Library& lib = Library::Handle(zone, Library::FfiLibrary());
   const Class& owner_class = Class::Handle(zone, lib.toplevel_class());
-  FunctionType& signature = FunctionType::Handle(zone, FunctionType::New());
   Function& function = Function::Handle(
       zone, Function::New(signature, name, UntaggedFunction::kFfiTrampoline,
                           /*is_static=*/true,
@@ -35,31 +32,47 @@ FunctionPtr TrampolineFunction(const FunctionType& dart_signature,
                           /*is_native=*/false, owner_class,
                           TokenPosition::kMinSource));
   function.set_is_debuggable(false);
+
+  // Create unique names for the parameters, as they are used in scope building
+  // and error messages.
+  if (signature.num_fixed_parameters() > 0) {
+    function.CreateNameArray();
+    function.SetParameterNameAt(0, Symbols::ClosureParameter());
+    auto& param_name = String::Handle(zone);
+    for (intptr_t i = 1, n = signature.num_fixed_parameters(); i < n; ++i) {
+      param_name = Symbols::NewFormatted(thread, ":ffi_param%" Pd, i);
+      function.SetParameterNameAt(i, param_name);
+    }
+  }
+
+  function.SetFfiCSignature(c_signature);
+  function.SetFfiIsLeaf(is_leaf);
+
+  return function.ptr();
+}
+
+FunctionPtr TrampolineFunction(const FunctionType& dart_signature,
+                               const FunctionType& c_signature,
+                               bool is_leaf,
+                               const String& function_name) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  String& name =
+      String::Handle(zone, Symbols::NewFormatted(thread, "FfiTrampoline_%s",
+                                                 function_name.ToCString()));
+
   // Trampolines have no optional arguments.
+  FunctionType& signature = FunctionType::Handle(zone, FunctionType::New());
   const intptr_t num_fixed = dart_signature.num_fixed_parameters();
+  signature.set_num_implicit_parameters(1);
   signature.set_num_fixed_parameters(num_fixed);
   signature.set_result_type(
       AbstractType::Handle(zone, dart_signature.result_type()));
   signature.set_parameter_types(
       Array::Handle(zone, dart_signature.parameter_types()));
-
-  // Create unique names for the parameters, as they are used in scope building
-  // and error messages.
-  if (num_fixed > 0) {
-    function.CreateNameArray();
-    function.SetParameterNameAt(0, Symbols::ClosureParameter());
-    for (intptr_t i = 1; i < num_fixed; i++) {
-      name = Symbols::NewFormatted(thread, ":ffi_param%" Pd, i);
-      function.SetParameterNameAt(i, name);
-    }
-  }
-  function.SetFfiCSignature(c_signature);
   signature ^= ClassFinalizer::FinalizeType(signature);
-  function.SetSignature(signature);
 
-  function.SetFfiIsLeaf(is_leaf);
-
-  return function.ptr();
+  return TrampolineFunction(name, signature, c_signature, is_leaf);
 }
 
 }  // namespace ffi

@@ -97,17 +97,26 @@ abstract class CompilerInput {
   /// Returns a future that completes to the source corresponding to [uri].
   /// If an exception occurs, the future completes with this exception.
   ///
-  /// If [inputKind] is `InputKind.UTF8` the source can be represented either as
-  /// a zero-terminated `List<int>` of UTF-8 bytes or as a [String]. If
-  /// [inputKind] is `InputKind.binary` the source is a read a `List<int>`.
+  /// If [inputKind] is `InputKind.UTF8` the source is represented as a
+  /// zero-terminated list of encoded bytes. If the input kind is
+  /// `InputKind.binary` the resulting list is the raw bytes from the input
+  /// source.
+  Future<Input<List<int>>> readFromUri(Uri uri,
+      {InputKind inputKind = InputKind.UTF8});
+
+  /// Register that [uri] should be an `InputKind.UTF8` input with the
+  /// given [source] as its zero-terminated list of contents.
   ///
-  /// The following text is non-normative:
+  /// If [uri] was read prior to this call, this registration has no effect,
+  /// otherwise it is expected that a future [readFromUri] will return the
+  /// contents provided here.
   ///
-  /// It is recommended to return a UTF-8 encoded list of bytes because the
-  /// scanner is more efficient in this case. In either case, the data structure
-  /// is expected to hold a zero element at the last position. If this is not
-  /// the case, the entire data structure is copied before scanning.
-  Future<Input> readFromUri(Uri uri, {InputKind inputKind = InputKind.UTF8});
+  /// The main purpose of this API is to assist in error reporting when
+  /// compiling from kernel binary files. Binary files embed the contents
+  /// of source files that may not be available on disk. By using these
+  /// registered contents, dart2js will be able to provide accurate line/column
+  /// information on an error.
+  void registerUtf8ContentsForDiagnostics(Uri uri, List<int> source);
 }
 
 /// Output types used in `CompilerOutput.createOutputSink`.

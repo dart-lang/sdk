@@ -97,11 +97,11 @@ static bool HasNoTasks(Heap* heap) {
 
 InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
     Zone* zone,
-    SharedClassTable* shared_class_table,
+    ClassTable* class_table,
     const Class& from,
     const Class& to) {
-  auto mapping = new (zone) ZoneGrowableArray<intptr_t>();
-  auto new_fields_offsets = new (zone) ZoneGrowableArray<intptr_t>();
+  auto mapping = new (zone) FieldMappingArray();
+  auto new_fields_offsets = new (zone) FieldOffsetArray();
 
   if (from.NumTypeArguments() > 0) {
     // Add copying of the optional type argument field.
@@ -109,19 +109,26 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
     ASSERT(from_offset != Class::kNoTypeArguments);
     intptr_t to_offset = to.host_type_arguments_field_offset();
     ASSERT(to_offset != Class::kNoTypeArguments);
-    mapping->Add(from_offset);
-    mapping->Add(to_offset);
+    mapping->Add({from_offset, kIllegalCid});
+    mapping->Add({to_offset, kIllegalCid});
   }
 
   // Add copying of the instance fields if matching by name.
   // Note: currently the type of the fields are ignored.
-  const Array& from_fields =
-      Array::Handle(from.OffsetToFieldMap(true /* original classes */));
+  const Array& from_fields = Array::Handle(
+      from.OffsetToFieldMap(IsolateGroup::Current()->heap_walk_class_table()));
   const Array& to_fields = Array::Handle(to.OffsetToFieldMap());
   Field& from_field = Field::Handle();
   Field& to_field = Field::Handle();
   String& from_name = String::Handle();
   String& to_name = String::Handle();
+
+  auto ensure_boxed_and_guarded = [&](const Field& field) {
+    field.set_needs_load_guard(true);
+    if (field.is_unboxed()) {
+      to.MarkFieldBoxedDuringReload(class_table, field);
+    }
+  };
 
   // Scan across all the fields in the new class definition.
   for (intptr_t i = 0; i < to_fields.Length(); i++) {
@@ -146,36 +153,77 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
       ASSERT(from_field.is_instance());
       from_name = from_field.name();
       if (from_name.Equals(to_name)) {
+        intptr_t from_box_cid = kIllegalCid;
+        intptr_t to_box_cid = kIllegalCid;
+
+        // Check if either of the fields are unboxed.
+        if ((from_field.is_unboxed() && from_field.type() != to_field.type()) ||
+            (from_field.is_unboxed() != to_field.is_unboxed())) {
+          // For simplicity we just migrate to boxed fields if such
+          // situation occurs.
+          ensure_boxed_and_guarded(to_field);
+        }
+
+        if (from_field.is_unboxed()) {
+          const auto field_cid = from_field.guarded_cid();
+          switch (field_cid) {
+            case kDoubleCid:
+            case kFloat32x4Cid:
+            case kFloat64x2Cid:
+              from_box_cid = field_cid;
+              break;
+            default:
+              from_box_cid = kIntegerCid;
+              break;
+          }
+        }
+
+        if (to_field.is_unboxed()) {
+          const auto field_cid = to_field.guarded_cid();
+          switch (field_cid) {
+            case kDoubleCid:
+            case kFloat32x4Cid:
+            case kFloat64x2Cid:
+              to_box_cid = field_cid;
+              break;
+            default:
+              to_box_cid = kIntegerCid;
+              break;
+          }
+        }
+
+        // Field can't become unboxed if it was boxed.
+        ASSERT(from_box_cid != kIllegalCid || to_box_cid == kIllegalCid);
+
         // Success
-        mapping->Add(from_field.HostOffset());
-        mapping->Add(to_field.HostOffset());
+        mapping->Add({from_field.HostOffset(), from_box_cid});
+        mapping->Add({to_field.HostOffset(), to_box_cid});
+
         // Field did exist in old class deifnition.
         new_field = false;
+        break;
       }
     }
 
     if (new_field) {
-      const Field& field = Field::Handle(to_field.ptr());
-      field.set_needs_load_guard(true);
-      field.set_is_unboxing_candidate_unsafe(false);
-      new_fields_offsets->Add(field.HostOffset());
+      ensure_boxed_and_guarded(to_field);
+      new_fields_offsets->Add(to_field.HostOffset());
     }
   }
 
   ASSERT(from.id() == to.id());
-  return new (zone) InstanceMorpher(zone, to.id(), shared_class_table, mapping,
-                                    new_fields_offsets);
+  return new (zone)
+      InstanceMorpher(zone, to.id(), class_table, mapping, new_fields_offsets);
 }
 
-InstanceMorpher::InstanceMorpher(
-    Zone* zone,
-    classid_t cid,
-    SharedClassTable* shared_class_table,
-    ZoneGrowableArray<intptr_t>* mapping,
-    ZoneGrowableArray<intptr_t>* new_fields_offsets)
+InstanceMorpher::InstanceMorpher(Zone* zone,
+                                 classid_t cid,
+                                 ClassTable* class_table,
+                                 FieldMappingArray* mapping,
+                                 FieldOffsetArray* new_fields_offsets)
     : zone_(zone),
       cid_(cid),
-      shared_class_table_(shared_class_table),
+      class_table_(class_table),
       mapping_(mapping),
       new_fields_offsets_(new_fields_offsets),
       before_(zone, 16) {}
@@ -212,7 +260,7 @@ void InstanceMorpher::CreateMorphedCopies(Become* become) {
     // objects to old space.
     const bool is_canonical = before.IsCanonical();
     const Heap::Space space = is_canonical ? Heap::kOld : Heap::kNew;
-    after = Instance::NewFromCidAndSize(shared_class_table_, cid_, space);
+    after = Instance::NewFromCidAndSize(class_table_, cid_, space);
 
     // We preserve the canonical bit of the object, since this object is present
     // in the class's constants.
@@ -226,16 +274,77 @@ void InstanceMorpher::CreateMorphedCopies(Become* become) {
 
     // Morph the context from [before] to [after] using mapping_.
     for (intptr_t i = 0; i < mapping_->length(); i += 2) {
-      intptr_t from_offset = mapping_->At(i);
-      intptr_t to_offset = mapping_->At(i + 1);
-      ASSERT(from_offset > 0);
-      ASSERT(to_offset > 0);
-      value = before.RawGetFieldAtOffset(from_offset);
-      after.RawSetFieldAtOffset(to_offset, value);
+      const auto& from = mapping_->At(i);
+      const auto& to = mapping_->At(i + 1);
+      ASSERT(from.offset > 0);
+      ASSERT(to.offset > 0);
+      if (from.box_cid == kIllegalCid) {
+        // Boxed to boxed field migration.
+        ASSERT(to.box_cid == kIllegalCid);
+        value = before.RawGetFieldAtOffset(from.offset);
+        after.RawSetFieldAtOffset(to.offset, value);
+      } else if (to.box_cid == kIllegalCid) {
+        // Unboxed to boxed field migration.
+        switch (from.box_cid) {
+          case kDoubleCid: {
+            const auto unboxed_value =
+                before.RawGetUnboxedFieldAtOffset<double>(from.offset);
+            value = Double::New(unboxed_value);
+            break;
+          }
+          case kFloat32x4Cid: {
+            const auto unboxed_value =
+                before.RawGetUnboxedFieldAtOffset<simd128_value_t>(from.offset);
+            value = Float32x4::New(unboxed_value);
+            break;
+          }
+          case kFloat64x2Cid: {
+            const auto unboxed_value =
+                before.RawGetUnboxedFieldAtOffset<simd128_value_t>(from.offset);
+            value = Float64x2::New(unboxed_value);
+            break;
+          }
+          case kIntegerCid: {
+            const auto unboxed_value =
+                before.RawGetUnboxedFieldAtOffset<int64_t>(from.offset);
+            value = Integer::New(unboxed_value);
+            break;
+          }
+        }
+        if (is_canonical) {
+          value = Instance::Cast(value).Canonicalize(Thread::Current());
+        }
+        after.RawSetFieldAtOffset(to.offset, value);
+      } else {
+        // Unboxed to unboxed field migration.
+        ASSERT(to.box_cid == from.box_cid);
+        switch (from.box_cid) {
+          case kDoubleCid: {
+            const auto unboxed_value =
+                before.RawGetUnboxedFieldAtOffset<double>(from.offset);
+            after.RawSetUnboxedFieldAtOffset<double>(to.offset, unboxed_value);
+            break;
+          }
+          case kFloat32x4Cid:
+          case kFloat64x2Cid: {
+            const auto unboxed_value =
+                before.RawGetUnboxedFieldAtOffset<simd128_value_t>(from.offset);
+            after.RawSetUnboxedFieldAtOffset<simd128_value_t>(to.offset,
+                                                              unboxed_value);
+            break;
+          }
+          case kIntegerCid: {
+            const auto unboxed_value =
+                before.RawGetUnboxedFieldAtOffset<int64_t>(from.offset);
+            after.RawSetUnboxedFieldAtOffset<int64_t>(to.offset, unboxed_value);
+            break;
+          }
+        }
+      }
     }
 
     for (intptr_t i = 0; i < new_fields_offsets_->length(); i++) {
-      const intptr_t field_offset = new_fields_offsets_->At(i);
+      const auto& field_offset = new_fields_offsets_->At(i);
       after.RawSetFieldAtOffset(field_offset, Object::sentinel());
     }
 
@@ -248,11 +357,33 @@ void InstanceMorpher::CreateMorphedCopies(Become* become) {
   }
 }
 
+static const char* BoxCidToCString(intptr_t box_cid) {
+  switch (box_cid) {
+    case kDoubleCid:
+      return "double";
+    case kFloat32x4Cid:
+      return "float32x4";
+    case kFloat64x2Cid:
+      return "float64x2";
+    case kIntegerCid:
+      return "int64";
+  }
+  return "?";
+}
+
 void InstanceMorpher::Dump() const {
   LogBlock blocker;
   THR_Print("Morphing objects with cid: %d via this mapping: ", cid_);
   for (int i = 0; i < mapping_->length(); i += 2) {
-    THR_Print(" %" Pd "->%" Pd, mapping_->At(i), mapping_->At(i + 1));
+    const auto& from = mapping_->At(i);
+    const auto& to = mapping_->At(i + 1);
+    THR_Print(" %" Pd "->%" Pd "", from.offset, to.offset);
+    THR_Print(" (%" Pd " -> %" Pd ")", from.box_cid, to.box_cid);
+    if (to.box_cid == kIllegalCid && from.box_cid != kIllegalCid) {
+      THR_Print("[box %s]", BoxCidToCString(from.box_cid));
+    } else if (to.box_cid != kIllegalCid) {
+      THR_Print("[%s]", BoxCidToCString(from.box_cid));
+    }
   }
   THR_Print("\n");
 }
@@ -264,9 +395,17 @@ void InstanceMorpher::AppendTo(JSONArray* array) {
   jsobj.AddProperty("instanceCount", before_.length());
   JSONArray map(&jsobj, "fieldOffsetMappings");
   for (int i = 0; i < mapping_->length(); i += 2) {
+    const auto& from = mapping_->At(i);
+    const auto& to = mapping_->At(i + 1);
+
     JSONArray pair(&map);
-    pair.AddValue(mapping_->At(i));
-    pair.AddValue(mapping_->At(i + 1));
+    pair.AddValue(from.offset);
+    pair.AddValue(to.offset);
+    if (to.box_cid == kIllegalCid && from.box_cid != kIllegalCid) {
+      pair.AddValueF("box %s", BoxCidToCString(from.box_cid));
+    } else if (to.box_cid != kIllegalCid) {
+      pair.AddValueF("%s", BoxCidToCString(from.box_cid));
+    }
   }
 }
 
@@ -402,15 +541,14 @@ bool ProgramReloadContext::IsSameLibrary(const Library& a_lib,
 
 IsolateGroupReloadContext::IsolateGroupReloadContext(
     IsolateGroup* isolate_group,
-    SharedClassTable* shared_class_table,
+    ClassTable* class_table,
     JSONStream* js)
     : zone_(Thread::Current()->zone()),
       isolate_group_(isolate_group),
-      shared_class_table_(shared_class_table),
+      class_table_(class_table),
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
       reload_timestamp_(OS::GetCurrentTimeMillis()),
       js_(js),
-      saved_size_table_(nullptr),
       instance_morphers_(zone_, 0),
       reasons_to_cancel_reload_(zone_, 0),
       instance_morpher_by_cid_(zone_),
@@ -425,8 +563,6 @@ ProgramReloadContext::ProgramReloadContext(
     : zone_(Thread::Current()->zone()),
       group_reload_context_(group_reload_context),
       isolate_group_(isolate_group),
-      saved_class_table_(nullptr),
-      saved_tlc_class_table_(nullptr),
       old_classes_set_storage_(Array::null()),
       class_map_storage_(Array::null()),
       removed_class_set_storage_(Array::null()),
@@ -442,8 +578,7 @@ ProgramReloadContext::ProgramReloadContext(
 
 ProgramReloadContext::~ProgramReloadContext() {
   ASSERT(zone_ == Thread::Current()->zone());
-  ASSERT(saved_class_table_.load(std::memory_order_relaxed) == nullptr);
-  ASSERT(saved_tlc_class_table_.load(std::memory_order_relaxed) == nullptr);
+  ASSERT(IG->class_table() == IG->heap_walk_class_table());
 }
 
 void IsolateGroupReloadContext::ReportError(const Error& error) {
@@ -671,10 +806,9 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/ true);
   }
 
-  // Copy the size table for isolate group & class tables for each isolate.
+  // Clone the class table.
   {
     TIMELINE_SCOPE(CheckpointClasses);
-    CheckpointSharedClassTable();
     IG->program_reload_context()->CheckpointClasses();
   }
 
@@ -699,7 +833,6 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     const auto& error = Error::Cast(result);
     AddReasonForCancelling(new Aborted(Z, error));
 
-    DiscardSavedClassTable(/*is_rollback=*/true);
     IG->program_reload_context()->ReloadPhase4Rollback();
     CommonFinalizeTail(num_old_libs_);
   } else {
@@ -730,7 +863,8 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       isolate_group_->program_reload_context()->ReloadPhase4CommitPrepare();
       bool discard_class_tables = true;
       if (HasInstanceMorphers()) {
-        // Find all objects that need to be morphed (reallocated to a new size).
+        // Find all objects that need to be morphed (reallocated to a new
+        // layout).
         ObjectLocator locator(this);
         {
           HeapIterationScope iteration(Thread::Current());
@@ -747,11 +881,11 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
         if (count > 0) {
           TIMELINE_SCOPE(MorphInstances);
 
-          // While we are reallocating instances to their new size, the heap
-          // will contain a mix of instances with the old and new sizes that
+          // While we are reallocating instances to their new layout, the heap
+          // will contain a mix of instances with the old and new layouts that
           // have the same cid. This makes the heap unwalkable until the
           // "become" operation below replaces all the instances of the old
-          // size with forwarding corpses. Force heap growth to prevent size
+          // layout with forwarding corpses. Force heap growth to prevent layout
           // confusion during this period.
           ForceGrowthScope force_growth(thread);
           // The HeapIterationScope above ensures no other GC tasks can be
@@ -761,17 +895,15 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
           MorphInstancesPhase1Allocate(&locator, IG->become());
           {
             // Apply the new class table before "become". Become will replace
-            // all the instances of the old size with forwarding corpses, then
+            // all the instances of the old layout with forwarding corpses, then
             // perform a heap walk to fix references to the forwarding corpses.
             // During this heap walk, it will encounter instances of the new
-            // size, so it requires the new class table.
+            // layout, so it requires the new class table.
             ASSERT(HasNoTasks(heap));
 
             // We accepted the hot-reload and morphed instances. So now we can
             // commit to the changed class table and deleted the saved one.
-            DiscardSavedClassTable(/*is_rollback=*/false);
-            IG->program_reload_context()->DiscardSavedClassTable(
-                /*is_rollback=*/false);
+            IG->DropOriginalClassTable();
           }
           MorphInstancesPhase2Become(IG->become());
 
@@ -784,17 +916,31 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
           heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/ true);
         }
       }
+      if (FLAG_identity_reload) {
+        if (!discard_class_tables) {
+          TIR_Print("Identity reload failed! Some instances were morphed\n");
+        }
+        if (IG->heap_walk_class_table()->NumCids() !=
+            IG->class_table()->NumCids()) {
+          TIR_Print("Identity reload failed! B#C=%" Pd " A#C=%" Pd "\n",
+                    IG->heap_walk_class_table()->NumCids(),
+                    IG->class_table()->NumCids());
+        }
+        if (IG->heap_walk_class_table()->NumTopLevelCids() !=
+            IG->class_table()->NumTopLevelCids()) {
+          TIR_Print("Identity reload failed! B#TLC=%" Pd " A#TLC=%" Pd "\n",
+                    IG->heap_walk_class_table()->NumTopLevelCids(),
+                    IG->class_table()->NumTopLevelCids());
+        }
+      }
       if (discard_class_tables) {
-        DiscardSavedClassTable(/*is_rollback=*/false);
-        IG->program_reload_context()->DiscardSavedClassTable(
-            /*is_rollback=*/false);
+        IG->DropOriginalClassTable();
       }
       isolate_group_->program_reload_context()->ReloadPhase4CommitFinish();
       TIR_Print("---- DONE COMMIT\n");
       isolate_group_->set_last_reload_timestamp(reload_timestamp_);
     } else {
       TIR_Print("---- ROLLING BACK");
-      DiscardSavedClassTable(/*is_rollback=*/true);
       isolate_group_->program_reload_context()->ReloadPhase4Rollback();
     }
 
@@ -1066,7 +1212,7 @@ void ProgramReloadContext::ReloadPhase4CommitFinish() {
 }
 
 void ProgramReloadContext::ReloadPhase4Rollback() {
-  RollbackClasses();
+  IG->RestoreOriginalClassTable();
   RollbackLibraries();
 }
 
@@ -1209,64 +1355,33 @@ void ProgramReloadContext::DeoptimizeDependentCode() {
   // TODO(rmacnak): Also call LibraryPrefix::InvalidateDependentCode.
 }
 
-void IsolateGroupReloadContext::CheckpointSharedClassTable() {
-  // Copy the size table for isolate group.
-  intptr_t* saved_size_table = nullptr;
-  shared_class_table_->CopyBeforeHotReload(&saved_size_table, &saved_num_cids_);
-
-  Thread* thread = Thread::Current();
-  {
-    NoSafepointScope no_safepoint_scope(thread);
-
-    // The saved_size_table_ will now become source of truth for GC.
-    saved_size_table_.store(saved_size_table, std::memory_order_release);
-  }
-
-  // But the concurrent sweeper may still be reading from the old table.
-  thread->heap()->WaitForSweeperTasks(thread);
-
-  // Now we can clear the old table. This satisfies asserts during class
-  // registration and encourages fast failure if we use the wrong table
-  // for GC during reload, but isn't strictly needed for correctness.
-  shared_class_table_->ResetBeforeHotReload();
-}
-
 void ProgramReloadContext::CheckpointClasses() {
   TIR_Print("---- CHECKPOINTING CLASSES\n");
-  // Checkpoint classes before a reload. We need to copy the following:
-  // 1) The size of the class table.
-  // 2) The class table itself.
+  // Checkpoint classes before a reload.
+
+  // Before this operation class table which is used for heap scanning and
+  // the class table used for program loading are the same. After this step
+  // they will become different until reload is commited (or rolled back).
+  //
+  // Note that because GC is always reading from heap_walk_class_table and
+  // we are not changing that, there is no reason to wait for sweeping
+  // threads or marking to complete.
+  RELEASE_ASSERT(IG->class_table() == IG->heap_walk_class_table());
+
+  IG->CloneClassTableForReload();
+
+  // IG->class_table() is now the clone of heap_walk_class_table.
+  RELEASE_ASSERT(IG->class_table() != IG->heap_walk_class_table());
+
+  ClassTable* class_table = IG->class_table();
+
   // For efficiency, we build a set of classes before the reload. This set
   // is used to pair new classes with old classes.
-
-  // Copy the class table for isolate.
-  ClassTable* class_table = IG->class_table();
-  ClassPtr* saved_class_table = nullptr;
-  ClassPtr* saved_tlc_class_table = nullptr;
-  class_table->CopyBeforeHotReload(&saved_class_table, &saved_tlc_class_table,
-                                   &saved_num_cids_, &saved_num_tlc_cids_);
-
-  // Copy classes into saved_class_table_ first. Make sure there are no
-  // safepoints until saved_class_table_ is filled up and saved so class raw
-  // pointers in saved_class_table_ are properly visited by GC.
-  {
-    NoSafepointScope no_safepoint_scope(Thread::Current());
-
-    // The saved_class_table_ is now source of truth for GC.
-    saved_class_table_.store(saved_class_table, std::memory_order_release);
-    saved_tlc_class_table_.store(saved_tlc_class_table,
-                                 std::memory_order_release);
-
-    // We can therefore wipe out all of the old entries (if that table is used
-    // for GC during the hot-reload we have a bug).
-    class_table->ResetBeforeHotReload();
-  }
-
   // Add classes to the set. Set is stored in the Array, so adding an element
   // may allocate Dart object on the heap and trigger GC.
   Class& cls = Class::Handle();
   UnorderedHashSet<ClassMapTraits> old_classes_set(old_classes_set_storage_);
-  for (intptr_t i = 0; i < saved_num_cids_; i++) {
+  for (intptr_t i = 0; i < class_table->NumCids(); i++) {
     if (class_table->IsValidIndex(i) && class_table->HasValidClassAt(i)) {
       if (i != kFreeListElement && i != kForwardingCorpse) {
         cls = class_table->At(i);
@@ -1275,7 +1390,7 @@ void ProgramReloadContext::CheckpointClasses() {
       }
     }
   }
-  for (intptr_t i = 0; i < saved_num_tlc_cids_; i++) {
+  for (intptr_t i = 0; i < class_table->NumTopLevelCids(); i++) {
     const intptr_t cid = ClassTable::CidFromTopLevelIndex(i);
     if (class_table->IsValidIndex(cid) && class_table->HasValidClassAt(cid)) {
       cls = class_table->At(cid);
@@ -1284,7 +1399,8 @@ void ProgramReloadContext::CheckpointClasses() {
     }
   }
   old_classes_set_storage_ = old_classes_set.Release().ptr();
-  TIR_Print("---- System had %" Pd " classes\n", saved_num_cids_);
+  TIR_Print("---- System had %" Pd " classes\n",
+            class_table->NumCids() + class_table->NumTopLevelCids());
 }
 
 Dart_FileModifiedCallback IsolateGroupReloadContext::file_modified_callback_ =
@@ -1429,14 +1545,6 @@ void ProgramReloadContext::CheckpointLibraries() {
   object_store()->set_root_library(Library::Handle());
 }
 
-void ProgramReloadContext::RollbackClasses() {
-  TIR_Print("---- ROLLING BACK CLASS TABLE\n");
-  ASSERT((saved_num_cids_ + saved_num_tlc_cids_) > 0);
-  ASSERT(saved_class_table_.load(std::memory_order_relaxed) != nullptr);
-  ASSERT(saved_tlc_class_table_.load(std::memory_order_relaxed) != nullptr);
-
-  DiscardSavedClassTable(/*is_rollback=*/true);
-}
 
 void ProgramReloadContext::RollbackLibraries() {
   TIR_Print("---- ROLLING BACK LIBRARY CHANGES\n");
@@ -1618,14 +1726,6 @@ void ProgramReloadContext::CommitAfterInstanceMorphing() {
 #endif
 
   if (FLAG_identity_reload) {
-    if (saved_num_cids_ != IG->class_table()->NumCids()) {
-      TIR_Print("Identity reload failed! B#C=%" Pd " A#C=%" Pd "\n",
-                saved_num_cids_, IG->class_table()->NumCids());
-    }
-    if (saved_num_tlc_cids_ != IG->class_table()->NumTopLevelCids()) {
-      TIR_Print("Identity reload failed! B#TLC=%" Pd " A#TLC=%" Pd "\n",
-                saved_num_tlc_cids_, IG->class_table()->NumTopLevelCids());
-    }
     const auto& saved_libs = GrowableObjectArray::Handle(saved_libraries_);
     const GrowableObjectArray& libs =
         GrowableObjectArray::Handle(IG->object_store()->libraries());
@@ -1704,8 +1804,8 @@ void IsolateGroupReloadContext::MorphInstancesPhase2Become(Become* become) {
   ASSERT(HasInstanceMorphers());
 
   become->Forward();
-  // The heap now contains only instances with the new size. Ordinary GC is safe
-  // again.
+  // The heap now contains only instances with the new layout.
+  // Ordinary GC is safe again.
 }
 
 void IsolateGroupReloadContext::ForEachIsolate(
@@ -1755,60 +1855,6 @@ void ProgramReloadContext::ValidateReload() {
   }
 }
 
-ClassPtr ProgramReloadContext::GetClassForHeapWalkAt(intptr_t cid) {
-  ClassPtr* class_table = nullptr;
-  intptr_t index = -1;
-  if (ClassTable::IsTopLevelCid(cid)) {
-    class_table = saved_tlc_class_table_.load(std::memory_order_acquire);
-    index = ClassTable::IndexFromTopLevelCid(cid);
-    ASSERT(index < saved_num_tlc_cids_);
-  } else {
-    class_table = saved_class_table_.load(std::memory_order_acquire);
-    index = cid;
-    ASSERT(cid > 0 && cid < saved_num_cids_);
-  }
-  if (class_table != nullptr) {
-    return class_table[index];
-  }
-  return IG->class_table()->At(cid);
-}
-
-intptr_t IsolateGroupReloadContext::GetClassSizeForHeapWalkAt(classid_t cid) {
-  if (ClassTable::IsTopLevelCid(cid)) {
-    return 0;
-  }
-  intptr_t* size_table = saved_size_table_.load(std::memory_order_acquire);
-  if (size_table != nullptr) {
-    ASSERT(cid < saved_num_cids_);
-    return size_table[cid];
-  } else {
-    return shared_class_table_->SizeAt(cid);
-  }
-}
-
-void ProgramReloadContext::DiscardSavedClassTable(bool is_rollback) {
-  ClassPtr* local_saved_class_table =
-      saved_class_table_.load(std::memory_order_relaxed);
-  ClassPtr* local_saved_tlc_class_table =
-      saved_tlc_class_table_.load(std::memory_order_relaxed);
-  {
-    auto thread = Thread::Current();
-    SafepointWriteRwLocker sl(thread, thread->isolate_group()->program_lock());
-    IG->class_table()->ResetAfterHotReload(
-        local_saved_class_table, local_saved_tlc_class_table, saved_num_cids_,
-        saved_num_tlc_cids_, is_rollback);
-  }
-  saved_class_table_.store(nullptr, std::memory_order_release);
-  saved_tlc_class_table_.store(nullptr, std::memory_order_release);
-}
-
-void IsolateGroupReloadContext::DiscardSavedClassTable(bool is_rollback) {
-  intptr_t* local_saved_size_table = saved_size_table_;
-  shared_class_table_->ResetAfterHotReload(local_saved_size_table,
-                                           saved_num_cids_, is_rollback);
-  saved_size_table_.store(nullptr, std::memory_order_release);
-}
-
 void IsolateGroupReloadContext::VisitObjectPointers(
     ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(from(), to());
@@ -1816,20 +1862,6 @@ void IsolateGroupReloadContext::VisitObjectPointers(
 
 void ProgramReloadContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(from(), to());
-
-  ClassPtr* saved_class_table =
-      saved_class_table_.load(std::memory_order_relaxed);
-  if (saved_class_table != NULL) {
-    auto class_table = reinterpret_cast<ObjectPtr*>(&(saved_class_table[0]));
-    visitor->VisitPointers(class_table, saved_num_cids_);
-  }
-  ClassPtr* saved_tlc_class_table =
-      saved_tlc_class_table_.load(std::memory_order_relaxed);
-  if (saved_tlc_class_table != NULL) {
-    auto class_table =
-        reinterpret_cast<ObjectPtr*>(&(saved_tlc_class_table[0]));
-    visitor->VisitPointers(class_table, saved_num_tlc_cids_);
-  }
 }
 
 ObjectStore* ProgramReloadContext::object_store() {
@@ -2095,7 +2127,8 @@ void ProgramReloadContext::InvalidateSuspendStates(
 class FieldInvalidator {
  public:
   explicit FieldInvalidator(Zone* zone)
-      : cls_(Class::Handle(zone)),
+      : zone_(zone),
+        cls_(Class::Handle(zone)),
         cls_fields_(Array::Handle(zone)),
         entry_(Object::Handle(zone)),
         value_(Object::Handle(zone)),
@@ -2177,6 +2210,10 @@ class FieldInvalidator {
     if (field.needs_load_guard()) {
       return;  // Already guarding.
     }
+    if (field.is_unboxed()) {
+      // Unboxed fields are guaranteed to match.
+      return;
+    }
     value_ = instance.GetField(field);
     if (value_.ptr() == Object::sentinel().ptr()) {
       if (field.is_late()) {
@@ -2192,16 +2229,22 @@ class FieldInvalidator {
   }
 
   DART_FORCE_INLINE
-  void CheckValueType(bool null_safety,
-                      const Object& value,
-                      const Field& field) {
+  bool CheckAssignabilityUsingCache(bool null_safety,
+                                    const Object& value,
+                                    const AbstractType& type,
+                                    const Field& field) {
     ASSERT(!value.IsSentinel());
     if (!null_safety && value.IsNull()) {
-      return;
+      return true;
     }
-    type_ = field.type();
-    if (type_.IsDynamicType()) {
-      return;
+
+    if (type.IsDynamicType()) {
+      return true;
+    }
+
+    if (type.IsRecordType()) {
+      return CheckAssignabilityForRecordType(null_safety, value,
+                                             RecordType::Cast(type), field);
     }
 
     cls_ = value.clazz();
@@ -2231,13 +2274,11 @@ class FieldInvalidator {
     }
     entries_ = cache_.cache();
 
-    bool cache_hit = false;
     for (intptr_t i = 0; entries_.At(i) != Object::null();
          i += SubtypeTestCache::kTestEntryLength) {
       if ((entries_.At(i + SubtypeTestCache::kInstanceCidOrSignature) ==
            instance_cid_or_signature_.ptr()) &&
-          (entries_.At(i + SubtypeTestCache::kDestinationType) ==
-           type_.ptr()) &&
+          (entries_.At(i + SubtypeTestCache::kDestinationType) == type.ptr()) &&
           (entries_.At(i + SubtypeTestCache::kInstanceTypeArguments) ==
            instance_type_arguments_.ptr()) &&
           (entries_.At(i + SubtypeTestCache::kInstantiatorTypeArguments) ==
@@ -2250,35 +2291,77 @@ class FieldInvalidator {
           (entries_.At(
                i + SubtypeTestCache::kInstanceDelayedFunctionTypeArguments) ==
            delayed_function_type_arguments_.ptr())) {
-        cache_hit = true;
-        if (entries_.At(i + SubtypeTestCache::kTestResult) !=
-            Bool::True().ptr()) {
-          ASSERT(!FLAG_identity_reload);
-          field.set_needs_load_guard(true);
-        }
-        break;
+        return entries_.At(i + SubtypeTestCache::kTestResult) ==
+               Bool::True().ptr();
       }
     }
 
-    if (!cache_hit) {
-      instance_ ^= value.ptr();
-      if (!instance_.IsAssignableTo(type_, instantiator_type_arguments_,
-                                    function_type_arguments_)) {
-        // Even if doing an identity reload, type check can fail if hot reload
-        // happens while constructor is still running and field is not
-        // initialized yet, so it has a null value.
-        ASSERT(!FLAG_identity_reload || instance_.IsNull());
-        field.set_needs_load_guard(true);
-      } else {
-        cache_.AddCheck(instance_cid_or_signature_, type_,
+    instance_ ^= value.ptr();
+    if (instance_.IsAssignableTo(type, instantiator_type_arguments_,
+                                 function_type_arguments_)) {
+      // Do not add record instances to cache as they don't have a valid
+      // key (type of a record depends on types of all its fields).
+      if (cid != kRecordCid) {
+        cache_.AddCheck(instance_cid_or_signature_, type,
                         instance_type_arguments_, instantiator_type_arguments_,
                         function_type_arguments_,
                         parent_function_type_arguments_,
                         delayed_function_type_arguments_, Bool::True());
       }
+      return true;
+    }
+
+    return false;
+  }
+
+  bool CheckAssignabilityForRecordType(bool null_safety,
+                                       const Object& value,
+                                       const RecordType& type,
+                                       const Field& field) {
+    if (!value.IsRecord()) {
+      return false;
+    }
+
+    const Record& record = Record::Cast(value);
+    const intptr_t num_fields = record.num_fields();
+    if (num_fields != type.NumFields() ||
+        record.field_names() != type.field_names()) {
+      return false;
+    }
+
+    // This method can be called recursively, so cannot reuse handles.
+    auto& field_value = Object::Handle(zone_);
+    auto& field_type = AbstractType::Handle(zone_);
+    for (intptr_t i = 0; i < num_fields; ++i) {
+      field_value = record.FieldAt(i);
+      field_type = type.FieldTypeAt(i);
+      if (!CheckAssignabilityUsingCache(null_safety, field_value, field_type,
+                                        field)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  DART_FORCE_INLINE
+  void CheckValueType(bool null_safety,
+                      const Object& value,
+                      const Field& field) {
+    ASSERT(!value.IsSentinel());
+    if (!null_safety && value.IsNull()) {
+      return;
+    }
+    type_ = field.type();
+    if (!CheckAssignabilityUsingCache(null_safety, value, type_, field)) {
+      // Even if doing an identity reload, type check can fail if hot reload
+      // happens while constructor is still running and field is not
+      // initialized yet, so it has a null value.
+      ASSERT(!FLAG_identity_reload || value.IsNull());
+      field.set_needs_load_guard(true);
     }
   }
 
+  Zone* zone_;
   Class& cls_;
   Array& cls_fields_;
   Object& entry_;

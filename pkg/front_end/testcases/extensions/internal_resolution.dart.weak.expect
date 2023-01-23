@@ -8,11 +8,11 @@ class Class extends core::Object {
     : super core::Object::•()
     ;
 }
-extension _extension#0 on self::Class {
+extension /* unnamed */ _extension#0 on self::Class {
   get property1 = self::_extension#0|get#property1;
   set property1 = self::_extension#0|set#property1;
 }
-extension _extension#1 on self::Class {
+extension /* unnamed */ _extension#1 on self::Class {
   get property2 = self::_extension#1|get#property2;
   set property2 = self::_extension#1|set#property2;
 }

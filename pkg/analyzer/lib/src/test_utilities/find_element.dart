@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
-import 'package:collection/src/iterable_extensions.dart';
+import 'package:collection/collection.dart';
 
 /// Helper for finding elements declared in the resolved [unit].
 class FindElement extends _FindElementBase {
@@ -18,10 +18,10 @@ class FindElement extends _FindElementBase {
   @override
   CompilationUnitElement get unitElement => unit.declaredElement!;
 
-  ExportElement export(String targetUri) {
-    ExportElement? result;
+  LibraryExportElement export(String targetUri) {
+    LibraryExportElement? result;
 
-    for (var export in libraryElement.exports) {
+    for (var export in libraryElement.libraryExports) {
       var exportedUri = export.exportedLibrary?.source.uri.toString();
       if (exportedUri == targetUri) {
         if (result != null) {
@@ -50,10 +50,10 @@ class FindElement extends _FindElementBase {
     throw StateError('Not found: $name');
   }
 
-  ImportElement import(String targetUri, {bool mustBeUnique = true}) {
-    ImportElement? importElement;
+  LibraryImportElement import(String targetUri, {bool mustBeUnique = true}) {
+    LibraryImportElement? importElement;
 
-    for (var import in libraryElement.imports) {
+    for (var import in libraryElement.libraryImports) {
       var importedUri = import.importedLibrary?.source.uri.toString();
       if (importedUri == targetUri) {
         if (importElement == null) {
@@ -133,13 +133,11 @@ class FindElement extends _FindElementBase {
     }
 
     unit.accept(FunctionAstVisitor(
-      declaredIdentifier: (node) {
+      catchClauseParameter: (node) {
         updateResult(node.declaredElement!);
       },
-      simpleIdentifier: (node) {
-        if (node.parent is CatchClause) {
-          updateResult(node.staticElement!);
-        }
+      declaredIdentifier: (node) {
+        updateResult(node.declaredElement!);
       },
       variableDeclaration: (node) {
         updateResult(node.declaredElement!);
@@ -173,7 +171,7 @@ class FindElement extends _FindElementBase {
       }
     }
 
-    void findInClasses(List<ClassElement> classes) {
+    void findInClasses(List<InterfaceElement> classes) {
       for (var class_ in classes) {
         findInExecutables(class_.accessors);
         findInExecutables(class_.constructors);
@@ -218,7 +216,7 @@ class FindElement extends _FindElementBase {
   CompilationUnitElement part(String targetUri) {
     CompilationUnitElement? result;
 
-    for (final partElement in libraryElement.parts2) {
+    for (final partElement in libraryElement.parts) {
       final uri = partElement.uri;
       if (uri is DirectiveUriWithUnit) {
         final unitElement = uri.unit;
@@ -243,10 +241,10 @@ class FindElement extends _FindElementBase {
   }
 
   PrefixElement prefix(String name) {
-    for (var import_ in libraryElement.imports) {
-      var prefix = import_.prefix;
-      if (prefix?.name == name) {
-        return prefix!;
+    for (var import_ in libraryElement.libraryImports) {
+      var prefix = import_.prefix?.element;
+      if (prefix != null && prefix.name == name) {
+        return prefix;
       }
     }
     throw StateError('Not found: $name');
@@ -266,7 +264,7 @@ class FindElement extends _FindElementBase {
       }
     }
 
-    void findInClass(ClassElement class_) {
+    void findInClass(InterfaceElement class_) {
       findIn(class_.typeParameters);
       for (var method in class_.methods) {
         findIn(method.typeParameters);
@@ -311,13 +309,13 @@ class FindElement extends _FindElementBase {
 
 /// Helper for searching imported elements.
 class ImportFindElement extends _FindElementBase {
-  final ImportElement import;
+  final LibraryImportElement import;
 
   ImportFindElement(this.import);
 
   LibraryElement get importedLibrary => import.importedLibrary!;
 
-  PrefixElement? get prefix => import.prefix;
+  PrefixElement? get prefix => import.prefix?.element;
 
   @override
   CompilationUnitElement get unitElement {
@@ -344,7 +342,7 @@ abstract class _FindElementBase {
     throw StateError('Not found: $name');
   }
 
-  ClassElement classOrMixin(String name) {
+  InterfaceElement classOrMixin(String name) {
     for (var class_ in unitElement.classes) {
       if (class_.name == name) {
         return class_;
@@ -392,7 +390,7 @@ abstract class _FindElementBase {
     throw StateError('Not found: $name');
   }
 
-  ClassElement enum_(String name) {
+  EnumElement enum_(String name) {
     for (var enum_ in unitElement.enums) {
       if (enum_.name == name) {
         return enum_;
@@ -434,7 +432,7 @@ abstract class _FindElementBase {
     );
   }
 
-  ClassElement mixin(String name) {
+  MixinElement mixin(String name) {
     for (var mixin in unitElement.mixins) {
       if (mixin.name == name) {
         return mixin;
@@ -518,7 +516,7 @@ abstract class _FindElementBase {
 
   T _findInClassesLike<T extends Element>({
     required String? className,
-    required T? Function(ClassElement element) fromClass,
+    required T? Function(InterfaceElement element) fromClass,
     required T? Function(ExtensionElement element) fromExtension,
   }) {
     bool filter(Element element) {

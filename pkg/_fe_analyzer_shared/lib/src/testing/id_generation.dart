@@ -13,7 +13,7 @@ Map<Uri, List<Annotation>> computeAnnotationsPerUri<T>(
     Map<String, Map<Uri, Map<Id, ActualData<T>>>> actualData,
     DataInterpreter<T> dataInterpreter,
     {Annotation? Function(Annotation? expected, Annotation? actual)? createDiff,
-    bool forceUpdate: false}) {
+    bool forceUpdate = false}) {
   Set<Uri> uriSet = {};
   Set<String> actualMarkers = actualData.keys.toSet();
   Map<Uri, Map<Id, Map<String, IdValue>>> idValuePerUri = {};
@@ -69,8 +69,8 @@ Map<Uri, List<Annotation>> computeAnnotationsPerUri<T>(
     if (code != null) {
       // Annotations are not computed from synthesized code.
       result[uri] = _computeAnnotations(code, expectedMaps.keys, actualMarkers,
-        idValuePerId, actualDataPerId, dataInterpreter,
-        sortMarkers: false, createDiff: createDiff, forceUpdate: forceUpdate);
+          idValuePerId, actualDataPerId, dataInterpreter,
+          sortMarkers: false, createDiff: createDiff, forceUpdate: forceUpdate);
     }
   }
   return result;
@@ -83,11 +83,11 @@ List<Annotation> _computeAnnotations<T>(
     Map<Id, Map<String, IdValue>> idValuePerId,
     Map<Id, Map<String, ActualData<T>>> actualDataPerId,
     DataInterpreter<T> dataInterpreter,
-    {String defaultPrefix: '/*',
-    String defaultSuffix: '*/',
-    bool sortMarkers: true,
+    {String defaultPrefix = '/*',
+    String defaultSuffix = '*/',
+    bool sortMarkers = true,
     Annotation? Function(Annotation? expected, Annotation? actual)? createDiff,
-    bool forceUpdate: false}) {
+    bool forceUpdate = false}) {
   // ignore: unnecessary_null_comparison
   assert(annotatedCode != null);
 
@@ -156,7 +156,9 @@ List<Annotation> _computeAnnotations<T>(
         suffix);
   }
 
-  Set<Id> idSet = {}..addAll(idValuePerId.keys)..addAll(actualDataPerId.keys);
+  Set<Id> idSet = {}
+    ..addAll(idValuePerId.keys)
+    ..addAll(actualDataPerId.keys);
   List<Annotation> result = <Annotation>[];
   for (Id id in idSet) {
     Map<String, IdValue> idValuePerMarker = idValuePerId[id] ?? {};

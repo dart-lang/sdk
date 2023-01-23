@@ -7,7 +7,7 @@ import 'package:expect/expect.dart';
 class K implements L {
   final field1;
   final field2;
-  const K({this.field1: 42, this.field2: true});
+  const K({this.field1 = 42, this.field2 = true});
 }
 
 class L {

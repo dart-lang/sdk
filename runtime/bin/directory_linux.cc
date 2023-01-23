@@ -386,7 +386,7 @@ Directory::ExistsResult Directory::Exists(Namespace* namespc,
     if ((errno == EACCES) || (errno == EBADF) || (errno == EFAULT) ||
         (errno == ENOMEM) || (errno == EOVERFLOW)) {
       // Search permissions denied for one of the directories in the
-      // path or a low level error occured. We do not know if the
+      // path or a low level error occurred. We do not know if the
       // directory exists.
       return UNKNOWN;
     }

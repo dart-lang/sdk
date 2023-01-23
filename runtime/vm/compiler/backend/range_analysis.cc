@@ -1815,7 +1815,7 @@ RangeBoundary RangeBoundary::Shl(const RangeBoundary& value_boundary,
   int64_t value = value_boundary.ConstantValue();
 
   if (value == 0) {
-    return RangeBoundary(0);
+    return RangeBoundary::FromConstant(0);
   } else if (shift_count == 0 ||
              (limit > 0 && Utils::IsInt(static_cast<int>(limit), value))) {
     // Result stays in 64 bit range.
@@ -2772,6 +2772,12 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
                          compiler::target::TypeArguments::kMaxElements));
       break;
 
+    case Slot::Kind::kRecord_num_fields:
+      *range = Range(
+          RangeBoundary::FromConstant(0),
+          RangeBoundary::FromConstant(compiler::target::Record::kMaxElements));
+      break;
+
     case Slot::Kind::kString_length:
       *range = Range(
           RangeBoundary::FromConstant(0),
@@ -2780,6 +2786,7 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 
     case Slot::Kind::kDartField:
     case Slot::Kind::kCapturedVariable:
+    case Slot::Kind::kRecordField:
       // Use default value.
       Definition::InferRange(analysis, range);
       break;
@@ -2814,6 +2821,7 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kFunctionType_parameter_types:
     case Slot::Kind::kFunctionType_type_parameters:
     case Slot::Kind::kInstance_native_fields_array:
+    case Slot::Kind::kRecord_field_names:
     case Slot::Kind::kSuspendState_function_data:
     case Slot::Kind::kSuspendState_then_callback:
     case Slot::Kind::kSuspendState_error_callback:

@@ -15,5 +15,5 @@ abstract class C extends core::Object {
     ;
 }
 static method main() → dynamic {
-  throw new core::AbstractClassInstantiationError::•("C");
+  invalid-expression "The class 'C' is abstract and can't be instantiated.";
 }

@@ -33,3 +33,4 @@ worlds:
     expectedLibraryCount: 2
     uriToSourcesDoesntInclude:
       - c.dart
+    advancedInvalidation: outlineChange

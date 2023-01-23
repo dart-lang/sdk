@@ -26,7 +26,7 @@ main() {
     Expect.isTrue(opt_arg.call("b"));
   }
 
-  named_arg({x: 11, y: 22}) => "$x$y";
+  named_arg({x = 11, y = 22}) => "$x$y";
 
   for (var i = 0; i < 20; i++) {
     Expect.equals("1122", named_arg());

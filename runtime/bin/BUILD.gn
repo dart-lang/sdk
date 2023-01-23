@@ -787,6 +787,9 @@ template("dart_executable") {
 
     if (is_win) {
       libs = [
+        # ole32.dll contains CoTaskMemAlloc. Here so that package:ffi can look
+        # CoTaskMemAlloc up with `DynamicLibrary.process()`.
+        "ole32.lib",
         "iphlpapi.lib",
         "psapi.lib",
         "ws2_32.lib",
@@ -828,7 +831,10 @@ dart_executable("dart") {
 }
 
 dart_executable("dart_precompiled_runtime") {
-  extra_configs = [ "..:dart_precompiled_runtime_config" ]
+  extra_configs = [
+    "..:dart_precompiled_runtime_config",
+    "..:add_empty_macho_section_config",
+  ]
   extra_deps = [
     "..:libdart_precompiled_runtime",
     "../platform:libdart_platform_precompiled_runtime",
@@ -859,7 +865,10 @@ dart_executable("dart_precompiled_runtime") {
 
 dart_executable("dart_precompiled_runtime_product") {
   use_product_mode = true
-  extra_configs = [ "..:dart_precompiled_runtime_config" ]
+  extra_configs = [
+    "..:dart_precompiled_runtime_config",
+    "..:add_empty_macho_section_config",
+  ]
   extra_deps = [
     "..:libdart_precompiled_runtime_product",
     "../platform:libdart_platform_precompiled_runtime_product",
@@ -947,7 +956,7 @@ executable("run_vm_tests") {
     ":dart_kernel_platform_cc",
     ":dart_snapshot_cc",
     ":standalone_dart_io",
-    "..:libdart_precompiler",
+    "..:libdart_precompiler_testing",
     "//third_party/boringssl",  # for secure_socket_utils_test
     "//third_party/zlib",
   ]
@@ -1006,6 +1015,9 @@ executable("run_vm_tests") {
 
   if (is_win) {
     libs = [
+      # ole32.dll contains CoTaskMemAlloc. Here so that package:ffi can look
+      # CoTaskMemAlloc up with `DynamicLibrary.process()`.
+      "ole32.lib",
       "iphlpapi.lib",
       "psapi.lib",
       "ws2_32.lib",

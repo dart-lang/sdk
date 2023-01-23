@@ -11,6 +11,7 @@
 
 #include "platform/assert.h"
 #include "platform/globals.h"
+#include "platform/utils.h"
 
 #include "vm/constants_base.h"
 
@@ -318,6 +319,26 @@ struct AllocateArrayABI {
   static const Register kTypeArgumentsReg = RBX;
 };
 
+// ABI for AllocateRecordStub.
+struct AllocateRecordABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kNumFieldsReg = R10;
+  static const Register kFieldNamesReg = RBX;
+  static const Register kTemp1Reg = RDX;
+  static const Register kTemp2Reg = RCX;
+};
+
+// ABI for AllocateSmallRecordStub (AllocateRecord2, AllocateRecord2Named,
+// AllocateRecord3, AllocateRecord3Named).
+struct AllocateSmallRecordABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kFieldNamesReg = R10;
+  static const Register kValue0Reg = RBX;
+  static const Register kValue1Reg = RDX;
+  static const Register kValue2Reg = RCX;
+  static const Register kTempReg = RDI;
+};
+
 // ABI for AllocateTypedDataArrayStub.
 struct AllocateTypedDataArrayABI {
   static const Register kResultReg = AllocateObjectABI::kResultReg;
@@ -338,7 +359,8 @@ struct DoubleToIntegerStubABI {
   static const Register kResultReg = RAX;
 };
 
-// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub, YieldSyncStarStub).
+// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub,
+// SuspendSyncStarAtStartStub, SuspendSyncStarAtYieldStub).
 struct SuspendStubABI {
   static const Register kArgumentReg = RAX;
   static const Register kTempReg = RDX;
@@ -377,7 +399,7 @@ struct ResumeStubABI {
 };
 
 // ABI for ReturnStub (ReturnAsyncStub, ReturnAsyncNotFutureStub,
-// ReturnAsyncStarStub, ReturnSyncStarStub).
+// ReturnAsyncStarStub).
 struct ReturnStubABI {
   static const Register kSuspendStateReg = RBX;
 };
@@ -411,7 +433,8 @@ const RegList kAllFpuRegistersList = 0xFFFF;
 
 const RegList kReservedCpuRegisters =
     R(SPREG) | R(FPREG) | R(TMP) | R(PP) | R(THR);
-constexpr intptr_t kNumberOfReservedCpuRegisters = 5;
+constexpr intptr_t kNumberOfReservedCpuRegisters =
+    Utils::CountOneBits32(kReservedCpuRegisters);
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
@@ -461,6 +484,7 @@ enum ScaleFactor {
 #else
   TIMES_COMPRESSED_WORD_SIZE = TIMES_HALF_WORD_SIZE,
 #endif
+  // Used for Smi-boxed indices.
   TIMES_COMPRESSED_HALF_WORD_SIZE = TIMES_COMPRESSED_WORD_SIZE - 1,
 };
 
@@ -514,7 +538,7 @@ class CallingConventions {
   static const size_t kRegisterTransferLimit = 16;
 
   static constexpr Register kReturnReg = RAX;
-  static constexpr Register kSecondReturnReg = kNoRegister;
+  static constexpr Register kSecondReturnReg = RDX;
   static constexpr FpuRegister kReturnFpuReg = XMM0;
   static constexpr Register kPointerToReturnStructRegisterReturn = kReturnReg;
 

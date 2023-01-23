@@ -52,8 +52,9 @@ main() {
 
   // Expect compile-time error due to missing positional argument.
   NamedParametersAggregatedTests.F31(b: 25, c: 35);
-  //                                ^^^^^^^^^^^^^^
+  //                                 ^
   // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+  //                                ^^^^^^^^^^^^^^
   // [cfe] Too few positional arguments: 1 required, 0 given.
 
   new TypeTester<Callback>();

@@ -4,6 +4,18 @@
 
 // CHANGES:
 //
+// v0.23 Change logical pattern rules to || and &&
+//
+// v0.22 Change pattern rules, following updated feature specification.
+//
+// v0.21 Add support for patterns.
+//
+// v0.20 Adjust record syntax such that () is allowed (denoting the empty
+// record type and the empty record value).
+//
+// v0.19 Add support for super parameters, named arguments everywhere, and
+// records.
+//
 // v0.18 Add support for enhanced `enum` declarations.
 //
 // v0.17 (58d917e7573c359580ade43845004dbbc62220d5) Correct `uri` to allow
@@ -293,6 +305,7 @@ normalFormalParameterNoMetadata
     :    functionFormalParameter
     |    fieldFormalParameter
     |    simpleFormalParameter
+    |    superFormalParameter
     ;
 
 // NB: It is an anomaly that a functionFormalParameter cannot be FINAL.
@@ -308,6 +321,10 @@ simpleFormalParameter
 // NB: It is an anomaly that VAR can be a return type (`var this.x()`).
 fieldFormalParameter
     :    finalConstVarOrType? THIS '.' identifier (formalParameterPart '?'?)?
+    ;
+
+superFormalParameter
+    :    type? SUPER '.' identifier (formalParameterPart '?'?)?
     ;
 
 defaultFormalParameter
@@ -517,7 +534,8 @@ metadatum
     ;
 
 expression
-    :    functionExpression
+    :    patternAssignment
+    |    functionExpression
     |    throwExpression
     |    assignableExpression assignmentOperator expression
     |    conditionalExpression
@@ -546,6 +564,7 @@ primary
     |    literal
     |    identifier
     |    constructorTearoff
+    |    switchExpression
     ;
 
 constructorInvocation
@@ -561,6 +580,7 @@ literal
     |    symbolLiteral
     |    setOrMapLiteral
     |    listLiteral
+    |    recordLiteral
     ;
 
 nullLiteral
@@ -587,11 +607,26 @@ stringLiteralWithoutInterpolation
     ;
 
 setOrMapLiteral
-    : CONST? typeArguments? LBRACE elements? RBRACE
+    :    CONST? typeArguments? LBRACE elements? RBRACE
     ;
 
 listLiteral
-    : CONST? typeArguments? '[' elements? ']'
+    :    CONST? typeArguments? '[' elements? ']'
+    ;
+
+recordLiteral
+    :    CONST? recordLiteralNoConst
+    ;
+
+recordLiteralNoConst
+    :    '(' ')'
+    |    '(' expression ',' ')'
+    |    '(' label expression ','? ')'
+    |    '(' recordField ',' recordField (',' recordField)* ','? ')'
+    ;
+
+recordField
+    :    label? expression
     ;
 
 elements
@@ -628,6 +663,19 @@ forElement
 
 constructorTearoff
     :    typeName typeArguments? '.' NEW
+    ;
+
+switchExpression
+    :    SWITCH '(' expression ')'
+         LBRACE switchExpressionCase* switchExpressionDefault? RBRACE
+    ;
+
+switchExpressionCase
+    :    caseHead '=>' expression ';'
+    ;
+
+switchExpressionDefault
+    : DEFAULT '=>' expression ';'
     ;
 
 throwExpression
@@ -693,12 +741,11 @@ arguments
     ;
 
 argumentList
-    :    namedArgument (',' namedArgument)*
-    |    expressionList (',' namedArgument)*
+    :    argument (',' argument)*
     ;
 
-namedArgument
-    :    label expression
+argument
+    :    label? expression
     ;
 
 cascade
@@ -965,6 +1012,125 @@ asOperator
     :    AS
     ;
 
+pattern
+    :    logicalOrPattern
+    ;
+
+patterns
+    :    pattern (',' pattern)* ','?
+    ;
+
+logicalOrPattern
+    :    logicalAndPattern ('||' logicalAndPattern)*
+    ;
+
+logicalAndPattern
+    :    relationalPattern ('&&' relationalPattern)*
+    ;
+
+relationalPattern
+    :    (equalityOperator | relationalOperator) relationalExpression
+    |    unaryPattern
+    ;
+
+unaryPattern
+    :    castPattern
+    |    nullCheckPattern
+    |    nullAssertPattern
+    |    primaryPattern
+    ;
+
+primaryPattern
+    :    constantPattern
+    |    variablePattern
+    |    parenthesizedPattern
+    |    listPattern
+    |    mapPattern
+    |    recordPattern
+    |    objectPattern
+    ;
+
+castPattern
+    :    primaryPattern AS type
+    ;
+
+nullCheckPattern
+    :    primaryPattern '?'
+    ;
+
+nullAssertPattern
+    :    primaryPattern '!'
+    ;
+
+constantPattern
+    :    booleanLiteral
+    |    nullLiteral
+    |    numericLiteral
+    |    stringLiteral
+    |    identifier
+    |    qualifiedName
+    |    constObjectExpression
+    |    CONST typeArguments? '[' elements? ']'
+    |    CONST typeArguments? LBRACE elements? RBRACE
+    |    CONST '(' expression ')'
+    ;
+
+variablePattern
+    :    (VAR | FINAL | FINAL? type)? identifier
+    ;
+
+parenthesizedPattern
+    :    '(' pattern ')'
+    ;
+
+listPattern
+    :    typeArguments? '[' patterns? ']'
+    ;
+
+mapPattern
+    :    typeArguments? LBRACE mapPatternEntries? RBRACE
+    ;
+
+mapPatternEntries
+    :    mapPatternEntry (',' mapPatternEntry)* ','?
+    ;
+
+mapPatternEntry
+    :    expression ':' pattern
+    ;
+
+recordPattern
+    :    '(' patternFields? ')'
+    ;
+
+patternFields
+    :    patternField ( ',' patternField )* ','?
+    ;
+
+patternField
+    :    (identifier? ':')? pattern
+    ;
+
+objectPattern
+    :    typeName typeArguments? '(' patternFields? ')'
+    ;
+
+patternVariableDeclaration
+    :    (FINAL | VAR) outerPattern '=' expression
+    ;
+
+outerPattern
+    :    parenthesizedPattern
+    |    listPattern
+    |    mapPattern
+    |    recordPattern
+    |    objectPattern
+    ;
+
+patternAssignment
+    : outerPattern '=' expression
+    ;
+
 statements
     :    statement*
     ;
@@ -1005,6 +1171,7 @@ expressionStatement
 
 localVariableDeclaration
     :    metadata initializedVariableDeclaration ';'
+    |    metadata patternVariableDeclaration ';'
     ;
 
 initializedVariableDeclaration
@@ -1016,17 +1183,19 @@ localFunctionDeclaration
     ;
 
 ifStatement
-    :    IF '(' expression ')' statement (ELSE statement)?
+    :    IF '(' expression caseHead? ')' statement (ELSE statement)?
     ;
 
 forStatement
     :    AWAIT? FOR '(' forLoopParts ')' statement
     ;
 
+// TODO: Include `metadata` in the pattern form?
 forLoopParts
     :    metadata declaredIdentifier IN expression
     |    metadata identifier IN expression
     |    forInitializerStatement expression? ';' expressionList?
+    |    metadata (FINAL | VAR) outerPattern IN expression
     ;
 
 // The localVariableDeclaration cannot be CONST, but that can
@@ -1045,14 +1214,19 @@ doStatement
     ;
 
 switchStatement
-    :    SWITCH '(' expression ')' LBRACE switchCase* defaultCase? RBRACE
+    :    SWITCH '(' expression ')'
+         LBRACE switchStatementCase* switchStatementDefault? RBRACE
     ;
 
-switchCase
-    :    label* CASE expression ':' statements
+switchStatementCase
+    :    label* caseHead ':' statements
     ;
 
-defaultCase
+caseHead
+    :    CASE pattern (WHEN expression)?
+    ;
+
+switchStatementDefault
     :    label* DEFAULT ':' statements
     ;
 
@@ -1185,11 +1359,13 @@ type
 
 typeNotVoid
     :    functionType '?'?
+    |    recordType '?'?
     |    typeNotVoidNotFunction
     ;
 
 typeNotFunction
     :    typeNotVoidNotFunction
+    |    recordType '?'?
     |    VOID
     ;
 
@@ -1208,6 +1384,29 @@ typeArguments
 
 typeList
     :    type (',' type)*
+    ;
+
+recordType
+    :    '(' ')'
+    |    '(' recordTypeFields ',' recordTypeNamedFields ')'
+    |    '(' recordTypeFields ','? ')'
+    |    '(' recordTypeNamedFields? ')'
+    ;
+
+recordTypeFields
+    :    recordTypeField (',' recordTypeField)*
+    ;
+
+recordTypeField
+    :    metadata type identifier?
+    ;
+
+recordTypeNamedFields
+    :    LBRACE recordTypeNamedField (',' recordTypeNamedField)* ','? RBRACE
+    ;
+
+recordTypeNamedField
+    :    metadata typedIdentifier
     ;
 
 typeNotVoidNotFunctionList
@@ -1672,6 +1871,10 @@ SHOW
 
 SYNC
     :    'sync'
+    ;
+
+WHEN
+    :    'when'
     ;
 
 // Lexical tokens that are not words.

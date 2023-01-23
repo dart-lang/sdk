@@ -11,23 +11,19 @@ library static_interop /*isNonNullableByDefault*/;
 import self as self2;
 import "package:js/js.dart" as js;
 import "dart:core" as core;
-import "dart:_interceptors" as _in;
 
 import "package:js/js.dart";
 
 @#C4
 @#C5
 class StaticJSClass extends core::Object {
-  external constructor •() → self2::StaticJSClass
-    ;
-  static method _#new#tearOff() → _in::JavaScriptObject
-    return new self2::StaticJSClass::•() as _in::JavaScriptObject;
+  external static factory •() → self2::StaticJSClass;
+  static method _#new#tearOff() → self2::StaticJSClass
+    return self2::StaticJSClass::•();
   static factory factory() → self2::StaticJSClass
     ;
-  static method _#factory#tearOff() → _in::JavaScriptObject
-    return self2::StaticJSClass::factory|staticInteropFactoryStub();
-  static method /*isLegacy*/ factory|staticInteropFactoryStub() → _in::JavaScriptObject
-    ;
+  static method _#factory#tearOff() → self2::StaticJSClass
+    return self2::StaticJSClass::factory();
 }
 @#C2
 external static method eval(core::String code) → void;
@@ -46,4 +42,4 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///main_lib.dart:
 - JS. (from org-dartlang-testcase-sdk:///pkg/js/lib/js.dart:23:9)
-- Object. (from org-dartlang-sdk:///lib/core/object.dart:-1:-1)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)

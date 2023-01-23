@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 /// A visitor that visits an [AstNode] and its parent recursively along with any
 /// declarations in those nodes. Consumers typically call [visit] which catches
@@ -33,13 +35,17 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   void declaredLabel(Label label, bool isCaseLabel) {}
 
-  void declaredLocalVar(SimpleIdentifier name, TypeAnnotation? type) {}
+  void declaredLocalVar(
+    Token name,
+    TypeAnnotation? type,
+    LocalVariableElement declaredElement,
+  ) {}
 
   void declaredMethod(MethodDeclaration declaration) {}
 
   void declaredMixin(MixinDeclaration declaration) {}
 
-  void declaredParam(SimpleIdentifier name, TypeAnnotation? type) {}
+  void declaredParam(Token name, Element? element, TypeAnnotation? type) {}
 
   void declaredTopLevelVar(
       VariableDeclarationList varList, VariableDeclaration varDecl) {}
@@ -74,12 +80,20 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   void visitCatchClause(CatchClause node) {
     var exceptionParameter = node.exceptionParameter;
     if (exceptionParameter != null) {
-      declaredParam(exceptionParameter, node.exceptionType);
+      declaredParam(
+        exceptionParameter.name,
+        exceptionParameter.declaredElement,
+        node.exceptionType,
+      );
     }
 
     var stackTraceParameter = node.stackTraceParameter;
     if (stackTraceParameter != null) {
-      declaredParam(stackTraceParameter, null);
+      declaredParam(
+        stackTraceParameter.name,
+        stackTraceParameter.declaredElement,
+        null,
+      );
     }
 
     visitNode(node);
@@ -113,11 +127,13 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
     var forLoopParts = node.forLoopParts;
     if (forLoopParts is ForEachPartsWithDeclaration) {
       var loopVariable = forLoopParts.loopVariable;
-      declaredLocalVar(loopVariable.identifier, loopVariable.type);
+      declaredLocalVar(
+          loopVariable.name, loopVariable.type, loopVariable.declaredElement!);
     } else if (forLoopParts is ForPartsWithDeclarations) {
       var varList = forLoopParts.variables;
       for (var varDecl in varList.variables) {
-        declaredLocalVar(varDecl.name, varList.type);
+        declaredLocalVar(varDecl.name, varList.type,
+            varDecl.declaredElement as LocalVariableElement);
       }
     }
     visitNode(node);
@@ -128,11 +144,13 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
     var forLoopParts = node.forLoopParts;
     if (forLoopParts is ForEachPartsWithDeclaration) {
       var loopVariable = forLoopParts.loopVariable;
-      declaredLocalVar(loopVariable.identifier, loopVariable.type);
+      declaredLocalVar(
+          loopVariable.name, loopVariable.type, loopVariable.declaredElement!);
     } else if (forLoopParts is ForPartsWithDeclarations) {
       var varList = forLoopParts.variables;
       for (var varDecl in varList.variables) {
-        declaredLocalVar(varDecl.name, varList.type);
+        declaredLocalVar(varDecl.name, varList.type,
+            varDecl.declaredElement as LocalVariableElement);
       }
     }
     visitNode(node);
@@ -292,8 +310,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
         } else if (normalParam is SimpleFormalParameter) {
           type = normalParam.type;
         }
-        var name = param.identifier;
-        declaredParam(name!, type);
+        declaredParam(param.name!, param.declaredElement, type);
       }
     }
   }
@@ -305,13 +322,14 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
           var varList = stmt.variables;
           for (var varDecl in varList.variables) {
             if (varDecl.end < offset) {
-              declaredLocalVar(varDecl.name, varList.type);
+              declaredLocalVar(varDecl.name, varList.type,
+                  varDecl.declaredElement as LocalVariableElement);
             }
           }
         } else if (stmt is FunctionDeclarationStatement) {
           var declaration = stmt.functionDeclaration;
           if (declaration.offset < offset) {
-            var name = declaration.name.name;
+            var name = declaration.name.lexeme;
             if (name.isNotEmpty) {
               declaredFunction(declaration);
               _visitTypeParameters(

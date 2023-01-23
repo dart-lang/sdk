@@ -89,7 +89,7 @@ Future<void> asyncTest(f()) {
   return f().then(asyncSuccess);
 }
 
-/// Verifies that the asyncronous [result] throws a [T].
+/// Verifies that the asynchronous [result] throws a [T].
 ///
 /// Fails if [result] completes with a value, or it completes with
 /// an error which is not a [T].

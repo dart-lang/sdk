@@ -77,8 +77,6 @@ Thread::Thread(bool is_vm_isolate)
       store_buffer_block_(nullptr),
       marking_stack_block_(nullptr),
       vm_tag_(0),
-      unboxed_int64_runtime_arg_(0),
-      unboxed_double_runtime_arg_(0.0),
       active_exception_(Object::null()),
       active_stacktrace_(Object::null()),
       global_object_pool_(ObjectPool::null()),
@@ -110,7 +108,13 @@ Thread::Thread(bool is_vm_isolate)
 #if defined(USING_SAFE_STACK)
               saved_safestack_limit_(0),
 #endif
-      next_(nullptr) {
+#if !defined(PRODUCT)
+      next_(nullptr),
+      heap_sampler_(this) {
+#else
+              next_(nullptr) {
+#endif
+
 #if defined(SUPPORT_TIMELINE)
   dart_stream_ = Timeline::GetDartStream();
   ASSERT(dart_stream_ != nullptr);
@@ -124,11 +128,9 @@ Thread::Thread(bool is_vm_isolate)
   CACHED_CONSTANTS_LIST(DEFAULT_INIT)
 #undef DEFAULT_INIT
 
-#if !defined(TARGET_ARCH_IA32)
   for (intptr_t i = 0; i < kNumberOfDartAvailableCpuRegs; ++i) {
     write_barrier_wrappers_entry_points_[i] = 0;
   }
-#endif
 
 #define DEFAULT_INIT(name) name##_entry_point_ = 0;
   RUNTIME_ENTRY_LIST(DEFAULT_INIT)
@@ -143,6 +145,14 @@ Thread::Thread(bool is_vm_isolate)
   if (!is_vm_isolate) {
     InitVMConstants();
   }
+
+#if defined(DART_HOST_OS_FUCHSIA)
+  next_task_id_ = trace_generate_nonce();
+#else
+  next_task_id_ = Random::GlobalNextUInt64();
+#endif
+
+  memset(&unboxed_runtime_arg_, 0, sizeof(simd128_value_t));
 }
 
 static const double double_nan_constant = NAN;
@@ -199,13 +209,11 @@ void Thread::InitVMConstants() {
   CACHED_CONSTANTS_LIST(INIT_VALUE)
 #undef INIT_VALUE
 
-#if !defined(TARGET_ARCH_IA32)
   for (intptr_t i = 0; i < kNumberOfDartAvailableCpuRegs; ++i) {
     write_barrier_wrappers_entry_points_[i] =
         StubCode::WriteBarrierWrappers().EntryPoint() +
         i * kStoreBufferWrapperSize;
   }
-#endif
 
 #define INIT_VALUE(name)                                                       \
   ASSERT(name##_entry_point_ == 0);                                            \
@@ -642,10 +650,12 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
     StackFrameIterator frames_iterator(top_exit_frame_info(), validation_policy,
                                        this, cross_thread_policy);
     StackFrame* frame = frames_iterator.NextFrame();
+    visitor->set_gc_root_type("frame");
     while (frame != nullptr) {
       frame->VisitObjectPointers(visitor);
       frame = frames_iterator.NextFrame();
     }
+    visitor->clear_gc_root_type();
   } else {
     // We are not on the mutator thread.
     RELEASE_ASSERT(top_exit_frame_info() == 0);

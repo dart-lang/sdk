@@ -10,7 +10,9 @@ import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class AddExplicitCast extends CorrectionProducer {
   @override
@@ -39,8 +41,11 @@ class AddExplicitCast extends CorrectionProducer {
       toType = parent.writeType!;
     } else if (parent is VariableDeclaration && target == parent.initializer) {
       toType = parent.declaredElement!.type;
+    } else if (parent is ArgumentList) {
+      var staticType = target.staticParameterElement?.type;
+      if (staticType == null) return;
+      toType = staticType;
     } else {
-      // TODO(brianwilkerson) Handle function arguments.
       return;
     }
     if (typeSystem.isAssignableTo(
@@ -49,8 +54,7 @@ class AddExplicitCast extends CorrectionProducer {
       // because it's nullable, in which case a cast won't fix the problem.
       return;
     }
-    // TODO(brianwilkerson) Handle `toSet` in a manner similar to the below.
-    if (target.isToListMethodInvocation) {
+    if (target.isToListMethodInvocation || target.isToSetMethodInvocation) {
       var targetTarget = (target as MethodInvocation).target;
       if (targetTarget != null) {
         var targetTargetType = targetTarget.typeOrThrow;
@@ -64,25 +68,33 @@ class AddExplicitCast extends CorrectionProducer {
       }
     }
     if (target is AsExpression) {
-      // TODO(brianwilkerson) Consider updating the right operand.
+      var type = target.type;
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addReplacement(range.node(type), (builder) {
+          builder.writeType(toType);
+        });
+      });
       return;
     }
 
     final target_final = target;
 
     var needsParentheses = target.precedence < Precedence.postfix;
-    if (((fromType.isDartCoreIterable || fromType.isDartCoreList) &&
-            toType is InterfaceType &&
-            toType.isDartCoreList) ||
-        (fromType.isDartCoreSet &&
-            toType is InterfaceType &&
-            toType.isDartCoreSet)) {
+    if (toType is InterfaceType &&
+        (((fromType.isDartCoreIterable || fromType.isDartCoreList) &&
+                toType.isDartCoreList) ||
+            (fromType.isDartCoreIterable || fromType.isDartCoreSet) &&
+                toType.isDartCoreSet)) {
+      final toType_final = toType;
       if (target.isCastMethodInvocation) {
-        // TODO(brianwilkerson) Consider updating the type arguments to the
-        // `cast` invocation.
+        var typeArguments = (target as MethodInvocation).typeArguments;
+        if (typeArguments != null) {
+          await builder.addDartFileEdit(file, (builder) {
+            _replaceTypeArgument(builder, typeArguments, toType_final, 0);
+          });
+        }
         return;
       }
-      final toType_final = toType;
       await builder.addDartFileEdit(file, (builder) {
         if (needsParentheses) {
           builder.addSimpleInsertion(target_final.offset, '(');
@@ -99,12 +111,17 @@ class AddExplicitCast extends CorrectionProducer {
     } else if (fromType.isDartCoreMap &&
         toType is InterfaceType &&
         toType.isDartCoreMap) {
+      final toType_final = toType;
       if (target.isCastMethodInvocation) {
-        // TODO(brianwilkerson) Consider updating the type arguments to the
-        // `cast` invocation.
+        var typeArguments = (target as MethodInvocation).typeArguments;
+        if (typeArguments != null) {
+          await builder.addDartFileEdit(file, (builder) {
+            _replaceTypeArgument(builder, typeArguments, toType_final, 0);
+            _replaceTypeArgument(builder, typeArguments, toType_final, 1);
+          });
+        }
         return;
       }
-      final toType_final = toType;
       await builder.addDartFileEdit(file, (builder) {
         if (needsParentheses) {
           builder.addSimpleInsertion(target_final.offset, '(');
@@ -134,5 +151,15 @@ class AddExplicitCast extends CorrectionProducer {
         });
       });
     }
+  }
+
+  /// Replace the type argument of [typeArguments] at the specified [index]
+  /// with the corresponding type argument of [toType].
+  void _replaceTypeArgument(DartFileEditBuilder builder,
+      TypeArgumentList typeArguments, InterfaceType toType, int index) {
+    var replacementRange = range.node(typeArguments.arguments[index]);
+    builder.addReplacement(replacementRange, (builder) {
+      builder.writeType(toType.typeArguments[index]);
+    });
   }
 }

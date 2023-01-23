@@ -15,7 +15,7 @@ import 'package:compiler/src/dart2js.dart' as entry;
 import 'package:expect/expect.dart';
 import 'package:sourcemap_testing/src/stepping_helper.dart';
 
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 void main(List<String> args) {
   ArgParser argParser = new ArgParser(allowTrailingOptions: true);
@@ -50,7 +50,7 @@ void main(List<String> args) {
 const String kernelMarker = 'kernel.';
 
 Future testAnnotatedCode(String code,
-    {bool debug: false, bool verbose: false}) async {
+    {bool debug = false, bool verbose = false}) async {
   AnnotatedCode annotatedCode =
       new AnnotatedCode.fromText(code, commentStart, commentEnd);
   print(annotatedCode.sourceCode);
@@ -62,9 +62,9 @@ Future testAnnotatedCode(String code,
 }
 
 Future runTest(AnnotatedCode annotatedCode, String config,
-    {bool debug: false,
-    bool verbose: false,
-    List<String> options: const <String>[]}) async {
+    {bool debug = false,
+    bool verbose = false,
+    List<String> options = const <String>[]}) async {
   Directory dir = Directory.systemTemp.createTempSync('stepping_test');
   String testFileName = 'test.dart';
   String path = dir.path;

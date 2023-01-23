@@ -151,12 +151,15 @@ class MacroInstanceIdentifierImpl implements MacroInstanceIdentifier {
       : id = (deserializer..moveNext()).expectInt(),
         _interfaces = (deserializer..moveNext()).expectInt();
 
+  @override
   void serialize(Serializer serializer) => serializer
     ..addInt(id)
     ..addInt(_interfaces);
 
+  @override
   operator ==(other) => other is MacroInstanceIdentifierImpl && id == other.id;
 
+  @override
   int get hashCode => id;
 
   @override
@@ -247,6 +250,7 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
     );
   }
 
+  @override
   void serialize(Serializer serializer) {
     serializer.startList();
     for (String clazz in classAugmentations.keys) {

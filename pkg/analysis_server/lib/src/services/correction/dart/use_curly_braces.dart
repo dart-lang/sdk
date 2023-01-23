@@ -6,8 +6,11 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -77,15 +80,19 @@ class UseCurlyBraces extends CorrectionProducer {
     var indent = prefix + utils.getIndent(1);
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleReplacement(
-        range.endStart(node.doKeyword, body),
-        ' {$eol$indent',
-      );
-      builder.addSimpleReplacement(
-        range.endStart(body, node.whileKeyword),
-        '$eol$prefix} ',
-      );
+      _replaceRange(
+          builder, node.doKeyword, body, node.whileKeyword, indent, prefix);
     });
+  }
+
+  int _endAfterComments(AstNode node) {
+    var end = node.end;
+    var comments = node.endToken.next?.precedingComments;
+    if (comments != null &&
+        utils.getLineThis(end) == utils.getLineThis(comments.offset)) {
+      end = comments.end;
+    }
+    return end;
   }
 
   Future<void> _forStatement(ChangeBuilder builder, ForStatement node) async {
@@ -96,11 +103,7 @@ class UseCurlyBraces extends CorrectionProducer {
     var indent = prefix + utils.getIndent(1);
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleReplacement(
-        range.endStart(node.rightParenthesis, body),
-        ' {$eol$indent',
-      );
-      builder.addSimpleInsertion(body.end, '$eol$prefix}');
+      _replace(builder, node.rightParenthesis, body, indent, prefix);
     });
   }
 
@@ -114,17 +117,12 @@ class UseCurlyBraces extends CorrectionProducer {
       var elseKeyword = node.elseKeyword;
       if (thenStatement is! Block &&
           (thenOrElse == null || thenOrElse == thenStatement)) {
-        builder.addSimpleReplacement(
-          range.endStart(node.rightParenthesis, thenStatement),
-          ' {$eol$indent',
-        );
-        if (elseKeyword != null) {
-          builder.addSimpleReplacement(
-            range.endStart(thenStatement, elseKeyword),
-            '$eol$prefix} ',
-          );
+        if (elseKeyword == null) {
+          _replace(
+              builder, node.rightParenthesis, thenStatement, indent, prefix);
         } else {
-          builder.addSimpleInsertion(thenStatement.end, '$eol$prefix}');
+          _replaceRange(builder, node.rightParenthesis, thenStatement,
+              elseKeyword, indent, prefix);
         }
       }
 
@@ -133,13 +131,35 @@ class UseCurlyBraces extends CorrectionProducer {
           elseStatement != null &&
           elseStatement is! Block &&
           (thenOrElse == null || thenOrElse == elseStatement)) {
-        builder.addSimpleReplacement(
-          range.endStart(elseKeyword, elseStatement),
-          ' {$eol$indent',
-        );
-        builder.addSimpleInsertion(elseStatement.end, '$eol$prefix}');
+        _replace(builder, elseKeyword, elseStatement, indent, prefix);
       }
     });
+  }
+
+  void _replace(DartFileEditBuilder builder, SyntacticEntity left,
+      AstNode right, String indent, String prefix) {
+    _replaceLeftParenthesis(builder, left, right, indent);
+
+    builder.addSimpleInsertion(_endAfterComments(right), '$eol$prefix}');
+  }
+
+  void _replaceLeftParenthesis(DartFileEditBuilder builder,
+      SyntacticEntity left, SyntacticEntity right, String indent) {
+    builder.addSimpleReplacement(
+      range.endStart(left, right),
+      ' {$eol$indent',
+    );
+  }
+
+  void _replaceRange(DartFileEditBuilder builder, SyntacticEntity left,
+      AstNode node, SyntacticEntity right, String indent, String prefix) {
+    _replaceLeftParenthesis(builder, left, node, indent);
+
+    var end = _endAfterComments(node);
+    builder.addSimpleReplacement(
+      SourceRange(end, right.offset - end),
+      '$eol$prefix} ',
+    );
   }
 
   Future<void> _whileStatement(
@@ -151,11 +171,7 @@ class UseCurlyBraces extends CorrectionProducer {
     var indent = prefix + utils.getIndent(1);
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleReplacement(
-        range.endStart(node.rightParenthesis, body),
-        ' {$eol$indent',
-      );
-      builder.addSimpleInsertion(body.end, '$eol$prefix}');
+      _replace(builder, node.rightParenthesis, body, indent, prefix);
     });
   }
 }

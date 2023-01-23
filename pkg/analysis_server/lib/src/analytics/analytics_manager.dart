@@ -89,6 +89,13 @@ class AnalyticsManager {
     }
   }
 
+  /// Record that the given [command] was executed.
+  void executedCommand(String command) {
+    var requestData =
+        _getRequestData(Method.workspace_executeCommand.toString());
+    requestData.addEnumValue('command', command);
+  }
+
   /// Record that the given [notification] was received and has been handled.
   void handledNotificationMessage(
       {required NotificationMessage notification,
@@ -111,6 +118,8 @@ class AnalyticsManager {
     var options = LspInitializationOptions(params.initializationOptions);
     var paramNames = <String>[
       if (options.closingLabels) 'closingLabels',
+      if (options.completionBudgetMilliseconds != null)
+        'completionBudgetMilliseconds',
       if (options.flutterOutline) 'flutterOutline',
       if (options.onlyAnalyzeProjectsWithOpenFiles)
         'onlyAnalyzeProjectsWithOpenFiles',

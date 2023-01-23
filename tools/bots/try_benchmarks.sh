@@ -150,7 +150,7 @@ for command; do
       out/ReleaseIA32/kernel-service.dart.snapshot \
       out/ReleaseIA32/run_vm_tests \
       sdk \
-      samples-dev/swarm \
+      pkg/compiler/test/codesize/swarm \
       third_party/pkg \
       .dart_tool/package_config.json \
       pkg \
@@ -178,19 +178,13 @@ EOF
     out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot --sound-null-safety KernelServiceCompileAll
     out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot UseDartApi
     out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot --sound-null-safety UseDartApi
-    out/ReleaseIA32/dart --profile-period=10000 benchmarks/Example/dart2/Example.dart
+    out/ReleaseIA32/dart --profile-period=10000 benchmarks/Example/dart/Example.dart
     out/ReleaseIA32/dart --sound-null-safety --profile-period=10000 benchmarks/Example/dart/Example.dart
-    out/ReleaseIA32/dart benchmarks/NativeCall/dart2/NativeCall.dart
     out/ReleaseIA32/dart --sound-null-safety benchmarks/NativeCall/dart/NativeCall.dart
-    out/ReleaseIA32/dart benchmarks/FfiBoringssl/dart2/FfiBoringssl.dart
     out/ReleaseIA32/dart --sound-null-safety benchmarks/FfiBoringssl/dart/FfiBoringssl.dart
-    out/ReleaseIA32/dart benchmarks/FfiAsTypedList/dart2/FfiAsTypedList.dart
     out/ReleaseIA32/dart --sound-null-safety benchmarks/FfiAsTypedList/dart/FfiAsTypedList.dart
-    out/ReleaseIA32/dart benchmarks/FfiCall/dart2/FfiCall.dart
     out/ReleaseIA32/dart --sound-null-safety benchmarks/FfiCall/dart/FfiCall.dart
-    out/ReleaseIA32/dart benchmarks/FfiMemory/dart2/FfiMemory.dart
     out/ReleaseIA32/dart --sound-null-safety benchmarks/FfiMemory/dart/FfiMemory.dart
-    out/ReleaseIA32/dart benchmarks/FfiStruct/dart2/FfiStruct.dart
     out/ReleaseIA32/dart --sound-null-safety benchmarks/FfiStruct/dart/FfiStruct.dart
     cd ..
     rm -rf tmp
@@ -297,7 +291,7 @@ EOF
       out/ReleaseX64/gen/utils/dartdevc/sound/ \
       out/ReleaseX64/ddc_outline_sound.dill \
       sdk \
-      samples-dev/swarm \
+      pkg/compiler/test/codesize/swarm \
       third_party/pkg \
       .dart_tool/package_config.json \
       pkg \
@@ -320,23 +314,23 @@ EOF
     DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/precompiler2 --sound-null-safety hello.dart blob.bin
     DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/dart_precompiled_runtime2 --profile-period=10000 blob.bin
     out/ReleaseX64/dart --profile-period=10000 --optimization-counter-threshold=-1 hello.dart
-    out/ReleaseX64/dart-sdk/bin/dart compile js --out=out.js -m hello.dart
+    out/ReleaseX64/dart-sdk/bin/dart compile js --no-sound-null-safety --out=out.js -m hello.dart
     third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
     out/ReleaseX64/dart-sdk/bin/dart compile js --sound-null-safety --out=out.js -m hello.dart
     third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
-    out/ReleaseX64/dart-sdk/bin/dart compile js --out=out.js -m hello.dart
-    out/ReleaseX64/dart-sdk/bin/dart --print_metrics compile js --out=out.js -m hello.dart
+    out/ReleaseX64/dart-sdk/bin/dart compile js --no-sound-null-safety --out=out.js -m hello.dart
+    out/ReleaseX64/dart-sdk/bin/dart --print_metrics compile js --no-sound-null-safety --out=out.js -m hello.dart
     LD_LIBRARY_PATH=third_party/firefox_jsshell/ third_party/firefox_jsshell/js -f sdk/lib/_internal/js_runtime/lib/preambles/jsshell.js -f out.js
     out/ReleaseX64/dart-sdk/bin/dart compile js --sound-null-safety --out=out.js -m hello.dart
     LD_LIBRARY_PATH=third_party/firefox_jsshell/ third_party/firefox_jsshell/js -f sdk/lib/_internal/js_runtime/lib/preambles/jsshell.js -f out.js
-    out/ReleaseX64/dart-sdk/bin/dart compile js --benchmarking-production --out=out.js -m hello.dart
+    out/ReleaseX64/dart-sdk/bin/dart compile js --no-sound-null-safety --benchmarking-production --out=out.js -m hello.dart
     third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
     out/ReleaseX64/dart-sdk/bin/dart compile js --sound-null-safety --benchmarking-production --out=out.js -m hello.dart
     third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
-    out/ReleaseX64/dart-sdk/bin/dart compile js --benchmarking-x --out=out.js -m hello.dart
+    out/ReleaseX64/dart-sdk/bin/dart compile js --no-sound-null-safety --benchmarking-x --out=out.js -m hello.dart
     third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
-    out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 hello.dart
-    out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --mode=compile --compile-vm-options=--print-metrics --out out.js hello.dart
+    out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --no-sound-null-safety hello.dart
+    out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --no-sound-null-safety --mode=compile --compile-vm-options=--print-metrics --out out.js hello.dart
     out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --sound-null-safety hello.dart
     out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --sound-null-safety --mode=compile --compile-vm-options=--print-metrics --out out.js hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/perf.dart parse hello.dart
@@ -354,9 +348,9 @@ EOF
     out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot --sound-null-safety KernelServiceCompileAll
     out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot UseDartApi
     out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot --sound-null-safety UseDartApi
-    out/ReleaseX64/dart --profile-period=10000 benchmarks/Example/dart2/Example.dart
+    out/ReleaseX64/dart --profile-period=10000 benchmarks/Example/dart/Example.dart
     out/ReleaseX64/dart --sound-null-safety --profile-period=10000 benchmarks/Example/dart/Example.dart
-    out/ReleaseX64/dart --profile-period=10000 benchmarks/IsolateSpawn/dart2/IsolateSpawn.dart
+    out/ReleaseX64/dart --sound-null-safety --profile-period=10000 benchmarks/IsolateSpawn/dart/IsolateSpawn.dart
     cd ..
     rm -rf tmp
   else

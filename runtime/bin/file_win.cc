@@ -314,12 +314,16 @@ File* File::FileOpenW(const wchar_t* system_name, FileOpenMode mode) {
       return NULL;
     }
   }
+  return OpenFD(fd);
+}
+
+File* File::OpenFD(int fd) {
   return new File(new FileHandle(fd));
 }
 
 class StringRAII {
  public:
-  explicit StringRAII(StringRAII& origin) {
+  explicit StringRAII(StringRAII& origin) {  // NOLINT
     own_ = origin.own_;
     s_ = origin.release();
   }
@@ -542,9 +546,13 @@ bool File::ExistsUri(Namespace* namespc, const char* uri) {
   return File::Exists(namespc, uri_decoder.decoded());
 }
 
-bool File::Create(Namespace* namespc, const char* name) {
+bool File::Create(Namespace* namespc, const char* name, bool exclusive) {
   Utf8ToWideScope system_name(PrefixLongFilePath(name));
-  int fd = _wopen(system_name.wide(), O_RDONLY | O_CREAT, 0666);
+  int flags = O_RDONLY | O_CREAT;
+  if (exclusive) {
+    flags |= O_EXCL;
+  }
+  int fd = _wopen(system_name.wide(), flags, 0666);
   if (fd < 0) {
     return false;
   }
@@ -610,6 +618,17 @@ bool File::CreateLink(Namespace* namespc,
   }
 
   return (create_status != 0);
+}
+
+bool File::CreatePipe(Namespace* namespc, File** readPipe, File** writePipe) {
+  int pipe_fds[2];
+  int status = _pipe(pipe_fds, 4096, _O_BINARY);
+  if (status != 0) {
+    return false;
+  }
+  *readPipe = OpenFD(pipe_fds[0]);
+  *writePipe = OpenFD(pipe_fds[1]);
+  return true;
 }
 
 bool File::Delete(Namespace* namespc, const char* name) {

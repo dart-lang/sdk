@@ -360,7 +360,7 @@ class DevFS {
     }
     final pendingWrites = <Future<void>>[];
     for (int i = 0; i < uris.length; i++) {
-      final file = files[i].cast<String>();
+      final file = (files[i] as List<dynamic>).cast<String>();
       final decodedFileContents = base64.decode(file[1]);
       pendingWrites.add(writeFile(uris[i], decodedFileContents));
     }

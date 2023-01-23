@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "lib/integers.h"
+
 #include "vm/bootstrap_natives.h"
 
 #include <math.h>  // NOLINT
@@ -65,23 +67,6 @@ DEFINE_NATIVE_ENTRY(Double_div, 0, 2) {
     OS::PrintErr("Double_div %f / %f\n", left, right);
   }
   return Double::New(left / right);
-}
-
-DEFINE_NATIVE_ENTRY(Double_hashCode, 0, 1) {
-  double val = Double::CheckedHandle(zone, arguments->NativeArgAt(0)).value();
-  if (FLAG_trace_intrinsified_natives) {
-    OS::PrintErr("Double_hashCode %f\n", val);
-  }
-  if ((val >= kMinInt64RepresentableAsDouble) &&
-      (val <= kMaxInt64RepresentableAsDouble)) {
-    int64_t ival = static_cast<int64_t>(val);
-    if (static_cast<double>(ival) == val) {
-      return Integer::New(ival);
-    }
-  }
-
-  uint64_t uval = bit_cast<uint64_t>(val);
-  return Smi::New(((uval >> 32) ^ (uval)) & kSmiMax);
 }
 
 DEFINE_NATIVE_ENTRY(Double_modulo, 0, 2) {

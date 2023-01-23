@@ -88,10 +88,10 @@ io/https_nonblocking_trust_evaluation_test: SkipByDesign
 [ $builder_tag == swarming && $system == macos ]
 io/*: Skip # Issue 30618
 
-[ $compiler == none && $runtime == vm && $system == fuchsia ]
+[ $compiler == dartk && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
 
-[ $compiler != none && $runtime != dart_precompiled && $runtime != vm ]
+[ $compiler != dartk && $runtime != dart_precompiled && $runtime != vm ]
 env_test: Skip # This is testing a vm command line parsing scenario.
 
 [ $runtime == vm && $system == linux ]

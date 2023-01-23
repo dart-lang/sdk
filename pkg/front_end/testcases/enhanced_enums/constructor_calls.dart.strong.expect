@@ -63,12 +63,12 @@ class E extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E> values = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:8:8: Error: Couldn't find constructor 'E.f'.
   three.f(), // Error.
        ^";
-  static const field self::E one = #C3;
-  static const field self::E two = #C6;
-  static const field self::E three = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:8:8: Error: Couldn't find constructor 'E.f'.
+  enum-element static const field self::E one = #C3;
+  enum-element static const field self::E two = #C6;
+  enum-element static const field self::E three = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:8:8: Error: Couldn't find constructor 'E.f'.
   three.f(), // Error.
        ^";
-  static const field self::E four = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:9:7: Error: Couldn't find constructor 'E.f2'.
+  enum-element static const field self::E four = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:9:7: Error: Couldn't find constructor 'E.f2'.
   four.f2(); // Error.
       ^^";
   static final field dynamic _redirecting# = <dynamic>[#C7, #C8, #C9, #C10]/*isLegacy*/;
@@ -78,7 +78,7 @@ class E extends core::_Enum /*isEnum*/  {
   const constructor named(core::int #index, core::String #name) → self::E
     : this self::E::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
   static factory f() → self::E
     return invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:8:8: Error: Couldn't find constructor 'E.f'.
@@ -152,6 +152,6 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///constructor_calls.dart:
 - E. (from org-dartlang-testcase:///constructor_calls.dart:11:9)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - E.named (from org-dartlang-testcase:///constructor_calls.dart:13:9)

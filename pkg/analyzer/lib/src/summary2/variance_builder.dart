@@ -6,11 +6,13 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
+import 'package:analyzer/src/summary2/record_type_builder.dart';
 
 class VarianceBuilder {
   final Linker _linker;
@@ -23,9 +25,9 @@ class VarianceBuilder {
     for (var builder in _linker.builders.values) {
       for (var linkingUnit in builder.units) {
         for (var node in linkingUnit.node.declarations) {
-          if (node is FunctionTypeAlias) {
+          if (node is FunctionTypeAliasImpl) {
             _pending.add(node);
-          } else if (node is GenericTypeAlias) {
+          } else if (node is GenericTypeAliasImpl) {
             _pending.add(node);
           }
         }
@@ -35,17 +37,17 @@ class VarianceBuilder {
     for (var builder in _linker.builders.values) {
       for (var linkingUnit in builder.units) {
         for (var node in linkingUnit.node.declarations) {
-          if (node is ClassTypeAlias) {
+          if (node is ClassTypeAliasImpl) {
             _typeParameters(node.typeParameters);
-          } else if (node is ClassDeclaration) {
+          } else if (node is ClassDeclarationImpl) {
             _typeParameters(node.typeParameters);
-          } else if (node is EnumDeclaration) {
+          } else if (node is EnumDeclarationImpl) {
             _typeParameters(node.typeParameters);
-          } else if (node is FunctionTypeAlias) {
+          } else if (node is FunctionTypeAliasImpl) {
             _functionTypeAlias(node);
-          } else if (node is GenericTypeAlias) {
+          } else if (node is GenericTypeAliasImpl) {
             _genericTypeAlias(node);
-          } else if (node is MixinDeclaration) {
+          } else if (node is MixinDeclarationImpl) {
             _typeParameters(node.typeParameters);
           }
         }
@@ -63,7 +65,7 @@ class VarianceBuilder {
     } else if (type is NamedTypeBuilder) {
       var element = type.element;
       var arguments = type.arguments;
-      if (element is ClassElement) {
+      if (element is InterfaceElement) {
         var result = Variance.unrelated;
         if (arguments.isNotEmpty) {
           var parameters = element.typeParameters;
@@ -103,6 +105,14 @@ class VarianceBuilder {
         typeFormals: type.typeFormals,
         parameters: type.parameters,
       );
+    } else if (type is RecordTypeBuilder) {
+      var result = Variance.unrelated;
+      for (final field in type.node.fields) {
+        result = result.meet(
+          _compute(variable, field.type.typeOrThrow),
+        );
+      }
+      return result;
     }
     return Variance.unrelated;
   }

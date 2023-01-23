@@ -55,10 +55,10 @@ class DelayedDefaultValueCloner {
 
   DelayedDefaultValueCloner(
       this.original, this.synthesized, this._typeSubstitution,
-      {this.identicalSignatures: true,
-      List<int?>? positionalSuperParameters: null,
-      List<String>? namedSuperParameters: null,
-      this.isOutlineNode: false,
+      {this.identicalSignatures = true,
+      List<int?>? positionalSuperParameters = null,
+      List<String>? namedSuperParameters = null,
+      this.isOutlineNode = false,
       required LibraryBuilder libraryBuilder})
       : _positionalSuperParameters = positionalSuperParameters,
         _namedSuperParameters = namedSuperParameters,

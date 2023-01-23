@@ -140,7 +140,7 @@ class U79<T> {
   late List<T> Function<A>(List<T> x) Function<B extends core.int>(int x) x21;
   late List<A> Function<A>() Function<B extends core.int>(int x) x22;
 
-  U79({this.tIsBool: false, this.tIsInt: false})
+  U79({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   Function m0([List<Function> x = const []]) => throw 'uncalled';

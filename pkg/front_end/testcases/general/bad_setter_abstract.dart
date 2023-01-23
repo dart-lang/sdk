@@ -16,7 +16,7 @@ abstract class B {
   set d(x, y);
 }
 
-main() {
+test() {
   bool threw = false;
   try {
     threw = true;

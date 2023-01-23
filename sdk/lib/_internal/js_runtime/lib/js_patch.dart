@@ -8,8 +8,8 @@ import 'dart:typed_data' show TypedData;
 
 import 'dart:_foreign_helper' show JS, DART_CLOSURE_TO_JS;
 import 'dart:_interceptors' show DART_CLOSURE_PROPERTY_NAME;
-import 'dart:_js_helper'
-    show patch, Primitives, getIsolateAffinityTag, isJSFunction;
+import 'dart:_internal' show patch;
+import 'dart:_js_helper' show Primitives, getIsolateAffinityTag, isJSFunction;
 import 'dart:_js' show isBrowserObject, convertFromBrowserObject;
 
 @patch
@@ -17,7 +17,7 @@ JsObject get context => _context;
 
 final JsObject _context = _castToJsObject(_wrapToDart(JS('', 'self')));
 
-_convertDartFunction(Function f, {bool captureThis: false}) {
+_convertDartFunction(Function f, {bool captureThis = false}) {
   return JS(
       'JavaScriptFunction',
       '''
@@ -328,6 +328,9 @@ class JsArray<E> extends JsObject with ListMixin<E> {
   @patch
   E removeAt(int index) {
     _checkIndex(index);
+    // Avoid optimizing. Static type of [callMethod] is dynamic which makes
+    // indexing dynamic.
+    // ignore: avoid_dynamic_calls
     return callMethod('splice', [index, 1])[0];
   }
 

@@ -47,18 +47,18 @@ class InheritanceManager3 {
       Name(null, FunctionElement.NO_SUCH_METHOD_METHOD_NAME);
 
   /// Cached instance interfaces for [ClassElement].
-  final Map<ClassElement, Interface> _interfaces = {};
+  final Map<InterfaceElement, Interface> _interfaces = {};
 
   /// The set of classes that are currently being processed, used to detect
   /// self-referencing cycles.
-  final Set<ClassElement> _processingClasses = <ClassElement>{};
+  final Set<InterfaceElement> _processingClasses = {};
 
   /// Combine [candidates] into a single signature in the [targetClass].
   ///
   /// If such signature does not exist, return `null`, and if [conflicts] is
   /// not `null`, add a new [Conflict] to it.
   ExecutableElement? combineSignatures({
-    required ClassElement targetClass,
+    required InterfaceElement targetClass,
     required List<ExecutableElement> candidates,
     required bool doTopMerge,
     required Name name,
@@ -132,7 +132,7 @@ class InheritanceManager3 {
   /// at all, or because there is no the most specific signature.
   ///
   /// This is equivalent to `getInheritedMap2(type)[name]`.
-  ExecutableElement? getInherited2(ClassElement element, Name name) {
+  ExecutableElement? getInherited2(InterfaceElement element, Name name) {
     return getInheritedMap2(element)[name];
   }
 
@@ -156,7 +156,8 @@ class InheritanceManager3 {
 
   /// Return signatures of all concrete members that the given [element] inherits
   /// from the superclasses and mixins.
-  Map<Name, ExecutableElement> getInheritedConcreteMap2(ClassElement element) {
+  Map<Name, ExecutableElement> getInheritedConcreteMap2(
+      InterfaceElement element) {
     var interface = getInterface(element);
     return interface._superImplemented.last;
   }
@@ -185,7 +186,7 @@ class InheritanceManager3 {
   /// inherited from the super-interfaces (superclasses, mixins, and
   /// interfaces).  If there is no most specific signature for a name, the
   /// corresponding name will not be included.
-  Map<Name, ExecutableElement> getInheritedMap2(ClassElement element) {
+  Map<Name, ExecutableElement> getInheritedMap2(InterfaceElement element) {
     var interface = getInterface(element);
     var inheritedMap = interface._inheritedMap;
     if (inheritedMap == null) {
@@ -202,7 +203,7 @@ class InheritanceManager3 {
 
   /// Return the interface of the given [element].  It might include
   /// private members, not necessary accessible in all libraries.
-  Interface getInterface(ClassElement element) {
+  Interface getInterface(InterfaceElement element) {
     var result = _interfaces[element];
     if (result != null) {
       return result;
@@ -214,7 +215,7 @@ class InheritanceManager3 {
     }
 
     try {
-      if (element.isMixin) {
+      if (element is MixinElement) {
         result = _getInterfaceMixin(element);
       } else {
         result = _getInterfaceClass(element);
@@ -262,7 +263,7 @@ class InheritanceManager3 {
   /// given number of mixins after it are considered.  For example for `1` in
   /// `class C extends S with M1, M2, M3`, only `S` and `M1` are considered.
   ExecutableElement? getMember2(
-    ClassElement element,
+    InterfaceElement element,
     Name name, {
     bool concrete = false,
     int forMixinIndex = -1,
@@ -298,7 +299,7 @@ class InheritanceManager3 {
   /// Return all members of mixins, superclasses, and interfaces that a member
   /// with the given [name], defined in the [element], would override; or `null`
   /// if no members would be overridden.
-  List<ExecutableElement>? getOverridden2(ClassElement element, Name name) {
+  List<ExecutableElement>? getOverridden2(InterfaceElement element, Name name) {
     var interface = getInterface(element);
     return interface._overridden[name];
   }
@@ -339,7 +340,7 @@ class InheritanceManager3 {
 
   void _addImplemented(
     Map<Name, ExecutableElement> implemented,
-    ClassElement element,
+    InterfaceElement element,
   ) {
     var libraryUri = element.librarySource.uri;
 
@@ -413,7 +414,7 @@ class InheritanceManager3 {
   /// such single most specific signature (i.e. no valid override), then add a
   /// new conflict description.
   List<Conflict> _findMostSpecificFromNamedCandidates(
-    ClassElement targetClass,
+    InterfaceElement targetClass,
     Map<Name, ExecutableElement> map,
     Map<Name, List<ExecutableElement>> namedCandidates, {
     required bool doTopMerge,
@@ -445,7 +446,7 @@ class InheritanceManager3 {
     return conflicts;
   }
 
-  Interface _getInterfaceClass(ClassElement element) {
+  Interface _getInterfaceClass(InterfaceElement element) {
     var classLibrary = element.library;
     var isNonNullableByDefault = classLibrary.isNonNullableByDefault;
 
@@ -453,8 +454,9 @@ class InheritanceManager3 {
     var superImplemented = <Map<Name, ExecutableElement>>[];
     var implemented = <Name, ExecutableElement>{};
 
+    final InterfaceType? superType = element.supertype;
+
     Interface? superTypeInterface;
-    var superType = element.supertype;
     if (superType != null) {
       var substitution = Substitution.fromInterfaceType(superType);
       superTypeInterface = getInterface(superType.element);
@@ -601,7 +603,7 @@ class InheritanceManager3 {
     );
 
     var noSuchMethodForwarders = <Name>{};
-    if (element.isAbstract) {
+    if (element is ClassElement && element.isAbstract) {
       if (superTypeInterface != null) {
         noSuchMethodForwarders = superTypeInterface._noSuchMethodForwarders;
       }
@@ -644,7 +646,7 @@ class InheritanceManager3 {
     );
   }
 
-  Interface _getInterfaceMixin(ClassElement element) {
+  Interface _getInterfaceMixin(MixinElement element) {
     var classLibrary = element.library;
     var isNonNullableByDefault = classLibrary.isNonNullableByDefault;
 
@@ -709,7 +711,7 @@ class InheritanceManager3 {
   /// covariant. If there are no covariant parameters, or parameters to
   /// update are already covariant, return the [executable] itself.
   ExecutableElement _inheritCovariance(
-    ClassElement class_,
+    InterfaceElement class_,
     Map<Name, List<ExecutableElement>> namedCandidates,
     Name name,
     ExecutableElement executable,
@@ -777,7 +779,7 @@ class InheritanceManager3 {
       return result;
     }
 
-    if (executable is PropertyAccessorElement) {
+    if (executable is PropertyAccessorElementImpl) {
       assert(executable.isSetter);
       var result = PropertyAccessorElementImpl(executable.name, -1);
       result.enclosingElement = class_;
@@ -804,7 +806,7 @@ class InheritanceManager3 {
   /// signature. This signature always exists.
   ExecutableElement _topMerge(
     TypeSystemImpl typeSystem,
-    ClassElement targetClass,
+    InterfaceElement targetClass,
     List<ExecutableElement> validOverrides,
   ) {
     var first = validOverrides[0];
@@ -876,7 +878,9 @@ class InheritanceManager3 {
     }
   }
 
-  static Map<Name, ExecutableElement> _getTypeMembers(ClassElement element) {
+  static Map<Name, ExecutableElement> _getTypeMembers(
+    InterfaceElement element,
+  ) {
     var declared = <Name, ExecutableElement>{};
     var libraryUri = element.librarySource.uri;
 
@@ -903,9 +907,7 @@ class InheritanceManager3 {
 
   static bool _isDeclaredInObject(ExecutableElement element) {
     var enclosing = element.enclosingElement;
-    return enclosing is ClassElement &&
-        enclosing.supertype == null &&
-        !enclosing.isMixin;
+    return enclosing is ClassElement && enclosing.isDartCoreObject;
   }
 }
 

@@ -11,6 +11,7 @@
 #include "vm/heap/heap.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
+#include "vm/object_graph.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/stack_frame.h"
@@ -80,7 +81,7 @@ DEFINE_NATIVE_ENTRY(Object_runtimeType, 0, 1) {
     return Type::IntType();
   } else if (instance.IsDouble()) {
     return Type::Double();
-  } else if (instance.IsType() || instance.IsFunctionType()) {
+  } else if (instance.IsAbstractType()) {
     return Type::DartTypeType();
   } else if (IsArrayClassId(instance.GetClassId())) {
     const auto& cls = Class::Handle(
@@ -142,6 +143,26 @@ static bool HaveSameRuntimeTypeHelper(Zone* zone,
     const AbstractType& right_type =
         AbstractType::Handle(zone, right.GetType(Heap::kNew));
     return left_type.IsEquivalent(right_type, TypeEquality::kSyntactical);
+  }
+
+  if (left_cid == kRecordCid) {
+    const auto& left_record = Record::Cast(left);
+    const auto& right_record = Record::Cast(right);
+    const intptr_t num_fields = left_record.num_fields();
+    if ((num_fields != right_record.num_fields()) ||
+        (left_record.field_names() != right_record.field_names())) {
+      return false;
+    }
+    Instance& left_field = Instance::Handle(zone);
+    Instance& right_field = Instance::Handle(zone);
+    for (intptr_t i = 0; i < num_fields; ++i) {
+      left_field ^= left_record.FieldAt(i);
+      right_field ^= right_record.FieldAt(i);
+      if (!HaveSameRuntimeTypeHelper(zone, left_field, right_field)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   const Class& cls = Class::Handle(zone, left.clazz());
@@ -217,6 +238,26 @@ DEFINE_NATIVE_ENTRY(AbstractType_toString, 0, 1) {
   return type.UserVisibleName();
 }
 
+DEFINE_NATIVE_ENTRY(AbstractType_getHashCode, 0, 1) {
+  const AbstractType& type =
+      AbstractType::CheckedHandle(zone, arguments->NativeArgAt(0));
+  intptr_t hash_val = type.Hash();
+  ASSERT(hash_val > 0);
+  ASSERT(Smi::IsValid(hash_val));
+  return Smi::New(hash_val);
+}
+
+DEFINE_NATIVE_ENTRY(AbstractType_equality, 0, 2) {
+  const AbstractType& type =
+      AbstractType::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const Instance& other =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(1));
+  if (type.ptr() == other.ptr()) {
+    return Bool::True().ptr();
+  }
+  return Bool::Get(type.IsEquivalent(other, TypeEquality::kSyntactical)).ptr();
+}
+
 DEFINE_NATIVE_ENTRY(Type_getHashCode, 0, 1) {
   const Type& type = Type::CheckedHandle(zone, arguments->NativeArgAt(0));
   intptr_t hash_val = type.Hash();
@@ -227,26 +268,6 @@ DEFINE_NATIVE_ENTRY(Type_getHashCode, 0, 1) {
 
 DEFINE_NATIVE_ENTRY(Type_equality, 0, 2) {
   const Type& type = Type::CheckedHandle(zone, arguments->NativeArgAt(0));
-  const Instance& other =
-      Instance::CheckedHandle(zone, arguments->NativeArgAt(1));
-  if (type.ptr() == other.ptr()) {
-    return Bool::True().ptr();
-  }
-  return Bool::Get(type.IsEquivalent(other, TypeEquality::kSyntactical)).ptr();
-}
-
-DEFINE_NATIVE_ENTRY(FunctionType_getHashCode, 0, 1) {
-  const FunctionType& type =
-      FunctionType::CheckedHandle(zone, arguments->NativeArgAt(0));
-  intptr_t hash_val = type.Hash();
-  ASSERT(hash_val > 0);
-  ASSERT(Smi::IsValid(hash_val));
-  return Smi::New(hash_val);
-}
-
-DEFINE_NATIVE_ENTRY(FunctionType_equality, 0, 2) {
-  const FunctionType& type =
-      FunctionType::CheckedHandle(zone, arguments->NativeArgAt(0));
   const Instance& other =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(1));
   if (type.ptr() == other.ptr()) {
@@ -309,13 +330,46 @@ DEFINE_NATIVE_ENTRY(Internal_nativeEffect, 0, 1) {
 }
 
 DEFINE_NATIVE_ENTRY(Internal_collectAllGarbage, 0, 0) {
-  isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
+  isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging,
+                                              /*compact=*/true);
+  return Object::null();
+}
+
+DEFINE_NATIVE_ENTRY(Internal_writeHeapSnapshotToFile, 0, 1) {
+#if !defined(PRODUCT)
+  const String& filename =
+      String::CheckedHandle(zone, arguments->NativeArgAt(0));
+  {
+    FileHeapSnapshotWriter file_writer(thread, filename.ToCString());
+    HeapSnapshotWriter writer(thread, &file_writer);
+    writer.Write();
+  }
+#else
+  Exceptions::ThrowUnsupportedError(
+      "Heap snapshots are only supported in non-product mode.");
+#endif  // !defined(PRODUCT)
   return Object::null();
 }
 
 DEFINE_NATIVE_ENTRY(Internal_deoptimizeFunctionsOnStack, 0, 0) {
   DeoptimizeFunctionsOnStack();
   return Object::null();
+}
+
+DEFINE_NATIVE_ENTRY(Internal_randomInstructionsOffsetInsideAllocateObjectStub,
+                    0,
+                    0) {
+  auto& stub = Code::Handle(
+      zone, isolate->group()->object_store()->allocate_object_stub());
+  const uword entry = stub.EntryPoint();
+  const uword random_offset = isolate->random()->NextUInt32() % stub.Size();
+  // We return the offset into the isolate instructions instead of the full
+  // address because that fits into small Smis on 32-bit architectures or
+  // compressed pointer builds.
+  const uword instructions_start =
+      reinterpret_cast<uword>(isolate->source()->snapshot_instructions);
+  ASSERT(entry >= instructions_start);
+  return Smi::New((entry - instructions_start) + random_offset);
 }
 
 static bool ExtractInterfaceTypeArgs(Zone* zone,

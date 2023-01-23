@@ -23,9 +23,9 @@ abstract class Interface {
 
   int? method4c([int? a, int? b]);
 
-  int method5a(int a, {int b: 0});
+  int method5a(int a, {int b = 0});
 
-  int method5b({int a: 0, int b: 0});
+  int method5b({int a = 0, int b = 0});
 
   int method5c({required int a, required int b});
 
@@ -89,9 +89,9 @@ class Class2b extends LegacyClass implements Interface {
 
   int? method4c([int? a, int? b]) => 0;
 
-  int method5a(int a, {int b: 0}) => 0;
+  int method5a(int a, {int b = 0}) => 0;
 
-  int method5b({int a: 0, int b: 0}) => 0;
+  int method5b({int a = 0, int b = 0}) => 0;
 
   int method5c({required int a, required int b}) => 0;
 

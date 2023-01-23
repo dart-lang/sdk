@@ -75,7 +75,7 @@ class RenderingScheduler<T extends Renderable> implements RenderingTask {
   /// Disable the scheduler.
   /// New dirty or schedule request will be discarded.
   /// [optional] notify: send a final RenderEvent.
-  void disable({bool notify: false}) {
+  void disable({bool notify = false}) {
     assert(notify != null);
     if (!_enabled) return;
     _enabled = false;

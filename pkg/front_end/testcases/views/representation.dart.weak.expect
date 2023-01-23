@@ -1,0 +1,24 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/views/representation.dart:19:13: Error: 'instanceField' is already declared in this scope.
+//   final int instanceField;
+//             ^^^^^^^^^^^^^
+// pkg/front_end/testcases/views/representation.dart:18:14: Context: Previous declaration of 'instanceField'.
+//   final bool instanceField;
+//              ^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+view Missing /* representationType = invalid-type */ {
+}
+view Static /* representationType = core::bool */ {
+  static field staticField = self::staticField;
+}
+view Multiple /* representationType = core::bool */ {
+}
+view Duplicate /* representationType = core::bool */ {
+}
+static field core::int staticField = 42;

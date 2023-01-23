@@ -15,7 +15,7 @@ class DartGenerator {
 
   final int colBoundary;
 
-  String _indent = "";
+  String _indent = '';
   final StringBuffer _buf = StringBuffer();
 
   bool _previousWasEol = false;
@@ -56,27 +56,27 @@ class DartGenerator {
         writeln(str);
       } else {
         writeln(str.substring(0, index + 1));
-        writeln("    ${str.substring(index + 1)}");
+        writeln('    ${str.substring(index + 1)}');
       }
     } else {
       writeln(str);
     }
   }
 
-  void writeln([String str = ""]) => _write("${str}\n");
+  void writeln([String str = '']) => _write('${str}\n');
 
   void write(String str) => _write(str);
 
   void out(String str) => _buf.write(str);
 
-  void _writeln([String str = "", bool ignoreCurlies = false]) =>
-      _write("${str}\n", ignoreCurlies);
+  void _writeln([String str = '', bool ignoreCurlies = false]) =>
+      _write('${str}\n', ignoreCurlies);
 
   void _write(String str, [bool ignoreCurlies = false]) {
     for (final int rune in str.runes) {
       if (!ignoreCurlies) {
         if (rune == RUNE_LEFT_CURLY) {
-          _indent = "${_indent}  ";
+          _indent = '${_indent}  ';
         } else if (rune == RUNE_RIGHT_CURLY && _indent.length >= 2) {
           _indent = _indent.substring(2);
         }

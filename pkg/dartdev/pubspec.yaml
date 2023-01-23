@@ -21,10 +21,12 @@ dependencies:
   front_end: any
   meta: any
   nnbd_migration: any
+  package_config: any
   path: any
   pub: any
   telemetry: any
   usage: any
+  yaml: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
@@ -32,4 +34,3 @@ dev_dependencies:
   lints: any
   pub_semver: any
   test: any
-  yaml: any

@@ -1,0 +1,15 @@
+test(dynamic x) {
+switch (x) {
+case (n: 1 as int, 2):
+break;
+}
+}
+
+
+test[StringToken]([BeginToken]dynamic[KeywordToken] x[StringToken])[SimpleToken] {[BeginToken]
+switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+case[KeywordToken] ([BeginToken]n[StringToken]:[SimpleToken] 1[StringToken] as[KeywordToken] int[StringToken],[SimpleToken] 2[StringToken])[SimpleToken]:[SimpleToken]
+break[KeywordToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

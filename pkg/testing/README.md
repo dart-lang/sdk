@@ -195,7 +195,7 @@ The `Dart` suite makes certain assumptions about the tests it runs.
 
  * An asynchronous test returns a `Future` from its `main`.
 
- * Tests manages global state.
+ * Tests manage global state.
 
 All tests are imported into the same program as individual libraries, which is why they all must use the same `.packages` file. The tests aren't concatenated, so they have the lexical scope you'd normally expect from a Dart library.
 

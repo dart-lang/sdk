@@ -28,3 +28,4 @@ worlds:
       lib.dart: |
         const Set<int> bar = {42};
     expectedLibraryCount: 2
+    advancedInvalidation: outlineChange

@@ -4,6 +4,11 @@
 
 // Test switch statement using labels.
 
+// VMOptions=
+// VMOptions=--force-switch-dispatch-type=0
+// VMOptions=--force-switch-dispatch-type=1
+// VMOptions=--force-switch-dispatch-type=2
+
 import 'package:expect/expect.dart';
 
 void main() {

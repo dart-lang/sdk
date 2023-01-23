@@ -40,14 +40,11 @@ class PackageGenerator extends DefaultGenerator {
 }
 
 final String _gitignore = '''
-# Files and directories created by pub.
+# https://dart.dev/guides/libraries/private-files
+# Created by `dart pub`
 .dart_tool/
-.packages
 
-# Conventional directory for build outputs.
-build/
-
-# Omit committing pubspec.lock for library packages; see
+# Avoid committing pubspec.lock for library packages; see
 # https://dart.dev/guides/libraries/private-files#pubspeclock.
 pubspec.lock
 ''';
@@ -56,7 +53,7 @@ final String _pubspec = '''
 name: __projectName__
 description: A starting point for Dart libraries or applications.
 version: 1.0.0
-# homepage: https://www.example.com
+# repository: https://github.com/my_org/my_repo
 
 environment:
   ${common.sdkConstraint}
@@ -66,7 +63,7 @@ environment:
 
 dev_dependencies:
   lints: ^2.0.0
-  test: ^1.16.0
+  test: ^1.21.0
 ''';
 
 final String _readme = '''

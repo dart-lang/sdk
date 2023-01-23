@@ -1,0 +1,34 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test(dynamic x) → dynamic {
+  final dynamic #t1 = x;
+  if(#t1 =={core::Object::==}{(core::Object) → core::bool} 1) {
+  }
+  final dynamic #t2 = x;
+  if(#t2 == null) {
+  }
+  final dynamic #t3 = x;
+  if(#t3 =={core::Object::==}{(core::Object) → core::bool} "foo".{core::String::length}{core::int}) {
+  }
+  final dynamic #t4 = x;
+  if(!(#t4 =={core::Object::==}{(core::Object) → core::bool} 1)) {
+  }
+  final dynamic #t5 = x;
+  if(!(#t5 == null)) {
+  }
+  final dynamic #t6 = x;
+  if(#t6{dynamic}.<(1)) {
+  }
+  final dynamic #t7 = x;
+  if(#t7{dynamic}.<=(1)) {
+  }
+  final dynamic #t8 = x;
+  if(#t8{dynamic}.>(1)) {
+  }
+  final dynamic #t9 = x;
+  if(#t9{dynamic}.>=(1)) {
+  }
+}
+static method main() → dynamic {}

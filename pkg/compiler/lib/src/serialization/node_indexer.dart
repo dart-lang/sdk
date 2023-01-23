@@ -355,6 +355,18 @@ class ConstantNodeIndexerVisitor implements ir.ConstantVisitor<void> {
   }
 
   @override
+  void visitRecordConstant(ir.RecordConstant node) {
+    if (_register(node)) {
+      for (ir.Constant field in node.positional) {
+        field.accept(this);
+      }
+      for (ir.Constant field in node.named.values) {
+        field.accept(this);
+      }
+    }
+  }
+
+  @override
   void visitSymbolConstant(ir.SymbolConstant node) {
     _register(node);
   }

@@ -5,10 +5,14 @@
 @deprecated
 library analyzer.test.constant_test;
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -50,6 +54,18 @@ class ConstantEvaluatorTest extends PubPackageResolutionTest {
     await _assertValueInt(74 ^ 42, "74 ^ 42");
   }
 
+  /// See https://github.com/dart-lang/sdk/issues/50045
+  test_bool_fromEnvironment_dartLibraryJsUtil() async {
+    await resolveTestCode('''
+const x = bool.fromEnvironment('dart.library.js_util');
+''');
+
+    _assertTopVarConstValue('x', r'''
+bool <unknown>
+  variable: self::@variable::x
+''');
+  }
+
   test_conditionalExpression_unknownCondition_dynamic() async {
     await assertErrorsInCode('''
 const bool kIsWeb = identical(0, 0.0);
@@ -63,9 +79,10 @@ const x = kIsWeb ? a : b;
           1),
     ]);
 
-    var x_result = findElement.topVar('x').evaluationResult;
-    assertDartObjectText(x_result.value, r'''
+    var result = findElement.topVar('x').evaluationResult;
+    assertDartObjectText(result.value, r'''
 dynamic <unknown>
+  variable: self::@variable::x
 ''');
   }
 
@@ -371,6 +388,46 @@ const [for (var i = 0; i < 4; i++) i]
     await _assertValueInt(-42, "-42");
   }
 
+  /// Even though it is an error to specify a default value for a required
+  /// parameter, we still can evaluate it.
+  test_normalParameter_requiredNamed_hasDefault() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  A({required int x = 42});
+}
+''');
+
+    final unitResult = await _getUnitElement(a);
+    final x = unitResult.findElement.parameter('x');
+    assertDartObjectText(
+      x.computeConstantValue(),
+      r'''
+int 42
+''',
+      libraryElement: unitResult.library,
+    );
+  }
+
+  /// Even though it is an error to specify a default value for a required
+  /// parameter, we still can evaluate it.
+  test_normalParameter_requiredNamed_noDefault() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  A({required int? x});
+}
+''');
+
+    final unitResult = await _getUnitElement(a);
+    final x = unitResult.findElement.parameter('x');
+    assertDartObjectText(
+      x.computeConstantValue(),
+      r'''
+Null null
+''',
+      libraryElement: unitResult.library,
+    );
+  }
+
   test_notEqual_boolean_boolean() async {
     await _assertValueBool(true, "true != false");
   }
@@ -404,12 +461,14 @@ const x2 = E.v2;
 E
   _name: String v1
   index: int 0
+  variable: self::@variable::x1
 ''');
 
     _assertTopVarConstValue('x2', r'''
 E
   _name: String v2
   index: int 1
+  variable: self::@variable::x2
 ''');
   }
 
@@ -430,7 +489,9 @@ E
     _name: String v1
     a: int 42
     index: int 0
+    variable: self::@enum::E::@field::v1
   index: int 1
+  variable: self::@enum::E::@field::v2
 ''');
   }
 
@@ -452,6 +513,7 @@ E<double>
   _name: String v1
   f: double 10.0
   index: int 0
+  variable: self::@variable::x1
 ''');
 
     _assertTopVarConstValue('x2', r'''
@@ -459,6 +521,7 @@ E<int>
   _name: String v2
   f: int 20
   index: int 1
+  variable: self::@variable::x2
 ''');
   }
 
@@ -482,6 +545,7 @@ E<int>
   _name: String v1
   f: int 10
   index: int 0
+  variable: self::@variable::x1
 ''');
 
     _assertTopVarConstValue('x2', r'''
@@ -489,6 +553,7 @@ E<int>
   _name: String v2
   f: int 20
   index: int 1
+  variable: self::@variable::x2
 ''');
 
     _assertTopVarConstValue('x3', r'''
@@ -496,6 +561,7 @@ E<String>
   _name: String v3
   f: String abc
   index: int 2
+  variable: self::@variable::x3
 ''');
   }
 
@@ -547,6 +613,54 @@ E<String>
     expect(value, null);
   }
 
+  test_record_mixed() async {
+    await assertNoErrorsInCode(r'''
+const x = (0, f1: 10, f2: 2.3);
+''');
+
+    final value = _topVarConstValue('x');
+    assertDartObjectText(value, r'''
+Record
+  positionalFields
+    $0: int 0
+  namedFields
+    f1: int 10
+    f2: double 2.3
+  variable: self::@variable::x
+''');
+  }
+
+  test_record_named() async {
+    await assertNoErrorsInCode(r'''
+const x = (f1: 10, f2: -3);
+''');
+
+    final value = _topVarConstValue('x');
+    assertDartObjectText(value, r'''
+Record
+  namedFields
+    f1: int 10
+    f2: int -3
+  variable: self::@variable::x
+''');
+  }
+
+  test_record_positional() async {
+    await assertNoErrorsInCode(r'''
+const x = (20, 0, 7);
+''');
+
+    final value = _topVarConstValue('x');
+    assertDartObjectText(value, r'''
+Record
+  positionalFields
+    $0: int 20
+    $1: int 0
+    $2: int 7
+  variable: self::@variable::x
+''');
+  }
+
   @failingTest
   test_simpleIdentifier_invalid() async {
     var result = await _getExpressionValue("?");
@@ -594,6 +708,7 @@ B
     a: int 1
     b: int 2
   c: int 3
+  variable: self::@variable::x
 ''');
   }
 
@@ -620,6 +735,7 @@ B
     a: int 1
     b: int 2
   c: int 3
+  variable: self::@variable::x
 ''');
   }
 
@@ -644,6 +760,7 @@ B
   (super): A
     a: int 1
   b: int 2
+  variable: self::@variable::x
 ''');
   }
 
@@ -668,6 +785,7 @@ B<int>
   (super): A
     a: int 1
   b: int 2
+  variable: self::@variable::x
 ''');
   }
 
@@ -692,6 +810,7 @@ B
   (super): A
     a: int 1
   b: int 2
+  variable: self::@variable::x
 ''');
   }
 
@@ -716,6 +835,7 @@ B<int>
   (super): A
     a: int 1
   b: int 2
+  variable: self::@variable::x
 ''');
   }
 
@@ -740,6 +860,7 @@ B
   (super): A
     a: int 1
   b: int 2
+  variable: self::@variable::x
 ''');
   }
 
@@ -764,6 +885,7 @@ B<int>
   (super): A
     a: int 1
   b: int 2
+  variable: self::@variable::x
 ''');
   }
 
@@ -788,6 +910,7 @@ B
   (super): A
     a: int 1
   b: int 2
+  variable: self::@variable::x
 ''');
   }
 
@@ -812,6 +935,68 @@ B<int>
   (super): A
     a: int 1
   b: int 2
+  variable: self::@variable::x
+''');
+  }
+
+  test_unknownConstuctor() async {
+    await assertErrorsInCode('''
+class C<T> {
+  const C.named();
+}
+
+const x = C<int>.();
+''', [
+      // TODO(https://github.com/dart-lang/sdk/issues/50441): This should not be
+      // reported.
+      error(CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER,
+          45, 8),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 52, 1),
+    ]);
+
+    var result = findElement.topVar('x').evaluationResult;
+    assertDartObjectText(result.value, r'''
+<null>
+''');
+  }
+
+  test_variable_alias() async {
+    await resolveTestCode('''
+const a = 42;
+const b = a;
+''');
+
+    final a_result = findElement.topVar('a').evaluationResult;
+    assertDartObjectText(a_result.value, r'''
+int 42
+  variable: self::@variable::a
+''');
+
+    final b_result = findElement.topVar('b').evaluationResult;
+    assertDartObjectText(b_result.value, r'''
+int 42
+  variable: self::@variable::b
+''');
+  }
+
+  test_variable_list_elements() async {
+    await resolveTestCode('''
+const a = 0;
+const b = 2;
+const c = [a, 1, b];
+''');
+
+    final b_result = findElement.topVar('c').evaluationResult;
+    assertDartObjectText(b_result.value, r'''
+List
+  elementType: int
+  elements
+    int 0
+      variable: self::@variable::a
+    int 1
+    int 2
+      variable: self::@variable::b
+  variable: self::@variable::c
 ''');
   }
 
@@ -867,10 +1052,33 @@ $context
     return evaluator.evaluate(expression);
   }
 
+  Future<_UnitElementResult> _getUnitElement(File file) async {
+    final analysisSession = contextFor(file).currentSession;
+    final unitResult = await analysisSession.getUnitElement(file.path);
+    unitResult as UnitElementResult;
+    return _UnitElementResult(unitResult.element);
+  }
+
   EvaluationResultImpl _topVarConstResult(String name) {
     var element = findElement.topVar(name) as ConstTopLevelVariableElementImpl;
     return element.evaluationResult!;
   }
+
+  DartObjectImpl _topVarConstValue(String name) {
+    return _topVarConstResult(name).value!;
+  }
+}
+
+class _UnitElementResult {
+  final CompilationUnitElement element;
+
+  _UnitElementResult(this.element);
+
+  PartFindElement get findElement {
+    return PartFindElement(element);
+  }
+
+  LibraryElement get library => element.library;
 }
 
 extension on VariableElement {

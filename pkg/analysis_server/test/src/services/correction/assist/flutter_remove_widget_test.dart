@@ -33,6 +33,69 @@ class FlutterRemoveWidgetTest extends AssistProcessorTest {
     );
   }
 
+  Future<void> test_builder_blockFunctionBody() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+void f() {
+  /*caret*/Builder(
+    builder: (context) {
+      return Text('');
+    }
+  );
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/material.dart';
+void f() {
+  Text('');
+}
+''');
+  }
+
+  Future<void> test_builder_blockFunctionBody_many_statements() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+void f() {
+  /*caret*/Builder(
+    builder: (context) {
+      var i = 1;
+      return Text('');
+    }
+  );
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_builder_expressionFunctionBody() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+void f() {
+  /*caret*/Builder(
+    builder: (context) => Text('')
+  );
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/material.dart';
+void f() {
+  Text('');
+}
+''');
+  }
+
+  Future<void> test_builder_parameter_used() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+void f() {
+  /*caret*/Builder(
+    builder: (context) => context.widget
+  );
+}
+''');
+    await assertNoAssist();
+  }
+
   Future<void> test_childIntoChild_multiLine() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
@@ -236,6 +299,52 @@ void f() {
       ),
       Text('fff'),
     ],
+  );
+}
+''');
+  }
+
+  Future<void> test_prefixedConstructor_onConstructor() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as m;
+void f() {
+  Center(
+    child: m./*caret*/Center(
+      child: Text(''),
+    ),
+  );
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as m;
+void f() {
+  Center(
+    child: Text(''),
+  );
+}
+''');
+  }
+
+  Future<void> test_prefixedConstructor_onPrefix() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as m;
+void f() {
+  Center(
+    child: /*caret*/m.Center(
+      child: Text(''),
+    ),
+  );
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as m;
+void f() {
+  Center(
+    child: Text(''),
   );
 }
 ''');

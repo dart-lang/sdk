@@ -1,0 +1,19 @@
+class Foo {
+final (int a, int b) x = (42, 42);
+static (int a, int b) y = (42, 42);
+static final (int a, int b) z = (42, 42);
+static const (int a, int b) b = (42, 42);
+late (int a, int b) c;
+late final (int a, int b) d;
+}
+
+
+class[KeywordToken] Foo[StringToken] {[BeginToken]
+final[KeywordToken] ([BeginToken]int[StringToken] a[StringToken],[SimpleToken] int[StringToken] b[StringToken])[SimpleToken] x[StringToken] =[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] 42[StringToken])[SimpleToken];[SimpleToken]
+static[KeywordToken] ([BeginToken]int[StringToken] a[StringToken],[SimpleToken] int[StringToken] b[StringToken])[SimpleToken] y[StringToken] =[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] 42[StringToken])[SimpleToken];[SimpleToken]
+static[KeywordToken] final[KeywordToken] ([BeginToken]int[StringToken] a[StringToken],[SimpleToken] int[StringToken] b[StringToken])[SimpleToken] z[StringToken] =[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] 42[StringToken])[SimpleToken];[SimpleToken]
+static[KeywordToken] const[KeywordToken] ([BeginToken]int[StringToken] a[StringToken],[SimpleToken] int[StringToken] b[StringToken])[SimpleToken] b[StringToken] =[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] 42[StringToken])[SimpleToken];[SimpleToken]
+late[KeywordToken] ([BeginToken]int[StringToken] a[StringToken],[SimpleToken] int[StringToken] b[StringToken])[SimpleToken] c[StringToken];[SimpleToken]
+late[KeywordToken] final[KeywordToken] ([BeginToken]int[StringToken] a[StringToken],[SimpleToken] int[StringToken] b[StringToken])[SimpleToken] d[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

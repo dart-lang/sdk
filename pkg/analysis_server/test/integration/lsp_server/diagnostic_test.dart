@@ -40,7 +40,7 @@ void f() {
     expect(relatedInformation, hasLength(1));
     final relatedInfo = relatedInformation.first;
     expect(relatedInfo.message, equals("The declaration of 'x' is here."));
-    expect(relatedInfo.location.uri, equals('$mainFileUri'));
+    expect(relatedInfo.location.uri, equals(mainFileUri));
     expect(relatedInfo.location.range, equals(rangeFromMarkers(content)));
   }
 

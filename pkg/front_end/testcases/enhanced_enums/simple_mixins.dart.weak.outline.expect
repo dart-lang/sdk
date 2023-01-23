@@ -27,11 +27,11 @@ abstract class _E1&_Enum&A = core::_Enum with self::A /*isAnonymousMixin,hasCons
 }
 class E1 extends self::_E1&_Enum&A /*isEnum*/  {
   static const field core::List<self::E1> values = const <self::E1>[self::E1::one, self::E1::two];
-  static const field self::E1 one = const self::E1::•(0, "one");
-  static const field self::E1 two = const self::E1::•(1, "two");
+  enum-element static const field self::E1 one = const self::E1::•(0, "one");
+  enum-element static const field self::E1 two = const self::E1::•(1, "two");
   const constructor •(core::int #index, core::String #name) → self::E1
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class _E2&_Enum&A = core::_Enum with self::A /*isAnonymousMixin,hasConstConstructor*/  {
@@ -50,11 +50,11 @@ abstract class _E2&_Enum&A&B = self::_E2&_Enum&A with self::B /*isAnonymousMixin
 }
 class E2 extends self::_E2&_Enum&A&B /*isEnum*/  {
   static const field core::List<self::E2> values = const <self::E2>[self::E2::one, self::E2::two];
-  static const field self::E2 one = const self::E2::•(0, "one");
-  static const field self::E2 two = const self::E2::•(1, "two");
+  enum-element static const field self::E2 one = const self::E2::•(0, "one");
+  enum-element static const field self::E2 two = const self::E2::•(1, "two");
   const constructor •(core::int #index, core::String #name) → self::E2
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class _E3&_Enum&M = core::_Enum with self::M /*isAnonymousMixin,hasConstConstructor*/  {
@@ -66,11 +66,11 @@ abstract class _E3&_Enum&M = core::_Enum with self::M /*isAnonymousMixin,hasCons
 }
 class E3 extends self::_E3&_Enum&M /*isEnum*/  {
   static const field core::List<self::E3> values = const <self::E3>[self::E3::one, self::E3::two];
-  static const field self::E3 one = const self::E3::•(0, "one");
-  static const field self::E3 two = const self::E3::•(1, "two");
+  enum-element static const field self::E3 one = const self::E3::•(0, "one");
+  enum-element static const field self::E3 two = const self::E3::•(1, "two");
   const constructor •(core::int #index, core::String #name) → self::E3
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E3.${this.{core::_Enum::_name}{core::String}}";
 }
 static method expectEquals(dynamic x, dynamic y) → dynamic

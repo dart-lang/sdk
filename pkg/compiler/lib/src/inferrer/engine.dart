@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:kernel/ast.dart' as ir;
 
 import '../../compiler_api.dart' as api;
@@ -12,7 +10,7 @@ import '../common.dart';
 import '../common/elements.dart';
 import '../common/metrics.dart';
 import '../common/names.dart';
-import '../compiler.dart';
+import '../compiler_migrated.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
@@ -20,6 +18,7 @@ import '../elements/types.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_model/element_map.dart';
+import '../js_model/elements.dart';
 import '../js_model/js_world.dart';
 import '../js_model/locals.dart';
 import '../native/behavior.dart';
@@ -28,7 +27,6 @@ import '../serialization/serialization.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
-import '../world.dart';
 import 'abstract_value_domain.dart';
 import 'builder.dart';
 import 'closure_tracer.dart';
@@ -38,10 +36,10 @@ import 'list_tracer.dart';
 import 'map_tracer.dart';
 import 'set_tracer.dart';
 import 'type_graph_dump.dart';
-import 'type_graph_inferrer.dart';
 import 'type_graph_nodes.dart';
 import 'type_system.dart';
 import 'types.dart';
+import 'work_queue.dart';
 
 /// An inferencing engine that computes a call graph of [TypeInformation] nodes
 /// by visiting the AST of the application, and then does the inferencing on the
@@ -61,7 +59,7 @@ class InferrerEngine {
   ]);
 
   /// The [JClosedWorld] on which inference reasoning is based.
-  final JsClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
 
   final TypeSystem types;
   final Map<ir.TreeNode, TypeInformation> concreteTypes = {};
@@ -74,7 +72,8 @@ class InferrerEngine {
 
   final WorkQueue _workQueue = WorkQueue();
 
-  final _InferrerEngineMetrics metrics = _InferrerEngineMetrics();
+  late final _InferrerEngineMetrics metrics =
+      _InferrerEngineMetrics(closedWorld.abstractValueDomain.metrics);
 
   final Set<MemberEntity> _analyzedElements = {};
 
@@ -124,7 +123,7 @@ class InferrerEngine {
   /// Applies [f] to all elements in the universe that match [selector] and
   /// [mask]. If [f] returns false, aborts the iteration.
   void forEachElementMatching(
-      Selector selector, AbstractValue mask, bool f(MemberEntity element)) {
+      Selector selector, AbstractValue? mask, bool f(MemberEntity element)) {
     Iterable<MemberEntity> elements = closedWorld.locateMembers(selector, mask);
     for (MemberEntity e in elements) {
       if (!f(e)) return;
@@ -138,10 +137,10 @@ class InferrerEngine {
   /// Update [sideEffects] with the side effects of [callee] being
   /// called with [selector].
   void _updateSideEffects(SideEffectsBuilder sideEffectsBuilder,
-      Selector selector, MemberEntity callee) {
-    if (callee.isField) {
+      Selector? selector, MemberEntity callee) {
+    if (callee is FieldEntity) {
       if (callee.isInstanceMember) {
-        if (selector.isSetter) {
+        if (selector!.isSetter) {
           sideEffectsBuilder.setChangesInstanceProperty();
         } else if (selector.isGetter) {
           sideEffectsBuilder.setDependsOnInstancePropertyStore();
@@ -149,7 +148,7 @@ class InferrerEngine {
           sideEffectsBuilder.setAllSideEffectsAndDependsOnSomething();
         }
       } else {
-        if (selector.isSetter) {
+        if (selector!.isSetter) {
           sideEffectsBuilder.setChangesStaticProperty();
         } else if (selector.isGetter) {
           sideEffectsBuilder.setDependsOnStaticPropertyStore();
@@ -157,23 +156,23 @@ class InferrerEngine {
           sideEffectsBuilder.setAllSideEffectsAndDependsOnSomething();
         }
       }
-    } else if (callee.isGetter && !selector.isGetter) {
+    } else if (callee.isGetter && !selector!.isGetter) {
       sideEffectsBuilder.setAllSideEffectsAndDependsOnSomething();
     } else {
-      sideEffectsBuilder
-          .addInput(inferredDataBuilder.getSideEffectsBuilder(callee));
+      sideEffectsBuilder.addInput(
+          inferredDataBuilder.getSideEffectsBuilder(callee as FunctionEntity));
     }
   }
 
   /// Returns the type for [nativeBehavior]. See documentation on
   /// [NativeBehavior].
-  TypeInformation typeOfNativeBehavior(NativeBehavior nativeBehavior) {
+  TypeInformation typeOfNativeBehavior(NativeBehavior? nativeBehavior) {
     if (nativeBehavior == null) return types.dynamicType;
     List<Object> typesReturned = nativeBehavior.typesReturned;
     if (typesReturned.isEmpty) return types.dynamicType;
-    TypeInformation returnType;
+    TypeInformation? returnType;
     for (var type in typesReturned) {
-      TypeInformation mappedType;
+      TypeInformation? mappedType;
       if (type == SpecialType.JsObject) {
         mappedType = types.nonNullExact(commonElements.objectClass);
       } else if (type == commonElements.stringType) {
@@ -204,28 +203,25 @@ class InferrerEngine {
         break;
       }
     }
-    return returnType;
+    return returnType!;
   }
 
   void updateSelectorInMember(MemberEntity owner, CallType callType,
-      ir.Node node, Selector selector, AbstractValue mask) {
-    KernelGlobalTypeInferenceElementData data = dataOfMember(owner);
-    assert(validCallType(callType, node, selector));
+      ir.TreeNode node, Selector? selector, AbstractValue? mask) {
+    final data = dataOfMember(owner) as KernelGlobalTypeInferenceElementData;
+    assert(validCallType(callType, node));
     switch (callType) {
       case CallType.access:
         data.setReceiverTypeMask(node, mask);
         break;
-      case CallType.indirectAccess:
-        // indirect access is not diretly recorded in the result data.
-        break;
       case CallType.forIn:
         if (selector == Selectors.iterator) {
-          data.setIteratorTypeMask(node, mask);
+          data.setIteratorTypeMask(node as ir.ForInStatement, mask);
         } else if (selector == Selectors.current) {
-          data.setCurrentTypeMask(node, mask);
+          data.setCurrentTypeMask(node as ir.ForInStatement, mask);
         } else {
           assert(selector == Selectors.moveNext);
-          data.setMoveNextTypeMask(node, mask);
+          data.setMoveNextTypeMask(node as ir.ForInStatement, mask);
         }
         break;
     }
@@ -242,13 +238,12 @@ class InferrerEngine {
   }
 
   bool returnsListElementType(Selector selector, AbstractValue mask) {
-    return mask != null &&
-        abstractValueDomain.isContainer(mask) &&
+    return abstractValueDomain.isContainer(mask) &&
         returnsListElementTypeSet.contains(selector);
   }
 
   bool returnsMapValueType(Selector selector, AbstractValue mask) {
-    return mask != null && abstractValueDomain.isMap(mask) && selector.isIndex;
+    return abstractValueDomain.isMap(mask) && selector.isIndex;
   }
 
   void analyzeListAndEnqueue(ListTypeInformation info) {
@@ -294,11 +289,11 @@ class InferrerEngine {
 
     info.bailedOut = false;
     for (int i = 0; i < tracer.keyInputs.length; ++i) {
-      TypeInformation newType = info.addEntryInput(
+      final newType = info.addEntryInput(
           abstractValueDomain, tracer.keyInputs[i], tracer.valueInputs[i]);
       if (newType != null) _workQueue.add(newType);
     }
-    for (TypeInformation map in tracer.mapInputs) {
+    for (final map in tracer.mapInputs) {
       _workQueue.addAll(info.addMapInput(abstractValueDomain, map));
     }
 
@@ -315,102 +310,105 @@ class InferrerEngine {
 
   void _runOverAllElements() {
     metrics.analyze.measure(_analyzeAllElements);
-    TypeGraphDump dump =
+    final dump =
         debug.PRINT_GRAPH ? TypeGraphDump(_compilerOutput, this) : null;
 
     dump?.beforeAnalysis();
     _buildWorkQueue();
     metrics.refine1.measure(_refine);
 
-    // Try to infer element types of lists and compute their escape information.
-    types.allocatedLists.values.forEach((TypeInformation info) {
-      analyzeListAndEnqueue(info);
-    });
+    metrics.trace.measure(() {
+      // Try to infer element types of lists and compute their escape information.
+      types.allocatedLists.values.forEach((ListTypeInformation info) {
+        analyzeListAndEnqueue(info);
+      });
 
-    // Try to infer element types of sets and compute their escape information.
-    types.allocatedSets.values.forEach((TypeInformation info) {
-      analyzeSetAndEnqueue(info);
-    });
+      // Try to infer element types of sets and compute their escape information.
+      types.allocatedSets.values.forEach((SetTypeInformation info) {
+        analyzeSetAndEnqueue(info);
+      });
 
-    // Try to infer the key and value types for maps and compute the values'
-    // escape information.
-    types.allocatedMaps.values.forEach((TypeInformation info) {
-      analyzeMapAndEnqueue(info);
-    });
+      // Try to infer the key and value types for maps and compute the values'
+      // escape information.
+      types.allocatedMaps.values.forEach((MapTypeInformation info) {
+        analyzeMapAndEnqueue(info);
+      });
 
-    Set<FunctionEntity> bailedOutOn = Set<FunctionEntity>();
+      Set<FunctionEntity> bailedOutOn = Set<FunctionEntity>();
 
-    // Trace closures to potentially infer argument types.
-    types.allocatedClosures.forEach((dynamic info) {
-      void trace(
-          Iterable<FunctionEntity> elements, ClosureTracerVisitor tracer) {
-        tracer.run();
-        if (!tracer.continueAnalyzing) {
-          elements.forEach((FunctionEntity element) {
-            inferredDataBuilder.registerMightBePassedToApply(element);
-            if (debug.VERBOSE) {
-              print("traced closure $element as ${true} (bail)");
-            }
-            types.strategy.forEachParameter(element, (Local parameter) {
-              types
-                  .getInferredTypeOfParameter(parameter)
-                  .giveUp(this, clearInputs: false);
+      // Trace closures to potentially infer argument types.
+      types.allocatedClosures.forEach((dynamic info) {
+        void trace(
+            Iterable<FunctionEntity> elements, ClosureTracerVisitor tracer) {
+          tracer.run();
+          if (!tracer.continueAnalyzing) {
+            elements.forEach((FunctionEntity element) {
+              inferredDataBuilder.registerMightBePassedToApply(element);
+              if (debug.VERBOSE) {
+                print("traced closure $element as ${true} (bail)");
+              }
+              types.strategy.forEachParameter(element, (Local parameter) {
+                types
+                    .getInferredTypeOfParameter(parameter)
+                    .giveUp(this, clearInputs: false);
+              });
             });
+            bailedOutOn.addAll(elements);
+            return;
+          }
+          elements
+              .where((e) => !bailedOutOn.contains(e))
+              .forEach((FunctionEntity element) {
+            types.strategy.forEachParameter(element, (Local parameter) {
+              ParameterTypeInformation info =
+                  types.getInferredTypeOfParameter(parameter);
+              info.maybeResume();
+              _workQueue.add(info);
+            });
+            if (tracer.tracedType.mightBePassedToFunctionApply) {
+              inferredDataBuilder.registerMightBePassedToApply(element);
+            }
+            if (debug.VERBOSE) {
+              print("traced closure $element as "
+                  "${inferredDataBuilder.getCurrentlyKnownMightBePassedToApply(element)}");
+            }
           });
-          bailedOutOn.addAll(elements);
-          return;
         }
-        elements
-            .where((e) => !bailedOutOn.contains(e))
-            .forEach((FunctionEntity element) {
-          types.strategy.forEachParameter(element, (Local parameter) {
-            ParameterTypeInformation info =
-                types.getInferredTypeOfParameter(parameter);
-            info.maybeResume();
-            _workQueue.add(info);
-          });
-          if (tracer.tracedType.mightBePassedToFunctionApply) {
-            inferredDataBuilder.registerMightBePassedToApply(element);
-          }
-          if (debug.VERBOSE) {
-            print("traced closure $element as "
-                "${inferredDataBuilder.getCurrentlyKnownMightBePassedToApply(element)}");
-          }
-        });
-      }
 
-      if (info is ClosureTypeInformation) {
-        Iterable<FunctionEntity> elements = [info.closure];
-        trace(elements, ClosureTracerVisitor(elements, info, this));
-      } else if (info is CallSiteTypeInformation) {
-        if (info is StaticCallSiteTypeInformation &&
-            info.selector != null &&
-            info.selector.isCall) {
-          // This is a constructor call to a class with a call method. So we
-          // need to trace the call method here.
-          FunctionEntity calledElement = info.calledElement;
-          assert(calledElement is ConstructorEntity &&
-              calledElement.isGenerativeConstructor);
-          ClassEntity cls = calledElement.enclosingClass;
-          FunctionEntity callMethod = _lookupCallMethod(cls);
-          assert(callMethod != null, failedAt(cls));
-          Iterable<FunctionEntity> elements = [callMethod];
+        if (info is ClosureTypeInformation) {
+          Iterable<FunctionEntity> elements = [info.closure];
           trace(elements, ClosureTracerVisitor(elements, info, this));
-        } else {
-          // We only are interested in functions here, as other targets
-          // of this closure call are not a root to trace but an intermediate
-          // for some other function.
-          Iterable<FunctionEntity> elements = List<FunctionEntity>.from(
-              info.callees.where((e) => e.isFunction));
-          trace(elements, ClosureTracerVisitor(elements, info, this));
+        } else if (info is CallSiteTypeInformation) {
+          final selector = info.selector;
+          if (info is StaticCallSiteTypeInformation &&
+              selector != null &&
+              selector.isCall) {
+            // This is a constructor call to a class with a call method. So we
+            // need to trace the call method here.
+            final calledElement = info.calledElement;
+            assert(calledElement is ConstructorEntity &&
+                calledElement.isGenerativeConstructor);
+            final cls = calledElement.enclosingClass!;
+            final callMethod = _lookupCallMethod(cls)!;
+            Iterable<FunctionEntity> elements = [callMethod];
+            trace(elements, ClosureTracerVisitor(elements, info, this));
+          } else {
+            // We only are interested in functions here, as other targets
+            // of this closure call are not a root to trace but an intermediate
+            // for some other function.
+            Iterable<FunctionEntity> elements = List<FunctionEntity>.from(
+                info.callees.where((e) => e.isFunction));
+            trace(elements, ClosureTracerVisitor(elements, info, this));
+          }
+        } else if (info is MemberTypeInformation) {
+          final member = info.member as FunctionEntity;
+          trace(
+              [member], StaticTearOffClosureTracerVisitor(member, info, this));
+        } else if (info is ParameterTypeInformation) {
+          failedAt(NO_LOCATION_SPANNABLE,
+              'Unexpected closure allocation info $info');
         }
-      } else if (info is MemberTypeInformation) {
-        trace(<FunctionEntity>[info.member],
-            StaticTearOffClosureTracerVisitor(info.member, info, this));
-      } else if (info is ParameterTypeInformation) {
-        failedAt(
-            NO_LOCATION_SPANNABLE, 'Unexpected closure allocation info $info');
-      }
+      });
     });
 
     dump?.beforeTracing();
@@ -474,8 +472,8 @@ class InferrerEngine {
             }
           }
         } else if (info is StaticCallSiteTypeInformation) {
-          ClassEntity cls = info.calledElement.enclosingClass;
-          FunctionEntity callMethod = _lookupCallMethod(cls);
+          final cls = info.calledElement.enclosingClass!;
+          final callMethod = _lookupCallMethod(cls)!;
           print('${types.getInferredSignatureOfMethod(callMethod)} for ${cls}');
         } else {
           print('${info.type} for some unknown kind of closure');
@@ -513,14 +511,15 @@ class InferrerEngine {
   }
 
   /// Returns the body node for [member].
-  ir.Node _computeMemberBody(MemberEntity member) {
+  ir.Node? _computeMemberBody(MemberEntity member) {
     MemberDefinition definition =
         closedWorld.elementMap.getMemberDefinition(member);
     switch (definition.kind) {
       case MemberKind.regular:
-        ir.Member node = definition.node;
+        final node = definition.node;
         if (node is ir.Field) {
-          return getFieldInitializer(closedWorld.elementMap, member);
+          return getFieldInitializer(
+              closedWorld.elementMap, member as FieldEntity);
         } else if (node is ir.Procedure) {
           return node.function;
         }
@@ -528,7 +527,7 @@ class InferrerEngine {
       case MemberKind.constructor:
         return definition.node;
       case MemberKind.constructorBody:
-        ir.Member node = definition.node;
+        final node = definition.node;
         if (node is ir.Constructor) {
           return node.function;
         } else if (node is ir.Procedure) {
@@ -536,7 +535,7 @@ class InferrerEngine {
         }
         break;
       case MemberKind.closureCall:
-        ir.LocalFunction node = definition.node;
+        final node = definition.node as ir.LocalFunction;
         return node.function;
       case MemberKind.closureField:
       case MemberKind.signature:
@@ -548,12 +547,12 @@ class InferrerEngine {
 
   /// Returns the `call` method on [cls] or the `noSuchMethod` if [cls] doesn't
   /// implement `call`.
-  FunctionEntity _lookupCallMethod(ClassEntity cls) {
-    FunctionEntity function =
-        _elementEnvironment.lookupClassMember(cls, Identifiers.call);
+  FunctionEntity? _lookupCallMethod(ClassEntity cls) {
+    var function = _elementEnvironment.lookupClassMember(cls, Names.call)
+        as FunctionEntity?;
     if (function == null || function.isAbstract) {
-      function =
-          _elementEnvironment.lookupClassMember(cls, Identifiers.noSuchMethod_);
+      function = _elementEnvironment.lookupClassMember(cls, Names.noSuchMethod_)
+          as FunctionEntity?;
     }
     return function;
   }
@@ -562,16 +561,16 @@ class InferrerEngine {
     if (_analyzedElements.contains(element)) return;
     _analyzedElements.add(element);
 
-    ir.Node body = _computeMemberBody(element);
+    final body = _computeMemberBody(element);
 
-    TypeInformation type;
+    TypeInformation? type;
     _reporter.withCurrentElement(element, () {
       type = _computeMemberTypeInformation(element, body);
     });
     _addedInGraph++;
 
-    if (element.isField) {
-      FieldEntity field = element;
+    if (element is FieldEntity) {
+      final field = element;
       if (!field.isAssignable) {
         // If [element] is final and has an initializer, we record
         // the inferred type.
@@ -579,7 +578,7 @@ class InferrerEngine {
           if (type is! ListTypeInformation && type is! MapTypeInformation) {
             // For non-container types, the constant handler does
             // constant folding that could give more precise results.
-            ConstantValue value = _getFieldConstant(field);
+            final value = _getFieldConstant(field as JField);
             if (value != null) {
               if (value is FunctionConstantValue) {
                 type = types.allocateClosure(value.element);
@@ -590,12 +589,12 @@ class InferrerEngine {
                 AbstractValue refinedType =
                     abstractValueDomain.computeAbstractValueForConstant(value);
                 type = NarrowTypeInformation(
-                    abstractValueDomain, type, refinedType);
-                types.allocatedTypes.add(type);
+                    abstractValueDomain, type!, refinedType);
+                types.allocatedTypes.add(type!);
               }
             }
           }
-          recordTypeOfField(field, type);
+          recordTypeOfField(field, type!);
         } else if (!element.isInstanceMember) {
           recordTypeOfField(field, types.nullType);
         }
@@ -603,10 +602,10 @@ class InferrerEngine {
         // Only update types of static fields if there is no
         // assignment. Instance fields are dealt with in the constructor.
         if (element.isStatic || element.isTopLevel) {
-          recordTypeOfField(field, type);
+          recordTypeOfField(field, type!);
         }
       } else {
-        recordTypeOfField(field, type);
+        recordTypeOfField(field, type!);
       }
       if ((element.isStatic || element.isTopLevel) &&
           body != null &&
@@ -616,14 +615,14 @@ class InferrerEngine {
         }
       }
     } else {
-      FunctionEntity method = element;
-      recordReturnType(method, type);
+      final method = element as FunctionEntity;
+      recordReturnType(method, type!);
     }
   }
 
   /// Visits [body] to compute the [TypeInformation] node for [member].
-  TypeInformation _computeMemberTypeInformation(
-      MemberEntity member, ir.Node body) {
+  TypeInformation? _computeMemberTypeInformation(
+      MemberEntity member, ir.Node? body) {
     KernelTypeGraphBuilder visitor = KernelTypeGraphBuilder(
         _options,
         closedWorld,
@@ -670,7 +669,7 @@ class InferrerEngine {
 
   /// Returns the [ConstantValue] for the initial value of [field], or
   /// `null` if the initializer is not a constant value.
-  ConstantValue _getFieldConstant(FieldEntity field) {
+  ConstantValue? _getFieldConstant(JField field) {
     return closedWorld.fieldAnalysis.getFieldData(field).initialValue;
   }
 
@@ -693,7 +692,7 @@ class InferrerEngine {
         inferredDataBuilder.addFunctionCalledInLoop(member);
       } else if (info is DynamicCallSiteTypeInformation &&
           info.mask != null &&
-          abstractValueDomain.containsAll(info.mask).isDefinitelyFalse) {
+          abstractValueDomain.containsAll(info.mask!).isDefinitelyFalse) {
         // For instance methods, we only register a selector called in a
         // loop if it is a typed selector, to avoid marking too many
         // methods as being called from within a loop. This cuts down
@@ -746,16 +745,16 @@ class InferrerEngine {
   /// inputs must be added or removed. If [init] is false, parameters are
   /// added to the work queue.
   void updateParameterInputs(TypeInformation caller, MemberEntity callee,
-      ArgumentsTypes arguments, Selector selector,
-      {bool remove, bool addToQueue = true}) {
+      ArgumentsTypes? arguments, Selector? selector,
+      {required bool remove, required bool addToQueue}) {
     if (callee.name == Identifiers.noSuchMethod_) return;
-    if (callee.isField) {
-      if (selector.isSetter) {
+    if (callee is FieldEntity) {
+      if (selector!.isSetter) {
         ElementTypeInformation info = types.getInferredTypeOfMember(callee);
         if (remove) {
-          info.removeInput(arguments.positional[0]);
+          info.removeInput(arguments!.positional[0]);
         } else {
-          info.addInput(arguments.positional[0]);
+          info.addInput(arguments!.positional[0]);
         }
         if (addToQueue) _workQueue.add(info);
       }
@@ -776,7 +775,8 @@ class InferrerEngine {
           // can benefit from further refinement of the selector.
           types.allocatedClosures.add(caller);
         }
-        types.strategy.forEachParameter(callee, (Local parameter) {
+        types.strategy.forEachParameter(callee as FunctionEntity,
+            (Local parameter) {
           ParameterTypeInformation info =
               types.getInferredTypeOfParameter(parameter);
           info.tagAsTearOffClosureParameter(this);
@@ -784,17 +784,18 @@ class InferrerEngine {
         });
       }
     } else {
-      FunctionEntity method = callee;
+      final method = callee as FunctionEntity;
       ParameterStructure parameterStructure = method.parameterStructure;
       int parameterIndex = 0;
+      final localArguments = arguments!;
       types.strategy.forEachParameter(callee, (Local parameter) {
-        TypeInformation type;
+        TypeInformation? type;
         if (parameterIndex < parameterStructure.requiredPositionalParameters) {
-          type = arguments.positional[parameterIndex];
+          type = localArguments.positional[parameterIndex];
         } else if (parameterStructure.namedParameters.isNotEmpty) {
-          type = arguments.named[parameter.name];
-        } else if (parameterIndex < arguments.positional.length) {
-          type = arguments.positional[parameterIndex];
+          type = localArguments.named[parameter.name];
+        } else if (parameterIndex < localArguments.positional.length) {
+          type = localArguments.positional[parameterIndex];
         }
         if (type == null) type = getDefaultTypeOfParameter(parameter);
         TypeInformation info = types.getInferredTypeOfParameter(parameter);
@@ -813,26 +814,13 @@ class InferrerEngine {
   /// mapping in `_defaultTypeOfParameter` already contains a type, it must be
   /// a [PlaceholderTypeInformation], which will be replaced. All its uses are
   /// updated.
-  void setDefaultTypeOfParameter(Local parameter, TypeInformation type,
-      {bool isInstanceMember}) {
-    assert(
-        type != null, failedAt(parameter, "No default type for $parameter."));
-    TypeInformation existing = _defaultTypeOfParameter[parameter];
+  void setDefaultTypeOfParameter(Local parameter, TypeInformation type) {
+    final existing = _defaultTypeOfParameter[parameter];
     _defaultTypeOfParameter[parameter] = type;
     TypeInformation info = types.getInferredTypeOfParameter(parameter);
     if (existing != null && existing is PlaceholderTypeInformation) {
       // Replace references to [existing] to use [type] instead.
-      if (isInstanceMember) {
-        ParameterInputs inputs = info.inputs;
-        inputs.replace(existing, type);
-      } else {
-        List<TypeInformation> inputs = info.inputs;
-        for (int i = 0; i < inputs.length; i++) {
-          if (inputs[i] == existing) {
-            inputs[i] = type;
-          }
-        }
-      }
+      info.inputs.replace(existing, type);
       // Also forward all users.
       type.addUsersOf(existing);
     } else {
@@ -883,9 +871,7 @@ class InferrerEngine {
       // Even if x.== doesn't return a bool, 'x == null' evaluates to 'false'.
       info.addInput(types.boolType);
     }
-    // TODO(ngeoffray): Clean up. We do these checks because
-    // [SimpleTypesInferrer] deals with two different inferrers.
-    if (type == null) return;
+
     if (info.inputs.isEmpty) info.addInput(type);
   }
 
@@ -894,7 +880,7 @@ class InferrerEngine {
   ///
   /// Returns the new type for [analyzedElement].
   TypeInformation addReturnTypeForMethod(
-      FunctionEntity element, TypeInformation unused, TypeInformation newType) {
+      FunctionEntity element, TypeInformation newType) {
     TypeInformation type = types.getInferredTypeOfMember(element);
     // TODO(ngeoffray): Clean up. We do this check because
     // [SimpleTypesInferrer] deals with two different inferrers.
@@ -914,11 +900,11 @@ class InferrerEngine {
   ///
   /// [inLoop] tells whether the call happens in a loop.
   TypeInformation registerCalledMember(
-      Object node,
-      Selector selector,
+      ir.Node node,
+      Selector? selector,
       MemberEntity caller,
       MemberEntity callee,
-      ArgumentsTypes arguments,
+      ArgumentsTypes? arguments,
       SideEffectsBuilder sideEffectsBuilder,
       bool inLoop) {
     CallSiteTypeInformation info = StaticCallSiteTypeInformation(
@@ -961,13 +947,13 @@ class InferrerEngine {
       CallType callType,
       ir.Node node,
       Selector selector,
-      AbstractValue mask,
+      AbstractValue? mask,
       TypeInformation receiverType,
       MemberEntity caller,
-      ArgumentsTypes arguments,
+      ArgumentsTypes? arguments,
       SideEffectsBuilder sideEffectsBuilder,
-      {bool inLoop,
-      bool isConditional}) {
+      {required bool inLoop,
+      required bool isConditional}) {
     if (selector.isClosureCall) {
       return registerCalledClosure(
           node, selector, receiverType, caller, arguments, sideEffectsBuilder,
@@ -1030,9 +1016,9 @@ class InferrerEngine {
       Selector selector,
       TypeInformation closure,
       MemberEntity caller,
-      ArgumentsTypes arguments,
+      ArgumentsTypes? arguments,
       SideEffectsBuilder sideEffectsBuilder,
-      {bool inLoop}) {
+      {required bool inLoop}) {
     sideEffectsBuilder.setAllSideEffectsAndDependsOnSomething();
     CallSiteTypeInformation info = ClosureCallSiteTypeInformation(
         abstractValueDomain,
@@ -1088,24 +1074,23 @@ class InferrerEngine {
     _memberData.clear();
   }
 
-  Iterable<MemberEntity> getCallersOfForTesting(MemberEntity element) {
+  Iterable<MemberEntity>? getCallersOfForTesting(MemberEntity element) {
     MemberTypeInformation info = types.getInferredTypeOfMember(element);
     return info.callersForTesting;
   }
 
   /// Returns the type of [element] when being called with [selector].
   TypeInformation typeOfMemberWithSelector(
-      MemberEntity element, Selector selector) {
+      MemberEntity element, Selector? selector) {
     if (element.name == Identifiers.noSuchMethod_ &&
-        selector.name != element.name) {
+        selector!.name != element.name) {
       // An invocation can resolve to a [noSuchMethod], in which case
       // we get the return type of [noSuchMethod].
       return returnTypeOfMember(element);
-    } else if (selector.isGetter) {
+    } else if (selector!.isGetter) {
       if (element.isFunction) {
-        // [functionType] is null if the inferrer did not run.
-        return types.functionType ?? types.dynamicType;
-      } else if (element.isField) {
+        return types.functionType;
+      } else if (element is FieldEntity) {
         return typeOfMember(element);
       } else if (element.isGetter) {
         return returnTypeOfMember(element);
@@ -1113,63 +1098,12 @@ class InferrerEngine {
         assert(false, failedAt(element, "Unexpected member $element"));
         return types.dynamicType;
       }
-    } else if (element.isGetter || element.isField) {
+    } else if (element.isGetter || element is FieldEntity) {
       assert(selector.isCall || selector.isSetter);
       return types.dynamicType;
     } else {
       return returnTypeOfMember(element);
     }
-  }
-
-  /// Indirect calls share the same dynamic call site information node. This
-  /// cache holds that shared dynamic call node for a given selector.
-  final Map<Selector, DynamicCallSiteTypeInformation> _sharedCalls = {};
-
-  /// For a given selector, return a shared dynamic call site that will be used
-  /// to combine the results of multiple dynamic calls in the program via
-  /// [IndirectDynamicCallSiteTypeInformation].
-  ///
-  /// This is used only for scalability reasons: if there are too many targets
-  /// and call sites, we may have a quadratic number of edges in the graph, so
-  /// we add a level of indirection to merge the information and keep the graph
-  /// smaller.
-  // TODO(sigmund): start using or delete indirection logic.
-  // ignore: unused_element
-  DynamicCallSiteTypeInformation _typeOfSharedDynamicCall(
-      Selector selector, CallStructure structure) {
-    DynamicCallSiteTypeInformation info = _sharedCalls[selector];
-    if (info != null) return info;
-
-    TypeInformation receiverType =
-        IndirectParameterTypeInformation(abstractValueDomain, 'receiver');
-    List<TypeInformation> positional = [];
-    for (int i = 0; i < structure.positionalArgumentCount; i++) {
-      positional
-          .add(IndirectParameterTypeInformation(abstractValueDomain, '$i'));
-    }
-    Map<String, TypeInformation> named = {};
-    if (structure.namedArgumentCount > 0) {
-      for (var name in structure.namedArguments) {
-        named[name] =
-            IndirectParameterTypeInformation(abstractValueDomain, name);
-      }
-    }
-
-    info = _sharedCalls[selector] = DynamicCallSiteTypeInformation(
-        abstractValueDomain,
-        null,
-        CallType.indirectAccess,
-        null,
-        null,
-        selector,
-        null,
-        receiverType,
-        ArgumentsTypes(positional, named),
-        false,
-        false);
-    info.addToGraph(this);
-    types.allocatedCalls.add(info);
-    return info;
   }
 
   /// Returns true if global optimizations such as type inferencing can apply to
@@ -1207,28 +1141,31 @@ class _InferrerEngineMetrics extends MetricsBase {
   final time = DurationMetric('time');
   final analyze = DurationMetric('time.analyze');
   final refine1 = DurationMetric('time.refine1');
+  final trace = DurationMetric('time.trace');
   final refine2 = DurationMetric('time.refine2');
   final elementsInGraph = CountMetric('count.elementsInGraph');
   final allTypesCount = CountMetric('count.allTypes');
   final exceededMaxChangeCount = CountMetric('count.exceededMaxChange');
   final overallRefineCount = CountMetric('count.overallRefines');
 
-  _InferrerEngineMetrics() {
-    primary = [time];
+  _InferrerEngineMetrics(Metrics subMetrics) {
+    primary = [time, ...subMetrics.primary];
     secondary = [
       analyze,
       refine1,
+      trace,
       refine2,
       elementsInGraph,
       allTypesCount,
       exceededMaxChangeCount,
-      overallRefineCount
+      overallRefineCount,
+      ...subMetrics.secondary,
     ];
   }
 }
 
 class KernelTypeSystemStrategy implements TypeSystemStrategy {
-  final JsClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final GlobalLocalsMap _globalLocalsMap;
 
   KernelTypeSystemStrategy(this._closedWorld, this._globalLocalsMap);
@@ -1252,14 +1189,14 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy {
   bool checkLoopPhiNode(ir.Node node) => true;
 
   @override
-  bool checkPhiNode(ir.Node node) =>
+  bool checkPhiNode(ir.Node? node) =>
       node == null || node is ir.TryCatch || node is ir.TryFinally;
 
   @override
   void forEachParameter(FunctionEntity function, void f(Local parameter)) {
     forEachOrderedParameterAsLocal(
         _globalLocalsMap, _closedWorld.elementMap, function, (Local parameter,
-            {bool isElided}) {
+            {required bool isElided}) {
       f(parameter);
     });
   }
@@ -1274,54 +1211,62 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy {
     ir.FunctionNode functionNode =
         localsMap.getFunctionNodeForParameter(parameter);
     DartType type = localsMap.getLocalType(_closedWorld.elementMap, parameter);
-    MemberEntity member;
+    late final MemberEntity member;
     bool isClosure = false;
-    if (functionNode.parent is ir.Member) {
-      member = _closedWorld.elementMap.getMember(functionNode.parent);
-    } else if (functionNode.parent is ir.LocalFunction) {
+    final parent = functionNode.parent;
+    if (parent is ir.Member) {
+      member = _closedWorld.elementMap.getMember(parent);
+    } else if (parent is ir.LocalFunction) {
       ClosureRepresentationInfo info =
-          _closedWorld.closureDataLookup.getClosureInfo(functionNode.parent);
-      member = info.callMethod;
+          _closedWorld.closureDataLookup.getClosureInfo(parent);
+      member = info.callMethod!;
       isClosure = true;
     }
     MemberTypeInformation memberTypeInformation =
         types.getInferredTypeOfMember(member);
     if (isClosure) {
-      return ParameterTypeInformation.localFunction(
-          abstractValueDomain, memberTypeInformation, parameter, type, member);
+      return ParameterTypeInformation.localFunction(abstractValueDomain,
+          memberTypeInformation, parameter, type, member as FunctionEntity);
     } else if (member.isInstanceMember) {
-      return ParameterTypeInformation.instanceMember(abstractValueDomain,
-          memberTypeInformation, parameter, type, member, ParameterInputs());
+      return ParameterTypeInformation.instanceMember(
+          abstractValueDomain,
+          memberTypeInformation,
+          parameter,
+          type,
+          member as FunctionEntity,
+          ParameterInputs.instanceMember());
     } else {
-      return ParameterTypeInformation.static(
-          abstractValueDomain, memberTypeInformation, parameter, type, member);
+      return ParameterTypeInformation.static(abstractValueDomain,
+          memberTypeInformation, parameter, type, member as FunctionEntity);
     }
   }
 
   @override
   MemberTypeInformation createMemberTypeInformation(
       AbstractValueDomain abstractValueDomain, MemberEntity member) {
-    if (member.isField) {
-      FieldEntity field = member;
+    if (member is FieldEntity) {
+      final field = member;
       DartType type = _elementEnvironment.getFieldType(field);
       return FieldTypeInformation(abstractValueDomain, field, type);
     } else if (member.isGetter) {
-      FunctionEntity getter = member;
+      final getter = member as FunctionEntity;
       DartType type = _elementEnvironment.getFunctionType(getter);
-      return GetterTypeInformation(abstractValueDomain, getter, type);
+      return GetterTypeInformation(
+          abstractValueDomain, getter, type as FunctionType);
     } else if (member.isSetter) {
-      FunctionEntity setter = member;
+      final setter = member as FunctionEntity;
       return SetterTypeInformation(abstractValueDomain, setter);
     } else if (member.isFunction) {
-      FunctionEntity method = member;
+      final method = member as FunctionEntity;
       DartType type = _elementEnvironment.getFunctionType(method);
-      return MethodTypeInformation(abstractValueDomain, method, type);
+      return MethodTypeInformation(
+          abstractValueDomain, method, type as FunctionType);
     } else {
-      ConstructorEntity constructor = member;
+      final constructor = member as ConstructorEntity;
       if (constructor.isFactoryConstructor) {
         DartType type = _elementEnvironment.getFunctionType(constructor);
         return FactoryConstructorTypeInformation(
-            abstractValueDomain, constructor, type);
+            abstractValueDomain, constructor, type as FunctionType);
       } else {
         return GenerativeConstructorTypeInformation(
             abstractValueDomain, constructor);
@@ -1336,11 +1281,12 @@ class KernelGlobalTypeInferenceElementData
   /// objects in a debugging data stream.
   static const String tag = 'global-type-inference-element-data';
 
-  Map<ir.TreeNode, AbstractValue> _receiverMap;
+  // TODO(natebiggs): Can we remove nulls from these maps.
+  Map<ir.TreeNode, AbstractValue?>? _receiverMap;
 
-  Map<ir.ForInStatement, AbstractValue> _iteratorMap;
-  Map<ir.ForInStatement, AbstractValue> _currentMap;
-  Map<ir.ForInStatement, AbstractValue> _moveNextMap;
+  Map<ir.ForInStatement, AbstractValue?>? _iteratorMap;
+  Map<ir.ForInStatement, AbstractValue?>? _currentMap;
+  Map<ir.ForInStatement, AbstractValue?>? _moveNextMap;
 
   KernelGlobalTypeInferenceElementData();
 
@@ -1350,20 +1296,20 @@ class KernelGlobalTypeInferenceElementData
   /// Deserializes a [GlobalTypeInferenceElementData] object from [source].
   factory KernelGlobalTypeInferenceElementData.readFromDataSource(
       DataSourceReader source,
-      ir.Member context,
+      ir.Member? context,
       AbstractValueDomain abstractValueDomain) {
     return source.inMemberContext(context, () {
       source.begin(tag);
-      Map<ir.TreeNode, AbstractValue> sendMap =
+      Map<ir.TreeNode, AbstractValue>? sendMap =
           source.readTreeNodeMapInContextOrNull(() =>
               abstractValueDomain.readAbstractValueFromDataSource(source));
-      Map<ir.ForInStatement, AbstractValue> iteratorMap =
+      Map<ir.ForInStatement, AbstractValue>? iteratorMap =
           source.readTreeNodeMapInContextOrNull(() =>
               abstractValueDomain.readAbstractValueFromDataSource(source));
-      Map<ir.ForInStatement, AbstractValue> currentMap =
+      Map<ir.ForInStatement, AbstractValue>? currentMap =
           source.readTreeNodeMapInContextOrNull(() =>
               abstractValueDomain.readAbstractValueFromDataSource(source));
-      Map<ir.ForInStatement, AbstractValue> moveNextMap =
+      Map<ir.ForInStatement, AbstractValue>? moveNextMap =
           source.readTreeNodeMapInContextOrNull(() =>
               abstractValueDomain.readAbstractValueFromDataSource(source));
       source.end(tag);
@@ -1373,28 +1319,28 @@ class KernelGlobalTypeInferenceElementData
   }
 
   @override
-  void writeToDataSink(DataSinkWriter sink, ir.Member context,
+  void writeToDataSink(DataSinkWriter sink, ir.Member? context,
       AbstractValueDomain abstractValueDomain) {
     sink.inMemberContext(context, () {
       sink.begin(tag);
       sink.writeTreeNodeMapInContext(
           _receiverMap,
-          (AbstractValue value) =>
+          (AbstractValue? value) =>
               abstractValueDomain.writeAbstractValueToDataSink(sink, value),
           allowNull: true);
       sink.writeTreeNodeMapInContext(
           _iteratorMap,
-          (AbstractValue value) =>
+          (AbstractValue? value) =>
               abstractValueDomain.writeAbstractValueToDataSink(sink, value),
           allowNull: true);
       sink.writeTreeNodeMapInContext(
           _currentMap,
-          (AbstractValue value) =>
+          (AbstractValue? value) =>
               abstractValueDomain.writeAbstractValueToDataSink(sink, value),
           allowNull: true);
       sink.writeTreeNodeMapInContext(
           _moveNextMap,
-          (AbstractValue value) =>
+          (AbstractValue? value) =>
               abstractValueDomain.writeAbstractValueToDataSink(sink, value),
           allowNull: true);
       sink.end(tag);
@@ -1402,28 +1348,32 @@ class KernelGlobalTypeInferenceElementData
   }
 
   @override
-  GlobalTypeInferenceElementData compress() {
-    if (_receiverMap != null) {
-      _receiverMap.removeWhere(_mapsToNull);
-      if (_receiverMap.isEmpty) {
+  GlobalTypeInferenceElementData? compress() {
+    final receiverMap = _receiverMap;
+    if (receiverMap != null) {
+      receiverMap.removeWhere(_mapsToNull);
+      if (receiverMap.isEmpty) {
         _receiverMap = null;
       }
     }
-    if (_iteratorMap != null) {
-      _iteratorMap.removeWhere(_mapsToNull);
-      if (_iteratorMap.isEmpty) {
+    final iteratorMap = _iteratorMap;
+    if (iteratorMap != null) {
+      iteratorMap.removeWhere(_mapsToNull);
+      if (iteratorMap.isEmpty) {
         _iteratorMap = null;
       }
     }
-    if (_currentMap != null) {
-      _currentMap.removeWhere(_mapsToNull);
-      if (_currentMap.isEmpty) {
+    final currentMap = _currentMap;
+    if (currentMap != null) {
+      currentMap.removeWhere(_mapsToNull);
+      if (currentMap.isEmpty) {
         _currentMap = null;
       }
     }
-    if (_moveNextMap != null) {
-      _moveNextMap.removeWhere(_mapsToNull);
-      if (_moveNextMap.isEmpty) {
+    final moveNextMap = _moveNextMap;
+    if (moveNextMap != null) {
+      moveNextMap.removeWhere(_mapsToNull);
+      if (moveNextMap.isEmpty) {
         _moveNextMap = null;
       }
     }
@@ -1437,48 +1387,48 @@ class KernelGlobalTypeInferenceElementData
   }
 
   @override
-  AbstractValue typeOfReceiver(ir.TreeNode node) {
+  AbstractValue? typeOfReceiver(ir.TreeNode node) {
     if (_receiverMap == null) return null;
-    return _receiverMap[node];
+    return _receiverMap![node];
   }
 
-  void setCurrentTypeMask(ir.ForInStatement node, AbstractValue mask) {
-    _currentMap ??= <ir.ForInStatement, AbstractValue>{};
-    _currentMap[node] = mask;
+  void setCurrentTypeMask(ir.ForInStatement node, AbstractValue? mask) {
+    final currentMap = _currentMap ??= <ir.ForInStatement, AbstractValue?>{};
+    currentMap[node] = mask;
   }
 
-  void setMoveNextTypeMask(ir.ForInStatement node, AbstractValue mask) {
-    _moveNextMap ??= <ir.ForInStatement, AbstractValue>{};
-    _moveNextMap[node] = mask;
+  void setMoveNextTypeMask(ir.ForInStatement node, AbstractValue? mask) {
+    final moveNextMap = _moveNextMap ??= <ir.ForInStatement, AbstractValue?>{};
+    moveNextMap[node] = mask;
   }
 
-  void setIteratorTypeMask(ir.ForInStatement node, AbstractValue mask) {
-    _iteratorMap ??= <ir.ForInStatement, AbstractValue>{};
-    _iteratorMap[node] = mask;
+  void setIteratorTypeMask(ir.ForInStatement node, AbstractValue? mask) {
+    final iteratorMap = _iteratorMap ??= <ir.ForInStatement, AbstractValue?>{};
+    iteratorMap[node] = mask;
   }
 
   @override
-  AbstractValue typeOfIteratorCurrent(covariant ir.ForInStatement node) {
+  AbstractValue? typeOfIteratorCurrent(covariant ir.ForInStatement node) {
     if (_currentMap == null) return null;
-    return _currentMap[node];
+    return _currentMap![node];
   }
 
   @override
-  AbstractValue typeOfIteratorMoveNext(covariant ir.ForInStatement node) {
+  AbstractValue? typeOfIteratorMoveNext(covariant ir.ForInStatement node) {
     if (_moveNextMap == null) return null;
-    return _moveNextMap[node];
+    return _moveNextMap![node];
   }
 
   @override
-  AbstractValue typeOfIterator(covariant ir.ForInStatement node) {
+  AbstractValue? typeOfIterator(covariant ir.ForInStatement node) {
     if (_iteratorMap == null) return null;
-    return _iteratorMap[node];
+    return _iteratorMap![node];
   }
 
-  void setReceiverTypeMask(ir.TreeNode node, AbstractValue mask) {
-    _receiverMap ??= <ir.TreeNode, AbstractValue>{};
-    _receiverMap[node] = mask;
+  void setReceiverTypeMask(ir.TreeNode node, AbstractValue? mask) {
+    final receiverMap = _receiverMap ??= <ir.TreeNode, AbstractValue?>{};
+    receiverMap[node] = mask;
   }
 }
 
-bool _mapsToNull(ir.TreeNode node, AbstractValue value) => value == null;
+bool _mapsToNull(ir.TreeNode node, AbstractValue? value) => value == null;

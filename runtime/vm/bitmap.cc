@@ -149,4 +149,26 @@ void BitmapBuilder::SetBit(intptr_t bit_offset, bool value) {
   }
 }
 
+void BitmapBuilder::Write(BaseWriteStream* stream) const {
+  const intptr_t payload_size =
+      Utils::Minimum(Utils::RoundUp(Length(), kBitsPerByte) / kBitsPerByte,
+                     data_size_in_bytes_);
+  stream->Write<intptr_t>(Length());
+  stream->Write<intptr_t>(payload_size);
+  stream->WriteBytes(BackingStore(), payload_size);
+}
+
+void BitmapBuilder::Read(ReadStream* stream) {
+  length_ = stream->Read<intptr_t>();
+  const intptr_t payload_size = stream->Read<intptr_t>();
+  if (payload_size > data_size_in_bytes_) {
+    data_size_in_bytes_ = payload_size;
+    data_.ptr_ = AllocBackingStore(data_size_in_bytes_);
+  } else {
+    memset(BackingStore() + payload_size, 0,
+           data_size_in_bytes_ - payload_size);
+  }
+  stream->ReadBytes(BackingStore(), payload_size);
+}
+
 }  // namespace dart

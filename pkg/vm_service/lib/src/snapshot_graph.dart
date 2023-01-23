@@ -195,7 +195,12 @@ class HeapSnapshotObject {
   dynamic get data => _data;
 
   /// A list of indices into [HeapSnapshotGraph.objects].
-  List<int> get references => _references;
+  Uint32List get references => Uint32List.sublistView(_graph._successors,
+      _graph._firstSuccessors[_oid], _graph._firstSuccessors[_oid + 1]);
+
+  /// A list of indices into [HeapSnapshotGraph.objects].
+  Uint32List get referrers => Uint32List.sublistView(_graph._predecessors,
+      _graph._firstPredecessors[_oid], _graph._firstPredecessors[_oid + 1]);
 
   /// The identity hash code of this object.
   ///
@@ -222,7 +227,6 @@ class HeapSnapshotObject {
   int _shallowSize = -1;
   int _identityHashCode = 0;
   late final dynamic _data;
-  final List<int> _references = <int>[];
 
   HeapSnapshotObject._sentinel(this._graph)
       : _oid = 0,
@@ -234,17 +238,17 @@ class HeapSnapshotObject {
     _classId = reader.readUnsigned();
     _shallowSize = reader.readUnsigned();
     _data = _getNonReferenceData(reader);
-    _graph._firstSuccessors[_oid] = _graph._eid;
     _populateReferences(reader);
   }
 
   void _populateReferences(_ReadStream reader) {
+    _graph._firstSuccessors[_oid] = _graph._eid;
     final referencesCount = reader.readUnsigned();
     for (int i = 0; i < referencesCount; ++i) {
-      int childOid = reader.readUnsigned();
-      _references.add(childOid);
-      _graph._successors[_graph._eid] = childOid;
-      _graph._eid++;
+      final currentOid = _graph._eid++;
+      final childOid = reader.readUnsigned();
+      _graph._successors[currentOid] = childOid;
+      _graph._predecessorCounts[childOid]++;
     }
   }
 }
@@ -308,8 +312,14 @@ class HeapSnapshotGraph {
   final List<HeapSnapshotExternalProperty> _externalProperties =
       <HeapSnapshotExternalProperty>[];
 
-  late Uint32List _firstSuccessors;
-  late Uint32List _successors;
+  late Uint32List _predecessorCounts;
+
+  late final Uint32List _firstSuccessors;
+  late final Uint32List _successors;
+
+  late final Uint32List _firstPredecessors;
+  late final Uint32List _predecessors;
+
   int _eid = 0;
 
   /// Requests a heap snapshot for a given isolate and builds a
@@ -356,6 +366,8 @@ class HeapSnapshotGraph {
     _populateObjects(reader);
     _populateExternalProperties(reader);
     _populateIdentityHashCodes(reader);
+
+    _calculatePredecessors();
   }
 
   void _populateClasses(_ReadStream reader) {
@@ -370,14 +382,47 @@ class HeapSnapshotGraph {
   void _populateObjects(_ReadStream reader) {
     _referenceCount = reader.readUnsigned();
     final objectCount = reader.readUnsigned();
+
     _firstSuccessors = _newUint32Array(objectCount + 2);
     _successors = _newUint32Array(_referenceCount);
+    _predecessorCounts = _newUint32Array(objectCount + 2);
 
     _objects.add(HeapSnapshotObject._sentinel(this));
     for (int i = 1; i <= objectCount; ++i) {
       _objects.add(HeapSnapshotObject._read(this, i, reader));
     }
     _firstSuccessors[objectCount + 1] = _eid;
+  }
+
+  void _calculatePredecessors() {
+    final objectCount = _objects.length - 1;
+
+    _firstPredecessors = _newUint32Array(objectCount + 2);
+    _predecessors = _newUint32Array(_referenceCount);
+
+    _firstPredecessors[objectCount + 1] = _eid;
+
+    // We reuse the [_predecessorCounts] array and turn it into the
+    // write cursor array.
+    final predecessorCounts = _predecessorCounts;
+    _predecessorCounts = Uint32List(0);
+    int sum = 0;
+    int totalCount = _referenceCount;
+    for (int i = objectCount; i >= 0; --i) {
+      sum += predecessorCounts[i];
+      final firstPredecessor = totalCount - sum;
+      _firstPredecessors[i] = predecessorCounts[i] = firstPredecessor;
+    }
+
+    final predecessorWriteCursor = predecessorCounts;
+    for (int i = 1; i <= objectCount; ++i) {
+      final from = _firstSuccessors[i];
+      final to = _firstSuccessors[i + 1];
+      for (int j = from; j < to; ++j) {
+        final cursor = predecessorWriteCursor[_successors[j]]++;
+        _predecessors[cursor] = i;
+      }
+    }
   }
 
   void _populateExternalProperties(_ReadStream reader) {

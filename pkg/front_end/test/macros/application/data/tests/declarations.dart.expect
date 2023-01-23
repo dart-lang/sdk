@@ -81,7 +81,7 @@ static method /* from org-dartlang-augmentation:/a/b/c/main.dart-6 */ Class1_ins
 static method /* from org-dartlang-augmentation:/a/b/c/main.dart-10 */ Class1Introspection() → void {
   core::print("constructors='','redirect','fact'");
   core::print("fields='instanceField1','instanceField2','instanceField3'");
-  core::print("methods='instanceMethod1','instanceGetter1','[]','Class1_GeneratedMethod_','Class1_redirectGeneratedMethod_f','Class1_factGeneratedMethod_f','instanceSetter1','Class1_GeneratedMethod_','Class1_redirectGeneratedMethod_f','Class1_factGeneratedMethod_f'");
+  core::print("methods='instanceMethod1','instanceGetter1','[]','instanceSetter1','Class1_GeneratedMethod_','Class1_redirectGeneratedMethod_f','Class1_factGeneratedMethod_f'");
 }
 static method /* from org-dartlang-augmentation:/a/b/c/main.dart-11 */ Class1GeneratedMethod_() → void {}
 static method /* from org-dartlang-augmentation:/a/b/c/main.dart-12 */ Class2_instanceMethod1GeneratedMethod_a() → void {}

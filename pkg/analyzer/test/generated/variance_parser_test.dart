@@ -45,9 +45,12 @@ class VarianceParserTest extends FastaParserTestCase {
   void test_class_disabled_multiple() {
     parseCompilationUnit('class A<in T, inout U, out V> { }',
         errors: [
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 2),
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 14, 5),
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 23, 3)
+          expectedError(
+              ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT, 8, 2),
+          expectedError(
+              ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT, 14, 5),
+          expectedError(
+              ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT, 23, 3)
         ],
         featureSet: _disabledFeatureSet);
   }
@@ -55,7 +58,8 @@ class VarianceParserTest extends FastaParserTestCase {
   void test_class_disabled_single() {
     parseCompilationUnit('class A<out T> { }',
         errors: [
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 3),
+          expectedError(
+              ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT, 8, 3),
         ],
         featureSet: _disabledFeatureSet);
   }
@@ -64,14 +68,14 @@ class VarianceParserTest extends FastaParserTestCase {
     var unit = parseCompilationUnit('class A<in T, inout U, out V, W> { }');
     expect(unit.declarations, hasLength(1));
     var classDecl = unit.declarations[0] as ClassDeclaration;
-    expect(classDecl.name.name, 'A');
+    expect(classDecl.name.lexeme, 'A');
 
     var typeParameters = classDecl.typeParameters!;
     expect(typeParameters.typeParameters, hasLength(4));
-    expect(typeParameters.typeParameters[0].name.name, 'T');
-    expect(typeParameters.typeParameters[1].name.name, 'U');
-    expect(typeParameters.typeParameters[2].name.name, 'V');
-    expect(typeParameters.typeParameters[3].name.name, 'W');
+    expect(typeParameters.typeParameters[0].name.lexeme, 'T');
+    expect(typeParameters.typeParameters[1].name.lexeme, 'U');
+    expect(typeParameters.typeParameters[2].name.lexeme, 'V');
+    expect(typeParameters.typeParameters[3].name.lexeme, 'W');
 
     var typeParameterImplList = typeParameters.typeParameters;
     expect((typeParameterImplList[0] as TypeParameterImpl).varianceKeyword,
@@ -100,22 +104,22 @@ class VarianceParserTest extends FastaParserTestCase {
     ]);
     expect(unit.declarations, hasLength(1));
     var classDecl = unit.declarations[0] as ClassDeclaration;
-    expect(classDecl.name.name, 'A');
+    expect(classDecl.name.lexeme, 'A');
 
     var typeParameters = classDecl.typeParameters!;
     expect(typeParameters.typeParameters, hasLength(1));
-    expect(typeParameters.typeParameters[0].name.name, 'T');
+    expect(typeParameters.typeParameters[0].name.lexeme, 'T');
   }
 
   void test_class_enabled_single() {
     var unit = parseCompilationUnit('class A<in T> { }');
     expect(unit.declarations, hasLength(1));
     var classDecl = unit.declarations[0] as ClassDeclaration;
-    expect(classDecl.name.name, 'A');
+    expect(classDecl.name.lexeme, 'A');
 
     var typeParameters = classDecl.typeParameters!;
     expect(typeParameters.typeParameters, hasLength(1));
-    expect(typeParameters.typeParameters[0].name.name, 'T');
+    expect(typeParameters.typeParameters[0].name.lexeme, 'T');
 
     var typeParameterImpl =
         typeParameters.typeParameters[0] as TypeParameterImpl;
@@ -157,8 +161,10 @@ class VarianceParserTest extends FastaParserTestCase {
   void test_mixin_disabled_multiple() {
     parseCompilationUnit('mixin A<inout T, out U> { }',
         errors: [
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 5),
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 17, 3),
+          expectedError(
+              ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT, 8, 5),
+          expectedError(
+              ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT, 17, 3),
         ],
         featureSet: _disabledFeatureSet);
   }
@@ -166,7 +172,8 @@ class VarianceParserTest extends FastaParserTestCase {
   void test_mixin_disabled_single() {
     parseCompilationUnit('mixin A<inout T> { }',
         errors: [
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 5),
+          expectedError(
+              ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT, 8, 5),
         ],
         featureSet: _disabledFeatureSet);
   }
@@ -175,11 +182,11 @@ class VarianceParserTest extends FastaParserTestCase {
     var unit = parseCompilationUnit('mixin A<inout T> { }');
     expect(unit.declarations, hasLength(1));
     var mixinDecl = unit.declarations[0] as MixinDeclaration;
-    expect(mixinDecl.name.name, 'A');
+    expect(mixinDecl.name.lexeme, 'A');
 
     var typeParameters = mixinDecl.typeParameters!;
     expect(typeParameters.typeParameters, hasLength(1));
-    expect(typeParameters.typeParameters[0].name.name, 'T');
+    expect(typeParameters.typeParameters[0].name.lexeme, 'T');
   }
 
   void test_typedef_disabled() {

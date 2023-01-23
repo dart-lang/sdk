@@ -64,6 +64,14 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
   }
 
   @override
+  bool visitViewType(ViewType node, Set<TypedefType> visitedTypedefs) {
+    for (DartType typeArgument in node.typeArguments) {
+      if (typeArgument.accept1(this, visitedTypedefs)) return true;
+    }
+    return false;
+  }
+
+  @override
   bool visitFutureOrType(FutureOrType node, Set<TypedefType> visitedTypedefs) {
     return node.typeArgument.accept1(this, visitedTypedefs);
   }
@@ -110,9 +118,22 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
     // node.parameter.bound is not checked because such a bound doesn't
     // automatically means that the potential errors related to the occurrences
     // of the type-parameter type itself are reported.
-    if (node.promotedBound != null &&
-        node.promotedBound!.accept1(this, visitedTypedefs)) {
-      return true;
+    return false;
+  }
+
+  @override
+  bool visitIntersectionType(
+      IntersectionType node, Set<TypedefType> visitedTypedefs) {
+    return node.right.accept1(this, visitedTypedefs);
+  }
+
+  @override
+  bool visitRecordType(RecordType node, Set<TypedefType> visitedTypedefs) {
+    for (DartType type in node.positional) {
+      if (type.accept1(this, visitedTypedefs)) return true;
+    }
+    for (NamedType namedType in node.named) {
+      if (namedType.type.accept1(this, visitedTypedefs)) return true;
     }
     return false;
   }

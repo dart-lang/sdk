@@ -31,23 +31,23 @@ import "dart:core" as core;
 
 class A extends core::_Enum /*isEnum*/  {
   static const field core::List<self::A> values = const <self::A>[self::A::a];
-  static const field self::A a = invalid-expression "pkg/front_end/testcases/general/enum_super_constructor.dart:8:3: Error: Couldn't find constructor 'A'.
+  enum-element static const field self::A a = invalid-expression "pkg/front_end/testcases/general/enum_super_constructor.dart:8:3: Error: Couldn't find constructor 'A'.
   a;
   ^";
   constructor •(core::int #index, core::String #name) → self::A
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "A.${this.{core::_Enum::_name}{core::String}}";
 }
 class B extends core::_Enum /*isEnum*/  {
   static const field core::List<self::B> values = const <self::B>[self::B::b];
-  static const field self::B b = const self::B::•(0, "b");
+  enum-element static const field self::B b = const self::B::•(0, "b");
   const constructor •(core::int #index, core::String #name) → self::B
     : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/enum_super_constructor.dart:14:15: Error: Enum constructors can't contain super-initializers.
   const B() : super();
               ^"
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "B.${this.{core::_Enum::_name}{core::String}}";
 }
 static method main() → dynamic

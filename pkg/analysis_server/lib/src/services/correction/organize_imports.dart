@@ -59,7 +59,8 @@ class ImportOrganizer {
   bool _isUnusedImport(UriBasedDirective directive) {
     for (var error in errors) {
       if ((error.errorCode == HintCode.DUPLICATE_IMPORT ||
-              error.errorCode == HintCode.UNUSED_IMPORT) &&
+              error.errorCode == HintCode.UNUSED_IMPORT ||
+              error.errorCode == HintCode.UNNECESSARY_IMPORT) &&
           directive.uri.offset == error.offset) {
         return true;
       }
@@ -72,24 +73,25 @@ class ImportOrganizer {
     var lineInfo = unit.lineInfo;
     var hasLibraryDirective = false;
     var directives = <_DirectiveInfo>[];
-    // Track the end offset of any library-level comment/annotations that should
-    // remain at the top of the file regardless of whether it was attached to a
-    // directive that's moved/removed.
-    // Code up to this offset will be excluded from the comment/docs/annotation
-    // text for the computed DirectiveInfo and also its range for replacement
-    // in the document.
-    int? libraryDocsAndAnnotationsEndOffset;
     for (var directive in unit.directives) {
       if (directive is LibraryDirective) {
         hasLibraryDirective = true;
       }
       if (directive is UriBasedDirective) {
+        // Track the end offset of any library-level comment/annotations that should
+        // remain at the top of the file regardless of whether it was attached to a
+        // directive that's moved/removed.
+        // Code up to this offset will be excluded from the comment/docs/annotation
+        // text for the computed DirectiveInfo and also its range for replacement
+        // in the document.
+        int? libraryDocsAndAnnotationsEndOffset;
         var priority = _getDirectivePriority(directive);
         if (priority != null) {
           var offset = directive.offset;
           var end = directive.end;
 
-          final isPseudoLibraryDirective = directive == unit.directives.first;
+          final isPseudoLibraryDirective =
+              !hasLibraryDirective && directive == unit.directives.first;
           Annotation? lastLibraryAnnotation;
           if (isPseudoLibraryDirective) {
             // Find the last library-level annotation that does not come
@@ -99,10 +101,17 @@ class ImportOrganizer {
             lastLibraryAnnotation = directive.metadata
                 .takeWhile(_isLibraryTargetAnnotation)
                 .lastOrNull;
-            if (lastLibraryAnnotation != null) {
-              libraryDocsAndAnnotationsEndOffset =
-                  lineInfo.getOffsetOfLineAfter(lastLibraryAnnotation.end);
-              // In the case of a blank line after the last library annotation
+
+            // If there is no annotation, use the end of the doc text (since the
+            // doc text is considered library-level here).
+            libraryDocsAndAnnotationsEndOffset = lastLibraryAnnotation?.end ??
+                directive.documentationComment?.end;
+
+            // Fix up the offset to be after the line end.
+            if (libraryDocsAndAnnotationsEndOffset != null) {
+              libraryDocsAndAnnotationsEndOffset = lineInfo
+                  .getOffsetOfLineAfter(libraryDocsAndAnnotationsEndOffset);
+              // In the case of a blank line after the annotation/doc text
               // we should include that in the library part. Otherwise it will
               // be included in the top of the following directive and may
               // result in an extra blank line in the annotation block if it
@@ -124,84 +133,25 @@ class ImportOrganizer {
           final leadingToken =
               lastLibraryAnnotation == null ? directive.beginToken : null;
           final leadingComment = leadingToken != null
-              ? getLeadingComment(unit, leadingToken, lineInfo)
+              ? getLeadingComment(unit, leadingToken, lineInfo,
+                  isPseudoLibraryDirective: isPseudoLibraryDirective)
               : null;
           final trailingComment = getTrailingComment(unit, directive, lineInfo);
 
-          /// Computes the offset to use for the start of directive-specific
-          /// code below taking into account code already included by
-          /// [libraryDocsAndAnnotationsEndOffset].
-          final clampedOffset = libraryDocsAndAnnotationsEndOffset == null
-              ? (int offset) => offset
-              : (int offset) =>
-                  math.max(libraryDocsAndAnnotationsEndOffset!, offset);
-
-          String? leadingCommentText;
           if (leadingComment != null && leadingToken != null) {
-            offset = clampedOffset(leadingComment.offset);
-            leadingCommentText = code.substring(
-              offset,
-              clampedOffset(leadingToken.offset),
-            );
+            offset = libraryDocsAndAnnotationsEndOffset != null
+                ? math.max(
+                    libraryDocsAndAnnotationsEndOffset, leadingComment.offset)
+                : leadingComment.offset;
           }
-          String? trailingCommentText;
           if (trailingComment != null) {
-            trailingCommentText =
-                code.substring(directive.end, trailingComment.end);
             end = trailingComment.end;
           }
-          String? documentationText;
-          var documentationComment = directive.documentationComment;
-          if (documentationComment != null) {
-            documentationText = code.substring(
-              clampedOffset(documentationComment.offset),
-              clampedOffset(documentationComment.end),
-            );
-          }
-          String? annotationText;
-          String? postAnnotationCommentText;
-          var beginToken = directive.metadata.beginToken;
-          var endToken = directive.metadata.endToken;
-          if (beginToken != null && endToken != null) {
-            var annotationOffset = clampedOffset(beginToken.offset);
-            var annotationEnd = clampedOffset(endToken.end);
-            if (annotationOffset != annotationEnd) {
-              annotationText = code.substring(
-                annotationOffset,
-                annotationEnd,
-              );
-            }
-            // Capture text between the end of the annotation and the directive
-            // text as there may be end-of line or line comments between.
-            // If not, this will capture the newline between the two, as it
-            // cannot be assumed there is a newline after annotationText because
-            // of the possibility of comments.
-            if (annotationEnd <
-                directive.firstTokenAfterCommentAndMetadata.offset) {
-              postAnnotationCommentText = code.substring(annotationEnd,
-                  directive.firstTokenAfterCommentAndMetadata.offset);
-            }
-          }
-          var text = code.substring(
-              directive.firstTokenAfterCommentAndMetadata.offset,
-              directive.end);
-          var uriContent = directive.uri.stringValue ?? '';
+          offset = libraryDocsAndAnnotationsEndOffset ?? offset;
+          final text = code.substring(offset, end);
+          final uriContent = directive.uri.stringValue ?? '';
           directives.add(
-            _DirectiveInfo(
-              directive,
-              priority,
-              leadingCommentText,
-              documentationText,
-              annotationText,
-              postAnnotationCommentText,
-              uriContent,
-              trailingCommentText,
-              isPseudoLibraryDirective
-                  ? (libraryDocsAndAnnotationsEndOffset ?? offset)
-                  : offset,
-              end,
-              text,
-            ),
+            _DirectiveInfo(directive, priority, uriContent, offset, end, text),
           );
         }
       }
@@ -213,24 +163,12 @@ class ImportOrganizer {
     var firstDirectiveOffset = directives.first.offset;
     var lastDirectiveEnd = directives.last.end;
 
-    // Without a library directive, the library comment is the comment of the
-    // first directive.
-    _DirectiveInfo? libraryDocumentationDirective;
-    if (!hasLibraryDirective && directives.isNotEmpty) {
-      libraryDocumentationDirective = directives.first;
-    }
-
     // sort
     directives.sort();
     // append directives with grouping
     String directivesCode;
     {
       var sb = StringBuffer();
-      if (libraryDocumentationDirective != null &&
-          libraryDocumentationDirective.documentationText != null) {
-        sb.write(libraryDocumentationDirective.documentationText);
-        sb.write(endOfLine);
-      }
       _DirectivePriority? currentPriority;
       for (var directiveInfo in directives) {
         if (!hasUnresolvedIdentifierError) {
@@ -245,24 +183,7 @@ class ImportOrganizer {
           }
           currentPriority = directiveInfo.priority;
         }
-        if (directiveInfo.leadingCommentText != null) {
-          sb.write(directiveInfo.leadingCommentText);
-        }
-        if (directiveInfo != libraryDocumentationDirective &&
-            directiveInfo.documentationText != null) {
-          sb.write(directiveInfo.documentationText);
-          sb.write(endOfLine);
-        }
-        if (directiveInfo.annotationText != null) {
-          sb.write(directiveInfo.annotationText);
-        }
-        if (directiveInfo.postAnnotationCommentText != null) {
-          sb.write(directiveInfo.postAnnotationCommentText);
-        }
         sb.write(directiveInfo.text);
-        if (directiveInfo.trailingCommentText != null) {
-          sb.write(directiveInfo.trailingCommentText);
-        }
         sb.write(endOfLine);
       }
       directivesCode = sb.toString();
@@ -286,14 +207,16 @@ class ImportOrganizer {
   /// Gets the first comment token considered to be the leading comment for this
   /// token.
   ///
-  /// Leading comments for the first directive in a file are considered library
-  /// comments and not returned unless they contain blank lines, in which case
-  /// only the last part of the comment will be returned (unless it is a
-  /// language directive comment, in which case it will also be skipped) or an
-  /// '// ignore:' comment which should always be treated as attached to the
-  /// import.
+  /// Leading comments for the first directive in a file with no library
+  /// directive (indicated with [isPseudoLibraryDirective]) are considered
+  /// library comments and not included unless they contain blank lines, in
+  /// which case only the last part of the comment will be returned (unless it
+  /// is a language directive comment, in which case it will also be skipped),
+  /// or an '// ignore:' comment which should always be treated as attached to
+  /// the import.
   static Token? getLeadingComment(
-      CompilationUnit unit, Token beginToken, LineInfo lineInfo) {
+      CompilationUnit unit, Token beginToken, LineInfo lineInfo,
+      {required bool isPseudoLibraryDirective}) {
     if (beginToken.precedingComments == null) {
       return null;
     }
@@ -301,8 +224,9 @@ class ImportOrganizer {
     Token? firstComment = beginToken.precedingComments;
     var comment = firstComment;
     var nextComment = comment?.next;
-    // Don't connect comments that have a blank line between them
-    while (comment != null && nextComment != null) {
+    // Don't connect comments that have a blank line between them if this is
+    // a psuedo-library directive.
+    while (isPseudoLibraryDirective && comment != null && nextComment != null) {
       var currentLine = lineInfo.getLocation(comment.offset).lineNumber;
       var nextLine = lineInfo.getLocation(nextComment.offset).lineNumber;
       if (nextLine - currentLine > 1) {
@@ -400,12 +324,7 @@ class ImportOrganizer {
 class _DirectiveInfo implements Comparable<_DirectiveInfo> {
   final UriBasedDirective directive;
   final _DirectivePriority priority;
-  final String? leadingCommentText;
-  final String? documentationText;
-  final String? annotationText;
-  final String? postAnnotationCommentText;
   final String uri;
-  final String? trailingCommentText;
 
   /// The offset of the first token, usually the keyword but may include leading comments.
   final int offset;
@@ -419,12 +338,7 @@ class _DirectiveInfo implements Comparable<_DirectiveInfo> {
   _DirectiveInfo(
     this.directive,
     this.priority,
-    this.leadingCommentText,
-    this.documentationText,
-    this.annotationText,
-    this.postAnnotationCommentText,
     this.uri,
-    this.trailingCommentText,
     this.offset,
     this.end,
     this.text,

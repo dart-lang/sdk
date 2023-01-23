@@ -25,11 +25,11 @@ abstract class _EA&_Enum&A extends core::_Enum implements self::A /*isAnonymousM
 }
 class EA extends self::_EA&_Enum&A /*isEnum*/  {
   static const field core::List<self::EA> values = #C4;
-  static const field self::EA element = #C3;
+  enum-element static const field self::EA element = #C3;
   const constructor •(core::int #index, core::String #name) → self::EA
     : super self::_EA&_Enum&A::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "EA.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class B extends core::Object implements core::Enum {
@@ -48,11 +48,11 @@ abstract class _EB&_Enum&B extends core::_Enum implements self::B /*isAnonymousM
 }
 class EB extends self::_EB&_Enum&B /*isEnum*/  {
   static const field core::List<self::EB> values = #C6;
-  static const field self::EB element = #C5;
+  enum-element static const field self::EB element = #C5;
   const constructor •(core::int #index, core::String #name) → self::EB
     : super self::_EB&_Enum&B::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "EB.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class M extends core::Enum /*isMixinDeclaration*/  {
@@ -68,11 +68,11 @@ abstract class _EM&_Enum&M extends core::_Enum implements self::M /*isAnonymousM
 }
 class EM extends self::_EM&_Enum&M /*isEnum*/  {
   static const field core::List<self::EM> values = #C8;
-  static const field self::EM element = #C7;
+  enum-element static const field self::EM element = #C7;
   const constructor •(core::int #index, core::String #name) → self::EM
     : super self::_EM&_Enum&M::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "EM.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class N extends core::Object implements core::Enum /*isMixinDeclaration*/  {
@@ -88,11 +88,11 @@ abstract class _EN&_Enum&N extends core::_Enum implements self::N /*isAnonymousM
 }
 class EN extends self::_EN&_Enum&N /*isEnum*/  {
   static const field core::List<self::EN> values = #C10;
-  static const field self::EN element = #C9;
+  enum-element static const field self::EN element = #C9;
   const constructor •(core::int #index, core::String #name) → self::EN
     : super self::_EN&_Enum&N::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "EN.${this.{core::_Enum::_name}{core::String}}";
 }
 static method expectEquals(dynamic x, dynamic y) → dynamic {
@@ -125,8 +125,8 @@ Constructor coverage from constants:
 org-dartlang-testcase:///enum_as_supertype.dart:
 - EA. (from org-dartlang-testcase:///enum_as_supertype.dart:9:6)
 - _EA&_Enum&A. (from org-dartlang-testcase:///enum_as_supertype.dart:9:6)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - EB. (from org-dartlang-testcase:///enum_as_supertype.dart:15:6)
 - _EB&_Enum&B. (from org-dartlang-testcase:///enum_as_supertype.dart:15:6)
 - EM. (from org-dartlang-testcase:///enum_as_supertype.dart:21:6)

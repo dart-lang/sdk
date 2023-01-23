@@ -52,6 +52,14 @@ abstract class SharedCompiler<Library extends Object, Class extends Object,
   /// constants, urs inside the generated function.
   bool _incrementalMode = false;
 
+  /// Adds an import mapping from [library] to [id].
+  ///
+  /// This is a temporary work around until imports can be manually added in
+  /// `startModule()`.
+  void forceLibraryImport(Library library, js_ast.TemporaryId id) {
+    _imports[library] = id;
+  }
+
   @protected
   bool get incrementalMode => _incrementalMode;
 
@@ -96,6 +104,19 @@ abstract class SharedCompiler<Library extends Object, Class extends Object,
   /// primitive types (e.g. String) or DOM types in "dart:html".
   @protected
   late js_ast.Identifier extensionSymbolsModule;
+
+  /// The identifier used to reference DDC's core "dart:_rti" library from
+  /// generated JS code.
+  ///
+  /// Must manually name the dart:_rti library because there are local variables
+  /// within the library that inadvertently shadow the default name.
+  final js_ast.TemporaryId rtiLibraryId = js_ast.TemporaryId('dart_rti');
+
+  /// The library referred to by [rtiLibraryId].
+  late Library rtiLibrary;
+
+  /// The `Rti` class defined in [rtiLibrary].
+  late Class rtiClass;
 
   /// Whether we're currently building the SDK, which may require special
   /// bootstrapping logic.
@@ -465,7 +486,10 @@ abstract class SharedCompiler<Library extends Object, Class extends Object,
         _libraries[library] = runtimeModule;
         continue;
       }
-      var libraryId = js_ast.TemporaryId(jsLibraryName(library));
+      var libraryId = isBuildingSdk && isDartLibrary(library, '_rti')
+          ? rtiLibraryId
+          : js_ast.TemporaryId(jsLibraryName(library));
+
       _libraries[library] = libraryId;
       var alias = jsLibraryAlias(library);
       var aliasId = alias == null ? null : js_ast.TemporaryId(alias);
@@ -732,8 +756,8 @@ abstract class SharedCompiler<Library extends Object, Class extends Object,
   /// Note, this function mutates the items list and returns it as the `body`
   /// field of the result.
   @protected
-  js_ast.Program finishModule(
-      List<js_ast.ModuleItem> items, String moduleName) {
+  js_ast.Program finishModule(List<js_ast.ModuleItem> items, String moduleName,
+      {List<js_ast.Comment> header = const []}) {
     // TODO(jmesserly): there's probably further consolidation we can do
     // between DDC's two backends, by moving more code into this method, as the
     // code between `startModule` and `finishModule` is very similar in both.
@@ -747,7 +771,7 @@ abstract class SharedCompiler<Library extends Object, Class extends Object,
     moduleItems.clear();
 
     // Build the module.
-    return js_ast.Program(items, name: moduleName);
+    return js_ast.Program(items, name: moduleName, header: header);
   }
 
   /// Flattens blocks in [items] to a single list.

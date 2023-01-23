@@ -44,3 +44,4 @@ worlds:
     expectedLibraryCount: 1
     uriToSourcesDoesntInclude:
       - pkg/example/b.dart
+    advancedInvalidation: packageUpdate

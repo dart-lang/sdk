@@ -46,9 +46,7 @@ const sdkRootPathPosix = '/sdk';
 /// exceptions, so that we can test they are properly propagated to top level.
 class _ExceptionGeneratingInstrumentationListener
     extends InstrumentationListener {
-  _ExceptionGeneratingInstrumentationListener(
-      {MigrationSummary? migrationSummary})
-      : super(migrationSummary: migrationSummary);
+  _ExceptionGeneratingInstrumentationListener({super.migrationSummary});
 
   @override
   void externalDecoratedType(Element element, DecoratedTypeInfo decoratedType) {
@@ -109,8 +107,7 @@ class _MigrationCli extends MigrationCli {
 class _MigrationCliRunner extends MigrationCliRunner {
   Future<void> Function()? _runWhilePreviewServerActive;
 
-  _MigrationCliRunner(_MigrationCli cli, CommandLineOptions options)
-      : super(cli, options);
+  _MigrationCliRunner(_MigrationCli super.cli, super.options);
 
   _MigrationCli get cli => super.cli as _MigrationCli;
 
@@ -779,6 +776,50 @@ int? f() => null
           contains('Continuing with migration suggestions due to the use of '
               '--ignore-errors.'));
       await assertPreviewServerResponsive(url!);
+    });
+  }
+
+  test_lifecycle_import_check_handle_improper_lib_import() async {
+    Map<String, String?> computeProjectContents({required bool migrated}) => {
+          'pubspec.yaml': '''
+name: test
+environment:
+  sdk: '${migrated ? '>=2.12.0 <3.0.0' : '>=2.6.0 <3.0.0'}'
+''',
+          '.dart_tool/package_config.json':
+              _getPackageConfigText(migrated: migrated),
+          'lib/foo.dart': '''
+int${migrated ? '?' : ''} f() => null;
+''',
+          'test/foo_test.dart': '''
+import '../lib/foo.dart';
+int${migrated ? '?' : ''} g() => f();
+''',
+        };
+    var projectContents = computeProjectContents(migrated: false);
+    var projectDir = createProjectDir(projectContents);
+    var cli = _createCli();
+    bool applyHookCalled = false;
+    cli._onApplyHook = () {
+      expect(applyHookCalled, false);
+      applyHookCalled = true;
+      // Changes should have been made
+      assertProjectContents(projectDir, computeProjectContents(migrated: true));
+    };
+    await runWithPreviewServer(cli, ['--skip-import-check', projectDir],
+        (url) async {
+      expect(
+          logger.stdoutBuffer.toString(), contains('No analysis issues found'));
+      await assertPreviewServerResponsive(url!);
+      await _tellPreviewToApplyChanges(url);
+      expect(applyHookCalled, true);
+      var output = logger.stdoutBuffer.toString();
+      expect(output,
+          isNot(contains('Warning: package has unmigrated dependencies')));
+      // Output should not mention that the user can rerun without
+      // `--skip-import-check`.
+      expect(output,
+          isNot(contains('`--${CommandLineOptions.skipImportCheckFlag}`')));
     });
   }
 

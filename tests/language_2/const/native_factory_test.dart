@@ -7,8 +7,10 @@
 class Cake {
   final name;
   const Cake(this.name);
-  const factory Cake.BakeMeACake()
-      native "Cake_BakeMeACake"; /*@compile-error=unspecified*/
+
+  @pragma("vm:external-name", "Cake_BakeMeACake")
+  @JSName("Cake_BakeMeACake")
+  external const factory Cake.BakeMeACake(); /*@compile-error=unspecified*/
 }
 
 main() {

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/link.dart';
 
@@ -12,12 +14,12 @@ class TypeAliasSelfReferenceFinder {
     for (var builder in linker.builders.values) {
       for (var linkingUnit in builder.units) {
         for (var node in linkingUnit.node.declarations) {
-          if (node is FunctionTypeAlias) {
+          if (node is FunctionTypeAliasImpl) {
             var finder = _Finder(linker, node);
             finder.functionTypeAlias(node);
             var element = node.declaredElement as TypeAliasElementImpl;
             element.hasSelfReference = finder.hasSelfReference;
-          } else if (node is GenericTypeAlias) {
+          } else if (node is GenericTypeAliasImpl) {
             var finder = _Finder(linker, node);
             finder.genericTypeAlias(node);
             var element = node.declaredElement as TypeAliasElementImpl;
@@ -124,6 +126,10 @@ class _Finder {
       _typeParameterList(node.typeParameters);
       _formalParameterList(node.parameters);
       _visit(node.returnType);
+    } else if (node is RecordTypeAnnotation) {
+      for (final field in node.fields) {
+        _visit(field.type);
+      }
     } else {
       throw UnimplementedError('(${node.runtimeType}) $node');
     }

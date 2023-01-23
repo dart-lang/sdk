@@ -51,6 +51,7 @@ import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/modifier_builder.dart';
+import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
@@ -65,6 +66,7 @@ import '../denylisted_classes.dart'
 import '../dill/dill_library_builder.dart';
 import '../export.dart' show Export;
 import '../fasta_codes.dart';
+import '../import_chains.dart';
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/delayed.dart';
@@ -76,8 +78,6 @@ import '../kernel/kernel_helper.dart'
 import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/macro/macro.dart';
 import '../kernel/macro/annotation_parser.dart';
-import '../kernel/transform_collections.dart' show CollectionTransformer;
-import '../kernel/transform_set_literals.dart' show SetLiteralTransformer;
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
 import '../loader.dart' show Loader, untranslatableUriScheme;
 import '../problems.dart' show internalProblem;
@@ -85,6 +85,7 @@ import '../scope.dart';
 import '../ticker.dart' show Ticker;
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
+import '../uri_offset.dart';
 import '../util/helpers.dart';
 import '../uris.dart';
 import 'diet_listener.dart' show DietListener;
@@ -102,6 +103,7 @@ import 'source_library_builder.dart'
         ImplicitLanguageVersion,
         InvalidLanguageVersion,
         LanguageVersion,
+        LibraryAccess,
         SourceLibraryBuilder;
 import 'source_procedure_builder.dart';
 import 'stack_listener_impl.dart' show offsetForToken;
@@ -155,10 +157,6 @@ class SourceLoader extends Loader {
   TypeInferenceEngineImpl? _typeInferenceEngine;
 
   Instrumentation? instrumentation;
-
-  CollectionTransformer? collectionTransformer;
-
-  SetLiteralTransformer? setLiteralTransformer;
 
   final SourceLoaderDataForTesting? dataForTesting;
 
@@ -228,7 +226,7 @@ class SourceLoader extends Loader {
 
   int byteCount = 0;
 
-  Uri? currentUriForCrashReporting;
+  UriOffset? currentUriForCrashReporting;
 
   ClassBuilder? _macroClassBuilder;
 
@@ -286,6 +284,16 @@ class SourceLoader extends Loader {
     _builders.clear();
   }
 
+  /// Run [f] with [uri] and [fileOffset] as the current uri/offset used for
+  /// reporting crashes.
+  T withUriForCrashReporting<T>(Uri uri, int fileOffset, T Function() f) {
+    UriOffset? oldUriForCrashReporting = currentUriForCrashReporting;
+    currentUriForCrashReporting = new UriOffset(uri, fileOffset);
+    T result = f();
+    currentUriForCrashReporting = oldUriForCrashReporting;
+    return result;
+  }
+
   @override
   LibraryBuilder get coreLibrary => _coreLibrary!;
 
@@ -323,7 +331,7 @@ class SourceLoader extends Loader {
       SourceLibraryBuilder? origin,
       Library? referencesFrom,
       bool? referenceIsPartOwner,
-      bool isAugmentation: false}) {
+      bool isAugmentation = false}) {
     return new SourceLibraryBuilder(
         importUri: importUri,
         fileUri: fileUri,
@@ -561,14 +569,15 @@ class SourceLoader extends Loader {
       LibraryBuilder? origin,
       Library? referencesFrom,
       bool? referenceIsPartOwner,
-      bool isAugmentation: false}) {
+      bool isAugmentation = false}) {
     LibraryBuilder libraryBuilder = _read(uri,
         fileUri: fileUri,
         origin: origin,
         referencesFrom: referencesFrom,
         referenceIsPartOwner: referenceIsPartOwner,
         isAugmentation: isAugmentation);
-    libraryBuilder.recordAccess(charOffset, noLength, accessor.fileUri);
+    libraryBuilder.recordAccess(
+        accessor, charOffset, noLength, accessor.fileUri);
     if (!_hasLibraryAccess(imported: uri, importer: accessor.importUri) &&
         !accessor.isPatch) {
       accessor.addProblem(messagePlatformPrivateLibraryAccess, charOffset,
@@ -594,7 +603,8 @@ class SourceLoader extends Loader {
     // the first library is the accessor of itself.
     LibraryBuilder? firstLibrary = first;
     if (firstLibrary != null) {
-      libraryBuilder.recordAccess(-1, noLength, firstLibrary.fileUri);
+      libraryBuilder.recordAccess(
+          firstLibrary, -1, noLength, firstLibrary.fileUri);
     }
     if (!_hasLibraryAccess(imported: uri, importer: firstLibrary?.importUri)) {
       if (firstLibrary != null) {
@@ -624,7 +634,7 @@ class SourceLoader extends Loader {
       LibraryBuilder? origin,
       Library? referencesFrom,
       bool? referenceIsPartOwner,
-      bool isAugmentation: false}) {
+      bool isAugmentation = false}) {
     LibraryBuilder? libraryBuilder = _builders[uri];
     if (libraryBuilder == null) {
       if (target.dillTarget.isLoaded) {
@@ -658,7 +668,8 @@ class SourceLoader extends Loader {
   Future<Null> buildBodies(List<SourceLibraryBuilder> libraryBuilders) async {
     assert(_coreLibrary != null);
     for (SourceLibraryBuilder library in libraryBuilders) {
-      currentUriForCrashReporting = library.importUri;
+      currentUriForCrashReporting =
+          new UriOffset(library.importUri, TreeNode.noOffset);
       await buildBody(library);
     }
     // Workaround: This will return right away but avoid a "semi leak"
@@ -691,10 +702,10 @@ class SourceLoader extends Loader {
   @override
   FormattedMessage? addProblem(
       Message message, int charOffset, int length, Uri? fileUri,
-      {bool wasHandled: false,
+      {bool wasHandled = false,
       List<LocatedMessage>? context,
       Severity? severity,
-      bool problemOnLibrary: false,
+      bool problemOnLibrary = false,
       List<Uri>? involvedFiles}) {
     return addMessage(message, charOffset, length, fileUri, severity,
         wasHandled: wasHandled,
@@ -716,9 +727,9 @@ class SourceLoader extends Loader {
   /// [wasHandled] is false.
   FormattedMessage? addMessage(Message message, int charOffset, int length,
       Uri? fileUri, Severity? severity,
-      {bool wasHandled: false,
+      {bool wasHandled = false,
       List<LocatedMessage>? context,
-      bool problemOnLibrary: false,
+      bool problemOnLibrary = false,
       List<Uri>? involvedFiles}) {
     assert(
         fileUri != missingUri, "Message unexpectedly reported on missing uri.");
@@ -760,10 +771,6 @@ severity: $severity
       allComponentProblems.add(formattedMessage);
     }
     return formattedMessage;
-  }
-
-  MemberBuilder getAbstractClassInstantiationError() {
-    return target.getAbstractClassInstantiationError(this);
   }
 
   MemberBuilder getCompileTimeError() => target.getCompileTimeError(this);
@@ -818,8 +825,16 @@ severity: $severity
   Template<SummaryTemplate> get outlineSummaryTemplate =>
       templateSourceOutlineSummary;
 
+  /// The [SourceLibraryBuilder]s for the `dart:` libraries that are not
+  /// available.
+  ///
+  /// We special-case the errors for accessing these libraries and report
+  /// it at the end of [buildOutlines] to ensure that all import paths are
+  /// part of the error message.
+  Set<SourceLibraryBuilder> _unavailableDartLibraries = {};
+
   Future<Token> tokenize(SourceLibraryBuilder libraryBuilder,
-      {bool suppressLexicalErrors: false}) async {
+      {bool suppressLexicalErrors = false}) async {
     target.benchmarker?.beginSubdivide(BenchmarkSubdivides.tokenize);
     Uri fileUri = libraryBuilder.fileUri;
 
@@ -829,10 +844,15 @@ severity: $severity
     if (bytes == null) {
       // Error recovery.
       if (fileUri.isScheme(untranslatableUriScheme)) {
-        Message message =
-            templateUntranslatableUri.withArguments(libraryBuilder.importUri);
-        libraryBuilder.addProblemAtAccessors(message);
-        bytes = synthesizeSourceForMissingFile(libraryBuilder.importUri, null);
+        Uri importUri = libraryBuilder.importUri;
+        if (importUri.isScheme('dart')) {
+          // We report this error later in [buildOutlines].
+          _unavailableDartLibraries.add(libraryBuilder);
+        } else {
+          libraryBuilder.addProblemAtAccessors(
+              templateUntranslatableUri.withArguments(importUri));
+        }
+        bytes = synthesizeSourceForMissingFile(importUri, null);
       } else if (!fileUri.hasScheme) {
         target.benchmarker?.endSubdivide();
         return internalProblem(
@@ -858,8 +878,8 @@ severity: $severity
       try {
         rawBytes = await fileSystem.entityForUri(fileUri).readAsBytes();
       } on FileSystemException catch (e) {
-        Message message =
-            templateCantReadFile.withArguments(fileUri, e.message);
+        Message message = templateCantReadFile.withArguments(
+            fileUri, target.context.options.osErrorMessage(e.message));
         libraryBuilder.addProblemAtAccessors(message);
         rawBytes =
             synthesizeSourceForMissingFile(libraryBuilder.importUri, message);
@@ -906,7 +926,11 @@ severity: $severity
     Token token = result.tokens;
     if (!suppressLexicalErrors) {
       List<int> source = getSource(bytes);
-      Uri importUri = libraryBuilder.importUri;
+
+      /// We use the [importUri] of the created [Library] and not the
+      /// [importUri] of the [LibraryBuilder] since it might be a patch library
+      /// which is not directly part of the output.
+      Uri importUri = libraryBuilder.library.importUri;
       if (libraryBuilder.isPatch) {
         // For patch files we create a "fake" import uri.
         // We cannot use the import uri from the patched library because
@@ -1005,7 +1029,8 @@ severity: $severity
     _ensureCoreLibrary();
     while (_unparsedLibraries.isNotEmpty) {
       SourceLibraryBuilder library = _unparsedLibraries.removeFirst();
-      currentUriForCrashReporting = library.importUri;
+      currentUriForCrashReporting =
+          new UriOffset(library.importUri, TreeNode.noOffset);
       await buildOutline(library);
     }
     currentUriForCrashReporting = null;
@@ -1037,6 +1062,75 @@ severity: $severity
         addProblem(entry.value, -1, noLength, entry.key.fileUri);
       }
       _nnbdMismatchLibraries = null;
+    }
+    if (_unavailableDartLibraries.isNotEmpty) {
+      LibraryBuilder? rootLibrary = first;
+      LoadedLibraries? loadedLibraries;
+      for (SourceLibraryBuilder libraryBuilder in _unavailableDartLibraries) {
+        List<LocatedMessage>? context;
+        Uri importUri = libraryBuilder.importUri;
+        Message message =
+            templateUnavailableDartLibrary.withArguments(importUri);
+        if (rootLibrary != null) {
+          loadedLibraries ??=
+              new LoadedLibrariesImpl(rootLibrary, libraryBuilders);
+          Set<String> importChain = computeImportChainsFor(
+              rootLibrary.importUri, loadedLibraries, importUri,
+              verbose: false);
+          Set<String> verboseImportChain = computeImportChainsFor(
+              rootLibrary.importUri, loadedLibraries, importUri,
+              verbose: true);
+          if (importChain.isNotEmpty) {
+            if (importChain.containsAll(verboseImportChain)) {
+              context = [
+                templateImportChainContextSimple
+                    .withArguments(libraryBuilder.importUri,
+                        importChain.map((part) => '    $part\n').join())
+                    .withoutLocation(),
+              ];
+            } else {
+              context = [
+                templateImportChainContext
+                    .withArguments(
+                        libraryBuilder.importUri,
+                        importChain.map((part) => '    $part\n').join(),
+                        verboseImportChain.map((part) => '    $part\n').join())
+                    .withoutLocation(),
+              ];
+            }
+          }
+        }
+        // We only include the [context] on the first library access.
+        if (libraryBuilder.accessors.isEmpty) {
+          // This is the entry point library, and nobody access it directly. So
+          // we need to report a problem.
+          addProblem(message, -1, 1, null, context: context);
+        } else {
+          LibraryAccess access = libraryBuilder.accessors.first;
+          access.accessor.addProblem(
+              message, access.charOffset, access.length, access.fileUri,
+              context: context);
+        }
+      }
+      // All subsequent library accesses are reported here without the context
+      // message.
+      for (SourceLibraryBuilder libraryBuilder in _unavailableDartLibraries) {
+        Uri importUri = libraryBuilder.importUri;
+        Message message =
+            templateUnavailableDartLibrary.withArguments(importUri);
+
+        if (libraryBuilder.accessors.length > 1) {
+          for (int i = 1; i < libraryBuilder.accessors.length; i++) {
+            LibraryAccess access = libraryBuilder.accessors[i];
+            access.accessor.addProblem(
+                message, access.charOffset, access.length, access.fileUri);
+          }
+        }
+        // Mark the library with an access problem so that it will be marked
+        // as synthetic and so that subsequent accesses will be reported.
+        libraryBuilder.accessProblem ??= message;
+      }
+      _unavailableDartLibraries.clear();
     }
   }
 
@@ -1154,7 +1248,8 @@ severity: $severity
       {
         target.benchmarker?.beginSubdivide(
             BenchmarkSubdivides.body_buildBody_benchmark_specific_parser);
-        Parser parser = new Parser(new ForwardingListener());
+        Parser parser = new Parser(new ForwardingListener(),
+            allowPatterns: target.globalFeatures.patterns.isEnabled);
         parser.parseUnit(tokens);
         target.benchmarker?.endSubdivide();
       }
@@ -1227,7 +1322,7 @@ severity: $severity
             extensionName: null,
             isExtensionMember: false,
             isInstanceMember: false,
-            libraryReference: libraryBuilder.library.reference),
+            libraryName: libraryBuilder.libraryName),
         isInstanceMember: false,
         isExtensionMember: false)
       ..parent = parent;
@@ -1241,7 +1336,8 @@ severity: $severity
 
     return listener.parseSingleExpression(
         new Parser(listener,
-            useImplicitCreationExpression: useImplicitCreationExpressionInCfe),
+            useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+            allowPatterns: target.globalFeatures.patterns.isEnabled),
         token,
         parameters);
   }
@@ -1289,14 +1385,10 @@ severity: $severity
     }
     ticker.logMs("Resolved parts");
 
-    for (LibraryBuilder library in libraryBuilders) {
-      if (library.loader == this) {
-        library.applyPatches();
-      }
-    }
     for (SourceLibraryBuilder patchLibrary in patchLibraries) {
       _builders.remove(patchLibrary.fileUri);
       patchLibrary.origin.addPatchLibrary(patchLibrary);
+      patchLibrary.applyPatches();
     }
     _sourceLibraryBuilders = sourceLibraries;
     assert(
@@ -1351,7 +1443,10 @@ severity: $severity
         both.add(exported as SourceLibraryBuilder);
       }
       for (Export export in exported.exporters) {
-        exported.exportScope.forEach(export.addToExportScope);
+        exported.exportScope
+            .filteredNameIterator(
+                includeDuplicates: false, includeAugmentations: false)
+            .forEach(export.addToExportScope);
       }
     }
     bool wasChanged = false;
@@ -1359,11 +1454,14 @@ severity: $severity
       wasChanged = false;
       for (SourceLibraryBuilder exported in both) {
         for (Export export in exported.exporters) {
-          exported.exportScope.forEach((String name, Builder member) {
-            if (export.addToExportScope(name, member)) {
+          NameIterator<Builder> iterator = exported.exportScope
+              .filteredNameIterator(
+                  includeDuplicates: false, includeAugmentations: false);
+          while (iterator.moveNext()) {
+            if (export.addToExportScope(iterator.name, iterator.current)) {
               wasChanged = true;
             }
-          });
+          }
         }
       }
     } while (wasChanged);
@@ -1389,19 +1487,19 @@ severity: $severity
     _builders.forEach((Uri uri, dynamic l) {
       SourceLibraryBuilder library = l;
       Set<Builder> members = new Set<Builder>();
-      Iterator<Builder> iterator = library.iterator;
-      while (iterator.moveNext()) {
-        members.add(iterator.current);
+      Iterator<Builder> memberIterator = library.localMembersIterator;
+      while (memberIterator.moveNext()) {
+        members.add(memberIterator.current);
       }
       List<String> exports = <String>[];
-      library.exportScope.forEach((String name, Builder? member) {
-        while (member != null) {
-          if (!members.contains(member)) {
-            exports.add(name);
-          }
-          member = member.next;
+      NameIterator<Builder> exportsIterator = library.exportScope
+          .filteredNameIterator(
+              includeDuplicates: true, includeAugmentations: false);
+      while (exportsIterator.moveNext()) {
+        if (!members.contains(exportsIterator.current)) {
+          exports.add(exportsIterator.name);
         }
-      });
+      }
       if (exports.isNotEmpty) {
         print("$uri exports $exports");
       }
@@ -1445,10 +1543,11 @@ severity: $severity
     Map<Uri, List<ClassBuilder>> macroLibraries = {};
 
     for (LibraryBuilder libraryBuilder in libraryBuilders) {
-      Iterator<Builder> iterator = libraryBuilder.iterator;
+      Iterator<ClassBuilder> iterator =
+          libraryBuilder.localMembersIteratorOfType();
       while (iterator.moveNext()) {
-        Builder builder = iterator.current;
-        if (builder is ClassBuilder && builder.isMacro) {
+        ClassBuilder builder = iterator.current;
+        if (builder.isMacro) {
           Uri libraryUri = builder.libraryBuilder.importUri;
           if (!target.context.options.macroExecutor
               .libraryIsRegistered(libraryUri)) {
@@ -1554,8 +1653,13 @@ severity: $severity
           if (macroClasses != null) {
             Map<String, List<String>>? constructorMap;
             for (ClassBuilder macroClass in macroClasses) {
-              List<String> constructors =
-                  macroClass.constructorScope.local.keys.toList();
+              List<String> constructors = [];
+              NameIterator<MemberBuilder> iterator = macroClass.constructorScope
+                  .filteredNameIterator(
+                      includeDuplicates: false, includeAugmentations: true);
+              while (iterator.moveNext()) {
+                constructors.add(iterator.name);
+              }
               if (constructors.isNotEmpty) {
                 // TODO(johnniwinther): If there is no constructor here, it
                 // means the macro had no _explicit_ constructors. Since macro
@@ -1598,7 +1702,7 @@ severity: $severity
       // TODO(johnniwinther): Handle patch libraries.
       LibraryMacroApplicationData libraryMacroApplicationData =
           new LibraryMacroApplicationData();
-      Iterator<Builder> iterator = libraryBuilder.iterator;
+      Iterator<Builder> iterator = libraryBuilder.localMembersIterator;
       while (iterator.moveNext()) {
         Builder builder = iterator.current;
         if (builder is SourceClassBuilder) {
@@ -1614,7 +1718,9 @@ severity: $severity
             classMacroApplicationData.classApplications = new ApplicationData(
                 libraryBuilder, classBuilder, classMacroApplications);
           }
-          classBuilder.forEach((String name, Builder memberBuilder) {
+          Iterator<Builder> memberIterator = classBuilder.fullMemberIterator;
+          while (memberIterator.moveNext()) {
+            Builder memberBuilder = memberIterator.current;
             if (memberBuilder is SourceProcedureBuilder) {
               List<MacroApplication>? macroApplications = prebuildAnnotations(
                   enclosingLibrary: libraryBuilder,
@@ -1641,8 +1747,11 @@ severity: $severity
               throw new UnsupportedError("Unexpected class member "
                   "$memberBuilder (${memberBuilder.runtimeType})");
             }
-          });
-          classBuilder.forEachConstructor((String name, Builder memberBuilder) {
+          }
+          Iterator<MemberBuilder> constructorIterator =
+              classBuilder.fullConstructorIterator;
+          while (constructorIterator.moveNext()) {
+            MemberBuilder memberBuilder = constructorIterator.current;
             if (memberBuilder is DeclaredSourceConstructorBuilder) {
               List<MacroApplication>? macroApplications = prebuildAnnotations(
                   enclosingLibrary: libraryBuilder,
@@ -1669,7 +1778,7 @@ severity: $severity
               throw new UnsupportedError("Unexpected constructor "
                   "$memberBuilder (${memberBuilder.runtimeType})");
             }
-          });
+          }
 
           if (classMacroApplicationData.classApplications != null ||
               classMacroApplicationData.memberApplications.isNotEmpty) {
@@ -1890,7 +1999,10 @@ severity: $severity
 
   void _checkConstructorsForMixin(
       SourceClassBuilder cls, ClassBuilder builder) {
-    for (Builder constructor in builder.constructorScope.local.values) {
+    Iterator<MemberBuilder> iterator = builder.constructorScope
+        .filteredIterator(includeDuplicates: false, includeAugmentations: true);
+    while (iterator.moveNext()) {
+      MemberBuilder constructor = iterator.current;
       if (constructor.isConstructor && !constructor.isSynthetic) {
         cls.addProblem(
             templateIllegalMixinDueToConstructors
@@ -1950,6 +2062,22 @@ severity: $severity
           cls.addProblem(
               templateExtendingRestricted
                   .withArguments(supertype!.fullNameForErrors),
+              cls.charOffset,
+              noLength);
+        }
+      } else if (supertype is ClassBuilder &&
+          supertype.isSealed &&
+          supertype.libraryBuilder.origin != cls.libraryBuilder.origin) {
+        if (supertype.isMixinDeclaration) {
+          cls.addProblem(
+              templateSealedMixinSubtypeOutsideOfLibrary
+                  .withArguments(supertype.fullNameForErrors),
+              cls.charOffset,
+              noLength);
+        } else {
+          cls.addProblem(
+              templateSealedClassSubtypeOutsideOfLibrary
+                  .withArguments(supertype.fullNameForErrors),
               cls.charOffset,
               noLength);
         }
@@ -2173,21 +2301,25 @@ severity: $severity
           Name name = restrictedMemberNames[i];
           Class? declarer = restrictedMemberDeclarers[i];
 
-          Member? member = hierarchy.getDispatchTarget(classBuilder.cls, name);
-          if (member?.enclosingClass != declarer &&
-              member?.enclosingClass != classBuilder.cls &&
-              member?.isAbstract == false) {
-            classBuilder.libraryBuilder.addProblem(
-                templateEnumInheritsRestricted.withArguments(name.text),
-                classBuilder.charOffset,
-                classBuilder.name.length,
-                classBuilder.fileUri,
-                context: <LocatedMessage>[
-                  messageEnumInheritsRestrictedMember.withLocation(
-                      member!.fileUri,
-                      member.fileOffset,
-                      member.name.text.length)
-                ]);
+          ClassMember? classMember =
+              membersBuilder.getDispatchClassMember(classBuilder.cls, name);
+          if (classMember != null) {
+            Member member = classMember.getMember(membersBuilder);
+            if (member.enclosingClass != declarer &&
+                member.enclosingClass != classBuilder.cls &&
+                member.isAbstract == false) {
+              classBuilder.libraryBuilder.addProblem(
+                  templateEnumInheritsRestricted.withArguments(name.text),
+                  classBuilder.charOffset,
+                  classBuilder.name.length,
+                  classBuilder.fileUri,
+                  context: <LocatedMessage>[
+                    messageEnumInheritsRestrictedMember.withLocation(
+                        classMember.fileUri,
+                        classMember.charOffset,
+                        member.name.text.length)
+                  ]);
+            }
           }
         }
       }
@@ -2239,6 +2371,21 @@ severity: $severity
     }
     hierarchy.applyMemberChanges(changedClasses, findDescendants: true);
     ticker.logMs("Added noSuchMethod forwarders");
+  }
+
+  /// Sets [SourceLibraryBuilder.unpromotablePrivateFieldNames] based on all the
+  /// classes in [sourceClasses].
+  void computeFieldPromotability(List<SourceClassBuilder> sourceClasses) {
+    for (SourceClassBuilder builder in sourceClasses) {
+      SourceLibraryBuilder libraryBuilder = builder.libraryBuilder;
+      if (!libraryBuilder.isInferenceUpdate2Enabled) continue;
+      Set<String> unpromotablePrivateFieldNames =
+          libraryBuilder.unpromotablePrivateFieldNames ??= {};
+      if (libraryBuilder.loader == this && !builder.isPatch) {
+        builder.addUnpromotablePrivateFieldNames(unpromotablePrivateFieldNames);
+      }
+    }
+    ticker.logMs("Computed unpromotable private field names");
   }
 
   void checkMixins(List<SourceClassBuilder> sourceClasses) {
@@ -2314,7 +2461,7 @@ severity: $severity
         ?.beginSubdivide(BenchmarkSubdivides.delayedActionPerformer);
     for (DelayedActionPerformer delayedActionPerformer
         in delayedActionPerformers) {
-      delayedActionPerformer.performDelayedActions();
+      delayedActionPerformer.performDelayedActions(allowFurtherDelays: false);
     }
     target.benchmarker?.endSubdivide();
     ticker.logMs("Build outline expressions");
@@ -2367,59 +2514,18 @@ severity: $severity
     ticker.logMs("Performed top level inference");
   }
 
-  void transformPostInference(TreeNode node, bool transformSetLiterals,
-      bool transformCollections, Library clientLibrary) {
-    if (transformCollections) {
-      collectionTransformer ??= new CollectionTransformer(this);
-      collectionTransformer!.enterLibrary(clientLibrary);
-      node.accept(collectionTransformer!);
-      collectionTransformer!.exitLibrary();
-    }
-    if (transformSetLiterals) {
-      setLiteralTransformer ??= new SetLiteralTransformer(this);
-      setLiteralTransformer!.enterLibrary(clientLibrary);
-      node.accept(setLiteralTransformer!);
-      setLiteralTransformer!.exitLibrary();
-    }
-  }
-
-  void transformListPostInference(
-      List<TreeNode> list,
-      bool transformSetLiterals,
-      bool transformCollections,
-      Library clientLibrary) {
-    if (transformCollections) {
-      CollectionTransformer transformer =
-          collectionTransformer ??= new CollectionTransformer(this);
-      transformer.enterLibrary(clientLibrary);
-      for (int i = 0; i < list.length; ++i) {
-        list[i] = list[i].accept(transformer);
-      }
-      transformer.exitLibrary();
-    }
-    if (transformSetLiterals) {
-      SetLiteralTransformer transformer =
-          setLiteralTransformer ??= new SetLiteralTransformer(this);
-      transformer.enterLibrary(clientLibrary);
-      for (int i = 0; i < list.length; ++i) {
-        list[i] = list[i].accept(transformer);
-      }
-      transformer.exitLibrary();
-    }
-  }
-
   Expression instantiateNoSuchMethodError(
       Expression receiver, String name, Arguments arguments, int offset,
-      {bool isMethod: false,
-      bool isGetter: false,
-      bool isSetter: false,
-      bool isField: false,
-      bool isLocalVariable: false,
-      bool isDynamic: false,
-      bool isSuper: false,
-      bool isStatic: false,
-      bool isConstructor: false,
-      bool isTopLevel: false}) {
+      {bool isMethod = false,
+      bool isGetter = false,
+      bool isSetter = false,
+      bool isField = false,
+      bool isLocalVariable = false,
+      bool isDynamic = false,
+      bool isSuper = false,
+      bool isStatic = false,
+      bool isConstructor = false,
+      bool isTopLevel = false}) {
     return target.backendTarget.instantiateNoSuchMethodError(
         coreTypes, receiver, name, arguments, offset,
         isMethod: isMethod,
@@ -2576,8 +2682,6 @@ severity: $severity
     target.releaseAncillaryResources();
     _coreTypes = null;
     instrumentation = null;
-    collectionTransformer = null;
-    setLiteralTransformer = null;
   }
 
   @override
@@ -2681,7 +2785,7 @@ abstract class pragma {
 class AbstractClassInstantiationError {}
 
 class NoSuchMethodError {
-  NoSuchMethodError.withInvocation(receiver, invocation);
+  factory NoSuchMethodError.withInvocation(receiver, invocation) => throw '';
 }
 
 class StackTrace {}
@@ -2730,44 +2834,15 @@ class int extends num {}
 
 class num {}
 
-class _SyncIterable {}
-
-class _SyncIterator {
-  var _current;
-  var _yieldEachIterable;
-}
-
 class Function {}
+
+class Record {}
 """;
 
 /// A minimal implementation of dart:async that is sufficient to create an
 /// instance of [CoreTypes] and compile program.
 const String defaultDartAsyncSource = """
-_asyncErrorWrapperHelper(continuation) {}
-
 void _asyncStarMoveNextHelper(var stream) {}
-
-_asyncThenWrapperHelper(continuation) {}
-
-_awaitHelper(object, thenCallback, errorCallback) {}
-
-_completeOnAsyncReturn(_future, value, async_jump_var) {}
-
-_completeWithNoFutureOnAsyncReturn(_future, value, async_jump_var) {}
-
-_completeOnAsyncError(_future, e, st, async_jump_var) {}
-
-class _AsyncStarStreamController {
-  add(event) {}
-
-  addError(error, stackTrace) {}
-
-  addStream(stream) {}
-
-  close() {}
-
-  get stream => null;
-}
 
 abstract class Completer {
   factory Completer.sync() => null;
@@ -2813,8 +2888,8 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
       bool Function(dynamic)? isValidKey}) => null;
 }
 
-class _InternalLinkedHashMap<K, V> {
-  _InternalLinkedHashMap();
+class _Map<K, V> {
+  _Map();
 }
 
 abstract class LinkedHashSet<E> implements Set<E> {
@@ -2824,8 +2899,8 @@ abstract class LinkedHashSet<E> implements Set<E> {
       bool Function(dynamic)? isValidKey}) => null;
 }
 
-class _CompactLinkedHashSet<E> {
-  _CompactLinkedHashSet();
+class _Set<E> {
+  _Set();
 }
 
 class _UnmodifiableSet {

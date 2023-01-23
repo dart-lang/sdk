@@ -428,7 +428,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
     _visitChildren(node, {
       'keyword': node.keyword,
       'type': node.type,
-      'identifier': node.identifier,
+      'name': node.name,
     });
     super.visitDeclaredIdentifier(node);
   }
@@ -579,7 +579,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'keyword': node.keyword,
       'type': node.type,
       'thisKeyword': node.thisKeyword,
-      'identifier': node.identifier,
+      'name': node.name,
       'typeParameters': node.typeParameters,
       'parameters': node.parameters,
       'question': node.question,
@@ -713,7 +713,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
     _visitChildren(node, {
       'covariantKeyword': node.covariantKeyword,
       'returnType': node.returnType,
-      'identifier': node.identifier,
+      'name': node.name,
       'typeParameters': node.typeParameters,
       'parameters': node.parameters,
       'question': node.question,
@@ -871,7 +871,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
     _visitChildren(node, {
       'documentationComment': node.documentationComment,
       'metadata': node.metadata,
-      'name': node.name,
+      'name': node.name2,
     });
     super.visitLibraryDirective(node);
   }
@@ -1111,7 +1111,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'covariantKeyword': node.covariantKeyword,
       'keyword': node.keyword,
       'type': node.type,
-      'identifier': node.identifier,
+      'name': node.name,
     });
     super.visitSimpleFormalParameter(node);
   }

@@ -345,43 +345,46 @@ static Dart_NativeFunction StackFrameNativeResolver(Dart_Handle name,
 // Unit test case to verify stack frame iteration.
 BENCHMARK(FrameLookup) {
   const char* kScriptChars =
-      "class StackFrame {"
-      "  static int accessFrame() native \"StackFrame_accessFrame\";"
-      "} "
-      "class First {"
-      "  First() { }"
-      "  int method1(int param) {"
-      "    if (param == 1) {"
-      "      param = method2(200);"
-      "    } else {"
-      "      param = method2(100);"
-      "    }"
-      "    return param;"
-      "  }"
-      "  int method2(int param) {"
-      "    if (param == 200) {"
-      "      return First.staticmethod(this, param);"
-      "    } else {"
-      "      return First.staticmethod(this, 10);"
-      "    }"
-      "  }"
-      "  static int staticmethod(First obj, int param) {"
-      "    if (param == 10) {"
-      "      return obj.method3(10);"
-      "    } else {"
-      "      return obj.method3(200);"
-      "    }"
-      "  }"
-      "  int method3(int param) {"
-      "    return StackFrame.accessFrame();"
-      "  }"
-      "}"
-      "class StackFrameTest {"
-      "  static int testMain() {"
-      "    First obj = new First();"
-      "    return obj.method1(1);"
-      "  }"
-      "}";
+      R"(
+      class StackFrame {
+        @pragma('vm:external-name', 'StackFrame_accessFrame')
+        external static int accessFrame();
+      }
+      class First {
+        First() { }
+        int method1(int param) {
+          if (param == 1) {
+            param = method2(200);
+          } else {
+            param = method2(100);
+          }
+          return param;
+        }
+        int method2(int param) {
+          if (param == 200) {
+            return First.staticmethod(this, param);
+          } else {
+            return First.staticmethod(this, 10);
+          }
+        }
+        static int staticmethod(First obj, int param) {
+          if (param == 10) {
+            return obj.method3(10);
+          } else {
+            return obj.method3(200);
+          }
+        }
+        int method3(int param) {
+          return StackFrame.accessFrame();
+        }
+      }
+      class StackFrameTest {
+        static int testMain() {
+          First obj = new First();
+          return obj.method1(1);
+        }
+      }
+  )";
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, StackFrameNativeResolver);
   Dart_Handle cls = Dart_GetClass(lib, NewString("StackFrameTest"));
@@ -517,8 +520,8 @@ BENCHMARK(SerializeNull) {
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
     std::unique_ptr<Message> message =
-        WriteMessage(/* can_send_any_object */ true, /* same_group */ false,
-                     null_object, ILLEGAL_PORT, Message::kNormalPriority);
+        WriteMessage(/* same_group */ false, null_object, ILLEGAL_PORT,
+                     Message::kNormalPriority);
 
     // Read object back from the snapshot.
     ReadMessage(thread, message.get());
@@ -538,8 +541,8 @@ BENCHMARK(SerializeSmi) {
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
     std::unique_ptr<Message> message =
-        WriteMessage(/* can_send_any_object */ true, /* same_group */ false,
-                     smi_object, ILLEGAL_PORT, Message::kNormalPriority);
+        WriteMessage(/* same_group */ false, smi_object, ILLEGAL_PORT,
+                     Message::kNormalPriority);
 
     // Read object back from the snapshot.
     ReadMessage(thread, message.get());
@@ -560,9 +563,9 @@ BENCHMARK(SimpleMessage) {
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
-    std::unique_ptr<Message> message = WriteMessage(
-        /* can_send_any_object */ true, /* same_group */ false, array_object,
-        ILLEGAL_PORT, Message::kNormalPriority);
+    std::unique_ptr<Message> message =
+        WriteMessage(/* same_group */ false, array_object, ILLEGAL_PORT,
+                     Message::kNormalPriority);
 
     // Read object back from the snapshot.
     ReadMessage(thread, message.get());
@@ -592,9 +595,8 @@ BENCHMARK(LargeMap) {
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
-    std::unique_ptr<Message> message =
-        WriteMessage(/* can_send_any_object */ true, /* same_group */ false,
-                     map, ILLEGAL_PORT, Message::kNormalPriority);
+    std::unique_ptr<Message> message = WriteMessage(
+        /* same_group */ false, map, ILLEGAL_PORT, Message::kNormalPriority);
 
     // Read object back from the snapshot.
     ReadMessage(thread, message.get());

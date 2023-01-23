@@ -225,7 +225,7 @@ class SqlResultSetRowList extends JavaScriptObject
 
   Map operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
-      throw new RangeError.index(index, this);
+      throw new IndexError.withLength(index, length, indexable: this);
     return this.item(index)!;
   }
 

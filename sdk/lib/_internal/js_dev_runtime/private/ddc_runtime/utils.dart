@@ -21,6 +21,7 @@ final Function(dynamic, dynamic,
     dynamic set,
     dynamic value,
     bool? configurable,
+    bool? enumerable,
     bool? writable}) defineAccessor = JS('', 'Object.defineProperty');
 
 final dynamic Function(dynamic, dynamic) getOwnPropertyDescriptor =

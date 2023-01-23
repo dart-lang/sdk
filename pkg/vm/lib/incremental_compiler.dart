@@ -37,7 +37,7 @@ class IncrementalCompiler {
   IncrementalCompilerResult? get lastKnownGoodResult => _lastKnownGood;
 
   IncrementalCompiler(this._compilerOptions, this._entryPoints,
-      {this.initializeFromDillUri, bool incrementalSerialization: true})
+      {this.initializeFromDillUri, bool incrementalSerialization = true})
       : forExpressionCompilationOnly = false {
     if (incrementalSerialization) {
       incrementalSerializer = new IncrementalSerializer();

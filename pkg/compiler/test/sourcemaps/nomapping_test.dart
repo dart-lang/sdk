@@ -13,7 +13,7 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart';
 
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 const List<String> TESTS = const <String>[
   '''
@@ -57,7 +57,7 @@ void main(List<String> arguments) {
 }
 
 Future runTest(int index, String code,
-    {bool writeJs, bool verbose: false, bool useNewSourceInfo: false}) async {
+    {bool writeJs, bool verbose = false, bool useNewSourceInfo = false}) async {
   print("--$index------------------------------------------------------------");
   print("Compiling dart2js ${useNewSourceInfo ? Flags.useNewSourceInfo : ''}\n"
       "${code}");

@@ -148,7 +148,7 @@ class U3<T> {
   late void Function<A>(core.List<core.int> x) Function<B extends core.int>(
       int x) x23;
 
-  U3({this.tIsBool: false, this.tIsInt: false})
+  U3({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   int m0(int y, [int x = -1]) => throw 'uncalled';

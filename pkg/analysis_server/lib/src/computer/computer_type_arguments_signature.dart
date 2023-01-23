@@ -22,12 +22,15 @@ class DartTypeArgumentsSignatureComputer {
   final Set<lsp.MarkupKind>? preferredFormats;
   late TypeArgumentList _argumentList;
   final bool _isNonNullableByDefault;
+  final DocumentationPreference documentationPreference;
+
   DartTypeArgumentsSignatureComputer(
     this._dartdocInfo,
     CompilationUnit unit,
     int offset,
-    this.preferredFormats,
-  )   : _node = NodeLocator(offset).searchWithin(unit),
+    this.preferredFormats, {
+    this.documentationPreference = DocumentationPreference.full,
+  })  : _node = NodeLocator(offset).searchWithin(unit),
         _isNonNullableByDefault = unit.isNonNullableByDefault;
 
   /// The [TypeArgumentList] node located by [compute].
@@ -57,8 +60,8 @@ class DartTypeArgumentsSignatureComputer {
 
     final label =
         element.getDisplayString(withNullability: _isNonNullableByDefault);
-    final documentation =
-        DartUnitHoverComputer.computeDocumentation(_dartdocInfo, element)?.full;
+    final documentation = DartUnitHoverComputer.computePreferredDocumentation(
+        _dartdocInfo, element, documentationPreference);
 
     return _toSignatureHelp(
       label,

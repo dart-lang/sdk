@@ -33,13 +33,14 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
       final refactoring = await getRefactoring(
           RefactoringKind(kind), result, offset, length, options);
       return refactoring.mapResult((refactoring) async {
-        // If the token we were given is not cancellable, replace it with one that
-        // is for the rest of this request, as a future refactor may need to cancel
-        // this request.
-        // The original token should be kept and also checked for cancellation.
-        final cancelableToken = cancellationToken is CancelableToken
-            ? cancellationToken
-            : CancelableToken();
+        // Don't include potential edits in refactorings until there is some UI
+        // for the user to control this.
+        refactoring.includePotential = false;
+
+        // If the token we were given is not cancelable, wrap it with one that
+        // is for the rest of this request as a future refactor may need to
+        // cancel this request.
+        final cancelableToken = cancellationToken.asCancelable();
         manager.begin(cancelableToken);
 
         try {
@@ -54,15 +55,13 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
             return success(null);
           }
 
-          if (cancellationToken.isCancellationRequested ||
-              cancelableToken.isCancellationRequested) {
+          if (cancelableToken.isCancellationRequested) {
             return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
           }
 
           final change = await refactoring.createChange();
 
-          if (cancellationToken.isCancellationRequested ||
-              cancelableToken.isCancellationRequested) {
+          if (cancelableToken.isCancellationRequested) {
             return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
           }
 

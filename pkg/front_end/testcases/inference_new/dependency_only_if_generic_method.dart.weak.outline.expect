@@ -7,6 +7,11 @@ library test /*isNonNullableByDefault*/;
 // var b = /*@returnType=() -> dynamic*/ () =>
 //     ^
 //
+// pkg/front_end/testcases/inference_new/dependency_only_if_generic_method.dart:26:5: Error: Can't infer the type of 'd': circularity found during type inference.
+// Specify the type explicitly.
+// var d = /*@returnType=() -> int*/ () =>
+//     ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -21,7 +26,7 @@ class A extends core::Object {
 static field self::A a;
 static field invalid-type b;
 static field () → dynamic c;
-static field () → () → core::int d;
+static field invalid-type d;
 static field () → core::int e;
 static method main() → dynamic
   ;

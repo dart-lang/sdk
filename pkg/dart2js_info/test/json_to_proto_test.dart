@@ -10,7 +10,7 @@ import 'package:dart2js_info/json_info_codec.dart';
 import 'package:dart2js_info/proto_info_codec.dart';
 import 'package:test/test.dart';
 
-main() {
+void main() {
   group('json to proto conversion', () {
     test('hello_world', () {
       var uri = Platform.script.resolve('hello_world/hello_world.js.info.json');
@@ -20,11 +20,11 @@ main() {
       final proto = AllInfoProtoCodec().encode(decoded);
 
       expect(proto.program.entrypointId, isNotNull);
-      expect(proto.program.size, 90362);
+      expect(proto.program.size, 90293);
       expect(proto.program.compilationMoment.toInt(),
-          DateTime.parse("2022-05-26 21:08:43.608041").microsecondsSinceEpoch);
+          DateTime.parse("2022-07-14 17:35:15.006337").microsecondsSinceEpoch);
       expect(proto.program.toProtoDuration.toInt(),
-          Duration(milliseconds: 3).inMicroseconds);
+          Duration(milliseconds: 2).inMicroseconds);
       expect(proto.program.dumpInfoDuration.toInt(),
           Duration(milliseconds: 0).inMicroseconds);
       expect(proto.program.noSuchMethodEnabled, isFalse);

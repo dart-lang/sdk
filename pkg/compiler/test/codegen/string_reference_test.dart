@@ -13,7 +13,7 @@ import 'package:compiler/src/js_backend/string_reference.dart'
 import 'package:compiler/src/js/js.dart' show prettyPrint;
 import 'package:js_ast/js_ast.dart' as js;
 
-void test(List<String> strings, String expected, {bool minified: false}) {
+void test(List<String> strings, String expected, {bool minified = false}) {
   var finalizer =
       StringReferenceFinalizerImpl(minified, shortestSharedLength: 5);
 

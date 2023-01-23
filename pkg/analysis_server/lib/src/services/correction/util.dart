@@ -7,7 +7,6 @@ import 'dart:math';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     show doSourceChange_addElementEdit;
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -48,15 +47,19 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
   // Prepare information about existing imports.
   LibraryDirective? libraryDirective;
   var importDirectives = <_ImportDirectiveInfo>[];
+  var directives = <NamespaceDirective>[];
   for (var directive in libUtils.unit.directives) {
     if (directive is LibraryDirective) {
       libraryDirective = directive;
-    } else if (directive is ImportDirective) {
-      var uriStr = directive.uri.stringValue;
-      if (uriStr != null) {
-        importDirectives.add(
-          _ImportDirectiveInfo(uriStr, directive.offset, directive.end),
-        );
+    } else if (directive is NamespaceDirective) {
+      directives.add(directive);
+      if (directive is ImportDirective) {
+        var uriStr = directive.uri.stringValue;
+        if (uriStr != null) {
+          importDirectives.add(
+            _ImportDirectiveInfo(uriStr, directive.offset, directive.end),
+          );
+        }
       }
     }
   }
@@ -67,6 +70,9 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
           session.resourceProvider.pathContext, targetLibrary, library.uri))
       .toList();
   uriList.sort((a, b) => a.compareTo(b));
+
+  var quote = session.analysisContext.analysisOptions.codeStyleOptions
+      .preferredQuoteForUris(directives);
 
   // Insert imports: between existing imports.
   if (importDirectives.isNotEmpty) {
@@ -83,7 +89,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
           isFirstPackage = false;
         }
         if (importUri.compareTo(existingImport.uri) < 0) {
-          var importCode = "import '$importUri';$eol";
+          var importCode = "import $quote$importUri$quote;$eol";
           doSourceChange_addElementEdit(change, targetLibrary,
               SourceEdit(existingImport.offset, 0, importCode));
           inserted = true;
@@ -91,7 +97,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
         }
       }
       if (!inserted) {
-        var importCode = "${eol}import '$importUri';";
+        var importCode = "${eol}import $quote$importUri$quote;";
         if (isPackage && isFirstPackage && isAfterDart) {
           importCode = eol + importCode;
         }
@@ -109,7 +115,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
   if (libraryDirective != null) {
     var prefix = eol + eol;
     for (var importUri in uriList) {
-      var importCode = "${prefix}import '$importUri';";
+      var importCode = "${prefix}import $quote$importUri$quote;";
       prefix = eol;
       doSourceChange_addElementEdit(change, targetLibrary,
           SourceEdit(libraryDirective.end, 0, importCode));
@@ -123,7 +129,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
     var offset = desc.offset;
     for (var i = 0; i < uriList.length; i++) {
       var importUri = uriList[i];
-      var importCode = "import '$importUri';$eol";
+      var importCode = "import $quote$importUri$quote;$eol";
       if (i == 0) {
         importCode = desc.prefix + importCode;
       }
@@ -234,11 +240,6 @@ String getElementQualifiedName(Element element) {
   }
 }
 
-/// If the given [node] is in a class, enum or mixin declaration, return the
-/// declared [ClassElement]. Otherwise return `null`.
-ClassElement? getEnclosingClassElement(AstNode node) =>
-    node.thisOrAncestorOfType<ClassOrMixinDeclaration>()?.declaredElement;
-
 /// Returns a class or an unit member enclosing the given [input].
 AstNode? getEnclosingClassOrUnitMember(AstNode input) {
   var member = input;
@@ -289,11 +290,6 @@ AstNode? getEnclosingExecutableNode(AstNode input) {
   return null;
 }
 
-/// If the given [node] is in an extension, return the declared
-/// [ExtensionElement]. Otherwise return `null`.
-ExtensionElement? getEnclosingExtensionElement(AstNode node) =>
-    node.thisOrAncestorOfType<ExtensionDeclaration>()?.declaredElement;
-
 /// Returns [getExpressionPrecedence] for the parent of [node], or
 /// ASSIGNMENT_PRECEDENCE if the parent node is a [ParenthesizedExpression].
 ///
@@ -326,8 +322,8 @@ Precedence getExpressionPrecedence(AstNode node) {
   return Precedence.none;
 }
 
-/// Returns the namespace of the given [ImportElement].
-Map<String, Element> getImportNamespace(ImportElement imp) {
+/// Returns the namespace of the given [LibraryImportElement].
+Map<String, Element> getImportNamespace(LibraryImportElement imp) {
   return imp.namespace.definedNames;
 }
 
@@ -470,6 +466,33 @@ bool hasDisplayName(Element? element, String name) {
   return element?.displayName == name;
 }
 
+/// Return whether the specified [name] is declared inside the [root] node
+/// or not.
+bool isDeclaredIn(AstNode root, String name) {
+  bool isDeclaredIn(FormalParameterList? parameters) {
+    if (parameters != null) {
+      for (var parameter in parameters.parameters) {
+        if (parameter.name?.lexeme == name) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  if (root is MethodDeclaration && isDeclaredIn(root.parameters)) {
+    return true;
+  }
+  if (root is FunctionDeclaration &&
+      isDeclaredIn(root.functionExpression.parameters)) {
+    return true;
+  }
+
+  var collector = _DeclarationCollector(name);
+  root.accept(collector);
+  return collector.isDeclared;
+}
+
 /// Checks if given [DartNode] is the left hand side of an assignment, or a
 /// declaration of a variable.
 bool isLeftHandOfAssignment(SimpleIdentifier node) {
@@ -477,7 +500,7 @@ bool isLeftHandOfAssignment(SimpleIdentifier node) {
     return true;
   }
   return node.parent is VariableDeclaration &&
-      (node.parent as VariableDeclaration).name == node;
+      (node.parent as VariableDeclaration).name == node.token;
 }
 
 /// Return `true` if the given [node] is the name of a [NamedExpression].
@@ -531,7 +554,7 @@ class CorrectionUtils {
 
   /// The [ClassElement] the generated code is inserted to, so we can decide if
   /// a type parameter may or may not be used.
-  ClassElement? targetClassElement;
+  InterfaceElement? targetClassElement;
 
   ExecutableElement? targetExecutableElement;
 
@@ -925,6 +948,13 @@ class CorrectionUtils {
       return 'Never';
     }
 
+    if (type is RecordType) {
+      return _getTypeCodeRecord(
+        librariesToImport: librariesToImport,
+        type: type,
+      );
+    }
+
     if (type is TypeParameterType) {
       var element = type.element;
       if (_isTypeParameterVisible(element)) {
@@ -1069,8 +1099,8 @@ class CorrectionUtils {
 
   InsertionLocation? prepareNewConstructorLocation(
       AnalysisSession session, ClassDeclaration classDeclaration) {
-    final sortConstructorsFirst = session.analysisContext.analysisOptions
-        .isLintEnabled(LintNames.sort_constructors_first);
+    final sortConstructorsFirst = session
+        .analysisContext.analysisOptions.codeStyleOptions.sortConstructorsFirst;
     // If sort_constructors_first is enabled, don't skip over the fields.
     final shouldSkip = sortConstructorsFirst
         ? (member) => member is ConstructorDeclaration
@@ -1215,8 +1245,8 @@ class CorrectionUtils {
 
   /// Return the import element used to import given [element] into the library.
   /// May be `null` if was not imported, i.e. declared in the same library.
-  ImportElement? _getImportElement(Element element) {
-    for (var imp in _library.imports) {
+  LibraryImportElement? _getImportElement(Element element) {
+    for (var imp in _library.libraryImports) {
       var definedNames = getImportNamespace(imp);
       if (definedNames.containsValue(element)) {
         return imp;
@@ -1226,27 +1256,33 @@ class CorrectionUtils {
   }
 
   Token? _getLeftBracket(CompilationUnitMember declaration) {
-    if (declaration is ClassOrMixinDeclaration) {
+    if (declaration is ClassDeclaration) {
       return declaration.leftBracket;
     } else if (declaration is ExtensionDeclaration) {
+      return declaration.leftBracket;
+    } else if (declaration is MixinDeclaration) {
       return declaration.leftBracket;
     }
     return null;
   }
 
   List<ClassMember>? _getMembers(CompilationUnitMember declaration) {
-    if (declaration is ClassOrMixinDeclaration) {
+    if (declaration is ClassDeclaration) {
       return declaration.members;
     } else if (declaration is ExtensionDeclaration) {
+      return declaration.members;
+    } else if (declaration is MixinDeclaration) {
       return declaration.members;
     }
     return null;
   }
 
   Token? _getRightBracket(CompilationUnitMember declaration) {
-    if (declaration is ClassOrMixinDeclaration) {
+    if (declaration is ClassDeclaration) {
       return declaration.rightBracket;
     } else if (declaration is ExtensionDeclaration) {
+      return declaration.rightBracket;
+    } else if (declaration is MixinDeclaration) {
       return declaration.rightBracket;
     }
     return null;
@@ -1270,7 +1306,7 @@ class CorrectionUtils {
       // ensure import
       var importElement = _getImportElement(element);
       if (importElement != null) {
-        var prefix = importElement.prefix;
+        var prefix = importElement.prefix?.element;
         if (prefix != null) {
           sb.write(prefix.displayName);
           sb.write('.');
@@ -1283,9 +1319,6 @@ class CorrectionUtils {
     // append simple name
     var name = element.displayName;
     sb.write(name);
-    if (isNullable) {
-      sb.write('?');
-    }
 
     // append type arguments
     if (typeArguments.isNotEmpty) {
@@ -1305,8 +1338,58 @@ class CorrectionUtils {
       sb.write('>');
     }
 
+    // append nullability
+    if (isNullable) {
+      sb.write('?');
+    }
+
     // done
     return sb.toString();
+  }
+
+  String _getTypeCodeRecord({
+    required Set<Source> librariesToImport,
+    required RecordType type,
+  }) {
+    final buffer = StringBuffer();
+
+    final positionalFields = type.positionalFields;
+    final namedFields = type.namedFields;
+    final fieldCount = positionalFields.length + namedFields.length;
+    buffer.write('(');
+
+    var index = 0;
+    for (final field in positionalFields) {
+      buffer.write(
+        getTypeSource(field.type, librariesToImport),
+      );
+      if (index++ < fieldCount - 1) {
+        buffer.write(', ');
+      }
+    }
+
+    if (namedFields.isNotEmpty) {
+      buffer.write('{');
+      for (final field in namedFields) {
+        buffer.write(
+          getTypeSource(field.type, librariesToImport),
+        );
+        buffer.write(' ');
+        buffer.write(field.name);
+        if (index++ < fieldCount - 1) {
+          buffer.write(', ');
+        }
+      }
+      buffer.write('}');
+    }
+
+    buffer.write(')');
+
+    if (type.nullabilitySuffix == NullabilitySuffix.question) {
+      buffer.write('?');
+    }
+
+    return buffer.toString();
   }
 
   /// @return the [InvertedCondition] for the given logical expression.
@@ -1471,6 +1554,12 @@ class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor {
     }
   }
 
+  @override
+  visitVariableDeclaration(VariableDeclaration node) {
+    names.add(node.name.lexeme);
+    return super.visitVariableDeclaration(node);
+  }
+
   static bool _isPrefixed(SimpleIdentifier node) {
     var parent = node.parent;
     return parent is ConstructorName && parent.name == node ||
@@ -1479,6 +1568,20 @@ class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor {
             parent.realTarget != null ||
         parent is PrefixedIdentifier && parent.identifier == node ||
         parent is PropertyAccess && parent.target == node;
+  }
+}
+
+class _DeclarationCollector extends RecursiveAstVisitor<void> {
+  final String name;
+  bool isDeclared = false;
+
+  _DeclarationCollector(this.name);
+
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    if (node.name.lexeme == name) {
+      isDeclared = true;
+    }
   }
 }
 
@@ -1546,13 +1649,13 @@ class _LocalElementsCollector extends RecursiveAstVisitor<void> {
   final elements = <LocalElement>[];
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.inDeclarationContext()) {
-      var element = node.staticElement;
-      if (element is LocalElement) {
-        elements.add(element);
-      }
+  void visitVariableDeclaration(VariableDeclaration node) {
+    final element = node.declaredElement;
+    if (element is LocalVariableElement) {
+      elements.add(element);
     }
+
+    super.visitVariableDeclaration(node);
   }
 }
 

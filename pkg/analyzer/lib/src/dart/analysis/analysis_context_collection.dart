@@ -140,16 +140,16 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     throw StateError('Unable to find the context to $path');
   }
 
-  void dispose({
+  Future<void> dispose({
     bool forTesting = false,
-  }) {
-    for (var analysisContext in contexts) {
-      analysisContext.driver.dispose();
+  }) async {
+    for (final analysisContext in contexts) {
+      await analysisContext.driver.dispose2();
     }
-    macroExecutor.close();
+    await macroExecutor.close();
     // If there are other collections, they will have to start it again.
     if (!forTesting) {
-      KernelCompilationService.dispose();
+      await KernelCompilationService.dispose();
     }
   }
 

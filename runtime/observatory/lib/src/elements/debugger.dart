@@ -2118,7 +2118,7 @@ class DebuggerPageElement extends CustomElement implements Renderable {
         app.vm.listenEventStream(S.VM.kStdoutStream, _debugger.onStdout);
     if (_stdoutSubscriptionFuture != null) {
       // TODO(turnidge): How do we want to handle this in general?
-      _stdoutSubscriptionFuture!.catchError((e, st) {
+      _stdoutSubscriptionFuture!.then((_) {}, onError: (e, st) {
         Logger.root.info('Failed to subscribe to stdout: $e\n$st\n');
         _stdoutSubscriptionFuture = null;
       });
@@ -2127,7 +2127,7 @@ class DebuggerPageElement extends CustomElement implements Renderable {
         app.vm.listenEventStream(S.VM.kStderrStream, _debugger.onStderr);
     if (_stderrSubscriptionFuture != null) {
       // TODO(turnidge): How do we want to handle this in general?
-      _stderrSubscriptionFuture!.catchError((e, st) {
+      _stderrSubscriptionFuture!.then((_) {}, onError: (e, st) {
         Logger.root.info('Failed to subscribe to stderr: $e\n$st\n');
         _stderrSubscriptionFuture = null;
       });
@@ -3063,7 +3063,7 @@ class DebuggerConsoleElement extends CustomElement implements Renderable {
     }
   }
 
-  void print(String line, {bool newline: true}) {
+  void print(String line, {bool newline = true}) {
     var span = new SpanElement();
     span.classes.add('normal');
     span.appendText(line);
@@ -3073,7 +3073,7 @@ class DebuggerConsoleElement extends CustomElement implements Renderable {
     _append(span);
   }
 
-  void printBold(String line, {bool newline: true}) {
+  void printBold(String line, {bool newline = true}) {
     var span = new SpanElement();
     span.classes.add('bold');
     span.appendText(line);
@@ -3083,7 +3083,7 @@ class DebuggerConsoleElement extends CustomElement implements Renderable {
     _append(span);
   }
 
-  void printRed(String line, {bool newline: true}) {
+  void printRed(String line, {bool newline = true}) {
     var span = new SpanElement();
     span.classes.add('red');
     span.appendText(line);
@@ -3108,7 +3108,7 @@ class DebuggerConsoleElement extends CustomElement implements Renderable {
   }
 
   void printRef(S.Isolate isolate, S.Instance ref, M.ObjectRepository objects,
-      {bool newline: true}) {
+      {bool newline = true}) {
     _append(new InstanceRefElement(isolate, ref, objects, queue: app.queue)
         .element);
     if (newline) {

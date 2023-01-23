@@ -565,6 +565,7 @@ f(a, _s_, b) {}
 ''');
   }
 
+  @failingTest
   void test_fieldFormalParameter_noPeriod_last() {
     testRecovery('''
 class C {
@@ -579,6 +580,7 @@ class C {
 ''');
   }
 
+  @failingTest
   void test_fieldFormalParameter_noPeriod_notLast() {
     testRecovery('''
 class C {

@@ -4,13 +4,14 @@
 
 library dart.wasm;
 
-// A collection a special Dart tytpes that are mapped directly to Wasm types
+// A collection a special Dart types that are mapped directly to Wasm types
 // by the dart2wasm compiler. These types have a number of constraints:
 //
 // - They can only be used directly as types of local variables, fields, or
 //   parameter/return of static functions. No other uses of the types are valid.
 // - They are not assignable to or from any ordinary Dart types.
 // - The integer and float types can't be nullable.
+// - Their instance methods cannot be called virtually or dynamically.
 //
 // TODO(askesc): Give an error message if any of these constraints are violated.
 
@@ -34,18 +35,34 @@ class WasmAnyRef extends _WasmBase {
   ///
   /// Will throw if the reference is not a Dart object.
   external Object toObject();
+
+  WasmExternRef externalize() => _externalizeNonNullable(this);
 }
+
+extension ExternalizeNullable on WasmAnyRef? {
+  WasmExternRef? externalize() => _externalizeNullable(this);
+}
+
+/// The Wasm `externref` type.
+@pragma("wasm:entry-point")
+class WasmExternRef extends _WasmBase {
+  WasmAnyRef internalize() => _internalizeNonNullable(this);
+}
+
+extension InternalizeNullable on WasmExternRef? {
+  WasmAnyRef? internalize() => _internalizeNullable(this);
+}
+
+external WasmExternRef _externalizeNonNullable(WasmAnyRef ref);
+external WasmExternRef? _externalizeNullable(WasmAnyRef? ref);
+external WasmAnyRef _internalizeNonNullable(WasmExternRef ref);
+external WasmAnyRef? _internalizeNullable(WasmExternRef? ref);
 
 /// The Wasm `funcref` type.
 @pragma("wasm:entry-point")
-class WasmFuncRef extends WasmAnyRef {
+class WasmFuncRef extends _WasmBase {
   /// Upcast typed function reference to `funcref`
   external factory WasmFuncRef.fromWasmFunction(WasmFunction<Function> fun);
-
-  /// Downcast `anyref` to `funcref`.
-  ///
-  /// Will throw if the reference is not a `funcref`.
-  external factory WasmFuncRef.fromRef(WasmAnyRef ref);
 }
 
 /// The Wasm `eqref` type.
@@ -81,8 +98,14 @@ class WasmI16 extends _WasmInt {}
 @pragma("wasm:entry-point")
 class WasmI32 extends _WasmInt {
   external factory WasmI32.fromInt(int value);
+  external factory WasmI32.int8FromInt(int value);
+  external factory WasmI32.uint8FromInt(int value);
+  external factory WasmI32.int16FromInt(int value);
+  external factory WasmI32.uint16FromInt(int value);
+  external factory WasmI32.fromBool(bool value);
   external int toIntSigned();
   external int toIntUnsigned();
+  external bool toBool();
 }
 
 /// The Wasm `i64` type.
@@ -143,14 +166,40 @@ class WasmFunction<F extends Function> extends WasmFuncRef {
   /// parameters and no type parameters.
   external factory WasmFunction.fromFunction(F f);
 
-  /// Downcast `anyref` to a typed function reference.
+  /// Downcast `funcref` to a typed function reference.
   ///
   /// Will throw if the reference is not a function with the expected signature.
-  external factory WasmFunction.fromRef(WasmAnyRef ref);
+  external factory WasmFunction.fromFuncRef(WasmFuncRef ref);
 
   /// Call the function referred to by this typed function reference.
   @pragma("wasm:entry-point")
   external F get call;
+}
+
+/// A Wasm table.
+@pragma("wasm:entry-point")
+class WasmTable<T> extends _WasmBase {
+  /// Declare a table with the given size.
+  ///
+  /// Must be an initializer for a static field. The [size] argument must be
+  /// either a constant or a reference to a `static` `final` field with a
+  /// constant initializer.
+  external WasmTable(int size);
+
+  /// Read from an entry in the table.
+  external T operator [](WasmI32 index);
+
+  /// Write to an entry in the table.
+  external void operator []=(WasmI32 index, T value);
+
+  /// The size of the table.
+  external WasmI32 get size;
+
+  /// Call a function stored in the table using the `call_indirect` Wasm
+  /// instructionm. The function value returned from this method must be
+  /// called directly.
+  @pragma("wasm:entry-point")
+  external F callIndirect<F extends Function>(WasmI32 index);
 }
 
 extension IntToWasmInt on int {

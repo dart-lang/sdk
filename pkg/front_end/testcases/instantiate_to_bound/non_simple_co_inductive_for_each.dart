@@ -5,6 +5,8 @@
 // This test checks that the error is reported for all type variables that
 // reference the raw generic type they are defined on.
 
-class Hest<TypeX extends Hest, TypeY extends Hest> {}
+class A<TypeX extends A, TypeY extends A> {}
+
+typedef C<TypeX extends C, TypeY extends C> = int;
 
 main() {}

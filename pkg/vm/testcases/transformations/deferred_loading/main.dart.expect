@@ -144,7 +144,7 @@ library #lib from "#lib" as #lib {
   import "#pkg/vm/testcases/transformations/deferred_loading/b.dart";
 
   static method main() → dynamic async /* futureValueType= dynamic */ {
-    await a::a();
-    await b::b();
+    await a::a() /* runtimeCheckType= dart.async::Future<dynamic> */ ;
+    await b::b() /* runtimeCheckType= dart.async::Future<dynamic> */ ;
   }
 }

@@ -4,6 +4,8 @@
 
 #include "vm/compiler/backend/redundancy_elimination.h"
 
+#include <utility>
+
 #include "vm/bit_vector.h"
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
@@ -229,10 +231,10 @@ class Place : public ValueObject {
         break;
       }
 
-      case Instruction::kStoreInstanceField: {
-        StoreInstanceFieldInstr* store = instr->AsStoreInstanceField();
-        set_representation(store->RequiredInputRepresentation(
-            StoreInstanceFieldInstr::kValuePos));
+      case Instruction::kStoreField: {
+        StoreFieldInstr* store = instr->AsStoreField();
+        set_representation(
+            store->RequiredInputRepresentation(StoreFieldInstr::kValuePos));
         instance_ = store->instance()->definition()->OriginalDefinition();
         set_kind(kInstanceField);
         instance_field_ = &store->slot();
@@ -1120,13 +1122,12 @@ class AliasedSet : public ZoneAllocated {
       } else if (UseIsARedefinition(use) &&
                  AnyUseCreatesAlias(instr->Cast<Definition>())) {
         return true;
-      } else if ((instr->IsStoreInstanceField() &&
-                  (use->use_index() !=
-                   StoreInstanceFieldInstr::kInstancePos))) {
-        ASSERT(use->use_index() == StoreInstanceFieldInstr::kValuePos);
+      } else if ((instr->IsStoreField() &&
+                  (use->use_index() != StoreFieldInstr::kInstancePos))) {
+        ASSERT(use->use_index() == StoreFieldInstr::kValuePos);
         // If we store this value into an object that is not aliased itself
         // and we never load again then the store does not create an alias.
-        StoreInstanceFieldInstr* store = instr->AsStoreInstanceField();
+        StoreFieldInstr* store = instr->AsStoreField();
         Definition* instance =
             store->instance()->definition()->OriginalDefinition();
         if (Place::IsAllocation(instance) &&
@@ -1148,7 +1149,7 @@ class AliasedSet : public ZoneAllocated {
         return true;
       } else if (auto* const alloc = instr->AsAllocation()) {
         // Treat inputs to an allocation instruction exactly as if they were
-        // manually stored using a StoreInstanceField instruction.
+        // manually stored using a StoreField instruction.
         if (alloc->Identity().IsAliased()) {
           return true;
         }
@@ -1194,10 +1195,9 @@ class AliasedSet : public ZoneAllocated {
         MarkStoredValuesEscaping(instr->AsDefinition());
         continue;
       }
-      if ((use->use_index() == StoreInstanceFieldInstr::kInstancePos) &&
-          instr->IsStoreInstanceField()) {
-        MarkDefinitionAsAliased(
-            instr->AsStoreInstanceField()->value()->definition());
+      if ((use->use_index() == StoreFieldInstr::kInstancePos) &&
+          instr->IsStoreField()) {
+        MarkDefinitionAsAliased(instr->AsStoreField()->value()->definition());
       }
     }
   }
@@ -1274,7 +1274,7 @@ static Definition* GetStoredValue(Instruction* instr) {
     return instr->AsStoreIndexed()->value()->definition();
   }
 
-  StoreInstanceFieldInstr* store_instance_field = instr->AsStoreInstanceField();
+  StoreFieldInstr* store_instance_field = instr->AsStoreField();
   if (store_instance_field != NULL) {
     return store_instance_field->value()->definition();
   }
@@ -1538,7 +1538,7 @@ void LICM::OptimisticallySpecializeSmiPhis() {
 // Returns true if instruction may have a "visible" effect,
 static bool MayHaveVisibleEffect(Instruction* instr) {
   switch (instr->tag()) {
-    case Instruction::kStoreInstanceField:
+    case Instruction::kStoreField:
     case Instruction::kStoreStaticField:
     case Instruction::kStoreIndexed:
     case Instruction::kStoreIndexedUnsafe:
@@ -1857,7 +1857,7 @@ class LoadOptimizer : public ValueObject {
   // Such a store doesn't initialize corresponding field.
   bool IsSentinelStore(Instruction* instr) {
     Value* value = nullptr;
-    if (auto* store_field = instr->AsStoreInstanceField()) {
+    if (auto* store_field = instr->AsStoreField()) {
       value = store_field->value();
     } else if (auto* store_static = instr->AsStoreStaticField()) {
       value = store_static->value();
@@ -2200,8 +2200,7 @@ class LoadOptimizer : public ValueObject {
             if (auto* const load = use->instruction()->AsLoadField()) {
               place_id = GetPlaceId(load);
               slot = &load->slot();
-            } else if (auto* const store =
-                           use->instruction()->AsStoreInstanceField()) {
+            } else if (auto* const store = use->instruction()->AsStoreField()) {
               ASSERT(!alloc->IsArrayAllocation());
               place_id = GetPlaceId(store);
               slot = &store->slot();
@@ -2252,7 +2251,11 @@ class LoadOptimizer : public ValueObject {
                 forward_def = alloc->InputAt(pos)->definition();
               } else {
                 // Fields not provided as an input to the instruction are
-                // initialized to null during allocation.
+                // initialized to null during allocation (except
+                // Record::num_fields).
+                // Accesses to Record::num_fields should be folded in
+                // LoadFieldInstr::Canonicalize.
+                ASSERT(slot->kind() != Slot::Kind::kRecord_num_fields);
                 forward_def = graph_->constant_null();
               }
             }
@@ -2611,7 +2614,7 @@ class LoadOptimizer : public ValueObject {
       replacement->AddInputUse(input);
     }
 
-    graph_->AllocateSSAIndexes(phi);
+    graph_->AllocateSSAIndex(phi);
     phis_.Add(phi);  // Postpone phi insertion until after load forwarding.
 
     if (FLAG_support_il_printer && FLAG_trace_load_optimization) {
@@ -3041,9 +3044,16 @@ class StoreOptimizer : public LivenessAnalysis {
   }
 
   bool CanEliminateStore(Instruction* instr) {
+    if (CompilerState::Current().is_aot()) {
+      // Tracking initializing stores is important for proper shared boxes
+      // initialization, which doesn't happen in AOT and for
+      // LowerContextAllocation optimization which creates unitialized objects
+      // which is also JIT-only currently.
+      return true;
+    }
     switch (instr->tag()) {
-      case Instruction::kStoreInstanceField: {
-        StoreInstanceFieldInstr* store_instance = instr->AsStoreInstanceField();
+      case Instruction::kStoreField: {
+        StoreFieldInstr* store_instance = instr->AsStoreField();
         // Can't eliminate stores that initialize fields.
         return !store_instance->is_initialization();
       }
@@ -3061,6 +3071,28 @@ class StoreOptimizer : public LivenessAnalysis {
     BitVector* all_places =
         new (zone) BitVector(zone, aliased_set_->max_place_id());
     all_places->SetAll();
+
+    BitVector* all_aliased_places =
+        new (zone) BitVector(zone, aliased_set_->max_place_id());
+    if (CompilerState::Current().is_aot()) {
+      const auto& places = aliased_set_->places();
+      // Go through all places and identify those which are escaping.
+      // We find such places by inspecting definition allocation
+      // [AliasIdentity] field, which is populated above by
+      // [AliasedSet::ComputeAliasing].
+      for (intptr_t i = 0; i < places.length(); i++) {
+        Place* place = places[i];
+        if (place->DependsOnInstance()) {
+          Definition* instance = place->instance();
+          if (Place::IsAllocation(instance) &&
+              !instance->Identity().IsAliased()) {
+            continue;
+          }
+        }
+        all_aliased_places->Add(i);
+      }
+    }
+
     for (BlockIterator block_it = graph_->postorder_iterator();
          !block_it.Done(); block_it.Advance()) {
       BlockEntryInstr* block = block_it.Current();
@@ -3114,19 +3146,52 @@ class StoreOptimizer : public LivenessAnalysis {
           continue;
         }
 
+        if (instr->IsThrow() || instr->IsReThrow() || instr->IsReturn()) {
+          // Initialize live-out for exit blocks since it won't be computed
+          // otherwise during the fixed point iteration.
+          live_out->CopyFrom(all_places);
+        }
+
         // Handle side effects, deoptimization and function return.
-        if (instr->HasUnknownSideEffects() || instr->CanDeoptimize() ||
-            instr->MayThrow() || instr->IsReturn()) {
-          // Instructions that return from the function, instructions with side
-          // effects and instructions that can deoptimize are considered as
-          // loads from all places.
-          live_in->CopyFrom(all_places);
-          if (instr->IsThrow() || instr->IsReThrow() || instr->IsReturn()) {
-            // Initialize live-out for exit blocks since it won't be computed
-            // otherwise during the fixed point iteration.
-            live_out->CopyFrom(all_places);
+        if (CompilerState::Current().is_aot()) {
+          // Instructions that return from the function, instructions with
+          // side effects are considered as loads from all places.
+          if (instr->HasUnknownSideEffects() || instr->IsReturn() ||
+              instr->MayThrow()) {
+            if (instr->HasUnknownSideEffects() || instr->IsReturn()) {
+              // Instructions that may throw and has unknown side effects
+              // still load from all places.
+              live_in->CopyFrom(all_places);
+            } else {
+              // If we are oustide of try-catch block, instructions that "may
+              // throw" only "load from escaping places".
+              // If we are inside of try-catch block, instructions that "may
+              // throw" also "load from all places".
+              if (block->try_index() == kInvalidTryIndex) {
+                live_in->AddAll(all_aliased_places);
+              } else {
+                live_in->CopyFrom(all_places);
+              }
+            }
+            continue;
           }
-          continue;
+        } else {  // jit
+          // Similar optimization to the above could be implemented in JIT
+          // as long as deoptimization side-effects are taken into account.
+          // Conceptually variables in deoptimization environment for
+          // "MayThrow" instructions have to be also added to the
+          // [live_in] set as they can be considered as escaping (to
+          // unoptimized code). However those deoptimization environment
+          // variables include also non-escaping(not aliased) ones, so
+          // how to deal with that needs to be figured out.
+          if (instr->HasUnknownSideEffects() || instr->CanDeoptimize() ||
+              instr->MayThrow() || instr->IsReturn()) {
+            // Instructions that return from the function, instructions with
+            // side effects and instructions that can deoptimize are considered
+            // as loads from all places.
+            live_in->CopyFrom(all_places);
+            continue;
+          }
         }
 
         // Handle loads.
@@ -3197,7 +3262,7 @@ class StoreOptimizer : public LivenessAnalysis {
 };
 
 void DeadStoreElimination::Optimize(FlowGraph* graph) {
-  if (FLAG_dead_store_elimination) {
+  if (FLAG_dead_store_elimination && FLAG_load_cse) {
     StoreOptimizer::OptimizeGraph(graph);
   }
 }
@@ -3261,7 +3326,7 @@ static bool IsSafeUse(Value* use, SafeUseCheck check_type) {
             alloc->Identity().IsAllocationSinkingCandidate());
   }
 
-  if (auto* store = use->instruction()->AsStoreInstanceField()) {
+  if (auto* store = use->instruction()->AsStoreField()) {
     if (use == store->value()) {
       Definition* instance = store->instance()->definition();
       return IsSupportedAllocation(instance) &&
@@ -3307,7 +3372,7 @@ static bool IsSafeUse(Value* use, SafeUseCheck check_type) {
 }
 
 // Right now we are attempting to sink allocation only into
-// deoptimization exit. So candidate should only be used in StoreInstanceField
+// deoptimization exit. So candidate should only be used in StoreField
 // instructions that write into fields of the allocated object.
 static bool IsAllocationSinkingCandidate(Definition* alloc,
                                          SafeUseCheck check_type) {
@@ -3331,7 +3396,7 @@ static Definition* StoreDestination(Value* use) {
   if (auto* const alloc = use->instruction()->AsAllocation()) {
     return alloc;
   }
-  if (auto* const store = use->instruction()->AsStoreInstanceField()) {
+  if (auto* const store = use->instruction()->AsStoreField()) {
     return store->instance()->definition();
   }
   if (auto* const store = use->instruction()->AsStoreIndexed()) {
@@ -3365,7 +3430,7 @@ void AllocationSinking::EliminateAllocation(Definition* alloc) {
   // As an allocation sinking candidate, remove stores to this candidate.
   // Do this in a two-step process, as this allocation may be used multiple
   // times in a single instruction (e.g., as the instance and the value in
-  // a StoreInstanceField). This means multiple entries may be removed from the
+  // a StoreField). This means multiple entries may be removed from the
   // use list when removing instructions, not just the current one, so
   // Value::Iterator cannot be safely used.
   GrowableArray<Instruction*> stores_to_remove;
@@ -3564,7 +3629,7 @@ void AllocationSinking::DiscoverFailedCandidates() {
         } else {
           ASSERT(use->instruction()->IsMaterializeObject() ||
                  use->instruction()->IsPhi() ||
-                 use->instruction()->IsStoreInstanceField() ||
+                 use->instruction()->IsStoreField() ||
                  use->instruction()->IsStoreIndexed());
         }
       }
@@ -3599,6 +3664,12 @@ void AllocationSinking::DiscoverFailedCandidates() {
 }
 
 void AllocationSinking::Optimize() {
+  // Allocation sinking depends on load forwarding, so give up early if load
+  // forwarding is disabled.
+  if (!FLAG_load_cse || flow_graph_->is_huge_method()) {
+    return;
+  }
+
   CollectCandidates();
 
   // Insert MaterializeObject instructions that will describe the state of the
@@ -3671,8 +3742,10 @@ void AllocationSinking::Optimize() {
 // Remove materializations from the graph. Register allocator will treat them
 // as part of the environment not as a real instruction.
 void AllocationSinking::DetachMaterializations() {
-  for (intptr_t i = 0; i < materializations_.length(); i++) {
-    materializations_[i]->previous()->LinkTo(materializations_[i]->next());
+  for (MaterializeObjectInstr* mat : materializations_) {
+    mat->previous()->LinkTo(mat->next());
+    mat->set_next(nullptr);
+    mat->set_previous(nullptr);
   }
 }
 
@@ -3727,8 +3800,7 @@ void AllocationSinking::CreateMaterializationAt(
     Instruction* exit,
     Definition* alloc,
     const ZoneGrowableArray<const Slot*>& slots) {
-  ZoneGrowableArray<Value*>* values =
-      new (Z) ZoneGrowableArray<Value*>(slots.length());
+  InputsArray values(slots.length());
 
   // All loads should be inserted before the first materialization so that
   // IR follows the following pattern: loads, materializations, deoptimizing
@@ -3763,7 +3835,7 @@ void AllocationSinking::CreateMaterializationAt(
           new (Z) LoadFieldInstr(new (Z) Value(alloc), *slot, alloc->source());
     }
     flow_graph_->InsertBefore(load_point, load, nullptr, FlowGraph::kValue);
-    values->Add(new (Z) Value(load));
+    values.Add(new (Z) Value(load));
   }
 
   const Class* cls = nullptr;
@@ -3787,11 +3859,19 @@ void AllocationSinking::CreateMaterializationAt(
     cls = &Class::ZoneHandle(
         flow_graph_->isolate_group()->class_table()->At(instr->class_id()));
     num_elements = instr->GetConstantNumElements();
+  } else if (auto instr = alloc->AsAllocateRecord()) {
+    cls = &Class::ZoneHandle(
+        flow_graph_->isolate_group()->class_table()->At(kRecordCid));
+    num_elements = instr->num_fields();
+  } else if (auto instr = alloc->AsAllocateSmallRecord()) {
+    cls = &Class::ZoneHandle(
+        flow_graph_->isolate_group()->class_table()->At(kRecordCid));
+    num_elements = instr->num_fields();
   } else {
     UNREACHABLE();
   }
   MaterializeObjectInstr* mat = new (Z) MaterializeObjectInstr(
-      alloc->AsAllocation(), *cls, num_elements, slots, values);
+      alloc->AsAllocation(), *cls, num_elements, slots, std::move(values));
 
   flow_graph_->InsertBefore(exit, mat, nullptr, FlowGraph::kValue);
 
@@ -3878,7 +3958,7 @@ void AllocationSinking::InsertMaterializations(Definition* alloc) {
     if (StoreDestination(use) == alloc) {
       // Allocation instructions cannot be used in as inputs to themselves.
       ASSERT(!use->instruction()->AsAllocation());
-      if (auto store = use->instruction()->AsStoreInstanceField()) {
+      if (auto store = use->instruction()->AsStoreField()) {
         AddSlot(slots, store->slot());
       } else if (auto store = use->instruction()->AsStoreIndexed()) {
         const intptr_t index = store->index()->BoundSmiConstant();
@@ -4253,10 +4333,7 @@ void TryCatchAnalyzer::Optimize() {
         ConstantInstr* orig = cdefs[j]->AsConstant();
         ConstantInstr* copy =
             new (flow_graph_->zone()) ConstantInstr(orig->value());
-        copy->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
-        if (FlowGraph::NeedsPairLocation(copy->representation())) {
-          flow_graph_->alloc_ssa_temp_index();
-        }
+        flow_graph_->AllocateSSAIndex(copy);
         old->ReplaceUsesWith(copy);
         copy->set_previous(old->previous());  // partial link
         (*idefs)[j] = copy;

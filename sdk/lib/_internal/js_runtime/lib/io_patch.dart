@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_js_helper' show patch;
 import 'dart:_internal' hide Symbol;
 import 'dart:async';
 import 'dart:convert';
@@ -113,13 +112,18 @@ class _File {
   }
 
   @patch
-  static _create(_Namespace namespace, Uint8List path) {
+  static _create(_Namespace namespace, Uint8List path, bool exclusive) {
     throw new UnsupportedError("File._create");
   }
 
   @patch
   static _createLink(_Namespace namespace, Uint8List path, String target) {
     throw new UnsupportedError("File._createLink");
+  }
+
+  @patch
+  static List<dynamic> _createPipe(_Namespace namespace) {
+    throw UnsupportedError("File._createPipe");
   }
 
   @patch
@@ -212,11 +216,6 @@ class _RandomAccessFileOps {
   factory _RandomAccessFileOps(int pointer) {
     throw new UnsupportedError("RandomAccessFile");
   }
-}
-
-@patch
-bool _isDirectIOCapableTypedList(List<int> buffer) {
-  throw UnsupportedError("_isDirectIOCapableTypedList");
 }
 
 @patch
@@ -352,9 +351,9 @@ class Process {
   static Future<Process> start(String executable, List<String> arguments,
       {String? workingDirectory,
       Map<String, String>? environment,
-      bool includeParentEnvironment: true,
-      bool runInShell: false,
-      ProcessStartMode mode: ProcessStartMode.normal}) {
+      bool includeParentEnvironment = true,
+      bool runInShell = false,
+      ProcessStartMode mode = ProcessStartMode.normal}) {
     throw new UnsupportedError("Process.start");
   }
 
@@ -362,10 +361,10 @@ class Process {
   static Future<ProcessResult> run(String executable, List<String> arguments,
       {String? workingDirectory,
       Map<String, String>? environment,
-      bool includeParentEnvironment: true,
-      bool runInShell: false,
-      Encoding? stdoutEncoding: systemEncoding,
-      Encoding? stderrEncoding: systemEncoding}) {
+      bool includeParentEnvironment = true,
+      bool runInShell = false,
+      Encoding? stdoutEncoding = systemEncoding,
+      Encoding? stderrEncoding = systemEncoding}) {
     throw new UnsupportedError("Process.run");
   }
 
@@ -373,10 +372,10 @@ class Process {
   static ProcessResult runSync(String executable, List<String> arguments,
       {String? workingDirectory,
       Map<String, String>? environment,
-      bool includeParentEnvironment: true,
-      bool runInShell: false,
-      Encoding? stdoutEncoding: systemEncoding,
-      Encoding? stderrEncoding: systemEncoding}) {
+      bool includeParentEnvironment = true,
+      bool runInShell = false,
+      Encoding? stdoutEncoding = systemEncoding,
+      Encoding? stderrEncoding = systemEncoding}) {
     throw new UnsupportedError("Process.runSync");
   }
 
@@ -421,7 +420,7 @@ class InternetAddress {
 
   @patch
   static Future<List<InternetAddress>> lookup(String host,
-      {InternetAddressType type: InternetAddressType.any}) {
+      {InternetAddressType type = InternetAddressType.any}) {
     throw new UnsupportedError("InternetAddress.lookup");
   }
 
@@ -446,9 +445,9 @@ class NetworkInterface {
 
   @patch
   static Future<List<NetworkInterface>> list(
-      {bool includeLoopback: false,
-      bool includeLinkLocal: false,
-      InternetAddressType type: InternetAddressType.any}) {
+      {bool includeLoopback = false,
+      bool includeLinkLocal = false,
+      InternetAddressType type = InternetAddressType.any}) {
     throw new UnsupportedError("NetworkInterface.list");
   }
 }
@@ -457,7 +456,7 @@ class NetworkInterface {
 class RawServerSocket {
   @patch
   static Future<RawServerSocket> bind(address, int port,
-      {int backlog: 0, bool v6Only: false, bool shared: false}) {
+      {int backlog = 0, bool v6Only = false, bool shared = false}) {
     throw new UnsupportedError("RawServerSocket.bind");
   }
 }
@@ -466,7 +465,7 @@ class RawServerSocket {
 class ServerSocket {
   @patch
   static Future<ServerSocket> _bind(address, int port,
-      {int backlog: 0, bool v6Only: false, bool shared: false}) {
+      {int backlog = 0, bool v6Only = false, bool shared = false}) {
     throw new UnsupportedError("ServerSocket.bind");
   }
 }
@@ -541,6 +540,16 @@ class ResourceHandle {
   factory ResourceHandle.fromStdout(Stdout stdout) {
     throw UnsupportedError("ResourceHandle.fromStdout constructor");
   }
+
+  @patch
+  factory ResourceHandle.fromReadPipe(ReadPipe pipe) {
+    throw UnsupportedError("ResourceHandle.fromReadPipe constructor");
+  }
+
+  @patch
+  factory ResourceHandle.fromWritePipe(WritePipe pipe) {
+    throw UnsupportedError("ResourceHandle.fromWritePipe constructor");
+  }
 }
 
 @patch
@@ -570,7 +579,7 @@ class RawSocketOption {
 @patch
 class SecurityContext {
   @patch
-  factory SecurityContext({bool withTrustedRoots: false}) {
+  factory SecurityContext({bool withTrustedRoots = false}) {
     throw new UnsupportedError("SecurityContext constructor");
   }
 
@@ -597,7 +606,7 @@ class X509Certificate {
 class RawDatagramSocket {
   @patch
   static Future<RawDatagramSocket> bind(dynamic host, int port,
-      {bool reuseAddress: true, bool reusePort: false, int ttl: 1}) {
+      {bool reuseAddress = true, bool reusePort = false, int ttl = 1}) {
     throw new UnsupportedError("RawDatagramSocket.bind");
   }
 }

@@ -15,6 +15,7 @@ worlds:
       lib.dart: |
         typedef F<T> = Function();
     expectedLibraryCount: 2
+
   - entry: main.dart
     errors: false
     expectInitializeFromDill: true
@@ -28,3 +29,4 @@ worlds:
           print("Hello");
         }
     expectedLibraryCount: 2
+    advancedInvalidation: outlineChange

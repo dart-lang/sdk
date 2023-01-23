@@ -33,7 +33,7 @@ class OptimizationDataValidator
     implements DataInterpreter<OptimizationTestLog> {
   final bool strict;
 
-  const OptimizationDataValidator({this.strict: false});
+  const OptimizationDataValidator({this.strict = false});
 
   @override
   String getText(OptimizationTestLog actualData, [String indentation]) {
@@ -129,7 +129,7 @@ class OptimizationDataValidator
 class OptimizationDataComputer extends DataComputer<OptimizationTestLog> {
   final bool strict;
 
-  const OptimizationDataComputer({this.strict: false});
+  const OptimizationDataComputer({this.strict = false});
 
   /// Compute type inference data for [member] from kernel based inference.
   ///
@@ -137,8 +137,8 @@ class OptimizationDataComputer extends DataComputer<OptimizationTestLog> {
   @override
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<OptimizationTestLog>> actualMap,
-      {bool verbose: false}) {
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+      {bool verbose = false}) {
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new OptimizationIrComputer(compiler.reporter, actualMap, elementMap, member,

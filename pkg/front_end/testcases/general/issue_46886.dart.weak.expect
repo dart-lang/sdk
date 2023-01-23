@@ -2,40 +2,58 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/issue_46886.dart:8:16: Error: This requires the 'triple-shift' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/issue_46886.dart:8:16: Error: The 'triple-shift' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.14 or higher.
 //   Foo operator >>>(_) => this;
 //                ^^^
+// pkg/front_end/testcases/general/issue_46886.dart:5:1: Context: This is the annotation that opts out this library from the 'triple-shift' language feature.
+// // @dart=2.13
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/issue_46886.dart:20:7: Error: This requires the 'triple-shift' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/issue_46886.dart:20:7: Error: The 'triple-shift' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.14 or higher.
 //   foo >>> 42;
 //       ^^^
+// pkg/front_end/testcases/general/issue_46886.dart:5:1: Context: This is the annotation that opts out this library from the 'triple-shift' language feature.
+// // @dart=2.13
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/issue_46886.dart:21:13: Error: This requires the 'triple-shift' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/issue_46886.dart:21:13: Error: The 'triple-shift' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.14 or higher.
 //   print(foo >>> 42);
 //             ^^^
+// pkg/front_end/testcases/general/issue_46886.dart:5:1: Context: This is the annotation that opts out this library from the 'triple-shift' language feature.
+// // @dart=2.13
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/issue_46886.dart:22:13: Error: This requires the 'triple-shift' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/issue_46886.dart:22:13: Error: The 'triple-shift' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.14 or higher.
 //   print(foo >>>= 42);
 //             ^^^^
+// pkg/front_end/testcases/general/issue_46886.dart:5:1: Context: This is the annotation that opts out this library from the 'triple-shift' language feature.
+// // @dart=2.13
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/issue_46886.dart:23:12: Error: This requires the 'triple-shift' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/issue_46886.dart:23:12: Error: The 'triple-shift' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.14 or higher.
 //   if ((foo >>>= 42) == foo) {
 //            ^^^^
+// pkg/front_end/testcases/general/issue_46886.dart:5:1: Context: This is the annotation that opts out this library from the 'triple-shift' language feature.
+// // @dart=2.13
+// ^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/issue_46886.dart:28:13: Error: Expected an identifier, but got ')'.
 // Try inserting an identifier before ')'.
 //   print(#>>>);
 //             ^
 //
-// pkg/front_end/testcases/general/issue_46886.dart:30:14: Error: This requires the 'triple-shift' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/issue_46886.dart:30:14: Error: The 'triple-shift' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.14 or higher.
 //   var x = 10 >>> 2;
 //              ^^^
+// pkg/front_end/testcases/general/issue_46886.dart:5:1: Context: This is the annotation that opts out this library from the 'triple-shift' language feature.
+// // @dart=2.13
+// ^^^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;
@@ -52,7 +70,7 @@ abstract class Bar extends core::Object implements core::List<core::List<core::L
     : super core::Object::•()
     ;
 }
-extension _extension#0 on core::Symbol {
+extension /* unnamed */ _extension#0 on core::Symbol {
   operator > = self::_extension#0|>;
   method call = self::_extension#0|call;
   tearoff call = self::_extension#0|get#call;

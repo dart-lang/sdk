@@ -68,8 +68,13 @@ class SignatureHelpHandler
         return success(typeArgsSignature);
       }
 
-      final computer =
-          DartUnitSignatureComputer(dartDocInfo, unit.result.unit, offset);
+      final computer = DartUnitSignatureComputer(
+        dartDocInfo,
+        unit.result.unit,
+        offset,
+        documentationPreference:
+            server.clientConfiguration.global.preferredDocumentation,
+      );
       if (!computer.offsetIsValid) {
         return success(null); // No error, just no valid hover.
       }
@@ -102,8 +107,10 @@ class SignatureHelpHandler
     bool autoTriggered,
     Set<MarkupKind>? formats,
   ) {
-    final typeArgsComputer =
-        DartTypeArgumentsSignatureComputer(dartDocInfo, unit, offset, formats);
+    final typeArgsComputer = DartTypeArgumentsSignatureComputer(
+        dartDocInfo, unit, offset, formats,
+        documentationPreference:
+            server.clientConfiguration.global.preferredDocumentation);
     if (!typeArgsComputer.offsetIsValid) {
       return null;
     }

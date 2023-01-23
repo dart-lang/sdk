@@ -1,0 +1,64 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test(dynamic x) → dynamic {
+  final dynamic #t1 = x;
+  final dynamic #t2 = #t1;
+  if(#t2 is{ForNonNullableByDefault} (core::Object?, core::Object?)) {
+    final core::Object? #t3 = #t2{(core::Object?, core::Object?)}.$0{core::Object?};
+    final core::Object? #t4 = #t2{(core::Object?, core::Object?)}.$1{core::Object?};
+    if(#t3 =={core::Object::==}{(core::Object) → core::bool} 1 && #t4 =={core::Object::==}{(core::Object) → core::bool} 2) {
+    }
+  }
+  final dynamic #t5 = x;
+  final dynamic #t6 = #t5;
+  if(#t6 is{ForNonNullableByDefault} (core::Object?, {a: core::Object?})) {
+    final core::Object? #t7 = #t6{(core::Object?, {a: core::Object?})}.$0{core::Object?};
+    final core::Object? #t8 = #t6{(core::Object?, {a: core::Object?})}.a{core::Object?};
+    if(#t7 =={core::Object::==}{(core::Object) → core::bool} 1 && #t8 =={core::Object::==}{(core::Object) → core::bool} 2) {
+    }
+  }
+  final dynamic #t9 = x;
+  final dynamic #t10 = #t9;
+  if(#t10 is{ForNonNullableByDefault} (core::Object?, {a: core::Object?})) {
+    final core::Object? #t11 = #t10{(core::Object?, {a: core::Object?})}.a{core::Object?};
+    final core::Object? #t12 = #t10{(core::Object?, {a: core::Object?})}.$0{core::Object?};
+    if(#t11 =={core::Object::==}{(core::Object) → core::bool} 1 && #t12 =={core::Object::==}{(core::Object) → core::bool} 2) {
+    }
+  }
+  final dynamic #t13 = x;
+  final dynamic #t14 = #t13;
+  if(#t14 is{ForNonNullableByDefault} ({a: core::Object?, b: core::Object?})) {
+    final core::Object? #t15 = #t14{({a: core::Object?, b: core::Object?})}.a{core::Object?};
+    final core::Object? #t16 = #t14{({a: core::Object?, b: core::Object?})}.b{core::Object?};
+    if(#t15 =={core::Object::==}{(core::Object) → core::bool} 1 && #t16 =={core::Object::==}{(core::Object) → core::bool} 2) {
+    }
+  }
+  final dynamic #t17 = x;
+  final core::bool #t18 = true;
+  final dynamic #t19 = #t17;
+  if(#t19 is{ForNonNullableByDefault} (core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?})) {
+    final core::Object? #t20 = #t19{(core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?})}.$0{core::Object?};
+    final core::Object? #t21 = #t19{(core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?})}.$1{core::Object?};
+    final core::Object? #t22 = #t19{(core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?})}.foo{core::Object?};
+    if(#t20 is core::int) {
+      final core::Object? #t23 = #t21;
+      if(#t23 is core::double) {
+        final core::Object #t24 = #t22!;
+        if(#t24 is core::String) {
+          #t18 = false;
+          {
+            core::double y = #t23{core::double};
+            {
+              return 0;
+            }
+          }
+        }
+      }
+    }
+  }
+  if(#t18) {
+    return 1;
+  }
+}

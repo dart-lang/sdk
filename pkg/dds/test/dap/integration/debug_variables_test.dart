@@ -50,7 +50,7 @@ void foo() {
         stack.stackFrames[1].id, // Second frame: main
         'Locals',
         '''
-            args: List (0 items), eval: args
+            args: List (0 items), eval: args, 0 items
             myVariable: 1, eval: myVariable
         ''',
       );
@@ -185,6 +185,7 @@ void main(List<String> args) {
         stop.threadId!,
         expectedName: 'myVariable',
         expectedDisplayString: 'List (3 items)',
+        expectedIndexedItems: 3,
         expectedVariables: '''
             [0]: "first", eval: myVariable[0]
             [1]: "second", eval: myVariable[1]
@@ -208,6 +209,7 @@ void main(List<String> args) {
         stop.threadId!,
         expectedName: 'myVariable',
         expectedDisplayString: 'List (3 items)',
+        expectedIndexedItems: 3,
         expectedVariables: '''
             [1]: "second", eval: myVariable[1]
         ''',
@@ -215,6 +217,169 @@ void main(List<String> args) {
         count: 1,
       );
     });
+
+    /// Helper to verify variables types of list.
+    _checkList(
+      String typeName, {
+      required String constructor,
+      required List<String> expectedDisplayStrings,
+    }) {
+      test('renders a $typeName', () async {
+        final client = dap.client;
+        final testFile = dap.createTestFile('''
+import 'dart:typed_data';
+
+void main(List<String> args) {
+  final myVariable = $constructor;
+  print('Hello!'); $breakpointMarker
+}
+    ''');
+        final breakpointLine = lineWith(testFile, breakpointMarker);
+
+        final stop = await client.hitBreakpoint(testFile, breakpointLine);
+        await client.expectLocalVariable(
+          stop.threadId!,
+          expectedName: 'myVariable',
+          expectedDisplayString: '$typeName (3 items)',
+          expectedIndexedItems: 3,
+          expectedVariables: '''
+            [0]: ${expectedDisplayStrings[0]}
+            [1]: ${expectedDisplayStrings[1]}
+            [2]: ${expectedDisplayStrings[2]}
+        ''',
+        );
+      });
+
+      test('renders a $typeName subset', () async {
+        final client = dap.client;
+        final testFile = dap.createTestFile('''
+import 'dart:typed_data';
+
+void main(List<String> args) {
+  final myVariable = $constructor;
+  print('Hello!'); $breakpointMarker
+}
+    ''');
+        final breakpointLine = lineWith(testFile, breakpointMarker);
+
+        final stop = await client.hitBreakpoint(testFile, breakpointLine);
+        await client.expectLocalVariable(
+          stop.threadId!,
+          expectedName: 'myVariable',
+          expectedDisplayString: '$typeName (3 items)',
+          expectedIndexedItems: 3,
+          expectedVariables: '''
+            [1]: ${expectedDisplayStrings[1]}
+        ''',
+          start: 1,
+          count: 1,
+        );
+      });
+    }
+
+    _checkList(
+      'Uint8ClampedList',
+      constructor: 'Uint8ClampedList.fromList([1, 2, 3])',
+      expectedDisplayStrings: ['1', '2', '3'],
+    );
+    _checkList(
+      'Uint8List',
+      constructor: 'Uint8List.fromList([1, 2, 3])',
+      expectedDisplayStrings: ['1', '2', '3'],
+    );
+    _checkList(
+      'Uint16List',
+      constructor: 'Uint16List.fromList([1, 2, 3])',
+      expectedDisplayStrings: ['1', '2', '3'],
+    );
+    _checkList(
+      'Uint32List',
+      constructor: 'Uint32List.fromList([1, 2, 3])',
+      expectedDisplayStrings: ['1', '2', '3'],
+    );
+    _checkList(
+      'Uint64List',
+      constructor: 'Uint64List.fromList([1, 2, 3])',
+      expectedDisplayStrings: ['1', '2', '3'],
+    );
+    _checkList(
+      'Int8List',
+      constructor: 'Int8List.fromList([1, 2, 3])',
+      expectedDisplayStrings: ['1', '2', '3'],
+    );
+    _checkList(
+      'Int16List',
+      constructor: 'Int16List.fromList([1, 2, 3])',
+      expectedDisplayStrings: ['1', '2', '3'],
+    );
+    _checkList(
+      'Int32List',
+      constructor: 'Int32List.fromList([1, 2, 3])',
+      expectedDisplayStrings: ['1', '2', '3'],
+    );
+    _checkList(
+      'Int64List',
+      constructor: 'Int64List.fromList([1, 2, 3])',
+      expectedDisplayStrings: ['1', '2', '3'],
+    );
+    _checkList(
+      'Float32List',
+      constructor: 'Float32List.fromList([1.1, 2.2, 3.3])',
+      expectedDisplayStrings: [
+        // Converting the numbers above to 32bit floats loses precisions and
+        // we're just calling toString() on them.
+        '1.100000023841858',
+        '2.200000047683716',
+        '3.299999952316284',
+      ],
+    );
+    _checkList(
+      'Float64List',
+      constructor: 'Float64List.fromList([1.1, 2.2, 3.3])',
+      expectedDisplayStrings: ['1.1', '2.2', '3.3'],
+    );
+    _checkList(
+      'Int32x4List',
+      constructor: 'Int32x4List.fromList(['
+          'Int32x4(1, 1, 1, 1),'
+          'Int32x4(2, 2, 2, 2),'
+          'Int32x4(3, 3, 3, 3)'
+          '])',
+      expectedDisplayStrings: [
+        // toString()s of Int32x4
+        '[00000001, 00000001, 00000001, 00000001]',
+        '[00000002, 00000002, 00000002, 00000002]',
+        '[00000003, 00000003, 00000003, 00000003]',
+      ],
+    );
+    _checkList(
+      'Float32x4List',
+      constructor: 'Float32x4List.fromList(['
+          'Float32x4(1.1, 1.1, 1.1, 1.1),'
+          'Float32x4(2.2, 2.2, 2.2, 2.2),'
+          'Float32x4(3.3, 3.3, 3.3, 3.3)'
+          '])',
+      expectedDisplayStrings: [
+        // toString()s of Float32x4
+        '[1.100000, 1.100000, 1.100000, 1.100000]',
+        '[2.200000, 2.200000, 2.200000, 2.200000]',
+        '[3.300000, 3.300000, 3.300000, 3.300000]',
+      ],
+    );
+    _checkList(
+      'Float64x2List',
+      constructor: 'Float64x2List.fromList(['
+          'Float64x2(1.1,1.1),'
+          'Float64x2(2.2,2.2),'
+          'Float64x2(3.3,3.3)'
+          '])',
+      expectedDisplayStrings: [
+        // toString()s of Float64x2
+        '[1.100000, 1.100000]',
+        '[2.200000, 2.200000]',
+        '[3.300000, 3.300000]',
+      ],
+    );
 
     test('renders a simple map with keys/values', () async {
       final client = dap.client;
@@ -318,7 +483,7 @@ void main(List<String> args) {
       expect(mapVariable.variablesReference, isPositive);
       final variables = await client.expectVariables(
         mapVariable.variablesReference,
-        // We don't expect an evaluteName because the key is not a simple type.
+        // We don't expect an evaluateName because the key is not a simple type.
         '''
             key: DateTime
             value: _Exception
@@ -381,7 +546,7 @@ void main() {
 
     test('does not use toString() result if "Instance of Foo"', () async {
       // When evaluateToStringInDebugViews=true, we should discard the result of
-      // caling toString() when it's just 'Instance of Foo' because we're already
+      // calling toString() when it's just 'Instance of Foo' because we're already
       // showing the type, and otherwise we show:
       //
       //     myVariable: Foo (Instance of Foo)

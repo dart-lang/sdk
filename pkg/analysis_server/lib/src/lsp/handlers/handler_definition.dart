@@ -151,9 +151,9 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
   /// line/location) generically, handling either type of Location class.
   List<T> _filterResults<T>(
     List<T> results,
-    String sourceUri,
+    Uri sourceUri,
     int sourceLineNumber,
-    String Function(T) uriSelector,
+    Uri Function(T) uriSelector,
     Range Function(T) rangeSelector,
   ) {
     // If we fetch navigation on a keyword like `var`, the results will include
@@ -177,10 +177,7 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
     // For synthetic getters created for fields, we need to access the associated
     // variable to get the codeOffset/codeLength.
     if (codeElement.isSynthetic && codeElement is PropertyAccessorElementImpl) {
-      final variable = codeElement.variable;
-      if (variable is ElementImpl) {
-        codeElement = variable as ElementImpl;
-      }
+      codeElement = codeElement.variable;
     }
 
     // Read the main codeOffset from the element. This may include doc comments

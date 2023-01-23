@@ -38,9 +38,9 @@ class RenameParameter extends Change<_Data> {
         if (overriddenParameter == null) {
           // If the overridden parameter has already been removed, then just
           // rename the old parameter to have the new name.
-          var identifier = parameter.identifier;
+          var identifier = parameter.name;
           if (identifier != null) {
-            builder.addSimpleReplacement(range.node(identifier), newName);
+            builder.addSimpleReplacement(range.token(identifier), newName);
           }
         } else {
           // If the overridden parameter still exists, then mark it as
@@ -70,7 +70,9 @@ class RenameParameter extends Change<_Data> {
   // ignore: library_private_types_in_public_api
   _Data validate(DataDrivenFix fix) {
     var node = fix.node;
-    if (node is SimpleIdentifier) {
+    if (node is MethodDeclaration) {
+      return _OverrideData(node);
+    } else if (node is SimpleIdentifier) {
       var parent = node.parent;
       var grandParent = parent?.parent;
       if (node.name == oldName &&
@@ -80,8 +82,6 @@ class RenameParameter extends Change<_Data> {
         if (invocation != null && fix.element.matches(invocation)) {
           return _InvocationData(node);
         }
-      } else if (parent is MethodDeclaration) {
-        return _OverrideData(parent);
       }
     }
     return const _IgnoredData();
@@ -123,7 +123,7 @@ extension on MethodDeclaration {
     var element = declaredElement;
     if (element != null) {
       var enclosingElement = element.enclosingElement;
-      if (enclosingElement is ClassElement) {
+      if (enclosingElement is InterfaceElement) {
         var name = Name(enclosingElement.library.source.uri, element.name);
         return InheritanceManager3().getInherited2(enclosingElement, name);
       }

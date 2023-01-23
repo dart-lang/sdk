@@ -35,4 +35,4 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///const_functions_const_factory.dart:
 - MessageType._ (from org-dartlang-testcase:///const_functions_const_factory.dart:25:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

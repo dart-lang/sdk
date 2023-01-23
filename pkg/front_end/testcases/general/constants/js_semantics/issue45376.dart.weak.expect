@@ -19,4 +19,4 @@ static method main() → dynamic {}
 Constructor coverage from constants:
 org-dartlang-testcase:///issue45376.dart:
 - MyClass. (from org-dartlang-testcase:///issue45376.dart:8:9)
-- Object. (from org-dartlang-sdk:///lib/core/object.dart:25:9)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)

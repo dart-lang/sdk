@@ -101,6 +101,15 @@ class DartTypeNodeWriter
   }
 
   @override
+  void visitRecordType(
+      ir.RecordType node, List<ir.TypeParameter> functionTypeVariables) {
+    _sink.writeEnum(DartTypeNodeKind.recordType);
+    _sink.writeEnum(node.declaredNullability);
+    visitTypes(node.positional, functionTypeVariables);
+    _visitNamedTypes(node.named, functionTypeVariables);
+  }
+
+  @override
   void visitFutureOrType(
       ir.FutureOrType node, List<ir.TypeParameter> functionTypeVariables) {
     _sink.writeEnum(DartTypeNodeKind.futureOrType);
@@ -125,13 +134,18 @@ class DartTypeNodeWriter
     _sink.writeEnum(node.nullability);
     _sink.writeInt(node.requiredParameterCount);
     visitTypes(node.positionalParameters, functionTypeVariables);
-    _sink.writeInt(node.namedParameters.length);
-    for (ir.NamedType parameter in node.namedParameters) {
+    _visitNamedTypes(node.namedParameters, functionTypeVariables);
+    _sink.end(functionTypeNodeTag);
+  }
+
+  void _visitNamedTypes(
+      List<ir.NamedType> named, List<ir.TypeParameter> functionTypeVariables) {
+    _sink.writeInt(named.length);
+    for (ir.NamedType parameter in named) {
       _sink.writeString(parameter.name);
       _sink.writeBool(parameter.isRequired);
       _sink._writeDartTypeNode(parameter.type, functionTypeVariables);
     }
-    _sink.end(functionTypeNodeTag);
   }
 
   @override
@@ -142,14 +156,31 @@ class DartTypeNodeWriter
       _sink.writeEnum(DartTypeNodeKind.functionTypeVariable);
       _sink.writeInt(index);
       _sink.writeEnum(node.declaredNullability);
-      _sink._writeDartTypeNode(node.promotedBound, functionTypeVariables,
-          allowNull: true);
+      _sink._writeDartTypeNode(null, functionTypeVariables, allowNull: true);
     } else {
       _sink.writeEnum(DartTypeNodeKind.typeParameterType);
       _sink.writeTypeParameterNode(node.parameter);
       _sink.writeEnum(node.declaredNullability);
-      _sink._writeDartTypeNode(node.promotedBound, functionTypeVariables,
-          allowNull: true);
+      _sink._writeDartTypeNode(null, functionTypeVariables, allowNull: true);
+    }
+  }
+
+  @override
+  void visitIntersectionType(
+      ir.IntersectionType node, List<ir.TypeParameter> functionTypeVariables) {
+    int index = functionTypeVariables.indexOf(node.left.parameter);
+    if (index != -1) {
+      _sink.writeEnum(DartTypeNodeKind.functionTypeVariable);
+      _sink.writeInt(index);
+      _sink.writeEnum(node.declaredNullability);
+      _sink._writeDartTypeNode(node.right, functionTypeVariables,
+          allowNull: false);
+    } else {
+      _sink.writeEnum(DartTypeNodeKind.typeParameterType);
+      _sink.writeTypeParameterNode(node.left.parameter);
+      _sink.writeEnum(node.declaredNullability);
+      _sink._writeDartTypeNode(node.right, functionTypeVariables,
+          allowNull: false);
     }
   }
 

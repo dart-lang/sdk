@@ -104,7 +104,7 @@ class U93<T> {
   late Function<A>(int x) Function(int x) x21;
   late void Function<A>(Function x) Function(int x) x22;
 
-  U93({this.tIsBool: false, this.tIsInt: false})
+  U93({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   Function m0(core.List<core.int> x0) => throw 'uncalled';

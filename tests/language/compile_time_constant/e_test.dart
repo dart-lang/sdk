@@ -14,7 +14,7 @@ class A {
       : y = 499,
         t = tt,
         x = 3;
-  const A.n({this.z: 99, tt: 100})
+  const A.n({this.z = 99, tt = 100})
       : y = 499,
         t = tt,
         x = 3;

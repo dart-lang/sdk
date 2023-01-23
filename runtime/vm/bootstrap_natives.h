@@ -26,11 +26,11 @@ namespace dart {
   V(Function_apply, 2)                                                         \
   V(Closure_equals, 2)                                                         \
   V(Closure_computeHash, 1)                                                    \
+  V(AbstractType_equality, 2)                                                  \
+  V(AbstractType_getHashCode, 1)                                               \
   V(AbstractType_toString, 1)                                                  \
-  V(Type_getHashCode, 1)                                                       \
   V(Type_equality, 2)                                                          \
-  V(FunctionType_getHashCode, 1)                                               \
-  V(FunctionType_equality, 2)                                                  \
+  V(Type_getHashCode, 1)                                                       \
   V(LibraryPrefix_isLoaded, 1)                                                 \
   V(LibraryPrefix_setLoaded, 1)                                                \
   V(LibraryPrefix_loadingUnit, 1)                                              \
@@ -53,17 +53,17 @@ namespace dart {
   V(Integer_ushrFromInteger, 2)                                                \
   V(Bool_fromEnvironment, 3)                                                   \
   V(Bool_hasEnvironment, 2)                                                    \
-  V(CapabilityImpl_factory, 1)                                                 \
-  V(CapabilityImpl_equals, 2)                                                  \
-  V(CapabilityImpl_get_hashcode, 1)                                            \
-  V(RawReceivePortImpl_factory, 2)                                             \
-  V(RawReceivePortImpl_get_id, 1)                                              \
-  V(RawReceivePortImpl_get_sendport, 1)                                        \
-  V(RawReceivePortImpl_closeInternal, 1)                                       \
-  V(RawReceivePortImpl_setActive, 2)                                           \
-  V(SendPortImpl_get_id, 1)                                                    \
-  V(SendPortImpl_get_hashcode, 1)                                              \
-  V(SendPortImpl_sendInternal_, 2)                                             \
+  V(Capability_factory, 1)                                                     \
+  V(Capability_equals, 2)                                                      \
+  V(Capability_get_hashcode, 1)                                                \
+  V(RawReceivePort_factory, 2)                                                 \
+  V(RawReceivePort_get_id, 1)                                                  \
+  V(RawReceivePort_get_sendport, 1)                                            \
+  V(RawReceivePort_closeInternal, 1)                                           \
+  V(RawReceivePort_setActive, 2)                                               \
+  V(SendPort_get_id, 1)                                                        \
+  V(SendPort_get_hashcode, 1)                                                  \
+  V(SendPort_sendInternal_, 2)                                                 \
   V(Smi_bitNegate, 1)                                                          \
   V(Smi_bitLength, 1)                                                          \
   V(SuspendState_instantiateClosureWithFutureTypeArgument, 2)                  \
@@ -80,7 +80,7 @@ namespace dart {
   V(Developer_log, 8)                                                          \
   V(Developer_postEvent, 2)                                                    \
   V(Developer_webServerControl, 3)                                             \
-  V(Double_hashCode, 1)                                                        \
+  V(Developer_reachability_barrier, 0)                                         \
   V(Double_getIsNegative, 1)                                                   \
   V(Double_getIsInfinite, 1)                                                   \
   V(Double_getIsNaN, 1)                                                        \
@@ -145,7 +145,6 @@ namespace dart {
   V(DateTime_currentTimeMicros, 0)                                             \
   V(DateTime_timeZoneName, 1)                                                  \
   V(DateTime_timeZoneOffsetInSeconds, 1)                                       \
-  V(DateTime_localTimeZoneAdjustmentInSeconds, 0)                              \
   V(AssertionError_throwNew, 3)                                                \
   V(AssertionError_throwNewSource, 4)                                          \
   V(Error_throwWithStackTrace, 2)                                              \
@@ -153,12 +152,10 @@ namespace dart {
   V(TypeError_throwNew, 4)                                                     \
   V(Stopwatch_now, 0)                                                          \
   V(Stopwatch_frequency, 0)                                                    \
-  V(Timeline_getNextAsyncId, 0)                                                \
+  V(Timeline_getNextTaskId, 0)                                                 \
   V(Timeline_getTraceClock, 0)                                                 \
   V(Timeline_isDartStreamEnabled, 0)                                           \
-  V(Timeline_reportFlowEvent, 5)                                               \
-  V(Timeline_reportInstantEvent, 3)                                            \
-  V(Timeline_reportTaskEvent, 5)                                               \
+  V(Timeline_reportTaskEvent, 4)                                               \
   V(TypedData_Int8Array_new, 2)                                                \
   V(TypedData_Uint8Array_new, 2)                                               \
   V(TypedData_Uint8ClampedArray_new, 2)                                        \
@@ -218,6 +215,21 @@ namespace dart {
   V(TypedDataView_Float64x2ArrayView_new, 4)                                   \
   V(TypedDataView_offsetInBytes, 1)                                            \
   V(TypedDataView_typedData, 1)                                                \
+  V(TypedDataView_UnmodifiableByteDataView_new, 4)                             \
+  V(TypedDataView_UnmodifiableInt8ArrayView_new, 4)                            \
+  V(TypedDataView_UnmodifiableUint8ArrayView_new, 4)                           \
+  V(TypedDataView_UnmodifiableUint8ClampedArrayView_new, 4)                    \
+  V(TypedDataView_UnmodifiableInt16ArrayView_new, 4)                           \
+  V(TypedDataView_UnmodifiableUint16ArrayView_new, 4)                          \
+  V(TypedDataView_UnmodifiableInt32ArrayView_new, 4)                           \
+  V(TypedDataView_UnmodifiableUint32ArrayView_new, 4)                          \
+  V(TypedDataView_UnmodifiableInt64ArrayView_new, 4)                           \
+  V(TypedDataView_UnmodifiableUint64ArrayView_new, 4)                          \
+  V(TypedDataView_UnmodifiableFloat32ArrayView_new, 4)                         \
+  V(TypedDataView_UnmodifiableFloat64ArrayView_new, 4)                         \
+  V(TypedDataView_UnmodifiableFloat32x4ArrayView_new, 4)                       \
+  V(TypedDataView_UnmodifiableInt32x4ArrayView_new, 4)                         \
+  V(TypedDataView_UnmodifiableFloat64x2ArrayView_new, 4)                       \
   V(Float32x4_fromDoubles, 4)                                                  \
   V(Float32x4_splat, 1)                                                        \
   V(Float32x4_fromInt32x4Bits, 2)                                              \
@@ -320,6 +332,7 @@ namespace dart {
   V(Internal_unsafeCast, 1)                                                    \
   V(Internal_nativeEffect, 1)                                                  \
   V(Internal_collectAllGarbage, 0)                                             \
+  V(Internal_writeHeapSnapshotToFile, 1)                                       \
   V(Internal_makeListFixedLength, 1)                                           \
   V(Internal_makeFixedListUnmodifiable, 1)                                     \
   V(Internal_extractTypeArguments, 2)                                          \
@@ -330,6 +343,7 @@ namespace dart {
   V(Internal_writeIntoOneByteString, 3)                                        \
   V(Internal_writeIntoTwoByteString, 3)                                        \
   V(Internal_deoptimizeFunctionsOnStack, 0)                                    \
+  V(Internal_randomInstructionsOffsetInsideAllocateObjectStub, 0)              \
   V(InvocationMirror_unpackTypeArguments, 2)                                   \
   V(NoSuchMethodError_existingMethodSignature, 3)                              \
   V(Uri_isWindowsPlatform, 0)                                                  \

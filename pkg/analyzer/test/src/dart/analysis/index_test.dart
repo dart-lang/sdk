@@ -61,13 +61,13 @@ class M extends Object with A {}
 ''');
     ClassElement classElementA = findElement.class_('A');
     assertThat(classElementA)
-      ..isAncestorOf('B1 extends A')
-      ..isAncestorOf('B2 implements A')
-      ..isAncestorOf('C1 extends B1')
-      ..isAncestorOf('C2 extends B2')
-      ..isAncestorOf('C3 implements B1')
-      ..isAncestorOf('C4 implements B2')
-      ..isAncestorOf('M extends Object with A');
+      ..isAncestorOf('B1 extends A', length: 2)
+      ..isAncestorOf('B2 implements A', length: 2)
+      ..isAncestorOf('C1 extends B1', length: 2)
+      ..isAncestorOf('C2 extends B2', length: 2)
+      ..isAncestorOf('C3 implements B1', length: 2)
+      ..isAncestorOf('C4 implements B2', length: 2)
+      ..isAncestorOf('M extends Object with A', length: 1);
   }
 
   test_hasAncestor_ClassTypeAlias() async {
@@ -80,9 +80,9 @@ class C2 = Object with B;
     ClassElement classElementA = findElement.class_('A');
     ClassElement classElementB = findElement.class_('B');
     assertThat(classElementA)
-      ..isAncestorOf('C1 = Object with A')
-      ..isAncestorOf('C2 = Object with B');
-    assertThat(classElementB).isAncestorOf('C2 = Object with B');
+      ..isAncestorOf('C1 = Object with A', length: 2)
+      ..isAncestorOf('C2 = Object with B', length: 2);
+    assertThat(classElementB).isAncestorOf('C2 = Object with B', length: 2);
   }
 
   test_hasAncestor_MixinDeclaration() async {
@@ -98,12 +98,23 @@ mixin M5 on M2 {}
 ''');
     ClassElement classElementA = findElement.class_('A');
     assertThat(classElementA)
-      ..isAncestorOf('B extends A')
-      ..isAncestorOf('M1 on A')
-      ..isAncestorOf('M2 on B')
-      ..isAncestorOf('M3 implements A')
-      ..isAncestorOf('M4 implements B')
-      ..isAncestorOf('M5 on M2');
+      ..isAncestorOf('B extends A', length: 1)
+      ..isAncestorOf('M1 on A', length: 2)
+      ..isAncestorOf('M2 on B', length: 2)
+      ..isAncestorOf('M3 implements A', length: 2)
+      ..isAncestorOf('M4 implements B', length: 2)
+      ..isAncestorOf('M5 on M2', length: 2);
+  }
+
+  test_isConstraint_MixinDeclaration_onClause() async {
+    await _indexTestUnit('''
+class A {} // 1
+mixin M on A {} // 2
+''');
+    ClassElement elementA = findElement.class_('A');
+    assertThat(elementA)
+      ..isConstraintAt('A {} // 2', false)
+      ..isReferencedAt('A {} // 2', false);
   }
 
   test_isExtendedBy_ClassDeclaration_isQualified() async {
@@ -123,7 +134,7 @@ class B extends p.A {} // 2
 class A {}
 ''');
     ClassElement elementA = findElement.class_('A');
-    ClassElement elementObject = elementA.supertype!.element;
+    final elementObject = elementA.supertype!.element;
     assertThat(elementObject).isExtendedAt('A {}', true, length: 0);
   }
 
@@ -232,17 +243,6 @@ enum E implements A { // 2
     await _indexTestUnit('''
 class A {} // 1
 mixin M implements A {} // 2
-''');
-    ClassElement elementA = findElement.class_('A');
-    assertThat(elementA)
-      ..isImplementedAt('A {} // 2', false)
-      ..isReferencedAt('A {} // 2', false);
-  }
-
-  test_isImplementedBy_MixinDeclaration_onClause() async {
-    await _indexTestUnit('''
-class A {} // 1
-mixin M on A {} // 2
 ''');
     ClassElement elementA = findElement.class_('A');
     assertThat(elementA)
@@ -526,7 +526,7 @@ class B extends Object with p.A {} // 2
 mixin A {} // 1
 class B extends Object with A {} // 2
 ''');
-    ClassElement elementA = findElement.mixin('A');
+    final elementA = findElement.mixin('A');
     assertThat(elementA)
       ..isMixedInAt('A {} // 2', false)
       ..isReferencedAt('A {} // 2', false);
@@ -546,7 +546,7 @@ class B = Object with A; // 2
 mixin A {} // 1
 class B = Object with A; // 2
 ''');
-    ClassElement elementA = findElement.mixin('A');
+    final elementA = findElement.mixin('A');
     assertThat(elementA).isMixedInAt('A; // 2', false);
   }
 
@@ -622,7 +622,7 @@ main(MyEnum p) {
   MyEnum.a;
 }
 ''');
-    ClassElement element = findElement.enum_('MyEnum');
+    final element = findElement.enum_('MyEnum');
     assertThat(element)
       ..isReferencedAt('MyEnum p) {', false)
       ..isReferencedAt('MyEnum v;', false)
@@ -661,6 +661,24 @@ void f() {}
     assertThat(findElement.class_('A'))
       ..isReferencedAt('A<A', false)
       ..isReferencedAt('A>()', false);
+  }
+
+  test_isReferencedBy_ClassElement_inRecordTypeAnnotation_named() async {
+    await _indexTestUnit('''
+class A {}
+
+void f(({int foo, A bar}) r) {}
+''');
+    assertThat(findElement.class_('A')).isReferencedAt('A bar', false);
+  }
+
+  test_isReferencedBy_ClassElement_inRecordTypeAnnotation_positional() async {
+    await _indexTestUnit('''
+class A {}
+
+void f((int, A) r) {}
+''');
+    assertThat(findElement.class_('A')).isReferencedAt('A)', false);
   }
 
   test_isReferencedBy_ClassElement_inTypeAlias() async {
@@ -1047,15 +1065,17 @@ main(A a) {
     FieldElement field = findElement.field('field');
     PropertyAccessorElement getter = field.getter!;
     PropertyAccessorElement setter = field.setter!;
+
     // A()
-    assertThat(field).isWrittenAt('field});', true);
+    assertThat(field)
+      ..isWrittenAt('field});', true, length: 5)
+      ..hasRelationCount(1);
     // m()
-    assertThat(setter).isReferencedAt('field = 2; // nq', false);
-    assertThat(getter).isReferencedAt('field); // nq', false);
+    assertThat(setter).isReferencedAt('field = 2; // nq', false, length: 5);
+    assertThat(getter).isReferencedAt('field); // nq', false, length: 5);
     // main()
-    assertThat(setter).isReferencedAt('field = 3; // q', true);
-    assertThat(getter).isReferencedAt('field); // q', true);
-    assertThat(field).isReferencedAt('field: 4', true);
+    assertThat(setter).isReferencedAt('field = 3; // q', true, length: 5);
+    assertThat(getter).isReferencedAt('field); // q', true, length: 5);
   }
 
   test_isReferencedBy_FieldElement_class_multiple() async {
@@ -1077,18 +1097,18 @@ class A {
       FieldElement field = findElement.field('aaa');
       PropertyAccessorElement getter = field.getter!;
       PropertyAccessorElement setter = field.setter!;
-      assertThat(field).isWrittenAt('aaa, ', true);
-      assertThat(getter).isReferencedAt('aaa);', false);
-      assertThat(setter).isReferencedAt('aaa = 1;', false);
+      assertThat(field).isWrittenAt('aaa, ', true, length: 3);
+      assertThat(getter).isReferencedAt('aaa);', false, length: 3);
+      assertThat(setter).isReferencedAt('aaa = 1;', false, length: 3);
     }
     // bbb
     {
       FieldElement field = findElement.field('bbb');
       PropertyAccessorElement getter = field.getter!;
       PropertyAccessorElement setter = field.setter!;
-      assertThat(field).isWrittenAt('bbb) {}', true);
-      assertThat(getter).isReferencedAt('bbb);', false);
-      assertThat(setter).isReferencedAt('bbb = 2;', false);
+      assertThat(field).isWrittenAt('bbb) {}', true, length: 3);
+      assertThat(getter).isReferencedAt('bbb);', false, length: 3);
+      assertThat(setter).isReferencedAt('bbb = 2;', false, length: 3);
     }
   }
 
@@ -1099,8 +1119,8 @@ class A {
   int get f => 0;
 }
 ''');
-    ClassElement element2 = findElement.class_('A');
-    assertThat(element2.getField('f')!).isWrittenAt('f = 42', true);
+    ClassElement element = findElement.class_('A');
+    assertThat(element.getField('f')!).isWrittenAt('f = 42', true);
   }
 
   test_isReferencedBy_FieldElement_class_synthetic_hasGetterSetter() async {
@@ -1111,8 +1131,8 @@ class A {
   set f(_) {}
 }
 ''');
-    ClassElement element2 = findElement.class_('A');
-    assertThat(element2.getField('f')!).isWrittenAt('f = 42', true);
+    ClassElement element = findElement.class_('A');
+    assertThat(element.getField('f')!).isWrittenAt('f = 42', true);
   }
 
   test_isReferencedBy_FieldElement_class_synthetic_hasSetter() async {
@@ -1122,8 +1142,8 @@ class A {
   set f(_) {}
 }
 ''');
-    ClassElement element2 = findElement.class_('A');
-    assertThat(element2.getField('f')!).isWrittenAt('f = 42', true);
+    ClassElement element = findElement.class_('A');
+    assertThat(element.getField('f')!).isWrittenAt('f = 42', true);
   }
 
   test_isReferencedBy_FieldElement_enum() async {
@@ -1146,15 +1166,17 @@ void f(E e) {
     FieldElement field = findElement.field('field');
     PropertyAccessorElement getter = field.getter!;
     PropertyAccessorElement setter = field.setter!;
+
     // E()
-    assertThat(field).isWrittenAt('field});', true);
+    assertThat(field)
+      ..isWrittenAt('field});', true, length: 5)
+      ..hasRelationCount(1);
     // foo()
-    assertThat(setter).isReferencedAt('field = 2; // nq', false);
-    assertThat(getter).isReferencedAt('field; // nq', false);
+    assertThat(setter).isReferencedAt('field = 2; // nq', false, length: 5);
+    assertThat(getter).isReferencedAt('field; // nq', false, length: 5);
     // f()
-    assertThat(setter).isReferencedAt('field = 3; // q', true);
-    assertThat(getter).isReferencedAt('field; // q', true);
-    assertThat(field).isReferencedAt('field: 4', true);
+    assertThat(setter).isReferencedAt('field = 3; // q', true, length: 5);
+    assertThat(getter).isReferencedAt('field; // q', true, length: 5);
   }
 
   test_isReferencedBy_FieldElement_enum_index() async {
@@ -1169,7 +1191,7 @@ main() {
   print(MyEnum.B);
 }
 ''');
-    ClassElement enumElement = findElement.enum_('MyEnum');
+    final enumElement = findElement.enum_('MyEnum');
     assertThat(enumElement.getGetter('values')!)
         .isReferencedAt('values);', true);
     assertThat(typeProvider.enumElement!.getGetter('index')!)
@@ -1384,7 +1406,7 @@ class B extends A {
 }
 ''');
     var element = findElement.unnamedConstructor('A').parameter('a');
-    assertThat(element).isReferencedAt('a}); // ref', true);
+    assertThat(element).isReferencedAt('a}); // ref', true, length: 1);
   }
 
   test_isReferencedBy_ParameterElement_ofConstructor_super_positional() async {
@@ -1397,7 +1419,7 @@ class B extends A {
 }
 ''');
     var element = findElement.unnamedConstructor('A').parameter('a');
-    assertThat(element).isReferencedAt('a); // ref', true);
+    assertThat(element).isReferencedAt('a); // ref', true, length: 1);
   }
 
   test_isReferencedBy_ParameterElement_optionalNamed_ofConstructor_genericClass() async {
@@ -1655,8 +1677,8 @@ class A {
 ''');
     FieldElement element = findElement.field('field');
     assertThat(element)
-      ..isWrittenAt('field})', true)
-      ..isWrittenAt('field = 5', true);
+      ..isWrittenAt('field})', true, length: 5)
+      ..isWrittenAt('field = 5', true, length: 5);
   }
 
   test_subtypes_classDeclaration() async {
@@ -1907,6 +1929,11 @@ class _ElementIndexAssert {
         relations,
         IndexRelationKind.IS_ANCESTOR_OF,
         test._expectedLocation(search, false, length: length));
+  }
+
+  void isConstraintAt(String search, bool isQualified, {int? length}) {
+    test._assertHasRelation(element, relations, IndexRelationKind.CONSTRAINS,
+        test._expectedLocation(search, isQualified, length: length));
   }
 
   void isExtendedAt(String search, bool isQualified, {int? length}) {

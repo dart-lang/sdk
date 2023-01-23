@@ -6,33 +6,29 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 
 import '../builder/library_builder.dart';
+import '../source/name_scheme.dart';
 import '../source/source_library_builder.dart';
-import '../source/source_member_builder.dart';
 import 'kernel_helper.dart';
 
 const String _tearOffNamePrefix = '_#';
 const String _tearOffNameSuffix = '#tearOff';
 
 /// Creates the synthesized name to use for the lowering of the tear off of a
-/// constructor or factory by the given [name] in [library].
-Name constructorTearOffName(String name, Library library) {
-  return new Name(
-      '$_tearOffNamePrefix'
+/// constructor or factory by the given [name].
+String constructorTearOffName(String name) {
+  return '$_tearOffNamePrefix'
       '${name.isEmpty ? 'new' : name}'
-      '$_tearOffNameSuffix',
-      library);
+      '$_tearOffNameSuffix';
 }
 
 /// Creates the synthesized name to use for the lowering of the tear off of a
-/// constructor or factory by the given [constructorName] in [library].
-Name typedefTearOffName(
-    String typedefName, String constructorName, Library library) {
-  return new Name(
-      '$_tearOffNamePrefix'
+/// constructor or factory by the given [constructorName] through a typedef by
+/// the given [typedefName].
+String typedefTearOffName(String typedefName, String constructorName) {
+  return '$_tearOffNamePrefix'
       '$typedefName#'
       '${constructorName.isEmpty ? 'new' : constructorName}'
-      '$_tearOffNameSuffix',
-      library);
+      '$_tearOffNameSuffix';
 }
 
 /// Returns the name of the corresponding constructor or factory if [name] is
@@ -109,12 +105,8 @@ Procedure? createConstructorTearOffProcedure(
   if (!forAbstractClassOrEnum &&
       compilationUnit
           .loader.target.backendTarget.isConstructorTearOffLoweringEnabled) {
-    return _createTearOffProcedure(
-        compilationUnit,
-        constructorTearOffName(name, compilationUnit.library),
-        fileUri,
-        fileOffset,
-        reference);
+    return _createTearOffProcedure(compilationUnit,
+        constructorTearOffName(name), fileUri, fileOffset, reference);
   }
   return null;
 }
@@ -131,12 +123,8 @@ Procedure? createFactoryTearOffProcedure(
     Reference? reference) {
   if (compilationUnit
       .loader.target.backendTarget.isFactoryTearOffLoweringEnabled) {
-    return _createTearOffProcedure(
-        compilationUnit,
-        constructorTearOffName(name, compilationUnit.library),
-        fileUri,
-        fileOffset,
-        reference);
+    return _createTearOffProcedure(compilationUnit,
+        constructorTearOffName(name), fileUri, fileOffset, reference);
   }
   return null;
 }
@@ -151,12 +139,8 @@ Procedure createTypedefTearOffProcedure(
     Uri fileUri,
     int fileOffset,
     Reference? reference) {
-  return _createTearOffProcedure(
-      libraryBuilder,
-      typedefTearOffName(typedefName, name, libraryBuilder.library),
-      fileUri,
-      fileOffset,
-      reference);
+  return _createTearOffProcedure(libraryBuilder,
+      typedefTearOffName(typedefName, name), fileUri, fileOffset, reference);
 }
 
 /// Creates the parameters and body for [tearOff] based on
@@ -214,7 +198,6 @@ void buildConstructorTearOffProcedure(
   _createTearOffBody(tearOff, declarationConstructor, arguments);
   tearOff.function.fileOffset = tearOff.fileOffset;
   tearOff.function.fileEndOffset = tearOff.fileOffset;
-  updatePrivateMemberName(tearOff, libraryBuilder);
 }
 
 /// Creates the parameters and body for [tearOff] for a typedef tearoff of
@@ -286,7 +269,6 @@ void buildTypedefTearOffProcedure(
   _createTearOffBody(tearOff, declarationConstructor, arguments);
   tearOff.function.fileOffset = tearOff.fileOffset;
   tearOff.function.fileEndOffset = tearOff.fileOffset;
-  updatePrivateMemberName(tearOff, libraryBuilder);
 }
 
 /// Creates the parameters for the redirecting factory [tearOff] based on the
@@ -309,7 +291,6 @@ FreshTypeParameters buildRedirectingFactoryTearOffProcedureParameters(
       libraryBuilder);
   tearOff.function.fileOffset = tearOff.fileOffset;
   tearOff.function.fileEndOffset = tearOff.fileOffset;
-  updatePrivateMemberName(tearOff, libraryBuilder);
   return freshTypeParameters;
 }
 
@@ -367,13 +348,17 @@ DelayedDefaultValueCloner buildRedirectingFactoryTearOffBody(
 /// Creates the synthesized [Procedure] node for a tear off lowering by the
 /// given [name].
 Procedure _createTearOffProcedure(SourceLibraryBuilder libraryBuilder,
-    Name name, Uri fileUri, int fileOffset, Reference? reference) {
-  return new Procedure(name, ProcedureKind.Method, new FunctionNode(null),
+    String name, Uri fileUri, int fileOffset, Reference? reference) {
+  Procedure tearOff = new Procedure(
+      dummyName, ProcedureKind.Method, new FunctionNode(null),
       fileUri: fileUri, isStatic: true, isSynthetic: true, reference: reference)
     ..fileStartOffset = fileOffset
     ..fileOffset = fileOffset
     ..fileEndOffset = fileOffset
     ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
+  MemberName tearOffName = new MemberName(libraryBuilder.libraryName, name);
+  tearOffName.attachMember(tearOff);
+  return tearOff;
 }
 
 /// Creates the synthesized type parameters for a tear off lowering. The type
@@ -501,8 +486,8 @@ class LoweredTypedefTearOff {
         }
         if (target != null) {
           Class cls = target.enclosingClass!;
-          Name tearOffName =
-              constructorTearOffName(target.name.text, cls.enclosingLibrary);
+          Name tearOffName = new Name(
+              constructorTearOffName(target.name.text), cls.enclosingLibrary);
           for (Procedure procedure in cls.procedures) {
             if (procedure.name == tearOffName) {
               target = procedure;

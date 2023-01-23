@@ -45,7 +45,7 @@ class B {}
 
     // Delete the file, the set should be removed.
     deleteFile(path);
-    waitForSetWithUriRemoved(uriStr);
+    await waitForSetWithUriRemoved(uriStr);
   }
 
   Future<void> test_suggestion_class() async {

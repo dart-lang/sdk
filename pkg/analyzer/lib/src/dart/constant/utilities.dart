@@ -80,6 +80,8 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
 /// constructors, constant constructor invocations, and annotations found in
 /// those compilation units.
 class ConstantFinder extends RecursiveAstVisitor<void> {
+  final ConstantEvaluationConfiguration configuration;
+
   /// The elements and AST nodes whose constant values need to be computed.
   List<ConstantEvaluationTarget> constantsToCompute =
       <ConstantEvaluationTarget>[];
@@ -87,6 +89,10 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   /// A flag indicating whether instance variables marked as "final" should be
   /// treated as "const".
   bool treatFinalInstanceVarAsConst = false;
+
+  ConstantFinder({
+    required this.configuration,
+  });
 
   @override
   void visitAnnotation(Annotation node) {
@@ -148,8 +154,11 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
     var element = node.declaredElement as ConstFieldElementImpl;
     constantsToCompute.add(element);
 
-    var constantInitializer = element.constantInitializer!;
-    enumConstantErrorNodes[constantInitializer] = node;
+    final initializer = element.constantInitializer!;
+    configuration.addEnumConstant(
+      declaration: node,
+      initializer: initializer,
+    );
   }
 
   @override

@@ -288,7 +288,7 @@ class _DominatorFinder<N> {
   Map<N, int> postOrderId = {};
   _DominatorFinder(this._graph);
 
-  run(N root) {
+  void run(N root) {
     immediateDominators[root] = root;
     bool changed = true;
     int i = 0;

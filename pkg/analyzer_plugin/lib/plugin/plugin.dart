@@ -198,14 +198,19 @@ abstract class ServerPlugin {
   /// one or more files. The implementation may check if these files should
   /// be analyzed, do such analysis, and send diagnostics.
   ///
-  /// By default invokes [analyzeFiles].
+  /// By default invokes [analyzeFiles] only for files that are analyzed in
+  /// this [analysisContext].
   Future<void> handleAffectedFiles({
     required AnalysisContext analysisContext,
     required List<String> paths,
   }) async {
+    final analyzedPaths = paths
+        .where(analysisContext.contextRoot.isAnalyzed)
+        .toList(growable: false);
+
     await analyzeFiles(
       analysisContext: analysisContext,
-      paths: paths,
+      paths: analyzedPaths,
     );
   }
 
@@ -253,7 +258,7 @@ abstract class ServerPlugin {
       await beforeContextCollectionDispose(
         contextCollection: currentContextCollection,
       );
-      currentContextCollection.dispose();
+      await currentContextCollection.dispose();
     }
 
     final includedPaths = parameters.roots.map((e) => e.root).toList();
@@ -389,14 +394,6 @@ abstract class ServerPlugin {
   /// Throw a [RequestFailure] if the request could not be handled.
   Future<EditGetRefactoringResult?> handleEditGetRefactoring(
       EditGetRefactoringParams parameters) async {
-    return null;
-  }
-
-  /// Handle a 'kythe.getKytheEntries' request.
-  ///
-  /// Throw a [RequestFailure] if the request could not be handled.
-  Future<KytheGetKytheEntriesResult?> handleKytheGetKytheEntries(
-      KytheGetKytheEntriesParams parameters) async {
     return null;
   }
 
@@ -569,10 +566,6 @@ abstract class ServerPlugin {
       case EDIT_REQUEST_GET_REFACTORING:
         var params = EditGetRefactoringParams.fromRequest(request);
         result = await handleEditGetRefactoring(params);
-        break;
-      case KYTHE_REQUEST_GET_KYTHE_ENTRIES:
-        var params = KytheGetKytheEntriesParams.fromRequest(request);
-        result = await handleKytheGetKytheEntries(params);
         break;
       case PLUGIN_REQUEST_SHUTDOWN:
         var params = PluginShutdownParams();

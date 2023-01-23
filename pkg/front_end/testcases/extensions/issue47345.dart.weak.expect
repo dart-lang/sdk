@@ -7,7 +7,7 @@ class Foo extends core::Object {
     : super core::Object::•()
     ;
 }
-extension _extension#0 on self::Foo {
+extension /* unnamed */ _extension#0 on self::Foo {
   static field bar = self::_extension#0|bar;
   static field doubleBar = self::_extension#0|doubleBar;
 }

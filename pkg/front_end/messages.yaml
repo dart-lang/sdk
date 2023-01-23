@@ -167,6 +167,14 @@ ConstEvalInvalidPropertyGet:
   problemMessage: "The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression."
   analyzerCode: CONST_EVAL_THROWS_EXCEPTION
 
+ConstEvalInvalidRecordIndexGet:
+  problemMessage: "The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression."
+  analyzerCode: CONST_EVAL_THROWS_EXCEPTION
+
+ConstEvalInvalidRecordNameGet:
+  problemMessage: "The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression."
+  analyzerCode: CONST_EVAL_THROWS_EXCEPTION
+
 ConstEvalInvalidStringInterpolationOperand:
   problemMessage: |
     The constant value '#constant' can't be used as part of a string interpolation in a constant expression.
@@ -287,9 +295,10 @@ ExperimentNotEnabled:
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 
 ExperimentNotEnabledOffByDefault:
+  index: 133
   problemMessage: "This requires the experimental '#string' language feature to be enabled."
   correctionMessage: "Try passing the '--enable-experiment=#string' command line option."
-  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
+  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT
 
 ExperimentDisabled:
   problemMessage: "This requires the '#string' language feature to be enabled."
@@ -314,6 +323,83 @@ EmptyNamedParameterList:
     main() {
       foo();
     }
+
+RecordLiteralOnePositionalFieldNoTrailingComma:
+  problemMessage: "Record literal with one field requires a trailing comma."
+  correctionMessage: "Try adding a trailing comma."
+  analyzerCode: ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA
+  index: 127
+  experiments: records
+  script: >
+    main() {
+      var record = const (1);
+    }
+
+RecordLiteralZeroFieldsWithTrailingComma:
+  problemMessage: "Record literal without fields can't have a trailing comma."
+  correctionMessage: "Try removing the trailing comma."
+  analyzerCode: ParserErrorCode.EMPTY_RECORD_LITERAL_WITH_COMMA
+  index: 128
+  experiments: records
+  script: >
+    main() {
+      var record = (,);
+    }
+
+EmptyRecordTypeNamedFieldsList:
+  problemMessage: "Record type named fields list can't be empty."
+  correctionMessage: "Try adding a record type named field to the list."
+  analyzerCode: ParserErrorCode.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST
+  index: 129
+  experiments: records
+  script: >
+    main() {
+      (int, int, {/*missing*/}) record = (1, 2,);
+    }
+
+RecordTypeZeroFieldsButTrailingComma:
+  problemMessage: "Record type without fields can't have a trailing comma."
+  correctionMessage: "Try removing the trailing comma."
+  analyzerCode: ParserErrorCode.EMPTY_RECORD_TYPE_WITH_COMMA
+  index: 130
+  experiments: records
+  script: >
+    main() {
+      (,) record = ();
+    }
+
+RecordTypeOnePositionalFieldNoTrailingComma:
+  problemMessage: "Record type with one entry requires a trailing comma."
+  correctionMessage: "Try adding a trailing comma."
+  analyzerCode: ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA
+  index: 131
+  experiments: records
+  script: >
+    main() {
+      (int /* missing trailing comma */) record = const (1, );
+    }
+
+DuplicatedRecordTypeFieldName:
+  problemMessage: "Duplicated record type field name '#name'."
+  correctionMessage: "Try renaming or removing one of the named record type fields."
+  experiments: records
+  script: |
+    ({int a, String a}) record = throw '';
+
+DuplicatedRecordTypeFieldNameContext:
+  problemMessage: "This is the existing record type field named '#name'."
+  severity: CONTEXT
+
+DuplicatedRecordLiteralFieldName:
+  problemMessage: "Duplicated record literal field name '#name'."
+  correctionMessage: "Try renaming or removing one of the named record literal fields."
+  experiments: records
+  script: |
+    dynamic field = (a: 0, a: 1);
+
+DuplicatedRecordLiteralFieldNameContext:
+  problemMessage: "This is the existing record literal field named '#name'."
+  severity: CONTEXT
 
 EmptyOptionalParameterList:
   problemMessage: "Optional parameter lists cannot be empty."
@@ -702,6 +788,16 @@ AbstractLateField:
   configuration: nnbd-strong
   script:
     - "abstract class C {abstract late var f;}"
+
+AbstractSealedClass:
+  index: 132
+  problemMessage: "A class can't be declared both 'sealed' and 'abstract'."
+  correctionMessage: "Try removing the 'abstract' or 'sealed' keyword."
+  analyzerCode: ParserErrorCode.ABSTRACT_SEALED_CLASS
+  experiments: sealed-class
+  script:
+    - "sealed abstract class C {}"
+    - "abstract sealed class C {}"
 
 ClassInClass:
   index: 53
@@ -3107,18 +3203,6 @@ DuplicatedDeclarationUse:
         class C {}
       lib2.dart: |
         class C {}
-    - main.dart: |
-        class C {
-          method() {}
-          method() {}
-        }
-        main() => new C().method();
-    - main.dart: |
-        class C {
-          method() {}
-          method() {}
-        }
-        var f = new C().method();
 
 DuplicatedNamePreviouslyUsed:
   problemMessage: "Can't declare '#name' because it was already used in this scope."
@@ -3733,8 +3817,8 @@ PatchDeclarationOrigin:
   severity: CONTEXT
 
 PatchInjectionFailed:
-  problemMessage: "Can't inject '#name' into '#uri'."
-  correctionMessage: "Try adding '@patch'."
+  problemMessage: "Can't inject public '#name' into '#uri'."
+  correctionMessage: "Make '#name' private, or make sure injected library has \"dart\" scheme and is private (e.g. \"dart:_internal\")."
 
 PatchNonExternal:
   problemMessage: "Can't apply this patch as its origin declaration isn't external."
@@ -4351,11 +4435,32 @@ DefaultValueInRedirectingFactoryConstructor:
 UntranslatableUri:
   problemMessage: "Not found: '#uri'"
   analyzerCode: URI_DOES_NOT_EXIST
+  exampleAllowMoreCodes: true # PackageNotFound will precede this message.
+  script: |
+    import "package:expect/non_existing_file";
+
+UnavailableDartLibrary:
+  problemMessage: "Dart library '#uri' is not available on this platform."
+  analyzerCode: URI_DOES_NOT_EXIST
   script: |
     import "dart:non_existing_library";
 
-    main() {
-    }
+ImportChainContext:
+  problemMessage: |
+    The unavailable library '#uri' is imported through these packages:
+
+    #string
+    Detailed import paths for (some of) the these imports:
+    
+    #string2
+  severity: CONTEXT
+
+ImportChainContextSimple:
+  problemMessage: |
+    The unavailable library '#uri' is imported through these paths:
+
+    #string
+  severity: CONTEXT
 
 CantReadFile:
   problemMessage: "Error when reading '#uri': #string"
@@ -4363,9 +4468,6 @@ CantReadFile:
   external: test/packages_format_error_test.dart
   script: |
     import "non_existing_file.dart";
-
-    main() {
-    }
 
 ExceptionReadingFile:
   problemMessage: "Exception when reading '#uri': #string"
@@ -5122,6 +5224,35 @@ JsInteropEnclosingClassJSAnnotationContext:
   problemMessage: "This is the enclosing class."
   severity: CONTEXT
 
+JsInteropExportClassNotMarkedExportable:
+  problemMessage: "Class '#name' does not have a `@JSExport` on it or any of its members."
+  correctionMessage: "Use the `@JSExport` annotation on this class."
+
+JsInteropExportDartInterfaceHasNonEmptyJSExportValue:
+  problemMessage: "The value in the `@JSExport` annotation on the class or mixin '#name' will be ignored."
+  correctionMessage: "Remove the value in the annotation."
+  severity: WARNING
+
+JsInteropExportDisallowedMember:
+  problemMessage: "Member '#name' is not a concrete instance member, and therefore can't be exported."
+  correctionMessage: "Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead."
+
+JsInteropExportInvalidInteropTypeArgument:
+  problemMessage: "Type argument '#type' needs to be a non-JS interop type."
+  correctionMessage: "Use a non-JS interop class that uses `@JSExport` instead."
+
+JsInteropExportInvalidTypeArgument:
+  problemMessage: "Type argument '#type' needs to be an interface type."
+  correctionMessage: "Use a non-JS interop class that uses `@JSExport` instead."
+
+JsInteropExportMemberCollision:
+  problemMessage: "The following class members collide with the same export '#name': #string."
+  correctionMessage: "Either remove the conflicting members or use a different export name."
+
+JsInteropExportNoExportableMembers:
+  problemMessage: "Class '#name' has no exportable members in the class or the inheritance chain."
+  correctionMessage: "Using `@JSExport`, annotate at least one instance member with a body or annotate a class that has such a member in the inheritance chain."
+
 JsInteropExternalExtensionMemberOnTypeInvalid:
   problemMessage: "JS interop or Native class required for 'external' extension members."
   correctionMessage: "Try adding a JS interop annotation to the on type class of the extension."
@@ -5157,12 +5288,44 @@ JsInteropOperatorsNotSupported:
 JsInteropInvalidStaticClassMemberName:
   problemMessage: "JS interop static class members cannot have '.' in their JS name."
 
+JsInteropNonStaticWithStaticInteropSupertype:
+  problemMessage: "Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does."
+  correctionMessage: "Try marking '#name' as a `@staticInterop` class, or don't inherit '#name2'."
+
+JsInteropStaticInteropExternalExtensionMembersWithTypeParameters:
+  problemMessage: "`@staticInterop` classes cannot have external extension members with type parameters."
+  correctionMessage: "Try using a Dart extension member if you need type parameters instead."
+
+JsInteropStaticInteropGenerativeConstructor:
+  problemMessage: "`@staticInterop` classes should not contain any generative constructors."
+  correctionMessage: "Use factory constructors instead."
+
+JsInteropStaticInteropMockMissingGetterOrSetter:
+  problemMessage: "Dart class '#name' has a #string, but does not have a #string2 to implement any of the following extension member(s) with export name '#name2': #string3."
+  correctionMessage: "Declare an exportable #string2 that implements one of these extension members."
+
+JsInteropStaticInteropMockMissingImplements:
+  problemMessage: "Dart class '#name' does not have any members that implement any of the following extension member(s) with export name '#name2': #string."
+  correctionMessage: "Declare an exportable member that implements one of these extension members."
+
+JsInteropStaticInteropMockNotStaticInteropType:
+  problemMessage: "Type argument '#type' needs to be a `@staticInterop` type."
+  correctionMessage: "Use a `@staticInterop` class instead."
+
+JsInteropStaticInteropNoJSAnnotation:
+  problemMessage: "`@staticInterop` classes should also have the `@JS` annotation."
+  correctionMessage: "Add `@JS` to class '#name'."
+
+JsInteropStaticInteropSyntheticConstructor:
+  problemMessage: "Synthetic constructors on `@staticInterop` classes can not be used."
+  correctionMessage: "Declare an external factory constructor for this `@staticInterop` class and use that instead."
+
 JsInteropStaticInteropWithInstanceMembers:
   problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
   correctionMessage: "Try moving the instance member to a static extension."
 
 JsInteropStaticInteropWithNonStaticSupertype:
-  problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which is non-static."
+  problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not."
   correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
 
 JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop:
@@ -5443,14 +5606,14 @@ UnexpectedModifierInNonNnbd:
     late int x;
 
 CompilingWithSoundNullSafety:
-  problemMessage: "Compiling with sound null safety"
+  problemMessage: "Compiling with sound null safety."
   configuration: nnbd-strong,compile
   severity: INFO
   script: |
     main() {}
 
 CompilingWithoutSoundNullSafety:
-  problemMessage: "Compiling without sound null safety"
+  problemMessage: "Compiling without sound null safety!\nDart 3 will only support sound null safety, see https://dart.dev/null-safety"
   configuration: nnbd-weak,compile
   severity: INFO
   script: |
@@ -5570,13 +5733,134 @@ MacroClassNotDeclaredMacro:
 UnmatchedAugmentationClassMember:
   problemMessage: "Augmentation member '#name' doesn't match a member in the augmented class."
   correctionMessage: "Try changing the name to an existing member or removing the 'augment' modifier."
+  experiments: macros
+  script:
+    main.dart:
+      import augment 'lib.dart';
+      class Class {}
+    lib.dart:
+      augment class Class {
+        augment void method() {}
+      }
+
+UnmatchedAugmentationLibraryMember:
+  problemMessage: "Augmentation member '#name' doesn't match a member in the augmented library."
+  correctionMessage: "Try changing the name to an existing member or removing the 'augment' modifier."
+  experiments: macros
+  script:
+    main.dart:
+      import augment 'lib.dart';
+    lib.dart:
+      augment void method() {}
+
+UnmatchedAugmentationClass:
+  problemMessage: "Augmentation class '#name' doesn't match a class in the augmented library."
+  correctionMessage: "Try changing the name to an existing class or removing the 'augment' modifier."
+  experiments: macros
+  script:
+    main.dart:
+      import augment 'lib.dart';
+    lib.dart:
+      augment class Class {}
+
+UnmatchedAugmentationDeclaration:
+  problemMessage: "Augmentation '#name' doesn't match a declaration in the augmented library."
+  correctionMessage: "Try changing the name to an existing declaration or removing the 'augment' modifier."
+  experiments: macros
+
+UnmatchedAugmentationConstructor:
+  problemMessage: "Augmentation constructor '#name' doesn't match a constructor in the augmented class."
+  correctionMessage: "Try changing the name to an existing constructor or removing the 'augment' modifier."
+  experiments: macros
+  script:
+    main.dart:
+      import augment 'lib.dart';
+      class Class {
+        Class.name1();
+      }
+    lib.dart:
+      augment class Class {
+        augment Class.name2();
+      }
+
 
 NonAugmentationClassMemberConflict:
   problemMessage: "Member '#name' conflicts with an existing member of the same name in the augmented class."
-  correctionMessage: "Try changing the name to an existing member or adding an 'augment' modifier."
+  correctionMessage: "Try changing the name of the member or adding an 'augment' modifier."
+  experiments: macros
+  script:
+    main.dart:
+      import augment 'lib.dart';
+      class Class {
+        void method() {}
+      }
+    lib.dart:
+      augment class Class {
+        void method() {}
+      }
 
-NonAugmentationClassMemberConflictCause:
+NonAugmentationLibraryMemberConflict:
+  problemMessage: "Member '#name' conflicts with an existing member of the same name in the augmented library."
+  correctionMessage: "Try changing the name of the member or adding an 'augment' modifier."
+  experiments: macros
+  script:
+    main.dart:
+      import augment 'lib.dart';
+      void method() {}
+    lib.dart:
+      void method() {}
+
+NonAugmentationLibraryConflict:
+  problemMessage: "Declaration '#name' conflicts with an existing declaration of the same name in the augmented library."
+  correctionMessage: "Try changing the name of the declaration."
+  experiments: macros
+  script:
+    main.dart:
+      import augment 'lib.dart';
+      void method() {}
+    lib.dart:
+      class method {}
+
+NonAugmentationClassConflict:
+  problemMessage: "Class '#name' conflicts with an existing class of the same name in the augmented library."
+  correctionMessage: "Try changing the name of the class or adding an 'augment' modifier."
+  experiments: macros
+  script:
+    main.dart:
+      import augment 'lib.dart';
+      class Class {}
+    lib.dart:
+      class Class {}
+
+NonAugmentationConstructorConflict:
+  problemMessage: "Constructor '#name' conflicts with an existing constructor of the same name in the augmented class."
+  correctionMessage: "Try changing the name of the constructor or adding an 'augment' modifier."
+  experiments: macros
+  script:
+    main.dart:
+      import augment 'lib.dart';
+      class Class {
+        Class.name();
+      }
+    lib.dart:
+      augment class Class {
+        Class.name();
+      }
+
+NonAugmentationMemberConflictCause:
   problemMessage: "This is the existing member."
+  severity: CONTEXT
+
+NonAugmentationClassConflictCause:
+  problemMessage: "This is the existing class."
+  severity: CONTEXT
+
+NonAugmentationDeclarationConflictCause:
+  problemMessage: "This is the existing declaration."
+  severity: CONTEXT
+
+NonAugmentationConstructorConflictCause:
+  problemMessage: "This is the existing constructor."
   severity: CONTEXT
 
 OptionalSuperParameterWithoutInitializer:
@@ -5650,9 +5934,90 @@ MixinApplicationNoConcreteMemberContext:
 
 NoAugmentSuperReadTarget:
   problemMessage: "Cannot read from 'augment super'."
+  experiments: macros
+  script:
+    main.dart:
+      import augment 'lib.dart';
+      void set setter(value) {}
+    lib.dart:
+      augment void set setter(value) {
+        augment super;
+      }
 
 NoAugmentSuperWriteTarget:
   problemMessage: "Cannot write to 'augment super'."
+  experiments: macros
+  script:
+    main.dart:
+      import augment 'lib.dart';
+      void method() {}
+    lib.dart:
+      augment void method() {
+        augment super = 42;
+      }
 
 NoAugmentSuperInvokeTarget:
   problemMessage: "Cannot call 'augment super'."
+  experiments: macros
+  script:
+    main.dart:
+      import augment 'lib.dart';
+      void set setter(value) {}
+    lib.dart:
+      augment void set setter(value) {
+        augment super();
+      }
+
+IndexOutOfBoundInRecordIndexGet:
+  problemMessage: "Index #count is out of range 0..#count2 of positional fields of records #type."
+
+NameNotFoundInRecordNameGet:
+  problemMessage: "Field name #string isn't found in records of type #type."
+
+ObjectMemberNameUsedForRecordField:
+  problemMessage: "Record field names can't be the same as a member from 'Object'."
+
+RecordFieldsCantBePrivate:
+  problemMessage: "Record field names can't be private."
+  analyzerCode: INVALID_FIELD_NAME
+  experiments: records
+  script: |
+    foo() => (_bar: 1);
+
+NamedFieldClashesWithPositionalFieldInRecord:
+  problemMessage: "Record field names can't be a dollar sign followed by an integer when integer is the index of a positional field."
+  analyzerCode: INVALID_FIELD_NAME
+  experiments: records
+  script: |
+    foo() => (0, $0: 0);
+
+EnumWithNameValues:
+  problemMessage: "The name 'values' is not a valid name for an enum. Try using a different name."
+  analyzerCode: ENUM_WITH_NAME_VALUES
+
+InheritedRestrictedMemberOfEnumImplementer:
+  problemMessage: "A concrete instance member named '#name' can't be inherited from '#name2' in a class that implements 'Enum'."
+  analyzerCode: ILLEGAL_CONCRETE_ENUM_MEMBER
+  script: |
+    abstract class A { int get hashCode => 0; }
+    abstract class B extends A implements Enum {}
+
+SealedClassSubtypeOutsideOfLibrary:
+  problemMessage: "Sealed class '#name' can't be extended, implemented, or mixed in outside of its library."
+  experiments: sealed-class
+  script:
+    main.dart:
+      import 'lib.dart';
+      class B extends A {}
+    lib.dart:
+      sealed class A {}
+
+SealedMixinSubtypeOutsideOfLibrary:
+  problemMessage: "Sealed mixin '#name' can't be mixed in outside of its library."
+  experiments: sealed-class
+  script:
+    main.dart:
+      import 'lib.dart';
+      class B with M {}
+    lib.dart:
+      sealed mixin M {}

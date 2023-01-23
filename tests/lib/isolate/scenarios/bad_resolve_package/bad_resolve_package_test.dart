@@ -38,7 +38,7 @@ testBadResolvePackage(port) async {
     print("Spawned isolate's package config flag: $packageConfigStr");
     print("Spawned isolate's loaded package config: $packageConfig");
     print("Spawned isolate's resolved package path: $resolvedPkg");
-    port.send([resolvedPkg]);
+    port.send([resolvedPkg?.toString()]);
   } catch (e, s) {
     port.send("$e\n$s\n");
   }

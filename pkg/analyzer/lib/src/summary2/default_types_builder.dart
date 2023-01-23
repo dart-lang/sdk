@@ -119,7 +119,7 @@ class DefaultTypesBuilder {
         if (typeParametersByName == null) {
           typeParametersByName = {};
           for (var parameterNode in typeParameters) {
-            var name = parameterNode.name.name;
+            var name = parameterNode.name.lexeme;
             typeParametersByName[name] = parameterNode;
           }
         }
@@ -273,7 +273,7 @@ class DefaultTypesBuilder {
             }
           }
 
-          if (declaration is ClassElement) {
+          if (declaration is InterfaceElement) {
             recurseParameters(declaration.typeParameters);
           } else if (declaration is TypeAliasElement) {
             recurseParameters(declaration.typeParameters);

@@ -4,7 +4,6 @@
 
 #include "vm/class_table.h"
 
-#include <limits>
 #include <memory>
 
 #include "platform/atomic.h"
@@ -20,461 +19,148 @@ namespace dart {
 
 DEFINE_FLAG(bool, print_class_table, false, "Print initial class table.");
 
-SharedClassTable::SharedClassTable()
-    : top_(kNumPredefinedCids),
-      capacity_(0),
-      old_tables_(new MallocGrowableArray<void*>()) {
+ClassTable::ClassTable(ClassTableAllocator* allocator)
+    : allocator_(allocator),
+      classes_(allocator),
+      top_level_classes_(allocator) {
   if (Dart::vm_isolate() == NULL) {
-    ASSERT(kInitialCapacity >= kNumPredefinedCids);
-    capacity_ = kInitialCapacity;
-    // Note that [calloc] will zero-initialize the memory.
-    table_.store(reinterpret_cast<RelaxedAtomic<intptr_t>*>(
-        calloc(capacity_, sizeof(RelaxedAtomic<intptr_t>))));
-  } else {
-    // Duplicate the class table from the VM isolate.
-    auto vm_shared_class_table = Dart::vm_isolate_group()->shared_class_table();
-    capacity_ = vm_shared_class_table->capacity_;
-    // Note that [calloc] will zero-initialize the memory.
-    RelaxedAtomic<intptr_t>* table = reinterpret_cast<RelaxedAtomic<intptr_t>*>(
-        calloc(capacity_, sizeof(RelaxedAtomic<intptr_t>)));
-    // The following cids don't have a corresponding class object in Dart code.
-    // We therefore need to initialize them eagerly.
-    COMPILE_ASSERT(kFirstInternalOnlyCid == kObjectCid + 1);
-    for (intptr_t i = kObjectCid; i <= kLastInternalOnlyCid; i++) {
-      table[i] = vm_shared_class_table->SizeAt(i);
-    }
-    table[kTypeArgumentsCid] = vm_shared_class_table->SizeAt(kTypeArgumentsCid);
-    table[kFreeListElement] = vm_shared_class_table->SizeAt(kFreeListElement);
-    table[kForwardingCorpse] = vm_shared_class_table->SizeAt(kForwardingCorpse);
-    table[kDynamicCid] = vm_shared_class_table->SizeAt(kDynamicCid);
-    table[kVoidCid] = vm_shared_class_table->SizeAt(kVoidCid);
-    table_.store(table);
-  }
-#if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
-  // Note that [calloc] will zero-initialize the memory.
-  unboxed_fields_map_ = static_cast<UnboxedFieldBitmap*>(
-      calloc(capacity_, sizeof(UnboxedFieldBitmap)));
-#endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
-#ifndef PRODUCT
-  // Note that [calloc] will zero-initialize the memory.
-  trace_allocation_table_.store(
-      static_cast<uint8_t*>(calloc(capacity_, sizeof(uint8_t))));
-#endif  // !PRODUCT
-}
-SharedClassTable::~SharedClassTable() {
-  if (old_tables_ != NULL) {
-    FreeOldTables();
-    delete old_tables_;
-  }
-  free(table_.load());
-  free(unboxed_fields_map_);
-
-  NOT_IN_PRODUCT(free(trace_allocation_table_.load()));
-}
-
-void ClassTable::set_table(ClassPtr* table) {
-  // We don't have to stop mutators, since the old table is the prefix of the
-  // new table. But we should ensure that all writes to the current table are
-  // visible once the new table is visible.
-  table_.store(table);
-  IsolateGroup::Current()->set_cached_class_table_table(table);
-}
-
-ClassTable::ClassTable(SharedClassTable* shared_class_table)
-    : top_(kNumPredefinedCids),
-      capacity_(0),
-      tlc_top_(0),
-      tlc_capacity_(0),
-      table_(nullptr),
-      tlc_table_(nullptr),
-      old_class_tables_(new MallocGrowableArray<ClassPtr*>()),
-      shared_class_table_(shared_class_table) {
-  if (Dart::vm_isolate() == NULL) {
-    ASSERT(kInitialCapacity >= kNumPredefinedCids);
-    capacity_ = kInitialCapacity;
-    // Note that [calloc] will zero-initialize the memory.
-    // Don't use set_table because caller is supposed to set up isolates
-    // cached copy when constructing ClassTable. Isolate::Current might not
-    // be available at this point yet.
-    table_.store(static_cast<ClassPtr*>(calloc(capacity_, sizeof(ClassPtr))));
+    classes_.SetNumCidsAndCapacity(kNumPredefinedCids, kInitialCapacity);
   } else {
     // Duplicate the class table from the VM isolate.
     ClassTable* vm_class_table = Dart::vm_isolate_group()->class_table();
-    capacity_ = vm_class_table->capacity_;
-    // Note that [calloc] will zero-initialize the memory.
-    ClassPtr* table =
-        static_cast<ClassPtr*>(calloc(capacity_, sizeof(ClassPtr)));
+    classes_.SetNumCidsAndCapacity(kNumPredefinedCids,
+                                   vm_class_table->classes_.capacity());
+
+    const auto copy_info_for_cid = [&](intptr_t cid) {
+      classes_.At<kClassIndex>(cid) = vm_class_table->At(cid);
+      classes_.At<kSizeIndex>(cid) = vm_class_table->SizeAt(cid);
+    };
+
     // The following cids don't have a corresponding class object in Dart code.
     // We therefore need to initialize them eagerly.
     COMPILE_ASSERT(kFirstInternalOnlyCid == kObjectCid + 1);
     for (intptr_t i = kObjectCid; i <= kLastInternalOnlyCid; i++) {
-      table[i] = vm_class_table->At(i);
+      copy_info_for_cid(i);
     }
-    table[kTypeArgumentsCid] = vm_class_table->At(kTypeArgumentsCid);
-    table[kFreeListElement] = vm_class_table->At(kFreeListElement);
-    table[kForwardingCorpse] = vm_class_table->At(kForwardingCorpse);
-    table[kDynamicCid] = vm_class_table->At(kDynamicCid);
-    table[kVoidCid] = vm_class_table->At(kVoidCid);
-    // Don't use set_table because caller is supposed to set up isolates
-    // cached copy when constructing ClassTable. Isolate::Current might not
-    // be available at this point yet.
-    table_.store(table);
+    copy_info_for_cid(kTypeArgumentsCid);
+    copy_info_for_cid(kFreeListElement);
+    copy_info_for_cid(kForwardingCorpse);
+    copy_info_for_cid(kDynamicCid);
+    copy_info_for_cid(kVoidCid);
   }
+  UpdateCachedAllocationTracingStateTablePointer();
 }
 
 ClassTable::~ClassTable() {
-  if (old_class_tables_ != nullptr) {
-    FreeOldTables();
-    delete old_class_tables_;
-  }
-  free(table_.load());
-  free(tlc_table_.load());
-}
-
-void ClassTable::AddOldTable(ClassPtr* old_class_table) {
-  ASSERT(Thread::Current()->IsMutatorThread());
-  old_class_tables_->Add(old_class_table);
-}
-
-void ClassTable::FreeOldTables() {
-  while (old_class_tables_->length() > 0) {
-    free(old_class_tables_->RemoveLast());
-  }
-}
-
-void SharedClassTable::AddOldTable(intptr_t* old_table) {
-  ASSERT(Thread::Current()->IsMutatorThread());
-  old_tables_->Add(old_table);
-}
-
-void SharedClassTable::FreeOldTables() {
-  while (old_tables_->length() > 0) {
-    free(old_tables_->RemoveLast());
-  }
 }
 
 void ClassTable::Register(const Class& cls) {
   ASSERT(Thread::Current()->IsMutatorThread());
-
-  const classid_t cid = cls.id();
+  ASSERT(cls.id() == kIllegalCid || cls.id() < kNumPredefinedCids);
+  bool did_grow = false;
+  const classid_t cid =
+      cls.id() != kIllegalCid ? cls.id() : classes_.AddRow(&did_grow);
   ASSERT(!IsTopLevelCid(cid));
-
-  // During the transition period we would like [SharedClassTable] to operate in
-  // parallel to [ClassTable].
 
   const intptr_t instance_size =
       cls.is_abstract() ? 0 : Class::host_instance_size(cls.ptr());
 
-  const intptr_t expected_cid =
-      shared_class_table_->Register(cid, instance_size);
+  cls.set_id(cid);
+  classes_.At<kClassIndex>(cid) = cls.ptr();
+  classes_.At<kSizeIndex>(cid) = static_cast<int32_t>(instance_size);
 
-  if (cid != kIllegalCid) {
-    ASSERT(cid > 0 && cid < kNumPredefinedCids && cid < top_);
-    ASSERT(table_.load()[cid] == nullptr);
-    table_.load()[cid] = cls.ptr();
+  if (did_grow) {
+    IsolateGroup::Current()->set_cached_class_table_table(
+        classes_.GetColumn<kClassIndex>());
+    UpdateCachedAllocationTracingStateTablePointer();
   } else {
-    if (top_ == capacity_) {
-      const intptr_t new_capacity = capacity_ + kCapacityIncrement;
-      Grow(new_capacity);
-    }
-    ASSERT(top_ < capacity_);
-    cls.set_id(top_);
-    table_.load()[top_] = cls.ptr();
-    top_++;  // Increment next index.
+    std::atomic_thread_fence(std::memory_order_release);
   }
-  ASSERT(expected_cid == cls.id());
 }
 
 void ClassTable::RegisterTopLevel(const Class& cls) {
-  if (top_ >= std::numeric_limits<classid_t>::max()) {
-    FATAL1("Fatal error in ClassTable::RegisterTopLevel: invalid index %" Pd
-           "\n",
-           top_);
-  }
-
   ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(cls.id() == kIllegalCid);
 
-  const intptr_t index = cls.id();
-  ASSERT(index == kIllegalCid);
-
-  if (tlc_top_ == tlc_capacity_) {
-    const intptr_t new_capacity = tlc_capacity_ + kCapacityIncrement;
-    GrowTopLevel(new_capacity);
-  }
-  ASSERT(tlc_top_ < tlc_capacity_);
-  cls.set_id(ClassTable::CidFromTopLevelIndex(tlc_top_));
-  tlc_table_.load()[tlc_top_] = cls.ptr();
-  tlc_top_++;  // Increment next index.
-}
-
-intptr_t SharedClassTable::Register(intptr_t index, intptr_t size) {
-  if (!Class::is_valid_id(top_)) {
-    FATAL1("Fatal error in SharedClassTable::Register: invalid index %" Pd "\n",
-           top_);
-  }
-
-  ASSERT(Thread::Current()->IsMutatorThread());
-  if (index != kIllegalCid) {
-    // We are registring the size of a predefined class.
-    ASSERT(index > 0 && index < kNumPredefinedCids);
-    SetSizeAt(index, size);
-    return index;
-  } else {
-    ASSERT(size == 0);
-    if (top_ == capacity_) {
-      const intptr_t new_capacity = capacity_ + kCapacityIncrement;
-      Grow(new_capacity);
-    }
-    ASSERT(top_ < capacity_);
-    table_.load()[top_] = size;
-    return top_++;  // Increment next index.
-  }
+  bool did_grow = false;
+  const intptr_t index = top_level_classes_.AddRow(&did_grow);
+  cls.set_id(ClassTable::CidFromTopLevelIndex(index));
+  top_level_classes_.At<kClassIndex>(index) = cls.ptr();
 }
 
 void ClassTable::AllocateIndex(intptr_t index) {
+  bool did_grow = false;
   if (IsTopLevelCid(index)) {
-    AllocateTopLevelIndex(index);
+    top_level_classes_.AllocateIndex(IndexFromTopLevelCid(index), &did_grow);
     return;
   }
 
-  // This is called by a snapshot reader.
-  shared_class_table_->AllocateIndex(index);
-  ASSERT(Class::is_valid_id(index));
-
-  if (index >= capacity_) {
-    const intptr_t new_capacity = index + kCapacityIncrement;
-    Grow(new_capacity);
+  classes_.AllocateIndex(index, &did_grow);
+  if (did_grow) {
+    IsolateGroup::Current()->set_cached_class_table_table(table());
+    UpdateCachedAllocationTracingStateTablePointer();
   }
-
-  ASSERT(table_.load()[index] == nullptr);
-  if (index >= top_) {
-    top_ = index + 1;
-  }
-
-  ASSERT(top_ == shared_class_table_->top_);
-  ASSERT(capacity_ == shared_class_table_->capacity_);
-}
-
-void ClassTable::AllocateTopLevelIndex(intptr_t cid) {
-  ASSERT(IsTopLevelCid(cid));
-  const intptr_t tlc_index = IndexFromTopLevelCid(cid);
-
-  if (tlc_index >= tlc_capacity_) {
-    const intptr_t new_capacity = tlc_index + kCapacityIncrement;
-    GrowTopLevel(new_capacity);
-  }
-
-  ASSERT(tlc_table_.load()[tlc_index] == nullptr);
-  if (tlc_index >= tlc_top_) {
-    tlc_top_ = tlc_index + 1;
-  }
-}
-
-void ClassTable::Grow(intptr_t new_capacity) {
-  ASSERT(new_capacity > capacity_);
-
-  auto old_table = table_.load();
-  auto new_table = static_cast<ClassPtr*>(
-      malloc(new_capacity * sizeof(ClassPtr)));  // NOLINT
-  intptr_t i;
-  for (i = 0; i < capacity_; i++) {
-    // Don't use memmove, which changes this from a relaxed atomic operation
-    // to a non-atomic operation.
-    new_table[i] = old_table[i];
-  }
-  for (; i < new_capacity; i++) {
-    // Don't use memset, which changes this from a relaxed atomic operation
-    // to a non-atomic operation.
-    new_table[i] = 0;
-  }
-  old_class_tables_->Add(old_table);
-  set_table(new_table);
-
-  capacity_ = new_capacity;
-}
-
-void ClassTable::GrowTopLevel(intptr_t new_capacity) {
-  ASSERT(new_capacity > tlc_capacity_);
-
-  auto old_table = tlc_table_.load();
-  auto new_table = static_cast<ClassPtr*>(
-      malloc(new_capacity * sizeof(ClassPtr)));  // NOLINT
-  intptr_t i;
-  for (i = 0; i < tlc_capacity_; i++) {
-    // Don't use memmove, which changes this from a relaxed atomic operation
-    // to a non-atomic operation.
-    new_table[i] = old_table[i];
-  }
-  for (; i < new_capacity; i++) {
-    // Don't use memset, which changes this from a relaxed atomic operation
-    // to a non-atomic operation.
-    new_table[i] = 0;
-  }
-  old_class_tables_->Add(old_table);
-
-  tlc_table_.store(new_table);
-  tlc_capacity_ = new_capacity;
-}
-
-void SharedClassTable::AllocateIndex(intptr_t index) {
-  // This is called by a snapshot reader.
-  ASSERT(Class::is_valid_id(index));
-
-  if (index >= capacity_) {
-    const intptr_t new_capacity = index + kCapacityIncrement;
-    Grow(new_capacity);
-  }
-
-  ASSERT(table_.load()[index] == 0);
-  if (index >= top_) {
-    top_ = index + 1;
-  }
-}
-
-void SharedClassTable::Grow(intptr_t new_capacity) {
-  ASSERT(new_capacity >= capacity_);
-
-  RelaxedAtomic<intptr_t>* old_table = table_.load();
-  RelaxedAtomic<intptr_t>* new_table =
-      reinterpret_cast<RelaxedAtomic<intptr_t>*>(
-          malloc(new_capacity * sizeof(RelaxedAtomic<intptr_t>)));  // NOLINT
-
-  intptr_t i;
-  for (i = 0; i < capacity_; i++) {
-    // Don't use memmove, which changes this from a relaxed atomic operation
-    // to a non-atomic operation.
-    new_table[i] = old_table[i];
-  }
-  for (; i < new_capacity; i++) {
-    // Don't use memset, which changes this from a relaxed atomic operation
-    // to a non-atomic operation.
-    new_table[i] = 0;
-  }
-
-#if !defined(PRODUCT)
-  auto old_trace_table = trace_allocation_table_.load();
-  auto new_trace_table =
-      static_cast<uint8_t*>(malloc(new_capacity * sizeof(uint8_t)));  // NOLINT
-  for (i = 0; i < capacity_; i++) {
-    // Don't use memmove, which changes this from a relaxed atomic operation
-    // to a non-atomic operation.
-    new_trace_table[i] = old_trace_table[i];
-  }
-  for (; i < new_capacity; i++) {
-    // Don't use memset, which changes this from a relaxed atomic operation
-    // to a non-atomic operation.
-    new_trace_table[i] = 0;
-  }
-#endif
-
-  old_tables_->Add(old_table);
-  table_.store(new_table);
-  NOT_IN_PRODUCT(old_tables_->Add(old_trace_table));
-  NOT_IN_PRODUCT(trace_allocation_table_.store(new_trace_table));
-
-#if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
-  auto old_unboxed_fields_map = unboxed_fields_map_;
-  auto new_unboxed_fields_map = static_cast<UnboxedFieldBitmap*>(
-      malloc(new_capacity * sizeof(UnboxedFieldBitmap)));
-  for (i = 0; i < capacity_; i++) {
-    // Don't use memmove, which changes this from a relaxed atomic operation
-    // to a non-atomic operation.
-    new_unboxed_fields_map[i] = old_unboxed_fields_map[i];
-  }
-  for (; i < new_capacity; i++) {
-    // Don't use memset, which changes this from a relaxed atomic operation
-    // to a non-atomic operation.
-    new_unboxed_fields_map[i] = UnboxedFieldBitmap(0);
-  }
-  old_tables_->Add(old_unboxed_fields_map);
-  unboxed_fields_map_ = new_unboxed_fields_map;
-#endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
-
-  capacity_ = new_capacity;
-}
-
-void ClassTable::Unregister(intptr_t cid) {
-  ASSERT(!IsTopLevelCid(cid));
-  shared_class_table_->Unregister(cid);
-  table_.load()[cid] = nullptr;
 }
 
 void ClassTable::UnregisterTopLevel(intptr_t cid) {
   ASSERT(IsTopLevelCid(cid));
   const intptr_t tlc_index = IndexFromTopLevelCid(cid);
-  tlc_table_.load()[tlc_index] = nullptr;
-}
-
-void SharedClassTable::Unregister(intptr_t index) {
-  table_.load()[index] = 0;
-#if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
-  unboxed_fields_map_[index].Reset();
-#endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
+  top_level_classes_.At<kClassIndex>(tlc_index) = nullptr;
 }
 
 void ClassTable::Remap(intptr_t* old_to_new_cid) {
   ASSERT(Thread::Current()->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
-  const intptr_t num_cids = NumCids();
-  std::unique_ptr<ClassPtr[]> cls_by_old_cid(new ClassPtr[num_cids]);
-  auto* table = table_.load();
-  memmove(cls_by_old_cid.get(), table, sizeof(ClassPtr) * num_cids);
-  for (intptr_t i = 0; i < num_cids; i++) {
-    table[old_to_new_cid[i]] = cls_by_old_cid[i];
-  }
-}
-
-void SharedClassTable::Remap(intptr_t* old_to_new_cid) {
-  ASSERT(Thread::Current()->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
-  const intptr_t num_cids = NumCids();
-  std::unique_ptr<intptr_t[]> size_by_old_cid(new intptr_t[num_cids]);
-  auto* table = table_.load();
-  for (intptr_t i = 0; i < num_cids; i++) {
-    size_by_old_cid[i] = table[i];
-  }
-  for (intptr_t i = 0; i < num_cids; i++) {
-    table[old_to_new_cid[i]] = size_by_old_cid[i];
-  }
-
-#if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
-  std::unique_ptr<UnboxedFieldBitmap[]> unboxed_fields_by_old_cid(
-      new UnboxedFieldBitmap[num_cids]);
-  for (intptr_t i = 0; i < num_cids; i++) {
-    unboxed_fields_by_old_cid[i] = unboxed_fields_map_[i];
-  }
-  for (intptr_t i = 0; i < num_cids; i++) {
-    unboxed_fields_map_[old_to_new_cid[i]] = unboxed_fields_by_old_cid[i];
-  }
-#endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
+  classes_.Remap(old_to_new_cid);
 }
 
 void ClassTable::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
   visitor->set_gc_root_type("class table");
-  if (top_ != 0) {
-    auto* table = table_.load();
+
+  const auto visit = [&](ClassPtr* table, intptr_t num_cids) {
+    if (num_cids == 0) {
+      return;
+    }
     ObjectPtr* from = reinterpret_cast<ObjectPtr*>(&table[0]);
-    ObjectPtr* to = reinterpret_cast<ObjectPtr*>(&table[top_ - 1]);
+    ObjectPtr* to = reinterpret_cast<ObjectPtr*>(&table[num_cids - 1]);
     visitor->VisitPointers(from, to);
-  }
-  if (tlc_top_ != 0) {
-    auto* tlc_table = tlc_table_.load();
-    ObjectPtr* from = reinterpret_cast<ObjectPtr*>(&tlc_table[0]);
-    ObjectPtr* to = reinterpret_cast<ObjectPtr*>(&tlc_table[tlc_top_ - 1]);
-    visitor->VisitPointers(from, to);
-  }
+  };
+
+  visit(classes_.GetColumn<kClassIndex>(), classes_.num_cids());
+  visit(top_level_classes_.GetColumn<kClassIndex>(),
+        top_level_classes_.num_cids());
   visitor->clear_gc_root_type();
 }
 
 void ClassTable::CopySizesFromClassObjects() {
   ASSERT(kIllegalCid == 0);
-  for (intptr_t i = 1; i < top_; i++) {
-    SetAt(i, At(i));
+  for (intptr_t i = 1; i < classes_.num_cids(); i++) {
+    UpdateClassSize(i, classes_.At<kClassIndex>(i));
   }
+}
+
+void ClassTable::SetAt(intptr_t cid, ClassPtr raw_cls) {
+  if (IsTopLevelCid(cid)) {
+    top_level_classes_.At<kClassIndex>(IndexFromTopLevelCid(cid)) = raw_cls;
+    return;
+  }
+
+  // This is called by snapshot reader and class finalizer.
+  UpdateClassSize(cid, raw_cls);
+  classes_.At<kClassIndex>(cid) = raw_cls;
+}
+
+void ClassTable::UpdateClassSize(intptr_t cid, ClassPtr raw_cls) {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  ASSERT(!IsTopLevelCid(cid));  // "top-level" classes don't get instantiated
+  const intptr_t size =
+      raw_cls == nullptr ? 0 : Class::host_instance_size(raw_cls);
+  classes_.At<kSizeIndex>(cid) = static_cast<int32_t>(size);
 }
 
 void ClassTable::Validate() {
   Class& cls = Class::Handle();
-  for (intptr_t cid = kNumPredefinedCids; cid < top_; cid++) {
+  for (intptr_t cid = kNumPredefinedCids; cid < classes_.num_cids(); cid++) {
     // Some of the class table entries maybe NULL as we create some
     // top level classes but do not add them to the list of anonymous
     // classes in a library if there are no top level fields or functions.
@@ -501,7 +187,7 @@ void ClassTable::Print() {
   Class& cls = Class::Handle();
   String& name = String::Handle();
 
-  for (intptr_t i = 1; i < top_; i++) {
+  for (intptr_t i = 1; i < classes_.num_cids(); i++) {
     if (!HasValidClassAt(i)) {
       continue;
     }
@@ -513,27 +199,6 @@ void ClassTable::Print() {
   }
 }
 
-void ClassTable::SetAt(intptr_t cid, ClassPtr raw_cls) {
-  if (IsTopLevelCid(cid)) {
-    tlc_table_.load()[IndexFromTopLevelCid(cid)] = raw_cls;
-    return;
-  }
-
-  // This is called by snapshot reader and class finalizer.
-  ASSERT(cid < capacity_);
-  UpdateClassSize(cid, raw_cls);
-  table_.load()[cid] = raw_cls;
-}
-
-void ClassTable::UpdateClassSize(intptr_t cid, ClassPtr raw_cls) {
-  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  ASSERT(!IsTopLevelCid(cid));  // "top-level" classes don't get instantiated
-  ASSERT(cid < capacity_);
-  const intptr_t size =
-      raw_cls == nullptr ? 0 : Class::host_instance_size(raw_cls);
-  shared_class_table_->SetSizeAt(cid, size);
-}
-
 #if defined(DART_PRECOMPILER)
 void ClassTable::PrintObjectLayout(const char* filename) {
   Class& cls = Class::Handle();
@@ -542,7 +207,7 @@ void ClassTable::PrintObjectLayout(const char* filename) {
 
   JSONWriter js;
   js.OpenArray();
-  for (intptr_t i = ClassId::kObjectCid; i < top_; i++) {
+  for (intptr_t i = ClassId::kObjectCid; i < classes_.num_cids(); i++) {
     if (!HasValidClassAt(i)) {
       continue;
     }
@@ -604,7 +269,7 @@ void ClassTable::PrintToJSONObject(JSONObject* object) {
   object->AddProperty("type", "ClassList");
   {
     JSONArray members(object, "classes");
-    for (intptr_t i = ClassId::kObjectCid; i < top_; i++) {
+    for (intptr_t i = ClassId::kObjectCid; i < classes_.num_cids(); i++) {
       if (HasValidClassAt(i)) {
         cls = At(i);
         members.AddValue(cls);
@@ -612,11 +277,6 @@ void ClassTable::PrintToJSONObject(JSONObject* object) {
     }
   }
 }
-
-intptr_t SharedClassTable::ClassOffsetFor(intptr_t cid) {
-  return cid * sizeof(uint8_t);  // NOLINT
-}
-
 
 void ClassTable::AllocationProfilePrintJSON(JSONStream* stream, bool internal) {
   Isolate* isolate = Isolate::Current();
@@ -659,7 +319,7 @@ void ClassTable::AllocationProfilePrintJSON(JSONStream* stream, bool internal) {
   {
     JSONArray arr(&obj, "members");
     Class& cls = Class::Handle();
-    for (intptr_t i = 3; i < top_; i++) {
+    for (intptr_t i = 3; i < classes_.num_cids(); i++) {
       if (!HasValidClassAt(i)) continue;
 
       cls = At(i);
@@ -693,5 +353,37 @@ void ClassTable::AllocationProfilePrintJSON(JSONStream* stream, bool internal) {
   }
 }
 #endif  // !PRODUCT
+
+ClassTableAllocator::ClassTableAllocator()
+    : pending_freed_(new MallocGrowableArray<std::pair<void*, Deleter>>()) {}
+
+ClassTableAllocator::~ClassTableAllocator() {
+  FreePending();
+  delete pending_freed_;
+}
+
+void ClassTableAllocator::Free(ClassTable* ptr) {
+  if (ptr != nullptr) {
+    pending_freed_->Add(std::make_pair(
+        ptr, [](void* ptr) { delete static_cast<ClassTable*>(ptr); }));
+  }
+}
+
+void ClassTableAllocator::Free(void* ptr) {
+  if (ptr != nullptr) {
+    pending_freed_->Add(std::make_pair(ptr, nullptr));
+  }
+}
+
+void ClassTableAllocator::FreePending() {
+  while (!pending_freed_->is_empty()) {
+    auto [ptr, deleter] = pending_freed_->RemoveLast();
+    if (deleter == nullptr) {
+      free(ptr);
+    } else {
+      deleter(ptr);
+    }
+  }
+}
 
 }  // namespace dart

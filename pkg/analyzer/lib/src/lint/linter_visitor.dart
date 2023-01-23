@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/services/lint.dart';
@@ -16,7 +15,7 @@ typedef LintRuleExceptionHandler = bool Function(
     AstNode node, LintRule linter, dynamic exception, StackTrace stackTrace);
 
 /// The AST visitor that runs handlers for nodes from the [registry].
-class LinterVisitor extends RecursiveAstVisitor<void> {
+class LinterVisitor implements AstVisitor<void> {
   final NodeLintRegistry registry;
   final LintRuleExceptionHandler exceptionHandler;
 
@@ -27,740 +26,978 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
     _runSubscriptions(node, registry._forAdjacentStrings);
-    super.visitAdjacentStrings(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitAnnotation(Annotation node) {
     _runSubscriptions(node, registry._forAnnotation);
-    super.visitAnnotation(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitArgumentList(ArgumentList node) {
     _runSubscriptions(node, registry._forArgumentList);
-    super.visitArgumentList(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitAsExpression(AsExpression node) {
     _runSubscriptions(node, registry._forAsExpression);
-    super.visitAsExpression(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitAssertInitializer(AssertInitializer node) {
     _runSubscriptions(node, registry._forAssertInitializer);
-    super.visitAssertInitializer(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitAssertStatement(AssertStatement node) {
     _runSubscriptions(node, registry._forAssertStatement);
-    super.visitAssertStatement(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     _runSubscriptions(node, registry._forAssignmentExpression);
-    super.visitAssignmentExpression(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitAugmentationImportDirective(AugmentationImportDirective node) {
+    _runSubscriptions(node, registry._forAugmentationImportDirective);
+    node.visitChildren(this);
   }
 
   @override
   void visitAwaitExpression(AwaitExpression node) {
     _runSubscriptions(node, registry._forAwaitExpression);
-    super.visitAwaitExpression(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
     _runSubscriptions(node, registry._forBinaryExpression);
-    super.visitBinaryExpression(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitBinaryPattern(BinaryPattern node) {
+    _runSubscriptions(node, registry._forBinaryPattern);
+    node.visitChildren(this);
   }
 
   @override
   void visitBlock(Block node) {
     _runSubscriptions(node, registry._forBlock);
-    super.visitBlock(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
     _runSubscriptions(node, registry._forBlockFunctionBody);
-    super.visitBlockFunctionBody(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitBooleanLiteral(BooleanLiteral node) {
     _runSubscriptions(node, registry._forBooleanLiteral);
-    super.visitBooleanLiteral(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitBreakStatement(BreakStatement node) {
     _runSubscriptions(node, registry._forBreakStatement);
-    super.visitBreakStatement(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitCascadeExpression(CascadeExpression node) {
     _runSubscriptions(node, registry._forCascadeExpression);
-    super.visitCascadeExpression(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitCaseClause(CaseClause node) {
+    _runSubscriptions(node, registry._forCaseClause);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitCastPattern(CastPattern node) {
+    _runSubscriptions(node, registry._forCastPattern);
+    node.visitChildren(this);
   }
 
   @override
   void visitCatchClause(CatchClause node) {
     _runSubscriptions(node, registry._forCatchClause);
-    super.visitCatchClause(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitCatchClauseParameter(CatchClauseParameter node) {
+    _runSubscriptions(node, registry._forCatchClauseParameter);
+    node.visitChildren(this);
   }
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     _runSubscriptions(node, registry._forClassDeclaration);
-    super.visitClassDeclaration(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
     _runSubscriptions(node, registry._forClassTypeAlias);
-    super.visitClassTypeAlias(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitComment(Comment node) {
     _runSubscriptions(node, registry._forComment);
-    super.visitComment(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitCommentReference(CommentReference node) {
     _runSubscriptions(node, registry._forCommentReference);
-    super.visitCommentReference(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
     _runSubscriptions(node, registry._forCompilationUnit);
-    super.visitCompilationUnit(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitConditionalExpression(ConditionalExpression node) {
     _runSubscriptions(node, registry._forConditionalExpression);
-    super.visitConditionalExpression(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitConfiguration(Configuration node) {
     _runSubscriptions(node, registry._forConfiguration);
-    super.visitConfiguration(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitConstantPattern(ConstantPattern node) {
+    _runSubscriptions(node, registry._forConstantPattern);
+    node.visitChildren(this);
   }
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     _runSubscriptions(node, registry._forConstructorDeclaration);
-    super.visitConstructorDeclaration(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     _runSubscriptions(node, registry._forConstructorFieldInitializer);
-    super.visitConstructorFieldInitializer(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitConstructorName(ConstructorName node) {
     _runSubscriptions(node, registry._forConstructorName);
-    super.visitConstructorName(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitConstructorReference(ConstructorReference node) {
     _runSubscriptions(node, registry._forConstructorReference);
-    super.visitConstructorReference(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitConstructorSelector(ConstructorSelector node) {
+    _runSubscriptions(node, registry._forConstructorSelector);
+    node.visitChildren(this);
   }
 
   @override
   void visitContinueStatement(ContinueStatement node) {
     _runSubscriptions(node, registry._forContinueStatement);
-    super.visitContinueStatement(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     _runSubscriptions(node, registry._forDeclaredIdentifier);
-    super.visitDeclaredIdentifier(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     _runSubscriptions(node, registry._forDefaultFormalParameter);
-    super.visitDefaultFormalParameter(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitDoStatement(DoStatement node) {
     _runSubscriptions(node, registry._forDoStatement);
-    super.visitDoStatement(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitDottedName(DottedName node) {
     _runSubscriptions(node, registry._forDottedName);
-    super.visitDottedName(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitDoubleLiteral(DoubleLiteral node) {
     _runSubscriptions(node, registry._forDoubleLiteral);
-    super.visitDoubleLiteral(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitEmptyFunctionBody(EmptyFunctionBody node) {
     _runSubscriptions(node, registry._forEmptyFunctionBody);
-    super.visitEmptyFunctionBody(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitEmptyStatement(EmptyStatement node) {
     _runSubscriptions(node, registry._forEmptyStatement);
-    super.visitEmptyStatement(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitEnumConstantArguments(EnumConstantArguments node) {
+    _runSubscriptions(node, registry._forEnumConstantArguments);
+    node.visitChildren(this);
   }
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _runSubscriptions(node, registry._forEnumConstantDeclaration);
-    super.visitEnumConstantDeclaration(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     _runSubscriptions(node, registry._forEnumDeclaration);
-    super.visitEnumDeclaration(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitExportDirective(ExportDirective node) {
     _runSubscriptions(node, registry._forExportDirective);
-    super.visitExportDirective(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     _runSubscriptions(node, registry._forExpressionFunctionBody);
-    super.visitExpressionFunctionBody(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitExpressionStatement(ExpressionStatement node) {
     _runSubscriptions(node, registry._forExpressionStatement);
-    super.visitExpressionStatement(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitExtendsClause(ExtendsClause node) {
     _runSubscriptions(node, registry._forExtendsClause);
-    super.visitExtendsClause(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     _runSubscriptions(node, registry._forExtensionDeclaration);
-    super.visitExtensionDeclaration(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitExtensionOverride(ExtensionOverride node) {
     _runSubscriptions(node, registry._forExtensionOverride);
-    super.visitExtensionOverride(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _runSubscriptions(node, registry._forFieldDeclaration);
-    super.visitFieldDeclaration(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     _runSubscriptions(node, registry._forFieldFormalParameter);
-    super.visitFieldFormalParameter(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
     _runSubscriptions(node, registry._forForEachPartsWithDeclaration);
-    super.visitForEachPartsWithDeclaration(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
     _runSubscriptions(node, registry._forForEachPartsWithIdentifier);
-    super.visitForEachPartsWithIdentifier(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitForEachPartsWithPattern(ForEachPartsWithPattern node) {
+    _runSubscriptions(node, registry._forForEachPartsWithPattern);
+    node.visitChildren(this);
   }
 
   @override
   void visitForElement(ForElement node) {
     _runSubscriptions(node, registry._forForElement);
-    super.visitForElement(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
     _runSubscriptions(node, registry._forFormalParameterList);
-    super.visitFormalParameterList(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     _runSubscriptions(node, registry._forForPartsWithDeclarations);
-    super.visitForPartsWithDeclarations(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitForPartsWithExpression(ForPartsWithExpression node) {
     _runSubscriptions(node, registry._forForPartsWithExpression);
-    super.visitForPartsWithExpression(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitForPartsWithPattern(ForPartsWithPattern node) {
+    _runSubscriptions(node, registry._forForPartsWithPattern);
+    node.visitChildren(this);
   }
 
   @override
   void visitForStatement(ForStatement node) {
     _runSubscriptions(node, registry._forForStatement);
-    super.visitForStatement(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     _runSubscriptions(node, registry._forFunctionDeclaration);
-    super.visitFunctionDeclaration(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     _runSubscriptions(node, registry._forFunctionDeclarationStatement);
-    super.visitFunctionDeclarationStatement(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
     _runSubscriptions(node, registry._forFunctionExpression);
-    super.visitFunctionExpression(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     _runSubscriptions(node, registry._forFunctionExpressionInvocation);
-    super.visitFunctionExpressionInvocation(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitFunctionReference(FunctionReference node) {
+    _runSubscriptions(node, registry._forFunctionReference);
+    node.visitChildren(this);
   }
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _runSubscriptions(node, registry._forFunctionTypeAlias);
-    super.visitFunctionTypeAlias(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     _runSubscriptions(node, registry._forFunctionTypedFormalParameter);
-    super.visitFunctionTypedFormalParameter(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitGenericFunctionType(GenericFunctionType node) {
     _runSubscriptions(node, registry._forGenericFunctionType);
-    super.visitGenericFunctionType(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
     _runSubscriptions(node, registry._forGenericTypeAlias);
-    super.visitGenericTypeAlias(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitGuardedPattern(GuardedPattern node) {
+    _runSubscriptions(node, registry._forCaseClause);
+    node.visitChildren(this);
   }
 
   @override
   void visitHideCombinator(HideCombinator node) {
     _runSubscriptions(node, registry._forHideCombinator);
-    super.visitHideCombinator(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitIfElement(IfElement node) {
     _runSubscriptions(node, registry._forIfElement);
-    super.visitIfElement(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitIfStatement(IfStatement node) {
     _runSubscriptions(node, registry._forIfStatement);
-    super.visitIfStatement(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitImplementsClause(ImplementsClause node) {
     _runSubscriptions(node, registry._forImplementsClause);
-    super.visitImplementsClause(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitImplicitCallReference(ImplicitCallReference node) {
+    _runSubscriptions(node, registry._forImplicitCallReference);
+    node.visitChildren(this);
   }
 
   @override
   void visitImportDirective(ImportDirective node) {
     _runSubscriptions(node, registry._forImportDirective);
-    super.visitImportDirective(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitIndexExpression(IndexExpression node) {
     _runSubscriptions(node, registry._forIndexExpression);
-    super.visitIndexExpression(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     _runSubscriptions(node, registry._forInstanceCreationExpression);
-    super.visitInstanceCreationExpression(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitIntegerLiteral(IntegerLiteral node) {
     _runSubscriptions(node, registry._forIntegerLiteral);
-    super.visitIntegerLiteral(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitInterpolationExpression(InterpolationExpression node) {
     _runSubscriptions(node, registry._forInterpolationExpression);
-    super.visitInterpolationExpression(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitInterpolationString(InterpolationString node) {
     _runSubscriptions(node, registry._forInterpolationString);
-    super.visitInterpolationString(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitIsExpression(IsExpression node) {
     _runSubscriptions(node, registry._forIsExpression);
-    super.visitIsExpression(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitLabel(Label node) {
     _runSubscriptions(node, registry._forLabel);
-    super.visitLabel(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitLabeledStatement(LabeledStatement node) {
     _runSubscriptions(node, registry._forLabeledStatement);
-    super.visitLabeledStatement(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
+    _runSubscriptions(node, registry._forLibraryAugmentationDirective);
+    node.visitChildren(this);
   }
 
   @override
   void visitLibraryDirective(LibraryDirective node) {
     _runSubscriptions(node, registry._forLibraryDirective);
-    super.visitLibraryDirective(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitLibraryIdentifier(LibraryIdentifier node) {
     _runSubscriptions(node, registry._forLibraryIdentifier);
-    super.visitLibraryIdentifier(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitListLiteral(ListLiteral node) {
     _runSubscriptions(node, registry._forListLiteral);
-    super.visitListLiteral(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitListPattern(ListPattern node) {
+    _runSubscriptions(node, registry._forListPattern);
+    node.visitChildren(this);
   }
 
   @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
     _runSubscriptions(node, registry._forMapLiteralEntry);
-    super.visitMapLiteralEntry(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitMapPattern(MapPattern node) {
+    _runSubscriptions(node, registry._forMapPattern);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitMapPatternEntry(MapPatternEntry node) {
+    _runSubscriptions(node, registry._forMapPatternEntry);
+    node.visitChildren(this);
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     _runSubscriptions(node, registry._forMethodDeclaration);
-    super.visitMethodDeclaration(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
     _runSubscriptions(node, registry._forMethodInvocation);
-    super.visitMethodInvocation(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
     _runSubscriptions(node, registry._forMixinDeclaration);
-    super.visitMixinDeclaration(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitNamedExpression(NamedExpression node) {
     _runSubscriptions(node, registry._forNamedExpression);
-    super.visitNamedExpression(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitNamedType(NamedType node) {
     _runSubscriptions(node, registry._forNamedType);
-    super.visitNamedType(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitNativeClause(NativeClause node) {
     _runSubscriptions(node, registry._forNativeClause);
-    super.visitNativeClause(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitNativeFunctionBody(NativeFunctionBody node) {
     _runSubscriptions(node, registry._forNativeFunctionBody);
-    super.visitNativeFunctionBody(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitNullLiteral(NullLiteral node) {
     _runSubscriptions(node, registry._forNullLiteral);
-    super.visitNullLiteral(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitObjectPattern(ObjectPattern node) {
+    _runSubscriptions(node, registry._forObjectPattern);
+    node.visitChildren(this);
   }
 
   @override
   void visitOnClause(OnClause node) {
     _runSubscriptions(node, registry._forOnClause);
-    super.visitOnClause(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     _runSubscriptions(node, registry._forParenthesizedExpression);
-    super.visitParenthesizedExpression(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitParenthesizedPattern(ParenthesizedPattern node) {
+    _runSubscriptions(node, registry._forParenthesizedPattern);
+    node.visitChildren(this);
   }
 
   @override
   void visitPartDirective(PartDirective node) {
     _runSubscriptions(node, registry._forPartDirective);
-    super.visitPartDirective(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
     _runSubscriptions(node, registry._forPartOfDirective);
-    super.visitPartOfDirective(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitPatternAssignment(PatternAssignment node) {
+    _runSubscriptions(node, registry._forPatternAssignment);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    _runSubscriptions(node, registry._forPatternVariableDeclaration);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitPatternVariableDeclarationStatement(
+      PatternVariableDeclarationStatement node) {
+    _runSubscriptions(node, registry._forPatternVariableDeclarationStatement);
+    node.visitChildren(this);
   }
 
   @override
   void visitPostfixExpression(PostfixExpression node) {
     _runSubscriptions(node, registry._forPostfixExpression);
-    super.visitPostfixExpression(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitPostfixPattern(PostfixPattern node) {
+    _runSubscriptions(node, registry._forPostfixPattern);
+    node.visitChildren(this);
   }
 
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     _runSubscriptions(node, registry._forPrefixedIdentifier);
-    super.visitPrefixedIdentifier(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
     _runSubscriptions(node, registry._forPrefixExpression);
-    super.visitPrefixExpression(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
     _runSubscriptions(node, registry._forPropertyAccess);
-    super.visitPropertyAccess(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitRecordLiteral(RecordLiteral node) {
+    _runSubscriptions(node, registry._forRecordLiterals);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitRecordPattern(RecordPattern node) {
+    _runSubscriptions(node, registry._forRecordPattern);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitRecordPatternField(RecordPatternField node) {
+    _runSubscriptions(node, registry._forRecordPatternField);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitRecordPatternFieldName(RecordPatternFieldName node) {
+    _runSubscriptions(node, registry._forRecordPatternFieldName);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
+    _runSubscriptions(node, registry._forRecordTypeAnnotation);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedField(
+      RecordTypeAnnotationNamedField node) {
+    _runSubscriptions(node, registry._forRecordTypeAnnotationNamedField);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedFields(
+      RecordTypeAnnotationNamedFields node) {
+    _runSubscriptions(node, registry._forRecordTypeAnnotationNamedFields);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitRecordTypeAnnotationPositionalField(
+      RecordTypeAnnotationPositionalField node) {
+    _runSubscriptions(node, registry._forRecordTypeAnnotationPositionalField);
+    node.visitChildren(this);
   }
 
   @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     _runSubscriptions(node, registry._forRedirectingConstructorInvocation);
-    super.visitRedirectingConstructorInvocation(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitRelationalPattern(RelationalPattern node) {
+    _runSubscriptions(node, registry._forRelationalPattern);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitRestPatternElement(RestPatternElement node) {
+    _runSubscriptions(node, registry._forRestPatternElement);
+    node.visitChildren(this);
   }
 
   @override
   void visitRethrowExpression(RethrowExpression node) {
     _runSubscriptions(node, registry._forRethrowExpression);
-    super.visitRethrowExpression(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitReturnStatement(ReturnStatement node) {
     _runSubscriptions(node, registry._forReturnStatement);
-    super.visitReturnStatement(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitScriptTag(ScriptTag node) {
     _runSubscriptions(node, registry._forScriptTag);
-    super.visitScriptTag(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     _runSubscriptions(node, registry._forSetOrMapLiteral);
-    super.visitSetOrMapLiteral(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitShowCombinator(ShowCombinator node) {
     _runSubscriptions(node, registry._forShowCombinator);
-    super.visitShowCombinator(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     _runSubscriptions(node, registry._forSimpleFormalParameter);
-    super.visitSimpleFormalParameter(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     _runSubscriptions(node, registry._forSimpleIdentifier);
-    super.visitSimpleIdentifier(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     _runSubscriptions(node, registry._forSimpleStringLiteral);
-    super.visitSimpleStringLiteral(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitSpreadElement(SpreadElement node) {
     _runSubscriptions(node, registry._forSpreadElement);
-    super.visitSpreadElement(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitStringInterpolation(StringInterpolation node) {
     _runSubscriptions(node, registry._forStringInterpolation);
-    super.visitStringInterpolation(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _runSubscriptions(node, registry._forSuperConstructorInvocation);
-    super.visitSuperConstructorInvocation(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitSuperExpression(SuperExpression node) {
     _runSubscriptions(node, registry._forSuperExpression);
-    super.visitSuperExpression(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitSuperFormalParameter(SuperFormalParameter node) {
     _runSubscriptions(node, registry._forSuperFormalParameter);
-    super.visitSuperFormalParameter(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitSwitchCase(SwitchCase node) {
     _runSubscriptions(node, registry._forSwitchCase);
-    super.visitSwitchCase(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitSwitchDefault(SwitchDefault node) {
     _runSubscriptions(node, registry._forSwitchDefault);
-    super.visitSwitchDefault(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitSwitchExpression(SwitchExpression node) {
+    _runSubscriptions(node, registry._forSwitchExpression);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitSwitchExpressionCase(SwitchExpressionCase node) {
+    _runSubscriptions(node, registry._forSwitchExpressionCase);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitSwitchPatternCase(SwitchPatternCase node) {
+    _runSubscriptions(node, registry._forSwitchPatternCase);
+    node.visitChildren(this);
   }
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
     _runSubscriptions(node, registry._forSwitchStatement);
-    super.visitSwitchStatement(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitSymbolLiteral(SymbolLiteral node) {
     _runSubscriptions(node, registry._forSymbolLiteral);
-    super.visitSymbolLiteral(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitThisExpression(ThisExpression node) {
     _runSubscriptions(node, registry._forThisExpression);
-    super.visitThisExpression(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitThrowExpression(ThrowExpression node) {
     _runSubscriptions(node, registry._forThrowExpression);
-    super.visitThrowExpression(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _runSubscriptions(node, registry._forTopLevelVariableDeclaration);
-    super.visitTopLevelVariableDeclaration(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitTryStatement(TryStatement node) {
     _runSubscriptions(node, registry._forTryStatement);
-    super.visitTryStatement(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitTypeArgumentList(TypeArgumentList node) {
     _runSubscriptions(node, registry._forTypeArgumentList);
-    super.visitTypeArgumentList(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitTypeLiteral(TypeLiteral node) {
+    _runSubscriptions(node, registry._forTypeLiteral);
+    node.visitChildren(this);
   }
 
   @override
   void visitTypeParameter(TypeParameter node) {
     _runSubscriptions(node, registry._forTypeParameter);
-    super.visitTypeParameter(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitTypeParameterList(TypeParameterList node) {
     _runSubscriptions(node, registry._forTypeParameterList);
-    super.visitTypeParameterList(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _runSubscriptions(node, registry._forVariableDeclaration);
-    super.visitVariableDeclaration(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     _runSubscriptions(node, registry._forVariableDeclarationList);
-    super.visitVariableDeclarationList(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     _runSubscriptions(node, registry._forVariableDeclarationStatement);
-    super.visitVariableDeclarationStatement(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitVariablePattern(VariablePattern node) {
+    _runSubscriptions(node, registry._forVariablePattern);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitWhenClause(WhenClause node) {
+    _runSubscriptions(node, registry._forWhenClause);
+    node.visitChildren(this);
   }
 
   @override
   void visitWhileStatement(WhileStatement node) {
     _runSubscriptions(node, registry._forWhileStatement);
-    super.visitWhileStatement(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitWithClause(WithClause node) {
     _runSubscriptions(node, registry._forWithClause);
-    super.visitWithClause(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitYieldStatement(YieldStatement node) {
     _runSubscriptions(node, registry._forYieldStatement);
-    super.visitYieldStatement(node);
+    node.visitChildren(this);
   }
 
   void _runSubscriptions<T extends AstNode>(
@@ -792,14 +1029,20 @@ class NodeLintRegistry {
   final List<_Subscription<AssertInitializer>> _forAssertInitializer = [];
   final List<_Subscription<AssertStatement>> _forAssertStatement = [];
   final List<_Subscription<AssignmentExpression>> _forAssignmentExpression = [];
+  final List<_Subscription<AugmentationImportDirective>>
+      _forAugmentationImportDirective = [];
   final List<_Subscription<AwaitExpression>> _forAwaitExpression = [];
   final List<_Subscription<BinaryExpression>> _forBinaryExpression = [];
+  final List<_Subscription<BinaryPattern>> _forBinaryPattern = [];
   final List<_Subscription<Block>> _forBlock = [];
   final List<_Subscription<BlockFunctionBody>> _forBlockFunctionBody = [];
   final List<_Subscription<BooleanLiteral>> _forBooleanLiteral = [];
   final List<_Subscription<BreakStatement>> _forBreakStatement = [];
   final List<_Subscription<CascadeExpression>> _forCascadeExpression = [];
+  final List<_Subscription<CaseClause>> _forCaseClause = [];
+  final List<_Subscription<CastPattern>> _forCastPattern = [];
   final List<_Subscription<CatchClause>> _forCatchClause = [];
+  final List<_Subscription<CatchClauseParameter>> _forCatchClauseParameter = [];
   final List<_Subscription<ClassDeclaration>> _forClassDeclaration = [];
   final List<_Subscription<ClassTypeAlias>> _forClassTypeAlias = [];
   final List<_Subscription<Comment>> _forComment = [];
@@ -808,12 +1051,14 @@ class NodeLintRegistry {
   final List<_Subscription<ConditionalExpression>> _forConditionalExpression =
       [];
   final List<_Subscription<Configuration>> _forConfiguration = [];
+  final List<_Subscription<ConstantPattern>> _forConstantPattern = [];
   final List<_Subscription<ConstructorDeclaration>> _forConstructorDeclaration =
       [];
   final List<_Subscription<ConstructorFieldInitializer>>
       _forConstructorFieldInitializer = [];
   final List<_Subscription<ConstructorName>> _forConstructorName = [];
   final List<_Subscription<ConstructorReference>> _forConstructorReference = [];
+  final List<_Subscription<ConstructorSelector>> _forConstructorSelector = [];
   final List<_Subscription<ContinueStatement>> _forContinueStatement = [];
   final List<_Subscription<DeclaredIdentifier>> _forDeclaredIdentifier = [];
   final List<_Subscription<DefaultFormalParameter>> _forDefaultFormalParameter =
@@ -823,6 +1068,8 @@ class NodeLintRegistry {
   final List<_Subscription<DoubleLiteral>> _forDoubleLiteral = [];
   final List<_Subscription<EmptyFunctionBody>> _forEmptyFunctionBody = [];
   final List<_Subscription<EmptyStatement>> _forEmptyStatement = [];
+  final List<_Subscription<EnumConstantArguments>> _forEnumConstantArguments =
+      [];
   final List<_Subscription<EnumConstantDeclaration>>
       _forEnumConstantDeclaration = [];
   final List<_Subscription<EnumDeclaration>> _forEnumDeclaration = [];
@@ -833,18 +1080,22 @@ class NodeLintRegistry {
   final List<_Subscription<ExtendsClause>> _forExtendsClause = [];
   final List<_Subscription<ExtensionDeclaration>> _forExtensionDeclaration = [];
   final List<_Subscription<ExtensionOverride>> _forExtensionOverride = [];
+  final List<_Subscription<ObjectPattern>> _forObjectPattern = [];
   final List<_Subscription<FieldDeclaration>> _forFieldDeclaration = [];
   final List<_Subscription<FieldFormalParameter>> _forFieldFormalParameter = [];
   final List<_Subscription<ForEachPartsWithDeclaration>>
       _forForEachPartsWithDeclaration = [];
   final List<_Subscription<ForEachPartsWithIdentifier>>
       _forForEachPartsWithIdentifier = [];
+  final List<_Subscription<ForEachPartsWithPattern>>
+      _forForEachPartsWithPattern = [];
   final List<_Subscription<ForElement>> _forForElement = [];
   final List<_Subscription<FormalParameterList>> _forFormalParameterList = [];
   final List<_Subscription<ForPartsWithDeclarations>>
       _forForPartsWithDeclarations = [];
   final List<_Subscription<ForPartsWithExpression>> _forForPartsWithExpression =
       [];
+  final List<_Subscription<ForPartsWithPattern>> _forForPartsWithPattern = [];
   final List<_Subscription<ForStatement>> _forForStatement = [];
   final List<_Subscription<FunctionDeclaration>> _forFunctionDeclaration = [];
   final List<_Subscription<FunctionDeclarationStatement>>
@@ -852,15 +1103,19 @@ class NodeLintRegistry {
   final List<_Subscription<FunctionExpression>> _forFunctionExpression = [];
   final List<_Subscription<FunctionExpressionInvocation>>
       _forFunctionExpressionInvocation = [];
+  final List<_Subscription<FunctionReference>> _forFunctionReference = [];
   final List<_Subscription<FunctionTypeAlias>> _forFunctionTypeAlias = [];
   final List<_Subscription<FunctionTypedFormalParameter>>
       _forFunctionTypedFormalParameter = [];
   final List<_Subscription<GenericFunctionType>> _forGenericFunctionType = [];
   final List<_Subscription<GenericTypeAlias>> _forGenericTypeAlias = [];
+  final List<_Subscription<GuardedPattern>> _forGuardedPattern = [];
   final List<_Subscription<HideCombinator>> _forHideCombinator = [];
   final List<_Subscription<IfElement>> _forIfElement = [];
   final List<_Subscription<IfStatement>> _forIfStatement = [];
   final List<_Subscription<ImplementsClause>> _forImplementsClause = [];
+  final List<_Subscription<ImplicitCallReference>> _forImplicitCallReference =
+      [];
   final List<_Subscription<ImportDirective>> _forImportDirective = [];
   final List<_Subscription<IndexExpression>> _forIndexExpression = [];
   final List<_Subscription<InstanceCreationExpression>>
@@ -872,10 +1127,15 @@ class NodeLintRegistry {
   final List<_Subscription<IsExpression>> _forIsExpression = [];
   final List<_Subscription<Label>> _forLabel = [];
   final List<_Subscription<LabeledStatement>> _forLabeledStatement = [];
+  final List<_Subscription<LibraryAugmentationDirective>>
+      _forLibraryAugmentationDirective = [];
   final List<_Subscription<LibraryDirective>> _forLibraryDirective = [];
   final List<_Subscription<LibraryIdentifier>> _forLibraryIdentifier = [];
   final List<_Subscription<ListLiteral>> _forListLiteral = [];
+  final List<_Subscription<ListPattern>> _forListPattern = [];
   final List<_Subscription<MapLiteralEntry>> _forMapLiteralEntry = [];
+  final List<_Subscription<MapPatternEntry>> _forMapPatternEntry = [];
+  final List<_Subscription<MapPattern>> _forMapPattern = [];
   final List<_Subscription<MethodDeclaration>> _forMethodDeclaration = [];
   final List<_Subscription<MethodInvocation>> _forMethodInvocation = [];
   final List<_Subscription<MixinDeclaration>> _forMixinDeclaration = [];
@@ -887,14 +1147,35 @@ class NodeLintRegistry {
   final List<_Subscription<OnClause>> _forOnClause = [];
   final List<_Subscription<ParenthesizedExpression>>
       _forParenthesizedExpression = [];
+  final List<_Subscription<ParenthesizedPattern>> _forParenthesizedPattern = [];
   final List<_Subscription<PartDirective>> _forPartDirective = [];
   final List<_Subscription<PartOfDirective>> _forPartOfDirective = [];
+  final List<_Subscription<PatternAssignment>> _forPatternAssignment = [];
+  final List<_Subscription<PatternVariableDeclaration>>
+      _forPatternVariableDeclaration = [];
+  final List<_Subscription<PatternVariableDeclarationStatement>>
+      _forPatternVariableDeclarationStatement = [];
   final List<_Subscription<PostfixExpression>> _forPostfixExpression = [];
+  final List<_Subscription<PostfixPattern>> _forPostfixPattern = [];
   final List<_Subscription<PrefixedIdentifier>> _forPrefixedIdentifier = [];
   final List<_Subscription<PrefixExpression>> _forPrefixExpression = [];
   final List<_Subscription<PropertyAccess>> _forPropertyAccess = [];
+  final List<_Subscription<RecordLiteral>> _forRecordLiterals = [];
+  final List<_Subscription<RecordPatternField>> _forRecordPatternField = [];
+  final List<_Subscription<RecordPatternFieldName>> _forRecordPatternFieldName =
+      [];
+  final List<_Subscription<RecordPattern>> _forRecordPattern = [];
+  final List<_Subscription<RecordTypeAnnotation>> _forRecordTypeAnnotation = [];
+  final List<_Subscription<RecordTypeAnnotationNamedField>>
+      _forRecordTypeAnnotationNamedField = [];
+  final List<_Subscription<RecordTypeAnnotationNamedFields>>
+      _forRecordTypeAnnotationNamedFields = [];
+  final List<_Subscription<RecordTypeAnnotationPositionalField>>
+      _forRecordTypeAnnotationPositionalField = [];
   final List<_Subscription<RedirectingConstructorInvocation>>
       _forRedirectingConstructorInvocation = [];
+  final List<_Subscription<RelationalPattern>> _forRelationalPattern = [];
+  final List<_Subscription<RestPatternElement>> _forRestPatternElement = [];
   final List<_Subscription<RethrowExpression>> _forRethrowExpression = [];
   final List<_Subscription<ReturnStatement>> _forReturnStatement = [];
   final List<_Subscription<ScriptTag>> _forScriptTag = [];
@@ -912,6 +1193,9 @@ class NodeLintRegistry {
   final List<_Subscription<SuperFormalParameter>> _forSuperFormalParameter = [];
   final List<_Subscription<SwitchCase>> _forSwitchCase = [];
   final List<_Subscription<SwitchDefault>> _forSwitchDefault = [];
+  final List<_Subscription<SwitchExpressionCase>> _forSwitchExpressionCase = [];
+  final List<_Subscription<SwitchExpression>> _forSwitchExpression = [];
+  final List<_Subscription<SwitchPatternCase>> _forSwitchPatternCase = [];
   final List<_Subscription<SwitchStatement>> _forSwitchStatement = [];
   final List<_Subscription<SymbolLiteral>> _forSymbolLiteral = [];
   final List<_Subscription<ThisExpression>> _forThisExpression = [];
@@ -920,6 +1204,7 @@ class NodeLintRegistry {
       _forTopLevelVariableDeclaration = [];
   final List<_Subscription<TryStatement>> _forTryStatement = [];
   final List<_Subscription<TypeArgumentList>> _forTypeArgumentList = [];
+  final List<_Subscription<TypeLiteral>> _forTypeLiteral = [];
   final List<_Subscription<TypeParameter>> _forTypeParameter = [];
   final List<_Subscription<TypeParameterList>> _forTypeParameterList = [];
   final List<_Subscription<VariableDeclaration>> _forVariableDeclaration = [];
@@ -927,6 +1212,8 @@ class NodeLintRegistry {
       _forVariableDeclarationList = [];
   final List<_Subscription<VariableDeclarationStatement>>
       _forVariableDeclarationStatement = [];
+  final List<_Subscription<VariablePattern>> _forVariablePattern = [];
+  final List<_Subscription<WhenClause>> _forWhenClause = [];
   final List<_Subscription<WhileStatement>> _forWhileStatement = [];
   final List<_Subscription<WithClause>> _forWithClause = [];
   final List<_Subscription<YieldStatement>> _forYieldStatement = [];
@@ -963,12 +1250,21 @@ class NodeLintRegistry {
         .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addAugmentationImportDirective(LintRule linter, AstVisitor visitor) {
+    _forAugmentationImportDirective
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   void addAwaitExpression(LintRule linter, AstVisitor visitor) {
     _forAwaitExpression.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addBinaryExpression(LintRule linter, AstVisitor visitor) {
     _forBinaryExpression.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addBinaryPattern(LintRule linter, AstVisitor visitor) {
+    _forBinaryPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addBlock(LintRule linter, AstVisitor visitor) {
@@ -993,8 +1289,21 @@ class NodeLintRegistry {
         .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addCaseClause(LintRule linter, AstVisitor visitor) {
+    _forCaseClause.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addCastPattern(LintRule linter, AstVisitor visitor) {
+    _forCastPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   void addCatchClause(LintRule linter, AstVisitor visitor) {
     _forCatchClause.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addCatchClauseParameter(LintRule linter, AstVisitor visitor) {
+    _forCatchClauseParameter
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addClassDeclaration(LintRule linter, AstVisitor visitor) {
@@ -1026,6 +1335,10 @@ class NodeLintRegistry {
     _forConfiguration.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addConstantPattern(LintRule linter, AstVisitor visitor) {
+    _forConstantPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   void addConstructorDeclaration(LintRule linter, AstVisitor visitor) {
     _forConstructorDeclaration
         .add(_Subscription(linter, visitor, _getTimer(linter)));
@@ -1042,6 +1355,11 @@ class NodeLintRegistry {
 
   void addConstructorReference(LintRule linter, AstVisitor visitor) {
     _forConstructorReference
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addConstructorSelector(LintRule linter, AstVisitor visitor) {
+    _forConstructorSelector
         .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
@@ -1079,6 +1397,11 @@ class NodeLintRegistry {
 
   void addEmptyStatement(LintRule linter, AstVisitor visitor) {
     _forEmptyStatement.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addEnumConstantArguments(LintRule linter, AstVisitor visitor) {
+    _forEnumConstantArguments
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addEnumConstantDeclaration(LintRule linter, AstVisitor visitor) {
@@ -1137,6 +1460,11 @@ class NodeLintRegistry {
         .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addForEachPartsWithPattern(LintRule linter, AstVisitor visitor) {
+    _forForEachPartsWithPattern
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   void addForElement(LintRule linter, AstVisitor visitor) {
     _forForElement.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
@@ -1153,6 +1481,11 @@ class NodeLintRegistry {
 
   void addForPartsWithExpression(LintRule linter, AstVisitor visitor) {
     _forForPartsWithExpression
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addForPartsWithPattern(LintRule linter, AstVisitor visitor) {
+    _forForPartsWithPattern
         .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
@@ -1180,6 +1513,11 @@ class NodeLintRegistry {
         .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addFunctionReference(LintRule linter, AstVisitor visitor) {
+    _forFunctionReference
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   void addFunctionTypeAlias(LintRule linter, AstVisitor visitor) {
     _forFunctionTypeAlias
         .add(_Subscription(linter, visitor, _getTimer(linter)));
@@ -1199,6 +1537,10 @@ class NodeLintRegistry {
     _forGenericTypeAlias.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addGuardedPattern(LintRule linter, AstVisitor visitor) {
+    _forGuardedPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   void addHideCombinator(LintRule linter, AstVisitor visitor) {
     _forHideCombinator.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
@@ -1213,6 +1555,11 @@ class NodeLintRegistry {
 
   void addImplementsClause(LintRule linter, AstVisitor visitor) {
     _forImplementsClause.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addImplicitCallReference(LintRule linter, AstVisitor visitor) {
+    _forImplicitCallReference
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addImportDirective(LintRule linter, AstVisitor visitor) {
@@ -1254,6 +1601,11 @@ class NodeLintRegistry {
     _forLabeledStatement.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addLibraryAugmentationDirective(LintRule linter, AstVisitor visitor) {
+    _forLibraryAugmentationDirective
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   void addLibraryDirective(LintRule linter, AstVisitor visitor) {
     _forLibraryDirective.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
@@ -1267,8 +1619,20 @@ class NodeLintRegistry {
     _forListLiteral.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addListPattern(LintRule linter, AstVisitor visitor) {
+    _forListPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   void addMapLiteralEntry(LintRule linter, AstVisitor visitor) {
     _forMapLiteralEntry.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addMapPattern(LintRule linter, AstVisitor visitor) {
+    _forMapPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addMapPatternEntry(LintRule linter, AstVisitor visitor) {
+    _forMapPatternEntry.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addMethodDeclaration(LintRule linter, AstVisitor visitor) {
@@ -1305,12 +1669,21 @@ class NodeLintRegistry {
     _forNullLiteral.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addObjectPattern(LintRule linter, AstVisitor visitor) {
+    _forObjectPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   void addOnClause(LintRule linter, AstVisitor visitor) {
     _forOnClause.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addParenthesizedExpression(LintRule linter, AstVisitor visitor) {
     _forParenthesizedExpression
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addParenthesizedPattern(LintRule linter, AstVisitor visitor) {
+    _forParenthesizedPattern
         .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
@@ -1322,9 +1695,29 @@ class NodeLintRegistry {
     _forPartOfDirective.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addPatternAssignment(LintRule linter, AstVisitor visitor) {
+    _forPatternAssignment
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addPatternVariableDeclaration(LintRule linter, AstVisitor visitor) {
+    _forPatternVariableDeclaration
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addPatternVariableDeclarationStatement(
+      LintRule linter, AstVisitor visitor) {
+    _forPatternVariableDeclarationStatement
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   void addPostfixExpression(LintRule linter, AstVisitor visitor) {
     _forPostfixExpression
         .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addPostfixPattern(LintRule linter, AstVisitor visitor) {
+    _forPostfixPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addPrefixedIdentifier(LintRule linter, AstVisitor visitor) {
@@ -1340,9 +1733,42 @@ class NodeLintRegistry {
     _forPropertyAccess.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addRecordLiteral(LintRule linter, AstVisitor visitor) {
+    _forRecordLiterals.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addRecordPattern(LintRule linter, AstVisitor visitor) {
+    _forRecordPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addRecordPatternField(LintRule linter, AstVisitor visitor) {
+    _forRecordPatternField
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addRecordPatternFieldName(LintRule linter, AstVisitor visitor) {
+    _forRecordPatternFieldName
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addRecordTypeAnnotation(LintRule linter, AstVisitor visitor) {
+    _forRecordTypeAnnotation
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   void addRedirectingConstructorInvocation(
       LintRule linter, AstVisitor visitor) {
     _forRedirectingConstructorInvocation
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addRelationalPattern(LintRule linter, AstVisitor visitor) {
+    _forRelationalPattern
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addRestPatternElement(LintRule linter, AstVisitor visitor) {
+    _forRestPatternElement
         .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
@@ -1412,6 +1838,20 @@ class NodeLintRegistry {
     _forSwitchDefault.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addSwitchExpression(LintRule linter, AstVisitor visitor) {
+    _forSwitchExpression.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addSwitchExpressionCase(LintRule linter, AstVisitor visitor) {
+    _forSwitchExpressionCase
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addSwitchPatternCase(LintRule linter, AstVisitor visitor) {
+    _forSwitchPatternCase
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   void addSwitchStatement(LintRule linter, AstVisitor visitor) {
     _forSwitchStatement.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
@@ -1441,6 +1881,10 @@ class NodeLintRegistry {
     _forTypeArgumentList.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addTypeLiteral(LintRule linter, AstVisitor visitor) {
+    _forTypeLiteral.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   @Deprecated('Use addNamedType() instead')
   void addTypeName(LintRule linter, AstVisitor visitor) {
     addNamedType(linter, visitor);
@@ -1468,6 +1912,14 @@ class NodeLintRegistry {
   void addVariableDeclarationStatement(LintRule linter, AstVisitor visitor) {
     _forVariableDeclarationStatement
         .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addVariablePattern(LintRule linter, AstVisitor visitor) {
+    _forVariablePattern.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addWhenClause(LintRule linter, AstVisitor visitor) {
+    _forWhenClause.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addWhileStatement(LintRule linter, AstVisitor visitor) {

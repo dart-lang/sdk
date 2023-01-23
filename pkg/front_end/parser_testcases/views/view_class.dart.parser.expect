@@ -1,0 +1,5 @@
+view class Class {}
+view class Class = Object with Mixin;
+
+view[StringToken] class[KeywordToken] Class[StringToken] {[BeginToken]}[SimpleToken]
+view[StringToken] class[KeywordToken] Class[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] Mixin[StringToken];[SimpleToken][SimpleToken]

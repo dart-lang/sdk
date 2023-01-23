@@ -68,7 +68,7 @@ worlds:
           print("done");
         }
     expectedLibraryCount: 3
-
+    advancedInvalidation: bodiesOnly
 
   # Update ONE package to be strong.
   - entry: package:baz/main.dart
@@ -105,6 +105,7 @@ worlds:
         // This file is in strong mode.
         int x = 42;
     expectedLibraryCount: 3
+    advancedInvalidation: outlineChange
 
   # Update the last package to be strong.
   - entry: package:baz/main.dart
@@ -140,4 +141,4 @@ worlds:
         // This file is in strong mode.
         int y = 42;
     expectedLibraryCount: 3
-
+    advancedInvalidation: outlineChange

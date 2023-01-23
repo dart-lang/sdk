@@ -15,7 +15,7 @@ extension DartCompletionRequestExtensions on DartCompletionRequest {
   ///
   /// TODO(scheglov) Validate that suggesting a tear-off instead of invocation
   /// is statistically a good choice.
-  bool shouldSuggestTearOff(ClassElement element) {
+  bool shouldSuggestTearOff(InterfaceElement element) {
     if (!libraryElement.featureSet.isEnabled(Feature.constructor_tearoffs)) {
       return false;
     }

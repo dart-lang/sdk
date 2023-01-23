@@ -18,6 +18,8 @@ namespace dart {
 class AbstractType;
 class BaseTextBuffer;
 class Definition;
+class FlowGraphDeserializer;
+class FlowGraphSerializer;
 
 template <typename T>
 class GrowableArray;
@@ -280,6 +282,9 @@ class CompileType : public ZoneAllocated {
   // See [Value::SetReachingType].
   void set_owner(Definition* owner) { owner_ = owner; }
   Definition* owner() const { return owner_; }
+
+  void Write(FlowGraphSerializer* s) const;
+  explicit CompileType(FlowGraphDeserializer* d);
 
  private:
   bool can_be_null_;

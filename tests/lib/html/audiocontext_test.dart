@@ -102,7 +102,7 @@ main() {
         final audioSourceUrl = "/root_dart/tests/lib/html/small.mp3";
 
         Future<void> requestAudioDecode(
-            {bool triggerDecodeError: false,
+            {bool triggerDecodeError = false,
             DecodeSuccessCallback? successCallback,
             DecodeErrorCallback? errorCallback}) async {
           HttpRequest audioRequest = HttpRequest();

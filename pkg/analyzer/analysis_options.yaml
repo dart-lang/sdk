@@ -18,13 +18,16 @@ analyzer:
     # require some work to reach compliance.
     # See: https://github.com/dart-lang/sdk/issues/48784
     avoid_renaming_method_parameters: ignore
+    # We sometimes name test classes with an underscore, and have a consistent
+    # practice of doing so. We do not have an problems of naming classes with
+    # snake_case, so we're not missing much by disabling it. Re-enable when we
+    # can ignore a lint rule for a certain path.
     camel_case_types: ignore
     constant_identifier_names: ignore
     hash_and_equals: ignore
     non_constant_identifier_names: ignore
     implementation_imports: ignore
     library_private_types_in_public_api: ignore
-    overridden_fields: ignore
     provide_deprecation_message: ignore
 
   language:
@@ -35,8 +38,12 @@ linter:
     - always_use_package_imports
     - avoid_dynamic_calls
     - avoid_unused_constructor_parameters
-    - await_only_futures
-    - depend_on_referenced_packages
+    # Enable after linter 1.31 is released.
+    #- collection_methods_unrelated_type
+    - enable_null_safety
+    - implicit_call_tearoffs
+    - library_annotations
     - unawaited_futures
+    - unnecessary_library_directive
     - unnecessary_parenthesis
     - use_super_parameters

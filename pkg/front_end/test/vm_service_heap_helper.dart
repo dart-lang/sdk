@@ -14,9 +14,9 @@ class VMServiceHeapHelperSpecificExactLeakFinder
   final bool throwOnPossibleLeak;
 
   VMServiceHeapHelperSpecificExactLeakFinder({
-    List<Interest> interests: const [],
-    List<Interest> prettyPrints: const [],
-    this.throwOnPossibleLeak: false,
+    List<Interest> interests = const [],
+    List<Interest> prettyPrints = const [],
+    this.throwOnPossibleLeak = false,
   }) {
     if (interests.isEmpty) throw "Empty list of interests given";
     for (Interest interest in interests) {

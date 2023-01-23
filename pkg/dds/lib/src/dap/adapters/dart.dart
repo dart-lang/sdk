@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:json_rpc_2/error_code.dart' as jsonRpcErrors;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
@@ -17,11 +18,13 @@ import '../base_debug_adapter.dart';
 import '../exceptions.dart';
 import '../isolate_manager.dart';
 import '../logging.dart';
+import '../progress_reporter.dart';
 import '../protocol_common.dart';
 import '../protocol_converter.dart';
 import '../protocol_generated.dart';
 import '../protocol_stream.dart';
 import '../utils.dart';
+import 'mixins.dart';
 
 /// The mime type to send with source responses to the client.
 ///
@@ -79,14 +82,14 @@ var _subscribeToOutputStreams = false;
 final _trailingSemicolonPattern = RegExp(r';$');
 
 /// An implementation of [AttachRequestArguments] that includes all fields used
-/// by the base Dart debug adapter.
+/// by the Dart CLI and test debug adapters.
 ///
 /// This class represents the data passed from the client editor to the debug
 /// adapter in attachRequest, which is a request to start debugging an
 /// application.
 ///
-/// Specialised adapters (such as Flutter) will likely have their own versions
-/// of this class.
+/// Specialized adapters (such as Flutter) have their own versions of this
+/// class.
 class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
     implements AttachRequestArguments {
   /// The VM Service URI to attach to.
@@ -111,9 +114,12 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
     bool? evaluateGettersInDebugViews,
     bool? evaluateToStringInDebugViews,
     bool? sendLogsToClient,
+    bool? sendCustomProgressEvents,
   }) : super(
           name: name,
           cwd: cwd,
+          // env is not supported for Dart attach because we don't spawn a process.
+          env: null,
           restart: restart,
           additionalProjectPaths: additionalProjectPaths,
           debugSdkLibraries: debugSdkLibraries,
@@ -121,6 +127,7 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
           evaluateGettersInDebugViews: evaluateGettersInDebugViews,
           evaluateToStringInDebugViews: evaluateToStringInDebugViews,
           sendLogsToClient: sendLogsToClient,
+          sendCustomProgressEvents: sendCustomProgressEvents,
         );
 
   DartAttachRequestArguments.fromMap(Map<String, Object?> obj)
@@ -167,6 +174,11 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
   /// libraries.
   final bool? debugSdkLibraries;
 
+  /// Whether to send custom progress events for long-running operations.
+  ///
+  /// If `false` or `null`, will send standard DAP progress notifications.
+  final bool? sendCustomProgressEvents;
+
   /// Whether external package libraries should be marked as debuggable.
   ///
   /// Treated as `false` if null, which means "step in" will not step into
@@ -203,14 +215,14 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
     required this.restart,
     required this.name,
     required this.cwd,
-    // TODO(dantup): This can be made required after Flutter DAP is passing it.
-    this.env,
+    required this.env,
     required this.additionalProjectPaths,
     required this.debugSdkLibraries,
     required this.debugExternalPackageLibraries,
     required this.evaluateGettersInDebugViews,
     required this.evaluateToStringInDebugViews,
     required this.sendLogsToClient,
+    this.sendCustomProgressEvents = false,
   });
 
   DartCommonLaunchAttachRequestArguments.fromMap(Map<String, Object?> obj)
@@ -227,7 +239,8 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
             obj['evaluateGettersInDebugViews'] as bool?,
         evaluateToStringInDebugViews =
             obj['evaluateToStringInDebugViews'] as bool?,
-        sendLogsToClient = obj['sendLogsToClient'] as bool?;
+        sendLogsToClient = obj['sendLogsToClient'] as bool?,
+        sendCustomProgressEvents = obj['sendCustomProgressEvents'] as bool?;
 
   Map<String, Object?> toJson() => {
         if (restart != null) 'restart': restart,
@@ -244,6 +257,8 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
         if (evaluateToStringInDebugViews != null)
           'evaluateToStringInDebugViews': evaluateToStringInDebugViews,
         if (sendLogsToClient != null) 'sendLogsToClient': sendLogsToClient,
+        if (sendCustomProgressEvents != null)
+          'sendCustomProgressEvents': sendCustomProgressEvents,
       };
 }
 
@@ -284,7 +299,8 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
 /// (for example when the server sends a `StoppedEvent` it may cause the client
 /// to then send a `stackTraceRequest` or `scopesRequest` to get variables).
 abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
-    TA extends AttachRequestArguments> extends BaseDebugAdapter<TL, TA> {
+        TA extends AttachRequestArguments> extends BaseDebugAdapter<TL, TA>
+    with FileUtils {
   late final DartCommonLaunchAttachRequestArguments args;
   final _debuggerInitializedCompleter = Completer<void>();
   final _configurationDoneCompleter = Completer<void>();
@@ -308,10 +324,20 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// yet been made.
   vm.VmServiceInterface? vmService;
 
+  /// The root of the Dart SDK containing the VM running the debug adapter.
+  late final String dartSdkRoot;
+
+  /// Mappings of file paths to 'org-dartlang-sdk:///' URIs used for translating
+  /// URIs/paths between the DAP client and the VM.
+  ///
+  /// Keys are the base file paths and the values are the base URIs. Neither
+  /// value should contain trailing slashes.
+  final orgDartlangSdkMappings = <String, Uri>{};
+
   /// The DDS instance that was started and that [vmService] is connected to.
   ///
   /// `null` if the session is running in noDebug mode of the connection has not
-  /// yet been made.
+  /// yet been made or has been shut down.
   DartDevelopmentService? _dds;
 
   /// The [InitializeRequestArguments] provided by the client in the
@@ -383,6 +409,13 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// VM Service disconnects.
   bool isTerminating = false;
 
+  /// Whether or not the current termination is happening because the user
+  /// chose to detach from an attached process.
+  ///
+  /// This affects the message a user sees when the adapter shuts down ('exited'
+  /// vs 'detached').
+  bool isDetaching = false;
+
   /// Whether isolates that pause in the PauseExit state should be automatically
   /// resumed after any in-process log events have completed.
   ///
@@ -422,6 +455,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     Function? onError,
   }) : super(channel, onError: onError) {
     channel.closed.then((_) => shutdown());
+
+    final vmPath = Platform.resolvedExecutable;
+    dartSdkRoot = path.dirname(path.dirname(vmPath));
+    orgDartlangSdkMappings[dartSdkRoot] = Uri.parse('org-dartlang-sdk:///sdk');
 
     _isolateManager = IsolateManager(this);
     _converter = ProtocolConverter(this);
@@ -543,12 +580,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// The URI protocol will be changed to ws/wss but otherwise not normalised.
   /// The caller should handle any other normalisation (such as adding /ws to
   /// the end if required).
-  Future<void> connectDebugger(
-    Uri uri, {
-    // TODO(dantup): Remove this after parameter after updating the Flutter
-    //   DAP to not pass it.
-    bool? resumeIfStarting,
-  }) async {
+  Future<void> connectDebugger(Uri uri) async {
     // Start up a DDS instance for this VM.
     if (enableDds) {
       logger?.call('Starting a DDS instance for $uri');
@@ -636,6 +668,26 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     );
   }
 
+  /// Starts reporting progress to the client for a single operation.
+  ///
+  /// The returned [DapProgressReporter] can be used to send updated messages
+  /// and to complete progress (hiding the progress notification).
+  ///
+  /// Clients will use [title] as a prefix for all updates, appending [message]
+  /// in the form:
+  ///
+  /// title: message
+  ///
+  /// When `update` is called, the new message will replace the previous
+  /// message but the title prefix will remain.
+  DapProgressReporter startProgressNotification(
+    String id,
+    String title, {
+    String? message,
+  }) {
+    return DapProgressReporter.start(this, id, title, message: message);
+  }
+
   /// Process any existing isolates that may have been created before the
   /// streams above were set up.
   Future<void> _configureExistingIsolates(
@@ -710,7 +762,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     void Function(Object?) sendResponse,
   ) async {
     switch (request.command) {
-
       // Used by tests to validate available protocols (e.g. DDS). There may be
       // value in making this available to clients in future, but for now it's
       // internal.
@@ -786,8 +837,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     isTerminating = true;
 
     await disconnectImpl();
-    await shutdown();
+    await shutdownDebugee();
     sendResponse();
+
+    await shutdown();
   }
 
   /// evaluateRequest is called by the client to evaluate a string expression.
@@ -923,6 +976,13 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     return shortError ?? rawError;
   }
 
+  /// Handles a detach request, removing breakpoints and unpausing paused
+  /// isolates.
+  Future<void> handleDetach() async {
+    isDetaching = true;
+    await preventBreakingAndResume();
+  }
+
   /// Sends a [TerminatedEvent] if one has not already been sent.
   ///
   /// Waits for any in-progress output events to complete first.
@@ -935,10 +995,12 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
     isTerminating = true;
     _hasSentTerminatedEvent = true;
+
     // Always add a leading newline since the last written text might not have
     // had one. Send directly via sendEvent and not sendOutput to ensure no
     // async since we're about to terminate.
-    sendEvent(OutputEventBody(output: '\nExited$exitSuffix.'));
+    final reason = isDetaching ? 'Detached' : 'Exited';
+    sendEvent(OutputEventBody(output: '\n$reason$exitSuffix.'));
     sendEvent(TerminatedEventBody());
   }
 
@@ -1188,7 +1250,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
     final path = args.source.path;
     final name = args.source.name;
-    final uri = path != null ? Uri.file(path).toString() : name!;
+    final uri = path != null ? Uri.file(normalizePath(path)).toString() : name!;
 
     await _isolateManager.setBreakpoints(uri, breakpoints);
 
@@ -1227,16 +1289,83 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     sendResponse(SetExceptionBreakpointsResponseBody());
   }
 
-  /// Shuts down and cleans up.
+  /// Shuts down/detatches from the debugee and cleans up.
   ///
   /// This is called by [disconnectRequest] and [terminateRequest] but may also
   /// be called if the client just disconnects from the server without calling
   /// either.
   ///
   /// This method must tolerate being called multiple times.
-  @mustCallSuper
-  Future<void> shutdown() async {
+  @nonVirtual
+  Future<void> shutdownDebugee() async {
     await _dds?.shutdown();
+    _dds = null;
+  }
+
+  /// Shuts down the debug adapter, including terminating/detatching from the
+  /// debugee if required.
+  @nonVirtual
+  Future<void> shutdown() async {
+    await shutdownDebugee();
+    await _waitForPendingOutputEvents();
+    handleSessionTerminate();
+
+    // Delay the shutdown slightly to allow any pending responses (such as the
+    // terminate response) to be sent.
+    //
+    // If we don't wait long enough here, the client may miss events like the
+    // TerminatedEvent. Waiting too long is generally not an issue, as the
+    // client can terminate the process itself once it processes the
+    // TerminatedEvent.
+
+    Future.delayed(
+      Duration(milliseconds: 500),
+      () => super.shutdown(),
+    );
+  }
+
+  /// Converts a URI in the form org-dartlang-sdk:///sdk/lib/collection/hash_set.dart
+  /// to a local file path based on the current SDK.
+  String? convertOrgDartlangSdkToPath(Uri uri) {
+    // org-dartlang-sdk URIs can be in multiple forms:
+    //
+    //   - org-dartlang-sdk:///sdk/lib/collection/hash_set.dart
+    //   - org-dartlang-sdk:///runtime/lib/convert_patch.dart
+    //
+    // We currently only handle the sdk folder, as we don't know which runtime
+    // is being used (this code is shared) and do not want to map to the wrong
+    // sources.
+    for (final mapping in orgDartlangSdkMappings.entries) {
+      final mapPath = mapping.key;
+      final mapUri = mapping.value;
+      if (uri.isScheme(mapUri.scheme) && uri.path.startsWith(mapUri.path)) {
+        return path.joinAll([
+          mapPath,
+          ...uri.pathSegments.skip(mapUri.pathSegments.length),
+        ]);
+      }
+    }
+
+    return null;
+  }
+
+  /// Converts a file path inside the current SDK root into a URI in the form
+  /// org-dartlang-sdk:///sdk/lib/collection/hash_set.dart.
+  Uri? convertPathToOrgDartlangSdk(String input) {
+    for (final mapping in orgDartlangSdkMappings.entries) {
+      final mapPath = mapping.key;
+      final mapUri = mapping.value;
+      if (path.isWithin(mapPath, input)) {
+        final relative = path.relative(input, from: mapPath);
+        return Uri(
+          scheme: mapUri.scheme,
+          host: '',
+          pathSegments: [...mapUri.pathSegments, ...path.split(relative)],
+        );
+      }
+    }
+
+    return null;
   }
 
   /// [sourceRequest] is called by the client to request source code for a given
@@ -1445,8 +1574,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     isTerminating = true;
 
     await terminateImpl();
-    await shutdown();
+    await shutdownDebugee();
     sendResponse();
+
+    await shutdown();
   }
 
   /// Handles a request from the client for the list of threads.
@@ -1563,8 +1694,12 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         ]);
       }
     } else if (vmData is vm.ObjRef) {
-      final object =
-          await _isolateManager.getObject(storedData.thread.isolate, vmData);
+      final object = await _isolateManager.getObject(
+        storedData.thread.isolate,
+        vmData,
+        offset: childStart,
+        count: childCount,
+      );
 
       if (object is vm.Sentinel) {
         variables.add(Variable(
@@ -1711,7 +1846,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
               ? _converter.convertToRelativePath(path)
               : uri.toString())
           : null;
-      // Because we split on newlines, all items exept the last one need to
+      // Because we split on newlines, all items except the last one need to
       // have their trailing newlines added back.
       final output = i == lines.length - 1 ? line : '$line\n';
       events.add(
@@ -1833,6 +1968,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       allowTruncatedValue: false,
       includeQuotesAroundString: false,
     )
+        // TODO: Fix this static error.
+        // ignore: body_might_complete_normally_catch_error
         .catchError((e) {
       // Fetching strings from the server may throw if they have been
       // collected since (for example if a Hot Restart occurs while
@@ -2044,27 +2181,36 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     try {
       return await func();
     } on vm.RPCError catch (e) {
-      // If we're been asked to shut down while this request was occurring,
-      // it's normal to get kServiceDisappeared so we should handle this
-      // silently.
-      if (isTerminating && e.code == RpcErrorCodes.kServiceDisappeared) {
-        return null;
+      // If we've been asked to shut down while this request was occurring,
+      // it's normal to get some types of errors from in-flight VM Service
+      // requests and we should handle them silently.
+      if (isTerminating) {
+        // kServiceDisappeared is thrown sometimes when services disappear.
+        if (e.code == RpcErrorCodes.kServiceDisappeared) {
+          return null;
+        }
+        // SERVER_ERROR can occur when DDS completes any outstanding requests
+        // with "The client closed with pending request".
+        if (e.code == jsonRpcErrors.SERVER_ERROR) {
+          return null;
+        }
       }
 
+      // Otherwise, it's an unexpected/unknown failure and should be rethrown.
       rethrow;
     }
   }
 }
 
 /// An implementation of [LaunchRequestArguments] that includes all fields used
-/// by the base Dart debug adapter.
+/// by the Dart CLI and test debug adapters.
 ///
 /// This class represents the data passed from the client editor to the debug
 /// adapter in launchRequest, which is a request to start debugging an
 /// application.
 ///
-/// Specialised adapters (such as Flutter) will likely have their own versions
-/// of this class.
+/// Specialized adapters (such as Flutter) have their own versions of this
+/// class.
 class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
     implements LaunchRequestArguments {
   /// If noDebug is true the launch request should launch the program without
@@ -2142,6 +2288,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
     bool? evaluateGettersInDebugViews,
     bool? evaluateToStringInDebugViews,
     bool? sendLogsToClient,
+    bool? sendCustomProgressEvents,
   }) : super(
           restart: restart,
           name: name,
@@ -2153,6 +2300,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
           evaluateGettersInDebugViews: evaluateGettersInDebugViews,
           evaluateToStringInDebugViews: evaluateToStringInDebugViews,
           sendLogsToClient: sendLogsToClient,
+          sendCustomProgressEvents: sendCustomProgressEvents,
         );
 
   DartLaunchRequestArguments.fromMap(Map<String, Object?> obj)

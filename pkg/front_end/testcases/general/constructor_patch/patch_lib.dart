@@ -10,8 +10,15 @@ class Class {
   final bool defaultValue;
 
   @patch
-  Class.generative({this.defaultValue: true});
+  Class.generative({this.defaultValue = true});
 
   @patch
-  const Class.constGenerative({this.defaultValue: true});
+  const Class.constGenerative({this.defaultValue = true});
+}
+
+@patch
+class Class2 {
+  final int injectedField;
+
+  Class2(this.field) : injectedField = field;
 }

@@ -91,8 +91,15 @@ class SharedCompilerOptions {
 
   final bool soundNullSafety;
 
+  /// Whether or not the `--canary` flag was specified during compilation.
+  final bool canaryFeatures;
+
   /// A canary feature that enables a new runtime type representation.
   final bool newRuntimeTypes;
+
+  /// When `true` stars "*" will appear to represent legacy types when printing
+  /// runtime types in the compiled application.
+  final bool printLegacyStars = false;
 
   SharedCompilerOptions(
       {this.sourceMap = true,
@@ -110,7 +117,7 @@ class SharedCompilerOptions {
       this.multiRootOutputPath,
       this.experiments = const {},
       this.soundNullSafety = false,
-      bool canaryFeatures = false})
+      this.canaryFeatures = false})
       : // Current canary features.
         newRuntimeTypes = canaryFeatures;
 

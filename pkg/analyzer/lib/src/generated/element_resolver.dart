@@ -26,7 +26,7 @@ import 'package:analyzer/src/generated/super_context.dart';
 ///    * An identifier within the declaration of that name should resolve to the
 ///      element being declared.
 ///    * An identifier denoting a prefix should resolve to the element
-///      representing the import that defines the prefix (an [ImportElement]).
+///      representing the import that defines the prefix (an [LibraryImportElement]).
 ///    * An identifier denoting a variable should resolve to the element
 ///      representing the variable (a [VariableElement]).
 ///    * An identifier denoting a parameter should resolve to the element
@@ -56,8 +56,8 @@ import 'package:analyzer/src/generated/super_context.dart';
 ///    specified library does not exist.
 /// 5. Every [ImportDirective] and [ExportDirective] should resolve to the
 ///    element representing the library being specified by the directive unless
-///    the specified library does not exist (an [ImportElement] or
-///    [ExportElement]).
+///    the specified library does not exist (an [LibraryImportElement] or
+///    [LibraryExportElement]).
 /// 6. The identifier representing the prefix in an [ImportDirective] should
 ///    resolve to the element representing the prefix (a [PrefixElement]).
 /// 7. The identifiers in the hide and show combinators in [ImportDirective]s
@@ -111,6 +111,10 @@ class ElementResolver {
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
+  void visitAugmentationImportDirective(AugmentationImportDirectiveImpl node) {
+    _resolveAnnotations(node.metadata);
+  }
+
   void visitClassDeclaration(ClassDeclaration node) {
     _resolveAnnotations(node.metadata);
   }
@@ -147,7 +151,7 @@ class ElementResolver {
   void visitConstructorFieldInitializer(
       covariant ConstructorFieldInitializerImpl node) {
     var fieldName = node.fieldName;
-    ClassElement enclosingClass = _resolver.enclosingClass!;
+    final enclosingClass = _resolver.enclosingClass!;
     var fieldElement = enclosingClass.getField(fieldName.name);
     fieldName.staticElement = fieldElement;
   }
@@ -262,6 +266,10 @@ class ElementResolver {
     }
   }
 
+  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
+    _resolveAnnotations(node.metadata);
+  }
+
   void visitLibraryDirective(LibraryDirective node) {
     _resolveAnnotations(node.metadata);
   }
@@ -291,10 +299,22 @@ class ElementResolver {
     _resolveAnnotations(node.metadata);
   }
 
+  void visitRecordTypeAnnotationNamedField(
+    RecordTypeAnnotationNamedField node,
+  ) {
+    _resolveAnnotations(node.metadata);
+  }
+
+  void visitRecordTypeAnnotationPositionalField(
+    RecordTypeAnnotationPositionalField node,
+  ) {
+    _resolveAnnotations(node.metadata);
+  }
+
   void visitRedirectingConstructorInvocation(
       covariant RedirectingConstructorInvocationImpl node) {
     var enclosingClass = _resolver.enclosingClass;
-    if (enclosingClass == null) {
+    if (enclosingClass is! InterfaceElement) {
       // TODO(brianwilkerson) Report this error.
       return;
     }
@@ -328,7 +348,7 @@ class ElementResolver {
   void visitSuperConstructorInvocation(
       covariant SuperConstructorInvocationImpl node) {
     var enclosingClass = _resolver.enclosingClass;
-    if (enclosingClass == null) {
+    if (enclosingClass is! InterfaceElement) {
       // TODO(brianwilkerson) Report this error.
       return;
     }
@@ -341,7 +361,7 @@ class ElementResolver {
     var superName = name?.name;
     var element = superType.lookUpConstructor(superName, _definingLibrary);
     element = _resolver.toLegacyElement(element);
-    if (element == null || !element.isAccessibleIn2(_definingLibrary)) {
+    if (element == null || !element.isAccessibleIn(_definingLibrary)) {
       if (name != null) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER,
@@ -477,10 +497,10 @@ class ElementResolver {
   /// Checks whether the given [expression] is a reference to a class. If it is
   /// then the element representing the class is returned, otherwise `null` is
   /// returned.
-  static ClassElement? getTypeReference(Expression expression) {
+  static InterfaceElement? getTypeReference(Expression expression) {
     if (expression is Identifier) {
       var element = expression.staticElement;
-      if (element is ClassElement) {
+      if (element is InterfaceElement) {
         return element;
       } else if (element is TypeAliasElement) {
         var aliasedType = element.aliasedType;

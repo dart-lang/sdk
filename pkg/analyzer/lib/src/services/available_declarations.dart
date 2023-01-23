@@ -17,7 +17,6 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -139,8 +138,8 @@ class DeclarationsContext {
   /// Packages are sorted so that inner packages are before outer.
   final List<_Package> _packages = [];
 
-  /// The list of paths of all files inside the context.
-  final List<String> _contextPathList = [];
+  /// The set of paths of all files inside the context.
+  final Set<String> _contextPathSet = {};
 
   /// The list of paths of all SDK libraries.
   final List<String> _sdkLibraryPathList = [];
@@ -165,7 +164,7 @@ class DeclarationsContext {
   ///
   /// We include libraries from this list only when actual context dependencies
   /// are not known. Dependencies are always know for Pub packages, but are
-  /// currently never known for Bazel packages.
+  /// currently never known for Blaze packages.
   final List<String> _knownPathList = [];
 
   DeclarationsContext(this._tracker, this._analysisContext);
@@ -191,7 +190,7 @@ class DeclarationsContext {
   /// of packages listed as `dependencies`, and files in the `test` directory
   /// can in addition access libraries of packages listed as `dev_dependencies`.
   ///
-  /// With `Bazel` sets of accessible libraries are specified explicitly by
+  /// With `Blaze` sets of accessible libraries are specified explicitly by
   /// the client using [setDependencies].
   Libraries getLibraries(String path) {
     var sdkLibraries = <Library>[];
@@ -211,8 +210,8 @@ class DeclarationsContext {
       _addKnownLibraries(dependencyLibraries);
     }
 
-    var contextPathList = <String>[];
-    if (!_analysisContext.contextRoot.workspace.isBazel) {
+    Iterable<String> contextPaths;
+    if (!_analysisContext.contextRoot.workspace.isBlaze) {
       _Package? package;
       for (var candidatePackage in _packages) {
         if (candidatePackage.contains(path)) {
@@ -222,9 +221,10 @@ class DeclarationsContext {
       }
 
       if (package != null) {
+        List<String> contextPathList = contextPaths = [];
         var containingFolder = package.folderInRootContaining(path);
         if (containingFolder != null) {
-          for (var contextPath in _contextPathList) {
+          for (var contextPath in _contextPathSet) {
             // `lib/` can see only libraries in `lib/`.
             // `test/` can see libraries in `lib/` and in `test/`.
             if (package.containsInLib(contextPath) ||
@@ -235,17 +235,17 @@ class DeclarationsContext {
         }
       } else {
         // Not in a package, include all libraries of the context.
-        contextPathList = _contextPathList;
+        contextPaths = _contextPathSet;
       }
     } else {
-      // In bazel workspaces, consider declarations from the entire context
-      contextPathList = _contextPathList;
+      // In Blaze workspaces, consider declarations from the entire context
+      contextPaths = _contextPathSet;
     }
 
     var contextLibraries = <Library>[];
     _addLibrariesWithPaths(
       contextLibraries,
-      contextPathList,
+      contextPaths,
       excludingLibraryOfPath: path,
     );
 
@@ -262,7 +262,7 @@ class DeclarationsContext {
   ///
   /// For `Pub` packages this method is invoked automatically, because their
   /// dependencies, described in `pubspec.yaml` files, and can be automatically
-  /// included.  This method is useful for `Bazel` contexts, where dependencies
+  /// included.  This method is useful for `Blaze` contexts, where dependencies
   /// are specified externally, in form of `BUILD` files.
   ///
   /// New dependencies will replace any previously set dependencies for this
@@ -292,18 +292,15 @@ class DeclarationsContext {
   }
 
   void _addContextFile(String path) {
-    if (!_contextPathList.contains(path)) {
-      _contextPathList.add(path);
-    }
+    _contextPathSet.add(path);
   }
 
   /// Add known libraries, other then in the context itself, or the SDK.
   void _addKnownLibraries(List<Library> libraries) {
-    var contextPathSet = _contextPathList.toSet();
     var sdkPathSet = _sdkLibraryPathList.toSet();
 
     for (var path in _knownPathList) {
-      if (contextPathSet.contains(path) || sdkPathSet.contains(path)) {
+      if (_contextPathSet.contains(path) || sdkPathSet.contains(path)) {
         continue;
       }
 
@@ -317,12 +314,12 @@ class DeclarationsContext {
     }
   }
 
-  void _addLibrariesWithPaths(List<Library> libraries, List<String> pathList,
+  void _addLibrariesWithPaths(List<Library> libraries, Iterable<String> paths,
       {String? excludingLibraryOfPath}) {
     var excludedFile = _tracker._pathToFile[excludingLibraryOfPath];
     var excludedLibraryPath = (excludedFile?.library ?? excludedFile)?.path;
 
-    for (var path in pathList) {
+    for (var path in paths) {
       if (path == excludedLibraryPath) continue;
 
       var file = _tracker._pathToFile[path];
@@ -342,7 +339,7 @@ class DeclarationsContext {
     var pubPathPrefixToPathList = <String, List<String>>{};
 
     for (var path in _analysisContext.contextRoot.analyzedFiles()) {
-      if (file_paths.isBazelBuild(pathContext, path)) {
+      if (file_paths.isBlazeBuild(pathContext, path)) {
         var file = _tracker._resourceProvider.getFile(path);
         var packageFolder = file.parent;
         _packages.add(_Package(packageFolder));
@@ -416,7 +413,7 @@ class DeclarationsContext {
   void _scheduleContextFiles() {
     var contextFiles = _analysisContext.contextRoot.analyzedFiles();
     for (var path in contextFiles) {
-      _contextPathList.add(path);
+      _contextPathSet.add(path);
       _tracker._addFile(this, path);
     }
   }
@@ -652,7 +649,7 @@ class DeclarationsTracker {
 
   /// Pull known files into [DeclarationsContext]s.
   ///
-  /// This is a temporary support for Bazel repositories, because IDEA
+  /// This is a temporary support for Blaze repositories, because IDEA
   /// does not yet give us dependencies for them.
   @visibleForTesting
   void pullKnownFiles() {
@@ -1236,7 +1233,7 @@ class _File {
       pathKey = '${pathKeyBuilder.toHex()}.declarations_content';
     }
 
-    // With Bazel multiple workspaces might be copies of the same workspace,
+    // With Blaze multiple workspaces might be copies of the same workspace,
     // and have files with the same content, but with different paths.
     // So, we use the content hash to reuse their declarations without parsing.
     String? content;
@@ -1400,7 +1397,7 @@ class _File {
       bool isFinal = false,
       bool isStatic = false,
       required DeclarationKind kind,
-      required Identifier name,
+      required Token name,
       String? parameters,
       List<String>? parameterNames,
       List<String>? parameterTypes,
@@ -1410,7 +1407,7 @@ class _File {
       String? returnType,
       String? typeParameters,
     }) {
-      if (Identifier.isPrivateName(name.name)) {
+      if (Identifier.isPrivateName(name.lexeme)) {
         return null;
       }
 
@@ -1433,7 +1430,7 @@ class _File {
         lineInfo: lineInfo,
         locationOffset: locationOffset,
         locationPath: path,
-        name: name.name,
+        name: name.lexeme,
         locationStartColumn: lineLocation.columnNumber,
         locationStartLine: lineLocation.lineNumber,
         parameters: parameters,
@@ -1474,12 +1471,10 @@ class _File {
             var isConst = classMember.constKeyword != null;
 
             var constructorName = classMember.name;
-            constructorName ??= SimpleIdentifierImpl(
-              StringToken(
-                TokenType.IDENTIFIER,
-                '',
-                classMember.returnType.offset,
-              ),
+            constructorName ??= StringToken(
+              TokenType.IDENTIFIER,
+              '',
+              classMember.returnType.offset,
             );
 
             // TODO(brianwilkerson) Should we be passing in `isConst`?
@@ -1579,7 +1574,7 @@ class _File {
 
       if (node is ClassDeclaration) {
         var classDeclaration = addDeclaration(
-          isAbstract: node.isAbstract,
+          isAbstract: node.abstractKeyword != null,
           isDeprecated: isDeprecated,
           kind: DeclarationKind.CLASS,
           name: node.name,
@@ -1617,7 +1612,7 @@ class _File {
             parent: classDeclaration,
             relevanceTagsInFile: ['ElementKind.CONSTRUCTOR'],
             requiredParameterCount: 0,
-            returnType: node.name.name,
+            returnType: node.name.lexeme,
             typeParameters: null,
           ));
         }
@@ -1793,7 +1788,7 @@ class _File {
     for (CompilationUnitMember declaration in unit.declarations) {
       var comment = declaration.documentationComment;
       info.extractTemplate(getCommentNodeRawText(comment));
-      if (declaration is ClassOrMixinDeclaration) {
+      if (declaration is ClassDeclaration) {
         for (ClassMember member in declaration.members) {
           var comment = member.documentationComment;
           info.extractTemplate(getCommentNodeRawText(comment));
@@ -1801,6 +1796,11 @@ class _File {
       } else if (declaration is EnumDeclaration) {
         for (EnumConstantDeclaration constant in declaration.constants) {
           var comment = constant.documentationComment;
+          info.extractTemplate(getCommentNodeRawText(comment));
+        }
+      } else if (declaration is MixinDeclaration) {
+        for (ClassMember member in declaration.members) {
+          var comment = member.documentationComment;
           info.extractTemplate(getCommentNodeRawText(comment));
         }
       }
@@ -1896,12 +1896,12 @@ class _File {
         }
 
         if (parameter.isNamed) {
-          buffer.write(parameter.identifier!.name);
+          buffer.write(parameter.name!.lexeme);
           buffer.write(': ');
         }
 
         var valueOffset = buffer.length;
-        buffer.write(parameter.identifier!.name);
+        buffer.write(parameter.name!.lexeme);
         var valueLength = buffer.length - valueOffset;
         ranges.add(valueOffset);
         ranges.add(valueLength);
@@ -1917,7 +1917,7 @@ class _File {
 
     var names = <String>[];
     for (var parameter in parameters.parameters) {
-      var name = parameter.identifier?.name ?? '';
+      var name = parameter.name?.lexeme ?? '';
       names.add(name);
     }
     return names;
@@ -2111,7 +2111,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   }
 }
 
-/// Information about a package: `Pub` or `Bazel`.
+/// Information about a package: `Pub` or `Blaze`.
 class _Package {
   final Folder root;
   final Folder lib;

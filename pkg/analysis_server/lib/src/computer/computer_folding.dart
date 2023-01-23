@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:collection/collection.dart';
 
 /// A computer for [CompilationUnit] folding.
 class DartUnitFoldingComputer {
@@ -15,6 +16,12 @@ class DartUnitFoldingComputer {
 
   _Directive? _firstDirective, _lastDirective;
   final List<FoldingRegion> _foldingRegions = [];
+
+  /// A set of line numbers that already have folding regions defined.
+  ///
+  /// Multiple regions will not be produced that start on the same line because
+  /// editors typically only show one folding action button per line.
+  final _linesWithRegions = <int>{};
 
   DartUnitFoldingComputer(this._lineInfo, this._unit);
 
@@ -59,12 +66,10 @@ class DartUnitFoldingComputer {
     if (firstDirective != null &&
         lastDirective != null &&
         firstDirective != lastDirective) {
-      _foldingRegions.add(
-        FoldingRegion(
-          FoldingKind.DIRECTIVES,
-          firstDirective.keyword.end,
-          lastDirective.directive.end - firstDirective.keyword.end,
-        ),
+      _addRegion(
+        firstDirective.keyword.end,
+        lastDirective.directive.end,
+        FoldingKind.DIRECTIVES,
       );
     }
 
@@ -156,13 +161,39 @@ class DartUnitFoldingComputer {
     }
   }
 
-  void _addRegion(int startOffset, int endOffset, FoldingKind kind) {
+  /// Adds a region from [startOffset] to [endOffset] for [kind].
+  ///
+  /// If [startOffset] is the same line as a previous range and [fallbackStart]
+  /// is provided (and not the same line), then [fallbackStart] will be used.
+  void _addRegion(int startOffset, int endOffset, FoldingKind kind,
+      {int? fallbackStart}) {
     var start = _lineInfo.getLocation(startOffset);
     var end = _lineInfo.getLocation(endOffset);
 
-    if (start.lineNumber != end.lineNumber) {
+    // We cannot start multiple regions on the same line, so if this region
+    // starts on the same line as the previous region, try the fallback start.
+    //
+    // This usually happens with function declarations and parameters, where we
+    // want to support folding long parameter lists but also be able to fold the
+    // whole declaration (parameters + body).
+    if (_linesWithRegions.contains(start.lineNumber)) {
+      if (fallbackStart == null) {
+        return;
+      }
+
+      startOffset = fallbackStart;
+      start = _lineInfo.getLocation(startOffset);
+
+      // If it's still the same, then we don't have a usable start.
+      if (_linesWithRegions.contains(start.lineNumber)) {
+        return;
+      }
+    }
+
+    if (end.lineNumber > start.lineNumber) {
       _foldingRegions
           .add(FoldingRegion(kind, startOffset, endOffset - startOffset));
+      _linesWithRegions.add(start.lineNumber);
     }
   }
 
@@ -192,9 +223,24 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   _DartUnitFoldingComputerVisitor(this._computer);
 
   @override
+  void visitArgumentList(ArgumentList node) {
+    _computer._addRegion(
+      node.leftParenthesis.end,
+      node.rightParenthesis.offset,
+      FoldingKind.INVOCATION,
+      fallbackStart: node.arguments.firstOrNull?.offset,
+    );
+    super.visitArgumentList(node);
+  }
+
+  @override
   void visitAssertInitializer(AssertInitializer node) {
-    _computer._addRegion(node.leftParenthesis.end, node.rightParenthesis.offset,
-        FoldingKind.INVOCATION);
+    _computer._addRegion(
+      node.leftParenthesis.end,
+      node.rightParenthesis.offset,
+      FoldingKind.INVOCATION,
+      fallbackStart: node.condition.offset,
+    );
     super.visitAssertInitializer(node);
   }
 
@@ -206,23 +252,18 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitBlockFunctionBody(BlockFunctionBody node) {
-    _computer._addRegion(node.block.leftBracket.end,
-        node.block.rightBracket.offset, FoldingKind.FUNCTION_BODY);
-    super.visitBlockFunctionBody(node);
-  }
-
-  @override
   void visitClassDeclaration(ClassDeclaration node) {
     _computer._addRegionForAnnotations(node.metadata);
     _computer._addRegion(
-        node.leftBracket.end, node.rightBracket.offset, FoldingKind.CLASS_BODY);
+        node.name.end, node.rightBracket.end, FoldingKind.CLASS_BODY);
     super.visitClassDeclaration(node);
   }
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     _computer._addRegionForAnnotations(node.metadata);
+    _computer._addRegion(node.name?.end ?? node.returnType.end, node.end,
+        FoldingKind.FUNCTION_BODY);
     super.visitConstructorDeclaration(node);
   }
 
@@ -265,22 +306,20 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
-    _computer._addRegion(node.leftParenthesis.end, node.rightParenthesis.offset,
-        FoldingKind.PARAMETERS);
+    _computer._addRegion(
+      node.leftParenthesis.end,
+      node.rightParenthesis.offset,
+      FoldingKind.PARAMETERS,
+      fallbackStart: node.parameters.firstOrNull?.offset,
+    );
     super.visitFormalParameterList(node);
   }
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     _computer._addRegionForAnnotations(node.metadata);
+    _computer._addRegion(node.name.end, node.end, FoldingKind.FUNCTION_BODY);
     super.visitFunctionDeclaration(node);
-  }
-
-  @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _computer._addRegion(node.argumentList.leftParenthesis.end,
-        node.argumentList.rightParenthesis.offset, FoldingKind.INVOCATION);
-    super.visitFunctionExpressionInvocation(node);
   }
 
   @override
@@ -303,13 +342,6 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    _computer._addRegion(node.argumentList.leftParenthesis.end,
-        node.argumentList.rightParenthesis.offset, FoldingKind.INVOCATION);
-    super.visitInstanceCreationExpression(node);
-  }
-
-  @override
   void visitLibraryDirective(LibraryDirective node) {
     _computer._recordDirective(_Directive(node, node.libraryKeyword));
     super.visitLibraryDirective(node);
@@ -325,22 +357,15 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     _computer._addRegionForAnnotations(node.metadata);
+    _computer._addRegion(node.name.end, node.end, FoldingKind.FUNCTION_BODY);
     super.visitMethodDeclaration(node);
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    _computer._addRegion(node.argumentList.leftParenthesis.end,
-        node.argumentList.rightParenthesis.offset, FoldingKind.INVOCATION);
-    super.visitMethodInvocation(node);
   }
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
     _computer._addRegionForAnnotations(node.metadata);
     // TODO(brianwilkerson) Define `FoldingKind.MIXIN_BODY`?
-    _computer._addRegion(
-        node.leftBracket.end, node.rightBracket.offset, FoldingKind.CLASS_BODY);
+    _computer._addRegion(node.name.end, node.end, FoldingKind.CLASS_BODY);
     super.visitMixinDeclaration(node);
   }
 
@@ -354,6 +379,13 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   void visitPartOfDirective(PartOfDirective node) {
     _computer._recordDirective(_Directive(node, node.partKeyword));
     super.visitPartOfDirective(node);
+  }
+
+  @override
+  void visitRecordLiteral(RecordLiteral node) {
+    _computer._addRegion(node.leftParenthesis.end, node.rightParenthesis.offset,
+        FoldingKind.LITERAL);
+    super.visitRecordLiteral(node);
   }
 
   @override

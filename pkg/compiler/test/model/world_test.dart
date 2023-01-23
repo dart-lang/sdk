@@ -6,14 +6,15 @@
 
 library world_test;
 
+import 'package:compiler/src/elements/names.dart';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:compiler/src/universe/class_hierarchy.dart';
 import 'package:compiler/src/universe/class_set.dart';
-import 'package:compiler/src/world.dart' show JClosedWorld;
 import '../helpers/type_test_helper.dart';
 
 void main() {
@@ -22,6 +23,7 @@ void main() {
     await testProperties();
     await testNativeClasses();
     await testCommonSubclasses();
+    await testLiveMembers();
   }
 
   asyncTest(() async {
@@ -71,7 +73,7 @@ testClassSets() async {
 
   void checkClasses(String property, ClassEntity cls,
       Iterable<ClassEntity> foundClasses, List<ClassEntity> expectedClasses,
-      {bool exact: true}) {
+      {bool exact = true}) {
     for (ClassEntity expectedClass in expectedClasses) {
       Expect.isTrue(
           foundClasses.contains(expectedClass),
@@ -92,7 +94,7 @@ testClassSets() async {
 
   void check(String property, ClassEntity cls,
       Iterable<ClassEntity> foundClasses, List<ClassEntity> expectedClasses,
-      {bool exact: true,
+      {bool exact = true,
       void forEach(ClassEntity cls, ForEachFunction f),
       int getCount(ClassEntity cls)}) {
     checkClasses(property, cls, foundClasses, expectedClasses, exact: exact);
@@ -118,14 +120,14 @@ testClassSets() async {
   }
 
   void testSubclasses(ClassEntity cls, List<ClassEntity> expectedClasses,
-      {bool exact: true}) {
+      {bool exact = true}) {
     check('subclassesOf', cls, closedWorld.classHierarchy.subclassesOf(cls),
         expectedClasses,
         exact: exact);
   }
 
   void testStrictSubclasses(ClassEntity cls, List<ClassEntity> expectedClasses,
-      {bool exact: true}) {
+      {bool exact = true}) {
     check('strictSubclassesOf', cls,
         closedWorld.classHierarchy.strictSubclassesOf(cls), expectedClasses,
         exact: exact,
@@ -134,7 +136,7 @@ testClassSets() async {
   }
 
   void testStrictSubtypes(ClassEntity cls, List<ClassEntity> expectedClasses,
-      {bool exact: true}) {
+      {bool exact = true}) {
     check('strictSubtypesOf', cls,
         closedWorld.classHierarchy.strictSubtypesOf(cls), expectedClasses,
         exact: exact,
@@ -143,7 +145,7 @@ testClassSets() async {
   }
 
   void testMixinUses(ClassEntity cls, List<ClassEntity> expectedClasses,
-      {bool exact: true}) {
+      {bool exact = true}) {
     check('mixinUsesOf', cls, closedWorld.mixinUsesOf(cls), expectedClasses,
         exact: exact);
   }
@@ -365,8 +367,8 @@ testNativeClasses() async {
       ClassEntity lubOfInstantiatedSubtypes,
       int instantiatedSubclassCount,
       int instantiatedSubtypeCount,
-      List<ClassEntity> subclasses: const <ClassEntity>[],
-      List<ClassEntity> subtypes: const <ClassEntity>[]}) {
+      List<ClassEntity> subclasses = const <ClassEntity>[],
+      List<ClassEntity> subtypes = const <ClassEntity>[]}) {
     ClassSet classSet = closedWorld.classHierarchy.getClassSet(cls);
     ClassHierarchyNode node = classSet.node;
 
@@ -691,4 +693,86 @@ testCommonSubclasses() async {
   check(B, ClassQuery.SUBTYPE, C, ClassQuery.SUBCLASS, new SubclassResult([G]));
   check(
       B, ClassQuery.SUBTYPE, C, ClassQuery.SUBTYPE, new SubclassResult([F, G]));
+}
+
+testLiveMembers() async {
+  final env = await TypeEnvironment.create(r"""
+      class A { int a() => 1; }
+
+      abstract class B { int b(); }
+      class C with B { int b() => 2; }
+
+      mixin D { int d(); }
+      mixin E on D { int e() => d(); }
+      class F implements D { int d() => 3; }
+      class G extends F with E {}
+
+      abstract class H { int h(); }
+      class I implements H { int h() => 4; }
+
+      abstract class J { int j(); }
+
+      abstract class K { int k(); }
+      class L extends K { int k() => 5; }
+
+      abstract class M { int m(); }
+      class N extends M { int m() => 6; }
+
+      main() {
+        A().a();
+        C().b();
+        G().e();
+        I().h();
+        L().k();
+        N();
+      }
+      """, testBackendWorld: true);
+
+  JClosedWorld closedWorld = env.jClosedWorld;
+
+  void check(String clsName, String memberName,
+      {bool expectExists = true,
+      bool expectAbstract = false,
+      bool expectConcrete = false}) {
+    final cls = env.getClass(clsName);
+    final member = closedWorld.elementEnvironment
+        .lookupLocalClassMember(cls, Name(memberName, Uri()));
+    if (expectExists) {
+      Expect.isNotNull(
+          member, "Expected $clsName to contain member $memberName.");
+    } else {
+      Expect.isNull(
+          member, "Expected $clsName not to contain member $memberName.");
+      return;
+    }
+    Expect.isTrue(
+        expectAbstract ^ expectConcrete,
+        "Can only expect to be in one of liveAbstractInstanceMembers and "
+        "liveInstanceMembers.");
+    if (expectAbstract) {
+      Expect.isTrue(closedWorld.liveAbstractInstanceMembers.contains(member),
+          "Expected $member to exist in liveAbstractInstanceMembers.");
+      Expect.isFalse(closedWorld.liveInstanceMembers.contains(member),
+          "Expected $member to not exist in liveInstanceMembers.");
+    } else {
+      Expect.isTrue(closedWorld.liveInstanceMembers.contains(member),
+          "Expected $member to exist in liveInstanceMembers.");
+      Expect.isFalse(closedWorld.liveAbstractInstanceMembers.contains(member),
+          "Expected $member to not exist in liveAbstractInstanceMembers.");
+    }
+  }
+
+  check('A', 'a', expectConcrete: true);
+  check('B', 'b', expectAbstract: true);
+  check('C', 'b', expectConcrete: true);
+  check('D', 'd', expectAbstract: true);
+  check('E', 'e', expectConcrete: true);
+  check('F', 'd', expectConcrete: true);
+  check('H', 'h', expectAbstract: true);
+  check('I', 'h', expectConcrete: true);
+  check('J', 'j', expectExists: false);
+  check('K', 'k', expectAbstract: true);
+  check('L', 'k', expectConcrete: true);
+  check('M', 'm', expectExists: false);
+  check('N', 'm', expectExists: false);
 }

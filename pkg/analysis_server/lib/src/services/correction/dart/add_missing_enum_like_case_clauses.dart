@@ -86,7 +86,7 @@ class AddMissingEnumLikeCaseClauses extends CorrectionProducer {
   }
 
   /// Return the names of the constants defined in [classElement].
-  List<String> _constantNames(ClassElement classElement) {
+  List<String> _constantNames(InterfaceElement classElement) {
     var type = classElement.thisType;
     var constantNames = <String>[];
     for (var field in classElement.fields) {

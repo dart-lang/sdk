@@ -15,13 +15,13 @@ abstract class _E&_Enum&M1 extends core::_Enum implements self::M1 /*isAnonymous
 }
 class E extends self::_E&_Enum&M1 /*isEnum*/  {
   static const field core::List<self::E> values = #C10;
-  static const field self::E e1 = #C3;
-  static const field self::E e2 = #C6;
-  static const field self::E e3 = #C9;
+  enum-element static const field self::E e1 = #C3;
+  enum-element static const field self::E e2 = #C6;
+  enum-element static const field self::E e3 = #C9;
   const constructor •(core::int #index, core::String #name) → self::E
     : super self::_E&_Enum&M1::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
 }
 static method expectEquals(dynamic x, dynamic y) → dynamic {
@@ -30,7 +30,7 @@ static method expectEquals(dynamic x, dynamic y) → dynamic {
   }
 }
 static method main() → dynamic {
-  self::expectEquals(#C3.{self::E::toString}(){() → core::String}, "E.e1");
+  self::expectEquals(#C3.{core::_Enum::toString}(){() → core::String}, "E.e1");
 }
 
 constants  {
@@ -51,5 +51,5 @@ Constructor coverage from constants:
 org-dartlang-testcase:///issue48303.dart:
 - E. (from org-dartlang-testcase:///issue48303.dart:9:6)
 - _E&_Enum&M1. (from org-dartlang-testcase:///issue48303.dart:9:6)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

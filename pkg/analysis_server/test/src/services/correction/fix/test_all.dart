@@ -13,7 +13,9 @@ import 'add_diagnostic_property_reference_test.dart'
     as add_diagnostic_property_reference;
 import 'add_enum_constant_test.dart' as add_enum_constant_test;
 import 'add_eol_at_end_of_file_test.dart' as add_eol_at_end_of_file;
+import 'add_explicit_call_test.dart' as add_explicit_call;
 import 'add_explicit_cast_test.dart' as add_explicit_cast;
+import 'add_extension_override_test.dart' as add_extension_override;
 import 'add_field_formal_parameters_test.dart' as add_field_formal_parameters;
 import 'add_key_to_constructors_test.dart' as add_key_to_constructors;
 import 'add_late_test.dart' as add_late;
@@ -39,6 +41,7 @@ import 'add_return_type_test.dart' as add_return_type;
 import 'add_static_test.dart' as add_static;
 import 'add_super_constructor_invocation_test.dart'
     as add_super_constructor_invocation;
+import 'add_super_parameter_test.dart' as add_super_parameter;
 import 'add_switch_case_break_test.dart' as add_switch_case_break;
 import 'add_trailing_comma_test.dart' as add_trailing_comma;
 import 'add_type_annotation_test.dart' as add_type_annotation;
@@ -128,6 +131,10 @@ import 'make_final_test.dart' as make_final;
 import 'make_return_type_nullable_test.dart' as make_return_type_nullable;
 import 'make_variable_not_final_test.dart' as make_variable_not_final;
 import 'make_variable_nullable_test.dart' as make_variable_nullable;
+import 'move_annotation_to_library_directive_test.dart'
+    as move_annotation_to_library_directive;
+import 'move_doc_comment_to_library_directive_test.dart'
+    as move_doc_comment_to_library_directive;
 import 'move_type_arguments_to_class_test.dart' as move_type_arguments_to_class;
 import 'organize_imports_test.dart' as organize_imports;
 import 'pubspec/test_all.dart' as pubspec;
@@ -135,12 +142,14 @@ import 'qualify_reference_test.dart' as qualify_reference;
 import 'remove_abstract_test.dart' as remove_abstract;
 import 'remove_annotation_test.dart' as remove_annotation;
 import 'remove_argument_test.dart' as remove_argument;
+import 'remove_assertion_test.dart' as remove_assertion;
 import 'remove_assignment_test.dart' as remove_assignment;
 import 'remove_await_test.dart' as remove_await;
 import 'remove_comparison_test.dart' as remove_comparison;
 import 'remove_const_test.dart' as remove_const;
 import 'remove_constructor_name_test.dart' as remove_constructor_name;
 import 'remove_dead_code_test.dart' as remove_dead_code;
+import 'remove_default_value_test.dart' as remove_default_value;
 import 'remove_deprecated_new_in_comment_reference_test.dart'
     as remove_deprecated_new_in_comment_reference;
 import 'remove_duplicate_case_test.dart' as remove_duplicate_case;
@@ -155,6 +164,8 @@ import 'remove_interpolation_braces_test.dart' as remove_interpolation_braces;
 import 'remove_leading_underscore_test.dart' as remove_leading_underscore;
 import 'remove_method_declaration_test.dart' as remove_method_declaration;
 import 'remove_name_from_combinator_test.dart' as remove_name_from_combinator;
+import 'remove_name_from_declaration_clause_test.dart'
+    as remove_name_from_declaration_clause;
 import 'remove_non_null_assertion_test.dart' as remove_non_null_assertion_test;
 import 'remove_operator_test.dart' as remove_operator;
 import 'remove_parameters_in_getter_declaration_test.dart'
@@ -163,6 +174,7 @@ import 'remove_parentheses_in_getter_invocation_test.dart'
     as remove_parentheses_in_getter_invocation;
 import 'remove_print_test.dart' as remove_print;
 import 'remove_question_mark_test.dart' as remove_question_mark;
+import 'remove_required_test.dart' as remove_required;
 import 'remove_returned_value_test.dart' as remove_returned_value;
 import 'remove_this_expression_test.dart' as remove_this_expression;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
@@ -171,6 +183,8 @@ import 'remove_unnecessary_cast_test.dart' as remove_unnecessary_cast;
 import 'remove_unnecessary_const_test.dart' as remove_unnecessary_const;
 import 'remove_unnecessary_final_test.dart' as remove_unnecessary_final;
 import 'remove_unnecessary_late_test.dart' as remove_unnecessary_late;
+import 'remove_unnecessary_library_directive_test.dart'
+    as remove_unnecessary_library_directive;
 import 'remove_unnecessary_new_test.dart' as remove_unnecessary_new;
 import 'remove_unnecessary_parentheses_test.dart'
     as remove_unnecessary_parentheses;
@@ -194,7 +208,6 @@ import 'rename_to_camel_case_test.dart' as rename_to_camel_case;
 import 'replace_Null_with_void_test.dart' as replace_null_with_void;
 import 'replace_boolean_with_bool_test.dart' as replace_boolean_with_bool;
 import 'replace_cascade_with_dot_test.dart' as replace_cascade_with_dot;
-import 'replace_colon_with_equals_test.dart' as replace_colon_with_equals;
 import 'replace_container_with_sized_box_test.dart'
     as replace_container_with_sized_box;
 import 'replace_final_with_const_test.dart' as replace_final_with_const;
@@ -222,6 +235,7 @@ import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
 import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
 import 'replace_with_var_test.dart' as replace_with_var;
 import 'sort_child_property_last_test.dart' as sort_properties_last;
+import 'sort_combinators_test.dart' as sort_combinators_test;
 import 'sort_constructor_first_test.dart' as sort_constructor_first_test;
 import 'sort_unnamed_constructor_first_test.dart'
     as sort_unnamed_constructor_first_test;
@@ -248,7 +262,9 @@ void main() {
     add_diagnostic_property_reference.main();
     add_enum_constant_test.main();
     add_eol_at_end_of_file.main();
+    add_explicit_call.main();
     add_explicit_cast.main();
+    add_extension_override.main();
     add_field_formal_parameters.main();
     add_key_to_constructors.main();
     add_late.main();
@@ -267,6 +283,7 @@ void main() {
     add_return_type.main();
     add_static.main();
     add_super_constructor_invocation.main();
+    add_super_parameter.main();
     add_switch_case_break.main();
     add_trailing_comma.main();
     add_type_annotation.main();
@@ -347,6 +364,8 @@ void main() {
     make_return_type_nullable.main();
     make_variable_not_final.main();
     make_variable_nullable.main();
+    move_annotation_to_library_directive.main();
+    move_doc_comment_to_library_directive.main();
     move_type_arguments_to_class.main();
     organize_imports.main();
     pubspec.main();
@@ -354,12 +373,14 @@ void main() {
     remove_abstract.main();
     remove_annotation.main();
     remove_argument.main();
+    remove_assertion.main();
     remove_assignment.main();
     remove_await.main();
     remove_comparison.main();
     remove_const.main();
     remove_constructor_name.main();
     remove_dead_code.main();
+    remove_default_value.main();
     remove_deprecated_new_in_comment_reference.main();
     remove_duplicate_case.main();
     remove_empty_catch.main();
@@ -372,12 +393,14 @@ void main() {
     remove_leading_underscore.main();
     remove_method_declaration.main();
     remove_name_from_combinator.main();
+    remove_name_from_declaration_clause.main();
     remove_non_null_assertion_test.main();
     remove_operator.main();
     remove_parameters_in_getter_declaration.main();
     remove_parentheses_in_getter_invocation.main();
     remove_print.main();
     remove_question_mark.main();
+    remove_required.main();
     remove_returned_value.main();
     remove_this_expression.main();
     remove_type_annotation.main();
@@ -386,6 +409,7 @@ void main() {
     remove_unnecessary_const.main();
     remove_unnecessary_final.main();
     remove_unnecessary_late.main();
+    remove_unnecessary_library_directive.main();
     remove_unnecessary_new.main();
     remove_unnecessary_parentheses.main();
     remove_unnecessary_raw_string.main();
@@ -404,7 +428,6 @@ void main() {
     rename_method_parameter.main();
     replace_boolean_with_bool.main();
     replace_cascade_with_dot.main();
-    replace_colon_with_equals.main();
     replace_container_with_sized_box.main();
     replace_final_with_const.main();
     replace_final_with_var.main();
@@ -432,6 +455,7 @@ void main() {
     replace_with_var.main();
     sort_properties_last.main();
     sort_constructor_first_test.main();
+    sort_combinators_test.main();
     sort_unnamed_constructor_first_test.main();
     update_sdk_constraints.main();
     use_const.main();

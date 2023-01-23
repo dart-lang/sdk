@@ -6,10 +6,14 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:collection/collection.dart';
 
 class FlutterRemoveWidget extends CorrectionProducer {
   @override
@@ -47,25 +51,42 @@ class FlutterRemoveWidget extends CorrectionProducer {
     } else {
       var childArgument = flutter.findChildArgument(widgetCreation);
       if (childArgument != null) {
-        await _removeChild(builder, widgetCreation, childArgument);
+        await _removeSingle(builder, widgetCreation, childArgument.expression);
+      } else {
+        var builderArgument = flutter.findBuilderArgument(widgetCreation);
+        if (builderArgument != null) {
+          await _removeBuilder(builder, widgetCreation, builderArgument);
+        }
       }
     }
   }
 
-  Future<void> _removeChild(
+  Future<void> _removeBuilder(
       ChangeBuilder builder,
       InstanceCreationExpression widgetCreation,
-      NamedExpression childArgument) async {
-    // child: ThisWidget(child: ourChild)
-    // children: [foo, ThisWidget(child: ourChild), bar]
-    await builder.addDartFileEdit(file, (builder) {
-      var childExpression = childArgument.expression;
-      var childText = utils.getNodeText(childExpression);
-      var indentOld = utils.getLinePrefix(childExpression.offset);
-      var indentNew = utils.getLinePrefix(widgetCreation.offset);
-      childText = replaceSourceIndent(childText, indentOld, indentNew);
-      builder.addSimpleReplacement(range.node(widgetCreation), childText);
-    });
+      NamedExpression builderArgument) async {
+    var builderExpression = builderArgument.expression;
+    if (builderExpression is! FunctionExpression) return;
+    var parameterElement =
+        builderExpression.parameters?.parameters.firstOrNull?.declaredElement;
+    if (parameterElement == null) return;
+
+    var visitor = _UsageFinder(parameterElement);
+    var body = builderExpression.body;
+    body.visitChildren(visitor);
+    if (visitor.used) return;
+
+    if (body is BlockFunctionBody) {
+      var statements = body.block.statements;
+      if (statements.length != 1) return;
+      var statement = statements.first;
+      if (statement is! ReturnStatement) return;
+      var expression = statement.expression;
+      if (expression == null) return;
+      await _removeSingle(builder, widgetCreation, expression);
+    } else if (body is ExpressionFunctionBody) {
+      await _removeSingle(builder, widgetCreation, body.expression);
+    }
   }
 
   Future<void> _removeChildren(
@@ -87,5 +108,33 @@ class FlutterRemoveWidget extends CorrectionProducer {
       childText = replaceSourceIndent(childText, indentOld, indentNew);
       builder.addSimpleReplacement(range.node(widgetCreation), childText);
     });
+  }
+
+  Future<void> _removeSingle(
+    ChangeBuilder builder,
+    InstanceCreationExpression widgetCreation,
+    Expression expression,
+  ) async {
+    await builder.addDartFileEdit(file, (builder) {
+      var childText = utils.getNodeText(expression);
+      var indentOld = utils.getLinePrefix(expression.offset);
+      var indentNew = utils.getLinePrefix(widgetCreation.offset);
+      childText = replaceSourceIndent(childText, indentOld, indentNew);
+      builder.addSimpleReplacement(range.node(widgetCreation), childText);
+    });
+  }
+}
+
+class _UsageFinder extends RecursiveAstVisitor<void> {
+  final Element element;
+  bool used = false;
+
+  _UsageFinder(this.element);
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.writeOrReadElement == element) {
+      used = true;
+    }
   }
 }

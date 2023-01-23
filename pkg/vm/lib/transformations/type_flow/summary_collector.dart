@@ -368,17 +368,6 @@ class _VariablesInfoCollector extends RecursiveVisitor {
     final function = node.function;
     function.accept(this);
 
-    if (function.asyncMarker == AsyncMarker.SyncYielding) {
-      // Mark parameters of synthetic async_op closures as captured
-      // to make sure their updates at yield points are taken into account.
-      for (var v in function.positionalParameters) {
-        _captureVariable(v);
-      }
-      for (var v in function.namedParameters) {
-        _captureVariable(v);
-      }
-    }
-
     activeStatements = savedActiveStatements;
     numVariablesAtActiveStatements = savedNumVariablesAtActiveStatements;
     numVariablesAtFunctionEntry = savedNumVariablesAtFunctionEntry;
@@ -608,7 +597,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   Summary createSummary(Member member,
-      {fieldSummaryType: FieldSummaryType.kInitializer}) {
+      {fieldSummaryType = FieldSummaryType.kInitializer}) {
     final String summaryName =
         "${member}${fieldSummaryType == FieldSummaryType.kFieldGuard ? " (guard)" : ""}";
     debugPrint("===== $summaryName =====");
@@ -747,7 +736,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       if (member is Constructor) {
         // Make sure instance field initializers are visited.
         for (var f in member.enclosingClass.members) {
-          if ((f is Field) && !f.isStatic && (f.initializer != null)) {
+          if ((f is Field) &&
+              !f.isStatic &&
+              !f.isLate &&
+              (f.initializer != null)) {
             _entryPointsListener.addRawCall(
                 new DirectSelector(f, callKind: CallKind.FieldInitializer));
           }
@@ -897,7 +889,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   Args<TypeExpr> _visitArguments(TypeExpr? receiver, Arguments arguments,
-      {bool passTypeArguments: false}) {
+      {bool passTypeArguments = false}) {
     final List<TypeExpr> args = <TypeExpr>[];
     if (passTypeArguments) {
       for (var type in arguments.types) {
@@ -930,7 +922,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   Parameter _declareParameter(
       String name, DartType? type, Expression? initializer,
-      {bool isReceiver: false}) {
+      {bool isReceiver = false}) {
     Type? staticType;
     if (type != null) {
       staticType = _typesBuilder.fromStaticType(type, !isReceiver);
@@ -1168,11 +1160,14 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     //  - nullable (including Null)
     //  - a type parameter (it can be instantiated with Null)
     //  - legacy Never
+    //  - a FutureOr of the above
     final nullability = type.nullability;
     return _environment.isTop(type) ||
         nullability == Nullability.nullable ||
         type is TypeParameterType ||
-        (type is NeverType && nullability == Nullability.legacy);
+        (type is NeverType && nullability == Nullability.legacy) ||
+        (type is FutureOrType &&
+            _canBeNullAfterSuccessfulIsCheck(type.typeArgument));
   }
 
   TypeExpr _makeNarrowNotNull(TreeNode node, TypeExpr arg) {
@@ -1628,6 +1623,46 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
           [node.typeArgument]);
     }
     return _staticType(node);
+  }
+
+  @override
+  TypeExpr visitRecordLiteral(RecordLiteral node) {
+    final Type receiver = _typesBuilder.recordType;
+    for (int i = 0; i < node.positional.length; ++i) {
+      final Field f = _entryPointsListener.getRecordPositionalField(i);
+      final TypeExpr value = _visit(node.positional[i]);
+      final args = Args<TypeExpr>([receiver, value]);
+      _makeCall(node,
+          DirectSelector(f, callKind: CallKind.SetFieldInConstructor), args);
+    }
+    for (var expr in node.named) {
+      final Field f = _entryPointsListener.getRecordNamedField(expr.name);
+      final TypeExpr value = _visit(expr.value);
+      final args = Args<TypeExpr>([receiver, value]);
+      _makeCall(node,
+          DirectSelector(f, callKind: CallKind.SetFieldInConstructor), args);
+    }
+    callSites.remove(node);
+    return receiver;
+  }
+
+  @override
+  TypeExpr visitRecordIndexGet(RecordIndexGet node) {
+    final receiver = _visit(node.receiver);
+    final Field field =
+        _entryPointsListener.getRecordPositionalField(node.index);
+    final args = Args<TypeExpr>([receiver]);
+    return _makeCall(
+        node, DirectSelector(field, callKind: CallKind.PropertyGet), args);
+  }
+
+  @override
+  TypeExpr visitRecordNameGet(RecordNameGet node) {
+    final receiver = _visit(node.receiver);
+    final Field field = _entryPointsListener.getRecordNamedField(node.name);
+    final args = Args<TypeExpr>([receiver]);
+    return _makeCall(
+        node, DirectSelector(field, callKind: CallKind.PropertyGet), args);
   }
 
   @override
@@ -2581,6 +2616,23 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
           constant);
     }
     return _getStaticType(constant);
+  }
+
+  @override
+  Type visitRecordConstant(RecordConstant constant) {
+    final epl = summaryCollector._entryPointsListener;
+    final Type receiver = summaryCollector._typesBuilder.recordType;
+    for (int i = 0; i < constant.positional.length; ++i) {
+      final Field f = epl.getRecordPositionalField(i);
+      final Type value = typeFor(constant.positional[i]);
+      epl.addFieldUsedInConstant(f, receiver, value);
+    }
+    constant.named.forEach((String fieldName, Constant fieldValue) {
+      final Field f = epl.getRecordNamedField(fieldName);
+      final Type value = typeFor(fieldValue);
+      epl.addFieldUsedInConstant(f, receiver, value);
+    });
+    return receiver;
   }
 
   @override

@@ -4,12 +4,11 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/imported_elements_computer.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_context.dart';
-import '../../services/refactoring/abstract_rename.dart';
+import '../../services/refactoring/legacy/abstract_rename.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -470,8 +469,7 @@ bool randomBool() {
   Future<void> _computeElements(String content, String selection) async {
     // TODO(brianwilkerson) Automatically extract the selection from the content.
     newFile(sourcePath, content);
-    var result =
-        await (await session).getResolvedUnit(sourcePath) as ResolvedUnitResult;
+    var result = await getResolvedUnit(sourcePath);
     var computer = ImportedElementsComputer(
         result.unit, content.indexOf(selection), selection.length);
     importedElements = computer.compute();

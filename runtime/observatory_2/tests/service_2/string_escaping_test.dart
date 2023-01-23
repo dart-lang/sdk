@@ -53,7 +53,7 @@ void script() {
   nullInTheMiddle = "There are four\u0000 words.";
   escapedUnicodeEscape = "Should not be A: \\u0041";
 
-  // A surrogate pair will cross the preferred truncation boundry.
+  // A surrogate pair will cross the preferred truncation boundary.
   longStringEven = "..";
   for (int i = 0; i < 512; i++) longStringEven += "𝄞";
   longStringOdd = ".";

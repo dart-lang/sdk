@@ -8,9 +8,9 @@
 
 import 'dart:convert';
 
+import 'info.dart';
 import 'src/binary/sink.dart';
 import 'src/binary/source.dart';
-import 'info.dart';
 
 void encode(AllInfo info, Sink<List<int>> sink) {
   BinaryPrinter(BinarySink(sink)).visitAll(info);
@@ -75,6 +75,7 @@ class BinaryPrinter implements InfoVisitor<void> {
   void visitProgram(ProgramInfo info) {
     visitFunction(info.entrypoint);
     sink.writeInt(info.size);
+    sink.writeString(info.ramUsage);
     sink.writeStringOrNull(info.dart2jsVersion);
     writeDate(info.compilationMoment);
     writeDuration(info.compilationDuration);
@@ -116,6 +117,7 @@ class BinaryPrinter implements InfoVisitor<void> {
       sink.writeBool(info.isAbstract);
       sink.writeList(info.fields, visitField);
       sink.writeList(info.functions, visitFunction);
+      sink.writeList(info.supers, visitClass);
     });
   }
 
@@ -141,7 +143,7 @@ class BinaryPrinter implements InfoVisitor<void> {
     });
   }
 
-  _visitCodeSpan(CodeSpan code) {
+  void _visitCodeSpan(CodeSpan code) {
     sink.writeIntOrNull(code.start);
     sink.writeIntOrNull(code.end);
     sink.writeStringOrNull(code.text);
@@ -265,6 +267,9 @@ class BinaryReader {
         return readTypedef();
       case InfoKind.closure:
         return readClosure();
+      case InfoKind.package:
+        throw StateError('Binary serialization is not supported for '
+            'PackageInfo');
     }
   }
 
@@ -304,7 +309,8 @@ class BinaryReader {
     info.outputUnits.addAll(source.readList(readOutput));
 
     Map<String, Map<String, dynamic>> map =
-        jsonDecode(source.readString()).cast<String, Map<String, dynamic>>();
+        (jsonDecode(source.readString()) as Map)
+            .cast<String, Map<String, dynamic>>();
     for (final library in map.values) {
       if (library['imports'] != null) {
         // The importMap needs to be typed as <String, List<String>>, but the
@@ -324,6 +330,7 @@ class BinaryReader {
   ProgramInfo readProgram() {
     final entrypoint = readFunction();
     final size = source.readInt();
+    final ramUsage = source.readString();
     final dart2jsVersion = source.readStringOrNull();
     final compilationMoment = readDate();
     final compilationDuration = readDuration();
@@ -338,6 +345,7 @@ class BinaryReader {
     return ProgramInfo(
         entrypoint: entrypoint,
         size: size,
+        ramUsage: ramUsage,
         dart2jsVersion: dart2jsVersion,
         compilationMoment: compilationMoment,
         compilationDuration: compilationDuration,
@@ -369,7 +377,7 @@ class BinaryReader {
         info.classTypes.addAll(source.readList(readClassType));
         info.typedefs.addAll(source.readList(readTypedef));
 
-        setParent(BasicInfo child) => child.parent = info;
+        LibraryInfo setParent(BasicInfo child) => child.parent = info;
         info.topLevelFunctions.forEach(setParent);
         info.topLevelVariables.forEach(setParent);
         info.classes.forEach(setParent);
@@ -384,8 +392,9 @@ class BinaryReader {
         info.isAbstract = source.readBool();
         info.fields.addAll(source.readList(readField));
         info.functions.addAll(source.readList(readFunction));
+        info.supers.addAll(source.readList(readClass));
 
-        setParent(BasicInfo child) => child.parent = info;
+        ClassInfo setParent(BasicInfo child) => child.parent = info;
         info.fields.forEach(setParent);
         info.functions.forEach(setParent);
         return info;

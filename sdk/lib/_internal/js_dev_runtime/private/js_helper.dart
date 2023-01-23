@@ -15,7 +15,8 @@ import 'dart:_internal'
         EfficientLengthIterable,
         MappedIterable,
         IterableElementError,
-        SubListIterable;
+        SubListIterable,
+        patch;
 
 import 'dart:_native_typed_data';
 import 'dart:_runtime' as dart;
@@ -28,12 +29,6 @@ part 'native_helper.dart';
 part 'regexp_helper.dart';
 part 'string_helper.dart';
 part 'js_rti.dart';
-
-class _Patch {
-  const _Patch();
-}
-
-const _Patch patch = _Patch();
 
 /// Adapts a JS `[Symbol.iterator]` to a Dart `get iterator`.
 ///
@@ -483,9 +478,11 @@ class Primitives {
 Error diagnoseIndexError(indexable, int index) {
   int length = indexable.length;
   // The following returns the same error that would be thrown by calling
-  // [RangeError.checkValidIndex] with no optional parameters provided.
+  // [IndexError.check] with no optional parameters
+  // provided.
   if (index < 0 || index >= length) {
-    return RangeError.index(index, indexable, 'index', null, length);
+    return IndexError.withLength(index, length,
+        indexable: indexable, name: 'index');
   }
   // The above should always match, but if it does not, use the following.
   return RangeError.value(index, 'index');

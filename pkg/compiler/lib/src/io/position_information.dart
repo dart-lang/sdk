@@ -841,10 +841,10 @@ enum StepKind {
 
 /// Listener for the [JavaScriptTracer].
 abstract class TraceListener {
-  /// Called before [root] node is procesed by the [JavaScriptTracer].
+  /// Called before [root] node is processed by the [JavaScriptTracer].
   void onStart(js.Node root) {}
 
-  /// Called after [root] node has been procesed by the [JavaScriptTracer].
+  /// Called after [root] node has been processed by the [JavaScriptTracer].
   void onEnd(js.Node root) {}
 
   /// Called when a branch of the given [kind] is started. [value] is provided

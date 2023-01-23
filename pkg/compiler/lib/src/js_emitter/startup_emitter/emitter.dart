@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.js_emitter.startup_emitter;
 
 import '../../../compiler_api.dart' as api;
@@ -18,9 +16,9 @@ import '../../js/js.dart' as js;
 import '../../js_backend/constant_emitter.dart';
 import '../../js_backend/namer.dart';
 import '../../js_backend/runtime_types_new.dart' show RecipeEncoder;
+import '../../js_model/js_world.dart' show JClosedWorld;
 import '../../options.dart';
 import '../../universe/codegen_world_builder.dart' show CodegenWorld;
-import '../../world.dart' show JClosedWorld;
 import '../js_emitter.dart' show CodeEmitterTask, Emitter, ModularEmitter;
 import '../model.dart';
 import '../native_emitter.dart';
@@ -71,7 +69,7 @@ abstract class ModularEmitterBase implements ModularEmitter {
   @override
   js.PropertyAccess prototypeAccess(ClassEntity element) {
     js.Expression constructor = constructorAccess(element);
-    return js.js('#.prototype', constructor);
+    return js.js('#.prototype', constructor) as js.PropertyAccess;
   }
 
   @override
@@ -103,28 +101,27 @@ class ModularEmitterImpl extends ModularEmitterBase {
   final CodegenRegistry _registry;
   final ModularConstantEmitter _constantEmitter;
 
-  ModularEmitterImpl(
-      ModularNamer namer, this._registry, CompilerOptions options)
-      : _constantEmitter = ModularConstantEmitter(options, namer),
-        super(namer);
+  ModularEmitterImpl(super.namer, this._registry, CompilerOptions options)
+      : _constantEmitter = ModularConstantEmitter(options, namer);
 
   @override
   js.Expression constantReference(ConstantValue constant) {
     if (constant is FunctionConstantValue) {
       return staticClosureAccess(constant.element);
     }
-    js.Expression expression = _constantEmitter.generate(constant);
+    js.Expression? expression = _constantEmitter.generate(constant);
     if (expression != null) {
       return expression;
     }
-    expression = ModularExpression(ModularExpressionKind.constant, constant);
-    _registry.registerModularExpression(expression);
-    return expression;
+    final modularExpression =
+        ModularExpression(ModularExpressionKind.constant, constant);
+    _registry.registerModularExpression(modularExpression);
+    return modularExpression;
   }
 
   @override
   js.Expression generateEmbeddedGlobalAccess(String global) {
-    js.Expression expression =
+    final expression =
         ModularExpression(ModularExpressionKind.embeddedGlobalAccess, global);
     _registry.registerModularExpression(expression);
     return expression;
@@ -136,23 +133,23 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
   final JClosedWorld _closedWorld;
   final RecipeEncoder _rtiRecipeEncoder;
   final CodeEmitterTask _task;
-  ModelEmitter _emitter;
+  late final ModelEmitter _emitter;
   final NativeEmitter _nativeEmitter;
 
   @override
-  Program programForTesting;
+  Program? programForTesting;
 
   @override
-  List<PreFragment> preDeferredFragmentsForTesting;
+  List<PreFragment>? preDeferredFragmentsForTesting;
 
   @override
-  Set<OutputUnit> omittedOutputUnits;
+  late final Set<OutputUnit> omittedOutputUnits;
 
   @override
-  Map<String, List<FinalizedFragment>> finalizedFragmentsToLoad;
+  late final Map<String, List<FinalizedFragment>> finalizedFragmentsToLoad;
 
   @override
-  FragmentMerger fragmentMerger;
+  late final FragmentMerger fragmentMerger;
 
   EmitterImpl(
       CompilerOptions options,
@@ -181,9 +178,6 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
         _rtiRecipeEncoder,
         shouldGenerateSourceMap);
   }
-
-  @override
-  Namer get _namer => super._namer;
 
   @override
   int emitProgram(ProgramBuilder programBuilder, CodegenWorld codegenWorld) {
@@ -250,6 +244,6 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
     if (_emitter.omittedOutputUnits.contains(unit)) {
       return 0;
     }
-    return _emitter.emittedOutputBuffers[unit].length;
+    return _emitter.emittedOutputBuffers[unit]!.length;
   }
 }

@@ -126,6 +126,24 @@ class AbstractContextTest with ResourceProviderMixin {
     newFile(path, config.toContent(toUriStr: toUriStr));
   }
 
+  /// Write an analysis options file based on the given arguments.
+  /// TODO(asashour) Use AnalysisOptionsFileConfig
+  void writeTestPackageAnalysisOptionsFile({
+    List<String>? lints,
+  }) {
+    var buffer = StringBuffer();
+
+    if (lints != null) {
+      buffer.writeln('linter:');
+      buffer.writeln('  rules:');
+      for (var lint in lints) {
+        buffer.writeln('    - $lint');
+      }
+    }
+
+    newFile('$testPackageRootPath/analysis_options.yaml', buffer.toString());
+  }
+
   void writeTestPackageConfig({
     PackageConfigFileBuilder? config,
     String? languageVersion,

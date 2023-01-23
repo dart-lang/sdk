@@ -18,7 +18,6 @@ import 'package:kernel/ast.dart'
         Arguments,
         Class,
         Component,
-        DartType,
         Expression,
         FunctionNode,
         Library,
@@ -29,7 +28,6 @@ import 'package:kernel/ast.dart'
         TypeParameter,
         VariableDeclaration,
         VariableGet,
-        VoidType,
         defaultLanguageVersion,
         dummyLibraryDependency;
 import 'package:kernel/class_hierarchy.dart';
@@ -78,7 +76,6 @@ Future<void> main() async {
     ClassHierarchy hierarchy = new ClassHierarchy(component, coreTypes);
 
     Arguments arguments = new Arguments(<Expression>[new StringLiteral("arg")]);
-    DartType type = const VoidType();
     Expression expression =
         new VariableGet(new VariableDeclaration("expression"));
     Expression index = new VariableGet(new VariableDeclaration("index"));
@@ -153,10 +150,8 @@ Future<void> main() async {
             helper, token, generator, expression, assignmentOperator));
     check("DelayedPostfixIncrement(offset: 4, binaryOperator: +)",
         new DelayedPostfixIncrement(helper, token, generator, binaryOperator));
-    check(
-        "VariableUseGenerator(offset: 4, variable: dynamic #t1;\n,"
-        " promotedType: void)",
-        new VariableUseGenerator(helper, token, variable, type));
+    check("VariableUseGenerator(offset: 4, variable: dynamic #t1;\n)",
+        new VariableUseGenerator(helper, token, variable));
     check(
         "PropertyAccessGenerator(offset: 4,"
         " receiver: expression, name: bar)",

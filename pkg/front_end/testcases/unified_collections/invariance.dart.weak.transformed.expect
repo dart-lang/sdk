@@ -34,19 +34,19 @@ static method main() → dynamic {
       #t1.{core::List::add}{Invariant}(2){(core::int*) →* void};
   } =>#t1;
   core::Set<core::int*>* set1 = block {
-    final core::Set<core::int*>* #t6 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t6 = new col::_Set::•<core::int*>();
     #t6.{core::Set::add}{Invariant}(0){(core::int*) →* core::bool*};
   } =>#t6;
   core::Set<core::num*>* set2 = block {
-    final core::Set<core::num*>* #t7 = new col::_CompactLinkedHashSet::•<core::num*>();
+    final core::Set<core::num*>* #t7 = new col::_Set::•<core::num*>();
     #t7.{core::Set::add}{Invariant}(0){(core::num*) →* core::bool*};
   } =>#t7;
   dynamic set3 = block {
-    final core::Set<core::int*>* #t8 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t8 = new col::_Set::•<core::int*>();
     #t8.{core::Set::add}{Invariant}(0){(core::int*) →* core::bool*};
   } =>#t8;
   core::Set<core::int*>* set = block {
-    final core::Set<core::int*>* #t9 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t9 = new col::_Set::•<core::int*>();
     #t9.{core::Set::add}{Invariant}(0){(core::int*) →* core::bool*};
     #t9.{core::Set::addAll}{Invariant}(set1){(core::Iterable<core::int*>*) →* void};
     {

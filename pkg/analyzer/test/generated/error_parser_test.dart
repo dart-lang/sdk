@@ -852,7 +852,7 @@ class Foo {
     expect(semicolon, isNotNull);
     expect(semicolon.isSynthetic, isTrue);
     ClassDeclaration clazz = unit.declarations[0] as ClassDeclaration;
-    expect(clazz.name.name, 'A');
+    expect(clazz.name.lexeme, 'A');
   }
 
   void test_expectedToken_semicolonMissingAfterExpression() {
@@ -888,7 +888,7 @@ class Foo {
     expect(semicolon, isNotNull);
     expect(semicolon.isSynthetic, isTrue);
     ClassDeclaration clazz = unit.declarations[0] as ClassDeclaration;
-    expect(clazz.name.name, 'A');
+    expect(clazz.name.lexeme, 'A');
   }
 
   void test_expectedToken_whileMissingInDoStatement() {
@@ -1445,8 +1445,8 @@ class Wrong<T> {
     expectNotNullIfNoErrors(statement);
     listener.assertErrors([
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1)
+      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1),
     ]);
   }
 
@@ -2147,7 +2147,7 @@ class Wrong<T> {
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 1),
       expectedError(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 6, 1)
     ]);
-    expect(parameter.identifier, isNotNull);
+    expect(parameter.name, isNotNull);
   }
 
   void test_missingNameForNamedParameter_equals() {
@@ -2159,7 +2159,7 @@ class Wrong<T> {
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 1),
       expectedError(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 6, 1)
     ]);
-    expect(parameter.identifier, isNotNull);
+    expect(parameter.name, isNotNull);
   }
 
   void test_missingNameForNamedParameter_noDefault() {
@@ -2169,13 +2169,7 @@ class Wrong<T> {
     expectNotNullIfNoErrors(parameter);
     listener.assertErrors(
         [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 1)]);
-    expect(parameter.identifier, isNotNull);
-  }
-
-  void test_missingNameInLibraryDirective() {
-    CompilationUnit unit = parseCompilationUnit("library;",
-        errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 7, 1)]);
-    expect(unit, isNotNull);
+    expect(parameter.name, isNotNull);
   }
 
   void test_missingNameInPartOfDirective() {
@@ -2835,6 +2829,18 @@ main() {
   void test_unexpectedToken_semicolonBetweenCompilationUnitMembers() {
     parseCompilationUnit("int x; ; int y;",
         errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 1)]);
+  }
+
+  void test_unnamedLibraryDirective() {
+    CompilationUnit unit = parseCompilationUnit("library;",
+        featureSet: FeatureSets.language_2_18,
+        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 0, 7)]);
+    expect(unit, isNotNull);
+  }
+
+  void test_unnamedLibraryDirective_enabled() {
+    CompilationUnit unit = parseCompilationUnit("library;");
+    expect(unit, isNotNull);
   }
 
   void test_unterminatedString_at_eof() {

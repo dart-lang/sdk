@@ -111,6 +111,62 @@ main() {
     ]);
   }
 
+  test_record_notPrimitiveEqual_named() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+  operator ==(other) => false;
+}
+
+const x = {
+  (a: 0, b: const A()),
+};
+''', [
+      error(CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 71,
+          20),
+    ]);
+  }
+
+  test_record_notPrimitiveEqual_positional() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+  operator ==(other) => false;
+}
+
+const x = {
+  (0, const A()),
+};
+''', [
+      error(CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 71,
+          14),
+    ]);
+  }
+
+  test_record_primitiveEqual_named() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A();
+}
+
+const x = {
+  (a: 0, b: const A()),
+};
+''');
+  }
+
+  test_record_primitiveEqual_positional() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A();
+}
+
+const x = {
+  (0, const A()),
+};
+''');
+  }
+
   test_spread_intoList_list() async {
     await assertNoErrorsInCode(r'''
 class A {

@@ -51,8 +51,8 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
           withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final assist = findEditAction(
         codeActions,
         CodeActionKind('refactor.add.showCombinator'),
@@ -90,8 +90,8 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final assistAction = findEditAction(
         codeActions,
         CodeActionKind('refactor.add.showCombinator'),
@@ -128,7 +128,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
       _RawParams('''
       {
         "textDocument": {
-          "uri": "${mainFileUri.toString()}"
+          "uri": "$mainFileUri"
         },
         "context": {
           "diagnostics": []
@@ -157,6 +157,48 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
         ]));
   }
 
+  Future<void> test_flutterWrap_selection() async {
+    const content = '''
+import 'package:flutter/widgets.dart';
+Widget build() {
+  return Te^xt('');
+}
+    ''';
+
+    // For testing, the snippet will be inserted literally into the text, as
+    // this requires some magic on the client. The expected text should
+    // therefore contain '$0' at the location of the selection/final tabstop.
+    const expectedContent = r'''
+import 'package:flutter/widgets.dart';
+Widget build() {
+  return Center($0child: Text(''));
+}
+    ''';
+
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
+      workspaceCapabilities:
+          withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
+      experimentalCapabilities: {
+        'snippetTextEdit': true,
+      },
+    );
+
+    final codeActions = await getCodeActions(mainFileUri,
+        position: positionFromMarker(content));
+    final assist = findEditAction(codeActions,
+        CodeActionKind('refactor.flutter.wrap.center'), 'Wrap with Center')!;
+
+    // Ensure applying the changes will give us the expected content.
+    final contents = {
+      mainFilePath: withoutMarkers(content),
+    };
+    applyDocumentChanges(contents, assist.edit!.documentChanges!);
+    expect(contents[mainFilePath], equals(expectedContent));
+  }
+
   Future<void> test_nonDartFile() async {
     newFile(pubspecFilePath, simplePubspecContent);
     await initialize(
@@ -165,7 +207,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     );
 
     final codeActions =
-        await getCodeActions(pubspecFileUri.toString(), range: startOfDocRange);
+        await getCodeActions(pubspecFileUri, range: startOfDocRange);
     expect(codeActions, isEmpty);
   }
 
@@ -198,8 +240,8 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final assist = findEditAction(codeActions,
         CodeActionKind('refactor.fooToBar'), "Change 'foo' to 'bar'")!;
 
@@ -235,8 +277,8 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeActionTitles = codeActions.map((action) =>
         action.map((command) => command.title, (action) => action.title));
 
@@ -297,7 +339,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
       },
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final assist = findEditAction(
         codeActions,
@@ -369,7 +411,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
       },
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final assist = findEditAction(
         codeActions,
@@ -430,7 +472,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
           withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final assist = findEditAction(
         codeActions,
@@ -472,7 +514,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
           withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final names = codeActions.map(
       (e) => e.map((command) => command.title, (action) => action.title),
@@ -516,8 +558,8 @@ void f() {
       },
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final assist = findEditAction(codeActions,
         CodeActionKind('refactor.surround.if'), "Surround with 'if'")!;
 

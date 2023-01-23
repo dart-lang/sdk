@@ -84,15 +84,17 @@ class NullabilityEdge implements EdgeInfo {
   final String description;
 
   /// Whether this edge is the result of an uninitialized variable declaration.
-  final bool? isUninit;
+  final bool isUninit;
 
   /// Whether this edge is the result of an assignment within the test package's
   /// `setUp` function.
-  final bool? isSetupAssignment;
+  final bool isSetupAssignment;
 
   NullabilityEdge._(
       this.destinationNode, this.upstreamNodes, this._kind, this.description,
-      {this.codeReference, this.isUninit, this.isSetupAssignment});
+      {this.codeReference,
+      this.isUninit = false,
+      this.isSetupAssignment = false});
 
   @override
   Iterable<NullabilityNode?> get guards => upstreamNodes.skip(1);
@@ -964,11 +966,11 @@ class _PropagationState {
         var edge = step.edge;
         if (!edge.isTriggered) continue;
         var node = edge.destinationNode;
-        if (edge.isUninit! && !node.isNullable) {
+        if (edge.isUninit && !node.isNullable) {
           // [edge] is an edge from always to an uninitialized variable
           // declaration.
           var isSetupAssigned = node.upstreamEdges
-              .any((e) => e is NullabilityEdge && e.isSetupAssignment!);
+              .any((e) => e is NullabilityEdge && e.isSetupAssignment);
 
           // Whether all downstream edges go to nodes with non-null intent.
           var allDownstreamHaveNonNullIntent = false;

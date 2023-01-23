@@ -117,7 +117,7 @@ abstract class CommonWebSocketVM extends VM {
   Future<String> get onDisconnect => _disconnected.future;
   bool get isDisconnected => _disconnected.isCompleted;
 
-  void disconnect({String reason: 'WebSocket closed'}) {
+  void disconnect({String reason = 'WebSocket closed'}) {
     if (_hasInitiatedConnect) {
       if (_webSocket != null) {
         _webSocket!.close();

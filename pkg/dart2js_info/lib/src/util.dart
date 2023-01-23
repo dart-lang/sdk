@@ -149,9 +149,10 @@ String? libraryGroupName(Info info) {
 }
 
 /// Produce a string containing [value] padded with white space up to [n] chars.
-pad(value, n, {bool right = false}) {
+String pad(value, n, {bool right = false}) {
   var s = '$value';
   if (s.length >= n) return s;
+  // ignore: avoid_dynamic_calls
   var pad = ' ' * (n - s.length);
   return right ? '$s$pad' : '$pad$s';
 }

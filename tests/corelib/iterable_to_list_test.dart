@@ -69,7 +69,7 @@ testIterable(Iterable iterable, List expected, [element, int depth = 0]) {
   }
 }
 
-test(Iterable iterable, List expected, element, {bool growable: true}) {
+test(Iterable iterable, List expected, element, {bool growable = true}) {
   var list = iterable.toList(growable: growable);
   Expect.listEquals(expected, list);
   Expect.equals(expected is List<int>, list is List<int>, "int");

@@ -7,7 +7,7 @@ void main() {
     ;
   }
 
-  onX();
+  onX(42);
 }
 
-void onX() {}
+void onX(e) {}

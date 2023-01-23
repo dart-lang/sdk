@@ -82,7 +82,7 @@ abstract class CompletionMetricsComputer {
           context,
         );
 
-        await removeOverlay(filePath);
+        await removeOverlay(context, filePath);
       }
       progress.tick();
     }
@@ -107,7 +107,7 @@ abstract class CompletionMetricsComputer {
   );
 
   /// Removes the overlay which has been applied to [filePath].
-  Future<void> removeOverlay(String filePath);
+  Future<void> removeOverlay(AnalysisContext context, String filePath);
 
   /// Resolves all analyzed files within [context].
   Future<List<ResolvedUnitResult>> resolveAnalyzedFiles({

@@ -671,6 +671,21 @@ void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
       /*allow_return=*/false, perform_runtime_call);
 }
 
+void StubCodeCompiler::GenerateWriteError(Assembler* assembler,
+                                          bool with_fpu_regs) {
+  auto perform_runtime_call = [&]() {
+    __ CallRuntime(kWriteErrorRuntimeEntry, /*argument_count=*/0);
+    __ Breakpoint();
+  };
+
+  GenerateSharedStubGeneric(
+      assembler, /*save_fpu_registers=*/with_fpu_regs,
+      with_fpu_regs
+          ? target::Thread::write_error_shared_with_fpu_regs_stub_offset()
+          : target::Thread::write_error_shared_without_fpu_regs_stub_offset(),
+      /*allow_return=*/false, perform_runtime_call);
+}
+
 // Input parameters:
 //   RSP : points to return address.
 //   RSP + 8 : address of return value.
@@ -1913,17 +1928,17 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
     // Get card table.
     __ Bind(&remember_card);
     __ movq(TMP, RDX);                              // Object.
-    __ andq(TMP, Immediate(target::kOldPageMask));  // OldPage.
-    __ cmpq(Address(TMP, target::OldPage::card_table_offset()), Immediate(0));
+    __ andq(TMP, Immediate(target::kPageMask));     // Page.
+    __ cmpq(Address(TMP, target::Page::card_table_offset()), Immediate(0));
     __ j(EQUAL, &remember_card_slow, Assembler::kNearJump);
 
     // Dirty the card.
     __ subq(R13, TMP);  // Offset in page.
     __ movq(TMP,
-            Address(TMP, target::OldPage::card_table_offset()));  // Card table.
+            Address(TMP, target::Page::card_table_offset()));  // Card table.
     __ shrq(
         R13,
-        Immediate(target::OldPage::kBytesPerCardLog2));  // Index in card table.
+        Immediate(target::Page::kBytesPerCardLog2));  // Index in card table.
     __ movb(Address(TMP, R13, TIMES_1, 0), Immediate(1));
     __ ret();
 
@@ -2138,9 +2153,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
       !target::Class::TraceAllocation(cls) &&
       target::SizeFitsInSizeTag(instance_size)) {
     if (is_cls_parameterized) {
-      // TODO(41974): Assign all allocation stubs to the root loading unit?
-      if (false &&
-          !IsSameObject(NullObject(),
+      if (!IsSameObject(NullObject(),
                         CastHandle<Object>(allocat_object_parametrized))) {
         __ GenerateUnRelocatedPcRelativeTailCall();
         unresolved_calls->Add(new UnresolvedPcRelativeCall(
@@ -2151,9 +2164,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
                            allocate_object_parameterized_entry_point_offset()));
       }
     } else {
-      // TODO(41974): Assign all allocation stubs to the root loading unit?
-      if (false &&
-          !IsSameObject(NullObject(), CastHandle<Object>(allocate_object))) {
+      if (!IsSameObject(NullObject(), CastHandle<Object>(allocate_object))) {
         __ GenerateUnRelocatedPcRelativeTailCall();
         unresolved_calls->Add(new UnresolvedPcRelativeCall(
             __ CodeSize(), allocate_object, /*is_tail_call=*/true));
@@ -3580,117 +3591,6 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ movq(RCX, FieldAddress(CODE_REG, target::Code::entry_point_offset(
                                           CodeEntryKind::kMonomorphic)));
   __ jmp(RCX);
-}
-
-// Instantiate type arguments from instantiator and function type args.
-// RBX: uninstantiated type arguments.
-// RDX: instantiator type arguments.
-// RCX: function type arguments.
-// Returns instantiated type arguments in RAX.
-void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
-    Assembler* assembler) {
-  // Lookup cache before calling runtime.
-  __ LoadCompressed(RAX, compiler::FieldAddress(
-                             InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                             target::TypeArguments::instantiations_offset()));
-  __ leaq(RAX, compiler::FieldAddress(RAX, Array::data_offset()));
-
-  // The instantiations cache is initialized with Object::zero_array() and is
-  // therefore guaranteed to contain kNoInstantiator. No length check needed.
-  compiler::Label loop, next, found, call_runtime;
-  __ Bind(&loop);
-
-  // Use load-acquire to test for sentinel, if we found non-sentinel it is safe
-  // to access the other entries. If we found a sentinel we go to runtime.
-  __ LoadAcquireCompressed(
-      RDI, RAX,
-      TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
-          target::kCompressedWordSize);
-  __ CompareImmediate(RDI, Smi::RawValue(TypeArguments::kNoInstantiator),
-                      kObjectBytes);
-  __ j(EQUAL, &call_runtime, compiler::Assembler::kNearJump);
-
-  __ cmpq(RDI, InstantiationABI::kInstantiatorTypeArgumentsReg);
-  __ j(NOT_EQUAL, &next, compiler::Assembler::kNearJump);
-  __ LoadCompressed(
-      R10, compiler::Address(
-               RAX, TypeArguments::Instantiation::kFunctionTypeArgsIndex *
-                        target::kCompressedWordSize));
-  __ cmpq(R10, InstantiationABI::kFunctionTypeArgumentsReg);
-  __ j(EQUAL, &found, compiler::Assembler::kNearJump);
-  __ Bind(&next);
-  __ addq(RAX, compiler::Immediate(TypeArguments::Instantiation::kSizeInWords *
-                                   target::kCompressedWordSize));
-  __ jmp(&loop);
-
-  // Instantiate non-null type arguments.
-  // A runtime call to instantiate the type arguments is required.
-  __ Bind(&call_runtime);
-  __ EnterStubFrame();
-  __ PushObject(Object::null_object());  // Make room for the result.
-  __ pushq(InstantiationABI::kUninstantiatedTypeArgumentsReg);
-  __ pushq(InstantiationABI::kInstantiatorTypeArgumentsReg);
-  __ pushq(InstantiationABI::kFunctionTypeArgumentsReg);
-  __ CallRuntime(kInstantiateTypeArgumentsRuntimeEntry, 3);
-  __ Drop(3);  // Drop 2 type vectors, and uninstantiated type.
-  __ popq(InstantiationABI::kResultTypeArgumentsReg);
-  __ LeaveStubFrame();
-  __ ret();
-
-  __ Bind(&found);
-  __ LoadCompressed(
-      InstantiationABI::kResultTypeArgumentsReg,
-      compiler::Address(
-          RAX, TypeArguments::Instantiation::kInstantiatedTypeArgsIndex *
-                   target::kCompressedWordSize));
-  __ ret();
-}
-
-void StubCodeCompiler::
-    GenerateInstantiateTypeArgumentsMayShareInstantiatorTAStub(
-        Assembler* assembler) {
-  // Return the instantiator type arguments if its nullability is compatible for
-  // sharing, otherwise proceed to instantiation cache lookup.
-  compiler::Label cache_lookup;
-  __ LoadCompressedSmi(
-      RAX,
-      compiler::FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                             target::TypeArguments::nullability_offset()));
-  __ LoadCompressedSmi(RDI, compiler::FieldAddress(
-                                InstantiationABI::kInstantiatorTypeArgumentsReg,
-                                target::TypeArguments::nullability_offset()));
-  __ andq(RDI, RAX);
-  __ cmpq(RDI, RAX);
-  __ j(NOT_EQUAL, &cache_lookup, compiler::Assembler::kNearJump);
-  __ movq(InstantiationABI::kResultTypeArgumentsReg,
-          InstantiationABI::kInstantiatorTypeArgumentsReg);
-  __ ret();
-
-  __ Bind(&cache_lookup);
-  GenerateInstantiateTypeArgumentsStub(assembler);
-}
-
-void StubCodeCompiler::GenerateInstantiateTypeArgumentsMayShareFunctionTAStub(
-    Assembler* assembler) {
-  // Return the function type arguments if its nullability is compatible for
-  // sharing, otherwise proceed to instantiation cache lookup.
-  compiler::Label cache_lookup;
-  __ LoadCompressedSmi(
-      RAX,
-      compiler::FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                             target::TypeArguments::nullability_offset()));
-  __ LoadCompressedSmi(
-      RDI, compiler::FieldAddress(InstantiationABI::kFunctionTypeArgumentsReg,
-                                  target::TypeArguments::nullability_offset()));
-  __ andq(RDI, RAX);
-  __ cmpq(RDI, RAX);
-  __ j(NOT_EQUAL, &cache_lookup, compiler::Assembler::kNearJump);
-  __ movq(InstantiationABI::kResultTypeArgumentsReg,
-          InstantiationABI::kFunctionTypeArgumentsReg);
-  __ ret();
-
-  __ Bind(&cache_lookup);
-  GenerateInstantiateTypeArgumentsStub(assembler);
 }
 
 static ScaleFactor GetScaleFactor(intptr_t size) {

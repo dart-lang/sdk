@@ -2139,6 +2139,30 @@ TEST_CASE(DartAPI_TypedDataViewListIsTypedData) {
   EXPECT_VALID(view_obj);
   // Test that the API considers it a TypedData object.
   EXPECT(Dart_IsTypedData(view_obj));
+  EXPECT_EQ(Dart_TypedData_kInt8, Dart_GetTypeOfTypedData(view_obj));
+}
+
+TEST_CASE(DartAPI_UnmodifiableTypedDataViewListIsTypedData) {
+  const int kSize = 1000;
+
+  const char* kScriptChars =
+      "import 'dart:typed_data';\n"
+      "List testMain(int size) {\n"
+      "  var a = new Int8List(size);\n"
+      "  var view = new UnmodifiableInt8ListView(a);\n"
+      "  return view;\n"
+      "}\n";
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  // Create a typed data view object.
+  Dart_Handle dart_args[1];
+  dart_args[0] = Dart_NewInteger(kSize);
+  Dart_Handle view_obj = Dart_Invoke(lib, NewString("testMain"), 1, dart_args);
+  EXPECT_VALID(view_obj);
+  // Test that the API considers it a TypedData object.
+  EXPECT(Dart_IsTypedData(view_obj));
+  EXPECT_EQ(Dart_TypedData_kInt8, Dart_GetTypeOfTypedData(view_obj));
 }
 
 TEST_CASE(DartAPI_TypedDataAccess) {
@@ -2760,6 +2784,59 @@ TEST_CASE(DartAPI_TypedDataViewDirectAccessVerified) {
   TestTypedDataViewDirectAccess();
 }
 
+static void TestUnmodifiableTypedDataViewDirectAccess() {
+  const char* kScriptChars =
+      "import 'dart:typed_data';\n"
+      "List main() {"
+      "  var list = new Int8List(100);"
+      "  for (var i = 0; i < 100; i++) {"
+      "    list[i] = i;"
+      "  }"
+      "  return new UnmodifiableInt8ListView(list);"
+      "}\n";
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  // Test with a typed data view object.
+  Dart_Handle view_obj;
+  view_obj = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(view_obj);
+
+  const int kLength = 100;
+  Dart_TypedData_Type type;
+  void* data;
+  intptr_t len;
+  Dart_Handle result = Dart_TypedDataAcquireData(view_obj, &type, &data, &len);
+  EXPECT(!Thread::Current()->IsAtSafepoint());
+  EXPECT_VALID(result);
+  EXPECT_EQ(Dart_TypedData_kInt8, type);
+  EXPECT_EQ(kLength, len);
+  int8_t* dataP = reinterpret_cast<int8_t*>(data);
+  for (int i = 0; i < kLength; i++) {
+    EXPECT_EQ(i, dataP[i]);
+  }
+
+  // Now try allocating a string with outstanding Acquires and it should
+  // return an error.
+  result = NewString("We expect an error here");
+  EXPECT_ERROR(result, "Callbacks into the Dart VM are currently prohibited");
+
+  // Release direct access to the typed data object.
+  EXPECT(!Thread::Current()->IsAtSafepoint());
+  result = Dart_TypedDataReleaseData(view_obj);
+  EXPECT_VALID(result);
+}
+
+TEST_CASE(DartAPI_UnmodifiableTypedDataViewDirectAccessUnverified) {
+  FLAG_verify_acquired_data = false;
+  TestUnmodifiableTypedDataViewDirectAccess();
+}
+
+TEST_CASE(DartAPI_UnmodifiableTypedDataViewDirectAccessVerified) {
+  FLAG_verify_acquired_data = true;
+  TestUnmodifiableTypedDataViewDirectAccess();
+}
+
 static void TestByteDataDirectAccess() {
   const char* kScriptChars =
       "import 'dart:typed_data';\n"
@@ -2806,6 +2883,210 @@ TEST_CASE(DartAPI_ByteDataDirectAccessUnverified) {
 TEST_CASE(DartAPI_ByteDataDirectAccessVerified) {
   FLAG_verify_acquired_data = true;
   TestByteDataDirectAccess();
+}
+
+TEST_CASE(DartAPI_NewUnmodifiableExternalTypedDataWithFinalizer) {
+  const char* kScriptChars = R"(
+class Expect {
+  static equals(a, b) {
+    if (a != b) {
+      throw 'not equal. expected: $a, got: $b';
+    }
+  }
+  static throws(block) {
+    bool threw = false;
+    try { block(); } catch (e) { threw = true; }
+    if (!threw) throw 'did not throw';
+  }
+}
+testList(data) {
+  for (var i = 0; i < data.length; i++) {
+    Expect.equals(i, data[i]);
+    Expect.throws(() => data[i] = 0);
+  }
+}
+testBytes(data) {
+  for (var i = 0; i < data.length; i++) {
+    Expect.equals(i, data.getUint8(i));
+    Expect.throws(() => data.setUint8(i, 0));
+  }
+})";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  {
+    uint8_t data[] = {0, 1, 2, 3};
+    Dart_Handle typed_data = Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+        Dart_TypedData_kUint8, &data[0], ARRAY_SIZE(data), nullptr, 0, nullptr);
+    EXPECT_VALID(typed_data);
+    EXPECT_EQ(Dart_TypedData_kUint8, Dart_GetTypeOfTypedData(typed_data));
+    Dart_Handle args[1];
+    args[0] = typed_data;
+    Dart_Handle result =
+        Dart_Invoke(lib, NewString("testList"), ARRAY_SIZE(args), args);
+    EXPECT_VALID(result);
+  }
+
+  {
+    int8_t data[] = {0, 1, 2, 3};
+    Dart_Handle typed_data = Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+        Dart_TypedData_kInt8, &data[0], ARRAY_SIZE(data), nullptr, 0, nullptr);
+    EXPECT_VALID(typed_data);
+    EXPECT_EQ(Dart_TypedData_kInt8, Dart_GetTypeOfTypedData(typed_data));
+    Dart_Handle args[1];
+    args[0] = typed_data;
+    Dart_Handle result =
+        Dart_Invoke(lib, NewString("testList"), ARRAY_SIZE(args), args);
+    EXPECT_VALID(result);
+  }
+
+  {
+    uint16_t data[] = {0, 1, 2, 3};
+    Dart_Handle typed_data = Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+        Dart_TypedData_kUint16, &data[0], ARRAY_SIZE(data), nullptr, 0,
+        nullptr);
+    EXPECT_VALID(typed_data);
+    EXPECT_EQ(Dart_TypedData_kUint16, Dart_GetTypeOfTypedData(typed_data));
+    Dart_Handle args[1];
+    args[0] = typed_data;
+    Dart_Handle result =
+        Dart_Invoke(lib, NewString("testList"), ARRAY_SIZE(args), args);
+    EXPECT_VALID(result);
+  }
+
+  {
+    int16_t data[] = {0, 1, 2, 3};
+    Dart_Handle typed_data = Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+        Dart_TypedData_kInt16, &data[0], ARRAY_SIZE(data), nullptr, 0, nullptr);
+    EXPECT_VALID(typed_data);
+    EXPECT_EQ(Dart_TypedData_kInt16, Dart_GetTypeOfTypedData(typed_data));
+    Dart_Handle args[1];
+    args[0] = typed_data;
+    Dart_Handle result =
+        Dart_Invoke(lib, NewString("testList"), ARRAY_SIZE(args), args);
+    EXPECT_VALID(result);
+  }
+
+  {
+    uint32_t data[] = {0, 1, 2, 3};
+    Dart_Handle typed_data = Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+        Dart_TypedData_kUint32, &data[0], ARRAY_SIZE(data), nullptr, 0,
+        nullptr);
+    EXPECT_VALID(typed_data);
+    EXPECT_EQ(Dart_TypedData_kUint32, Dart_GetTypeOfTypedData(typed_data));
+    Dart_Handle args[1];
+    args[0] = typed_data;
+    Dart_Handle result =
+        Dart_Invoke(lib, NewString("testList"), ARRAY_SIZE(args), args);
+    EXPECT_VALID(result);
+  }
+
+  {
+    int32_t data[] = {0, 1, 2, 3};
+    Dart_Handle typed_data = Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+        Dart_TypedData_kInt32, &data[0], ARRAY_SIZE(data), nullptr, 0, nullptr);
+    EXPECT_VALID(typed_data);
+    EXPECT_EQ(Dart_TypedData_kInt32, Dart_GetTypeOfTypedData(typed_data));
+    Dart_Handle args[1];
+    args[0] = typed_data;
+    Dart_Handle result =
+        Dart_Invoke(lib, NewString("testList"), ARRAY_SIZE(args), args);
+    EXPECT_VALID(result);
+  }
+
+  {
+    uint64_t data[] = {0, 1, 2, 3};
+    Dart_Handle typed_data = Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+        Dart_TypedData_kUint64, &data[0], ARRAY_SIZE(data), nullptr, 0,
+        nullptr);
+    EXPECT_VALID(typed_data);
+    EXPECT_EQ(Dart_TypedData_kUint64, Dart_GetTypeOfTypedData(typed_data));
+    Dart_Handle args[1];
+    args[0] = typed_data;
+    Dart_Handle result =
+        Dart_Invoke(lib, NewString("testList"), ARRAY_SIZE(args), args);
+    EXPECT_VALID(result);
+  }
+
+  {
+    int64_t data[] = {0, 1, 2, 3};
+    Dart_Handle typed_data = Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+        Dart_TypedData_kInt64, &data[0], ARRAY_SIZE(data), nullptr, 0, nullptr);
+    EXPECT_VALID(typed_data);
+    EXPECT_EQ(Dart_TypedData_kInt64, Dart_GetTypeOfTypedData(typed_data));
+    Dart_Handle args[1];
+    args[0] = typed_data;
+    Dart_Handle result =
+        Dart_Invoke(lib, NewString("testList"), ARRAY_SIZE(args), args);
+    EXPECT_VALID(result);
+  }
+
+  {
+    float data[] = {0.0f, 1.0f, 2.0f, 3.0f};
+    Dart_Handle typed_data = Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+        Dart_TypedData_kFloat32, &data[0], ARRAY_SIZE(data), nullptr, 0,
+        nullptr);
+    EXPECT_VALID(typed_data);
+    EXPECT_EQ(Dart_TypedData_kFloat32, Dart_GetTypeOfTypedData(typed_data));
+    Dart_Handle result =
+        Dart_Invoke(lib, NewString("testList"), 1, &typed_data);
+    EXPECT_VALID(result);
+    EXPECT_VALID(result);
+  }
+
+  {
+    double data[] = {0.0, 1.0, 2.0, 3.0};
+    Dart_Handle typed_data = Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+        Dart_TypedData_kFloat64, &data[0], ARRAY_SIZE(data), nullptr, 0,
+        nullptr);
+    EXPECT_VALID(typed_data);
+    EXPECT_EQ(Dart_TypedData_kFloat64, Dart_GetTypeOfTypedData(typed_data));
+    Dart_Handle args[1];
+    args[0] = typed_data;
+    Dart_Handle result =
+        Dart_Invoke(lib, NewString("testList"), ARRAY_SIZE(args), args);
+    EXPECT_VALID(result);
+  }
+
+  {
+    uint8_t data[] = {0, 1, 2, 3};
+    Dart_Handle typed_data = Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+        Dart_TypedData_kByteData, &data[0], ARRAY_SIZE(data), nullptr, 0,
+        nullptr);
+    EXPECT_VALID(typed_data);
+    EXPECT_EQ(Dart_TypedData_kByteData, Dart_GetTypeOfTypedData(typed_data));
+    Dart_Handle args[1];
+    args[0] = typed_data;
+    Dart_Handle result =
+        Dart_Invoke(lib, NewString("testBytes"), ARRAY_SIZE(args), args);
+    EXPECT_VALID(result);
+  }
+}
+
+TEST_CASE(DartAPI_UnmodifiableTypedData_PassByReference) {
+  const char* kScriptChars = R"(
+import 'dart:isolate';
+test(original) {
+  var port = new RawReceivePort();
+  port.handler = (msg) {
+    port.close();
+    if (!identical(original, msg)) throw "got a copy";
+  };
+  port.sendPort.send(original);
+})";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  uint8_t data[] = {0, 1, 2, 3};
+  Dart_Handle typed_data = Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+      Dart_TypedData_kUint8, &data[0], ARRAY_SIZE(data), nullptr, 0, nullptr);
+  EXPECT_VALID(typed_data);
+  EXPECT_EQ(Dart_TypedData_kUint8, Dart_GetTypeOfTypedData(typed_data));
+  Dart_Handle args[1];
+  args[0] = typed_data;
+  Dart_Handle result =
+      Dart_Invoke(lib, NewString("test"), ARRAY_SIZE(args), args);
+  EXPECT_VALID(result);
+  result = Dart_RunLoop();
+  EXPECT_VALID(result);
 }
 
 static void NopCallback(void* isolate_callback_data, void* peer) {}
@@ -6980,7 +7261,12 @@ static Dart_NativeFunction native_lookup(Dart_Handle name,
 }
 
 TEST_CASE(DartAPI_ThrowException) {
-  const char* kScriptChars = "int test() native \"ThrowException_native\";";
+  const char* kScriptChars =
+      R"(
+      @pragma('vm:external-name', 'ThrowException_native')
+      external int test();
+    )";
+
   Dart_Handle result;
   intptr_t size = thread->ZoneSizeInBytes();
   Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
@@ -7621,11 +7907,18 @@ static Dart_NativeFunction MyNativeResolver2(Dart_Handle name,
 
 TEST_CASE(DartAPI_SetNativeResolver) {
   const char* kScriptChars =
-      "class Test {"
-      "  static foo() native \"SomeNativeFunction\";\n"
-      "  static bar() native \"SomeNativeFunction2\";\n"
-      "  static baz() native \"SomeNativeFunction3\";\n"
-      "}";
+      R"(
+      class Test {
+        @pragma('vm:external-name', 'SomeNativeFunction')
+        external static foo();
+
+        @pragma('vm:external-name', 'SomeNativeFunction2')
+        external static bar();
+
+        @pragma('vm:external-name', 'SomeNativeFunction3')
+        external static baz();
+      }
+  )";
   Dart_Handle error = Dart_NewApiError("incoming error");
   Dart_Handle result;
 
@@ -8104,7 +8397,7 @@ static void NewNativePort_Transferrable1(Dart_Port dest_port_id,
   EXPECT_EQ(Dart_TypedData_kUint8, message->value.as_typed_data.type);
   EXPECT_EQ(10, message->value.as_typed_data.length);
   EXPECT_EQ(42, message->value.as_typed_data.values[0]);
-  free(message->value.as_typed_data.values);
+  free(const_cast<uint8_t*>(message->value.as_typed_data.values));
 }
 
 static void NewNativePort_Transferrable2(Dart_Port dest_port_id,
@@ -8118,7 +8411,7 @@ static void NewNativePort_Transferrable2(Dart_Port dest_port_id,
   EXPECT_EQ(Dart_TypedData_kUint8, cobj->value.as_typed_data.type);
   EXPECT_EQ(10, cobj->value.as_typed_data.length);
   EXPECT_EQ(42, cobj->value.as_typed_data.values[0]);
-  free(cobj->value.as_typed_data.values);
+  free(const_cast<uint8_t*>(cobj->value.as_typed_data.values));
 }
 
 TEST_CASE(DartAPI_NativePortPostTransferrableTypedData) {
@@ -8218,6 +8511,48 @@ TEST_CASE(DartAPI_NativePortPostExternalTypedData) {
 
   // Delete the native ports.
   EXPECT(Dart_CloseNativePort(port_id));
+}
+
+static void UnreachableMessageHandler(Dart_Port dest_port_id,
+                                      Dart_CObject* message) {
+  UNREACHABLE();
+}
+
+TEST_CASE(DartAPI_NativePortPostUserClass) {
+  const char* kScriptChars =
+      "import 'dart:isolate';\n"
+      "class ABC {}\n"
+      "void callPort(SendPort port) {\n"
+      "  port.send(new ABC());\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_EnterScope();
+
+  Dart_Port port_id =
+      Dart_NewNativePort("Port123", UnreachableMessageHandler, true);
+
+  // Test send with port open.
+  {
+    Dart_Handle send_port = Dart_NewSendPort(port_id);
+    EXPECT_VALID(send_port);
+    Dart_Handle dart_args[1];
+    dart_args[0] = send_port;
+    Dart_Handle result = Dart_Invoke(lib, NewString("callPort"), 1, dart_args);
+    EXPECT_ERROR(result, "Invalid argument");
+  }
+
+  // Test send with port closed.
+  {
+    Dart_CloseNativePort(port_id);
+    Dart_Handle send_port = Dart_NewSendPort(port_id);
+    EXPECT_VALID(send_port);
+    Dart_Handle dart_args[1];
+    dart_args[0] = send_port;
+    Dart_Handle result = Dart_Invoke(lib, NewString("callPort"), 1, dart_args);
+    EXPECT_ERROR(result, "Invalid argument");
+  }
+
+  Dart_ExitScope();
 }
 
 static void NewNativePort_nativeReceiveNull(Dart_Port dest_port_id,
@@ -8641,55 +8976,64 @@ static Dart_NativeFunction MyNativeClosureResolver(Dart_Handle name,
 
 TEST_CASE(DartAPI_NativeFunctionClosure) {
   const char* kScriptChars =
-      "class Test {"
-      "  int foo1() native \"NativeFoo1\";\n"
-      "  int foo2(int i) native \"NativeFoo2\";\n"
-      "  int foo3([int k = 10000, int l = 1]) native \"NativeFoo3\";\n"
-      "  int foo4(int i,"
-      "           [int j = 10, int k = 1]) native \"NativeFoo4\";\n"
-      "  int bar1() { var func = foo1; return func(); }\n"
-      "  int bar2(int i) { var func = foo2; return func(i); }\n"
-      "  int bar30() { var func = foo3; return func(); }\n"
-      "  int bar31(int i) { var func = foo3; return func(i); }\n"
-      "  int bar32(int i, int j) { var func = foo3; return func(i, j); }\n"
-      "  int bar41(int i) {\n"
-      "    var func = foo4; return func(i); }\n"
-      "  int bar42(int i, int j) {\n"
-      "    var func = foo4; return func(i, j); }\n"
-      "  int bar43(int i, int j, int k) {\n"
-      "    var func = foo4; return func(i, j, k); }\n"
-      "}\n"
-      "class Expect {\n"
-      "  static equals(a, b) {\n"
-      "    if (a != b) {\n"
-      "      throw 'not equal. expected: $a, got: $b';\n"
-      "    }\n"
-      "  }\n"
-      "}\n"
-      "int testMain() {\n"
-      "  Test obj = new Test();\n"
-      "  Expect.equals(1, obj.foo1());\n"
-      "  Expect.equals(1, obj.bar1());\n"
-      "\n"
-      "  Expect.equals(10, obj.foo2(10));\n"
-      "  Expect.equals(10, obj.bar2(10));\n"
-      "\n"
-      "  Expect.equals(10001, obj.foo3());\n"
-      "  Expect.equals(10001, obj.bar30());\n"
-      "  Expect.equals(2, obj.foo3(1));\n"
-      "  Expect.equals(2, obj.bar31(1));\n"
-      "  Expect.equals(4, obj.foo3(2, 2));\n"
-      "  Expect.equals(4, obj.bar32(2, 2));\n"
-      "\n"
-      "  Expect.equals(12, obj.foo4(1));\n"
-      "  Expect.equals(12, obj.bar41(1));\n"
-      "  Expect.equals(3, obj.foo4(1, 1));\n"
-      "  Expect.equals(3, obj.bar42(1, 1));\n"
-      "  Expect.equals(6, obj.foo4(2, 2, 2));\n"
-      "  Expect.equals(6, obj.bar43(2, 2, 2));\n"
-      "\n"
-      "  return 0;\n"
-      "}\n";
+      R"(
+      class Test {
+        @pragma('vm:external-name', 'NativeFoo1')
+        external int foo1();
+
+        @pragma('vm:external-name', 'NativeFoo2')
+        external int foo2(int i);
+
+        @pragma('vm:external-name', 'NativeFoo3')
+        external int foo3([int k = 10000, int l = 1]);
+
+        @pragma('vm:external-name', 'NativeFoo4')
+        external int foo4(int i, [int j = 10, int k = 1]);
+
+        int bar1() { var func = foo1; return func(); }
+        int bar2(int i) { var func = foo2; return func(i); }
+        int bar30() { var func = foo3; return func(); }
+        int bar31(int i) { var func = foo3; return func(i); }
+        int bar32(int i, int j) { var func = foo3; return func(i, j); }
+        int bar41(int i) {
+          var func = foo4; return func(i); }
+        int bar42(int i, int j) {
+          var func = foo4; return func(i, j); }
+        int bar43(int i, int j, int k) {
+          var func = foo4; return func(i, j, k); }
+      }
+      class Expect {
+        static equals(a, b) {
+          if (a != b) {
+            throw 'not equal. expected: $a, got: $b';
+          }
+        }
+      }
+      int testMain() {
+        Test obj = new Test();
+        Expect.equals(1, obj.foo1());
+        Expect.equals(1, obj.bar1());
+
+        Expect.equals(10, obj.foo2(10));
+        Expect.equals(10, obj.bar2(10));
+
+        Expect.equals(10001, obj.foo3());
+        Expect.equals(10001, obj.bar30());
+        Expect.equals(2, obj.foo3(1));
+        Expect.equals(2, obj.bar31(1));
+        Expect.equals(4, obj.foo3(2, 2));
+        Expect.equals(4, obj.bar32(2, 2));
+
+        Expect.equals(12, obj.foo4(1));
+        Expect.equals(12, obj.bar41(1));
+        Expect.equals(3, obj.foo4(1, 1));
+        Expect.equals(3, obj.bar42(1, 1));
+        Expect.equals(6, obj.foo4(2, 2, 2));
+        Expect.equals(6, obj.bar43(2, 2, 2));
+
+        return 0;
+      }
+  )";
 
   Dart_Handle result;
 
@@ -8781,56 +9125,64 @@ static Dart_NativeFunction MyStaticNativeClosureResolver(
 
 TEST_CASE(DartAPI_NativeStaticFunctionClosure) {
   const char* kScriptChars =
-      "class Test {"
-      "  static int foo1() native \"StaticNativeFoo1\";\n"
-      "  static int foo2(int i) native \"StaticNativeFoo2\";\n"
-      "  static int foo3([int k = 10000, int l = 1])"
-      " native \"StaticNativeFoo3\";\n"
-      "  static int foo4(int i, [int j = 10, int k = 1])"
-      " native \"StaticNativeFoo4\";\n"
-      "  int bar1() { var func = foo1; return func(); }\n"
-      "  int bar2(int i) { var func = foo2; return func(i); }\n"
-      "  int bar30() { var func = foo3; return func(); }\n"
-      "  int bar31(int i) { var func = foo3; return func(i); }\n"
-      "  int bar32(int i, int j) { var func = foo3; return func(i, j); }\n"
-      "  int bar41(int i) {\n"
-      "    var func = foo4; return func(i); }\n"
-      "  int bar42(int i, int j) {\n"
-      "    var func = foo4; return func(i, j); }\n"
-      "  int bar43(int i, int j, int k) {\n"
-      "    var func = foo4; return func(i, j, k); }\n"
-      "}\n"
-      "class Expect {\n"
-      "  static equals(a, b) {\n"
-      "    if (a != b) {\n"
-      "      throw 'not equal. expected: $a, got: $b';\n"
-      "    }\n"
-      "  }\n"
-      "}\n"
-      "int testMain() {\n"
-      "  Test obj = new Test();\n"
-      "  Expect.equals(0, Test.foo1());\n"
-      "  Expect.equals(0, obj.bar1());\n"
-      "\n"
-      "  Expect.equals(10, Test.foo2(10));\n"
-      "  Expect.equals(10, obj.bar2(10));\n"
-      "\n"
-      "  Expect.equals(10001, Test.foo3());\n"
-      "  Expect.equals(10001, obj.bar30());\n"
-      "  Expect.equals(2, Test.foo3(1));\n"
-      "  Expect.equals(2, obj.bar31(1));\n"
-      "  Expect.equals(4, Test.foo3(2, 2));\n"
-      "  Expect.equals(4, obj.bar32(2, 2));\n"
-      "\n"
-      "  Expect.equals(12, Test.foo4(1));\n"
-      "  Expect.equals(12, obj.bar41(1));\n"
-      "  Expect.equals(3, Test.foo4(1, 1));\n"
-      "  Expect.equals(3, obj.bar42(1, 1));\n"
-      "  Expect.equals(6, Test.foo4(2, 2, 2));\n"
-      "  Expect.equals(6, obj.bar43(2, 2, 2));\n"
-      "\n"
-      "  return 0;\n"
-      "}\n";
+      R"(
+      class Test {
+        @pragma('vm:external-name', 'StaticNativeFoo1')
+        external static int foo1();
+
+        @pragma('vm:external-name', 'StaticNativeFoo2')
+        external static int foo2(int i);
+
+        @pragma('vm:external-name', 'StaticNativeFoo3')
+        external static int foo3([int k = 10000, int l = 1]);
+
+        @pragma('vm:external-name', 'StaticNativeFoo4')
+        external static int foo4(int i, [int j = 10, int k = 1]);
+
+        int bar1() { var func = foo1; return func(); }
+        int bar2(int i) { var func = foo2; return func(i); }
+        int bar30() { var func = foo3; return func(); }
+        int bar31(int i) { var func = foo3; return func(i); }
+        int bar32(int i, int j) { var func = foo3; return func(i, j); }
+        int bar41(int i) {
+          var func = foo4; return func(i); }
+        int bar42(int i, int j) {
+          var func = foo4; return func(i, j); }
+        int bar43(int i, int j, int k) {
+          var func = foo4; return func(i, j, k); }
+      }
+      class Expect {
+        static equals(a, b) {
+          if (a != b) {
+            throw 'not equal. expected: $a, got: $b';
+          }
+        }
+      }
+      int testMain() {
+        Test obj = new Test();
+        Expect.equals(0, Test.foo1());
+        Expect.equals(0, obj.bar1());
+
+        Expect.equals(10, Test.foo2(10));
+        Expect.equals(10, obj.bar2(10));
+
+        Expect.equals(10001, Test.foo3());
+        Expect.equals(10001, obj.bar30());
+        Expect.equals(2, Test.foo3(1));
+        Expect.equals(2, obj.bar31(1));
+        Expect.equals(4, Test.foo3(2, 2));
+        Expect.equals(4, obj.bar32(2, 2));
+
+        Expect.equals(12, Test.foo4(1));
+        Expect.equals(12, obj.bar41(1));
+        Expect.equals(3, Test.foo4(1, 1));
+        Expect.equals(3, obj.bar42(1, 1));
+        Expect.equals(6, Test.foo4(2, 2, 2));
+        Expect.equals(6, obj.bar43(2, 2, 2));
+
+        return 0;
+      }
+  )";
 
   Dart_Handle result;
 
@@ -9413,7 +9765,29 @@ TEST_CASE(DartAPI_TimelineDuration) {
   // Make sure it is enabled.
   stream->set_enabled(true);
   // Add a duration event.
-  Dart_TimelineEvent("testDurationEvent", 0, 1, Dart_Timeline_Event_Duration, 0,
+  Dart_TimelineEvent("testDurationEvent", 500, 1500,
+                     Dart_Timeline_Event_Duration, 0, NULL, NULL);
+  // Check that it is in the output.
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  Timeline::ReclaimCachedBlocksFromThreads();
+  JSONStream js;
+  IsolateTimelineEventFilter filter(isolate->main_port());
+  recorder->PrintJSON(&js, &filter);
+  const char* json = js.ToCString();
+  EXPECT_SUBSTRING("\"name\":\"testDurationEvent\"", json);
+  EXPECT_SUBSTRING("\"ph\":\"X\"", json);
+  EXPECT_SUBSTRING("\"ts\":500", json);
+  EXPECT_SUBSTRING("\"dur\":1000", json);
+}
+
+TEST_CASE(DartAPI_TimelineBegin) {
+  Isolate* isolate = Isolate::Current();
+  // Grab embedder stream.
+  TimelineStream* stream = Timeline::GetEmbedderStream();
+  // Make sure it is enabled.
+  stream->set_enabled(true);
+  // Add a begin event.
+  Dart_TimelineEvent("testBeginEvent", 1000, 1, Dart_Timeline_Event_Begin, 0,
                      NULL, NULL);
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
@@ -9421,7 +9795,31 @@ TEST_CASE(DartAPI_TimelineDuration) {
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate->main_port());
   recorder->PrintJSON(&js, &filter);
-  EXPECT_SUBSTRING("testDurationEvent", js.ToCString());
+  const char* json = js.ToCString();
+  EXPECT_SUBSTRING("\"name\":\"testBeginEvent\"", json);
+  EXPECT_SUBSTRING("\"ph\":\"B\"", json);
+  EXPECT_SUBSTRING("\"ts\":1000", json);
+}
+
+TEST_CASE(DartAPI_TimelineEnd) {
+  Isolate* isolate = Isolate::Current();
+  // Grab embedder stream.
+  TimelineStream* stream = Timeline::GetEmbedderStream();
+  // Make sure it is enabled.
+  stream->set_enabled(true);
+  // Add a begin event.
+  Dart_TimelineEvent("testEndEvent", 1000, 1, Dart_Timeline_Event_End, 0, NULL,
+                     NULL);
+  // Check that it is in the output.
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  Timeline::ReclaimCachedBlocksFromThreads();
+  JSONStream js;
+  IsolateTimelineEventFilter filter(isolate->main_port());
+  recorder->PrintJSON(&js, &filter);
+  const char* json = js.ToCString();
+  EXPECT_SUBSTRING("\"name\":\"testEndEvent\"", json);
+  EXPECT_SUBSTRING("\"ph\":\"E\"", json);
+  EXPECT_SUBSTRING("\"ts\":1000", json);
 }
 
 TEST_CASE(DartAPI_TimelineInstant) {
@@ -9430,15 +9828,18 @@ TEST_CASE(DartAPI_TimelineInstant) {
   TimelineStream* stream = Timeline::GetEmbedderStream();
   // Make sure it is enabled.
   stream->set_enabled(true);
-  Dart_TimelineEvent("testInstantEvent", 0, 1, Dart_Timeline_Event_Instant, 0,
-                     NULL, NULL);
+  Dart_TimelineEvent("testInstantEvent", 1000, 1, Dart_Timeline_Event_Instant,
+                     0, NULL, NULL);
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
   Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate->main_port());
   recorder->PrintJSON(&js, &filter);
-  EXPECT_SUBSTRING("testInstantEvent", js.ToCString());
+  const char* json = js.ToCString();
+  EXPECT_SUBSTRING("\"name\":\"testInstantEvent\"", json);
+  EXPECT_SUBSTRING("\"ph\":\"i\"", json);
+  EXPECT_SUBSTRING("\"ts\":1000", json);
 }
 
 TEST_CASE(DartAPI_TimelineAsyncDisabled) {
@@ -9465,7 +9866,7 @@ TEST_CASE(DartAPI_TimelineAsync) {
   // Make sure it is enabled.
   stream->set_enabled(true);
   int64_t async_id = 99;
-  Dart_TimelineEvent("testAsyncEvent", 0, async_id,
+  Dart_TimelineEvent("testAsyncEvent", 1000, async_id,
                      Dart_Timeline_Event_Async_Begin, 0, NULL, NULL);
 
   // Check that it is in the output.
@@ -9474,7 +9875,11 @@ TEST_CASE(DartAPI_TimelineAsync) {
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate->main_port());
   recorder->PrintJSON(&js, &filter);
-  EXPECT_SUBSTRING("testAsyncEvent", js.ToCString());
+  const char* json = js.ToCString();
+  EXPECT_SUBSTRING("\"name\":\"testAsyncEvent\"", json);
+  EXPECT_SUBSTRING("\"ph\":\"b\"", json);
+  EXPECT_SUBSTRING("\"ts\":1000", json);
+  EXPECT_SUBSTRING("\"id\":\"63\"", json);  // Hex for some reason.
 }
 
 TEST_CASE(DartAPI_TimelineClock) {
@@ -9500,8 +9905,7 @@ TEST_CASE(DartAPI_TimelineCategories) {
     JSONArray jstream(&obj, "available");
     Timeline::PrintFlagsToJSONArray(&jstream);
     const char* js_str = js.ToCString();
-#define TIMELINE_STREAM_CHECK(name, fuchsia_name)                              \
-  EXPECT_SUBSTRING(#name, js_str);
+#define TIMELINE_STREAM_CHECK(name, ...) EXPECT_SUBSTRING(#name, js_str);
     TIMELINE_STREAM_LIST(TIMELINE_STREAM_CHECK)
 #undef TIMELINE_STREAM_CHECK
   }
@@ -9629,6 +10033,83 @@ void main() {
 )";
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, &NotifyIdleLong_native_lookup);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+}
+
+static void NotifyDestroyedNative(Dart_NativeArguments args) {
+  Dart_NotifyDestroyed();
+}
+
+static Dart_NativeFunction NotifyDestroyed_native_lookup(
+    Dart_Handle name,
+    int argument_count,
+    bool* auto_setup_scope) {
+  return NotifyDestroyedNative;
+}
+
+TEST_CASE(DartAPI_NotifyDestroyed) {
+  const char* kScriptChars = R"(
+import 'dart:isolate';
+@pragma("vm:external-name", "Test_nativeFunc")
+external void notifyDetach();
+void main() {
+  var v;
+  for (var i = 0; i < 100; i++) {
+    var t = [];
+    for (var j = 0; j < 10000; j++) {
+      t.add(List.filled(100, null));
+    }
+    v = t;
+    notifyDetach();
+  }
+})";
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, &NotifyDestroyed_native_lookup);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+}
+
+static void SetPerformanceModeDefault(Dart_NativeArguments args) {
+  Dart_SetPerformanceMode(Dart_PerformanceMode_Default);
+}
+static void SetPerformanceModeLatency(Dart_NativeArguments args) {
+  Dart_SetPerformanceMode(Dart_PerformanceMode_Latency);
+}
+
+static Dart_NativeFunction SetMode_native_lookup(Dart_Handle name,
+                                                 int argument_count,
+                                                 bool* auto_setup_scope) {
+  const char* cstr = nullptr;
+  Dart_StringToCString(name, &cstr);
+  if (strcmp(cstr, "SetPerformanceModeDefault") == 0) {
+    return SetPerformanceModeDefault;
+  } else if (strcmp(cstr, "SetPerformanceModeLatency") == 0) {
+    return SetPerformanceModeLatency;
+  }
+  return NULL;
+}
+
+TEST_CASE(DartAPI_SetPerformanceMode) {
+  const char* kScriptChars = R"(
+import "dart:typed_data";
+@pragma("vm:external-name", "SetPerformanceModeDefault")
+external void setPerformanceModeDefault();
+@pragma("vm:external-name", "SetPerformanceModeLatency")
+external void setPerformanceModeLatency();
+void main() {
+  for (var i = 0; i < 10; i++) {
+    setPerformanceModeLatency();
+    var t = [];
+    for (var j = 0; j < 32; j++) {
+      t.add(Uint8List(1000000));
+    }
+    setPerformanceModeDefault();
+  }
+}
+)";
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, &SetMode_native_lookup);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 }
@@ -9940,9 +10421,10 @@ TEST_CASE(Dart_SetFfiNativeResolver_MissingResolver) {
   EXPECT_VALID(lib);
 
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
-  EXPECT_ERROR(
-      result,
-      "Invalid argument(s): Library has no handler: 'file:///test-lib'.");
+
+  // With no resolver, we resolve in process. Expect to not find the symbol
+  // in processes. Error message depends on architecture.
+  EXPECT_ERROR(result, "Invalid argument(s):");
 }
 
 static void* NopResolver(const char* name, uintptr_t args_n) {
@@ -9963,9 +10445,7 @@ TEST_CASE(Dart_SetFfiNativeResolver_DoesNotResolve) {
   EXPECT_VALID(result);
 
   result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
-  EXPECT_ERROR(
-      result,
-      "Invalid argument(s): Couldn't resolve function: 'DoesNotResolve'");
+  EXPECT_ERROR(result, "Couldn't resolve function: 'DoesNotResolve'");
 }
 
 TEST_CASE(DartAPI_UserTags) {
@@ -10012,6 +10492,96 @@ TEST_CASE(DartAPI_UserTags) {
   EXPECT_ERROR(
       Dart_SetCurrentUserTag(Dart_Null()),
       "Dart_SetCurrentUserTag expects argument 'user_tag' to be non-null");
+}
+
+void* last_isolate_group_data = nullptr;
+Dart_PersistentHandle last_allocation_cls = nullptr;
+intptr_t heap_samples = 0;
+
+void HeapSamplingCallback(void* isolate_group_data,
+                          Dart_PersistentHandle cls_type,
+                          Dart_WeakPersistentHandle obj,
+                          uintptr_t size) {
+  last_isolate_group_data = isolate_group_data;
+  last_allocation_cls = cls_type;
+  heap_samples++;
+}
+
+TEST_CASE(DartAPI_HeapSampling) {
+  Dart_RegisterHeapSamplingCallback(HeapSamplingCallback);
+
+  Dart_EnableHeapSampling();
+  // Start with sampling on every byte allocated.
+  Dart_SetHeapSamplingPeriod(1);
+
+  auto isolate_group_data = Dart_CurrentIsolateGroupData();
+  // Some simple allocations
+  USE(Dart_NewList(100));
+
+  const char* name = nullptr;
+  Dart_Handle result = Dart_StringToCString(last_allocation_cls, &name);
+  EXPECT_VALID(result);
+
+  EXPECT(heap_samples > 0);
+  EXPECT_STREQ("List", name);
+  EXPECT_EQ(last_isolate_group_data, isolate_group_data);
+
+  heap_samples = 0;
+  USE(Dart_NewStringFromCString("Foo"));
+  result = Dart_StringToCString(last_allocation_cls, &name);
+  EXPECT_VALID(result);
+  EXPECT(heap_samples > 0);
+  EXPECT_STREQ("String", name);
+  EXPECT_EQ(last_isolate_group_data, isolate_group_data);
+
+  // Increase the sampling period and check that we don't sample each
+  // allocation. This should cause samples to be collected for approximately
+  // every 1KiB allocated.
+  Dart_SetHeapSamplingPeriod(1 << 10);
+  heap_samples = 0;
+
+  const intptr_t kNumAllocations = 1000;
+  for (intptr_t i = 0; i < kNumAllocations; ++i) {
+    USE(Dart_NewList(10));
+  }
+  EXPECT(heap_samples > 0);
+  EXPECT(heap_samples < kNumAllocations);
+
+  heap_samples = 0;
+  last_allocation_cls = nullptr;
+  const char* kScriptChars = R"(
+    foo() {
+      final list = [];
+      for (int i = 0; i < 1000; ++i) {
+        list.add(List.filled(100, 0));
+      }
+    }
+    )";
+  Dart_DisableHeapSampling();
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  EXPECT_VALID(lib);
+  Dart_EnableHeapSampling();
+  result = Dart_Invoke(lib, NewString("foo"), 0, nullptr);
+  EXPECT_VALID(result);
+  EXPECT(heap_samples > 0);
+  EXPECT(heap_samples < kNumAllocations);
+
+  Dart_DisableHeapSampling();
+
+  // Sampling on every byte allocated.
+  Dart_SetHeapSamplingPeriod(1);
+
+  // Ensure no more samples are collected.
+  heap_samples = 0;
+  last_allocation_cls = nullptr;
+  last_isolate_group_data = nullptr;
+  USE(Dart_NewList(10));
+  EXPECT_EQ(heap_samples, 0);
+  EXPECT_NULLPTR(last_allocation_cls);
+  EXPECT_NULLPTR(last_isolate_group_data);
+
+  // Clear heap sampling callback state.
+  Dart_RegisterHeapSamplingCallback(nullptr);
 }
 
 #endif  // !PRODUCT

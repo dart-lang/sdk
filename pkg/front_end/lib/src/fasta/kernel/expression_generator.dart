@@ -98,20 +98,20 @@ abstract class Generator {
   /// The source uri for use in error messaging.
   Uri get _uri => _helper.uri;
 
-  /// Builds a [Expression] representing a read from the generator.
+  /// Builds an [Expression] representing a read from the generator.
   ///
   /// The read of this subexpression does _not_ need to support a simultaneous
   /// write of the same subexpression.
   Expression buildSimpleRead();
 
-  /// Builds a [Expression] representing an assignment with the generator on
+  /// Builds an [Expression] representing an assignment with the generator on
   /// the LHS and [value] on the RHS.
   ///
   /// The returned expression evaluates to the assigned value, unless
   /// [voidContext] is true, in which case it may evaluate to anything.
-  Expression buildAssignment(Expression value, {bool voidContext: false});
+  Expression buildAssignment(Expression value, {bool voidContext = false});
 
-  /// Returns a [Expression] representing a null-aware assignment (`??=`) with
+  /// Returns an [Expression] representing a null-aware assignment (`??=`) with
   /// the generator on the LHS and [value] on the RHS.
   ///
   /// The returned expression evaluates to the assigned value, unless
@@ -119,20 +119,20 @@ abstract class Generator {
   ///
   /// [type] is the static type of the RHS.
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext: false});
+      {bool voidContext = false});
 
-  /// Returns a [Expression] representing a compound assignment (e.g. `+=`)
+  /// Returns an [Expression] representing a compound assignment (e.g. `+=`)
   /// with the generator on the LHS and [value] on the RHS.
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      bool isPreIncDec: false,
-      bool isPostIncDec: false});
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false});
 
-  /// Returns a [Expression] representing a pre-increment or pre-decrement of
+  /// Returns an [Expression] representing a pre-increment or pre-decrement of
   /// the generator.
   Expression buildPrefixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset, bool voidContext: false}) {
+      {int offset = TreeNode.noOffset, bool voidContext = false}) {
     return buildCompoundAssignment(
         binaryOperator, _forest.createIntLiteral(offset, 1),
         offset: offset,
@@ -143,10 +143,10 @@ abstract class Generator {
         isPreIncDec: true);
   }
 
-  /// Returns a [Expression] representing a post-increment or post-decrement of
+  /// Returns an [Expression] representing a post-increment or post-decrement of
   /// the generator.
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset, bool voidContext: false});
+      {int offset = TreeNode.noOffset, bool voidContext = false});
 
   /// Returns a [Generator] or [Expression] representing an index access
   /// (e.g. `a[b]`) with the generator on the receiver and [index] as the
@@ -154,7 +154,7 @@ abstract class Generator {
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware});
 
-  /// Returns a [Expression] representing a compile-time error.
+  /// Returns an [Expression] representing a compile-time error.
   ///
   /// At runtime, an exception will be thrown.
   Expression _makeInvalidRead(UnresolvedKind unresolvedKind) {
@@ -162,7 +162,7 @@ abstract class Generator {
         kind: unresolvedKind);
   }
 
-  /// Returns a [Expression] representing a compile-time error wrapping
+  /// Returns an [Expression] representing a compile-time error wrapping
   /// [value].
   ///
   /// At runtime, [value] will be evaluated before throwing an exception.
@@ -316,11 +316,8 @@ abstract class Generator {
 class VariableUseGenerator extends Generator {
   final VariableDeclaration variable;
 
-  final DartType? promotedType;
-
   VariableUseGenerator(
-      ExpressionGeneratorHelper helper, Token token, this.variable,
-      [this.promotedType])
+      ExpressionGeneratorHelper helper, Token token, this.variable)
       : assert(variable.isAssignable, 'Variable $variable is not assignable'),
         super(helper, token);
 
@@ -340,7 +337,7 @@ class VariableUseGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _createWrite(fileOffset, value);
   }
 
@@ -351,7 +348,7 @@ class VariableUseGenerator extends Generator {
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
+      {bool voidContext = false}) {
     Expression read = _createRead();
     Expression write = _createWrite(fileOffset, value);
     return new IfNullSet(read, write, forEffect: voidContext)
@@ -360,10 +357,10 @@ class VariableUseGenerator extends Generator {
 
   @override
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      bool isPreIncDec: false,
-      bool isPostIncDec: false}) {
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false}) {
     Expression binary = _helper.forest
         .createBinary(offset, _createRead(), binaryOperator, value);
     return _createWrite(fileOffset, binary);
@@ -410,8 +407,6 @@ class VariableUseGenerator extends Generator {
     NameSystem syntheticNames = new NameSystem();
     sink.write(", variable: ");
     printNodeOn(variable, sink, syntheticNames: syntheticNames);
-    sink.write(", promotedType: ");
-    printNodeOn(promotedType, sink, syntheticNames: syntheticNames);
   }
 }
 
@@ -470,7 +465,7 @@ class PropertyAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _helper.forest.createPropertySet(fileOffset, receiver, name, value,
         forEffect: voidContext);
   }
@@ -485,10 +480,10 @@ class PropertyAccessGenerator extends Generator {
 
   @override
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      bool isPreIncDec: false,
-      bool isPostIncDec: false}) {
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false}) {
     return new CompoundPropertySet(receiver, name, binaryOperator, value,
         forEffect: voidContext,
         readOffset: fileOffset,
@@ -585,7 +580,7 @@ class ThisPropertyAccessGenerator extends Generator {
 
   ThisPropertyAccessGenerator(
       ExpressionGeneratorHelper helper, Token token, this.name,
-      {this.thisOffset, this.isNullAware: false})
+      {this.thisOffset, this.isNullAware = false})
       : super(helper, token);
 
   @override
@@ -616,7 +611,7 @@ class ThisPropertyAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     _reportNonNullableInNullAwareWarningIfNeeded();
     return _createWrite(fileOffset, value, forEffect: voidContext);
   }
@@ -630,7 +625,7 @@ class ThisPropertyAccessGenerator extends Generator {
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
+      {bool voidContext = false}) {
     return new IfNullSet(
         _createRead(), _createWrite(offset, value, forEffect: voidContext),
         forEffect: voidContext)
@@ -639,10 +634,10 @@ class ThisPropertyAccessGenerator extends Generator {
 
   @override
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      bool isPreIncDec: false,
-      bool isPostIncDec: false}) {
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false}) {
     _reportNonNullableInNullAwareWarningIfNeeded();
     Expression binary = _helper.forest
         .createBinary(offset, _createRead(), binaryOperator, value);
@@ -743,7 +738,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
+      {bool voidContext = false}) {
     return new NullAwareIfNullSet(receiverExpression, name, value,
         forEffect: voidContext,
         readOffset: fileOffset,
@@ -754,10 +749,10 @@ class NullAwarePropertyAccessGenerator extends Generator {
 
   @override
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      bool isPreIncDec: false,
-      bool isPostIncDec: false}) {
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false}) {
     return new NullAwareCompoundSet(
         receiverExpression, name, binaryOperator, value,
         readOffset: fileOffset,
@@ -769,7 +764,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset, bool voidContext: false}) {
+      {int offset = TreeNode.noOffset, bool voidContext = false}) {
     return buildCompoundAssignment(
         binaryOperator, _forest.createIntLiteral(offset, 1),
         offset: offset, voidContext: voidContext, isPostIncDec: true);
@@ -880,7 +875,7 @@ class SuperPropertyAccessGenerator extends Generator {
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
+      {bool voidContext = false}) {
     return new IfNullSet(_createRead(), _createWrite(fileOffset, value),
         forEffect: voidContext)
       ..fileOffset = offset;
@@ -968,7 +963,7 @@ class IndexedAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     VariableDeclarationImpl? variable;
     Expression receiverValue;
     if (isNullAware) {
@@ -990,7 +985,7 @@ class IndexedAccessGenerator extends Generator {
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
+      {bool voidContext = false}) {
     VariableDeclarationImpl? variable;
     Expression receiverValue;
     if (isNullAware) {
@@ -1016,10 +1011,10 @@ class IndexedAccessGenerator extends Generator {
 
   @override
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      bool isPreIncDec: false,
-      bool isPostIncDec: false}) {
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false}) {
     VariableDeclarationImpl? variable;
     Expression receiverValue;
     if (isNullAware) {
@@ -1104,7 +1099,7 @@ class ThisIndexedAccessGenerator extends Generator {
 
   ThisIndexedAccessGenerator(
       ExpressionGeneratorHelper helper, Token token, this.index,
-      {this.thisOffset, this.isNullAware: false})
+      {this.thisOffset, this.isNullAware = false})
       : super(helper, token);
 
   @override
@@ -1131,7 +1126,7 @@ class ThisIndexedAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     _reportNonNullableInNullAwareWarningIfNeeded();
     Expression receiver = _helper.forest.createThisExpression(fileOffset);
     return _forest.createIndexSet(fileOffset, receiver, index, value,
@@ -1140,7 +1135,7 @@ class ThisIndexedAccessGenerator extends Generator {
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
+      {bool voidContext = false}) {
     _reportNonNullableInNullAwareWarningIfNeeded();
     Expression receiver = _helper.forest.createThisExpression(fileOffset);
     return new IfNullIndexSet(receiver, index, value,
@@ -1153,10 +1148,10 @@ class ThisIndexedAccessGenerator extends Generator {
 
   @override
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      bool isPreIncDec: false,
-      bool isPostIncDec: false}) {
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false}) {
     _reportNonNullableInNullAwareWarningIfNeeded();
     Expression receiver = _helper.forest.createThisExpression(fileOffset);
     return new CompoundIndexSet(receiver, index, binaryOperator, value,
@@ -1237,7 +1232,7 @@ class SuperIndexedAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     Procedure? setter = this.setter;
     if (setter == null) {
       return _helper.buildUnresolvedError(indexSetName.text, fileOffset,
@@ -1262,7 +1257,7 @@ class SuperIndexedAccessGenerator extends Generator {
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
+      {bool voidContext = false}) {
     return new IfNullSuperIndexSet(getter, setter, index, value,
         readOffset: fileOffset,
         testOffset: offset,
@@ -1273,10 +1268,10 @@ class SuperIndexedAccessGenerator extends Generator {
 
   @override
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      bool isPreIncDec: false,
-      bool isPostIncDec: false}) {
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false}) {
     Procedure? getter = this.getter;
     Procedure? setter = this.setter;
     if (getter == null || setter == null) {
@@ -1391,7 +1386,7 @@ class StaticAccessGenerator extends Generator {
 
   StaticAccessGenerator(ExpressionGeneratorHelper helper, Token token,
       this.targetName, this.parentBuilder, this.readTarget, this.writeTarget,
-      {this.typeOffset, this.isNullAware: false})
+      {this.typeOffset, this.isNullAware = false})
       // ignore: unnecessary_null_comparison
       : assert(targetName != null),
         assert(readTarget != null || writeTarget != null),
@@ -1406,7 +1401,7 @@ class StaticAccessGenerator extends Generator {
       MemberBuilder? getterBuilder,
       MemberBuilder? setterBuilder,
       {int? typeOffset,
-      bool isNullAware: false}) {
+      bool isNullAware = false}) {
     // If both [getterBuilder] and [setterBuilder] exist, they must both be
     // either top level (potentially from different libraries) or from the same
     // class/extension.
@@ -1494,7 +1489,7 @@ class StaticAccessGenerator extends Generator {
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
+      {bool voidContext = false}) {
     return new IfNullSet(_createRead(), _createWrite(offset, value),
         forEffect: voidContext)
       ..fileOffset = offset;
@@ -1742,7 +1737,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _createWrite(fileOffset, value, forEffect: voidContext);
   }
 
@@ -1766,7 +1761,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
+      {bool voidContext = false}) {
     return new IfNullSet(
         _createRead(), _createWrite(fileOffset, value, forEffect: voidContext),
         forEffect: voidContext)
@@ -1775,10 +1770,10 @@ class ExtensionInstanceAccessGenerator extends Generator {
 
   @override
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      bool isPreIncDec: false,
-      bool isPostIncDec: false}) {
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false}) {
     Expression binary = _helper.forest
         .createBinary(offset, _createRead(), binaryOperator, value);
     return _createWrite(fileOffset, binary, forEffect: voidContext);
@@ -1849,7 +1844,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
   }
 }
 
-/// A [ExplicitExtensionInstanceAccessGenerator] represents a subexpression
+/// An [ExplicitExtensionInstanceAccessGenerator] represents a subexpression
 /// whose prefix is a forced extension instance member access.
 ///
 /// For instance
@@ -2074,7 +2069,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     if (isNullAware) {
       VariableDeclarationImpl variable =
           _helper.createVariableDeclarationForValue(receiver);
@@ -2108,7 +2103,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
+      {bool voidContext = false}) {
     if (isNullAware) {
       VariableDeclarationImpl variable =
           _helper.createVariableDeclarationForValue(receiver);
@@ -2137,10 +2132,10 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
 
   @override
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      bool isPreIncDec: false,
-      bool isPostIncDec: false}) {
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false}) {
     if (isNullAware) {
       VariableDeclarationImpl variable =
           _helper.createVariableDeclarationForValue(receiver);
@@ -2420,7 +2415,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     if (writeTarget == null) {
       return _makeInvalidWrite(value);
     }
@@ -2458,7 +2453,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
+      {bool voidContext = false}) {
     VariableDeclarationImpl? variable;
     Expression receiverValue;
     if (isNullAware) {
@@ -2490,10 +2485,10 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
 
   @override
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      bool isPreIncDec: false,
-      bool isPostIncDec: false}) {
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false}) {
     VariableDeclarationImpl? variable;
     Expression receiverValue;
     if (isNullAware) {
@@ -2561,7 +2556,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
   }
 }
 
-/// A [ExplicitExtensionAccessGenerator] represents a subexpression whose
+/// An [ExplicitExtensionAccessGenerator] represents a subexpression whose
 /// prefix is an explicit extension application.
 ///
 /// For instance
@@ -2612,33 +2607,33 @@ class ExplicitExtensionAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _makeInvalidWrite(value);
   }
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
+      {bool voidContext = false}) {
     return _makeInvalidRead();
   }
 
   @override
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      bool isPreIncDec: false,
-      bool isPostIncDec: false}) {
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false}) {
     return _makeInvalidRead();
   }
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset, bool voidContext: false}) {
+      {int offset = TreeNode.noOffset, bool voidContext = false}) {
     return _makeInvalidRead();
   }
 
   Generator _createInstanceAccess(Token token, Name name,
-      {bool isNullAware: false}) {
+      {bool isNullAware = false}) {
     Builder? getter = extensionBuilder.lookupLocalMemberByName(name);
     if (getter != null && getter.isStatic) {
       getter = null;
@@ -2787,13 +2782,13 @@ class LoadLibraryGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _makeInvalidWrite(value);
   }
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
+      {bool voidContext = false}) {
     Expression read = buildSimpleRead();
     Expression write = _makeInvalidWrite(value);
     return new IfNullSet(read, write, forEffect: voidContext)
@@ -2802,10 +2797,10 @@ class LoadLibraryGenerator extends Generator {
 
   @override
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      bool isPreIncDec: false,
-      bool isPostIncDec: false}) {
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false}) {
     Expression binary = _helper.forest
         .createBinary(offset, buildSimpleRead(), binaryOperator, value);
     return _makeInvalidWrite(binary);
@@ -2863,7 +2858,7 @@ class DeferredAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _helper.wrapInDeferredCheck(
         suffixGenerator.buildAssignment(value, voidContext: voidContext),
         prefixGenerator.prefix,
@@ -2872,7 +2867,7 @@ class DeferredAccessGenerator extends Generator {
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
+      {bool voidContext = false}) {
     return _helper.wrapInDeferredCheck(
         suffixGenerator.buildIfNullAssignment(value, type, offset,
             voidContext: voidContext),
@@ -2882,10 +2877,10 @@ class DeferredAccessGenerator extends Generator {
 
   @override
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      bool isPreIncDec: false,
-      bool isPostIncDec: false}) {
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false}) {
     return _helper.wrapInDeferredCheck(
         suffixGenerator.buildCompoundAssignment(binaryOperator, value,
             offset: offset,
@@ -2898,7 +2893,7 @@ class DeferredAccessGenerator extends Generator {
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset, bool voidContext: false}) {
+      {int offset = TreeNode.noOffset, bool voidContext = false}) {
     return _helper.wrapInDeferredCheck(
         suffixGenerator.buildPostfixIncrement(binaryOperator,
             offset: offset, voidContext: voidContext),
@@ -3550,13 +3545,13 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _makeInvalidWrite(value);
   }
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
+      {bool voidContext = false}) {
     Expression read = _createRead();
     Expression write = _makeInvalidWrite(value);
     return new IfNullSet(read, write, forEffect: voidContext)
@@ -3565,10 +3560,10 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
 
   @override
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      bool isPreIncDec: false,
-      bool isPostIncDec: false}) {
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false}) {
     Expression binary = _helper.forest
         .createBinary(offset, _createRead(), binaryOperator, value);
     return _makeInvalidWrite(binary);
@@ -3651,22 +3646,22 @@ abstract class ErroneousExpressionGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return buildError(rhs: value, kind: UnresolvedKind.Setter);
   }
 
   @override
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: -1,
-      bool voidContext: false,
-      bool isPreIncDec: false,
-      bool isPostIncDec: false}) {
+      {int offset = -1,
+      bool voidContext = false,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false}) {
     return buildError(rhs: value, kind: UnresolvedKind.Getter);
   }
 
   @override
   Expression buildPrefixIncrement(Name binaryOperator,
-      {int offset: -1, bool voidContext: false}) {
+      {int offset = -1, bool voidContext = false}) {
     return buildError(
         arguments: _forest.createArguments(
             fileOffset, <Expression>[_forest.createIntLiteral(offset, 1)]),
@@ -3676,7 +3671,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: -1, bool voidContext: false}) {
+      {int offset = -1, bool voidContext = false}) {
     return buildError(
         arguments: _forest.createArguments(
             fileOffset, <Expression>[_forest.createIntLiteral(offset, 1)]),
@@ -3686,7 +3681,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
+      {bool voidContext = false}) {
     return buildError(rhs: value, kind: UnresolvedKind.Setter);
   }
 
@@ -3785,16 +3780,16 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _buildUnresolvedVariableAssignment(false, value);
   }
 
   @override
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      bool isPreIncDec: false,
-      bool isPostIncDec: false}) {
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false}) {
     return _buildUnresolvedVariableAssignment(true, value);
   }
 
@@ -3844,34 +3839,34 @@ abstract class ContextAwareGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _makeInvalidWrite(value);
   }
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
+      {bool voidContext = false}) {
     return _makeInvalidWrite(value);
   }
 
   @override
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: -1,
-      bool voidContext: false,
-      bool isPreIncDec: false,
-      bool isPostIncDec: false}) {
+      {int offset = -1,
+      bool voidContext = false,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false}) {
     return _makeInvalidWrite(value);
   }
 
   @override
   Expression buildPrefixIncrement(Name binaryOperator,
-      {int offset: -1, bool voidContext: false}) {
+      {int offset = -1, bool voidContext = false}) {
     return _makeInvalidWrite(null);
   }
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: -1, bool voidContext: false}) {
+      {int offset = -1, bool voidContext = false}) {
     return _makeInvalidWrite(null);
   }
 
@@ -4035,28 +4030,28 @@ class PrefixUseGenerator extends Generator {
   Expression buildSimpleRead() => _makeInvalidRead();
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _makeInvalidWrite(value);
   }
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
+      {bool voidContext = false}) {
     return _makeInvalidRead();
   }
 
   @override
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      bool isPreIncDec: false,
-      bool isPostIncDec: false}) {
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false}) {
     return _makeInvalidRead();
   }
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset, bool voidContext: false}) {
+      {int offset = TreeNode.noOffset, bool voidContext = false}) {
     return _makeInvalidRead();
   }
 
@@ -4161,22 +4156,22 @@ class UnexpectedQualifiedUseGenerator extends Generator {
   Expression buildSimpleRead() => _makeInvalidRead(UnresolvedKind.Member);
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _makeInvalidWrite(value);
   }
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
+      {bool voidContext = false}) {
     return _makeInvalidRead(UnresolvedKind.Member);
   }
 
   @override
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      bool isPreIncDec: false,
-      bool isPostIncDec: false}) {
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false}) {
     return _makeInvalidRead(UnresolvedKind.Member);
   }
 
@@ -4258,34 +4253,34 @@ class ParserErrorGenerator extends Generator {
   Expression buildSimpleRead() => buildProblem();
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return buildProblem();
   }
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
+      {bool voidContext = false}) {
     return buildProblem();
   }
 
   @override
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      bool isPreIncDec: false,
-      bool isPostIncDec: false}) {
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false}) {
     return buildProblem();
   }
 
   @override
   Expression buildPrefixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset, bool voidContext: false}) {
+      {int offset = TreeNode.noOffset, bool voidContext = false}) {
     return buildProblem();
   }
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset, bool voidContext: false}) {
+      {int offset = TreeNode.noOffset, bool voidContext = false}) {
     return buildProblem();
   }
 
@@ -4413,7 +4408,7 @@ class ThisAccessGenerator extends Generator {
 
   ThisAccessGenerator(ExpressionGeneratorHelper helper, Token token,
       this.isInitializer, this.inFieldInitializer, this.inLateFieldInitializer,
-      {this.isSuper: false})
+      {this.isSuper = false})
       : super(helper, token);
 
   @override
@@ -4603,34 +4598,34 @@ class ThisAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return buildAssignmentError();
   }
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
+      {bool voidContext = false}) {
     return buildAssignmentError();
   }
 
   @override
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      bool isPreIncDec: false,
-      bool isPostIncDec: false}) {
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false}) {
     return buildAssignmentError();
   }
 
   @override
   Expression buildPrefixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset, bool voidContext: false}) {
+      {int offset = TreeNode.noOffset, bool voidContext = false}) {
     return buildAssignmentError();
   }
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset, bool voidContext: false}) {
+      {int offset = TreeNode.noOffset, bool voidContext = false}) {
     return buildAssignmentError();
   }
 
@@ -4816,7 +4811,7 @@ abstract class Selector {
 
   /// Applies this selector to [receiver].
   Expression_Generator withReceiver(Object? receiver, int operatorOffset,
-      {bool isNullAware: false});
+      {bool isNullAware = false});
 
   List<TypeBuilder>? get typeArguments => null;
 
@@ -4887,7 +4882,7 @@ class InvocationSelector extends Selector {
 
   @override
   Expression_Generator withReceiver(Object? receiver, int operatorOffset,
-      {bool isNullAware: false}) {
+      {bool isNullAware = false}) {
     if (receiver is Generator) {
       return receiver.buildSelectorAccess(this, operatorOffset, isNullAware);
     }
@@ -4930,7 +4925,7 @@ class PropertySelector extends Selector {
 
   @override
   Expression_Generator withReceiver(Object? receiver, int operatorOffset,
-      {bool isNullAware: false}) {
+      {bool isNullAware = false}) {
     if (receiver is Generator) {
       return receiver.buildSelectorAccess(this, operatorOffset, isNullAware);
     }
@@ -4972,7 +4967,7 @@ class AugmentSuperAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _createWrite(fileOffset, value, forEffect: voidContext);
   }
 

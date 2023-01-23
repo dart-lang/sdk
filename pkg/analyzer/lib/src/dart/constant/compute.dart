@@ -10,9 +10,17 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
 /// Compute values of the given [constants] with correct ordering.
-void computeConstants(DeclaredVariables declaredVariables,
-    List<ConstantEvaluationTarget> constants, FeatureSet featureSet) {
-  var walker = _ConstantWalker(declaredVariables, featureSet);
+void computeConstants({
+  required DeclaredVariables declaredVariables,
+  required List<ConstantEvaluationTarget> constants,
+  required FeatureSet featureSet,
+  required ConstantEvaluationConfiguration configuration,
+}) {
+  var walker = _ConstantWalker(
+    declaredVariables: declaredVariables,
+    featureSet: featureSet,
+    configuration: configuration,
+  );
 
   for (var constant in constants) {
     walker.walk(walker._getNode(constant));
@@ -39,9 +47,14 @@ class _ConstantNode extends graph.Node<_ConstantNode> {
 class _ConstantWalker extends graph.DependencyWalker<_ConstantNode> {
   final DeclaredVariables declaredVariables;
   final FeatureSet featureSet;
+  final ConstantEvaluationConfiguration configuration;
   final Map<ConstantEvaluationTarget, _ConstantNode> nodeMap = {};
 
-  _ConstantWalker(this.declaredVariables, this.featureSet);
+  _ConstantWalker({
+    required this.declaredVariables,
+    required this.featureSet,
+    required this.configuration,
+  });
 
   @override
   void evaluate(_ConstantNode node) {
@@ -71,6 +84,7 @@ class _ConstantWalker extends graph.DependencyWalker<_ConstantNode> {
     return ConstantEvaluationEngine(
       declaredVariables: declaredVariables,
       isNonNullableByDefault: featureSet.isEnabled(Feature.non_nullable),
+      configuration: configuration,
     );
   }
 

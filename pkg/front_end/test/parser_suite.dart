@@ -17,6 +17,12 @@ import 'package:front_end/src/fasta/source/diet_parser.dart'
 
 import 'package:front_end/src/fasta/util/parser_ast.dart' show getAST;
 
+import 'package:_fe_analyzer_shared/src/experiments/flags.dart' as shared
+    show ExperimentalFlag;
+
+import 'package:_fe_analyzer_shared/src/experiments/errors.dart'
+    show getExperimentNotEnabledMessage;
+
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show Parser, lengthOfSpan;
 
@@ -200,7 +206,7 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
   /// Returns null if scanner doesn't return any Token.
   static ParserTestListenerWithMessageFormatting? doListenerParsing(
       Uri uri, String suiteName, String shortName,
-      {bool addTrace: false, bool annotateLines: false}) {
+      {bool addTrace = false, bool annotateLines = false}) {
     List<int> lineStarts = <int>[];
     Token firstToken = scanUri(uri, shortName, lineStarts: lineStarts);
 
@@ -217,7 +223,8 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
         new ParserTestListenerWithMessageFormatting(
             addTrace, annotateLines, source, shortNameId);
     Parser parser = new Parser(parserTestListener,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+        allowPatterns: shouldAllowPatterns(shortName));
     parser.parseUnit(firstToken);
     return parserTestListener;
   }
@@ -280,7 +287,8 @@ class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
     ParserTestListenerForIntertwined parserTestListener =
         new ParserTestListenerForIntertwined(
             context.addTrace, context.annotateLines, source);
-    TestParser parser = new TestParser(parserTestListener, context.addTrace);
+    TestParser parser = new TestParser(parserTestListener, context.addTrace,
+        allowPatterns: shouldAllowPatterns(description.shortName));
     parserTestListener.parser = parser;
     parser.sb = parserTestListener.sb;
     parser.parseUnit(firstToken);
@@ -325,7 +333,8 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
     ParserTestListener parserTestListener =
         new ParserTestListener(context.addTrace);
     Parser parser = new Parser(parserTestListener,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+        allowPatterns: shouldAllowPatterns(description.shortName));
     bool parserCrashed = false;
     dynamic parserCrashedE;
     StackTrace? parserCrashedSt;
@@ -362,7 +371,7 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
 }
 
 StringBuffer tokenStreamToString(Token firstToken, List<int> lineStarts,
-    {bool addTypes: false}) {
+    {bool addTypes = false}) {
   StringBuffer sb = new StringBuffer();
   Token? token = firstToken;
 
@@ -457,6 +466,11 @@ Token scanUri(Uri uri, String shortName, {List<int>? lineStarts}) {
   return scanRawBytes(rawBytes, config, lineStarts);
 }
 
+bool shouldAllowPatterns(String shortName) {
+  String firstDir = shortName.split("/")[0];
+  return firstDir == "patterns";
+}
+
 Token scanRawBytes(
     List<int> rawBytes, ScannerConfiguration config, List<int>? lineStarts) {
   Uint8List bytes = new Uint8List(rawBytes.length + 1);
@@ -527,9 +541,7 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
     return result;
   }
 
-  @override
-  void handleRecoverableError(
-      Message message, Token startToken, Token endToken) {
+  void _reportMessage(Message message, Token startToken, Token endToken) {
     if (source != null) {
       Location location =
           source!.getLocation(source!.fileUri!, offsetForToken(startToken));
@@ -544,8 +556,21 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
     } else {
       errors.add(message.problemMessage);
     }
+  }
 
+  @override
+  void handleRecoverableError(
+      Message message, Token startToken, Token endToken) {
+    _reportMessage(message, startToken, endToken);
     super.handleRecoverableError(message, startToken, endToken);
+  }
+
+  @override
+  void handleExperimentNotEnabled(shared.ExperimentalFlag experimentalFlag,
+      Token startToken, Token endToken) {
+    _reportMessage(
+        getExperimentNotEnabledMessage(experimentalFlag), startToken, endToken);
+    super.handleExperimentNotEnabled(experimentalFlag, startToken, endToken);
   }
 }
 

@@ -19,16 +19,16 @@ void testHasSymbol() {
   Expect.isTrue(ffiTestFunctions.providesSymbol('ReturnMaxUint8'));
   Expect.isFalse(ffiTestFunctions.providesSymbol('SymbolNotInLibrary'));
 
-  if (Platform.isMacOS ||
-      Platform.isIOS ||
-      Platform.isAndroid ||
-      Platform.isLinux) {
-    DynamicLibrary p = DynamicLibrary.process();
+  final p = DynamicLibrary.process();
+  Expect.isFalse(p.providesSymbol('symbol_that_does_not_exist_in_process'));
+  if (Platform.isWindows) {
+    Expect.isTrue(p.providesSymbol('HeapAlloc'));
+    Expect.isTrue(p.providesSymbol('CoTaskMemAlloc'));
+  } else {
     Expect.isTrue(p.providesSymbol('dlopen'));
-    Expect.isFalse(p.providesSymbol('symbol_that_does_not_exist_in_process'));
   }
 
-  DynamicLibrary e = DynamicLibrary.executable();
+  final e = DynamicLibrary.executable();
   Expect.isTrue(e.providesSymbol('Dart_Invoke'));
   Expect.isFalse(e.providesSymbol('symbol_that_does_not_exist_in_executable'));
 }

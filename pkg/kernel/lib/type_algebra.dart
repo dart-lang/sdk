@@ -294,7 +294,7 @@ abstract class Substitution {
   /// Returns the substitution for [parameter]
   DartType? getSubstitute(TypeParameter parameter, bool upperBound);
 
-  DartType substituteType(DartType node, {bool contravariant: false}) {
+  DartType substituteType(DartType node, {bool contravariant = false}) {
     return new _TopSubstitutor(this, contravariant).visit(node);
   }
 
@@ -312,7 +312,7 @@ class _AllFreeTypeVariablesVisitor implements DartTypeVisitor<void> {
 
   @override
   bool defaultDartType(DartType node) {
-    throw new UnsupportedError("Unsupported type $node (${node.runtimeType}.");
+    throw new UnsupportedError("Unsupported type $node (${node.runtimeType}).");
   }
 
   @override
@@ -335,6 +335,13 @@ class _AllFreeTypeVariablesVisitor implements DartTypeVisitor<void> {
 
   @override
   void visitExtensionType(ExtensionType node) {
+    for (DartType typeArgument in node.typeArguments) {
+      typeArgument.accept(this);
+    }
+  }
+
+  @override
+  void visitViewType(ViewType node) {
     for (DartType typeArgument in node.typeArguments) {
       typeArgument.accept(this);
     }
@@ -370,10 +377,26 @@ class _AllFreeTypeVariablesVisitor implements DartTypeVisitor<void> {
   }
 
   @override
+  void visitRecordType(RecordType node) {
+    for (DartType positional in node.positional) {
+      positional.accept(this);
+    }
+    for (NamedType named in node.named) {
+      named.type.accept(this);
+    }
+  }
+
+  @override
   void visitTypeParameterType(TypeParameterType node) {
     if (!boundVariables.contains(node.parameter)) {
       freeTypeVariables.add(node.parameter);
     }
+  }
+
+  @override
+  void visitIntersectionType(IntersectionType node) {
+    node.left.accept(this);
+    node.right.accept(this);
   }
 }
 
@@ -388,7 +411,7 @@ class _NullSubstitution extends Substitution {
   }
 
   @override
-  DartType substituteType(DartType node, {bool contravariant: false}) => node;
+  DartType substituteType(DartType node, {bool contravariant = false}) => node;
 
   @override
   Supertype substituteSupertype(Supertype node) => node;
@@ -635,7 +658,7 @@ Nullability combineNullabilitiesForSubstitution(Nullability a, Nullability b) {
   return a;
 }
 
-abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
+abstract class _TypeSubstitutor implements DartTypeVisitor<DartType> {
   final _TypeSubstitutor? outer;
   bool covariantContext = true;
 
@@ -697,6 +720,33 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     List<DartType> typeArguments = node.typeArguments.map(visit).toList();
     if (useCounter == before) return node;
     return new InterfaceType(node.classNode, node.nullability, typeArguments);
+  }
+
+  @override
+  DartType visitExtensionType(ExtensionType node) {
+    if (node.typeArguments.isEmpty) return node;
+    int before = useCounter;
+    List<DartType> typeArguments = node.typeArguments.map(visit).toList();
+    if (useCounter == before) return node;
+    return new ExtensionType(node.extension, node.nullability, typeArguments);
+  }
+
+  @override
+  DartType visitViewType(ViewType node) {
+    if (node.typeArguments.isEmpty) return node;
+    int before = useCounter;
+    List<DartType> typeArguments = node.typeArguments.map(visit).toList();
+    if (useCounter == before) return node;
+    return new ViewType(node.view, node.nullability, typeArguments);
+  }
+
+  @override
+  DartType visitRecordType(RecordType node) {
+    int before = useCounter;
+    List<DartType> positional = node.positional.map(visit).toList();
+    List<NamedType> named = node.named.map(visitNamedType).toList();
+    if (useCounter == before) return node;
+    return new RecordType(positional, named, node.nullability);
   }
 
   @override
@@ -806,6 +856,11 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     }
     return node;
   }
+
+  @override
+  DartType visitIntersectionType(IntersectionType node) {
+    return node.left.accept(this);
+  }
 }
 
 class _DeepTypeSubstitutor extends _InnerTypeSubstitutor {
@@ -894,6 +949,11 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
   }
 
   @override
+  bool visitViewType(ViewType node) {
+    return node.typeArguments.any(visit);
+  }
+
+  @override
   bool visitFutureOrType(FutureOrType node) {
     return visit(node.typeArgument);
   }
@@ -912,8 +972,18 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
   }
 
   @override
+  bool visitRecordType(RecordType node) {
+    return node.positional.any(visit) || node.named.any(visitNamedType);
+  }
+
+  @override
   bool visitTypeParameterType(TypeParameterType node) {
     return variables.contains(node.parameter);
+  }
+
+  @override
+  bool visitIntersectionType(IntersectionType node) {
+    return visit(node.left) || visit(node.right);
   }
 
   bool handleTypeParameter(TypeParameter node) {
@@ -963,6 +1033,11 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
   }
 
   @override
+  bool visitViewType(ViewType node) {
+    return node.typeArguments.any(visit);
+  }
+
+  @override
   bool visitFutureOrType(FutureOrType node) {
     return visit(node.typeArgument);
   }
@@ -984,8 +1059,18 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
   }
 
   @override
+  bool visitRecordType(RecordType node) {
+    return node.positional.any(visit) || node.named.any(visitNamedType);
+  }
+
+  @override
   bool visitTypeParameterType(TypeParameterType node) {
     return node.parameter.parent == null && !variables.contains(node.parameter);
+  }
+
+  @override
+  bool visitIntersectionType(IntersectionType node) {
+    return visit(node.left) || visit(node.right);
   }
 
   bool handleTypeParameter(TypeParameter node) {
@@ -1036,6 +1121,11 @@ class _FreeTypeVariableVisitor implements DartTypeVisitor<bool> {
   }
 
   @override
+  bool visitViewType(ViewType node) {
+    return node.typeArguments.any(visit);
+  }
+
+  @override
   bool visitFutureOrType(FutureOrType node) {
     return visit(node.typeArgument);
   }
@@ -1057,8 +1147,18 @@ class _FreeTypeVariableVisitor implements DartTypeVisitor<bool> {
   }
 
   @override
+  bool visitRecordType(RecordType node) {
+    return node.positional.any(visit) || node.named.any(visitNamedType);
+  }
+
+  @override
   bool visitTypeParameterType(TypeParameterType node) {
     return !boundVariables.contains(node.parameter);
+  }
+
+  @override
+  bool visitIntersectionType(IntersectionType node) {
+    return visit(node.left) && visit(node.right);
   }
 
   bool handleTypeParameter(TypeParameter node) {
@@ -1131,6 +1231,11 @@ class _PrimitiveTypeVerifier implements DartTypeVisitor<bool> {
   }
 
   @override
+  bool visitRecordType(RecordType node) {
+    return node.positional.isNotEmpty || node.named.isNotEmpty;
+  }
+
+  @override
   bool visitFutureOrType(FutureOrType node) => false;
 
   @override
@@ -1140,6 +1245,11 @@ class _PrimitiveTypeVerifier implements DartTypeVisitor<bool> {
 
   @override
   bool visitExtensionType(ExtensionType node) {
+    return node.typeArguments.isEmpty;
+  }
+
+  @override
+  bool visitViewType(ViewType node) {
     return node.typeArguments.isEmpty;
   }
 
@@ -1156,9 +1266,10 @@ class _PrimitiveTypeVerifier implements DartTypeVisitor<bool> {
   bool visitNullType(NullType node) => true;
 
   @override
-  bool visitTypeParameterType(TypeParameterType node) {
-    return node.promotedBound == null;
-  }
+  bool visitTypeParameterType(TypeParameterType node) => true;
+
+  @override
+  bool visitIntersectionType(IntersectionType node) => false;
 
   @override
   bool visitTypedefType(TypedefType node) {
@@ -1203,6 +1314,11 @@ class _NullabilityConstructorUnwrapper
   }
 
   @override
+  DartType visitRecordType(RecordType node, CoreTypes coreTypes) {
+    return node.withDeclaredNullability(Nullability.nonNullable);
+  }
+
+  @override
   DartType visitFutureOrType(FutureOrType node, CoreTypes coreTypes) {
     return node.withDeclaredNullability(Nullability.nonNullable);
   }
@@ -1214,6 +1330,11 @@ class _NullabilityConstructorUnwrapper
 
   @override
   DartType visitExtensionType(ExtensionType node, CoreTypes coreTypes) {
+    return node.withDeclaredNullability(Nullability.nonNullable);
+  }
+
+  @override
+  DartType visitViewType(ViewType node, CoreTypes coreTypes) {
     return node.withDeclaredNullability(Nullability.nonNullable);
   }
 
@@ -1230,13 +1351,14 @@ class _NullabilityConstructorUnwrapper
 
   @override
   DartType visitTypeParameterType(TypeParameterType node, CoreTypes coreTypes) {
-    if (node.promotedBound != null) {
-      // Intersection types don't have their own nullabilities.
-      return node;
-    } else {
-      return node.withDeclaredNullability(
-          TypeParameterType.computeNullabilityFromBound(node.parameter));
-    }
+    return node.withDeclaredNullability(
+        TypeParameterType.computeNullabilityFromBound(node.parameter));
+  }
+
+  @override
+  DartType visitIntersectionType(IntersectionType node, CoreTypes coreTypes) {
+    // Intersection types don't have their own nullabilities.
+    return node;
   }
 
   @override
@@ -1441,18 +1563,16 @@ DartType computeTypeWithoutNullabilityMarker(DartType type,
   assert(isNonNullableByDefault != null);
 
   if (type is TypeParameterType) {
-    if (type.promotedBound == null) {
-      // The default nullability for library is used when there are no
-      // nullability markers on the type.
-      return new TypeParameterType(
-          type.parameter,
-          _defaultNullabilityForTypeParameterType(type.parameter,
-              isNonNullableByDefault: isNonNullableByDefault));
-    } else {
-      // Intersection types can't be arguments to the nullable and the legacy
-      // type constructors, so nothing can be peeled off.
-      return type;
-    }
+    // The default nullability for library is used when there are no
+    // nullability markers on the type.
+    return new TypeParameterType(
+        type.parameter,
+        _defaultNullabilityForTypeParameterType(type.parameter,
+            isNonNullableByDefault: isNonNullableByDefault));
+  } else if (type is IntersectionType) {
+    // Intersection types can't be arguments to the nullable and the legacy
+    // type constructors, so nothing can be peeled off.
+    return type;
   } else if (type is NullType) {
     return type;
   } else {
@@ -1475,10 +1595,9 @@ bool isTypeParameterTypeWithoutNullabilityMarker(TypeParameterType type,
 
   // The default nullability for library is used when there are no nullability
   // markers on the type.
-  return type.promotedBound == null &&
-      type.declaredNullability ==
-          _defaultNullabilityForTypeParameterType(type.parameter,
-              isNonNullableByDefault: isNonNullableByDefault);
+  return type.declaredNullability ==
+      _defaultNullabilityForTypeParameterType(type.parameter,
+          isNonNullableByDefault: isNonNullableByDefault);
 }
 
 bool isTypeWithoutNullabilityMarker(DartType type,
@@ -1510,6 +1629,13 @@ class _NullabilityMarkerDetector implements DartTypeVisitor<bool> {
   }
 
   @override
+  bool visitRecordType(RecordType node) {
+    assert(node.declaredNullability != Nullability.undetermined);
+    return node.declaredNullability == Nullability.nullable ||
+        node.declaredNullability == Nullability.legacy;
+  }
+
+  @override
   bool visitFutureOrType(FutureOrType node) {
     if (node.declaredNullability == Nullability.nullable ||
         node.declaredNullability == Nullability.legacy) {
@@ -1527,6 +1653,13 @@ class _NullabilityMarkerDetector implements DartTypeVisitor<bool> {
 
   @override
   bool visitExtensionType(ExtensionType node) {
+    assert(node.declaredNullability != Nullability.undetermined);
+    return node.declaredNullability == Nullability.nullable ||
+        node.declaredNullability == Nullability.legacy;
+  }
+
+  @override
+  bool visitViewType(ViewType node) {
     assert(node.declaredNullability != Nullability.undetermined);
     return node.declaredNullability == Nullability.nullable ||
         node.declaredNullability == Nullability.legacy;
@@ -1552,6 +1685,9 @@ class _NullabilityMarkerDetector implements DartTypeVisitor<bool> {
   }
 
   @override
+  bool visitIntersectionType(IntersectionType node) => false;
+
+  @override
   bool visitTypedefType(TypedefType node) {
     assert(node.declaredNullability != Nullability.undetermined);
     return node.declaredNullability == Nullability.nullable ||
@@ -1570,7 +1706,7 @@ class _NullabilityMarkerDetector implements DartTypeVisitor<bool> {
 /// and Null are nullable, but aren't considered applications of the nullable
 /// type constructor.
 bool isNullableTypeConstructorApplication(DartType type) {
-  if (type is TypeParameterType && type.promotedBound != null) {
+  if (type is IntersectionType) {
     // Promoted types are never considered applications of ?.
     return false;
   }

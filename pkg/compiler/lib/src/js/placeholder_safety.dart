@@ -10,7 +10,7 @@ typedef PositionPredicate = bool Function(int position);
 
 /// PlaceholderSafetyAnalysis determines which placeholders in a JavaScript
 /// template may be replaced with an arbitrary expression. Placeholders may be
-/// replaced with an arbitrary expression providied the template ensures the
+/// replaced with an arbitrary expression provided the template ensures the
 /// placeholders are evaluated in the same left-to-right order with no
 /// additional effects interleaved.
 ///

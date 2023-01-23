@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 
 class A {
-  call({a: 42}) {
+  call({a = 42}) {
     return 499 + a;
   }
 }

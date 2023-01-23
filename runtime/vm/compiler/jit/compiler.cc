@@ -234,7 +234,7 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
     // immediately, causing an infinite compilation loop. The compiler raises
     // the threshold for functions with breakpoints, so we drop the unoptimized
     // to force it to be recompiled.
-    if (CanOptimizeImmediately()) {
+    if (thread->isolate_group()->optimization_counter_threshold() < 2) {
       function.ClearCode();
     }
     return false;
@@ -433,7 +433,8 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
         function.SetUsageCounter(0);
       } else {
         // Trigger another optimization pass soon.
-        function.SetUsageCounter(FLAG_optimization_counter_threshold - 100);
+        function.SetUsageCounter(
+            thread()->isolate_group()->optimization_counter_threshold() - 100);
       }
     }
 
@@ -732,7 +733,8 @@ static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
           }
 
           // Trigger another optimization pass soon.
-          function.SetUsageCounter(FLAG_optimization_counter_threshold - 100);
+          function.SetUsageCounter(
+              thread->isolate_group()->optimization_counter_threshold() - 100);
           return Error::null();
         } else if (error.IsLanguageError() &&
                    LanguageError::Cast(error).kind() == Report::kBailout) {

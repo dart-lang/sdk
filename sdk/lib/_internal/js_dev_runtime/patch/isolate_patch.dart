@@ -4,7 +4,8 @@
 
 // Patch file for the dart:isolate library.
 
-import 'dart:_js_helper' show patch, NoReifyGeneric;
+import 'dart:_js_helper' show NoReifyGeneric;
+import 'dart:_internal' show patch;
 import 'dart:async';
 import "dart:typed_data" show TypedData;
 

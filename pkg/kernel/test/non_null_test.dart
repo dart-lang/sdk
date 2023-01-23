@@ -66,7 +66,7 @@ const Map<String, String> data = {
   'X & Object': 'X & Object',
   'X? & Object?': 'X & Object',
   'X? & dynamic': 'X & dynamic',
-  'X? & Object': 'X & Object',
+  'X? & Object': 'X? & Object',
   'Y': 'Y & X & Object',
   'Y?': 'Y & X & Object',
   'Y_extends_dynamic': 'Y_extends_dynamic',

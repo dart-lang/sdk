@@ -35,42 +35,72 @@ class EncapsulateField extends CorrectionProducer {
       return;
     }
     // should have exactly one field
-    List<VariableDeclaration> fields = variableList.variables;
+    var fields = variableList.variables;
     if (fields.length != 1) {
       return;
     }
     var field = fields.first;
-    var nameNode = field.name;
+    var nameToken = field.name;
     var fieldElement = field.declaredElement as FieldElement;
     // should have a public name
-    var name = nameNode.name;
+    var name = nameToken.lexeme;
     if (Identifier.isPrivateName(name)) {
       return;
     }
     // should be on the name
-    if (nameNode != node) {
+    if (nameToken != token) {
       return;
     }
 
     // Should be in a class or mixin.
-    if (fieldDeclaration.parent is! ClassOrMixinDeclaration) {
+    List<ClassMember> classMembers;
+    final parent = fieldDeclaration.parent;
+    if (parent is ClassDeclaration) {
+      classMembers = parent.members;
+    } else if (parent is MixinDeclaration) {
+      classMembers = parent.members;
+    } else {
       return;
     }
-    var classDeclaration = fieldDeclaration.parent as ClassOrMixinDeclaration;
 
     await builder.addDartFileEdit(file, (builder) {
       // rename field
-      builder.addSimpleReplacement(range.node(nameNode), '_$name');
+      builder.addSimpleReplacement(range.token(nameToken), '_$name');
       // update references in constructors
-      for (var member in classDeclaration.members) {
-        if (member is ConstructorDeclaration) {
-          for (var parameter in member.parameters.parameters) {
-            var identifier = parameter.identifier;
+      for (var constructor in classMembers) {
+        if (constructor is ConstructorDeclaration) {
+          for (var parameter in constructor.parameters.parameters) {
+            var identifier = parameter.name;
             var parameterElement = parameter.declaredElement;
             if (identifier != null &&
                 parameterElement is FieldFormalParameterElement &&
                 parameterElement.field == fieldElement) {
-              builder.addSimpleReplacement(range.node(identifier), '_$name');
+              if (parameter.isNamed && parameter is DefaultFormalParameter) {
+                var normalParam = parameter.parameter;
+                if (normalParam is FieldFormalParameter) {
+                  var start = normalParam.thisKeyword;
+                  var type = parameterElement.type
+                      .getDisplayString(withNullability: true);
+                  builder.addSimpleReplacement(
+                      range.startEnd(start, normalParam.period), '$type ');
+
+                  var previous =
+                      constructor.separator ?? constructor.parameters;
+                  var replacement = constructor.initializers.isEmpty
+                      ? ' : _$name = $name'
+                      : ' _$name = $name,';
+                  builder.addSimpleInsertion(previous.end, replacement);
+                  break;
+                }
+              }
+              builder.addSimpleReplacement(range.token(identifier), '_$name');
+            }
+          }
+          for (var initializer in constructor.initializers) {
+            if (initializer is ConstructorFieldInitializer &&
+                initializer.fieldName.staticElement == fieldElement) {
+              builder.addSimpleReplacement(
+                  range.node(initializer.fieldName), '_$name');
             }
           }
         }
@@ -106,8 +136,8 @@ class EncapsulateField extends CorrectionProducer {
           builder.write('  ');
           builder.writeln(docCode);
         }
-        builder.writeln('  set $name($typeCode$name) {');
-        builder.writeln('    _$name = $name;');
+        builder.writeln('  set $name(${typeCode}value) {');
+        builder.writeln('    _$name = value;');
         builder.write('  }');
       });
     });

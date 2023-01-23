@@ -275,7 +275,8 @@ abstract class SetMixin<E> implements Set<E> {
       if (index == elementIndex) return element;
       elementIndex++;
     }
-    throw RangeError.index(index, this, "index", null, elementIndex);
+    throw IndexError.withLength(index, elementIndex,
+        indexable: this, name: "index");
   }
 }
 

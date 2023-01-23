@@ -1,0 +1,15 @@
+class A {
+  external A();
+}
+
+class B {
+  external const B();
+}
+
+class C {
+  external C.named();
+}
+
+class D {
+  external const D.named();
+}

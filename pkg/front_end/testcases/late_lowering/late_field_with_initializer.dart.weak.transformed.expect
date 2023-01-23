@@ -123,9 +123,9 @@ static get Extension|lateExtensionField1() → core::int {
   }
   return let final core::int? #t7 = self::_#Extension|lateExtensionField1 in #t7{core::int};
 }
-static set Extension|lateExtensionField1(core::int Extension|lateExtensionField1#param) → void {
+static set Extension|lateExtensionField1(core::int lateExtensionField1#param) → void {
   self::_#Extension|lateExtensionField1#isSet = true;
-  self::_#Extension|lateExtensionField1 = Extension|lateExtensionField1#param;
+  self::_#Extension|lateExtensionField1 = lateExtensionField1#param;
 }
 static get Extension|lateExtensionField2() → core::int {
   if(!self::_#Extension|lateExtensionField2#isSet) {
@@ -134,9 +134,9 @@ static get Extension|lateExtensionField2() → core::int {
   }
   return let final core::int? #t8 = self::_#Extension|lateExtensionField2 in #t8{core::int};
 }
-static set Extension|lateExtensionField2(core::int Extension|lateExtensionField2#param) → void {
+static set Extension|lateExtensionField2(core::int lateExtensionField2#param) → void {
   self::_#Extension|lateExtensionField2#isSet = true;
-  self::_#Extension|lateExtensionField2 = Extension|lateExtensionField2#param;
+  self::_#Extension|lateExtensionField2 = lateExtensionField2#param;
 }
 static method Extension|staticMethod() → dynamic {
   self::expect(42, self::Extension|lateExtensionField2);

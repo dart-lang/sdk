@@ -21,6 +21,9 @@ typedef struct {
 void Dart_DumpSnapshotInformationAsJson(char** buffer,
                                         intptr_t* buffer_length,
                                         Dart_SnapshotAnalyzerInformation* info);
+
+void Dart_DumpSnapshotInformationPP(Dart_SnapshotAnalyzerInformation* info);
+
 }  // namespace snapshot_analyzer
 }  // namespace dart
 

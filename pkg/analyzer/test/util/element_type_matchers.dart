@@ -15,7 +15,7 @@ const isElementAnnotation = TypeMatcher<ElementAnnotation>();
 
 const isExecutableElement = TypeMatcher<ExecutableElement>();
 
-const isExportElement = TypeMatcher<ExportElement>();
+const isExportElement = TypeMatcher<LibraryExportElement>();
 
 const isFieldElement = TypeMatcher<FieldElement>();
 
@@ -30,7 +30,7 @@ const isGenericFunctionTypeElement = TypeMatcher<GenericFunctionTypeElement>();
 
 const isHideElementCombinator = TypeMatcher<HideElementCombinator>();
 
-const isImportElement = TypeMatcher<ImportElement>();
+const isImportElement = TypeMatcher<LibraryImportElement>();
 
 const isLabelElement = TypeMatcher<LabelElement>();
 

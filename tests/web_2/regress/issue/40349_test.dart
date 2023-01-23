@@ -15,7 +15,7 @@
 /// a broken invariant of the SSA generate-at-use logic.
 
 void main() {
-  // `x` which is used multiple times after inilining, so a temporary is used.
+  // `x` which is used multiple times after inlining, so a temporary is used.
   x.method(40);
 }
 

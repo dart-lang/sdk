@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -19,8 +20,9 @@ import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/basic.dart';
-import 'package:analyzer/src/workspace/bazel.dart';
+import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/package_build.dart';
 import 'package:analyzer/src/workspace/pub.dart';
@@ -88,7 +90,7 @@ class AnalysisOptionsFileConfig {
   }
 }
 
-class BazelWorkspaceResolutionTest extends ContextResolutionTest {
+class BlazeWorkspaceResolutionTest extends ContextResolutionTest {
   @override
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
@@ -97,7 +99,7 @@ class BazelWorkspaceResolutionTest extends ContextResolutionTest {
   String get myPackageRootPath => '$workspaceRootPath/dart/my';
 
   @override
-  String get testFilePath => '$myPackageLibPath/my.dart';
+  File get testFile => getFile('$myPackageLibPath/my.dart');
 
   String get workspaceRootPath => '/workspace';
 
@@ -108,14 +110,14 @@ class BazelWorkspaceResolutionTest extends ContextResolutionTest {
   @override
   void setUp() {
     super.setUp();
-    newFile('$workspaceRootPath/WORKSPACE', '');
+    newFile('$workspaceRootPath/${file_paths.blazeWorkspaceMarker}', '');
     newFile('$myPackageRootPath/BUILD', '');
   }
 
   @override
   void verifyCreatedCollection() {
     super.verifyCreatedCollection();
-    assertBazelWorkspaceFor(testFilePath);
+    assertBlazeWorkspaceFor(testFile);
   }
 }
 
@@ -130,8 +132,8 @@ abstract class ContextResolutionTest
   AnalysisContextCollectionImpl? _analysisContextCollection;
 
   /// If not `null`, [resolveFile] will use the context that corresponds
-  /// to this path, instead of the given path.
-  String? pathForContextSelection;
+  /// to this file, instead of the given file.
+  File? fileForContextSelection;
 
   /// Optional Dart SDK summary file, to be used instead of [sdkRoot].
   File? sdkSummaryFile;
@@ -157,14 +159,14 @@ abstract class ContextResolutionTest
 
   Folder get sdkRoot => newFolder('/sdk');
 
-  void assertBasicWorkspaceFor(String path) {
-    var workspace = contextFor(path).contextRoot.workspace;
+  void assertBasicWorkspaceFor(File file) {
+    var workspace = contextFor(file).contextRoot.workspace;
     expect(workspace, TypeMatcher<BasicWorkspace>());
   }
 
-  void assertBazelWorkspaceFor(String path) {
-    var workspace = contextFor(path).contextRoot.workspace;
-    expect(workspace, TypeMatcher<BazelWorkspace>());
+  void assertBlazeWorkspaceFor(File file) {
+    var workspace = contextFor(file).contextRoot.workspace;
+    expect(workspace, TypeMatcher<BlazeWorkspace>());
   }
 
   void assertDriverStateString(
@@ -172,7 +174,7 @@ abstract class ContextResolutionTest
     String expected, {
     bool omitSdkFiles = true,
   }) {
-    final analysisDriver = driverFor(file.path);
+    final analysisDriver = driverFor(file);
 
     final buffer = StringBuffer();
     AnalyzerStatePrinter(
@@ -193,37 +195,37 @@ abstract class ContextResolutionTest
     expect(actual, expected);
   }
 
-  void assertGnWorkspaceFor(String path) {
-    var workspace = contextFor(path).contextRoot.workspace;
+  void assertGnWorkspaceFor(File file) {
+    var workspace = contextFor(file).contextRoot.workspace;
     expect(workspace, TypeMatcher<GnWorkspace>());
   }
 
-  void assertPackageBuildWorkspaceFor(String path) {
-    var workspace = contextFor(path).contextRoot.workspace;
+  void assertPackageBuildWorkspaceFor(File file) {
+    var workspace = contextFor(file).contextRoot.workspace;
     expect(workspace, TypeMatcher<PackageBuildWorkspace>());
   }
 
-  void assertPubWorkspaceFor(String path) {
-    var workspace = contextFor(path).contextRoot.workspace;
+  void assertPubWorkspaceFor(File file) {
+    var workspace = contextFor(file).contextRoot.workspace;
     expect(workspace, TypeMatcher<PubWorkspace>());
   }
 
-  AnalysisContext contextFor(String path) {
-    return _contextFor(path);
+  AnalysisContext contextFor(File file) {
+    return _contextFor(file);
   }
 
-  void disposeAnalysisContextCollection() {
+  Future<void> disposeAnalysisContextCollection() async {
     final analysisContextCollection = _analysisContextCollection;
     if (analysisContextCollection != null) {
-      analysisContextCollection.dispose(
+      await analysisContextCollection.dispose(
         forTesting: true,
       );
       _analysisContextCollection = null;
     }
   }
 
-  AnalysisDriver driverFor(String path) {
-    return _contextFor(path).driver;
+  AnalysisDriver driverFor(File file) {
+    return _contextFor(file).driver;
   }
 
   @override
@@ -237,7 +239,8 @@ abstract class ContextResolutionTest
 
   @override
   Future<ResolvedUnitResult> resolveFile(String path) async {
-    var analysisContext = contextFor(pathForContextSelection ?? path);
+    final file = getFile(path); // TODO(scheglov) migrate to File
+    var analysisContext = contextFor(fileForContextSelection ?? file);
     var session = analysisContext.currentSession;
     return await session.getResolvedUnit(path) as ResolvedUnitResult;
   }
@@ -258,7 +261,7 @@ abstract class ContextResolutionTest
 
   @mustCallSuper
   Future<void> tearDown() async {
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
     KernelCompilationService.disposeDelayed(
       const Duration(milliseconds: 500),
     );
@@ -280,11 +283,10 @@ abstract class ContextResolutionTest
 
   void verifyCreatedCollection() {}
 
-  DriverBasedAnalysisContext _contextFor(String path) {
+  DriverBasedAnalysisContext _contextFor(File file) {
     _createAnalysisContexts();
 
-    path = convertPath(path);
-    return _analysisContextCollection!.contextFor(path);
+    return _analysisContextCollection!.contextFor(file.path);
   }
 
   /// Create all analysis contexts in [collectionIncludedPaths].
@@ -310,20 +312,29 @@ abstract class ContextResolutionTest
   }
 }
 
+class PatternsResolutionTest extends PubPackageResolutionTest {
+  @override
+  List<String> get experiments {
+    return [
+      ...super.experiments,
+      EnableString.patterns,
+    ];
+  }
+}
+
 class PubPackageResolutionTest extends ContextResolutionTest {
   AnalysisOptionsImpl get analysisOptions {
-    var path = convertPath(testPackageRootPath);
-    return contextFor(path).analysisOptions as AnalysisOptionsImpl;
+    return contextFor(testFile).analysisOptions as AnalysisOptionsImpl;
   }
 
   @override
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
   List<String> get experiments => [
-        EnableString.enhanced_enums,
+        EnableString.inference_update_2,
         EnableString.macros,
-        EnableString.named_arguments_anywhere,
-        EnableString.super_parameters,
+        EnableString.patterns,
+        EnableString.records,
       ];
 
   @override
@@ -332,10 +343,8 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   /// The path that is not in [workspaceRootPath], contains external packages.
   String get packagesRootPath => '/packages';
 
-  File get testFile => getFile(testFilePath);
-
   @override
-  String get testFilePath => '$testPackageLibPath/test.dart';
+  File get testFile => getFile('$testPackageLibPath/test.dart');
 
   /// The language version to use by default for `package:test`.
   String? get testPackageLanguageVersion => null;
@@ -345,6 +354,45 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   String get testPackageRootPath => '$workspaceRootPath/test';
 
   String get workspaceRootPath => '/home';
+
+  /// Build summary bundle for a single URI `package:foo/foo.dart`.
+  Future<File> buildPackageFooSummary({
+    required Map<String, String> files,
+  }) async {
+    final rootFolder = getFolder('$workspaceRootPath/foo');
+
+    final packageConfigFile = getFile(
+      '${rootFolder.path}/.dart_tool/package_config.json',
+    );
+
+    writePackageConfig(
+      packageConfigFile.path,
+      PackageConfigFileBuilder()..add(name: 'foo', rootPath: rootFolder.path),
+    );
+
+    for (final entry in files.entries) {
+      newFile('${rootFolder.path}/${entry.key}', entry.value);
+    }
+
+    final targetFile = getFile(rootFolder.path);
+    final analysisDriver = driverFor(targetFile);
+    final bundleBytes = await analysisDriver.buildPackageBundle(
+      uriList: [
+        Uri.parse('package:foo/foo.dart'),
+      ],
+    );
+
+    final bundleFile = getFile('/home/summaries/packages.sum');
+    bundleFile.writeAsBytesSync(bundleBytes);
+
+    // Delete, so it is not available as a file.
+    // We don't have a package config for it anyway, but just to be sure.
+    rootFolder.delete();
+
+    await disposeAnalysisContextCollection();
+
+    return bundleFile;
+  }
 
   @override
   void setUp() {
@@ -366,6 +414,16 @@ class PubPackageResolutionTest extends ContextResolutionTest {
         toUriStr: toUriStr,
       ),
     );
+  }
+
+  Future<File> writeSdkSummary() async {
+    final file = getFile('/home/summaries/sdk.sum');
+    final bytes = await buildSdkSummary(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+    );
+    file.writeAsBytesSync(bytes);
+    return file;
   }
 
   void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
@@ -481,6 +539,11 @@ class PubspecYamlFileDependency {
   });
 }
 
+mixin WithLanguage218Mixin on PubPackageResolutionTest {
+  @override
+  String? get testPackageLanguageVersion => '2.18';
+}
+
 mixin WithNoImplicitCastsMixin on PubPackageResolutionTest {
   /// Asserts that no errors are reported in [code] when implicit casts are
   /// allowed, and that [expectedErrors] are reported for the same [code] when
@@ -492,7 +555,7 @@ mixin WithNoImplicitCastsMixin on PubPackageResolutionTest {
     await resolveTestCode(code);
     assertNoErrorsInResult();
 
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(
@@ -539,7 +602,7 @@ mixin WithStrictCastsMixin on PubPackageResolutionTest {
     await resolveTestCode(code);
     assertNoErrorsInResult();
 
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(

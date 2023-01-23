@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // VMOptions=
-// VMOptions=--deterministic --optimization-counter-threshold=10
+// VMOptions=--deterministic --optimization-counter-threshold=90
 // VMOptions=--use-slow-path
 // SharedObjects=ffi_test_functions
 //
@@ -189,13 +189,12 @@ void callbackParamInvariant2() {
   callback(fp);
 }
 
-void callbackParamImplictDowncast1() {
+void callbackParamImplicitDowncast1() {
   final callback = ffiTestFunctions.lookupFunction<CallbackNaTyPointerParamOp,
       CallbackNaTyPointerParamOpDart>(callbackParamOpName);
   final fp = Pointer.fromFunction<Int64PointerParamOp>(int64PointerParamOp);
-  Expect.throws(() {
-    callback(fp as Pointer<NativeFunction<NaTyPointerParamOp>>);
-  });
+  // Pointer type arguments are not reified, any cast will succeed.
+  callback(fp as Pointer<NativeFunction<NaTyPointerParamOp>>);
 }
 
 void callbackParamSubtype1() {
@@ -224,7 +223,7 @@ void fromFunctionTests() {
   for (int i = 0; i < 100; ++i) {
     callbackParamInvariant1(); // Pointer<Int64> invariant
     callbackParamInvariant2(); // Pointer<NativeType> invariant
-    callbackParamImplictDowncast1(); // static and dynamically supertyped
+    callbackParamImplicitDowncast1(); // static and dynamically supertyped
     callbackParamSubtype1(); // static and dynamically subtyped
     callbackReturnInvariant1(); // Pointer<Int64> invariant
     callbackReturnInvariant2(); // Pointer<NativeType> invariant

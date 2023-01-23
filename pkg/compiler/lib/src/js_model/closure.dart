@@ -2,31 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
 import '../common.dart';
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../elements/types.dart';
 import '../ir/closure.dart';
 import '../ir/element_map.dart';
 import '../ir/static_type_cache.dart';
 import '../js_backend/annotations.dart';
-import '../js_model/class_type_variable_access.dart';
 import '../js_model/element_map.dart';
-import '../js_model/env.dart';
 import '../ordered_typeset.dart';
 import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
 import '../universe/selector.dart';
+import 'class_type_variable_access.dart';
 import 'elements.dart';
-import 'closure_migrated.dart' as migrated;
-import 'js_world_builder.dart' show JsClosedWorldBuilder;
-
-export 'closure_migrated.dart'
-    show AnonymousClosureLocal, JClosureField, JRecordField;
+import 'env.dart';
+import 'js_world_builder.dart' show JClosedWorldBuilder;
 
 class ClosureDataImpl implements ClosureData {
   /// Tag used for identifying serialized [ClosureData] objects in a
@@ -134,10 +129,7 @@ class ClosureDataImpl implements ClosureData {
       entity = constructorBody.constructor;
     }
 
-    ScopeInfo scopeInfo = _scopeMap.loaded()[entity];
-    assert(
-        scopeInfo != null, failedAt(entity, "Missing scope info for $entity."));
-    return scopeInfo;
+    return _scopeMap.loaded()[entity]!;
   }
 
   // TODO(efortuna): Eventually capturedScopesMap[node] should always
@@ -164,17 +156,12 @@ class ClosureDataImpl implements ClosureData {
   // TODO(efortuna): Eventually capturedScopesMap[node] should always
   // be non-null, and we should just test that with an assert.
   CapturedLoopScope getCapturedLoopScope(ir.Node loopNode) =>
-      _capturedScopesMap.loaded()[loopNode] ?? const CapturedLoopScope();
+      _capturedScopesMap.loaded()[loopNode] as CapturedLoopScope? ??
+      const CapturedLoopScope();
 
   @override
-  ClosureRepresentationInfo getClosureInfo(ir.LocalFunction node) {
-    var closure = _localClosureRepresentationMap.loaded()[node];
-    assert(
-        closure != null,
-        "Corresponding closure class not found for $node. "
-        "Closures found for ${_localClosureRepresentationMap.loaded().keys}");
-    return closure;
-  }
+  ClosureRepresentationInfo getClosureInfo(ir.LocalFunction node) =>
+      _localClosureRepresentationMap.loaded()[node]!;
 
   @override
   MemberEntity getEnclosingMember(MemberEntity member) {
@@ -221,7 +208,6 @@ class ClosureDataBuilder {
         switch (usage.kind) {
           case VariableUseKind.explicit:
             return true;
-            break;
           case VariableUseKind.implicitCast:
             if (_annotationsData
                 .getImplicitDowncastCheckPolicy(outermostEntity)
@@ -233,19 +219,20 @@ class ClosureDataBuilder {
             break;
           case VariableUseKind.constructorTypeArgument:
             ConstructorEntity constructor =
-                _elementMap.getConstructor(usage.member);
+                _elementMap.getConstructor(usage.member!);
             if (rtiNeed.classNeedsTypeArguments(constructor.enclosingClass)) {
               return true;
             }
             break;
           case VariableUseKind.staticTypeArgument:
-            FunctionEntity method = _elementMap.getMethod(usage.member);
+            FunctionEntity method =
+                _elementMap.getMethod(usage.member as ir.Procedure);
             if (rtiNeed.methodNeedsTypeArguments(method)) {
               return true;
             }
             break;
           case VariableUseKind.instanceTypeArgument:
-            Selector selector = _elementMap.getSelector(usage.invocation);
+            Selector selector = _elementMap.getSelector(usage.invocation!);
             if (rtiNeed.selectorNeedsTypeArguments(selector)) {
               return true;
             }
@@ -253,8 +240,8 @@ class ClosureDataBuilder {
           case VariableUseKind.localTypeArgument:
             // TODO(johnniwinther): We should be able to track direct local
             // function invocations and not have to use the selector here.
-            Selector selector = _elementMap.getSelector(usage.invocation);
-            if (rtiNeed.localFunctionNeedsTypeArguments(usage.localFunction) ||
+            Selector selector = _elementMap.getSelector(usage.invocation!);
+            if (rtiNeed.localFunctionNeedsTypeArguments(usage.localFunction!) ||
                 rtiNeed.selectorNeedsTypeArguments(selector)) {
               return true;
             }
@@ -265,7 +252,8 @@ class ClosureDataBuilder {
                 .isEmitted) {
               return true;
             } else {
-              FunctionEntity method = _elementMap.getMethod(usage.member);
+              FunctionEntity method =
+                  _elementMap.getMethod(usage.member as ir.Procedure);
               if (rtiNeed.methodNeedsSignature(method)) {
                 return true;
               }
@@ -277,23 +265,24 @@ class ClosureDataBuilder {
                 .isEmitted) {
               return true;
             } else if (rtiNeed
-                .localFunctionNeedsSignature(usage.localFunction)) {
+                .localFunctionNeedsSignature(usage.localFunction!)) {
               return true;
             }
             break;
           case VariableUseKind.memberReturnType:
-            FunctionEntity method = _elementMap.getMethod(usage.member);
+            FunctionEntity method =
+                _elementMap.getMethod(usage.member as ir.Procedure);
             if (rtiNeed.methodNeedsSignature(method)) {
               return true;
             }
             break;
           case VariableUseKind.localReturnType:
-            if (usage.localFunction.function.asyncMarker !=
+            if (usage.localFunction!.function.asyncMarker !=
                 ir.AsyncMarker.Sync) {
               // The Future/Iterator/Stream implementation requires the type.
               return true;
             }
-            if (rtiNeed.localFunctionNeedsSignature(usage.localFunction)) {
+            if (rtiNeed.localFunctionNeedsSignature(usage.localFunction!)) {
               return true;
             }
             break;
@@ -325,7 +314,7 @@ class ClosureDataBuilder {
           case VariableUseKind.instantiationTypeArgument:
             // TODO(johnniwinther): Use the static type of the expression.
             if (rtiNeed.instantiationNeedsTypeArguments(
-                null, usage.instantiation.typeArguments.length)) {
+                null, usage.instantiation!.typeArguments.length)) {
               return true;
             }
             break;
@@ -346,27 +335,27 @@ class ClosureDataBuilder {
   }
 
   ClosureData createClosureEntities(
-      JsClosedWorldBuilder closedWorldBuilder,
+      JClosedWorldBuilder closedWorldBuilder,
       Map<MemberEntity, ClosureScopeModel> closureModels,
       ClosureRtiNeed rtiNeed,
       List<FunctionEntity> callMethods) {
     void processModel(MemberEntity member, ClosureScopeModel model) {
-      Map<ir.VariableDeclaration, migrated.JRecordField> allBoxedVariables =
-          _elementMap.makeRecordContainer(model.scopeInfo, member);
+      Map<ir.VariableDeclaration, JContextField> allBoxedVariables =
+          _elementMap.makeContextContainer(model.scopeInfo!, member);
       _scopeMap[member] = JsScopeInfo.from(
-          allBoxedVariables, model.scopeInfo, member.enclosingClass);
+          allBoxedVariables, model.scopeInfo!, member.enclosingClass);
 
       model.capturedScopesMap
           .forEach((ir.Node node, KernelCapturedScope scope) {
-        Map<ir.VariableDeclaration, migrated.JRecordField> boxedVariables =
-            _elementMap.makeRecordContainer(scope, member);
+        Map<ir.VariableDeclaration, JContextField> boxedVariables =
+            _elementMap.makeContextContainer(scope, member);
         _updateScopeBasedOnRtiNeed(scope, rtiNeed, member);
 
         if (scope is KernelCapturedLoopScope) {
-          _capturedScopesMap[node] = JsCapturedLoopScope.from(
+          _capturedScopesMap[node as ir.TreeNode] = JsCapturedLoopScope.from(
               boxedVariables, scope, member.enclosingClass);
         } else {
-          _capturedScopesMap[node] = JsCapturedScope.from(
+          _capturedScopesMap[node as ir.TreeNode] = JsCapturedScope.from(
               boxedVariables, scope, member.enclosingClass);
         }
         allBoxedVariables.addAll(boxedVariables);
@@ -380,33 +369,34 @@ class ClosureDataBuilder {
             closedWorldBuilder,
             member,
             functionNode,
-            closuresToGenerate[node],
+            closuresToGenerate[node]!,
             allBoxedVariables,
             rtiNeed,
-            createSignatureMethod:
-                rtiNeed.localFunctionNeedsSignature(functionNode.parent));
+            createSignatureMethod: rtiNeed.localFunctionNeedsSignature(
+                functionNode.parent as ir.LocalFunction));
         // Add also for the call method.
-        _scopeMap[closureClassInfo.callMethod] = closureClassInfo;
+        _scopeMap[closureClassInfo.callMethod!] = closureClassInfo;
         if (closureClassInfo.signatureMethod != null) {
-          _scopeMap[closureClassInfo.signatureMethod] = closureClassInfo;
+          _scopeMap[closureClassInfo.signatureMethod!] = closureClassInfo;
 
           // Set up capturedScope for signature method. This is distinct from
           // _capturedScopesMap because there is no corresponding ir.Node for
           // the signature.
-          if (rtiNeed.localFunctionNeedsSignature(functionNode.parent) &&
+          if (rtiNeed.localFunctionNeedsSignature(
+                  functionNode.parent as ir.LocalFunction) &&
               model.capturedScopesMap[functionNode] != null) {
             KernelCapturedScope capturedScope =
-                model.capturedScopesMap[functionNode];
+                model.capturedScopesMap[functionNode]!;
             assert(capturedScope is! KernelCapturedLoopScope);
             KernelCapturedScope signatureCapturedScope =
                 KernelCapturedScope.forSignature(capturedScope);
             _updateScopeBasedOnRtiNeed(signatureCapturedScope, rtiNeed, member);
-            _capturedScopeForSignatureMap[closureClassInfo.signatureMethod] =
+            _capturedScopeForSignatureMap[closureClassInfo.signatureMethod!] =
                 JsCapturedScope.from(
                     {}, signatureCapturedScope, member.enclosingClass);
           }
         }
-        callMethods.add(closureClassInfo.callMethod);
+        callMethods.add(closureClassInfo.callMethod!);
       }
     }
 
@@ -431,29 +421,30 @@ class ClosureDataBuilder {
   /// boxForCapturedVariables stores the local context for those variables.
   /// If no variables are captured, this parameter is null.
   JsClosureClassInfo _produceSyntheticElements(
-      JsClosedWorldBuilder closedWorldBuilder,
+      JClosedWorldBuilder closedWorldBuilder,
       MemberEntity member,
       ir.FunctionNode node,
       KernelScopeInfo info,
-      Map<ir.VariableDeclaration, migrated.JRecordField> boxedVariables,
+      Map<ir.VariableDeclaration, JContextField> boxedVariables,
       ClosureRtiNeed rtiNeed,
-      {bool createSignatureMethod}) {
+      {required bool createSignatureMethod}) {
     _updateScopeBasedOnRtiNeed(info, rtiNeed, member);
     JsClosureClassInfo closureClassInfo = closedWorldBuilder.buildClosureClass(
-        member, node, member.library, boxedVariables, info,
+        member, node, member.library as JLibrary, boxedVariables, info,
         createSignatureMethod: createSignatureMethod);
 
     // We want the original declaration where that function is used to point
     // to the correct closure class.
-    _enclosingMembers[closureClassInfo.callMethod] = member;
+    _enclosingMembers[closureClassInfo.callMethod!] = member;
     if (closureClassInfo.signatureMethod != null) {
-      _enclosingMembers[closureClassInfo.signatureMethod] = member;
+      _enclosingMembers[closureClassInfo.signatureMethod!] = member;
     }
     if (node.parent is ir.Member) {
-      assert(_elementMap.getMember(node.parent) == member);
+      assert(_elementMap.getMember(node.parent as ir.Member) == member);
     } else {
       assert(node.parent is ir.LocalFunction);
-      _localClosureRepresentationMap[node.parent] = closureClassInfo;
+      _localClosureRepresentationMap[node.parent as ir.LocalFunction] =
+          closureClassInfo;
     }
     return closureClassInfo;
   }
@@ -466,21 +457,21 @@ class JsScopeInfo extends ScopeInfo {
 
   final Iterable<ir.VariableDeclaration> _localsUsedInTryOrSync;
 
-  Set<Local> _localsUsedInTryOrSyncCache;
+  Set<Local>? _localsUsedInTryOrSyncCache;
 
   @override
-  final Local thisLocal;
+  final Local? thisLocal;
 
-  final Map<ir.VariableDeclaration, migrated.JRecordField> _boxedVariables;
+  final Map<ir.VariableDeclaration, JContextField> _boxedVariables;
 
-  Map<Local, migrated.JRecordField> _boxedVariablesCache;
+  Map<Local, JContextField>? _boxedVariablesCache;
 
   JsScopeInfo.internal(
       this._localsUsedInTryOrSync, this.thisLocal, this._boxedVariables);
 
   JsScopeInfo.from(
-      this._boxedVariables, KernelScopeInfo info, ClassEntity enclosingClass)
-      : this.thisLocal = info.hasThisLocal ? ThisLocal(enclosingClass) : null,
+      this._boxedVariables, KernelScopeInfo info, ClassEntity? enclosingClass)
+      : this.thisLocal = info.hasThisLocal ? ThisLocal(enclosingClass!) : null,
         this._localsUsedInTryOrSync = info.localsUsedInTryOrSync;
 
   void _ensureBoxedVariableCache(KernelToLocalsMap localsMap) {
@@ -488,11 +479,12 @@ class JsScopeInfo extends ScopeInfo {
       if (_boxedVariables.isEmpty) {
         _boxedVariablesCache = const {};
       } else {
-        _boxedVariablesCache = {};
-        _boxedVariables.forEach(
-            (ir.VariableDeclaration node, migrated.JRecordField field) {
-          _boxedVariablesCache[localsMap.getLocalVariable(node)] = field;
+        final cache = <Local, JContextField>{};
+        _boxedVariables
+            .forEach((ir.VariableDeclaration node, JContextField field) {
+          cache[localsMap.getLocalVariable(node)] = field;
         });
+        _boxedVariablesCache = cache;
       }
     }
   }
@@ -501,7 +493,7 @@ class JsScopeInfo extends ScopeInfo {
   void forEachBoxedVariable(
       KernelToLocalsMap localsMap, f(Local local, FieldEntity field)) {
     _ensureBoxedVariableCache(localsMap);
-    _boxedVariablesCache.forEach(f);
+    _boxedVariablesCache!.forEach(f);
   }
 
   @override
@@ -512,11 +504,11 @@ class JsScopeInfo extends ScopeInfo {
       } else {
         _localsUsedInTryOrSyncCache = {};
         for (ir.VariableDeclaration node in _localsUsedInTryOrSync) {
-          _localsUsedInTryOrSyncCache.add(localsMap.getLocalVariable(node));
+          _localsUsedInTryOrSyncCache!.add(localsMap.getLocalVariable(node));
         }
       }
     }
-    return _localsUsedInTryOrSyncCache.contains(variable);
+    return _localsUsedInTryOrSyncCache!.contains(variable);
   }
 
   @override
@@ -530,17 +522,17 @@ class JsScopeInfo extends ScopeInfo {
   @override
   bool isBoxedVariable(KernelToLocalsMap localsMap, Local variable) {
     _ensureBoxedVariableCache(localsMap);
-    return _boxedVariablesCache.containsKey(variable);
+    return _boxedVariablesCache!.containsKey(variable);
   }
 
   factory JsScopeInfo.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     Iterable<ir.VariableDeclaration> localsUsedInTryOrSync =
         source.readTreeNodes<ir.VariableDeclaration>();
-    Local thisLocal = source.readLocalOrNull();
-    Map<ir.VariableDeclaration, migrated.JRecordField> boxedVariables =
-        source.readTreeNodeMap<ir.VariableDeclaration, migrated.JRecordField>(
-            () => source.readMember());
+    Local? thisLocal = source.readLocalOrNull();
+    Map<ir.VariableDeclaration, JContextField> boxedVariables =
+        source.readTreeNodeMap<ir.VariableDeclaration, JContextField>(
+            () => source.readMember() as JContextField);
     source.end(tag);
     if (boxedVariables.isEmpty) boxedVariables = const {};
     return JsScopeInfo.internal(
@@ -564,22 +556,17 @@ class JsCapturedScope extends JsScopeInfo implements CapturedScope {
   static const String tag = 'captured-scope';
 
   @override
-  final Local contextBox;
+  final Local? contextBox;
 
-  JsCapturedScope.internal(
-      Iterable<ir.VariableDeclaration> localsUsedInTryOrSync,
-      Local thisLocal,
-      Map<ir.VariableDeclaration, migrated.JRecordField> boxedVariables,
-      this.contextBox)
-      : super.internal(localsUsedInTryOrSync, thisLocal, boxedVariables);
+  JsCapturedScope.internal(super.localsUsedInTryOrSync, super.thisLocal,
+      super.boxedVariables, this.contextBox)
+      : super.internal();
 
   JsCapturedScope.from(
-      Map<ir.VariableDeclaration, migrated.JRecordField> boxedVariables,
-      KernelCapturedScope capturedScope,
-      ClassEntity enclosingClass)
+      super.boxedVariables, super.capturedScope, super.enclosingClass)
       : this.contextBox =
             boxedVariables.isNotEmpty ? boxedVariables.values.first.box : null,
-        super.from(boxedVariables, capturedScope, enclosingClass);
+        super.from();
 
   @override
   bool get requiresContextBox => _boxedVariables.isNotEmpty;
@@ -588,11 +575,11 @@ class JsCapturedScope extends JsScopeInfo implements CapturedScope {
     source.begin(tag);
     Iterable<ir.VariableDeclaration> localsUsedInTryOrSync =
         source.readTreeNodes<ir.VariableDeclaration>();
-    Local thisLocal = source.readLocalOrNull();
-    Map<ir.VariableDeclaration, migrated.JRecordField> boxedVariables =
-        source.readTreeNodeMap<ir.VariableDeclaration, migrated.JRecordField>(
-            () => source.readMember());
-    Local context = source.readLocalOrNull();
+    Local? thisLocal = source.readLocalOrNull();
+    Map<ir.VariableDeclaration, JContextField> boxedVariables =
+        source.readTreeNodeMap<ir.VariableDeclaration, JContextField>(
+            () => source.readMember() as JContextField);
+    Local? context = source.readLocalOrNull();
     source.end(tag);
     return JsCapturedScope.internal(
         localsUsedInTryOrSync, thisLocal, boxedVariables, context);
@@ -617,21 +604,14 @@ class JsCapturedLoopScope extends JsCapturedScope implements CapturedLoopScope {
 
   final List<ir.VariableDeclaration> _boxedLoopVariables;
 
-  JsCapturedLoopScope.internal(
-      Iterable<ir.VariableDeclaration> localsUsedInTryOrSync,
-      Local thisLocal,
-      Map<ir.VariableDeclaration, migrated.JRecordField> boxedVariables,
-      Local context,
-      this._boxedLoopVariables)
-      : super.internal(
-            localsUsedInTryOrSync, thisLocal, boxedVariables, context);
+  JsCapturedLoopScope.internal(super.localsUsedInTryOrSync, super.thisLocal,
+      super.boxedVariables, super.context, this._boxedLoopVariables)
+      : super.internal();
 
-  JsCapturedLoopScope.from(
-      Map<ir.VariableDeclaration, migrated.JRecordField> boxedVariables,
-      KernelCapturedLoopScope capturedScope,
-      ClassEntity enclosingClass)
+  JsCapturedLoopScope.from(super.boxedVariables,
+      KernelCapturedLoopScope super.capturedScope, super.enclosingClass)
       : this._boxedLoopVariables = capturedScope.boxedLoopVariables,
-        super.from(boxedVariables, capturedScope, enclosingClass);
+        super.from();
 
   @override
   bool get hasBoxedLoopVariables => _boxedLoopVariables.isNotEmpty;
@@ -640,11 +620,11 @@ class JsCapturedLoopScope extends JsCapturedScope implements CapturedLoopScope {
     source.begin(tag);
     Iterable<ir.VariableDeclaration> localsUsedInTryOrSync =
         source.readTreeNodes<ir.VariableDeclaration>();
-    Local thisLocal = source.readLocalOrNull();
-    Map<ir.VariableDeclaration, migrated.JRecordField> boxedVariables =
-        source.readTreeNodeMap<ir.VariableDeclaration, migrated.JRecordField>(
-            () => source.readMember());
-    Local context = source.readLocalOrNull();
+    Local? thisLocal = source.readLocalOrNull();
+    Map<ir.VariableDeclaration, JContextField> boxedVariables =
+        source.readTreeNodeMap<ir.VariableDeclaration, JContextField>(
+            () => source.readMember() as JContextField);
+    Local? context = source.readLocalOrNull();
     List<ir.VariableDeclaration> boxedLoopVariables =
         source.readTreeNodes<ir.VariableDeclaration>();
     source.end(tag);
@@ -676,26 +656,27 @@ class JsCapturedLoopScope extends JsCapturedScope implements CapturedLoopScope {
 
 // TODO(johnniwinther): Add unittest for the computed [ClosureClass].
 class JsClosureClassInfo extends JsScopeInfo
-    implements ClosureRepresentationInfo, migrated.JsClosureClassInfo {
+    implements ClosureRepresentationInfo {
   /// Tag used for identifying serialized [JsClosureClassInfo] objects in a
   /// debugging data stream.
   static const String tag = 'closure-representation-info';
 
   @override
-  JFunction callMethod;
+  JFunction? callMethod;
+
   @override
-  JSignatureMethod signatureMethod;
+  JSignatureMethod? signatureMethod;
 
   /// The local used for this closure, if it is an anonymous closure, i.e.
   /// an `ir.FunctionExpression`.
-  final Local _closureEntity;
+  final Local? _closureEntity;
 
   /// The local variable that defines this closure, if it is a local function
   /// declaration.
-  final ir.VariableDeclaration _closureEntityVariable;
+  final ir.VariableDeclaration? _closureEntityVariable;
 
   @override
-  final Local thisLocal;
+  final Local? thisLocal;
 
   @override
   final JClass closureClassEntity;
@@ -703,12 +684,12 @@ class JsClosureClassInfo extends JsScopeInfo
   final Map<ir.VariableDeclaration, JField> _variableToFieldMap;
   final Map<JTypeVariable, JField> _typeVariableToFieldMap;
   final Map<Local, JField> _localToFieldMap;
-  Map<JField, Local> _fieldToLocalsMap;
+  Map<JField, Local>? _fieldToLocalsMap;
 
   JsClosureClassInfo.internal(
       Iterable<ir.VariableDeclaration> localsUsedInTryOrSync,
       this.thisLocal,
-      Map<ir.VariableDeclaration, migrated.JRecordField> boxedVariables,
+      Map<ir.VariableDeclaration, JContextField> boxedVariables,
       this.callMethod,
       this.signatureMethod,
       this._closureEntity,
@@ -722,9 +703,9 @@ class JsClosureClassInfo extends JsScopeInfo
   JsClosureClassInfo.fromScopeInfo(
       this.closureClassEntity,
       ir.FunctionNode closureSourceNode,
-      Map<ir.VariableDeclaration, migrated.JRecordField> boxedVariables,
+      Map<ir.VariableDeclaration, JContextField> boxedVariables,
       KernelScopeInfo info,
-      ClassEntity enclosingClass,
+      ClassEntity? enclosingClass,
       this._closureEntity,
       this._closureEntityVariable,
       this.thisLocal)
@@ -737,22 +718,25 @@ class JsClosureClassInfo extends JsScopeInfo
     source.begin(tag);
     Iterable<ir.VariableDeclaration> localsUsedInTryOrSync =
         source.readTreeNodes<ir.VariableDeclaration>();
-    Local thisLocal = source.readLocalOrNull();
-    Map<ir.VariableDeclaration, migrated.JRecordField> boxedVariables =
-        source.readTreeNodeMap<ir.VariableDeclaration, migrated.JRecordField>(
-            () => source.readMember());
-    JFunction callMethod = source.readMember();
-    JSignatureMethod signatureMethod = source.readMemberOrNull();
-    Local closureEntity = source.readLocalOrNull();
-    ir.VariableDeclaration closureEntityVariable = source.readTreeNodeOrNull();
-    JClass closureClassEntity = source.readClass();
+    Local? thisLocal = source.readLocalOrNull();
+    Map<ir.VariableDeclaration, JContextField> boxedVariables =
+        source.readTreeNodeMap<ir.VariableDeclaration, JContextField>(
+            () => source.readMember() as JContextField);
+    JFunction callMethod = source.readMember() as JFunction;
+    JSignatureMethod? signatureMethod =
+        source.readMemberOrNull() as JSignatureMethod?;
+    Local? closureEntity = source.readLocalOrNull();
+    ir.VariableDeclaration? closureEntityVariable =
+        source.readTreeNodeOrNull() as ir.VariableDeclaration?;
+    JClass closureClassEntity = source.readClass() as JClass;
     Map<ir.VariableDeclaration, JField> localToFieldMap =
         source.readTreeNodeMap<ir.VariableDeclaration, JField>(
-            () => source.readMember());
-    Map<JTypeVariable, JField> typeVariableToFieldMap = source
-        .readTypeVariableMap<JTypeVariable, JField>(() => source.readMember());
+            () => source.readMember() as JField);
+    Map<JTypeVariable, JField> typeVariableToFieldMap =
+        source.readTypeVariableMap<JTypeVariable, JField>(
+            () => source.readMember() as JField);
     Map<Local, JField> thisLocalToFieldMap =
-        source.readLocalMap(() => source.readMember());
+        source.readLocalMap(() => source.readMember() as JField);
     source.end(tag);
     if (boxedVariables.isEmpty) boxedVariables = const {};
     if (localToFieldMap.isEmpty) localToFieldMap = const {};
@@ -777,7 +761,7 @@ class JsClosureClassInfo extends JsScopeInfo
     sink.writeTreeNodes(_localsUsedInTryOrSync);
     sink.writeLocalOrNull(thisLocal);
     sink.writeTreeNodeMap(_boxedVariables, sink.writeMember);
-    sink.writeMember(callMethod);
+    sink.writeMember(callMethod!);
     sink.writeMemberOrNull(signatureMethod);
     sink.writeLocalOrNull(_closureEntity);
     sink.writeTreeNodeOrNull(_closureEntityVariable);
@@ -788,53 +772,47 @@ class JsClosureClassInfo extends JsScopeInfo
     sink.end(tag);
   }
 
-  @override
   bool hasFieldForLocal(Local local) => _localToFieldMap.containsKey(local);
 
-  @override
   void registerFieldForLocal(Local local, JField field) {
     assert(_fieldToLocalsMap == null);
     _localToFieldMap[local] = field;
   }
 
-  @override
   void registerFieldForVariable(ir.VariableDeclaration node, JField field) {
     assert(_fieldToLocalsMap == null);
     _variableToFieldMap[node] = field;
   }
 
-  @override
   bool hasFieldForTypeVariable(JTypeVariable typeVariable) =>
       _typeVariableToFieldMap.containsKey(typeVariable);
 
-  @override
   void registerFieldForTypeVariable(JTypeVariable typeVariable, JField field) {
     assert(_fieldToLocalsMap == null);
     _typeVariableToFieldMap[typeVariable] = field;
   }
 
-  @override
   void registerFieldForBoxedVariable(
       ir.VariableDeclaration node, JField field) {
     assert(_boxedVariablesCache == null);
-    _boxedVariables[node] = field;
+    _boxedVariables[node] = field as JContextField;
   }
 
   void _ensureFieldToLocalsMap(KernelToLocalsMap localsMap) {
     if (_fieldToLocalsMap == null) {
       _fieldToLocalsMap = {};
       _variableToFieldMap.forEach((ir.VariableDeclaration node, JField field) {
-        _fieldToLocalsMap[field] = localsMap.getLocalVariable(node);
+        _fieldToLocalsMap![field] = localsMap.getLocalVariable(node);
       });
       _typeVariableToFieldMap
           .forEach((TypeVariableEntity typeVariable, JField field) {
-        _fieldToLocalsMap[field] =
+        _fieldToLocalsMap![field] =
             localsMap.getLocalTypeVariableEntity(typeVariable);
       });
       _localToFieldMap.forEach((Local local, JField field) {
-        _fieldToLocalsMap[field] = local;
+        _fieldToLocalsMap![field] = local;
       });
-      if (_fieldToLocalsMap.isEmpty) {
+      if (_fieldToLocalsMap!.isEmpty) {
         _fieldToLocalsMap = const {};
       }
     }
@@ -843,81 +821,282 @@ class JsClosureClassInfo extends JsScopeInfo
   @override
   List<Local> getCreatedFieldEntities(KernelToLocalsMap localsMap) {
     _ensureFieldToLocalsMap(localsMap);
-    return _fieldToLocalsMap.values.toList();
+    return _fieldToLocalsMap!.values.toList();
   }
 
   @override
   Local getLocalForField(KernelToLocalsMap localsMap, FieldEntity field) {
     _ensureFieldToLocalsMap(localsMap);
-    Local local = _fieldToLocalsMap[field];
-    if (local == null) {
-      failedAt(field, "No local for $field. Options: $_fieldToLocalsMap");
-    }
-    return local;
+    return _fieldToLocalsMap![field]!;
   }
 
   @override
-  FieldEntity get thisFieldEntity => _localToFieldMap[thisLocal];
+  FieldEntity? get thisFieldEntity => _localToFieldMap[thisLocal];
 
   @override
   void forEachFreeVariable(
       KernelToLocalsMap localsMap, f(Local variable, JField field)) {
     _ensureFieldToLocalsMap(localsMap);
     _ensureBoxedVariableCache(localsMap);
-    _fieldToLocalsMap.forEach((JField field, Local local) {
+    _fieldToLocalsMap!.forEach((JField field, Local local) {
       f(local, field);
     });
-    _boxedVariablesCache.forEach(f);
+    _boxedVariablesCache!.forEach(f);
   }
 
   @override
   bool get isClosure => true;
 
   @override
-  Local getClosureEntity(KernelToLocalsMap localsMap) {
+  Local? getClosureEntity(KernelToLocalsMap localsMap) {
     return _closureEntityVariable != null
-        ? localsMap.getLocalVariable(_closureEntityVariable)
+        ? localsMap.getLocalVariable(_closureEntityVariable!)
         : _closureEntity;
   }
 }
 
-class RecordClassData implements JClassData {
-  /// Tag used for identifying serialized [RecordClassData] objects in a
+abstract class ClosureRtiNeed {
+  bool classNeedsTypeArguments(ClassEntity cls);
+
+  bool methodNeedsTypeArguments(FunctionEntity method);
+
+  bool methodNeedsSignature(MemberEntity method);
+
+  bool localFunctionNeedsTypeArguments(ir.LocalFunction node);
+
+  bool localFunctionNeedsSignature(ir.LocalFunction node);
+
+  bool selectorNeedsTypeArguments(Selector selector);
+
+  bool instantiationNeedsTypeArguments(
+      FunctionType? functionType, int typeArgumentCount);
+}
+
+/// A container for variables declared in a particular scope that are accessed
+/// elsewhere.
+// TODO(johnniwinther): Don't implement JClass. This isn't actually a class.
+class JContext extends JClass {
+  /// Tag used for identifying serialized [JContext] objects in a debugging data
+  /// stream.
+  static const String tag = 'context';
+
+  JContext(LibraryEntity library, String name)
+      : super(library as JLibrary, name, isAbstract: false);
+
+  factory JContext.readFromDataSource(DataSourceReader source) {
+    source.begin(tag);
+    JLibrary library = source.readLibrary() as JLibrary;
+    String name = source.readString();
+    source.end(tag);
+    return JContext(library, name);
+  }
+
+  @override
+  void writeToDataSink(DataSinkWriter sink) {
+    sink.writeEnum(JClassKind.context);
+    sink.begin(tag);
+    sink.writeLibrary(library);
+    sink.writeString(name);
+    sink.end(tag);
+  }
+
+  @override
+  bool get isClosure => false;
+
+  @override
+  String toString() => '${jsElementPrefix}context($name)';
+}
+
+/// A variable that has been "boxed" to prevent name shadowing with the original
+/// variable and ensure that this variable is updated/read with the most recent
+/// value.
+class JContextField extends JField {
+  /// Tag used for identifying serialized [JContextField] objects in a debugging
+  /// data stream.
+  static const String tag = 'context-field';
+
+  final BoxLocal box;
+
+  JContextField(String name, this.box, {required bool isConst})
+      : super(box.container.library as JLibrary, box.container as JClass,
+            Name(name, box.container.library.canonicalUri),
+            isStatic: false, isAssignable: true, isConst: isConst);
+
+  factory JContextField.readFromDataSource(DataSourceReader source) {
+    source.begin(tag);
+    String name = source.readString();
+    final enclosingClass = source.readClass() as JClass;
+    bool isConst = source.readBool();
+    source.end(tag);
+    return JContextField(name, BoxLocal(enclosingClass), isConst: isConst);
+  }
+
+  @override
+  void writeToDataSink(DataSinkWriter sink) {
+    sink.writeEnum(JMemberKind.contextField);
+    sink.begin(tag);
+    sink.writeString(name);
+    sink.writeClass(enclosingClass!);
+    sink.writeBool(isConst);
+    sink.end(tag);
+  }
+
+  // TODO(johnniwinther): Remove these anomalies. Maybe by separating the
+  // J-entities from the K-entities.
+  @override
+  bool get isInstanceMember => false;
+
+  @override
+  bool get isTopLevel => false;
+
+  @override
+  bool get isStatic => false;
+}
+
+class JClosureClass extends JClass {
+  /// Tag used for identifying serialized [JClosureClass] objects in a
   /// debugging data stream.
-  static const String tag = 'record-class-data';
+  static const String tag = 'closure-class';
+
+  JClosureClass(super.library, super.name) : super(isAbstract: false);
+
+  factory JClosureClass.readFromDataSource(DataSourceReader source) {
+    source.begin(tag);
+    JLibrary library = source.readLibrary() as JLibrary;
+    String name = source.readString();
+    source.end(tag);
+    return JClosureClass(library, name);
+  }
+
+  @override
+  void writeToDataSink(DataSinkWriter sink) {
+    sink.writeEnum(JClassKind.closure);
+    sink.begin(tag);
+    sink.writeLibrary(library);
+    sink.writeString(name);
+    sink.end(tag);
+  }
+
+  @override
+  bool get isClosure => true;
+
+  @override
+  String toString() => '${jsElementPrefix}closure_class($name)';
+}
+
+class AnonymousClosureLocal implements Local {
+  final JClosureClass closureClass;
+
+  AnonymousClosureLocal(this.closureClass);
+
+  @override
+  String get name => '';
+
+  @override
+  int get hashCode => closureClass.hashCode * 13;
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! AnonymousClosureLocal) return false;
+    return closureClass == other.closureClass;
+  }
+
+  @override
+  String toString() =>
+      '${jsElementPrefix}anonymous_closure_local(${closureClass.name})';
+}
+
+class JClosureField extends JField implements PrivatelyNamedJSEntity {
+  /// Tag used for identifying serialized [JClosureClass] objects in a
+  /// debugging data stream.
+  static const String tag = 'closure-field';
+
+  @override
+  final String declaredName;
+
+  JClosureField(
+      String name, JsClosureClassInfo containingClass, String declaredName,
+      {required bool isConst, required bool isAssignable})
+      : this.internal(
+            containingClass.closureClassEntity.library,
+            containingClass.closureClassEntity as JClosureClass,
+            Name(name, containingClass.closureClassEntity.library.canonicalUri),
+            declaredName,
+            isAssignable: isAssignable,
+            isConst: isConst);
+
+  JClosureField.internal(super.library, JClosureClass super.enclosingClass,
+      super.memberName, this.declaredName,
+      {required super.isConst, required super.isAssignable})
+      : super(isStatic: false);
+
+  factory JClosureField.readFromDataSource(DataSourceReader source) {
+    source.begin(tag);
+    final cls = source.readClass() as JClosureClass;
+    String name = source.readString();
+    String declaredName = source.readString();
+    bool isConst = source.readBool();
+    bool isAssignable = source.readBool();
+    source.end(tag);
+    return JClosureField.internal(
+        cls.library, cls, Name(name, cls.library.canonicalUri), declaredName,
+        isAssignable: isAssignable, isConst: isConst);
+  }
+
+  @override
+  void writeToDataSink(DataSinkWriter sink) {
+    sink.writeEnum(JMemberKind.closureField);
+    sink.begin(tag);
+    sink.writeClass(enclosingClass!);
+    sink.writeString(name);
+    sink.writeString(declaredName);
+    sink.writeBool(isConst);
+    sink.writeBool(isAssignable);
+    sink.end(tag);
+  }
+
+  @override
+  Entity get rootOfScope => enclosingClass!;
+}
+
+class ContextClassData implements JClassData {
+  /// Tag used for identifying serialized [ContextClassData] objects in a
+  /// debugging data stream.
+  static const String tag = 'context-class-data';
 
   @override
   final ClassDefinition definition;
 
   @override
-  final InterfaceType thisType;
+  final InterfaceType? thisType;
 
   @override
   final OrderedTypeSet orderedTypeSet;
 
   @override
-  final InterfaceType supertype;
+  final InterfaceType? supertype;
 
-  RecordClassData(
+  ContextClassData(
       this.definition, this.thisType, this.supertype, this.orderedTypeSet);
 
-  factory RecordClassData.readFromDataSource(DataSourceReader source) {
+  factory ContextClassData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     ClassDefinition definition = ClassDefinition.readFromDataSource(source);
-    InterfaceType thisType = source.readDartType();
-    InterfaceType supertype = source.readDartType();
+    InterfaceType thisType = source.readDartType() as InterfaceType;
+    InterfaceType supertype = source.readDartType() as InterfaceType;
     OrderedTypeSet orderedTypeSet = OrderedTypeSet.readFromDataSource(source);
     source.end(tag);
-    return RecordClassData(definition, thisType, supertype, orderedTypeSet);
+    return ContextClassData(definition, thisType, supertype, orderedTypeSet);
   }
 
   @override
   void writeToDataSink(DataSinkWriter sink) {
-    sink.writeEnum(JClassDataKind.record);
+    sink.writeEnum(JClassDataKind.context);
     sink.begin(tag);
     definition.writeToDataSink(sink);
-    sink.writeDartType(thisType);
-    sink.writeDartType(supertype);
+    sink.writeDartType(thisType!);
+    sink.writeDartType(supertype!);
     orderedTypeSet.writeToDataSink(sink);
     sink.end(tag);
   }
@@ -929,46 +1108,45 @@ class RecordClassData implements JClassData {
   bool get isEnumClass => false;
 
   @override
-  FunctionType get callType => null;
+  FunctionType? get callType => null;
 
   @override
   List<InterfaceType> get interfaces => const <InterfaceType>[];
 
   @override
-  InterfaceType get mixedInType => null;
+  InterfaceType? get mixedInType => null;
 
   @override
-  InterfaceType get jsInteropType => thisType;
+  InterfaceType? get jsInteropType => thisType;
 
   @override
-  InterfaceType get rawType => thisType;
+  InterfaceType? get rawType => thisType;
 
   @override
-  InterfaceType get instantiationToBounds => thisType;
+  InterfaceType? get instantiationToBounds => thisType;
 
   @override
   List<Variance> getVariances() => [];
 }
 
-class ClosureClassData extends RecordClassData {
+class ClosureClassData extends ContextClassData {
   /// Tag used for identifying serialized [ClosureClassData] objects in a
   /// debugging data stream.
   static const String tag = 'closure-class-data';
 
   @override
-  FunctionType callType;
+  FunctionType? callType;
 
-  ClosureClassData(ClassDefinition definition, InterfaceType thisType,
-      InterfaceType supertype, OrderedTypeSet orderedTypeSet)
-      : super(definition, thisType, supertype, orderedTypeSet);
+  ClosureClassData(
+      super.definition, super.thisType, super.supertype, super.orderedTypeSet);
 
   factory ClosureClassData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     ClassDefinition definition = ClassDefinition.readFromDataSource(source);
-    InterfaceType thisType = source.readDartType();
-    InterfaceType supertype = source.readDartType();
+    InterfaceType thisType = source.readDartType() as InterfaceType;
+    InterfaceType supertype = source.readDartType() as InterfaceType;
     OrderedTypeSet orderedTypeSet = OrderedTypeSet.readFromDataSource(source);
-    FunctionType callType = source.readDartType();
+    FunctionType callType = source.readDartType() as FunctionType;
     source.end(tag);
     return ClosureClassData(definition, thisType, supertype, orderedTypeSet)
       ..callType = callType;
@@ -979,54 +1157,18 @@ class ClosureClassData extends RecordClassData {
     sink.writeEnum(JClassDataKind.closure);
     sink.begin(tag);
     definition.writeToDataSink(sink);
-    sink.writeDartType(thisType);
-    sink.writeDartType(supertype);
+    sink.writeDartType(thisType!);
+    sink.writeDartType(supertype!);
     orderedTypeSet.writeToDataSink(sink);
-    sink.writeDartType(callType);
+    sink.writeDartType(callType!);
     sink.end(tag);
   }
-}
-
-class ClosureClassDefinition implements ClassDefinition {
-  /// Tag used for identifying serialized [ClosureClassDefinition] objects in a
-  /// debugging data stream.
-  static const String tag = 'closure-class-definition';
-
-  @override
-  final SourceSpan location;
-
-  ClosureClassDefinition(this.location);
-
-  factory ClosureClassDefinition.readFromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    SourceSpan location = source.readSourceSpan();
-    source.end(tag);
-    return ClosureClassDefinition(location);
-  }
-
-  @override
-  void writeToDataSink(DataSinkWriter sink) {
-    sink.writeEnum(ClassKind.closure);
-    sink.begin(tag);
-    sink.writeSourceSpan(location);
-    sink.end(tag);
-  }
-
-  @override
-  ClassKind get kind => ClassKind.closure;
-
-  @override
-  ir.Node get node =>
-      throw UnsupportedError('ClosureClassDefinition.node for $location');
-
-  @override
-  String toString() => 'ClosureClassDefinition(kind:$kind,location:$location)';
 }
 
 abstract class ClosureMemberData implements JMemberData {
   @override
   final MemberDefinition definition;
-  final InterfaceType memberThisType;
+  final InterfaceType? memberThisType;
 
   ClosureMemberData(this.definition, this.memberThisType);
 
@@ -1037,7 +1179,7 @@ abstract class ClosureMemberData implements JMemberData {
   }
 
   @override
-  InterfaceType getMemberThisType(JsToElementMap elementMap) {
+  InterfaceType? getMemberThisType(covariant JsToElementMap elementMap) {
     return memberThisType;
   }
 }
@@ -1056,34 +1198,22 @@ class ClosureFunctionData extends ClosureMemberData
   @override
   final ClassTypeVariableAccess classTypeVariableAccess;
 
-  ir.Member _memberContext;
+  ClosureFunctionData(super.definition, super.memberThisType, this.functionType,
+      ir.FunctionNode functionNode, this.classTypeVariableAccess)
+      : _functionNode = Deferrable.eager(functionNode);
 
-  ClosureFunctionData(
-      ClosureMemberDefinition definition,
-      InterfaceType memberThisType,
-      this.functionType,
-      ir.FunctionNode functionNode,
-      this.classTypeVariableAccess)
-      : _functionNode = Deferrable.eager(functionNode),
-        super(definition, memberThisType);
-
-  ClosureFunctionData._deserialized(
-      ClosureMemberDefinition definition,
-      InterfaceType memberThisType,
-      this.functionType,
-      this._functionNode,
-      this.classTypeVariableAccess)
-      : super(definition, memberThisType);
+  ClosureFunctionData._deserialized(super.definition, super.memberThisType,
+      this.functionType, this._functionNode, this.classTypeVariableAccess);
 
   factory ClosureFunctionData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     ClosureMemberDefinition definition =
-        MemberDefinition.readFromDataSource(source);
-    InterfaceType /*?*/ memberThisType =
-        source.readDartTypeOrNull() as InterfaceType /*?*/;
-    FunctionType functionType = source.readDartType();
+        MemberDefinition.readFromDataSource(source) as ClosureMemberDefinition;
+    InterfaceType? memberThisType =
+        source.readDartTypeOrNull() as InterfaceType?;
+    FunctionType functionType = source.readDartType() as FunctionType;
     Deferrable<ir.FunctionNode> functionNode =
-        source.readDeferrable(() => source.readTreeNode());
+        source.readDeferrable(() => source.readTreeNode() as ir.FunctionNode);
     ClassTypeVariableAccess classTypeVariableAccess =
         source.readEnum(ClassTypeVariableAccess.values);
     source.end(tag);
@@ -1104,16 +1234,13 @@ class ClosureFunctionData extends ClosureMemberData
   }
 
   @override
-  ir.Member get memberContext {
-    if (_memberContext == null) {
-      ir.TreeNode parent = functionNode;
-      while (parent is! ir.Member) {
-        parent = parent.parent;
-      }
-      _memberContext = parent;
+  late final ir.Member memberContext = (() {
+    ir.TreeNode parent = functionNode;
+    while (parent is! ir.Member) {
+      parent = parent.parent!;
     }
-    return _memberContext;
-  }
+    return parent;
+  })();
 
   @override
   FunctionType getFunctionType(IrToElementMap elementMap) {
@@ -1126,10 +1253,9 @@ class ClosureFieldData extends ClosureMemberData implements JFieldData {
   /// debugging data stream.
   static const String tag = 'closure-field-data';
 
-  DartType _type;
+  DartType? _type;
 
-  ClosureFieldData(MemberDefinition definition, InterfaceType memberThisType)
-      : super(definition, memberThisType);
+  ClosureFieldData(super.definition, super.memberThisType);
 
   factory ClosureFieldData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
@@ -1151,8 +1277,8 @@ class ClosureFieldData extends ClosureMemberData implements JFieldData {
 
   @override
   DartType getFieldType(IrToElementMap elementMap) {
-    if (_type != null) return _type;
-    ir.TreeNode sourceNode = definition.node;
+    if (_type != null) return _type!;
+    ir.Node sourceNode = definition.node;
     ir.DartType type;
     if (sourceNode is ir.Class) {
       type = sourceNode.getThisType(
@@ -1164,7 +1290,7 @@ class ClosureFieldData extends ClosureMemberData implements JFieldData {
     } else if (sourceNode is ir.TypeLiteral) {
       type = sourceNode.type;
     } else if (sourceNode is ir.Typedef) {
-      type = sourceNode.type;
+      type = sourceNode.type!;
     } else if (sourceNode is ir.TypeParameter) {
       type = sourceNode.bound;
     } else {
@@ -1179,59 +1305,4 @@ class ClosureFieldData extends ClosureMemberData implements JFieldData {
   @override
   ClassTypeVariableAccess get classTypeVariableAccess =>
       ClassTypeVariableAccess.none;
-}
-
-class RecordContainerDefinition implements ClassDefinition {
-  /// Tag used for identifying serialized [RecordContainerDefinition] objects in
-  /// a debugging data stream.
-  static const String tag = 'record-definition';
-
-  @override
-  final SourceSpan location;
-
-  RecordContainerDefinition(this.location);
-
-  factory RecordContainerDefinition.readFromDataSource(
-      DataSourceReader source) {
-    source.begin(tag);
-    SourceSpan location = source.readSourceSpan();
-    source.end(tag);
-    return RecordContainerDefinition(location);
-  }
-
-  @override
-  void writeToDataSink(DataSinkWriter sink) {
-    sink.writeEnum(ClassKind.record);
-    sink.begin(tag);
-    sink.writeSourceSpan(location);
-    sink.end(tag);
-  }
-
-  @override
-  ClassKind get kind => ClassKind.record;
-
-  @override
-  ir.Node get node =>
-      throw UnsupportedError('RecordContainerDefinition.node for $location');
-
-  @override
-  String toString() =>
-      'RecordContainerDefinition(kind:$kind,location:$location)';
-}
-
-abstract class ClosureRtiNeed {
-  bool classNeedsTypeArguments(ClassEntity cls);
-
-  bool methodNeedsTypeArguments(FunctionEntity method);
-
-  bool methodNeedsSignature(MemberEntity method);
-
-  bool localFunctionNeedsTypeArguments(ir.LocalFunction node);
-
-  bool localFunctionNeedsSignature(ir.LocalFunction node);
-
-  bool selectorNeedsTypeArguments(Selector selector);
-
-  bool instantiationNeedsTypeArguments(
-      FunctionType functionType, int typeArgumentCount);
 }

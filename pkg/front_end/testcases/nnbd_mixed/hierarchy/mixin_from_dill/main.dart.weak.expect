@@ -70,19 +70,27 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mixin_from_dill/opt_in_lib1.dart:32:8: Error: 'NoMethodForPrivateNameError' isn't a type.
+//   } on NoMethodForPrivateNameError (e) {
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/mixin_from_dill/opt_in_lib1.dart:32:8: Error: A catch clause must have a body, even if it is empty.
 // Try adding an empty body.
-//   } on NoSuchMethodError (e) {
-//        ^^^^^^^^^^^^^^^^^
+//   } on NoMethodForPrivateNameError (e) {
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/mixin_from_dill/opt_in_lib1.dart:34:3: Error: Expected ';' after this.
 //   }
 //   ^
 //
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mixin_from_dill/opt_in_lib1.dart:38:8: Error: 'NoMethodForPrivateNameError' isn't a type.
+//   } on NoMethodForPrivateNameError (e) {
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/mixin_from_dill/opt_in_lib1.dart:38:8: Error: A catch clause must have a body, even if it is empty.
 // Try adding an empty body.
-//   } on NoSuchMethodError (e) {
-//        ^^^^^^^^^^^^^^^^^
+//   } on NoMethodForPrivateNameError (e) {
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/mixin_from_dill/opt_in_lib1.dart:40:3: Error: Expected ';' after this.
 //   }
@@ -133,18 +141,18 @@ abstract class Interface2 extends core::Object {
 static method testInterface2(opt::Interface2 c) → dynamic {
   try {
     c.{opt::Interface2::_privateGetter}{opt::A};
-    throw "Expected NoSuchMethodError";
+    throw "Expected NoMethodForPrivateNameError";
   }
-  on core::NoSuchMethodError catch(no-exception-var) {
+  on invalid-type catch(no-exception-var) {
   }
   (dynamic e) → Null {
     core::print(e);
   };
   try {
     c.{opt::Interface2::_privateSetter} = new opt::C::•();
-    throw "Expected NoSuchMethodError";
+    throw "Expected NoMethodForPrivateNameError";
   }
-  on core::NoSuchMethodError catch(no-exception-var) {
+  on invalid-type catch(no-exception-var) {
   }
   (dynamic e) → Null {
     core::print(e);
@@ -162,10 +170,10 @@ class Mixin2 extends core::Object implements opt::Interface2 {
   synthetic constructor •() → opt3::Mixin2
     : super core::Object::•()
     ;
-  no-such-method-forwarder get /* from org-dartlang-testcase:///opt_in_lib1.dart */ _privateGetter() → opt::A
-    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} opt::A;
-  no-such-method-forwarder set /* from org-dartlang-testcase:///opt_in_lib1.dart */ _privateSetter(opt::C c) → void
-    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(c)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic};
+  no-such-method-forwarder get _privateGetter() → opt::A
+    return throw core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+  no-such-method-forwarder set _privateSetter(opt::C c) → void
+    return throw core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(c)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
 }
 
 library;

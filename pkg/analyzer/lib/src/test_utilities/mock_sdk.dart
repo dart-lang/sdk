@@ -218,6 +218,10 @@ abstract class ListMixin<E> implements List<E> { }
 abstract class MapMixin<K, V> implements Map<K, V> { }
 
 abstract class SetMixin<E> implements Set<E> { }
+
+abstract class Queue<E> implements Iterable<E> {
+  bool remove(Object? value);
+}
 ''',
   )
 ]);
@@ -467,7 +471,7 @@ class List<E> implements Iterable<E> {
   void addAll(Iterable<E> iterable) {}
   Map<int, E> asMap() => throw 0;
   void clear() {}
-  int indexOf(Object element);
+  int indexOf(E element, [int start = 0]);
   bool remove(Object? value);
   E removeLast() => throw 0;
 
@@ -499,8 +503,10 @@ abstract class Map<K, V> {
   void addAll(Map<K, V> other);
   Map<RK, RV> cast<RK, RV>();
   bool containsKey(Object? key);
+  bool containsValue(Object? value);
   void forEach(void action(K key, V value));
   V putIfAbsent(K key, V ifAbsent());
+  V? remove(Object? key);
 }
 
 class Null extends Object {
@@ -579,6 +585,8 @@ abstract class Pattern {
   Iterable<Match> allMatches(String string, [int start = 0]);
 }
 
+abstract class Record {}
+
 abstract class RegExp implements Pattern {
   external factory RegExp(String source, {bool unicode = false});
 }
@@ -593,8 +601,13 @@ abstract class Set<E> implements Iterable<E> {
 
   bool add(E value);
   void addAll(Iterable<E> elements);
-  bool remove(Object? value);
+  bool containsAll(Iterable<Object?> other);
+  Set<E> difference(Set<Object?> other);
+  Set<E> intersection(Set<Object?> other);
   E? lookup(Object? object);
+  bool remove(Object? value);
+  void removeAll(Iterable<Object?> elements);
+  void retainAll(Iterable<Object?> elements);
 
   static Set<T> castFrom<S, T>(Set<S> source, {Set<R> Function<R>()? newSet}) =>
       throw '';
@@ -812,6 +825,23 @@ class FfiNative<T> {
   final String nativeName;
   final bool isLeaf;
   const FfiNative(this.nativeName, {this.isLeaf: false});
+}
+
+class Native<T> {
+  final String? symbol;
+  final String? asset;
+  final bool isLeaf;
+
+  const Native({
+    this.asset,
+    this.isLeaf: false,
+    this.symbol,
+  });
+}
+
+class Asset {
+  final String asset;
+  const Asset(this.asset);
 }
 
 class Abi {

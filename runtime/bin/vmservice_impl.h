@@ -22,7 +22,8 @@ class VmService {
                     bool trace_loading,
                     bool deterministic,
                     bool enable_service_port_fallback,
-                    bool wait_for_dds_to_advertise_service);
+                    bool wait_for_dds_to_advertise_service,
+                    bool serve_observatory);
 
   static void SetNativeResolver();
 

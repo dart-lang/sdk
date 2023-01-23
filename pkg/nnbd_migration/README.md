@@ -161,12 +161,9 @@ browser to view, analyze, and improve the proposed null-safe migration.
     2. If large changes are required, revert the migration, and go back to step
        one. The tool does not provide any revert capability; this must be done
        via source code management (for example, `git checkout`).
-
-<!-- TODO(srawlins): direct the user to publish, only after null safety leaves
-tech preview. See the big note at https://dart.dev/null-safety.
-8. Commit and/or publish your migrated null-safe code. -->
+8. Commit and/or publish your migrated null-safe code.
 
 ## Providing feedback
 
 Please file issues at https://github.com/dart-lang/sdk/issues, and reference the
-`analyzer-nnbd-migration` label (you may not be able to apply the label yourself).
+`area-migration` label (you may not be able to apply the label yourself).

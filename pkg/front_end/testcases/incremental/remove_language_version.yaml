@@ -30,3 +30,4 @@ worlds:
           int? i;
         }
     expectedLibraryCount: 1
+    advancedInvalidation: problemsInLibrary

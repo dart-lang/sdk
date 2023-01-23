@@ -6,6 +6,7 @@ import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 extension AnnotatedNodeExtensions on AnnotatedNode {
   /// Return the first token in this node that is not a comment.
@@ -19,6 +20,16 @@ extension AnnotatedNodeExtensions on AnnotatedNode {
 }
 
 extension AstNodeExtensions on AstNode {
+  /// Returns [ExtensionElement] declared by an enclosing node.
+  ExtensionElement? get enclosingExtensionElement {
+    for (final node in withParents) {
+      if (node is ExtensionDeclaration) {
+        return node.declaredElement;
+      }
+    }
+    return null;
+  }
+
   /// Return the [IfStatement] associated with `this`.
   IfStatement? get enclosingIfStatement {
     for (var node in withParents) {
@@ -26,6 +37,18 @@ extension AstNodeExtensions on AstNode {
         return node;
       } else if (node is! Expression) {
         return null;
+      }
+    }
+    return null;
+  }
+
+  /// Returns [InterfaceElement] declared by an enclosing node.
+  InterfaceElement? get enclosingInterfaceElement {
+    for (final node in withParents) {
+      if (node is ClassDeclaration) {
+        return node.declaredElement;
+      } else if (node is MixinDeclaration) {
+        return node.declaredElement;
       }
     }
     return null;
@@ -100,11 +123,94 @@ extension AstNodeExtensions on AstNode {
 }
 
 extension CompilationUnitExtension on CompilationUnit {
-  /// Is `true` if library being analyzed is non-nullable by default.
+  /// Return the list of tokens that comprise the file header comment for this
+  /// compilation unit.
   ///
-  /// Will return false if the AST structure has not been resolved.
+  /// If there is no file comment the list will be empty. If the file comment is
+  /// a block comment the list will contain a single token. If the file comment
+  /// is comprised of one or more single line comments, then the list will
+  /// contain all of the tokens, and the comment is assumed to stop at the first
+  /// line that contains anything other than a single line comment (either a
+  /// blank line, a directive, a declaration, or a multi-line comment). The list
+  /// will never include a documentation comment.
+  List<Token> get fileHeader {
+    final lineInfo = this.lineInfo;
+    var firstToken = beginToken;
+    if (firstToken.type == TokenType.SCRIPT_TAG) {
+      firstToken = firstToken.next!;
+    }
+    var firstComment = firstToken.precedingComments;
+    if (firstComment == null ||
+        firstComment.lexeme.startsWith('/**') ||
+        firstComment.lexeme.startsWith('///')) {
+      return const [];
+    } else if (firstComment.lexeme.startsWith('/*')) {
+      return [firstComment];
+    } else if (!firstComment.lexeme.startsWith('//')) {
+      return const [];
+    }
+    var header = <Token>[firstComment];
+    var previousLine = lineInfo.getLocation(firstComment.offset).lineNumber;
+    var currentToken = firstComment.next;
+    while (currentToken != null) {
+      if (!currentToken.lexeme.startsWith('//') ||
+          currentToken.lexeme.startsWith('///')) {
+        return header;
+      }
+      var currentLine = lineInfo.getLocation(currentToken.offset).lineNumber;
+      if (currentLine != previousLine + 1) {
+        return header;
+      }
+      header.add(currentToken);
+      currentToken = currentToken.next;
+      previousLine = currentLine;
+    }
+    return header;
+  }
+
+  /// Return `true` if library being analyzed is non-nullable by default.
+  ///
+  /// Will return `false` if the AST structure has not been resolved.
   bool get isNonNullableByDefault =>
       declaredElement?.library.isNonNullableByDefault ?? false;
+}
+
+extension DirectiveExtensions on Directive {
+  /// If the target imports or exports a [LibraryElement], returns it.
+  LibraryElement? get referencedLibrary {
+    final element = this.element;
+    if (element is LibraryExportElement) {
+      return element.exportedLibrary;
+    } else if (element is LibraryImportElement) {
+      return element.importedLibrary;
+    }
+    return null;
+  }
+
+  /// If [referencedUri] is a [DirectiveUriWithSource], returns the [Source]
+  /// from it.
+  Source? get referencedSource {
+    final uri = referencedUri;
+    if (uri is DirectiveUriWithSource) {
+      return uri.source;
+    }
+    return null;
+  }
+
+  /// Returns the [DirectiveUri] from the element.
+  DirectiveUri? get referencedUri {
+    final self = this;
+    if (self is AugmentationImportDirective) {
+      return self.element?.uri;
+    } else if (self is ExportDirective) {
+      return self.element?.uri;
+    } else if (self is ImportDirective) {
+      return self.element?.uri;
+    } else if (self is PartDirective) {
+      return self.element?.uri;
+    }
+    return null;
+  }
 }
 
 extension ExpressionExtensions on Expression {
@@ -119,11 +225,21 @@ extension ExpressionExtensions on Expression {
   }
 
   /// Return `true` if this expression is an invocation of the method `toList`
-  /// from either `Iterable` or `List`.
+  /// from `Iterable`.
   bool get isToListMethodInvocation {
     if (this is MethodInvocation) {
       var element = (this as MethodInvocation).methodName.staticElement;
       return element is MethodElement && element.isToListMethod;
+    }
+    return false;
+  }
+
+  /// Return `true` if this expression is an invocation of the method `toSet`
+  /// from `Iterable`.
+  bool get isToSetMethodInvocation {
+    if (this is MethodInvocation) {
+      var element = (this as MethodInvocation).methodName.staticElement;
+      return element is MethodElement && element.isToSetMethod;
     }
     return false;
   }

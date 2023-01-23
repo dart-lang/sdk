@@ -1,0 +1,11 @@
+class C<T> {}
+void f(x) {
+var C<int>() = x;
+}
+
+
+class[KeywordToken] C[StringToken]<[BeginToken]T[StringToken]>[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+var[KeywordToken] C[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken])[SimpleToken] =[SimpleToken] x[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

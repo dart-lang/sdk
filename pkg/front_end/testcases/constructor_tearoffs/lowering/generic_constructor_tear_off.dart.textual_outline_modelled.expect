@@ -13,4 +13,4 @@ final bool inSoundMode = <int?>[] is! List<int>;
 main() {}
 testBounded() {}
 testGeneric() {}
-throws(Function() f, {bool inSoundModeOnly: false}) {}
+throws(Function() f, {bool inSoundModeOnly = false}) {}

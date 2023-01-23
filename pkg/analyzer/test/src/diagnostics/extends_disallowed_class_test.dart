@@ -92,6 +92,14 @@ class A extends num {}
     ]);
   }
 
+  test_class_Record() async {
+    await assertErrorsInCode('''
+class A extends Record {}
+''', [
+      error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 16, 6),
+    ]);
+  }
+
   test_class_String() async {
     await assertErrorsInCode('''
 class A extends String {}

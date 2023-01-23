@@ -92,7 +92,7 @@ class ConfigurationTest extends AbstractLspAnalysisServerTest {
         .listen((_) => didGetConfigRequest = true);
 
     await initialize();
-    pumpEventQueue();
+    await pumpEventQueue();
 
     expect(didGetConfigRequest, isFalse);
   }
@@ -105,6 +105,6 @@ class ConfigurationTest extends AbstractLspAnalysisServerTest {
     await initialize(
         workspaceCapabilities:
             withConfigurationSupport(emptyWorkspaceClientCapabilities));
-    pumpEventQueue();
+    await pumpEventQueue();
   }
 }

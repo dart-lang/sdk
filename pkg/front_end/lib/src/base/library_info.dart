@@ -80,13 +80,13 @@ class LibraryInfo {
   final Maturity maturity;
 
   const LibraryInfo(this.path,
-      {String categories: "",
+      {String categories = "",
       this.dart2jsPath,
       this.dart2jsPatchPath,
-      this.implementation: false,
-      this.documented: true,
-      this.maturity: Maturity.UNSPECIFIED,
-      this.platforms: DART2JS_PLATFORM | VM_PLATFORM})
+      this.implementation = false,
+      this.documented = true,
+      this.maturity = Maturity.UNSPECIFIED,
+      this.platforms = DART2JS_PLATFORM | VM_PLATFORM})
       : _categories = categories;
 
   /// The categories in which the library can be used.

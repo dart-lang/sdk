@@ -18,6 +18,48 @@ void main() {
 
 @reflectiveTest
 class HoverTest extends AbstractLspAnalysisServerTest {
+  /// Checks whether the correct types of documentation are returned in a Hover
+  /// based on [preference].
+  Future<void> assertDocumentation(
+    String? preference, {
+    required bool includesSummary,
+    required bool includesFull,
+  }) async {
+    final content = '''
+    /// Summary.
+    ///
+    /// Full.
+    class ^A {}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await provideConfig(
+      () => initialize(
+        workspaceCapabilities:
+            withConfigurationSupport(emptyWorkspaceClientCapabilities),
+      ),
+      {
+        if (preference != null) 'documentation': preference,
+      },
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final hover = await getHover(mainFileUri, positionFromMarker(content));
+    final hoverContents = _getStringContents(hover!);
+
+    if (includesSummary) {
+      expect(hoverContents, contains('Summary.'));
+    } else {
+      expect(hoverContents, isNot(contains('Summary.')));
+    }
+
+    if (includesFull) {
+      expect(hoverContents, contains('Full.'));
+    } else {
+      expect(hoverContents, isNot(contains('Full.')));
+    }
+  }
+
   Future<void> test_dartDoc_macros() async {
     final content = '''
     /// {@template template_name}
@@ -37,6 +79,56 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     expect(hover, isNotNull);
     expect(hover!.range, equals(rangeFromMarkers(content)));
     expect(_getStringContents(hover), endsWith('This is shared content.'));
+  }
+
+  Future<void> test_dartDocPreference_full() =>
+      assertDocumentation('full', includesSummary: true, includesFull: true);
+
+  Future<void> test_dartDocPreference_none() =>
+      assertDocumentation('none', includesSummary: false, includesFull: false);
+
+  Future<void> test_dartDocPreference_summary() =>
+      assertDocumentation('summary',
+          includesSummary: true, includesFull: false);
+
+  /// No preference should result in full docs.
+  Future<void> test_dartDocPreference_unset() =>
+      assertDocumentation(null, includesSummary: true, includesFull: true);
+
+  Future<void> test_function_startOfParameterList() async {
+    final content = '''
+    /// This is a function.
+    String [[abc]]^() {}
+    ''';
+
+    await initialize(
+        textDocumentCapabilities: withHoverContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.PlainText]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    final hover = await getHover(mainFileUri, positionFromMarker(content));
+    expect(hover, isNotNull);
+    expect(hover!.range, equals(rangeFromMarkers(content)));
+    expect(hover.contents, isNotNull);
+    final markup = _getMarkupContents(hover);
+    expect(markup.value, contains('This is a function.'));
+  }
+
+  Future<void> test_function_startOfTypeParameterList() async {
+    final content = '''
+    /// This is a function.
+    String [[abc]]^<T>(T a) {}
+    ''';
+
+    await initialize(
+        textDocumentCapabilities: withHoverContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.PlainText]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    final hover = await getHover(mainFileUri, positionFromMarker(content));
+    expect(hover, isNotNull);
+    expect(hover!.range, equals(rangeFromMarkers(content)));
+    expect(hover.contents, isNotNull);
+    final markup = _getMarkupContents(hover);
+    expect(markup.value, contains('This is a function.'));
   }
 
   Future<void> test_hover_bad_position() async {
@@ -68,6 +160,7 @@ class HoverTest extends AbstractLspAnalysisServerTest {
 String abc
 ```
 Type: `String`
+
 *package:test/main.dart*
 
 ---
@@ -114,6 +207,46 @@ print();
     expect(markup.value, contains('This is a string.'));
   }
 
+  Future<void> test_method_startOfParameterList() async {
+    final content = '''
+    class A {
+      /// This is a method.
+      String [[abc]]^() {}
+    }
+    ''';
+
+    await initialize(
+        textDocumentCapabilities: withHoverContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.PlainText]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    final hover = await getHover(mainFileUri, positionFromMarker(content));
+    expect(hover, isNotNull);
+    expect(hover!.range, equals(rangeFromMarkers(content)));
+    expect(hover.contents, isNotNull);
+    final markup = _getMarkupContents(hover);
+    expect(markup.value, contains('This is a method.'));
+  }
+
+  Future<void> test_method_startOfTypeParameterList() async {
+    final content = '''
+    class A {
+      /// This is a method.
+      String [[abc]]^<T>(T a) {}
+    }
+    ''';
+
+    await initialize(
+        textDocumentCapabilities: withHoverContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.PlainText]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    final hover = await getHover(mainFileUri, positionFromMarker(content));
+    expect(hover, isNotNull);
+    expect(hover!.range, equals(rangeFromMarkers(content)));
+    expect(hover.contents, isNotNull);
+    final markup = _getMarkupContents(hover);
+    expect(markup.value, contains('This is a method.'));
+  }
+
   Future<void> test_noElement() async {
     final content = '''
     String abc;
@@ -148,6 +281,7 @@ print();
 String? abc
 ```
 Type: `String?`
+
 *package:test/main.dart*
     '''
         .trim();
@@ -279,6 +413,7 @@ Type: `String`
 String abc
 ```
 Type: `String`
+
 *package:test/main.dart*
     '''
         .trim();

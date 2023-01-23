@@ -16,13 +16,21 @@ linter:
     avoid_types_as_parameter_names: true
     avoid_unused_constructor_parameters: true
     camel_case_extensions: true
+    collection_methods_unrelated_type: true
     curly_braces_in_flow_control_structures: true
+
+    # Enable when we require Dart 2.19.0.
+    #- dangling_library_doc_comments
     depend_on_referenced_packages: true
     directives_ordering: true
     empty_catches: true
+    enable_null_safety: true
 
     # We import heavily from package:analyzer/src.
     implementation_imports: false
+    implicit_call_tearoffs: true
+    library_annotations: true
+
     # This rule does not work well with package:test_reflective_loader.
     no_duplicate_case_values: true
     non_constant_identifier_names: false
@@ -32,4 +40,7 @@ linter:
     prefer_iterable_whereType: true
     prefer_single_quotes: true
     unawaited_futures: true
+    unnecessary_library_directive: true
+    unnecessary_parenthesis: true
+    unreachable_from_main: true
     unrelated_type_equality_checks: true

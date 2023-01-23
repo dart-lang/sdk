@@ -727,7 +727,7 @@ enum E {
   C
 }
 ''');
-    var enumConstant = findNode.simple('B').parent!;
+    var enumConstant = findNode.enumConstantDeclaration('B');
     var changes = checkPlan(planner!.removeNode(enumConstant), '''
 enum E {
   A,
@@ -743,7 +743,7 @@ class C {
   int? x, y, z;
 }
 ''');
-    var declaration = findNode.simple('y').parent!;
+    var declaration = findNode.variableDeclaration('y');
     var changes = checkPlan(planner!.removeNode(declaration), '''
 class C {
   int? x, z;
@@ -923,7 +923,7 @@ class C {
 
   Future<void> test_remove_parameter() async {
     await analyze('f(int x, int y, int z) => null;');
-    var parameter = findNode.simple('y').parent!;
+    var parameter = findNode.simpleFormalParameter('y');
     var changes =
         checkPlan(planner!.removeNode(parameter), 'f(int x, int z) => null;');
     expect(changes.keys, [parameter.offset]);
@@ -1229,14 +1229,14 @@ C<int, String>? c;
 
   Future<void> test_remove_type_parameter() async {
     await analyze('class C<T, U, V> {}');
-    var parameter = findNode.simple('U').parent!;
+    var parameter = findNode.typeParameter('U');
     var changes = checkPlan(planner!.removeNode(parameter), 'class C<T, V> {}');
     expect(changes.keys, [parameter.offset]);
   }
 
   Future<void> test_remove_variable_declaration() async {
     await analyze('int? x, y, z;');
-    var declaration = findNode.simple('y').parent!;
+    var declaration = findNode.variableDeclaration('y');
     var changes = checkPlan(planner!.removeNode(declaration), 'int? x, z;');
     expect(changes.keys, [declaration.offset]);
   }

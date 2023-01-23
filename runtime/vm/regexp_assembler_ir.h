@@ -243,7 +243,7 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
                                   Value* arg2,
                                   Value* arg3) const;
   InstanceCallInstr* InstanceCall(const InstanceCallDescriptor& desc,
-                                  InputsArray* arguments) const;
+                                  InputsArray&& arguments) const;
 
   StaticCallInstr* StaticCall(const Function& function,
                               ICData::RebindRule rebind_rule) const;
@@ -255,7 +255,7 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
                               Value* arg2,
                               ICData::RebindRule rebind_rule) const;
   StaticCallInstr* StaticCall(const Function& function,
-                              InputsArray* arguments,
+                              InputsArray&& arguments,
                               ICData::RebindRule rebind_rule) const;
 
   // Creates a new block consisting simply of a goto to dst.

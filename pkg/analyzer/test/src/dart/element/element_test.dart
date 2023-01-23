@@ -2,23 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/test_analysis_context.dart';
-import '../../../generated/test_support.dart';
-import '../../../generated/type_system_test.dart';
+import '../../../generated/type_system_base.dart';
 import '../resolution/context_collection_resolution.dart';
 
 main() {
@@ -27,13 +22,12 @@ main() {
     defineReflectiveTests(FieldElementImplTest);
     defineReflectiveTests(FunctionTypeImplTest);
     defineReflectiveTests(InterfaceTypeImplTest);
+    defineReflectiveTests(MethodElementImplTest);
     defineReflectiveTests(TypeParameterTypeImplTest);
     defineReflectiveTests(VoidTypeImplTest);
     defineReflectiveTests(ClassElementImplTest);
-    defineReflectiveTests(CompilationUnitElementImplTest);
     defineReflectiveTests(ElementLocationImplTest);
     defineReflectiveTests(ElementImplTest);
-    defineReflectiveTests(LibraryElementImplTest);
     defineReflectiveTests(TopLevelVariableElementImplTest);
     defineReflectiveTests(UniqueLocationTest);
   });
@@ -46,7 +40,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     String fieldName = "f";
     FieldElementImpl field =
         ElementFactory.fieldElement(fieldName, false, false, false, intNone);
-    classA.fields = <FieldElement>[field];
+    classA.fields = [field];
     expect(classA.getField(fieldName), same(field));
     expect(field.isEnumConstant, false);
     // no such field
@@ -56,22 +50,22 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
   void test_getMethod_declared() {
     var classA = class_(name: 'A');
     String methodName = "m";
-    MethodElement method = ElementFactory.methodElement(methodName, intNone);
-    classA.methods = <MethodElement>[method];
+    var method = ElementFactory.methodElement(methodName, intNone);
+    classA.methods = [method];
     expect(classA.getMethod(methodName), same(method));
   }
 
   void test_getMethod_undeclared() {
     var classA = class_(name: 'A');
     String methodName = "m";
-    MethodElement method = ElementFactory.methodElement(methodName, intNone);
-    classA.methods = <MethodElement>[method];
+    var method = ElementFactory.methodElement(methodName, intNone);
+    classA.methods = [method];
     expect(classA.getMethod("${methodName}x"), isNull);
   }
 
   void test_hasNonFinalField_false_const() {
     var classA = class_(name: 'A');
-    classA.fields = <FieldElement>[
+    classA.fields = [
       ElementFactory.fieldElement(
           "f", false, false, true, interfaceTypeStar(classA))
     ];
@@ -80,7 +74,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
 
   void test_hasNonFinalField_false_final() {
     var classA = class_(name: 'A');
-    classA.fields = <FieldElement>[
+    classA.fields = [
       ElementFactory.fieldElement(
           "f", false, true, false, interfaceTypeStar(classA))
     ];
@@ -99,7 +93,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
 
   void test_hasNonFinalField_true_immediate() {
     var classA = class_(name: 'A');
-    classA.fields = <FieldElement>[
+    classA.fields = [
       ElementFactory.fieldElement(
           "f", false, false, false, interfaceTypeStar(classA))
     ];
@@ -111,61 +105,11 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     var classA = class_(name: 'A');
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
-    classA.fields = <FieldElement>[
+    classA.fields = [
       ElementFactory.fieldElement(
           "f", false, false, false, interfaceTypeStar(classA))
     ];
     expect(classB.hasNonFinalField, isTrue);
-  }
-
-  void test_hasStaticMember_false_empty() {
-    var classA = class_(name: 'A');
-    // no members
-    expect(classA.hasStaticMember, isFalse);
-  }
-
-  void test_hasStaticMember_false_instanceMethod() {
-    var classA = class_(name: 'A');
-    MethodElement method = ElementFactory.methodElement("foo", intNone);
-    classA.methods = <MethodElement>[method];
-    expect(classA.hasStaticMember, isFalse);
-  }
-
-  void test_hasStaticMember_instanceGetter() {
-    var classA = class_(name: 'A');
-    PropertyAccessorElement getter =
-        ElementFactory.getterElement("foo", false, intNone);
-    classA.accessors = <PropertyAccessorElement>[getter];
-    expect(classA.hasStaticMember, isFalse);
-  }
-
-  void test_hasStaticMember_true_getter() {
-    var classA = class_(name: 'A');
-    PropertyAccessorElementImpl getter =
-        ElementFactory.getterElement("foo", false, intNone);
-    classA.accessors = <PropertyAccessorElement>[getter];
-    // "foo" is static
-    getter.isStatic = true;
-    expect(classA.hasStaticMember, isTrue);
-  }
-
-  void test_hasStaticMember_true_method() {
-    var classA = class_(name: 'A');
-    MethodElementImpl method = ElementFactory.methodElement("foo", intNone);
-    classA.methods = <MethodElement>[method];
-    // "foo" is static
-    method.isStatic = true;
-    expect(classA.hasStaticMember, isTrue);
-  }
-
-  void test_hasStaticMember_true_setter() {
-    var classA = class_(name: 'A');
-    PropertyAccessorElementImpl setter =
-        ElementFactory.setterElement("foo", false, intNone);
-    classA.accessors = <PropertyAccessorElement>[setter];
-    // "foo" is static
-    setter.isStatic = true;
-    expect(classA.hasStaticMember, isTrue);
   }
 
   void test_lookUpConcreteMethod_declared() {
@@ -175,9 +119,9 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     LibraryElementImpl library = _newLibrary();
     var classA = class_(name: 'A');
     String methodName = "m";
-    MethodElement method = ElementFactory.methodElement(methodName, intNone);
-    classA.methods = <MethodElement>[method];
-    (library.definingCompilationUnit).classes = <ClassElement>[classA];
+    var method = ElementFactory.methodElement(methodName, intNone);
+    classA.methods = [method];
+    (library.definingCompilationUnit).classes = [classA];
     expect(classA.lookUpConcreteMethod(methodName, library), same(method));
   }
 
@@ -191,8 +135,8 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     MethodElementImpl method =
         ElementFactory.methodElement(methodName, intNone);
     method.isAbstract = true;
-    classA.methods = <MethodElement>[method];
-    (library.definingCompilationUnit).classes = <ClassElement>[classA];
+    classA.methods = [method];
+    (library.definingCompilationUnit).classes = [classA];
     expect(classA.lookUpConcreteMethod(methodName, library), isNull);
   }
 
@@ -206,16 +150,15 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     LibraryElementImpl library = _newLibrary();
     var classA = class_(name: 'A');
     String methodName = "m";
-    MethodElement inheritedMethod =
-        ElementFactory.methodElement(methodName, intNone);
-    classA.methods = <MethodElement>[inheritedMethod];
+    var inheritedMethod = ElementFactory.methodElement(methodName, intNone);
+    classA.methods = [inheritedMethod];
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
     MethodElementImpl method =
         ElementFactory.methodElement(methodName, intNone);
     method.isAbstract = true;
-    classB.methods = <MethodElement>[method];
-    (library.definingCompilationUnit).classes = <ClassElement>[classA, classB];
+    classB.methods = [method];
+    (library.definingCompilationUnit).classes = [classA, classB];
     expect(classB.lookUpConcreteMethod(methodName, library),
         same(inheritedMethod));
   }
@@ -230,14 +173,13 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     LibraryElementImpl library = _newLibrary();
     var classA = class_(name: 'A');
     String methodName = "m";
-    MethodElement inheritedMethod =
-        ElementFactory.methodElement(methodName, intNone);
-    classA.methods = <MethodElement>[inheritedMethod];
+    var inheritedMethod = ElementFactory.methodElement(methodName, intNone);
+    classA.methods = [inheritedMethod];
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
-    MethodElement method = ElementFactory.methodElement(methodName, intNone);
-    classB.methods = <MethodElement>[method];
-    (library.definingCompilationUnit).classes = <ClassElement>[classA, classB];
+    var method = ElementFactory.methodElement(methodName, intNone);
+    classB.methods = [method];
+    (library.definingCompilationUnit).classes = [classA, classB];
     expect(classB.lookUpConcreteMethod(methodName, library), same(method));
   }
 
@@ -255,12 +197,12 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     MethodElementImpl inheritedMethod =
         ElementFactory.methodElement(methodName, intNone);
     inheritedMethod.isAbstract = true;
-    classA.methods = <MethodElement>[inheritedMethod];
+    classA.methods = [inheritedMethod];
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
-    MethodElement method = ElementFactory.methodElement(methodName, intNone);
-    classB.methods = <MethodElement>[method];
-    (library.definingCompilationUnit).classes = <ClassElement>[classA, classB];
+    var method = ElementFactory.methodElement(methodName, intNone);
+    classB.methods = [method];
+    (library.definingCompilationUnit).classes = [classA, classB];
     expect(classB.lookUpConcreteMethod(methodName, library), same(method));
   }
 
@@ -273,12 +215,11 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     LibraryElementImpl library = _newLibrary();
     var classA = class_(name: 'A');
     String methodName = "m";
-    MethodElement inheritedMethod =
-        ElementFactory.methodElement(methodName, intNone);
-    classA.methods = <MethodElement>[inheritedMethod];
+    var inheritedMethod = ElementFactory.methodElement(methodName, intNone);
+    classA.methods = [inheritedMethod];
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
-    (library.definingCompilationUnit).classes = <ClassElement>[classA, classB];
+    (library.definingCompilationUnit).classes = [classA, classB];
     expect(classB.lookUpConcreteMethod(methodName, library),
         same(inheritedMethod));
   }
@@ -288,7 +229,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     // }
     LibraryElementImpl library = _newLibrary();
     var classA = class_(name: 'A');
-    (library.definingCompilationUnit).classes = <ClassElement>[classA];
+    (library.definingCompilationUnit).classes = [classA];
     expect(classA.lookUpConcreteMethod("m", library), isNull);
   }
 
@@ -299,10 +240,9 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     LibraryElementImpl library = _newLibrary();
     var classA = class_(name: 'A');
     String getterName = "g";
-    PropertyAccessorElement getter =
-        ElementFactory.getterElement(getterName, false, intNone);
-    classA.accessors = <PropertyAccessorElement>[getter];
-    (library.definingCompilationUnit).classes = <ClassElement>[classA];
+    var getter = ElementFactory.getterElement(getterName, false, intNone);
+    classA.accessors = [getter];
+    (library.definingCompilationUnit).classes = [classA];
     expect(classA.lookUpGetter(getterName, library), same(getter));
   }
 
@@ -315,12 +255,11 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     LibraryElementImpl library = _newLibrary();
     var classA = class_(name: 'A');
     String getterName = "g";
-    PropertyAccessorElement getter =
-        ElementFactory.getterElement(getterName, false, intNone);
-    classA.accessors = <PropertyAccessorElement>[getter];
+    var getter = ElementFactory.getterElement(getterName, false, intNone);
+    classA.accessors = [getter];
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
-    (library.definingCompilationUnit).classes = <ClassElement>[classA, classB];
+    (library.definingCompilationUnit).classes = [classA, classB];
     expect(classB.lookUpGetter(getterName, library), same(getter));
   }
 
@@ -329,7 +268,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     // }
     LibraryElementImpl library = _newLibrary();
     var classA = class_(name: 'A');
-    (library.definingCompilationUnit).classes = <ClassElement>[classA];
+    (library.definingCompilationUnit).classes = [classA];
     expect(classA.lookUpGetter("g", library), isNull);
   }
 
@@ -343,7 +282,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
     classA.supertype = interfaceTypeStar(classB);
-    (library.definingCompilationUnit).classes = <ClassElement>[classA, classB];
+    (library.definingCompilationUnit).classes = [classA, classB];
     expect(classA.lookUpGetter("g", library), isNull);
   }
 
@@ -351,9 +290,9 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     LibraryElementImpl library = _newLibrary();
     var classA = class_(name: 'A');
     String methodName = "m";
-    MethodElement method = ElementFactory.methodElement(methodName, intNone);
-    classA.methods = <MethodElement>[method];
-    (library.definingCompilationUnit).classes = <ClassElement>[classA];
+    var method = ElementFactory.methodElement(methodName, intNone);
+    classA.methods = [method];
+    (library.definingCompilationUnit).classes = [classA];
     expect(classA.lookUpMethod(methodName, library), same(method));
   }
 
@@ -361,18 +300,18 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     LibraryElementImpl library = _newLibrary();
     var classA = class_(name: 'A');
     String methodName = "m";
-    MethodElement method = ElementFactory.methodElement(methodName, intNone);
-    classA.methods = <MethodElement>[method];
+    var method = ElementFactory.methodElement(methodName, intNone);
+    classA.methods = [method];
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
-    (library.definingCompilationUnit).classes = <ClassElement>[classA, classB];
+    (library.definingCompilationUnit).classes = [classA, classB];
     expect(classB.lookUpMethod(methodName, library), same(method));
   }
 
   void test_lookUpMethod_undeclared() {
     LibraryElementImpl library = _newLibrary();
     var classA = class_(name: 'A');
-    (library.definingCompilationUnit).classes = <ClassElement>[classA];
+    (library.definingCompilationUnit).classes = [classA];
     expect(classA.lookUpMethod("m", library), isNull);
   }
 
@@ -382,7 +321,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
     classA.supertype = interfaceTypeStar(classB);
-    (library.definingCompilationUnit).classes = <ClassElement>[classA, classB];
+    (library.definingCompilationUnit).classes = [classA, classB];
     expect(classA.lookUpMethod("m", library), isNull);
   }
 
@@ -393,10 +332,9 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     LibraryElementImpl library = _newLibrary();
     var classA = class_(name: 'A');
     String setterName = "s";
-    PropertyAccessorElement setter =
-        ElementFactory.setterElement(setterName, false, intNone);
-    classA.accessors = <PropertyAccessorElement>[setter];
-    (library.definingCompilationUnit).classes = <ClassElement>[classA];
+    var setter = ElementFactory.setterElement(setterName, false, intNone);
+    classA.accessors = [setter];
+    (library.definingCompilationUnit).classes = [classA];
     expect(classA.lookUpSetter(setterName, library), same(setter));
   }
 
@@ -409,12 +347,11 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     LibraryElementImpl library = _newLibrary();
     var classA = class_(name: 'A');
     String setterName = "s";
-    PropertyAccessorElement setter =
-        ElementFactory.setterElement(setterName, false, intNone);
-    classA.accessors = <PropertyAccessorElement>[setter];
+    var setter = ElementFactory.setterElement(setterName, false, intNone);
+    classA.accessors = [setter];
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
-    (library.definingCompilationUnit).classes = <ClassElement>[classA, classB];
+    (library.definingCompilationUnit).classes = [classA, classB];
     expect(classB.lookUpSetter(setterName, library), same(setter));
   }
 
@@ -423,7 +360,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     // }
     LibraryElementImpl library = _newLibrary();
     var classA = class_(name: 'A');
-    (library.definingCompilationUnit).classes = <ClassElement>[classA];
+    (library.definingCompilationUnit).classes = [classA];
     expect(classA.lookUpSetter("s", library), isNull);
   }
 
@@ -437,33 +374,12 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
     classA.supertype = interfaceTypeStar(classB);
-    (library.definingCompilationUnit).classes = <ClassElement>[classA, classB];
+    (library.definingCompilationUnit).classes = [classA, classB];
     expect(classA.lookUpSetter("s", library), isNull);
   }
 
   LibraryElementImpl _newLibrary() =>
       ElementFactory.library(analysisContext, 'lib');
-}
-
-@reflectiveTest
-class CompilationUnitElementImplTest {
-  void test_getType_declared() {
-    CompilationUnitElementImpl unit =
-        ElementFactory.compilationUnit(source: TestSource("/lib.dart"));
-    String className = "C";
-    ClassElement classElement = ElementFactory.classElement2(className);
-    unit.classes = <ClassElement>[classElement];
-    expect(unit.getType(className), same(classElement));
-  }
-
-  void test_getType_undeclared() {
-    CompilationUnitElementImpl unit =
-        ElementFactory.compilationUnit(source: TestSource("/lib.dart"));
-    String className = "C";
-    ClassElement classElement = ElementFactory.classElement2(className);
-    unit.classes = <ClassElement>[classElement];
-    expect(unit.getType("${className}x"), isNull);
-  }
 }
 
 @reflectiveTest
@@ -497,8 +413,8 @@ class ElementImplTest extends AbstractTypeSystemTest {
   void test_equals() {
     LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     ClassElementImpl classElement = ElementFactory.classElement2("C");
-    (library.definingCompilationUnit).classes = <ClassElement>[classElement];
-    FieldElement field = ElementFactory.fieldElement(
+    (library.definingCompilationUnit).classes = [classElement];
+    var field = ElementFactory.fieldElement(
       "next",
       false,
       false,
@@ -508,7 +424,7 @@ class ElementImplTest extends AbstractTypeSystemTest {
         nullabilitySuffix: NullabilitySuffix.star,
       ),
     );
-    classElement.fields = <FieldElement>[field];
+    classElement.fields = [field];
     expect(field == field, isTrue);
     // ignore: unrelated_type_equality_checks
     expect(field == field.getter, isFalse);
@@ -520,35 +436,35 @@ class ElementImplTest extends AbstractTypeSystemTest {
   void test_isAccessibleIn_private_differentLibrary() {
     LibraryElementImpl library1 =
         ElementFactory.library(analysisContext, "lib1");
-    ClassElement classElement = ElementFactory.classElement2("_C");
-    (library1.definingCompilationUnit).classes = <ClassElement>[classElement];
+    var classElement = ElementFactory.classElement2("_C");
+    (library1.definingCompilationUnit).classes = [classElement];
     LibraryElementImpl library2 =
         ElementFactory.library(analysisContext, "lib2");
-    expect(classElement.isAccessibleIn2(library2), isFalse);
+    expect(classElement.isAccessibleIn(library2), isFalse);
   }
 
   void test_isAccessibleIn_private_sameLibrary() {
     LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
-    ClassElement classElement = ElementFactory.classElement2("_C");
-    (library.definingCompilationUnit).classes = <ClassElement>[classElement];
-    expect(classElement.isAccessibleIn2(library), isTrue);
+    var classElement = ElementFactory.classElement2("_C");
+    (library.definingCompilationUnit).classes = [classElement];
+    expect(classElement.isAccessibleIn(library), isTrue);
   }
 
   void test_isAccessibleIn_public_differentLibrary() {
     LibraryElementImpl library1 =
         ElementFactory.library(analysisContext, "lib1");
-    ClassElement classElement = ElementFactory.classElement2("C");
-    (library1.definingCompilationUnit).classes = <ClassElement>[classElement];
+    var classElement = ElementFactory.classElement2("C");
+    (library1.definingCompilationUnit).classes = [classElement];
     LibraryElementImpl library2 =
         ElementFactory.library(analysisContext, "lib2");
-    expect(classElement.isAccessibleIn2(library2), isTrue);
+    expect(classElement.isAccessibleIn(library2), isTrue);
   }
 
   void test_isAccessibleIn_public_sameLibrary() {
     LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
-    ClassElement classElement = ElementFactory.classElement2("C");
-    (library.definingCompilationUnit).classes = <ClassElement>[classElement];
-    expect(classElement.isAccessibleIn2(library), isTrue);
+    var classElement = ElementFactory.classElement2("C");
+    (library.definingCompilationUnit).classes = [classElement];
+    expect(classElement.isAccessibleIn(library), isTrue);
   }
 
   void test_isPrivate_false() {
@@ -818,6 +734,8 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
     check(objectNone, []);
     check(numNone, ['Comparable<num>', 'Object']);
     check(intNone, ['Comparable<num>', 'Object', 'num']);
+    check(intQuestion, ['Comparable<num>?', 'Object?', 'num?']);
+    check(intStar, ['Comparable<num>*', 'Object*', 'num*']);
     check(listNone(intQuestion), ['Iterable<int?>', 'Object']);
   }
 
@@ -886,11 +804,9 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
 
   void test_getAccessors() {
     ClassElementImpl typeElement = class_(name: 'A');
-    PropertyAccessorElement getterG =
-        ElementFactory.getterElement("g", false, intNone);
-    PropertyAccessorElement getterH =
-        ElementFactory.getterElement("h", false, intNone);
-    typeElement.accessors = <PropertyAccessorElement>[getterG, getterH];
+    var getterG = ElementFactory.getterElement("g", false, intNone);
+    var getterH = ElementFactory.getterElement("h", false, intNone);
+    typeElement.accessors = [getterG, getterH];
     InterfaceType type = interfaceTypeStar(typeElement);
     expect(type.accessors.length, 2);
   }
@@ -907,17 +823,14 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
         ElementFactory.constructorElement(typeElement, 'one', false);
     ConstructorElementImpl constructorTwo =
         ElementFactory.constructorElement(typeElement, 'two', false);
-    typeElement.constructors = <ConstructorElement>[
-      constructorOne,
-      constructorTwo
-    ];
+    typeElement.constructors = [constructorOne, constructorTwo];
     InterfaceType type = interfaceTypeStar(typeElement);
     expect(type.constructors, hasLength(2));
   }
 
   void test_getConstructors_empty() {
     ClassElementImpl typeElement = class_(name: 'A');
-    typeElement.constructors = const <ConstructorElement>[];
+    typeElement.constructors = const <ConstructorElementImpl>[];
     InterfaceType type = interfaceTypeStar(typeElement);
     expect(type.constructors, isEmpty);
   }
@@ -934,9 +847,8 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
     //
     var classA = class_(name: 'A');
     String getterName = "g";
-    PropertyAccessorElement getterG =
-        ElementFactory.getterElement(getterName, false, intNone);
-    classA.accessors = <PropertyAccessorElement>[getterG];
+    var getterG = ElementFactory.getterElement(getterName, false, intNone);
+    classA.accessors = [getterG];
     InterfaceType typeA = interfaceTypeStar(classA);
     expect(typeA.getGetter(getterName), same(getterG));
   }
@@ -952,7 +864,7 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
     String getterName = "g";
     PropertyAccessorElementImpl getterG =
         ElementFactory.getterElement(getterName, false, typeAE);
-    A.accessors = <PropertyAccessorElement>[getterG];
+    A.accessors = [getterG];
     //
     // A<I>
     //
@@ -1036,7 +948,7 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
     String methodName = "m";
     MethodElementImpl methodM =
         ElementFactory.methodElement(methodName, intNone);
-    classA.methods = <MethodElement>[methodM];
+    classA.methods = [methodM];
     InterfaceType typeA = interfaceTypeStar(classA);
     expect(typeA.getMethod(methodName), same(methodM));
   }
@@ -1051,13 +963,13 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
     String methodName = "m";
     MethodElementImpl methodM =
         ElementFactory.methodElement(methodName, typeE, [typeE]);
-    A.methods = <MethodElement>[methodM];
+    A.methods = [methodM];
     //
     // A<I>
     //
     var typeI = interfaceTypeStar(class_(name: 'I'));
     var typeAI = interfaceTypeStar(A, typeArguments: <DartType>[typeI]);
-    MethodElement method = typeAI.getMethod(methodName)!;
+    var method = typeAI.getMethod(methodName)!;
     expect(method, isNotNull);
     FunctionType methodType = method.type;
     expect(methodType.returnType, same(typeI));
@@ -1079,7 +991,7 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
     ClassElementImpl typeElement = class_(name: 'A');
     MethodElementImpl methodOne = ElementFactory.methodElement("one", intNone);
     MethodElementImpl methodTwo = ElementFactory.methodElement("two", intNone);
-    typeElement.methods = <MethodElement>[methodOne, methodTwo];
+    typeElement.methods = [methodOne, methodTwo];
     InterfaceType type = interfaceTypeStar(typeElement);
     expect(type.methods.length, 2);
   }
@@ -1146,9 +1058,8 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
     //
     var classA = class_(name: 'A');
     String setterName = "s";
-    PropertyAccessorElement setterS =
-        ElementFactory.setterElement(setterName, false, intNone);
-    classA.accessors = <PropertyAccessorElement>[setterS];
+    var setterS = ElementFactory.setterElement(setterName, false, intNone);
+    classA.accessors = [setterS];
     InterfaceType typeA = interfaceTypeStar(classA);
     expect(typeA.getSetter(setterName), same(setterS));
   }
@@ -1163,7 +1074,7 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
     String setterName = "s";
     PropertyAccessorElementImpl setterS =
         ElementFactory.setterElement(setterName, false, typeE);
-    A.accessors = <PropertyAccessorElement>[setterS];
+    A.accessors = [setterS];
     //
     // A<I>
     //
@@ -1246,71 +1157,26 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
 }
 
 @reflectiveTest
-class LibraryElementImplTest {
-  void test_getImportedLibraries() {
-    AnalysisContext context = TestAnalysisContext();
-    LibraryElementImpl library1 = ElementFactory.library(context, "l1");
-    LibraryElementImpl library2 = ElementFactory.library(context, "l2");
-    LibraryElementImpl library3 = ElementFactory.library(context, "l3");
-    LibraryElementImpl library4 = ElementFactory.library(context, "l4");
-    PrefixElement prefixA = PrefixElementImpl('a', -1);
-    PrefixElement prefixB = PrefixElementImpl('b', -1);
-    List<ImportElementImpl> imports = [
-      ElementFactory.importFor(library2, null),
-      ElementFactory.importFor(library2, prefixB),
-      ElementFactory.importFor(library3, null),
-      ElementFactory.importFor(library3, prefixA),
-      ElementFactory.importFor(library3, prefixB),
-      ElementFactory.importFor(library4, prefixA)
-    ];
-    library1.imports = imports;
-    List<LibraryElement> libraries = library1.importedLibraries;
-    expect(libraries,
-        unorderedEquals(<LibraryElement>[library2, library3, library4]));
-  }
+class MethodElementImplTest extends AbstractTypeSystemTest {
+  void test_equal() {
+    var foo = method('foo', intNone);
+    var T = typeParameter('T');
+    var A = class_(
+      name: 'A',
+      typeParameters: [T],
+      methods: [foo],
+    );
 
-  void test_getPrefixes() {
-    AnalysisContext context = TestAnalysisContext();
-    LibraryElementImpl library = ElementFactory.library(context, "l1");
-    PrefixElement prefixA = PrefixElementImpl('a', -1);
-    PrefixElement prefixB = PrefixElementImpl('b', -1);
-    List<ImportElementImpl> imports = [
-      ElementFactory.importFor(ElementFactory.library(context, "l2"), null),
-      ElementFactory.importFor(ElementFactory.library(context, "l3"), null),
-      ElementFactory.importFor(ElementFactory.library(context, "l4"), prefixA),
-      ElementFactory.importFor(ElementFactory.library(context, "l5"), prefixA),
-      ElementFactory.importFor(ElementFactory.library(context, "l6"), prefixB)
-    ];
-    library.imports = imports;
-    List<PrefixElement> prefixes = library.prefixes;
-    expect(prefixes, hasLength(2));
-    if (identical(prefixA, prefixes[0])) {
-      expect(prefixes[1], same(prefixB));
-    } else {
-      expect(prefixes[0], same(prefixB));
-      expect(prefixes[1], same(prefixA));
-    }
-  }
+    // MethodElementImpl is equal to itself.
+    expect(foo == foo, isTrue);
 
-  void test_setImports() {
-    AnalysisContext context = TestAnalysisContext();
-    LibraryElementImpl library = LibraryElementImpl(
-        context,
-        _AnalysisSessionMock(),
-        'l1',
-        -1,
-        0,
-        FeatureSet.latestLanguageVersion());
-    List<ImportElementImpl> expectedImports = [
-      ElementFactory.importFor(ElementFactory.library(context, "l2"), null),
-      ElementFactory.importFor(ElementFactory.library(context, "l3"), null)
-    ];
-    library.imports = expectedImports;
-    List<ImportElement> actualImports = library.imports;
-    expect(actualImports, hasLength(expectedImports.length));
-    for (int i = 0; i < actualImports.length; i++) {
-      expect(actualImports[i], same(expectedImports[i]));
-    }
+    // MethodMember is not equal to MethodElementImpl.
+    var foo_int = A.instantiate(
+      typeArguments: [intNone],
+      nullabilitySuffix: NullabilitySuffix.none,
+    ).getMethod('foo')!;
+    expect(foo == foo_int, isFalse);
+    expect(foo_int == foo, isFalse);
   }
 }
 
@@ -1599,9 +1465,4 @@ class VoidTypeImplTest extends AbstractTypeSystemTest {
     // Returns this.
     expect(_voidType.resolveToBound(objectNone), same(_voidType));
   }
-}
-
-class _AnalysisSessionMock implements AnalysisSessionImpl {
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

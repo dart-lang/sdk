@@ -1,3 +1,8 @@
+## 1.9.0
+
+* Introduce `@MustBeOverridden` to annotate class or mixin members which must be
+  overridden in all subclasses.
+
 ## 1.8.0
 
 * Add `@UseResult.unless`.

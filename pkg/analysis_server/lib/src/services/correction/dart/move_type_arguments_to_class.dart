@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -32,14 +32,16 @@ class MoveTypeArgumentsToClass extends CorrectionProducer {
       return;
     }
 
-    var element = namedType.typeOrThrow.element;
-    if (element is ClassElement &&
-        element.typeParameters.length == typeArguments.arguments.length) {
-      await builder.addDartFileEdit(file, (builder) {
-        var argumentText = utils.getNodeText(typeArguments);
-        builder.addSimpleInsertion(namedType.end, argumentText);
-        builder.addDeletion(range.node(typeArguments));
-      });
+    final type = namedType.typeOrThrow;
+    if (type is InterfaceType) {
+      final element = type.element;
+      if (element.typeParameters.length == typeArguments.arguments.length) {
+        await builder.addDartFileEdit(file, (builder) {
+          var argumentText = utils.getNodeText(typeArguments);
+          builder.addSimpleInsertion(namedType.end, argumentText);
+          builder.addDeletion(range.node(typeArguments));
+        });
+      }
     }
   }
 }

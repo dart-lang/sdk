@@ -38,7 +38,7 @@ struct ScriptIndexPair {
 
   ScriptIndexPair(const Script* s, intptr_t index) : script_(s), index_(index) {
     ASSERT(!s->IsNull());
-    ASSERT(s->IsNotTemporaryScopedHandle());
+    DEBUG_ASSERT(s->IsNotTemporaryScopedHandle());
   }
 
   ScriptIndexPair() : script_(NULL), index_(-1) {}
@@ -70,7 +70,7 @@ struct FunctionIndexPair {
   FunctionIndexPair(const Function* f, intptr_t index)
       : function_(f), index_(index) {
     ASSERT(!f->IsNull());
-    ASSERT(f->IsNotTemporaryScopedHandle());
+    DEBUG_ASSERT(f->IsNotTemporaryScopedHandle());
   }
 
   FunctionIndexPair() : function_(NULL), index_(-1) {}
@@ -94,7 +94,7 @@ struct DwarfCodeKeyValueTrait {
     Pair(const Code* c, const T v) : code(c), value(v) {
       ASSERT(c != nullptr);
       ASSERT(!c->IsNull());
-      ASSERT(c->IsNotTemporaryScopedHandle());
+      DEBUG_ASSERT(c->IsNotTemporaryScopedHandle());
     }
     Pair() : code(nullptr), value{} {}
 
@@ -211,48 +211,13 @@ class DwarfWriteStream : public ValueObject {
   virtual void u8(uint64_t value) = 0;
   virtual void string(const char* cstr) = 0;  // NOLINT
 
-  class EncodedPosition : public ValueObject {
-   public:
-    explicit EncodedPosition(intptr_t position)
-        : type_(Type::kPosition), position_(position) {}
-    explicit EncodedPosition(const char* symbol)
-        : type_(Type::kSymbol), symbol_(symbol) {}
-
-    enum class Type {
-      kPosition,
-      kSymbol,
-    };
-
-    bool IsPosition() const { return type_ == Type::kPosition; }
-    intptr_t position() const {
-      ASSERT(IsPosition());
-      return position_;
-    }
-    bool IsSymbol() const { return type_ == Type::kSymbol; }
-    const char* symbol() const {
-      ASSERT(IsSymbol());
-      return symbol_;
-    }
-
-   private:
-    const Type type_;
-    union {
-      intptr_t position_;
-      const char* symbol_;
-    };
-
-    DISALLOW_COPY_AND_ASSIGN(EncodedPosition);
-  };
-
-  // Prefixes the content added by body with its length. Returns an
-  // appropriately encoded representation of the start of the content added by
-  // the body (including the length prefix).
+  // Prefixes the content added by body with its length.
   //
   // symbol_prefix is used when a local symbol is created for the length.
-  virtual EncodedPosition WritePrefixedLength(const char* symbol_prefix,
-                                              std::function<void()> body) = 0;
+  virtual void WritePrefixedLength(const char* symbol_prefix,
+                                   std::function<void()> body) = 0;
 
-  virtual void OffsetFromSymbol(const char* symbol, intptr_t offset) = 0;
+  virtual void OffsetFromSymbol(intptr_t label, intptr_t offset) = 0;
 
   virtual void InitializeAbstractOrigins(intptr_t size) = 0;
   virtual void RegisterAbstractOrigin(intptr_t index) = 0;
@@ -268,7 +233,7 @@ class Dwarf : public ZoneAllocated {
   const ZoneGrowableArray<const Code*>& codes() const { return codes_; }
 
   // Stores the code object for later creating the line number program.
-  void AddCode(const Code& code, const char* name);
+  void AddCode(const Code& code, intptr_t label);
 
   intptr_t AddFunction(const Function& function);
   intptr_t AddScript(const Script& script);
@@ -345,7 +310,7 @@ class Dwarf : public ZoneAllocated {
   InliningNode* ExpandInliningTree(const Code& code);
   void WriteInliningNode(DwarfWriteStream* stream,
                          InliningNode* node,
-                         const char* root_code_name,
+                         intptr_t root_label,
                          const Script& parent_script);
 
   void WriteSyntheticLineNumberProgram(LineNumberProgramWriter* writer);
@@ -358,12 +323,11 @@ class Dwarf : public ZoneAllocated {
   Zone* const zone_;
   Trie<const char>* const reverse_obfuscation_trie_;
   ZoneGrowableArray<const Code*> codes_;
-  DwarfCodeMap<const char*> code_to_name_;
+  DwarfCodeMap<intptr_t> code_to_label_;
   ZoneGrowableArray<const Function*> functions_;
   FunctionIndexMap function_to_index_;
   ZoneGrowableArray<const Script*> scripts_;
   ScriptIndexMap script_to_index_;
-  intptr_t temp_;
 };
 
 #endif  // DART_PRECOMPILER

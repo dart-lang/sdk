@@ -4,6 +4,8 @@
 
 #include "vm/compiler/frontend/kernel_to_il.h"
 
+#include <utility>
+
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "vm/class_id.h"
@@ -42,6 +44,12 @@ DEFINE_FLAG(bool,
             print_huge_methods,
             false,
             "Print huge methods (less optimized)");
+
+DEFINE_FLAG(int,
+            force_switch_dispatch_type,
+            -1,
+            "Force switch statements to use a particular dispatch type: "
+            "-1=auto, 0=linear scan, 1=binary search, 2=jump table");
 
 namespace kernel {
 
@@ -138,8 +146,8 @@ Fragment FlowGraphBuilder::PushContext(const LocalScope* scope) {
   LocalVariable* context = MakeTemporary();
   instructions += LoadLocal(context);
   instructions += LoadLocal(parsed_function_->current_context_var());
-  instructions += StoreNativeField(
-      Slot::Context_parent(), StoreInstanceFieldInstr::Kind::kInitializing);
+  instructions += StoreNativeField(Slot::Context_parent(),
+                                   StoreFieldInstr::Kind::kInitializing);
   instructions += StoreLocal(TokenPosition::kNoSource,
                              parsed_function_->current_context_var());
   ++context_depth_;
@@ -356,11 +364,11 @@ Fragment FlowGraphBuilder::InstanceCall(
     bool receiver_is_not_smi,
     bool is_call_on_this) {
   const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
-  InputsArray* arguments = GetArguments(total_count);
+  InputsArray arguments = GetArguments(total_count);
   InstanceCallInstr* call = new (Z) InstanceCallInstr(
-      InstructionSource(position), name, kind, arguments, type_args_len,
-      argument_names, checked_argument_count, ic_data_array_, GetNextDeoptId(),
-      interface_target, tearoff_interface_target);
+      InstructionSource(position), name, kind, std::move(arguments),
+      type_args_len, argument_names, checked_argument_count, ic_data_array_,
+      GetNextDeoptId(), interface_target, tearoff_interface_target);
   if ((result_type != NULL) && !result_type->IsTrivial()) {
     call->SetResultType(Z, result_type->ToCompileType(Z));
   }
@@ -394,9 +402,8 @@ Fragment FlowGraphBuilder::FfiCall(
     const compiler::ffi::CallMarshaller& marshaller) {
   Fragment body;
 
-  FfiCallInstr* const call =
-      new (Z) FfiCallInstr(Z, GetNextDeoptId(), marshaller,
-                           parsed_function_->function().FfiIsLeaf());
+  FfiCallInstr* const call = new (Z) FfiCallInstr(
+      GetNextDeoptId(), marshaller, parsed_function_->function().FfiIsLeaf());
 
   for (intptr_t i = call->InputCount() - 1; i >= 0; --i) {
     call->SetInputAt(i, Pop());
@@ -414,13 +421,13 @@ Fragment FlowGraphBuilder::CCall(
 
   const intptr_t num_arguments =
       native_calling_convention.argument_locations().length() + 1;
-  InputsArray* arguments = new (Z) InputsArray(num_arguments);
-  arguments->FillWith(nullptr, 0, num_arguments);
+  InputsArray arguments(num_arguments);
+  arguments.FillWith(nullptr, 0, num_arguments);
   for (intptr_t i = num_arguments - 1; i >= 0; --i) {
-    (*arguments)[i] = Pop();
+    arguments[i] = Pop();
   }
   auto* const call =
-      new (Z) CCallInstr(Z, native_calling_convention, arguments);
+      new (Z) CCallInstr(native_calling_convention, std::move(arguments));
 
   Push(call);
   body <<= call;
@@ -475,9 +482,9 @@ Fragment FlowGraphBuilder::LoadLocal(LocalVariable* variable) {
   }
 }
 
-Fragment FlowGraphBuilder::IndirectGoto(intptr_t target_count) {
+IndirectGotoInstr* FlowGraphBuilder::IndirectGoto(intptr_t target_count) {
   Value* index = Pop();
-  return Fragment(new (Z) IndirectGotoInstr(target_count, index));
+  return new (Z) IndirectGotoInstr(target_count, index);
 }
 
 Fragment FlowGraphBuilder::ThrowLateInitializationError(
@@ -553,28 +560,27 @@ Fragment FlowGraphBuilder::StoreLateField(const Field& field,
   if (is_static) {
     instructions += StoreStaticField(position, field);
   } else {
-    instructions += StoreInstanceFieldGuarded(field);
+    instructions += StoreFieldGuarded(field);
   }
 
   return instructions;
 }
 
-Fragment FlowGraphBuilder::NativeCall(const String* name,
-                                      const Function* function) {
+Fragment FlowGraphBuilder::NativeCall(const String& name,
+                                      const Function& function) {
   InlineBailout("kernel::FlowGraphBuilder::NativeCall");
   const intptr_t num_args =
-      function->NumParameters() + (function->IsGeneric() ? 1 : 0);
-  InputsArray* arguments = GetArguments(num_args);
-  NativeCallInstr* call = new (Z)
-      NativeCallInstr(name, function, FLAG_link_natives_lazily,
-                      InstructionSource(function->end_token_pos()), arguments);
+      function.NumParameters() + (function.IsGeneric() ? 1 : 0);
+  InputsArray arguments = GetArguments(num_args);
+  NativeCallInstr* call = new (Z) NativeCallInstr(
+      name, function, FLAG_link_natives_lazily,
+      InstructionSource(function.end_token_pos()), std::move(arguments));
   Push(call);
   return Fragment(call);
 }
 
 Fragment FlowGraphBuilder::Return(TokenPosition position,
-                                  bool omit_result_type_check,
-                                  intptr_t yield_index) {
+                                  bool omit_result_type_check) {
   Fragment instructions;
   const Function& function = parsed_function_->function();
 
@@ -590,7 +596,7 @@ Fragment FlowGraphBuilder::Return(TokenPosition position,
     instructions += DebugStepCheck(position);
   }
 
-  instructions += BaseFlowGraphBuilder::Return(position, yield_index);
+  instructions += BaseFlowGraphBuilder::Return(position);
 
   return instructions;
 }
@@ -627,10 +633,10 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
                                       intptr_t type_args_count,
                                       bool use_unchecked_entry) {
   const intptr_t total_count = argument_count + (type_args_count > 0 ? 1 : 0);
-  InputsArray* arguments = GetArguments(total_count);
+  InputsArray arguments = GetArguments(total_count);
   StaticCallInstr* call = new (Z) StaticCallInstr(
       InstructionSource(position), target, type_args_count, argument_names,
-      arguments, ic_data_array_, GetNextDeoptId(), rebind_rule);
+      std::move(arguments), ic_data_array_, GetNextDeoptId(), rebind_rule);
   SetResultTypeForStaticCall(call, target, argument_count, result_type);
   if (use_unchecked_entry) {
     call->set_entry_kind(Code::EntryKind::kUnchecked);
@@ -718,7 +724,8 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError(const Function& target,
   const Class& owner = Class::Handle(Z, target.Owner());
   auto& receiver = Instance::ZoneHandle();
   InvocationMirror::Kind kind = InvocationMirror::Kind::kMethod;
-  if (target.IsImplicitGetterFunction() || target.IsGetterFunction()) {
+  if (target.IsImplicitGetterFunction() || target.IsGetterFunction() ||
+      target.IsRecordFieldGetter()) {
     kind = InvocationMirror::kGetter;
   } else if (target.IsImplicitSetterFunction() || target.IsSetterFunction()) {
     kind = InvocationMirror::kSetter;
@@ -733,13 +740,17 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError(const Function& target,
     receiver = owner.RareType();
     if (target.kind() == UntaggedFunction::kConstructor) {
       level = InvocationMirror::Level::kConstructor;
+    } else if (target.IsRecordFieldGetter()) {
+      level = InvocationMirror::Level::kDynamic;
     } else {
       level = InvocationMirror::Level::kStatic;
     }
   }
 
   // Call NoSuchMethodError._throwNew static function.
-  instructions += Constant(receiver);                              // receiver
+  if (!target.IsRecordFieldGetter()) {
+    instructions += Constant(receiver);  // receiver
+  }
   instructions += Constant(String::ZoneHandle(Z, target.name()));  // memberName
   instructions += IntConstant(InvocationMirror::EncodeType(level, kind));
   instructions += IntConstant(0);  // type arguments length
@@ -838,7 +849,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   for (intptr_t i = 0; i < function.NumParameters(); ++i) {
     body += LoadLocal(parsed_function_->RawParameterVariable(i));
   }
-  body += NativeCall(&name, &function);
+  body += NativeCall(name, function);
   // We typecheck results of native calls for type safety.
   body +=
       Return(TokenPosition::kNoSource, /* omit_result_type_check = */ false);
@@ -866,6 +877,8 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   V(LinkedHashBase_getIndex, LinkedHashBase_index)                             \
   V(LinkedHashBase_getUsedData, LinkedHashBase_used_data)                      \
   V(ObjectArrayLength, Array_length)                                           \
+  V(Record_fieldNames, Record_field_names)                                     \
+  V(Record_numFields, Record_num_fields)                                       \
   V(SuspendState_getFunctionData, SuspendState_function_data)                  \
   V(SuspendState_getThenCallback, SuspendState_then_callback)                  \
   V(SuspendState_getErrorCallback, SuspendState_error_callback)                \
@@ -901,6 +914,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
   const MethodRecognizer::Kind kind = function.recognized_kind();
 
   switch (kind) {
+    case MethodRecognizer::kRecord_fieldAt:
     case MethodRecognizer::kSuspendState_clone:
     case MethodRecognizer::kSuspendState_resume:
     case MethodRecognizer::kTypedData_ByteDataView_factory:
@@ -918,6 +932,21 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kTypedData_Float32x4ArrayView_factory:
     case MethodRecognizer::kTypedData_Int32x4ArrayView_factory:
     case MethodRecognizer::kTypedData_Float64x2ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableByteDataView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt8ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint8ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint8ClampedArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt16ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint16ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt32ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint32ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt64ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint64ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableFloat32ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableFloat64ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableFloat32x4ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt32x4ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableFloat64x2ArrayView_factory:
     case MethodRecognizer::kTypedData_Int8Array_factory:
     case MethodRecognizer::kTypedData_Uint8Array_factory:
     case MethodRecognizer::kTypedData_Uint8ClampedArray_factory:
@@ -991,6 +1020,9 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kUtf8DecoderScan:
     case MethodRecognizer::kHas63BitSmis:
     case MethodRecognizer::kExtensionStreamHasListener:
+    case MethodRecognizer::kSmi_hashCode:
+    case MethodRecognizer::kMint_hashCode:
+    case MethodRecognizer::kDouble_hashCode:
 #define CASE(method, slot) case MethodRecognizer::k##method:
       LOAD_NATIVE_FIELD(CASE)
       STORE_NATIVE_FIELD(CASE)
@@ -1050,6 +1082,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
 
   const MethodRecognizer::Kind kind = function.recognized_kind();
   switch (kind) {
+    case MethodRecognizer::kRecord_fieldAt:
+      ASSERT_EQUAL(function.NumParameters(), 2);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadLocal(parsed_function_->RawParameterVariable(1));
+      body += LoadIndexed(
+          kRecordCid, /*index_scale*/ compiler::target::kCompressedWordSize);
+      break;
     case MethodRecognizer::kSuspendState_clone: {
       ASSERT_EQUAL(function.NumParameters(), 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
@@ -1064,122 +1103,27 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += TailCall(resume_stub);
       break;
     }
+#define CASE(name)                                                             \
+  case MethodRecognizer::kTypedData_##name##_factory:                          \
+    body += BuildTypedDataFactoryConstructor(function, kTypedData##name##Cid); \
+    break;                                                                     \
+  case MethodRecognizer::kTypedData_##name##View_factory:                      \
+    body += BuildTypedDataViewFactoryConstructor(function,                     \
+                                                 kTypedData##name##ViewCid);   \
+    break;                                                                     \
+  case MethodRecognizer::kTypedData_Unmodifiable##name##View_factory:          \
+    body += BuildTypedDataViewFactoryConstructor(                              \
+        function, kUnmodifiableTypedData##name##ViewCid);                      \
+    break;
+      CLASS_LIST_TYPED_DATA(CASE)
+#undef CASE
     case MethodRecognizer::kTypedData_ByteDataView_factory:
       body += BuildTypedDataViewFactoryConstructor(function, kByteDataViewCid);
       break;
-    case MethodRecognizer::kTypedData_Int8ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(function,
-                                                   kTypedDataInt8ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Uint8ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(function,
-                                                   kTypedDataUint8ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Uint8ClampedArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableByteDataView_factory:
       body += BuildTypedDataViewFactoryConstructor(
-          function, kTypedDataUint8ClampedArrayViewCid);
+          function, kUnmodifiableByteDataViewCid);
       break;
-    case MethodRecognizer::kTypedData_Int16ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(function,
-                                                   kTypedDataInt16ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Uint16ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(
-          function, kTypedDataUint16ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Int32ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(function,
-                                                   kTypedDataInt32ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Uint32ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(
-          function, kTypedDataUint32ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Int64ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(function,
-                                                   kTypedDataInt64ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Uint64ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(
-          function, kTypedDataUint64ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Float32ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(
-          function, kTypedDataFloat32ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Float64ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(
-          function, kTypedDataFloat64ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Float32x4ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(
-          function, kTypedDataFloat32x4ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Int32x4ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(
-          function, kTypedDataInt32x4ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Float64x2ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(
-          function, kTypedDataFloat64x2ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Int8Array_factory:
-      body +=
-          BuildTypedDataFactoryConstructor(function, kTypedDataInt8ArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Uint8Array_factory:
-      body +=
-          BuildTypedDataFactoryConstructor(function, kTypedDataUint8ArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Uint8ClampedArray_factory:
-      body += BuildTypedDataFactoryConstructor(function,
-                                               kTypedDataUint8ClampedArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Int16Array_factory:
-      body +=
-          BuildTypedDataFactoryConstructor(function, kTypedDataInt16ArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Uint16Array_factory:
-      body +=
-          BuildTypedDataFactoryConstructor(function, kTypedDataUint16ArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Int32Array_factory:
-      body +=
-          BuildTypedDataFactoryConstructor(function, kTypedDataInt32ArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Uint32Array_factory:
-      body +=
-          BuildTypedDataFactoryConstructor(function, kTypedDataUint32ArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Int64Array_factory:
-      body +=
-          BuildTypedDataFactoryConstructor(function, kTypedDataInt64ArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Uint64Array_factory:
-      body +=
-          BuildTypedDataFactoryConstructor(function, kTypedDataUint64ArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Float32Array_factory:
-      body +=
-          BuildTypedDataFactoryConstructor(function, kTypedDataFloat32ArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Float64Array_factory:
-      body +=
-          BuildTypedDataFactoryConstructor(function, kTypedDataFloat64ArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Float32x4Array_factory:
-      body += BuildTypedDataFactoryConstructor(function,
-                                               kTypedDataFloat32x4ArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Int32x4Array_factory:
-      body +=
-          BuildTypedDataFactoryConstructor(function, kTypedDataInt32x4ArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Float64x2Array_factory:
-      body += BuildTypedDataFactoryConstructor(function,
-                                               kTypedDataFloat64x2ArrayCid);
-      break;
-
     case MethodRecognizer::kObjectEquals:
       ASSERT_EQUAL(function.NumParameters(), 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
@@ -1212,12 +1156,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(object);
       body += LoadLocal(parsed_function_->RawParameterVariable(1));
       body += StoreNativeField(Slot::GrowableObjectArray_data(),
-                               StoreInstanceFieldInstr::Kind::kInitializing,
+                               StoreFieldInstr::Kind::kInitializing,
                                kNoStoreBarrier);
       body += LoadLocal(object);
       body += IntConstant(0);
       body += StoreNativeField(Slot::GrowableObjectArray_length(),
-                               StoreInstanceFieldInstr::Kind::kInitializing,
+                               StoreFieldInstr::Kind::kInitializing,
                                kNoStoreBarrier);
       break;
     }
@@ -1312,10 +1256,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(1));
       // Uses a store-release barrier so that other isolates will see the
       // contents of the index after seeing the index itself.
-      body +=
-          StoreNativeField(Slot::ImmutableLinkedHashBase_index(),
-                           StoreInstanceFieldInstr::Kind::kOther,
-                           kEmitStoreBarrier, compiler::Assembler::kRelease);
+      body += StoreNativeField(Slot::ImmutableLinkedHashBase_index(),
+                               StoreFieldInstr::Kind::kOther, kEmitStoreBarrier,
+                               compiler::Assembler::kRelease);
       body += NullConstant();
       break;
     case MethodRecognizer::kUtf8DecoderScan:
@@ -1381,29 +1324,15 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body +=
           Box(LoadIndexedInstr::RepresentationOfArrayElement(typed_data_cid));
       if (kind == MethodRecognizer::kFfiLoadPointer) {
-        const auto class_table = thread_->isolate_group()->class_table();
-        ASSERT(class_table->HasValidClassAt(kPointerCid));
         const auto& pointer_class =
-            Class::ZoneHandle(H.zone(), class_table->At(kPointerCid));
+            Class::ZoneHandle(Z, IG->object_store()->ffi_pointer_class());
+        const auto& type_arguments = TypeArguments::ZoneHandle(
+            Z, IG->object_store()->type_argument_never());
 
-        // We find the reified type to use for the pointer allocation.
-        //
-        // Call sites to this recognized method are guaranteed to pass a
-        // Pointer<Pointer<X>> as RawParameterVariable(0). This function
-        // will return a Pointer<X> object - for which we inspect the
-        // reified type on the argument.
-        //
-        // The following is safe to do, as (1) we are guaranteed to have a
-        // Pointer<Pointer<X>> as argument, and (2) the bound on the pointer
-        // type parameter guarantees X is an interface type.
+        // We do not reify Pointer type arguments
         ASSERT(function.NumTypeParameters() == 1);
         LocalVariable* address = MakeTemporary();
-        body += LoadLocal(parsed_function_->RawParameterVariable(0));
-        body += LoadNativeField(
-            Slot::GetTypeArgumentsSlotFor(thread_, pointer_class));
-        body += LoadNativeField(Slot::GetTypeArgumentsIndexSlot(
-            thread_, Pointer::kNativeTypeArgPos));
-        body += LoadNativeField(Slot::Type_arguments());
+        body += Constant(type_arguments);
         body += AllocateObject(TokenPosition::kNoSource, pointer_class, 1);
         LocalVariable* pointer = MakeTemporary();
         body += LoadLocal(pointer);
@@ -1437,37 +1366,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       LocalVariable* arg_pointer = parsed_function_->RawParameterVariable(0);
       LocalVariable* arg_offset = parsed_function_->RawParameterVariable(1);
       LocalVariable* arg_value = parsed_function_->RawParameterVariable(2);
-
-      if (kind == MethodRecognizer::kFfiStorePointer) {
-        // Do type check before anything untagged is on the stack.
-        const auto class_table = thread_->isolate_group()->class_table();
-        ASSERT(class_table->HasValidClassAt(kPointerCid));
-        const auto& pointer_class =
-            Class::ZoneHandle(H.zone(), class_table->At(kPointerCid));
-        const auto& pointer_type_param =
-            TypeParameter::ZoneHandle(pointer_class.TypeParameterAt(0));
-
-        // But we type check it as a method on a generic class at runtime.
-        body += LoadLocal(arg_value);          // value.
-        body += Constant(pointer_type_param);  // dst_type.
-        // We pass the Pointer type argument as instantiator_type_args.
-        //
-        // Call sites to this recognized method are guaranteed to pass a
-        // Pointer<Pointer<X>> as RawParameterVariable(0). This function
-        // will takes a Pointer<X> object - for which we inspect the
-        // reified type on the argument.
-        //
-        // The following is safe to do, as (1) we are guaranteed to have a
-        // Pointer<Pointer<X>> as argument, and (2) the bound on the pointer
-        // type parameter guarantees X is an interface type.
-        body += LoadLocal(arg_pointer);
-        body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
-        body += LoadNativeField(
-            Slot::GetTypeArgumentsSlotFor(thread_, pointer_class));
-        body += NullConstant();  // function_type_args.
-        body += AssertAssignable(TokenPosition::kNoSource, Symbols::Empty());
-        body += Drop();
-      }
 
       ASSERT_EQUAL(function.NumParameters(), 3);
       body += LoadLocal(arg_offset);
@@ -1505,14 +1403,14 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += NullConstant();
     } break;
     case MethodRecognizer::kFfiFromAddress: {
-      const auto class_table = thread_->isolate_group()->class_table();
-      ASSERT(class_table->HasValidClassAt(kPointerCid));
       const auto& pointer_class =
-          Class::ZoneHandle(H.zone(), class_table->At(kPointerCid));
+          Class::ZoneHandle(Z, IG->object_store()->ffi_pointer_class());
+      const auto& type_arguments = TypeArguments::ZoneHandle(
+          Z, IG->object_store()->type_argument_never());
 
       ASSERT(function.NumTypeParameters() == 1);
       ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawTypeArgumentsVariable());
+      body += Constant(type_arguments);
       body += AllocateObject(TokenPosition::kNoSource, pointer_class, 1);
       body += LoadLocal(MakeTemporary());  // Duplicate Pointer.
       body += LoadLocal(parsed_function_->RawParameterVariable(0));  // Address.
@@ -1547,6 +1445,28 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += IntToBool();
 #endif  // PRODUCT
     } break;
+    case MethodRecognizer::kSmi_hashCode: {
+      // TODO(dartbug.com/38985): We should make this LoadLocal+Unbox+
+      // IntegerHash+Box. Though  this would make use of unboxed values on stack
+      // which isn't allowed in unoptimized mode.
+      // Once force-optimized functions can be inlined, we should change this
+      // code to the above.
+      ASSERT_EQUAL(function.NumParameters(), 1);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += BuildIntegerHashCode(/*smi=*/true);
+    } break;
+    case MethodRecognizer::kMint_hashCode: {
+      ASSERT_EQUAL(function.NumParameters(), 1);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += BuildIntegerHashCode(/*smi=*/false);
+    } break;
+    case MethodRecognizer::kDouble_hashCode: {
+      ASSERT_EQUAL(function.NumParameters(), 1);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += UnboxTruncate(kUnboxedDouble);
+      body += BuildDoubleHashCode();
+      body += Box(kUnboxedInt64);
+    } break;
     case MethodRecognizer::kFfiAsExternalTypedDataInt8:
     case MethodRecognizer::kFfiAsExternalTypedDataInt16:
     case MethodRecognizer::kFfiAsExternalTypedDataInt32:
@@ -1580,7 +1500,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(typed_data_object);
       body += LoadLocal(arg_length);
       body += StoreNativeField(Slot::TypedDataBase_length(),
-                               StoreInstanceFieldInstr::Kind::kInitializing,
+                               StoreFieldInstr::Kind::kInitializing,
                                kNoStoreBarrier);
 
       // Initialize the result's data pointer field.
@@ -1589,7 +1509,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadUntagged(compiler::target::PointerBase::data_offset());
       body += ConvertUntaggedToUnboxed(kUnboxedIntPtr);
       body += StoreNativeField(Slot::PointerBase_data(),
-                               StoreInstanceFieldInstr::Kind::kInitializing,
+                               StoreFieldInstr::Kind::kInitializing,
                                kNoStoreBarrier);
     } break;
     case MethodRecognizer::kGetNativeField: {
@@ -1738,8 +1658,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     ASSERT_EQUAL(function.NumParameters(), 2);                                 \
     body += LoadLocal(parsed_function_->RawParameterVariable(0));              \
     body += LoadLocal(parsed_function_->RawParameterVariable(1));              \
-    body += StoreNativeField(                                                  \
-        Slot::slot(), StoreInstanceFieldInstr::Kind::kOther, kNoStoreBarrier); \
+    body += StoreNativeField(Slot::slot(), StoreFieldInstr::Kind::kOther,      \
+                             kNoStoreBarrier);                                 \
     body += NullConstant();                                                    \
     break;
       STORE_NATIVE_FIELD_NO_BARRIER(IL_BODY)
@@ -1781,19 +1701,19 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
   body += LoadLocal(view_object);
   body += LoadLocal(typed_data);
   body += StoreNativeField(token_pos, Slot::TypedDataView_typed_data(),
-                           StoreInstanceFieldInstr::Kind::kInitializing);
+                           StoreFieldInstr::Kind::kInitializing);
 
   body += LoadLocal(view_object);
   body += LoadLocal(offset_in_bytes);
-  body += StoreNativeField(token_pos, Slot::TypedDataView_offset_in_bytes(),
-                           StoreInstanceFieldInstr::Kind::kInitializing,
-                           kNoStoreBarrier);
+  body +=
+      StoreNativeField(token_pos, Slot::TypedDataView_offset_in_bytes(),
+                       StoreFieldInstr::Kind::kInitializing, kNoStoreBarrier);
 
   body += LoadLocal(view_object);
   body += LoadLocal(length);
-  body += StoreNativeField(token_pos, Slot::TypedDataBase_length(),
-                           StoreInstanceFieldInstr::Kind::kInitializing,
-                           kNoStoreBarrier);
+  body +=
+      StoreNativeField(token_pos, Slot::TypedDataBase_length(),
+                       StoreFieldInstr::Kind::kInitializing, kNoStoreBarrier);
 
   // Update the inner pointer.
   //
@@ -1870,7 +1790,7 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
   fragment += StoreNativeField(
       Slot::GetContextVariableSlotFor(
           thread_, *implicit_closure_scope->context_variables()[0]),
-      StoreInstanceFieldInstr::Kind::kInitializing);
+      StoreFieldInstr::Kind::kInitializing);
 
   fragment += AllocateClosure();
   LocalVariable* closure = MakeTemporary();
@@ -1880,7 +1800,7 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
     fragment += LoadLocal(closure);
     fragment += LoadInstantiatorTypeArguments();
     fragment += StoreNativeField(Slot::Closure_instantiator_type_arguments(),
-                                 StoreInstanceFieldInstr::Kind::kInitializing);
+                                 StoreFieldInstr::Kind::kInitializing);
   }
 
   if (target.IsGeneric()) {
@@ -1889,7 +1809,7 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
     fragment += LoadLocal(closure);
     fragment += Constant(Object::empty_type_arguments());
     fragment += StoreNativeField(Slot::Closure_delayed_type_arguments(),
-                                 StoreInstanceFieldInstr::Kind::kInitializing);
+                                 StoreFieldInstr::Kind::kInitializing);
   }
 
   return fragment;
@@ -2326,6 +2246,132 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
                      /* argument_count = */ 2, ICData::kNSMDispatch);
   body += Return(TokenPosition::kNoSource);
 
+  return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
+                           prologue_info);
+}
+
+FlowGraph* FlowGraphBuilder::BuildGraphOfRecordFieldGetter(
+    const Function& function) {
+  graph_entry_ =
+      new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
+
+  auto normal_entry = BuildFunctionEntry(graph_entry_);
+  graph_entry_->set_normal_entry(normal_entry);
+
+  JoinEntryInstr* nsm = BuildJoinEntry();
+
+  Fragment body(normal_entry);
+  body += CheckStackOverflowInPrologue(function.token_pos());
+
+  String& name = String::ZoneHandle(Z, function.name());
+  ASSERT(Field::IsGetterName(name));
+  name = Field::NameFromGetter(name);
+
+  const intptr_t field_index =
+      Record::GetPositionalFieldIndexFromFieldName(name);
+  if (field_index >= 0) {
+    // Get positional record field by index.
+    body += IntConstant(field_index);
+
+    // num_positional = num_fields - field_names.length
+    body += LoadLocal(parsed_function_->receiver_var());
+    body += LoadNativeField(Slot::Record_num_fields());
+    body += LoadLocal(parsed_function_->receiver_var());
+    body += LoadNativeField(Slot::Record_field_names());
+    body += LoadNativeField(Slot::Array_length());
+    body += SmiBinaryOp(Token::kSUB);
+
+    body += SmiRelationalOp(Token::kLT);
+    TargetEntryInstr* valid_index;
+    TargetEntryInstr* invalid_index;
+    body += BranchIfTrue(&valid_index, &invalid_index);
+
+    body.current = valid_index;
+    body += LoadLocal(parsed_function_->receiver_var());
+    body += LoadNativeField(Slot::GetRecordFieldSlot(
+        thread_, compiler::target::Record::field_offset(field_index)));
+    body += Return(TokenPosition::kNoSource);
+
+    body.current = invalid_index;
+  }
+
+  // Search field among named fields.
+  body += LoadLocal(parsed_function_->receiver_var());
+  body += LoadNativeField(Slot::Record_field_names());
+  LocalVariable* field_names = MakeTemporary("field_names");
+
+  body += LoadLocal(field_names);
+  body += LoadNativeField(Slot::Array_length());
+  LocalVariable* num_named = MakeTemporary("num_named");
+
+  body += IntConstant(0);
+  body += LoadLocal(num_named);
+  body += SmiRelationalOp(Token::kLT);
+  TargetEntryInstr* has_named_fields;
+  TargetEntryInstr* no_named_fields;
+  body += BranchIfTrue(&has_named_fields, &no_named_fields);
+
+  Fragment(no_named_fields) + Goto(nsm);
+  body.current = has_named_fields;
+
+  LocalVariable* index = parsed_function_->expression_temp_var();
+  body += IntConstant(0);
+  body += StoreLocal(TokenPosition::kNoSource, index);
+  body += Drop();
+
+  JoinEntryInstr* loop = BuildJoinEntry();
+  body += Goto(loop);
+  body.current = loop;
+
+  body += LoadLocal(field_names);
+  body += LoadLocal(index);
+  body += LoadIndexed(kArrayCid,
+                      /*index_scale*/ compiler::target::kCompressedWordSize);
+  body += Constant(name);
+  TargetEntryInstr* found;
+  TargetEntryInstr* continue_search;
+  body += BranchIfEqual(&found, &continue_search);
+
+  body.current = continue_search;
+  body += LoadLocal(index);
+  body += IntConstant(1);
+  body += SmiBinaryOp(Token::kADD);
+  body += StoreLocal(TokenPosition::kNoSource, index);
+  body += Drop();
+
+  body += LoadLocal(index);
+  body += LoadLocal(num_named);
+  body += SmiRelationalOp(Token::kLT);
+  TargetEntryInstr* has_more_fields;
+  TargetEntryInstr* no_more_fields;
+  body += BranchIfTrue(&has_more_fields, &no_more_fields);
+
+  Fragment(has_more_fields) + Goto(loop);
+  Fragment(no_more_fields) + Goto(nsm);
+
+  body.current = found;
+
+  body += LoadLocal(parsed_function_->receiver_var());
+
+  body += LoadLocal(parsed_function_->receiver_var());
+  body += LoadNativeField(Slot::Record_num_fields());
+  body += LoadLocal(num_named);
+  body += SmiBinaryOp(Token::kSUB);
+  body += LoadLocal(index);
+  body += SmiBinaryOp(Token::kADD);
+
+  body += LoadIndexed(kRecordCid,
+                      /*index_scale*/ compiler::target::kCompressedWordSize);
+  body += DropTempsPreserveTop(2);
+  body += Return(TokenPosition::kNoSource);
+
+  Fragment throw_nsm(nsm);
+  throw_nsm += LoadLocal(parsed_function_->receiver_var());
+  throw_nsm +=
+      ThrowNoSuchMethodError(function, /*incompatible_arguments=*/false);
+
+  // There is no prologue code for a record field getter.
+  PrologueInfo prologue_info(-1, -1);
   return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
                            prologue_info);
 }
@@ -3163,7 +3209,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
   const Class& closure_class =
       Class::Handle(Z, IG->object_store()->closure_class());
   const bool is_closure_call = (owner.ptr() == closure_class.ptr()) &&
-                               field_name.Equals(Symbols::Call());
+                               field_name.Equals(Symbols::call());
 
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
@@ -3244,7 +3290,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
     const intptr_t kNumArgsChecked = 1;
     body +=
         InstanceCall(TokenPosition::kMinSource,
-                     is_dynamic_call ? Symbols::DynamicCall() : Symbols::Call(),
+                     is_dynamic_call ? Symbols::DynamicCall() : Symbols::call(),
                      Token::kILLEGAL, descriptor.TypeArgsLen(),
                      descriptor.Count(), *argument_names, kNumArgsChecked);
   }
@@ -3801,8 +3847,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
           setter_value);
     } else {
       if (is_method) {
-        body += StoreInstanceFieldGuarded(
-            field, StoreInstanceFieldInstr::Kind::kOther);
+        body += StoreFieldGuarded(field, StoreFieldInstr::Kind::kOther);
       } else {
         body += StoreStaticField(TokenPosition::kNoSource, field);
       }
@@ -3924,6 +3969,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
     body += Box(kUnboxedInt64);
   } else if (target.has_unboxed_double_return()) {
     body += Box(kUnboxedDouble);
+  } else if (target.has_unboxed_record_return()) {
+    // Handled in SelectRepresentations pass in optimized mode.
+    ASSERT(optimizing_);
   }
 
   // Later optimization passes assume that result of a x.[]=(...) call is not
@@ -4126,15 +4174,15 @@ Fragment FlowGraphBuilder::UnhandledException() {
 
   body += LoadLocal(error_instance);
   body += LoadLocal(CurrentException());
-  body += StoreNativeField(Slot::UnhandledException_exception(),
-                           StoreInstanceFieldInstr::Kind::kInitializing,
-                           kNoStoreBarrier);
+  body +=
+      StoreNativeField(Slot::UnhandledException_exception(),
+                       StoreFieldInstr::Kind::kInitializing, kNoStoreBarrier);
 
   body += LoadLocal(error_instance);
   body += LoadLocal(CurrentStackTrace());
-  body += StoreNativeField(Slot::UnhandledException_stacktrace(),
-                           StoreInstanceFieldInstr::Kind::kInitializing,
-                           kNoStoreBarrier);
+  body +=
+      StoreNativeField(Slot::UnhandledException_stacktrace(),
+                       StoreFieldInstr::Kind::kInitializing, kNoStoreBarrier);
 
   return body;
 }
@@ -4216,15 +4264,17 @@ Fragment FlowGraphBuilder::NativeReturn(
   return Fragment(instr).closed();
 }
 
-Fragment FlowGraphBuilder::FfiPointerFromAddress(const Type& result_type) {
+Fragment FlowGraphBuilder::FfiPointerFromAddress() {
   LocalVariable* address = MakeTemporary();
   LocalVariable* result = parsed_function_->expression_temp_var();
 
-  Class& result_class = Class::ZoneHandle(Z, result_type.type_class());
+  Class& result_class =
+      Class::ZoneHandle(Z, IG->object_store()->ffi_pointer_class());
   // This class might only be instantiated as a return type of ffi calls.
   result_class.EnsureIsFinalized(thread_);
 
-  TypeArguments& args = TypeArguments::ZoneHandle(Z, result_type.arguments());
+  TypeArguments& args =
+      TypeArguments::ZoneHandle(Z, IG->object_store()->type_argument_never());
 
   // A kernel transform for FFI in the front-end ensures that type parameters
   // do not appear in the type arguments to a any Pointer classes in an FFI
@@ -4289,8 +4339,8 @@ Fragment FlowGraphBuilder::WrapTypedDataBaseInCompound(
   body += AllocateObject(TokenPosition::kNoSource, compound_sub_class, 0);
   body += LoadLocal(MakeTemporary("compound"));  // Duplicate Struct or Union.
   body += LoadLocal(typed_data);
-  body += StoreInstanceField(compound_typed_data_base,
-                             StoreInstanceFieldInstr::Kind::kInitializing);
+  body += StoreField(compound_typed_data_base,
+                     StoreFieldInstr::Kind::kInitializing);
   body += DropTempsPreserveTop(1);  // Drop TypedData.
   return body;
 }
@@ -4566,8 +4616,7 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToDart(
   Fragment body;
   if (marshaller.IsPointer(arg_index)) {
     body += Box(kUnboxedFfiIntPtr);
-    body += FfiPointerFromAddress(
-        Type::CheckedHandle(Z, marshaller.CType(arg_index)));
+    body += FfiPointerFromAddress();
   } else if (marshaller.IsHandle(arg_index)) {
     body += UnwrapHandle();
   } else if (marshaller.IsVoid(arg_index)) {
@@ -4820,9 +4869,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
 
-  auto* const native_entry = new (Z) NativeEntryInstr(
-      marshaller, graph_entry_, AllocateBlockId(), CurrentTryIndex(),
-      GetNextDeoptId(), function.FfiCallbackId());
+  auto* const native_entry =
+      new (Z) NativeEntryInstr(marshaller, graph_entry_, AllocateBlockId(),
+                               CurrentTryIndex(), GetNextDeoptId());
 
   graph_entry_->set_normal_entry(native_entry);
 
@@ -4868,9 +4917,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
     body += Drop();
     body += IntConstant(0);
   } else if (!marshaller.IsHandle(compiler::ffi::kResultIndex)) {
-    body +=
-        CheckNullOptimized(String::ZoneHandle(Z, String::New("return_value")),
-                           CheckNullInstr::kArgumentError);
+    body += CheckNullOptimized(
+        String::ZoneHandle(Z, Symbols::New(H.thread(), "return_value")),
+        CheckNullInstr::kArgumentError);
   }
 
   if (marshaller.IsCompound(compiler::ffi::kResultIndex)) {
@@ -4941,27 +4990,9 @@ void FlowGraphBuilder::SetCurrentTryCatchBlock(TryCatchBlock* try_catch_block) {
                                                 : try_catch_block->try_index());
 }
 
-bool FlowGraphBuilder::NeedsNullAssertion(const AbstractType& type) {
-  if (!type.IsNonNullable()) {
-    return false;
-  }
-  if (type.IsTypeRef()) {
-    return NeedsNullAssertion(
-        AbstractType::Handle(Z, TypeRef::Cast(type).type()));
-  }
-  if (type.IsTypeParameter()) {
-    return NeedsNullAssertion(
-        AbstractType::Handle(Z, TypeParameter::Cast(type).bound()));
-  }
-  if (type.IsFutureOrType()) {
-    return NeedsNullAssertion(AbstractType::Handle(Z, type.UnwrapFutureOr()));
-  }
-  return true;
-}
-
 Fragment FlowGraphBuilder::NullAssertion(LocalVariable* variable) {
   Fragment code;
-  if (!NeedsNullAssertion(variable->type())) {
+  if (!variable->type().NeedsNullAssertion()) {
     return code;
   }
 
@@ -5033,6 +5064,227 @@ const Function& FlowGraphBuilder::PrependTypeArgumentsFunction() {
     ASSERT(!prepend_type_arguments_.IsNull());
   }
   return prepend_type_arguments_;
+}
+
+Fragment FlowGraphBuilder::BuildIntegerHashCode(bool smi) {
+  Fragment body;
+  Value* unboxed_value = Pop();
+  HashIntegerOpInstr* hash =
+      new HashIntegerOpInstr(unboxed_value, smi, DeoptId::kNone);
+  Push(hash);
+  body <<= hash;
+  return body;
+}
+
+Fragment FlowGraphBuilder::BuildDoubleHashCode() {
+  Fragment body;
+  Value* double_value = Pop();
+  HashDoubleOpInstr* hash = new HashDoubleOpInstr(double_value, DeoptId::kNone);
+  Push(hash);
+  body <<= hash;
+  body += Box(kUnboxedInt64);
+  return body;
+}
+
+int64_t SwitchHelper::ExpressionRange() const {
+  const int64_t min = expression_min().AsInt64Value();
+  const int64_t max = expression_max().AsInt64Value();
+  ASSERT(min <= max);
+  const uint64_t diff = static_cast<uint64_t>(max) - static_cast<uint64_t>(min);
+  // Saturate to avoid overflow.
+  if (diff > static_cast<uint64_t>(kMaxInt64 - 1)) {
+    return kMaxInt64;
+  }
+  return static_cast<int64_t>(diff + 1);
+}
+
+bool SwitchHelper::RequiresLowerBoundCheck() const {
+  if (is_enum_switch()) {
+    if (expression_min().IsZero()) {
+      // Enum indexes are always positive.
+      return false;
+    }
+  }
+  return true;
+}
+
+bool SwitchHelper::RequiresUpperBoundCheck() const {
+  if (is_enum_switch()) {
+    return has_default() || !is_exhaustive();
+  }
+  return true;
+}
+
+SwitchDispatch SwitchHelper::SelectDispatchStrategy() {
+  // For small to medium-sized switches, binary search is faster than a
+  // jump table.
+  // Please update runtime/tests/vm/dart/optimized_switch_test.dart
+  // when changing this constant.
+  const intptr_t kJumpTableMinExpressions = 16;
+  // This limit comes from IndirectGotoInstr.
+  // Realistically, the current limit should never be hit by any code.
+  const intptr_t kJumpTableMaxSize = kMaxInt32;
+  // Sometimes the switch expressions don't cover a contiguous range.
+  // If the ratio of holes to expressions is too great we fall back to a
+  // binary search to avoid code size explosion.
+  const double kJumpTableMaxHolesRatio = 1.0;
+
+  if (!is_optimizable()) {
+    // The switch is not optimizable, so we can only use linear scan.
+    return kSwitchDispatchLinearScan;
+  }
+
+  if (!CompilerState::Current().is_aot()) {
+    // JIT mode supports hot-reload, which currently prevents us from
+    // enabling optimized switches.
+    return kSwitchDispatchLinearScan;
+  }
+
+  if (FLAG_force_switch_dispatch_type == kSwitchDispatchLinearScan) {
+    return kSwitchDispatchLinearScan;
+  }
+
+  PrepareForOptimizedSwitch();
+
+  if (!is_optimizable()) {
+    // While preparing for an optimized switch we might have discovered that
+    // the switch is not optimizable after all.
+    return kSwitchDispatchLinearScan;
+  }
+
+  if (FLAG_force_switch_dispatch_type == kSwitchDispatchBinarySearch) {
+    return kSwitchDispatchBinarySearch;
+  }
+
+  const int64_t range = ExpressionRange();
+  if (range > kJumpTableMaxSize) {
+    return kSwitchDispatchBinarySearch;
+  }
+
+  const intptr_t num_expressions = expressions().length();
+  ASSERT(num_expressions <= range);
+
+  const intptr_t max_holes = num_expressions * kJumpTableMaxHolesRatio;
+  const int64_t holes = range - num_expressions;
+
+  if (FLAG_force_switch_dispatch_type != kSwitchDispatchJumpTable) {
+    if (num_expressions < kJumpTableMinExpressions) {
+      return kSwitchDispatchBinarySearch;
+    }
+
+    if (holes > max_holes) {
+      return kSwitchDispatchBinarySearch;
+    }
+  }
+
+  // After this point we will use a jump table.
+
+  // In the general case, bounds checks are required before a jump table
+  // to handle all possible integer values.
+  // For enums, the set of possible index values is known and much smaller
+  // than the set of all possible integer values. A jump table that covers
+  // either or both bounds of the range of index values requires only one or
+  // no bounds checks.
+  // If the expressions of an enum switch don't cover the full range of
+  // values we can try to extend the jump table to cover the full range, but
+  // not beyond kJumpTableMaxHolesRatio.
+  // The count of enum values is not available when the flow graph is
+  // constructed. The lower bound is always 0 so eliminating the lower
+  // bound check is still possible by extending expression_min to 0.
+  //
+  // In the case of an integer switch we try to extend expression_min to 0
+  // for a different reason.
+  // If the range starts at zero it directly maps to the jump table
+  // and we don't need to adjust the switch variable before the
+  // jump table.
+  if (expression_min().AsInt64Value() > 0) {
+    const intptr_t holes_budget = Utils::Minimum(
+        // Holes still available.
+        max_holes - holes,
+        // Entries left in the jump table.
+        kJumpTableMaxSize - range);
+
+    const int64_t required_holes = expression_min().AsInt64Value();
+    if (required_holes <= holes_budget) {
+      expression_min_ = &Object::smi_zero();
+    }
+  }
+
+  return kSwitchDispatchJumpTable;
+}
+
+void SwitchHelper::PrepareForOptimizedSwitch() {
+  // Find the min and max of integer representations of expressions.
+  // We also populate SwitchExpressions.integer for later use.
+  const Field* enum_index_field = nullptr;
+  for (intptr_t i = 0; i < expressions_.length(); ++i) {
+    SwitchExpression& expression = expressions_[i];
+    sorted_expressions_.Add(&expression);
+
+    const Instance& value = expression.value();
+    const Integer* integer = nullptr;
+    if (is_enum_switch()) {
+      if (enum_index_field == nullptr) {
+        enum_index_field =
+            &Field::Handle(zone_, IG->object_store()->enum_index_field());
+      }
+      integer = &Integer::ZoneHandle(
+          zone_, Integer::RawCast(value.GetField(*enum_index_field)));
+    } else {
+      integer = &Integer::Cast(value);
+    }
+    expression.set_integer(*integer);
+    if (i == 0) {
+      expression_min_ = integer;
+      expression_max_ = integer;
+    } else {
+      if (expression_min_->CompareWith(*integer) > 0) {
+        expression_min_ = integer;
+      }
+      if (expression_max_->CompareWith(*integer) < 0) {
+        expression_max_ = integer;
+      }
+    }
+  }
+
+  // Sort expressions by their integer value.
+  sorted_expressions_.Sort(
+      [](SwitchExpression* const* a, SwitchExpression* const* b) {
+        return (*a)->integer().CompareWith((*b)->integer());
+      });
+
+  // Check that there are no duplicate case expressions.
+  // Duplicate expressions are allowed in switch statements, but
+  // optimized switches don't implemented them.
+  for (intptr_t i = 0; i < sorted_expressions_.length() - 1; ++i) {
+    const SwitchExpression& a = *sorted_expressions_.At(i);
+    const SwitchExpression& b = *sorted_expressions_.At(i + 1);
+    if (a.integer().Equals(b.integer())) {
+      is_optimizable_ = false;
+      break;
+    }
+  }
+}
+
+void SwitchHelper::AddExpression(intptr_t case_index,
+                                 TokenPosition position,
+                                 const Instance& value) {
+  case_expression_counts_[case_index]++;
+
+  expressions_.Add(SwitchExpression(case_index, position, value));
+
+  if (is_optimizable_ || expression_class_ == nullptr) {
+    // Check the type of the expression for use in an optimized switch.
+    const Class& value_class = Class::ZoneHandle(zone_, value.clazz());
+    if (expression_class_ == nullptr) {
+      expression_class_ = &value_class;
+      // Only integer and enum expressions can be used in an optimized switch.
+      is_optimizable_ = value.IsInteger() || value_class.is_enum_class();
+    } else if (value_class.ptr() != expression_class_->ptr()) {
+      // At least one expression has a different type than the others.
+      is_optimizable_ = false;
+    }
+  }
 }
 
 }  // namespace kernel

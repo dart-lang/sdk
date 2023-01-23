@@ -16,6 +16,18 @@ typedef TimelineSyncFunction<T> = T Function();
 // TODO: This typedef is not used.
 typedef Future TimelineAsyncFunction();
 
+// These values must be kept in sync with the enum "EventType" in
+// runtime/vm/timeline.h.
+const int _begin = 1;
+const int _end = 2;
+const int _instant = 4;
+const int _asyncBegin = 5;
+const int _asyncInstant = 6;
+const int _asyncEnd = 7;
+const int _flowBegin = 9;
+const int _flowStep = 10;
+const int _flowEnd = 11;
+
 /// A class to represent Flow events.
 ///
 /// [Flow] objects are used to thread flow events between timeline slices,
@@ -41,12 +53,6 @@ typedef Future TimelineAsyncFunction();
 /// }, flow: Flow.end(flow.id));
 /// ```
 class Flow {
-  // These values must be kept in sync with the enum "EventType" in
-  // runtime/vm/timeline.h.
-  static const int _begin = 9;
-  static const int _step = 10;
-  static const int _end = 11;
-
   final int _type;
 
   /// The flow id of the flow event.
@@ -60,7 +66,7 @@ class Flow {
   /// If [id] is not provided, an id that conflicts with no other Dart-generated
   /// flow id's will be generated.
   static Flow begin({int? id}) {
-    return new Flow._(_begin, id ?? _getNextAsyncId());
+    return new Flow._(_flowBegin, id ?? _getNextTaskId());
   }
 
   /// A "step" Flow event.
@@ -68,14 +74,14 @@ class Flow {
   /// When passed to a [Timeline] method, generates a "step" Flow event.
   /// The [id] argument is required. It can come either from another [Flow]
   /// event, or some id that comes from the environment.
-  static Flow step(int id) => new Flow._(_step, id);
+  static Flow step(int id) => new Flow._(_flowStep, id);
 
   /// An "end" Flow event.
   ///
   /// When passed to a [Timeline] method, generates a "end" Flow event.
   /// The [id] argument is required. It can come either from another [Flow]
   /// event, or some id that comes from the environment.
-  static Flow end(int id) => new Flow._(_end, id);
+  static Flow end(int id) => new Flow._(_flowEnd, id);
 }
 
 /// Add to the timeline.
@@ -112,7 +118,8 @@ class Timeline {
       _stack.add(null);
       return;
     }
-    var block = new _SyncBlock._(name, arguments: arguments, flow: flow);
+    var block = new _SyncBlock._(name, _getNextTaskId(),
+        arguments: arguments, flow: flow);
     _stack.add(block);
     block._startSync();
   }
@@ -144,11 +151,10 @@ class Timeline {
       // Stream is disabled.
       return;
     }
-    Map? instantArguments;
-    if (arguments != null) {
-      instantArguments = new Map.from(arguments);
-    }
-    _reportInstantEvent('Dart', name, _argumentsAsJson(instantArguments));
+    // Instant events don't have an id because they don't need to be paired with
+    // other events.
+    int taskId = 0;
+    _reportTaskEvent(taskId, _instant, name, _argumentsAsJson(arguments));
   }
 
   /// A utility method to time a synchronous [function]. Internally calls
@@ -190,7 +196,7 @@ class TimelineTask {
   TimelineTask({TimelineTask? parent, String? filterKey})
       : _parent = parent,
         _filterKey = filterKey,
-        _taskId = _getNextAsyncId() {}
+        _taskId = _getNextTaskId() {}
 
   /// Create a task with an explicit [taskId]. This is useful if you are
   /// passing a task from one isolate to another.
@@ -257,7 +263,7 @@ class TimelineTask {
       instantArguments[_kFilterKey] = _filterKey;
     }
     _reportTaskEvent(
-        _taskId, 'n', 'Dart', name, _argumentsAsJson(instantArguments));
+        _taskId, _asyncInstant, name, _argumentsAsJson(instantArguments));
   }
 
   /// Finish the last synchronous operation that was started.
@@ -304,9 +310,6 @@ class TimelineTask {
 /// An asynchronous block of time on the timeline. This block can be kept
 /// open across isolate messages.
 class _AsyncBlock {
-  /// The category this block belongs to.
-  final String category = 'Dart';
-
   /// The name of this block.
   final String name;
 
@@ -317,23 +320,23 @@ class _AsyncBlock {
 
   // Emit the start event.
   void _start(Map arguments) {
-    _reportTaskEvent(_taskId, 'b', category, name, _argumentsAsJson(arguments));
+    _reportTaskEvent(_taskId, _asyncBegin, name, _argumentsAsJson(arguments));
   }
 
   // Emit the finish event.
   void _finish(Map? arguments) {
-    _reportTaskEvent(_taskId, 'e', category, name, _argumentsAsJson(arguments));
+    _reportTaskEvent(_taskId, _asyncEnd, name, _argumentsAsJson(arguments));
   }
 }
 
 /// A synchronous block of time on the timeline. This block should not be
 /// kept open across isolate messages.
 class _SyncBlock {
-  /// The category this block belongs to.
-  final String category = 'Dart';
-
   /// The name of this block.
   final String name;
+
+  /// Signpost needs help matching begin and end events.
+  final int taskId;
 
   /// An (optional) set of arguments which will be serialized to JSON and
   /// associated with this block.
@@ -344,21 +347,21 @@ class _SyncBlock {
 
   late final String _jsonArguments = _argumentsAsJson(arguments);
 
-  _SyncBlock._(this.name, {this.arguments, this.flow});
+  _SyncBlock._(this.name, this.taskId, {this.arguments, this.flow});
 
   /// Start this block of time.
   void _startSync() {
-    _reportTaskEvent(0, 'B', category, name, _jsonArguments);
+    _reportTaskEvent(taskId, _begin, name, _jsonArguments);
   }
 
   /// Finish this block of time. At this point, this block can no longer be
   /// used.
   void finish() {
     // Report event to runtime.
-    _reportTaskEvent(0, 'E', category, name, _jsonArguments);
+    _reportTaskEvent(taskId, _end, name, _jsonArguments);
     final Flow? tempFlow = flow;
     if (tempFlow != null) {
-      _reportFlowEvent(category, "${tempFlow.id}", tempFlow._type, tempFlow.id,
+      _reportTaskEvent(tempFlow.id, tempFlow._type, "${tempFlow.id}",
           _argumentsAsJson(null));
     }
   }
@@ -376,20 +379,13 @@ String _argumentsAsJson(Map? arguments) {
 @pragma("vm:recognized", "asm-intrinsic")
 external bool _isDartStreamEnabled();
 
-/// Returns the next async task id.
-external int _getNextAsyncId();
+/// Returns the next task id.
+@pragma("vm:recognized", "asm-intrinsic")
+external int _getNextTaskId();
 
 /// Returns the current value from the trace clock.
 external int _getTraceClock();
 
 /// Reports an event for a task.
-external void _reportTaskEvent(int taskId, String phase, String category,
-    String name, String argumentsAsJson);
-
-/// Reports a flow event.
-external void _reportFlowEvent(
-    String category, String name, int type, int id, String argumentsAsJson);
-
-/// Reports an instant event.
-external void _reportInstantEvent(
-    String category, String name, String argumentsAsJson);
+external void _reportTaskEvent(
+    int taskId, int type, String name, String argumentsAsJson);

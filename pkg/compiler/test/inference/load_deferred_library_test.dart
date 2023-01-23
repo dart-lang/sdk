@@ -16,7 +16,7 @@ import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_world.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 const String source = '''
 import 'package:expect/expect.dart' deferred as expect;
@@ -37,12 +37,12 @@ main() async {
   });
 }
 
-runTest(List<String> options, {bool trust: true}) async {
+runTest(List<String> options, {bool trust = true}) async {
   CompilationResult result = await runCompiler(
       memorySourceFiles: {'main.dart': source}, options: options);
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
-  JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+  JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
   AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   LibraryEntity helperLibrary =

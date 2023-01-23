@@ -46,16 +46,16 @@ import 'compiler_options.dart' show CompilerOptions;
 /// an error is reported.
 // TODO(sigmund): rename to kernelForScript?
 Future<CompilerResult?> kernelForProgram(Uri source, CompilerOptions options,
-    {List<Uri> additionalSources: const <Uri>[]}) async {
+    {List<Uri> additionalSources = const <Uri>[]}) async {
   return (await kernelForProgramInternal(source, options,
       additionalSources: additionalSources));
 }
 
 Future<CompilerResult?> kernelForProgramInternal(
     Uri source, CompilerOptions options,
-    {List<Uri> additionalSources: const <Uri>[],
-    bool retainDataForTesting: false,
-    bool requireMain: true}) async {
+    {List<Uri> additionalSources = const <Uri>[],
+    bool retainDataForTesting = false,
+    bool requireMain = true}) async {
   ProcessedOptions pOptions = new ProcessedOptions(
       options: options, inputs: [source, ...additionalSources]);
   return await CompilerContext.runWithOptions(pOptions, (context) async {

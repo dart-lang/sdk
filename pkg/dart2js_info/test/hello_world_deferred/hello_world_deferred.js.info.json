@@ -54,7 +54,7 @@
         "id": "library/dart:_js_helper::",
         "kind": "library",
         "name": "_js_helper",
-        "size": 47353,
+        "size": 47260,
         "children": [
           "class/dart:_js_helper::BoundClosure",
           "class/dart:_js_helper::Closure",
@@ -274,7 +274,7 @@
         "id": "library/dart:async::",
         "kind": "library",
         "name": "dart.async",
-        "size": 41039,
+        "size": 41197,
         "children": [
           "class/dart:async::AsyncError",
           "class/dart:async::Completer",
@@ -397,7 +397,7 @@
         "children": [
           "function/hello_world_deferred.dart::main"
         ],
-        "canonicalUri": "file:///usr/local/google/home/natebiggs/dart-sdk/sdk/pkg/dart2js_info/test/hello_world_deferred/hello_world_deferred.dart"
+        "canonicalUri": "file:///Users/markzipan/Projects/dart-sdk/sdk/pkg/dart2js_info/test/hello_world_deferred/hello_world_deferred.dart"
       }
     },
     "class": {
@@ -413,7 +413,8 @@
         },
         "children": [
           "field/dart:_foreign_helper::JS_CONST.code"
-        ]
+        ],
+        "supers": []
       },
       "dart:_interceptors::ArrayIterator": {
         "id": "class/dart:_interceptors::ArrayIterator",
@@ -433,7 +434,8 @@
           "function/dart:_interceptors::ArrayIterator.ArrayIterator",
           "function/dart:_interceptors::ArrayIterator.current",
           "function/dart:_interceptors::ArrayIterator.moveNext"
-        ]
+        ],
+        "supers": []
       },
       "dart:_interceptors::Interceptor": {
         "id": "class/dart:_interceptors::Interceptor",
@@ -449,7 +451,8 @@
           "function/dart:_interceptors::Interceptor.==",
           "function/dart:_interceptors::Interceptor.hashCode",
           "function/dart:_interceptors::Interceptor.toString"
-        ]
+        ],
+        "supers": []
       },
       "dart:_interceptors::JSArray": {
         "id": "class/dart:_interceptors::JSArray",
@@ -481,6 +484,10 @@
           "function/dart:_interceptors::JSArray.length",
           "function/dart:_interceptors::JSArray.markFixedList",
           "function/dart:_interceptors::JSArray.toString"
+        ],
+        "supers": [
+          "class/dart:_interceptors::Interceptor",
+          "class/dart:core::List"
         ]
       },
       "dart:_interceptors::JSBool": {
@@ -496,6 +503,10 @@
         "children": [
           "function/dart:_interceptors::JSBool.hashCode",
           "function/dart:_interceptors::JSBool.toString"
+        ],
+        "supers": [
+          "class/dart:_interceptors::Interceptor",
+          "class/dart:core::bool"
         ]
       },
       "dart:_interceptors::JSInt": {
@@ -508,7 +519,10 @@
         "modifiers": {
           "abstract": false
         },
-        "children": []
+        "children": [],
+        "supers": [
+          "class/dart:_interceptors::JSNumber"
+        ]
       },
       "dart:_interceptors::JSNull": {
         "id": "class/dart:_interceptors::JSNull",
@@ -524,6 +538,10 @@
           "function/dart:_interceptors::JSNull.==",
           "function/dart:_interceptors::JSNull.hashCode",
           "function/dart:_interceptors::JSNull.toString"
+        ],
+        "supers": [
+          "class/dart:_interceptors::Interceptor",
+          "class/dart:core::Null"
         ]
       },
       "dart:_interceptors::JSNumNotInt": {
@@ -536,7 +554,10 @@
         "modifiers": {
           "abstract": false
         },
-        "children": []
+        "children": [],
+        "supers": [
+          "class/dart:_interceptors::JSNumber"
+        ]
       },
       "dart:_interceptors::JSNumber": {
         "id": "class/dart:_interceptors::JSNumber",
@@ -553,6 +574,9 @@
           "function/dart:_interceptors::JSNumber._shrOtherPositive",
           "function/dart:_interceptors::JSNumber.hashCode",
           "function/dart:_interceptors::JSNumber.toString"
+        ],
+        "supers": [
+          "class/dart:_interceptors::Interceptor"
         ]
       },
       "dart:_interceptors::JSString": {
@@ -571,6 +595,9 @@
           "function/dart:_interceptors::JSString.isEmpty",
           "function/dart:_interceptors::JSString.length",
           "function/dart:_interceptors::JSString.toString"
+        ],
+        "supers": [
+          "class/dart:_interceptors::Interceptor"
         ]
       },
       "dart:_interceptors::JSUnmodifiableArray": {
@@ -583,7 +610,10 @@
         "modifiers": {
           "abstract": false
         },
-        "children": []
+        "children": [],
+        "supers": [
+          "class/dart:_interceptors::JSArray"
+        ]
       },
       "dart:_interceptors::JavaScriptObject": {
         "id": "class/dart:_interceptors::JavaScriptObject",
@@ -595,7 +625,10 @@
         "modifiers": {
           "abstract": false
         },
-        "children": []
+        "children": [],
+        "supers": [
+          "class/dart:_interceptors::Interceptor"
+        ]
       },
       "dart:_interceptors::LegacyJavaScriptObject": {
         "id": "class/dart:_interceptors::LegacyJavaScriptObject",
@@ -610,6 +643,9 @@
         "children": [
           "function/dart:_interceptors::LegacyJavaScriptObject.hashCode",
           "function/dart:_interceptors::LegacyJavaScriptObject.toString"
+        ],
+        "supers": [
+          "class/dart:_interceptors::JavaScriptObject"
         ]
       },
       "dart:_interceptors::PlainJavaScriptObject": {
@@ -622,7 +658,10 @@
         "modifiers": {
           "abstract": false
         },
-        "children": []
+        "children": [],
+        "supers": [
+          "class/dart:_interceptors::LegacyJavaScriptObject"
+        ]
       },
       "dart:_interceptors::UnknownJavaScriptObject": {
         "id": "class/dart:_interceptors::UnknownJavaScriptObject",
@@ -634,7 +673,10 @@
         "modifiers": {
           "abstract": false
         },
-        "children": []
+        "children": [],
+        "supers": [
+          "class/dart:_interceptors::LegacyJavaScriptObject"
+        ]
       },
       "dart:_internal::LateError": {
         "id": "class/dart:_internal::LateError",
@@ -651,6 +693,9 @@
           "function/dart:_internal::LateError.LateError.fieldADI",
           "function/dart:_internal::LateError.LateError.localNI",
           "function/dart:_internal::LateError.toString"
+        ],
+        "supers": [
+          "class/dart:core::Error"
         ]
       },
       "dart:_internal::NotNullableError": {
@@ -666,6 +711,10 @@
         "children": [
           "field/dart:_internal::NotNullableError._name",
           "function/dart:_internal::NotNullableError.NotNullableError"
+        ],
+        "supers": [
+          "class/dart:core::Error",
+          "class/dart:core::TypeError"
         ]
       },
       "dart:_js_helper::BoundClosure": {
@@ -695,6 +744,9 @@
           "function/dart:_js_helper::BoundClosure.receiverFieldName",
           "function/dart:_js_helper::BoundClosure.receiverOf",
           "function/dart:_js_helper::BoundClosure.toString"
+        ],
+        "supers": [
+          "class/dart:_js_helper::TearOffClosure"
         ]
       },
       "dart:_js_helper::Closure": {
@@ -717,7 +769,8 @@
           "function/dart:_js_helper::Closure.fromTearOff",
           "function/dart:_js_helper::Closure.isCsp",
           "function/dart:_js_helper::Closure.toString"
-        ]
+        ],
+        "supers": []
       },
       "dart:_js_helper::Closure0Args": {
         "id": "class/dart:_js_helper::Closure0Args",
@@ -729,7 +782,10 @@
         "modifiers": {
           "abstract": true
         },
-        "children": []
+        "children": [],
+        "supers": [
+          "class/dart:_js_helper::Closure"
+        ]
       },
       "dart:_js_helper::Closure2Args": {
         "id": "class/dart:_js_helper::Closure2Args",
@@ -741,7 +797,10 @@
         "modifiers": {
           "abstract": true
         },
-        "children": []
+        "children": [],
+        "supers": [
+          "class/dart:_js_helper::Closure"
+        ]
       },
       "dart:_js_helper::DeferredNotLoadedError": {
         "id": "class/dart:_js_helper::DeferredNotLoadedError",
@@ -757,6 +816,9 @@
           "field/dart:_js_helper::DeferredNotLoadedError.libraryName",
           "function/dart:_js_helper::DeferredNotLoadedError.DeferredNotLoadedError",
           "function/dart:_js_helper::DeferredNotLoadedError.toString"
+        ],
+        "supers": [
+          "class/dart:core::Error"
         ]
       },
       "dart:_js_helper::ExceptionAndStackTrace": {
@@ -773,7 +835,8 @@
           "field/dart:_js_helper::ExceptionAndStackTrace.dartException",
           "field/dart:_js_helper::ExceptionAndStackTrace.stackTrace",
           "function/dart:_js_helper::ExceptionAndStackTrace.ExceptionAndStackTrace"
-        ]
+        ],
+        "supers": []
       },
       "dart:_js_helper::JsLinkedHashMap": {
         "id": "class/dart:_js_helper::JsLinkedHashMap",
@@ -815,6 +878,10 @@
           "function/dart:_js_helper::JsLinkedHashMap.keys",
           "function/dart:_js_helper::JsLinkedHashMap.length",
           "function/dart:_js_helper::JsLinkedHashMap.toString"
+        ],
+        "supers": [
+          "class/dart:collection::LinkedHashMap",
+          "class/dart:collection::MapBase"
         ]
       },
       "dart:_js_helper::JsNoSuchMethodError": {
@@ -833,6 +900,9 @@
           "field/dart:_js_helper::JsNoSuchMethodError._receiver",
           "function/dart:_js_helper::JsNoSuchMethodError.JsNoSuchMethodError",
           "function/dart:_js_helper::JsNoSuchMethodError.toString"
+        ],
+        "supers": [
+          "class/dart:core::Error"
         ]
       },
       "dart:_js_helper::LinkedHashMapCell": {
@@ -851,7 +921,8 @@
           "field/dart:_js_helper::LinkedHashMapCell.hashMapCellKey",
           "field/dart:_js_helper::LinkedHashMapCell.hashMapCellValue",
           "function/dart:_js_helper::LinkedHashMapCell.LinkedHashMapCell"
-        ]
+        ],
+        "supers": []
       },
       "dart:_js_helper::LinkedHashMapKeyIterable": {
         "id": "class/dart:_js_helper::LinkedHashMapKeyIterable",
@@ -867,7 +938,8 @@
           "field/dart:_js_helper::LinkedHashMapKeyIterable._map",
           "function/dart:_js_helper::LinkedHashMapKeyIterable.LinkedHashMapKeyIterable",
           "function/dart:_js_helper::LinkedHashMapKeyIterable.length"
-        ]
+        ],
+        "supers": []
       },
       "dart:_js_helper::LinkedHashMapKeyIterator": {
         "id": "class/dart:_js_helper::LinkedHashMapKeyIterator",
@@ -884,7 +956,8 @@
           "field/dart:_js_helper::LinkedHashMapKeyIterator._current",
           "field/dart:_js_helper::LinkedHashMapKeyIterator._map",
           "field/dart:_js_helper::LinkedHashMapKeyIterator._modifications"
-        ]
+        ],
+        "supers": []
       },
       "dart:_js_helper::NullError": {
         "id": "class/dart:_js_helper::NullError",
@@ -901,6 +974,9 @@
           "field/dart:_js_helper::NullError._method",
           "function/dart:_js_helper::NullError.NullError",
           "function/dart:_js_helper::NullError.toString"
+        ],
+        "supers": [
+          "class/dart:core::TypeError"
         ]
       },
       "dart:_js_helper::NullThrownFromJavaScriptException": {
@@ -917,6 +993,9 @@
           "field/dart:_js_helper::NullThrownFromJavaScriptException._irritant",
           "function/dart:_js_helper::NullThrownFromJavaScriptException.NullThrownFromJavaScriptException",
           "function/dart:_js_helper::NullThrownFromJavaScriptException.toString"
+        ],
+        "supers": [
+          "class/dart:core::Exception"
         ]
       },
       "dart:_js_helper::Primitives": {
@@ -940,7 +1019,8 @@
           "function/dart:_js_helper::Primitives.objectToHumanReadableString",
           "function/dart:_js_helper::Primitives.objectTypeName",
           "function/dart:_js_helper::Primitives.stringConcatUnchecked"
-        ]
+        ],
+        "supers": []
       },
       "dart:_js_helper::RuntimeError": {
         "id": "class/dart:_js_helper::RuntimeError",
@@ -956,6 +1036,9 @@
           "field/dart:_js_helper::RuntimeError.message",
           "function/dart:_js_helper::RuntimeError.RuntimeError",
           "function/dart:_js_helper::RuntimeError.toString"
+        ],
+        "supers": [
+          "class/dart:core::Error"
         ]
       },
       "dart:_js_helper::StaticClosure": {
@@ -971,6 +1054,9 @@
         "children": [
           "function/dart:_js_helper::StaticClosure.StaticClosure",
           "function/dart:_js_helper::StaticClosure.toString"
+        ],
+        "supers": [
+          "class/dart:_js_helper::TearOffClosure"
         ]
       },
       "dart:_js_helper::TearOffClosure": {
@@ -983,7 +1069,10 @@
         "modifiers": {
           "abstract": true
         },
-        "children": []
+        "children": [],
+        "supers": [
+          "class/dart:_js_helper::Closure"
+        ]
       },
       "dart:_js_helper::TypeErrorDecoder": {
         "id": "class/dart:_js_helper::TypeErrorDecoder",
@@ -1023,7 +1112,8 @@
           "function/dart:_js_helper::TypeErrorDecoder.provokePropertyErrorOn",
           "function/dart:_js_helper::TypeErrorDecoder.provokePropertyErrorOnNull",
           "function/dart:_js_helper::TypeErrorDecoder.provokePropertyErrorOnUndefined"
-        ]
+        ],
+        "supers": []
       },
       "dart:_js_helper::UnknownJsTypeError": {
         "id": "class/dart:_js_helper::UnknownJsTypeError",
@@ -1039,6 +1129,9 @@
           "field/dart:_js_helper::UnknownJsTypeError._message",
           "function/dart:_js_helper::UnknownJsTypeError.UnknownJsTypeError",
           "function/dart:_js_helper::UnknownJsTypeError.toString"
+        ],
+        "supers": [
+          "class/dart:core::Error"
         ]
       },
       "dart:_js_helper::_AssertionError": {
@@ -1054,6 +1147,9 @@
         "children": [
           "function/dart:_js_helper::_AssertionError._AssertionError",
           "function/dart:_js_helper::_AssertionError.toString"
+        ],
+        "supers": [
+          "class/dart:core::AssertionError"
         ]
       },
       "dart:_js_helper::_StackTrace": {
@@ -1071,6 +1167,9 @@
           "field/dart:_js_helper::_StackTrace._trace",
           "function/dart:_js_helper::_StackTrace._StackTrace",
           "function/dart:_js_helper::_StackTrace.toString"
+        ],
+        "supers": [
+          "class/dart:core::StackTrace"
         ]
       },
       "dart:_js_shared_embedded_names::RtiUniverseFieldNames": {
@@ -1089,7 +1188,8 @@
           "field/dart:_js_shared_embedded_names::RtiUniverseFieldNames.sharedEmptyArray",
           "field/dart:_js_shared_embedded_names::RtiUniverseFieldNames.typeParameterVariances",
           "field/dart:_js_shared_embedded_names::RtiUniverseFieldNames.typeRules"
-        ]
+        ],
+        "supers": []
       },
       "dart:_late_helper::_Cell": {
         "id": "class/dart:_late_helper::_Cell",
@@ -1108,7 +1208,8 @@
           "function/dart:_late_helper::_Cell._readLocal",
           "function/dart:_late_helper::_Cell.readLocal",
           "function/dart:_late_helper::_Cell.value"
-        ]
+        ],
+        "supers": []
       },
       "dart:_recipe_syntax::Recipe": {
         "id": "class/dart:_recipe_syntax::Recipe",
@@ -1124,7 +1225,8 @@
           "function/dart:_recipe_syntax::Recipe.digitValue",
           "function/dart:_recipe_syntax::Recipe.isDigit",
           "function/dart:_recipe_syntax::Recipe.isIdentifierStart"
-        ]
+        ],
+        "supers": []
       },
       "dart:_rti::Rti": {
         "id": "class/dart:_rti::Rti",
@@ -1190,7 +1292,8 @@
           "function/dart:_rti::Rti._setRest",
           "function/dart:_rti::Rti._setSpecializedTestResource",
           "function/dart:_rti::Rti.allocate"
-        ]
+        ],
+        "supers": []
       },
       "dart:_rti::TypeRule": {
         "id": "class/dart:_rti::TypeRule",
@@ -1205,7 +1308,8 @@
         "children": [
           "function/dart:_rti::TypeRule.lookupSupertype",
           "function/dart:_rti::TypeRule.lookupTypeVariable"
-        ]
+        ],
+        "supers": []
       },
       "dart:_rti::_Error": {
         "id": "class/dart:_rti::_Error",
@@ -1221,6 +1325,9 @@
           "field/dart:_rti::_Error._message",
           "function/dart:_rti::_Error.compose",
           "function/dart:_rti::_Error.toString"
+        ],
+        "supers": [
+          "class/dart:core::Error"
         ]
       },
       "dart:_rti::_FunctionParameters": {
@@ -1245,7 +1352,8 @@
           "function/dart:_rti::_FunctionParameters._setOptionalPositional",
           "function/dart:_rti::_FunctionParameters._setRequiredPositional",
           "function/dart:_rti::_FunctionParameters.allocate"
-        ]
+        ],
+        "supers": []
       },
       "dart:_rti::_Parser": {
         "id": "class/dart:_rti::_Parser",
@@ -1285,7 +1393,8 @@
           "function/dart:_rti::_Parser.toTypes",
           "function/dart:_rti::_Parser.toTypesNamed",
           "function/dart:_rti::_Parser.universe"
-        ]
+        ],
+        "supers": []
       },
       "dart:_rti::_Type": {
         "id": "class/dart:_rti::_Type",
@@ -1299,7 +1408,8 @@
         },
         "children": [
           "field/dart:_rti::_Type._rti"
-        ]
+        ],
+        "supers": []
       },
       "dart:_rti::_TypeError": {
         "id": "class/dart:_rti::_TypeError",
@@ -1314,6 +1424,10 @@
         "children": [
           "function/dart:_rti::_TypeError._TypeError.forType",
           "function/dart:_rti::_TypeError._TypeError.fromMessage"
+        ],
+        "supers": [
+          "class/dart:_rti::_Error",
+          "class/dart:core::TypeError"
         ]
       },
       "dart:_rti::_Universe": {
@@ -1389,7 +1503,8 @@
           "function/dart:_rti::_Universe.sharedEmptyArray",
           "function/dart:_rti::_Universe.typeParameterVariances",
           "function/dart:_rti::_Universe.typeRules"
-        ]
+        ],
+        "supers": []
       },
       "dart:_rti::_Utils": {
         "id": "class/dart:_rti::_Utils",
@@ -1427,7 +1542,8 @@
           "function/dart:_rti::_Utils.objectKeys",
           "function/dart:_rti::_Utils.stringLessThan",
           "function/dart:_rti::_Utils.substring"
-        ]
+        ],
+        "supers": []
       },
       "dart:async::AsyncError": {
         "id": "class/dart:async::AsyncError",
@@ -1445,6 +1561,9 @@
           "function/dart:async::AsyncError.AsyncError",
           "function/dart:async::AsyncError.defaultStackTrace",
           "function/dart:async::AsyncError.toString"
+        ],
+        "supers": [
+          "class/dart:core::Error"
         ]
       },
       "dart:async::Completer": {
@@ -1459,7 +1578,8 @@
         },
         "children": [
           "function/dart:async::Completer.Completer"
-        ]
+        ],
+        "supers": []
       },
       "dart:async::DeferredLoadException": {
         "id": "class/dart:async::DeferredLoadException",
@@ -1475,6 +1595,9 @@
           "field/dart:async::DeferredLoadException._s",
           "function/dart:async::DeferredLoadException.DeferredLoadException",
           "function/dart:async::DeferredLoadException.toString"
+        ],
+        "supers": [
+          "class/dart:core::Exception"
         ]
       },
       "dart:async::Future": {
@@ -1491,7 +1614,8 @@
           "function/dart:async::Future.Future.error",
           "function/dart:async::Future.Future.value",
           "function/dart:async::Future.wait"
-        ]
+        ],
+        "supers": []
       },
       "dart:async::StreamIterator": {
         "id": "class/dart:async::StreamIterator",
@@ -1505,7 +1629,8 @@
         },
         "children": [
           "function/dart:async::StreamIterator.StreamIterator"
-        ]
+        ],
+        "supers": []
       },
       "dart:async::Timer": {
         "id": "class/dart:async::Timer",
@@ -1519,7 +1644,8 @@
         },
         "children": [
           "function/dart:async::Timer._createTimer"
-        ]
+        ],
+        "supers": []
       },
       "dart:async::Zone": {
         "id": "class/dart:async::Zone",
@@ -1536,7 +1662,8 @@
           "function/dart:async::Zone._enter",
           "function/dart:async::Zone._leave",
           "function/dart:async::Zone.current"
-        ]
+        ],
+        "supers": []
       },
       "dart:async::_AsyncAwaitCompleter": {
         "id": "class/dart:async::_AsyncAwaitCompleter",
@@ -1555,6 +1682,9 @@
           "function/dart:async::_AsyncAwaitCompleter.complete",
           "function/dart:async::_AsyncAwaitCompleter.completeError",
           "function/dart:async::_AsyncAwaitCompleter.future"
+        ],
+        "supers": [
+          "class/dart:async::Completer"
         ]
       },
       "dart:async::_AsyncCallbackEntry": {
@@ -1571,7 +1701,8 @@
           "field/dart:async::_AsyncCallbackEntry.callback",
           "field/dart:async::_AsyncCallbackEntry.next",
           "function/dart:async::_AsyncCallbackEntry._AsyncCallbackEntry"
-        ]
+        ],
+        "supers": []
       },
       "dart:async::_AsyncCompleter": {
         "id": "class/dart:async::_AsyncCompleter",
@@ -1587,6 +1718,9 @@
           "function/dart:async::_AsyncCompleter._AsyncCompleter",
           "function/dart:async::_AsyncCompleter._completeError",
           "function/dart:async::_AsyncCompleter.complete"
+        ],
+        "supers": [
+          "class/dart:async::_Completer"
         ]
       },
       "dart:async::_AsyncRun": {
@@ -1606,7 +1740,8 @@
           "function/dart:async::_AsyncRun._scheduleImmediateJsOverride",
           "function/dart:async::_AsyncRun._scheduleImmediateWithSetImmediate",
           "function/dart:async::_AsyncRun._scheduleImmediateWithTimer"
-        ]
+        ],
+        "supers": []
       },
       "dart:async::_Completer": {
         "id": "class/dart:async::_Completer",
@@ -1621,6 +1756,9 @@
         "children": [
           "field/dart:async::_Completer.future",
           "function/dart:async::_Completer.completeError"
+        ],
+        "supers": [
+          "class/dart:async::Completer"
         ]
       },
       "dart:async::_Future": {
@@ -1670,6 +1808,9 @@
           "function/dart:async::_Future._setValue",
           "function/dart:async::_Future._thenAwait",
           "function/dart:async::_Future.then"
+        ],
+        "supers": [
+          "class/dart:async::Future"
         ]
       },
       "dart:async::_FutureListener": {
@@ -1705,7 +1846,8 @@
           "function/dart:async::_FutureListener.hasErrorTest",
           "function/dart:async::_FutureListener.matchesErrorTest",
           "function/dart:async::_FutureListener.shouldChain"
-        ]
+        ],
+        "supers": []
       },
       "dart:async::_RootZone": {
         "id": "class/dart:async::_RootZone",
@@ -1731,6 +1873,9 @@
           "function/dart:async::_RootZone.runGuarded",
           "function/dart:async::_RootZone.runUnary",
           "function/dart:async::_RootZone.scheduleMicrotask"
+        ],
+        "supers": [
+          "class/dart:async::_Zone"
         ]
       },
       "dart:async::_StreamIterator": {
@@ -1748,6 +1893,9 @@
           "field/dart:async::_StreamIterator._stateData",
           "field/dart:async::_StreamIterator._subscription",
           "function/dart:async::_StreamIterator._StreamIterator"
+        ],
+        "supers": [
+          "class/dart:async::StreamIterator"
         ]
       },
       "dart:async::_TimerImpl": {
@@ -1765,6 +1913,9 @@
           "field/dart:async::_TimerImpl._once",
           "field/dart:async::_TimerImpl._tick",
           "function/dart:async::_TimerImpl._TimerImpl"
+        ],
+        "supers": [
+          "class/dart:async::Timer"
         ]
       },
       "dart:async::_Zone": {
@@ -1779,6 +1930,9 @@
         },
         "children": [
           "function/dart:async::_Zone.inSameErrorZone"
+        ],
+        "supers": [
+          "class/dart:async::Zone"
         ]
       },
       "dart:async::_ZoneFunction": {
@@ -1794,7 +1948,8 @@
         "children": [
           "field/dart:async::_ZoneFunction.function",
           "field/dart:async::_ZoneFunction.zone"
-        ]
+        ],
+        "supers": []
       },
       "dart:collection::IterableBase": {
         "id": "class/dart:collection::IterableBase",
@@ -1808,7 +1963,8 @@
         },
         "children": [
           "function/dart:collection::IterableBase.iterableToFullString"
-        ]
+        ],
+        "supers": []
       },
       "dart:collection::LinkedHashMap": {
         "id": "class/dart:collection::LinkedHashMap",
@@ -1822,7 +1978,8 @@
         },
         "children": [
           "function/dart:collection::LinkedHashMap.LinkedHashMap._empty"
-        ]
+        ],
+        "supers": []
       },
       "dart:collection::LinkedHashSet": {
         "id": "class/dart:collection::LinkedHashSet",
@@ -1836,7 +1993,8 @@
         },
         "children": [
           "function/dart:collection::LinkedHashSet.LinkedHashSet"
-        ]
+        ],
+        "supers": []
       },
       "dart:collection::ListBase": {
         "id": "class/dart:collection::ListBase",
@@ -1850,7 +2008,8 @@
         },
         "children": [
           "function/dart:collection::ListBase.listToString"
-        ]
+        ],
+        "supers": []
       },
       "dart:collection::MapBase": {
         "id": "class/dart:collection::MapBase",
@@ -1864,6 +2023,9 @@
         },
         "children": [
           "function/dart:collection::MapBase.mapToString"
+        ],
+        "supers": [
+          "class/dart:collection::MapMixin"
         ]
       },
       "dart:collection::MapMixin": {
@@ -1879,7 +2041,8 @@
         "children": [
           "function/dart:collection::MapMixin.length",
           "function/dart:collection::MapMixin.toString"
-        ]
+        ],
+        "supers": []
       },
       "dart:collection::SetMixin": {
         "id": "class/dart:collection::SetMixin",
@@ -1893,7 +2056,8 @@
         },
         "children": [
           "function/dart:collection::SetMixin.toString"
-        ]
+        ],
+        "supers": []
       },
       "dart:collection::_LinkedCustomHashSet": {
         "id": "class/dart:collection::_LinkedCustomHashSet",
@@ -1909,6 +2073,9 @@
           "field/dart:collection::_LinkedCustomHashSet._equality",
           "field/dart:collection::_LinkedCustomHashSet._hasher",
           "field/dart:collection::_LinkedCustomHashSet._validKey"
+        ],
+        "supers": [
+          "class/dart:collection::_LinkedHashSet"
         ]
       },
       "dart:collection::_LinkedHashSet": {
@@ -1948,6 +2115,10 @@
           "function/dart:collection::_LinkedHashSet.contains",
           "function/dart:collection::_LinkedHashSet.iterator",
           "function/dart:collection::_LinkedHashSet.length"
+        ],
+        "supers": [
+          "class/dart:collection::LinkedHashSet",
+          "class/dart:collection::_SetBase"
         ]
       },
       "dart:collection::_LinkedHashSetCell": {
@@ -1965,7 +2136,8 @@
           "field/dart:collection::_LinkedHashSetCell._next",
           "field/dart:collection::_LinkedHashSetCell._previous",
           "function/dart:collection::_LinkedHashSetCell._LinkedHashSetCell"
-        ]
+        ],
+        "supers": []
       },
       "dart:collection::_LinkedHashSetIterator": {
         "id": "class/dart:collection::_LinkedHashSetIterator",
@@ -1985,7 +2157,8 @@
           "function/dart:collection::_LinkedHashSetIterator._LinkedHashSetIterator",
           "function/dart:collection::_LinkedHashSetIterator.current",
           "function/dart:collection::_LinkedHashSetIterator.moveNext"
-        ]
+        ],
+        "supers": []
       },
       "dart:collection::_LinkedIdentityHashSet": {
         "id": "class/dart:collection::_LinkedIdentityHashSet",
@@ -1999,6 +2172,9 @@
         },
         "children": [
           "function/dart:collection::_LinkedIdentityHashSet._LinkedIdentityHashSet"
+        ],
+        "supers": [
+          "class/dart:collection::_LinkedHashSet"
         ]
       },
       "dart:collection::_SetBase": {
@@ -2011,7 +2187,8 @@
         "modifiers": {
           "abstract": true
         },
-        "children": []
+        "children": [],
+        "supers": []
       },
       "dart:core::ArgumentError": {
         "id": "class/dart:core::ArgumentError",
@@ -2033,6 +2210,9 @@
           "function/dart:core::ArgumentError._errorExplanation",
           "function/dart:core::ArgumentError._errorName",
           "function/dart:core::ArgumentError.toString"
+        ],
+        "supers": [
+          "class/dart:core::Error"
         ]
       },
       "dart:core::AssertionError": {
@@ -2049,6 +2229,9 @@
           "field/dart:core::AssertionError.message",
           "function/dart:core::AssertionError.AssertionError",
           "function/dart:core::AssertionError.toString"
+        ],
+        "supers": [
+          "class/dart:core::Error"
         ]
       },
       "dart:core::ConcurrentModificationError": {
@@ -2065,6 +2248,9 @@
           "field/dart:core::ConcurrentModificationError.modifiedObject",
           "function/dart:core::ConcurrentModificationError.ConcurrentModificationError",
           "function/dart:core::ConcurrentModificationError.toString"
+        ],
+        "supers": [
+          "class/dart:core::Error"
         ]
       },
       "dart:core::CyclicInitializationError": {
@@ -2081,6 +2267,9 @@
           "field/dart:core::CyclicInitializationError.variableName",
           "function/dart:core::CyclicInitializationError.CyclicInitializationError",
           "function/dart:core::CyclicInitializationError.toString"
+        ],
+        "supers": [
+          "class/dart:core::Error"
         ]
       },
       "dart:core::Duration": {
@@ -2096,7 +2285,8 @@
         "children": [
           "field/dart:core::Duration._duration",
           "function/dart:core::Duration.inMilliseconds"
-        ]
+        ],
+        "supers": []
       },
       "dart:core::Error": {
         "id": "class/dart:core::Error",
@@ -2115,7 +2305,8 @@
           "function/dart:core::Error.safeToString",
           "function/dart:core::Error.stackTrace",
           "function/dart:core::Error.throwWithStackTrace"
-        ]
+        ],
+        "supers": []
       },
       "dart:core::Exception": {
         "id": "class/dart:core::Exception",
@@ -2129,7 +2320,8 @@
         },
         "children": [
           "function/dart:core::Exception.Exception"
-        ]
+        ],
+        "supers": []
       },
       "dart:core::IndexError": {
         "id": "class/dart:core::IndexError",
@@ -2147,6 +2339,10 @@
           "function/dart:core::IndexError.IndexError",
           "function/dart:core::IndexError._errorExplanation",
           "function/dart:core::IndexError._errorName"
+        ],
+        "supers": [
+          "class/dart:core::ArgumentError",
+          "class/dart:core::RangeError"
         ]
       },
       "dart:core::List": {
@@ -2163,7 +2359,8 @@
           "function/dart:core::List.List.filled",
           "function/dart:core::List.List.from",
           "function/dart:core::List.List.generate"
-        ]
+        ],
+        "supers": []
       },
       "dart:core::Null": {
         "id": "class/dart:core::Null",
@@ -2178,7 +2375,8 @@
         "children": [
           "function/dart:core::Null.hashCode",
           "function/dart:core::Null.toString"
-        ]
+        ],
+        "supers": []
       },
       "dart:core::NullThrownError": {
         "id": "class/dart:core::NullThrownError",
@@ -2193,6 +2391,9 @@
         "children": [
           "function/dart:core::NullThrownError.NullThrownError",
           "function/dart:core::NullThrownError.toString"
+        ],
+        "supers": [
+          "class/dart:core::Error"
         ]
       },
       "dart:core::Object": {
@@ -2209,7 +2410,8 @@
           "function/dart:core::Object.==",
           "function/dart:core::Object.hashCode",
           "function/dart:core::Object.toString"
-        ]
+        ],
+        "supers": []
       },
       "dart:core::RangeError": {
         "id": "class/dart:core::RangeError",
@@ -2228,6 +2430,9 @@
           "function/dart:core::RangeError.RangeError.value",
           "function/dart:core::RangeError._errorExplanation",
           "function/dart:core::RangeError._errorName"
+        ],
+        "supers": [
+          "class/dart:core::ArgumentError"
         ]
       },
       "dart:core::StackOverflowError": {
@@ -2244,6 +2449,9 @@
           "function/dart:core::StackOverflowError.StackOverflowError",
           "function/dart:core::StackOverflowError.stackTrace",
           "function/dart:core::StackOverflowError.toString"
+        ],
+        "supers": [
+          "class/dart:core::Error"
         ]
       },
       "dart:core::StackTrace": {
@@ -2258,7 +2466,8 @@
         },
         "children": [
           "function/dart:core::StackTrace.current"
-        ]
+        ],
+        "supers": []
       },
       "dart:core::StateError": {
         "id": "class/dart:core::StateError",
@@ -2274,6 +2483,9 @@
           "field/dart:core::StateError.message",
           "function/dart:core::StateError.StateError",
           "function/dart:core::StateError.toString"
+        ],
+        "supers": [
+          "class/dart:core::Error"
         ]
       },
       "dart:core::StringBuffer": {
@@ -2296,7 +2508,8 @@
           "function/dart:core::StringBuffer.toString",
           "function/dart:core::StringBuffer.write",
           "function/dart:core::StringBuffer.writeAll"
-        ]
+        ],
+        "supers": []
       },
       "dart:core::TypeError": {
         "id": "class/dart:core::TypeError",
@@ -2308,7 +2521,10 @@
         "modifiers": {
           "abstract": false
         },
-        "children": []
+        "children": [],
+        "supers": [
+          "class/dart:core::Error"
+        ]
       },
       "dart:core::UnsupportedError": {
         "id": "class/dart:core::UnsupportedError",
@@ -2324,6 +2540,9 @@
           "field/dart:core::UnsupportedError.message",
           "function/dart:core::UnsupportedError.UnsupportedError",
           "function/dart:core::UnsupportedError.toString"
+        ],
+        "supers": [
+          "class/dart:core::Error"
         ]
       },
       "dart:core::_Enum": {
@@ -2339,7 +2558,8 @@
         "children": [
           "field/dart:core::_Enum._name",
           "field/dart:core::_Enum.index"
-        ]
+        ],
+        "supers": []
       },
       "dart:core::_Exception": {
         "id": "class/dart:core::_Exception",
@@ -2355,6 +2575,9 @@
           "field/dart:core::_Exception.message",
           "function/dart:core::_Exception._Exception",
           "function/dart:core::_Exception.toString"
+        ],
+        "supers": [
+          "class/dart:core::Exception"
         ]
       },
       "dart:core::_StringStackTrace": {
@@ -2370,6 +2593,9 @@
         "children": [
           "field/dart:core::_StringStackTrace._stackTrace",
           "function/dart:core::_StringStackTrace.toString"
+        ],
+        "supers": [
+          "class/dart:core::StackTrace"
         ]
       },
       "dart:core::bool": {
@@ -2385,7 +2611,8 @@
         "children": [
           "function/dart:core::bool.hashCode",
           "function/dart:core::bool.toString"
-        ]
+        ],
+        "supers": []
       }
     },
     "classType": {
@@ -5410,7 +5637,7 @@
         "id": "function/dart:_js_helper::Primitives._objectTypeNameNewRti",
         "kind": "function",
         "name": "_objectTypeNameNewRti",
-        "size": 995,
+        "size": 902,
         "outputUnit": "outputUnit/main",
         "parent": "class/dart:_js_helper::Primitives",
         "children": [],
@@ -5431,7 +5658,7 @@
         ],
         "sideEffects": "SideEffects(reads anything; writes anything)",
         "inlinedCount": 0,
-        "code": "Primitives__objectTypeNameNewRti(object) {\n      var interceptor, dispatchName, t1, $constructor, constructorName;\n      if (object instanceof A.Object)\n        return A._rtiToString(A.instanceType(object), null);\n      interceptor = J.getInterceptor$(object);\n      if (interceptor === B.Interceptor_methods || interceptor === B.JavaScriptObject_methods || type$.UnknownJavaScriptObject._is(object)) {\n        dispatchName = B.C_JS_CONST(object);\n        t1 = dispatchName !== \"Object\" && dispatchName !== \"\";\n        if (t1)\n          return dispatchName;\n        $constructor = object.constructor;\n        if (typeof $constructor == \"function\") {\n          constructorName = $constructor.name;\n          if (typeof constructorName == \"string\")\n            t1 = constructorName !== \"Object\" && constructorName !== \"\";\n          else\n            t1 = false;\n          if (t1)\n            return constructorName;\n        }\n      }\n      return A._rtiToString(A.instanceType(object), null);\n    }",
+        "code": "Primitives__objectTypeNameNewRti(object) {\n      var interceptor, dispatchName, $constructor, constructorName;\n      if (object instanceof A.Object)\n        return A._rtiToString(A.instanceType(object), null);\n      interceptor = J.getInterceptor$(object);\n      if (interceptor === B.Interceptor_methods || interceptor === B.JavaScriptObject_methods || type$.UnknownJavaScriptObject._is(object)) {\n        dispatchName = B.C_JS_CONST(object);\n        if (dispatchName !== \"Object\" && dispatchName !== \"\")\n          return dispatchName;\n        $constructor = object.constructor;\n        if (typeof $constructor == \"function\") {\n          constructorName = $constructor.name;\n          if (typeof constructorName == \"string\" && constructorName !== \"Object\" && constructorName !== \"\")\n            return constructorName;\n        }\n      }\n      return A._rtiToString(A.instanceType(object), null);\n    }",
         "type": "String Function(Object?)",
         "functionKind": 0
       },
@@ -19721,7 +19948,7 @@
         "id": "function/dart:async::scheduleMicrotask",
         "kind": "function",
         "name": "scheduleMicrotask",
-        "size": 367,
+        "size": 525,
         "outputUnit": "outputUnit/main",
         "parent": "library/dart:async::",
         "children": [],
@@ -19742,7 +19969,7 @@
         ],
         "sideEffects": "SideEffects(reads anything; writes anything)",
         "inlinedCount": 0,
-        "code": "scheduleMicrotask(callback) {\n      var _null = null,\n        currentZone = $.Zone__current;\n      if (B.C__RootZone === currentZone) {\n        A._rootScheduleMicrotask(_null, _null, B.C__RootZone, callback);\n        return;\n      }\n      A._rootScheduleMicrotask(_null, _null, currentZone, type$.void_Function._as(currentZone.bindCallbackGuarded$1(callback)));\n    }",
+        "code": "scheduleMicrotask(callback) {\n      var t1, _null = null,\n        currentZone = $.Zone__current;\n      if (B.C__RootZone === currentZone) {\n        A._rootScheduleMicrotask(_null, _null, B.C__RootZone, callback);\n        return;\n      }\n      t1 = false;\n      if (t1) {\n        A._rootScheduleMicrotask(_null, _null, currentZone, type$.void_Function._as(callback));\n        return;\n      }\n      A._rootScheduleMicrotask(_null, _null, currentZone, type$.void_Function._as(currentZone.bindCallbackGuarded$1(callback)));\n    }",
         "type": "void Function(void Function())",
         "functionKind": 0
       },
@@ -67158,7 +67385,7 @@
       "id": "outputUnit/1",
       "kind": "outputUnit",
       "name": "1",
-      "size": 594,
+      "size": 618,
       "filename": "hello_world_deferred.js_1.part.js",
       "imports": [
         "deferred_import"
@@ -67168,7 +67395,7 @@
       "id": "outputUnit/main",
       "kind": "outputUnit",
       "name": "main",
-      "size": 188050,
+      "size": 188139,
       "filename": "hello_world_deferred.js",
       "imports": []
     }
@@ -67187,11 +67414,12 @@
   "dump_minor_version": 1,
   "program": {
     "entrypoint": "function/hello_world_deferred.dart::main",
-    "size": 188644,
+    "size": 188757,
+    "ramUsage": "222.625 MB",
     "dart2jsVersion": null,
-    "compilationMoment": "2022-05-26 21:07:11.259922",
-    "compilationDuration": 4395336,
-    "toJsonDuration": 9000,
+    "compilationMoment": "2022-07-14 17:35:30.061216",
+    "compilationDuration": 1870645,
+    "toJsonDuration": 2000,
     "dumpInfoDuration": 0,
     "noSuchMethodEnabled": false,
     "isRuntimeTypeUsed": false,

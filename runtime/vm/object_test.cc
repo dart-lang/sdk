@@ -1916,13 +1916,26 @@ ISOLATE_UNIT_TEST_CASE(Array) {
 
   EXPECT_EQ(0, Object::empty_array().Length());
 
-  EXPECT_EQ(1, Object::zero_array().Length());
-  element = Object::zero_array().At(0);
-  EXPECT(Smi::Cast(element).IsZero());
-
   array.MakeImmutable();
   Object& obj = Object::Handle(array.ptr());
   EXPECT(obj.IsArray());
+}
+
+ISOLATE_UNIT_TEST_CASE(EmptyInstantiationsCacheArray) {
+  SafepointMutexLocker ml(
+      thread->isolate_group()->type_arguments_canonicalization_mutex());
+  const Array& empty_cache = Object::empty_instantiations_cache_array();
+  DEBUG_ONLY(EXPECT(TypeArguments::Cache::IsValidStorageLocked(empty_cache));)
+  const TypeArguments::Cache cache(thread->zone(), empty_cache);
+  EXPECT(cache.IsLinear());
+  EXPECT(!cache.IsHash());
+  EXPECT_EQ(0, cache.NumOccupied());
+  const InstantiationsCacheTable table(empty_cache);
+  EXPECT_EQ(1, table.Length());
+  for (const auto& tuple : table) {
+    EXPECT(tuple.Get<TypeArguments::Cache::kSentinelIndex>() ==
+           TypeArguments::Cache::Sentinel());
+  }
 }
 
 static void TestIllegalArrayLength(intptr_t length) {
@@ -2759,7 +2772,7 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeExecutability, "Crash") {
       Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));
   EXPECT_EQ(1, Smi::Cast(result).Value());
   // Switch to the writeable but non-executable view of the instructions.
-  instructions ^= OldPage::ToWritable(instructions.ptr());
+  instructions ^= Page::ToWritable(instructions.ptr());
   payload_start = instructions.PayloadStart();
   EXPECT_EQ(instructions.ptr(), Instructions::FromPayloadStart(payload_start));
   // Hook up Code and Instructions objects.
@@ -5154,10 +5167,7 @@ static void NativeFinalizer_TwoEntriesCrossGen(
     queue_length_start = aq.queue()->Length();
   }
 
-  ObjectStore* object_store = thread->isolate_group()->object_store();
-  const auto& void_type = Type::Handle(object_store->never_type());
   const auto& callback = Pointer::Handle(Pointer::New(
-      void_type,
       reinterpret_cast<uword>(&NativeFinalizer_TwoEntriesCrossGen_Finalizer),
       spaces[3]));
 
@@ -5173,7 +5183,7 @@ static void NativeFinalizer_TwoEntriesCrossGen(
   isolate_finalizers.Add(weak1);
   thread->isolate()->set_finalizers(isolate_finalizers);
 
-  const auto& all_entries = LinkedHashSet::Handle(LinkedHashSet::NewDefault());
+  const auto& all_entries = Set::Handle(Set::NewDefault());
   finalizer.set_all_entries(all_entries);
   const auto& all_entries_data = Array::Handle(all_entries.data());
   THR_Print("entry1 space: %s\n", spaces[1] == Heap::kNew ? "new" : "old");
@@ -5195,14 +5205,14 @@ static void NativeFinalizer_TwoEntriesCrossGen(
 
   auto& value1 = String::Handle();
   auto& detach1 = String::Handle();
-  const auto& token1 = Pointer::Handle(Pointer::New(
-      void_type, reinterpret_cast<uword>(&token1_memory), spaces[3]));
+  const auto& token1 = Pointer::Handle(
+      Pointer::New(reinterpret_cast<uword>(&token1_memory), spaces[3]));
   entry1.set_token(token1);
 
   auto& value2 = String::Handle();
   auto& detach2 = String::Handle();
-  const auto& token2 = Pointer::Handle(Pointer::New(
-      void_type, reinterpret_cast<uword>(&token2_memory), spaces[4]));
+  const auto& token2 = Pointer::Handle(
+      Pointer::New(reinterpret_cast<uword>(&token2_memory), spaces[4]));
   entry2.set_token(token2);
   entry2.set_detach(detach2);
 
@@ -5356,6 +5366,91 @@ class X extends E {}
   const auto& class_a_sub = Class::Handle(zone, GetClass(lib, "ASub"));
   ClassFinalizer::FinalizeTypesInClass(class_a_sub);
   EXPECT(class_a_sub.implements_finalizable());
+}
+
+TEST_CASE(ImplementorCid) {
+  const char* kScriptChars = R"(
+abstract class AInterface {}
+
+abstract class BInterface {}
+class BImplementation implements BInterface {}
+
+abstract class CInterface {}
+class CImplementation1 implements CInterface {}
+class CImplementation2 implements CInterface {}
+
+abstract class DInterface {}
+abstract class DSubinterface implements DInterface {}
+
+abstract class EInterface {}
+abstract class ESubinterface implements EInterface {}
+class EImplementation implements ESubinterface {}
+
+abstract class FInterface {}
+abstract class FSubinterface implements FInterface {}
+class FImplementation1 implements FSubinterface {}
+class FImplementation2 implements FSubinterface {}
+
+main() {
+  new BImplementation();
+  new CImplementation1();
+  new CImplementation2();
+  new EImplementation();
+  new FImplementation1();
+  new FImplementation2();
+}
+)";
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(h_lib);
+  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  TransitionNativeToVM transition(thread);
+  const Library& lib =
+      Library::CheckedHandle(thread->zone(), Api::UnwrapHandle(h_lib));
+  EXPECT(!lib.IsNull());
+
+  const Class& AInterface = Class::Handle(GetClass(lib, "AInterface"));
+  EXPECT_EQ(AInterface.implementor_cid(), kIllegalCid);
+
+  const Class& BInterface = Class::Handle(GetClass(lib, "BInterface"));
+  const Class& BImplementation =
+      Class::Handle(GetClass(lib, "BImplementation"));
+  EXPECT_EQ(BInterface.implementor_cid(), BImplementation.id());
+  EXPECT_EQ(BImplementation.implementor_cid(), BImplementation.id());
+
+  const Class& CInterface = Class::Handle(GetClass(lib, "CInterface"));
+  const Class& CImplementation1 =
+      Class::Handle(GetClass(lib, "CImplementation1"));
+  const Class& CImplementation2 =
+      Class::Handle(GetClass(lib, "CImplementation2"));
+  EXPECT_EQ(CInterface.implementor_cid(), kDynamicCid);
+  EXPECT_EQ(CImplementation1.implementor_cid(), CImplementation1.id());
+  EXPECT_EQ(CImplementation2.implementor_cid(), CImplementation2.id());
+
+  const Class& DInterface = Class::Handle(GetClass(lib, "DInterface"));
+  const Class& DSubinterface = Class::Handle(GetClass(lib, "DSubinterface"));
+  EXPECT_EQ(DInterface.implementor_cid(), kIllegalCid);
+  EXPECT_EQ(DSubinterface.implementor_cid(), kIllegalCid);
+
+  const Class& EInterface = Class::Handle(GetClass(lib, "EInterface"));
+  const Class& ESubinterface = Class::Handle(GetClass(lib, "ESubinterface"));
+  const Class& EImplementation =
+      Class::Handle(GetClass(lib, "EImplementation"));
+  EXPECT_EQ(EInterface.implementor_cid(), EImplementation.id());
+  EXPECT_EQ(ESubinterface.implementor_cid(), EImplementation.id());
+  EXPECT_EQ(EImplementation.implementor_cid(), EImplementation.id());
+
+  const Class& FInterface = Class::Handle(GetClass(lib, "FInterface"));
+  const Class& FSubinterface = Class::Handle(GetClass(lib, "FSubinterface"));
+  const Class& FImplementation1 =
+      Class::Handle(GetClass(lib, "FImplementation1"));
+  const Class& FImplementation2 =
+      Class::Handle(GetClass(lib, "FImplementation2"));
+  EXPECT_EQ(FInterface.implementor_cid(), kDynamicCid);
+  EXPECT_EQ(FSubinterface.implementor_cid(), kDynamicCid);
+  EXPECT_EQ(FImplementation1.implementor_cid(), FImplementation1.id());
+  EXPECT_EQ(FImplementation2.implementor_cid(), FImplementation2.id());
 }
 
 ISOLATE_UNIT_TEST_CASE(MirrorReference) {
@@ -5890,7 +5985,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
         "\"_kind\":\"RegularFunction\",\"static\":false,\"const\":false,"
-        "\"implicit\":false,"
+        "\"implicit\":false,\"abstract\":false,"
         "\"_intrinsic\":false,\"_native\":false,"
         "\"location\":{\"type\":\"SourceLocation\","
         "\"script\":{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
@@ -5975,7 +6070,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "patch\\/integers.dart\",\"_kind\":\"kernel\"}"
         "},\"library\":{\"type\":\"@Library\",\"fixedId\":"
         "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
-        "\"identityHashCode\":0,\"kind\":\"Int\",\"id\":\"\",\"valueAsString\":"
+        "\"identityHashCode\":0,\"id\":\"\",\"kind\":\"Int\",\"valueAsString\":"
         "\"-9223372036854775808\"}",
         buffer);
   }
@@ -5999,7 +6094,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "patch\\/double.dart\",\"_kind\":\"kernel\"}"
         "},\"library\":{\"type\":\"@Library\",\"fixedId\":"
         "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
-        "\"identityHashCode\":0,\"kind\":\"Double\",\"id\":\"\","
+        "\"identityHashCode\":0,\"id\":\"\",\"kind\":\"Double\","
         "\"valueAsString\":\"0.1234\"}",
         buffer);
   }
@@ -6023,7 +6118,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "patch\\/string_patch.dart\",\"_kind\":\"kernel\"}"
         "},\"library\":{\"type\":\"@Library\",\"fixedId\":"
         "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
-        "\"identityHashCode\":0,\"kind\":\"String\",\"id\":\"\",\"length\":2,"
+        "\"identityHashCode\":0,\"id\":\"\",\"kind\":\"String\",\"length\":2,"
         "\"valueAsString\":\"dw\"}",
         buffer);
   }
@@ -6061,7 +6156,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         buffer);
 
     EXPECT_SUBSTRING(
-        "\"kind\":\"TypeParameter\",\"id\":\"\",\"name\":\"X0\","
+        "\"id\":\"\",\"kind\":\"TypeParameter\",\"name\":\"X0\","
         "\"parameterizedClass\":{\"type\":\"@Instance\",\"_vmType\":\"Class\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\",\"name\":"
         "\"Null\",\"location\":{\"type\":\"SourceLocation\",\"script\":{"
@@ -6071,7 +6166,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"dart.core\",\"uri\":\"dart:core\"}},\"kind\":\"Null\","
         "\"fixedId\":true,\"id\":\"\",\"valueAsString\":\"null\"}}]},"
-        "\"identityHashCode\":0,\"kind\":\"List\",\"id\":\"\",\"length\":0}",
+        "\"identityHashCode\":0,\"id\":\"\",\"kind\":\"List\",\"length\":0}",
         buffer);
   }
   OS::PrintErr("\n\n\n");
@@ -6111,8 +6206,8 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         buffer);
 
     EXPECT_SUBSTRING(
-        "\"kind\":\"TypeParameter\",\"id\":"
-        "\"\",\"name\":\"X0\",\"parameterizedClass\":{\"type\":\"@Instance\","
+        "\"id\":\"\",\"kind\":\"TypeParameter\",\"name\":\"X0\","
+        "\"parameterizedClass\":{\"type\":\"@Instance\","
         "\"_vmType\":\"Class\",\"class\":{\"type\":\"@Class\",\"fixedId\":true,"
         "\"id\":\"\",\"name\":\"Null\",\"location\":{\"type\":"
         "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
@@ -6121,27 +6216,26 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "},\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"dart.core\",\"uri\":\"dart:core\"}},\"kind\":\"Null\","
         "\"fixedId\":true,\"id\":\"\",\"valueAsString\":\"null\"}}]},"
-        "\"identityHashCode\":0,\"kind\":\"List\",\"id\":\"\",\"length\":0}",
+        "\"identityHashCode\":0,\"id\":\"\",\"kind\":\"List\",\"length\":0}",
         buffer);
   }
-  // LinkedHashMap reference
+  // Map reference
   {
     JSONStream js;
-    const LinkedHashMap& array =
-        LinkedHashMap::Handle(LinkedHashMap::NewDefault());
+    const Map& array = Map::Handle(Map::NewDefault());
     array.PrintJSON(&js, true);
     const char* json_str = js.ToCString();
     ASSERT(strlen(json_str) < kBufferSize);
     ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("objects", buffer, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
-    ElideJSONSubstring("_InternalLinkedHashMap@", buffer, buffer);
+    ElideJSONSubstring("_Map@", buffer, buffer);
     StripTokenPositions(buffer);
     ElideJSONSubstring("_TypeParameter@", buffer, buffer);
     EXPECT_SUBSTRING(
-        "{\"type\":\"@Instance\",\"_vmType\":\"LinkedHashMap\",\"class\":{"
+        "{\"type\":\"@Instance\",\"_vmType\":\"Map\",\"class\":{"
         "\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_"
-        "InternalLinkedHashMap\",\"_vmName\":\"\",\"location\":{\"type\":"
+        "Map\",\"_vmName\":\"\",\"location\":{\"type\":"
         "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
         "\"id\":\"\",\"uri\":\"dart:collection-patch\\/"
         "compact_hash.dart\",\"_kind\":\"kernel\"}"
@@ -6160,8 +6254,8 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         buffer);
 
     EXPECT_SUBSTRING(
-        "\"kind\":\"TypeParameter\",\"id\":"
-        "\"\",\"name\":\"X0\",\"parameterizedClass\":{\"type\":\"@Instance\","
+        "\"id\":\"\",\"kind\":\"TypeParameter\",\"name\":\"X0\","
+        "\"parameterizedClass\":{\"type\":\"@Instance\","
         "\"_vmType\":\"Class\",\"class\":{\"type\":\"@Class\",\"fixedId\":true,"
         "\"id\":\"\",\"name\":\"Null\",\"location\":{\"type\":"
         "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
@@ -6182,8 +6276,8 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         buffer);
 
     EXPECT_SUBSTRING(
-        "\"kind\":\"TypeParameter\",\"id\":"
-        "\"\",\"name\":\"X1\",\"parameterizedClass\":{\"type\":\"@Instance\","
+        "\"id\":\"\",\"kind\":\"TypeParameter\",\"name\":\"X1\","
+        "\"parameterizedClass\":{\"type\":\"@Instance\","
         "\"_vmType\":\"Class\",\"class\":{\"type\":\"@Class\",\"fixedId\":true,"
         "\"id\":\"\",\"name\":\"Null\",\"location\":{\"type\":"
         "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
@@ -6192,7 +6286,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "},\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"dart.core\",\"uri\":\"dart:core\"}},\"kind\":\"Null\","
         "\"fixedId\":true,\"id\":\"\",\"valueAsString\":\"null\"}}]},"
-        "\"identityHashCode\":0,\"kind\":\"Map\",\"id\":\"\",\"length\":0}",
+        "\"identityHashCode\":0,\"id\":\"\",\"kind\":\"Map\",\"length\":0}",
         buffer);
   }
   // UserTag reference
@@ -6221,8 +6315,8 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"identityHashCode\":",
         buffer);
     EXPECT_SUBSTRING(
-        "\"kind\":\"PlainInstance\","
-        "\"id\":\"\"}",
+        "\"id\":\"\","
+        "\"kind\":\"PlainInstance\"}",
         buffer);
   }
   // Type reference
@@ -6449,7 +6543,11 @@ TEST_CASE(HashCode_Double) {
   // cannot be used as keys in constant sets and maps. However, doubles
   // _can_ be used for lookups in which case they are equal to their integer
   // value.
-  const uint32_t kInt1HashCode = 1;
+  uint32_t kInt1HashCode = 0;
+  {
+    TransitionNativeToVM transition(thread);
+    kInt1HashCode = Integer::Handle(Integer::New(1)).CanonicalizeHash();
+  }
   EXPECT(HashCodeEqualsCanonicalizeHash(kScript, kInt1HashCode));
 }
 
@@ -6524,7 +6622,7 @@ TEST_CASE(HashCode_Type_Int) {
                                         /*check_identity=*/false));
 }
 
-TEST_CASE(LinkedHashMap_iteration) {
+TEST_CASE(Map_iteration) {
   const char* kScript =
       "makeMap() {\n"
       "  var map = {'x': 3, 'y': 4, 'z': 5, 'w': 6};\n"
@@ -6540,12 +6638,12 @@ TEST_CASE(LinkedHashMap_iteration) {
   TransitionNativeToVM transition(thread);
   Instance& dart_map = Instance::Handle();
   dart_map ^= Api::UnwrapHandle(h_result);
-  ASSERT(dart_map.IsLinkedHashMap());
-  const LinkedHashMap& cc_map = LinkedHashMap::Cast(dart_map);
+  ASSERT(dart_map.IsMap());
+  const Map& cc_map = Map::Cast(dart_map);
 
   EXPECT_EQ(2, cc_map.Length());
 
-  LinkedHashMap::Iterator iterator(cc_map);
+  Map::Iterator iterator(cc_map);
   Object& object = Object::Handle();
 
   EXPECT(iterator.MoveNext());
@@ -6657,11 +6755,10 @@ static bool LinkedHashBaseEqual(const LinkedHashBase& map1,
 }
 
 // Copies elements from data.
-static LinkedHashMapPtr ConstructImmutableMap(
-    const Array& input_data,
-    intptr_t used_data,
-    const TypeArguments& type_arguments) {
-  auto& map = LinkedHashMap::Handle(ImmutableLinkedHashMap::NewUninitialized());
+static MapPtr ConstructImmutableMap(const Array& input_data,
+                                    intptr_t used_data,
+                                    const TypeArguments& type_arguments) {
+  auto& map = Map::Handle(ConstMap::NewUninitialized());
 
   const auto& data = Array::Handle(Array::New(used_data));
   for (intptr_t i = 0; i < used_data; i++) {
@@ -6678,7 +6775,7 @@ static LinkedHashMapPtr ConstructImmutableMap(
 }
 
 // Constructs an immutable hashmap from a mutable one in this test.
-TEST_CASE(ImmutableLinkedHashMap_vm) {
+TEST_CASE(ConstMap_vm) {
   const char* kScript = R"(
 enum ExperimentalFlag {
   alternativeInvalidationStrategy,
@@ -6758,16 +6855,16 @@ bool? lookupNull(Map map) => map[null];
 
   {
     TransitionNativeToVM transition(thread);
-    const auto& non_const_map = LinkedHashMap::Cast(
-        Object::Handle(Api::UnwrapHandle(non_const_result)));
+    const auto& non_const_map =
+        Map::Cast(Object::Handle(Api::UnwrapHandle(non_const_result)));
     const auto& non_const_type_args =
         TypeArguments::Handle(non_const_map.GetTypeArguments());
     const auto& non_const_data = Array::Handle(non_const_map.data());
-    const auto& const_map = LinkedHashMap::Handle(ConstructImmutableMap(
+    const auto& const_map = Map::Handle(ConstructImmutableMap(
         non_const_data, Smi::Value(non_const_map.used_data()),
         non_const_type_args));
-    ASSERT(non_const_map.GetClassId() == kLinkedHashMapCid);
-    ASSERT(const_map.GetClassId() == kImmutableLinkedHashMapCid);
+    ASSERT(non_const_map.GetClassId() == kMapCid);
+    ASSERT(const_map.GetClassId() == kConstMapCid);
     ASSERT(!non_const_map.IsCanonical());
     ASSERT(const_map.IsCanonical());
 
@@ -6788,10 +6885,10 @@ bool? lookupNull(Map map) => map[null];
     TransitionNativeToVM transition(thread);
     const auto& non_const_object =
         Object::Handle(Api::UnwrapHandle(non_const_result));
-    const auto& non_const_map = LinkedHashMap::Cast(non_const_object);
+    const auto& non_const_map = Map::Cast(non_const_object);
     const auto& const_object =
         Object::Handle(Api::UnwrapHandle(const_argument));
-    const auto& const_map = LinkedHashMap::Cast(const_object);
+    const auto& const_map = Map::Cast(const_object);
 
     EXPECT(non_const_map.GetClassId() != const_map.GetClassId());
 
@@ -6802,7 +6899,7 @@ bool? lookupNull(Map map) => map[null];
 }
 
 static bool IsLinkedHashBase(const Object& object) {
-  return object.IsLinkedHashMap() || object.IsLinkedHashSet();
+  return object.IsMap() || object.IsSet();
 }
 
 // Checks that the non-constant and constant HashMap and HashSets are equal.
@@ -6826,7 +6923,7 @@ static void HashBaseNonConstEqualsConst(const char* script,
   const auto& non_const_object =
       Object::Handle(Api::UnwrapHandle(non_const_result));
   const auto& const_object = Object::Handle(Api::UnwrapHandle(const_result));
-  non_const_object.IsLinkedHashMap();
+  non_const_object.IsMap();
   EXPECT(IsLinkedHashBase(non_const_object));
   if (!IsLinkedHashBase(non_const_object)) return;
   const auto& non_const_value = LinkedHashBase::Cast(non_const_object);
@@ -6843,17 +6940,15 @@ static void HashBaseNonConstEqualsConst(const char* script,
 
 static void HashMapNonConstEqualsConst(const char* script,
                                        bool check_data = true) {
-  HashBaseNonConstEqualsConst<LinkedHashMap, kLinkedHashMapCid,
-                              kImmutableLinkedHashMapCid>(script, check_data);
+  HashBaseNonConstEqualsConst<Map, kMapCid, kConstMapCid>(script, check_data);
 }
 
 static void HashSetNonConstEqualsConst(const char* script,
                                        bool check_data = true) {
-  HashBaseNonConstEqualsConst<LinkedHashSet, kLinkedHashSetCid,
-                              kImmutableLinkedHashSetCid>(script, check_data);
+  HashBaseNonConstEqualsConst<Set, kSetCid, kConstSetCid>(script, check_data);
 }
 
-TEST_CASE(ImmutableLinkedHashMap_small) {
+TEST_CASE(ConstMap_small) {
   const char* kScript = R"(
 constValue() => const {1: 42, 'foo': 499, 2: 'bar'};
 
@@ -6866,7 +6961,7 @@ void init() {
   HashMapNonConstEqualsConst(kScript);
 }
 
-TEST_CASE(ImmutableLinkedHashMap_null) {
+TEST_CASE(ConstMap_null) {
   const char* kScript = R"(
 constValue() => const {1: 42, 'foo': 499, null: 'bar'};
 
@@ -6879,7 +6974,7 @@ void init() {
   HashMapNonConstEqualsConst(kScript);
 }
 
-TEST_CASE(ImmutableLinkedHashMap_larger) {
+TEST_CASE(ConstMap_larger) {
   const char* kScript = R"(
 enum ExperimentalFlag {
   alternativeInvalidationStrategy,
@@ -6949,7 +7044,7 @@ void init() {
   HashMapNonConstEqualsConst(kScript);
 }
 
-TEST_CASE(ImmutableLinkedHashMap_nested) {
+TEST_CASE(ConstMap_nested) {
   const char* kScript = R"(
 enum Abi {
   wordSize64,
@@ -7011,7 +7106,7 @@ void init() {
   HashMapNonConstEqualsConst(kScript, false);
 }
 
-TEST_CASE(LinkedHashSet_iteration) {
+TEST_CASE(Set_iteration) {
   const char* kScript = R"(
 makeSet() {
   var set = {'x', 'y', 'z', 'w'};
@@ -7028,12 +7123,12 @@ makeSet() {
   TransitionNativeToVM transition(thread);
   Instance& dart_set = Instance::Handle();
   dart_set ^= Api::UnwrapHandle(h_result);
-  ASSERT(dart_set.IsLinkedHashSet());
-  const LinkedHashSet& cc_set = LinkedHashSet::Cast(dart_set);
+  ASSERT(dart_set.IsSet());
+  const Set& cc_set = Set::Cast(dart_set);
 
   EXPECT_EQ(2, cc_set.Length());
 
-  LinkedHashSet::Iterator iterator(cc_set);
+  Set::Iterator iterator(cc_set);
   Object& object = Object::Handle();
 
   EXPECT(iterator.MoveNext());
@@ -7048,11 +7143,10 @@ makeSet() {
 }
 
 // Copies elements from data.
-static LinkedHashSetPtr ConstructImmutableSet(
-    const Array& input_data,
-    intptr_t used_data,
-    const TypeArguments& type_arguments) {
-  auto& set = LinkedHashSet::Handle(ImmutableLinkedHashSet::NewUninitialized());
+static SetPtr ConstructImmutableSet(const Array& input_data,
+                                    intptr_t used_data,
+                                    const TypeArguments& type_arguments) {
+  auto& set = Set::Handle(ConstSet::NewUninitialized());
 
   const auto& data = Array::Handle(Array::New(used_data));
   for (intptr_t i = 0; i < used_data; i++) {
@@ -7068,7 +7162,7 @@ static LinkedHashSetPtr ConstructImmutableSet(
   return set.ptr();
 }
 
-TEST_CASE(ImmutableLinkedHashSet_vm) {
+TEST_CASE(ConstSet_vm) {
   const char* kScript = R"(
 makeNonConstSet() {
   return {1, 2, 3, 5, 8, 13};
@@ -7088,17 +7182,17 @@ bool containsFive(Set set) => set.contains(5);
     TransitionNativeToVM transition(thread);
     const auto& non_const_object =
         Object::Handle(Api::UnwrapHandle(non_const_result));
-    const auto& non_const_set = LinkedHashSet::Cast(non_const_object);
-    ASSERT(non_const_set.GetClassId() == kLinkedHashSetCid);
+    const auto& non_const_set = Set::Cast(non_const_object);
+    ASSERT(non_const_set.GetClassId() == kSetCid);
     ASSERT(!non_const_set.IsCanonical());
 
     const auto& non_const_data = Array::Handle(non_const_set.data());
     const auto& non_const_type_args =
         TypeArguments::Handle(non_const_set.GetTypeArguments());
-    const auto& const_set = LinkedHashSet::Handle(ConstructImmutableSet(
+    const auto& const_set = Set::Handle(ConstructImmutableSet(
         non_const_data, Smi::Value(non_const_set.used_data()),
         non_const_type_args));
-    ASSERT(const_set.GetClassId() == kImmutableLinkedHashSetCid);
+    ASSERT(const_set.GetClassId() == kConstSetCid);
     ASSERT(const_set.IsCanonical());
 
     const_argument = Api::NewHandle(thread, const_set.ptr());
@@ -7113,10 +7207,10 @@ bool containsFive(Set set) => set.contains(5);
     TransitionNativeToVM transition(thread);
     const auto& non_const_object =
         Object::Handle(Api::UnwrapHandle(non_const_result));
-    const auto& non_const_set = LinkedHashSet::Cast(non_const_object);
+    const auto& non_const_set = Set::Cast(non_const_object);
     const auto& const_object =
         Object::Handle(Api::UnwrapHandle(const_argument));
-    const auto& const_set = LinkedHashSet::Cast(const_object);
+    const auto& const_set = Set::Cast(const_object);
 
     EXPECT(non_const_set.GetClassId() != const_set.GetClassId());
 
@@ -7126,7 +7220,7 @@ bool containsFive(Set set) => set.contains(5);
   }
 }
 
-TEST_CASE(ImmutableLinkedHashSet_small) {
+TEST_CASE(ConstSet_small) {
   const char* kScript = R"(
 constValue() => const {1, 2, 3, 5, 8, 13};
 
@@ -7139,7 +7233,7 @@ void init() {
   HashSetNonConstEqualsConst(kScript);
 }
 
-TEST_CASE(ImmutableLinkedHashSet_larger) {
+TEST_CASE(ConstSet_larger) {
   const char* kScript = R"(
 const Set<String> tokensThatMayFollowTypeArg = {
   '(',
@@ -7202,6 +7296,48 @@ void init() {
 }
 )";
   HashSetNonConstEqualsConst(kScript);
+}
+
+TEST_CASE(OneByteStringExternalEqualsInternal) {
+  const char* kScript = R"(
+makeInternalString() {
+  return String.fromCharCodes(<int>[1, 1, 2, 3, 5, 8, 13]);
+}
+
+bool equalsAB(String a, String b) => !identical(a, b) && (a == b);
+bool equalsBA(String a, String b) => !identical(b, a) && (b == a);
+)";
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle internal_string =
+      Dart_Invoke(lib, NewString("makeInternalString"), 0, NULL);
+  EXPECT_VALID(internal_string);
+
+  Dart_Handle external_string;
+  uint8_t characters[] = {1, 1, 2, 3, 5, 8, 13};
+  intptr_t len = ARRAY_SIZE(characters);
+
+  {
+    TransitionNativeToVM transition(thread);
+
+    const String& str = String::Handle(ExternalOneByteString::New(
+        characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
+    EXPECT(!str.IsOneByteString());
+    EXPECT(str.IsExternalOneByteString());
+
+    external_string = Api::NewHandle(thread, str.ptr());
+  }
+
+  Dart_Handle args[2] = {internal_string, external_string};
+  Dart_Handle equalsAB_result =
+      Dart_Invoke(lib, NewString("equalsAB"), 2, args);
+  EXPECT_VALID(equalsAB_result);
+  EXPECT_TRUE(equalsAB_result);
+
+  Dart_Handle equalsBA_result =
+      Dart_Invoke(lib, NewString("equalsBA"), 2, args);
+  EXPECT_VALID(equalsBA_result);
+  EXPECT_TRUE(equalsBA_result);
 }
 
 static void CheckConcatAll(const String* data[], intptr_t n) {
@@ -7908,6 +8044,142 @@ FutureOr<T?> bar<T>() { return null; }
     EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
   }
 }
+
+static void TypeArgumentsHashCacheTest(Thread* thread, intptr_t num_classes) {
+  TextBuffer buffer(MB);
+  buffer.AddString("class D<T> {}\n");
+  for (intptr_t i = 0; i < num_classes; i++) {
+    buffer.Printf("class C%" Pd " { String toString() => 'C%" Pd "'; }\n", i,
+                  i);
+  }
+  buffer.AddString("main() {\n");
+  for (intptr_t i = 0; i < num_classes; i++) {
+    buffer.Printf("  new C%" Pd "().toString();\n", i);
+  }
+  buffer.AddString("}\n");
+
+  Dart_Handle api_lib = TestCase::LoadTestScript(buffer.buffer(), NULL);
+  EXPECT_VALID(api_lib);
+  Dart_Handle result = Dart_Invoke(api_lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  // D + C0...CN, where N = kNumClasses - 1
+  EXPECT(IsolateGroup::Current()->class_table()->NumCids() > num_classes);
+
+  TransitionNativeToVM transition(thread);
+  Zone* const zone = thread->zone();
+
+  const auto& root_lib =
+      Library::CheckedHandle(zone, Api::UnwrapHandle(api_lib));
+  EXPECT(!root_lib.IsNull());
+
+  const auto& class_d = Class::Handle(zone, GetClass(root_lib, "D"));
+  ASSERT(!class_d.IsNull());
+  const auto& decl_type_d = Type::Handle(zone, class_d.DeclarationType());
+  const auto& decl_type_d_type_args =
+      TypeArguments::Handle(zone, decl_type_d.arguments());
+
+  EXPECT(!decl_type_d_type_args.HasInstantiations());
+
+  auto& class_c = Class::Handle(zone);
+  auto& decl_type_c = Type::Handle(zone);
+  auto& instantiator_type_args = TypeArguments::Handle(zone);
+  const auto& function_type_args = Object::null_type_arguments();
+  auto& result_type_args = TypeArguments::Handle(zone);
+  auto& result_type = AbstractType::Handle(zone);
+  // Cache the first computed set of instantiator type arguments to check that
+  // no entries from the cache have been lost when the cache grows.
+  auto& first_instantiator_type_args = TypeArguments::Handle(zone);
+  for (intptr_t i = 0; i < num_classes; ++i) {
+    auto const name = OS::SCreate(zone, "C%" Pd "", i);
+    class_c = GetClass(root_lib, name);
+    ASSERT(!class_c.IsNull());
+    decl_type_c = class_c.DeclarationType();
+    instantiator_type_args = TypeArguments::New(1);
+    instantiator_type_args.SetTypeAt(0, decl_type_c);
+    instantiator_type_args = instantiator_type_args.Canonicalize(thread);
+
+    // Check that the key does not currently exist in the cache.
+    {
+      SafepointMutexLocker ml(
+          thread->isolate_group()->type_arguments_canonicalization_mutex());
+      TypeArguments::Cache cache(zone, decl_type_d_type_args);
+      EXPECT_EQ(i, cache.NumOccupied());
+      auto loc =
+          cache.FindKeyOrUnused(instantiator_type_args, function_type_args);
+      EXPECT(!loc.present);
+    }
+
+    decl_type_d_type_args.InstantiateAndCanonicalizeFrom(instantiator_type_args,
+                                                         function_type_args);
+
+    // Check that the key now does exist in the cache.
+    TypeArguments::Cache::KeyLocation loc;
+    {
+      SafepointMutexLocker ml(
+          thread->isolate_group()->type_arguments_canonicalization_mutex());
+      TypeArguments::Cache cache(zone, decl_type_d_type_args);
+      EXPECT_EQ(i + 1, cache.NumOccupied());
+      // Double-check that we got the expected type of cache.
+      EXPECT(i < TypeArguments::Cache::kMaxLinearCacheEntries ? cache.IsLinear()
+                                                              : cache.IsHash());
+      loc = cache.FindKeyOrUnused(instantiator_type_args, function_type_args);
+      EXPECT(loc.present);
+    }
+
+    result_type_args = decl_type_d_type_args.InstantiateAndCanonicalizeFrom(
+        instantiator_type_args, function_type_args);
+    result_type = result_type_args.TypeAt(0);
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(decl_type_c, result_type);
+
+    // Check that no new entries were added to the cache.
+    {
+      SafepointMutexLocker ml(
+          thread->isolate_group()->type_arguments_canonicalization_mutex());
+      TypeArguments::Cache cache(zone, decl_type_d_type_args);
+      EXPECT_EQ(i + 1, cache.NumOccupied());
+      auto const loc2 =
+          cache.FindKeyOrUnused(instantiator_type_args, function_type_args);
+      EXPECT(loc2.present);
+      EXPECT_EQ(loc.entry, loc2.entry);
+    }
+
+    if (i == 0) {
+      first_instantiator_type_args = instantiator_type_args.ptr();
+    } else {
+      // Check that the first instantiator TAV still exists in the cache.
+      SafepointMutexLocker ml(
+          thread->isolate_group()->type_arguments_canonicalization_mutex());
+      TypeArguments::Cache cache(zone, decl_type_d_type_args);
+      EXPECT_EQ(i + 1, cache.NumOccupied());
+      // Double-check that we got the expected type of cache.
+      EXPECT(i < TypeArguments::Cache::kMaxLinearCacheEntries ? cache.IsLinear()
+                                                              : cache.IsHash());
+      auto const loc =
+          cache.FindKeyOrUnused(instantiator_type_args, function_type_args);
+      EXPECT(loc.present);
+    }
+  }
+}
+
+// A smaller version of the following test case, just to ensure some coverage
+// on slower builds.
+TEST_CASE(TypeArguments_Cache_SomeInstantiations) {
+  TypeArgumentsHashCacheTest(thread,
+                             2 * TypeArguments::Cache::kMaxLinearCacheEntries);
+}
+
+// Too slow in debug mode. Also avoid the sanitizers for similar reasons.
+#if !defined(DEBUG) && !defined(USING_MEMORY_SANITIZER) &&                     \
+    !defined(USING_THREAD_SANITIZER) && !defined(USING_LEAK_SANITIZER) &&      \
+    !defined(USING_UNDEFINED_BEHAVIOR_SANITIZER)
+TEST_CASE(TypeArguments_Cache_ManyInstantiations) {
+  const intptr_t kNumClasses = 100000;
+  static_assert(kNumClasses > TypeArguments::Cache::kMaxLinearCacheEntries,
+                "too few classes to trigger change to a hash-based cache");
+  TypeArgumentsHashCacheTest(thread, kNumClasses);
+}
+#endif
 
 #undef EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT
 

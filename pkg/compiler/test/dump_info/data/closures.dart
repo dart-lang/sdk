@@ -96,10 +96,11 @@
     "function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod2",
     "function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod3",
     "function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4"
-  ]
+  ],
+  "supers": []
 }]*/
 class Class1<T> {
-  /*spec.member: Class1.field:
+  /*member: Class1.field:
    closure=[{
   "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.field.Class1_field_closure",
   "kind": "closure",
@@ -148,108 +149,44 @@ class Class1<T> {
   "functionKind": 2
 }],
    holding=[
-    {"id":"field/memory:sdk/tests/web/native/main.dart::Class1.field","mask":null},
-    {"id":"function/dart:_js_helper::throwCyclicInit","mask":null},
-    {"id":"function/dart:_late_helper::throwLateFieldADI","mask":null},
-    {"id":"function/dart:_rti::Rti._bind","mask":null},
-    {"id":"function/dart:_rti::Rti._eval","mask":null},
-    {"id":"function/dart:_rti::_arrayInstanceType","mask":null},
-    {"id":"function/dart:_rti::_asBool","mask":null},
-    {"id":"function/dart:_rti::_asBoolQ","mask":null},
-    {"id":"function/dart:_rti::_asBoolS","mask":null},
-    {"id":"function/dart:_rti::_asDouble","mask":null},
-    {"id":"function/dart:_rti::_asDoubleQ","mask":null},
-    {"id":"function/dart:_rti::_asDoubleS","mask":null},
-    {"id":"function/dart:_rti::_asInt","mask":null},
-    {"id":"function/dart:_rti::_asIntQ","mask":null},
-    {"id":"function/dart:_rti::_asIntS","mask":null},
-    {"id":"function/dart:_rti::_asNum","mask":null},
-    {"id":"function/dart:_rti::_asNumQ","mask":null},
-    {"id":"function/dart:_rti::_asNumS","mask":null},
-    {"id":"function/dart:_rti::_asObject","mask":null},
-    {"id":"function/dart:_rti::_asString","mask":null},
-    {"id":"function/dart:_rti::_asStringQ","mask":null},
-    {"id":"function/dart:_rti::_asStringS","mask":null},
-    {"id":"function/dart:_rti::_asTop","mask":null},
-    {"id":"function/dart:_rti::_generalAsCheckImplementation","mask":null},
-    {"id":"function/dart:_rti::_generalIsTestImplementation","mask":null},
-    {"id":"function/dart:_rti::_generalNullableAsCheckImplementation","mask":null},
-    {"id":"function/dart:_rti::_generalNullableIsTestImplementation","mask":null},
-    {"id":"function/dart:_rti::_installSpecializedAsCheck","mask":null},
-    {"id":"function/dart:_rti::_installSpecializedIsTest","mask":null},
-    {"id":"function/dart:_rti::_instanceType","mask":null},
-    {"id":"function/dart:_rti::_isBool","mask":null},
-    {"id":"function/dart:_rti::_isInt","mask":null},
-    {"id":"function/dart:_rti::_isNum","mask":null},
-    {"id":"function/dart:_rti::_isObject","mask":null},
-    {"id":"function/dart:_rti::_isString","mask":null},
-    {"id":"function/dart:_rti::_isTop","mask":null},
-    {"id":"function/dart:_rti::findType","mask":null},
-    {"id":"function/dart:_rti::instanceType","mask":null}]
-  */
-  /*canary.member: Class1.field:
-   closure=[{
-  "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.field.Class1_field_closure",
-  "kind": "closure",
-  "name": "Class1_field_closure",
-  "size": 242,
-  "outputUnit": "outputUnit/main",
-  "parent": "field/memory:sdk/tests/web/native/main.dart::Class1.field",
-  "function": "function/memory:sdk/tests/web/native/main.dart::Class1.field.Class1_field_closure.call"
-}],
-   function=[{
-  "id": "field/memory:sdk/tests/web/native/main.dart::Class1.field",
-  "kind": "field",
-  "name": "field",
-  "size": 318,
-  "outputUnit": "outputUnit/main",
-  "parent": "class/memory:sdk/tests/web/native/main.dart::Class1",
-  "children": [
-    "closure/memory:sdk/tests/web/native/main.dart::Class1.field.Class1_field_closure"
-  ],
-  "inferredType": "[subclass=Closure]",
-  "code": "set$field(field) {\n      this.field = type$.Type_Function._as(field);\n    }",
-  "type": "Type Function()"
-}],
-   holding=[
-    {"id":"field/memory:sdk/tests/web/native/main.dart::Class1.field","mask":null},
-    {"id":"function/dart:_js_helper::throwCyclicInit","mask":null},
-    {"id":"function/dart:_late_helper::throwLateFieldADI","mask":null},
-    {"id":"function/dart:_rti::Rti._bind","mask":null},
-    {"id":"function/dart:_rti::Rti._eval","mask":null},
-    {"id":"function/dart:_rti::_arrayInstanceType","mask":null},
-    {"id":"function/dart:_rti::_asBool","mask":null},
-    {"id":"function/dart:_rti::_asBoolQ","mask":null},
-    {"id":"function/dart:_rti::_asBoolS","mask":null},
-    {"id":"function/dart:_rti::_asDouble","mask":null},
-    {"id":"function/dart:_rti::_asDoubleQ","mask":null},
-    {"id":"function/dart:_rti::_asDoubleS","mask":null},
-    {"id":"function/dart:_rti::_asInt","mask":null},
-    {"id":"function/dart:_rti::_asIntQ","mask":null},
-    {"id":"function/dart:_rti::_asIntS","mask":null},
-    {"id":"function/dart:_rti::_asNum","mask":null},
-    {"id":"function/dart:_rti::_asNumQ","mask":null},
-    {"id":"function/dart:_rti::_asNumS","mask":null},
-    {"id":"function/dart:_rti::_asObject","mask":null},
-    {"id":"function/dart:_rti::_asString","mask":null},
-    {"id":"function/dart:_rti::_asStringQ","mask":null},
-    {"id":"function/dart:_rti::_asStringS","mask":null},
-    {"id":"function/dart:_rti::_asTop","mask":null},
-    {"id":"function/dart:_rti::_generalAsCheckImplementation","mask":null},
-    {"id":"function/dart:_rti::_generalIsTestImplementation","mask":null},
-    {"id":"function/dart:_rti::_generalNullableAsCheckImplementation","mask":null},
-    {"id":"function/dart:_rti::_generalNullableIsTestImplementation","mask":null},
-    {"id":"function/dart:_rti::_installSpecializedAsCheck","mask":null},
-    {"id":"function/dart:_rti::_installSpecializedIsTest","mask":null},
-    {"id":"function/dart:_rti::_instanceType","mask":null},
-    {"id":"function/dart:_rti::_isBool","mask":null},
-    {"id":"function/dart:_rti::_isInt","mask":null},
-    {"id":"function/dart:_rti::_isNum","mask":null},
-    {"id":"function/dart:_rti::_isObject","mask":null},
-    {"id":"function/dart:_rti::_isString","mask":null},
-    {"id":"function/dart:_rti::_isTop","mask":null},
-    {"id":"function/dart:_rti::findType","mask":null},
-    {"id":"function/dart:_rti::instanceType","mask":null}]
+    {"id":"field/memory:sdk/tests/web/native/main.dart::Class1.field"},
+    {"id":"function/dart:_js_helper::throwCyclicInit"},
+    {"id":"function/dart:_late_helper::throwLateFieldADI"},
+    {"id":"function/dart:_rti::Rti._bind"},
+    {"id":"function/dart:_rti::Rti._eval"},
+    {"id":"function/dart:_rti::_arrayInstanceType"},
+    {"id":"function/dart:_rti::_asBool"},
+    {"id":"function/dart:_rti::_asBoolQ"},
+    {"id":"function/dart:_rti::_asBoolS"},
+    {"id":"function/dart:_rti::_asDouble"},
+    {"id":"function/dart:_rti::_asDoubleQ"},
+    {"id":"function/dart:_rti::_asDoubleS"},
+    {"id":"function/dart:_rti::_asInt"},
+    {"id":"function/dart:_rti::_asIntQ"},
+    {"id":"function/dart:_rti::_asIntS"},
+    {"id":"function/dart:_rti::_asNum"},
+    {"id":"function/dart:_rti::_asNumQ"},
+    {"id":"function/dart:_rti::_asNumS"},
+    {"id":"function/dart:_rti::_asObject"},
+    {"id":"function/dart:_rti::_asString"},
+    {"id":"function/dart:_rti::_asStringQ"},
+    {"id":"function/dart:_rti::_asStringS"},
+    {"id":"function/dart:_rti::_asTop"},
+    {"id":"function/dart:_rti::_generalAsCheckImplementation"},
+    {"id":"function/dart:_rti::_generalIsTestImplementation"},
+    {"id":"function/dart:_rti::_generalNullableAsCheckImplementation"},
+    {"id":"function/dart:_rti::_generalNullableIsTestImplementation"},
+    {"id":"function/dart:_rti::_installSpecializedAsCheck"},
+    {"id":"function/dart:_rti::_installSpecializedIsTest"},
+    {"id":"function/dart:_rti::_instanceType"},
+    {"id":"function/dart:_rti::_isBool"},
+    {"id":"function/dart:_rti::_isInt"},
+    {"id":"function/dart:_rti::_isNum"},
+    {"id":"function/dart:_rti::_isObject"},
+    {"id":"function/dart:_rti::_isString"},
+    {"id":"function/dart:_rti::_isTop"},
+    {"id":"function/dart:_rti::findType"},
+    {"id":"function/dart:_rti::instanceType"}]
   */
   var field = () => T;
   /*member: Class1.funcField:
@@ -266,13 +203,13 @@ class Class1<T> {
   "type": "dynamic"
 }],
    holding=[
-    {"id":"field/memory:sdk/tests/web/native/main.dart::Class1.funcField","mask":null},
-    {"id":"function/dart:_js_helper::throwCyclicInit","mask":null},
-    {"id":"function/dart:_late_helper::throwLateFieldADI","mask":null}]
+    {"id":"field/memory:sdk/tests/web/native/main.dart::Class1.funcField"},
+    {"id":"function/dart:_js_helper::throwCyclicInit"},
+    {"id":"function/dart:_late_helper::throwLateFieldADI"}]
   */
   var funcField;
 
-  /*spec.member: Class1.:
+  /*member: Class1.:
    closure=[{
   "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.Class1.Class1_closure",
   "kind": "closure",
@@ -332,51 +269,10 @@ class Class1<T> {
   "functionKind": 2
 }],
    holding=[
-    {"id":"function/dart:_rti::Rti._eval","mask":null},
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.field.Class1_field_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.field.Class1_field_closure.call","mask":null}]
-  */
-  /*canary.member: Class1.:
-   closure=[{
-  "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.Class1.Class1_closure",
-  "kind": "closure",
-  "name": "Class1_closure",
-  "size": 204,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::Class1.Class1",
-  "function": "function/memory:sdk/tests/web/native/main.dart::Class1.Class1.Class1_closure.call"
-}],
-   function=[{
-  "id": "function/memory:sdk/tests/web/native/main.dart::Class1.Class1",
-  "kind": "function",
-  "name": "Class1",
-  "size": 355,
-  "outputUnit": "outputUnit/main",
-  "parent": "class/memory:sdk/tests/web/native/main.dart::Class1",
-  "children": [
-    "closure/memory:sdk/tests/web/native/main.dart::Class1.Class1.Class1_closure"
-  ],
-  "modifiers": {
-    "static": false,
-    "const": false,
-    "factory": false,
-    "external": false
-  },
-  "returnType": "dynamic",
-  "inferredReturnType": "[exact=Class1]",
-  "parameters": [],
-  "sideEffects": "SideEffects(reads nothing; writes field)",
-  "inlinedCount": 0,
-  "code": "Class1$($T) {\n      var t1 = new A.Class1(new A.Class1_field_closure($T), null, $T._eval$1(\"Class1<0>\"));\n      t1.Class1$0($T);\n      return t1;\n    }",
-  "type": "dynamic Function()",
-  "functionKind": 3
-}],
-   holding=[
-    {"id":"function/dart:_rti::Rti._eval","mask":null},
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.field.Class1_field_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.field.Class1_field_closure.call","mask":null}]
+    {"id":"function/dart:_rti::Rti._eval"},
+    {"id":"function/dart:_rti::_setArrayType"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.field.Class1_field_closure.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.field.Class1_field_closure.call"}]
   */
   Class1() {
     field = () => T;
@@ -413,10 +309,10 @@ class Class1<T> {
   "functionKind": 3
 }],
    holding=[
-    {"id":"function/dart:_rti::Rti._eval","mask":null},
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.field.Class1_field_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.field.Class1_field_closure.call","mask":null}]
+    {"id":"function/dart:_rti::Rti._eval"},
+    {"id":"function/dart:_rti::_setArrayType"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.field.Class1_field_closure.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.field.Class1_field_closure.call"}]
   */
   Class1.setFunc(this.funcField);
   /*member: Class1.fact:function=[{
@@ -443,7 +339,7 @@ class Class1<T> {
   "functionKind": 3
 }]*/
   factory Class1.fact() => new Class1<T>();
-  /*spec.member: Class1.fact2:
+  /*member: Class1.fact2:
    closure=[{
   "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact2.Class1_Class1$fact2_closure",
   "kind": "closure",
@@ -503,51 +399,10 @@ class Class1<T> {
   "functionKind": 2
 }],
    holding=[
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact2.Class1_Class1$fact2_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact2.Class1_Class1$fact2_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.setFunc","mask":null}]
-  */
-  /*canary.member: Class1.fact2:
-   closure=[{
-  "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact2.Class1_Class1$fact2_closure",
-  "kind": "closure",
-  "name": "Class1_Class1$fact2_closure",
-  "size": 314,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact2",
-  "function": "function/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact2.Class1_Class1$fact2_closure.call"
-}],
-   function=[{
-  "id": "function/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact2",
-  "kind": "function",
-  "name": "Class1.fact2",
-  "size": 419,
-  "outputUnit": "outputUnit/main",
-  "parent": "class/memory:sdk/tests/web/native/main.dart::Class1",
-  "children": [
-    "closure/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact2.Class1_Class1$fact2_closure"
-  ],
-  "modifiers": {
-    "static": false,
-    "const": false,
-    "factory": true,
-    "external": false
-  },
-  "returnType": "Class1<#Afree>",
-  "inferredReturnType": "[exact=Class1]",
-  "parameters": [],
-  "sideEffects": "SideEffects(reads nothing; writes nothing)",
-  "inlinedCount": 0,
-  "code": "Class1_Class1$fact2($T) {\n      return A.Class1$setFunc(new A.Class1_Class1$fact2_closure($T), $T);\n    }",
-  "type": "Class1<#A> Function<#A extends Object?>()",
-  "functionKind": 3
-}],
-   holding=[
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact2.Class1_Class1$fact2_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact2.Class1_Class1$fact2_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.setFunc","mask":null}]
+    {"id":"function/dart:_rti::_setArrayType"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact2.Class1_Class1$fact2_closure.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact2.Class1_Class1$fact2_closure.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.setFunc"}]
   */
   factory Class1.fact2() => new Class1.setFunc(() => new Set<T>());
 
@@ -575,7 +430,7 @@ class Class1<T> {
   "functionKind": 2
 }]*/
   method1() => T;
-  /*spec.member: Class1.method2:
+  /*member: Class1.method2:
    closure=[{
   "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.method2.Class1_method2_closure",
   "kind": "closure",
@@ -635,49 +490,9 @@ class Class1<T> {
   "functionKind": 2
 }],
    holding=[
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method2.Class1_method2_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method2.Class1_method2_closure.call","mask":null}]
-  */
-  /*canary.member: Class1.method2:
-   closure=[{
-  "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.method2.Class1_method2_closure",
-  "kind": "closure",
-  "name": "Class1_method2_closure",
-  "size": 262,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::Class1.method2",
-  "function": "function/memory:sdk/tests/web/native/main.dart::Class1.method2.Class1_method2_closure.call"
-}],
-   function=[{
-  "id": "function/memory:sdk/tests/web/native/main.dart::Class1.method2",
-  "kind": "function",
-  "name": "method2",
-  "size": 330,
-  "outputUnit": "outputUnit/main",
-  "parent": "class/memory:sdk/tests/web/native/main.dart::Class1",
-  "children": [
-    "closure/memory:sdk/tests/web/native/main.dart::Class1.method2.Class1_method2_closure"
-  ],
-  "modifiers": {
-    "static": false,
-    "const": false,
-    "factory": false,
-    "external": false
-  },
-  "returnType": "dynamic",
-  "inferredReturnType": "[subclass=Closure]",
-  "parameters": [],
-  "sideEffects": "SideEffects(reads nothing; writes nothing)",
-  "inlinedCount": 0,
-  "code": "method2$0() {\n      return new A.Class1_method2_closure(this);\n    }",
-  "type": "dynamic Function()",
-  "functionKind": 2
-}],
-   holding=[
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method2.Class1_method2_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method2.Class1_method2_closure.call","mask":null}]
+    {"id":"function/dart:_rti::_setArrayType"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method2.Class1_method2_closure.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method2.Class1_method2_closure.call"}]
   */
   method2() {
     return () => T;
@@ -707,7 +522,7 @@ class Class1<T> {
   "functionKind": 2
 }]*/
   method3<S>() => S;
-  /*spec.member: Class1.method4:
+  /*member: Class1.method4:
    closure=[{
   "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.method4.Class1_method4_closure",
   "kind": "closure",
@@ -767,55 +582,15 @@ class Class1<T> {
   "functionKind": 2
 }],
    holding=[
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method4.Class1_method4_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method4.Class1_method4_closure.call","mask":null}]
-  */
-  /*canary.member: Class1.method4:
-   closure=[{
-  "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.method4.Class1_method4_closure",
-  "kind": "closure",
-  "name": "Class1_method4_closure",
-  "size": 236,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::Class1.method4",
-  "function": "function/memory:sdk/tests/web/native/main.dart::Class1.method4.Class1_method4_closure.call"
-}],
-   function=[{
-  "id": "function/memory:sdk/tests/web/native/main.dart::Class1.method4",
-  "kind": "function",
-  "name": "method4",
-  "size": 306,
-  "outputUnit": "outputUnit/main",
-  "parent": "class/memory:sdk/tests/web/native/main.dart::Class1",
-  "children": [
-    "closure/memory:sdk/tests/web/native/main.dart::Class1.method4.Class1_method4_closure"
-  ],
-  "modifiers": {
-    "static": false,
-    "const": false,
-    "factory": false,
-    "external": false
-  },
-  "returnType": "dynamic",
-  "inferredReturnType": "[subclass=Closure]",
-  "parameters": [],
-  "sideEffects": "SideEffects(reads nothing; writes nothing)",
-  "inlinedCount": 0,
-  "code": "method4$1$0($S) {\n      return new A.Class1_method4_closure($S);\n    }",
-  "type": "dynamic Function<#A extends Object?>()",
-  "functionKind": 2
-}],
-   holding=[
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method4.Class1_method4_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method4.Class1_method4_closure.call","mask":null}]
+    {"id":"function/dart:_rti::_setArrayType"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method4.Class1_method4_closure.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method4.Class1_method4_closure.call"}]
   */
   method4<S>() {
     return () => S;
   }
 
-  /*spec.member: Class1.method5:
+  /*member: Class1.method5:
    closure=[
     {
   "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.method5.Class1_method5_local",
@@ -909,62 +684,10 @@ class Class1<T> {
   "functionKind": 2
 }],
    holding=[
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/dart:_rti::findType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method5.Class1_method5_local.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method5.Class1_method5_local.call","mask":null}]
-  */
-  /*canary.member: Class1.method5:
-   closure=[
-    {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.method5.Class1_method5_local",
-  "kind": "closure",
-  "name": "Class1_method5_local",
-  "size": 287,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::Class1.method5",
-  "function": "function/memory:sdk/tests/web/native/main.dart::Class1.method5.Class1_method5_local.call"
-},
-    {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.method5.Class1_method5_local_closure",
-  "kind": "closure",
-  "name": "Class1_method5_local_closure",
-  "size": 260,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::Class1.method5",
-  "function": "function/memory:sdk/tests/web/native/main.dart::Class1.method5.Class1_method5_local_closure.call"
-}],
-   function=[{
-  "id": "function/memory:sdk/tests/web/native/main.dart::Class1.method5",
-  "kind": "function",
-  "name": "method5",
-  "size": 632,
-  "outputUnit": "outputUnit/main",
-  "parent": "class/memory:sdk/tests/web/native/main.dart::Class1",
-  "children": [
-    "closure/memory:sdk/tests/web/native/main.dart::Class1.method5.Class1_method5_local",
-    "closure/memory:sdk/tests/web/native/main.dart::Class1.method5.Class1_method5_local_closure"
-  ],
-  "modifiers": {
-    "static": false,
-    "const": false,
-    "factory": false,
-    "external": false
-  },
-  "returnType": "dynamic",
-  "inferredReturnType": "[subclass=Closure]",
-  "parameters": [],
-  "sideEffects": "SideEffects(reads nothing; writes nothing)",
-  "inlinedCount": 0,
-  "code": "method5$0() {\n      return new A.Class1_method5_local().call$1$0(type$.double);\n    }",
-  "type": "dynamic Function()",
-  "functionKind": 2
-}],
-   holding=[
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/dart:_rti::findType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method5.Class1_method5_local.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method5.Class1_method5_local.call","mask":null}]
+    {"id":"function/dart:_rti::_setArrayType"},
+    {"id":"function/dart:_rti::findType"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method5.Class1_method5_local.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method5.Class1_method5_local.call"}]
   */
   method5() {
     local<S>() {
@@ -974,7 +697,7 @@ class Class1<T> {
     return local<double>();
   }
 
-  /*spec.member: Class1.method6:
+  /*member: Class1.method6:
    closure=[
     {
   "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6__closure",
@@ -1140,86 +863,12 @@ class Class1<T> {
   "functionKind": 2
 }],
    holding=[
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/dart:_rti::findType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_local.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_local.call","mask":null}]
-  */
-  /*canary.member: Class1.method6:
-   closure=[
-    {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6__closure",
-  "kind": "closure",
-  "name": "Class1_method6__closure",
-  "size": 415,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::Class1.method6",
-  "function": "function/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6__closure.call"
-},
-    {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_closure",
-  "kind": "closure",
-  "name": "Class1_method6_closure",
-  "size": 363,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::Class1.method6",
-  "function": "function/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_closure.call"
-},
-    {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_local",
-  "kind": "closure",
-  "name": "Class1_method6_local",
-  "size": 316,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::Class1.method6",
-  "function": "function/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_local.call"
-},
-    {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_local_closure",
-  "kind": "closure",
-  "name": "Class1_method6_local_closure",
-  "size": 341,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::Class1.method6",
-  "function": "function/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_local_closure.call"
-}],
-   function=[{
-  "id": "function/memory:sdk/tests/web/native/main.dart::Class1.method6",
-  "kind": "function",
-  "name": "method6",
-  "size": 1573,
-  "outputUnit": "outputUnit/main",
-  "parent": "class/memory:sdk/tests/web/native/main.dart::Class1",
-  "children": [
-    "closure/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6__closure",
-    "closure/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_closure",
-    "closure/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_local",
-    "closure/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_local_closure"
-  ],
-  "modifiers": {
-    "static": false,
-    "const": false,
-    "factory": false,
-    "external": false
-  },
-  "returnType": "dynamic",
-  "inferredReturnType": "[subclass=Closure]",
-  "parameters": [],
-  "sideEffects": "SideEffects(reads anything; writes anything)",
-  "inlinedCount": 0,
-  "code": "method6$1$0($S) {\n      return new A.Class1_method6_closure(this, $S).call$1(new A.Class1_method6_local($S).call$1$0(type$.double));\n    }",
-  "type": "dynamic Function<#A extends Object?>()",
-  "functionKind": 2
-}],
-   holding=[
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/dart:_rti::findType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_local.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_local.call","mask":null}]
+    {"id":"function/dart:_rti::_setArrayType"},
+    {"id":"function/dart:_rti::findType"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_closure.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_closure.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_local.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method6.Class1_method6_local.call"}]
   */
   method6<S>() {
     local<U>() {
@@ -1256,7 +905,7 @@ class Class1<T> {
   "functionKind": 0
 }]*/
   static staticMethod1<S>() => S;
-  /*spec.member: Class1.staticMethod2:
+  /*member: Class1.staticMethod2:
    closure=[{
   "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.staticMethod2.Class1_staticMethod2_closure",
   "kind": "closure",
@@ -1316,55 +965,15 @@ class Class1<T> {
   "functionKind": 2
 }],
    holding=[
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod2.Class1_staticMethod2_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod2.Class1_staticMethod2_closure.call","mask":null}]
-  */
-  /*canary.member: Class1.staticMethod2:
-   closure=[{
-  "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.staticMethod2.Class1_staticMethod2_closure",
-  "kind": "closure",
-  "name": "Class1_staticMethod2_closure",
-  "size": 260,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod2",
-  "function": "function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod2.Class1_staticMethod2_closure.call"
-}],
-   function=[{
-  "id": "function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod2",
-  "kind": "function",
-  "name": "staticMethod2",
-  "size": 345,
-  "outputUnit": "outputUnit/main",
-  "parent": "class/memory:sdk/tests/web/native/main.dart::Class1",
-  "children": [
-    "closure/memory:sdk/tests/web/native/main.dart::Class1.staticMethod2.Class1_staticMethod2_closure"
-  ],
-  "modifiers": {
-    "static": true,
-    "const": false,
-    "factory": false,
-    "external": false
-  },
-  "returnType": "dynamic",
-  "inferredReturnType": "[subclass=Closure]",
-  "parameters": [],
-  "sideEffects": "SideEffects(reads nothing; writes nothing)",
-  "inlinedCount": 0,
-  "code": "Class1_staticMethod2($S) {\n      return new A.Class1_staticMethod2_closure($S);\n    }",
-  "type": "dynamic Function<#A extends Object?>()",
-  "functionKind": 0
-}],
-   holding=[
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod2.Class1_staticMethod2_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod2.Class1_staticMethod2_closure.call","mask":null}]
+    {"id":"function/dart:_rti::_setArrayType"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod2.Class1_staticMethod2_closure.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod2.Class1_staticMethod2_closure.call"}]
   */
   static staticMethod2<S>() {
     return () => S;
   }
 
-  /*spec.member: Class1.staticMethod3:
+  /*member: Class1.staticMethod3:
    closure=[
     {
   "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.staticMethod3.Class1_staticMethod3_local",
@@ -1458,62 +1067,10 @@ class Class1<T> {
   "functionKind": 2
 }],
    holding=[
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/dart:_rti::findType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod3.Class1_staticMethod3_local.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod3.Class1_staticMethod3_local.call","mask":null}]
-  */
-  /*canary.member: Class1.staticMethod3:
-   closure=[
-    {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.staticMethod3.Class1_staticMethod3_local",
-  "kind": "closure",
-  "name": "Class1_staticMethod3_local",
-  "size": 317,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod3",
-  "function": "function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod3.Class1_staticMethod3_local.call"
-},
-    {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.staticMethod3.Class1_staticMethod3_local_closure",
-  "kind": "closure",
-  "name": "Class1_staticMethod3_local_closure",
-  "size": 284,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod3",
-  "function": "function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod3.Class1_staticMethod3_local_closure.call"
-}],
-   function=[{
-  "id": "function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod3",
-  "kind": "function",
-  "name": "staticMethod3",
-  "size": 703,
-  "outputUnit": "outputUnit/main",
-  "parent": "class/memory:sdk/tests/web/native/main.dart::Class1",
-  "children": [
-    "closure/memory:sdk/tests/web/native/main.dart::Class1.staticMethod3.Class1_staticMethod3_local",
-    "closure/memory:sdk/tests/web/native/main.dart::Class1.staticMethod3.Class1_staticMethod3_local_closure"
-  ],
-  "modifiers": {
-    "static": true,
-    "const": false,
-    "factory": false,
-    "external": false
-  },
-  "returnType": "dynamic",
-  "inferredReturnType": "[subclass=Closure]",
-  "parameters": [],
-  "sideEffects": "SideEffects(reads nothing; writes nothing)",
-  "inlinedCount": 0,
-  "code": "Class1_staticMethod3() {\n      return new A.Class1_staticMethod3_local().call$1$0(type$.double);\n    }",
-  "type": "dynamic Function()",
-  "functionKind": 0
-}],
-   holding=[
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/dart:_rti::findType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod3.Class1_staticMethod3_local.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod3.Class1_staticMethod3_local.call","mask":null}]
+    {"id":"function/dart:_rti::_setArrayType"},
+    {"id":"function/dart:_rti::findType"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod3.Class1_staticMethod3_local.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod3.Class1_staticMethod3_local.call"}]
   */
   static staticMethod3() {
     local<S>() {
@@ -1523,7 +1080,7 @@ class Class1<T> {
     return local<double>();
   }
 
-  /*spec.member: Class1.staticMethod4:
+  /*member: Class1.staticMethod4:
    closure=[
     {
   "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4__closure",
@@ -1689,86 +1246,12 @@ class Class1<T> {
   "functionKind": 2
 }],
    holding=[
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/dart:_rti::findType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_local.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_local.call","mask":null}]
-  */
-  /*canary.member: Class1.staticMethod4:
-   closure=[
-    {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4__closure",
-  "kind": "closure",
-  "name": "Class1_staticMethod4__closure",
-  "size": 322,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4",
-  "function": "function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4__closure.call"
-},
-    {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_closure",
-  "kind": "closure",
-  "name": "Class1_staticMethod4_closure",
-  "size": 328,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4",
-  "function": "function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_closure.call"
-},
-    {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_local",
-  "kind": "closure",
-  "name": "Class1_staticMethod4_local",
-  "size": 346,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4",
-  "function": "function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_local.call"
-},
-    {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_local_closure",
-  "kind": "closure",
-  "name": "Class1_staticMethod4_local_closure",
-  "size": 365,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4",
-  "function": "function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_local_closure.call"
-}],
-   function=[{
-  "id": "function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4",
-  "kind": "function",
-  "name": "staticMethod4",
-  "size": 1514,
-  "outputUnit": "outputUnit/main",
-  "parent": "class/memory:sdk/tests/web/native/main.dart::Class1",
-  "children": [
-    "closure/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4__closure",
-    "closure/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_closure",
-    "closure/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_local",
-    "closure/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_local_closure"
-  ],
-  "modifiers": {
-    "static": true,
-    "const": false,
-    "factory": false,
-    "external": false
-  },
-  "returnType": "dynamic",
-  "inferredReturnType": "[subclass=Closure]",
-  "parameters": [],
-  "sideEffects": "SideEffects(reads anything; writes anything)",
-  "inlinedCount": 0,
-  "code": "Class1_staticMethod4($S) {\n      return new A.Class1_staticMethod4_closure($S).call$1(new A.Class1_staticMethod4_local($S).call$1$0(type$.double));\n    }",
-  "type": "dynamic Function<#A extends Object?>()",
-  "functionKind": 0
-}],
-   holding=[
-    {"id":"function/dart:_rti::_setArrayType","mask":null},
-    {"id":"function/dart:_rti::findType","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_closure.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_local.call","mask":null},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_local.call","mask":null}]
+    {"id":"function/dart:_rti::_setArrayType"},
+    {"id":"function/dart:_rti::findType"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_closure.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_closure.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_local.call"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4.Class1_staticMethod4_local.call"}]
   */
   static staticMethod4<S>() {
     local<U>() {
@@ -1807,7 +1290,7 @@ class Class1<T> {
 }]*/
 topLevelMethod1<S>() => S;
 
-/*spec.member: topLevelMethod2:
+/*member: topLevelMethod2:
  closure=[{
   "id": "closure/memory:sdk/tests/web/native/main.dart::topLevelMethod2.topLevelMethod2_closure",
   "kind": "closure",
@@ -1867,55 +1350,15 @@ topLevelMethod1<S>() => S;
   "functionKind": 2
 }],
  holding=[
-  {"id":"function/dart:_rti::_setArrayType","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod2.topLevelMethod2_closure.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod2.topLevelMethod2_closure.call","mask":null}]
-*/
-/*canary.member: topLevelMethod2:
- closure=[{
-  "id": "closure/memory:sdk/tests/web/native/main.dart::topLevelMethod2.topLevelMethod2_closure",
-  "kind": "closure",
-  "name": "topLevelMethod2_closure",
-  "size": 240,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::topLevelMethod2",
-  "function": "function/memory:sdk/tests/web/native/main.dart::topLevelMethod2.topLevelMethod2_closure.call"
-}],
- function=[{
-  "id": "function/memory:sdk/tests/web/native/main.dart::topLevelMethod2",
-  "kind": "function",
-  "name": "topLevelMethod2",
-  "size": 315,
-  "outputUnit": "outputUnit/main",
-  "parent": "library/memory:sdk/tests/web/native/main.dart::",
-  "children": [
-    "closure/memory:sdk/tests/web/native/main.dart::topLevelMethod2.topLevelMethod2_closure"
-  ],
-  "modifiers": {
-    "static": false,
-    "const": false,
-    "factory": false,
-    "external": false
-  },
-  "returnType": "dynamic",
-  "inferredReturnType": "[subclass=Closure]",
-  "parameters": [],
-  "sideEffects": "SideEffects(reads nothing; writes nothing)",
-  "inlinedCount": 0,
-  "code": "topLevelMethod2($S) {\n      return new A.topLevelMethod2_closure($S);\n    }",
-  "type": "dynamic Function<#A extends Object?>()",
-  "functionKind": 0
-}],
- holding=[
-  {"id":"function/dart:_rti::_setArrayType","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod2.topLevelMethod2_closure.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod2.topLevelMethod2_closure.call","mask":null}]
+  {"id":"function/dart:_rti::_setArrayType"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod2.topLevelMethod2_closure.call"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod2.topLevelMethod2_closure.call"}]
 */
 topLevelMethod2<S>() {
   return () => S;
 }
 
-/*spec.member: topLevelMethod3:
+/*member: topLevelMethod3:
  closure=[
   {
   "id": "closure/memory:sdk/tests/web/native/main.dart::topLevelMethod3.topLevelMethod3_local",
@@ -2009,62 +1452,10 @@ topLevelMethod2<S>() {
   "functionKind": 2
 }],
  holding=[
-  {"id":"function/dart:_rti::_setArrayType","mask":null},
-  {"id":"function/dart:_rti::findType","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod3.topLevelMethod3_local.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod3.topLevelMethod3_local.call","mask":null}]
-*/
-/*canary.member: topLevelMethod3:
- closure=[
-  {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::topLevelMethod3.topLevelMethod3_local",
-  "kind": "closure",
-  "name": "topLevelMethod3_local",
-  "size": 292,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::topLevelMethod3",
-  "function": "function/memory:sdk/tests/web/native/main.dart::topLevelMethod3.topLevelMethod3_local.call"
-},
-  {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::topLevelMethod3.topLevelMethod3_local_closure",
-  "kind": "closure",
-  "name": "topLevelMethod3_local_closure",
-  "size": 264,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::topLevelMethod3",
-  "function": "function/memory:sdk/tests/web/native/main.dart::topLevelMethod3.topLevelMethod3_local_closure.call"
-}],
- function=[{
-  "id": "function/memory:sdk/tests/web/native/main.dart::topLevelMethod3",
-  "kind": "function",
-  "name": "topLevelMethod3",
-  "size": 648,
-  "outputUnit": "outputUnit/main",
-  "parent": "library/memory:sdk/tests/web/native/main.dart::",
-  "children": [
-    "closure/memory:sdk/tests/web/native/main.dart::topLevelMethod3.topLevelMethod3_local",
-    "closure/memory:sdk/tests/web/native/main.dart::topLevelMethod3.topLevelMethod3_local_closure"
-  ],
-  "modifiers": {
-    "static": false,
-    "const": false,
-    "factory": false,
-    "external": false
-  },
-  "returnType": "dynamic",
-  "inferredReturnType": "[subclass=Closure]",
-  "parameters": [],
-  "sideEffects": "SideEffects(reads nothing; writes nothing)",
-  "inlinedCount": 0,
-  "code": "topLevelMethod3() {\n      return new A.topLevelMethod3_local().call$1$0(type$.double);\n    }",
-  "type": "dynamic Function()",
-  "functionKind": 0
-}],
- holding=[
-  {"id":"function/dart:_rti::_setArrayType","mask":null},
-  {"id":"function/dart:_rti::findType","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod3.topLevelMethod3_local.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod3.topLevelMethod3_local.call","mask":null}]
+  {"id":"function/dart:_rti::_setArrayType"},
+  {"id":"function/dart:_rti::findType"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod3.topLevelMethod3_local.call"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod3.topLevelMethod3_local.call"}]
 */
 topLevelMethod3() {
   local<S>() {
@@ -2074,7 +1465,7 @@ topLevelMethod3() {
   return local<double>();
 }
 
-/*spec.member: topLevelMethod4:
+/*member: topLevelMethod4:
  closure=[
   {
   "id": "closure/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4__closure",
@@ -2240,86 +1631,12 @@ topLevelMethod3() {
   "functionKind": 2
 }],
  holding=[
-  {"id":"function/dart:_rti::_setArrayType","mask":null},
-  {"id":"function/dart:_rti::findType","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_closure.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_closure.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_local.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_local.call","mask":null}]
-*/
-/*canary.member: topLevelMethod4:
- closure=[
-  {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4__closure",
-  "kind": "closure",
-  "name": "topLevelMethod4__closure",
-  "size": 302,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::topLevelMethod4",
-  "function": "function/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4__closure.call"
-},
-  {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_closure",
-  "kind": "closure",
-  "name": "topLevelMethod4_closure",
-  "size": 303,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::topLevelMethod4",
-  "function": "function/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_closure.call"
-},
-  {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_local",
-  "kind": "closure",
-  "name": "topLevelMethod4_local",
-  "size": 321,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::topLevelMethod4",
-  "function": "function/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_local.call"
-},
-  {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_local_closure",
-  "kind": "closure",
-  "name": "topLevelMethod4_local_closure",
-  "size": 345,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::topLevelMethod4",
-  "function": "function/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_local_closure.call"
-}],
- function=[{
-  "id": "function/memory:sdk/tests/web/native/main.dart::topLevelMethod4",
-  "kind": "function",
-  "name": "topLevelMethod4",
-  "size": 1409,
-  "outputUnit": "outputUnit/main",
-  "parent": "library/memory:sdk/tests/web/native/main.dart::",
-  "children": [
-    "closure/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4__closure",
-    "closure/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_closure",
-    "closure/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_local",
-    "closure/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_local_closure"
-  ],
-  "modifiers": {
-    "static": false,
-    "const": false,
-    "factory": false,
-    "external": false
-  },
-  "returnType": "dynamic",
-  "inferredReturnType": "[subclass=Closure]",
-  "parameters": [],
-  "sideEffects": "SideEffects(reads anything; writes anything)",
-  "inlinedCount": 0,
-  "code": "topLevelMethod4($S) {\n      return new A.topLevelMethod4_closure($S).call$1(new A.topLevelMethod4_local($S).call$1$0(type$.double));\n    }",
-  "type": "dynamic Function<#A extends Object?>()",
-  "functionKind": 0
-}],
- holding=[
-  {"id":"function/dart:_rti::_setArrayType","mask":null},
-  {"id":"function/dart:_rti::findType","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_closure.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_closure.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_local.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_local.call","mask":null}]
+  {"id":"function/dart:_rti::_setArrayType"},
+  {"id":"function/dart:_rti::findType"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_closure.call"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_closure.call"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_local.call"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod4.topLevelMethod4_local.call"}]
 */
 topLevelMethod4<S>() {
   local<U>() {
@@ -2332,7 +1649,7 @@ topLevelMethod4<S>() {
   return local2(local<double>());
 }
 
-/*spec.member: twoLocals:
+/*member: twoLocals:
  closure=[
   {
   "id": "closure/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local1",
@@ -2426,64 +1743,11 @@ topLevelMethod4<S>() {
   "functionKind": 2
 }],
  holding=[
-  {"id":"function/dart:_rti::_setArrayType","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local1.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local1.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local2.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local2.call","mask":null}]
-*/
-/*canary.member: twoLocals:
- closure=[
-  {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local1",
-  "kind": "closure",
-  "name": "twoLocals_local1",
-  "size": 149,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::twoLocals",
-  "function": "function/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local1.call"
-},
-  {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local2",
-  "kind": "closure",
-  "name": "twoLocals_local2",
-  "size": 210,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::twoLocals",
-  "function": "function/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local2.call"
-}],
- function=[{
-  "id": "function/memory:sdk/tests/web/native/main.dart::twoLocals",
-  "kind": "function",
-  "name": "twoLocals",
-  "size": 441,
-  "outputUnit": "outputUnit/main",
-  "parent": "library/memory:sdk/tests/web/native/main.dart::",
-  "children": [
-    "closure/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local1",
-    "closure/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local2"
-  ],
-  "modifiers": {
-    "static": false,
-    "const": false,
-    "factory": false,
-    "external": false
-  },
-  "returnType": "dynamic",
-  "inferredReturnType": "[subclass=Closure]",
-  "parameters": [],
-  "sideEffects": "SideEffects(reads nothing; writes nothing)",
-  "inlinedCount": 0,
-  "code": "twoLocals() {\n      return new A.twoLocals_local2(new A.twoLocals_local1());\n    }",
-  "type": "dynamic Function()",
-  "functionKind": 0
-}],
- holding=[
-  {"id":"function/dart:_rti::_setArrayType","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local1.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local1.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local2.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local2.call","mask":null}]
+  {"id":"function/dart:_rti::_setArrayType"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local1.call"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local1.call"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local2.call"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::twoLocals.twoLocals_local2.call"}]
 */
 dynamic twoLocals() {
   local1() {}
@@ -2491,7 +1755,7 @@ dynamic twoLocals() {
   return local2;
 }
 
-/*spec.member: nested:
+/*member: nested:
  closure=[
   {
   "id": "closure/memory:sdk/tests/web/native/main.dart::nested.nested_nested1",
@@ -2585,60 +1849,9 @@ dynamic twoLocals() {
   "functionKind": 2
 }],
  holding=[
-  {"id":"function/dart:_rti::_setArrayType","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::nested.nested_nested1.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::nested.nested_nested1.call","mask":null}]
-*/
-/*canary.member: nested:
- closure=[
-  {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::nested.nested_nested1",
-  "kind": "closure",
-  "name": "nested_nested1",
-  "size": 225,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::nested",
-  "function": "function/memory:sdk/tests/web/native/main.dart::nested.nested_nested1.call"
-},
-  {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::nested.nested_nested1_nested2",
-  "kind": "closure",
-  "name": "nested_nested1_nested2",
-  "size": 227,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::nested",
-  "function": "function/memory:sdk/tests/web/native/main.dart::nested.nested_nested1_nested2.call"
-}],
- function=[{
-  "id": "function/memory:sdk/tests/web/native/main.dart::nested",
-  "kind": "function",
-  "name": "nested",
-  "size": 568,
-  "outputUnit": "outputUnit/main",
-  "parent": "library/memory:sdk/tests/web/native/main.dart::",
-  "children": [
-    "closure/memory:sdk/tests/web/native/main.dart::nested.nested_nested1",
-    "closure/memory:sdk/tests/web/native/main.dart::nested.nested_nested1_nested2"
-  ],
-  "modifiers": {
-    "static": false,
-    "const": false,
-    "factory": false,
-    "external": false
-  },
-  "returnType": "dynamic",
-  "inferredReturnType": "[null]",
-  "parameters": [],
-  "sideEffects": "SideEffects(reads anything; writes anything)",
-  "inlinedCount": 0,
-  "code": "nested() {\n      var t1 = {};\n      t1.x = null;\n      new A.nested_nested1(t1).call$0();\n      t1.x.call$0();\n    }",
-  "type": "dynamic Function()",
-  "functionKind": 0
-}],
- holding=[
-  {"id":"function/dart:_rti::_setArrayType","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::nested.nested_nested1.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::nested.nested_nested1.call","mask":null}]
+  {"id":"function/dart:_rti::_setArrayType"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::nested.nested_nested1.call"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::nested.nested_nested1.call"}]
 */
 dynamic nested() {
   dynamic x;
@@ -2651,7 +1864,7 @@ dynamic nested() {
   x();
 }
 
-/*spec.member: nested2:
+/*member: nested2:
  closure=[
   {
   "id": "closure/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1",
@@ -2778,72 +1991,10 @@ dynamic nested() {
   "functionKind": 2
 }],
  holding=[
-  {"id":"function/dart:_rti::_setArrayType","mask":null},
-  {"id":"function/dart:core::print","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1.call","mask":null}]
-*/
-/*canary.member: nested2:
- closure=[
-  {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1",
-  "kind": "closure",
-  "name": "nested2_local1",
-  "size": 195,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::nested2",
-  "function": "function/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1.call"
-},
-  {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1__closure",
-  "kind": "closure",
-  "name": "nested2_local1__closure",
-  "size": 193,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::nested2",
-  "function": "function/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1__closure.call"
-},
-  {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1_closure",
-  "kind": "closure",
-  "name": "nested2_local1_closure",
-  "size": 311,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::nested2",
-  "function": "function/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1_closure.call"
-}],
- function=[{
-  "id": "function/memory:sdk/tests/web/native/main.dart::nested2",
-  "kind": "function",
-  "name": "nested2",
-  "size": 764,
-  "outputUnit": "outputUnit/main",
-  "parent": "library/memory:sdk/tests/web/native/main.dart::",
-  "children": [
-    "closure/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1",
-    "closure/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1__closure",
-    "closure/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1_closure"
-  ],
-  "modifiers": {
-    "static": false,
-    "const": false,
-    "factory": false,
-    "external": false
-  },
-  "returnType": "dynamic",
-  "inferredReturnType": "[null]",
-  "parameters": [],
-  "sideEffects": "SideEffects(reads anything; writes anything)",
-  "inlinedCount": 0,
-  "code": "nested2() {\n      A.print(new A.nested2_local1().call$0());\n    }",
-  "type": "dynamic Function()",
-  "functionKind": 0
-}],
- holding=[
-  {"id":"function/dart:_rti::_setArrayType","mask":null},
-  {"id":"function/dart:core::print","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1.call","mask":null}]
+  {"id":"function/dart:_rti::_setArrayType"},
+  {"id":"function/dart:core::print"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1.call"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1.call"}]
 */
 dynamic nested2() {
   dynamic y;
@@ -2855,7 +2006,7 @@ dynamic nested2() {
   print(y);
 }
 
-/*spec.member: siblings:
+/*member: siblings:
  closure=[
   {
   "id": "closure/memory:sdk/tests/web/native/main.dart::siblings.siblings_local1",
@@ -2982,72 +2133,10 @@ dynamic nested2() {
   "functionKind": 2
 }],
  holding=[
-  {"id":"function/dart:_rti::_setArrayType","mask":null},
-  {"id":"function/dart:core::print","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::siblings.siblings_local1.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::siblings.siblings_local1.call","mask":null}]
-*/
-/*canary.member: siblings:
- closure=[
-  {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::siblings.siblings_local1",
-  "kind": "closure",
-  "name": "siblings_local1",
-  "size": 244,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::siblings",
-  "function": "function/memory:sdk/tests/web/native/main.dart::siblings.siblings_local1.call"
-},
-  {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::siblings.siblings_local1_closure",
-  "kind": "closure",
-  "name": "siblings_local1_closure",
-  "size": 193,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::siblings",
-  "function": "function/memory:sdk/tests/web/native/main.dart::siblings.siblings_local1_closure.call"
-},
-  {
-  "id": "closure/memory:sdk/tests/web/native/main.dart::siblings.siblings_local1_closure%0",
-  "kind": "closure",
-  "name": "siblings_local1_closure",
-  "size": 197,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::siblings",
-  "function": "function/memory:sdk/tests/web/native/main.dart::siblings.siblings_local1_closure.call%0"
-}],
- function=[{
-  "id": "function/memory:sdk/tests/web/native/main.dart::siblings",
-  "kind": "function",
-  "name": "siblings",
-  "size": 701,
-  "outputUnit": "outputUnit/main",
-  "parent": "library/memory:sdk/tests/web/native/main.dart::",
-  "children": [
-    "closure/memory:sdk/tests/web/native/main.dart::siblings.siblings_local1",
-    "closure/memory:sdk/tests/web/native/main.dart::siblings.siblings_local1_closure",
-    "closure/memory:sdk/tests/web/native/main.dart::siblings.siblings_local1_closure%0"
-  ],
-  "modifiers": {
-    "static": false,
-    "const": false,
-    "factory": false,
-    "external": false
-  },
-  "returnType": "dynamic",
-  "inferredReturnType": "[null]",
-  "parameters": [],
-  "sideEffects": "SideEffects(reads anything; writes anything)",
-  "inlinedCount": 0,
-  "code": "siblings() {\n      A.print(new A.siblings_local1().call$0());\n    }",
-  "type": "dynamic Function()",
-  "functionKind": 0
-}],
- holding=[
-  {"id":"function/dart:_rti::_setArrayType","mask":null},
-  {"id":"function/dart:core::print","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::siblings.siblings_local1.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::siblings.siblings_local1.call","mask":null}]
+  {"id":"function/dart:_rti::_setArrayType"},
+  {"id":"function/dart:core::print"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::siblings.siblings_local1.call"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::siblings.siblings_local1.call"}]
 */
 dynamic siblings() {
   int local1() {
@@ -3085,36 +2174,36 @@ dynamic siblings() {
   "functionKind": 0
 }],
  holding=[
-  {"id":"field/dart:_rti::Rti._precomputed1","mask":null},
-  {"id":"field/memory:sdk/tests/web/native/main.dart::Class1.funcField","mask":null},
-  {"id":"function/dart:_rti::createRuntimeType","mask":null},
-  {"id":"function/dart:_rti::findType","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1","mask":null},
+  {"id":"field/dart:_rti::Rti._precomputed1"},
+  {"id":"field/memory:sdk/tests/web/native/main.dart::Class1.funcField"},
+  {"id":"function/dart:_rti::createRuntimeType"},
+  {"id":"function/dart:_rti::findType"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact","mask":"inlined"},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact2","mask":null},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.Class1.fact2"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method1","mask":"inlined"},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method1","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method2","mask":null},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method1"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method2"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method3","mask":"inlined"},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method3","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method4","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method5","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method6","mask":null},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method3"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method4"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method5"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.method6"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod1","mask":"inlined"},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod1","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod2","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod3","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::nested","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::nested2","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::siblings","mask":null},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod1"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod2"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod3"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Class1.staticMethod4"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::nested"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::nested2"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::siblings"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod1","mask":"inlined"},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod1","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod2","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod3","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod4","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::twoLocals","mask":null}]
+  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod1"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod2"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod3"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::topLevelMethod4"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::twoLocals"}]
 */
 main() {
   new Class1<int>().method1();

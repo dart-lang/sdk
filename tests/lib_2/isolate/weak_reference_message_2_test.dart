@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=--enable_fast_object_copy=true
+// VMOptions=--enable_fast_object_copy=false
+
 // @dart = 2.9
 
 import 'dart:io';
@@ -10,23 +13,10 @@ import 'dart:typed_data';
 
 import "package:expect/expect.dart";
 
-void main(List<String> arguments, Object message) async {
-  if (arguments.length == 1) {
-    assert(arguments[0] == 'helper');
-    await runHelper(message as SendPort);
-  } else {
-    await runTest();
-  }
-}
-
-Future<void> runTest() async {
+main() async {
   final port = ReceivePort();
-  // By spawning the isolate from an uri the newly isolate will run in it's own
-  // isolate group. This way we can test the message snapshot serialization
-  // code.
-  await Isolate.spawnUri(
-    Platform.script,
-    ['helper'],
+  await Isolate.spawn(
+    runHelper,
     port.sendPort,
   );
   final message = await port.first;
@@ -61,10 +51,10 @@ Future<void> runHelper(SendPort port) async {
   expando4[key4] = object4;
 
   final message = <dynamic>[
-    weakRef1, // Does not have its target inluded.
+    weakRef1, // Does not have its target included.
     weakRef2, // Has its target included later than itself.
     object2,
-    weakRef3, // Does not have its target inluded.
+    weakRef3, // Does not have its target included.
     expando3,
     weakRef4, // Has its target included due to expando.
     expando4,

@@ -15,9 +15,9 @@ import '../inferrer/types.dart';
 import '../io/source_information.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
-import '../js_model/closure.dart' show JRecordField, JClosureField;
+import '../js_model/closure.dart' show JContextField, JClosureField;
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/locals.dart' show GlobalLocalsMap, JLocal;
-import '../world.dart' show JClosedWorld;
 
 import 'builder.dart';
 import 'nodes.dart';
@@ -343,9 +343,11 @@ class LocalsHandler {
   /// Returns an [HInstruction] for the given element. If the element is
   /// boxed or stored in a closure then the method generates code to retrieve
   /// the value.
-  HInstruction readLocal(Local local, {SourceInformation sourceInformation}) {
+  HInstruction /*!*/ readLocal(Local local,
+      {SourceInformation sourceInformation}) {
     if (isAccessedDirectly(local)) {
-      if (directLocals[local] == null) {
+      HInstruction value = directLocals[local];
+      if (value == null) {
         if (local is TypeVariableLocal) {
           failedAt(
               CURRENT_ELEMENT_SPANNABLE,
@@ -358,7 +360,6 @@ class LocalsHandler {
               "$executableContext.");
         }
       }
-      HInstruction value = directLocals[local];
       if (sourceInformation != null) {
         value = HRef(value, sourceInformation);
         builder.add(value);
@@ -372,8 +373,9 @@ class LocalsHandler {
       AbstractValue type = local is BoxLocal
           ? _abstractValueDomain.nonNullType
           : getTypeOfCapturedVariable(redirect);
-      HInstruction fieldGet =
-          HFieldGet(redirect, receiver, type, sourceInformation);
+      HInstruction fieldGet = HFieldGet(
+          redirect, receiver, type, sourceInformation,
+          isAssignable: redirect.isAssignable);
       builder.add(fieldGet);
       return fieldGet;
     } else if (isBoxed(local)) {
@@ -384,14 +386,15 @@ class LocalsHandler {
       // accessed through a closure-field.
       // Calling [readLocal] makes sure we generate the correct code to get
       // the box.
-      if (redirect is JRecordField) {
+      if (redirect is JContextField) {
         localBox = redirect.box;
       }
       assert(localBox != null);
 
       HInstruction box = readLocal(localBox);
-      HInstruction lookup = HFieldGet(redirect, box,
-          getTypeOfCapturedVariable(redirect), sourceInformation);
+      HInstruction lookup = HFieldGet(
+          redirect, box, getTypeOfCapturedVariable(redirect), sourceInformation,
+          isAssignable: redirect.isAssignable);
       builder.add(lookup);
       return lookup;
     } else {
@@ -452,7 +455,7 @@ class LocalsHandler {
       FieldEntity redirect = redirectionMapping[local];
       assert(redirect != null);
       BoxLocal localBox;
-      if (redirect is JRecordField) {
+      if (redirect is JContextField) {
         localBox = redirect.box;
       }
       assert(localBox != null);

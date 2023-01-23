@@ -32,7 +32,11 @@ class MustCallSuperVerifier {
       return;
     }
 
-    var enclosingElement = element.enclosingElement as ClassElement;
+    var enclosingElement = element.enclosingElement;
+    if (enclosingElement is! ClassElement) {
+      return;
+    }
+
     if (element is PropertyAccessorElement && element.isGetter) {
       var inheritedConcreteGetter = enclosingElement
           .lookUpInheritedConcreteGetter(element.name, element.library);
@@ -69,19 +73,27 @@ class MustCallSuperVerifier {
   ExecutableElement? _findOverriddenMemberWithMustCallSuper(
       ExecutableElement element) {
     //Element member = node.declaredElement;
-    if (element.enclosingElement is! ClassElement) {
+    if (element.enclosingElement is! InterfaceElement) {
       return null;
     }
-    var classElement = element.enclosingElement as ClassElement;
+    var classElement = element.enclosingElement as InterfaceElement;
     String name = element.name;
 
     // Walk up the type hierarchy from [classElement], ignoring direct
     // interfaces.
-    Queue<ClassElement?> superclasses =
-        Queue.of(classElement.mixins.map((i) => i.element))
-          ..addAll(classElement.superclassConstraints.map((i) => i.element))
-          ..add(classElement.supertype?.element);
-    var visitedClasses = <ClassElement>{};
+    final superclasses = Queue<InterfaceElement?>();
+
+    void addToQueue(InterfaceElement element) {
+      superclasses.addAll(element.mixins.map((i) => i.element));
+      superclasses.add(element.supertype?.element);
+      if (element is MixinElement) {
+        superclasses
+            .addAll(element.superclassConstraints.map((i) => i.element));
+      }
+    }
+
+    final visitedClasses = <InterfaceElement>{};
+    addToQueue(classElement);
     while (superclasses.isNotEmpty) {
       var ancestor = superclasses.removeFirst();
       if (ancestor == null || !visitedClasses.add(ancestor)) {
@@ -99,17 +111,14 @@ class MustCallSuperVerifier {
         // documentation of [mustCallSuper].
         return member;
       }
-      superclasses
-        ..addAll(ancestor.mixins.map((i) => i.element))
-        ..addAll(ancestor.superclassConstraints.map((i) => i.element))
-        ..add(ancestor.supertype?.element);
+      addToQueue(ancestor);
     }
     return null;
   }
 
   /// Returns whether [node] overrides a concrete method.
   bool _hasConcreteSuperMethod(ExecutableElement element) {
-    var classElement = element.enclosingElement as ClassElement;
+    var classElement = element.enclosingElement as InterfaceElement;
     String name = element.name;
 
     if (classElement.supertype.isConcrete(name)) {
@@ -120,7 +129,8 @@ class MustCallSuperVerifier {
       return true;
     }
 
-    if (classElement.superclassConstraints.any((c) => c.isConcrete(name))) {
+    if (classElement is MixinElement &&
+        classElement.superclassConstraints.any((c) => c.isConcrete(name))) {
       return true;
     }
 
@@ -133,7 +143,7 @@ class MustCallSuperVerifier {
     if (!declaredElement.invokesSuperSelf) {
       // Overridable elements are always enclosed in named elements, so it is
       // safe to assume [overriddenEnclosingName] is non-`null`.
-      _errorReporter.reportErrorForNode(
+      _errorReporter.reportErrorForToken(
           HintCode.MUST_CALL_SUPER, node.name, [overriddenEnclosingName!]);
     }
     return;

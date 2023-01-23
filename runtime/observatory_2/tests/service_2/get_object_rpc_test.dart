@@ -11,10 +11,15 @@ import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-class _DummyClass {
+abstract class _DummyAbstractBaseClass {
+  void dummyFunction(int a, [bool b = false]);
+}
+
+class _DummyClass extends _DummyAbstractBaseClass {
   static var dummyVar = 11;
   final List<String> dummyList = new List<String>.filled(20, null);
   static var dummyVarWithInit = foo();
+  @override
   void dummyFunction(int a, [bool b = false]) {}
   void dummyGenericFunction<K, V>(K a, {V param}) {}
   static List foo() => List<String>.filled(20, '');
@@ -40,6 +45,9 @@ getList() => [3, 2, 1];
 
 @pragma("vm:entry-point")
 getMap() => {"x": 3, "y": 4, "z": 5};
+
+@pragma("vm:entry-point")
+getSet() => {6, 7, 8};
 
 @pragma("vm:entry-point")
 getUint8List() => uint8List;
@@ -332,11 +340,11 @@ var tests = <IsolateTest>[
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
     expect(result['type'], equals('Instance'));
     expect(result['kind'], equals('Map'));
-    expect(result['_vmType'], equals('LinkedHashMap'));
+    expect(result['_vmType'], equals('Map'));
     expect(result['id'], startsWith('objects/'));
     expect(result['valueAsString'], isNull);
     expect(result['class']['type'], equals('@Class'));
-    expect(result['class']['name'], equals('_InternalLinkedHashMap'));
+    expect(result['class']['name'], equals('_Map'));
     expect(result['size'], isPositive);
     expect(result['fields'], isEmpty);
     expect(result['length'], equals(3));
@@ -374,11 +382,11 @@ var tests = <IsolateTest>[
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
     expect(result['type'], equals('Instance'));
     expect(result['kind'], equals('Map'));
-    expect(result['_vmType'], equals('LinkedHashMap'));
+    expect(result['_vmType'], equals('Map'));
     expect(result['id'], startsWith('objects/'));
     expect(result['valueAsString'], isNull);
     expect(result['class']['type'], equals('@Class'));
-    expect(result['class']['name'], equals('_InternalLinkedHashMap'));
+    expect(result['class']['name'], equals('_Map'));
     expect(result['size'], isPositive);
     expect(result['fields'], isEmpty);
     expect(result['length'], equals(3));
@@ -411,11 +419,11 @@ var tests = <IsolateTest>[
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
     expect(result['type'], equals('Instance'));
     expect(result['kind'], equals('Map'));
-    expect(result['_vmType'], equals('LinkedHashMap'));
+    expect(result['_vmType'], equals('Map'));
     expect(result['id'], startsWith('objects/'));
     expect(result['valueAsString'], isNull);
     expect(result['class']['type'], equals('@Class'));
-    expect(result['class']['name'], equals('_InternalLinkedHashMap'));
+    expect(result['class']['name'], equals('_Map'));
     expect(result['size'], isPositive);
     expect(result['fields'], isEmpty);
     expect(result['length'], equals(3));
@@ -442,17 +450,49 @@ var tests = <IsolateTest>[
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
     expect(result['type'], equals('Instance'));
     expect(result['kind'], equals('Map'));
-    expect(result['_vmType'], equals('LinkedHashMap'));
+    expect(result['_vmType'], equals('Map'));
     expect(result['id'], startsWith('objects/'));
     expect(result['valueAsString'], isNull);
     expect(result['class']['type'], equals('@Class'));
-    expect(result['class']['name'], equals('_InternalLinkedHashMap'));
+    expect(result['class']['name'], equals('_Map'));
     expect(result['size'], isPositive);
     expect(result['fields'], isEmpty);
     expect(result['length'], equals(3));
     expect(result['offset'], equals(3));
     expect(result['count'], equals(0));
     expect(result['associations'], isEmpty);
+  },
+
+  // A built-in Set.
+  (Isolate isolate) async {
+    // Call eval to get a Dart set.
+    var evalResult = await invoke(isolate, 'getSet');
+    var params = {
+      'objectId': evalResult['id'],
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('Set'));
+    expect(result['_vmType'], equals('Set'));
+    expect(result['id'], startsWith('objects/'));
+    expect(result['valueAsString'], isNull);
+    expect(result['class']['type'], equals('@Class'));
+    expect(result['class']['name'], equals('_Set'));
+    expect(result['size'], isPositive);
+    expect(result['fields'], isEmpty);
+    expect(result['length'], equals(3));
+    expect(result['offset'], isNull);
+    expect(result['count'], isNull);
+    expect(result['elements'].length, equals(3));
+    expect(result['elements'][0]['type'], equals('@Instance'));
+    expect(result['elements'][0]['kind'], equals('Int'));
+    expect(result['elements'][0]['valueAsString'], equals('6'));
+    expect(result['elements'][1]['type'], equals('@Instance'));
+    expect(result['elements'][1]['kind'], equals('Int'));
+    expect(result['elements'][1]['valueAsString'], equals('7'));
+    expect(result['elements'][2]['type'], equals('@Instance'));
+    expect(result['elements'][2]['kind'], equals('Int'));
+    expect(result['elements'][2]['valueAsString'], equals('8'));
   },
 
   // Uint8List.
@@ -886,6 +926,7 @@ var tests = <IsolateTest>[
     expect(result['static'], equals(false));
     expect(result['const'], equals(false));
     expect(result['implicit'], equals(false));
+    expect(result['abstract'], equals(false));
     expect(result['signature']['typeParameters'], isNull);
     expect(result['signature']['returnType'], isNotNull);
     expect(result['signature']['parameters'].length, 3);
@@ -920,6 +961,7 @@ var tests = <IsolateTest>[
     expect(result['static'], equals(false));
     expect(result['const'], equals(false));
     expect(result['implicit'], equals(false));
+    expect(result['abstract'], equals(false));
     expect(result['signature']['typeParameters'].length, 2);
     expect(result['signature']['returnType'], isNotNull);
     expect(result['signature']['parameters'].length, 3);
@@ -938,6 +980,60 @@ var tests = <IsolateTest>[
     expect(result['_usageCounter'], isPositive);
     expect(result['_optimizedCallSiteCount'], isZero);
     expect(result['_deoptimizations'], isZero);
+  },
+
+  // abstract function.
+  (Isolate isolate) async {
+    // Call eval to get a class id.
+    var evalResult = await invoke(isolate, 'getDummyClass');
+    var result = await isolate.invokeRpcNoUpgrade('getObject', {
+      'objectId': evalResult['class']['id'],
+    });
+    expect(result['type'], equals('Class'));
+    expect(result['id'], startsWith('classes/'));
+    expect(result['name'], equals('_DummyClass'));
+    expect(result['abstract'], equals(false));
+
+    // Get the super class.
+    var superClass = await isolate.invokeRpcNoUpgrade('getObject', {
+      'objectId': result['super']['id'],
+    });
+    expect(superClass['type'], equals('Class'));
+    expect(superClass['id'], startsWith('classes/'));
+    expect(superClass['name'], equals('_DummyAbstractBaseClass'));
+    expect(superClass['abstract'], equals(true));
+
+    // Find the abstract dummyFunction on the super class.
+    var funcId = superClass['functions']
+        .firstWhere((f) => f['name'] == 'dummyFunction')['id'];
+    var funcResult = await isolate.invokeRpcNoUpgrade('getObject', {
+      'objectId': funcId,
+    });
+
+    expect(funcResult['type'], equals('Function'));
+    expect(funcResult['id'], equals(funcId));
+    expect(funcResult['name'], equals('dummyFunction'));
+    expect(funcResult['_kind'], equals('RegularFunction'));
+    expect(funcResult['static'], equals(false));
+    expect(funcResult['const'], equals(false));
+    expect(funcResult['implicit'], equals(false));
+    expect(funcResult['abstract'], equals(true));
+    expect(funcResult['signature']['typeParameters'], isNull);
+    expect(funcResult['signature']['returnType'], isNotNull);
+    expect(funcResult['signature']['parameters'].length, 3);
+    expect(funcResult['signature']['parameters'][1]['parameterType']['name'],
+        equals('int'));
+    expect(funcResult['signature']['parameters'][1]['fixed'], isTrue);
+    expect(funcResult['signature']['parameters'][2]['parameterType']['name'],
+        equals('bool'));
+    expect(funcResult['signature']['parameters'][2]['fixed'], isFalse);
+    expect(funcResult['location']['type'], equals('SourceLocation'));
+    expect(funcResult['code']['type'], equals('@Code'));
+    expect(funcResult['_optimizable'], equals(true));
+    expect(funcResult['_inlinable'], equals(true));
+    expect(funcResult['_usageCounter'], isZero);
+    expect(funcResult['_optimizedCallSiteCount'], isZero);
+    expect(funcResult['_deoptimizations'], isZero);
   },
 
   // invalid function.
@@ -1032,6 +1128,7 @@ var tests = <IsolateTest>[
     expect(result['static'], equals(true));
     expect(result['const'], equals(false));
     expect(result['implicit'], equals(false));
+    expect(result['abstract'], equals(false));
     expect(result['signature']['typeParameters'], isNull);
     expect(result['signature']['returnType'], isNotNull);
     expect(result['signature']['parameters'].length, 0);

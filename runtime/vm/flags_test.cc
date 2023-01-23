@@ -39,6 +39,10 @@ VM_UNIT_TEST_CASE(ParseFlags) {
   Flags::Parse("string_opt_test=doobidoo");
   EXPECT_EQ(true, FLAG_string_opt_test != NULL);
   EXPECT_EQ(0, strcmp(FLAG_string_opt_test, "doobidoo"));
+  FLAG_string_opt_test = reinterpret_cast<charp>(0xDEADBEEF);
+  Flags::Parse("string_opt_test=foofoo");
+  EXPECT_EQ(true, FLAG_string_opt_test != NULL);
+  EXPECT_EQ(0, strcmp(FLAG_string_opt_test, "foofoo"));
 
   EXPECT_EQ(true, FLAG_entrypoint_test != NULL);
   EXPECT_EQ(0, strcmp(FLAG_entrypoint_test, "main"));

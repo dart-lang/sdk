@@ -1,0 +1,11 @@
+NOTICE: Stream was rewritten by parser!
+
+test(dynamic x) {
+if (x case const <int>[]) {}
+}
+
+
+test[StringToken]([BeginToken]dynamic[KeywordToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] case[KeywordToken] const[KeywordToken] <[BeginToken]int[StringToken]>[SimpleToken][[BeginToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

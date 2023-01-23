@@ -19,7 +19,7 @@ class PrivateOptionalParameterTest extends PubPackageResolutionTest {
     await assertErrorsInCode(r'''
 class A {
   var _p;
-  A({this._p: 0});
+  A({this._p = 0});
 }
 ''', [
       error(HintCode.UNUSED_FIELD, 16, 2),
@@ -37,7 +37,7 @@ f({var _p}) {}
 
   test_withDefaultValue() async {
     await assertErrorsInCode('''
-f({_p : 0}) {}
+f({_p = 0}) {}
 ''', [
       error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 3, 2),
     ]);

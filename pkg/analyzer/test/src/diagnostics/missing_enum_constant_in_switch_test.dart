@@ -10,80 +10,24 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MissingEnumConstantInSwitchTest);
+    defineReflectiveTests(MissingEnumConstantInSwitchTest_Language218);
     defineReflectiveTests(MissingEnumConstantInSwitchWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class MissingEnumConstantInSwitchTest extends PubPackageResolutionTest
-    with MissingEnumConstantInSwitchTestCases {
-  test_all_enhanced() async {
-    await assertNoErrorsInCode('''
-enum E {
-  one, two;
+    with
+        MissingEnumConstantInSwitchTestCases,
+        MissingEnumConstantInSwitchTestCases_Language212 {}
 
-  static const x = 0;
-}
-
-void f(E e) {
-  switch (e) {
-    case E.one:
-      break;
-    case E.two:
-      break;
-  }
-}
-''');
-  }
-
-  test_nullable() async {
-    await assertErrorsInCode('''
-enum E { one, two }
-
-void f(E? e) {
-  switch (e) {
-    case E.one:
-    case E.two:
-      break;
-  }
-}
-''', [
-      error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 38, 10),
-    ]);
-  }
-
-  test_nullable_default() async {
-    await assertNoErrorsInCode('''
-enum E { one, two }
-
-void f(E? e) {
-  switch (e) {
-    case E.one:
-      break;
-    default:
-      break;
-  }
-}
-''');
-  }
-
-  test_nullable_null() async {
-    await assertNoErrorsInCode('''
-enum E { one, two }
-
-void f(E? e) {
-  switch (e) {
-    case E.one:
-      break;
-    case E.two:
-      break;
-    case null:
-      break;
-  }
-}
-''');
-  }
-}
+@reflectiveTest
+class MissingEnumConstantInSwitchTest_Language218
+    extends PubPackageResolutionTest
+    with
+        WithLanguage218Mixin,
+        MissingEnumConstantInSwitchTestCases,
+        MissingEnumConstantInSwitchTestCases_Language212 {}
 
 mixin MissingEnumConstantInSwitchTestCases on PubPackageResolutionTest {
   test_default() async {
@@ -160,6 +104,76 @@ void f(E e) {
     case (E.two):
       break;
     case (E.three):
+      break;
+  }
+}
+''');
+  }
+}
+
+mixin MissingEnumConstantInSwitchTestCases_Language212
+    on PubPackageResolutionTest, MissingEnumConstantInSwitchTestCases {
+  test_all_enhanced() async {
+    await assertNoErrorsInCode('''
+enum E {
+  one, two;
+
+  static const x = 0;
+}
+
+void f(E e) {
+  switch (e) {
+    case E.one:
+      break;
+    case E.two:
+      break;
+  }
+}
+''');
+  }
+
+  test_nullable() async {
+    await assertErrorsInCode('''
+enum E { one, two }
+
+void f(E? e) {
+  switch (e) {
+    case E.one:
+    case E.two:
+      break;
+  }
+}
+''', [
+      error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 38, 10),
+    ]);
+  }
+
+  test_nullable_default() async {
+    await assertNoErrorsInCode('''
+enum E { one, two }
+
+void f(E? e) {
+  switch (e) {
+    case E.one:
+      break;
+    default:
+      break;
+  }
+}
+''');
+  }
+
+  test_nullable_null() async {
+    await assertNoErrorsInCode('''
+enum E { one, two }
+
+void f(E? e) {
+  switch (e) {
+    case E.one:
+      break;
+    case E.two:
+      break;
+    case null:
       break;
   }
 }

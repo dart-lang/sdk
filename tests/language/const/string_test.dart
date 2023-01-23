@@ -21,7 +21,7 @@ main() {
   Expect.isTrue(identical("abcd", 'ab' 'cd'));
   Expect.isTrue(identical("abcd", 'ab' "cd"));
 
-  // Or when there are more than 2 contatenations.
+  // Or when there are more than 2 concatenations.
   Expect.isTrue(identical("abcd", "a" "b" "cd"));
   Expect.isTrue(identical("abcd", "a" "b" "c" "d"));
   Expect.isTrue(identical('abcd', 'a' 'b' 'c' 'd'));

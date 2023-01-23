@@ -14,7 +14,7 @@ import 'parser_impl.dart' show Parser;
 
 import 'type_info_impl.dart';
 
-import 'util.dart' show isOneOf, optional;
+import 'util.dart' show isOneOf, isOneOfOrEof, optional;
 
 /// [TypeInfo] provides information collected by [computeType]
 /// about a particular type reference.
@@ -129,7 +129,13 @@ bool isGeneralizedFunctionType(Token token) {
       (optional('<', token.next!) || optional('(', token.next!));
 }
 
-bool isValidTypeReference(Token token) {
+bool isPossibleRecordType(Token token) {
+  return optional('(', token) &&
+      token.endGroup != null &&
+      !token.endGroup!.isSynthetic;
+}
+
+bool isValidNonRecordTypeReference(Token token) {
   int kind = token.kind;
   if (IDENTIFIER_TOKEN == kind) return true;
   if (KEYWORD_TOKEN == kind) {
@@ -152,7 +158,7 @@ bool isValidTypeReference(Token token) {
 TypeInfo computeType(final Token token, bool required,
     [bool inDeclaration = false, bool acceptKeywordForSimpleType = false]) {
   Token next = token.next!;
-  if (!isValidTypeReference(next)) {
+  if (!isValidNonRecordTypeReference(next) && !isPossibleRecordType(next)) {
     // As next is not a valid type reference, this is all recovery.
     if (next.type.isBuiltIn) {
       TypeParamOrArgInfo typeParamOrArg =
@@ -213,6 +219,23 @@ TypeInfo computeType(final Token token, bool required,
         .computeNoTypeGFT(token, required);
   }
 
+  if (isPossibleRecordType(next)) {
+    // ([...])
+    Token after = next.endGroup!.next!;
+    if (isGeneralizedFunctionType(after)) {
+      // ([...]) `Function`
+      return new ComplexTypeInfo(token, noTypeParamOrArg)
+          .computeRecordTypeGFT(required);
+    }
+    if (optional('?', after) && isGeneralizedFunctionType(after.next!)) {
+      // ([...]) `?` `Function`
+      return new ComplexTypeInfo(token, noTypeParamOrArg)
+          .computeRecordTypeQuestionGFT(required);
+    }
+    return new ComplexTypeInfo(token, noTypeParamOrArg)
+        .computeRecordType(required);
+  }
+
   // We've seen an identifier.
 
   TypeParamOrArgInfo typeParamOrArg =
@@ -255,7 +278,7 @@ TypeInfo computeType(final Token token, bool required,
 
   if (optional('.', next)) {
     next = next.next!;
-    if (isValidTypeReference(next)) {
+    if (isValidNonRecordTypeReference(next)) {
       // We've seen identifier `.` identifier
       typeParamOrArg = computeTypeParamOrArg(next, inDeclaration);
       next = next.next!;
@@ -325,6 +348,35 @@ TypeInfo computeType(final Token token, bool required,
   return noType;
 }
 
+/// Computes the [TypeInfo] for a variable pattern.
+///
+/// This is similar to [computeType], but has special logic to account for an
+/// ambiguity that arises in patterns due to the fact that `as` can either be
+/// an identifier or the operator in a castPattern.
+TypeInfo computeVariablePatternType(Token token) {
+  TypeInfo typeInfo = computeType(token, /* required = */ false);
+  Token afterType = typeInfo.skipType(token);
+  if (!identical(afterType, token)) {
+    Token next = afterType.next!;
+    if (next.isIdentifier) {
+      if (optional('as', next) || optional('when', next)) {
+        // We've seen `TYPE as` or `TYPE when`.  `as` is a built-in identifier
+        // and `when` is a pseudo-keyword, so this *could* be a variable
+        // pattern.  Or it could be that TYPE should have been parsed as a
+        // pattern.  It's probably not a variable pattern (since `as` and `when`
+        // are unusual variable names), so we'll only treat it as a variable
+        // pattern if the token following `as` or `when` is something that could
+        // legitimately follow a variable pattern (and hence couldn't introduce
+        // a type).
+        if (!mayFollowVariablePattern(next.next!)) {
+          return noType;
+        }
+      }
+    }
+  }
+  return typeInfo;
+}
+
 /// Called by the parser to obtain information about a possible group of type
 /// parameters or type arguments that follow [token].
 /// This does not modify the token stream.
@@ -350,7 +402,19 @@ TypeParamOrArgInfo computeTypeParamOrArg(Token token,
       return simpleTypeArgument1GtEq;
     }
   } else if (optional('(', next)) {
-    return noTypeParamOrArg;
+    bool recordType = false;
+    if (isPossibleRecordType(next)) {
+      TypeInfo type = computeType(beginGroup, /* required = */ false);
+      if (type is ComplexTypeInfo &&
+          (type.isRecordType || type.gftReturnTypeHasRecordType) &&
+          !type.recovered) {
+        // Looks like a record type.
+        recordType = true;
+      }
+    }
+    if (!recordType) {
+      return noTypeParamOrArg;
+    }
   }
 
   // TODO(danrubel): Consider adding additional const for common situations.
@@ -371,6 +435,24 @@ TypeParamOrArgInfo computeMethodTypeArguments(Token token) {
       ? typeArg
       : noTypeParamOrArg;
 }
+
+/// Determines whether [token] can validly follow a variable pattern.
+bool mayFollowVariablePattern(Token token) =>
+    isOneOfOrEof(token, _allowedTokensAfterVariablePattern);
+
+const Set<String> _allowedTokensAfterVariablePattern = {
+  ',',
+  ':',
+  '|',
+  '&',
+  ')',
+  '}',
+  ']',
+  'as',
+  'when',
+  '?',
+  '!'
+};
 
 /// Indicates whether the given [token] is allowed to follow a list of type
 /// arguments used as a selector after an expression.

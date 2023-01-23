@@ -46,13 +46,14 @@
 #define COMMON_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, ARRAY_SIZEOF,                \
                             PAYLOAD_SIZEOF, RANGE, CONSTANT)                   \
   ARRAY(Array, element_offset)                                                 \
-  NOT_IN_PRODUCT(ARRAY(ClassTable, ClassOffsetFor))                            \
+  NOT_IN_PRODUCT(ARRAY(ClassTable, AllocationTracingStateSlotOffsetFor))       \
   ARRAY(Code, element_offset)                                                  \
   ARRAY(Context, variable_offset)                                              \
   ARRAY(ContextScope, element_offset)                                          \
   ARRAY(ExceptionHandlers, element_offset)                                     \
   ARRAY(ObjectPool, element_offset)                                            \
   ARRAY(OneByteString, element_offset)                                         \
+  ARRAY(Record, field_offset)                                                  \
   ARRAY(TypeArguments, type_at_offset)                                         \
   ARRAY(TwoByteString, element_offset)                                         \
   ARRAY_SIZEOF(Array, InstanceSize, element_offset)                            \
@@ -62,6 +63,7 @@
   ARRAY_SIZEOF(ExceptionHandlers, InstanceSize, element_offset)                \
   ARRAY_SIZEOF(ObjectPool, InstanceSize, element_offset)                       \
   ARRAY_SIZEOF(OneByteString, InstanceSize, element_offset)                    \
+  ARRAY_SIZEOF(Record, InstanceSize, field_offset)                             \
   ARRAY_SIZEOF(TypeArguments, InstanceSize, type_at_offset)                    \
   ARRAY_SIZEOF(TwoByteString, InstanceSize, element_offset)                    \
   CONSTANT(Array, kMaxElements)                                                \
@@ -73,8 +75,9 @@
   CONSTANT(Instructions, kPolymorphicEntryOffsetAOT)                           \
   CONSTANT(Instructions, kBarePayloadAlignment)                                \
   CONSTANT(Instructions, kNonBarePayloadAlignment)                             \
-  CONSTANT(OldPage, kBytesPerCardLog2)                                         \
   CONSTANT(NativeEntry, kNumCallWrapperArguments)                              \
+  CONSTANT(Page, kBytesPerCardLog2)                                            \
+  CONSTANT(Record, kMaxElements)                                               \
   CONSTANT(String, kMaxElements)                                               \
   CONSTANT(SubtypeTestCache, kFunctionTypeArguments)                           \
   CONSTANT(SubtypeTestCache, kInstanceCidOrSignature)                          \
@@ -86,6 +89,7 @@
   CONSTANT(SubtypeTestCache, kTestEntryLength)                                 \
   CONSTANT(SubtypeTestCache, kTestResult)                                      \
   CONSTANT(TypeArguments, kMaxElements)                                        \
+  FIELD(AbstractType, flags_offset)                                            \
   FIELD(AbstractType, type_test_stub_entry_point_offset)                       \
   FIELD(ArgumentsDescriptor, count_offset)                                     \
   FIELD(ArgumentsDescriptor, size_offset)                                      \
@@ -103,7 +107,7 @@
   FIELD(Class, num_type_arguments_offset)                                      \
   FIELD(Class, super_type_offset)                                              \
   FIELD(Class, host_type_arguments_field_offset_in_words_offset)               \
-  NOT_IN_PRODUCT(FIELD(SharedClassTable, class_heap_stats_table_offset))       \
+  NOT_IN_PRODUCT(FIELD(ClassTable, allocation_tracing_state_table_offset))     \
   FIELD(Closure, context_offset)                                               \
   FIELD(Closure, delayed_type_arguments_offset)                                \
   FIELD(Closure, function_offset)                                              \
@@ -138,7 +142,7 @@
   FIELD(GrowableObjectArray, data_offset)                                      \
   FIELD(GrowableObjectArray, length_offset)                                    \
   FIELD(GrowableObjectArray, type_arguments_offset)                            \
-  FIELD(OldPage, card_table_offset)                                            \
+  FIELD(Page, card_table_offset)                                               \
   FIELD(CallSiteData, arguments_descriptor_offset)                             \
   FIELD(ICData, NumArgsTestedMask)                                             \
   FIELD(ICData, NumArgsTestedShift)                                            \
@@ -152,7 +156,7 @@
   NOT_IN_PRODUCT(FIELD(Isolate, has_resumption_breakpoints_offset))            \
   FIELD(Isolate, ic_miss_code_offset)                                          \
   FIELD(IsolateGroup, object_store_offset)                                     \
-  FIELD(IsolateGroup, shared_class_table_offset)                               \
+  FIELD(IsolateGroup, class_table_offset)                                      \
   FIELD(IsolateGroup, cached_class_table_table_offset)                         \
   NOT_IN_PRODUCT(FIELD(Isolate, single_step_offset))                           \
   FIELD(Isolate, user_tag_offset)                                              \
@@ -185,12 +189,13 @@
   FIELD(ObjectStore, suspend_state_return_async_offset)                        \
   FIELD(ObjectStore, suspend_state_return_async_not_future_offset)             \
   FIELD(ObjectStore, suspend_state_return_async_star_offset)                   \
-  FIELD(ObjectStore, suspend_state_return_sync_star_offset)                    \
+  FIELD(ObjectStore, suspend_state_suspend_sync_star_at_start_offset)          \
   FIELD(ObjectStore, suspend_state_yield_async_star_offset)                    \
-  FIELD(ObjectStore, suspend_state_yield_sync_star_offset)                     \
   FIELD(OneByteString, data_offset)                                            \
   FIELD(PointerBase, data_offset)                                              \
   FIELD(Pointer, type_arguments_offset)                                        \
+  FIELD(Record, num_fields_offset)                                             \
+  FIELD(Record, field_names_offset)                                            \
   FIELD(SingleTargetCache, entry_point_offset)                                 \
   FIELD(SingleTargetCache, lower_limit_offset)                                 \
   FIELD(SingleTargetCache, target_offset)                                      \
@@ -277,11 +282,12 @@
   FIELD(Thread, null_cast_error_shared_without_fpu_regs_stub_offset)           \
   FIELD(Thread, range_error_shared_with_fpu_regs_stub_offset)                  \
   FIELD(Thread, range_error_shared_without_fpu_regs_stub_offset)               \
+  FIELD(Thread, write_error_shared_with_fpu_regs_stub_offset)                  \
+  FIELD(Thread, write_error_shared_without_fpu_regs_stub_offset)               \
   FIELD(Thread, resume_stub_offset)                                            \
   FIELD(Thread, return_async_not_future_stub_offset)                           \
   FIELD(Thread, return_async_star_stub_offset)                                 \
   FIELD(Thread, return_async_stub_offset)                                      \
-  FIELD(Thread, return_sync_star_stub_offset)                                  \
                                                                                \
   FIELD(Thread, object_null_offset)                                            \
   FIELD(Thread, predefined_symbols_address_offset)                             \
@@ -307,20 +313,19 @@
   FIELD(Thread, suspend_state_yield_async_star_entry_point_offset)             \
   FIELD(Thread, suspend_state_return_async_star_entry_point_offset)            \
   FIELD(Thread, suspend_state_init_sync_star_entry_point_offset)               \
-  FIELD(Thread, suspend_state_yield_sync_star_entry_point_offset)              \
-  FIELD(Thread, suspend_state_return_sync_star_entry_point_offset)             \
+  FIELD(Thread, suspend_state_suspend_sync_star_at_start_entry_point_offset)   \
   FIELD(Thread, suspend_state_handle_exception_entry_point_offset)             \
   FIELD(Thread, top_exit_frame_info_offset)                                    \
   FIELD(Thread, top_offset)                                                    \
   FIELD(Thread, top_resource_offset)                                           \
-  FIELD(Thread, unboxed_int64_runtime_arg_offset)                              \
-  FIELD(Thread, unboxed_double_runtime_arg_offset)                             \
+  FIELD(Thread, unboxed_runtime_arg_offset)                                    \
   FIELD(Thread, vm_tag_offset)                                                 \
   FIELD(Thread, write_barrier_entry_point_offset)                              \
   FIELD(Thread, write_barrier_mask_offset)                                     \
   FIELD(Thread, heap_base_offset)                                              \
   FIELD(Thread, callback_code_offset)                                          \
   FIELD(Thread, callback_stack_return_offset)                                  \
+  FIELD(Thread, next_task_id_offset)                                           \
   FIELD(Thread, random_offset)                                                 \
   FIELD(Thread, jump_to_frame_entry_point_offset)                              \
   FIELD(Thread, tsan_utils_offset)                                             \
@@ -333,9 +338,6 @@
   FIELD(TwoByteString, data_offset)                                            \
   FIELD(Type, arguments_offset)                                                \
   FIELD(Type, hash_offset)                                                     \
-  FIELD(Type, type_class_id_offset)                                            \
-  FIELD(Type, type_state_offset)                                               \
-  FIELD(Type, nullability_offset)                                              \
   FIELD(Finalizer, type_arguments_offset)                                      \
   FIELD(Finalizer, callback_offset)                                            \
   FIELD(FinalizerBase, all_entries_offset)                                     \
@@ -351,14 +353,12 @@
   FIELD(NativeFinalizer, callback_offset)                                      \
   FIELD(FunctionType, hash_offset)                                             \
   FIELD(FunctionType, named_parameter_names_offset)                            \
-  FIELD(FunctionType, nullability_offset)                                      \
   FIELD(FunctionType, packed_parameter_counts_offset)                          \
   FIELD(FunctionType, packed_type_parameter_counts_offset)                     \
   FIELD(FunctionType, parameter_types_offset)                                  \
   FIELD(FunctionType, type_parameters_offset)                                  \
   FIELD(TypeParameter, parameterized_class_id_offset)                          \
   FIELD(TypeParameter, index_offset)                                           \
-  FIELD(TypeParameter, nullability_offset)                                     \
   FIELD(TypeArguments, instantiations_offset)                                  \
   FIELD(TypeArguments, length_offset)                                          \
   FIELD(TypeArguments, nullability_offset)                                     \
@@ -368,7 +368,6 @@
   FIELD(TypeParameters, bounds_offset)                                         \
   FIELD(TypeParameters, defaults_offset)                                       \
   FIELD(TypeParameter, bound_offset)                                           \
-  FIELD(TypeParameter, flags_offset)                                           \
   FIELD(TypeRef, type_offset)                                                  \
   FIELD(TypedDataBase, length_offset)                                          \
   FIELD(TypedDataView, typed_data_offset)                                      \
@@ -386,10 +385,10 @@
   RANGE(Code, entry_point_offset, CodeEntryKind, CodeEntryKind::kNormal,       \
         CodeEntryKind::kMonomorphicUnchecked,                                  \
         [](CodeEntryKind value) { return true; })                              \
-  NOT_IN_IA32(RANGE(Thread, write_barrier_wrappers_thread_offset, Register, 0, \
-                    kNumberOfCpuRegisters - 1, [](Register reg) {              \
-                      return (kDartAvailableCpuRegs & (1 << reg)) != 0;        \
-                    }))                                                        \
+  RANGE(Thread, write_barrier_wrappers_thread_offset, Register, 0,             \
+        kNumberOfCpuRegisters - 1, [](Register reg) {                          \
+          return (kDartAvailableCpuRegs & (1 << reg)) != 0;                    \
+        })                                                                     \
                                                                                \
   SIZEOF(AbstractType, InstanceSize, UntaggedAbstractType)                     \
   SIZEOF(ApiError, InstanceSize, UntaggedApiError)                             \
@@ -446,6 +445,7 @@
   SIZEOF(PcDescriptors, HeaderSize, UntaggedPcDescriptors)                     \
   SIZEOF(Pointer, InstanceSize, UntaggedPointer)                               \
   SIZEOF(ReceivePort, InstanceSize, UntaggedReceivePort)                       \
+  SIZEOF(RecordType, InstanceSize, UntaggedRecordType)                         \
   SIZEOF(RegExp, InstanceSize, UntaggedRegExp)                                 \
   SIZEOF(Script, InstanceSize, UntaggedScript)                                 \
   SIZEOF(SendPort, InstanceSize, UntaggedSendPort)                             \

@@ -654,36 +654,6 @@ abstract class IntegrationTestMixin {
     return EditGetRefactoringResult.fromJson(decoder, 'result', result);
   }
 
-  /// Return the list of KytheEntry objects for some file, given the current
-  /// state of the file system populated by "analysis.updateContent".
-  ///
-  /// Parameters
-  ///
-  /// file: FilePath
-  ///
-  ///   The file containing the code for which the Kythe Entry objects are
-  ///   being requested.
-  ///
-  /// Returns
-  ///
-  /// entries: List<KytheEntry>
-  ///
-  ///   The list of KytheEntry objects for the queried file.
-  ///
-  /// files: List<FilePath>
-  ///
-  ///   The set of files paths that were required, but not in the file system,
-  ///   to give a complete and accurate Kythe graph for the file. This could be
-  ///   due to a referenced file that does not exist or generated files not
-  ///   being generated or passed before the call to "getKytheEntries".
-  Future<KytheGetKytheEntriesResult> sendKytheGetKytheEntries(
-      String file) async {
-    var params = KytheGetKytheEntriesParams(file).toJson();
-    var result = await server.send('kythe.getKytheEntries', params);
-    var decoder = ResponseDecoder(null);
-    return KytheGetKytheEntriesResult.fromJson(decoder, 'result', result);
-  }
-
   /// Initialize the fields in InttestMixin, and ensure that notifications will
   /// be handled.
   void initializeInttestMixin() {

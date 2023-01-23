@@ -312,7 +312,7 @@ abstract class ScannerTest_Fasta_Base {
   Token scan(String source);
 
   void expectToken(Token token, TokenType type, int offset, int length,
-      {bool isSynthetic: false, String? lexeme}) {
+      {bool isSynthetic = false, String? lexeme}) {
     String description = '${token.type} $token';
     expect(token.type, type, reason: description);
     expect(token.offset, offset, reason: description);
@@ -681,7 +681,7 @@ abstract class ScannerTest_Fasta_Base {
 @reflectiveTest
 class ScannerTest_Fasta_Direct_UTF8 extends ScannerTest_Fasta_Direct {
   @override
-  ScannerResult scanSource(source, {includeComments: true}) {
+  ScannerResult scanSource(source, {includeComments = true}) {
     List<int> encoded = utf8.encode(source).toList(growable: true);
     encoded.add(0); // Ensure 0 terminated bytes for UTF8 scanner
     return usedForFuzzTesting.scan(encoded,
@@ -700,7 +700,7 @@ class ScannerTest_Fasta_Direct extends ScannerTest_Fasta_Base {
     this.languageVersion = languageVersion;
   }
 
-  ScannerResult scanSource(source, {includeComments: true}) =>
+  ScannerResult scanSource(source, {includeComments = true}) =>
       scanString(source,
           includeComments: includeComments,
           languageVersionChanged: languageVersionChanged);

@@ -56,13 +56,13 @@ Future<void> testSendAndExitFinalizable() async {
         Isolate.exit(sendPort, MyFinalizable());
       } catch (e) {
         print('Expected exception: $e.');
-        Isolate.exit(sendPort, e);
+        Isolate.exit(sendPort, e.toString());
       }
     },
     receivePort.sendPort,
   );
   final result = await receivePort.first;
-  Expect.type<ArgumentError>(result);
+  Expect.contains("Invalid argument: is a Finalizable", result);
 }
 
 Future<void> testSendAndExitFinalizer() async {
@@ -73,11 +73,11 @@ Future<void> testSendAndExitFinalizer() async {
         Isolate.exit(sendPort, MyFinalizable());
       } catch (e) {
         print('Expected exception: $e.');
-        Isolate.exit(sendPort, e);
+        Isolate.exit(sendPort, e.toString());
       }
     },
     receivePort.sendPort,
   );
   final result = await receivePort.first;
-  Expect.type<ArgumentError>(result);
+  Expect.contains("Invalid argument: is a Finalizable", result);
 }

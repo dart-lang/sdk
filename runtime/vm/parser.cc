@@ -67,7 +67,7 @@ ParsedFunction::ParsedFunction(Thread* thread, const Function& function)
       num_stack_locals_(0),
       have_seen_await_expr_(false),
       kernel_scopes_(NULL) {
-  ASSERT(function.IsZoneHandle());
+  DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
   // Every function has a local variable for the current context.
   LocalVariable* temp = new (zone())
       LocalVariable(function.token_pos(), function.token_pos(),

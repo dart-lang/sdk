@@ -6,10 +6,9 @@
 # Try to mess up the hierarchy.
 
 type: newworld
-target: DDC
+target: dartdevc
 worlds:
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
         import "lib1.dart";
@@ -44,7 +43,6 @@ worlds:
         }
     expectedLibraryCount: 4
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
@@ -57,9 +55,8 @@ worlds:
           }
         }
     expectedLibraryCount: 4
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
@@ -76,4 +73,4 @@ worlds:
           print("Done!");
         }
     expectedLibraryCount: 4
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly

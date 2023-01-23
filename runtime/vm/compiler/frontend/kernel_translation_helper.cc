@@ -2213,6 +2213,24 @@ void KernelReaderHelper::SkipDartType() {
     case kSimpleFunctionType:
       SkipFunctionType(true);
       return;
+    case kRecordType: {
+      ReadNullability();
+      SkipListOfDartTypes();
+      const intptr_t named_count = ReadListLength();
+      for (intptr_t i = 0; i < named_count; ++i) {
+        SkipStringReference();
+        SkipDartType();
+        ReadFlags();
+      }
+      return;
+    }
+    case kViewType: {
+      ReadNullability();
+      SkipCanonicalNameReference();  // read index for canonical name.
+      SkipListOfDartTypes();         // read type arguments
+      SkipDartType();                // read representation type.
+      break;
+    }
     case kTypedefType:
       ReadNullability();      // read nullability.
       ReadUInt();             // read index for canonical name.
@@ -2221,7 +2239,10 @@ void KernelReaderHelper::SkipDartType() {
     case kTypeParameterType:
       ReadNullability();       // read nullability.
       ReadUInt();              // read index for parameter.
-      SkipOptionalDartType();  // read bound bound.
+      return;
+    case kIntersectionType:
+      SkipDartType();  // read left.
+      SkipDartType();  // read right.
       return;
     default:
       ReportUnexpectedTag("type", tag);
@@ -2283,6 +2304,14 @@ void KernelReaderHelper::SkipListOfExpressions() {
   intptr_t list_length = ReadListLength();  // read list length.
   for (intptr_t i = 0; i < list_length; ++i) {
     SkipExpression();  // read ith expression.
+  }
+}
+
+void KernelReaderHelper::SkipListOfNamedExpressions() {
+  const intptr_t list_length = ReadListLength();  // read list length.
+  for (intptr_t i = 0; i < list_length; ++i) {
+    SkipStringReference();  // read ith name index.
+    SkipExpression();       // read ith expression.
   }
 }
 
@@ -2543,10 +2572,8 @@ void KernelReaderHelper::SkipExpression() {
       SkipListOfExpressions();  // read list of expressions.
       return;
     case kIsExpression:
-      ReadPosition();  // read position.
-      if (translation_helper_.info().kernel_binary_version() >= 38) {
-        SkipFlags();  // read flags.
-      }
+      ReadPosition();    // read position.
+      SkipFlags();       // read flags.
       SkipExpression();  // read operand.
       SkipDartType();    // read type.
       return;
@@ -2589,6 +2616,24 @@ void KernelReaderHelper::SkipExpression() {
       }
       return;
     }
+    case kRecordLiteral:
+      ReadPosition();                // read position.
+      SkipListOfExpressions();       // read positionals.
+      SkipListOfNamedExpressions();  // read named.
+      SkipDartType();                // read recordType.
+      return;
+    case kRecordIndexGet:
+      ReadPosition();    // read position.
+      SkipExpression();  // read receiver.
+      SkipDartType();    // read recordType.
+      ReadUInt();        // read index.
+      return;
+    case kRecordNameGet:
+      ReadPosition();         // read position.
+      SkipExpression();       // read receiver.
+      SkipDartType();         // read recordType.
+      SkipStringReference();  // read name.
+      return;
     case kFunctionExpression:
       ReadPosition();      // read position.
       SkipFunctionNode();  // read function node.
@@ -2641,6 +2686,9 @@ void KernelReaderHelper::SkipExpression() {
     case kAwaitExpression:
       ReadPosition();    // read position.
       SkipExpression();  // read operand.
+      if (ReadTag() == kSomething) {
+        SkipDartType();  // read runtime check type.
+      }
       return;
     case kConstStaticInvocation:
     case kConstConstructorInvocation:
@@ -2815,14 +2863,8 @@ void KernelReaderHelper::SkipArguments() {
   ReadUInt();  // read argument count.
 
   SkipListOfDartTypes();    // read list of types.
-  SkipListOfExpressions();  // read positionals.
-
-  // List of named.
-  intptr_t list_length = ReadListLength();  // read list length.
-  for (intptr_t i = 0; i < list_length; ++i) {
-    SkipStringReference();  // read ith name index.
-    SkipExpression();       // read ith expression.
-  }
+  SkipListOfExpressions();  // read positional.
+  SkipListOfNamedExpressions();  // read named.
 }
 
 void KernelReaderHelper::SkipVariableDeclaration() {
@@ -2929,12 +2971,7 @@ TypedDataPtr KernelReaderHelper::GetLineStartsFor(intptr_t index) {
   return reader_.ReadLineStartsData(line_start_count);
 }
 
-String& KernelReaderHelper::SourceTableImportUriFor(intptr_t index,
-                                                    uint32_t binaryVersion) {
-  if (binaryVersion < 22) {
-    return SourceTableUriFor(index);
-  }
-
+String& KernelReaderHelper::SourceTableImportUriFor(intptr_t index) {
   AlternativeReadingScope alt(&reader_);
   SetOffset(GetOffsetForSourceInfo(index));
   SkipBytes(ReadUInt());                         // skip uri.
@@ -3145,12 +3182,21 @@ void TypeTranslator::BuildTypeInternal() {
     case kSimpleFunctionType:
       BuildFunctionType(true);
       break;
+    case kRecordType:
+      BuildRecordType();
+      break;
     case kTypeParameterType:
       BuildTypeParameterType();
       if (result_.IsTypeParameter() &&
           TypeParameter::Cast(result_).bound() == AbstractType::null()) {
         refers_to_derived_type_param_ = true;
       }
+      break;
+    case kIntersectionType:
+      BuildIntersectionType();
+      break;
+    case kViewType:
+      BuildViewType();
       break;
     default:
       helper_->ReportUnexpectedTag("type", tag);
@@ -3293,6 +3339,65 @@ void TypeTranslator::BuildFunctionType(bool simple) {
   result_ = signature.ptr();
 }
 
+void TypeTranslator::BuildRecordType() {
+  Nullability nullability = helper_->ReadNullability();
+  if (apply_canonical_type_erasure_ && nullability != Nullability::kNullable) {
+    nullability = Nullability::kLegacy;
+  }
+
+  const intptr_t positional_count = helper_->ReadListLength();
+  intptr_t named_count = 0;
+  {
+    AlternativeReadingScope alt(&helper_->reader_);
+    for (intptr_t i = 0; i < positional_count; ++i) {
+      helper_->SkipDartType();
+    }
+    named_count = helper_->ReadListLength();
+  }
+
+  const intptr_t num_fields = positional_count + named_count;
+  const Array& field_types =
+      Array::Handle(Z, Array::New(num_fields, Heap::kOld));
+  const Array& field_names =
+      (named_count == 0)
+          ? Object::empty_array()
+          : Array::Handle(Z, Array::New(named_count, Heap::kOld));
+
+  // Suspend finalization of types inside this one. They will be finalized after
+  // the whole record type is constructed.
+  bool finalize = finalize_;
+  finalize_ = false;
+
+  intptr_t pos = 0;
+  for (intptr_t i = 0; i < positional_count; ++i) {
+    BuildTypeInternal();  // read ith positional field.
+    field_types.SetAt(pos++, result_);
+  }
+
+  helper_->ReadListLength();
+  for (intptr_t i = 0; i < named_count; ++i) {
+    String& name = H.DartSymbolObfuscate(helper_->ReadStringReference());
+    field_names.SetAt(i, name);
+    BuildTypeInternal();
+    field_types.SetAt(pos++, result_);
+    helper_->ReadFlags();
+  }
+  if (named_count != 0) {
+    field_names.MakeImmutable();
+  }
+
+  finalize_ = finalize;
+
+  RecordType& rec = RecordType::Handle(
+      Z, RecordType::New(field_types, field_names, nullability));
+
+  if (finalize_) {
+    rec ^= ClassFinalizer::FinalizeType(rec);
+  }
+
+  result_ = rec.ptr();
+}
+
 void TypeTranslator::BuildTypeParameterType() {
   Nullability nullability = helper_->ReadNullability();
   if (apply_canonical_type_erasure_ && nullability != Nullability::kNullable) {
@@ -3300,7 +3405,6 @@ void TypeTranslator::BuildTypeParameterType() {
   }
 
   intptr_t parameter_index = helper_->ReadUInt();  // read parameter index.
-  helper_->SkipOptionalDartType();                 // read bound.
 
   // If the type is from a constant, the parameter index isn't offset by the
   // enclosing context.
@@ -3396,6 +3500,19 @@ void TypeTranslator::BuildTypeParameterType() {
       helper_->script(), TokenPosition::kNoSource,
       "Unbound type parameter found in %s.  Please report this at dartbug.com.",
       active_class_->ToCString());
+}
+
+void TypeTranslator::BuildIntersectionType() {
+  BuildTypeInternal();      // read left.
+  helper_->SkipDartType();  // read right.
+}
+
+void TypeTranslator::BuildViewType() {
+  // We skip the view type and only use the representation type.
+  helper_->ReadNullability();
+  helper_->SkipCanonicalNameReference();  // read index for canonical name.
+  helper_->SkipListOfDartTypes();         // read type arguments
+  BuildTypeInternal();                    // read representation type.
 }
 
 const TypeArguments& TypeTranslator::BuildTypeArguments(intptr_t length) {
@@ -3615,6 +3732,9 @@ static void SetupUnboxingInfoOfParameter(const Function& function,
           function.set_unboxed_double_parameter_at(param_pos);
         }
         break;
+      case UnboxingInfoMetadata::kUnboxedRecordCandidate:
+        UNREACHABLE();
+        break;
       case UnboxingInfoMetadata::kUnboxingCandidate:
         UNREACHABLE();
         break;
@@ -3638,6 +3758,9 @@ static void SetupUnboxingInfoOfReturnValue(
       if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
         function.set_unboxed_double_return();
       }
+      break;
+    case UnboxingInfoMetadata::kUnboxedRecordCandidate:
+      function.set_unboxed_record_return();
       break;
     case UnboxingInfoMetadata::kUnboxingCandidate:
       UNREACHABLE();

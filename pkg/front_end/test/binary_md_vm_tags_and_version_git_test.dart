@@ -20,8 +20,8 @@ import 'incremental_suite.dart' show getOptions, normalCompileToComponent;
 
 import 'utils/io_utils.dart' show computeRepoDir;
 
-const String maxSupported =
-    "static const uint32_t kMaxSupportedKernelFormatVersion = ";
+const String supportedVersion =
+    "static const uint32_t kSupportedKernelFormatVersion = ";
 
 // Match stuff like "V(Nothing, 0)"
 final RegExp tagParser = new RegExp(r"V\((\w*),\s*(\d+)\)");
@@ -45,9 +45,9 @@ Future<void> main() async {
   Map<int, String> vmConstantTagToName = {};
   for (int i = 0; i < vmTagLines.length; i++) {
     String line = vmTagLines[i];
-    if (line.startsWith(maxSupported)) {
+    if (line.startsWith(supportedVersion)) {
       vmVersion = int.parse(line
-          .substring(line.indexOf(maxSupported) + maxSupported.length)
+          .substring(line.indexOf(supportedVersion) + supportedVersion.length)
           .substring(0, 2) // Assume version < 100 for now.
           .trim());
     } else if (line.startsWith("#define KERNEL_TAG_LIST(V)")) {

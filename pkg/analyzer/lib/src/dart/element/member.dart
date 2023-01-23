@@ -32,13 +32,23 @@ class ConstructorMember extends ExecutableMember
             const <TypeParameterElement>[]);
 
   @override
+  ConstructorAugmentationElement? get augmentation {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
   ConstructorElement get declaration => super.declaration as ConstructorElement;
 
   @override
   String get displayName => declaration.displayName;
 
   @override
-  ClassElement get enclosingElement => declaration.enclosingElement;
+  InterfaceElement get enclosingElement => declaration.enclosingElement;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  InterfaceElement get enclosingElement3 => enclosingElement;
 
   @override
   bool get isConst => declaration.isConst;
@@ -146,6 +156,9 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   );
 
   @override
+  List<Element> get children => parameters;
+
+  @override
   ExecutableElement get declaration => super.declaration as ExecutableElement;
 
   @override
@@ -214,12 +227,6 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExecutableElement(this, displayName);
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    safelyVisitChildren(parameters, visitor);
   }
 
   static ExecutableElement from2(
@@ -327,6 +334,12 @@ class FieldMember extends VariableMember implements FieldElement {
   );
 
   @override
+  FieldAugmentationElement? get augmentation {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
   FieldElement get declaration => super.declaration as FieldElement;
 
   @override
@@ -334,6 +347,10 @@ class FieldMember extends VariableMember implements FieldElement {
 
   @override
   Element get enclosingElement => declaration.enclosingElement;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element get enclosingElement3 => enclosingElement;
 
   @override
   PropertyAccessorElement? get getter {
@@ -359,6 +376,9 @@ class FieldMember extends VariableMember implements FieldElement {
 
   @override
   bool get isExternal => declaration.isExternal;
+
+  @override
+  bool get isPromotable => declaration.isPromotable;
 
   @override
   LibraryElement get library => _declaration.library!;
@@ -425,6 +445,10 @@ class FunctionMember extends ExecutableMember implements FunctionElement {
   @override
   Element get enclosingElement => declaration.enclosingElement;
 
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element get enclosingElement3 => enclosingElement;
+
   @override
   bool get isDartCoreIdentical => declaration.isDartCoreIdentical;
 
@@ -460,13 +484,17 @@ abstract class Member implements Element {
   Member(this._typeProvider, this._declaration, this._substitution,
       this.isLegacy) {
     if (_declaration is Member) {
-      throw StateError('Members must be created from a declarations.');
+      throw StateError('Members must be created from a declaration, but is '
+          '(${_declaration.runtimeType}) "$_declaration".');
     }
     if (_typeProvider == null && isLegacy) {
       throw StateError(
           'A type provider must be supplied for legacy conversion');
     }
   }
+
+  @override
+  List<Element> get children => const [];
 
   @override
   AnalysisContext get context => _declaration.context;
@@ -482,6 +510,10 @@ abstract class Member implements Element {
 
   @override
   Element? get enclosingElement => _declaration.enclosingElement;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element? get enclosingElement3 => enclosingElement;
 
   @override
   bool get hasAlwaysThrows => _declaration.hasAlwaysThrows;
@@ -509,6 +541,9 @@ abstract class Member implements Element {
 
   @override
   bool get hasLiteral => _declaration.hasLiteral;
+
+  @override
+  bool get hasMustBeOverridden => _declaration.hasMustBeOverridden;
 
   @override
   bool get hasMustCallSuper => _declaration.hasMustCallSuper;
@@ -612,22 +647,13 @@ abstract class Member implements Element {
   String getExtendedDisplayName(String? shortName) =>
       _declaration.getExtendedDisplayName(shortName);
 
-  @Deprecated('Use isAccessibleIn2() instead')
   @override
-  bool isAccessibleIn(LibraryElement? library) =>
+  bool isAccessibleIn(LibraryElement library) =>
       _declaration.isAccessibleIn(library);
 
+  @Deprecated('Use isAccessibleIn() instead')
   @override
-  bool isAccessibleIn2(LibraryElement library) =>
-      _declaration.isAccessibleIn2(library);
-
-  /// Use the given [visitor] to visit all of the [children].
-  void safelyVisitChildren(List<Element> children, ElementVisitor visitor) {
-    // TODO(brianwilkerson) Make this private
-    for (Element child in children) {
-      child.accept(visitor);
-    }
-  }
+  bool isAccessibleIn2(LibraryElement library) => isAccessibleIn(library);
 
   @override
   E? thisOrAncestorMatching<E extends Element>(
@@ -645,9 +671,13 @@ abstract class Member implements Element {
     return getDisplayString(withNullability: false);
   }
 
+  /// Use the given [visitor] to visit all of the children of this element.
+  /// There is no guarantee of the order in which the children will be visited.
   @override
   void visitChildren(ElementVisitor visitor) {
-    // There are no children to visit
+    for (Element child in children) {
+      child.accept(visitor);
+    }
   }
 
   /// If this member is a legacy view, erase nullability from the [type].
@@ -759,10 +789,20 @@ class MethodMember extends ExecutableMember implements MethodElement {
   );
 
   @override
+  MethodAugmentationElement? get augmentation {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
   MethodElement get declaration => super.declaration as MethodElement;
 
   @override
   Element get enclosingElement => declaration.enclosingElement;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element get enclosingElement3 => enclosingElement;
 
   @override
   String get name => declaration.name;
@@ -840,6 +880,9 @@ class ParameterMember extends VariableMember
   );
 
   @override
+  List<Element> get children => parameters;
+
+  @override
   ParameterElement get declaration => super.declaration as ParameterElement;
 
   @override
@@ -847,6 +890,10 @@ class ParameterMember extends VariableMember
 
   @override
   Element? get enclosingElement => declaration.enclosingElement;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element? get enclosingElement3 => enclosingElement;
 
   @override
   bool get hasDefaultValue => declaration.hasDefaultValue;
@@ -889,12 +936,6 @@ class ParameterMember extends VariableMember
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeFormalParameter(this);
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    safelyVisitChildren(parameters, visitor);
   }
 
   static ParameterElement from(
@@ -957,6 +998,12 @@ class PropertyAccessorMember extends ExecutableMember
   );
 
   @override
+  PropertyAccessorAugmentationElement? get augmentation {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
   PropertyAccessorElement? get correspondingGetter {
     var baseGetter = declaration.correspondingGetter;
     if (baseGetter == null) {
@@ -982,6 +1029,10 @@ class PropertyAccessorMember extends ExecutableMember
 
   @override
   Element get enclosingElement => declaration.enclosingElement;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element get enclosingElement3 => enclosingElement;
 
   @override
   bool get isGetter => declaration.isGetter;

@@ -4,5 +4,5 @@
 
 defaultArg3() => 3;
 defaultArg4() => 4;
-myFunction2({argumentName3: defaultArg3, argumentName4: defaultArg4}) =>
+myFunction2({argumentName3 = defaultArg3, argumentName4 = defaultArg4}) =>
     "${argumentName3()} - ${argumentName4()}";

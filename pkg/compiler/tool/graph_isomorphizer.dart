@@ -148,7 +148,9 @@ class GraphIsomorphizer {
   final bool simple;
 
   GraphIsomorphizer(this.names, this.maxBit,
-      {this.outDirectory: '.', this.skipCopyright: false, this.simple: false});
+      {this.outDirectory = '.',
+      this.skipCopyright = false,
+      this.simple = false});
 
   void noInlineDecorator(StringBuffer out) {
     out.write("@pragma('dart2js:noInline')\n");
@@ -371,7 +373,7 @@ class GraphIsomorphizer {
   /// Generates a string of bits, with optional parameters to control how the
   /// bits print.
   String generateBitString(List<int> bits,
-      {NameFunc f: passThroughNameFunc, bool withStops: true}) {
+      {NameFunc f = passThroughNameFunc, bool withStops = true}) {
     int stop = 0;
     StringBuffer sb = StringBuffer();
     for (int i = 0; i < bits.length; i++) {

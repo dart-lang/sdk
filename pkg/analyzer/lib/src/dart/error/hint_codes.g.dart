@@ -7,6 +7,10 @@
 // Instead modify 'pkg/analyzer/messages.yaml' and run
 // 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 
+// We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
+// code, as they match names declared in the source configuration files.
+// ignore_for_file: constant_identifier_names
+
 import "package:analyzer/error/error.dart";
 import "package:analyzer/src/error/analyzer_error_code.dart";
 
@@ -23,12 +27,24 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  Users should not assign values marked `@doNotStore`.
+  ///
+  ///  Parameters:
+  ///  0: the name of the field or variable
   static const HintCode ASSIGNMENT_OF_DO_NOT_STORE = HintCode(
     'ASSIGNMENT_OF_DO_NOT_STORE',
     "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field or "
         "top-level variable.",
     correctionMessage: "Try removing the assignment.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the return type as derived by the type of the [Future].
+  static const HintCode BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR = HintCode(
+    'BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR',
+    "This 'onError' handler must return a value assignable to '{0}', but ends "
+        "without returning a value.",
+    correctionMessage: "Try adding a return statement.",
   );
 
   ///  Parameters:
@@ -48,6 +64,24 @@ class HintCode extends AnalyzerErrorCode {
     'CAN_BE_NULL_AFTER_NULL_AWARE',
     "The receiver uses '?.', so its value can be null.",
     correctionMessage: "Replace the '.' with a '?.' in the invocation.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the unassigned variable
+  static const HintCode CAST_FROM_NULLABLE_ALWAYS_FAILS = HintCode(
+    'CAST_FROM_NULLABLE_ALWAYS_FAILS',
+    "This cast will always throw an exception because the nullable local "
+        "variable '{0}' is not assigned.",
+    correctionMessage:
+        "Try giving it an initializer expression, or ensure that it's assigned "
+        "on every execution path.",
+  );
+
+  ///  No parameters.
+  static const HintCode CAST_FROM_NULL_ALWAYS_FAILS = HintCode(
+    'CAST_FROM_NULL_ALWAYS_FAILS',
+    "This cast always throws an exception because the expression always "
+        "evaluates to 'null'.",
   );
 
   ///  Dead code is code that is never reached, this can happen for instance if a
@@ -86,7 +120,7 @@ class HintCode extends AnalyzerErrorCode {
   ///  1: name of the supertype
   static const HintCode DEAD_CODE_ON_CATCH_SUBTYPE = HintCode(
     'DEAD_CODE_ON_CATCH_SUBTYPE',
-    "Dead code: This on-catch block won’t be executed because '{0}' is a "
+    "Dead code: This on-catch block won't be executed because '{0}' is a "
         "subtype of '{1}' and hence will have been caught already.",
     correctionMessage:
         "Try reordering the catch clauses so that this block can be reached, "
@@ -94,11 +128,19 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
+  static const HintCode DEPRECATED_COLON_FOR_DEFAULT_VALUE = HintCode(
+    'DEPRECATED_COLON_FOR_DEFAULT_VALUE',
+    "Using a colon as a separator before a default value is deprecated and "
+        "will not be supported in language version 3.0 and later.",
+    correctionMessage: "Try replacing the colon with an equal sign.",
+  );
+
   ///  Parameters:
   ///  0: the name of the element
   static const HintCode DEPRECATED_EXPORT_USE = HintCode(
     'DEPRECATED_EXPORT_USE',
-    "The ability to import '{0}' indirectly has been deprecated.",
+    "The ability to import '{0}' indirectly is deprecated.",
     correctionMessage: "Try importing '{0}' directly.",
   );
 
@@ -146,7 +188,7 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE =
       HintCode(
     'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
-    "'{0}' is deprecated and shouldn't be used. {1}.",
+    "'{0}' is deprecated and shouldn't be used. {1}",
     correctionMessage:
         "Try replacing the use of the deprecated member with the replacement.",
     hasPublishedDocs: true,
@@ -158,7 +200,7 @@ class HintCode extends AnalyzerErrorCode {
   ///  1: message details
   static const HintCode DEPRECATED_MEMBER_USE_WITH_MESSAGE = HintCode(
     'DEPRECATED_MEMBER_USE',
-    "'{0}' is deprecated and shouldn't be used. {1}.",
+    "'{0}' is deprecated and shouldn't be used. {1}",
     correctionMessage:
         "Try replacing the use of the deprecated member with the replacement.",
     hasPublishedDocs: true,
@@ -189,6 +231,15 @@ class HintCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try re-writing the expression to use the '~/' operator.",
     hasPublishedDocs: true,
+  );
+
+  ///  Duplicate exports.
+  ///
+  ///  No parameters.
+  static const HintCode DUPLICATE_EXPORT = HintCode(
+    'DUPLICATE_EXPORT',
+    "Duplicate export.",
+    correctionMessage: "Try removing all but one export of the library.",
   );
 
   ///  No parameters.
@@ -286,9 +337,10 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
-  ///
   ///  https://github.com/dart-lang/sdk/issues/44063
+  ///
+  ///  Parameters:
+  ///  0: the name of the library
   static const HintCode IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE = HintCode(
     'IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE',
     "The library '{0}' is legacy, and shouldn't be imported into a null safe "
@@ -299,6 +351,9 @@ class HintCode extends AnalyzerErrorCode {
 
   ///  When "strict-inference" is enabled, collection literal types must be
   ///  inferred via the context type, or have type arguments.
+  ///
+  ///  Parameters:
+  ///  0: the name of the collection
   static const HintCode INFERENCE_FAILURE_ON_COLLECTION_LITERAL = HintCode(
     'INFERENCE_FAILURE_ON_COLLECTION_LITERAL',
     "The type argument(s) of '{0}' can't be inferred.",
@@ -307,6 +362,9 @@ class HintCode extends AnalyzerErrorCode {
 
   ///  When "strict-inference" is enabled, types in function invocations must be
   ///  inferred via the context type, or have type arguments.
+  ///
+  ///  Parameters:
+  ///  0: the name of the function
   static const HintCode INFERENCE_FAILURE_ON_FUNCTION_INVOCATION = HintCode(
     'INFERENCE_FAILURE_ON_FUNCTION_INVOCATION',
     "The type argument(s) of the function '{0}' can't be inferred.",
@@ -318,6 +376,9 @@ class HintCode extends AnalyzerErrorCode {
   ///  specify a return type. See the strict-inference resource:
   ///
   ///  https://github.com/dart-lang/language/blob/master/resources/type-system/strict-inference.md
+  ///
+  ///  Parameters:
+  ///  0: the name of the function or method
   static const HintCode INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE = HintCode(
     'INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE',
     "The return type of '{0}' cannot be inferred.",
@@ -326,6 +387,9 @@ class HintCode extends AnalyzerErrorCode {
 
   ///  When "strict-inference" is enabled, types in function invocations must be
   ///  inferred via the context type, or have type arguments.
+  ///
+  ///  Parameters:
+  ///  0: the name of the type
   static const HintCode INFERENCE_FAILURE_ON_GENERIC_INVOCATION = HintCode(
     'INFERENCE_FAILURE_ON_GENERIC_INVOCATION',
     "The type argument(s) of the generic function type '{0}' can't be "
@@ -336,6 +400,9 @@ class HintCode extends AnalyzerErrorCode {
   ///  When "strict-inference" is enabled, types in instance creation
   ///  (constructor calls) must be inferred via the context type, or have type
   ///  arguments.
+  ///
+  ///  Parameters:
+  ///  0: the name of the constructor
   static const HintCode INFERENCE_FAILURE_ON_INSTANCE_CREATION = HintCode(
     'INFERENCE_FAILURE_ON_INSTANCE_CREATION',
     "The type argument(s) of the constructor '{0}' can't be inferred.",
@@ -344,6 +411,9 @@ class HintCode extends AnalyzerErrorCode {
 
   ///  When "strict-inference" in enabled, uninitialized variables must be
   ///  declared with a specific type.
+  ///
+  ///  Parameters:
+  ///  0: the name of the variable
   static const HintCode INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE = HintCode(
     'INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE',
     "The type of {0} can't be inferred without either a type or initializer.",
@@ -352,6 +422,9 @@ class HintCode extends AnalyzerErrorCode {
 
   ///  When "strict-inference" in enabled, function parameters must be
   ///  declared with a specific type, or inherit a type.
+  ///
+  ///  Parameters:
+  ///  0: the name of the parameter
   static const HintCode INFERENCE_FAILURE_ON_UNTYPED_PARAMETER = HintCode(
     'INFERENCE_FAILURE_ON_UNTYPED_PARAMETER',
     "The type of {0} can't be inferred; a type must be explicitly provided.",
@@ -378,6 +451,7 @@ class HintCode extends AnalyzerErrorCode {
 
   ///  Parameters:
   ///  0: the name of the element
+  ///  1: ?
   static const HintCode INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY =
       HintCode(
     'INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY',
@@ -448,6 +522,9 @@ class HintCode extends AnalyzerErrorCode {
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS',
   );
 
+  ///  Parameters:
+  ///  0: the latest major version
+  ///  1: the latest minor version
   static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER = HintCode(
     'INVALID_LANGUAGE_VERSION_OVERRIDE',
     "The language version override can't specify a version greater than the "
@@ -680,6 +757,37 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the name of the member
+  static const HintCode MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE = HintCode(
+    'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
+    "Missing concrete override implementation of '{0}'.",
+    correctionMessage: "Try overriding the missing member.",
+    uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the first member
+  ///  1: the name of the second member
+  ///  2: the number of additional missing members that aren't listed
+  static const HintCode MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS =
+      HintCode(
+    'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
+    "Missing concrete override implementation of '{0}', '{1}', and {2} more.",
+    correctionMessage: "Try overriding the missing members.",
+    uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the first member
+  ///  1: the name of the second member
+  static const HintCode MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO = HintCode(
+    'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
+    "Missing concrete override implementation of '{0}' and '{1}'.",
+    correctionMessage: "Try overriding the missing members.",
+    uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO',
+  );
+
   ///  Generate a hint for a constructor, function or method invocation where a
   ///  required parameter is missing.
   ///
@@ -733,6 +841,9 @@ class HintCode extends AnalyzerErrorCode {
 
   ///  Generate a hint for classes that inherit from classes annotated with
   ///  `@immutable` but that are not immutable.
+  ///
+  ///  Parameters:
+  ///  0: the name of the class
   static const HintCode MUST_BE_IMMUTABLE = HintCode(
     'MUST_BE_IMMUTABLE',
     "This class (or a class that this class inherits from) is marked as "
@@ -945,7 +1056,8 @@ class HintCode extends AnalyzerErrorCode {
     uniqueName: 'RETURN_TYPE_INVALID_FOR_CATCH_ERROR',
   );
 
-  ///  No parameters.
+  ///  Parameters:
+  ///  0: the name of the class
   static const HintCode SDK_VERSION_ASYNC_EXPORTED_FROM_CORE = HintCode(
     'SDK_VERSION_ASYNC_EXPORTED_FROM_CORE',
     "The class '{0}' wasn't exported from 'dart:core' until version 2.1, but "
@@ -965,7 +1077,8 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  ///  Parameters:
+  ///  0: the name of the operator
   static const HintCode SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT = HintCode(
     'SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT',
     "The use of the operator '{0}' for 'bool' operands in a constant context "
@@ -1070,6 +1183,9 @@ class HintCode extends AnalyzerErrorCode {
   ///
   ///  A "raw type" is a type name that does not use inference to fill in missing
   ///  type arguments; instead, each type argument is instantiated to its bound.
+  ///
+  ///  Parameters:
+  ///  0: the name of the generic type
   static const HintCode STRICT_RAW_TYPE = HintCode(
     'STRICT_RAW_TYPE',
     "The generic type '{0}' should have explicit type arguments but doesn't.",
@@ -1372,7 +1488,7 @@ class HintCode extends AnalyzerErrorCode {
   ///  0: the name that is shown but not used
   static const HintCode UNUSED_SHOWN_NAME = HintCode(
     'UNUSED_SHOWN_NAME',
-    "The name {0} is shown, but isn’t used.",
+    "The name {0} is shown, but isn't used.",
     correctionMessage: "Try removing the name from the list of shown members.",
     hasPublishedDocs: true,
   );

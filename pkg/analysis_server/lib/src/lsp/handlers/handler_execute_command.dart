@@ -7,14 +7,16 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/fix_all.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/organize_imports.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/perform_refactor.dart';
+import 'package:analysis_server/src/lsp/handlers/commands/refactor_command_handler.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/send_workspace_edit.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/sort_members.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/validate_refactor.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
+import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
 
-/// Handles workspace/executeCommand messages by delegating to a specific handler
-/// based on the command.
+/// Handles workspace/executeCommand messages by delegating to a specific
+/// handler based on the command.
 class ExecuteCommandHandler
     extends MessageHandler<ExecuteCommandParams, Object?> {
   final Map<String, CommandHandler> commandHandlers;
@@ -27,6 +29,9 @@ class ExecuteCommandHandler
           Commands.performRefactor: PerformRefactorCommandHandler(server),
           Commands.validateRefactor: ValidateRefactorCommandHandler(server),
           Commands.sendWorkspaceEdit: SendWorkspaceEditCommandHandler(server),
+          // Add commands for each of the refactorings.
+          for (var entry in RefactoringProcessor.generators.entries)
+            entry.key: RefactorCommandHandler(server, entry.key, entry.value),
         };
 
   @override
@@ -45,6 +50,7 @@ class ExecuteCommandHandler
           '${params.command} is not a valid command identifier', null);
     }
 
+    server.analyticsManager.executedCommand(params.command);
     final workDoneToken = params.workDoneToken;
     final progress = workDoneToken != null
         ? ProgressReporter.clientProvided(server, workDoneToken)
@@ -52,11 +58,11 @@ class ExecuteCommandHandler
             ? ProgressReporter.serverCreated(server)
             : ProgressReporter.noop;
 
-    // To make parsing arguments easier in commands, instead of a
+    // To make passing arguments easier in commands, instead of a
     // `List<Object?>` we now use `Map<String, Object?>`.
     //
     // However, some handlers still support the list for compatibility so we
-    // must allow the to convert a `List` to a `Map`.
+    // must allow them to convert a `List` to a `Map`.
     final arguments = params.arguments ?? const [];
     Map<String, Object?> commandParams;
     if (arguments.length == 1 && arguments[0] is Map<String, Object?>) {

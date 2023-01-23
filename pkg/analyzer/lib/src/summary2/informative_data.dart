@@ -67,18 +67,24 @@ class InformativeDataApplier {
       throw StateError('Unexpected recursion.');
     }
     _elementFactory.isApplyingInformativeData = true;
+    libraryElement.linkedData?.lock();
 
     var unitElements = libraryElement.units;
     for (var i = 0; i < unitElements.length; i++) {
-      var unitElement = unitElements[i] as CompilationUnitElementImpl;
+      var unitElement = unitElements[i];
       var unitUri = unitElement.source.uri;
       var unitInfoBytes = _unitsInformativeBytes2[unitUri];
       if (unitInfoBytes != null) {
         var unitReader = SummaryDataReader(unitInfoBytes);
         var unitInfo = _InfoUnit(unitReader);
 
-        if (i == 0) {
-          _applyToLibrary(libraryElement, unitInfo);
+        final enclosing = unitElement.enclosingElement;
+        if (enclosing is LibraryElementImpl) {
+          if (identical(enclosing.definingCompilationUnit, unitElement)) {
+            _applyToLibrary(enclosing, unitInfo);
+          }
+        } else if (enclosing is LibraryAugmentationElementImpl) {
+          _applyToAugmentation(enclosing, unitInfo);
         }
 
         unitElement.setCodeRange(unitInfo.codeOffset, unitInfo.codeLength);
@@ -139,6 +145,7 @@ class InformativeDataApplier {
       }
     }
 
+    libraryElement.linkedData?.unlock();
     _elementFactory.isApplyingInformativeData = false;
   }
 
@@ -170,6 +177,29 @@ class InformativeDataApplier {
             },
           );
         }
+      },
+    );
+  }
+
+  void _applyToAugmentation(
+    LibraryAugmentationElementImpl element,
+    _InfoUnit info,
+  ) {
+    if (info.docComment.isNotEmpty) {
+      element.documentationComment = info.docComment;
+    }
+
+    _applyToImports(element, info);
+    _applyToExports(element, info);
+
+    var linkedData = element.linkedData as LibraryAugmentationElementLinkedData;
+    linkedData.applyConstantOffsets = ApplyConstantOffsets(
+      info.libraryConstantOffsets,
+      (applier) {
+        applier.applyToMetadata(element);
+        applier.applyToImports(element.libraryImports);
+        applier.applyToExports(element.libraryExports);
+        applier.applyToAugmentationImports(element.augmentationImports);
       },
     );
   }
@@ -276,7 +306,7 @@ class InformativeDataApplier {
   }
 
   void _applyToEnumDeclaration(
-    ClassElement element,
+    EnumElement element,
     _InfoClassDeclaration info,
   ) {
     element as EnumElementImpl;
@@ -299,6 +329,21 @@ class InformativeDataApplier {
       (applier) {
         applier.applyToMetadata(element);
         applier.applyToTypeParameters(element.typeParameters);
+      },
+    );
+  }
+
+  void _applyToExports(
+    LibraryOrAugmentationElementImpl element,
+    _InfoUnit info,
+  ) {
+    forCorrespondingPairs<LibraryExportElement, _InfoExport>(
+      element.exports_unresolved,
+      info.exports,
+      (element, info) {
+        element as LibraryExportElementImpl;
+        element.nameOffset = info.nameOffset;
+        _applyToCombinators(element.combinators, info.combinators);
       },
     );
   }
@@ -440,6 +485,27 @@ class InformativeDataApplier {
     );
   }
 
+  void _applyToImports(
+    LibraryOrAugmentationElementImpl element,
+    _InfoUnit info,
+  ) {
+    forCorrespondingPairs<LibraryImportElement, _InfoImport>(
+      element.imports_unresolved,
+      info.imports,
+      (element, info) {
+        element as LibraryImportElementImpl;
+        element.nameOffset = info.nameOffset;
+
+        final prefixElement = element.prefix?.element;
+        if (prefixElement is PrefixElementImpl) {
+          prefixElement.nameOffset = info.prefixOffset;
+        }
+
+        _applyToCombinators(element.combinators, info.combinators);
+      },
+    );
+  }
+
   void _applyToLibrary(LibraryElementImpl element, _InfoUnit info) {
     element.nameOffset = info.libraryName.offset;
     element.nameLength = info.libraryName.length;
@@ -448,34 +514,11 @@ class InformativeDataApplier {
       element.documentationComment = info.docComment;
     }
 
-    forCorrespondingPairs<ImportElement, _InfoImport>(
-      element.imports_unresolved,
-      info.imports,
-      (element, info) {
-        element as ImportElementImpl;
-        element.nameOffset = info.nameOffset;
-
-        var prefix = element.prefix;
-        if (prefix is PrefixElementImpl) {
-          prefix.nameOffset = info.prefixOffset;
-        }
-
-        _applyToCombinators(element.combinators, info.combinators);
-      },
-    );
-
-    forCorrespondingPairs<ExportElement, _InfoExport>(
-      element.exports_unresolved,
-      info.exports,
-      (element, info) {
-        element as ExportElementImpl;
-        element.nameOffset = info.nameOffset;
-        _applyToCombinators(element.combinators, info.combinators);
-      },
-    );
+    _applyToImports(element, info);
+    _applyToExports(element, info);
 
     forCorrespondingPairs<PartElement, _InfoPart>(
-      element.parts2,
+      element.parts,
       info.parts,
       (element, info) {
         element as PartElementImpl;
@@ -487,9 +530,10 @@ class InformativeDataApplier {
       info.libraryConstantOffsets,
       (applier) {
         applier.applyToMetadata(element);
-        applier.applyToDirectives(element.imports);
-        applier.applyToDirectives(element.exports);
-        applier.applyToPartDirectives(element.parts2);
+        applier.applyToImports(element.libraryImports);
+        applier.applyToExports(element.libraryExports);
+        applier.applyToAugmentationImports(element.augmentationImports);
+        applier.applyToPartDirectives(element.parts);
       },
     );
   }
@@ -529,7 +573,7 @@ class InformativeDataApplier {
   }
 
   void _applyToMixinDeclaration(
-    ClassElement element,
+    MixinElement element,
     _InfoClassDeclaration info,
   ) {
     element as MixinElementImpl;
@@ -1331,7 +1375,7 @@ class _InformativeDataWriter {
     sink.writeList<FormalParameter>(parameters, (node) {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
-      sink.writeUInt30(1 + (node.identifier?.offset ?? -1));
+      sink.writeUInt30(1 + (node.name?.offset ?? -1));
 
       var notDefault = node.notDefault;
       if (notDefault is FieldFormalParameter) {
@@ -1379,8 +1423,11 @@ class _InformativeDataWriter {
     for (var directive in unit.directives) {
       firstDirective ??= directive;
       if (directive is LibraryDirective) {
-        nameOffset = directive.name.offset;
-        nameLength = directive.name.length;
+        final libraryName = directive.name2;
+        if (libraryName != null) {
+          nameOffset = libraryName.offset;
+          nameLength = libraryName.length;
+        }
         break;
       }
     }
@@ -1390,6 +1437,8 @@ class _InformativeDataWriter {
       metadata: firstDirective?.metadata,
       importDirectives: unit.directives.whereType<ImportDirective>(),
       exportDirectives: unit.directives.whereType<ExportDirective>(),
+      augmentationImportDirectives:
+          unit.directives.whereType<AugmentationImportDirective>(),
       partDirectives: unit.directives.whereType<PartDirective>(),
     );
   }
@@ -1420,6 +1469,7 @@ class _InformativeDataWriter {
     NodeList<Annotation>? metadata,
     Iterable<ImportDirective>? importDirectives,
     Iterable<ExportDirective>? exportDirectives,
+    Iterable<AugmentationImportDirective>? augmentationImportDirectives,
     Iterable<PartDirective>? partDirectives,
     TypeParameterList? typeParameters,
     FormalParameterList? formalParameters,
@@ -1466,6 +1516,7 @@ class _InformativeDataWriter {
     metadata?.accept(collector);
     addDirectives(importDirectives);
     addDirectives(exportDirectives);
+    addDirectives(augmentationImportDirectives);
     addDirectives(partDirectives);
     addTypeParameters(typeParameters);
     addFormalParameters(formalParameters);
@@ -1586,7 +1637,6 @@ class _InfoUnit {
       libraryName: _InfoLibraryName(reader),
       libraryConstantOffsets: reader.readUInt30List(),
       docComment: reader.readStringUtf8(),
-      // TODO(scheglov)
       imports: reader.readTypedList(
         () => _InfoImport(reader),
       ),
@@ -1657,6 +1707,12 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
 
   _OffsetsApplier(this._iterator);
 
+  void applyToAugmentationImports(List<AugmentationImportElement> elements) {
+    for (var element in elements) {
+      applyToMetadata(element);
+    }
+  }
+
   void applyToConstantInitializer(Element element) {
     if (element is ConstFieldElementImpl && element.isEnumConstant) {
       _applyToEnumConstantInitializer(element);
@@ -1671,15 +1727,15 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     }
   }
 
-  void applyToDirectives(List<UriReferencedElement> elements) {
-    for (var element in elements) {
-      applyToMetadata(element);
-    }
-  }
-
   void applyToEnumConstants(List<FieldElement> constants) {
     for (var constant in constants) {
       applyToMetadata(constant);
+    }
+  }
+
+  void applyToExports(List<LibraryExportElement> elements) {
+    for (var element in elements) {
+      applyToMetadata(element);
     }
   }
 
@@ -1688,6 +1744,12 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
       applyToMetadata(parameter);
       applyToFormalParameters(parameter.parameters);
       applyToConstantInitializer(parameter);
+    }
+  }
+
+  void applyToImports(List<LibraryImportElement> elements) {
+    for (var element in elements) {
+      applyToMetadata(element);
     }
   }
 
@@ -1735,7 +1797,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     super.visitSimpleFormalParameter(node);
 
     var element = node.declaredElement;
-    var identifier = node.identifier;
+    var identifier = node.name;
     if (element is ParameterElementImpl && identifier != null) {
       element.nameOffset = identifier.offset;
     }
@@ -1962,6 +2024,14 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitRecordLiteral(RecordLiteral node) {
+    _tokenOrNull(node.constKeyword);
+    _tokenOrNull(node.leftParenthesis);
+    _tokenOrNull(node.rightParenthesis);
+    super.visitRecordLiteral(node);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     _tokenOrNull(node.thisKeyword);
@@ -1980,6 +2050,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     _tokenOrNull(node.requiredKeyword);
+    _tokenOrNull(node.name);
     super.visitSimpleFormalParameter(node);
   }
 

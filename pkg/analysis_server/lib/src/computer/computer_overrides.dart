@@ -6,11 +6,12 @@ import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/protocol_server.dart' as proto;
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 /// Return the elements that the given [element] overrides.
 OverriddenElements findOverriddenElements(Element element) {
-  if (element.enclosingElement is ClassElement) {
+  if (element.enclosingElement is InterfaceElement) {
     return _OverriddenElementsFinder(element).find();
   }
   return OverriddenElements(element, <Element>[], <Element>[]);
@@ -26,18 +27,19 @@ class DartUnitOverridesComputer {
   /// Returns the computed occurrences, not `null`.
   List<proto.Override> compute() {
     for (var unitMember in _unit.declarations) {
-      if (unitMember is ClassOrMixinDeclaration) {
+      if (unitMember is ClassDeclaration) {
         _classMembers(unitMember.members);
       } else if (unitMember is EnumDeclaration) {
+        _classMembers(unitMember.members);
+      } else if (unitMember is MixinDeclaration) {
         _classMembers(unitMember.members);
       }
     }
     return _overrides;
   }
 
-  /// Add a new [Override] for the declaration with the given name [node].
-  void _addOverride(SimpleIdentifier node) {
-    var element = node.staticElement;
+  /// Add a new [Override] for the declaration with the given name [token].
+  void _addOverride(Token token, Element? element) {
     if (element != null) {
       var overridesResult = _OverriddenElementsFinder(element).find();
       var superElements = overridesResult.superElements;
@@ -53,7 +55,7 @@ class DartUnitOverridesComputer {
                 member.nonSynthetic,
                 withNullability: _unit.isNonNullableByDefault))
             .toList();
-        _overrides.add(proto.Override(node.offset, node.length,
+        _overrides.add(proto.Override(token.offset, token.length,
             superclassMember: superMember,
             interfaceMembers: nullIfEmpty(interfaceMembers)));
       }
@@ -66,7 +68,7 @@ class DartUnitOverridesComputer {
         if (classMember.isStatic) {
           continue;
         }
-        _addOverride(classMember.name);
+        _addOverride(classMember.name, classMember.declaredElement);
       }
       if (classMember is FieldDeclaration) {
         if (classMember.isStatic) {
@@ -74,7 +76,7 @@ class DartUnitOverridesComputer {
         }
         List<VariableDeclaration> fields = classMember.fields.variables;
         for (var field in fields) {
-          _addOverride(field.name);
+          _addOverride(field.name, field.declaredElement);
         }
       }
     }
@@ -100,16 +102,16 @@ class OverriddenElements {
 class _OverriddenElementsFinder {
   Element _seed;
   LibraryElement _library;
-  ClassElement _class;
+  InterfaceElement _class;
   String _name;
   List<ElementKind> _kinds;
 
   final List<Element> _superElements = <Element>[];
   final List<Element> _interfaceElements = <Element>[];
-  final Set<ClassElement> _visited = <ClassElement>{};
+  final Set<InterfaceElement> _visited = {};
 
   factory _OverriddenElementsFinder(Element seed) {
-    var class_ = seed.enclosingElement as ClassElement;
+    var class_ = seed.enclosingElement as InterfaceElement;
     var library = class_.library;
     var name = seed.displayName;
     List<ElementKind> kinds;
@@ -143,7 +145,7 @@ class _OverriddenElementsFinder {
     return OverriddenElements(_seed, _superElements, _interfaceElements);
   }
 
-  void _addInterfaceOverrides(ClassElement? class_, bool checkType) {
+  void _addInterfaceOverrides(InterfaceElement? class_, bool checkType) {
     if (class_ == null) {
       return;
     }
@@ -165,7 +167,8 @@ class _OverriddenElementsFinder {
     _addInterfaceOverrides(class_.supertype?.element, checkType);
   }
 
-  void _addSuperOverrides(ClassElement? class_, {bool withThisType = true}) {
+  void _addSuperOverrides(InterfaceElement? class_,
+      {bool withThisType = true}) {
     if (class_ == null) {
       return;
     }
@@ -184,12 +187,14 @@ class _OverriddenElementsFinder {
     for (var mixin_ in class_.mixins) {
       _addSuperOverrides(mixin_.element);
     }
-    for (var constraint in class_.superclassConstraints) {
-      _addSuperOverrides(constraint.element);
+    if (class_ is MixinElement) {
+      for (var constraint in class_.superclassConstraints) {
+        _addSuperOverrides(constraint.element);
+      }
     }
   }
 
-  Element? _lookupMember(ClassElement classElement) {
+  Element? _lookupMember(InterfaceElement classElement) {
     Element? member;
     // method
     if (_kinds.contains(ElementKind.METHOD)) {

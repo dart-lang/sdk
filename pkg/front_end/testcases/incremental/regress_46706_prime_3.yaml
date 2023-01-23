@@ -22,6 +22,7 @@ worlds:
         export 'part.dart';
         void libMethod() {}
     expectedLibraryCount: 3
+
   - entry: main.dart
     invalidate:
       - lib.dart
@@ -35,3 +36,4 @@ worlds:
         void libMethod() {}
         void partMethod() {}
     expectedLibraryCount: 2
+    advancedInvalidation: problemsInLibrary

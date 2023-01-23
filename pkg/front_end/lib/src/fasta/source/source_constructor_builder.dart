@@ -33,8 +33,6 @@ import '../kernel/kernel_helper.dart'
         TypeDependency,
         finishConstructorPatch,
         finishProcedurePatch;
-import '../kernel/utils.dart'
-    show isRedirectingGenerativeConstructorImplementation;
 import '../messages.dart'
     show
         LocatedMessage,
@@ -51,9 +49,10 @@ import '../source/source_enum_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
 import '../source/source_member_builder.dart';
-import '../type_inference/type_inferrer.dart';
+import '../type_inference/inference_results.dart';
 import '../type_inference/type_schema.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
+import 'name_scheme.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
 
@@ -64,6 +63,13 @@ abstract class SourceConstructorBuilder
 
   void addSuperParameterDefaultValueCloners(
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
+
+  /// Returns `true` if this constructor is an redirecting generative
+  /// constructor.
+  ///
+  /// It is considered redirecting if it has at least one redirecting
+  /// initializer.
+  bool get isRedirecting;
 }
 
 class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
@@ -71,8 +77,8 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   @override
   final OmittedTypeBuilder returnType;
 
-  final Constructor _constructor;
-  final Procedure? _constructorTearOff;
+  late final Constructor _constructor;
+  late final Procedure? _constructorTearOff;
 
   Set<SourceFieldBuilder>? _initializedFields;
 
@@ -126,25 +132,25 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       Reference? tearOffReference,
       {String? nativeMethodName,
       required bool forAbstractClassOrEnum})
-      : _constructor = new Constructor(new FunctionNode(null),
-            name: new Name(name, compilationUnit.library),
-            fileUri: compilationUnit.fileUri,
-            reference: constructorReference)
-          ..startFileOffset = startCharOffset
-          ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset
-          ..isNonNullableByDefault = compilationUnit.isNonNullableByDefault,
-        _constructorTearOff = createConstructorTearOffProcedure(
-            name,
-            compilationUnit,
-            compilationUnit.fileUri,
-            charOffset,
-            tearOffReference,
-            forAbstractClassOrEnum: forAbstractClassOrEnum),
-        _hasSuperInitializingFormals =
+      : _hasSuperInitializingFormals =
             formals?.any((formal) => formal.isSuperInitializingFormal) ?? false,
         super(metadata, modifiers, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName) {
+    _constructor = new Constructor(new FunctionNode(null),
+        name: dummyName,
+        fileUri: compilationUnit.fileUri,
+        reference: constructorReference)
+      ..startFileOffset = startCharOffset
+      ..fileOffset = charOffset
+      ..fileEndOffset = charEndOffset
+      ..isNonNullableByDefault = compilationUnit.isNonNullableByDefault;
+    MemberName constructorName =
+        new MemberName(compilationUnit.libraryName, name);
+    constructorName.attachMember(_constructor);
+    _constructorTearOff = createConstructorTearOffProcedure(name,
+        compilationUnit, compilationUnit.fileUri, charOffset, tearOffReference,
+        forAbstractClassOrEnum: forAbstractClassOrEnum);
+
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
         if (formal.isInitializingFormal || formal.isSuperInitializingFormal) {
@@ -194,8 +200,51 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   ProcedureKind? get kind => null;
 
   @override
-  bool get isRedirectingGenerativeConstructor {
-    return isRedirectingGenerativeConstructorImplementation(_constructor);
+  bool get isRedirecting {
+    for (Initializer initializer in _constructor.initializers) {
+      if (initializer is RedirectingInitializer) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Returns `true` if this constructor, including its augmentations, is
+  /// external.
+  ///
+  /// An augmented constructor is considered external if all of the origin
+  /// and augmentation constructors are external.
+  bool get isEffectivelyExternal {
+    bool isExternal = this.isExternal;
+    if (isExternal) {
+      List<SourceConstructorBuilder>? patches = _patches;
+      if (patches != null) {
+        for (SourceConstructorBuilder patch in patches) {
+          isExternal &= patch.isExternal;
+        }
+      }
+    }
+    return isExternal;
+  }
+
+  /// Returns `true` if this constructor or any of its augmentations are
+  /// redirecting.
+  ///
+  /// An augmented constructor is considered redirecting if any of the origin
+  /// or augmentation constructors is redirecting. Since it is an error if more
+  /// than one is redirecting, only one can be redirecting in the without
+  /// errors.
+  bool get isEffectivelyRedirecting {
+    bool isRedirecting = this.isRedirecting;
+    if (!isRedirecting) {
+      List<SourceConstructorBuilder>? patches = _patches;
+      if (patches != null) {
+        for (SourceConstructorBuilder patch in patches) {
+          isRedirecting |= patch.isRedirecting;
+        }
+      }
+    }
+    return isRedirecting;
   }
 
   @override
@@ -217,7 +266,6 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       _constructor.function.typeParameters = const <TypeParameter>[];
       _constructor.isConst = isConst;
       _constructor.isExternal = isExternal;
-      updatePrivateMemberName(_constructor, libraryBuilder);
 
       if (_constructorTearOff != null) {
         buildConstructorTearOffProcedure(
@@ -267,29 +315,31 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   void inferFormalTypes(ClassHierarchyBase hierarchy) {
     if (_hasFormalsInferred) return;
     if (formals != null) {
-      for (FormalParameterBuilder formal in formals!) {
-        if (formal.type is InferableTypeBuilder) {
-          if (formal.isInitializingFormal) {
-            formal.finalizeInitializingFormal(classBuilder, hierarchy);
+      libraryBuilder.loader.withUriForCrashReporting(fileUri, charOffset, () {
+        for (FormalParameterBuilder formal in formals!) {
+          if (formal.type is InferableTypeBuilder) {
+            if (formal.isInitializingFormal) {
+              formal.finalizeInitializingFormal(classBuilder, hierarchy);
+            }
           }
         }
-      }
 
-      if (_hasSuperInitializingFormals) {
-        List<Initializer>? initializers;
-        if (beginInitializers != null) {
-          BodyBuilder bodyBuilder = libraryBuilder.loader
-              .createBodyBuilderForOutlineExpression(libraryBuilder,
-                  classBuilder, this, classBuilder.scope, fileUri);
-          if (isConst) {
-            bodyBuilder.constantContext = ConstantContext.required;
+        if (_hasSuperInitializingFormals) {
+          List<Initializer>? initializers;
+          if (beginInitializers != null) {
+            BodyBuilder bodyBuilder = libraryBuilder.loader
+                .createBodyBuilderForOutlineExpression(libraryBuilder,
+                    classBuilder, this, classBuilder.scope, fileUri);
+            if (isConst) {
+              bodyBuilder.constantContext = ConstantContext.required;
+            }
+            initializers = bodyBuilder.parseInitializers(beginInitializers!,
+                doFinishConstructor: false);
           }
-          initializers = bodyBuilder.parseInitializers(beginInitializers!,
-              doFinishConstructor: false);
+          finalizeSuperInitializingFormals(
+              hierarchy, _superParameterDefaultValueCloners, initializers);
         }
-        finalizeSuperInitializingFormals(
-            hierarchy, _superParameterDefaultValueCloners, initializers);
-      }
+      });
     }
     _hasFormalsInferred = true;
   }
@@ -352,7 +402,10 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     void performRecoveryForErroneousCase() {
       for (FormalParameterBuilder formal in formals!) {
         if (formal.isSuperInitializingFormal) {
-          formal.type.registerInferredType(const InvalidType());
+          TypeBuilder type = formal.type;
+          if (type is InferableTypeBuilder) {
+            type.registerInferredType(const InvalidType());
+          }
         }
       }
     }
@@ -513,7 +566,9 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       }
       bodyBuilder.parseInitializers(beginInitializers!,
           doFinishConstructor: isConst);
-      bodyBuilder.performBacklogComputations(delayedActionPerformers);
+      bodyBuilder.performBacklogComputations(
+          delayedActionPerformers: delayedActionPerformers,
+          allowFurtherDelays: false);
     }
     beginInitializers = null;
     addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
@@ -763,7 +818,11 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   /// The field can be initialized either via an initializing formal or via an
   /// entry in the constructor initializer list.
   void registerInitializedField(SourceFieldBuilder fieldBuilder) {
-    (_initializedFields ??= {}).add(fieldBuilder);
+    if (isPatch) {
+      origin.registerInitializedField(fieldBuilder);
+    } else {
+      (_initializedFields ??= {}).add(fieldBuilder);
+    }
   }
 
   /// Returns the fields registered as initialized by this constructor.
@@ -830,6 +889,16 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
   @override
   SourceLibraryBuilder get libraryBuilder =>
       super.libraryBuilder as SourceLibraryBuilder;
+
+  @override
+  bool get isRedirecting {
+    for (Initializer initializer in constructor.initializers) {
+      if (initializer is RedirectingInitializer) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   @override
   void inferFormalTypes(ClassHierarchyBase hierarchy) {

@@ -47,9 +47,9 @@ class CpuProfileVirtualTreeElement extends CustomElement implements Renderable {
   }
 
   factory CpuProfileVirtualTreeElement(Object? owner, M.SampleProfile profile,
-      {ProfileTreeMode mode: ProfileTreeMode.function,
-      M.SampleProfileType type: M.SampleProfileType.cpu,
-      M.ProfileTreeDirection direction: M.ProfileTreeDirection.exclusive,
+      {ProfileTreeMode mode = ProfileTreeMode.function,
+      M.SampleProfileType type = M.SampleProfileType.cpu,
+      M.ProfileTreeDirection direction = M.ProfileTreeDirection.exclusive,
       RenderingQueue? queue}) {
     assert(profile != null);
     assert(mode != null);

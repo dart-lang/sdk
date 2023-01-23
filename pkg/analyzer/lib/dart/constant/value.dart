@@ -64,6 +64,9 @@ abstract class DartObject {
   /// would return `false` from [hasKnownValue].
   DartType? get type;
 
+  /// If this object is the value of a constant variable, the variable.
+  VariableElement? get variable;
+
   /// Return a representation of the value of the field with the given [name].
   ///
   /// Return `null` if either the object being represented does not have a field
@@ -133,7 +136,6 @@ abstract class DartObject {
   /// or `null` if
   /// * this object is not of type 'Symbol', or
   /// * the value of the object being represented is `null`.
-  /// (We return the string
   String? toSymbolValue();
 
   /// Return the representation of the type corresponding to the value of the

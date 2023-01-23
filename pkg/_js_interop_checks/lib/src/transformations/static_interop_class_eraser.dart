@@ -7,6 +7,7 @@ import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/reference_from_index.dart';
+import 'package:kernel/src/constant_replacer.dart';
 import 'package:kernel/src/replacement_visitor.dart';
 import 'package:_js_interop_checks/src/js_interop.dart';
 
@@ -28,9 +29,14 @@ class _TypeSubstitutor extends ReplacementVisitor {
 class StaticInteropClassEraser extends Transformer {
   final Class _javaScriptObject;
   final CloneVisitorNotMembers _cloner = CloneVisitorNotMembers();
+  late final _StaticInteropConstantReplacer _constantReplacer;
   late final _TypeSubstitutor _typeSubstitutor;
   Component? currentComponent;
   ReferenceFromIndex? referenceFromIndex;
+  // Visiting core libraries that don't contain `@staticInterop` adds overhead.
+  // To avoid this, we use an allowlist that contains libraries that we know use
+  // `@staticInterop`.
+  static const Set<String> _erasableCoreLibraries = {'ui', '_engine'};
 
   StaticInteropClassEraser(CoreTypes coreTypes, this.referenceFromIndex,
       {String libraryForJavaScriptObject = 'dart:_interceptors',
@@ -38,6 +44,7 @@ class StaticInteropClassEraser extends Transformer {
       : _javaScriptObject = coreTypes.index
             .getClass(libraryForJavaScriptObject, classNameOfJavaScriptObject) {
     _typeSubstitutor = _TypeSubstitutor(_javaScriptObject);
+    _constantReplacer = _StaticInteropConstantReplacer(this);
   }
 
   String _factoryStubName(Procedure factoryTarget) =>
@@ -57,11 +64,7 @@ class StaticInteropClassEraser extends Transformer {
         .where((procedure) => procedure.name.text == stubName);
     if (stubs.isEmpty) {
       // We should only create the stub if we're processing the component in
-      // which the stub should exist. Any static invocation of the factory that
-      // doesn't exist in the same component as the factory should be processed
-      // after the component in which the factory exists. In modular
-      // compilation, the outline of that component should already contain the
-      // needed stub.
+      // which the stub should exist.
       if (currentComponent != null) {
         assert(factoryTarget.enclosingComponent == currentComponent);
       }
@@ -92,6 +95,10 @@ class StaticInteropClassEraser extends Transformer {
 
   @override
   TreeNode visitLibrary(Library node) {
+    if (node.importUri.isScheme('dart') &&
+        !_erasableCoreLibraries.contains(node.importUri.path)) {
+      return node;
+    }
     currentComponent = node.enclosingComponent;
     return super.visitLibrary(node);
   }
@@ -202,31 +209,39 @@ class StaticInteropClassEraser extends Transformer {
     return super.visitStaticInvocation(node);
   }
 
-  @override
-  DartType visitDartType(DartType type) {
+  DartType? _getSubstitutedType(DartType type) {
     // Variance is not a factor in our type transformation here, so just choose
     // `unrelated` as a default.
-    var substitutedType = type.accept1(_typeSubstitutor, Variance.unrelated);
+    return type.accept1(_typeSubstitutor, Variance.unrelated);
+  }
+
+  @override
+  DartType visitDartType(DartType type) {
+    var substitutedType = _getSubstitutedType(type);
     return substitutedType != null ? substitutedType : type;
+  }
+
+  @override
+  Constant visitConstant(Constant node) {
+    return _constantReplacer.visitConstant(node) ?? node;
+  }
+
+  @override
+  Supertype visitSupertype(Supertype node) {
+    for (int i = 0; i < node.typeArguments.length; i++) {
+      node.typeArguments[i] = visitDartType(node.typeArguments[i]);
+    }
+    return node;
   }
 }
 
-/// Used to create stubs for factories when computing outlines.
-///
-/// These stubs can then be used in downstream dependencies in modular
-/// compilation.
-class StaticInteropStubCreator extends RecursiveVisitor {
+class _StaticInteropConstantReplacer extends ConstantReplacer {
   final StaticInteropClassEraser _eraser;
-  StaticInteropStubCreator(this._eraser);
+  _StaticInteropConstantReplacer(this._eraser);
 
   @override
-  void visitLibrary(Library node) {
-    _eraser.currentComponent = node.enclosingComponent;
-    super.visitLibrary(node);
-  }
+  DartType? visitDartType(DartType type) => _eraser._getSubstitutedType(type);
 
   @override
-  void visitProcedure(Procedure node) {
-    _eraser.visitProcedure(node);
-  }
+  TreeNode visitTreeNode(TreeNode node) => node.accept(_eraser);
 }

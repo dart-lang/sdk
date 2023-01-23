@@ -134,6 +134,26 @@ const _IsTestGroup isTestGroup = const _IsTestGroup();
 ///   constructor is not a compile-time constant.
 const _Literal literal = const _Literal();
 
+/// Used to annotate an instance member `m` declared on a class or mixin `C`.
+/// Indicates that every subclass of `C`, concrete or abstract, must directly
+/// override `m`.
+///
+/// This annotation places no restrictions on the overriding members. In
+/// particular, it does not require that the overriding members invoke the
+/// overridden member. The annotation [mustCallSuper] can be used to add that
+/// requirement.
+///
+/// Tools, such as the analyzer, can provide feedback if
+///
+/// * the annotation is associated with anything other than an instance member
+///   (a method, operator, field, getter, or setter) of a class or of a mixin,
+///   or
+/// * the annotation is associated with a member `m` in class or mixin `C`, and
+///   there is a class or mixin `D` which is a subclass of `C` (directly or
+///   indirectly), and `D` does not directly declare a concrete override of `m`
+///   and does not directly declare a concrete override of `noSuchMethod`.
+const _MustBeOverridden mustBeOverridden = _MustBeOverridden();
+
 /// Used to annotate an instance method `m`. Indicates that every invocation of
 /// a method that overrides `m` must also invoke `m`. In addition, every method
 /// that overrides `m` is implicitly annotated with this same annotation.
@@ -288,6 +308,10 @@ class _IsTestGroup {
 
 class _Literal {
   const _Literal();
+}
+
+class _MustBeOverridden {
+  const _MustBeOverridden();
 }
 
 class _MustCallSuper {

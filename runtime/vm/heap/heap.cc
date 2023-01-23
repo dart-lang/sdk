@@ -58,6 +58,8 @@ Heap::Heap(IsolateGroup* isolate_group,
     old_weak_tables_[sel] = new WeakTable();
   }
   stats_.num_ = 0;
+  stats_.state_ = kInitial;
+  stats_.reachability_barrier_ = 0;
 }
 
 Heap::~Heap() {
@@ -88,10 +90,10 @@ uword Heap::AllocateNew(Thread* thread, intptr_t size) {
 
   // It is possible a GC doesn't clear enough space.
   // In that case, we must fall through and allocate into old space.
-  return AllocateOld(thread, size, OldPage::kData);
+  return AllocateOld(thread, size, Page::kData);
 }
 
-uword Heap::AllocateOld(Thread* thread, intptr_t size, OldPage::PageType type) {
+uword Heap::AllocateOld(Thread* thread, intptr_t size, Page::PageType type) {
   ASSERT(thread->no_safepoint_scope_depth() == 0);
   if (!thread->force_growth()) {
     CollectForDebugging(thread);
@@ -107,7 +109,7 @@ uword Heap::AllocateOld(Thread* thread, intptr_t size, OldPage::PageType type) {
     }
     // All GC tasks finished without allocating successfully. Collect both
     // generations.
-    CollectMostGarbage(GCReason::kOldSpace, /*compact=*/ false);
+    CollectMostGarbage(GCReason::kOldSpace, /*compact=*/false);
     addr = old_space_.TryAllocate(size, type);
     if (addr != 0) {
       return addr;
@@ -124,7 +126,7 @@ uword Heap::AllocateOld(Thread* thread, intptr_t size, OldPage::PageType type) {
       return addr;
     }
     // Before throwing an out-of-memory error try a synchronous GC.
-    CollectAllGarbage(GCReason::kOldSpace, /*compact=*/ true);
+    CollectAllGarbage(GCReason::kOldSpace, /*compact=*/true);
     WaitForSweeperTasks(thread);
   }
   uword addr = old_space_.TryAllocate(size, type, PageSpace::kForceGrowth);
@@ -146,12 +148,16 @@ uword Heap::AllocateOld(Thread* thread, intptr_t size, OldPage::PageType type) {
   return 0;
 }
 
-void Heap::AllocatedExternal(intptr_t size, Space space) {
+bool Heap::AllocatedExternal(intptr_t size, Space space) {
   if (space == kNew) {
-    new_space_.AllocatedExternal(size);
+    if (!new_space_.AllocatedExternal(size)) {
+      return false;
+    }
   } else {
     ASSERT(space == kOld);
-    old_space_.AllocatedExternal(size);
+    if (!old_space_.AllocatedExternal(size)) {
+      return false;
+    }
   }
 
   Thread* thread = Thread::Current();
@@ -160,6 +166,7 @@ void Heap::AllocatedExternal(intptr_t size, Space space) {
   } else {
     // Check delayed until Dart_TypedDataRelease/~ForceGrowthScope.
   }
+  return true;
 }
 
 void Heap::FreedExternal(intptr_t size, Space space) {
@@ -180,6 +187,11 @@ void Heap::CheckExternalGC(Thread* thread) {
   ASSERT(thread->no_safepoint_scope_depth() == 0);
   ASSERT(thread->no_callback_scope_depth() == 0);
   ASSERT(!thread->force_growth());
+
+  if (mode_ == Dart_PerformanceMode_Latency) {
+    return;
+  }
+
   if (new_space_.ExternalInWords() >= (4 * new_space_.CapacityInWords())) {
     // Attempt to free some external allocation by a scavenge. (If the total
     // remains above the limit, next external alloc will trigger another.)
@@ -211,7 +223,7 @@ bool Heap::OldContains(uword addr) const {
 }
 
 bool Heap::CodeContains(uword addr) const {
-  return old_space_.Contains(addr, OldPage::kExecutable);
+  return old_space_.Contains(addr, Page::kExecutable);
 }
 
 bool Heap::DataContains(uword addr) const {
@@ -336,14 +348,14 @@ void Heap::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 InstructionsPtr Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) const {
   // Only executable pages can have RawInstructions objects.
-  ObjectPtr raw_obj = old_space_.FindObject(visitor, OldPage::kExecutable);
+  ObjectPtr raw_obj = old_space_.FindObject(visitor, Page::kExecutable);
   ASSERT((raw_obj == Object::null()) ||
          (raw_obj->GetClassId() == kInstructionsCid));
   return static_cast<InstructionsPtr>(raw_obj);
 }
 
 ObjectPtr Heap::FindOldObject(FindObjectVisitor* visitor) const {
-  return old_space_.FindObject(visitor, OldPage::kData);
+  return old_space_.FindObject(visitor, Page::kData);
 }
 
 ObjectPtr Heap::FindNewObject(FindObjectVisitor* visitor) {
@@ -422,8 +434,23 @@ void Heap::NotifyIdle(int64_t deadline) {
   }
 
   if (OS::GetCurrentMonotonicMicros() < deadline) {
-    SemiSpace::ClearCache();
+    Page::ClearCache();
   }
+}
+
+void Heap::NotifyDestroyed() {
+  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "NotifyDestroyed");
+  CollectAllGarbage(GCReason::kDestroyed, /*compact=*/true);
+  Page::ClearCache();
+}
+
+Dart_PerformanceMode Heap::SetMode(Dart_PerformanceMode new_mode) {
+  Dart_PerformanceMode old_mode = mode_.exchange(new_mode);
+  if ((old_mode == Dart_PerformanceMode_Latency) &&
+      (new_mode == Dart_PerformanceMode_Default)) {
+    CheckCatchUp(Thread::Current());
+  }
+  return old_mode;
 }
 
 void Heap::CollectNewSpaceGarbage(Thread* thread,
@@ -564,6 +591,15 @@ void Heap::CollectAllGarbage(GCReason reason, bool compact) {
   WaitForSweeperTasks(thread);
 }
 
+void Heap::CheckCatchUp(Thread* thread) {
+  ASSERT(thread->CanCollectGarbage());
+  if (old_space()->ReachedHardThreshold()) {
+    CollectGarbage(thread, GCType::kMarkSweep, GCReason::kCatchUp);
+  } else {
+    CheckConcurrentMarking(thread, GCReason::kCatchUp, 0);
+  }
+}
+
 void Heap::CheckConcurrentMarking(Thread* thread,
                                   GCReason reason,
                                   intptr_t size) {
@@ -577,7 +613,7 @@ void Heap::CheckConcurrentMarking(Thread* thread,
 
   switch (phase) {
     case PageSpace::kMarking:
-      if (size != 0) {
+      if ((size != 0) && (mode_ != Dart_PerformanceMode_Latency)) {
         old_space_.IncrementalMarkWithSizeBudget(size);
       }
       return;
@@ -679,19 +715,6 @@ void Heap::Init(IsolateGroup* isolate_group,
   std::unique_ptr<Heap> heap(new Heap(isolate_group, is_vm_isolate,
                                       max_new_gen_words, max_old_gen_words));
   isolate_group->set_heap(std::move(heap));
-}
-
-const char* Heap::RegionName(Space space) {
-  switch (space) {
-    case kNew:
-      return "dart-newspace";
-    case kOld:
-      return "dart-oldspace";
-    case kCode:
-      return "dart-codespace";
-    default:
-      UNREACHABLE();
-  }
 }
 
 void Heap::AddRegionsToObjectSet(ObjectSet* set) const {
@@ -857,8 +880,12 @@ const char* Heap::GCReasonToString(GCReason gc_reason) {
       return "external";
     case GCReason::kIdle:
       return "idle";
+    case GCReason::kDestroyed:
+      return "destroyed";
     case GCReason::kDebugging:
       return "debugging";
+    case GCReason::kCatchUp:
+      return "catch-up";
     default:
       UNREACHABLE();
       return "";

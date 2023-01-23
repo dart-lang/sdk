@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
+import 'package:analyzer/src/summary2/record_type_builder.dart';
 
 /// Helper visitor that clones a type if a nested type is replaced, and
 /// otherwise returns `null`.
@@ -390,7 +391,7 @@ class ReplacementVisitor
 
     var parameters = const <TypeParameterElement>[];
     var element = type.element;
-    if (element is ClassElement) {
+    if (element is InterfaceElement) {
       parameters = element.typeParameters;
     } else if (element is TypeAliasElement) {
       parameters = element.typeParameters;
@@ -420,6 +421,94 @@ class ReplacementVisitor
 
   ParameterKind? visitParameterKind(ParameterKind kind) {
     return null;
+  }
+
+  @override
+  DartType? visitRecordType(covariant RecordTypeImpl type) {
+    var newNullability = visitNullability(type);
+
+    InstantiatedTypeAliasElement? newAlias;
+    var alias = type.alias;
+    if (alias != null) {
+      var newArguments = _typeArguments(
+        alias.element.typeParameters,
+        alias.typeArguments,
+      );
+      if (newArguments != null) {
+        newAlias = InstantiatedTypeAliasElementImpl(
+          element: alias.element,
+          typeArguments: newArguments,
+        );
+      }
+    }
+
+    List<RecordTypePositionalFieldImpl>? newPositionalFields;
+    final positionalFields = type.positionalFields;
+    for (var i = 0; i < positionalFields.length; i++) {
+      final field = positionalFields[i];
+      final newType = field.type.accept(this);
+      if (newType != null) {
+        newPositionalFields ??= positionalFields.toList(growable: false);
+        newPositionalFields[i] = RecordTypePositionalFieldImpl(
+          type: newType,
+        );
+      }
+    }
+
+    List<RecordTypeNamedFieldImpl>? newNamedFields;
+    final namedFields = type.namedFields;
+    for (var i = 0; i < namedFields.length; i++) {
+      final field = namedFields[i];
+      final newType = field.type.accept(this);
+      if (newType != null) {
+        newNamedFields ??= namedFields.toList(growable: false);
+        newNamedFields[i] = RecordTypeNamedFieldImpl(
+          name: field.name,
+          type: newType,
+        );
+      }
+    }
+
+    if (newAlias == null &&
+        newPositionalFields == null &&
+        newNamedFields == null &&
+        newNullability == null) {
+      return null;
+    }
+
+    return RecordTypeImpl(
+      positionalFields: newPositionalFields ?? type.positionalFields,
+      namedFields: newNamedFields ?? type.namedFields,
+      nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
+      alias: newAlias ?? type.alias,
+    );
+  }
+
+  @override
+  DartType? visitRecordTypeBuilder(RecordTypeBuilder type) {
+    List<DartType>? newFieldTypes;
+    final fieldTypes = type.fieldTypes;
+    for (var i = 0; i < fieldTypes.length; i++) {
+      final fieldType = fieldTypes[i];
+      final newFieldType = fieldType.accept(this);
+      if (newFieldType != null) {
+        newFieldTypes ??= fieldTypes.toList(growable: false);
+        newFieldTypes[i] = newFieldType;
+      }
+    }
+
+    final newNullability = visitNullability(type);
+
+    if (newFieldTypes == null && newNullability == null) {
+      return null;
+    }
+
+    return RecordTypeBuilder(
+      typeSystem: type.typeSystem,
+      node: type.node,
+      fieldTypes: newFieldTypes ?? type.fieldTypes,
+      nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
+    );
   }
 
   DartType? visitTypeArgument(

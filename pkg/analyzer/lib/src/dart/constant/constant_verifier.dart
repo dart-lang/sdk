@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -71,6 +72,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           declaredVariables: declaredVariables,
           isNonNullableByDefault:
               _currentLibrary.featureSet.isEnabled(Feature.non_nullable),
+          configuration: ConstantEvaluationConfiguration(),
         );
 
   @override
@@ -379,6 +381,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       // there is == that we don't like
       return true;
     }
+    if (type is RecordType) {
+      return type.fields
+          .map((field) => field.type)
+          .any(_implementsEqualsWhenNotAllowed);
+    }
     return false;
   }
 
@@ -576,7 +583,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       if (member is FieldDeclaration && !member.isStatic) {
         for (VariableDeclaration variableDeclaration
             in member.fields.variables) {
-          if (isEnumDeclaration && variableDeclaration.name.name == 'values') {
+          if (isEnumDeclaration &&
+              variableDeclaration.name.lexeme == 'values') {
             continue;
           }
           var initializer = variableDeclaration.initializer;
@@ -597,7 +605,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
                   CompileTimeErrorCode
                       .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
                   constKeyword,
-                  [variableDeclaration.name.name]);
+                  [variableDeclaration.name.lexeme]);
             }
           }
         }
@@ -662,7 +670,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _validateSwitchStatement_nullSafety(SwitchStatement node) {
-    var switchType = node.expression.typeOrThrow;
     for (var switchMember in node.members) {
       if (switchMember is SwitchCase) {
         Expression expression = switchMember.expression;
@@ -688,15 +695,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
             expression,
             [expressionType],
-          );
-        }
-
-        if (!_typeSystem.isSubtypeOf(expressionType, switchType)) {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode
-                .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
-            expression,
-            [expressionType, switchType],
           );
         }
       }
@@ -1088,7 +1086,7 @@ extension on Expression {
           if (declarationListParent is FieldDeclaration &&
               !declarationListParent.isStatic) {
             var container = declarationListParent.parent;
-            if (container is ClassOrMixinDeclaration) {
+            if (container is ClassDeclaration) {
               var enclosingClass = container.declaredElement;
               if (enclosingClass != null) {
                 // A field initializer of a class with at least one generative

@@ -29,6 +29,42 @@ DEFINE_FLAG(bool,
 
 DECLARE_FLAG(bool, trace_inlining_intervals);
 
+const char* RepresentationToCString(Representation rep) {
+  switch (rep) {
+    case kTagged:
+      return "tagged";
+    case kUntagged:
+      return "untagged";
+    case kUnboxedDouble:
+      return "double";
+    case kUnboxedFloat:
+      return "float";
+    case kUnboxedUint8:
+      return "uint8";
+    case kUnboxedUint16:
+      return "uint16";
+    case kUnboxedInt32:
+      return "int32";
+    case kUnboxedUint32:
+      return "uint32";
+    case kUnboxedInt64:
+      return "int64";
+    case kUnboxedFloat32x4:
+      return "float32x4";
+    case kUnboxedInt32x4:
+      return "int32x4";
+    case kUnboxedFloat64x2:
+      return "float64x2";
+    case kPairOfTagged:
+      return "tagged-pair";
+    case kNoRepresentation:
+      return "none";
+    case kNumRepresentations:
+      UNREACHABLE();
+  }
+  return "?";
+}
+
 class IlTestPrinter : public AllStatic {
  public:
   static void PrintGraph(const char* phase, FlowGraph* flow_graph) {
@@ -439,12 +475,7 @@ void FlowGraphPrinter::PrintCidRangeData(const CallTargets& targets,
 
 static void PrintUse(BaseTextBuffer* f, const Definition& definition) {
   if (definition.HasSSATemp()) {
-    if (definition.HasPairRepresentation()) {
-      f->Printf("(v%" Pd ", v%" Pd ")", definition.ssa_temp_index(),
-                definition.ssa_temp_index() + 1);
-    } else {
-      f->Printf("v%" Pd "", definition.ssa_temp_index());
-    }
+    f->Printf("v%" Pd "", definition.ssa_temp_index());
   } else if (definition.HasTemp()) {
     f->Printf("t%" Pd "", definition.temp_index());
   }
@@ -789,10 +820,13 @@ void GuardFieldInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   value()->PrintTo(f);
 }
 
-void StoreInstanceFieldInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+void StoreFieldInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   instance()->PrintTo(f);
   f->Printf(" . %s = ", slot().Name());
   value()->PrintTo(f);
+  if (slot().representation() != kTagged) {
+    f->Printf(" <%s>", RepresentationToCString(slot().representation()));
+  }
 
   // Here, we just print the value of the enum field. We would prefer to get
   // the final decision on whether a store barrier will be emitted by calling
@@ -1014,6 +1048,14 @@ void CheckClassIdInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   }
 }
 
+void HashIntegerOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  if (smi_) {
+    f->AddString("smi ");
+  }
+
+  value()->PrintTo(f);
+}
+
 void CheckClassInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   value()->PrintTo(f);
   PrintCidsHelper(f, cids_, FlowGraphPrinter::kPrintAll);
@@ -1105,49 +1147,8 @@ void IndirectEntryInstr::PrintTo(BaseTextBuffer* f) const {
   }
 }
 
-const char* RepresentationToCString(Representation rep) {
-  switch (rep) {
-    case kTagged:
-      return "tagged";
-    case kUntagged:
-      return "untagged";
-    case kUnboxedDouble:
-      return "double";
-    case kUnboxedFloat:
-      return "float";
-    case kUnboxedUint8:
-      return "uint8";
-    case kUnboxedUint16:
-      return "uint16";
-    case kUnboxedInt32:
-      return "int32";
-    case kUnboxedUint32:
-      return "uint32";
-    case kUnboxedInt64:
-      return "int64";
-    case kUnboxedFloat32x4:
-      return "float32x4";
-    case kUnboxedInt32x4:
-      return "int32x4";
-    case kUnboxedFloat64x2:
-      return "float64x2";
-    case kPairOfTagged:
-      return "tagged-pair";
-    case kNoRepresentation:
-      return "none";
-    case kNumRepresentations:
-      UNREACHABLE();
-  }
-  return "?";
-}
-
 void PhiInstr::PrintTo(BaseTextBuffer* f) const {
-  if (HasPairRepresentation()) {
-    f->Printf("(v%" Pd ", v%" Pd ") <- phi(", ssa_temp_index(),
-              ssa_temp_index() + 1);
-  } else {
-    f->Printf("v%" Pd " <- phi(", ssa_temp_index());
-  }
+  f->Printf("v%" Pd " <- phi(", ssa_temp_index());
   for (intptr_t i = 0; i < inputs_.length(); ++i) {
     if (inputs_[i] != NULL) inputs_[i]->PrintTo(f);
     if (i < inputs_.length() - 1) f->AddString(", ");
@@ -1250,13 +1251,6 @@ void NativeEntryInstr::PrintTo(BaseTextBuffer* f) const {
     parallel_move()->PrintTo(f);
   }
   BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(f);
-}
-
-void ReturnInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  Instruction::PrintOperandsTo(f);
-  if (yield_index() != UntaggedPcDescriptors::kInvalidYieldIndex) {
-    f->Printf(", yield_index = %" Pd "", yield_index());
-  }
 }
 
 void FfiCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
@@ -1394,8 +1388,11 @@ void SuspendInstr::PrintOperandsTo(BaseTextBuffer* f) const {
     case StubId::kYieldAsyncStar:
       name = "YieldAsyncStar";
       break;
-    case StubId::kYieldSyncStar:
-      name = "YieldSyncStar";
+    case StubId::kSuspendSyncStarAtStart:
+      name = "SuspendSyncStarAtStart";
+      break;
+    case StubId::kSuspendSyncStarAtYield:
+      name = "SuspendSyncStarAtYield";
       break;
   }
   f->Printf("%s(", name);

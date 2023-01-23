@@ -120,7 +120,8 @@ class ChangeBuilderImpl implements ChangeBuilder {
   @override
   Future<void> addDartFileEdit(
       String path, void Function(DartFileEditBuilder builder) buildFileEdit,
-      {ImportPrefixGenerator? importPrefixGenerator}) async {
+      {ImportPrefixGenerator? importPrefixGenerator,
+      bool createEditsForImports = true}) async {
     if (_genericFileEditBuilders.containsKey(path)) {
       throw StateError("Can't create both a generic file edit and a dart file "
           'edit for the same file');
@@ -131,7 +132,8 @@ class ChangeBuilderImpl implements ChangeBuilder {
     }
     var builder = _dartFileEditBuilders[path];
     if (builder == null) {
-      builder = await _createDartFileEditBuilder(path);
+      builder = await _createDartFileEditBuilder(path,
+          createEditsForImports: createEditsForImports);
       if (builder != null) {
         // It's not currently supported to call this method twice concurrently
         // for the same file as two builder may be produced because of the above
@@ -261,6 +263,8 @@ class ChangeBuilderImpl implements ChangeBuilder {
   @override
   void setSelection(Position position) {
     _selection = position;
+    // Clear any existing selection range, since it is no long valid.
+    _selectionRange = null;
   }
 
   /// Return a copy of the linked edit [group].
@@ -276,8 +280,8 @@ class ChangeBuilderImpl implements ChangeBuilder {
 
   /// Create and return a [DartFileEditBuilder] that can be used to build edits
   /// to the Dart file with the given [path].
-  Future<DartFileEditBuilderImpl?> _createDartFileEditBuilder(
-      String? path) async {
+  Future<DartFileEditBuilderImpl?> _createDartFileEditBuilder(String? path,
+      {bool createEditsForImports = true}) async {
     if (path == null || !(workspace.containsFile(path) ?? false)) {
       return null;
     }
@@ -298,14 +302,20 @@ class ChangeBuilderImpl implements ChangeBuilder {
       // library file builder so that imports can be finalized synchronously.
       await addDartFileEdit(libraryUnit.source.fullName, (builder) {
         libraryEditBuilder = builder as DartFileEditBuilderImpl;
-      });
+      }, createEditsForImports: createEditsForImports);
     }
 
-    return DartFileEditBuilderImpl(this, result, timeStamp, libraryEditBuilder);
+    return DartFileEditBuilderImpl(this, result, timeStamp, libraryEditBuilder,
+        createEditsForImports: createEditsForImports);
   }
 
   void _setSelectionRange(SourceRange range) {
     _selectionRange = range;
+    // If we previously had a selection, update it to this new offset.
+    final selection = _selection;
+    if (selection != null) {
+      _selection = Position(selection.file, range.offset);
+    }
   }
 
   /// Update the offsets of any positions that occur at or after the given
@@ -326,6 +336,13 @@ class ChangeBuilderImpl implements ChangeBuilder {
     var selection = _selection;
     if (selection != null) {
       updatePosition(selection);
+    }
+    var selectionRange = _selectionRange;
+    if (selectionRange != null) {
+      if (selectionRange.offset >= offset) {
+        _selectionRange =
+            SourceRange(selectionRange.offset + delta, selectionRange.length);
+      }
     }
   }
 }
@@ -585,8 +602,9 @@ class FileEditBuilderImpl implements FileEditBuilder {
     var range = builder._selectionRange;
     if (range != null) {
       var position = Position(fileEdit.file, range.offset + _deltaToEdit(edit));
+      var newRange = SourceRange(position.offset, range.length);
       changeBuilder.setSelection(position);
-      changeBuilder._setSelectionRange(range);
+      changeBuilder._setSelectionRange(newRange);
     }
   }
 

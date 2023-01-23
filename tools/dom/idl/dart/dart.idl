@@ -683,3 +683,10 @@ interface NoncedElement {
 callback PositionCallback = void(object position);
 
 interface MathMLElement : Element {};
+
+[DartSupplemental,
+  CustomConstructor,
+  Constructor(optional unsigned long length)
+] interface SharedArrayBuffer {
+    SharedArrayBuffer slice(optional unsigned long begin, optional unsigned long end);
+};

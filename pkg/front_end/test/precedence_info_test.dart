@@ -288,7 +288,7 @@ class PrecedenceInfoTest {
   }
 
   void test_name() {
-    void assertName(String? source, String name, {int offset: 0}) {
+    void assertName(String? source, String name, {int offset = 0}) {
       if (source == null || source.isEmpty) return;
       var token = scanString(source, includeComments: true).tokens;
       while (token is ErrorToken || token.offset < offset) {
@@ -369,12 +369,12 @@ class PrecedenceInfoTest {
   /// because it is interpreted as a minus token (precedence 13).
   void test_precedence() {
     const precedenceTable = const <int, List<String>>{
-      17: const <String>['.', '?.', '[', '('],
-      16: const <String>['++', '--'],
-      15: const <String>['!', '~'], // excluded '-', '++', '--'
-      14: const <String>['*', '/', '~/', '%'],
-      13: const <String>['+', '-'],
-      12: const <String>['<<', '>>'],
+      18: const <String>['.', '?.', '[', '('],
+      17: const <String>['++', '--'],
+      16: const <String>['!', '~'], // excluded '-', '++', '--'
+      15: const <String>['*', '/', '~/', '%'],
+      14: const <String>['+', '-'],
+      13: const <String>['<<', '>>'],
       11: const <String>['&'],
       10: const <String>['^'],
       9: const <String>['|'],

@@ -112,6 +112,9 @@ class ObjectPtr {
   bool IsTypedDataView##clazz() const {                                        \
     return ((GetClassId() == kTypedData##clazz##ViewCid));                     \
   }                                                                            \
+  bool IsUnmodifiableTypedDataView##clazz() const {                            \
+    return ((GetClassId() == kUnmodifiableTypedData##clazz##ViewCid));         \
+  }                                                                            \
   bool IsExternalTypedData##clazz() const {                                    \
     return ((GetClassId() == kExternalTypedData##clazz##Cid));                 \
   }
@@ -385,6 +388,7 @@ DEFINE_TAGGED_POINTER(TypeParameters, Object)
 DEFINE_TAGGED_POINTER(AbstractType, Instance)
 DEFINE_TAGGED_POINTER(Type, AbstractType)
 DEFINE_TAGGED_POINTER(FunctionType, AbstractType)
+DEFINE_TAGGED_POINTER(RecordType, AbstractType)
 DEFINE_TAGGED_POINTER(TypeRef, AbstractType)
 DEFINE_TAGGED_POINTER(TypeParameter, AbstractType)
 DEFINE_TAGGED_POINTER(Closure, Instance)
@@ -396,6 +400,7 @@ DEFINE_TAGGED_POINTER(Double, Number)
 DEFINE_TAGGED_POINTER(String, Instance)
 DEFINE_TAGGED_POINTER(OneByteString, String)
 DEFINE_TAGGED_POINTER(TwoByteString, String)
+DEFINE_TAGGED_POINTER(Record, Instance)
 DEFINE_TAGGED_POINTER(PointerBase, Instance)
 DEFINE_TAGGED_POINTER(TypedDataBase, PointerBase)
 DEFINE_TAGGED_POINTER(TypedData, TypedDataBase)
@@ -407,10 +412,10 @@ DEFINE_TAGGED_POINTER(Array, Instance)
 DEFINE_TAGGED_POINTER(ImmutableArray, Array)
 DEFINE_TAGGED_POINTER(GrowableObjectArray, Instance)
 DEFINE_TAGGED_POINTER(LinkedHashBase, Instance)
-DEFINE_TAGGED_POINTER(LinkedHashMap, LinkedHashBase)
-DEFINE_TAGGED_POINTER(LinkedHashSet, LinkedHashBase)
-DEFINE_TAGGED_POINTER(ImmutableLinkedHashMap, LinkedHashMap)
-DEFINE_TAGGED_POINTER(ImmutableLinkedHashSet, LinkedHashSet)
+DEFINE_TAGGED_POINTER(Map, LinkedHashBase)
+DEFINE_TAGGED_POINTER(Set, LinkedHashBase)
+DEFINE_TAGGED_POINTER(ConstMap, Map)
+DEFINE_TAGGED_POINTER(ConstSet, Set)
 DEFINE_TAGGED_POINTER(Float32x4, Instance)
 DEFINE_TAGGED_POINTER(Int32x4, Instance)
 DEFINE_TAGGED_POINTER(Float64x2, Instance)

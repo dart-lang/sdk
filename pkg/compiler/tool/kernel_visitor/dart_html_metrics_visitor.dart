@@ -69,7 +69,7 @@ class MetricsVisitor extends RecursiveVisitor {
 
   @override
   void visitClass(Class node) {
-    // Dont want to add duplicate info.
+    // Don't want to add duplicate info.
     // When mixed, anonymous mixin class generated so we want to ignore.
     if (!node.isAnonymousMixin) {
       currentClass = node.name;

@@ -5,19 +5,20 @@
 import 'dart:collection';
 import 'dart:typed_data';
 import 'package:kernel/ast.dart' as ir;
-import '../closure_migrated.dart';
+import '../closure.dart';
 import '../common.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../deferred_load/output_unit.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
+import '../elements/names.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../ir/constants.dart';
 import '../ir/static_type_base.dart';
 import '../js/js.dart' as js;
-import '../js_model/closure_migrated.dart';
+import '../js_model/closure.dart';
 import '../js_model/locals.dart';
 import '../js_model/type_recipe.dart' show TypeRecipe;
 

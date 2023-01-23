@@ -1,4 +1,7 @@
-// @dart = 2.9
+// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE.md file.
+
 import 'dart:async' show StreamController;
 import 'dart:convert' show utf8, LineSplitter;
 import 'dart:io' show Directory, File, FileSystemEntity, IOSink, exitCode;
@@ -13,11 +16,11 @@ import 'package:front_end/src/api_prototype/language_version.dart'
 import 'package:front_end/src/api_unstable/vm.dart'
     show CompilerOptions, NnbdMode, StandardFileSystem;
 
-import 'package:frontend_server/frontend_server.dart';
+import 'package:frontend_server/starter.dart';
 
 main(List<String> args) async {
-  String flutterDir;
-  String flutterPlatformDir;
+  String? flutterDir;
+  String? flutterPlatformDir;
   for (String arg in args) {
     if (arg.startsWith("--flutterDir=")) {
       flutterDir = arg.substring(13);
@@ -43,8 +46,9 @@ Future<NnbdMode> _getNNBDMode(Uri script, Uri packageConfigUri) async {
   return NnbdMode.Strong;
 }
 
-Future compileTests(String flutterDir, String flutterPlatformDir, Logger logger,
-    {String filter, int shards: 1, int shard: 0}) async {
+Future compileTests(
+    String? flutterDir, String? flutterPlatformDir, Logger logger,
+    {String? filter, int shards = 1, int shard = 0}) async {
   if (flutterDir == null || !(new Directory(flutterDir).existsSync())) {
     throw "Didn't get a valid flutter directory to work with.";
   }
@@ -202,7 +206,7 @@ Future<void> _processFiles(
     Directory testDir,
     Directory flutterDirectory,
     Logger logger,
-    String filter,
+    String? filter,
     List<String> allCompilationErrors) async {
   Directory tempDir = systemTempDir.createTempSync('flutter_frontend_test');
   try {
@@ -233,7 +237,7 @@ Future<List<String>> attemptStuff(
     Directory testDir,
     Directory flutterDirectory,
     Logger logger,
-    String filter) async {
+    String? filter) async {
   if (testFiles.isEmpty) return [];
 
   File dillFile = new File('${tempDir.path}/dill.dill');
@@ -351,10 +355,10 @@ class OutputParser {
   bool expectSources = true;
 
   StreamController<Result> _receivedResults;
-  List<String> _receivedSources;
+  List<String>? _receivedSources;
 
-  String _boundaryKey;
-  bool _readingSources;
+  String? _boundaryKey;
+  bool _readingSources = false;
 
   List<String> allReceived = <String>[];
 
@@ -370,7 +374,7 @@ class OutputParser {
       return;
     }
 
-    if (s.startsWith(_boundaryKey)) {
+    if (s.startsWith(_boundaryKey!)) {
       // First boundaryKey separates compiler output from list of sources
       // (if we expect list of sources, which is indicated by receivedSources
       // being not null)
@@ -381,30 +385,27 @@ class OutputParser {
       // Second boundaryKey indicates end of frontend server response
       expectSources = true;
       _receivedResults.add(new Result(
-          s.length > _boundaryKey.length
-              ? s.substring(_boundaryKey.length + 1)
+          s.length > _boundaryKey!.length
+              ? s.substring(_boundaryKey!.length + 1)
               : null,
           _receivedSources));
       _boundaryKey = null;
     } else {
       if (_readingSources) {
-        if (_receivedSources == null) {
-          _receivedSources = <String>[];
-        }
-        _receivedSources.add(s);
+        (_receivedSources ??= <String>[]).add(s);
       }
     }
   }
 }
 
 class Result {
-  String status;
-  List<String> sources;
+  String? status;
+  List<String>? sources;
 
   Result(this.status, this.sources);
 
-  void expectNoErrors({String filename}) {
-    CompilationResult result = new CompilationResult.parse(status);
+  void expectNoErrors({String? filename}) {
+    CompilationResult result = new CompilationResult.parse(status!);
     if (result.errorsCount != 0) {
       throw "Got ${result.errorsCount} errors. Expected 0.";
     }
@@ -417,10 +418,10 @@ class Result {
 }
 
 class CompilationResult {
-  String filename;
-  int errorsCount;
+  late String filename;
+  late int errorsCount;
 
-  CompilationResult.parse(String filenameAndErrorCount) {
+  CompilationResult.parse(String? filenameAndErrorCount) {
     if (filenameAndErrorCount == null) {
       return;
     }

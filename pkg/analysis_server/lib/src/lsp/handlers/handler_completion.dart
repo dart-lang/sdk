@@ -5,8 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Declaration;
-import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
+import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
@@ -14,47 +13,59 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/dart_completion_suggestion.dart';
 import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
 import 'package:analysis_server/src/services/completion/yaml/analysis_options_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/fix_data_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
-import 'package:analysis_server/src/services/snippets/dart/snippet_manager.dart';
+import 'package:analysis_server/src/services/snippets/dart_snippet_request.dart';
+import 'package:analysis_server/src/services/snippets/snippet_manager.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 
 class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     with LspPluginRequestHandlerMixin {
+  /// A [Future] used by tests to allow inserting a delay between resolving
+  /// the initial unit and the completion code running.
+  @visibleForTesting
+  static Future? delayAfterResolveForTests;
+
   /// Whether to include symbols from libraries that have not been imported.
   final bool suggestFromUnimportedLibraries;
-
-  /// Whether to use [NotImportedContributor] instead of SuggestionSets to
-  /// build completions for not-yet-imported libraries.
-  final bool previewNotImportedCompletions;
 
   /// The budget to use for [NotImportedContributor] computation.
   ///
   /// This is usually the default value, but can be overridden via
   /// initializationOptions (used for tests, but may also be useful for
   /// debugging).
-  late final CompletionBudget completionBudget;
+  late final Duration completionBudgetDuration;
+
+  /// A cancellation token for the previous completion request.
+  ///
+  /// A new completion request will cancel the previous request. We do not allow
+  /// concurrent completion requests.
+  ///
+  /// `null` if there is no previous request. It the previous request has
+  /// already completed, cancelling this token will not do anything.
+  CancelableToken? previousRequestCancellationToken;
 
   CompletionHandler(super.server, LspInitializationOptions options)
-      : suggestFromUnimportedLibraries = options.suggestFromUnimportedLibraries,
-        previewNotImportedCompletions = options.previewNotImportedCompletions {
-    final budgetMs = options.notImportedCompletionBudgetMilliseconds;
-    completionBudget = CompletionBudget(budgetMs != null
+      : suggestFromUnimportedLibraries =
+            options.suggestFromUnimportedLibraries {
+    final budgetMs = options.completionBudgetMilliseconds;
+    completionBudgetDuration = budgetMs != null
         ? Duration(milliseconds: budgetMs)
-        : CompletionBudget.defaultDuration);
+        : CompletionBudget.defaultDuration;
   }
 
   @override
@@ -72,6 +83,12 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
     }
+
+    // Cancel any existing in-progress completion request in case the client did
+    // not do it explicitly, because the results will not be useful and it may
+    // delay processing this one.
+    previousRequestCancellationToken?.cancel();
+    previousRequestCancellationToken = token.asCancelable();
 
     final requestLatency = message.timeSinceRequest;
     final triggerCharacter = params.context?.triggerCharacter;
@@ -100,6 +117,9 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       );
     });
 
+    if (delayAfterResolveForTests != null) {
+      await delayAfterResolveForTests;
+    }
     if (token.isCancellationRequested) {
       return cancelled();
     }
@@ -184,10 +204,11 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     if (serverResults.isError) return failure(serverResults);
     if (pluginResults.isError) return failure(pluginResults);
 
-    final untruncatedRankedItems = serverResults.result.rankedItems
+    final serverResult = serverResults.result;
+    final untruncatedRankedItems = serverResult.rankedItems
         .followedBy(pluginResults.result.items)
         .toList();
-    final unrankedItems = serverResults.result.unrankedItems;
+    final unrankedItems = serverResult.unrankedItems;
 
     // Truncate ranked items allowing for all unranked items.
     final maxRankedItems = math.max(maxResults - unrankedItems.length, 0);
@@ -195,7 +216,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
         ? untruncatedRankedItems
         : _truncateResults(
             untruncatedRankedItems,
-            serverResults.result.targetPrefix,
+            serverResult.targetPrefix,
             maxRankedItems,
           );
 
@@ -209,40 +230,57 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     return success(CompletionList(
       // If any set of the results is incomplete, the whole batch must be
       // marked as such.
-      isIncomplete: serverResults.result.isIncomplete ||
+      isIncomplete: serverResult.isIncomplete ||
           pluginResults.result.isIncomplete ||
           truncatedRankedItems.length != untruncatedRankedItems.length,
       items: truncatedItems,
+      itemDefaults: serverResult.defaults,
     ));
   }
 
-  /// Build a list of existing imports so we can filter out any suggestions
-  /// that resolve to the same underlying declared symbol.
-  /// Map with key "elementName/elementDeclaringLibraryUri"
-  /// Value is a set of imported URIs that import that element.
-  Map<String, Set<String>> _buildLookupOfImportedSymbols(
-      ResolvedUnitResult unit) {
-    final alreadyImportedSymbols = <String, Set<String>>{};
-    final importElementList = unit.libraryElement.imports;
-    for (var import in importElementList) {
-      final importedLibrary = import.importedLibrary;
-      if (importedLibrary == null) continue;
-
-      for (var element in import.namespace.definedNames.values) {
-        final librarySource = element.librarySource;
-        final elementName = element.name;
-        if (librarySource != null && elementName != null) {
-          final declaringLibraryUri = librarySource.uri;
-
-          final key =
-              _createImportedSymbolKey(elementName, declaringLibraryUri);
-          alreadyImportedSymbols
-              .putIfAbsent(key, () => <String>{})
-              .add('${importedLibrary.librarySource.uri}');
-        }
-      }
+  /// Computes all supported defaults for completion items based on
+  /// [capabilities].
+  CompletionListItemDefaults? _computeCompletionDefaults(
+    LspClientCapabilities capabilities,
+    Range insertionRange,
+    Range replacementRange,
+  ) {
+    // None of the items we use are set.
+    if (!capabilities.completionDefaultEditRange &&
+        !capabilities.completionDefaultTextMode) {
+      return null;
     }
-    return alreadyImportedSymbols;
+
+    return CompletionListItemDefaults(
+      insertTextMode:
+          capabilities.completionDefaultTextMode ? InsertTextMode.asIs : null,
+      editRange: _computeDefaultEditRange(
+          capabilities, insertionRange, replacementRange),
+    );
+  }
+
+  /// Computes the default completion edit range based on [capabilities] and
+  /// whether the insert/replacement ranges differ.
+  Either2<CompletionItemEditRange, Range>? _computeDefaultEditRange(
+    LspClientCapabilities capabilities,
+    Range insertionRange,
+    Range replacementRange,
+  ) {
+    if (!capabilities.completionDefaultEditRange) {
+      return null;
+    }
+
+    if (!capabilities.insertReplaceCompletionRanges ||
+        insertionRange == replacementRange) {
+      return Either2<CompletionItemEditRange, Range>.t2(replacementRange);
+    } else {
+      return Either2<CompletionItemEditRange, Range>.t1(
+        CompletionItemEditRange(
+          insert: insertionRange,
+          replace: replacementRange,
+        ),
+      );
+    }
   }
 
   /// The insert length is the shorter of the replacementLength or the
@@ -255,9 +293,6 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     assert(insertLength <= replacementLength);
     return insertLength;
   }
-
-  String _createImportedSymbolKey(String name, Uri declaringUri) =>
-      '$name/$declaringUri';
 
   Future<Iterable<CompletionItem>> _getDartSnippetItems({
     required LspClientCapabilities clientCapabilities,
@@ -300,6 +335,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       isIncomplete: false,
       items: _pluginResultsToItems(
         capabilities,
+        path,
         lineInfo,
         offset,
         pluginResults,
@@ -316,12 +352,8 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     String? triggerCharacter,
     CancellationToken token,
   ) async {
-    final useSuggestionSets = suggestFromUnimportedLibraries &&
-        capabilities.applyEdit &&
-        !previewNotImportedCompletions;
-    final useNotImportedCompletions = suggestFromUnimportedLibraries &&
-        capabilities.applyEdit &&
-        previewNotImportedCompletions;
+    final useNotImportedCompletions =
+        suggestFromUnimportedLibraries && capabilities.applyEdit;
 
     final completionRequest = DartCompletionRequest.forResolvedUnit(
       resolvedUnit: unit,
@@ -339,34 +371,31 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       }
     }
 
-    Set<ElementKind>? includedElementKinds;
-    Set<String>? includedElementNames;
-    List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags;
     NotImportedSuggestions? notImportedSuggestions;
-    if (useSuggestionSets) {
-      includedElementKinds = <ElementKind>{};
-      includedElementNames = <String>{};
-      includedSuggestionRelevanceTags = <IncludedSuggestionRelevanceTag>[];
-    } else if (useNotImportedCompletions) {
+    if (useNotImportedCompletions) {
       notImportedSuggestions = NotImportedSuggestions();
     }
 
+    var isIncomplete = false;
     try {
       final serverSuggestions2 =
           await performance.runAsync('computeSuggestions', (performance) async {
         var contributor = DartCompletionManager(
-          budget: completionBudget,
-          includedElementKinds: includedElementKinds,
-          includedElementNames: includedElementNames,
-          includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
+          budget: CompletionBudget(completionBudgetDuration),
           notImportedSuggestions: notImportedSuggestions,
         );
 
-        // `await` required for `performance.runAsync` to count time.
-        return await contributor.computeSuggestions(
+        final suggestions = await contributor.computeSuggestions(
           completionRequest,
           performance,
         );
+
+        // Keep track of whether the set of results was truncated (because
+        // budget was exhausted).
+        isIncomplete =
+            contributor.notImportedSuggestions?.isIncomplete ?? false;
+
+        return suggestions;
       });
 
       final serverSuggestions =
@@ -376,10 +405,12 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
             .toList();
       });
 
+      final replacementOffset = completionRequest.replacementOffset;
+      final replacementLength = completionRequest.replacementLength;
       final insertLength = _computeInsertLength(
         offset,
-        completionRequest.replacementOffset,
-        completionRequest.replacementLength,
+        replacementOffset,
+        replacementLength,
       );
 
       if (token.isCancellationRequested) {
@@ -392,6 +423,14 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       final completeFunctionCalls = _hasExistingArgList(target.entity)
           ? false
           : server.clientConfiguration.global.completeFunctionCalls;
+
+      // Compute defaults that will allow us to reduce payload size.
+      final defaultReplacementRange =
+          toRange(unit.lineInfo, replacementOffset, replacementLength);
+      final defaultInsertionRange =
+          toRange(unit.lineInfo, replacementOffset, insertLength);
+      final defaults = _computeCompletionDefaults(
+          capabilities, defaultInsertionRange, defaultReplacementRange);
 
       /// Helper to convert [CompletionSuggestions] to [CompletionItem].
       CompletionItem suggestionToCompletionItem(CompletionSuggestion item) {
@@ -408,43 +447,47 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
         }
 
         // Convert to LSP ranges using the LineInfo.
-        var replacementRange = toRange(
+        final replacementRange = toRange(
             unit.lineInfo, itemReplacementOffset, itemReplacementLength);
-        var insertionRange =
+        final insertionRange =
             toRange(unit.lineInfo, itemReplacementOffset, itemInsertLength);
 
-        // For not-imported items, we need to include the file+uri to be able
-        // to compute the import-inserting edits in the `completionItem/resolve`
-        // call later.
+        // For items that need imports, we'll round-trip some additional info
+        // to allow their additional edits (and documentation) to be handled
+        // lazily to reduce the payload.
         CompletionItemResolutionInfo? resolutionInfo;
-        final libraryUri = item.libraryUri;
-        if (useNotImportedCompletions &&
-            libraryUri != null &&
-            (item.isNotImported ?? false)) {
-          resolutionInfo = DartNotImportedCompletionResolutionInfo(
-            file: unit.path,
-            libraryUri: libraryUri,
-          );
+        if (item is DartCompletionSuggestion) {
+          final dartElement = item.dartElement;
+          final importUris = item.requiredImports;
+
+          if (importUris.isNotEmpty) {
+            resolutionInfo = DartCompletionResolutionInfo(
+              file: unit.path,
+              importUris: importUris.map((uri) => uri.toString()).toList(),
+              ref: dartElement?.location?.encoding,
+            );
+          }
         }
 
         return toCompletionItem(
           capabilities,
           unit.lineInfo,
           item,
+          hasDefaultTextMode: defaults?.insertTextMode != null,
+          hasDefaultEditRange: defaults?.editRange != null &&
+              insertionRange == defaultInsertionRange &&
+              replacementRange == defaultReplacementRange,
           replacementRange: replacementRange,
           insertionRange: insertionRange,
-          // TODO(dantup): Move commit characters to the main response
-          // and remove from each individual item (to reduce payload size)
-          // once the following change ships (and the Dart VS Code
-          // extension is updated to use it).
-          // https://github.com/microsoft/vscode-languageserver-node/issues/673
-          includeCommitCharacters:
+          commitCharactersEnabled:
               server.clientConfiguration.global.previewCommitCharacters,
           completeFunctionCalls: completeFunctionCalls,
           resolutionData: resolutionInfo,
           // Exclude docs if we will be providing them via
-          // `completionItem/resolve`.
-          includeDocs: resolutionInfo == null,
+          // `completionItem/resolve`, otherwise use users preference.
+          includeDocumentation: resolutionInfo != null
+              ? DocumentationPreference.none
+              : server.clientConfiguration.global.preferredDocumentation,
         );
       }
 
@@ -454,120 +497,6 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
             .map(suggestionToCompletionItem)
             .toList();
       });
-
-      // Now compute items in suggestion sets.
-      var includedSuggestionSets = <IncludedSuggestionSet>[];
-      final declarationsTracker = server.declarationsTracker;
-      if (declarationsTracker != null &&
-          includedElementKinds != null &&
-          includedElementNames != null &&
-          includedSuggestionRelevanceTags != null) {
-        performance.run('computeIncludedSetList', (performance) {
-          // Checked in `if` above.
-          includedElementNames!;
-
-          computeIncludedSetList(
-            declarationsTracker,
-            completionRequest,
-            includedSuggestionSets,
-            includedElementNames,
-          );
-        });
-
-        // Build a fast lookup for imported symbols so that we can filter out
-        // duplicates.
-        final alreadyImportedSymbols =
-            performance.run('_buildLookupOfImportedSymbols', (performance) {
-          return _buildLookupOfImportedSymbols(unit);
-        });
-
-        /// Helper to check existing imports to ensure we don't already import
-        /// this element (this exact element from its declaring
-        /// library, not just something with the same name). If we do
-        /// we'll want to skip it.
-        bool isNotImportedOrLibraryIsFirst(Declaration item, Library library) {
-          final declaringUri =
-              item.parent?.locationLibraryUri ?? item.locationLibraryUri!;
-
-          // For enums and named constructors, only the parent enum/class is in
-          // the list of imported symbols so we use the parents name.
-          final nameKey = item.kind == DeclarationKind.ENUM_CONSTANT ||
-                  item.kind == DeclarationKind.CONSTRUCTOR
-              ? item.parent!.name
-              : item.name;
-          final key = _createImportedSymbolKey(nameKey, declaringUri);
-          final importingUris = alreadyImportedSymbols[key];
-
-          // Keep it only if:
-          // - no existing imports include it
-          //     (in which case all libraries will be offered as
-          //     auto-imports)
-          // - this is the first imported URI that includes it
-          //     (we don't want to repeat it for each imported library that
-          //     includes it)
-          return importingUris == null ||
-              importingUris.first == '${library.uri}';
-        }
-
-        /// Helper to filter to only the kinds we should return.
-        bool shouldIncludeKind(Declaration item) =>
-            includedElementKinds!.contains(protocolElementKind(item.kind));
-
-        // Only specific types of child declarations should be included.
-        // This list matches what's in _protocolAvailableSuggestion in
-        // the DAS implementation.
-        bool shouldIncludeChild(Declaration child) =>
-            child.kind == DeclarationKind.CONSTRUCTOR ||
-            child.kind == DeclarationKind.ENUM_CONSTANT;
-
-        performance.run('addIncludedSuggestionSets', (performance) {
-          // Checked in `if` above.
-          includedSuggestionRelevanceTags!;
-
-          // Make a fast lookup for tag relevance.
-          final tagBoosts = <String, int>{};
-          for (final t in includedSuggestionRelevanceTags) {
-            tagBoosts[t.tag] = t.relevanceBoost;
-          }
-
-          for (final includedSet in includedSuggestionSets) {
-            final library = declarationsTracker.getLibrary(includedSet.id);
-            if (library == null) {
-              break;
-            }
-
-            // Collect declarations and their children.
-            final setResults = library.declarations
-                .followedBy(library.declarations
-                    .expand((decl) => decl.children.where(shouldIncludeChild)))
-                .where(fuzzy.declarationMatches)
-                .where(shouldIncludeKind)
-                .where((Declaration item) =>
-                    isNotImportedOrLibraryIsFirst(item, library))
-                .map((item) => declarationToCompletionItem(
-                      capabilities,
-                      unit.path,
-                      includedSet,
-                      library,
-                      tagBoosts,
-                      unit.lineInfo,
-                      item,
-                      completionRequest.replacementOffset,
-                      insertLength,
-                      completionRequest.replacementLength,
-                      // TODO(dantup): Move commit characters to the main response
-                      // and remove from each individual item (to reduce payload size)
-                      // once the following change ships (and the Dart VS Code
-                      // extension is updated to use it).
-                      // https://github.com/microsoft/vscode-languageserver-node/issues/673
-                      includeCommitCharacters: server
-                          .clientConfiguration.global.previewCommitCharacters,
-                      completeFunctionCalls: completeFunctionCalls,
-                    ));
-            rankedResults.addAll(setResults);
-          }
-        });
-      }
 
       // Add in any snippets.
       final snippetsEnabled =
@@ -580,16 +509,31 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       if (capabilities.completionSnippets &&
           snippetsEnabled &&
           isEditableFile) {
-        unrankedResults =
-            await performance.runAsync('getSnippets', (performance) async {
-          final snippets = await _getDartSnippetItems(
-            clientCapabilities: capabilities,
-            unit: unit,
-            offset: offset,
-            lineInfo: unit.lineInfo,
-          );
-          return snippets.where(fuzzy.completionItemMatches).toList();
-        });
+        // Snippets may need to obtain resolved units to produce edits in files.
+        // If files have been modified since we started, these will throw but
+        // we should not bring down the entire completion request, just exclude
+        // the snippets and set isIncomplete=true.
+        //
+        // VS Code assumes we will continue to service a completion request
+        // even when documents are modified (as the user is typing).
+        try {
+          unrankedResults =
+              await performance.runAsync('getSnippets', (performance) async {
+            final snippets = await _getDartSnippetItems(
+              clientCapabilities: capabilities,
+              unit: unit,
+              offset: offset,
+              lineInfo: unit.lineInfo,
+            );
+            return snippets.where(fuzzy.completionItemMatches).toList();
+          });
+        } on AbortCompletion {
+          isIncomplete = true;
+          unrankedResults = [];
+        } on InconsistentAnalysisException {
+          isIncomplete = true;
+          unrankedResults = [];
+        }
       } else {
         unrankedResults = [];
       }
@@ -599,14 +543,16 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           rankedResults.length + unrankedResults.length;
 
       return success(_CompletionResults(
-          isIncomplete: false,
-          targetPrefix: targetPrefix,
-          rankedItems: rankedResults,
-          unrankedItems: unrankedResults));
+        isIncomplete: isIncomplete,
+        targetPrefix: targetPrefix,
+        rankedItems: rankedResults,
+        unrankedItems: unrankedResults,
+        defaults: defaults,
+      ));
     } on AbortCompletion {
-      return success(_CompletionResults.empty());
+      return success(_CompletionResults.emptyIncomplete());
     } on InconsistentAnalysisException {
-      return success(_CompletionResults.empty());
+      return success(_CompletionResults.emptyIncomplete());
     }
   }
 
@@ -638,27 +584,32 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     final completionItems = suggestions.suggestions
         .where((item) =>
             fuzzyMatcher.score(item.displayText ?? item.completion) > 0)
-        .map(
-          (item) => toCompletionItem(
-            capabilities,
-            lineInfo,
-            item,
-            replacementRange: replacementRange,
-            insertionRange: insertionRange,
-            includeCommitCharacters: false,
-            completeFunctionCalls: false,
-            // Add on any completion-kind-specific resolution data that will be
-            // used during resolve() calls to provide additional information.
-            resolutionData: item.kind == CompletionSuggestionKind.PACKAGE_NAME
-                ? PubPackageCompletionItemResolutionInfo(
-                    // The completion for package names may contain a trailing
-                    // ': ' for convenience, so if it's there, trim it off.
-                    packageName: item.completion.split(':').first,
-                  )
-                : null,
-          ),
-        )
-        .toList();
+        .map((item) {
+      final resolutionInfo = item.kind == CompletionSuggestionKind.PACKAGE_NAME
+          ? PubPackageCompletionItemResolutionInfo(
+              // The completion for package names may contain a trailing
+              // ': ' for convenience, so if it's there, trim it off.
+              packageName: item.completion.split(':').first,
+            )
+          : null;
+      return toCompletionItem(
+        capabilities,
+        lineInfo,
+        item,
+        replacementRange: replacementRange,
+        insertionRange: insertionRange,
+        commitCharactersEnabled: false,
+        completeFunctionCalls: false,
+        // Exclude docs if we could provide them via
+        // `completionItem/resolve`, otherwise use users preference.
+        includeDocumentation: resolutionInfo != null
+            ? DocumentationPreference.none
+            : server.clientConfiguration.global.preferredDocumentation,
+        // Add on any completion-kind-specific resolution data that will be
+        // used during resolve() calls to provide additional information.
+        resolutionData: resolutionInfo,
+      );
+    }).toList();
     return success(
       _CompletionResults.unranked(completionItems, isIncomplete: false),
     );
@@ -689,6 +640,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
 
   Iterable<CompletionItem> _pluginResultsToItems(
     LspClientCapabilities capabilities,
+    String path,
     LineInfo lineInfo,
     int offset,
     List<plugin.CompletionGetSuggestionsResult> pluginResults,
@@ -704,20 +656,34 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       final insertionRange =
           toRange(lineInfo, result.replacementOffset, insertLength);
 
-      return result.results.map(
-        (item) => toCompletionItem(
+      return result.results.map((item) {
+        final isNotImported = item.isNotImported ?? false;
+        final importUri = item.libraryUri;
+
+        DartCompletionResolutionInfo? resolutionInfo;
+        if (isNotImported && importUri != null) {
+          resolutionInfo = DartCompletionResolutionInfo(
+            file: path,
+            importUris: [importUri],
+          );
+        }
+
+        return toCompletionItem(
           capabilities,
           lineInfo,
           item,
           replacementRange: replacementRange,
           insertionRange: insertionRange,
+          includeDocumentation:
+              server.clientConfiguration.global.preferredDocumentation,
           // Plugins cannot currently contribute commit characters and we should
           // not assume that the Dart ones would be correct for all of their
           // completions.
-          includeCommitCharacters: false,
+          commitCharactersEnabled: false,
           completeFunctionCalls: false,
-        ),
-      );
+          resolutionData: resolutionInfo,
+        );
+      });
     });
   }
 
@@ -826,14 +792,24 @@ class _CompletionResults {
 
   final bool isIncomplete;
 
+  /// Item defaults for completion items.
+  ///
+  /// Defaults are only supported on Dart server items (not plugins).
+  final CompletionListItemDefaults? defaults;
+
   _CompletionResults({
     this.rankedItems = const [],
     this.unrankedItems = const [],
     required this.targetPrefix,
     required this.isIncomplete,
+    this.defaults,
   });
 
   _CompletionResults.empty() : this(targetPrefix: '', isIncomplete: false);
+
+  /// An empty result set marked as incomplete because an error occurred.
+  _CompletionResults.emptyIncomplete()
+      : this(targetPrefix: '', isIncomplete: true);
 
   _CompletionResults.unranked(
     List<CompletionItem> unrankedItems, {
@@ -860,7 +836,4 @@ class _FuzzyFilterHelper {
 
   bool completionSuggestionMatches(CompletionSuggestion item) =>
       _matcher.score(item.displayText ?? item.completion) > 0;
-
-  bool declarationMatches(Declaration item) =>
-      _matcher.score(getDeclarationName(item)) > 0;
 }

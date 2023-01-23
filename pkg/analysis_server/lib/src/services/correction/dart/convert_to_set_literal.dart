@@ -195,13 +195,16 @@ class ConvertToSetLiteral extends CorrectionProducer {
     var parent = creation.parent!;
     if (parent is VariableDeclaration) {
       var parent2 = parent.parent;
-      if (parent2 is VariableDeclarationList &&
-          parent2.type?.type?.element == typeProvider.setElement) {
-        return true;
+      if (parent2 is VariableDeclarationList) {
+        final type = parent2.type?.type;
+        if (type is InterfaceType && type.element == typeProvider.setElement) {
+          return true;
+        }
       }
     } else if (parent.parent is InvocationExpression) {
       var parameterElement = creation.staticParameterElement;
-      if (parameterElement?.type.element == typeProvider.setElement) {
+      final type = parameterElement?.type;
+      if (type is InterfaceType && type.element == typeProvider.setElement) {
         return true;
       }
     }

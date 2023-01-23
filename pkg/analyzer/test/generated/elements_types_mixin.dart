@@ -132,6 +132,11 @@ mixin ElementsTypesMixin {
     return interfaceTypeStar(element);
   }
 
+  InterfaceType get recordNone {
+    var element = typeProvider.recordElement;
+    return interfaceTypeNone(element);
+  }
+
   InterfaceType get stringNone {
     var element = typeProvider.stringType.element;
     return interfaceTypeNone(element);
@@ -160,7 +165,7 @@ mixin ElementsTypesMixin {
     List<TypeParameterElement> typeParameters = const [],
     List<InterfaceType> interfaces = const [],
     List<InterfaceType> mixins = const [],
-    List<MethodElement> methods = const [],
+    List<MethodElementImpl> methods = const [],
   }) {
     var element = ClassElementImpl(name, 0);
     element.enclosingElement = testLibrary.definingCompilationUnit;
@@ -174,7 +179,7 @@ mixin ElementsTypesMixin {
 
   InterfaceType comparableNone(DartType type) {
     var coreLibrary = typeProvider.intElement.library;
-    var element = coreLibrary.getType('Comparable')!;
+    var element = coreLibrary.getClass('Comparable')!;
     return element.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.none,
@@ -183,7 +188,7 @@ mixin ElementsTypesMixin {
 
   InterfaceType comparableQuestion(DartType type) {
     var coreLibrary = typeProvider.intElement.library;
-    var element = coreLibrary.getType('Comparable')!;
+    var element = coreLibrary.getClass('Comparable')!;
     return element.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.question,
@@ -192,7 +197,7 @@ mixin ElementsTypesMixin {
 
   InterfaceType comparableStar(DartType type) {
     var coreLibrary = typeProvider.intElement.library;
-    var element = coreLibrary.getType('Comparable')!;
+    var element = coreLibrary.getClass('Comparable')!;
     return element.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.star,
@@ -311,7 +316,7 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceType interfaceTypeNone(
-    ClassElement element, {
+    InterfaceElement element, {
     List<DartType> typeArguments = const [],
   }) {
     return element.instantiate(
@@ -321,7 +326,7 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceType interfaceTypeQuestion(
-    ClassElement element, {
+    InterfaceElement element, {
     List<DartType> typeArguments = const [],
   }) {
     return element.instantiate(
@@ -331,7 +336,7 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceType interfaceTypeStar(
-    ClassElement element, {
+    InterfaceElement element, {
     List<DartType> typeArguments = const [],
   }) {
     return element.instantiate(
@@ -433,7 +438,7 @@ mixin ElementsTypesMixin {
     );
   }
 
-  MethodElement method(
+  MethodElementImpl method(
     String name,
     DartType returnType, {
     bool isStatic = false,
@@ -458,7 +463,7 @@ mixin ElementsTypesMixin {
     element.typeParameters = typeParameters;
     element.superclassConstraints = constraints ?? [typeProvider.objectType];
     element.interfaces = interfaces;
-    element.constructors = const <ConstructorElement>[];
+    element.constructors = const <ConstructorElementImpl>[];
     return element;
   }
 
@@ -551,6 +556,60 @@ mixin ElementsTypesMixin {
       element: element,
       nullabilitySuffix: NullabilitySuffix.star,
       promotedBound: promotedBound,
+    );
+  }
+
+  RecordTypeImpl recordType({
+    List<DartType> positionalTypes = const [],
+    Map<String, DartType> namedTypes = const {},
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    return RecordTypeImpl(
+      positionalFields: positionalTypes.map((type) {
+        return RecordTypePositionalFieldImpl(
+          type: type,
+        );
+      }).toList(),
+      namedFields: namedTypes.entries.map((entry) {
+        return RecordTypeNamedFieldImpl(
+          name: entry.key,
+          type: entry.value,
+        );
+      }).toList(),
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
+  RecordTypeImpl recordTypeNone({
+    List<DartType> positionalTypes = const [],
+    Map<String, DartType> namedTypes = const {},
+  }) {
+    return recordType(
+      positionalTypes: positionalTypes,
+      namedTypes: namedTypes,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  RecordTypeImpl recordTypeQuestion({
+    List<DartType> positionalTypes = const [],
+    Map<String, DartType> namedTypes = const {},
+  }) {
+    return recordType(
+      positionalTypes: positionalTypes,
+      namedTypes: namedTypes,
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+  }
+
+  RecordTypeImpl recordTypeStar({
+    List<DartType> positionalTypes = const [],
+    Map<String, DartType> namedTypes = const {},
+  }) {
+    return recordType(
+      positionalTypes: positionalTypes,
+      namedTypes: namedTypes,
+      nullabilitySuffix: NullabilitySuffix.star,
     );
   }
 

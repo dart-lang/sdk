@@ -173,7 +173,6 @@ template("_prebuilt_tool_action") {
 #    testonly
 #    visibility
 template("prebuilt_dart_action") {
-  assert(defined(invoker.script), "script must be defined for $target_name")
   assert(defined(invoker.outputs), "outputs must be defined for $target_name")
   assert(defined(invoker.args), "args must be defined for $target_name")
   assert(!defined(invoker.sources),
@@ -197,23 +196,6 @@ if (_is_fuchsia) {
       forward_variables_from(invoker, "*")
       binary = prebuilt_gen_snapshot
     }
-  }
-}
-
-template("prebuilt_dart2js_action") {
-  assert(defined(invoker.script), "script must be defined for $target_name")
-  assert(defined(invoker.outputs), "outputs must be defined for $target_name")
-  assert(defined(invoker.args), "args must be defined for $target_name")
-
-  _prebuilt_tool_action(target_name) {
-    forward_variables_from(invoker, "*")
-
-    # TODO(zra): On Fuchsia use a prebuilt dart2js, or a prebuilt Observatory.
-    extension = ""
-    if (is_win) {
-      extension = ".bat"
-    }
-    binary = "$_dart_root/tools/sdks/dart-sdk/bin/dart2js${extension}"
   }
 }
 
@@ -365,6 +347,10 @@ template("dart_action") {
 #  packages (optional):
 #    The un-rebased path to the package_config.json file.
 #
+#  force_product_mode (optional):
+#    Setting this to true will cause snapshot to be built in product mode even
+#    if dart_runtime_mode is not product.
+#
 #  Forwarded to action() with the usual meaning:
 #    depfile
 #    deps
@@ -373,12 +359,19 @@ template("dart_action") {
 #    testonly
 #    visibility
 template("gen_snapshot_action") {
+  product_mode =
+      (defined(dart_runtime_mode) && dart_runtime_mode == "release") ||
+      (defined(invoker.force_product_mode) && invoker.force_product_mode)
   assert(
       !defined(invoker.script),
       "script must not be defined for $target_name. If there is a script use args instead.")
   if (!_is_fuchsia || !use_prebuilt_dart_sdk) {
     _built_tool_action(target_name) {
-      tool = "$_dart_root/runtime/bin:gen_snapshot"
+      if (product_mode) {
+        tool = "$_dart_root/runtime/bin:gen_snapshot_product"
+      } else {
+        tool = "$_dart_root/runtime/bin:gen_snapshot"
+      }
       forward_variables_from(invoker,
                              [
                                "args",

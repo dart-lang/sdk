@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "developer.dart";
+part of "developer.dart";
 
 @patch
 @pragma("vm:external-name", "Timeline_isDartStreamEnabled")
@@ -13,20 +13,10 @@ external bool _isDartStreamEnabled();
 external int _getTraceClock();
 
 @patch
-@pragma("vm:external-name", "Timeline_getNextAsyncId")
-external int _getNextAsyncId();
+@pragma("vm:external-name", "Timeline_getNextTaskId")
+external int _getNextTaskId();
 
 @patch
 @pragma("vm:external-name", "Timeline_reportTaskEvent")
-external void _reportTaskEvent(int taskId, String phase, String category,
-    String name, String argumentsAsJson);
-
-@patch
-@pragma("vm:external-name", "Timeline_reportFlowEvent")
-external void _reportFlowEvent(
-    String category, String name, int type, int id, String argumentsAsJson);
-
-@patch
-@pragma("vm:external-name", "Timeline_reportInstantEvent")
-external void _reportInstantEvent(
-    String category, String name, String argumentsAsJson);
+external void _reportTaskEvent(
+    int taskId, int type, String name, String argumentsAsJson);

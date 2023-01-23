@@ -143,7 +143,7 @@ class MemoryProfile {
       HeapSpace.parse(json['old'])!
     ];
     _updateGCEvent(event.isolate!.id!, heaps);
-    // TODO(terry): expose when GC occured as markers in memory timeline.
+    // TODO(terry): expose when GC occurred as markers in memory timeline.
   }
 
   void stopPolling() {
@@ -208,7 +208,7 @@ class MemoryProfile {
     return null;
   }
 
-  /// Poll Fultter engine's Raster Cache metrics.
+  /// Poll Flutter engine's Raster Cache metrics.
   /// @returns engine's rasterCache estimates or null.
   Future<RasterCache?> _fetchRasterCacheInfo(IsolateRef selectedIsolate) async {
     final response = await getRasterCacheMetrics(selectedIsolate);

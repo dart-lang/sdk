@@ -72,6 +72,7 @@ abstract class ErrorToken extends SimpleToken {
   @override
   int get length => 1;
 
+  @override
   String get lexeme {
     String errorMsg = assertionMessage.problemMessage;
 
@@ -107,44 +108,55 @@ abstract class ErrorToken extends SimpleToken {
 class EncodingErrorToken extends ErrorToken {
   EncodingErrorToken(super.charOffset);
 
+  @override
   String toString() => "EncodingErrorToken()";
 
+  @override
   Message get assertionMessage => messageEncoding;
 }
 
 /// Represents a non-ASCII character outside a string or comment.
 class NonAsciiIdentifierToken extends ErrorToken {
+  @override
   final int character;
 
   NonAsciiIdentifierToken(this.character, int charOffset) : super(charOffset);
 
+  @override
   String toString() => "NonAsciiIdentifierToken($character)";
 
+  @override
   Message get assertionMessage => templateNonAsciiIdentifier.withArguments(
       new String.fromCharCodes([character]), character);
 }
 
 /// Represents a non-ASCII whitespace outside a string or comment.
 class NonAsciiWhitespaceToken extends ErrorToken {
+  @override
   final int character;
 
   NonAsciiWhitespaceToken(this.character, int charOffset) : super(charOffset);
 
+  @override
   String toString() => "NonAsciiWhitespaceToken($character)";
 
+  @override
   Message get assertionMessage =>
       templateNonAsciiWhitespace.withArguments(character);
 }
 
 /// Represents an ASCII control character outside a string or comment.
 class AsciiControlCharacterToken extends ErrorToken {
+  @override
   final int character;
 
   AsciiControlCharacterToken(this.character, int charOffset)
       : super(charOffset);
 
+  @override
   String toString() => "AsciiControlCharacterToken($character)";
 
+  @override
   Message get assertionMessage =>
       templateAsciiControlCharacter.withArguments(character);
 }
@@ -165,32 +177,42 @@ class UnsupportedOperator extends ErrorToken {
 
 /// Represents an unterminated string.
 class UnterminatedString extends ErrorToken {
+  @override
   final String start;
+  @override
   final int endOffset;
 
   UnterminatedString(this.start, int charOffset, this.endOffset)
       : super(charOffset);
 
+  @override
   String toString() => "UnterminatedString($start)";
 
+  @override
   int get charCount => endOffset - charOffset;
 
+  @override
   int get length => charCount;
 
+  @override
   Message get assertionMessage =>
       templateUnterminatedString.withArguments(start, closeQuoteFor(start));
 }
 
 /// Represents an unterminated token.
 class UnterminatedToken extends ErrorToken {
+  @override
   final Message assertionMessage;
+  @override
   final int endOffset;
 
   UnterminatedToken(this.assertionMessage, int charOffset, this.endOffset)
       : super(charOffset);
 
+  @override
   String toString() => "UnterminatedToken(${assertionMessage.code.name})";
 
+  @override
   int get charCount => endOffset - charOffset;
 }
 
@@ -199,14 +221,17 @@ class UnterminatedToken extends ErrorToken {
 /// In this case, brace means any of `(`, `{`, `[`, and `<`, parenthesis, curly
 /// brace, square brace, and angle brace, respectively.
 class UnmatchedToken extends ErrorToken {
+  @override
   final BeginToken begin;
 
   UnmatchedToken(BeginToken begin)
       : this.begin = begin,
         super(begin.charOffset);
 
+  @override
   String toString() => "UnmatchedToken(${begin.lexeme})";
 
+  @override
   Message get assertionMessage =>
       templateUnmatchedToken.withArguments(closeBraceFor(begin.lexeme), begin);
 }

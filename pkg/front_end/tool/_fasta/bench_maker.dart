@@ -330,14 +330,44 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
   }
 
   @override
+  void visitRecordType(RecordType node, StringBuffer sb) {
+    sb.write("(");
+    bool first = true;
+    for (int i = 0; i < node.positional.length; i++) {
+      if (!first) sb.write(", ");
+      node.positional[i].accept1(this, sb);
+      first = false;
+    }
+    if (node.named.isNotEmpty) {
+      if (!first) sb.write(", ");
+      sb.write("{");
+      first = true;
+      for (NamedType named in node.named) {
+        if (!first) sb.write(", ");
+        named.type.accept1(this, sb);
+        sb.write(" ");
+        sb.write(named.name);
+        first = false;
+      }
+      sb.write("}");
+      first = false;
+    }
+    sb.write(")");
+    writeNullability(node.nullability, sb);
+  }
+
+  @override
   void visitTypeParameterType(TypeParameterType node, StringBuffer sb) {
     String name = computeName(node.parameter);
     usedTypeParameters.add(node.parameter);
     sb.write(name);
-    if (node.promotedBound != null) {
-      sb.write(" & ");
-      node.promotedBound!.accept1(this, sb);
-    }
+  }
+
+  @override
+  void visitIntersectionType(IntersectionType node, StringBuffer sb) {
+    node.left.accept1(this, sb);
+    sb.write(" & ");
+    node.right.accept1(this, sb);
   }
 
   @override
@@ -347,6 +377,11 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
 
   @override
   void visitExtensionType(ExtensionType node, StringBuffer sb) {
+    throw "not implemented";
+  }
+
+  @override
+  void visitViewType(ViewType node, StringBuffer sb) {
     throw "not implemented";
   }
 

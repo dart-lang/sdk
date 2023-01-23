@@ -30,7 +30,7 @@ enum E {
 ListLiteral
   leftBracket: [
   rightBracket: ]
-  parameter: self::@enum::E::@constructor::•::@parameter::a
+  parameter: self::@enum::E::@constructor::new::@parameter::a
   staticType: List<int>
 ''');
   }
@@ -87,10 +87,7 @@ enum E<T> {
     final node = findNode.enumConstantDeclaration('v.');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
-  name: SimpleIdentifier
-    token: v
-    staticElement: self::@enum::E::@field::v
-    staticType: null
+  name: v
   arguments: EnumConstantArguments
     constructorSelector: ConstructorSelector
       period: .
@@ -126,10 +123,7 @@ enum E<T> {
     final node = findNode.enumConstantDeclaration('v(');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
-  name: SimpleIdentifier
-    token: v
-    staticElement: self::@enum::E::@field::v
-    staticType: null
+  name: v
   arguments: EnumConstantArguments
     argumentList: ArgumentList
       leftParenthesis: (
@@ -137,12 +131,12 @@ EnumConstantDeclaration
         IntegerLiteral
           literal: 42
           parameter: ParameterMember
-            base: self::@enum::E::@constructor::•::@parameter::a
+            base: self::@enum::E::@constructor::new::@parameter::a
             substitution: {T: int}
           staticType: int
       rightParenthesis: )
   constructorElement: ConstructorMember
-    base: self::@enum::E::@constructor::•
+    base: self::@enum::E::@constructor::new
     substitution: {T: int}
   declaredElement: self::@enum::E::@field::v
 ''');
@@ -159,10 +153,7 @@ enum E<T> {
     final node = findNode.enumConstantDeclaration('v<');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
-  name: SimpleIdentifier
-    token: v
-    staticElement: self::@enum::E::@field::v
-    staticType: null
+  name: v
   arguments: EnumConstantArguments
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -208,10 +199,7 @@ enum E {
     final node = findNode.enumConstantDeclaration('v.');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
-  name: SimpleIdentifier
-    token: v
-    staticElement: self::@enum::E::@field::v
-    staticType: null
+  name: v
   arguments: EnumConstantArguments
     constructorSelector: ConstructorSelector
       period: .
@@ -243,20 +231,17 @@ enum E {
     final node = findNode.enumConstantDeclaration('v(');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
-  name: SimpleIdentifier
-    token: v
-    staticElement: self::@enum::E::@field::v
-    staticType: null
+  name: v
   arguments: EnumConstantArguments
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
         IntegerLiteral
           literal: 42
-          parameter: self::@enum::E::@constructor::•::@parameter::a
+          parameter: self::@enum::E::@constructor::new::@parameter::a
           staticType: int
       rightParenthesis: )
-  constructorElement: self::@enum::E::@constructor::•
+  constructorElement: self::@enum::E::@constructor::new
   declaredElement: self::@enum::E::@field::v
 ''');
   }
@@ -271,11 +256,8 @@ enum E {
     final node = findNode.enumConstantDeclaration('v\n');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
-  name: SimpleIdentifier
-    token: v
-    staticElement: self::@enum::E::@field::v
-    staticType: null
-  constructorElement: self::@enum::E::@constructor::•
+  name: v
+  constructorElement: self::@enum::E::@constructor::new
   declaredElement: self::@enum::E::@field::v
 ''');
   }
@@ -293,10 +275,7 @@ enum E {
     final node = findNode.enumConstantDeclaration('v.');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
-  name: SimpleIdentifier
-    token: v
-    staticElement: self::@enum::E::@field::v
-    staticType: null
+  name: v
   arguments: EnumConstantArguments
     constructorSelector: ConstructorSelector
       period: .
@@ -330,10 +309,7 @@ enum E {
     final node = findNode.enumConstantDeclaration('v(');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
-  name: SimpleIdentifier
-    token: v
-    staticElement: self::@enum::E::@field::v
-    staticType: null
+  name: v
   arguments: EnumConstantArguments
     argumentList: ArgumentList
       leftParenthesis: (

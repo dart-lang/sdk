@@ -2,10 +2,20 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/instantiate_to_bound/non_simple_from_compiled.dart:15:12: Error: Generic type 'LinkedListEntry' can't be used without type arguments in a type variable bound.
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_from_compiled.dart:15:9: Error: Generic type 'LinkedListEntry' can't be used without type arguments in a type variable bound.
 // Try providing type arguments to 'LinkedListEntry' here.
-// class Hest<X extends LinkedListEntry> {}
-//            ^
+// class A<X extends LinkedListEntry> {}
+//         ^
+//
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_from_compiled.dart:17:13: Error: Generic type 'LinkedListEntry' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'LinkedListEntry' here.
+// extension B<X extends LinkedListEntry> on int {}
+//             ^
+//
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_from_compiled.dart:19:11: Error: Generic type 'LinkedListEntry' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'LinkedListEntry' here.
+// typedef C<X extends LinkedListEntry> = int;
+//           ^
 //
 import self as self;
 import "dart:collection" as col;
@@ -13,9 +23,14 @@ import "dart:core" as core;
 
 import "dart:collection";
 
-class Hest<X extends col::LinkedListEntry<col::LinkedListEntry<dynamic>> = dynamic> extends core::Object {
-  synthetic constructor •() → self::Hest<self::Hest::X>
+typedef C<unrelated X extends col::LinkedListEntry<col::LinkedListEntry<dynamic>> = dynamic> = core::int;
+class A<X extends col::LinkedListEntry<col::LinkedListEntry<dynamic>> = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X>
     ;
+}
+extension B<X extends col::LinkedListEntry<col::LinkedListEntry<dynamic>> = dynamic> on core::int {
 }
 static method main() → dynamic
   ;
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#C#fromEnvironment#tearOff<unrelated X extends col::LinkedListEntry<col::LinkedListEntry<dynamic>> = dynamic>(core::String name, {has-declared-initializer core::int defaultValue}) → core::int
+  return core::int::fromEnvironment(name, defaultValue: defaultValue);

@@ -34,6 +34,7 @@ worlds:
     uriToSourcesDoesntInclude:
       - b.dart
       - c.dart
+    advancedInvalidation: outlineChange
   - entry: main.dart
     worldType: updated
     invalidate:
@@ -46,3 +47,4 @@ worlds:
     uriToSourcesDoesntInclude:
       - b.dart
       - c.dart
+    advancedInvalidation: bodiesOnly

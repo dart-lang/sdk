@@ -24,15 +24,24 @@ class B {
   }
 }
 
+class C {
+  // Should be removed.
+  late final int x = int.parse("1");
+}
+
 // Should be removed.
 late int staticLateA;
 
 // Should be retained.
 late final int staticLateB;
 
+// Should be removed.
+late final int staticLateC = int.parse("2");
+
 void main() {
   new A().use();
   new B().use();
+  new C();
 
   staticLateA = 4;
   staticLateB = 4;

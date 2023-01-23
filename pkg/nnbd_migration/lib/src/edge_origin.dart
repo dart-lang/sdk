@@ -26,8 +26,8 @@ class AlreadyMigratedTypeOrigin extends EdgeOrigin {
   /// Indicates whether the already-migrated type is nullable or not.
   final bool isNullable;
 
-  AlreadyMigratedTypeOrigin.forElement(Element element, this.isNullable)
-      : super.forElement(element);
+  AlreadyMigratedTypeOrigin.forElement(Element super.element, this.isNullable)
+      : super.forElement();
 
   @override
   String get description => '${isNullable ? 'nullable' : 'non-nullable'}'
@@ -50,11 +50,10 @@ class AlwaysNullableTypeOrigin extends EdgeOrigin {
   /// it is the `dynamic` type).
   final bool isVoid;
 
-  AlwaysNullableTypeOrigin(Source? source, AstNode node, this.isVoid)
-      : super(source, node);
+  AlwaysNullableTypeOrigin(super.source, AstNode super.node, this.isVoid);
 
-  AlwaysNullableTypeOrigin.forElement(Element element, this.isVoid)
-      : super.forElement(element);
+  AlwaysNullableTypeOrigin.forElement(Element super.element, this.isVoid)
+      : super.forElement();
 
   @override
   String get description =>
@@ -67,7 +66,7 @@ class AlwaysNullableTypeOrigin extends EdgeOrigin {
 /// Edge origin resulting from the presence of an Angular annotation such as
 /// `@Optional()`, `@ViewChild(...)`, or `@ContentChild(...)`.
 class AngularAnnotationOrigin extends EdgeOrigin {
-  AngularAnnotationOrigin(Source? source, AstNode node) : super(source, node);
+  AngularAnnotationOrigin(super.source, AstNode super.node);
 
   @override
   String get description =>
@@ -88,8 +87,7 @@ class AngularAnnotationOrigin extends EdgeOrigin {
 /// this class is used for the edge connecting the type of f's `i` parameter to
 /// `never`, due to the `checkNotNull` call proclaiming that `i` is not `null`.
 class ArgumentErrorCheckNotNullOrigin extends EdgeOrigin {
-  ArgumentErrorCheckNotNullOrigin(Source? source, SimpleIdentifier node)
-      : super(source, node);
+  ArgumentErrorCheckNotNullOrigin(super.source, SimpleIdentifier super.node);
 
   @override
   String get description => 'value checked to be non-null';
@@ -98,9 +96,34 @@ class ArgumentErrorCheckNotNullOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.argumentErrorCheckNotNull;
 }
 
+/// Edge origin resulting from an assignment from a call to Angular's
+/// `Injector.get` in a test `setUp` callback.
+///
+/// For example, in the following code snippet:
+///
+///   Foo foo;
+///   setUp(() {
+///     foo = injector.get(Foo);
+///   });
+///
+/// this class is used for the edge connecting the type of the `foo` variable to
+/// `never`, due to the assignment from `injector.get`. While `Injector.get` has
+/// a return type of `dynamic`, it's use in a test `setUp` callback is more than
+/// likely intended to yield a non-null value.
+class AssignmentFromAngularInjectorGetOrigin extends EdgeOrigin {
+  AssignmentFromAngularInjectorGetOrigin(
+      super.source, SimpleIdentifier super.node);
+
+  @override
+  String get description => 'value retrieved from Injector.get in test setUp';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.assignmentFromAngularInjectorGet;
+}
+
 /// Edge origin resulting from a use of built_value's `@nullable` annotation.
 class BuiltValueNullableOrigin extends EdgeOrigin {
-  BuiltValueNullableOrigin(Source? source, AstNode node) : super(source, node);
+  BuiltValueNullableOrigin(super.source, AstNode super.node);
 
   @override
   String get description => 'method is marked with the `@nullable` annotation';
@@ -112,7 +135,7 @@ class BuiltValueNullableOrigin extends EdgeOrigin {
 /// An edge origin used for edges that originated because of a tear-off of
 /// `call` on a function type.
 class CallTearOffOrigin extends EdgeOrigin {
-  CallTearOffOrigin(Source? source, AstNode node) : super(source, node);
+  CallTearOffOrigin(super.source, AstNode super.node);
 
   @override
   String get description => 'tear-off of .call';
@@ -124,8 +147,7 @@ class CallTearOffOrigin extends EdgeOrigin {
 /// Edge origin resulting from the use of a value on the LHS of a compound
 /// assignment.
 class CompoundAssignmentOrigin extends EdgeOrigin {
-  CompoundAssignmentOrigin(Source? source, AssignmentExpression node)
-      : super(source, node);
+  CompoundAssignmentOrigin(super.source, AssignmentExpression super.node);
 
   @override
   String get description => 'compound assignment';
@@ -140,7 +162,7 @@ class CompoundAssignmentOrigin extends EdgeOrigin {
 /// Edge origin resulting from the use of an element which does not affect the
 /// nullability graph in other ways.
 class DummyOrigin extends EdgeOrigin {
-  DummyOrigin(Source? source, AstNode node) : super(source, node);
+  DummyOrigin(super.source, AstNode super.node);
 
   @override
   String get description => 'dummy';
@@ -152,7 +174,7 @@ class DummyOrigin extends EdgeOrigin {
 /// An edge origin used for edges that originated because of an assignment
 /// involving a value with a dynamic type.
 class DynamicAssignmentOrigin extends EdgeOrigin {
-  DynamicAssignmentOrigin(Source? source, AstNode? node) : super(source, node);
+  DynamicAssignmentOrigin(super.source, super.node);
 
   @override
   String get description => 'assignment of dynamic value';
@@ -196,7 +218,7 @@ abstract class EdgeOrigin extends EdgeOriginInfo {
 /// An edge origin used for edges that originated because of a reference to an
 /// enum value, which cannot be null.
 class EnumValueOrigin extends EdgeOrigin {
-  EnumValueOrigin(Source? source, AstNode node) : super(source, node);
+  EnumValueOrigin(super.source, AstNode super.node);
 
   @override
   String get description => 'non-nullable enum value';
@@ -208,7 +230,7 @@ class EnumValueOrigin extends EdgeOrigin {
 /// Edge origin resulting from an explicit or implicit `dynamic` type annotation
 /// appearing in an external declaration.
 class ExternalDynamicOrigin extends EdgeOrigin {
-  ExternalDynamicOrigin(Source? source, AstNode node) : super(source, node);
+  ExternalDynamicOrigin(super.source, AstNode super.node);
 
   @override
   String get description => 'dynamic type in external declaration';
@@ -220,8 +242,7 @@ class ExternalDynamicOrigin extends EdgeOrigin {
 /// Edge origin resulting from the relationship between a field formal parameter
 /// and the corresponding field.
 class FieldFormalParameterOrigin extends EdgeOrigin {
-  FieldFormalParameterOrigin(Source? source, FieldFormalParameter node)
-      : super(source, node);
+  FieldFormalParameterOrigin(super.source, FieldFormalParameter super.node);
 
   @override
   String get description => 'field formal parameter';
@@ -237,7 +258,7 @@ class FieldFormalParameterOrigin extends EdgeOrigin {
 /// that failed to initialize the field (or the class, if the constructor is
 /// synthetic).
 class FieldNotInitializedOrigin extends EdgeOrigin {
-  FieldNotInitializedOrigin(Source? source, AstNode node) : super(source, node);
+  FieldNotInitializedOrigin(super.source, AstNode super.node);
 
   @override
   String get description => 'field not initialized';
@@ -256,8 +277,7 @@ class FieldNotInitializedOrigin extends EdgeOrigin {
 /// this class is used for the edge connecting the type of `l`'s `int` type
 /// parameter to the type of `i`.
 class ForEachVariableOrigin extends EdgeOrigin {
-  ForEachVariableOrigin(Source? source, ForEachParts node)
-      : super(source, node);
+  ForEachVariableOrigin(super.source, ForEachParts super.node);
 
   @override
   String get description => 'variable in "for each" loop';
@@ -268,8 +288,7 @@ class ForEachVariableOrigin extends EdgeOrigin {
 
 /// Edge origin resulting from the relationship between a getter and a setter.
 class GetterSetterCorrespondenceOrigin extends EdgeOrigin {
-  GetterSetterCorrespondenceOrigin(Source? source, AstNode node)
-      : super(source, node);
+  GetterSetterCorrespondenceOrigin(super.source, AstNode super.node);
 
   @override
   String get description => 'getter/setter correspondence';
@@ -288,7 +307,7 @@ class GetterSetterCorrespondenceOrigin extends EdgeOrigin {
 /// `x` and `y` are nullable, due to the fact that the `int` in the return type
 /// is the greatest lower bound of the two other `int`s.
 class GreatestLowerBoundOrigin extends EdgeOrigin {
-  GreatestLowerBoundOrigin(Source? source, AstNode? node) : super(source, node);
+  GreatestLowerBoundOrigin(super.source, super.node);
 
   @override
   String get description => 'greatest lower bound';
@@ -299,7 +318,7 @@ class GreatestLowerBoundOrigin extends EdgeOrigin {
 
 /// Edge origin resulting from the presence of a `??` operator.
 class IfNullOrigin extends EdgeOrigin {
-  IfNullOrigin(Source? source, AstNode node) : super(source, node);
+  IfNullOrigin(super.source, AstNode super.node);
 
   @override
   String get description => 'if-null operator';
@@ -322,8 +341,7 @@ class IfNullOrigin extends EdgeOrigin {
 /// between the implicit constructor for `D` and the explicit constructor for
 /// `C`.
 class ImplicitMixinSuperCallOrigin extends EdgeOrigin {
-  ImplicitMixinSuperCallOrigin(Source? source, ClassTypeAlias node)
-      : super(source, node);
+  ImplicitMixinSuperCallOrigin(super.source, ClassTypeAlias super.node);
 
   @override
   String get description => 'implicit super call in mixin constructor';
@@ -335,8 +353,7 @@ class ImplicitMixinSuperCallOrigin extends EdgeOrigin {
 /// Edge origin resulting from the implicit assignment of `null` to a top level
 /// variable or field that lacks an initializer.
 class ImplicitNullInitializerOrigin extends EdgeOrigin {
-  ImplicitNullInitializerOrigin(Source? source, AstNode node)
-      : super(source, node);
+  ImplicitNullInitializerOrigin(super.source, AstNode super.node);
 
   @override
   String get description => 'uninitialized variable';
@@ -348,8 +365,7 @@ class ImplicitNullInitializerOrigin extends EdgeOrigin {
 /// Edge origin resulting from a `return;` statement which implicitly returns
 /// `null`.
 class ImplicitNullReturnOrigin extends EdgeOrigin {
-  ImplicitNullReturnOrigin(Source? source, ReturnStatement node)
-      : super(source, node);
+  ImplicitNullReturnOrigin(super.source, ReturnStatement super.node);
 
   @override
   String get description => 'implicit return of null';
@@ -364,7 +380,7 @@ class ImplicitNullReturnOrigin extends EdgeOrigin {
 /// Edge origin used for edges that arise from an implicit use of `this`, e.g.
 /// during a method call from an extension.
 class ImplicitThisOrigin extends EdgeOrigin {
-  ImplicitThisOrigin(Source? source, AstNode node) : super(source, node);
+  ImplicitThisOrigin(super.source, AstNode super.node);
 
   @override
   String get description => 'implicit use of `this`';
@@ -376,8 +392,7 @@ class ImplicitThisOrigin extends EdgeOrigin {
 /// Edge origin resulting from the inference of a type parameter, which
 /// can affects the nullability of that type parameter's bound.
 class InferredTypeParameterInstantiationOrigin extends EdgeOrigin {
-  InferredTypeParameterInstantiationOrigin(Source? source, AstNode node)
-      : super(source, node);
+  InferredTypeParameterInstantiationOrigin(super.source, AstNode super.node);
 
   @override
   String get description => 'inferred type parameter';
@@ -389,7 +404,7 @@ class InferredTypeParameterInstantiationOrigin extends EdgeOrigin {
 /// An edge origin used for edges that originated because of an instance
 /// creation expression.
 class InstanceCreationOrigin extends EdgeOrigin {
-  InstanceCreationOrigin(Source? source, AstNode node) : super(source, node);
+  InstanceCreationOrigin(super.source, AstNode super.node);
 
   @override
   String get description => 'instance creation';
@@ -407,8 +422,7 @@ class InstanceCreationOrigin extends EdgeOrigin {
 /// this class is used for the edge connecting the type of x's type parameter
 /// with the type bound in the declaration of C.
 class InstantiateToBoundsOrigin extends EdgeOrigin {
-  InstantiateToBoundsOrigin(Source? source, NamedType node)
-      : super(source, node);
+  InstantiateToBoundsOrigin(super.source, NamedType super.node);
 
   @override
   String get description => 'type instantiated to bounds';
@@ -423,8 +437,7 @@ class InstantiateToBoundsOrigin extends EdgeOrigin {
 /// Before the migration, there was no way to say `is int?`, and therefore,
 /// `is int` should migrate to non-null int.
 class IsCheckMainTypeOrigin extends EdgeOrigin {
-  IsCheckMainTypeOrigin(Source? source, TypeAnnotation node)
-      : super(source, node);
+  IsCheckMainTypeOrigin(super.source, TypeAnnotation super.node);
 
   @override
   String get description => '"is" check does not accept null';
@@ -436,8 +449,7 @@ class IsCheckMainTypeOrigin extends EdgeOrigin {
 /// An edge origin used for the return type of an iterator method that might be
 /// changed into an extension method from package:collection.
 class IteratorMethodReturnOrigin extends EdgeOrigin {
-  IteratorMethodReturnOrigin(Source? source, AstNode node)
-      : super(source, node);
+  IteratorMethodReturnOrigin(super.source, AstNode super.node);
 
   @override
   String get description =>
@@ -450,8 +462,7 @@ class IteratorMethodReturnOrigin extends EdgeOrigin {
 /// An edge origin used for the type argument of a list constructor that
 /// specified an initial length, because that type argument must be nullable.
 class ListLengthConstructorOrigin extends EdgeOrigin {
-  ListLengthConstructorOrigin(Source? source, AstNode node)
-      : super(source, node);
+  ListLengthConstructorOrigin(super.source, AstNode super.node);
 
   @override
   String get description => 'construction of list via a length';
@@ -463,7 +474,7 @@ class ListLengthConstructorOrigin extends EdgeOrigin {
 /// An edge origin used for edges that originated because a literal expression
 /// has a known nullability.
 class LiteralOrigin extends EdgeOrigin {
-  LiteralOrigin(Source? source, AstNode node) : super(source, node);
+  LiteralOrigin(super.source, AstNode super.node);
 
   @override
   String get description => 'literal expression';
@@ -485,8 +496,7 @@ class LiteralOrigin extends EdgeOrigin {
 /// parameter, due to the fact that the call to `f` implicitly passes a null
 /// value for `i`.
 class NamedParameterNotSuppliedOrigin extends EdgeOrigin {
-  NamedParameterNotSuppliedOrigin(Source? source, AstNode node)
-      : super(source, node);
+  NamedParameterNotSuppliedOrigin(super.source, AstNode super.node);
 
   @override
   String get description => 'named parameter not supplied';
@@ -498,7 +508,7 @@ class NamedParameterNotSuppliedOrigin extends EdgeOrigin {
 /// Edge origin for the nullability of an expression that whose type is fixed by
 /// the language definition to be non-nullable `bool`.
 class NonNullableBoolTypeOrigin extends EdgeOrigin {
-  NonNullableBoolTypeOrigin(Source? source, AstNode node) : super(source, node);
+  NonNullableBoolTypeOrigin(super.source, AstNode super.node);
 
   @override
   String get description => 'non-null boolean expression';
@@ -510,8 +520,7 @@ class NonNullableBoolTypeOrigin extends EdgeOrigin {
 /// Edge origin resulting from the class/superclass relationship for a class
 /// whose superclass is implicitly `Object`.
 class NonNullableObjectSuperclass extends EdgeOrigin {
-  NonNullableObjectSuperclass(Source? source, AstNode node)
-      : super(source, node);
+  NonNullableObjectSuperclass(super.source, AstNode super.node);
 
   @override
   String get description => 'implicit supertype of Object';
@@ -523,7 +532,7 @@ class NonNullableObjectSuperclass extends EdgeOrigin {
 /// Edge origin resulting from the usage of a value in a circumstance that
 /// requires it to be non-nullable
 class NonNullableUsageOrigin extends EdgeOrigin {
-  NonNullableUsageOrigin(Source? source, AstNode node) : super(source, node);
+  NonNullableUsageOrigin(super.source, AstNode super.node);
 
   @override
   String get description => 'value cannot be null';
@@ -542,7 +551,7 @@ class NonNullableUsageOrigin extends EdgeOrigin {
 /// this class is used for the edge connecting the type of f's `i` parameter to
 /// `never`, due to the assert statement proclaiming that `i` is not `null`.
 class NonNullAssertionOrigin extends EdgeOrigin {
-  NonNullAssertionOrigin(Source? source, Assertion node) : super(source, node);
+  NonNullAssertionOrigin(super.source, Assertion super.node);
 
   @override
   String get description => 'value asserted to be non-null';
@@ -564,11 +573,10 @@ class NullabilityCommentOrigin extends EdgeOrigin {
   /// non-nullable.
   final bool isNullable;
 
-  NullabilityCommentOrigin(Source? source, AstNode node, this.isNullable)
+  NullabilityCommentOrigin(super.source, AstNode super.node, this.isNullable)
       : assert(node is TypeAnnotation ||
             node is FunctionTypedFormalParameter ||
-            (node is FieldFormalParameter && node.parameters != null)),
-        super(source, node);
+            (node is FieldFormalParameter && node.parameters != null));
 
   @override
   String get description =>
@@ -576,6 +584,17 @@ class NullabilityCommentOrigin extends EdgeOrigin {
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.nullabilityComment;
+}
+
+/// An edge origin arising from a null aware access.
+class NullAwareAccessOrigin extends EdgeOrigin {
+  NullAwareAccessOrigin(super.source, AstNode super.node);
+
+  @override
+  String get description => 'null aware access';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.nullAwareAccess;
 }
 
 /// Edge origin resulting from the presence of an optional formal parameter.
@@ -586,8 +605,8 @@ class NullabilityCommentOrigin extends EdgeOrigin {
 /// this class is used for the edge connecting `always` to the type of f's `i`
 /// parameter, due to the fact that `i` is optional and has no initializer.
 class OptionalFormalParameterOrigin extends EdgeOrigin {
-  OptionalFormalParameterOrigin(Source? source, DefaultFormalParameter node)
-      : super(source, node);
+  OptionalFormalParameterOrigin(
+      super.source, DefaultFormalParameter super.node);
 
   @override
   String get description => 'optional formal parameter must be nullable';
@@ -599,8 +618,7 @@ class OptionalFormalParameterOrigin extends EdgeOrigin {
 /// Edge origin resulting from an inheritance relationship between two method
 /// parameters.
 class ParameterInheritanceOrigin extends EdgeOrigin {
-  ParameterInheritanceOrigin(Source? source, AstNode node)
-      : super(source, node);
+  ParameterInheritanceOrigin(super.source, AstNode super.node);
 
   @override
   String get description => 'function parameter override';
@@ -621,8 +639,7 @@ class ParameterInheritanceOrigin extends EdgeOrigin {
 /// this class is used for the edge connecting the type of f's `i` parameter to
 /// `never`, due to the `checkNotNull` call proclaiming that `i` is not `null`.
 class QuiverCheckNotNullOrigin extends EdgeOrigin {
-  QuiverCheckNotNullOrigin(Source? source, SimpleIdentifier node)
-      : super(source, node);
+  QuiverCheckNotNullOrigin(super.source, SimpleIdentifier super.node);
 
   @override
   String get description => 'value checked to be non-null';
@@ -634,8 +651,7 @@ class QuiverCheckNotNullOrigin extends EdgeOrigin {
 /// Edge origin resulting from an inheritance relationship between two method
 /// return types.
 class ReturnTypeInheritanceOrigin extends EdgeOrigin {
-  ReturnTypeInheritanceOrigin(Source? source, AstNode node)
-      : super(source, node);
+  ReturnTypeInheritanceOrigin(super.source, AstNode super.node);
 
   @override
   String get description => 'function return type override';
@@ -648,7 +664,7 @@ class ReturnTypeInheritanceOrigin extends EdgeOrigin {
 /// directive.  The type of such parameters is fixed by the language as
 /// non-nullable `StackTrace`.
 class StackTraceTypeOrigin extends EdgeOrigin {
-  StackTraceTypeOrigin(Source? source, AstNode? node) : super(source, node);
+  StackTraceTypeOrigin(super.source, super.node);
 
   @override
   String get description => 'stack trace variable is nullable';
@@ -663,8 +679,7 @@ class ThisOrSuperOrigin extends EdgeOrigin {
   /// expression in question is `super`.
   final bool isThis;
 
-  ThisOrSuperOrigin(Source? source, AstNode node, this.isThis)
-      : super(source, node);
+  ThisOrSuperOrigin(super.source, AstNode super.node, this.isThis);
 
   @override
   String get description =>
@@ -677,7 +692,7 @@ class ThisOrSuperOrigin extends EdgeOrigin {
 /// An edge origin used for edges that originated from the type of a `throw` or
 /// `rethrow`.
 class ThrowOrigin extends EdgeOrigin {
-  ThrowOrigin(Source? source, AstNode node) : super(source, node);
+  ThrowOrigin(super.source, AstNode super.node);
 
   @override
   String get description =>
@@ -694,7 +709,7 @@ class ThrowOrigin extends EdgeOrigin {
 /// unioned with references to the nodes referring to source code. The origin of
 /// those union edges will be [TypedefReferenceOrigin].
 class TypedefReferenceOrigin extends EdgeOrigin {
-  TypedefReferenceOrigin(Source? source, NamedType node) : super(source, node);
+  TypedefReferenceOrigin(super.source, NamedType super.node);
 
   @override
   String get description => 'reference to typedef';
@@ -706,8 +721,7 @@ class TypedefReferenceOrigin extends EdgeOrigin {
 /// Edge origin resulting from the instantiation of a type parameter, which
 /// affects the nullability of that type parameter's bound.
 class TypeParameterInstantiationOrigin extends EdgeOrigin {
-  TypeParameterInstantiationOrigin(Source? source, TypeAnnotation node)
-      : super(source, node);
+  TypeParameterInstantiationOrigin(super.source, TypeAnnotation super.node);
 
   @override
   String get description => 'type parameter instantiation';
@@ -722,7 +736,7 @@ class TypeParameterInstantiationOrigin extends EdgeOrigin {
 /// Edge origin resulting from the read of a variable that has not been
 /// definitely assigned a value.
 class UninitializedReadOrigin extends EdgeOrigin {
-  UninitializedReadOrigin(Source? source, AstNode node) : super(source, node);
+  UninitializedReadOrigin(super.source, AstNode super.node);
 
   @override
   String get description => 'local variable might not be initialized';

@@ -155,8 +155,12 @@ extension NativeFunctionPointer<NF extends Function>
     on Pointer<NativeFunction<NF>> {
   /// Convert to Dart function, automatically marshalling the arguments
   /// and return value.
+  ///
+  /// [isLeaf] specifies whether the function is a leaf function.
+  /// A leaf function must not run Dart code or call back into the Dart VM.
+  /// Leaf calls are faster than non-leaf calls.
   external DF asFunction<@DartRepresentationOf('NF') DF extends Function>(
-      {bool isLeaf: false});
+      {bool isLeaf = false});
 }
 
 //
@@ -876,8 +880,14 @@ abstract class NativeApi {
 @Since('2.14')
 class FfiNative<T> {
   final String nativeName;
+
+  /// Specifies whether the function is a leaf function.
+  ///
+  /// A leaf function must not run Dart code or call back into the Dart VM.
+  /// Leaf calls are faster than non-leaf calls.
   final bool isLeaf;
-  const FfiNative(this.nativeName, {this.isLeaf: false});
+
+  const FfiNative(this.nativeName, {this.isLeaf = false});
 }
 
 // Bootstrapping native for getting the FFI native C function pointer to look

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -111,7 +112,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
     required List<ParameterElement>? parameters,
     ConstructorElement? enclosingConstructor,
     required List<Expression> arguments,
-    required AstNode errorNode,
+    required SyntacticEntity errorNode,
   }) {
     if (parameters == null) {
       return;
@@ -122,9 +123,10 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
         String parameterName = parameter.name;
         if (!_containsNamedExpression(
             enclosingConstructor, arguments, parameterName)) {
-          _errorReporter.reportErrorForNode(
+          _errorReporter.reportErrorForOffset(
             CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT,
-            errorNode,
+            errorNode.offset,
+            errorNode.length,
             [parameterName],
           );
         }
@@ -137,15 +139,17 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
               enclosingConstructor, arguments, parameterName)) {
             var reason = annotation.reason;
             if (reason != null) {
-              _errorReporter.reportErrorForNode(
+              _errorReporter.reportErrorForOffset(
                 HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS,
-                errorNode,
+                errorNode.offset,
+                errorNode.length,
                 [parameterName, reason],
               );
             } else {
-              _errorReporter.reportErrorForNode(
+              _errorReporter.reportErrorForOffset(
                 HintCode.MISSING_REQUIRED_PARAM,
-                errorNode,
+                errorNode.offset,
+                errorNode.length,
                 [parameterName],
               );
             }
@@ -255,7 +259,7 @@ extension _InstantiatedAnnotation on Annotation {
   }
 
   static SimpleIdentifier? _ifClassElement(SimpleIdentifier? node) {
-    return node?.staticElement is ClassElement ? node : null;
+    return node?.staticElement is InterfaceElement ? node : null;
   }
 
   static SimpleIdentifier? _ifConstructorElement(SimpleIdentifier? node) {

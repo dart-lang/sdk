@@ -30,7 +30,7 @@ static method main() → dynamic {
       #t3.{core::Map::addAll}{Invariant}(#t4{core::Map<core::int, core::int>}){(core::Map<core::int, core::int>) → void};
   } =>#t3;
   final core::Set<core::int> aSet = block {
-    final core::Set<core::int> #t5 = new col::_CompactLinkedHashSet::•<core::int>();
+    final core::Set<core::int> #t5 = new col::_Set::•<core::int>();
     #t5.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
     #t5.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::int>(2)){(core::Iterable<core::int>) → void};
     final core::Iterable<core::int>? #t6 = self::nullableList;

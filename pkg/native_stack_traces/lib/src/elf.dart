@@ -6,6 +6,8 @@
 
 import 'dart:typed_data';
 
+import 'constants.dart' as constants;
+import 'dwarf_container.dart';
 import 'reader.dart';
 
 int _readElfBytes(Reader reader, int bytes, int alignment) {
@@ -59,11 +61,89 @@ int _readElfNative(Reader reader) {
   }
 }
 
+/// The identification block at the start of an ELF header, which includes
+/// the magic bytes for file type identification, word size and endian
+/// information, etc.
+class ElfIdentification {
+  final int wordSize;
+  final Endian endian;
+
+  ElfIdentification._(this.wordSize, this.endian);
+
+  static ElfIdentification? fromReader(Reader reader) {
+    final start = reader.offset;
+    final bytes = Uint8List.sublistView(reader.readRawBytes(_EI_NIDENT));
+    // Reset reader in case of failures/null returns below.
+    reader.seek(start, absolute: true);
+
+    // Check magic bytes at start. Return null for a mismatch here.
+    if (bytes[_EI_MAG0] != _ELFMAG0) return null;
+    if (bytes[_EI_MAG1] != _ELFMAG1) return null;
+    if (bytes[_EI_MAG2] != _ELFMAG2) return null;
+    if (bytes[_EI_MAG3] != _ELFMAG3) return null;
+
+    // Check this first since it only has one good value currently.
+    if (bytes[_EI_VERSION] != _EV_CURRENT) {
+      throw FormatException('Unexpected e_ident[EI_VERSION] value');
+    }
+
+    int? wordSize;
+    switch (bytes[_EI_CLASS]) {
+      case _ELFCLASS32:
+        wordSize = 4;
+        break;
+      case _ELFCLASS64:
+        wordSize = 8;
+        break;
+      default:
+        throw FormatException('Unexpected e_ident[EI_CLASS] value');
+    }
+
+    Endian? endian;
+    switch (bytes[_EI_DATA]) {
+      case _ELFDATA2LSB:
+        endian = Endian.little;
+        break;
+      case _ELFDATA2MSB:
+        endian = Endian.big;
+        break;
+      default:
+        throw FormatException('Unexpected e_ident[EI_DATA] value');
+    }
+
+    // Successfully read, so position the reader after the identification block.
+    reader.seek(start + _EI_NIDENT, absolute: true);
+    return ElfIdentification._(wordSize, endian);
+  }
+
+  // Offsets into the identification block.
+  static const _EI_MAG0 = 0;
+  static const _EI_MAG1 = 1;
+  static const _EI_MAG2 = 2;
+  static const _EI_MAG3 = 3;
+  static const _EI_CLASS = 4;
+  static const _EI_DATA = 5;
+  static const _EI_VERSION = 6;
+  static const _EI_NIDENT = 16;
+
+  // Constants used within the ELF specification.
+  static const _ELFMAG0 = 0x7f;
+  static const _ELFMAG1 = 0x45; // E
+  static const _ELFMAG2 = 0x4c; // L
+  static const _ELFMAG3 = 0x46; // F
+  static const _ELFCLASS32 = 1;
+  static const _ELFCLASS64 = 2;
+  static const _ELFDATA2LSB = 1;
+  static const _ELFDATA2MSB = 2;
+  static const _EV_CURRENT = 1;
+}
+
 /// The header of the ELF file, which includes information necessary to parse
 /// the rest of the file.
 class ElfHeader {
-  final int wordSize;
-  final Endian endian;
+  final ElfIdentification elfIdent;
+  final int type;
+  final int machine;
   final int entry;
   final int flags;
   final int headerSize;
@@ -76,8 +156,9 @@ class ElfHeader {
   final int sectionHeaderStringsIndex;
 
   ElfHeader._(
-      this.wordSize,
-      this.endian,
+      this.elfIdent,
+      this.type,
+      this.machine,
       this.entry,
       this.flags,
       this.headerSize,
@@ -90,26 +171,19 @@ class ElfHeader {
       this.sectionHeaderStringsIndex);
 
   static ElfHeader? fromReader(Reader reader) {
-    final fileSize = reader.length;
+    final start = reader.offset;
+    final fileSize = reader.remaining;
 
-    for (final sigByte in _ELFMAG.codeUnits) {
-      if (reader.readByte() != sigByte) {
-        return null;
-      }
-    }
+    final elfIdent = ElfIdentification.fromReader(reader);
+    if (elfIdent == null) return null;
 
-    int wordSize;
-    switch (reader.readByte()) {
-      case _ELFCLASS32:
-        wordSize = 4;
-        break;
-      case _ELFCLASS64:
-        wordSize = 8;
-        break;
-      default:
-        throw FormatException('Unexpected e_ident[EI_CLASS] value');
-    }
-    final calculatedHeaderSize = 0x18 + 3 * wordSize + 0x10;
+    // Make sure the word size and endianness of the reader are set according
+    // to the values parsed from the ELF identification block.
+    assert(reader.offset == start + ElfIdentification._EI_NIDENT);
+    reader.wordSize = elfIdent.wordSize;
+    reader.endian = elfIdent.endian;
+
+    final calculatedHeaderSize = 0x18 + 3 * elfIdent.wordSize + 0x10;
 
     if (fileSize < calculatedHeaderSize) {
       throw FormatException('ELF file too small for header: '
@@ -117,30 +191,11 @@ class ElfHeader {
           'calculated header size $calculatedHeaderSize');
     }
 
-    Endian endian;
-    switch (reader.readByte()) {
-      case _ELFDATA2LSB:
-        endian = Endian.little;
-        break;
-      case _ELFDATA2MSB:
-        endian = Endian.big;
-        break;
-      default:
-        throw FormatException('Unexpected e_indent[EI_DATA] value');
-    }
+    final type = _readElfHalf(reader);
+    final machine = _readElfHalf(reader);
 
-    if (reader.readByte() != 0x01) {
-      throw FormatException('Unexpected e_ident[EI_VERSION] value');
-    }
-
-    // After this point, we need the reader to be correctly set up re: word
-    // size and endianness, since we start reading more than single bytes.
-    reader.endian = endian;
-    reader.wordSize = wordSize;
-
-    // Skip rest of e_ident/e_type/e_machine, i.e. move to e_version.
-    reader.seek(0x14, absolute: true);
-    if (_readElfWord(reader) != 0x01) {
+    // This word should also be set to EV_CURRENT.
+    if (_readElfWord(reader) != ElfIdentification._EV_CURRENT) {
       throw FormatException('Unexpected e_version value');
     }
 
@@ -183,8 +238,9 @@ class ElfHeader {
     }
 
     return ElfHeader._(
-        wordSize,
-        endian,
+        elfIdent,
+        type,
+        machine,
         entry,
         flags,
         headerSize,
@@ -197,15 +253,38 @@ class ElfHeader {
         sectionHeaderStringsIndex);
   }
 
+  // The architectures currently output by the Dart built-in ELF writer.
+  static const _EM_386 = 3;
+  static const _EM_ARM = 40;
+  static const _EM_X86_64 = 62;
+  static const _EM_AARCH64 = 183;
+  static const _EM_RISCV = 243;
+
+  String? get architecture {
+    switch (machine) {
+      case _EM_ARM:
+        assert(wordSize == 4);
+        return "arm";
+      case _EM_AARCH64:
+        assert(wordSize == 8);
+        return "arm64";
+      case _EM_386:
+        assert(wordSize == 4);
+        return "ia32";
+      case _EM_X86_64:
+        assert(wordSize == 8);
+        return "x64";
+      case _EM_RISCV:
+        return wordSize == 8 ? "riscv64" : "riscv32";
+      default:
+        return null;
+    }
+  }
+
+  int get wordSize => elfIdent.wordSize;
+  Endian get endian => elfIdent.endian;
   int get programHeaderSize => programHeaderCount * programHeaderEntrySize;
   int get sectionHeaderSize => sectionHeaderCount * sectionHeaderEntrySize;
-
-  // Constants used within the ELF specification.
-  static const _ELFMAG = '\x7fELF';
-  static const _ELFCLASS32 = 0x01;
-  static const _ELFCLASS64 = 0x02;
-  static const _ELFDATA2LSB = 0x01;
-  static const _ELFDATA2MSB = 0x02;
 
   void writeToStringBuffer(StringBuffer buffer) {
     buffer
@@ -221,6 +300,10 @@ class ElfHeader {
         break;
     }
     buffer
+      ..write('Type: 0x')
+      ..writeln(paddedHex(type, 2))
+      ..write('Machine: 0x')
+      ..writeln(paddedHex(type, 2))
       ..write('Entry point: 0x')
       ..writeln(paddedHex(entry, wordSize))
       ..write('Flags: 0x')
@@ -266,7 +349,11 @@ class ProgramHeaderEntry {
   static const _PT_NULL = 0;
   static const _PT_LOAD = 1;
   static const _PT_DYNAMIC = 2;
+  static const _PT_NOTE = 4;
   static const _PT_PHDR = 6;
+  static const _PT_GNU_EH_FRAME = 0x6474e550;
+  static const _PT_GNU_STACK = 0x6474e551;
+  static const _PT_GNU_RELRO = 0x6474e552;
 
   ProgramHeaderEntry._(this.type, this.flags, this.offset, this.vaddr,
       this.paddr, this.filesz, this.memsz, this.align, this.wordSize);
@@ -296,7 +383,11 @@ class ProgramHeaderEntry {
     _PT_NULL: 'PT_NULL',
     _PT_LOAD: 'PT_LOAD',
     _PT_DYNAMIC: 'PT_DYNAMIC',
+    _PT_NOTE: 'PT_NOTE',
     _PT_PHDR: 'PT_PHDR',
+    _PT_GNU_EH_FRAME: 'PT_GNU_EH_FRAME',
+    _PT_GNU_STACK: 'PT_GNU_STACK',
+    _PT_GNU_RELRO: 'PT_GNU_RELRO',
   };
 
   static String _typeToString(int type) =>
@@ -350,8 +441,8 @@ class ProgramHeader {
   }
 
   static ProgramHeader fromReader(Reader reader, ElfHeader header) {
-    final programReader = reader.refocusedCopy(
-        header.programHeaderOffset, header.programHeaderSize);
+    final programReader =
+        reader.shrink(header.programHeaderOffset, header.programHeaderSize);
     final entries =
         programReader.readRepeated(ProgramHeaderEntry.fromReader).toList();
     return ProgramHeader._(entries);
@@ -508,8 +599,8 @@ class SectionHeader {
   SectionHeader._(this.entries);
 
   static SectionHeader fromReader(Reader reader, ElfHeader header) {
-    final headerReader = reader.refocusedCopy(
-        header.sectionHeaderOffset, header.sectionHeaderSize);
+    final headerReader =
+        reader.shrink(header.sectionHeaderOffset, header.sectionHeaderSize);
     final entries =
         headerReader.readRepeated(SectionHeaderEntry.fromReader).toList();
     final nameTableEntry = entries[header.sectionHeaderStringsIndex];
@@ -576,7 +667,9 @@ class Section {
   int get length => headerEntry.size;
 
   // Convenience function for preparing a reader to read a particular section.
-  Reader refocusedCopy(Reader reader) => reader.refocusedCopy(offset, length);
+  // Requires a reader for the entire ELF data where the reader's start is
+  // the start of the ELF data.
+  Reader shrink(Reader reader) => reader.shrink(offset, length);
 
   void writeToStringBuffer(StringBuffer buffer) {
     buffer
@@ -604,7 +697,7 @@ class Note extends Section {
   Note._(entry, this.type, this.name, this.description) : super._(entry);
 
   static Note fromReader(Reader originalReader, SectionHeaderEntry entry) {
-    final reader = originalReader.refocusedCopy(entry.offset, entry.size);
+    final reader = originalReader.shrink(entry.offset, entry.size);
     final nameLength = reader.readBytes(4);
     final descriptionLength = reader.readBytes(4);
     final type = reader.readBytes(4);
@@ -636,30 +729,37 @@ class Note extends Section {
       ..write('  Description: ')
       ..writeln(description);
   }
-
-  @override
-  String toString() {
-    final buffer = StringBuffer();
-    writeToStringBuffer(buffer);
-    return buffer.toString();
-  }
 }
 
 /// A map from table offsets to strings, used to store names of ELF objects.
-class StringTable extends Section {
+class StringTable extends Section implements DwarfContainerStringTable {
   final Map<int, String> _entries;
 
   StringTable._(entry, this._entries) : super._(entry);
 
   static StringTable fromReader(Reader reader, SectionHeaderEntry entry) {
-    final sectionReader = reader.refocusedCopy(entry.offset, entry.size);
+    final sectionReader = reader.shrink(entry.offset, entry.size);
     final entries = Map.fromEntries(sectionReader
         .readRepeatedWithOffsets((r) => r.readNullTerminatedString()));
     return StringTable._(entry, entries);
   }
 
-  String? operator [](int index) => _entries[index];
-  bool containsKey(int index) => _entries.containsKey(index);
+  @override
+  String? operator [](int index) {
+    // Fast case: Index is for the start of a null terminated string.
+    if (_entries.containsKey(index)) {
+      return _entries[index];
+    }
+    // We can index into null terminated string entries for suffixes of
+    // that string, so do a linear search to find the appropriate entry.
+    for (final kv in _entries.entries) {
+      final start = index - kv.key;
+      if (start >= 0 && start <= kv.value.length) {
+        return kv.value.substring(start);
+      }
+    }
+    return null;
+  }
 
   @override
   void writeToStringBuffer(StringBuffer buffer) {
@@ -677,34 +777,88 @@ class StringTable extends Section {
   }
 }
 
+/// An enumeration of recognized symbol binding values used by the ELF format.
 enum SymbolBinding {
-  STB_LOCAL,
-  STB_GLOBAL,
+  // We only list the standard types here, not OS-specific ones.
+  STB_LOCAL(0, 'local'),
+  STB_GLOBAL(1, 'global'),
+  STB_WEAK(2, 'weak');
+
+  final int code;
+  final String description;
+
+  const SymbolBinding(this.code, this.description);
+
+  static SymbolBinding? fromCode(int code) {
+    for (final value in values) {
+      if (value.code == code) {
+        return value;
+      }
+    }
+    return null;
+  }
 }
 
+/// An enumeration of recognized symbol types used by the ELF format.
 enum SymbolType {
-  STT_NOTYPE,
-  STT_OBJECT,
-  STT_FUNC,
+  // We only list the standard types here, not OS-specific ones.
+  STT_NOTYPE(0, 'notype'),
+  STT_OBJECT(1, 'object'),
+  STT_FUNC(2, 'function'),
+  STT_SECTION(3, 'section'),
+  STT_FILE(4, 'file'),
+  STT_COMMON(5, 'common'),
+  STT_TLS(6, 'thread-local');
+
+  final int code;
+  final String description;
+
+  const SymbolType(this.code, this.description);
+
+  static SymbolType? fromCode(int code) {
+    for (final value in values) {
+      if (value.code == code) {
+        return value;
+      }
+    }
+    return null;
+  }
 }
 
 enum SymbolVisibility {
-  STV_DEFAULT,
-  STV_INTERNAL,
-  STV_HIDDEN,
-  STV_PROTECTED,
+  // We only list the standard values here.
+  STV_DEFAULT(0, 'public'),
+  STV_INTERNAL(1, 'internal'),
+  STV_HIDDEN(2, 'hidden'),
+  STV_PROTECTED(3, 'protected');
+
+  final int code;
+  final String description;
+
+  const SymbolVisibility(this.code, this.description);
+
+  static SymbolVisibility? fromCode(int code) {
+    for (final value in values) {
+      if (value.code == code) {
+        return value;
+      }
+    }
+    return null;
+  }
 }
 
 /// A symbol in an ELF file, which names a portion of the virtual address space.
-class Symbol {
+class Symbol implements DwarfContainerSymbol {
   final int nameIndex;
   final int info;
   final int other;
   final int sectionIndex;
+  @override
   final int value;
   final int size;
   final int _wordSize;
-  late String name;
+  @override
+  late final String name;
 
   Symbol._(this.nameIndex, this.info, this.other, this.sectionIndex, this.value,
       this.size, this._wordSize);
@@ -731,45 +885,20 @@ class Symbol {
         nameIndex, info, other, sectionIndex, value, size, wordSize);
   }
 
-  void _cacheNameFromStringTable(StringTable table) {
-    final nameFromTable = table[nameIndex];
-    if (nameFromTable == null) {
-      throw FormatException('Index $nameIndex not found in string table');
-    }
-    name = nameFromTable;
-  }
-
-  SymbolBinding get bind => SymbolBinding.values[info >> 4];
-  SymbolType get type => SymbolType.values[info & 0x0f];
-  SymbolVisibility get visibility => SymbolVisibility.values[other & 0x03];
+  SymbolBinding? get bind => SymbolBinding.fromCode(info >> 4);
+  SymbolType? get type => SymbolType.fromCode(info & 0x0f);
+  SymbolVisibility? get visibility => SymbolVisibility.fromCode(other & 0x03);
 
   void writeToStringBuffer(StringBuffer buffer) {
     buffer
       ..write('"')
       ..write(name)
-      ..write('" =>');
-    switch (bind) {
-      case SymbolBinding.STB_GLOBAL:
-        buffer.write(' a global');
-        break;
-      case SymbolBinding.STB_LOCAL:
-        buffer.write(' a local');
-        break;
-    }
-    switch (visibility) {
-      case SymbolVisibility.STV_DEFAULT:
-        break;
-      case SymbolVisibility.STV_HIDDEN:
-        buffer.write(' hidden');
-        break;
-      case SymbolVisibility.STV_INTERNAL:
-        buffer.write(' internal');
-        break;
-      case SymbolVisibility.STV_PROTECTED:
-        buffer.write(' protected');
-        break;
-    }
-    buffer
+      ..write('" => a ')
+      ..write(bind?.description ?? '<binding unrecognized>')
+      ..write(' ')
+      ..write(type?.description ?? '<type unrecognized>')
+      ..write(' ')
+      ..write(visibility?.description ?? '<visibility unrecognized>')
       ..write(' symbol that points to ')
       ..write(size)
       ..write(' bytes at location 0x')
@@ -796,7 +925,7 @@ class SymbolTable extends Section {
         super._(entry);
 
   static SymbolTable fromReader(Reader reader, SectionHeaderEntry entry) {
-    final sectionReader = reader.refocusedCopy(entry.offset, entry.size);
+    final sectionReader = reader.shrink(entry.offset, entry.size);
     final entries = sectionReader.readRepeated(Symbol.fromReader).toList();
     return SymbolTable._(entry, entries);
   }
@@ -804,8 +933,13 @@ class SymbolTable extends Section {
   void _cacheNames(StringTable stringTable) {
     _nameCache.clear();
     for (final symbol in _entries) {
-      symbol._cacheNameFromStringTable(stringTable);
-      _nameCache[symbol.name] = symbol;
+      final index = symbol.nameIndex;
+      final name = stringTable[index];
+      if (name == null) {
+        throw FormatException('Index $index not found in string table');
+      }
+      symbol.name = name;
+      _nameCache[name] = symbol;
     }
   }
 
@@ -857,7 +991,7 @@ class DynamicTable extends Section {
       : super._(entry);
 
   static DynamicTable fromReader(Reader reader, SectionHeaderEntry entry) {
-    final sectionReader = reader.refocusedCopy(entry.offset, entry.size);
+    final sectionReader = reader.shrink(entry.offset, entry.size);
     final entries = <int, int>{};
     while (true) {
       // Each entry is a tag and a value, both native word sized.
@@ -932,15 +1066,17 @@ class DynamicTable extends Section {
 }
 
 /// Information parsed from an Executable and Linking Format (ELF) file.
-class Elf {
+class Elf extends DwarfContainer {
   final ElfHeader _header;
   final ProgramHeader _programHeader;
   final SectionHeader _sectionHeader;
   final Map<SectionHeaderEntry, Section> _sections;
   final Map<String, Set<Section>> _sectionsByName;
+  final StringTable? _debugStringTable;
+  final StringTable? _debugLineStringTable;
 
   Elf._(this._header, this._programHeader, this._sectionHeader, this._sections,
-      this._sectionsByName);
+      this._sectionsByName, this._debugStringTable, this._debugLineStringTable);
 
   /// Creates an [Elf] from [bytes].
   ///
@@ -982,18 +1118,48 @@ class Elf {
     return null;
   }
 
+  /// Returns an iterable of the symbols in the dynamic symbol table(s).
+  /// The ordering of the symbols is not guaranteed.
+  Iterable<Symbol> get dynamicSymbols sync* {
+    for (final section in namedSections('.dynsym')) {
+      final dynsym = section as SymbolTable;
+      for (final symbol in dynsym.values) {
+        yield symbol;
+      }
+    }
+  }
+
   /// Reverse lookup of the static symbol that contains the given virtual
   /// address. Returns null if no static symbol matching the address is found.
+  @override
   Symbol? staticSymbolAt(int address) {
+    Symbol? bestSym;
     for (final section in namedSections('.symtab')) {
       final table = section as SymbolTable;
       for (final symbol in table.values) {
         final start = symbol.value;
-        final end = start + symbol.size;
-        if (start <= address && address < end) return symbol;
+        if (start > address) continue;
+        // If given a non-zero extent of a symbol, make sure the address is
+        // within the extent.
+        if (symbol.size > 0 && (start + symbol.size <= address)) continue;
+        // Pick the symbol with a start closest to the given address.
+        if (bestSym == null || (bestSym.value < start)) {
+          bestSym = symbol;
+        }
       }
     }
-    return null;
+    return bestSym;
+  }
+
+  /// Returns an iterable of the symbols in the static symbol table(s).
+  /// The ordering of the symbols is not guaranteed.
+  Iterable<Symbol> get staticSymbols sync* {
+    for (final section in namedSections('.symtab')) {
+      final symtab = section as SymbolTable;
+      for (final symbol in symtab.values) {
+        yield symbol;
+      }
+    }
   }
 
   /// Creates an [Elf] from the data pointed to by [reader].
@@ -1008,8 +1174,8 @@ class Elf {
     // make sure we have a reader that a) makes no assumptions about the
     // endianness or word size, since we'll read those in the header and b)
     // has an internal offset of 0 so absolute offsets can be used directly.
-    final reader = Reader.fromTypedData(ByteData.sublistView(
-        elfReader.bdata, elfReader.bdata.offsetInBytes + elfReader.offset));
+    final reader = Reader.fromTypedData(
+        ByteData.sublistView(elfReader.bdata, elfReader.offset));
     final header = ElfHeader.fromReader(reader);
     // Only happens if the file didn't start with the expected magic number.
     if (header == null) return null;
@@ -1070,13 +1236,69 @@ class Elf {
 
     cacheSymbolNames('.strtab', '.symtab');
     cacheSymbolNames('.dynstr', '.dynsym');
+
+    StringTable? debugStringTable;
+    if (sectionsByName.containsKey('.debug_str')) {
+      // Stored as PROGBITS, so need to explicitly parse as a string table.
+      debugStringTable = StringTable.fromReader(
+          reader, sectionsByName['.debug_str']!.single.headerEntry);
+    }
+
+    StringTable? debugLineStringTable;
+    if (sectionsByName.containsKey('.debug_line_str')) {
+      // Stored as PROGBITS, so need to explicitly parse as a string table.
+      debugLineStringTable = StringTable.fromReader(
+          reader, sectionsByName['.debug_line_str']!.single.headerEntry);
+    }
+
     // Set the wordSize and endian of the original reader before returning.
     elfReader.wordSize = reader.wordSize;
     elfReader.endian = reader.endian;
-    return Elf._(
-        header, programHeader, sectionHeader, sections, sectionsByName);
+    return Elf._(header, programHeader, sectionHeader, sections, sectionsByName,
+        debugStringTable, debugLineStringTable);
   }
 
+  @override
+  String? get architecture => _header.architecture;
+
+  @override
+  Reader abbreviationsTableReader(Reader containerReader) =>
+      namedSections('.debug_abbrev').single.shrink(containerReader);
+
+  @override
+  Reader lineNumberInfoReader(Reader containerReader) =>
+      namedSections('.debug_line').single.shrink(containerReader);
+
+  @override
+  Reader debugInfoReader(Reader containerReader) =>
+      namedSections('.debug_info').single.shrink(containerReader);
+
+  @override
+  int? get vmStartAddress => dynamicSymbolFor(constants.vmSymbolName)?.value;
+
+  @override
+  int? get isolateStartAddress =>
+      dynamicSymbolFor(constants.isolateSymbolName)?.value;
+
+  @override
+  String? get buildId {
+    final sections = namedSections(constants.buildIdSectionName);
+    if (sections.isEmpty) return null;
+    final note = sections.single as Note;
+    if (note.type != constants.buildIdNoteType) return null;
+    if (note.name != constants.buildIdNoteName) return null;
+    return note.description
+        .map((i) => i.toRadixString(16).padLeft(2, '0'))
+        .join();
+  }
+
+  @override
+  DwarfContainerStringTable? get debugStringTable => _debugStringTable;
+
+  @override
+  DwarfContainerStringTable? get debugLineStringTable => _debugLineStringTable;
+
+  @override
   void writeToStringBuffer(StringBuffer buffer) {
     buffer
       ..writeln('-----------------------------------------------------')
@@ -1111,12 +1333,5 @@ class Elf {
       _sections[entry]!.writeToStringBuffer(buffer);
       buffer.writeln();
     }
-  }
-
-  @override
-  String toString() {
-    var buffer = StringBuffer();
-    writeToStringBuffer(buffer);
-    return buffer.toString();
   }
 }

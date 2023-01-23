@@ -21,9 +21,9 @@ import 'package:compiler/src/universe/selector.dart';
 import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/universe/use.dart';
 import 'package:compiler/src/universe/world_builder.dart';
-import 'package:compiler/src/world.dart';
+import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:expect/expect.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 class Test {
   final String name;
@@ -194,7 +194,7 @@ main() {}
     ClassEntity cls = elementEnvironment.lookupClass(
         elementEnvironment.mainLibrary, className);
     Selector selector = new Selector.call(
-        new Name(methodName, elementEnvironment.mainLibrary),
+        new Name(methodName, elementEnvironment.mainLibrary.canonicalUri),
         CallStructure.NO_ARGS);
     WorldImpact impact = new WorldImpactBuilderImpl()
       ..registerDynamicUse(

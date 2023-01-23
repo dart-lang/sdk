@@ -357,7 +357,7 @@ class H extends self::G implements self::C, self::A {}
   }
 
   Procedure newEmptyGetter(String name,
-      {DartType returnType: const DynamicType(), bool isAbstract: false}) {
+      {DartType returnType = const DynamicType(), bool isAbstract = false}) {
     var body =
         isAbstract ? null : new Block([new ReturnStatement(new NullLiteral())]);
     return new Procedure(new Name(name), ProcedureKind.Getter,
@@ -365,7 +365,7 @@ class H extends self::G implements self::C, self::A {}
         fileUri: library.fileUri);
   }
 
-  Procedure newEmptyMethod(String name, {bool isAbstract: false}) {
+  Procedure newEmptyMethod(String name, {bool isAbstract = false}) {
     var body = isAbstract ? null : new Block([]);
     return new Procedure(new Name(name), ProcedureKind.Method,
         new FunctionNode(body, returnType: const VoidType()),
@@ -373,7 +373,7 @@ class H extends self::G implements self::C, self::A {}
   }
 
   Procedure newEmptySetter(String name,
-      {bool isAbstract: false, DartType type: const DynamicType()}) {
+      {bool isAbstract = false, DartType type = const DynamicType()}) {
     var body = isAbstract ? null : new Block([]);
     return new Procedure(
         new Name(name),

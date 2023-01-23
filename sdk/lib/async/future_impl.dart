@@ -196,6 +196,7 @@ class _FutureListener<S, T> {
   bool shouldChain(Future<dynamic> value) => value is Future<T> || value is! T;
 }
 
+@pragma("wasm:entry-point")
 class _Future<T> implements Future<T> {
   /// Initial state, waiting for a result. In this state, the
   /// [_resultOrListeners] field holds a single-linked list of

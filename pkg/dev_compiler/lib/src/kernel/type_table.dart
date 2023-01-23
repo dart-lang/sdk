@@ -32,6 +32,9 @@ Set<TypeParameter> freeTypeParameters(DartType t) {
       t.namedParameters.forEach((n) => find(n.type));
       t.typeParameters.forEach((p) => find(p.bound));
       t.typeParameters.forEach(result.remove);
+    } else if (t is RecordType) {
+      t.positional.forEach((p) => find(p));
+      t.named.forEach((n) => find(n.type));
     }
   }
 
@@ -89,6 +92,16 @@ String _typeString(DartType type, {bool flat = false}) {
   if (type is VoidType) return 'void';
   if (type is NeverType) return 'Never$nullability';
   if (type is NullType) return 'Null';
+  if (type is RecordType) {
+    if (flat) return 'Rec';
+    var positional =
+        type.positional.take(3).map((p) => _typeString(p, flat: true));
+    var elements = positional.join('And');
+    if (type.positional.length > 3 || type.named.isNotEmpty) {
+      elements = '${elements}__';
+    }
+    return 'Rec${nullability}Of$elements';
+  }
   return 'invalid';
 }
 

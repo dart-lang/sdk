@@ -6,16 +6,15 @@ import 'dart:io';
 
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer_utilities/package_root.dart' as package_root;
-import 'package:path/src/context.dart';
 
 import '../messages/error_code_documentation_info.dart';
 import '../messages/error_code_info.dart';
 
 /// Generate the file `diagnostics.md` based on the documentation associated
 /// with the declarations of the error codes.
-void main() async {
-  IOSink sink = File(computeOutputPath()).openWrite();
-  DocumentationGenerator generator = DocumentationGenerator();
+Future<void> main() async {
+  var sink = File(computeOutputPath()).openWrite();
+  var generator = DocumentationGenerator();
   generator.writeDocumentation(sink);
   await sink.flush();
   await sink.close();
@@ -23,9 +22,9 @@ void main() async {
 
 /// Compute the path to the file into which documentation is being generated.
 String computeOutputPath() {
-  Context pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
-  String packageRoot = pathContext.normalize(package_root.packageRoot);
-  String analyzerPath = pathContext.join(packageRoot, 'analyzer');
+  var pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
+  var packageRoot = pathContext.normalize(package_root.packageRoot);
+  var analyzerPath = pathContext.join(packageRoot, 'analyzer');
   return pathContext.join(
       analyzerPath, 'tool', 'diagnostics', 'diagnostics.md');
 }
@@ -124,7 +123,7 @@ class DocumentationGenerator {
         _extractAllDocs(
             errorClass.name, cfeToAnalyzerErrorCodeTables.analyzerCodeToInfo);
         // Note: only one error class has the `includeCfeMessages` flag set;
-        // verify_diagnostics_test.dart verifies this.  So we can safely break.
+        // verify_diagnostics_test.dart verifies this. So we can safely break.
         break;
       }
     }
@@ -206,10 +205,10 @@ that might work in unexpected ways.
 [meta-visibleForOverriding]: https://pub.dev/documentation/meta/latest/meta/visibleForOverriding-constant.html
 [meta-visibleForTesting]: https://pub.dev/documentation/meta/latest/meta/visibleForTesting-constant.html
 ''');
-    List<String> errorCodes = infoByName.keys.toList();
+    var errorCodes = infoByName.keys.toList();
     errorCodes.sort();
     for (String errorCode in errorCodes) {
-      DiagnosticInformation info = infoByName[errorCode]!;
+      var info = infoByName[errorCode]!;
       if (info.hasDocumentation) {
         sink.writeln();
         info.writeOn(sink);

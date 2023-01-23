@@ -1,0 +1,17 @@
+class C<T> {}
+test(dynamic x) {
+switch (x) {
+case C<int>():
+break;
+}
+}
+
+
+class[KeywordToken] C[StringToken]<[BeginToken]T[StringToken]>[SimpleToken] {[BeginToken]}[SimpleToken]
+test[StringToken]([BeginToken]dynamic[KeywordToken] x[StringToken])[SimpleToken] {[BeginToken]
+switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+case[KeywordToken] C[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken])[SimpleToken]:[SimpleToken]
+break[KeywordToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

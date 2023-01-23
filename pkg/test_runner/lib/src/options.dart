@@ -16,7 +16,7 @@ import 'test_configurations.dart';
 import 'utils.dart';
 
 const _defaultTestSelectors = [
-  'samples_2',
+  'samples',
   'standalone_2',
   'corelib_2',
   'language_2',
@@ -73,7 +73,6 @@ class OptionsParser {
         abbr: 'c',
         allowed: Compiler.names,
         help: '''How the Dart code should be compiled or statically processed.
-none:                 Do not compile the Dart code.
 dart2js:              Compile to JavaScript using dart2js.
 dart2analyzer:        Perform static analysis on Dart code using the analyzer.
 compare_analyzer_cfe: Compare analyzer and common front end representations.

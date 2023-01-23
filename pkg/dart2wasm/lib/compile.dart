@@ -22,6 +22,7 @@ import 'package:kernel/verifier.dart';
 import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
 
+import 'package:dart2wasm/compiler_options.dart' as compiler;
 import 'package:dart2wasm/target.dart';
 import 'package:dart2wasm/translator.dart';
 
@@ -30,11 +31,7 @@ import 'package:dart2wasm/translator.dart';
 /// Returns `null` if an error occurred during compilation. The
 /// [handleDiagnosticMessage] callback will have received an error message
 /// describing the error.
-Future<Uint8List?> compileToModule(
-    Uri mainUri,
-    Uri sdkRoot,
-    Uri? platformDill,
-    TranslatorOptions options,
+Future<Uint8List?> compileToModule(compiler.CompilerOptions options,
     void Function(DiagnosticMessage) handleDiagnosticMessage) async {
   var succeeded = true;
   void diagnosticMessageHandler(DiagnosticMessage message) {
@@ -47,20 +44,23 @@ Future<Uint8List?> compileToModule(
   Target target = WasmTarget();
   CompilerOptions compilerOptions = CompilerOptions()
     ..target = target
-    ..sdkRoot = sdkRoot
-    ..environmentDefines = {}
+    ..sdkRoot = options.sdkPath
+    ..librariesSpecificationUri = options.librariesSpecPath
+    ..packagesFileUri = options.packagesPath
+    ..environmentDefines = options.environment
+    ..explicitExperimentalFlags = options.feExperimentalFlags
     ..verbose = false
     ..onDiagnostic = diagnosticMessageHandler
     ..nnbdMode = NnbdMode.Strong;
 
-  if (platformDill != null) {
-    compilerOptions.sdkSummary = platformDill;
+  if (options.platformPath != null) {
+    compilerOptions.sdkSummary = options.platformPath;
   } else {
     compilerOptions.compileSdk = true;
   }
 
   CompilerResult? compilerResult =
-      await kernelForProgram(mainUri, compilerOptions);
+      await kernelForProgram(options.mainUri, compilerOptions);
   if (compilerResult == null || !succeeded) {
     return null;
   }
@@ -78,7 +78,10 @@ Future<Uint8List?> compileToModule(
     return true;
   }());
 
-  var translator = Translator(component, coreTypes,
-      TypeEnvironment(coreTypes, compilerResult.classHierarchy!), options);
+  var translator = Translator(
+      component,
+      coreTypes,
+      TypeEnvironment(coreTypes, compilerResult.classHierarchy!),
+      options.translatorOptions);
   return translator.translate();
 }

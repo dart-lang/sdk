@@ -164,7 +164,7 @@ enum Enum1<
 }
 
 extension Extension<
-    T1 extends F, // Ok
+    T1 extends F, // Error
     T2 extends F<dynamic>, // Ok
     T3 extends F<Class>, // Ok
     T4 extends F<Class<dynamic>>, // Ok
@@ -172,7 +172,7 @@ extension Extension<
     T6 extends F<Class<ConcreteClass>>, // Ok
     T7 extends F<Object>, // Error
     T8 extends F<int>, // Error
-    S1 extends G, // Ok
+    S1 extends G, // Error
     S2 extends G<dynamic>, // Ok
     S3 extends G<Class>, // Ok
     S4 extends G<Class<dynamic>>, // Ok

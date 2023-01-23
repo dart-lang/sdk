@@ -1,0 +1,17 @@
+NOTICE: Stream was rewritten by parser!
+
+test(dynamic x) {
+switch (x) {
+case const <int>[]?:
+break;
+}
+}
+
+
+test[StringToken]([BeginToken]dynamic[KeywordToken] x[StringToken])[SimpleToken] {[BeginToken]
+switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+case[KeywordToken] const[KeywordToken] <[BeginToken]int[StringToken]>[SimpleToken][[BeginToken]][SimpleToken]?[SimpleToken]:[SimpleToken]
+break[KeywordToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

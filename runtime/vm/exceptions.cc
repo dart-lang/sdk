@@ -279,12 +279,29 @@ class ExceptionHandlerFinder : public StackResource {
     }
 
     {
-      NoSafepointScope no_safepoint_scope;
+      Thread* thread = Thread::Current();
+      NoSafepointScope no_safepoint_scope(thread);
 
       for (int j = 0; j < moves.count(); j++) {
         const CatchEntryMove& move = moves.At(j);
         *TaggedSlotAt(fp, move.dest_slot()) = dst_values[j]->ptr();
       }
+
+      // Update the return address in the stack so the correct stack map is used
+      // for any stack walks that happen before we jump to the handler.
+      StackFrameIterator frames(ValidationPolicy::kDontValidateFrames, thread,
+                                StackFrameIterator::kNoCrossThreadIteration);
+      bool found = false;
+      for (StackFrame* frame = frames.NextFrame(); frame != NULL;
+           frame = frames.NextFrame()) {
+        if (frame->fp() == handler_fp) {
+          ASSERT_EQUAL(frame->pc(), static_cast<uword>(pc_));
+          frame->set_pc(handler_pc);
+          found = true;
+          break;
+        }
+      }
+      ASSERT(found);
     }
   }
 
@@ -597,6 +614,7 @@ void Exceptions::JumpToFrame(Thread* thread,
                              uword stack_pointer,
                              uword frame_pointer,
                              bool clear_deopt_at_target) {
+  ASSERT(thread->execution_state() == Thread::kThreadInVM);
   const uword fp_for_clearing =
       (clear_deopt_at_target ? frame_pointer + 1 : frame_pointer);
   ClearLazyDeopts(thread, fp_for_clearing);
@@ -1141,11 +1159,6 @@ ObjectPtr Exceptions::Create(ExceptionType type, const Array& arguments) {
     case kType:
       library = Library::CoreLibrary();
       class_name = &Symbols::TypeError();
-      constructor_name = &Symbols::DotCreate();
-      break;
-    case kFallThrough:
-      library = Library::CoreLibrary();
-      class_name = &Symbols::FallThroughError();
       constructor_name = &Symbols::DotCreate();
       break;
     case kAbstractClassInstantiation:

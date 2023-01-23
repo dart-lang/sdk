@@ -2,73 +2,68 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer_utilities/check/check.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
 import '../completion_check.dart';
+import '../completion_printer.dart' as printer;
+import '../completion_printer.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClassBodyTest1);
     defineReflectiveTests(ClassBodyTest2);
+    defineReflectiveTests(ClassOverrideTest1);
+    defineReflectiveTests(ClassOverrideTest2);
   });
 }
 
 @reflectiveTest
 class ClassBodyTest1 extends AbstractCompletionDriverTest
-    with ClassBodyTestCases, OverrideTestCases {
+    with ClassBodyTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
 }
 
 @reflectiveTest
 class ClassBodyTest2 extends AbstractCompletionDriverTest
-    with ClassBodyTestCases, OverrideTestCases {
+    with ClassBodyTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
 
 mixin ClassBodyTestCases on AbstractCompletionDriverTest {
-  /// It does not really matter which classes we list here, in this test
-  /// suite we only need to know that we suggest classes at all.
-  List<CompletionSuggestionChecker> get sampleClassChecks {
-    return const {
-      'Object',
-    }.map((name) {
-      return (CompletionSuggestionTarget suggestion) {
-        suggestion
-          ..completion.isEqualTo(name)
-          ..isClass;
-      };
-    }).toList();
-  }
-
   Future<void> test_nothing_x() async {
     await _checkContainers(
       line: '^',
       validator: (context, response) {
-        check(response).suggestions
-          ..withKindKeyword.matchesInAnyOrder(
-            {
-              // TODO(scheglov) Not quite right, without static.
-              Keyword.CONST,
-              if (context.isClass || context.isMixin) Keyword.COVARIANT,
-              Keyword.DYNAMIC,
-              // TODO(scheglov) This does not look right, mixin.
-              if (context.isClass || context.isMixin) Keyword.FACTORY,
-              Keyword.FINAL,
-              Keyword.GET,
-              Keyword.LATE,
-              Keyword.OPERATOR,
-              Keyword.SET,
-              Keyword.STATIC,
-              Keyword.VAR,
-              Keyword.VOID,
-            }.asKeywordChecks,
-          )
-          ..includesAll(sampleClassChecks);
+        _printKeywordsOrClass();
+
+        final keywords = {
+          // TODO(scheglov) Not quite right, without static.
+          Keyword.CONST,
+          if (context.isClass || context.isMixin) Keyword.COVARIANT,
+          Keyword.DYNAMIC,
+          // TODO(scheglov) This does not look right, mixin.
+          if (context.isClass || context.isMixin) Keyword.FACTORY,
+          Keyword.FINAL,
+          Keyword.GET,
+          Keyword.LATE,
+          Keyword.OPERATOR,
+          Keyword.SET,
+          Keyword.STATIC,
+          Keyword.VAR,
+          Keyword.VOID,
+        };
+
+        assertResponseText(response, '''
+suggestions
+  Object
+    kind: class
+${keywords.asKeywordSuggestions}
+''');
       },
     );
   }
@@ -77,14 +72,19 @@ mixin ClassBodyTestCases on AbstractCompletionDriverTest {
     await _checkContainers(
       line: 'static const ^',
       validator: (context, response) {
-        check(response).suggestions
-          ..withKindKeyword.matchesInAnyOrder(
-            {
-              Keyword.DYNAMIC,
-              Keyword.VOID,
-            }.asKeywordChecks,
-          )
-          ..includesAll(sampleClassChecks);
+        _printKeywordsOrClass();
+
+        final keywords = {
+          Keyword.DYNAMIC,
+          Keyword.VOID,
+        };
+
+        assertResponseText(response, '''
+suggestions
+  Object
+    kind: class
+${keywords.asKeywordSuggestions}
+''');
       },
     );
   }
@@ -94,18 +94,30 @@ mixin ClassBodyTestCases on AbstractCompletionDriverTest {
       line: 'static final O^',
       validator: (context, response) {
         if (isProtocolVersion2) {
-          check(response).suggestions
-            ..withKindKeyword.isEmpty
-            ..includesAll(sampleClassChecks);
+          _printKeywordsOrClass();
+          assertResponseText(response, '''
+replacement
+  left: 1
+suggestions
+  Object
+    kind: class
+''');
         } else {
-          check(response).suggestions
-            ..withKindKeyword.matchesInAnyOrder(
-              {
-                Keyword.DYNAMIC,
-                Keyword.VOID,
-              }.asKeywordChecks,
-            )
-            ..includesAll(sampleClassChecks);
+          _printKeywordsOrClass();
+
+          final keywords = {
+            Keyword.DYNAMIC,
+            Keyword.VOID,
+          };
+
+          assertResponseText(response, '''
+replacement
+  left: 1
+suggestions
+  Object
+    kind: class
+${keywords.asKeywordSuggestions}
+''');
         }
       },
     );
@@ -115,48 +127,64 @@ mixin ClassBodyTestCases on AbstractCompletionDriverTest {
     await _checkContainers(
       line: 'static final ^',
       validator: (context, response) {
-        check(response).suggestions
-          ..withKindKeyword.matchesInAnyOrder(
-            {
-              Keyword.DYNAMIC,
-              Keyword.VOID,
-            }.asKeywordChecks,
-          )
-          ..includesAll(sampleClassChecks);
+        _printKeywordsOrClass();
+
+        final keywords = {
+          Keyword.DYNAMIC,
+          Keyword.VOID,
+        };
+
+        assertResponseText(response, '''
+suggestions
+  Object
+    kind: class
+${keywords.asKeywordSuggestions}
+''');
       },
     );
   }
 
   Future<void> test_static_fx() async {
+    _printKeywordsOrClass(
+      sampleClassName: 'FutureOr',
+    );
+
     await _checkContainers(
       line: 'static f^',
       validator: (context, response) {
         if (isProtocolVersion2) {
-          check(response).suggestions
-            ..withKindKeyword.matchesInAnyOrder(
-              {
-                Keyword.FINAL,
-              }.asKeywordChecks,
-            )
-            ..includesAll([
-              (suggestion) => suggestion
-                ..completion.isEqualTo('FutureOr')
-                ..isClass,
-            ]);
+          final keywords = {
+            Keyword.FINAL,
+          };
+
+          assertResponseText(response, '''
+replacement
+  left: 1
+suggestions
+  FutureOr
+    kind: class
+${keywords.asKeywordSuggestions}
+''');
         } else {
-          check(response).suggestions
-            ..withKindKeyword.matchesInAnyOrder(
-              {
-                Keyword.ABSTRACT,
-                Keyword.CONST,
-                Keyword.COVARIANT,
-                Keyword.DYNAMIC,
-                Keyword.EXTERNAL,
-                Keyword.FINAL,
-                Keyword.LATE,
-              }.asKeywordChecks,
-            )
-            ..includesAll(sampleClassChecks);
+          // TODO(scheglov) This is wrong.
+          final keywords = {
+            Keyword.ABSTRACT,
+            Keyword.CONST,
+            Keyword.COVARIANT,
+            Keyword.DYNAMIC,
+            Keyword.EXTERNAL,
+            Keyword.FINAL,
+            Keyword.LATE,
+          };
+
+          assertResponseText(response, '''
+replacement
+  left: 1
+suggestions
+  FutureOr
+    kind: class
+${keywords.asKeywordSuggestions}
+''');
         }
       },
     );
@@ -166,14 +194,19 @@ mixin ClassBodyTestCases on AbstractCompletionDriverTest {
     await _checkContainers(
       line: 'static late ^',
       validator: (context, response) {
-        check(response).suggestions
-          ..withKindKeyword.matchesInAnyOrder(
-            {
-              Keyword.DYNAMIC,
-              Keyword.FINAL,
-            }.asKeywordChecks,
-          )
-          ..includesAll(sampleClassChecks);
+        _printKeywordsOrClass();
+
+        final keywords = {
+          Keyword.DYNAMIC,
+          Keyword.FINAL,
+        };
+
+        assertResponseText(response, '''
+suggestions
+  Object
+    kind: class
+${keywords.asKeywordSuggestions}
+''');
       },
     );
   }
@@ -182,16 +215,21 @@ mixin ClassBodyTestCases on AbstractCompletionDriverTest {
     await _checkContainers(
       line: 'static ^',
       validator: (context, response) {
-        check(response).suggestions
-          ..withKindKeyword.matchesInAnyOrder(
-            {
-              Keyword.CONST,
-              Keyword.DYNAMIC,
-              Keyword.FINAL,
-              Keyword.LATE,
-            }.asKeywordChecks,
-          )
-          ..includesAll(sampleClassChecks);
+        _printKeywordsOrClass();
+
+        final keywords = {
+          Keyword.CONST,
+          Keyword.DYNAMIC,
+          Keyword.FINAL,
+          Keyword.LATE,
+        };
+
+        assertResponseText(response, '''
+suggestions
+  Object
+    kind: class
+${keywords.asKeywordSuggestions}
+''');
       },
     );
   }
@@ -200,64 +238,79 @@ mixin ClassBodyTestCases on AbstractCompletionDriverTest {
     await _checkContainers(
       line: 'static ^ name = 0;',
       validator: (context, response) {
-        check(response).suggestions
-          ..withKindKeyword.matchesInAnyOrder(
-            {
-              // TODO(scheglov) This does not look right.
-              Keyword.ABSTRACT,
-              Keyword.CONST,
-              // TODO(scheglov) This does not look right.
-              Keyword.COVARIANT,
-              Keyword.DYNAMIC,
-              // TODO(scheglov) This does not look right.
-              Keyword.EXTERNAL,
-              Keyword.FINAL,
-              Keyword.LATE,
-            }.asKeywordChecks,
-          )
-          ..includesAll(sampleClassChecks);
+        _printKeywordsOrClass();
+
+        final keywords = {
+          // TODO(scheglov) This does not look right.
+          Keyword.ABSTRACT,
+          Keyword.CONST,
+          // TODO(scheglov) This does not look right.
+          Keyword.COVARIANT,
+          Keyword.DYNAMIC,
+          // TODO(scheglov) This does not look right.
+          Keyword.EXTERNAL,
+          Keyword.FINAL,
+          Keyword.LATE,
+        };
+
+        assertResponseText(response, '''
+suggestions
+  Object
+    kind: class
+${keywords.asKeywordSuggestions}
+''');
       },
     );
   }
 
   Future<void> test_sx() async {
+    _printKeywordsOrClass(
+      sampleClassName: 'String',
+    );
+
     await _checkContainers(
       line: 's^',
       validator: (context, response) {
         if (isProtocolVersion2) {
-          check(response).suggestions
-            ..withKindKeyword.matchesInAnyOrder(
-              {
-                Keyword.SET,
-                Keyword.STATIC,
-              }.asKeywordChecks,
-            )
-            ..includesAll([
-              (suggestion) => suggestion
-                ..completion.isEqualTo('String')
-                ..isClass,
-            ]);
+          final keywords = {
+            Keyword.SET,
+            Keyword.STATIC,
+          };
+
+          assertResponseText(response, '''
+replacement
+  left: 1
+suggestions
+  String
+    kind: class
+${keywords.asKeywordSuggestions}
+''');
         } else {
-          check(response).suggestions
-            ..withKindKeyword.matchesInAnyOrder(
-              {
-                // TODO(scheglov) Not quite right, without static.
-                Keyword.CONST,
-                if (context.isClass || context.isMixin) Keyword.COVARIANT,
-                Keyword.DYNAMIC,
-                // TODO(scheglov) This does not look right, mixin.
-                if (context.isClass || context.isMixin) Keyword.FACTORY,
-                Keyword.FINAL,
-                Keyword.GET,
-                Keyword.LATE,
-                Keyword.OPERATOR,
-                Keyword.SET,
-                Keyword.STATIC,
-                Keyword.VAR,
-                Keyword.VOID,
-              }.asKeywordChecks,
-            )
-            ..includesAll(sampleClassChecks);
+          final keywords = {
+            // TODO(scheglov) Not quite right, without static.
+            Keyword.CONST,
+            if (context.isClass || context.isMixin) Keyword.COVARIANT,
+            Keyword.DYNAMIC,
+            // TODO(scheglov) This does not look right, mixin.
+            if (context.isClass || context.isMixin) Keyword.FACTORY,
+            Keyword.FINAL,
+            Keyword.GET,
+            Keyword.LATE,
+            Keyword.OPERATOR,
+            Keyword.SET,
+            Keyword.STATIC,
+            Keyword.VAR,
+            Keyword.VOID,
+          };
+
+          assertResponseText(response, '''
+replacement
+  left: 1
+suggestions
+  String
+    kind: class
+${keywords.asKeywordSuggestions}
+''');
         }
       },
     );
@@ -309,9 +362,54 @@ mixin M {
       validator(_Context(isMixin: true), response);
     }
   }
+
+  void _printKeywordsOrClass({
+    String sampleClassName = 'Object',
+  }) {
+    printerConfiguration
+      ..filter = (suggestion) {
+        final completion = suggestion.completion;
+        if (suggestion.kind == CompletionSuggestionKind.KEYWORD) {
+          return true;
+        } else if (completion == sampleClassName) {
+          return true;
+        }
+        return false;
+      }
+      ..sorting = Sorting.completion;
+  }
+}
+
+@reflectiveTest
+class ClassOverrideTest1 extends AbstractCompletionDriverTest
+    with OverrideTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
+
+@reflectiveTest
+class ClassOverrideTest2 extends AbstractCompletionDriverTest
+    with OverrideTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
 
 mixin OverrideTestCases on AbstractCompletionDriverTest {
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+
+    printerConfiguration = printer.Configuration(
+      filter: (suggestion) {
+        if (suggestion.kind == CompletionSuggestionKind.OVERRIDE) {
+          return suggestion.completion.contains('foo0');
+        }
+        return false;
+      },
+      withDisplayText: true,
+    );
+  }
+
   Future<void> test_class_inComment() async {
     final response = await getTestCodeSuggestions('''
 class A {
@@ -324,7 +422,9 @@ class B extends A {
 }
 ''');
 
-    check(response).suggestions.overrides.isEmpty;
+    assertResponseText(response, r'''
+suggestions
+''');
   }
 
   Future<void> test_class_inComment_dartdoc() async {
@@ -339,7 +439,9 @@ class B extends A {
 }
 ''');
 
-    check(response).suggestions.overrides.isEmpty;
+    assertResponseText(response, r'''
+suggestions
+''');
   }
 
   Future<void> test_class_inComment_reference() async {
@@ -354,7 +456,11 @@ class B extends A {
 }
 ''');
 
-    check(response).suggestions.overrides.isEmpty;
+    assertResponseText(response, r'''
+replacement
+  left: 3
+suggestions
+''');
   }
 
   Future<void> test_class_method_alreadyOverridden() async {
@@ -370,13 +476,19 @@ class B extends A {
 }
 ''');
 
-    check(response).suggestions.overrides
-      ..includesAll([
-        _isOverrideWithSuper_foo01,
-      ])
-      ..excludesAll([
-        (suggestion) => suggestion.completion.contains('foo02'),
-      ]);
+    assertResponseText(response, '''
+replacement
+  left: 3
+suggestions
+  @override
+  void foo01() {
+    // TODO: implement foo01
+    super.foo01();
+  }
+    kind: override
+    displayText: foo01() { … }
+    selection: 60 14
+''');
   }
 
   Future<void> test_class_method_beforeField() async {
@@ -392,9 +504,19 @@ class B extends A {
 }
 ''');
 
-    check(response).suggestions.overrides.includesAll([
-      _isOverrideWithSuper_foo01,
-    ]);
+    assertResponseText(response, '''
+replacement
+  left: 3
+suggestions
+  @override
+  void foo01() {
+    // TODO: implement foo01
+    super.foo01();
+  }
+    kind: override
+    displayText: foo01() { … }
+    selection: 60 14
+''');
   }
 
   Future<void> test_class_method_beforeMethod() async {
@@ -410,9 +532,19 @@ class B extends A {
 }
 ''');
 
-    check(response).suggestions.overrides.includesAll([
-      _isOverrideWithSuper_foo01,
-    ]);
+    assertResponseText(response, '''
+replacement
+  left: 3
+suggestions
+  @override
+  void foo01() {
+    // TODO: implement foo01
+    super.foo01();
+  }
+    kind: override
+    displayText: foo01() { … }
+    selection: 60 14
+''');
   }
 
   Future<void> test_class_method_fromExtends() async {
@@ -426,9 +558,19 @@ class B extends A {
 }
 ''');
 
-    check(response).suggestions.overrides.includesAll([
-      _isOverrideWithSuper_foo01,
-    ]);
+    assertResponseText(response, '''
+replacement
+  left: 3
+suggestions
+  @override
+  void foo01() {
+    // TODO: implement foo01
+    super.foo01();
+  }
+    kind: override
+    displayText: foo01() { … }
+    selection: 60 14
+''');
   }
 
   Future<void> test_class_method_fromExtends_fromPart() async {
@@ -448,9 +590,19 @@ class B extends A {
 }
 ''');
 
-    check(response).suggestions.overrides.includesAll([
-      _isOverrideWithSuper_foo01,
-    ]);
+    assertResponseText(response, '''
+replacement
+  left: 3
+suggestions
+  @override
+  void foo01() {
+    // TODO: implement foo01
+    super.foo01();
+  }
+    kind: override
+    displayText: foo01() { … }
+    selection: 60 14
+''');
   }
 
   Future<void> test_class_method_fromExtends_multiple() async {
@@ -468,10 +620,27 @@ class C extends B {
 }
 ''');
 
-    check(response).suggestions.overrides.includesAll([
-      _isOverrideWithSuper_foo01,
-      _isOverrideWithSuper_foo02,
-    ]);
+    assertResponseText(response, '''
+replacement
+  left: 3
+suggestions
+  @override
+  void foo01() {
+    // TODO: implement foo01
+    super.foo01();
+  }
+    kind: override
+    displayText: foo01() { … }
+    selection: 60 14
+  @override
+  void foo02() {
+    // TODO: implement foo02
+    super.foo02();
+  }
+    kind: override
+    displayText: foo02() { … }
+    selection: 60 14
+''');
   }
 
   Future<void> test_class_method_fromExtends_private_otherLibrary() async {
@@ -491,13 +660,19 @@ class B extends A {
 }
 ''');
 
-    check(response).suggestions.overrides
-      ..includesAll([
-        _isOverrideWithSuper_foo02,
-      ])
-      ..excludesAll([
-        _isOverrideWithSuper_private_foo01,
-      ]);
+    assertResponseText(response, '''
+replacement
+  left: 3
+suggestions
+  @override
+  void foo02() {
+    // TODO: implement foo02
+    super.foo02();
+  }
+    kind: override
+    displayText: foo02() { … }
+    selection: 60 14
+''');
   }
 
   Future<void> test_class_method_fromExtends_private_thisLibrary() async {
@@ -512,10 +687,59 @@ class B extends A {
 }
 ''');
 
-    check(response).suggestions.overrides.includesAll([
-      _isOverrideWithSuper_private_foo01,
-      _isOverrideWithSuper_foo02,
-    ]);
+    assertResponseText(response, '''
+replacement
+  left: 3
+suggestions
+  @override
+  void _foo01() {
+    // TODO: implement _foo01
+    super._foo01();
+  }
+    kind: override
+    displayText: _foo01() { … }
+    selection: 62 15
+  @override
+  void foo02() {
+    // TODO: implement foo02
+    super.foo02();
+  }
+    kind: override
+    displayText: foo02() { … }
+    selection: 60 14
+''');
+  }
+
+  Future<void>
+      test_class_method_fromExtends_signatureHasUnimportedTypes() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'dart:async';
+
+class A {
+  FutureOr<void> foo01() {}
+}
+''');
+    final response = await getTestCodeSuggestions('''
+import 'a.dart';
+
+class B extends A {
+  foo^
+}
+''');
+
+    assertResponseText(response, '''
+replacement
+  left: 3
+suggestions
+  @override
+  FutureOr<void> foo01() {
+    // TODO: implement foo01
+    return super.foo01();
+  }
+    kind: override
+    displayText: foo01() { … }
+    selection: 70 21
+''');
   }
 
   Future<void> test_class_method_fromExtends_withOverride() async {
@@ -530,16 +754,18 @@ class B extends A {
 }
 ''');
 
-    check(response).suggestions.overrides.includesAll([
-      (suggestion) => suggestion
-        ..displayText.isEqualTo('foo01() { … }')
-        ..hasSelection(offset: 48, length: 14)
-        ..completion.isEqualTo(r'''
-void foo01() {
+    assertResponseText(response, '''
+replacement
+  left: 3
+suggestions
+  void foo01() {
     // TODO: implement foo01
     super.foo01();
-  }'''),
-    ]);
+  }
+    kind: override
+    displayText: foo01() { … }
+    selection: 48 14
+''');
   }
 
   Future<void> test_class_method_fromImplements() async {
@@ -553,9 +779,18 @@ class B implements A {
 }
 ''');
 
-    check(response).suggestions.overrides.includesAll([
-      _isOverrideWithoutSuper_foo01,
-    ]);
+    assertResponseText(response, '''
+replacement
+  left: 3
+suggestions
+  @override
+  void foo01() {
+    // TODO: implement foo01
+  }
+    kind: override
+    displayText: foo01() { … }
+    selection: 55
+''');
   }
 
   Future<void> test_class_method_fromWith() async {
@@ -569,9 +804,19 @@ class A with M {
 }
 ''');
 
-    check(response).suggestions.overrides.includesAll([
-      _isOverrideWithSuper_foo01,
-    ]);
+    assertResponseText(response, '''
+replacement
+  left: 3
+suggestions
+  @override
+  void foo01() {
+    // TODO: implement foo01
+    super.foo01();
+  }
+    kind: override
+    displayText: foo01() { … }
+    selection: 60 14
+''');
   }
 
   Future<void> test_class_operator_eqEq() async {
@@ -581,17 +826,23 @@ class A {
 }
 ''');
 
-    check(response).suggestions.overrides.includesAll([
-      (suggestion) => suggestion
-        ..displayText.isEqualTo('==(Object other) { … }')
-        ..hasSelection(offset: 75, length: 22)
-        ..completion.isEqualTo(r'''
-@override
+    printerConfiguration.filter = (suggestion) {
+      return suggestion.completion.contains('==(');
+    };
+
+    assertResponseText(response, '''
+replacement
+  left: 5
+suggestions
+  @override
   bool operator ==(Object other) {
     // TODO: implement ==
     return super == other;
-  }'''),
-    ]);
+  }
+    kind: override
+    displayText: ==(Object other) { … }
+    selection: 75 22
+''');
   }
 
   Future<void> test_class_operator_plus() async {
@@ -605,17 +856,23 @@ class B extends A {
 }
 ''');
 
-    check(response).suggestions.overrides.includesAll([
-      (suggestion) => suggestion
-        ..displayText.isEqualTo('+(int other) { … }')
-        ..hasSelection(offset: 69, length: 21)
-        ..completion.isEqualTo(r'''
-@override
+    printerConfiguration.filter = (suggestion) {
+      return suggestion.completion.contains('+(');
+    };
+
+    assertResponseText(response, '''
+replacement
+  left: 5
+suggestions
+  @override
   int operator +(int other) {
     // TODO: implement +
     return super + other;
-  }'''),
-    ]);
+  }
+    kind: override
+    displayText: +(int other) { … }
+    selection: 69 21
+''');
   }
 
   Future<void> test_extension_method() async {
@@ -629,7 +886,11 @@ extension E on A {
 }
 ''');
 
-    check(response).suggestions.overrides.isEmpty;
+    assertResponseText(response, '''
+replacement
+  left: 3
+suggestions
+''');
   }
 
   Future<void> test_mixin_method_fromConstraints_alreadyOverridden() async {
@@ -645,13 +906,19 @@ mixin M on A {
 }
 ''');
 
-    check(response).suggestions.overrides
-      ..includesAll([
-        _isOverrideWithSuper_foo01,
-      ])
-      ..excludesAll([
-        (suggestion) => suggestion.completion.contains('foo02'),
-      ]);
+    assertResponseText(response, '''
+replacement
+  left: 3
+suggestions
+  @override
+  void foo01() {
+    // TODO: implement foo01
+    super.foo01();
+  }
+    kind: override
+    displayText: foo01() { … }
+    selection: 60 14
+''');
   }
 
   Future<void> test_mixin_method_fromImplements() async {
@@ -665,9 +932,18 @@ mixin M implements A {
 }
 ''');
 
-    check(response).suggestions.overrides.includesAll([
-      _isOverrideWithoutSuper_foo01,
-    ]);
+    assertResponseText(response, '''
+replacement
+  left: 3
+suggestions
+  @override
+  void foo01() {
+    // TODO: implement foo01
+  }
+    kind: override
+    displayText: foo01() { … }
+    selection: 55
+''');
   }
 
   Future<void> test_mixin_method_fromSuperclassConstraint() async {
@@ -681,64 +957,19 @@ mixin M on A {
 }
 ''');
 
-    check(response).suggestions.overrides.includesAll([
-      _isOverrideWithSuper_foo01,
-    ]);
-  }
-
-  static void _isOverrideWithoutSuper_foo01(
-    CheckTarget<CompletionSuggestionForTesting> suggestion,
-  ) {
-    suggestion
-      ..displayText.isEqualTo('foo01() { … }')
-      ..hasSelection(offset: 55)
-      ..completion.isEqualTo(r'''
-@override
-  void foo01() {
-    // TODO: implement foo01
-  }''');
-  }
-
-  static void _isOverrideWithSuper_foo01(
-    CheckTarget<CompletionSuggestionForTesting> suggestion,
-  ) {
-    suggestion
-      ..displayText.isEqualTo('foo01() { … }')
-      ..hasSelection(offset: 60, length: 14)
-      ..completion.isEqualTo(r'''
-@override
+    assertResponseText(response, '''
+replacement
+  left: 3
+suggestions
+  @override
   void foo01() {
     // TODO: implement foo01
     super.foo01();
-  }''');
   }
-
-  static void _isOverrideWithSuper_foo02(
-    CheckTarget<CompletionSuggestionForTesting> suggestion,
-  ) {
-    suggestion
-      ..displayText.isEqualTo('foo02() { … }')
-      ..hasSelection(offset: 60, length: 14)
-      ..completion.isEqualTo(r'''
-@override
-  void foo02() {
-    // TODO: implement foo02
-    super.foo02();
-  }''');
-  }
-
-  static void _isOverrideWithSuper_private_foo01(
-    CheckTarget<CompletionSuggestionForTesting> suggestion,
-  ) {
-    suggestion
-      ..displayText.isEqualTo('_foo01() { … }')
-      ..hasSelection(offset: 62, length: 15)
-      ..completion.isEqualTo(r'''
-@override
-  void _foo01() {
-    // TODO: implement _foo01
-    super._foo01();
-  }''');
+    kind: override
+    displayText: foo01() { … }
+    selection: 60 14
+''');
   }
 }
 
@@ -750,4 +981,14 @@ class _Context {
     this.isClass = false,
     this.isMixin = false,
   });
+}
+
+extension on Iterable<Keyword> {
+  String get asKeywordSuggestions {
+    return map((keyword) {
+      return '''
+  ${keyword.lexeme}
+    kind: keyword''';
+    }).join('\n');
+  }
 }

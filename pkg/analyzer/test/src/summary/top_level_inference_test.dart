@@ -19,6 +19,8 @@ main() {
 }
 
 @reflectiveTest
+// TODO(srawlins): Re-enable?
+// ignore: unreachable_from_main
 class ApplyCheckElementTextReplacements {
   test_applyReplacements() {
     applyCheckElementTextReplacements();
@@ -353,6 +355,14 @@ class C implements A, B {
 
 @reflectiveTest
 class TopLevelInferenceTest extends PubPackageResolutionTest {
+  void checkElementText(LibraryElement library, String expected) {
+    checkElementTextWithConfiguration(
+      library,
+      expected,
+      configuration: ElementTextConfiguration(),
+    );
+  }
+
   test_initializer_additive() async {
     var library = await _encodeDecodeLibrary(r'''
 var vPlusIntInt = 1 + 2;
@@ -1160,9 +1170,11 @@ library
     topLevelVariables
       static a @4
         typeInferenceError: dependencyCycle
+          arguments: [a, b]
         type: dynamic
       static b @21
         typeInferenceError: dependencyCycle
+          arguments: [a, b]
         type: dynamic
     accessors
       synthetic static get a @-1
@@ -1192,6 +1204,7 @@ library
     topLevelVariables
       static a @4
         typeInferenceError: dependencyCycle
+          arguments: [a]
         type: dynamic
     accessors
       synthetic static get a @-1
@@ -1663,7 +1676,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         methods
           foo @52
             returnType: int
@@ -2028,6 +2041,7 @@ library
         fields
           static a @23
             typeInferenceError: dependencyCycle
+              arguments: [a, b]
             type: dynamic
         constructors
           synthetic @-1
@@ -2043,6 +2057,7 @@ library
         fields
           static b @57
             typeInferenceError: dependencyCycle
+              arguments: [a, b]
             type: dynamic
         constructors
           synthetic @-1
@@ -2084,6 +2099,7 @@ library
         fields
           static a @23
             typeInferenceError: dependencyCycle
+              arguments: [a, b]
             type: dynamic
         constructors
           synthetic @-1
@@ -2098,6 +2114,7 @@ library
     topLevelVariables
       static b @36
         typeInferenceError: dependencyCycle
+          arguments: [a, b]
         type: dynamic
       static c @49
         type: dynamic
@@ -2121,55 +2138,38 @@ library
 
   test_initializer_identifier_error_cycle_topLevel() async {
     var library = await _encodeDecodeLibrary(r'''
-var a = b;
-var b = c;
-var c = a;
-var d = a;
+final a = b;
+final b = c;
+final c = a;
+final d = a;
 ''');
     checkElementText(library, r'''
 library
   definingUnit
     topLevelVariables
-      static a @4
+      static final a @6
         typeInferenceError: dependencyCycle
+          arguments: [a, b, c]
         type: dynamic
-      static b @15
+      static final b @19
         typeInferenceError: dependencyCycle
+          arguments: [a, b, c]
         type: dynamic
-      static c @26
+      static final c @32
         typeInferenceError: dependencyCycle
+          arguments: [a, b, c]
         type: dynamic
-      static d @37
+      static final d @45
         type: dynamic
     accessors
       synthetic static get a @-1
         returnType: dynamic
-      synthetic static set a @-1
-        parameters
-          requiredPositional _a @-1
-            type: dynamic
-        returnType: void
       synthetic static get b @-1
         returnType: dynamic
-      synthetic static set b @-1
-        parameters
-          requiredPositional _b @-1
-            type: dynamic
-        returnType: void
       synthetic static get c @-1
         returnType: dynamic
-      synthetic static set c @-1
-        parameters
-          requiredPositional _c @-1
-            type: dynamic
-        returnType: void
       synthetic static get d @-1
         returnType: dynamic
-      synthetic static set d @-1
-        parameters
-          requiredPositional _d @-1
-            type: dynamic
-        returnType: void
 ''');
   }
 
@@ -4190,7 +4190,6 @@ library
           B
         fields
           x @148
-            typeInferenceError: overrideConflictFieldType
             type: dynamic
           final y @159
             type: int
@@ -4717,7 +4716,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: int}
         accessors
           get x @114
@@ -4905,7 +4904,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         methods
           m @58
             parameters
@@ -4957,7 +4956,7 @@ library
           B
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         methods
           m @100
             typeInferenceError: overrideNoCombinedSuperSignature
@@ -5108,7 +5107,7 @@ library
           B
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         methods
           m @88
             typeInferenceError: overrideNoCombinedSuperSignature
@@ -5163,7 +5162,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: int}
         methods
           m @112
@@ -5224,7 +5223,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {K: int, V: String}
         methods
           m @119
@@ -5262,7 +5261,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         methods
           m @53
             parameters
@@ -5300,7 +5299,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         methods
           m @53
             parameters
@@ -5338,7 +5337,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         methods
           m @44
             parameters
@@ -5374,7 +5373,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         methods
           m @63
             parameters
@@ -5415,7 +5414,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         methods
           m @48
             parameters
@@ -5461,14 +5460,14 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {K: int, V: T}
       class C @70
         supertype: B<String>
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::B::@constructor::•
+              base: self::@class::B::@constructor::new
               substitution: {T: String}
         methods
           m @94
@@ -5508,7 +5507,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         methods
           m @55
             parameters
@@ -5519,7 +5518,7 @@ library
         supertype: B
         constructors
           synthetic @-1
-            superConstructor: self::@class::B::@constructor::•
+            superConstructor: self::@class::B::@constructor::new
         methods
           m @87
             parameters
@@ -5569,7 +5568,7 @@ library
         supertype: B
         constructors
           synthetic @-1
-            superConstructor: self::@class::B::@constructor::•
+            superConstructor: self::@class::B::@constructor::new
         methods
           m @90
             parameters
@@ -5620,7 +5619,7 @@ library
         supertype: B
         constructors
           synthetic @-1
-            superConstructor: self::@class::B::@constructor::•
+            superConstructor: self::@class::B::@constructor::new
         methods
           m @99
             parameters
@@ -5664,7 +5663,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {K: int, V: String}
         methods
           m @77
@@ -5703,7 +5702,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         methods
           m @55
             parameters
@@ -5741,7 +5740,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         methods
           m @67
             parameters
@@ -5781,7 +5780,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         methods
           m @67
             parameters
@@ -5829,14 +5828,14 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {K: int, V: T}
       class C @70
         supertype: B<String>
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::B::@constructor::•
+              base: self::@class::B::@constructor::new
               substitution: {T: String}
         methods
           m @94
@@ -5962,7 +5961,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {K: T2, V: T1}
       class C @91
         interfaces
@@ -6008,7 +6007,7 @@ library
         supertype: A1
         constructors
           synthetic @-1
-            superConstructor: self::@class::A1::@constructor::•
+            superConstructor: self::@class::A1::@constructor::new
         methods
           _foo @77
             returnType: int
@@ -6101,7 +6100,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {K: int, V: String}
         methods
           m @119
@@ -6152,7 +6151,7 @@ library
           B
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         methods
           m @101
             parameters
@@ -6163,11 +6162,10 @@ library
   }
 
   Future<LibraryElement> _encodeDecodeLibrary(String text) async {
-    newFile(testFilePath, text);
+    newFile(testFile.path, text);
 
-    var path = convertPath(testFilePath);
-    var analysisSession = contextFor(path).currentSession;
-    var result = await analysisSession.getUnitElement(path);
+    var analysisSession = contextFor(testFile).currentSession;
+    var result = await analysisSession.getUnitElement(testFile.path);
     result as UnitElementResult;
     return result.element.library;
   }

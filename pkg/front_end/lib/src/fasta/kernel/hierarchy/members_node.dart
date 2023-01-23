@@ -43,7 +43,6 @@ import '../../messages.dart'
         templateMissingImplementationCause,
         templateMissingImplementationNotAbstract;
 import '../../names.dart' show noSuchMethodName;
-import '../../scope.dart' show Scope;
 import '../../source/source_class_builder.dart';
 import '../../source/source_field_builder.dart';
 import '../../source/source_procedure_builder.dart';
@@ -74,14 +73,6 @@ class ClassMembersNodeBuilder {
 
   bool get shouldModifyKernel =>
       classBuilder.libraryBuilder.loader == hierarchy.loader;
-
-  ClassMember? checkInheritanceConflict(ClassMember a, ClassMember b) {
-    if (a.isStatic || a.isProperty != b.isProperty) {
-      reportInheritanceConflict(a, b);
-      return a;
-    }
-    return null;
-  }
 
   static void inferMethodType(
       ClassHierarchyBuilder hierarchyBuilder,
@@ -560,13 +551,32 @@ class ClassMembersNodeBuilder {
       // problem once.
       ClassMember existing;
       ClassMember duplicate;
-      assert(a.fileUri == b.fileUri);
-      if (a.charOffset < b.charOffset) {
-        existing = a;
-        duplicate = b;
+      assert(a.fileUri == b.fileUri ||
+          a.name.text == "toString" &&
+              (a.fileUri.isScheme("org-dartlang-sdk") &&
+                      a.fileUri.pathSegments.isNotEmpty &&
+                      a.fileUri.pathSegments.last == "enum.dart" ||
+                  b.fileUri.isScheme("org-dartlang-sdk") &&
+                      b.fileUri.pathSegments.isNotEmpty &&
+                      b.fileUri.pathSegments.last == "enum.dart"));
+
+      if (a.fileUri != b.fileUri) {
+        if (a.fileUri.isScheme("org-dartlang-sdk")) {
+          existing = a;
+          duplicate = b;
+        } else {
+          assert(b.fileUri.isScheme("org-dartlang-sdk"));
+          existing = b;
+          duplicate = a;
+        }
       } else {
-        existing = b;
-        duplicate = a;
+        if (a.charOffset < b.charOffset) {
+          existing = a;
+          duplicate = b;
+        } else {
+          existing = b;
+          duplicate = a;
+        }
       }
       classBuilder.libraryBuilder.addProblem(
           templateDuplicatedDeclaration.withArguments(name),
@@ -598,35 +608,9 @@ class ClassMembersNodeBuilder {
 
     Map<Name, Tuple> memberMap = {};
 
-    Scope scope = classBuilder.scope;
-
-    for (Builder builder in scope.localMembers) {
-      MemberBuilder memberBuilder = builder as MemberBuilder;
-      for (ClassMember classMember in memberBuilder.localMembers) {
-        if (classMember.isAbstract) {
-          hasInterfaces = true;
-        }
-        Tuple? tuple = memberMap[classMember.name];
-        if (tuple == null) {
-          memberMap[classMember.name] = new Tuple.declareMember(classMember);
-        } else {
-          tuple.declaredMember = classMember;
-        }
-      }
-      for (ClassMember classMember in memberBuilder.localSetters) {
-        if (classMember.isAbstract) {
-          hasInterfaces = true;
-        }
-        Tuple? tuple = memberMap[classMember.name];
-        if (tuple == null) {
-          memberMap[classMember.name] = new Tuple.declareSetter(classMember);
-        } else {
-          tuple.declaredSetter = classMember;
-        }
-      }
-    }
-
-    for (MemberBuilder memberBuilder in scope.localSetters) {
+    Iterator<Builder> iterator = classBuilder.fullMemberIterator;
+    while (iterator.moveNext()) {
+      MemberBuilder memberBuilder = iterator.current as MemberBuilder;
       for (ClassMember classMember in memberBuilder.localMembers) {
         if (classMember.isAbstract) {
           hasInterfaces = true;
@@ -668,35 +652,12 @@ class ClassMembersNodeBuilder {
             usedAsClassFileUri: namedBuilder.fileUri)!;
       }
       if (mixin is ClassBuilder) {
-        scope = mixin.scope.computeMixinScope();
-
-        for (Builder builder in scope.localMembers) {
-          MemberBuilder memberBuilder = builder as MemberBuilder;
-          for (ClassMember classMember in memberBuilder.localMembers) {
-            if (classMember.isAbstract) {
-              hasInterfaces = true;
-            }
-            Tuple? tuple = memberMap[classMember.name];
-            if (tuple == null) {
-              memberMap[classMember.name] = new Tuple.mixInMember(classMember);
-            } else {
-              tuple.mixedInMember = classMember;
-            }
+        Iterator<Builder> iterator = mixin.fullMemberIterator;
+        while (iterator.moveNext()) {
+          MemberBuilder memberBuilder = iterator.current as MemberBuilder;
+          if (memberBuilder.isStatic) {
+            continue;
           }
-          for (ClassMember classMember in memberBuilder.localSetters) {
-            if (classMember.isAbstract) {
-              hasInterfaces = true;
-            }
-            Tuple? tuple = memberMap[classMember.name];
-            if (tuple == null) {
-              memberMap[classMember.name] = new Tuple.mixInSetter(classMember);
-            } else {
-              tuple.mixedInSetter = classMember;
-            }
-          }
-        }
-
-        for (MemberBuilder memberBuilder in scope.localSetters) {
           for (ClassMember classMember in memberBuilder.localMembers) {
             if (classMember.isAbstract) {
               hasInterfaces = true;
@@ -2342,6 +2303,7 @@ class ClassMembersNodeBuilder {
 
     return new ClassMembersNode(
         classBuilder,
+        supernode,
         classMemberMap,
         classSetterMap,
         interfaceMemberMap,
@@ -2391,6 +2353,8 @@ class ClassMembersNodeBuilder {
 class ClassMembersNode {
   final ClassBuilder classBuilder;
 
+  final ClassMembersNode? supernode;
+
   /// All the members of this class including [classMembers] of its
   /// superclasses. The members are sorted by [compareDeclarations].
   final Map<Name, ClassMember> classMemberMap;
@@ -2418,6 +2382,7 @@ class ClassMembersNode {
 
   ClassMembersNode(
       this.classBuilder,
+      this.supernode,
       this.classMemberMap,
       this.classSetterMap,
       this.interfaceMemberMap,
@@ -2465,9 +2430,16 @@ class ClassMembersNode {
   }
 
   ClassMember? getInterfaceMember(Name name, bool isSetter) {
-    return isSetter
+    ClassMember? result = isSetter
         ? (interfaceSetterMap ?? classSetterMap)[name]
         : (interfaceMemberMap ?? classMemberMap)[name];
+    if (result == null) {
+      return null;
+    }
+    if (result.isStatic) {
+      return null;
+    }
+    return result;
   }
 
   ClassMember? findMember(Name name, List<ClassMember> declarations) {
@@ -2495,7 +2467,17 @@ class ClassMembersNode {
   }
 
   ClassMember? getDispatchTarget(Name name, bool isSetter) {
-    return isSetter ? classSetterMap[name] : classMemberMap[name];
+    ClassMember? result =
+        isSetter ? classSetterMap[name] : classMemberMap[name];
+    if (result == null) {
+      return null;
+    }
+    if (result.isStatic) {
+      // TODO(johnniwinther): Can we avoid putting static members in the
+      // [classMemberMap]/[classSetterMap] maps?
+      return supernode?.getDispatchTarget(name, isSetter);
+    }
+    return result;
   }
 }
 

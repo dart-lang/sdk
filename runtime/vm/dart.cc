@@ -93,48 +93,45 @@ class ReadOnlyHandles {
   DISALLOW_COPY_AND_ASSIGN(ReadOnlyHandles);
 };
 
-class DartInitializationState {
+class DartInitializationState : public AllStatic {
  public:
-  uint8_t kUnInitialized = 0;
-  uint8_t kInitializing = 1;
-  uint8_t kInitialized = 2;
-  uint8_t kCleaningup = 3;
-
-  DartInitializationState() : state_(0), in_use_count_(0) {}
-  ~DartInitializationState() {}
-
-  bool SetInitializing() {
+  static bool SetInitializing() {
     ASSERT(in_use_count_.load() == 0);
-    return state_.compare_exchange_strong(kUnInitialized, kInitializing);
+    uint8_t expected = kUnInitialized;
+    return state_.compare_exchange_strong(expected, kInitializing);
   }
 
-  void ResetInitializing() {
+  static void ResetInitializing() {
     ASSERT(in_use_count_.load() == 0);
-    bool result = state_.compare_exchange_strong(kInitializing, kUnInitialized);
+    uint8_t expected = kInitializing;
+    bool result = state_.compare_exchange_strong(expected, kUnInitialized);
     ASSERT(result);
   }
 
-  void SetInitialized() {
+  static void SetInitialized() {
     ASSERT(in_use_count_.load() == 0);
-    bool result = state_.compare_exchange_strong(kInitializing, kInitialized);
+    uint8_t expected = kInitializing;
+    bool result = state_.compare_exchange_strong(expected, kInitialized);
     ASSERT(result);
   }
 
-  bool IsInitialized() const { return state_.load() == kInitialized; }
+  static bool IsInitialized() { return state_.load() == kInitialized; }
 
-  bool SetCleaningup() {
-    return state_.compare_exchange_strong(kInitialized, kCleaningup);
+  static bool SetCleaningup() {
+    uint8_t expected = kInitialized;
+    return state_.compare_exchange_strong(expected, kCleaningup);
   }
 
-  void SetUnInitialized() {
+  static void SetUnInitialized() {
     while (in_use_count_.load() > 0) {
       OS::Sleep(1);  // Sleep for 1 millis waiting for it to not be in use.
     }
-    bool result = state_.compare_exchange_strong(kCleaningup, kUnInitialized);
+    uint8_t expected = kCleaningup;
+    bool result = state_.compare_exchange_strong(expected, kUnInitialized);
     ASSERT(result);
   }
 
-  bool SetInUse() {
+  static bool SetInUse() {
     if (state_.load() != kInitialized) {
       return false;
     }
@@ -142,17 +139,23 @@ class DartInitializationState {
     return true;
   }
 
-  void ResetInUse() {
+  static void ResetInUse() {
     uint8_t value = state_.load();
     ASSERT((value == kInitialized) || (value == kCleaningup));
     in_use_count_ -= 1;
   }
 
  private:
-  std::atomic<uint8_t> state_;
-  std::atomic<uint64_t> in_use_count_;
+  static constexpr uint8_t kUnInitialized = 0;
+  static constexpr uint8_t kInitializing = 1;
+  static constexpr uint8_t kInitialized = 2;
+  static constexpr uint8_t kCleaningup = 3;
+
+  static std::atomic<uint8_t> state_;
+  static std::atomic<uint64_t> in_use_count_;
 };
-static DartInitializationState init_state_;
+std::atomic<uint8_t> DartInitializationState::state_ = {kUnInitialized};
+std::atomic<uint64_t> DartInitializationState::in_use_count_ = {0};
 
 #if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
 static void CheckOffsets() {
@@ -307,6 +310,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
 #endif
 
   OSThread::Init();
+  Random::Init();
   Zone::Init();
 #if defined(SUPPORT_TIMELINE)
   Timeline::Init();
@@ -322,7 +326,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   Api::Init();
   NativeSymbolResolver::Init();
   NOT_IN_PRODUCT(Profiler::Init());
-  SemiSpace::Init();
+  Page::Init();
   NOT_IN_PRODUCT(Metric::Init());
   StoreBuffer::Init();
   MarkingStack::Init();
@@ -517,7 +521,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
 }
 
 char* Dart::Init(const Dart_InitializeParams* params) {
-  if (!init_state_.SetInitializing()) {
+  if (!DartInitializationState::SetInitializing()) {
     return Utils::StrDup(
         "Bad VM initialization state, "
         "already initialized or "
@@ -525,10 +529,10 @@ char* Dart::Init(const Dart_InitializeParams* params) {
   }
   char* retval = DartInit(params);
   if (retval != NULL) {
-    init_state_.ResetInitializing();
+    DartInitializationState::ResetInitializing();
     return retval;
   }
-  init_state_.SetInitialized();
+  DartInitializationState::SetInitialized();
   return NULL;
 }
 
@@ -621,7 +625,7 @@ void Dart::WaitForIsolateShutdown() {
 
 char* Dart::Cleanup() {
   ASSERT(Isolate::Current() == NULL);
-  if (!init_state_.SetCleaningup()) {
+  if (!DartInitializationState::SetCleaningup()) {
     return Utils::StrDup("VM already terminated.");
   }
   ASSERT(vm_isolate_ != NULL);
@@ -713,7 +717,7 @@ char* Dart::Cleanup() {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleting thread pool\n",
                  UptimeMillis());
   }
-  init_state_.SetUnInitialized();
+  DartInitializationState::SetUnInitialized();
   thread_pool_->Shutdown();
   delete thread_pool_;
   thread_pool_ = NULL;
@@ -769,7 +773,7 @@ char* Dart::Cleanup() {
   MarkingStack::Cleanup();
   StoreBuffer::Cleanup();
   Object::Cleanup();
-  SemiSpace::Cleanup();
+  Page::Cleanup();
   StubCode::Cleanup();
 #if defined(SUPPORT_TIMELINE)
   if (FLAG_trace_shutdown) {
@@ -779,6 +783,7 @@ char* Dart::Cleanup() {
   Timeline::Cleanup();
 #endif
   Zone::Cleanup();
+  Random::Cleanup();
   // Delete the current thread's TLS and set it's TLS to null.
   // If it is the last thread then the destructor would call
   // OSThread::Cleanup.
@@ -810,15 +815,15 @@ char* Dart::Cleanup() {
 }
 
 bool Dart::IsInitialized() {
-  return init_state_.IsInitialized();
+  return DartInitializationState::IsInitialized();
 }
 
 bool Dart::SetActiveApiCall() {
-  return init_state_.SetInUse();
+  return DartInitializationState::SetInUse();
 }
 
 void Dart::ResetActiveApiCall() {
-  init_state_.ResetInUse();
+  DartInitializationState::ResetInUse();
 }
 
 Isolate* Dart::CreateIsolate(const char* name_prefix,
@@ -955,6 +960,43 @@ bool Dart::DetectNullSafety(const char* script_uri,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
+// The runtime assumes it can create certain kinds of objects at-will without
+// a check whether their class need to be finalized first.
+//
+// Some of those objects can end up flowing to user code (i.e. their class is a
+// subclass of [Instance]).
+//
+// We therefore ensure that classes are finalized before objects of them are
+// created or at least before such objects can reach user code.
+static void FinalizeBuiltinClasses(Thread* thread) {
+  auto class_table = thread->isolate_group()->class_table();
+  Class& cls = Class::Handle(thread->zone());
+
+#define ENSURE_FINALIZED(clazz)                                                \
+  if (class_table->HasValidClassAt(k##clazz##Cid)) {                           \
+    cls = class_table->At(k##clazz##Cid);                                      \
+    RELEASE_ASSERT(cls.EnsureIsFinalized(thread) == Object::null());           \
+  }
+
+  CLASS_LIST_INSTANCE_SINGLETONS(ENSURE_FINALIZED)
+  CLASS_LIST_ARRAYS(ENSURE_FINALIZED)
+  CLASS_LIST_STRINGS(ENSURE_FINALIZED)
+  // No maps/sets.
+
+#define ENSURE_TD_FINALIZED(clazz)                                             \
+  ENSURE_FINALIZED(TypedData##clazz)                                           \
+  ENSURE_FINALIZED(TypedData##clazz##View)                                     \
+  ENSURE_FINALIZED(ExternalTypedData##clazz)                                   \
+  ENSURE_FINALIZED(UnmodifiableTypedData##clazz##View)
+
+  CLASS_LIST_TYPED_DATA(ENSURE_TD_FINALIZED)
+#undef ENSURE_TD_FINALIZED
+
+  ENSURE_FINALIZED(ByteDataView)
+  ENSURE_FINALIZED(UnmodifiableByteDataView)
+  ENSURE_FINALIZED(ByteBuffer)
+}
+
 ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
                                  const uint8_t* snapshot_instructions,
                                  const uint8_t* kernel_buffer,
@@ -1017,6 +1059,7 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
            Code::null());
 #endif
   } else {
+    FinalizeBuiltinClasses(T);
 #if !defined(TARGET_ARCH_IA32)
     if (I != Dart::vm_isolate()) {
       if (IG->object_store()->build_generic_method_extractor_code() !=
@@ -1131,30 +1174,17 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
                              FLAG_branch_coverage);
     }
 
-// Generated code must match the host architecture and ABI.
-#if defined(TARGET_ARCH_ARM)
-#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
-    buffer.AddString(" arm-ios");
-#else
-    buffer.AddString(" arm-eabi");
-#endif
-    buffer.AddString(TargetCPUFeatures::hardfp_supported() ? " hardfp"
-                                                           : " softfp");
-#elif defined(TARGET_ARCH_ARM64)
-#if defined(DART_TARGET_OS_FUCHSIA)
-    // See signal handler cheat in Assembler::EnterFrame.
-    buffer.AddString(" arm64-fuchsia");
-#else
-    buffer.AddString(" arm64-sysv");
-#endif
-#elif defined(TARGET_ARCH_IA32)
+    // Generated code must match the host architecture and ABI. We check the
+    // strong condition of matching on operating system so that
+    // Platform.isAndroid etc can be compile-time constants.
+#if defined(TARGET_ARCH_IA32)
     buffer.AddString(" ia32");
 #elif defined(TARGET_ARCH_X64)
-#if defined(DART_TARGET_OS_WINDOWS)
-    buffer.AddString(" x64-win");
-#else
-    buffer.AddString(" x64-sysv");
-#endif
+    buffer.AddString(" x64");
+#elif defined(TARGET_ARCH_ARM)
+    buffer.AddString(" arm");
+#elif defined(TARGET_ARCH_ARM64)
+    buffer.AddString(" arm64");
 #elif defined(TARGET_ARCH_RISCV32)
     buffer.AddString(" riscv32");
 #elif defined(TARGET_ARCH_RISCV64)
@@ -1162,6 +1192,25 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
 #else
 #error What architecture?
 #endif
+
+#if defined(DART_TARGET_OS_ANDROID)
+    buffer.AddString(" android");
+#elif defined(DART_TARGET_OS_FUCHSIA)
+    buffer.AddString(" fuchsia");
+#elif defined(DART_TARGET_OS_MACOS)
+#if defined(DART_TARGET_OS_MACOS_IOS)
+    buffer.AddString(" ios");
+#else
+    buffer.AddString(" macos");
+#endif
+#elif defined(DART_TARGET_OS_LINUX)
+    buffer.AddString(" linux");
+#elif defined(DART_TARGET_OS_WINDOWS)
+    buffer.AddString(" windows");
+#else
+#error What operating system?
+#endif
+
 #if defined(DART_COMPRESSED_POINTERS)
     buffer.AddString(" compressed-pointers");
 #else

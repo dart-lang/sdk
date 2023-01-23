@@ -515,10 +515,9 @@ class ListConstantValue extends ObjectConstantValue {
   @override
   final int hashCode;
 
-  ListConstantValue(InterfaceType type, List<ConstantValue> entries)
+  ListConstantValue(super.type, List<ConstantValue> entries)
       : this.entries = entries,
-        hashCode = Hashing.listHash(entries, Hashing.objectHash(type)),
-        super(type);
+        hashCode = Hashing.listHash(entries, Hashing.objectHash(type));
 
   @override
   bool operator ==(var other) {
@@ -578,10 +577,9 @@ abstract class SetConstantValue extends ObjectConstantValue {
   @override
   final int hashCode;
 
-  SetConstantValue(InterfaceType type, List<ConstantValue> values)
+  SetConstantValue(super.type, List<ConstantValue> values)
       : values = values,
-        hashCode = Hashing.listHash(values, Hashing.objectHash(type)),
-        super(type);
+        hashCode = Hashing.listHash(values, Hashing.objectHash(type));
 
   @override
   bool operator ==(var other) {
@@ -642,12 +640,11 @@ abstract class MapConstantValue extends ObjectConstantValue {
   Map<ConstantValue, ConstantValue>? _lookupMap;
 
   MapConstantValue(
-      InterfaceType type, List<ConstantValue> keys, List<ConstantValue> values)
+      super.type, List<ConstantValue> keys, List<ConstantValue> values)
       : this.keys = keys,
         this.values = values,
         this.hashCode = Hashing.listHash(
-            values, Hashing.listHash(keys, Hashing.objectHash(type))),
-        super(type) {
+            values, Hashing.listHash(keys, Hashing.objectHash(type))) {
     assert(keys.length == values.length);
   }
 

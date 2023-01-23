@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "core_patch.dart";
+part of "core_patch.dart";
 
 @pragma("vm:entry-point")
 class _GrowableList<T> extends ListBase<T> {
@@ -506,7 +506,7 @@ class _GrowableList<T> extends ListBase<T> {
     return new ListIterator<T>(this);
   }
 
-  List<T> toList({bool growable: true}) {
+  List<T> toList({bool growable = true}) {
     // TODO(sra): We should be able to replace the following with:
     //
     //     return growable

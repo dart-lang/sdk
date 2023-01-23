@@ -4,18 +4,9 @@
 
 import 'dart:math' as math;
 
-import 'package:analyzer/dart/ast/ast.dart'
-    show
-        Annotation,
-        AsExpression,
-        AstNode,
-        ConstructorName,
-        Expression,
-        InvocationExpression,
-        SimpleIdentifier;
+import 'package:analyzer/dart/ast/ast.dart' show AstNode;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart' show ErrorReporter;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -24,8 +15,7 @@ import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/error/codes.dart'
-    show CompileTimeErrorCode, HintCode;
+import 'package:analyzer/src/dart/error/inference_error_listener.dart';
 import 'package:meta/meta.dart';
 
 /// Tracks upper and lower type bounds for a set of type parameters.
@@ -59,12 +49,13 @@ class GenericInferrer {
   /// The list of type parameters being inferred.
   final List<TypeParameterElement> _typeFormals;
 
-  /// The [ErrorReporter] to which inference errors should be reported, or
-  /// `null` if errors shouldn't be reported.
-  final ErrorReporter? errorReporter;
+  /// The [InferenceErrorListener] to which inference errors should be reported,
+  /// or `null` if errors shouldn't be reported.
+  final InferenceErrorListener? _inferenceErrorListener;
 
   /// The [AstNode] to which errors should be attached.  May be `null` if errors
-  /// are not being reported (that is, if [errorReporter] is also `null`).
+  /// are not being reported (that is, if [_inferenceErrorListener] is also
+  /// `null`).
   final AstNode? errorNode;
 
   /// Indicates whether the "generic metadata" feature is enabled.  When it is,
@@ -96,12 +87,10 @@ class GenericInferrer {
   final Map<TypeParameterElement, DartType> _typesInferredSoFar = {};
 
   GenericInferrer(this._typeSystem, this._typeFormals,
-      {this.errorReporter,
+      {InferenceErrorListener? inferenceErrorListener,
       this.errorNode,
-      required this.genericMetadataIsEnabled}) {
-    if (errorReporter != null) {
-      assert(errorNode != null);
-    }
+      required this.genericMetadataIsEnabled})
+      : _inferenceErrorListener = inferenceErrorListener {
     _typeParameters.addAll(_typeFormals);
     for (var formal in _typeFormals) {
       _constraints[formal] = [];
@@ -116,7 +105,7 @@ class GenericInferrer {
   /// is a subtype of the [parameterType].
   void constrainArgument(
       DartType argumentType, DartType parameterType, String parameterName,
-      {ClassElement? genericClass}) {
+      {InterfaceElement? genericClass}) {
     var origin = _TypeConstraintFromArgument(
       argumentType,
       parameterType,
@@ -130,7 +119,7 @@ class GenericInferrer {
   /// Applies all the argument constraints implied by [parameters] and
   /// [argumentTypes].
   void constrainArguments(
-      {ClassElement? genericClass,
+      {InterfaceElement? genericClass,
       required List<ParameterElement> parameters,
       required List<DartType> argumentTypes}) {
     for (int i = 0; i < argumentTypes.length; i++) {
@@ -219,9 +208,7 @@ class GenericInferrer {
       if (!success) {
         if (failAtError) return null;
         hasErrorReported = true;
-        errorReporter?.reportErrorForNode(
-            CompileTimeErrorCode.COULD_NOT_INFER,
-            errorNode!,
+        _inferenceErrorListener?.addCouldNotInferError(errorNode!,
             [parameter.name, _formatError(parameter, inferred, constraints)]);
 
         // Heuristic: even if we failed, keep the erroneous type.
@@ -233,13 +220,12 @@ class GenericInferrer {
       if (inferred is FunctionType &&
           inferred.typeFormals.isNotEmpty &&
           !genericMetadataIsEnabled &&
-          errorReporter != null) {
+          _inferenceErrorListener != null) {
         if (failAtError) return null;
         hasErrorReported = true;
         var typeFormals = inferred.typeFormals;
         var typeFormalsStr = typeFormals.map(_elementStr).join(', ');
-        errorReporter!.reportErrorForNode(
-            CompileTimeErrorCode.COULD_NOT_INFER, errorNode!, [
+        _inferenceErrorListener?.addCouldNotInferError(errorNode!, [
           parameter.name,
           ' Inferred candidate type ${_typeStr(inferred)} has type parameters'
               ' [$typeFormalsStr], but a function with'
@@ -249,16 +235,13 @@ class GenericInferrer {
 
       if (UnknownInferredType.isKnown(inferred)) {
         knownTypes[parameter] = inferred;
-      } else if (_typeSystem.strictInference) {
+      } else if (!hasErrorReported && _typeSystem.strictInference) {
         // [typeParam] could not be inferred. A result will still be returned
         // by [infer], with [typeParam] filled in as its bounds. This is
         // considered a failure of inference, under the "strict-inference"
         // mode.
-        _reportInferenceFailure(
-          errorReporter: errorReporter,
-          errorNode: errorNode,
-          genericMetadataIsEnabled: genericMetadataIsEnabled,
-        );
+        hasErrorReported = true;
+        _inferenceErrorListener?.reportInferenceFailure(errorNode!);
       }
     }
 
@@ -276,8 +259,7 @@ class GenericInferrer {
         var typeParamBound = Substitution.fromPairs(_typeFormals, inferredTypes)
             .substituteType(typeParam.bound ?? typeProvider.objectType);
         // TODO(jmesserly): improve this error message.
-        errorReporter?.reportErrorForNode(
-            CompileTimeErrorCode.COULD_NOT_INFER, errorNode!, [
+        _inferenceErrorListener?.addCouldNotInferError(errorNode!, [
           typeParam.name,
           "\nRecursive bound cannot be instantiated: '$typeParamBound'."
               "\nConsider passing explicit type argument(s) "
@@ -288,8 +270,6 @@ class GenericInferrer {
 
     if (!hasErrorReported) {
       _checkArgumentsNotMatchingBounds(
-        errorNode: errorNode,
-        errorReporter: errorReporter,
         typeArguments: result,
       );
     }
@@ -304,8 +284,6 @@ class GenericInferrer {
 
   /// Check that inferred [typeArguments] satisfy the [typeParameters] bounds.
   void _checkArgumentsNotMatchingBounds({
-    required AstNode? errorNode,
-    required ErrorReporter? errorReporter,
     required List<DartType> typeArguments,
   }) {
     for (int i = 0; i < _typeFormals.length; i++) {
@@ -321,8 +299,7 @@ class GenericInferrer {
       var substitution = Substitution.fromPairs(_typeFormals, typeArguments);
       var bound = substitution.substituteType(rawBound);
       if (!_typeSystem.isSubtypeOf(argument, bound)) {
-        errorReporter?.reportErrorForNode(
-          CompileTimeErrorCode.COULD_NOT_INFER,
+        _inferenceErrorListener?.addCouldNotInferError(
           errorNode!,
           [
             parameter.name,
@@ -547,83 +524,6 @@ class GenericInferrer {
     }
   }
 
-  /// Reports an inference failure on [errorNode] according to its type.
-  void _reportInferenceFailure({
-    ErrorReporter? errorReporter,
-    AstNode? errorNode,
-    required bool genericMetadataIsEnabled,
-  }) {
-    if (errorReporter == null || errorNode == null) {
-      return;
-    }
-    if (errorNode.parent is InvocationExpression &&
-        errorNode.parent?.parent is AsExpression) {
-      // Casts via `as` do not play a part in downward inference. We allow an
-      // exception when inference has "failed" but the return value is
-      // immediately cast with `as`.
-      return;
-    }
-    if (errorNode is ConstructorName &&
-        !(errorNode.type.type as InterfaceType).element.hasOptionalTypeArgs) {
-      String constructorName = errorNode.name == null
-          ? errorNode.type.name.name
-          : '${errorNode.type}.${errorNode.name}';
-      errorReporter.reportErrorForNode(
-          HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
-          errorNode,
-          [constructorName]);
-    } else if (errorNode is Annotation) {
-      if (genericMetadataIsEnabled) {
-        // Only report an error if generic metadata is valid syntax.
-        var element = errorNode.name.staticElement;
-        if (element != null && !element.hasOptionalTypeArgs) {
-          String constructorName = errorNode.constructorName == null
-              ? errorNode.name.name
-              : '${errorNode.name.name}.${errorNode.constructorName}';
-          errorReporter.reportErrorForNode(
-              HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
-              errorNode,
-              [constructorName]);
-        }
-      }
-    } else if (errorNode is SimpleIdentifier) {
-      var element = errorNode.staticElement;
-      if (element != null) {
-        if (element is VariableElement) {
-          // For variable elements, we check their type and possible alias type.
-          var type = element.type;
-          var typeElement = type.element;
-          if (typeElement != null && typeElement.hasOptionalTypeArgs) {
-            return;
-          }
-          var typeAliasElement = type.alias?.element;
-          if (typeAliasElement != null &&
-              typeAliasElement.hasOptionalTypeArgs) {
-            return;
-          }
-        }
-        if (!element.hasOptionalTypeArgs) {
-          errorReporter.reportErrorForNode(
-              HintCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION,
-              errorNode,
-              [errorNode.name]);
-          return;
-        }
-      }
-    } else if (errorNode is Expression) {
-      var type = errorNode.staticType;
-      if (type != null) {
-        var typeDisplayString = type.getDisplayString(
-            withNullability: _typeSystem.isNonNullableByDefault);
-        errorReporter.reportErrorForNode(
-            HintCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION,
-            errorNode,
-            [typeDisplayString]);
-        return;
-      }
-    }
-  }
-
   /// If in a legacy library, return the legacy version of the [type].
   /// Otherwise, return the original type.
   DartType _toLegacyElementIfOptOut(DartType type) {
@@ -729,7 +629,7 @@ class _TypeConstraintFromArgument extends _TypeConstraintOrigin {
   final DartType argumentType;
   final DartType parameterType;
   final String parameterName;
-  final ClassElement? genericClass;
+  final InterfaceElement? genericClass;
 
   _TypeConstraintFromArgument(
       this.argumentType, this.parameterType, this.parameterName,

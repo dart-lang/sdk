@@ -33,7 +33,7 @@ abstract class ConstantIntFolder {
   /// `true`.
   int? asInt(Constant constant);
 
-  Constant makeIntConstant(int value, {bool unsigned: false});
+  Constant makeIntConstant(int value, {bool unsigned = false});
 
   Constant foldUnaryOperator(
       Expression node, String op, covariant Constant operand);
@@ -74,7 +74,7 @@ class VmConstantIntFolder extends ConstantIntFolder {
   }
 
   @override
-  IntConstant makeIntConstant(int value, {bool unsigned: false}) {
+  IntConstant makeIntConstant(int value, {bool unsigned = false}) {
     return new IntConstant(value);
   }
 
@@ -183,7 +183,7 @@ class JsConstantIntFolder extends ConstantIntFolder {
   }
 
   @override
-  DoubleConstant makeIntConstant(int value, {bool unsigned: false}) {
+  DoubleConstant makeIntConstant(int value, {bool unsigned = false}) {
     double doubleValue = value.toDouble();
     // Invalid assert: assert(doubleValue.toInt() == value);
     if (unsigned) {

@@ -31,7 +31,7 @@ void f() {
 ''';
     writeFile(pathname, text);
     await standardAnalysisSetup();
-    sendAnalysisSetSubscriptions({
+    await sendAnalysisSetSubscriptions({
       AnalysisService.OCCURRENCES: [pathname]
     });
 

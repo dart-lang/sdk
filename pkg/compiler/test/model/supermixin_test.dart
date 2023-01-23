@@ -10,7 +10,7 @@ import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:expect/expect.dart';
 import '../helpers/program_lookup.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 const String source = r'''
 import 'package:expect/expect.dart';

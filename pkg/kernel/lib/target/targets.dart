@@ -16,13 +16,11 @@ class TargetFlags {
   final bool trackWidgetCreation;
   final bool enableNullSafety;
   final bool supportMirrors;
-  final bool compactAsync;
 
   const TargetFlags(
       {this.trackWidgetCreation = false,
       this.enableNullSafety = false,
-      this.supportMirrors = true,
-      this.compactAsync = true});
+      this.supportMirrors = true});
 
   @override
   bool operator ==(other) {
@@ -30,8 +28,7 @@ class TargetFlags {
     return other is TargetFlags &&
         trackWidgetCreation == other.trackWidgetCreation &&
         enableNullSafety == other.enableNullSafety &&
-        supportMirrors == other.supportMirrors &&
-        compactAsync == other.compactAsync;
+        supportMirrors == other.supportMirrors;
   }
 
   @override
@@ -40,7 +37,6 @@ class TargetFlags {
     hash = 0x3fffffff & (hash * 31 + (hash ^ trackWidgetCreation.hashCode));
     hash = 0x3fffffff & (hash * 31 + (hash ^ enableNullSafety.hashCode));
     hash = 0x3fffffff & (hash * 31 + (hash ^ supportMirrors.hashCode));
-    hash = 0x3fffffff & (hash * 31 + (hash ^ compactAsync.hashCode));
     return hash;
   }
 }
@@ -235,7 +231,7 @@ class CustomizedDartLibrarySupport implements DartLibrarySupport {
   final Set<String> unsupported;
 
   const CustomizedDartLibrarySupport(
-      {this.supported: const {}, this.unsupported: const {}});
+      {this.supported = const {}, this.unsupported = const {}});
 
   @override
   bool computeDartLibrarySupport(String libraryName,
@@ -318,8 +314,7 @@ abstract class Target {
   /// transformation is not applied when compiling full kernel programs to
   /// prevent affecting the internal invariants of the compiler and accidentally
   /// slowing down compilation.
-  void performOutlineTransformations(Component component, CoreTypes coreTypes,
-      ReferenceFromIndex? referenceFromIndex) {}
+  void performOutlineTransformations(Component component) {}
 
   /// Perform target-specific transformations on the given libraries that must
   /// run before constant evaluation.
@@ -519,16 +514,16 @@ abstract class Target {
 
   Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
       Expression receiver, String name, Arguments arguments, int offset,
-      {bool isMethod: false,
-      bool isGetter: false,
-      bool isSetter: false,
-      bool isField: false,
-      bool isLocalVariable: false,
-      bool isDynamic: false,
-      bool isSuper: false,
-      bool isStatic: false,
-      bool isConstructor: false,
-      bool isTopLevel: false});
+      {bool isMethod = false,
+      bool isGetter = false,
+      bool isSetter = false,
+      bool isField = false,
+      bool isLocalVariable = false,
+      bool isDynamic = false,
+      bool isSuper = false,
+      bool isStatic = false,
+      bool isConstructor = false,
+      bool isTopLevel = false});
 
   /// Configure the given [Component] in a target specific way.
   /// Returns the configured component.
@@ -547,6 +542,7 @@ abstract class Target {
   Class? concreteConstMapLiteralClass(CoreTypes coreTypes) => null;
   Class? concreteSetLiteralClass(CoreTypes coreTypes) => null;
   Class? concreteConstSetLiteralClass(CoreTypes coreTypes) => null;
+  Class? concreteRecordClass(CoreTypes coreTypes) => null;
 
   Class? concreteIntLiteralClass(CoreTypes coreTypes, int value) => null;
   Class? concreteDoubleLiteralClass(CoreTypes coreTypes, double value) => null;
@@ -626,16 +622,16 @@ class NoneTarget extends Target {
   @override
   Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
       Expression receiver, String name, Arguments arguments, int offset,
-      {bool isMethod: false,
-      bool isGetter: false,
-      bool isSetter: false,
-      bool isField: false,
-      bool isLocalVariable: false,
-      bool isDynamic: false,
-      bool isSuper: false,
-      bool isStatic: false,
-      bool isConstructor: false,
-      bool isTopLevel: false}) {
+      {bool isMethod = false,
+      bool isGetter = false,
+      bool isSetter = false,
+      bool isField = false,
+      bool isLocalVariable = false,
+      bool isDynamic = false,
+      bool isSuper = false,
+      bool isStatic = false,
+      bool isConstructor = false,
+      bool isTopLevel = false}) {
     return new InvalidExpression(null);
   }
 
@@ -784,8 +780,8 @@ class TestTargetFlags extends TargetFlags {
       this.forceNoExplicitGetterCallsForTesting,
       this.forceConstructorTearOffLoweringForTesting,
       bool enableNullSafety = false,
-      this.supportedDartLibraries: const {},
-      this.unsupportedDartLibraries: const {}})
+      this.supportedDartLibraries = const {},
+      this.unsupportedDartLibraries = const {}})
       : super(
             trackWidgetCreation: trackWidgetCreation,
             enableNullSafety: enableNullSafety);
@@ -1012,10 +1008,8 @@ class TargetWrapper extends Target {
   }
 
   @override
-  void performOutlineTransformations(Component component, CoreTypes coreTypes,
-      ReferenceFromIndex? referenceFromIndex) {
-    _target.performOutlineTransformations(
-        component, coreTypes, referenceFromIndex);
+  void performOutlineTransformations(Component component) {
+    _target.performOutlineTransformations(component);
   }
 
   @override
@@ -1080,10 +1074,8 @@ mixin SummaryMixin on Target {
   bool get excludeNonSources;
 
   @override
-  void performOutlineTransformations(Component component, CoreTypes coreTypes,
-      ReferenceFromIndex? referenceFromIndex) {
-    super.performOutlineTransformations(
-        component, coreTypes, referenceFromIndex);
+  void performOutlineTransformations(Component component) {
+    super.performOutlineTransformations(component);
     if (!excludeNonSources) return;
 
     List<Library> libraries = new List.of(component.libraries);

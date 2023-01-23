@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import '../ast.dart';
+import '../type_algebra.dart';
 
 /// Returns the type defined as `NonNull(type)` in the nnbd specification.
 DartType computeNonNull(DartType type) {
@@ -35,6 +36,15 @@ class _NonNullVisitor implements DartTypeVisitor<DartType?> {
     // NonNull(T?) = NonNull(T)
     //
     // NonNull(T*) = NonNull(T)
+    if (node.declaredNullability == Nullability.nonNullable) {
+      return null;
+    }
+    return node.withDeclaredNullability(Nullability.nonNullable);
+  }
+
+  @override
+  DartType? visitRecordType(RecordType node) {
+    // By analogy with FunctionType.
     if (node.declaredNullability == Nullability.nonNullable) {
       return null;
     }
@@ -109,6 +119,17 @@ class _NonNullVisitor implements DartTypeVisitor<DartType?> {
   }
 
   @override
+  DartType? visitViewType(ViewType node) {
+    // NonNull(T?) = NonNull(T)
+    //
+    // NonNull(T*) = NonNull(T)
+    if (node.declaredNullability == Nullability.nonNullable) {
+      return null;
+    }
+    return node.withDeclaredNullability(Nullability.nonNullable);
+  }
+
+  @override
   DartType? visitInvalidType(InvalidType node) => null;
 
   @override
@@ -134,65 +155,70 @@ class _NonNullVisitor implements DartTypeVisitor<DartType?> {
   DartType? visitTypeParameterType(TypeParameterType node) {
     // NonNull(X) = X & NonNull(B), where B is the bound of X.
     //
-    // NonNull(X & T) = X & NonNull(T)
-    //
     // NonNull(T?) = NonNull(T)
     //
     // NonNull(T*) = NonNull(T)
     if (node.nullability == Nullability.nonNullable) {
       return null;
     }
-    if (node.promotedBound != null) {
-      // NonNull(X & T) = X & NonNull(T)
-
-      if (node.promotedBound!.nullability == Nullability.nonNullable) {
-        // The promoted bound is already non-nullable so we set the declared
-        // nullability to non-nullable.
-        return node.withDeclaredNullability(Nullability.nonNullable);
+    // NonNull(X) = X & NonNull(B), where B is the bound of X.
+    if (node.bound.nullability == Nullability.nonNullable) {
+      // The bound is already non-nullable so we set the declared nullability
+      // to non-nullable.
+      return node.withDeclaredNullability(Nullability.nonNullable);
+    }
+    DartType? bound = node.bound.accept(this);
+    if (bound == null) {
+      // The bound could not be made non-nullable so we set the declared
+      // nullability to undetermined.
+      if (node.declaredNullability == Nullability.undetermined) {
+        return null;
       }
-      DartType? promotedBound = node.promotedBound!.accept(this);
-      if (promotedBound == null) {
-        // The promoted bound could not be made non-nullable so we set the
-        // declared nullability to undetermined.
-        if (node.declaredNullability == Nullability.undetermined) {
-          return null;
-        }
-        return new TypeParameterType.intersection(
-            node.parameter, Nullability.undetermined, node.promotedBound!);
-      } else if (promotedBound.nullability == Nullability.nonNullable) {
-        // The bound could be made non-nullable so we use it as the promoted
-        // bound.
-        return new TypeParameterType.intersection(
-            node.parameter, Nullability.nonNullable, promotedBound);
-      } else {
-        // The bound could not be made non-nullable so we use it as the promoted
-        // bound with undetermined nullability.
-        return new TypeParameterType.intersection(
-            node.parameter, Nullability.undetermined, promotedBound);
-      }
+      return node.withDeclaredNullability(Nullability.undetermined);
     } else {
-      // NonNull(X) = X & NonNull(B), where B is the bound of X.
-      if (node.bound.nullability == Nullability.nonNullable) {
-        // The bound is already non-nullable so we set the declared nullability
-        // to non-nullable.
-        return node.withDeclaredNullability(Nullability.nonNullable);
+      // The nullability is fully determined by the bound so we pass the
+      // default nullability for the declared nullability.
+      return new IntersectionType(
+          new TypeParameterType(node.parameter,
+              TypeParameterType.computeNullabilityFromBound(node.parameter)),
+          bound);
+    }
+  }
+
+  @override
+  DartType? visitIntersectionType(IntersectionType node) {
+    // NonNull(X & T) = X & NonNull(T)
+    if (node.nullability == Nullability.nonNullable) {
+      return null;
+    }
+
+    if (node.right.nullability == Nullability.nonNullable) {
+      // The RHS is already non-nullable so nothing should be changed.
+      return node.withDeclaredNullability(Nullability.nonNullable);
+    }
+    DartType? right = node.right.accept(this);
+    if (right == null) {
+      // The RHS could not be made non-nullable so we set the
+      // declared nullability to undetermined.
+      if (node.left.declaredNullability == Nullability.undetermined) {
+        return null;
       }
-      DartType? bound = node.bound.accept(this);
-      if (bound == null) {
-        // The bound could not be made non-nullable so we set the declared
-        // nullability to undetermined.
-        if (node.declaredNullability == Nullability.undetermined) {
-          return null;
-        }
-        return node.withDeclaredNullability(Nullability.undetermined);
-      } else {
-        // The nullability is fully determined by the bound so we pass the
-        // default nullability for the declared nullability.
-        return new TypeParameterType.intersection(
-            node.parameter,
-            TypeParameterType.computeNullabilityFromBound(node.parameter),
-            bound);
-      }
+      return new IntersectionType(
+          new TypeParameterType(node.left.parameter, Nullability.undetermined),
+          node.right);
+    } else if (right.nullability == Nullability.nonNullable) {
+      // The bound could be made non-nullable so we use it as the promoted
+      // bound.
+      return new IntersectionType(
+          computeTypeWithoutNullabilityMarker(node.left,
+              isNonNullableByDefault: true) as TypeParameterType,
+          right);
+    } else {
+      // The bound could not be made non-nullable so we use it as the promoted
+      // bound with undetermined nullability.
+      return new IntersectionType(
+          new TypeParameterType(node.left.parameter, Nullability.undetermined),
+          right);
     }
   }
 

@@ -15,13 +15,44 @@ main() {
 
 @reflectiveTest
 class PartOfDifferentLibraryTest extends PubPackageResolutionTest {
-  test_name() async {
-    newFile('$testPackageLibPath/part.dart', "part of lub;");
+  test_doesNotExist() async {
     await assertErrorsInCode('''
-library lib;
+part 'part.dart';
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 11),
+    ]);
+  }
+
+  test_doesNotExist_generated() async {
+    await assertErrorsInCode('''
+part 'part.g.dart';
+''', [
+      error(CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED, 5, 13),
+    ]);
+  }
+
+  test_partOfName() async {
+    newFile('$testPackageLibPath/part.dart', '''
+part of bar;
+''');
+
+    await assertErrorsInCode('''
+library foo;
 part 'part.dart';
 ''', [
       error(CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY, 18, 11),
+    ]);
+  }
+
+  test_partOfUri() async {
+    newFile('$testPackageLibPath/part.dart', '''
+part of 'other.dart';
+''');
+
+    await assertErrorsInCode('''
+part 'part.dart';
+''', [
+      error(CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY, 5, 11),
     ]);
   }
 }

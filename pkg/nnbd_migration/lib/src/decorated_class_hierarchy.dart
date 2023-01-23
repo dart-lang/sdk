@@ -21,7 +21,7 @@ class DecoratedClassHierarchy {
 
   /// Cache for speeding up the computation of
   /// [_getGenericSupertypeDecorations].
-  final Map<ClassElement, Map<ClassElement, DecoratedType>>
+  final Map<InterfaceElement, Map<InterfaceElement, DecoratedType>>
       _genericSupertypeDecorations = {};
 
   DecoratedClassHierarchy(this._variables, this._graph);
@@ -30,7 +30,7 @@ class DecoratedClassHierarchy {
   ///
   /// If the [type] is a [TypeParameterType], it will be resolved against its
   /// bound.
-  DecoratedType asInstanceOf(DecoratedType type, ClassElement? superclass) {
+  DecoratedType asInstanceOf(DecoratedType type, InterfaceElement? superclass) {
     type = _getInterfaceType(type);
     var typeType = type.type as InterfaceType;
     var class_ = typeType.element;
@@ -52,7 +52,7 @@ class DecoratedClassHierarchy {
   /// because the relationship between a class and its superclass is not
   /// nullable.
   DecoratedType getDecoratedSupertype(
-      ClassElement class_, ClassElement superclass) {
+      InterfaceElement class_, InterfaceElement superclass) {
     assert(!(class_.library.isDartCore && class_.name == 'Null'));
     if (superclass.typeParameters.isEmpty) {
       return DecoratedType(
@@ -69,8 +69,8 @@ class DecoratedClassHierarchy {
 
   /// Computes a map whose keys are all the superclasses of [class_], and whose
   /// values indicate how [class_] implements each superclass.
-  Map<ClassElement, DecoratedType> _getGenericSupertypeDecorations(
-      ClassElement class_) {
+  Map<InterfaceElement, DecoratedType> _getGenericSupertypeDecorations(
+      InterfaceElement class_) {
     var decorations = _genericSupertypeDecorations[class_];
     if (decorations == null) {
       // Call ourselves recursively to compute how each of [class_]'s direct
@@ -84,10 +84,10 @@ class DecoratedClassHierarchy {
         var supertype = decoratedSupertype.type as InterfaceType;
         // Compute a type substitution to determine how [class_] relates to
         // this specific [superclass].
-        Map<TypeParameterElement, DecoratedType?> substitution = {};
+        Map<TypeParameterElement, DecoratedType> substitution = {};
         for (int i = 0; i < supertype.typeArguments.length; i++) {
           substitution[supertype.element.typeParameters[i]] =
-              decoratedSupertype.typeArguments[i];
+              decoratedSupertype.typeArguments[i]!;
         }
         // Apply that substitution to the relation between [superclass] and
         // each of its transitive superclasses, to determine the relation

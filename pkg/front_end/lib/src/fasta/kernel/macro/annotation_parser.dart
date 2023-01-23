@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
 import 'package:_fe_analyzer_shared/src/messages/codes.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
@@ -287,6 +288,11 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void handleObjectPatternFields(int count, Token beginToken, Token endToken) {
+    _unsupported();
+  }
+
+  @override
   void handleNoArguments(Token token) {
     push(const _NoArgumentsNode());
   }
@@ -317,6 +323,15 @@ class _MacroListener implements Listener {
       }
     }
   }
+
+  @override
+  void handlePatternField(Token? colon) {
+    _unsupported();
+  }
+
+  @override
+  // TODO: Handle directly.
+  void handleNamedRecordField(Token colon) => handleNamedArgument(colon);
 
   @override
   void handleLiteralNull(Token token) {
@@ -443,6 +458,11 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void beginBinaryPattern(Token token) {
+    _unsupported();
+  }
+
+  @override
   void beginBlock(Token token, BlockKind blockKind) {
     _unsupported();
   }
@@ -468,8 +488,14 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
+  void beginClassDeclaration(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
     _unexpected();
   }
 
@@ -635,6 +661,37 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void beginRecordType(Token beginToken) {
+    _unhandled();
+  }
+
+  @override
+  void endRecordType(
+      Token leftBracket, Token? questionMark, int count, bool hasNamedFields) {
+    _unhandled();
+  }
+
+  @override
+  void beginRecordTypeEntry() {
+    _unhandled();
+  }
+
+  @override
+  void endRecordTypeEntry() {
+    _unhandled();
+  }
+
+  @override
+  void beginRecordTypeNamedFields(Token leftBracket) {
+    _unhandled();
+  }
+
+  @override
+  void endRecordTypeNamedFields(int count, Token leftBracket) {
+    _unhandled();
+  }
+
+  @override
   void beginFunctionType(Token beginToken) {
     _unhandled();
   }
@@ -745,7 +802,7 @@ class _MacroListener implements Listener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken, Token mixinKeyword, Token name) {
+      Token? augmentToken, Token? sealedToken, Token mixinKeyword, Token name) {
     _unexpected();
   }
 
@@ -755,8 +812,14 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void beginNamedMixinApplication(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {
+  void beginNamedMixinApplication(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
     _unexpected();
   }
 
@@ -806,12 +869,27 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void beginSwitchExpressionBlock(Token token) {
+    _unsupported();
+  }
+
+  @override
   void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
     _unsupported();
   }
 
   @override
+  void beginSwitchExpressionCase() {
+    _unsupported();
+  }
+
+  @override
   void beginSwitchStatement(Token token) {
+    _unsupported();
+  }
+
+  @override
+  void beginSwitchExpression(Token token) {
     _unsupported();
   }
 
@@ -914,6 +992,11 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void endBinaryPattern(Token token) {
+    _unsupported();
+  }
+
+  @override
   void endBlock(
       int count, Token beginToken, Token endToken, BlockKind blockKind) {
     _unsupported();
@@ -930,7 +1013,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endCaseExpression(Token colon) {
+  void endCaseExpression(Token caseKeyword, Token? when, Token colon) {
     _unsupported();
   }
 
@@ -1274,7 +1357,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endLibraryName(Token libraryKeyword, Token semicolon) {
+  void endLibraryName(Token libraryKeyword, Token semicolon, bool hasName) {
     _unexpected();
   }
 
@@ -1396,6 +1479,12 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void endSwitchExpressionBlock(
+      int caseCount, Token beginToken, Token endToken) {
+    _unsupported();
+  }
+
+  @override
   void endSwitchCase(
       int labelCount,
       int expressionCount,
@@ -1408,7 +1497,17 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void endSwitchExpressionCase(Token? when, Token arrow, Token endToken) {
+    _unsupported();
+  }
+
+  @override
   void endSwitchStatement(Token switchKeyword, Token endToken) {
+    _unsupported();
+  }
+
+  @override
+  void endSwitchExpression(Token switchKeyword, Token endToken) {
     _unsupported();
   }
 
@@ -1503,6 +1602,11 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void handleCastPattern(Token operator) {
+    _unsupported();
+  }
+
+  @override
   void handleAssignmentExpression(Token token) {
     _unsupported();
   }
@@ -1515,11 +1619,6 @@ class _MacroListener implements Listener {
   @override
   void handleBreakStatement(
       bool hasTarget, Token breakKeyword, Token endToken) {
-    _unsupported();
-  }
-
-  @override
-  void handleCaseMatch(Token caseKeyword, Token colon) {
     _unsupported();
   }
 
@@ -1791,8 +1890,23 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void handleListPattern(int count, Token leftBracket, Token rightBracket) {
+    _unsupported();
+  }
+
+  @override
   void handleLiteralMapEntry(Token colon, Token endToken) {
     _unhandled();
+  }
+
+  @override
+  void handleMapPattern(int count, Token leftBrace, Token rightBrace) {
+    _unsupported();
+  }
+
+  @override
+  void handleMapPatternEntry(Token colon, Token endToken) {
+    _unsupported();
   }
 
   @override
@@ -1902,6 +2016,21 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void handleNullAssertPattern(Token bang) {
+    _unsupported();
+  }
+
+  @override
+  void handleNullCheckPattern(Token question) {
+    _unsupported();
+  }
+
+  @override
+  void handleVariablePattern(Token? keyword, Token variable) {
+    _unsupported();
+  }
+
+  @override
   void handleOperator(Token token) {
     _unknown();
   }
@@ -1912,13 +2041,44 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleParenthesizedCondition(Token token) {
+  void handleParenthesizedCondition(Token token, Token? case_, Token? when) {
     _unknown();
   }
 
   @override
-  void handleParenthesizedExpression(Token token) {
+  void beginParenthesizedExpressionOrRecordLiteral(Token token) {
     _unhandled();
+  }
+
+  @override
+  void endRecordLiteral(Token token, int count, Token? constKeyword) {
+    _unhandled();
+  }
+
+  @override
+  void handleRecordPattern(Token token, int count) {
+    _unsupported();
+  }
+
+  @override
+  void endParenthesizedExpression(Token token) {
+    _unhandled();
+  }
+
+  @override
+  void handleParenthesizedPattern(Token token) {
+    _unsupported();
+  }
+
+  @override
+  void handleConstantPattern(Token? constKeyword) {
+    _unsupported();
+  }
+
+  @override
+  void handleObjectPattern(
+      Token firstIdentifier, Token? dot, Token? secondIdentifier) {
+    _unsupported();
   }
 
   @override
@@ -1959,6 +2119,11 @@ class _MacroListener implements Listener {
 
   @override
   void handleSpreadExpression(Token spreadToken) {
+    _unsupported();
+  }
+
+  @override
+  void handleRestPattern(Token dots, {required bool hasSubPattern}) {
     _unsupported();
   }
 
@@ -2024,6 +2189,11 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void handleRelationalPattern(Token token) {
+    _unsupported();
+  }
+
+  @override
   void handleUnescapeError(
       Message message, covariant Token location, int stringOffset, int length) {
     _unsupported();
@@ -2045,10 +2215,27 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void handlePatternVariableDeclarationStatement(
+      Token keyword, Token equals, Token semicolon) {
+    _unsupported();
+  }
+
+  @override
+  void handlePatternAssignment(Token equals) {
+    _unsupported();
+  }
+
+  @override
   void logEvent(String name) {}
 
   @override
   void reportVarianceModifierNotEnabled(Token? variance) {
+    _unsupported();
+  }
+
+  @override
+  void handleExperimentNotEnabled(
+      ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
     _unsupported();
   }
 }

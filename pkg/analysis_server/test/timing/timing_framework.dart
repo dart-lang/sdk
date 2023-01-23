@@ -178,7 +178,7 @@ abstract class TimingTest extends IntegrationTestMixin {
     await _repeat(warmupCount, null);
     await _repeat(timingCount, times);
     await oneTimeTearDown();
-    return Future<TimingResult>.value(TimingResult(times));
+    return TimingResult(times);
   }
 
   /// Perform any operations that need to be performed before each iteration.

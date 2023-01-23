@@ -102,7 +102,7 @@ class U61<T> {
   late List<T> Function<A>(int x) Function(int x) x21;
   late List<A> Function<A>(Function x) Function(int x) x22;
 
-  U61({this.tIsBool: false, this.tIsInt: false})
+  U61({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   Function m0([int x0 = -1]) => throw 'uncalled';

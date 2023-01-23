@@ -18,4 +18,4 @@ typedef DB2<X extends num> = B<X>;
 typedef DB3<X extends num, Y extends String> = B<X>;
 main() {}
 expect(expected, actual) {}
-throws(Function() f, {bool inSoundModeOnly: false}) {}
+throws(Function() f, {bool inSoundModeOnly = false}) {}

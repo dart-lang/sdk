@@ -82,7 +82,7 @@ class DartDocTest {
   final FileSystem? underlyingFileSystem;
   final bool silent;
 
-  DartDocTest({this.underlyingFileSystem, this.silent: false});
+  DartDocTest({this.underlyingFileSystem, this.silent = false});
 
   FileSystem _getFileSystem() =>
       underlyingFileSystem ?? StandardFileSystem.instance;
@@ -119,7 +119,7 @@ class DartDocTest {
   }
 
   Future<List<TestResult>> compileAndRun(Uri uri, List<Test> tests,
-      {bool silent: false}) async {
+      {bool silent = false}) async {
     errors = false;
     errorStrings.clear();
 
@@ -919,7 +919,7 @@ class DocTestSourceLoader extends SourceLoader {
       SourceLibraryBuilder? origin,
       kernel.Library? referencesFrom,
       bool? referenceIsPartOwner,
-      bool isAugmentation: false}) {
+      bool isAugmentation = false}) {
     if (importUri == DocTestIncrementalCompiler.dartDocTestUri) {
       HybridFileSystem hfs = target.fileSystem as HybridFileSystem;
       MemoryFileSystem fs = hfs.memory;

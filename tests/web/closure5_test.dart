@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 class A {
   foo() => 499;
-  bar({a: 1, b: 7, c: 99}) => a + b + c;
+  bar({a = 1, b = 7, c = 99}) => a + b + c;
   toto() => bar;
   gee(f) => f(toto);
 }

@@ -17,16 +17,18 @@ import '../elements/types.dart';
 abstract class JsToFrontendMap {
   LibraryEntity toBackendLibrary(LibraryEntity library);
 
-  ClassEntity toBackendClass(ClassEntity cls);
+  /// Returns the backend class corresponding to [cls]. If [cls] isn't used it
+  /// doesn't have a corresponding backend entity and null is returned instead.
+  ClassEntity? toBackendClass(ClassEntity cls);
 
   /// Returns the backend member corresponding to [member]. If a member isn't
   /// live, it doesn't have a corresponding backend member and `null` is
   /// returned instead.
   MemberEntity? toBackendMember(MemberEntity member);
 
-  DartType toBackendType(DartType type, {bool allowFreeVariables = false});
+  DartType? toBackendType(DartType? type, {bool allowFreeVariables = false});
 
-  ConstantValue toBackendConstant(ConstantValue value,
+  ConstantValue? toBackendConstant(ConstantValue? value,
       {bool allowNull = false});
 
   Set<LibraryEntity> toBackendLibrarySet(Iterable<LibraryEntity> set) {
@@ -34,8 +36,12 @@ abstract class JsToFrontendMap {
   }
 
   Set<ClassEntity> toBackendClassSet(Iterable<ClassEntity> set) {
-    // TODO(johnniwinther): Filter unused classes.
-    return set.map(toBackendClass).toSet();
+    final result = <ClassEntity>{};
+    for (final cls in set) {
+      final backendClass = toBackendClass(cls);
+      if (backendClass != null) result.add(backendClass);
+    }
+    return result;
   }
 
   Set<MemberEntity> toBackendMemberSet(Iterable<MemberEntity> set) {

@@ -41,7 +41,7 @@ void testNum(Map<Object, Object> map, String name) {
 }
 
 void test<K, V>(map, firstKey, firstValue, String name,
-    {bool noSuchMethodMap: false}) {
+    {bool noSuchMethodMap = false}) {
   if (!noSuchMethodMap) {
     Expect.isTrue(map.containsKey(firstKey), "$name.containsKey");
     Expect.equals(1, map.length, "$name.length");

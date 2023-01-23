@@ -3,10 +3,33 @@
 # BSD-style license that can be found in the LICENSE file.
 
 function_callbacks_structs_by_value_test: Pass, Slow # https://dartbug.com/47304 https://dartbug.com/45007
-function_structs_by_value_generated_test: Pass, Slow # https://dartbug.com/47303 https://dartbug.com/45007
+function_structs_by_value_generated_args_leaf_test: Pass, Slow # https://dartbug.com/47303 https://dartbug.com/45007
+function_structs_by_value_generated_args_test: Pass, Slow # https://dartbug.com/47303 https://dartbug.com/45007
+function_structs_by_value_generated_ret_arg_leaf_test: Pass, Slow # https://dartbug.com/47303 https://dartbug.com/45007
+function_structs_by_value_generated_ret_arg_test: Pass, Slow # https://dartbug.com/47303 https://dartbug.com/45007
+function_structs_by_value_generated_ret_leaf_test: Pass, Slow # https://dartbug.com/47303 https://dartbug.com/45007
+function_structs_by_value_generated_ret_test: Pass, Slow # https://dartbug.com/47303 https://dartbug.com/45007
 
-[ $builder_tag == msan ]
-vmspecific_handle_test: Skip # https://dartbug.com/42314
+[ $builder_tag == optimization_counter_threshold ]
+aliasing_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
+function_callbacks_structs_by_value_generated_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
+function_callbacks_structs_by_value_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
+function_callbacks_very_many_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
+function_structs_by_value_generated_args_leaf_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
+function_structs_by_value_generated_args_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
+function_structs_by_value_generated_ret_arg_leaf_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
+function_structs_by_value_generated_ret_arg_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
+function_structs_by_value_generated_ret_leaf_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
+function_structs_by_value_generated_ret_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
+function_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
+function_very_many_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
+hardfp_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
+regress_43016_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
+structs_nnbd_workaround_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
+structs_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
+variance_function_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
+vmspecific_function_gc_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
+vmspecific_function_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
 
 [ $compiler == app_jitk ]
 vmspecific_leaf_call_test: Skip # https://dartbug.com/46125: Snapshot fails to generate.

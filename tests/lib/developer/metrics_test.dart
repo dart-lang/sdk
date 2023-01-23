@@ -93,6 +93,8 @@ testMetricNameCollision() {
   Metrics.register(counter);
   var counter3 = new Counter('a.b.c.d', '');
   Metrics.register(counter3);
+  Expect.isTrue(Metrics.current.containsKey('a.b.c.d'));
+  Expect.isTrue(Metrics.current.containsKey('a.b.c'));
 }
 
 testBadName() {

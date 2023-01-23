@@ -245,11 +245,11 @@ abstract class _AcceptStructuredClone {
       var slot = findSlot(e);
       var copy = readSlot(slot);
       if (copy != null) return copy;
-      copy = {};
+      var map = {};
 
-      writeSlot(slot, copy);
-      forEachJsField(e, (key, value) => copy[key] = walk(value));
-      return copy;
+      writeSlot(slot, map);
+      forEachJsField(e, (key, value) => map[key] = walk(value));
+      return map;
     }
 
     if (isJavaScriptArray(e)) {
@@ -275,7 +275,7 @@ abstract class _AcceptStructuredClone {
     return e;
   }
 
-  convertNativeToDart_AcceptStructuredClone(object, {mustCopy: false}) {
+  convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) {
     this.mustCopy = mustCopy;
     var copy = walk(object);
     return copy;

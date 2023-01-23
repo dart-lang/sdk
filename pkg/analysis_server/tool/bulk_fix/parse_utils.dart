@@ -33,10 +33,10 @@ class BulkFixDetails {
         if (classElement != null &&
             classElement.allSupertypes.any(
                 (element) => element.element.name == 'CorrectionProducer')) {
-          var correctionName = classDecl.name.name;
+          var correctionName = classDecl.name.lexeme;
 
           for (var method in classDecl.members.whereType<MethodDeclaration>()) {
-            if (method.name.name == 'canBeAppliedInBulk') {
+            if (method.name.lexeme == 'canBeAppliedInBulk') {
               var hasComment =
                   method.returnType?.beginToken.precedingComments != null;
 

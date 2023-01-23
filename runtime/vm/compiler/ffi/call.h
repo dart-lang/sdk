@@ -19,6 +19,11 @@ namespace compiler {
 
 namespace ffi {
 
+FunctionPtr TrampolineFunction(const String& name,
+                               const FunctionType& signature,
+                               const FunctionType& c_signature,
+                               bool is_leaf);
+
 FunctionPtr TrampolineFunction(const FunctionType& dart_signature,
                                const FunctionType& c_signature,
                                bool is_leaf,

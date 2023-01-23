@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -39,73 +40,11 @@ Annotation
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
+  variable: self::@variable::a
 ''');
   }
 
-  test_location_partDirective() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-''');
-
-    await assertNoErrorsInCode(r'''
-@foo
-part 'a.dart';
-const foo = 42;
-''');
-
-    var annotation = findNode.annotation('@foo');
-    assertResolvedNodeText(annotation, r'''
-Annotation
-  atSign: @
-  name: SimpleIdentifier
-    token: foo
-    staticElement: self::@getter::foo
-    staticType: null
-  element: self::@getter::foo
-''');
-
-    var annotationElement = annotation.elementAnnotation!;
-    _assertElementAnnotationValueText(annotationElement, r'''
-int 42
-''');
-  }
-
-  test_location_partOfDirective() async {
-    var libPath = newFile('$testPackageLibPath/lib.dart', r'''
-part 'part.dart';
-''').path;
-
-    var partPath = newFile('$testPackageLibPath/part.dart', r'''
-@foo
-part of 'lib.dart';
-const foo = 42;
-void f() {}
-''').path;
-
-    // Resolve the library, so that the part knows its library.
-    await resolveFile2(libPath);
-
-    await resolveFile2(partPath);
-    assertNoErrorsInResult();
-
-    var annotation = findNode.annotation('@foo');
-    assertResolvedNodeText(annotation, r'''
-Annotation
-  atSign: @
-  name: SimpleIdentifier
-    token: foo
-    staticElement: package:test/lib.dart::@getter::foo
-    staticType: null
-  element: package:test/lib.dart::@getter::foo
-''');
-
-    var annotationElement = annotation.elementAnnotation!;
-    _assertElementAnnotationValueText(annotationElement, r'''
-int 42
-''');
-  }
-
-  test_onEnumConstant() async {
+  test_location_enumConstant() async {
     await assertNoErrorsInCode(r'''
 enum E {
   @v
@@ -128,10 +67,23 @@ Annotation
 E
   _name: String v
   index: int 0
+  variable: self::@enum::E::@field::v
 ''');
   }
 
-  test_onFieldFormal() async {
+  test_location_exportLibraryDirective() async {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    await assertNoErrorsInCode(r'''
+@foo
+export 'a.dart';
+const foo = 42;
+''');
+
+    _assertAtFoo42();
+  }
+
+  test_location_fieldFormal() async {
     await assertNoErrorsInCode(r'''
 class A {
   final Object f;
@@ -162,19 +114,19 @@ Annotation
               staticElement: self::@class::A
               staticType: null
             type: A
-          staticElement: self::@class::A::@constructor::•
+          staticElement: self::@class::A::@constructor::new
         argumentList: ArgumentList
           leftParenthesis: (
           arguments
             IntegerLiteral
               literal: 0
-              parameter: self::@class::A::@constructor::•::@parameter::f
+              parameter: self::@class::A::@constructor::new::@parameter::f
               staticType: int
           rightParenthesis: )
-        parameter: self::@class::A::@constructor::•::@parameter::f
+        parameter: self::@class::A::@constructor::new::@parameter::f
         staticType: A
     rightParenthesis: )
-  element: self::@class::A::@constructor::•
+  element: self::@class::A::@constructor::new
 ''');
     _assertAnnotationValueText(annotation, r'''
 A
@@ -183,7 +135,60 @@ A
 ''');
   }
 
-  test_onLocalVariable() async {
+  test_location_importAugmentationDirective() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+''');
+
+    await assertNoErrorsInCode(r'''
+@foo
+import augment 'a.dart';
+const foo = 42;
+''');
+
+    _assertAtFoo42();
+  }
+
+  test_location_importLibraryDirective() async {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    await assertNoErrorsInCode(r'''
+@foo
+import 'a.dart'; // ignore:unused_import
+const foo = 42;
+''');
+
+    _assertAtFoo42();
+  }
+
+  test_location_libraryAugmentationDirective() async {
+    newFile('$testPackageLibPath/test.dart', r'''
+import augment 'a.dart';
+const foo = 42;
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+@foo
+library augment 'test.dart';
+''');
+
+    await resolveFile2(a.path);
+    assertNoErrorsInResult();
+
+    _assertAtFoo42();
+  }
+
+  test_location_libraryDirective() async {
+    await assertNoErrorsInCode(r'''
+@foo
+library my;
+const foo = 42;
+''');
+
+    _assertAtFoo42();
+  }
+
+  test_location_localVariable() async {
     await assertNoErrorsInCode(r'''
 class A {
   final int a;
@@ -210,10 +215,10 @@ Annotation
     arguments
       IntegerLiteral
         literal: 3
-        parameter: self::@class::A::@constructor::•::@parameter::a
+        parameter: self::@class::A::@constructor::new::@parameter::a
         staticType: int
     rightParenthesis: )
-  element: self::@class::A::@constructor::•
+  element: self::@class::A::@constructor::new
 ''');
 
     final localVariable = findElement.localVar('x');
@@ -221,6 +226,115 @@ Annotation
     _assertElementAnnotationValueText(annotationOnElement, '''
 A
   a: int 3
+''');
+  }
+
+  test_location_partDirective() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+''');
+
+    await assertNoErrorsInCode(r'''
+@foo
+part 'a.dart';
+const foo = 42;
+''');
+
+    _assertAtFoo42();
+  }
+
+  test_location_partDirective_fileDoesNotExist() async {
+    await assertErrorsInCode(r'''
+@foo
+part 'a.dart';
+const foo = 42;
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 10, 8),
+    ]);
+
+    _assertAtFoo42();
+  }
+
+  test_location_partOfDirective() async {
+    newFile('$testPackageLibPath/test.dart', r'''
+part 'a.dart';
+const foo = 42;
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+@foo
+part of 'test.dart';
+''');
+
+    await resolveFile2(a.path);
+    assertNoErrorsInResult();
+
+    _assertAtFoo42();
+  }
+
+  test_location_recordTypeAnnotation_named() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int f;
+  const A(this.f);
+}
+
+({@A(0) int f1, String f2}) f() => throw 0;
+''');
+    final node = findNode.annotation('@A');
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: A
+    staticElement: self::@class::A
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: self::@class::A::@constructor::new::@parameter::f
+        staticType: int
+    rightParenthesis: )
+  element: self::@class::A::@constructor::new
+''');
+    _assertAnnotationValueText(node, r'''
+A
+  f: int 0
+''');
+  }
+
+  test_location_recordTypeAnnotation_positional() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int f;
+  const A(this.f);
+}
+
+(int, @A(0) String) f() => throw 0;
+''');
+    final node = findNode.annotation('@A');
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: A
+    staticElement: self::@class::A
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: self::@class::A::@constructor::new::@parameter::f
+        staticType: int
+    rightParenthesis: )
+  element: self::@class::A::@constructor::new
+''');
+    _assertAnnotationValueText(node, r'''
+A
+  f: int 0
 ''');
   }
 
@@ -252,12 +366,12 @@ Annotation
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: package:test/a.dart::@class::A::@constructor::•::@parameter::a
+          base: package:test/a.dart::@class::A::@constructor::new::@parameter::a
           isLegacy: true
         staticType: int*
     rightParenthesis: )
   element: ConstructorMember
-    base: package:test/a.dart::@class::A::@constructor::•
+    base: package:test/a.dart::@class::A::@constructor::new
     isLegacy: true
 ''');
   }
@@ -413,6 +527,7 @@ Annotation
     _assertElementAnnotationValueText(
         findElement.function('f').metadata[0], r'''
 int 42
+  variable: package:test/a.dart::@class::A::@field::foo
 ''');
   }
 
@@ -446,6 +561,7 @@ Annotation
     _assertElementAnnotationValueText(
         findElement.function('f').metadata[0], r'''
 int 42
+  variable: package:test/a.dart::@variable::foo
 ''');
   }
 
@@ -485,12 +601,12 @@ Annotation
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: package:test/a.dart::@class::A::@constructor::•::@parameter::a
+          base: package:test/a.dart::@class::A::@constructor::new::@parameter::a
           isLegacy: true
         staticType: int*
     rightParenthesis: )
   element: ConstructorMember
-    base: package:test/a.dart::@class::A::@constructor::•
+    base: package:test/a.dart::@class::A::@constructor::new
     isLegacy: true
 ''');
   }
@@ -670,11 +786,6 @@ Annotation
 A
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-    );
   }
 
   test_value_class_staticConstField() async {
@@ -707,6 +818,7 @@ Annotation
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
+  variable: self::@class::A::@field::foo
 ''');
   }
 
@@ -734,20 +846,15 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        parameter: self::@class::A::@constructor::•::@parameter::f
+        parameter: self::@class::A::@constructor::new::@parameter::f
         staticType: int
     rightParenthesis: )
-  element: self::@class::A::@constructor::•
+  element: self::@class::A::@constructor::new
 ''');
     _assertAnnotationValueText(annotation, r'''
 A
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-    );
   }
 
   test_value_genericClass_downwards_inference_namedConstructor() async {
@@ -801,11 +908,6 @@ A<Object?>
   f: List
     elementType: List<Object?>
 ''');
-    assertElement2(
-      findNode.listLiteral('[]').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'Object?'},
-    );
   }
 
   test_value_genericClass_downwards_inference_unnamedConstructor() async {
@@ -834,12 +936,12 @@ Annotation
         leftBracket: [
         rightBracket: ]
         parameter: FieldFormalParameterMember
-          base: self::@class::A::@constructor::•::@parameter::f
+          base: self::@class::A::@constructor::new::@parameter::f
           substitution: {T: Object?}
         staticType: List<List<Object?>>
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::A::@constructor::•
+    base: self::@class::A::@constructor::new
     substitution: {T: Object?}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -847,11 +949,6 @@ A<Object?>
   f: List
     elementType: List<Object?>
 ''');
-    assertElement2(
-      findNode.listLiteral('[]').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'Object?'},
-    );
   }
 
   test_value_genericClass_inference_namedConstructor() async {
@@ -903,11 +1000,6 @@ Annotation
 A<int>
   f: int 42
 ''');
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_genericClass_inference_unnamedConstructor() async {
@@ -935,23 +1027,18 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: FieldFormalParameterMember
-          base: self::@class::A::@constructor::•::@parameter::f
+          base: self::@class::A::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::A::@constructor::•
+    base: self::@class::A::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
   f: int 42
 ''');
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_genericClass_instanceGetter() async {
@@ -1121,11 +1208,6 @@ Annotation
 A<int>
   f: int 42
 ''');
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_genericClass_typeArguments_unnamedConstructor() async {
@@ -1163,23 +1245,18 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: FieldFormalParameterMember
-          base: self::@class::A::@constructor::•::@parameter::f
+          base: self::@class::A::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::A::@constructor::•
+    base: self::@class::A::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
   f: int 42
 ''');
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_genericClass_unnamedConstructor_noGenericMetadata() async {
@@ -1208,23 +1285,18 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: FieldFormalParameterMember
-          base: self::@class::A::@constructor::•::@parameter::f
+          base: self::@class::A::@constructor::new::@parameter::f
           substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::A::@constructor::•
+    base: self::@class::A::@constructor::new
     substitution: {T: dynamic}
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<dynamic>
   f: int 42
 ''');
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'dynamic'},
-    );
   }
 
   test_value_genericMixinApplication_inference_unnamedConstructor() async {
@@ -1256,12 +1328,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: ParameterMember
-          base: self::@class::B::@constructor::•::@parameter::f
+          base: self::@class::B::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::B::@constructor::•
+    base: self::@class::B::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -1303,12 +1375,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: ParameterMember
-          base: self::@class::B::@constructor::•::@parameter::f
+          base: self::@class::B::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::B::@constructor::•
+    base: self::@class::B::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -1347,12 +1419,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: ParameterMember
-          base: self::@class::B::@constructor::•::@parameter::f
+          base: self::@class::B::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::B::@constructor::•
+    base: self::@class::B::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -1390,12 +1462,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: ParameterMember
-          base: self::@class::B::@constructor::•::@parameter::f
+          base: self::@class::B::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::B::@constructor::•
+    base: self::@class::B::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -1434,12 +1506,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: ParameterMember
-          base: self::@class::B::@constructor::•::@parameter::f
+          base: self::@class::B::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::B::@constructor::•
+    base: self::@class::B::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -1480,12 +1552,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: ParameterMember
-          base: self::@class::B::@constructor::•::@parameter::f
+          base: self::@class::B::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::B::@constructor::•
+    base: self::@class::B::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -1534,12 +1606,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: ParameterMember
-          base: self::@class::B::@constructor::•::@parameter::f
+          base: self::@class::B::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::B::@constructor::•
+    base: self::@class::B::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -1678,6 +1750,7 @@ Annotation
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
+  variable: package:test/a.dart::@class::A::@field::foo
 ''');
   }
 
@@ -1738,12 +1811,6 @@ Annotation
 A<int>
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.importFind('package:test/a.dart').parameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_prefix_typeAlias_generic_class_generic_all_inference_unnamedConstructor() async {
@@ -1784,24 +1851,18 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: FieldFormalParameterMember
-          base: package:test/a.dart::@class::A::@constructor::•::@parameter::f
+          base: package:test/a.dart::@class::A::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: package:test/a.dart::@class::A::@constructor::•
+    base: package:test/a.dart::@class::A::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.importFind('package:test/a.dart').parameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_prefix_typeAlias_generic_class_generic_all_typeArguments_namedConstructor() async {
@@ -1871,12 +1932,6 @@ Annotation
 A<int>
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.importFind('package:test/a.dart').parameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_prefix_typeAlias_generic_class_generic_all_typeArguments_unnamedConstructor() async {
@@ -1927,24 +1982,18 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: FieldFormalParameterMember
-          base: package:test/a.dart::@class::A::@constructor::•::@parameter::f
+          base: package:test/a.dart::@class::A::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: package:test/a.dart::@class::A::@constructor::•
+    base: package:test/a.dart::@class::A::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.importFind('package:test/a.dart').parameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_typeAlias_class_staticConstField() async {
@@ -1979,6 +2028,7 @@ Annotation
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
+  variable: self::@class::A::@field::foo
 ''');
   }
 
@@ -2046,18 +2096,6 @@ A<int, double>
   t: int 42
   u: double 1.2
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('t'),
-      substitution: {'T': 'int', 'U': 'double'},
-    );
-
-    assertElement2(
-      findNode.doubleLiteral('1.2').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('u'),
-      substitution: {'T': 'int', 'U': 'double'},
-    );
   }
 
   test_value_typeAlias_generic_class_generic_1of2_typeArguments_unnamedConstructor() async {
@@ -2098,18 +2136,18 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: FieldFormalParameterMember
-          base: self::@class::A::@constructor::•::@parameter::t
+          base: self::@class::A::@constructor::new::@parameter::t
           substitution: {T: int, U: double}
         staticType: int
       DoubleLiteral
         literal: 1.2
         parameter: FieldFormalParameterMember
-          base: self::@class::A::@constructor::•::@parameter::u
+          base: self::@class::A::@constructor::new::@parameter::u
           substitution: {T: int, U: double}
         staticType: double
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::A::@constructor::•
+    base: self::@class::A::@constructor::new
     substitution: {T: int, U: double}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -2117,18 +2155,6 @@ A<int, double>
   t: int 42
   u: double 1.2
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('t'),
-      substitution: {'T': 'int', 'U': 'double'},
-    );
-
-    assertElement2(
-      findNode.doubleLiteral('1.2').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('u'),
-      substitution: {'T': 'int', 'U': 'double'},
-    );
   }
 
   test_value_typeAlias_generic_class_generic_all_inference_namedConstructor() async {
@@ -2182,12 +2208,6 @@ Annotation
 A<int>
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_typeAlias_generic_class_generic_all_inference_unnamedConstructor() async {
@@ -2217,24 +2237,18 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: FieldFormalParameterMember
-          base: self::@class::A::@constructor::•::@parameter::f
+          base: self::@class::A::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::A::@constructor::•
+    base: self::@class::A::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_typeAlias_generic_class_generic_all_typeArguments_namedConstructor() async {
@@ -2293,12 +2307,6 @@ Annotation
 A<int>
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_typeAlias_generic_class_generic_all_typeArguments_unnamedConstructor() async {
@@ -2338,24 +2346,18 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: FieldFormalParameterMember
-          base: self::@class::A::@constructor::•::@parameter::f
+          base: self::@class::A::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::A::@constructor::•
+    base: self::@class::A::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_typeAlias_notGeneric_class_generic_namedConstructor() async {
@@ -2409,12 +2411,6 @@ Annotation
 A<int>
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_typeAlias_notGeneric_class_generic_unnamedConstructor() async {
@@ -2444,24 +2440,18 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: FieldFormalParameterMember
-          base: self::@class::A::@constructor::•::@parameter::f
+          base: self::@class::A::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::A::@constructor::•
+    base: self::@class::A::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_typeAlias_notGeneric_class_notGeneric_namedConstructor() async {
@@ -2507,11 +2497,6 @@ Annotation
 A
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-    );
   }
 
   test_value_typeAlias_notGeneric_class_notGeneric_unnamedConstructor() async {
@@ -2540,25 +2525,39 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        parameter: self::@class::A::@constructor::•::@parameter::f
+        parameter: self::@class::A::@constructor::new::@parameter::f
         staticType: int
     rightParenthesis: )
-  element: self::@class::A::@constructor::•
+  element: self::@class::A::@constructor::new
 ''');
     _assertAnnotationValueText(annotation, r'''
 A
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-    );
   }
 
   void _assertAnnotationValueText(Annotation annotation, String expected) {
     var elementAnnotation = annotation.elementAnnotation!;
     _assertElementAnnotationValueText(elementAnnotation, expected);
+  }
+
+  void _assertAtFoo42() {
+    final node = findNode.annotation('@foo');
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: foo
+    staticElement: self::@getter::foo
+    staticType: null
+  element: self::@getter::foo
+''');
+
+    final element = node.elementAnnotation!;
+    _assertElementAnnotationValueText(element, r'''
+int 42
+  variable: self::@variable::foo
+''');
   }
 
   void _assertElementAnnotationValueText(

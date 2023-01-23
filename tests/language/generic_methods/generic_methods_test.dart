@@ -17,7 +17,7 @@ class BinaryTreeNode<K extends Comparable<K>, V> {
   final BinaryTreeNode<K, V>? _right;
 
   BinaryTreeNode(this._key, this._value,
-      {BinaryTreeNode<K, V>? left: null, BinaryTreeNode<K, V>? right: null})
+      {BinaryTreeNode<K, V>? left = null, BinaryTreeNode<K, V>? right = null})
       : _left = left,
         _right = right;
 

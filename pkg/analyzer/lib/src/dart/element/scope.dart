@@ -2,19 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/summary2/export.dart';
-
-/// The scope defined by a class.
-class ClassScope extends EnclosedScope {
-  ClassScope(super.parent, ClassElement element) {
-    element.accessors.forEach(_addPropertyAccessor);
-    element.methods.forEach(_addGetter);
-  }
-}
 
 /// The scope for the initializers in a constructor.
 class ConstructorInitializerScope extends EnclosedScope {
@@ -93,31 +86,35 @@ class FormalParameterScope extends EnclosedScope {
   }
 }
 
-class ImportedElement {
-  final Element element;
-
-  /// This flag is set to `true` if [element] is available using import
-  /// directives where every imported library re-exports the element, and
-  /// every such `export` directive is marked as deprecated.
-  final bool isFromDeprecatedExport;
-
-  ImportedElement({
-    required this.element,
-    required this.isFromDeprecatedExport,
-  });
+/// The scope defined by an interface element.
+class InterfaceScope extends EnclosedScope {
+  InterfaceScope(super.parent, InterfaceElement element) {
+    element.accessors.forEach(_addPropertyAccessor);
+    element.methods.forEach(_addGetter);
+  }
 }
 
-class LibraryScope extends EnclosedScope {
-  final LibraryElementImpl _element;
+class LibraryOrAugmentationScope extends EnclosedScope {
+  final LibraryOrAugmentationElementImpl _container;
   final List<ExtensionElement> extensions = [];
 
-  LibraryScope(LibraryElementImpl element)
-      : _element = element,
-        super(_LibraryImportScope(element)) {
-    extensions.addAll((_parent as _LibraryImportScope).extensions);
+  LibraryOrAugmentationScope(LibraryOrAugmentationElementImpl container)
+      : _container = container,
+        super(_LibraryOrAugmentationImportScope(container)) {
+    extensions
+        .addAll((_parent as _LibraryOrAugmentationImportScope).extensions);
 
-    _element.prefixes.forEach(_addGetter);
-    _element.units.forEach(_addUnitElements);
+    _container.prefixes.forEach(_addGetter);
+    _container.library.units.forEach(_addUnitElements);
+
+    // TODO(scheglov) I don't understand why it used to work, but broke now.
+    // Now: when I'm adding `ImportElement2`.
+    // We used to get it from `exportedReference`, but this is wrong.
+    // These elements are declared in dart:core itself.
+    if ('${_container.source.uri}' == 'dart:core') {
+      _addGetter(DynamicElementImpl.instance);
+      _addGetter(NeverElementImpl.instance);
+    }
   }
 
   void _addExtension(ExtensionElement element) {
@@ -147,32 +144,36 @@ class LocalScope extends EnclosedScope {
 }
 
 class PrefixScope implements Scope {
-  final LibraryOrAugmentationElementImpl _library;
-  final Map<String, ImportedElement> _getters = {};
-  final Map<String, ImportedElement> _setters = {};
+  final LibraryOrAugmentationElementImpl _container;
+  final Map<String, Element> _getters = {};
+  final Map<String, Element> _setters = {};
+  Set<String>? _settersFromDeprecatedExport;
+  Set<String>? _gettersFromDeprecatedExport;
   final Set<ExtensionElement> _extensions = {};
   LibraryElement? _deferredLibrary;
 
-  PrefixScope(this._library, PrefixElement? prefix) {
-    final elementFactory = _library.session.elementFactory;
-    for (final import in _library.imports) {
-      if (import.prefix == prefix) {
-        final importedLibrary = import.importedLibrary;
+  PrefixScope(this._container, PrefixElement? prefix) {
+    final elementFactory = _container.session.elementFactory;
+    for (final import in _container.libraryImports) {
+      final importedUri = import.uri;
+      if (importedUri is DirectiveUriWithLibrary &&
+          import.prefix?.element == prefix) {
+        final importedLibrary = importedUri.library;
         if (importedLibrary is LibraryElementImpl) {
           final combinators = import.combinators.build();
           for (final exportedReference in importedLibrary.exportedReferences) {
             final reference = exportedReference.reference;
             if (combinators.allows(reference.name)) {
               final element = elementFactory.elementOfReference(reference)!;
-              final importedElement = ImportedElement(
-                element: element,
-                isFromDeprecatedExport:
-                    _isFromDeprecatedExport(importedLibrary, exportedReference),
-              );
-              _add(importedElement);
+              if (_shouldAdd(importedLibrary, element)) {
+                _add(
+                  element,
+                  _isFromDeprecatedExport(importedLibrary, exportedReference),
+                );
+              }
             }
           }
-          if (import.isDeferred) {
+          if (import.prefix is DeferredImportElementPrefix) {
             _deferredLibrary ??= importedLibrary;
           }
         }
@@ -187,48 +188,56 @@ class PrefixScope implements Scope {
       return ScopeLookupResultImpl(deferredLibrary.loadLibraryFunction, null);
     }
 
-    var getter = _getters[id];
-    var setter = _setters[id];
-    return PrefixScopeLookupResult(getter, setter);
+    return PrefixScopeLookupResult(
+        _getters[id],
+        _setters[id],
+        _gettersFromDeprecatedExport?.contains(id) ?? false,
+        _settersFromDeprecatedExport?.contains(id) ?? false);
   }
 
-  void _add(ImportedElement imported) {
-    final element = imported.element;
+  void _add(Element element, bool isFromDeprecatedExport) {
     if (element is PropertyAccessorElement && element.isSetter) {
-      _addTo(map: _setters, incoming: imported);
+      _addTo(element, isFromDeprecatedExport, isSetter: true);
     } else {
-      _addTo(map: _getters, incoming: imported);
+      _addTo(element, isFromDeprecatedExport, isSetter: false);
       if (element is ExtensionElement) {
         _extensions.add(element);
       }
     }
   }
 
-  void _addTo({
-    required Map<String, ImportedElement> map,
-    required ImportedElement incoming,
-  }) {
-    final id = incoming.element.displayName;
+  void _addTo(Element element, bool isDeprecatedExport,
+      {required bool isSetter}) {
+    final map = isSetter ? _setters : _getters;
+    final id = element.displayName;
     final existing = map[id];
 
     if (existing == null) {
-      map[id] = incoming;
+      map[id] = element;
+      if (isDeprecatedExport) {
+        if (isSetter) {
+          (_settersFromDeprecatedExport ??= {}).add(id);
+        } else {
+          (_gettersFromDeprecatedExport ??= {}).add(id);
+        }
+      }
       return;
     }
 
-    if (existing.element == incoming.element) {
-      map[id] = ImportedElement(
-        element: incoming.element,
-        isFromDeprecatedExport:
-            existing.isFromDeprecatedExport && incoming.isFromDeprecatedExport,
-      );
+    final deprecatedSet =
+        isSetter ? _settersFromDeprecatedExport : _gettersFromDeprecatedExport;
+    final wasFromDeprecatedExport = deprecatedSet?.contains(id) ?? false;
+    if (existing == element) {
+      if (wasFromDeprecatedExport && !isDeprecatedExport) {
+        deprecatedSet!.remove(id);
+      }
       return;
     }
 
-    map[id] = ImportedElement(
-      element: _merge(existing.element, incoming.element),
-      isFromDeprecatedExport: false,
-    );
+    map[id] = _merge(existing, element);
+    if (wasFromDeprecatedExport) {
+      deprecatedSet!.remove(id);
+    }
   }
 
   Element _merge(Element existing, Element other) {
@@ -247,11 +256,27 @@ class PrefixScope implements Scope {
     _addElement(conflictingElements, other);
 
     return MultiplyDefinedElementImpl(
-      _library.context,
-      _library.session,
+      _container.context,
+      _container.session,
       conflictingElements.first.name!,
       conflictingElements.toList(),
     );
+  }
+
+  bool _shouldAdd(LibraryElementImpl importedLibrary, Element element) {
+    // It is an error for the identifier `Record`, denoting the `Record` class
+    // from `dart:core`, where that import scope name is only imported from
+    // platform libraries, to appear in a library whose language version is
+    // less than `v`; assuming that `v` is the language version in which
+    // records are released.
+    if (!_container.featureSet.isEnabled(Feature.records)) {
+      if (importedLibrary.isInSdk &&
+          element is ClassElementImpl &&
+          element.isDartCoreRecord) {
+        return false;
+      }
+    }
+    return true;
   }
 
   static void _addElement(
@@ -271,8 +296,8 @@ class PrefixScope implements Scope {
     ExportedReference exportedReference,
   ) {
     if (exportedReference is ExportedReferenceExported) {
-      for (final exportIndex in exportedReference.indexes) {
-        final export = importedLibrary.exports[exportIndex];
+      for (final location in exportedReference.locations) {
+        final export = location.exportOf(importedLibrary);
         if (!export.hasDeprecated) {
           return false;
         }
@@ -293,20 +318,35 @@ class PrefixScope implements Scope {
   }
 }
 
-class PrefixScopeLookupResult implements ScopeLookupResult {
-  final ImportedElement? importedGetter;
-  final ImportedElement? importedSetter;
+class PrefixScopeLookupResult extends ScopeLookupResultImpl {
+  static const int getterIsFromDeprecatedExportBit = 1 << 0;
+  static const int setterIsFromDeprecatedExportBit = 1 << 1;
+
+  final int _deprecatedBits;
 
   PrefixScopeLookupResult(
-    this.importedGetter,
-    this.importedSetter,
-  );
+    super.importedGetter,
+    super.importedSetter,
+    bool getterIsFromDeprecatedExport,
+    bool setterIsFromDeprecatedExport,
+  ) : _deprecatedBits = (getterIsFromDeprecatedExport
+                ? getterIsFromDeprecatedExportBit
+                : 0) |
+            (setterIsFromDeprecatedExport
+                ? setterIsFromDeprecatedExportBit
+                : 0);
 
-  @override
-  Element? get getter => importedGetter?.element;
+  /// This flag is set to `true` if [getter] is available using import
+  /// directives where every imported library re-exports the element, and
+  /// every such `export` directive is marked as deprecated.
+  bool get getterIsFromDeprecatedExport =>
+      (_deprecatedBits & getterIsFromDeprecatedExportBit) != 0;
 
-  @override
-  Element? get setter => importedSetter?.element;
+  /// This flag is set to `true` if [setter] is available using import
+  /// directives where every imported library re-exports the element, and
+  /// every such `export` directive is marked as deprecated.
+  bool get setterIsFromDeprecatedExport =>
+      (_deprecatedBits & setterIsFromDeprecatedExportBit) != 0;
 }
 
 class ScopeLookupResultImpl implements ScopeLookupResult {
@@ -328,19 +368,19 @@ class TypeParameterScope extends EnclosedScope {
   }
 }
 
-class _LibraryImportScope implements Scope {
-  final LibraryElementImpl _library;
+class _LibraryOrAugmentationImportScope implements Scope {
+  final LibraryOrAugmentationElementImpl _container;
   final PrefixScope _nullPrefixScope;
   List<ExtensionElement>? _extensions;
 
-  _LibraryImportScope(LibraryElementImpl library)
-      : _library = library,
-        _nullPrefixScope = PrefixScope(library, null);
+  _LibraryOrAugmentationImportScope(LibraryOrAugmentationElementImpl container)
+      : _container = container,
+        _nullPrefixScope = PrefixScope(container, null);
 
   List<ExtensionElement> get extensions {
     return _extensions ??= {
       ..._nullPrefixScope._extensions,
-      for (var prefix in _library.prefixes)
+      for (var prefix in _container.prefixes)
         ...(prefix.scope as PrefixScope)._extensions,
     }.toList();
   }

@@ -9,6 +9,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 /// Computer for Flutter specific outlines.
 class FlutterOutlineComputer {
@@ -131,10 +132,10 @@ class FlutterOutlineComputer {
   /// a widget reference outline item.
   protocol.FlutterOutline? _createOutline(Expression node, bool withGeneric) {
     var type = node.staticType;
-    if (type == null || !_flutter.isWidgetType(type)) {
+    if (type is! InterfaceType || !_flutter.isWidgetType(type)) {
       return null;
     }
-    var className = type.element!.displayName;
+    var className = type.element.displayName;
 
     if (node is InstanceCreationExpression) {
       var attributes = <protocol.FlutterOutlineAttribute>[];

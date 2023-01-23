@@ -66,7 +66,7 @@ class AbstractRecoveryTest extends FastaParserTestCase {
     var astBuilder = unit.declarations[0] as ClassDeclaration;
     var method = astBuilder.members
         .whereType<MethodDeclaration>()
-        .firstWhere((x) => x.name.name == 'reportMessage');
+        .firstWhere((x) => x.name.lexeme == 'reportMessage');
     SwitchStatement statement = (method.body as BlockFunctionBody)
         .block
         .statements

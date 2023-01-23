@@ -14,11 +14,6 @@ void main(List<String> arguments) {
 
 class GenericClassVisitor extends ScrapeVisitor {
   @override
-  void visitCompilationUnit(CompilationUnit node) {
-    super.visitCompilationUnit(node);
-  }
-
-  @override
   void visitClassDeclaration(ClassDeclaration node) {
     if (node.typeParameters == null) {
       record('Classes', 0);

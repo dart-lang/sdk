@@ -11,17 +11,17 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(RemoveAbstractBulkTest);
+    defineReflectiveTests(RemoveAbstractMultiTest);
     defineReflectiveTests(RemoveAbstractTest);
   });
 }
 
 @reflectiveTest
-class RemoveAbstractBulkTest extends FixProcessorTest {
+class RemoveAbstractMultiTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_ABSTRACT_MULTI;
 
-  Future<void> test_bulk() async {
+  Future<void> test_singleFile() async {
     await resolveTestCode('''
 class MyClass {
   abstract void m1() {}
@@ -41,6 +41,59 @@ class MyClass {
 class RemoveAbstractTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_ABSTRACT;
+
+  Future<void> test_abstract_field_constructor_initializer() async {
+    await resolveTestCode('''
+abstract class A {
+  abstract int x;
+  A() : x = 0;
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  int x;
+  A() : x = 0;
+}
+''');
+  }
+
+  Future<void> test_abstract_field_constructor_initializer_multiple() async {
+    await resolveTestCode('''
+abstract class A {
+  abstract int x, y;
+  A() : x = 0;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_abstract_field_constructor_initializer_nullables() async {
+    await resolveTestCode('''
+abstract class A {
+  abstract int? x, y;
+  A() : x = 0;
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  int? x, y;
+  A() : x = 0;
+}
+''');
+  }
+
+  Future<void> test_abstract_field_initializer() async {
+    await resolveTestCode('''
+abstract class A {
+  abstract int x = 0;
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  int x = 0;
+}
+''');
+  }
 
   Future<void> test_extension() async {
     await resolveTestCode('''

@@ -67,22 +67,10 @@ Future<void> generateNative({
           if (soundNullSafety != null)
             '--${soundNullSafety ? '' : 'no-'}sound-null-safety',
         ]);
+    await _forwardOutput(kernelResult);
     if (kernelResult.exitCode != 0) {
-      // We pipe both stdout and stderr to stderr because the CFE doesn't print
-      // errors to stderr. This unfortunately does emit info-only output in
-      // stderr, though.
-      stderr.write(kernelResult.stdout);
-      stderr.write(kernelResult.stderr);
-      await stderr.flush();
       throw 'Generating AOT kernel dill failed!';
     }
-    // Pipe info and warnings from the CFE to stdout since the compilation
-    // succeeded. Stderr should be empty but we pipe it to stderr for
-    // completeness.
-    stdout.write(kernelResult.stdout);
-    await stdout.flush();
-    stderr.write(kernelResult.stderr);
-    await stderr.flush();
 
     if (verbose) {
       print('Generating AOT snapshot.');
@@ -93,10 +81,11 @@ Future<void> generateNative({
         : path.join(tempDir.path, 'snapshot.aot'));
     final snapshotResult = await generateAotSnapshot(genSnapshot, kernelFile,
         snapshotFile, debugPath, enableAsserts, extraOptions);
+
+    if (verbose || snapshotResult.exitCode != 0) {
+      await _forwardOutput(snapshotResult);
+    }
     if (snapshotResult.exitCode != 0) {
-      stderr.writeln(snapshotResult.stdout);
-      stderr.writeln(snapshotResult.stderr);
-      await stderr.flush();
       throw 'Generating AOT snapshot failed!';
     }
 
@@ -117,5 +106,24 @@ Future<void> generateNative({
     print('Generated: $outputPath');
   } finally {
     tempDir.deleteSync(recursive: true);
+  }
+}
+
+Future<void> _forwardOutput(ProcessResult result) async {
+  if (result.stdout.isNotEmpty) {
+    final bool needsNewLine = !result.stdout.endsWith('\n');
+    if (result.exitCode == 0) {
+      stdout.write(result.stdout);
+      if (needsNewLine) stdout.writeln();
+      await stdout.flush();
+    } else {
+      stderr.write(result.stdout);
+      if (needsNewLine) stderr.writeln();
+    }
+  }
+  if (result.stderr.isNotEmpty) {
+    stderr.write(result.stderr);
+    if (!result.stderr.endsWith('\n')) stderr.writeln();
+    await stderr.flush();
   }
 }

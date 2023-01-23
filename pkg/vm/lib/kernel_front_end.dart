@@ -81,8 +81,7 @@ void declareCompilerOptions(ArgParser args) {
       help: 'Whether dart:mirrors is supported. By default dart:mirrors is '
           'supported when --aot and --minimal-kernel are not used.',
       defaultsTo: null);
-  args.addFlag('compact-async',
-      help: 'Enable new compact async/await implementation.', defaultsTo: true);
+  args.addFlag('compact-async', help: 'Obsolete, ignored.', hide: true);
   args.addOption('depfile', help: 'Path to output Ninja depfile');
   args.addOption('from-dill',
       help: 'Read existing dill file instead of compiling from sources',
@@ -203,7 +202,6 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final String? manifestFilename = options['manifest'];
   final String? dataDir = options['component-name'] ?? options['data-dir'];
   final bool? supportMirrors = options['support-mirrors'];
-  final bool compactAsync = options['compact-async'];
 
   final bool minimalKernel = options['minimal-kernel'];
   final bool treeShakeWriteOnlyFields = options['tree-shake-write-only-fields'];
@@ -287,8 +285,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   compilerOptions.target = createFrontEndTarget(targetName,
       trackWidgetCreation: options['track-widget-creation'],
       nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
-      supportMirrors: supportMirrors ?? !(aot || minimalKernel),
-      compactAsync: compactAsync);
+      supportMirrors: supportMirrors ?? !(aot || minimalKernel));
   if (compilerOptions.target == null) {
     print('Failed to create front-end target $targetName.');
     return badUsageExitCode;
@@ -365,18 +362,18 @@ class KernelCompilationResults {
 ///
 Future<KernelCompilationResults> compileToKernel(
     Uri source, CompilerOptions options,
-    {List<Uri> additionalSources: const <Uri>[],
-    bool includePlatform: false,
-    List<String> deleteToStringPackageUris: const <String>[],
-    bool aot: false,
-    bool useGlobalTypeFlowAnalysis: false,
-    bool useRapidTypeAnalysis: true,
+    {List<Uri> additionalSources = const <Uri>[],
+    bool includePlatform = false,
+    List<String> deleteToStringPackageUris = const <String>[],
+    bool aot = false,
+    bool useGlobalTypeFlowAnalysis = false,
+    bool useRapidTypeAnalysis = true,
     required Map<String, String> environmentDefines,
-    bool enableAsserts: true,
-    bool useProtobufTreeShakerV2: false,
-    bool minimalKernel: false,
-    bool treeShakeWriteOnlyFields: false,
-    String? fromDillFile: null}) async {
+    bool enableAsserts = true,
+    bool useProtobufTreeShakerV2 = false,
+    bool minimalKernel = false,
+    bool treeShakeWriteOnlyFields = false,
+    String? fromDillFile = null}) async {
   // Replace error handler to detect if there are compilation errors.
   final errorDetector =
       new ErrorDetector(previousErrorHandler: options.onDiagnostic);
@@ -438,7 +435,7 @@ Future<KernelCompilationResults> compileToKernel(
 
 Set<Library> createLoadedLibrariesSet(
     List<Component>? loadedComponents, Component? sdkComponent,
-    {bool includePlatform: false}) {
+    {bool includePlatform = false}) {
   final Set<Library> loadedLibraries = {};
   if (loadedComponents != null) {
     for (Component c in loadedComponents) {
@@ -468,9 +465,9 @@ Future runGlobalTransformations(
     bool enableAsserts,
     bool useProtobufTreeShakerV2,
     ErrorDetector errorDetector,
-    {bool minimalKernel: false,
-    bool treeShakeWriteOnlyFields: false,
-    bool useRapidTypeAnalysis: true}) async {
+    {bool minimalKernel = false,
+    bool treeShakeWriteOnlyFields = false,
+    bool useRapidTypeAnalysis = true}) async {
   assert(!target.flags.supportMirrors);
   if (errorDetector.hasCompilationErrors) return;
 
@@ -617,16 +614,14 @@ Future<void> autoDetectNullSafetyMode(
 Target? createFrontEndTarget(String targetName,
     {bool trackWidgetCreation = false,
     bool nullSafety = false,
-    bool supportMirrors = true,
-    bool compactAsync = true}) {
+    bool supportMirrors = true}) {
   // Make sure VM-specific targets are available.
   installAdditionalTargets();
 
   final TargetFlags targetFlags = new TargetFlags(
       trackWidgetCreation: trackWidgetCreation,
       enableNullSafety: nullSafety,
-      supportMirrors: supportMirrors,
-      compactAsync: compactAsync);
+      supportMirrors: supportMirrors);
   return getTarget(targetName, targetFlags);
 }
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -15,8 +16,9 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart' show CompileTimeErrorCode;
+import 'package:collection/collection.dart';
 
-Element? _getKnownElement(Expression expression) {
+Element? _getKnownElement(SyntacticEntity expression) {
   if (expression is ParenthesizedExpression) {
     return _getKnownElement(expression.expression);
   } else if (expression is NamedExpression) {
@@ -199,13 +201,21 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
-    _visitForEachParts(node, node.loopVariable.identifier);
+    _visitForEachParts(
+      node,
+      node.loopVariable.name,
+      node.loopVariable.declaredElement,
+    );
     node.visitChildren(this);
   }
 
   @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    _visitForEachParts(node, node.identifier);
+    _visitForEachParts(
+      node,
+      node.identifier.token,
+      node.identifier.staticElement,
+    );
     node.visitChildren(this);
   }
 
@@ -402,9 +412,7 @@ class CodeChecker extends RecursiveAstVisitor {
       assert(methodElement.isOperator);
       var functionType = methodElement.type;
       var paramTypes = functionType.normalParameterTypes;
-      assert(paramTypes.length == 1);
-      assert(functionType.namedParameterTypes.isEmpty);
-      assert(functionType.optionalParameterTypes.isEmpty);
+      var paramType = paramTypes.firstOrNull ?? _typeProvider.dynamicType;
 
       // Refine the return type.
       var rhsType = expr.rightHandSide.typeOrThrow;
@@ -417,7 +425,7 @@ class CodeChecker extends RecursiveAstVisitor {
       );
 
       // Check the argument for an implicit cast.
-      _checkImplicitCast(expr.rightHandSide, to: paramTypes[0], from: rhsType);
+      _checkImplicitCast(expr.rightHandSide, to: paramType, from: rhsType);
 
       // Check the return type for an implicit cast.
       //
@@ -477,14 +485,16 @@ class CodeChecker extends RecursiveAstVisitor {
   ///
   /// If [expr] does not require an implicit cast because it is not related to
   /// [to] or is already a subtype of it, does nothing.
-  void _checkImplicitCast(Expression expr,
+  void _checkImplicitCast(SyntacticEntity expr,
       {required DartType to,
       required DartType from,
       bool opAssign = false,
       bool forSpread = false,
       bool forSpreadKey = false,
       bool forSpreadValue = false}) {
-    expr = expr.unParenthesized;
+    if (expr is Expression) {
+      expr = expr.unParenthesized;
+    }
     if (_needsImplicitCast(expr, to: to, from: from) == true) {
       _recordImplicitCast(expr, to,
           from: from,
@@ -568,8 +578,9 @@ class CodeChecker extends RecursiveAstVisitor {
         expectedElement = _typeProvider.streamElement;
       } else {
         // Future<T> -> FutureOr<T>
-        var typeArg = (type.element == _typeProvider.futureElement)
-            ? (type as InterfaceType).typeArguments[0]
+        var typeArg = (type is InterfaceType &&
+                type.element == _typeProvider.futureElement)
+            ? type.typeArguments[0]
             : _typeProvider.dynamicType;
         return _typeProvider.futureOrType(typeArg);
       }
@@ -635,7 +646,7 @@ class CodeChecker extends RecursiveAstVisitor {
   /// downcast implicitly).
   ///
   /// If [from] is omitted, uses the static type of [expr]
-  bool? _needsImplicitCast(Expression expr,
+  bool? _needsImplicitCast(SyntacticEntity expr,
       {required DartType from, required DartType to}) {
     // Void is considered Top, but may only be *explicitly* cast.
     if (from.isVoid) return null;
@@ -674,7 +685,7 @@ class CodeChecker extends RecursiveAstVisitor {
   ///
   /// This will emit the appropriate error/warning/hint message as well as mark
   /// the AST node.
-  void _recordImplicitCast(Expression expr, DartType to,
+  void _recordImplicitCast(SyntacticEntity expr, DartType to,
       {required DartType from,
       bool opAssign = false,
       bool forSpread = false,
@@ -748,7 +759,7 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   void _recordMessage(
-      AstNode node, ErrorCode errorCode, List<Object> arguments) {
+      SyntacticEntity node, ErrorCode errorCode, List<Object> arguments) {
     var argumentStrings = [
       for (var argument in arguments)
         if (argument is DartType)
@@ -761,16 +772,18 @@ class CodeChecker extends RecursiveAstVisitor {
         ? node.firstTokenAfterCommentAndMetadata.offset
         : node.offset;
     int length = node.end - begin;
-    var source = (node.root as CompilationUnit).declaredElement!.source;
-    _errorReporter.reportError(
-        AnalysisError(source, begin, length, errorCode, argumentStrings));
+    _errorReporter.reportErrorForOffset(
+        errorCode, begin, length, argumentStrings);
   }
 
-  void _visitForEachParts(ForEachParts node, SimpleIdentifier loopVariable) {
-    if (loopVariable.staticElement is! VariableElement) {
+  void _visitForEachParts(
+    ForEachParts node,
+    Token loopVariable,
+    Element? loopVariableElement,
+  ) {
+    if (loopVariableElement is! VariableElement) {
       return;
     }
-    var loopVariableElement = loopVariable.staticElement as VariableElement;
 
     // Safely handle malformed statements.
     Token? awaitKeyword;

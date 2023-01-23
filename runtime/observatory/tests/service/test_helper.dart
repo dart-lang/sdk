@@ -47,10 +47,10 @@ String? _skyShellPath() {
 
 class _ServiceTesteeRunner {
   Future run(
-      {Function? testeeBefore: null,
-      Function? testeeConcurrent: null,
-      bool pause_on_start: false,
-      bool pause_on_exit: false}) async {
+      {Function? testeeBefore = null,
+      Function? testeeConcurrent = null,
+      bool pause_on_start = false,
+      bool pause_on_exit = false}) async {
     if (!pause_on_start) {
       if (testeeBefore != null) {
         final result = testeeBefore();
@@ -73,10 +73,10 @@ class _ServiceTesteeRunner {
   }
 
   void runSync(
-      {Function? testeeBeforeSync: null,
-      Function? testeeConcurrentSync: null,
-      bool pause_on_start: false,
-      bool pause_on_exit: false}) {
+      {Function? testeeBeforeSync = null,
+      Function? testeeConcurrentSync = null,
+      bool pause_on_start = false,
+      bool pause_on_exit = false}) {
     if (!pause_on_start) {
       if (testeeBeforeSync != null) {
         testeeBeforeSync();
@@ -351,15 +351,15 @@ class _ServiceTesterRunner {
     List<DDSTest>? ddsTests,
     List<IsolateTest>? isolateTests,
     List<VMTest>? vmTests,
-    bool pause_on_start: false,
-    bool pause_on_exit: false,
-    bool verbose_vm: false,
-    bool pause_on_unhandled_exceptions: false,
-    bool enable_service_port_fallback: false,
-    bool testeeControlsServer: false,
-    bool enableDds: true,
-    bool enableService: true,
-    bool compileToKernelFirst: false,
+    bool pause_on_start = false,
+    bool pause_on_exit = false,
+    bool verbose_vm = false,
+    bool pause_on_unhandled_exceptions = false,
+    bool enable_service_port_fallback = false,
+    bool testeeControlsServer = false,
+    bool enableDds = true,
+    bool enableService = true,
+    bool compileToKernelFirst = false,
     int port = 0,
   }) {
     if (executableArgs == null) {
@@ -567,13 +567,13 @@ class _ServiceTesterRunner {
 Future runIsolateTests(List<String> mainArgs, List<IsolateTest> tests,
     {Function? testeeBefore,
     Function? testeeConcurrent,
-    bool pause_on_start: false,
-    bool pause_on_exit: false,
-    bool verbose_vm: false,
-    bool pause_on_unhandled_exceptions: false,
-    bool testeeControlsServer: false,
-    bool enableDds: true,
-    bool enableService: true,
+    bool pause_on_start = false,
+    bool pause_on_exit = false,
+    bool verbose_vm = false,
+    bool pause_on_unhandled_exceptions = false,
+    bool testeeControlsServer = false,
+    bool enableDds = true,
+    bool enableService = true,
     List<String>? extraArgs}) async {
   assert(!pause_on_start || testeeBefore == null);
   if (_isTestee()) {
@@ -610,10 +610,10 @@ Future runIsolateTests(List<String> mainArgs, List<IsolateTest> tests,
 void runIsolateTestsSynchronous(List<String> mainArgs, List<IsolateTest> tests,
     {Function? testeeBefore,
     Function? testeeConcurrent,
-    bool pause_on_start: false,
-    bool pause_on_exit: false,
-    bool verbose_vm: false,
-    bool pause_on_unhandled_exceptions: false,
+    bool pause_on_start = false,
+    bool pause_on_exit = false,
+    bool verbose_vm = false,
+    bool pause_on_unhandled_exceptions = false,
     List<String>? extraArgs}) {
   assert(!pause_on_start || testeeBefore == null);
   if (_isTestee()) {
@@ -641,14 +641,14 @@ void runIsolateTestsSynchronous(List<String> mainArgs, List<IsolateTest> tests,
 Future runVMTests(List<String> mainArgs, List<VMTest> tests,
     {Function? testeeBefore,
     Function? testeeConcurrent,
-    bool pause_on_start: false,
-    bool pause_on_exit: false,
-    bool verbose_vm: false,
-    bool pause_on_unhandled_exceptions: false,
-    bool enable_service_port_fallback: false,
-    bool enableDds: true,
-    bool enableService: true,
-    bool compileToKernelFirst: false,
+    bool pause_on_start = false,
+    bool pause_on_exit = false,
+    bool verbose_vm = false,
+    bool pause_on_unhandled_exceptions = false,
+    bool enable_service_port_fallback = false,
+    bool enableDds = true,
+    bool enableService = true,
+    bool compileToKernelFirst = false,
     int port = 0,
     List<String>? extraArgs,
     List<String>? executableArgs}) async {
@@ -685,11 +685,11 @@ Future runVMTests(List<String> mainArgs, List<VMTest> tests,
 Future runDDSTests(List<String> mainArgs, List<DDSTest> tests,
     {Function? testeeBefore,
     Function? testeeConcurrent,
-    bool pause_on_start: false,
-    bool pause_on_exit: false,
-    bool verbose_vm: false,
-    bool pause_on_unhandled_exceptions: false,
-    bool enable_service_port_fallback: false,
+    bool pause_on_start = false,
+    bool pause_on_exit = false,
+    bool verbose_vm = false,
+    bool pause_on_unhandled_exceptions = false,
+    bool enable_service_port_fallback = false,
     int port = 0,
     List<String>? extraArgs,
     List<String>? executableArgs}) async {

@@ -158,8 +158,8 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
       case kWasmEntryPointPragmaName:
         return ParsedEntryPointPragma(PragmaEntryPointType.Default);
       case kWasmExportPragmaName:
-        // Exports are treated as called entry points.
-        return ParsedEntryPointPragma(PragmaEntryPointType.CallOnly);
+        // Exports are treated as entry points.
+        return ParsedEntryPointPragma(PragmaEntryPointType.Default);
       default:
         return null;
     }

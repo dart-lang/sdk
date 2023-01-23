@@ -13,6 +13,7 @@ class CommandLineProblem {
   CommandLineProblem.deprecated(String message)
       : this(templateUnspecified.withArguments(message));
 
+  @override
   String toString() => message.problemMessage;
 }
 
@@ -21,6 +22,7 @@ class ParsedOptions {
   final List<String> arguments = <String>[];
   final Map<String, String> defines = <String, String>{};
 
+  @override
   String toString() => "ParsedArguments($options, $arguments)";
 
   /// Returns arguments stored as line separated text.
@@ -154,13 +156,16 @@ abstract class ValueSpecification<T> {
 }
 
 class AliasValue<T> extends ValueSpecification<T> {
+  @override
   final String alias;
 
   const AliasValue(this.alias);
 
+  @override
   bool get requiresValue =>
       throw new UnsupportedError("AliasValue.requiresValue");
 
+  @override
   void processValue(ParsedOptions result, String canonicalArgument,
       String argument, String? value) {
     throw new UnsupportedError("AliasValue.processValue");
@@ -170,6 +175,7 @@ class AliasValue<T> extends ValueSpecification<T> {
 class UriValue extends ValueSpecification<Uri?> {
   const UriValue();
 
+  @override
   void processValue(ParsedOptions result, String canonicalArgument,
       String argument, String? value) {
     if (result.options.containsKey(canonicalArgument)) {
@@ -184,10 +190,12 @@ class UriValue extends ValueSpecification<Uri?> {
 }
 
 class StringValue extends ValueSpecification<String?> {
+  @override
   final String? defaultValue;
 
   const StringValue({this.defaultValue});
 
+  @override
   void processValue(ParsedOptions result, String canonicalArgument,
       String argument, String? value) {
     if (result.options.containsKey(canonicalArgument)) {
@@ -200,12 +208,15 @@ class StringValue extends ValueSpecification<String?> {
 }
 
 class BoolValue extends ValueSpecification<bool?> {
+  @override
   final bool? defaultValue;
 
   const BoolValue(this.defaultValue);
 
+  @override
   bool get requiresValue => false;
 
+  @override
   void processValue(ParsedOptions result, String canonicalArgument,
       String argument, String? value) {
     if (result.options.containsKey(canonicalArgument)) {
@@ -228,13 +239,16 @@ class BoolValue extends ValueSpecification<bool?> {
 }
 
 class IntValue extends ValueSpecification<int?> {
+  @override
   final int? defaultValue;
   final int? noArgValue;
 
   const IntValue({this.defaultValue, this.noArgValue});
 
+  @override
   bool get requiresValue => noArgValue == null;
 
+  @override
   void processValue(ParsedOptions result, String canonicalArgument,
       String argument, String? value) {
     if (result.options.containsKey(canonicalArgument)) {
@@ -257,6 +271,7 @@ class IntValue extends ValueSpecification<int?> {
 class DefineValue extends ValueSpecification<Map<String, String>> {
   const DefineValue();
 
+  @override
   void processValue(ParsedOptions result, String canonicalArgument,
       String argument, String? value) {
     int index = value!.indexOf('=');
@@ -276,6 +291,7 @@ class DefineValue extends ValueSpecification<Map<String, String>> {
 class StringListValue extends ValueSpecification<List<String>?> {
   const StringListValue();
 
+  @override
   void processValue(ParsedOptions result, String canonicalArgument,
       String argument, String? value) {
     List<String> values = result.options[canonicalArgument] ??= <String>[];
@@ -286,6 +302,7 @@ class StringListValue extends ValueSpecification<List<String>?> {
 class UriListValue extends ValueSpecification<List<Uri>?> {
   const UriListValue();
 
+  @override
   void processValue(ParsedOptions result, String canonicalArgument,
       String argument, String? value) {
     List<Uri> values = result.options[canonicalArgument] ??= <Uri>[];
@@ -303,7 +320,7 @@ class Option<T> {
   final List<String> aliases;
 
   const Option(this.flag, this.spec,
-      {this.isDefines: false, this.aliases: const []});
+      {this.isDefines = false, this.aliases = const []});
 
   T read(ParsedOptions parsedOptions) =>
       (isDefines ? parsedOptions.defines : parsedOptions.options[flag]) as T;

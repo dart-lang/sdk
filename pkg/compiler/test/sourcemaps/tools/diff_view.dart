@@ -207,7 +207,7 @@ class AnnotatedOutput {
 
 void outputDiffView(
     String out, List<AnnotatedOutput> outputs, List<DiffBlock> blocks,
-    {bool showMarkers: true, bool showSourceMapped: true}) {
+    {bool showMarkers = true, bool showSourceMapped = true}) {
   assert(outputs[0].filename == outputs[1].filename);
   bool usePre = true;
 
@@ -722,7 +722,7 @@ Future<CodeLinesResult> computeCodeLines(
   void addCodeLineAnnotation(
       {AnnotationType annotationType,
       int codeOffset,
-      List<SourceLocation> locations: const <SourceLocation>[],
+      List<SourceLocation> locations = const <SourceLocation>[],
       String stepInfo}) {
     if (annotationType == AnnotationType.WITHOUT_SOURCE_INFO ||
         annotationType == AnnotationType.UNUSED_SOURCE_INFO) {

@@ -208,10 +208,17 @@ class Simulator {
   void InterpretOP_0(Instr instr);
   void InterpretOP_SUB(Instr instr);
   void InterpretOP_MULDIV(Instr instr);
+  void InterpretOP_SHADD(Instr instr);
+  void InterpretOP_MINMAXCLMUL(Instr instr);
+  void InterpretOP_ROTATE(Instr instr);
+  void InterpretOP_BCLRBEXT(Instr instr);
   void InterpretOP32(Instr instr);
   void InterpretOP32_0(Instr instr);
   void InterpretOP32_SUB(Instr instr);
   void InterpretOP32_MULDIV(Instr instr);
+  void InterpretOP32_SHADD(Instr instr);
+  void InterpretOP32_ADDUW(Instr instr);
+  void InterpretOP32_ROTATE(Instr instr);
   void InterpretMISCMEM(Instr instr);
   void InterpretSYSTEM(Instr instr);
   void InterpretECALL(Instr instr);

@@ -4,10 +4,14 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'ast_test.dart' as ast;
 import 'range_factory_test.dart' as range_factory;
+import 'string_test.dart' as string;
 
 void main() {
   defineReflectiveSuite(() {
+    ast.main();
     range_factory.main();
+    string.main();
   });
 }

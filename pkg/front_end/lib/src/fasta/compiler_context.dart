@@ -123,7 +123,7 @@ class CompilerContext {
   /// `CompilerContext.current.options`.
   static Future<T> runWithOptions<T>(
       ProcessedOptions options, Future<T> action(CompilerContext c),
-      {bool errorOnMissingInput: true}) {
+      {bool errorOnMissingInput = true}) {
     return new CompilerContext(options)
         .runInContext<T>((CompilerContext c) async {
       await options.validateOptions(errorOnMissingInput: errorOnMissingInput);

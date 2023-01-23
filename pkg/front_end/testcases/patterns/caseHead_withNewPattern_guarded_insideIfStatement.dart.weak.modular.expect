@@ -1,0 +1,10 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method f(dynamic x) → void {
+  final dynamic #t1 = x;
+  final core::int #t2 = #t1 as{ForNonNullableByDefault} core::int;
+  if(#t2 =={core::num::==}{(core::Object) → core::bool} 0) {
+  }
+}

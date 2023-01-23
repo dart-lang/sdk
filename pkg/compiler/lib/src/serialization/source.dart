@@ -217,9 +217,24 @@ class DataSourceReader {
   /// from a file other than the one currently being read from.
   E readWithSource<E>(DataSourceReader source, E f()) {
     final lastSource = _sourceReader;
+    final lastEntityReader = _entityReader;
+    final lastEntityLookup = _entityLookup;
+    final lastLocalLookup = _localLookup;
+    final lastComponentLookup = _componentLookup;
+    final lastCodegenReader = _codegenReader;
     _sourceReader = source._sourceReader;
+    _entityReader = source._entityReader;
+    _entityLookup = source._entityLookup;
+    _localLookup = source._localLookup;
+    _componentLookup = source._componentLookup;
+    _codegenReader = source._codegenReader;
     final value = f();
     _sourceReader = lastSource;
+    _entityReader = lastEntityReader;
+    _entityLookup = lastEntityLookup;
+    _localLookup = lastLocalLookup;
+    _componentLookup = lastComponentLookup;
+    _codegenReader = lastCodegenReader;
     return value;
   }
 
@@ -239,7 +254,7 @@ class DataSourceReader {
   /// Invoke [f] in the context of [member]. This sets up support for
   /// deserialization of `ir.TreeNode`s using the `readTreeNode*InContext`
   /// methods.
-  T inMemberContext<T>(ir.Member context, T f()) {
+  T inMemberContext<T>(ir.Member? context, T f()) {
     ir.Member? oldMemberContext = _currentMemberContext;
     MemberData? oldMemberData = _currentMemberData;
     _currentMemberContext = context;
@@ -376,6 +391,24 @@ class DataSourceReader {
       list[i] = readString();
     }
     return list;
+  }
+
+  /// Reads a map from [Name] values to [V] values from this data source,
+  /// calling [f] to read each value from the data source. If [emptyAsNull] is
+  /// `true`, `null` is returned instead of an empty map.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSinkWriter.writeNameMap].
+  Map<Name, V>? readNameMap<V>(V f(), {bool emptyAsNull = false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    Map<Name, V> map = {};
+    for (int i = 0; i < count; i++) {
+      Name key = readMemberName();
+      V value = f();
+      map[key] = value;
+    }
+    return map;
   }
 
   /// Reads a map from string values to [V] values from this data source,
@@ -535,6 +568,14 @@ class DataSourceReader {
     String text = readString();
     ir.Library? library = readValueOrNull(readLibraryNode);
     return ir.Name(text, library);
+  }
+
+  /// Reads a [Name] from this data source.
+  Name readMemberName() {
+    String text = readString();
+    Uri? uri = readValueOrNull(readUri);
+    bool setter = readBool();
+    return Name(text, uri, isSetter: setter);
   }
 
   /// Reads a kernel library dependency node from this data source.
@@ -800,16 +841,26 @@ class DataSourceReader {
         ir.Nullability typeParameterTypeNullability =
             readEnum(ir.Nullability.values);
         ir.DartType? promotedBound = _readDartTypeNode(functionTypeVariables);
-        return ir.TypeParameterType(
-            typeParameter, typeParameterTypeNullability, promotedBound);
+        ir.TypeParameterType typeParameterType =
+            ir.TypeParameterType(typeParameter, typeParameterTypeNullability);
+        if (promotedBound == null) {
+          return typeParameterType;
+        } else {
+          return ir.IntersectionType(typeParameterType, promotedBound);
+        }
       case DartTypeNodeKind.functionTypeVariable:
         int index = readInt();
         assert(0 <= index && index < functionTypeVariables.length);
         ir.Nullability typeParameterTypeNullability =
             readEnum(ir.Nullability.values);
         ir.DartType? promotedBound = _readDartTypeNode(functionTypeVariables);
-        return ir.TypeParameterType(functionTypeVariables[index],
-            typeParameterTypeNullability, promotedBound);
+        ir.TypeParameterType typeParameterType = ir.TypeParameterType(
+            functionTypeVariables[index], typeParameterTypeNullability);
+        if (promotedBound == null) {
+          return typeParameterType;
+        } else {
+          return ir.IntersectionType(typeParameterType, promotedBound);
+        }
       case DartTypeNodeKind.functionType:
         begin(functionTypeNodeTag);
         int typeParameterCount = readInt();
@@ -831,14 +882,7 @@ class DataSourceReader {
         int requiredParameterCount = readInt();
         List<ir.DartType> positionalParameters =
             _readDartTypeNodes(functionTypeVariables);
-        int namedParameterCount = readInt();
-        final namedParameters =
-            List<ir.NamedType>.generate(namedParameterCount, (index) {
-          String name = readString();
-          bool isRequired = readBool();
-          ir.DartType type = _readDartTypeNode(functionTypeVariables)!;
-          return ir.NamedType(name, type, isRequired: isRequired);
-        }, growable: false);
+        final namedParameters = _readNamedTypeNodes(functionTypeVariables);
         end(functionTypeNodeTag);
         return ir.FunctionType(positionalParameters, returnType, nullability,
             namedParameters: namedParameters,
@@ -863,6 +907,12 @@ class DataSourceReader {
         List<ir.DartType> typeArguments =
             _readDartTypeNodes(functionTypeVariables);
         return ExactInterfaceType(cls, nullability, typeArguments);
+      case DartTypeNodeKind.recordType:
+        ir.Nullability nullability = readEnum(ir.Nullability.values);
+        List<ir.DartType> positional =
+            _readDartTypeNodes(functionTypeVariables);
+        List<ir.NamedType> named = _readNamedTypeNodes(functionTypeVariables);
+        return ir.RecordType(positional, named, nullability);
       case DartTypeNodeKind.typedef:
         ir.Typedef typedef = readTypedefNode();
         ir.Nullability nullability = readEnum(ir.Nullability.values);
@@ -878,6 +928,18 @@ class DataSourceReader {
       case DartTypeNodeKind.nullType:
         return const ir.NullType();
     }
+  }
+
+  List<ir.NamedType> _readNamedTypeNodes(
+      List<ir.TypeParameter> functionTypeVariables) {
+    int count = readInt();
+    if (count == 0) return const [];
+    return List<ir.NamedType>.generate(count, (index) {
+      String name = readString();
+      bool isRequired = readBool();
+      ir.DartType type = _readDartTypeNode(functionTypeVariables)!;
+      return ir.NamedType(name, type, isRequired: isRequired);
+    }, growable: false);
   }
 
   /// Reads a list of kernel type nodes from this data source.

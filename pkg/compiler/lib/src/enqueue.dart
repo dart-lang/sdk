@@ -44,7 +44,7 @@ abstract class EnqueuerListener {
   WorldImpact registerUsedConstant(ConstantValue value);
 
   void onQueueOpen(
-      Enqueuer enqueuer, FunctionEntity mainMethod, Iterable<Uri> libraries);
+      Enqueuer enqueuer, FunctionEntity? mainMethod, Iterable<Uri> libraries);
 
   /// Called when [enqueuer]'s queue is empty, but before it is closed.
   ///
@@ -115,7 +115,7 @@ abstract class Enqueuer {
   void processConstantUse(ConstantUse constantUse);
   EnqueuerListener get listener;
 
-  void open(FunctionEntity mainMethod, Iterable<Uri> libraries) {
+  void open(FunctionEntity? mainMethod, Iterable<Uri> libraries) {
     listener.onQueueOpen(this, mainMethod, libraries);
   }
 
@@ -141,5 +141,5 @@ abstract class Enqueuer {
 
 /// Interface for creating work items for enqueued member entities.
 abstract class WorkItemBuilder {
-  WorkItem createWorkItem(covariant MemberEntity entity);
+  WorkItem? createWorkItem(covariant MemberEntity entity);
 }

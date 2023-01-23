@@ -210,7 +210,7 @@ const a = const A();
 ''');
 
     var aLib = findElement.import('package:test/a.dart').importedLibrary!;
-    var aConstructor = aLib.getType('A')!.constructors.single;
+    var aConstructor = aLib.getClass('A')!.constructors.single;
     var p = aConstructor.parameters.single as DefaultParameterElementImpl;
 
     // To evaluate `const A()` we have to evaluate `{int p}`.
@@ -374,7 +374,7 @@ class A {
   final bool f1;
   final bool f2;
 
-  const A({this.f1: false}) : this.f2 = f1 && true;
+  const A({this.f1 = false}) : this.f2 = f1 && true;
 }
 ''');
 

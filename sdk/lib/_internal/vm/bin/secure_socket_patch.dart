@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "common_patch.dart";
+part of "common_patch.dart";
 
 @patch
 class SecureSocket {
@@ -31,9 +31,9 @@ class _SecureSocket extends _Socket implements SecureSocket {
   _SecureSocket(RawSecureSocket raw) : super(raw);
 
   void renegotiate(
-      {bool useSessionCache: true,
-      bool requestClientCertificate: false,
-      bool requireClientCertificate: false}) {}
+      {bool useSessionCache = true,
+      bool requestClientCertificate = false,
+      bool requireClientCertificate = false}) {}
 
   X509Certificate? get peerCertificate {
     if (_raw == null) {
@@ -167,11 +167,12 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
   external X509Certificate? get peerCertificate;
 
   @pragma("vm:external-name", "SecureSocket_RegisterBadCertificateCallback")
-  external void _registerBadCertificateCallback(Function callback);
+  external void _registerBadCertificateCallback(
+      bool Function(X509Certificate) callback);
 
-  Function? badCertificateCallback;
+  bool Function(X509Certificate)? badCertificateCallback;
 
-  void registerBadCertificateCallback(Function callback) {
+  void registerBadCertificateCallback(bool Function(X509Certificate) callback) {
     badCertificateCallback = callback;
     _registerBadCertificateCallback(callback);
   }
@@ -194,7 +195,7 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
 @patch
 class SecurityContext {
   @patch
-  factory SecurityContext({bool withTrustedRoots: false}) {
+  factory SecurityContext({bool withTrustedRoots = false}) {
     return new _SecurityContext(withTrustedRoots);
   }
 

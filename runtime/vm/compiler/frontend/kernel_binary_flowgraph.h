@@ -82,29 +82,23 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                              bool constructor);
 
   // Pieces of the prologue. They are all agnostic to the current Kernel offset.
-  Fragment BuildEveryTimePrologue(const Function& dart_function,
-                                  TokenPosition token_position,
-                                  intptr_t type_parameters_offset);
-  Fragment BuildFirstTimePrologue(const Function& dart_function,
-                                  LocalVariable* first_parameter,
-                                  intptr_t type_parameters_offset);
+  Fragment BuildRegularFunctionPrologue(const Function& dart_function,
+                                        TokenPosition token_position,
+                                        LocalVariable* first_parameter);
   Fragment ClearRawParameters(const Function& dart_function);
   Fragment DebugStepCheckInPrologue(const Function& dart_function,
                                     TokenPosition position);
-  Fragment SetAsyncStackTrace(const Function& dart_function);
   Fragment CheckStackOverflowInPrologue(const Function& dart_function);
   Fragment SetupCapturedParameters(const Function& dart_function);
   Fragment InitSuspendableFunction(const Function& dart_function);
   Fragment ShortcutForUserDefinedEquals(const Function& dart_function,
                                         LocalVariable* first_parameter);
   Fragment TypeArgumentsHandling(const Function& dart_function);
-  Fragment CompleteBodyWithYieldContinuations(Fragment body);
 
   static UncheckedEntryPointStyle ChooseEntryPointStyle(
       const Function& dart_function,
       const Fragment& implicit_type_checks,
-      const Fragment& first_time_prologue,
-      const Fragment& every_time_prologue,
+      const Fragment& regular_function_prologue,
       const Fragment& type_args_handling);
 
   void loop_depth_inc();
@@ -131,7 +125,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   TryFinallyBlock* try_finally_block();
   SwitchBlock* switch_block();
   BreakableBlock* breakable_block();
-  GrowableArray<YieldContinuation>& yield_continuations();
   Value* stack();
   void set_stack(Value* top);
   void Push(Definition* definition);
@@ -159,10 +152,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   void InlineBailout(const char* reason);
   Fragment DebugStepCheck(TokenPosition position);
   Fragment LoadLocal(LocalVariable* variable);
-  Fragment IndirectGoto(intptr_t target_count);
-  Fragment Return(
-      TokenPosition position,
-      intptr_t yield_index = UntaggedPcDescriptors::kInvalidYieldIndex);
+  IndirectGotoInstr* IndirectGoto(intptr_t target_count);
+  Fragment Return(TokenPosition position);
   Fragment EvaluateAssertion();
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment ThrowNoSuchMethodError(const Function& target,
@@ -239,7 +230,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                         bool negate);
   Fragment BranchIfEqual(TargetEntryInstr** then_entry,
                          TargetEntryInstr** otherwise_entry,
-                         bool negate);
+                         bool negate = false);
   Fragment BranchIfNull(TargetEntryInstr** then_entry,
                         TargetEntryInstr** otherwise_entry,
                         bool negate = false);
@@ -319,6 +310,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                                               TestFragment* side_exits);
   Fragment BuildConditionalExpression(TokenPosition* position);
   Fragment BuildStringConcatenation(TokenPosition* position);
+  Fragment BuildIsTest(TokenPosition position, const AbstractType& type);
+  Fragment BuildRecordIsTest(TokenPosition position, const RecordType& type);
   Fragment BuildIsExpression(TokenPosition* position);
   Fragment BuildAsExpression(TokenPosition* position);
   Fragment BuildTypeLiteral(TokenPosition* position);
@@ -327,6 +320,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildThrow(TokenPosition* position);
   Fragment BuildListLiteral(TokenPosition* position);
   Fragment BuildMapLiteral(TokenPosition* position);
+  Fragment BuildRecordLiteral(TokenPosition* position);
+  Fragment BuildRecordFieldGet(TokenPosition* position, bool is_named);
   Fragment BuildFunctionExpression();
   Fragment BuildLet(TokenPosition* position);
   Fragment BuildBlockExpression();
@@ -356,6 +351,12 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildForStatement(TokenPosition* position);
   Fragment BuildForInStatement(bool async, TokenPosition* position);
   Fragment BuildSwitchStatement(TokenPosition* position);
+  Fragment BuildSwitchCase(SwitchHelper* helper, intptr_t case_index);
+  Fragment BuildLinearScanSwitch(SwitchHelper* helper);
+  Fragment BuildOptimizedSwitchPrelude(SwitchHelper* helper,
+                                       JoinEntryInstr* join);
+  Fragment BuildBinarySearchSwitch(SwitchHelper* helper);
+  Fragment BuildJumpTableSwitch(SwitchHelper* helper);
   Fragment BuildContinueSwitchStatement(TokenPosition* position);
   Fragment BuildIfStatement(TokenPosition* position);
   Fragment BuildReturnStatement(TokenPosition* position);

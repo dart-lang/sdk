@@ -99,7 +99,7 @@ class U88<T> {
   late List<T> Function<A>(List<A> x) Function() x21;
   late void Function<A>(int x) Function() x22;
 
-  U88({this.tIsBool: false, this.tIsInt: false})
+  U88({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   Function m0(int y, {List<Function> x = const []}) => throw 'uncalled';

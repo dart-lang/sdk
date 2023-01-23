@@ -4,36 +4,52 @@
 
 # Status file for the weak_suite.dart test suite.
 
+macros/scope_access: SemiFuzzCrash
+
 const_functions/const_functions_list: SemiFuzzCrash
 generic_metadata/typedef_generic_types_in_arguments_and_bounds: SemiFuzzCrash
-nnbd_mixed/mixed_mixin: SemiFuzzFailure
-no_such_method_forwarders/abstract_override_abstract_different_type: SemiFuzzFailure
-no_such_method_forwarders/abstract_override_with_different_signature: SemiFuzzFailure
 
-dart2js/mixin_super/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49339
 dart2js/late_fields_with_annotation: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49415
-macros/augment_concrete: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49414
-
+dart2js/mixin_super/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49339
 dart2js/tear_off_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
+extensions/explicit_invalid_access: Crash # https://github.com/dart-lang/sdk/issues/50575
 general/constants/with_unevaluated_agnostic/various_2: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242441
+general/fallthrough: RuntimeError # Fallthrough cases in switch.
+general/issue40242: Crash # https://github.com/dart-lang/sdk/issues/50575
+general/issue48765: semiFuzzFailureOnForceRebuildBodies # private class
+general/mixin_from_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
+general/multiple_class_patches/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 general/no_such_method_forwarder: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242444
+general/sealed_class_declaration: SemiFuzzFailure # "sealed" experimental feature.
 general/tear_off_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
+general/view_class_declaration: SemiFuzzFailure # "view" doesn't appear to get into the reordering (experimental feature).
 general/with_dependencies/issue_43084/issue_43084: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242543
-inference_update_1/horizontal_inference_extension_method: semiFuzzFailureOnForceRebuildBodies # Errors on split
 inference_update_1/horizontal_inference_extension_method: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/245004
+inference_update_1/horizontal_inference_extension_method: semiFuzzFailureOnForceRebuildBodies # Errors on split
+inference_update_2/basic_field_promotion: semiFuzzFailureOnForceRebuildBodies # Private fields.
+inference_update_2/disabled: semiFuzzFailureOnForceRebuildBodies # Private fields.
+inference_update_2/field_promotion_and_no_such_method: semiFuzzFailureOnForceRebuildBodies # Private fields.
+inference_update_2/field_promotion_name_conflicts: semiFuzzFailureOnForceRebuildBodies # Private fields.
 late_lowering/private_members: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242285
+macros/augment_concrete: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49414
+macros/extend_augmented: SemiFuzzFailure # Similar to https://github.com/dart-lang/sdk/issues/49414
+macros/multiple_augment_class: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49990
 macros/multiple_imports: SemiFuzzFailure # probably augment imports that isn't split correctly.
+nnbd/constants: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242441
 nnbd_mixed/hierarchy/in_dill_out_in/in_out_in: SemiFuzzFailure # lots of stuff --- not digging in for now
 nnbd_mixed/hierarchy/in_out_dill_in/in_out_in: SemiFuzzFailure # lots of stuff --- not digging in for now
 nnbd_mixed/hierarchy/in_out_in: SemiFuzzFailure # lots of stuff --- not digging in for now
-nnbd_mixed/issue43988/main: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242540 and https://dart-review.googlesource.com/c/sdk/+/242446
 nnbd_mixed/issue43988/main.no_link: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242540 and https://dart-review.googlesource.com/c/sdk/+/242446
+nnbd_mixed/issue43988/main: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242540 and https://dart-review.googlesource.com/c/sdk/+/242446
 nnbd_mixed/member_inheritance_from_opt_in: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242446
-nnbd/constants: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242441
+nnbd_mixed/mixed_mixin: SemiFuzzFailure
+no_such_method_forwarders/abstract_accessors_from_field: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
 no_such_method_forwarders/abstract_accessors_from_field_one_defined: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
 no_such_method_forwarders/abstract_accessors_from_field_with_substitution: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
-no_such_method_forwarders/abstract_accessors_from_field: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
+no_such_method_forwarders/abstract_override_abstract_different_type: SemiFuzzFailure
+no_such_method_forwarders/abstract_override_with_different_signature: SemiFuzzFailure
 no_such_method_forwarders/default_argument_values: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
+rasta/malformed_function: Crash # https://github.com/dart-lang/sdk/issues/50575
 variance/generic_covariance_sound_variance: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
 
 dart2js/flutter_issue94561/main: SemiFuzzFailure
@@ -107,6 +123,7 @@ extension_types/access_setter_as_getter: ExpectationFileMismatchSerialized # Exp
 extension_types/call_not_get: ExpectationFileMismatchSerialized # Expected.
 extension_types/extension_on_nullable: ExpectationFileMismatchSerialized # Expected.
 extension_types/issue45775: ExpectationFileMismatchSerialized # Expected.
+extension_types/non_simple_many_libs_same_name_cycle: ExpectationFileMismatchSerialized
 extension_types/show_and_run_ceil: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_getter_resolution: ExpectationFileMismatchSerialized # Expected.
@@ -169,7 +186,6 @@ general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
 general/override_setter_with_field: TypeCheckError
 general/redirecting_factory: RuntimeError
 general/spread_collection: RuntimeError
-general/super_semi_stub: TypeCheckError
 general/type_variable_as_super: RuntimeError
 general/unsound_promotion: TypeCheckError
 general/void_methods: RuntimeError
@@ -194,6 +210,7 @@ inference/override_equals: RuntimeError
 inference_new/infer_assign_to_index_super_upwards: TypeCheckError
 inference_new/infer_assign_to_index_this_upwards: TypeCheckError
 inference_new/infer_assign_to_index_upwards: TypeCheckError
+inference_update_2/call_invocation_with_hoisting: TypeCheckError
 late_lowering/covariant_late_field: TypeCheckError
 nnbd/covariant_late_field: TypeCheckError
 nnbd/getter_vs_setter_type: TypeCheckError
@@ -248,8 +265,6 @@ rasta/unresolved_constructor: RuntimeError
 rasta/unresolved_for_in: RuntimeError
 regress/issue_29976: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_29982: RuntimeError # Tests runtime behavior of error recovery.
-regress/issue_31180: TypeCheckError
-regress/issue_31180_2: TypeCheckError
 regress/issue_32972: RuntimeError
 regress/issue_33452: RuntimeError # Test has an intentional error
 regress/issue_34225: RuntimeError

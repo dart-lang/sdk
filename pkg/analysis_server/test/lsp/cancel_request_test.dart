@@ -33,7 +33,7 @@ void f() {
     final completionRequest = makeRequest(
       Method.textDocument_completion,
       CompletionParams(
-        textDocument: TextDocumentIdentifier(uri: mainFileUri.toString()),
+        textDocument: TextDocumentIdentifier(uri: mainFileUri),
         position: positionFromMarker(content),
       ),
     );

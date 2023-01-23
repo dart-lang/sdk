@@ -52,6 +52,7 @@ worlds:
         }
     errors: true
     expectedLibraryCount: 3
+    advancedInvalidation: outlineChange
   - entry: main.dart
     worldType: updated
     expectInitializeFromDill: false
@@ -66,3 +67,4 @@ worlds:
           b();
         }
     expectedLibraryCount: 3
+    advancedInvalidation: problemsInLibrary

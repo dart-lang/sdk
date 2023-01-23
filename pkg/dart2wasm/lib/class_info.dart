@@ -21,13 +21,18 @@ class FieldIndex {
   static const boxValue = 1;
   static const identityHash = 1;
   static const stringArray = 2;
+  static const listArray = 4;
   static const hashBaseIndex = 2;
   static const hashBaseData = 4;
   static const closureContext = 2;
-  static const closureFunction = 3;
-  static const typeIsNullable = 2;
+  static const closureVtable = 3;
+  static const closureRuntimeType = 4;
+  static const vtableInstantiationFunction = 0;
+  static const instantiationContextInner = 0;
+  static const instantiationContextTypeArgumentsBase = 1;
+  static const typeIsDeclaredNullable = 2;
   static const interfaceTypeTypeArguments = 4;
-  static const functionTypeNamedParameters = 6;
+  static const functionTypeNamedParameters = 7;
   static const typedListBaseLength = 2;
   static const typedListArray = 3;
   static const typedListViewTypedData = 3;
@@ -50,10 +55,12 @@ class FieldIndex {
     check(translator.boxedDoubleClass, "value", FieldIndex.boxValue);
     check(translator.oneByteStringClass, "_array", FieldIndex.stringArray);
     check(translator.twoByteStringClass, "_array", FieldIndex.stringArray);
+    check(translator.listBaseClass, "_data", FieldIndex.listArray);
     check(translator.hashFieldBaseClass, "_index", FieldIndex.hashBaseIndex);
     check(translator.hashFieldBaseClass, "_data", FieldIndex.hashBaseData);
     check(translator.functionClass, "context", FieldIndex.closureContext);
-    check(translator.typeClass, "isNullable", FieldIndex.typeIsNullable);
+    check(translator.typeClass, "isDeclaredNullable",
+        FieldIndex.typeIsDeclaredNullable);
     check(translator.interfaceTypeClass, "typeArguments",
         FieldIndex.interfaceTypeTypeArguments);
     check(translator.functionTypeClass, "namedParameters",
@@ -61,6 +68,8 @@ class FieldIndex {
   }
 }
 
+/// Initial value for the hash code field of objects. This value is recognized
+/// by `Object._objectHashCode` wich updates the field first time it's read.
 const int initialIdentityHash = 0;
 
 /// Information about the Wasm representation for a class.
@@ -78,9 +87,6 @@ class ClassInfo {
   /// The Wasm struct used to represent instances of this class. A class will
   /// sometimes use the same struct as its superclass.
   final w.StructType struct;
-
-  /// Wasm global containing the RTT for this class.
-  late final w.DefinedGlobal rtt;
 
   /// The superclass for this class. This will usually be the Dart superclass,
   /// but there are a few exceptions, where the Wasm type hierarchy does not
@@ -100,18 +106,20 @@ class ClassInfo {
   /// All classes which implement this class. This is used to compute `repr`.
   final List<ClassInfo> implementedBy = [];
 
-  late final w.RefType nullableType = w.RefType.def(struct, nullable: true);
-  late final w.RefType nonNullableType = w.RefType.def(struct, nullable: false);
+  /// Nullabe Wasm ref type for this class.
+  final w.RefType nullableType;
 
+  /// Non-nullable Wasm ref type for this class.
+  final w.RefType nonNullableType;
+
+  /// Get Wasm ref type for this class with given nullability.
   w.RefType typeWithNullability(bool nullable) =>
       nullable ? nullableType : nonNullableType;
 
   ClassInfo(this.cls, this.classId, this.depth, this.struct, this.superInfo,
-      ClassInfoCollector collector,
-      {this.typeParameterMatch = const {}}) {
-    if (collector.options.useRttGlobals) {
-      rtt = collector.makeRtt(struct, superInfo);
-    }
+      {this.typeParameterMatch = const {}})
+      : nullableType = w.RefType.def(struct, nullable: true),
+        nonNullableType = w.RefType.def(struct, nullable: false) {
     implementedBy.add(this);
   }
 
@@ -145,9 +153,15 @@ ClassInfo upperBound(Iterable<ClassInfo> classes) {
 /// Constructs the Wasm type hierarchy.
 class ClassInfoCollector {
   final Translator translator;
-  int nextClassId = 0;
+  int _nextClassId = 0;
   late final ClassInfo topInfo;
 
+  /// Wasm field type for fields with type [_Type]. Fields of this type are
+  /// added to classes for type parameters.
+  ///
+  /// This field is initialized when a class with a type parameter is first
+  /// encountered. Initialization depends on [Translator] visiting the [_Type]
+  /// class first and creating a [ClassInfo] for it.
   late final w.FieldType typeType =
       w.FieldType(translator.classInfo[translator.typeClass]!.nullableType);
 
@@ -157,25 +171,9 @@ class ClassInfoCollector {
 
   TranslatorOptions get options => translator.options;
 
-  w.DefinedGlobal makeRtt(w.StructType struct, ClassInfo? superInfo) {
-    assert(options.useRttGlobals);
-    int depth = superInfo != null ? superInfo.depth + 1 : 0;
-    final w.DefinedGlobal rtt =
-        m.addGlobal(w.GlobalType(w.Rtt(struct, depth), mutable: false));
-    final w.Instructions b = rtt.initializer;
-    if (superInfo != null) {
-      b.global_get(superInfo.rtt);
-      b.rtt_sub(struct);
-    } else {
-      b.rtt_canon(struct);
-    }
-    b.end();
-    return rtt;
-  }
-
   void initializeTop() {
-    final w.StructType struct = translator.structType("#Top");
-    topInfo = ClassInfo(null, nextClassId++, 0, struct, null, this);
+    final w.StructType struct = m.addStructType("#Top");
+    topInfo = ClassInfo(null, _nextClassId++, 0, struct, null);
     translator.classes.add(topInfo);
     translator.classForHeapType[struct] = topInfo;
   }
@@ -187,9 +185,9 @@ class ClassInfoCollector {
       if (superclass == null) {
         ClassInfo superInfo = topInfo;
         final w.StructType struct =
-            translator.structType(cls.name, superType: superInfo.struct);
+            m.addStructType(cls.name, superType: superInfo.struct);
         info = ClassInfo(
-            cls, nextClassId++, superInfo.depth + 1, struct, superInfo, this);
+            cls, _nextClassId++, superInfo.depth + 1, struct, superInfo);
         // Mark Top type as implementing Object to force the representation
         // type of Object to be Top.
         info.implementedBy.add(topInfo);
@@ -201,15 +199,13 @@ class ClassInfoCollector {
         }
 
         // In the Wasm type hierarchy, Object, bool and num sit directly below
-        // the Top type. The implementation classes (_StringBase, _Type and the
-        // box classes) sit directly below the public classes they implement.
+        // the Top type. The implementation classes _StringBase and _Type sit
+        // directly below the public classes they implement.
         // All other classes sit below their superclass.
         ClassInfo superInfo = cls == translator.coreTypes.boolClass ||
                 cls == translator.coreTypes.numClass
             ? topInfo
-            : cls == translator.stringBaseClass ||
-                    cls == translator.typeClass ||
-                    translator.boxedClasses.values.contains(cls)
+            : cls == translator.stringBaseClass || cls == translator.typeClass
                 ? translator.classInfo[cls.implementedTypes.single.classNode]!
                 : translator.classInfo[superclass]!;
 
@@ -248,9 +244,9 @@ class ClassInfoCollector {
                 cls != translator.byteDataViewClass;
         w.StructType struct = canReuseSuperStruct
             ? superInfo.struct
-            : translator.structType(cls.name, superType: superInfo.struct);
+            : m.addStructType(cls.name, superType: superInfo.struct);
         info = ClassInfo(
-            cls, nextClassId++, superInfo.depth + 1, struct, superInfo, this,
+            cls, _nextClassId++, superInfo.depth + 1, struct, superInfo,
             typeParameterMatch: typeParameterMatch);
 
         // Mark all interfaces as being implemented by this class. This is
@@ -269,7 +265,7 @@ class ClassInfoCollector {
     }
   }
 
-  void computeRepresentation(ClassInfo info) {
+  void _computeRepresentation(ClassInfo info) {
     info.repr = upperBound(info.implementedBy);
   }
 
@@ -304,7 +300,7 @@ class ClassInfoCollector {
         if (field.isInstanceMember) {
           w.ValueType wasmType = translator.translateType(field.type);
           // TODO(askesc): Generalize this check for finer nullability control
-          if (wasmType != w.RefType.data()) {
+          if (wasmType != w.RefType.data(nullable: false)) {
             wasmType = wasmType.withNullability(true);
           }
           translator.fieldIndex[field] = info.struct.fields.length;
@@ -320,13 +316,20 @@ class ClassInfoCollector {
     }
   }
 
+  /// Create class info and Wasm struct for all classes.
   void collect() {
-    // Create class info and Wasm structs for all classes.
     initializeTop();
-    // Subclasses of the [_Function] class are generated on the fly as fields
-    // with function types are encountered. Therefore, this class must be early
-    // in the initialization order.
+
+    // Subclasses of the `_Function` class are generated on the fly as fields
+    // with function types are encountered. Therefore, `_Function` class must
+    // be early in the initialization order.
     initialize(translator.functionClass);
+
+    // Similarly `_Type` is needed for type parameter fields in classes and
+    // needs to be initialized before we encounter a class with type
+    // parameters.
+    initialize(translator.typeClass);
+
     for (Library library in translator.component.libraries) {
       for (Class cls in library.classes) {
         initialize(cls);
@@ -335,10 +338,10 @@ class ClassInfoCollector {
 
     // For each class, compute which Wasm struct should be used for the type of
     // variables bearing that class as their Dart type. This is the struct
-    // corresponding to the least common supertype of all Dart classes
-    // implementing this class.
+    // corresponding to the least common (most specific) supertype of all Dart
+    // classes implementing this class.
     for (ClassInfo info in translator.classes) {
-      computeRepresentation(info);
+      _computeRepresentation(info);
     }
 
     // Now that the representation types for all classes have been computed,
@@ -348,13 +351,13 @@ class ClassInfoCollector {
     }
 
     // Add hidden fields of typed_data classes.
-    addTypedDataFields();
+    _addTypedDataFields();
 
     // Validate that all internally used fields have the expected indices.
     FieldIndex.validate(translator);
   }
 
-  void addTypedDataFields() {
+  void _addTypedDataFields() {
     ClassInfo typedListBaseInfo =
         translator.classInfo[translator.typedListBaseClass]!;
     typedListBaseInfo.addField(w.FieldType(w.NumType.i32, mutable: false),

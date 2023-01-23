@@ -95,8 +95,8 @@ void f() {
     // Create an overlay but do not write the file to "disk"
     //   writeFile(pathname, text);
     // Don't wait for any results except the completion notifications
-    sendAnalysisUpdateContent({path: AddContentOverlay(content)});
-    sendCompletionGetSuggestions(path, completionOffset);
+    await sendAnalysisUpdateContent({path: AddContentOverlay(content)});
+    await sendCompletionGetSuggestions(path, completionOffset);
     var param = await onCompletionResults
         .firstWhere((CompletionResultsParams param) => param.isLast);
     expect(param.replacementOffset, completionOffset);

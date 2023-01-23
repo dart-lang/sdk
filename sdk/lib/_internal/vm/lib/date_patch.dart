@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "core_patch.dart";
+part of "core_patch.dart";
 
 // VM implementation of DateTime.
 @patch
@@ -19,10 +19,6 @@ class DateTime {
   external static int _timeZoneOffsetInSecondsForClampedSeconds(
       int secondsSinceEpoch);
 
-  // Daylight-savings independent adjustment for the local time zone.
-  @pragma("vm:external-name", "DateTime_localTimeZoneAdjustmentInSeconds")
-  external static int _localTimeZoneAdjustmentInSeconds();
-
   static const _MICROSECOND_INDEX = 0;
   static const _MILLISECOND_INDEX = 1;
   static const _SECOND_INDEX = 2;
@@ -37,7 +33,7 @@ class DateTime {
 
   @patch
   DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
-      {bool isUtc: false})
+      {bool isUtc = false})
       : this._withValue(
             _validateMilliseconds(millisecondsSinceEpoch) *
                 Duration.microsecondsPerMillisecond,
@@ -45,7 +41,7 @@ class DateTime {
 
   @patch
   DateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch,
-      {bool isUtc: false})
+      {bool isUtc = false})
       : this._withValue(microsecondsSinceEpoch, isUtc: isUtc);
 
   @patch

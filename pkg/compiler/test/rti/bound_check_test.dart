@@ -6,7 +6,7 @@
 
 import 'package:async_helper/async_helper.dart';
 import '../helpers/d8_helper.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 const String SOURCE1 = r'''
 import 'package:expect/expect.dart';

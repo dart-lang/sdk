@@ -6,7 +6,7 @@
 
 // Regression test for dartbug.com/32619: incorrect widening of smis to int32.
 
-// VMOptions=--optimization-counter-threshold=5 --no-background-compilation
+// VMOptions=--optimization-counter-threshold=90 --no-background-compilation
 
 import "package:expect/expect.dart";
 import 'dart:typed_data';
@@ -33,11 +33,17 @@ int _mulAdd(Uint32List multiplicandDigits, int i, Uint32List accumulatorDigits,
   return carry;
 }
 
-main() {
+test() {
   var multiplicandDigits = new Uint32List.fromList([0, 294967296, 0, 0]);
   var accumulatorDigits = new Uint32List.fromList([0, 4, 4, 0, 0, 0]);
 
   var d1 = _mulAdd(multiplicandDigits, 0, accumulatorDigits, 0, 2);
 
   Expect.equals(0, d1);
+}
+
+main() {
+  for (int i = 0; i < 100; ++i) {
+    test();
+  }
 }

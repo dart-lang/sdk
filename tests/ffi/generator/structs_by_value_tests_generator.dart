@@ -96,7 +96,7 @@ extension on List<Member> {
 }
 
 extension on CType {
-  /// A list of statements adding all members recurisvely to `result`.
+  /// A list of statements adding all members recursively to `result`.
   ///
   /// Both valid in Dart and C.
   String addToResultStatements(String variableName) {
@@ -130,7 +130,7 @@ extension on CType {
 }
 
 extension on List<Member> {
-  /// A list of statements adding all members recurisvely to `result`.
+  /// A list of statements adding all members recursively to `result`.
   ///
   /// Both valid in Dart and C.
   String addToResultStatements([String namePrefix = ""]) {
@@ -954,7 +954,7 @@ ${headerCommon(copyrightYear: copyrightYear)}
 //
 // SharedObjects=ffi_test_functions
 // VMOptions=
-// VMOptions=--deterministic --optimization-counter-threshold=5
+// VMOptions=--deterministic --optimization-counter-threshold=90
 // VMOptions=--use-slow-path
 // VMOptions=--use-slow-path --stacktrace-every=100
 
@@ -975,7 +975,8 @@ final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 """;
 }
 
-Future<void> writeDartCallTest({required bool isLeaf}) async {
+Future<void> writeDartCallTest(String nameSuffix, List<FunctionType> functions,
+    {required bool isLeaf}) async {
   await Future.wait([true, false].map((isNnbd) async {
     final StringBuffer buffer = StringBuffer();
     buffer.write(headerDartCallTest(
@@ -984,22 +985,24 @@ Future<void> writeDartCallTest({required bool isLeaf}) async {
     final suffix = isLeaf ? 'Leaf' : '';
     buffer.write("""
     void main() {
-      for (int i = 0; i < 10; ++i) {
+      for (int i = 0; i < 100; ++i) {
         ${functions.map((e) => "${e.dartTestName}$suffix();").join("\n")}
       }
     }
     """);
     buffer.writeAll(functions.map((e) => e.dartCallCode(isLeaf: isLeaf)));
 
-    final path = callTestPath(isNnbd: isNnbd, isLeaf: isLeaf);
+    final path =
+        callTestPath(isNnbd: isNnbd, isLeaf: isLeaf, nameSuffix: nameSuffix);
     await File(path).writeAsString(buffer.toString());
     await runProcess("dart", ["format", path]);
   }));
 }
 
-String callTestPath({required bool isNnbd, required bool isLeaf}) {
+String callTestPath(
+    {required bool isNnbd, required bool isLeaf, String nameSuffix = ''}) {
   final folder = isNnbd ? 'ffi' : 'ffi_2';
-  final suffix = isLeaf ? '_leaf' : '';
+  final suffix = nameSuffix + (isLeaf ? '_leaf' : '');
   return Platform.script
       .resolve(
           "../../$folder/function_structs_by_value_generated${suffix}_test.dart")
@@ -1014,7 +1017,7 @@ ${headerCommon(copyrightYear: copyrightYear)}
 //
 // SharedObjects=ffi_test_functions
 // VMOptions=
-// VMOptions=--deterministic --optimization-counter-threshold=10
+// VMOptions=--deterministic --optimization-counter-threshold=20
 // VMOptions=--use-slow-path
 // VMOptions=--use-slow-path --stacktrace-every=100
 
@@ -1158,8 +1161,11 @@ void main(List<String> arguments) async {
 
   await Future.wait([
     writeDartCompounds(),
-    writeDartCallTest(isLeaf: false),
-    writeDartCallTest(isLeaf: true),
+    for (bool isLeaf in [false, true]) ...[
+      writeDartCallTest('_args', functionsStructArguments, isLeaf: isLeaf),
+      writeDartCallTest('_ret', functionsStructReturn, isLeaf: isLeaf),
+      writeDartCallTest('_ret_arg', functionsReturnArgument, isLeaf: isLeaf),
+    ],
     writeDartCallbackTest(),
     writeC(),
   ]);

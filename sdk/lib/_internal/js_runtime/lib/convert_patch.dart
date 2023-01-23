@@ -4,10 +4,10 @@
 
 // Patch file for dart:convert library.
 
-import 'dart:_js_helper' show argumentErrorValue, patch;
+import 'dart:_js_helper' show argumentErrorValue;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show JSArray, JSExtendableArray;
-import 'dart:_internal' show MappedIterable, ListIterable;
+import 'dart:_internal' show MappedIterable, ListIterable, patch;
 import 'dart:collection' show LinkedHashMap, MapBase;
 import 'dart:_native_typed_data' show NativeUint8List;
 
@@ -221,7 +221,7 @@ class _JsonMap extends MapBase<String, dynamic> {
         // Clear the list of keys to make sure we force
         // a concurrent modification error if anyone is
         // currently iterating over it.
-        _data.clear();
+        _computeKeys().clear();
       }
       _original = _processed = null;
       _data = {};

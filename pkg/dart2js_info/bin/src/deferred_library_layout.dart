@@ -30,7 +30,7 @@ class DeferredLibraryLayout extends Command<void> with PrintUsageException {
   }
 }
 
-_showLayout(String file) async {
+Future<void> _showLayout(String file) async {
   AllInfo info = await infoFromFile(file);
 
   Map<OutputUnitInfo, Map<LibraryInfo, List<BasicInfo>>> hunkMembers = {};
@@ -83,4 +83,4 @@ _showLayout(String file) async {
   });
 }
 
-_libOf(e) => e is LibraryInfo || e == null ? e : _libOf(e.parent);
+dynamic _libOf(Info? e) => e is LibraryInfo || e == null ? e : _libOf(e.parent);

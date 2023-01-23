@@ -68,7 +68,7 @@ class ScannerResult {
 /// Scan/tokenize the given UTF8 [bytes].
 ScannerResult scan(List<int> bytes,
     {ScannerConfiguration? configuration,
-    bool includeComments: false,
+    bool includeComments = false,
     LanguageVersionChanged? languageVersionChanged}) {
   if (bytes.last != 0) {
     throw new ArgumentError("[bytes]: the last byte must be 0.");
@@ -83,7 +83,7 @@ ScannerResult scan(List<int> bytes,
 /// Scan/tokenize the given [source].
 ScannerResult scanString(String source,
     {ScannerConfiguration? configuration,
-    bool includeComments: false,
+    bool includeComments = false,
     LanguageVersionChanged? languageVersionChanged}) {
   // ignore: unnecessary_null_comparison
   assert(source != null, 'source must not be null');

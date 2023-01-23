@@ -572,11 +572,11 @@ class Server {
 //    stdout.writeln('Launching $serverPath');
 //    stdout.writeln('$dartBinary ${arguments.join(' ')}');
     _process = await Process.start(dartBinary, arguments);
-    _process!.exitCode.then((int code) {
+    unawaited(_process!.exitCode.then((int code) {
       if (code != 0) {
         throw StateError('Server terminated with exit code $code');
       }
-    });
+    }));
     _listenToOutput();
     var completer = Completer<void>();
     _serverConnectedCompleter = completer;

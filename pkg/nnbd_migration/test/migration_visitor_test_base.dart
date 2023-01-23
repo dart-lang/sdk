@@ -304,8 +304,7 @@ class InstrumentedVariables extends Variables {
 
   final _expressionChecks = <Expression, ExpressionChecksOrigin>{};
 
-  InstrumentedVariables(NullabilityGraph graph, TypeProvider typeProvider)
-      : super(graph, typeProvider);
+  InstrumentedVariables(super.graph, super.typeProvider);
 
   /// Gets the [ExpressionChecks] associated with the given [expression].
   ExpressionChecksOrigin? checkExpression(Expression expression) =>
@@ -348,7 +347,7 @@ class InstrumentedVariables extends Variables {
 }
 
 class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
-  InstrumentedVariables? variables;
+  late InstrumentedVariables variables;
 
   final NullabilityGraphForTesting graph;
 
@@ -377,37 +376,37 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
 
   /// Gets the [DecoratedType] associated with the constructor declaration whose
   /// name matches [search].
-  DecoratedType decoratedConstructorDeclaration(String search) => variables!
+  DecoratedType decoratedConstructorDeclaration(String search) => variables
       .decoratedElementType(findNode.constructor(search).declaredElement!);
 
-  Map<ClassElement, DecoratedType?> decoratedDirectSupertypes(String name) {
-    return variables!.decoratedDirectSupertypes(findElement.classOrMixin(name));
+  Map<InterfaceElement, DecoratedType?> decoratedDirectSupertypes(String name) {
+    return variables.decoratedDirectSupertypes(findElement.classOrMixin(name));
   }
 
   /// Gets the [DecoratedType] associated with the generic function type
   /// annotation whose text is [text].
   DecoratedType decoratedGenericFunctionTypeAnnotation(String text) {
-    return variables!.decoratedTypeAnnotation(
+    return variables.decoratedTypeAnnotation(
         testSource, findNode.genericFunctionType(text));
   }
 
   /// Gets the [DecoratedType] associated with the method declaration whose
   /// name matches [search].
   DecoratedType decoratedMethodType(String search) =>
-      variables!.decoratedElementType(
+      variables.decoratedElementType(
           findNode.methodDeclaration(search).declaredElement!);
 
   /// Gets the [DecoratedType] associated with the type annotation whose text
   /// is [text].
   DecoratedType decoratedTypeAnnotation(String text) {
-    return variables!
-        .decoratedTypeAnnotation(testSource, findNode.typeAnnotation(text));
+    return variables.decoratedTypeAnnotation(
+        testSource, findNode.typeAnnotation(text));
   }
 
   /// Gets the [ConditionalDiscard] information associated with the collection
   /// element whose text is [text].
   ConditionalDiscard? elementDiscard(String text) {
-    return variables!.conditionalDiscard(findNode.collectionElement(text));
+    return variables.conditionalDiscard(findNode.collectionElement(text));
   }
 
   /// Returns a [Matcher] that matches a [CodeReference] pointing to the given
@@ -429,7 +428,7 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
   /// Gets the [ConditionalDiscard] information associated with the statement
   /// whose text is [text].
   ConditionalDiscard? statementDiscard(String text) {
-    return variables!.conditionalDiscard(findNode.statement(text));
+    return variables.conditionalDiscard(findNode.statement(text));
   }
 
   void tearDown() {

@@ -37,6 +37,21 @@ class CannotResolveUriResult
         SomeParsedLibraryResult,
         SomeResolvedLibraryResult {}
 
+/// The type of [InvalidResult] returned when the AnalysisContext has been
+/// disposed.
+///
+/// Clients may not extend, implement or mix-in this class.
+class DisposedAnalysisContextResult
+    implements
+        InvalidResult,
+        SomeErrorsResult,
+        SomeFileResult,
+        SomeParsedLibraryResult,
+        SomeParsedUnitResult,
+        SomeResolvedLibraryResult,
+        SomeResolvedUnitResult,
+        SomeUnitElementResult {}
+
 /// The declaration of an [Element].
 abstract class ElementDeclarationResult {
   /// The [Element] that this object describes.
@@ -68,7 +83,16 @@ abstract class ErrorsResult
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FileResult implements SomeFileResult, AnalysisResult {
+  /// Whether the file is a library augmentation.
+  /// When `true`, [isLibrary] and [isPart] are `false`.
+  bool get isAugmentation;
+
+  /// Whether the file is a library.
+  /// When `true`, [isAugmentation] and [isPart] are `false`.
+  bool get isLibrary;
+
   /// Whether the file is a part.
+  /// When `true`, [isAugmentation] and [isLibrary] are `false`.
   bool get isPart;
 
   /// Information about lines in the content.
@@ -144,7 +168,7 @@ class NotLibraryButPartResult
 /// The type of [InvalidResult] returned when the given file path does not
 /// represent the corresponding URI.
 ///
-/// This usually happens in Bazel workspaces, when a URI is resolved to
+/// This usually happens in Blaze workspaces, when a URI is resolved to
 /// a generated file, but there is also a writable file to which this URI
 /// would be resolved, if there were no generated file.
 ///
@@ -224,6 +248,10 @@ abstract class ResolvedLibraryResult
   /// is synthetic. Throw [ArgumentError] if the [element] is not defined in
   /// this library.
   ElementDeclarationResult? getElementDeclaration(Element element);
+
+  /// Return the resolved unit corresponding to the [path], or `null` if there
+  /// is no such unit.
+  ResolvedUnitResult? unitWithPath(String path);
 }
 
 /// The result of building a resolved AST for a single file. The errors returned

@@ -21,7 +21,7 @@ class ErrorToken extends Token {}
 
 bool failed = false;
 
-void foo(Token tokens, {bool x: false}) {
+void foo(Token tokens, {bool x = false}) {
   dynamic v;
   {
     Token current = tokens;

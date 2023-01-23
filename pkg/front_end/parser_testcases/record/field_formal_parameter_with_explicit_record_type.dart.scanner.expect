@@ -1,0 +1,19 @@
+class C {
+C(({int n, String s}) this.x);
+C({({int n, String s}) this.x});
+C({required ({int n, String s}) this.x});
+C(({int n, String s})? this.x);
+C({({int n, String s})? this.x});
+C({required ({int n, String s})? this.x});
+}
+
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+C[StringToken]([BeginToken]([BeginToken]{[BeginToken]int[StringToken] n[StringToken],[SimpleToken] String[StringToken] s[StringToken]}[SimpleToken])[SimpleToken] this[KeywordToken].[SimpleToken]x[StringToken])[SimpleToken];[SimpleToken]
+C[StringToken]([BeginToken]{[BeginToken]([BeginToken]{[BeginToken]int[StringToken] n[StringToken],[SimpleToken] String[StringToken] s[StringToken]}[SimpleToken])[SimpleToken] this[KeywordToken].[SimpleToken]x[StringToken]}[SimpleToken])[SimpleToken];[SimpleToken]
+C[StringToken]([BeginToken]{[BeginToken]required[KeywordToken] ([BeginToken]{[BeginToken]int[StringToken] n[StringToken],[SimpleToken] String[StringToken] s[StringToken]}[SimpleToken])[SimpleToken] this[KeywordToken].[SimpleToken]x[StringToken]}[SimpleToken])[SimpleToken];[SimpleToken]
+C[StringToken]([BeginToken]([BeginToken]{[BeginToken]int[StringToken] n[StringToken],[SimpleToken] String[StringToken] s[StringToken]}[SimpleToken])[SimpleToken]?[SimpleToken] this[KeywordToken].[SimpleToken]x[StringToken])[SimpleToken];[SimpleToken]
+C[StringToken]([BeginToken]{[BeginToken]([BeginToken]{[BeginToken]int[StringToken] n[StringToken],[SimpleToken] String[StringToken] s[StringToken]}[SimpleToken])[SimpleToken]?[SimpleToken] this[KeywordToken].[SimpleToken]x[StringToken]}[SimpleToken])[SimpleToken];[SimpleToken]
+C[StringToken]([BeginToken]{[BeginToken]required[KeywordToken] ([BeginToken]{[BeginToken]int[StringToken] n[StringToken],[SimpleToken] String[StringToken] s[StringToken]}[SimpleToken])[SimpleToken]?[SimpleToken] this[KeywordToken].[SimpleToken]x[StringToken]}[SimpleToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

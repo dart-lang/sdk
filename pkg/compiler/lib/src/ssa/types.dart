@@ -2,40 +2,34 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import '../common/elements.dart' show CommonElements;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../native/behavior.dart';
 import '../universe/selector.dart' show Selector;
-import '../world.dart' show JClosedWorld;
 
 class AbstractValueFactory {
   static AbstractValue inferredReturnTypeForElement(
       FunctionEntity element, GlobalTypeInferenceResults results) {
-    return results.resultOfMember(element).returnType ??
-        results.closedWorld.abstractValueDomain.dynamicType;
+    return results.resultOfMember(element).returnType;
   }
 
   static AbstractValue inferredTypeForMember(
       MemberEntity element, GlobalTypeInferenceResults results) {
-    return results.resultOfMember(element).type ??
-        results.closedWorld.abstractValueDomain.dynamicType;
+    return results.resultOfMember(element).type;
   }
 
   static AbstractValue inferredTypeForParameter(
       Local element, GlobalTypeInferenceResults results) {
-    return results.resultOfParameter(element) ??
-        results.closedWorld.abstractValueDomain.dynamicType;
+    return results.resultOfParameter(element);
   }
 
   static AbstractValue inferredResultTypeForSelector(Selector selector,
       AbstractValue receiver, GlobalTypeInferenceResults results) {
-    return results.resultTypeOfSelector(selector, receiver) ??
-        results.closedWorld.abstractValueDomain.dynamicType;
+    return results.resultTypeOfSelector(selector, receiver);
   }
 
   static AbstractValue fromNativeBehavior(
@@ -52,17 +46,22 @@ class AbstractValueFactory {
       if (type == SpecialType.JsObject) {
         return abstractValueDomain
             .createNonNullExact(commonElements.objectClass);
-      } else if (type is VoidType) {
-        return abstractValueDomain.nullType;
-      } else if (closedWorld.dartTypes.isTopType(type)) {
-        return abstractValueDomain.dynamicType;
-      } else if (type == commonElements.nullType) {
-        return abstractValueDomain.nullType;
-      } else if (type is InterfaceType) {
-        return abstractValueDomain.createNonNullSubtype(type.element);
-      } else {
-        throw 'Unexpected type $type';
       }
+      if (type is DartType) {
+        if (type is VoidType) {
+          return abstractValueDomain.nullType;
+        }
+        if (closedWorld.dartTypes.isTopType(type)) {
+          return abstractValueDomain.dynamicType;
+        }
+        if (type == commonElements.nullType) {
+          return abstractValueDomain.nullType;
+        }
+        if (type is InterfaceType) {
+          return abstractValueDomain.createNonNullSubtype(type.element);
+        }
+      }
+      throw 'Unexpected type $type';
     }
 
     AbstractValue result =

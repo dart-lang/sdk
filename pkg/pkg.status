@@ -63,6 +63,7 @@ front_end/test/incremental_dart2js_test: Pass, Slow
 front_end/testcases/*: Skip # These are not tests but input for tests.
 front_end/tool/incremental_perf_test: Slow, Pass
 kernel/testcases/*: Skip # These are not tests but input for tests.
+vm/test/kernel_front_end_test: Slow, Pass
 vm/test/transformations/type_flow/transformer_test: Slow, Pass
 vm/testcases/*: SkipByDesign # These are not tests but input for tests.
 vm_service/test/cpu_samples_stream_test: Slow, Pass # Requires CPU sample buffer to fill.
@@ -104,6 +105,7 @@ compiler/test/deferred/load_graph_segmentation_test: Slow, Pass
 compiler/test/deferred/load_mapping_test: Slow, Pass
 compiler/test/end_to_end/dart2js_batch_test: Slow, Pass
 compiler/test/end_to_end/exit_code_test: Slow, Pass
+vm/test/kernel_front_end_test: SkipSlow
 vm_snapshot_analysis/test/precompiler_trace_test: SkipSlow
 
 [ $runtime == dart_precompiled ]
@@ -217,6 +219,12 @@ js_ast/test/string_escape_test: Slow, Pass
 async/test/stream_zip_test: SkipSlow # Times out. Issue 22050
 collection/test/unmodifiable_collection_test: SkipSlow # Times out. Issue 22050
 
+[ $runtime == vm && $system != linux ]
+dartdev/test/commands/info_linux_test: SkipByDesign
+
+[ $runtime == vm && $system != macos ]
+dartdev/test/commands/info_macos_test: SkipByDesign
+
 [ $runtime == vm && $system == windows ]
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
 analysis_server/test/src/plugin/plugin_manager_test: Slow, Pass # Issue 34231
@@ -225,6 +233,9 @@ analyzer/tool/task_dependency_graph/check_test: Slow, Pass
 
 [ $runtime == vm && $system == windows && $checked ]
 front_end/tool/perf_test: Slow, Pass
+
+[ $runtime == vm && $system != windows ]
+dartdev/test/commands/info_windows_test: SkipByDesign
 
 [ $runtime == vm && $checked ]
 analysis_server/test/completion_test: Slow, Pass

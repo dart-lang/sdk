@@ -62,10 +62,7 @@ FunctionReference
         leftBracket: <
         typeParameters
           TypeParameter
-            name: SimpleIdentifier
-              token: T
-              staticElement: T@89
-              staticType: null
+            name: T
             declaredElement: T@89
         rightBracket: >
       parameters: FormalParameterList
@@ -264,11 +261,11 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      staticElement: self::@class::C::@constructor::•
+      staticElement: self::@class::C::@constructor::new
       staticType: null
       tearOffTypeArgumentTypes
         int
-    staticElement: self::@class::C::@constructor::•
+    staticElement: self::@class::C::@constructor::new
   staticType: C<int> Function(int)
 ''');
   }
@@ -287,10 +284,7 @@ FunctionReference
       leftBracket: <
       typeParameters
         TypeParameter
-          name: SimpleIdentifier
-            token: T
-            staticElement: T@37
-            staticType: null
+          name: T
           declaredElement: T@37
       rightBracket: >
     parameters: FormalParameterList
@@ -302,10 +296,7 @@ FunctionReference
             staticElement: T@37
             staticType: null
           type: T
-        identifier: SimpleIdentifier
-          token: a
-          staticElement: @36::@parameter::a
-          staticType: null
+        name: a
         declaredElement: @36::@parameter::a
         declaredElementType: T
       rightParenthesis: )
@@ -678,9 +669,9 @@ FunctionReference
         period: .
         name: SimpleIdentifier
           token: new
-          staticElement: self::@class::A::@constructor::•
+          staticElement: self::@class::A::@constructor::new
           staticType: null
-        staticElement: self::@class::A::@constructor::•
+        staticElement: self::@class::A::@constructor::new
       staticType: A<T> Function<T>()
     rightParenthesis: )
     staticType: A<T> Function<T>()

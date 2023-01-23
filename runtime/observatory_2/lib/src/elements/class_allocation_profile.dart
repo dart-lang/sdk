@@ -105,7 +105,7 @@ class ClassAllocationProfileElement extends CustomElement
     children = content;
   }
 
-  Future _request({bool forceFetch: false}) async {
+  Future _request({bool forceFetch = false}) async {
     _progress = null;
     _progressStream =
         _profiles.get(_isolate, _cls, _tag, forceFetch: forceFetch);

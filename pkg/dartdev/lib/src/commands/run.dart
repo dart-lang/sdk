@@ -15,9 +15,13 @@ import 'package:pub/pub.dart';
 
 import '../core.dart';
 import '../experiments.dart';
+import '../generate_kernel.dart';
+import '../resident_frontend_constants.dart';
+import '../resident_frontend_utils.dart';
 import '../sdk.dart';
 import '../utils.dart';
 import '../vm_interop_handler.dart';
+import 'compile_server_shutdown.dart';
 
 class RunCommand extends DartdevCommand {
   static const bool isProductMode = bool.fromEnvironment('dart.vm.product');
@@ -44,6 +48,24 @@ class RunCommand extends DartdevCommand {
           'Run a Dart program.',
           verbose,
         ) {
+    argParser
+      ..addFlag(
+        'resident',
+        abbr: 'r',
+        negatable: false,
+        help:
+            'Enable faster startup times with the resident frontend compiler.\n'
+            "See 'dart ${CompileServerShutdownCommand.commandName} -h' for more information.",
+      )
+      ..addOption(
+        CompileServerShutdownCommand.residentServerInfoFileFlag,
+        hide: !verbose,
+        help: 'Specify the file that the Dart CLI uses to communicate with the '
+            'resident frontend compiler. Passing this flag results in having '
+            'one unique resident frontend compiler per file. This is needed '
+            'when writing unit tests that utilize resident mode in order to '
+            'maintain isolation.',
+      );
     // NOTE: When updating this list of flags, be sure to add any VM flags to
     // the list of flags in Options::ProcessVMDebuggingOptions in
     // runtime/bin/main_options.cc. Failure to do so will result in those VM
@@ -91,6 +113,14 @@ class RunCommand extends DartdevCommand {
           help:
               'Print a warning when an isolate pauses with no attached debugger'
               ' when running with --enable-vm-service.',
+        )
+        ..addOption(
+          'timeline-streams',
+          help: 'Enables recording for specific timeline streams.\n'
+              'Valid streams include: all, API, Compiler, CompilerVerbose, Dart, '
+              'Debugger, Embedder, GC, Isolate, VM.\n'
+              'Defaults to "Compiler, Dart, GC" when --observe is provided.',
+          valueHelp: 'str1, str2, ...',
         )
         ..addSeparator(
           'Other debugging options:',
@@ -182,6 +212,10 @@ class RunCommand extends DartdevCommand {
                 'functionality. Note: Disabling DDS may break some '
                 'functionality in IDEs and other tooling.',
             defaultsTo: true)
+        ..addFlag('serve-observatory',
+            hide: !verbose,
+            help: 'Enable hosting Observatory through the VM Service.',
+            defaultsTo: true)
         ..addFlag(
           'debug-dds',
           hide: true,
@@ -246,27 +280,63 @@ class RunCommand extends DartdevCommand {
       }
     }
 
+    final hasServerInfoOption = args.wasParsed(serverInfoOption);
+    final useResidentServer =
+        args.wasParsed(residentOption) || hasServerInfoOption;
+    DartExecutableWithPackageConfig executable;
     try {
-      final executable = await getExecutableForCommand(mainCommand);
-      VmInteropHandler.run(
-        executable.executable,
-        runArgs,
-        packageConfigOverride: executable.packageConfig,
+      executable = await getExecutableForCommand(
+        mainCommand,
+        allowSnapshot: !useResidentServer,
       );
-      return 0;
     } on CommandResolutionFailedException catch (e) {
       log.stderr(e.message);
       return errorExitCode;
     }
-  }
-}
 
-/// Try parsing [maybeUri] as a file uri or [maybeUri] itself if that fails.
-String maybeUriToFilename(String maybeUri) {
-  try {
-    return Uri.parse(maybeUri).toFilePath();
-  } catch (_) {
-    return maybeUri;
+    final residentServerInfoFile = hasServerInfoOption
+        ? File(maybeUriToFilename(args[serverInfoOption]))
+        : defaultResidentServerInfoFile;
+
+    if (useResidentServer && residentServerInfoFile != null) {
+      try {
+        // Ensure the parent directory exists.
+        if (!residentServerInfoFile.parent.existsSync()) {
+          residentServerInfoFile.parent.createSync();
+        }
+
+        // TODO(#49694) handle the case when executable is a kernel file
+        executable = await generateKernel(
+          executable,
+          residentServerInfoFile,
+          args,
+          createCompileJitJson,
+        );
+      } on FrontendCompilerException catch (e) {
+        log.stderr(
+            '${ansi.yellow}Failed to build ${executable.executable}:${ansi.none}');
+        log.stderr(e.message);
+        if (e.issue == CompilationIssue.serverError) {
+          try {
+            await sendAndReceiveResponse(
+              residentServerShutdownCommand,
+              residentServerInfoFile,
+            );
+          } catch (_) {
+          } finally {
+            cleanupResidentServerInfo(residentServerInfoFile);
+          }
+        }
+        return errorExitCode;
+      }
+    }
+
+    VmInteropHandler.run(
+      executable.executable,
+      runArgs,
+      packageConfigOverride: executable.packageConfig,
+    );
+    return 0;
   }
 }
 

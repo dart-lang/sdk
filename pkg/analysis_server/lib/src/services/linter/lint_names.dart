@@ -50,8 +50,11 @@ class LintNames {
   static const String avoid_void_async = 'avoid_void_async';
   static const String await_only_futures = 'await_only_futures';
   static const String cascade_invocations = 'cascade_invocations';
+  static const String combinators_ordering = 'combinators_ordering';
   static const String curly_braces_in_flow_control_structures =
       'curly_braces_in_flow_control_structures';
+  static const String dangling_library_doc_comments =
+      'dangling_library_doc_comments';
   static const String diagnostic_describe_all_properties =
       'diagnostic_describe_all_properties';
   static const String directives_ordering = 'directives_ordering';
@@ -62,8 +65,10 @@ class LintNames {
   static const String eol_at_end_of_file = 'eol_at_end_of_file';
   static const String exhaustive_cases = 'exhaustive_cases';
   static const String hash_and_equals = 'hash_and_equals';
+  static const String implicit_call_tearoffs = 'implicit_call_tearoffs';
   static const String leading_newlines_in_multiline_strings =
       'leading_newlines_in_multiline_strings';
+  static const String library_annotations = 'library_annotations';
   static const String no_duplicate_case_values = 'no_duplicate_case_values';
   static const String no_leading_underscores_for_library_prefixes =
       'no_leading_underscores_for_library_prefixes';
@@ -88,8 +93,6 @@ class LintNames {
       'prefer_const_literals_to_create_immutables';
   static const String prefer_contains = 'prefer_contains';
   static const String prefer_double_quotes = 'prefer_double_quotes';
-  static const String prefer_equal_for_default_values =
-      'prefer_equal_for_default_values';
   static const String prefer_expression_function_bodies =
       'prefer_expression_function_bodies';
   static const String prefer_final_fields = 'prefer_final_fields';
@@ -143,6 +146,8 @@ class LintNames {
       'unnecessary_getters_setters';
   static const String unnecessary_lambdas = 'unnecessary_lambdas';
   static const String unnecessary_late = 'unnecessary_late';
+  static const String unnecessary_library_directive =
+      'unnecessary_library_directive';
   static const String unnecessary_new = 'unnecessary_new';
   static const String unnecessary_null_aware_assignments =
       'unnecessary_null_aware_assignments';

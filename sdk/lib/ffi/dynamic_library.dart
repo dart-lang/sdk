@@ -13,8 +13,6 @@ class DynamicLibrary {
   ///
   /// Any symbol in a library currently loaded with global visibility
   /// (including the executable itself) may be resolved through this library.
-  ///
-  /// This feature is not available on Windows.
   external factory DynamicLibrary.process();
 
   /// Creates a [DynamicLibrary] containing all the symbols of the running
@@ -70,6 +68,11 @@ extension DynamicLibraryExtension on DynamicLibrary {
   /// Looks up a native function and returns it as a Dart function.
   ///
   /// [T] is the C function signature, and [F] is the Dart function signature.
+  ///
+  /// [isLeaf] specifies whether the function is a leaf function.
+  /// A leaf function must not run Dart code or call back into the Dart VM.
+  /// Leaf calls are faster than non-leaf calls.
+  ///
   /// For example:
   ///
   /// ```c
@@ -85,5 +88,5 @@ extension DynamicLibraryExtension on DynamicLibrary {
   /// ```
   external F lookupFunction<T extends Function, F extends Function>(
       String symbolName,
-      {bool isLeaf: false});
+      {bool isLeaf = false});
 }

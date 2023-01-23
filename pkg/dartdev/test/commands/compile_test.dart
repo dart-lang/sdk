@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:math';
 
+import 'package:dart2native/dart2native_macho.dart' show pipeStream;
 import 'package:dart2native/macho.dart';
-import 'package:dart2native/macho_parser.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -14,6 +15,8 @@ import '../utils.dart';
 const int compileErrorExitCode = 64;
 
 void main() {
+  ensureRunFromSdkBinDart();
+
   group('compile -', defineCompileTests, timeout: longTimeout);
 }
 
@@ -47,22 +50,9 @@ void defineCompileTests() {
       expect(File(outFile).existsSync(), true,
           reason: 'File not found: $outFile');
 
-      // Ensure the file contains the __CUSTOM segment.
-      final machOFile = MachOFile();
-      await machOFile.loadFromFile(File(outFile));
-
-      // Throws an exception (and thus the test fails) if the segment doesn't
-      // exist.
-      machOFile.commands.where((segment) {
-        if (segment.asType() is MachOSegmentCommand64) {
-          final segmentName = (segment as MachOSegmentCommand64).segname;
-          final segmentNameTrimmed = String.fromCharCodes(
-              segmentName.takeWhile((value) => value != 0));
-          return segmentNameTrimmed == '__CUSTOM';
-        } else {
-          return false;
-        }
-      }).first;
+      if (!MachOFile.containsSnapshot(File(outFile))) {
+        throw FormatException('Snapshot not found in standalone executable');
+      }
 
       // Ensure that the exe can be signed.
       final codeSigningProcess = await Process.start('codesign', [
@@ -75,6 +65,88 @@ void defineCompileTests() {
 
       final signingResult = await codeSigningProcess.exitCode;
       expect(signingResult, 0);
+    }, skip: isRunningOnIA32);
+
+    test('Changing snapshot contents fails to validate', () async {
+      final p = project(mainSrc: '''void main() {}''');
+      final inFile =
+          path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+      final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
+      final corruptedFile =
+          path.canonicalize(path.join(p.dirPath, 'myexe-corrupted'));
+
+      var result = await p.run(
+        [
+          'compile',
+          'exe',
+          '-o',
+          outFile,
+          inFile,
+        ],
+      );
+
+      expect(result.stdout, contains(soundNullSafetyMessage));
+      expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
+      expect(File(outFile).existsSync(), true,
+          reason: 'File not found: $outFile');
+
+      final macho = MachOFile.fromFile(File(outFile));
+      final snapshotNote = macho.snapshotNote;
+      if (snapshotNote == null) {
+        throw FormatException('Snapshot not found in standalone executable');
+      }
+
+      if (macho.hasCodeSignature) {
+        // Verify the resulting executable using codesign.
+        result = Process.runSync('codesign', [
+          '-v',
+          outFile,
+        ]);
+
+        expect(result.stderr, isEmpty);
+        expect(result.exitCode, 0);
+      } else {
+        // Sign the executable first.
+        final codeSigningProcess = await Process.start('codesign', [
+          '-o',
+          'runtime',
+          '-s',
+          '-',
+          outFile,
+        ]);
+
+        final signingResult = await codeSigningProcess.exitCode;
+        expect(signingResult, 0);
+      }
+
+      // Pick a random range of bytes within the snapshot.
+      final rand = Random();
+      final offset1 = rand.nextInt(snapshotNote.fileSize);
+      final offset2 = rand.nextInt(snapshotNote.fileSize);
+      final int start = snapshotNote.fileOffset + min(offset1, offset2);
+      final int size = max(offset1, offset2) - min(offset1, offset2);
+
+      // Write the corrupted version of the executable, corrupting the bytes in
+      // the calculated range by incrementing them (modulo 256).
+      final original = File(outFile).openSync();
+      final corrupted = File(corruptedFile).openSync(mode: FileMode.write);
+      await pipeStream(original, corrupted, numToWrite: start);
+      final bytesToCorrupt = original.readSync(size);
+      for (int i = 0; i < bytesToCorrupt.length; i++) {
+        bytesToCorrupt[i] = (bytesToCorrupt[i] + 1) % 256;
+      }
+      corrupted.writeFromSync(bytesToCorrupt);
+      await pipeStream(original, corrupted);
+
+      // (Fail to) verify the resulting executable using codesign.
+      result = Process.runSync('codesign', [
+        '-v',
+        corruptedFile,
+      ]);
+
+      expect(result.stderr, isNotEmpty);
+      expect(result.exitCode, 1);
     }, skip: isRunningOnIA32);
   }
 
@@ -145,7 +217,7 @@ void defineCompileTests() {
         p.relativeFilePath,
       ],
     );
-    expect(result.stderr, isEmpty);
+    expect(result.stderr, contains(soundNullSafetyMessage));
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
@@ -175,7 +247,7 @@ void defineCompileTests() {
       '-v',
       inFile,
     ]);
-    expect(result.stderr, isEmpty);
+    expect(result.stderr, contains(soundNullSafetyMessage));
     expect(result.exitCode, 0);
     final file = File(outFile);
     expect(file.existsSync(), true, reason: 'File not found: $outFile');
@@ -329,7 +401,7 @@ void defineCompileTests() {
     );
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
-    expect(result.stderr, isEmpty);
+    expect(result.stderr, contains(soundNullSafetyMessage));
     expect(result.exitCode, 0);
 
     result = await p.run(['run', 'main.dill']);
@@ -491,8 +563,8 @@ void main() {}
       ],
     );
 
-    expect(result.stderr, isEmpty);
     expect(result.stdout, contains(soundNullSafetyMessage));
+    expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
@@ -525,8 +597,8 @@ void main() {}
       ],
     );
 
-    expect(result.stderr, isEmpty);
     expect(result.stdout, contains(unsoundNullSafetyMessage));
+    expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
@@ -860,8 +932,7 @@ void main() {
       ],
     );
 
-    expect(result.stdout, contains(soundNullSafetyMessage));
-    expect(result.stderr, isEmpty);
+    expect(result.stderr, contains(soundNullSafetyMessage));
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
@@ -885,8 +956,55 @@ void main() {}
       ],
     );
 
-    expect(result.stdout, contains(unsoundNullSafetyMessage));
-    expect(result.stderr, isEmpty);
+    expect(result.stderr, contains(unsoundNullSafetyMessage));
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+  });
+
+  test('Compile kernel with --sound-null-safety', () async {
+    final p = project(mainSrc: '''void main() {
+      print((<int?>[] is List<int>) ? 'oh no' : 'sound');
+    }''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
+
+    var result = await p.run(
+      [
+        'compile',
+        'kernel',
+        '--sound-null-safety',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stderr, contains(soundNullSafetyMessage));
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+  });
+
+  test('Compile kernel with --no-sound-null-safety', () async {
+    final p = project(mainSrc: '''void main() {
+      print((<int?>[] is List<int>) ? 'unsound' : 'oh no');
+    }''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
+
+    var result = await p.run(
+      [
+        'compile',
+        'kernel',
+        '--no-sound-null-safety',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stderr, isNot(contains(soundNullSafetyMessage)));
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
@@ -936,7 +1054,7 @@ void main() {
       ],
     );
 
-    expect(result.stdout,
+    expect(result.stderr,
         predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, contains('must be assigned before it can be used'));
     expect(result.exitCode, 254);
@@ -962,7 +1080,7 @@ void main() {
       ],
     );
 
-    expect(result.stdout,
+    expect(result.stderr,
         predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, contains('Warning:'));
     expect(result.exitCode, 0);
@@ -983,8 +1101,7 @@ void main() {
       ],
     );
 
-    expect(result.stdout, contains(soundNullSafetyMessage));
-    expect(result.stderr, isEmpty);
+    expect(result.stderr, contains(soundNullSafetyMessage));
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
@@ -1008,8 +1125,55 @@ void main() {}
       ],
     );
 
-    expect(result.stdout, contains(unsoundNullSafetyMessage));
-    expect(result.stderr, isEmpty);
+    expect(result.stderr, contains(unsoundNullSafetyMessage));
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+  });
+
+  test('Compile JIT snapshot with --sound-null-safety', () async {
+    final p = project(mainSrc: '''void main() {
+      print((<int?>[] is List<int>) ? 'oh no' : 'sound');
+    }''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myjit'));
+
+    var result = await p.run(
+      [
+        'compile',
+        'jit-snapshot',
+        '--sound-null-safety',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stderr, contains(soundNullSafetyMessage));
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+  });
+
+  test('Compile JIT snapshot with --no-sound-null-safety', () async {
+    final p = project(mainSrc: '''void main() {
+      print((<int?>[] is List<int>) ? 'unsound' : 'oh no');
+    }''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
+
+    var result = await p.run(
+      [
+        'compile',
+        'jit-snapshot',
+        '--no-sound-null-safety',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stderr, isNot(contains(soundNullSafetyMessage)));
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
@@ -1036,9 +1200,9 @@ void main() {}
       ],
     );
 
+    expect(result.stderr, contains(soundNullSafetyMessage));
     expect(result.stdout,
         predicate((dynamic o) => '$o'.contains('[foo, -e, --foobar=bar]')));
-    expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
@@ -1060,9 +1224,8 @@ void main() {}
       ],
     );
 
-    expect(result.stdout,
+    expect(result.stderr,
         predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
-    expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
@@ -1088,7 +1251,7 @@ void main() {
       ],
     );
 
-    expect(result.stdout,
+    expect(result.stderr,
         predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, contains('must be assigned before it can be used'));
     expect(result.exitCode, 254);
@@ -1114,7 +1277,7 @@ void main() {
       ],
     );
 
-    expect(result.stdout,
+    expect(result.stderr,
         predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, contains('Warning:'));
     expect(result.exitCode, 0);

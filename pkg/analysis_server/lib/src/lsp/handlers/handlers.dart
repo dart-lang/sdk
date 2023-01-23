@@ -5,7 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server_abstract.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_cancel_request.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_reject.dart';
@@ -24,10 +24,10 @@ export 'package:analyzer/src/utilities/cancellation.dart';
 
 /// Converts an iterable using the provided function and skipping over any
 /// null values.
-Iterable<T> convert<T, E>(Iterable<E> items, T Function(E) converter) {
+Iterable<T> convert<T, E>(Iterable<E> items, T? Function(E) converter) {
   // TODO(dantup): Now this is used outside of handlers, is there somewhere
   // better to put it, and/or a better name for it?
-  return items.map(converter).where((item) => item != null);
+  return items.map(converter).where((item) => item != null).cast<T>();
 }
 
 abstract class CommandHandler<P, R> with Handler<P, R> {
@@ -72,11 +72,40 @@ mixin Handler<P, R> {
     }
   }
 
+  /// Attempts to get a [ResolvedLibraryResult] for the library the includes the
+  /// file at [path] or an error.
+  ///
+  /// When [waitForInProgressContextRebuilds] is `true` and the file appears to
+  /// not be analyzed but analysis roots are currently being discovered, will
+  /// wait for discovery to complete and then try again (once) to get a result.
+  Future<ErrorOr<ResolvedLibraryResult>> requireResolvedLibrary(
+    String path, {
+    bool waitForInProgressContextRebuilds = true,
+  }) async {
+    final result = await server.getResolvedLibrary(path);
+    if (result == null) {
+      // Handle retry if allowed.
+      if (waitForInProgressContextRebuilds) {
+        await server.analysisContextsRebuilt;
+        return requireResolvedLibrary(path,
+            waitForInProgressContextRebuilds: false);
+      }
+
+      // If the file was being analyzed and we got a null result, that usually
+      // indicates a parser or analysis failure, so provide a more specific
+      // message.
+      return server.isAnalyzed(path)
+          ? analysisFailedError(path)
+          : fileNotAnalyzedError(path);
+    }
+    return success(result);
+  }
+
   /// Attempts to get a [ResolvedUnitResult] for [path] or an error.
   ///
-  /// When [waitForInProgressContextRebuilds] is `true` and the file appears to not be
-  /// analyzed but analysis roots are currently being discovered, will wait for
-  /// discovery to complete and then try again (once) to get a result.
+  /// When [waitForInProgressContextRebuilds] is `true` and the file appears to
+  /// not be analyzed but analysis roots are currently being discovered, will
+  /// wait for discovery to complete and then try again (once) to get a result.
   Future<ErrorOr<ResolvedUnitResult>> requireResolvedUnit(
     String path, {
     bool waitForInProgressContextRebuilds = true,
@@ -127,7 +156,7 @@ mixin Handler<P, R> {
   }
 }
 
-mixin LspPluginRequestHandlerMixin<T extends AbstractAnalysisServer>
+mixin LspPluginRequestHandlerMixin<T extends AnalysisServer>
     on RequestHandlerMixin<T> {
   Future<List<Response>> requestFromPlugins(
     String path,

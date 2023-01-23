@@ -165,7 +165,7 @@ class BodyInferenceContext {
     return node.getProperty(_key);
   }
 
-  static DartType? _argumentOf(DartType type, ClassElement element) {
+  static DartType? _argumentOf(DartType type, InterfaceElement element) {
     var elementType = type.asInstanceOf(element);
     if (elementType != null) {
       return elementType.typeArguments[0];

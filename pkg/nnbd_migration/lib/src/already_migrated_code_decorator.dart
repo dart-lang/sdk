@@ -98,13 +98,18 @@ class AlreadyMigratedCodeDecorator {
 
   /// Get all the decorated immediate supertypes of the non-migrated class
   /// [class_].
-  Iterable<DecoratedType> getImmediateSupertypes(ClassElement class_) {
+  Iterable<DecoratedType> getImmediateSupertypes(InterfaceElement class_) {
     var allSupertypes = <DartType>[];
-    var supertype = class_.supertype;
+    InterfaceType? supertype;
+    if (class_ is ClassElement) {
+      supertype = class_.supertype;
+    }
     if (supertype != null) {
       allSupertypes.add(supertype);
     }
-    allSupertypes.addAll(class_.superclassConstraints);
+    if (class_ is MixinElement) {
+      allSupertypes.addAll(class_.superclassConstraints);
+    }
     allSupertypes.addAll(class_.preMigrationInterfaces);
     allSupertypes.addAll(class_.mixins);
     var type = class_.thisType;
@@ -119,7 +124,7 @@ class AlreadyMigratedCodeDecorator {
   }
 }
 
-extension on ClassElement {
+extension on InterfaceElement {
   List<InterfaceType> get preMigrationInterfaces {
     var previousElementTypeProvider = ElementTypeProvider.current;
     try {

@@ -18,13 +18,19 @@ class DoesNotCompleteType extends ir.NeverType {
 /// Special interface type used to signal that the static type of an expression
 /// has precision of a this-expression.
 class ThisInterfaceType extends ir.InterfaceType {
-  ThisInterfaceType(ir.Class classNode, ir.Nullability nullability,
-      [List<ir.DartType>? typeArguments])
-      : super(classNode, nullability, typeArguments);
+  ThisInterfaceType(super.classNode, super.nullability, [super.typeArguments]);
 
   static from(ir.InterfaceType? type) => type != null
       ? ThisInterfaceType(type.classNode, type.nullability, type.typeArguments)
       : null;
+
+  /// We rely on the [ir.InterfaceType] implementation of [hashCode]. Collisions
+  /// should be infrequent enough.
+  @override
+  bool operator ==(Object other) {
+    if (other is! ThisInterfaceType) return false;
+    return super == other;
+  }
 
   @override
   String toString() => 'this:${super.toString()}';
@@ -33,13 +39,19 @@ class ThisInterfaceType extends ir.InterfaceType {
 /// Special interface type used to signal that the static type of an expression
 /// is exact, i.e. the runtime type is not a subtype or subclass of the type.
 class ExactInterfaceType extends ir.InterfaceType {
-  ExactInterfaceType(ir.Class classNode, ir.Nullability nullability,
-      [List<ir.DartType>? typeArguments])
-      : super(classNode, nullability, typeArguments);
+  ExactInterfaceType(super.classNode, super.nullability, [super.typeArguments]);
 
   static from(ir.InterfaceType? type) => type != null
       ? ExactInterfaceType(type.classNode, type.nullability, type.typeArguments)
       : null;
+
+  /// We rely on the [ir.InterfaceType] implementation of [hashCode]. Collisions
+  /// should be infrequent enough.
+  @override
+  bool operator ==(Object other) {
+    if (other is! ExactInterfaceType) return false;
+    return super == other;
+  }
 
   @override
   String toString() => 'exact:${super.toString()}';
@@ -139,6 +151,11 @@ abstract class StaticTypeBase extends ir.TreeVisitor<ir.DartType> {
   ir.DartType visitMapLiteral(ir.MapLiteral node) {
     return typeEnvironment.mapType(
         node.keyType, node.valueType, ir.Nullability.nonNullable);
+  }
+
+  @override
+  ir.DartType visitRecordLiteral(ir.RecordLiteral node) {
+    return node.getStaticType(staticTypeContext);
   }
 
   @override

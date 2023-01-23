@@ -51,6 +51,20 @@ class Heap {
     kNumWeakSelectors
   };
 
+  // States for a state machine that represents the worst-case set of GCs
+  // that an unreachable object could survive before begin collected:
+  // a new-space object that is involved with a cycle with an old-space object
+  // is copied to survivor space, then promoted during concurrent marking,
+  // and finally proven unreachable in the next round of old-gen marking.
+  // We ignore the case of unreachable-but-not-yet-collected objects being
+  // made reachable again by allInstances.
+  enum LeakCountState {
+    kInitial = 0,
+    kFirstScavenge,
+    kSecondScavenge,
+    kMarkingStart,
+  };
+
   // Pattern for unused new space and swept old space.
   static const uint8_t kZapByte = 0xf3;
 
@@ -65,21 +79,23 @@ class Heap {
       case kNew:
         // Do not attempt to allocate very large objects in new space.
         if (!IsAllocatableInNewSpace(size)) {
-          return AllocateOld(thread, size, OldPage::kData);
+          return AllocateOld(thread, size, Page::kData);
         }
         return AllocateNew(thread, size);
       case kOld:
-        return AllocateOld(thread, size, OldPage::kData);
+        return AllocateOld(thread, size, Page::kData);
       case kCode:
-        return AllocateOld(thread, size, OldPage::kExecutable);
+        return AllocateOld(thread, size, Page::kExecutable);
       default:
         UNREACHABLE();
     }
     return 0;
   }
 
-  // Track external data.
-  void AllocatedExternal(intptr_t size, Space space);
+  // Tracks an external allocation. Returns false without tracking the
+  // allocation if it will make the total external size exceed
+  // kMaxAddrSpaceInWords.
+  bool AllocatedExternal(intptr_t size, Space space);
   void FreedExternal(intptr_t size, Space space);
   // Move external size from new to old space. Does not by itself trigger GC.
   void PromotedExternal(intptr_t size);
@@ -106,6 +122,10 @@ class Heap {
   ObjectPtr FindObject(FindObjectVisitor* visitor);
 
   void NotifyIdle(int64_t deadline);
+  void NotifyDestroyed();
+
+  Dart_PerformanceMode mode() const { return mode_; }
+  Dart_PerformanceMode SetMode(Dart_PerformanceMode mode);
 
   // Collect a single generation.
   void CollectGarbage(Thread* thread, GCType type, GCReason reason);
@@ -125,6 +145,7 @@ class Heap {
   void CollectAllGarbage(GCReason reason = GCReason::kFull,
                          bool compact = false);
 
+  void CheckCatchUp(Thread* thread);
   void CheckConcurrentMarking(Thread* thread, GCReason reason, intptr_t size);
   void StartConcurrentMarking(Thread* thread, GCReason reason);
   void WaitForMarkerTasks(Thread* thread);
@@ -143,9 +164,6 @@ class Heap {
                    bool is_vm_isolate,
                    intptr_t max_new_gen_words,
                    intptr_t max_old_gen_words);
-
-  // Returns a suitable name for a VM region in the heap.
-  static const char* RegionName(Space space);
 
   // Verify that all pointers in the heap point to the heap.
   bool Verify(MarkExpectation mark_expectation = kForbidMarked);
@@ -269,6 +287,8 @@ class Heap {
                                 JSONStream* stream) {
     old_space_.PrintHeapMapToJSONStream(isolate_group, stream);
   }
+
+  intptr_t ReachabilityBarrier() { return stats_.reachability_barrier_; }
 #endif  // PRODUCT
 
   IsolateGroup* isolate_group() const { return isolate_group_; }
@@ -292,6 +312,8 @@ class Heap {
     intptr_t num_;
     GCType type_;
     GCReason reason_;
+    LeakCountState state_;  // State to track finalization of GCed object.
+    intptr_t reachability_barrier_;  // Tracks reachability of GCed objects.
 
     class Data : public ValueObject {
      public:
@@ -318,7 +340,7 @@ class Heap {
        intptr_t max_old_gen_words);
 
   uword AllocateNew(Thread* thread, intptr_t size);
-  uword AllocateOld(Thread* thread, intptr_t size, OldPage::PageType type);
+  uword AllocateOld(Thread* thread, intptr_t size, Page::PageType type);
 
   // Visit all pointers. Caller must ensure concurrent sweeper is not running,
   // and the visitor must not allocate.
@@ -362,6 +384,8 @@ class Heap {
   // GC stats collection.
   GCStats stats_;
 
+  RelaxedAtomic<Dart_PerformanceMode> mode_ = {Dart_PerformanceMode_Default};
+
   // This heap is in read-only mode: No allocation is allowed.
   bool read_only_;
 
@@ -384,6 +408,7 @@ class Heap {
   friend class ProgramReloadContext;  // VisitObjects
   friend class ClassFinalizer;        // VisitObjects
   friend class HeapIterationScope;    // VisitObjects
+  friend class GCMarker;              // VisitObjects
   friend class ProgramVisitor;        // VisitObjectsImagePages
   friend class Serializer;            // VisitObjectsImagePages
   friend class HeapTestHelper;

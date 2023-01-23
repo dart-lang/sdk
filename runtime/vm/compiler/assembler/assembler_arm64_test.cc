@@ -666,9 +666,9 @@ ASSEMBLER_TEST_GENERATE(LoadSigned32Bit, assembler) {
          Operand(2 * target::kWordSize));  // Must not access beyond CSP.
 
   __ LoadImmediate(R1, 0xffffffff);
-  __ str(R1, Address(SP, -4, Address::PreIndex, kFourBytes), kFourBytes);
+  __ str(R1, Address(SP, -4, Address::PreIndex), kFourBytes);
   __ ldr(R0, Address(SP), kFourBytes);
-  __ ldr(R1, Address(SP, 4, Address::PostIndex, kFourBytes), kFourBytes);
+  __ ldr(R1, Address(SP, 4, Address::PostIndex), kFourBytes);
   __ RestoreCSP();
   __ ret();
 }
@@ -757,13 +757,9 @@ ASSEMBLER_TEST_GENERATE(LoadStorePairUnsigned32, assembler) {
   __ LoadImmediate(R3, 0xBBCCDDEEFF998877);
   __ sub(SP, SP, Operand(4 * target::kWordSize));
   __ andi(CSP, SP, Immediate(~15));  // Must not access beyond CSP.
-  __ stp(R2, R3,
-         Address(SP, 2 * sizeof(uint32_t), Address::PairOffset,
-                 compiler::kUnsignedFourBytes),
+  __ stp(R2, R3, Address(SP, 2 * sizeof(uint32_t), Address::PairOffset),
          kUnsignedFourBytes);
-  __ ldp(R0, R1,
-         Address(SP, 2 * sizeof(uint32_t), Address::PairOffset,
-                 kUnsignedFourBytes),
+  __ ldp(R0, R1, Address(SP, 2 * sizeof(uint32_t), Address::PairOffset),
          kUnsignedFourBytes);
   __ add(SP, SP, Operand(4 * target::kWordSize));
   __ sub(R0, R0, Operand(R1));
@@ -801,11 +797,9 @@ ASSEMBLER_TEST_GENERATE(LoadStorePairSigned32, assembler) {
   __ LoadImmediate(R3, 0xBBCCDDEEFF998877);
   __ sub(SP, SP, Operand(4 * target::kWordSize));
   __ andi(CSP, SP, Immediate(~15));  // Must not access beyond CSP.
-  __ stp(R2, R3,
-         Address(SP, 2 * sizeof(int32_t), Address::PairOffset, kFourBytes),
+  __ stp(R2, R3, Address(SP, 2 * sizeof(int32_t), Address::PairOffset),
          kFourBytes);
-  __ ldp(R0, R1,
-         Address(SP, 2 * sizeof(int32_t), Address::PairOffset, kFourBytes),
+  __ ldp(R0, R1, Address(SP, 2 * sizeof(int32_t), Address::PairOffset),
          kFourBytes);
   __ add(SP, SP, Operand(4 * target::kWordSize));
   __ sub(R0, R0, Operand(R1));
@@ -3645,7 +3639,7 @@ ASSEMBLER_TEST_RUN(LoadImmediateMedNeg4, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadHalfWordUnaligned, assembler) {
-  __ ldr(R1, R0, kTwoBytes);
+  __ ldr(R1, Address(R0), kTwoBytes);
   __ mov(R0, R1);
   __ ret();
 }
@@ -3672,7 +3666,7 @@ ASSEMBLER_TEST_RUN(LoadHalfWordUnaligned, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadHalfWordUnsignedUnaligned, assembler) {
-  __ ldr(R1, R0, kUnsignedTwoBytes);
+  __ ldr(R1, Address(R0), kUnsignedTwoBytes);
   __ mov(R0, R1);
   __ ret();
 }
@@ -3698,7 +3692,7 @@ ASSEMBLER_TEST_RUN(LoadHalfWordUnsignedUnaligned, test) {
 
 ASSEMBLER_TEST_GENERATE(StoreHalfWordUnaligned, assembler) {
   __ LoadImmediate(R1, 0xABCD);
-  __ str(R1, R0, kTwoBytes);
+  __ str(R1, Address(R0), kTwoBytes);
   __ mov(R0, R1);
   __ ret();
 }
@@ -3731,7 +3725,7 @@ ASSEMBLER_TEST_RUN(StoreHalfWordUnaligned, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadWordUnaligned, assembler) {
-  __ ldr(R1, R0, kUnsignedFourBytes);
+  __ ldr(R1, Address(R0), kUnsignedFourBytes);
   __ mov(R0, R1);
   __ ret();
 }
@@ -3765,7 +3759,7 @@ ASSEMBLER_TEST_RUN(LoadWordUnaligned, test) {
 
 ASSEMBLER_TEST_GENERATE(StoreWordUnaligned, assembler) {
   __ LoadImmediate(R1, 0x12345678);
-  __ str(R1, R0, kUnsignedFourBytes);
+  __ str(R1, Address(R0), kUnsignedFourBytes);
   __ mov(R0, R1);
   __ ret();
 }
@@ -5192,7 +5186,7 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdLargeOffset, assembler) {
   __ LoadDImmediate(V1, 42.0);
   __ sub(SP, SP, Operand(512 * target::kWordSize));
   __ andi(CSP, SP, Immediate(~15));  // Must not access beyond CSP.
-  __ fstrd(V1, Address(SP, 512 * target::kWordSize, Address::Offset));
+  __ fstrd(V1, Address(SP, 512 * target::kWordSize));
   __ add(SP, SP, Operand(512 * target::kWordSize));
   __ fldrd(V0, Address(SP));
   __ RestoreCSP();
@@ -7583,6 +7577,78 @@ ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire1024, test) {
       "ret\n");
 }
 #endif
+
+static void RangeCheck(Assembler* assembler, Register value, Register temp) {
+  const Register return_reg = CallingConventions::kReturnReg;
+  Label in_range;
+  __ RangeCheck(value, temp, kFirstErrorCid, kLastErrorCid,
+                AssemblerBase::kIfInRange, &in_range);
+  __ LoadImmediate(return_reg, Immediate(0));
+  __ Ret();
+  __ Bind(&in_range);
+  __ LoadImmediate(return_reg, Immediate(1));
+  __ Ret();
+}
+
+ASSEMBLER_TEST_GENERATE(RangeCheckNoTemp, assembler) {
+  const Register value = CallingConventions::ArgumentRegisters[0];
+  const Register temp = kNoRegister;
+  RangeCheck(assembler, value, temp);
+}
+
+ASSEMBLER_TEST_RUN(RangeCheckNoTemp, test) {
+  intptr_t result;
+  result = test->Invoke<intptr_t, intptr_t>(kErrorCid);
+  EXPECT_EQ(1, result);
+  result = test->Invoke<intptr_t, intptr_t>(kUnwindErrorCid);
+  EXPECT_EQ(1, result);
+  result = test->Invoke<intptr_t, intptr_t>(kFunctionCid);
+  EXPECT_EQ(0, result);
+  result = test->Invoke<intptr_t, intptr_t>(kMintCid);
+  EXPECT_EQ(0, result);
+}
+
+ASSEMBLER_TEST_GENERATE(RangeCheckWithTemp, assembler) {
+  const Register value = CallingConventions::ArgumentRegisters[0];
+  const Register temp = CallingConventions::ArgumentRegisters[1];
+  RangeCheck(assembler, value, temp);
+}
+
+ASSEMBLER_TEST_RUN(RangeCheckWithTemp, test) {
+  intptr_t result;
+  result = test->Invoke<intptr_t, intptr_t>(kErrorCid);
+  EXPECT_EQ(1, result);
+  result = test->Invoke<intptr_t, intptr_t>(kUnwindErrorCid);
+  EXPECT_EQ(1, result);
+  result = test->Invoke<intptr_t, intptr_t>(kFunctionCid);
+  EXPECT_EQ(0, result);
+  result = test->Invoke<intptr_t, intptr_t>(kMintCid);
+  EXPECT_EQ(0, result);
+}
+
+ASSEMBLER_TEST_GENERATE(RangeCheckWithTempReturnValue, assembler) {
+  const Register value = CallingConventions::ArgumentRegisters[0];
+  const Register temp = CallingConventions::ArgumentRegisters[1];
+  const Register return_reg = CallingConventions::kReturnReg;
+  Label in_range;
+  __ RangeCheck(value, temp, kFirstErrorCid, kLastErrorCid,
+                AssemblerBase::kIfInRange, &in_range);
+  __ Bind(&in_range);
+  __ mov(return_reg, value);
+  __ Ret();
+}
+
+ASSEMBLER_TEST_RUN(RangeCheckWithTempReturnValue, test) {
+  intptr_t result;
+  result = test->Invoke<intptr_t, intptr_t>(kErrorCid);
+  EXPECT_EQ(kErrorCid, result);
+  result = test->Invoke<intptr_t, intptr_t>(kUnwindErrorCid);
+  EXPECT_EQ(kUnwindErrorCid, result);
+  result = test->Invoke<intptr_t, intptr_t>(kFunctionCid);
+  EXPECT_EQ(kFunctionCid, result);
+  result = test->Invoke<intptr_t, intptr_t>(kMintCid);
+  EXPECT_EQ(kMintCid, result);
+}
 
 }  // namespace compiler
 }  // namespace dart

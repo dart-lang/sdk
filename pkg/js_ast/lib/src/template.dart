@@ -134,6 +134,16 @@ class Template {
     }
     throw ArgumentError.value(arguments, 'arguments', 'Must be a List or Map');
   }
+
+  // TODO(sra): We should rather make the return type of `instantiate` be what
+  // we need, either by making Template be generic or have Expression and
+  // Statement subclasses that override `instantiate`. Checking is likely still
+  // required since the argument can be the result (e.g. "#").
+  Expression instantiateExpression(Object arguments) =>
+      instantiate(arguments) as Expression;
+
+  Statement instantiateStatement(Object arguments) =>
+      instantiate(arguments) as Statement;
 }
 
 /// An Instantiator is a Function that generates a JS AST tree or List of
@@ -202,6 +212,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   Instantiator visitInterpolatedExpression(InterpolatedExpression node) {
     var nameOrPosition = node.nameOrPosition;
     return (arguments) {
+      // ignore: avoid_dynamic_calls
       var value = arguments[nameOrPosition];
       if (value is Expression) return value;
       if (value is String) return convertStringToVariableUse(value);
@@ -214,6 +225,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   Instantiator visitInterpolatedDeclaration(InterpolatedDeclaration node) {
     var nameOrPosition = node.nameOrPosition;
     return (arguments) {
+      // ignore: avoid_dynamic_calls
       var value = arguments[nameOrPosition];
       if (value is Declaration) return value;
       if (value is String) return convertStringToVariableDeclaration(value);
@@ -226,6 +238,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     if (node is InterpolatedExpression) {
       var nameOrPosition = node.nameOrPosition;
       return (arguments) {
+        // ignore: avoid_dynamic_calls
         var value = arguments[nameOrPosition];
         Expression toExpression(item) {
           if (item is Expression) return item;
@@ -245,6 +258,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   Instantiator visitInterpolatedLiteral(InterpolatedLiteral node) {
     var nameOrPosition = node.nameOrPosition;
     return (arguments) {
+      // ignore: avoid_dynamic_calls
       var value = arguments[nameOrPosition];
       if (value is Literal || value is DeferredExpression) return value;
       error('Interpolated value #$nameOrPosition is not a Literal: $value');
@@ -255,6 +269,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   Instantiator visitInterpolatedParameter(InterpolatedParameter node) {
     var nameOrPosition = node.nameOrPosition;
     return (arguments) {
+      // ignore: avoid_dynamic_calls
       var value = arguments[nameOrPosition];
 
       Parameter toParameter(item) {
@@ -276,6 +291,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     // 'foo' generates `a["foo"]` which prints as `a.foo`.
     var nameOrPosition = node.nameOrPosition;
     return (arguments) {
+      // ignore: avoid_dynamic_calls
       var value = arguments[nameOrPosition];
       if (value is Expression) return value;
       if (value is String) return LiteralString(value);
@@ -288,6 +304,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   Instantiator visitInterpolatedStatement(InterpolatedStatement node) {
     var nameOrPosition = node.nameOrPosition;
     return (arguments) {
+      // ignore: avoid_dynamic_calls
       var value = arguments[nameOrPosition];
       if (value is Node) return value.toStatement();
       throw error(
@@ -299,6 +316,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     if (node is InterpolatedStatement) {
       var nameOrPosition = node.nameOrPosition;
       return (arguments) {
+        // ignore: avoid_dynamic_calls
         var value = arguments[nameOrPosition];
         Statement toStatement(item) {
           if (item is Statement) return item;
@@ -349,7 +367,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   @override
   Instantiator visitExpressionStatement(ExpressionStatement node) {
     Instantiator buildExpression = visit(node.expression);
-    return (arguments) => buildExpression(arguments).toStatement();
+    return (arguments) => (buildExpression(arguments) as Node).toStatement();
   }
 
   @override
@@ -373,6 +391,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     Instantiator makeOtherwise = visit(node.otherwise);
     return (arguments) {
       // Allow booleans to be used for conditional compilation.
+      // ignore: avoid_dynamic_calls
       var value = arguments[nameOrPosition];
       if (value is bool) {
         return value ? makeThen(arguments) : makeOtherwise(arguments);

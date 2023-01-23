@@ -29,6 +29,6 @@ class Class extends core::Object {
 static method main(dynamic args) → dynamic {
   if(false)
     new self::Class::•().{self::Class::method}("", block {
-      final core::Set<core::String*>* #t5 = new col::_CompactLinkedHashSet::•<core::String*>();
+      final core::Set<core::String*>* #t5 = new col::_Set::•<core::String*>();
     } =>#t5){(core::String*, core::Set<core::String*>*) →* core::List<core::String*>*};
 }

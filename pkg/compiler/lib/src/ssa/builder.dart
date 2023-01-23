@@ -43,6 +43,7 @@ import '../js_model/class_type_variable_access.dart';
 import '../js_model/element_map.dart';
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../js_model/js_strategy.dart';
+import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/locals.dart' show GlobalLocalsMap, JumpVisitor;
 import '../js_model/type_recipe.dart';
 import '../kernel/invocation_mirror_constants.dart';
@@ -56,11 +57,11 @@ import '../universe/member_usage.dart' show MemberAccess;
 import '../universe/selector.dart';
 import '../universe/target_checks.dart' show TargetChecks;
 import '../universe/use.dart' show ConstantUse, StaticUse, TypeUse;
-import '../world.dart';
 import 'branch_builder.dart';
 import 'jump_handler.dart';
 import 'locals_handler.dart';
 import 'loop_handler.dart';
+import 'metrics.dart';
 import 'nodes.dart';
 import 'string_builder.dart';
 import 'switch_continue_analysis.dart';
@@ -104,7 +105,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// A stack of instructions.
   ///
   /// We build the SSA graph by simulating a stack machine.
-  List<HInstruction> stack = [];
+  List<HInstruction /*!*/ > stack = [];
 
   /// The count of nested loops we are currently building.
   ///
@@ -138,6 +139,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// SSA graph), when dump-info is enabled.
   final InfoReporter _infoReporter;
 
+  final SsaMetrics _metrics;
+
   HInstruction _rethrowableException;
 
   final SourceInformationStrategy _sourceInformationStrategy;
@@ -167,6 +170,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       this._initialTargetElement,
       InterfaceType instanceType,
       this._infoReporter,
+      this._metrics,
       this._elementMap,
       this.globalInferenceResults,
       this.closedWorld,
@@ -182,12 +186,12 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         _memberContextNode =
             _elementMap.getMemberContextNode(_initialTargetElement) {
     _enterFrame(targetElement, null);
-    this._loopHandler = KernelLoopHandler(this);
+    _loopHandler = KernelLoopHandler(this);
     _typeBuilder = KernelTypeBuilder(this, _elementMap);
     graph.element = targetElement;
     graph.sourceInformation =
         _sourceInformationBuilder.buildVariableDeclaration();
-    this.localsHandler = LocalsHandler(this, targetElement, targetElement,
+    localsHandler = LocalsHandler(this, targetElement, targetElement,
         instanceType, _nativeData, _interceptorData);
   }
 
@@ -229,7 +233,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     stack.add(instruction);
   }
 
-  HInstruction pop() {
+  HInstruction /*!*/ pop() {
     return stack.removeLast();
   }
 
@@ -364,6 +368,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// concrete SSA builder reports an error.
   bool _getFlagValue(String flagName) {
     switch (flagName) {
+      case 'DEV_COMPILER':
+        return false;
       case 'MINIFIED':
         return options.enableMinification;
       case 'MUST_RETAIN_METADATA':
@@ -478,7 +484,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
                 return null;
               }
             }
-            _buildField(target);
+            if (targetElement.isInstanceMember) {
+              _buildInstanceFieldSetter(target);
+            } else {
+              _buildStaticFieldInitializer(target);
+            }
           } else if (target is ir.LocalFunction) {
             _buildFunctionNode(targetElement,
                 _ensureDefaultArgumentValues(null, target.function));
@@ -524,9 +534,9 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
       if (_tracer.isEnabled) {
         MemberEntity member = _initialTargetElement;
-        String name = member.name;
+        String name = member.name ?? '<null>';
         if (member.isInstanceMember ||
-            member.isConstructor ||
+            member is ConstructorEntity ||
             member.isStatic) {
           name = "${member.enclosingClass.name}.$name";
           if (definition.kind == MemberKind.constructorBody) {
@@ -579,49 +589,53 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     return function;
   }
 
-  void _buildField(ir.Field node) {
-    graph.isLazyInitializer = node.isStatic;
+  void _buildInstanceFieldSetter(ir.Field node) {
+    assert(!node.isStatic);
     FieldEntity field = _elementMap.getMember(node);
     _openFunction(field, checks: TargetChecks.none);
-    if (node.isInstanceMember &&
-        closedWorld.annotationsData.getParameterCheckPolicy(field).isEmitted) {
-      HInstruction thisInstruction = localsHandler.readThis(
-          sourceInformation: _sourceInformationBuilder.buildGet(node));
-      // Use dynamic type because the type computed by the inferrer is
-      // narrowed to the type annotation.
-      HInstruction parameter =
-          HParameterValue(field, _abstractValueDomain.dynamicType);
-      // Add the parameter as the last instruction of the entry block.
-      // If the method is intercepted, we want the actual receiver
-      // to be the first parameter.
-      graph.entry.addBefore(graph.entry.last, parameter);
-      DartType type = _getDartTypeIfValid(node.type);
-      HInstruction value = _typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
-          field, parameter, type);
-      // TODO(sra): Pass source information to
-      // [potentiallyCheckOrTrustTypeOfParameter].
-      // TODO(sra): The source information should indicate the field and
-      // possibly its type but not the initializer.
-      value.sourceInformation ??= _sourceInformationBuilder.buildSet(node);
-      value = _potentiallyAssertNotNull(field, node, value, type);
-      if (!_fieldAnalysis.getFieldData(field).isElided) {
-        add(HFieldSet(_abstractValueDomain, field, thisInstruction, value));
-      }
-    } else {
-      if (node.initializer != null) {
-        node.initializer.accept(this);
-        HInstruction fieldValue = pop();
-        HInstruction checkInstruction =
-            _typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
-                field, fieldValue, _getDartTypeIfValid(node.type));
-        stack.add(checkInstruction);
-      } else {
-        stack.add(graph.addConstantNull(closedWorld));
-      }
-      HInstruction value = pop();
-      _closeAndGotoExit(HReturn(_abstractValueDomain, value,
-          _sourceInformationBuilder.buildReturn(node)));
+    HInstruction thisInstruction = localsHandler.readThis(
+        sourceInformation: _sourceInformationBuilder.buildGet(node));
+    // Use dynamic type because the type computed by the inferrer is
+    // narrowed to the type annotation.
+    HInstruction parameter =
+        HParameterValue(field, _abstractValueDomain.dynamicType);
+    // Add the parameter as the last instruction of the entry block.
+    // If the method is intercepted, we want the actual receiver
+    // to be the first parameter.
+    graph.entry.addBefore(graph.entry.last, parameter);
+    DartType type = _getDartTypeIfValid(node.type);
+    HInstruction value = _typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
+        field, parameter, type);
+    // TODO(sra): Pass source information to
+    // [potentiallyCheckOrTrustTypeOfParameter].
+    // TODO(sra): The source information should indicate the field and
+    // possibly its type but not the initializer.
+    value.sourceInformation ??= _sourceInformationBuilder.buildSet(node);
+    value = _potentiallyAssertNotNull(field, node, value, type);
+    if (!_fieldAnalysis.getFieldData(field).isElided) {
+      add(HFieldSet(_abstractValueDomain, field, thisInstruction, value));
     }
+    _closeFunction();
+  }
+
+  void _buildStaticFieldInitializer(ir.Field node) {
+    assert(node.isStatic);
+    graph.isLazyInitializer = true;
+    FieldEntity field = _elementMap.getMember(node);
+    _openFunction(field, checks: TargetChecks.none);
+    if (node.initializer != null) {
+      node.initializer.accept(this);
+      HInstruction fieldValue = pop();
+      HInstruction checkInstruction =
+          _typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
+              field, fieldValue, _getDartTypeIfValid(node.type));
+      stack.add(checkInstruction);
+    } else {
+      stack.add(graph.addConstantNull(closedWorld));
+    }
+    HInstruction value = pop();
+    _closeAndGotoExit(HReturn(_abstractValueDomain, value,
+        _sourceInformationBuilder.buildReturn(node)));
     _closeFunction();
   }
 
@@ -643,7 +657,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// to `dynamic` (represented as `null`) so the bindings are available for
   /// building types up the inheritance chain of generative constructors.
   void _addClassTypeVariablesIfNeeded(MemberEntity member) {
-    if (!member.isConstructor && member is! ConstructorBodyEntity) {
+    if (member is! ConstructorEntity && member is! ConstructorBodyEntity) {
       return;
     }
     ClassEntity cls = member.enclosingClass;
@@ -1211,7 +1225,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     _closeFunction();
   }
 
-  /// Builds a SSA graph for FunctionNodes, found in FunctionExpressions and
+  /// Builds an SSA graph for FunctionNodes, found in FunctionExpressions and
   /// Procedures.
   void _buildFunctionNode(
       FunctionEntity function, ir.FunctionNode functionNode) {
@@ -1253,7 +1267,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         isStatement: true));
   }
 
-  /// Builds a SSA graph for a sync*/async/async* generator.  We generate a
+  /// Builds an SSA graph for a sync*/async/async* generator.  We generate a
   /// entry function which tail-calls a body function. The entry contains
   /// per-invocation checks and the body, which is later transformed, contains
   /// the re-entrant 'state machine' code.
@@ -1324,7 +1338,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     _closeFunction();
   }
 
-  /// Builds a SSA graph for a sync*/async/async* generator body.
+  /// Builds an SSA graph for a sync*/async/async* generator body.
   void _buildGeneratorBody(
       JGeneratorBody function, ir.FunctionNode functionNode) {
     FunctionEntity entry = function.function;
@@ -1473,7 +1487,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     return _isNonNullableByDefault(node.parent);
   }
 
-  /// Builds a SSA graph for FunctionNodes of external methods. This produces a
+  /// Builds an SSA graph for FunctionNodes of external methods. This produces a
   /// graph for a method with Dart calling conventions that forwards to the
   /// actual external method.
   void _buildExternalFunctionNode(
@@ -1705,9 +1719,17 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         _elementMap.getSpannable(targetElement, loadLibrary),
         _elementMap.getImport(loadLibrary.import));
     // TODO(efortuna): Source information!
+
+    final priority =
+        closedWorld.annotationsData.getLoadLibraryPriorityAt(loadLibrary);
+    final flag = priority.index;
+
     push(HInvokeStatic(
         _commonElements.loadDeferredLibrary,
-        [graph.addConstantString(loadId, closedWorld)],
+        [
+          graph.addConstantString(loadId, closedWorld),
+          graph.addConstantInt(flag, closedWorld)
+        ],
         _abstractValueDomain.nonNullType,
         const <DartType>[],
         targetCanThrow: false));
@@ -1891,7 +1913,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     SyntheticLocal indexVariable = localsHandler.createLocal('_i');
 
     // These variables are shared by initializer, condition, body and update.
-    HInstruction array; // Set in buildInitializer.
+    /*late final*/ HInstruction array; // Set in buildInitializer.
     bool isFixed; // Set in buildInitializer.
     HInstruction originalLength = null; // Set for growable lists.
 
@@ -2028,7 +2050,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     //   }
 
     // The iterator is shared between initializer, condition and body.
-    HInstruction iterator;
+    /*late final*/ HInstruction iterator;
     StaticType iteratorType = _getStaticForInIteratorType(node);
 
     void buildInitializer() {
@@ -3624,7 +3646,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   /// Generate instructions to evaluate the positional arguments in source
   /// order.
-  List<HInstruction> _visitPositionalArguments(ir.Arguments arguments) {
+  List<HInstruction /*!*/ > _visitPositionalArguments(ir.Arguments arguments) {
     List<HInstruction> result = [];
     for (ir.Expression argument in arguments.positional) {
       argument.accept(this);
@@ -3635,7 +3657,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   /// Generate instructions to evaluate the named arguments in source order.
   /// Returns a fresh map from parameter name to evaluated argument.
-  Map<String, HInstruction> _visitNamedArguments(ir.Arguments arguments) {
+  Map<String, HInstruction /*!*/ > _visitNamedArguments(
+      ir.Arguments arguments) {
     Map<String, HInstruction> values = {};
     for (ir.NamedExpression argument in arguments.named) {
       argument.value.accept(this);
@@ -3648,7 +3671,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// dynamic target (member function).  Dynamic targets use stubs to add
   /// defaulted arguments, so (unlike static targets) we do not add the default
   /// values.
-  List<HInstruction> _visitArgumentsForDynamicTarget(
+  List<HInstruction /*!*/ > _visitArgumentsForDynamicTarget(
       Selector selector, ir.Arguments arguments, List<DartType> typeArguments,
       [SourceInformation sourceInformation]) {
     List<HInstruction> values = _visitPositionalArguments(arguments);
@@ -3670,7 +3693,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// of named arguments. Return null if the arguments could not be correctly
   /// parsed because the user provided code with named parameters in a JS (non
   /// factory) function.
-  List<HInstruction> _visitArgumentsForNativeStaticTarget(
+  List<HInstruction /*!*/ > _visitArgumentsForNativeStaticTarget(
       ir.FunctionNode target, ir.Arguments arguments) {
     // Visit arguments in source order, then re-order and fill in defaults.
     var values = _visitPositionalArguments(arguments);
@@ -4277,7 +4300,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     Map<String, ir.Expression> namedArguments = {};
     int kind = _readIntLiteral(invocation.arguments.positional[4]);
 
-    Name memberName = Name(name, _currentFrame.member.library);
+    Name memberName = Name(name, _currentFrame.member.library.canonicalUri);
     Selector selector;
     switch (kind) {
       case invocationMirrorGetterKind:
@@ -4444,19 +4467,18 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     argument.accept(this);
     HInstruction instruction = pop();
 
-    if (!instruction.isConstantString()) {
-      reporter.reportErrorMessage(
-          _elementMap.getSpannable(targetElement, argument),
-          MessageKind.GENERIC, {
-        'text': "Error: Expected String constant as ${adjective}argument "
-            "to '$methodName'."
-      });
-      return null;
+    if (instruction is HConstant) {
+      ConstantValue constant = instruction.constant;
+      if (constant is StringConstantValue) return constant.stringValue;
     }
 
-    HConstant hConstant = instruction;
-    StringConstantValue stringConstant = hConstant.constant;
-    return stringConstant.stringValue;
+    reporter.reportErrorMessage(
+        _elementMap.getSpannable(targetElement, argument),
+        MessageKind.GENERIC, {
+      'text': "Error: Expected String constant as ${adjective}argument "
+          "to '$methodName'."
+    });
+    return null;
   }
 
   void _handleForeignDartClosureToJs(
@@ -4958,8 +4980,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     HInstruction value = arguments[0];
     HInstruction name = options.omitLateNames ? null : arguments[1];
 
-    CheckPolicy policy = closedWorld.annotationsData
-        .getLateVariableCheckPolicy(_currentFrame.member);
+    CheckPolicy policy =
+        closedWorld.annotationsData.getLateVariableCheckPolicyAt(invocation);
 
     push(HLateReadCheck(value, name, policy.isTrusted,
         _abstractValueDomain.excludeLateSentinel(value.instructionType))
@@ -4983,8 +5005,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     HInstruction value = arguments[0];
     HInstruction name = options.omitLateNames ? null : arguments[1];
 
-    CheckPolicy policy = closedWorld.annotationsData
-        .getLateVariableCheckPolicy(_currentFrame.member);
+    CheckPolicy policy =
+        closedWorld.annotationsData.getLateVariableCheckPolicyAt(invocation);
 
     push(HLateWriteOnceCheck(
         value, name, policy.isTrusted, _abstractValueDomain.dynamicType)
@@ -5008,8 +5030,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     HInstruction value = arguments[0];
     HInstruction name = options.omitLateNames ? null : arguments[1];
 
-    CheckPolicy policy = closedWorld.annotationsData
-        .getLateVariableCheckPolicy(_currentFrame.member);
+    CheckPolicy policy =
+        closedWorld.annotationsData.getLateVariableCheckPolicyAt(invocation);
 
     push(HLateInitializeOnceCheck(
         value, name, policy.isTrusted, _abstractValueDomain.dynamicType)
@@ -5097,7 +5119,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     MemberEntity element =
         closedWorld.locateSingleMember(selector, receiverType);
     if (element != null &&
-        !element.isField &&
+        element is! FieldEntity &&
         !(element.isGetter && selector.isCall) &&
         !(element.isFunction && selector.isGetter) &&
         !isOptimizableOperation(selector, element)) {
@@ -5125,9 +5147,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         _typeInferenceMap.resultTypeOfSelector(selector, receiverType);
     HInvokeDynamic invoke;
     if (selector.isGetter) {
+      _metrics.countGettersTotal.add();
       invoke = HInvokeDynamicGetter(selector, receiverType, element, inputs,
           isIntercepted, resultType, sourceInformation);
     } else if (selector.isSetter) {
+      _metrics.countSettersTotal.add();
       invoke = HInvokeDynamicSetter(selector, receiverType, element, inputs,
           isIntercepted, resultType, sourceInformation);
     } else if (selector.isClosureCall) {
@@ -5537,7 +5561,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       return;
     }
     MemberEntity member = _elementMap.getMember(target);
-    if (member.isField) {
+    if (member is FieldEntity) {
       FieldAnalysisData fieldData = _fieldAnalysis.getFieldData(member);
       if (fieldData.isEffectivelyConstant) {
         ConstantValue value = fieldData.constantValue;
@@ -5815,9 +5839,29 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       ..cleanUp();
   }
 
+  bool _tryInlineMethod(
+      FunctionEntity function,
+      Selector selector,
+      AbstractValue mask,
+      List<HInstruction> providedArguments,
+      List<DartType> typeArguments,
+      ir.Node currentNode,
+      SourceInformation sourceInformation,
+      {InterfaceType instanceType}) {
+    final inlined = _doTryInlineMethod(function, selector, mask,
+        providedArguments, typeArguments, currentNode, sourceInformation,
+        instanceType: instanceType);
+    if (inlined) {
+      _metrics.countMethodInlined.add();
+    } else {
+      _metrics.countMethodNotInlined.add();
+    }
+    return inlined;
+  }
+
   /// Try to inline [element] within the correct context of the builder. The
   /// insertion point is the state of the builder.
-  bool _tryInlineMethod(
+  bool _doTryInlineMethod(
       FunctionEntity function,
       Selector selector,
       AbstractValue mask,
@@ -5838,7 +5882,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     }
 
     // Check if inlining is disabled for the current element (includes globally)
-    // before making decsions on the basis of the callee so that cached callee
+    // before making decisions on the basis of the callee so that cached callee
     // decisions are not a function of the call site's method.
     if (closedWorld.annotationsData.hasDisableInlining(_currentFrame.member)) {
       return false;
@@ -5858,7 +5902,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
           selector != null ||
               function.isStatic ||
               function.isTopLevel ||
-              function.isConstructor ||
+              function is ConstructorEntity ||
               function is ConstructorBodyEntity,
           failedAt(function, "Missing selector for inlining of $function."));
       if (selector != null) {
@@ -6010,7 +6054,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     }
 
     void doInlining() {
-      if (function.isConstructor) {
+      if (function is ConstructorEntity) {
         registry.registerStaticUse(
             StaticUse.constructorInlining(function, instanceType));
       } else {
@@ -6289,7 +6333,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     }
 
     ClassEntity enclosing = function.enclosingClass;
-    if ((function.isConstructor || function is ConstructorBodyEntity) &&
+    if ((function is ConstructorEntity || function is ConstructorBodyEntity) &&
         _rtiNeed.classNeedsTypeArguments(enclosing)) {
       InterfaceType thisType = _elementEnvironment.getThisType(enclosing);
       thisType.typeArguments.forEach((_typeVariable) {
@@ -6399,7 +6443,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     bool trusted = false;
     if (function.isStatic ||
         function.isTopLevel ||
-        function.isConstructor ||
+        function is ConstructorEntity ||
         function is ConstructorBodyEntity) {
       // We inline static methods, top-level methods, constructors and
       // constructor bodies only from direct call sites.
@@ -7098,7 +7142,7 @@ class InlineWeeder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         enableUserAssertions: enableUserAssertions,
         omitImplicitCasts: omitImplicitCasts);
     ir.FunctionNode node = getFunctionNode(elementMap, function);
-    if (function.isConstructor) {
+    if (function is ConstructorEntity) {
       visitor.data.isConstructor = true;
       MemberDefinition definition = elementMap.getMemberDefinition(function);
       ir.Node node = definition.node;

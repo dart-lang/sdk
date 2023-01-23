@@ -13,8 +13,8 @@ part of dart.core;
 
 /// An [Expando] allows adding new properties to objects.
 ///
-/// Does not work on numbers, strings, booleans, `null`, `dart:ffi` pointers,
-/// `dart:ffi` structs, or `dart:ffi` unions.
+/// Does not work on numbers, strings, booleans, records, `null`,
+/// `dart:ffi` pointers, `dart:ffi` structs, or `dart:ffi` unions.
 ///
 /// An `Expando` does not hold on to the added property value after an object
 /// becomes inaccessible.
@@ -24,6 +24,8 @@ part of dart.core;
 /// released. To avoid this, expando properties cannot be added to numbers.
 /// The same argument applies to strings, booleans and `null`, which also have
 /// literals that evaluate to identical values when they occur more than once.
+/// In addition, expando properties can not be added to records because
+/// records do not have a well-defined persistent identity.
 ///
 /// There is no restriction on other classes, even for compile time constant
 /// objects. Be careful if adding expando properties to compile time constants,
@@ -47,8 +49,8 @@ class Expando<T extends Object> {
   ///
   /// If the object hasn't been expanded, the result is the `null` value.
   ///
-  /// The object must not be a number, a string, a boolean, `null`, a
-  /// `dart:ffi` pointer, a `dart:ffi` struct, or a `dart:ffi` union.
+  /// The object must not be a number, a string, a boolean, a record, `null`,
+  /// a `dart:ffi` pointer, a `dart:ffi` struct, or a `dart:ffi` union.
   external T? operator [](Object object);
 
   /// Sets this [Expando]'s property value on the given object to [value].
@@ -56,8 +58,8 @@ class Expando<T extends Object> {
   /// Properties can effectively be removed again
   /// by setting their value to `null`.
   ///
-  /// The object must not be a number, a string, a boolean, `null`, a
-  /// `dart:ffi` pointer, a `dart:ffi` struct, or a `dart:ffi` union.
+  /// The object must not be a number, a string, a boolean, a record, `null`,
+  /// a `dart:ffi` pointer, a `dart:ffi` struct, or a `dart:ffi` union.
   external void operator []=(Object object, T? value);
 }
 
@@ -125,7 +127,7 @@ abstract class WeakReference<T extends Object> {
   /// Creates a [WeakReference] pointing to the given [target].
   ///
   /// The [target] must be an object supported as an [Expando] key,
-  /// which means [target] cannot be a number, a string, a boolean,
+  /// which means [target] cannot be a number, a string, a boolean, a record,
   /// the `null` value, or certain other types of special objects.
   external factory WeakReference(T target);
 

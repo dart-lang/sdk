@@ -43,6 +43,11 @@ abstract class InferredType extends DartType {
   }
 
   @override
+  DartType get resolveTypeParameterType {
+    throw unsupported("resolveTypeParameterType", charOffset ?? -1, fileUri);
+  }
+
+  @override
   R accept<R>(DartTypeVisitor<R> v) {
     throw unsupported("accept", charOffset ?? -1, fileUri);
   }

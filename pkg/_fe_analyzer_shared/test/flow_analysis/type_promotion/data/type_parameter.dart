@@ -12,7 +12,7 @@ class C<T extends num?> {
   void promoteNullable(T? t) {
     T? s;
     if (t is int) {
-      s = /*T & int*/ t;
+      s = /*cfe.T? & int*/ /*analyzer.T & int*/ t;
     }
   }
 

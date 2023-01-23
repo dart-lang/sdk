@@ -52,13 +52,24 @@ void main() {
     expect(element, same(unitElement));
   }
 
-  test_locate_ConstructorDeclaration() async {
+  test_locate_ConstructorDeclaration_named() async {
     await resolveTestCode(r'''
 class A {
   A.foo();
 }
 ''');
-    var node = findNode.constructor('foo();');
+    var node = findNode.constructor('A.foo()');
+    var element = ElementLocator.locate(node);
+    expect(element, isConstructorElement);
+  }
+
+  test_locate_ConstructorDeclaration_unnamed() async {
+    await resolveTestCode(r'''
+class A {
+  A();
+}
+''');
+    var node = findNode.constructor('A()');
     var element = ElementLocator.locate(node);
     expect(element, isConstructorElement);
   }
@@ -73,6 +84,17 @@ enum E {
     var node = findNode.constructorSelector('named(); // 0');
     var element = ElementLocator.locate(node);
     expect(element, findElement.constructor('named'));
+  }
+
+  test_locate_EnumConstantDeclaration() async {
+    await resolveTestCode(r'''
+enum E {
+  one
+}
+''');
+    var node = findNode.enumConstantDeclaration('one');
+    var element = ElementLocator.locate(node);
+    expect(element, findElement.field('one', of: 'E'));
   }
 
   test_locate_ExportDirective() async {
@@ -115,7 +137,7 @@ void main(@Class() parameter) {}
 
   test_locate_Identifier_className() async {
     await resolveTestCode('class A {}');
-    var node = findNode.simple('A');
+    var node = findNode.classDeclaration('A');
     var element = ElementLocator.locate(node);
     expect(element, isClassElement);
   }
@@ -126,7 +148,7 @@ class A {
   A.bar();
 }
 ''');
-    var node = findNode.simple('bar');
+    var node = findNode.constructor('bar');
     var element = ElementLocator.locate(node);
     expect(element, isConstructorElement);
   }
@@ -137,7 +159,7 @@ class A {
   A();
 }
 ''');
-    var node = findNode.constructor('A();');
+    var node = findNode.simple('A()');
     var element = ElementLocator.locate(node);
     expect(element, isConstructorElement);
   }
@@ -148,7 +170,7 @@ class A {
   var x;
 }
 ''');
-    var node = findNode.simple('x;');
+    var node = findNode.variableDeclaration('x;');
     var element = ElementLocator.locate(node);
     expect(element, isFieldElement);
   }

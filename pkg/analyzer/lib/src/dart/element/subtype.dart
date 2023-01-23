@@ -297,11 +297,21 @@ class SubtypeHelper {
       }
     }
 
+    if (T0 is RecordTypeImpl) {
+      // Record Type/Record: `T0` is a record type, and `T1` is `Record`.
+      if (T1.isDartCoreRecord) {
+        return true;
+      }
+      if (T1 is RecordTypeImpl) {
+        return _isRecordSubtypeOf(T0, T1);
+      }
+    }
+
     return false;
   }
 
   bool _interfaceArguments(
-    ClassElement element,
+    InterfaceElement element,
     InterfaceType subType,
     InterfaceType superType,
   ) {
@@ -471,6 +481,42 @@ class SubtypeHelper {
     }
 
     return false;
+  }
+
+  /// Check that [subType] is a subtype of [superType].
+  bool _isRecordSubtypeOf(RecordType subType, RecordType superType) {
+    final subPositional = subType.positionalFields;
+    final superPositional = superType.positionalFields;
+    if (subPositional.length != superPositional.length) {
+      return false;
+    }
+
+    final subNamed = subType.namedFields;
+    final superNamed = superType.namedFields;
+    if (subNamed.length != superNamed.length) {
+      return false;
+    }
+
+    for (var i = 0; i < subPositional.length; i++) {
+      final subField = subPositional[i];
+      final superField = superPositional[i];
+      if (!isSubtypeOf(subField.type, superField.type)) {
+        return false;
+      }
+    }
+
+    for (var i = 0; i < subNamed.length; i++) {
+      final subField = subNamed[i];
+      final superField = superNamed[i];
+      if (subField.name != superField.name) {
+        return false;
+      }
+      if (!isSubtypeOf(subField.type, superField.type)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   static FunctionTypeImpl _functionTypeWithNamedRequired(FunctionType type) {

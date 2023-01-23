@@ -30,7 +30,8 @@ class AstFinder {
   static ClassDeclaration getClass(CompilationUnit unit, String className) {
     NodeList<CompilationUnitMember> unitMembers = unit.declarations;
     for (CompilationUnitMember unitMember in unitMembers) {
-      if (unitMember is ClassDeclaration && unitMember.name.name == className) {
+      if (unitMember is ClassDeclaration &&
+          unitMember.name.lexeme == className) {
         return unitMember;
       }
     }
@@ -47,7 +48,7 @@ class AstFinder {
     NodeList<ClassMember> classMembers = unitMember.members;
     for (ClassMember classMember in classMembers) {
       if (classMember is ConstructorDeclaration) {
-        if (classMember.name?.name == constructorName) {
+        if (classMember.name?.lexeme == constructorName) {
           return classMember;
         }
       }
@@ -65,7 +66,7 @@ class AstFinder {
       if (classMember is FieldDeclaration) {
         NodeList<VariableDeclaration> fields = classMember.fields.variables;
         for (VariableDeclaration field in fields) {
-          if (field.name.name == fieldName) {
+          if (field.name.lexeme == fieldName) {
             return field;
           }
         }
@@ -78,7 +79,7 @@ class AstFinder {
   /// with the given [className] in the given compilation [unit].
   static FieldElement? getFieldInClassElement(
       CompilationUnit unit, String className, String fieldName) {
-    return getFieldInClass(unit, className, fieldName).name.staticElement
+    return getFieldInClass(unit, className, fieldName).declaredElement
         as FieldElement;
   }
 
@@ -90,7 +91,7 @@ class AstFinder {
     NodeList<ClassMember> classMembers = unitMember.members;
     for (ClassMember classMember in classMembers) {
       if (classMember is MethodDeclaration) {
-        if (classMember.name.name == methodName) {
+        if (classMember.name.lexeme == methodName) {
           return classMember;
         }
       }
@@ -124,7 +125,7 @@ class AstFinder {
     NodeList<CompilationUnitMember> unitMembers = unit.declarations;
     for (CompilationUnitMember unitMember in unitMembers) {
       if (unitMember is FunctionDeclaration) {
-        if (unitMember.name.name == functionName) {
+        if (unitMember.name.lexeme == functionName) {
           return unitMember;
         }
       }
@@ -142,7 +143,7 @@ class AstFinder {
         NodeList<VariableDeclaration> variables =
             unitMember.variables.variables;
         for (VariableDeclaration variable in variables) {
-          if (variable.name.name == variableName) {
+          if (variable.name.lexeme == variableName) {
             return variable;
           }
         }
@@ -154,7 +155,7 @@ class AstFinder {
   /// Return the top-level variable element with the given [name].
   static TopLevelVariableElement getTopLevelVariableElement(
       CompilationUnit unit, String name) {
-    return getTopLevelVariable(unit, name).name.staticElement
+    return getTopLevelVariable(unit, name).declaredElement
         as TopLevelVariableElement;
   }
 }
@@ -195,7 +196,7 @@ class TypeAssertions {
 
   /// Assert that a type has the element that is equal to the [expected].
   Asserter<DartType> hasElement(Element expected) =>
-      (DartType type) => expect(expected, type.element);
+      (DartType type) => expect(expected, (type as InterfaceType).element);
 
   /// Given assertions for the argument and return types, produce an
   /// assertion over unary function types.

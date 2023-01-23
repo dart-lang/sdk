@@ -5,7 +5,7 @@
 import 'dart:core' hide Symbol;
 import 'dart:core' as core show Symbol;
 import 'dart:_js_primitives' show printString;
-import 'dart:_js_helper' show patch;
+import 'dart:_internal' show patch;
 import 'dart:_interceptors' show JSArray;
 import 'dart:_foreign_helper'
     show JS, JS_GET_FLAG, createJsSentinel, isJsSentinel;

@@ -41,7 +41,7 @@ void VirtualMemoryCompressedHeap::Init(void* compressed_heap_region,
   memset(pages_, 0, kCompressedHeapBitmapSize);
   ASSERT(size > 0);
   ASSERT(size <= kCompressedHeapSize);
-  for (intptr_t page_id = size / kCompressedHeapPageSize;
+  for (intptr_t page_id = size / kCompressedPageSize;
        page_id < kCompressedHeapNumPages; page_id++) {
     SetPageUsed(page_id);
   }
@@ -50,8 +50,8 @@ void VirtualMemoryCompressedHeap::Init(void* compressed_heap_region,
   ASSERT(base_ != 0);
   ASSERT(size_ != 0);
   ASSERT(size_ <= kCompressedHeapSize);
-  ASSERT(Utils::IsAligned(base_, kCompressedHeapPageSize));
-  ASSERT(Utils::IsAligned(size_, kCompressedHeapPageSize));
+  ASSERT(Utils::IsAligned(base_, kCompressedPageSize));
+  ASSERT(Utils::IsAligned(size_, kCompressedPageSize));
   // base_ is not necessarily 4GB-aligned, because on some systems we can't make
   // a large enough reservation to guarantee it. Instead, we have only the
   // weaker property that all addresses in [base_, base_ + size_) have the same
@@ -78,11 +78,10 @@ void* VirtualMemoryCompressedHeap::GetRegion() {
 MemoryRegion VirtualMemoryCompressedHeap::Allocate(intptr_t size,
                                                    intptr_t alignment) {
   ASSERT(alignment <= kCompressedHeapAlignment);
-  const intptr_t allocated_size = Utils::RoundUp(size, kCompressedHeapPageSize);
-  uword pages = allocated_size / kCompressedHeapPageSize;
-  uword page_alignment = alignment > kCompressedHeapPageSize
-                             ? alignment / kCompressedHeapPageSize
-                             : 1;
+  const intptr_t allocated_size = Utils::RoundUp(size, kCompressedPageSize);
+  uword pages = allocated_size / kCompressedPageSize;
+  uword page_alignment =
+      alignment > kCompressedPageSize ? alignment / kCompressedPageSize : 1;
   MutexLocker ml(mutex_);
 
   // Find a gap with enough empty pages, using the bitmap. Note that reading
@@ -105,7 +104,7 @@ MemoryRegion VirtualMemoryCompressedHeap::Allocate(intptr_t size,
 
   // Make sure we're not trying to allocate past the end of the heap.
   uword end = page_id + pages;
-  if (end > kCompressedHeapSize / kCompressedHeapPageSize) {
+  if (end > kCompressedHeapSize / kCompressedPageSize) {
     return MemoryRegion();
   }
 
@@ -120,19 +119,19 @@ MemoryRegion VirtualMemoryCompressedHeap::Allocate(intptr_t size,
     ++minimum_free_page_id_;
   }
 
-  uword address = base_ + page_id * kCompressedHeapPageSize;
-  ASSERT(Utils::IsAligned(address, kCompressedHeapPageSize));
+  uword address = base_ + page_id * kCompressedPageSize;
+  ASSERT(Utils::IsAligned(address, kCompressedPageSize));
   return MemoryRegion(reinterpret_cast<void*>(address), allocated_size);
 }
 
 void VirtualMemoryCompressedHeap::Free(void* address, intptr_t size) {
   uword start = reinterpret_cast<uword>(address);
-  ASSERT(Utils::IsAligned(start, kCompressedHeapPageSize));
-  ASSERT(Utils::IsAligned(size, kCompressedHeapPageSize));
+  ASSERT(Utils::IsAligned(start, kCompressedPageSize));
+  ASSERT(Utils::IsAligned(size, kCompressedPageSize));
   MutexLocker ml(mutex_);
   ASSERT(start >= base_);
-  uword page_id = (start - base_) / kCompressedHeapPageSize;
-  uword end = page_id + size / kCompressedHeapPageSize;
+  uword page_id = (start - base_) / kCompressedPageSize;
+  uword end = page_id + size / kCompressedPageSize;
   for (uword i = page_id; i < end; ++i) {
     ClearPageUsed(i);
   }

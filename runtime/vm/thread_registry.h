@@ -29,6 +29,7 @@ class ThreadRegistry {
                            ObjectPointerVisitor* visitor,
                            ValidationPolicy validate_frames);
 
+  void ForEachThread(std::function<void(Thread* thread)> callback);
   void ReleaseStoreBuffers();
   void AcquireMarkingStacks();
   void ReleaseMarkingStacks();

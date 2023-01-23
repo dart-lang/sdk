@@ -24,17 +24,13 @@ class BlockBuilder : public ValueObject {
                                   flow_graph->inlining_id())),
         entry_(entry),
         current_(entry),
-        dummy_env_(
-            new Environment(0, 0, 0, flow_graph->parsed_function(), nullptr)) {
+        dummy_env_(new Environment(0, 0, 0, flow_graph->function(), nullptr)) {
     // Some graph transformations use environments from block entries.
     entry->SetEnvironment(dummy_env_);
   }
 
   Definition* AddToInitialDefinitions(Definition* def) {
-    def->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
-    if (FlowGraph::NeedsPairLocation(def->representation())) {
-      flow_graph_->alloc_ssa_temp_index();
-    }
+    flow_graph_->AllocateSSAIndex(def);
     auto normal_entry = flow_graph_->graph_entry()->normal_entry();
     flow_graph_->AddToInitialDefinitions(normal_entry, def);
     return def;
@@ -42,7 +38,7 @@ class BlockBuilder : public ValueObject {
 
   template <typename T>
   T* AddDefinition(T* def) {
-    flow_graph_->AllocateSSAIndexes(def);
+    flow_graph_->AllocateSSAIndex(def);
     AddInstruction(def);
     return def;
   }
@@ -67,7 +63,7 @@ class BlockBuilder : public ValueObject {
     const auto representation = FlowGraph::ReturnRepresentationOf(function);
     ReturnInstr* instr = new ReturnInstr(
         Source(), value, CompilerState::Current().GetNextDeoptId(),
-        UntaggedPcDescriptors::kInvalidYieldIndex, representation);
+        representation);
     AddInstruction(instr);
     entry_->set_last_instruction(instr);
     return instr;
@@ -134,10 +130,7 @@ class BlockBuilder : public ValueObject {
   }
 
   void AddPhi(PhiInstr* phi) {
-    phi->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
-    if (FlowGraph::NeedsPairLocation(phi->representation())) {
-      flow_graph_->alloc_ssa_temp_index();
-    }
+    flow_graph_->AllocateSSAIndex(phi);
     phi->mark_alive();
     entry_->AsJoinEntry()->InsertPhi(phi);
   }

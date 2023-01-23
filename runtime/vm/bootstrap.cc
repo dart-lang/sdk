@@ -53,13 +53,13 @@ static void Finish(Thread* thread) {
   Class& cls = Class::Handle(zone, object_store->closure_class());
   cls.EnsureIsFinalized(thread);
 
-  // Make sure _Closure fields are not marked as unboxing candidates
-  // as they are accessed with plain loads.
+  // Make sure _Closure fields are not marked as unboxed as they are accessed
+  // with plain loads.
   const Array& fields = Array::Handle(zone, cls.fields());
   Field& field = Field::Handle(zone);
   for (intptr_t i = 0; i < fields.Length(); ++i) {
     field ^= fields.At(i);
-    field.set_is_unboxing_candidate(false);
+    field.set_is_unboxed(false);
   }
   // _Closure._hash field should be explicitly marked as nullable because
   // VM creates instances of _Closure without compiling its constructors,
@@ -86,8 +86,23 @@ static void Finish(Thread* thread) {
   ASSERT(field.HostOffset() == Closure::hash_offset());
 #endif  // defined(DEBUG)
 
-  // Eagerly compile Bool class, bool constants are used from within compiler.
+  // Eagerly compile to avoid repeated checks when loading constants or
+  // serializing.
+  cls = object_store->null_class();
+  cls.EnsureIsFinalized(thread);
   cls = object_store->bool_class();
+  cls.EnsureIsFinalized(thread);
+  cls = object_store->array_class();
+  cls.EnsureIsFinalized(thread);
+  cls = object_store->immutable_array_class();
+  cls.EnsureIsFinalized(thread);
+  cls = object_store->map_impl_class();
+  cls.EnsureIsFinalized(thread);
+  cls = object_store->const_map_impl_class();
+  cls.EnsureIsFinalized(thread);
+  cls = object_store->set_impl_class();
+  cls.EnsureIsFinalized(thread);
+  cls = object_store->const_set_impl_class();
   cls.EnsureIsFinalized(thread);
 }
 

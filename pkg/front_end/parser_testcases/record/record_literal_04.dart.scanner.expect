@@ -1,0 +1,37 @@
+void foo() {
+
+var r1 = const (42, );
+var r2 = const (1, 2, a: 3, b: 4);
+var r3 = const (1, a: 2, 3, b: 4);
+var r4 = const (hello: 42);
+
+
+var r5 = const (42);
+
+
+var r6 = const ();
+}
+
+void bar({dynamic record1 = (42, 42), dynamic record2 = const (42, 42)}) {
+
+}
+
+
+void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+var[KeywordToken] r1[StringToken] =[SimpleToken] const[KeywordToken] ([BeginToken]42[StringToken],[SimpleToken] )[SimpleToken];[SimpleToken]
+var[KeywordToken] r2[StringToken] =[SimpleToken] const[KeywordToken] ([BeginToken]1[StringToken],[SimpleToken] 2[StringToken],[SimpleToken] a[StringToken]:[SimpleToken] 3[StringToken],[SimpleToken] b[StringToken]:[SimpleToken] 4[StringToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] r3[StringToken] =[SimpleToken] const[KeywordToken] ([BeginToken]1[StringToken],[SimpleToken] a[StringToken]:[SimpleToken] 2[StringToken],[SimpleToken] 3[StringToken],[SimpleToken] b[StringToken]:[SimpleToken] 4[StringToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] r4[StringToken] =[SimpleToken] const[KeywordToken] ([BeginToken]hello[StringToken]:[SimpleToken] 42[StringToken])[SimpleToken];[SimpleToken]
+
+
+var[KeywordToken] r5[StringToken] =[SimpleToken] const[KeywordToken] ([BeginToken]42[StringToken])[SimpleToken];[SimpleToken]
+
+
+var[KeywordToken] r6[StringToken] =[SimpleToken] const[KeywordToken] ([BeginToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+void[KeywordToken] bar[StringToken]([BeginToken]{[BeginToken]dynamic[KeywordToken] record1[StringToken] =[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] 42[StringToken])[SimpleToken],[SimpleToken] dynamic[KeywordToken] record2[StringToken] =[SimpleToken] const[KeywordToken] ([BeginToken]42[StringToken],[SimpleToken] 42[StringToken])[SimpleToken]}[SimpleToken])[SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+[SimpleToken]

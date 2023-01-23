@@ -1,0 +1,8 @@
+M(v0 float, v1 float, v2 float) Struct(size: 12)
+M(v3 float, v4 float, v5 float) Struct(size: 12)
+S+0 Struct(size: 12)
+S+16 Struct(size: 12)
+S+32 Struct(size: 12)
+S+48 Struct(size: 12)
+=>
+r0 int64

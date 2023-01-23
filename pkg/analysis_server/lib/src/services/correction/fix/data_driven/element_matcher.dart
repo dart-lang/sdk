@@ -5,8 +5,9 @@
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart'
-    show ClassElement, ExtensionElement, PrefixElement;
+    show ExtensionElement, InterfaceElement, PrefixElement;
 import 'package:analyzer/dart/element/type.dart';
 
 /// An object that can be used to determine whether an element is appropriate
@@ -55,12 +56,22 @@ class ElementMatcher {
         }
       }
     } else if (nodeComponentCount < elementComponentCount) {
-      // The node has fewer components, which can happen, for example, when we
-      // can't figure out the class that used to define a field. We treat the
-      // missing components as wildcards and match the rest.
-      for (var i = 0; i < nodeComponentCount; i++) {
-        if (elementComponents[i] != components[i]) {
-          return false;
+      // The element has one more empty component
+      if (nodeComponentCount + 1 == elementComponentCount &&
+          elementComponents[0].isEmpty) {
+        for (var i = 0; i < nodeComponentCount; i++) {
+          if (elementComponents[i + 1] != components[i]) {
+            return false;
+          }
+        }
+      } else {
+        // The node has fewer components, which can happen, for example, when we
+        // can't figure out the class that used to define a field. We treat the
+        // missing components as wildcards and match the rest.
+        for (var i = 0; i < nodeComponentCount; i++) {
+          if (elementComponents[i] != components[i]) {
+            return false;
+          }
         }
       }
     } else {
@@ -97,16 +108,16 @@ class ElementMatcher {
   /// Return a list of element matchers that will match the element that is, or
   /// should be, associated with the given [node]. The list will be empty if
   /// there are no appropriate matchers for the [node].
-  static List<ElementMatcher> matchersForNode(AstNode? node) {
+  static List<ElementMatcher> matchersForNode(AstNode? node, Token? nameToken) {
     if (node == null) {
-      return const <ElementMatcher>[];
+      return const [];
     }
     var importedUris = _importElementsForNode(node);
     if (importedUris == null) {
-      return const <ElementMatcher>[];
+      return const [];
     }
     var builder = _MatcherBuilder(importedUris);
-    builder.buildMatchersForNode(node);
+    builder.buildMatchersForNode(node, nameToken);
     return builder.matchers.toList();
   }
 
@@ -122,7 +133,7 @@ class ElementMatcher {
     if (library == null) {
       return null;
     }
-    for (var importElement in library.imports) {
+    for (var importElement in library.libraryImports) {
       // TODO(brianwilkerson) Filter based on combinators to help avoid making
       //  invalid suggestions.
       var uri = importElement.importedLibrary?.source.uri;
@@ -143,13 +154,15 @@ class _MatcherBuilder {
 
   _MatcherBuilder(this.importedUris);
 
-  void buildMatchersForNode(AstNode? node) {
+  void buildMatchersForNode(AstNode? node, Token? nameToken) {
     if (node is ArgumentList) {
       _buildFromArgumentList(node);
     } else if (node is BinaryExpression) {
       _buildFromBinaryExpression(node);
     } else if (node is ConstructorName) {
       _buildFromConstructorName(node);
+    } else if (node is FunctionDeclaration) {
+      _addMatcher(components: [node.name.lexeme], kinds: []);
     } else if (node is Literal) {
       var parent = node.parent;
       if (parent is ArgumentList) {
@@ -159,10 +172,14 @@ class _MatcherBuilder {
       _buildFromNamedType(node);
     } else if (node is PrefixedIdentifier) {
       _buildFromPrefixedIdentifier(node);
-    } else if (node is SimpleIdentifier) {
-      _buildFromSimpleIdentifier(node);
+    } else if (node is MethodDeclaration) {
+      _buildFromMethodDeclaration(node);
+    } else if (node is SimpleIdentifier && nameToken != null) {
+      _buildFromSimpleIdentifier(node, nameToken);
     } else if (node is TypeArgumentList) {
       _buildFromTypeArgumentList(node);
+    } else if (node is VariableDeclaration) {
+      _addMatcher(components: [node.name.lexeme], kinds: []);
     }
   }
 
@@ -257,7 +274,7 @@ class _MatcherBuilder {
   /// Build a matcher for the method being declared.
   void _buildFromMethodDeclaration(MethodDeclaration node) {
     _addMatcher(
-      components: [node.name.name],
+      components: [node.name.lexeme],
       kinds: [ElementKind.methodKind],
     );
   }
@@ -394,7 +411,7 @@ class _MatcherBuilder {
     // It looks like we're accessing a member, but we don't know what kind of
     // member, so we include all of the member kinds.
     var container = node.prefix.staticElement;
-    if (container is ClassElement) {
+    if (container is InterfaceElement) {
       _addMatcher(
         components: [node.identifier.name, container.name],
         kinds: const [
@@ -447,7 +464,7 @@ class _MatcherBuilder {
   }
 
   /// Build a matcher for the element referenced by the identifier.
-  void _buildFromSimpleIdentifier(SimpleIdentifier node) {
+  void _buildFromSimpleIdentifier(SimpleIdentifier node, Token nameToken) {
     // TODO(brianwilkerson) Use the static element, if there is one, in order to
     //  get a more exact matcher.
     var parent = node.parent;
@@ -458,7 +475,7 @@ class _MatcherBuilder {
       _buildFromArgumentList(parent.parent!.parent as ArgumentList);
     } else if (parent is NamedType) {
       _buildFromNamedType(parent);
-    } else if (parent is MethodDeclaration && node == parent.name) {
+    } else if (parent is MethodDeclaration && nameToken == parent.name) {
       _buildFromMethodDeclaration(parent);
     } else if (parent is MethodInvocation &&
         node == parent.methodName &&
@@ -503,7 +520,7 @@ class _MatcherBuilder {
     }
     if (element != null) {
       var enclosingElement = element.enclosingElement;
-      if (enclosingElement is ClassElement) {
+      if (enclosingElement is InterfaceElement) {
         return [identifier.name, enclosingElement.name];
       } else if (enclosingElement is ExtensionElement) {
         var name = enclosingElement.name;

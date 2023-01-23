@@ -20,13 +20,24 @@ import 'dart:_foreign_helper'
         LEGACY_TYPE_REF;
 import 'dart:_interceptors'
     show JavaScriptFunction, JSArray, JSNull, JSUnmodifiableArray;
-import 'dart:_js_names' show unmangleGlobalNameIfPreservedAnyways;
+import 'dart:_js_names'
+    show getSpecializedTestTag, unmangleGlobalNameIfPreservedAnyways;
 import 'dart:_js_shared_embedded_names';
 import 'dart:_recipe_syntax';
 
 /// The name of a property on the constructor function of Dart Object
 /// and interceptor types, used for caching Rti types.
-const CONSTRUCTOR_RTI_CACHE_PROPERTY_NAME = r'$ccache';
+const constructorRtiCachePropertyName = r'$ccache';
+
+/// The name of a property on the constructor function of Dart interface types
+/// in DDC compiled code that stores the base recipe for the interface class.
+///
+/// This property is not created or used in dart2js.
+///
+/// This named differs from the `constructor.name` property because in DDC the
+/// constructor names are not unique across the entire application. The
+/// `constructor.$interfaceRecipe` property will be unique.
+const interfaceTypeRecipePropertyName = r'$interfaceRecipe';
 
 // The top type `Object?` is used throughout this library even when values are
 // not nullable or have narrower types in order to avoid incurring type checks
@@ -184,9 +195,10 @@ class Rti {
   static const int kindInterface = 9;
   // A vector of type parameters from enclosing functions and closures.
   static const int kindBinding = 10;
-  static const int kindFunction = 11;
-  static const int kindGenericFunction = 12;
-  static const int kindGenericFunctionParameter = 13;
+  static const int kindRecord = 11;
+  static const int kindFunction = 12;
+  static const int kindGenericFunction = 13;
+  static const int kindGenericFunctionParameter = 14;
 
   static bool _isUnionOfFunctionType(Rti rti) {
     int kind = Rti._getKind(rti);
@@ -202,6 +214,8 @@ class Rti {
   /// - Underlying type for unary terms.
   /// - Class part of a type environment inside a generic class, or `null` for
   ///   type tuple.
+  /// - A tag that, together with the number of fields, distinguishes the shape
+  ///   of a record type.
   /// - Return type of a function type.
   /// - Underlying function type for a generic function.
   /// - de Bruijn index for a generic function parameter.
@@ -217,6 +231,7 @@ class Rti {
   /// - The type arguments of an interface type.
   /// - The type arguments from enclosing functions and closures for a
   ///   kindBinding.
+  /// - The field types of a record type.
   /// - The [_FunctionParameters] of a function type.
   /// - The type parameter bounds of a generic function.
   Object? _rest;
@@ -245,6 +260,16 @@ class Rti {
 
   static JSArray _getBindingArguments(Rti rti) {
     assert(_getKind(rti) == kindBinding);
+    return JS('JSUnmodifiableArray', '#', _getRest(rti));
+  }
+
+  static String _getRecordPartialShapeTag(Rti rti) {
+    assert(_getKind(rti) == kindRecord);
+    return _Utils.asString(_getPrimary(rti));
+  }
+
+  static JSArray _getRecordFields(Rti rti) {
+    assert(_getKind(rti) == kindRecord);
     return JS('JSUnmodifiableArray', '#', _getRest(rti));
   }
 
@@ -338,6 +363,13 @@ class Rti {
 
   static void _setCanonicalRecipe(Rti rti, String s) {
     rti._canonicalRecipe = s;
+  }
+
+  /// Returns the canonical recipe for [rti] with the all legacy type markers
+  /// (* stars) erased.
+  static String getLegacyErasedRecipe(Rti rti) {
+    var s = _getCanonicalRecipe(rti);
+    return JS('String', '#.replace(/\\*/g, "")', s);
   }
 }
 
@@ -633,7 +665,15 @@ Rti? closureFunctionType(Object? closure) {
     if (JS('bool', 'typeof # == "number"', signature)) {
       return getTypeFromTypesTable(_Utils.asInt(signature));
     }
-    return _Utils.asRti(JS('', '#[#]()', closure, signatureName));
+    if (JS_GET_FLAG('DEV_COMPILER')) {
+      // DDC attaches the evaluated Rti object as the signature because
+      // attaching a function that evaluates to the signature breaks the current
+      // const canonicalization for closures which assumes all properties of the
+      // closure object are already themselves canonicalized.
+      return _Utils.asRti(signature);
+    } else {
+      return _Utils.asRti(JS('', '#[#]()', closure, signatureName));
+    }
   }
   return null;
 }
@@ -730,29 +770,37 @@ String instanceTypeName(Object? object) {
 
 Rti _instanceTypeFromConstructor(Object? instance) {
   var constructor = JS('', '#.constructor', instance);
-  var probe = JS('', r'#[#]', constructor, CONSTRUCTOR_RTI_CACHE_PROPERTY_NAME);
+  var probe = JS('', r'#[#]', constructor, constructorRtiCachePropertyName);
   if (probe != null) return _Utils.asRti(probe);
   return _instanceTypeFromConstructorMiss(instance, constructor);
 }
 
 @pragma('dart2js:noInline')
 Rti _instanceTypeFromConstructorMiss(Object? instance, Object? constructor) {
-  // Subclasses of Closure are synthetic classes. The synthetic classes all
-  // extend a 'normal' class (Closure, BoundClosure, StaticClosure), so make
-  // them appear to be the superclass. Instantiations have a `$ti` field so
-  // don't reach here.
-  //
-  // TODO(39214): This will need fixing if we ever use instances of
-  // StaticClosure for static tear-offs.
-  //
-  // TODO(sra): Can this test be avoided, e.g. by putting $ti on the
-  // prototype of Closure/BoundClosure/StaticClosure classes?
-  var effectiveConstructor = _isClosure(instance)
-      ? JS('', '#.__proto__.__proto__.constructor', instance)
-      : constructor;
-  Rti rti = _Universe.findErasedType(
-      _theUniverse(), JS('String', '#.name', effectiveConstructor));
-  JS('', r'#[#] = #', constructor, CONSTRUCTOR_RTI_CACHE_PROPERTY_NAME, rti);
+  Rti rti;
+  if (JS_GET_FLAG('DEV_COMPILER')) {
+    // DDC attaches a recipe string to the constructor because the constructor
+    // name is not guaranteed to be unique.
+    rti = findType(
+        JS('String', '#.#', constructor, interfaceTypeRecipePropertyName));
+  } else {
+    // Subclasses of Closure are synthetic classes. The synthetic classes all
+    // extend a 'normal' class (Closure, BoundClosure, StaticClosure), so make
+    // them appear to be the superclass. Instantiations have a `$ti` field so
+    // don't reach here.
+    //
+    // TODO(39214): This will need fixing if we ever use instances of
+    // StaticClosure for static tear-offs.
+    //
+    // TODO(sra): Can this test be avoided, e.g. by putting $ti on the
+    // prototype of Closure/BoundClosure/StaticClosure classes?
+    var effectiveConstructor = _isClosure(instance)
+        ? JS('', '#.__proto__.__proto__.constructor', instance)
+        : constructor;
+    rti = _Universe.findErasedType(
+        _theUniverse(), JS('String', '#.name', effectiveConstructor));
+  }
+  JS('', r'#[#] = #', constructor, constructorRtiCachePropertyName, rti);
   return rti;
 }
 
@@ -787,7 +835,7 @@ Type createRuntimeType(Rti rti) {
     return _Type(rti);
   } else {
     String recipe = Rti._getCanonicalRecipe(rti);
-    String starErasedRecipe = JS('String', '#.replace(/\\*/g, "")', recipe);
+    String starErasedRecipe = Rti.getLegacyErasedRecipe(rti);
     if (starErasedRecipe == recipe) {
       return _Type(rti);
     }
@@ -841,7 +889,7 @@ bool _installSpecializedIsTest(Object? object) {
   }
 
   // `o is T*` generally behaves like `o is T`.
-  // The exeptions are `Object*` (handled above) and `Never*`
+  // The exceptions are `Object*` (handled above) and `Never*`
   //
   //   `null is Never`  --> `false`
   //   `null is Never*` --> `true`
@@ -862,8 +910,11 @@ bool _installSpecializedIsTest(Object? object) {
     // TODO(sra): Can we easily recognize other interface types instantiated to
     // bounds?
     if (JS('bool', '#.every(#)', arguments, RAW_DART_FUNCTION_REF(isTopType))) {
-      String propertyName =
-          '${JS_GET_NAME(JsGetName.OPERATOR_IS_PREFIX)}${name}';
+      Object propertyName = JS_GET_FLAG('DEV_COMPILER')
+          // DDC uses a JavaScript symbol when tagging the type to hide them
+          // on native types.
+          ? getSpecializedTestTag(name)
+          : '${JS_GET_NAME(JsGetName.OPERATOR_IS_PREFIX)}${name}';
       Rti._setSpecializedTestResource(testRti, propertyName);
       if (name == JS_GET_NAME(JsGetName.LIST_CLASS_TYPE_NAME)) {
         return _finishIsFn(
@@ -933,6 +984,7 @@ bool _nullIs(Rti testRti) {
       isLegacyObjectType(testRti) ||
       _Utils.isIdentical(testRti, LEGACY_TYPE_REF<Never>()) ||
       kind == Rti.kindQuestion ||
+      kind == Rti.kindStar && _nullIs(Rti._getStarArgument(testRti)) ||
       kind == Rti.kindFutureOr && _nullIs(Rti._getFutureOrArgument(testRti)) ||
       isNullType(testRti);
 }
@@ -1269,6 +1321,37 @@ String _rtiArrayToString(Object? array, List<String>? genericContext) {
   return s;
 }
 
+String _recordRtiToString(Rti recordType, List<String>? genericContext) {
+  // For correctness of subtyping, the partial shape tag could be any encoding
+  // that maps different sets of names to different tags.
+  //
+  // Here we assume that the tag is a comma-separated list of names for the last
+  // N named fields.
+  String partialShape = Rti._getRecordPartialShapeTag(recordType);
+  Object? fields = Rti._getRecordFields(recordType);
+  if ('' == partialShape) {
+    // No named fields.
+    return '(' + _rtiArrayToString(fields, genericContext) + ')';
+  }
+
+  int fieldCount = _Utils.arrayLength(fields);
+  Object names = _Utils.stringSplit(partialShape, ',');
+  int namesIndex = _Utils.arrayLength(names) - fieldCount; // Can be negative.
+
+  String s = '(', comma = '';
+  for (int i = 0; i < fieldCount; i++) {
+    s += comma;
+    comma = ', ';
+    if (namesIndex == 0) s += '{';
+    s += _rtiToString(_Utils.asRti(_Utils.arrayAt(fields, i)), genericContext);
+    if (namesIndex >= 0) {
+      s += ' ' + _Utils.asString(_Utils.arrayAt(names, namesIndex));
+    }
+    namesIndex++;
+  }
+  return s + '})';
+}
+
 String _functionRtiToString(Rti functionType, List<String>? genericContext,
     {Object? bounds = null}) {
   String typeParametersText = '';
@@ -1408,11 +1491,22 @@ String _rtiToString(Rti rti, List<String>? genericContext) {
   if (kind == Rti.kindInterface) {
     String name = Rti._getInterfaceName(rti);
     name = _unminifyOrTag(name);
+    if (JS_GET_FLAG('DEV_COMPILER')) {
+      // Convert the program unique name into one that matches the name from the
+      // original Dart source.
+      //
+      // "some_package_and_library_name|className" -> "className"
+      name = name.substring(name.indexOf(Recipe.librarySeparatorString) + 1);
+    }
     var arguments = Rti._getInterfaceTypeArguments(rti);
     if (arguments.length > 0) {
       name += '<' + _rtiArrayToString(arguments, genericContext) + '>';
     }
     return name;
+  }
+
+  if (kind == Rti.kindRecord) {
+    return _recordRtiToString(rti, genericContext);
   }
 
   if (kind == Rti.kindFunction) {
@@ -2048,6 +2142,36 @@ class _Universe {
     return _installTypeTests(universe, rti);
   }
 
+  static String _canonicalRecipeOfRecord(
+      String partialShapeTag, Object? fields) {
+    return _recipeJoin5(
+        Recipe.startRecordString,
+        partialShapeTag,
+        Recipe.startFunctionArgumentsString,
+        _canonicalRecipeJoin(fields),
+        Recipe.endFunctionArgumentsString);
+  }
+
+  static Rti _lookupRecordRti(
+      Object? universe, String partialShapeTag, Object? fields) {
+    String key = _canonicalRecipeOfRecord(partialShapeTag, fields);
+    var cache = evalCache(universe);
+    var probe = _Utils.mapGet(cache, key);
+    if (probe != null) return _Utils.asRti(probe);
+    return _installRti(universe, key,
+        _createRecordRti(universe, partialShapeTag, fields, key));
+  }
+
+  static Rti _createRecordRti(
+      Object? universe, String partialShapeTag, Object? fields, String key) {
+    Rti rti = Rti.allocate();
+    Rti._setKind(rti, Rti.kindRecord);
+    Rti._setPrimary(rti, partialShapeTag);
+    Rti._setRest(rti, fields);
+    Rti._setCanonicalRecipe(rti, key);
+    return _installTypeTests(universe, rti);
+  }
+
   static String _canonicalRecipeOfFunction(
           Rti returnType, _FunctionParameters parameters) =>
       _recipeJoin(Rti._getCanonicalRecipe(returnType),
@@ -2224,7 +2348,7 @@ class _Universe {
 ///   ToType(Rti): Same Rti
 ///
 ///
-/// Notes on enviroments and indexing.
+/// Notes on environments and indexing.
 ///
 /// To avoid creating a binding Rti for a single function type parameter, the
 /// type is passed without creating a 1-tuple object. This means that the
@@ -2249,7 +2373,7 @@ class _Universe {
 ///     binding(interface("Map", [num,dynamic]), [int, bool])
 ///             0                 3   4           1    2
 ///
-/// Any environment can be reconstructed via a recipe. The above enviroment for
+/// Any environment can be reconstructed via a recipe. The above environment for
 /// method `cast` can be constructed as the ground term
 /// `Map<num,dynamic><int,bool>`, or (somewhat pointlessly) reconstructed via
 /// `0<1,2>` or `Map<3,4><1,2>`. The ability to construct an environment
@@ -2304,7 +2428,7 @@ class _Parser {
 
   // Field accessors for the parser.
   static Object universe(Object? parser) => JS('', '#.u', parser);
-  static Rti environment(Object? parser) => JS('Rti', '#.e', parser);
+  static Rti? environment(Object? parser) => JS('Rti|Null', '#.e', parser);
   static String recipe(Object? parser) => JS('String', '#.r', parser);
   static Object stack(Object? parser) => JS('', '#.s', parser);
   static int position(Object? parser) => JS('int', '#.p', parser);
@@ -2412,11 +2536,12 @@ class _Parser {
             break;
 
           case Recipe.startFunctionArguments:
+            push(stack, gotoFunction);
             pushStackFrame(parser, stack);
             break;
 
           case Recipe.endFunctionArguments:
-            handleFunctionArguments(parser, stack);
+            handleArguments(parser, stack);
             break;
 
           case Recipe.startOptionalGroup:
@@ -2433,6 +2558,10 @@ class _Parser {
 
           case Recipe.endNamedGroup:
             handleNamedGroup(parser, stack);
+            break;
+
+          case Recipe.startRecord:
+            i = handleStartRecord(parser, i, source, stack);
             break;
 
           default:
@@ -2479,7 +2608,7 @@ class _Parser {
       push(
           stack,
           _Universe.evalTypeVariable(
-              universe(parser), environment(parser), string));
+              universe(parser), environment(parser)!, string));
     } else {
       push(stack, string);
     }
@@ -2510,24 +2639,40 @@ class _Parser {
     }
   }
 
-  static const int optionalPositionalSentinel = -1;
-  static const int namedSentinel = -2;
+  static const int optionalPositionalMarker = -1;
+  static const int namedMarker = -2;
+  static const int gotoFunction = -3;
+  static const int gotoRecord = -4;
 
-  static void handleFunctionArguments(Object? parser, Object? stack) {
+  static void handleArguments(Object? parser, Object? stack) {
     var universe = _Parser.universe(parser);
-    _FunctionParameters parameters = _FunctionParameters.allocate();
-    Object? optionalPositional = _Universe.sharedEmptyArray(universe);
-    Object? named = _Universe.sharedEmptyArray(universe);
+    Object? optionalPositional;
+    Object? named;
+
+    // Parse the stack into a function type or a record type. A 'goto' marker is
+    // on the stack to distinguish between records and functions (similar to the
+    // GOTO table of an LR parser), and a marker tag is used for optional and
+    // named argument groups.
+    //
+    // Function types:
+    //
+    //     R -3 <pos> T1 ... Tn              ->  R(T1,...,Tn)
+    //     R -3 <pos> T1 ... Tn optional -1  ->  R(T1,...,Tn, [optional...])
+    //     R -3 <pos> T1 ... Tn named -2     ->  R(T1,...,Tn, {named...}])
+    //
+    // Record types:
+    //
+    //   shapeToken -4 <pos> T1 ... Tn   -> (T1,...,Tn) with shapeToken
 
     var head = pop(stack);
     if (_Utils.isNum(head)) {
       int sentinel = _Utils.asInt(head);
       switch (sentinel) {
-        case optionalPositionalSentinel:
+        case optionalPositionalMarker:
           optionalPositional = pop(stack);
           break;
 
-        case namedSentinel:
+        case namedMarker:
           named = pop(stack);
           break;
 
@@ -2539,24 +2684,62 @@ class _Parser {
       push(stack, head);
     }
 
-    _FunctionParameters._setRequiredPositional(
-        parameters, collectArray(parser, stack));
-    _FunctionParameters._setOptionalPositional(parameters, optionalPositional);
-    _FunctionParameters._setNamed(parameters, named);
-    Rti returnType = toType(universe, environment(parser), pop(stack));
-    push(stack, _Universe._lookupFunctionRti(universe, returnType, parameters));
+    Object? requiredPositional = collectArray(parser, stack);
+
+    head = pop(stack);
+    switch (head) {
+      case gotoFunction:
+        head = pop(stack);
+        optionalPositional ??= _Universe.sharedEmptyArray(universe);
+        named ??= _Universe.sharedEmptyArray(universe);
+        Rti returnType = toType(universe, environment(parser), head);
+        _FunctionParameters parameters = _FunctionParameters.allocate();
+        _FunctionParameters._setRequiredPositional(
+            parameters, requiredPositional);
+        _FunctionParameters._setOptionalPositional(
+            parameters, optionalPositional);
+        _FunctionParameters._setNamed(parameters, named);
+        push(stack,
+            _Universe._lookupFunctionRti(universe, returnType, parameters));
+        return;
+
+      case gotoRecord:
+        assert(optionalPositional == null);
+        assert(named == null);
+        head = pop(stack);
+        assert(_Utils.isString(head));
+        push(
+            stack,
+            _Universe._lookupRecordRti(
+                universe, _Utils.asString(head), requiredPositional));
+        return;
+
+      default:
+        throw AssertionError('Unexpected state under `()`: $head');
+    }
   }
 
   static void handleOptionalGroup(Object? parser, Object? stack) {
     var parameters = collectArray(parser, stack);
     push(stack, parameters);
-    push(stack, optionalPositionalSentinel);
+    push(stack, optionalPositionalMarker);
   }
 
   static void handleNamedGroup(Object? parser, Object? stack) {
     var parameters = collectNamed(parser, stack);
     push(stack, parameters);
-    push(stack, namedSentinel);
+    push(stack, namedMarker);
+  }
+
+  static int handleStartRecord(
+      Object? parser, int start, String source, Object? stack) {
+    int end = _Utils.stringIndexOf(
+        source, Recipe.startFunctionArgumentsString, start);
+    assert(end >= 0);
+    push(stack, _Utils.substring(source, start, end));
+    push(stack, gotoRecord);
+    pushStackFrame(parser, stack);
+    return end + 1;
   }
 
   static void handleExtendedOperations(Object? parser, Object? stack) {
@@ -2588,19 +2771,19 @@ class _Parser {
 
   /// Coerce a stack item into an Rti object. Strings are converted to interface
   /// types, integers are looked up in the type environment.
-  static Rti toType(Object? universe, Rti environment, Object? item) {
+  static Rti toType(Object? universe, Rti? environment, Object? item) {
     if (_Utils.isString(item)) {
       String name = _Utils.asString(item);
       return _Universe._lookupInterfaceRti(
           universe, name, _Universe.sharedEmptyArray(universe));
     } else if (_Utils.isNum(item)) {
-      return _Parser.indexToType(universe, environment, _Utils.asInt(item));
+      return _Parser.indexToType(universe, environment!, _Utils.asInt(item));
     } else {
       return _Utils.asRti(item);
     }
   }
 
-  static void toTypes(Object? universe, Rti environment, Object? items) {
+  static void toTypes(Object? universe, Rti? environment, Object? items) {
     int length = _Utils.arrayLength(items);
     for (int i = 0; i < length; i++) {
       var item = _Utils.arrayAt(items, i);
@@ -2609,7 +2792,7 @@ class _Parser {
     }
   }
 
-  static void toTypesNamed(Object? universe, Rti environment, Object? items) {
+  static void toTypesNamed(Object? universe, Rti? environment, Object? items) {
     int length = _Utils.arrayLength(items);
     assert(_Utils.isMultipleOf(length, 3));
     for (int i = 2; i < length; i += 3) {
@@ -2860,6 +3043,19 @@ bool _isSubtype(Object? universe, Rti s, Object? sEnv, Rti t, Object? tEnv) {
     return _isInterfaceSubtype(universe, s, sEnv, t, tEnv);
   }
 
+  // Records
+  //
+  // TODO(50081): Reference rules to updated specification
+  // https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md#rules
+
+  // Record Type/Record:
+  if (sKind == Rti.kindRecord && isRecordInterfaceType(t)) return true;
+
+  // Record Type/Record Type:
+  if (sKind == Rti.kindRecord && tKind == Rti.kindRecord) {
+    return _isRecordSubtype(universe, s, sEnv, t, tEnv);
+  }
+
   return false;
 }
 
@@ -3057,6 +3253,29 @@ bool _areArgumentsSubtypes(Object? universe, Object? sArgs, Object? sVariances,
   return true;
 }
 
+bool _isRecordSubtype(
+    Object? universe, Rti s, Object? sEnv, Rti t, Object? tEnv) {
+  // `s` is a subtype of `t` if `s` and `t` have the same shape and the fields
+  // of `s` are pairwise subtypes of the fields of `t`.
+  final sFields = Rti._getRecordFields(s);
+  final tFields = Rti._getRecordFields(t);
+  int sCount = _Utils.arrayLength(sFields);
+  int tCount = _Utils.arrayLength(tFields);
+  if (sCount != tCount) return false;
+  String sTag = Rti._getRecordPartialShapeTag(s);
+  String tTag = Rti._getRecordPartialShapeTag(t);
+  if (sTag != tTag) return false;
+
+  for (int i = 0; i < sCount; i++) {
+    Rti sField = _Utils.asRti(_Utils.arrayAt(sFields, i));
+    Rti tField = _Utils.asRti(_Utils.arrayAt(tFields, i));
+    if (!_isSubtype(universe, sField, sEnv, tField, tEnv)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 bool isNullable(Rti t) {
   int kind = Rti._getKind(t);
   return isNullType(t) ||
@@ -3094,6 +3313,7 @@ bool isNullType(Rti t) =>
 bool isFunctionType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Function>());
 bool isJsFunctionType(Rti t) =>
     _Utils.isIdentical(t, TYPE_REF<JavaScriptFunction>());
+bool isRecordInterfaceType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Record>());
 
 class _Utils {
   static bool asBool(Object? o) => JS('bool', '#', o);
@@ -3152,8 +3372,14 @@ class _Utils {
   static JSArray arrayConcat(Object? a1, Object? a2) =>
       JS('JSArray', '#.concat(#)', a1, a2);
 
+  static JSArray stringSplit(String s, String pattern) =>
+      JS('JSArray', '#.split(#)', s, pattern);
+
   static String substring(String s, int start, int end) =>
       JS('String', '#.substring(#, #)', s, start, end);
+
+  static int stringIndexOf(String s, String pattern, int start) =>
+      JS('int', '#.indexOf(#, #)', s, pattern, start);
 
   static bool stringLessThan(String s1, String s2) =>
       JS('bool', '# < #', s1, s2);

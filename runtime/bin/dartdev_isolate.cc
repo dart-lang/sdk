@@ -42,6 +42,7 @@ DartDevIsolate::DartDev_Result DartDevIsolate::DartDevRunner::result_ =
     DartDevIsolate::DartDev_Result_Unknown;
 char** DartDevIsolate::DartDevRunner::script_ = nullptr;
 char** DartDevIsolate::DartDevRunner::package_config_override_ = nullptr;
+bool* DartDevIsolate::DartDevRunner::force_no_sound_null_safety_ = nullptr;
 std::unique_ptr<char*[], void (*)(char*[])>
     DartDevIsolate::DartDevRunner::argv_ =
         std::unique_ptr<char*[], void (*)(char**)>(nullptr, [](char**) {});
@@ -93,11 +94,13 @@ void DartDevIsolate::DartDevRunner::Run(
     Dart_IsolateGroupCreateCallback create_isolate,
     char** packages_file,
     char** script,
+    bool* force_no_sound_null_safety,
     CommandLineOptions* dart_options) {
   create_isolate_ = create_isolate;
   dart_options_ = dart_options;
   package_config_override_ = packages_file;
   script_ = script;
+  force_no_sound_null_safety_ = force_no_sound_null_safety;
 
   // We've encountered an error during preliminary argument parsing so we'll
   // output the standard help message and exit with an error code.
@@ -141,6 +144,10 @@ void DartDevIsolate::DartDevRunner::DartDevResultCallback(
       ASSERT(item2->type == Dart_CObject_kString ||
              item2->type == Dart_CObject_kNull);
 
+      auto item3 = GetArrayItem(message, 3);
+
+      ASSERT(item3->type == Dart_CObject_kBool);
+
       if (*script_ != nullptr) {
         free(*script_);
       }
@@ -154,8 +161,10 @@ void DartDevIsolate::DartDevRunner::DartDevResultCallback(
         *package_config_override_ = Utils::StrDup(item2->value.as_string);
       }
 
-      ASSERT(GetArrayItem(message, 3)->type == Dart_CObject_kArray);
-      Dart_CObject* args = GetArrayItem(message, 3);
+      *force_no_sound_null_safety_ = item3->value.as_bool;
+
+      ASSERT(GetArrayItem(message, 4)->type == Dart_CObject_kArray);
+      Dart_CObject* args = GetArrayItem(message, 4);
       argc_ = args->value.as_array.length;
       Dart_CObject** dart_args = args->value.as_array.values;
 
@@ -282,8 +291,10 @@ DartDevIsolate::DartDev_Result DartDevIsolate::RunDartDev(
     Dart_IsolateGroupCreateCallback create_isolate,
     char** packages_file,
     char** script,
+    bool* force_no_sound_null_safety,
     CommandLineOptions* dart_options) {
-  runner_.Run(create_isolate, packages_file, script, dart_options);
+  runner_.Run(create_isolate, packages_file, script, force_no_sound_null_safety,
+              dart_options);
   return runner_.result();
 }
 

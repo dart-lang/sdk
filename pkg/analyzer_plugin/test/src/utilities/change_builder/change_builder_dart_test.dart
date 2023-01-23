@@ -15,6 +15,7 @@ import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart'
     show DartLinkedEditBuilderImpl;
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -60,6 +61,22 @@ class DartEditBuilderImpl_WithNullSafetyTest extends DartEditBuilderImplTest {
 
   Future<void> test_writeType_Never_question() async {
     await _assertWriteType('Never?');
+  }
+
+  Future<void> test_writeType_recordType_mixed() async {
+    await _assertWriteType('(int, {int y})');
+  }
+
+  Future<void> test_writeType_recordType_named() async {
+    await _assertWriteType('({int x, int y})');
+  }
+
+  Future<void> test_writeType_recordType_nullable() async {
+    await _assertWriteType('(int, {int y})?');
+  }
+
+  Future<void> test_writeType_recordType_positional() async {
+    await _assertWriteType('(int, int)');
   }
 }
 
@@ -1762,7 +1779,7 @@ _prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;''');
 
   Future<ClassElement> _getClassElement(String path, String name) async {
     var result = (await resolveFile(path)).unit;
-    return result.declaredElement!.getType(name)!;
+    return result.declaredElement!.getClass(name)!;
   }
 
   Future<PropertyAccessorElement> _getTopLevelAccessorElement(
@@ -1973,7 +1990,8 @@ void functionAfter() {
 
 @reflectiveTest
 class DartLinkedEditBuilderImplTest extends AbstractContextTest {
-  Future<void> test_addSuperTypesAsSuggestions() async {
+  Future<void>
+      test_addSuperTypesAsSuggestions_legacyTargetFile_noneSuffix() async {
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, '''
 class A {}
@@ -1982,7 +2000,122 @@ class C extends B {}
 ''');
     var unit = (await resolveFile(path)).unit;
     var classC = unit.declarations[2] as ClassDeclaration;
-    var builder = DartLinkedEditBuilderImpl(MockEditBuilderImpl());
+    var builder = DartLinkedEditBuilderImpl(
+        MockDartEditBuilderImpl(isNonNullableByDefault: false));
+    builder.addSuperTypesAsSuggestions(
+      classC.declaredElement?.instantiate(
+        typeArguments: [],
+        nullabilitySuffix: NullabilitySuffix.none,
+      ),
+    );
+    var suggestions = builder.suggestions;
+    expect(suggestions, hasLength(4));
+    expect(suggestions.map((s) => s.value),
+        unorderedEquals(['Object', 'A', 'B', 'C']));
+  }
+
+  Future<void>
+      test_addSuperTypesAsSuggestions_legacyTargetFile_questionSuffix() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    addSource(path, '''
+class A {}
+class B extends A {}
+class C extends B {}
+''');
+    var unit = (await resolveFile(path)).unit;
+    var classC = unit.declarations[2] as ClassDeclaration;
+    var builder = DartLinkedEditBuilderImpl(
+        MockDartEditBuilderImpl(isNonNullableByDefault: false));
+    builder.addSuperTypesAsSuggestions(
+      classC.declaredElement?.instantiate(
+        typeArguments: [],
+        nullabilitySuffix: NullabilitySuffix.question,
+      ),
+    );
+    var suggestions = builder.suggestions;
+    expect(suggestions, hasLength(4));
+    expect(suggestions.map((s) => s.value),
+        unorderedEquals(['Object', 'A', 'B', 'C']));
+  }
+
+  Future<void>
+      test_addSuperTypesAsSuggestions_legacyTargetFile_starSuffix() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    addSource(path, '''
+class A {}
+class B extends A {}
+class C extends B {}
+''');
+    var unit = (await resolveFile(path)).unit;
+    var classC = unit.declarations[2] as ClassDeclaration;
+    var builder = DartLinkedEditBuilderImpl(
+        MockDartEditBuilderImpl(isNonNullableByDefault: false));
+    builder.addSuperTypesAsSuggestions(
+      classC.declaredElement?.instantiate(
+        typeArguments: [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+    );
+    var suggestions = builder.suggestions;
+    expect(suggestions, hasLength(4));
+    expect(suggestions.map((s) => s.value),
+        unorderedEquals(['Object', 'A', 'B', 'C']));
+  }
+
+  Future<void> test_addSuperTypesAsSuggestions_noneSuffix() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    addSource(path, '''
+class A {}
+class B extends A {}
+class C extends B {}
+''');
+    var unit = (await resolveFile(path)).unit;
+    var classC = unit.declarations[2] as ClassDeclaration;
+    var builder = DartLinkedEditBuilderImpl(MockDartEditBuilderImpl());
+    builder.addSuperTypesAsSuggestions(
+      classC.declaredElement?.instantiate(
+        typeArguments: [],
+        nullabilitySuffix: NullabilitySuffix.none,
+      ),
+    );
+    var suggestions = builder.suggestions;
+    expect(suggestions, hasLength(4));
+    expect(suggestions.map((s) => s.value),
+        unorderedEquals(['Object', 'A', 'B', 'C']));
+  }
+
+  Future<void> test_addSuperTypesAsSuggestions_questionSuffix() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    addSource(path, '''
+class A {}
+class B extends A {}
+class C extends B {}
+''');
+    var unit = (await resolveFile(path)).unit;
+    var classC = unit.declarations[2] as ClassDeclaration;
+    var builder = DartLinkedEditBuilderImpl(MockDartEditBuilderImpl());
+    builder.addSuperTypesAsSuggestions(
+      classC.declaredElement?.instantiate(
+        typeArguments: [],
+        nullabilitySuffix: NullabilitySuffix.question,
+      ),
+    );
+    var suggestions = builder.suggestions;
+    expect(suggestions, hasLength(4));
+    expect(suggestions.map((s) => s.value),
+        unorderedEquals(['Object?', 'A?', 'B?', 'C?']));
+  }
+
+  Future<void> test_addSuperTypesAsSuggestions_starSuffix() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    addSource(path, '''
+class A {}
+class B extends A {}
+class C extends B {}
+''');
+    var unit = (await resolveFile(path)).unit;
+    var classC = unit.declarations[2] as ClassDeclaration;
+    var builder = DartLinkedEditBuilderImpl(MockDartEditBuilderImpl());
     builder.addSuperTypesAsSuggestions(
       classC.declaredElement?.instantiate(
         typeArguments: [],
@@ -2068,6 +2201,88 @@ import 'package:foo/foo.dart';
 import 'dart:async';
 
 import 'package:foo/foo.dart';
+''',
+    );
+  }
+
+  Future<void> test_default_quote() async {
+    await _assertImportLibrary(
+      initialCode: '''
+''',
+      uriList: ['dart:aaa'],
+      expectedCode: '''
+import 'dart:aaa';
+''',
+    );
+  }
+
+  Future<void> test_directive_adjacent_strings() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'dart:' "async";
+''',
+      uriList: ['dart:aaa'],
+      expectedCode: '''
+import 'dart:aaa';
+import 'dart:' "async";
+''',
+    );
+  }
+
+  Future<void> test_directive_common_double_quote() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import "dart:async";
+import "dart:math";
+import 'dart:bbb';
+''',
+      uriList: ['dart:aaa'],
+      expectedCode: '''
+import "dart:aaa";
+import "dart:async";
+import "dart:math";
+import 'dart:bbb';
+''',
+    );
+  }
+
+  Future<void> test_directive_common_single_quote() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import "dart:math";
+import 'dart:bbb';
+''',
+      uriList: ['dart:aaa'],
+      expectedCode: '''
+import 'dart:aaa';
+import "dart:math";
+import 'dart:bbb';
+''',
+    );
+  }
+
+  Future<void> test_directive_double_quote() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import "dart:bbb";
+''',
+      uriList: ['dart:aaa'],
+      expectedCode: '''
+import "dart:aaa";
+import "dart:bbb";
+''',
+    );
+  }
+
+  Future<void> test_directive_single_quote() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'dart:bbb';
+''',
+      uriList: ['dart:aaa'],
+      expectedCode: '''
+import 'dart:aaa';
+import 'dart:bbb';
 ''',
     );
   }
@@ -2379,6 +2594,36 @@ import 'foo.dart';
     );
   }
 
+  Future<void> test_prefer_double_quotes() async {
+    registerLintRules();
+    writeTestPackageAnalysisOptionsFile(lints: ['prefer_double_quotes']);
+    await _assertImportLibrary(
+      initialCode: '''
+import 'dart:bbb';
+''',
+      uriList: ['dart:aaa'],
+      expectedCode: '''
+import "dart:aaa";
+import 'dart:bbb';
+''',
+    );
+  }
+
+  Future<void> test_prefer_single_quotes() async {
+    registerLintRules();
+    writeTestPackageAnalysisOptionsFile(lints: ['prefer_single_quotes']);
+    await _assertImportLibrary(
+      initialCode: '''
+import "dart:bbb";
+''',
+      uriList: ['dart:aaa'],
+      expectedCode: '''
+import 'dart:aaa';
+import "dart:bbb";
+''',
+    );
+  }
+
   Future<void> test_relative_afterDart() async {
     await _assertImportLibrary(
       initialCode: '''
@@ -2469,19 +2714,60 @@ import 'aaa.dart';
     );
   }
 
+  Future<void> test_withoutImportEdits() async {
+    await _assertImportLibrary(
+      createEditsForImports: false,
+      initialCode: '''
+import 'dart:aaa';
+
+class A {}
+''',
+      uriList: ['dart:bbb'],
+      expectedCode: '''
+import 'dart:aaa';
+
+class A {}
+''',
+    );
+  }
+
+  Future<void> test_withPrefix() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'dart:async';
+
+import 'package:foo/foo.dart';
+''',
+      uriList: ['aaa.dart'],
+      prefix: 'aaa',
+      expectedCode: '''
+import 'dart:async';
+
+import 'package:foo/foo.dart';
+
+import 'aaa.dart' as aaa;
+''',
+    );
+  }
+
   Future<void> _assertImportLibrary({
     required String initialCode,
     required List<String> uriList,
     required String expectedCode,
+    String? prefix,
+    bool createEditsForImports = true,
   }) async {
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, initialCode);
     var builder = await newBuilder();
-    await builder.addDartFileEdit(path, (builder) {
+    await builder.addDartFileEdit(path,
+        createEditsForImports: createEditsForImports, (builder) {
       for (var i = 0; i < uriList.length; ++i) {
         var uri = Uri.parse(uriList[i]);
-        builder.importLibrary(uri);
+        builder.importLibrary(uri, prefix: prefix);
       }
+
+      expect(builder.requiredImports.map((uri) => uri.toString()), uriList);
     });
 
     var resultCode = initialCode;
@@ -3032,7 +3318,7 @@ class B extends A {
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, content);
 
-    ClassElement? targetElement;
+    InterfaceElement? targetElement;
     {
       var unitResult = (await resolveFile(path)).unit;
       if (targetMixinName != null) {

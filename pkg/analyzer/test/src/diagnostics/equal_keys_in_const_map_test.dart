@@ -93,6 +93,36 @@ var c = const {const A<int>(): null, const A<num>(): null};
 ''');
   }
 
+  test_const_list_hasEqual() async {
+    await assertErrorsInCode(r'''
+const x = {[0]: null, [0]: null};
+''', [
+      error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 22, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 11, 3)]),
+    ]);
+  }
+
+  test_const_list_noEqual() async {
+    await assertNoErrorsInCode(r'''
+const x = {[0]: null, [1]: null};
+''');
+  }
+
+  test_const_record_hasEqual() async {
+    await assertErrorsInCode(r'''
+const x = {(0, 1): null, (0, 1): null};
+''', [
+      error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 25, 6,
+          contextMessages: [message('/home/test/lib/test.dart', 11, 6)]),
+    ]);
+  }
+
+  test_const_record_noEqual() async {
+    await assertNoErrorsInCode(r'''
+const x = {(0, 1): null, (0, 2): null};
+''');
+  }
+
   test_const_spread__noDuplicate() async {
     await assertNoErrorsInCode('''
 var c = const {1: null, ...{2: null}};

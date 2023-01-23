@@ -201,29 +201,26 @@ class BaseFlowGraphBuilder {
   Fragment StoreNativeField(
       TokenPosition position,
       const Slot& slot,
-      StoreInstanceFieldInstr::Kind kind =
-          StoreInstanceFieldInstr::Kind::kOther,
+      StoreFieldInstr::Kind kind = StoreFieldInstr::Kind::kOther,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier,
       compiler::Assembler::MemoryOrder memory_order =
           compiler::Assembler::kRelaxedNonAtomic);
   Fragment StoreNativeField(
       const Slot& slot,
-      StoreInstanceFieldInstr::Kind kind =
-          StoreInstanceFieldInstr::Kind::kOther,
+      StoreFieldInstr::Kind kind = StoreFieldInstr::Kind::kOther,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier,
       compiler::Assembler::MemoryOrder memory_order =
           compiler::Assembler::kRelaxedNonAtomic) {
     return StoreNativeField(TokenPosition::kNoSource, slot, kind,
                             emit_store_barrier, memory_order);
   }
-  Fragment StoreInstanceField(
+  Fragment StoreField(
       const Field& field,
-      StoreInstanceFieldInstr::Kind kind =
-          StoreInstanceFieldInstr::Kind::kOther,
+      StoreFieldInstr::Kind kind = StoreFieldInstr::Kind::kOther,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
-  Fragment StoreInstanceFieldGuarded(const Field& field,
-                                     StoreInstanceFieldInstr::Kind kind =
-                                         StoreInstanceFieldInstr::Kind::kOther);
+  Fragment StoreFieldGuarded(
+      const Field& field,
+      StoreFieldInstr::Kind kind = StoreFieldInstr::Kind::kOther);
   Fragment LoadStaticField(const Field& field, bool calls_initializer);
   Fragment RedefinitionWithType(const AbstractType& type);
   Fragment ReachabilityFence();
@@ -267,7 +264,7 @@ class BaseFlowGraphBuilder {
   LocalVariable* MakeTemporary(const char* suffix = nullptr);
   Fragment DropTemporary(LocalVariable** temp);
 
-  InputsArray* GetArguments(int count);
+  InputsArray GetArguments(int count);
 
   TargetEntryInstr* BuildTargetEntry();
   FunctionEntryInstr* BuildFunctionEntry(GraphEntryInstr* graph_entry);
@@ -305,9 +302,7 @@ class BaseFlowGraphBuilder {
                          bool negate = false);
   Fragment BranchIfStrictEqual(TargetEntryInstr** then_entry,
                                TargetEntryInstr** otherwise_entry);
-  Fragment Return(
-      TokenPosition position,
-      intptr_t yield_index = UntaggedPcDescriptors::kInvalidYieldIndex);
+  Fragment Return(TokenPosition position);
   Fragment CheckStackOverflow(TokenPosition position,
                               intptr_t stack_depth,
                               intptr_t loop_depth);
@@ -356,6 +351,10 @@ class BaseFlowGraphBuilder {
   // Top of the stack should be the closure function.
   Fragment AllocateClosure(TokenPosition position = TokenPosition::kNoSource);
   Fragment CreateArray();
+  Fragment AllocateRecord(TokenPosition position, intptr_t num_fields);
+  Fragment AllocateSmallRecord(TokenPosition position,
+                               intptr_t num_fields,
+                               bool has_named_fields);
   Fragment AllocateTypedData(TokenPosition position, classid_t class_id);
   Fragment InstantiateType(const AbstractType& type);
   Fragment InstantiateTypeArguments(const TypeArguments& type_arguments);

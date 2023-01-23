@@ -144,6 +144,17 @@ Message _withArgumentsAbstractRedirectedClassInstantiation(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractSealedClass = messageAbstractSealedClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractSealedClass = const MessageCode(
+    "AbstractSealedClass",
+    index: 132,
+    problemMessage:
+        r"""A class can't be declared both 'sealed' and 'abstract'.""",
+    correctionMessage: r"""Try removing the 'abstract' or 'sealed' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAbstractStaticField = messageAbstractStaticField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1074,7 +1085,7 @@ const Code<Null> codeCompilingWithSoundNullSafety =
 const MessageCode messageCompilingWithSoundNullSafety = const MessageCode(
     "CompilingWithSoundNullSafety",
     severity: Severity.info,
-    problemMessage: r"""Compiling with sound null safety""");
+    problemMessage: r"""Compiling with sound null safety.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCompilingWithoutSoundNullSafety =
@@ -1084,7 +1095,8 @@ const Code<Null> codeCompilingWithoutSoundNullSafety =
 const MessageCode messageCompilingWithoutSoundNullSafety = const MessageCode(
     "CompilingWithoutSoundNullSafety",
     severity: Severity.info,
-    problemMessage: r"""Compiling without sound null safety""");
+    problemMessage: r"""Compiling without sound null safety!
+Dart 3 will only support sound null safety, see https://dart.dev/null-safety""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -2754,6 +2766,113 @@ Message _withArgumentsDuplicatedParameterNameCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateDuplicatedRecordLiteralFieldName = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Duplicated record literal field name '#name'.""",
+    correctionMessageTemplate:
+        r"""Try renaming or removing one of the named record literal fields.""",
+    withArguments: _withArgumentsDuplicatedRecordLiteralFieldName);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeDuplicatedRecordLiteralFieldName =
+    const Code<Message Function(String name)>(
+  "DuplicatedRecordLiteralFieldName",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedRecordLiteralFieldName(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeDuplicatedRecordLiteralFieldName,
+      problemMessage: """Duplicated record literal field name '${name}'.""",
+      correctionMessage:
+          """Try renaming or removing one of the named record literal fields.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateDuplicatedRecordLiteralFieldNameContext =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""This is the existing record literal field named '#name'.""",
+        withArguments: _withArgumentsDuplicatedRecordLiteralFieldNameContext);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeDuplicatedRecordLiteralFieldNameContext =
+    const Code<Message Function(String name)>(
+        "DuplicatedRecordLiteralFieldNameContext",
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedRecordLiteralFieldNameContext(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeDuplicatedRecordLiteralFieldNameContext,
+      problemMessage:
+          """This is the existing record literal field named '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateDuplicatedRecordTypeFieldName = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate: r"""Duplicated record type field name '#name'.""",
+    correctionMessageTemplate:
+        r"""Try renaming or removing one of the named record type fields.""",
+    withArguments: _withArgumentsDuplicatedRecordTypeFieldName);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeDuplicatedRecordTypeFieldName =
+    const Code<Message Function(String name)>(
+  "DuplicatedRecordTypeFieldName",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedRecordTypeFieldName(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeDuplicatedRecordTypeFieldName,
+      problemMessage: """Duplicated record type field name '${name}'.""",
+      correctionMessage:
+          """Try renaming or removing one of the named record type fields.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateDuplicatedRecordTypeFieldNameContext =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""This is the existing record type field named '#name'.""",
+        withArguments: _withArgumentsDuplicatedRecordTypeFieldNameContext);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeDuplicatedRecordTypeFieldNameContext =
+    const Code<Message Function(String name)>(
+        "DuplicatedRecordTypeFieldNameContext",
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedRecordTypeFieldNameContext(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeDuplicatedRecordTypeFieldNameContext,
+      problemMessage:
+          """This is the existing record type field named '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEmptyNamedParameterList = messageEmptyNamedParameterList;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2773,6 +2892,18 @@ const MessageCode messageEmptyOptionalParameterList = const MessageCode(
     analyzerCodes: <String>["MISSING_IDENTIFIER"],
     problemMessage: r"""Optional parameter lists cannot be empty.""",
     correctionMessage: r"""Try adding an optional parameter to the list.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEmptyRecordTypeNamedFieldsList =
+    messageEmptyRecordTypeNamedFieldsList;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEmptyRecordTypeNamedFieldsList = const MessageCode(
+    "EmptyRecordTypeNamedFieldsList",
+    index: 129,
+    problemMessage: r"""Record type named fields list can't be empty.""",
+    correctionMessage:
+        r"""Try adding a record type named field to the list.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEncoding = messageEncoding;
@@ -3030,6 +3161,16 @@ Message _withArgumentsEnumSupertypeOfNonAbstractClass(String name) {
           """Non-abstract class '${name}' has 'Enum' as a superinterface.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumWithNameValues = messageEnumWithNameValues;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumWithNameValues = const MessageCode(
+    "EnumWithNameValues",
+    analyzerCodes: <String>["ENUM_WITH_NAME_VALUES"],
+    problemMessage:
+        r"""The name 'values' is not a valid name for an enum. Try using a different name.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEqualityCannotBeEqualityOperand =
@@ -3536,7 +3677,7 @@ const Code<Message Function(String string)>
     codeExperimentNotEnabledOffByDefault =
     const Code<Message Function(String string)>(
         "ExperimentNotEnabledOffByDefault",
-        analyzerCodes: <String>["ParserErrorCode.EXPERIMENT_NOT_ENABLED"]);
+        index: 133);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExperimentNotEnabledOffByDefault(String string) {
@@ -5415,6 +5556,76 @@ const MessageCode messageImportAfterPart = const MessageCode("ImportAfterPart",
         r"""Try moving the import directives before the part directives.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        Uri uri_,
+        String string,
+        String
+            string2)> templateImportChainContext = const Template<
+        Message Function(Uri uri_, String string, String string2)>(
+    problemMessageTemplate:
+        r"""The unavailable library '#uri' is imported through these packages:
+
+#string
+Detailed import paths for (some of) the these imports:
+
+#string2""",
+    withArguments: _withArgumentsImportChainContext);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Uri uri_, String string, String string2)>
+    codeImportChainContext =
+    const Code<Message Function(Uri uri_, String string, String string2)>(
+        "ImportChainContext",
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsImportChainContext(
+    Uri uri_, String string, String string2) {
+  String? uri = relativizeUri(uri_);
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeImportChainContext,
+      problemMessage:
+          """The unavailable library '${uri}' is imported through these packages:
+
+${string}
+Detailed import paths for (some of) the these imports:
+
+${string2}""",
+      arguments: {'uri': uri_, 'string': string, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Uri uri_, String string)>
+    templateImportChainContextSimple =
+    const Template<Message Function(Uri uri_, String string)>(
+        problemMessageTemplate:
+            r"""The unavailable library '#uri' is imported through these paths:
+
+#string""",
+        withArguments: _withArgumentsImportChainContextSimple);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Uri uri_, String string)>
+    codeImportChainContextSimple =
+    const Code<Message Function(Uri uri_, String string)>(
+        "ImportChainContextSimple",
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsImportChainContextSimple(Uri uri_, String string) {
+  String? uri = relativizeUri(uri_);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeImportChainContextSimple,
+      problemMessage:
+          """The unavailable library '${uri}' is imported through these paths:
+
+${string}""",
+      arguments: {'uri': uri_, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeIncorrectTypeArgumentVariable =
     messageIncorrectTypeArgumentVariable;
 
@@ -5504,6 +5715,35 @@ const MessageCode messageInheritedMembersConflictCause2 = const MessageCode(
     "InheritedMembersConflictCause2",
     severity: Severity.context,
     problemMessage: r"""This is the other inherited member.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2)>
+    templateInheritedRestrictedMemberOfEnumImplementer =
+    const Template<Message Function(String name, String name2)>(
+        problemMessageTemplate:
+            r"""A concrete instance member named '#name' can't be inherited from '#name2' in a class that implements 'Enum'.""",
+        withArguments:
+            _withArgumentsInheritedRestrictedMemberOfEnumImplementer);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeInheritedRestrictedMemberOfEnumImplementer =
+    const Code<Message Function(String name, String name2)>(
+        "InheritedRestrictedMemberOfEnumImplementer",
+        analyzerCodes: <String>["ILLEGAL_CONCRETE_ENUM_MEMBER"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInheritedRestrictedMemberOfEnumImplementer(
+    String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeInheritedRestrictedMemberOfEnumImplementer,
+      problemMessage:
+          """A concrete instance member named '${name}' can't be inherited from '${name2}' in a class that implements 'Enum'.""",
+      arguments: {'name': name, 'name2': name2});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -6854,6 +7094,155 @@ const MessageCode messageJsInteropEnclosingClassJSAnnotationContext =
         problemMessage: r"""This is the enclosing class.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateJsInteropExportClassNotMarkedExportable =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""Class '#name' does not have a `@JSExport` on it or any of its members.""",
+        correctionMessageTemplate:
+            r"""Use the `@JSExport` annotation on this class.""",
+        withArguments: _withArgumentsJsInteropExportClassNotMarkedExportable);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeJsInteropExportClassNotMarkedExportable =
+    const Code<Message Function(String name)>(
+  "JsInteropExportClassNotMarkedExportable",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropExportClassNotMarkedExportable(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJsInteropExportClassNotMarkedExportable,
+      problemMessage:
+          """Class '${name}' does not have a `@JSExport` on it or any of its members.""",
+      correctionMessage: """Use the `@JSExport` annotation on this class.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateJsInteropExportDartInterfaceHasNonEmptyJSExportValue =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""The value in the `@JSExport` annotation on the class or mixin '#name' will be ignored.""",
+        correctionMessageTemplate: r"""Remove the value in the annotation.""",
+        withArguments:
+            _withArgumentsJsInteropExportDartInterfaceHasNonEmptyJSExportValue);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeJsInteropExportDartInterfaceHasNonEmptyJSExportValue =
+    const Code<Message Function(String name)>(
+        "JsInteropExportDartInterfaceHasNonEmptyJSExportValue",
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropExportDartInterfaceHasNonEmptyJSExportValue(
+    String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJsInteropExportDartInterfaceHasNonEmptyJSExportValue,
+      problemMessage:
+          """The value in the `@JSExport` annotation on the class or mixin '${name}' will be ignored.""",
+      correctionMessage: """Remove the value in the annotation.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateJsInteropExportDisallowedMember = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Member '#name' is not a concrete instance member, and therefore can't be exported.""",
+    correctionMessageTemplate:
+        r"""Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead.""",
+    withArguments: _withArgumentsJsInteropExportDisallowedMember);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeJsInteropExportDisallowedMember =
+    const Code<Message Function(String name)>(
+  "JsInteropExportDisallowedMember",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropExportDisallowedMember(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJsInteropExportDisallowedMember,
+      problemMessage:
+          """Member '${name}' is not a concrete instance member, and therefore can't be exported.""",
+      correctionMessage: """Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            string)> templateJsInteropExportMemberCollision = const Template<
+        Message Function(String name, String string)>(
+    problemMessageTemplate:
+        r"""The following class members collide with the same export '#name': #string.""",
+    correctionMessageTemplate:
+        r"""Either remove the conflicting members or use a different export name.""",
+    withArguments: _withArgumentsJsInteropExportMemberCollision);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String string)>
+    codeJsInteropExportMemberCollision =
+    const Code<Message Function(String name, String string)>(
+  "JsInteropExportMemberCollision",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropExportMemberCollision(
+    String name, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeJsInteropExportMemberCollision,
+      problemMessage:
+          """The following class members collide with the same export '${name}': ${string}.""",
+      correctionMessage: """Either remove the conflicting members or use a different export name.""",
+      arguments: {'name': name, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateJsInteropExportNoExportableMembers = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Class '#name' has no exportable members in the class or the inheritance chain.""",
+    correctionMessageTemplate:
+        r"""Using `@JSExport`, annotate at least one instance member with a body or annotate a class that has such a member in the inheritance chain.""",
+    withArguments: _withArgumentsJsInteropExportNoExportableMembers);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeJsInteropExportNoExportableMembers =
+    const Code<Message Function(String name)>(
+  "JsInteropExportNoExportableMembers",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropExportNoExportableMembers(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJsInteropExportNoExportableMembers,
+      problemMessage:
+          """Class '${name}' has no exportable members in the class or the inheritance chain.""",
+      correctionMessage: """Using `@JSExport`, annotate at least one instance member with a body or annotate a class that has such a member in the inheritance chain.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropExternalExtensionMemberOnTypeInvalid =
     messageJsInteropExternalExtensionMemberOnTypeInvalid;
 
@@ -6992,6 +7381,38 @@ const MessageCode messageJsInteropNonExternalMember = const MessageCode(
     correctionMessage: r"""Try annotating the member with `external`.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2)>
+    templateJsInteropNonStaticWithStaticInteropSupertype =
+    const Template<Message Function(String name, String name2)>(
+        problemMessageTemplate:
+            r"""Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does.""",
+        correctionMessageTemplate:
+            r"""Try marking '#name' as a `@staticInterop` class, or don't inherit '#name2'.""",
+        withArguments:
+            _withArgumentsJsInteropNonStaticWithStaticInteropSupertype);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeJsInteropNonStaticWithStaticInteropSupertype =
+    const Code<Message Function(String name, String name2)>(
+  "JsInteropNonStaticWithStaticInteropSupertype",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropNonStaticWithStaticInteropSupertype(
+    String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeJsInteropNonStaticWithStaticInteropSupertype,
+      problemMessage:
+          """Class '${name}' does not have an `@staticInterop` annotation, but has supertype '${name2}', which does.""",
+      correctionMessage: """Try marking '${name}' as a `@staticInterop` class, or don't inherit '${name2}'.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropOperatorsNotSupported =
     messageJsInteropOperatorsNotSupported;
 
@@ -7000,6 +7421,159 @@ const MessageCode messageJsInteropOperatorsNotSupported = const MessageCode(
     "JsInteropOperatorsNotSupported",
     problemMessage: r"""JS interop classes do not support operator methods.""",
     correctionMessage: r"""Try replacing this with a normal method.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null>
+    codeJsInteropStaticInteropExternalExtensionMembersWithTypeParameters =
+    messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode
+    messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters =
+    const MessageCode(
+        "JsInteropStaticInteropExternalExtensionMembersWithTypeParameters",
+        problemMessage:
+            r"""`@staticInterop` classes cannot have external extension members with type parameters.""",
+        correctionMessage:
+            r"""Try using a Dart extension member if you need type parameters instead.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropStaticInteropGenerativeConstructor =
+    messageJsInteropStaticInteropGenerativeConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropStaticInteropGenerativeConstructor =
+    const MessageCode("JsInteropStaticInteropGenerativeConstructor",
+        problemMessage:
+            r"""`@staticInterop` classes should not contain any generative constructors.""",
+        correctionMessage: r"""Use factory constructors instead.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(String name, String string, String string2,
+            String name2, String string3)>
+    templateJsInteropStaticInteropMockMissingGetterOrSetter = const Template<
+            Message Function(
+                String name,
+                String string,
+                String string2,
+                String name2,
+                String
+                    string3)>(
+        problemMessageTemplate:
+            r"""Dart class '#name' has a #string, but does not have a #string2 to implement any of the following extension member(s) with export name '#name2': #string3.""",
+        correctionMessageTemplate:
+            r"""Declare an exportable #string2 that implements one of these extension members.""",
+        withArguments:
+            _withArgumentsJsInteropStaticInteropMockMissingGetterOrSetter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(String name, String string, String string2,
+            String name2, String string3)>
+    codeJsInteropStaticInteropMockMissingGetterOrSetter = const Code<
+        Message Function(String name, String string, String string2,
+            String name2, String string3)>(
+  "JsInteropStaticInteropMockMissingGetterOrSetter",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropMockMissingGetterOrSetter(
+    String name, String string, String string2, String name2, String string3) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  if (string3.isEmpty) throw 'No string provided';
+  return new Message(codeJsInteropStaticInteropMockMissingGetterOrSetter,
+      problemMessage:
+          """Dart class '${name}' has a ${string}, but does not have a ${string2} to implement any of the following extension member(s) with export name '${name2}': ${string3}.""",
+      correctionMessage:
+          """Declare an exportable ${string2} that implements one of these extension members.""",
+      arguments: {
+        'name': name,
+        'string': string,
+        'string2': string2,
+        'name2': name2,
+        'string3': string3
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2, String string)>
+    templateJsInteropStaticInteropMockMissingImplements =
+    const Template<Message Function(String name, String name2, String string)>(
+        problemMessageTemplate:
+            r"""Dart class '#name' does not have any members that implement any of the following extension member(s) with export name '#name2': #string.""",
+        correctionMessageTemplate:
+            r"""Declare an exportable member that implements one of these extension members.""",
+        withArguments:
+            _withArgumentsJsInteropStaticInteropMockMissingImplements);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2, String string)>
+    codeJsInteropStaticInteropMockMissingImplements =
+    const Code<Message Function(String name, String name2, String string)>(
+  "JsInteropStaticInteropMockMissingImplements",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropMockMissingImplements(
+    String name, String name2, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeJsInteropStaticInteropMockMissingImplements,
+      problemMessage:
+          """Dart class '${name}' does not have any members that implement any of the following extension member(s) with export name '${name2}': ${string}.""",
+      correctionMessage: """Declare an exportable member that implements one of these extension members.""",
+      arguments: {'name': name, 'name2': name2, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateJsInteropStaticInteropNoJSAnnotation = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""`@staticInterop` classes should also have the `@JS` annotation.""",
+    correctionMessageTemplate: r"""Add `@JS` to class '#name'.""",
+    withArguments: _withArgumentsJsInteropStaticInteropNoJSAnnotation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeJsInteropStaticInteropNoJSAnnotation =
+    const Code<Message Function(String name)>(
+  "JsInteropStaticInteropNoJSAnnotation",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropNoJSAnnotation(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJsInteropStaticInteropNoJSAnnotation,
+      problemMessage:
+          """`@staticInterop` classes should also have the `@JS` annotation.""",
+      correctionMessage: """Add `@JS` to class '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropStaticInteropSyntheticConstructor =
+    messageJsInteropStaticInteropSyntheticConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropStaticInteropSyntheticConstructor = const MessageCode(
+    "JsInteropStaticInteropSyntheticConstructor",
+    problemMessage:
+        r"""Synthetic constructors on `@staticInterop` classes can not be used.""",
+    correctionMessage:
+        r"""Declare an external factory constructor for this `@staticInterop` class and use that instead.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
@@ -7095,7 +7669,7 @@ const Template<Message Function(String name, String name2)>
     templateJsInteropStaticInteropWithNonStaticSupertype =
     const Template<Message Function(String name, String name2)>(
         problemMessageTemplate:
-            r"""JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which is non-static.""",
+            r"""JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not.""",
         correctionMessageTemplate:
             r"""Try marking the supertype as a static interop class using `@staticInterop`.""",
         withArguments:
@@ -7117,7 +7691,7 @@ Message _withArgumentsJsInteropStaticInteropWithNonStaticSupertype(
   name2 = demangleMixinApplicationName(name2);
   return new Message(codeJsInteropStaticInteropWithNonStaticSupertype,
       problemMessage:
-          """JS interop class '${name}' has an `@staticInterop` annotation, but has supertype '${name2}', which is non-static.""",
+          """JS interop class '${name}' has an `@staticInterop` annotation, but has supertype '${name2}', which does not.""",
       correctionMessage: """Try marking the supertype as a static interop class using `@staticInterop`.""",
       arguments: {'name': name, 'name2': name2});
 }
@@ -8089,6 +8663,17 @@ Message _withArgumentsNameNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNamedFieldClashesWithPositionalFieldInRecord =
+    messageNamedFieldClashesWithPositionalFieldInRecord;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNamedFieldClashesWithPositionalFieldInRecord =
+    const MessageCode("NamedFieldClashesWithPositionalFieldInRecord",
+        analyzerCodes: <String>["INVALID_FIELD_NAME"],
+        problemMessage:
+            r"""Record field names can't be a dollar sign followed by an integer when integer is the index of a positional field.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNamedFunctionExpression = messageNamedFunctionExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8333,12 +8918,51 @@ Message _withArgumentsNonAsciiWhitespace(int codePoint) {
 const Template<
     Message Function(
         String
+            name)> templateNonAugmentationClassConflict = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Class '#name' conflicts with an existing class of the same name in the augmented library.""",
+    correctionMessageTemplate:
+        r"""Try changing the name of the class or adding an 'augment' modifier.""",
+    withArguments: _withArgumentsNonAugmentationClassConflict);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNonAugmentationClassConflict =
+    const Code<Message Function(String name)>(
+  "NonAugmentationClassConflict",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonAugmentationClassConflict(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNonAugmentationClassConflict,
+      problemMessage:
+          """Class '${name}' conflicts with an existing class of the same name in the augmented library.""",
+      correctionMessage: """Try changing the name of the class or adding an 'augment' modifier.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonAugmentationClassConflictCause =
+    messageNonAugmentationClassConflictCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonAugmentationClassConflictCause = const MessageCode(
+    "NonAugmentationClassConflictCause",
+    severity: Severity.context,
+    problemMessage: r"""This is the existing class.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
             name)> templateNonAugmentationClassMemberConflict = const Template<
         Message Function(String name)>(
     problemMessageTemplate:
         r"""Member '#name' conflicts with an existing member of the same name in the augmented class.""",
     correctionMessageTemplate:
-        r"""Try changing the name to an existing member or adding an 'augment' modifier.""",
+        r"""Try changing the name of the member or adding an 'augment' modifier.""",
     withArguments: _withArgumentsNonAugmentationClassMemberConflict);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8355,19 +8979,127 @@ Message _withArgumentsNonAugmentationClassMemberConflict(String name) {
   return new Message(codeNonAugmentationClassMemberConflict,
       problemMessage:
           """Member '${name}' conflicts with an existing member of the same name in the augmented class.""",
-      correctionMessage: """Try changing the name to an existing member or adding an 'augment' modifier.""",
+      correctionMessage: """Try changing the name of the member or adding an 'augment' modifier.""",
       arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeNonAugmentationClassMemberConflictCause =
-    messageNonAugmentationClassMemberConflictCause;
+const Template<
+    Message Function(
+        String
+            name)> templateNonAugmentationConstructorConflict = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Constructor '#name' conflicts with an existing constructor of the same name in the augmented class.""",
+    correctionMessageTemplate:
+        r"""Try changing the name of the constructor or adding an 'augment' modifier.""",
+    withArguments: _withArgumentsNonAugmentationConstructorConflict);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNonAugmentationClassMemberConflictCause =
-    const MessageCode("NonAugmentationClassMemberConflictCause",
+const Code<Message Function(String name)>
+    codeNonAugmentationConstructorConflict =
+    const Code<Message Function(String name)>(
+  "NonAugmentationConstructorConflict",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonAugmentationConstructorConflict(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNonAugmentationConstructorConflict,
+      problemMessage:
+          """Constructor '${name}' conflicts with an existing constructor of the same name in the augmented class.""",
+      correctionMessage: """Try changing the name of the constructor or adding an 'augment' modifier.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonAugmentationConstructorConflictCause =
+    messageNonAugmentationConstructorConflictCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonAugmentationConstructorConflictCause =
+    const MessageCode("NonAugmentationConstructorConflictCause",
         severity: Severity.context,
-        problemMessage: r"""This is the existing member.""");
+        problemMessage: r"""This is the existing constructor.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonAugmentationDeclarationConflictCause =
+    messageNonAugmentationDeclarationConflictCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonAugmentationDeclarationConflictCause =
+    const MessageCode("NonAugmentationDeclarationConflictCause",
+        severity: Severity.context,
+        problemMessage: r"""This is the existing declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateNonAugmentationLibraryConflict = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Declaration '#name' conflicts with an existing declaration of the same name in the augmented library.""",
+    correctionMessageTemplate: r"""Try changing the name of the declaration.""",
+    withArguments: _withArgumentsNonAugmentationLibraryConflict);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNonAugmentationLibraryConflict =
+    const Code<Message Function(String name)>(
+  "NonAugmentationLibraryConflict",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonAugmentationLibraryConflict(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNonAugmentationLibraryConflict,
+      problemMessage:
+          """Declaration '${name}' conflicts with an existing declaration of the same name in the augmented library.""",
+      correctionMessage: """Try changing the name of the declaration.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateNonAugmentationLibraryMemberConflict = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Member '#name' conflicts with an existing member of the same name in the augmented library.""",
+    correctionMessageTemplate:
+        r"""Try changing the name of the member or adding an 'augment' modifier.""",
+    withArguments: _withArgumentsNonAugmentationLibraryMemberConflict);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeNonAugmentationLibraryMemberConflict =
+    const Code<Message Function(String name)>(
+  "NonAugmentationLibraryMemberConflict",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonAugmentationLibraryMemberConflict(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNonAugmentationLibraryMemberConflict,
+      problemMessage:
+          """Member '${name}' conflicts with an existing member of the same name in the augmented library.""",
+      correctionMessage: """Try changing the name of the member or adding an 'augment' modifier.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonAugmentationMemberConflictCause =
+    messageNonAugmentationMemberConflictCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonAugmentationMemberConflictCause = const MessageCode(
+    "NonAugmentationMemberConflictCause",
+    severity: Severity.context,
+    problemMessage: r"""This is the existing member.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNonConstConstructor = messageNonConstConstructor;
@@ -8839,6 +9571,16 @@ const Code<Null> codeObjectImplements = messageObjectImplements;
 const MessageCode messageObjectImplements = const MessageCode(
     "ObjectImplements",
     problemMessage: r"""The class 'Object' can't implement anything.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeObjectMemberNameUsedForRecordField =
+    messageObjectMemberNameUsedForRecordField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageObjectMemberNameUsedForRecordField = const MessageCode(
+    "ObjectMemberNameUsedForRecordField",
+    problemMessage:
+        r"""Record field names can't be the same as a member from 'Object'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeObjectMixesIn = messageObjectMixesIn;
@@ -9526,12 +10268,16 @@ const MessageCode messagePatchDeclarationOrigin = const MessageCode(
     problemMessage: r"""This is the origin declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, Uri uri_)>
-    templatePatchInjectionFailed =
-    const Template<Message Function(String name, Uri uri_)>(
-        problemMessageTemplate: r"""Can't inject '#name' into '#uri'.""",
-        correctionMessageTemplate: r"""Try adding '@patch'.""",
-        withArguments: _withArgumentsPatchInjectionFailed);
+const Template<
+    Message Function(
+        String name,
+        Uri
+            uri_)> templatePatchInjectionFailed = const Template<
+        Message Function(String name, Uri uri_)>(
+    problemMessageTemplate: r"""Can't inject public '#name' into '#uri'.""",
+    correctionMessageTemplate:
+        r"""Make '#name' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").""",
+    withArguments: _withArgumentsPatchInjectionFailed);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name, Uri uri_)> codePatchInjectionFailed =
@@ -9545,8 +10291,9 @@ Message _withArgumentsPatchInjectionFailed(String name, Uri uri_) {
   name = demangleMixinApplicationName(name);
   String? uri = relativizeUri(uri_);
   return new Message(codePatchInjectionFailed,
-      problemMessage: """Can't inject '${name}' into '${uri}'.""",
-      correctionMessage: """Try adding '@patch'.""",
+      problemMessage: """Can't inject public '${name}' into '${uri}'.""",
+      correctionMessage:
+          """Make '${name}' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").""",
       arguments: {'name': name, 'uri': uri_});
 }
 
@@ -9623,6 +10370,64 @@ const MessageCode messagePrivateNamedParameter = const MessageCode(
     "PrivateNamedParameter",
     analyzerCodes: <String>["PRIVATE_OPTIONAL_PARAMETER"],
     problemMessage: r"""An optional named parameter can't start with '_'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRecordFieldsCantBePrivate =
+    messageRecordFieldsCantBePrivate;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRecordFieldsCantBePrivate = const MessageCode(
+    "RecordFieldsCantBePrivate",
+    analyzerCodes: <String>["INVALID_FIELD_NAME"],
+    problemMessage: r"""Record field names can't be private.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRecordLiteralOnePositionalFieldNoTrailingComma =
+    messageRecordLiteralOnePositionalFieldNoTrailingComma;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRecordLiteralOnePositionalFieldNoTrailingComma =
+    const MessageCode("RecordLiteralOnePositionalFieldNoTrailingComma",
+        index: 127,
+        problemMessage:
+            r"""Record literal with one field requires a trailing comma.""",
+        correctionMessage: r"""Try adding a trailing comma.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRecordLiteralZeroFieldsWithTrailingComma =
+    messageRecordLiteralZeroFieldsWithTrailingComma;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRecordLiteralZeroFieldsWithTrailingComma =
+    const MessageCode("RecordLiteralZeroFieldsWithTrailingComma",
+        index: 128,
+        problemMessage:
+            r"""Record literal without fields can't have a trailing comma.""",
+        correctionMessage: r"""Try removing the trailing comma.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRecordTypeOnePositionalFieldNoTrailingComma =
+    messageRecordTypeOnePositionalFieldNoTrailingComma;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRecordTypeOnePositionalFieldNoTrailingComma =
+    const MessageCode("RecordTypeOnePositionalFieldNoTrailingComma",
+        index: 131,
+        problemMessage:
+            r"""Record type with one entry requires a trailing comma.""",
+        correctionMessage: r"""Try adding a trailing comma.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRecordTypeZeroFieldsButTrailingComma =
+    messageRecordTypeZeroFieldsButTrailingComma;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRecordTypeZeroFieldsButTrailingComma =
+    const MessageCode("RecordTypeZeroFieldsButTrailingComma",
+        index: 130,
+        problemMessage:
+            r"""Record type without fields can't have a trailing comma.""",
+        correctionMessage: r"""Try removing the trailing comma.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRedirectingConstructorWithAnotherInitializer =
@@ -9864,6 +10669,60 @@ Message _withArgumentsSdkSummaryNotFound(Uri uri_) {
   return new Message(codeSdkSummaryNotFound,
       problemMessage: """SDK summary not found: ${uri}.""",
       arguments: {'uri': uri_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateSealedClassSubtypeOutsideOfLibrary = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Sealed class '#name' can't be extended, implemented, or mixed in outside of its library.""",
+    withArguments: _withArgumentsSealedClassSubtypeOutsideOfLibrary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeSealedClassSubtypeOutsideOfLibrary =
+    const Code<Message Function(String name)>(
+  "SealedClassSubtypeOutsideOfLibrary",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSealedClassSubtypeOutsideOfLibrary(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeSealedClassSubtypeOutsideOfLibrary,
+      problemMessage:
+          """Sealed class '${name}' can't be extended, implemented, or mixed in outside of its library.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateSealedMixinSubtypeOutsideOfLibrary = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Sealed mixin '#name' can't be mixed in outside of its library.""",
+    withArguments: _withArgumentsSealedMixinSubtypeOutsideOfLibrary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeSealedMixinSubtypeOutsideOfLibrary =
+    const Code<Message Function(String name)>(
+  "SealedMixinSubtypeOutsideOfLibrary",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSealedMixinSubtypeOutsideOfLibrary(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeSealedMixinSubtypeOutsideOfLibrary,
+      problemMessage:
+          """Sealed mixin '${name}' can't be mixed in outside of its library.""",
+      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10922,6 +11781,27 @@ const MessageCode messageTypedefUnaliasedTypeCause = const MessageCode(
     problemMessage: r"""This is the type denoted by the type alias.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Uri uri_)> templateUnavailableDartLibrary =
+    const Template<Message Function(Uri uri_)>(
+        problemMessageTemplate:
+            r"""Dart library '#uri' is not available on this platform.""",
+        withArguments: _withArgumentsUnavailableDartLibrary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Uri uri_)> codeUnavailableDartLibrary =
+    const Code<Message Function(Uri uri_)>("UnavailableDartLibrary",
+        analyzerCodes: <String>["URI_DOES_NOT_EXIST"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnavailableDartLibrary(Uri uri_) {
+  String? uri = relativizeUri(uri_);
+  return new Message(codeUnavailableDartLibrary,
+      problemMessage:
+          """Dart library '${uri}' is not available on this platform.""",
+      arguments: {'uri': uri_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeUnexpectedDollarInString = messageUnexpectedDollarInString;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10988,6 +11868,35 @@ const MessageCode messageUnexpectedTokens = const MessageCode(
 const Template<
     Message Function(
         String
+            name)> templateUnmatchedAugmentationClass = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Augmentation class '#name' doesn't match a class in the augmented library.""",
+    correctionMessageTemplate:
+        r"""Try changing the name to an existing class or removing the 'augment' modifier.""",
+    withArguments: _withArgumentsUnmatchedAugmentationClass);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeUnmatchedAugmentationClass =
+    const Code<Message Function(String name)>(
+  "UnmatchedAugmentationClass",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnmatchedAugmentationClass(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeUnmatchedAugmentationClass,
+      problemMessage:
+          """Augmentation class '${name}' doesn't match a class in the augmented library.""",
+      correctionMessage: """Try changing the name to an existing class or removing the 'augment' modifier.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
             name)> templateUnmatchedAugmentationClassMember = const Template<
         Message Function(String name)>(
     problemMessageTemplate:
@@ -11009,6 +11918,94 @@ Message _withArgumentsUnmatchedAugmentationClassMember(String name) {
   return new Message(codeUnmatchedAugmentationClassMember,
       problemMessage:
           """Augmentation member '${name}' doesn't match a member in the augmented class.""",
+      correctionMessage: """Try changing the name to an existing member or removing the 'augment' modifier.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateUnmatchedAugmentationConstructor = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Augmentation constructor '#name' doesn't match a constructor in the augmented class.""",
+    correctionMessageTemplate:
+        r"""Try changing the name to an existing constructor or removing the 'augment' modifier.""",
+    withArguments: _withArgumentsUnmatchedAugmentationConstructor);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeUnmatchedAugmentationConstructor =
+    const Code<Message Function(String name)>(
+  "UnmatchedAugmentationConstructor",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnmatchedAugmentationConstructor(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeUnmatchedAugmentationConstructor,
+      problemMessage:
+          """Augmentation constructor '${name}' doesn't match a constructor in the augmented class.""",
+      correctionMessage: """Try changing the name to an existing constructor or removing the 'augment' modifier.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateUnmatchedAugmentationDeclaration = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Augmentation '#name' doesn't match a declaration in the augmented library.""",
+    correctionMessageTemplate:
+        r"""Try changing the name to an existing declaration or removing the 'augment' modifier.""",
+    withArguments: _withArgumentsUnmatchedAugmentationDeclaration);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeUnmatchedAugmentationDeclaration =
+    const Code<Message Function(String name)>(
+  "UnmatchedAugmentationDeclaration",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnmatchedAugmentationDeclaration(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeUnmatchedAugmentationDeclaration,
+      problemMessage:
+          """Augmentation '${name}' doesn't match a declaration in the augmented library.""",
+      correctionMessage: """Try changing the name to an existing declaration or removing the 'augment' modifier.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateUnmatchedAugmentationLibraryMember = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Augmentation member '#name' doesn't match a member in the augmented library.""",
+    correctionMessageTemplate:
+        r"""Try changing the name to an existing member or removing the 'augment' modifier.""",
+    withArguments: _withArgumentsUnmatchedAugmentationLibraryMember);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeUnmatchedAugmentationLibraryMember =
+    const Code<Message Function(String name)>(
+  "UnmatchedAugmentationLibraryMember",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnmatchedAugmentationLibraryMember(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeUnmatchedAugmentationLibraryMember,
+      problemMessage:
+          """Augmentation member '${name}' doesn't match a member in the augmented library.""",
       correctionMessage: """Try changing the name to an existing member or removing the 'augment' modifier.""",
       arguments: {'name': name});
 }

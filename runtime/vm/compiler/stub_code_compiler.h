@@ -175,6 +175,10 @@ class StubCodeCompiler : public AllStatic {
   static void GenerateAllocateTypedDataArrayStub(Assembler* assembler,
                                                  intptr_t cid);
 
+  static void GenerateAllocateSmallRecordStub(Assembler* assembler,
+                                              intptr_t num_fields,
+                                              bool has_named_fields);
+
   static void GenerateSharedStubGeneric(
       Assembler* assembler,
       bool save_fpu_registers,
@@ -198,9 +202,11 @@ class StubCodeCompiler : public AllStatic {
                                               bool with_fpu_regs);
 
   static void GenerateRangeError(Assembler* assembler, bool with_fpu_regs);
+  static void GenerateWriteError(Assembler* assembler, bool with_fpu_regs);
 
   static void GenerateSuspendStub(
       Assembler* assembler,
+      bool call_suspend_function,
       intptr_t suspend_entry_point_offset_in_thread,
       intptr_t suspend_function_offset_in_object_store);
   static void GenerateInitSuspendableFunctionStub(

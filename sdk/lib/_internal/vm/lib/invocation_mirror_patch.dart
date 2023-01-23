@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "core_patch.dart";
+part of "core_patch.dart";
 
 // NOTE: When making changes to this class, please also update
 // `VmTarget.instantiateInvocation` and `VmTarget._invocationType` in

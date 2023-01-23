@@ -26,6 +26,7 @@ class ClientDynamicRegistrations {
     Method.textDocument_didClose,
     Method.textDocument_completion,
     Method.textDocument_hover,
+    Method.textDocument_inlayHint,
     Method.textDocument_signatureHelp,
     Method.textDocument_references,
     Method.textDocument_documentHighlight,
@@ -39,6 +40,8 @@ class ClientDynamicRegistrations {
     Method.textDocument_foldingRange,
     Method.textDocument_selectionRange,
     Method.textDocument_typeDefinition,
+    Method.textDocument_prepareCallHierarchy,
+    Method.textDocument_prepareTypeHierarchy,
     // workspace.fileOperations covers all file operation methods but we only
     // support this one.
     Method.workspace_willRenameFiles,
@@ -50,8 +53,11 @@ class ClientDynamicRegistrations {
 
   ClientDynamicRegistrations(this._capabilities);
 
+  bool get callHierarchy =>
+      _capabilities.textDocument?.callHierarchy?.dynamicRegistration ?? false;
+
   bool get codeActions =>
-      _capabilities.textDocument?.foldingRange?.dynamicRegistration ?? false;
+      _capabilities.textDocument?.codeAction?.dynamicRegistration ?? false;
 
   bool get colorProvider =>
       _capabilities.textDocument?.colorProvider?.dynamicRegistration ?? false;
@@ -88,6 +94,9 @@ class ClientDynamicRegistrations {
   bool get implementation =>
       _capabilities.textDocument?.implementation?.dynamicRegistration ?? false;
 
+  bool get inlayHints =>
+      _capabilities.textDocument?.inlayHint?.dynamicRegistration ?? false;
+
   bool get rangeFormatting =>
       _capabilities.textDocument?.rangeFormatting?.dynamicRegistration ?? false;
 
@@ -115,6 +124,9 @@ class ClientDynamicRegistrations {
   bool get typeFormatting =>
       _capabilities.textDocument?.onTypeFormatting?.dynamicRegistration ??
       false;
+
+  bool get typeHierarchy =>
+      _capabilities.textDocument?.typeHierarchy?.dynamicRegistration ?? false;
 }
 
 class ServerCapabilitiesComputer {
@@ -186,6 +198,10 @@ class ServerCapabilitiesComputer {
               willSaveWaitUntil: false,
               save: null,
             )),
+      callHierarchyProvider: dynamicRegistrations.callHierarchy
+          ? null
+          : Either3<bool, CallHierarchyOptions,
+              CallHierarchyRegistrationOptions>.t1(true),
       completionProvider: dynamicRegistrations.completion
           ? null
           : CompletionOptions(
@@ -251,6 +267,11 @@ class ServerCapabilitiesComputer {
       documentRangeFormattingProvider: dynamicRegistrations.typeFormatting
           ? null
           : Either2<bool, DocumentRangeFormattingOptions>.t1(enableFormatter),
+      inlayHintProvider: dynamicRegistrations.inlayHints
+          ? null
+          : Either3<bool, InlayHintOptions, InlayHintRegistrationOptions>.t2(
+              InlayHintOptions(resolveProvider: false),
+            ),
       renameProvider: dynamicRegistrations.rename
           ? null
           : renameOptionsSupport
@@ -279,6 +300,10 @@ class ServerCapabilitiesComputer {
                 range: Either2<bool, SemanticTokensOptionsRange>.t1(true),
               ),
             ),
+      typeHierarchyProvider: dynamicRegistrations.typeHierarchy
+          ? null
+          : Either3<bool, TypeHierarchyOptions,
+              TypeHierarchyRegistrationOptions>.t1(true),
       executeCommandProvider: ExecuteCommandOptions(
         commands: Commands.serverSupportedCommands,
         workDoneProgress: true,
@@ -511,6 +536,13 @@ class ServerCapabilitiesComputer {
       ),
     );
     register(
+      dynamicRegistrations.callHierarchy,
+      Method.textDocument_prepareCallHierarchy,
+      CallHierarchyRegistrationOptions(
+        documentSelector: [dartFiles],
+      ),
+    );
+    register(
       dynamicRegistrations.semanticTokens,
       CustomMethods.semanticTokenDynamicRegistration,
       SemanticTokensRegistrationOptions(
@@ -520,6 +552,21 @@ class ServerCapabilitiesComputer {
           SemanticTokensOptionsFull(delta: false),
         ),
         range: Either2<bool, SemanticTokensOptionsRange>.t1(true),
+      ),
+    );
+    register(
+      dynamicRegistrations.typeHierarchy,
+      Method.textDocument_prepareTypeHierarchy,
+      TypeHierarchyRegistrationOptions(
+        documentSelector: [dartFiles],
+      ),
+    );
+    register(
+      dynamicRegistrations.inlayHints,
+      Method.textDocument_inlayHint,
+      InlayHintRegistrationOptions(
+        documentSelector: [dartFiles],
+        resolveProvider: false,
       ),
     );
 

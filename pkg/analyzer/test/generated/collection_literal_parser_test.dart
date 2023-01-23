@@ -48,7 +48,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(second.rightParenthesis.lexeme, ')');
     var forLoopParts = second.forLoopParts as ForEachPartsWithDeclaration;
     DeclaredIdentifier forLoopVar = forLoopParts.loopVariable;
-    expect(forLoopVar.identifier.name, 'x');
+    expect(forLoopVar.name.lexeme, 'x');
     expect(forLoopParts.inKeyword, isNotNull);
     var iterable = forLoopParts.iterable as SimpleIdentifier;
     expect(iterable.name, 'list');
@@ -70,7 +70,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(second.rightParenthesis.lexeme, ')');
     var forLoopParts = second.forLoopParts as ForEachPartsWithDeclaration;
     DeclaredIdentifier forLoopVar = forLoopParts.loopVariable;
-    expect(forLoopVar.identifier.name, 'x');
+    expect(forLoopVar.name.lexeme, 'x');
     expect(forLoopParts.inKeyword, isNotNull);
     var iterable = forLoopParts.iterable as SimpleIdentifier;
     expect(iterable.name, 'list');
@@ -97,7 +97,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(second.rightParenthesis.lexeme, ')');
     var forLoopParts = second.forLoopParts as ForPartsWithDeclarations;
     VariableDeclaration forLoopVar = forLoopParts.variables.variables[0];
-    expect(forLoopVar.name.name, 'x');
+    expect(forLoopVar.name.lexeme, 'x');
     var condition = forLoopParts.condition as BinaryExpression;
     var rightOperand = condition.rightOperand as IntegerLiteral;
     expect(rightOperand.value, 10);

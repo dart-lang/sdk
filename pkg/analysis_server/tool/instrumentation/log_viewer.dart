@@ -25,9 +25,17 @@ class Driver {
   /// requests.
   static String portOption = 'port';
 
+  /// The option used to specify the number of log entries to show on a result
+  /// page.
+  static String pageLengthOption = 'page-length';
+
   /// The port that will be used if no port number is provided on the command
   /// line.
   static int defaultPortNumber = 11000;
+
+  /// The page length that will be used if no length is provided on the command
+  /// line.
+  static int defaultPageLength = 25;
 
   /// Initialize a newly created driver.
   Driver();
@@ -39,6 +47,9 @@ class Driver {
     parser.addOption(portOption,
         help: 'The port number on which the server should listen for requests',
         defaultsTo: defaultPortNumber.toString());
+    parser.addOption(pageLengthOption,
+        help: 'The number of log entries to show per page',
+        defaultsTo: defaultPageLength.toString());
     return parser;
   }
 
@@ -83,6 +94,14 @@ class Driver {
       return;
     }
 
+    var pageLength = defaultPageLength;
+    try {
+      pageLength = int.parse(options[pageLengthOption] as String);
+    } catch (exception) {
+      printUsage(parser, error: 'Invalid page length');
+      return;
+    }
+
     var arguments = options.rest;
     if (arguments.length != 1) {
       printUsage(parser, error: 'Missing log file');
@@ -103,7 +122,7 @@ class Driver {
     print('Log file contains ${lines.length} lines');
 
     var log = InstrumentationLog(<String>[logFile.path], lines);
-    var server = WebServer(log);
+    var server = WebServer(log, pageLength: pageLength);
     server.serveHttp(port);
     print('logViewer is listening on http://localhost:$port/log');
   }

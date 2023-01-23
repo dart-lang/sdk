@@ -36,7 +36,7 @@ class DiffCommand extends Command<void> with PrintUsageException {
 
     final oldInfo = await infoFromFile(args[0]);
     final newInfo = await infoFromFile(args[1]);
-    final summaryOnly = argRes['summary-only'];
+    final summaryOnly = argRes['summary-only'] as bool;
 
     final diffs = diff(oldInfo, newInfo);
 

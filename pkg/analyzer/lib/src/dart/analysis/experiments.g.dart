@@ -6,9 +6,13 @@
 
 part of 'experiments.dart';
 
+// We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
+// code, as they match names declared in the source configuration files.
+// ignore_for_file: constant_identifier_names
+
 /// The current version of the Dart language (or, for non-stable releases, the
 /// version of the language currently in the process of being developed).
-const _currentVersion = '2.18.0';
+const _currentVersion = '2.19.0';
 
 /// A map containing information about all known experimental flags.
 final _knownFeatures = <String, ExperimentalFeature>{
@@ -29,13 +33,18 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.non_nullable: ExperimentalFeatures.non_nullable,
   EnableString.nonfunction_type_aliases:
       ExperimentalFeatures.nonfunction_type_aliases,
+  EnableString.patterns: ExperimentalFeatures.patterns,
+  EnableString.records: ExperimentalFeatures.records,
+  EnableString.sealed_class: ExperimentalFeatures.sealed_class,
   EnableString.set_literals: ExperimentalFeatures.set_literals,
   EnableString.spread_collections: ExperimentalFeatures.spread_collections,
   EnableString.super_parameters: ExperimentalFeatures.super_parameters,
   EnableString.test_experiment: ExperimentalFeatures.test_experiment,
   EnableString.triple_shift: ExperimentalFeatures.triple_shift,
+  EnableString.unnamed_libraries: ExperimentalFeatures.unnamed_libraries,
   EnableString.value_class: ExperimentalFeatures.value_class,
   EnableString.variance: ExperimentalFeatures.variance,
+  EnableString.views: ExperimentalFeatures.views,
 };
 
 /// Constant strings for enabling each of the currently known experimental
@@ -83,6 +92,15 @@ class EnableString {
   /// String to enable the experiment "nonfunction-type-aliases"
   static const String nonfunction_type_aliases = 'nonfunction-type-aliases';
 
+  /// String to enable the experiment "patterns"
+  static const String patterns = 'patterns';
+
+  /// String to enable the experiment "records"
+  static const String records = 'records';
+
+  /// String to enable the experiment "sealed-class"
+  static const String sealed_class = 'sealed-class';
+
   /// String to enable the experiment "set-literals"
   static const String set_literals = 'set-literals';
 
@@ -98,11 +116,17 @@ class EnableString {
   /// String to enable the experiment "triple-shift"
   static const String triple_shift = 'triple-shift';
 
+  /// String to enable the experiment "unnamed-libraries"
+  static const String unnamed_libraries = 'unnamed-libraries';
+
   /// String to enable the experiment "value-class"
   static const String value_class = 'value-class';
 
   /// String to enable the experiment "variance"
   static const String variance = 'variance';
+
+  /// String to enable the experiment "views"
+  static const String views = 'views';
 }
 
 class ExperimentalFeatures {
@@ -250,8 +274,38 @@ class ExperimentalFeatures {
     releaseVersion: Version.parse('2.13.0'),
   );
 
-  static final set_literals = ExperimentalFeature(
+  static final patterns = ExperimentalFeature(
     index: 14,
+    enableString: EnableString.patterns,
+    isEnabledByDefault: IsEnabledByDefault.patterns,
+    isExpired: IsExpired.patterns,
+    documentation: 'Patterns',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+  );
+
+  static final records = ExperimentalFeature(
+    index: 15,
+    enableString: EnableString.records,
+    isEnabledByDefault: IsEnabledByDefault.records,
+    isExpired: IsExpired.records,
+    documentation: 'Records',
+    experimentalReleaseVersion: Version.parse('2.19.0'),
+    releaseVersion: null,
+  );
+
+  static final sealed_class = ExperimentalFeature(
+    index: 16,
+    enableString: EnableString.sealed_class,
+    isEnabledByDefault: IsEnabledByDefault.sealed_class,
+    isExpired: IsExpired.sealed_class,
+    documentation: 'Sealed class',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+  );
+
+  static final set_literals = ExperimentalFeature(
+    index: 17,
     enableString: EnableString.set_literals,
     isEnabledByDefault: IsEnabledByDefault.set_literals,
     isExpired: IsExpired.set_literals,
@@ -261,7 +315,7 @@ class ExperimentalFeatures {
   );
 
   static final spread_collections = ExperimentalFeature(
-    index: 15,
+    index: 18,
     enableString: EnableString.spread_collections,
     isEnabledByDefault: IsEnabledByDefault.spread_collections,
     isExpired: IsExpired.spread_collections,
@@ -271,7 +325,7 @@ class ExperimentalFeatures {
   );
 
   static final super_parameters = ExperimentalFeature(
-    index: 16,
+    index: 19,
     enableString: EnableString.super_parameters,
     isEnabledByDefault: IsEnabledByDefault.super_parameters,
     isExpired: IsExpired.super_parameters,
@@ -281,7 +335,7 @@ class ExperimentalFeatures {
   );
 
   static final test_experiment = ExperimentalFeature(
-    index: 17,
+    index: 20,
     enableString: EnableString.test_experiment,
     isEnabledByDefault: IsEnabledByDefault.test_experiment,
     isExpired: IsExpired.test_experiment,
@@ -292,7 +346,7 @@ class ExperimentalFeatures {
   );
 
   static final triple_shift = ExperimentalFeature(
-    index: 18,
+    index: 21,
     enableString: EnableString.triple_shift,
     isEnabledByDefault: IsEnabledByDefault.triple_shift,
     isExpired: IsExpired.triple_shift,
@@ -301,8 +355,18 @@ class ExperimentalFeatures {
     releaseVersion: Version.parse('2.14.0'),
   );
 
+  static final unnamed_libraries = ExperimentalFeature(
+    index: 22,
+    enableString: EnableString.unnamed_libraries,
+    isEnabledByDefault: IsEnabledByDefault.unnamed_libraries,
+    isExpired: IsExpired.unnamed_libraries,
+    documentation: 'Unnamed libraries',
+    experimentalReleaseVersion: null,
+    releaseVersion: Version.parse('2.19.0'),
+  );
+
   static final value_class = ExperimentalFeature(
-    index: 19,
+    index: 23,
     enableString: EnableString.value_class,
     isEnabledByDefault: IsEnabledByDefault.value_class,
     isExpired: IsExpired.value_class,
@@ -312,11 +376,21 @@ class ExperimentalFeatures {
   );
 
   static final variance = ExperimentalFeature(
-    index: 20,
+    index: 24,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
     documentation: 'Sound variance',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+  );
+
+  static final views = ExperimentalFeature(
+    index: 25,
+    enableString: EnableString.views,
+    isEnabledByDefault: IsEnabledByDefault.views,
+    isExpired: IsExpired.views,
+    documentation: 'Views',
     experimentalReleaseVersion: null,
     releaseVersion: null,
   );
@@ -367,6 +441,15 @@ class IsEnabledByDefault {
   /// Default state of the experiment "nonfunction-type-aliases"
   static const bool nonfunction_type_aliases = true;
 
+  /// Default state of the experiment "patterns"
+  static const bool patterns = false;
+
+  /// Default state of the experiment "records"
+  static const bool records = false;
+
+  /// Default state of the experiment "sealed-class"
+  static const bool sealed_class = false;
+
   /// Default state of the experiment "set-literals"
   static const bool set_literals = true;
 
@@ -382,11 +465,17 @@ class IsEnabledByDefault {
   /// Default state of the experiment "triple-shift"
   static const bool triple_shift = true;
 
+  /// Default state of the experiment "unnamed-libraries"
+  static const bool unnamed_libraries = true;
+
   /// Default state of the experiment "value-class"
   static const bool value_class = false;
 
   /// Default state of the experiment "variance"
   static const bool variance = false;
+
+  /// Default state of the experiment "views"
+  static const bool views = false;
 }
 
 /// Constant bools indicating whether each experimental flag is currently
@@ -435,6 +524,15 @@ class IsExpired {
   /// Expiration status of the experiment "nonfunction-type-aliases"
   static const bool nonfunction_type_aliases = true;
 
+  /// Expiration status of the experiment "patterns"
+  static const bool patterns = false;
+
+  /// Expiration status of the experiment "records"
+  static const bool records = false;
+
+  /// Expiration status of the experiment "sealed-class"
+  static const bool sealed_class = false;
+
   /// Expiration status of the experiment "set-literals"
   static const bool set_literals = true;
 
@@ -450,11 +548,17 @@ class IsExpired {
   /// Expiration status of the experiment "triple-shift"
   static const bool triple_shift = true;
 
+  /// Expiration status of the experiment "unnamed-libraries"
+  static const bool unnamed_libraries = false;
+
   /// Expiration status of the experiment "value-class"
   static const bool value_class = false;
 
   /// Expiration status of the experiment "variance"
   static const bool variance = false;
+
+  /// Expiration status of the experiment "views"
+  static const bool views = false;
 }
 
 mixin _CurrentState {
@@ -508,6 +612,15 @@ mixin _CurrentState {
   bool get nonfunction_type_aliases =>
       isEnabled(ExperimentalFeatures.nonfunction_type_aliases);
 
+  /// Current state for the flag "patterns"
+  bool get patterns => isEnabled(ExperimentalFeatures.patterns);
+
+  /// Current state for the flag "records"
+  bool get records => isEnabled(ExperimentalFeatures.records);
+
+  /// Current state for the flag "sealed-class"
+  bool get sealed_class => isEnabled(ExperimentalFeatures.sealed_class);
+
   /// Current state for the flag "set-literals"
   bool get set_literals => isEnabled(ExperimentalFeatures.set_literals);
 
@@ -524,11 +637,18 @@ mixin _CurrentState {
   /// Current state for the flag "triple-shift"
   bool get triple_shift => isEnabled(ExperimentalFeatures.triple_shift);
 
+  /// Current state for the flag "unnamed-libraries"
+  bool get unnamed_libraries =>
+      isEnabled(ExperimentalFeatures.unnamed_libraries);
+
   /// Current state for the flag "value-class"
   bool get value_class => isEnabled(ExperimentalFeatures.value_class);
 
   /// Current state for the flag "variance"
   bool get variance => isEnabled(ExperimentalFeatures.variance);
+
+  /// Current state for the flag "views"
+  bool get views => isEnabled(ExperimentalFeatures.views);
 
   bool isEnabled(covariant ExperimentalFeature feature);
 }

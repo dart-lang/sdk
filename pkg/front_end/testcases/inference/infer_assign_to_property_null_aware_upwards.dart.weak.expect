@@ -13,7 +13,7 @@ class Test1 extends core::Object {
     core::int? v4 = let final self::Test1? #t2 = t in #t2 == null ?{core::int?} null : let final core::int? #t3 = #t2.{self::Test1::prop2}{core::int?} in #t3 == null ?{core::int} #t2.{self::Test1::prop2} = self::getInt() : #t3{core::int};
     core::int? v7 = let final self::Test1? #t4 = t in #t4 == null ?{core::int?} null : let final core::int #t5 = #t4.{self::Test1::prop}{core::int}.{core::num::+}(self::getInt()){(core::num) → core::int} in let final void #t6 = #t4.{self::Test1::prop} = #t5 in #t5;
     core::int? v10 = let final self::Test1? #t7 = t in #t7 == null ?{core::int?} null : let final core::int #t8 = #t7.{self::Test1::prop}{core::int}.{core::num::+}(1){(core::num) → core::int} in let final void #t9 = #t7.{self::Test1::prop} = #t8 in #t8;
-    core::int? v11 = let final self::Test1? #t10 = t in #t10 == null ?{core::int?} null : let final core::int #t11 = #t10.{self::Test1::prop}{core::int} in let final void #t12 = #t10.{self::Test1::prop} = #t11.{core::num::+}(1){(core::num) → core::int} in #t11;
+    core::int? v11 = let final self::Test1? #t10 = t in #t10 == null ?{core::int?} null : let final core::int #t11 = #t10.{self::Test1::prop}{core::int} in let final core::int #t12 = #t10.{self::Test1::prop} = #t11.{core::num::+}(1){(core::num) → core::int} in #t11;
   }
 }
 class Test2 extends core::Object {
@@ -33,7 +33,7 @@ class Test2 extends core::Object {
     core::num? v8 = let final self::Test2? #t25 = t in #t25 == null ?{core::num?} null : let final core::num #t26 = #t25.{self::Test2::prop}{core::num}.{core::num::+}(self::getNum()){(core::num) → core::num} in let final void #t27 = #t25.{self::Test2::prop} = #t26 in #t26;
     core::double? v9 = let final self::Test2? #t28 = t in #t28 == null ?{core::double?} null : let final core::double #t29 = #t28.{self::Test2::prop}{core::num}.{core::num::+}(self::getDouble()){(core::num) → core::double} in let final void #t30 = #t28.{self::Test2::prop} = #t29 in #t29;
     core::num? v10 = let final self::Test2? #t31 = t in #t31 == null ?{core::num?} null : let final core::num #t32 = #t31.{self::Test2::prop}{core::num}.{core::num::+}(1){(core::num) → core::num} in let final void #t33 = #t31.{self::Test2::prop} = #t32 in #t32;
-    core::num? v11 = let final self::Test2? #t34 = t in #t34 == null ?{core::num?} null : let final core::num #t35 = #t34.{self::Test2::prop}{core::num} in let final void #t36 = #t34.{self::Test2::prop} = #t35.{core::num::+}(1){(core::num) → core::num} in #t35;
+    core::num? v11 = let final self::Test2? #t34 = t in #t34 == null ?{core::num?} null : let final core::num #t35 = #t34.{self::Test2::prop}{core::num} in let final core::num #t36 = #t34.{self::Test2::prop} = #t35.{core::num::+}(1){(core::num) → core::num} in #t35;
   }
 }
 class Test3 extends core::Object {
@@ -49,7 +49,7 @@ class Test3 extends core::Object {
     core::double? v8 = let final self::Test3? #t43 = t in #t43 == null ?{core::double?} null : let final core::double #t44 = #t43.{self::Test3::prop}{core::double}.{core::double::+}(self::getNum()){(core::num) → core::double} in let final void #t45 = #t43.{self::Test3::prop} = #t44 in #t44;
     core::double? v9 = let final self::Test3? #t46 = t in #t46 == null ?{core::double?} null : let final core::double #t47 = #t46.{self::Test3::prop}{core::double}.{core::double::+}(self::getDouble()){(core::num) → core::double} in let final void #t48 = #t46.{self::Test3::prop} = #t47 in #t47;
     core::double? v10 = let final self::Test3? #t49 = t in #t49 == null ?{core::double?} null : let final core::double #t50 = #t49.{self::Test3::prop}{core::double}.{core::double::+}(1){(core::num) → core::double} in let final void #t51 = #t49.{self::Test3::prop} = #t50 in #t50;
-    core::double? v11 = let final self::Test3? #t52 = t in #t52 == null ?{core::double?} null : let final core::double #t53 = #t52.{self::Test3::prop}{core::double} in let final void #t54 = #t52.{self::Test3::prop} = #t53.{core::double::+}(1){(core::num) → core::double} in #t53;
+    core::double? v11 = let final self::Test3? #t52 = t in #t52 == null ?{core::double?} null : let final core::double #t53 = #t52.{self::Test3::prop}{core::double} in let final core::double #t54 = #t52.{self::Test3::prop} = #t53.{core::double::+}(1){(core::num) → core::double} in #t53;
   }
 }
 static method getInt() → core::int

@@ -330,7 +330,7 @@ class LabelContinueFinder extends StatementVisitor<void> {
 /// Ensures that all of the known DartType implementors are handled.
 ///
 /// The goal of the function is to catch a new unhandled implementor of
-/// [DartType] in a chain of if-else statements analysing possibilities for an
+/// [DartType] in a chain of if-else statements analyzing possibilities for an
 /// object of DartType. It doesn't introduce a run-time overhead in production
 /// code if used in an assert.
 bool isKnownDartTypeImplementor(DartType t) {
@@ -341,6 +341,7 @@ bool isKnownDartTypeImplementor(DartType t) {
       t is InvalidType ||
       t is NeverType ||
       t is NullType ||
+      t is RecordType ||
       t is TypeParameterType ||
       t is TypedefType ||
       t is VoidType;
@@ -370,3 +371,26 @@ bool _isNativeMarkerAnnotation(Expression annotation) {
 
 bool _isDartInternal(Uri uri) =>
     uri.isScheme('dart') && uri.path == '_internal';
+
+/// Collects all `TypeParameter`s from the `TypeParameterType`s present in the
+/// visited `DartType`.
+class TypeParameterFinder extends RecursiveVisitor<void> {
+  final _found = <TypeParameter>{};
+  static TypeParameterFinder? _instance;
+
+  TypeParameterFinder._();
+  factory TypeParameterFinder.instance() {
+    if (_instance != null) return _instance!;
+    return TypeParameterFinder._();
+  }
+
+  Set<TypeParameter> find(DartType type) {
+    _found.clear();
+    type.accept(this);
+    return _found;
+  }
+
+  @override
+  void visitTypeParameterType(TypeParameterType node) =>
+      _found.add(node.parameter);
+}

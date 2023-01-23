@@ -1,0 +1,15 @@
+M(r0 int64, r1 int64) Struct(size: 9)
+M(r2 int64, r3 int64) Struct(size: 9)
+M(r4 int64, r5 int64) Struct(size: 9)
+M(r6 int64, r7 int64) Struct(size: 9)
+S+0 Struct(size: 9)
+S+16 Struct(size: 9)
+S+32 Struct(size: 9)
+S+48 Struct(size: 9)
+S+64 Struct(size: 9)
+S+80 Struct(size: 9)
+v0 double
+S+96 int32
+S+104 int32
+=>
+v0 double

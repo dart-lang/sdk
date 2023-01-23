@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "bin/snapshot_utils.h"
+#include "bin/dartutils.h"
 #include "bin/file.h"
 #include "bin/test_utils.h"
 #include "platform/assert.h"
@@ -12,22 +13,58 @@
 namespace dart {
 
 #if defined(DART_TARGET_OS_MACOS)
-TEST_CASE(CanDetectMachOFiles) {
-  const char* kMachO32BitLittleEndianFilename =
-      bin::test::GetFileName("runtime/tests/vm/data/macho_32bit_little_endian");
-  const char* kMachO64BitLittleEndianFilename =
-      bin::test::GetFileName("runtime/tests/vm/data/macho_64bit_little_endian");
-  const char* kMachO32BitBigEndianFilename =
-      bin::test::GetFileName("runtime/tests/vm/data/macho_32bit_big_endian");
-  const char* kMachO64BitBigEndianFilename =
-      bin::test::GetFileName("runtime/tests/vm/data/macho_64bit_big_endian");
 
-  EXPECT(
-      bin::Snapshot::IsMachOFormattedBinary(kMachO32BitLittleEndianFilename));
-  EXPECT(
-      bin::Snapshot::IsMachOFormattedBinary(kMachO64BitLittleEndianFilename));
-  EXPECT(bin::Snapshot::IsMachOFormattedBinary(kMachO32BitBigEndianFilename));
-  EXPECT(bin::Snapshot::IsMachOFormattedBinary(kMachO64BitBigEndianFilename));
+static const unsigned char kMachO32BitLittleEndianHeader[] = {
+    0xce, 0xfa, 0xed, 0xfe, 0x07, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00,
+    0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+};
+
+static const unsigned char kMachO32BitBigEndianHeader[] = {
+    0xfe, 0xed, 0xfa, 0xce, 0x01, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00,
+    0x03, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+};
+
+static const unsigned char kMachO64BitLittleEndianHeader[] = {
+    0xcf, 0xfa, 0xed, 0xfe, 0x07, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00,
+    0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+};
+
+static const unsigned char kMachO64BitBigEndianHeader[] = {
+    0xfe, 0xed, 0xfa, 0xcf, 0x01, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00,
+    0x03, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+};
+
+static const struct {
+  const char* filename;
+  const unsigned char* contents;
+  size_t contents_size;
+} kTestcases[] = {
+    {"macho_32bit_little_endian", kMachO32BitLittleEndianHeader,
+     ARRAY_SIZE(kMachO32BitLittleEndianHeader)},
+    {"macho_32bit_big_endian", kMachO32BitBigEndianHeader,
+     ARRAY_SIZE(kMachO32BitBigEndianHeader)},
+    {"macho_64bit_little_endian", kMachO64BitLittleEndianHeader,
+     ARRAY_SIZE(kMachO64BitLittleEndianHeader)},
+    {"macho_64bit_big_endian", kMachO64BitBigEndianHeader,
+     ARRAY_SIZE(kMachO64BitBigEndianHeader)},
+};
+
+TEST_CASE(CanDetectMachOFiles) {
+  for (uintptr_t i = 0; i < ARRAY_SIZE(kTestcases); i++) {
+    const auto& testcase = kTestcases[i];
+    auto* const file =
+        bin::DartUtils::OpenFile(testcase.filename, /*write=*/true);
+    bin::DartUtils::WriteFile(testcase.contents, testcase.contents_size, file);
+    bin::DartUtils::CloseFile(file);
+
+    EXPECT(bin::Snapshot::IsMachOFormattedBinary(testcase.filename));
+
+    EXPECT(bin::File::Delete(nullptr, testcase.filename));
+  }
 
   const char* kFilename =
       bin::test::GetFileName("runtime/bin/snapshot_utils_test.cc");

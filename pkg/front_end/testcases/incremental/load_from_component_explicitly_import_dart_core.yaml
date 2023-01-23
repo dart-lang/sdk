@@ -52,3 +52,4 @@ worlds:
         }
     expectedLibraryCount: 2
     expectsPlatform: true
+    advancedInvalidation: bodiesOnly

@@ -28,7 +28,7 @@ class ApiSignature {
   /// should be incremented, so that a summary signed by a newer version of the
   /// signature algorithm won't accidentally have the same signature as a
   /// summary signed by an older version.
-  static const int _VERSION = 0;
+  static const int _version = 0;
 
   /// Data accumulated so far.
   ByteData _data = ByteData(4096);
@@ -38,12 +38,12 @@ class ApiSignature {
 
   /// Create an [ApiSignature] which is ready to accept data.
   ApiSignature() {
-    addInt(_VERSION);
+    addInt(_version);
   }
 
   /// For testing only: create an [ApiSignature] which doesn't include any
   /// version information.  This makes it easier to unit tests, since the data
-  /// is stable even if [_VERSION] is changed.
+  /// is stable even if [_version] is changed.
   ApiSignature.unversioned();
 
   /// Collect a boolean value.

@@ -3,15 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 
 /// Compute the [DefinedNames] for the given [unit].
 DefinedNames computeDefinedNames(CompilationUnit unit) {
   DefinedNames names = DefinedNames();
 
-  void appendName(Set<String> names, SimpleIdentifier? node) {
-    var name = node?.name;
-    if (name != null && name.isNotEmpty) {
-      names.add(name);
+  void appendName(Set<String> names, Token? token) {
+    var lexeme = token?.lexeme;
+    if (lexeme != null && lexeme.isNotEmpty) {
+      names.add(lexeme);
     }
   }
 

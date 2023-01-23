@@ -42,17 +42,40 @@ bool isDartFileName(String fileName) => fileName.endsWith('.dart');
 /// Returns `true` if this [fileName] is a Pubspec file.
 bool isPubspecFileName(String fileName) => _pubspec.hasMatch(fileName);
 
-class Spelunker {
+class FileSpelunker extends _AbstractSpelunker {
   final String path;
+  FileSpelunker(this.path, {super.sink, super.featureSet});
+  @override
+  String getSource() => File(path).readAsStringSync();
+}
+
+@Deprecated('Prefer FileSpelunker')
+class Spelunker extends _AbstractSpelunker {
+  final String path;
+  Spelunker(this.path, {super.sink, super.featureSet});
+  @override
+  String getSource() => File(path).readAsStringSync();
+}
+
+class StringSpelunker extends _AbstractSpelunker {
+  final String source;
+  StringSpelunker(this.source, {super.sink, super.featureSet});
+  @override
+  String getSource() => source;
+}
+
+abstract class _AbstractSpelunker {
   final IOSink sink;
   FeatureSet featureSet;
 
-  Spelunker(this.path, {IOSink? sink, FeatureSet? featureSet})
+  _AbstractSpelunker({IOSink? sink, FeatureSet? featureSet})
       : sink = sink ?? stdout,
         featureSet = featureSet ?? FeatureSet.latestLanguageVersion();
 
+  String getSource();
+
   void spelunk() {
-    var contents = File(path).readAsStringSync();
+    var contents = getSource();
 
     var parseResult = parseString(
       content: contents,

@@ -8,9 +8,8 @@ library compiler.tool.show_inferred_types;
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-
-import 'package:dart2js_info/src/util.dart';
 import 'package:dart2js_info/src/io.dart';
+import 'package:dart2js_info/src/util.dart';
 
 import 'usage_exception.dart';
 
@@ -33,14 +32,15 @@ class ShowInferredTypesCommand extends Command<void> with PrintUsageException {
       usageException(
           'Missing arguments, expected: info.data <function-name-regex>');
     }
-    _showInferredTypes(args[0], args[1], argRes['long-names']);
+    await _showInferredTypes(args[0], args[1], argRes['long-names']);
   }
 }
 
-_showInferredTypes(String infoFile, String pattern, bool showLongName) async {
+Future<void> _showInferredTypes(
+    String infoFile, String pattern, bool showLongName) async {
   var info = await infoFromFile(infoFile);
   var nameRegExp = RegExp(pattern);
-  matches(e) => nameRegExp.hasMatch(longName(e));
+  bool matches(e) => nameRegExp.hasMatch(longName(e));
 
   bool noResults = true;
   void showMethods() {

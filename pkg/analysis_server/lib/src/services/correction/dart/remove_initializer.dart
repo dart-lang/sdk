@@ -11,10 +11,21 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveInitializer extends CorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
+  bool canBeAppliedInBulk;
 
   @override
-  bool get canBeAppliedToFile => true;
+  bool canBeAppliedToFile;
+
+  /// Initialize a newly created instance that can't apply bulk and in-file
+  /// fixes.
+  RemoveInitializer()
+      : canBeAppliedInBulk = false,
+        canBeAppliedToFile = false;
+
+  /// Initialize a newly created instance that can apply bulk and in-file fixes.
+  RemoveInitializer.bulkFixable()
+      : canBeAppliedInBulk = true,
+        canBeAppliedToFile = true;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_INITIALIZER;
@@ -27,7 +38,7 @@ class RemoveInitializer extends CorrectionProducer {
     var parameter = node.thisOrAncestorOfType<DefaultFormalParameter>();
     if (parameter != null) {
       // Handle formal parameters with default values.
-      var identifier = parameter.identifier;
+      var identifier = parameter.name;
       var defaultValue = parameter.defaultValue;
       if (identifier != null && defaultValue != null) {
         await builder.addDartFileEdit(file, (builder) {
@@ -46,6 +57,16 @@ class RemoveInitializer extends CorrectionProducer {
             range.endEnd(variable.name, initializer),
           );
         });
+      } else {
+        var initializer =
+            node.thisOrAncestorOfType<ConstructorFieldInitializer>();
+        var parent = initializer?.parent;
+        if (parent is ConstructorDeclaration) {
+          await builder.addDartFileEdit(file, (builder) {
+            builder.addDeletion(
+                range.nodeInList(parent.initializers, initializer!));
+          });
+        }
       }
     }
   }

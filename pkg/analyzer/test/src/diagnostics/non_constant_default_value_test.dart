@@ -80,10 +80,10 @@ class MyClass {
     await assertErrorsInCode(r'''
 class A {
   int y = 0;
-  A({x: y}) {}
+  A({x = y}) {}
 }
 ''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 31, 1),
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 32, 1),
     ]);
   }
 
@@ -120,10 +120,80 @@ enum E {
   test_function_named() async {
     await assertErrorsInCode(r'''
 int y = 0;
-f({x: y}) {}
+f({x = y}) {}
 ''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 17, 1),
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 18, 1),
     ]);
+  }
+
+  test_function_named_constList() async {
+    await assertNoErrorsInCode(r'''
+void f({x = const [0, 1]}) {}
+''');
+  }
+
+  test_function_named_constList_elements_listLiteral() async {
+    await assertNoErrorsInCode(r'''
+void f({x = const [0, [1]]}) {}
+''');
+  }
+
+  test_function_named_constRecord() async {
+    await assertNoErrorsInCode(r'''
+void f({x = const (0, 1)}) {}
+''');
+  }
+
+  test_function_named_constRecord_namedFields_listLiteral() async {
+    await assertNoErrorsInCode(r'''
+void f({x = const (0, foo: [1])}) {}
+''');
+  }
+
+  test_function_named_constRecord_positionalFields_listLiteral() async {
+    await assertNoErrorsInCode(r'''
+void f({x = const (0, [1])}) {}
+''');
+  }
+
+  test_function_named_record_namedFields_integerLiteral() async {
+    await assertNoErrorsInCode(r'''
+void f({x = (a: 0, b: 1)}) {}
+''');
+  }
+
+  test_function_named_record_namedFields_listLiteral() async {
+    await assertErrorsInCode(r'''
+void f({x = (a: 0, b: [1])}) {}
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 22, 3),
+    ]);
+  }
+
+  test_function_named_record_namedFields_listLiteral_const() async {
+    await assertNoErrorsInCode(r'''
+void f({x = (a: 0, b: const [1])}) {}
+''');
+  }
+
+  test_function_named_record_positionalFields_integerLiteral() async {
+    await assertNoErrorsInCode(r'''
+void f({x = (0, 1)}) {}
+''');
+  }
+
+  test_function_named_record_positionalFields_listLiteral() async {
+    await assertErrorsInCode(r'''
+void f({x = (0, [1])}) {}
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 16, 3),
+    ]);
+  }
+
+  test_function_named_record_positionalFields_listLiteral_const() async {
+    await assertNoErrorsInCode(r'''
+void f({x = (0, const [1])}) {}
+''');
   }
 
   test_function_positional() async {
@@ -139,10 +209,10 @@ f([x = y]) {}
     await assertErrorsInCode(r'''
 class A {
   int y = 0;
-  m({x: y}) {}
+  m({x = y}) {}
 }
 ''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 31, 1),
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 32, 1),
     ]);
   }
 

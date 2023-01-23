@@ -27,12 +27,66 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
   final Map<Element, List<int>> elementsOffsets = <Element, List<int>>{};
 
   @override
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    _addOccurrence(node.declaredElement!, node.name.offset);
+
+    super.visitEnumConstantDeclaration(node);
+  }
+
+  @override
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    final declaredElement = node.declaredElement;
+    if (declaredElement is FieldFormalParameterElement) {
+      final field = declaredElement.field;
+      if (field != null) {
+        _addOccurrence(field, node.name.offset);
+      }
+    }
+
+    super.visitFieldFormalParameter(node);
+  }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    _addOccurrence(node.declaredElement!, node.name.offset);
+    super.visitFunctionDeclaration(node);
+  }
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    _addOccurrence(node.declaredElement!, node.name.offset);
+    super.visitMethodDeclaration(node);
+  }
+
+  @override
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    final nameToken = node.name;
+    if (nameToken != null) {
+      _addOccurrence(node.declaredElement!, nameToken.offset);
+    }
+
+    super.visitSimpleFormalParameter(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var element = node.writeOrReadElement;
     if (element != null) {
       _addOccurrence(element, node.offset);
     }
     return super.visitSimpleIdentifier(node);
+  }
+
+  @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    _addOccurrence(node.declaredElement!, node.name.offset);
+    super.visitSuperFormalParameter(node);
+  }
+
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    _addOccurrence(node.declaredElement!, node.name.offset);
+    super.visitVariableDeclaration(node);
   }
 
   void _addOccurrence(Element element, int offset) {

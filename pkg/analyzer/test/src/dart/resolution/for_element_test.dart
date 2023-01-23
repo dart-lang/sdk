@@ -45,11 +45,11 @@ main() {
 
     assertElement(
       findNode.simple('i]; // 1'),
-      findNode.simple('i in [1, 2').staticElement,
+      findNode.declaredIdentifier('i in [1, 2').declaredElement!,
     );
     assertElement(
       findNode.simple('i]; // 2'),
-      findNode.simple('i in [1.1').staticElement,
+      findNode.declaredIdentifier('i in [1.1').declaredElement!,
     );
   }
 
@@ -76,13 +76,20 @@ f(bool Function() b) {
 }
 ''');
 
-    assertFunctionExpressionInvocation(
-      findNode.functionExpressionInvocation('b()'),
-      element: null,
-      typeArgumentTypes: [],
-      invokeType: 'bool Function()',
-      type: 'bool',
-    );
+    final node = findNode.functionExpressionInvocation('b()');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: b
+    staticElement: self::@function::f::@parameter::b
+    staticType: bool Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: bool Function()
+  staticType: bool
+''');
   }
 
   test_declaredVariableScope() async {
@@ -95,11 +102,11 @@ main() {
 
     assertElement(
       findNode.simple('i]; // 1'),
-      findNode.simple('i = 1;').staticElement,
+      findNode.variableDeclaration('i = 1;').declaredElement!,
     );
     assertElement(
       findNode.simple('i]; // 2'),
-      findNode.simple('i = 1.1;').staticElement,
+      findNode.variableDeclaration('i = 1.1;').declaredElement!,
     );
   }
 }

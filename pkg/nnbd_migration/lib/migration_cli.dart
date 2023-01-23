@@ -292,9 +292,9 @@ class MigrationCli {
   MigrationCliRunner? decodeCommandLineArgs(ArgResults argResults,
       {bool? isVerbose}) {
     try {
-      isVerbose ??= argResults[CommandLineOptions.verboseFlag] as bool?;
+      isVerbose ??= argResults[CommandLineOptions.verboseFlag] as bool;
       if (argResults[CommandLineOptions.helpFlag] as bool) {
-        _showUsage(isVerbose!);
+        _showUsage(isVerbose);
         return null;
       }
       var rest = argResults.rest;
@@ -326,15 +326,15 @@ class MigrationCli {
         throw _BadArgException(
             'Invalid value for --${CommandLineOptions.previewPortOption}');
       }
-      bool? webPreview;
+      bool webPreview;
       if (argResults.wasParsed(CommandLineOptions.webPreviewFlag)) {
-        webPreview = argResults[CommandLineOptions.webPreviewFlag] as bool?;
+        webPreview = argResults[CommandLineOptions.webPreviewFlag] as bool;
       } else {
         // If the `webPreviewFlag` wasn't explicitly passed, then the value of
         // this option is based on the value of the [applyChanges] option.
         webPreview = !applyChanges;
       }
-      if (applyChanges && webPreview!) {
+      if (applyChanges && webPreview) {
         throw _BadArgException('--apply-changes requires --no-web-preview');
       }
       var options = CommandLineOptions(
@@ -355,7 +355,7 @@ class MigrationCli {
           summary: argResults[CommandLineOptions.summaryOption] as String?,
           webPreview: webPreview);
       return MigrationCliRunner(this, options,
-          logger: isVerbose! ? loggerFactory(true) : null);
+          logger: isVerbose ? loggerFactory(true) : null);
     } on Object catch (exception) {
       handleArgParsingException(exception);
       return null;
@@ -901,22 +901,22 @@ get erroneous migration suggestions.
     if (analysisResult.hasErrors && !options.ignoreErrors!) {
       _logErrors(analysisResult);
       return MigrationState(
-          _fixCodeProcessor!._task!.migration,
-          _fixCodeProcessor!._task!.includedRoot,
+          _fixCodeProcessor!._task.migration,
+          _fixCodeProcessor!._task.includedRoot,
           _dartFixListener,
-          _fixCodeProcessor!._task!.instrumentationListener,
+          _fixCodeProcessor!._task.instrumentationListener,
           {},
-          _fixCodeProcessor!._task!.shouldBeMigratedFunction,
+          _fixCodeProcessor!._task.shouldBeMigratedFunction,
           analysisResult);
     } else if (analysisResult.allSourcesAlreadyMigrated) {
       _logAlreadyMigrated();
       return MigrationState(
-          _fixCodeProcessor!._task!.migration,
-          _fixCodeProcessor!._task!.includedRoot,
+          _fixCodeProcessor!._task.migration,
+          _fixCodeProcessor!._task.includedRoot,
           _dartFixListener,
-          _fixCodeProcessor!._task!.instrumentationListener,
+          _fixCodeProcessor!._task.instrumentationListener,
           {},
-          _fixCodeProcessor!._task!.shouldBeMigratedFunction,
+          _fixCodeProcessor!._task.shouldBeMigratedFunction,
           analysisResult);
     } else {
       logger.stdout(ansi.emphasized('Re-generating migration suggestions...'));
@@ -984,7 +984,7 @@ class _FixCodeProcessor extends Object {
   final DriverBasedAnalysisContext context;
 
   /// The task used to migrate to NNBD.
-  NonNullableFix? _task;
+  late final NonNullableFix _task;
 
   Set<String> pathsToProcess;
 
@@ -995,7 +995,7 @@ class _FixCodeProcessor extends Object {
   _FixCodeProcessor(this.context, this._migrationCli)
       : pathsToProcess = _migrationCli.computePathsToProcess(context);
 
-  bool get isPreviewServerRunning => _task?.isPreviewServerRunning ?? false;
+  bool get isPreviewServerRunning => _task.isPreviewServerRunning;
 
   Future<void> prepareToRerun() async {
     var driver = context.driver;
@@ -1008,7 +1008,7 @@ class _FixCodeProcessor extends Object {
   Future<void> processResources(
       Future<void> Function(ResolvedUnitResult result) process) async {
     var driver = context.currentSession;
-    var pathsProcessed = <String?>{};
+    var pathsProcessed = <String>{};
     for (var path in pathsToProcess) {
       if (pathsProcessed.contains(path)) continue;
       var result = await driver.getResolvedLibrary(path);
@@ -1057,11 +1057,11 @@ class _FixCodeProcessor extends Object {
         _migrationCli.lineInfo[result.path] = result.lineInfo;
       }
       if (_migrationCli.options.ignoreErrors! || analysisErrors.isEmpty) {
-        await _task!.prepareUnit(result);
+        await _task.prepareUnit(result);
       }
     });
 
-    var unmigratedDependencies = _task!.migration!.unmigratedDependencies;
+    var unmigratedDependencies = _task.migration!.unmigratedDependencies;
     if (unmigratedDependencies.isNotEmpty) {
       if (_migrationCli.options.skipImportCheck!) {
         _migrationCli.logger.stdout(unmigratedDependenciesWarning);
@@ -1085,25 +1085,25 @@ class _FixCodeProcessor extends Object {
 
     await processResources((ResolvedUnitResult result) async {
       _progressBar.tick();
-      await _task!.processUnit(result);
+      await _task.processUnit(result);
     });
     await processResources((ResolvedUnitResult result) async {
       _progressBar.tick();
       if (_migrationCli.shouldBeMigrated(result.path)) {
-        await _task!.finalizeUnit(result);
+        await _task.finalizeUnit(result);
       }
     });
     _progressBar.complete();
     _migrationCli.logger.stdout(_migrationCli.ansi
         .emphasized('Compiling instrumentation information...'));
     // Update the tasks paths-to-process, in case of new or deleted files.
-    _task!.pathsToProcess = pathsToProcess;
-    var state = await _task!.finish();
-    _task!.processPackage(context.contextRoot.root, state.neededPackages);
+    _task.pathsToProcess = pathsToProcess;
+    var state = await _task.finish();
+    _task.processPackage(context.contextRoot.root, state.neededPackages);
     if (_migrationCli.options.webPreview!) {
-      await _task!.startPreviewServer(state, _migrationCli.applyHook);
+      await _task.startPreviewServer(state, _migrationCli.applyHook);
     }
-    state.previewUrls = _task!.previewUrls;
+    state.previewUrls = _task.previewUrls;
 
     return state;
   }

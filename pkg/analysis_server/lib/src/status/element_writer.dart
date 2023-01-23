@@ -37,17 +37,17 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
 
     properties['metadata'] = element.metadata;
     properties['nameOffset'] = element.nameOffset;
-    if (element is ClassElement) {
-      properties['hasNonFinalField'] = element.hasNonFinalField;
-      properties['hasStaticMember'] = element.hasStaticMember;
+    if (element is InterfaceElement) {
       properties['interfaces'] = element.interfaces;
-      properties['isAbstract'] = element.isAbstract;
-      properties['isEnum'] = element.isEnum;
-      properties['isMixinApplication'] = element.isMixinApplication;
-      properties['isValidMixin'] = element.isValidMixin;
+      properties['isEnum'] = element is EnumElement;
       properties['mixins'] = element.mixins;
-      properties['superclassConstraints'] = element.superclassConstraints;
       properties['supertype'] = element.supertype;
+      if (element is ClassElement) {
+        properties['hasNonFinalField'] = element.hasNonFinalField;
+        properties['isAbstract'] = element.isAbstract;
+        properties['isMixinApplication'] = element.isMixinApplication;
+        properties['isValidMixin'] = element.isValidMixin;
+      }
     }
     if (element is ClassMemberElement) {
       properties['isStatic'] = element.isStatic;
@@ -82,9 +82,9 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['returnType'] = element.returnType;
       properties['type'] = element.type;
     }
-    if (element is ExportElement) {
+    if (element is LibraryExportElement) {
       properties['combinators'] = element.combinators;
-      properties['library'] = element.library;
+      properties['library'] = element.exportedLibrary;
     }
     if (element is FieldElement) {
       properties['isEnumConstant'] = element.isEnumConstant;
@@ -99,10 +99,10 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['returnType'] = element.returnType;
       properties['type'] = element.type;
     }
-    if (element is ImportElement) {
+    if (element is LibraryImportElement) {
       properties['combinators'] = element.combinators;
-      properties['isDeferred'] = element.isDeferred;
-      properties['library'] = element.library;
+      properties['isDeferred'] = element.prefix is DeferredImportElementPrefix;
+      properties['library'] = element.importedLibrary;
     }
     if (element is LibraryElement) {
       properties['definingCompilationUnit'] = element.definingCompilationUnit;

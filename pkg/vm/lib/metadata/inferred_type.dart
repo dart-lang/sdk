@@ -36,8 +36,8 @@ class InferredType {
   InferredType(
       Class? concreteClass, bool nullable, bool isInt, Constant? constantValue,
       {List<DartType?>? exactTypeArguments,
-      bool skipCheck: false,
-      bool receiverNotInt: false})
+      bool skipCheck = false,
+      bool receiverNotInt = false})
       : this._byReference(
             concreteClass?.reference,
             constantValue,

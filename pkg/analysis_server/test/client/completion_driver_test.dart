@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -11,6 +11,8 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../analysis_server_base.dart';
 import '../services/completion/dart/completion_check.dart';
 import '../services/completion/dart/completion_contributor_util.dart';
+import '../services/completion/dart/completion_printer.dart' as printer;
+import '../services/completion/dart/text_expectations.dart';
 import 'impl/completion_driver.dart';
 
 void main() {
@@ -26,6 +28,12 @@ abstract class AbstractCompletionDriverTest
     extends PubPackageAnalysisServerTest {
   late CompletionDriver driver;
   late List<CompletionSuggestion> suggestions;
+
+  /// The configuration for [assertResponseText].
+  /// You almost always want to change it, usually in [setUp].
+  printer.Configuration printerConfiguration = printer.Configuration(
+    filter: (suggestion) => true,
+  );
 
   bool get isProtocolVersion1 {
     return protocol == TestingCompletionProtocol.version1;
@@ -64,6 +72,30 @@ abstract class AbstractCompletionDriverTest
           file: file,
         ),
         isEmpty);
+  }
+
+  /// Asserts that the [response] has the [expected] textual dump produced
+  /// using [printerConfiguration].
+  void assertResponseText(
+    CompletionResponseForTesting response,
+    String expected, {
+    bool printIfFailed = true,
+  }) {
+    final buffer = StringBuffer();
+    printer.CompletionResponsePrinter(
+      buffer: buffer,
+      configuration: printerConfiguration,
+      response: response,
+    ).writeResponse();
+    final actual = buffer.toString();
+
+    if (actual != expected) {
+      if (printIfFailed) {
+        print(actual);
+      }
+      TextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
   }
 
   void assertSuggestion({
@@ -105,6 +137,9 @@ abstract class AbstractCompletionDriverTest
   Future<CompletionResponseForTesting> getTestCodeSuggestions(
     String content,
   ) async {
+    // Give the server time to create analysis contexts.
+    await pumpEventQueue(times: 1000);
+
     await addTestFile(content);
 
     return CompletionResponseForTesting(

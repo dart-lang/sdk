@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "common_patch.dart";
+part of "common_patch.dart";
 
 class _IOServicePorts {
   // We limit the number of IO Service ports per isolate so that we don't
@@ -53,7 +53,7 @@ class _IOService {
   static int _id = 0;
 
   @patch
-  static Future _dispatch(int request, List data) {
+  static Future<Object?> _dispatch(int request, List data) {
     int id;
     do {
       id = _getNextId();
@@ -77,10 +77,10 @@ class _IOService {
     if (_receivePort == null) {
       _receivePort = new RawReceivePort(null, 'IO Service');
       _replyToPort = _receivePort!.sendPort;
-      _receivePort!.handler = (data) {
-        assert(data is List && data.length == 2);
+      _receivePort!.handler = (List<Object?> data) {
+        assert(data.length == 2);
         _messageMap.remove(data[0])!.complete(data[1]);
-        _servicePorts._returnPort(data[0]);
+        _servicePorts._returnPort(data[0] as int);
         if (_messageMap.length == 0) {
           _finalize();
         }

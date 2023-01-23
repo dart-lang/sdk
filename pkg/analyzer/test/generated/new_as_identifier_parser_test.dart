@@ -194,7 +194,7 @@ class C {
     var classDeclaration = unit.declarations.single as ClassDeclaration;
     var constructorDeclaration =
         classDeclaration.members.single as ConstructorDeclaration;
-    expect(constructorDeclaration.name!.name, 'new');
+    expect(constructorDeclaration.name!.lexeme, 'new');
   }
 
   void test_constructor_name_factory() {
@@ -207,7 +207,7 @@ class C {
     var classDeclaration = unit.declarations.single as ClassDeclaration;
     var constructorDeclaration =
         classDeclaration.members[0] as ConstructorDeclaration;
-    expect(constructorDeclaration.name!.name, 'new');
+    expect(constructorDeclaration.name!.lexeme, 'new');
   }
 
   void test_constructor_tearoff() {
@@ -320,7 +320,7 @@ class C {
     var classDeclaration = unit.declarations.single as ClassDeclaration;
     var constructorDeclaration =
         classDeclaration.members.single as ConstructorDeclaration;
-    expect(constructorDeclaration.name!.name, 'new');
+    expect(constructorDeclaration.name!.lexeme, 'new');
   }
 
   void test_factory_redirection() {

@@ -58,7 +58,7 @@ class LibraryMacroApplier {
     libraryBuilder.element.accept(collector);
 
     for (final targetElement in collector.targets) {
-      final targetNode = _linker.elementNodes[targetElement];
+      final targetNode = _linker.elementNodes[targetElement as ElementImpl];
       // TODO(scheglov) support other declarations
       if (targetNode is ClassDeclaration) {
         await performance.runAsync(
@@ -258,8 +258,8 @@ class LibraryMacroApplier {
       constructorName = annotation.constructorName?.name;
     } else if (nameNode is PrefixedIdentifier) {
       final importPrefixCandidate = nameNode.prefix.name;
-      final hasImportPrefix = libraryBuilder.element.imports
-          .any((import) => import.prefix?.name == importPrefixCandidate);
+      final hasImportPrefix = libraryBuilder.element.libraryImports.any(
+          (import) => import.prefix?.element.name == importPrefixCandidate);
       if (hasImportPrefix) {
         prefix = importPrefixCandidate;
         name = nameNode.identifier.name;
@@ -273,8 +273,8 @@ class LibraryMacroApplier {
       throw StateError('${nameNode.runtimeType} $nameNode');
     }
 
-    for (final import in libraryBuilder.element.imports) {
-      if (import.prefix?.name != prefix) {
+    for (final import in libraryBuilder.element.libraryImports) {
+      if (import.prefix?.element.name != prefix) {
         continue;
       }
 

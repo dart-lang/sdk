@@ -369,7 +369,43 @@ class Server {
       }
       return;
     }
-
+    if (!_serveObservatory) {
+      final ddsUri = _service.ddsUri;
+      if (ddsUri == null) {
+        request.response.headers.contentType = ContentType.text;
+        request.response.write('This VM does not have a registered Dart '
+            'Development Service (DDS) instance and is not currently serving '
+            'Dart DevTools.');
+        request.response.close();
+        return;
+      }
+      // We build this path manually rather than manipulating ddsUri directly
+      // as the resulting path requires an unencoded '#'. The Uri class will
+      // always encode '#' as '%23' in paths to avoid conflicts with fragments,
+      // which will result in the redirect failing.
+      final path = StringBuffer();
+      // Add authentication code to the path.
+      if (ddsUri.pathSegments.length > 1) {
+        path.writeAll([
+          ddsUri.pathSegments
+              .sublist(0, ddsUri.pathSegments.length - 1)
+              .join('/'),
+          '/',
+        ]);
+      }
+      final queryComponent = Uri.encodeQueryComponent(
+        ddsUri.replace(scheme: 'ws', path: '${path}ws').toString(),
+      );
+      path.writeAll([
+        'devtools/#/',
+        '?uri=$queryComponent',
+      ]);
+      final redirectUri = Uri.parse(
+        'http://${ddsUri.host}:${ddsUri.port}/$path',
+      );
+      request.response.redirect(redirectUri);
+      return;
+    }
     if (assets == null) {
       request.response.headers.contentType = ContentType.text;
       request.response.write('This VM was built without the Observatory UI.');

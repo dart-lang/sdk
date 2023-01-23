@@ -54,14 +54,8 @@ ForceGrowthSafepointOperationScope::~ForceGrowthSafepointOperationScope() {
 
   T->DecrementForceGrowthScopeDepth();
   if (!T->force_growth()) {
-    ASSERT(T->CanCollectGarbage());
     // Check if we passed the growth limit during the scope.
-    Heap* heap = T->heap();
-    if (heap->old_space()->ReachedHardThreshold()) {
-      heap->CollectGarbage(T, GCType::kMarkSweep, GCReason::kOldSpace);
-    } else {
-      heap->CheckConcurrentMarking(T, GCReason::kOldSpace, 0);
-    }
+    T->heap()->CheckCatchUp(T);
   }
 }
 

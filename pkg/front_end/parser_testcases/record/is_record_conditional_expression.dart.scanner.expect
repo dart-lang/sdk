@@ -1,0 +1,9 @@
+foo(dynamic a) {
+final b = a is (int, int) ? 42 : 43;
+}
+
+
+foo[StringToken]([BeginToken]dynamic[KeywordToken] a[StringToken])[SimpleToken] {[BeginToken]
+final[KeywordToken] b[StringToken] =[SimpleToken] a[StringToken] is[KeywordToken] ([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] ?[SimpleToken] 42[StringToken] :[SimpleToken] 43[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

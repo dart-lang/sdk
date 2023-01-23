@@ -100,7 +100,7 @@ class U56<T> {
   late core.List<core.int> Function<A>(List<A> x) Function() x21;
   late List<A> Function<A>(int x) Function() x22;
 
-  U56({this.tIsBool: false, this.tIsInt: false})
+  U56({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   Function m0(int x) => throw 'uncalled';

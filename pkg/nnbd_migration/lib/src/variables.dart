@@ -49,7 +49,7 @@ class Variables {
   final _decoratedElementTypes = <Element?, DecoratedType?>{};
 
   final _decoratedDirectSupertypes =
-      <ClassElement, Map<ClassElement, DecoratedType?>>{};
+      <InterfaceElement, Map<InterfaceElement, DecoratedType?>>{};
 
   final _decoratedTypeAnnotations = <Source?, Map<int, DecoratedType>>{};
 
@@ -75,8 +75,8 @@ class Variables {
 
   /// Given a [class_], gets the decorated type information for the superclasses
   /// it directly implements/extends/etc.
-  Map<ClassElement, DecoratedType?> decoratedDirectSupertypes(
-      ClassElement class_) {
+  Map<InterfaceElement, DecoratedType?> decoratedDirectSupertypes(
+      InterfaceElement class_) {
     return _decoratedDirectSupertypes[class_] ??=
         _decorateDirectSupertypes(class_);
   }
@@ -203,11 +203,11 @@ class Variables {
     (_conditionalDiscards[source] ??= {})[node.offset] = conditionalDiscard;
   }
 
-  /// Associates a [class_] with decorated type information for the superclasses
+  /// Associates a [interface] with decorated type information for the superclasses
   /// it directly implements/extends/etc.
-  void recordDecoratedDirectSupertypes(ClassElement class_,
-      Map<ClassElement, DecoratedType?> decoratedDirectSupertypes) {
-    _decoratedDirectSupertypes[class_] = decoratedDirectSupertypes;
+  void recordDecoratedDirectSupertypes(InterfaceElement interface,
+      Map<InterfaceElement, DecoratedType?> decoratedDirectSupertypes) {
+    _decoratedDirectSupertypes[interface] = decoratedDirectSupertypes;
   }
 
   /// Associates decorated type information with the given [element].
@@ -299,7 +299,7 @@ class Variables {
     var type = decoratedType.type!;
     if (type.isVoid || type.isDynamic) return type;
     if (type is NeverType) {
-      if (decoratedType.node!.isNullable) {
+      if (decoratedType.node.isNullable) {
         return (_typeProvider.nullType as TypeImpl)
             .withNullability(NullabilitySuffix.none);
       } else {
@@ -309,7 +309,7 @@ class Variables {
       return (_typeProvider.nullType as TypeImpl)
           .withNullability(NullabilitySuffix.none);
     }
-    var nullabilitySuffix = decoratedType.node!.isNullable
+    var nullabilitySuffix = decoratedType.node.isNullable
         ? NullabilitySuffix.question
         : NullabilitySuffix.none;
     if (type is FunctionType) {
@@ -417,9 +417,9 @@ class Variables {
 
   /// Creates an entry [_decoratedDirectSupertypes] for an already-migrated
   /// class.
-  Map<ClassElement, DecoratedType> _decorateDirectSupertypes(
-      ClassElement class_) {
-    var result = <ClassElement, DecoratedType>{};
+  Map<InterfaceElement, DecoratedType> _decorateDirectSupertypes(
+      InterfaceElement class_) {
+    var result = <InterfaceElement, DecoratedType>{};
     for (var decoratedSupertype
         in _alreadyMigratedCodeDecorator.getImmediateSupertypes(class_)) {
       var class_ = (decoratedSupertype.type as InterfaceType).element;

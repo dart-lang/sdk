@@ -10,7 +10,9 @@
   PatchedClass.,
   _privateField,
   publicField],
- scope=[publicField]
+ scope=[
+  _privateField,
+  publicField]
 */
 class PatchedClass {
   int publicField;

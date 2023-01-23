@@ -15,6 +15,7 @@ class ErrorDelegationListener extends Listener {
 
   ErrorDelegationListener(this.delegate);
 
+  @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
     return delegate.handleRecoverableError(message, startToken, endToken);

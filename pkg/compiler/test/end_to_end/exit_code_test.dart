@@ -23,12 +23,12 @@ import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
+import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:compiler/src/null_compiler_output.dart';
 import 'package:compiler/src/serialization/serialization.dart';
 import 'package:compiler/src/options.dart' show CompilerOptions;
 import 'package:compiler/src/universe/world_impact.dart';
-import 'package:compiler/src/world.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 class TestCompiler extends Compiler {
   final String testMarker;
@@ -212,7 +212,7 @@ void main() {
   entry.enableWriteString = false;
 
   Map<String, int> _expectedExitCode(
-      {bool beforeRun: false, bool fatalWarnings: false}) {
+      {bool beforeRun = false, bool fatalWarnings = false}) {
     if (beforeRun) {
       return {
         '': 0,

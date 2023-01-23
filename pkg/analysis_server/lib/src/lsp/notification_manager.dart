@@ -38,7 +38,7 @@ class LspNotificationManager extends AbstractNotificationManager {
         .toList();
 
     final params = PublishDiagnosticsParams(
-        uri: Uri.file(filePath).toString(), diagnostics: diagnostics);
+        uri: Uri.file(filePath), diagnostics: diagnostics);
     final message = NotificationMessage(
       method: Method.textDocument_publishDiagnostics,
       params: params,

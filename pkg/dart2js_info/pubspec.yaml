@@ -17,9 +17,11 @@ dependencies:
   protobuf: any
   shelf: any
   yaml: any
+  vm_snapshot_analysis: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
+  expect: any
   lints: any
   test: any
 

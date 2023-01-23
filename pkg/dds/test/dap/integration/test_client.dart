@@ -38,6 +38,20 @@ class DapTestClient {
 
   late final Future<Uri?> vmServiceUri;
 
+  /// Used to control drive letter casing on Windows for testing.
+  bool? forceDriveLetterCasingUpper;
+
+  /// Used to control drive letter casing on Windows for testing.
+  bool? forceDriveLetterCasingLower;
+
+  /// Used to control drive letter casing for breakpoint requests on Windows for
+  /// testing.
+  bool? forceBreakpointDriveLetterCasingUpper;
+
+  /// Used to control drive letter casing for breakpoint requests on Windows for
+  /// testing.
+  bool? forceBreakpointDriveLetterCasingLower;
+
   DapTestClient._(
     this._channel,
     this._logger, {
@@ -183,6 +197,28 @@ class DapTestClient {
     return _eventController.stream.where((e) => e.event == event);
   }
 
+  /// Returns a stream for standard progress events.
+  Stream<Event> standardProgressEvents() {
+    const standardProgressEvents = {
+      'progressStart',
+      'progressUpdate',
+      'progressEnd'
+    };
+    return _eventController.stream
+        .where((e) => standardProgressEvents.contains(e.event));
+  }
+
+  /// Returns a stream for custom Dart progress events.
+  Stream<Event> customProgressEvents() {
+    const customProgressEvents = {
+      'dart.progressStart',
+      'dart.progressUpdate',
+      'dart.progressEnd'
+    };
+    return _eventController.stream
+        .where((e) => customProgressEvents.contains(e.event));
+  }
+
   /// Records a handler for when the server sends a [request] request.
   void handleRequest(
     String request,
@@ -203,12 +239,14 @@ class DapTestClient {
   Future<Response> initialize({
     String exceptionPauseMode = 'None',
     bool? supportsRunInTerminalRequest,
+    bool? supportsProgressReporting,
   }) async {
     final responses = await Future.wait([
       event('initialized'),
       sendRequest(InitializeRequestArguments(
         adapterID: 'test',
         supportsRunInTerminalRequest: supportsRunInTerminalRequest,
+        supportsProgressReporting: supportsProgressReporting,
       )),
       sendRequest(
         SetExceptionBreakpointsArguments(
@@ -234,15 +272,17 @@ class DapTestClient {
     bool? evaluateGettersInDebugViews,
     bool? evaluateToStringInDebugViews,
     bool? sendLogsToClient,
+    bool? sendCustomProgressEvents,
   }) {
     return sendRequest(
       DartLaunchRequestArguments(
         noDebug: noDebug,
-        program: program,
-        cwd: cwd,
+        program: _normalizePath(program),
+        cwd: cwd != null ? _normalizePath(cwd) : null,
         args: args,
         toolArgs: toolArgs,
-        additionalProjectPaths: additionalProjectPaths,
+        additionalProjectPaths:
+            additionalProjectPaths?.map(_normalizePath).toList(),
         console: console,
         debugSdkLibraries: debugSdkLibraries,
         debugExternalPackageLibraries: debugExternalPackageLibraries,
@@ -252,6 +292,7 @@ class DapTestClient {
         // to the client-side logger, so force logging on which sends VM Service
         // traffic in a custom event.
         sendLogsToClient: sendLogsToClient ?? captureVmServiceTraffic,
+        sendCustomProgressEvents: sendCustomProgressEvents,
       ),
       // We can't automatically pick the command when using a custom type
       // (DartLaunchRequestArguments).
@@ -522,7 +563,7 @@ extension DapTestClientExtension on DapTestClient {
   Future<void> setBreakpoint(File file, int line, {String? condition}) async {
     await sendRequest(
       SetBreakpointsArguments(
-        source: Source(path: file.path),
+        source: Source(path: _normalizeBreakpointPath(file.path)),
         breakpoints: [SourceBreakpoint(line: line, condition: condition)],
       ),
     );
@@ -532,10 +573,46 @@ extension DapTestClientExtension on DapTestClient {
   Future<void> setBreakpoints(File file, List<int> lines) async {
     await sendRequest(
       SetBreakpointsArguments(
-        source: Source(path: file.path),
+        source: Source(path: _normalizeBreakpointPath(file.path)),
         breakpoints: lines.map((line) => SourceBreakpoint(line: line)).toList(),
       ),
     );
+  }
+
+  /// Normalizes a non-breakpoint path being sent to the debug adapter based on
+  /// the values of [forceDriveLetterCasingUpper] and
+  /// [forceDriveLetterCasingLower].
+  String _normalizePath(String path) {
+    return _forceDriveLetterCasing(
+      path,
+      upper: forceDriveLetterCasingUpper,
+      lower: forceDriveLetterCasingLower,
+    );
+  }
+
+  /// Normalizes a non-breakpoint path being sent to the debug adapter based on
+  /// the values of [forceBreakpointDriveLetterCasingUpper] and
+  /// [forceBreakpointDriveLetterCasingLower].
+  String _normalizeBreakpointPath(String path) {
+    return _forceDriveLetterCasing(
+      path,
+      upper: forceBreakpointDriveLetterCasingUpper,
+      lower: forceBreakpointDriveLetterCasingLower,
+    );
+  }
+
+  String _forceDriveLetterCasing(String path, {bool? upper, bool? lower}) {
+    assert(upper != true || lower != true);
+    if (!Platform.isWindows || path.isEmpty) {
+      return path;
+    }
+    if (upper ?? false) {
+      return path.substring(0, 1).toUpperCase() + path.substring(1);
+    } else if (lower ?? false) {
+      return path.substring(0, 1).toLowerCase() + path.substring(1);
+    } else {
+      return path;
+    }
   }
 
   /// Sets the exception pause mode to [pauseMode] and expects to pause after
@@ -585,7 +662,7 @@ extension DapTestClientExtension on DapTestClient {
       initialize(),
       sendRequest(
         SetBreakpointsArguments(
-          source: Source(path: file.path),
+          source: Source(path: _normalizeBreakpointPath(file.path)),
           breakpoints: [
             SourceBreakpoint(
               line: line,
@@ -791,6 +868,7 @@ extension DapTestClientExtension on DapTestClient {
     int threadId, {
     required String expectedName,
     required String expectedDisplayString,
+    int? expectedIndexedItems,
     required String expectedVariables,
     int? start,
     int? count,
@@ -810,8 +888,9 @@ extension DapTestClientExtension on DapTestClient {
     final expectedVariable = variables.variables
         .singleWhere((variable) => variable.name == expectedName);
 
-    // Check the display string.
+    // Check basic variable values.
     expect(expectedVariable.value, equals(expectedDisplayString));
+    expect(expectedVariable.indexedVariables, equals(expectedIndexedItems));
 
     // Check the child fields.
     return expectVariables(
@@ -934,7 +1013,7 @@ extension DapTestClientExtension on DapTestClient {
     return stack.stackFrames.first.id;
   }
 
-  /// Evalutes [expression] in frame [frameId] and expects a specific
+  /// Evaluates [expression] in frame [frameId] and expects a specific
   /// [expectedResult].
   Future<EvaluateResponseBody> expectEvalResult(
     int frameId,

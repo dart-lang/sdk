@@ -7,6 +7,7 @@ import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart
 import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart'
     as macro;
 import 'package:analyzer/dart/ast/ast.dart' as ast;
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -37,16 +38,21 @@ class DeclarationBuilder {
   /// mixins, etc.
   void transferToElements() {
     // TODO(scheglov) Make sure that these are only declarations?
-    for (final entry in fromNode._identifierMap.entries) {
+    for (final entry in fromNode._referencedIdentifierMap.entries) {
       final element = entry.key.staticElement;
       if (element != null) {
         final declaration = entry.value;
         fromElement._identifierMap[element] = declaration;
       }
     }
+    for (final entry in fromNode._declaredIdentifierMap.entries) {
+      final element = entry.key;
+      final declaration = entry.value;
+      fromElement._identifierMap[element] = declaration;
+    }
 
     for (final entry in fromNode._classMap.entries) {
-      final element = entry.key.declaredElement as ClassElement;
+      final element = entry.key.declaredElement!;
       final declaration = entry.value;
       declaration.element = element;
       fromElement._classMap[element] = declaration;
@@ -157,8 +163,10 @@ class DeclarationBuilderFromElement {
 }
 
 class DeclarationBuilderFromNode {
-  final Map<ast.SimpleIdentifier, IdentifierImpl> _identifierMap =
+  final Map<ast.SimpleIdentifier, IdentifierImpl> _referencedIdentifierMap =
       Map.identity();
+
+  final Map<Element, IdentifierImpl> _declaredIdentifierMap = Map.identity();
 
   final Map<ast.ClassDeclaration, IntrospectableClassDeclarationImpl>
       _classMap = Map.identity();
@@ -167,6 +175,14 @@ class DeclarationBuilderFromNode {
     ast.ClassDeclaration node,
   ) {
     return _classMap[node] ??= _introspectableClassDeclaration(node);
+  }
+
+  macro.IdentifierImpl _declaredIdentifier(Token name, Element element) {
+    return _declaredIdentifierMap[element] ??= _DeclaredIdentifierImpl(
+      id: macro.RemoteInstance.uniqueId,
+      name: name.lexeme,
+      element: element,
+    );
   }
 
   macro.FunctionTypeParameterImpl _formalParameter(
@@ -187,22 +203,8 @@ class DeclarationBuilderFromNode {
       id: macro.RemoteInstance.uniqueId,
       isNamed: node.isNamed,
       isRequired: node.isRequired,
-      name: node.identifier?.name,
+      name: node.name?.lexeme,
       type: typeAnnotation,
-    );
-  }
-
-  macro.IdentifierImpl _identifier(ast.Identifier node) {
-    final ast.SimpleIdentifier simpleIdentifier;
-    if (node is ast.SimpleIdentifier) {
-      simpleIdentifier = node;
-    } else {
-      simpleIdentifier = (node as ast.PrefixedIdentifier).identifier;
-    }
-    return _identifierMap[simpleIdentifier] ??= IdentifierImplFromNode(
-      id: macro.RemoteInstance.uniqueId,
-      name: simpleIdentifier.name,
-      node: simpleIdentifier,
     );
   }
 
@@ -212,7 +214,7 @@ class DeclarationBuilderFromNode {
     assert(!_classMap.containsKey(node));
     return IntrospectableClassDeclarationImpl._(
       id: macro.RemoteInstance.uniqueId,
-      identifier: _identifier(node.name),
+      identifier: _declaredIdentifier(node.name, node.declaredElement!),
       typeParameters: _typeParameters(node.typeParameters),
       interfaces: _typeAnnotations(node.implementsClause?.interfaces),
       isAbstract: node.abstractKeyword != null,
@@ -221,6 +223,21 @@ class DeclarationBuilderFromNode {
       superclass: node.extendsClause?.superclass.mapOrNull(
         _typeAnnotation,
       ),
+    );
+  }
+
+  macro.IdentifierImpl _referencedIdentifier(ast.Identifier node) {
+    final ast.SimpleIdentifier simpleIdentifier;
+    if (node is ast.SimpleIdentifier) {
+      simpleIdentifier = node;
+    } else {
+      simpleIdentifier = (node as ast.PrefixedIdentifier).identifier;
+    }
+    return _referencedIdentifierMap[simpleIdentifier] ??=
+        _ReferencedIdentifierImpl(
+      id: macro.RemoteInstance.uniqueId,
+      name: simpleIdentifier.name,
+      node: simpleIdentifier,
     );
   }
 
@@ -248,7 +265,7 @@ class DeclarationBuilderFromNode {
     } else if (node is ast.NamedType) {
       return macro.NamedTypeAnnotationImpl(
         id: macro.RemoteInstance.uniqueId,
-        identifier: _identifier(node.name),
+        identifier: _referencedIdentifier(node.name),
         isNullable: node.question != null,
         typeArguments: _typeAnnotations(node.typeArguments?.arguments),
       ) as T;
@@ -273,7 +290,7 @@ class DeclarationBuilderFromNode {
   ) {
     return macro.TypeParameterDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
-      identifier: _identifier(node.name),
+      identifier: _declaredIdentifier(node.name, node.declaredElement!),
       bound: node.bound.mapOrNull(_typeAnnotation),
     );
   }
@@ -322,19 +339,6 @@ class IdentifierImplFromElement extends IdentifierImpl {
   });
 }
 
-class IdentifierImplFromNode extends IdentifierImpl {
-  final ast.SimpleIdentifier node;
-
-  IdentifierImplFromNode({
-    required super.id,
-    required super.name,
-    required this.node,
-  });
-
-  @override
-  Element? get element => node.staticElement;
-}
-
 class IntrospectableClassDeclarationImpl
     extends macro.IntrospectableClassDeclarationImpl {
   late final ClassElement element;
@@ -349,6 +353,30 @@ class IntrospectableClassDeclarationImpl
     required super.mixins,
     required super.superclass,
   });
+}
+
+class _DeclaredIdentifierImpl extends IdentifierImpl {
+  @override
+  final Element element;
+
+  _DeclaredIdentifierImpl({
+    required super.id,
+    required super.name,
+    required this.element,
+  });
+}
+
+class _ReferencedIdentifierImpl extends IdentifierImpl {
+  final ast.SimpleIdentifier node;
+
+  _ReferencedIdentifierImpl({
+    required super.id,
+    required super.name,
+    required this.node,
+  });
+
+  @override
+  Element? get element => node.staticElement;
 }
 
 extension<T> on T? {

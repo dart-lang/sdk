@@ -144,7 +144,7 @@ class CallSpecializer : public FlowGraphVisitor {
   const bool should_clone_fields_;
 
  private:
-  bool TypeCheckAsClassEquality(const AbstractType& type);
+  bool TypeCheckAsClassEquality(const AbstractType& type, intptr_t* type_cid);
 
   // Insert a Smi check if needed.
   void AddCheckSmi(Definition* to_check,
@@ -250,12 +250,12 @@ class TypedDataSpecializer : public FlowGraphVisitor {
   // clang-format on
 
   void EnsureIsInitialized();
-  bool HasThirdPartyImplementor(const GrowableObjectArray& direct_implementors);
   void TryInlineCall(TemplateDartCall<0>* call);
   void ReplaceWithLengthGetter(TemplateDartCall<0>* call);
   void ReplaceWithIndexGet(TemplateDartCall<0>* call, classid_t cid);
   void ReplaceWithIndexSet(TemplateDartCall<0>* call, classid_t cid);
   void AppendNullCheck(TemplateDartCall<0>* call, Definition** array);
+  void AppendMutableCheck(TemplateDartCall<0>* call, Definition** array);
   void AppendBoundsCheck(TemplateDartCall<0>* call,
                          Definition* array,
                          Definition** index);

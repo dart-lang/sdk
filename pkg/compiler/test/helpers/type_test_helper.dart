@@ -7,6 +7,7 @@
 library type_test_helper;
 
 import 'dart:async';
+import 'package:compiler/src/elements/names.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/commandline_options.dart';
@@ -17,8 +18,8 @@ import 'package:compiler/src/kernel/kelements.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/kernel/kernel_world.dart';
 import 'package:compiler/src/options.dart';
-import 'package:compiler/src/world.dart' show JClosedWorld;
-import 'memory_compiler.dart' as memory;
+import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
+import 'package:compiler/src/util/memory_compiler.dart' as memory;
 
 extension DartTypeHelpers on DartType {
   T withoutNullabilityAs<T extends DartType>() => withoutNullability as T;
@@ -34,11 +35,11 @@ class TypeEnvironment {
   final bool testBackendWorld;
 
   static Future<TypeEnvironment> create(String source,
-      {bool expectNoErrors: false,
-      bool expectNoWarningsOrErrors: false,
-      bool testBackendWorld: false,
-      List<String> options: const <String>[],
-      Map<String, String> fieldTypeMap: const <String, String>{}}) async {
+      {bool expectNoErrors = false,
+      bool expectNoWarningsOrErrors = false,
+      bool testBackendWorld = false,
+      List<String> options = const <String>[],
+      Map<String, String> fieldTypeMap = const <String, String>{}}) async {
     memory.DiagnosticCollector collector = new memory.DiagnosticCollector();
     Uri uri = Uri.parse('memory:main.dart');
     memory.CompilationResult result = await memory.runCompiler(
@@ -61,7 +62,7 @@ class TypeEnvironment {
     return new TypeEnvironment._(compiler, testBackendWorld: testBackendWorld);
   }
 
-  TypeEnvironment._(Compiler this.compiler, {this.testBackendWorld: false});
+  TypeEnvironment._(Compiler this.compiler, {this.testBackendWorld = false});
 
   DartType legacyWrap(DartType type) {
     return options.useLegacySubtyping ? types.legacyType(type) : type;
@@ -136,7 +137,8 @@ class TypeEnvironment {
 
   MemberEntity _getMember(String name, [ClassEntity cls]) {
     if (cls != null) {
-      return elementEnvironment.lookupLocalClassMember(cls, name);
+      return elementEnvironment.lookupLocalClassMember(
+          cls, Name(name, cls.library.canonicalUri));
     } else {
       LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
       return elementEnvironment.lookupLibraryMember(mainLibrary, name);
@@ -223,7 +225,7 @@ class FunctionTypeData {
 ///
 ///     $returnType $name$parameters => null;
 String createMethods(List<FunctionTypeData> dataList,
-    {String additionalData: '', String prefix: ''}) {
+    {String additionalData = '', String prefix = ''}) {
   StringBuffer sb = new StringBuffer();
   for (FunctionTypeData data in dataList) {
     sb.writeln(
@@ -241,7 +243,7 @@ String createMethods(List<FunctionTypeData> dataList,
 ///
 /// where a field using the typedef is add to make the type accessible by name.
 String createTypedefs(List<FunctionTypeData> dataList,
-    {String additionalData: '', String prefix: ''}) {
+    {String additionalData = '', String prefix = ''}) {
   StringBuffer sb = new StringBuffer();
   for (int index = 0; index < dataList.length; index++) {
     FunctionTypeData data = dataList[index];
@@ -257,7 +259,7 @@ String createTypedefs(List<FunctionTypeData> dataList,
 }
 
 /// Return source code that uses the function types in [dataList].
-String createUses(List<FunctionTypeData> dataList, {String prefix: ''}) {
+String createUses(List<FunctionTypeData> dataList, {String prefix = ''}) {
   StringBuffer sb = new StringBuffer();
   for (int index = 0; index < dataList.length; index++) {
     FunctionTypeData data = dataList[index];

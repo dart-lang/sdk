@@ -54,13 +54,12 @@ class ReferencesTest extends AbstractLspAnalysisServerTest {
     expect(res, hasLength(2));
     expect(
         res,
-        contains(Location(
-            uri: mainFileUri.toString(),
-            range: rangeFromMarkers(mainContents))));
+        contains(
+            Location(uri: mainFileUri, range: rangeFromMarkers(mainContents))));
     expect(
         res,
         contains(Location(
-            uri: referencedFileUri.toString(),
+            uri: referencedFileUri,
             range: rangeFromMarkers(referencedContents))));
   }
 
@@ -98,7 +97,91 @@ class ReferencesTest extends AbstractLspAnalysisServerTest {
     expect(res, hasLength(1));
     var loc = res.single;
     expect(loc.range, equals(rangeFromMarkers(mainContents)));
-    expect(loc.uri, equals(mainFileUri.toString()));
+    expect(loc.uri, equals(mainFileUri));
+  }
+
+  Future<void> test_function_startOfParameterList() async {
+    final contents = '''
+    foo^() {
+      [[foo]]();
+    }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(contents));
+    final res = await getReferences(mainFileUri, positionFromMarker(contents));
+
+    expect(res, hasLength(1));
+    expect(
+      res,
+      contains(
+        Location(uri: mainFileUri, range: rangeFromMarkers(contents)),
+      ),
+    );
+  }
+
+  Future<void> test_function_startOfTypeParameterList() async {
+    final contents = '''
+    foo^<T>() {
+      [[foo]]();
+    }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(contents));
+    final res = await getReferences(mainFileUri, positionFromMarker(contents));
+
+    expect(res, hasLength(1));
+    expect(
+      res,
+      contains(
+        Location(uri: mainFileUri, range: rangeFromMarkers(contents)),
+      ),
+    );
+  }
+
+  Future<void> test_method_startOfParameterList() async {
+    final contents = '''
+    class A {
+      foo^() {
+        [[foo]]();
+      }
+    }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(contents));
+    final res = await getReferences(mainFileUri, positionFromMarker(contents));
+
+    expect(res, hasLength(1));
+    expect(
+      res,
+      contains(
+        Location(uri: mainFileUri, range: rangeFromMarkers(contents)),
+      ),
+    );
+  }
+
+  Future<void> test_method_startOfTypeParameterList() async {
+    final contents = '''
+    class A {
+      foo^<T>() {
+        [[foo]]();
+      }
+    }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(contents));
+    final res = await getReferences(mainFileUri, positionFromMarker(contents));
+
+    expect(res, hasLength(1));
+    expect(
+      res,
+      contains(
+        Location(uri: mainFileUri, range: rangeFromMarkers(contents)),
+      ),
+    );
   }
 
   Future<void> test_nonDartFile() async {
@@ -124,8 +207,7 @@ class ReferencesTest extends AbstractLspAnalysisServerTest {
     expect(
       res,
       contains(
-        Location(
-            uri: mainFileUri.toString(), range: rangeFromMarkers(contents)),
+        Location(uri: mainFileUri, range: rangeFromMarkers(contents)),
       ),
     );
   }
@@ -145,8 +227,7 @@ class ReferencesTest extends AbstractLspAnalysisServerTest {
     expect(
       res,
       contains(
-        Location(
-            uri: mainFileUri.toString(), range: rangeFromMarkers(contents)),
+        Location(uri: mainFileUri, range: rangeFromMarkers(contents)),
       ),
     );
   }

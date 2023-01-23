@@ -9,7 +9,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/type_system_test.dart';
+import '../../../generated/type_system_base.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,8 +18,6 @@ main() {
 }
 
 DynamicTypeImpl get dynamicType => DynamicTypeImpl.instance;
-
-VoidTypeImpl get voidType => VoidTypeImpl.instance;
 
 @reflectiveTest
 class FunctionTypeTest extends AbstractTypeSystemTest {
@@ -384,29 +382,5 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
         displayName: 'T Function<T>()',
         returnType: typeParameterTypeStar(t),
         typeFormals: [same(t)]);
-  }
-}
-
-class MockCompilationUnitElement implements CompilationUnitElement {
-  const MockCompilationUnitElement();
-
-  @override
-  get enclosingElement => const MockLibraryElement();
-
-  @override
-  noSuchMethod(Invocation invocation) {
-    return super.noSuchMethod(invocation);
-  }
-}
-
-class MockLibraryElement implements LibraryElement {
-  const MockLibraryElement();
-
-  @override
-  get enclosingElement => null;
-
-  @override
-  noSuchMethod(Invocation invocation) {
-    return super.noSuchMethod(invocation);
   }
 }

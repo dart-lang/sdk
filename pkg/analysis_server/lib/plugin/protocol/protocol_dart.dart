@@ -6,6 +6,7 @@
 /// entities.
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
+import 'package:analyzer/dart/element/type.dart';
 import 'package:path/path.dart' as path;
 
 /// Return a protocol [Element] corresponding to the given [engine.Element].
@@ -114,12 +115,10 @@ ElementKind convertElementKind(engine.ElementKind kind) {
 
 /// Return an [ElementKind] corresponding to the given [engine.Element].
 ElementKind convertElementToElementKind(engine.Element element) {
-  if (element is engine.ClassElement) {
-    if (element.isEnum) {
-      return ElementKind.ENUM;
-    } else if (element.isMixin) {
-      return ElementKind.MIXIN;
-    }
+  if (element is engine.EnumElement) {
+    return ElementKind.ENUM;
+  } else if (element is engine.MixinElement) {
+    return ElementKind.MIXIN;
   }
   if (element is engine.FieldElement && element.isEnumConstant) {
     return ElementKind.ENUM_CONSTANT;
@@ -147,9 +146,9 @@ String? _getParametersString(engine.Element element,
     }
     parameters = element.parameters.toList();
   } else if (element is engine.TypeAliasElement) {
-    var aliasedElement = element.aliasedElement;
-    if (aliasedElement is engine.GenericFunctionTypeElement) {
-      parameters = aliasedElement.parameters.toList();
+    final aliasedType = element.aliasedType;
+    if (aliasedType is FunctionType) {
+      parameters = aliasedType.parameters.toList();
     } else {
       return null;
     }
@@ -187,7 +186,7 @@ String? _getParametersString(engine.Element element,
 
 String? _getTypeParametersString(engine.Element element) {
   List<engine.TypeParameterElement>? typeParameters;
-  if (element is engine.ClassElement) {
+  if (element is engine.InterfaceElement) {
     typeParameters = element.typeParameters;
   } else if (element is engine.TypeAliasElement) {
     typeParameters = element.typeParameters;
@@ -204,6 +203,9 @@ bool _isAbstract(engine.Element element) {
   }
   if (element is engine.MethodElement) {
     return element.isAbstract;
+  }
+  if (element is engine.MixinElement) {
+    return true;
   }
   if (element is engine.PropertyAccessorElement) {
     return element.isAbstract;

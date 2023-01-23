@@ -400,7 +400,7 @@ x
     makeError(line: 1, column: 1, length: 0, cfeError: "Foo"),
   ], expected: """
 x
-// [error column 1, length 0]
+// [error column 1]
 // [cfe] Foo""");
 
   contextMessages();

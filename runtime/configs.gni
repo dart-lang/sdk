@@ -46,6 +46,9 @@ _precompiler_base = [ "$_dart_runtime:dart_precompiler_config" ]
 
 _precompiler_config = _base_config + _precompiler_base + _maybe_product
 
+_precompiler_testing_config =
+    _precompiler_config + [ "$_dart_runtime:dart_testing_config" ]
+
 _precompiler_product_config = _base_config + _precompiler_base + _product
 
 _precompiler_fuchsia_config =
@@ -92,6 +95,13 @@ _all_configs = [
   {
     suffix = "_precompiler"
     configs = _precompiler_config
+    snapshot = false
+    compiler = true
+    is_product = false
+  },
+  {
+    suffix = "_precompiler_testing"
+    configs = _precompiler_testing_config
     snapshot = false
     compiler = true
     is_product = false

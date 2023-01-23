@@ -194,7 +194,7 @@ abstract class num implements Comparable<num> {
   ///
   /// The result `r` of this operation satisfies:
   /// `this == (this ~/ other) * other + r`.
-  /// As a consequence, the remainder `r` has the same sign as the divider
+  /// As a consequence, the remainder `r` has the same sign as the dividend
   /// `this`.
   ///
   /// The result is an [int], as described by [int.remainder],

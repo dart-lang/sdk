@@ -80,7 +80,7 @@ class LspMetaModelReader {
       return Constant(
         name: _generateMemberName(value, camelCase: true),
         comment: comment,
-        type: TypeReference('string'),
+        type: TypeReference.string,
         value: value,
       );
     }
@@ -95,7 +95,7 @@ class LspMetaModelReader {
     return LspEnum(
       name: 'Method',
       comment: comment,
-      typeOfValues: TypeReference('string'),
+      typeOfValues: TypeReference.string,
       members: methodConstants,
     );
   }
@@ -194,7 +194,7 @@ class LspMetaModelReader {
       return TypeReference(inlineTypeName);
     } else if (model['kind'] == 'stringLiteral') {
       return LiteralType(
-        TypeReference('string'),
+        TypeReference.string,
         model['value'] as String,
       );
     } else if (model['kind'] == 'or') {

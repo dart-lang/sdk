@@ -2,16 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "core_patch.dart";
+part of "core_patch.dart";
 
 @patch
 class RegExp {
   @patch
   factory RegExp(String source,
-      {bool multiLine: false,
-      bool caseSensitive: true,
-      bool unicode: false,
-      bool dotAll: false}) {
+      {bool multiLine = false,
+      bool caseSensitive = true,
+      bool unicode = false,
+      bool dotAll = false}) {
     _RegExpHashKey key =
         new _RegExpHashKey(source, multiLine, caseSensitive, unicode, dotAll);
     _RegExpHashValue? value = _cache[key];
@@ -53,7 +53,7 @@ class RegExp {
   static int _findEscapeChar(String text, int start) {
     // Table where each character in the range U+0000 to U+007f is represented
     // by whether it needs to be escaped in a regexp.
-    // The \x00 characters means escacped, and \x01 means non-escaped.
+    // The \x00 characters means escaped, and \x01 means non-escaped.
     const escapes =
         "\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01"
         "\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01"
@@ -212,10 +212,10 @@ class _RegExpMatch implements RegExpMatch {
 class _RegExp implements RegExp {
   @pragma("vm:external-name", "RegExp_factory")
   external factory _RegExp(String pattern,
-      {bool multiLine: false,
-      bool caseSensitive: true,
-      bool unicode: false,
-      bool dotAll: false});
+      {bool multiLine = false,
+      bool caseSensitive = true,
+      bool unicode = false,
+      bool dotAll = false});
 
   RegExpMatch? firstMatch(String input) {
     // TODO: Remove these null checks once all code is opted into strong nonnullable mode.

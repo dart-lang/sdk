@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.js_emitter.metadata_collector;
 
 import 'package:js_ast/src/precedence.dart' as js_precedence;
@@ -16,7 +14,7 @@ import '../js/js.dart' as jsAst;
 import '../js_backend/runtime_types_new.dart' show RecipeEncoder;
 import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 
-import 'code_emitter_task.dart' show Emitter;
+import 'js_emitter.dart' show ModularEmitter;
 
 /// Represents an entry's position in one of the global metadata arrays.
 ///
@@ -76,17 +74,15 @@ class BoundMetadataEntry extends _MetadataEntry {
 }
 
 class _MetadataList extends jsAst.DeferredExpression {
-  jsAst.Expression _value;
+  late final jsAst.Expression _value;
 
   void setExpression(jsAst.Expression value) {
-    assert(_value == null);
     assert(value.precedenceLevel == this.precedenceLevel);
     _value = value;
   }
 
   @override
   jsAst.Expression get value {
-    assert(_value != null);
     return _value;
   }
 
@@ -96,7 +92,7 @@ class _MetadataList extends jsAst.DeferredExpression {
 
 class MetadataCollector implements jsAst.TokenFinalizer {
   final DiagnosticReporter reporter;
-  final Emitter _emitter;
+  final ModularEmitter _emitter;
   final RecipeEncoder _rtiRecipeEncoder;
 
   /// A map used to canonicalize the entries of metadata.
@@ -153,19 +149,11 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   }
 
   jsAst.Expression _addTypeInOutputUnit(DartType type, OutputUnit outputUnit) {
-    _typesMap[outputUnit] ??= {};
-    BoundMetadataEntry metadataEntry;
-
-    if (_typesMap[outputUnit].containsKey(type)) {
-      metadataEntry = _typesMap[outputUnit][type].single;
-    } else {
-      _typesMap[outputUnit].putIfAbsent(type, () {
-        metadataEntry =
-            BoundMetadataEntry(_computeTypeRepresentationNewRti(type));
-        return [metadataEntry];
-      });
-    }
-    return metadataEntry;
+    final typeMap = _typesMap[outputUnit] ??= {};
+    final metadataEntryList = (typeMap[type] ??= [
+      BoundMetadataEntry(_computeTypeRepresentationNewRti(type))
+    ]);
+    return metadataEntryList.single;
   }
 
   @override
@@ -194,14 +182,13 @@ class MetadataCollector implements jsAst.TokenFinalizer {
         entry.finalize(count++);
       }
 
-      List<jsAst.Node> values =
-          entries.map((BoundMetadataEntry e) => e.entry).toList();
+      final values = entries.map((BoundMetadataEntry e) => e.entry).toList();
 
       return jsAst.ArrayInitializer(values);
     }
 
     _typesTokens.forEach((OutputUnit outputUnit, _MetadataList token) {
-      Map<DartType, List<BoundMetadataEntry>> typesMap = _typesMap[outputUnit];
+      final typesMap = _typesMap[outputUnit];
       if (typesMap != null) {
         typesMap.values.forEach(countTokensInTypes);
         token.setExpression(finalizeMap(typesMap));

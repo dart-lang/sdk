@@ -40,13 +40,18 @@ class ScopeBuilder {
   void VisitInitializer();
   void VisitExpression();
   void VisitStatement();
+  void VisitListOfExpressions();
+  void VisitListOfNamedExpressions();
   void VisitArguments();
   void VisitVariableDeclaration();
   void VisitVariableGet(intptr_t declaration_binary_offset);
   void VisitDartType();
   void VisitInterfaceType(bool simple);
   void VisitFunctionType(bool simple);
+  void VisitRecordType();
   void VisitTypeParameterType();
+  void VisitIntersectionType();
+  void VisitViewType();
   void HandleLocalFunction(intptr_t parent_kernel_offset);
 
   AbstractType& BuildAndVisitVariableType();
@@ -154,7 +159,6 @@ class ScopeBuilder {
   TranslationHelper translation_helper_;
   Zone* zone_;
 
-  FunctionNodeHelper::AsyncMarker current_function_async_marker_;
   LocalScope* current_function_scope_;
   LocalScope* scope_;
   DepthState depth_;

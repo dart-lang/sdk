@@ -7,6 +7,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../analysis_server_base.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -356,6 +357,29 @@ import 'package:test/a.dart';
 
 void f() {
   A(0, c: 1, 2, d: null);
+}
+''');
+  }
+
+  Future<void> test_doubleQuotes() async {
+    var config = AnalysisOptionsFileConfig(
+      lints: ['prefer_double_quotes'],
+    );
+    newAnalysisOptionsYamlFile(
+      testPackageRootPath,
+      config.toContent(),
+    );
+
+    await resolveTestCode('''
+test({required String a}) {}
+void f() {
+  test();
+}
+''');
+    await assertHasFix('''
+test({required String a}) {}
+void f() {
+  test(a: "");
 }
 ''');
   }

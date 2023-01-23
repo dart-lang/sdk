@@ -61,3 +61,4 @@ worlds:
     expectedLibraryCount: 2
     # Asking for a partial component, i.e. it's not self-contained.
     noFullComponent: true
+    advancedInvalidation: outlineChange

@@ -9,6 +9,7 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_diagnostic_server.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_reanalyze.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_super.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_call_hierarchy.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_change_workspace_folders.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_code_actions.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
@@ -28,6 +29,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_hover.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_implementation.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_initialize.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_initialized.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_inlay_hint.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_references.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_rename.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_select_range.dart';
@@ -36,6 +38,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_shutdown.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_signature_help.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_text_document_changes.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_type_definition.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_type_hierarchy.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_will_rename_files.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_workspace_configuration.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_workspace_symbols.dart';
@@ -97,6 +100,12 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
         server, !options.onlyAnalyzeProjectsWithOpenFiles));
     registerHandler(PrepareRenameHandler(server));
     registerHandler(RenameHandler(server));
+    registerHandler(PrepareCallHierarchyHandler(server));
+    registerHandler(IncomingCallHierarchyHandler(server));
+    registerHandler(OutgoingCallHierarchyHandler(server));
+    registerHandler(PrepareTypeHierarchyHandler(server));
+    registerHandler(TypeHierarchySubtypesHandler(server));
+    registerHandler(TypeHierarchySupertypesHandler(server));
     registerHandler(FoldingHandler(server));
     registerHandler(DiagnosticServerHandler(server));
     registerHandler(WorkspaceSymbolHandler(server));
@@ -106,6 +115,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
     registerHandler(SelectionRangeHandler(server));
     registerHandler(SemanticTokensFullHandler(server));
     registerHandler(SemanticTokensRangeHandler(server));
+    registerHandler(InlayHintHandler(server));
   }
 }
 

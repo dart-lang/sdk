@@ -6,6 +6,8 @@
 #define RUNTIME_VM_CLASS_TABLE_H_
 
 #include <memory>
+#include <tuple>
+#include <utility>
 
 #include "platform/allocation.h"
 #include "platform/assert.h"
@@ -24,17 +26,21 @@ class Class;
 class ClassTable;
 class Isolate;
 class IsolateGroup;
-class IsolateGroupReloadContext;
-class ProgramReloadContext;
 class JSONArray;
 class JSONObject;
 class JSONStream;
 template <typename T>
 class MallocGrowableArray;
 class ObjectPointerVisitor;
+class PersistentHandle;
 
-// Wraps a 64-bit integer to represent the bitmap of unboxed fields
-// stored in the shared class table.
+// A 64-bit bitmap describing unboxed fields in a class.
+//
+// There is a bit for each word in an instance of the class.
+//
+// Words corresponding to set bits must be ignored by the GC because they
+// don't contain pointers. All words beyound the first 64 words of an object
+// are expected to contain pointers.
 class UnboxedFieldBitmap {
  public:
   UnboxedFieldBitmap() : bitmap_(0) {}
@@ -50,6 +56,10 @@ class UnboxedFieldBitmap {
     ASSERT(position < Length());
     bitmap_ |= Utils::Bit<decltype(bitmap_)>(position);
   }
+  DART_FORCE_INLINE void Clear(intptr_t position) {
+    ASSERT(position < Length());
+    bitmap_ &= ~Utils::Bit<decltype(bitmap_)>(position);
+  }
   DART_FORCE_INLINE uint64_t Value() const { return bitmap_; }
   DART_FORCE_INLINE bool IsEmpty() const { return bitmap_ == 0; }
   DART_FORCE_INLINE void Reset() { bitmap_ = 0; }
@@ -62,295 +72,305 @@ class UnboxedFieldBitmap {
   uint64_t bitmap_;
 };
 
-// Registry of all known classes and their sizes.
+// Allocator used to manage memory for ClassTable arrays and ClassTable
+// objects themselves.
 //
-// The GC will only need the information in this shared class table to scan
-// object pointers.
-class SharedClassTable {
+// This allocator provides delayed free functionality: normally class tables
+// can't be freed unless all mutator and helper threads are stopped because
+// some of these threads might be holding a pointer to a table which we
+// want to free. Instead of stopping the world whenever we need to free
+// a table (e.g. freeing old table after growing) we delay freeing until an
+// occasional GC which will need to stop the world anyway.
+class ClassTableAllocator : public ValueObject {
  public:
-  SharedClassTable();
-  ~SharedClassTable();
+  ClassTableAllocator();
+  ~ClassTableAllocator();
 
-  // Thread-safe.
-  intptr_t SizeAt(intptr_t index) const {
-    ASSERT(IsValidIndex(index));
-    return table_.load()[index];
-  }
-
-  bool HasValidClassAt(intptr_t index) const {
-    ASSERT(IsValidIndex(index));
-    ASSERT(table_.load()[index] >= 0);
-    return table_.load()[index] != 0;
-  }
-
-  void SetSizeAt(intptr_t index, intptr_t size) {
-    ASSERT(IsValidIndex(index));
-
-    // Ensure we never change size for a given cid from one non-zero size to
-    // another non-zero size.
-    intptr_t old_size = 0;
-    if (!table_.load()[index].compare_exchange_strong(old_size, size)) {
-      RELEASE_ASSERT(old_size == size);
-    }
-  }
-
-  bool IsValidIndex(intptr_t index) const { return index > 0 && index < top_; }
-
-  intptr_t NumCids() const { return top_; }
-  intptr_t Capacity() const { return capacity_; }
-
-  UnboxedFieldBitmap GetUnboxedFieldsMapAt(intptr_t index) const {
-    ASSERT(IsValidIndex(index));
-    return FLAG_precompiled_mode ? unboxed_fields_map_[index]
-                                 : UnboxedFieldBitmap();
-  }
-
-  void SetUnboxedFieldsMapAt(intptr_t index,
-                             UnboxedFieldBitmap unboxed_fields_map) {
-    ASSERT(IsValidIndex(index));
-    ASSERT(unboxed_fields_map_[index].IsEmpty());
-    unboxed_fields_map_[index] = unboxed_fields_map;
-  }
-
-  // Used to drop recently added classes.
-  void SetNumCids(intptr_t num_cids) {
-    ASSERT(num_cids <= top_);
-    top_ = num_cids;
-  }
-
-#if !defined(PRODUCT)
-  void SetTraceAllocationFor(intptr_t cid, bool trace) {
-    ASSERT(cid > 0);
-    ASSERT(cid < top_);
-    trace_allocation_table_.load()[cid] = trace ? 1 : 0;
-  }
-  bool TraceAllocationFor(intptr_t cid);
-  void SetCollectInstancesFor(intptr_t cid, bool trace) {
-    ASSERT(cid > 0);
-    ASSERT(cid < top_);
-    if (trace) {
-      trace_allocation_table_.load()[cid] |= 2;
-    } else {
-      trace_allocation_table_.load()[cid] &= ~2;
-    }
-  }
-  bool CollectInstancesFor(intptr_t cid) {
-    ASSERT(cid > 0);
-    ASSERT(cid < top_);
-    return (trace_allocation_table_.load()[cid] & 2) != 0;
-  }
-#endif  // !defined(PRODUCT)
-
-  void CopyBeforeHotReload(intptr_t** copy, intptr_t* copy_num_cids) {
-    // The [IsolateGroupReloadContext] will need to maintain a copy of the old
-    // class table until instances have been morphed.
-    const intptr_t num_cids = NumCids();
-    const intptr_t bytes = sizeof(intptr_t) * num_cids;
-    auto size_table = static_cast<intptr_t*>(malloc(bytes));
-    auto table = table_.load();
-    for (intptr_t i = 0; i < num_cids; i++) {
-      // Don't use memmove, which changes this from a relaxed atomic operation
-      // to a non-atomic operation.
-      size_table[i] = table[i];
-    }
-    *copy_num_cids = num_cids;
-    *copy = size_table;
-  }
-
-  void ResetBeforeHotReload() {
-    // The [ProgramReloadContext] is now source-of-truth for GC.
-    auto table = table_.load();
-    for (intptr_t i = 0; i < top_; i++) {
-      // Don't use memset, which changes this from a relaxed atomic operation
-      // to a non-atomic operation.
-      table[i] = 0;
-    }
-  }
-
-  void ResetAfterHotReload(intptr_t* old_table,
-                           intptr_t num_old_cids,
-                           bool is_rollback) {
-    // The [ProgramReloadContext] is no longer source-of-truth for GC after we
-    // return, so we restore size information for all classes.
-    if (is_rollback) {
-      SetNumCids(num_old_cids);
-      auto table = table_.load();
-      for (intptr_t i = 0; i < num_old_cids; i++) {
-        // Don't use memmove, which changes this from a relaxed atomic operation
-        // to a non-atomic operation.
-        table[i] = old_table[i];
-      }
-    }
-
-    // Can't free this table immediately as another thread (e.g., concurrent
-    // marker or sweeper) may be between loading the table pointer and loading
-    // the table element. The table will be freed at the next major GC or
-    // isolate shutdown.
-    AddOldTable(old_table);
-  }
-
-  // Deallocates table copies. Do not call during concurrent access to table.
-  void FreeOldTables();
-
-  // Deallocates bitmap copies. Do not call during concurrent access to table.
-  void FreeOldUnboxedFieldsMaps();
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  bool IsReloading() const { return reload_context_ != nullptr; }
-
-  IsolateGroupReloadContext* reload_context() { return reload_context_; }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
-  // Returns the newly allocated cid.
+  // Allocate an array of T with |len| elements.
   //
-  // [index] is kIllegalCid or a predefined cid.
-  intptr_t Register(intptr_t index, intptr_t size);
-  void AllocateIndex(intptr_t index);
-  void Unregister(intptr_t index);
-
-  void Remap(intptr_t* old_to_new_cids);
-
-  // Used by the generated code.
-#ifndef PRODUCT
-  static intptr_t class_heap_stats_table_offset() {
-    return OFFSET_OF(SharedClassTable, trace_allocation_table_);
+  // Does *not* initialize the memory.
+  template <class T>
+  inline T* Alloc(intptr_t len) {
+    return reinterpret_cast<T*>(dart::malloc(len * sizeof(T)));
   }
-#endif
 
-  // Used by the generated code.
-  static intptr_t ClassOffsetFor(intptr_t cid);
+  // Allocate a zero initialized array of T with |len| elements.
+  template <class T>
+  inline T* AllocZeroInitialized(intptr_t len) {
+    return reinterpret_cast<T*>(dart::calloc(len, sizeof(T)));
+  }
 
-  static const int kInitialCapacity = 512;
-  static const int kCapacityIncrement = 256;
+  // Clone the given |array| with |size| elements.
+  template <class T>
+  inline T* Clone(T* array, intptr_t size) {
+    if (array == nullptr) {
+      ASSERT(size == 0);
+      return nullptr;
+    }
+    auto result = Alloc<T>(size);
+    memmove(result, array, size * sizeof(T));
+    return result;
+  }
+
+  // Copy |size| elements from the given |array| into a new
+  // array with space for |new_size| elements. Then |Free|
+  // the original |array|.
+  //
+  // |new_size| is expected to be larger than |size|.
+  template <class T>
+  inline T* Realloc(T* array, intptr_t size, intptr_t new_size) {
+    ASSERT(size < new_size);
+    auto result = AllocZeroInitialized<T>(new_size);
+    if (size != 0) {
+      ASSERT(result != nullptr);
+      memmove(result, array, size * sizeof(T));
+    }
+    Free(array);
+    return result;
+  }
+
+  // Schedule deletion of the given ClassTable.
+  void Free(ClassTable* table);
+
+  // Schedule freeing of the given pointer.
+  void Free(void* ptr);
+
+  // Free all objects which were scheduled by |Free|. Expected to only be
+  // called on |IsolateGroup| shutdown or when the world is stopped and no
+  // thread can be using a stale class table pointer.
+  void FreePending();
+
+ private:
+  typedef void (*Deleter)(void*);
+  MallocGrowableArray<std::pair<void*, Deleter>>* pending_freed_;
+};
+
+// A table with the given |Columns| indexed by class id.
+//
+// Each column is a continous array of a the given type. All columns have
+// the same number of used elements (|num_cids()|) and the same capacity.
+template <typename CidType, typename... Columns>
+class CidIndexedTable {
+ public:
+  explicit CidIndexedTable(ClassTableAllocator* allocator)
+      : allocator_(allocator) {}
+
+  ~CidIndexedTable() {
+    std::apply([&](auto&... column) { (allocator_->Free(column.load()), ...); },
+               columns_);
+  }
+
+  CidIndexedTable(const CidIndexedTable& other) = delete;
+
+  void SetNumCidsAndCapacity(intptr_t new_num_cids, intptr_t new_capacity) {
+    columns_ = std::apply(
+        [&](auto&... column) {
+          return std::make_tuple(
+              allocator_->Realloc(column.load(), num_cids_, new_capacity)...);
+        },
+        columns_);
+    capacity_ = new_capacity;
+    SetNumCids(new_num_cids);
+  }
+
+  void AllocateIndex(intptr_t index, bool* did_grow) {
+    *did_grow = EnsureCapacity(index);
+    SetNumCids(Utils::Maximum(num_cids_, index + 1));
+  }
+
+  intptr_t AddRow(bool* did_grow) {
+    *did_grow = EnsureCapacity(num_cids_);
+    intptr_t id = num_cids_;
+    SetNumCids(num_cids_ + 1);
+    return id;
+  }
+
+  void ShrinkTo(intptr_t new_num_cids) {
+    ASSERT(new_num_cids <= num_cids_);
+    num_cids_ = new_num_cids;
+  }
+
+  bool IsValidIndex(intptr_t index) const {
+    return 0 <= index && index < num_cids_;
+  }
+
+  void CopyFrom(const CidIndexedTable& other) {
+    ASSERT(allocator_ == other.allocator_);
+
+    std::apply([&](auto&... column) { (allocator_->Free(column.load()), ...); },
+               columns_);
+
+    columns_ = std::apply(
+        [&](auto&... column) {
+          return std::make_tuple(
+              allocator_->Clone(column.load(), other.num_cids_)...);
+        },
+        other.columns_);
+    capacity_ = num_cids_ = other.num_cids_;
+  }
+
+  void Remap(intptr_t* old_to_new_cid) {
+    CidIndexedTable clone(allocator_);
+    clone.CopyFrom(*this);
+    RemapAllColumns(clone, old_to_new_cid,
+                    std::index_sequence_for<Columns...>{});
+  }
+
+  template <
+      intptr_t kColumnIndex,
+      typename T = std::tuple_element_t<kColumnIndex, std::tuple<Columns...>>>
+  T* GetColumn() {
+    return std::get<kColumnIndex>(columns_).load();
+  }
+
+  template <
+      intptr_t kColumnIndex,
+      typename T = std::tuple_element_t<kColumnIndex, std::tuple<Columns...>>>
+  const T* GetColumn() const {
+    return std::get<kColumnIndex>(columns_).load();
+  }
+
+  template <
+      intptr_t kColumnIndex,
+      typename T = std::tuple_element_t<kColumnIndex, std::tuple<Columns...>>>
+  T& At(intptr_t index) {
+    ASSERT(IsValidIndex(index));
+    return GetColumn<kColumnIndex>()[index];
+  }
+
+  template <
+      intptr_t kColumnIndex,
+      typename T = std::tuple_element_t<kColumnIndex, std::tuple<Columns...>>>
+  const T& At(intptr_t index) const {
+    ASSERT(IsValidIndex(index));
+    return GetColumn<kColumnIndex>()[index];
+  }
+
+  intptr_t num_cids() const { return num_cids_; }
+  intptr_t capacity() const { return capacity_; }
 
  private:
   friend class ClassTable;
-  friend class GCMarker;
-  friend class MarkingWeakVisitor;
-  friend class Scavenger;
-  friend class ScavengerWeakVisitor;
 
-#ifndef PRODUCT
-  // Copy-on-write is used for trace_allocation_table_, with old copies stored
-  // in old_tables_.
-  AcqRelAtomic<uint8_t*> trace_allocation_table_ = {nullptr};
-#endif  // !PRODUCT
+  // Wrapper around AcqRelAtomic<T*> which makes it assignable and copyable
+  // so that we could put it inside an std::tuple.
+  template <typename T>
+  struct Ptr {
+    Ptr() : ptr(nullptr) {}
+    Ptr(T* ptr) : ptr(ptr) {}  // NOLINT
 
-  void AddOldTable(intptr_t* old_table);
+    Ptr(const Ptr& other) { ptr.store(other.ptr.load()); }
 
-  void Grow(intptr_t new_capacity);
+    Ptr& operator=(const Ptr& other) {
+      ptr.store(other.load());
+      return *this;
+    }
 
-  intptr_t top_;
-  intptr_t capacity_;
+    T* load() const { return ptr.load(); }
 
-  // Copy-on-write is used for table_, with old copies stored in old_tables_.
-  // Maps the cid to the instance size.
-  AcqRelAtomic<RelaxedAtomic<intptr_t>*> table_ = {nullptr};
-  MallocGrowableArray<void*>* old_tables_;
+    AcqRelAtomic<T*> ptr = {nullptr};
+  };
 
-  IsolateGroupReloadContext* reload_context_ = nullptr;
+  void SetNumCids(intptr_t new_num_cids) {
+    if (new_num_cids > kClassIdTagMax) {
+      FATAL("Too many classes");
+    }
+    num_cids_ = new_num_cids;
+  }
 
-  // Stores a 64-bit bitmap for each class. There is one bit for each word in an
-  // instance of the class. A 0 bit indicates that the word contains a pointer
-  // the GC has to scan, a 1 indicates that the word is part of e.g. an unboxed
-  // double and does not need to be scanned. (see Class::Calculate...() where
-  // the bitmap is constructed)
-  UnboxedFieldBitmap* unboxed_fields_map_ = nullptr;
+  bool EnsureCapacity(intptr_t index) {
+    if (index >= capacity_) {
+      SetNumCidsAndCapacity(num_cids_, index + kCapacityIncrement);
+      return true;
+    }
+    return false;
+  }
 
-  DISALLOW_COPY_AND_ASSIGN(SharedClassTable);
+  template <intptr_t kColumnIndex>
+  void RemapColumn(const CidIndexedTable& old, intptr_t* old_to_new_cid) {
+    auto new_column = GetColumn<kColumnIndex>();
+    auto old_column = old.GetColumn<kColumnIndex>();
+    for (intptr_t i = 0; i < num_cids_; i++) {
+      new_column[old_to_new_cid[i]] = old_column[i];
+    }
+  }
+
+  template <std::size_t... Is>
+  void RemapAllColumns(const CidIndexedTable& old,
+                       intptr_t* old_to_new_cid,
+                       std::index_sequence<Is...>) {
+    (RemapColumn<Is>(old, old_to_new_cid), ...);
+  }
+
+  static constexpr intptr_t kCapacityIncrement = 256;
+
+  ClassTableAllocator* allocator_;
+  intptr_t num_cids_ = 0;
+  intptr_t capacity_ = 0;
+  std::tuple<Ptr<Columns>...> columns_;
 };
 
-class ClassTable {
+// Registry of all known classes.
+//
+// The GC will only use information about instance size and unboxed field maps
+// to scan instances and will not access class objects themselves. This
+// information is stored in separate columns of the |classes_| table.
+//
+// # Concurrency & atomicity
+//
+// This table is read concurrently without locking (e.g. by GC threads) so
+// there are some invariants that need to be observed when working with it.
+//
+// * When table is updated (e.g. when the table is grown or a new class is
+// registered in a table) there must be a release barrier after the update.
+// Such barrier will ensure that stores which populate the table are not
+// reordered past the store which exposes the new grown table or exposes
+// a new class id;
+// * Old versions of the table can only be freed when the world is stopped:
+// no mutator and no helper threads are running. To avoid freeing a table
+// which some other thread is reading from.
+//
+// Note that torn reads are not a concern (e.g. it is fine to use
+// memmove to copy class table contents) as long as an appropriate
+// barrier is issued before the copy of the table can be observed.
+//
+// # Hot reload
+//
+// Each IsolateGroup contains two ClassTable fields: |class_table| and
+// |heap_walk_class_table|. GC visitors use the second field to get ClassTable
+// instance which they will use for visiting pointers inside instances in
+// the heap. Usually these two fields will be pointing to the same table,
+// except when IsolateGroup is in the middle of reload.
+//
+// When reloading |class_table| will be pointing to a copy of the original
+// table. Kernel loading will be modifying this table, while GC
+// workers can continue using original table still available through
+// |heap_walk_class_table|. If hot reload succeeds, |heap_walk_class_table|
+// will be dropped and |class_table| will become the source of truth. Otherwise,
+// original table will be restored from |heap_walk_class_table|.
+//
+// See IsolateGroup methods CloneClassTableForReload, RestoreOriginalClassTable,
+// DropOriginalClassTable.
+class ClassTable : public MallocAllocated {
  public:
-  explicit ClassTable(SharedClassTable* shared_class_table_);
+  explicit ClassTable(ClassTableAllocator* allocator);
+
   ~ClassTable();
 
-  SharedClassTable* shared_class_table() const { return shared_class_table_; }
+  ClassTable* Clone() const { return new ClassTable(*this); }
 
-  void CopyBeforeHotReload(ClassPtr** copy,
-                           ClassPtr** tlc_copy,
-                           intptr_t* copy_num_cids,
-                           intptr_t* copy_num_tlc_cids) {
-    // The [ProgramReloadContext] will need to maintain a copy of the old class
-    // table until instances have been morphed.
-    const intptr_t num_cids = NumCids();
-    const intptr_t num_tlc_cids = NumTopLevelCids();
-    auto class_table =
-        static_cast<ClassPtr*>(malloc(sizeof(ClassPtr) * num_cids));
-    auto tlc_class_table =
-        static_cast<ClassPtr*>(malloc(sizeof(ClassPtr) * num_tlc_cids));
-
-    // Don't use memmove, which changes this from a relaxed atomic operation
-    // to a non-atomic operation.
-    auto table = table_.load();
-    for (intptr_t i = 0; i < num_cids; i++) {
-      class_table[i] = table[i];
-    }
-    auto tlc_table = tlc_table_.load();
-    for (intptr_t i = 0; i < num_tlc_cids; i++) {
-      tlc_class_table[i] = tlc_table[i];
-    }
-
-    *copy = class_table;
-    *tlc_copy = tlc_class_table;
-    *copy_num_cids = num_cids;
-    *copy_num_tlc_cids = num_tlc_cids;
-  }
-
-  void ResetBeforeHotReload() {
-    // We cannot clear out the class pointers, because a hot-reload
-    // contains only a diff: If e.g. a class included in the hot-reload has a
-    // super class not included in the diff, it will look up in this class table
-    // to find the super class (e.g. `cls.SuperClass` will cause us to come
-    // here).
-  }
-
-  void ResetAfterHotReload(ClassPtr* old_table,
-                           ClassPtr* old_tlc_table,
-                           intptr_t num_old_cids,
-                           intptr_t num_old_tlc_cids,
-                           bool is_rollback) {
-    // The [ProgramReloadContext] is no longer source-of-truth for GC after we
-    // return, so we restore size information for all classes.
-    if (is_rollback) {
-      SetNumCids(num_old_cids, num_old_tlc_cids);
-
-      // Don't use memmove, which changes this from a relaxed atomic operation
-      // to a non-atomic operation.
-      auto table = table_.load();
-      for (intptr_t i = 0; i < num_old_cids; i++) {
-        table[i] = old_table[i];
-      }
-      auto tlc_table = tlc_table_.load();
-      for (intptr_t i = 0; i < num_old_tlc_cids; i++) {
-        tlc_table[i] = old_tlc_table[i];
-      }
-    } else {
-      CopySizesFromClassObjects();
-    }
-
-    // Can't free these tables immediately as another thread (e.g., concurrent
-    // marker or sweeper) may be between loading the table pointer and loading
-    // the table element. The table will be freed at the next major GC or
-    // isolate shutdown.
-    AddOldTable(old_table);
-    AddOldTable(old_tlc_table);
-  }
-
-  // Thread-safe.
   ClassPtr At(intptr_t cid) const {
-    ASSERT(IsValidIndex(cid));
     if (IsTopLevelCid(cid)) {
-      return tlc_table_.load()[IndexFromTopLevelCid(cid)];
+      return top_level_classes_.At<kClassIndex>(IndexFromTopLevelCid(cid));
     }
-    return table_.load()[cid];
+    return classes_.At<kClassIndex>(cid);
   }
 
-  intptr_t SizeAt(intptr_t index) const {
+  int32_t SizeAt(intptr_t index) const {
     if (IsTopLevelCid(index)) {
       return 0;
     }
-    return shared_class_table_->SizeAt(index);
+    return classes_.At<kSizeIndex>(index);
   }
 
   void SetAt(intptr_t index, ClassPtr raw_cls);
@@ -358,27 +378,79 @@ class ClassTable {
 
   bool IsValidIndex(intptr_t cid) const {
     if (IsTopLevelCid(cid)) {
-      return IndexFromTopLevelCid(cid) < tlc_top_;
+      return top_level_classes_.IsValidIndex(IndexFromTopLevelCid(cid));
     }
-    return shared_class_table_->IsValidIndex(cid);
+    return classes_.IsValidIndex(cid);
   }
 
-  bool HasValidClassAt(intptr_t cid) const {
+  bool HasValidClassAt(intptr_t cid) const { return At(cid) != nullptr; }
+
+  UnboxedFieldBitmap GetUnboxedFieldsMapAt(intptr_t cid) const {
     ASSERT(IsValidIndex(cid));
-    if (IsTopLevelCid(cid)) {
-      return tlc_table_.load()[IndexFromTopLevelCid(cid)] != nullptr;
-    }
-    return table_.load()[cid] != nullptr;
+    return classes_.At<kUnboxedFieldBitmapIndex>(cid);
   }
 
-  intptr_t NumCids() const { return shared_class_table_->NumCids(); }
-  intptr_t NumTopLevelCids() const { return tlc_top_; }
-  intptr_t Capacity() const { return shared_class_table_->Capacity(); }
+  void SetUnboxedFieldsMapAt(intptr_t cid, UnboxedFieldBitmap map) {
+    ASSERT(IsValidIndex(cid));
+    classes_.At<kUnboxedFieldBitmapIndex>(cid) = map;
+  }
+
+#if !defined(PRODUCT)
+  bool ShouldTraceAllocationFor(intptr_t cid) {
+    return !IsTopLevelCid(cid) &&
+           (classes_.At<kAllocationTracingStateIndex>(cid) != kTracingDisabled);
+  }
+
+  void SetTraceAllocationFor(intptr_t cid, bool trace) {
+    classes_.At<kAllocationTracingStateIndex>(cid) =
+        trace ? kTraceAllocationBit : kTracingDisabled;
+  }
+
+  void SetCollectInstancesFor(intptr_t cid, bool trace) {
+    auto& slot = classes_.At<kAllocationTracingStateIndex>(cid);
+    if (trace) {
+      slot |= kCollectInstancesBit;
+    } else {
+      slot &= ~kCollectInstancesBit;
+    }
+  }
+
+  bool CollectInstancesFor(intptr_t cid) {
+    auto& slot = classes_.At<kAllocationTracingStateIndex>(cid);
+    return (slot & kCollectInstancesBit) != 0;
+  }
+
+  void UpdateCachedAllocationTracingStateTablePointer() {
+    cached_allocation_tracing_state_table_.store(
+        classes_.GetColumn<kAllocationTracingStateIndex>());
+  }
+
+  PersistentHandle* UserVisibleNameFor(intptr_t cid) {
+    return classes_.At<kClassNameIndex>(cid);
+  }
+
+  void SetUserVisibleNameFor(intptr_t cid, PersistentHandle* name) {
+    classes_.At<kClassNameIndex>(cid) = name;
+  }
+#else
+  void UpdateCachedAllocationTracingStateTablePointer() {}
+#endif  // !defined(PRODUCT)
+
+  intptr_t NumCids() const {
+    return classes_.num_cids();
+  }
+  intptr_t Capacity() const {
+    return classes_.capacity();
+  }
+
+  intptr_t NumTopLevelCids() const {
+    return top_level_classes_.num_cids();
+  }
 
   void Register(const Class& cls);
-  void RegisterTopLevel(const Class& cls);
   void AllocateIndex(intptr_t index);
-  void Unregister(intptr_t index);
+
+  void RegisterTopLevel(const Class& cls);
   void UnregisterTopLevel(intptr_t index);
 
   void Remap(intptr_t* old_to_new_cids);
@@ -405,9 +477,11 @@ class ClassTable {
 
     static constexpr intptr_t kElementSize = sizeof(uint8_t);
   };
-#endif
 
-#ifndef PRODUCT
+  static intptr_t allocation_tracing_state_table_offset() {
+    static_assert(sizeof(cached_allocation_tracing_state_table_) == kWordSize);
+    return OFFSET_OF(ClassTable, cached_allocation_tracing_state_table_);
+  }
 
   void AllocationProfilePrintJSON(JSONStream* stream, bool internal);
 
@@ -429,6 +503,7 @@ class ClassTable {
   }
 
  private:
+  friend class ClassTableAllocator;
   friend class GCMarker;
   friend class MarkingWeakVisitor;
   friend class Scavenger;
@@ -438,57 +513,71 @@ class ClassTable {
                                                    const char* name,
                                                    char** error);
   friend class IsolateGroup;  // for table()
-  static const int kInitialCapacity = SharedClassTable::kInitialCapacity;
-  static const int kCapacityIncrement = SharedClassTable::kCapacityIncrement;
+  static const int kInitialCapacity = 512;
 
-  static const intptr_t kTopLevelCidOffset = (1 << 16);
+  static const intptr_t kTopLevelCidOffset = kClassIdTagMax + 1;
 
-  void AddOldTable(ClassPtr* old_table);
+  ClassTable(const ClassTable& original)
+      : allocator_(original.allocator_),
+        classes_(original.allocator_),
+        top_level_classes_(original.allocator_) {
+    classes_.CopyFrom(original.classes_);
+    top_level_classes_.CopyFrom(original.top_level_classes_);
+    UpdateCachedAllocationTracingStateTablePointer();
+  }
+
   void AllocateTopLevelIndex(intptr_t index);
 
-  void Grow(intptr_t index);
-  void GrowTopLevel(intptr_t index);
-
-  ClassPtr* table() { return table_.load(); }
-  void set_table(ClassPtr* table);
+  ClassPtr* table() {
+    return classes_.GetColumn<kClassIndex>();
+  }
 
   // Used to drop recently added classes.
   void SetNumCids(intptr_t num_cids, intptr_t num_tlc_cids) {
-    shared_class_table_->SetNumCids(num_cids);
-
-    ASSERT(num_cids <= top_);
-    top_ = num_cids;
-
-    ASSERT(num_tlc_cids <= tlc_top_);
-    tlc_top_ = num_tlc_cids;
+    classes_.ShrinkTo(num_cids);
+    top_level_classes_.ShrinkTo(num_tlc_cids);
   }
 
-  intptr_t top_;
-  intptr_t capacity_;
+  ClassTableAllocator* allocator_;
 
-  intptr_t tlc_top_;
-  intptr_t tlc_capacity_;
+  // Unfortunately std::tuple used by CidIndexedTable does not have a stable
+  // layout so we can't refer to its elements from generated code.
+  NOT_IN_PRODUCT(AcqRelAtomic<uint8_t*> cached_allocation_tracing_state_table_ =
+                     {nullptr});
 
-  // Copy-on-write is used for table_, with old copies stored in
-  // old_class_tables_.
-  AcqRelAtomic<ClassPtr*> table_;
-  AcqRelAtomic<ClassPtr*> tlc_table_;
-  MallocGrowableArray<ClassPtr*>* old_class_tables_;
-  SharedClassTable* shared_class_table_;
-
-  DISALLOW_COPY_AND_ASSIGN(ClassTable);
-};
+  enum {
+    kClassIndex = 0,
+    kSizeIndex,
+    kUnboxedFieldBitmapIndex,
+#if !defined(PRODUCT)
+    kAllocationTracingStateIndex,
+    kClassNameIndex,
+#endif
+  };
 
 #if !defined(PRODUCT)
-DART_FORCE_INLINE bool SharedClassTable::TraceAllocationFor(intptr_t cid) {
-  ASSERT(cid > 0);
-  if (ClassTable::IsTopLevelCid(cid)) {
-    return false;
-  }
-  ASSERT(cid < top_);
-  return trace_allocation_table_.load()[cid] != 0;
-}
-#endif  // !defined(PRODUCT)
+  CidIndexedTable<ClassIdTagType,
+                  ClassPtr,
+                  uint32_t,
+                  UnboxedFieldBitmap,
+                  uint8_t,
+                  PersistentHandle*>
+      classes_;
+#else
+  CidIndexedTable<ClassIdTagType, ClassPtr, uint32_t, UnboxedFieldBitmap>
+      classes_;
+#endif
+
+#ifndef PRODUCT
+  enum {
+      kTracingDisabled = 0,
+      kTraceAllocationBit = (1 << 0),
+      kCollectInstancesBit = (1 << 1),
+  };
+#endif  // !PRODUCT
+
+  CidIndexedTable<classid_t, ClassPtr> top_level_classes_;
+};
 
 }  // namespace dart
 

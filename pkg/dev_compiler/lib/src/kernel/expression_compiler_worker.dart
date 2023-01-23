@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show stdin, stdout;
@@ -20,12 +18,15 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/tool/find_referenced_libraries.dart'
     show duplicateLibrariesReachable;
 import 'package:kernel/target/targets.dart' show TargetFlags;
-import 'package:meta/meta.dart';
 
-import '../../dev_compiler.dart';
 import '../compiler/js_names.dart';
+import '../compiler/module_builder.dart' show ModuleFormat, parseModuleFormat;
+import '../compiler/shared_command.dart' show SharedCompilerOptions;
 import 'asset_file_system.dart';
 import 'command.dart';
+import 'compiler.dart' show ProgramCompiler;
+import 'expression_compiler.dart' show ExpressionCompiler;
+import 'target.dart' show DevCompilerTarget;
 
 /// The service that handles expression compilation requests from
 /// the debugger.
@@ -84,7 +85,7 @@ class ExpressionCompilerWorker {
   final ModuleFormat _moduleFormat;
   final Component _sdkComponent;
 
-  void Function() onDone;
+  void Function()? onDone;
 
   ExpressionCompilerWorker._(
     this._processedOptions,
@@ -116,8 +117,8 @@ class ExpressionCompilerWorker {
   /// The worker stops on start failure or after the consumer closes its
   /// receive port corresponding to [sendPort].
   static Future<void> createAndStart(List<String> args,
-      {SendPort sendPort}) async {
-    ExpressionCompilerWorker worker;
+      {SendPort? sendPort}) async {
+    ExpressionCompilerWorker? worker;
     if (sendPort != null) {
       var receivePort = ReceivePort();
       sendPort.send(receivePort.sendPort);
@@ -147,8 +148,8 @@ class ExpressionCompilerWorker {
   /// Parse args and create the worker, hook cleanup code to run when done.
   static Future<ExpressionCompilerWorker> createFromArgs(
     List<String> args, {
-    Stream<Map<String, dynamic>> requestStream,
-    void Function(Map<String, dynamic>) sendResponse,
+    Stream<Map<String, dynamic>>? requestStream,
+    void Function(Map<String, dynamic>)? sendResponse,
   }) {
     // We are destructive on `args`, so make a copy.
     args = args.toList();
@@ -163,9 +164,9 @@ class ExpressionCompilerWorker {
     if (multiRoots.isNotEmpty) {
       fileSystem = MultiRootFileSystem(multiRootScheme, multiRoots, fileSystem);
     }
-    var assetServerAddress = parsedArgs['asset-server-address'] as String;
+    var assetServerAddress = parsedArgs['asset-server-address'] as String?;
     if (assetServerAddress != null) {
-      var assetServerPort = parsedArgs['asset-server-port'] as String;
+      var assetServerPort = parsedArgs['asset-server-port'] as String?;
       fileSystem = AssetFileSystem(
           fileSystem, assetServerAddress, assetServerPort ?? '8080');
     }
@@ -178,13 +179,13 @@ class ExpressionCompilerWorker {
 
     return create(
       librariesSpecificationUri:
-          _argToUri(parsedArgs['libraries-file'] as String),
-      packagesFile: _argToUri(parsedArgs['packages-file'] as String),
-      sdkSummary: _argToUri(parsedArgs['dart-sdk-summary'] as String),
+          _argToUri(parsedArgs['libraries-file'] as String?),
+      packagesFile: _argToUri(parsedArgs['packages-file'] as String?),
+      sdkSummary: _argToUri(parsedArgs['dart-sdk-summary'] as String?),
       fileSystem: fileSystem,
       environmentDefines: environmentDefines,
       explicitExperimentalFlags: explicitExperimentalFlags,
-      sdkRoot: _argToUri(parsedArgs['sdk-root'] as String),
+      sdkRoot: _argToUri(parsedArgs['sdk-root'] as String?),
       trackWidgetCreation: parsedArgs['track-widget-creation'] as bool,
       soundNullSafety: parsedArgs['sound-null-safety'] as bool,
       moduleFormat: moduleFormat,
@@ -203,21 +204,21 @@ class ExpressionCompilerWorker {
 
   /// Create the worker and load the sdk outlines.
   static Future<ExpressionCompilerWorker> create({
-    @required Uri librariesSpecificationUri,
-    @required Uri sdkSummary,
-    @required FileSystem fileSystem,
-    Uri packagesFile,
-    Map<String, String> environmentDefines,
+    required Uri? librariesSpecificationUri,
+    required Uri? sdkSummary,
+    required FileSystem fileSystem,
+    Uri? packagesFile,
+    Map<String, String>? environmentDefines,
     Map<ExperimentalFlag, bool> explicitExperimentalFlags = const {},
-    Uri sdkRoot,
+    Uri? sdkRoot,
     bool trackWidgetCreation = false,
     bool soundNullSafety = false,
     ModuleFormat moduleFormat = ModuleFormat.amd,
     bool verbose = false,
-    Stream<Map<String, dynamic>> requestStream, // Defaults to read from stdin
-    void Function(Map<String, dynamic>)
+    Stream<Map<String, dynamic>>? requestStream, // Defaults to read from stdin
+    void Function(Map<String, dynamic>)?
         sendResponse, // Defaults to write to stdout
-    void Function() onDone,
+    void Function()? onDone,
   }) async {
     var compilerOptions = CompilerOptions()
       ..compileSdk = false
@@ -244,7 +245,7 @@ class ExpressionCompilerWorker {
     var processedOptions = ProcessedOptions(options: compilerOptions);
 
     var sdkComponent = await CompilerContext(processedOptions)
-        .runInContext<Component>((CompilerContext c) async {
+        .runInContext<Component?>((CompilerContext c) async {
       return processedOptions.loadSdkSummary(null);
     });
 
@@ -263,7 +264,7 @@ class ExpressionCompilerWorker {
   Future<void> run() async {
     await for (var request in requestStream) {
       try {
-        var command = request['command'] as String;
+        var command = request['command'] as String?;
         if (command == 'Shutdown') break;
         switch (command) {
           case 'UpdateDeps':
@@ -279,7 +280,7 @@ class ExpressionCompilerWorker {
                 'Unrecognized command `$command`, full request was `$request`');
         }
       } catch (e, s) {
-        var command = request['command'] as String;
+        var command = request['command'] as String?;
         _processedOptions.ticker
             .logMs('Expression compiler worker request $command failed: $e:$s');
         sendResponse({
@@ -322,12 +323,15 @@ class ExpressionCompilerWorker {
 
     // Note that this doesn't actually re-load it if it's already fully loaded.
     if (!await _loadAndUpdateComponent(
-        _fullModules[moduleName], moduleName, false)) {
+        _fullModules[moduleName]!, moduleName, false)) {
       throw ArgumentError('Failed to load full dill for module $moduleName: '
           '${_fullModules[moduleName]}');
     }
 
     var originalComponent = _moduleCache.componentForModuleName[moduleName];
+    if (originalComponent == null) {
+      throw StateError('No Component found for module named: $moduleName');
+    }
 
     var component = _sdkComponent;
     if (!libraryUri.isScheme('dart')) {
@@ -374,7 +378,7 @@ class ExpressionCompilerWorker {
     }
 
     var coreTypes = incrementalCompilerResult.coreTypes;
-    var hierarchy = incrementalCompilerResult.classHierarchy;
+    var hierarchy = incrementalCompilerResult.classHierarchy!;
 
     var kernel2jsCompiler = ProgramCompiler(
       finalComponent,
@@ -457,7 +461,7 @@ class ExpressionCompilerWorker {
       if (!visited.contains(uri)) {
         visited.add(uri);
         if (_moduleCache.libraryForUri.containsKey(uri)) {
-          var lib = _moduleCache.libraryForUri[uri];
+          var lib = _moduleCache.libraryForUri[uri]!;
           libraries.add(lib);
           for (var dep in lib.dependencies) {
             if (dep.importedLibraryReference.node != null) {
@@ -537,7 +541,7 @@ class ExpressionCompilerWorker {
     return true;
   }
 
-  Future<Component> _loadComponent(Uri uri) async {
+  Future<Component?> _loadComponent(Uri uri) async {
     var file = _processedOptions.fileSystem.entityForUri(uri);
     if (await file.existsAsyncIfPossible()) {
       var bytes = await file.readAsBytesAsyncIfPossible();
@@ -619,7 +623,7 @@ class ModuleCache {
     for (var lib in component.libraries) {
       if (isLibraryLoaded(lib)) {
         throw Exception('library ${lib.importUri} is already loaded in '
-            '${moduleNameForComponent[componentForLibrary[lib]]}');
+            '${moduleNameForComponent[componentForLibrary[lib]!]}');
       }
       componentForLibrary[lib] = component;
       libraryForUri[lib.importUri] = lib;
@@ -628,7 +632,7 @@ class ModuleCache {
 
   void removeModule(String moduleName) {
     if (isModuleLoaded(moduleName)) {
-      var oldComponent = componentForModuleName[moduleName];
+      var oldComponent = componentForModuleName[moduleName]!;
       for (var lib in oldComponent.libraries) {
         componentForLibrary.remove(lib);
         libraryForUri.remove(lib.importUri);
@@ -652,13 +656,13 @@ class CompileExpressionRequest {
   final String moduleName;
 
   CompileExpressionRequest({
-    @required this.expression,
-    @required this.column,
-    @required this.jsModules,
-    @required this.jsScope,
-    @required this.libraryUri,
-    @required this.line,
-    @required this.moduleName,
+    required this.expression,
+    required this.column,
+    required this.jsModules,
+    required this.jsScope,
+    required this.libraryUri,
+    required this.line,
+    required this.moduleName,
   });
 
   factory CompileExpressionRequest.fromJson(Map<String, dynamic> json) =>
@@ -690,7 +694,7 @@ class UpdateDependenciesRequest {
 class InputDill {
   final String moduleName;
   final String path;
-  final String summaryPath;
+  final String? summaryPath;
 
   InputDill(this.path, this.summaryPath, this.moduleName);
 }
@@ -731,7 +735,7 @@ final argParser = ArgParser()
   ..addFlag('sound-null-safety', defaultsTo: false)
   ..addFlag('verbose', defaultsTo: false);
 
-Uri _argToUri(String uriArg) =>
+Uri? _argToUri(String? uriArg) =>
     uriArg == null ? null : Uri.base.resolve(uriArg.replaceAll('\\', '/'));
 
 class _ByteSink implements Sink<List<int>> {

@@ -11,7 +11,7 @@ import 'package:path/path.dart' as pathos;
 /// package names to their directories.
 class PackageMapUriResolver extends UriResolver {
   /// The name of the `package` scheme.
-  static const String PACKAGE_SCHEME = "package";
+  static const String _packageScheme = "package";
 
   /// A table mapping package names to the path of the directories containing
   /// the package.
@@ -46,7 +46,7 @@ class PackageMapUriResolver extends UriResolver {
         String relPath = path.substring(pkgFolderPath.length + 1);
         List<String> relPathComponents = pathContext.split(relPath);
         String relUriPath = pathos.posix.joinAll(relPathComponents);
-        return Uri.parse('$PACKAGE_SCHEME:$pkgName/$relUriPath');
+        return Uri.parse('$_packageScheme:$pkgName/$relUriPath');
       }
     }
     return null;
@@ -79,6 +79,6 @@ class PackageMapUriResolver extends UriResolver {
 
   /// Returns `true` if [uri] is a `package` URI.
   static bool isPackageUri(Uri uri) {
-    return uri.isScheme(PACKAGE_SCHEME);
+    return uri.isScheme(_packageScheme);
   }
 }

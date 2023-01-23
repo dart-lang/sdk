@@ -4,14 +4,14 @@ import "dart:core" as core;
 
 class E extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E> values = #C4;
-  static const field self::E foo = #C3;
+  enum-element static const field self::E foo = #C3;
   const constructor •(core::int #index, core::String #name, [core::int x = #C1, core::String y = #C5, core::num? z = #C6]) → self::E
     : super core::_Enum::•(#index, #name)
     ;
   const constructor named(core::int #index, core::String #name, core::int x, {core::String y = #C5, core::bool b = #C7, core::String? z = #C6, core::bool? t = #C6}) → self::E
     : super core::_Enum::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
 }
 static method main() → dynamic {}
@@ -30,5 +30,5 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///issue49216.dart:
 - E. (from org-dartlang-testcase:///issue49216.dart:8:9)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

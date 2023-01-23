@@ -246,6 +246,132 @@ ISOLATE_UNIT_TEST_CASE(Inliner_List_generate) {
   }));
 }
 
+// Verifies that pragma-decorated call gets inlined.
+ISOLATE_UNIT_TEST_CASE(Inliner_always_consider_inlining) {
+  const char* kScript = R"(
+    choice() {
+      dynamic x;
+      return x == 123;
+    }
+
+    @pragma("vm:always-consider-inlining")
+    bar(baz) {
+      if (baz is String) {
+        return 1;
+      }
+      if (baz is num) {
+        return 2;
+      }
+      if (baz is bool) {
+        dynamic j = 0;
+        for (int i = 0; i < 1024; i++) {
+          j += "i: $i".length;
+        }
+        return j;
+      }
+      return 4;
+    }
+
+    bbar(bbaz, something) {
+      if (bbaz == null) {
+        return "null";
+      }
+      return bar(bbaz);
+    }
+
+    main(args) {
+      print(bbar(42, "something"));
+      print(bbar(choice() ? "abc": 42, "something"));
+      print(bbar("abc", "something"));
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function = Function::Handle(GetFunction(root_library, "main"));
+
+  TestPipeline pipeline(function, CompilerPass::kAOT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  ILMatcher cursor(flow_graph, entry, /*trace=*/true);
+
+  StaticCallInstr* call_print1;
+  StaticCallInstr* call_print2;
+  StaticCallInstr* call_print3;
+  StaticCallInstr* call_bar;
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMoveGlob,
+      {kMatchAndMoveStaticCall, &call_print1},
+      kMoveGlob,
+      {kMatchAndMoveStaticCall, &call_bar},
+      kMoveGlob,
+      {kMatchAndMoveStaticCall, &call_print2},
+      kMoveGlob,
+      {kMatchAndMoveStaticCall, &call_print3},
+      kMoveGlob,
+      kMatchReturn,
+  }));
+  EXPECT(strcmp(call_print1->function().UserVisibleNameCString(), "print") ==
+         0);
+  EXPECT(strcmp(call_print2->function().UserVisibleNameCString(), "print") ==
+         0);
+  EXPECT(strcmp(call_print3->function().UserVisibleNameCString(), "print") ==
+         0);
+  EXPECT(strcmp(call_bar->function().UserVisibleNameCString(), "bar") == 0);
+}
+
+// Verifies that List.of gets inlined.
+ISOLATE_UNIT_TEST_CASE(Inliner_List_of_inlined) {
+  const char* kScript = R"(
+    main() {
+      final foo = List<String>.filled(100, "bar");
+      final the_copy1 = List.of(foo, growable: false);
+      print('${the_copy1.length}');
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function = Function::Handle(GetFunction(root_library, "main"));
+
+  TestPipeline pipeline(function, CompilerPass::kAOT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  ILMatcher cursor(flow_graph, entry, /*trace=*/true);
+
+  StaticCallInstr* call_get_length;
+  StaticCallInstr* call_interpolate;
+  StaticCallInstr* call_print;
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMoveGlob,
+      kMatchAndMoveJoinEntry,
+      kMoveGlob,
+      kMatchAndMoveBranchTrue,
+      kMoveGlob,
+      kMatchAndMoveJoinEntry,
+      kMatchAndMoveCheckStackOverflow,
+      kMatchAndMoveBranchFalse,
+      kMatchAndMoveTargetEntry,
+      kMoveGlob,
+      kMatchAndMoveJoinEntry,
+      kMoveGlob,
+      kMatchAndMoveBranchFalse,
+      kMoveGlob,
+      {kMatchAndMoveStaticCall, &call_get_length},
+      kMoveGlob,
+      {kMatchAndMoveStaticCall, &call_interpolate},
+      kMoveGlob,
+      {kMatchAndMoveStaticCall, &call_print},
+      kMoveGlob,
+      kMatchReturn,
+  }));
+  EXPECT(strcmp(call_get_length->function().UserVisibleNameCString(),
+                "length") == 0);
+  EXPECT(strcmp(call_interpolate->function().UserVisibleNameCString(),
+                "_interpolateSingle") == 0);
+  EXPECT(strcmp(call_print->function().UserVisibleNameCString(), "print") == 0);
+}
+
 #endif  // defined(DART_PRECOMPILER)
 
 }  // namespace dart

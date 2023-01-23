@@ -5,10 +5,10 @@
 import 'package:expect/expect.dart';
 
 class A {
-  foo(required1, {named1: 499}) => -(required1 + named1 * 3);
-  bar(required1, required2, {named1: 13, named2: 17}) =>
+  foo(required1, {named1 = 499}) => -(required1 + named1 * 3);
+  bar(required1, required2, {named1 = 13, named2 = 17}) =>
       -(required1 + required2 * 3 + named1 * 5 + named2 * 7);
-  gee({named1: 31}) => -named1;
+  gee({named1 = 31}) => -named1;
 }
 
 class B extends A {
@@ -29,7 +29,7 @@ class B extends A {
 //^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
 // [cfe] The method 'B.bar' has fewer named arguments than those of overridden method 'A.bar'.
-      {named1: 13
+      {named1 = 13
       /*
       ,
       named2: 17
@@ -42,7 +42,7 @@ class B extends A {
 //^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
 // [cfe] The method 'B.gee' doesn't have the named parameter 'named1' of overridden method 'A.gee'.
-      {named2: 11
+      {named2 = 11
       /*
       ,
       named1: 31

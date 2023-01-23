@@ -21,8 +21,8 @@ class DirectoryMock extends FileSystemEntity implements Directory {
   static DirectoryMock getSystemTemp() => new DirectoryMock("");
 
   Uri get uri => throw "";
-  Future<Directory> create({bool recursive: false}) => throw "";
-  void createSync({bool recursive: false}) {}
+  Future<Directory> create({bool recursive = false}) => throw "";
+  void createSync({bool recursive = false}) {}
   Future<Directory> createTemp([String? prefix]) => throw "";
   Directory createTempSync([String? prefix]) => throw "";
   Future<bool> exists() => throw "";
@@ -33,10 +33,10 @@ class DirectoryMock extends FileSystemEntity implements Directory {
   Directory renameSync(String newPath) => throw "";
   Directory get absolute => throw "";
   Stream<FileSystemEntity> list(
-          {bool recursive: false, bool followLinks: true}) =>
+          {bool recursive = false, bool followLinks = true}) =>
       throw "";
   List<FileSystemEntity> listSync(
-          {bool recursive: false, bool followLinks: true}) =>
+          {bool recursive = false, bool followLinks = true}) =>
       throw "";
 }
 
@@ -47,8 +47,9 @@ class FileMock extends FileSystemEntity implements File {
 
   static FileMock createFile(String path) => new FileMock(path);
 
-  Future<File> create({bool recursive: false}) => throw "";
-  void createSync({bool recursive: false}) {}
+  Future<File> create({bool recursive = false, bool exclusive = false}) =>
+      throw "";
+  void createSync({bool recursive = false, bool exclusive = false}) {}
   Future<File> rename(String newPath) => throw "";
   File renameSync(String newPath) => throw "";
   Future<File> copy(String newPath) => throw "";
@@ -66,31 +67,32 @@ class FileMock extends FileSystemEntity implements File {
   DateTime lastModifiedSync() => throw "";
   Future setLastModified(DateTime time) => throw "";
   void setLastModifiedSync(DateTime time) {}
-  Future<RandomAccessFile> open({FileMode mode: FileMode.read}) => throw "";
-  RandomAccessFile openSync({FileMode mode: FileMode.read}) => throw "";
+  Future<RandomAccessFile> open({FileMode mode = FileMode.read}) => throw "";
+  RandomAccessFile openSync({FileMode mode = FileMode.read}) => throw "";
   Stream<List<int>> openRead([int? start, int? end]) => throw "";
-  IOSink openWrite({FileMode mode: FileMode.write, Encoding encoding: utf8}) =>
+  IOSink openWrite(
+          {FileMode mode = FileMode.write, Encoding encoding = utf8}) =>
       throw "";
   Future<Uint8List> readAsBytes() => throw "";
   Uint8List readAsBytesSync() => throw "";
-  Future<String> readAsString({Encoding encoding: utf8}) => throw "";
-  String readAsStringSync({Encoding encoding: utf8}) => throw "";
-  Future<List<String>> readAsLines({Encoding encoding: utf8}) => throw "";
-  List<String> readAsLinesSync({Encoding encoding: utf8}) => throw "";
+  Future<String> readAsString({Encoding encoding = utf8}) => throw "";
+  String readAsStringSync({Encoding encoding = utf8}) => throw "";
+  Future<List<String>> readAsLines({Encoding encoding = utf8}) => throw "";
+  List<String> readAsLinesSync({Encoding encoding = utf8}) => throw "";
   Future<File> writeAsBytes(List<int> bytes,
-          {FileMode mode: FileMode.write, bool flush: false}) =>
+          {FileMode mode = FileMode.write, bool flush = false}) =>
       throw "";
   void writeAsBytesSync(List<int> bytes,
-      {FileMode mode: FileMode.write, bool flush: false}) {}
+      {FileMode mode = FileMode.write, bool flush = false}) {}
   Future<File> writeAsString(String contents,
-          {FileMode mode: FileMode.write,
-          Encoding encoding: utf8,
-          bool flush: false}) =>
+          {FileMode mode = FileMode.write,
+          Encoding encoding = utf8,
+          bool flush = false}) =>
       throw "";
   void writeAsStringSync(String contents,
-      {FileMode mode: FileMode.write,
-      Encoding encoding: utf8,
-      bool flush: false}) {}
+      {FileMode mode = FileMode.write,
+      Encoding encoding = utf8,
+      bool flush = false}) {}
 }
 
 class FileStatMock implements FileStat {
@@ -145,8 +147,8 @@ class LinkMock extends FileSystemEntity implements Link {
 
   static Link createLink(String path) => new LinkMock(path);
 
-  Future<Link> create(String target, {bool recursive: false}) => throw "";
-  void createSync(String target, {bool recursive: false}) {}
+  Future<Link> create(String target, {bool recursive = false}) => throw "";
+  void createSync(String target, {bool recursive = false}) {}
   void updateSync(String target) {}
   Future<Link> update(String target) => throw "";
   Future<bool> exists() => throw "";
@@ -171,7 +173,7 @@ Future<ConnectionTask<Socket>> socketStartConnect(dynamic host, int port,
 }
 
 Future<ServerSocket> serverSocketBind(dynamic address, int port,
-    {int backlog: 0, bool v6Only: false, bool shared: false}) async {
+    {int backlog = 0, bool v6Only = false, bool shared = false}) async {
   throw "";
 }
 

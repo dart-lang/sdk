@@ -232,20 +232,19 @@ $!MEMBERS
 
 class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
   final Iterable<Element> _elementIterable;
-  Iterable<CssStyleDeclaration>$NULLABLE _elementCssStyleDeclarationSetIterable;
+  Iterable<CssStyleDeclaration> _elementCssStyleDeclarationSetIterable;
 
-  _CssStyleDeclarationSet(this._elementIterable) {
-    _elementCssStyleDeclarationSetIterable = new List.from(
-        _elementIterable).map((e) => e.style);
-  }
+  _CssStyleDeclarationSet(this._elementIterable)
+    : _elementCssStyleDeclarationSetIterable = 
+            new List.of(_elementIterable).map((e) => e.style);
 
   String getPropertyValue(String propertyName) =>
-      _elementCssStyleDeclarationSetIterable$NULLASSERT.first.getPropertyValue(
+      _elementCssStyleDeclarationSetIterable.first.getPropertyValue(
           propertyName);
 
   void setProperty(String propertyName, String$NULLABLE value,
       [String$NULLABLE priority]) {
-    _elementCssStyleDeclarationSetIterable$NULLASSERT.forEach((e) =>
+    _elementCssStyleDeclarationSetIterable.forEach((e) =>
         e.setProperty(propertyName, value, priority));
   }
 

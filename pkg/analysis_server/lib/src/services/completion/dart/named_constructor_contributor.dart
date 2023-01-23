@@ -22,7 +22,7 @@ class NamedConstructorContributor extends DartCompletionContributor {
     if (node is ConstructorName) {
       if (node.parent is ConstructorReference) {
         var element = node.type.name.staticElement;
-        if (element is ClassElement) {
+        if (element is InterfaceElement) {
           _buildSuggestions(element);
         }
       } else {
@@ -40,7 +40,11 @@ class NamedConstructorContributor extends DartCompletionContributor {
     }
   }
 
-  void _buildSuggestions(ClassElement element) {
+  void _buildSuggestions(InterfaceElement element) {
+    if (element is! ClassElement) {
+      return;
+    }
+
     var tearOff = request.shouldSuggestTearOff(element);
     var isLocalClassDecl = element.library == request.libraryElement;
     for (var constructor in element.constructors) {

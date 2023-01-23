@@ -446,7 +446,7 @@ class A {
   void foo<T>(int T) {}
 }
 ''');
-    var node = findNode.simple('T)');
+    var node = findNode.simpleFormalParameter('T)');
     _resultRequested(node, 'T', false, findElement.typeParameter('T'));
   }
 
@@ -586,7 +586,7 @@ class A<T> {
   A(int T) {}
 }
 ''');
-    var node = findNode.simple('T)');
+    var node = findNode.simpleFormalParameter('T)');
     _resultRequested(node, 'T', false, findElement.typeParameter('T'));
   }
 
@@ -606,7 +606,7 @@ class A<T> {
   void foo(int T) {}
 }
 ''');
-    var node = findNode.simple('T)');
+    var node = findNode.simpleFormalParameter('T)');
     _resultRequested(node, 'T', false, findElement.typeParameter('T'));
   }
 
@@ -616,7 +616,7 @@ class A<T> {
   set foo(int T) {}
 }
 ''');
-    var node = findNode.simple('T)');
+    var node = findNode.simpleFormalParameter('T)');
     _resultRequested(node, 'T', false, findElement.typeParameter('T'));
   }
 
@@ -696,7 +696,7 @@ extension E<T> on int {
   void foo(int T) {}
 }
 ''');
-    var node = findNode.simple('T)');
+    var node = findNode.simpleFormalParameter('T)');
     _resultRequested(node, 'T', false, findElement.typeParameter('T'));
   }
 
@@ -704,7 +704,7 @@ extension E<T> on int {
     await resolve('''
 void foo<T>(int T) {}
 ''');
-    var node = findNode.simple('T)');
+    var node = findNode.simpleFormalParameter('T)');
     _resultRequested(node, 'T', false, findElement.typeParameter('T'));
   }
 
@@ -712,7 +712,7 @@ void foo<T>(int T) {}
     await resolve('''
 void foo(void Function<T>(String T) b) {}
 ''');
-    var node = findNode.simple('T)');
+    var node = findNode.simpleFormalParameter('T)');
     var T = findNode.typeParameter('T>').declaredElement!;
     _resultRequested(node, 'T', false, T);
   }
@@ -767,7 +767,7 @@ mixin A<T> {
   void foo(int T) {}
 }
 ''');
-    var node = findNode.simple('T)');
+    var node = findNode.simpleFormalParameter('T)');
     _resultRequested(node, 'T', false, findElement.typeParameter('T'));
   }
 

@@ -5,7 +5,7 @@
 part of models;
 
 abstract class StronglyReachableInstancesRepository {
-  Future<InstanceSet> get(IsolateRef isolate, ClassRef cls, {int limit: 100});
+  Future<InstanceSet> get(IsolateRef isolate, ClassRef cls, {int limit = 100});
   Future<Guarded<InstanceRef>> getAsArray(IsolateRef isolate, ClassRef cls,
-      {bool includeSubclasses: false, includeImplementors: false});
+      {bool includeSubclasses = false, includeImplementors = false});
 }

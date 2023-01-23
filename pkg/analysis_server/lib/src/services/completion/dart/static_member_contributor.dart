@@ -7,6 +7,7 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/utilities/extensions/completion_request.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 /// A contributor that produces suggestions based on the static members of a
 /// given class, enum, or extension. More concretely, this class produces
@@ -18,15 +19,17 @@ class StaticMemberContributor extends DartCompletionContributor {
   @override
   Future<void> computeSuggestions() async {
     var library = request.libraryElement;
-    bool isVisible(Element element) => element.isAccessibleIn2(library);
+    bool isVisible(Element element) => element.isAccessibleIn(library);
     var targetId = request.target.dotTarget;
     if (targetId is Identifier && !request.target.isCascade) {
       var element = targetId.staticElement;
       if (element is TypeAliasElement) {
         var aliasedType = element.aliasedType;
-        element = aliasedType.element;
+        if (aliasedType is InterfaceType) {
+          element = aliasedType.element;
+        }
       }
-      if (element is ClassElement) {
+      if (element is InterfaceElement) {
         for (var accessor in element.accessors) {
           if (accessor.isStatic &&
               !accessor.isSynthetic &&
@@ -34,7 +37,7 @@ class StaticMemberContributor extends DartCompletionContributor {
             builder.suggestAccessor(accessor, inheritanceDistance: 0.0);
           }
         }
-        if (!request.shouldSuggestTearOff(element)) {
+        if (element is ClassElement && !request.shouldSuggestTearOff(element)) {
           for (var constructor in element.constructors) {
             if (isVisible(constructor)) {
               if (!element.isAbstract || constructor.isFactory) {
@@ -45,7 +48,7 @@ class StaticMemberContributor extends DartCompletionContributor {
         }
         for (var field in element.fields) {
           if (field.isStatic &&
-              (!field.isSynthetic || element.isEnum) &&
+              (!field.isSynthetic || element is EnumElement) &&
               isVisible(field)) {
             builder.suggestField(field, inheritanceDistance: 0.0);
           }

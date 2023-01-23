@@ -34,10 +34,6 @@ int Platform::NumberOfProcessors() {
   return sysconf(_SC_NPROCESSORS_CONF);
 }
 
-const char* Platform::OperatingSystem() {
-  return "fuchsia";
-}
-
 const char* Platform::OperatingSystemVersion() {
   struct utsname info;
   int ret = uname(&info);

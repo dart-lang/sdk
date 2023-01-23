@@ -251,13 +251,6 @@ abstract class Browser {
   /// Starts the browser loading the given url
   Future<bool> start(String url);
 
-  /// Called when the driver page is requested, that is, when the browser first
-  /// contacts the test server. At this time, it's safe to assume that the
-  /// browser process has started and opened its first window.
-  ///
-  /// This is used by [Safari] to ensure the browser window has focus.
-  Future<Null> onDriverPageRequested() => Future.value();
-
   @override
   String toString() => '$runtimeType';
 }
@@ -266,6 +259,7 @@ abstract class WebDriverBrowser extends Browser {
   WebDriver? _driver;
   final int _port;
   final Map<String, dynamic> _desiredCapabilities;
+  bool _terminated = false;
 
   WebDriverBrowser(this._port, this._desiredCapabilities);
 
@@ -273,6 +267,7 @@ abstract class WebDriverBrowser extends Browser {
   Future<bool> start(String url) async {
     _logEvent('Starting $this browser on: $url');
     await _createDriver();
+    if (_terminated) return false;
     await _driver!.get(url);
     try {
       _logEvent('Got version: ${await version}');
@@ -287,11 +282,13 @@ abstract class WebDriverBrowser extends Browser {
     for (var i = 5; i >= 0; i--) {
       // Give the driver process some time to be ready to accept connections.
       await Future.delayed(const Duration(seconds: 1));
+      if (_terminated) return;
       try {
         _driver = await createDriver(
             uri: Uri.parse('http://localhost:$_port/'),
             desired: _desiredCapabilities);
       } catch (error) {
+        if (_terminated) return;
         if (i > 0) {
           _logEvent(
               'Failed to create driver ($i retries left).\nError: $error');
@@ -307,6 +304,7 @@ abstract class WebDriverBrowser extends Browser {
 
   @override
   Future<bool> close() async {
+    _terminated = true;
     await _driver?.quit();
     // Give the driver process some time to be quit the browser.
     return true;
@@ -589,6 +587,8 @@ class Firefox extends Browser {
       'user_pref("browser.shell.checkDefaultBrowser", false);';
   static const String disableScriptTimeLimit =
       'user_pref("dom.max_script_run_time", 0);';
+  static const String disableAutoUpdate =
+      'user_pref("app.update.auto", false);';
 
   void _createPreferenceFile(String path) {
     var file = File("$path/user.js");
@@ -596,6 +596,7 @@ class Firefox extends Browser {
     randomFile.writeStringSync(enablePopUp);
     randomFile.writeStringSync(disableDefaultCheck);
     randomFile.writeStringSync(disableScriptTimeLimit);
+    randomFile.writeStringSync(disableAutoUpdate);
     randomFile.close();
   }
 
@@ -1255,7 +1256,6 @@ class BrowserTestingServer {
   }
 
   Future<String> getDriverPage(String browserId) async {
-    await testRunner.browserStatus[browserId]?.browser.onDriverPageRequested();
     var errorReportingUrl =
         "http://$localIp:${errorReportingServer.port}/$browserId";
     var driverContent = """

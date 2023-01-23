@@ -178,7 +178,7 @@ class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
             test,
             filePath: '$flutterPkgPath/lib/src/material/app_bar.dart',
             uniquePrefix: 'computeDryLayout(BoxConstraints',
-            insertStringGenerator: _IncrementingStringGenerator(),
+            insertStringGenerator: _IncrementingStringGenerator().call,
             name: name,
           ),
         ),

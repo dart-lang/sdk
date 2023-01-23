@@ -57,23 +57,26 @@ class Zone;
 #define STARTUP_RECORDER_NAME "Startup"
 #define SYSTRACE_RECORDER_NAME "Systrace"
 
-// (name, fuchsia_name).
+// (name, fuchsia_name, has_static_labels).
 #define TIMELINE_STREAM_LIST(V)                                                \
-  V(API, "dart:api")                                                           \
-  V(Compiler, "dart:compiler")                                                 \
-  V(CompilerVerbose, "dart:compiler.verbose")                                  \
-  V(Dart, "dart:dart")                                                         \
-  V(Debugger, "dart:debugger")                                                 \
-  V(Embedder, "dart:embedder")                                                 \
-  V(GC, "dart:gc")                                                             \
-  V(Isolate, "dart:isolate")                                                   \
-  V(VM, "dart:vm")
+  V(API, "dart:api", true)                                                     \
+  V(Compiler, "dart:compiler", true)                                           \
+  V(CompilerVerbose, "dart:compiler.verbose", true)                            \
+  V(Dart, "dart:dart", false)                                                  \
+  V(Debugger, "dart:debugger", true)                                           \
+  V(Embedder, "dart:embedder", true)                                           \
+  V(GC, "dart:gc", true)                                                       \
+  V(Isolate, "dart:isolate", true)                                             \
+  V(VM, "dart:vm", true)
 
 // A stream of timeline events. A stream has a name and can be enabled or
 // disabled (globally and per isolate).
 class TimelineStream {
  public:
-  TimelineStream(const char* name, const char* fuchsia_name, bool enabled);
+  TimelineStream(const char* name,
+                 const char* fuchsia_name,
+                 bool static_labels,
+                 bool enabled);
 
   const char* name() const { return name_; }
   const char* fuchsia_name() const { return fuchsia_name_; }
@@ -105,7 +108,8 @@ class TimelineStream {
 #if defined(DART_HOST_OS_FUCHSIA)
   trace_site_t* trace_site() { return &trace_site_; }
 #elif defined(DART_HOST_OS_MACOS)
-  os_log_t macos_log() { return macos_log_; }
+  os_log_t macos_log() const { return macos_log_; }
+  bool has_static_labels() const { return has_static_labels_; }
 #endif
 
  private:
@@ -120,11 +124,17 @@ class TimelineStream {
   trace_site_t trace_site_ = {};
 #elif defined(DART_HOST_OS_MACOS)
   os_log_t macos_log_ = {};
+  bool has_static_labels_ = false;
 #endif
 };
 
 class RecorderLock : public AllStatic {
  public:
+  static void Init() {
+    outstanding_event_writes_.store(0);
+    shutdown_lock_.store(false, std::memory_order_release);
+  }
+
   static void EnterLock() {
     outstanding_event_writes_.fetch_add(1, std::memory_order_acquire);
   }
@@ -183,6 +193,11 @@ class Timeline : public AllStatic {
     recorder_discards_clock_values_ = value;
   }
 
+  static Dart_TimelineRecorderCallback callback() { return callback_; }
+  static void set_callback(Dart_TimelineRecorderCallback callback) {
+    callback_ = callback;
+  }
+
   // Reclaim all |TimelineEventBlocks|s that are cached by threads.
   static void ReclaimCachedBlocksFromThreads();
 
@@ -196,12 +211,12 @@ class Timeline : public AllStatic {
   static void PrintFlagsToJSONArray(JSONArray* arr);
 #endif
 
-#define TIMELINE_STREAM_ACCESSOR(name, fuchsia_name)                           \
+#define TIMELINE_STREAM_ACCESSOR(name, ...)                                    \
   static TimelineStream* Get##name##Stream() { return &stream_##name##_; }
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_ACCESSOR)
 #undef TIMELINE_STREAM_ACCESSOR
 
-#define TIMELINE_STREAM_FLAGS(name, fuchsia_name)                              \
+#define TIMELINE_STREAM_FLAGS(name, ...)                                       \
   static void SetStream##name##Enabled(bool enabled) {                         \
     stream_##name##_.set_enabled(enabled);                                     \
   }
@@ -213,10 +228,11 @@ class Timeline : public AllStatic {
   static void ReclaimCachedBlocksFromThreadsUnsafe();
 
   static TimelineEventRecorder* recorder_;
+  static Dart_TimelineRecorderCallback callback_;
   static MallocGrowableArray<char*>* enabled_streams_;
   static bool recorder_discards_clock_values_;
 
-#define TIMELINE_STREAM_DECLARE(name, fuchsia_name)                            \
+#define TIMELINE_STREAM_DECLARE(name, ...)                                     \
   static TimelineStream stream_##name##_;
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_DECLARE)
 #undef TIMELINE_STREAM_DECLARE
@@ -275,20 +291,21 @@ class TimelineEventArguments {
 class TimelineEvent {
  public:
   // Keep in sync with StateBits below.
+  // Keep in sync with constants in sdk/lib/developer/timeline.dart.
   enum EventType {
-    kNone,
-    kBegin,
-    kEnd,
-    kDuration,
-    kInstant,
-    kAsyncBegin,
-    kAsyncInstant,
-    kAsyncEnd,
-    kCounter,
-    kFlowBegin,
-    kFlowStep,
-    kFlowEnd,
-    kMetadata,
+    kNone = 0,
+    kBegin = 1,
+    kEnd = 2,
+    kDuration = 3,
+    kInstant = 4,
+    kAsyncBegin = 5,
+    kAsyncInstant = 6,
+    kAsyncEnd = 7,
+    kCounter = 8,
+    kFlowBegin = 9,
+    kFlowStep = 10,
+    kFlowEnd = 11,
+    kMetadata = 12,
     kNumEventTypes,
   };
 
@@ -334,10 +351,12 @@ class TimelineEvent {
 
   void Begin(
       const char* label,
+      int64_t id,
       int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline(),
       int64_t thread_micros = OS::GetCurrentThreadCPUMicrosForTimeline());
 
   void End(const char* label,
+           int64_t id,
            int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline(),
            int64_t thread_micros = OS::GetCurrentThreadCPUMicrosForTimeline());
 
@@ -382,6 +401,8 @@ class TimelineEvent {
 
   EventType event_type() const { return EventTypeField::decode(state_); }
 
+  TimelineStream* stream() const { return stream_; }
+
   bool IsFinishedDuration() const {
     return (event_type() == kDuration) && (timestamp1_ > timestamp0_);
   }
@@ -390,13 +411,24 @@ class TimelineEvent {
   int64_t ThreadCPUTimeDuration() const;
   int64_t ThreadCPUTimeOrigin() const;
 
-  int64_t TimeOrigin() const;
-  int64_t AsyncId() const;
+  int64_t TimeOrigin() const { return timestamp0_; }
+  int64_t Id() const {
+    ASSERT(event_type() != kDuration);
+    return timestamp1_;
+  }
   int64_t TimeDuration() const;
   int64_t TimeEnd() const {
     ASSERT(IsFinishedDuration());
     return timestamp1_;
   }
+
+  int64_t timestamp0() const { return timestamp0_; }
+  int64_t timestamp1() const { return timestamp1_; }
+
+  bool HasIsolateId() const;
+  bool HasIsolateGroupId() const;
+  const char* GetFormattedIsolateId() const;
+  const char* GetFormattedIsolateGroupId() const;
 
   // The lowest time value stored in this event.
   int64_t LowTime() const;
@@ -598,6 +630,8 @@ class TimelineEventScope : public StackResource {
 
   const char* label() const { return label_; }
 
+  int64_t id() const { return id_; }
+
   TimelineEventArgument* arguments() const { return arguments_.buffer(); }
 
   intptr_t arguments_length() const { return arguments_.length(); }
@@ -613,6 +647,7 @@ class TimelineEventScope : public StackResource {
 
   TimelineStream* stream_;
   const char* label_;
+  int64_t id_;
   TimelineEventArguments arguments_;
   bool enabled_;
 
@@ -783,7 +818,6 @@ class TimelineEventRecorder : public MallocAllocated {
   virtual void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) = 0;
 #endif
   virtual const char* name() const = 0;
-  int64_t GetNextAsyncId();
 
   void FinishBlock(TimelineEventBlock* block);
 
@@ -814,7 +848,6 @@ class TimelineEventRecorder : public MallocAllocated {
   int64_t TimeExtentMicros() const;
 
   Mutex lock_;
-  RelaxedAtomic<uintptr_t> async_id_;
   int64_t time_low_micros_;
   int64_t time_high_micros_;
 
@@ -905,6 +938,9 @@ class TimelineEventCallbackRecorder : public TimelineEventRecorder {
   virtual void OnEvent(TimelineEvent* event) = 0;
 
   const char* name() const { return CALLBACK_RECORDER_NAME; }
+  intptr_t Size() {
+    return 0;
+  }
 
  protected:
   TimelineEventBlock* GetNewBlockLocked() { return NULL; }
@@ -912,6 +948,26 @@ class TimelineEventCallbackRecorder : public TimelineEventRecorder {
   void Clear() {}
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
+};
+
+// A recorder that forwards completed events to the callback provided by
+// Dart_SetTimelineRecorderCallback.
+class TimelineEventEmbedderCallbackRecorder
+    : public TimelineEventCallbackRecorder {
+ public:
+  TimelineEventEmbedderCallbackRecorder() {}
+  virtual ~TimelineEventEmbedderCallbackRecorder() {}
+
+  virtual void OnEvent(TimelineEvent* event);
+};
+
+// A recorder that does nothing.
+class TimelineEventNopRecorder : public TimelineEventCallbackRecorder {
+ public:
+  TimelineEventNopRecorder() {}
+  virtual ~TimelineEventNopRecorder() {}
+
+  virtual void OnEvent(TimelineEvent* event);
 };
 
 // A recorder that stores events in chains of blocks of events.
@@ -1056,27 +1112,11 @@ class TimelineEventFileRecorder : public TimelineEventPlatformRecorder {
 
 class DartTimelineEventHelpers : public AllStatic {
  public:
-  static void ReportTaskEvent(Thread* thread,
-                              TimelineEvent* event,
+  static void ReportTaskEvent(TimelineEvent* event,
                               int64_t id,
-                              const char* phase,
-                              const char* category,
+                              intptr_t type,
                               char* name,
                               char* args);
-
-  static void ReportFlowEvent(Thread* thread,
-                              TimelineEvent* event,
-                              const char* category,
-                              char* name,
-                              int64_t type,
-                              int64_t flow_id,
-                              char* args);
-
-  static void ReportInstantEvent(Thread* thread,
-                                 TimelineEvent* event,
-                                 const char* category,
-                                 char* name,
-                                 char* args);
 };
 
 }  // namespace dart

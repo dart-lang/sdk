@@ -59,10 +59,10 @@ Pointer<Int64> int64PointerReturnOp() {
   return Pointer.fromAddress(0x13370000);
 }
 
-final implictDowncast1 = //# 3:  compile-time error
+final implicitDowncast1 = //# 3:  compile-time error
     Pointer.fromFunction<Int64PointerParamOp>(//# 3:  continued
         naTyPointerParamOp); //# 3:  continued
-final implictDowncast2 = //# 4:  compile-time error
+final implicitDowncast2 = //# 4:  compile-time error
     Pointer.fromFunction<NaTyPointerReturnOp>(//# 4:  continued
         int64PointerReturnOp); //# 4:  continued
 

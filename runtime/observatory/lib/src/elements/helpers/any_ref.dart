@@ -28,7 +28,7 @@ import 'package:observatory/src/elements/unknown_ref.dart';
 import 'package:observatory/src/elements/unlinkedcall_ref.dart';
 
 Element anyRef(M.IsolateRef isolate, ref, M.ObjectRepository objects,
-    {RenderingQueue? queue, bool expandable: true}) {
+    {RenderingQueue? queue, bool expandable = true}) {
   if (ref == null) {
     return new SpanElement()..text = "???";
   }
@@ -93,6 +93,8 @@ Element anyRef(M.IsolateRef isolate, ref, M.ObjectRepository objects,
     }
   } else if (ref is M.Sentinel) {
     return new SentinelValueElement(ref, queue: queue).element;
+  } else if (ref is num || ref is String) {
+    return new SpanElement()..text = ref.toString();
   }
   throw new Exception('Unknown ref type (${ref.runtimeType})');
 }

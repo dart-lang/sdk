@@ -39,8 +39,8 @@ class _UnitApiSignatureComputer {
 
     signature.addInt(unit.declarations.length);
     for (var declaration in unit.declarations) {
-      if (declaration is ClassOrMixinDeclaration) {
-        _addClassOrMixin(declaration);
+      if (declaration is ClassDeclaration) {
+        _addClass(declaration);
       } else if (declaration is EnumDeclaration) {
         _addEnum(declaration);
       } else if (declaration is ExtensionDeclaration) {
@@ -49,15 +49,26 @@ class _UnitApiSignatureComputer {
         var functionExpression = declaration.functionExpression;
         _addTokens(
           declaration.beginToken,
-          (functionExpression.parameters ?? declaration.name).endToken,
+          functionExpression.parameters?.endToken ?? declaration.name,
         );
         _addFunctionBodyModifiers(functionExpression.body);
+      } else if (declaration is MixinDeclaration) {
+        _addMixin(declaration);
       } else if (declaration is TopLevelVariableDeclaration) {
         _topLevelVariableDeclaration(declaration);
       } else {
         _addNode(declaration);
       }
     }
+  }
+
+  void _addClass(ClassDeclaration node) {
+    _addTokens(node.beginToken, node.leftBracket);
+
+    bool hasConstConstructor = node.members
+        .any((m) => m is ConstructorDeclaration && m.constKeyword != null);
+
+    _addClassMembers(node.members, hasConstConstructor);
   }
 
   void _addClassMembers(List<ClassMember> members, bool hasConstConstructor) {
@@ -73,15 +84,6 @@ class _UnitApiSignatureComputer {
         throw UnimplementedError('(${member.runtimeType}) $member');
       }
     }
-  }
-
-  void _addClassOrMixin(ClassOrMixinDeclaration node) {
-    _addTokens(node.beginToken, node.leftBracket);
-
-    bool hasConstConstructor = node.members
-        .any((m) => m is ConstructorDeclaration && m.constKeyword != null);
-
-    _addClassMembers(node.members, hasConstConstructor);
   }
 
   void _addConstructorDeclaration(ConstructorDeclaration node) {
@@ -138,11 +140,16 @@ class _UnitApiSignatureComputer {
     signature.addInt(_kindMethodDeclaration);
     _addTokens(
       node.beginToken,
-      (node.parameters ?? node.name).endToken,
+      node.parameters?.endToken ?? node.name,
     );
     signature.addBool(node.body is EmptyFunctionBody);
     _addFunctionBodyModifiers(node.body);
     signature.addBool(node.invokesSuperSelf);
+  }
+
+  void _addMixin(MixinDeclaration node) {
+    _addTokens(node.beginToken, node.leftBracket);
+    _addClassMembers(node.members, false);
   }
 
   void _addNode(AstNode? node) {
@@ -212,7 +219,7 @@ class _UnitApiSignatureComputer {
     signature.addInt(variables.length);
 
     for (var variable in variables) {
-      _addNode(variable.name);
+      _addToken(variable.name);
       signature.addBool(variable.initializer != null);
       if (includeInitializers) {
         _addNode(variable.initializer);

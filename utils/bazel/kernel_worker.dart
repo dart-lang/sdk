@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.8
-
 /// A tool that invokes the CFE to compute kernel summary files.
 ///
 /// This script can be used as a command-line command or a persistent server.
@@ -21,7 +19,7 @@ import 'package:frontend_server/compute_kernel.dart';
 
 /// [sendPort] may be passed in when started in an isolate. If provided, it is
 /// used for bazel worker communication instead of stdin/stdout.
-main(List<String> args, SendPort sendPort) async {
+main(List<String> args, SendPort? sendPort) async {
   args = preprocessArgs(args);
 
   if (args.contains('--persistent_worker')) {
@@ -40,11 +38,11 @@ main(List<String> args, SendPort sendPort) async {
 
 /// A bazel worker loop that can compute full or summary kernel files.
 class KernelWorker extends AsyncWorkerLoop {
-  fe.InitializedCompilerState previousState;
+  fe.InitializedCompilerState? previousState;
 
   /// If [sendPort] is provided it is used for bazel worker communication
   /// instead of stdin/stdout.
-  KernelWorker({SendPort sendPort})
+  KernelWorker({SendPort? sendPort})
       : super(
             connection: sendPort == null
                 ? null
@@ -54,7 +52,7 @@ class KernelWorker extends AsyncWorkerLoop {
     var outputBuffer = new StringBuffer();
     var response = new WorkResponse()..exitCode = 0;
     try {
-      fe.InitializedCompilerState previousStateToPass;
+      fe.InitializedCompilerState? previousStateToPass;
       if (request.arguments.contains("--reuse-compiler-result")) {
         previousStateToPass = previousState;
       } else {

@@ -31,10 +31,7 @@ class InlineTypedef extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var parent = node.parent;
-    if (parent == null) {
-      return;
-    }
+    final node = this.node;
 
     //
     // Extract the information needed to build the edit.
@@ -42,21 +39,21 @@ class InlineTypedef extends CorrectionProducer {
     TypeAnnotation? returnType;
     TypeParameterList? typeParameters;
     List<FormalParameter> parameters;
-    if (parent is FunctionTypeAlias) {
-      returnType = parent.returnType;
-      _name = parent.name.name;
-      typeParameters = parent.typeParameters;
-      parameters = parent.parameters.parameters;
-    } else if (parent is GenericTypeAlias) {
-      if (parent.typeParameters != null) {
+    if (node is FunctionTypeAlias) {
+      returnType = node.returnType;
+      _name = node.name.lexeme;
+      typeParameters = node.typeParameters;
+      parameters = node.parameters.parameters;
+    } else if (node is GenericTypeAlias) {
+      if (node.typeParameters != null) {
         return;
       }
-      var functionType = parent.functionType;
+      var functionType = node.functionType;
       if (functionType == null) {
         return;
       }
       returnType = functionType.returnType;
-      _name = parent.name.name;
+      _name = node.name.lexeme;
       typeParameters = functionType.typeParameters;
       parameters = functionType.parameters.parameters;
     } else {
@@ -73,7 +70,7 @@ class InlineTypedef extends CorrectionProducer {
     // Build the edit.
     //
     await builder.addDartFileEdit(file, (builder) {
-      builder.addDeletion(utils.getLinesRange(range.node(parent)));
+      builder.addDeletion(utils.getLinesRange(range.node(node)));
       builder.addReplacement(range.node(reference), (builder) {
         if (returnType != null) {
           builder.write(utils.getNodeText(returnType));
@@ -128,10 +125,10 @@ class InlineTypedef extends CorrectionProducer {
               builder.write(utils.getNodeText(typeAnnotation));
             }
             if (parameter.isNamed) {
-              var identifier = parameter.identifier;
+              var identifier = parameter.name;
               if (identifier != null) {
                 builder.write(' ');
-                builder.write(identifier.name);
+                builder.write(identifier.lexeme);
               }
             }
           }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -15,6 +16,131 @@ import 'package:analyzer/src/generated/source.dart';
 class DiagnosticFactory {
   /// Initialize a newly created diagnostic factory.
   DiagnosticFactory();
+
+  /// Return a diagnostic indicating that [duplicateElement] reuses a name
+  /// already used by [originalElement].
+  AnalysisError duplicateDefinition(ErrorCode code, Element duplicateElement,
+      Element originalElement, List<Object> arguments) {
+    final duplicate = duplicateElement.nonSynthetic;
+    final original = originalElement.nonSynthetic;
+    return AnalysisError(
+      duplicate.source!,
+      duplicate.nameOffset,
+      duplicate.nameLength,
+      code,
+      arguments,
+      [
+        DiagnosticMessageImpl(
+            filePath: original.source!.fullName,
+            message: "The first definition of this name.",
+            offset: original.nameOffset,
+            length: original.nameLength,
+            url: null)
+      ],
+    );
+  }
+
+  /// Return a diagnostic indicating that [duplicateNode] reuses a name
+  /// already used by [originalNode].
+  AnalysisError duplicateDefinitionForNodes(Source source, ErrorCode code,
+      AstNode duplicateNode, AstNode originalNode, List<Object> arguments) {
+    return AnalysisError(
+      source,
+      duplicateNode.offset,
+      duplicateNode.length,
+      code,
+      arguments,
+      [
+        DiagnosticMessageImpl(
+            filePath: source.fullName,
+            message: "The first definition of this name.",
+            offset: originalNode.offset,
+            length: originalNode.length,
+            url: null)
+      ],
+    );
+  }
+
+  /// Return a diagnostic indicating that [duplicateField] reuses a name
+  /// already used by [originalField].
+  AnalysisError duplicateFieldDefinitionInLiteral(Source source,
+      NamedExpression duplicateField, NamedExpression originalField) {
+    var duplicateNode = duplicateField.name.label;
+    var duplicateName = duplicateNode.name;
+    return AnalysisError(
+      source,
+      duplicateNode.offset,
+      duplicateNode.length,
+      CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
+      [duplicateName],
+      [
+        DiagnosticMessageImpl(
+            filePath: source.fullName,
+            length: duplicateName.length,
+            message: 'The first ',
+            offset: originalField.name.label.offset,
+            url: source.uri.toString()),
+      ],
+    );
+  }
+
+  /// Return a diagnostic indicating that [duplicateField] reuses a name
+  /// already used by [originalField].
+  ///
+  /// This method requires that both the [duplicateField] and [originalField]
+  /// have a non-null `name`.
+  AnalysisError duplicateFieldDefinitionInType(
+      Source source,
+      RecordTypeAnnotationField duplicateField,
+      RecordTypeAnnotationField originalField) {
+    var duplicateNode = duplicateField.name!;
+    var duplicateName = duplicateNode.lexeme;
+    return AnalysisError(
+      source,
+      duplicateNode.offset,
+      duplicateNode.length,
+      CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
+      [duplicateName],
+      [
+        DiagnosticMessageImpl(
+            filePath: source.fullName,
+            length: duplicateName.length,
+            message: 'The first ',
+            offset: originalField.name!.offset,
+            url: source.uri.toString()),
+      ],
+    );
+  }
+
+  /// Return a diagnostic indicating that [duplicateField] reuses a name
+  /// already used by [originalField].
+  AnalysisError duplicateRecordPatternField({
+    required Source source,
+    required String name,
+    required RecordPatternField duplicateField,
+    required RecordPatternField originalField,
+  }) {
+    var originalNode = originalField.fieldName!;
+    var originalTarget = originalNode.name ?? originalNode.colon;
+    var duplicateNode = duplicateField.fieldName!;
+    var duplicateTarget = duplicateNode.name ?? duplicateNode.colon;
+    return AnalysisError(
+      source,
+      duplicateTarget.offset,
+      duplicateTarget.length,
+      CompileTimeErrorCode.DUPLICATE_RECORD_PATTERN_FIELD,
+      [name],
+      [
+        DiagnosticMessageImpl(
+          filePath: source.fullName,
+          length: originalTarget.length,
+          message: 'The first field.',
+          offset: originalTarget.offset,
+          url: source.uri.toString(),
+        ),
+      ],
+    );
+  }
 
   /// Return a diagnostic indicating that the [duplicateElement] (in a constant
   /// set) is a duplicate of the [originalElement].
@@ -74,13 +200,13 @@ class DiagnosticFactory {
   AnalysisError invalidOverride(
       Source source,
       ErrorCode? errorCode,
-      AstNode errorNode,
+      SyntacticEntity errorNode,
       ExecutableElement member,
       ExecutableElement superMember) {
     errorCode ??= CompileTimeErrorCode.INVALID_OVERRIDE;
     // Elements enclosing members that can participate in overrides are always
-    // named, so we can safely assume `_thisMember.enclosingElement.name` and
-    // `superMember.enclosingElement.name` are non-`null`.
+    // named, so we can safely assume `_thisMember.enclosingElement3.name` and
+    // `superMember.enclosingElement3.name` are non-`null`.
     return AnalysisError(
         source, errorNode.offset, errorNode.length, errorCode, [
       member.name,

@@ -10,7 +10,8 @@ import 'package:analyzer/src/pubspec/validators/dependency_validator.dart';
 import 'package:analyzer/src/pubspec/validators/field_validator.dart';
 import 'package:analyzer/src/pubspec/validators/flutter_validator.dart';
 import 'package:analyzer/src/pubspec/validators/name_validator.dart';
-import 'package:source_span/src/span.dart';
+import 'package:analyzer/src/pubspec/validators/screenshot_validator.dart';
+import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
 class BasePubspecValidator {
@@ -69,6 +70,9 @@ class PubspecField {
   /// The name of the field whose value is the where to publish the package.
   static const String PUBLISH_TO_FIELD = 'publish_to';
 
+  /// The name of the field whose value is a list of screenshots to publish.
+  static const String SCREENSHOTS_FIELD = 'screenshots';
+
   /// The name of the field whose value is the version of the package.
   static const String VERSION_FIELD = 'version';
 }
@@ -84,6 +88,7 @@ class PubspecValidator {
   final FieldValidator _fieldValidator;
   final FlutterValidator _flutterValidator;
   final NameValidator _nameValidator;
+  final ScreenshotsValidator _screenshotsValidator;
 
   /// Initialize a newly create validator to validate the content of the given
   /// [source].
@@ -91,7 +96,8 @@ class PubspecValidator {
       : _dependencyValidator = DependencyValidator(provider, source),
         _fieldValidator = FieldValidator(provider, source),
         _flutterValidator = FlutterValidator(provider, source),
-        _nameValidator = NameValidator(provider, source);
+        _nameValidator = NameValidator(provider, source),
+        _screenshotsValidator = ScreenshotsValidator(provider, source);
 
   /// Validate the given [contents].
   List<AnalysisError> validate(Map<dynamic, YamlNode> contents) {
@@ -108,6 +114,7 @@ class PubspecValidator {
     _fieldValidator.validate(reporter, contents);
     _flutterValidator.validate(reporter, contents);
     _nameValidator.validate(reporter, contents);
+    _screenshotsValidator.validate(reporter, contents);
 
     return recorder.errors;
   }

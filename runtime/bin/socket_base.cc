@@ -218,14 +218,13 @@ Dart_Handle SocketAddress::ToTypedData(const RawAddr& addr) {
 CObjectUint8Array* SocketAddress::ToCObject(const RawAddr& addr) {
   int in_addr_len = SocketAddress::GetInAddrLength(addr);
   const void* in_addr;
-  CObjectUint8Array* data =
-      new CObjectUint8Array(CObject::NewUint8Array(in_addr_len));
   if (addr.addr.sa_family == AF_INET6) {
     in_addr = reinterpret_cast<const void*>(&addr.in6.sin6_addr);
   } else {
     in_addr = reinterpret_cast<const void*>(&addr.in.sin_addr);
   }
-  memmove(data->Buffer(), in_addr, in_addr_len);
+  CObjectUint8Array* data =
+      new CObjectUint8Array(CObject::NewUint8Array(in_addr, in_addr_len));
   return data;
 }
 void SocketAddress::SetAddrScope(RawAddr* addr, intptr_t scope_id) {

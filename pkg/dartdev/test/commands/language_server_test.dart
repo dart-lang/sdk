@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -10,6 +11,8 @@ import 'package:test/test.dart';
 import '../utils.dart' as utils;
 
 void main() {
+  utils.ensureRunFromSdkBinDart();
+
   group(
     'language-server',
     defineLanguageServerTests,
@@ -31,9 +34,6 @@ void defineLanguageServerTests() {
 
     process = await project.start(args);
 
-    final Stream<String> inStream =
-        process!.stdout.transform<String>(utf8.decoder);
-
     // Send an LSP init.
     final String message = jsonEncode({
       'jsonrpc': '2.0',
@@ -51,12 +51,10 @@ void defineLanguageServerTests() {
     process!.stdin.write('\r\n');
     process!.stdin.write(message);
 
-    List<String> responses = await inStream.take(2).toList();
-    expect(responses, hasLength(2));
+    // Expect
+    final response = await _readLspMessage(process!.stdout);
 
-    expect(responses[0], startsWith('Content-Length: '));
-
-    final json = jsonDecode(responses[1]);
+    final json = jsonDecode(response);
     expect(json['id'], 1);
     expect(json['result'], isNotNull);
     final result = json['result'];
@@ -98,4 +96,43 @@ void defineLanguageServerTests() {
     process!.kill();
     process = null;
   });
+}
+
+/// Reads the first LSP message from [stream].
+Future<String> _readLspMessage(Stream<List<int>> stream) {
+  // Headers are complete if there are 2x '\r\n\'. The '\r' is part of the LSP
+  // spec for headers and included on all platforms, not just Windows.
+  const lspHeaderBodySeperator = '\r\n\r\n';
+  final contentLengthRegExp = RegExp(r'Content-Length: (\d+)\r\n');
+
+  final completer = Completer<String>();
+  final buffer = StringBuffer();
+  late final StreamSubscription<String> inSubscription;
+  inSubscription = stream.transform<String>(utf8.decoder).listen(
+    (data) {
+      // Collect the output into the buffer.
+      buffer.write(data);
+
+      // Check whether the buffer has a complete message.
+      final bufferString = buffer.toString();
+
+      // To know if we have a complete message, we need to check we have the
+      // headers, extract the content-length, then check we have that many
+      // bytes in the body.
+      if (bufferString.contains(lspHeaderBodySeperator)) {
+        final parts = bufferString.split(lspHeaderBodySeperator);
+        final headers = parts[0];
+        final body = parts[1];
+        final length =
+            int.parse(contentLengthRegExp.firstMatch(headers)!.group(1)!);
+        // Check if we're already had the full payload.
+        if (body.length >= length) {
+          completer.complete(body.substring(0, length));
+          inSubscription.cancel();
+        }
+      }
+    },
+  );
+
+  return completer.future;
 }

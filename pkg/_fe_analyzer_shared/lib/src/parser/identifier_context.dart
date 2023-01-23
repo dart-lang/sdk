@@ -72,6 +72,11 @@ abstract class IdentifierContext {
       formalParameterDeclaration =
       const FormalParameterDeclarationIdentifierContext();
 
+  /// Identifier is a record field being declared as part of a record type
+  /// declaration.
+  static const RecordFieldDeclarationIdentifierContext recordFieldDeclaration =
+      const RecordFieldDeclarationIdentifierContext();
+
   /// Identifier is a formal parameter being declared as part of a catch block
   /// in a try/catch/finally statement.
   static const CatchParameterIdentifierContext catchParameter =
@@ -144,7 +149,8 @@ abstract class IdentifierContext {
   /// Identifier is the name being declared by a top level function declaration.
   static const TopLevelDeclarationIdentifierContext
       topLevelFunctionDeclaration = const TopLevelDeclarationIdentifierContext(
-          'topLevelFunctionDeclaration', const ['<', '(', '{', '=>']);
+          'topLevelFunctionDeclaration',
+          const ['<', '(', '{', '=>', 'async', 'sync']);
 
   /// Identifier is the start of the name being declared by a method
   /// declaration.
@@ -255,6 +261,12 @@ abstract class IdentifierContext {
   static const NamedArgumentReferenceIdentifierContext namedArgumentReference =
       const NamedArgumentReferenceIdentifierContext();
 
+  /// Identifier is a reference to a named record field
+  /// (e.g. `foo` in `(42, foo: 42);`.
+  static const NamedRecordFieldReferenceIdentifierContext
+      namedRecordFieldReference =
+      const NamedRecordFieldReferenceIdentifierContext();
+
   /// Identifier is a name being declared by a local variable declaration.
   static const LocalVariableDeclarationIdentifierContext
       localVariableDeclaration =
@@ -294,14 +306,14 @@ abstract class IdentifierContext {
   final Template<_MessageWithArgument<Token>> recoveryTemplate;
 
   const IdentifierContext(this._name,
-      {this.inDeclaration: false,
-      this.inLibraryOrPartOfDeclaration: false,
-      this.inSymbol: false,
-      this.isContinuation: false,
-      this.isScopeReference: false,
-      this.isBuiltInIdentifierAllowed: true,
+      {this.inDeclaration = false,
+      this.inLibraryOrPartOfDeclaration = false,
+      this.inSymbol = false,
+      this.isContinuation = false,
+      this.isScopeReference = false,
+      this.isBuiltInIdentifierAllowed = true,
       bool? allowedInConstantExpression,
-      this.recoveryTemplate: templateExpectedIdentifier})
+      this.recoveryTemplate = templateExpectedIdentifier})
       : this.allowedInConstantExpression =
             // Generally, declarations are legal in constant expressions.  A
             // continuation doesn't affect constant expressions: if what it's
@@ -309,6 +321,7 @@ abstract class IdentifierContext {
             allowedInConstantExpression ??
                 (inDeclaration || isContinuation || inSymbol);
 
+  @override
   String toString() => _name;
 
   /// Indicates whether the token `new` in this context should be treated as a
@@ -356,6 +369,36 @@ bool looksLikeExpressionStart(Token next) =>
     optional('~', next) ||
     optional('++', next) ||
     optional('--', next);
+
+/// Returns `true` if the given [token] should be treated like the start of a
+/// pattern for the purposes of recovery.
+///
+/// Note: since the syntax for patterns is very similar to that for expressions,
+/// we mostly re-use [looksLikeExpressionStart].
+bool looksLikePatternStart(Token next) =>
+    next.isIdentifier ||
+    next.type == TokenType.DOUBLE ||
+    next.type == TokenType.HASH ||
+    next.type == TokenType.HEXADECIMAL ||
+    next.type == TokenType.IDENTIFIER ||
+    next.type == TokenType.INT ||
+    next.type == TokenType.STRING ||
+    optional('null', next) ||
+    optional('false', next) ||
+    optional('true', next) ||
+    optional('{', next) ||
+    optional('(', next) ||
+    optional('[', next) ||
+    optional('[]', next) ||
+    optional('<', next) ||
+    optional('<=', next) ||
+    optional('>', next) ||
+    optional('>=', next) ||
+    optional('!=', next) ||
+    optional('==', next) ||
+    optional('var', next) ||
+    optional('final', next) ||
+    optional('const', next);
 
 /// Return `true` if the given [token] should be treated like the start of
 /// a new statement for the purposes of recovery.

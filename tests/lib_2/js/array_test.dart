@@ -23,7 +23,7 @@ testArrayConstructor() {
   var list = <int>[1, 2, 3];
   testArray = list;
 
-  // Call the consturctor with `new`.
+  // Call the constructor with `new`.
   var array = js.callConstructor(js.getProperty(testArray, 'constructor'), []);
   var list2 = array as List;
   Expect.listEquals(list2, []);

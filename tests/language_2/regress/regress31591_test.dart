@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-// VMOptions=--optimization-counter-threshold=5
+// VMOptions=--optimization-counter-threshold=90
 
 import 'package:expect/expect.dart';
 
@@ -13,7 +13,7 @@ typedef FunObjObj = Object Function<T>(Object, {Object y});
 Object funTypObj<T>(T x, {Object y}) => y;
 
 main() {
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < 100; i++) {
     Expect.throwsTypeError(() {
       dynamic y = funTypObj;
       final FunObjObj x2 = y;

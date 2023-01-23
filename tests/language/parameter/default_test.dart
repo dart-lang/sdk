@@ -4,14 +4,12 @@
 
 class C {
   foo(a
-      : 1 // //# 01: syntax error
       = 1 // //# 02: syntax error
       ) {
     print(a);
   }
 
   static bar(a
-      : 1 // //# 03: syntax error
       = 1 // //# 04: syntax error
       ) {
     print(a);
@@ -19,7 +17,6 @@ class C {
 }
 
 baz(a
-    : 1 // //# 05: syntax error
     = 1 // //# 06: syntax error
     ) {
   print(a);
@@ -27,7 +24,6 @@ baz(a
 
 main() {
   foo(a
-      : 1 // //# 07: syntax error
       = 1 // //# 08: syntax error
       ) {
     print(a);

@@ -15,7 +15,7 @@ import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/kernel/kernel_world.dart';
 import 'package:compiler/src/universe/use.dart';
 import 'package:compiler/src/universe/world_impact.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 main() {
   asyncTest(() async {
@@ -142,10 +142,10 @@ class Impact {
   final List<String> parameterChecks;
 
   const Impact(
-      {this.checkedModeChecks: const <String>[],
-      this.asCasts: const <String>[],
-      this.implicitCasts: const <String>[],
-      this.parameterChecks: const <String>[]});
+      {this.checkedModeChecks = const <String>[],
+      this.asCasts = const <String>[],
+      this.implicitCasts = const <String>[],
+      this.parameterChecks = const <String>[]});
 
   @override
   String toString() {

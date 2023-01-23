@@ -2,42 +2,42 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dump_info;
 
-import 'dart:convert'
-    show ChunkedConversionSink, JsonEncoder, StringConversionSink;
+import 'dart:convert' show JsonEncoder, StringConversionSink;
 
 import 'package:compiler/src/js_model/elements.dart';
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/json_info_codec.dart';
 import 'package:dart2js_info/binary_serialization.dart' as dump_info;
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/core_types.dart' as ir;
 
 import '../compiler_api.dart' as api;
 import 'common.dart';
 import 'common/elements.dart' show JElementEnvironment;
 import 'common/names.dart';
 import 'common/tasks.dart' show CompilerTask;
-import 'compiler.dart' show Compiler;
-import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
+import 'common/ram_usage.dart';
+import 'compiler_interfaces.dart' show CompilerDumpInfoFacade;
+import 'constants/values.dart' show ConstantValue;
 import 'deferred_load/output_unit.dart' show OutputUnit, deferredPartFileName;
 import 'dump_info_javascript_monitor.dart';
 import 'elements/entities.dart';
 import 'elements/entity_utils.dart' as entity_utils;
+import 'elements/names.dart';
 import 'inferrer/abstract_value_domain.dart';
 import 'inferrer/types.dart'
     show GlobalTypeInferenceMemberResult, GlobalTypeInferenceResults;
 import 'js/js.dart' as jsAst;
-import 'js_model/js_strategy.dart';
+import 'js_model/js_strategy_interfaces.dart';
+import 'js_model/js_world.dart' show JClosedWorld;
 import 'js_backend/field_analysis.dart';
 import 'universe/world_impact.dart' show WorldImpact;
 import 'util/sink_adapter.dart';
-import 'world.dart' show JClosedWorld;
 
 class ElementInfoCollector {
-  final Compiler compiler;
+  final CompilerDumpInfoFacade compiler;
   final JClosedWorld closedWorld;
   final GlobalTypeInferenceResults _globalInferenceResults;
   final DumpInfoTask dumpInfoTask;
@@ -52,9 +52,9 @@ class ElementInfoCollector {
   void run() {
     dumpInfoTask._constantToNode.forEach((constant, node) {
       // TODO(sigmund): add dependencies on other constants
-      var span = dumpInfoTask._nodeData[node];
+      var span = dumpInfoTask._nodeData[node]!;
       var info = ConstantInfo(
-          size: span.end - span.start,
+          size: span.end! - span.start!,
           code: [span],
           outputUnit: _unitInfoForConstant(constant));
       state.constantToInfo[constant] = info;
@@ -73,7 +73,7 @@ class ElementInfoCollector {
         dumpInfoTask.inlineCount.containsKey(entity);
   }
 
-  LibraryInfo visitLibrary(LibraryEntity lib) {
+  LibraryInfo? visitLibrary(LibraryEntity lib) {
     String libname = environment.getLibraryName(lib);
     if (libname.isEmpty) {
       libname = '<unnamed>';
@@ -84,13 +84,13 @@ class ElementInfoCollector {
 
     environment.forEachLibraryMember(lib, (MemberEntity member) {
       if (member.isFunction || member.isGetter || member.isSetter) {
-        FunctionInfo functionInfo = visitFunction(member);
+        final functionInfo = visitFunction(member as FunctionEntity);
         if (functionInfo != null) {
           info.topLevelFunctions.add(functionInfo);
           functionInfo.parent = info;
         }
-      } else if (member.isField) {
-        FieldInfo fieldInfo = visitField(member);
+      } else if (member is FieldEntity) {
+        final fieldInfo = visitField(member);
         if (fieldInfo != null) {
           info.topLevelVariables.add(fieldInfo);
           fieldInfo.parent = info;
@@ -99,13 +99,13 @@ class ElementInfoCollector {
     });
 
     environment.forEachClass(lib, (ClassEntity clazz) {
-      ClassTypeInfo classTypeInfo = visitClassType(clazz);
+      final classTypeInfo = visitClassType(clazz);
       if (classTypeInfo != null) {
         info.classTypes.add(classTypeInfo);
         classTypeInfo.parent = info;
       }
 
-      ClassInfo classInfo = visitClass(clazz);
+      final classInfo = visitClass(clazz);
       if (classInfo != null) {
         info.classes.add(classInfo);
         classInfo.parent = info;
@@ -123,13 +123,12 @@ class ElementInfoCollector {
   AbstractValue _resultOfParameter(Local e) =>
       _globalInferenceResults.resultOfParameter(e);
 
-  FieldInfo visitField(FieldEntity field) {
+  FieldInfo? visitField(FieldEntity field) {
     AbstractValue inferredType = _resultOfMember(field).type;
     // If a field has an empty inferred type it is never used.
-    if (inferredType == null ||
-        closedWorld.abstractValueDomain
-            .isEmpty(inferredType)
-            .isDefinitelyTrue) {
+    if (closedWorld.abstractValueDomain
+        .isEmpty(inferredType)
+        .isDefinitelyTrue) {
       return null;
     }
 
@@ -137,19 +136,20 @@ class ElementInfoCollector {
     List<CodeSpan> code = dumpInfoTask.codeOf(field);
 
     // TODO(het): Why doesn't `size` account for the code size already?
-    if (code != null) size += code.length;
+    size += code.length;
 
     FieldInfo info = FieldInfo(
-        name: field.name,
+        name: field.name!,
         type: '${environment.getFieldType(field)}',
         inferredType: '$inferredType',
         code: code,
         outputUnit: _unitInfoForMember(field),
         isConst: field.isConst);
     state.entityToInfo[field] = info;
-    FieldAnalysisData fieldData = closedWorld.fieldAnalysis.getFieldData(field);
+    final fieldData = closedWorld.fieldAnalysis.getFieldData(field as JField);
     if (fieldData.initialValue != null) {
-      info.initializer = state.constantToInfo[fieldData.initialValue];
+      info.initializer =
+          state.constantToInfo[fieldData.initialValue] as ConstantInfo?;
     }
 
     if (compiler.options.experimentCallInstrumentation) {
@@ -165,7 +165,7 @@ class ElementInfoCollector {
     return info;
   }
 
-  ClassTypeInfo visitClassType(ClassEntity clazz) {
+  ClassTypeInfo? visitClassType(ClassEntity clazz) {
     // Omit class type if it is not needed.
     ClassTypeInfo classTypeInfo = ClassTypeInfo(
         name: clazz.name, outputUnit: _unitInfoForClassType(clazz));
@@ -183,29 +183,62 @@ class ElementInfoCollector {
     return classTypeInfo;
   }
 
-  ClassInfo visitClass(ClassEntity clazz) {
-    // Omit class if it is not needed.
-    ClassInfo classInfo = ClassInfo(
+  /// Returns all immediately extended, implemented, or mixed-in types of
+  /// [clazz].
+  List<ClassEntity> getImmediateSupers(ClassEntity clazz) {
+    final superclass =
+        environment.getSuperClass(clazz, skipUnnamedMixinApplications: true);
+    // Ignore 'Object' to reduce overhead.
+    return [
+      if (superclass != null &&
+          superclass != closedWorld.commonElements.objectClass)
+        superclass,
+      ...closedWorld.dartTypes.getInterfaces(clazz).map((i) => i.element),
+    ];
+  }
+
+  ClassInfo? visitClass(ClassEntity clazz) {
+    // True if [info] can be safely removed from the output.
+    bool filterClassInfo(ClassInfo info) =>
+        !compiler.backendStrategy.emitterTask.neededClasses.contains(clazz) &&
+        info.fields.isEmpty &&
+        info.functions.isEmpty;
+
+    ClassInfo? classInfo = state.entityToInfo[clazz] as ClassInfo?;
+    if (classInfo != null) {
+      return filterClassInfo(classInfo) ? null : classInfo;
+    }
+    final supers = <ClassInfo>[];
+    getImmediateSupers(clazz).forEach((superInterface) {
+      final superclass =
+          environment.lookupClass(superInterface.library, superInterface.name);
+      if (superclass == null) return;
+      final classInfo = visitClass(superclass);
+      if (classInfo == null) return;
+      supers.add(classInfo);
+    });
+    classInfo = ClassInfo(
         name: clazz.name,
         isAbstract: clazz.isAbstract,
+        supers: supers,
         outputUnit: _unitInfoForClass(clazz));
     state.entityToInfo[clazz] = classInfo;
 
     int size = dumpInfoTask.sizeOf(clazz);
     environment.forEachLocalClassMember(clazz, (member) {
       if (member.isFunction || member.isGetter || member.isSetter) {
-        FunctionInfo functionInfo = visitFunction(member);
+        final functionInfo = visitFunction(member as FunctionEntity);
         if (functionInfo != null) {
-          classInfo.functions.add(functionInfo);
+          classInfo!.functions.add(functionInfo);
           functionInfo.parent = classInfo;
           for (var closureInfo in functionInfo.closures) {
             size += closureInfo.size;
           }
         }
-      } else if (member.isField) {
-        FieldInfo fieldInfo = visitField(member);
+      } else if (member is FieldEntity) {
+        final fieldInfo = visitField(member);
         if (fieldInfo != null) {
-          classInfo.fields.add(fieldInfo);
+          classInfo!.fields.add(fieldInfo);
           fieldInfo.parent = classInfo;
           for (var closureInfo in fieldInfo.closures) {
             size += closureInfo.size;
@@ -216,9 +249,9 @@ class ElementInfoCollector {
       }
     });
     environment.forEachConstructor(clazz, (constructor) {
-      FunctionInfo functionInfo = visitFunction(constructor);
+      final functionInfo = visitFunction(constructor);
       if (functionInfo != null) {
-        classInfo.functions.add(functionInfo);
+        classInfo!.functions.add(functionInfo);
         functionInfo.parent = classInfo;
         for (var closureInfo in functionInfo.closures) {
           size += closureInfo.size;
@@ -228,9 +261,7 @@ class ElementInfoCollector {
 
     classInfo.size = size;
 
-    if (!compiler.backendStrategy.emitterTask.neededClasses.contains(clazz) &&
-        classInfo.fields.isEmpty &&
-        classInfo.functions.isEmpty) {
+    if (filterClassInfo(classInfo)) {
       return null;
     }
 
@@ -238,17 +269,17 @@ class ElementInfoCollector {
     return classInfo;
   }
 
-  ClosureInfo visitClosureClass(ClassEntity element) {
+  ClosureInfo? visitClosureClass(ClassEntity element) {
     ClosureInfo closureInfo = ClosureInfo(
         name: element.name,
         outputUnit: _unitInfoForClass(element),
         size: dumpInfoTask.sizeOf(element));
     state.entityToInfo[element] = closureInfo;
 
-    FunctionEntity callMethod = closedWorld.elementEnvironment
-        .lookupClassMember(element, Identifiers.call);
+    final callMethod =
+        closedWorld.elementEnvironment.lookupClassMember(element, Names.call);
 
-    FunctionInfo functionInfo = visitFunction(callMethod);
+    final functionInfo = visitFunction(callMethod as FunctionEntity);
     if (functionInfo == null) return null;
     closureInfo.function = functionInfo;
     functionInfo.parent = closureInfo;
@@ -257,7 +288,7 @@ class ElementInfoCollector {
     return closureInfo;
   }
 
-  FunctionInfo visitFunction(FunctionEntity function) {
+  FunctionInfo? visitFunction(FunctionEntity function) {
     int size = dumpInfoTask.sizeOf(function);
     // TODO(sigmund): consider adding a small info to represent unreachable
     // code here.
@@ -265,28 +296,25 @@ class ElementInfoCollector {
 
     // TODO(het): use 'toString' instead of 'text'? It will add '=' for setters
     String name = function.memberName.text;
-    int kind;
+    int? kind;
     if (function.isStatic || function.isTopLevel) {
       kind = FunctionInfo.TOP_LEVEL_FUNCTION_KIND;
     } else if (function.enclosingClass != null) {
       kind = FunctionInfo.METHOD_FUNCTION_KIND;
     }
 
-    if (function.isConstructor) {
+    if (function is ConstructorEntity) {
       name = name == ""
           ? "${function.enclosingClass.name}"
           : "${function.enclosingClass.name}.${function.name}";
       kind = FunctionInfo.CONSTRUCTOR_FUNCTION_KIND;
     }
 
-    assert(kind != null);
-
     FunctionModifiers modifiers = FunctionModifiers(
       isStatic: function.isStatic,
       isConst: function.isConst,
-      isFactory: function.isConstructor
-          ? (function as ConstructorEntity).isFactoryConstructor
-          : false,
+      isFactory:
+          function is ConstructorEntity ? function.isFactoryConstructor : false,
       isExternal: function.isExternal,
     );
     List<CodeSpan> code = dumpInfoTask.codeOf(function);
@@ -313,12 +341,11 @@ class ElementInfoCollector {
     String sideEffects =
         '${_globalInferenceResults.inferredData.getSideEffectsOfElement(function)}';
 
-    int inlinedCount = dumpInfoTask.inlineCount[function];
-    if (inlinedCount == null) inlinedCount = 0;
+    int inlinedCount = dumpInfoTask.inlineCount[function] ?? 0;
 
     FunctionInfo info = FunctionInfo(
         name: name,
-        functionKind: kind,
+        functionKind: kind!,
         modifiers: modifiers,
         returnType: returnType,
         inferredReturnType: inferredReturnType,
@@ -353,7 +380,7 @@ class ElementInfoCollector {
     int size = 0;
     List<ClosureInfo> nestedClosures = <ClosureInfo>[];
     environment.forEachNestedClosure(member, (closure) {
-      ClosureInfo closureInfo = visitClosureClass(closure.enclosingClass);
+      final closureInfo = visitClosureClass(closure.enclosingClass!);
       if (closureInfo != null) {
         closureInfo.parent = info;
         nestedClosures.add(closureInfo);
@@ -371,9 +398,8 @@ class ElementInfoCollector {
       // Dump-info currently only works with the full emitter. If another
       // emitter is used it will fail here.
       JsBackendStrategy backendStrategy = compiler.backendStrategy;
-      assert(outputUnit.name != null || outputUnit.isMainOutput);
       final filename = outputUnit.isMainOutput
-          ? (compiler.options.outputUri?.pathSegments?.last ?? 'out')
+          ? (compiler.options.outputUri?.pathSegments.last ?? 'out')
           : deferredPartFileName(compiler.options, outputUnit.name);
       OutputUnitInfo info = OutputUnitInfo(filename, outputUnit.name,
           backendStrategy.emitterTask.emitter.generatedSize(outputUnit));
@@ -400,56 +426,56 @@ class ElementInfoCollector {
   }
 
   OutputUnitInfo _unitInfoForConstant(ConstantValue constant) {
-    OutputUnit outputUnit =
+    final outputUnit =
         closedWorld.outputUnitData.outputUnitForConstant(constant);
-    if (outputUnit == null) {
-      assert(constant is InterceptorConstantValue);
-      return null;
-    }
     return _infoFromOutputUnit(outputUnit);
   }
 }
 
 class KernelInfoCollector {
   final ir.Component component;
-  final Compiler compiler;
+  final CompilerDumpInfoFacade compiler;
   final JClosedWorld closedWorld;
   final DumpInfoTask dumpInfoTask;
   final state = DumpInfoStateData();
+  final ir.CoreTypes coreTypes;
 
   JElementEnvironment get environment => closedWorld.elementEnvironment;
 
   KernelInfoCollector(
-      this.component, this.compiler, this.dumpInfoTask, this.closedWorld);
+      this.component, this.compiler, this.dumpInfoTask, this.closedWorld)
+      : this.coreTypes = ir.CoreTypes(component);
 
   void run() {
     // TODO(markzipan): Add CFE constants to `state.info.constants`.
     component.libraries.forEach(visitLibrary);
   }
 
-  LibraryInfo visitLibrary(ir.Library lib) {
+  LibraryInfo? visitLibrary(ir.Library lib) {
     final libEntity = environment.lookupLibrary(lib.importUri);
     if (libEntity == null) return null;
 
-    String libname = lib.name;
+    String? libname = lib.name;
     if (libname == null || libname.isEmpty) {
       libname = '${lib.importUri}';
     }
-    LibraryInfo info = LibraryInfo(libname, lib.importUri, null, null);
+    LibraryInfo info = LibraryInfo(libname, lib.importUri, null, 0);
 
     lib.members.forEach((ir.Member member) {
       final memberEntity =
           environment.lookupLibraryMember(libEntity, member.name.text);
       if (memberEntity == null) return;
-      if (member.function != null) {
-        FunctionInfo functionInfo =
-            visitFunction(member.function, functionEntity: memberEntity);
+      final function = member.function;
+      if (function != null) {
+        final functionInfo = visitFunction(function,
+            functionEntity: memberEntity as FunctionEntity);
         if (functionInfo != null) {
           info.topLevelFunctions.add(functionInfo);
           functionInfo.parent = info;
         }
       } else {
-        FieldInfo fieldInfo = visitField(member, fieldEntity: memberEntity);
+        final fieldInfo = visitField(member as ir.Field,
+            fieldEntity: memberEntity as FieldEntity);
         if (fieldInfo != null) {
           info.topLevelVariables.add(fieldInfo);
           fieldInfo.parent = info;
@@ -461,13 +487,13 @@ class KernelInfoCollector {
       final classEntity = environment.lookupClass(libEntity, clazz.name);
       if (classEntity == null) return;
 
-      ClassTypeInfo classTypeInfo = visitClassType(clazz);
+      final classTypeInfo = visitClassType(clazz);
       if (classTypeInfo != null) {
         info.classTypes.add(classTypeInfo);
         classTypeInfo.parent = info;
       }
 
-      ClassInfo classInfo = visitClass(clazz, classEntity: classEntity);
+      final classInfo = visitClass(clazz, classEntity: classEntity);
       if (classInfo != null) {
         info.classes.add(classInfo);
         classInfo.parent = info;
@@ -478,7 +504,7 @@ class KernelInfoCollector {
     return info;
   }
 
-  FieldInfo visitField(ir.Field field, {FieldEntity fieldEntity}) {
+  FieldInfo? visitField(ir.Field field, {required FieldEntity fieldEntity}) {
     FieldInfo info = FieldInfo.fromKernel(
       name: field.name.text,
       type: field.type.toStringInternal(),
@@ -498,40 +524,63 @@ class KernelInfoCollector {
     return info;
   }
 
-  ClassTypeInfo visitClassType(ir.Class clazz) {
+  ClassTypeInfo? visitClassType(ir.Class clazz) {
     ClassTypeInfo classTypeInfo = ClassTypeInfo(name: clazz.name);
     state.info.classTypes.add(classTypeInfo);
     return classTypeInfo;
   }
 
-  ClassInfo visitClass(ir.Class clazz, {ClassEntity classEntity}) {
-    // Omit class if it is not needed.
-    ClassInfo classInfo = ClassInfo(
-        name: clazz.name, isAbstract: clazz.isAbstract, outputUnit: null);
+  ClassInfo? visitClass(ir.Class clazz, {required ClassEntity classEntity}) {
+    if (state.entityToInfo[classEntity] != null)
+      return state.entityToInfo[classEntity] as ClassInfo?;
+
+    final supers = <ClassInfo>[];
+    clazz.supers.forEach((supertype) {
+      final superclass = supertype.classNode;
+      // Ignore 'Object' to reduce overhead.
+      if (superclass == coreTypes.objectClass) {
+        return;
+      }
+      final superclassLibrary =
+          environment.lookupLibrary(superclass.enclosingLibrary.importUri)!;
+      final superclassEntity =
+          environment.lookupClass(superclassLibrary, superclass.name);
+      if (superclassEntity == null) return;
+      final classInfo = visitClass(superclass, classEntity: superclassEntity);
+      if (classInfo != null) supers.add(classInfo);
+    });
+
+    ClassInfo classInfo = ClassInfo.fromKernel(
+        name: clazz.name, isAbstract: clazz.isAbstract, supers: supers);
+    state.entityToInfo[classEntity] = classInfo;
 
     clazz.members.forEach((ir.Member member) {
       final isSetter = member is ir.Procedure && member.isSetter;
       // clazz.members includes constructors
-      MemberEntity memberEntity = environment.lookupLocalClassMember(
-              classEntity, member.name.text,
-              setter: isSetter) ??
-          environment.lookupConstructor(classEntity, member.name.text);
+      final name = Name(member.name.text,
+          member.name.isPrivate ? member.name.library!.importUri : null,
+          isSetter: isSetter);
+      final memberEntity =
+          environment.lookupLocalClassMember(classEntity, name) ??
+              environment.lookupConstructor(classEntity, member.name.text);
       if (memberEntity == null) return;
 
-      if (member.function != null) {
+      final function = member.function;
+      if (function != null) {
         // Multiple kernel members can map to single JWorld member
         // (e.g., when one of a getter/field pair are tree-shaken),
         // so avoid duplicating the downstream info object.
         if (memberEntity is FunctionEntity) {
-          FunctionInfo functionInfo =
-              visitFunction(member.function, functionEntity: memberEntity);
+          final functionInfo =
+              visitFunction(function, functionEntity: memberEntity);
           if (functionInfo != null) {
             classInfo.functions.add(functionInfo);
             functionInfo.parent = classInfo;
           }
         }
       } else {
-        FieldInfo fieldInfo = visitField(member, fieldEntity: memberEntity);
+        final fieldInfo = visitField(member as ir.Field,
+            fieldEntity: memberEntity as FieldEntity);
         if (fieldInfo != null) {
           classInfo.fields.add(fieldInfo);
           fieldInfo.parent = classInfo;
@@ -543,11 +592,12 @@ class KernelInfoCollector {
     return classInfo;
   }
 
-  FunctionInfo visitFunction(ir.FunctionNode function,
-      {FunctionEntity functionEntity, LocalFunctionInfo localFunctionInfo}) {
+  FunctionInfo? visitFunction(ir.FunctionNode function,
+      {required FunctionEntity functionEntity,
+      LocalFunctionInfo? localFunctionInfo}) {
     final parent = function.parent;
     bool isClosureCallMethod = parent is ir.LocalFunction;
-    String name = isClosureCallMethod ? 'call' : parent.toStringInternal();
+    String name = isClosureCallMethod ? 'call' : parent!.toStringInternal();
     bool isConstructor = parent is ir.Constructor;
     bool isFactory = parent is ir.Procedure && parent.isFactory;
     // Kernel `isStatic` refers to static members, constructors, and top-level
@@ -566,7 +616,7 @@ class KernelInfoCollector {
         (parent is ir.Member && parent.enclosingClass != null);
     bool isGetter = parent is ir.Procedure && parent.isGetter;
     bool isSetter = parent is ir.Procedure && parent.isSetter;
-    int kind;
+    late int kind;
     if (isStaticMember || isTopLevel) {
       kind = FunctionInfo.TOP_LEVEL_FUNCTION_KIND;
     } else if (isMethod) {
@@ -577,7 +627,7 @@ class KernelInfoCollector {
       String functionName = function.toStringInternal();
       name = functionName.isEmpty ? '$name' : '$name$functionName';
     } else {
-      if (parent.parent is ir.Class && name.contains('.')) {
+      if (parent!.parent is ir.Class && name.contains('.')) {
         name = name.split('.')[1];
       }
     }
@@ -605,8 +655,9 @@ class KernelInfoCollector {
         returnType: function.returnType.toStringInternal(),
         type: functionType.toStringInternal());
 
-    if (function.parent is ir.Member)
-      _addClosureInfo(info, function.parent,
+    final functionParent = function.parent;
+    if (functionParent is ir.Member)
+      _addClosureInfo(info, functionParent,
           libraryEntity: functionEntity.library, memberEntity: functionEntity);
     else {
       // This branch is only reached when function is a 'call' method.
@@ -626,28 +677,30 @@ class KernelInfoCollector {
 
   /// Adds closure information to [info], using all nested closures in [member].
   void _addClosureInfo(Info info, ir.Member member,
-      {LibraryEntity libraryEntity, MemberEntity memberEntity}) {
+      {required LibraryEntity libraryEntity,
+      required MemberEntity memberEntity}) {
     final localFunctionInfoCollector = LocalFunctionInfoCollector();
     member.accept(localFunctionInfoCollector);
     List<ClosureInfo> nestedClosures = <ClosureInfo>[];
     localFunctionInfoCollector.localFunctions.forEach((key, value) {
-      FunctionEntity closureEntity;
+      late FunctionEntity closureEntity;
       int closureOrder = value.order;
       environment.forEachNestedClosure(memberEntity, (closure) {
-        if (closure.enclosingClass.name == value.name &&
+        if (closure.enclosingClass!.name == value.name &&
             (closureOrder-- == 0)) {
           closureEntity = closure;
         }
       });
-      final closureClassEntity = closureEntity.enclosingClass;
+      final closureClassEntity = closureEntity.enclosingClass!;
       final closureInfo = ClosureInfo.fromKernel(name: value.disambiguatedName);
 
-      FunctionEntity callMethod = closedWorld.elementEnvironment
-          .lookupClassMember(closureClassEntity, Identifiers.call);
+      final callMethod = closedWorld.elementEnvironment
+          .lookupClassMember(closureClassEntity, Names.call);
       final functionInfo = visitFunction(key.function,
-          functionEntity: callMethod, localFunctionInfo: value);
+          functionEntity: callMethod as FunctionEntity,
+          localFunctionInfo: value);
 
-      closureInfo.function = functionInfo;
+      closureInfo.function = functionInfo!;
       functionInfo.parent = closureInfo;
       state.info.closures.add(closureInfo);
 
@@ -676,12 +729,13 @@ class EntityDisambiguator {
     if (disambiguatedName != null) {
       return disambiguatedName;
     }
-    nameFrequencies[entity.name] = (nameFrequencies[entity.name] ?? -1) + 1;
-    final order = nameFrequencies[entity.name];
+    final entityName = entity.name!;
+    nameFrequencies[entityName] = (nameFrequencies[entityName] ?? -1) + 1;
+    final order = nameFrequencies[entityName]!;
     entityNames[entity] =
-        order == 0 ? entity.name : '${entity.name}%${order - 1}';
+        order == 0 ? entityName : '${entityName}%${order - 1}';
 
-    return entityNames[entity];
+    return entityNames[entity]!;
   }
 }
 
@@ -689,7 +743,7 @@ class EntityDisambiguator {
 /// analysis.
 class DumpInfoAnnotator {
   final KernelInfoCollector kernelInfo;
-  final Compiler compiler;
+  final CompilerDumpInfoFacade compiler;
   final JClosedWorld closedWorld;
   final GlobalTypeInferenceResults _globalInferenceResults;
   final DumpInfoTask dumpInfoTask;
@@ -703,9 +757,9 @@ class DumpInfoAnnotator {
   void run() {
     dumpInfoTask._constantToNode.forEach((constant, node) {
       // TODO(sigmund): add dependencies on other constants
-      var span = dumpInfoTask._nodeData[node];
+      var span = dumpInfoTask._nodeData[node]!;
       var info = ConstantInfo(
-          size: span.end - span.start,
+          size: span.end! - span.start!,
           code: [span],
           outputUnit: _unitInfoForConstant(constant));
       kernelInfo.state.constantToInfo[constant] = info;
@@ -725,7 +779,7 @@ class DumpInfoAnnotator {
         dumpInfoTask.inlineCount.containsKey(entity);
   }
 
-  LibraryInfo visitLibrary(LibraryEntity lib) {
+  LibraryInfo? visitLibrary(LibraryEntity lib) {
     var kLibraryInfos = kernelInfo.state.info.libraries
         .where((i) => '${i.uri}' == '${lib.canonicalUri}');
     assert(
@@ -744,8 +798,8 @@ class DumpInfoAnnotator {
 
     environment.forEachLibraryMember(lib, (MemberEntity member) {
       if (member.isFunction || member.isGetter || member.isSetter) {
-        visitFunction(member, libname);
-      } else if (member.isField) {
+        visitFunction(member as FunctionEntity, libname);
+      } else if (member is FieldEntity) {
         visitField(member, libname);
       } else {
         throw StateError('Class member not a function or field');
@@ -776,13 +830,12 @@ class DumpInfoAnnotator {
 
   // TODO(markzipan): [parentName] is used for disambiguation, but this might
   // not always be valid. Check and validate later.
-  FieldInfo visitField(FieldEntity field, String parentName) {
-    AbstractValue inferredType = _resultOfMember(field).type;
+  FieldInfo? visitField(FieldEntity field, String parentName) {
+    final inferredType = _resultOfMember(field).type;
     // If a field has an empty inferred type it is never used.
-    if (inferredType == null ||
-        closedWorld.abstractValueDomain
-            .isEmpty(inferredType)
-            .isDefinitelyTrue) {
+    if (closedWorld.abstractValueDomain
+        .isEmpty(inferredType)
+        .isDefinitelyTrue) {
       return null;
     }
 
@@ -802,17 +855,18 @@ class DumpInfoAnnotator {
     List<CodeSpan> code = dumpInfoTask.codeOf(field);
 
     // TODO(het): Why doesn't `size` account for the code size already?
-    if (code != null) size += code.length;
+    size += code.length;
 
     kFieldInfo.outputUnit = _unitInfoForMember(field);
     kFieldInfo.inferredType = '$inferredType';
     kFieldInfo.code = code;
     kFieldInfo.treeShakenStatus = TreeShakenStatus.Live;
 
-    FieldAnalysisData fieldData = closedWorld.fieldAnalysis.getFieldData(field);
+    FieldAnalysisData fieldData =
+        closedWorld.fieldAnalysis.getFieldData(field as JField);
     if (fieldData.initialValue != null) {
-      kFieldInfo.initializer =
-          kernelInfo.state.constantToInfo[fieldData.initialValue];
+      kFieldInfo.initializer = kernelInfo
+          .state.constantToInfo[fieldData.initialValue] as ConstantInfo?;
     }
 
     int closureSize = _addClosureInfo(kFieldInfo, field);
@@ -822,9 +876,9 @@ class DumpInfoAnnotator {
 
   // TODO(markzipan): [parentName] is used for disambiguation, but this might
   // not always be valid. Check and validate later.
-  ClassTypeInfo visitClassType(ClassEntity clazz, String parentName) {
+  ClassTypeInfo? visitClassType(ClassEntity clazz, String parentName) {
     var kClassTypeInfos = kernelInfo.state.info.classTypes
-        .where((i) => i.name == clazz.name && i.parent.name == parentName);
+        .where((i) => i.name == clazz.name && i.parent!.name == parentName);
     assert(
         kClassTypeInfos.length == 1,
         'Ambiguous class type resolution. '
@@ -847,7 +901,7 @@ class DumpInfoAnnotator {
 
   // TODO(markzipan): [parentName] is used for disambiguation, but this might
   // not always be valid. Check and validate later.
-  ClassInfo visitClass(ClassEntity clazz, String parentName) {
+  ClassInfo? visitClass(ClassEntity clazz, String parentName) {
     final kClassInfos = kernelInfo.state.info.classes
         .where((i) =>
             i.name == clazz.name &&
@@ -860,23 +914,34 @@ class DumpInfoAnnotator {
     final kClassInfo = kClassInfos.first;
     kernelInfo.state.entityToInfo[clazz] = kClassInfo;
 
+    /// Add synthetically injected superclasses like `Interceptor` and
+    /// `LegacyJavaScriptObject`.
+    final syntheticSuperclass = closedWorld.commonElements
+        .getDefaultSuperclass(clazz, closedWorld.nativeData);
+    if (syntheticSuperclass != closedWorld.commonElements.objectClass) {
+      final classInfo = kernelInfo.state.entityToInfo[syntheticSuperclass];
+      if (classInfo != null) {
+        kClassInfo.supers.add(classInfo as ClassInfo);
+      }
+    }
+
     int size = dumpInfoTask.sizeOf(clazz);
     final disambiguatedMemberName = '$parentName/${clazz.name}';
     environment.forEachLocalClassMember(clazz, (member) {
       // Skip certain incongruent locals that during method alias installation.
-      if (member is JMethod && member.enclosingClass.name != clazz.name) {
+      if (member is JMethod && member.enclosingClass!.name != clazz.name) {
         return;
       }
       if (member.isFunction || member.isGetter || member.isSetter) {
-        FunctionInfo functionInfo =
-            visitFunction(member, disambiguatedMemberName);
+        final functionInfo =
+            visitFunction(member as FunctionEntity, disambiguatedMemberName);
         if (functionInfo != null) {
           for (var closureInfo in functionInfo.closures) {
             size += closureInfo.size;
           }
         }
-      } else if (member.isField) {
-        FieldInfo fieldInfo = visitField(member, disambiguatedMemberName);
+      } else if (member is FieldEntity) {
+        final fieldInfo = visitField(member, disambiguatedMemberName);
         if (fieldInfo != null) {
           for (var closureInfo in fieldInfo.closures) {
             size += closureInfo.size;
@@ -887,8 +952,7 @@ class DumpInfoAnnotator {
       }
     });
     environment.forEachConstructor(clazz, (constructor) {
-      FunctionInfo functionInfo =
-          visitFunction(constructor, disambiguatedMemberName);
+      final functionInfo = visitFunction(constructor, disambiguatedMemberName);
       if (functionInfo != null) {
         for (var closureInfo in functionInfo.closures) {
           size += closureInfo.size;
@@ -909,7 +973,7 @@ class DumpInfoAnnotator {
     return kClassInfo;
   }
 
-  ClosureInfo visitClosureClass(ClassEntity element) {
+  ClosureInfo? visitClosureClass(ClassEntity element) {
     final disambiguatedElementName = entityDisambiguator.name(element);
     final kClosureInfos = kernelInfo.state.info.closures
         .where((info) => info.name == disambiguatedElementName)
@@ -924,11 +988,12 @@ class DumpInfoAnnotator {
     kClosureInfo.outputUnit = _unitInfoForClass(element);
     kClosureInfo.size = dumpInfoTask.sizeOf(element);
 
-    FunctionEntity callMethod = closedWorld.elementEnvironment
-        .lookupClassMember(element, Identifiers.call);
+    final callMethod =
+        closedWorld.elementEnvironment.lookupClassMember(element, Names.call);
 
-    final functionInfo =
-        visitFunction(callMethod, disambiguatedElementName, isClosure: true);
+    final functionInfo = visitFunction(
+        callMethod as FunctionEntity, disambiguatedElementName,
+        isClosure: true);
     if (functionInfo == null) return null;
 
     kClosureInfo.treeShakenStatus = TreeShakenStatus.Live;
@@ -937,13 +1002,13 @@ class DumpInfoAnnotator {
 
   // TODO(markzipan): [parentName] is used for disambiguation, but this might
   // not always be valid. Check and validate later.
-  FunctionInfo visitFunction(FunctionEntity function, String parentName,
+  FunctionInfo? visitFunction(FunctionEntity function, String parentName,
       {bool isClosure = false}) {
     int size = dumpInfoTask.sizeOf(function);
     if (size == 0 && !shouldKeep(function)) return null;
 
     var compareName = function.name;
-    if (function.isConstructor) {
+    if (function is ConstructorEntity) {
       compareName = compareName == ""
           ? "${function.enclosingClass.name}"
           : "${function.enclosingClass.name}.${function.name}";
@@ -954,7 +1019,7 @@ class DumpInfoAnnotator {
     final kFunctionInfos = kernelInfo.state.info.functions
         .where((i) =>
             i.name == compareName &&
-            (isClosure ? i.parent.name : fullyResolvedNameForInfo(i.parent)) ==
+            (isClosure ? i.parent!.name : fullyResolvedNameForInfo(i.parent)) ==
                 parentName &&
             !(function.isGetter ^ i.modifiers.isGetter) &&
             !(function.isSetter ^ i.modifiers.isSetter))
@@ -1009,7 +1074,7 @@ class DumpInfoAnnotator {
     assert(info is FunctionInfo || info is FieldInfo);
     int size = 0;
     environment.forEachNestedClosure(member, (closure) {
-      ClosureInfo closureInfo = visitClosureClass(closure.enclosingClass);
+      final closureInfo = visitClosureClass(closure.enclosingClass!);
       if (closureInfo != null) {
         closureInfo.treeShakenStatus = TreeShakenStatus.Live;
         size += closureInfo.size;
@@ -1023,9 +1088,8 @@ class DumpInfoAnnotator {
       // Dump-info currently only works with the full emitter. If another
       // emitter is used it will fail here.
       JsBackendStrategy backendStrategy = compiler.backendStrategy;
-      assert(outputUnit.name != null || outputUnit.isMainOutput);
       final filename = outputUnit.isMainOutput
-          ? (compiler.options.outputUri?.pathSegments?.last ?? 'out')
+          ? (compiler.options.outputUri?.pathSegments.last ?? 'out')
           : deferredPartFileName(compiler.options, outputUnit.name);
       OutputUnitInfo info = OutputUnitInfo(filename, outputUnit.name,
           backendStrategy.emitterTask.emitter.generatedSize(outputUnit));
@@ -1055,17 +1119,13 @@ class DumpInfoAnnotator {
   OutputUnitInfo _unitInfoForConstant(ConstantValue constant) {
     OutputUnit outputUnit =
         closedWorld.outputUnitData.outputUnitForConstant(constant);
-    if (outputUnit == null) {
-      assert(constant is InterceptorConstantValue);
-      return null;
-    }
     return _infoFromOutputUnit(outputUnit);
   }
 }
 
 class Selection {
   final Entity selectedEntity;
-  final Object receiverConstraint;
+  final Object? receiverConstraint;
   Selection(this.selectedEntity, this.receiverConstraint);
 }
 
@@ -1081,7 +1141,7 @@ abstract class InfoReporter {
 
 class DumpInfoTask extends CompilerTask
     implements DumpInfoJavaScriptMonitor, InfoReporter {
-  final Compiler compiler;
+  final CompilerDumpInfoFacade compiler;
   final bool useBinaryFormat;
 
   DumpInfoTask(this.compiler)
@@ -1092,7 +1152,7 @@ class DumpInfoTask extends CompilerTask
   String get name => "Dump Info";
 
   /// The size of the generated output.
-  int _programSize;
+  late int _programSize;
 
   /// Data associated with javascript AST nodes. The map only contains keys for
   /// nodes that we care about.  Keys are automatically added when
@@ -1120,10 +1180,9 @@ class DumpInfoTask extends CompilerTask
 
   @override
   void reportInlined(FunctionEntity element, MemberEntity inlinedFrom) {
-    inlineCount.putIfAbsent(element, () => 0);
-    inlineCount[element] += 1;
+    inlineCount.update(element, (i) => i + 1, ifAbsent: () => 1);
     inlineMap.putIfAbsent(inlinedFrom, () => <Entity>[]);
-    inlineMap[inlinedFrom].add(element);
+    inlineMap[inlinedFrom]!.add(element);
   }
 
   void registerImpact(MemberEntity member, WorldImpact impact) {
@@ -1140,12 +1199,12 @@ class DumpInfoTask extends CompilerTask
   /// [Selection] contains an entity that is used and the selector that
   /// selected the entity.
   Iterable<Selection> getRetaining(Entity entity, JClosedWorld closedWorld) {
-    WorldImpact impact = impacts[entity];
+    final impact = impacts[entity];
     if (impact == null) return const <Selection>[];
 
     var selections = <Selection>[];
     impact.forEachDynamicUse((_, dynamicUse) {
-      AbstractValue mask = dynamicUse.receiverConstraint;
+      final mask = dynamicUse.receiverConstraint as AbstractValue?;
       selections.addAll(closedWorld
           // TODO(het): Handle `call` on `Closure` through
           // `world.includesClosureCall`.
@@ -1161,11 +1220,12 @@ class DumpInfoTask extends CompilerTask
 
   /// Registers that a javascript AST node [code] was produced by the dart
   /// Entity [entity].
-  void registerEntityAst(Entity entity, jsAst.Node code,
-      {LibraryEntity library}) {
+  void registerEntityAst(Entity? entity, jsAst.Node code) {
     if (compiler.options.dumpInfo) {
-      _entityToNodes.putIfAbsent(entity, () => <jsAst.Node>[]).add(code);
-      _nodeData[code] ??= useBinaryFormat ? CodeSpan.empty() : _CodeData();
+      if (entity != null) {
+        _entityToNodes.putIfAbsent(entity, () => <jsAst.Node>[]).add(code);
+      }
+      _nodeData[code] ??= useBinaryFormat ? CodeSpan() : _CodeData();
     }
   }
 
@@ -1174,7 +1234,7 @@ class DumpInfoTask extends CompilerTask
       assert(_constantToNode[constant] == null ||
           _constantToNode[constant] == code);
       _constantToNode[constant] = code;
-      _nodeData[code] ??= useBinaryFormat ? CodeSpan.empty() : _CodeData();
+      _nodeData[code] ??= useBinaryFormat ? CodeSpan() : _CodeData();
     }
   }
 
@@ -1187,7 +1247,7 @@ class DumpInfoTask extends CompilerTask
     data?.start = start;
 
     if (shouldEmitText && data != null) {
-      _stack.add(data);
+      _stack.add(data as _CodeData);
     }
   }
 
@@ -1202,7 +1262,7 @@ class DumpInfoTask extends CompilerTask
   }
 
   @override // DumpInfoJavaScriptMonitor
-  void exitNode(jsAst.Node node, int start, int end, int closing) {
+  void exitNode(jsAst.Node node, int start, int end, int? closing) {
     var data = _nodeData[node];
     data?.end = end;
     if (shouldEmitText && data != null) {
@@ -1216,48 +1276,50 @@ class DumpInfoTask extends CompilerTask
   /// If no source code was produced, return 0.
   int sizeOf(Entity entity) {
     if (_entityToNodes.containsKey(entity)) {
-      return _entityToNodes[entity].map(sizeOfNode).fold(0, (a, b) => a + b);
+      return _entityToNodes[entity]!.map(sizeOfNode).fold(0, (a, b) => a + b);
     } else {
       return 0;
     }
   }
 
   int sizeOfNode(jsAst.Node node) {
-    CodeSpan span = _nodeData[node];
+    final span = _nodeData[node];
     if (span == null) return 0;
-    return span.end - span.start;
+    return span.end! - span.start!;
   }
 
   List<CodeSpan> codeOf(MemberEntity entity) {
-    List<jsAst.Node> code = _entityToNodes[entity];
+    final code = _entityToNodes[entity];
     if (code == null) return const [];
-    return code.map((ast) => _nodeData[ast]).toList();
+    return code.map((ast) => _nodeData[ast]!).toList();
   }
 
-  DumpInfoStateData dumpInfo(JClosedWorld closedWorld,
-      GlobalTypeInferenceResults globalInferenceResults) {
-    DumpInfoStateData dumpInfoState;
-    measure(() {
+  Future<DumpInfoStateData> dumpInfo(JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults) async {
+    late DumpInfoStateData dumpInfoState;
+    await measure(() async {
       ElementInfoCollector elementInfoCollector = ElementInfoCollector(
           compiler, this, closedWorld, globalInferenceResults)
         ..run();
 
-      dumpInfoState = buildDumpInfoData(closedWorld, elementInfoCollector);
+      dumpInfoState =
+          await buildDumpInfoData(closedWorld, elementInfoCollector);
       if (useBinaryFormat) {
         dumpInfoBinary(dumpInfoState.info);
       } else {
         dumpInfoJson(dumpInfoState.info);
       }
+      return;
     });
     return dumpInfoState;
   }
 
-  DumpInfoStateData dumpInfoNew(
+  Future<DumpInfoStateData> dumpInfoNew(
       ir.Component component,
       JClosedWorld closedWorld,
-      GlobalTypeInferenceResults globalInferenceResults) {
-    DumpInfoStateData dumpInfoState;
-    measure(() {
+      GlobalTypeInferenceResults globalInferenceResults) async {
+    late DumpInfoStateData dumpInfoState;
+    await measure(() async {
       KernelInfoCollector kernelInfoCollector =
           KernelInfoCollector(component, compiler, this, closedWorld)..run();
 
@@ -1265,7 +1327,8 @@ class DumpInfoTask extends CompilerTask
           globalInferenceResults)
         ..run();
 
-      dumpInfoState = buildDumpInfoDataNew(closedWorld, kernelInfoCollector);
+      dumpInfoState =
+          await buildDumpInfoDataNew(closedWorld, kernelInfoCollector);
       TreeShakingInfoVisitor().filter(dumpInfoState.info);
 
       if (useBinaryFormat) {
@@ -1280,10 +1343,10 @@ class DumpInfoTask extends CompilerTask
   void dumpInfoJson(AllInfo data) {
     StringBuffer jsonBuffer = StringBuffer();
     JsonEncoder encoder = const JsonEncoder.withIndent('  ');
-    ChunkedConversionSink<Object> sink = encoder.startChunkedConversion(
+    final sink = encoder.startChunkedConversion(
         StringConversionSink.fromStringSink(jsonBuffer));
     sink.add(AllInfoJsonCodec(isBackwardCompatible: true).encode(data));
-    final name = (compiler.options.outputUri?.pathSegments?.last ?? 'out');
+    final name = (compiler.options.outputUri?.pathSegments.last ?? 'out');
     compiler.outputProvider
         .createOutputSink(name, 'info.json', api.OutputType.dumpInfo)
       ..add(jsonBuffer.toString())
@@ -1296,10 +1359,10 @@ class DumpInfoTask extends CompilerTask
   }
 
   void dumpInfoBinary(AllInfo data) {
-    final name = (compiler.options.outputUri?.pathSegments?.last ?? 'out') +
-        ".info.data";
+    final name =
+        (compiler.options.outputUri?.pathSegments.last ?? 'out') + ".info.data";
     Sink<List<int>> sink = BinaryOutputSinkAdapter(compiler.outputProvider
-        .createBinarySink(compiler.options.outputUri.resolve(name)));
+        .createBinarySink(compiler.options.outputUri!.resolve(name)));
     dump_info.encode(data, sink);
     compiler.reporter
         .reportInfoMessage(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
@@ -1308,23 +1371,23 @@ class DumpInfoTask extends CompilerTask
     });
   }
 
-  DumpInfoStateData buildDumpInfoData(
-      JClosedWorld closedWorld, ElementInfoCollector infoCollector) {
+  Future<DumpInfoStateData> buildDumpInfoData(
+      JClosedWorld closedWorld, ElementInfoCollector infoCollector) async {
     Stopwatch stopwatch = Stopwatch();
     stopwatch.start();
 
     DumpInfoStateData result = infoCollector.state;
 
     // Recursively build links to function uses
-    Iterable<Entity> functionEntities =
+    final functionEntities =
         infoCollector.state.entityToInfo.keys.where((k) => k is FunctionEntity);
-    for (FunctionEntity entity in functionEntities) {
-      FunctionInfo info = infoCollector.state.entityToInfo[entity];
+    for (final entity in functionEntities) {
+      final info = infoCollector.state.entityToInfo[entity] as FunctionInfo;
       Iterable<Selection> uses = getRetaining(entity, closedWorld);
       // Don't bother recording an empty list of dependencies.
       for (Selection selection in uses) {
         // Don't register dart2js builtin functions that are not recorded.
-        Info useInfo =
+        final useInfo =
             infoCollector.state.entityToInfo[selection.selectedEntity];
         if (useInfo == null) continue;
         info.uses.add(
@@ -1335,12 +1398,12 @@ class DumpInfoTask extends CompilerTask
     // Recursively build links to field uses
     Iterable<Entity> fieldEntity =
         infoCollector.state.entityToInfo.keys.where((k) => k is FieldEntity);
-    for (FieldEntity entity in fieldEntity) {
-      FieldInfo info = infoCollector.state.entityToInfo[entity];
+    for (final entity in fieldEntity) {
+      final info = infoCollector.state.entityToInfo[entity] as FieldInfo;
       Iterable<Selection> uses = getRetaining(entity, closedWorld);
       // Don't bother recording an empty list of dependencies.
       for (Selection selection in uses) {
-        Info useInfo =
+        final useInfo =
             infoCollector.state.entityToInfo[selection.selectedEntity];
         if (useInfo == null) continue;
         info.uses.add(
@@ -1350,10 +1413,10 @@ class DumpInfoTask extends CompilerTask
 
     // Track dependencies that come from inlining.
     for (Entity entity in inlineMap.keys) {
-      CodeInfo outerInfo = infoCollector.state.entityToInfo[entity];
+      final outerInfo = infoCollector.state.entityToInfo[entity] as CodeInfo?;
       if (outerInfo == null) continue;
-      for (Entity inlined in inlineMap[entity]) {
-        Info inlinedInfo = infoCollector.state.entityToInfo[inlined];
+      for (final inlined in inlineMap[entity]!) {
+        final inlinedInfo = infoCollector.state.entityToInfo[inlined];
         if (inlinedInfo == null) continue;
         outerInfo.uses.add(DependencyInfo(inlinedInfo, 'inlined'));
       }
@@ -1369,8 +1432,10 @@ class DumpInfoTask extends CompilerTask
 
     result.info.program = ProgramInfo(
         entrypoint: infoCollector
-            .state.entityToInfo[closedWorld.elementEnvironment.mainFunction],
+                .state.entityToInfo[closedWorld.elementEnvironment.mainFunction]
+            as FunctionInfo,
         size: _programSize,
+        ramUsage: await currentHeapCapacityInMb(),
         dart2jsVersion:
             compiler.options.hasBuildId ? compiler.options.buildId : null,
         compilationMoment: DateTime.now(),
@@ -1387,8 +1452,8 @@ class DumpInfoTask extends CompilerTask
     return result;
   }
 
-  DumpInfoStateData buildDumpInfoDataNew(
-      JClosedWorld closedWorld, KernelInfoCollector infoCollector) {
+  Future<DumpInfoStateData> buildDumpInfoDataNew(
+      JClosedWorld closedWorld, KernelInfoCollector infoCollector) async {
     Stopwatch stopwatch = Stopwatch();
     stopwatch.start();
 
@@ -1397,13 +1462,13 @@ class DumpInfoTask extends CompilerTask
     // Recursively build links to function uses
     Iterable<Entity> functionEntities =
         infoCollector.state.entityToInfo.keys.where((k) => k is FunctionEntity);
-    for (FunctionEntity entity in functionEntities) {
-      FunctionInfo info = infoCollector.state.entityToInfo[entity];
+    for (final entity in functionEntities) {
+      final info = infoCollector.state.entityToInfo[entity] as FunctionInfo;
       Iterable<Selection> uses = getRetaining(entity, closedWorld);
       // Don't bother recording an empty list of dependencies.
       for (Selection selection in uses) {
         // Don't register dart2js builtin functions that are not recorded.
-        Info useInfo =
+        final useInfo =
             infoCollector.state.entityToInfo[selection.selectedEntity];
         if (useInfo == null) continue;
         if (useInfo.treeShakenStatus != TreeShakenStatus.Live) continue;
@@ -1415,12 +1480,12 @@ class DumpInfoTask extends CompilerTask
     // Recursively build links to field uses
     Iterable<Entity> fieldEntity =
         infoCollector.state.entityToInfo.keys.where((k) => k is FieldEntity);
-    for (FieldEntity entity in fieldEntity) {
-      FieldInfo info = infoCollector.state.entityToInfo[entity];
+    for (final entity in fieldEntity) {
+      final info = infoCollector.state.entityToInfo[entity] as FieldInfo;
       Iterable<Selection> uses = getRetaining(entity, closedWorld);
       // Don't bother recording an empty list of dependencies.
       for (Selection selection in uses) {
-        Info useInfo =
+        final useInfo =
             infoCollector.state.entityToInfo[selection.selectedEntity];
         if (useInfo == null) continue;
         if (useInfo.treeShakenStatus != TreeShakenStatus.Live) continue;
@@ -1431,10 +1496,10 @@ class DumpInfoTask extends CompilerTask
 
     // Track dependencies that come from inlining.
     for (Entity entity in inlineMap.keys) {
-      CodeInfo outerInfo = infoCollector.state.entityToInfo[entity];
+      final outerInfo = infoCollector.state.entityToInfo[entity] as CodeInfo?;
       if (outerInfo == null) continue;
-      for (Entity inlined in inlineMap[entity]) {
-        Info inlinedInfo = infoCollector.state.entityToInfo[inlined];
+      for (final inlined in inlineMap[entity]!) {
+        final inlinedInfo = infoCollector.state.entityToInfo[inlined];
         if (inlinedInfo == null) continue;
         if (inlinedInfo.treeShakenStatus != TreeShakenStatus.Live) continue;
         outerInfo.uses.add(DependencyInfo(inlinedInfo, 'inlined'));
@@ -1451,8 +1516,10 @@ class DumpInfoTask extends CompilerTask
 
     result.info.program = ProgramInfo(
         entrypoint: infoCollector
-            .state.entityToInfo[closedWorld.elementEnvironment.mainFunction],
+                .state.entityToInfo[closedWorld.elementEnvironment.mainFunction]
+            as FunctionInfo,
         size: _programSize,
+        ramUsage: await currentHeapCapacityInMb(),
         dart2jsVersion:
             compiler.options.hasBuildId ? compiler.options.buildId : null,
         compilationMoment: DateTime.now(),
@@ -1474,9 +1541,10 @@ class DumpInfoTask extends CompilerTask
 // TODO(sigmund): delete once we no longer emit text by default.
 class _CodeData extends CodeSpan {
   final StringBuffer _text = StringBuffer();
+
   @override
   String get text => '$_text';
-  int get length => end - start;
+  int get length => end! - start!;
 }
 
 /// Holds dump-info's mutable state.
@@ -1507,7 +1575,8 @@ class LocalFunctionInfoCollector extends ir.RecursiveVisitor<void> {
   LocalFunctionInfo generateLocalFunctionInfo(ir.LocalFunction localFunction) {
     final name = _computeClosureName(localFunction);
     localFunctionNameCount[name] = (localFunctionNameCount[name] ?? -1) + 1;
-    return LocalFunctionInfo(localFunction, name, localFunctionNameCount[name]);
+    return LocalFunctionInfo(
+        localFunction, name, localFunctionNameCount[name]!);
   }
 
   @override
@@ -1528,7 +1597,7 @@ class LocalFunctionInfoCollector extends ir.RecursiveVisitor<void> {
   void visitLocalFunctionInvocation(ir.LocalFunctionInvocation node) {
     if (localFunctions[node.localFunction] == null)
       visitFunctionDeclaration(node.localFunction);
-    localFunctions[node.localFunction].isInvoked = true;
+    localFunctions[node.localFunction]!.isInvoked = true;
   }
 }
 
@@ -1537,7 +1606,7 @@ class LocalFunctionInfoCollector extends ir.RecursiveVisitor<void> {
 // Must be kept logically identical to js_model/element_map_impl.dart.
 String _computeClosureName(ir.TreeNode treeNode) {
   String reconstructConstructorName(ir.Member node) {
-    String className = node.enclosingClass.name;
+    String className = node.enclosingClass!.name;
     return node.name.text == '' ? className : '$className\$${node.name.text}';
   }
 
@@ -1546,16 +1615,16 @@ String _computeClosureName(ir.TreeNode treeNode) {
   // compound name where increasing nesting level corresponds to extra
   // underscores.
   var anonymous = 'closure';
-  ir.TreeNode current = treeNode;
+  ir.TreeNode? current = treeNode;
   while (current != null) {
     var node = current;
     if (node is ir.FunctionExpression) {
       parts.add(anonymous);
       anonymous = '';
     } else if (node is ir.FunctionDeclaration) {
-      String name = node.variable.name;
+      final name = node.variable.name;
       if (name != null && name != "") {
-        parts.add(entity_utils.operatorNameToIdentifier(name));
+        parts.add(entity_utils.operatorNameToIdentifier(name)!);
       } else {
         parts.add(anonymous);
         anonymous = '';
@@ -1567,15 +1636,15 @@ String _computeClosureName(ir.TreeNode treeNode) {
       if (node.kind == ir.ProcedureKind.Factory) {
         parts.add(reconstructConstructorName(node));
       } else {
-        parts.add(entity_utils.operatorNameToIdentifier(node.name.text));
+        parts.add(entity_utils.operatorNameToIdentifier(node.name.text)!);
       }
     } else if (node is ir.Constructor) {
       parts.add(reconstructConstructorName(node));
       break;
     } else if (node is ir.Field) {
       // Add the field name for closures in field initializers.
-      String name = node.name?.text;
-      if (name != null) parts.add(name);
+      String name = node.name.text;
+      parts.add(name);
     }
     current = current.parent;
   }
@@ -1641,9 +1710,11 @@ class TreeShakingInfoVisitor extends InfoVisitor<void> {
   visitClass(ClassInfo info) {
     info.functions = filterDeadInfo<FunctionInfo>(info.functions);
     info.fields = filterDeadInfo<FieldInfo>(info.fields);
+    info.supers = filterDeadInfo<ClassInfo>(info.supers);
 
     info.functions.forEach(visitFunction);
     info.fields.forEach(visitField);
+    info.supers.forEach(visitClass);
   }
 
   @override
@@ -1677,11 +1748,12 @@ class TreeShakingInfoVisitor extends InfoVisitor<void> {
 }
 
 /// Returns a fully resolved name for [info] for disambiguation.
-String fullyResolvedNameForInfo(BasicInfo info) {
+String fullyResolvedNameForInfo(Info? info) {
+  if (info == null) return '';
   var name = info.name;
   var currentInfo = info;
   while (currentInfo.parent != null) {
-    currentInfo = currentInfo.parent;
+    currentInfo = currentInfo.parent!;
     name = '${currentInfo.name}/$name';
   }
   return name;

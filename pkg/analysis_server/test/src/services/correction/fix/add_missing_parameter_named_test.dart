@@ -105,14 +105,14 @@ void f() {
 
   Future<void> test_function_hasNamed() async {
     await resolveTestCode('''
-test(int a, {int b: 0}) {}
+test(int a, {int b = 0}) {}
 
 void f() {
   test(1, b: 2, named: 3.0);
 }
 ''');
     await assertHasFix('''
-test(int a, {int b: 0, required double named}) {}
+test(int a, {int b = 0, required double named}) {}
 
 void f() {
   test(1, b: 2, named: 3.0);
@@ -157,7 +157,7 @@ void f() {
   Future<void> test_method_hasNamed() async {
     await resolveTestCode('''
 class A {
-  test(int a, {int b: 0}) {}
+  test(int a, {int b = 0}) {}
 
   void f() {
     test(1, b: 2, named: 3.0);
@@ -166,7 +166,7 @@ class A {
 ''');
     await assertHasFix('''
 class A {
-  test(int a, {int b: 0, required double named}) {}
+  test(int a, {int b = 0, required double named}) {}
 
   void f() {
     test(1, b: 2, named: 3.0);

@@ -38,7 +38,11 @@ class ClassDescriptionRegistry {
 
   /// If we know how to materialize the [element], return [ClassDescription].
   /// Otherwise return `null`.
-  ClassDescription? get(ClassElement element) {
+  ClassDescription? get(InterfaceElement element) {
+    if (element is! ClassElement) {
+      return null;
+    }
+
     var description = _map[element];
     if (description == null) {
       description = _classDescription(element);
@@ -72,7 +76,11 @@ class ClassDescriptionRegistry {
     return ClassDescription(element, constructor);
   }
 
-  bool _isOptedInClass(ClassElement element) {
+  bool _isOptedInClass(InterfaceElement element) {
+    if (element is! ClassElement) {
+      return false;
+    }
+
     return _isClass(
           element,
           'package:flutter/src/widgets/container.dart',

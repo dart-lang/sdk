@@ -4,6 +4,8 @@
 
 // @dart = 2.10
 
+// ignore_for_file: avoid_dynamic_calls
+
 /// A script to track the high water-mark of memory usage of an application.
 /// To monitor how much memory dart2js is using, run dart2js as follows:
 ///
@@ -168,7 +170,7 @@ _showProgress(newUsed, newCapacity, oldUsed, oldCapacity) {
 }
 
 const mega = 1024 * 1024;
-_writeNumber(sb, before, now, {color: false}) {
+_writeNumber(sb, before, now, {color = false}) {
   if (color)
     sb.write(before < now
         ? _RED

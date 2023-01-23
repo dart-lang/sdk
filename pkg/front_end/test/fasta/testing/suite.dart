@@ -47,6 +47,7 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 import 'package:front_end/src/fasta/builder/library_builder.dart'
     show LibraryBuilder;
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/fasta/crash.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
@@ -265,10 +266,10 @@ class FolderOptions {
       this.forceStaticFieldLowering,
       this.forceNoExplicitGetterCalls,
       this.forceConstructorTearOffLowering,
-      this.nnbdAgnosticMode: false,
-      this.defines: const {},
-      this.noVerify: false,
-      this.target: "vm",
+      this.nnbdAgnosticMode = false,
+      this.defines = const {},
+      this.noVerify = false,
+      this.target = "vm",
       // can be null
       this.overwriteCurrentSdkVersion})
       // ignore: unnecessary_null_comparison
@@ -759,7 +760,11 @@ class FastaContext extends ChainContext with MatchContext {
     String resolvedExecutable = Platform.environment['resolvedExecutable'] ??
         Platform.resolvedExecutable;
     Uri vm = Uri.base.resolveUri(new Uri.file(resolvedExecutable));
-    Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{};
+    Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{
+      // Force enable features in development.
+      ExperimentalFlag.records: true,
+      ExperimentalFlag.patterns: true,
+    };
 
     void addForcedExperimentalFlag(String name, ExperimentalFlag flag) {
       if (environment.containsKey(name)) {
@@ -825,18 +830,16 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
     try {
       FolderOptions folderOptions =
           context.computeFolderOptions(result.description);
-      Map<ExperimentalFlag, bool> experimentalFlags = folderOptions
-          .computeExplicitExperimentalFlags(context.explicitExperimentalFlags);
       switch (folderOptions.target) {
         case "vm":
           if (context._platforms.isEmpty) {
             throw "Executed `Run` step before initializing the context.";
           }
           List<String> args = <String>[];
-          if (experimentalFlags[ExperimentalFlag.nonNullable] == true) {
-            if (context.soundNullSafety) {
-              args.add("--sound-null-safety");
-            }
+          if (context.soundNullSafety) {
+            args.add("--sound-null-safety");
+          } else {
+            args.add("--no-sound-null-safety");
           }
           args.add(generated.path);
           StdioProcess process =
@@ -1123,6 +1126,7 @@ CompilationSetup createCompilationSetup(
       ..experimentReleasedVersionForTesting = experimentReleasedVersion
       ..skipPlatformVerification = true
       ..omitPlatform = true
+      ..omitOsMessageForTesting = true
       ..target = createTarget(folderOptions, context);
     if (folderOptions.overwriteCurrentSdkVersion != null) {
       compilerOptions.currentSdkVersion =
@@ -1489,7 +1493,11 @@ class FuzzCompiles
         print("Skipping $uri -- couldn't find builder for it.");
         continue;
       }
-      Uint8List orgData = fs.data[uri] as Uint8List;
+      Uint8List? orgData = fs.data[uri];
+      if (orgData == null) {
+        print("Skipping $uri -- couldn't find source for it.");
+        continue;
+      }
       FuzzAstVisitorSorter fuzzAstVisitorSorter;
       try {
         fuzzAstVisitorSorter =
@@ -1789,6 +1797,31 @@ class Strategy extends EquivalenceStrategy {
       EquivalenceVisitor visitor, InstanceSet node, InstanceSet other) {
     return _isMixinOrCloneReference(visitor, node.interfaceTargetReference,
         other.interfaceTargetReference, 'interfaceTargetReference');
+  }
+
+  @override
+  bool checkLibrary_problemsAsJson(
+      EquivalenceVisitor visitor, Library node, Library other) {
+    List<String>? a = node.problemsAsJson;
+    if (a != null) {
+      a = a.map(_rewriteJsonMap).toList();
+    }
+    List<String>? b = other.problemsAsJson;
+    if (b != null) {
+      b = b.map(_rewriteJsonMap).toList();
+    }
+    return visitor.checkLists(a, b, visitor.checkValues, 'problemsAsJson');
+  }
+
+  String _rewriteJsonMap(String s) {
+    // Several things can change, e.g.
+    // * unserializableExports (when from dill) causes the message code to
+    //   become "unspecified" from usage of `templateUnspecified`)
+    // * Order of things (and for instance which line it's reported on) can
+    //   change depending on order, e.g. duplicate names in exports upon
+    //   recompile of one of the exported libraries.
+    Map<String, dynamic> decoded = jsonDecode(s);
+    return decoded["uri"];
   }
 }
 
@@ -2174,7 +2207,7 @@ Target createTarget(FolderOptions folderOptions, FastaContext context) {
 
 Set<Uri> createUserLibrariesImportUriSet(
     Component component, UriTranslator uriTranslator,
-    {Set<Library> excludedLibraries: const {}}) {
+    {Set<Library> excludedLibraries = const {}}) {
   Set<Uri> knownUris =
       component.libraries.map((Library library) => library.importUri).toSet();
   Set<Uri> userLibraries = component.libraries
@@ -2221,7 +2254,7 @@ CompileMode compileModeFromName(String? name) {
 class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
   final CompileMode compileMode;
 
-  const Outline(this.compileMode, {this.updateComments: false});
+  const Outline(this.compileMode, {this.updateComments = false});
 
   final bool updateComments;
 
@@ -2309,58 +2342,62 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
       });
     }
 
-    return await CompilerContext.runWithOptions(compilationSetup.options,
-        (_) async {
-      Component? alsoAppend = compilationSetup.testOptions.component;
-      if (description.uri.pathSegments.last.endsWith(".no_link.dart")) {
-        alsoAppend = null;
-      }
+    try {
+      return await CompilerContext.runWithOptions(compilationSetup.options,
+          (_) async {
+        Component? alsoAppend = compilationSetup.testOptions.component;
+        if (description.uri.pathSegments.last.endsWith(".no_link.dart")) {
+          alsoAppend = null;
+        }
 
-      Set<Library>? excludedLibraries;
-      if (compileMode == CompileMode.modular) {
-        excludedLibraries = alsoAppend?.libraries.toSet();
-      }
-      excludedLibraries ??= const {};
+        Set<Library>? excludedLibraries;
+        if (compileMode == CompileMode.modular) {
+          excludedLibraries = alsoAppend?.libraries.toSet();
+        }
+        excludedLibraries ??= const {};
 
-      KernelTarget sourceTarget = await outlineInitialization(context,
-          description, compilationSetup.options, <Uri>[description.uri],
-          alsoAppend: alsoAppend);
-      ValidatingInstrumentation instrumentation =
-          new ValidatingInstrumentation();
-      await instrumentation.loadExpectations(description.uri);
-      sourceTarget.loader.instrumentation = instrumentation;
-      BuildResult buildResult = await sourceTarget.buildOutlines();
-      Component p = buildResult.component!;
-      Set<Uri> userLibraries = createUserLibrariesImportUriSet(
-          p, sourceTarget.uriTranslator,
-          excludedLibraries: excludedLibraries);
-      if (compileMode != CompileMode.outline) {
-        buildResult = await sourceTarget.buildComponent(
-            macroApplications: buildResult.macroApplications,
-            verify: compilationSetup.folderOptions.noVerify
-                ? false
-                : context.verify);
-        p = buildResult.component!;
-        instrumentation.finish();
-        if (instrumentation.hasProblems) {
-          if (updateComments) {
-            await instrumentation.fixSource(description.uri, false);
-          } else {
-            buildResult.macroApplications?.close();
-            return new Result<ComponentResult>(
-                new ComponentResult(description, p, userLibraries,
-                    compilationSetup, sourceTarget),
-                context.expectationSet["InstrumentationMismatch"],
-                instrumentation.problemsAsString,
-                autoFixCommand: '${UPDATE_COMMENTS}=true',
-                canBeFixWithUpdateExpectations: true);
+        KernelTarget sourceTarget = await outlineInitialization(context,
+            description, compilationSetup.options, <Uri>[description.uri],
+            alsoAppend: alsoAppend);
+        ValidatingInstrumentation instrumentation =
+            new ValidatingInstrumentation();
+        await instrumentation.loadExpectations(description.uri);
+        sourceTarget.loader.instrumentation = instrumentation;
+        BuildResult buildResult = await sourceTarget.buildOutlines();
+        Component p = buildResult.component!;
+        Set<Uri> userLibraries = createUserLibrariesImportUriSet(
+            p, sourceTarget.uriTranslator,
+            excludedLibraries: excludedLibraries);
+        if (compileMode != CompileMode.outline) {
+          buildResult = await sourceTarget.buildComponent(
+              macroApplications: buildResult.macroApplications,
+              verify: compilationSetup.folderOptions.noVerify
+                  ? false
+                  : context.verify);
+          p = buildResult.component!;
+          instrumentation.finish();
+          if (instrumentation.hasProblems) {
+            if (updateComments) {
+              await instrumentation.fixSource(description.uri, false);
+            } else {
+              buildResult.macroApplications?.close();
+              return new Result<ComponentResult>(
+                  new ComponentResult(description, p, userLibraries,
+                      compilationSetup, sourceTarget),
+                  context.expectationSet["InstrumentationMismatch"],
+                  instrumentation.problemsAsString,
+                  autoFixCommand: '${UPDATE_COMMENTS}=true',
+                  canBeFixWithUpdateExpectations: true);
+            }
           }
         }
-      }
-      buildResult.macroApplications?.close();
-      return pass(new ComponentResult(
-          description, p, userLibraries, compilationSetup, sourceTarget));
-    });
+        buildResult.macroApplications?.close();
+        return pass(new ComponentResult(
+            description, p, userLibraries, compilationSetup, sourceTarget));
+      });
+    } catch (e, s) {
+      return reportCrash(e, s);
+    }
   }
 
   Future<KernelTarget> outlineInitialization(

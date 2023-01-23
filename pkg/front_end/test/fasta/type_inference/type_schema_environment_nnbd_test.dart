@@ -460,6 +460,36 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
         lowerBound: "<Z extends FutureOr<dynamic>?>() -> void");
   }
 
+  void test_lower_bound_record() {
+    parseTestLibrary("""
+      class A;
+      class B extends A;
+    """);
+
+    checkLowerBound(type1: "(A, B)", type2: "(B, A)", lowerBound: "(B, B)");
+    checkLowerBound(
+        type1: "(A, {B b})", type2: "(B, {A b})", lowerBound: "(B, {B b})");
+    checkLowerBound(
+        type1: "(A, {(B, {A a}) b})",
+        type2: "(B, {(A, {B a}) b})",
+        lowerBound: "(B, {(B, {B a}) b})");
+    checkLowerBound(type1: "(A?, B)", type2: "(B, A?)", lowerBound: "(B, B)");
+    checkLowerBound(type1: "(A, B?)", type2: "(B?, A)", lowerBound: "(B, B)");
+
+    checkLowerBound(type1: "(A, A)", type2: "(A, A, A)", lowerBound: "Never");
+    checkLowerBound(type1: "(A, A)", type2: "(A, {A a})", lowerBound: "Never");
+    checkLowerBound(type1: "({A a})", type2: "(A, A)", lowerBound: "Never");
+    checkLowerBound(
+        type1: "({A a, B b})", type2: "({A a})", lowerBound: "Never");
+
+    checkLowerBound(type1: "(A, B)", type2: "Record", lowerBound: "(A, B)");
+    checkLowerBound(type2: "Record", type1: "(A, B)", lowerBound: "(A, B)");
+
+    checkLowerBound(
+        type1: "(A, B)", type2: "(A, B) -> void", lowerBound: "Never");
+    checkLowerBound(type1: "Record", type2: "A", lowerBound: "Never");
+  }
+
   void test_lower_bound_identical() {
     parseTestLibrary("class A;");
 
@@ -909,6 +939,36 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
         type1: "([dynamic]) -> dynamic",
         type2: "([dynamic]) -> dynamic",
         upperBound: "([dynamic]) -> dynamic");
+  }
+
+  void test_upper_bound_record() {
+    parseTestLibrary("""
+      class A;
+      class B extends A;
+    """);
+
+    checkUpperBound(type1: "(A, B)", type2: "(B, A)", upperBound: "(A, A)");
+    checkUpperBound(
+        type1: "(A, {B b})", type2: "(B, {A b})", upperBound: "(A, {A b})");
+    checkUpperBound(
+        type1: "(A, {(B, {A a}) b})",
+        type2: "(B, {(A, {B a}) b})",
+        upperBound: "(A, {(A, {A a}) b})");
+    checkUpperBound(type1: "(A?, B)", type2: "(B, A?)", upperBound: "(A?, A?)");
+    checkUpperBound(type1: "(A, B?)", type2: "(B?, A)", upperBound: "(A?, A?)");
+
+    checkUpperBound(type1: "(A, A)", type2: "(A, A, A)", upperBound: "Record");
+    checkUpperBound(type1: "(A, A)", type2: "(A, {A a})", upperBound: "Record");
+    checkUpperBound(type1: "({A a})", type2: "(A, A)", upperBound: "Record");
+    checkUpperBound(
+        type1: "({A a, B b})", type2: "({A a})", upperBound: "Record");
+
+    checkUpperBound(type1: "(A, B)", type2: "Record", upperBound: "Record");
+    checkUpperBound(type2: "Record", type1: "(A, B)", upperBound: "Record");
+
+    checkUpperBound(
+        type1: "(A, B)", type2: "(A, B) -> void", upperBound: "Object");
+    checkUpperBound(type1: "Record", type2: "A", upperBound: "Object");
   }
 
   void test_upper_bound_identical() {
@@ -1466,8 +1526,8 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
       required String type2,
       required String upperBound,
       String? typeParameters,
-      bool nonNull1: false,
-      bool nonNull2: false}) {
+      bool nonNull1 = false,
+      bool nonNull2 = false}) {
     typeParserEnvironment.withTypeParameters(typeParameters,
         (List<TypeParameter> typeParameterNodes) {
       DartType dartType1 = parseType(type1);

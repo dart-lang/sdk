@@ -120,9 +120,7 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
       }
     } else if (node is ForInStatement) {
       if (id.kind == IdKind.current) {
-        DartType type = _staticTypeContext!.typeEnvironment.forInElementType(
-            node, node.iterable.getStaticType(_staticTypeContext!));
-        return typeToText(type);
+        return typeToText(node.getElementType(_staticTypeContext!));
       }
     } else if (node is FunctionDeclaration) {
       if (node.function.futureValueType != null) {

@@ -23,7 +23,7 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
   final ErrorReporter _errorReporter;
 
   /// The current class or mixin.
-  ClassElement? _currentClass;
+  InterfaceElement? _currentClass;
 
   OverrideVerifier(
       this._inheritance, LibraryElement library, this._errorReporter)
@@ -54,7 +54,7 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
         var setter = fieldElement.setter;
         if (setter != null && _isOverride(setter)) continue;
 
-        _errorReporter.reportErrorForNode(
+        _errorReporter.reportErrorForToken(
           HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD,
           field.name,
         );
@@ -67,18 +67,18 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
     var element = node.declaredElement!;
     if (element.hasOverride && !_isOverride(element)) {
       if (element is MethodElement) {
-        _errorReporter.reportErrorForNode(
+        _errorReporter.reportErrorForToken(
           HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD,
           node.name,
         );
       } else if (element is PropertyAccessorElement) {
         if (element.isGetter) {
-          _errorReporter.reportErrorForNode(
+          _errorReporter.reportErrorForToken(
             HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER,
             node.name,
           );
         } else {
-          _errorReporter.reportErrorForNode(
+          _errorReporter.reportErrorForToken(
             HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER,
             node.name,
           );

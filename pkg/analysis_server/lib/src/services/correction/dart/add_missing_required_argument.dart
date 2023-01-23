@@ -74,7 +74,7 @@ class AddMissingRequiredArgument extends CorrectionProducer {
       int offset;
       var hasTrailingComma = false;
       var insertBetweenParams = false;
-      List<Expression> arguments = argumentList.arguments;
+      var arguments = argumentList.arguments;
       if (arguments.isEmpty) {
         offset = argumentList.leftParenthesis.end;
       } else {
@@ -93,7 +93,10 @@ class AddMissingRequiredArgument extends CorrectionProducer {
         }
       }
 
-      var defaultValue = getDefaultStringParameterValue(missingParameter,
+      var codeStyleOptions = sessionHelper
+          .session.analysisContext.analysisOptions.codeStyleOptions;
+      var defaultValue = getDefaultStringParameterValue(
+          missingParameter, codeStyleOptions,
           withNullability: libraryElement.isNonNullableByDefault &&
               (missingParameter.library?.isNonNullableByDefault ?? false));
 
@@ -107,13 +110,14 @@ class AddMissingRequiredArgument extends CorrectionProducer {
 
           // Use defaultValue.cursorPosition if it's not null.
           if (defaultValue != null) {
+            var text = defaultValue.text;
             var cursorPosition = defaultValue.cursorPosition;
             if (cursorPosition != null) {
-              builder.write(defaultValue.text.substring(0, cursorPosition));
+              builder.write(text.substring(0, cursorPosition));
               builder.selectHere();
-              builder.write(defaultValue.text.substring(cursorPosition));
+              builder.write(text.substring(cursorPosition));
             } else {
-              builder.addSimpleLinkedEdit('VALUE', defaultValue.text);
+              builder.addSimpleLinkedEdit('VALUE', text);
             }
           } else {
             builder.addSimpleLinkedEdit('VALUE', 'null');

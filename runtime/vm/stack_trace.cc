@@ -24,34 +24,6 @@ const intptr_t k_FutureListener_stateWhenComplete = 8;
 // Keep in sync with sdk/lib/async/future_impl.dart:_FutureListener.handleValue.
 const intptr_t kNumArgsFutureListenerHandleValue = 1;
 
-// Find current yield index from async closure.
-// Async closures contains a variable, :await_jump_var that holds the index into
-// async wrapper.
-intptr_t GetYieldIndex(const Closure& receiver_closure) {
-  const auto& function = Function::Handle(receiver_closure.function());
-  if (!function.IsAsyncClosure() && !function.IsAsyncGenClosure()) {
-    return UntaggedPcDescriptors::kInvalidYieldIndex;
-  }
-  const auto& await_jump_var =
-      Object::Handle(Context::Handle(receiver_closure.context())
-                         .At(Context::kAwaitJumpVarIndex));
-  ASSERT(await_jump_var.IsSmi());
-  return Smi::Cast(await_jump_var).Value();
-}
-
-intptr_t FindPcOffset(const PcDescriptors& pc_descs, intptr_t yield_index) {
-  if (yield_index == UntaggedPcDescriptors::kInvalidYieldIndex) {
-    return 0;
-  }
-  PcDescriptors::Iterator iter(pc_descs, UntaggedPcDescriptors::kAnyKind);
-  while (iter.MoveNext()) {
-    if (iter.YieldIndex() == yield_index) {
-      return iter.PcOffset();
-    }
-  }
-  UNREACHABLE();  // If we cannot find it we have a bug.
-}
-
 // Instance caches library and field references.
 // This way we don't have to do the look-ups for every frame in the stack.
 CallerClosureFinder::CallerClosureFinder(Zone* zone)
@@ -161,13 +133,6 @@ ClosurePtr CallerClosureFinder::GetCallerInFutureImpl(const Object& future) {
   return GetCallerInFutureListener(listener);
 }
 
-ClosurePtr CallerClosureFinder::FindCallerInAsyncGenClosure(
-    const Context& receiver_context) {
-  // Get the async* _AsyncStarStreamController.
-  context_entry_ = receiver_context.At(Context::kControllerIndex);
-  return FindCallerInAsyncStarStreamController(context_entry_);
-}
-
 ClosurePtr CallerClosureFinder::FindCallerInAsyncStarStreamController(
     const Object& async_star_stream_controller) {
   ASSERT(async_star_stream_controller.IsInstance());
@@ -245,12 +210,6 @@ ClosurePtr CallerClosureFinder::FindCallerInAsyncStarStreamController(
 
 ClosurePtr CallerClosureFinder::GetCallerInFutureListener(
     const Object& future_listener) {
-  closure_ = GetCallerInFutureListenerInternal(future_listener);
-  return UnwrapAsyncThen(closure_);
-}
-
-ClosurePtr CallerClosureFinder::GetCallerInFutureListenerInternal(
-    const Object& future_listener) {
   auto value = GetFutureListenerState(future_listener);
 
   // If the _FutureListener is a `then`, `catchError`, or `whenComplete`
@@ -267,11 +226,6 @@ ClosurePtr CallerClosureFinder::GetCallerInFutureListenerInternal(
   return GetFutureListenerCallback(future_listener);
 }
 
-ClosurePtr CallerClosureFinder::FindCaller(const Closure& receiver_closure) {
-  closure_ = FindCallerInternal(receiver_closure);
-  return UnwrapAsyncThen(closure_);
-}
-
 ClosurePtr CallerClosureFinder::FindCallerFromSuspendState(
     const SuspendState& suspend_state) {
   context_entry_ = suspend_state.function_data();
@@ -285,21 +239,7 @@ ClosurePtr CallerClosureFinder::FindCallerFromSuspendState(
   }
 }
 
-ClosurePtr CallerClosureFinder::UnwrapAsyncThen(const Closure& closure) {
-  if (closure.IsNull()) return closure.ptr();
-
-  receiver_function_ = closure.function();
-  receiver_function_ = receiver_function_.parent_function();
-  if (receiver_function_.recognized_kind() ==
-      MethodRecognizer::kAsyncThenWrapperHelper) {
-    receiver_context_ = closure.context();
-    RELEASE_ASSERT(receiver_context_.num_variables() == 1);
-    return Closure::RawCast(receiver_context_.At(0));
-  }
-  return closure.ptr();
-}
-
-bool CallerClosureFinder::IsCompactAsyncCallback(const Function& function) {
+bool CallerClosureFinder::IsAsyncCallback(const Function& function) {
   parent_function_ = function.parent_function();
   auto kind = parent_function_.recognized_kind();
   return (kind == MethodRecognizer::kSuspendState_createAsyncCallbacks) ||
@@ -308,30 +248,20 @@ bool CallerClosureFinder::IsCompactAsyncCallback(const Function& function) {
 
 SuspendStatePtr CallerClosureFinder::GetSuspendStateFromAsyncCallback(
     const Closure& closure) {
-  ASSERT(IsCompactAsyncCallback(Function::Handle(closure.function())));
+  ASSERT(IsAsyncCallback(Function::Handle(closure.function())));
   // Async/async* handler only captures the receiver (SuspendState).
   receiver_context_ = closure.context();
   RELEASE_ASSERT(receiver_context_.num_variables() == 1);
   return SuspendState::RawCast(receiver_context_.At(0));
 }
 
-ClosurePtr CallerClosureFinder::FindCallerInternal(
-    const Closure& receiver_closure) {
+ClosurePtr CallerClosureFinder::FindCaller(const Closure& receiver_closure) {
   receiver_function_ = receiver_closure.function();
   receiver_context_ = receiver_closure.context();
 
-  if (IsCompactAsyncCallback(receiver_function_)) {
+  if (IsAsyncCallback(receiver_function_)) {
     suspend_state_ = GetSuspendStateFromAsyncCallback(receiver_closure);
     return FindCallerFromSuspendState(suspend_state_);
-  }
-
-  if (receiver_function_.IsAsyncGenClosure()) {
-    return FindCallerInAsyncGenClosure(receiver_context_);
-  }
-
-  if (receiver_function_.IsAsyncClosure()) {
-    future_ = receiver_context_.At(Context::kAsyncFutureIndex);
-    return GetCallerInFutureImpl(future_);
   }
 
   if (receiver_function_.HasParent()) {
@@ -363,12 +293,6 @@ ClosurePtr CallerClosureFinder::FindCallerInternal(
   }
 
   return Closure::null();
-}
-
-ObjectPtr CallerClosureFinder::GetAsyncFuture(const Closure& receiver_closure) {
-  // Closure -> Context -> _Future.
-  receiver_context_ = receiver_closure.context();
-  return receiver_context_.At(Context::kAsyncFutureIndex);
 }
 
 ObjectPtr CallerClosureFinder::GetFutureFutureListener(const Object& future) {
@@ -419,71 +343,23 @@ bool CallerClosureFinder::HasCatchError(const Object& future_listener) {
   return false;
 }
 
-bool CallerClosureFinder::IsRunningAsync(const Closure& receiver_closure) {
-  auto zone = Thread::Current()->zone();
-
-  // The async* functions are never started synchronously, they start running
-  // after the first `listen()` call to its returned `Stream`.
-  const Function& receiver_function_ =
-      Function::Handle(zone, receiver_closure.function());
-  if (receiver_function_.IsAsyncGenClosure()) {
-    return true;
-  }
-  ASSERT(receiver_function_.IsAsyncClosure());
-
-  const Context& receiver_context_ =
-      Context::Handle(zone, receiver_closure.context());
-  const Object& is_sync =
-      Object::Handle(zone, receiver_context_.At(Context::kIsSyncIndex));
-  ASSERT(!is_sync.IsNull());
-  ASSERT(is_sync.IsBool());
-  // isSync indicates whether the future should be completed async. or sync.,
-  // based on whether it has yielded yet.
-  // isSync is true when the :async_op has yielded at least once.
-  // I.e. isSync will be false even after :async_op has run, if e.g. it threw
-  // an exception before yielding.
-  return Bool::Cast(is_sync).value();
-}
-
 bool CallerClosureFinder::WasPreviouslySuspended(
     const Function& function,
     const Object& suspend_state_var) {
   if (!suspend_state_var.IsSuspendState()) {
     return false;
   }
-  if (function.IsCompactAsyncFunction()) {
+  if (function.IsAsyncFunction()) {
     // Error callback is set after both 'then' and 'error' callbacks are
     // registered with the Zone. Callback registration may query
     // stack trace and should still collect the synchronous stack trace.
     return SuspendState::Cast(suspend_state_var).error_callback() !=
            Object::null();
-  } else if (function.IsCompactAsyncStarFunction()) {
+  } else if (function.IsAsyncGenerator()) {
     return true;
   } else {
     UNREACHABLE();
   }
-}
-
-ClosurePtr StackTraceUtils::FindClosureInFrame(ObjectPtr* last_object_in_caller,
-                                               const Function& function) {
-  NoSafepointScope nsp;
-
-  ASSERT(!function.IsNull());
-  ASSERT(function.IsAsyncClosure() || function.IsAsyncGenClosure());
-
-  // The callee has function signature
-  //   :async_op(result_or_exception, stack)
-  // so the "this" closure is the 3rd argument.
-  ObjectPtr arg = last_object_in_caller[2];
-  if (arg->IsHeapObject() && arg->GetClassId() == kClosureCid) {
-    auto& closure = Closure::Handle();
-    closure = Closure::RawCast(arg);
-    if (closure.function() == function.ptr()) {
-      return closure.ptr();
-    }
-  }
-  ASSERT(arg == Symbols::OptimizedOut().ptr());
-  return Closure::null();
 }
 
 ClosurePtr StackTraceUtils::ClosureFromFrameFunction(
@@ -493,7 +369,6 @@ ClosurePtr StackTraceUtils::ClosureFromFrameFunction(
     StackFrame* frame,
     bool* skip_frame,
     bool* is_async) {
-  auto& closure = Closure::Handle(zone);
   auto& function = Function::Handle(zone);
 
   function = frame->LookupDartFunction();
@@ -501,8 +376,7 @@ ClosurePtr StackTraceUtils::ClosureFromFrameFunction(
     return Closure::null();
   }
 
-  if (function.IsCompactAsyncFunction() ||
-      function.IsCompactAsyncStarFunction()) {
+  if (function.IsAsyncFunction() || function.IsAsyncGenerator()) {
     auto& suspend_state = Object::Handle(
         zone, *reinterpret_cast<ObjectPtr*>(LocalVarAddress(
                   frame->fp(), runtime_frame_layout.FrameSlotForVariableIndex(
@@ -516,26 +390,6 @@ ClosurePtr StackTraceUtils::ClosureFromFrameFunction(
 
     // Still running the sync part before the first await.
     return Closure::null();
-  }
-
-  if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
-    // Next, look up caller's closure on the stack and walk backwards
-    // through the yields.
-    ObjectPtr* last_caller_obj =
-        reinterpret_cast<ObjectPtr*>(frame->GetCallerSp());
-    closure = FindClosureInFrame(last_caller_obj, function);
-    if (closure.IsNull()) return Closure::null();
-
-    // If this async function hasn't yielded yet, we're still dealing with a
-    // normal stack. Continue to next frame as usual.
-    if (!caller_closure_finder->IsRunningAsync(closure)) {
-      return Closure::null();
-    }
-
-    *is_async = true;
-
-    // Skip: Already handled this as a sync. frame.
-    return caller_closure_finder->FindCaller(closure);
   }
 
   // May have been called from `_FutureListener.handleValue`, which means its
@@ -595,7 +449,7 @@ void StackTraceUtils::UnwindAwaiterChain(
     if (function.IsNull()) {
       continue;
     }
-    if (caller_closure_finder->IsCompactAsyncCallback(function)) {
+    if (caller_closure_finder->IsAsyncCallback(function)) {
       suspend_state =
           caller_closure_finder->GetSuspendStateFromAsyncCallback(closure);
       const uword pc = suspend_state.pc();
@@ -614,11 +468,8 @@ void StackTraceUtils::UnwindAwaiterChain(
       RELEASE_ASSERT(!code.IsNull());
       code_array.Add(code);
       pc_descs = code.pc_descriptors();
-      const intptr_t pc_offset = FindPcOffset(pc_descs, GetYieldIndex(closure));
-      // Unlike other sources of PC offsets, the offset may be 0 here if we
-      // reach a non-async closure receiving the yielded value.
-      ASSERT(pc_offset >= 0);
-      pc_offset_array->Add(pc_offset);
+      // We reached a non-async closure receiving the yielded value.
+      pc_offset_array->Add(0);
     }
 
     // Inject async suspension marker.

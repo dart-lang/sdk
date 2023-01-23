@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:dev_compiler/src/kernel/module_symbols.dart';
 import 'package:test/test.dart';
 
@@ -18,9 +16,9 @@ void main() async {
     group(mode.description, () {
       var options = SetupCompilerOptions(soundNullSafety: mode.soundNullSafety);
       group('top level function debug symbols', () {
-        TestDriver driver;
-        FunctionSymbol functionSymbol;
-        LibrarySymbol librarySymbol;
+        late final TestDriver driver;
+        late final FunctionSymbol functionSymbol;
+        late final LibrarySymbol librarySymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -30,9 +28,9 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          librarySymbol = result.symbols.libraries.single;
-          functionSymbol = result.symbols.functions.single;
+          var symbols = await driver.compileAndGetSymbols();
+          librarySymbol = symbols.libraries.single;
+          functionSymbol = symbols.functions.single;
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -62,15 +60,15 @@ void main() async {
         });
         group('location', () {
           test('has scriptId', () async {
-            expect(functionSymbol.location.scriptId, endsWith('/foo.dart'));
+            expect(functionSymbol.location!.scriptId, endsWith('/foo.dart'));
           });
           test('has start token', () async {
-            expect(functionSymbol.location.tokenPos,
+            expect(functionSymbol.location!.tokenPos,
                 source.indexOf('topLevelFunction'));
           });
           test('has end token', () async {
             expect(
-                functionSymbol.location.endTokenPos, source.lastIndexOf('}'));
+                functionSymbol.location!.endTokenPos, source.lastIndexOf('}'));
           });
         });
         test('id in LibrarySymbol scopes', () async {
@@ -79,9 +77,9 @@ void main() async {
         });
       });
       group('top level private function debug symbols', () {
-        TestDriver driver;
-        FunctionSymbol functionSymbol;
-        LibrarySymbol librarySymbol;
+        late final TestDriver driver;
+        late final FunctionSymbol functionSymbol;
+        late final LibrarySymbol librarySymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -91,9 +89,9 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          functionSymbol = result.symbols.functions.single;
-          librarySymbol = result.symbols.libraries.single;
+          var symbols = await driver.compileAndGetSymbols();
+          functionSymbol = symbols.functions.single;
+          librarySymbol = symbols.libraries.single;
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -108,9 +106,9 @@ void main() async {
         });
       });
       group('top level public getter debug symbols', () {
-        TestDriver driver;
-        FunctionSymbol functionSymbol;
-        LibrarySymbol librarySymbol;
+        late final TestDriver driver;
+        late final FunctionSymbol functionSymbol;
+        late final LibrarySymbol librarySymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -118,9 +116,9 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          functionSymbol = result.symbols.functions.single;
-          librarySymbol = result.symbols.libraries.single;
+          var symbols = await driver.compileAndGetSymbols();
+          functionSymbol = symbols.functions.single;
+          librarySymbol = symbols.libraries.single;
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -138,9 +136,9 @@ void main() async {
         });
       });
       group('top level private getter debug symbols', () {
-        TestDriver driver;
-        FunctionSymbol functionSymbol;
-        LibrarySymbol librarySymbol;
+        late final TestDriver driver;
+        late final FunctionSymbol functionSymbol;
+        late final LibrarySymbol librarySymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -148,9 +146,9 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          functionSymbol = result.symbols.functions.single;
-          librarySymbol = result.symbols.libraries.single;
+          var symbols = await driver.compileAndGetSymbols();
+          functionSymbol = symbols.functions.single;
+          librarySymbol = symbols.libraries.single;
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -168,9 +166,9 @@ void main() async {
         });
       });
       group('top level public setter debug symbols', () {
-        TestDriver driver;
-        FunctionSymbol functionSymbol;
-        LibrarySymbol librarySymbol;
+        late final TestDriver driver;
+        late final FunctionSymbol functionSymbol;
+        late final LibrarySymbol librarySymbol;
         final source = '''
           ${options.dartLangComment}
           var _value;
@@ -178,9 +176,9 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          functionSymbol = result.symbols.functions.single;
-          librarySymbol = result.symbols.libraries.single;
+          var symbols = await driver.compileAndGetSymbols();
+          functionSymbol = symbols.functions.single;
+          librarySymbol = symbols.libraries.single;
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -198,9 +196,9 @@ void main() async {
         });
       });
       group('top level private setter debug symbols', () {
-        TestDriver driver;
-        FunctionSymbol functionSymbol;
-        LibrarySymbol librarySymbol;
+        late final TestDriver driver;
+        late final FunctionSymbol functionSymbol;
+        late final LibrarySymbol librarySymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -209,9 +207,9 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          functionSymbol = result.symbols.functions.single;
-          librarySymbol = result.symbols.libraries.single;
+          var symbols = await driver.compileAndGetSymbols();
+          functionSymbol = symbols.functions.single;
+          librarySymbol = symbols.libraries.single;
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -229,13 +227,13 @@ void main() async {
         });
       });
       group('function arguments debug symbols', () {
-        TestDriver driver;
-        FunctionSymbol functionWithPositionalArgSymbol;
-        FunctionSymbol functionWithOptionalArgSymbol;
-        FunctionSymbol functionWithNamedArgSymbol;
-        VariableSymbol xSymbol;
-        VariableSymbol ySymbol;
-        VariableSymbol zSymbol;
+        late final TestDriver driver;
+        late final FunctionSymbol functionWithPositionalArgSymbol;
+        late final FunctionSymbol functionWithOptionalArgSymbol;
+        late final FunctionSymbol functionWithNamedArgSymbol;
+        late final VariableSymbol xSymbol;
+        late final VariableSymbol ySymbol;
+        late final VariableSymbol zSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -249,16 +247,16 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          functionWithPositionalArgSymbol = result.symbols.functions
+          var symbols = await driver.compileAndGetSymbols();
+          functionWithPositionalArgSymbol = symbols.functions
               .singleWhere((f) => f.name == 'functionWithPositionalArg');
-          functionWithOptionalArgSymbol = result.symbols.functions
+          functionWithOptionalArgSymbol = symbols.functions
               .singleWhere((f) => f.name == 'functionWithOptionalArg');
-          functionWithNamedArgSymbol = result.symbols.functions
+          functionWithNamedArgSymbol = symbols.functions
               .singleWhere((f) => f.name == 'functionWithNamedArg');
-          xSymbol = result.symbols.variables.singleWhere((v) => v.name == 'x');
-          ySymbol = result.symbols.variables.singleWhere((v) => v.name == 'y');
-          zSymbol = result.symbols.variables.singleWhere((v) => v.name == 'z');
+          xSymbol = symbols.variables.singleWhere((v) => v.name == 'x');
+          ySymbol = symbols.variables.singleWhere((v) => v.name == 'y');
+          zSymbol = symbols.variables.singleWhere((v) => v.name == 'z');
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -292,9 +290,9 @@ void main() async {
         });
       });
       group('function local variable debug symbols', () {
-        TestDriver driver;
-        FunctionSymbol functionSymbol;
-        VariableSymbol variableSymbol;
+        late final TestDriver driver;
+        late final FunctionSymbol functionSymbol;
+        late final VariableSymbol variableSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -305,9 +303,9 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          variableSymbol = result.symbols.variables.single;
-          functionSymbol = result.symbols.functions.single;
+          var symbols = await driver.compileAndGetSymbols();
+          variableSymbol = symbols.variables.single;
+          functionSymbol = symbols.functions.single;
         });
         tearDownAll(() {
           driver.cleanUp();

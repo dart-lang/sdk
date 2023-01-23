@@ -115,11 +115,6 @@ typedef LSPArray = List<LSPAny>;
 /// @since 3.17.0
 typedef LspPattern = String;
 
-/// A tagging type for string properties that are actually URIs
-///
-/// @since 3.16.0
-typedef LspUri = String;
-
 /// A notebook document filter denotes a notebook document by different
 /// properties. The properties will be match against the notebook's URI (same as
 /// with documents)
@@ -1009,7 +1004,7 @@ class CallHierarchyItem implements ToJsonable {
         ?.map((item) => SymbolTag.fromJson(item as int))
         .toList();
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     return CallHierarchyItem(
       data: data,
       detail: detail,
@@ -1065,7 +1060,7 @@ class CallHierarchyItem implements ToJsonable {
     if (tags != null) {
       result['tags'] = tags?.map((item) => item.toJson()).toList();
     }
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     return result;
   }
 
@@ -1095,7 +1090,7 @@ class CallHierarchyItem implements ToJsonable {
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
-      return _canParseString(obj, reporter, 'uri',
+      return _canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type CallHierarchyItem');
@@ -3045,25 +3040,25 @@ class CodeDescription implements ToJsonable {
   });
   static CodeDescription fromJson(Map<String, Object?> json) {
     final hrefJson = json['href'];
-    final href = hrefJson as String;
+    final href = Uri.parse(hrefJson as String);
     return CodeDescription(
       href: href,
     );
   }
 
   /// An URI to open with more information about the diagnostic error.
-  final LspUri href;
+  final LSPUri href;
 
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
-    result['href'] = href;
+    result['href'] = href.toString();
     return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      return _canParseString(obj, reporter, 'href',
+      return _canParseUri(obj, reporter, 'href',
           allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type CodeDescription');
@@ -6403,7 +6398,7 @@ class CreateFile implements ResourceOperation, ToJsonable {
         ? CreateFileOptions.fromJson(optionsJson as Map<String, Object?>)
         : null;
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     return CreateFile(
       annotationId: annotationId,
       kind: kind,
@@ -6438,7 +6433,7 @@ class CreateFile implements ResourceOperation, ToJsonable {
     if (options != null) {
       result['options'] = options?.toJson();
     }
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     return result;
   }
 
@@ -6456,7 +6451,7 @@ class CreateFile implements ResourceOperation, ToJsonable {
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
-      return _canParseString(obj, reporter, 'uri',
+      return _canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type CreateFile');
@@ -7311,7 +7306,7 @@ class DeleteFile implements ResourceOperation, ToJsonable {
         ? DeleteFileOptions.fromJson(optionsJson as Map<String, Object?>)
         : null;
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     return DeleteFile(
       annotationId: annotationId,
       kind: kind,
@@ -7346,7 +7341,7 @@ class DeleteFile implements ResourceOperation, ToJsonable {
     if (options != null) {
       result['options'] = options?.toJson();
     }
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     return result;
   }
 
@@ -7364,7 +7359,7 @@ class DeleteFile implements ResourceOperation, ToJsonable {
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
-      return _canParseString(obj, reporter, 'uri',
+      return _canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type DeleteFile');
@@ -9699,7 +9694,7 @@ class DocumentDiagnosticReportPartialResult implements ToJsonable {
     final relatedDocumentsJson = json['relatedDocuments'];
     final relatedDocuments = (relatedDocumentsJson as Map<Object, Object?>).map(
         (key, value) => MapEntry(
-            key as String,
+            Uri.parse(key as String),
             _eitherFullDocumentDiagnosticReportUnchangedDocumentDiagnosticReport(
                 value)));
     return DocumentDiagnosticReportPartialResult(
@@ -9715,13 +9710,14 @@ class DocumentDiagnosticReportPartialResult implements ToJsonable {
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
-    result['relatedDocuments'] = relatedDocuments;
+    result['relatedDocuments'] =
+        relatedDocuments.map((key, value) => MapEntry(key.toString(), value));
     return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      return _canParseMapStringFullDocumentDiagnosticReportUnchangedDocumentDiagnosticReport(
+      return _canParseMapUriFullDocumentDiagnosticReportUnchangedDocumentDiagnosticReport(
           obj, reporter, 'relatedDocuments',
           allowsUndefined: false, allowsNull: false);
     } else {
@@ -12912,7 +12908,7 @@ class FileEvent implements ToJsonable {
     final typeJson = json['type'];
     final type = FileChangeType.fromJson(typeJson as int);
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     return FileEvent(
       type: type,
       uri: uri,
@@ -12929,7 +12925,7 @@ class FileEvent implements ToJsonable {
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['type'] = type.toJson();
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     return result;
   }
 
@@ -12939,7 +12935,7 @@ class FileEvent implements ToJsonable {
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
-      return _canParseString(obj, reporter, 'uri',
+      return _canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type FileEvent');
@@ -15637,7 +15633,8 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
     final rootPathJson = json['rootPath'];
     final rootPath = rootPathJson as String?;
     final rootUriJson = json['rootUri'];
-    final rootUri = rootUriJson as String?;
+    final rootUri =
+        rootUriJson != null ? Uri.parse(rootUriJson as String) : null;
     final traceJson = json['trace'];
     final trace = const {null, 'off', 'messages', 'compact', 'verbose'}
             .contains(traceJson)
@@ -15734,7 +15731,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
     if (rootPath != null) {
       result['rootPath'] = rootPath;
     }
-    result['rootUri'] = rootUri;
+    result['rootUri'] = rootUri?.toString();
     if (trace != null) {
       result['trace'] = trace;
     }
@@ -15770,7 +15767,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
           allowsUndefined: true, allowsNull: true)) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'rootUri',
+      if (!_canParseUri(obj, reporter, 'rootUri',
           allowsUndefined: false, allowsNull: true)) {
         return false;
       }
@@ -18163,7 +18160,7 @@ class Location implements ToJsonable {
     final rangeJson = json['range'];
     final range = Range.fromJson(rangeJson as Map<String, Object?>);
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     return Location(
       range: range,
       uri: uri,
@@ -18177,7 +18174,7 @@ class Location implements ToJsonable {
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['range'] = range.toJson();
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     return result;
   }
 
@@ -18187,7 +18184,7 @@ class Location implements ToJsonable {
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
-      return _canParseString(obj, reporter, 'uri',
+      return _canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type Location');
@@ -18239,7 +18236,7 @@ class LocationLink implements ToJsonable {
     final targetSelectionRange =
         Range.fromJson(targetSelectionRangeJson as Map<String, Object?>);
     final targetUriJson = json['targetUri'];
-    final targetUri = targetUriJson as String;
+    final targetUri = Uri.parse(targetUriJson as String);
     return LocationLink(
       originSelectionRange: originSelectionRange,
       targetRange: targetRange,
@@ -18276,7 +18273,7 @@ class LocationLink implements ToJsonable {
     }
     result['targetRange'] = targetRange.toJson();
     result['targetSelectionRange'] = targetSelectionRange.toJson();
-    result['targetUri'] = targetUri;
+    result['targetUri'] = targetUri.toString();
     return result;
   }
 
@@ -18294,7 +18291,7 @@ class LocationLink implements ToJsonable {
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
-      return _canParseString(obj, reporter, 'targetUri',
+      return _canParseUri(obj, reporter, 'targetUri',
           allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type LocationLink');
@@ -19558,7 +19555,7 @@ class NotebookCell implements ToJsonable {
   });
   static NotebookCell fromJson(Map<String, Object?> json) {
     final documentJson = json['document'];
-    final document = documentJson as String;
+    final document = Uri.parse(documentJson as String);
     final executionSummaryJson = json['executionSummary'];
     final executionSummary = executionSummaryJson != null
         ? ExecutionSummary.fromJson(
@@ -19593,7 +19590,7 @@ class NotebookCell implements ToJsonable {
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
-    result['document'] = document;
+    result['document'] = document.toString();
     if (executionSummary != null) {
       result['executionSummary'] = executionSummary?.toJson();
     }
@@ -19606,7 +19603,7 @@ class NotebookCell implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseString(obj, reporter, 'document',
+      if (!_canParseUri(obj, reporter, 'document',
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
@@ -19875,7 +19872,7 @@ class NotebookDocument implements ToJsonable {
     final notebookTypeJson = json['notebookType'];
     final notebookType = notebookTypeJson as String;
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     final versionJson = json['version'];
     final version = versionJson as int;
     return NotebookDocument(
@@ -19899,7 +19896,7 @@ class NotebookDocument implements ToJsonable {
   final String notebookType;
 
   /// The notebook document's uri.
-  final LspUri uri;
+  final LSPUri uri;
 
   /// The version number of this document (it will increase after each change,
   /// including undo/redo).
@@ -19913,7 +19910,7 @@ class NotebookDocument implements ToJsonable {
       result['metadata'] = metadata;
     }
     result['notebookType'] = notebookType;
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     result['version'] = version;
     return result;
   }
@@ -19932,7 +19929,7 @@ class NotebookDocument implements ToJsonable {
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'uri',
+      if (!_canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
@@ -20654,25 +20651,25 @@ class NotebookDocumentIdentifier implements ToJsonable {
   });
   static NotebookDocumentIdentifier fromJson(Map<String, Object?> json) {
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     return NotebookDocumentIdentifier(
       uri: uri,
     );
   }
 
   /// The notebook document's uri.
-  final LspUri uri;
+  final LSPUri uri;
 
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      return _canParseString(obj, reporter, 'uri',
+      return _canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type NotebookDocumentIdentifier');
@@ -21280,7 +21277,7 @@ class OptionalVersionedTextDocumentIdentifier
   static OptionalVersionedTextDocumentIdentifier fromJson(
       Map<String, Object?> json) {
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     final versionJson = json['version'];
     final version = versionJson as int?;
     return OptionalVersionedTextDocumentIdentifier(
@@ -21304,14 +21301,14 @@ class OptionalVersionedTextDocumentIdentifier
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     result['version'] = version;
     return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseString(obj, reporter, 'uri',
+      if (!_canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
@@ -21946,7 +21943,7 @@ class PreviousResultId implements ToJsonable {
   });
   static PreviousResultId fromJson(Map<String, Object?> json) {
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     final valueJson = json['value'];
     final value = valueJson as String;
     return PreviousResultId(
@@ -21964,14 +21961,14 @@ class PreviousResultId implements ToJsonable {
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     result['value'] = value;
     return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseString(obj, reporter, 'uri',
+      if (!_canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
@@ -22276,7 +22273,7 @@ class PublishDiagnosticsParams implements ToJsonable {
         .map((item) => Diagnostic.fromJson(item as Map<String, Object?>))
         .toList();
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     final versionJson = json['version'];
     final version = versionJson as int?;
     return PublishDiagnosticsParams(
@@ -22302,7 +22299,7 @@ class PublishDiagnosticsParams implements ToJsonable {
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['diagnostics'] = diagnostics.map((item) => item.toJson()).toList();
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     if (version != null) {
       result['version'] = version;
     }
@@ -22315,7 +22312,7 @@ class PublishDiagnosticsParams implements ToJsonable {
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'uri',
+      if (!_canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
@@ -23040,7 +23037,7 @@ class RelatedFullDocumentDiagnosticReport
     final relatedDocumentsJson = json['relatedDocuments'];
     final relatedDocuments = (relatedDocumentsJson as Map<Object, Object?>?)
         ?.map((key, value) => MapEntry(
-            key as String,
+            Uri.parse(key as String),
             _eitherFullDocumentDiagnosticReportUnchangedDocumentDiagnosticReport(
                 value)));
     final resultIdJson = json['resultId'];
@@ -23084,7 +23081,8 @@ class RelatedFullDocumentDiagnosticReport
     result['items'] = items.map((item) => item.toJson()).toList();
     result['kind'] = kind;
     if (relatedDocuments != null) {
-      result['relatedDocuments'] = relatedDocuments;
+      result['relatedDocuments'] = relatedDocuments
+          ?.map((key, value) => MapEntry(key.toString(), value));
     }
     if (resultId != null) {
       result['resultId'] = resultId;
@@ -23102,7 +23100,7 @@ class RelatedFullDocumentDiagnosticReport
           allowsUndefined: false, allowsNull: false, literal: 'full')) {
         return false;
       }
-      if (!_canParseMapStringFullDocumentDiagnosticReportUnchangedDocumentDiagnosticReport(
+      if (!_canParseMapUriFullDocumentDiagnosticReportUnchangedDocumentDiagnosticReport(
           obj, reporter, 'relatedDocuments',
           allowsUndefined: true, allowsNull: false)) {
         return false;
@@ -23173,7 +23171,7 @@ class RelatedUnchangedDocumentDiagnosticReport
     final relatedDocumentsJson = json['relatedDocuments'];
     final relatedDocuments = (relatedDocumentsJson as Map<Object, Object?>?)
         ?.map((key, value) => MapEntry(
-            key as String,
+            Uri.parse(key as String),
             _eitherFullDocumentDiagnosticReportUnchangedDocumentDiagnosticReport(
                 value)));
     final resultIdJson = json['resultId'];
@@ -23212,7 +23210,8 @@ class RelatedUnchangedDocumentDiagnosticReport
     var result = <String, Object?>{};
     result['kind'] = kind;
     if (relatedDocuments != null) {
-      result['relatedDocuments'] = relatedDocuments;
+      result['relatedDocuments'] = relatedDocuments
+          ?.map((key, value) => MapEntry(key.toString(), value));
     }
     result['resultId'] = resultId;
     return result;
@@ -23224,7 +23223,7 @@ class RelatedUnchangedDocumentDiagnosticReport
           allowsUndefined: false, allowsNull: false, literal: 'unchanged')) {
         return false;
       }
-      if (!_canParseMapStringFullDocumentDiagnosticReportUnchangedDocumentDiagnosticReport(
+      if (!_canParseMapUriFullDocumentDiagnosticReportUnchangedDocumentDiagnosticReport(
           obj, reporter, 'relatedDocuments',
           allowsUndefined: true, allowsNull: false)) {
         return false;
@@ -23284,7 +23283,7 @@ class RelativePattern implements ToJsonable {
   });
   static RelativePattern fromJson(Map<String, Object?> json) {
     final baseUriJson = json['baseUri'];
-    final baseUri = _eitherStringWorkspaceFolder(baseUriJson);
+    final baseUri = _eitherUriWorkspaceFolder(baseUriJson);
     final patternJson = json['pattern'];
     final pattern = patternJson as String;
     return RelativePattern(
@@ -23295,7 +23294,7 @@ class RelativePattern implements ToJsonable {
 
   /// A workspace folder or a base URI to which this pattern will be matched
   /// against relatively.
-  final Either2<LspUri, WorkspaceFolder> baseUri;
+  final Either2<LSPUri, WorkspaceFolder> baseUri;
 
   /// The actual glob pattern;
   final LspPattern pattern;
@@ -23310,7 +23309,7 @@ class RelativePattern implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseStringWorkspaceFolder(obj, reporter, 'baseUri',
+      if (!_canParseUriWorkspaceFolder(obj, reporter, 'baseUri',
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
@@ -23486,9 +23485,9 @@ class RenameFile implements ResourceOperation, ToJsonable {
     final kindJson = json['kind'];
     final kind = kindJson as String;
     final newUriJson = json['newUri'];
-    final newUri = newUriJson as String;
+    final newUri = Uri.parse(newUriJson as String);
     final oldUriJson = json['oldUri'];
-    final oldUri = oldUriJson as String;
+    final oldUri = Uri.parse(oldUriJson as String);
     final optionsJson = json['options'];
     final options = optionsJson != null
         ? RenameFileOptions.fromJson(optionsJson as Map<String, Object?>)
@@ -23528,8 +23527,8 @@ class RenameFile implements ResourceOperation, ToJsonable {
       result['annotationId'] = annotationId;
     }
     result['kind'] = kind;
-    result['newUri'] = newUri;
-    result['oldUri'] = oldUri;
+    result['newUri'] = newUri.toString();
+    result['oldUri'] = oldUri.toString();
     if (options != null) {
       result['options'] = options?.toJson();
     }
@@ -23546,11 +23545,11 @@ class RenameFile implements ResourceOperation, ToJsonable {
           allowsUndefined: false, allowsNull: false, literal: 'rename')) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'newUri',
+      if (!_canParseUri(obj, reporter, 'newUri',
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'oldUri',
+      if (!_canParseUri(obj, reporter, 'oldUri',
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
@@ -27158,7 +27157,7 @@ class ShowDocumentParams implements ToJsonable {
     final takeFocusJson = json['takeFocus'];
     final takeFocus = takeFocusJson as bool?;
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     return ShowDocumentParams(
       external: external,
       selection: selection,
@@ -27183,7 +27182,7 @@ class ShowDocumentParams implements ToJsonable {
   final bool? takeFocus;
 
   /// The document uri to show.
-  final LspUri uri;
+  final LSPUri uri;
 
   @override
   Map<String, Object?> toJson() {
@@ -27197,7 +27196,7 @@ class ShowDocumentParams implements ToJsonable {
     if (takeFocus != null) {
       result['takeFocus'] = takeFocus;
     }
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     return result;
   }
 
@@ -27215,7 +27214,7 @@ class ShowDocumentParams implements ToJsonable {
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
-      return _canParseString(obj, reporter, 'uri',
+      return _canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type ShowDocumentParams');
@@ -30105,7 +30104,7 @@ class TextDocumentIdentifier implements ToJsonable {
       return OptionalVersionedTextDocumentIdentifier.fromJson(json);
     }
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     return TextDocumentIdentifier(
       uri: uri,
     );
@@ -30117,13 +30116,13 @@ class TextDocumentIdentifier implements ToJsonable {
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      return _canParseString(obj, reporter, 'uri',
+      return _canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type TextDocumentIdentifier');
@@ -30164,7 +30163,7 @@ class TextDocumentItem implements ToJsonable {
     final textJson = json['text'];
     final text = textJson as String;
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     final versionJson = json['version'];
     final version = versionJson as int;
     return TextDocumentItem(
@@ -30193,7 +30192,7 @@ class TextDocumentItem implements ToJsonable {
     var result = <String, Object?>{};
     result['languageId'] = languageId;
     result['text'] = text;
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     result['version'] = version;
     return result;
   }
@@ -30208,7 +30207,7 @@ class TextDocumentItem implements ToJsonable {
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'uri',
+      if (!_canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
@@ -31449,7 +31448,9 @@ class TypeHierarchyItem implements ToJsonable {
   });
   static TypeHierarchyItem fromJson(Map<String, Object?> json) {
     final dataJson = json['data'];
-    final data = dataJson;
+    final data = dataJson != null
+        ? TypeHierarchyItemInfo.fromJson(dataJson as Map<String, Object?>)
+        : null;
     final detailJson = json['detail'];
     final detail = detailJson as String?;
     final kindJson = json['kind'];
@@ -31466,7 +31467,7 @@ class TypeHierarchyItem implements ToJsonable {
         ?.map((item) => SymbolTag.fromJson(item as int))
         .toList();
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     return TypeHierarchyItem(
       data: data,
       detail: detail,
@@ -31483,7 +31484,7 @@ class TypeHierarchyItem implements ToJsonable {
   /// supertypes or subtypes requests. It could also be used to identify the
   /// type hierarchy in the server, helping improve the performance on resolving
   /// supertypes and subtypes.
-  final LSPAny data;
+  final TypeHierarchyItemInfo? data;
 
   /// More detail for this item, e.g. the signature of a function.
   final String? detail;
@@ -31512,7 +31513,7 @@ class TypeHierarchyItem implements ToJsonable {
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (data != null) {
-      result['data'] = data;
+      result['data'] = data?.toJson();
     }
     if (detail != null) {
       result['detail'] = detail;
@@ -31524,12 +31525,16 @@ class TypeHierarchyItem implements ToJsonable {
     if (tags != null) {
       result['tags'] = tags?.map((item) => item.toJson()).toList();
     }
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
+      if (!_canParseTypeHierarchyItemInfo(obj, reporter, 'data',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
       if (!_canParseString(obj, reporter, 'detail',
           allowsUndefined: true, allowsNull: false)) {
         return false;
@@ -31554,7 +31559,7 @@ class TypeHierarchyItem implements ToJsonable {
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
-      return _canParseString(obj, reporter, 'uri',
+      return _canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type TypeHierarchyItem');
@@ -32299,7 +32304,7 @@ class VersionedNotebookDocumentIdentifier implements ToJsonable {
   static VersionedNotebookDocumentIdentifier fromJson(
       Map<String, Object?> json) {
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     final versionJson = json['version'];
     final version = versionJson as int;
     return VersionedNotebookDocumentIdentifier(
@@ -32309,7 +32314,7 @@ class VersionedNotebookDocumentIdentifier implements ToJsonable {
   }
 
   /// The notebook document's uri.
-  final LspUri uri;
+  final LSPUri uri;
 
   /// The version number of this notebook document.
   final int version;
@@ -32317,14 +32322,14 @@ class VersionedNotebookDocumentIdentifier implements ToJsonable {
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     result['version'] = version;
     return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseString(obj, reporter, 'uri',
+      if (!_canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
@@ -32369,7 +32374,7 @@ class VersionedTextDocumentIdentifier
   });
   static VersionedTextDocumentIdentifier fromJson(Map<String, Object?> json) {
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     final versionJson = json['version'];
     final version = versionJson as int;
     return VersionedTextDocumentIdentifier(
@@ -32388,14 +32393,14 @@ class VersionedTextDocumentIdentifier
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     result['version'] = version;
     return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseString(obj, reporter, 'uri',
+      if (!_canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
@@ -33970,7 +33975,7 @@ class WorkspaceEdit implements ToJsonable {
     final changesJson = json['changes'];
     final changes = (changesJson as Map<Object, Object?>?)?.map((key, value) =>
         MapEntry(
-            key as String,
+            Uri.parse(key as String),
             (value as List<Object?>)
                 .map((item) => TextEdit.fromJson(item as Map<String, Object?>))
                 .toList()));
@@ -34021,7 +34026,8 @@ class WorkspaceEdit implements ToJsonable {
       result['changeAnnotations'] = changeAnnotations;
     }
     if (changes != null) {
-      result['changes'] = changes;
+      result['changes'] = changes?.map((key, value) => MapEntry(
+          key.toString(), value.map((item) => item.toJson()).toList()));
     }
     if (documentChanges != null) {
       result['documentChanges'] = documentChanges;
@@ -34036,7 +34042,7 @@ class WorkspaceEdit implements ToJsonable {
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
-      if (!_canParseMapStringListTextEdit(obj, reporter, 'changes',
+      if (!_canParseMapUriListTextEdit(obj, reporter, 'changes',
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
@@ -34299,7 +34305,7 @@ class WorkspaceFolder implements ToJsonable {
     final nameJson = json['name'];
     final name = nameJson as String;
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     return WorkspaceFolder(
       name: name,
       uri: uri,
@@ -34311,13 +34317,13 @@ class WorkspaceFolder implements ToJsonable {
   final String name;
 
   /// The associated URI for this workspace folder.
-  final LspUri uri;
+  final LSPUri uri;
 
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['name'] = name;
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     return result;
   }
 
@@ -34327,7 +34333,7 @@ class WorkspaceFolder implements ToJsonable {
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
-      return _canParseString(obj, reporter, 'uri',
+      return _canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type WorkspaceFolder');
@@ -34539,7 +34545,7 @@ class WorkspaceFullDocumentDiagnosticReport
     final resultIdJson = json['resultId'];
     final resultId = resultIdJson as String?;
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     final versionJson = json['version'];
     final version = versionJson as int?;
     return WorkspaceFullDocumentDiagnosticReport(
@@ -34579,7 +34585,7 @@ class WorkspaceFullDocumentDiagnosticReport
     if (resultId != null) {
       result['resultId'] = resultId;
     }
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     result['version'] = version;
     return result;
   }
@@ -34598,7 +34604,7 @@ class WorkspaceFullDocumentDiagnosticReport
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'uri',
+      if (!_canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
@@ -35090,7 +35096,7 @@ class WorkspaceSymbolLocation implements ToJsonable {
   });
   static WorkspaceSymbolLocation fromJson(Map<String, Object?> json) {
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     return WorkspaceSymbolLocation(
       uri: uri,
     );
@@ -35101,13 +35107,13 @@ class WorkspaceSymbolLocation implements ToJsonable {
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      return _canParseString(obj, reporter, 'uri',
+      return _canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type WorkspaceSymbolLocation');
@@ -35406,7 +35412,7 @@ class WorkspaceUnchangedDocumentDiagnosticReport
     final resultIdJson = json['resultId'];
     final resultId = resultIdJson as String;
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     final versionJson = json['version'];
     final version = versionJson as int?;
     return WorkspaceUnchangedDocumentDiagnosticReport(
@@ -35439,7 +35445,7 @@ class WorkspaceUnchangedDocumentDiagnosticReport
     var result = <String, Object?>{};
     result['kind'] = kind;
     result['resultId'] = resultId;
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     result['version'] = version;
     return result;
   }
@@ -35454,7 +35460,7 @@ class WorkspaceUnchangedDocumentDiagnosticReport
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'uri',
+      if (!_canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
@@ -40201,7 +40207,7 @@ bool _canParseMapStringChangeAnnotation(
 }
 
 bool
-    _canParseMapStringFullDocumentDiagnosticReportUnchangedDocumentDiagnosticReport(
+    _canParseMapUriFullDocumentDiagnosticReportUnchangedDocumentDiagnosticReport(
         Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
         {required bool allowsUndefined, required bool allowsNull}) {
   reporter.push(fieldName);
@@ -40219,7 +40225,7 @@ bool
     if ((!nullCheck || value != null) &&
         (value is! Map ||
             (value.keys.any((item) =>
-                item is! String ||
+                (item is! String || Uri.tryParse(item) == null) ||
                 value.values.any((item) =>
                     !FullDocumentDiagnosticReport.canParse(item, reporter) &&
                     !UnchangedDocumentDiagnosticReport.canParse(
@@ -40234,7 +40240,7 @@ bool
   return true;
 }
 
-bool _canParseMapStringListTextEdit(
+bool _canParseMapUriListTextEdit(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
   reporter.push(fieldName);
@@ -40252,7 +40258,7 @@ bool _canParseMapStringListTextEdit(
     if ((!nullCheck || value != null) &&
         (value is! Map ||
             (value.keys.any((item) =>
-                item is! String ||
+                (item is! String || Uri.tryParse(item) == null) ||
                 value.values.any((item) =>
                     item is! List<Object?> ||
                     item.any(
@@ -41641,32 +41647,6 @@ bool _canParseStringRelativePattern(
   return true;
 }
 
-bool _canParseStringWorkspaceFolder(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
-  reporter.push(fieldName);
-  try {
-    if (!allowsUndefined && !map.containsKey(fieldName)) {
-      reporter.reportError('must not be undefined');
-      return false;
-    }
-    final value = map[fieldName];
-    final nullCheck = allowsNull || allowsUndefined;
-    if (!nullCheck && value == null) {
-      reporter.reportError('must not be null');
-      return false;
-    }
-    if ((!nullCheck || value != null) &&
-        (value is! String && !WorkspaceFolder.canParse(value, reporter))) {
-      reporter.reportError('must be of type Either2<LspUri, WorkspaceFolder>');
-      return false;
-    }
-  } finally {
-    reporter.pop();
-  }
-  return true;
-}
-
 bool _canParseSymbolKind(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
@@ -42007,6 +41987,32 @@ bool _canParseTypeHierarchyItem(
   return true;
 }
 
+bool _canParseTypeHierarchyItemInfo(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        !TypeHierarchyItemInfo.canParse(value, reporter)) {
+      reporter.reportError('must be of type TypeHierarchyItemInfo');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
 bool _canParseUniquenessLevel(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
@@ -42025,6 +42031,59 @@ bool _canParseUniquenessLevel(
     if ((!nullCheck || value != null) &&
         !UniquenessLevel.canParse(value, reporter)) {
       reporter.reportError('must be of type UniquenessLevel');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseUri(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! String || Uri.tryParse(value) == null)) {
+      reporter.reportError('must be of type Uri');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseUriWorkspaceFolder(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        ((value is! String || Uri.tryParse(value) == null) &&
+            !WorkspaceFolder.canParse(value, reporter))) {
+      reporter.reportError('must be of type Either2<LSPUri, WorkspaceFolder>');
       return false;
     }
   } finally {
@@ -42910,14 +42969,6 @@ Either2<LspPattern, RelativePattern> _eitherStringRelativePattern(
           : throw '$value was not one of (LspPattern, RelativePattern)';
 }
 
-Either2<LspUri, WorkspaceFolder> _eitherStringWorkspaceFolder(Object? value) {
-  return value is String
-      ? Either2.t1(value)
-      : WorkspaceFolder.canParse(value, nullLspJsonReporter)
-          ? Either2.t2(WorkspaceFolder.fromJson(value as Map<String, Object?>))
-          : throw '$value was not one of (LspUri, WorkspaceFolder)';
-}
-
 Either2<TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2>
     _eitherTextDocumentContentChangeEvent1TextDocumentContentChangeEvent2(
         Object? value) {
@@ -42938,6 +42989,14 @@ Either2<TextDocumentSyncKind, TextDocumentSyncOptions>
           ? Either2.t2(
               TextDocumentSyncOptions.fromJson(value as Map<String, Object?>))
           : throw '$value was not one of (TextDocumentSyncKind, TextDocumentSyncOptions)';
+}
+
+Either2<LSPUri, WorkspaceFolder> _eitherUriWorkspaceFolder(Object? value) {
+  return (value is String && Uri.tryParse(value) != null)
+      ? Either2.t1(Uri.parse(value))
+      : WorkspaceFolder.canParse(value, nullLspJsonReporter)
+          ? Either2.t2(WorkspaceFolder.fromJson(value as Map<String, Object?>))
+          : throw '$value was not one of (LSPUri, WorkspaceFolder)';
 }
 
 Either2<WorkspaceFullDocumentDiagnosticReport,

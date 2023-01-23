@@ -52,7 +52,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
 
   const Function& function = parsed_function_->function();
 
-  // Setup a [ActiveClassScope] and a [ActiveMemberScope] which will be used
+  // Setup an [ActiveClassScope] and an [ActiveMemberScope] which will be used
   // e.g. for type translation.
   const Class& klass = Class::Handle(Z, function.Owner());
 
@@ -148,7 +148,6 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       helper_.ReadUntilFunctionNode();
       function_node_helper.ReadUntilExcluding(
           FunctionNodeHelper::kPositionalParameters);
-      current_function_async_marker_ = function_node_helper.async_marker_;
       // NOTE: FunctionNode is read further below the if.
 
       intptr_t pos = 0;
@@ -206,17 +205,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
 
       ParameterTypeCheckMode type_check_mode =
           kTypeCheckForNonDynamicallyInvokedMethod;
-      if (function.IsSyncGenClosure()) {
-        // Don't type check the parameter of sync-yielding since these calls are
-        // all synthetic and types should always match.
-        ASSERT_EQUAL(
-            function.NumParameters() - function.NumImplicitParameters(), 3);
-        ASSERT(
-            Class::Handle(
-                AbstractType::Handle(function.ParameterTypeAt(1)).type_class())
-                .ScrubbedName() == Symbols::_SyncIterator().ptr());
-        type_check_mode = kTypeCheckForStaticFunction;
-      } else if (function.is_static()) {
+      if (function.is_static()) {
         // In static functions we don't check anything.
         type_check_mode = kTypeCheckForStaticFunction;
       } else if (function.IsImplicitClosureFunction()) {
@@ -378,7 +367,6 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       scope_->InsertParameterAt(pos++, parsed_function_->receiver_var());
 
       // Create all positional and named parameters.
-      current_function_async_marker_ = FunctionNodeHelper::kSync;
       AddPositionalAndNamedParameters(
           pos, kTypeCheckEverythingNotCheckedInNonDynamicallyInvokedMethod,
           attrs);
@@ -403,7 +391,6 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       // Callbacks and calls with handles need try/catch variables.
       if ((function.FfiCallbackTarget() != Function::null() ||
            function.FfiCSignatureContainsHandles())) {
-        current_function_async_marker_ = FunctionNodeHelper::kSync;
         ++depth_.try_;
         AddTryVariables();
         --depth_.try_;
@@ -438,6 +425,16 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         bool added = scope_->InsertParameterAt(i, variable);
         ASSERT(added);
       }
+      break;
+    }
+    case UntaggedFunction::kRecordFieldGetter: {
+      needs_expr_temp_ = true;
+      // Add a receiver parameter.
+      Class& klass = Class::Handle(Z, function.Owner());
+      parsed_function_->set_receiver_var(
+          MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                       Symbols::This(), H.GetDeclarationType(klass)));
+      scope_->InsertParameterAt(0, parsed_function_->receiver_var());
       break;
     }
     case UntaggedFunction::kIrregexpFunction:
@@ -575,50 +572,6 @@ void ScopeBuilder::VisitFunctionNode() {
     PositionScope scope(&helper_.reader_);
     VisitStatement();  // Read body
     first_body_token_position_ = helper_.reader_.min_position();
-  }
-
-  // Ensure that :await_jump_var, :await_ctx_var, :async_op, :is_sync and
-  // :async_future are captured.
-  if (function_node_helper.async_marker_ == FunctionNodeHelper::kSyncYielding) {
-    {
-      LocalVariable* temp = nullptr;
-      LookupCapturedVariableByName(
-          (depth_.function_ == 0) ? &result_->yield_jump_variable : &temp,
-          Symbols::AwaitJumpVar());
-    }
-    {
-      LocalVariable* temp = nullptr;
-      LookupCapturedVariableByName(
-          (depth_.function_ == 0) ? &result_->yield_context_variable : &temp,
-          Symbols::AwaitContextVar());
-    }
-    {
-      LocalVariable* temp =
-          scope_->LookupVariable(Symbols::AsyncOperation(), true);
-      if (temp != nullptr) {
-        scope_->CaptureVariable(temp);
-      }
-    }
-    {
-      LocalVariable* temp =
-          scope_->LookupVariable(Symbols::AsyncFuture(), true);
-      if (temp != nullptr) {
-        scope_->CaptureVariable(temp);
-      }
-    }
-    {
-      LocalVariable* temp = scope_->LookupVariable(Symbols::is_sync(), true);
-      if (temp != nullptr) {
-        scope_->CaptureVariable(temp);
-      }
-    }
-    {
-      LocalVariable* temp =
-          scope_->LookupVariable(Symbols::ControllerStream(), true);
-      if (temp != nullptr) {
-        scope_->CaptureVariable(temp);
-      }
-    }
   }
 
   // Mark known chained futures such as _Future::timeout()'s _future.
@@ -880,17 +833,13 @@ void ScopeBuilder::VisitExpression() {
     }
     case kStringConcatenation: {
       helper_.ReadPosition();                           // read position.
-      intptr_t list_length = helper_.ReadListLength();  // read list length.
-      for (intptr_t i = 0; i < list_length; ++i) {
-        VisitExpression();  // read ith expression.
-      }
+      VisitListOfExpressions();
       return;
     }
     case kIsExpression:
+      needs_expr_temp_ = true;
       helper_.ReadPosition();  // read position.
-      if (translation_helper_.info().kernel_binary_version() >= 38) {
-        helper_.ReadFlags();  // read flags.
-      }
+      helper_.ReadFlags();     // read flags.
       VisitExpression();  // read operand.
       VisitDartType();    // read type.
       return;
@@ -916,10 +865,7 @@ void ScopeBuilder::VisitExpression() {
     case kListLiteral: {
       helper_.ReadPosition();                           // read position.
       VisitDartType();                                  // read type.
-      intptr_t list_length = helper_.ReadListLength();  // read list length.
-      for (intptr_t i = 0; i < list_length; ++i) {
-        VisitExpression();  // read ith expression.
-      }
+      VisitListOfExpressions();
       return;
     }
     case kSetLiteral: {
@@ -939,6 +885,24 @@ void ScopeBuilder::VisitExpression() {
       }
       return;
     }
+    case kRecordLiteral:
+      helper_.ReadPosition();         // read position.
+      VisitListOfExpressions();       // read positionals.
+      VisitListOfNamedExpressions();  // read named.
+      VisitDartType();                // read recordType.
+      return;
+    case kRecordIndexGet:
+      helper_.ReadPosition();  // read position.
+      VisitExpression();       // read receiver.
+      helper_.SkipDartType();  // read recordType.
+      helper_.ReadUInt();      // read index.
+      return;
+    case kRecordNameGet:
+      helper_.ReadPosition();         // read position.
+      VisitExpression();              // read receiver.
+      helper_.SkipDartType();         // read recordType.
+      helper_.SkipStringReference();  // read name.
+      return;
     case kFunctionExpression: {
       intptr_t offset = helper_.ReaderOffset() - 1;  // -1 to include tag byte.
       helper_.ReadPosition();                        // read position.
@@ -1018,6 +982,9 @@ void ScopeBuilder::VisitExpression() {
     case kAwaitExpression:
       helper_.ReadPosition();  // read position.
       VisitExpression();       // read operand.
+      if (helper_.ReadTag() == kSomething) {
+        helper_.SkipDartType();  // read runtime check type.
+      }
       return;
     case kConstStaticInvocation:
     case kConstConstructorInvocation:
@@ -1142,10 +1109,7 @@ void ScopeBuilder::VisitStatement() {
       if (tag == kSomething) {
         VisitExpression();  // read rest of condition.
       }
-      list_length = helper_.ReadListLength();  // read number of updates.
-      for (intptr_t i = 0; i < list_length; ++i) {
-        VisitExpression();  // read ith update.
-      }
+      VisitListOfExpressions();  // read updates.
       VisitStatement();  // read body.
 
       ExitScope(position, helper_.reader_.max_position());
@@ -1296,20 +1260,8 @@ void ScopeBuilder::VisitStatement() {
     }
     case kYieldStatement: {
       helper_.ReadPosition();           // read position.
-      word flags = helper_.ReadByte();  // read flags.
+      helper_.ReadByte();               // read flags.
       VisitExpression();                // read expression.
-
-      if ((flags & kYieldStatementFlagNative) != 0) {
-        if (depth_.function_ == 0) {
-          AddSwitchVariable();
-          // Promote all currently visible local variables into the context.
-          // TODO(27590) CaptureLocalVariables promotes to many variables into
-          // the scope. Mark those variables as stack_local.
-          // TODO(27590) we don't need to promote those variables that are
-          // not used across yields.
-          scope_->CaptureLocalVariables(current_function_scope_);
-        }
-      }
       return;
     }
     case kVariableDeclaration:
@@ -1328,6 +1280,21 @@ void ScopeBuilder::VisitStatement() {
   }
 }
 
+void ScopeBuilder::VisitListOfExpressions() {
+  const intptr_t list_length = helper_.ReadListLength();  // read list length.
+  for (intptr_t i = 0; i < list_length; ++i) {
+    VisitExpression();
+  }
+}
+
+void ScopeBuilder::VisitListOfNamedExpressions() {
+  const intptr_t list_length = helper_.ReadListLength();  // read list length.
+  for (intptr_t i = 0; i < list_length; ++i) {
+    helper_.SkipStringReference();  // read ith name index.
+    VisitExpression();              // read ith expression.
+  }
+}
+
 void ScopeBuilder::VisitArguments() {
   helper_.ReadUInt();  // read argument_count.
 
@@ -1337,18 +1304,8 @@ void ScopeBuilder::VisitArguments() {
     VisitDartType();  // read ith type.
   }
 
-  // Positional.
-  list_length = helper_.ReadListLength();  // read list length.
-  for (intptr_t i = 0; i < list_length; ++i) {
-    VisitExpression();  // read ith positional.
-  }
-
-  // Named.
-  list_length = helper_.ReadListLength();  // read list length.
-  for (intptr_t i = 0; i < list_length; ++i) {
-    helper_.SkipStringReference();  // read ith name index.
-    VisitExpression();              // read ith expression.
-  }
+  VisitListOfExpressions();       // Positional.
+  VisitListOfNamedExpressions();  // Named.
 }
 
 void ScopeBuilder::VisitVariableDeclaration() {
@@ -1388,17 +1345,7 @@ void ScopeBuilder::VisitVariableDeclaration() {
     variable->set_late_init_offset(initializer_offset);
   }
 
-  // Lift the special async vars out of the function body scope, into the
-  // outer function declaration scope.
-  // This way we can allocate them in the outermost context at fixed indices,
-  // allowing support for async stack traces implementation to find awaiters.
-  if (name.Equals(Symbols::AwaitJumpVar()) ||
-      name.Equals(Symbols::AsyncFuture()) || name.Equals(Symbols::is_sync()) ||
-      name.Equals(Symbols::Controller())) {
-    scope_->parent()->AddVariable(variable);
-  } else {
-    scope_->AddVariable(variable);
-  }
+  scope_->AddVariable(variable);
   result_->locals.Insert(helper_.data_program_offset_ + kernel_offset_no_tag,
                          variable);
 }
@@ -1434,8 +1381,17 @@ void ScopeBuilder::VisitDartType() {
     case kSimpleFunctionType:
       VisitFunctionType(true);
       return;
+    case kRecordType:
+      VisitRecordType();
+      return;
     case kTypeParameterType:
       VisitTypeParameterType();
+      return;
+    case kIntersectionType:
+      VisitIntersectionType();
+      return;
+    case kViewType:
+      VisitViewType();
       return;
     default:
       ReportUnexpectedTag("type", tag);
@@ -1493,6 +1449,22 @@ void ScopeBuilder::VisitFunctionType(bool simple) {
   VisitDartType();  // read return type.
 }
 
+void ScopeBuilder::VisitRecordType() {
+  helper_.ReadNullability();  // read nullability.
+  const intptr_t positional_count =
+      helper_.ReadListLength();  // read positional list length.
+  for (intptr_t i = 0; i < positional_count; ++i) {
+    VisitDartType();  // read positional[i].
+  }
+  const intptr_t named_count =
+      helper_.ReadListLength();  // read named list length.
+  for (intptr_t i = 0; i < named_count; ++i) {
+    helper_.SkipStringReference();  // read named[i].name.
+    VisitDartType();                // read named[i].type.
+    helper_.ReadFlags();            // read named[i].flags
+  }
+}
+
 void ScopeBuilder::VisitTypeParameterType() {
   Function& function = Function::Handle(Z, parsed_function_->function().ptr());
 
@@ -1526,8 +1498,19 @@ void ScopeBuilder::VisitTypeParameterType() {
       }
     }
   }
+}
 
-  helper_.SkipOptionalDartType();  // read bound bound.
+void ScopeBuilder::VisitIntersectionType() {
+  VisitDartType();         // read left.
+  helper_.SkipDartType();  // read right.
+}
+
+void ScopeBuilder::VisitViewType() {
+  // We skip the view type and only use the representation type.
+  helper_.ReadNullability();
+  helper_.SkipCanonicalNameReference();  // read index for canonical name.
+  helper_.SkipListOfDartTypes();         // read type arguments
+  VisitDartType();                       // read representation type.
 }
 
 void ScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {
@@ -1538,13 +1521,10 @@ void ScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
 
   LocalScope* saved_function_scope = current_function_scope_;
-  FunctionNodeHelper::AsyncMarker saved_function_async_marker =
-      current_function_async_marker_;
   DepthState saved_depth_state = depth_;
   depth_ = DepthState(depth_.function_ + 1);
   EnterScope(parent_kernel_offset);
   current_function_scope_ = scope_;
-  current_function_async_marker_ = function_node_helper.async_marker_;
   if (depth_.function_ == 1) {
     FunctionScope function_scope = {offset, scope_};
     result_->function_scopes.Add(function_scope);
@@ -1592,7 +1572,6 @@ void ScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {
   ExitScope(function_node_helper.position_, function_node_helper.end_position_);
   depth_ = saved_depth_state;
   current_function_scope_ = saved_function_scope;
-  current_function_async_marker_ = saved_function_async_marker;
 }
 
 void ScopeBuilder::EnterScope(intptr_t kernel_offset) {
@@ -1647,13 +1626,6 @@ void ScopeBuilder::AddVariableDeclarationParameter(
   }
   if (helper.IsCovariant()) {
     variable->set_is_explicit_covariant_parameter();
-  }
-
-  // The :sync_op and :async_op continuations are called multiple times. So we
-  // don't want the parameters from the first invocation to get stored in the
-  // context and reused on later invocations with different parameters.
-  if (current_function_async_marker_ == FunctionNodeHelper::kSyncYielding) {
-    variable->set_is_forced_stack();
   }
 
   const bool needs_covariant_check_in_method =
@@ -1744,23 +1716,6 @@ void ScopeBuilder::AddExceptionVariable(
     intptr_t nesting_depth) {
   LocalVariable* v = NULL;
 
-  // If we are inside a function with yield points then Kernel transformer
-  // could have lifted some of the auxiliary exception variables into the
-  // context to preserve them across yield points because they might
-  // be needed for rethrow.
-  // Check if it did and capture such variables instead of introducing
-  // new local ones.
-  // Note: function that wrap kSyncYielding function does not contain
-  // its own try/catches.
-  if (current_function_async_marker_ == FunctionNodeHelper::kSyncYielding) {
-    ASSERT(current_function_scope_->parent() != NULL);
-    v = current_function_scope_->parent()->LocalLookupVariable(
-        GenerateName(prefix, nesting_depth - 1));
-    if (v != NULL) {
-      scope_->CaptureVariable(v);
-    }
-  }
-
   // No need to create variables for try/catch-statements inside
   // nested functions.
   if (depth_.function_ > 0) return;
@@ -1774,7 +1729,7 @@ void ScopeBuilder::AddExceptionVariable(
                      AbstractType::dynamic_type());
 
     // If transformer did not lift the variable then there is no need
-    // to lift it into the context when we encouter a YieldStatement.
+    // to lift it into the context when we encounter a YieldStatement.
     v->set_is_forced_stack();
     current_function_scope_->AddVariable(v);
   }

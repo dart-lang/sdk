@@ -4,6 +4,8 @@
 
 // @dart = 2.9
 
+// See also http_headers_test.dart.
+
 import "dart:io";
 
 import "package:expect/expect.dart";

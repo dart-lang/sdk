@@ -40,9 +40,9 @@ class StringTokenImpl extends SimpleToken implements StringToken {
    * is canonicalized before the token is created.
    */
   StringTokenImpl.fromString(TokenType type, String value, int charOffset,
-      {bool canonicalize: false, CommentToken? precedingComments})
-      : valueOrLazySubstring = canonicalizedString(
-            value, /* start = */ 0, value.length, canonicalize),
+      {bool canonicalize = false, CommentToken? precedingComments})
+      : valueOrLazySubstring =
+            canonicalize ? canonicalizedString(value) : value,
         super(type, charOffset, precedingComments);
 
   /**
@@ -51,12 +51,12 @@ class StringTokenImpl extends SimpleToken implements StringToken {
    */
   StringTokenImpl.fromSubstring(
       TokenType type, String data, int start, int end, int charOffset,
-      {bool canonicalize: false, CommentToken? precedingComments})
+      {bool canonicalize = false, CommentToken? precedingComments})
       : super(type, charOffset, precedingComments) {
     int length = end - start;
     if (length <= LAZY_THRESHOLD) {
       valueOrLazySubstring =
-          canonicalizedString(data, start, end, canonicalize);
+          canonicalizedSubString(data, start, end, canonicalize);
     } else {
       valueOrLazySubstring =
           new _LazySubstring(data, start, length, canonicalize);
@@ -89,7 +89,7 @@ class StringTokenImpl extends SimpleToken implements StringToken {
       int start = valueOrLazySubstring.start;
       int end = start + (valueOrLazySubstring as _LazySubstring).length;
       if (data is String) {
-        valueOrLazySubstring = canonicalizedString(
+        valueOrLazySubstring = canonicalizedSubString(
             data, start, end, valueOrLazySubstring.boolValue);
       } else {
         valueOrLazySubstring =
@@ -107,14 +107,18 @@ class StringTokenImpl extends SimpleToken implements StringToken {
 
   static final StringCanonicalizer canonicalizer = new StringCanonicalizer();
 
-  static String canonicalizedString(
+  static String canonicalizedString(String s) {
+    return canonicalizer.canonicalizeString(s);
+  }
+
+  static String canonicalizedSubString(
       String s, int start, int end, bool canonicalize) {
-    if (!canonicalize) return s;
-    return canonicalizer.canonicalize(s, start, end, /* asciiOnly = */ false);
+    if (!canonicalize) return s.substring(start, end);
+    return canonicalizer.canonicalizeSubString(s, start, end);
   }
 
   static String decodeUtf8(List<int> data, int start, int end, bool asciiOnly) {
-    return canonicalizer.canonicalize(data, start, end, asciiOnly);
+    return canonicalizer.canonicalizeBytes(data, start, end, asciiOnly);
   }
 
   @override
@@ -162,7 +166,7 @@ class LanguageVersionTokenImpl extends CommentTokenImpl
 
   LanguageVersionTokenImpl.fromSubstring(
       String string, int start, int end, int tokenStart, this.major, this.minor,
-      {bool canonicalize: false})
+      {bool canonicalize = false})
       : super.fromSubstring(
             TokenType.SINGLE_LINE_COMMENT, string, start, end, tokenStart,
             canonicalize: canonicalize);
@@ -239,20 +243,28 @@ abstract class _LazySubstring {
  * The file html_dart2js.dart is currently around 1MB.
  */
 class _CompactLazySubstring extends _LazySubstring {
+  @override
   final dynamic data;
   final int fields;
 
   _CompactLazySubstring(this.data, this.fields) : super.internal();
 
+  @override
   int get start => fields >> 10;
+  @override
   int get length => (fields >> 1) & 0x1ff;
+  @override
   bool get boolValue => (fields & 1) == 1;
 }
 
 class _FullLazySubstring extends _LazySubstring {
+  @override
   final dynamic data;
+  @override
   final int start;
+  @override
   final int length;
+  @override
   final bool boolValue;
   _FullLazySubstring(this.data, this.start, this.length, this.boolValue)
       : super.internal();

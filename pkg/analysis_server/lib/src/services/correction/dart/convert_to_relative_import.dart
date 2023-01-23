@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -39,7 +40,8 @@ class ConvertToRelativeImport extends CorrectionProducer {
     }
 
     // Ignore if invalid URI.
-    if (targetNode.uriSource == null) {
+    final elementUri = targetNode.element?.uri;
+    if (elementUri is! DirectiveUriWithSource) {
       return;
     }
 
@@ -49,16 +51,7 @@ class ConvertToRelativeImport extends CorrectionProducer {
       return;
     }
 
-    Uri importUri;
-    try {
-      var uriContent = targetNode.uriContent;
-      if (uriContent == null) {
-        return;
-      }
-      importUri = Uri.parse(uriContent);
-    } on FormatException {
-      return;
-    }
+    final importUri = elementUri.relativeUri;
 
     // Ignore if import uri is not a package: uri.
     if (!importUri.isScheme('package')) {

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
 import 'dart:async' show StreamSubscription, Timer;
 import 'dart:convert' show jsonEncode;
 import 'dart:io' show File, exitCode;
@@ -19,7 +18,7 @@ class Options {
   final bool verbose;
   final bool printFailureLog;
   final Uri outputDirectory;
-  final String testFilter;
+  final String? testFilter;
   final String flutterDir;
   final String flutterPlatformDir;
 
@@ -49,7 +48,7 @@ class Options {
     var parsedArguments = parser.parse(args);
     String outputPath = parsedArguments["output-directory"] ?? ".";
     Uri outputDirectory = Uri.base.resolveUri(Uri.directory(outputPath));
-    String filter;
+    String? filter;
     if (parsedArguments.rest.length == 1) {
       filter = parsedArguments.rest.single;
       if (filter.startsWith("$suiteNamePrefix/")) {
@@ -82,7 +81,7 @@ class ResultLogger extends Logger {
       "configuration": suiteConfiguration.configurationName,
       "suite": suiteNamePrefix,
       "test_name": testName,
-      "time_ms": stopwatches[testName].elapsedMilliseconds,
+      "time_ms": stopwatches[testName]!.elapsedMilliseconds,
       "expected": "Pass",
       "result": matchedExpectations ? "Pass" : "Fail",
       "matches": matchedExpectations,
@@ -145,7 +144,7 @@ class SuiteConfiguration {
   final bool verbose;
   final bool printFailureLog;
   final String configurationName;
-  final String testFilter;
+  final String? testFilter;
 
   final int shard;
   final int shards;
@@ -194,7 +193,7 @@ main([List<String> arguments = const <String>[]]) async {
     ..listen((resultEntry) => results.add(resultEntry));
   ReceivePort logsPort = new ReceivePort()
     ..listen((logEntry) => logs.add(logEntry));
-  String filter = options.testFilter;
+  String? filter = options.testFilter;
 
   const int shards = 4;
   List<Future<bool>> futures = [];

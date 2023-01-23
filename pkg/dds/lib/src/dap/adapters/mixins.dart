@@ -134,7 +134,7 @@ mixin TestAdapter {
 /// A mixin providing some utility functions for working with vm-service-info
 /// files such as ensuring a temp folder exists to create them in, and waiting
 /// for the file to become valid parsable JSON.
-mixin VmServiceInfoFileUtils {
+mixin VmServiceInfoFileUtils on FileUtils {
   /// Creates a temp folder for the VM to write the service-info-file into and
   /// returns the [File] to use.
   File generateVmServiceInfoFile() {
@@ -143,7 +143,8 @@ mixin VmServiceInfoFileUtils {
     // watcher. Creating/watching a folder and writing the file into it seems
     // to be reliable.
     final serviceInfoFilePath = path.join(
-      Directory.systemTemp.createTempSync('dart-vm-service').path,
+      normalizePath(
+          Directory.systemTemp.createTempSync('dart-vm-service').path),
       'vm.json',
     );
 
@@ -201,5 +202,26 @@ mixin VmServiceInfoFileUtils {
       logger?.call('Ignoring error parsing vm-service-info file: $e');
       return null;
     }
+  }
+}
+
+mixin FileUtils {
+  /// Normalizes [filePath] to avoid issues with different casing of drive
+  /// letters on Windows.
+  ///
+  /// Some clients like VS Code do their own normalization and may provide drive
+  /// letters case different in some requests (such as breakpoints) to drive
+  /// letters computed elsewhere (such in `Platform.resolvedExecutable`). When
+  /// these do not match, breakpoints may not be hit.
+  ///
+  /// This is the case for the whole path, but drive letters are most commonly
+  /// mismatched due to VS Code's explicit normalization.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/32222
+  String normalizePath(String filePath) {
+    if (!Platform.isWindows || filePath.isEmpty || path.isRelative(filePath)) {
+      return filePath;
+    }
+    return filePath.substring(0, 1).toUpperCase() + filePath.substring(1);
   }
 }

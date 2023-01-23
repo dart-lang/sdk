@@ -71,3 +71,5 @@ final Name hashCodeName = new Name("hashCode");
 final Name toStringName = new Name("toString");
 
 final Name runtimeTypeName = new Name("runtimeType");
+
+final Name containsKeyName = new Name("containsKey");

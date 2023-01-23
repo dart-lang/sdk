@@ -16,8 +16,12 @@
 # analyzer:
 #   dart pkg/analyzer/tool/experiments/generate.dart
 #
+# Also, pkg/analyzer/lib/src/dart/analysis/driver.dart will need a bump in
+# DATA_VERSION if making changes that change the "index" of any previous flags,
+# e.g. if adding a new flag that doesn't happen to be lexicographically last.
+#
 # kernel:
-#   pkg/front_end/tool/fasta generate-experimental-flags
+#   dart pkg/front_end/tool/fasta.dart generate-experimental-flags
 #
 # vm:
 #   dart tools/generate_experimental_flags.dart
@@ -96,22 +100,18 @@
 # files that specify an earlier version.
 #
 # Furthermore, most of the above was designed with language features
-# (spanning both CFE and Analyzer) in mind, but didn't take into account
+# (spanning both CFE anqgit d Analyzer) in mind, but didn't take into account
 # features in individual products (e.g. in CFE that has no influence on
 # Analyzer). As a stepping-stone to allow for this usage as well, a "category"
 # is also available. If no "category" is specified it's assumed to be the
 # default 'language' "category" with code generated for both CFE and Analyzer,
 # while other categories can be tailored more specifically.
 
-current-version: '2.18.0'
+current-version: '2.19.0'
 
 features:
   variance:
     help: "Sound variance"
-
-  alternative-invalidation-strategy:
-    help: "Alternative invalidation strategy for incremental compilation."
-    category: "CFE"
 
   value-class:
     help: "Value class"
@@ -128,6 +128,19 @@ features:
   inference-update-2:
     help: "Type promotion for fields"
 
+  records:
+    help: "Records"
+    experimentalReleaseVersion: '2.19.0'
+
+  patterns:
+    help: "Patterns"
+
+  views:
+    help: "Views"
+
+  sealed-class:
+    help: "Sealed class"
+
 # Experiment flag only used for testing.
   test-experiment:
     help: >-
@@ -138,6 +151,11 @@ features:
 # Flags below this line are shipped, retired, or rejected, cannot be specified
 # on the command line, and will eventually be removed.
 #
+
+  alternative-invalidation-strategy:
+    help: "Alternative invalidation strategy for incremental compilation."
+    category: "CFE"
+    enabledIn: '2.18.0'
 
   nonfunction-type-aliases:
     help: "Type aliases define a <type>, not just a <functionType>"
@@ -239,7 +257,7 @@ features:
     help: "Named Arguments Anywhere"
     enabledIn: '2.17.0'
     validation: |
-      void test(String msg, {bool enabled : false}) {
+      void test(String msg, {bool enabled = false}) {
         if (enabled) {
           print(msg);
         }
@@ -281,3 +299,10 @@ features:
       void main() {
         test([1, 2, 3]);
       }
+
+  unnamed-libraries:
+    help: "Unnamed libraries"
+    enabledIn: '2.19.0'
+    validation: |
+      library;
+      void main() => print('feature enabled');

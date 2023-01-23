@@ -4,12 +4,12 @@ import "dart:core" as core;
 
 class Foo extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Foo> values = #C7;
-  static const field self::Foo ec1 = #C3;
-  static const field self::Foo ec2 = #C6;
+  enum-element static const field self::Foo ec1 = #C3;
+  enum-element static const field self::Foo ec2 = #C6;
   const constructor •(core::int #index, core::String #name) → self::Foo
     : super core::_Enum::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "Foo.${this.{core::_Enum::_name}{core::String}}";
 }
 static method main() → dynamic {}
@@ -28,5 +28,5 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///enum.dart:
 - Foo. (from org-dartlang-testcase:///enum.dart:5:6)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

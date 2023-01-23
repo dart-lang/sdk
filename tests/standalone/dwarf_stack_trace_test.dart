@@ -55,36 +55,77 @@ Future<void> checkStackTrace(String rawStack, Dwarf dwarf,
       await Stream.value(rawStack).transform(const LineSplitter()).toList();
 
   final pcOffsets = collectPCOffsets(rawLines).toList();
+  Expect.isNotEmpty(pcOffsets);
+
+  print('PCOffsets:');
+  for (final offset in pcOffsets) {
+    print('* $offset');
+  }
+  print('');
 
   // We should have at least enough PC addresses to cover the frames we'll be
   // checking.
   Expect.isTrue(pcOffsets.length >= expectedCallsInfo.length);
 
+  final isolateStart = dwarf.isolateStartAddress(pcOffsets.first.architecture);
+  Expect.isNotNull(isolateStart);
+  print('Isolate start offset: 0x${isolateStart!.toRadixString(16)}');
+
+  // The addresses of the stack frames in the separate DWARF debugging info.
   final virtualAddresses =
       pcOffsets.map((o) => dwarf.virtualAddressOf(o)).toList();
 
+  print('Virtual addresses from PCOffsets:');
+  for (final address in virtualAddresses) {
+    print('* 0x${address.toRadixString(16)}');
+  }
+  print('');
+
   // Some double-checks using other information in the non-symbolic stack trace.
   final dsoBase = dsoBaseAddresses(rawLines).single;
+  print('DSO base address: 0x${dsoBase.toRadixString(16)}');
+
+  final absoluteIsolateStart = isolateStartAddresses(rawLines).single;
+  print('Absolute isolate start address: '
+      '0x${absoluteIsolateStart.toRadixString(16)}');
+
   final absolutes = absoluteAddresses(rawLines);
+  // The relocated addresses of the stack frames in the loaded DSO. These is
+  // only guaranteed to be the same as virtualAddresses if the built-in ELF
+  // generator was used to create the snapshot.
   final relocatedAddresses = absolutes.map((a) => a - dsoBase);
-  final explicits = explicitVirtualAddresses(rawLines);
+
+  print('Relocated absolute addresses:');
+  for (final address in relocatedAddresses) {
+    print('* 0x${address.toRadixString(16)}');
+  }
+  print('');
 
   // Explicits will be empty if not generating ELF snapshots directly, which
   // means we can't depend on virtual addresses in the snapshot lining up with
   // those in the separate debugging information.
+  final explicits = explicitVirtualAddresses(rawLines);
   if (explicits.isNotEmpty) {
+    print('Explicit virtual addresses:');
+    for (final address in explicits) {
+      print('* 0x${address.toRadixString(16)}');
+    }
+    print('');
     // Direct-to-ELF snapshots should have a build ID.
     Expect.isNotNull(dwarf.buildId);
-    Expect.deepEquals(relocatedAddresses, virtualAddresses);
     Expect.deepEquals(explicits, virtualAddresses);
+
+    // This is an ELF snapshot, so check that these two are the same.
+    Expect.deepEquals(virtualAddresses, relocatedAddresses);
   }
 
   final gotCallsInfo = <List<DartCallInfo>>[];
 
-  for (final addr in virtualAddresses) {
-    final externalCallInfo = dwarf.callInfoFor(addr);
+  for (final offset in pcOffsets) {
+    final externalCallInfo = dwarf.callInfoForPCOffset(offset);
     Expect.isNotNull(externalCallInfo);
-    final allCallInfo = dwarf.callInfoFor(addr, includeInternalFrames: true);
+    final allCallInfo =
+        dwarf.callInfoForPCOffset(offset, includeInternalFrames: true);
     Expect.isNotNull(allCallInfo);
     for (final call in externalCallInfo!) {
       Expect.isTrue(call is DartCallInfo, "got non-Dart call info ${call}");
@@ -237,3 +278,8 @@ final _dsoBaseRE = RegExp(r'isolate_dso_base: ([a-f\d]+)');
 
 Iterable<int> dsoBaseAddresses(Iterable<String> lines) =>
     parseUsingAddressRegExp(_dsoBaseRE, lines);
+
+final _isolateStartRE = RegExp(r'isolate_instructions: ([a-f\d]+)');
+
+Iterable<int> isolateStartAddresses(Iterable<String> lines) =>
+    parseUsingAddressRegExp(_isolateStartRE, lines);

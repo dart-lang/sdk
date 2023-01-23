@@ -22,7 +22,8 @@ class A {
   A({this.a = 0, this.a = 1});
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER, 41, 1),
+      error(CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER, 41, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 29, 1)]),
     ]);
   }
 
@@ -33,7 +34,8 @@ class A {
   A([this.a = 0, this.a = 1]);
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER, 41, 1),
+      error(CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER, 41, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 29, 1)]),
     ]);
   }
 
@@ -44,7 +46,8 @@ class A {
   A([this.x = 1, this.x = 2]) {}
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER, 43, 1),
+      error(CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER, 43, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 31, 1)]),
     ]);
   }
 
@@ -55,7 +58,8 @@ class A {
   A({required this.a, required this.a});
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER, 55, 1),
+      error(CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER, 55, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 38, 1)]),
     ]);
   }
 
@@ -66,7 +70,8 @@ class A {
   A(this.a, this.a);
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER, 36, 1),
+      error(CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER, 36, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 28, 1)]),
     ]);
   }
 
@@ -77,7 +82,8 @@ class A {
   A(this.x, this.x) {}
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER, 38, 1),
+      error(CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER, 38, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 30, 1)]),
     ]);
   }
 }

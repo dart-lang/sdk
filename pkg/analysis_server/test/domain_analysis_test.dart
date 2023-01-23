@@ -9,6 +9,7 @@ import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
@@ -19,14 +20,14 @@ import 'mocks.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AnalysisDomainBazelTest);
+    defineReflectiveTests(AnalysisDomainBlazeTest);
     defineReflectiveTests(AnalysisDomainPubTest);
     defineReflectiveTests(SetSubscriptionsTest);
   });
 }
 
 @reflectiveTest
-class AnalysisDomainBazelTest extends _AnalysisDomainTest {
+class AnalysisDomainBlazeTest extends _AnalysisDomainTest {
   String get myPackageLibPath => '$myPackageRootPath/lib';
 
   String get myPackageRootPath => '$workspaceRootPath/dart/my';
@@ -36,12 +37,12 @@ class AnalysisDomainBazelTest extends _AnalysisDomainTest {
   @override
   void setUp() {
     super.setUp();
-    newFile('$workspaceRootPath/WORKSPACE', '');
+    newFile('$workspaceRootPath/${file_paths.blazeWorkspaceMarker}', '');
   }
 
   Future<void> test_fileSystem_changeFile_buildFile() async {
     // This BUILD file does not enable null safety.
-    newBazelBuildFile(myPackageRootPath, '');
+    newBlazeBuildFile(myPackageRootPath, '');
 
     newFile(myPackageTestFilePath, '''
 void f(int? a) {}
@@ -54,11 +55,11 @@ void f(int? a) {}
     assertHasErrors(myPackageTestFilePath);
 
     // Enable null safety.
-    newBazelBuildFile(myPackageRootPath, '''
+    newBlazeBuildFile(myPackageRootPath, '''
 dart_package(null_safety = True)
 ''');
 
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // We have null safety enabled, so no errors.
@@ -587,77 +588,14 @@ transforms: []
       notAnalyzed: [testFile.path],
     );
 
-    // Ask to remove the overlay, still active, start a timer.
+    // Remove the overlay, now the file will be read.
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         testFile.path: RemoveContentOverlay(),
       }).toRequest('0'),
     );
-
-    // Wait for the timer to remove the overlay to fire.
-    await Future.delayed(server.pendingFilesRemoveOverlayDelay);
 
     // The file has errors.
-    await _waitAnalysisComplete();
-    _assertAnalyzedFiles(
-      hasErrors: [testFile.path],
-      noErrors: [],
-      notAnalyzed: [],
-    );
-  }
-
-  Future<void>
-      test_fileSystem_changeFile_hasOverlay_removeOverlay_delayed() async {
-    // Use long delay, so that it does not happen.
-    server.pendingFilesRemoveOverlayDelay = const Duration(seconds: 300);
-
-    newFile(testFilePath, '');
-
-    // Add an overlay without errors.
-    await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        testFile.path: AddContentOverlay(''),
-      }).toRequest('0'),
-    );
-
-    await setRoots(included: [workspaceRootPath], excluded: []);
-
-    // The test file (overlay) is analyzed, no errors.
-    await _waitAnalysisComplete();
-    _assertAnalyzedFiles(
-      hasErrors: [],
-      noErrors: [testFile.path],
-      notAnalyzed: [],
-    );
-
-    // Change the file, has errors.
-    modifyFile(testFilePath, 'error');
-
-    // But the overlay is still present, so the file is not analyzed.
-    await _waitAnalysisComplete();
-    _assertAnalyzedFiles(
-      hasErrors: [],
-      notAnalyzed: [testFile.path],
-    );
-
-    // Ask to remove the overlay, still active, start a timer.
-    await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        testFile.path: RemoveContentOverlay(),
-      }).toRequest('0'),
-    );
-
-    // Long timer, so still not analyzed.
-    await _waitAnalysisComplete();
-    _assertAnalyzedFiles(
-      hasErrors: [],
-      notAnalyzed: [testFile.path],
-    );
-
-    // Change the file again, has errors.
-    newFile(testFilePath, 'error');
-
-    // The timer cancelled on the watch event, and the file analyzed.
     await _waitAnalysisComplete();
     _assertAnalyzedFiles(
       hasErrors: [testFile.path],
@@ -882,62 +820,6 @@ void f(A a) {}
 
     // errors are not reported for packages
     assertNoErrorsNotification(a_path);
-  }
-
-  /// This test ensures that when an `addOverlay` cancels any pending
-  /// `removeOverlay` timer, it also removes it, so that a subsequent watch
-  /// event does not still try to process it.
-  Future<void>
-      test_fileSystem_removeOverlay_addOverlay_changeFile_changeOverlay() async {
-    // Use long delay, so that it does not happen.
-    server.pendingFilesRemoveOverlayDelay = const Duration(seconds: 300);
-
-    newFile(testFilePath, '');
-
-    // Add an overlay without errors.
-    await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        testFile.path: AddContentOverlay(''),
-      }).toRequest('0'),
-    );
-
-    await setRoots(included: [workspaceRootPath], excluded: []);
-
-    // The test file (overlay) is analyzed, no errors.
-    await _waitAnalysisComplete();
-    _assertAnalyzedFiles(
-      hasErrors: [],
-      noErrors: [testFile.path],
-      notAnalyzed: [],
-    );
-
-    // Ask to remove the overlay, still active, start a timer.
-    await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        testFile.path: RemoveContentOverlay(),
-      }).toRequest('0'),
-    );
-
-    // Re-add an overlay. Should cancel the timer and replace the overlay.
-    await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        testFile.path: AddContentOverlay(''),
-      }).toRequest('0'),
-    );
-
-    // Change the file to trigger the watcher. Since the request above should
-    // have cancelled (and removed) the timer, this should not do anything
-    // (specifically, it should not remove the new overlay).
-    modifyFile(testFilePath, 'error');
-
-    // The overlay should still be present, so we should be able to change it.
-    await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        testFile.path: ChangeContentOverlay(
-          [SourceEdit(0, 0, '//')],
-        ),
-      }).toRequest('0'),
-    );
   }
 
   Future<void> test_setPriorityFiles() async {
@@ -1458,7 +1340,7 @@ void f(A a) {}
   /// Repeat a few times, eventually there will be no work to do.
   Future<void> _waitAnalysisComplete() async {
     for (var i = 0; i < 128; i++) {
-      pumpEventQueue();
+      await pumpEventQueue();
       await server.onAnalysisComplete;
     }
   }

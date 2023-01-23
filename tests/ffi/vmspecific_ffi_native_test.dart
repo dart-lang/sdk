@@ -163,4 +163,11 @@ void main() {
       6061,
       ClassWithNativeField(61)
           .addselfPtrAndHandleFieldMethod(ClassWithNativeField(6000)));
+  Expect.throws(() {
+    ClassWithNativeField(nullptr.address)
+        .addSelfPtrAndPtrMethod(ClassWithNativeField(7000));
+  });
+  // Does not throw.
+  ClassWithNativeField(8000)
+      .addSelfPtrAndPtrMethod(ClassWithNativeField(nullptr.address));
 }

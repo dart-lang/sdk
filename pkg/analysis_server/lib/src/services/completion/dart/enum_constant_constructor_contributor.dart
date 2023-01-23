@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 
 /// A contributor that produces suggestions for constructors to be invoked
 /// in enum constants.
@@ -46,7 +45,7 @@ class EnumConstantConstructorContributor extends DartCompletionContributor {
       return;
     }
 
-    var enumElement = enumDeclaration.declaredElement as ClassElement;
+    var enumElement = enumDeclaration.declaredElement!;
     for (var constructor in enumElement.constructors) {
       builder.suggestConstructor(
         constructor,

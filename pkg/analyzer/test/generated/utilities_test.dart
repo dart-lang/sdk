@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -21,35 +20,6 @@ main() {
     defineReflectiveTests(NodeReplacerTest);
     defineReflectiveTests(SourceRangeTest);
   });
-}
-
-class AstCloneComparator extends AstComparator {
-  final bool expectTokensCopied;
-
-  AstCloneComparator(this.expectTokensCopied);
-
-  @override
-  bool isEqualNodes(AstNode? first, AstNode? second) {
-    if (first != null && identical(first, second)) {
-      fail('Failed to copy node: $first (${first.offset})');
-    }
-    return super.isEqualNodes(first, second);
-  }
-
-  @override
-  bool isEqualTokens(Token? first, Token? second) {
-    if (expectTokensCopied && first != null && identical(first, second)) {
-      fail('Failed to copy token: ${first.lexeme} (${first.offset})');
-    }
-    var firstComment = first?.precedingComments;
-    if (firstComment != null) {
-      if (firstComment.parent != first) {
-        fail(
-            'Failed to link the comment "$firstComment" with the token "$first".');
-      }
-    }
-    return super.isEqualTokens(first, second);
-  }
 }
 
 @reflectiveTest
@@ -450,7 +420,6 @@ class B<U> extends B0 with N implements J {}
         (node) => node.documentationComment!,
         (node) => node.extendsClause!,
         (node) => node.implementsClause!,
-        (node) => node.name,
         (node) => node.typeParameters!,
         (node) => node.withClause!,
       ],
@@ -477,7 +446,6 @@ class B<U> = B0 with N implements J;
         (node) => node.documentationComment!,
         (node) => node.superclass,
         (node) => node.implementsClause!,
-        (node) => node.name,
         (node) => node.typeParameters!,
         (node) => node.withClause,
       ],
@@ -549,6 +517,24 @@ void f() {
     );
   }
 
+  void test_constantPattern() {
+    var findNode = _parseStringToFindNode(r'''
+void f(x) async {
+  if (x case 0) {}
+  if (x case 1) {}
+}
+''');
+    _assertReplacementForChildren<ConstantPattern>(
+      destination:
+          findNode.caseClause('0').guardedPattern.pattern as ConstantPattern,
+      source:
+          findNode.caseClause('1').guardedPattern.pattern as ConstantPattern,
+      childAccessors: [
+        (node) => node.expression,
+      ],
+    );
+  }
+
   void test_constructorDeclaration() {
     var findNode = _parseStringToFindNode(r'''
 class A {
@@ -566,7 +552,6 @@ class B {
       source: findNode.constructor('B.named'),
       childAccessors: [
         (node) => node.body,
-        (node) => node.name!,
         (node) => node.parameters,
         (node) => node.returnType,
       ],
@@ -657,7 +642,6 @@ void f() {
       destination: findNode.declaredIdentifier('i in'),
       source: findNode.declaredIdentifier('j in'),
       childAccessors: [
-        (node) => node.identifier,
         (node) => node.type!,
       ],
     );
@@ -703,13 +687,6 @@ enum E {
     _assertAnnotatedNode(
       findNode.enumConstantDeclaration('aaa'),
     );
-    _assertReplacementForChildren<EnumConstantDeclaration>(
-      destination: findNode.enumConstantDeclaration('aaa'),
-      source: findNode.enumConstantDeclaration('bbb'),
-      childAccessors: [
-        (node) => node.name,
-      ],
-    );
   }
 
   void test_enumDeclaration() {
@@ -721,7 +698,6 @@ enum E2<U> with M2 implements I2 {one, two}
       destination: findNode.enumDeclaration('enum E1'),
       source: findNode.enumDeclaration('enum E2'),
       childAccessors: [
-        (node) => node.name,
         (node) => node.typeParameters!,
         (node) => node.withClause!,
         (node) => node.implementsClause!,
@@ -859,7 +835,6 @@ class A {
       destination: findNode.fieldFormalParameter('foo'),
       source: findNode.fieldFormalParameter('bar'),
       childAccessors: [
-        (node) => node.identifier,
         (node) => node.parameters!,
         (node) => node.type!,
         (node) => node.typeParameters!,
@@ -990,7 +965,6 @@ double g() => 0;
       source: findNode.functionDeclaration('g()'),
       childAccessors: [
         (node) => node.functionExpression,
-        (node) => node.name,
         (node) => node.returnType!,
       ],
     );
@@ -1022,8 +996,8 @@ void g<U>(double b) {
 }
 ''');
     _assertReplacementForChildren<FunctionExpression>(
-      destination: findNode.functionExpression('<T>'),
-      source: findNode.functionExpression('<U>'),
+      destination: findNode.functionExpression('T>'),
+      source: findNode.functionExpression('U>'),
       childAccessors: [
         (node) => node.body,
         (node) => node.parameters!,
@@ -1064,7 +1038,6 @@ typedef double G<U>(double b);
       destination: findNode.functionTypeAlias('int F'),
       source: findNode.functionTypeAlias('double G'),
       childAccessors: [
-        (node) => node.name,
         (node) => node.parameters,
         (node) => node.returnType!,
         (node) => node.typeParameters!,
@@ -1088,7 +1061,6 @@ void f(
       source: findNode.functionTypedFormalParameter('b<U>'),
       childAccessors: [
         (node) => node.returnType!,
-        (node) => node.identifier,
         (node) => node.typeParameters!,
         (node) => node.parameters,
       ],
@@ -1284,7 +1256,7 @@ library foo;
       destination: node,
       source: node,
       childAccessors: [
-        (node) => node.name,
+        (node) => node.name2!,
       ],
     );
   }
@@ -1355,7 +1327,6 @@ class A {
       source: findNode.methodDeclaration('bar'),
       childAccessors: [
         (node) => node.returnType!,
-        (node) => node.name,
         (node) => node.typeParameters!,
         (node) => node.parameters!,
         (node) => node.body,
@@ -1393,20 +1364,6 @@ void f() {
       childAccessors: [
         (node) => node.name,
         (node) => node.expression,
-      ],
-    );
-  }
-
-  void test_nativeClause() {
-    var findNode = _parseStringToFindNode(r'''
-class A native 'foo' {}
-class B native 'bar' {}
-''');
-    _assertReplacementForChildren<NativeClause>(
-      destination: findNode.nativeClause('foo'),
-      source: findNode.nativeClause('bar'),
-      childAccessors: [
-        (node) => node.name!,
       ],
     );
   }
@@ -1542,6 +1499,20 @@ void f() {
     );
   }
 
+  void test_recordLiteral() {
+    var findNode = _parseStringToFindNode(r'''
+void f() {
+  (1, 2);
+}
+''');
+    var node = findNode.recordLiteral('(1');
+    _assertReplaceInList(
+      destination: node,
+      child: node.fields[0],
+      replacement: node.fields[1],
+    );
+  }
+
   void test_redirectingConstructorInvocation() {
     var findNode = _parseStringToFindNode(r'''
 class A {
@@ -1556,6 +1527,22 @@ class A {
       childAccessors: [
         (node) => node.constructorName!,
         (node) => node.argumentList,
+      ],
+    );
+  }
+
+  void test_relationalPattern() {
+    var findNode = _parseStringToFindNode(r'''
+void f(x) {
+  if (x case > 0) {}
+  if (x case > 1) {}
+}
+''');
+    _assertReplacementForChildren<RelationalPattern>(
+      destination: findNode.relationalPattern('> 0'),
+      source: findNode.relationalPattern('> 1'),
+      childAccessors: [
+        (node) => node.operand,
       ],
     );
   }
@@ -1626,7 +1613,6 @@ void f(
       source: findNode.simpleFormalParameter('int b'),
       childAccessors: [
         (node) => node.type!,
-        (node) => node.identifier!,
       ],
     );
   }
@@ -1678,7 +1664,6 @@ class B extends A {
       source: findNode.superFormalParameter('a2'),
       childAccessors: [
         (node) => node.type!,
-        (node) => node.identifier,
       ],
     );
   }
@@ -1699,15 +1684,15 @@ class B extends A {
       source: findNode.superFormalParameter('bar2'),
       childAccessors: [
         (node) => node.type!,
-        (node) => node.identifier,
         (node) => node.typeParameters!,
         (node) => node.parameters!,
       ],
     );
   }
 
-  void test_switchCase() {
+  void test_switchCase_language218() {
     var findNode = _parseStringToFindNode(r'''
+// @dart=2.18
 void f() {
   switch (x) {
     foo: bar:
@@ -1742,8 +1727,9 @@ void f() {
     );
   }
 
-  void test_switchStatement() {
+  void test_switchStatement_language218() {
     var findNode = _parseStringToFindNode(r'''
+// @dart=2.18
 void f() {
   switch (0) {
     case 0: break;
@@ -1868,7 +1854,6 @@ class A<T extends int, U extends double> {}
       destination: findNode.typeParameter('T extends'),
       source: findNode.typeParameter('U extends'),
       childAccessors: [
-        (node) => node.name,
         (node) => node.bound!,
       ],
     );
@@ -1897,7 +1882,6 @@ void f() {
       destination: findNode.variableDeclaration('a = 0'),
       source: findNode.variableDeclaration('b = 1'),
       childAccessors: [
-        (node) => node.name,
         (node) => node.initializer!,
       ],
     );
@@ -1936,6 +1920,22 @@ void f() {
       source: findNode.variableDeclarationStatement('double b'),
       childAccessors: [
         (node) => node.variables,
+      ],
+    );
+  }
+
+  void test_whenClause() {
+    var findNode = _parseStringToFindNode(r'''
+void f() {
+  if (x case 0 when 1) {}
+  if (x case 0 when 2) {}
+}
+''');
+    _assertReplacementForChildren<WhenClause>(
+      destination: findNode.whenClause('when 1'),
+      source: findNode.whenClause('when 2'),
+      childAccessors: [
+        (node) => node.expression,
       ],
     );
   }

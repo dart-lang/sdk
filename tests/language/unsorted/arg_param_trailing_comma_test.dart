@@ -36,12 +36,12 @@ void set topsetx(x, ) {} //                             //# none: continued
 
 // After specific parameter formats.
 void afterDefaultValueY([int y = 42, ]) {} //           //# none: continued
-void afterDefaultValueZ({int z : 42, }) {} //           //# none: continued
+void afterDefaultValueZ({int z = 42, }) {} //           //# none: continued
 void afterFunsigX(void f(),) {} //                      //# none: continued
 void afterFunsigY([void f()?,]) {} //                   //# none: continued
 void afterFunsigZ({void f()?,}) {} //                   //# none: continued
 void afterFunsigDefaultValueY([void f() = topy,]) {} // //# none: continued
-void afterFunsigDefaultValueZ({void f() : topz,}) {} // //# none: continued
+void afterFunsigDefaultValueZ({void f() = topz,}) {} // //# none: continued
 
 class C {
   C();

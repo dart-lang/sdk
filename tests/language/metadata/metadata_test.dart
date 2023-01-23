@@ -35,7 +35,7 @@ class A<@Tag("typeParam") T> {
   static String staticField = "s";
 
   @Meta.Alien("ET")
-  int foo(@meta1 bool fool, {@meta1 @Tag("opt") x: 100}) {
+  int foo(@meta1 bool fool, {@meta1 @Tag("opt") x = 100}) {
     g() => 10;
     return x * g();
   }

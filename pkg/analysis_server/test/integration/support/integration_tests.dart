@@ -190,9 +190,9 @@ abstract class AbstractAnalysisServerIntegrationTest
     });
     await startServer();
     server.listenToOutput(dispatchNotification);
-    server.exitCode.then((_) {
+    unawaited(server.exitCode.then((_) {
       skipShutdown = true;
-    });
+    }));
     return serverConnected.future;
   }
 
@@ -683,11 +683,11 @@ class Server {
       arguments,
       environment: {PubCommand.disablePubCommandEnvironmentKey: 'true'},
     );
-    _process.exitCode.then((int code) {
+    unawaited(_process.exitCode.then((int code) {
       if (code != 0) {
         _badDataFromServer('server terminated with exit code $code');
       }
-    });
+    }));
   }
 
   /// Deal with bad data received from the server.

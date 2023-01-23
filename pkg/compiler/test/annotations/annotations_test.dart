@@ -36,8 +36,8 @@ class AnnotationDataComputer extends DataComputer<String> {
   @override
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<String>> actualMap,
-      {bool verbose: false}) {
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+      {bool verbose = false}) {
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new AnnotationIrComputer(compiler.reporter, actualMap, elementMap, member,
@@ -97,6 +97,9 @@ class AnnotationIrComputer extends IrDataExtractor<String> {
     if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
       ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
       return getMemberValue(info.callMethod);
+    }
+    if (node is ir.LoadLibrary) {
+      return _annotationData.getLoadLibraryPriorityAt(node).name;
     }
     return null;
   }

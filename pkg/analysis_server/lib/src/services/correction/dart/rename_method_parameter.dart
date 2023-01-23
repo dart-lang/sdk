@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -23,9 +24,9 @@ class RenameMethodParameter extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final parameter = node.parent;
+    final parameter = node;
     if (parameter is! FormalParameter) return;
-    var paramIdentifier = parameter.identifier;
+    var paramIdentifier = parameter.name;
     if (paramIdentifier == null) return;
 
     var method = parameter.thisOrAncestorOfType<MethodDeclaration>();
@@ -35,15 +36,15 @@ class RenameMethodParameter extends CorrectionProducer {
 
     var classDeclaration = method.parent as Declaration;
     var classElement = classDeclaration.declaredElement;
-    if (classElement is! ClassElement) return;
+    if (classElement is! InterfaceElement) return;
 
     var parentMethod = classElement.lookUpInheritedMethod(
-        method.name.name, classElement.library);
+        method.name.lexeme, classElement.library);
     if (parentMethod == null) return;
 
     var parameters = methodParameters.parameters;
     var parentParameters = parentMethod.parameters;
-    var oldName = paramIdentifier.name;
+    var oldName = paramIdentifier.lexeme;
 
     var i = parameters.indexOf(parameter);
     if (0 <= i && i < parentParameters.length) {
@@ -57,8 +58,8 @@ class RenameMethodParameter extends CorrectionProducer {
         _newName = newName;
 
         await builder.addDartFileEdit(file, (builder) {
-          for (var i in collector.oldIdentifiers) {
-            builder.addSimpleReplacement(range.node(i), newName);
+          for (var token in collector.oldTokens) {
+            builder.addSimpleReplacement(range.token(token), newName);
           }
         });
       }
@@ -67,23 +68,40 @@ class RenameMethodParameter extends CorrectionProducer {
 }
 
 class _Collector extends RecursiveAstVisitor<void> {
-  var error = false;
+  bool error = false;
   final String newName;
   final ParameterElement target;
 
-  final oldIdentifiers = <SimpleIdentifier>[];
+  final oldTokens = <Token>[];
 
   _Collector(this.newName, this.target);
 
   @override
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    _addNameToken(node.name, node.declaredElement);
+    super.visitSimpleFormalParameter(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
+    _addNameToken(node.token, node.staticElement);
+  }
+
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    _addNameToken(node.name, node.declaredElement);
+    super.visitVariableDeclaration(node);
+  }
+
+  void _addNameToken(Token? nameToken, Element? element) {
     if (error) return;
 
-    var nodeElement = node.staticElement;
-    if (nodeElement == target) {
-      oldIdentifiers.add(node);
-    } else if (node.name == newName) {
-      error = true;
+    if (nameToken != null) {
+      if (element == target) {
+        oldTokens.add(nameToken);
+      } else if (nameToken.lexeme == newName) {
+        error = true;
+      }
     }
   }
 }

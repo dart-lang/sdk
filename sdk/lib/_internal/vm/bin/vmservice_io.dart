@@ -33,12 +33,14 @@ bool _isWindows = false;
 @pragma('vm:entry-point')
 bool _isFuchsia = false;
 @pragma('vm:entry-point')
-var _signalWatch = null;
-var _signalSubscription;
+Stream<ProcessSignal> Function(ProcessSignal signal)? _signalWatch;
+StreamSubscription<ProcessSignal>? _signalSubscription;
 @pragma("vm:entry-point")
 bool _enableServicePortFallback = false;
 @pragma("vm:entry-point")
 bool _waitForDdsToAdvertiseService = false;
+@pragma("vm:entry-point", !const bool.fromEnvironment('dart.vm.product'))
+bool _serveObservatory = true;
 
 // HTTP server.
 Server? server;
@@ -147,8 +149,9 @@ class _DebuggingSession {
 
 Future<void> cleanupCallback() async {
   // Cancel the sigquit subscription.
-  if (_signalSubscription != null) {
-    await _signalSubscription.cancel();
+  final signalSubscription = _signalSubscription;
+  if (signalSubscription != null) {
+    await signalSubscription.cancel();
     _signalSubscription = null;
   }
   final localServer = server;
@@ -159,8 +162,9 @@ Future<void> cleanupCallback() async {
       print('Error in vm-service shutdown: $e\n$st\n');
     }
   }
-  if (_registerSignalHandlerTimer != null) {
-    _registerSignalHandlerTimer!.cancel();
+  final timer = _registerSignalHandlerTimer;
+  if (timer != null) {
+    timer.cancel();
     _registerSignalHandlerTimer = null;
   }
   // Call out to embedder's shutdown callback.
@@ -344,7 +348,8 @@ void _registerSignalHandler() {
     return;
   }
   _registerSignalHandlerTimer = null;
-  if (_signalWatch == null) {
+  final signalWatch = _signalWatch;
+  if (signalWatch == null) {
     // Cannot register for signals.
     return;
   }
@@ -352,7 +357,7 @@ void _registerSignalHandler() {
     // Cannot register for signals on Windows or Fuchsia.
     return;
   }
-  _signalSubscription = _signalWatch(ProcessSignal.sigquit).listen(_onSignal);
+  _signalSubscription = signalWatch(ProcessSignal.sigquit).listen(_onSignal);
 }
 
 @pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))

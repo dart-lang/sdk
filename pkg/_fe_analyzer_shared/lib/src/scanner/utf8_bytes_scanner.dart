@@ -64,6 +64,7 @@ class Utf8BytesScanner extends AbstractScanner {
    * Returns the byte offset of the first byte that belongs to the current
    * character.
    */
+  @override
   int get scanOffset {
     if (byteOffset == scanSlackOffset) {
       return byteOffset - scanSlack;
@@ -89,7 +90,7 @@ class Utf8BytesScanner extends AbstractScanner {
    */
   Utf8BytesScanner(this.bytes,
       {ScannerConfiguration? configuration,
-      bool includeComments: false,
+      bool includeComments = false,
       LanguageVersionChanged? languageVersionChanged})
       : super(configuration, includeComments, languageVersionChanged,
             numberOfBytesHint: bytes.length) {
@@ -110,6 +111,7 @@ class Utf8BytesScanner extends AbstractScanner {
     this.utf8Slack = copyFrom.utf8Slack;
   }
 
+  @override
   Utf8BytesScanner createRecoveryOptionScanner() {
     return new Utf8BytesScanner.createRecoveryOptionScanner(this);
   }
@@ -123,8 +125,10 @@ class Utf8BytesScanner extends AbstractScanner {
         bytes[offset + 2] == BOM_UTF8[2];
   }
 
+  @override
   int advance() => bytes[++byteOffset];
 
+  @override
   int peek() => bytes[byteOffset + 1];
 
   /// Returns the unicode code point starting at the byte offset [startOffset]
@@ -187,6 +191,7 @@ class Utf8BytesScanner extends AbstractScanner {
   }
 
   int lastUnicodeOffset = -1;
+  @override
   int currentAsUnicode(int next) {
     if (next < 128) return next;
     // Check if currentAsUnicode was already invoked.
@@ -196,6 +201,7 @@ class Utf8BytesScanner extends AbstractScanner {
     return res;
   }
 
+  @override
   void handleUnicode(int startScanOffset) {
     int end = byteOffset;
     // TODO(lry): this measurably slows down the scanner for files with unicode.
@@ -219,6 +225,7 @@ class Utf8BytesScanner extends AbstractScanner {
    */
   int stringOffsetSlackOffset = -1;
 
+  @override
   int get stringOffset {
     if (stringOffsetSlackOffset == byteOffset) {
       return byteOffset - utf8Slack - 1;
@@ -267,5 +274,6 @@ class Utf8BytesScanner extends AbstractScanner {
         bytes, start, byteOffset, tokenStart, major, minor);
   }
 
+  @override
   bool atEndOfFile() => byteOffset >= bytes.length - 1;
 }

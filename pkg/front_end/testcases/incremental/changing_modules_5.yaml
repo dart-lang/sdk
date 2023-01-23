@@ -124,3 +124,4 @@ worlds:
         - Field baz2
       package:moduleD/d.dart:
         - Field baz3
+    advancedInvalidation: modulesToLoad

@@ -78,6 +78,8 @@ class Names {
   /// The name of the dynamic type.
   static const Name dynamic_ = PublicName('dynamic');
 
+  static const Name EQUALS_NAME = PublicName("==");
+
   /// The name of the iterator property used in for-each loops.
   static const Name iterator = PublicName(Identifiers.iterator);
 

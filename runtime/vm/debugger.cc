@@ -132,8 +132,7 @@ void BreakpointLocation::SetResolved(const Function& func,
   ASSERT(script_url.Equals(func_url));
 #endif  // defined(DEBUG)
   ASSERT(!IsLatent());
-  ASSERT(func.is_generated_body() ||
-         token_pos.IsWithin(func.token_pos(), func.end_token_pos()));
+  ASSERT(token_pos.IsWithin(func.token_pos(), func.end_token_pos()));
   ASSERT(func.is_debuggable());
   token_pos_.store(token_pos);
   end_token_pos_.store(token_pos);
@@ -307,7 +306,7 @@ ActivationFrame::ActivationFrame(const Closure& async_activation,
       pc_desc_(PcDescriptors::ZoneHandle()) {
   // Extract the function and the code from the asynchronous activation.
   function_ = async_activation.function();
-  if (caller_closure_finder->IsCompactAsyncCallback(function_)) {
+  if (caller_closure_finder->IsAsyncCallback(function_)) {
     const auto& suspend_state = SuspendState::Handle(
         caller_closure_finder->GetSuspendStateFromAsyncCallback(
             async_activation));
@@ -488,6 +487,7 @@ static bool IsImplicitFunction(const Function& func) {
     case UntaggedFunction::kNoSuchMethodDispatcher:
     case UntaggedFunction::kInvokeFieldDispatcher:
     case UntaggedFunction::kIrregexpFunction:
+    case UntaggedFunction::kRecordFieldGetter:
       return true;
     default:
       if (func.token_pos() == func.end_token_pos()) {
@@ -728,66 +728,15 @@ intptr_t ActivationFrame::ContextLevel() {
   return context_level_;
 }
 
-ObjectPtr ActivationFrame::GetAsyncContextVariable(const String& name) {
-  if (!function_.IsAsyncClosure() && !function_.IsAsyncGenClosure()) {
-    return Object::null();
-  }
-  GetVarDescriptors();
-  intptr_t var_ctxt_level = -1;
-  intptr_t ctxt_slot = -1;
-  intptr_t var_desc_len = var_descriptors_.Length();
-  for (intptr_t i = 0; i < var_desc_len; i++) {
-    UntaggedLocalVarDescriptors::VarInfo var_info;
-    var_descriptors_.GetInfo(i, &var_info);
-    if (var_descriptors_.GetName(i) == name.ptr()) {
-      const int8_t kind = var_info.kind();
-      if (!live_frame_) {
-        ASSERT(kind == UntaggedLocalVarDescriptors::kContextVar);
-      }
-      const auto variable_index = VariableIndex(var_info.index());
-      if (kind == UntaggedLocalVarDescriptors::kStackVar) {
-        return GetStackVar(variable_index);
-      } else {
-        ASSERT(kind == UntaggedLocalVarDescriptors::kContextVar);
-        var_ctxt_level = var_info.scope_id;
-        ctxt_slot = variable_index.value();
-        break;
-      }
-    }
-  }
-  if (var_ctxt_level >= 0) {
-    if (!live_frame_) {
-      ASSERT(!ctx_.IsNull());
-      // Compiled code uses relative context levels, i.e. the frame context
-      // level is always 0 on entry.
-      const intptr_t frame_ctx_level = 0;
-      return GetRelativeContextVar(var_ctxt_level, ctxt_slot, frame_ctx_level);
-    }
-    return GetContextVar(var_ctxt_level, ctxt_slot);
-  }
-  return Object::null();
-}
-
 ObjectPtr ActivationFrame::GetAsyncAwaiter(
     CallerClosureFinder* caller_closure_finder) {
   if (fp() != 0 && !function_.IsNull()) {
-    if (function_.IsCompactAsyncFunction() ||
-        function_.IsCompactAsyncStarFunction()) {
+    if (function_.IsAsyncFunction() || function_.IsAsyncGenerator()) {
       const auto& suspend_state = Object::Handle(GetSuspendStateVar());
       if (caller_closure_finder->WasPreviouslySuspended(function_,
                                                         suspend_state)) {
         return caller_closure_finder->FindCallerFromSuspendState(
             SuspendState::Cast(suspend_state));
-      }
-    } else if (function_.IsAsyncClosure() || function_.IsAsyncGenClosure()) {
-      // Look up caller's closure on the stack.
-      ObjectPtr* last_caller_obj = reinterpret_cast<ObjectPtr*>(GetCallerSp());
-      Closure& closure = Closure::Handle();
-      closure = StackTraceUtils::FindClosureInFrame(last_caller_obj, function_);
-
-      if (!closure.IsNull() && caller_closure_finder->IsRunningAsync(closure)) {
-        closure = caller_closure_finder->FindCaller(closure);
-        return closure.ptr();
       }
     }
   }
@@ -835,22 +784,8 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
     try_index = handlers.OuterTryIndex(try_index);
   }
   // Async functions might have indirect exception handlers in the form of
-  // `Future.catchError`. Check the Closure's _FutureListeners.
-  if ((fp() != 0) &&
-      (function().IsAsyncClosure() || function().IsAsyncGenClosure())) {
-    CallerClosureFinder caller_closure_finder(Thread::Current()->zone());
-    ObjectPtr* last_caller_obj = reinterpret_cast<ObjectPtr*>(GetCallerSp());
-    Closure& closure = Closure::Handle(
-        StackTraceUtils::FindClosureInFrame(last_caller_obj, function()));
-    if (!caller_closure_finder.IsRunningAsync(closure)) {
-      return false;
-    }
-    Object& futureOrListener =
-        Object::Handle(caller_closure_finder.GetAsyncFuture(closure));
-    futureOrListener =
-        caller_closure_finder.GetFutureFutureListener(futureOrListener);
-    return caller_closure_finder.HasCatchError(futureOrListener);
-  } else if ((fp() != 0) && function().IsCompactAsyncFunction()) {
+  // `Future.catchError`. Check _FutureListeners.
+  if ((fp() != 0) && function().IsAsyncFunction()) {
     CallerClosureFinder caller_closure_finder(Thread::Current()->zone());
     auto& suspend_state = Object::Handle(GetSuspendStateVar());
     if (!caller_closure_finder.WasPreviouslySuspended(function(),
@@ -867,70 +802,9 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
   return false;
 }
 
-intptr_t ActivationFrame::GetAwaitJumpVariable() {
-  GetVarDescriptors();
-  intptr_t var_ctxt_level = -1;
-  intptr_t ctxt_slot = -1;
-  intptr_t var_desc_len = var_descriptors_.Length();
-  intptr_t await_jump_var = -1;
-  for (intptr_t i = 0; i < var_desc_len; i++) {
-    UntaggedLocalVarDescriptors::VarInfo var_info;
-    var_descriptors_.GetInfo(i, &var_info);
-    const int8_t kind = var_info.kind();
-    if (var_descriptors_.GetName(i) == Symbols::AwaitJumpVar().ptr()) {
-      ASSERT(kind == UntaggedLocalVarDescriptors::kContextVar);
-      ASSERT(!ctx_.IsNull());
-      var_ctxt_level = var_info.scope_id;
-      ctxt_slot = var_info.index();
-      break;
-    }
-  }
-  if (var_ctxt_level >= 0) {
-    Object& await_jump_index = Object::Handle(ctx_.At(ctxt_slot));
-    ASSERT(await_jump_index.IsSmi());
-    await_jump_var = Smi::Cast(await_jump_index).Value();
-  }
-  return await_jump_var;
-}
-
-void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
-  // Attempt to determine the token pos and try index from the async closure.
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-
-  ASSERT(function_.IsAsyncGenClosure() || function_.IsAsyncClosure());
-  // This should only be called on frames that aren't active on the stack.
-  ASSERT(fp() == 0);
-
-  const intptr_t await_jump_var = GetAwaitJumpVariable();
-  if (await_jump_var < 0) {
-    return;
-  }
-
-  const auto& pc_descriptors =
-      PcDescriptors::Handle(zone, code().pc_descriptors());
-  ASSERT(!pc_descriptors.IsNull());
-  PcDescriptors::Iterator it(pc_descriptors, UntaggedPcDescriptors::kOther);
-  while (it.MoveNext()) {
-    if (it.YieldIndex() == await_jump_var) {
-      try_index_ = it.TryIndex();
-      token_pos_ = it.TokenPos();
-      token_pos_initialized_ = true;
-      return;
-    }
-  }
-}
-
 bool ActivationFrame::IsAsyncMachinery() const {
   ASSERT(!function_.IsNull());
   auto isolate_group = IsolateGroup::Current();
-  if (function_.ptr() ==
-          isolate_group->object_store()->complete_on_async_return() ||
-      function_.ptr() == isolate_group->object_store()
-                             ->complete_with_no_future_on_async_return()) {
-    // We are completing an async function's completer.
-    return true;
-  }
   if (function_.Owner() ==
       isolate_group->object_store()->async_star_stream_controller()) {
     // We are inside the async* stream controller code.
@@ -957,7 +831,7 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
       const auto variable_index = VariableIndex(var_info.index());
       obj = GetStackVar(variable_index);
       if (obj.IsClosure()) {
-        ASSERT(function().name() == Symbols::Call().ptr());
+        ASSERT(function().name() == Symbols::call().ptr());
         ASSERT(function().IsInvokeFieldDispatcher());
         // Closure.call frames.
         ctx_ = Closure::Cast(obj).context();
@@ -971,13 +845,6 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
     }
   }
   return ctx_;
-}
-
-ObjectPtr ActivationFrame::GetAsyncOperation() {
-  if (function().name() == Symbols::AsyncOperation().ptr()) {
-    return GetParameter(0);
-  }
-  return Object::null();
 }
 
 ActivationFrame* DebuggerStackTrace::GetHandlerFrame(
@@ -1089,12 +956,11 @@ ObjectPtr ActivationFrame::GetParameter(intptr_t index) {
     return Object::null();
   }
 
-  if (function().NumOptionalParameters() > 0) {
-    // If the function has optional parameters, the first positional parameter
-    // can be in a number of places in the caller's frame depending on how many
-    // were actually supplied at the call site, but they are copied to a fixed
-    // place in the callee's frame.
-
+  if (function().MakesCopyOfParameters()) {
+    // Function parameters are copied to a fixed place in the callee's frame.
+    if (function().IsSuspendableFunction()) {
+      ++index;  // Skip slot reserved for :suspend_state variable.
+    }
     return GetVariableValue(LocalVarAddress(
         fp(), runtime_frame_layout.FrameSlotForVariableIndex(-index)));
   } else {
@@ -1653,8 +1519,6 @@ Debugger::Debugger(Isolate* isolate)
       stepping_fp_(0),
       last_stepping_fp_(0),
       last_stepping_pos_(TokenPosition::kNoSource),
-      async_stepping_fp_(0),
-      top_frame_awaiter_(Object::null()),
       skip_next_step_(false),
       synthetic_async_breakpoint_(NULL),
       exc_pause_info_(kNoPauseOnExceptions) {}
@@ -1710,25 +1574,11 @@ bool Debugger::SetupStepOverAsyncSuspension(const char** error) {
     }
     return false;
   }
-  if (top_frame->function().IsCompactAsyncFunction() ||
-      top_frame->function().IsCompactAsyncStarFunction()) {
-    const auto& function_data =
-        Object::Handle(top_frame->GetSuspendableFunctionData());
-    SetBreakpointAtResumption(function_data);
-    return true;
-  }
-  Object& closure = Object::Handle(top_frame->GetAsyncOperation());
-  ASSERT(!closure.IsNull());
-  ASSERT(closure.IsInstance());
-  ASSERT(Instance::Cast(closure).IsClosure());
-  Breakpoint* bpt = SetBreakpointAtActivation(Instance::Cast(closure), true);
-  if (bpt == NULL) {
-    // Unable to set the breakpoint.
-    if (error != nullptr) {
-      *error = "Unable to set breakpoint at async suspension point";
-    }
-    return false;
-  }
+  ASSERT(top_frame->function().IsAsyncFunction() ||
+         top_frame->function().IsAsyncGenerator());
+  const auto& function_data =
+      Object::Handle(top_frame->GetSuspendableFunctionData());
+  SetBreakpointAtResumption(function_data);
   return true;
 }
 
@@ -1797,7 +1647,7 @@ void Debugger::DeoptimizeWorld() {
   // before deoptimizing the world.
   SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
   for (intptr_t i = 1; i < num_classes + num_tlc_classes; i++) {
-    const classid_t cid =
+    const intptr_t cid =
         i < num_classes ? i : ClassTable::CidFromTopLevelIndex(i - num_classes);
     if (class_table.HasValidClassAt(cid)) {
       cls = class_table.At(cid);
@@ -2068,7 +1918,6 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAwaiterReturn() {
   Closure& async_activation = Closure::Handle(zone);
   Array& deopt_frame = Array::Handle(zone);
   bool stack_has_async_function = false;
-  Closure& closure = Closure::Handle();
 
   CallerClosureFinder caller_closure_finder(zone);
 
@@ -2089,25 +1938,7 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAwaiterReturn() {
     // Simple frame. Just add the one.
     if (!code.is_optimized()) {
       function = code.function();
-      if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
-        ActivationFrame* activation = CollectDartFrame(
-            isolate, frame->pc(), frame, code, Object::null_array(), 0,
-            ActivationFrame::kAsyncActivation);
-        ASSERT(activation != nullptr);
-        stack_trace->AddActivation(activation);
-        stack_has_async_function = true;
-        // Grab the awaiter.
-        async_activation ^= activation->GetAsyncAwaiter(&caller_closure_finder);
-        // Bail if we've reach the end of sync execution stack.
-        ObjectPtr* last_caller_obj =
-            reinterpret_cast<ObjectPtr*>(frame->GetCallerSp());
-        closure =
-            StackTraceUtils::FindClosureInFrame(last_caller_obj, function);
-        if (caller_closure_finder.IsRunningAsync(closure)) {
-          break;
-        }
-      } else if (function.IsCompactAsyncFunction() ||
-                 function.IsCompactAsyncStarFunction()) {
+      if (function.IsAsyncFunction() || function.IsAsyncGenerator()) {
         ActivationFrame* activation = CollectDartFrame(
             isolate, frame->pc(), frame, code, Object::null_array(), 0,
             ActivationFrame::kAsyncActivation);
@@ -2158,9 +1989,7 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAwaiterReturn() {
       }
 
       intptr_t deopt_frame_offset = it.GetDeoptFpOffset();
-      if (function.IsAsyncClosure() || function.IsAsyncGenClosure() ||
-          function.IsCompactAsyncFunction() ||
-          function.IsCompactAsyncStarFunction()) {
+      if (function.IsAsyncFunction() || function.IsAsyncGenerator()) {
         ActivationFrame* activation = CollectDartFrame(
             isolate, it.pc(), frame, inlined_code, deopt_frame,
             deopt_frame_offset, ActivationFrame::kAsyncActivation);
@@ -2193,10 +2022,6 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAwaiterReturn() {
          async_activation.context() != Object::null()) {
     ActivationFrame* activation =
         new (zone) ActivationFrame(async_activation, &caller_closure_finder);
-    if (activation->function().IsAsyncClosure() ||
-        activation->function().IsAsyncGenClosure()) {
-      activation->ExtractTokenPositionFromAsyncClosure();
-    }
     stack_trace->AddActivation(activation);
     if (FLAG_trace_debugger_stacktrace) {
       OS::PrintErr(
@@ -2333,19 +2158,6 @@ bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
   }
 
   auto& handler_function = Function::Handle(handler_frame->function().ptr());
-  // If the handler function is an synthetic inner function, we need to look for
-  // the annotations on the outer function.
-  if (handler_function.IsAsyncClosure()) {
-    // async :async_op
-    handler_function = handler_function.parent_function();
-  } else if (handler_frame->function().IsAsyncGenClosure()) {
-    // async* :async_op
-    handler_function = handler_function.parent_function();
-  } else if (handler_frame->function().IsSyncGenClosure()) {
-    // sync* :sync_op + :sync_op_gen
-    handler_function = handler_function.parent_function();
-    handler_function = handler_function.parent_function();
-  }
 
   // If handler_frame's function is annotated with
   // @pragma('vm:notify-debugger-on-exception'), we specifically want to notify
@@ -2731,7 +2543,7 @@ void Debugger::FindCompiledFunctions(
     const intptr_t num_classes = class_table.NumCids();
     const intptr_t num_tlc_classes = class_table.NumTopLevelCids();
     for (intptr_t i = 1; i < num_classes + num_tlc_classes; i++) {
-      const classid_t cid =
+      const intptr_t cid =
           i < num_classes ? i
                           : ClassTable::CidFromTopLevelIndex(i - num_classes);
       if (class_table.HasValidClassAt(cid)) {
@@ -2854,7 +2666,7 @@ bool Debugger::FindBestFit(const Script& script,
     const intptr_t num_classes = class_table.NumCids();
     const intptr_t num_tlc_classes = class_table.NumTopLevelCids();
     for (intptr_t i = 1; i < num_classes + num_tlc_classes; i++) {
-      const classid_t cid =
+      const intptr_t cid =
           i < num_classes ? i
                           : ClassTable::CidFromTopLevelIndex(i - num_classes);
       if (!class_table.HasValidClassAt(cid)) {
@@ -3107,11 +2919,7 @@ void GroupDebugger::SyncBreakpointLocation(BreakpointLocation* loc) {
 Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function,
                                            bool single_shot) {
   ASSERT(!target_function.IsNull());
-  // AsyncFunction is marked not debuggable. When target_function is an async
-  // function, it is actually referring the inner async_op. Allow the
-  // breakpoint to be set, it will get resolved correctly when inner async_op
-  // gets compiled.
-  if (!target_function.is_debuggable() && !target_function.IsAsyncFunction()) {
+  if (!target_function.is_debuggable()) {
     return NULL;
   }
   const Script& script = Script::Handle(target_function.script());
@@ -3140,16 +2948,6 @@ Breakpoint* Debugger::SetBreakpointAtActivation(const Instance& closure,
       SetBreakpoint(script, func.token_pos(), func.end_token_pos(), -1,
                     -1 /* no line/col */, func);
   return bpt_location->AddPerClosure(this, closure, for_over_await);
-}
-
-Breakpoint* Debugger::SetBreakpointAtAsyncOp(const Function& async_op) {
-  const Script& script = Script::Handle(async_op.script());
-  BreakpointLocation* bpt_location =
-      SetBreakpoint(script, async_op.token_pos(), async_op.end_token_pos(), -1,
-                    -1 /* no line/col */, async_op);
-  auto bpt = bpt_location->AddSingleShot(this);
-  bpt->set_is_synthetic_async(true);
-  return bpt;
 }
 
 Breakpoint* Debugger::BreakpointAtActivation(const Instance& closure) {
@@ -3380,26 +3178,6 @@ void GroupDebugger::NotifyCompilation(const Function& function) {
     return;
   }
   Function& resolved_function = Function::Handle(function.ptr());
-  // Synchronous generators have the form:
-  //
-  // user_func sync* {
-  //   :sync_op_gen() {
-  //     :sync_op(..) yielding {
-  //       // ...
-  //     }
-  //   }
-  // }
-  //
-  // Setting a breakpoint in a sync* function should result in a code
-  // breakpoint being inserted into the synthetic :sync_op(..) function node.
-  // In order to ensure we're setting the breakpoint in the right function,
-  // we need to be able to check against the token positions of the
-  // non-synthetic function. Note, we only check for the innermost synthetic
-  // method as this is where the user's code will execute.
-  if (function.IsSyncGenClosure()) {
-    resolved_function ^= function.parent_function();
-    resolved_function ^= resolved_function.parent_function();
-  }
   auto thread = Thread::Current();
   auto zone = thread->zone();
 
@@ -3451,7 +3229,6 @@ void Debugger::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     loc->VisitObjectPointers(visitor);
     loc = loc->next();
   }
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&top_frame_awaiter_));
   for (intptr_t i = 0, n = breakpoints_at_resumption_.length(); i < n; ++i) {
     visitor->VisitPointer(&breakpoints_at_resumption_[i]);
   }
@@ -3506,14 +3283,13 @@ void GroupDebugger::Pause() {
 }
 
 void Debugger::EnterSingleStepMode() {
-  ResetSteppingFramePointers();
+  ResetSteppingFramePointer();
   DeoptimizeWorld();
   NotifySingleStepping(true);
 }
 
-void Debugger::ResetSteppingFramePointers() {
+void Debugger::ResetSteppingFramePointer() {
   stepping_fp_ = 0;
-  async_stepping_fp_ = 0;
 }
 
 bool Debugger::SteppedForSyntheticAsyncBreakpoint() const {
@@ -3527,32 +3303,6 @@ void Debugger::CleanupSyntheticAsyncBreakpoint() {
   }
 }
 
-void Debugger::RememberTopFrameAwaiter() {
-  if (!FLAG_async_debugger) {
-    return;
-  }
-  if (stack_trace_->Length() > 0) {
-    CallerClosureFinder caller_closure_finder(Thread::Current()->zone());
-    top_frame_awaiter_ =
-        stack_trace_->FrameAt(0)->GetAsyncAwaiter(&caller_closure_finder);
-  } else {
-    top_frame_awaiter_ = Object::null();
-  }
-}
-
-void Debugger::SetAsyncSteppingFramePointer(DebuggerStackTrace* stack_trace) {
-  if (!FLAG_async_debugger) {
-    return;
-  }
-  if ((stack_trace->Length()) > 0 &&
-      (stack_trace->FrameAt(0)->function().IsAsyncClosure() ||
-       stack_trace->FrameAt(0)->function().IsAsyncGenClosure())) {
-    async_stepping_fp_ = stack_trace->FrameAt(0)->fp();
-  } else {
-    async_stepping_fp_ = 0;
-  }
-}
-
 void Debugger::SetSyncSteppingFramePointer(DebuggerStackTrace* stack_trace) {
   if (stack_trace->Length() > 0) {
     stepping_fp_ = stack_trace->FrameAt(0)->fp();
@@ -3563,8 +3313,7 @@ void Debugger::SetSyncSteppingFramePointer(DebuggerStackTrace* stack_trace) {
 
 void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
                                      bool skip_next_step) {
-  ResetSteppingFramePointers();
-  RememberTopFrameAwaiter();
+  ResetSteppingFramePointer();
   if (resume_action_ == kStepInto) {
     // When single stepping, we need to deoptimize because we might be
     // stepping into optimized code.  This happens in particular if
@@ -3574,7 +3323,6 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
     DeoptimizeWorld();
     NotifySingleStepping(true);
     skip_next_step_ = skip_next_step;
-    SetAsyncSteppingFramePointer(stack_trace);
     if (FLAG_verbose_debug) {
       OS::PrintErr("HandleSteppingRequest- kStepInto\n");
     }
@@ -3583,16 +3331,13 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
     NotifySingleStepping(true);
     skip_next_step_ = skip_next_step;
     SetSyncSteppingFramePointer(stack_trace);
-    SetAsyncSteppingFramePointer(stack_trace);
     if (FLAG_verbose_debug) {
       OS::PrintErr("HandleSteppingRequest- kStepOver %" Px "\n", stepping_fp_);
     }
   } else if (resume_action_ == kStepOut) {
     if (FLAG_async_debugger) {
-      if (stack_trace->FrameAt(0)->function().IsAsyncClosure() ||
-          stack_trace->FrameAt(0)->function().IsAsyncGenClosure() ||
-          stack_trace->FrameAt(0)->function().IsCompactAsyncFunction() ||
-          stack_trace->FrameAt(0)->function().IsCompactAsyncStarFunction()) {
+      if (stack_trace->FrameAt(0)->function().IsAsyncFunction() ||
+          stack_trace->FrameAt(0)->function().IsAsyncGenerator()) {
         CallerClosureFinder caller_closure_finder(Thread::Current()->zone());
         // Request to step out of an async/async* closure.
         const Object& async_op = Object::Handle(
@@ -3968,7 +3713,7 @@ void Debugger::set_resume_action(ResumeAction resume_action) {
 
 void Debugger::SignalPausedEvent(ActivationFrame* top_frame, Breakpoint* bpt) {
   set_resume_action(kContinue);
-  ResetSteppingFramePointers();
+  ResetSteppingFramePointer();
   NotifySingleStepping(false);
   ASSERT(!IsPaused());
   if ((bpt != NULL) && bpt->IsSingleShot()) {
@@ -3985,17 +3730,9 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame, Breakpoint* bpt) {
 
 static bool IsAtAsyncJump(ActivationFrame* top_frame) {
   Zone* zone = Thread::Current()->zone();
-  if (!top_frame->function().IsCompactAsyncFunction() &&
-      !top_frame->function().IsCompactAsyncStarFunction()) {
-    Object& closure_or_null =
-        Object::Handle(zone, top_frame->GetAsyncOperation());
-    if (closure_or_null.IsNull()) {
-      return false;
-    }
-    ASSERT(top_frame->function().IsAsyncClosure() ||
-           top_frame->function().IsAsyncGenClosure());
-    ASSERT(closure_or_null.IsInstance());
-    ASSERT(Instance::Cast(closure_or_null).IsClosure());
+  if (!top_frame->function().IsAsyncFunction() &&
+      !top_frame->function().IsAsyncGenerator()) {
+    return false;
   }
   const auto& pc_descriptors =
       PcDescriptors::Handle(zone, top_frame->code().pc_descriptors());
@@ -4032,27 +3769,6 @@ ErrorPtr Debugger::PauseStepping() {
   ActivationFrame* frame = TopDartFrame();
   ASSERT(frame != NULL);
 
-  if (FLAG_async_debugger) {
-    if ((async_stepping_fp_ != 0) && (top_frame_awaiter_ != Object::null())) {
-      // Check if the user has single stepped out of an async function with
-      // an awaiter. The first check handles the case of calling into the
-      // async machinery as we finish the async function. The second check
-      // handles the case of returning from an async function.
-      const ActivationFrame::Relation relation =
-          frame->CompareTo(async_stepping_fp_);
-      const bool exited_async_function =
-          (relation == ActivationFrame::kCallee && frame->IsAsyncMachinery()) ||
-          relation == ActivationFrame::kCaller;
-      if (exited_async_function) {
-        // Step to the top frame awaiter.
-        const Object& async_op = Object::Handle(top_frame_awaiter_);
-        top_frame_awaiter_ = Object::null();
-        AsyncStepInto(Closure::Cast(async_op));
-        return Error::null();
-      }
-    }
-  }
-
   if (stepping_fp_ != 0) {
     // There is an "interesting frame" set. Only pause at appropriate
     // locations in this frame.
@@ -4065,35 +3781,7 @@ ErrorPtr Debugger::PauseStepping() {
       // We returned from the "interesting frame", there can be no more
       // stepping breaks for it. Pause at the next appropriate location
       // and let the user set the "interesting" frame again.
-      ResetSteppingFramePointers();
-    }
-  }
-
-  // We need to manually set a synthetic breakpoint for async_op before entry.
-  // async and async* functions always contain synthetic async_ops.
-  if ((frame->function().IsAsyncFunction() ||
-       frame->function().IsAsyncGenerator()) &&
-      !frame->function().IsSuspendableFunction()) {
-    ASSERT(!frame->GetSavedCurrentContext().IsNull());
-    ASSERT(frame->GetSavedCurrentContext().num_variables() >
-           Context::kAsyncFutureIndex);
-
-    const Object& async_future = Object::Handle(
-        frame->GetSavedCurrentContext().At(Context::kAsyncFutureIndex));
-
-    // Only set breakpoint when entering async_op the first time.
-    // :async_future should be uninitialised at this point:
-    if (async_future.IsNull()) {
-      const Function& async_op = Function::Handle(
-          ClosureFunctionsCache::GetUniqueInnerClosure(frame->function()));
-      if (!async_op.IsNull()) {
-        SetBreakpointAtAsyncOp(async_op);
-        // After setting the breakpoint we stop stepping and continue the
-        // debugger until the next breakpoint, to step over all the
-        // synthetic code.
-        Continue();
-        return Error::null();
-      }
+      ResetSteppingFramePointer();
     }
   }
 
@@ -4113,8 +3801,8 @@ ErrorPtr Debugger::PauseStepping() {
 
   // TODO(dartbug.com/48378): Consider aligning async/async* functions
   // with regular function wrt the first stop in the function prologue.
-  if ((frame->function().IsCompactAsyncFunction() ||
-       frame->function().IsCompactAsyncStarFunction()) &&
+  if ((frame->function().IsAsyncFunction() ||
+       frame->function().IsAsyncGenerator()) &&
       frame->GetSuspendStateVar() == Object::null()) {
     return Error::null();
   }
@@ -4730,7 +4418,7 @@ void Debugger::MaybeAsyncStepInto(const Closure& async_op) {
 void Debugger::AsyncStepInto(const Closure& async_op) {
   Zone* zone = Thread::Current()->zone();
   CallerClosureFinder caller_closure_finder(zone);
-  if (caller_closure_finder.IsCompactAsyncCallback(
+  if (caller_closure_finder.IsAsyncCallback(
           Function::Handle(zone, async_op.function()))) {
     const auto& suspend_state = SuspendState::Handle(
         zone, caller_closure_finder.GetSuspendStateFromAsyncCallback(async_op));
@@ -4745,7 +4433,7 @@ void Debugger::AsyncStepInto(const Closure& async_op) {
 
 void Debugger::Continue() {
   SetResumeAction(kContinue);
-  ResetSteppingFramePointers();
+  ResetSteppingFramePointer();
   NotifySingleStepping(false);
 }
 

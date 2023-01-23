@@ -6,18 +6,16 @@ library dart2js.elements.names;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' show $_;
 
-import 'entities.dart' show LibraryEntity;
-
 /// A [Name] represents the abstraction of a Dart identifier which takes privacy
 /// and setter into account.
 // TODO(johnniwinther): Try to share logic with [Selector].
 abstract class Name {
   /// Create a [Name] for an identifier [text]. If [text] begins with '_' a
-  /// private name with respect to [library] is created. If [isSetter] is `true`
-  /// the created name represents the setter name 'text='.
-  factory Name(String text, LibraryEntity? library, {bool isSetter = false}) {
+  /// private name with respect to library [uri] is created. If [isSetter] is
+  /// `true` the created name represents the setter name 'text='.
+  factory Name(String text, Uri? uri, {bool isSetter = false}) {
     if (isPrivateName(text)) {
-      return PrivateName(text, library!, isSetter: isSetter);
+      return PrivateName(text, uri!, isSetter: isSetter);
     }
     return PublicName(text, isSetter: isSetter);
   }
@@ -34,14 +32,14 @@ abstract class Name {
   /// is returned.
   Name get getter;
 
-  /// Returns the seeter name corresponding to this name. If this name is a
-  /// getter name 'v' then the name 'v=' is returned, otherwsie the name itself
+  /// Returns the setter name corresponding to this name. If this name is a
+  /// getter name 'v' then the name 'v=' is returned, otherwise the name itself
   /// is returned.
   Name get setter;
 
   /// Returns `true` if an entity of this name is accessible from library
   /// [element].
-  bool isAccessibleFrom(LibraryEntity element);
+  bool isAccessibleFrom(Uri uri);
 
   /// Returns `true` if this name is private.
   bool get isPrivate;
@@ -51,8 +49,15 @@ abstract class Name {
   bool isSimilarTo(Name other);
   int get similarHashCode;
 
+  /// Returns `true` if this name has the name [text] and [library] as [other].
+  ///
+  /// This is similar to `==` but doesn't take `isSetter` into account.
+  bool matches(Name other);
+
+  /// If this name is private, returns the [Uri] for the library from which the
+  /// name originates. Otherwise, returns `null`.
   // TODO(sra): Should this rather throw for public names?
-  LibraryEntity? get library;
+  Uri? get uri;
 
   /// Returns `true` when [s] is private if used as an identifier.
   static bool isPrivateName(String s) => !s.isEmpty && s.codeUnitAt(0) == $_;
@@ -76,7 +81,7 @@ class PublicName implements Name {
   Name get setter => isSetter ? this : PublicName(text, isSetter: true);
 
   @override
-  bool isAccessibleFrom(LibraryEntity element) => true;
+  bool isAccessibleFrom(Uri uri) => true;
 
   @override
   bool get isPrivate => false;
@@ -97,7 +102,10 @@ class PublicName implements Name {
   int get similarHashCode => text.hashCode + 11 * isSetter.hashCode;
 
   @override
-  LibraryEntity? get library => null;
+  bool matches(Name other) => text == other.text;
+
+  @override
+  Uri? get uri => null;
 
   @override
   String toString() => isSetter ? '$text=' : text;
@@ -105,34 +113,36 @@ class PublicName implements Name {
 
 class PrivateName extends PublicName {
   @override
-  final LibraryEntity library;
+  final Uri uri;
 
-  PrivateName(String text, this.library, {bool isSetter = false})
-      : super(text, isSetter: isSetter);
+  PrivateName(super.text, this.uri, {super.isSetter});
 
   @override
-  Name get getter => isSetter ? PrivateName(text, library) : this;
+  Name get getter => isSetter ? PrivateName(text, uri) : this;
 
   @override
   Name get setter {
-    return isSetter ? this : PrivateName(text, library, isSetter: true);
+    return isSetter ? this : PrivateName(text, uri, isSetter: true);
   }
 
   @override
-  bool isAccessibleFrom(LibraryEntity element) => library == element;
+  bool isAccessibleFrom(Uri uri) => this.uri == uri;
 
   @override
   bool get isPrivate => true;
 
   @override
-  int get hashCode => super.hashCode + 13 * library.hashCode;
+  int get hashCode => super.hashCode + 13 * uri.hashCode;
 
   @override
   bool operator ==(other) {
     if (other is! PrivateName) return false;
-    return super == (other) && library == other.library;
+    return super == (other) && uri == other.uri;
   }
 
   @override
-  String toString() => '${library.name}#${super.toString()}';
+  bool matches(Name other) => super.matches(other) && uri == other.uri;
+
+  @override
+  String toString() => '${uri}#${super.toString()}';
 }

@@ -171,11 +171,11 @@ class LspServerClient {
       environment: {PubCommand.disablePubCommandEnvironmentKey: 'true'},
     );
     _process = process;
-    process.exitCode.then((int code) {
+    unawaited(process.exitCode.then((int code) {
       if (code != 0) {
         // TODO(dantup): Log/fail tests...
       }
-    });
+    }));
 
     // If the server writes to stderr, fail tests with a more useful message
     // (rather than having the test just hang waiting for a response).

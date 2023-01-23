@@ -18,10 +18,10 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart'
     show
-        ClassElement,
         Element,
         ExecutableElement,
         ExtensionElement,
+        InterfaceElement,
         LibraryElement,
         LocalVariableElement,
         ParameterElement,
@@ -968,9 +968,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     data.recordPercentage(
         'Methods with type parameters', node.typeParameters != null);
     var element = node.declaredElement!;
-    if (!element.isStatic && element.enclosingElement is ClassElement) {
+    if (!element.isStatic && element.enclosingElement is InterfaceElement) {
       var overriddenMembers = inheritanceManager.getOverridden2(
-          element.enclosingElement as ClassElement,
+          element.enclosingElement as InterfaceElement,
           Name(element.librarySource.uri, element.name));
       if (overriddenMembers != null) {
         // Consider limiting this to the most immediate override. If the
@@ -993,7 +993,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     if (node.target is SuperExpression) {
       var enclosingMethod = node.thisOrAncestorOfType<MethodDeclaration>();
       if (enclosingMethod != null) {
-        if (enclosingMethod.name.name == node.methodName.name) {
+        if (enclosingMethod.name.lexeme == node.methodName.name) {
           data.recordTypeMatch('super invocation member', 'same');
         } else {
           data.recordTypeMatch('super invocation member', 'different');
@@ -1120,7 +1120,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     if (node.target is SuperExpression) {
       var enclosingMethod = node.thisOrAncestorOfType<MethodDeclaration>();
       if (enclosingMethod != null) {
-        if (enclosingMethod.name.name == node.propertyName.name) {
+        if (enclosingMethod.name.lexeme == node.propertyName.name) {
           data.recordTypeMatch('super property access member', 'same');
         } else {
           data.recordTypeMatch('super property access member', 'different');
@@ -1459,7 +1459,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     if (element == null) {
       return null;
     }
-    if (element is ClassElement) {
+    if (element is InterfaceElement) {
       var parent = node.parent;
       if (parent is Annotation && parent.arguments != null) {
         element = parent.element!;
@@ -1578,14 +1578,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       }
       // TODO(brianwilkerson) It might be interesting to also know whether the
       //  [element] was found in a class, interface, or mixin.
-      var memberClass = member.thisOrAncestorOfType<ClassElement>();
+      var memberClass = member.thisOrAncestorOfType<InterfaceElement>();
       if (memberClass != null) {
         /// Return the distance between the [targetClass] and the [memberClass]
         /// along the superclass chain. This includes all of the implicit
         /// superclasses caused by mixins.
         int getSuperclassDepth() {
           var depth = 0;
-          ClassElement? currentClass = targetClass;
+          InterfaceElement? currentClass = targetClass;
           while (currentClass != null) {
             if (currentClass == memberClass) {
               return depth;
@@ -1606,7 +1606,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         /// includes all of the implicit superclasses caused by mixins.
         int getTargetDepth() {
           var depth = 0;
-          ClassElement? currentClass = targetClass;
+          InterfaceElement? currentClass = targetClass;
           while (currentClass != null) {
             depth += currentClass.mixins.length + 1;
             currentClass = currentClass.supertype?.element;
@@ -1783,7 +1783,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       var firstTokenType = identifier.staticType;
       if (firstTokenType == null) {
         var element = identifier.staticElement;
-        if (element is ClassElement) {
+        if (element is InterfaceElement) {
           // This is effectively treating a reference to a class name as having
           // the same type as an instance of the class, which isn't valid, but
           // on the other hand, the spec doesn't define the static type of a
@@ -2172,27 +2172,6 @@ class RelevanceMetricsComputer {
       }
     }
     return false;
-  }
-}
-
-class Timer {
-  Stopwatch stopwatch = Stopwatch();
-
-  int count = 0;
-
-  Timer();
-
-  double get averageTime => count == 0 ? 0 : totalTime / count;
-
-  int get totalTime => stopwatch.elapsedMilliseconds;
-
-  void start() {
-    stopwatch.start();
-  }
-
-  void stop() {
-    stopwatch.stop();
-    count++;
   }
 }
 

@@ -123,7 +123,7 @@ class Configuration {
       T? fromName;
       for (var value in allowed) {
         // Don't treat "none" as matchable since it's ambiguous as to whether
-        // it refers to compiler or runtime.
+        // it refers to runtime or sanitizer.
         if (value == "none") continue;
 
         if (words.contains(value)) {
@@ -578,6 +578,8 @@ class Architecture extends NamedEnum {
   static const ia32 = Architecture._('ia32');
   static const x64 = Architecture._('x64');
   static const x64c = Architecture._('x64c');
+  static const simx64 = Architecture._('simx64');
+  static const simx64c = Architecture._('simx64c');
   static const arm = Architecture._('arm');
   // ignore: constant_identifier_names
   static const arm_x64 = Architecture._('arm_x64');
@@ -597,6 +599,8 @@ class Architecture extends NamedEnum {
     ia32,
     x64,
     x64c,
+    simx64,
+    simx64c,
     arm,
     arm_x64,
     arm64,
@@ -621,7 +625,6 @@ class Architecture extends NamedEnum {
 }
 
 class Compiler extends NamedEnum {
-  static const none = Compiler._('none');
   static const dart2js = Compiler._('dart2js');
   static const dart2analyzer = Compiler._('dart2analyzer');
   static const dart2wasm = Compiler._('dart2wasm');
@@ -636,7 +639,6 @@ class Compiler extends NamedEnum {
   static final List<String> names = _all.keys.toList();
 
   static final _all = Map<String, Compiler>.fromIterable([
-    none,
     dart2js,
     dart2analyzer,
     dart2wasm,
@@ -708,8 +710,6 @@ class Compiler extends NamedEnum {
         return const [Runtime.none];
       case Compiler.fasta:
         return const [Runtime.none];
-      case Compiler.none:
-        return const [Runtime.vm, Runtime.flutter];
     }
 
     throw "unreachable";
@@ -736,8 +736,6 @@ class Compiler extends NamedEnum {
       case Compiler.specParser:
       case Compiler.fasta:
         return Runtime.none;
-      case Compiler.none:
-        return Runtime.vm;
     }
 
     throw "unreachable";
@@ -876,7 +874,7 @@ class Runtime extends NamedEnum {
     switch (this) {
       case vm:
       case flutter:
-        return Compiler.none;
+        return Compiler.dartk;
 
       case dartPrecompiled:
         return Compiler.dartkp;

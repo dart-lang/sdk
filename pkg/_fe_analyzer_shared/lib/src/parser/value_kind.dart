@@ -31,6 +31,7 @@ class SingleValueKind<T> implements ValueKind {
     return value is T;
   }
 
+  @override
   String toString() {
     if (nullValue != null) {
       return '$T or $nullValue';
@@ -55,6 +56,7 @@ class UnionValueKind implements ValueKind {
     return false;
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     String or = '';
@@ -69,8 +71,18 @@ class UnionValueKind implements ValueKind {
 
 /// Helper method for creating a list of [ValueKind]s of the given length
 /// [count].
-List<ValueKind> repeatedKinds(ValueKind kind, int count) {
+List<ValueKind> repeatedKind(ValueKind kind, int count) {
   return new List.generate(count, (_) => kind);
+}
+
+/// Helper method for creating a list of [count] repetitions of a sequence of
+/// [ValueKind]s.
+List<ValueKind> repeatedKinds(List<ValueKind> kinds, int count) {
+  List<ValueKind> list = [];
+  for (int i = 0; i < count; i++) {
+    list.addAll(kinds);
+  }
+  return list;
 }
 
 /// Helper method for creating a union of a list of [ValueKind]s.

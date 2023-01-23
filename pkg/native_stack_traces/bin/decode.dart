@@ -8,6 +8,7 @@ import 'dart:io' as io;
 
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:native_stack_traces/native_stack_traces.dart';
+import 'package:native_stack_traces/src/macho.dart' show CpuType;
 import 'package:path/path.dart' as path;
 
 ArgParser _createBaseDebugParser(ArgParser parser) => parser
@@ -18,10 +19,11 @@ ArgParser _createBaseDebugParser(ArgParser parser) => parser
   ..addFlag('verbose',
       abbr: 'v',
       negatable: false,
-      help: 'Translate all frames, not just user or library code frames')
-  ..addFlag('dump_debug_file_contents',
-      negatable: false,
-      help: 'Dump all the parsed information from the debugging file');
+      help: 'Translate all frames, not just user or library code frames');
+
+final ArgParser _dumpParser = ArgParser(allowTrailingOptions: true)
+  ..addOption('output',
+      abbr: 'o', help: 'Filename for generated output', valueHelp: 'FILE');
 
 final ArgParser _translateParser =
     _createBaseDebugParser(ArgParser(allowTrailingOptions: true))
@@ -38,6 +40,11 @@ final ArgParser _findParser =
           abbr: 'x',
           negatable: false,
           help: 'Always parse integers as hexadecimal')
+      ..addOption('architecture',
+          abbr: 'a',
+          help: 'Architecture on which the program is run',
+          allowed: CpuType.values.map((v) => v.dartName),
+          valueHelp: 'ARCH')
       ..addOption('vm_start',
           help: 'Absolute address for start of VM instructions',
           valueHelp: 'PC')
@@ -48,6 +55,7 @@ final ArgParser _findParser =
 final ArgParser _helpParser = ArgParser(allowTrailingOptions: true);
 
 final ArgParser _argParser = ArgParser(allowTrailingOptions: true)
+  ..addCommand('dump', _dumpParser)
   ..addCommand('help', _helpParser)
   ..addCommand('find', _findParser)
   ..addCommand('translate', _translateParser)
@@ -123,12 +131,22 @@ ${_argParser.usage}
 Options specific to the find command:
 ${_findParser.usage}''';
 
+final String _dumpUsage = '''
+Usage: decode dump [options] <snapshot>
+
+The dump command dumps the DWARF information in the given snapshot to either
+standard output or a given output file.
+
+Options specific to the dump command:
+${_dumpParser.usage}''';
+
 final _usages = <String?, String>{
   null: _mainUsage,
   '': _mainUsage,
   'help': _helpUsage,
   'translate': _translateUsage,
   'find': _findUsage,
+  'dump': _dumpUsage,
 };
 
 const int _badUsageExitCode = 1;
@@ -162,15 +180,16 @@ Dwarf? _loadFromFile(String? original, Function(String) usageError) {
     return null;
   }
   final filename = path.canonicalize(path.normalize(original));
-  if (!io.File(filename).existsSync()) {
+  try {
+    final dwarf = Dwarf.fromFile(filename);
+    if (dwarf == null) {
+      usageError('file "$original" does not contain debugging information');
+    }
+    return dwarf;
+  } on io.FileSystemException {
     usageError('debug file "$original" does not exist');
     return null;
   }
-  final dwarf = Dwarf.fromFile(filename);
-  if (dwarf == null) {
-    usageError('file "$original" does not contain debugging information');
-  }
-  return dwarf;
 }
 
 void find(ArgResults options) {
@@ -187,7 +206,8 @@ void find(ArgResults options) {
   }
 
   PCOffset? convertAddress(StackTraceHeader header, String s) {
-    final parsedOffset = tryParseSymbolOffset(s, forceHexadecimal);
+    final parsedOffset =
+        tryParseSymbolOffset(s, forceHexadecimal: forceHexadecimal);
     if (parsedOffset != null) return parsedOffset;
 
     final address = tryParseIntAddress(s);
@@ -199,15 +219,11 @@ void find(ArgResults options) {
   final dwarf = _loadFromFile(options['debug'], usageError);
   if (dwarf == null) return;
 
-  if (options['dump_debug_file_contents']) {
-    print(dwarf.dumpFileInfo());
-  }
-
   if ((options['vm_start'] == null) != (options['isolate_start'] == null)) {
     return usageError('need both VM start and isolate start');
   }
 
-  var vmStart = dwarf.vmStartAddress;
+  var vmStart = dwarf.vmStartAddress();
   if (options['vm_start'] != null) {
     final address = tryParseIntAddress(options['vm_start']);
     if (address == null) {
@@ -216,8 +232,12 @@ void find(ArgResults options) {
     }
     vmStart = address;
   }
+  if (vmStart == null) {
+    return usageError('no VM start address found, one must be specified '
+        'with --vm_start');
+  }
 
-  var isolateStart = dwarf.isolateStartAddress;
+  var isolateStart = dwarf.isolateStartAddress();
   if (options['isolate_start'] != null) {
     final address = tryParseIntAddress(options['isolate_start']);
     if (address == null) {
@@ -226,8 +246,15 @@ void find(ArgResults options) {
     }
     isolateStart = address;
   }
+  if (isolateStart == null) {
+    return usageError('no isolate start address found, one must be specified '
+        'with --isolate_start');
+  }
 
-  final header = StackTraceHeader(isolateStart, vmStart);
+  final arch = options['architecture'];
+
+  final header =
+      StackTraceHeader.fromStarts(isolateStart, vmStart, architecture: arch);
 
   final locations = <PCOffset>[];
   for (final String s in [
@@ -243,7 +270,7 @@ void find(ArgResults options) {
   for (final offset in locations) {
     final addr = dwarf.virtualAddressOf(offset);
     final frames = dwarf
-        .callInfoFor(addr, includeInternalFrames: verbose)
+        .callInfoForPCOffset(offset, includeInternalFrames: verbose)
         ?.map((CallInfo c) => '  $c');
     final addrString =
         addr > 0 ? '0x${addr.toRadixString(16)}' : addr.toString();
@@ -265,9 +292,6 @@ Future<void> translate(ArgResults options) async {
   final dwarf = _loadFromFile(options['debug'], usageError);
   if (dwarf == null) {
     return;
-  }
-  if (options['dump_debug_file_contents']) {
-    print(dwarf.dumpFileInfo());
   }
 
   final verbose = options['verbose'];
@@ -291,6 +315,27 @@ Future<void> translate(ArgResults options) async {
   await output.close();
 }
 
+Future<void> dump(ArgResults options) async {
+  void usageError(String message) => errorWithUsage(message, command: 'dump');
+
+  if (options.rest.isEmpty) {
+    return usageError('must provide a path to an ELF file or dSYM directory '
+        'that contains DWARF information');
+  }
+  final dwarf = _loadFromFile(options.rest.first, usageError);
+  if (dwarf == null) {
+    return;
+  }
+
+  final output = options['output'] != null
+      ? io.File(path.canonicalize(path.normalize(options['output'])))
+          .openWrite()
+      : io.stdout;
+  output.write(dwarf.dumpFileInfo());
+  await output.flush();
+  await output.close();
+}
+
 Future<void> main(List<String> arguments) async {
   ArgResults options;
 
@@ -310,5 +355,7 @@ Future<void> main(List<String> arguments) async {
       return find(options.command!);
     case 'translate':
       return await translate(options.command!);
+    case 'dump':
+      return await dump(options.command!);
   }
 }

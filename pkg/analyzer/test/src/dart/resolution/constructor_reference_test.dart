@@ -232,11 +232,11 @@ ConstructorReference
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::•
+        base: self::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::•
+      base: self::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
 ''');
@@ -293,11 +293,11 @@ ConstructorReference
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::•
+        base: self::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::•
+      base: self::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
 ''');
@@ -341,11 +341,11 @@ ConstructorReference
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::•
+        base: self::@class::A::@constructor::new
         substitution: {T: String}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::•
+      base: self::@class::A::@constructor::new
       substitution: {T: String}
   staticType: A<String> Function()
 ''');
@@ -384,11 +384,11 @@ ConstructorReference
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::•
+        base: self::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::•
+      base: self::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
 ''');
@@ -565,11 +565,11 @@ ConstructorReference
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::•
+        base: self::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::•
+      base: self::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
 ''');
@@ -697,11 +697,11 @@ ConstructorReference
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::•
+        base: self::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::•
+      base: self::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
 ''');
@@ -742,11 +742,11 @@ ConstructorReference
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::•
+        base: self::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::•
+      base: self::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
 ''');
@@ -787,11 +787,11 @@ ConstructorReference
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::•
+        base: self::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::•
+      base: self::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
 ''');
@@ -834,11 +834,11 @@ ConstructorReference
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::•
+        base: self::@class::A::@constructor::new
         substitution: {T: String}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::•
+      base: self::@class::A::@constructor::new
       substitution: {T: String}
   staticType: A<String> Function()
 ''');
@@ -890,11 +890,11 @@ ConstructorReference
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: package:test/a.dart::@class::A::@constructor::•
+        base: package:test/a.dart::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: package:test/a.dart::@class::A::@constructor::•
+      base: package:test/a.dart::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
 ''');
@@ -1003,11 +1003,11 @@ ConstructorReference
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: package:test/a.dart::@class::A::@constructor::•
+        base: package:test/a.dart::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: package:test/a.dart::@class::A::@constructor::•
+      base: package:test/a.dart::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
 ''');
@@ -1058,11 +1058,11 @@ ConstructorReference
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: package:test/a.dart::@class::A::@constructor::•
+        base: package:test/a.dart::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: package:test/a.dart::@class::A::@constructor::•
+      base: package:test/a.dart::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
 ''');
@@ -1097,9 +1097,9 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      staticElement: self::@class::A::@constructor::•
+      staticElement: self::@class::A::@constructor::new
       staticType: null
-    staticElement: self::@class::A::@constructor::•
+    staticElement: self::@class::A::@constructor::new
   staticType: A Function()
 ''');
   }
@@ -1134,9 +1134,9 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      staticElement: self::@class::A::@constructor::•
+      staticElement: self::@class::A::@constructor::new
       staticType: null
-    staticElement: self::@class::A::@constructor::•
+    staticElement: self::@class::A::@constructor::new
   staticType: A Function()
 ''');
   }
@@ -1173,9 +1173,9 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      staticElement: self::@class::A::@constructor::•
+      staticElement: self::@class::A::@constructor::new
       staticType: null
-    staticElement: self::@class::A::@constructor::•
+    staticElement: self::@class::A::@constructor::new
   staticType: A Function()
 ''');
   }
@@ -1333,9 +1333,9 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      staticElement: self::@class::A::@constructor::•
+      staticElement: self::@class::A::@constructor::new
       staticType: null
-    staticElement: self::@class::A::@constructor::•
+    staticElement: self::@class::A::@constructor::new
   staticType: A Function()
 ''');
   }
@@ -1395,9 +1395,9 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      staticElement: self::@class::A::@constructor::•
+      staticElement: self::@class::A::@constructor::new
       staticType: null
-    staticElement: self::@class::A::@constructor::•
+    staticElement: self::@class::A::@constructor::new
   staticType: A Function()
 ''');
   }
@@ -1479,9 +1479,9 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      staticElement: package:test/a.dart::@class::A::@constructor::•
+      staticElement: package:test/a.dart::@class::A::@constructor::new
       staticType: null
-    staticElement: package:test/a.dart::@class::A::@constructor::•
+    staticElement: package:test/a.dart::@class::A::@constructor::new
   staticType: A Function()
 ''');
   }
@@ -1561,9 +1561,9 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      staticElement: package:test/a.dart::@class::A::@constructor::•
+      staticElement: package:test/a.dart::@class::A::@constructor::new
       staticType: null
-    staticElement: package:test/a.dart::@class::A::@constructor::•
+    staticElement: package:test/a.dart::@class::A::@constructor::new
   staticType: A Function()
 ''');
   }
@@ -1591,9 +1591,9 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      staticElement: self::@class::A::@constructor::•
+      staticElement: self::@class::A::@constructor::new
       staticType: null
-    staticElement: self::@class::A::@constructor::•
+    staticElement: self::@class::A::@constructor::new
   staticType: A<T> Function<T>()
 ''');
   }
@@ -1654,11 +1654,11 @@ ConstructorReference
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::•
+        base: self::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::•
+      base: self::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
 ''');

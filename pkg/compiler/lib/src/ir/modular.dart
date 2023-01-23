@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
@@ -49,7 +47,7 @@ class ModuleData {
   // TODO(joshualitt) Support serializing ModularMemberData;
   final Map<Uri, Map<ir.Member, ImpactBuilderData>> impactData;
 
-  ModuleData([Map<Uri, Map<ir.Member, ImpactBuilderData>> impactData])
+  ModuleData([Map<Uri, Map<ir.Member, ImpactBuilderData>>? impactData])
       : this.impactData = impactData ?? {};
 
   factory ModuleData.fromImpactData(
@@ -118,7 +116,7 @@ void reportLocatedMessage(DiagnosticReporter reporter,
 DiagnosticMessage _createDiagnosticMessage(
     DiagnosticReporter reporter, ir.LocatedMessage message) {
   var sourceSpan = SourceSpan(
-      message.uri, message.charOffset, message.charOffset + message.length);
+      message.uri!, message.charOffset, message.charOffset + message.length);
   return reporter.createMessage(
       sourceSpan, MessageKind.GENERIC, {'text': message.problemMessage});
 }

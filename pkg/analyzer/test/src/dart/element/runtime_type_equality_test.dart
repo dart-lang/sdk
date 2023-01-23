@@ -7,7 +7,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/type_system_test.dart';
+import '../../../generated/type_system_base.dart';
+import 'string_types.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +17,14 @@ main() {
 }
 
 @reflectiveTest
-class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest {
+class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
+    with StringTypes {
+  @override
+  void setUp() {
+    super.setUp();
+    defineStringTypes();
+  }
+
   test_dynamic() {
     _equal(dynamicNone, dynamicNone);
     _notEqual(dynamicNone, voidNone);
@@ -289,6 +297,35 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest {
     _equal(neverQuestion, nullNone);
   }
 
+  test_recordType_andNot() {
+    _notEqual2('(int)', 'dynamic');
+    _notEqual2('(int)', 'int');
+    _notEqual2('(int)', 'void');
+  }
+
+  test_recordType_differentShape() {
+    _notEqual2('(int)', '(int, int)');
+    _notEqual2('(int)', '({int f1})');
+    _notEqual2('({int f1})', '({int f2})');
+    _notEqual2('({int f1})', '({int f1, int f2})');
+  }
+
+  test_recordType_sameShape_named() {
+    _equal2('({int f1})', '({int f1})');
+    _notEqual2('({int f1})', '({int? f1})');
+    _equal2('({int f1})', '({int* f1})');
+
+    _notEqual2('({int f1})', '({double f1})');
+  }
+
+  test_recordType_sameShape_positional() {
+    _equal2('(int)', '(int)');
+    _notEqual2('(int)', '(int?)');
+    _equal2('(int)', '(int*)');
+
+    _notEqual2('(int)', '(double)');
+  }
+
   test_void() {
     _equal(voidNone, voidNone);
     _notEqual(voidNone, dynamicNone);
@@ -306,8 +343,8 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest {
     if (result != expected) {
       fail('''
 Expected ${expected ? 'equal' : 'not equal'}.
-T1: ${_typeString(T1)}
-T2: ${_typeString(T2)}
+T1: ${typeString(T1)}
+T2: ${typeString(T2)}
 ''');
     }
 
@@ -315,8 +352,8 @@ T2: ${_typeString(T2)}
     if (result != expected) {
       fail('''
 Expected ${expected ? 'equal' : 'not equal'}.
-T1: ${_typeString(T1)}
-T2: ${_typeString(T2)}
+T1: ${typeString(T1)}
+T2: ${typeString(T2)}
 ''');
     }
   }
@@ -325,11 +362,21 @@ T2: ${_typeString(T2)}
     _check(T1, T2, true);
   }
 
+  void _equal2(String T1, String T2) {
+    _equal(
+      typeOfString(T1),
+      typeOfString(T2),
+    );
+  }
+
   void _notEqual(DartType T1, DartType T2) {
     _check(T1, T2, false);
   }
 
-  String _typeString(DartType type) {
-    return type.getDisplayString(withNullability: true);
+  void _notEqual2(String T1, String T2) {
+    _notEqual(
+      typeOfString(T1),
+      typeOfString(T2),
+    );
   }
 }

@@ -111,6 +111,7 @@ abstract class AbstractScanner implements Scanner {
    */
   late Token errorTail;
 
+  @override
   bool hasErrors = false;
 
   /**
@@ -125,6 +126,7 @@ abstract class AbstractScanner implements Scanner {
    */
   Token? commentsTail;
 
+  @override
   final List<int> lineStarts;
 
   /**
@@ -717,6 +719,7 @@ abstract class AbstractScanner implements Scanner {
   /// Return true when at EOF.
   bool atEndOfFile();
 
+  @override
   Token tokenize() {
     while (!atEndOfFile()) {
       int next = advance();
@@ -1632,7 +1635,7 @@ abstract class AbstractScanner implements Scanner {
     if (($A <= next && next <= $Z) ||
         ($0 <= next && next <= $9) ||
         identical(next, $_) ||
-        identical(next, $$)) {
+        (allowDollar && identical(next, $$))) {
       return tokenizeIdentifier(next, start, allowDollar);
     } else {
       appendKeywordToken(keyword);
@@ -1978,13 +1981,16 @@ class LineStarts extends Object with ListMixin<int> {
 
   // Implement abstract members used by [ListMixin]
 
+  @override
   int get length => arrayLength;
 
+  @override
   int operator [](int index) {
     assert(index < arrayLength);
     return array[index];
   }
 
+  @override
   void set length(int newLength) {
     if (newLength > array.length) {
       grow(newLength);
@@ -1992,6 +1998,7 @@ class LineStarts extends Object with ListMixin<int> {
     arrayLength = newLength;
   }
 
+  @override
   void operator []=(int index, int value) {
     if (value > 65535 && array is! Uint32List) {
       switchToUint32(array.length);
@@ -2000,6 +2007,7 @@ class LineStarts extends Object with ListMixin<int> {
   }
 
   // Specialize methods from [ListMixin].
+  @override
   void add(int value) {
     if (arrayLength >= array.length) {
       grow(/* newLengthMinimum = */ 0);

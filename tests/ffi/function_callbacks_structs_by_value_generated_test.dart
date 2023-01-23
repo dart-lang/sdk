@@ -7,7 +7,7 @@
 //
 // SharedObjects=ffi_test_functions
 // VMOptions=
-// VMOptions=--deterministic --optimization-counter-threshold=10
+// VMOptions=--deterministic --optimization-counter-threshold=20
 // VMOptions=--use-slow-path
 // VMOptions=--use-slow-path --stacktrace-every=100
 

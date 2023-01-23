@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -26,7 +27,7 @@ class CreateFile extends CorrectionProducer {
       if (parent is NamespaceDirective) {
         // TODO(brianwilkerson) Support the case where the node's parent is a
         //  Configuration.
-        var source = parent.uriSource;
+        var source = parent.referencedSource;
         if (source != null) {
           var fullName = source.fullName;
           var pathContext = resourceProvider.pathContext;
@@ -39,7 +40,7 @@ class CreateFile extends CorrectionProducer {
           }
         }
       } else if (parent is PartDirective) {
-        var source = parent.uriSource;
+        var source = parent.referencedSource;
         if (source != null) {
           var pathContext = resourceProvider.pathContext;
           var relativePath = pathContext.relative(

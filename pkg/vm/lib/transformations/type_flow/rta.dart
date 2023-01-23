@@ -459,6 +459,16 @@ class _ConstantVisitor extends ConstantVisitor<void> {
   }
 
   @override
+  void visitRecordConstant(RecordConstant constant) {
+    for (var value in constant.positional) {
+      visit(value);
+    }
+    for (var value in constant.named.values) {
+      visit(value);
+    }
+  }
+
+  @override
   void visitInstanceConstant(InstanceConstant constant) {
     rta.addAllocatedClass(constant.classNode);
     for (var value in constant.fieldValues.values) {
@@ -515,6 +525,12 @@ class _EntryPointsListenerImpl implements EntryPointsListener {
 
   @override
   ConcreteType addAllocatedClass(Class c) => rta.addAllocatedClass(c);
+
+  @override
+  Field getRecordPositionalField(int pos) => throw 'Unsupported operation';
+
+  @override
+  Field getRecordNamedField(String name) => throw 'Unsupported operation';
 
   @override
   void recordMemberCalledViaInterfaceSelector(Member target) =>

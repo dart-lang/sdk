@@ -82,6 +82,14 @@ class A extends Object with num {}
     ]);
   }
 
+  test_class_Record() async {
+    await assertErrorsInCode('''
+class A extends Object with Record {}
+''', [
+      error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 6),
+    ]);
+  }
+
   test_class_String() async {
     await assertErrorsInCode('''
 class A extends Object with String {}

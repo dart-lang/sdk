@@ -31,7 +31,7 @@ abstract class OperationPerformance {
   });
 }
 
-/// The data attachment for a [OperationPerformance].
+/// The data attachment for an [OperationPerformance].
 abstract class OperationPerformanceData<T> {
   String get name;
 

@@ -146,7 +146,7 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
               builder.writeln('  @override');
               builder.write('  ');
               builder.writeReference(stateClass);
-              builder.write('<${widgetClass.name}$typeParams>');
+              builder.write('<${widgetClass.name.lexeme}$typeParams>');
               builder.writeln(' createState() => $stateName$typeParams();');
               if (hasEmptyLineAfterCreateState) {
                 builder.writeln();
@@ -205,7 +205,7 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
         builder.writeReference(stateClass);
 
         // Write just param names (and not bounds, metadata and docs).
-        builder.write('<${widgetClass.name}');
+        builder.write('<${widgetClass.name.lexeme}');
         if (typeParameters != null) {
           builder.write('<');
           var first = true;
@@ -214,7 +214,7 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
               builder.write(', ');
               first = false;
             }
-            builder.write(param.name.name);
+            builder.write(param.name.lexeme);
           }
           builder.write('>');
         }
@@ -247,7 +247,7 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
 
   MethodDeclaration? _findBuildMethod(ClassDeclaration widgetClass) {
     for (var member in widgetClass.members) {
-      if (member is MethodDeclaration && member.name.name == 'build') {
+      if (member is MethodDeclaration && member.name.lexeme == 'build') {
         var parameters = member.parameters;
         if (parameters != null && parameters.parameters.length == 1) {
           return member;
@@ -262,16 +262,20 @@ class _FieldFinder extends RecursiveAstVisitor<void> {
   Set<FieldElement> fieldsAssignedInConstructors = {};
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.parent is FieldFormalParameter) {
-      var element = node.staticElement;
-      if (element is FieldFormalParameterElement) {
-        var field = element.field;
-        if (field != null) {
-          fieldsAssignedInConstructors.add(field);
-        }
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    final element = node.declaredElement;
+    if (element is FieldFormalParameterElement) {
+      var field = element.field;
+      if (field != null) {
+        fieldsAssignedInConstructors.add(field);
       }
     }
+
+    super.visitFieldFormalParameter(node);
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.parent is ConstructorFieldInitializer) {
       var element = node.staticElement;
       if (element is FieldElement) {

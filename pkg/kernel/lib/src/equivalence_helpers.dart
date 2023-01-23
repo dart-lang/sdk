@@ -39,7 +39,7 @@ class CheckingState {
   final bool isAsserting;
 
   CheckingState(
-      {this.isAsserting: true,
+      {this.isAsserting = true,
       UnionFind<Reference>? assumedReferences,
       State? currentState})
       : _assumedReferences = assumedReferences ?? new UnionFind<Reference>(),
@@ -48,7 +48,7 @@ class CheckingState {
   /// Create a new [CheckingState] that inherits the [_currentState] and a copy
   /// of the current assumptions. If [isAsserting] is `true`, the new state
   /// will register inequivalences.
-  CheckingState createSubState({bool isAsserting: false}) {
+  CheckingState createSubState({bool isAsserting = false}) {
     return new CheckingState(
         isAsserting: isAsserting,
         assumedReferences: _assumedReferences.clone(),
@@ -152,7 +152,7 @@ class CheckingState {
   /// Returns the [EquivalenceResult] for the registered inequivalences. If
   /// [hasInequivalences] is `true`, the result is marked has having
   /// inequivalences, even when none have been registered.
-  EquivalenceResult toResult({bool hasInequivalences: false}) =>
+  EquivalenceResult toResult({bool hasInequivalences = false}) =>
       new EquivalenceResult(
           hasInequivalences: hasInequivalences,
           registeredInequivalences: _inequivalences.toList());
@@ -164,7 +164,7 @@ class EquivalenceResult {
   final List<Inequivalence> registeredInequivalences;
 
   EquivalenceResult(
-      {this.hasInequivalences: false, required this.registeredInequivalences});
+      {this.hasInequivalences = false, required this.registeredInequivalences});
 
   bool get isEquivalent =>
       !hasInequivalences && registeredInequivalences.isEmpty;

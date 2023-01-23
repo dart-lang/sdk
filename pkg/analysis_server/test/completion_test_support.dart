@@ -79,7 +79,8 @@ class CompletionTestCase extends AbstractCompletionDomainTest {
         .toList();
   }
 
-  Future runTest(LocationSpec spec, [Map<String, String>? extraFiles]) async {
+  Future<void> runTest(LocationSpec spec,
+      [Map<String, String>? extraFiles]) async {
     await super.setUp();
 
     try {
@@ -102,7 +103,7 @@ class CompletionTestCase extends AbstractCompletionDomainTest {
         assertHasNoCompletion(result);
       }
     } finally {
-      super.tearDown();
+      await super.tearDown();
     }
   }
 }

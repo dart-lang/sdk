@@ -16,10 +16,10 @@ import 'package:compiler/src/dart2js.dart' as dart2js;
 import 'package:_fe_analyzer_shared/src/util/filenames.dart';
 import 'package:expect/expect.dart';
 import 'package:sourcemap_testing/src/stacktrace_helper.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 Future createTemp(Uri entryPoint, Map<String, String> memorySourceFiles,
-    {bool printSteps: false}) async {
+    {bool printSteps = false}) async {
   if (memorySourceFiles.isNotEmpty) {
     Directory dir = await Directory.systemTemp.createTemp('dart2js-with-dill');
     if (printSteps) {
@@ -35,11 +35,11 @@ Future createTemp(Uri entryPoint, Map<String, String> memorySourceFiles,
 
 Future<D8Result> runWithD8(
     {Uri entryPoint,
-    Map<String, String> memorySourceFiles: const <String, String>{},
-    List<String> options: const <String>[],
+    Map<String, String> memorySourceFiles = const <String, String>{},
+    List<String> options = const <String>[],
     String expectedOutput,
-    bool printJs: false,
-    bool printSteps: false}) async {
+    bool printJs = false,
+    bool printSteps = false}) async {
   retainDataForTesting = true;
   entryPoint ??= Uri.parse('memory:main.dart');
   Uri mainFile =

@@ -133,10 +133,10 @@ void VirtualMemory::Init() {
   // not cross a 4GB boundary. The subregion itself is not necessarily
   // 4GB-aligned.
   for (size_t allocated_size = kCompressedHeapSize + kCompressedHeapAlignment;
-       allocated_size >= kCompressedHeapPageSize; allocated_size >>= 1) {
+       allocated_size >= kCompressedPageSize; allocated_size >>= 1) {
     void* address = GenericMapAligned(
-        nullptr, PROT_NONE, allocated_size, kCompressedHeapPageSize,
-        allocated_size + kCompressedHeapPageSize,
+        nullptr, PROT_NONE, allocated_size, kCompressedPageSize,
+        allocated_size + kCompressedPageSize,
         MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE);
     if (address == nullptr) continue;
 
@@ -177,7 +177,7 @@ void VirtualMemory::Init() {
   // Also detect for missing support of memfd_create syscall.
   if (FLAG_dual_map_code) {
     intptr_t size = PageSize();
-    intptr_t alignment = kOldPageSize;
+    intptr_t alignment = kPageSize;
     bool executable = true;
     bool compressed = false;
     VirtualMemory* vm =
@@ -206,7 +206,7 @@ void VirtualMemory::Init() {
     int count = fscanf(fp, "%zu", &max_map_count);
     fclose(fp);
     if (count == 1) {
-      size_t max_heap_pages = FLAG_old_gen_heap_size * MB / kOldPageSize;
+      size_t max_heap_pages = FLAG_old_gen_heap_size * MB / kPageSize;
       if (max_map_count < max_heap_pages) {
         OS::PrintErr(
             "warning: vm.max_map_count (%zu) is not large enough to support "

@@ -48,8 +48,8 @@ class TypeMaskDataComputer extends DataComputer<String> {
   @override
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<String>> actualMap,
-      {bool verbose: false}) {
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+      {bool verbose = false}) {
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     GlobalTypeInferenceResults results =
         compiler.globalInference.resultsForTesting;
@@ -92,9 +92,9 @@ class TypeMaskIrComputer extends IrDataExtractor<String> {
   String getMemberValue(MemberEntity member) {
     GlobalTypeInferenceMemberResult memberResult =
         results.resultOfMember(member);
-    if (member.isFunction || member.isConstructor || member.isGetter) {
+    if (member.isFunction || member is ConstructorEntity || member.isGetter) {
       return getTypeMaskValue(memberResult.returnType);
-    } else if (member.isField) {
+    } else if (member is FieldEntity) {
       return getTypeMaskValue(memberResult.type);
     } else {
       assert(member.isSetter);

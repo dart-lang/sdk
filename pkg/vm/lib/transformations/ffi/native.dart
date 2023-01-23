@@ -70,7 +70,7 @@ class FfiNativeTransformer extends FfiTransformer {
         super(index, coreTypes, hierarchy, diagnosticReporter,
             referenceFromIndex);
 
-  ConstantExpression? _tryGetFfiNativeAnnotation(Member node) {
+  ConstantExpression? tryGetFfiNativeAnnotation(Member node) {
     for (final Expression annotation in node.annotations) {
       if (annotation is! ConstantExpression) {
         continue;
@@ -117,9 +117,10 @@ class FfiNativeTransformer extends FfiTransformer {
   // Replaces return type with Object if it is Handle.
   DartType _wrapReturnType(DartType dartReturnType, DartType ffiReturnType) {
     if (env.isSubtypeOf(
-        ffiReturnType,
-        handleClass.getThisType(coreTypes, Nullability.nonNullable),
-        SubtypeCheckMode.ignoringNullabilities)) {
+            ffiReturnType,
+            handleClass.getThisType(coreTypes, Nullability.nonNullable),
+            SubtypeCheckMode.ignoringNullabilities) &&
+        dartReturnType is! VoidType) {
       return objectClass.getThisType(coreTypes, dartReturnType.nullability);
     }
     return dartReturnType;
@@ -229,18 +230,52 @@ class FfiNativeTransformer extends FfiTransformer {
         initializer: initializer, type: wrappedType, isFinal: true);
   }
 
-  Expression _getTemporary(VariableDeclaration temporary,
-      DartType dartParameterType, DartType ffiParameterType) {
+  Expression _getTemporary(
+    VariableDeclaration temporary,
+    DartType dartParameterType,
+    DartType ffiParameterType, {
+    required bool checkForNullptr,
+  }) {
     if (_requiresPointerConversion(dartParameterType, ffiParameterType)) {
-      // Pointer.fromAddress(_getNativeField(#t0))
-      return StaticInvocation(
-          fromAddressInternal,
-          Arguments(<Expression>[
-            StaticInvocation(getNativeFieldFunction,
-                Arguments(<Expression>[VariableGet(temporary)]))
-          ], types: <DartType>[
-            voidType
-          ]));
+      Expression pointerAddress = StaticInvocation(getNativeFieldFunction,
+          Arguments(<Expression>[VariableGet(temporary)]));
+
+      if (checkForNullptr) {
+        final pointerAddressVar = VariableDeclaration("#pointerAddress",
+            initializer: pointerAddress, type: coreTypes.intNonNullableRawType);
+        pointerAddress = BlockExpression(
+          Block([
+            pointerAddressVar,
+            IfStatement(
+              InstanceInvocation(
+                InstanceAccessKind.Instance,
+                VariableGet(pointerAddressVar),
+                objectEquals.name,
+                Arguments([ConstantExpression(IntConstant(0))]),
+                interfaceTarget: objectEquals,
+                functionType: objectEquals.getterType as FunctionType,
+              ),
+              ExpressionStatement(StaticInvocation(
+                stateErrorThrowNewFunction,
+                Arguments([
+                  ConstantExpression(StringConstant(
+                    'A Dart object attempted to access a native peer, '
+                    'but the native peer has been collected (nullptr). '
+                    'This is usually the result of calling methods on a '
+                    'native-backed object when the native resources have '
+                    'already been disposed.',
+                  ))
+                ]),
+              )),
+              EmptyStatement(),
+            )
+          ]),
+          VariableGet(pointerAddressVar),
+        );
+      }
+
+      return StaticInvocation(fromAddressInternal,
+          Arguments(<Expression>[pointerAddress], types: <DartType>[voidType]));
     }
     return VariableGet(temporary);
   }
@@ -261,8 +296,12 @@ class FfiNativeTransformer extends FfiTransformer {
   //     final #t1 = passAsPointer(Pointer.fromAddress(_getNativeField(#t0)));
   //     reachabilityFence(#t0);
   //   } => #t1
-  Expression _wrapArgumentsAndReturn(FunctionInvocation invocation,
-      FunctionType dartFunctionType, FunctionType ffiFunctionType) {
+  Expression _wrapArgumentsAndReturn({
+    required FunctionInvocation invocation,
+    required FunctionType dartFunctionType,
+    required FunctionType ffiFunctionType,
+    bool checkReceiverForNullptr = false,
+  }) {
     List<DartType> ffiParameters = ffiFunctionType.positionalParameters;
     List<DartType> dartParameters = dartFunctionType.positionalParameters;
     // Create lists of temporary variables for arguments potentially being
@@ -276,8 +315,12 @@ class FfiNativeTransformer extends FfiTransformer {
       // Note: We also evaluate, and assign temporaries for, non-wrapped
       // arguments as we need to preserve the original evaluation order.
       temporariesForArguments.add(temporary);
-      callArguments
-          .add(_getTemporary(temporary, dartParameters[i], ffiParameters[i]));
+      callArguments.add(_getTemporary(
+        temporary,
+        dartParameters[i],
+        ffiParameters[i],
+        checkForNullptr: checkReceiverForNullptr && i == 0,
+      ));
       if (_requiresPointerConversion(dartParameters[i], ffiParameters[i])) {
         fencedArguments.add(temporary);
         continue;
@@ -391,32 +434,22 @@ class FfiNativeTransformer extends FfiTransformer {
   }
 
   Procedure _transformProcedure(
-      Procedure node,
-      StringConstant nativeFunctionName,
-      bool isLeaf,
-      int annotationOffset,
-      FunctionType dartFunctionType,
-      FunctionType ffiFunctionType,
-      List<Expression> argumentList) {
-    if (!_verifySignatures(
-        node, dartFunctionType, ffiFunctionType, annotationOffset)) {
-      return node;
-    }
+    Procedure node,
+    StringConstant nativeFunctionName,
+    bool isLeaf,
+    int annotationOffset,
+    FunctionType dartFunctionType,
+    FunctionType ffiFunctionType,
+    List<Expression> argumentList, {
+    required bool checkReceiverForNullptr,
+  }) {
+    final wrappedDartFunctionType = checkFfiType(
+        node, dartFunctionType, ffiFunctionType, isLeaf, annotationOffset);
 
-    // int Function(Pointer<Void>)
-    final wrappedDartFunctionType =
-        _wrapFunctionType(dartFunctionType, ffiFunctionType);
-
-    final nativeType = InterfaceType(
-        nativeFunctionClass, Nullability.legacy, [ffiFunctionType]);
-    try {
-      ensureNativeTypeValid(nativeType, node);
-      ensureNativeTypeToDartType(nativeType, wrappedDartFunctionType, node);
-      ensureLeafCallDoesNotUseHandles(nativeType, isLeaf, node);
-    } on FfiStaticTypeError {
-      // It's OK to swallow the exception because the diagnostics issued will
-      // cause compilation to fail. By continuing, we can report more
-      // diagnostics before compilation ends.
+    if (wrappedDartFunctionType == null) {
+      // It's OK to continue because the diagnostics issued will cause
+      // compilation to fail. By continuing, we can report more diagnostics
+      // before compilation ends.
       return node;
     }
 
@@ -431,7 +464,7 @@ class FfiNativeTransformer extends FfiTransformer {
 
     // static final _myMethod$FfiNative$Ptr = ..
     final resolvedField = _createResolvedFfiNativeField(
-        node.name.text,
+        '${node.name.text}\$${node.kind.name}',
         nativeFunctionName,
         isLeaf,
         wrappedDartFunctionType,
@@ -460,7 +493,11 @@ class FfiNativeTransformer extends FfiTransformer {
     Expression result = (wrappedDartFunctionType == dartFunctionType
         ? functionPointerInvocation
         : _wrapArgumentsAndReturn(
-            functionPointerInvocation, dartFunctionType, ffiFunctionType));
+            invocation: functionPointerInvocation,
+            dartFunctionType: dartFunctionType,
+            ffiFunctionType: ffiFunctionType,
+            checkReceiverForNullptr: checkReceiverForNullptr,
+          ));
 
     //   => _myFunction$FfiNative$Ptr(
     //     Pointer<Void>.fromAddress(_getNativeField(obj)), x)
@@ -507,8 +544,16 @@ class FfiNativeTransformer extends FfiTransformer {
         VariableGet(parameter)
     ];
 
-    return _transformProcedure(node, nativeFunctionName, isLeaf,
-        annotationOffset, dartFunctionType, ffiFunctionType, argumentList);
+    return _transformProcedure(
+      node,
+      nativeFunctionName,
+      isLeaf,
+      annotationOffset,
+      dartFunctionType,
+      ffiFunctionType,
+      argumentList,
+      checkReceiverForNullptr: true,
+    );
   }
 
   // Transform FfiNative static functions.
@@ -534,8 +579,16 @@ class FfiNativeTransformer extends FfiTransformer {
         VariableGet(parameter)
     ];
 
-    return _transformProcedure(node, nativeFunctionName, isLeaf,
-        annotationOffset, dartFunctionType, ffiFunctionType, argumentList);
+    return _transformProcedure(
+      node,
+      nativeFunctionName,
+      isLeaf,
+      annotationOffset,
+      dartFunctionType,
+      ffiFunctionType,
+      argumentList,
+      checkReceiverForNullptr: false,
+    );
   }
 
   @override
@@ -543,7 +596,7 @@ class FfiNativeTransformer extends FfiTransformer {
     // Only transform functions that are external and have FfiNative annotation:
     //   @FfiNative<Double Function(Double)>('Math_sqrt')
     //   external double _square_root(double x);
-    final ffiNativeAnnotation = _tryGetFfiNativeAnnotation(node);
+    final ffiNativeAnnotation = tryGetFfiNativeAnnotation(node);
     if (ffiNativeAnnotation == null) {
       return node;
     }
@@ -572,5 +625,39 @@ class FfiNativeTransformer extends FfiTransformer {
 
     return _transformStaticFunction(node, ffiFunctionType, nativeFunctionName,
         isLeaf, ffiNativeAnnotation.fileOffset);
+  }
+
+  /// Checks whether the FFI function type is valid and reports any errors.
+  /// Returns the Dart function type for the FFI function if the type is valid.
+  ///
+  /// For example, for FFI function type `Int8 Function(Double)`, this returns
+  /// `int Function(double)`.
+  FunctionType? checkFfiType(Procedure node, FunctionType dartFunctionType,
+      FunctionType ffiFunctionType, bool isLeaf, int annotationOffset) {
+    if (!_verifySignatures(
+        node, dartFunctionType, ffiFunctionType, annotationOffset)) {
+      return null;
+    }
+
+    // int Function(Pointer<Void>)
+    final wrappedDartFunctionType =
+        _wrapFunctionType(dartFunctionType, ffiFunctionType);
+
+    final nativeType = InterfaceType(
+        nativeFunctionClass, Nullability.legacy, [ffiFunctionType]);
+
+    try {
+      ensureNativeTypeValid(nativeType, node);
+      ensureNativeTypeToDartType(nativeType, wrappedDartFunctionType, node,
+          allowHandle: true);
+      ensureLeafCallDoesNotUseHandles(nativeType, isLeaf, node);
+    } on FfiStaticTypeError {
+      // It's OK to swallow the exception because the diagnostics issued will
+      // cause compilation to fail. By continuing, we can report more
+      // diagnostics before compilation ends.
+      return null;
+    }
+
+    return wrappedDartFunctionType;
   }
 }

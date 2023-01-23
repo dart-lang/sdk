@@ -16,5 +16,5 @@ static method c(core::int on) → void
   ;
 static method d(core::int on) → void
   ;
-static method on() → void
+static method on(dynamic e) → void
   ;

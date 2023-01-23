@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -34,13 +35,13 @@ class ConvertToPackageImport extends CorrectionProducer {
       targetNode = targetNode.parent!;
     }
     if (targetNode is ImportDirective) {
-      var importDirective = targetNode;
-      var uriSource = importDirective.uriSource;
-
-      // Ignore if invalid URI.
-      if (uriSource == null) {
+      final elementUri = targetNode.element?.uri;
+      if (elementUri is! DirectiveUriWithSource) {
         return;
       }
+
+      var importDirective = targetNode;
+      var uriSource = elementUri.source;
 
       var importUri = uriSource.uri;
       if (!importUri.isScheme('package')) {
@@ -49,8 +50,8 @@ class ConvertToPackageImport extends CorrectionProducer {
 
       // Don't offer to convert a 'package:' URI to itself.
       try {
-        var uriContent = importDirective.uriContent;
-        if (uriContent == null || Uri.parse(uriContent).isScheme('package')) {
+        var uriContent = elementUri.relativeUriString;
+        if (Uri.parse(uriContent).isScheme('package')) {
           return;
         }
       } on FormatException {

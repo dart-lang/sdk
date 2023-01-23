@@ -68,7 +68,7 @@ Future<List<String>> findValidTests(List<String> directories, bool nnbd) async {
       'The following tests were filtered due to using blacklisted things:');
 
   for (int i = 0; i < testFiles.length; ++i) {
-    testFiles[i] = path.relative(testFiles[i], from: thisDir);
+    testFiles[i] = path.relative(testFiles[i], from: thisDirectory);
   }
   if (File(tempFile).existsSync()) {
     File(tempFile).deleteSync();

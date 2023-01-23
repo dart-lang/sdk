@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart' show ClassElement;
+import 'package:analyzer/dart/element/element.dart' show InterfaceElement;
 import 'package:analyzer/dart/element/type.dart';
 
 /// A description of an element.
@@ -143,8 +143,8 @@ class ElementDescriptor {
           var type = target.staticType;
           if (type == null && target is SimpleIdentifier) {
             var element = target.staticElement;
-            // TODO(brianwilkerson) Handle more than `ClassElement`.
-            if (element is ClassElement) {
+            // TODO(brianwilkerson) Handle more than `InterfaceElement`.
+            if (element is InterfaceElement) {
               type = element.thisType;
             }
           }
@@ -153,10 +153,10 @@ class ElementDescriptor {
             // that the method might have been in the element's class.
             return true;
           }
-          if (components[1] == type.element?.name) {
-            return true;
-          }
           if (type is InterfaceType) {
+            if (components[1] == type.element.name) {
+              return true;
+            }
             for (var supertype in type.allSupertypes) {
               if (components[1] == supertype.element.name) {
                 return true;

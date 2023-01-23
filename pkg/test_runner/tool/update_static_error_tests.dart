@@ -21,8 +21,7 @@ const _usage =
     "Usage: dart update_static_error_tests.dart [flags...] <path glob>";
 
 final _dartPath = _findBinary("dart", "exe");
-final _analyzerPath = _findBinary("dartanalyzer", "bat");
-final _dart2jsPath = _findBinary("dart2js", "bat");
+final _analyzerPath = p.join('pkg', 'analyzer_cli', 'bin', 'analyzer.dart');
 
 Future<void> main(List<String> args) async {
   var sources = ErrorSource.all.map((e) => e.marker).toList();
@@ -210,7 +209,8 @@ Future<List<StaticError>> runAnalyzer(File file, List<String> options) async {
   // TODO(rnystrom): Running the analyzer command line each time is very slow.
   // Either import the analyzer as a library, or at least invoke it in a batch
   // mode.
-  var result = await Process.run(_analyzerPath, [
+  var result = await Process.run(_dartPath, [
+    _analyzerPath,
     ...options,
     "--format=json",
     file.absolute.path,
@@ -265,7 +265,9 @@ Future<List<StaticError>> runCfe(File file, List<String> options) async {
 /// Invoke dart2js on [file] and gather all static errors it reports.
 Future<List<StaticError>> runDart2js(
     File file, List<String> options, List<StaticError> cfeErrors) async {
-  var result = await Process.run(_dart2jsPath, [
+  var result = await Process.run(_dartPath, [
+    'compile',
+    'js',
     ...options,
     "-o",
     "dev:null", // Output is only created for file URIs.

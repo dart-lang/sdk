@@ -105,4 +105,4 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:
 - Const.internal (from org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:19:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

@@ -69,7 +69,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   /// app being run (or in the case of an attach, disconnect).
   Future<void> disconnectImpl() async {
     if (isAttach) {
-      await preventBreakingAndResume();
+      await handleDetach();
     }
     terminatePids(ProcessSignal.sigkill);
   }
@@ -93,9 +93,19 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
 
     final debug = !(args.noDebug ?? false);
     if (debug) {
+      final progress = startProgressNotification(
+        "launch",
+        "Debugger",
+        message: "Starting…",
+      );
       vmServiceInfoFile = generateVmServiceInfoFile();
-      unawaited(waitForVmServiceInfoFile(logger, vmServiceInfoFile)
-          .then((uri) => connectDebugger(uri)));
+      unawaited(
+        waitForVmServiceInfoFile(logger, vmServiceInfoFile).then((uri) async {
+          progress.update(message: "Connecting…");
+          await connectDebugger(uri);
+          progress.end();
+        }),
+      );
     }
 
     final vmArgs = <String>[
@@ -124,7 +134,9 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     }
 
     // Handle customTool and deletion of any arguments for it.
-    final executable = args.customTool ?? Platform.resolvedExecutable;
+    final executable = normalizePath(
+      args.customTool ?? Platform.resolvedExecutable,
+    );
     final removeArgs = args.customToolReplacesArgs;
     if (args.customTool != null && removeArgs != null) {
       vmArgs.removeRange(0, math.min(removeArgs, vmArgs.length));
@@ -133,7 +145,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     final processArgs = [
       ...vmArgs,
       ...toolArgs,
-      args.program,
+      normalizePath(args.program),
       ...?args.args,
     ];
 
@@ -153,20 +165,25 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
                 : null
         : null;
 
+    var cwd = args.cwd;
+    if (cwd != null) {
+      cwd = normalizePath(cwd);
+    }
+
     if (terminalKind != null) {
       await launchInEditorTerminal(
         debug,
         terminalKind,
         executable,
         processArgs,
-        workingDirectory: args.cwd,
+        workingDirectory: cwd,
         env: args.env,
       );
     } else {
       await launchAsProcess(
         executable,
         processArgs,
-        workingDirectory: args.cwd,
+        workingDirectory: cwd,
         env: args.env,
       );
     }
@@ -216,7 +233,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     // we can detect with the normal watching code.
     final requestArgs = RunInTerminalRequestArguments(
       args: [executable, ...processArgs],
-      cwd: workingDirectory ?? path.dirname(args.program),
+      cwd: workingDirectory ?? normalizePath(path.dirname(args.program)),
       env: env,
       kind: terminalKind,
       title: args.name ?? 'Dart',
@@ -272,7 +289,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   /// app being run (or in the case of an attach, disconnect).
   Future<void> terminateImpl() async {
     if (isAttach) {
-      await preventBreakingAndResume();
+      await handleDetach();
     }
     terminatePids(ProcessSignal.sigterm);
     await _process?.exitCode;

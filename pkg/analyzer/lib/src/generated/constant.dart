@@ -113,6 +113,7 @@ class ConstantEvaluator {
           declaredVariables: DeclaredVariables(),
           isNonNullableByDefault:
               _library.featureSet.isEnabled(Feature.non_nullable),
+          configuration: ConstantEvaluationConfiguration(),
         ),
         _library,
         errorReporter));

@@ -15,7 +15,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' show CompilationUnitImpl;
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
@@ -23,7 +22,7 @@ import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
-import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
+import 'package:collection/collection.dart';
 import 'package:pub_semver/src/version.dart';
 import 'package:test/test.dart';
 
@@ -420,7 +419,8 @@ class FastaParserTestCase
     );
     AstBuilder astBuilder = AstBuilder(errorReporter, source.uri, true,
         featureSet!, LineInfo.fromContent(content));
-    fasta.Parser parser = fasta.Parser(astBuilder);
+    fasta.Parser parser = fasta.Parser(astBuilder,
+        allowPatterns: featureSet!.isEnabled(Feature.patterns));
     astBuilder.parser = parser;
     astBuilder.allowNativeClause = allowNativeClause;
     parser.parseUnit(_fastaTokens);
@@ -800,29 +800,11 @@ class ParserProxy extends analyzer.Parser {
 
   ClassMember? parseClassMemberOrNull(String className) {
     return _run('ClassOrMixinBody', () {
-      astBuilder.classDeclaration = astFactory.classDeclaration(
-        null,
-        null,
-        null,
-        null,
-        null,
-        Token(Keyword.CLASS, 0),
-        astFactory.simpleIdentifier(fasta.StringTokenImpl.fromString(
-            TokenType.IDENTIFIER, className, 6)),
-        null,
-        null,
-        null,
-        null,
-        Tokens.openCurlyBracket() /* leftBracket */,
-        <ClassMember>[],
-        Tokens.closeCurlyBracket() /* rightBracket */,
-      );
+      final builder = astBuilder.createFakeClassDeclarationBuilder(className);
       // TODO(danrubel): disambiguate between class and mixin
       currentToken = fastaParser.parseClassMember(currentToken, className);
       //currentToken = fastaParser.parseMixinMember(currentToken);
-      ClassDeclaration declaration = astBuilder.classDeclaration!;
-      astBuilder.classDeclaration = null;
-      return declaration.members.isNotEmpty ? declaration.members[0] : null;
+      return builder.members.firstOrNull;
     });
   }
 
@@ -1526,6 +1508,18 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
 ///
 /// Intended to be mixed in to parser test case classes.
 mixin ParserTestHelpers {
+  ExpectedError error(ErrorCode code, int offset, int length,
+          {Pattern? correctionContains,
+          String? text,
+          List<Pattern> messageContains = const [],
+          List<ExpectedContextMessage> contextMessages =
+              const <ExpectedContextMessage>[]}) =>
+      ExpectedError(code, offset, length,
+          correctionContains: correctionContains,
+          message: text,
+          messageContains: messageContains,
+          expectedContextMessages: contextMessages);
+
   void expectCommentText(Comment? comment, String expectedText) {
     comment!;
     expect(comment.beginToken, same(comment.endToken));

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:scrape/scrape.dart';
 
 enum ArgumentMatch {
@@ -76,12 +77,12 @@ class SuperclassParameterVisitor extends ScrapeVisitor {
     // See if any of them could use the feature.
     var positionalParamNames = node.parameters.parameters
         .where((param) => param.isPositional)
-        .map((param) => param.identifier!.name)
+        .map((param) => param.name!.lexeme)
         .toList();
 
     var namedParamNames = node.parameters.parameters
         .where((param) => param.isNamed)
-        .map((param) => param.identifier!.name)
+        .map((param) => param.name!.lexeme)
         .toSet();
 
     var matchedNamedArguments = 0;
@@ -291,7 +292,7 @@ class SuperclassParameterVisitor extends ScrapeVisitor {
     record('Do not merge super args', noMerge ? 'Yes' : 'No');
 
     var subName = _constructorName(node.name);
-    var superName = _constructorName(initializer.constructorName);
+    var superName = _constructorName(initializer.constructorName?.token);
 
     record('No explicit super(), call same name',
         (allParams && superName == subName) ? 'Yes' : 'No');
@@ -300,9 +301,9 @@ class SuperclassParameterVisitor extends ScrapeVisitor {
         (allParams && superName == '(unnamed)') ? 'Yes' : 'No');
   }
 
-  String _constructorName(SimpleIdentifier? name) {
+  String _constructorName(Token? name) {
     if (name == null) return '(unnamed)';
-    return name.name;
+    return name.lexeme;
   }
 
   SuperConstructorInvocation? _findSuper(ConstructorDeclaration node) {

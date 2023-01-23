@@ -112,19 +112,21 @@ final tests = <IsolateTest>[
     expect(
       enumECls.functions!.map((f) => f.name),
       containsAll([
+        'values',
         'e1',
         'e2',
         'e3',
-        'values',
-        'toString',
-        'interfaceSetter1=',
-        'interfaceGetter1',
-        'interfaceSetter2=',
-        'interfaceGetter2',
+        'E',
+        '_enumToString',
         'interfaceMethod1',
+        'interfaceGetter1',
+        'interfaceSetter1=',
         'interfaceMethod2',
+        'interfaceGetter2',
+        'interfaceSetter2=',
+        'staticMethod',
         'staticGetter',
-        'staticSetter=',
+        'staticSetter='
       ]),
     );
     expect(

@@ -38,5 +38,5 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///const_functions_const_ctor.dart:
 - Simple. (from org-dartlang-testcase:///const_functions_const_ctor.dart:14:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - A. (from org-dartlang-testcase:///const_functions_const_ctor.dart:21:9)

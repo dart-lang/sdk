@@ -37,3 +37,4 @@ worlds:
           print("hello from b!");
         }
     expectedLibraryCount: 1
+    advancedInvalidation: outlineChange

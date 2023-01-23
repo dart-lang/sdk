@@ -70,9 +70,9 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     Iterable<String>? experiments,
     bool outlineOnly,
     Map<String, String> environmentDefines,
-    {bool trackNeededDillLibraries: false,
-    bool verbose: false,
-    NnbdMode nnbdMode: NnbdMode.Weak}) {
+    {bool trackNeededDillLibraries = false,
+    bool verbose = false,
+    NnbdMode nnbdMode = NnbdMode.Weak}) {
   List<Component> outputLoadedAdditionalDills =
       new List<Component>.filled(additionalDills.length, dummyComponent);
   Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
@@ -107,9 +107,9 @@ InitializedCompilerState initializeCompiler(
   Target target,
   FileSystem fileSystem,
   Iterable<String> experiments,
-  Map<String, String> environmentDefines, {
-  bool verbose: false,
-  NnbdMode nnbdMode: NnbdMode.Weak,
+  Map<String, String>? environmentDefines, {
+  bool verbose = false,
+  NnbdMode nnbdMode = NnbdMode.Weak,
 }) {
   // TODO(sigmund): use incremental compiler when it supports our use case.
   // Note: it is common for the summary worker to invoke the compiler with the
@@ -137,7 +137,7 @@ InitializedCompilerState initializeCompiler(
 
 Future<CompilerResult> _compile(InitializedCompilerState compilerState,
     List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler,
-    {bool? buildSummary, bool? buildComponent, bool includeOffsets: true}) {
+    {bool? buildSummary, bool? buildComponent, bool includeOffsets = true}) {
   buildSummary ??= true;
   buildComponent ??= true;
   CompilerOptions options = compilerState.options;
@@ -155,7 +155,7 @@ Future<CompilerResult> _compile(InitializedCompilerState compilerState,
 
 Future<List<int>?> compileSummary(InitializedCompilerState compilerState,
     List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler,
-    {bool includeOffsets: false}) async {
+    {bool includeOffsets = false}) async {
   CompilerResult result = await _compile(
       compilerState, inputs, diagnosticMessageHandler,
       buildSummary: true,
@@ -166,7 +166,7 @@ Future<List<int>?> compileSummary(InitializedCompilerState compilerState,
 
 Future<Component?> compileComponent(InitializedCompilerState compilerState,
     List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler,
-    {bool buildSummary: true}) async {
+    {bool buildSummary = true}) async {
   CompilerResult result = await _compile(
       compilerState, inputs, diagnosticMessageHandler,
       buildSummary: buildSummary, buildComponent: true);

@@ -102,7 +102,7 @@ Future<void> _extractDataForSite() async {
   final data['table'][] //marker
 }
 ''');
-    assertNoAssistAt('] //marker');
+    await assertNoAssistAt('] //marker');
   }
 
   Future<void> test_throw() async {

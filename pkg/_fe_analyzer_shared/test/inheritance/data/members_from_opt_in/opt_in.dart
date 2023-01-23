@@ -40,13 +40,13 @@ abstract class Interface {
   int method7a(int a, {int? b});
 
   /*member: Interface.method7b:int Function({int a, int? b})*/
-  int method7b({int a: 0, int? b});
+  int method7b({int a = 0, int? b});
 
   /*member: Interface.method8a:int? Function(int?, {int b})*/
-  int? method8a(int? a, {int b: 0});
+  int? method8a(int? a, {int b = 0});
 
   /*member: Interface.method8b:int? Function({int? a, int b})*/
-  int? method8b({int? a, int b: 0});
+  int? method8b({int? a, int b = 0});
 
   /*member: Interface.method9a:int Function(int, {required int? b})*/
   int method9a(int a, {required int? b});
@@ -170,7 +170,7 @@ class Class {
   int method7a(int a, {int? b}) => 0;
 
   /*member: Class.method7b:int Function({int a, int? b})*/
-  int method7b({int a: 0, int? b}) => 0;
+  int method7b({int a = 0, int? b}) => 0;
 
   /*member: Class.method9a:int Function(int, {required int? b})*/
   int method9a(int a, {required int? b}) => 0;

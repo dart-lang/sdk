@@ -10,7 +10,7 @@ import 'package:kernel/ast.dart' show Library, Nullability;
 
 import '../combinator.dart' show CombinatorBuilder;
 
-import '../problems.dart' show internalProblem, unsupported;
+import '../problems.dart' show internalProblem;
 
 import '../export.dart' show Export;
 
@@ -44,6 +44,9 @@ abstract class LibraryBuilder implements ModifierBuilder {
 
   List<Export> get exporters;
 
+  @override
+  LibraryBuilder get origin;
+
   abstract LibraryBuilder? partOfLibrary;
 
   LibraryBuilder get nameOriginBuilder;
@@ -60,6 +63,10 @@ abstract class LibraryBuilder implements ModifierBuilder {
   @override
   Uri get fileUri;
 
+  /// Returns the [Uri]s for the libraries that this library depend upon, either
+  /// through import or export.
+  Iterable<Uri> get dependencies;
+
   /// Returns the import uri for the library.
   ///
   /// This is the canonical uri for the library, for instance 'dart:core'.
@@ -69,9 +76,22 @@ abstract class LibraryBuilder implements ModifierBuilder {
   /// used in conditional imports and `bool.fromEnvironment` constants.
   bool get isUnsupported;
 
-  Iterator<Builder> get iterator;
+  /// Returns an iterator of all members (typedefs, classes and members)
+  /// declared in this library, including duplicate declarations.
+  // TODO(johnniwinther): Should the only exist on [SourceLibraryBuilder]?
+  Iterator<Builder> get localMembersIterator;
 
-  NameIterator get nameIterator;
+  /// Returns an iterator of all members of specified type
+  /// declared in this library, including duplicate declarations.
+  // TODO(johnniwinther): Should the only exist on [SourceLibraryBuilder]?
+  Iterator<T> localMembersIteratorOfType<T extends Builder>();
+
+  /// Returns an iterator of all members (typedefs, classes and members)
+  /// declared in this library, including duplicate declarations.
+  ///
+  /// Compared to [localMembersIterator] this also gives access to the name
+  /// that the builders are mapped to.
+  NameIterator<Builder> get localMembersNameIterator;
 
   void addExporter(LibraryBuilder exporter,
       List<CombinatorBuilder>? combinators, int charOffset);
@@ -84,10 +104,10 @@ abstract class LibraryBuilder implements ModifierBuilder {
   /// arguments passed to this method.
   FormattedMessage? addProblem(
       Message message, int charOffset, int length, Uri? fileUri,
-      {bool wasHandled: false,
+      {bool wasHandled = false,
       List<LocatedMessage>? context,
       Severity? severity,
-      bool problemOnLibrary: false});
+      bool problemOnLibrary = false});
 
   /// Returns true if the export scope was modified.
   bool addToExportScope(String name, Builder member, [int charOffset = -1]);
@@ -96,7 +116,7 @@ abstract class LibraryBuilder implements ModifierBuilder {
 
   Builder computeAmbiguousDeclaration(
       String name, Builder declaration, Builder other, int charOffset,
-      {bool isExport: false, bool isImport: false});
+      {bool isExport = false, bool isImport = false});
 
   /// Looks up [constructorName] in the class named [className].
   ///
@@ -111,7 +131,7 @@ abstract class LibraryBuilder implements ModifierBuilder {
   /// unnamed constructor. it's an error if [constructorName] starts with
   /// `"_"`, and [bypassLibraryPrivacy] is false.
   MemberBuilder getConstructor(String className,
-      {String constructorName, bool bypassLibraryPrivacy: false});
+      {String constructorName, bool bypassLibraryPrivacy = false});
 
   void becomeCoreLibrary();
 
@@ -125,14 +145,12 @@ abstract class LibraryBuilder implements ModifierBuilder {
   ///
   /// If [required] is `true` and no member is found an internal problem is
   /// reported.
-  Builder? lookupLocalMember(String name, {bool required: false});
+  Builder? lookupLocalMember(String name, {bool required = false});
 
   Builder? lookup(String name, int charOffset, Uri fileUri);
 
-  /// If this is a patch library, apply its patches to [origin].
-  void applyPatches();
-
-  void recordAccess(int charOffset, int length, Uri fileUri);
+  void recordAccess(
+      LibraryBuilder accessor, int charOffset, int length, Uri fileUri);
 
   bool get isNonNullableByDefault;
 
@@ -194,13 +212,21 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   Uri get importUri;
 
   @override
-  Iterator<Builder> get iterator {
-    return new LibraryLocalDeclarationIterator(this);
+  Iterator<Builder> get localMembersIterator {
+    return scope.filteredIterator(
+        parent: this, includeDuplicates: true, includeAugmentations: true);
   }
 
   @override
-  NameIterator get nameIterator {
-    return new LibraryLocalDeclarationNameIterator(this);
+  Iterator<T> localMembersIteratorOfType<T extends Builder>() {
+    return scope.filteredIterator<T>(
+        parent: this, includeDuplicates: true, includeAugmentations: true);
+  }
+
+  @override
+  NameIterator<Builder> get localMembersNameIterator {
+    return scope.filteredNameIterator(
+        parent: this, includeDuplicates: true, includeAugmentations: true);
   }
 
   @override
@@ -212,10 +238,10 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   @override
   FormattedMessage? addProblem(
       Message message, int charOffset, int length, Uri? fileUri,
-      {bool wasHandled: false,
+      {bool wasHandled = false,
       List<LocatedMessage>? context,
       Severity? severity,
-      bool problemOnLibrary: false}) {
+      bool problemOnLibrary = false}) {
     fileUri ??= this.fileUri;
 
     return loader.addProblem(message, charOffset, length, fileUri,
@@ -249,7 +275,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
 
   @override
   MemberBuilder getConstructor(String className,
-      {String? constructorName, bool bypassLibraryPrivacy: false}) {
+      {String? constructorName, bool bypassLibraryPrivacy = false}) {
     constructorName ??= "";
     if (constructorName.startsWith("_") && !bypassLibraryPrivacy) {
       return internalProblem(
@@ -303,7 +329,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   }
 
   @override
-  Builder? lookupLocalMember(String name, {bool required: false}) {
+  Builder? lookupLocalMember(String name, {bool required = false}) {
     Builder? builder = scope.lookupLocalMember(name, setter: false);
     if (required && builder == null) {
       internalProblem(
@@ -321,13 +347,8 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   }
 
   @override
-  void applyPatches() {
-    if (!isPatch) return;
-    unsupported("${runtimeType}.applyPatches", -1, fileUri);
-  }
-
-  @override
-  void recordAccess(int charOffset, int length, Uri fileUri) {}
+  void recordAccess(
+      LibraryBuilder accessor, int charOffset, int length, Uri fileUri) {}
 
   @override
   Nullability get nullable {
@@ -370,47 +391,6 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
 
   @override
   StringBuffer printOn(StringBuffer buffer) {
-    return buffer..write(name ?? (isPart ? fileUri : importUri));
-  }
-}
-
-class LibraryLocalDeclarationIterator implements Iterator<Builder> {
-  final LibraryBuilder library;
-  final Iterator<Builder> iterator;
-
-  LibraryLocalDeclarationIterator(this.library)
-      : iterator = library.scope.iterator;
-
-  @override
-  Builder get current => iterator.current;
-
-  @override
-  bool moveNext() {
-    while (iterator.moveNext()) {
-      if (current.parent == library) return true;
-    }
-    return false;
-  }
-}
-
-class LibraryLocalDeclarationNameIterator implements NameIterator {
-  final LibraryBuilder library;
-  final NameIterator iterator;
-
-  LibraryLocalDeclarationNameIterator(this.library)
-      : iterator = library.scope.nameIterator;
-
-  @override
-  Builder get current => iterator.current;
-
-  @override
-  String get name => iterator.name;
-
-  @override
-  bool moveNext() {
-    while (iterator.moveNext()) {
-      if (current.parent == library) return true;
-    }
-    return false;
+    return buffer..write(isPart || isPatch ? fileUri : importUri);
   }
 }

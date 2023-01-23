@@ -87,6 +87,39 @@ void f(String s) {
 ''');
   }
 
+  Future<void> test_extension_notImported_getter_this() async {
+    addSource('$testPackageLibPath/lib1.dart', '''
+class A {
+}
+''');
+    addSource('$testPackageLibPath/lib2.dart', '''
+import 'package:test/lib1.dart';
+
+extension E on A {
+  int get g => 0;
+}
+''');
+    await resolveTestCode('''
+import 'package:test/lib1.dart';
+
+class B extends A {
+  void f() {
+    g;
+  }
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib1.dart';
+import 'package:test/lib2.dart';
+
+class B extends A {
+  void f() {
+    g;
+  }
+}
+''');
+  }
+
   Future<void> test_extension_notImported_method() async {
     addSource('$testPackageLibPath/lib.dart', '''
 extension E on String {

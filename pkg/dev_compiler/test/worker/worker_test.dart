@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -14,18 +12,19 @@ import 'package:test/test.dart';
 
 Directory tmp = Directory.systemTemp.createTempSync('ddc_worker_test');
 File file(String path) => File.fromUri(tmp.uri.resolve(path));
+String _resolvePath(String executableRelativePath) {
+  return Uri.file(Platform.resolvedExecutable)
+      .resolve(executableRelativePath)
+      .toFilePath();
+}
 
 void main() {
   var baseArgs = <String>[];
   final executableArgs = <String>[
-    Platform.script
-        .resolve('../../bin/dartdevc.dart')
-        .toFilePath(windows: Platform.isWindows),
+    _resolvePath('gen/dartdevc.dart.snapshot'),
     '--sound-null-safety',
     '--dart-sdk-summary',
-    Uri.file(Platform.resolvedExecutable, windows: Platform.isWindows)
-        .resolve('ddc_outline_sound.dill')
-        .path
+    _resolvePath('ddc_outline_sound.dill'),
   ];
   group('DDC: Hello World', () {
     final argsFile = file('hello_world.args');
@@ -379,9 +378,9 @@ void main() {
 }
 
 Future<WorkResponse> _readResponse(MessageGrouper messageGrouper) async {
-  var buffer = await messageGrouper.next as List<int>;
+  var buffer = await messageGrouper.next as List<int>?;
   try {
-    return WorkResponse.fromBuffer(buffer);
+    return WorkResponse.fromBuffer(buffer!);
   } catch (_) {
     var bufferAsString =
         buffer == null ? '' : 'String: ${utf8.decode(buffer)}\n';

@@ -32,8 +32,11 @@ class WebServer {
   /// Future that is completed with the HTTP server once it is running.
   late Future<HttpServer> _server;
 
+  /// The number of log entries to show on a result page.
+  final int pageLength;
+
   /// Initialize a newly created server.
-  WebServer(this.log);
+  WebServer(this.log, {required this.pageLength});
 
   Map<String, String> getParameterMap(HttpRequest request) {
     Map<String, String> parameterMap = HashMap<String, String>();
@@ -161,7 +164,7 @@ class WebServer {
     } else {
       page.pageStart = 0;
     }
-    page.pageLength = 25;
+    page.pageLength = pageLength;
     page.writePage(buffer);
   }
 

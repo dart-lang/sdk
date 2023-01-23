@@ -164,7 +164,7 @@ void f(New o) {}
 ''', errorFilter: ignoreUnusedImport);
   }
 
-  Future<void> test_replaceBy() async {
+  Future<void> test_replacedBy() async {
     addSdkDataFile('''
 version: 1
 transforms:

@@ -4,8 +4,9 @@
 
 library _fe_analyzer_shared.parser.listener;
 
-import '../messages/codes.dart'
-    show Message, MessageCode, templateExperimentNotEnabled;
+import '../experiments/errors.dart';
+import '../experiments/flags.dart';
+import '../messages/codes.dart' show Message, MessageCode;
 
 import '../scanner/token.dart' show Token;
 
@@ -52,6 +53,12 @@ class Listener implements UnescapeErrorListener {
     logEvent("Arguments");
   }
 
+  /// Called after the parser has consumed a sequence of patternFields that
+  /// forms the arguments to an objectPattern
+  void handleObjectPatternFields(int count, Token beginToken, Token endToken) {
+    logEvent("ObjectPatternFields");
+  }
+
   /// Handle async modifiers `async`, `async*`, `sync`.
   void handleAsyncModifier(Token? asyncToken, Token? starToken) {
     logEvent("AsyncModifier");
@@ -93,7 +100,7 @@ class Listener implements UnescapeErrorListener {
 
   void beginCaseExpression(Token caseKeyword) {}
 
-  void endCaseExpression(Token colon) {
+  void endCaseExpression(Token caseKeyword, Token? when, Token colon) {
     logEvent("CaseExpression");
   }
 
@@ -126,8 +133,14 @@ class Listener implements UnescapeErrorListener {
   /// (or extraneous modifiers in the case of recovery) preceding [name].
   ///
   /// At this point we have parsed the name and type parameter declarations.
-  void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {}
+  void beginClassDeclaration(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {}
 
   /// Handle an extends clause in a class declaration. Substructures:
   /// - supertype (may be a mixin application)
@@ -186,8 +199,8 @@ class Listener implements UnescapeErrorListener {
   }
 
   /// Handle the beginning of a mixin declaration.
-  void beginMixinDeclaration(
-      Token? augmentToken, Token mixinKeyword, Token name) {}
+  void beginMixinDeclaration(Token? augmentToken, Token? sealedToken,
+      Token mixinKeyword, Token name) {}
 
   /// Handle an on clause in a mixin declaration. Substructures:
   /// - implemented types
@@ -752,8 +765,14 @@ class Listener implements UnescapeErrorListener {
   /// (or extraneous modifiers in the case of recovery) preceding [name].
   ///
   /// At this point we have parsed the name and type parameter declarations.
-  void beginNamedMixinApplication(Token begin, Token? abstractToken,
-      Token? macroToken, Token? augmentToken, Token name) {}
+  void beginNamedMixinApplication(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {}
 
   /// Handle a named mixin application with clause (e.g. "A with B, C").
   /// Substructures:
@@ -968,12 +987,18 @@ class Listener implements UnescapeErrorListener {
   /// Handle the end of a library directive.  Substructures:
   /// - Metadata
   /// - Library name (a qualified identifier)
-  void endLibraryName(Token libraryKeyword, Token semicolon) {
+  void endLibraryName(Token libraryKeyword, Token semicolon, bool hasName) {
     logEvent("LibraryName");
   }
 
   void handleLiteralMapEntry(Token colon, Token endToken) {
     logEvent("LiteralMapEntry");
+  }
+
+  /// Called after the parser has consumed a mapPatternEntry, consisting of an
+  /// expression, a colon, and a pattern.
+  void handleMapPatternEntry(Token colon, Token endToken) {
+    logEvent("MapPatternEntry");
   }
 
   void beginLiteralString(Token token) {}
@@ -1229,10 +1254,23 @@ class Listener implements UnescapeErrorListener {
     logEvent("SwitchStatement");
   }
 
+  void beginSwitchExpression(Token token) {}
+
+  void endSwitchExpression(Token switchKeyword, Token endToken) {
+    logEvent("SwitchExpression");
+  }
+
   void beginSwitchBlock(Token token) {}
 
   void endSwitchBlock(int caseCount, Token beginToken, Token endToken) {
     logEvent("SwitchBlock");
+  }
+
+  void beginSwitchExpressionBlock(Token token) {}
+
+  void endSwitchExpressionBlock(
+      int caseCount, Token beginToken, Token endToken) {
+    logEvent("SwitchExpressionBlock");
   }
 
   void beginLiteralSymbol(Token token) {}
@@ -1338,10 +1376,6 @@ class Listener implements UnescapeErrorListener {
 
   void beginTryStatement(Token token) {}
 
-  void handleCaseMatch(Token caseKeyword, Token colon) {
-    logEvent("CaseMatch");
-  }
-
   void beginCatchClause(Token token) {}
 
   void endCatchClause(Token token) {
@@ -1371,8 +1405,65 @@ class Listener implements UnescapeErrorListener {
     logEvent("NonNullAssertExpression");
   }
 
+  /// Called after the parser has consumed a null-assert pattern, consisting of
+  /// a pattern followed by a `!` operator.
+  void handleNullAssertPattern(Token bang) {
+    logEvent("NullAssertPattern");
+  }
+
+  /// Called after the parser has consumed a null-check pattern, consisting of a
+  /// pattern followed by a `?` operator.
+  void handleNullCheckPattern(Token question) {
+    logEvent('NullCheckPattern');
+  }
+
+  /// Called after the parser has consumed a variable pattern, consisting of an
+  /// optional `var` or `final` keyword, an optional type annotation, and a
+  /// variable name identifier.
+  void handleVariablePattern(Token? keyword, Token variable) {
+    logEvent('VariablePattern');
+  }
+
   void handleNoName(Token token) {
     logEvent("NoName");
+  }
+
+  void beginRecordType(Token leftBracket) {}
+
+  /// Handle the end of a record type declaration.
+  ///
+  /// Substructures:
+  /// - RecordTypeEntry*
+  /// - RecordTypeNamedFields?
+  ///
+  /// Notice that [count] is:
+  /// - the number of RecordTypeEntries if [hasNamedFields] is `false`, or
+  /// - the number of RecordTypeEntries + 1 if [hasNamedFields] is `true`.
+  void endRecordType(
+      Token leftBracket, Token? questionMark, int count, bool hasNamedFields) {
+    logEvent("RecordType");
+  }
+
+  void beginRecordTypeEntry() {}
+
+  /// Handle the end of the record type entries.
+  ///
+  /// Substructures:
+  /// - metadata
+  /// - type
+  /// - identifier
+  void endRecordTypeEntry() {
+    logEvent("RecordTypeEntry");
+  }
+
+  void beginRecordTypeNamedFields(Token leftBracket) {}
+
+  /// Handle the end of the record type named fields.
+  ///
+  /// Substructures:
+  /// - RecordTypeEntry*
+  void endRecordTypeNamedFields(int count, Token leftBracket) {
+    logEvent("RecordTypeNamedFields");
   }
 
   void beginFunctionType(Token beginToken) {}
@@ -1435,10 +1526,7 @@ class Listener implements UnescapeErrorListener {
 
   void reportVarianceModifierNotEnabled(Token? variance) {
     if (variance != null) {
-      handleRecoverableError(
-          templateExperimentNotEnabled.withArguments('variance', '2.9'),
-          variance,
-          variance);
+      handleExperimentNotEnabled(ExperimentalFlag.variance, variance, variance);
     }
   }
 
@@ -1480,6 +1568,12 @@ class Listener implements UnescapeErrorListener {
     logEvent("AsOperator");
   }
 
+  /// Called after the parser has consumed a cast pattern, consisting of a
+  /// pattern, `as` operator, and type annotation.
+  void handleCastPattern(Token operator) {
+    logEvent('CastPattern');
+  }
+
   void handleAssignmentExpression(Token token) {
     logEvent("AssignmentExpression");
   }
@@ -1492,6 +1586,15 @@ class Listener implements UnescapeErrorListener {
 
   void endBinaryExpression(Token token) {
     logEvent("BinaryExpression");
+  }
+
+  /// Called when the parser has consumed the operator of a binary pattern.
+  void beginBinaryPattern(Token token) {}
+
+  /// Called when the parser has consumed a binary pattern, consisting of a LHS
+  /// pattern, `&` or `|` operator, and a RHS pattern.
+  void endBinaryPattern(Token token) {
+    logEvent("BinaryPattern");
   }
 
   /// Called for `.`, `?.` and `..`.
@@ -1583,6 +1686,13 @@ class Listener implements UnescapeErrorListener {
     logEvent("SpreadExpression");
   }
 
+  /// Called after parsing an element of a list or map pattern that starts with
+  /// `...`.  Substructures:
+  /// - pattern (if hasSubPattern is `true`)
+  void handleRestPattern(Token dots, {required bool hasSubPattern}) {
+    logEvent('RestPattern');
+  }
+
   /// Handle the start of a function typed formal parameter.  Substructures:
   /// - type variables
   void beginFunctionTypedFormalParameter(Token token) {}
@@ -1668,6 +1778,12 @@ class Listener implements UnescapeErrorListener {
     logEvent("LiteralList");
   }
 
+  /// Called after the parser has consumed a list pattern, consisting of a `[`,
+  /// a comma-separated sequence of patterns, and a `]`.
+  void handleListPattern(int count, Token leftBracket, Token rightBracket) {
+    logEvent("ListPattern");
+  }
+
   void handleLiteralSetOrMap(
     int count,
     Token leftBrace,
@@ -1680,6 +1796,12 @@ class Listener implements UnescapeErrorListener {
     logEvent('LiteralSetOrMap');
   }
 
+  /// Called after the parser has consumed a map pattern, consisting of a `{`,
+  /// a comma-separated sequence of mapPatternEntry, and a `}`.
+  void handleMapPattern(int count, Token leftBrace, Token rightBrace) {
+    logEvent('MapPattern');
+  }
+
   void handleLiteralNull(Token token) {
     logEvent("LiteralNull");
   }
@@ -1690,6 +1812,16 @@ class Listener implements UnescapeErrorListener {
 
   void handleNamedArgument(Token colon) {
     logEvent("NamedArgument");
+  }
+
+  /// Called after the parser has consumed a patternField, consisting of an
+  /// optional identifier, optional `:`, and a pattern.
+  void handlePatternField(Token? colon) {
+    logEvent("PatternField");
+  }
+
+  void handleNamedRecordField(Token colon) {
+    logEvent("NamedRecordField");
   }
 
   void beginNewExpression(Token token) {}
@@ -1742,15 +1874,58 @@ class Listener implements UnescapeErrorListener {
   /// - do while loop
   /// - switch statement
   /// - while loop
-  void handleParenthesizedCondition(Token token) {
+  void handleParenthesizedCondition(Token token, Token? case_, Token? when) {
     logEvent("ParenthesizedCondition");
   }
 
-  /// Handle a parenthesized expression.
+  /// Starts a parenthesized expression or a record literal. Will be ended with
+  /// either [endParenthesizedExpression] or [endRecordLiteral].
+  void beginParenthesizedExpressionOrRecordLiteral(Token token) {}
+
+  /// Ends a record literal with [count] entries.
+  void endRecordLiteral(Token token, int count, Token? constKeyword) {
+    logEvent("RecordLiteral");
+  }
+
+  /// Called after the parser has consumed a record pattern, consisting of a
+  /// `(`, a comma-separated sequence of patternFields, and a `)`.
+  void handleRecordPattern(Token token, int count) {
+    logEvent("RecordPattern");
+  }
+
+  /// End a parenthesized expression.
   /// These may be within the condition expression of a control structure
   /// but will not be the condition of a control structure.
-  void handleParenthesizedExpression(Token token) {
+  void endParenthesizedExpression(Token token) {
     logEvent("ParenthesizedExpression");
+  }
+
+  /// Called after the parser has consumed a parenthesized pattern, consisting
+  /// of a `(`, a pattern, and a `)`.
+  void handleParenthesizedPattern(Token token) {
+    logEvent("ParenthesizedPattern");
+  }
+
+  /// Called after the parser has consumed a constant pattern, consisting of an
+  /// optional `const` and an expression.
+  ///
+  /// Note that some expressions can legally begin with `const`, so there is
+  /// ambiguity as to whether to associate the `const` keyword with the constant
+  /// pattern or the constant expression.  This ambiguity is resolved in favor
+  /// of associating the `const` keyword with the constant pattern.  So for
+  /// example, in `case const []` the `const` keyword is passed to
+  /// [handleConstantPattern] rather than [handleLiteralList].
+  void handleConstantPattern(Token? constKeyword) {
+    logEvent("ConstantPattern");
+  }
+
+  /// Called after the parser has consumed an object pattern, consisting of
+  /// an identifier, optional dot and second identifier, optional type
+  /// arguments, and a parenthesized list of object pattern fields (see
+  /// [handleObjectPatternFields]).
+  void handleObjectPattern(
+      Token firstIdentifier, Token? dot, Token? secondIdentifier) {
+    logEvent("ObjectPattern");
   }
 
   /// Handle a construct of the form "identifier.identifier" occurring in a part
@@ -1788,6 +1963,12 @@ class Listener implements UnescapeErrorListener {
     logEvent("SwitchCase");
   }
 
+  void beginSwitchExpressionCase() {}
+
+  void endSwitchExpressionCase(Token? when, Token arrow, Token endToken) {
+    logEvent("SwitchExpressionCase");
+  }
+
   void handleThisExpression(Token token, IdentifierContext context) {
     logEvent("ThisExpression");
   }
@@ -1798,6 +1979,12 @@ class Listener implements UnescapeErrorListener {
 
   void handleUnaryPrefixExpression(Token token) {
     logEvent("UnaryPrefixExpression");
+  }
+
+  /// Called after the parser has consumed a relational pattern, consisting of
+  /// an equality operator or relational operator, followed by an expression.
+  void handleRelationalPattern(Token token) {
+    logEvent("RelationalPattern");
   }
 
   void handleUnaryPrefixAssignmentExpression(Token token) {
@@ -1850,6 +2037,17 @@ class Listener implements UnescapeErrorListener {
   /// highlighted. The [startToken] and [endToken] can be the same token.
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {}
+
+  /// The parser noticed a use of the experimental feature by the flag
+  /// [experimentalFlag] that was not enabled, but was able to recover from it.
+  /// The error should be reported and the code between the beginning of the
+  /// [startToken] and the end of the [endToken] should be highlighted. The
+  /// [startToken] and [endToken] can be the same token.
+  void handleExperimentNotEnabled(
+      ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
+    handleRecoverableError(
+        getExperimentNotEnabledMessage(experimentalFlag), startToken, endToken);
+  }
 
   /// The parser encountered an [ErrorToken] representing an error
   /// from the scanner but recovered from it. By default, the error is reported
@@ -1930,4 +2128,24 @@ class Listener implements UnescapeErrorListener {
   /// identifier name.  It is the client's responsibility to report an
   /// appropriate error if the "constructor tearoffs" feature is not enabled.
   void handleNewAsIdentifier(Token token) {}
+
+  /// Called after the parser has processed a variable declaration statement,
+  /// consisting of `METADATA KEYWORD PATTERN EQUALS EXPRESSION SEMICOLON`.
+  ///
+  /// KEYWORD is either `var` or `final`, and PATTERN may only be one of the
+  /// patterns accepted by the `outerPattern` grammar rule defined in the
+  /// patterns spec.
+  void handlePatternVariableDeclarationStatement(
+      Token keyword, Token equals, Token semicolon) {
+    logEvent('PatternVariableDeclarationStatement');
+  }
+
+  /// Called after the parser has processed a pattern assignment consisting of
+  /// `PATTERN EQUALS EXPRESSION`.
+  ///
+  /// PATTERN may only be one of the patterns accepted by the `outerPattern`
+  /// grammar rule defined in the patterns spec.
+  void handlePatternAssignment(Token equals) {
+    logEvent("PatternAssignment");
+  }
 }

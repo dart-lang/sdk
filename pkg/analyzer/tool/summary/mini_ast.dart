@@ -328,9 +328,11 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endLibraryName(Token libraryKeyword, Token semicolon) {
+  void endLibraryName(Token libraryKeyword, Token semicolon, bool hasName) {
     debugEvent("LibraryName");
-    pop(); // Library name
+    if (hasName) {
+      pop(); // Library name
+    }
     pop(); // Metadata
     pop(); // Comment
   }
@@ -536,6 +538,10 @@ class MiniAstBuilder extends StackListener {
   void handleNamedMixinApplicationWithClause(Token withKeyword) {
     debugEvent("NamedMixinApplicationWithClause");
   }
+
+  @override
+  // TODO: Handle directly.
+  void handleNamedRecordField(Token colon) => handleNamedArgument(colon);
 
   @override
   void handleNativeClause(Token nativeToken, bool hasName) {

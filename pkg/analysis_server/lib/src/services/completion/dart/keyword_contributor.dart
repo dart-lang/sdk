@@ -407,15 +407,13 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       bool hasCovariant() {
         var last = lastParameter();
         return last != null &&
-            (last.covariantKeyword != null ||
-                last.identifier?.name == 'covariant');
+            (last.covariantKeyword != null || last.name?.lexeme == 'covariant');
       }
 
       bool hasRequired() {
         var last = lastParameter();
         return last != null &&
-            (last.requiredKeyword != null ||
-                last.identifier?.name == 'required');
+            (last.requiredKeyword != null || last.name?.lexeme == 'required');
       }
 
       var tokenType = entity.type;

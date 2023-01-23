@@ -13,18 +13,19 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class CreateConstructorSuper extends MultiCorrectionProducer {
   @override
-  Stream<CorrectionProducer> get producers async* {
+  Future<List<CorrectionProducer>> get producers async {
     var targetClassNode = node.thisOrAncestorOfType<ClassDeclaration>();
     if (targetClassNode == null) {
-      return;
+      return const [];
     }
 
     var targetClassElement = targetClassNode.declaredElement!;
     var superType = targetClassElement.supertype;
     if (superType == null) {
-      return;
+      return const [];
     }
 
+    var producers = <CorrectionProducer>[];
     // add proposals for all super constructors
     for (var constructor in superType.constructors) {
       // Only propose public constructors.
@@ -32,15 +33,16 @@ class CreateConstructorSuper extends MultiCorrectionProducer {
         var targetLocation = utils.prepareNewConstructorLocation(
             resolvedResult.session, targetClassNode);
         if (targetLocation != null) {
-          yield _CreateConstructor(
-              constructor, targetLocation, targetClassElement.name);
+          producers.add(_CreateConstructor(
+              constructor, targetLocation, targetClassElement.name));
         }
       }
     }
+    return producers;
   }
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [CreateConstructorSuper] producer.
 class _CreateConstructor extends CorrectionProducer {
   /// The constructor to be invoked.

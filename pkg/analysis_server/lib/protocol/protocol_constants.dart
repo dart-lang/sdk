@@ -8,7 +8,7 @@
 
 // ignore_for_file: constant_identifier_names
 
-const String PROTOCOL_VERSION = '1.33.1';
+const String PROTOCOL_VERSION = '1.33.4';
 
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES_DIRECTORIES = 'directories';
@@ -192,6 +192,7 @@ const String DIAGNOSTIC_REQUEST_GET_SERVER_PORT = 'diagnostic.getServerPort';
 const String DIAGNOSTIC_RESPONSE_GET_DIAGNOSTICS_CONTEXTS = 'contexts';
 const String DIAGNOSTIC_RESPONSE_GET_SERVER_PORT_PORT = 'port';
 const String EDIT_REQUEST_BULK_FIXES = 'edit.bulkFixes';
+const String EDIT_REQUEST_BULK_FIXES_CODES = 'codes';
 const String EDIT_REQUEST_BULK_FIXES_INCLUDED = 'included';
 const String EDIT_REQUEST_BULK_FIXES_IN_TEST_MODE = 'inTestMode';
 const String EDIT_REQUEST_FORMAT = 'edit.format';
@@ -245,6 +246,7 @@ const String EDIT_REQUEST_SORT_MEMBERS = 'edit.sortMembers';
 const String EDIT_REQUEST_SORT_MEMBERS_FILE = 'file';
 const String EDIT_RESPONSE_BULK_FIXES_DETAILS = 'details';
 const String EDIT_RESPONSE_BULK_FIXES_EDITS = 'edits';
+const String EDIT_RESPONSE_BULK_FIXES_MESSAGE = 'message';
 const String EDIT_RESPONSE_FORMAT_EDITS = 'edits';
 const String EDIT_RESPONSE_FORMAT_IF_ENABLED_EDITS = 'edits';
 const String EDIT_RESPONSE_FORMAT_SELECTION_LENGTH = 'selectionLength';
@@ -311,10 +313,6 @@ const String FLUTTER_REQUEST_SET_WIDGET_PROPERTY_VALUE_ID = 'id';
 const String FLUTTER_REQUEST_SET_WIDGET_PROPERTY_VALUE_VALUE = 'value';
 const String FLUTTER_RESPONSE_GET_WIDGET_DESCRIPTION_PROPERTIES = 'properties';
 const String FLUTTER_RESPONSE_SET_WIDGET_PROPERTY_VALUE_CHANGE = 'change';
-const String KYTHE_REQUEST_GET_KYTHE_ENTRIES = 'kythe.getKytheEntries';
-const String KYTHE_REQUEST_GET_KYTHE_ENTRIES_FILE = 'file';
-const String KYTHE_RESPONSE_GET_KYTHE_ENTRIES_ENTRIES = 'entries';
-const String KYTHE_RESPONSE_GET_KYTHE_ENTRIES_FILES = 'files';
 const String SEARCH_NOTIFICATION_RESULTS = 'search.results';
 const String SEARCH_NOTIFICATION_RESULTS_ID = 'id';
 const String SEARCH_NOTIFICATION_RESULTS_IS_LAST = 'isLast';

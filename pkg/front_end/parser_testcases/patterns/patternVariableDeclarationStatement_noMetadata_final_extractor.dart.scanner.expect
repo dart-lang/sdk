@@ -1,0 +1,9 @@
+f(x) {
+final C(f: a) = x;
+}
+
+
+f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+final[KeywordToken] C[StringToken]([BeginToken]f[StringToken]:[SimpleToken] a[StringToken])[SimpleToken] =[SimpleToken] x[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

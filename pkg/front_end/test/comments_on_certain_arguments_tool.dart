@@ -212,6 +212,12 @@ class InvocationVisitor extends RecursiveVisitor {
     note(node.targetReference.node!, node.arguments, node);
   }
 
+  @override
+  void visitInstanceInvocation(InstanceInvocation node) {
+    super.visitInstanceInvocation(node);
+    note(node.interfaceTargetReference.node!, node.arguments, node);
+  }
+
   void note(
       NamedNode node, Arguments arguments, InvocationExpression invocation) {
     List<VariableDeclaration> positionalParameters;
@@ -246,35 +252,62 @@ class InvocationVisitor extends RecursiveVisitor {
             argument.receiver is BoolLiteral) {
           wantComment = true;
         }
+      } else if (argument is Not) {
+        if (argument.operand is EqualsNull) {
+          wantComment = true;
+        }
+      } else if (argument is EqualsNull) {
+        wantComment = true;
       }
       if (wantComment) {
-        check(arguments.positional[i], i, positionalParameters[i], node,
+        check(arguments.positional[i], positionalParameters[i], node,
             "/* ${positionalParameters[i].name} = */");
       }
     }
   }
 }
 
+class LocationFinder extends RecursiveVisitor {
+  int lowestOffsetFound = -1;
+
+  @override
+  void defaultNode(Node node) {
+    // Stop here. We only want to recurse expressions.
+  }
+
+  @override
+  void defaultExpression(Expression node) {
+    if (lowestOffsetFound == -1 ||
+        (node.fileOffset >= 0 && node.fileOffset < lowestOffsetFound)) {
+      lowestOffsetFound = node.fileOffset;
+    }
+    node.visitChildren(this);
+  }
+}
+
 Map<Uri, Token> cache = {};
 
-void check(
-    Expression argumentExpression,
-    int parameterNumber,
-    VariableDeclaration parameter,
-    NamedNode targetNode,
-    String expectedComment) {
+void check(Expression argumentExpression, VariableDeclaration parameter,
+    NamedNode targetNode, String expectedComment) {
   if (targetNode is Procedure && targetNode.kind == ProcedureKind.Operator) {
     // Operator calls doesn't look like 'regular' method calls.
     return;
   }
-  if (argumentExpression.fileOffset == -1) return;
+  int fileOffset = argumentExpression.fileOffset;
+  if (fileOffset == -1) return;
+
+  LocationFinder locationFinder = new LocationFinder();
+  argumentExpression.accept(locationFinder);
+  if (locationFinder.lowestOffsetFound != fileOffset) {
+    fileOffset = locationFinder.lowestOffsetFound;
+  }
   Location location = argumentExpression.location!;
   Token token = cache[location.file]!;
-  while (token.offset != argumentExpression.fileOffset) {
+  while (token.offset != fileOffset) {
     token = token.next!;
     if (token.isEof) {
       throw "Couldn't find token for $argumentExpression "
-          "(${argumentExpression.fileOffset}).";
+          "(${fileOffset}).";
     }
   }
   bool foundComment = false;
@@ -287,7 +320,8 @@ void check(
       break;
     }
     if (commentToken.lexeme.startsWith("/*") &&
-        commentToken.lexeme.endsWith("= */")) {
+        (commentToken.lexeme.endsWith("= */") ||
+            commentToken.lexeme.endsWith("=*/"))) {
       badComments.add(commentToken);
     }
     commentToken = commentToken.next as CommentToken?;
@@ -381,7 +415,7 @@ class TestSourceLoader extends SourceLoader {
 
   @override
   Future<Token> tokenize(SourceLibraryBuilder library,
-      {bool suppressLexicalErrors: false}) async {
+      {bool suppressLexicalErrors = false}) async {
     Token result = await super
         .tokenize(library, suppressLexicalErrors: suppressLexicalErrors);
     cache[library.fileUri] = result;

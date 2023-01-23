@@ -19,7 +19,7 @@ class UnionFind<T> {
   final bool _useIdentity;
   final Map<T, UnionFindNode<T>> _nodeMap;
 
-  UnionFind({bool useIdentity: false})
+  UnionFind({bool useIdentity = false})
       : _nodeMap = useIdentity ? new LinkedHashMap.identity() : {},
         _useIdentity = useIdentity;
 

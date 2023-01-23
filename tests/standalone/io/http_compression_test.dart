@@ -11,7 +11,7 @@ import 'package:expect/expect.dart';
 import 'dart:io';
 import 'dart:typed_data';
 
-Future<void> testServerCompress({bool clientAutoUncompress: true}) async {
+Future<void> testServerCompress({bool clientAutoUncompress = true}) async {
   Future<void> test(List<int> data) async {
     final server = await HttpServer.bind("127.0.0.1", 0);
     server.autoCompress = true;

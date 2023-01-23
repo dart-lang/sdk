@@ -835,6 +835,7 @@ final Matcher isHighlightRegion = LazyMatcher(() => MatchesJsonObject(
 ///   LITERAL_INTEGER
 ///   LITERAL_LIST
 ///   LITERAL_MAP
+///   LITERAL_RECORD
 ///   LITERAL_STRING
 ///   LOCAL_FUNCTION_DECLARATION
 ///   LOCAL_FUNCTION_REFERENCE
@@ -917,6 +918,7 @@ final Matcher isHighlightRegionType = MatchesEnum('HighlightRegionType', [
   'LITERAL_INTEGER',
   'LITERAL_LIST',
   'LITERAL_MAP',
+  'LITERAL_RECORD',
   'LITERAL_STRING',
   'LOCAL_FUNCTION_DECLARATION',
   'LOCAL_FUNCTION_REFERENCE',
@@ -1052,41 +1054,6 @@ final Matcher isIncludedSuggestionRelevanceTag = LazyMatcher(() =>
 final Matcher isIncludedSuggestionSet = LazyMatcher(() => MatchesJsonObject(
     'IncludedSuggestionSet', {'id': isInt, 'relevance': isInt},
     optionalFields: {'displayUri': isString}));
-
-/// KytheEntry
-///
-/// {
-///   "source": KytheVName
-///   "kind": optional String
-///   "target": optional KytheVName
-///   "fact": String
-///   "value": optional List<int>
-/// }
-final Matcher isKytheEntry = LazyMatcher(() => MatchesJsonObject('KytheEntry', {
-      'source': isKytheVName,
-      'fact': isString
-    }, optionalFields: {
-      'kind': isString,
-      'target': isKytheVName,
-      'value': isListOf(isInt)
-    }));
-
-/// KytheVName
-///
-/// {
-///   "signature": String
-///   "corpus": String
-///   "root": String
-///   "path": String
-///   "language": String
-/// }
-final Matcher isKytheVName = LazyMatcher(() => MatchesJsonObject('KytheVName', {
-      'signature': isString,
-      'corpus': isString,
-      'root': isString,
-      'path': isString,
-      'language': isString
-    }));
 
 /// LibraryPathSet
 ///
@@ -1428,7 +1395,6 @@ final Matcher isRequestError = LazyMatcher(() => MatchesJsonObject(
 ///   GET_ERRORS_INVALID_FILE
 ///   GET_FIXES_INVALID_FILE
 ///   GET_IMPORTED_ELEMENTS_INVALID_FILE
-///   GET_KYTHE_ENTRIES_INVALID_FILE
 ///   GET_NAVIGATION_INVALID_FILE
 ///   GET_REACHABLE_SOURCES_INVALID_FILE
 ///   GET_SIGNATURE_INVALID_FILE
@@ -1464,7 +1430,6 @@ final Matcher isRequestErrorCode = MatchesEnum('RequestErrorCode', [
   'GET_ERRORS_INVALID_FILE',
   'GET_FIXES_INVALID_FILE',
   'GET_IMPORTED_ELEMENTS_INVALID_FILE',
-  'GET_KYTHE_ENTRIES_INVALID_FILE',
   'GET_NAVIGATION_INVALID_FILE',
   'GET_REACHABLE_SOURCES_INVALID_FILE',
   'GET_SIGNATURE_INVALID_FILE',
@@ -2305,20 +2270,25 @@ final Matcher isDiagnosticGetServerPortResult = LazyMatcher(() =>
 /// {
 ///   "included": List<FilePath>
 ///   "inTestMode": optional bool
+///   "codes": optional List<String>
 /// }
 final Matcher isEditBulkFixesParams = LazyMatcher(() => MatchesJsonObject(
     'edit.bulkFixes params', {'included': isListOf(isFilePath)},
-    optionalFields: {'inTestMode': isBool}));
+    optionalFields: {'inTestMode': isBool, 'codes': isListOf(isString)}));
 
 /// edit.bulkFixes result
 ///
 /// {
+///   "message": String
 ///   "edits": List<SourceFileEdit>
 ///   "details": List<BulkFix>
 /// }
-final Matcher isEditBulkFixesResult = LazyMatcher(() => MatchesJsonObject(
-    'edit.bulkFixes result',
-    {'edits': isListOf(isSourceFileEdit), 'details': isListOf(isBulkFix)}));
+final Matcher isEditBulkFixesResult =
+    LazyMatcher(() => MatchesJsonObject('edit.bulkFixes result', {
+          'message': isString,
+          'edits': isListOf(isSourceFileEdit),
+          'details': isListOf(isBulkFix)
+        }));
 
 /// edit.formatIfEnabled params
 ///
@@ -2876,24 +2846,6 @@ final Matcher isInlineMethodFeedback = LazyMatcher(() => MatchesJsonObject(
 /// }
 final Matcher isInlineMethodOptions = LazyMatcher(() => MatchesJsonObject(
     'inlineMethod options', {'deleteSource': isBool, 'inlineAll': isBool}));
-
-/// kythe.getKytheEntries params
-///
-/// {
-///   "file": FilePath
-/// }
-final Matcher isKytheGetKytheEntriesParams = LazyMatcher(() =>
-    MatchesJsonObject('kythe.getKytheEntries params', {'file': isFilePath}));
-
-/// kythe.getKytheEntries result
-///
-/// {
-///   "entries": List<KytheEntry>
-///   "files": List<FilePath>
-/// }
-final Matcher isKytheGetKytheEntriesResult = LazyMatcher(() =>
-    MatchesJsonObject('kythe.getKytheEntries result',
-        {'entries': isListOf(isKytheEntry), 'files': isListOf(isFilePath)}));
 
 /// moveFile feedback
 final Matcher isMoveFileFeedback = isNull;

@@ -4,7 +4,7 @@
 
 class A {
   final List<A> children;
-  const A({this.children: const []});
+  const A({this.children = const []});
 }
 
 const a = const A();

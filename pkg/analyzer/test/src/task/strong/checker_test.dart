@@ -1849,11 +1849,11 @@ void df1([dynamic x = DYNAMIC_VALUE]) {}
 void df2([x = 42]) {}
 
 // default formal (named)
-void nf0({x: DYNAMIC_VALUE}) {}
-void nf1({dynamic x: DYNAMIC_VALUE}) {}
+void nf0({x = DYNAMIC_VALUE}) {}
+void nf1({dynamic x = DYNAMIC_VALUE}) {}
 
 // https://github.com/dart-lang/sdk/issues/25794
-void nf2({x: 42}) {}
+void nf2({x = 42}) {}
 
 // field formal
 class C {
@@ -1869,9 +1869,9 @@ void ftf1(void x(int y)) {}
       error(LanguageCode.IMPLICIT_DYNAMIC_PARAMETER, 117, 1),
       error(LanguageCode.IMPLICIT_DYNAMIC_PARAMETER, 241, 1),
       error(LanguageCode.IMPLICIT_DYNAMIC_PARAMETER, 290, 1),
-      error(LanguageCode.IMPLICIT_DYNAMIC_PARAMETER, 412, 1),
-      error(LanguageCode.IMPLICIT_DYNAMIC_FIELD, 456, 1),
-      error(LanguageCode.IMPLICIT_DYNAMIC_PARAMETER, 517, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_PARAMETER, 414, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_FIELD, 459, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_PARAMETER, 520, 1),
     ]);
   }
 
@@ -1917,7 +1917,7 @@ var fe1 = (int x) => x;
           messageContains: ["'g0'"]),
       error(HintCode.UNUSED_ELEMENT, 96, 2),
       error(HintCode.UNUSED_ELEMENT, 126, 2),
-      error(LanguageCode.IMPLICIT_DYNAMIC_RETURN, 212, 12,
+      error(LanguageCode.IMPLICIT_DYNAMIC_RETURN, 212, 2,
           messageContains: ["'m0'"]),
       error(LanguageCode.IMPLICIT_DYNAMIC_RETURN, 304, 2,
           messageContains: ["'y0'"]),

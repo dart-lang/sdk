@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -16,7 +17,9 @@ abstract class AnalysisResultImpl implements AnalysisResult {
   @override
   final AnalysisSession session;
 
-  AnalysisResultImpl(this.session);
+  AnalysisResultImpl({
+    required this.session,
+  });
 }
 
 class ElementDeclarationResultImpl implements ElementDeclarationResult {
@@ -40,8 +43,16 @@ class ErrorsResultImpl extends FileResultImpl implements ErrorsResult {
   @override
   final List<AnalysisError> errors;
 
-  ErrorsResultImpl(super.session, super.path, super.uri, super.lineInfo,
-      super.isPart, this.errors);
+  ErrorsResultImpl({
+    required super.session,
+    required super.path,
+    required super.uri,
+    required super.lineInfo,
+    required super.isAugmentation,
+    required super.isLibrary,
+    required super.isPart,
+    required this.errors,
+  });
 }
 
 class FileResultImpl extends AnalysisResultImpl implements FileResult {
@@ -55,10 +66,23 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
   final LineInfo lineInfo;
 
   @override
+  final bool isAugmentation;
+
+  @override
+  final bool isLibrary;
+
+  @override
   final bool isPart;
 
-  FileResultImpl(
-      super.session, this.path, this.uri, this.lineInfo, this.isPart);
+  FileResultImpl({
+    required super.session,
+    required this.path,
+    required this.uri,
+    required this.lineInfo,
+    required this.isAugmentation,
+    required this.isLibrary,
+    required this.isPart,
+  });
 }
 
 class LibraryElementResultImpl implements LibraryElementResult {
@@ -73,7 +97,10 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
   @override
   final List<ParsedUnitResult> units;
 
-  ParsedLibraryResultImpl(super.session, this.units);
+  ParsedLibraryResultImpl({
+    required super.session,
+    required this.units,
+  });
 
   @override
   ElementDeclarationResult? getElementDeclaration(Element element) {
@@ -116,9 +143,18 @@ class ParsedUnitResultImpl extends FileResultImpl implements ParsedUnitResult {
   @override
   final List<AnalysisError> errors;
 
-  ParsedUnitResultImpl(AnalysisSession session, String path, Uri uri,
-      this.content, LineInfo lineInfo, bool isPart, this.unit, this.errors)
-      : super(session, path, uri, lineInfo, isPart);
+  ParsedUnitResultImpl({
+    required super.session,
+    required super.path,
+    required super.uri,
+    required this.content,
+    required super.lineInfo,
+    required super.isAugmentation,
+    required super.isLibrary,
+    required super.isPart,
+    required this.unit,
+    required this.errors,
+  });
 }
 
 class ParseStringResultImpl implements ParseStringResult {
@@ -178,7 +214,7 @@ class ResolvedForCompletionResultImpl {
     required this.resolvedNodes,
   });
 
-  LibraryElement get libraryElement => unitElement.enclosingElement;
+  LibraryElement get libraryElement => unitElement.library;
 }
 
 class ResolvedLibraryResultImpl extends AnalysisResultImpl
@@ -189,7 +225,11 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
   @override
   final List<ResolvedUnitResult> units;
 
-  ResolvedLibraryResultImpl(super.session, this.element, this.units);
+  ResolvedLibraryResultImpl({
+    required super.session,
+    required this.element,
+    required this.units,
+  });
 
   @override
   TypeProvider get typeProvider => element.typeProvider;
@@ -223,6 +263,16 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
 
     return ElementDeclarationResultImpl(element, declaration, null, unitResult);
   }
+
+  @override
+  ResolvedUnitResult? unitWithPath(String path) {
+    for (var unit in units) {
+      if (unit.path == path) {
+        return unit;
+      }
+    }
+    return null;
+  }
 }
 
 class ResolvedUnitResultImpl extends FileResultImpl
@@ -239,17 +289,19 @@ class ResolvedUnitResultImpl extends FileResultImpl
   @override
   final List<AnalysisError> errors;
 
-  ResolvedUnitResultImpl(
-      AnalysisSession session,
-      String path,
-      Uri uri,
-      this.exists,
-      this.content,
-      LineInfo lineInfo,
-      bool isPart,
-      this.unit,
-      this.errors)
-      : super(session, path, uri, lineInfo, isPart);
+  ResolvedUnitResultImpl({
+    required super.session,
+    required super.path,
+    required super.uri,
+    required this.exists,
+    required this.content,
+    required super.lineInfo,
+    required super.isAugmentation,
+    required super.isLibrary,
+    required super.isPart,
+    required this.unit,
+    required this.errors,
+  });
 
   @override
   LibraryElement get libraryElement {
@@ -268,8 +320,16 @@ class UnitElementResultImpl extends FileResultImpl
   @override
   final CompilationUnitElement element;
 
-  UnitElementResultImpl(super.session, super.path, super.uri, super.lineInfo,
-      super.isPart, this.element);
+  UnitElementResultImpl({
+    required super.session,
+    required super.path,
+    required super.uri,
+    required super.lineInfo,
+    required super.isAugmentation,
+    required super.isLibrary,
+    required super.isPart,
+    required this.element,
+  });
 }
 
 /// A visitor which locates the [AstNode] which declares [element].
@@ -292,24 +352,28 @@ class _DeclarationByElementLocator extends UnifyingAstVisitor<void> {
       return;
     }
 
-    if (element is ClassElement) {
-      if (node is ClassOrMixinDeclaration) {
-        if (_hasOffset(node.name)) {
+    if (element is InterfaceElement) {
+      if (node is ClassDeclaration) {
+        if (_hasOffset2(node.name)) {
           result = node;
         }
       } else if (node is ClassTypeAlias) {
-        if (_hasOffset(node.name)) {
+        if (_hasOffset2(node.name)) {
           result = node;
         }
       } else if (node is EnumDeclaration) {
-        if (_hasOffset(node.name)) {
+        if (_hasOffset2(node.name)) {
+          result = node;
+        }
+      } else if (node is MixinDeclaration) {
+        if (_hasOffset2(node.name)) {
           result = node;
         }
       }
     } else if (element is ConstructorElement) {
       if (node is ConstructorDeclaration) {
         if (node.name != null) {
-          if (_hasOffset(node.name)) {
+          if (_hasOffset2(node.name)) {
             result = node;
           }
         } else {
@@ -320,48 +384,48 @@ class _DeclarationByElementLocator extends UnifyingAstVisitor<void> {
       }
     } else if (element is ExtensionElement) {
       if (node is ExtensionDeclaration) {
-        if (_hasOffset(node.name)) {
+        if (_hasOffset2(node.name)) {
           result = node;
         }
       }
     } else if (element is FieldElement) {
       if (node is EnumConstantDeclaration) {
-        if (_hasOffset(node.name)) {
+        if (_hasOffset2(node.name)) {
           result = node;
         }
       } else if (node is VariableDeclaration) {
-        if (_hasOffset(node.name)) {
+        if (_hasOffset2(node.name)) {
           result = node;
         }
       }
     } else if (element is FunctionElement) {
-      if (node is FunctionDeclaration && _hasOffset(node.name)) {
+      if (node is FunctionDeclaration && _hasOffset2(node.name)) {
         result = node;
       }
     } else if (element is LocalVariableElement) {
-      if (node is VariableDeclaration && _hasOffset(node.name)) {
+      if (node is VariableDeclaration && _hasOffset2(node.name)) {
         result = node;
       }
     } else if (element is MethodElement) {
-      if (node is MethodDeclaration && _hasOffset(node.name)) {
+      if (node is MethodDeclaration && _hasOffset2(node.name)) {
         result = node;
       }
     } else if (element is ParameterElement) {
-      if (node is FormalParameter && _hasOffset(node.identifier)) {
+      if (node is FormalParameter && _hasOffset2(node.name)) {
         result = node;
       }
     } else if (element is PropertyAccessorElement) {
       if (node is FunctionDeclaration) {
-        if (_hasOffset(node.name)) {
+        if (_hasOffset2(node.name)) {
           result = node;
         }
       } else if (node is MethodDeclaration) {
-        if (_hasOffset(node.name)) {
+        if (_hasOffset2(node.name)) {
           result = node;
         }
       }
     } else if (element is TopLevelVariableElement) {
-      if (node is VariableDeclaration && _hasOffset(node.name)) {
+      if (node is VariableDeclaration && _hasOffset2(node.name)) {
         result = node;
       }
     }
@@ -373,5 +437,9 @@ class _DeclarationByElementLocator extends UnifyingAstVisitor<void> {
 
   bool _hasOffset(AstNode? node) {
     return node?.offset == _nameOffset;
+  }
+
+  bool _hasOffset2(Token? token) {
+    return token?.offset == _nameOffset;
   }
 }

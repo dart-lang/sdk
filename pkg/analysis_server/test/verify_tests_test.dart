@@ -6,6 +6,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer_utilities/package_root.dart' as package_root;
 import 'package:analyzer_utilities/verify_tests.dart';
+import 'package:path/path.dart' as package_path;
 
 void main() {
   var provider = PhysicalResourceProvider.INSTANCE;
@@ -25,7 +26,9 @@ class _VerifyTests extends VerifyTests {
 
   @override
   bool isOkAsAdditionalTestAllImport(Folder folder, String uri) {
-    if (folder.path == folder.provider.pathContext.join(testDirPath, 'lsp') &&
+    final pathContext = folder.provider.pathContext;
+
+    if (folder.path == pathContext.join(testDirPath, 'lsp') &&
         uri == '../src/lsp/lsp_packet_transformer_test.dart') {
       // `lsp/test_all.dart` also runs this one test in `lsp/src` for
       // convenience.
@@ -37,6 +40,15 @@ class _VerifyTests extends VerifyTests {
       // convenience.
       return true;
     }
+
+    // Allow for updating textual expectations.
+    if (package_path.url.basename(uri) == 'text_expectations.dart') {
+      if (folder.path ==
+          pathContext.join(testDirPath, 'services', 'completion', 'dart')) {
+        return true;
+      }
+    }
+
     return super.isOkAsAdditionalTestAllImport(folder, uri);
   }
 }

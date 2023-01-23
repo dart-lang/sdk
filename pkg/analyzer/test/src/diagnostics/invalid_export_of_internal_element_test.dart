@@ -10,7 +10,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InvalidExportOfInternalElement_BazelPackageTest);
+    defineReflectiveTests(InvalidExportOfInternalElement_BlazePackageTest);
     defineReflectiveTests(
         InvalidExportOfInternalElement_PackageBuildPackageTest);
     defineReflectiveTests(InvalidExportOfInternalElement_PubPackageTest);
@@ -18,13 +18,13 @@ main() {
 }
 
 @reflectiveTest
-class InvalidExportOfInternalElement_BazelPackageTest
-    extends BazelWorkspaceResolutionTest
+class InvalidExportOfInternalElement_BlazePackageTest
+    extends BlazeWorkspaceResolutionTest
     with InvalidExportOfInternalElementTest {
-  String get testPackageBazelBinPath => '$workspaceRootPath/bazel-bin/dart/my';
+  String get testPackageBlazeBinPath => '$workspaceRootPath/blaze-bin/dart/my';
 
   String get testPackageGenfilesPath =>
-      '$workspaceRootPath/bazel-genfiles/dart/my';
+      '$workspaceRootPath/blaze-genfiles/dart/my';
 
   @override
   String get testPackageLibPath => myPackageLibPath;
@@ -36,17 +36,17 @@ class InvalidExportOfInternalElement_BazelPackageTest
     MockPackages.addMetaPackageFiles(
       getFolder(metaPath),
     );
-    newFile('$testPackageBazelBinPath/my.packages', '');
-    newFolder('$workspaceRootPath/bazel-out');
+    newFile('$testPackageBlazeBinPath/my.packages', '');
+    newFolder('$workspaceRootPath/blaze-out');
   }
 
-  void test_exporterIsInBazelBinLib() async {
+  void test_exporterIsInBlazeBinLib() async {
     newFile(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await resolveFileCode('$testPackageBazelBinPath/lib/bar.dart', r'''
+    await resolveFileCode('$testPackageBlazeBinPath/lib/bar.dart', r'''
 export 'src/foo.dart';
 ''');
 
@@ -55,13 +55,13 @@ export 'src/foo.dart';
     ]);
   }
 
-  void test_exporterIsInBazelBinLibSrc() async {
+  void test_exporterIsInBlazeBinLibSrc() async {
     newFile(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await resolveFileCode('$testPackageBazelBinPath/lib/src/bar.dart', r'''
+    await resolveFileCode('$testPackageBlazeBinPath/lib/src/bar.dart', r'''
 export 'foo.dart';
 ''');
 
@@ -137,8 +137,8 @@ export 'package:dart.my/src/foo.dart';
     assertNoErrorsInResult();
   }
 
-  void test_internalIsInBazelBin() async {
-    newFile('$testPackageBazelBinPath/lib/src/foo.dart', r'''
+  void test_internalIsInBlazeBin() async {
+    newFile('$testPackageBlazeBinPath/lib/src/foo.dart', r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');

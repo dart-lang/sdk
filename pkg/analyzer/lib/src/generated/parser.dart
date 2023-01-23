@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.parser;
-
 import 'package:_fe_analyzer_shared/src/parser/parser.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/parser/type_info.dart' as fasta;
 import 'package:analyzer/dart/analysis/features.dart';
@@ -44,7 +42,8 @@ class Parser {
           featureSet,
           lineInfo,
         ) {
-    fastaParser = fasta.Parser(astBuilder);
+    fastaParser = fasta.Parser(astBuilder,
+        allowPatterns: featureSet.isEnabled(Feature.patterns));
     astBuilder.parser = fastaParser;
     astBuilder.allowNativeClause = allowNativeClause;
   }

@@ -37,8 +37,14 @@ class CHA : public ValueObject {
   static bool ConcreteSubclasses(const Class& cls,
                                  GrowableArray<intptr_t>* class_ids);
 
-  // Return true if the class is implemented by some other class.
+  // Return true if the class is implemented by some other class that is not a
+  // subclass.
   static bool IsImplemented(const Class& cls);
+
+  // Return true if there is only one concrete class that implements
+  // 'interface'.
+  static bool HasSingleConcreteImplementation(const Class& interface,
+                                              intptr_t* implementation_cid);
 
   // Returns true if any subclass of 'cls' contains the function.
   // If no override was found subclass_count would contain total count of
@@ -49,10 +55,12 @@ class CHA : public ValueObject {
                    const String& function_name,
                    intptr_t* subclass_count);
 
-  // Adds class 'cls' to the list of guarded classes, deoptimization occurs
-  // if any of those classes gets subclassed through later loaded/finalized
-  // libraries. Only classes that were used for CHA optimizations are added.
+  // Adds class 'cls' to the list of guarded classes / interfaces.
+  // Deoptimization occurs if any of those classes gets subclassed or
+  // implemented through later loaded/finalized libraries. Only classes that
+  // were used for CHA optimizations are added.
   void AddToGuardedClasses(const Class& cls, intptr_t subclass_count);
+  void AddToGuardedInterfaces(const Class& cls, intptr_t implementor_cid);
 
   // When compiling in background we need to check that no new finalized
   // subclasses were added to guarded classes.
@@ -74,6 +82,12 @@ class CHA : public ValueObject {
     // Used to validate correctness of background compilation: if
     // any subclasses were added we will discard compiled code.
     intptr_t subclass_count;
+
+    // Value of implementor_cid that this class had at the moment
+    // when CHA made the first decision based on this class.
+    // Used to validate correctness of background compilation: if
+    // any implementors were added we will discard compiled code.
+    intptr_t implementor_cid;
   };
 
   GrowableArray<GuardedClassInfo> guarded_classes_;

@@ -37,9 +37,9 @@ class FieldFormalContributor extends DartCompletionContributor {
         param = param.parameter;
       }
       if (param is FieldFormalParameter) {
-        var fieldId = param.identifier;
+        var fieldId = param.name;
         if (fieldId != request.target.entity) {
-          var fieldName = fieldId.name;
+          var fieldName = fieldId.lexeme;
           if (fieldName.isNotEmpty) {
             referencedFields.add(fieldName);
           }
@@ -47,7 +47,7 @@ class FieldFormalContributor extends DartCompletionContributor {
       }
     }
 
-    ClassElement? enclosingClass;
+    InterfaceElement? enclosingClass;
     var constructorParent = constructor.parent;
     if (constructorParent is ClassDeclaration) {
       enclosingClass = constructorParent.declaredElement;

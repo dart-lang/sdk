@@ -70,14 +70,16 @@ class CompileJSCommand extends CompileSubcommandCommand {
     if (!Sdk.checkArtifactExists(librariesPath)) return 255;
 
     VmInteropHandler.run(
-        sdk.dart2jsSnapshot,
-        [
-          '--libraries-spec=$librariesPath',
-          '--cfe-invocation-modes=compile',
-          '--invoker=dart_cli',
-          ...argResults!.arguments,
-        ],
-        packageConfigOverride: null);
+      sdk.dart2jsSnapshot,
+      [
+        '--libraries-spec=$librariesPath',
+        '--cfe-invocation-modes=compile',
+        '--invoker=dart_cli',
+        ...argResults!.arguments,
+      ],
+      packageConfigOverride: null,
+      forceNoSoundNullSafety: true,
+    );
 
     return 0;
   }
@@ -125,6 +127,9 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
         abbr: defineOption.abbr,
         valueHelp: defineOption.valueHelp,
       )
+      ..addFlag('sound-null-safety',
+          help: 'Respect the nullability of types at runtime.',
+          defaultsTo: null)
       ..addExperimentalFlags(verbose: verbose);
   }
 
@@ -180,6 +185,11 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
     final buildArgs = <String>[];
     buildArgs.add('--snapshot-kind=$formatName');
     buildArgs.add('--snapshot=${path.canonicalize(outputFile)}');
+
+    final bool? soundNullSafety = args['sound-null-safety'];
+    if (soundNullSafety != null) {
+      buildArgs.add('--${soundNullSafety ? '' : 'no-'}sound-null-safety');
+    }
 
     final String? packages = args[packagesOption.flag];
     if (packages != null) {
@@ -314,9 +324,12 @@ Remove debugging information from the output and save it separately to the speci
         extraOptions: args['extra-gen-snapshot-options'],
       );
       return 0;
-    } catch (e) {
+    } catch (e, st) {
       log.stderr('Error: AOT compilation failed');
       log.stderr(e.toString());
+      if (verbose) {
+        log.stderr(st.toString());
+      }
       return compileErrorExitCode;
     }
   }

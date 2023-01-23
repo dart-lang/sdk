@@ -96,7 +96,7 @@ class ClassMemberParserTest extends FastaParserTestCase
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
-    expect(method.name.name, 'late');
+    expect(method.name.lexeme, 'late');
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -500,7 +500,6 @@ Function(int, String) v;
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
     expect(variable.name, isNotNull);
-    _assertIsDeclarationName(variable.name);
   }
 
   void test_parseClassMember_field_namedGet() {
@@ -696,7 +695,6 @@ Function(int, String) v;
     expect(method.propertyKeyword, isNotNull);
     expect(method.returnType, isNotNull);
     expect(method.name, isNotNull);
-    _assertIsDeclarationName(method.name);
     expect(method.operatorKeyword, isNull);
     expect(method.body, isNotNull);
     expect(method.parameters, isNull);
@@ -713,7 +711,6 @@ Function(int, String) v;
     expect(method.externalKeyword, isNotNull);
     expect(method.modifierKeyword, isNull);
     expect(method.name, isNotNull);
-    _assertIsDeclarationName(method.name);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -825,7 +822,7 @@ Function(int, String) v;
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNotNull);
     TypeParameter tp = method.typeParameters!.typeParameters[0];
-    expect(tp.name.name, 'T');
+    expect(tp.name.lexeme, 'T');
     expect(tp.extendsKeyword, isNotNull);
     expect((tp.bound as NamedType).name.name, 'num');
     expect(method.parameters, isNotNull);
@@ -1123,7 +1120,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
     expect(method.name, isNotNull);
-    expect(method.name.name, 'm');
+    expect(method.name.lexeme, 'm');
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -1314,7 +1311,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
-    expect(method.name.name, '>>>');
+    expect(method.name.lexeme, '>>>');
     expect(method.operatorKeyword, isNotNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -1389,7 +1386,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
-    expect(method.name.name, '<');
+    expect(method.name.lexeme, '<');
     expect(method.operatorKeyword, isNotNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -1407,7 +1404,6 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.returnType.name, 'C');
     expect(constructor.period, isNull);
     expect(constructor.name, isNull);
-    _assertIsDeclarationName(constructor.returnType as SimpleIdentifier, false);
     expect(constructor.parameters, isNotNull);
     expect(constructor.parameters.parameters, isEmpty);
     expect(constructor.separator!.type, TokenType.EQ);
@@ -1455,7 +1451,6 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.constKeyword, isNull);
     expect(constructor.factoryKeyword!.keyword, Keyword.FACTORY);
     expect(constructor.returnType.name, 'C');
-    _assertIsDeclarationName(constructor.returnType as SimpleIdentifier, false);
     expect(constructor.period, isNull);
     expect(constructor.name, isNull);
     expect(constructor.parameters, isNotNull);
@@ -1504,10 +1499,8 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.constKeyword, isNull);
     expect(constructor.factoryKeyword, isNotNull);
     expect(constructor.returnType.name, 'C');
-    _assertIsDeclarationName(constructor.returnType as SimpleIdentifier, false);
     expect(constructor.period!.type, TokenType.PERIOD);
-    expect(constructor.name!.name, 'foo');
-    _assertIsDeclarationName(constructor.name!);
+    expect(constructor.name!.lexeme, 'foo');
     expect(constructor.parameters, isNotNull);
     expect(constructor.parameters.parameters, isEmpty);
     expect(constructor.separator, isNull);
@@ -1547,7 +1540,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     // https://github.com/dart-lang/sdk/issues/37693
     parseCompilationUnit('class C{ C() : super() * (); }', errors: [
       expectedError(ParserErrorCode.INVALID_INITIALIZER, 15, 12),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 26, 1),
+      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 25, 1),
     ]);
   }
 
@@ -1560,10 +1553,8 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.constKeyword, isNull);
     expect(constructor.factoryKeyword, isNull);
     expect(constructor.returnType.name, 'C');
-    _assertIsDeclarationName(constructor.returnType as SimpleIdentifier, false);
     expect(constructor.period!.type, TokenType.PERIOD);
-    expect(constructor.name!.name, 'foo');
-    _assertIsDeclarationName(constructor.name!);
+    expect(constructor.name!.lexeme, 'foo');
     expect(constructor.parameters, isNotNull);
     expect(constructor.parameters.parameters, isEmpty);
     expect(constructor.separator, isNull);
@@ -1614,7 +1605,6 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.constKeyword, isNull);
     expect(constructor.factoryKeyword, isNull);
     expect(constructor.returnType.name, 'C');
-    _assertIsDeclarationName(constructor.returnType as SimpleIdentifier, false);
     expect(constructor.name, isNull);
     expect(constructor.parameters, isNotNull);
     expect(constructor.parameters.parameters, isEmpty);
@@ -1638,7 +1628,6 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.constKeyword, isNull);
     expect(constructor.factoryKeyword, isNull);
     expect(constructor.returnType.name, 'C');
-    _assertIsDeclarationName(constructor.returnType as SimpleIdentifier, false);
     expect(constructor.name, isNull);
     expect(constructor.parameters, isNotNull);
     expect(constructor.parameters.parameters, isEmpty);
@@ -1660,7 +1649,6 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.constKeyword, isNull);
     expect(constructor.factoryKeyword, isNull);
     expect(constructor.returnType.name, 'C');
-    _assertIsDeclarationName(constructor.returnType as SimpleIdentifier, false);
     expect(constructor.period, isNull);
     expect(constructor.name, isNull);
     expect(constructor.parameters, isNotNull);
@@ -2167,11 +2155,6 @@ int f(
     var parameter = function.functionExpression.parameters!.parameters[0]
         as NormalFormalParameter;
     expectCommentText(parameter.documentationComment, '/// Doc');
-  }
-
-  /// Assert that the given [name] is in declaration context.
-  void _assertIsDeclarationName(SimpleIdentifier name, [bool expected = true]) {
-    expect(name.inDeclarationContext(), expected);
   }
 
   void _parseClassMember_method_native() {

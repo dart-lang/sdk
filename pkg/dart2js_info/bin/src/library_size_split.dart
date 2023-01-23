@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: avoid_dynamic_calls
+
 /// Command-line tool to show the size distribution of generated code among
 /// libraries. Libraries can be grouped using regular expressions. You can
 /// specify what regular expressions to use by providing a `grouping.yaml` file.
@@ -63,7 +65,6 @@ import 'dart:io';
 import 'dart:math' show max;
 
 import 'package:args/command_runner.dart';
-
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/io.dart';
 import 'package:yaml/yaml.dart';
@@ -129,12 +130,12 @@ class LibrarySizeCommand extends Command<void> with PrintUsageException {
     final realTotal = info.program!.size;
     var longest = 0;
     final rows = <_Row>[];
-    addRow(String label, int value) {
+    void addRow(String label, int value) {
       rows.add(_Row(label, value));
       longest = max(longest, label.length);
     }
 
-    printRow(_Row row) {
+    void printRow(_Row row) {
       if (row is _Divider) {
         print(' ${'-' * (longest + 18)}');
         return;
@@ -171,7 +172,7 @@ class _Group {
   /// Name of the group. May be null if the name is derived from the matcher. In
   /// that case, the name would be group(1) of the matched expression if it
   /// exist, or group(0) otherwise.
-  final String name;
+  final String? name;
 
   /// Regular expression matching members of the group.
   final RegExp matcher;
@@ -205,7 +206,7 @@ class _Divider extends _Row {
   const _Divider() : super('', 0);
 }
 
-_pad(value, n, {bool right = false}) {
+String _pad(value, n, {bool right = false}) {
   final s = '$value';
   if (s.length >= n) return s;
   var pad = ' ' * (n - s.length);

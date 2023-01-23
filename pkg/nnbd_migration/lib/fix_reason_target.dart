@@ -47,8 +47,7 @@ abstract class FixReasonTarget {
 class _FixReasonTarget_NamedParameter extends _FixReasonTarget_Part {
   final String name;
 
-  _FixReasonTarget_NamedParameter(FixReasonTarget inner, this.name)
-      : super(inner);
+  _FixReasonTarget_NamedParameter(super.inner, this.name);
 
   @override
   int get hashCode => Object.hash(2, inner, name);
@@ -76,8 +75,7 @@ abstract class _FixReasonTarget_Part extends FixReasonTarget {
 class _FixReasonTarget_PositionalParameter extends _FixReasonTarget_Part {
   final int index;
 
-  _FixReasonTarget_PositionalParameter(FixReasonTarget inner, this.index)
-      : super(inner);
+  _FixReasonTarget_PositionalParameter(super.inner, this.index);
 
   @override
   int get hashCode => Object.hash(1, inner, index);
@@ -95,7 +93,7 @@ class _FixReasonTarget_PositionalParameter extends _FixReasonTarget_Part {
 
 /// Fix reason target representing the return type of a function type.
 class _FixReasonTarget_ReturnType extends _FixReasonTarget_Part {
-  _FixReasonTarget_ReturnType(FixReasonTarget inner) : super(inner);
+  _FixReasonTarget_ReturnType(super.inner);
 
   @override
   int get hashCode => Object.hash(3, inner);
@@ -127,8 +125,7 @@ class _FixReasonTarget_Root extends FixReasonTarget {
 class _FixReasonTarget_TypeArgument extends _FixReasonTarget_Part {
   final int index;
 
-  _FixReasonTarget_TypeArgument(FixReasonTarget inner, this.index)
-      : super(inner);
+  _FixReasonTarget_TypeArgument(super.inner, this.index);
 
   @override
   int get hashCode => Object.hash(5, inner, index);
@@ -159,7 +156,7 @@ class _FixReasonTarget_TypeArgument extends _FixReasonTarget_Part {
 /// argument of type argument of" or simply "type argument".  The solution is to
 /// describe the fix reason target as "type argument of yielded type".
 class _FixReasonTarget_YieldedType extends _FixReasonTarget_Part {
-  _FixReasonTarget_YieldedType(FixReasonTarget inner) : super(inner);
+  _FixReasonTarget_YieldedType(super.inner);
 
   @override
   int get hashCode => Object.hash(4, inner);

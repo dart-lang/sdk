@@ -1,0 +1,6 @@
+import 'main_lib1.dart' as exported;
+import 'main_lib2.dart' as lib2;
+import 'main_lib3.dart' as lib3;
+import 'main_lib4.dart' as lib4;
+
+test() {}

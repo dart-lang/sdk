@@ -719,7 +719,7 @@ final struct16bytesMixed2 =
 
 final struct17bytesInt = StructType([int64, int64, int8]);
 
-/// This struct has only 1 byte field-alignmnent requirements.
+/// This struct has only 1 byte field-alignment requirements.
 final struct19bytesInt = StructType(List.filled(19, uint8));
 
 /// The first homogenous integer struct that does not go into registers

@@ -805,7 +805,11 @@ class For extends Loop {
   final Expression? condition;
   final Expression? update;
 
-  For(this.init, this.condition, this.update, Statement body) : super(body);
+  For(this.init, this.condition, this.update, Statement body,
+      {JavaScriptNodeSourceInformation? sourceInformation})
+      : super(body) {
+    _sourceInformation = sourceInformation;
+  }
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitFor(this);
@@ -840,7 +844,11 @@ class ForIn extends Loop {
   final Expression leftHandSide;
   final Expression object;
 
-  ForIn(this.leftHandSide, this.object, Statement body) : super(body);
+  ForIn(this.leftHandSide, this.object, Statement body,
+      {JavaScriptNodeSourceInformation? sourceInformation})
+      : super(body) {
+    _sourceInformation = sourceInformation;
+  }
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitForIn(this);
@@ -870,7 +878,11 @@ class ForIn extends Loop {
 class While extends Loop {
   final Expression condition;
 
-  While(this.condition, Statement body) : super(body);
+  While(this.condition, Statement body,
+      {JavaScriptNodeSourceInformation? sourceInformation})
+      : super(body) {
+    _sourceInformation = sourceInformation;
+  }
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitWhile(this);
@@ -898,7 +910,11 @@ class While extends Loop {
 class Do extends Loop {
   final Expression condition;
 
-  Do(Statement body, this.condition) : super(body);
+  Do(Statement body, this.condition,
+      {JavaScriptNodeSourceInformation? sourceInformation})
+      : super(body) {
+    _sourceInformation = sourceInformation;
+  }
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitDo(this);
@@ -1509,7 +1525,10 @@ class VariableInitialization extends Expression {
   // The initializing value can be missing, e.g. for `a` in `var a, b=1;`.
   final Expression? value;
 
-  VariableInitialization(this.declaration, this.value);
+  VariableInitialization(this.declaration, this.value,
+      {JavaScriptNodeSourceInformation? sourceInformation}) {
+    _sourceInformation = sourceInformation;
+  }
 
   @override
   int get precedenceLevel => ASSIGNMENT;

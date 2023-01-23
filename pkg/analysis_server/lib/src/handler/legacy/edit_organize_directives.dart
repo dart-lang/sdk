@@ -21,7 +21,10 @@ class EditOrganizeDirectivesHandler extends LegacyHandler {
   @override
   Future<void> handle() async {
     // TODO(brianwilkerson) Move analytics tracking out of [handleRequest].
-    server.options.analytics?.sendEvent('edit', 'organizeDirectives');
+    unawaited(server.options.analytics?.sendEvent(
+      'edit',
+      'organizeDirectives',
+    ));
 
     var params = EditOrganizeDirectivesParams.fromRequest(request);
     var file = params.file;

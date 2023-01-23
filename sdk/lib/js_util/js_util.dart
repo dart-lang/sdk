@@ -150,15 +150,84 @@ external Object? get objectPrototype;
 external List<Object?> objectKeys(Object? object);
 
 /// Returns `true` if a given object is a JavaScript array.
-bool isJavaScriptArray(value) => instanceOfString(value, 'Array');
+external bool isJavaScriptArray(value);
 
 /// Returns `true` if a given object is a simple JavaScript object.
-bool isJavaScriptSimpleObject(value) {
-  final Object? proto = objectGetPrototypeOf(value);
-  return proto == null || proto == objectPrototype;
-}
+external bool isJavaScriptSimpleObject(value);
 
 /// Effectively the inverse of [jsify], [dartify] Takes a JavaScript object, and
 /// converts it to a Dart based object. Only JS primitives, arrays, or 'map'
 /// like JS objects are supported.
 external Object? dartify(Object? o);
+
+/// Given a `@staticInterop` type T and an instance [dartMock] of a Dart class
+/// U that implements the external extension members of T, creates a forwarding
+/// mock.
+///
+/// Optionally, you may provide a JS prototype object e.g. the JS value
+/// `Window.prototype` using [proto]. This allows instanceof and is checks with
+/// `@Native` types to pass with the returned forwarding mock.
+///
+/// When external extension members are called, they will forward to the
+/// corresponding implementing member in [dartMock]. If U does not implement the
+/// needed external extension members of T, or if U does not properly override
+/// them, it will be considered a compile-time error.
+///
+/// For example:
+///
+/// ```
+/// @JS()
+/// @staticInterop
+/// class JSClass {}
+///
+/// extension JSClassExtension on JSClass {
+///   external String stringify(int param);
+/// }
+///
+/// @JSExport()
+/// class DartClass {
+///   String stringify(num param) => param.toString();
+/// }
+///
+/// ...
+///
+/// JSClass mock = createStaticInteropMock<JSClass, DartClass>(DartClass());
+/// ```
+external T createStaticInteropMock<T extends Object, U extends Object>(
+    U dartMock,
+    [Object? proto = null]);
+
+/// Given a Dart object that is marked exportable, creates a JS object literal
+/// that forwards to that Dart class. Look at the `@JSExport` annotation to
+/// determine what constitutes "exportable" for a Dart class. The object literal
+/// will be a map of export names (which are either the written instance member
+/// names or their rename) to their respective Dart instance members.
+///
+/// For example:
+///
+/// ```
+/// @JSExport()
+/// class ExportCounter {
+///   int value = 0;
+///   String stringify() => value.toString();
+/// }
+///
+/// @JS()
+/// @staticInterop
+/// class Counter {}
+///
+/// extension on Counter {
+///   external int get value;
+///   external set value(int val);
+///   external String stringify();
+/// }
+///
+/// ...
+///
+/// var export = ExportCounter();
+/// var counter = createDartExport(export) as Counter;
+/// export.value = 1;
+/// Expect.isTrue(counter.value, export.value);
+/// Expect.isTrue(counter.stringify(), export.stringify());
+/// ```
+external Object createDartExport<T extends Object>(T dartObject);

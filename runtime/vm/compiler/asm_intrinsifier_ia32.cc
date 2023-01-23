@@ -1073,44 +1073,6 @@ void AsmIntrinsifier::Double_getIsNegative(Assembler* assembler,
   __ jmp(&is_false, Assembler::kNearJump);
 }
 
-void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
-                                      Label* normal_ir_body) {
-  // TODO(dartbug.com/31174): Convert this to a graph intrinsic.
-
-  // Convert double value to signed 32-bit int in EAX and
-  // back to a double in XMM1.
-  __ movl(ECX, Address(ESP, +1 * target::kWordSize));
-  __ movsd(XMM0, FieldAddress(ECX, target::Double::value_offset()));
-  __ cvttsd2si(EAX, XMM0);
-  __ cvtsi2sd(XMM1, EAX);
-
-  // Tag the int as a Smi, making sure that it fits; this checks for
-  // overflow and NaN in the conversion from double to int. Conversion
-  // overflow from cvttsd2si is signalled with an INT32_MIN value.
-  ASSERT(kSmiTag == 0 && kSmiTagShift == 1);
-  __ addl(EAX, EAX);
-  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
-
-  // Compare the two double values. If they are equal, we return the
-  // Smi tagged result immediately as the hash code.
-  Label double_hash;
-  __ comisd(XMM0, XMM1);
-  __ j(NOT_EQUAL, &double_hash, Assembler::kNearJump);
-  __ ret();
-
-  // Convert the double bits to a hash code that fits in a Smi.
-  __ Bind(&double_hash);
-  __ movl(EAX, FieldAddress(ECX, target::Double::value_offset()));
-  __ movl(ECX, FieldAddress(ECX, target::Double::value_offset() + 4));
-  __ xorl(EAX, ECX);
-  __ andl(EAX, Immediate(target::kSmiMax));
-  __ SmiTag(EAX);
-  __ ret();
-
-  // Fall into the native C++ implementation.
-  __ Bind(normal_ir_body);
-}
-
 // Identity comparison.
 void AsmIntrinsifier::ObjectEquals(Assembler* assembler,
                                    Label* normal_ir_body) {
@@ -1125,51 +1087,47 @@ void AsmIntrinsifier::ObjectEquals(Assembler* assembler,
   __ ret();
 }
 
-static void RangeCheck(Assembler* assembler,
-                       Register reg,
-                       intptr_t low,
-                       intptr_t high,
-                       Condition cc,
-                       Label* target) {
-  __ subl(reg, Immediate(low));
-  __ cmpl(reg, Immediate(high - low));
-  __ j(cc, target);
-}
-
-const Condition kIfNotInRange = ABOVE;
-const Condition kIfInRange = BELOW_EQUAL;
-
 static void JumpIfInteger(Assembler* assembler, Register cid, Label* target) {
-  RangeCheck(assembler, cid, kSmiCid, kMintCid, kIfInRange, target);
+  assembler->RangeCheck(cid, kNoRegister, kSmiCid, kMintCid,
+                        Assembler::kIfInRange, target);
 }
 
 static void JumpIfNotInteger(Assembler* assembler,
                              Register cid,
                              Label* target) {
-  RangeCheck(assembler, cid, kSmiCid, kMintCid, kIfNotInRange, target);
+  assembler->RangeCheck(cid, kNoRegister, kSmiCid, kMintCid,
+                        Assembler::kIfNotInRange, target);
 }
 
 static void JumpIfString(Assembler* assembler, Register cid, Label* target) {
-  RangeCheck(assembler, cid, kOneByteStringCid, kExternalTwoByteStringCid,
-             kIfInRange, target);
+  assembler->RangeCheck(cid, kNoRegister, kOneByteStringCid,
+                        kExternalTwoByteStringCid, Assembler::kIfInRange,
+                        target);
 }
 
 static void JumpIfNotString(Assembler* assembler, Register cid, Label* target) {
-  RangeCheck(assembler, cid, kOneByteStringCid, kExternalTwoByteStringCid,
-             kIfNotInRange, target);
+  assembler->RangeCheck(cid, kNoRegister, kOneByteStringCid,
+                        kExternalTwoByteStringCid, Assembler::kIfNotInRange,
+                        target);
 }
 
 static void JumpIfNotList(Assembler* assembler, Register cid, Label* target) {
-  RangeCheck(assembler, cid, kArrayCid, kGrowableObjectArrayCid, kIfNotInRange,
-             target);
+  assembler->RangeCheck(cid, kNoRegister, kArrayCid, kGrowableObjectArrayCid,
+                        Assembler::kIfNotInRange, target);
 }
 
 static void JumpIfType(Assembler* assembler, Register cid, Label* target) {
-  RangeCheck(assembler, cid, kTypeCid, kFunctionTypeCid, kIfInRange, target);
+  COMPILE_ASSERT((kFunctionTypeCid == kTypeCid + 1) &&
+                 (kRecordTypeCid == kTypeCid + 2));
+  assembler->RangeCheck(cid, kNoRegister, kTypeCid, kRecordTypeCid,
+                        Assembler::kIfInRange, target);
 }
 
 static void JumpIfNotType(Assembler* assembler, Register cid, Label* target) {
-  RangeCheck(assembler, cid, kTypeCid, kFunctionTypeCid, kIfNotInRange, target);
+  COMPILE_ASSERT((kFunctionTypeCid == kTypeCid + 1) &&
+                 (kRecordTypeCid == kTypeCid + 2));
+  assembler->RangeCheck(cid, kNoRegister, kTypeCid, kRecordTypeCid,
+                        Assembler::kIfNotInRange, target);
 }
 
 // Return type quickly for simple types (not parameterized and not signature).
@@ -1181,6 +1139,9 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
 
   __ cmpl(EDI, Immediate(kClosureCid));
   __ j(EQUAL, normal_ir_body);  // Instance is a closure.
+
+  __ cmpl(EDI, Immediate(kRecordCid));
+  __ j(EQUAL, normal_ir_body);  // Instance is a record.
 
   __ cmpl(EDI, Immediate(kNumPredefinedCids));
   __ j(ABOVE, &use_declaration_type);
@@ -1256,6 +1217,10 @@ static void EquivalentClassIds(Assembler* assembler,
 
   // Check if left hand side is a closure. Closures are handled in the runtime.
   __ cmpl(cid1, Immediate(kClosureCid));
+  __ j(EQUAL, normal_ir_body);
+
+  // Check if left hand side is a record. Records are handled in the runtime.
+  __ cmpl(cid1, Immediate(kRecordCid));
   __ j(EQUAL, normal_ir_body);
 
   // Check whether class ids match. If class ids don't match types may still be
@@ -1421,8 +1386,8 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
 
   // Check nullability.
   __ Bind(&equiv_cids);
-  __ movzxb(EDI, FieldAddress(EDI, target::Type::nullability_offset()));
-  __ movzxb(EBX, FieldAddress(EBX, target::Type::nullability_offset()));
+  __ LoadAbstractTypeNullability(EDI, EDI);
+  __ LoadAbstractTypeNullability(EBX, EBX);
   __ cmpl(EDI, EBX);
   __ j(NOT_EQUAL, &check_legacy, Assembler::kNearJump);
   // Fall through to equal case if nullability is strictly equal.
@@ -1449,7 +1414,7 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::FunctionType_getHashCode(Assembler* assembler,
+void AsmIntrinsifier::AbstractType_getHashCode(Assembler* assembler,
                                                Label* normal_ir_body) {
   __ movl(EAX, Address(ESP, +1 * target::kWordSize));  // FunctionType object.
   __ movl(EAX, FieldAddress(EAX, target::FunctionType::hash_offset()));
@@ -1460,7 +1425,7 @@ void AsmIntrinsifier::FunctionType_getHashCode(Assembler* assembler,
   // Hash not yet computed.
 }
 
-void AsmIntrinsifier::FunctionType_equality(Assembler* assembler,
+void AsmIntrinsifier::AbstractType_equality(Assembler* assembler,
                                             Label* normal_ir_body) {
   __ movl(EDI, Address(ESP, +1 * target::kWordSize));
   __ movl(EBX, Address(ESP, +2 * target::kWordSize));
@@ -1662,7 +1627,12 @@ static void TryAllocateString(Assembler* assembler,
   // next object start and initialize the object.
   __ movl(Address(THR, target::Thread::top_offset()), EBX);
   __ addl(EAX, Immediate(kHeapObjectTag));
-
+  // Clear last double word to ensure string comparison doesn't need to
+  // specially handle remainder of strings with lengths not factors of double
+  // offsets.
+  ASSERT(target::kWordSize == 4);
+  __ movl(Address(EBX, -1 * target::kWordSize), Immediate(0));
+  __ movl(Address(EBX, -2 * target::kWordSize), Immediate(0));
   // Initialize the tags.
   // EAX: new object start as a tagged pointer.
   // EBX: new object end address.
@@ -1812,7 +1782,7 @@ static void StringEquality(Assembler* assembler,
   __ cmpl(EAX, EBX);
   __ j(EQUAL, &is_true, Assembler::kNearJump);
 
-  // Is other OneByteString?
+  // Is other same kind of string?
   __ testl(EBX, Immediate(kSmiTagMask));
   __ j(ZERO, &is_false);  // Smi
   __ CompareClassId(EBX, string_cid, EDI);
@@ -1823,27 +1793,28 @@ static void StringEquality(Assembler* assembler,
   __ cmpl(EDI, FieldAddress(EBX, target::String::length_offset()));
   __ j(NOT_EQUAL, &is_false, Assembler::kNearJump);
 
-  // Check contents, no fall-through possible.
-  // TODO(srdjan): write a faster check.
-  __ SmiUntag(EDI);
+  if (string_cid == kOneByteStringCid) {
+    __ SmiUntag(EDI);
+  }
+
+  // Round up number of bytes to compare to word boundary since we
+  // are doing comparison in word chunks.
+  __ addl(EDI, Immediate(target::kWordSize - 1));
+  __ sarl(EDI, Immediate(target::kWordSizeLog2));
   __ Bind(&loop);
   __ decl(EDI);
-  __ cmpl(EDI, Immediate(0));
   __ j(LESS, &is_true, Assembler::kNearJump);
-  if (string_cid == kOneByteStringCid) {
-    __ movzxb(ECX, FieldAddress(EAX, EDI, TIMES_1,
-                                target::OneByteString::data_offset()));
-    __ movzxb(EDX, FieldAddress(EBX, EDI, TIMES_1,
-                                target::OneByteString::data_offset()));
-  } else if (string_cid == kTwoByteStringCid) {
-    __ movzxw(ECX, FieldAddress(EAX, EDI, TIMES_2,
-                                target::TwoByteString::data_offset()));
-    __ movzxw(EDX, FieldAddress(EBX, EDI, TIMES_2,
-                                target::TwoByteString::data_offset()));
-  } else {
-    UNIMPLEMENTED();
-  }
-  __ cmpl(ECX, EDX);
+  ASSERT(target::OneByteString::data_offset() ==
+         target::String::length_offset() + target::kWordSize);
+  ASSERT(target::TwoByteString::data_offset() ==
+         target::String::length_offset() + target::kWordSize);
+  COMPILE_ASSERT(target::kWordSize == 4);
+  __ movl(ECX, FieldAddress(EAX, EDI, TIMES_4,
+                            target::String::length_offset() +
+                                target::kWordSize));  // word with length itself
+  __ cmpl(ECX, FieldAddress(EBX, EDI, TIMES_4,
+                            target::String::length_offset() +
+                                target::kWordSize));  // word with length itself
   __ j(NOT_EQUAL, &is_false, Assembler::kNearJump);
   __ jmp(&loop, Assembler::kNearJump);
 
@@ -1933,6 +1904,24 @@ void AsmIntrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
   // Enabled.
   __ Bind(&true_label);
   __ LoadObject(EAX, CastHandle<Object>(TrueObject()));
+  __ ret();
+#endif
+}
+
+void AsmIntrinsifier::Timeline_getNextTaskId(Assembler* assembler,
+                                             Label* normal_ir_body) {
+#if !defined(SUPPORT_TIMELINE)
+  __ LoadImmediate(EAX, target::ToRawSmi(0));
+  __ ret();
+#else
+  __ movl(EBX, Address(THR, target::Thread::next_task_id_offset()));
+  __ movl(ECX, Address(THR, target::Thread::next_task_id_offset() + 4));
+  __ movl(EAX, EBX);
+  __ SmiTag(EAX);  // Ignore loss of precision.
+  __ addl(EBX, Immediate(1));
+  __ adcl(ECX, Immediate(0));
+  __ movl(Address(THR, target::Thread::next_task_id_offset()), EBX);
+  __ movl(Address(THR, target::Thread::next_task_id_offset() + 4), ECX);
   __ ret();
 #endif
 }

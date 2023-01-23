@@ -37,8 +37,8 @@ class SideEffectsDataComputer extends DataComputer<String> {
   @override
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<String>> actualMap,
-      {bool verbose: false}) {
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+      {bool verbose = false}) {
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new SideEffectsIrComputer(compiler.reporter, actualMap, closedWorld,
@@ -52,7 +52,7 @@ class SideEffectsDataComputer extends DataComputer<String> {
 
 /// AST visitor for computing side effects data for a member.
 class SideEffectsIrComputer extends IrDataExtractor<String> {
-  final JsClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
   final InferredData inferredData;
 
   SideEffectsIrComputer(

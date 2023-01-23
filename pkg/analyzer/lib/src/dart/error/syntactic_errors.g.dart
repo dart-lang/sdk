@@ -7,6 +7,10 @@
 // Instead modify 'pkg/analyzer/messages.yaml' and run
 // 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 
+// We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
+// code, as they match names declared in the source configuration files.
+// ignore_for_file: constant_identifier_names
+
 import "package:analyzer/error/error.dart";
 
 final fastaAnalyzerErrorCodes = <ErrorCode?>[
@@ -137,6 +141,13 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.INVALID_UNICODE_ESCAPE_U_NO_BRACKET,
   ParserErrorCode.INVALID_UNICODE_ESCAPE_U_BRACKET,
   ParserErrorCode.INVALID_UNICODE_ESCAPE_STARTED,
+  ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+  ParserErrorCode.EMPTY_RECORD_LITERAL_WITH_COMMA,
+  ParserErrorCode.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST,
+  ParserErrorCode.EMPTY_RECORD_TYPE_WITH_COMMA,
+  ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA,
+  ParserErrorCode.ABSTRACT_SEALED_CLASS,
+  ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -164,6 +175,12 @@ class ParserErrorCode extends ErrorCode {
     'ABSTRACT_LATE_FIELD',
     "Abstract fields cannot be late.",
     correctionMessage: "Try removing the 'abstract' or 'late' keyword.",
+  );
+
+  static const ParserErrorCode ABSTRACT_SEALED_CLASS = ParserErrorCode(
+    'ABSTRACT_SEALED_CLASS',
+    "A class can't be declared both 'sealed' and 'abstract'.",
+    correctionMessage: "Try removing the 'abstract' or 'sealed' keyword.",
   );
 
   static const ParserErrorCode ABSTRACT_STATIC_FIELD = ParserErrorCode(
@@ -427,6 +444,26 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage: "Try declaring a constant.",
   );
 
+  static const ParserErrorCode EMPTY_RECORD_LITERAL_WITH_COMMA =
+      ParserErrorCode(
+    'EMPTY_RECORD_LITERAL_WITH_COMMA',
+    "Record literal without fields can't have a trailing comma.",
+    correctionMessage: "Try removing the trailing comma.",
+  );
+
+  static const ParserErrorCode EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST =
+      ParserErrorCode(
+    'EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST',
+    "Record type named fields list can't be empty.",
+    correctionMessage: "Try adding a record type named field to the list.",
+  );
+
+  static const ParserErrorCode EMPTY_RECORD_TYPE_WITH_COMMA = ParserErrorCode(
+    'EMPTY_RECORD_TYPE_WITH_COMMA',
+    "Record type without fields can't have a trailing comma.",
+    correctionMessage: "Try removing the trailing comma.",
+  );
+
   static const ParserErrorCode ENUM_IN_CLASS = ParserErrorCode(
     'ENUM_IN_CLASS',
     "Enums can't be declared inside classes.",
@@ -491,6 +528,36 @@ class ParserErrorCode extends ErrorCode {
         "Try inserting a list or map literal, or remove the type arguments.",
   );
 
+  static const ParserErrorCode EXPECTED_NAMED_TYPE_EXTENDS = ParserErrorCode(
+    'EXPECTED_NAMED_TYPE',
+    "Expected a class name.",
+    correctionMessage: "Try using a class name, possibly with type arguments.",
+    uniqueName: 'EXPECTED_NAMED_TYPE_EXTENDS',
+  );
+
+  static const ParserErrorCode EXPECTED_NAMED_TYPE_IMPLEMENTS = ParserErrorCode(
+    'EXPECTED_NAMED_TYPE',
+    "Expected the name of a class or mixin.",
+    correctionMessage:
+        "Try using a class or mixin name, possibly with type arguments.",
+    uniqueName: 'EXPECTED_NAMED_TYPE_IMPLEMENTS',
+  );
+
+  static const ParserErrorCode EXPECTED_NAMED_TYPE_ON = ParserErrorCode(
+    'EXPECTED_NAMED_TYPE',
+    "Expected the name of a class or mixin.",
+    correctionMessage:
+        "Try using a class or mixin name, possibly with type arguments.",
+    uniqueName: 'EXPECTED_NAMED_TYPE_ON',
+  );
+
+  static const ParserErrorCode EXPECTED_NAMED_TYPE_WITH = ParserErrorCode(
+    'EXPECTED_NAMED_TYPE',
+    "Expected a mixin name.",
+    correctionMessage: "Try using a mixin name, possibly with type arguments.",
+    uniqueName: 'EXPECTED_NAMED_TYPE_WITH',
+  );
+
   static const ParserErrorCode EXPECTED_STRING_LITERAL = ParserErrorCode(
     'EXPECTED_STRING_LITERAL',
     "Expected a string literal.",
@@ -514,6 +581,14 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage:
         "Try updating your pubspec.yaml to set the minimum SDK constraint to "
         "{1} or higher, and running 'pub get'.",
+  );
+
+  static const ParserErrorCode EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT =
+      ParserErrorCode(
+    'EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT',
+    "This requires the experimental '{0}' language feature to be enabled.",
+    correctionMessage:
+        "Try passing the '--enable-experiment={0}' command line option.",
   );
 
   static const ParserErrorCode EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE =
@@ -1375,6 +1450,20 @@ class ParserErrorCode extends ErrorCode {
     'PREFIX_AFTER_COMBINATOR',
     "The prefix ('as' clause) should come before any show/hide combinators.",
     correctionMessage: "Try moving the prefix before the combinators.",
+  );
+
+  static const ParserErrorCode RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA =
+      ParserErrorCode(
+    'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
+    "Record literal with one field requires a trailing comma.",
+    correctionMessage: "Try adding a trailing comma.",
+  );
+
+  static const ParserErrorCode RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA =
+      ParserErrorCode(
+    'RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA',
+    "Record type with one entry requires a trailing comma.",
+    correctionMessage: "Try adding a trailing comma.",
   );
 
   static const ParserErrorCode REDIRECTING_CONSTRUCTOR_WITH_BODY =

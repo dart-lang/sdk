@@ -7,6 +7,10 @@
 // Instead modify 'pkg/analyzer/messages.yaml' and run
 // 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 
+// We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
+// code, as they match names declared in the source configuration files.
+// ignore_for_file: constant_identifier_names
+
 import "package:analyzer/error/error.dart";
 import "package:analyzer/src/error/analyzer_error_code.dart";
 
@@ -71,8 +75,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   ///  Parameters:
   ///  0: the name of the ambiguous type
-  ///  1: the name of the first library that the type is found
-  ///  2: the name of the second library that the type is found
+  ///  1: the names of the libraries that the type is found
   static const CompileTimeErrorCode AMBIGUOUS_IMPORT = CompileTimeErrorCode(
     'AMBIGUOUS_IMPORT',
     "The name '{0}' is defined in the libraries {1}.",
@@ -145,7 +148,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  ///  Parameters:
+  ///  0: the name of the variable
   static const CompileTimeErrorCode ASSIGNMENT_TO_FINAL_LOCAL =
       CompileTimeErrorCode(
     'ASSIGNMENT_TO_FINAL_LOCAL',
@@ -154,11 +158,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  ///  Parameters:
+  ///  0: the name of the reference
+  ///  1: the name of the class
   static const CompileTimeErrorCode ASSIGNMENT_TO_FINAL_NO_SETTER =
       CompileTimeErrorCode(
     'ASSIGNMENT_TO_FINAL_NO_SETTER',
-    "There isn’t a setter named '{0}' in class '{1}'.",
+    "There isn't a setter named '{0}' in class '{1}'.",
     correctionMessage:
         "Try correcting the name to reference an existing setter, or declare "
         "the setter.",
@@ -221,7 +227,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try marking the function body with either 'async' or 'async*'.",
   );
 
-  ///  No parameters.
+  ///  Parameters:
+  ///  0: the name of the return type
   static const CompileTimeErrorCode BODY_MIGHT_COMPLETE_NORMALLY =
       CompileTimeErrorCode(
     'BODY_MIGHT_COMPLETE_NORMALLY',
@@ -336,7 +343,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  ///  Parameters:
+  ///  0: the name of the type
   static const CompileTimeErrorCode CAST_TO_NON_TYPE = CompileTimeErrorCode(
     'CAST_TO_NON_TYPE',
     "The name '{0}' isn't a type, so it can't be used in an 'as' expression.",
@@ -370,11 +378,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the name of the member
+  ///  0: the name of the class
+  ///  1: the name of the member
   static const CompileTimeErrorCode
       CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER = CompileTimeErrorCode(
     'CLASS_INSTANTIATION_ACCESS_TO_MEMBER',
-    "The class '{0} doesn't have a constructor named '{1}.",
+    "The class '{0}' doesn't have a constructor named '{1}'.",
     correctionMessage:
         "Try invoking a different constructor, or defining a constructor named "
         "'{1}'.",
@@ -613,6 +622,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   ///  16.12.2 Const: It is a compile-time error if evaluation of a constant
   ///  object results in an uncaught exception being thrown.
+  ///
+  ///  Parameters:
+  ///  0: the type of the runtime value of the argument
+  ///  1: the name of the field
+  ///  2: the type of the field
   static const CompileTimeErrorCode CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH =
       CompileTimeErrorCode(
     'CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH',
@@ -1073,6 +1087,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the URI of the duplicate augmentation
+  static const CompileTimeErrorCode DUPLICATE_AUGMENTATION_IMPORT =
+      CompileTimeErrorCode(
+    'DUPLICATE_AUGMENTATION_IMPORT',
+    "The library already contains an augmentation with the URI '{0}'.",
+    correctionMessage:
+        "Try removing all except one of the duplicated augmentation "
+        "directives.",
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode DUPLICATE_CONSTRUCTOR_DEFAULT =
       CompileTimeErrorCode(
@@ -1116,6 +1141,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the duplicated name
+  static const CompileTimeErrorCode DUPLICATE_FIELD_NAME = CompileTimeErrorCode(
+    'DUPLICATE_FIELD_NAME',
+    "The field name '{0}' is already used in this record.",
+    correctionMessage: "Try renaming the field.",
+  );
+
+  ///  Parameters:
   ///  0: the name of the parameter that was duplicated
   static const CompileTimeErrorCode DUPLICATE_NAMED_ARGUMENT =
       CompileTimeErrorCode(
@@ -1135,6 +1168,24 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try removing all except one of the duplicated part directives.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the field
+  static const CompileTimeErrorCode DUPLICATE_RECORD_PATTERN_FIELD =
+      CompileTimeErrorCode(
+    'DUPLICATE_RECORD_PATTERN_FIELD',
+    "The field '{0}' is already matched in this pattern.",
+    correctionMessage: "Try removing the duplicate field.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the variable
+  static const CompileTimeErrorCode DUPLICATE_VARIABLE_PATTERN =
+      CompileTimeErrorCode(
+    'DUPLICATE_VARIABLE_PATTERN',
+    "The variable '{0}' is already defined in this pattern.",
+    correctionMessage: "Try renaming the variable.",
   );
 
   static const CompileTimeErrorCode ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING =
@@ -1203,6 +1254,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "Two keys in a constant map literal can't be equal.",
     correctionMessage: "Change or remove the duplicate key.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the number of provided type arguments
+  static const CompileTimeErrorCode EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS =
+      CompileTimeErrorCode(
+    'EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS',
+    "List patterns require one type argument or none, but {0} found.",
+    correctionMessage: "Try adjusting the number of type arguments.",
   );
 
   ///  Parameters:
@@ -1299,8 +1359,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     uniqueName: 'EXTENDS_DISALLOWED_CLASS',
   );
 
-  ///  Parameters:
-  ///  0: the name in the extends clause
+  ///  No parameters.
   static const CompileTimeErrorCode EXTENDS_NON_CLASS = CompileTimeErrorCode(
     'EXTENDS_NON_CLASS',
     "Classes can only extend other classes.",
@@ -1762,6 +1821,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     uniqueName: 'ILLEGAL_ENUM_VALUES_INHERITANCE',
   );
 
+  ///  Parameters:
+  ///  0: the required language version
   static const CompileTimeErrorCode ILLEGAL_LANGUAGE_VERSION_OVERRIDE =
       CompileTimeErrorCode(
     'ILLEGAL_LANGUAGE_VERSION_OVERRIDE',
@@ -1807,8 +1868,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     uniqueName: 'IMPLEMENTS_DISALLOWED_CLASS',
   );
 
-  ///  Parameters:
-  ///  0: the name of the interface that was not found
+  ///  No parameters.
   static const CompileTimeErrorCode IMPLEMENTS_NON_CLASS = CompileTimeErrorCode(
     'IMPLEMENTS_NON_CLASS',
     "Classes and mixins can only implement other classes and mixins.",
@@ -1888,6 +1948,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The imported library '{0}' can't have a part-of directive.",
     correctionMessage: "Try importing the library that the part is a part of.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the URI of the imported file
+  static const CompileTimeErrorCode IMPORT_OF_NOT_AUGMENTATION =
+      CompileTimeErrorCode(
+    'IMPORT_OF_NOT_AUGMENTATION',
+    "The imported file '{0}' isn't an augmentation of this library.",
+    correctionMessage:
+        "Try adding a 'library augment' directive referencing this library to "
+        "the imported file.",
   );
 
   ///  13.9 Switch: It is a compile-time error if values of the expressions
@@ -2056,6 +2127,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   ///  Parameters:
   ///  0: the lexeme of the integer
+  ///  1: the closest valid double
   static const CompileTimeErrorCode INTEGER_LITERAL_IMPRECISE_AS_DOUBLE =
       CompileTimeErrorCode(
     'INTEGER_LITERAL_IMPRECISE_AS_DOUBLE',
@@ -2067,7 +2139,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  ///  Parameters:
+  ///  0: the value of the literal
   static const CompileTimeErrorCode INTEGER_LITERAL_OUT_OF_RANGE =
       CompileTimeErrorCode(
     'INTEGER_LITERAL_OUT_OF_RANGE',
@@ -2122,8 +2195,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the type of the function
-  ///  1: the expected function type
+  ///  0: the name of the function
+  ///  1: the type of the function
+  ///  2: the expected function type
   ///
   ///  This error is only reported in libraries which are not null safe.
   static const CompileTimeErrorCode INVALID_CAST_FUNCTION =
@@ -2147,8 +2221,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the type of the literal
-  ///  1: the expected type
+  ///  0: the lexeme of the literal
+  ///  1: the type of the literal
+  ///  2: the expected type
   ///
   ///  This error is only reported in libraries which are not null safe.
   static const CompileTimeErrorCode INVALID_CAST_LITERAL = CompileTimeErrorCode(
@@ -2196,8 +2271,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the type of the torn-off method
-  ///  1: the expected function type
+  ///  0: the name of the torn-off method
+  ///  1: the type of the torn-off method
+  ///  2: the expected function type
   ///
   ///  This error is only reported in libraries which are not null safe.
   static const CompileTimeErrorCode INVALID_CAST_METHOD = CompileTimeErrorCode(
@@ -2247,12 +2323,40 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
+  static const CompileTimeErrorCode INVALID_FIELD_NAME_FROM_OBJECT =
+      CompileTimeErrorCode(
+    'INVALID_FIELD_NAME',
+    "Record field names can't be the same as a member from 'Object'.",
+    correctionMessage: "Try using a different name for the field.",
+    uniqueName: 'INVALID_FIELD_NAME_FROM_OBJECT',
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode INVALID_FIELD_NAME_POSITIONAL =
+      CompileTimeErrorCode(
+    'INVALID_FIELD_NAME',
+    "Record field names can't be a dollar sign followed by an integer when the "
+        "integer is the index of a positional field.",
+    correctionMessage: "Try using a different name for the field.",
+    uniqueName: 'INVALID_FIELD_NAME_POSITIONAL',
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode INVALID_FIELD_NAME_PRIVATE =
+      CompileTimeErrorCode(
+    'INVALID_FIELD_NAME',
+    "Record field names can't be private.",
+    correctionMessage: "Try removing the leading underscore.",
+    uniqueName: 'INVALID_FIELD_NAME_PRIVATE',
+  );
+
   ///  Parameters:
   ///  0: the name of the declared member that is not a valid override.
   ///  1: the name of the interface that declares the member.
   ///  2: the type of the declared member in the interface.
-  ///  3. the name of the interface with the overridden member.
-  ///  4. the type of the overridden member.
+  ///  3: the name of the interface with the overridden member.
+  ///  4: the type of the overridden member.
   ///
   ///  These parameters must be kept in sync with those of
   ///  [CompileTimeErrorCode.INVALID_OVERRIDE].
@@ -2286,8 +2390,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  Parameters:
-  ///  0: the invalid modifier
+  ///  No parameters.
   static const CompileTimeErrorCode INVALID_MODIFIER_ON_SETTER =
       CompileTimeErrorCode(
     'INVALID_MODIFIER_ON_SETTER',
@@ -2300,8 +2403,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   ///  0: the name of the declared member that is not a valid override.
   ///  1: the name of the interface that declares the member.
   ///  2: the type of the declared member in the interface.
-  ///  3. the name of the interface with the overridden member.
-  ///  4. the type of the overridden member.
+  ///  3: the name of the interface with the overridden member.
+  ///  4: the type of the overridden member.
   static const CompileTimeErrorCode INVALID_OVERRIDE = CompileTimeErrorCode(
     'INVALID_OVERRIDE',
     "'{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').",
@@ -2324,8 +2427,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  Parameters:
-  ///  0: the super modifier
+  ///  No parameters.
   static const CompileTimeErrorCode INVALID_SUPER_FORMAL_PARAMETER_LOCATION =
       CompileTimeErrorCode(
     'INVALID_SUPER_FORMAL_PARAMETER_LOCATION',
@@ -2593,7 +2695,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "Seeing this message constitutes a bug. Please report it.",
   );
 
-  ///  No parameters.
+  ///  Parameters:
+  ///  0: the name of the library
   static const CompileTimeErrorCode MISSING_DART_LIBRARY = CompileTimeErrorCode(
     'MISSING_DART_LIBRARY',
     "Required library '{0}' is missing.",
@@ -2601,7 +2704,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  ///  Parameters:
+  ///  0: the name of the parameter
   static const CompileTimeErrorCode MISSING_DEFAULT_VALUE_FOR_PARAMETER =
       CompileTimeErrorCode(
     'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
@@ -2611,6 +2715,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try adding either an explicit non-'null' default value or the "
         "'required' modifier.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the parameter
+  static const CompileTimeErrorCode
+      MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL = CompileTimeErrorCode(
+    'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
+    "The parameter '{0}' can't have a value of 'null' because of its type, but "
+        "the implicit default value is 'null'.",
+    correctionMessage: "Try adding an explicit non-'null' default value.",
+    hasPublishedDocs: true,
+    uniqueName: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL',
   );
 
   ///  No parameters.
@@ -2625,6 +2741,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     uniqueName: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION',
   );
 
+  static const CompileTimeErrorCode MISSING_OBJECT_PATTERN_GETTER_NAME =
+      CompileTimeErrorCode(
+    'MISSING_OBJECT_PATTERN_GETTER_NAME',
+    "The getter name is not specified explicitly, and the pattern is not a "
+        "variable.",
+    correctionMessage:
+        "Try specifying the getter name explicitly, or using a variable "
+        "pattern.",
+  );
+
   ///  Parameters:
   ///  0: the name of the parameter
   static const CompileTimeErrorCode MISSING_REQUIRED_ARGUMENT =
@@ -2634,6 +2760,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "argument.",
     correctionMessage: "Try adding the required argument.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the variable pattern
+  static const CompileTimeErrorCode MISSING_VARIABLE_PATTERN =
+      CompileTimeErrorCode(
+    'MISSING_VARIABLE_PATTERN',
+    "Variable pattern '{0}' is missing in this branch of the logical-or "
+        "pattern.",
+    correctionMessage: "Try declaring this variable pattern in the branch.",
   );
 
   ///  Parameters:
@@ -2770,7 +2906,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode
       MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS = CompileTimeErrorCode(
     'SUBTYPE_OF_DISALLOWED_TYPE',
-    "''{0}' can't be used as a superclass constraint.",
+    "'{0}' can't be used as a superclass constraint.",
     correctionMessage:
         "Try specifying a different super-class constraint, or remove the 'on' "
         "clause.",
@@ -2834,6 +2970,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   ///  x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;, x<sub>n+k</sub>:
   ///  a<sub>n+kM/sub>)</i> it is a static warning if the type <i>T</i> does not
   ///  declare a constructor with the same name as the declaration of <i>T</i>.
+  ///
+  ///  Parameters:
+  ///  0: the name of the class being instantiated
+  ///  1: the name of the constructor
   static const CompileTimeErrorCode NEW_WITH_UNDEFINED_CONSTRUCTOR =
       CompileTimeErrorCode(
     'NEW_WITH_UNDEFINED_CONSTRUCTOR',
@@ -3159,7 +3299,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NON_TYPE_AS_TYPE_ARGUMENT =
       CompileTimeErrorCode(
     'NON_TYPE_AS_TYPE_ARGUMENT',
-    "The name '{0}' isn't a type so it can't be used as a type argument.",
+    "The name '{0}' isn't a type, so it can't be used as a type argument.",
     correctionMessage:
         "Try correcting the name to an existing type, or defining a type named "
         "'{0}'.",
@@ -3229,14 +3369,61 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the name of the variable pattern
+  static const CompileTimeErrorCode NOT_CONSISTENT_VARIABLE_PATTERN =
+      CompileTimeErrorCode(
+    'NOT_CONSISTENT_VARIABLE_PATTERN',
+    "Variable pattern '{0}' has a different type or finality in this branch of "
+        "the logical-or pattern.",
+    correctionMessage:
+        "Try declaring the variable pattern with the same type and finality in "
+        "both branches.",
+  );
+
+  ///  Parameters:
   ///  0: the expected number of required arguments
   ///  1: the actual number of positional arguments given
-  static const CompileTimeErrorCode NOT_ENOUGH_POSITIONAL_ARGUMENTS =
-      CompileTimeErrorCode(
+  ///  2: name of the function or method
+  static const CompileTimeErrorCode
+      NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL = CompileTimeErrorCode(
     'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
-    "{0} positional argument(s) expected, but {1} found.",
+    "{0} positional arguments expected by '{2}', but {1} found.",
     correctionMessage: "Try adding the missing arguments.",
     hasPublishedDocs: true,
+    uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL',
+  );
+
+  ///  Parameters:
+  ///  0: name of the function or method
+  static const CompileTimeErrorCode
+      NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR = CompileTimeErrorCode(
+    'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
+    "1 positional argument expected by '{0}', but 0 found.",
+    correctionMessage: "Try adding the missing argument.",
+    hasPublishedDocs: true,
+    uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR',
+  );
+
+  ///  Parameters:
+  ///  0: the expected number of required arguments
+  ///  1: the actual number of positional arguments given
+  static const CompileTimeErrorCode NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL =
+      CompileTimeErrorCode(
+    'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
+    "{0} positional arguments expected, but {1} found.",
+    correctionMessage: "Try adding the missing arguments.",
+    hasPublishedDocs: true,
+    uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL',
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR =
+      CompileTimeErrorCode(
+    'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
+    "1 positional argument expected, but 0 found.",
+    correctionMessage: "Try adding the missing argument.",
+    hasPublishedDocs: true,
+    uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR',
   );
 
   ///  Parameters:
@@ -3413,6 +3600,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The class 'Object' can't extend any other class.",
   );
 
+  ///  No parameters.
+  static const CompileTimeErrorCode OBSOLETE_COLON_FOR_DEFAULT_VALUE =
+      CompileTimeErrorCode(
+    'OBSOLETE_COLON_FOR_DEFAULT_VALUE',
+    "Using a colon as a separator before a default value is no longer "
+        "supported.",
+    correctionMessage: "Try replacing the colon with an equal sign.",
+  );
+
   ///  Parameters:
   ///  0: the name of the interface that is implemented more than once
   static const CompileTimeErrorCode ON_REPEATED = CompileTimeErrorCode(
@@ -3455,8 +3651,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the URI of the expected library
-  ///  1: the non-matching actual library name from the "part of" declaration
+  ///  0: the non-matching actual library name from the "part of" declaration
   static const CompileTimeErrorCode PART_OF_UNNAMED_LIBRARY =
       CompileTimeErrorCode(
     'PART_OF_UNNAMED_LIBRARY',
@@ -3538,6 +3733,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the name of the setter
   static const CompileTimeErrorCode PRIVATE_SETTER = CompileTimeErrorCode(
     'PRIVATE_SETTER',
     "The setter '{0}' is private and can't be accessed outside the library "
@@ -3546,6 +3743,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the name of the variable
   static const CompileTimeErrorCode READ_POTENTIALLY_UNASSIGNED_FINAL =
       CompileTimeErrorCode(
     'READ_POTENTIALLY_UNASSIGNED_FINAL',
@@ -3668,7 +3867,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_WITH',
   );
 
-  ///  No parameters.
+  ///  Parameters:
+  ///  0: the name of the constructor
+  ///  1: the name of the class
   static const CompileTimeErrorCode REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR =
       CompileTimeErrorCode(
     'REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR',
@@ -3767,7 +3968,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  ///  Parameters:
+  ///  0: the name of the variable
   static const CompileTimeErrorCode REFERENCED_BEFORE_DECLARATION =
       CompileTimeErrorCode(
     'REFERENCED_BEFORE_DECLARATION',
@@ -3777,6 +3979,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "local variable so that it doesn't hide a name from an enclosing "
         "scope.",
     hasPublishedDocs: true,
+  );
+
+  static const CompileTimeErrorCode
+      RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL =
+      CompileTimeErrorCode(
+    'RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL',
+    "The return type of operators used in relational patterns must be "
+        "assignable to 'bool'.",
+    correctionMessage:
+        "Try updating the operator declaration to return 'bool'.",
   );
 
   ///  No parameters.
@@ -4120,7 +4332,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  ///  Parameters:
+  ///  0: the name of the type
   static const CompileTimeErrorCode TYPE_TEST_WITH_NON_TYPE =
       CompileTimeErrorCode(
     'TYPE_TEST_WITH_NON_TYPE',
@@ -4129,7 +4342,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  ///  Parameters:
+  ///  0: the name of the type
   static const CompileTimeErrorCode TYPE_TEST_WITH_UNDEFINED_NAME =
       CompileTimeErrorCode(
     'TYPE_TEST_WITH_UNDEFINED_NAME',
@@ -4149,6 +4363,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     uniqueName: 'UNCHECKED_INVOCATION_OF_NULLABLE_VALUE',
   );
 
+  ///  Parameters:
+  ///  0: the name of the method
   static const CompileTimeErrorCode
       UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE = CompileTimeErrorCode(
     'UNCHECKED_USE_OF_NULLABLE_VALUE',
@@ -4161,6 +4377,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     uniqueName: 'UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE',
   );
 
+  ///  Parameters:
+  ///  0: the name of the operator
   static const CompileTimeErrorCode
       UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE = CompileTimeErrorCode(
     'UNCHECKED_USE_OF_NULLABLE_VALUE',
@@ -4171,6 +4389,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     uniqueName: 'UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE',
   );
 
+  ///  Parameters:
+  ///  0: the name of the property
   static const CompileTimeErrorCode
       UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE = CompileTimeErrorCode(
     'UNCHECKED_USE_OF_NULLABLE_VALUE',
@@ -4227,7 +4447,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH',
   );
 
-  ///  No parameters.
+  ///  Parameters:
+  ///  0: the name of the annotation
   static const CompileTimeErrorCode UNDEFINED_ANNOTATION = CompileTimeErrorCode(
     'UNDEFINED_ANNOTATION',
     "Undefined name '{0}' used as an annotation.",
@@ -4486,7 +4707,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  ///  Parameters:
+  ///  0: the name of the reference
+  ///  1: the name of the prefix
   static const CompileTimeErrorCode UNDEFINED_PREFIXED_NAME =
       CompileTimeErrorCode(
     'UNDEFINED_PREFIXED_NAME',
@@ -4612,7 +4835,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'URI_DOES_NOT_EXIST',
     "Target of URI doesn't exist: '{0}'.",
     correctionMessage:
-        "Try creating the file referenced by the URI, or Try using a URI for a "
+        "Try creating the file referenced by the URI, or try using a URI for a "
         "file that does exist.",
     hasPublishedDocs: true,
   );
@@ -4641,7 +4864,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode USE_OF_NATIVE_EXTENSION =
       CompileTimeErrorCode(
     'USE_OF_NATIVE_EXTENSION',
-    "Dart native extensions are deprecated and aren’t available in Dart 2.15.",
+    "Dart native extensions are deprecated and aren't available in Dart 2.15.",
     correctionMessage: "Try using dart:ffi for C interop.",
     hasPublishedDocs: true,
   );
@@ -4830,6 +5053,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   ///  Let `C` be a generic class that declares a formal type parameter `X`, and
   ///  assume that `T` is a direct superinterface of `C`. It is a compile-time
   ///  error if `X` occurs contravariantly or invariantly in `T`.
+  ///
+  ///  Parameters:
+  ///  0: the name of the type parameter
+  ///  1: the name of the super interface
   static const CompileTimeErrorCode
       WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE = CompileTimeErrorCode(
     'WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
@@ -4936,6 +5163,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 }
 
 class LanguageCode extends ErrorCode {
+  ///  Parameters:
+  ///  0: the name of the field
   static const LanguageCode IMPLICIT_DYNAMIC_FIELD = LanguageCode(
     'IMPLICIT_DYNAMIC_FIELD',
     "Missing field type for '{0}'.",
@@ -4944,6 +5173,9 @@ class LanguageCode extends ErrorCode {
         "analysis options file.",
   );
 
+  ///  Parameters:
+  ///  0: the name of the function
+  ///  1: the names of the type arguments
   static const LanguageCode IMPLICIT_DYNAMIC_FUNCTION = LanguageCode(
     'IMPLICIT_DYNAMIC_FUNCTION',
     "Missing type arguments for generic function '{0}<{1}>'.",
@@ -4952,6 +5184,8 @@ class LanguageCode extends ErrorCode {
         "analysis options file.",
   );
 
+  ///  Parameters:
+  ///  0: the name of type
   static const LanguageCode IMPLICIT_DYNAMIC_INVOKE = LanguageCode(
     'IMPLICIT_DYNAMIC_INVOKE',
     "Missing type arguments for calling generic function type '{0}'.",
@@ -4976,6 +5210,9 @@ class LanguageCode extends ErrorCode {
         "analysis options file.",
   );
 
+  ///  Parameters:
+  ///  0: the name of the function
+  ///  1: the names of the type arguments
   static const LanguageCode IMPLICIT_DYNAMIC_METHOD = LanguageCode(
     'IMPLICIT_DYNAMIC_METHOD',
     "Missing type arguments for generic method '{0}<{1}>'.",
@@ -4984,6 +5221,8 @@ class LanguageCode extends ErrorCode {
         "analysis options file.",
   );
 
+  ///  Parameters:
+  ///  0: the name of the parameter
   static const LanguageCode IMPLICIT_DYNAMIC_PARAMETER = LanguageCode(
     'IMPLICIT_DYNAMIC_PARAMETER',
     "Missing parameter type for '{0}'.",
@@ -4992,6 +5231,8 @@ class LanguageCode extends ErrorCode {
         "analysis options file.",
   );
 
+  ///  Parameters:
+  ///  0: the name of the function or method
   static const LanguageCode IMPLICIT_DYNAMIC_RETURN = LanguageCode(
     'IMPLICIT_DYNAMIC_RETURN',
     "Missing return type for '{0}'.",
@@ -5000,6 +5241,8 @@ class LanguageCode extends ErrorCode {
         "analysis options file.",
   );
 
+  ///  Parameters:
+  ///  0: the name of the type
   static const LanguageCode IMPLICIT_DYNAMIC_TYPE = LanguageCode(
     'IMPLICIT_DYNAMIC_TYPE',
     "Missing type arguments for generic type '{0}'.",
@@ -5008,6 +5251,8 @@ class LanguageCode extends ErrorCode {
         "analysis options file.",
   );
 
+  ///  Parameters:
+  ///  0: the name of the variable
   static const LanguageCode IMPLICIT_DYNAMIC_VARIABLE = LanguageCode(
     'IMPLICIT_DYNAMIC_VARIABLE',
     "Missing variable type for '{0}'.",
@@ -5069,32 +5314,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
     correctionMessage: "Try replacing the operator '{0}' with '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT',
-  );
-
-  ///  7.1 Instance Methods: It is a static warning if an instance method
-  ///  <i>m1</i> overrides an instance member <i>m2</i>, the signature of
-  ///  <i>m2</i> explicitly specifies a default value for a formal parameter
-  ///  <i>p</i> and the signature of <i>m1</i> specifies a different default value
-  ///  for <i>p</i>.
-  static const StaticWarningCode
-      INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED = StaticWarningCode(
-    'INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED',
-    "Parameters can't override default values, this method overrides '{0}.{1}' "
-        "where '{2}' has a different value.",
-    correctionMessage: "Try using the same default value in both methods.",
-  );
-
-  ///  7.1 Instance Methods: It is a static warning if an instance method
-  ///  <i>m1</i> overrides an instance member <i>m2</i>, the signature of
-  ///  <i>m2</i> explicitly specifies a default value for a formal parameter
-  ///  <i>p</i> and the signature of <i>m1</i> specifies a different default value
-  ///  for <i>p</i>.
-  static const StaticWarningCode
-      INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL = StaticWarningCode(
-    'INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL',
-    "Parameters can't override default values, this method overrides '{0}.{1}' "
-        "where this positional parameter has a different value.",
-    correctionMessage: "Try using the same default value in both methods.",
   );
 
   ///  Parameters:

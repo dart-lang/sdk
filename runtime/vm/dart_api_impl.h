@@ -176,7 +176,7 @@ class Api : AllStatic {
 
   // Casts the internal IsolateGroup* type to the external Dart_IsolateGroup
   // type.
-  static Dart_IsolateGroup CastIsolateGroup(IsolateGroup* isolate);
+  static Dart_IsolateGroup CastIsolateGroup(IsolateGroup* isolate_group);
 
   // Gets the handle used to designate successful return.
   static Dart_Handle Success() { return Api::True(); }

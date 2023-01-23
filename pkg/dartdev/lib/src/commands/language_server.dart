@@ -4,7 +4,7 @@
 
 import 'dart:io' as io;
 
-import 'package:analysis_server/src/server/driver.dart' as server_driver;
+import 'package:analysis_server/src/server/driver.dart' as server;
 import 'package:args/args.dart';
 
 import '../core.dart';
@@ -31,7 +31,7 @@ For more information about the server's capabilities and configuration, see:
 
   @override
   ArgParser createArgParser() {
-    return server_driver.Driver.createArgParser(
+    return server.Driver.createArgParser(
       usageLineLength: dartdevUsageLineLength,
       includeHelpFlag: false,
       defaultToLsp: true,
@@ -40,19 +40,21 @@ For more information about the server's capabilities and configuration, see:
 
   @override
   Future<int> run() async {
+    const protocol = server.Driver.SERVER_PROTOCOL;
+    const lsp = server.Driver.PROTOCOL_LSP;
+
     var args = argResults!.arguments;
-    if (!args.any((arg) => arg.startsWith('--protocol'))) {
-      args = [...args, '--protocol=lsp'];
+    if (!args.any((arg) => arg.startsWith('--$protocol'))) {
+      args = [...args, '--$protocol=$lsp'];
     }
 
     if (!Sdk.checkArtifactExists(sdk.analysisServerSnapshot)) return 255;
 
     VmInteropHandler.run(
-        sdk.analysisServerSnapshot,
-        [
-          ...args,
-        ],
-        packageConfigOverride: null);
+      sdk.analysisServerSnapshot,
+      args,
+      packageConfigOverride: null,
+    );
 
     // The server will continue to run past the return from this method.
     //

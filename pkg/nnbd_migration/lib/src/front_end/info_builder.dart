@@ -8,6 +8,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceFileEdit;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
@@ -225,6 +226,13 @@ class InfoBuilder {
       case NullabilityFixKind.typeNotMadeNullable:
         edits.add(EditDetail('Add /*!*/ hint', offset, 0, '/*!*/'));
         edits.add(EditDetail('Add /*?*/ hint', offset, 0, '/*?*/'));
+        var declarationList = _findVariableDeclaration(result.unit, offset);
+        if (declarationList != null) {
+          var lateOffset = _offsetForPossibleLateModifier(declarationList);
+          if (lateOffset != null) {
+            edits.add(EditDetail('Add late hint', lateOffset, 0, '/*late*/'));
+          }
+        }
         break;
       case NullabilityFixKind.makeTypeNullableDueToHint:
         edits.add(changeHint('Change to /*!*/ hint', '/*!*/'));
@@ -497,11 +505,23 @@ class InfoBuilder {
   /// it if found, or `null` if not found.
   ImportDirective? _findImportDirective(CompilationUnit unit, String uri) {
     for (var directive in unit.directives) {
-      if (directive is ImportDirective && directive.uriContent == uri) {
+      if (directive is ImportDirective && directive.uri.stringValue == uri) {
         return directive;
       }
     }
     return null;
+  }
+
+  /// Returns the variable declaration which covers [offset], or `null` if none
+  /// does.
+  VariableDeclarationList? _findVariableDeclaration(
+      CompilationUnit unit, int offset) {
+    var nodeLocator = NodeLocator2(offset);
+    var node = nodeLocator.searchWithin(unit);
+    if (node == null) {
+      return null;
+    }
+    return node.thisOrAncestorOfType<VariableDeclarationList>();
   }
 
   TraceEntryInfo _makeTraceEntry(
@@ -525,6 +545,34 @@ class InfoBuilder {
         hintActions: node.hintActions.keys
             .map((kind) => HintAction(kind, nodeMapper!.idForNode(node)))
             .toList());
+  }
+
+  /// Returns the offset for a possible `late` modifier which could be inserted
+  /// into [declarationList], or `null` if none is possible.
+  int? _offsetForPossibleLateModifier(VariableDeclarationList declarationList) {
+    if (declarationList.isLate || declarationList.isConst) {
+      // Don't offer an ofset.
+      return null;
+    }
+    var keyword = declarationList.keyword;
+    if (keyword != null) {
+      // Offset for possible `late` is before `var`, `const`, or `final`.
+      return keyword.offset;
+    }
+
+    var typeAnnotation = declarationList.type;
+    if (typeAnnotation != null) {
+      // Without a `keyword`, offset for possible `late` is before the type
+      // annotation.
+      return typeAnnotation.offset;
+    }
+
+    assert(
+        false,
+        'In this VariableDeclarationList, there is no `var`, '
+        '`const`, or `final` keyword, nor any type annotation. This variable '
+        'declaration list is not valid: $declarationList');
+    return null;
   }
 
   TraceEntryInfo _stepToTraceEntry(PropagationStepInfo step) {
@@ -569,10 +617,10 @@ class InfoBuilder {
           return _describeClassOrExtensionMember(
               enclosingNode.parent as CompilationUnitMember?,
               'the constructor',
-              enclosingNode.name!.name);
+              enclosingNode.name!.lexeme);
         }
       } else if (enclosingNode is MethodDeclaration) {
-        var functionName = enclosingNode.name.name;
+        var functionName = enclosingNode.name.lexeme;
         String baseDescription;
         if (enclosingNode.isGetter) {
           baseDescription = 'the getter';
@@ -590,7 +638,7 @@ class InfoBuilder {
             functionName);
       } else if (enclosingNode is FunctionDeclaration &&
           enclosingNode.parent is CompilationUnit) {
-        var functionName = enclosingNode.name.name;
+        var functionName = enclosingNode.name.lexeme;
         String baseDescription;
         if (enclosingNode.isGetter) {
           baseDescription = 'the getter';
@@ -617,7 +665,7 @@ class InfoBuilder {
   static String _describeClassOrExtensionMember(CompilationUnitMember? parent,
       String baseDescription, String functionName) {
     if (parent is NamedCompilationUnitMember) {
-      var parentName = parent.name.name;
+      var parentName = parent.name.lexeme;
       if (functionName.isEmpty) {
         return "$baseDescription '$parentName'";
       } else {
@@ -630,7 +678,7 @@ class InfoBuilder {
         );
         return "$baseDescription '$functionName' in unnamed extension on $extendedTypeString";
       } else {
-        return "$baseDescription '${parent.name!.name}.$functionName'";
+        return "$baseDescription '${parent.name!.lexeme}.$functionName'";
       }
     } else {
       throw ArgumentError(
@@ -639,7 +687,7 @@ class InfoBuilder {
   }
 
   static String? _describeVariableDeclaration(VariableDeclaration node) {
-    var variableName = node.name.name;
+    var variableName = node.name.lexeme;
     var parent = node.parent!;
     var grandParent = parent.parent;
     if (grandParent is FieldDeclaration) {

@@ -77,6 +77,8 @@ ARCH_FAMILY = {
     'simarm64c': 'ia32',
     'simriscv32': 'ia32',
     'simriscv64': 'ia32',
+    'simx64': 'arm',
+    'simx64c': 'arm',
     'riscv32': 'riscv',
     'riscv64': 'riscv',
 }
@@ -174,7 +176,7 @@ def HostArchitectures():
             # X64 Macs no longer support IA32.
             return ['x64']
     else:
-        if m in ['aarch64', 'arm64', 'arm64e']:
+        if m in ['aarch64', 'arm64', 'arm64e', 'ARM64']:
             return ['arm64']
         if m in ['armv7l']:
             return ['arm']

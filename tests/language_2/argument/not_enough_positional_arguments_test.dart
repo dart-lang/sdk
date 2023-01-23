@@ -25,8 +25,9 @@ class B {
 class C extends A {
   C()
     : super.test(b: 1)
-    //          ^^^^^^
+    //           ^
     // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+    //          ^^^^^^
     // [cfe] Too few positional arguments: 1 required, 0 given.
     //           ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_NAMED_PARAMETER
@@ -41,34 +42,39 @@ class D {
 class E extends D {
   E()
     : super.test(b: 1)
-    //          ^^^^^^
+    //           ^
     // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+    //          ^^^^^^
     // [cfe] Too few positional arguments: 1 required, 0 given.
   ;
 }
 
 main() {
   new A.test(b: 1);
-  //        ^^^^^^
+  //         ^
   // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+  //        ^^^^^^
   // [cfe] Too few positional arguments: 1 required, 0 given.
   //         ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_NAMED_PARAMETER
   new B();
   new C();
   new D.test(b: 1);
-  //        ^^^^^^
+  //         ^
   // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+  //        ^^^^^^
   // [cfe] Too few positional arguments: 1 required, 0 given.
   new E();
   foo(b: 1);
-  // ^^^^^^
+  //  ^
   // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+  // ^^^^^^
   // [cfe] Too few positional arguments: 1 required, 0 given.
   //  ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_NAMED_PARAMETER
   bar(b: 1);
-  // ^^^^^^
+  //  ^
   // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+  // ^^^^^^
   // [cfe] Too few positional arguments: 1 required, 0 given.
 }

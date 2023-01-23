@@ -117,11 +117,45 @@ class ObjectGraph : public ThreadStackResource {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ObjectGraph);
 };
 
+class ChunkedWriter : public ThreadStackResource {
+ public:
+  explicit ChunkedWriter(Thread* thread) : ThreadStackResource(thread) {}
+
+  virtual intptr_t ReserveChunkPrefixSize() { return 0; }
+
+  // Takes ownership of [buffer], must be freed with [malloc].
+  virtual void WriteChunk(uint8_t* buffer, intptr_t size, bool last) = 0;
+};
+
+class FileHeapSnapshotWriter : public ChunkedWriter {
+ public:
+  FileHeapSnapshotWriter(Thread* thread, const char* filename);
+  ~FileHeapSnapshotWriter();
+
+  virtual void WriteChunk(uint8_t* buffer, intptr_t size, bool last);
+
+ private:
+  void* file_ = nullptr;
+};
+
+class VmServiceHeapSnapshotChunkedWriter : public ChunkedWriter {
+ public:
+  explicit VmServiceHeapSnapshotChunkedWriter(Thread* thread)
+      : ChunkedWriter(thread) {}
+
+  virtual intptr_t ReserveChunkPrefixSize() { return kMetadataReservation; }
+  virtual void WriteChunk(uint8_t* buffer, intptr_t size, bool last);
+
+ private:
+  static const intptr_t kMetadataReservation = 512;
+};
+
 // Generates a dump of the heap, whose format is described in
 // runtime/vm/service/heap_snapshot.md.
 class HeapSnapshotWriter : public ThreadStackResource {
  public:
-  explicit HeapSnapshotWriter(Thread* thread) : ThreadStackResource(thread) {}
+  HeapSnapshotWriter(Thread* thread, ChunkedWriter* writer)
+      : ThreadStackResource(thread), writer_(writer) {}
 
   void WriteSigned(int64_t value) {
     EnsureAvailable((sizeof(value) * kBitsPerByte) / 7 + 1);
@@ -183,6 +217,7 @@ class HeapSnapshotWriter : public ThreadStackResource {
   void ClearObjectIds();
   void CountReferences(intptr_t count);
   void CountExternalProperty();
+  void AddSmi(SmiPtr smi);
 
   void Write();
 
@@ -191,7 +226,6 @@ class HeapSnapshotWriter : public ThreadStackResource {
  private:
   static uint32_t GetHashHelper(Thread* thread, ObjectPtr obj);
 
-  static const intptr_t kMetadataReservation = 512;
   static const intptr_t kPreferredChunkSize = MB;
 
   void SetupCountingPages();
@@ -200,6 +234,8 @@ class HeapSnapshotWriter : public ThreadStackResource {
 
   void EnsureAvailable(intptr_t needed);
   void Flush(bool last = false);
+
+  ChunkedWriter* writer_ = nullptr;
 
   uint8_t* buffer_ = nullptr;
   intptr_t size_ = 0;
@@ -218,6 +254,8 @@ class HeapSnapshotWriter : public ThreadStackResource {
   // {instructions, data} x {vm isolate, current isolate}
   static const intptr_t kMaxImagePages = 4;
   ImagePageRange image_page_ranges_[kMaxImagePages];
+
+  MallocGrowableArray<SmiPtr> smis_;
 
   DISALLOW_COPY_AND_ASSIGN(HeapSnapshotWriter);
 };

@@ -55,8 +55,11 @@ class DevToolsServer {
   static ArgParser buildArgParser({
     bool verbose = false,
     bool includeHelpOption = true,
+    int? usageLineLength,
   }) {
-    final argParser = ArgParser();
+    final argParser = ArgParser(
+      usageLineLength: usageLineLength,
+    );
 
     if (includeHelpOption) {
       argParser.addFlag(
@@ -504,7 +507,7 @@ class DevToolsServer {
         params.containsKey('notify') && params['notify'] == true;
     final page = params['page'];
     if (canReuse &&
-        _tryReuseExistingDevToolsInstance(
+        await _tryReuseExistingDevToolsInstance(
           vmServiceUri,
           page,
           shouldNotify,
@@ -583,15 +586,20 @@ class DevToolsServer {
     print('Writing memory profile samples to $profileFile...');
   }
 
-  bool _tryReuseExistingDevToolsInstance(
+  /// Tries to reuse an existing DevTools instance.
+  ///
+  /// Because SSE connections have timeouts that prevent us knowing if a client
+  /// has really gone away for up to 30s, this method will attempt to ping
+  /// candidate first to see if it is still responsive.
+  Future<bool> _tryReuseExistingDevToolsInstance(
     Uri vmServiceUri,
     String? page,
     bool notifyUser,
-  ) {
+  ) async {
     // First try to find a client that's already connected to this VM service,
     // and just send the user a notification for that one.
     final existingClient =
-        clientManager.findExistingConnectedReusableClient(vmServiceUri);
+        await clientManager.findExistingConnectedReusableClient(vmServiceUri);
     if (existingClient != null) {
       try {
         if (page != null) {
@@ -607,7 +615,7 @@ class DevToolsServer {
       }
     }
 
-    final reusableClient = clientManager.findReusableClient();
+    final reusableClient = await clientManager.findReusableClient();
     if (reusableClient != null) {
       try {
         reusableClient.connectToVmService(vmServiceUri, notifyUser);

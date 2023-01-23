@@ -16,6 +16,7 @@ import 'package:js/js.dart';
 
 import '../native_testing.dart';
 import '../native_testing.dart' as native_testing;
+import 'factory_stub_lib.dart';
 
 NativeClass makeNativeClass() native;
 
@@ -27,7 +28,7 @@ class NativeClass extends JavaScriptObject {
 @JS('NativeClass')
 @staticInterop
 class StaticNativeClass {
-  external StaticNativeClass();
+  external factory StaticNativeClass();
   factory StaticNativeClass.redirectingFactory() = StaticNativeClass;
   factory StaticNativeClass.simpleFactory() => StaticNativeClass();
   factory StaticNativeClass.factoryWithParam(
@@ -36,20 +37,12 @@ class StaticNativeClass {
   // This and `StaticNativeClassCopy.nestedFactory` exist to ensure that we
   // cover the case where invocations on factories are visible before their
   // declarations in the AST. This will test whether we correctly create the
-  // stub even if we haven't visited the declaration yet.
-  factory StaticNativeClass.nestedFactory() {
-    StaticNativeClassCopy.nestedFactory();
+  // stub even if we haven't visited the declaration yet. It will also test the
+  // case where stubs need to be added before function bodies are visited so
+  // that mutually recursive factories can resolve.
+  factory StaticNativeClass.nestedFactory({bool callCopyFactory = false}) {
+    if (callCopyFactory) StaticNativeClassCopy.nestedFactory();
     return StaticNativeClass();
-  }
-}
-
-@JS('NativeClass')
-@staticInterop
-class StaticNativeClassCopy {
-  external StaticNativeClassCopy();
-  factory StaticNativeClassCopy.nestedFactory() {
-    StaticNativeClass.simpleFactory();
-    return StaticNativeClassCopy();
   }
 }
 
@@ -71,5 +64,5 @@ void main() {
   StaticNativeClass staticNativeClass = StaticNativeClass.redirectingFactory();
   staticNativeClass = StaticNativeClass.simpleFactory();
   staticNativeClass = StaticNativeClass.factoryWithParam(staticNativeClass);
-  staticNativeClass = StaticNativeClass.nestedFactory();
+  staticNativeClass = StaticNativeClass.nestedFactory(callCopyFactory: true);
 }

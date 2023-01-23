@@ -58,7 +58,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * * [MediaStream.supported]
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
-  Future<MediaStream> getUserMedia({audio: false, video: false}) {
+  Future<MediaStream> getUserMedia({audio = false, video = false}) {
     var completer = new Completer<MediaStream>();
     var options = {
       'audio': audio,

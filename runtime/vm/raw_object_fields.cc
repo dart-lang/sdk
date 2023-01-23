@@ -2,12 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <type_traits>
+
 #include "vm/raw_object_fields.h"
 
 namespace dart {
 
 #if defined(DART_PRECOMPILER) || !defined(PRODUCT)
 
+// The list contains concrete classes and all of their fields (including ones
+// from super hierarchy)
+// If a class is listed here, only the fields in the list will appear in
+// heapsnapshots.
 #define COMMON_CLASSES_AND_FIELDS(F)                                           \
   F(Class, name_)                                                              \
   F(Class, functions_)                                                         \
@@ -129,7 +135,6 @@ namespace dart {
   F(TypeArguments, nullability_)                                               \
   F(AbstractType, type_test_stub_)                                             \
   F(Type, type_test_stub_)                                                     \
-  F(Type, type_class_id_)                                                      \
   F(Type, arguments_)                                                          \
   F(Type, hash_)                                                               \
   F(FunctionType, type_test_stub_)                                             \
@@ -161,18 +166,30 @@ namespace dart {
   F(GrowableObjectArray, type_arguments_)                                      \
   F(GrowableObjectArray, length_)                                              \
   F(GrowableObjectArray, data_)                                                \
-  F(LinkedHashMap, type_arguments_)                                            \
-  F(LinkedHashMap, index_)                                                     \
-  F(LinkedHashMap, hash_mask_)                                                 \
-  F(LinkedHashMap, data_)                                                      \
-  F(LinkedHashMap, used_data_)                                                 \
-  F(LinkedHashSet, deleted_keys_)                                              \
-  F(LinkedHashSet, type_arguments_)                                            \
-  F(LinkedHashSet, index_)                                                     \
-  F(LinkedHashSet, hash_mask_)                                                 \
-  F(LinkedHashSet, data_)                                                      \
-  F(LinkedHashSet, used_data_)                                                 \
-  F(LinkedHashSet, deleted_keys_)                                              \
+  F(Map, type_arguments_)                                                      \
+  F(Map, index_)                                                               \
+  F(Map, hash_mask_)                                                           \
+  F(Map, data_)                                                                \
+  F(Map, used_data_)                                                           \
+  F(Map, deleted_keys_)                                                        \
+  F(ConstMap, type_arguments_)                                                 \
+  F(ConstMap, index_)                                                          \
+  F(ConstMap, hash_mask_)                                                      \
+  F(ConstMap, data_)                                                           \
+  F(ConstMap, used_data_)                                                      \
+  F(ConstMap, deleted_keys_)                                                   \
+  F(Set, type_arguments_)                                                      \
+  F(Set, index_)                                                               \
+  F(Set, hash_mask_)                                                           \
+  F(Set, data_)                                                                \
+  F(Set, used_data_)                                                           \
+  F(Set, deleted_keys_)                                                        \
+  F(ConstSet, type_arguments_)                                                 \
+  F(ConstSet, index_)                                                          \
+  F(ConstSet, hash_mask_)                                                      \
+  F(ConstSet, data_)                                                           \
+  F(ConstSet, used_data_)                                                      \
+  F(ConstSet, deleted_keys_)                                                   \
   F(TypedData, length_)                                                        \
   F(ExternalTypedData, length_)                                                \
   F(ReceivePort, send_port_)                                                   \
@@ -214,13 +231,13 @@ namespace dart {
   F(FinalizerEntry, next_)                                                     \
   F(MirrorReference, referent_)                                                \
   F(UserTag, label_)                                                           \
-  F(PointerBase, data_)                                                        \
+  F(Pointer, data_)                                                            \
   F(Pointer, type_arguments_)                                                  \
   F(DynamicLibrary, handle_)                                                   \
   F(FfiTrampolineData, c_signature_)                                           \
   F(FfiTrampolineData, callback_target_)                                       \
   F(FfiTrampolineData, callback_exceptional_return_)                           \
-  F(TypedDataBase, length_)                                                    \
+  F(TypedDataView, length_)                                                    \
   F(TypedDataView, typed_data_)                                                \
   F(TypedDataView, offset_in_bytes_)                                           \
   F(FutureOr, type_arguments_)
@@ -276,10 +293,17 @@ OffsetsTable::offsets_table() {
   return field_offsets_table;
 }
 
+template <typename T>
+bool is_compressed_pointer() {
+  return std::is_base_of<CompressedObjectPtr, T>::value;
+}
+
 void OffsetsTable::Init() {
 #define DEFINE_OFFSETS_TABLE_ENTRY(class_name, field_name)                     \
-  field_offsets_table.Add({class_name::kClassId, #field_name,                  \
-                           OFFSET_OF(Untagged##class_name, field_name)});
+  field_offsets_table.Add(                                                     \
+      {class_name::kClassId, #field_name,                                      \
+       is_compressed_pointer<decltype(Untagged##class_name::field_name)>(),    \
+       OFFSET_OF(Untagged##class_name, field_name)});
 
   COMMON_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #if !defined(PRODUCT)

@@ -8,7 +8,8 @@ import 'io.dart' show readBytesFromFileSync;
 
 import 'scanner.dart' show ErrorToken, Token, scan;
 
-scanAll(Map<Uri, List<int>> files, {bool verbose: false, bool verify: false}) {
+scanAll(Map<Uri, List<int>> files,
+    {bool verbose = false, bool verify = false}) {
   Stopwatch sw = new Stopwatch()..start();
   int byteCount = 0;
   files.forEach((Uri uri, List<int> bytes) {

@@ -17,10 +17,17 @@ import '../../test/utils/io_utils.dart' show computeRepoDirUri;
 
 void main(List<String> arguments) {
   final Uri repoDir = computeRepoDirUri();
+  new File.fromUri(computeFeAnalyzerSharedGeneratedFile(repoDir))
+      .writeAsStringSync(generateFeAnalyzerSharedFile(repoDir), flush: true);
   new File.fromUri(computeCfeGeneratedFile(repoDir))
       .writeAsStringSync(generateCfeFile(repoDir), flush: true);
   new File.fromUri(computeKernelGeneratedFile(repoDir))
       .writeAsStringSync(generateKernelFile(repoDir), flush: true);
+}
+
+Uri computeFeAnalyzerSharedGeneratedFile(Uri repoDir) {
+  return repoDir
+      .resolve("pkg/_fe_analyzer_shared/lib/src/experiments/flags.dart");
 }
 
 Uri computeCfeGeneratedFile(Uri repoDir) {
@@ -38,6 +45,142 @@ Uri computeYamlFile(Uri repoDir) {
 
 Uri computeAllowListFile(Uri repoDir) {
   return repoDir.resolve("sdk/lib/_internal/allowed_experiments.json");
+}
+
+String _getFeatureCategory(Map<dynamic, dynamic> feature) {
+  return feature["category"] ?? "language";
+}
+
+bool _isLanguageFeature(String category) {
+  return category == "language";
+}
+
+bool _isCfeFeature(String category) {
+  return _isLanguageFeature(category) || category == "CFE";
+}
+
+String generateFeAnalyzerSharedFile(Uri repoDir) {
+  Uri yamlFile = computeYamlFile(repoDir);
+  Map<dynamic, dynamic> yaml =
+      loadYaml(new File.fromUri(yamlFile).readAsStringSync());
+
+  int currentVersionMajor;
+  int currentVersionMinor;
+  {
+    String currentVersion = getAsVersionNumberString(yaml['current-version'])!;
+    List<String> split = currentVersion.split(".");
+    currentVersionMajor = int.parse(split[0]);
+    currentVersionMinor = int.parse(split[1]);
+  }
+
+  StringBuffer sb = new StringBuffer();
+
+  sb.write('''
+// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
+//
+// Instead modify 'tools/experimental_features.yaml' and run
+// 'dart pkg/front_end/tool/fasta.dart generate-experimental-flags' to update.
+
+/// Enum for experimental flags shared between the CFE and the analyzer.
+enum ExperimentalFlag {
+''');
+
+  Map<String, dynamic> features = {};
+  Map<dynamic, dynamic> yamlFeatures = yaml['features'];
+  for (MapEntry<dynamic, dynamic> entry in yamlFeatures.entries) {
+    String category = _getFeatureCategory(entry.value);
+    if (!_isLanguageFeature(category)) {
+      // Skip a feature with a category that's not language.
+      // In the future we might want to generate different code for different
+      // things.
+      continue;
+    }
+    features[entry.key] = entry.value;
+  }
+
+  List<String> keys = features.keys.toList()..sort();
+  for (String key in keys) {
+    String identifier = keyToIdentifier(key);
+    int enabledInMajor;
+    int enabledInMinor;
+    String? enabledIn =
+        getAsVersionNumberString((features[key] as YamlMap)['enabledIn']);
+    if (enabledIn == null) {
+      enabledInMajor = currentVersionMajor;
+      enabledInMinor = currentVersionMinor;
+    } else {
+      List<String> split = enabledIn.split(".");
+      enabledInMajor = int.parse(split[0]);
+      enabledInMinor = int.parse(split[1]);
+    }
+    bool? expired = (features[key] as YamlMap)['expired'];
+    bool shipped = (features[key] as YamlMap)['enabledIn'] != null;
+    if (shipped) {
+      if (expired == false) {
+        throw 'Cannot mark shipped feature "$key" as "expired: false"';
+      }
+    }
+    int releaseMajor;
+    int releaseMinor;
+    String? experimentalReleaseVersion = getAsVersionNumberString(
+        (features[key] as YamlMap)['experimentalReleaseVersion']);
+    if (experimentalReleaseVersion != null) {
+      List<String> split = experimentalReleaseVersion.split(".");
+      releaseMajor = int.parse(split[0]);
+      releaseMinor = int.parse(split[1]);
+    } else if (enabledIn != null) {
+      List<String> split = enabledIn.split(".");
+      releaseMajor = int.parse(split[0]);
+      releaseMinor = int.parse(split[1]);
+    } else {
+      releaseMajor = currentVersionMajor;
+      releaseMinor = currentVersionMinor;
+    }
+
+    sb.writeln('''
+  ${identifier}(
+      name: '$key',
+      isEnabledByDefault: $shipped,
+      isExpired: ${expired == true},
+      experimentEnabledVersion: const Version($enabledInMajor, $enabledInMinor),
+      experimentReleasedVersion: const Version($releaseMajor, $releaseMinor)),
+''');
+  }
+  sb.write('''
+  ;
+
+  final String name;
+  final bool isEnabledByDefault;
+  final bool isExpired;
+  final Version experimentEnabledVersion;
+  final Version experimentReleasedVersion;
+
+  const ExperimentalFlag({
+      required this.name,
+      required this.isEnabledByDefault,
+      required this.isExpired,
+      required this.experimentEnabledVersion,
+      required this.experimentReleasedVersion});
+}
+
+class Version {
+  final int major;
+  final int minor;
+
+  const Version(this.major, this.minor);
+
+  String toText() => '\$major.\$minor';
+
+  @override
+  String toString() => toText();
+}
+''');
+
+  return new DartFormatter().format("$sb");
 }
 
 String generateKernelFile(Uri repoDir) {
@@ -106,8 +249,8 @@ part of 'experimental_flags.dart';
   Map<String, dynamic> features = {};
   Map<dynamic, dynamic> yamlFeatures = yaml['features'];
   for (MapEntry<dynamic, dynamic> entry in yamlFeatures.entries) {
-    String category = entry.value["category"] ?? "language";
-    if (category != "language" && category != "CFE") {
+    String category = _getFeatureCategory(entry.value);
+    if (!_isCfeFeature(category)) {
       // Skip a feature with a category that's not language or CFE.
       // In the future we might want to generate different code for different
       // things.
@@ -294,6 +437,30 @@ class LibraryFeatures {
           libraryVersion);
 ''');
   }
+
+  sb.write('''
+
+  /// Returns the [LibraryFeature] corresponding to [experimentalFlag].
+  LibraryFeature fromSharedExperimentalFlags(
+      shared.ExperimentalFlag experimentalFlag) {
+    switch (experimentalFlag) {
+  ''');
+  for (String key in keys) {
+    String category = _getFeatureCategory(features[key]!);
+    if (!_isLanguageFeature(category)) continue;
+
+    String identifier = keyToIdentifier(key);
+    sb.writeln('''
+      case shared.ExperimentalFlag.${identifier}:
+        return ${identifier};''');
+  }
+  sb.write('''
+      default:
+        throw new UnsupportedError(
+            'LibraryFeatures.fromSharedExperimentalFlags(\$experimentalFlag)');
+    }
+  }
+  ''');
   sb.write('''
 }
 ''');
@@ -355,6 +522,22 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
     sb.writeln('},');
   });
   sb.writeln('});');
+
+  sb.write('''
+  const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags 
+     = {
+  ''');
+  for (String key in keys) {
+    String category = _getFeatureCategory(features[key]!);
+    if (!_isLanguageFeature(category)) continue;
+
+    sb.writeln('''
+    shared.ExperimentalFlag.${keyToIdentifier(key)}:
+    ExperimentalFlag.${keyToIdentifier(key)},''');
+  }
+  sb.write('''
+  };
+  ''');
 
   return new DartFormatter().format("$sb");
 }

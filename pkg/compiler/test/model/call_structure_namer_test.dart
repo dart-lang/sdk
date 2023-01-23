@@ -12,14 +12,14 @@ import 'package:expect/expect.dart';
 main() {
   asyncTest(() async {
     test(List<String> expectedSuffixes,
-        {int positionalParameters: 0,
-        int typeParameters: 0,
-        List<String> namedParameters: const <String>[]}) {
+        {int positionalParameters = 0,
+        int typeParameters = 0,
+        List<String> namedParameters = const <String>[]}) {
       CallStructure callStructure = new CallStructure(
           positionalParameters + namedParameters.length,
           namedParameters,
           typeParameters);
-      List<String> actualSuffixes = Namer.callSuffixForStructure(callStructure);
+      List<String> actualSuffixes = callSuffixForStructure(callStructure);
       Expect.listEquals(
           expectedSuffixes,
           actualSuffixes,

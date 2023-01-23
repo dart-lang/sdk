@@ -24,15 +24,19 @@ class TypeTestingStubNamer {
   //
   // (only during dart_boostrap).
   const char* StubNameForType(const AbstractType& type) const;
+  void WriteStubNameForTypeTo(BaseTextBuffer* buffer,
+                              const AbstractType& type) const;
 
  private:
-  const char* StringifyType(const AbstractType& type) const;
-  static const char* AssemblerSafeName(char* cname);
+  void StringifyTypeTo(BaseTextBuffer* buffer, const AbstractType& type) const;
+  // Converts the contents of the buffer to an assembly-safe name.
+  static void MakeNameAssemblerSafe(BaseTextBuffer* buffer);
 
   Library& lib_;
   Class& klass_;
   AbstractType& type_;
   String& string_;
+  mutable intptr_t nonce_ = 0;
 };
 
 class TypeTestingStubGenerator {
@@ -209,6 +213,9 @@ class TypeArgumentClassFinder {
       return false;
     } else if (type.IsFunctionType()) {
       // No support for function types yet.
+      return false;
+    } else if (type.IsRecordType()) {
+      // No support for record types yet.
       return false;
     } else if (type.IsTypeRef()) {
       // No support for recursive types.

@@ -11,6 +11,7 @@ import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/dart_completion_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
@@ -18,6 +19,7 @@ import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -88,7 +90,7 @@ class MemberSuggestionBuilder {
   void addSuggestionForAccessor(
       {required PropertyAccessorElement accessor,
       required double inheritanceDistance}) {
-    if (accessor.isAccessibleIn2(request.libraryElement)) {
+    if (accessor.isAccessibleIn(request.libraryElement)) {
       var member = accessor.isSynthetic ? accessor.variable : accessor;
       if (_shouldAddSuggestion(member)) {
         builder.suggestAccessor(accessor,
@@ -102,7 +104,7 @@ class MemberSuggestionBuilder {
       {required MethodElement method,
       required CompletionSuggestionKind kind,
       required double inheritanceDistance}) {
-    if (method.isAccessibleIn2(request.libraryElement) &&
+    if (method.isAccessibleIn(request.libraryElement) &&
         _shouldAddSuggestion(method)) {
       builder.suggestMethod(method,
           kind: kind, inheritanceDistance: inheritanceDistance);
@@ -179,6 +181,13 @@ class SuggestionBuilder {
   /// because of exports.
   String? libraryUriStr;
 
+  /// URIs that should be imported (that are not already) for all types in the
+  /// completion.
+  ///
+  /// Includes a [URI] for [libraryUriStr] only if the items being suggested are
+  /// not already imported.
+  Set<Uri> requiredImports = {};
+
   /// This flag is set to `true` while adding suggestions for top-level
   /// elements from not-yet-imported libraries.
   bool isNotImportedLibrary = false;
@@ -222,7 +231,7 @@ class SuggestionBuilder {
         var containingMethod = request.target.containingNode
             .thisOrAncestorOfType<MethodDeclaration>();
         if (containingMethod != null) {
-          _cachedContainingMemberName = containingMethod.name.name;
+          _cachedContainingMemberName = containingMethod.name.lexeme;
         }
       }
     }
@@ -321,22 +330,6 @@ class SuggestionBuilder {
     );
   }
 
-  /// Add a suggestion for a [classElement]. If the class can only be
-  /// referenced using a prefix, then the [prefix] should be provided.
-  void suggestClass(ClassElement classElement, {String? prefix}) {
-    var relevance = _computeTopLevelRelevance(classElement,
-        elementType: _instantiateClassElement(classElement));
-    _addBuilder(
-      _createCompletionSuggestionBuilder(
-        classElement,
-        kind: CompletionSuggestionKind.IDENTIFIER,
-        prefix: prefix,
-        relevance: relevance,
-        isNotImported: isNotImportedLibrary,
-      ),
-    );
-  }
-
   /// Add a suggestion to insert a closure matching the given function [type].
   /// If [includeTrailingComma] is `true` then the completion text will include
   /// a trailing comma, such as when the closure is part of an argument list.
@@ -365,7 +358,7 @@ class SuggestionBuilder {
       required String displayText,
       required int selectionOffset,
     }) {
-      return CompletionSuggestion(
+      return DartCompletionSuggestion(
         CompletionSuggestionKind.INVOCATION,
         Relevance.closure,
         completion,
@@ -374,6 +367,7 @@ class SuggestionBuilder {
         false,
         false,
         displayText: displayText,
+        dartElement: type.element,
       );
     }
 
@@ -431,7 +425,7 @@ class SuggestionBuilder {
       return;
     }
 
-    var returnType = _instantiateClassElement(enclosingClass);
+    var returnType = _instantiateInterfaceElement(enclosingClass);
     var relevance =
         _computeTopLevelRelevance(constructor, elementType: returnType);
     _addBuilder(
@@ -450,8 +444,8 @@ class SuggestionBuilder {
   /// will be used as the kind for the suggestion.
   void suggestElement(Element element,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
-    if (element is ClassElement) {
-      suggestClass(element);
+    if (element is InterfaceElement) {
+      suggestInterface(element);
     } else if (element is ConstructorElement) {
       suggestConstructor(element, kind: kind);
     } else if (element is ExtensionElement) {
@@ -583,6 +577,22 @@ class SuggestionBuilder {
         parameterTypes: [],
         requiredParameterCount: 0,
         hasNamedParameters: false,
+      ),
+    );
+  }
+
+  /// Add a suggestion for an [element]. If the class can only be
+  /// referenced using a prefix, then the [prefix] should be provided.
+  void suggestInterface(InterfaceElement element, {String? prefix}) {
+    var relevance = _computeTopLevelRelevance(element,
+        elementType: _instantiateInterfaceElement(element));
+    _addBuilder(
+      _createCompletionSuggestionBuilder(
+        element,
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        prefix: prefix,
+        relevance: relevance,
+        isNotImported: isNotImportedLibrary,
       ),
     );
   }
@@ -723,7 +733,7 @@ class SuggestionBuilder {
       buffer.write('$indent});');
 
       _addSuggestion(
-        CompletionSuggestion(
+        DartCompletionSuggestion(
           kind,
           relevance,
           buffer.toString(),
@@ -733,6 +743,7 @@ class SuggestionBuilder {
           false,
           // Let the user know that we are going to insert a complete statement.
           displayText: 'setState(() {});',
+          dartElement: method,
         ),
         textToMatchOverride: 'setState',
       );
@@ -781,9 +792,12 @@ class SuggestionBuilder {
     // If appendColon is false, default values should never be appended.
     if (element is ConstructorElement && appendColon) {
       if (Flutter.instance.isWidget(element.enclosingElement)) {
+        var codeStyleOptions = request
+            .analysisSession.analysisContext.analysisOptions.codeStyleOptions;
         // Don't bother with nullability. It won't affect default list values.
-        var defaultValue =
-            getDefaultStringParameterValue(parameter, withNullability: false);
+        var defaultValue = getDefaultStringParameterValue(
+            parameter, codeStyleOptions,
+            withNullability: false);
         // TODO(devoncarew): Should we remove the check here? We would then
         // suggest values for param types like closures.
         if (defaultValue != null && defaultValue.text == '[]') {
@@ -808,7 +822,7 @@ class SuggestionBuilder {
       relevance = Relevance.namedArgument;
     }
 
-    var suggestion = CompletionSuggestion(
+    var suggestion = DartCompletionSuggestion(
         CompletionSuggestionKind.NAMED_ARGUMENT,
         relevance,
         completion,
@@ -818,7 +832,8 @@ class SuggestionBuilder {
         false,
         parameterName: name,
         parameterType: type,
-        replacementLength: replacementLength);
+        replacementLength: replacementLength,
+        dartElement: parameter);
     if (parameter is FieldFormalParameterElement) {
       _setDocumentation(suggestion, parameter);
       suggestion.element =
@@ -828,21 +843,63 @@ class SuggestionBuilder {
     _addSuggestion(suggestion);
   }
 
+  /// Add a suggestion to add a named argument corresponding to the [field].
+  /// If [appendColon] is `true` then a colon will be added after the name. If
+  /// [appendComma] is `true` then a comma will be included at the end of the
+  /// completion text.
+  void suggestNamedRecordField(RecordTypeNamedField field,
+      {required bool appendColon,
+      required bool appendComma,
+      int? replacementLength}) {
+    final name = field.name;
+    final type = field.type.getDisplayString(
+      withNullability: _isNonNullableByDefault,
+    );
+
+    var completion = name;
+    if (appendColon) {
+      completion += ': ';
+    }
+    final selectionOffset = completion.length;
+
+    if (appendComma) {
+      completion += ',';
+    }
+
+    _addSuggestion(
+      CompletionSuggestion(
+        CompletionSuggestionKind.NAMED_ARGUMENT,
+        Relevance.requiredNamedArgument,
+        completion,
+        selectionOffset,
+        0,
+        false,
+        false,
+        parameterName: name,
+        parameterType: type,
+        replacementLength: replacementLength,
+      ),
+    );
+  }
+
   /// Add a suggestion to replace the [targetId] with an override of the given
   /// [element]. If [invokeSuper] is `true`, then the override will contain an
   /// invocation of an overridden member.
-  Future<void> suggestOverride(SimpleIdentifier targetId,
-      ExecutableElement element, bool invokeSuper) async {
+  Future<void> suggestOverride(
+      Token targetId, ExecutableElement element, bool invokeSuper) async {
     var displayTextBuffer = StringBuffer();
+    var overrideImports = <Uri>{};
     var builder = ChangeBuilder(session: request.analysisSession);
-    await builder.addDartFileEdit(request.path, (builder) {
-      builder.addReplacement(range.node(targetId), (builder) {
+    await builder.addDartFileEdit(request.path, createEditsForImports: false,
+        (builder) {
+      builder.addReplacement(range.token(targetId), (builder) {
         builder.writeOverride(
           element,
           displayTextBuffer: displayTextBuffer,
           invokeSuper: invokeSuper,
         );
       });
+      overrideImports.addAll(builder.requiredImports);
     });
 
     var fileEdits = builder.sourceChange.edits;
@@ -873,7 +930,7 @@ class SuggestionBuilder {
     var offsetDelta = targetId.offset + replacement.indexOf(completion);
     var displayText =
         displayTextBuffer.isNotEmpty ? displayTextBuffer.toString() : null;
-    var suggestion = CompletionSuggestion(
+    var suggestion = DartCompletionSuggestion(
         CompletionSuggestionKind.OVERRIDE,
         Relevance.override,
         completion,
@@ -881,7 +938,9 @@ class SuggestionBuilder {
         selectionRange.length,
         element.hasDeprecated,
         false,
-        displayText: displayText);
+        displayText: displayText,
+        dartElement: element,
+        requiredImports: overrideImports.toList());
     suggestion.element = protocol.convertElement(element,
         withNullability: _isNonNullableByDefault);
     _addSuggestion(
@@ -932,6 +991,36 @@ class SuggestionBuilder {
         kind: CompletionSuggestionKind.IDENTIFIER,
         relevance: relevance,
         isNotImported: isNotImportedLibrary,
+      ),
+    );
+  }
+
+  void suggestRecordField({
+    required RecordTypeField field,
+    required String name,
+  }) {
+    final type = field.type;
+    final featureComputer = request.featureComputer;
+    final contextType =
+        featureComputer.contextTypeFeature(request.contextType, type);
+    final relevance = _computeRelevance(
+      contextType: contextType,
+    );
+
+    final returnType = field.type.getDisplayString(
+      withNullability: _isNonNullableByDefault,
+    );
+
+    _addSuggestion(
+      CompletionSuggestion(
+        CompletionSuggestionKind.IDENTIFIER,
+        relevance,
+        name,
+        name.length,
+        0,
+        false,
+        false,
+        returnType: returnType,
       ),
     );
   }
@@ -1275,6 +1364,7 @@ class SuggestionBuilder {
       completionOverride: completion,
       relevance: relevance,
       libraryUriStr: libraryUriStr,
+      requiredImports: requiredImports.toList(),
       isNotImported: isNotImported,
     );
   }
@@ -1297,7 +1387,7 @@ class SuggestionBuilder {
     var enclosingElement = element.enclosingElement;
 
     String? declaringType;
-    if (enclosingElement is ClassElement) {
+    if (enclosingElement is InterfaceElement) {
       declaringType = enclosingElement.displayName;
     }
 
@@ -1345,6 +1435,7 @@ class SuggestionBuilder {
       documentation: documentation,
       defaultArgumentList: defaultArgumentList,
       element: suggestedElement,
+      dartElement: element,
     );
   }
 
@@ -1354,7 +1445,7 @@ class SuggestionBuilder {
   /// we either fail with assertion, or return `null`.
   String? _enclosingClassOrExtensionName(Element element) {
     var enclosing = element.enclosingElement;
-    if (enclosing is ClassElement) {
+    if (enclosing is InterfaceElement) {
       return enclosing.name;
     } else if (enclosing is ExtensionElement) {
       return enclosing.name;
@@ -1417,7 +1508,7 @@ class SuggestionBuilder {
     }
   }
 
-  InterfaceType _instantiateClassElement(ClassElement element) {
+  InterfaceType _instantiateInterfaceElement(InterfaceElement element) {
     var typeParameters = element.typeParameters;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
@@ -1549,6 +1640,7 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
 
   final String? completionOverride;
   final String? libraryUriStr;
+  final List<Uri> requiredImports;
   final bool isNotImported;
 
   _CompletionSuggestionBuilderImpl({
@@ -1557,6 +1649,7 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
     required this.completionOverride,
     required this.relevance,
     required this.libraryUriStr,
+    required this.requiredImports,
     required this.isNotImported,
   });
 
@@ -1578,7 +1671,7 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
 
   @override
   CompletionSuggestion build() {
-    return CompletionSuggestion(
+    return DartCompletionSuggestion(
       kind,
       relevance,
       completion,
@@ -1599,6 +1692,8 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
       defaultArgumentListTextRanges: element.defaultArgumentList?.ranges,
       libraryUri: libraryUriStr,
       isNotImported: isNotImported ? true : null,
+      dartElement: element.dartElement,
+      requiredImports: requiredImports,
     );
   }
 }
@@ -1618,6 +1713,7 @@ class _ElementCompletionData {
   CompletionDefaultArgumentList? defaultArgumentList;
   final _ElementDocumentation? documentation;
   final protocol.Element element;
+  final Element dartElement;
 
   _ElementCompletionData({
     required this.completion,
@@ -1631,6 +1727,7 @@ class _ElementCompletionData {
     required this.defaultArgumentList,
     required this.documentation,
     required this.element,
+    required this.dartElement,
   });
 }
 

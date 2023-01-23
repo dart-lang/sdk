@@ -3,6 +3,10 @@ library from "org-dartlang-test:///b.dart" as b {
 //
 // Problems in library:
 //
+// org-dartlang-test:///b.dart:1:8: Error: Error when reading 'org-dartlang-test:///nonexisting.dart': File org-dartlang-test:///nonexisting.dart does not exist.
+// import "nonexisting.dart";
+//        ^
+//
 // org-dartlang-test:///b.dart:3:17: Error: Type 'A' not found.
 // class B extends A {}
 //                 ^
@@ -27,12 +31,5 @@ library from "org-dartlang-test:///main.dart" as main {
   }
 }
 library from "org-dartlang-test:///nonexisting.dart" as non {
-//
-// Problems in library:
-//
-// org-dartlang-test:///b.dart:1:8: Error: Error when reading 'org-dartlang-test:///nonexisting.dart': File org-dartlang-test:///nonexisting.dart does not exist.
-// import "nonexisting.dart";
-//        ^
-//
 
 }

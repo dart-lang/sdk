@@ -4,6 +4,8 @@
 
 import 'dart:collection';
 
+import 'package:path/path.dart' as p;
+
 import '../js_ast/js_ast.dart';
 
 /// The ES6 name for the Dart SDK.  All dart:* libraries are in this module.
@@ -14,13 +16,9 @@ const String dartSdkModule = 'dart_sdk';
 /// These are fixed by the dart:_rti library and are accessed through the
 /// `JsGetName` enum.
 abstract class FixedNames {
-  static const operatorIsPrefix = r'$is';
+  static const operatorIsPrefix = r'$is_';
   static const operatorSignature = r'$signature';
   static const rtiName = r'$ti';
-  // TODO(48585) Fix this name.
-  static const futureClassName = 'TODO';
-  // TODO(48585) Fix this name.
-  static const listClassName = 'TODO';
   static const rtiAsField = '_as';
   static const rtiIsField = '_is';
 }
@@ -468,4 +466,22 @@ String toJSIdentifier(String name) {
     return '\$$result';
   }
   return result;
+}
+
+/// Converts an entire arbitrary path string into a string compatible with
+/// JS identifier naming rules while conserving path information.
+///
+/// NOT guaranteed to result in a unique string. E.g.,
+///   1) '__' appears in a file name.
+///   2) An escaped '/' or '\' appears in a filename (a/b and a$47b).
+String pathToJSIdentifier(String path) {
+  path = p.normalize(path);
+  if (path.startsWith('/') || path.startsWith('\\')) {
+    path = path.substring(1, path.length);
+  }
+  return toJSIdentifier(path
+      .replaceAll('\\', '__')
+      .replaceAll('/', '__')
+      .replaceAll('..', '__')
+      .replaceAll('-', '_'));
 }

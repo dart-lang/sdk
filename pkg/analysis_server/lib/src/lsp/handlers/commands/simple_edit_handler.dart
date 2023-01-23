@@ -44,7 +44,17 @@ abstract class SimpleEditCommandHandler
     final lineInfo = unit.lineInfo;
     final workspaceEdit = toWorkspaceEdit(
       clientCapabilities,
-      [FileEditInformation(docIdentifier, lineInfo, edits)],
+      [
+        FileEditInformation(
+          docIdentifier,
+          lineInfo,
+          edits,
+          // New files are not supported from raw source edits. This is used
+          // only for Organize Imports / Sort Members which do not produce new
+          // files.
+          newFile: false,
+        )
+      ],
     );
 
     return sendWorkspaceEditToClient(workspaceEdit);

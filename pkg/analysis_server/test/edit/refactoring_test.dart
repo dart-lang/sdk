@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/services/refactoring/refactoring_manager.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/refactoring_manager.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -877,8 +879,7 @@ class GetAvailableRefactoringsTest extends PubPackageAnalysisServerTest {
     var request =
         EditGetAvailableRefactoringsParams(testFile.path, offset, length)
             .toRequest('0');
-    serverChannel.sendRequest(request);
-    var response = await serverChannel.waitForResponse(request);
+    var response = await serverChannel.sendRequest(request);
     var result = EditGetAvailableRefactoringsResult.fromResponse(response);
     kinds = result.kinds;
   }
@@ -1744,6 +1745,27 @@ void f() {
 ''');
   }
 
+  Future<void> test_classMember_field_onFieldFormalParameter_named_private() {
+    addTestFile('''
+class A {
+  final int test;
+  A({this.test = 0});
+}
+void f() {
+  A(test: 42);
+}
+''');
+
+    return getRefactoringResult(() {
+      return sendRenameRequest('test: 42', '_new');
+    }).then((result) {
+      var problems = result.finalProblems;
+      expect(problems, hasLength(1));
+      assertResultProblemsError(
+          problems, "The parameter 'test' is named and can not be private.");
+    });
+  }
+
   Future<void> test_classMember_getter() {
     addTestFile('''
 class A {
@@ -2186,6 +2208,27 @@ void f() {
     });
   }
 
+  Future<void> test_parameter_onDefaultParameter() {
+    addTestFile('''
+class A {
+  final int test;
+  A({int t = 0}) : test = t;
+}
+void f() {
+  A(t: 42);
+}
+''');
+
+    return getRefactoringResult(() {
+      return sendRenameRequest('t: 42', '_new');
+    }).then((result) {
+      var problems = result.finalProblems;
+      expect(problems, hasLength(1));
+      assertResultProblemsError(
+          problems, "The parameter 't' is named and can not be private.");
+    });
+  }
+
   Future<void> test_reset_afterCreateChange() {
     test_simulateRefactoringReset_afterCreateChange = true;
     addTestFile('''
@@ -2250,7 +2293,8 @@ void f() {
   print(otherName);
 }
 ''');
-    server.getAnalysisDriver(testFile.path)!.getResult(testFile.path);
+    unawaited(
+        server.getAnalysisDriver(testFile.path)!.getResult(testFile.path));
     // send the second request, with the same kind, file and offset
     await waitForTasksFinished();
     result = await getRefactoringResult(() {

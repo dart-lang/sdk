@@ -12,6 +12,7 @@ import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/js_backend/runtime_types_resolution.dart';
 import 'package:compiler/src/js_model/js_world.dart';
@@ -224,6 +225,9 @@ class FindTypeVisitor extends DartTypeVisitor<bool, Null> {
       type.element == entity || checkList(type.typeArguments);
 
   @override
+  bool visitRecordType(RecordType type, _) => throw UnimplementedError();
+
+  @override
   bool visitDynamicType(DynamicType type, _) => false;
 
   @override
@@ -245,8 +249,8 @@ class RtiNeedDataComputer extends DataComputer<String> {
   @override
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<String>> actualMap,
-      {bool verbose: false}) {
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+      {bool verbose = false}) {
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new RtiNeedIrComputer(compiler.reporter, actualMap, elementMap, compiler,
@@ -260,8 +264,8 @@ class RtiNeedDataComputer extends DataComputer<String> {
   @override
   void computeClassData(
       Compiler compiler, ClassEntity cls, Map<Id, ActualData<String>> actualMap,
-      {bool verbose: false}) {
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+      {bool verbose = false}) {
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     new RtiNeedIrComputer(compiler.reporter, actualMap, elementMap, compiler,
             closedWorld.closureDataLookup)
@@ -288,8 +292,9 @@ abstract class IrMixin implements ComputeValueMixin {
             frontendClass, backendMember.name);
       } else {
         return elementEnvironment.lookupClassMember(
-            frontendClass, backendMember.name,
-            setter: backendMember.isSetter);
+            frontendClass,
+            Name(backendMember.name, frontendClass.library.canonicalUri,
+                isSetter: backendMember.isSetter));
       }
     }
     return elementEnvironment.lookupLibraryMember(
@@ -309,7 +314,7 @@ abstract class IrMixin implements ComputeValueMixin {
 
   @override
   Local getFrontendClosure(MemberEntity member) {
-    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     ir.Node node = closedWorld.elementMap.getMemberDefinition(member).node;
     if (node is ir.FunctionDeclaration || node is ir.FunctionExpression) {
       KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;

@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 
@@ -14,26 +16,22 @@ class OverrideContributor extends DartCompletionContributor {
 
   @override
   Future<void> computeSuggestions() async {
-    var targetId = _getTargetId(request.target);
-    if (targetId == null) {
-      return;
-    }
-    var classDecl = targetId.thisOrAncestorOfType<ClassOrMixinDeclaration>();
-    if (classDecl == null) {
+    final target = _getTargetId(request.target);
+    if (target == null) {
       return;
     }
 
     var inheritance = InheritanceManager3();
 
     // Generate a collection of inherited members
-    var classElem = classDecl.declaredElement;
-    if (classElem == null) {
+    var interfaceElement = target.enclosingNode.enclosingInterfaceElement;
+    if (interfaceElement == null) {
       return;
     }
-    var interface = inheritance.getInterface(classElem);
+    var interface = inheritance.getInterface(interfaceElement);
     var interfaceMap = interface.map;
     var namesToOverride =
-        _namesToOverride(classElem.librarySource.uri, interface);
+        _namesToOverride(interfaceElement.librarySource.uri, interface);
 
     // Build suggestions
     for (var name in namesToOverride) {
@@ -41,16 +39,21 @@ class OverrideContributor extends DartCompletionContributor {
       // Gracefully degrade if the overridden element has not been resolved.
       if (element != null) {
         var invokeSuper = interface.isSuperImplemented(name);
-        await builder.suggestOverride(targetId, element, invokeSuper);
+        await builder.suggestOverride(target.id, element, invokeSuper);
       }
     }
   }
 
   /// If the target looks like a partial identifier inside a class declaration
   /// then return that identifier, otherwise return `null`.
-  SimpleIdentifier? _getTargetId(CompletionTarget target) {
+  _Target? _getTargetId(CompletionTarget target) {
     var node = target.containingNode;
-    if (node is ClassOrMixinDeclaration) {
+    if (node is ClassDeclaration) {
+      var entity = target.entity;
+      if (entity is FieldDeclaration) {
+        return _getTargetIdFromVarList(entity.fields);
+      }
+    } else if (node is MixinDeclaration) {
       var entity = target.entity;
       if (entity is FieldDeclaration) {
         return _getTargetIdFromVarList(entity.fields);
@@ -64,23 +67,23 @@ class OverrideContributor extends DartCompletionContributor {
     return null;
   }
 
-  SimpleIdentifier? _getTargetIdFromVarList(VariableDeclarationList fields) {
+  _Target? _getTargetIdFromVarList(VariableDeclarationList fields) {
     var variables = fields.variables;
     var type = fields.type;
     if (variables.length == 1) {
       var variable = variables[0];
       var targetId = variable.name;
-      if (targetId.name.isEmpty) {
+      if (targetId.lexeme.isEmpty) {
         // analyzer parser
         // Actual: class C { foo^ }
         // Parsed: class C { foo^ _s_ }
         //   where _s_ is a synthetic id inserted by the analyzer parser
-        return targetId;
+        return _Target(fields, targetId);
       } else if (fields.keyword == null &&
           type == null &&
           variable.initializer == null) {
         // fasta parser does not insert a synthetic identifier
-        return targetId;
+        return _Target(fields, targetId);
       } else if (fields.keyword == null &&
           type is NamedType &&
           type.typeArguments == null &&
@@ -93,7 +96,7 @@ class OverrideContributor extends DartCompletionContributor {
         // Parses as a variable list where `m` is the type and `String` is a
         // variable.
         var name = type.name;
-        return name is SimpleIdentifier ? name : null;
+        return name is SimpleIdentifier ? _Target(fields, name.token) : null;
       }
     }
     return null;
@@ -112,4 +115,11 @@ class OverrideContributor extends DartCompletionContributor {
     }
     return namesToOverride;
   }
+}
+
+class _Target {
+  final AstNode enclosingNode;
+  final Token id;
+
+  _Target(this.enclosingNode, this.id);
 }

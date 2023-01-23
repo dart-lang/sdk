@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "core_patch.dart";
+part of "core_patch.dart";
 
 // This function takes care of rehashing of the expandos in [objects]. We
 // do this eagerly after snapshot deserialization.
@@ -10,7 +10,7 @@
 void _rehashObjects(List objects) {
   final int length = objects.length;
   for (int i = 0; i < length; ++i) {
-    objects[i]._rehash();
+    unsafeCast<Expando>(objects[i])._rehash();
   }
 }
 
@@ -28,7 +28,6 @@ class Expando<T> {
 
   @patch
   T? operator [](Object object) {
-    // TODO(http://dartbug.com/48634): Rename to `key`.
     checkValidWeakTarget(object, 'object');
 
     var mask = _size - 1;
@@ -51,7 +50,6 @@ class Expando<T> {
 
   @patch
   void operator []=(Object object, T? value) {
-    // TODO(http://dartbug.com/48634): Rename to `key`.
     checkValidWeakTarget(object, 'object');
 
     var mask = _size - 1;
@@ -159,12 +157,12 @@ class Expando<T> {
 @patch
 class WeakReference<T extends Object> {
   @patch
-  factory WeakReference(T target) = _WeakReferenceImpl<T>;
+  factory WeakReference(T target) = _WeakReference<T>;
 }
 
 @pragma("vm:entry-point")
-class _WeakReferenceImpl<T extends Object> implements WeakReference<T> {
-  _WeakReferenceImpl(T target) {
+class _WeakReference<T extends Object> implements WeakReference<T> {
+  _WeakReference(T target) {
     checkValidWeakTarget(target, 'target');
     _target = target;
   }

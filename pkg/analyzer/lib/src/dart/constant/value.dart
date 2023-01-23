@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/constant/has_type_parameter_reference.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:meta/meta.dart';
@@ -157,10 +158,20 @@ class DartObjectImpl implements DartObject {
   final DartType type;
 
   /// The state of the object.
-  final InstanceState _state;
+  final InstanceState state;
 
-  /// Initialize a newly created object to have the given [type] and [_state].
-  DartObjectImpl(this._typeSystem, this.type, this._state);
+  @override
+  final VariableElement? variable;
+
+  /// Initialize a newly created object to have the given [type] and [state].
+  DartObjectImpl(this._typeSystem, this.type, this.state, {this.variable});
+
+  /// Creates a duplicate instance of [other], tied to [variable].
+  factory DartObjectImpl.forVariable(
+      DartObjectImpl other, VariableElement variable) {
+    return DartObjectImpl(other._typeSystem, other.type, other.state,
+        variable: variable);
+  }
 
   /// Create an object to represent an unknown value.
   factory DartObjectImpl.validWithUnknownValue(
@@ -179,42 +190,42 @@ class DartObjectImpl implements DartObject {
     return DartObjectImpl(typeSystem, type, GenericState.UNKNOWN_VALUE);
   }
 
-  Map<String, DartObjectImpl>? get fields => _state.fields;
+  Map<String, DartObjectImpl>? get fields => state.fields;
 
   @override
-  int get hashCode => Object.hash(type, _state);
+  int get hashCode => Object.hash(type, state);
 
   @override
-  bool get hasKnownValue => !_state.isUnknown;
+  bool get hasKnownValue => !state.isUnknown;
 
   /// Return `true` if this object represents an object whose type is 'bool'.
-  bool get isBool => _state.isBool;
+  bool get isBool => state.isBool;
 
   /// Return `true` if this object represents an object whose type is either
   /// 'bool', 'num', 'String', or 'Null'.
-  bool get isBoolNumStringOrNull => _state.isBoolNumStringOrNull;
+  bool get isBoolNumStringOrNull => state.isBoolNumStringOrNull;
 
   /// Return `true` if this object represents an object whose type is 'int'.
-  bool get isInt => _state.isInt;
+  bool get isInt => state.isInt;
 
   @override
-  bool get isNull => _state is NullState;
+  bool get isNull => state is NullState;
 
   /// Return `true` if this object represents an unknown value.
-  bool get isUnknown => _state.isUnknown;
+  bool get isUnknown => state.isUnknown;
 
   /// Return `true` if this object represents an instance of a user-defined
   /// class.
-  bool get isUserDefinedObject => _state is GenericState;
+  bool get isUserDefinedObject => state is GenericState;
 
   @visibleForTesting
-  List<DartType>? get typeArguments => (_state as FunctionState)._typeArguments;
+  List<DartType>? get typeArguments => (state as FunctionState)._typeArguments;
 
   @override
   bool operator ==(Object other) {
     if (other is DartObjectImpl) {
       return _typeSystem.runtimeTypesEqual(type, other.type) &&
-          _state == other._state;
+          state == other.state;
     }
     return false;
   }
@@ -225,7 +236,7 @@ class DartObjectImpl implements DartObject {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl add(TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
-    InstanceState result = _state.add(rightOperand._state);
+    InstanceState result = state.add(rightOperand.state);
     if (result is IntState) {
       return DartObjectImpl(
         typeSystem,
@@ -257,7 +268,7 @@ class DartObjectImpl implements DartObject {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.intType,
-      _state.bitNot(),
+      state.bitNot(),
     );
   }
 
@@ -265,7 +276,7 @@ class DartObjectImpl implements DartObject {
   DartObjectImpl castToType(
       TypeSystemImpl typeSystem, DartObjectImpl castType) {
     _assertType(castType);
-    var resultType = (castType._state as TypeState)._type;
+    var resultType = (castType.state as TypeState)._type;
 
     // If we don't know the type, we cannot prove that the cast will fail.
     if (resultType == null) {
@@ -295,7 +306,7 @@ class DartObjectImpl implements DartObject {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.stringType,
-      _state.concatenate(rightOperand._state),
+      state.concatenate(rightOperand.state),
     );
   }
 
@@ -308,7 +319,7 @@ class DartObjectImpl implements DartObject {
     if (identical(type, boolType)) {
       return this;
     }
-    return DartObjectImpl(typeSystem, boolType, _state.convertToBool());
+    return DartObjectImpl(typeSystem, boolType, state.convertToBool());
   }
 
   /// Return the result of invoking the '/' operator on this object with the
@@ -318,7 +329,7 @@ class DartObjectImpl implements DartObject {
   /// an object of this kind.
   DartObjectImpl divide(
       TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
-    InstanceState result = _state.divide(rightOperand._state);
+    InstanceState result = state.divide(rightOperand.state);
     if (result is IntState) {
       return DartObjectImpl(
         typeSystem,
@@ -347,13 +358,13 @@ class DartObjectImpl implements DartObject {
       return DartObjectImpl(
         typeSystem,
         typeSystem.typeProvider.boolType,
-        _state.logicalAnd(rightOperand._state),
+        state.logicalAnd(rightOperand.state),
       );
     } else if (isInt && rightOperand.isInt) {
       return DartObjectImpl(
         typeSystem,
         typeSystem.typeProvider.intType,
-        _state.bitAnd(rightOperand._state),
+        state.bitAnd(rightOperand.state),
       );
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT);
@@ -370,13 +381,13 @@ class DartObjectImpl implements DartObject {
       return DartObjectImpl(
         typeSystem,
         typeSystem.typeProvider.boolType,
-        _state.logicalOr(rightOperand._state),
+        state.logicalOr(rightOperand.state),
       );
     } else if (isInt && rightOperand.isInt) {
       return DartObjectImpl(
         typeSystem,
         typeSystem.typeProvider.intType,
-        _state.bitOr(rightOperand._state),
+        state.bitOr(rightOperand.state),
       );
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT);
@@ -393,13 +404,13 @@ class DartObjectImpl implements DartObject {
       return DartObjectImpl(
         typeSystem,
         typeSystem.typeProvider.boolType,
-        _state.logicalXor(rightOperand._state),
+        state.logicalXor(rightOperand.state),
       );
     } else if (isInt && rightOperand.isInt) {
       return DartObjectImpl(
         typeSystem,
         typeSystem.typeProvider.intType,
-        _state.bitXor(rightOperand._state),
+        state.bitXor(rightOperand.state),
       );
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT);
@@ -425,7 +436,7 @@ class DartObjectImpl implements DartObject {
       return DartObjectImpl(
         typeSystem,
         typeSystem.typeProvider.boolType,
-        _state.equalEqual(typeSystem, rightOperand._state),
+        state.equalEqual(typeSystem, rightOperand.state),
       );
     }
     throw EvaluationException(
@@ -434,9 +445,11 @@ class DartObjectImpl implements DartObject {
 
   @override
   DartObject? getField(String name) {
-    InstanceState state = _state;
+    final state = this.state;
     if (state is GenericState) {
       return state.fields[name];
+    } else if (state is RecordState) {
+      return state.getField(name);
     }
     return null;
   }
@@ -444,7 +457,7 @@ class DartObjectImpl implements DartObject {
   /// Gets the constructor that was called to create this value, if this is a
   /// const constructor invocation. Otherwise returns null.
   ConstructorInvocation? getInvocation() {
-    InstanceState state = _state;
+    final state = this.state;
     if (state is GenericState) {
       return state.invocation;
     }
@@ -461,7 +474,7 @@ class DartObjectImpl implements DartObject {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.boolType,
-      _state.greaterThan(rightOperand._state),
+      state.greaterThan(rightOperand.state),
     );
   }
 
@@ -475,7 +488,7 @@ class DartObjectImpl implements DartObject {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.boolType,
-      _state.greaterThanOrEqual(rightOperand._state),
+      state.greaterThanOrEqual(rightOperand.state),
     );
   }
 
@@ -483,7 +496,7 @@ class DartObjectImpl implements DartObject {
   /// [testedType].
   DartObjectImpl hasType(TypeSystemImpl typeSystem, DartObjectImpl testedType) {
     _assertType(testedType);
-    var typeType = (testedType._state as TypeState)._type;
+    var typeType = (testedType.state as TypeState)._type;
     BoolState state;
     if (typeType == null) {
       state = BoolState.TRUE_STATE;
@@ -503,7 +516,7 @@ class DartObjectImpl implements DartObject {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.intType,
-      _state.integerDivide(rightOperand._state),
+      state.integerDivide(rightOperand.state),
     );
   }
 
@@ -548,7 +561,7 @@ class DartObjectImpl implements DartObject {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.boolType,
-      _state.isIdentical(typeSystem, rightOperand._state),
+      state.isIdentical(typeSystem, rightOperand.state),
     );
   }
 
@@ -562,7 +575,7 @@ class DartObjectImpl implements DartObject {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.boolType,
-      _state.lazyAnd(() => rightOperandComputer()?._state),
+      state.lazyAnd(() => rightOperandComputer()?.state),
     );
   }
 
@@ -586,7 +599,7 @@ class DartObjectImpl implements DartObject {
       return DartObjectImpl(
         typeSystem,
         typeSystem.typeProvider.boolType,
-        _state.lazyEqualEqual(typeSystem, rightOperand._state),
+        state.lazyEqualEqual(typeSystem, rightOperand.state),
       );
     }
     throw EvaluationException(
@@ -603,7 +616,7 @@ class DartObjectImpl implements DartObject {
       DartObjectImpl(
         typeSystem,
         typeSystem.typeProvider.boolType,
-        _state.lazyOr(() => rightOperandComputer()?._state),
+        state.lazyOr(() => rightOperandComputer()?.state),
       );
 
   /// Return the result of invoking the '&lt;' operator on this object with the
@@ -616,7 +629,7 @@ class DartObjectImpl implements DartObject {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.boolType,
-      _state.lessThan(rightOperand._state),
+      state.lessThan(rightOperand.state),
     );
   }
 
@@ -630,7 +643,7 @@ class DartObjectImpl implements DartObject {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.boolType,
-      _state.lessThanOrEqual(rightOperand._state),
+      state.lessThanOrEqual(rightOperand.state),
     );
   }
 
@@ -642,7 +655,7 @@ class DartObjectImpl implements DartObject {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.boolType,
-      _state.logicalNot(),
+      state.logicalNot(),
     );
   }
 
@@ -656,7 +669,7 @@ class DartObjectImpl implements DartObject {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.intType,
-      _state.logicalShiftRight(rightOperand._state),
+      state.logicalShiftRight(rightOperand.state),
     );
   }
 
@@ -666,7 +679,7 @@ class DartObjectImpl implements DartObject {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl minus(TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
-    InstanceState result = _state.minus(rightOperand._state);
+    InstanceState result = state.minus(rightOperand.state);
     if (result is IntState) {
       return DartObjectImpl(
         typeSystem,
@@ -689,7 +702,7 @@ class DartObjectImpl implements DartObject {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl negated(TypeSystemImpl typeSystem) {
-    InstanceState result = _state.negated();
+    InstanceState result = state.negated();
     if (result is IntState) {
       return DartObjectImpl(
         typeSystem,
@@ -726,7 +739,7 @@ class DartObjectImpl implements DartObject {
     if (identical(type, stringType)) {
       return this;
     }
-    return DartObjectImpl(typeSystem, stringType, _state.convertToString());
+    return DartObjectImpl(typeSystem, stringType, state.convertToString());
   }
 
   /// Return the result of invoking the '%' operator on this object with the
@@ -736,7 +749,7 @@ class DartObjectImpl implements DartObject {
   /// object of this kind.
   DartObjectImpl remainder(
       TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
-    InstanceState result = _state.remainder(rightOperand._state);
+    InstanceState result = state.remainder(rightOperand.state);
     if (result is IntState) {
       return DartObjectImpl(
         typeSystem,
@@ -764,7 +777,7 @@ class DartObjectImpl implements DartObject {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.intType,
-      _state.shiftLeft(rightOperand._state),
+      state.shiftLeft(rightOperand.state),
     );
   }
 
@@ -778,7 +791,7 @@ class DartObjectImpl implements DartObject {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.intType,
-      _state.shiftRight(rightOperand._state),
+      state.shiftRight(rightOperand.state),
     );
   }
 
@@ -790,7 +803,7 @@ class DartObjectImpl implements DartObject {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.intType,
-      _state.stringLength(),
+      state.stringLength(),
     );
   }
 
@@ -800,7 +813,7 @@ class DartObjectImpl implements DartObject {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl times(TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
-    InstanceState result = _state.times(rightOperand._state);
+    InstanceState result = state.times(rightOperand.state);
     if (result is IntState) {
       return DartObjectImpl(
         typeSystem,
@@ -820,7 +833,7 @@ class DartObjectImpl implements DartObject {
 
   @override
   bool? toBoolValue() {
-    InstanceState state = _state;
+    final state = this.state;
     if (state is BoolState) {
       return state.value;
     }
@@ -829,7 +842,7 @@ class DartObjectImpl implements DartObject {
 
   @override
   double? toDoubleValue() {
-    InstanceState state = _state;
+    final state = this.state;
     if (state is DoubleState) {
       return state.value;
     }
@@ -838,13 +851,13 @@ class DartObjectImpl implements DartObject {
 
   @override
   ExecutableElement? toFunctionValue() {
-    InstanceState state = _state;
+    final state = this.state;
     return state is FunctionState ? state._element : null;
   }
 
   @override
   int? toIntValue() {
-    InstanceState state = _state;
+    final state = this.state;
     if (state is IntState) {
       return state.value;
     }
@@ -853,7 +866,7 @@ class DartObjectImpl implements DartObject {
 
   @override
   List<DartObject>? toListValue() {
-    InstanceState state = _state;
+    final state = this.state;
     if (state is ListState) {
       return state._elements;
     }
@@ -862,7 +875,7 @@ class DartObjectImpl implements DartObject {
 
   @override
   Map<DartObjectImpl, DartObjectImpl>? toMapValue() {
-    InstanceState state = _state;
+    final state = this.state;
     if (state is MapState) {
       return state._entries;
     }
@@ -871,7 +884,7 @@ class DartObjectImpl implements DartObject {
 
   @override
   Set<DartObject>? toSetValue() {
-    InstanceState state = _state;
+    final state = this.state;
     if (state is SetState) {
       return state._elements;
     }
@@ -880,12 +893,12 @@ class DartObjectImpl implements DartObject {
 
   @override
   String toString() {
-    return "${type.getDisplayString(withNullability: false)} ($_state)";
+    return "${type.getDisplayString(withNullability: false)} ($state)";
   }
 
   @override
   String? toStringValue() {
-    InstanceState state = _state;
+    final state = this.state;
     if (state is StringState) {
       return state.value;
     }
@@ -894,7 +907,7 @@ class DartObjectImpl implements DartObject {
 
   @override
   String? toSymbolValue() {
-    InstanceState state = _state;
+    final state = this.state;
     if (state is SymbolState) {
       return state.value;
     }
@@ -903,7 +916,7 @@ class DartObjectImpl implements DartObject {
 
   @override
   DartType? toTypeValue() {
-    InstanceState state = _state;
+    final state = this.state;
     if (state is TypeState) {
       return state._type;
     }
@@ -918,7 +931,7 @@ class DartObjectImpl implements DartObject {
     FunctionType type,
     List<DartType> typeArguments,
   ) {
-    var functionState = _state as FunctionState;
+    var functionState = state as FunctionState;
     return DartObjectImpl(
       typeSystem,
       type,
@@ -935,7 +948,7 @@ class DartObjectImpl implements DartObject {
     required int index,
     required String name,
   }) {
-    var fields = _state.fields!;
+    var fields = state.fields!;
     fields['index'] = DartObjectImpl(
       _typeSystem,
       _typeSystem.typeProvider.intType,
@@ -951,7 +964,7 @@ class DartObjectImpl implements DartObject {
   /// Throw an exception if the given [object]'s state does not represent a Type
   /// value.
   void _assertType(DartObjectImpl object) {
-    if (object._state is! TypeState) {
+    if (object.state is! TypeState) {
       throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_TYPE);
     }
   }
@@ -2506,6 +2519,124 @@ abstract class NumState extends InstanceState {
   BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
     return isIdentical(typeSystem, rightOperand);
+  }
+}
+
+/// The state of an object representing a record.
+class RecordState extends InstanceState {
+  /// The values of the positional fields.
+  final List<DartObjectImpl> positionalFields;
+
+  /// The values of the named fields.
+  final Map<String, DartObjectImpl> namedFields;
+
+  @override
+  late final hashCode = Object.hashAll([
+    ...positionalFields,
+    ...namedFields.values,
+  ]);
+
+  /// Initialize a newly created state to represent a record with the given
+  /// values of [positionalFields] and [namedFields].
+  RecordState(this.positionalFields, this.namedFields);
+
+  @override
+  String get typeName => 'Record';
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! RecordState) {
+      return false;
+    }
+    var positionalCount = positionalFields.length;
+    var otherPositionalFields = other.positionalFields;
+    if (otherPositionalFields.length != positionalCount) {
+      return false;
+    }
+    var namedCount = namedFields.length;
+    var otherNamedFields = other.namedFields;
+    if (otherNamedFields.length != namedCount) {
+      return false;
+    }
+    for (var i = 0; i < positionalCount; i++) {
+      if (positionalFields[i] != otherPositionalFields[i]) {
+        return false;
+      }
+    }
+    for (var entry in namedFields.entries) {
+      var otherValue = otherNamedFields[entry.key];
+      if (otherValue == null) {
+        return false;
+      }
+      if (entry.value != otherValue) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  // The behavior of `toString` is undefined.
+  StringState convertToString() => StringState.UNKNOWN_VALUE;
+
+  @override
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
+    return isIdentical(typeSystem, rightOperand);
+  }
+
+  /// Returns the value of the field with the given [name].
+  DartObject? getField(String name) {
+    final index = RecordTypeExtension.positionalFieldIndex(name);
+    if (index != null && index < positionalFields.length) {
+      return positionalFields[index];
+    } else {
+      return namedFields[name];
+    }
+  }
+
+  @override
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
+    if (this != rightOperand) {
+      return BoolState.FALSE_STATE;
+    }
+    return BoolState.UNKNOWN_VALUE;
+  }
+
+  @override
+  String toString() {
+    var buffer = StringBuffer();
+    buffer.write('(');
+    bool first = true;
+    for (var value in positionalFields) {
+      if (first) {
+        first = false;
+      } else {
+        buffer.write(', ');
+      }
+      buffer.write(value);
+    }
+    var entries = namedFields.entries.toList();
+    if (entries.isNotEmpty) {
+      entries.sort((first, second) => first.key.compareTo(second.key));
+      if (!first) {
+        buffer.write(', ');
+        first = true;
+      }
+      buffer.write('{');
+      for (var entry in entries) {
+        if (first) {
+          first = false;
+        } else {
+          buffer.write(', ');
+        }
+        buffer.write(entry.key);
+        buffer.write(': ');
+        buffer.write(entry.value);
+      }
+      buffer.write('}');
+    }
+    buffer.write(')');
+    return buffer.toString();
   }
 }
 

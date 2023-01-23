@@ -30,7 +30,7 @@ class CreateMethod extends CorrectionProducer {
   /// pair.
   CreateMethod.equalsOrHashCode()
       : _kind = _MethodKind.equalsOrHashCode,
-        canBeAppliedInBulk = true,
+        canBeAppliedInBulk = false,
         canBeAppliedToFile = true;
 
   /// Initialize a newly created instance that will create a method based on an
@@ -68,7 +68,7 @@ class CreateMethod extends CorrectionProducer {
       final classElement = classDecl.declaredElement!;
 
       var missingEquals = memberDecl is FieldDeclaration ||
-          (memberDecl as MethodDeclaration).name.name == 'hashCode';
+          (memberDecl as MethodDeclaration).name.lexeme == 'hashCode';
       ExecutableElement? element;
       if (missingEquals) {
         _memberName = '==';
@@ -147,7 +147,7 @@ class CreateMethod extends CorrectionProducer {
         staticModifier = inStaticContext;
       }
     } else {
-      var targetClassElement = getTargetClassElement(target);
+      var targetClassElement = getTargetInterfaceElement(target);
       if (targetClassElement == null) {
         return;
       }
@@ -156,7 +156,11 @@ class CreateMethod extends CorrectionProducer {
         return;
       }
       // prepare target ClassDeclaration
-      targetNode = await getClassOrMixinDeclaration(targetClassElement);
+      if (targetClassElement is MixinElement) {
+        targetNode = await getMixinDeclaration(targetClassElement);
+      } else if (targetClassElement is ClassElement) {
+        targetNode = await getClassDeclaration(targetClassElement);
+      }
       if (targetNode == null) {
         return;
       }

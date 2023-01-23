@@ -64,6 +64,7 @@ void main() {
   testAsFunctionTakesHandle();
   testLookupFunctionReturnsHandle();
   testAsFunctionReturnsHandle();
+  testReturnVoidNotVoid();
 }
 
 typedef Int8UnOp = Int8 Function(Int8);
@@ -819,4 +820,12 @@ class MyFinalizableStruct extends Struct
     implements Finalizable //# 2000: compile-time error
 {
   external Pointer<Void> field;
+}
+
+void testReturnVoidNotVoid() {
+  // Taking a more specific argument is okay.
+  testLibrary //# 49471: compile-time error
+      .lookupFunction< //# 49471: compile-time error
+          Handle Function(), //# 49471: compile-time error
+          void Function()>("doesntmatter"); //# 49471: compile-time error
 }

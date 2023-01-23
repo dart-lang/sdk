@@ -873,3 +873,58 @@ class DateTime implements Comparable<DateTime> {
           r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(?:[.,](\d+))?)?)?' // Time part.
           r'( ?[zZ]| ?([-+])(\d\d)(?::?(\d\d))?)?)?$'); // Timezone part.
 }
+
+/// Adds [copyWith] method to [DateTime] objects.
+@Since("2.19")
+extension DateTimeCopyWith on DateTime {
+  /// Creates a new [DateTime] from this one by updating individual properties.
+  ///
+  /// The [copyWith] method creates a new [DateTime] object with values
+  /// for the properties [DateTime.year], [DateTime.hour], etc, provided by
+  /// similarly named arguments, or using the existing value of the property
+  /// if no argument, or `null`, is provided.
+  ///
+  /// Example:
+  /// ```dart
+  /// final now = DateTime.now();
+  /// final sameTimeOnMoonLandingDay =
+  ///     now.copyWith(year: 1969, month: 07, day: 20);
+  /// ```
+  ///
+  /// Like for the [DateTime] and [DateTime.utc] constructors,
+  /// which this operation uses to create the new value,
+  /// property values are allowed to overflow or underflow the range
+  /// of the property (like a [month] outside the 1 to 12 range),
+  /// which can affect the more significant properties
+  /// (for example, a month of 13 will result in the month of January
+  /// of the next year.)
+  ///
+  /// Notice also that if the result is a local-time DateTime,
+  /// seasonal time-zone adjustments (daylight saving) can cause some
+  /// combinations of dates, hours and minutes to not exist, or to exist
+  /// more than once.
+  /// In the former case, a corresponding time in one of the two adjacent time
+  /// zones is used instead. In the latter, one of the two options is chosen.
+  DateTime copyWith({
+    int? year,
+    int? month,
+    int? day,
+    int? hour,
+    int? minute,
+    int? second,
+    int? millisecond,
+    int? microsecond,
+    bool? isUtc,
+  }) {
+    return ((isUtc ?? this.isUtc) ? DateTime.utc : DateTime.new)(
+      year ?? this.year,
+      month ?? this.month,
+      day ?? this.day,
+      hour ?? this.hour,
+      minute ?? this.minute,
+      second ?? this.second,
+      millisecond ?? this.millisecond,
+      microsecond ?? this.microsecond,
+    );
+  }
+}

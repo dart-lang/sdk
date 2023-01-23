@@ -1,0 +1,17 @@
+view
+class Missing {}
+view
+class Static {
+  static int staticField = 42;
+  final bool instanceField;
+}
+view
+class Multiple {
+  final bool instanceField1;
+  final int instanceField2;
+}
+view
+class Duplicate {
+  final bool instanceField;
+  final int instanceField;
+}

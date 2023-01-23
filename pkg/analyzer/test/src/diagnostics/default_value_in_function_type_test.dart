@@ -18,9 +18,9 @@ main() {
 class DefaultValueInFunctionTypeTest extends PubPackageResolutionTest {
   test_new_named() async {
     await assertErrorsInCode('''
-typedef F = int Function({Map<String, String> m: const {}});
+typedef F = int Function({Map<String, String> m = const {}});
 ''', [
-      error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 47, 1),
+      error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 48, 1),
     ]);
   }
 
@@ -28,10 +28,10 @@ typedef F = int Function({Map<String, String> m: const {}});
     // Test that the strong checker does not crash when given an ambiguous set
     // or map literal.
     await assertErrorsInCode('''
-typedef F = int Function({Object m: const {1, 2: 3}});
+typedef F = int Function({Object m = const {1, 2: 3}});
 ''', [
-      error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 34, 1),
-      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 36, 15),
+      error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 35, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 37, 15),
     ]);
   }
 

@@ -8,7 +8,12 @@ part of dart.developer;
 /// [DevTools CPU profiler](https://flutter.dev/docs/development/tools/devtools/cpu-profiler).
 abstract class UserTag {
   /// The maximum number of UserTag instances that can be created by a program.
-  static const MAX_USER_TAGS = 64;
+  static const maxUserTags = 64;
+
+  @Deprecated("Use 'maxUserTags' instead. Will be removed in Dart 3.0.")
+  // TODO(bkonyi): We shouldn't be using SCREAMING_CAPS for constants, so this
+  // should be removed for Dart 3.0.
+  static const MAX_USER_TAGS = maxUserTags;
 
   external factory UserTag(String label);
 
@@ -26,6 +31,7 @@ abstract class UserTag {
 /// Returns the current [UserTag] for the isolate.
 external UserTag getCurrentTag();
 
+@Deprecated('Metrics are deprecated and will be removed in Dart 3.0')
 /// Abstract [Metric] class. Metric names must be unique, are hierarchical,
 /// and use periods as separators. For example, 'a.b.c'. Uniqueness is only
 /// enforced when a Metric is registered. The name of a metric cannot contain
@@ -39,13 +45,14 @@ abstract class Metric {
 
   Metric(this.name, this.description) {
     if ((name == 'vm') || name.contains('/')) {
-      throw new ArgumentError('Invalid Metric name.');
+      throw ArgumentError('Invalid Metric name.');
     }
   }
 
   Map _toJSON();
 }
 
+@Deprecated('Metrics are deprecated and will be removed in Dart 3.0')
 /// A measured value with a min and max. Initial value is min. Value will
 /// be clamped to the interval `[min, max]`.
 class Gauge extends Metric {
@@ -69,7 +76,7 @@ class Gauge extends Metric {
     // TODO: When NNBD is complete, delete the following two lines.
     ArgumentError.checkNotNull(min, 'min');
     ArgumentError.checkNotNull(max, 'max');
-    if (!(min < max)) throw new ArgumentError('min must be less than max');
+    if (!(min < max)) throw ArgumentError('min must be less than max');
   }
 
   Map _toJSON() {
@@ -86,6 +93,7 @@ class Gauge extends Metric {
   }
 }
 
+@Deprecated('Metrics are deprecated and will be removed in Dart 3.0')
 /// A changing value. Initial value is 0.0.
 class Counter extends Metric {
   Counter(String name, String description) : super(name, description);
@@ -108,20 +116,26 @@ class Counter extends Metric {
   }
 }
 
+@Deprecated('Metrics are deprecated and will be removed in Dart 3.0')
+/// Register and deregister custom [Metric]s to be displayed in developer
+/// tooling.
 class Metrics {
-  static final Map<String, Metric> _metrics = new Map<String, Metric>();
+  /// The current set of registered [Metric]s.
+  static UnmodifiableMapView<String, Metric> get current =>
+      UnmodifiableMapView<String, Metric>(_metrics);
+  static final _metrics = <String, Metric>{};
 
-  /// Register [Metric]s to make them visible to Observatory.
+  /// Register [Metric]s to make them visible to developer tooling.
   static void register(Metric metric) {
     // TODO: When NNBD is complete, delete the following line.
     ArgumentError.checkNotNull(metric, 'metric');
     if (_metrics[metric.name] != null) {
-      throw new ArgumentError('Registered metrics have unique names');
+      throw ArgumentError('Registered metrics have unique names');
     }
     _metrics[metric.name] = metric;
   }
 
-  /// Deregister [Metric]s to make them not visible to Observatory.
+  /// Deregister [Metric]s to make them not visible to developer tooling.
   static void deregister(Metric metric) {
     // TODO: When NNBD is complete, delete the following line.
     ArgumentError.checkNotNull(metric, 'metric');

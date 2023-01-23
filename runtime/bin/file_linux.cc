@@ -293,10 +293,13 @@ bool File::ExistsUri(Namespace* namespc, const char* uri) {
   return File::Exists(namespc, path.get());
 }
 
-bool File::Create(Namespace* namespc, const char* name) {
+bool File::Create(Namespace* namespc, const char* name, bool exclusive) {
   NamespaceScope ns(namespc, name);
-  const int fd = TEMP_FAILURE_RETRY(
-      openat64(ns.fd(), ns.path(), O_RDONLY | O_CREAT | O_CLOEXEC, 0666));
+  int flags = O_RDONLY | O_CREAT | O_CLOEXEC;
+  if (exclusive) {
+    flags |= O_EXCL;
+  }
+  const int fd = TEMP_FAILURE_RETRY(openat64(ns.fd(), ns.path(), flags, 0666));
   if (fd < 0) {
     return false;
   }
@@ -323,6 +326,17 @@ bool File::CreateLink(Namespace* namespc,
                       const char* target) {
   NamespaceScope ns(namespc, name);
   return NO_RETRY_EXPECTED(symlinkat(target, ns.fd(), ns.path())) == 0;
+}
+
+bool File::CreatePipe(Namespace* namespc, File** readPipe, File** writePipe) {
+  int pipe_fds[2];
+  int status = NO_RETRY_EXPECTED(pipe(pipe_fds));
+  if (status != 0) {
+    return false;
+  }
+  *readPipe = OpenFD(pipe_fds[0]);
+  *writePipe = OpenFD(pipe_fds[1]);
+  return true;
 }
 
 File::Type File::GetType(Namespace* namespc,

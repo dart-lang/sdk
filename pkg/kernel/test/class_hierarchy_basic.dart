@@ -221,12 +221,12 @@ class BasicClassHierarchy implements ClassHierarchy {
   }
 
   @override
-  Member? getDispatchTarget(Class class_, Name name, {bool setter: false}) {
+  Member? getDispatchTarget(Class class_, Name name, {bool setter = false}) {
     return setter ? setters[class_]![name] : gettersAndCalls[class_]![name];
   }
 
   @override
-  List<Member> getDispatchTargets(Class class_, {bool setters: false}) {
+  List<Member> getDispatchTargets(Class class_, {bool setters = false}) {
     return setters
         ? this.setters[class_]!.values.toList()
         : gettersAndCalls[class_]!.values.toList();
@@ -237,12 +237,12 @@ class BasicClassHierarchy implements ClassHierarchy {
   }
 
   @override
-  Member? getInterfaceMember(Class class_, Name name, {bool setter: false}) {
+  Member? getInterfaceMember(Class class_, Name name, {bool setter = false}) {
     return tryFirst(getInterfaceMembersByName(class_, name, setter: setter));
   }
 
   Iterable<Member> getInterfaceMembersByName(Class class_, Name name,
-      {bool setter: false}) {
+      {bool setter = false}) {
     var iterable = setter
         ? interfaceSetters[class_]![name]
         : interfaceGettersAndCalls[class_]![name];
@@ -250,7 +250,7 @@ class BasicClassHierarchy implements ClassHierarchy {
   }
 
   @override
-  List<Member> getInterfaceMembers(Class class_, {bool setters: false}) {
+  List<Member> getInterfaceMembers(Class class_, {bool setters = false}) {
     return setters
         ? interfaceSetters[class_]!.values.expand((x) => x).toList()
         : interfaceGettersAndCalls[class_]!.values.expand((x) => x).toList();
