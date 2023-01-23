@@ -105,11 +105,14 @@ class _JSLowerer extends Transformer {
   final Procedure _isDartFunctionWrappedTarget;
   final Procedure _wrapDartFunctionTarget;
   final Procedure _allowInteropTarget;
+  final Procedure _inlineJSTarget;
   final Procedure _numToInt;
   final Class _wasmExternRefClass;
   final Class _pragmaClass;
   final Field _pragmaName;
   final Field _pragmaOptions;
+  bool _replaceProcedureWithInlineJS = false;
+  late String _inlineJSImportName;
   // TODO(joshualitt): Tree shake js methods by holding on to
   // _MethodLoweringConfigs until after we run the TFA, and then only generating
   // js methods for the dart stubs that remain.
@@ -133,6 +136,8 @@ class _JSLowerer extends Transformer {
             .getTopLevelProcedure('dart:_js_helper', '_wrapDartFunction'),
         _allowInteropTarget =
             _coreTypes.index.getTopLevelProcedure('dart:js', 'allowInterop'),
+        _inlineJSTarget =
+            _coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'JS'),
         _wasmExternRefClass =
             _coreTypes.index.getClass('dart:wasm', 'WasmExternRef'),
         _numToInt = _coreTypes.index
@@ -174,6 +179,8 @@ class _JSLowerer extends Transformer {
       Expression argument = node.arguments.positional.single;
       DartType functionType = argument.getStaticType(_staticTypeContext);
       return _allowInterop(node.target, functionType as FunctionType, argument);
+    } else if (node.target == _inlineJSTarget) {
+      return _expandInlineJS(node.target, node);
     }
     return node;
   }
@@ -252,7 +259,18 @@ class _JSLowerer extends Transformer {
       node.function.body = transformedBody..parent = node.function;
       node.isExternal = false;
     } else {
+      // Under very restricted circumstances, we will make a procedure external
+      // and clear it's body. See the description on [_expandInlineJS] for more
+      // details.
+      _replaceProcedureWithInlineJS = false;
       node.transformChildren(this);
+      if (_replaceProcedureWithInlineJS) {
+        node.isStatic = true;
+        node.isExternal = true;
+        node.function.body = null;
+        _annotateProcedure(node, _inlineJSImportName, _AnnotationType.import);
+        _replaceProcedureWithInlineJS = false;
+      }
     }
     _staticTypeContext.leaveMember(node);
     return node;
@@ -295,9 +313,8 @@ class _JSLowerer extends Transformer {
       StaticInvocation(_coreTypes.identicalProcedure,
           Arguments([VariableGet(variable), ConstantExpression(constant)]));
 
-  Procedure _addInteropProcedure(String name, String pragmaOptionString,
-      FunctionNode function, Uri fileUri, _AnnotationType type,
-      {required bool isExternal}) {
+  void _annotateProcedure(
+      Procedure procedure, String pragmaOptionString, _AnnotationType type) {
     String pragmaName;
     switch (type) {
       case _AnnotationType.import:
@@ -307,15 +324,21 @@ class _JSLowerer extends Transformer {
         pragmaName = 'export';
         break;
     }
-    final procedure = Procedure(
-        Name(name, _library), ProcedureKind.Method, function,
-        isStatic: true, isExternal: isExternal, fileUri: fileUri)
-      ..isNonNullableByDefault = true;
     procedure.addAnnotation(
         ConstantExpression(InstanceConstant(_pragmaClass.reference, [], {
       _pragmaName.fieldReference: StringConstant('wasm:$pragmaName'),
       _pragmaOptions.fieldReference: StringConstant('$pragmaOptionString')
     })));
+  }
+
+  Procedure _addInteropProcedure(String name, String pragmaOptionString,
+      FunctionNode function, Uri fileUri, _AnnotationType type,
+      {required bool isExternal}) {
+    final procedure = Procedure(
+        Name(name, _library), ProcedureKind.Method, function,
+        isStatic: true, isExternal: isExternal, fileUri: fileUri)
+      ..isNonNullableByDefault = true;
+    _annotateProcedure(procedure, pragmaOptionString, type);
     _library.addProcedure(procedure);
     return procedure;
   }
@@ -592,6 +615,82 @@ class _JSLowerer extends Transformer {
       return expression;
     }
   }
+
+  Procedure _getEnclosingProcedure(TreeNode node) {
+    while (node is! Procedure) {
+      node = node.parent!;
+    }
+    return node;
+  }
+
+  /// We will replace the enclosing procedure if:
+  ///   1) The enclosing procedure is static.
+  ///   2) The enclosing procedure has a body with a single statement, and that
+  ///      statement is just a [StaticInvocation] of the inline JS helper.
+  ///   3) All of the arguments to `inlineJS` are [VariableGet]s. (this is
+  ///      checked by [_expandInlineJS]).
+  bool _shouldReplaceEnclosingProcedure(StaticInvocation node) {
+    Procedure enclosingProcedure = _getEnclosingProcedure(node);
+    Statement enclosingBody = enclosingProcedure.function.body!;
+    Expression? expression;
+    if (enclosingBody is ReturnStatement) {
+      expression = enclosingBody.expression;
+    } else if (enclosingBody is Block && enclosingBody.statements.length == 1) {
+      Statement statement = enclosingBody.statements.single;
+      if (statement is ExpressionStatement) {
+        expression = statement.expression;
+      } else if (statement is ReturnStatement) {
+        expression = statement.expression;
+      }
+    }
+    return expression == node;
+  }
+
+  /// Calls to the `JS` helper are replaced in one of two ways:
+  ///   1) By a static invocation to an external stub method that imports
+  ///      the JS function.
+  ///   2) Under restricted circumstances the entire enclosing procedure will be
+  ///      replaced by an external stub method that imports the JS function. See
+  ///      [_shouldReplaceEnclosingProcedure] for more details.
+  Expression _expandInlineJS(Procedure inlineJSNode, StaticInvocation node) {
+    Arguments arguments = node.arguments;
+    List<Expression> originalArguments = arguments.positional.sublist(1);
+    List<VariableDeclaration> dartPositionalParameters = [];
+    bool allArgumentsAreGet = true;
+    for (int j = 0; j < originalArguments.length; j++) {
+      Expression originalArgument = originalArguments[j];
+      String parameterString = 'x$j';
+      DartType type = originalArgument.getStaticType(_staticTypeContext);
+      dartPositionalParameters
+          .add(VariableDeclaration(parameterString, type: type));
+      if (originalArgument is! VariableGet) {
+        allArgumentsAreGet = false;
+      }
+    }
+
+    assert(arguments.positional[0] is StringLiteral,
+        "Code template must be a StringLiteral");
+    String codeTemplate = (arguments.positional[0] as StringLiteral).value;
+    String jsMethodName = generateMethodName();
+    jsMethods.add("$jsMethodName: $codeTemplate");
+    _inlineJSImportName = 'dart2wasm.$jsMethodName';
+    _replaceProcedureWithInlineJS =
+        allArgumentsAreGet && _shouldReplaceEnclosingProcedure(node);
+    if (_replaceProcedureWithInlineJS) {
+      return InvalidExpression("Unreachable");
+    } else {
+      final dartProcedure = _addInteropProcedure(
+          '|$jsMethodName',
+          _inlineJSImportName,
+          FunctionNode(null,
+              positionalParameters: dartPositionalParameters,
+              returnType: arguments.types.single),
+          inlineJSNode.fileUri,
+          _AnnotationType.import,
+          isExternal: true);
+      return StaticInvocation(dartProcedure, Arguments(originalArguments));
+    }
+  }
 }
 
 String _performJSInteropTransformations(
@@ -624,12 +723,12 @@ String generateJSRuntime(
     ...?calculateTransitiveImportsOfJsInteropIfUsed(
         component, Uri.parse("package:js/js.dart")),
     ...?calculateTransitiveImportsOfJsInteropIfUsed(
-        component, Uri.parse("dart:_js_annotations"))
+        component, Uri.parse("dart:_js_annotations")),
+    ...?calculateTransitiveImportsOfJsInteropIfUsed(
+        component, Uri.parse("dart:_js_helper")),
   };
-  if (transitiveImportingJSInterop.isNotEmpty) {
-    jsInteropMethods = _performJSInteropTransformations(
-        component, coreTypes, classHierarchy, transitiveImportingJSInterop);
-  }
+  jsInteropMethods = _performJSInteropTransformations(
+      component, coreTypes, classHierarchy, transitiveImportingJSInterop);
 
   return '''
 $jsRuntimeBlobPart1
