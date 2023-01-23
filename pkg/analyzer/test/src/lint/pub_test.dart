@@ -21,6 +21,9 @@ authors:
 description: Style linter for Dart.
 documentation:
 homepage: https://github.com/dart-lang/linter
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+  flutter: ^2.2.3
 dependencies:
   transmogrify:
     hosted:
@@ -105,6 +108,15 @@ issue_tracker: https://github.com/dart-lang/linter/issues
         {'foo': '1.2.0'}
       ]);
 
+      group('environment', () {
+        PSEnvironment environment = ps.environment!;
+        test('contents', () {
+          expect(environment, isNotNull);
+          expect(environment.sdk!.value.text, equals('>=2.12.0 <3.0.0'));
+          expect(environment.flutter!.value.text, equals('^2.2.3'));
+        });
+      });
+
       group('path', () {
         PSDependency dep =
             findDependency(ps.dependencies, name: 'relative_path');
@@ -118,8 +130,8 @@ issue_tracker: https://github.com/dart-lang/linter/issues
         PSHost host = dep.host!;
         testValue('name', host.name, equals('transmogrify'));
         testValue('url', host.url, equals('http://your-package-server.com'));
-        testKeySpan('name', host.name, startOffset: 237, endOffset: 241);
-        testValueSpan('name', host.name, startOffset: 243, endOffset: 255);
+        testKeySpan('name', host.name, startOffset: 293, endOffset: 297);
+        testValueSpan('name', host.name, startOffset: 299, endOffset: 311);
       });
 
       group('hosted (optional name)', () {
@@ -128,8 +140,8 @@ issue_tracker: https://github.com/dart-lang/linter/issues
         PSHost host = dep.host!;
         test('name', () => expect(host.name, isNull));
         testValue('url', host.url, equals('http://your-package-server.com'));
-        testKeySpan('url', host.url, startOffset: 376, endOffset: 379);
-        testValueSpan('url', host.url, startOffset: 381, endOffset: 411);
+        testKeySpan('url', host.url, startOffset: 432, endOffset: 435);
+        testValueSpan('url', host.url, startOffset: 437, endOffset: 467);
       });
 
       group('hosted (short-form)', () {
@@ -138,8 +150,8 @@ issue_tracker: https://github.com/dart-lang/linter/issues
         PSHost host = dep.host!;
         test('name', () => expect(host.name, isNull));
         testValue('url', host.url, equals('http://your-package-server.com'));
-        testKeySpan('url', host.url, startOffset: 473, endOffset: 479);
-        testValueSpan('url', host.url, startOffset: 481, endOffset: 511);
+        testKeySpan('url', host.url, startOffset: 529, endOffset: 535);
+        testValueSpan('url', host.url, startOffset: 537, endOffset: 567);
       });
 
       group('git', () {

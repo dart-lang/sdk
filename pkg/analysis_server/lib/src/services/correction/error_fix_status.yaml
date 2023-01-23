@@ -71,6 +71,8 @@ AnalysisOptionsWarningCode.MULTIPLE_PLUGINS:
   status: needsFix
   notes: |-
     The fix is to remove the plugin name.
+AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE:
+  status: needsEvaluation
 AnalysisOptionsWarningCode.REMOVED_LINT:
   status: needsFix
 AnalysisOptionsWarningCode.REPLACED_LINT:

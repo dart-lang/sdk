@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk_elements.dart';
+import 'package:analyzer/src/utilities/uri_cache.dart';
 
 /// A type provider that can be used by tests without creating the element model
 /// for the core library.
@@ -65,7 +66,7 @@ class _MockSource implements Source {
 class _MockSourceFactory implements SourceFactory {
   @override
   Source forUri(String uriStr) {
-    var uri = Uri.parse(uriStr);
+    var uri = uriCache.parse(uriStr);
     return _MockSource(uri);
   }
 

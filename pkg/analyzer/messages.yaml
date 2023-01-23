@@ -119,6 +119,15 @@ AnalysisOptionsWarningCode:
 
       Parameters:
       0: the name of the first plugin
+  RECURSIVE_INCLUDE_FILE:
+    problemMessage: "The include file '{0}' in '{1}' includes itself recursively."
+    correctionMessage: "Try changing the chain of 'include's to not re-include this file."
+    comment: |-
+      An error code indicating a specified include file includes itself recursively.
+
+      Parameters:
+      0: the URI of the file to be included
+      1: the path of the file containing the include directive
   REMOVED_LINT:
     problemMessage: "'{0}' was removed in Dart '{1}'"
     correctionMessage: "Remove the reference to '{0}'."

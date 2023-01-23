@@ -28,7 +28,7 @@ include: a.yaml
         9,
         6,
         messageContains: [
-          'Warning in the included options file',
+          'Warning in the included options file ${convertPath('/a.yaml')}',
           ": The option 'something' isn't supported by 'analyzer'."
         ],
       )

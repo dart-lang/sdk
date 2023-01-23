@@ -5,6 +5,7 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/asserts.dart' as asserts;
+import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:path/path.dart' as pathos;
 
 /// A [UriResolver] implementation for the `package:` scheme that uses a map of
@@ -46,7 +47,7 @@ class PackageMapUriResolver extends UriResolver {
         String relPath = path.substring(pkgFolderPath.length + 1);
         List<String> relPathComponents = pathContext.split(relPath);
         String relUriPath = pathos.posix.joinAll(relPathComponents);
-        return Uri.parse('$_packageScheme:$pkgName/$relUriPath');
+        return uriCache.parse('$_packageScheme:$pkgName/$relUriPath');
       }
     }
     return null;

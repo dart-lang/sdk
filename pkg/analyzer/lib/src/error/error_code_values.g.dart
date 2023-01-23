@@ -30,6 +30,7 @@ const List<ErrorCode> errorCodeValues = [
   AnalysisOptionsWarningCode.INVALID_OPTION,
   AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
   AnalysisOptionsWarningCode.MULTIPLE_PLUGINS,
+  AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
   AnalysisOptionsWarningCode.REMOVED_LINT,
   AnalysisOptionsWarningCode.REPLACED_LINT,
   AnalysisOptionsWarningCode.SPEC_MODE_REMOVED,

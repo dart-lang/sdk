@@ -6,6 +6,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
+import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// An implementation of [DartSdk] which provides analysis results for `dart:`
@@ -43,7 +44,7 @@ class SummaryBasedDartSdk implements DartSdk {
 
   /// Returns URIs of all libraries.
   List<Uri> get libraryUris {
-    return _bundle.libraries.map((e) => Uri.parse(e.uriStr)).toList();
+    return _bundle.libraries.map((e) => uriCache.parse(e.uriStr)).toList();
   }
 
   @override
@@ -77,7 +78,7 @@ class SummaryBasedDartSdk implements DartSdk {
 
   @override
   Source? mapDartUri(String uriStr) {
-    Uri uri = Uri.parse(uriStr);
+    Uri uri = uriCache.parse(uriStr);
     return _uriResolver.resolveAbsolute(uri);
   }
 
