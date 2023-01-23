@@ -2345,7 +2345,7 @@ Assembler::Assembler(ObjectPoolBuilder* object_pool_builder,
                      FLAG_use_compressed_instructions ? RV_GC : RV_G),
       constant_pool_allowed_(false) {
   generate_invoke_write_barrier_wrapper_ = [&](Register reg) {
-    // Note this does not destory RA.
+    // Note this does not destroy RA.
     lx(TMP,
        Address(THR, target::Thread::write_barrier_wrappers_thread_offset(reg)));
     jalr(TMP, TMP);

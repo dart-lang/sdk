@@ -59,7 +59,7 @@ testRenameToExistingFile() async {
     final file = File("${tempDir.path}/file");
     file.createSync();
 
-    // Overwriting an exsting file is not allowed.
+    // Overwriting an existing file is not allowed.
     try {
       dir.renameSync(file.path);
       Expect.fail('Directory.rename should fail to rename a non-directory');

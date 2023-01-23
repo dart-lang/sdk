@@ -193,7 +193,7 @@ We can know that `container` meets the last property if `container` is the resul
 
 ```
 container <- AllocateObject
-<intructions that do not trigger GC>
+<instructions that do not trigger GC>
 StoreInstanceField(container, value, NoBarrier)
 ```
 

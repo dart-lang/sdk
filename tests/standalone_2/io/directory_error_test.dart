@@ -70,7 +70,7 @@ void testCreateTempInNonExistent(Directory temp, Function done) {
 bool checkDeleteNonExistentFileSystemException(e) {
   Expect.isTrue(e is PathNotFoundException);
   Expect.isTrue(e.osError != null);
-  // File not not found has error code 2 on all supported platforms.
+  // File not found has error code 2 on all supported platforms.
   Expect.equals(2, e.osError.errorCode);
 
   return true;
@@ -91,7 +91,7 @@ bool checkDeleteRecursivelyNonExistentFileSystemException(e) {
   Expect.isTrue(e is PathNotFoundException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf("Deletion failed") != -1);
-  // File not not found has error code 2 on all supported platforms.
+  // File not found has error code 2 on all supported platforms.
   Expect.equals(2, e.osError.errorCode);
 
   return true;
