@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:_fe_analyzer_shared/src/util/filenames.dart';
 import 'package:args/args.dart';
 import 'package:compiler/src/commandline_options.dart';
@@ -22,8 +20,8 @@ ArgParser createArgParser() {
 }
 
 /// Retrieves the entry point [Uri] from [argResults].
-Uri getEntryPoint(ArgResults argResults) {
-  Uri entryPoint;
+Uri? getEntryPoint(ArgResults argResults) {
+  Uri? entryPoint;
   if (argResults.rest.isNotEmpty) {
     if (argResults.rest.length > 1) {
       throw new ArgumentError(
@@ -35,14 +33,14 @@ Uri getEntryPoint(ArgResults argResults) {
 }
 
 /// Retrieves the library root [Uri] from [argResults].
-Uri getLibrariesSpec(ArgResults argResults) {
+Uri? getLibrariesSpec(ArgResults argResults) {
   if (!argResults.wasParsed('libraries-spec')) return null;
   return Uri.base.resolve(nativeToUriPath(argResults['libraries-spec']));
 }
 
 /// Retrieves the packages config [Uri] from [argResults].
-Uri getPackages(ArgResults argResults) {
-  Uri packageConfig;
+Uri? getPackages(ArgResults argResults) {
+  Uri? packageConfig;
   if (argResults.wasParsed('packages')) {
     packageConfig = Uri.base.resolve(nativeToUriPath(argResults['packages']));
   }
