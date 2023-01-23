@@ -31,6 +31,26 @@ part 'part.g.dart';
     ]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/51087')
+  test_generated() async {
+    var package = 'test';
+    var folder = 'example';
+    newPubspecYamlFile(testPackageRootPath, 'name: $package');
+
+    var testPackageGeneratedPath =
+        '$testPackageRootPath/.dart_tool/build/generated';
+    newFile('$testPackageGeneratedPath/$package/$folder/foo.g.dart', '''
+part of 'foo.dart';
+''');
+    var path = '$workspaceRootPath/$package/$folder/foo.dart';
+    newFile(path, '''
+part 'foo.g.dart';
+''');
+
+    await resolveFile2(path);
+    assertErrorsInResolvedUnit(result, const []);
+  }
+
   test_partOfName() async {
     newFile('$testPackageLibPath/part.dart', '''
 part of bar;
