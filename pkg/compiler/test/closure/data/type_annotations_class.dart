@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 ////////////////////////////////////////////////////////////////////////////////
 /// A sound initialization of a local variable doesn't capture the type
 /// variable.
@@ -33,7 +31,7 @@ class Class1b<T> {
   method1b(T o) {
     /*fields=[o],free=[o],hasThis*/
     dynamic local() {
-      T t = null;
+      T? t = null;
       t = o;
       return t;
     }
@@ -147,7 +145,7 @@ class Class7<T> {
 /*member: Class8.:hasThis*/
 class Class8<T> {
   /*member: Class8.field8:hasThis*/
-  T field8 = /*hasThis*/ () {
+  T? field8 = /*hasThis*/ () {
     return null;
   }();
 }
