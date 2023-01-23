@@ -7,6 +7,12 @@
 // Verify that the use of a constant expression denoting an object that does
 // not have primitive equality in a constant set or as a key of a constant map
 // gives rise to a compile-time error.
+//
+// An enum cannot override `==` or `hashCode`, hence there are no cases with
+// enums. Similarly, implicitly induced noSuchMethod forwarders cannot
+// eliminate primitive equality from a given class: Such forwarders cannot
+// override an explicitly declared inherited method implementation, in this
+// case `Object.hashCode` and `Object.[]`.
 
 class A {
   const A();
@@ -23,26 +29,6 @@ class C {
   int get hashCode => super.hashCode + 1;
   bool operator ==(Object other) => super == other;
 }
-
-// Check that implicitly induced `noSuchMethod` forwarders are detected.
-
-abstract class WeirdEquals {
-  bool operator ==(Object? other);
-}
-
-class SecretNonPrimitiveEquals implements WeirdEquals {
-  noSuchMethod(Invocation invocation) => true;
-}
-
-abstract class WeirdHashCode {
-  Never get hashCode;
-}
-
-class SecretNonPrimitiveHashCode implements WeirdHashCode {
-  noSuchMethod(Invocation invocation) => 0;
-}
-
-// An enum cannot override `==` or `hashCode`, hence no cases with enums.
 
 const aSet = <Object?>{
   0.5,
@@ -63,14 +49,6 @@ const aSet = <Object?>{
 // [cfe] unspecified
   C(),
 //^^^
-// [analyzer] unspecified
-// [cfe] unspecified
-  SecretNonPrimitiveEquals(),
-//^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] unspecified
-// [cfe] unspecified
-  SecretNonPrimitiveHashCode(),
-//^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] unspecified
 // [cfe] unspecified
   (A(), false, 1),
@@ -98,14 +76,6 @@ const aMap = <Object?, Null>{
 // [cfe] unspecified
   C(): null,
 //^^^
-// [analyzer] unspecified
-// [cfe] unspecified
-  SecretNonPrimitiveEquals(): null,
-//^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] unspecified
-// [cfe] unspecified
-  SecretNonPrimitiveHashCode(): null,
-//^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] unspecified
 // [cfe] unspecified
   (A(), false, 1): null,
