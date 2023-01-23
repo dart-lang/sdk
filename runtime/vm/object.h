@@ -217,7 +217,13 @@ class BaseTextBuffer;
   /* with an object id is printed. If ref is false the object is fully   */    \
   /* printed.                                                            */    \
   virtual void PrintJSONImpl(JSONStream* stream, bool ref) const;              \
-  virtual const char* JSONType() const { return "" #object; }
+  /* Prints JSON objects that describe the implementation-level fields of */   \
+  /* the current Object to |jsarr_fields|.                                */   \
+  virtual void PrintImplementationFieldsImpl(const JSONArray& jsarr_fields)    \
+      const;                                                                   \
+  virtual const char* JSONType() const {                                       \
+    return "" #object;                                                         \
+  }
 #else
 #define OBJECT_SERVICE_SUPPORT(object) protected: /* NOLINT */
 #endif                                            // !PRODUCT
@@ -350,6 +356,9 @@ class Object {
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream, bool ref = true) const;
   virtual void PrintJSONImpl(JSONStream* stream, bool ref) const;
+  void PrintImplementationFields(JSONStream* stream) const;
+  virtual void PrintImplementationFieldsImpl(
+      const JSONArray& jsarr_fields) const;
   virtual const char* JSONType() const { return IsNull() ? "null" : "Object"; }
 #endif
 
