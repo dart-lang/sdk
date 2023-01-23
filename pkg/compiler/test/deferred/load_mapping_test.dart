@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:convert';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
@@ -20,7 +18,7 @@ void testLoadMap() async {
   var deferredMap =
       collector.getOutput("deferred_map.json", api.OutputType.deferredMap);
   Expect.isNotNull(deferredMap);
-  var mapping = jsonDecode(deferredMap);
+  var mapping = jsonDecode(deferredMap!);
 
   // Test structure of mapping.
   Expect.equals("<unnamed>", mapping["main.dart"]["name"]);
@@ -39,7 +37,7 @@ void testDumpDeferredGraph() async {
       options: ['--dump-deferred-graph=deferred_graph.txt'],
       outputProvider: collector);
   var actual = collector
-      .getOutput("deferred_graph.txt", api.OutputType.debug)
+      .getOutput("deferred_graph.txt", api.OutputType.debug)!
       .split('\n');
 
   // This program has 5 deferred imports `convert`, `lib1`, `lib2`, `lib4_1`,

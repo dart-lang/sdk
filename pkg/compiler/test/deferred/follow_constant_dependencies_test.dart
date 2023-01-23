@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Test that constants depended on by other constants are correctly deferred.
 
 import 'package:async_helper/async_helper.dart';
@@ -20,7 +18,7 @@ void main() {
 
     Compiler compiler = result.compiler;
     DartTypes dartTypes = compiler.frontendStrategy.commonElements.dartTypes;
-    var closedWorld = compiler.backendClosedWorldForTesting;
+    var closedWorld = compiler.backendClosedWorldForTesting!;
     var outputUnitForConstant =
         closedWorld.outputUnitData.outputUnitForConstant;
     var mainOutputUnit = closedWorld.outputUnitData.mainOutputUnit;
@@ -35,11 +33,10 @@ void main() {
     codegenWorldBuilder.compiledConstantsForTesting
         .forEach(addConstantWithDependencies);
     for (String stringValue in ["cA", "cB", "cC"]) {
-      StringConstantValue constant =
-          allConstants.firstWhere((dynamic constant) {
+      final constant = allConstants.firstWhere((dynamic constant) {
         return constant is StringConstantValue &&
             constant.stringValue == stringValue;
-      });
+      }) as StringConstantValue;
       Expect.notEquals(
           null,
           outputUnitForConstant(constant),

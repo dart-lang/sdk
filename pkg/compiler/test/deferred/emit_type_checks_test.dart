@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Test that the additional runtime type support is output to the right
 // Files when using deferred loading.
 
@@ -20,8 +18,9 @@ void main() {
     CompilationResult result = await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
     Compiler compiler = result.compiler;
-    String mainOutput = collector.getOutput('', api.OutputType.js);
-    String deferredOutput = collector.getOutput('out_1', api.OutputType.jsPart);
+    String mainOutput = collector.getOutput('', api.OutputType.js)!;
+    String deferredOutput =
+        collector.getOutput('out_1', api.OutputType.jsPart)!;
     JsBackendStrategy backendStrategy = compiler.backendStrategy;
     String isPrefix =
         backendStrategy.namerForTesting.fixedNames.operatorIsPrefix;
