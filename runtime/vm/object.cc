@@ -11551,7 +11551,7 @@ bool Field::NeedsSetter() const {
     }
   }
 
-  // Othwerwise, setters for static fields can be omitted
+  // Otherwise, setters for static fields can be omitted
   // and fields can be accessed directly.
   return false;
 }

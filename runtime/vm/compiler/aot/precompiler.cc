@@ -146,7 +146,7 @@ struct RetainReasons : public AllStatic {
   // The object is a function and symbolic stack traces are enabled.
   static constexpr const char* kSymbolicStackTraces =
       "needed for symbolic stack traces";
-  // The object is a parent function function of a non-inlined local function.
+  // The object is a parent function of a non-inlined local function.
   static constexpr const char* kLocalParent = "parent of a local function";
   // The object is a main function of the root library.
   static constexpr const char* kMainFunction =

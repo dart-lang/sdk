@@ -250,7 +250,7 @@ window.ExampleJSClass = function ExampleJSClass(x) {
 
     addEventListener(String name, bool callback(Event e)) => null;
 
-    addFormatterGoldens('Function with functon arguments', addEventListener);
+    addFormatterGoldens('Function with function arguments', addEventListener);
 
     // Closure
     addGolden('dart:html method', window.addEventListener);

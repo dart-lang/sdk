@@ -3226,7 +3226,7 @@ class Function : public Object {
   bool HasOptionalParameters() const;
   // Returns whether the function has optional named parameters.
   bool HasOptionalNamedParameters() const;
-  // Returns whether the fuction has required named parameters.
+  // Returns whether the function has required named parameters.
   bool HasRequiredNamedParameters() const;
   // Returns whether the function has optional positional parameters.
   bool HasOptionalPositionalParameters() const;
