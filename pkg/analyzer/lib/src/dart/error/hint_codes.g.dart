@@ -821,6 +821,58 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  A field with the override annotation does not override a getter or setter.
+  ///
+  ///  No parameters.
+  static const HintCode OVERRIDE_ON_NON_OVERRIDING_FIELD = HintCode(
+    'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
+    "The field doesn't override an inherited getter or setter.",
+    correctionMessage:
+        "Try updating this class to match the superclass, or removing the "
+        "override annotation.",
+    hasPublishedDocs: true,
+    uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_FIELD',
+  );
+
+  ///  A getter with the override annotation does not override an existing getter.
+  ///
+  ///  No parameters.
+  static const HintCode OVERRIDE_ON_NON_OVERRIDING_GETTER = HintCode(
+    'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
+    "The getter doesn't override an inherited getter.",
+    correctionMessage:
+        "Try updating this class to match the superclass, or removing the "
+        "override annotation.",
+    hasPublishedDocs: true,
+    uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_GETTER',
+  );
+
+  ///  A method with the override annotation does not override an existing method.
+  ///
+  ///  No parameters.
+  static const HintCode OVERRIDE_ON_NON_OVERRIDING_METHOD = HintCode(
+    'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
+    "The method doesn't override an inherited method.",
+    correctionMessage:
+        "Try updating this class to match the superclass, or removing the "
+        "override annotation.",
+    hasPublishedDocs: true,
+    uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_METHOD',
+  );
+
+  ///  A setter with the override annotation does not override an existing setter.
+  ///
+  ///  No parameters.
+  static const HintCode OVERRIDE_ON_NON_OVERRIDING_SETTER = HintCode(
+    'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
+    "The setter doesn't override an inherited setter.",
+    correctionMessage:
+        "Try updating this class to match the superclass, or removing the "
+        "override annotation.",
+    hasPublishedDocs: true,
+    uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_SETTER',
+  );
+
   ///  It is a bad practice for a package import to reference anything outside the
   ///  given package, or more generally, it is bad practice for a package import
   ///  to contain a "..". For example, a source file should not contain a

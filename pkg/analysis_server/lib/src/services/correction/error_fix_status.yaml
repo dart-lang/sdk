@@ -1544,6 +1544,14 @@ HintCode.NULL_CHECK_ALWAYS_FAILS:
     Remove the null check.
 HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE:
   status: hasFix
+HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD:
+  status: hasFix
+HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER:
+  status: hasFix
+HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD:
+  status: hasFix
+HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER:
+  status: hasFix
 HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT:
   status: needsFix
   notes: |-
@@ -2751,14 +2759,6 @@ WarningCode.EQUAL_KEYS_IN_MAP:
   status: noFix
   notes: |-
     Fix depends on user's intent, which can't be known.
-WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD:
-  status: hasFix
-WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER:
-  status: hasFix
-WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD:
-  status: hasFix
-WarningCode.OVERRIDE_ON_NON_OVERRIDING_SETTER:
-  status: hasFix
 WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE:
   status: hasFix
 WarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT:
