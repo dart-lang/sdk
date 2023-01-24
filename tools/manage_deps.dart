@@ -158,7 +158,7 @@ Changes:
 > git log --format="%C(auto) %h %s" ${currentRev.substring(0, 7)}..${target.substring(0, 7)}
 $cleanedGitLogResult
 ```
-Diff: $originUrl/+/$currentRev~..$target/
+Diff: $originUrl/+/$currentRev..$target/
 ''';
     runProcessAssumingSuccess(['git', 'commit', '-am', commitMessage],
         explanation: 'Committing');
