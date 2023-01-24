@@ -176,7 +176,7 @@ class BaseTextBuffer;
     return reinterpret_cast<const object&>(obj);                               \
   }                                                                            \
   static object##Ptr RawCast(ObjectPtr raw) {                                  \
-    ASSERT(Object::Handle(raw).IsNull() || Object::Handle(raw).Is##object());  \
+    ASSERT(Is##object##NoHandle(raw));                                         \
     return static_cast<object##Ptr>(raw);                                      \
   }                                                                            \
   static object##Ptr null() {                                                  \
@@ -338,7 +338,16 @@ class Object {
 
 // Class testers.
 #define DEFINE_CLASS_TESTER(clazz)                                             \
-  virtual bool Is##clazz() const { return false; }
+  virtual bool Is##clazz() const { return false; }                             \
+  static bool Is##clazz##NoHandle(ObjectPtr ptr) {                             \
+    /* Use a stack handle to make RawCast safe in contexts where handles   */  \
+    /* should not be allocated, such as GC or runtime transitions. Not     */  \
+    /* using Object's constructor to avoid Is##clazz being de-virtualized. */  \
+    char buf[sizeof(Object)];                                                  \
+    Object* obj = reinterpret_cast<Object*>(&buf);                             \
+    initializeHandle(obj, ptr);                                                \
+    return obj->IsNull() || obj->Is##clazz();                                  \
+  }
   CLASS_LIST_FOR_HANDLES(DEFINE_CLASS_TESTER);
 #undef DEFINE_CLASS_TESTER
 
