@@ -43,9 +43,46 @@ mixin CastPatternTestCases on AbstractCompletionDriverTest {
     );
   }
 
-  Future<void> test_partialType() async {
+  Future<void> test_partialType_declaration() async {
     await computeSuggestions('''
 void f(Object x) {
+  switch (x) {
+    case var i as A^
+  }
+}
+class A01 {}
+class A02 {}
+class B01 {}
+''');
+    if (isProtocolVersion2) {
+      assertResponse('''
+replacement
+  left: 1
+suggestions
+  A01
+    kind: class
+  A02
+    kind: class
+''');
+    } else {
+      assertResponse('''
+replacement
+  left: 1
+suggestions
+  A01
+    kind: class
+  A02
+    kind: class
+  B01
+    kind: class
+''');
+    }
+  }
+
+  Future<void> test_partialType_reference() async {
+    await computeSuggestions('''
+void f(Object x) {
+  const i = 0;
   switch (x) {
     case i as A^
   }

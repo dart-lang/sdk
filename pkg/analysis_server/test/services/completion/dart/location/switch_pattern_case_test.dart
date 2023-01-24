@@ -95,9 +95,25 @@ suggestions
 ''');
   }
 
-  Future<void> test_beforeColon_afterAs() async {
+  Future<void> test_beforeColon_afterAs_afterDeclaration() async {
     await computeSuggestions('''
 void f(Object o) {
+  switch (o) {
+    case var x as ^:
+      return;
+  }
+}
+''');
+    // TODO(brianwilkerson) This should include `dynamic` and types.
+    assertResponse('''
+suggestions
+''');
+  }
+
+  Future<void> test_beforeColon_afterAs_afterReference() async {
+    await computeSuggestions('''
+void f(Object o) {
+  const x = 0;
   switch (o) {
     case x as ^:
       return;
@@ -236,9 +252,24 @@ suggestions
 ''');
   }
 
-  Future<void> test_beforeColon_afterWhen() async {
+  Future<void> test_beforeColon_afterWhen_afterDeclaration() async {
     await computeSuggestions('''
 void f(Object o) {
+  switch (o) {
+    case var x when ^:
+      return;
+  }
+}
+''');
+    assertResponse('''
+suggestions
+''');
+  }
+
+  Future<void> test_beforeColon_afterWhen_afterReference() async {
+    await computeSuggestions('''
+void f(Object o) {
+  const x = 0;
   switch (o) {
     case x when ^:
       return;
@@ -306,7 +337,7 @@ suggestions
 ''');
   }
 
-  Future<void> test_noColon_afterDeclarationAndAs() async {
+  Future<void> test_noColon_afterAs_afterDeclaration() async {
     await computeSuggestions('''
 void f(Object x) {
   switch (x) {
@@ -328,7 +359,7 @@ suggestions
 ''');
   }
 
-  Future<void> test_noColon_afterReferenceAndAs() async {
+  Future<void> test_noColon_afterAs_afterReference() async {
     await computeSuggestions('''
 void f(Object x) {
   const i = 0;
