@@ -87,15 +87,15 @@ static void* LoadDynamicLibrary(const char* library_file,
 // On windows, nullptr signals trying a lookup in all loaded modules.
 const nullptr_t kWindowsDynamicLibraryProcessPtr = nullptr;
 
-void* co_task_mem_alloced = nullptr;
+void* co_task_mem_allocated = nullptr;
 
 // If an error occurs populates |error| with an error message
 // (caller must free this message when it is no longer needed).
 void* LookupSymbolInProcess(const char* symbol, char** error) {
   // Force loading ole32.dll.
-  if (co_task_mem_alloced == nullptr) {
-    co_task_mem_alloced = CoTaskMemAlloc(sizeof(intptr_t));
-    CoTaskMemFree(co_task_mem_alloced);
+  if (co_task_mem_allocated == nullptr) {
+    co_task_mem_allocated = CoTaskMemAlloc(sizeof(intptr_t));
+    CoTaskMemFree(co_task_mem_allocated);
   }
 
   HANDLE current_process =

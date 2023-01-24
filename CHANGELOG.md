@@ -648,7 +648,7 @@ them, you must set the lower bound on the SDK constraint for your package to
     ```
 
     This change is needed to fix [#36453][] where the dart programs not caring
-    about the terminal settings can inadverently corrupt the terminal settings
+    about the terminal settings can inadvertently corrupt the terminal settings
     when e.g. piping into less.
 
     Furthermore the `echoMode` setting now only controls the `echo` local mode
@@ -1078,7 +1078,7 @@ them, you must set the lower bound on the SDK constraint for your package to
 
 - **Breaking change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
   The standalone `dartdevc` tool has been marked deprecated as previously
-  announced and will be deleted in a future Dart stable relase.  This tool
+  announced and will be deleted in a future Dart stable release.  This tool
   was intended for use only by build systems like bazel, `build_web_compilers`
   and `flutter_tools`. The functionality remains available for those systems,
   but it is no longer exposed as a command-line tool in the SDK.
@@ -1867,7 +1867,7 @@ This is a patch release that fixes:
   `a.toUnsigned(32) >>> b` on the VM.
 
 - Prior to Dart 2.14, metadata (annotations) were not permitted to be specified
-  with generic type arguments. This restriction is lifted in Dart Dart 2.14.
+  with generic type arguments. This restriction is lifted in Dart 2.14.
 
   ```dart
   class C<T> {
@@ -2648,7 +2648,7 @@ This is a patch release that fixes the following issues:
 - compiler error causing incorrect use of positional parameters when named
   parameters should be used instead (issues [flutter/flutter#65324][] and
   [flutter/flutter#68092][]).
-- crashes and/or undefined behavor in AOT compiled code (issues [#43770][] and
+- crashes and/or undefined behavior in AOT compiled code (issues [#43770][] and
   [#43786][]).
 - AOT compilation of classes with more than 64 unboxed fields (issue
   [flutter/flutter#67803][]).

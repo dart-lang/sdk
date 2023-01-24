@@ -94,7 +94,7 @@ FOR_EACH_SECTION_TYPE(DECLARE_SECTION_TYPE_CLASS)
 class BitsContainer;
 class Segment;
 
-// Align note sections and segments to 4 byte boundries.
+// Align note sections and segments to 4 byte boundaries.
 static constexpr intptr_t kNoteAlignment = 4;
 
 class Section : public ZoneAllocated {

@@ -2946,7 +2946,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   Register tmp1 = R0, tmp2 = R1;
   // Check if we exited generated from FFI. If so do transition - this is needed
   // because normally runtime calls transition back to generated via destructor
-  // of TransititionGeneratedToVM/Native that is part of runtime boilerplate
+  // of TransitionGeneratedToVM/Native that is part of runtime boilerplate
   // code (see DEFINE_RUNTIME_ENTRY_IMPL in runtime_entry.h). Ffi calls don't
   // have this boilerplate, don't have this stack resource, have to transition
   // explicitly.

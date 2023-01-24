@@ -116,7 +116,7 @@ A set of isolates that are sharing the same program and the same heap. Isolates 
 
 ## Out-of-band message, OOB message
 
-A message that is deliveried at any interrupt check, such as at function entry or the back-edge of a loop, rather than only when returning to the message loop.
+A message that is delivered at any interrupt check, such as at function entry or the back-edge of a loop, rather than only when returning to the message loop.
 
 ## [Hot reload](https://github.com/dart-lang/sdk/wiki/Hot-reload)
 

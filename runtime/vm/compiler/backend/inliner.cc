@@ -1058,7 +1058,7 @@ class CallSiteInliner : public ValueObject {
     // to reduce code size and make sure we use the intrinsic code.
     if (CompilerState::Current().is_aot() && function.is_intrinsic() &&
         !inliner_->AlwaysInline(function)) {
-      TRACE_INLINING(THR_Print("     Bailout: intrinisic\n"));
+      TRACE_INLINING(THR_Print("     Bailout: intrinsic\n"));
       PRINT_INLINING_TREE("intrinsic", &call_data->caller, &function,
                           call_data->call);
       return false;

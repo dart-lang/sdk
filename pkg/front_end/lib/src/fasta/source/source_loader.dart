@@ -2183,7 +2183,11 @@ severity: $severity
         }
         if (builder is ClassBuilder) {
           isClassBuilder = true;
-          _checkConstructorsForMixin(cls, builder);
+          // Assume that mixin classes fulfill their contract of having no
+          // generative constructors.
+          if (!builder.isMixinClass) {
+            _checkConstructorsForMixin(cls, builder);
+          }
         }
       }
       if (!isClassBuilder) {

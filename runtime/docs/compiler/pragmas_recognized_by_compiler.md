@@ -36,7 +36,7 @@ VM will keep trying to inline the function in new contexts, not giving up after 
 ## Annotations for return types and field types
 
 The VM is not able to see across method calls (apart from inlining) and
-therefore does not know anything about the return'ed values of calls, except for
+therefore does not know anything about the returned values of calls, except for
 the interface type of the signature.
 
 To improve this we have two types of additional information sources the VM

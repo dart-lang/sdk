@@ -1559,6 +1559,9 @@ TEST_CASE(DartAPI_ArrayValues) {
   }
 }
 
+static void MallocFinalizer(void* isolate_callback_data, void* peer) {
+  free(peer);
+}
 static void NoopFinalizer(void* isolate_callback_data, void* peer) {}
 
 TEST_CASE(DartAPI_IsString) {
@@ -1750,19 +1753,23 @@ TEST_CASE(DartAPI_ExternalStringCallback) {
 TEST_CASE(DartAPI_ExternalStringPretenure) {
   {
     Dart_EnterScope();
-    static const uint8_t big_data8[16 * MB] = {
-        0,
-    };
+
+    size_t kBig = 16 * MB;
+    uint8_t* big_data8 = reinterpret_cast<uint8_t*>(calloc(kBig, 1));
     Dart_Handle big8 =
-        Dart_NewExternalLatin1String(big_data8, ARRAY_SIZE(big_data8), NULL,
-                                     sizeof(big_data8), NoopFinalizer);
+        Dart_NewExternalLatin1String(big_data8,               // data
+                                     kBig / sizeof(uint8_t),  // length
+                                     big_data8,               // peer
+                                     kBig,                    // external size
+                                     MallocFinalizer);
     EXPECT_VALID(big8);
-    static const uint16_t big_data16[16 * MB / 2] = {
-        0,
-    };
+    uint16_t* big_data16 = reinterpret_cast<uint16_t*>(calloc(kBig, 1));
     Dart_Handle big16 =
-        Dart_NewExternalUTF16String(big_data16, ARRAY_SIZE(big_data16), NULL,
-                                    sizeof(big_data16), NoopFinalizer);
+        Dart_NewExternalUTF16String(big_data16,               // data
+                                    kBig / sizeof(uint16_t),  // length
+                                    big_data16,               // peer
+                                    kBig,                     // external size
+                                    MallocFinalizer);
     static const uint8_t small_data8[] = {'f', 'o', 'o'};
     Dart_Handle small8 =
         Dart_NewExternalLatin1String(small_data8, ARRAY_SIZE(small_data8), NULL,
@@ -5091,7 +5098,7 @@ TEST_CASE(DartAPI_SetStickyError) {
   EXPECT(Dart_GetStickyError() == Dart_Null());
 }
 
-TEST_CASE(DartAPI_TypeGetNonParamtericTypes) {
+TEST_CASE(DartAPI_TypeGetNonParametricTypes) {
   const char* kScriptChars =
       "class MyClass0 {\n"
       "}\n"

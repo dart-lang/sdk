@@ -12,3 +12,7 @@ mixin class SingleConstructor {
   final bool foo;
   SingleConstructor.named(this.foo);
 }
+
+class NoErrorWithMixinClass with SingleConstructor {}
+
+class NoErrorWithMixinClass2 with MultipleConstructors {}

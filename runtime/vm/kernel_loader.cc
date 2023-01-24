@@ -2395,7 +2395,7 @@ FunctionPtr CreateFieldInitializerFunction(Thread* thread,
   init_name = Symbols::FromConcat(thread, Symbols::InitPrefix(), init_name);
 
   // Static field initializers are not added as members of their owning class,
-  // so they must be pre-emptively given a patch class to avoid the meaning of
+  // so they must be preemptively given a patch class to avoid the meaning of
   // their kernel/token position changing during a reload. Compare
   // Class::PatchFieldsAndFunctions().
   // This might also be necessary for lazy computation of local var descriptors.

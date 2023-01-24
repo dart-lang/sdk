@@ -546,7 +546,7 @@ class Analysis {
       //   lost after reading. Can we preserve it somewhere on
       //   `HeapSnapshotGraph`?
       //
-      // The approximation is based on knowning the header size of a string:
+      // The approximation is based on knowing the header size of a string:
       // - String has: header, length (hash - on 32-bit platforms) + payload
       final fixedSize =
           _headerSize + _wordSize * (_arch == _Arch.arch32 ? 2 : 1);

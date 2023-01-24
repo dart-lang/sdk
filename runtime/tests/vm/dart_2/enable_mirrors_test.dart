@@ -4,7 +4,7 @@
 
 // VMOptions=--enable-mirrors=false
 
-// Verfies that '--enable-mirrors=false' affects conditional imports and
+// Verifies that '--enable-mirrors=false' affects conditional imports and
 // constant bool.fromEnvironment.
 
 // @dart = 2.9

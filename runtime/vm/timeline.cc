@@ -41,11 +41,12 @@ DEFINE_FLAG(
     false,
     "Record the timeline to the platform's tracing service if there is one");
 DEFINE_FLAG(bool, trace_timeline, false, "Trace timeline backend");
-DEFINE_FLAG(charp,
-            timeline_dir,
-            NULL,
-            "Enable all timeline trace streams and output VM global trace "
-            "into specified directory.");
+DEFINE_FLAG(
+    charp,
+    timeline_dir,
+    NULL,
+    "Enable all timeline trace streams and output VM global trace "
+    "into specified directory. This flag is ignored by the file recorder.");
 DEFINE_FLAG(charp,
             timeline_streams,
             NULL,
@@ -147,6 +148,7 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
   if (Utils::StrStartsWith(flag, "file") &&
       (flag[4] == '\0' || flag[4] == ':' || flag[4] == '=')) {
     const char* filename = flag[4] == '\0' ? "dart-timeline.json" : &flag[5];
+    FLAG_timeline_dir = nullptr;
     return new TimelineEventFileRecorder(filename);
   }
 
@@ -1491,17 +1493,16 @@ void TimelineEventPlatformRecorder::CompleteEvent(TimelineEvent* event) {
   delete event;
 }
 
-static void TimelineEventFileRecorderStart(uword parameter) {
-  reinterpret_cast<TimelineEventFileRecorder*>(parameter)->Drain();
+static void TimelineEventFileRecorderBaseStart(uword parameter) {
+  reinterpret_cast<TimelineEventFileRecorderBase*>(parameter)->Drain();
 }
 
-TimelineEventFileRecorder::TimelineEventFileRecorder(const char* path)
+TimelineEventFileRecorderBase::TimelineEventFileRecorderBase(const char* path)
     : TimelineEventPlatformRecorder(),
       monitor_(),
       head_(nullptr),
       tail_(nullptr),
       file_(nullptr),
-      first_(true),
       shutting_down_(false),
       thread_id_(OSThread::kInvalidThreadJoinId) {
   Dart_FileOpenCallback file_open = Dart::file_open_callback();
@@ -1519,25 +1520,16 @@ TimelineEventFileRecorder::TimelineEventFileRecorder(const char* path)
   }
 
   file_ = file;
-  // Chrome trace format has two forms:
-  //   Object form:  { "traceEvents": [ event, event, event ] }
-  //   Array form:   [ event, event, event ]
-  // For this recorder, we use the array form because Catapult will handle a
-  // missing ending bracket in this form in case we don't cleanly end the
-  // trace.
-  Write("[\n");
-  OSThread::Start("TimelineEventFileRecorder", TimelineEventFileRecorderStart,
-                  reinterpret_cast<uword>(this));
 }
 
-TimelineEventFileRecorder::~TimelineEventFileRecorder() {
-  if (file_ == nullptr) return;
+TimelineEventFileRecorderBase::~TimelineEventFileRecorderBase() {
+  // WARNING: |ShutDown()| must be called in the derived class destructor. This
+  // work cannot be performed in this destructor, because then |DrainImpl()|
+  // might run between when the derived class destructor completes, and when
+  // |shutting_down_| is set to true, causing possible use-after-free errors.
+  ASSERT(shutting_down_);
 
-  {
-    MonitorLocker ml(&monitor_);
-    shutting_down_ = true;
-    ml.Notify();
-  }
+  if (file_ == nullptr) return;
 
   ASSERT(thread_id_ != OSThread::kInvalidThreadJoinId);
   OSThread::Join(thread_id_);
@@ -1551,13 +1543,41 @@ TimelineEventFileRecorder::~TimelineEventFileRecorder() {
   }
   head_ = tail_ = nullptr;
 
-  Write("]\n");
   Dart_FileCloseCallback file_close = Dart::file_close_callback();
   (*file_close)(file_);
   file_ = nullptr;
 }
 
-void TimelineEventFileRecorder::CompleteEvent(TimelineEvent* event) {
+void TimelineEventFileRecorderBase::Drain() {
+  MonitorLocker ml(&monitor_);
+  thread_id_ = OSThread::GetCurrentThreadJoinId(OSThread::Current());
+  while (!shutting_down_) {
+    if (head_ == nullptr) {
+      ml.Wait();
+      continue;  // Recheck empty and shutting down.
+    }
+    TimelineEvent* event = head_;
+    TimelineEvent* next = event->next();
+    head_ = next;
+    if (next == nullptr) {
+      tail_ = nullptr;
+    }
+    ml.Exit();
+    {
+      DrainImpl(*event);
+      delete event;
+    }
+    ml.Enter();
+  }
+}
+
+void TimelineEventFileRecorderBase::Write(const char* buffer,
+                                          intptr_t len) const {
+  Dart_FileWriteCallback file_write = Dart::file_write_callback();
+  (*file_write)(buffer, len, file_);
+}
+
+void TimelineEventFileRecorderBase::CompleteEvent(TimelineEvent* event) {
   if (event == nullptr) {
     return;
   }
@@ -1578,43 +1598,46 @@ void TimelineEventFileRecorder::CompleteEvent(TimelineEvent* event) {
   ml.Notify();
 }
 
-void TimelineEventFileRecorder::Drain() {
+// Must be called in derived class destructors.
+// See |~TimelineEventFileRecorderBase()| for an explanation.
+void TimelineEventFileRecorderBase::ShutDown() {
   MonitorLocker ml(&monitor_);
-  thread_id_ = OSThread::GetCurrentThreadJoinId(OSThread::Current());
-  while (!shutting_down_) {
-    if (head_ == nullptr) {
-      ml.Wait();
-      continue;  // Recheck empty and shutting down.
-    }
-    TimelineEvent* event = head_;
-    TimelineEvent* next = event->next();
-    head_ = next;
-    if (next == nullptr) {
-      tail_ = nullptr;
-    }
-    ml.Exit();
-    {
-      JSONWriter writer;
-      if (first_) {
-        first_ = false;
-      } else {
-        writer.buffer()->AddChar(',');
-      }
-      event->PrintJSON(&writer);
-      char* output = NULL;
-      intptr_t output_length = 0;
-      writer.Steal(&output, &output_length);
-      Write(output, output_length);
-      free(output);
-      delete event;
-    }
-    ml.Enter();
-  }
+  shutting_down_ = true;
+  ml.Notify();
 }
 
-void TimelineEventFileRecorder::Write(const char* buffer, intptr_t len) {
-  Dart_FileWriteCallback file_write = Dart::file_write_callback();
-  (*file_write)(buffer, len, file_);
+TimelineEventFileRecorder::TimelineEventFileRecorder(const char* path)
+    : TimelineEventFileRecorderBase(path), first_(true) {
+  // Chrome trace format has two forms:
+  //   Object form:  { "traceEvents": [ event, event, event ] }
+  //   Array form:   [ event, event, event ]
+  // For this recorder, we use the array form because Catapult will handle a
+  // missing ending bracket in this form in case we don't cleanly end the
+  // trace.
+  Write("[\n");
+  OSThread::Start("TimelineEventFileRecorder",
+                  TimelineEventFileRecorderBaseStart,
+                  reinterpret_cast<uword>(this));
+}
+
+TimelineEventFileRecorder::~TimelineEventFileRecorder() {
+  ShutDown();
+  Write("]\n");
+}
+
+void TimelineEventFileRecorder::DrainImpl(const TimelineEvent& event) {
+  JSONWriter writer;
+  if (first_) {
+    first_ = false;
+  } else {
+    writer.buffer()->AddChar(',');
+  }
+  event.PrintJSON(&writer);
+  char* output = NULL;
+  intptr_t output_length = 0;
+  writer.Steal(&output, &output_length);
+  Write(output, output_length);
+  free(output);
 }
 
 TimelineEventEndlessRecorder::TimelineEventEndlessRecorder()

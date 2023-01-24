@@ -23,13 +23,13 @@ namespace dart {
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
 
-class GraphInstrinsicCodeGenScope {
+class GraphIntrinsicCodeGenScope {
  public:
-  explicit GraphInstrinsicCodeGenScope(FlowGraphCompiler* compiler)
+  explicit GraphIntrinsicCodeGenScope(FlowGraphCompiler* compiler)
       : compiler_(compiler), old_is_optimizing_(compiler->is_optimizing()) {
     compiler_->is_optimizing_ = true;
   }
-  ~GraphInstrinsicCodeGenScope() {
+  ~GraphIntrinsicCodeGenScope() {
     compiler_->is_optimizing_ = old_is_optimizing_;
   }
 
@@ -44,7 +44,7 @@ static void EmitCodeFor(FlowGraphCompiler* compiler, FlowGraph* graph) {
   // For graph intrinsics we run the linearscan register allocator, which will
   // pass opt=true for MakeLocationSummary. We therefore also have to ensure
   // `compiler->is_optimizing()` is set to true during EmitNativeCode.
-  GraphInstrinsicCodeGenScope optimizing_scope(compiler);
+  GraphIntrinsicCodeGenScope optimizing_scope(compiler);
 
   compiler->assembler()->Comment("Graph intrinsic begin");
   for (intptr_t i = 0; i < graph->reverse_postorder().length(); i++) {

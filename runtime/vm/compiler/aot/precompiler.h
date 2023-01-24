@@ -498,7 +498,7 @@ class Obfuscator : public ValueObject {
   // Note: this operation is not optimized because is very infrequent.
   static void Deobfuscate(Thread* thread, const GrowableObjectArray& pieces);
 
-  // Serialize renaming map as a malloced array of strings.
+  // Serialize renaming map as a mallocated array of strings.
   static const char** SerializeMap(Thread* thread);
 
   void PreventRenaming(const char* name);

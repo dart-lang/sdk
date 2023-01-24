@@ -59,7 +59,7 @@ Future<void> selfInvokes() async {
 }
 
 Future<void> runTests() async {
-  testExecutable();
+  await testExecutable();
   testNonExistingFunction();
 }
 

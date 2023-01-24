@@ -901,7 +901,7 @@ class ScriptInsetElement extends CustomElement implements Renderable {
       var position = 0;
       consumeUntil(var stop) {
         if (stop <= position) {
-          return null; // Empty gap between annotations/boundries.
+          return null; // Empty gap between annotations/boundaries.
         }
         if (stop > line.text.length) {
           // Approximated token length can run past the end of the line.

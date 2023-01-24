@@ -162,7 +162,7 @@ struct IntrinsicDesc {
   const char* function_name;
 };
 
-struct LibraryInstrinsicsDesc {
+struct LibraryIntrinsicsDesc {
   Library& library;
   const IntrinsicDesc* intrinsics;
 };
@@ -205,7 +205,7 @@ void Intrinsifier::InitializeState() {
   Error& error = Error::Handle(zone);
 
   static const intptr_t kNumLibs = 4;
-  const LibraryInstrinsicsDesc intrinsics[kNumLibs] = {
+  const LibraryIntrinsicsDesc intrinsics[kNumLibs] = {
       {Library::Handle(zone, Library::CoreLibrary()), core_intrinsics},
       {Library::Handle(zone, Library::TypedDataLibrary()),
        typed_data_intrinsics},

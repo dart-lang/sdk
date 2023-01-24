@@ -310,7 +310,7 @@ Graph.prototype.loadDartHeapSnapshot = function(data) {
 //
 // If `rewriteForOwners` is true, for each vertex that has an "owner" edge,
 // replace all edges to the vertex with an edge from the owner to the vertex.
-// This can be the graph more hierachical and reveal more structure in the
+// This can be the graph more hierarchical and reveal more structure in the
 // dominator tree.
 Graph.prototype.compute = function(rewriteForOwners) {
   this.computePredecessors();
