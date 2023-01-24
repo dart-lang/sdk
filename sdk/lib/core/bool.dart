@@ -101,8 +101,8 @@ class bool {
   /// If [caseSensitive] is `false`, any combination of upper and lower case ASCII letters 
   /// in the words `"true"` and `"false"` are accepted, as if the input was first lower-cased.
   ///
-  /// If the [source] string does not contain a valid boolean literal,
-  /// optionally prefixed by a sign, a [FormatException] is thrown.
+  /// If the [source] string does not contain a valid boolean literal 
+  /// a [FormatException] is thrown.
   ///
   /// Rather than throwing and immediately catching the [FormatException],
   /// instead use [tryParse] to handle a potential parsing error.
