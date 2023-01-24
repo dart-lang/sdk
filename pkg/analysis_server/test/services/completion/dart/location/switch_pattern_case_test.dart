@@ -37,7 +37,9 @@ mixin SwitchPatternCaseTestCases on AbstractCompletionDriverTest {
     // TODO(brianwilkerson) Include more than keywords in these tests.
     printerConfiguration = printer.Configuration(
       filter: (suggestion) {
-        return suggestion.kind == CompletionSuggestionKind.KEYWORD;
+        final completion = suggestion.completion;
+        return suggestion.kind == CompletionSuggestionKind.KEYWORD ||
+            ['A0', 'B0'].any(completion.startsWith);
       },
     );
   }
@@ -50,12 +52,27 @@ void f(Object o) {
       return;
   }
 }
+class A01 {}
 ''');
     assertResponse('''
 suggestions
-  assert
-    kind: keyword
   break
+    kind: keyword
+  return
+    kind: keyword
+  if
+    kind: keyword
+  A01
+    kind: class
+  final
+    kind: keyword
+  for
+    kind: keyword
+  throw
+    kind: keyword
+  A01
+    kind: constructorInvocation
+  assert
     kind: keyword
   const
     kind: keyword
@@ -63,19 +80,9 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
   late
     kind: keyword
-  return
-    kind: keyword
   switch
-    kind: keyword
-  throw
     kind: keyword
   try
     kind: keyword
@@ -296,6 +303,51 @@ suggestions
     kind: keyword
   when
     kind: keyword
+''');
+  }
+
+  Future<void> test_noColon_afterDeclarationAndAs() async {
+    await computeSuggestions('''
+void f(Object x) {
+  switch (x) {
+    case var i as ^
+  }
+}
+class A01 {}
+class A02 {}
+class B01 {}
+''');
+    assertResponse('''
+suggestions
+  A01
+    kind: class
+  A02
+    kind: class
+  B01
+    kind: class
+''');
+  }
+
+  Future<void> test_noColon_afterReferenceAndAs() async {
+    await computeSuggestions('''
+void f(Object x) {
+  const i = 0;
+  switch (x) {
+    case i as ^
+  }
+}
+class A01 {}
+class A02 {}
+class B01 {}
+''');
+    assertResponse('''
+suggestions
+  A01
+    kind: class
+  A02
+    kind: class
+  B01
+    kind: class
 ''');
   }
 }

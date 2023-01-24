@@ -58,7 +58,7 @@ class _SnapshotReader implements SnapshotReader {
 Uint8List _newUint8Array(int size) {
   try {
     return new Uint8List(size);
-  } on ArgumentError catch (e) {
+  } on ArgumentError {
     // JS throws a misleading invalid argument error. Convert to a more user-friendly message.
     throw new Exception(
         "OutOfMemoryError: Not enough memory available to analyze the snapshot.");
@@ -68,7 +68,7 @@ Uint8List _newUint8Array(int size) {
 Uint16List _newUint16Array(int size) {
   try {
     return new Uint16List(size);
-  } on ArgumentError catch (e) {
+  } on ArgumentError {
     // JS throws a misleading invalid argument error. Convert to a more user-friendly message.
     throw new Exception(
         "OutOfMemoryError: Not enough memory available to analyze the snapshot.");
@@ -78,7 +78,7 @@ Uint16List _newUint16Array(int size) {
 Uint32List _newUint32Array(int size) {
   try {
     return new Uint32List(size);
-  } on ArgumentError catch (e) {
+  } on ArgumentError {
     // JS throws a misleading invalid argument error. Convert to a more user-friendly message.
     throw new Exception(
         "OutOfMemoryError: Not enough memory available to analyze the snapshot.");

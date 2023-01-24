@@ -267,6 +267,44 @@ const _OptionalTypeArgs optionalTypeArgs = _OptionalTypeArgs();
 // "referenced."
 const _Protected protected = _Protected();
 
+/// Annotation for intentionally loosening restrictions on subtyping.
+///
+/// Indicates that the annotated class or mixin declaration
+/// intentionally allows subclasses to implement or extend it, even
+/// though it has a superclass which does not allow that.
+///
+/// A declaration annotated with `@reopen` will not generate warnings from the
+/// `implicit_reopen` lint. That lint will otherwise warn when a subclass *C*
+/// removes some of the restrictions that a superclass has.
+///
+/// * A class or mixin prevents inheritance if it's marked interface, or if it
+///   is marked sealed and it extends or mixes in another class which prevents
+///   inheritance.
+/// * We give a warning if a subclass extends or mixes in another class which
+///   prevents inheritance, and the subclass is marked base, or is not marked
+///   `final`, `interface` or `sealed`.
+/// * A class or mixin requires inheritance if it's marked `base`, or if it is
+///   marked `sealed` and it extends or mixes in another class or mixin which
+///   requires inheritance.
+/// * We give a warning if a subclass extends or mixes in another class which
+///   requires inheritance, and the subclass has no modifier or is marked
+///   `interface`.
+/// * A class or mixin prevents subclassing if it's marked `final`, or if it is
+///   marked `sealed` and it extends, mixes in, or implements the interface of
+///   another class or mixin which prevents subclassing.
+/// * We give a warning if a subclass or sub-mixin extends, mixes in, implements
+///   the the interface of, or has as an on type a class or mixin which prevents
+///   subclassing, and the subclass or sub-mixin has no modifier or is marked
+///   `interface` or `base`.
+///
+/// In addition, tools, such as the analyzer, can provide feedback if
+///
+/// * The annotation is applied to anything other than a class or mixin.
+/// * The annotation is applied to a class or mixin which does not require it.
+///   (The intent to reopen was not satisfied.)
+@experimental // todo(pq): remove before publishing for 3.0 (https://github.com/dart-lang/sdk/issues/51059)
+const _Reopen reopen = _Reopen();
+
 /// Used to annotate a named parameter `p` in a method or function `f`.
 /// Indicates that every invocation of `f` must include an argument
 /// corresponding to `p`, despite the fact that `p` would otherwise be an
@@ -486,6 +524,14 @@ class _OptionalTypeArgs {
 
 class _Protected {
   const _Protected();
+}
+
+@Target({
+  TargetKind.classType,
+  TargetKind.mixinType,
+})
+class _Reopen {
+  const _Reopen();
 }
 
 class _Sealed {

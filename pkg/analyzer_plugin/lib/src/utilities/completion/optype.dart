@@ -351,6 +351,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitCastPattern(CastPattern node) {
+    if (identical(entity, node.type)) {
+      optype.completionLocation = 'CastPattern_type';
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
   void visitCatchClause(CatchClause node) {
     if (identical(entity, node.exceptionType)) {
       optype.completionLocation = 'CatchClause_exceptionType';
@@ -1309,6 +1317,25 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.completionLocation = 'SwitchCase_expression';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
+    } else if (node.statements.contains(entity)) {
+      optype.completionLocation = 'SwitchMember_statement';
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+      optype.includeVoidReturnSuggestions = true;
+    }
+  }
+
+  @override
+  void visitSwitchPatternCase(SwitchPatternCase node) {
+    if (identical(entity, node.colon)) {
+      var guardedPattern = node.guardedPattern;
+      var pattern = guardedPattern.pattern;
+      if (guardedPattern.whenClause == null &&
+          pattern is DeclaredVariablePattern &&
+          pattern.name.lexeme == 'as') {
+        optype.completionLocation = 'CastPattern_type';
+        optype.includeTypeNameSuggestions = true;
+      }
     } else if (node.statements.contains(entity)) {
       optype.completionLocation = 'SwitchMember_statement';
       optype.includeReturnValueSuggestions = true;

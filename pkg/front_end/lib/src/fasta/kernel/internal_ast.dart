@@ -4633,33 +4633,21 @@ class ObjectPattern extends Pattern {
         new PatternTransformationResult([]);
     for (NamedPattern field in fields) {
       String fieldNameString = field.name;
-      Expression objectElement;
-      DartType fieldType;
       Name fieldName = new Name(fieldNameString);
 
-      ObjectAccessTarget fieldAccessTarget = base.findInterfaceMember(
-          targetObjectType, fieldName, fileOffset,
-          callSiteAccessKind: CallSiteAccessKind.getterInvocation);
+      PropertyGetInferenceResult result = base.createPropertyGet(
+          fileOffset: field.fileOffset,
+          receiver:
+              createVariableGet(objectVariable, promotedType: targetObjectType),
+          receiverType: targetObjectType,
+          propertyName: fieldName,
+          // TODO(johnniwinther): What is the type context?
+          typeContext: const UnknownType(),
+          // TODO(johnniwinther): Handle access on `this`.
+          isThisReceiver: false);
 
-      if (fieldAccessTarget.member != null) {
-        fieldType = fieldAccessTarget.getGetterType(base);
-
-        // objectElement: `objectVariable`.`fieldName`
-        //   ==> OVAR.`fieldName`
-        objectElement = createInstanceGet(
-            base,
-            targetObjectType,
-            createVariableGet(objectVariable, promotedType: targetObjectType),
-            fieldName,
-            fileOffset: fileOffset);
-      } else {
-        objectElement = base.helper.buildProblem(
-            templateUndefinedGetter.withArguments(
-                fieldNameString, targetObjectType, base.isNonNullableByDefault),
-            fileOffset,
-            noLength);
-        fieldType = const InvalidType();
-      }
+      Expression objectElement = result.expressionInferenceResult.expression;
+      DartType fieldType = result.expressionInferenceResult.inferredType;
 
       // objectElementVariable: `fieldType` EVAR = `objectElement`
       //   ==> `fieldType` EVAR = OVAR.`fieldName`

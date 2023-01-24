@@ -217,7 +217,13 @@ class BaseTextBuffer;
   /* with an object id is printed. If ref is false the object is fully   */    \
   /* printed.                                                            */    \
   virtual void PrintJSONImpl(JSONStream* stream, bool ref) const;              \
-  virtual const char* JSONType() const { return "" #object; }
+  /* Prints JSON objects that describe the implementation-level fields of */   \
+  /* the current Object to |jsarr_fields|.                                */   \
+  virtual void PrintImplementationFieldsImpl(const JSONArray& jsarr_fields)    \
+      const;                                                                   \
+  virtual const char* JSONType() const {                                       \
+    return "" #object;                                                         \
+  }
 #else
 #define OBJECT_SERVICE_SUPPORT(object) protected: /* NOLINT */
 #endif                                            // !PRODUCT
@@ -350,6 +356,9 @@ class Object {
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream, bool ref = true) const;
   virtual void PrintJSONImpl(JSONStream* stream, bool ref) const;
+  void PrintImplementationFields(JSONStream* stream) const;
+  virtual void PrintImplementationFieldsImpl(
+      const JSONArray& jsarr_fields) const;
   virtual const char* JSONType() const { return IsNull() ? "null" : "Object"; }
 #endif
 
@@ -11421,51 +11430,6 @@ class TypedData : public TypedDataBase {
   static TypedDataPtr Grow(const TypedData& current,
                            intptr_t len,
                            Heap::Space space = Heap::kNew);
-
-  static void Copy(const TypedDataBase& dst,
-                   intptr_t dst_offset_in_bytes,
-                   const TypedDataBase& src,
-                   intptr_t src_offset_in_bytes,
-                   intptr_t length_in_bytes) {
-    ASSERT(Utils::RangeCheck(src_offset_in_bytes, length_in_bytes,
-                             src.LengthInBytes()));
-    ASSERT(Utils::RangeCheck(dst_offset_in_bytes, length_in_bytes,
-                             dst.LengthInBytes()));
-    {
-      NoSafepointScope no_safepoint;
-      if (length_in_bytes > 0) {
-        memmove(dst.DataAddr(dst_offset_in_bytes),
-                src.DataAddr(src_offset_in_bytes), length_in_bytes);
-      }
-    }
-  }
-
-  static void ClampedCopy(const TypedDataBase& dst,
-                          intptr_t dst_offset_in_bytes,
-                          const TypedDataBase& src,
-                          intptr_t src_offset_in_bytes,
-                          intptr_t length_in_bytes) {
-    ASSERT(Utils::RangeCheck(src_offset_in_bytes, length_in_bytes,
-                             src.LengthInBytes()));
-    ASSERT(Utils::RangeCheck(dst_offset_in_bytes, length_in_bytes,
-                             dst.LengthInBytes()));
-    {
-      NoSafepointScope no_safepoint;
-      if (length_in_bytes > 0) {
-        uint8_t* dst_data =
-            reinterpret_cast<uint8_t*>(dst.DataAddr(dst_offset_in_bytes));
-        int8_t* src_data =
-            reinterpret_cast<int8_t*>(src.DataAddr(src_offset_in_bytes));
-        for (intptr_t ix = 0; ix < length_in_bytes; ix++) {
-          int8_t v = *src_data;
-          if (v < 0) v = 0;
-          *dst_data = v;
-          src_data++;
-          dst_data++;
-        }
-      }
-    }
-  }
 
   static bool IsTypedData(const Instance& obj) {
     ASSERT(!obj.IsNull());

@@ -96,12 +96,16 @@ abstract class AbstractCompletionDriverTest
     final actual = buffer.toString();
 
     if (actual != expected) {
-      // TODO(brianwilkerson) Improve the output to make it easier to debug. For
-      //  example, print the type of the covering node and the `entity` used to
-      //  compute the suggestions.
+      var target = driver.server.server.completionState.currentRequest?.target;
+      var where = '';
+      if (target != null) {
+        var containingNode = target.containingNode.runtimeType;
+        var entity = target.entity;
+        where = ' (containingNode = $containingNode, entity = $entity)';
+      }
       TextExpectationsCollector.add(actual);
       fail('''
-The actual suggestions do not match the expected suggestions.
+The actual suggestions do not match the expected suggestions$where.
 
 To accept the current state change the expectation to
 

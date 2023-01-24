@@ -5849,7 +5849,6 @@ class C<T> {
     assertNotSuggested('String');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
   Future<void> test_SwitchStatement_case_var() async {
     // SwitchStatement  Block  BlockFunctionBody  MethodDeclaration
     addTestSource('''

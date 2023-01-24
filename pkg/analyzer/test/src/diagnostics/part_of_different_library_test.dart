@@ -31,6 +31,26 @@ part 'part.g.dart';
     ]);
   }
 
+  /// TODO(scheglov) Extract `package:build` base resolution class, move this.
+  test_packageBuild_generated() async {
+    var package = 'test';
+    newPubspecYamlFile(testPackageRootPath, 'name: $package');
+
+    var testPackageGeneratedPath =
+        '$testPackageRootPath/.dart_tool/build/generated';
+    newFile('$testPackageGeneratedPath/$package/example/foo.g.dart', '''
+part of 'foo.dart';
+''');
+
+    var path = '$testPackageRootPath/example/foo.dart';
+    newFile(path, '''
+part 'foo.g.dart';
+''');
+
+    await resolveFile2(path);
+    assertErrorsInResolvedUnit(result, const []);
+  }
+
   test_partOfName() async {
     newFile('$testPackageLibPath/part.dart', '''
 part of bar;
