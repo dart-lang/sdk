@@ -31,3 +31,25 @@ mixin class SingleConstructor extends core::Object {
   constructor named(core::bool foo) → self::SingleConstructor
     ;
 }
+abstract class _NoErrorWithMixinClass&Object&SingleConstructor = core::Object with self::SingleConstructor /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_NoErrorWithMixinClass&Object&SingleConstructor
+    : super core::Object::•()
+    ;
+  mixin-super-stub get foo() → core::bool
+    return super.{self::SingleConstructor::foo};
+}
+class NoErrorWithMixinClass extends self::_NoErrorWithMixinClass&Object&SingleConstructor {
+  synthetic constructor •() → self::NoErrorWithMixinClass
+    ;
+}
+abstract class _NoErrorWithMixinClass2&Object&MultipleConstructors = core::Object with self::MultipleConstructors /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_NoErrorWithMixinClass2&Object&MultipleConstructors
+    : super core::Object::•()
+    ;
+  mixin-super-stub get foo() → core::bool
+    return super.{self::MultipleConstructors::foo};
+}
+class NoErrorWithMixinClass2 extends self::_NoErrorWithMixinClass2&Object&MultipleConstructors {
+  synthetic constructor •() → self::NoErrorWithMixinClass2
+    ;
+}
