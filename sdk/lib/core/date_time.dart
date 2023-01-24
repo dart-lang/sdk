@@ -361,15 +361,11 @@ class DateTime implements Comparable<DateTime> {
     }
   }
 
-  /// Constructs a new [DateTime] instance
-  /// with Unix time epoch.
+  /// Epoch of the `DateTime` calendar.
   ///
-  /// The constructed [DateTime] represents 1970-01-01T00:00:00Z
-  /// ```dart
-  /// const unixEpochDay = DateTime.unixEpoch();
-  /// print(unixEpochDay); // 1970-01-01 00:00:00.000Z
-  /// ```
-  external const DateTime.unixEpoch();
+  /// The epoch is the start of January 1st 1970, as UTC time,
+  /// where, e.g., [millisecondsSinceEpoch] is zero.
+  external const DateTime.epoch();
 
   static const int _maxMillisecondsSinceEpoch = 8640000000000000;
 
