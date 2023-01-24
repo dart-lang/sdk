@@ -1630,11 +1630,9 @@ HintCode.UNNECESSARY_NULL_COMPARISON_TRUE:
 HintCode.UNNECESSARY_QUESTION_MARK:
   status: hasFix
 HintCode.UNNECESSARY_TYPE_CHECK_FALSE:
-  status: needsFix
-  issue: https://github.com/dart-lang/sdk/issues/47793
+  status: hasFix
 HintCode.UNNECESSARY_TYPE_CHECK_TRUE:
-  status: needsFix
-  issue: https://github.com/dart-lang/sdk/issues/47793
+  status: hasFix
 HintCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT:
   status: hasFix
 HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL:

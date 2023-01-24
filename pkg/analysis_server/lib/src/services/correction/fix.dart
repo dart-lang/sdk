@@ -1198,6 +1198,16 @@ class DartFixKind {
     49,
     'Remove type arguments',
   );
+  static const REMOVE_TYPE_CHECK = FixKind(
+    'dart.fix.remove.typeCheck',
+    DartFixKindPriority.DEFAULT,
+    'Remove type check',
+  );
+  static const REMOVE_TYPE_CHECK_MULTI = FixKind(
+    'dart.fix.remove.comparison.multi',
+    DartFixKindPriority.IN_FILE,
+    'Remove type check everywhere in file',
+  );
   static const REMOVE_UNNECESSARY_CAST = FixKind(
     'dart.fix.remove.unnecessaryCast',
     DartFixKindPriority.DEFAULT,

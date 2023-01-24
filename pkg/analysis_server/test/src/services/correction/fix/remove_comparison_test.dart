@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -13,6 +12,8 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveComparisonTest);
+    defineReflectiveTests(RemoveTypeCheckTest);
+    defineReflectiveTests(RemoveTypeCheckBulkTest);
     defineReflectiveTests(RemoveNullCheckComparisonTest);
     defineReflectiveTests(RemoveNullCheckComparisonBulkTest);
   });
@@ -372,66 +373,74 @@ class Person {
 ''');
     await assertNoFix();
   }
+}
 
-  /// todo(pq): consider implementing
-  @FailingTest(reason: 'Fix unimplemented')
-  Future<void> test_ifNullStatement() async {
+@reflectiveTest
+class RemoveTypeCheckBulkTest extends BulkFixProcessorTest {
+  Future<void> test_singleFile() async {
     await resolveTestCode('''
-class Person {
-  final String name = '';
-
-  @override
-  operator ==(Object? other) {
-    if (other is! Person) return false;
-    final toCompare = other ?? Person();
-    return toCompare.name == name;
+void f(int a, int b) {
+  if (a is! num || b == 0) {
+    print('');
   }
 }
-''');
-
-    await assertHasFix('''
-class Person {
-  final String name = '';
-
-  @override
-  operator ==(Object? other) {
-    if (other is! Person) return false;
-    final toCompare = other;
-    return toCompare.name == name;
-  }
-}
-''',
-        errorFilter: (error) =>
-            error.errorCode == StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION);
-  }
-
-  /// todo(pq): implement or remove the lint (see: https://github.com/dart-lang/linter/issues/2864)
-  @FailingTest(reason: 'Fix unimplemented')
-  Future<void> test_ifStatement() async {
-    await resolveTestCode('''
-class Person {
-  final String name = '';
-
-  @override
-  operator ==(Object? other) {
-    if (other == null) return false;
-    return other is Person &&
-          name == other.name;
+void g(int a, int b) {
+  if (b == 0 && a is num) {
+    print('');
   }
 }
 ''');
     await assertHasFix('''
-class Person {
-  final String name = '';
-
-  @override
-  operator ==(Object? other) {
-    return other is Person &&
-          name == other.name;
+void f(int a, int b) {
+  if (b == 0) {
+    print('');
   }
 }
-''',
-        errorFilter: (error) =>
-            error.errorCode == HintCode.UNNECESSARY_NULL_COMPARISON_FALSE);
+void g(int a, int b) {
+  if (b == 0) {
+    print('');
+  }
+}
+''');
+  }
+}
+
+@reflectiveTest
+class RemoveTypeCheckTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_TYPE_CHECK;
+
+  Future<void> test_unnecessaryTypeCheck_false() async {
+    await resolveTestCode('''
+void f(int a, int b) {
+  if (a is! num || b == 0) {
+    print('');
+  }
+}
+''');
+    await assertHasFix('''
+void f(int a, int b) {
+  if (b == 0) {
+    print('');
+  }
+}
+''');
+  }
+
+  Future<void> test_unnecessaryTypeCheck_true() async {
+    await resolveTestCode('''
+void f(int a, int b) {
+  if (b == 0 && a is num) {
+    print('');
+  }
+}
+''');
+    await assertHasFix('''
+void f(int a, int b) {
+  if (b == 0) {
+    print('');
+  }
+}
+''');
   }
 }
