@@ -99,6 +99,14 @@ class _MethodLoweringConfig {
 }
 
 /// Lowers static interop to JS, generating specialized JS methods as required.
+/// We lower methods to JS, but wait to emit the runtime until after we complete
+/// translation. Ideally, we'd do everything after translation, but
+/// unfortunately the TFA assumes classes with external factory constructors
+/// that aren't mark with `entry-point` are abstract, and their methods thus get
+/// replaced with `throw`s. Since we have to lower factory methods anyways, we
+/// go ahead and lower everything, let the TFA tree shake, and then emit JS only
+/// for the remaining nodes. We can revisit this if it becomes a performance
+/// issue.
 class _JSLowerer extends Transformer {
   final Procedure _dartifyRawTarget;
   final Procedure _jsifyRawTarget;
@@ -113,10 +121,7 @@ class _JSLowerer extends Transformer {
   final Field _pragmaOptions;
   bool _replaceProcedureWithInlineJS = false;
   late String _inlineJSImportName;
-  // TODO(joshualitt): Tree shake js methods by holding on to
-  // _MethodLoweringConfigs until after we run the TFA, and then only generating
-  // js methods for the dart stubs that remain.
-  final List<String> jsMethods = [];
+  final Map<Procedure, String> jsMethods = {};
   int _methodN = 1;
   late Library _library;
   late String _libraryJSString;
@@ -463,26 +468,9 @@ class _JSLowerer extends Transformer {
       dartArguments = '$dartArguments,$jsParametersString';
     }
 
-    // Create JS method.
-    // Note: We have to use a regular function for the inner closure in some
-    // cases because we need access to `arguments`.
-    final jsMethodName = functionTrampolineName;
-    if (needsArguments) {
-      jsMethods.add("$jsMethodName: f => "
-          "finalizeWrapper(f, function($jsParametersString) {"
-          " return dartInstance.exports.$functionTrampolineName($dartArguments) "
-          "})");
-    } else {
-      if (parametersNeedParens(jsParameters)) {
-        jsParametersString = '($jsParametersString)';
-      }
-      jsMethods.add("$jsMethodName: f => "
-          "finalizeWrapper(f,$jsParametersString => "
-          "dartInstance.exports.$functionTrampolineName($dartArguments))");
-    }
-
     // Create Dart procedure stub.
-    return _addInteropProcedure(
+    final jsMethodName = functionTrampolineName;
+    Procedure dartProcedure = _addInteropProcedure(
         '|$jsMethodName',
         'dart2wasm.$jsMethodName',
         FunctionNode(null,
@@ -494,6 +482,25 @@ class _JSLowerer extends Transformer {
         fileUri,
         _AnnotationType.import,
         isExternal: true);
+
+    // Create JS method.
+    // Note: We have to use a regular function for the inner closure in some
+    // cases because we need access to `arguments`.
+    if (needsArguments) {
+      jsMethods[dartProcedure] = "$jsMethodName: f => "
+          "finalizeWrapper(f, function($jsParametersString) {"
+          " return dartInstance.exports.$functionTrampolineName($dartArguments) "
+          "})";
+    } else {
+      if (parametersNeedParens(jsParameters)) {
+        jsParametersString = '($jsParametersString)';
+      }
+      jsMethods[dartProcedure] = "$jsMethodName: f => "
+          "finalizeWrapper(f,$jsParametersString => "
+          "dartInstance.exports.$functionTrampolineName($dartArguments))";
+    }
+
+    return dartProcedure;
   }
 
   /// Lowers an invocation of `allowInterop<type>(foo)` to:
@@ -562,7 +569,8 @@ class _JSLowerer extends Transformer {
         isExternal: true);
 
     // Create JS method
-    jsMethods.add("$jsMethodName: ${config.generateJS(jsParameterStrings)}");
+    jsMethods[dartProcedure] =
+        "$jsMethodName: ${config.generateJS(jsParameterStrings)}";
 
     // Return the replacement body.
     // Because we simply don't have enough information, we leave all JS numbers
@@ -672,14 +680,16 @@ class _JSLowerer extends Transformer {
         "Code template must be a StringLiteral");
     String codeTemplate = (arguments.positional[0] as StringLiteral).value;
     String jsMethodName = generateMethodName();
-    jsMethods.add("$jsMethodName: $codeTemplate");
     _inlineJSImportName = 'dart2wasm.$jsMethodName';
     _replaceProcedureWithInlineJS =
         allArgumentsAreGet && _shouldReplaceEnclosingProcedure(node);
+    Procedure dartProcedure;
+    Expression result;
     if (_replaceProcedureWithInlineJS) {
-      return InvalidExpression("Unreachable");
+      dartProcedure = _getEnclosingProcedure(node);
+      result = InvalidExpression("Unreachable");
     } else {
-      final dartProcedure = _addInteropProcedure(
+      dartProcedure = _addInteropProcedure(
           '|$jsMethodName',
           _inlineJSImportName,
           FunctionNode(null,
@@ -688,12 +698,14 @@ class _JSLowerer extends Transformer {
           inlineJSNode.fileUri,
           _AnnotationType.import,
           isExternal: true);
-      return StaticInvocation(dartProcedure, Arguments(originalArguments));
+      result = StaticInvocation(dartProcedure, Arguments(originalArguments));
     }
+    jsMethods[dartProcedure] = "$jsMethodName: $codeTemplate";
+    return result;
   }
 }
 
-String _performJSInteropTransformations(
+Map<Procedure, String> _performJSInteropTransformations(
     Component component,
     CoreTypes coreTypes,
     ClassHierarchy classHierarchy,
@@ -711,14 +723,32 @@ String _performJSInteropTransformations(
   for (Library library in interopDependentLibraries) {
     staticInteropClassEraser.visitLibrary(library);
   }
-  return jsLowerer.jsMethods.join(',\n');
+  return jsLowerer.jsMethods;
 }
 
-// TODO(joshualitt): Breakup the runtime blob and tree shake unused JS from the
-// runtime.
-String generateJSRuntime(
+class JSRuntimeFinalizer {
+  final Map<Procedure, String> allJSMethods;
+
+  JSRuntimeFinalizer(this.allJSMethods);
+
+  String generate(Iterable<Procedure> translatedProcedures) {
+    Set<Procedure> usedProcedures = {};
+    List<String> usedJSMethods = [];
+    for (Procedure p in translatedProcedures) {
+      if (usedProcedures.add(p) && allJSMethods.containsKey(p)) {
+        usedJSMethods.add(allJSMethods[p]!);
+      }
+    }
+    return '''
+  $jsRuntimeBlobPart1
+  ${usedJSMethods.join(',\n')}
+  $jsRuntimeBlobPart2
+''';
+  }
+}
+
+JSRuntimeFinalizer createJSRuntimeFinalizer(
     Component component, CoreTypes coreTypes, ClassHierarchy classHierarchy) {
-  String? jsInteropMethods;
   Set<Library> transitiveImportingJSInterop = {
     ...?calculateTransitiveImportsOfJsInteropIfUsed(
         component, Uri.parse("package:js/js.dart")),
@@ -727,12 +757,8 @@ String generateJSRuntime(
     ...?calculateTransitiveImportsOfJsInteropIfUsed(
         component, Uri.parse("dart:_js_helper")),
   };
+  Map<Procedure, String> jsInteropMethods = {};
   jsInteropMethods = _performJSInteropTransformations(
       component, coreTypes, classHierarchy, transitiveImportingJSInterop);
-
-  return '''
-$jsRuntimeBlobPart1
-$jsInteropMethods
-$jsRuntimeBlobPart2
-''';
+  return JSRuntimeFinalizer(jsInteropMethods);
 }
