@@ -1491,8 +1491,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               problemReported = true;
             }
           } else {
-            if (_checkForMixinClassDeclaresConstructor(
-                mixinName, mixinElement)) {
+            bool isMixinClass =
+                mixinElement is ClassElementImpl && mixinElement.isMixinClass;
+            if (!isMixinClass &&
+                _checkForMixinClassDeclaresConstructor(
+                    mixinName, mixinElement)) {
               problemReported = true;
             }
             if (_checkForMixinInheritsNotFromObject(mixinName, mixinElement)) {

@@ -66,6 +66,7 @@ enum E with A {
 mixin class A {
   A() {}
 }
+class B with A {}
 ''',
       [
         error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 18, 1),
