@@ -94,7 +94,7 @@ class bool {
   //ignore: const_factory
   external const factory bool.hasEnvironment(String name);
 
-  /// Parse [source] as a, optionally case-insensitive, boolean literal.
+  /// Parse [source] as an, optionally case-insensitive, boolean literal.
   ///
   /// If [caseSensitive] is `true`, which is the default, 
   /// the only accepted inputs are the strings `"true"` and `"false"`.
@@ -110,7 +110,7 @@ class bool {
   /// ```
   external static bool parse(String source, {bool? caseSensitive});
 
-  /// Parse [source] as a, optionally case-insensitive, boolean literal.
+  /// Parse [source] as an, optionally case-insensitive, boolean literal.
   ///
   /// Like [parse] except that this function returns `null` where a
   /// similar call to [parse] would throw a [FormatException].
