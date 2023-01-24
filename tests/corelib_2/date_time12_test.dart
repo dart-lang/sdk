@@ -6,7 +6,7 @@
 
 import "package:expect/expect.dart";
 
-// Test DateTime.epoch Constructor
+// Test DateTime.epoch
 
 main() {
   const epoch = DateTime.epoch;
