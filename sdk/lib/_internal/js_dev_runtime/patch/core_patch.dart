@@ -722,11 +722,8 @@ class bool {
   }
 
   @patch
-  static bool parse(String source, {bool? caseSensitive}) {
-    var value = tryParse(source, caseSensitive: caseSensitive);
-    if (value != null) return value;
-    throw new FormatException(source);
-  }
+  static bool parse(String source, {bool? caseSensitive}) 
+    => Primitives.parseBool(source, caseSensitive) ?? (throw FormatException(source, "Not valid boolean"));
 
   @patch
   static bool? tryParse(String source, {bool? caseSensitive}) {
