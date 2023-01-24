@@ -107,13 +107,6 @@ class bool {
   /// Rather than throwing and immediately catching the [FormatException],
   /// instead use [tryParse] to handle a potential parsing error.
   ///
-  /// Example:
-  /// ```dart
-  /// var text = "true";
-  /// if (bool.parse(text)) {
-  ///   // handle the problem
-  ///   // ...
-  /// }
   /// ```
   external static bool parse(String source, {bool? caseSensitive});
 
