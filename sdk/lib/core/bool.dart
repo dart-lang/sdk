@@ -94,7 +94,7 @@ class bool {
   //ignore: const_factory
   external const factory bool.hasEnvironment(String name);
 
-  /// Parse [source] as a, optionally case-insensitive, boolean literal and return its value.
+  /// Parse [source] as a, optionally case-insensitive, boolean literal.
   ///
   /// The [caseSensitive] only accepted inputs are the ASCII letter sequences "true" and "false"
   /// optionally allowing upper case letters as well as lower case, in any combination.
