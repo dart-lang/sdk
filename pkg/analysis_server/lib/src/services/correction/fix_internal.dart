@@ -1449,9 +1449,11 @@ class FixProcessor extends BaseProcessor {
 // TODO(brianwilkerson) Add a fix to remove the method.
 //    ],
     HintCode.UNNECESSARY_NAN_COMPARISON_FALSE: [
+      RemoveComparison.new,
       ReplaceWithIsNan.new,
     ],
     HintCode.UNNECESSARY_NAN_COMPARISON_TRUE: [
+      RemoveComparison.new,
       ReplaceWithIsNan.new,
     ],
     HintCode.UNNECESSARY_NULL_COMPARISON_FALSE: [
