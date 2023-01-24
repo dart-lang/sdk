@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 // Test DateTime.epoch Constructor
 
 main() {
-  const epoch = DateTime.epoch();
+  const epoch = DateTime.epoch;
 
   var d1 = new DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
   var d2 = new DateTime.fromMicrosecondsSinceEpoch(0, isUtc: true);

@@ -365,7 +365,11 @@ class DateTime implements Comparable<DateTime> {
   ///
   /// The epoch is the start of January 1st 1970, as UTC time,
   /// where, e.g., [millisecondsSinceEpoch] is zero.
-  external const DateTime.epoch();
+  static const DateTime epoch = DateTime._epoch();
+
+  /// Constructs a new [DateTime] instance
+  /// where, e.g., [millisecondsSinceEpoch] is zero.
+  external const DateTime._epoch();
 
   static const int _maxMillisecondsSinceEpoch = 8640000000000000;
 
