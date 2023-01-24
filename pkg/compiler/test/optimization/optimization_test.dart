@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:async_helper/async_helper.dart';
@@ -36,7 +34,7 @@ class OptimizationDataValidator
   const OptimizationDataValidator({this.strict = false});
 
   @override
-  String getText(OptimizationTestLog actualData, [String indentation]) {
+  String getText(OptimizationTestLog actualData, [String? indentation]) {
     Features features = new Features();
     for (OptimizationLogEntry entry in actualData.entries) {
       features.addElement(
@@ -46,12 +44,12 @@ class OptimizationDataValidator
   }
 
   @override
-  bool isEmpty(OptimizationTestLog actualData) {
+  bool isEmpty(OptimizationTestLog? actualData) {
     return actualData == null || actualData.entries.isEmpty;
   }
 
   @override
-  String isAsExpected(OptimizationTestLog actualLog, String expectedLog) {
+  String? isAsExpected(OptimizationTestLog actualLog, String? expectedLog) {
     expectedLog ??= '';
     if (expectedLog == '') {
       return actualLog.entries.isEmpty
@@ -92,7 +90,7 @@ class OptimizationDataValidator
           for (OptimizationLogEntry actualLogEntry in actualDataForTag) {
             bool validData = true;
             expectedLogEntry.forEach((String key, Object expectedValue) {
-              Object actualValue = actualLogEntry.features[key];
+              Object? actualValue = actualLogEntry.features[key];
               if ('$actualValue' != '$expectedValue') {
                 validData = false;
               }
@@ -138,7 +136,7 @@ class OptimizationDataComputer extends DataComputer<OptimizationTestLog> {
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<OptimizationTestLog>> actualMap,
       {bool verbose = false}) {
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new OptimizationIrComputer(compiler.reporter, actualMap, elementMap, member,
@@ -166,12 +164,13 @@ class OptimizationIrComputer extends IrDataExtractor<OptimizationTestLog> {
       this._closureDataLookup)
       : super(reporter, actualMap);
 
-  OptimizationTestLog getLog(MemberEntity member) {
-    SsaFunctionCompiler functionCompiler = _backendStrategy.functionCompiler;
+  OptimizationTestLog? getLog(MemberEntity member) {
+    final functionCompiler =
+        _backendStrategy.functionCompiler as SsaFunctionCompiler;
     return functionCompiler.optimizer.loggersForTesting[member];
   }
 
-  OptimizationTestLog getMemberValue(MemberEntity member) {
+  OptimizationTestLog? getMemberValue(MemberEntity member) {
     if (member is FunctionEntity) {
       return getLog(member);
     }
@@ -179,15 +178,16 @@ class OptimizationIrComputer extends IrDataExtractor<OptimizationTestLog> {
   }
 
   @override
-  OptimizationTestLog computeMemberValue(Id id, ir.Member node) {
+  OptimizationTestLog? computeMemberValue(Id id, ir.Member node) {
     return getMemberValue(_elementMap.getMember(node));
   }
 
   @override
-  OptimizationTestLog computeNodeValue(Id id, ir.TreeNode node) {
+  OptimizationTestLog? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
-      ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
-      return getMemberValue(info.callMethod);
+      ClosureRepresentationInfo info =
+          _closureDataLookup.getClosureInfo(node as ir.LocalFunction);
+      return getMemberValue(info.callMethod!);
     }
     return null;
   }

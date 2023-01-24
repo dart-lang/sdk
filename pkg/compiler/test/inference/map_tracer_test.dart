@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/inferrer/abstract_value_domain.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:expect/expect.dart';
@@ -225,40 +222,41 @@ void main() {
 }
 
 doTest(String allocation,
-    {String keyElementName, String valueElementName}) async {
+    {String? keyElementName, String? valueElementName}) async {
   String source = generateTest(allocation);
   var result = await runCompiler(memorySourceFiles: {'main.dart': source});
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
-  TypeMask keyType, valueType;
+  TypeMask? keyType, valueType;
   GlobalTypeInferenceResults results =
-      compiler.globalInference.resultsForTesting;
+      compiler.globalInference.resultsForTesting!;
   JClosedWorld closedWorld = results.closedWorld;
-  AbstractValueDomain commonMasks = closedWorld.abstractValueDomain;
+  final commonMasks = closedWorld.abstractValueDomain as CommonMasks;
   TypeMask emptyType = new TypeMask.nonNullEmpty();
   MemberEntity aKey = findMember(closedWorld, 'aKey');
-  TypeMask aKeyType = results.resultOfMember(aKey).type;
+  var aKeyType = results.resultOfMember(aKey).type as TypeMask;
   if (keyElementName != null) {
     MemberEntity keyElement = findMember(closedWorld, keyElementName);
-    keyType = results.resultOfMember(keyElement).type;
+    keyType = results.resultOfMember(keyElement).type as TypeMask;
   }
   if (valueElementName != null) {
     MemberEntity valueElement = findMember(closedWorld, valueElementName);
-    valueType = results.resultOfMember(valueElement).type;
+    valueType = results.resultOfMember(valueElement).type as TypeMask;
   }
   if (keyType == null) keyType = emptyType;
   if (valueType == null) valueType = emptyType;
 
   checkType(String name, keyType, valueType) {
     MemberEntity element = findMember(closedWorld, name);
-    MapTypeMask mask = results.resultOfMember(element).type;
+    MapTypeMask mask = results.resultOfMember(element).type as MapTypeMask;
     Expect.equals(keyType, simplify(mask.keyType, commonMasks), name);
     Expect.equals(valueType, simplify(mask.valueType, commonMasks), name);
   }
 
-  K(TypeMask other) => simplify(keyType.union(other, commonMasks), commonMasks);
+  K(TypeMask other) =>
+      simplify(keyType!.union(other, commonMasks), commonMasks);
   V(TypeMask other) =>
-      simplify(valueType.union(other, commonMasks).nullable(), commonMasks);
+      simplify(valueType!.union(other, commonMasks).nullable(), commonMasks);
 
   checkType('mapInField', K(aKeyType), V(commonMasks.numType));
   checkType('mapPassedToMethod', K(aKeyType), V(commonMasks.numType));

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common/elements.dart';
@@ -38,19 +36,19 @@ main() {
     CompilationResult result =
         await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     Compiler compiler = result.compiler;
-    KClosedWorld closedWorld = compiler.frontendClosedWorldForTesting;
+    KClosedWorld closedWorld = compiler.frontendClosedWorldForTesting!;
     KElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
 
     void test(String name,
         {bool expectNoInline = false, bool expectTryInline = false}) {
-      LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
-      FunctionEntity method =
-          elementEnvironment.lookupLibraryMember(mainLibrary, name);
+      LibraryEntity mainLibrary = elementEnvironment.mainLibrary!;
+      final method = elementEnvironment.lookupLibraryMember(mainLibrary, name)
+          as FunctionEntity?;
       Expect.isNotNull(method);
       Expect.equals(
           expectNoInline,
-          closedWorld.annotationsData.hasNoInline(method),
+          closedWorld.annotationsData.hasNoInline(method!),
           "Unexpected annotation of @pragma('dart2js:noInline') on '$method'.");
       Expect.equals(
           expectTryInline,

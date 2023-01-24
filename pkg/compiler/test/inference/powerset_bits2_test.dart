@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common/elements.dart';
@@ -32,17 +30,17 @@ main() {
     ]);
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
-    var results = compiler.globalInference.resultsForTesting;
+    var results = compiler.globalInference.resultsForTesting!;
     JClosedWorld closedWorld = results.closedWorld;
     CommonElements commonElements = closedWorld.commonElements;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
-    PowersetDomain powersetDomain = closedWorld.abstractValueDomain;
+    final powersetDomain = closedWorld.abstractValueDomain as PowersetDomain;
     PowersetBitsDomain powersetBitsDomain = powersetDomain.powersetBitsDomain;
 
     var exactTrue = powersetBitsDomain.trueValue;
     var exactFalse = powersetBitsDomain.falseValue;
     dynamic classA =
-        elementEnvironment.lookupClass(elementEnvironment.mainLibrary, 'A');
+        elementEnvironment.lookupClass(elementEnvironment.mainLibrary!, 'A');
     var exactA = powersetBitsDomain.createNonNullExact(classA);
     var subtypeObject =
         powersetBitsDomain.createNonNullSubtype(commonElements.objectClass);

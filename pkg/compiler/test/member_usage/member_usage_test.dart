@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:async_helper/async_helper.dart';
@@ -57,7 +55,7 @@ class ClosedWorldDataComputer extends DataComputer<Features> {
   /// members is implicit, so we only annotate super access and static access
   /// not implied by dynamic or super access.
   String computeAccessText(MemberEntity member, EnumSet<Access> access,
-      [String prefix]) {
+      [String? prefix]) {
     StringBuffer sb = new StringBuffer();
     String delimiter = '';
     if (prefix != null) {
@@ -82,10 +80,10 @@ class ClosedWorldDataComputer extends DataComputer<Features> {
       {bool verbose = false}) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     ResolutionWorldBuilder resolutionWorldBuilder =
-        compiler.resolutionWorldBuilderForTesting;
+        compiler.resolutionWorldBuilderForTesting!;
     ir.Member node = frontendStrategy.elementMap.getMemberNode(member);
     Features features = new Features();
-    MemberUsage memberUsage =
+    MemberUsage? memberUsage =
         resolutionWorldBuilder.memberUsageForTesting[member];
     if (memberUsage != null) {
       if (member is FieldEntity && memberUsage.hasInit) {
@@ -101,7 +99,7 @@ class ClosedWorldDataComputer extends DataComputer<Features> {
         if (memberUsage is MethodUsage &&
             !memberUsage.parameterUsage.isFullyUsed) {
           features[Tags.invoke] = computeAccessText(member, memberUsage.invokes,
-              memberUsage.invokedParameters.shortText);
+              memberUsage.invokedParameters!.shortText);
         } else {
           features[Tags.invoke] =
               computeAccessText(member, memberUsage.invokes);
@@ -109,9 +107,9 @@ class ClosedWorldDataComputer extends DataComputer<Features> {
       }
     }
     Id id = computeMemberId(node);
-    ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node);
+    ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node)!;
     actualMap[id] = new ActualData<Features>(id, features,
-        nodeWithOffset?.location?.file, nodeWithOffset?.fileOffset, member);
+        nodeWithOffset.location!.file, nodeWithOffset.fileOffset, member);
   }
 
   @override
