@@ -815,13 +815,9 @@ if (is_win) {
 # Default "optimization on" config. On Windows, this favors size over speed.
 config("optimize") {
   if (is_win) {
-    # Favor size over speed, /O1 must be before the common flags. The GYP
-    # build also specifies /Os and /GF but these are implied by /O1.
     cflags = [ "/O2" ] + common_optimize_on_cflags + [ "/Oi" ]
-  } else if (is_android) {
-    cflags = [ "-Os" ] + common_optimize_on_cflags  # Favor size over speed.
   } else {
-    cflags = [ "-O3" ] + common_optimize_on_cflags
+    cflags = [ "-O2" ] + common_optimize_on_cflags
   }
   ldflags = common_optimize_on_ldflags
 }

@@ -245,7 +245,7 @@ config("dart_config") {
     } else if (dart_debug) {
       cflags += [ "-O${dart_debug_optimization_level}" ]
     } else {
-      cflags += [ "-O3" ]
+      cflags += [ "-O2" ]
     }
 
     if (is_fuchsia) {
