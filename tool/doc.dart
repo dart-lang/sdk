@@ -270,7 +270,11 @@ ${parser.usage}
 ''');
 }
 
-String qualify(LintRule r) => r.name + describeState(r);
+String qualify(LintRule r) {
+  var name = r.name;
+  var label = r.state.isRemoved ? '<s>$name</s>' : name;
+  return label + describeState(r);
+}
 
 class CountBadger {
   Iterable<LintRule> rules;
@@ -580,6 +584,15 @@ class RuleHtmlGenerator {
 
   String get details => rule.details;
 
+  String get detailsHeader {
+    if (state.isRemoved) {
+      var since = state.since;
+      var sinceDetail = since != null ? ' in Dart $since.' : '';
+      return '<p style="font-size:30px"><strong>Removed$sinceDetail</strong></p>';
+    }
+    return '';
+  }
+
   String get group => rule.group.name;
 
   String get humanReadableName => rule.name;
@@ -603,18 +616,6 @@ class RuleHtmlGenerator {
     return sb.toString();
   }
 
-  State get state => rule.state;
-
-  String get stateString {
-    if (state.isDeprecated) {
-      return '<span style="color:orangered;font-weight:bold;" >${state.label}</span>';
-    }
-    if (state.isExperimental) {
-      return '<span style="color:hotpink;font-weight:bold;" >${state.label}</span>';
-    }
-    return state.label;
-  }
-
   String get name => rule.name;
 
   String get since {
@@ -626,6 +627,20 @@ class RuleHtmlGenerator {
         ? 'v${info.sinceLinter}'
         : '<strong>Unreleased</strong>';
     return 'Dart SDK: $sdkVersion • <small>(Linter $linterVersion)</small>';
+  }
+
+  State get state => rule.state;
+
+  String get stateString {
+    if (state.isDeprecated) {
+      return '<span style="color:orangered;font-weight:bold;" >${state.label}</span>';
+    } else if (state.isRemoved) {
+      return '<span style="color:darkgray;font-weight:bold;" >${state.label}</span>';
+    } else if (state.isExperimental) {
+      return '<span style="color:hotpink;font-weight:bold;" >${state.label}</span>';
+    } else {
+      return state.label;
+    }
   }
 
   void generate([String? filePath]) {
@@ -670,7 +685,7 @@ class RuleHtmlGenerator {
             <p><a class="overflow-link" href="https://dart.dev/guides/language/analysis-options#enabling-linter-rules">Using the <strong>Linter</strong></a></p>
          </header>
          <section>
-
+            $detailsHeader
             ${markdownToHtml(details)}
             $incompatibleRuleDetails
          </section>
@@ -693,8 +708,6 @@ class RuleMarkdownGenerator {
 
   String get group => rule.group.name;
 
-  String get maturity => describeState(rule);
-
   String get name => rule.name;
 
   String get since {
@@ -707,13 +720,15 @@ class RuleMarkdownGenerator {
     return 'Dart SDK: $sdkVersion • _(Linter $linterVersion)_';
   }
 
+  String get state => describeState(rule);
+
   void generate({String? filePath, String? fixStatus}) {
     var buffer = StringBuffer();
 
     buffer.writeln('# Rule $name');
     buffer.writeln();
     buffer.writeln('**Group**: $group\\');
-    buffer.writeln('**Maturity**: $maturity\\');
+    buffer.writeln('**State**: $state\\');
     buffer.writeln('**Since**: $since\\');
     buffer.writeln();
 
