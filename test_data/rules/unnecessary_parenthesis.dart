@@ -125,7 +125,53 @@ main() async {
   (a?.abs())!;
   (a?..abs())!;
   (a?[0])!;
+
+  print(!({"a": "b"}["a"]!.isEmpty)); // LINT
+
+  print((1 + 2)); // LINT
+
+  print((1 == 1 ? 2 : 3)); // LINT
+  print('a'.substring((1 == 1 ? 2 : 3), 4)); // OK
+  var a1 = (1 == 1 ? 2 : 3); // OK
+  print('${(1 == 1 ? 2 : 3)}'); // LINT
+  print([(1 == 1 ? 2 : 3)]); // OK
+
+  var a2 = (1 == 1); // OK
+  a2 = (1 == 1); // OK
+  a2 = (1 == 1) || "".isEmpty; // OK
+  var a3 = (1 + 1); // LINT
 }
+
+bool testTernaryAndEquality() {
+  if ((1 == 1 ? true : false)) // LINT
+  {
+    return (1 != 1); // OK
+  } else if ((1 == 1 ? true : false)) // LINT
+  {
+    return (1 > 1); // LINT
+  }
+  while ((1 == 1)) // LINT
+  {
+    print('');
+  }
+  switch ((5 == 6)) // LINT
+  {
+    case true:
+      return false;
+    default:
+      return true;
+  }
+}
+
+class TestConstructorFieldInitializer {
+  bool _x, _y;
+  TestConstructorFieldInitializer()
+      : _x = (1 == 2), // OK
+        _y = (true && false); // LINT
+}
+
+int test2() => (1 == 1 ? 2 : 3); // OK
+bool test3() => (1 == 1); // LINT
 
 Invocation? invocation() => null;
 

@@ -131,8 +131,22 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
 
-    if (parent is ParenthesizedExpression) {
+    // Directly wrapped into parentheses already - always report.
+    if (parent is ParenthesizedExpression ||
+        parent is InterpolationExpression ||
+        (parent is ArgumentList && parent.arguments.length == 1) ||
+        (parent is IfStatement && node == parent.condition) ||
+        (parent is IfElement && node == parent.condition) ||
+        (parent is WhileStatement && node == parent.condition) ||
+        (parent is DoStatement && node == parent.condition) ||
+        (parent is SwitchStatement && node == parent.expression) ||
+        (parent is SwitchExpression && node == parent.expression)) {
       rule.reportLint(node);
+      return;
+    }
+
+    // `(foo ? bar : baz)` is OK.
+    if (expression is ConditionalExpression) {
       return;
     }
 
@@ -150,6 +164,19 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (parent is ConstructorFieldInitializer &&
         _containsFunctionExpression(node)) {
       return;
+    }
+
+    // `foo = (a == b)` is OK, `return (count != 0)` is OK.
+    if (expression is BinaryExpression &&
+        (expression.operator.type == TokenType.EQ_EQ ||
+            expression.operator.type == TokenType.BANG_EQ)) {
+      if (parent is AssignmentExpression ||
+          parent is VariableDeclaration ||
+          parent is ReturnStatement ||
+          parent is YieldStatement ||
+          parent is ConstructorFieldInitializer) {
+        return;
+      }
     }
 
     if (parent is Expression) {
