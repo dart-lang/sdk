@@ -3371,6 +3371,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "an expression statement.",
   );
 
+  ///  Parameters:
+  ///  0: the type of the switch scrutinee
+  ///  1: the unmatched space
+  static const CompileTimeErrorCode NON_EXHAUSTIVE_SWITCH =
+      CompileTimeErrorCode(
+    'NON_EXHAUSTIVE_SWITCH',
+    "The type '{0}' is not exhaustively matched by the switch cases.",
+    correctionMessage: "Try adding a default case or cases that match {1}.",
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode NON_FINAL_FIELD_IN_ENUM =
       CompileTimeErrorCode(

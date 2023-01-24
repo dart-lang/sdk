@@ -19,7 +19,10 @@ main() {
 class MissingEnumConstantInSwitchTest extends PubPackageResolutionTest
     with
         MissingEnumConstantInSwitchTestCases,
-        MissingEnumConstantInSwitchTestCases_Language212 {}
+        MissingEnumConstantInSwitchTestCases_Language212 {
+  @override
+  bool get _arePatternsEnabled => true;
+}
 
 @reflectiveTest
 class MissingEnumConstantInSwitchTest_Language218
@@ -27,9 +30,14 @@ class MissingEnumConstantInSwitchTest_Language218
     with
         WithLanguage218Mixin,
         MissingEnumConstantInSwitchTestCases,
-        MissingEnumConstantInSwitchTestCases_Language212 {}
+        MissingEnumConstantInSwitchTestCases_Language212 {
+  @override
+  bool get _arePatternsEnabled => false;
+}
 
 mixin MissingEnumConstantInSwitchTestCases on PubPackageResolutionTest {
+  bool get _arePatternsEnabled;
+
   test_default() async {
     await assertNoErrorsInCode('''
 enum E { one, two, three }
@@ -57,7 +65,10 @@ void f(E e) {
   }
 }
 ''', [
-      error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 44, 10),
+      if (!_arePatternsEnabled)
+        error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 44, 10)
+      else
+        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 52, 1),
     ]);
   }
 
@@ -73,7 +84,10 @@ void f(E e) {
   }
 }
 ''', [
-      error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 44, 10),
+      if (!_arePatternsEnabled)
+        error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 44, 10)
+      else
+        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 52, 1),
     ]);
   }
 
@@ -89,11 +103,16 @@ void f(E e) {
   }
 }
 ''', [
-      error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 44, 10),
+      if (!_arePatternsEnabled)
+        error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 44, 10)
+      else
+        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 52, 1),
     ]);
   }
 
   test_parenthesized() async {
+    // TODO(johnniwinther): Re-enable this test for the patterns feature.
+    if (_arePatternsEnabled) return;
     await assertNoErrorsInCode('''
 enum E { one, two, three }
 
@@ -144,7 +163,10 @@ void f(E? e) {
   }
 }
 ''', [
-      error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 38, 10),
+      if (!_arePatternsEnabled)
+        error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 38, 10)
+      else
+        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH, 46, 1),
     ]);
   }
 
@@ -184,4 +206,7 @@ void f(E? e) {
 @reflectiveTest
 class MissingEnumConstantInSwitchWithoutNullSafetyTest
     extends PubPackageResolutionTest
-    with MissingEnumConstantInSwitchTestCases, WithoutNullSafetyMixin {}
+    with MissingEnumConstantInSwitchTestCases, WithoutNullSafetyMixin {
+  @override
+  bool get _arePatternsEnabled => false;
+}

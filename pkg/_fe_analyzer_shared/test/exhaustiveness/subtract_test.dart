@@ -162,7 +162,7 @@ void main() {
     expectSubtract(b, B(x: x), 'B');
   });
 
-  group('sealed subtype and field', () {
+  group('sealed subtype and field 1', () {
     //   (X)    (A)
     //   /|\    /|\
     //  W Y Z  B C D
@@ -212,7 +212,7 @@ void main() {
     expectSubtract(b, B(x: x), 'B');
   });
 
-  group('sealed subtype and field', () {
+  group('sealed subtype and field 2', () {
     //   (X)    (A)
     //   /|\    /|\
     //  W Y Z  B C D

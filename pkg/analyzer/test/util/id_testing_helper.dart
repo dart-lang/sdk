@@ -121,6 +121,10 @@ Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
     resourceProvider: resourceProvider,
     retainDataForTesting: true,
     sdkPath: sdkRoot.path,
+    updateAnalysisOptions2: (
+        {required analysisOptions, required contextRoot, required sdk}) {
+      analysisOptions.contextFeatures = config.featureSet;
+    },
   );
   final analysisContext = contextCollection.contexts.single;
   final analysisSession = analysisContext.currentSession;

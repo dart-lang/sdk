@@ -3321,6 +3321,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// an enum type either have a default case or include all of the enum
   /// constants.
   void _checkForMissingEnumConstantInSwitch(SwitchStatement statement) {
+    if (_currentLibrary.featureSet.isEnabled(Feature.patterns)) {
+      // Exhaustiveness checking cover this warning.
+      return;
+    }
+
     // TODO(brianwilkerson) This needs to be checked after constant values have
     // been computed.
     var expressionType = statement.expression.staticType;

@@ -77,6 +77,12 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
     registerValue(uri, _nodeOffset(node), id, value, node);
   }
 
+  void computeForNode(AstNode node, NodeId? id) {
+    if (id == null) return;
+    T? value = computeNodeValue(id, node);
+    registerValue(uri, _nodeOffset(node), id, value, node);
+  }
+
   void computeForStatement(Statement node, NodeId? id) {
     if (id == null) return;
     T? value = computeNodeValue(id, node);
@@ -184,6 +190,12 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
             ? createStatementId(node)
             : computeDefaultNodeId(node));
     super.visitStatement(node);
+  }
+
+  @override
+  void visitSwitchMember(SwitchMember node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitSwitchMember(node);
   }
 
   @override

@@ -881,6 +881,7 @@ mk
 mm
 mn
 mockito
+modelled
 modelling
 momentarily
 monomorphic
@@ -1580,6 +1581,7 @@ uninhabited
 uninstantiable
 uninstantiated
 unintentionally
+uniquely
 uniqueness
 unittest
 universally

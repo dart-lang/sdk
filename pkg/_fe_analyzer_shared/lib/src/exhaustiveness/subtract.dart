@@ -30,6 +30,9 @@ List<StaticType> expandType(StaticType left, StaticType right) {
     }.toList();
   }
 
+  if (left == StaticType.neverType) {
+    return const [];
+  }
   return [left];
 }
 
@@ -113,6 +116,10 @@ List<Space> _subtractExtractAtType(StaticType type, ExtractSpace left,
     // If the right space matches on a field that the left doesn't have, infer
     // it from the static type of the field. That contains the same set of
     // values as having no field at all.
+    // TODO(johnniwinther): Enable this assertion when unit tests handle record
+    // types correctly.
+    //assert(type.fields.containsKey(name),
+    // "Field '$name' not found in $type.");
     leftFields[name] = left.fields[name] ?? new Space(type.fields[name]!);
 
     // If the left matches on a field that the right doesn't have, infer top

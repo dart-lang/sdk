@@ -12096,6 +12096,16 @@ Message _withArgumentsUnmatchedToken(String string, Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeUnreachableSwitchCase = messageUnreachableSwitchCase;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageUnreachableSwitchCase = const MessageCode(
+    "UnreachableSwitchCase",
+    analyzerCodes: <String>["UNREACHABLE_SWITCH_CASE"],
+    severity: Severity.warning,
+    problemMessage: r"""This case is covered by the previous cases.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String name,
