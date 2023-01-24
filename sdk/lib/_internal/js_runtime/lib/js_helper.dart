@@ -383,7 +383,8 @@ class Primitives {
     checkNotNullable(source, "source");
     if (source.isEmpty) return null; 
     //The caseSensitive defaults to true.
-    if (caseSensitive == null || caseSensitive == true) return source == "true" ? true : source == "false" ? false : null;     
+    if (caseSensitive == null || caseSensitive == true) 
+      return source == "true" ? true : source == "false" ? false : null;     
     //Ignore case-sensitive when caseSensitive is false.                                      
     return _compareIgnoreCase(source, "true")? true : _compareIgnoreCase(source, "false")? false : null;
   }
