@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:async_helper/async_helper.dart';
@@ -45,11 +43,11 @@ class InferenceDataComputer extends DataComputer<String> {
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose = false}) {
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new InferredDataIrComputer(compiler.reporter, actualMap, closedWorld,
-            compiler.globalInference.resultsForTesting.inferredData)
+            compiler.globalInference.resultsForTesting!.inferredData)
         .run(definition.node);
   }
 
@@ -95,10 +93,11 @@ class InferredDataIrComputer extends IrDataExtractor<String> {
   }
 
   @override
-  String computeNodeValue(Id id, ir.TreeNode node) {
+  String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
-      ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
-      return getMemberValue(info.callMethod);
+      ClosureRepresentationInfo info =
+          _closureDataLookup.getClosureInfo(node as ir.LocalFunction);
+      return getMemberValue(info.callMethod!);
     }
     return null;
   }

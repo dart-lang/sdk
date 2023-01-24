@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:expect/expect.dart';
@@ -207,7 +205,7 @@ void main() {
   });
 }
 
-doTest(String allocation, {bool nullify}) async {
+doTest(String allocation, {required bool nullify}) async {
   String source = generateTest(allocation);
   var result = await runCompiler(memorySourceFiles: {'main.dart': source});
   Expect.isTrue(result.isSuccess);
