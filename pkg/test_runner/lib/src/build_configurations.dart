@@ -95,6 +95,19 @@ List<String> _selectBuildTargets(Configuration inner) {
           .contains(inner.architecture)) {
     result.add('gen_snapshot');
   }
+  if ([Mode.release, Mode.product].contains(inner.mode) &&
+      [Compiler.dartkp, Compiler.dartk].contains(compiler) &&
+      [
+        Architecture.arm64,
+        Architecture.x64,
+        Architecture.arm64c,
+        Architecture.x64c,
+        Architecture.simarm64,
+        Architecture.simarm64c
+      ].contains(inner.architecture) &&
+      [System.linux, System.android].contains(inner.system)) {
+    result.add('analyze_snapshot');
+  }
 
   if (compiler == Compiler.dartdevk && !inner.useSdk) {
     result

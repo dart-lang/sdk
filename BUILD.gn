@@ -60,14 +60,11 @@ group("runtime") {
     ]
   }
 
-  # We do not support AOT on ia32 and should therefore not provide native
-  # snapshot tooling.
-  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
-    if (dart_runtime_mode == "release") {
-      deps += [ "runtime/bin:analyze_snapshot_product" ]
-    } else {
-      deps += [ "runtime/bin:analyze_snapshot" ]
-    }
+  # This flag is set in runtime/runtime_args.gni
+  # The analyze_snapshot tool is only supported on 64 bit AOT builds running
+  # under linux and android platforms
+  if (build_analyze_snapshot) {
+    deps += [ "runtime/bin:analyze_snapshot($host_toolchain)" ]
   }
 
   if (is_linux || is_android) {
