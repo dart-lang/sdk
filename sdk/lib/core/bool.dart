@@ -96,8 +96,10 @@ class bool {
 
   /// Parse [source] as a, optionally case-insensitive, boolean literal.
   ///
-  /// The [caseSensitive] only accepted inputs are the ASCII letter sequences "true" and "false"
-  /// optionally allowing upper case letters as well as lower case, in any combination.
+  /// If [caseSensitive] is `true`, which is the default, 
+  /// the only accepted inputs are the strings `"true"` and `"false"`.
+  /// If [caseSensitive] is `false`, any combination of upper and lower case ASCII letters 
+  /// in the words `"true"` and `"false"` are accepted, as if the input was first lower-cased.
   ///
   /// If the [source] string does not contain a valid boolean literal,
   /// optionally prefixed by a sign, a [FormatException] is thrown.
