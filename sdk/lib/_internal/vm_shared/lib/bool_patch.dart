@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_internal" show patch;
+import "dart:_internal" 
+  show patch,
+       checkNotNullable;
 
 @patch
 @pragma("vm:entry-point")
@@ -23,20 +25,20 @@ class bool {
 
   @patch
   static bool parse(String source, {bool? caseSensitive}) {
-    if (source == null) throw new ArgumentError("The source must not be null");
-    if (source.isEmpty) throw new ArgumentError("The source must not be empty");
+    checkNotNullable(source, "source");    
     //The caseSensitive defaults to true.
-    if (caseSensitive == null || caseSensitive == true) return source == "true" ? true : source == "false" ? false : throw ArgumentError(source);     
+    if (caseSensitive == null || caseSensitive == true) 
+      return source == "true" ? true : source == "false" ? false : throw ArgumentError(source);     
     //Ignore case-sensitive when caseSensitive is false.                                      
     return _compareIgnoreCase(source, "true")? true : _compareIgnoreCase(source, "false")? false : throw ArgumentError(source);
   }
 
   @patch
   static bool? tryParse(String source, {bool? caseSensitive}) {
-    if (source == null) throw new ArgumentError("The source must not be null");
-    if (source.isEmpty) throw new ArgumentError("The source must not be empty");
+    checkNotNullable(source, "source"); 
     //The caseSensitive defaults to true.
-    if (caseSensitive == null || caseSensitive == true) return source == "true" ? true : source == "false" ? false : null;     
+    if (caseSensitive == null || caseSensitive == true) 
+      return source == "true" ? true : source == "false" ? false : null;     
     //Ignore case-sensitive when caseSensitive is false.                                      
     return _compareIgnoreCase(source, "true")? true : _compareIgnoreCase(source, "false")? false : null;
   }
