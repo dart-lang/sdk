@@ -124,8 +124,8 @@ class bool {
   /// ```dart
   /// print(int.tryParse('true'));  // true
   /// print(int.tryParse('TRUE'));  // true
-  /// print(int.tryParse('false')); // false
-  /// print(int.tryParse('FALSE')); // false
+  /// print(int.tryParse('false', caseSensitive: true)); // false
+  /// print(int.tryParse('FALSE', caseSensitive: true)); // false
   /// print(int.tryParse('NO')); // FormatException
   /// print(int.tryParse('YES')); // FormatException
   /// print(int.tryParse('0')); // FormatException
