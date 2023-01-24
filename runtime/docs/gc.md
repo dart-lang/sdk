@@ -189,7 +189,7 @@ We can eliminate these checks when the compiler can prove these cases cannot hap
 * `container` is the same object as `value`. The GC never needs to retain an additional object if it sees a self-reference, so ignoring a self-reference cannot cause us to free a reachable object.
 * `container` is known to be a new object or known to be an old object that is in the remembered set and is marked if marking is in progress.
 
-We can know that `container` meets the last property if `container` is the result of an allocation (instead of a heap load), and there is no instruction that can trigger a GC between the allocation and the store. This is because the allocation stubs ensure the result of AllocateObject is either a new-space object (common case, bump pointer allocation succeeds), or has been pre-emptively added to the remembered set and marking worklist (uncommon case, entered runtime to allocate object, possibly triggering GC).
+We can know that `container` meets the last property if `container` is the result of an allocation (instead of a heap load), and there is no instruction that can trigger a GC between the allocation and the store. This is because the allocation stubs ensure the result of AllocateObject is either a new-space object (common case, bump pointer allocation succeeds), or has been preemptively added to the remembered set and marking worklist (uncommon case, entered runtime to allocate object, possibly triggering GC).
 
 ```
 container <- AllocateObject
@@ -197,7 +197,7 @@ container <- AllocateObject
 StoreInstanceField(container, value, NoBarrier)
 ```
 
-We can further eliminate barriers when `container` is the result of an allocation, and there is no instruction that can create an additional Dart frame between the allocation and the store. This is because after a GC, any old-space objects in the frames below an exit frame will be pre-emptively added to the remembered set and marking worklist (Thread::RestoreWriteBarrierInvariant).
+We can further eliminate barriers when `container` is the result of an allocation, and there is no instruction that can create an additional Dart frame between the allocation and the store. This is because after a GC, any old-space objects in the frames below an exit frame will be preemptively added to the remembered set and marking worklist (Thread::RestoreWriteBarrierInvariant).
 
 ```
 container <- AllocateObject

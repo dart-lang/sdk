@@ -15560,7 +15560,7 @@ void PcDescriptors::SetLength(intptr_t value) const {
 void PcDescriptors::CopyData(const void* bytes, intptr_t size) {
   NoSafepointScope no_safepoint;
   uint8_t* data = UnsafeMutableNonPointer(&untag()->data()[0]);
-  // We're guaranted these memory spaces do not overlap.
+  // We're guaranteed these memory spaces do not overlap.
   memcpy(data, bytes, size);  // NOLINT
 }
 

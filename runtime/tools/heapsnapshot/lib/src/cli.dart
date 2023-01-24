@@ -37,7 +37,7 @@ abstract class Command {
       final args = allArgs.skip(startOfRest).toList();
       await executeInternal(state, options, args);
     } catch (e, s) {
-      state.output.print('An error occured: $e\n$s');
+      state.output.print('An error occurred: $e\n$s');
       printUsage(state);
     }
   }

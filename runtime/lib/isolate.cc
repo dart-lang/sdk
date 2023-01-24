@@ -1267,7 +1267,7 @@ DEFINE_NATIVE_ENTRY(TransferableTypedData_materialize, 0, 1) {
   {
     NoSafepointScope no_safepoint;
     peer = thread->heap()->GetPeer(t.ptr());
-    // Assume that object's Peer is only used to track transferrability state.
+    // Assume that object's Peer is only used to track transferability state.
     ASSERT(peer != nullptr);
   }
 

@@ -284,7 +284,7 @@ Future<void> doTestAwaitThen(Future f(), List<String> expectedStack,
   // Caller catches but a then is set.
   try {
     // Passing (e) {} to then() can cause the closure instructions to be
-    // dedupped, changing the stack trace to the dedupped owner, so we
+    // deduped, changing the stack trace to the deduped owner, so we
     // duplicate the Expect.fail() call in the closure.
     await f().then((e) => Expect.fail('No exception thrown!'));
     Expect.fail('No exception thrown!');

@@ -27,7 +27,7 @@ library PegParser;
  * sequence is value-generating if any of the subrules are value-generating or
  * if there is a reducing function.  If no reducing function is given, the value
  * returned depends on the number of value-generating subrules.  If there is
- * only one value generating subrule, that provideds the value for the sequence.
+ * only one value generating subrule, that provides the value for the sequence.
  * If there are more, then the value is a list of the values of the
  * value-generating subrules.
  */

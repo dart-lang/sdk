@@ -66,7 +66,7 @@ void receiver(final transferable) {
   transferable.materialize();
 }
 
-throwsIfCummulativeListIsTooLargeOn32bitPlatform() {
+throwsIfCumulativeListIsTooLargeOn32bitPlatform() {
   try {
     int maxUint8ListSize = pow(2, 30) as int;
     // Check whether we are on 32-bit or 64-bit platform.
@@ -96,7 +96,7 @@ main() async {
   await throwsIfSendMoreThanOnce();
   throwsIfMaterializeMoreThanOnce();
   await throwsIfReceiverMaterializesMoreThanOnce();
-  throwsIfCummulativeListIsTooLargeOn32bitPlatform();
+  throwsIfCumulativeListIsTooLargeOn32bitPlatform();
 
   dynamic myNull;
   if (hasUnsoundNullSafety) {

@@ -3873,7 +3873,7 @@ class Function : public Object {
   //          dispatchers is not visible. Synthetic code that can trigger
   //          exceptions such as the outer async functions that create Futures
   //          is visible.
-  // instrinsic: Has a hand-written assembly prologue.
+  // intrinsic: Has a hand-written assembly prologue.
   // inlinable: Candidate for inlining. False for functions with features we
   //            don't support during inlining (e.g., optional parameters),
   //            functions which are too big, etc.
