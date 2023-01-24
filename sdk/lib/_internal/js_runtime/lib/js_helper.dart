@@ -380,8 +380,7 @@ class Primitives {
   }
 
   static bool? parseBool(String source, bool caseSensitive) {
-    checkNotNullable(source, "source");
-    if (source.isEmpty) return null; 
+    checkNotNullable(source, "source");    
     //The caseSensitive defaults to true.
     if (caseSensitive == null || caseSensitive == true) 
       return source == "true" ? true : source == "false" ? false : null;     
