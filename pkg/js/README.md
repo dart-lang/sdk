@@ -4,22 +4,17 @@
 Use this package when you want to call JavaScript APIs from Dart code, or vice
 versa.
 
-This package's main library, `js`, provides annotations and functions
-that let you specify how your Dart code interoperates with JavaScript code.
-The Dart-to-JavaScript compilers — dartdevc and dart2js — recognize these
+This package's main library, `js`, provides annotations and functions that let
+you specify how your Dart code interoperates with JavaScript code. The
+Dart-to-JavaScript compilers — dartdevc and dart2js — recognize these
 annotations, using them to connect your Dart code with JavaScript.
 
 **Important:** This library supersedes `dart:js`, so don't import `dart:js`.
 Instead, import `package:js/js.dart`.
 
-A second library in this package, `js_util`, provides low-level utilities
-that you can use when it isn't possible to wrap JavaScript with a static,
-annotated API.
-
-## Example
-
-See the [Chart.js Dart API](https://github.com/google/chartjs.dart/) for an
-end-to-end example.
+A second library in this package, `js_util`, provides low-level utilities that
+you can use when it isn't possible to wrap JavaScript with a static, annotated
+API.
 
 ## Usage
 
@@ -70,9 +65,10 @@ class Location {
 ### Passing object literals to JavaScript
 
 Many JavaScript APIs take an object literal as an argument. For example:
+
 ```js
 // JavaScript
-printOptions({responsive: true});
+printOptions({ responsive: true });
 ```
 
 If you want to use `printOptions` from Dart a `Map<String, dynamic>` would be
@@ -105,8 +101,8 @@ class Options {
 
 ### Making a Dart function callable from JavaScript
 
-If you pass a Dart function to a JavaScript API as an argument,
-wrap the Dart function using `allowInterop()` or `allowInteropCaptureThis()`.
+If you pass a Dart function to a JavaScript API as an argument, wrap the Dart
+function using `allowInterop()` or `allowInteropCaptureThis()`.
 
 To make a Dart function callable from JavaScript _by name_, use a setter
 annotated with `@JS()`.
@@ -221,6 +217,7 @@ Note that you can have both `external` and non-`external` members in the
 extension.
 
 Compared to non-`@staticInterop` `package:js` classes, `@staticInterop` classes:
+
 - Are more performant
 - Have better type guarantees
 - Generate less code
@@ -228,11 +225,11 @@ Compared to non-`@staticInterop` `package:js` classes, `@staticInterop` classes:
 - Allow `external` extension members to be renamed using `@JS()` e.g.
   `@JS('renamedField')`
 
-The only catch is that virtual/dynamic dispatch is *disallowed*. That means
-methods are resolved using only the *static* type of the object.
+The only catch is that virtual/dynamic dispatch is _disallowed_. That means
+methods are resolved using only the _static_ type of the object.
 
-In general, it's advised to use `@staticInterop` wherever you can, as future
-JS interop will only target static dispatch.
+In general, it's advised to use `@staticInterop` wherever you can, as future JS
+interop will only target static dispatch.
 
 ### @JSExport and js_util.createDartExport
 
@@ -302,7 +299,7 @@ getters, setters, and methods. That means you can’t export static members,
 constructors, factories, operators (the syntax complicates things), and
 extension methods. You can still have these members - they just won’t be present
 in the resulting exported object. Of course, you can use another instance member
-to call these members as well, and *that* instance member will be exported.
+to call these members as well, and _that_ instance member will be exported.
 
 In order to use `createDartExport`, you need to have a class that uses
 `@JSExport`.If you want to export only some members of a class, omit the
@@ -335,7 +332,7 @@ essentially created a mock for `JSCounter`. In the past, to mock a plain `@JS`
 or `@anonymous` class, you could create a Dart class that `implements` that
 interop class, and due to Dart's virtual dispatch, this would call the Dart
 class' members instead. Now that we're using `external` extension members, this
-no longer works. We now have to mock at the *JS level* instead. With
+no longer works. We now have to mock at the _JS level_ instead. With
 `createDartExport`, you’re essentially using a Dart object to replace a JS
 object. This functionality is equivalent to mocking at the JS level, and you can
 also use it to mock the old non-`@staticInterop` `package:js` classes!
@@ -357,7 +354,7 @@ tell you if you’ve got your mock class right.
 
 This is where `createStaticInteropMock` comes in. It takes in a separate type
 argument, e.g. `createStaticInteropMock<JSCounter, Counter>(Counter())`, to
-determine whether mocking *conformance* is satisfied. This type argument must be
+determine whether mocking _conformance_ is satisfied. This type argument must be
 a `@staticInterop` class. With this, you’ll see an error saying that you haven’t
 implemented all the needed members. If the mock class implements all the needed
 members, the function does the same thing as `createDartExport`, and returns an
@@ -386,7 +383,7 @@ extension B on StaticInterop {
 ```
 
 This present an issue as a single Dart class cannot implement `member` as both a
-field and a function. So, what to do? We require that you only implement *one*
+field and a function. So, what to do? We require that you only implement _one_
 of these members. So, either a Function field or a function are satisfactory.
 
 It is also sometimes desired that the mocking object is the same underlying type
@@ -396,21 +393,20 @@ order to pass `instanceof` checks. In order to do this, we let users pass the JS
 prototype of the type they want the mocking object to be as an argument to
 `createStaticInteropMock`.
 
-An important note here is that `createStaticInteropMock` looks for *all*
+An important note here is that `createStaticInteropMock` looks for _all_
 extensions of the `@staticInterop` type in the program, even if they are out of
 scope of the current file. In order to avoid a case where other libraries
 extending the `@staticInterop` type break your usage of
 `createStaticInteropMock`, you should try to only use this API in tests.
 `createStaticInteropMock` is meant to detect issues earlier at compile-time, but
-if it's too restrictive, you can still use `createDartExport` to workaround
-that (and please provide us feedback on why it's restrictive!).
+if it's too restrictive, you can still use `createDartExport` to workaround that
+(and please provide us feedback on why it's restrictive!).
 
 ## Reporting issues
 
 Please file bugs and feature requests on the [SDK issue tracker][issues].
 
 [issues]: https://goo.gl/j3rzs0
-
 
 ## Known limitations and bugs
 
