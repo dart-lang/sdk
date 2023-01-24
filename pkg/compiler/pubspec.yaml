@@ -13,12 +13,12 @@ dependencies:
   collection: any
   crypto: any
   dart2js_info: any
-  ffi: any
   front_end: any
   js_ast: any
   js_runtime: any
   js_shared: any
   kernel: any
+  mmap: any
   vm_service: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.

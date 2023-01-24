@@ -76,6 +76,9 @@ abstract class Space {
   /// The space containing everything.
   static final Space top = new Space(StaticType.nullableObject);
 
+  /// The space containing only `null`.
+  static final Space nullSpace = new Space(StaticType.nullType);
+
   factory Space(StaticType type, [Map<String, Space> fields = const {}]) =>
       new ExtractSpace._(type, fields);
 

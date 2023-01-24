@@ -125,5 +125,5 @@ void main() {
 
 void expectReportErrors(StaticType valueType, List<Object> cases,
     [String errors = '']) {
-  expect(reportErrors(valueType, parseSpaces(cases)), errors);
+  expect(reportErrors(valueType, parseSpaces(cases)).join('\n'), errors);
 }

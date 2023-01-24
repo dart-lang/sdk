@@ -4,6 +4,9 @@
 
 import 'dart:collection';
 
+import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -24,6 +27,7 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/exhaustiveness.dart';
 
 /// Instances of the class `ConstantVerifier` traverse an AST structure looking
 /// for additional errors and warnings not covered by the parser and resolver.
@@ -49,17 +53,29 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   final DiagnosticFactory _diagnosticFactory = DiagnosticFactory();
 
+  /// Cache used for checking exhaustiveness.
+  final AnalyzerExhaustivenessCache _exhaustivenessCache;
+
+  /// Cache of constant values used for exhaustiveness checking.
+  ///
+  /// When verifying a switch statement/expression the constant values of the
+  /// contained [ConstantPattern]s are cached here. The cache is released once
+  /// the exhaustiveness of the switch has been checked.
+  Map<ConstantPattern, DartObjectImpl>? _constantPatternValues;
+
+  final ExhaustivenessDataForTesting? exhaustivenessDataForTesting;
+
   /// Initialize a newly created constant verifier.
-  ConstantVerifier(
-    ErrorReporter errorReporter,
-    LibraryElementImpl currentLibrary,
-    DeclaredVariables declaredVariables,
-  ) : this._(
+  ConstantVerifier(ErrorReporter errorReporter,
+      LibraryElementImpl currentLibrary, DeclaredVariables declaredVariables,
+      {bool retainDataForTesting = false})
+      : this._(
           errorReporter,
           currentLibrary,
           currentLibrary.typeSystem,
           currentLibrary.typeProvider,
           declaredVariables,
+          retainDataForTesting,
         );
 
   ConstantVerifier._(
@@ -68,12 +84,16 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     this._typeSystem,
     this._typeProvider,
     this.declaredVariables,
-  ) : _evaluationEngine = ConstantEvaluationEngine(
+    bool retainDataForTesting,
+  )   : _evaluationEngine = ConstantEvaluationEngine(
           declaredVariables: declaredVariables,
           isNonNullableByDefault:
               _currentLibrary.featureSet.isEnabled(Feature.non_nullable),
           configuration: ConstantEvaluationConfiguration(),
-        );
+        ),
+        _exhaustivenessCache = AnalyzerExhaustivenessCache(_typeSystem),
+        exhaustivenessDataForTesting =
+            retainDataForTesting ? ExhaustivenessDataForTesting() : null;
 
   @override
   void visitAnnotation(Annotation node) {
@@ -104,10 +124,13 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     super.visitConstantPattern(node);
 
     var expression = node.expression.unParenthesized;
-    _validate(
+    DartObjectImpl? value = _validate(
       expression,
       CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
     );
+    if (value != null) {
+      _constantPatternValues?[node] = value;
+    }
   }
 
   @override
@@ -348,12 +371,18 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    if (_currentLibrary.isNonNullableByDefault) {
+    Map<ConstantPattern, DartObjectImpl>? previousConstantPatternValues =
+        _constantPatternValues;
+    _constantPatternValues = {};
+    super.visitSwitchStatement(node);
+    if (_currentLibrary.featureSet.isEnabled(Feature.patterns)) {
+      _validateSwitchStatement_patterns(node, _constantPatternValues!);
+    } else if (_currentLibrary.isNonNullableByDefault) {
       _validateSwitchStatement_nullSafety(node);
     } else {
       _validateSwitchStatement_legacy(node);
     }
-    super.visitSwitchStatement(node);
+    _constantPatternValues = previousConstantPatternValues;
   }
 
   @override
@@ -777,6 +806,76 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           }
         }
       }
+    }
+  }
+
+  void _validateSwitchStatement_patterns(SwitchStatement node,
+      Map<ConstantPattern, DartObjectImpl> constantPatternValues) {
+    DartType expressionType = node.expression.staticType!;
+    StaticType type = _exhaustivenessCache.getStaticType(expressionType);
+    List<Space> cases = [];
+    List<SwitchMember> caseMembers = [];
+    bool hasDefault = false;
+    for (var switchMember in node.members) {
+      if (switchMember is SwitchCase) {
+        Expression expression = switchMember.expression;
+        var expressionValue = _validate(
+          expression,
+          CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION,
+        );
+        Space space =
+            convertConstantValueToSpace(_exhaustivenessCache, expressionValue);
+        cases.add(space);
+        caseMembers.add(switchMember);
+      } else if (switchMember is SwitchPatternCase) {
+        Space space;
+        if (switchMember.guardedPattern.whenClause != null) {
+          // TODO(johnniwinther): Test this.
+          space = Space(_exhaustivenessCache.getUnknownStaticType());
+        } else {
+          DartPattern pattern = switchMember.guardedPattern.pattern;
+          space = convertPatternToSpace(
+              _exhaustivenessCache, pattern, constantPatternValues);
+        }
+        cases.add(space);
+        caseMembers.add(switchMember);
+      } else if (switchMember is SwitchDefault) {
+        hasDefault = true;
+      }
+    }
+    List<Space>? remainingSpaces;
+    if (exhaustivenessDataForTesting != null) {
+      remainingSpaces = [];
+    }
+    for (ExhaustivenessError error
+        in reportErrors(type, cases, remainingSpaces)) {
+      if (error is UnreachableCaseError) {
+        _errorReporter.reportErrorForToken(
+          HintCode.UNREACHABLE_SWITCH_CASE,
+          caseMembers[error.index].keyword,
+          [],
+        );
+      } else if (error is NonExhaustiveError &&
+          isAlwaysExhaustiveType(expressionType) &&
+          !hasDefault) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH,
+          node.expression,
+          [expressionType, '${error.remaining}'],
+        );
+      }
+    }
+    if (exhaustivenessDataForTesting != null) {
+      assert(remainingSpaces!.length == cases.length + 1);
+      for (int i = 0; i < cases.length; i++) {
+        SwitchMember caseMember = caseMembers[i];
+        exhaustivenessDataForTesting!.caseSpaces[caseMember] = cases[i];
+        exhaustivenessDataForTesting!.remainingSpaces[caseMember] =
+            remainingSpaces![i];
+      }
+      exhaustivenessDataForTesting!.switchScrutineeType[node] = type;
+      exhaustivenessDataForTesting!.remainingSpaces[node] =
+          remainingSpaces!.last;
     }
   }
 }

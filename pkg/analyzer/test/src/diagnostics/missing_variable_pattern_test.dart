@@ -561,6 +561,7 @@ void f(int x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 76, 1),
+      error(HintCode.UNREACHABLE_SWITCH_CASE, 59, 4),
     ]);
 
     final node1 = findNode.switchPatternCase('case /*1*/').guardedPattern;

@@ -26,6 +26,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
         scan;
 import 'package:front_end/src/fasta/kernel/benchmarker.dart'
     show BenchmarkSubdivides;
+import 'package:front_end/src/fasta/kernel/exhaustiveness.dart';
 import 'package:front_end/src/fasta/source/source_type_alias_builder.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
@@ -2999,6 +3000,9 @@ class SourceLoaderDataForTesting {
 
   final MacroApplicationDataForTesting macroApplicationData =
       new MacroApplicationDataForTesting();
+
+  final ExhaustivenessDataForTesting exhaustivenessData =
+      new ExhaustivenessDataForTesting();
 }
 
 class _SourceClassGraph implements Graph<SourceClassBuilder> {

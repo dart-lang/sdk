@@ -6091,3 +6091,35 @@ RestPatternNotLastInMapPattern:
   experiments: patterns
   script: |
     test(dynamic x) { if (x case {..., 1: 1}) {} }
+
+NonExhaustiveSwitch:
+  problemMessage: "The type '#type' is not exhaustively matched by the switch cases."
+  correctionMessage: "Try adding a default case or cases that match #string."
+  analyzerCode: NON_EXHAUSTIVE_SWITCH
+  experiments: patterns
+  script: |
+    enum Enum { a, b }
+    method(Enum e) {
+      switch (e) {
+        case Enum.a:
+          break;
+      }
+    }
+
+UnreachableSwitchCase:
+  problemMessage: "This case is covered by the previous cases."
+  analyzerCode: UNREACHABLE_SWITCH_CASE
+  severity: WARNING # TODO(johnniwinther): Should this be an error, warning or not emitted at all?
+  experiments: patterns
+  script: |
+    enum Enum { a, b }
+    method(Enum e) {
+      switch (e) {
+        case Enum.a:
+          break;
+        case Enum.b:
+          break;
+        case Enum.a:
+          break;
+      }
+    }

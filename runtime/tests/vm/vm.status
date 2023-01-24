@@ -452,11 +452,6 @@ dart_2/causal_stacks/zone_callback_stack_traces_test: SkipByDesign # Asserts exa
 dart/data_uri*test: Skip # Data uri's not supported by dart2js or the analyzer.
 dart_2/data_uri*test: Skip # Data uri's not supported by dart2js or the analyzer.
 
-# Currently this is only supported on 64-bit linux systems with precompilation
-[ $compiler != dartk || $mode == debug || $runtime != dart_precompiled || $arch != arm64 && $arch != x64 || $system != android && $system != linux ]
-dart/analyze_snapshot_binary_test: SkipByDesign # Only run on 64bit AOT on standard architectures
-dart_2/analyze_snapshot_binary_test: SkipByDesign # Only run on 64bit AOT on standard architectures
-
 [ $mode == debug || $runtime != dart_precompiled || $system == android ]
 dart/emit_aot_size_info_flag_test: SkipByDesign # This test is for VM AOT only and is quite slow (so we don't run it in debug mode).
 dart/split_aot_kernel_generation2_test: SkipByDesign # This test is for VM AOT only and is quite slow (so we don't run it in debug mode).
@@ -512,3 +507,9 @@ dart_2/stack_overflow_shared_test: SkipSlow # Too slow with --shared-slow-path-t
 [ $hot_reload || $hot_reload_rollback || $compiler != dartk && $compiler != dartkp ]
 dart/entrypoints/*: SkipByDesign # These tests are for compiler optimizations and very sensitive to when functions are optimized, so they are disabled on hotreload and optcounter bots.
 dart_2/entrypoints/*: SkipByDesign # These tests are for compiler optimizations and very sensitive to when functions are optimized, so they are disabled on hotreload and optcounter bots.
+
+# The analyze_snapshot tool tests are only supported on 64 bit AOT builds running under
+# release or product runtimes for linux and android platforms
+[ $arch != arm64 && $arch != arm64c && $arch != simarm64 && $arch != simarm64c && $arch != x64 || $compiler != dartk && $compiler != dartkp || $mode != product && $mode != release || $runtime != dart_precompiled && $runtime != vm || $system != android && $system != linux ]
+dart/analyze_snapshot_binary_test: SkipByDesign # Only run on 64bit AOT on standard architectures
+dart_2/analyze_snapshot_binary_test: SkipByDesign # Only run on 64bit AOT on standard architectures

@@ -38,6 +38,7 @@ dart_runner
 dartbug.com
 dname
 e.g
+exhaustively
 exportable
 f
 ffi

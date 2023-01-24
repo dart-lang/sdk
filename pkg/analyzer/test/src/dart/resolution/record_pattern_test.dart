@@ -284,6 +284,7 @@ void f(() x) {
   switch (x) {
     case (a: var b):
       break;
+    default:
   }
 }
 ''', [
@@ -314,6 +315,7 @@ void f(() x) {
   switch (x) {
     case (: var a):
       break;
+    default:
   }
 }
 ''', [
@@ -401,6 +403,7 @@ void f(() x) {
   switch (x) {
     case (var a,):
       break;
+    default:
   }
 }
 ''', [
@@ -455,6 +458,7 @@ void f(() x) {
   switch (x) {
     case ():
       break;
+    default:
   }
 }
 ''');
