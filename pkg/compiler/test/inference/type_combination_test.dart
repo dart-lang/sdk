@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/common/elements.dart';
@@ -15,43 +13,43 @@ import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'type_mask_test_helper.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 
-TypeMask nullType;
-TypeMask objectType;
-TypeMask jsBoolean;
-TypeMask jsNumber;
-TypeMask jsInteger;
-TypeMask jsNumNotInt;
-TypeMask jsBooleanOrNull;
-TypeMask jsNumberOrNull;
-TypeMask jsIntegerOrNull;
-TypeMask jsNumNotIntOrNull;
-TypeMask emptyType;
-TypeMask dynamicType;
+late TypeMask nullType;
+late TypeMask objectType;
+late TypeMask jsBoolean;
+late TypeMask jsNumber;
+late TypeMask jsInteger;
+late TypeMask jsNumNotInt;
+late TypeMask jsBooleanOrNull;
+late TypeMask jsNumberOrNull;
+late TypeMask jsIntegerOrNull;
+late TypeMask jsNumNotIntOrNull;
+late TypeMask emptyType;
+late TypeMask dynamicType;
 
 var patternClass;
-TypeMask nonPrimitive1;
-TypeMask nonPrimitive2;
-TypeMask potentialArray;
-TypeMask potentialString;
-TypeMask jsInterceptor;
-TypeMask jsInterceptorOrComparable;
+late TypeMask nonPrimitive1;
+late TypeMask nonPrimitive2;
+late TypeMask potentialArray;
+late TypeMask potentialString;
+late TypeMask jsInterceptor;
+late TypeMask jsInterceptorOrComparable;
 
-TypeMask jsIndexable;
-TypeMask jsReadableArray;
-TypeMask jsMutableArray;
-TypeMask jsFixedArray;
-TypeMask jsExtendableArray;
-TypeMask jsUnmodifiableArray;
-TypeMask jsString;
-TypeMask jsStringOrNull;
-TypeMask jsArrayOrNull;
-TypeMask jsMutableArrayOrNull;
-TypeMask jsFixedArrayOrNull;
-TypeMask jsExtendableArrayOrNull;
-TypeMask jsUnmodifiableArrayOrNull;
-TypeMask jsIndexableOrNull;
-TypeMask jsInterceptorOrNull;
-TypeMask jsInterceptorOrComparableOrNull;
+late TypeMask jsIndexable;
+late TypeMask jsReadableArray;
+late TypeMask jsMutableArray;
+late TypeMask jsFixedArray;
+late TypeMask jsExtendableArray;
+late TypeMask jsUnmodifiableArray;
+late TypeMask jsString;
+late TypeMask jsStringOrNull;
+late TypeMask jsArrayOrNull;
+late TypeMask jsMutableArrayOrNull;
+late TypeMask jsFixedArrayOrNull;
+late TypeMask jsExtendableArrayOrNull;
+late TypeMask jsUnmodifiableArrayOrNull;
+late TypeMask jsIndexableOrNull;
+late TypeMask jsInterceptorOrNull;
+late TypeMask jsInterceptorOrComparableOrNull;
 
 class Pair {
   final first;
@@ -116,7 +114,7 @@ class RuleSet {
 }
 
 void testUnion(JClosedWorld closedWorld) {
-  AbstractValueDomain commonMasks = closedWorld.abstractValueDomain;
+  final commonMasks = closedWorld.abstractValueDomain as CommonMasks;
   RuleSet ruleSet = RuleSet(
       'union', (t1, t2) => simplify(t1.union(t2, commonMasks), commonMasks));
   rule(type1, type2, result) => ruleSet.rule(type1, type2, result);
@@ -747,8 +745,8 @@ void testRegressions(JClosedWorld closedWorld) {
       TypeMask.nonNullSubtype(patternClass, closedWorld);
   Expect.equals(
       potentialString,
-      jsStringOrNull.union(
-          nonNullPotentialString, closedWorld.abstractValueDomain));
+      jsStringOrNull.union(nonNullPotentialString,
+          closedWorld.abstractValueDomain as CommonMasks));
 }
 
 void main() {
@@ -776,7 +774,7 @@ runTests() async {
           compiler.stopAfterGlobalTypeInferenceForTesting = true);
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
-  JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+  JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
   CommonElements commonElements = closedWorld.commonElements;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 

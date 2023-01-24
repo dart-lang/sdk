@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/inferrer/abstract_value_domain.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:expect/expect.dart';
@@ -32,18 +29,15 @@ main() {
         await runCompiler(memorySourceFiles: {'main.dart': CODE});
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
-    AbstractValueDomain commonMasks = closedWorld.abstractValueDomain;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
+    final commonMasks = closedWorld.abstractValueDomain as CommonMasks;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
+    final mainLibrary = elementEnvironment.mainLibrary!;
 
-    dynamic classA =
-        elementEnvironment.lookupClass(elementEnvironment.mainLibrary, 'A');
-    dynamic classB =
-        elementEnvironment.lookupClass(elementEnvironment.mainLibrary, 'B');
-    dynamic classC =
-        elementEnvironment.lookupClass(elementEnvironment.mainLibrary, 'C');
-    dynamic classD =
-        elementEnvironment.lookupClass(elementEnvironment.mainLibrary, 'D');
+    dynamic classA = elementEnvironment.lookupClass(mainLibrary, 'A');
+    dynamic classB = elementEnvironment.lookupClass(mainLibrary, 'B');
+    dynamic classC = elementEnvironment.lookupClass(mainLibrary, 'C');
+    dynamic classD = elementEnvironment.lookupClass(mainLibrary, 'D');
 
     var exactA = new TypeMask.nonNullExact(classA, closedWorld);
     var exactB = new TypeMask.nonNullExact(classB, closedWorld);

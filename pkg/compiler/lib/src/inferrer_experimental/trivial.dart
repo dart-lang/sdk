@@ -493,7 +493,7 @@ class TrivialUniverseSelectorConstraints
   const TrivialUniverseSelectorConstraints();
 
   @override
-  bool addReceiverConstraint(Object constraint) => false;
+  bool addReceiverConstraint(Object? constraint) => false;
 
   @override
   bool needsNoSuchMethodHandling(Selector selector, World world) => true;
