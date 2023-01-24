@@ -49,6 +49,7 @@ import 'dart:_interceptors';
 import 'dart:_internal' as _symbol_dev;
 import 'dart:_internal'
     show
+        checkNotNullable,
         EfficientLengthIterable,
         MappedIterable,
         IterableElementError,
@@ -378,9 +379,9 @@ class Primitives {
     return result;
   }
 
-  static bool? parseBool(String source, bool? caseSensitive) {    
-    if (source == null) throw argumentErrorValue(source);
-    if (source.isEmpty) return null;    
+  static bool? parseBool(String source, bool caseSensitive) {
+    checkNotNullable(source, "source");
+    if (source.isEmpty) return null; 
     //The caseSensitive defaults to true.
     if (caseSensitive == null || caseSensitive == true) return source == "true" ? true : source == "false" ? false : null;     
     //Ignore case-sensitive when caseSensitive is false.                                      
