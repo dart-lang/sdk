@@ -6423,7 +6423,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         buffer);
     EXPECT_SUBSTRING(
         "\"id\":\"\","
-        "\"kind\":\"PlainInstance\"}",
+        "\"kind\":\"PlainInstance\",\"length\":0}",
         buffer);
   }
   // Type reference

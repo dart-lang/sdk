@@ -1319,6 +1319,33 @@ void Instance::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "PlainInstance");
+
+  GrowableArray<Class*> classes;
+  Array& field_array = Array::Handle();
+  Field& field = Field::Handle();
+  Class& cls = Class::Handle(this->clazz());
+  if (IsClosure()) {
+    // Closure fields are not instances. Skip them.
+    cls = cls.SuperClass();
+  }
+  do {
+    classes.Add(&Class::Handle(cls.ptr()));
+    cls = cls.SuperClass();
+  } while (!cls.IsNull());
+
+  intptr_t num_fields = 0;
+  for (intptr_t i = classes.length() - 1; i >= 0; --i) {
+    field_array ^= classes[i]->fields();
+    if (!field_array.IsNull()) {
+      for (intptr_t j = 0; j < field_array.Length(); ++j) {
+        field ^= field_array.At(j);
+        if (!field.is_static()) {
+          ++num_fields;
+        }
+      }
+    }
+  }
+  jsobj.AddProperty("length", num_fields);
 }
 
 void Instance::PrintImplementationFieldsImpl(
@@ -1417,9 +1444,6 @@ void RecordType::PrintJSONImpl(JSONStream* stream, bool ref) const {
     const intptr_t num_positional_fields = num_fields - field_names.Length();
     for (intptr_t index = 0; index < num_fields; ++index) {
       JSONObject jsfield(&jsarr);
-      // TODO(derekx): Remove this because BoundField isn't a response type in
-      // the spec.
-      jsfield.AddProperty("type", "BoundField");
       if (index < num_positional_fields) {
         jsfield.AddProperty("name", index);
       } else {
@@ -1906,9 +1930,6 @@ void Record::PrintJSONImpl(JSONStream* stream, bool ref) const {
     const intptr_t num_positional_fields = num_fields - field_names.Length();
     for (intptr_t index = 0; index < num_fields; ++index) {
       JSONObject jsfield(&jsarr);
-      // TODO(derekx): Remove this because BoundField isn't a response type in
-      // the spec.
-      jsfield.AddProperty("type", "BoundField");
       if (index < num_positional_fields) {
         jsfield.AddProperty("name", index);
       } else {

@@ -2682,11 +2682,12 @@ class @Instance extends @Object {
   // New code should use 'length' and 'count' instead.
   bool valueAsStringIsTruncated [optional];
 
-  // The length of a List, or the number of associations in a Map, or the number
-  // of codeunits in a String, or the total number of fields (positional and
-  // named) in a Record.
+  // The number of (non-static) fields of a PlainInstance, or the length of a
+  // List, or the number of associations in a Map, or the number of codeunits in
+  // a String, or the total number of fields (positional and named) in a Record.
   //
   // Provided for instance kinds:
+  //   PlainInstance
   //   String
   //   List
   //   Map
@@ -2815,11 +2816,12 @@ class Instance extends Object {
   // New code should use 'length' and 'count' instead.
   bool valueAsStringIsTruncated [optional];
 
-  // The length of a List, or the number of associations in a Map, or the number
-  // of codeunits in a String, or the total number of fields (positional and
-  // named) in a Record.
+  // The number of (non-static) fields of a PlainInstance, or the length of a
+  // List, or the number of associations in a Map, or the number of codeunits in
+  // a String, or the total number of fields (positional and named) in a Record.
   //
   // Provided for instance kinds:
+  //   PlainInstance
   //   String
   //   List
   //   Map
@@ -2925,7 +2927,11 @@ class Instance extends Object {
   //   FunctionType
   @Instance[] typeParameters [optional];
 
-  // The fields of this Instance.
+  // The (non-static) fields of this Instance.
+  //
+  // Provided for instance kinds:
+  //   PlainInstance
+  //   Record
   BoundField[] fields [optional];
 
   // The elements of a List or Set instance.
