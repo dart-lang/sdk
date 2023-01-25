@@ -46,7 +46,6 @@ mixin CaseClauseTestCases on AbstractCompletionDriverTest {
     await computeSuggestions('''
 var v = [ if (o case ^) ];
 ''');
-    // TODO(brianwilkerson) We should be suggesting type names here.
     assertResponse('''
 suggestions
   const
@@ -70,7 +69,6 @@ void f(Object o) {
   if (o case ^) {}
 }
 ''');
-    // TODO(brianwilkerson) We should be suggesting type names here.
     assertResponse('''
 suggestions
   const
@@ -86,5 +84,129 @@ suggestions
   var
     kind: keyword
 ''');
+  }
+
+  Future<void> test_afterCaseClause_inIfElement() async {
+    await computeSuggestions('''
+var v = [ if (o case != '' ^) ];
+''');
+    assertResponse('''
+suggestions
+  when
+    kind: keyword
+''');
+  }
+
+  @FailingTest(reason: "We're proposing 'when' but shouldn't be")
+  Future<void> test_afterCaseClause_inIfStatement_beforeExpression1() async {
+    // The `true` isn't in the `IfStatement`, but we don't catch that case.
+    await computeSuggestions('''
+void f(Object o) {
+  if (o case != '' ^ true) {}
+}
+''');
+    assertResponse('''
+suggestions
+''');
+  }
+
+  Future<void> test_afterCaseClause_inIfStatement_beforeExpression2() async {
+    // The `true` isn't in the `IfStatement`. The only reason we don't suggest
+    // `when` in this case is because the completion point is computed to be
+    // just before the closing paren, but because the previous token is a number
+    // we short circuit the `KeywordConstributor`.
+    await computeSuggestions('''
+void f(Object o) {
+  if (o case != '' ^ o.length > 3) {}
+}
+''');
+    assertResponse('''
+suggestions
+''');
+  }
+
+  Future<void> test_afterCaseClause_inIfStatement_beforeParen() async {
+    await computeSuggestions('''
+void f(Object o) {
+  if (o case != '' ^) {}
+}
+''');
+    assertResponse('''
+suggestions
+  when
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterWhen_inIfElement() async {
+    await computeSuggestions('''
+var v = [ if (o case != '' when true ^) ];
+''');
+    assertResponse('''
+suggestions
+''');
+  }
+
+  Future<void> test_afterWhen_inIfStatement() async {
+    await computeSuggestions('''
+void f(Object o) {
+  if (o case != '' when true ^) {}
+}
+''');
+    assertResponse('''
+suggestions
+''');
+  }
+
+  Future<void> test_partialCase_inIfElement() async {
+    await computeSuggestions('''
+var v = [ if (o c^) ];
+''');
+    if (isProtocolVersion2) {
+      assertResponse('''
+replacement
+  left: 1
+suggestions
+  case
+    kind: keyword
+''');
+    } else {
+      assertResponse('''
+replacement
+  left: 1
+suggestions
+  case
+    kind: keyword
+  is
+    kind: keyword
+''');
+    }
+  }
+
+  Future<void> test_partialCase_inIfStatement() async {
+    await computeSuggestions('''
+void f(Object o) {
+  if (o ca^) {}
+}
+''');
+    if (isProtocolVersion2) {
+      assertResponse('''
+replacement
+  left: 2
+suggestions
+  case
+    kind: keyword
+''');
+    } else {
+      assertResponse('''
+replacement
+  left: 2
+suggestions
+  case
+    kind: keyword
+  is
+    kind: keyword
+''');
+    }
   }
 }
