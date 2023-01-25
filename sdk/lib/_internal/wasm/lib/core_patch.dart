@@ -30,7 +30,7 @@ import "dart:_internal"
 
 import "dart:_internal" as _internal show Symbol;
 
-import 'dart:_js_helper' show JSSyntaxRegExp, quoteStringForRegExp;
+import 'dart:_js_helper' show JS, JSSyntaxRegExp, quoteStringForRegExp;
 
 import "dart:collection"
     show

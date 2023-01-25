@@ -13,11 +13,11 @@ const int _maxLatin1 = 0xff;
 const int _maxUtf16 = 0xffff;
 const int _maxUnicode = 0x10ffff;
 
-@pragma("wasm:import", "dart2wasm.toUpperCase")
-external String _toUpperCase(String string);
+String _toUpperCase(String string) => JS<String>(
+    "s => stringToDartString(stringFromDartString(s).toUpperCase())", string);
 
-@pragma("wasm:import", "dart2wasm.toLowerCase")
-external String _toLowerCase(String string);
+String _toLowerCase(String string) => JS<String>(
+    "s => stringToDartString(stringFromDartString(s).toLowerCase())", string);
 
 @patch
 class String {

@@ -624,9 +624,12 @@ class _JSLowerer extends Transformer {
     }
   }
 
-  Procedure _getEnclosingProcedure(TreeNode node) {
+  Procedure? _tryGetEnclosingProcedure(TreeNode? node) {
     while (node is! Procedure) {
-      node = node.parent!;
+      node = node?.parent;
+      if (node == null) {
+        return null;
+      }
     }
     return node;
   }
@@ -638,7 +641,10 @@ class _JSLowerer extends Transformer {
   ///   3) All of the arguments to `inlineJS` are [VariableGet]s. (this is
   ///      checked by [_expandInlineJS]).
   bool _shouldReplaceEnclosingProcedure(StaticInvocation node) {
-    Procedure enclosingProcedure = _getEnclosingProcedure(node);
+    Procedure? enclosingProcedure = _tryGetEnclosingProcedure(node);
+    if (enclosingProcedure == null) {
+      return false;
+    }
     Statement enclosingBody = enclosingProcedure.function.body!;
     Expression? expression;
     if (enclosingBody is ReturnStatement) {
@@ -686,7 +692,7 @@ class _JSLowerer extends Transformer {
     Procedure dartProcedure;
     Expression result;
     if (_replaceProcedureWithInlineJS) {
-      dartProcedure = _getEnclosingProcedure(node);
+      dartProcedure = _tryGetEnclosingProcedure(node)!;
       result = InvalidExpression("Unreachable");
     } else {
       dartProcedure = _addInteropProcedure(

@@ -4,24 +4,6 @@
 
 part of "core_patch.dart";
 
-@pragma("wasm:import", "dart2wasm.doubleToString")
-external String _doubleToString(double v);
-
-@pragma("wasm:import", "dart2wasm.toFixed")
-external String _toFixed(double d, double digits);
-
-@pragma("wasm:import", "dart2wasm.toExponential")
-external String _toExponential1(double d);
-
-@pragma("wasm:import", "dart2wasm.toExponential")
-external String _toExponential2(double d, double fractionDigits);
-
-@pragma("wasm:import", "dart2wasm.toPrecision")
-external String _toPrecision(double d, double precision);
-
-@pragma("wasm:import", "dart2wasm.parseDouble")
-external double _parseDouble(String doubleString);
-
 @patch
 class double {
   @patch
@@ -40,7 +22,19 @@ class double {
 
   @patch
   static double? tryParse(String source) {
-    double result = _parseDouble(source);
+    // Notice that JS parseFloat accepts garbage at the end of the string.
+    // Accept only:
+    // - [+/-]NaN
+    // - [+/-]Infinity
+    // - a Dart double literal
+    // We do allow leading or trailing whitespace.
+    double result = JS<double>(r"""s => {
+      const jsSource = stringFromDartString(s);
+      if (!/^\s*[+-]?(?:Infinity|NaN|(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(jsSource)) {
+        return NaN;
+      }
+      return parseFloat(jsSource);
+    }""", source);
     if (result.isNaN) {
       String trimmed = source.trim();
       if (!(trimmed == 'NaN' || trimmed == '+NaN' || trimmed == '-NaN')) {
@@ -285,7 +279,7 @@ class _BoxedDouble extends double {
         return "0.0";
       }
     }
-    String result = _doubleToString(value);
+    String result = JS<String>("v => stringToDartString(v.toString())", value);
     if (this % 1.0 == 0.0 && result.indexOf('e') == -1) {
       result = '$result.0';
     }
@@ -324,8 +318,10 @@ class _BoxedDouble extends double {
     return result;
   }
 
-  String _toStringAsFixed(int fractionDigits) =>
-      _toFixed(value, fractionDigits.toDouble());
+  String _toStringAsFixed(int fractionDigits) => JS<String>(
+      "(d, digits) => stringToDartString(d.toFixed(digits))",
+      value,
+      fractionDigits.toDouble());
 
   String toStringAsExponential([int? fractionDigits]) {
     // See ECMAScript-262, 15.7.4.6 for details.
@@ -352,9 +348,10 @@ class _BoxedDouble extends double {
 
   String _toStringAsExponential(int? fractionDigits) {
     if (fractionDigits == null) {
-      return _toExponential1(value);
+      return JS<String>("d => stringToDartString(d.toExponential())", value);
     } else {
-      return _toExponential2(value, fractionDigits.toDouble());
+      return JS<String>("(d, f) => stringToDartString(d.toExponential(f))",
+          value, fractionDigits.toDouble());
     }
   }
 
@@ -379,8 +376,10 @@ class _BoxedDouble extends double {
     return result;
   }
 
-  String _toStringAsPrecision(int fractionDigits) =>
-      _toPrecision(value, fractionDigits.toDouble());
+  String _toStringAsPrecision(int fractionDigits) => JS<String>(
+      "(d, precision) => stringToDartString(d.toPrecision(precision))",
+      value,
+      fractionDigits.toDouble());
 
   // Order is: NaN > Infinity > ... > 0.0 > -0.0 > ... > -Infinity.
   int compareTo(num other) {

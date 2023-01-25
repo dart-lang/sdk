@@ -11,8 +11,17 @@ part of dart._js_helper;
 
 /// Returns a string for a RegExp pattern that matches [string]. This is done by
 /// escaping all RegExp metacharacters.
-@pragma('wasm:import', 'dart2wasm.quoteStringForRegExp')
-external String quoteStringForRegExp(String string);
+String quoteStringForRegExp(String string) =>
+    // This method is optimized to test before replacement, which should be
+    // much faster. This might be worth measuring in real world use cases
+    // though.
+    JS<String>(r"""s => {
+      let jsString = stringFromDartString(s);
+      if (/[[\]{}()*+?.\\^$|]/.test(jsString)) {
+          jsString = jsString.replace(/[[\]{}()*+?.\\^$|]/g, '\\$&');
+      }
+      return stringToDartString(jsString);
+    }""", string);
 
 class JSNativeMatch extends JSArray {
   JSNativeMatch(WasmExternRef ref) : super(ref);
@@ -99,8 +108,13 @@ class JSSyntaxRegExp implements RegExp {
     String modifiers = '$m$i$u$s$g';
     // The call to create the regexp is wrapped in a try catch so we can
     // reformat the exception if need be.
-    WasmExternRef? result = safeCallConstructorVarArgsRaw(
-        getConstructorRaw('RegExp'), [source, modifiers].toExternRef());
+    WasmExternRef? result = JS<WasmExternRef?>("""(s, m) => {
+          try {
+            return new RegExp(s, m);
+          } catch (e) {
+            return String(e);
+          }
+        }""", source.toExternRef(), modifiers.toExternRef());
     if (isJSRegExp(result)) return JSNativeRegExp(result!);
     // The returned value is the stringified JavaScript exception. Turn it into
     // a Dart exception.

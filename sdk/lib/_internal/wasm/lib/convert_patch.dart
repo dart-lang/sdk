@@ -4,9 +4,6 @@
 
 import "dart:_internal" show patch;
 
-@pragma("wasm:import", "dart2wasm.parseDouble")
-external double _parseDoubleJS(String source);
-
 @patch
 double _parseDouble(String source, int start, int end) =>
-    _parseDoubleJS(source.substring(start, end));
+    double.parse(source.substring(start, end));
