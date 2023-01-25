@@ -6634,6 +6634,196 @@ main() {
       });
     });
 
+    group('Null-assert:', () {
+      test('Throws if not null', () {
+        h.run([
+          ifCase(expr('Object?'), wildcard().nullAssert, [], [
+            checkReachable(false),
+          ]),
+        ]);
+      });
+
+      group('Scrutinee promotion:', () {
+        test('If changed', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object?')),
+            switch_(x.expr, [
+              wildcard()
+                  .when(x.write(expr('Object?')).stmt.thenExpr(expr('bool')))
+                  .then([
+                break_(),
+              ]),
+              wildcard().nullAssert.then([
+                checkNotPromoted(x),
+              ])
+            ]),
+          ]);
+        });
+
+        test('If unchanged', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object?')),
+            ifCase(x.expr, wildcard().nullAssert, [
+              checkPromoted(x, 'Object'),
+            ], [
+              checkNotPromoted(x),
+            ]),
+          ]);
+        });
+
+        test('If subpattern', () {
+          // Equivalent Dart code:
+          //     typedef T = int?;
+          //     extension on T {
+          //       dynamic get foo { ... }
+          //     }
+          //     f(Object? x) {
+          //       if (x case T(foo: _!)) {
+          //         // x still might be `null`
+          //       }
+          //     }
+          h.addDownwardInfer(name: 'T', context: 'Object?', result: 'int?');
+          h.addMember('int?', 'foo', 'dynamic');
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object?')),
+            ifCase(
+                x.expr,
+                objectPattern(
+                    requiredType: 'T',
+                    fields: [wildcard().nullAssert.recordField('foo')]),
+                [
+                  // TODO(paulberry): objectPattern should have promoted to
+                  // `int?`
+                  checkNotPromoted(x),
+                ]),
+          ]);
+        });
+      });
+
+      test('Promotes temporary variable', () {
+        h.run([
+          ifCase(
+              expr('Object?'),
+              wildcard().nullAssert.and(wildcard(expectInferredType: 'Object')),
+              []),
+        ]);
+      });
+
+      test('Unreachable if null', () {
+        h.run([
+          ifCase(expr('Null'), wildcard().nullAssert, [
+            checkReachable(false),
+          ]),
+        ]);
+      });
+
+      test('Reachable otherwise', () {
+        h.run([
+          ifCase(expr('Object?'), wildcard().nullAssert, [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+    });
+
+    group('Null-check:', () {
+      test('Might not match', () {
+        h.run([
+          ifCase(expr('Object?'), wildcard().nullCheck, [], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+
+      group('Scrutinee promotion:', () {
+        test('If changed', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object?')),
+            switch_(x.expr, [
+              wildcard()
+                  .when(x.write(expr('Object?')).stmt.thenExpr(expr('bool')))
+                  .then([
+                break_(),
+              ]),
+              wildcard().nullCheck.then([
+                checkNotPromoted(x),
+              ])
+            ]),
+          ]);
+        });
+
+        test('If unchanged', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object?')),
+            ifCase(x.expr, wildcard().nullCheck, [
+              checkPromoted(x, 'Object'),
+            ], [
+              checkNotPromoted(x),
+            ]),
+          ]);
+        });
+
+        test('If subpattern', () {
+          // Equivalent Dart code:
+          //     typedef T = int?;
+          //     extension on T {
+          //       dynamic get foo { ... }
+          //     }
+          //     f(Object? x) {
+          //       if (x case T(foo: _?)) {
+          //         // x still might be `null`
+          //       }
+          //     }
+          h.addDownwardInfer(name: 'T', context: 'Object?', result: 'int?');
+          h.addMember('int?', 'foo', 'dynamic');
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object?')),
+            ifCase(
+                x.expr,
+                objectPattern(
+                    requiredType: 'T',
+                    fields: [wildcard().nullCheck.recordField('foo')]),
+                [
+                  // TODO(paulberry): objectPattern should have promoted to
+                  // `int?`
+                  checkNotPromoted(x),
+                ]),
+          ]);
+        });
+      });
+
+      test('Promotes temporary variable', () {
+        h.run([
+          ifCase(
+              expr('Object?'),
+              wildcard().nullCheck.and(wildcard(expectInferredType: 'Object')),
+              []),
+        ]);
+      });
+
+      test('Unreachable if null', () {
+        h.run([
+          ifCase(expr('Null'), wildcard().nullCheck, [
+            checkReachable(false),
+          ]),
+        ]);
+      });
+
+      test('Reachable otherwise', () {
+        h.run([
+          ifCase(expr('Object?'), wildcard().nullCheck, [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+    });
+
     group('Switch expression:', () {
       test('guarded', () {
         var x = Var('x');

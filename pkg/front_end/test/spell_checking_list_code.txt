@@ -480,6 +480,7 @@ escalate
 establish
 established
 establishes
+establishing
 estimate
 et
 estimated
