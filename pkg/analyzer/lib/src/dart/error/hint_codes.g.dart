@@ -188,7 +188,7 @@ class HintCode extends AnalyzerErrorCode {
         "directory.",
   );
 
-  ///  It is a bad practice for a source file ouside a package "lib" directory
+  ///  It is a bad practice for a source file outside a package "lib" directory
   ///  hierarchy to traverse into that directory hierarchy. For example, a source
   ///  file in the "web" directory should not contain a directive such as
   ///  `import '../lib/some.dart'` which references a file inside the lib

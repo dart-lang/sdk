@@ -3159,7 +3159,7 @@ class StoreOptimizer : public LivenessAnalysis {
               // still load from all places.
               live_in->CopyFrom(all_places);
             } else {
-              // If we are oustide of try-catch block, instructions that "may
+              // If we are outside of try-catch block, instructions that "may
               // throw" only "load from escaping places".
               // If we are inside of try-catch block, instructions that "may
               // throw" also "load from all places".

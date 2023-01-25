@@ -98,7 +98,7 @@ Future<void> testDisabledSuperMixins() async {
 }
 
 /// Check that in an abstract class an error is reported only for a
-/// super-invocation that targets an non-existent method, a super-invocation
+/// super-invocation that targets an nonexistent method, a super-invocation
 /// that targets an abstract member of the super-class should not be reported.
 /// In non-abstract class we should report both cases as an error.
 Future<void> testEnabledSuperMixins() async {

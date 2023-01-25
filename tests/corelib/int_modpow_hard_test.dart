@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Extreme values from int_modulo_arith_test. Test cases that that have
+// Extreme values from int_modulo_arith_test. Test cases that have
 // intermediate values that overflow the precision of 'int'.
 
 import "package:expect/expect.dart";

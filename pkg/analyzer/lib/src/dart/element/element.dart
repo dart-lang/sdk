@@ -409,7 +409,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   }
 
   /// Return an iterable containing all of the implementations of a getter with
-  /// the given [getterName] that are defined in this class any any superclass
+  /// the given [getterName] that are defined in this class and any superclass
   /// of this class (but not in interfaces).
   ///
   /// The getters that are returned are not filtered in any way. In particular,
@@ -439,7 +439,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   }
 
   /// Return an iterable containing all of the implementations of a method with
-  /// the given [methodName] that are defined in this class any any superclass
+  /// the given [methodName] that are defined in this class and any superclass
   /// of this class (but not in interfaces).
   ///
   /// The methods that are returned are not filtered in any way. In particular,
@@ -468,7 +468,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   }
 
   /// Return an iterable containing all of the implementations of a setter with
-  /// the given [setterName] that are defined in this class any any superclass
+  /// the given [setterName] that are defined in this class and any superclass
   /// of this class (but not in interfaces).
   ///
   /// The setters that are returned are not filtered in any way. In particular,
@@ -4829,7 +4829,7 @@ class MixinElementImpl extends ClassOrMixinElementImpl implements MixinElement {
 
   @override
   set supertype(InterfaceType? supertype) {
-    throw StateError('Attempt to set a supertype for a mixin declaratio.');
+    throw StateError('Attempt to set a supertype for a mixin declaration.');
   }
 
   @override

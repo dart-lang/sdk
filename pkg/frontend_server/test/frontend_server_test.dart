@@ -636,7 +636,7 @@ void main() async {
           count += 1;
         } else {
           expect(count, 3);
-          // Third request is to 'compile' non-existent file, that should fail.
+          // Third request is to 'compile' nonexistent file, that should fail.
           expect(result.errorsCount, greaterThan(0));
 
           frontendServer.quit();
@@ -1935,7 +1935,7 @@ void main(List<String> arguments, SendPort sendPort) {
       expect(await starter(args), 0);
     }, skip: 'https://github.com/dart-lang/sdk/issues/43959');
 
-    test('compile to JavaScript weak null safety then non-existent file',
+    test('compile to JavaScript weak null safety then nonexistent file',
         () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {\n}\n");
@@ -1981,7 +1981,7 @@ void main(List<String> arguments, SendPort sendPort) {
           frontendServer.compile('foo.bar');
         } else {
           expect(count, 2);
-          // Second request is to 'compile' non-existent file, that should fail.
+          // Second request is to 'compile' nonexistent file, that should fail.
           expect(result.errorsCount, greaterThan(0));
           frontendServer.quit();
         }
@@ -2565,7 +2565,7 @@ e() {
           count += 1;
         } else {
           expect(count, 3);
-          // Fourth request is to 'compile' non-existent file, that should fail.
+          // Fourth request is to 'compile' nonexistent file, that should fail.
           expect(result.errorsCount, greaterThan(0));
 
           frontendServer.quit();

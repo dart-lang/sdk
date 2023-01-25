@@ -459,21 +459,21 @@ class GenericInferrer {
     }
 
     // Only report unique constraint origins.
-    Iterable<_TypeConstraint> isSatisified(bool expected) => constraintsByOrigin
+    Iterable<_TypeConstraint> isSatisfied(bool expected) => constraintsByOrigin
         .values
         .where((l) =>
             l.every((c) => c.isSatisfiedBy(_typeSystem, inferred)) == expected)
         .expand((i) => i);
 
-    String unsatisified = _formatConstraints(isSatisified(false));
-    String satisified = _formatConstraints(isSatisified(true));
+    String unsatisfied = _formatConstraints(isSatisfied(false));
+    String satisfied = _formatConstraints(isSatisfied(true));
 
-    assert(unsatisified.isNotEmpty);
-    if (satisified.isNotEmpty) {
-      satisified = "\nThe type '$inferredStr' was inferred from:\n$satisified";
+    assert(unsatisfied.isNotEmpty);
+    if (satisfied.isNotEmpty) {
+      satisfied = "\nThe type '$inferredStr' was inferred from:\n$satisfied";
     }
 
-    return '\n\n$intro\n$unsatisified$satisified\n\n'
+    return '\n\n$intro\n$unsatisfied$satisfied\n\n'
         'Consider passing explicit type argument(s) to the generic.\n\n';
   }
 

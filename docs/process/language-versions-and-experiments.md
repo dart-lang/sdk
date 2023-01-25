@@ -138,7 +138,7 @@ version of the version reported by tools in that SDK.** This means that:
 Internally in the Dart SDK repo, the source of truth for the SDK version number
 is `tools/VERSION`. That file gets updated during the release process when
 various branches are cut and releases shipped. We could calculate the language
-version from that using the above rule, but we're worried that that means the
+version from that using the above rule, but we're worried that means the
 language version could change inadvertently as a consequence of release
 administrivia. Instead, the repo stores the language version explicitly in
 `tools/experimental_features.yaml`.

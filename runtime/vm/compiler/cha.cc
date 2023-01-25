@@ -151,7 +151,7 @@ static intptr_t CountFinalizedSubclasses(Thread* thread, const Class& cls) {
   Class& direct_subclass = Class::Handle(thread->zone());
   for (intptr_t i = 0; i < cls_direct_subclasses.Length(); i++) {
     direct_subclass ^= cls_direct_subclasses.At(i);
-    // Unfinalized classes are treated as non-existent for CHA purposes,
+    // Unfinalized classes are treated as nonexistent for CHA purposes,
     // as that means that no instance of that class exists at runtime.
     if (!direct_subclass.is_finalized()) {
       continue;
@@ -206,7 +206,7 @@ bool CHA::HasOverride(const Class& cls,
   Class& direct_subclass = Class::Handle(thread_->zone());
   for (intptr_t i = 0; i < cls_direct_subclasses.Length(); i++) {
     direct_subclass ^= cls_direct_subclasses.At(i);
-    // Unfinalized classes are treated as non-existent for CHA purposes,
+    // Unfinalized classes are treated as nonexistent for CHA purposes,
     // as that means that no instance of that class exists at runtime.
     if (!direct_subclass.is_finalized()) {
       continue;

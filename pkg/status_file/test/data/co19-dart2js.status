@@ -2201,7 +2201,7 @@ LayoutTests/fast/dom/HTMLLabelElement/click-label_t01: RuntimeError # Please tri
 LayoutTests/fast/dom/HTMLLabelElement/form/test1_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLLinkElement/link-and-subresource-test_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/HTMLLinkElement/link-beforeload-recursive_t01: Skip # Times out. Please triage this failure
-LayoutTests/fast/dom/HTMLLinkElement/link-onerror-stylesheet-with-existent-and-non-existent-import_t01: Pass, RuntimeError # Please triage this failure
+LayoutTests/fast/dom/HTMLLinkElement/link-onerror-stylesheet-with-existent-and-nonexistent-import_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLLinkElement/prefetch-onerror_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/HTMLLinkElement/prefetch-onload_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/HTMLLinkElement/prefetch_t01: Skip # Times out. Please triage this failure
@@ -2221,7 +2221,7 @@ LayoutTests/fast/dom/HTMLScriptElement/remove-in-beforeload_t01: RuntimeError # 
 LayoutTests/fast/dom/HTMLScriptElement/remove-source_t01: RuntimeError # Issue 18128
 LayoutTests/fast/dom/HTMLScriptElement/script-set-src_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLSelectElement/change-multiple-preserve-selection_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/HTMLStyleElement/style-onerror-with-existent-and-non-existent-import_t01: Pass, RuntimeError # Please triage this failure
+LayoutTests/fast/dom/HTMLStyleElement/style-onerror-with-existent-and-nonexistent-import_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLTableElement/cellpadding-attribute_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLTemplateElement/custom-element-wrapper-gc_t01: RuntimeError # Issue 18250
 LayoutTests/fast/dom/HTMLTemplateElement/cycles-in-shadow_t01: RuntimeError # Please triage this failure
@@ -4905,8 +4905,8 @@ LayoutTests/fast/dom/HTMLLabelElement/label-control_t01: RuntimeError # Please t
 LayoutTests/fast/dom/HTMLLinkElement/link-and-subresource-test-nonexistent_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/HTMLLinkElement/link-and-subresource-test_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/HTMLLinkElement/link-beforeload-recursive_t01: Skip # Times out. Please triage this failure
-LayoutTests/fast/dom/HTMLLinkElement/link-onerror-stylesheet-with-existent-and-non-existent-import_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/HTMLLinkElement/link-onerror-stylesheet-with-non-existent-import_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/HTMLLinkElement/link-onerror-stylesheet-with-existent-and-nonexistent-import_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/HTMLLinkElement/link-onerror-stylesheet-with-nonexistent-import_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLLinkElement/link-onerror_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLLinkElement/link-onload-before-page-load_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLLinkElement/link-onload-stylesheet-with-import_t01: RuntimeError # Please triage this failure
@@ -4944,7 +4944,7 @@ LayoutTests/fast/dom/HTMLSelectElement/named-options_t01: RuntimeError # Please 
 LayoutTests/fast/dom/HTMLSelectElement/selected-index-preserved-when-option-text-changes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLStyleElement/programmatically-add-style-with-onerror-handler_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/HTMLStyleElement/programmatically-add-style-with-onload-handler_t01: Skip # Times out. Please triage this failure
-LayoutTests/fast/dom/HTMLStyleElement/style-onerror-with-existent-and-non-existent-import_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/HTMLStyleElement/style-onerror-with-existent-and-nonexistent-import_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLStyleElement/style-onerror_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLStyleElement/style-onload-before-page-load_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLStyleElement/style-onload2_t01: RuntimeError # Please triage this failure
