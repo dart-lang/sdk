@@ -4898,8 +4898,9 @@ class InstanceRef extends ObjRef {
   @optional
   bool? valueAsStringIsTruncated;
 
-  /// The length of a List or the number of associations in a Map or the number
-  /// of codeunits in a String.
+  /// The length of a List, or the number of associations in a Map, or the
+  /// number of codeunits in a String, or the total number of fields (positional
+  /// and named) in a Record.
   ///
   /// Provided for instance kinds:
   ///  - String
@@ -4920,6 +4921,7 @@ class InstanceRef extends ObjRef {
   ///  - Int32x4List
   ///  - Float32x4List
   ///  - Float64x2List
+  ///  - Record
   @optional
   int? length;
 
@@ -5150,8 +5152,9 @@ class Instance extends Obj implements InstanceRef {
   @optional
   bool? valueAsStringIsTruncated;
 
-  /// The length of a List or the number of associations in a Map or the number
-  /// of codeunits in a String.
+  /// The length of a List, or the number of associations in a Map, or the
+  /// number of codeunits in a String, or the total number of fields (positional
+  /// and named) in a Record.
   ///
   /// Provided for instance kinds:
   ///  - String
@@ -5172,6 +5175,7 @@ class Instance extends Obj implements InstanceRef {
   ///  - Int32x4List
   ///  - Float32x4List
   ///  - Float64x2List
+  ///  - Record
   @optional
   int? length;
 
