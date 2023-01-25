@@ -43,7 +43,52 @@ mixin CastPatternTestCases on AbstractCompletionDriverTest {
     );
   }
 
-  Future<void> test_partialType_declaration() async {
+  Future<void> test_noType_afterDeclaration() async {
+    await computeSuggestions('''
+void f(Object x) {
+  switch (x) {
+    case var i as ^
+  }
+}
+class A01 {}
+class A02 {}
+class B01 {}
+''');
+    assertResponse('''
+suggestions
+  A01
+    kind: class
+  A02
+    kind: class
+  B01
+    kind: class
+''');
+  }
+
+  Future<void> test_noType_afterReference() async {
+    await computeSuggestions('''
+void f(Object x) {
+  const i = 0;
+  switch (x) {
+    case i as ^
+  }
+}
+class A01 {}
+class A02 {}
+class B01 {}
+''');
+    assertResponse('''
+suggestions
+  A01
+    kind: class
+  A02
+    kind: class
+  B01
+    kind: class
+''');
+  }
+
+  Future<void> test_partialType_afterDeclaration() async {
     await computeSuggestions('''
 void f(Object x) {
   switch (x) {
@@ -79,7 +124,7 @@ suggestions
     }
   }
 
-  Future<void> test_partialType_reference() async {
+  Future<void> test_partialType_afterReference() async {
     await computeSuggestions('''
 void f(Object x) {
   const i = 0;

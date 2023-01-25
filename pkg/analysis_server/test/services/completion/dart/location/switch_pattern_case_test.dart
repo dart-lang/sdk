@@ -336,49 +336,4 @@ suggestions
     kind: keyword
 ''');
   }
-
-  Future<void> test_noColon_afterAs_afterDeclaration() async {
-    await computeSuggestions('''
-void f(Object x) {
-  switch (x) {
-    case var i as ^
-  }
-}
-class A01 {}
-class A02 {}
-class B01 {}
-''');
-    assertResponse('''
-suggestions
-  A01
-    kind: class
-  A02
-    kind: class
-  B01
-    kind: class
-''');
-  }
-
-  Future<void> test_noColon_afterAs_afterReference() async {
-    await computeSuggestions('''
-void f(Object x) {
-  const i = 0;
-  switch (x) {
-    case i as ^
-  }
-}
-class A01 {}
-class A02 {}
-class B01 {}
-''');
-    assertResponse('''
-suggestions
-  A01
-    kind: class
-  A02
-    kind: class
-  B01
-    kind: class
-''');
-  }
 }
