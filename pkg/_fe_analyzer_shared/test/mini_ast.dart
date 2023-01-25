@@ -3653,10 +3653,10 @@ class _MiniAstTypeAnalyzer
     if (type is RecordType) {
       return shared.RecordType<Type>(
         positional: type.positional,
-        named: type.named.map((namedType) {
+        named: type.named.entries.map((entry) {
           return shared.NamedType(
-            namedType.name,
-            namedType.type,
+            entry.key,
+            entry.value,
           );
         }).toList(),
       );
@@ -4002,7 +4002,7 @@ class _MiniAstTypeAnalyzer
       required List<shared.NamedType<Type>> named}) {
     return RecordType(
       positional: positional,
-      named: named.map((e) => NamedType(e.name, e.type)).toList(),
+      named: {for (var e in named) e.name: e.type},
     );
   }
 

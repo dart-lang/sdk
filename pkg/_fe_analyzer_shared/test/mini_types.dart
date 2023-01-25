@@ -44,16 +44,6 @@ class FunctionType extends Type {
   }
 }
 
-class NamedType {
-  final String name;
-  final Type type;
-
-  NamedType(this.name, this.type);
-
-  @override
-  String toString() => '$type $name';
-}
-
 /// Exception thrown if a type fails to parse properly.
 class ParseError extends Error {
   final String message;
@@ -150,7 +140,7 @@ class QuestionType extends Type {
 
 class RecordType extends Type {
   final List<Type> positional;
-  final List<NamedType> named;
+  final Map<String, Type> named;
 
   RecordType({
     required this.positional,
@@ -168,14 +158,7 @@ class RecordType extends Type {
       }
     }
 
-    List<NamedType>? newNamed;
-    for (var i = 0; i < named.length; i++) {
-      var newType = named[i].type.recursivelyDemote(covariant: covariant);
-      if (newType != null) {
-        newNamed ??= named.toList();
-        newNamed[i] = NamedType(named[i].name, newType);
-      }
-    }
+    Map<String, Type>? newNamed = _recursivelyDemoteNamed(covariant: covariant);
 
     if (newPositional == null && newNamed == null) {
       return null;
@@ -186,10 +169,22 @@ class RecordType extends Type {
     );
   }
 
+  Map<String, Type>? _recursivelyDemoteNamed({required bool covariant}) {
+    Map<String, Type> newNamed = {};
+    bool hasChanged = false;
+    for (var entry in named.entries) {
+      var value = entry.value;
+      var newType = value.recursivelyDemote(covariant: covariant);
+      if (newType != null) hasChanged = true;
+      newNamed[entry.key] = newType ?? value;
+    }
+    return hasChanged ? newNamed : null;
+  }
+
   @override
   String _toString({required bool allowSuffixes}) {
     var positionalStr = positional.map((e) => '$e').join(', ');
-    var namedStr = named.map((e) => '$e').join(', ');
+    var namedStr = named.entries.map((e) => '${e.value} ${e.key}').join(', ');
     if (namedStr.isNotEmpty) {
       if (positional.isNotEmpty) {
         return '($positionalStr, {$namedStr})';
@@ -334,17 +329,17 @@ class _TypeParser {
         'Error parsing type `$_typeStr` at token $_currentToken: $message');
   }
 
-  List<NamedType> _parseRecordTypeNamedFields() {
+  Map<String, Type> _parseRecordTypeNamedFields() {
     assert(_currentToken == '{');
     _next();
-    var namedTypes = <NamedType>[];
+    var namedTypes = <String, Type>{};
     while (_currentToken != '}') {
       var type = _parseType();
       var name = _currentToken;
       if (_identifierRegexp.matchAsPrefix(name) == null) {
         _parseFailure('Expected an identifier');
       }
-      namedTypes.add(NamedType(name, type));
+      namedTypes[name] = type;
       _next();
       if (_currentToken == ',') {
         _next();
@@ -363,7 +358,7 @@ class _TypeParser {
   }
 
   Type _parseRecordTypeRest(List<Type> positionalTypes) {
-    List<NamedType>? namedTypes;
+    Map<String, Type>? namedTypes;
     while (_currentToken != ')') {
       if (_currentToken == '{') {
         namedTypes = _parseRecordTypeNamedFields();
@@ -384,7 +379,7 @@ class _TypeParser {
     }
     _next();
     return RecordType(
-        positional: positionalTypes, named: namedTypes ?? const []);
+        positional: positionalTypes, named: namedTypes ?? const {});
   }
 
   Type? _parseSuffix(Type type) {
