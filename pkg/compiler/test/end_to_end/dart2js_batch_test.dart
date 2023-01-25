@@ -69,7 +69,7 @@ Future runTests(Process process) {
   process.stdin.writeln('--no-sound-null-safety --out="$outFile" "$inFile"');
   process.stdin.writeln('--no-sound-null-safety --out="$outFile2" "$inFile"');
   process.stdin.writeln('too many arguments');
-  process.stdin.writeln(r'"non existing file.dart"');
+  process.stdin.writeln(r'"nonexistent file.dart"');
   process.stdin.close();
   Future<String> output = process.stdout.transform(utf8.decoder).join();
   Future<String> errorOut = process.stderr.transform(utf8.decoder).join();

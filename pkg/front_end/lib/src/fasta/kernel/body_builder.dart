@@ -7530,6 +7530,7 @@ class BodyBuilder extends StackListenerImpl
   void endSwitchStatement(Token switchKeyword, Token endToken) {
     debugEvent("SwitchStatement");
     assert(checkState(switchKeyword, [
+      /* labelUsers = */ ValueKinds.StatementListList,
       /* cases = */ ValueKinds.SwitchCaseList,
       /* containsPatterns */ ValueKinds.Bool,
       /* break target = */ ValueKinds.BreakTarget,
@@ -7537,6 +7538,7 @@ class BodyBuilder extends StackListenerImpl
       /* local scope = */ ValueKinds.Scope,
       /* expression = */ ValueKinds.Condition,
     ]));
+    List<List<Statement>> labelUsers = pop() as List<List<Statement>>;
     List<SwitchCase> cases = pop() as List<SwitchCase>;
     bool containsPatterns = pop() as bool;
     JumpTarget target = exitBreakTarget()!;
@@ -7551,15 +7553,16 @@ class BodyBuilder extends StackListenerImpl
       List<PatternSwitchCase> patternSwitchCases =
           new List<PatternSwitchCase>.generate(cases.length, (int index) {
         SwitchCase switchCase = cases[index];
+        PatternSwitchCase patternSwitchCase;
         if (switchCase is PatternSwitchCase) {
-          return switchCase;
+          patternSwitchCase = switchCase;
         } else {
           List<PatternGuard> patterns = new List<PatternGuard>.generate(
               switchCase.expressions.length, (int index) {
             return new PatternGuard(
                 new ExpressionPattern(switchCase.expressions[index]));
           });
-          return new PatternSwitchCase(
+          patternSwitchCase = new PatternSwitchCase(
               switchCase.fileOffset,
               (switchCase as SwitchCaseImpl).caseOffsets,
               patterns,
@@ -7568,6 +7571,8 @@ class BodyBuilder extends StackListenerImpl
               hasLabel: switchCase.hasLabel,
               jointVariables: []);
         }
+        patternSwitchCase.labelUsers.addAll(labelUsers[index]);
+        return patternSwitchCase;
       });
       switchStatement = new PatternSwitchStatement(
           switchKeyword.charOffset, expression, patternSwitchCases);
@@ -7691,6 +7696,9 @@ class BodyBuilder extends StackListenerImpl
     bool containsPatterns = false;
     List<SwitchCase> cases =
         new List<SwitchCase>.filled(caseCount, dummySwitchCase, growable: true);
+    List<List<Statement>> caseLabelUsers = new List<List<Statement>>.filled(
+        caseCount, const <Statement>[],
+        growable: true);
     for (int i = caseCount - 1; i >= 0; i--) {
       List<Label>? labels = pop() as List<Label>?;
       SwitchCase current = cases[i] = pop() as SwitchCase;
@@ -7698,6 +7706,8 @@ class BodyBuilder extends StackListenerImpl
         for (Label label in labels) {
           JumpTarget? target = switchScope!.lookupLabel(label.name);
           if (target != null) {
+            caseLabelUsers[i] =
+                new List<Statement>.of(target.users, growable: true);
             target.resolveGotos(forest, current);
           }
         }
@@ -7741,7 +7751,9 @@ class BodyBuilder extends StackListenerImpl
 
     push(containsPatterns);
     push(cases);
+    push(caseLabelUsers);
     assert(checkState(beginToken, [
+      ValueKinds.StatementListList,
       ValueKinds.SwitchCaseList,
       ValueKinds.Bool,
     ]));
@@ -8601,13 +8613,32 @@ class BodyBuilder extends StackListenerImpl
     List<NamedPattern>? fields = pop() as List<NamedPattern>?;
     List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
 
-    // TODO(cstefantsova): Handle the case of secondIdentifier != null
-    handleIdentifier(firstIdentifier, IdentifierContext.typeReference);
-    Object? resolvedIdentifier = pop();
+    TypeDeclarationBuilder? typeDeclaration;
+    if (secondIdentifier == null) {
+      handleIdentifier(firstIdentifier, IdentifierContext.typeReference);
+      Object? resolvedIdentifier = pop();
+      if (resolvedIdentifier is TypeUseGenerator) {
+        typeDeclaration = resolvedIdentifier.declaration;
+      } else {
+        // TODO(cstefantsova): Handle this case.
+      }
+    } else {
+      handleIdentifier(
+          firstIdentifier, IdentifierContext.prefixedTypeReference);
+      handleIdentifier(
+          secondIdentifier, IdentifierContext.typeReferenceContinuation);
+      handleQualified(dot!);
+      handleNoTypeArguments(secondIdentifier.next!);
+      handleType(firstIdentifier, null);
+      Object? resolvedIdentifier = pop();
+      if (resolvedIdentifier is NamedTypeBuilder) {
+        typeDeclaration = resolvedIdentifier.declaration;
+      } else {
+        // TODO(cstefantsova): Handle this case.
+      }
+    }
 
-    if (resolvedIdentifier is TypeUseGenerator) {
-      TypeDeclarationBuilder typeDeclaration = resolvedIdentifier.declaration;
-
+    if (typeDeclaration != null) {
       if (typeDeclaration is TypeAliasBuilder) {
         if (typeArguments == null ||
             typeArguments.length ==

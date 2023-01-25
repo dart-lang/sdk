@@ -7,7 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
@@ -107,8 +107,8 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     if (verifyNoTestUnitErrors) {
       expect(result.errors.where((AnalysisError error) {
         return error.errorCode != HintCode.DEAD_CODE &&
-            error.errorCode != HintCode.UNUSED_CATCH_CLAUSE &&
-            error.errorCode != HintCode.UNUSED_CATCH_STACK &&
+            error.errorCode != WarningCode.UNUSED_CATCH_CLAUSE &&
+            error.errorCode != WarningCode.UNUSED_CATCH_STACK &&
             error.errorCode != HintCode.UNUSED_ELEMENT &&
             error.errorCode != HintCode.UNUSED_FIELD &&
             error.errorCode != HintCode.UNUSED_IMPORT &&

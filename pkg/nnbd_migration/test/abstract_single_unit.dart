@@ -43,8 +43,8 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     if (verifyNoTestUnitErrors) {
       expect(testAnalysisResult.errors.where((AnalysisError error) {
         return error.errorCode != HintCode.DEAD_CODE &&
-            error.errorCode != HintCode.UNUSED_CATCH_CLAUSE &&
-            error.errorCode != HintCode.UNUSED_CATCH_STACK &&
+            error.errorCode != WarningCode.UNUSED_CATCH_CLAUSE &&
+            error.errorCode != WarningCode.UNUSED_CATCH_STACK &&
             error.errorCode != HintCode.UNUSED_ELEMENT &&
             error.errorCode != HintCode.UNUSED_ELEMENT_PARAMETER &&
             error.errorCode != HintCode.UNUSED_FIELD &&

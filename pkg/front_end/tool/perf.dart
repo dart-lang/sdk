@@ -20,6 +20,7 @@ import 'dart:io' show Directory, File, Platform, exit;
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
+import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
@@ -54,7 +55,7 @@ Future<void> main(List<String> args) async {
   };
 
   // Ensure we start scanning with a clean string canonicalizer cache.
-  StringTokenImpl.canonicalizer.clear();
+  clearStringCanonicalizationCache();
 
   var handler = handlers[bench];
   if (handler == null) {

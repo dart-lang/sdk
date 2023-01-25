@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
@@ -55,7 +56,7 @@ class EnclosedScope implements Scope {
   void _addSetter(Element element) {
     var name = element.name;
     if (name != null && name.endsWith('=')) {
-      var id = name.substring(0, name.length - 1);
+      var id = considerCanonicalizeString(name.substring(0, name.length - 1));
       _setters[id] ??= element;
     }
   }

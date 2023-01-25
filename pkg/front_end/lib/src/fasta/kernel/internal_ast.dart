@@ -370,6 +370,7 @@ class PatternSwitchCase extends TreeNode
     implements SwitchCase {
   final List<int> caseOffsets;
   final List<PatternGuard> patternGuards;
+  final List<Statement> labelUsers = [];
 
   @override
   Statement body;

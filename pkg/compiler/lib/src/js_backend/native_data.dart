@@ -321,7 +321,7 @@ class NativeBasicData {
   }
 
   /// Returns `true` if [element] or any of its superclasses is native. Supports
-  /// nullable element for checks on non-existent enclosing class of top-level
+  /// nullable element for checks on nonexistent enclosing class of top-level
   /// functions.
   bool isNativeOrExtendsNative(ClassEntity? element) {
     if (element == null) return false;

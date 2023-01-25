@@ -8022,7 +8022,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         }
       }
 
-      replacementCases.add(createSwitchCase(
+      SwitchCase replacementCase = createSwitchCase(
           [createIntLiteral(caseIndex, fileOffset: node.fileOffset)],
           [node.fileOffset],
           createBlock([
@@ -8030,7 +8030,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             if (body is! Block || body.statements.isNotEmpty) body
           ], fileOffset: node.fileOffset),
           isDefault: switchCase.isDefault,
-          fileOffset: node.fileOffset));
+          fileOffset: node.fileOffset);
+
+      for (Statement labelUser in switchCase.labelUsers) {
+        if (labelUser is ContinueSwitchStatement) {
+          labelUser.target = replacementCase;
+        } else {
+          // TODO(cstefantsova): Handle other label user types.
+          return problems.unhandled(
+              "${labelUser.runtimeType}",
+              "InferenceVisitorImpl.visitPatternSwitchStatement",
+              labelUser.fileOffset,
+              helper.uri);
+        }
+      }
+
+      replacementCases.add(replacementCase);
     }
 
     // TODO(johnniwinther): Find a better way to avoid name clashes between

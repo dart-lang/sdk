@@ -852,7 +852,7 @@ class TypeCheckingVisitor
     }
     assert(
         result != null,
-        "Encountered RecordNameGet with non-existent name key: "
+        "Encountered RecordNameGet with nonexistent name key: "
         "'${node.name}'.");
     return result!;
   }

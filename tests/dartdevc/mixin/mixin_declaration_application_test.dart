@@ -10,7 +10,7 @@ void main() {
   Expect.equals('B._foo', D0().foo);
 
   // When mixin application is in the same library as the declaration,
-  // private symbol from the mixin delaration `B._foo` overrides `A._foo`.
+  // private symbol from the mixin declaration `B._foo` overrides `A._foo`.
   Expect.equals('B._foo', C()._foo);
   Expect.equals('B._foo', D()._foo);
   // Getter `foo` returns `B._foo` that is coming from the mixin declaration.

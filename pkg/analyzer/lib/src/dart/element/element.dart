@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -409,7 +410,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   }
 
   /// Return an iterable containing all of the implementations of a getter with
-  /// the given [getterName] that are defined in this class any any superclass
+  /// the given [getterName] that are defined in this class and any superclass
   /// of this class (but not in interfaces).
   ///
   /// The getters that are returned are not filtered in any way. In particular,
@@ -439,7 +440,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   }
 
   /// Return an iterable containing all of the implementations of a method with
-  /// the given [methodName] that are defined in this class any any superclass
+  /// the given [methodName] that are defined in this class and any superclass
   /// of this class (but not in interfaces).
   ///
   /// The methods that are returned are not filtered in any way. In particular,
@@ -468,7 +469,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   }
 
   /// Return an iterable containing all of the implementations of a setter with
-  /// the given [setterName] that are defined in this class any any superclass
+  /// the given [setterName] that are defined in this class and any superclass
   /// of this class (but not in interfaces).
   ///
   /// The setters that are returned are not filtered in any way. In particular,
@@ -3606,7 +3607,7 @@ class FunctionElementImpl extends ExecutableElementImpl
     if (enclosing is ExecutableElement || enclosing is VariableElement) {
       identifier += "@$nameOffset";
     }
-    return identifier;
+    return considerCanonicalizeString(identifier);
   }
 
   @override
@@ -4829,7 +4830,7 @@ class MixinElementImpl extends ClassOrMixinElementImpl implements MixinElement {
 
   @override
   set supertype(InterfaceType? supertype) {
-    throw StateError('Attempt to set a supertype for a mixin declaratio.');
+    throw StateError('Attempt to set a supertype for a mixin declaration.');
   }
 
   @override
@@ -5420,7 +5421,7 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 
   ParameterElementImpl_ofImplicitSetter(this.setter)
       : super(
-          name: '_${setter.variable.name}',
+          name: considerCanonicalizeString('_${setter.variable.name}'),
           nameOffset: -1,
           parameterKind: ParameterKind.REQUIRED,
         ) {
@@ -5683,7 +5684,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   String get identifier {
     String name = displayName;
     String suffix = isGetter ? "?" : "=";
-    return "$name$suffix";
+    return considerCanonicalizeString("$name$suffix");
   }
 
   /// Set whether this class is abstract.
@@ -5728,7 +5729,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   @override
   String get name {
     if (isSetter) {
-      return "${super.name}=";
+      return considerCanonicalizeString("${super.name}=");
     }
     return super.name;
   }

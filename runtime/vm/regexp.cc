@@ -2372,7 +2372,7 @@ static void UpdateBoundsCheck(intptr_t index, intptr_t* checked_up_to) {
 // do the test for that character first.  We do this in separate passes.  The
 // 'preloaded' argument indicates that we are doing such a 'pass'.  If such a
 // pass has been performed then subsequent passes will have true in
-// first_element_checked to indicate that that character does not need to be
+// first_element_checked to indicate that character does not need to be
 // checked again.
 //
 // In addition to all this we are passed a Trace, which can

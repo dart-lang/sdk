@@ -1,0 +1,7 @@
+import './issue50932.dart' as self;
+
+abstract class A {
+  int get foo;
+}
+
+test(dynamic x) {}

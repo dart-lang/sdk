@@ -1,6 +1,7 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
+import "dart:async" as asy;
 
 import "dart:async" as async;
 
@@ -8,7 +9,8 @@ static method test(dynamic x) → dynamic {
   #L1:
   {
     core::int #t1 = -1;
-    if(false) {
+    final dynamic #0#0 = x;
+    if(#0#0 is{ForNonNullableByDefault} asy::Future<core::int>) {
       #t1 = 0;
     }
     switch(#t1) {

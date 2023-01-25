@@ -944,24 +944,22 @@ mixin TypeAnalyzer<
       Pattern innerPattern,
       {required bool isAssert}) {
     // Stack: ()
-    Type matchedType = flow.getMatchedValueType();
-    Type innerMatchedType = operations.promoteToNonNull(matchedType);
     Node? irrefutableContext = context.irrefutableContext;
+    bool matchedTypeIsStrictlyNonNullable =
+        flow.nullCheckOrAssertPattern_begin(isAssert: isAssert);
     if (irrefutableContext != null && !isAssert) {
       errors?.refutablePatternInIrrefutableContext(node, irrefutableContext);
       // Avoid cascading errors
       context = context.makeRefutable();
-    } else if (operations.classifyType(matchedType) ==
-        TypeClassification.nonNullable) {
+    } else if (matchedTypeIsStrictlyNonNullable) {
       errors?.matchedTypeIsStrictlyNonNullable(
         pattern: node,
-        matchedType: matchedType,
+        matchedType: flow.getMatchedValueType(),
       );
     }
-    flow.pushSubpattern(innerMatchedType, isDistinctValue: false);
     dispatchPattern(context, innerPattern);
     // Stack: (Pattern)
-    flow.popSubpattern();
+    flow.nullCheckOrAssertPattern_end();
   }
 
   /// Computes the type schema for a null-check or null-assert pattern.
@@ -1405,9 +1403,10 @@ mixin TypeAnalyzer<
       finishExpressionCase(node, i);
       // Stack: (Expression, (i + 1) * ExpressionCase)
     }
+    lubType ??= dynamicType;
     // Stack: (Expression, numCases * ExpressionCase)
     flow.switchStatement_end(true);
-    return new SimpleTypeAnalysisResult<Type>(type: lubType!);
+    return new SimpleTypeAnalysisResult<Type>(type: lubType);
   }
 
   /// Analyzes a statement of the form `switch (expression) { cases }`.

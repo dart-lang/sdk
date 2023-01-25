@@ -333,7 +333,7 @@ f() {
 f() {
   try {} on Object catch (e) {} catch (e) {}
 }''', [
-      error(HintCode.UNUSED_CATCH_CLAUSE, 32, 1),
+      error(WarningCode.UNUSED_CATCH_CLAUSE, 32, 1),
       error(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, 38, 12),
     ]);
   }
@@ -344,7 +344,7 @@ f() {
 f() {
   try {} on Object catch (e) {} catch (e) {if(false) {}}
 }''', [
-      error(HintCode.UNUSED_CATCH_CLAUSE, 32, 1),
+      error(WarningCode.UNUSED_CATCH_CLAUSE, 32, 1),
       error(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, 38, 24),
     ]);
   }
@@ -356,9 +356,9 @@ class B extends A {}
 f() {
   try {} on A catch (e) {} on B catch (e) {}
 }''', [
-      error(HintCode.UNUSED_CATCH_CLAUSE, 59, 1),
+      error(WarningCode.UNUSED_CATCH_CLAUSE, 59, 1),
       error(HintCode.DEAD_CODE_ON_CATCH_SUBTYPE, 65, 17),
-      error(HintCode.UNUSED_CATCH_CLAUSE, 77, 1),
+      error(WarningCode.UNUSED_CATCH_CLAUSE, 77, 1),
     ]);
   }
 
@@ -370,9 +370,9 @@ class B extends A {}
 f() {
   try {} on A catch (e) {} on B catch (e) {if(false) {}}
 }''', [
-      error(HintCode.UNUSED_CATCH_CLAUSE, 59, 1),
+      error(WarningCode.UNUSED_CATCH_CLAUSE, 59, 1),
       error(HintCode.DEAD_CODE_ON_CATCH_SUBTYPE, 65, 29),
-      error(HintCode.UNUSED_CATCH_CLAUSE, 77, 1),
+      error(WarningCode.UNUSED_CATCH_CLAUSE, 77, 1),
     ]);
   }
 
@@ -384,8 +384,8 @@ f() {
   try {} on B catch (e) {} on A catch (e) {} catch (e) {}
 }
 ''', [
-      error(HintCode.UNUSED_CATCH_CLAUSE, 59, 1),
-      error(HintCode.UNUSED_CATCH_CLAUSE, 77, 1),
+      error(WarningCode.UNUSED_CATCH_CLAUSE, 59, 1),
+      error(WarningCode.UNUSED_CATCH_CLAUSE, 77, 1),
     ]);
   }
 

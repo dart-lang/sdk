@@ -5028,7 +5028,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the URI pointing to a non-existent file
+  ///  0: the URI pointing to a nonexistent file
   static const CompileTimeErrorCode URI_DOES_NOT_EXIST = CompileTimeErrorCode(
     'URI_DOES_NOT_EXIST',
     "Target of URI doesn't exist: '{0}'.",
@@ -5039,7 +5039,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the URI pointing to a non-existent file
+  ///  0: the URI pointing to a nonexistent file
   static const CompileTimeErrorCode URI_HAS_NOT_BEEN_GENERATED =
       CompileTimeErrorCode(
     'URI_HAS_NOT_BEEN_GENERATED',
@@ -5864,6 +5864,25 @@ class WarningCode extends AnalyzerErrorCode {
     'UNDEFINED_SHOWN_NAME',
     "The library '{0}' doesn't export a member with the shown name '{1}'.",
     correctionMessage: "Try removing the name from the list of shown members.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the exception variable
+  static const WarningCode UNUSED_CATCH_CLAUSE = WarningCode(
+    'UNUSED_CATCH_CLAUSE',
+    "The exception variable '{0}' isn't used, so the 'catch' clause can be "
+        "removed.",
+    correctionMessage: "Try removing the catch clause.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the stack trace variable
+  static const WarningCode UNUSED_CATCH_STACK = WarningCode(
+    'UNUSED_CATCH_STACK',
+    "The stack trace variable '{0}' isn't used and can be removed.",
+    correctionMessage: "Try removing the stack trace variable, or using it.",
     hasPublishedDocs: true,
   );
 

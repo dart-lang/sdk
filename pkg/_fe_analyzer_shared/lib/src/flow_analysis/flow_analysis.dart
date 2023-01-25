@@ -583,6 +583,15 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// not be called until after processing the method call to `z(x)`.
   void nullAwareAccess_rightBegin(Expression? target, Type targetType);
 
+  /// Call this method before visiting the subpattern of a null-check or a
+  /// null-assert pattern. [isAssert] indicates whether the pattern is a
+  /// null-check or a null-assert pattern.
+  bool nullCheckOrAssertPattern_begin({required bool isAssert});
+
+  /// Call this method after visiting the subpattern of a null-check or a
+  /// null-assert pattern.
+  void nullCheckOrAssertPattern_end();
+
   /// Call this method when encountering an expression that is a `null` literal.
   void nullLiteral(Expression expression);
 
@@ -1410,6 +1419,19 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   void nullAwareAccess_rightBegin(Expression? target, Type targetType) {
     _wrap('nullAwareAccess_rightBegin($target, $targetType)',
         () => _wrapped.nullAwareAccess_rightBegin(target, targetType));
+  }
+
+  @override
+  bool nullCheckOrAssertPattern_begin({required bool isAssert}) {
+    return _wrap('nullCheckOrAssertPattern_begin(isAssert: $isAssert)',
+        () => _wrapped.nullCheckOrAssertPattern_begin(isAssert: isAssert),
+        isQuery: true, isPure: false);
+  }
+
+  @override
+  void nullCheckOrAssertPattern_end() {
+    _wrap('nullCheckOrAssertPattern_end()',
+        () => _wrapped.nullCheckOrAssertPattern_end());
   }
 
   @override
@@ -4223,6 +4245,53 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
+  bool nullCheckOrAssertPattern_begin({required bool isAssert}) {
+    _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
+    ReferenceWithType<Type> matchedValueReference =
+        context._matchedValueReference;
+    Type matchedValueType = getMatchedValueType();
+    if (!isAssert) {
+      // Account for the possibility that the pattern might not match.  Note
+      // that it's tempting to skip this step if matchedValueType is
+      // non-nullable (based on the reasoning that a non-null value is
+      // guaranteed to satisfy a null check), but in weak mode that's not sound,
+      // because in weak mode even non-nullable values might be null.  We don't
+      // want flow analysis behavior to depend on mode, so we conservatively
+      // assume the pattern might not match regardless of matchedValueType.
+      _unmatched = _join(_unmatched, _current);
+    }
+    // Promote
+    TypeClassification typeClassification =
+        operations.classifyType(matchedValueType);
+    bool matchedTypeIsStrictlyNonNullable =
+        typeClassification == TypeClassification.nonNullable;
+    if (!matchedTypeIsStrictlyNonNullable) {
+      FlowModel<Type> ifTrue =
+          _current.tryMarkNonNullable(this, matchedValueReference).ifTrue;
+      ReferenceWithType<Type>? scrutineeReference = _scrutineeReference;
+      // If there's a scrutinee, and its value is known to be the same as that
+      // of the synthetic cache variable, promote it too.
+      if (scrutineeReference != null &&
+          _current.infoFor(matchedValueReference.promotionKey).ssaNode ==
+              _current.infoFor(scrutineeReference.promotionKey).ssaNode) {
+        ifTrue = ifTrue.tryMarkNonNullable(this, scrutineeReference).ifTrue;
+      }
+      _current = ifTrue;
+    }
+    if (typeClassification == TypeClassification.nullOrEquivalent) {
+      _current = _current.setUnreachable();
+    }
+    // Note: we don't need to push a new pattern context for the subpattern,
+    // because (a) the subpattern matches the same value as the outer pattern,
+    // and (b) promotion of the synthetic cache variable takes care of
+    // establishing the correct matched value type.
+    return matchedTypeIsStrictlyNonNullable;
+  }
+
+  @override
+  void nullCheckOrAssertPattern_end() {}
+
+  @override
   void nullLiteral(Expression expression) {
     _storeExpressionInfo(expression, new _NullInfo(_current));
   }
@@ -5382,6 +5451,12 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
 
   @override
   void nullAwareAccess_rightBegin(Expression? target, Type targetType) {}
+
+  @override
+  bool nullCheckOrAssertPattern_begin({required bool isAssert}) => false;
+
+  @override
+  void nullCheckOrAssertPattern_end() {}
 
   @override
   void nullLiteral(Expression expression) {}

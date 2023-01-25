@@ -5,6 +5,7 @@
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart'
     as shared;
 import 'package:analyzer/dart/analysis/features.dart';
@@ -8171,7 +8172,7 @@ class LibraryIdentifierImpl extends IdentifierImpl
       }
       buffer.write(identifier.name);
     }
-    return buffer.toString();
+    return considerCanonicalizeString(buffer.toString());
   }
 
   @override

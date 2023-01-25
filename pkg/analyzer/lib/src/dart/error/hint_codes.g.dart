@@ -188,7 +188,7 @@ class HintCode extends AnalyzerErrorCode {
         "directory.",
   );
 
-  ///  It is a bad practice for a source file ouside a package "lib" directory
+  ///  It is a bad practice for a source file outside a package "lib" directory
   ///  hierarchy to traverse into that directory hierarchy. For example, a source
   ///  file in the "web" directory should not contain a directive such as
   ///  `import '../lib/some.dart'` which references a file inside the lib
@@ -1158,25 +1158,6 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode UNREACHABLE_SWITCH_CASE = HintCode(
     'UNREACHABLE_SWITCH_CASE',
     "This case is covered by the previous cases.",
-  );
-
-  ///  Parameters:
-  ///  0: the name of the exception variable
-  static const HintCode UNUSED_CATCH_CLAUSE = HintCode(
-    'UNUSED_CATCH_CLAUSE',
-    "The exception variable '{0}' isn't used, so the 'catch' clause can be "
-        "removed.",
-    correctionMessage: "Try removing the catch clause.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the stack trace variable
-  static const HintCode UNUSED_CATCH_STACK = HintCode(
-    'UNUSED_CATCH_STACK',
-    "The stack trace variable '{0}' isn't used and can be removed.",
-    correctionMessage: "Try removing the stack trace variable, or using it.",
-    hasPublishedDocs: true,
   );
 
   ///  Parameters:

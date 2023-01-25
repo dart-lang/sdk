@@ -113,6 +113,19 @@ class FindNode {
     return nodes.single;
   }
 
+  /// Returns the [SwitchExpression], there must be only one.
+  SwitchExpression get singleSwitchExpression {
+    var nodes = <SwitchExpression>[];
+    unit.accept(
+      FunctionAstVisitor(
+        switchExpression: (node) {
+          nodes.add(node);
+        },
+      ),
+    );
+    return nodes.single;
+  }
+
   AdjacentStrings adjacentStrings(String search) {
     return _node(search, (n) => n is AdjacentStrings);
   }

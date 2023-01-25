@@ -15262,7 +15262,7 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the URI pointing to a non-existent file
+      0: the URI pointing to a nonexistent file
     documentation: |-
       #### Description
 
@@ -15289,7 +15289,7 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the URI pointing to a non-existent file
+      0: the URI pointing to a nonexistent file
     documentation: |-
       #### Description
 
@@ -18145,7 +18145,7 @@ HintCode:
     problemMessage: "A file outside the 'lib' directory shouldn't reference a file inside the 'lib' directory using a relative path."
     correctionMessage: "Try using a 'package:' URI instead."
     comment: |-
-      It is a bad practice for a source file ouside a package "lib" directory
+      It is a bad practice for a source file outside a package "lib" directory
       hierarchy to traverse into that directory hierarchy. For example, a source
       file in the "web" directory should not contain a directive such as
       `import '../lib/some.dart'` which references a file inside the lib
@@ -20659,89 +20659,6 @@ HintCode:
   UNREACHABLE_SWITCH_CASE:
     problemMessage: "This case is covered by the previous cases."
     comment: No parameters.
-  UNUSED_CATCH_CLAUSE:
-    problemMessage: "The exception variable '{0}' isn't used, so the 'catch' clause can be removed."
-    correctionMessage: Try removing the catch clause.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the exception variable
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a `catch` clause is found, and
-      neither the exception parameter nor the optional stack trace parameter are
-      used in the `catch` block.
-
-      #### Example
-
-      The following code produces this diagnostic because `e` isn't referenced:
-
-      ```dart
-      void f() {
-        try {
-          int.parse(';');
-        } on FormatException catch ([!e!]) {
-          // ignored
-        }
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the unused `catch` clause:
-
-      ```dart
-      void f() {
-        try {
-          int.parse(';');
-        } on FormatException {
-          // ignored
-        }
-      }
-      ```
-  UNUSED_CATCH_STACK:
-    problemMessage: "The stack trace variable '{0}' isn't used and can be removed."
-    correctionMessage: Try removing the stack trace variable, or using it.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the stack trace variable
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when the stack trace parameter in a
-      `catch` clause isn't referenced within the body of the `catch` block.
-
-      #### Example
-
-      The following code produces this diagnostic because `stackTrace` isn't
-      referenced:
-
-      ```dart
-      void f() {
-        try {
-          // ...
-        } catch (exception, [!stackTrace!]) {
-          // ...
-        }
-      }
-      ```
-
-      #### Common fixes
-
-      If you need to reference the stack trace parameter, then add a reference to
-      it. Otherwise, remove it:
-
-      ```dart
-      void f() {
-        try {
-          // ...
-        } catch (exception) {
-          // ...
-        }
-      }
-      ```
   UNUSED_ELEMENT:
     problemMessage: "The declaration '{0}' isn't referenced."
     correctionMessage: "Try removing the declaration of '{0}'."
@@ -23531,4 +23448,87 @@ WarningCode:
       import 'dart:math' show min;
 
       var x = min(0, 1);
+      ```
+  UNUSED_CATCH_CLAUSE:
+    problemMessage: "The exception variable '{0}' isn't used, so the 'catch' clause can be removed."
+    correctionMessage: Try removing the catch clause.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the exception variable
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `catch` clause is found, and
+      neither the exception parameter nor the optional stack trace parameter are
+      used in the `catch` block.
+
+      #### Example
+
+      The following code produces this diagnostic because `e` isn't referenced:
+
+      ```dart
+      void f() {
+        try {
+          int.parse(';');
+        } on FormatException catch ([!e!]) {
+          // ignored
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the unused `catch` clause:
+
+      ```dart
+      void f() {
+        try {
+          int.parse(';');
+        } on FormatException {
+          // ignored
+        }
+      }
+      ```
+  UNUSED_CATCH_STACK:
+    problemMessage: "The stack trace variable '{0}' isn't used and can be removed."
+    correctionMessage: Try removing the stack trace variable, or using it.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the stack trace variable
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the stack trace parameter in a
+      `catch` clause isn't referenced within the body of the `catch` block.
+
+      #### Example
+
+      The following code produces this diagnostic because `stackTrace` isn't
+      referenced:
+
+      ```dart
+      void f() {
+        try {
+          // ...
+        } catch (exception, [!stackTrace!]) {
+          // ...
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If you need to reference the stack trace parameter, then add a reference to
+      it. Otherwise, remove it:
+
+      ```dart
+      void f() {
+        try {
+          // ...
+        } catch (exception) {
+          // ...
+        }
+      }
       ```

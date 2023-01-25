@@ -61,6 +61,7 @@ apis
 app
 apparently
 applicable
+architectures
 arg
 args
 arise
@@ -165,6 +166,7 @@ bs
 bsd
 bslash
 buffered
+buffers
 buggy
 builder`s
 bulk
@@ -181,6 +183,7 @@ callers
 callsite
 came
 canonicalizer
+canonicalizing
 cant
 cardinality
 caret
@@ -279,6 +282,7 @@ constraining
 consult
 consulted
 consumers
+consumption
 container
 containers
 continuations
@@ -476,8 +480,11 @@ escalate
 establish
 established
 establishes
+establishing
 estimate
 et
+estimated
+estimation
 eval
 evar
 exchanging
@@ -606,6 +613,7 @@ granted
 graphs
 grouper
 growability
+growth
 gt
 guarantee
 guarded
@@ -632,6 +640,7 @@ height
 hello
 helpful
 helps
+heuristics
 hfs
 highlight
 highlighting
@@ -978,6 +987,8 @@ outlined
 outputs
 outputting
 ovar
+overestimate
+overhead
 overlap
 overlapping
 overlaps
@@ -1013,6 +1024,7 @@ paulberry
 pay
 payload
 payloads
+paylod
 pdf
 pedantic
 per
@@ -1096,6 +1108,7 @@ protobuf
 protocol
 provider
 provisional
+prune
 ps
 pulled
 pure
@@ -1141,6 +1154,7 @@ react
 realign
 realise
 reapplies
+reasonably
 reassigned
 reassigns
 rebased
@@ -1562,6 +1576,7 @@ unconditionally
 unconstrained
 undeclare
 undeferred
+underestimate
 undergo
 undermine
 undo
@@ -1591,6 +1606,7 @@ uniquely
 uniqueness
 unittest
 universally
+unlikely
 unlinked
 unlower
 unmark

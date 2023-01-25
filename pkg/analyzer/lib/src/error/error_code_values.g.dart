@@ -672,8 +672,6 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
   HintCode.UNNECESSARY_TYPE_CHECK_TRUE,
   HintCode.UNREACHABLE_SWITCH_CASE,
-  HintCode.UNUSED_CATCH_CLAUSE,
-  HintCode.UNUSED_CATCH_STACK,
   HintCode.UNUSED_ELEMENT,
   HintCode.UNUSED_ELEMENT_PARAMETER,
   HintCode.UNUSED_FIELD,
@@ -987,4 +985,6 @@ const List<ErrorCode> errorCodeValues = [
   WarningCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT,
   WarningCode.UNDEFINED_HIDDEN_NAME,
   WarningCode.UNDEFINED_SHOWN_NAME,
+  WarningCode.UNUSED_CATCH_CLAUSE,
+  WarningCode.UNUSED_CATCH_STACK,
 ];

@@ -910,11 +910,11 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   void _visitLocalVariableElement(LocalVariableElement element) {
     if (!_isUsedElement(element) && !_isNamedUnderscore(element)) {
-      HintCode errorCode;
+      ErrorCode errorCode;
       if (_usedElements.isCatchException(element)) {
-        errorCode = HintCode.UNUSED_CATCH_CLAUSE;
+        errorCode = WarningCode.UNUSED_CATCH_CLAUSE;
       } else if (_usedElements.isCatchStackTrace(element)) {
-        errorCode = HintCode.UNUSED_CATCH_STACK;
+        errorCode = WarningCode.UNUSED_CATCH_STACK;
       } else {
         errorCode = HintCode.UNUSED_LOCAL_VARIABLE;
       }

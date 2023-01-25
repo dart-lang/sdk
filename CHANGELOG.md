@@ -7478,7 +7478,7 @@ Patch release, resolves three issues:
     - A stack overflow caused by a transformer being run multiple times on the
       package that defines it has been fixed.
 
-    - A transformer that tries to read a non-existent asset in another package
+    - A transformer that tries to read a nonexistent asset in another package
       will now be re-run if that asset is later created.
 
 [package spec proposal]: https://github.com/lrhn/dep-pkgspec

@@ -135,7 +135,7 @@ void testCreateInNonExistentDirectory() {
   Directory temp = tempDir();
   var file = new File("${temp.path}/nonExistentDirectory/newFile");
 
-  // Create in non-existent directory should throw exception.
+  // Create in nonexistent directory should throw exception.
   Expect.throws(() => file.createSync(),
       (e) => checkCreateInNonExistentFileSystemException(e));
 
@@ -162,7 +162,7 @@ void testResolveSymbolicLinksOnNonExistentDirectory() {
   Directory temp = tempDir();
   var file = new File("${temp.path}/nonExistentDirectory");
 
-  // Full path non-existent directory should throw exception.
+  // Full path nonexistent directory should throw exception.
   Expect.throws(() => file.resolveSymbolicLinksSync(),
       (e) => checkResolveSymbolicLinksOnNonExistentFileSystemException(e));
 

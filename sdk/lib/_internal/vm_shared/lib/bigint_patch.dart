@@ -1427,7 +1427,7 @@ class _BigIntImpl implements BigInt {
     if (resultUsed.isOdd) {
       resultDigits[resultUsed] = 0; // Leading zero for 64-bit processing.
     }
-    // Negate y so we can later use _mulAdd instead of non-existent _mulSub.
+    // Negate y so we can later use _mulAdd instead of nonexistent _mulSub.
     var nyDigits = _newDigits(yUsed + 2);
     nyDigits[yUsed] = 1;
     _absSub(nyDigits, yUsed + 1, yDigits, yUsed, nyDigits);
