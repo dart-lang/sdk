@@ -4273,10 +4273,9 @@ static bool IsMutatorOrAtDeoptSafepoint() {
 class CHACodeArray : public WeakCodeReferences {
  public:
   explicit CHACodeArray(const Class& cls)
-      : WeakCodeReferences(WeakArray::Handle(cls.dependent_code())),
-        cls_(cls) {}
+      : WeakCodeReferences(Array::Handle(cls.dependent_code())), cls_(cls) {}
 
-  virtual void UpdateArrayTo(const WeakArray& value) {
+  virtual void UpdateArrayTo(const Array& value) {
     // TODO(fschneider): Fails for classes in the VM isolate.
     cls_.set_dependent_code(value);
   }
@@ -4334,13 +4333,13 @@ void Class::DisableAllCHAOptimizedCode() {
   DisableCHAOptimizedCode(Class::Handle());
 }
 
-WeakArrayPtr Class::dependent_code() const {
+ArrayPtr Class::dependent_code() const {
   DEBUG_ASSERT(
       IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
   return untag()->dependent_code();
 }
 
-void Class::set_dependent_code(const WeakArray& array) const {
+void Class::set_dependent_code(const Array& array) const {
   DEBUG_ASSERT(
       IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   untag()->set_dependent_code(array.ptr());
@@ -11624,13 +11623,13 @@ InstancePtr Field::SetterClosure() const {
   return AccessorClosure(true);
 }
 
-WeakArrayPtr Field::dependent_code() const {
+ArrayPtr Field::dependent_code() const {
   DEBUG_ASSERT(
       IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
   return untag()->dependent_code();
 }
 
-void Field::set_dependent_code(const WeakArray& array) const {
+void Field::set_dependent_code(const Array& array) const {
   ASSERT(IsOriginal());
   DEBUG_ASSERT(
       IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
@@ -11640,10 +11639,10 @@ void Field::set_dependent_code(const WeakArray& array) const {
 class FieldDependentArray : public WeakCodeReferences {
  public:
   explicit FieldDependentArray(const Field& field)
-      : WeakCodeReferences(WeakArray::Handle(field.dependent_code())),
+      : WeakCodeReferences(Array::Handle(field.dependent_code())),
         field_(field) {}
 
-  virtual void UpdateArrayTo(const WeakArray& value) {
+  virtual void UpdateArrayTo(const Array& value) {
     field_.set_dependent_code(value);
   }
 

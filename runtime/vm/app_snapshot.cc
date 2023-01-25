@@ -1534,8 +1534,7 @@ class FieldDeserializationCluster : public DeserializationCluster {
       ASSERT(d_->kind() != Snapshot::kFullAOT);
       field->untag()->guarded_list_length_ = static_cast<SmiPtr>(d.ReadRef());
       if (kind == Snapshot::kFullJIT) {
-        field->untag()->dependent_code_ =
-            static_cast<WeakArrayPtr>(d.ReadRef());
+        field->untag()->dependent_code_ = static_cast<ArrayPtr>(d.ReadRef());
       }
       field->untag()->token_pos_ = d.ReadTokenPosition();
       field->untag()->end_token_pos_ = d.ReadTokenPosition();

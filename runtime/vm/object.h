@@ -1799,8 +1799,8 @@ class Class : public Object {
   // Return the list of code objects that were compiled using CHA of this class.
   // These code objects will be invalidated if new subclasses of this class
   // are finalized.
-  WeakArrayPtr dependent_code() const;
-  void set_dependent_code(const WeakArray& array) const;
+  ArrayPtr dependent_code() const;
+  void set_dependent_code(const Array& array) const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   bool TraceAllocation(IsolateGroup* isolate_group) const;
@@ -4464,8 +4464,8 @@ class Field : public Object {
   // assumptions about guarded class id and nullability of this field.
   // These code objects must be deoptimized when field's properties change.
   // Code objects are held weakly via an indirection through WeakProperty.
-  WeakArrayPtr dependent_code() const;
-  void set_dependent_code(const WeakArray& array) const;
+  ArrayPtr dependent_code() const;
+  void set_dependent_code(const Array& array) const;
 
   // Add the given code object to the list of dependent ones.
   void RegisterDependentCode(const Code& code) const;
