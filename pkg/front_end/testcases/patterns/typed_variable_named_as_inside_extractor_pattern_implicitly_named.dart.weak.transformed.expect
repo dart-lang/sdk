@@ -6,7 +6,7 @@ library /*isNonNullableByDefault*/;
 //  - 'C' is from 'pkg/front_end/testcases/patterns/typed_variable_named_as_inside_extractor_pattern_implicitly_named.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'as'.
 //     case C(: int as):
-//          ^
+//          ^^
 //
 import self as self;
 import "dart:core" as core;
@@ -20,32 +20,26 @@ class C extends core::Object {
 static method test(dynamic x) → dynamic {
   #L1:
   {
-    dynamic #t1;
-    final dynamic #t2 = x;
-    core::int #t3 = -1;
-    core::bool #t4 = false;
-    if(!#t4) {
-      final dynamic #t5 = #t2;
-      if(#t5 is self::C) {
-        final invalid-type #t6 = invalid-expression "pkg/front_end/testcases/patterns/typed_variable_named_as_inside_extractor_pattern_implicitly_named.dart:10:10: Error: The getter 'as' isn't defined for the class 'C'.
+    core::int #t1 = -1;
+    core::int as;
+    final dynamic #0#0 = x;
+    function ##0#1#initializer() → dynamic
+      return invalid-expression "pkg/front_end/testcases/patterns/typed_variable_named_as_inside_extractor_pattern_implicitly_named.dart:10:10: Error: The getter 'as' isn't defined for the class 'C'.
  - 'C' is from 'pkg/front_end/testcases/patterns/typed_variable_named_as_inside_extractor_pattern_implicitly_named.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'as'.
     case C(: int as):
-         ^";
-        final invalid-type #t7 = #t6;
-        if(#t7 is core::int) {
-          core::int as = #t7{core::int};
-          #t3 = 0;
-          #t4 = true;
-          #t1 = as;
-        }
-      }
+         ^^" in #0#0{self::C}{<unresolved>}.as;
+    late final dynamic #0#1 = ##0#1#initializer(){() → dynamic};
+    dynamic #t2;
+    if(#0#0 is{ForNonNullableByDefault} self::C && (#0#1 is{ForNonNullableByDefault} core::int && (let final core::int #t3 = as = #0#1{core::int} in true))) {
+      #t1 = 0;
+      #t2 = as;
     }
-    switch(#t3) {
+    switch(#t1) {
       #L2:
       case #C1:
         {
-          core::int as = #t1{core::int};
+          core::int as = #t2{core::int};
           {
             break #L1;
           }

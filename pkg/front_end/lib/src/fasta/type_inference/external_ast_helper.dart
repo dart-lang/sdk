@@ -89,7 +89,7 @@ EqualsCall createEqualsCall(InferenceVisitorBase base, DartType leftType,
 }
 
 /// Creates a `== null` test on [expression].
-EqualsNull createEqualsNull(int fileOffset, Expression expression) {
+EqualsNull createEqualsNull(Expression expression, {required int fileOffset}) {
   return new EqualsNull(expression)..fileOffset = fileOffset;
 }
 
@@ -101,6 +101,11 @@ BoolLiteral createBoolLiteral(bool value, {required int fileOffset}) {
 /// Creates an integer literal of [value].
 IntLiteral createIntLiteral(int value, {required int fileOffset}) {
   return new IntLiteral(value)..fileOffset = fileOffset;
+}
+
+/// Creates a string literal of [value].
+StringLiteral createStringLiteral(String value, {required int fileOffset}) {
+  return new StringLiteral(value)..fileOffset = fileOffset;
 }
 
 /// Creates a conditional expression of the [condition] and the [then] and
@@ -117,6 +122,14 @@ ConditionalExpression createConditionalExpression(
 /// `variable.fileOffset` as the file offset for the let.
 Let createLet(VariableDeclaration variable, Expression body) {
   return new Let(variable, body)..fileOffset = variable.fileOffset;
+}
+
+/// Creates a [Let] with the [effect] as the variable initializer and the
+/// [result] as the body of the [Let] expression and using
+/// `effect.fileOffset` as the file offset for the let.
+Let createLetEffect({required Expression effect, required Expression result}) {
+  return new Let(createVariableCache(effect, const DynamicType()), result)
+    ..fileOffset = effect.fileOffset;
 }
 
 /// Creates a [VariableDeclaration] for caching [expression] of the static
@@ -167,9 +180,24 @@ VariableGet createVariableGet(VariableDeclaration variable,
 
 /// Creates a [VariableSet] of [variable] with the [value].
 VariableSet createVariableSet(VariableDeclaration variable, Expression value,
-    {required int fileOffset}) {
-  assert(variable.isAssignable, "Cannot assign to variable $variable");
+    {bool allowFinalAssignment = false, required int fileOffset}) {
+  assert(allowFinalAssignment || variable.isAssignable,
+      "Cannot assign to variable $variable");
   return new VariableSet(variable, value)..fileOffset = fileOffset;
+}
+
+/// Creates an invocation of the local function [variable] with the provided
+/// [arguments].
+LocalFunctionInvocation createLocalFunctionInvocation(
+    VariableDeclaration variable,
+    {Arguments? arguments,
+    required int fileOffset}) {
+  return new LocalFunctionInvocation(
+      variable,
+      arguments ?? createArguments([], fileOffset: fileOffset)
+        ..fileOffset = fileOffset,
+      functionType: variable.type as FunctionType)
+    ..fileOffset = fileOffset;
 }
 
 /// Creates a [Not] of [operand].
@@ -201,10 +229,13 @@ IsExpression createIsExpression(Expression operand, DartType type,
 
 /// Creates an as-cast on [operand] against [type].
 AsExpression createAsExpression(Expression operand, DartType type,
-    {required bool forNonNullableByDefault, required int fileOffset}) {
+    {required bool forNonNullableByDefault,
+    bool isUnchecked = false,
+    required int fileOffset}) {
   return new AsExpression(operand, type)
     ..fileOffset = fileOffset
-    ..isForNonNullableByDefault = forNonNullableByDefault;
+    ..isForNonNullableByDefault = forNonNullableByDefault
+    ..isUnchecked = isUnchecked;
 }
 
 /// Creates a [NullCheck] of [expression].
@@ -230,6 +261,12 @@ RecordNameGet createRecordNameGet(
     ..fileOffset = fileOffset;
 }
 
+/// Creates a [StringConcatenation] of the [parts].
+StringConcatenation createStringConcatenation(List<Expression> parts,
+    {required int fileOffset}) {
+  return new StringConcatenation(parts)..fileOffset = fileOffset;
+}
+
 /// Creates a block expression using [body] as the body and [value] as the
 /// resulting value.
 BlockExpression createBlockExpression(Block body, Expression value,
@@ -243,6 +280,8 @@ Throw createThrow(Expression expression) {
   return new Throw(expression)..fileOffset = expression.fileOffset;
 }
 
+/// Creates an [ExpressionStatement] of [expression] using the file offset of
+/// [expression] for the file offset of the statement.
 ExpressionStatement createExpressionStatement(Expression expression) {
   return new ExpressionStatement(expression)
     ..fileOffset = expression.fileOffset;
@@ -299,8 +338,14 @@ SwitchStatement createSwitchStatement(
     ..fileOffset = fileOffset;
 }
 
-/// Creates a label statement that serves as a label for [statement].
+/// Creates a labeled statement that serves as a label for [statement].
 LabeledStatement createLabeledStatement(Statement statement,
     {required int fileOffset}) {
   return new LabeledStatement(statement)..fileOffset = fileOffset;
+}
+
+/// Creates a return statement of [expression].
+ReturnStatement createReturnStatement(Expression expression,
+    {required int fileOffset}) {
+  return new ReturnStatement(expression)..fileOffset = fileOffset;
 }

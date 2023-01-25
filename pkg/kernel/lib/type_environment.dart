@@ -603,19 +603,25 @@ class StaticTypeContextImpl implements StaticTypeContext {
 
   /// Creates a static type context for computing static types in the body
   /// of [member].
-  StaticTypeContextImpl(Member member, this.typeEnvironment,
+  StaticTypeContextImpl(Member member, TypeEnvironment typeEnvironment,
       {StaticTypeCache? cache})
-      : _library = member.enclosingLibrary,
-        thisType = member.enclosingClass?.getThisType(
-            typeEnvironment.coreTypes, member.enclosingLibrary.nonNullable),
-        _cache = cache;
+      : this.direct(member.enclosingLibrary, typeEnvironment,
+            thisType: member.enclosingClass?.getThisType(
+                typeEnvironment.coreTypes, member.enclosingLibrary.nonNullable),
+            cache: cache);
+
+  /// Creates a static type context for computing static types in the body of
+  /// a member, provided the enclosing [_library] and [thisType].
+  StaticTypeContextImpl.direct(this._library, this.typeEnvironment,
+      {this.thisType, StaticTypeCache? cache})
+      : _cache = cache;
 
   /// Creates a static type context for computing static types of annotations
   /// in [library].
-  StaticTypeContextImpl.forAnnotations(this._library, this.typeEnvironment,
+  StaticTypeContextImpl.forAnnotations(
+      Library library, TypeEnvironment typeEnvironment,
       {StaticTypeCache? cache})
-      : thisType = null,
-        _cache = cache;
+      : this.direct(library, typeEnvironment, cache: cache);
 
   /// The [Nullability] used for non-nullable types.
   ///

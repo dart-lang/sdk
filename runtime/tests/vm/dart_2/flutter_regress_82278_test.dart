@@ -52,7 +52,7 @@ class Foo {
 }
 
 // The TypeArgumentVector will be at an offset that cannot be loaded from via
-// normal addresing mode on ARM64.
+// normal addressing mode on ARM64.
 class GenericFoo<T> extends Foo {}
 
 final l = <dynamic>[GenericFoo<int>(), null, 1, 1.0];

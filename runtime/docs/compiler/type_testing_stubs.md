@@ -4,7 +4,7 @@ This page describes how type testing stubs (TTS) are implemented.
 
 ### Type Tests
 
-Explicit `<obj> as <desination-type>` checks in Dart code (also generated implicitly in CFE) compile
+Explicit `<obj> as <destination-type>` checks in Dart code (also generated implicitly in CFE) compile
 in the Dart VM's IL to the `AssertAssignable` instruction.
 
 ### Type Testing Stubs
@@ -25,7 +25,7 @@ The TTS has a special calling convention which accepts:
 
 This calling convention is the same as for the SubtypeTestCache-based implementation.
 
-We distuinguish between different type tests (based on the `<destination-type>`):
+We distinguish between different type tests (based on the `<destination-type>`):
 
 #### Simple Subtype ClassId-based range checks
 

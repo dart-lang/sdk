@@ -89,7 +89,7 @@ vars = {
   ### /third_party/ dependencies
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
-  "binaryen_rev" : "36e2abbcdd22b2b1707757b49fb4ac8844f28e5d",
+  "binaryen_rev" : "4471b81a0a0b94c75bad6e81d0413860944ecb1f",
   "boringssl_gen_rev": "ced85ef0a00bbca77ce5a91261a5f2ae61b1e62f",
   "boringssl_rev": "87f316d7748268eb56f2dc147bd593254ae93198",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
@@ -107,8 +107,8 @@ vars = {
   # 'tools/rev_sdk_deps.dart' can rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to pin it at its current revision.
 
-  "args_rev": "ac0e2c82f94d049b2d3b318b487863bf288258b1",
-  "async_rev": "de1ce93c6f58c22fda4dd4d6267ecebebed622c3",
+  "args_rev": "04c934647912e524b8eb0188ccaec559c11342a7",
+  "async_rev": "c9cc576e1f4d477047f737cace79ed6b72c70350",
   "bazel_worker_rev": "b35c25e6cecced319b80c6686b9d025e462c7053",
   "benchmark_harness_rev": "76881df31f4b76ff7bc50e3389d540b7fb2a69e6",
   "boolean_selector_rev": "ba7d86b66382aa808576cd55840d4c34f0225066",
@@ -140,7 +140,7 @@ vars = {
   "http_rev": "57c53b05e9f42546149f51348bc063bc7279283c",
   "http_multi_server_rev": "cce50802b66d33f703f82b3189988aa8e51976ac",
   "http_parser_rev": "6f73e4a399df013ded8f4c81f151d122b36d361b",
-  "intl_rev": "6140b600b3fd42d86e289f7d92c18488fe7e4bb9",
+  "intl_rev": "3fcc8109e29a109d7d91132adf1b862eb23c5f70",
   "json_rpc_2_rev": "bd9f8d90ec9ce9d0da5c11f3e71b87af3aaca3b4",
   "linter_rev": "8f7b75f8a3501ca2c4d5bbc1f003d90d66447544", # 1.32.0
   "lints_rev": "dfded5e265015f21ce154577fe8488dc244e33c2",
@@ -148,7 +148,7 @@ vars = {
   "markdown_rev": "ee3f4e976efcfed87c6ec78364bc2dd3c6e717b9", # https://github.com/dart-lang/markdown/pull/494
   "matcher_rev": "deedda179c33b00b3e06aa107ebfc3dd2f8a5f49",
   "mime_rev": "034471a60d5603a6988de6d9811bee1cb0657f70",
-  "mockito_rev": "9cc958a991dc6d6b563196893a77973eee58603c",
+  "mockito_rev": "76965577aac7c82307a82cb5a12e78cfcc3f1f9d",
   "package_config_rev": "2e1a8eca1ebeac01f45003642c25e24e63d45b50",
   "path_rev": "9768908ef81cf92fc77cb259c2cf01ca8725de88",
   "pool_rev": "ad4e2a7fde6a2937b2f7f59af271b437376d8e3d",
@@ -165,7 +165,7 @@ vars = {
   "string_scanner_rev": "045498024df8f0a1cd0f717f12d60aec77d3d8ae",
   "sync_http_rev": "36a1bd086798cbdb48e7541b05e5a14b5e5bb56b",
   "term_glyph_rev": "8cd931827bc3bfc1c62fd7ea44cbbc99b8a94f4d",
-  "test_rev": "19582a8d45670a53fa4fca8d06a3746d1616d46e",
+  "test_rev": "53df5270dbf0c35543f83035300d10d9fcc2f4cf",
   "test_descriptor_rev": "b73c691c4e38e23bf8383148d3d68fa65e4a57e9",
   "test_process_rev": "62ea2ba786d9e0e7cccedaf305d3972ee41fbc6a",
   "test_reflective_loader_rev": "cf58259b91c4d3cccc90abd4c0b44273e6421646",

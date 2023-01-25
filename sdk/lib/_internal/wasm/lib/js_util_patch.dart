@@ -93,7 +93,7 @@ T callMethod<T>(Object o, String method, List<Object?> args) =>
 
 @patch
 bool instanceof(Object? o, Object type) =>
-    instanceofRaw(jsifyRaw(o), jsifyRaw(type));
+    JS<bool>("(o, t) => o instanceof t", jsifyRaw(o), jsifyRaw(type));
 
 @patch
 T callConstructor<T>(Object o, List<Object?> args) => dartifyRaw(

@@ -3366,7 +3366,7 @@ void Precompiler::Obfuscate() {
     Library::RegisterLibraries(T, libraries_);
   }
 
-  // Obfuscation is done. Move obfuscation map into malloced memory.
+  // Obfuscation is done. Move obfuscation map into mallocated memory.
   IG->set_obfuscation_map(Obfuscator::SerializeMap(T));
 
   // Discard obfuscation mappings to avoid including them into snapshot.

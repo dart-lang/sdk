@@ -11,22 +11,14 @@ class C extends core::Object {
 static method test(dynamic x) → dynamic {
   #L1:
   {
-    final dynamic #t1 = x;
-    core::int #t2 = -1;
-    core::bool #t3 = false;
-    if(!#t3) {
-      final dynamic #t4 = #t1;
-      if(#t4 is self::C) {
-        final core::int? #t5 = #t4{self::C}.{self::C::f}{core::int?};
-        if(#t5 =={core::num::==}{(core::Object) → core::bool} 1) {
-          #t2 = 0;
-          #t3 = true;
-        }
-      }
+    core::int #t1 = -1;
+    final dynamic #0#0 = x;
+    if(#0#0 is{ForNonNullableByDefault} self::C && #0#0{self::C}.{self::C::f}{core::int?} =={core::num::==}{(core::Object) → core::bool} #C1) {
+      #t1 = 0;
     }
-    switch(#t2) {
+    switch(#t1) {
       #L2:
-      case #C1:
+      case #C2:
         {
           {
             break #L1;
@@ -37,5 +29,6 @@ static method test(dynamic x) → dynamic {
 }
 
 constants  {
-  #C1 = 0
+  #C1 = 1
+  #C2 = 0
 }

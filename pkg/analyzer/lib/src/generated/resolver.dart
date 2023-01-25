@@ -81,6 +81,8 @@ import 'package:analyzer/src/error/super_formal_parameters_verifier.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
+import 'package:analyzer/src/generated/exhaustiveness.dart' as exhaustiveness
+    show isAlwaysExhaustiveType;
 import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -1195,24 +1197,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   bool isAlwaysExhaustiveType(DartType type) {
-    if (type is InterfaceType) {
-      if (type.isDartCoreBool) return true;
-      if (type.isDartCoreNull) return true;
-      var element = type.element;
-      if (element is EnumElement) return true;
-      // TODO(paulberry): return `true` if `element` is a sealed class
-      if (type.isDartAsyncFutureOr) {
-        return isAlwaysExhaustiveType(type.typeArguments[0]);
-      }
-      return false;
-    } else if (type is RecordType) {
-      for (var field in type.fields) {
-        if (!isAlwaysExhaustiveType(field.type)) return false;
-      }
-      return true;
-    } else {
-      return false;
-    }
+    return exhaustiveness.isAlwaysExhaustiveType(type);
   }
 
   @override

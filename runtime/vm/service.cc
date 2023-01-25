@@ -177,6 +177,7 @@ class NoSuchParameter : public MethodParameter {
 #define ISOLATE_GROUP_PARAMETER new IdParameter("isolateGroupId", true)
 #define NO_ISOLATE_PARAMETER new NoSuchParameter("isolateId")
 #define RUNNABLE_ISOLATE_PARAMETER new RunnableIsolateParameter("isolateId")
+#define OBJECT_PARAMETER new IdParameter("objectId", true)
 
 class EnumListParameter : public MethodParameter {
  public:
@@ -4987,6 +4988,42 @@ static void RespondWithMalformedObject(Thread* thread, JSONStream* js) {
   jsobj.AddProperty("bart", "simpson");
 }
 
+// Returns |true| if a heap object with the specified ID was successfully found,
+// and |false| otherwise. If an object was found, it will be stored at address
+// |obj|.
+// This function should be used to handle shared logic between |GetObject| and
+// |GetImplementationFields|.
+static bool GetHeapObjectCommon(Thread* thread,
+                                JSONStream* js,
+                                const char* id,
+                                Object* obj,
+                                ObjectIdRing::LookupResult* lookup_result) {
+  *obj = LookupHeapObject(thread, id, lookup_result);
+  ASSERT(obj != nullptr);
+  ASSERT(lookup_result != nullptr);
+  if (obj->ptr() != Object::sentinel().ptr()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    // If obj is a script from dart:* and doesn't have source loaded, try and
+    // load the source before sending the response.
+    if (obj->IsScript()) {
+      const Script& script = Script::Cast(*obj);
+      script.LookupSourceAndLineStarts(thread->zone());
+      if (!script.HasSource() && script.IsPartOfDartColonLibrary() &&
+          Service::HasDartLibraryKernelForSources()) {
+        const uint8_t* kernel_buffer = Service::dart_library_kernel();
+        const intptr_t kernel_buffer_len =
+            Service::dart_library_kernel_length();
+        script.LoadSourceFromKernel(kernel_buffer, kernel_buffer_len);
+      }
+    }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+    // We found a heap object for this id.
+    return true;
+  }
+
+  return false;
+}
+
 static const MethodParameter* const get_object_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     new UIntParameter("offset", false),
@@ -5018,25 +5055,9 @@ static void GetObject(Thread* thread, JSONStream* js) {
   }
 
   // Handle heap objects.
+  Object& obj = Object::Handle();
   ObjectIdRing::LookupResult lookup_result;
-  Object& obj = Object::Handle(LookupHeapObject(thread, id, &lookup_result));
-  if (obj.ptr() != Object::sentinel().ptr()) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    // If obj is a script from dart:* and doesn't have source loaded, try and
-    // load the source before sending the response.
-    if (obj.IsScript()) {
-      const Script& script = Script::Cast(obj);
-      script.LookupSourceAndLineStarts(thread->zone());
-      if (!script.HasSource() && script.IsPartOfDartColonLibrary() &&
-          Service::HasDartLibraryKernelForSources()) {
-        const uint8_t* kernel_buffer = Service::dart_library_kernel();
-        const intptr_t kernel_buffer_len =
-            Service::dart_library_kernel_length();
-        script.LoadSourceFromKernel(kernel_buffer, kernel_buffer_len);
-      }
-    }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-    // We found a heap object for this id.  Return it.
+  if (GetHeapObjectCommon(thread, js, id, &obj, &lookup_result)) {
     obj.PrintJSON(js, false);
     return;
   } else if (lookup_result == ObjectIdRing::kCollected) {
@@ -5051,6 +5072,44 @@ static void GetObject(Thread* thread, JSONStream* js) {
   Breakpoint* bpt = LookupBreakpoint(thread->isolate(), id, &lookup_result);
   if (bpt != NULL) {
     bpt->PrintJSON(js);
+    return;
+  } else if (lookup_result == ObjectIdRing::kCollected) {
+    PrintSentinel(js, kCollectedSentinel);
+    return;
+  }
+
+  PrintInvalidParamError(js, "objectId");
+}
+
+static const MethodParameter* const get_implementation_fields_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    OBJECT_PARAMETER,
+    nullptr,
+};
+
+static void GetImplementationFields(Thread* thread, JSONStream* js) {
+  const char* id = js->LookupParam("objectId");
+
+  // Handle heap objects.
+  Object& obj = Object::Handle();
+  ObjectIdRing::LookupResult lookup_result;
+  if (GetHeapObjectCommon(thread, js, id, &obj, &lookup_result)) {
+    obj.PrintImplementationFields(js);
+    return;
+  } else if (lookup_result == ObjectIdRing::kCollected) {
+    PrintSentinel(js, kCollectedSentinel);
+    return;
+  } else if (lookup_result == ObjectIdRing::kExpired) {
+    PrintSentinel(js, kExpiredSentinel);
+    return;
+  }
+
+  // Handle non-heap objects.
+  Breakpoint* bpt = LookupBreakpoint(thread->isolate(), id, &lookup_result);
+  if (bpt != nullptr) {
+    const JSONObject jsobj(js);
+    jsobj.AddProperty("type", "ImplementationFields");
+    JSONArray jsarr_fields(&jsobj, "fields");
     return;
   } else if (lookup_result == ObjectIdRing::kCollected) {
     PrintSentinel(js, kCollectedSentinel);
@@ -5815,6 +5874,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_flag_list_params },
   { "_getHeapMap", GetHeapMap,
     get_heap_map_params },
+  { "_getImplementationFields", GetImplementationFields,
+    get_implementation_fields_params },
   { "getInboundReferences", GetInboundReferences,
     get_inbound_references_params },
   { "getInstances", GetInstances,

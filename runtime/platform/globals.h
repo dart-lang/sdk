@@ -250,7 +250,7 @@ struct simd128_value_t {
 #error Automatic compiler detection failed.
 #endif
 
-// LIKELY/UNLIKELY give the compiler branch preditions that may affect block
+// LIKELY/UNLIKELY give the compiler branch predictions that may affect block
 // scheduling.
 #ifdef __GNUC__
 #define LIKELY(cond) __builtin_expect((cond), 1)

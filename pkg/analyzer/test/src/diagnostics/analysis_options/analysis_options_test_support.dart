@@ -19,12 +19,10 @@ abstract class AbstractAnalysisOptionsTest with ResourceProviderMixin {
 
   Future<void> assertErrorsInCode(
       String code, List<ExpectedError> expectedErrors) async {
+    var path = convertPath('/analysis_options.yaml');
+    newFile(path, code);
     var diagnostics = analyzeAnalysisOptions(
-        TestSource(convertPath('/analysis_options.yaml')),
-        code,
-        sourceFactory,
-        '/',
-        sdkVersionConstraint);
+        TestSource(path), code, sourceFactory, '/', sdkVersionConstraint);
     var errorListener = GatheringErrorListener();
     errorListener.addAll(diagnostics);
     errorListener.assertErrors(expectedErrors);

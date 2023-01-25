@@ -82,7 +82,7 @@ static ArrayPtr Eval(Dart_Handle lib, const char* expr) {
   const String& dummy_isolate_id = String::Handle(String::New("isolateId"));
   Dart_Handle expr_val;
   {
-    TransitionVMToNative transiton(Thread::Current());
+    TransitionVMToNative transition(Thread::Current());
     expr_val = Dart_EvaluateStaticExpr(lib, NewString(expr));
     EXPECT_VALID(expr_val);
   }

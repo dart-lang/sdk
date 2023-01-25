@@ -700,9 +700,10 @@ var tests = <IsolateTest>[
     expect(result.valueAsString, isNull);
     expect(result.classRef!.name, '_Record');
     expect(result.size, isPositive);
+    expect(result.length, 4);
     final fieldsMap = HashMap.fromEntries(
         result.fields!.map((f) => MapEntry(f.name, f.value)));
-    expect(fieldsMap.keys.length, 4);
+    expect(fieldsMap.keys.length, result.length);
     expect(fieldsMap.containsKey(0), true);
     expect(fieldsMap[0].valueAsString, '1');
     expect(fieldsMap.containsKey("x"), true);

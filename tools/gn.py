@@ -244,8 +244,10 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
     gn_args['bssl_use_clang_integrated_as'] = True
 
     # Use tcmalloc only when targeting Linux and when not using ASAN.
+    # TODO(51111): Re-enable for riscv64.
     gn_args['dart_use_tcmalloc'] = ((gn_args['target_os'] == 'linux') and
                                     (gn_args['target_cpu'] != 'riscv32') and
+                                    (gn_args['target_cpu'] != 'riscv64') and
                                     sanitizer == 'none')
 
     # Use mallinfo2 if specified on the command line
@@ -297,8 +299,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
             'exe.stripped/dart_precompiled_runtime_product')
         gn_args['gen_snapshot_stripped_binary'] = (
             'exe.stripped/gen_snapshot_product')
-        gn_args['analyze_snapshot_binary'] = (
-            'exe.stripped/analyze_snapshot_product')
+        gn_args['analyze_snapshot_binary'] = ('exe.stripped/analyze_snapshot')
 
     # Setup the user-defined sysroot.
     if UseSysroot(args, gn_args):

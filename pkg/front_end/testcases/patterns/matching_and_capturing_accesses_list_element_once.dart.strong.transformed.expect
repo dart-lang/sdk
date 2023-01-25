@@ -533,22 +533,19 @@ class A extends self::_A&Object&ListMixin {
 }
 static method main() → dynamic {
   self::A a = new self::A::•();
-  final self::A #t10 = a;
-  final self::A #t11 = #t10;
-  if(#t11.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 2) {
-    final dynamic #t12 = #t11.{core::List::[]}(0){(core::int) → dynamic};
-    final dynamic #t13 = #t11.{core::List::[]}(1){(core::int) → dynamic};
-    final dynamic #t14 = #t12;
-    if(#t14 is core::int) {
-      final dynamic #t15 = #t13;
-      if(#t15 is core::int) {
-        core::int x = #t14{core::int};
-        core::int y = #t15{core::int};
-        {
-          self::expectEquals(x, 0);
-          self::expectEquals(y, 0);
-        }
-      }
+  {
+    core::int x;
+    core::int y;
+    final self::A #0#0 = a;
+    function ##0#4#initializer() → dynamic
+      return #0#0.{core::List::[]}(0){(core::int) → dynamic};
+    late final dynamic #0#4 = ##0#4#initializer(){() → dynamic};
+    function ##0#5#initializer() → dynamic
+      return #0#0.{core::List::[]}(1){(core::int) → dynamic};
+    late final dynamic #0#5 = ##0#5#initializer(){() → dynamic};
+    if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C8 && (#0#4 is{ForNonNullableByDefault} core::int && (let final core::int #t10 = x = #0#4{core::int} in true)) && (#0#5 is{ForNonNullableByDefault} core::int && (let final core::int #t11 = y = #0#5{core::int} in true))) {
+      self::expectEquals(x, 0);
+      self::expectEquals(y, 0);
     }
   }
   self::expectEquals(a.{self::A::count}{core::int}, 2);
@@ -567,6 +564,7 @@ constants  {
   #C5 = true
   #C6 = static-tearoff col::ListMixin::_compareAny
   #C7 = 0
+  #C8 = 2
 }
 
 Extra constant evaluation status:
@@ -574,4 +572,4 @@ Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:499:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:511:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:523:12 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 1091, effectively constant: 4
+Extra constant evaluation: evaluated: 1098, effectively constant: 4

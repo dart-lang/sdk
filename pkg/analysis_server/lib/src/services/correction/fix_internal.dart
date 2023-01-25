@@ -1449,9 +1449,11 @@ class FixProcessor extends BaseProcessor {
 // TODO(brianwilkerson) Add a fix to remove the method.
 //    ],
     HintCode.UNNECESSARY_NAN_COMPARISON_FALSE: [
+      RemoveComparison.new,
       ReplaceWithIsNan.new,
     ],
     HintCode.UNNECESSARY_NAN_COMPARISON_TRUE: [
+      RemoveComparison.new,
       ReplaceWithIsNan.new,
     ],
     HintCode.UNNECESSARY_NULL_COMPARISON_FALSE: [
@@ -1463,12 +1465,12 @@ class FixProcessor extends BaseProcessor {
     HintCode.UNNECESSARY_QUESTION_MARK: [
       RemoveQuestionMark.new,
     ],
-//    HintCode.UNNECESSARY_TYPE_CHECK_FALSE: [
-// TODO(brianwilkerson) Add a fix to remove the type check.
-//    ],
-//    HintCode.UNNECESSARY_TYPE_CHECK_TRUE: [
-// TODO(brianwilkerson) Add a fix to remove the type check.
-//    ],
+    HintCode.UNNECESSARY_TYPE_CHECK_FALSE: [
+      RemoveComparison.typeCheck,
+    ],
+    HintCode.UNNECESSARY_TYPE_CHECK_TRUE: [
+      RemoveComparison.typeCheck,
+    ],
     HintCode.UNUSED_CATCH_CLAUSE: [
       RemoveUnusedCatchClause.new,
     ],

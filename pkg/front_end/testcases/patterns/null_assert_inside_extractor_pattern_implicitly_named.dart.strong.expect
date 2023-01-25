@@ -11,26 +11,20 @@ class C extends core::Object {
 static method test(dynamic x) → dynamic {
   #L1:
   {
-    dynamic #t1;
-    final dynamic #t2 = x;
-    core::int #t3 = -1;
-    core::bool #t4 = false;
-    if(!#t4) {
-      final dynamic #t5 = #t2;
-      if(#t5 is self::C) {
-        final core::int? #t6 = #t5{self::C}.{self::C::f}{core::int?};
-        final core::int #t7 = #t6!;
-        core::int f = #t7;
-        #t3 = 0;
-        #t4 = true;
-        #t1 = f;
-      }
+    core::int #t1 = -1;
+    core::int f;
+    final dynamic #0#0 = x;
+    late final core::int? #0#1 = #0#0{self::C}.{self::C::f}{core::int?};
+    dynamic #t2;
+    if(#0#0 is{ForNonNullableByDefault} self::C && (let final dynamic #t3 = #0#1! in let final dynamic #t4 = f = #0#1! in true)) {
+      #t1 = 0;
+      #t2 = f;
     }
-    switch(#t3) {
+    switch(#t1) {
       #L2:
       case #C1:
         {
-          core::int f = #t1{core::int};
+          core::int f = #t2{core::int};
           {
             break #L1;
           }

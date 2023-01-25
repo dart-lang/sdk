@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/inferrer/abstract_value_domain.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 
@@ -47,9 +44,9 @@ main() {
         await runCompiler(memorySourceFiles: {'main.dart': CODE});
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
-    JClosedWorld world = compiler.backendClosedWorldForTesting;
+    JClosedWorld world = compiler.backendClosedWorldForTesting!;
     ElementEnvironment elementEnvironment = world.elementEnvironment;
-    AbstractValueDomain commonMasks = world.abstractValueDomain;
+    final commonMasks = world.abstractValueDomain as CommonMasks;
 
     /// Checks the expectation of `isDisjoint` for two mask. Also checks that
     /// the result is consistent with an equivalent (but slower) implementation
@@ -99,8 +96,8 @@ main() {
           Expect.isTrue(isExact || isSubclass || isSubtype);
           var element = _elementCache.putIfAbsent(type, () {
             if (type == " ") return null;
-            ClassEntity cls = elementEnvironment.lookupClass(
-                elementEnvironment.mainLibrary, type);
+            final cls = elementEnvironment.lookupClass(
+                elementEnvironment.mainLibrary!, type) as ClassEntity;
             Expect.isNotNull(cls, "No class '$type' found.");
             return cls;
           });

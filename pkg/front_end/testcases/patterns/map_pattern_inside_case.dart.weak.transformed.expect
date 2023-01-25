@@ -5,25 +5,14 @@ import "dart:core" as core;
 static method test(dynamic x) → dynamic {
   #L1:
   {
-    final dynamic #t1 = x;
-    core::int #t2 = -1;
-    core::bool #t3 = false;
-    if(!#t3) {
-      final dynamic #t4 = #t1;
-      if(#t4 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#t4{core::Map<dynamic, dynamic>}.{core::Map::containsKey}("a"){(core::Object?) → core::bool} && #t4{core::Map<dynamic, dynamic>}.{core::Map::containsKey}("b"){(core::Object?) → core::bool}) && #t4{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 2) {
-        final dynamic #t5 = #t4{core::Map<dynamic, dynamic>}.{core::Map::[]}("a"){(core::Object?) → dynamic};
-        final dynamic #t6 = #t4{core::Map<dynamic, dynamic>}.{core::Map::[]}("b"){(core::Object?) → dynamic};
-        if(#t5 =={core::Object::==}{(core::Object) → core::bool} #C1) {
-          if(#t6 =={core::Object::==}{(core::Object) → core::bool} #C2) {
-            #t2 = 0;
-            #t3 = true;
-          }
-        }
-      }
+    core::int #t1 = -1;
+    final dynamic #0#0 = x;
+    if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool} && #C3 =={core::num::==}{(core::Object) → core::bool} #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic} && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool} && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic}) {
+      #t1 = 0;
     }
-    switch(#t2) {
+    switch(#t1) {
       #L2:
-      case #C3:
+      case #C5:
         {
           {
             break #L1;
@@ -34,7 +23,9 @@ static method test(dynamic x) → dynamic {
 }
 
 constants  {
-  #C1 = 1
-  #C2 = 2
-  #C3 = 0
+  #C1 = 2
+  #C2 = "a"
+  #C3 = 1
+  #C4 = "b"
+  #C5 = 0
 }

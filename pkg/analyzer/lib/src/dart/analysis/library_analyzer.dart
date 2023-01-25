@@ -223,10 +223,13 @@ class LibraryAnalyzer {
   }
 
   void _computeConstantErrors(
-      ErrorReporter errorReporter, CompilationUnit unit) {
-    ConstantVerifier constantVerifier =
-        ConstantVerifier(errorReporter, _libraryElement, _declaredVariables);
+      ErrorReporter errorReporter, FileState file, CompilationUnit unit) {
+    ConstantVerifier constantVerifier = ConstantVerifier(
+        errorReporter, _libraryElement, _declaredVariables,
+        retainDataForTesting: _testingData != null);
     unit.accept(constantVerifier);
+    _testingData?.recordExhaustivenessDataForTesting(
+        file.uri, constantVerifier.exhaustivenessDataForTesting!);
   }
 
   /// Compute [_constants] in all units.
@@ -454,7 +457,7 @@ class LibraryAnalyzer {
     //
     // Use the ConstantVerifier to compute errors.
     //
-    _computeConstantErrors(errorReporter, unit);
+    _computeConstantErrors(errorReporter, file, unit);
 
     //
     // Compute inheritance and override errors.

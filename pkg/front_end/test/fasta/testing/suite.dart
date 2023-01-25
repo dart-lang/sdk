@@ -765,6 +765,7 @@ class FastaContext extends ChainContext with MatchContext {
       // Force enable features in development.
       ExperimentalFlag.records: true,
       ExperimentalFlag.patterns: true,
+      ExperimentalFlag.sealedClass: true,
     };
 
     void addForcedExperimentalFlag(String name, ExperimentalFlag flag) {

@@ -1075,6 +1075,7 @@ void f(Object? x) {
   }
 }
 ''', [
+      error(HintCode.UNREACHABLE_SWITCH_CASE, 55, 4),
       error(
           CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
           86,

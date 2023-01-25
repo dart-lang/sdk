@@ -711,10 +711,6 @@ analyzer:
   }
 
   test_mergeIncludedOptions() {
-    // TODO(https://github.com/dart-lang/sdk/issues/50978): add tests for
-    // INCLUDED_FILE_WARNING.
-    // TODO(https://github.com/dart-lang/sdk/issues/50979): add tests for cyclic
-    // includes.
     // TODO(srawlins): add tests for multiple includes.
     // TODO(https://github.com/dart-lang/sdk/issues/50980): add tests with
     // duplicate plugin names.

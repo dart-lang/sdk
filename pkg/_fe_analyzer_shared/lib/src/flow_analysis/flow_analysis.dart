@@ -3684,8 +3684,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     // If there's a scrutinee, and its value is known to be the same as that of
     // the synthetic cache variable, promote it too.
     if (scrutineeReference != null &&
-        _current.infoFor(scrutineeReference.promotionKey).ssaNode ==
-            _scrutineeSsaNode) {
+        _current.infoFor(matchedValueReference.promotionKey).ssaNode ==
+            _current.infoFor(scrutineeReference.promotionKey).ssaNode) {
       ifTrue = ifTrue
           .tryPromoteForTypeCheck(this, scrutineeReference, staticType)
           .ifTrue;

@@ -93,7 +93,7 @@ class Testee {
     final exitCode = await _process.exitCode;
     print('child-exitcode: $exitCode');
     if (exitCode != 0) {
-      throw 'Child process terminated unsucessfully';
+      throw 'Child process terminated unsuccessfully';
     }
   }
 }

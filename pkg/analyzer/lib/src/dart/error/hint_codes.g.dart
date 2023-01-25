@@ -1154,6 +1154,12 @@ class HintCode extends AnalyzerErrorCode {
     uniqueName: 'UNNECESSARY_TYPE_CHECK_TRUE',
   );
 
+  ///  No parameters.
+  static const HintCode UNREACHABLE_SWITCH_CASE = HintCode(
+    'UNREACHABLE_SWITCH_CASE',
+    "This case is covered by the previous cases.",
+  );
+
   ///  Parameters:
   ///  0: the name of the exception variable
   static const HintCode UNUSED_CATCH_CLAUSE = HintCode(

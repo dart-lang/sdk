@@ -3,60 +3,51 @@ import self as self;
 import "dart:core" as core;
 
 static method test1(dynamic x) → dynamic {
-  final dynamic #t1 = x;
-  core::bool #t2 = true;
-  final dynamic #t3 = #t1;
-  if(#t3 is core::List<dynamic> && #t3{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
-    final dynamic #t4 = #t3{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    final dynamic #t5 = #t4;
-    if(#t5 is core::int) {
-      core::int y = #t5{core::int};
-      #t2 = false;
-      {
-        return y;
-      }
+  {
+    core::int y;
+    final dynamic #0#0 = x;
+    function ##0#6#initializer() → dynamic
+      return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    late final dynamic #0#6 = ##0#6#initializer(){() → dynamic};
+    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t1 = y = #0#6{core::int} in true))) {
+      return y;
     }
-  }
-  if(#t2) {
-    return null;
+    else {
+      return null;
+    }
   }
 }
 static method test2(dynamic x) → dynamic {
-  final dynamic #t6 = x;
-  core::bool #t7 = true;
-  final dynamic #t8 = #t6;
-  if(#t8 is core::List<dynamic> && #t8{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool}) {
-    final dynamic #t9 = #t8{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    final dynamic #t10 = #t9;
-    if(#t10 is core::int) {
-      core::int y = #t10{core::int};
-      #t7 = false;
-      {
-        return y;
-      }
+  {
+    core::int y;
+    final dynamic #0#0 = x;
+    function ##0#6#initializer() → dynamic
+      return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    late final dynamic #0#6 = ##0#6#initializer(){() → dynamic};
+    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = y = #0#6{core::int} in true))) {
+      return y;
     }
-  }
-  if(#t7) {
-    return null;
+    else {
+      return null;
+    }
   }
 }
 static method test3(dynamic x) → dynamic {
-  final dynamic #t11 = x;
-  core::bool #t12 = true;
-  final dynamic #t13 = #t11;
-  if(#t13 is core::List<dynamic> && #t13{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool}) {
-    final dynamic #t14 = #t13{core::List<dynamic>}.{core::List::[]}(#t13{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::-}(1){(core::num) → core::num}){(core::int) → dynamic};
-    final dynamic #t15 = #t14;
-    if(#t15 is core::int) {
-      core::int y = #t15{core::int};
-      #t12 = false;
-      {
-        return y;
-      }
+  {
+    core::int y;
+    final dynamic #0#0 = x;
+    function ##0#1#initializer() → core::int
+      return #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+    late final core::int #0#1 = ##0#1#initializer(){() → core::int};
+    function ##0#6#initializer() → dynamic
+      return #0#0{core::List<dynamic>}.{core::List::[]}(#0#1.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic};
+    late final dynamic #0#6 = ##0#6#initializer(){() → dynamic};
+    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#1.{core::num::>=}(#C1){(core::num) → core::bool} && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t3 = y = #0#6{core::int} in true))) {
+      return y;
     }
-  }
-  if(#t12) {
-    return null;
+    else {
+      return null;
+    }
   }
 }
 static method main() → dynamic {
@@ -77,4 +68,8 @@ static method expectEquals(dynamic x, dynamic y) → dynamic {
   if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {
     throw "Expected ${x} to be equal to ${y}.";
   }
+}
+
+constants  {
+  #C1 = 1
 }

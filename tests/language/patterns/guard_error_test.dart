@@ -12,6 +12,7 @@ main() {
       // [analyzer] unspecified
       // [cfe] unspecified
       print(x);
+    default:
   }
 
   print(switch (false) {
@@ -43,6 +44,7 @@ main() {
       // [analyzer] unspecified
       // [cfe] unspecified
       print(x);
+    default:
   }
 
   print(switch (false) {
@@ -73,6 +75,7 @@ main() {
     case var x when local = true:
       // No error.
       print(x);
+    default:
   }
 
   print(switch (false) {
@@ -96,6 +99,7 @@ main() {
         case bool y when x = true:
           // No error.
           print(y);
+        default:
       }
 
       print(switch (false) {

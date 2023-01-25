@@ -4,16 +4,10 @@ import "dart:core" as core;
 import "dart:_internal" as _in;
 
 static method f(dynamic x) → dynamic {
-  final dynamic #t1 = x;
-  core::bool #t2 = true;
-  dynamic #t3;
-  final dynamic #t4 = #t1;
-  if(#t4 is{ForNonNullableByDefault} (core::Object?)) {
-    final core::Object? #t5 = #t4{(core::Object?)}.$0{core::Object?};
-    #t3 = #t5;
-    #t2 = false;
+  dynamic a;
+  {
+    final dynamic #0#0 = x;
+    if(!(#0#0 is{ForNonNullableByDefault} (core::Object?) && (let final dynamic #t1 = a = #0#0{(core::Object?)}.$0{core::Object?} in true)))
+      throw new _in::ReachabilityError::•();
   }
-  if(#t2)
-    throw new _in::ReachabilityError::•();
-  dynamic a = #t3{dynamic};
 }

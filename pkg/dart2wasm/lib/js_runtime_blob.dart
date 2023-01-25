@@ -366,9 +366,6 @@ export const instantiate = async (modulePromise, importObjectPromise) => {
         performanceNow: function() {
             return performance.now();
         },
-        instanceofTrampoline: function(object, type) {
-            return object instanceof type;
-        },
 ''';
 
 // We break inside the 'dart2wasm' object to enable injection of methods. We

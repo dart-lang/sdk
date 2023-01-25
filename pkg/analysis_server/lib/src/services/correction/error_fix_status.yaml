@@ -71,6 +71,8 @@ AnalysisOptionsWarningCode.MULTIPLE_PLUGINS:
   status: needsFix
   notes: |-
     The fix is to remove the plugin name.
+AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE:
+  status: needsEvaluation
 AnalysisOptionsWarningCode.REMOVED_LINT:
   status: needsFix
 AnalysisOptionsWarningCode.REPLACED_LINT:
@@ -840,6 +842,8 @@ CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY:
 CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION:
   status: needsEvaluation
 CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT:
+  status: needsEvaluation
+CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH:
   status: needsEvaluation
 CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM:
   status: hasFix
@@ -1626,15 +1630,15 @@ HintCode.UNNECESSARY_NULL_COMPARISON_TRUE:
 HintCode.UNNECESSARY_QUESTION_MARK:
   status: hasFix
 HintCode.UNNECESSARY_TYPE_CHECK_FALSE:
-  status: needsFix
-  issue: https://github.com/dart-lang/sdk/issues/47793
+  status: hasFix
 HintCode.UNNECESSARY_TYPE_CHECK_TRUE:
-  status: needsFix
-  issue: https://github.com/dart-lang/sdk/issues/47793
+  status: hasFix
 HintCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT:
   status: hasFix
 HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL:
   status: hasFix
+HintCode.UNREACHABLE_SWITCH_CASE:
+  status: needsEvaluation
 HintCode.UNUSED_CATCH_CLAUSE:
   status: hasFix
 HintCode.UNUSED_CATCH_STACK:

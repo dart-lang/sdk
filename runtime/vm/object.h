@@ -176,7 +176,7 @@ class BaseTextBuffer;
     return reinterpret_cast<const object&>(obj);                               \
   }                                                                            \
   static object##Ptr RawCast(ObjectPtr raw) {                                  \
-    ASSERT(Object::Handle(raw).IsNull() || Object::Handle(raw).Is##object());  \
+    ASSERT(Is##object##NoHandle(raw));                                         \
     return static_cast<object##Ptr>(raw);                                      \
   }                                                                            \
   static object##Ptr null() {                                                  \
@@ -217,7 +217,13 @@ class BaseTextBuffer;
   /* with an object id is printed. If ref is false the object is fully   */    \
   /* printed.                                                            */    \
   virtual void PrintJSONImpl(JSONStream* stream, bool ref) const;              \
-  virtual const char* JSONType() const { return "" #object; }
+  /* Prints JSON objects that describe the implementation-level fields of */   \
+  /* the current Object to |jsarr_fields|.                                */   \
+  virtual void PrintImplementationFieldsImpl(const JSONArray& jsarr_fields)    \
+      const;                                                                   \
+  virtual const char* JSONType() const {                                       \
+    return "" #object;                                                         \
+  }
 #else
 #define OBJECT_SERVICE_SUPPORT(object) protected: /* NOLINT */
 #endif                                            // !PRODUCT
@@ -332,7 +338,16 @@ class Object {
 
 // Class testers.
 #define DEFINE_CLASS_TESTER(clazz)                                             \
-  virtual bool Is##clazz() const { return false; }
+  virtual bool Is##clazz() const { return false; }                             \
+  static bool Is##clazz##NoHandle(ObjectPtr ptr) {                             \
+    /* Use a stack handle to make RawCast safe in contexts where handles   */  \
+    /* should not be allocated, such as GC or runtime transitions. Not     */  \
+    /* using Object's constructor to avoid Is##clazz being de-virtualized. */  \
+    char buf[sizeof(Object)];                                                  \
+    Object* obj = reinterpret_cast<Object*>(&buf);                             \
+    initializeHandle(obj, ptr);                                                \
+    return obj->IsNull() || obj->Is##clazz();                                  \
+  }
   CLASS_LIST_FOR_HANDLES(DEFINE_CLASS_TESTER);
 #undef DEFINE_CLASS_TESTER
 
@@ -350,6 +365,9 @@ class Object {
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream, bool ref = true) const;
   virtual void PrintJSONImpl(JSONStream* stream, bool ref) const;
+  void PrintImplementationFields(JSONStream* stream) const;
+  virtual void PrintImplementationFieldsImpl(
+      const JSONArray& jsarr_fields) const;
   virtual const char* JSONType() const { return IsNull() ? "null" : "Object"; }
 #endif
 
@@ -3855,7 +3873,7 @@ class Function : public Object {
   //          dispatchers is not visible. Synthetic code that can trigger
   //          exceptions such as the outer async functions that create Futures
   //          is visible.
-  // instrinsic: Has a hand-written assembly prologue.
+  // intrinsic: Has a hand-written assembly prologue.
   // inlinable: Candidate for inlining. False for functions with features we
   //            don't support during inlining (e.g., optional parameters),
   //            functions which are too big, etc.
@@ -11421,51 +11439,6 @@ class TypedData : public TypedDataBase {
   static TypedDataPtr Grow(const TypedData& current,
                            intptr_t len,
                            Heap::Space space = Heap::kNew);
-
-  static void Copy(const TypedDataBase& dst,
-                   intptr_t dst_offset_in_bytes,
-                   const TypedDataBase& src,
-                   intptr_t src_offset_in_bytes,
-                   intptr_t length_in_bytes) {
-    ASSERT(Utils::RangeCheck(src_offset_in_bytes, length_in_bytes,
-                             src.LengthInBytes()));
-    ASSERT(Utils::RangeCheck(dst_offset_in_bytes, length_in_bytes,
-                             dst.LengthInBytes()));
-    {
-      NoSafepointScope no_safepoint;
-      if (length_in_bytes > 0) {
-        memmove(dst.DataAddr(dst_offset_in_bytes),
-                src.DataAddr(src_offset_in_bytes), length_in_bytes);
-      }
-    }
-  }
-
-  static void ClampedCopy(const TypedDataBase& dst,
-                          intptr_t dst_offset_in_bytes,
-                          const TypedDataBase& src,
-                          intptr_t src_offset_in_bytes,
-                          intptr_t length_in_bytes) {
-    ASSERT(Utils::RangeCheck(src_offset_in_bytes, length_in_bytes,
-                             src.LengthInBytes()));
-    ASSERT(Utils::RangeCheck(dst_offset_in_bytes, length_in_bytes,
-                             dst.LengthInBytes()));
-    {
-      NoSafepointScope no_safepoint;
-      if (length_in_bytes > 0) {
-        uint8_t* dst_data =
-            reinterpret_cast<uint8_t*>(dst.DataAddr(dst_offset_in_bytes));
-        int8_t* src_data =
-            reinterpret_cast<int8_t*>(src.DataAddr(src_offset_in_bytes));
-        for (intptr_t ix = 0; ix < length_in_bytes; ix++) {
-          int8_t v = *src_data;
-          if (v < 0) v = 0;
-          *dst_data = v;
-          src_data++;
-          dst_data++;
-        }
-      }
-    }
-  }
 
   static bool IsTypedData(const Instance& obj) {
     ASSERT(!obj.IsNull());

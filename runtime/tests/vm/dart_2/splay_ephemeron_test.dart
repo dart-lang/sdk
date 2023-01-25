@@ -52,8 +52,8 @@ class Payload {
     this.right = right;
   }
 
-  // This ordering of fields is delibrate: one key is visited before the expando
-  // and one after.
+  // This ordering of fields is deliberate: one key is visited before the
+  // expando and one after.
   final leftKey = new Object();
   final expando = new Expando();
   final rightKey = new Object();
@@ -73,8 +73,8 @@ class Payload {
 class EphemeronNode extends Node {
   EphemeronNode(num key, Object value) : super(key, value);
 
-  // This ordering of fields is delibrate: one key is visited before the expando
-  // and one after.
+  // This ordering of fields is deliberate: one key is visited before the
+  // expando and one after.
   final leftKey = new Object();
   final expando = new Expando<Node>();
   final rightKey = new Object();

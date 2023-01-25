@@ -99,21 +99,29 @@ class _MethodLoweringConfig {
 }
 
 /// Lowers static interop to JS, generating specialized JS methods as required.
+/// We lower methods to JS, but wait to emit the runtime until after we complete
+/// translation. Ideally, we'd do everything after translation, but
+/// unfortunately the TFA assumes classes with external factory constructors
+/// that aren't mark with `entry-point` are abstract, and their methods thus get
+/// replaced with `throw`s. Since we have to lower factory methods anyways, we
+/// go ahead and lower everything, let the TFA tree shake, and then emit JS only
+/// for the remaining nodes. We can revisit this if it becomes a performance
+/// issue.
 class _JSLowerer extends Transformer {
   final Procedure _dartifyRawTarget;
   final Procedure _jsifyRawTarget;
   final Procedure _isDartFunctionWrappedTarget;
   final Procedure _wrapDartFunctionTarget;
   final Procedure _allowInteropTarget;
+  final Procedure _inlineJSTarget;
   final Procedure _numToInt;
   final Class _wasmExternRefClass;
   final Class _pragmaClass;
   final Field _pragmaName;
   final Field _pragmaOptions;
-  // TODO(joshualitt): Tree shake js methods by holding on to
-  // _MethodLoweringConfigs until after we run the TFA, and then only generating
-  // js methods for the dart stubs that remain.
-  final List<String> jsMethods = [];
+  bool _replaceProcedureWithInlineJS = false;
+  late String _inlineJSImportName;
+  final Map<Procedure, String> jsMethods = {};
   int _methodN = 1;
   late Library _library;
   late String _libraryJSString;
@@ -133,6 +141,8 @@ class _JSLowerer extends Transformer {
             .getTopLevelProcedure('dart:_js_helper', '_wrapDartFunction'),
         _allowInteropTarget =
             _coreTypes.index.getTopLevelProcedure('dart:js', 'allowInterop'),
+        _inlineJSTarget =
+            _coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'JS'),
         _wasmExternRefClass =
             _coreTypes.index.getClass('dart:wasm', 'WasmExternRef'),
         _numToInt = _coreTypes.index
@@ -174,6 +184,8 @@ class _JSLowerer extends Transformer {
       Expression argument = node.arguments.positional.single;
       DartType functionType = argument.getStaticType(_staticTypeContext);
       return _allowInterop(node.target, functionType as FunctionType, argument);
+    } else if (node.target == _inlineJSTarget) {
+      return _expandInlineJS(node.target, node);
     }
     return node;
   }
@@ -252,7 +264,18 @@ class _JSLowerer extends Transformer {
       node.function.body = transformedBody..parent = node.function;
       node.isExternal = false;
     } else {
+      // Under very restricted circumstances, we will make a procedure external
+      // and clear it's body. See the description on [_expandInlineJS] for more
+      // details.
+      _replaceProcedureWithInlineJS = false;
       node.transformChildren(this);
+      if (_replaceProcedureWithInlineJS) {
+        node.isStatic = true;
+        node.isExternal = true;
+        node.function.body = null;
+        _annotateProcedure(node, _inlineJSImportName, _AnnotationType.import);
+        _replaceProcedureWithInlineJS = false;
+      }
     }
     _staticTypeContext.leaveMember(node);
     return node;
@@ -295,9 +318,8 @@ class _JSLowerer extends Transformer {
       StaticInvocation(_coreTypes.identicalProcedure,
           Arguments([VariableGet(variable), ConstantExpression(constant)]));
 
-  Procedure _addInteropProcedure(String name, String pragmaOptionString,
-      FunctionNode function, Uri fileUri, _AnnotationType type,
-      {required bool isExternal}) {
+  void _annotateProcedure(
+      Procedure procedure, String pragmaOptionString, _AnnotationType type) {
     String pragmaName;
     switch (type) {
       case _AnnotationType.import:
@@ -307,15 +329,21 @@ class _JSLowerer extends Transformer {
         pragmaName = 'export';
         break;
     }
-    final procedure = Procedure(
-        Name(name, _library), ProcedureKind.Method, function,
-        isStatic: true, isExternal: isExternal, fileUri: fileUri)
-      ..isNonNullableByDefault = true;
     procedure.addAnnotation(
         ConstantExpression(InstanceConstant(_pragmaClass.reference, [], {
       _pragmaName.fieldReference: StringConstant('wasm:$pragmaName'),
       _pragmaOptions.fieldReference: StringConstant('$pragmaOptionString')
     })));
+  }
+
+  Procedure _addInteropProcedure(String name, String pragmaOptionString,
+      FunctionNode function, Uri fileUri, _AnnotationType type,
+      {required bool isExternal}) {
+    final procedure = Procedure(
+        Name(name, _library), ProcedureKind.Method, function,
+        isStatic: true, isExternal: isExternal, fileUri: fileUri)
+      ..isNonNullableByDefault = true;
+    _annotateProcedure(procedure, pragmaOptionString, type);
     _library.addProcedure(procedure);
     return procedure;
   }
@@ -440,26 +468,9 @@ class _JSLowerer extends Transformer {
       dartArguments = '$dartArguments,$jsParametersString';
     }
 
-    // Create JS method.
-    // Note: We have to use a regular function for the inner closure in some
-    // cases because we need access to `arguments`.
-    final jsMethodName = functionTrampolineName;
-    if (needsArguments) {
-      jsMethods.add("$jsMethodName: f => "
-          "finalizeWrapper(f, function($jsParametersString) {"
-          " return dartInstance.exports.$functionTrampolineName($dartArguments) "
-          "})");
-    } else {
-      if (parametersNeedParens(jsParameters)) {
-        jsParametersString = '($jsParametersString)';
-      }
-      jsMethods.add("$jsMethodName: f => "
-          "finalizeWrapper(f,$jsParametersString => "
-          "dartInstance.exports.$functionTrampolineName($dartArguments))");
-    }
-
     // Create Dart procedure stub.
-    return _addInteropProcedure(
+    final jsMethodName = functionTrampolineName;
+    Procedure dartProcedure = _addInteropProcedure(
         '|$jsMethodName',
         'dart2wasm.$jsMethodName',
         FunctionNode(null,
@@ -471,6 +482,25 @@ class _JSLowerer extends Transformer {
         fileUri,
         _AnnotationType.import,
         isExternal: true);
+
+    // Create JS method.
+    // Note: We have to use a regular function for the inner closure in some
+    // cases because we need access to `arguments`.
+    if (needsArguments) {
+      jsMethods[dartProcedure] = "$jsMethodName: f => "
+          "finalizeWrapper(f, function($jsParametersString) {"
+          " return dartInstance.exports.$functionTrampolineName($dartArguments) "
+          "})";
+    } else {
+      if (parametersNeedParens(jsParameters)) {
+        jsParametersString = '($jsParametersString)';
+      }
+      jsMethods[dartProcedure] = "$jsMethodName: f => "
+          "finalizeWrapper(f,$jsParametersString => "
+          "dartInstance.exports.$functionTrampolineName($dartArguments))";
+    }
+
+    return dartProcedure;
   }
 
   /// Lowers an invocation of `allowInterop<type>(foo)` to:
@@ -539,7 +569,8 @@ class _JSLowerer extends Transformer {
         isExternal: true);
 
     // Create JS method
-    jsMethods.add("$jsMethodName: ${config.generateJS(jsParameterStrings)}");
+    jsMethods[dartProcedure] =
+        "$jsMethodName: ${config.generateJS(jsParameterStrings)}";
 
     // Return the replacement body.
     // Because we simply don't have enough information, we leave all JS numbers
@@ -592,9 +623,89 @@ class _JSLowerer extends Transformer {
       return expression;
     }
   }
+
+  Procedure _getEnclosingProcedure(TreeNode node) {
+    while (node is! Procedure) {
+      node = node.parent!;
+    }
+    return node;
+  }
+
+  /// We will replace the enclosing procedure if:
+  ///   1) The enclosing procedure is static.
+  ///   2) The enclosing procedure has a body with a single statement, and that
+  ///      statement is just a [StaticInvocation] of the inline JS helper.
+  ///   3) All of the arguments to `inlineJS` are [VariableGet]s. (this is
+  ///      checked by [_expandInlineJS]).
+  bool _shouldReplaceEnclosingProcedure(StaticInvocation node) {
+    Procedure enclosingProcedure = _getEnclosingProcedure(node);
+    Statement enclosingBody = enclosingProcedure.function.body!;
+    Expression? expression;
+    if (enclosingBody is ReturnStatement) {
+      expression = enclosingBody.expression;
+    } else if (enclosingBody is Block && enclosingBody.statements.length == 1) {
+      Statement statement = enclosingBody.statements.single;
+      if (statement is ExpressionStatement) {
+        expression = statement.expression;
+      } else if (statement is ReturnStatement) {
+        expression = statement.expression;
+      }
+    }
+    return expression == node;
+  }
+
+  /// Calls to the `JS` helper are replaced in one of two ways:
+  ///   1) By a static invocation to an external stub method that imports
+  ///      the JS function.
+  ///   2) Under restricted circumstances the entire enclosing procedure will be
+  ///      replaced by an external stub method that imports the JS function. See
+  ///      [_shouldReplaceEnclosingProcedure] for more details.
+  Expression _expandInlineJS(Procedure inlineJSNode, StaticInvocation node) {
+    Arguments arguments = node.arguments;
+    List<Expression> originalArguments = arguments.positional.sublist(1);
+    List<VariableDeclaration> dartPositionalParameters = [];
+    bool allArgumentsAreGet = true;
+    for (int j = 0; j < originalArguments.length; j++) {
+      Expression originalArgument = originalArguments[j];
+      String parameterString = 'x$j';
+      DartType type = originalArgument.getStaticType(_staticTypeContext);
+      dartPositionalParameters
+          .add(VariableDeclaration(parameterString, type: type));
+      if (originalArgument is! VariableGet) {
+        allArgumentsAreGet = false;
+      }
+    }
+
+    assert(arguments.positional[0] is StringLiteral,
+        "Code template must be a StringLiteral");
+    String codeTemplate = (arguments.positional[0] as StringLiteral).value;
+    String jsMethodName = generateMethodName();
+    _inlineJSImportName = 'dart2wasm.$jsMethodName';
+    _replaceProcedureWithInlineJS =
+        allArgumentsAreGet && _shouldReplaceEnclosingProcedure(node);
+    Procedure dartProcedure;
+    Expression result;
+    if (_replaceProcedureWithInlineJS) {
+      dartProcedure = _getEnclosingProcedure(node);
+      result = InvalidExpression("Unreachable");
+    } else {
+      dartProcedure = _addInteropProcedure(
+          '|$jsMethodName',
+          _inlineJSImportName,
+          FunctionNode(null,
+              positionalParameters: dartPositionalParameters,
+              returnType: arguments.types.single),
+          inlineJSNode.fileUri,
+          _AnnotationType.import,
+          isExternal: true);
+      result = StaticInvocation(dartProcedure, Arguments(originalArguments));
+    }
+    jsMethods[dartProcedure] = "$jsMethodName: $codeTemplate";
+    return result;
+  }
 }
 
-String _performJSInteropTransformations(
+Map<Procedure, String> _performJSInteropTransformations(
     Component component,
     CoreTypes coreTypes,
     ClassHierarchy classHierarchy,
@@ -612,28 +723,42 @@ String _performJSInteropTransformations(
   for (Library library in interopDependentLibraries) {
     staticInteropClassEraser.visitLibrary(library);
   }
-  return jsLowerer.jsMethods.join(',\n');
+  return jsLowerer.jsMethods;
 }
 
-// TODO(joshualitt): Breakup the runtime blob and tree shake unused JS from the
-// runtime.
-String generateJSRuntime(
+class JSRuntimeFinalizer {
+  final Map<Procedure, String> allJSMethods;
+
+  JSRuntimeFinalizer(this.allJSMethods);
+
+  String generate(Iterable<Procedure> translatedProcedures) {
+    Set<Procedure> usedProcedures = {};
+    List<String> usedJSMethods = [];
+    for (Procedure p in translatedProcedures) {
+      if (usedProcedures.add(p) && allJSMethods.containsKey(p)) {
+        usedJSMethods.add(allJSMethods[p]!);
+      }
+    }
+    return '''
+  $jsRuntimeBlobPart1
+  ${usedJSMethods.join(',\n')}
+  $jsRuntimeBlobPart2
+''';
+  }
+}
+
+JSRuntimeFinalizer createJSRuntimeFinalizer(
     Component component, CoreTypes coreTypes, ClassHierarchy classHierarchy) {
-  String? jsInteropMethods;
   Set<Library> transitiveImportingJSInterop = {
     ...?calculateTransitiveImportsOfJsInteropIfUsed(
         component, Uri.parse("package:js/js.dart")),
     ...?calculateTransitiveImportsOfJsInteropIfUsed(
-        component, Uri.parse("dart:_js_annotations"))
+        component, Uri.parse("dart:_js_annotations")),
+    ...?calculateTransitiveImportsOfJsInteropIfUsed(
+        component, Uri.parse("dart:_js_helper")),
   };
-  if (transitiveImportingJSInterop.isNotEmpty) {
-    jsInteropMethods = _performJSInteropTransformations(
-        component, coreTypes, classHierarchy, transitiveImportingJSInterop);
-  }
-
-  return '''
-$jsRuntimeBlobPart1
-$jsInteropMethods
-$jsRuntimeBlobPart2
-''';
+  Map<Procedure, String> jsInteropMethods = {};
+  jsInteropMethods = _performJSInteropTransformations(
+      component, coreTypes, classHierarchy, transitiveImportingJSInterop);
+  return JSRuntimeFinalizer(jsInteropMethods);
 }

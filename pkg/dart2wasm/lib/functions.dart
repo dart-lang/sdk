@@ -210,6 +210,10 @@ class FunctionCollector {
       }
     }
   }
+
+  /// Returns an iterable of translated procedures.
+  Iterable<Procedure> get translatedProcedures =>
+      _functions.keys.map((k) => k.node).whereType<Procedure>();
 }
 
 class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {

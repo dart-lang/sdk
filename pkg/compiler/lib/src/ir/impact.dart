@@ -258,11 +258,6 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
   }
 
   @override
-  void visitTypedefTearOffConstant(ir.TypedefTearOffConstant node) {
-    defaultConstant(node);
-  }
-
-  @override
   void visitInstanceConstant(ir.InstanceConstant node) {
     registry.registerConstInstantiation(
         node.classNode, node.typeArguments, import);

@@ -27,51 +27,51 @@ static method main() → dynamic {
 }
 static method test(dynamic value, core::bool expected) → void {
   core::bool matched = false;
-  final dynamic #t1 = value;
-  if(#t1 =={core::Object::==}{(core::Object) → core::bool} #C2) {
-    {
+  {
+    final dynamic #0#0 = value;
+    if(#C2 =={core::List::==}{(core::Object) → core::bool} #0#0) {
       matched = true;
     }
   }
-  final dynamic #t2 = value;
-  if(#t2 =={core::Object::==}{(core::Object) → core::bool} #C3) {
-    {
+  {
+    final dynamic #1#0 = value;
+    if(#C3 =={core::List::==}{(core::Object) → core::bool} #1#0) {
       matched = true;
     }
   }
-  final dynamic #t3 = value;
-  if(#t3 =={core::Object::==}{(core::Object) → core::bool} #C4) {
-    {
+  {
+    final dynamic #2#0 = value;
+    if(#C4 =={core::Object::==}{(core::Object) → core::bool} #2#0) {
       matched = true;
     }
   }
-  final dynamic #t4 = value;
-  if(#t4 =={core::Object::==}{(core::Object) → core::bool} #C5) {
-    {
+  {
+    final dynamic #3#0 = value;
+    if(#C5 =={core::Object::==}{(core::Object) → core::bool} #3#0) {
       matched = true;
     }
   }
-  final dynamic #t5 = value;
-  if(#t5 =={core::Object::==}{(core::Object) → core::bool} #C7) {
-    {
+  {
+    final dynamic #4#0 = value;
+    if(#C7 =={core::Object::==}{(core::Object) → core::bool} #4#0) {
       matched = true;
     }
   }
-  final dynamic #t6 = value;
-  if(#t6 =={core::Object::==}{(core::Object) → core::bool} #C8) {
-    {
+  {
+    final dynamic #5#0 = value;
+    if(#C8 =={core::Object::==}{(core::Object) → core::bool} #5#0) {
       matched = true;
     }
   }
-  final dynamic #t7 = value;
-  if(#t7 =={core::Object::==}{(core::Object) → core::bool} #C9) {
-    {
+  {
+    final dynamic #6#0 = value;
+    if(#C9 =={core::Object::==}{(core::Object) → core::bool} #6#0) {
       matched = true;
     }
   }
-  final dynamic #t8 = value;
-  if(#t8 =={core::Object::==}{(core::Object) → core::bool} #C10) {
-    {
+  {
+    final dynamic #7#0 = value;
+    if(#C10 =={core::Object::==}{(core::Object) → core::bool} #7#0) {
       matched = true;
     }
   }

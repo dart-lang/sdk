@@ -5,16 +5,14 @@ import "dart:core" as core;
 static method test(dynamic x) → dynamic {
   #L1:
   {
-    final dynamic #t1 = x;
-    core::int #t2 = -1;
-    core::bool #t3 = false;
-    if(!#t3 && #t1{dynamic}.<(1.{core::int::<<}(1){(core::int) → core::int})) {
-      #t2 = 0;
-      #t3 = true;
+    core::int #t1 = -1;
+    final dynamic #0#0 = x;
+    if(#0#0{dynamic}{dynamic}.<(#C1)) {
+      #t1 = 0;
     }
-    switch(#t2) {
+    switch(#t1) {
       #L2:
-      case #C1:
+      case #C2:
         {
           {
             break #L1;
@@ -25,9 +23,6 @@ static method test(dynamic x) → dynamic {
 }
 
 constants  {
-  #C1 = 0
+  #C1 = 2
+  #C2 = 0
 }
-
-Extra constant evaluation status:
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///relational_inside_case_less_than.dart:7:14 -> IntConstant(2)
-Extra constant evaluation: evaluated: 10, effectively constant: 1

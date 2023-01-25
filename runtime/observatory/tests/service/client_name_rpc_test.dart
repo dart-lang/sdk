@@ -52,14 +52,14 @@ var tests = <VMTest>[
         },
       );
       fail('Successfully set invalid client name');
-    } on ServerRpcException catch (e) {/* expected */}
+    } on ServerRpcException {/* expected */}
   },
   // Missing parameters.
   (VM vm) async {
     try {
       await vm.invokeRpcNoUpgrade('setClientName', {});
       fail('Successfully set name with no type');
-    } on ServerRpcException catch (e) {/* expected */}
+    } on ServerRpcException {/* expected */}
   },
 ];
 

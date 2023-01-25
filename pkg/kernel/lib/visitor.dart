@@ -1024,6 +1024,8 @@ abstract class ComputeOnceConstantVisitor<R> implements _ConstantCallback<R> {
   @override
   R visitSetConstant(SetConstant node) => defaultConstant(node);
   @override
+  R visitRecordConstant(RecordConstant node) => defaultConstant(node);
+  @override
   R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
   @override
   R visitInstantiationConstant(InstantiationConstant node) =>
@@ -1091,9 +1093,14 @@ abstract class VisitOnceConstantVisitor implements _ConstantCallback<void> {
   @override
   void visitSetConstant(SetConstant node) => defaultConstant(node);
   @override
+  void visitRecordConstant(RecordConstant node) => defaultConstant(node);
+  @override
   void visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
   @override
   void visitInstantiationConstant(InstantiationConstant node) =>
+      defaultConstant(node);
+  @override
+  void visitTypedefTearOffConstant(TypedefTearOffConstant node) =>
       defaultConstant(node);
   @override
   void visitStaticTearOffConstant(StaticTearOffConstant node) =>
@@ -1366,6 +1373,9 @@ abstract class Visitor1<R, A> extends TreeVisitor1<R, A>
   R visitListConstant(ListConstant node, A arg) => defaultConstant(node, arg);
   @override
   R visitSetConstant(SetConstant node, A arg) => defaultConstant(node, arg);
+  @override
+  R visitRecordConstant(RecordConstant node, A arg) =>
+      defaultConstant(node, arg);
   @override
   R visitInstanceConstant(InstanceConstant node, A arg) =>
       defaultConstant(node, arg);

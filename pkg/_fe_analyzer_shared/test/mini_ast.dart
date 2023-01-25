@@ -402,6 +402,7 @@ Statement while_(Expression condition, List<Statement> body) {
 Pattern wildcard({String? type, String? expectInferredType}) {
   return _WildcardPattern(
     declaredType: type == null ? null : Type(type),
+    expectInferredType: expectInferredType,
     location: computeLocation(),
   );
 }
@@ -601,6 +602,7 @@ class Harness {
   static Map<String, Type> _coreMemberTypes = {
     'int.>': Type('bool Function(num)'),
     'int.>=': Type('bool Function(num)'),
+    'num.sign': Type('num'),
   };
 
   final MiniAstOperations _operations = MiniAstOperations();
@@ -1076,6 +1078,7 @@ class MiniAstOperations
     'List <: Iterable<int>': Type('List<int>'),
     'Never <: int': Type('Never'),
     'num <: int': Type('num'),
+    'num <: Object': Type('num'),
   };
 
   static final Map<String, Type> _coreNormalizeResults = {
@@ -5025,7 +5028,12 @@ class _While extends Statement {
 class _WildcardPattern extends Pattern {
   final Type? declaredType;
 
-  _WildcardPattern({required this.declaredType, required super.location})
+  final String? expectInferredType;
+
+  _WildcardPattern(
+      {required this.declaredType,
+      required this.expectInferredType,
+      required super.location})
       : super._();
 
   @override
@@ -5050,12 +5058,17 @@ class _WildcardPattern extends Pattern {
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply('wildcardPattern', [Kind.type], Kind.pattern,
         names: ['matchedType'], location: location);
+    var expectInferredType = this.expectInferredType;
+    if (expectInferredType != null) {
+      expect(matchedType.type, expectInferredType);
+    }
   }
 
   @override
   _debugString({required bool needsKeywordOrType}) => [
         if (declaredType != null) declaredType!.type,
         '_',
+        if (expectInferredType != null) '(expected type $expectInferredType)'
       ].join(' ');
 }
 

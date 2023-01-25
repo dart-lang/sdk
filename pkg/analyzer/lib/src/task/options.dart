@@ -34,12 +34,13 @@ List<AnalysisError> analyzeAnalysisOptions(
   String contextRoot,
   VersionConstraint? sdkVersionConstraint,
 ) {
-  List<AnalysisError> errors = <AnalysisError>[];
+  List<AnalysisError> errors = [];
   Source initialSource = source;
   SourceSpan? initialIncludeSpan;
   AnalysisOptionsProvider optionsProvider =
       AnalysisOptionsProvider(sourceFactory);
   String? firstPluginName;
+  Map<Source, SourceSpan> includeChain = {};
 
   // TODO(srawlins): This code is getting quite complex, with multiple local
   // functions, and should be refactored to a class maintaining state, with less
@@ -74,7 +75,7 @@ List<AnalysisError> analyzeAnalysisOptions(
   // Validate the specified options and any included option files.
   void validate(Source source, YamlMap options) {
     var sourceIsOptionsForContextRoot = initialIncludeSpan == null;
-    List<AnalysisError> validationErrors =
+    var validationErrors =
         OptionsFileValidator(source, sdkVersionConstraint: sdkVersionConstraint)
             .validate(options);
     addDirectErrorOrIncludedError(validationErrors, source,
@@ -93,6 +94,15 @@ List<AnalysisError> analyzeAnalysisOptions(
     initialIncludeSpan ??= includeSpan;
     String includeUri = includeSpan.text;
     var includedSource = sourceFactory.resolveUri(source, includeUri);
+    if (includedSource == initialSource) {
+      errors.add(AnalysisError(
+          initialSource,
+          initialIncludeSpan!.start.offset,
+          initialIncludeSpan!.length,
+          AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
+          [includeUri, source.fullName]));
+      return;
+    }
     if (includedSource == null || !includedSource.exists()) {
       errors.add(AnalysisError(
           initialSource,
@@ -102,6 +112,22 @@ List<AnalysisError> analyzeAnalysisOptions(
           [includeUri, source.fullName, contextRoot]));
       return;
     }
+    var spanInChain = includeChain[includedSource];
+    if (spanInChain != null) {
+      errors.add(AnalysisError(
+          initialSource,
+          initialIncludeSpan!.start.offset,
+          initialIncludeSpan!.length,
+          AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING, [
+        includedSource,
+        spanInChain.start.offset,
+        spanInChain.length,
+        'The file includes itself recursively.',
+      ]));
+      return;
+    }
+    includeChain[includedSource] = includeSpan;
+
     try {
       var includedOptions =
           optionsProvider.getOptionsFromString(includedSource.contents.data);

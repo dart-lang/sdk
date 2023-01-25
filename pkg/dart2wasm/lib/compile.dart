@@ -89,8 +89,8 @@ Future<CompilerOutput?> compileToModule(compiler.CompilerOptions options,
   Component component = compilerResult.component!;
   CoreTypes coreTypes = compilerResult.coreTypes!;
   ClassHierarchy classHierarchy = compilerResult.classHierarchy!;
-
-  String jsRuntime = generateJSRuntime(component, coreTypes, classHierarchy);
+  JSRuntimeFinalizer jsRuntimeFinalizer =
+      createJSRuntimeFinalizer(component, coreTypes, classHierarchy);
 
   globalTypeFlow.transformComponent(target, coreTypes, component,
       treeShakeSignatures: true,
@@ -115,5 +115,8 @@ Future<CompilerOutput?> compileToModule(compiler.CompilerOptions options,
         options.outputFile, depFile);
   }
 
-  return CompilerOutput(translator.translate(), jsRuntime);
+  Uint8List wasmModule = translator.translate();
+  String jsRuntime =
+      jsRuntimeFinalizer.generate(translator.functions.translatedProcedures);
+  return CompilerOutput(wasmModule, jsRuntime);
 }

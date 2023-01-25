@@ -18,7 +18,6 @@
 /// kernel class, because multiple constructs in Dart may desugar to a tree
 /// with the same kind of root node.
 import 'package:kernel/ast.dart';
-import 'package:kernel/clone.dart';
 import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/text/ast_to_text.dart' show Precedence, Printer;
@@ -31,11 +30,11 @@ import '../builder/type_alias_builder.dart';
 import '../fasta_codes.dart';
 import '../names.dart';
 import '../problems.dart' show unsupported;
-import '../type_inference/external_ast_helper.dart';
+import '../type_inference/delayed_expressions.dart';
 import '../type_inference/inference_visitor.dart';
 import '../type_inference/inference_visitor_base.dart';
 import '../type_inference/inference_results.dart';
-import '../type_inference/object_access_target.dart';
+import '../type_inference/matching_cache.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
 
 typedef SharedMatchContext = shared
@@ -3685,19 +3684,10 @@ abstract class Pattern extends TreeNode with InternalTreeNode {
     required SharedMatchContext context,
   });
 
-  /// Transforms a pattern into a series of if-statements and local variables
-  ///
-  /// [matchedExpression] is the expression that evaluates to the object being
-  /// matched against the pattern at runtime. [matchedType] is the static type
-  /// of [matchedExpression]. [variableInitializingContext] evaluates to the
-  /// same runtime objects as [matchedExpression], but can be accessed without
-  /// causing additional side effects. It is the responsibility of the caller to
-  /// ensure the absence of those side effects, which can be done, for example,
-  /// via caching of the value to match in a local variable.
-  PatternTransformationResult transform(InferenceVisitorBase base,
-      {required Expression matchedExpression,
-      required DartType matchedType,
-      required Expression variableInitializingContext});
+  /// Creates the [DelayedExpression] needed to match [matchedExpression] using
+  /// [matchingCache] to create cacheable expressions.
+  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+      MatchingCache matchingCache, CacheableExpression matchedExpression);
 
   /// Returns the variable name that this pattern defines, if any.
   ///
@@ -3730,16 +3720,9 @@ class DummyPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase base,
-      {required Expression matchedExpression,
-      required DartType matchedType,
-      required Expression variableInitializingContext}) {
-    return new PatternTransformationResult([
-      new PatternTransformationElement(
-          kind: PatternTransformationElementKind.regular,
-          condition: null,
-          variableInitializers: <Statement>[])
-    ]);
+  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+      MatchingCache matchingCache, CacheableExpression matchedExpression) {
+    return new BooleanExpression(false, fileOffset: fileOffset);
   }
 
   @override
@@ -3774,21 +3757,13 @@ class ExpressionPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase base,
-      {required Expression matchedExpression,
-      required DartType matchedType,
-      required Expression variableInitializingContext}) {
-    VariableDeclaration constVariable =
-        createVariableCache(expression, expressionType)..isConst = true;
-    Expression result = createEqualsCall(
-        base, matchedType, matchedExpression, createVariableGet(constVariable),
+  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+      MatchingCache matchingCache, CacheableExpression matchedExpression) {
+    CacheableExpression constExpression =
+        matchingCache.createConstantExpression(expression, expressionType);
+    return matchingCache.createEqualsExpression(
+        expressionType, constExpression, matchedExpression,
         fileOffset: fileOffset);
-    return new PatternTransformationResult([
-      new PatternTransformationElement(
-          kind: PatternTransformationElementKind.regular,
-          condition: result,
-          variableInitializers: [constVariable])
-    ]);
   }
 
   @override
@@ -3802,7 +3777,7 @@ class ExpressionPattern extends Pattern {
   }
 }
 
-/// A [Pattern] for `pattern & pattern`.
+/// A [Pattern] for `pattern && pattern`.
 class AndPattern extends Pattern {
   Pattern left;
   Pattern right;
@@ -3825,41 +3800,18 @@ class AndPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase base,
-      {required Expression matchedExpression,
-      required DartType matchedType,
-      required Expression variableInitializingContext}) {
-    // intermediateVariable: `matchedType` VAR = `matchedExpression`
-    VariableDeclaration intermediateVariable =
-        createVariableCache(matchedExpression, matchedType);
-
-    PatternTransformationResult transformationResult = left.transform(base,
-        matchedExpression: createVariableGet(intermediateVariable),
-        matchedType: matchedType,
-        variableInitializingContext: createVariableGet(intermediateVariable));
-
-    transformationResult = transformationResult.combine(
-        right.transform(base,
-            matchedExpression: createVariableGet(intermediateVariable),
-            matchedType: matchedType,
-            variableInitializingContext:
-                createVariableGet(intermediateVariable)),
-        base);
-
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: null,
-            variableInitializers: [intermediateVariable]),
-        base);
-
-    return transformationResult;
+  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+      MatchingCache matchingCache, CacheableExpression matchedExpression) {
+    return new DelayedAndExpression(
+        left.createMatchingExpression(base, matchingCache, matchedExpression),
+        right.createMatchingExpression(base, matchingCache, matchedExpression),
+        fileOffset: fileOffset);
   }
 
   @override
   void toTextInternal(AstPrinter printer) {
     left.toTextInternal(printer);
-    printer.write(' & ');
+    printer.write(' && ');
     right.toTextInternal(printer);
   }
 
@@ -3869,7 +3821,7 @@ class AndPattern extends Pattern {
   }
 }
 
-/// A [Pattern] for `pattern | pattern`.
+/// A [Pattern] for `pattern || pattern`.
 class OrPattern extends Pattern {
   Pattern left;
   Pattern right;
@@ -3895,181 +3847,20 @@ class OrPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase base,
-      {required Expression matchedExpression,
-      required DartType matchedType,
-      required Expression variableInitializingContext}) {
-    // intermediateVariable: `matchedType` VAR = `matchedExpression`
-    VariableDeclaration intermediateVariable =
-        createVariableCache(matchedExpression, matchedType);
-
-    // leftConditionIsTrue: bool LVAR = false;
-    VariableDeclaration leftConditionIsTrue = createInitializedVariable(
-        createBoolLiteral(false, fileOffset: fileOffset),
-        base.coreTypes.boolNonNullableRawType,
+  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+      MatchingCache matchingCache, CacheableExpression matchedExpression) {
+    matchingCache.declareJointVariables(_orPatternJointVariables,
+        left.declaredVariables, right.declaredVariables);
+    return new DelayedOrExpression(
+        left.createMatchingExpression(base, matchingCache, matchedExpression),
+        right.createMatchingExpression(base, matchingCache, matchedExpression),
         fileOffset: fileOffset);
-
-    Map<String, VariableDeclaration> leftVariablesByName = {
-      for (VariableDeclaration variable in left.declaredVariables)
-        variable.name!: variable
-    };
-    Map<String, VariableDeclaration> rightVariablesByName = {
-      for (VariableDeclaration variable in right.declaredVariables)
-        variable.name!: variable
-    };
-    List<VariableDeclaration> declaredVariables = this.declaredVariables;
-    for (VariableDeclaration variable in declaredVariables) {
-      VariableDeclaration? leftVariable = leftVariablesByName[variable.name!];
-      VariableDeclaration? rightVariable = rightVariablesByName[variable.name!];
-
-      if (leftVariable == null || rightVariable == null) {
-        // TODO(cstefantsova): Make sure an error is reported.
-        continue;
-      }
-
-      variable.initializer = createConditionalExpression(
-          createVariableGet(leftConditionIsTrue),
-          createVariableGet(leftVariable, promotedType: leftVariable.type),
-          createVariableGet(rightVariable, promotedType: rightVariable.type),
-          staticType: base.typeSchemaEnvironment.getStandardUpperBound(
-              leftVariable.type, rightVariable.type,
-              isNonNullableByDefault: true),
-          fileOffset: fileOffset)
-        ..parent = variable;
-    }
-
-    // setLeftConditionIsTrue: `leftConditionIsTrue` = true;
-    //   ==> VAR = true;
-    Statement setLeftConditionIsTrue = createExpressionStatement(
-        createVariableSet(leftConditionIsTrue,
-            createBoolLiteral(true, fileOffset: fileOffset),
-            fileOffset: fileOffset));
-
-    PatternTransformationResult leftTransformationResult = left.transform(base,
-        matchedExpression: createVariableGet(intermediateVariable),
-        matchedType: matchedType,
-        variableInitializingContext: createVariableGet(intermediateVariable));
-    leftTransformationResult = leftTransformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.logicalOrPatternLeftBegin,
-            condition: null,
-            variableInitializers: []),
-        base);
-
-    // Initialize variables to values captured by [left].
-    List<Statement> leftVariableInitializers = [setLeftConditionIsTrue];
-    for (VariableDeclaration variable in left.declaredVariables) {
-      // TODO(johnniwinther): Can the variable be const?
-      variable.isFinal = false;
-      leftVariableInitializers.add(createExpressionStatement(createVariableSet(
-          variable, variable.initializer!,
-          fileOffset: fileOffset)));
-      variable.name = null;
-      variable.initializer = null;
-      variable.type = const DynamicType();
-    }
-    leftTransformationResult = leftTransformationResult.combine(
-        new PatternTransformationResult([
-          new PatternTransformationElement(
-              kind: PatternTransformationElementKind.regular,
-              condition: null,
-              variableInitializers: leftVariableInitializers)
-        ]),
-        base);
-
-    // rightConditionIsTrue: bool RVAR = false;
-    VariableDeclaration rightConditionIsTrue = createInitializedVariable(
-        createBoolLiteral(false, fileOffset: fileOffset),
-        base.coreTypes.boolNonNullableRawType,
-        fileOffset: fileOffset);
-
-    // setRightConditionIsTrue: `rightConditionIsTrue` = true;
-    //   ==> VAR = true;
-    Statement setRightConditionIsTrue = createExpressionStatement(
-        createVariableSet(rightConditionIsTrue,
-            createBoolLiteral(true, fileOffset: fileOffset),
-            fileOffset: fileOffset));
-
-    PatternTransformationResult rightTransformationResult = right.transform(
-        base,
-        matchedExpression: createVariableGet(intermediateVariable),
-        matchedType: matchedType,
-        variableInitializingContext: createVariableGet(intermediateVariable));
-    rightTransformationResult = rightTransformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            // condition: !`leftConditionIsTrue`
-            condition: createNot(createVariableGet(leftConditionIsTrue)),
-            variableInitializers: []),
-        base);
-    rightTransformationResult = rightTransformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.logicalOrPatternRightBegin,
-            condition: null,
-            variableInitializers: []),
-        base);
-
-    // Initialize variables to values captured by [right].
-    List<Statement> rightVariableInitializers = [setRightConditionIsTrue];
-    for (VariableDeclaration variable in right.declaredVariables) {
-      // TODO(johnniwinther): Can the variable be const?
-      variable.isFinal = false;
-      rightVariableInitializers.add(createExpressionStatement(createVariableSet(
-          variable, variable.initializer!,
-          fileOffset: fileOffset)));
-      variable.name = null;
-      variable.initializer = null;
-      variable.type = const DynamicType();
-    }
-    rightTransformationResult = rightTransformationResult.combine(
-        new PatternTransformationResult([
-          new PatternTransformationElement(
-              kind: PatternTransformationElementKind.regular,
-              condition: null,
-              variableInitializers: rightVariableInitializers)
-        ]),
-        base);
-
-    PatternTransformationResult transformationResult = leftTransformationResult
-        .combine(rightTransformationResult, base)
-        .combine(
-            new PatternTransformationResult([
-              new PatternTransformationElement(
-                  kind: PatternTransformationElementKind.logicalOrPatternEnd,
-                  condition: null,
-                  variableInitializers: []),
-              new PatternTransformationElement(
-                  kind: PatternTransformationElementKind.regular,
-                  // condition:
-                  //     `leftConditionIsTrue` || `rightConditionIsTrue`
-                  condition: createOrExpression(
-                      createVariableGet(leftConditionIsTrue),
-                      createVariableGet(rightConditionIsTrue),
-                      fileOffset: fileOffset),
-                  variableInitializers: [])
-            ]),
-            base);
-
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: null,
-            variableInitializers: [
-              intermediateVariable,
-              leftConditionIsTrue,
-              rightConditionIsTrue,
-              ...left.declaredVariables,
-              ...right.declaredVariables
-            ]),
-        base);
-
-    return transformationResult;
   }
 
   @override
   void toTextInternal(AstPrinter printer) {
     left.toTextInternal(printer);
-    printer.write(' | ');
+    printer.write(' || ');
     right.toTextInternal(printer);
   }
 
@@ -4103,33 +3894,12 @@ class CastPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase base,
-      {required Expression matchedExpression,
-      required DartType matchedType,
-      required Expression variableInitializingContext}) {
-    // castExpression: `matchedExpression` as `type`
-    Expression castExpression = createAsExpression(matchedExpression, type,
-        forNonNullableByDefault: base.isNonNullableByDefault,
-        fileOffset: fileOffset);
-
-    // intermediateVariable: `type` VAR = `castExpression`;
-    //   ==> `type` VAR = `matchedExpression` as `type`;
-    VariableDeclaration intermediateVariable =
-        createVariableCache(castExpression, type);
-
-    PatternTransformationResult transformationResult = pattern.transform(base,
-        matchedExpression: createVariableGet(intermediateVariable),
-        matchedType: type,
-        variableInitializingContext: createVariableGet(intermediateVariable));
-
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: null,
-            variableInitializers: [intermediateVariable]),
-        base);
-
-    return transformationResult;
+  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+      MatchingCache matchingCache, CacheableExpression matchedExpression) {
+    CacheableExpression asExpression = matchingCache
+        .createAsExpression(matchedExpression, type, fileOffset: fileOffset);
+    return new EffectExpression(asExpression,
+        pattern.createMatchingExpression(base, matchingCache, asExpression));
   }
 
   @override
@@ -4168,35 +3938,14 @@ class NullAssertPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase base,
-      {required Expression matchedExpression,
-      required DartType matchedType,
-      required Expression variableInitializingContext}) {
-    // nullCheckCondition: `matchedExpression`!
-    Expression nullCheckExpression =
-        createNullCheck(matchedExpression, fileOffset: fileOffset);
-
-    DartType typeWithoutNullabilityMarkers = matchedType.toNonNull();
-
-    // intermediateVariable: `typeWithoutNullabilityMarkers` VAR =
-    //     `nullCheckExpression`;
-    //   ==> `typeWithoutNullabilityMarkers` VAR = `matchedExpression`!;
-    VariableDeclaration intermediateVariable =
-        createVariableCache(nullCheckExpression, typeWithoutNullabilityMarkers);
-
-    PatternTransformationResult transformationResult = pattern.transform(base,
-        matchedExpression: createVariableGet(intermediateVariable),
-        matchedType: typeWithoutNullabilityMarkers,
-        variableInitializingContext: createVariableGet(intermediateVariable));
-
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: null,
-            variableInitializers: [intermediateVariable]),
-        base);
-
-    return transformationResult;
+  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+      MatchingCache matchingCache, CacheableExpression matchedExpression) {
+    CacheableExpression nullAssertExpression = matchingCache
+        .createNullAssertMatcher(matchedExpression, fileOffset: fileOffset);
+    return new EffectExpression(
+        nullAssertExpression,
+        pattern.createMatchingExpression(
+            base, matchingCache, nullAssertExpression));
   }
 
   @override
@@ -4234,43 +3983,16 @@ class NullCheckPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase base,
-      {required Expression matchedExpression,
-      required DartType matchedType,
-      required Expression variableInitializingContext}) {
-    // intermediateVariable: `matchedType` VAR = `matchedExpression`
-    VariableDeclaration intermediateVariable =
-        createVariableCache(matchedExpression, matchedType);
-
-    // nullCheckCondition: !(`intermediateVariable` == null)
-    Expression nullCheckCondition = createNot(
-        createEqualsNull(fileOffset, createVariableGet(intermediateVariable)));
-
-    DartType promotedType = matchedType.toNonNull();
-    PatternTransformationResult transformationResult = pattern.transform(base,
-        matchedExpression: createVariableGet(intermediateVariable,
-            promotedType: matchedType != promotedType ? promotedType : null),
-        matchedType: promotedType,
-        variableInitializingContext: createVariableGet(intermediateVariable));
-
-    // This needs to be added to the transformation elements since we need to
-    // create the [intermediateVariable] unconditionally before applying the
-    // [nullCheckCondition], as opposed to passing [nullCheckCondition] as the
-    // condition in the last transformation element.
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: nullCheckCondition,
-            variableInitializers: []),
-        base);
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: null,
-            variableInitializers: [intermediateVariable]),
-        base);
-
-    return transformationResult;
+  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+      MatchingCache matchingCache, CacheableExpression matchedExpression) {
+    CacheableExpression nullCheckExpression = matchingCache
+        .createNullCheckMatcher(matchedExpression, fileOffset: fileOffset);
+    return new DelayedConditionExpression(
+        nullCheckExpression,
+        pattern.createMatchingExpression(
+            base, matchingCache, matchedExpression),
+        new BooleanExpression(false, fileOffset: fileOffset),
+        fileOffset: fileOffset);
   }
 
   @override
@@ -4308,11 +4030,10 @@ class ListPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase base,
-      {required Expression matchedExpression,
-      required DartType matchedType,
-      required Expression variableInitializingContext}) {
-    // targetListType: List<`typeArgument`>
+  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+      MatchingCache matchingCache, CacheableExpression matchedExpression) {
+    DartType matchedType = matchedExpression.getType(base);
+
     DartType typeArgument = this.typeArgument ?? const DynamicType();
     DartType targetListType = new InterfaceType(base.coreTypes.listClass,
         Nullability.nonNullable, <DartType>[typeArgument]);
@@ -4321,22 +4042,11 @@ class ListPattern extends Pattern {
         !base.isAssignable(targetListType, matchedType) ||
             matchedType is DynamicType;
 
-    // listVariable: `matchedType` LVAR = `matchedExpression`
-    VariableDeclaration listVariable =
-        createVariableCache(matchedExpression, matchedType);
-    DartType? listVariablePromotedType =
-        typeCheckForTargetListNeeded ? targetListType : null;
-
-    // lengthGet: `listVariable`.length
-    //   ==> LVAR.length
-    Expression lengthGet = createInstanceGet(
-        base,
-        targetListType,
-        createVariableGet(listVariable, promotedType: listVariablePromotedType),
-        lengthName,
+    CacheableExpression lengthGet = matchingCache.createPropertyGetExpression(
+        targetListType, matchedExpression, lengthName,
         fileOffset: fileOffset);
 
-    Expression lengthCheck;
+    CacheableExpression lengthCheck;
     bool hasRestPattern = false;
     for (Pattern pattern in patterns) {
       if (pattern is RestPattern) {
@@ -4345,178 +4055,79 @@ class ListPattern extends Pattern {
       }
     }
     if (hasRestPattern) {
-      // lengthCheck: `lengthGet` >= `patterns.length - 1`
-      //   ==> LVAR.length >= `patterns.length - 1`
-      lengthCheck = createOperatorInvocation(
-          base,
+      lengthCheck = matchingCache.createComparisonExpression(
           base.coreTypes.intNonNullableRawType,
           lengthGet,
           greaterThanOrEqualsName,
-          createIntLiteral(patterns.length - 1, fileOffset: fileOffset),
+          matchingCache.createIntConstant(patterns.length - 1,
+              fileOffset: fileOffset),
           fileOffset: fileOffset);
     } else {
-      // lengthCheck: `lengthGet` == `patterns.length`
-      lengthCheck = createEqualsCall(base, base.coreTypes.intNonNullableRawType,
-          lengthGet, createIntLiteral(patterns.length, fileOffset: fileOffset),
+      lengthCheck = matchingCache.createEqualsExpression(
+          base.coreTypes.intNonNullableRawType,
+          lengthGet,
+          matchingCache.createIntConstant(patterns.length,
+              fileOffset: fileOffset),
           fileOffset: fileOffset);
     }
 
-    // typeAndLengthCheck: `listVariable` is `targetListType`
-    //     && `greaterThanOrEqualsInvocation`
-    //   ==> [LVAR is List<`typeArgument`> &&]?
-    //       LVAR.length >= `patterns.length`
-    Expression typeAndLengthCheck;
+    DelayedExpression typeAndLengthCheck;
     if (typeCheckForTargetListNeeded) {
-      typeAndLengthCheck = createAndExpression(
-          createIsExpression(createVariableGet(listVariable), targetListType,
-              forNonNullableByDefault: false, fileOffset: fileOffset),
-          lengthCheck,
+      CacheableExpression isExpression = matchingCache.createIsExpression(
+          matchedExpression, targetListType,
+          fileOffset: fileOffset);
+
+      typeAndLengthCheck = matchingCache.createAndExpression(
+          isExpression, lengthCheck,
           fileOffset: fileOffset);
     } else {
       typeAndLengthCheck = lengthCheck;
     }
 
-    PatternTransformationResult transformationResult =
-        new PatternTransformationResult([]);
-    List<VariableDeclaration> elementAccessVariables = [];
+    DelayedExpression matchingExpression = typeAndLengthCheck;
     bool hasSeenRestPattern = false;
     for (int i = 0; i < patterns.length; i++) {
-      Expression listElement;
-      DartType listElementType;
+      CacheableExpression elementExpression;
       if (patterns[i] is RestPattern) {
         hasSeenRestPattern = true;
         Pattern? subPattern = (patterns[i] as RestPattern).subPattern;
         if (subPattern == null) {
           continue;
         }
-        // startIndex: `i`
-        Expression startIndex = createIntLiteral(i, fileOffset: fileOffset);
-
-        // endIndex: `listVariable`.length - `patterns.length - i`
-        //   ==> LVAR.length - `patterns.length - i`
-
-        // lengthGet: `listVariable`.length ==> LVAR.length
-        Expression lengthGet = createInstanceGet(
-            base,
-            targetListType,
-            createVariableGet(listVariable,
-                promotedType: listVariablePromotedType),
-            lengthName,
-            fileOffset: fileOffset);
-
         int nextIndex = i + 1;
-        Expression? endIndex;
-        if (nextIndex != patterns.length) {
-          // endIndex: `lengthGet` - `patterns.length - nextIndex`
-          //   ==> LVAR.length - `patterns.length - nextIndex`
-          endIndex = createOperatorInvocation(
-              base,
-              base.coreTypes.intNonNullableRawType,
-              lengthGet,
-              minusName,
-              createIntLiteral(patterns.length - nextIndex,
-                  fileOffset: fileOffset),
-              fileOffset: fileOffset);
-        }
-
-        // listElement: `listVariable`.subList(`startIndex`,`endIndex`)
-        //   ==> LVAR.subList(`startIndex`,`endIndex`)
-        InstanceInvocation sublist = listElement = createInstanceInvocation(
-            base,
+        elementExpression = matchingCache.createSublistExpression(
             targetListType,
-            createVariableGet(listVariable,
-                promotedType: listVariablePromotedType),
-            sublistName,
-            [startIndex, if (endIndex != null) endIndex],
+            matchedExpression,
+            lengthGet,
+            i,
+            patterns.length - nextIndex,
             fileOffset: fileOffset);
-        listElementType = sublist.functionType.returnType;
       } else {
-        Expression elementIndex;
         if (!hasSeenRestPattern) {
-          // elementIndex: `i`
-          elementIndex = createIntLiteral(i, fileOffset: fileOffset);
-        } else {
-          // elementIndex: `listVariable`.length - `patterns.length - i`
-          //   ==> LVAR.length - `patterns.length - i`
-
-          // lengthGet: `listVariable`.length ==> LVAR.length
-          Expression lengthGet = createInstanceGet(
-              base,
-              targetListType,
-              createVariableGet(listVariable,
-                  promotedType: listVariablePromotedType),
-              lengthName,
+          elementExpression = matchingCache.createHeadIndexExpression(
+              targetListType, matchedExpression, i,
               fileOffset: fileOffset);
-
-          // elementIndex: `lengthGet` - `patterns.length - i`
-          //   ==> LVAR.length - `patterns.length - i`
-          elementIndex = createOperatorInvocation(
-              base,
-              base.coreTypes.intNonNullableRawType,
-              lengthGet,
-              minusName,
-              createIntLiteral(patterns.length - i, fileOffset: fileOffset),
+        } else {
+          elementExpression = matchingCache.createTailIndexExpression(
+              targetListType, matchedExpression, lengthGet, patterns.length - i,
               fileOffset: fileOffset);
         }
-
-        // listElement: `listVariable`[`elementIndex`]
-        //   ==> LVAR[`elementIndex`]
-        listElement = createOperatorInvocation(
-            base,
-            targetListType,
-            createVariableGet(listVariable,
-                promotedType: listVariablePromotedType),
-            indexGetName,
-            elementIndex,
-            fileOffset: fileOffset);
-        listElementType = typeArgument;
       }
 
-      // listElementVariable: `typeArgument` EVAR = `listElement`
-      //   ==> `typeArgument` EVAR = LVAR[`i`]
-      VariableDeclaration listElementVariable =
-          createVariableCache(listElement, listElementType);
-
-      PatternTransformationResult subpatternTransformationResult = patterns[i]
-          .transform(base,
-              matchedExpression: createVariableGet(listElementVariable),
-              matchedType: typeArgument,
-              variableInitializingContext:
-                  createVariableGet(listElementVariable));
-
-      // If the sub-pattern transformation doesn't declare captured variables
-      // and consists of a single empty element, it means that it simply
-      // doesn't have a place where it could refer to the element expression.
-      // In that case we can avoid creating the intermediary variable for the
-      // element expression.
-      //
-      // An example of such sub-pattern is in the following:
-      //
-      // if (x case [var _]) { /* ... */ }
-      if (patterns[i].declaredVariables.isNotEmpty ||
-          !(subpatternTransformationResult.elements.length == 1 &&
-              subpatternTransformationResult.elements.single.isEmpty)) {
-        elementAccessVariables.add(listElementVariable);
-        transformationResult =
-            transformationResult.combine(subpatternTransformationResult, base);
+      DelayedExpression subExpression = patterns[i]
+          .createMatchingExpression(base, matchingCache, elementExpression);
+      if (!subExpression.uses(elementExpression)) {
+        // Ensure that we perform the lookup even if we don't use the result.
+        matchingExpression = DelayedAndExpression.merge(matchingExpression,
+            new EffectExpression(elementExpression, subExpression),
+            fileOffset: fileOffset);
+      } else {
+        matchingExpression = DelayedAndExpression.merge(
+            matchingExpression, subExpression,
+            fileOffset: fileOffset);
       }
     }
-
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: typeAndLengthCheck,
-            variableInitializers: elementAccessVariables),
-        base);
-
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: null,
-            variableInitializers: [listVariable]),
-        base);
-
-    return transformationResult;
+    return matchingExpression;
   }
 
   @override
@@ -4590,10 +4201,10 @@ class ObjectPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase base,
-      {required Expression matchedExpression,
-      required DartType matchedType,
-      required Expression variableInitializingContext}) {
+  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+      MatchingCache matchingCache, CacheableExpression matchedExpression) {
+    DartType matchedType = matchedExpression.getType(base);
+
     // targetObjectType: `classNode`<`typeArguments`>
     DartType targetObjectType;
     if (typeArguments != null &&
@@ -4615,106 +4226,58 @@ class ObjectPattern extends Pattern {
         !base.isAssignable(targetObjectType, matchedType) ||
             matchedType is DynamicType;
 
-    // objectVariable: `matchedType` OVAR = `matchedExpression`
-    VariableDeclaration objectVariable =
-        createVariableCache(matchedExpression, matchedType);
-
-    // typeCheck: `objectVariable` is `targetObjectType`
-    //   ==> OVAR is `classNode`<`typeArguments`>
-    Expression? typeCheck;
+    DelayedExpression? matchingExpression;
     if (typeCheckForTargetNeeded) {
-      typeCheck = createIsExpression(
-          createVariableGet(objectVariable), targetObjectType,
-          forNonNullableByDefault: false, fileOffset: fileOffset);
+      matchingExpression = new DelayedIsExpression(
+          matchedExpression, targetObjectType,
+          fileOffset: fileOffset);
     }
 
-    List<VariableDeclaration> elementAccessVariables = [];
-    PatternTransformationResult transformationResult =
-        new PatternTransformationResult([]);
     for (NamedPattern field in fields) {
-      String fieldNameString = field.name;
-      Expression objectElement;
-      DartType fieldType;
-      Name fieldName = new Name(fieldNameString);
-
-      ObjectAccessTarget fieldAccessTarget = base.findInterfaceMember(
-          targetObjectType, fieldName, fileOffset,
-          callSiteAccessKind: CallSiteAccessKind.getterInvocation);
-
-      if (fieldAccessTarget.member != null) {
-        fieldType = fieldAccessTarget.getGetterType(base);
-
-        // objectElement: `objectVariable`.`fieldName`
-        //   ==> OVAR.`fieldName`
-        objectElement = createInstanceGet(
-            base,
-            targetObjectType,
-            createVariableGet(objectVariable, promotedType: targetObjectType),
-            fieldName,
-            fileOffset: fileOffset);
+      String? fieldNameString;
+      if (field.name.isNotEmpty) {
+        fieldNameString = field.name;
       } else {
-        objectElement = base.helper.buildProblem(
-            templateUndefinedGetter.withArguments(
-                fieldNameString, targetObjectType, base.isNonNullableByDefault),
-            fileOffset,
-            noLength);
-        fieldType = const InvalidType();
+        // The name is defined by the nested variable pattern.
+        Pattern nestedPattern = field.pattern;
+        if (nestedPattern is VariablePattern) {
+          fieldNameString = nestedPattern.name;
+        }
       }
 
-      // objectElementVariable: `fieldType` EVAR = `objectElement`
-      //   ==> `fieldType` EVAR = OVAR.`fieldName`
-      VariableDeclaration objectElementVariable =
-          createVariableCache(objectElement, fieldType);
+      if (fieldNameString != null) {
+        Name fieldName = new Name(fieldNameString);
 
-      PatternTransformationResult subpatternTransformationResult = field.pattern
-          .transform(base,
-              matchedExpression: createVariableGet(objectElementVariable),
-              matchedType: fieldType,
-              variableInitializingContext:
-                  createVariableGet(objectElementVariable));
-
-      // If the sub-pattern transformation doesn't declare captured variables
-      // and consists of a single empty element, it means that it simply
-      // doesn't have a place where it could refer to the element expression.
-      // In that case we can avoid creating the intermediary variable for the
-      // element expression.
-      //
-      // An example of such sub-pattern is in the following:
-      //
-      // if (x case A(foo: var _) { /* ... */ }
-      if (field.declaredVariables.isNotEmpty ||
-          !(subpatternTransformationResult.elements.length == 1 &&
-              subpatternTransformationResult.elements.single.isEmpty)) {
-        elementAccessVariables.add(objectElementVariable);
-        transformationResult =
-            transformationResult.combine(subpatternTransformationResult, base);
+        CacheableExpression objectExpression =
+            matchingCache.createPropertyGetExpression(
+                targetObjectType, matchedExpression, fieldName,
+                fileOffset: fileOffset);
+        DelayedExpression subExpression = field.pattern
+            .createMatchingExpression(base, matchingCache, objectExpression);
+        if (!subExpression.uses(objectExpression)) {
+          // Ensure that we perform the access even if we don't use the result.
+          matchingExpression = DelayedAndExpression.merge(matchingExpression,
+              new EffectExpression(objectExpression, subExpression),
+              fileOffset: fileOffset);
+        } else {
+          matchingExpression = DelayedAndExpression.merge(
+              matchingExpression, subExpression,
+              fileOffset: fileOffset);
+        }
+      } else {
+        matchingExpression = DelayedAndExpression.merge(
+            matchingExpression,
+            new FixedExpression(
+                base.helper.buildProblem(
+                    messageUnspecifiedGetterNameInObjectPattern,
+                    fileOffset,
+                    noLength),
+                const InvalidType()),
+            fileOffset: fileOffset);
       }
     }
-
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: null,
-            variableInitializers: elementAccessVariables),
-        base);
-
-    if (typeCheck != null) {
-      transformationResult = transformationResult.prependElement(
-          new PatternTransformationElement(
-              kind: PatternTransformationElementKind.regular,
-              condition: typeCheck,
-              variableInitializers: []),
-          base);
-    }
-
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: null,
-            variableInitializers: [objectVariable]),
-        base);
-
-    return transformationResult;
+    return matchingExpression ??
+        new BooleanExpression(true, fileOffset: fileOffset);
   }
 }
 
@@ -4732,6 +4295,7 @@ enum RelationalPatternKind {
 class RelationalPattern extends Pattern {
   final RelationalPatternKind kind;
   Expression expression;
+  DartType expressionType = const UnknownType();
 
   RelationalPattern(this.kind, this.expression, int fileOffset)
       : super(fileOffset) {
@@ -4750,26 +4314,18 @@ class RelationalPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase base,
-      {required Expression matchedExpression,
-      required DartType matchedType,
-      required Expression variableInitializingContext}) {
-    Expression? condition;
-    Name? name;
+  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+      MatchingCache matchingCache, CacheableExpression matchedExpression) {
+    CacheableExpression constant =
+        matchingCache.createConstantExpression(expression, expressionType);
+    Name name;
     switch (kind) {
       case RelationalPatternKind.equals:
       case RelationalPatternKind.notEquals:
-        if (expression is NullLiteral) {
-          condition = createEqualsNull(fileOffset, matchedExpression);
-        } else {
-          condition = createEqualsCall(
-              base, matchedType, matchedExpression, expression,
-              fileOffset: fileOffset);
-        }
-        if (kind == RelationalPatternKind.notEquals) {
-          condition = createNot(condition);
-        }
-        break;
+        return matchingCache.createEqualsExpression(
+            matchedExpression.getType(base), matchedExpression, constant,
+            isNot: kind == RelationalPatternKind.notEquals,
+            fileOffset: fileOffset);
       case RelationalPatternKind.lessThan:
         name = lessThanName;
         break;
@@ -4783,40 +4339,9 @@ class RelationalPattern extends Pattern {
         name = greaterThanOrEqualsName;
         break;
     }
-    if (condition == null) {
-      ObjectAccessTarget target = base.findInterfaceMember(
-          matchedType, name!, fileOffset,
-          callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-      if (target.kind == ObjectAccessTargetKind.dynamic) {
-        condition = new DynamicInvocation(
-            DynamicAccessKind.Dynamic,
-            matchedExpression,
-            name,
-            createArguments([expression], fileOffset: fileOffset));
-      } else if (target.member is! Procedure) {
-        base.helper.addProblem(
-            templateUndefinedOperator.withArguments(
-                name.text, matchedType, base.isNonNullableByDefault),
-            fileOffset,
-            noLength);
-        condition = null;
-      } else {
-        condition = new InstanceInvocation(
-            InstanceAccessKind.Instance,
-            matchedExpression,
-            name,
-            createArguments([expression], fileOffset: fileOffset),
-            functionType: target.getFunctionType(base),
-            interfaceTarget: target.member as Procedure)
-          ..fileOffset = fileOffset;
-      }
-    }
-    return new PatternTransformationResult([
-      new PatternTransformationElement(
-          kind: PatternTransformationElementKind.regular,
-          condition: condition,
-          variableInitializers: [])
-    ]);
+    return matchingCache.createComparisonExpression(
+        matchedExpression.getType(base), matchedExpression, name, constant,
+        fileOffset: fileOffset);
   }
 
   @override
@@ -4867,23 +4392,14 @@ class WildcardPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase base,
-      {required Expression matchedExpression,
-      required DartType matchedType,
-      required Expression variableInitializingContext}) {
-    Expression? condition;
+  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+      MatchingCache matchingCache, CacheableExpression matchedExpression) {
     if (type != null) {
-      condition = createIsExpression(matchedExpression, type!,
-          forNonNullableByDefault: false, fileOffset: fileOffset);
+      return new DelayedIsExpression(matchedExpression, type!,
+          fileOffset: fileOffset);
     } else {
-      condition = null;
+      return new BooleanExpression(true, fileOffset: fileOffset);
     }
-    return new PatternTransformationResult([
-      new PatternTransformationElement(
-          kind: PatternTransformationElementKind.regular,
-          condition: condition,
-          variableInitializers: [])
-    ]);
   }
 
   @override
@@ -4950,6 +4466,13 @@ class PatternAssignment extends InternalExpression {
   }
 
   @override
+  void toTextInternal(AstPrinter printer) {
+    pattern.toTextInternal(printer);
+    printer.write(' = ');
+    printer.writeExpression(expression);
+  }
+
+  @override
   String toString() {
     return "PatternAssignment(${toStringInternal()})";
   }
@@ -4967,7 +4490,7 @@ class AssignedVariablePattern extends Pattern {
   }
 
   @override
-  List<VariableDeclaration> get declaredVariables => [variable];
+  List<VariableDeclaration> get declaredVariables => const [];
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -4980,23 +4503,12 @@ class AssignedVariablePattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase base,
-      {required Expression matchedExpression,
-      required DartType matchedType,
-      required Expression variableInitializingContext}) {
-    // condition: let _ = `variable` = `matchedExpression` in true
-    return new PatternTransformationResult([
-      new PatternTransformationElement(
-          kind: PatternTransformationElementKind.regular,
-          condition: createLet(
-              createVariableCache(
-                  createVariableSet(variable, matchedExpression,
-                      fileOffset: fileOffset),
-                  const DynamicType()),
-              createBoolLiteral(true, fileOffset: fileOffset))
-            ..fileOffset = fileOffset,
-          variableInitializers: [])
-    ]);
+  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+      MatchingCache matchingCache, CacheableExpression matchedExpression) {
+    return new EffectExpression(
+        new VariableSetExpression(variable, matchedExpression,
+            fileOffset: fileOffset),
+        new BooleanExpression(true, fileOffset: fileOffset));
   }
 }
 
@@ -5125,10 +4637,10 @@ class MapPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase base,
-      {required Expression matchedExpression,
-      required DartType matchedType,
-      required Expression variableInitializingContext}) {
+  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+      MatchingCache matchingCache, CacheableExpression matchedExpression) {
+    DartType matchedType = matchedExpression.getType(base);
+
     DartType keyType = this.keyType ?? const DynamicType();
     DartType valueType = this.valueType ?? const DynamicType();
     DartType targetMapType = new InterfaceType(
@@ -5138,168 +4650,77 @@ class MapPattern extends Pattern {
         !base.isAssignable(targetMapType, matchedType) ||
             matchedType is DynamicType;
 
-    // mapVariable: `matchedType` MVAR = `matchedExpression`
-    VariableDeclaration mapVariable =
-        createVariableCache(matchedExpression, matchedType);
+    DelayedExpression? matchingExpression;
 
-    Expression? keysCheck;
-    for (int i = entries.length - 1; i >= 0; i--) {
-      MapPatternEntry entry = entries[i];
-      if (identical(entry, restMapPatternEntry)) continue;
-      ExpressionPattern keyPattern = entry.key as ExpressionPattern;
-
-      // containsKeyCheck: `mapVariable`.containsKey(`keyPattern.expression`)
-      //   ==> MVAR.containsKey(`keyPattern.expression`)
-      Expression containsKeyCheck = createInstanceInvocation(
-          base,
-          targetMapType,
-          createVariableGet(mapVariable,
-              promotedType: typeCheckForTargetMapNeeded ? targetMapType : null),
-          containsKeyName,
-          [keyPattern.expression],
-          fileOffset: fileOffset);
-
-      if (keysCheck == null) {
-        // keyCheck: `containsKeyCheck`
-        keysCheck = containsKeyCheck;
-      } else {
-        // keyCheck: `containsKeyCheck` && `keyCheck`
-        keysCheck = createAndExpression(containsKeyCheck, keysCheck,
-            fileOffset: fileOffset);
-      }
-    }
-
-    Expression? typeCheck;
     if (typeCheckForTargetMapNeeded) {
-      // typeCheck: `mapVariable` is `targetMapType`
-      //   ==> MVAR is Map<`keyType`, `valueType`>
-      typeCheck = createIsExpression(
-          createVariableGet(mapVariable), targetMapType,
-          forNonNullableByDefault: base.isNonNullableByDefault,
+      matchingExpression = matchingCache.createIsExpression(
+          matchedExpression, targetMapType,
           fileOffset: fileOffset);
     }
 
-    Expression? typeAndKeysCheck;
-    if (typeCheck != null && keysCheck != null) {
-      // typeAndKeysCheck: `typeCheck` && `keysCheck`
-      typeAndKeysCheck =
-          createAndExpression(typeCheck, keysCheck, fileOffset: fileOffset);
-    } else if (typeCheck != null && keysCheck == null) {
-      typeAndKeysCheck = typeCheck;
-    } else if (typeCheck == null && keysCheck != null) {
-      typeAndKeysCheck = keysCheck;
-    } else {
-      typeAndKeysCheck = null;
-    }
-
-    // lengthGet: `mapVariable`.length
-    //   ==> MVAR.length
-    Expression lengthGet = createInstanceGet(
-        base,
-        targetMapType,
-        createVariableGet(mapVariable,
-            promotedType: typeCheckForTargetMapNeeded ? targetMapType : null),
-        lengthName,
+    CacheableExpression lengthGet = matchingCache.createPropertyGetExpression(
+        targetMapType, matchedExpression, lengthName,
         fileOffset: fileOffset);
 
-    Expression lengthCheck;
+    CacheableExpression lengthCheck;
     // In map patterns the rest pattern can appear only in the end.
     bool hasRestPattern =
         entries.isNotEmpty && identical(entries.last, restMapPatternEntry);
     if (hasRestPattern) {
-      // lengthCheck: `lengthGet` >= `entries.length - 1`
-      //   ==> MVAR.length >= `entries.length - 1`
-      lengthCheck = createOperatorInvocation(
-          base,
+      lengthCheck = matchingCache.createComparisonExpression(
           base.coreTypes.intNonNullableRawType,
           lengthGet,
           greaterThanOrEqualsName,
-          createIntLiteral(entries.length - 1, fileOffset: fileOffset),
+          matchingCache.createIntConstant(entries.length - 1,
+              fileOffset: fileOffset),
           fileOffset: fileOffset);
     } else {
-      // lengthCheck: `lengthGet` == `entries.length`
-      lengthCheck = createEqualsCall(base, base.coreTypes.intNonNullableRawType,
-          lengthGet, createIntLiteral(entries.length, fileOffset: fileOffset),
+      lengthCheck = matchingCache.createEqualsExpression(
+          base.coreTypes.intNonNullableRawType,
+          lengthGet,
+          matchingCache.createIntConstant(entries.length,
+              fileOffset: fileOffset),
           fileOffset: fileOffset);
     }
+    matchingExpression = DelayedAndExpression.merge(
+        matchingExpression, lengthCheck,
+        fileOffset: fileOffset);
 
-    Expression typeAndKeysAndLengthCheck;
-    if (typeAndKeysCheck != null) {
-      // typeAndKeysAndLengthCheck: `typeAndKeysCheck` && `lengthCheck`
-      typeAndKeysAndLengthCheck = createAndExpression(
-          typeAndKeysCheck, lengthCheck,
-          fileOffset: fileOffset);
-    } else {
-      typeAndKeysAndLengthCheck = lengthCheck;
-    }
-
-    PatternTransformationResult transformationResult =
-        new PatternTransformationResult([]);
-    List<VariableDeclaration> valueAccessVariables = [];
-    CloneVisitorNotMembers cloner = new CloneVisitorNotMembers();
     for (MapPatternEntry entry in entries) {
       if (identical(entry, restMapPatternEntry)) continue;
       ExpressionPattern keyPattern = entry.key as ExpressionPattern;
-
-      // [keyPattern.expression] can be cloned without caching because it's a
-      // const expression according to the spec, and the constant
-      // canonicalization will eliminate the duplicated code.
-      //
-      // mapValue: `mapVariable`[`keyPattern.expression`]
-      //   ==> MVAR[`keyPattern.expression`]
-      Expression mapValue = createOperatorInvocation(
-          base,
-          targetMapType,
-          createVariableGet(mapVariable,
-              promotedType: typeCheckForTargetMapNeeded ? targetMapType : null),
-          indexGetName,
-          cloner.clone(keyPattern.expression),
+      CacheableExpression keyExpression =
+          matchingCache.createConstantExpression(
+              keyPattern.expression, keyPattern.expressionType);
+      CacheableExpression containsExpression =
+          matchingCache.createContainsKeyExpression(
+              targetMapType, matchedExpression, keyExpression,
+              fileOffset: entry.fileOffset);
+      matchingExpression = DelayedAndExpression.merge(
+          matchingExpression, containsExpression,
           fileOffset: fileOffset);
 
-      // mapValueVariable: `valueType` VVAR = `mapValue`
-      //   ==> `valueType` VVAR = MVAR[`keyPattern.expression`]
-      VariableDeclaration mapValueVariable =
-          createVariableCache(mapValue, valueType);
+      CacheableExpression valueExpression = matchingCache.createIndexExpression(
+          targetMapType, matchedExpression, keyExpression,
+          fileOffset: entry.fileOffset);
 
-      PatternTransformationResult subpatternTransformationResult = entry.value
-          .transform(base,
-              matchedExpression: createVariableGet(mapValueVariable),
-              matchedType: valueType,
-              variableInitializingContext: createVariableGet(mapValueVariable));
-
-      // If the sub-pattern transformation doesn't declare captured variables
-      // and consists of a single empty element, it means that it simply
-      // doesn't have a place where it could refer to the element expression.
-      // In that case we can avoid creating the intermediary variable for the
-      // element expression.
-      //
-      // An example of such sub-pattern is in the following:
-      //
-      // if (x case {"key": var _}) { /* ... */ }
-      if (entry.value.declaredVariables.isNotEmpty ||
-          !(subpatternTransformationResult.elements.length == 1 &&
-              subpatternTransformationResult.elements.single.isEmpty)) {
-        valueAccessVariables.add(mapValueVariable);
-        transformationResult =
-            transformationResult.combine(subpatternTransformationResult, base);
+      DelayedExpression subExpression = entry.value
+          .createMatchingExpression(base, matchingCache, valueExpression);
+      if (!subExpression.uses(valueExpression)) {
+        // Ensure that we perform the lookup even if we don't use the result.
+        matchingExpression = DelayedAndExpression.merge(matchingExpression,
+            new EffectExpression(valueExpression, subExpression),
+            fileOffset: fileOffset);
+      } else {
+        matchingExpression = DelayedAndExpression.merge(
+            matchingExpression, subExpression,
+            fileOffset: fileOffset);
       }
     }
 
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: typeAndKeysAndLengthCheck,
-            variableInitializers: valueAccessVariables),
-        base);
-
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: null,
-            variableInitializers: [mapVariable]),
-        base);
-
-    return transformationResult;
+    return matchingExpression ??
+        // TODO(johnniwinther): Why is this necessary?
+        new BooleanExpression(true, fileOffset: fileOffset);
   }
 }
 
@@ -5335,17 +4756,10 @@ class NamedPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase base,
-      {required Expression matchedExpression,
-      required DartType matchedType,
-      required Expression variableInitializingContext}) {
-    return new PatternTransformationResult([
-      new PatternTransformationElement(
-          kind: PatternTransformationElementKind.regular,
-          condition:
-              new InvalidExpression("Unimplemented NamedPattern.transform"),
-          variableInitializers: [])
-    ]);
+  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+      MatchingCache matchingCache, CacheableExpression matchedExpression) {
+    return pattern.createMatchingExpression(
+        base, matchingCache, matchedExpression);
   }
 }
 
@@ -5387,114 +4801,61 @@ class RecordPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase base,
-      {required Expression matchedExpression,
-      required DartType matchedType,
-      required Expression variableInitializingContext}) {
+  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+      MatchingCache matchingCache, CacheableExpression matchedExpression) {
+    DartType matchedType = matchedExpression.getType(base);
+
     bool typeCheckNeeded =
         !base.isAssignable(type, matchedType) || matchedType is DynamicType;
 
-    // recordVariable: `matchedType` RVAR = `matchedExpression`
-    VariableDeclaration recordVariable =
-        createVariableCache(matchedExpression, matchedType);
+    DelayedExpression? matchingExpression;
+    if (typeCheckNeeded) {
+      matchingExpression = new DelayedIsExpression(matchedExpression, type,
+          fileOffset: fileOffset);
+    }
 
-    PatternTransformationResult transformationResult =
-        new PatternTransformationResult([]);
     int recordFieldIndex = 0;
-    List<VariableDeclaration> fieldAccessVariables = [];
     for (Pattern fieldPattern in patterns) {
-      Expression recordField;
-      DartType fieldType;
+      CacheableExpression fieldExpression;
       Pattern subpattern;
       if (fieldPattern is NamedPattern) {
-        // recordField: `recordVariable`[`fieldPattern.name`]
-        //   ==> RVAR[`fieldPattern.name`]
-        recordField = createRecordNameGet(
+        fieldExpression = matchingCache.createPropertyGetExpression(
             type,
-            createVariableGet(recordVariable,
-                promotedType: typeCheckNeeded ? type : null),
-            fieldPattern.name,
+            matchedExpression,
+            new Name(fieldPattern.name, base.libraryBuilder.library),
             fileOffset: fieldPattern.fileOffset);
 
         // [type] is computed by the CFE, so the absence of the named field is
         // an internal error, and we check the condition with an assert rather
         // than reporting a compile-time error.
         assert(type.named.any((named) => named.name == fieldPattern.name));
-        fieldType = type.named
-            .firstWhere((named) => named.name == fieldPattern.name)
-            .type;
 
         subpattern = fieldPattern.pattern;
       } else {
-        // recordField: `recordVariable`[`recordFieldIndex`]
-        //   ==> RVAR[`recordFieldIndex`]
-        recordField = createRecordIndexGet(
+        fieldExpression = matchingCache.createPropertyGetExpression(
             type,
-            createVariableGet(recordVariable,
-                promotedType: typeCheckNeeded ? type : null),
-            recordFieldIndex,
+            matchedExpression,
+            new Name('\$${recordFieldIndex}', base.libraryBuilder.library),
             fileOffset: fieldPattern.fileOffset);
 
         // [type] is computed by the CFE, so the field index out of range is an
         // internal error, and we check the condition with an assert rather than
         // reporting a compile-time error.
         assert(recordFieldIndex < type.positional.length);
-        fieldType = type.positional[recordFieldIndex];
 
         subpattern = fieldPattern;
         recordFieldIndex++;
       }
 
-      // recordFieldIndex: `fieldType` FVAR = `recordField`
-      VariableDeclaration recordFieldVariable =
-          createVariableCache(recordField, fieldType);
-
-      PatternTransformationResult subpatternTransformationResult =
-          subpattern.transform(base,
-              matchedExpression: createVariableGet(recordFieldVariable),
-              matchedType: fieldType,
-              variableInitializingContext:
-                  createVariableGet(recordFieldVariable));
-
-      // If the sub-pattern transformation doesn't declare captured variables
-      // and consists of a single empty element, it means that it simply
-      // doesn't have a place where it could refer to the element expression.
-      // In that case we can avoid creating the intermediary variable for the
-      // element expression.
-      //
-      // An example of such sub-pattern is in the following:
-      //
-      // if (x case (var _,)) { /* ... */ }
-      if (subpattern.declaredVariables.isNotEmpty ||
-          !(subpatternTransformationResult.elements.length == 1 &&
-              subpatternTransformationResult.elements.single.isEmpty)) {
-        fieldAccessVariables.add(recordFieldVariable);
-        transformationResult =
-            transformationResult.combine(subpatternTransformationResult, base);
-      }
+      DelayedExpression subpatternResult = subpattern.createMatchingExpression(
+          base, matchingCache, fieldExpression);
+      matchingExpression = DelayedAndExpression.merge(
+          matchingExpression, subpatternResult,
+          fileOffset: fileOffset);
     }
 
-    // condition: [`recordVariable` is `type`]?
-    //   ==> [RVAR is `type`]?
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: !typeCheckNeeded
-                ? null
-                : createIsExpression(createVariableGet(recordVariable), type,
-                    forNonNullableByDefault: base.isNonNullableByDefault,
-                    fileOffset: fileOffset),
-            variableInitializers: fieldAccessVariables),
-        base);
-
-    transformationResult = transformationResult.prependElement(
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: null,
-            variableInitializers: [recordVariable]),
-        base);
-
-    return transformationResult;
+    return matchingExpression ??
+        new BooleanExpression(true, fileOffset: fileOffset);
   }
 }
 
@@ -5521,38 +4882,21 @@ class VariablePattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase base,
-      {required Expression matchedExpression,
-      required DartType matchedType,
-      required Expression variableInitializingContext}) {
-    PatternTransformationResult transformationResult;
-
+  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+      MatchingCache matchingCache, CacheableExpression matchedExpression) {
+    DelayedExpression? matchingExpression;
     if (type != null) {
-      VariableDeclaration? matchedExpressionVariable;
-      matchedExpressionVariable =
-          createVariableCache(matchedExpression, matchedType);
-      Expression condition = createIsExpression(
-          createVariableGet(matchedExpressionVariable), type!,
-          forNonNullableByDefault: false, fileOffset: variable.fileOffset);
-      transformationResult = new PatternTransformationResult([
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: null,
-            variableInitializers: [matchedExpressionVariable]),
-        new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: condition,
-            variableInitializers: [])
-      ]);
-      variable.initializer =
-          createVariableGet(matchedExpressionVariable, promotedType: type!)
-            ..parent = variable;
-    } else {
-      transformationResult = new PatternTransformationResult([]);
-      variable.initializer = matchedExpression..parent = variable;
+      matchingExpression = new DelayedIsExpression(matchedExpression, type!,
+          fileOffset: fileOffset);
     }
-
-    return transformationResult;
+    return DelayedAndExpression.merge(
+        matchingExpression,
+        new EffectExpression(
+            new VariableSetExpression(
+                matchingCache.getUnaliasedVariable(variable), matchedExpression,
+                allowFinalAssignment: true, fileOffset: fileOffset),
+            new BooleanExpression(true, fileOffset: fileOffset)),
+        fileOffset: fileOffset);
   }
 
   @override
@@ -5617,136 +4961,13 @@ class RestPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase base,
-      {required Expression matchedExpression,
-      required DartType matchedType,
-      required Expression variableInitializingContext}) {
+  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+      MatchingCache matchingCache, CacheableExpression matchedExpression) {
     if (subPattern != null) {
-      return subPattern!.transform(base,
-          matchedExpression: matchedExpression,
-          matchedType: matchedType,
-          variableInitializingContext: variableInitializingContext);
+      return subPattern!
+          .createMatchingExpression(base, matchingCache, matchedExpression);
     }
-    return unsupported("RestPattern.transform", fileOffset, base.helper.uri);
+    return unsupported(
+        "RestPattern.createMatchingExpression", fileOffset, base.helper.uri);
   }
-}
-
-enum PatternTransformationElementKind {
-  regular,
-  logicalOrPatternLeftBegin,
-  logicalOrPatternRightBegin,
-  logicalOrPatternEnd
-}
-
-class PatternTransformationElement {
-  /// Part of a matching condition of a pattern
-  ///
-  /// The desugared condition for matching a pattern is broken into several
-  /// elements. This is needed in order to declare the intermediate variables
-  /// for storing values that should be computed only once.
-  final Expression? condition;
-
-  /// Declaration and initialization of captured and intermediate variables
-  ///
-  /// These are the statements that needs to present in the desugared code in
-  /// order to properly initialize [declaredVariables] and any intermediate
-  /// variables.
-  final List<Statement> variableInitializers;
-
-  final PatternTransformationResult? otherwise;
-
-  final PatternTransformationElementKind kind;
-
-  PatternTransformationElement(
-      {required this.condition,
-      required this.variableInitializers,
-      required this.kind,
-      this.otherwise});
-
-  bool get isEmpty => condition == null && variableInitializers.isEmpty;
-}
-
-class PatternTransformationResult {
-  final List<PatternTransformationElement> elements;
-
-  PatternTransformationResult(this.elements);
-
-  /// Combines the results of two pattern transformations into a single result
-  ///
-  /// The typical use case of [combine] is to combine the results of
-  /// transforming two sub-patterns of the same pattern into a single result
-  /// that can later be combined with the results of transforming of other
-  /// sub-patterns as well. So the overall result of transforming a pattern is
-  /// a combination of the results of transforming of all of the sub-patterns.
-  ///
-  /// [combine] uses [prependElement] on [other] for the purpose of optimization
-  /// and simplification.
-  PatternTransformationResult combine(
-      PatternTransformationResult other, InferenceVisitorBase base) {
-    if (elements.isEmpty) {
-      return other;
-    } else if (other.elements.isEmpty) {
-      return this;
-    } else {
-      // TODO(cstefantsova): Does it make sense to use [prependElement] on each
-      // element from [elements], last to the first, prepending them to the
-      // accumulated result?
-      return new PatternTransformationResult([
-        ...elements.sublist(0, elements.length - 1),
-        ...other.prependElement(elements.last, base).elements
-      ]);
-    }
-  }
-
-  /// Adds [element] to the beginning of the transformation result
-  ///
-  /// The condition and the intermediate variables declared by the [element] are
-  /// assumed to affect the scope of the transformation result they are
-  /// prepended to. Some optimizations are performed to minimize the count of
-  /// the elements in the overall result. The optimizations include combining
-  /// conditions via logical `&&` operation and concatenating lists of variable
-  /// declarations.
-  PatternTransformationResult prependElement(
-      PatternTransformationElement element, InferenceVisitorBase base) {
-    if (elements.isEmpty) {
-      return new PatternTransformationResult([element]);
-    }
-    if (element.kind != PatternTransformationElementKind.regular ||
-        elements.first.kind != PatternTransformationElementKind.regular) {
-      return new PatternTransformationResult([element, ...elements]);
-    }
-    PatternTransformationElement outermost = elements.first;
-    Expression? elementCondition = element.condition;
-    Expression? outermostCondition = outermost.condition;
-    if (outermostCondition == null) {
-      elements[0] = new PatternTransformationElement(
-          kind: PatternTransformationElementKind.regular,
-          condition: elementCondition,
-          variableInitializers: [
-            ...element.variableInitializers,
-            ...outermost.variableInitializers
-          ]);
-      return this;
-    } else if (element.variableInitializers.isEmpty) {
-      if (elementCondition == null) {
-        // Trivial case: [element] has empty components.
-        return this;
-      } else {
-        elements[0] = new PatternTransformationElement(
-            kind: PatternTransformationElementKind.regular,
-            condition: createAndExpression(elementCondition, outermostCondition,
-                fileOffset: elementCondition.fileOffset),
-            variableInitializers: outermost.variableInitializers);
-        return this;
-      }
-    } else {
-      return new PatternTransformationResult([element, ...elements]);
-    }
-  }
-}
-
-class ContinuationStackElement {
-  List<Statement> statements;
-
-  ContinuationStackElement(this.statements);
 }

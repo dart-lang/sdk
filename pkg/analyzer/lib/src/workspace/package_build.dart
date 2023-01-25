@@ -12,6 +12,7 @@ import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/uri.dart';
+import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
@@ -25,6 +26,28 @@ class PackageBuildFileUriResolver extends ResourceUriResolver {
   final PackageBuildWorkspace workspace;
 
   PackageBuildFileUriResolver(this.workspace) : super(workspace.provider);
+
+  @override
+  Uri pathToUri(String path) {
+    var pathContext = workspace.provider.pathContext;
+    if (pathContext.isWithin(workspace.root, path)) {
+      var relative = pathContext.relative(path, from: workspace.root);
+      var components = pathContext.split(relative);
+      if (components.length > 4 &&
+          components[0] == '.dart_tool' &&
+          components[1] == 'build' &&
+          components[2] == 'generated' &&
+          components[3] == workspace.projectPackageName) {
+        var canonicalPath = pathContext.joinAll([
+          workspace.root,
+          ...components.skip(4),
+        ]);
+        return pathContext.toUri(canonicalPath);
+      }
+    }
+
+    return super.pathToUri(path);
+  }
 
   @override
   Source? resolveAbsolute(Uri uri) {
@@ -64,7 +87,7 @@ class PackageBuildPackageUriResolver extends UriResolver {
     if (_context.isWithin(_workspace.root, path)) {
       var uriParts = _restoreUriParts(path);
       if (uriParts != null) {
-        return Uri.parse('package:${uriParts[0]}/${uriParts[1]}');
+        return uriCache.parse('package:${uriParts[0]}/${uriParts[1]}');
       }
     }
 

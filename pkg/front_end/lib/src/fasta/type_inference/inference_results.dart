@@ -9,6 +9,7 @@ import '../kernel/internal_ast.dart';
 import 'external_ast_helper.dart';
 import 'inference_helper.dart';
 import 'inference_visitor_base.dart';
+import 'type_schema.dart';
 
 /// The result of a statement inference.
 class StatementInferenceResult {
@@ -339,7 +340,8 @@ class ExpressionInferenceResult {
   ExpressionInferenceResult(this.inferredType, this.expression,
       {this.postCoercionType = null})
       // ignore: unnecessary_null_comparison
-      : assert(expression != null);
+      : assert(expression != null),
+        assert(isKnown(inferredType));
 
   /// The guards used for null-aware access if the expression is part of a
   /// null-shorting.

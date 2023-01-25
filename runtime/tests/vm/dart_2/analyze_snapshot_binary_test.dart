@@ -1,7 +1,6 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 // @dart = 2.9
 
 import 'dart:convert';
@@ -27,11 +26,7 @@ Future<void> testAOT(String dillPath,
     Expect.isFalse(disassemble, 'no use of disassembler in PRODUCT mode');
   }
 
-  final analyzeSnapshot = path.join(
-      buildDir,
-      bool.fromEnvironment('dart.vm.product')
-          ? 'analyze_snapshot_product'
-          : 'analyze_snapshot');
+  final analyzeSnapshot = path.join(buildDir, 'analyze_snapshot');
 
   // For assembly, we can't test the sizes of the snapshot sections, since we
   // don't have a Mach-O reader for Mac snapshots and for ELF, the assembler
@@ -79,6 +74,7 @@ Future<void> testAOT(String dillPath,
       final assemblyPath = path.join(tempDir, 'test.S');
 
       await run(genSnapshot, <String>[
+        '--no-sound-null-safety',
         '--snapshot-kind=app-aot-assembly',
         '--assembly=$assemblyPath',
         ...commonSnapshotArgs,
@@ -87,6 +83,7 @@ Future<void> testAOT(String dillPath,
       await assembleSnapshot(assemblyPath, snapshotPath);
     } else {
       await run(genSnapshot, <String>[
+        '--no-sound-null-safety',
         '--snapshot-kind=app-aot-elf',
         '--elf=$snapshotPath',
         ...commonSnapshotArgs,
@@ -144,12 +141,13 @@ main() async {
 
   await withTempDir('analyze_snapshot_binary', (String tempDir) async {
     // We only need to generate the dill file once for all JIT tests.
-    final _thisTestPath = path.join(sdkDir, 'runtime', 'tests', 'vm', 'dart_2',
-        'analyze_snapshot_binary_test.dart');
+    final _thisTestPath = path.join(sdkDir, 'runtime', 'tests', 'vm', 'dart',
+        'use_save_debugging_info_flag_program.dart');
 
     // We only need to generate the dill file once for all AOT tests.
     final aotDillPath = path.join(tempDir, 'aot_test.dill');
     await run(genKernel, <String>[
+      '--no-sound-null-safety',
       '--aot',
       '--platform',
       platformDill,
@@ -177,37 +175,23 @@ main() async {
     // they have lots of output and so the log will be truncated.
     if (!const bool.fromEnvironment('dart.vm.product')) {
       // Regression test for dartbug.com/41149.
-      await testAOT(aotDillPath, disassemble: true);
+      await Future.wait([testAOT(aotDillPath, disassemble: true)]);
     }
 
-    // We neither generate assembly nor have a stripping utility on Windows.
-    if (Platform.isWindows) {
-      printSkip('external stripping and assembly tests');
-      return;
-    }
-
-    // The native strip utility on Mac OS X doesn't recognize ELF files.
-    if (Platform.isMacOS && clangBuildToolsDir == null) {
-      printSkip('ELF external stripping test');
-    } else {
-      // Test unstripped ELF generation that is then externally stripped.
-      await testAOT(aotDillPath, stripUtil: true);
-    }
-
-    // TODO(sstrickl): Currently we can't assemble for SIMARM64 on MacOSX.
-    // For example, the test runner still uses blobs for
-    // dartkp-mac-*-simarm64. Change assembleSnapshot and remove this check
-    // when we can.
-    if (Platform.isMacOS && buildDir.endsWith('SIMARM64')) {
-      printSkip('assembly tests');
-      return;
-    }
+    // Test unstripped ELF generation that is then externally stripped.
     await Future.wait([
-      // Test unstripped assembly generation that is then externally stripped.
-      testAOT(aotDillPath, useAsm: true),
-      // Test stripped assembly generation that is then externally stripped.
-      testAOT(aotDillPath, useAsm: true, stripFlag: true),
+      testAOT(aotDillPath, stripUtil: true),
     ]);
+
+    // Dont test assembled snapshot for simulated platforms
+    if (!buildDir.endsWith("SIMARM64") && !buildDir.endsWith("SIMARM64C")) {
+      await Future.wait([
+        // Test unstripped assembly generation that is then externally stripped.
+        testAOT(aotDillPath, useAsm: true),
+        // Test stripped assembly generation that is then externally stripped.
+        testAOT(aotDillPath, useAsm: true, stripFlag: true),
+      ]);
+    }
   });
 }
 

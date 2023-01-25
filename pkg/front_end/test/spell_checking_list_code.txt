@@ -171,6 +171,7 @@ bulk
 bump
 bypassing
 c
+cacheable
 caches
 calculations
 callbacks
@@ -258,6 +259,7 @@ compression
 comprise
 concat
 concatenate
+concept
 conceptual
 concerned
 conciser
@@ -295,6 +297,7 @@ corrected
 corrections
 cosmetic
 costly
+counted
 counters
 covariances
 coverage
@@ -361,6 +364,7 @@ deps
 dereferencing
 deregister
 descent
+descriptive
 deserializer
 deserializers
 deserializes
@@ -423,6 +427,7 @@ dupdate
 dyn
 dynamically
 e
+eager
 easy
 eb
 ecma
@@ -567,6 +572,7 @@ fs
 fsource
 fue
 fuller
+func
 function's
 fuse
 futured
@@ -881,6 +887,7 @@ mk
 mm
 mn
 mockito
+modelled
 modelling
 momentarily
 monomorphic
@@ -1580,6 +1587,7 @@ uninhabited
 uninstantiable
 uninstantiated
 unintentionally
+uniquely
 uniqueness
 unittest
 universally

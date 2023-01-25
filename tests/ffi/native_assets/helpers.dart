@@ -72,13 +72,13 @@ Future<void> withTempDir(
   Future<void> fun(Uri tempUri), {
   String prefix = 'tests_ffi_native_assets_',
 }) async {
-  final tempDir = Directory.systemTemp.createTempSync(prefix);
+  final tempDir = await Directory.systemTemp.createTemp(prefix);
   try {
     await fun(tempDir.uri);
   } finally {
     if (!Platform.environment.containsKey(keepTempKey) ||
         Platform.environment[keepTempKey]!.isEmpty) {
-      tempDir.deleteSync(recursive: true);
+      await tempDir.delete(recursive: true);
     }
   }
 }
@@ -123,7 +123,7 @@ Future<void> runGenKernel({
   required Uri outputUri,
   Uri? inputUri,
   Uri? nativeAssetsUri,
-}) async =>
+}) =>
     runProcess(
       executable: genKernelUri.toFilePath(),
       arguments: [
@@ -148,14 +148,13 @@ Future<void> createDillFile({
   required Uri dartProgramUri,
   required Uri nativeAssetsUri,
   required Runtime runtime,
-}) async {
-  await runGenKernel(
-    runtime: runtime,
-    outputUri: outputUri,
-    inputUri: dartProgramUri,
-    nativeAssetsUri: nativeAssetsUri,
-  );
-}
+}) =>
+    runGenKernel(
+      runtime: runtime,
+      outputUri: outputUri,
+      inputUri: dartProgramUri,
+      nativeAssetsUri: nativeAssetsUri,
+    );
 
 Future<void> runGenSnapshot({
   required Uri dillUri,
@@ -180,6 +179,8 @@ Future<void> runDart({
     runProcess(
       executable: dartUri.toFilePath(),
       arguments: [
+        // Prevent subprocesses holding on to [workingDirectory] on Windows.
+        '--suppress-core-dump',
         ...toolArgs,
         if (packageConfigUri != null)
           '--packages=${packageConfigUri.toFilePath()}',
@@ -194,7 +195,7 @@ Future<void> runDartKernelSnapshot({
   required Uri inputUri,
   Uri? packageConfigUri,
   Uri? workingDirectory,
-}) async =>
+}) =>
     runDart(
       workingDirectory: workingDirectory,
       toolArgs: [

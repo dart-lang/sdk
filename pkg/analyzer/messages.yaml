@@ -119,6 +119,15 @@ AnalysisOptionsWarningCode:
 
       Parameters:
       0: the name of the first plugin
+  RECURSIVE_INCLUDE_FILE:
+    problemMessage: "The include file '{0}' in '{1}' includes itself recursively."
+    correctionMessage: "Try changing the chain of 'include's to not re-include this file."
+    comment: |-
+      An error code indicating a specified include file includes itself recursively.
+
+      Parameters:
+      0: the URI of the file to be included
+      1: the path of the file containing the include directive
   REMOVED_LINT:
     problemMessage: "'{0}' was removed in Dart '{1}'"
     correctionMessage: "Remove the reference to '{0}'."
@@ -9897,6 +9906,13 @@ CompileTimeErrorCode:
       13.2 Expression Statements: It is a compile-time error if a non-constant
       map literal that has no explicit type arguments appears in a place where a
       statement is expected.
+  NON_EXHAUSTIVE_SWITCH:
+    problemMessage: "The type '{0}' is not exhaustively matched by the switch cases."
+    correctionMessage: "Try adding a default case or cases that match {1}."
+    comment: |-
+      Parameters:
+      0: the type of the switch scrutinee
+      1: the unmatched space
   NON_FINAL_FIELD_IN_ENUM:
     problemMessage: Enums can only declare final fields.
     correctionMessage: Try making the field final.
@@ -20640,6 +20656,9 @@ HintCode:
     correctionMessage: Try correcting the type check, or removing the type check.
     hasPublishedDocs: true
     comment: No parameters.
+  UNREACHABLE_SWITCH_CASE:
+    problemMessage: "This case is covered by the previous cases."
+    comment: No parameters.
   UNUSED_CATCH_CLAUSE:
     problemMessage: "The exception variable '{0}' isn't used, so the 'catch' clause can be removed."
     correctionMessage: Try removing the catch clause.
@@ -22179,6 +22198,7 @@ StaticWarningCode:
       isn't handled:
 
       ```dart
+      %language=2.19
       enum E { e1, e2 }
 
       void f(E e) {

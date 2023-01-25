@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/closure.dart';
@@ -37,7 +35,7 @@ class InliningDataComputer extends DataComputer<String> {
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose = false}) {
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new InliningIrComputer(compiler.reporter, actualMap, elementMap, member,
@@ -66,14 +64,14 @@ class InliningIrComputer extends IrDataExtractor<String> {
       : this._inlineDataCache = new InlineDataCache(enableUserAssertions: true),
         super(reporter, actualMap);
 
-  String getMemberValue(MemberEntity member) {
+  String? getMemberValue(MemberEntity member) {
     if (member is FunctionEntity) {
-      ConstructorBodyEntity constructorBody;
+      ConstructorBodyEntity? constructorBody;
       if (member is ConstructorEntity && member.isGenerativeConstructor) {
         constructorBody = getConstructorBody(member);
       }
       List<String> inlinedIn = <String>[];
-      _backendStrategy.codegenImpactsForTesting
+      _backendStrategy.codegenImpactsForTesting!
           .forEach((MemberEntity user, WorldImpact impact) {
         for (StaticUse use in impact.staticUses) {
           if (use.kind == StaticUseKind.INLINING) {
@@ -81,7 +79,7 @@ class InliningIrComputer extends IrDataExtractor<String> {
               if (use.type != null) {
                 inlinedIn.add('${user.name}:${use.type}');
               } else {
-                inlinedIn.add(user.name);
+                inlinedIn.add(user.name!);
               }
             } else if (use.element == constructorBody) {
               if (use.type != null) {
@@ -94,8 +92,8 @@ class InliningIrComputer extends IrDataExtractor<String> {
         }
       });
       StringBuffer sb = new StringBuffer();
-      String tooDifficultReason1 = getTooDifficultReasonForbidLoops(member);
-      String tooDifficultReason2 = getTooDifficultReasonAllowLoops(member);
+      String? tooDifficultReason1 = getTooDifficultReasonForbidLoops(member);
+      String? tooDifficultReason2 = getTooDifficultReasonAllowLoops(member);
       inlinedIn.sort();
       String sep = '';
       if (tooDifficultReason1 != null) {
@@ -122,18 +120,19 @@ class InliningIrComputer extends IrDataExtractor<String> {
   }
 
   ConstructorBodyEntity getConstructorBody(ConstructorEntity constructor) {
-    return _elementMap
-        .getConstructorBody(_elementMap.getMemberDefinition(constructor).node);
+    return _elementMap.getConstructorBody(
+            _elementMap.getMemberDefinition(constructor).node as ir.Constructor)
+        as ConstructorBodyEntity;
   }
 
-  String getTooDifficultReasonForbidLoops(MemberEntity member) {
+  String? getTooDifficultReasonForbidLoops(MemberEntity member) {
     if (member is! FunctionEntity) return null;
     return _inlineDataCache
         .getInlineData(_elementMap, member)
         .cannotBeInlinedReason();
   }
 
-  String getTooDifficultReasonAllowLoops(MemberEntity member) {
+  String? getTooDifficultReasonAllowLoops(MemberEntity member) {
     if (member is! FunctionEntity) return null;
     return _inlineDataCache
         .getInlineData(_elementMap, member)
@@ -141,15 +140,16 @@ class InliningIrComputer extends IrDataExtractor<String> {
   }
 
   @override
-  String computeMemberValue(Id id, ir.Member node) {
+  String? computeMemberValue(Id id, ir.Member node) {
     return getMemberValue(_elementMap.getMember(node));
   }
 
   @override
-  String computeNodeValue(Id id, ir.TreeNode node) {
+  String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
-      ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
-      return getMemberValue(info.callMethod);
+      ClosureRepresentationInfo info =
+          _closureDataLookup.getClosureInfo(node as ir.LocalFunction);
+      return getMemberValue(info.callMethod!);
     }
     return null;
   }

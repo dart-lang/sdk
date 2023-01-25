@@ -36,6 +36,7 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
+import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
@@ -401,7 +402,7 @@ class FileResolver {
   }) async {
     performance ??= OperationPerformanceImpl('<default>');
 
-    var uri = Uri.parse(uriStr);
+    var uri = uriCache.parse(uriStr);
     var path = sourceFactory.forUri2(uri)?.fullName;
 
     if (path == null) {

@@ -3936,6 +3936,46 @@ Message _withArgumentsNameNotFoundInRecordNameGet(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        String string,
+        bool
+            isNonNullableByDefault)> templateNonExhaustiveSwitch = const Template<
+        Message Function(
+            DartType _type, String string, bool isNonNullableByDefault)>(
+    problemMessageTemplate:
+        r"""The type '#type' is not exhaustively matched by the switch cases.""",
+    correctionMessageTemplate:
+        r"""Try adding a default case or cases that match #string.""",
+    withArguments: _withArgumentsNonExhaustiveSwitch);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, String string, bool isNonNullableByDefault)>
+    codeNonExhaustiveSwitch = const Code<
+            Message Function(
+                DartType _type, String string, bool isNonNullableByDefault)>(
+        "NonExhaustiveSwitch",
+        analyzerCodes: <String>["NON_EXHAUSTIVE_SWITCH"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonExhaustiveSwitch(
+    DartType _type, String string, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  if (string.isEmpty) throw 'No string provided';
+  String type = typeParts.join();
+  return new Message(codeNonExhaustiveSwitch,
+      problemMessage:
+          """The type '${type}' is not exhaustively matched by the switch cases.""" +
+              labeler.originMessages,
+      correctionMessage: """Try adding a default case or cases that match ${string}.""",
+      arguments: {'type': _type, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateNonNullAwareSpreadIsNull = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(

@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/type_environment.dart';
 
 import '../../base/instrumentation.dart' show Instrumentation;
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
@@ -125,6 +126,11 @@ class TypeInferrerImpl implements TypeInferrer {
 
   @override
   final SourceLibraryBuilder libraryBuilder;
+
+  late final StaticTypeContext staticTypeContext =
+      new StaticTypeContextImpl.direct(
+          libraryBuilder.library, typeSchemaEnvironment,
+          thisType: thisType);
 
   TypeInferrerImpl(
       this.engine,

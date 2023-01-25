@@ -118,7 +118,7 @@ Future withPeerPointer(fun(Pointer<Void> peer)) async {
     // we can validate that a->x has been changed.
     Expect.isTrue(peer.cast<Utf8>().toDartString().startsWith('xb'));
 
-    // The cleanup callback is called after after notifying exit listeners. So we
+    // The cleanup callback is called after notifying exit listeners. So we
     // wait a little here to ensure the write of the callback has arrived.
     await Future.delayed(const Duration(milliseconds: 100));
     Expect.equals('xbz', peer.cast<Utf8>().toDartString());

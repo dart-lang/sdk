@@ -29,6 +29,7 @@ import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
+import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 class BundleReader {
@@ -59,7 +60,7 @@ class BundleReader {
     _reader.offset = librariesOffset;
     var libraryHeaderList = _reader.readTypedList(() {
       return _LibraryHeader(
-        uri: Uri.parse(_reader.readStringReference()),
+        uri: uriCache.parse(_reader.readStringReference()),
         offset: _reader.readUInt30(),
         classMembersLengths: _reader.readUInt30List(),
       );
@@ -685,7 +686,7 @@ class LibraryReader {
 
     DirectiveUriWithRelativeUriImpl readWithRelativeUri() {
       final parent = readWithRelativeUriString();
-      final relativeUri = Uri.parse(_reader.readStringReference());
+      final relativeUri = uriCache.parse(_reader.readStringReference());
       return DirectiveUriWithRelativeUriImpl(
         relativeUriString: parent.relativeUriString,
         relativeUri: relativeUri,
@@ -699,7 +700,7 @@ class LibraryReader {
       final sourceFactory = analysisContext.sourceFactory;
 
       final sourceUriStr = _reader.readStringReference();
-      final sourceUri = Uri.parse(sourceUriStr);
+      final sourceUri = uriCache.parse(sourceUriStr);
       final source = sourceFactory.forUri2(sourceUri);
 
       // TODO(scheglov) https://github.com/dart-lang/sdk/issues/49431

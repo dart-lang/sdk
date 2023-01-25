@@ -37,7 +37,9 @@ mixin SwitchPatternCaseTestCases on AbstractCompletionDriverTest {
     // TODO(brianwilkerson) Include more than keywords in these tests.
     printerConfiguration = printer.Configuration(
       filter: (suggestion) {
-        return suggestion.kind == CompletionSuggestionKind.KEYWORD;
+        final completion = suggestion.completion;
+        return suggestion.kind == CompletionSuggestionKind.KEYWORD ||
+            ['A0', 'B0'].any(completion.startsWith);
       },
     );
   }
@@ -50,12 +52,27 @@ void f(Object o) {
       return;
   }
 }
+class A01 {}
 ''');
     assertResponse('''
 suggestions
-  assert
-    kind: keyword
   break
+    kind: keyword
+  return
+    kind: keyword
+  if
+    kind: keyword
+  A01
+    kind: class
+  final
+    kind: keyword
+  for
+    kind: keyword
+  throw
+    kind: keyword
+  A01
+    kind: constructorInvocation
+  assert
     kind: keyword
   const
     kind: keyword
@@ -63,19 +80,9 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
   late
     kind: keyword
-  return
-    kind: keyword
   switch
-    kind: keyword
-  throw
     kind: keyword
   try
     kind: keyword
@@ -88,9 +95,25 @@ suggestions
 ''');
   }
 
-  Future<void> test_beforeColon_afterAs() async {
+  Future<void> test_beforeColon_afterAs_afterDeclaration() async {
     await computeSuggestions('''
 void f(Object o) {
+  switch (o) {
+    case var x as ^:
+      return;
+  }
+}
+''');
+    // TODO(brianwilkerson) This should include `dynamic` and types.
+    assertResponse('''
+suggestions
+''');
+  }
+
+  Future<void> test_beforeColon_afterAs_afterReference() async {
+    await computeSuggestions('''
+void f(Object o) {
+  const x = 0;
   switch (o) {
     case x as ^:
       return;
@@ -229,9 +252,24 @@ suggestions
 ''');
   }
 
-  Future<void> test_beforeColon_afterWhen() async {
+  Future<void> test_beforeColon_afterWhen_afterDeclaration() async {
     await computeSuggestions('''
 void f(Object o) {
+  switch (o) {
+    case var x when ^:
+      return;
+  }
+}
+''');
+    assertResponse('''
+suggestions
+''');
+  }
+
+  Future<void> test_beforeColon_afterWhen_afterReference() async {
+    await computeSuggestions('''
+void f(Object o) {
+  const x = 0;
   switch (o) {
     case x when ^:
       return;

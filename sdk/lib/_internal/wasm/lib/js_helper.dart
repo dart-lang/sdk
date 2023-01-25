@@ -327,9 +327,6 @@ external WasmExternRef? objectKeysRaw(WasmExternRef? o);
 external void promiseThen(WasmExternRef? promise, WasmExternRef? successFunc,
     WasmExternRef? failureFunc);
 
-@pragma("wasm:import", "dart2wasm.instanceofTrampoline")
-external bool instanceofRaw(WasmExternRef? object, WasmExternRef? type);
-
 // Currently, `allowInterop` returns a Function type. This is unfortunate for
 // Dart2wasm because it means arbitrary Dart functions can flow to JS util
 // calls. Our only solutions is to cache every function called with
@@ -390,12 +387,6 @@ WasmExternRef? jsifyRaw(Object? object) {
 }
 
 bool isWasmGCStruct(WasmExternRef ref) => ref.internalize().isObject;
-
-/// TODO(joshualitt): We shouldn't need this, but otherwise we seem to get a
-/// cast error for certain oddball types(I think undefined, but need to dig
-/// deeper).
-@pragma("wasm:export", "\$dartifyRaw")
-Object? dartifyExported(WasmExternRef? ref) => dartifyRaw(ref);
 
 Object? dartifyRaw(WasmExternRef? ref) {
   if (ref == null) {
@@ -539,6 +530,38 @@ JSArray objectKeys(JSValue object) => JSArray(callMethodVarArgsRaw(
     getConstructorRaw('Object'),
     'keys'.toExternRef(),
     [object].toExternRef())!);
+
+/// Takes a [codeTemplate] string which must represent a valid JS function, and
+/// a list of optional arguments. The [codeTemplate] will be inserted into the
+/// JS runtime, and the call to [JS] will be replaced by a call to an external
+/// static method stub that imports the JS function.
+///
+/// We will replace the enclosing procedure itself if:
+///   1) The enclosing procedure is static.
+///   2) The enclosing procedure has a body with a single statement, and that
+///      statement is just the `StaticInvocation` of [JS] itself.
+///   3) All of the arguments to [JS] are `VariableGet`s.
+external T JS<T>(String codeTemplate,
+    [arg0,
+    arg1,
+    arg2,
+    arg3,
+    arg4,
+    arg5,
+    arg6,
+    arg7,
+    arg8,
+    arg9,
+    arg10,
+    arg11,
+    arg12,
+    arg13,
+    arg14,
+    arg51,
+    arg16,
+    arg17,
+    arg18,
+    arg19]);
 
 /// Methods used by the wasm runtime.
 @pragma("wasm:export", "\$listLength")

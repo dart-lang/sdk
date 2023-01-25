@@ -5,41 +5,19 @@ import "dart:core" as core;
 static method test(dynamic x) → dynamic {
   #L1:
   {
-    dynamic #t1;
-    final dynamic #t2 = x;
-    core::int #t3 = -1;
-    core::bool #t4 = false;
-    if(!#t4) {
-      final dynamic #t5 = #t2;
-      core::bool #t6 = false;
-      core::bool #t7 = false;
-      dynamic #t8;
-      dynamic #t9;
-      final dynamic #t10 = #t5;
-      if(#t10 is core::int) {
-        #t6 = true;
-        #t8 = #t10{core::int};
-      }
-      if(!#t6) {
-        final dynamic #t11 = #t5;
-        if(#t11 is core::List<dynamic> && #t11{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
-          final dynamic #t12 = #t11{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-          #t7 = true;
-          #t9 = #t12;
-        }
-      }
-      if(#t6 || #t7) {
-        dynamic as = #t6 ?{dynamic} #t8{core::int} : #t9{dynamic};
-        #t3 = 0;
-        #t4 = true;
-        #t1 = as;
-      }
+    core::int #t1 = -1;
+    dynamic as;
+    final dynamic #0#0 = x;
+    dynamic #t2;
+    if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t3 = as = #0#0{dynamic} in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t4 = as = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} as{ForNonNullableByDefault} dynamic in true)) {
+      #t1 = 0;
+      #t2 = as;
     }
-    switch(#t3) {
+    switch(#t1) {
       #L2:
-      case #C1:
+      case #C2:
         {
-          dynamic as = #t1{dynamic};
+          dynamic as = #t2{dynamic};
           {
             break #L1;
           }
@@ -49,5 +27,6 @@ static method test(dynamic x) → dynamic {
 }
 
 constants  {
-  #C1 = 0
+  #C1 = 1
+  #C2 = 0
 }
