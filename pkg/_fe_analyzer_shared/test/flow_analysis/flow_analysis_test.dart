@@ -7136,6 +7136,25 @@ main() {
           });
         });
       });
+
+      test("Subpattern doesn't promote scrutinee", () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('Object')),
+          ifCase(
+              x.expr,
+              objectPattern(
+                  requiredType: 'num',
+                  fields: [y.pattern(type: 'int').recordField('sign')]),
+              [
+                // TODO(paulberry): objectPattern should have promoted to
+                // `num`
+                checkNotPromoted(x),
+                // TODO(paulberry): should promote `x.sign` to `int`.
+              ]),
+        ]);
+      });
     });
 
     test('Pattern inside guard', () {
