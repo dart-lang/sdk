@@ -28,14 +28,17 @@ class RemoveComparison extends CorrectionProducer {
   FixKind get multiFixKind => DartFixKind.REMOVE_COMPARISON_MULTI;
 
   /// Return `true` if the null comparison will always return `false`.
-  bool get _conditionIsFalse =>
-      (diagnostic as AnalysisError).errorCode ==
-      HintCode.UNNECESSARY_NULL_COMPARISON_FALSE;
+  bool get _conditionIsFalse {
+    var errorCode = (diagnostic as AnalysisError).errorCode;
+    return errorCode == HintCode.UNNECESSARY_NAN_COMPARISON_FALSE ||
+        errorCode == HintCode.UNNECESSARY_NULL_COMPARISON_FALSE;
+  }
 
   /// Return `true` if the null comparison will always return `true`.
   bool get _conditionIsTrue {
     var errorCode = (diagnostic as AnalysisError).errorCode;
-    return errorCode == HintCode.UNNECESSARY_NULL_COMPARISON_TRUE ||
+    return errorCode == HintCode.UNNECESSARY_NAN_COMPARISON_TRUE ||
+        errorCode == HintCode.UNNECESSARY_NULL_COMPARISON_TRUE ||
         errorCode.name == LintNames.avoid_null_checks_in_equality_operators;
   }
 

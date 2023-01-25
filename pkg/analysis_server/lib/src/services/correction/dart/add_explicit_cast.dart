@@ -16,7 +16,13 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class AddExplicitCast extends CorrectionProducer {
   @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.ADD_EXPLICIT_CAST;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.ADD_EXPLICIT_CAST_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

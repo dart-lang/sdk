@@ -190,6 +190,38 @@ void f(String s) {
 }
 ''');
   }
+
+  Future<void> test_unnecessaryNanComparison_false() async {
+    await resolveTestCode('''
+void f(double d) {
+  if (d == double.nan || d == 0) {
+    print('');
+  }
+}
+''');
+    await assertHasFix('''
+void f(double d) {
+  if (d == 0) {
+    print('');
+  }
+}
+''');
+  }
+
+  Future<void> test_unnecessaryNanComparison_true() async {
+    await resolveTestCode('''
+void f(double d) {
+  if (d != double.nan) {
+    print('');
+  }
+}
+''');
+    await assertHasFix('''
+void f(double d) {
+  print('');
+}
+''');
+  }
 }
 
 @reflectiveTest
