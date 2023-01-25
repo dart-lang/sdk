@@ -96,18 +96,16 @@ class bool {
 
   /// Parse [source] as an, optionally case-insensitive, boolean literal.
   ///
-  /// If [caseSensitive] is `true`, which is the default, 
+  /// If [caseSensitive] is `true`, which is the default,
   /// the only accepted inputs are the strings `"true"` and `"false"`.
-  /// If [caseSensitive] is `false`, any combination of upper and lower case ASCII letters 
+  /// If [caseSensitive] is `false`, any combination of upper and lower case ASCII letters
   /// in the words `"true"` and `"false"` are accepted, as if the input was first lower-cased.
   ///
-  /// If the [source] string does not contain a valid boolean literal 
+  /// If the [source] string does not contain a valid boolean literal
   /// a [FormatException] is thrown.
   ///
   /// Rather than throwing and immediately catching the [FormatException],
   /// instead use [tryParse] to handle a potential parsing error.
-  ///
-  /// ```
   external static bool parse(String source, {bool? caseSensitive});
 
   /// Parse [source] as an, optionally case-insensitive, boolean literal.
@@ -121,13 +119,12 @@ class bool {
   /// print(int.tryParse('TRUE'));  // true
   /// print(int.tryParse('false', caseSensitive: true)); // false
   /// print(int.tryParse('FALSE', caseSensitive: true)); // false
-  /// print(int.tryParse('NO')); // FormatException
-  /// print(int.tryParse('YES')); // FormatException
-  /// print(int.tryParse('0')); // FormatException
-  /// print(int.tryParse('1')); // FormatException
+  /// print(int.tryParse('NO')); // null
+  /// print(int.tryParse('YES')); // null
+  /// print(int.tryParse('0')); // null
+  /// print(int.tryParse('1')); // null
   /// ```
   external static bool? tryParse(String source, {bool? caseSensitive});
-
 
   external int get hashCode;
 
