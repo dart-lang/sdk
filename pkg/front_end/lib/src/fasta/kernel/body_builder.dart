@@ -8601,13 +8601,32 @@ class BodyBuilder extends StackListenerImpl
     List<NamedPattern>? fields = pop() as List<NamedPattern>?;
     List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
 
-    // TODO(cstefantsova): Handle the case of secondIdentifier != null
-    handleIdentifier(firstIdentifier, IdentifierContext.typeReference);
-    Object? resolvedIdentifier = pop();
+    TypeDeclarationBuilder? typeDeclaration;
+    if (secondIdentifier == null) {
+      handleIdentifier(firstIdentifier, IdentifierContext.typeReference);
+      Object? resolvedIdentifier = pop();
+      if (resolvedIdentifier is TypeUseGenerator) {
+        typeDeclaration = resolvedIdentifier.declaration;
+      } else {
+        // TODO(cstefantsova): Handle this case.
+      }
+    } else {
+      handleIdentifier(
+          firstIdentifier, IdentifierContext.prefixedTypeReference);
+      handleIdentifier(
+          secondIdentifier, IdentifierContext.typeReferenceContinuation);
+      handleQualified(dot!);
+      handleNoTypeArguments(secondIdentifier.next!);
+      handleType(firstIdentifier, null);
+      Object? resolvedIdentifier = pop();
+      if (resolvedIdentifier is NamedTypeBuilder) {
+        typeDeclaration = resolvedIdentifier.declaration;
+      } else {
+        // TODO(cstefantsova): Handle this case.
+      }
+    }
 
-    if (resolvedIdentifier is TypeUseGenerator) {
-      TypeDeclarationBuilder typeDeclaration = resolvedIdentifier.declaration;
-
+    if (typeDeclaration != null) {
       if (typeDeclaration is TypeAliasBuilder) {
         if (typeArguments == null ||
             typeArguments.length ==
