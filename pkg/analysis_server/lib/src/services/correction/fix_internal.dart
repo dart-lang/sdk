@@ -1471,12 +1471,6 @@ class FixProcessor extends BaseProcessor {
     HintCode.UNNECESSARY_TYPE_CHECK_TRUE: [
       RemoveComparison.typeCheck,
     ],
-    HintCode.UNUSED_CATCH_CLAUSE: [
-      RemoveUnusedCatchClause.new,
-    ],
-    HintCode.UNUSED_CATCH_STACK: [
-      RemoveUnusedCatchStack.new,
-    ],
     HintCode.UNUSED_ELEMENT: [
       RemoveUnusedElement.new,
     ],
@@ -1592,6 +1586,12 @@ class FixProcessor extends BaseProcessor {
     ],
     WarningCode.UNDEFINED_SHOWN_NAME: [
       RemoveNameFromCombinator.new,
+    ],
+    WarningCode.UNUSED_CATCH_CLAUSE: [
+      RemoveUnusedCatchClause.new,
+    ],
+    WarningCode.UNUSED_CATCH_STACK: [
+      RemoveUnusedCatchStack.new,
     ],
   };
 

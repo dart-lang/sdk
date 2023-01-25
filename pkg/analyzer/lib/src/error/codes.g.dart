@@ -5867,6 +5867,25 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the name of the exception variable
+  static const WarningCode UNUSED_CATCH_CLAUSE = WarningCode(
+    'UNUSED_CATCH_CLAUSE',
+    "The exception variable '{0}' isn't used, so the 'catch' clause can be "
+        "removed.",
+    correctionMessage: "Try removing the catch clause.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the stack trace variable
+  static const WarningCode UNUSED_CATCH_STACK = WarningCode(
+    'UNUSED_CATCH_STACK',
+    "The stack trace variable '{0}' isn't used and can be removed.",
+    correctionMessage: "Try removing the stack trace variable, or using it.",
+    hasPublishedDocs: true,
+  );
+
   /// Initialize a newly created error code to have the given [name].
   const WarningCode(
     String name,

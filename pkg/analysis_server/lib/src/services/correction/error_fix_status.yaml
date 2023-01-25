@@ -1639,10 +1639,6 @@ HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL:
   status: hasFix
 HintCode.UNREACHABLE_SWITCH_CASE:
   status: needsEvaluation
-HintCode.UNUSED_CATCH_CLAUSE:
-  status: hasFix
-HintCode.UNUSED_CATCH_STACK:
-  status: hasFix
 HintCode.UNUSED_ELEMENT:
   status: hasFix
 HintCode.UNUSED_ELEMENT_PARAMETER:
@@ -2791,4 +2787,8 @@ WarningCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT:
 WarningCode.UNDEFINED_HIDDEN_NAME:
   status: hasFix
 WarningCode.UNDEFINED_SHOWN_NAME:
+  status: hasFix
+WarningCode.UNUSED_CATCH_CLAUSE:
+  status: hasFix
+WarningCode.UNUSED_CATCH_STACK:
   status: hasFix

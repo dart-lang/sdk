@@ -1482,7 +1482,7 @@ void f() {
 main() {
   try {} catch (e, e) {}
 }''', [
-      error(HintCode.UNUSED_CATCH_STACK, 28, 1),
+      error(WarningCode.UNUSED_CATCH_STACK, 28, 1),
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 28, 1,
           contextMessages: [message('/home/test/lib/test.dart', 25, 1)]),
     ]);

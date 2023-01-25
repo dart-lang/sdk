@@ -1161,25 +1161,6 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the name of the exception variable
-  static const HintCode UNUSED_CATCH_CLAUSE = HintCode(
-    'UNUSED_CATCH_CLAUSE',
-    "The exception variable '{0}' isn't used, so the 'catch' clause can be "
-        "removed.",
-    correctionMessage: "Try removing the catch clause.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the stack trace variable
-  static const HintCode UNUSED_CATCH_STACK = HintCode(
-    'UNUSED_CATCH_STACK',
-    "The stack trace variable '{0}' isn't used and can be removed.",
-    correctionMessage: "Try removing the stack trace variable, or using it.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
   ///  0: the name that is declared but not referenced
   static const HintCode UNUSED_ELEMENT = HintCode(
     'UNUSED_ELEMENT',
