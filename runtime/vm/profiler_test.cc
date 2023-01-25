@@ -48,21 +48,6 @@ class DisableNativeProfileScope : public ValueObject {
   const bool FLAG_profile_vm_allocation_;
 };
 
-class DisableBackgroundCompilationScope : public ValueObject {
- public:
-  DisableBackgroundCompilationScope()
-      : FLAG_background_compilation_(FLAG_background_compilation) {
-    FLAG_background_compilation = false;
-  }
-
-  ~DisableBackgroundCompilationScope() {
-    FLAG_background_compilation = FLAG_background_compilation_;
-  }
-
- private:
-  const bool FLAG_background_compilation_;
-};
-
 // Temporarily adjust the maximum profile depth.
 class MaxProfileDepthScope : public ValueObject {
  public:

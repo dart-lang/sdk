@@ -257,6 +257,9 @@ class Page {
     thread->set_top(0);
     thread->set_end(0);
     thread->set_true_end(0);
+#if !defined(PRODUCT)
+    thread->heap_sampler().HandleReleasedTLAB(Thread::Current());
+#endif
   }
   void Release() {
     if (owner_ != nullptr) {
