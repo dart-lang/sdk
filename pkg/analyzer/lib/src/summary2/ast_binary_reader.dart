@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -440,7 +441,8 @@ class AstBinaryReader {
   DoubleLiteral _readDoubleLiteral() {
     var value = _reader.readDouble();
     var node = DoubleLiteralImpl(
-      literal: StringToken(TokenType.STRING, '$value', -1),
+      literal: StringToken(
+          TokenType.STRING, considerCanonicalizeString('$value'), -1),
       value: value,
     );
     _readExpressionResolution(node);

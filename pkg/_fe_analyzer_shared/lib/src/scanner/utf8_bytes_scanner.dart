@@ -15,6 +15,9 @@ import 'scanner.dart' show unicodeReplacementCharacter;
 import 'abstract_scanner.dart'
     show AbstractScanner, LanguageVersionChanged, ScannerConfiguration;
 
+import 'string_canonicalizer.dart'
+    show canonicalizeUtf8SubString, canonicalizeString, decodeString;
+
 import 'token_impl.dart'
     show
         CommentTokenImpl,
@@ -246,10 +249,12 @@ class Utf8BytesScanner extends AbstractScanner {
   @override
   analyzer.StringToken createSyntheticSubstringToken(
       TokenType type, int start, bool asciiOnly, String syntheticChars) {
-    String source =
-        StringTokenImpl.decodeUtf8(bytes, start, byteOffset, asciiOnly);
+    String value = syntheticChars.length == 0
+        ? canonicalizeUtf8SubString(bytes, start, byteOffset, asciiOnly)
+        : canonicalizeString(
+            decodeString(bytes, start, byteOffset, asciiOnly) + syntheticChars);
     return new SyntheticStringToken(
-        type, source + syntheticChars, tokenStart, source.length);
+        type, value, tokenStart, value.length - syntheticChars.length);
   }
 
   @override

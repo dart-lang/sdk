@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -3606,7 +3607,7 @@ class FunctionElementImpl extends ExecutableElementImpl
     if (enclosing is ExecutableElement || enclosing is VariableElement) {
       identifier += "@$nameOffset";
     }
-    return identifier;
+    return considerCanonicalizeString(identifier);
   }
 
   @override
@@ -5420,7 +5421,7 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 
   ParameterElementImpl_ofImplicitSetter(this.setter)
       : super(
-          name: '_${setter.variable.name}',
+          name: considerCanonicalizeString('_${setter.variable.name}'),
           nameOffset: -1,
           parameterKind: ParameterKind.REQUIRED,
         ) {
@@ -5683,7 +5684,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   String get identifier {
     String name = displayName;
     String suffix = isGetter ? "?" : "=";
-    return "$name$suffix";
+    return considerCanonicalizeString("$name$suffix");
   }
 
   /// Set whether this class is abstract.
@@ -5728,7 +5729,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   @override
   String get name {
     if (isSetter) {
-      return "${super.name}=";
+      return considerCanonicalizeString("${super.name}=");
     }
     return super.name;
   }

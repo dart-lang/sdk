@@ -17,6 +17,9 @@ import 'token.dart' as analyzer show StringToken;
 import 'abstract_scanner.dart'
     show AbstractScanner, LanguageVersionChanged, ScannerConfiguration;
 
+import 'string_canonicalizer.dart'
+    show canonicalizeString, canonicalizeSubString;
+
 import 'token_impl.dart'
     show
         CommentTokenImpl,
@@ -94,9 +97,12 @@ class StringScanner extends AbstractScanner {
   @override
   analyzer.StringToken createSyntheticSubstringToken(
       TokenType type, int start, bool asciiOnly, String syntheticChars) {
-    String source = string.substring(start, scanOffset);
+    String value = syntheticChars.length == 0
+        ? canonicalizeSubString(string, start, scanOffset)
+        : canonicalizeString(
+            string.substring(start, scanOffset) + syntheticChars);
     return new SyntheticStringToken(
-        type, source + syntheticChars, tokenStart, source.length);
+        type, value, tokenStart, value.length - syntheticChars.length);
   }
 
   @override

@@ -4,7 +4,7 @@
 
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
+import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -108,8 +108,8 @@ class AnalysisEngine {
   /// Clear any caches holding on to analysis results so that a full re-analysis
   /// will be performed the next time an analysis context is created.
   void clearCaches() {
-    // See https://github.com/dart-lang/sdk/issues/30314.
-    StringTokenImpl.canonicalizer.clear();
+    // Ensure the string canonicalization cache size is reasonable.
+    pruneStringCanonicalizationCache();
   }
 }
 
