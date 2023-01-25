@@ -587,7 +587,7 @@ class bool {
   static bool parse(String source, {bool? caseSensitive}) {
     var value = tryParse(source, caseSensitive: caseSensitive);
     if (value != null) return value;
-    throw new FormatException(source);
+    throw FormatException("Not a valid boolean", source);
   }
 
   @patch
