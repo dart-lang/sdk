@@ -2,23 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
-
 import '../analyzer.dart';
-import '../extensions.dart';
-import '../util/boolean_expression_utilities.dart';
-import '../util/condition_scope_visitor.dart';
-import '../util/tested_expressions.dart';
 
 const _desc =
     r'Conditions should not unconditionally evaluate to `true` or to `false`.';
 
 const _details = r'''
-**DEPRECATED:** This rule is unmaintained and will be removed in a future Linter
-release.
-
 **DON'T** test for conditions that can be inferred at compile time or test the
 same condition twice.
 
@@ -100,13 +89,6 @@ void nestedOk5() {
 
 ''';
 
-Iterable<Element?> _getElementsInExpression(Expression node) => node
-    // todo(pq): migrate away from `traverseNodesInDFS` (https://github.com/dart-lang/linter/issues/3745)
-    // ignore: deprecated_member_use_from_same_package
-    .traverseNodesInDFS()
-    .map((e) => e.canonicalElement)
-    .where((e) => e != null);
-
 class InvariantBooleans extends LintRule {
   static const LintCode code = LintCode(
       'invariant_booleans', 'Condition always evaluates to the same value.',
@@ -119,71 +101,9 @@ class InvariantBooleans extends LintRule {
             name: 'invariant_booleans',
             description: _desc,
             details: _details,
-            state: State.deprecated(),
+            state: State.removed(since: dart3),
             group: Group.errors);
 
   @override
   LintCode get lintCode => code;
-
-  @override
-  void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
-    var visitor = _InvariantBooleansVisitor(this);
-    registry.addCompilationUnit(this, visitor);
-  }
-}
-
-/// The only purpose of this rule is to report the second node on a contradictory
-/// comparison indicating the first node as the cause of the inconsistency.
-class _ContradictionReportRule extends LintRule {
-  _ContradictionReportRule(ContradictoryComparisons comparisons)
-      : super(
-            name: 'invariant_booleans',
-            description: '$_desc verify: ${comparisons.first}.',
-            details: _details,
-            group: Group.errors);
-}
-
-class _InvariantBooleansVisitor extends ConditionScopeVisitor {
-  final LintRule rule;
-
-  _InvariantBooleansVisitor(this.rule);
-
-  @override
-  void visitCondition(Expression? node) {
-    // Right part discards reporting a subexpression already reported.
-    if (node == null || node.staticType?.isDartCoreBool != true) {
-      return;
-    }
-
-    var testedNodes = _findPreviousTestedExpressions(node);
-    testedNodes?.evaluateInvariant()?.forEach((ContradictoryComparisons e) {
-      var reportRule = _ContradictionReportRule(e);
-      reportRule
-        ..reporter = rule.reporter
-        ..reportLint(e.second);
-    });
-
-    // In dart booleanVariable == true is a valid comparison since the variable
-    // can be null.
-    var binaryExpression = node is BinaryExpression ? node : null;
-    if (binaryExpression != null &&
-        !BooleanExpressionUtilities.EQUALITY_OPERATIONS
-            .contains(binaryExpression.operator.type) &&
-        (binaryExpression.leftOperand is BooleanLiteral ||
-            binaryExpression.rightOperand is BooleanLiteral) &&
-        binaryExpression.operator.type != TokenType.QUESTION_QUESTION) {
-      rule.reportLint(node);
-    }
-  }
-
-  TestedExpressions? _findPreviousTestedExpressions(Expression node) {
-    var elements = _getElementsInExpression(node);
-    var conjunctions = getTrueExpressions(elements)?.toSet();
-    var negations = getFalseExpressions(elements)?.toSet();
-    if (conjunctions == null || negations == null) {
-      return null;
-    }
-    return TestedExpressions(node, conjunctions, negations);
-  }
 }

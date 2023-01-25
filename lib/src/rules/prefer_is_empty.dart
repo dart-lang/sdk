@@ -99,7 +99,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     } else {
       value = getIntValue(node.leftOperand, null);
-      // ignore: invariant_booleans
       if (value != null) {
         if (_isLengthAccess(node.rightOperand)) {
           _check(node, value, constantOnRight: false);
