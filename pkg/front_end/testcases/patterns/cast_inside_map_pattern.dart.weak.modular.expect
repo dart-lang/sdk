@@ -5,23 +5,15 @@ import "dart:core" as core;
 static method test(dynamic x) → dynamic {
   #L1:
   {
-    final dynamic #t1 = x;
-    core::int #t2 = -1;
-    core::bool #t3 = false;
-    if(!#t3) {
-      final dynamic #t4 = #t1;
-      if(#t4 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #t4{core::Map<dynamic, dynamic>}.{core::Map::containsKey}("a"){(core::Object?) → core::bool} && #t4{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
-        final dynamic #t5 = #t4{core::Map<dynamic, dynamic>}.{core::Map::[]}("a"){(core::Object?) → dynamic};
-        final core::int #t6 = #t5 as{ForNonNullableByDefault} core::int;
-        if(#t6 =={core::num::==}{(core::Object) → core::bool} #C1) {
-          #t2 = 0;
-          #t3 = true;
-        }
-      }
+    core::int #t1 = -1;
+    final dynamic #0#0 = x;
+    late final dynamic #0#7 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic};
+    if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && (let final dynamic #t2 = #0#7 as{ForNonNullableByDefault} core::int in #C2 =={core::num::==}{(core::Object) → core::bool} #0#7 as{ForNonNullableByDefault} core::int)) {
+      #t1 = 0;
     }
-    switch(#t2) {
+    switch(#t1) {
       #L2:
-      case #C2:
+      case #C3:
         {
           {
             break #L1;
@@ -32,6 +24,7 @@ static method test(dynamic x) → dynamic {
 }
 
 constants  {
-  #C1 = 1
-  #C2 = 0
+  #C1 = "a"
+  #C2 = 1
+  #C3 = 0
 }

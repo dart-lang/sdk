@@ -5,21 +5,19 @@ import "dart:core" as core;
 static method test(dynamic x) → dynamic {
   #L1:
   {
-    dynamic #t1;
-    final dynamic #t2 = x;
-    core::int #t3 = -1;
-    core::bool #t4 = false;
-    if(!#t4) {
-      final dynamic y = #t2;
-      #t3 = 0;
-      #t4 = true;
-      #t1 = y;
+    core::int #t1 = -1;
+    final dynamic y;
+    final dynamic #0#0 = x;
+    dynamic #t2;
+    if(let final dynamic #t3 = y = #0#0{dynamic} in true) {
+      #t1 = 0;
+      #t2 = y;
     }
-    switch(#t3) {
+    switch(#t1) {
       #L2:
       case #C1:
         {
-          final dynamic y = #t1{dynamic};
+          final dynamic y = #t2{dynamic};
           {
             break #L1;
           }

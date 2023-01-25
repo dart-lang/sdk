@@ -5,23 +5,14 @@ import "dart:core" as core;
 static method test(dynamic x) → dynamic {
   #L1:
   {
-    final dynamic #t1 = x;
-    core::int #t2 = -1;
-    core::bool #t3 = false;
-    if(!#t3) {
-      final core::Object #t4 = let dynamic #t5 = #t1 in #t5 == null ?{core::Object} #t5 as{ForNonNullableByDefault} core::Object : #t5{core::Object};
-      final core::Object #t6 = #t4;
-      if(#t6 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #t6{core::Map<dynamic, dynamic>}.{core::Map::containsKey}("a"){(core::Object?) → core::bool} && #t6{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
-        final dynamic #t7 = #t6{core::Map<dynamic, dynamic>}.{core::Map::[]}("a"){(core::Object?) → dynamic};
-        if(#t7 =={core::Object::==}{(core::Object) → core::bool} #C1) {
-          #t2 = 0;
-          #t3 = true;
-        }
-      }
+    core::int #t1 = -1;
+    final dynamic #0#0 = x;
+    if(let final core::Object #t2 = let dynamic #t3 = #0#0 in #t3 == null ?{core::Object} #t3 as{ForNonNullableByDefault} core::Object : #t3{core::Object} in (let dynamic #t4 = #0#0 in #t4 == null ?{core::Object} #t4 as{ForNonNullableByDefault} core::Object : #t4{core::Object}) is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && ((let dynamic #t5 = #0#0 in #t5 == null ?{core::Object} #t5 as{ForNonNullableByDefault} core::Object : #t5{core::Object}) as{ForNonNullableByDefault} core::Map<dynamic, dynamic>).{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && ((let dynamic #t6 = #0#0 in #t6 == null ?{core::Object} #t6 as{ForNonNullableByDefault} core::Object : #t6{core::Object}) as{ForNonNullableByDefault} core::Map<dynamic, dynamic>).{core::Map::containsKey}(#C2){(core::Object?) → core::bool} && #C1 =={core::num::==}{(core::Object) → core::bool} ((let dynamic #t7 = #0#0 in #t7 == null ?{core::Object} #t7 as{ForNonNullableByDefault} core::Object : #t7{core::Object}) as{ForNonNullableByDefault} core::Map<dynamic, dynamic>).{core::Map::[]}(#C2){(core::Object?) → dynamic}) {
+      #t1 = 0;
     }
-    switch(#t2) {
+    switch(#t1) {
       #L2:
-      case #C2:
+      case #C3:
         {
           {
             break #L1;
@@ -33,5 +24,6 @@ static method test(dynamic x) → dynamic {
 
 constants  {
   #C1 = 1
-  #C2 = 0
+  #C2 = "a"
+  #C3 = 0
 }

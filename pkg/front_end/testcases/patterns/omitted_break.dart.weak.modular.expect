@@ -37,28 +37,20 @@ static method method(dynamic e) → dynamic {
   }
   #L5:
   {
-    final dynamic #t1 = e;
-    core::int #t2 = -1;
-    core::bool #t3 = false;
-    if(!#t3 && #t1 is core::int) {
-      if(e =={core::Object::==}{(core::Object) → core::bool} 0) {
-        #t2 = 0;
-        #t3 = true;
-      }
+    core::int #t1 = -1;
+    final dynamic #0#0 = e;
+    if(#0#0 is{ForNonNullableByDefault} core::int && e =={core::Object::==}{(core::Object) → core::bool} 0) {
+      #t1 = 0;
     }
-    if(!#t3 && #t1 is core::int) {
-      if(e =={core::Object::==}{(core::Object) → core::bool} 1) {
-        #t2 = 1;
-        #t3 = true;
+    else
+      if(#0#0 is{ForNonNullableByDefault} core::int && e =={core::Object::==}{(core::Object) → core::bool} 1) {
+        #t1 = 1;
       }
-    }
-    if(!#t3 && #t1 is core::int) {
-      if(e =={core::Object::==}{(core::Object) → core::bool} 2) {
-        #t2 = 2;
-        #t3 = true;
-      }
-    }
-    switch(#t2) {
+      else
+        if(#0#0 is{ForNonNullableByDefault} core::int && e =={core::Object::==}{(core::Object) → core::bool} 2) {
+          #t1 = 2;
+        }
+    switch(#t1) {
       #L6:
       case #C1:
         {

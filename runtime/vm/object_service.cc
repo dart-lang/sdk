@@ -1892,6 +1892,8 @@ void Record::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "Record");
+  const intptr_t num_fields = this->num_fields();
+  jsobj.AddProperty("length", num_fields);
   if (ref) {
     return;
   }
@@ -1900,7 +1902,6 @@ void Record::PrintJSONImpl(JSONStream* stream, bool ref) const {
     JSONArray jsarr(&jsobj, "fields");
     String& name = String::Handle();
     Object& value = Object::Handle();
-    const intptr_t num_fields = this->num_fields();
     const Array& field_names = Array::Handle(GetFieldNames(Thread::Current()));
     const intptr_t num_positional_fields = num_fields - field_names.Length();
     for (intptr_t index = 0; index < num_fields; ++index) {

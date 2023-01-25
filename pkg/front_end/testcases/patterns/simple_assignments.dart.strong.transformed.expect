@@ -6,18 +6,10 @@ import "dart:_internal" as _in;
 static method test1(dynamic x) → dynamic {
   core::int a;
   block {
-    final dynamic #t1 = x;
-    core::bool #t2 = true;
-    final dynamic #t3 = #t1;
-    if(#t3 is core::List<dynamic> && #t3{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
-      final dynamic #t4 = #t3{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-      if(let final dynamic #t5 = a = #t4 in true) {
-        #t2 = false;
-      }
-    }
-    if(#t2)
+    final dynamic #0#0 = x;
+    if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t1 = a = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} as{ForNonNullableByDefault} core::int in true)))
       throw new _in::ReachabilityError::•();
-  } =>#t1;
+  } =>#0#0;
   return a;
 }
 static method test2(dynamic x) → dynamic {
@@ -25,31 +17,17 @@ static method test2(dynamic x) → dynamic {
   core::int b;
   core::int c;
   block {
-    final dynamic #t6 = block {
-      final dynamic #t7 = x;
-      core::bool #t8 = true;
-      final dynamic #t9 = #t7;
-      if(#t9 is core::List<dynamic> && #t9{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool}) {
-        final dynamic #t10 = #t9{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-        final dynamic #t11 = #t10;
-        if((let final dynamic #t12 = a = #t11 in true) && (let final dynamic #t13 = b = #t11 in true)) {
-          #t8 = false;
-        }
-      }
-      if(#t8)
+    final dynamic #1#0 = block {
+      final dynamic #0#0 = x;
+      function ##0#6#initializer() → dynamic
+        return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+      late final dynamic #0#6 = ##0#6#initializer(){() → dynamic};
+      if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && ((let final core::int #t2 = a = #0#6{core::int} in true) && (let final core::int #t3 = b = #0#6{core::int} in true))))
         throw new _in::ReachabilityError::•();
-    } =>#t7;
-    core::bool #t14 = true;
-    final dynamic #t15 = #t6;
-    if(#t15 is core::List<dynamic> && #t15{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool}) {
-      final dynamic #t16 = #t15{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-      if(let final dynamic #t17 = c = #t16 in true) {
-        #t14 = false;
-      }
-    }
-    if(#t14)
+    } =>#0#0;
+    if(!(#1#0 is{ForNonNullableByDefault} core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (let final core::int #t4 = c = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} as{ForNonNullableByDefault} core::int in true)))
       throw new _in::ReachabilityError::•();
-  } =>#t6;
+  } =>#1#0;
   return a.{core::num::+}(b){(core::num) → core::int}.{core::num::+}(c){(core::num) → core::int};
 }
 static method main() → dynamic {
@@ -77,4 +55,8 @@ static method expectThrows(() → void f) → dynamic {
   if(!hasThrown) {
     throw "Expected the function to throw.";
   }
+}
+
+constants  {
+  #C1 = 1
 }

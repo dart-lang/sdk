@@ -48,14 +48,10 @@ static method errors() → dynamic {
   ^";
   self::C c2;
   block {
-    final dynamic #t1 = new self::C::•();
-    core::bool #t2 = true;
-    if(let final dynamic #t3 = c2 = #t1 in true) {
-      #t2 = false;
-    }
-    if(#t2)
+    final dynamic #0#0 = new self::C::•();
+    if(!(let final dynamic #t1 = c2 = #0#0{self::C} in true))
       throw new _in::ReachabilityError::•();
-  } =>#t1;
+  } =>#0#0;
   invalid-expression "pkg/front_end/testcases/general/issue40242.dart:20:3: Error: Can't assign to the const variable 'c3'.
   c3 = null;
   ^^";

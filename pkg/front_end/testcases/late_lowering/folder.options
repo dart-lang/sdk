@@ -1,2 +1,2 @@
 --force-late-lowering
---overwrite-current-sdk-version=2.9999
+--overwrite-current-sdk-version=3.9999

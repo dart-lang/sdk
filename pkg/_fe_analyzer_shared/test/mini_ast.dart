@@ -602,6 +602,7 @@ class Harness {
   static Map<String, Type> _coreMemberTypes = {
     'int.>': Type('bool Function(num)'),
     'int.>=': Type('bool Function(num)'),
+    'num.sign': Type('num'),
   };
 
   final MiniAstOperations _operations = MiniAstOperations();
@@ -1077,6 +1078,7 @@ class MiniAstOperations
     'List <: Iterable<int>': Type('List<int>'),
     'Never <: int': Type('Never'),
     'num <: int': Type('num'),
+    'num <: Object': Type('num'),
   };
 
   static final Map<String, Type> _coreNormalizeResults = {

@@ -1,16 +1,11 @@
 library /*isNonNullableByDefault*/;
 import self as self;
-import "dart:core" as core;
 import "dart:_internal" as _in;
 
 static method main() → dynamic {
   block {
-    final has-declared-initializer dynamic #t1 = null;
-    core::bool #t2 = true;
-    if(#t1 == null) {
-      #t2 = false;
-    }
-    if(#t2)
+    final has-declared-initializer dynamic #0#0 = null;
+    if(!(#0#0 == null))
       throw new _in::ReachabilityError::•();
-  } =>#t1;
+  } =>#0#0;
 }

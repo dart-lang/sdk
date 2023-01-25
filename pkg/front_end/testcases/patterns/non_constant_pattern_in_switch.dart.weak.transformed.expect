@@ -27,66 +27,43 @@ static method test(dynamic value, core::bool expected) → void {
   core::bool matched;
   #L1:
   {
-    final dynamic #t1 = value;
-    core::int #t2 = -1;
-    core::bool #t3 = false;
-    if(!#t3) {
-      final dynamic #t4 = #t1;
-      if(#t4 is core::List<dynamic> && #t4{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
-        final dynamic #t5 = #t4{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-        if(#t5 =={core::Object::==}{(core::Object) → core::bool} #C1) {
-          #t2 = 0;
-          #t3 = true;
+    core::int #t1 = -1;
+    final dynamic #0#0 = value;
+    function ##0#3#initializer() → core::bool
+      return #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9;
+    late final core::bool #0#3 = ##0#3#initializer(){() → core::bool};
+    function ##0#6#initializer() → dynamic
+      return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    late final dynamic #0#6 = ##0#6#initializer(){() → dynamic};
+    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#3 && #C1 =={core::num::==}{(core::Object) → core::bool} #0#6) {
+      #t1 = 0;
+    }
+    else
+      if(#0#0 is{ForNonNullableByDefault} core::List<core::num> && #0#3 && #C1 =={core::num::==}{(core::Object) → core::bool} #0#6) {
+        #t1 = 1;
+      }
+      else
+        if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #0#3 && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && #C4 =={core::String::==}{(core::Object) → core::bool} #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic}) {
+          #t1 = 2;
         }
-      }
-    }
-    if(!#t3) {
-      final dynamic #t6 = #t1;
-      if(#t6 is core::List<core::num> && #t6{core::List<core::num>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
-        final core::num #t7 = #t6{core::List<core::num>}.{core::List::[]}(0){(core::int) → core::num};
-        if(#t7 =={core::num::==}{(core::Object) → core::bool} #C1) {
-          #t2 = 1;
-          #t3 = true;
-        }
-      }
-    }
-    if(!#t3) {
-      final dynamic #t8 = #t1;
-      if(#t8 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #t8{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(42){(core::Object?) → core::bool} && #t8{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
-        final dynamic #t9 = #t8{core::Map<dynamic, dynamic>}.{core::Map::[]}(42){(core::Object?) → dynamic};
-        if(#t9 =={core::Object::==}{(core::Object) → core::bool} #C4) {
-          #t2 = 2;
-          #t3 = true;
-        }
-      }
-    }
-    if(!#t3) {
-      final dynamic #t10 = #t1;
-      if(#t10 is{ForNonNullableByDefault} core::Map<core::num, core::Object> && #t10{core::Map<core::num, core::Object>}.{core::Map::containsKey}(42){(core::Object?) → core::bool} && #t10{core::Map<core::num, core::Object>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
-        final core::Object #t11 = #t10{core::Map<core::num, core::Object>}.{core::Map::[]}(42){(core::Object?) → core::Object?};
-        if(#t11 =={core::Object::==}{(core::Object) → core::bool} #C4) {
-          #t2 = 3;
-          #t3 = true;
-        }
-      }
-    }
-    if(!#t3) {
-      final dynamic #t12 = #t1;
-      if(#t12 is self::Const<dynamic>) {
-        #t2 = 4;
-        #t3 = true;
-      }
-    }
-    if(!#t3) {
-      final dynamic #t13 = #t1;
-      if(#t13 is self::Const<core::num>) {
-        #t2 = 5;
-        #t3 = true;
-      }
-    }
-    switch(#t2) {
+        else
+          if(#0#0 is{ForNonNullableByDefault} core::Map<core::num, core::Object> && #0#3 && #0#0{core::Map<core::num, core::Object>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && #C4 =={core::String::==}{(core::Object) → core::bool} #0#0{core::Map<core::num, core::Object>}.{core::Map::[]}(#C1){(core::Object?) → core::Object?}) {
+            #t1 = 3;
+          }
+          else
+            if(#0#0 is{ForNonNullableByDefault} self::Const<dynamic>) {
+              #t1 = 4;
+            }
+            else
+              if(#0#0 is{ForNonNullableByDefault} self::Const<core::num>) {
+                #t1 = 5;
+              }
+              else {
+                #t1 = 6;
+              }
+    switch(#t1) {
       #L2:
-      case #C9:
+      case #C10:
         {
           {
             matched = true;
@@ -94,7 +71,7 @@ static method test(dynamic value, core::bool expected) → void {
           }
         }
       #L3:
-      case #C10:
+      case #C9:
         {
           {
             matched = true;
@@ -158,8 +135,8 @@ constants  {
   #C6 = <core::num*, core::Object*>{#C1:#C4)
   #C7 = self::Const<core::int*> {value:#C1}
   #C8 = self::Const<core::num*> {value:#C1}
-  #C9 = 0
-  #C10 = 1
+  #C9 = 1
+  #C10 = 0
   #C11 = 2
   #C12 = 3
   #C13 = 4

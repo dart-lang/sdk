@@ -2682,8 +2682,9 @@ class @Instance extends @Object {
   // New code should use 'length' and 'count' instead.
   bool valueAsStringIsTruncated [optional];
 
-  // The length of a List or the number of associations in a Map or the
-  // number of codeunits in a String.
+  // The length of a List, or the number of associations in a Map, or the number
+  // of codeunits in a String, or the total number of fields (positional and
+  // named) in a Record.
   //
   // Provided for instance kinds:
   //   String
@@ -2704,6 +2705,7 @@ class @Instance extends @Object {
   //   Int32x4List
   //   Float32x4List
   //   Float64x2List
+  //   Record
   int length [optional];
 
   // The name of a Type instance.
@@ -2813,8 +2815,9 @@ class Instance extends Object {
   // New code should use 'length' and 'count' instead.
   bool valueAsStringIsTruncated [optional];
 
-  // The length of a List or the number of associations in a Map or the
-  // number of codeunits in a String.
+  // The length of a List, or the number of associations in a Map, or the number
+  // of codeunits in a String, or the total number of fields (positional and
+  // named) in a Record.
   //
   // Provided for instance kinds:
   //   String
@@ -2835,6 +2838,7 @@ class Instance extends Object {
   //   Int32x4List
   //   Float32x4List
   //   Float64x2List
+  //   Record
   int length [optional];
 
   // The index of the first element or association or codeunit returned.

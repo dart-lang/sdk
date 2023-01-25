@@ -22,40 +22,22 @@ import self as self;
 import "dart:core" as core;
 
 static method test(dynamic x) → dynamic {
-  final dynamic #t1 = x;
-  final dynamic #t2 = #t1;
-  if(#t2 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #t2{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(1){(core::Object?) → core::bool} && #t2{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool}) {
-    final dynamic #t3 = #t2{core::Map<dynamic, dynamic>}.{core::Map::[]}(1){(core::Object?) → dynamic};
-    if(#t3 =={core::Object::==}{(core::Object) → core::bool} #C1) {
-      {
-        return 0;
-      }
+  {
+    final dynamic #0#0 = x;
+    if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic}) {
+      return 0;
     }
   }
-  final dynamic #t4 = x;
-  final dynamic #t5 = #t4;
-  if(#t5 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#t5{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(1){(core::Object?) → core::bool} && #t5{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(2){(core::Object?) → core::bool}) && #t5{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}.{core::num::>=}(2){(core::num) → core::bool}) {
-    final dynamic #t6 = #t5{core::Map<dynamic, dynamic>}.{core::Map::[]}(1){(core::Object?) → dynamic};
-    final dynamic #t7 = #t5{core::Map<dynamic, dynamic>}.{core::Map::[]}(2){(core::Object?) → dynamic};
-    if(#t6 =={core::Object::==}{(core::Object) → core::bool} #C1) {
-      if(#t7 =={core::Object::==}{(core::Object) → core::bool} #C2) {
-        {
-          return 1;
-        }
-      }
+  {
+    final dynamic #1#0 = x;
+    if(#1#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #1#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}.{core::num::>=}(#C2){(core::num) → core::bool} && #1#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && #C1 =={core::num::==}{(core::Object) → core::bool} #1#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic} && #1#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #1#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) {
+      return 1;
     }
   }
-  final dynamic #t8 = x;
-  final dynamic #t9 = #t8;
-  if(#t9 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#t9{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(1){(core::Object?) → core::bool} && #t9{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(2){(core::Object?) → core::bool}) && #t9{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}.{core::num::>=}(2){(core::num) → core::bool}) {
-    final dynamic #t10 = #t9{core::Map<dynamic, dynamic>}.{core::Map::[]}(1){(core::Object?) → dynamic};
-    final dynamic #t11 = #t9{core::Map<dynamic, dynamic>}.{core::Map::[]}(2){(core::Object?) → dynamic};
-    if(#t10 =={core::Object::==}{(core::Object) → core::bool} #C1) {
-      if(#t11 =={core::Object::==}{(core::Object) → core::bool} #C2) {
-        {
-          return 2;
-        }
-      }
+  {
+    final dynamic #2#0 = x;
+    if(#2#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #2#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}.{core::num::>=}(#C2){(core::num) → core::bool} && #2#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && #C1 =={core::num::==}{(core::Object) → core::bool} #2#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic} && #2#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #2#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) {
+      return 2;
     }
   }
 }

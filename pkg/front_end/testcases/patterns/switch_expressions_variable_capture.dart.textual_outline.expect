@@ -10,5 +10,6 @@ dynamic Function(dynamic)? captured;
 test2(dynamic x) => 
 switch (x) {}
 ;
+test3(dynamic x) {}
 main() {}
 expectEquals(x, y) {}
