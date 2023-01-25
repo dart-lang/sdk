@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
@@ -995,8 +994,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
   }
 
-  @alwaysThrows
-  void _unimplemented(AstNode node, String message) {
+  Never _unimplemented(AstNode node, String message) {
     CompilationUnit unit = node.root as CompilationUnit;
     StringBuffer buffer = StringBuffer();
     buffer.write(message);

@@ -358,12 +358,10 @@ class MigrationCli {
           logger: isVerbose ? loggerFactory(true) : null);
     } on Object catch (exception) {
       handleArgParsingException(exception);
-      return null;
     }
   }
 
-  @alwaysThrows
-  void handleArgParsingException(Object exception) {
+  Never handleArgParsingException(Object exception) {
     String message;
     if (exception is FormatException) {
       message = exception.message;
