@@ -18,6 +18,6 @@ main() {
   Expect.throws(()=> bool.parse('n'));
   Expect.throws(()=> bool.parse('0'));
   Expect.throws(()=> bool.parse('1'));
-  Expect.throws(const bool.parse('TRUE', caseSensitive: false));
-  Expect.throws(const bool.parse('FALSE', caseSensitive: false));
+  Expect.throws(()=> bool.parse('TRUE', caseSensitive: false));
+  Expect.throws(()=> bool.parse('FALSE', caseSensitive: false));
 }
