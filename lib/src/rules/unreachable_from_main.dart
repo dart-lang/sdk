@@ -42,7 +42,7 @@ void f() {}
 ''';
 
 class UnreachableFromMain extends LintRule {
-  static const LintCode code = LintCode('invariant_booleans',
+  static const LintCode code = LintCode('unreachable_from_main',
       'Unreachable top-level member in an executable library.',
       correctionMessage: 'Try referencing the member or removing it.');
 
