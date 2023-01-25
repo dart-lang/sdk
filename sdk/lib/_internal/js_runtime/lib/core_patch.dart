@@ -582,7 +582,7 @@ class String {
 class bool {
   @patch
   int get hashCode => super.hashCode;
-  
+
   @patch
   static bool parse(String source, {bool? caseSensitive}) {
     var value = tryParse(source, caseSensitive: caseSensitive);
