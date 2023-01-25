@@ -380,22 +380,31 @@ class Primitives {
   }
 
   static bool? parseBool(String source, bool caseSensitive) {
-    checkNotNullable(source, "source");    
+    checkNotNullable(source, "source");
+    checkNotNullable(caseSensitive, "caseSensitive");
     //The caseSensitive defaults to true.
-    if (caseSensitive == null || caseSensitive == true) 
-      return source == "true" ? true : source == "false" ? false : null;     
-    //Ignore case-sensitive when caseSensitive is false.                                      
-    return _compareIgnoreCase(source, "true")? true : _compareIgnoreCase(source, "false")? false : null;
+    if (caseSensitive == null || caseSensitive == true)
+      return source == "true"
+          ? true
+          : source == "false"
+              ? false
+              : null;
+    //Ignore case-sensitive when caseSensitive is false.
+    return _compareIgnoreCase(source, "true")
+        ? true
+        : _compareIgnoreCase(source, "false")
+            ? false
+            : null;
   }
 
   static bool _compareIgnoreCase(String input, String lowerCaseTarget) {
-   if (input.length != lowerCaseTarget.length) return false;
-   for (var i = 0; i < input.length; i++) {
-     if (input.codeUnitAt(i) | 0x20 != lowerCaseTarget.codeUnitAt(i)) {
-       return false;
-     }
-   }
-   return true;
+    if (input.length != lowerCaseTarget.length) return false;
+    for (var i = 0; i < input.length; i++) {
+      if (input.codeUnitAt(i) | 0x20 != lowerCaseTarget.codeUnitAt(i)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /// [: r"$".codeUnitAt(0) :]
