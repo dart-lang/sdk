@@ -3,86 +3,71 @@ import self as self;
 import "dart:core" as core;
 
 static method test1(dynamic x) → dynamic {
-  final dynamic #t1 = x;
-  final dynamic #t2 = #t1;
-  core::bool #t3 = false;
-  core::bool #t4 = false;
-  if(#t2 is core::int?) {
-    #t3 = true;
-  }
-  if(!#t3 && #t2 is core::double?) {
-    #t4 = true;
-  }
-  if(#t3 || #t4) {
+  {
+    final dynamic #0#0 = x;
+    if(#0#0 is{ForNonNullableByDefault} core::int? || #0#0 is{ForNonNullableByDefault} core::double?) {
+    }
   }
 }
 static method test2(dynamic x) → dynamic {
-  final dynamic #t5 = x;
-  core::bool #t6 = true;
-  final dynamic #t7 = #t5;
-  core::bool #t8 = false;
-  core::bool #t9 = false;
-  dynamic #t10;
-  dynamic #t11;
-  final dynamic #t12 = #t7;
-  if(#t12 is core::List<dynamic> && #t12{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 2) {
-    final dynamic #t13 = #t12{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    final dynamic #t14 = #t13;
-    if(#t14 is core::int) {
-      #t8 = true;
-      #t10 = #t14{core::int};
-    }
-  }
-  if(!#t8) {
-    final dynamic #t15 = #t7;
-    if(#t15 is core::List<dynamic> && #t15{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 2) {
-      final dynamic #t16 = #t15{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
-      final dynamic #t17 = #t16;
-      if(#t17 is core::String) {
-        #t9 = true;
-        #t11 = #t17{core::String};
-      }
-    }
-  }
-  if(#t8 || #t9) {
-    dynamic y = #t8 ?{core::Object} #t10{core::int} : #t11{core::String};
-    #t6 = false;
-    {
+  {
+    dynamic y;
+    final dynamic #0#0 = x;
+    function ##0#3#initializer() → core::bool
+      return #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1;
+    late final core::bool #0#3 = ##0#3#initializer(){() → core::bool};
+    function ##0#6#initializer() → dynamic
+      return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    late final dynamic #0#6 = ##0#6#initializer(){() → dynamic};
+    function ##0#7#initializer() → dynamic
+      return #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
+    late final dynamic #0#7 = ##0#7#initializer(){() → dynamic};
+    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#3 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t1 = y = #0#6{dynamic} in true)) && (let final dynamic #t2 = #0#7 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#3 && (let final dynamic #t3 = #0#6 in true) && (#0#7 is{ForNonNullableByDefault} core::String && (let final dynamic #t4 = y = #0#7{dynamic} in true))) {
       return y;
     }
-  }
-  if(#t6) {
-    return null;
+    else {
+      return null;
+    }
   }
 }
 static method test3(dynamic x) → dynamic {
-  final dynamic #t18 = x;
-  core::bool #t19 = true;
-  final dynamic #t20 = #t18;
-  core::bool #t21 = false;
-  core::bool #t22 = false;
-  final dynamic #t23 = #t20;
-  core::bool #t24 = false;
-  core::bool #t25 = false;
-  if(#t23 =={core::Object::==}{(core::Object) → core::bool} 1) {
-    #t24 = true;
-  }
-  if(!#t24 && #t23 =={core::Object::==}{(core::Object) → core::bool} 2) {
-    #t25 = true;
-  }
-  if(#t24 || #t25) {
-    #t21 = true;
-  }
-  if(!#t21 && #t20 =={core::Object::==}{(core::Object) → core::bool} 3) {
-    #t22 = true;
-  }
-  if(#t21 || #t22) {
-    #t19 = false;
-    {
+  {
+    final dynamic #0#0 = x;
+    if(#0#0{dynamic} =={core::Object::==}{(core::Object) → core::bool} #C2 || #0#0{dynamic} =={core::Object::==}{(core::Object) → core::bool} #C1 || #0#0{dynamic} =={core::Object::==}{(core::Object) → core::bool} #C3) {
       return 0;
     }
+    else {
+      return 1;
+    }
   }
-  if(#t19) {
-    return 1;
+}
+static method test4(dynamic x) → dynamic {
+  {
+    dynamic y;
+    final dynamic #0#0 = x;
+    function ##0#3#initializer() → core::bool
+      return #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C3;
+    late final core::bool #0#3 = ##0#3#initializer(){() → core::bool};
+    function ##0#6#initializer() → dynamic
+      return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    late final dynamic #0#6 = ##0#6#initializer(){() → dynamic};
+    function ##0#7#initializer() → dynamic
+      return #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
+    late final dynamic #0#7 = ##0#7#initializer(){() → dynamic};
+    function ##0#8#initializer() → dynamic
+      return #0#0{core::List<dynamic>}.{core::List::[]}(2){(core::int) → dynamic};
+    late final dynamic #0#8 = ##0#8#initializer(){() → dynamic};
+    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#3 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t5 = y = #0#6{dynamic} in true)) && (let final dynamic #t6 = #0#7 in true) && (let final dynamic #t7 = #0#8 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#3 && (let final dynamic #t8 = #0#6 in true) && (#0#7 is{ForNonNullableByDefault} core::String && (let final dynamic #t9 = y = #0#7{dynamic} in true)) && (let final dynamic #t10 = #0#8 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#3 && (let final dynamic #t11 = #0#6 in true) && (#0#7 is{ForNonNullableByDefault} core::bool && (let final dynamic #t12 = y = #0#7{dynamic} in true)) && (let final dynamic #t13 = #0#8 in true)) {
+      return y;
+    }
+    else {
+      return null;
+    }
   }
+}
+
+constants  {
+  #C1 = 2
+  #C2 = 1
+  #C3 = 3
 }

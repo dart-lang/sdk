@@ -5,24 +5,15 @@ import "dart:core" as core;
 static method test(dynamic x) → dynamic {
   #L1:
   {
-    final dynamic #t1 = x;
-    core::int #t2 = -1;
-    core::bool #t3 = false;
-    if(!#t3) {
-      final dynamic #t4 = #t1;
-      if(#t4 is{ForNonNullableByDefault} (core::Object?, {n: core::Object?})) {
-        final core::Object? #t5 = #t4{(core::Object?, {n: core::Object?})}.n{core::Object?};
-        final core::Object? #t6 = #t4{(core::Object?, {n: core::Object?})}.$0{core::Object?};
-        final core::Object? #t7 = #t5;
-        if(!(#t7 == null) && #t7{core::Object} =={core::Object::==}{(core::Object) → core::bool} #C1) {
-          if(#t6 =={core::Object::==}{(core::Object) → core::bool} #C2) {
-            #t2 = 0;
-            #t3 = true;
-          }
-        }
-      }
+    core::int #t1 = -1;
+    final dynamic #0#0 = x;
+    function ##0#1#initializer() → core::Object?
+      return #0#0{(core::Object?, {n: core::Object?})}.n{core::Object?};
+    late final core::Object? #0#1 = ##0#1#initializer(){() → core::Object?};
+    if(#0#0 is{ForNonNullableByDefault} (core::Object?, {n: core::Object?}) && (!(#0#1 == null) ?{core::bool} #C1 =={core::num::==}{(core::Object) → core::bool} #0#1 : false) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, {n: core::Object?})}.$0{core::Object?}) {
+      #t1 = 0;
     }
-    switch(#t2) {
+    switch(#t1) {
       #L2:
       case #C3:
         {

@@ -18,35 +18,27 @@ class C<X extends core::Object? = dynamic, Y extends core::Object? = dynamic> ex
     ;
 }
 static method test1(dynamic x) → dynamic {
-  final dynamic #t1 = x;
-  core::bool #t2 = true;
-  final dynamic #t3 = #t1;
-  if(#t3 is self::A) {
-    final core::int #t4 = #t3{self::A}.{self::A::foo}{core::int};
-    core::int foo = #t4;
-    #t2 = false;
-    {
+  {
+    core::int foo;
+    final dynamic #0#0 = x;
+    if(#0#0 is{ForNonNullableByDefault} self::A && (let final core::int #t1 = foo = #0#0{self::A}.{self::A::foo}{core::int} in true)) {
       return foo;
     }
-  }
-  if(#t2) {
-    return null;
+    else {
+      return null;
+    }
   }
 }
 static method test2(dynamic x) → dynamic {
-  final dynamic #t5 = x;
-  core::bool #t6 = true;
-  final dynamic #t7 = #t5;
-  if(#t7 is self::C<core::String, core::String>) {
-    final core::String #t8 = #t7{self::C<core::String, core::String>}.{self::C::x}{core::String};
-    core::String x = #t8;
-    #t6 = false;
-    {
+  {
+    core::String x;
+    final dynamic #0#0 = x;
+    if(#0#0 is{ForNonNullableByDefault} self::C<core::String, core::String> && (let final core::String #t2 = x = #0#0{self::C<core::String, core::String>}.{self::C::x}{core::String} in true)) {
       return x;
     }
-  }
-  if(#t6) {
-    return null;
+    else {
+      return null;
+    }
   }
 }
 static method main() → dynamic {

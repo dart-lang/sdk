@@ -1,12 +1,13 @@
 library /*isNonNullableByDefault*/;
 import self as self;
-import "dart:core" as core;
 import "dart:_internal" as _in;
 
 static method f(dynamic x) → dynamic {
-  final dynamic #t1 = x;
-  core::bool #t2 = true;
-  #t2 = false;
-  if(#t2)
+  if(!false)
     throw new _in::ReachabilityError::•();
 }
+
+
+Extra constant evaluation status:
+Evaluated: Not @ org-dartlang-testcase:///patternVariableDeclarationStatement_noMetadata_final_extractor.dart:6:9 -> BoolConstant(true)
+Extra constant evaluation: evaluated: 3, effectively constant: 1

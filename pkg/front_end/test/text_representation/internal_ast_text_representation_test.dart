@@ -1172,14 +1172,14 @@ void _testBinaryMatcher() {
       new AndPattern(new ExpressionPattern(new IntLiteral(0)),
           new ExpressionPattern(new IntLiteral(1)), TreeNode.noOffset),
       '''
-0 & 1''');
+0 && 1''');
 
   testMatcher(
       new OrPattern(new ExpressionPattern(new IntLiteral(0)),
           new ExpressionPattern(new IntLiteral(1)), TreeNode.noOffset,
           orPatternJointVariables: []),
       '''
-0 | 1''');
+0 || 1''');
 }
 
 void _testCastMatcher() {

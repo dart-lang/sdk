@@ -21,3 +21,12 @@ test3(dynamic x) {
     return 1;
   }
 }
+
+test4(dynamic x) {
+  if (x case [int y, var _, _] || [var _, String y, _] || [var _, bool y, _]) {
+    return y;
+  } else {
+    return null;
+  }
+}
+

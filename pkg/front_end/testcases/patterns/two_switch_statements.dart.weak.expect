@@ -1,0 +1,63 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test(dynamic o) → dynamic {
+  #L1:
+  {
+    core::int #t1 = -1;
+    core::int a;
+    final dynamic #0#0 = o;
+    dynamic #t2;
+    if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t3 = a = #0#0{core::int} in true)) {
+      #t1 = 0;
+      #t2 = a;
+    }
+    switch(#t1) {
+      #L2:
+      case #C1:
+        {
+          core::int a = #t2{core::int};
+          {
+            return 1;
+          }
+        }
+    }
+  }
+  #L3:
+  {
+    core::int #t4 = -1;
+    core::String a;
+    final dynamic #1#0 = o;
+    dynamic #t5;
+    if(#1#0 is{ForNonNullableByDefault} core::String && (let final dynamic #t6 = a = #1#0{core::String} in true)) {
+      #t4 = 0;
+      #t5 = a;
+    }
+    switch(#t4) {
+      #L4:
+      case #C1:
+        {
+          core::String a = #t5{core::String};
+          {
+            return 2;
+          }
+        }
+    }
+  }
+  return 0;
+}
+static method main() → dynamic {
+  self::expect(1, self::test(0));
+  self::expect(2, self::test("foo"));
+  self::expect(0, self::test(true));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual)) {
+    throw "Expected ${expected}, actual ${actual}";
+  }
+}
+
+constants  {
+  #C1 = 0
+}

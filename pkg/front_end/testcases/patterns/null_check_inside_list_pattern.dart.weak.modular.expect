@@ -5,21 +5,13 @@ import "dart:core" as core;
 static method test(dynamic x) → dynamic {
   #L1:
   {
-    final dynamic #t1 = x;
-    core::int #t2 = -1;
-    core::bool #t3 = false;
-    if(!#t3) {
-      final dynamic #t4 = #t1;
-      if(#t4 is core::List<dynamic> && #t4{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
-        final dynamic #t5 = #t4{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-        final dynamic #t6 = #t5;
-        if(!(#t6 == null) && #t6 =={core::Object::==}{(core::Object) → core::bool} #C1) {
-          #t2 = 0;
-          #t3 = true;
-        }
-      }
+    core::int #t1 = -1;
+    final dynamic #0#0 = x;
+    late final dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (!(#0#6 == null) ?{core::bool} #C1 =={core::num::==}{(core::Object) → core::bool} #0#6 : false)) {
+      #t1 = 0;
     }
-    switch(#t2) {
+    switch(#t1) {
       #L2:
       case #C2:
         {

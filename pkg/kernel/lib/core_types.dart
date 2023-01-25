@@ -154,6 +154,9 @@ class CoreTypes {
   late final Procedure identicalProcedure =
       index.getTopLevelProcedure('dart:core', 'identical');
 
+  late final Procedure printProcedure =
+      index.getTopLevelProcedure('dart:core', 'print');
+
   late final Class intClass = index.getClass('dart:core', 'int');
 
   late final Class internalSymbolClass =

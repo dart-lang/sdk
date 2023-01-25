@@ -5,17 +5,12 @@ import "dart:core" as core;
 static method test(dynamic x) → dynamic {
   #L1:
   {
-    final dynamic #t1 = x;
-    core::int #t2 = -1;
-    core::bool #t3 = false;
-    if(!#t3) {
-      final core::Object #t4 = let dynamic #t5 = #t1 in #t5 == null ?{core::Object} #t5 as{ForNonNullableByDefault} core::Object : #t5{core::Object};
-      if(#t4 == null) {
-        #t2 = 0;
-        #t3 = true;
-      }
+    core::int #t1 = -1;
+    final dynamic #0#0 = x;
+    if(let final core::Object #t2 = let dynamic #t3 = #0#0 in #t3 == null ?{core::Object} #t3 as{ForNonNullableByDefault} core::Object : #t3{core::Object} in (let dynamic #t4 = #0#0 in #t4 == null ?{core::Object} #t4 as{ForNonNullableByDefault} core::Object : #t4{core::Object}) == null) {
+      #t1 = 0;
     }
-    switch(#t2) {
+    switch(#t1) {
       #L2:
       case #C1:
         {
