@@ -15,6 +15,26 @@ main() {
 
 @reflectiveTest
 class SwitchExpressionResolutionTest extends PubPackageResolutionTest {
+  test_cases_empty() async {
+    await assertNoErrorsInCode(r'''
+final a = switch (0) {};
+''');
+
+    final node = findNode.singleSwitchExpression;
+    assertResolvedNodeText(node, r'''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: IntegerLiteral
+    literal: 0
+    staticType: int
+  rightParenthesis: )
+  leftBracket: {
+  rightBracket: }
+  staticType: dynamic
+''');
+  }
+
   test_contextType_case_expression() async {
     await assertNoErrorsInCode(r'''
 class A {

@@ -345,6 +345,10 @@ main() {
         ]);
       });
 
+      test('no cases', () {
+        h.run([switchExpr(expr('int'), []).checkType('dynamic').stmt]);
+      });
+
       test('guard', () {
         var i = Var('i');
         h.run([

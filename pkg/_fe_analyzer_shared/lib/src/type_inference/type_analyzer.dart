@@ -1405,9 +1405,10 @@ mixin TypeAnalyzer<
       finishExpressionCase(node, i);
       // Stack: (Expression, (i + 1) * ExpressionCase)
     }
+    lubType ??= dynamicType;
     // Stack: (Expression, numCases * ExpressionCase)
     flow.switchStatement_end(true);
-    return new SimpleTypeAnalysisResult<Type>(type: lubType!);
+    return new SimpleTypeAnalysisResult<Type>(type: lubType);
   }
 
   /// Analyzes a statement of the form `switch (expression) { cases }`.
