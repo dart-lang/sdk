@@ -592,6 +592,9 @@ abstract class Element implements AnalysisTarget {
   /// Return `true` if this element has an annotation of the form `@protected`.
   bool get hasProtected;
 
+  /// Return `true` if this element has an annotation of the form `@reopen`.
+  bool get hasReopen;
+
   /// Return `true` if this element has an annotation of the form `@required`.
   bool get hasRequired;
 
@@ -830,6 +833,10 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// Return `true` if this annotation marks the associated class as
   /// implementing a proxy object.
   bool get isProxy;
+
+  /// Return `true` if this annotation marks the associated member as being
+  /// reopened.
+  bool get isReopen;
 
   /// Return `true` if this annotation marks the associated member as being
   /// required.

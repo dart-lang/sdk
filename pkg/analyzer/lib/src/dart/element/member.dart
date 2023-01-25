@@ -570,6 +570,9 @@ abstract class Member implements Element {
   bool get hasProtected => _declaration.hasProtected;
 
   @override
+  bool get hasReopen => _declaration.hasReopen;
+
+  @override
   bool get hasRequired => _declaration.hasRequired;
 
   @override
