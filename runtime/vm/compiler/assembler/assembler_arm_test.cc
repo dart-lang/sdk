@@ -170,8 +170,8 @@ ASSEMBLER_TEST_RUN(LoadHalfWordUnsignedUnaligned, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(StoreHalfWordUnaligned, assembler) {
-  __ LoadImmediate(R1, 0xABCD);
-  __ StoreWordUnaligned(R1, R0, TMP);
+  __ LoadImmediate(R1, 0x1111ABCD);
+  __ StoreHalfWordUnaligned(R1, R0, TMP);
   __ mov(R0, Operand(R1));
   __ Ret();
 }
@@ -183,16 +183,16 @@ ASSEMBLER_TEST_RUN(StoreHalfWordUnaligned, test) {
       0, 0, 0, 0,
   };
 
-  EXPECT_EQ(0xABCD, EXECUTE_TEST_CODE_INTPTR_INTPTR(
-                        StoreHalfWordUnaligned, test->entry(),
-                        reinterpret_cast<intptr_t>(&buffer[0])));
+  EXPECT_EQ(0x1111ABCD, EXECUTE_TEST_CODE_INTPTR_INTPTR(
+                            StoreHalfWordUnaligned, test->entry(),
+                            reinterpret_cast<intptr_t>(&buffer[0])));
   EXPECT_EQ(0xCD, buffer[0]);
   EXPECT_EQ(0xAB, buffer[1]);
   EXPECT_EQ(0, buffer[2]);
 
-  EXPECT_EQ(0xABCD, EXECUTE_TEST_CODE_INTPTR_INTPTR(
-                        StoreHalfWordUnaligned, test->entry(),
-                        reinterpret_cast<intptr_t>(&buffer[1])));
+  EXPECT_EQ(0x1111ABCD, EXECUTE_TEST_CODE_INTPTR_INTPTR(
+                            StoreHalfWordUnaligned, test->entry(),
+                            reinterpret_cast<intptr_t>(&buffer[1])));
   EXPECT_EQ(0xCD, buffer[1]);
   EXPECT_EQ(0xAB, buffer[2]);
   EXPECT_EQ(0, buffer[3]);

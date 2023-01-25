@@ -388,12 +388,6 @@ WasmExternRef? jsifyRaw(Object? object) {
 
 bool isWasmGCStruct(WasmExternRef ref) => ref.internalize().isObject;
 
-/// TODO(joshualitt): We shouldn't need this, but otherwise we seem to get a
-/// cast error for certain oddball types(I think undefined, but need to dig
-/// deeper).
-@pragma("wasm:export", "\$dartifyRaw")
-Object? dartifyExported(WasmExternRef? ref) => dartifyRaw(ref);
-
 Object? dartifyRaw(WasmExternRef? ref) {
   if (ref == null) {
     return null;

@@ -16,7 +16,6 @@ js
   dependencies: sdk
   lib/js.dart
   lib/js_util.dart
-  lib/src/varargs.dart
 
 main
   **main module**

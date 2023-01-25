@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// This file contains tests written in a deprecated way. Please do not add any
-/// tests to this file. Instead, add tests to the file in `declaration`,
-/// `location` or `relevance`.
+/// tests to this file. Instead, add tests to the files in `declaration`,
+/// `location`, or `relevance`.
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';

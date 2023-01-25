@@ -4,14 +4,20 @@
 
 import 'package:stack_trace/stack_trace.dart' as stack;
 
-/// Returns whether this URI has a scheme that can be resolved to a file path
+/// Returns whether this URI is something that can be resolved to a file path
 /// via the VM Service.
 bool isResolvableUri(Uri uri) {
   return !uri.isScheme('file') &&
+      !uri.isScheme('http') &&
+      !uri.isScheme('https') &&
       // Parsed stack frames may have URIs with no scheme and the text
       // "unparsed" if they looked like stack frames but had no file
       // information.
-      !uri.isScheme('');
+      !uri.isScheme('') &&
+      // Valid URIs will always have a non-empty path. Empty paths usually
+      // indicate badly parsed URIs when parsing stack frames.
+      // The string 'usage: ' will parse as a valid URI in `parseStackFrame`.
+      !uri.hasEmptyPath;
 }
 
 /// Attempts to parse a line as a stack frame in order to read path/line/col
