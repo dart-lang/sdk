@@ -929,8 +929,8 @@ class TimelineEventCallbackRecorder : public TimelineEventRecorder {
   virtual ~TimelineEventCallbackRecorder();
 
 #ifndef PRODUCT
-  void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
-  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
+  void PrintJSON(JSONStream* js, TimelineEventFilter* filter) final;
+  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) final;
 #endif
 
   // Called when |event| is completed. It is unsafe to keep a reference to
@@ -1013,8 +1013,8 @@ class TimelineEventPlatformRecorder : public TimelineEventRecorder {
   virtual ~TimelineEventPlatformRecorder();
 
 #ifndef PRODUCT
-  void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
-  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
+  void PrintJSON(JSONStream* js, TimelineEventFilter* filter) final;
+  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) final;
 #endif
 
   // Called when |event| is completed. It is unsafe to keep a reference to

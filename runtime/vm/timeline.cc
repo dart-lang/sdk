@@ -1367,14 +1367,7 @@ TimelineEventCallbackRecorder::~TimelineEventCallbackRecorder() {}
 #ifndef PRODUCT
 void TimelineEventCallbackRecorder::PrintJSON(JSONStream* js,
                                               TimelineEventFilter* filter) {
-  JSONObject topLevel(js);
-  topLevel.AddProperty("type", "Timeline");
-  {
-    JSONArray events(&topLevel, "traceEvents");
-    PrintJSONMeta(&events);
-  }
-  topLevel.AddPropertyTimeMicros("timeOriginMicros", TimeOriginMicros());
-  topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
+  UNREACHABLE();
 }
 
 void TimelineEventCallbackRecorder::PrintTraceEvent(
@@ -1466,14 +1459,7 @@ TimelineEventPlatformRecorder::~TimelineEventPlatformRecorder() {}
 #ifndef PRODUCT
 void TimelineEventPlatformRecorder::PrintJSON(JSONStream* js,
                                               TimelineEventFilter* filter) {
-  JSONObject topLevel(js);
-  topLevel.AddProperty("type", "Timeline");
-  {
-    JSONArray events(&topLevel, "traceEvents");
-    PrintJSONMeta(&events);
-  }
-  topLevel.AddPropertyTimeMicros("timeOriginMicros", TimeOriginMicros());
-  topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
+  UNREACHABLE();
 }
 
 void TimelineEventPlatformRecorder::PrintTraceEvent(

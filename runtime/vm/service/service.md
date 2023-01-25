@@ -1160,9 +1160,19 @@ timeline events should be.
 For example, given _timeOriginMicros_ and _timeExtentMicros_, only timeline events
 from the following time range will be returned: `(timeOriginMicros, timeOriginMicros + timeExtentMicros)`.
 
-If _getVMTimeline_ is invoked while the current recorder is one of Fuchsia or Macos or
-Systrace, an [RPC error](#rpc-error) with error code _114_, `invalid timeline request`, will be returned as
-timeline events are handled by the OS in these modes.
+If _getVMTimeline_ is invoked while the current recorder is Callback, an
+[RPC error](#rpc-error) with error code _114_, `invalid timeline request`, will
+be returned as timeline events are handled by the embedder in this mode.
+
+If _getVMTimeline_ is invoked while the current recorder is one of Fuchsia or
+Macos or Systrace, an [RPC error](#rpc-error) with error code _114_,
+`invalid timeline request`, will be returned as timeline events are handled by
+the OS in these modes.
+
+If _getVMTimeline_ is invoked while the current recorder is File, an
+[RPC error](#rpc-error) with error code _114_, `invalid timeline request`, will
+be returned as timeline events are written directly to a file, and thus cannot
+be retrieved through the VM Service, in this mode.
 
 ### getVMTimelineFlags
 
