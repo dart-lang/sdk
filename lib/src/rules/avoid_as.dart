@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
-
 import '../analyzer.dart';
 
 const _desc = r'Avoid using `as`.';
@@ -44,10 +41,6 @@ performance impact.
 ```dart
 HasScrollDirection scrollable = renderObject as dynamic;
 ```
-
-**DEPRECATED:** This advice is no longer recommended.
-
-The rule will be removed in a future Linter release.
 ''';
 
 class AvoidAs extends LintRule {
@@ -60,30 +53,9 @@ class AvoidAs extends LintRule {
           description: _desc,
           details: _details,
           group: Group.style,
-          state: State.deprecated(), //State.removed(since: dart3),
+          state: State.removed(since: dart3),
         );
 
   @override
   LintCode get lintCode => code;
-
-  @override
-  void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
-    registry.addAsExpression(this, visitor);
-  }
-}
-
-class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
-
-  _Visitor(this.rule);
-
-  @override
-  void visitAsExpression(AsExpression node) {
-    var typeAnnotation = node.type;
-    if (typeAnnotation is NamedType && typeAnnotation.name.name != 'dynamic') {
-      rule.reportLint(typeAnnotation);
-    }
-  }
 }

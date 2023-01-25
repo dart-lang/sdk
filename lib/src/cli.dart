@@ -67,7 +67,7 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
     ..addOption('dart-sdk', help: 'Custom path to a Dart SDK.')
     ..addMultiOption('rules',
         help: 'A list of lint rules to run. For example: '
-            'avoid_as,annotate_overrides')
+            'annotate_overrides, avoid_catching_errors')
     // TODO(srawlins): Remove this flag; it does not work any more.
     ..addOption('packages',
         help: 'Path to the package resolution configuration file, which\n'
