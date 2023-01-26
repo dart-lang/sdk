@@ -4075,7 +4075,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// If e is -n and n is an integer literal, then
   ///   - If the context type is double, it is a compile-time error if the
-  ///   numerical value of n is not precisley representable by a double.
+  ///   numerical value of n is not precisely representable by a double.
   ///   Otherwise the static type of e is double and the result of evaluating e
   ///   is the result of calling the unary minus operator on a double instance
   ///   representing the numerical value of n.
