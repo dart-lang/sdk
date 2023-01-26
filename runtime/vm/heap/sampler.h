@@ -99,6 +99,11 @@ class HeapProfileSampler {
   // profiler instance to avoid concurrent modification of the thread's TLAB.
   void SetThreadSamplingInterval();
 
+  // Updates internal book keeping tracking the remaining size of the sampling
+  // interval. This method must be called when a TLAB is torn down to ensure
+  // that a future TLAB is initialized with the correct sampling interval.
+  void HandleReleasedTLAB(Thread* thread);
+
   // Handles the creation of a new TLAB by updating its boundaries based on the
   // remaining sampling interval.
   //

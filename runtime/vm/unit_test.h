@@ -755,6 +755,21 @@ class SetFlagScope : public ValueObject {
   T original_value_;
 };
 
+class DisableBackgroundCompilationScope : public ValueObject {
+ public:
+  DisableBackgroundCompilationScope()
+      : FLAG_background_compilation_(FLAG_background_compilation) {
+    FLAG_background_compilation = false;
+  }
+
+  ~DisableBackgroundCompilationScope() {
+    FLAG_background_compilation = FLAG_background_compilation_;
+  }
+
+ private:
+  const bool FLAG_background_compilation_;
+};
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_UNIT_TEST_H_

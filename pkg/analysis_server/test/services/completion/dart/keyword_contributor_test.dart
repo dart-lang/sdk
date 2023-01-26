@@ -1478,13 +1478,13 @@ class A {
   Future<void> test_if_condition_isKeyword() async {
     addTestSource('void f() { if (v i^) {} }');
     await computeSuggestions();
-    assertSuggestKeywords([Keyword.IS]);
+    assertSuggestKeywords([Keyword.CASE, Keyword.IS]);
   }
 
   Future<void> test_if_condition_isKeyword2() async {
     addTestSource('void f() { if (v i^ && false) {} }');
     await computeSuggestions();
-    assertSuggestKeywords([Keyword.IS]);
+    assertSuggestKeywords([Keyword.CASE, Keyword.IS]);
   }
 
   Future<void> test_if_expression_in_class() async {
@@ -2045,7 +2045,7 @@ f() => <int>{1, ^, 2};
   Future<void> test_is_expression_partial() async {
     addTestSource('void f() {if (x i^)}');
     await computeSuggestions();
-    assertSuggestKeywords([Keyword.IS]);
+    assertSuggestKeywords([Keyword.CASE, Keyword.IS]);
   }
 
   Future<void> test_library() async {

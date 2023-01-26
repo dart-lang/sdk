@@ -7,10 +7,9 @@ library external_static_member_lowerings_test;
 
 // ignore: IMPORT_INTERNAL_LIBRARY
 import 'dart:_js_interop';
-import 'dart:js_util' as js_util;
 
 import 'package:expect/minitest.dart';
-import 'package:js/js.dart' show trustTypes, staticInterop, anonymous;
+import 'package:js/js.dart' show trustTypes, staticInterop;
 
 @JS()
 external dynamic eval(String code);
@@ -18,6 +17,11 @@ external dynamic eval(String code);
 @JS()
 @staticInterop
 class ExternalStatic {
+  external factory ExternalStatic(String initialValue);
+  external factory ExternalStatic.named(
+      [String initialValue = 'uninitialized']);
+  // External redirecting factories are not allowed.
+
   external static String field;
   @JS('field')
   external static String renamedField;
@@ -34,6 +38,10 @@ class ExternalStatic {
   external static String differentArgsMethod(String a, [String b = '']);
   @JS('method')
   external static String renamedMethod();
+}
+
+extension on ExternalStatic {
+  external String get initialValue;
 }
 
 @JS('ExternalStatic')
@@ -67,7 +75,9 @@ external String renamedMethod();
 
 void main() {
   eval('''
-    globalThis.ExternalStatic = function ExternalStatic() {}
+    globalThis.ExternalStatic = function ExternalStatic(initialValue) {
+      this.initialValue = initialValue;
+    }
     globalThis.ExternalStatic.method = function() {
       return 'method';
     }
@@ -90,6 +100,7 @@ void main() {
   ''');
   testClassStaticMembers();
   testTopLevelMembers();
+  testFactories();
 }
 
 void testClassStaticMembers() {
@@ -153,4 +164,20 @@ void testTopLevelMembers() {
   expect((differentArgsMethod)('optional', 'method'), 'optionalmethod');
   expect(renamedMethod(), 'method');
   expect((renamedMethod)(), 'method');
+}
+
+void testFactories() {
+  // Non-object literal factories and their tear-offs.
+  var initialized = 'initialized';
+  var uninitialized = 'uninitialized';
+
+  var externalStatic = ExternalStatic(initialized);
+  expect(externalStatic.initialValue, initialized);
+  externalStatic = ExternalStatic.named();
+  expect(externalStatic.initialValue, uninitialized);
+
+  externalStatic = (ExternalStatic.new)(initialized);
+  expect(externalStatic.initialValue, initialized);
+  externalStatic = (ExternalStatic.named)(initialized);
+  expect(externalStatic.initialValue, initialized);
 }

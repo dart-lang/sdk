@@ -4898,11 +4898,13 @@ class InstanceRef extends ObjRef {
   @optional
   bool? valueAsStringIsTruncated;
 
-  /// The length of a List, or the number of associations in a Map, or the
-  /// number of codeunits in a String, or the total number of fields (positional
-  /// and named) in a Record.
+  /// The number of (non-static) fields of a PlainInstance, or the length of a
+  /// List, or the number of associations in a Map, or the number of codeunits
+  /// in a String, or the total number of fields (positional and named) in a
+  /// Record.
   ///
   /// Provided for instance kinds:
+  ///  - PlainInstance
   ///  - String
   ///  - List
   ///  - Map
@@ -5152,11 +5154,13 @@ class Instance extends Obj implements InstanceRef {
   @optional
   bool? valueAsStringIsTruncated;
 
-  /// The length of a List, or the number of associations in a Map, or the
-  /// number of codeunits in a String, or the total number of fields (positional
-  /// and named) in a Record.
+  /// The number of (non-static) fields of a PlainInstance, or the length of a
+  /// List, or the number of associations in a Map, or the number of codeunits
+  /// in a String, or the total number of fields (positional and named) in a
+  /// Record.
   ///
   /// Provided for instance kinds:
+  ///  - PlainInstance
   ///  - String
   ///  - List
   ///  - Map
@@ -5272,6 +5276,10 @@ class Instance extends Obj implements InstanceRef {
   List<InstanceRef>? typeParameters;
 
   /// The fields of this Instance.
+  ///
+  /// Provided for instance kinds:
+  ///  - PlainInstance
+  ///  - Record
   @optional
   List<BoundField>? fields;
 

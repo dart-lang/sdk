@@ -546,8 +546,13 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitIfElement(IfElement node) {
     if (entity == node.rightParenthesis) {
-      _addSuggestion(Keyword.CASE);
-      _addSuggestion(Keyword.IS);
+      var caseClause = node.caseClause;
+      if (caseClause == null) {
+        _addSuggestion(Keyword.CASE);
+        _addSuggestion(Keyword.IS);
+      } else if (caseClause.guardedPattern.whenClause == null) {
+        _addSuggestion(Keyword.WHEN);
+      }
     } else if (entity == node.thenElement || entity == node.elseElement) {
       _addCollectionElementKeywords();
       _addExpressionKeywords(node);
@@ -565,15 +570,12 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       // Parsed: if (x) i^
       _addSuggestion(Keyword.IS);
     } else if (entity == node.rightParenthesis) {
-      if (node.condition.endToken.next == droppedToken) {
-        // fasta parser
-        // Actual: if (x i^)
-        // Parsed: if (x)
-        //    where "i" is in the token stream but not part of the AST
-        _addSuggestion(Keyword.IS);
-      } else {
+      var caseClause = node.caseClause;
+      if (caseClause == null) {
         _addSuggestion(Keyword.CASE);
         _addSuggestion(Keyword.IS);
+      } else if (caseClause.guardedPattern.whenClause == null) {
+        _addSuggestion(Keyword.WHEN);
       }
     } else if (entity == node.thenStatement || entity == node.elseStatement) {
       _addStatementKeywords(node);

@@ -1983,6 +1983,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// protected.
   static const String _protectedVariableName = 'protected';
 
+  /// The name of the top-level variable used to mark a class or mixin as being
+  /// reopened.
+  static const String _reopenVariableName = 'reopen';
+
   /// The name of the class used to mark a parameter as being required.
   static const String _requiredClassName = 'Required';
 
@@ -2118,6 +2122,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   bool get isProxy => false;
+
+  @override
+  bool get isReopen => _isPackageMetaGetter(_reopenVariableName);
 
   @override
   bool get isRequired =>
@@ -2497,6 +2504,18 @@ abstract class ElementImpl implements Element {
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isProtected) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasReopen {
+    final metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isReopen) {
         return true;
       }
     }
@@ -5089,6 +5108,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get hasProtected => false;
+
+  @override
+  bool get hasReopen => false;
 
   @override
   bool get hasRequired => false;

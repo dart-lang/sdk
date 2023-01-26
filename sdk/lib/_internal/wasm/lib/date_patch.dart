@@ -20,16 +20,24 @@ class DateTime {
   static int _getCurrentMicros() =>
       (_jsDateNow() * Duration.microsecondsPerMillisecond).toInt();
 
-  @pragma("wasm:import", "dart2wasm.getTimeZoneNameForSeconds")
-  external static String _timeZoneNameForClampedSecondsRaw(
-      double secondsSinceEpoch);
+  static String _timeZoneNameForClampedSecondsRaw(double secondsSinceEpoch) =>
+      JS<String>(r"""secondsSinceEpoch => {
+        const date = new Date(secondsSinceEpoch * 1000);
+        const match = /\((.*)\)/.exec(date.toString());
+        if (match == null) {
+            // This should never happen on any recent browser.
+            return '';
+        }
+        return stringToDartString(match[1]);
+      }""", secondsSinceEpoch);
 
   static String _timeZoneNameForClampedSeconds(int secondsSinceEpoch) =>
       _timeZoneNameForClampedSecondsRaw(secondsSinceEpoch.toDouble());
 
-  @pragma("wasm:import", "dart2wasm.getTimeZoneOffsetInSeconds")
-  external static double _timeZoneOffsetInSecondsForClampedSeconds(
-      double secondsSinceEpoch);
+  static double _timeZoneOffsetInSecondsForClampedSeconds(
+          double secondsSinceEpoch) =>
+      JS<double>("s => new Date(s * 1000).getTimezoneOffset() * 60 ",
+          secondsSinceEpoch);
 
   static const _MICROSECOND_INDEX = 0;
   static const _MILLISECOND_INDEX = 1;

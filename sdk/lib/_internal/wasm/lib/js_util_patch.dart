@@ -176,8 +176,9 @@ Object? objectGetPrototypeOf(Object? object) => throw 'unimplemented';
 Object? get objectPrototype => throw 'unimplemented';
 
 @patch
-List<Object?> objectKeys(Object? object) =>
-    dartifyRaw(objectKeysRaw(jsifyRaw(object))) as List<Object?>;
+List<Object?> objectKeys(Object? o) =>
+    dartifyRaw(JS<WasmExternRef?>('o => Object.keys(o)', jsifyRaw(o)))
+        as List<Object?>;
 
 @patch
 Object? dartify(Object? object) {
@@ -245,7 +246,7 @@ Object? dartify(Object? object) {
       convertedObjects[o] = dartList;
       int length = getProperty<double>(o, 'length').toInt();
       for (int i = 0; i < length; i++) {
-        dartList.add(convert(JSValue.box(objectReadIndex(ref, i))));
+        dartList.add(convert(JSValue.box(objectReadIndex(ref, i.toDouble()))));
       }
       return dartList;
     } else {

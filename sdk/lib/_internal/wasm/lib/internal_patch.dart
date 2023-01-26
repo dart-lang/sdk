@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper" show JS;
 import "dart:typed_data" show Uint8List;
 
 part "class_id.dart";
@@ -164,8 +165,12 @@ void _invokeMain(Function main) {
 }
 
 // Schedule a callback from JS via setTimeout.
-@pragma("wasm:import", "dart2wasm.scheduleCallback")
-external void scheduleCallback(double millis, dynamic Function() callback);
+void scheduleCallback(double millis, dynamic Function() callback) {
+  JS<void>(r"""(ms, c) =>
+            setTimeout(
+                () => dartInstance.exports.$invokeCallback(c),ms)""", millis,
+      callback);
+}
 
-@pragma("wasm:import", "dart2wasm.jsonEncode")
-external String jsonEncode(String object);
+String jsonEncode(String object) => JS<String>(
+    "s => stringToDartString(JSON.stringify(stringFromDartString(s)))", object);

@@ -5,5 +5,5 @@
 part of "internal_patch.dart";
 
 @patch
-@pragma("wasm:import", "dart2wasm.printToConsole")
-external void printToConsole(String line);
+void printToConsole(String line) =>
+    JS<void>('s => console.log(stringFromDartString(s))');

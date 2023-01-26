@@ -10,6 +10,7 @@ import 'package:kernel/type_environment.dart';
 import '../js_interop.dart'
     show
         getJSName,
+        hasAnonymousAnnotation,
         hasInternalJSInteropAnnotation,
         hasStaticInteropAnnotation,
         hasTrustTypesAnnotation;
@@ -133,54 +134,30 @@ class JsUtilOptimizer extends Transformer {
             transformedBody = _getExternalMethodBody(node, shouldTrustType);
           }
         }
-      } else if (node.isStatic &&
-          ((node.enclosingClass != null &&
-                  hasStaticInteropAnnotation(node.enclosingClass!)) ||
-              // We only lower top-levels if we're using the
-              // `dart:_js_annotations`' `@JS` annotation to avoid a breaking
-              // change for `package:js` users. There are some internal
-              // libraries that already use this library, so we exclude them
-              // here.
-              // TODO(srujzs): When they're ready to migrate to sound semantics,
-              // we should remove this exception.
-              ((hasInternalJSInteropAnnotation(node) ||
-                      hasInternalJSInteropAnnotation(node.enclosingLibrary)) &&
-                  !_existingJsAnnotationsUsers
-                      .contains(node.enclosingLibrary.importUri.toString())))) {
-        // Fetch the dotted prefix of the member.
-        var libraryName = getJSName(node.enclosingLibrary);
-        var dottedPrefix = libraryName;
-        var enclosingClass = node.enclosingClass;
-        var shouldTrustType = false;
-        if (enclosingClass == null) {
-          // Top-level. If the `@JS` value of the node has any '.'s, we take the
-          // entries before the last '.' to determine the dotted prefix name.
-          var jsName = getJSName(node);
-          if (jsName.isNotEmpty) {
-            var lastDotIndex = jsName.lastIndexOf('.');
-            if (lastDotIndex >= 0) {
-              dottedPrefix = _getCombinedJSName(
-                  dottedPrefix, jsName.substring(0, lastDotIndex));
+      } else {
+        // Do the lowerings for top-levels, static class members, and factories.
+        var dottedPrefix = _getDottedPrefixForNonInstanceMember(node);
+        if (dottedPrefix != null) {
+          var receiver = _getObjectOffGlobalThis(
+              node, dottedPrefix.isEmpty ? [] : dottedPrefix.split('.'));
+          var shouldTrustType = node.enclosingClass != null &&
+              hasTrustTypesAnnotation(node.enclosingClass!);
+          if (node.kind == ProcedureKind.Getter) {
+            transformedBody =
+                _getExternalGetterBody(node, shouldTrustType, receiver);
+          } else if (node.kind == ProcedureKind.Setter) {
+            transformedBody = _getExternalSetterBody(node, receiver);
+          } else if (node.kind == ProcedureKind.Method) {
+            transformedBody =
+                _getExternalMethodBody(node, shouldTrustType, receiver);
+          } else if (node.kind == ProcedureKind.Factory) {
+            if (!hasAnonymousAnnotation(node.enclosingClass!)) {
+              transformedBody = _getExternalConstructorBody(
+                  node,
+                  // Get the constructor object using the class name.
+                  _getObjectOffGlobalThis(node, dottedPrefix.split('.')));
             }
           }
-        } else if (hasStaticInteropAnnotation(enclosingClass)) {
-          // Class static member, use the class name as part of the dotted
-          // prefix.
-          var className = getJSName(enclosingClass);
-          if (className.isEmpty) className = enclosingClass.name;
-          dottedPrefix = _getCombinedJSName(dottedPrefix, className);
-          shouldTrustType = hasTrustTypesAnnotation(enclosingClass);
-        }
-        var receiver = _getObjectOffGlobalThis(
-            node, dottedPrefix.isEmpty ? [] : dottedPrefix.split('.'));
-        if (node.kind == ProcedureKind.Getter) {
-          transformedBody =
-              _getExternalGetterBody(node, shouldTrustType, receiver);
-        } else if (node.kind == ProcedureKind.Setter) {
-          transformedBody = _getExternalSetterBody(node, receiver);
-        } else if (node.kind == ProcedureKind.Method) {
-          transformedBody =
-              _getExternalMethodBody(node, shouldTrustType, receiver);
         }
       }
     }
@@ -195,10 +172,55 @@ class JsUtilOptimizer extends Transformer {
     return node;
   }
 
-  /// Given two `@JS` values, combines them into a qualified name using '.'.
+  /// Returns the prefixed JS name for the given [node] using the enclosing
+  /// library's, enclosing class' (if any), and member's `@JS` values.
+  ///
+  /// Returns null if [node] is not external and a top-level member, a
+  /// `@staticInterop` factory, or a `@staticInterop` static member.
+  String? _getDottedPrefixForNonInstanceMember(Procedure node) {
+    if (!node.isExternal || (!node.isFactory && !node.isStatic)) return null;
+    var enclosingClass = node.enclosingClass;
+    var dottedPrefix = getJSName(node.enclosingLibrary);
+
+    if (enclosingClass == null &&
+        ((hasInternalJSInteropAnnotation(node) ||
+                hasInternalJSInteropAnnotation(node.enclosingLibrary)) &&
+            !_existingJsAnnotationsUsers
+                .contains(node.enclosingLibrary.importUri.toString()))) {
+      // Top-level external member. We only lower top-levels if we're using the
+      // `dart:_js_annotations`' `@JS` annotation to avoid a breaking change for
+      // `package:js` users. There are some internal libraries that already use
+      // this library, so we exclude them here.
+      // TODO(srujzs): When they're ready to migrate to sound semantics, we
+      // should remove this exception.
+
+      // If the `@JS` value of the node has any '.'s, we take the entries
+      // before the last '.' to determine the dotted prefix name.
+      var jsName = getJSName(node);
+      if (jsName.isNotEmpty) {
+        var lastDotIndex = jsName.lastIndexOf('.');
+        if (lastDotIndex != -1) {
+          dottedPrefix = _concatenateJSNames(
+              dottedPrefix, jsName.substring(0, lastDotIndex));
+        }
+      }
+    } else if (enclosingClass != null &&
+        hasStaticInteropAnnotation(enclosingClass)) {
+      // `@staticInterop` factory or static member, use the class name as part
+      // of the dotted prefix.
+      var className = getJSName(enclosingClass);
+      if (className.isEmpty) className = enclosingClass.name;
+      dottedPrefix = _concatenateJSNames(dottedPrefix, className);
+    } else {
+      return null;
+    }
+    return dottedPrefix;
+  }
+
+  /// Given two `@JS` values, combines them into a concatenated name using '.'.
   ///
   /// If either parameters are empty, returns the other.
-  String _getCombinedJSName(String prefix, String suffix) {
+  String _concatenateJSNames(String prefix, String suffix) {
     if (prefix.isEmpty) return suffix;
     if (suffix.isEmpty) return prefix;
     return '$prefix.$suffix';
@@ -325,6 +347,30 @@ class JsUtilOptimizer extends Transformer {
       ..fileOffset = node.fileOffset;
     return ReturnStatement(_lowerCallMethod(callMethodInvocation,
         shouldTrustType: shouldTrustType));
+  }
+
+  /// Returns a new function body for the given [node] external non-object
+  /// literal factory.
+  ///
+  /// The new function body will call the optimized version of
+  /// `js_util.callConstructor` using the given [constructor] and the arguments
+  /// of the provided external factory.
+  ReturnStatement _getExternalConstructorBody(
+      Procedure node, Expression constructor) {
+    var function = node.function;
+    assert(function.namedParameters.isEmpty);
+    var callConstructorInvocation = StaticInvocation(
+        _callConstructorTarget,
+        Arguments([
+          constructor,
+          ListLiteral(function.positionalParameters
+              .map<Expression>((argument) => VariableGet(argument))
+              .toList())
+        ], types: [
+          function.returnType
+        ]))
+      ..fileOffset = node.fileOffset;
+    return ReturnStatement(_lowerCallConstructor(callConstructorInvocation));
   }
 
   /// Return whether [node] is an extension member that's declared as

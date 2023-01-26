@@ -10524,6 +10524,7 @@ void InitHeapSampling(Thread* thread) {
 }
 
 TEST_CASE(DartAPI_HeapSampling_UserDefinedClass) {
+  DisableBackgroundCompilationScope scope;
   auto isolate_group_data = Dart_CurrentIsolateGroupData();
   const char* kScriptChars = R"(
     class Bar {}
@@ -10544,9 +10545,8 @@ TEST_CASE(DartAPI_HeapSampling_UserDefinedClass) {
   EXPECT_VALID(result);
   EXPECT(heap_samples > 0);
   EXPECT(heap_samples < 100000);
-  EXPECT_EQ(last_isolate_group_data, isolate_group_data);
-
-  EXPECT_STREQ("Bar", last_allocation_cls);
+  EXPECT(last_isolate_group_data == isolate_group_data);
+  EXPECT_STREQ(last_allocation_cls, "Bar");
 }
 
 TEST_CASE(DartAPI_HeapSampling_APIAllocations) {
@@ -10588,6 +10588,7 @@ TEST_CASE(DartAPI_HeapSampling_APIAllocations) {
 }
 
 TEST_CASE(DartAPI_HeapSampling_NonTrivialSamplingPeriod) {
+  DisableBackgroundCompilationScope scope;
   auto isolate_group_data = Dart_CurrentIsolateGroupData();
   InitHeapSampling(thread);
 
@@ -10630,7 +10631,7 @@ TEST_CASE(DartAPI_HeapSampling_NonTrivialSamplingPeriod) {
   EXPECT_VALID(result);
   EXPECT(heap_samples > 0);
   EXPECT(heap_samples < kNumAllocations);
-  EXPECT_EQ(last_isolate_group_data, isolate_group_data);
+  EXPECT(last_isolate_group_data == isolate_group_data);
 
   Dart_DisableHeapSampling();
 

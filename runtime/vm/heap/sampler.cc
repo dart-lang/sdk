@@ -92,9 +92,11 @@ void HeapProfileSampler::ResetState() {
 }
 
 void HeapProfileSampler::Initialize() {
-  // We're initializing state for this thread.
-  ReadRwLocker locker(Thread::Current(), lock_);
-  UpdateThreadEnable();
+  // Don't grab lock_ here as it can cause a deadlock if thread initialization
+  // occurs when the profiler state is being changed. Instead, let the thread
+  // perform initialization when it's no longer holding the thread registry's
+  // thread_lock().
+  ScheduleUpdateThreadEnable();
 }
 
 void HeapProfileSampler::ScheduleUpdateThreadEnable() {
@@ -139,6 +141,15 @@ void HeapProfileSampler::SetThreadSamplingIntervalLocked() {
   // Force reset the next sampling point.
   ResetState();
   SetNextSamplingIntervalLocked(GetNextSamplingIntervalLocked());
+}
+
+void HeapProfileSampler::HandleReleasedTLAB(Thread* thread) {
+  ReadRwLocker locker(thread, lock_);
+  if (!enabled_) {
+    return;
+  }
+  interval_to_next_sample_ = remaining_TLAB_interval();
+  next_tlab_offset_ = kUninitialized;
 }
 
 void HeapProfileSampler::HandleNewTLAB(intptr_t old_tlab_remaining_space,
@@ -347,7 +358,6 @@ void HeapProfileSampler::SetNextSamplingIntervalLocked(intptr_t next_interval) {
     thread_->set_end(new_end);
     ASSERT_TLAB_BOUNDARIES_VALID(thread_);
   }
-  ASSERT(interval_to_next_sample_ == kUninitialized);
   interval_to_next_sample_ = next_interval;
 }
 

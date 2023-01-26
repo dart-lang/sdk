@@ -782,6 +782,34 @@ var tests = <IsolateTest>[
     }
   },
 
+  // A PlainInstance.
+  (VmService service, IsolateRef isolateRef) async {
+    final isolateId = isolateRef.id!;
+    final isolate = await service.getIsolate(isolateId);
+    final evalResult = await service.invoke(
+        isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
+    final objectId = evalResult.id!;
+    final result = await service.getObject(isolateId, objectId) as Instance;
+    expect(result.kind, InstanceKind.kPlainInstance);
+    expect(result.id, startsWith('objects/'));
+    expect(result.valueAsString, isNull);
+    expect(result.classRef!.name, '_DummyClass');
+    expect(result.name, isNull);
+    expect(result.typeParameters, isNull);
+    expect(result.size, isPositive);
+    expect(result.length, 3);
+    final fieldsMap = HashMap.fromEntries(
+        result.fields!.map((f) => MapEntry(f.name, f.value)));
+        print(fieldsMap);
+    expect(fieldsMap.keys.length, result.length);
+    expect(fieldsMap.containsKey('dummyList'), true);
+    expect((fieldsMap['dummyList'] as InstanceRef).kind, InstanceKind.kList);
+    expect(fieldsMap.containsKey('dummyLateVarWithInit'), true);
+    expect((fieldsMap['dummyLateVarWithInit'] as Sentinel).kind, SentinelKind.kNotInitialized);
+    expect(fieldsMap.containsKey('dummyLateVar'), true);
+    expect((fieldsMap['dummyLateVar'] as Sentinel).kind, SentinelKind.kNotInitialized);
+  },
+
   // class
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;

@@ -1160,9 +1160,19 @@ timeline events should be.
 For example, given _timeOriginMicros_ and _timeExtentMicros_, only timeline events
 from the following time range will be returned: `(timeOriginMicros, timeOriginMicros + timeExtentMicros)`.
 
-If _getVMTimeline_ is invoked while the current recorder is one of Fuchsia or Macos or
-Systrace, an [RPC error](#rpc-error) with error code _114_, `invalid timeline request`, will be returned as
-timeline events are handled by the OS in these modes.
+If _getVMTimeline_ is invoked while the current recorder is Callback, an
+[RPC error](#rpc-error) with error code _114_, `invalid timeline request`, will
+be returned as timeline events are handled by the embedder in this mode.
+
+If _getVMTimeline_ is invoked while the current recorder is one of Fuchsia or
+Macos or Systrace, an [RPC error](#rpc-error) with error code _114_,
+`invalid timeline request`, will be returned as timeline events are handled by
+the OS in these modes.
+
+If _getVMTimeline_ is invoked while the current recorder is File, an
+[RPC error](#rpc-error) with error code _114_, `invalid timeline request`, will
+be returned as timeline events are written directly to a file, and thus cannot
+be retrieved through the VM Service, in this mode.
 
 ### getVMTimelineFlags
 
@@ -2682,11 +2692,12 @@ class @Instance extends @Object {
   // New code should use 'length' and 'count' instead.
   bool valueAsStringIsTruncated [optional];
 
-  // The length of a List, or the number of associations in a Map, or the number
-  // of codeunits in a String, or the total number of fields (positional and
-  // named) in a Record.
+  // The number of (non-static) fields of a PlainInstance, or the length of a
+  // List, or the number of associations in a Map, or the number of codeunits in
+  // a String, or the total number of fields (positional and named) in a Record.
   //
   // Provided for instance kinds:
+  //   PlainInstance
   //   String
   //   List
   //   Map
@@ -2815,11 +2826,12 @@ class Instance extends Object {
   // New code should use 'length' and 'count' instead.
   bool valueAsStringIsTruncated [optional];
 
-  // The length of a List, or the number of associations in a Map, or the number
-  // of codeunits in a String, or the total number of fields (positional and
-  // named) in a Record.
+  // The number of (non-static) fields of a PlainInstance, or the length of a
+  // List, or the number of associations in a Map, or the number of codeunits in
+  // a String, or the total number of fields (positional and named) in a Record.
   //
   // Provided for instance kinds:
+  //   PlainInstance
   //   String
   //   List
   //   Map
@@ -2925,7 +2937,11 @@ class Instance extends Object {
   //   FunctionType
   @Instance[] typeParameters [optional];
 
-  // The fields of this Instance.
+  // The (non-static) fields of this Instance.
+  //
+  // Provided for instance kinds:
+  //   PlainInstance
+  //   Record
   BoundField[] fields [optional];
 
   // The elements of a List or Set instance.
