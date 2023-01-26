@@ -102,7 +102,7 @@ class _StringNode extends _Node {
   //  * [String] is 16 bytes plus the actual string data.
   //
   // It's an estimation that may overestimate (e.g. on 32-bit architectures) or
-  // underestimate (if paylod is unicode) - but is reasonably precise for our
+  // underestimate (if payload is unicode) - but is reasonably precise for our
   // purpose.
   int get estimatedMemoryConsumption => 32 + (16 + payload.length);
 }
