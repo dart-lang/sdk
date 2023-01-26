@@ -25,7 +25,7 @@ import 'package:meta/meta.dart';
 /// optimistically assume the constraint will be satisfied.
 ///
 /// For example if we are inferring type parameter A, and we ask if
-/// `A <: num`, this will record that A must be a subytpe of `num`. It also
+/// `A <: num`, this will record that A must be a subtype of `num`. It also
 /// handles cases when A appears as part of the structure of another type, for
 /// example `Iterable<A> <: Iterable<num>` would infer the same constraint
 /// (due to covariant generic types) as would `() -> A <: () -> num`. In
