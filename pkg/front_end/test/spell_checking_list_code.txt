@@ -187,7 +187,6 @@ cardinality
 caret
 carets
 carriage
-carring
 cascades
 casing
 cast
