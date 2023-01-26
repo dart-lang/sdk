@@ -32,7 +32,7 @@ var tests = <IsolateTest>[
     expect(response['enabled'], false);
 
     response = await isolate
-        .invokeRpcNoUpgrade(kSetHttpEnableTimelineLogging, {'enabled': true});
+        .invokeRpcNoUpgrade(kSetHttpEnableTimelineLogging, {'enable': true});
     expect(response['type'], 'Success');
 
     response =
@@ -41,7 +41,7 @@ var tests = <IsolateTest>[
     expect(response['enabled'], true);
 
     response = await isolate
-        .invokeRpcNoUpgrade(kSetHttpEnableTimelineLogging, {'enabled': false});
+        .invokeRpcNoUpgrade(kSetHttpEnableTimelineLogging, {'enable': false});
     expect(response['type'], 'Success');
 
     response =
@@ -52,8 +52,8 @@ var tests = <IsolateTest>[
   (Isolate isolate) async {
     // Bad argument.
     try {
-      await isolate.invokeRpcNoUpgrade(
-          kSetHttpEnableTimelineLogging, {'enabled': 'foo'});
+      await isolate
+          .invokeRpcNoUpgrade(kSetHttpEnableTimelineLogging, {'enable': 'foo'});
     } catch (e) {/* expected */}
     // Missing argument.
     try {

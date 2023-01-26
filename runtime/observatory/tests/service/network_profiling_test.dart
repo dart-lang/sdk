@@ -130,7 +130,7 @@ var tests = <IsolateTest>[
     stats.forEach((socket) {
       expect(socket['address'], contains(localhost));
       Expect.type<int>(socket['startTime']);
-      Expect.type<String>(socket['id']);
+      Expect.type<int>(socket['id']);
       Expect.type<int>(socket['port']);
       if (socket['socketType'] == 'tcp') {
         expect(socket['writeBytes'], content.length);

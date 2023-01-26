@@ -77,10 +77,9 @@ extension DartIOExtension on VmService {
   /// Warning: The returned [Future] will not complete if the target isolate is paused
   /// and will only complete when the isolate is resumed.
   @Deprecated('Use httpEnableTimelineLogging instead.')
-  Future<Success> setHttpEnableTimelineLogging(
-          String isolateId, bool enabled) =>
+  Future<Success> setHttpEnableTimelineLogging(String isolateId, bool enable) =>
       _callHelper('ext.dart.io.setHttpEnableTimelineLogging', isolateId, args: {
-        'enabled': enabled,
+        'enable': enable,
       });
 
   /// The `httpEnableTimelineLogging` RPC is used to set and inspect the value of
@@ -120,8 +119,7 @@ extension DartIOExtension on VmService {
 
   /// The `getHttpProfileRequest` RPC is used to retrieve an instance of
   /// [HttpProfileRequest], which includes request and response body data.
-  Future<HttpProfileRequest> getHttpProfileRequest(
-          String isolateId, String id) =>
+  Future<HttpProfileRequest> getHttpProfileRequest(String isolateId, int id) =>
       _callHelper('ext.dart.io.getHttpProfileRequest', isolateId, args: {
         'id': id,
       });
@@ -207,7 +205,7 @@ class SocketStatistic {
       json == null ? null : SocketStatistic._fromJson(json);
 
   /// The unique ID associated with this socket.
-  final String id;
+  final int id;
 
   /// The time, in microseconds, that this socket was created.
   final int startTime;
@@ -366,7 +364,7 @@ class HttpProfileRequestRef {
   /// The ID associated with this request.
   ///
   /// This ID corresponds to the ID of the timeline event for this request.
-  final String id;
+  final int id;
 
   /// The HTTP request method associated with this request.
   final String method;
@@ -413,7 +411,7 @@ class HttpProfileRequest extends HttpProfileRequestRef {
         super._fromJson(json);
 
   HttpProfileRequest({
-    required String id,
+    required int id,
     required String isolateId,
     required String method,
     required Uri uri,

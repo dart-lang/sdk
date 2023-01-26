@@ -5,8 +5,8 @@
 part of dart.io;
 
 // TODO(bkonyi): refactor into io_resource_info.dart
-const int _versionMajor = 2;
-const int _versionMinor = 0;
+const int _versionMajor = 1;
+const int _versionMinor = 6;
 
 const String _tcpSocket = 'tcp';
 const String _udpSocket = 'udp';
@@ -68,7 +68,15 @@ abstract class _NetworkProfiling {
           responseJson = _setHttpEnableTimelineLogging(parameters);
           break;
         case _kHttpEnableTimelineLogging:
-          if (parameters.containsKey('enabled')) {
+          if (parameters.containsKey('enabled') ||
+              parameters.containsKey('enable')) {
+            // TODO(bkonyi): Backwards compatibility.
+            // See https://github.com/dart-lang/sdk/issues/43638.
+            assert(_versionMajor == 1,
+                "'enable' is deprecated and should be removed (See #43638)");
+            if (parameters.containsKey('enabled')) {
+              parameters['enable'] = parameters['enabled']!;
+            }
             _setHttpEnableTimelineLogging(parameters);
           }
           responseJson = _getHttpEnableTimelineLogging();
@@ -148,13 +156,13 @@ String _getHttpEnableTimelineLogging() => json.encode({
     });
 
 String _setHttpEnableTimelineLogging(Map<String, String> parameters) {
-  const String kEnabled = 'enabled';
-  if (!parameters.containsKey(kEnabled)) {
-    throw _missingArgument(kEnabled);
+  const String kEnable = 'enable';
+  if (!parameters.containsKey(kEnable)) {
+    throw _missingArgument(kEnable);
   }
-  final enable = parameters[kEnabled]!.toLowerCase();
+  final enable = parameters[kEnable]!.toLowerCase();
   if (enable != 'true' && enable != 'false') {
-    throw _invalidArgument(kEnabled, enable);
+    throw _invalidArgument(kEnable, enable);
   }
   HttpClient.enableTimelineLogging = enable == 'true';
   return _success();
@@ -164,8 +172,10 @@ String _getHttpProfileRequest(Map<String, String> parameters) {
   if (!parameters.containsKey('id')) {
     throw _missingArgument('id');
   }
-  String id = parameters['id']!;
-
+  final id = int.tryParse(parameters['id']!);
+  if (id == null) {
+    throw _invalidArgument('id', parameters['id']!);
+  }
   final request = HttpProfiler.getHttpProfileRequest(id);
   if (request == null) {
     throw "Unable to find request with id: '$id'";
@@ -205,7 +215,7 @@ abstract class _SocketProfile {
   static bool get enableSocketProfiling => _enableSocketProfiling;
 
   static bool _enableSocketProfiling = false;
-  static Map<String, _SocketStatistic> _idToSocketStatistic = {};
+  static Map<int, _SocketStatistic> _idToSocketStatistic = {};
 
   static String toJson() => json.encode({
         'type': _kType,
@@ -222,15 +232,13 @@ abstract class _SocketProfile {
 
   static void collectStatistic(int id, _SocketProfileType type,
       [dynamic object]) {
-    final idKey = id.toString();
     if (!_enableSocketProfiling) {
       return;
     }
     // Skip socket that started before _enableSocketProfiling turned on.
-    if (!_idToSocketStatistic.containsKey(idKey) &&
+    if (!_idToSocketStatistic.containsKey(id) &&
         type != _SocketProfileType.startTime) return;
-    _SocketStatistic stats =
-        _idToSocketStatistic[idKey] ??= _SocketStatistic(idKey);
+    _SocketStatistic stats = _idToSocketStatistic[id] ??= _SocketStatistic(id);
     switch (type) {
       case _SocketProfileType.startTime:
         stats.startTime = Timeline.now;
@@ -296,7 +304,7 @@ enum _SocketProfileType {
 
 /// Socket statistic
 class _SocketStatistic {
-  final String id;
+  final int id;
   int? startTime;
   int? endTime;
   String? address;
