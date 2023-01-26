@@ -1298,7 +1298,7 @@ class C {
     expect(member, isNull);
   }
 
-  void test_missingSemicolon_varialeDeclarationList() {
+  void test_missingSemicolon_variableDeclarationList() {
     void verify(CompilationUnitMember member, String expectedTypeName,
         String expectedName, String expectedSemicolon) {
       expect(member, isTopLevelVariableDeclaration);
