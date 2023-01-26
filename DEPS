@@ -97,8 +97,11 @@ vars = {
   "gperftools_revision": "bf8b714bf5075d0a6f2f28504b43095e2b1e11c5",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
+  "libprotobuf_rev": "24487dd1045c7f3d64a21f38a3f0c06cc4cf2edb",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
+  "perfetto_rev": "b8da07095979310818f0efde2ef3c69ea70d62c5",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
+  "protobuf_gn_rev": "b9517855b24624ec4edf4a11c1b7060f4ef237e6",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
   "zlib_rev": "27c2f474b71d0d20764f86f60ef8b00da1a16cda",
@@ -301,9 +304,22 @@ deps = {
       Var("chromium_git") + "/chromium/src/third_party/jinja2.git" +
       "@" + Var("jinja2_rev"),
 
+  Var("dart_root") + "/third_party/perfetto":
+      Var("fuchsia_git") +
+      "/third_party/android.googlesource.com/platform/external/perfetto" +
+      "@" + Var("perfetto_rev"),
+
   Var("dart_root") + "/third_party/ply":
       Var("chromium_git") + "/chromium/src/third_party/ply.git" +
       "@" + Var("ply_rev"),
+
+  Var("dart_root") + "/build/secondary/third_party/protobuf":
+      Var("fuchsia_git") + "/protobuf-gn" +
+      "@" + Var("protobuf_gn_rev"),
+
+  Var("dart_root") + "/third_party/protobuf":
+      Var("fuchsia_git") + "/third_party/protobuf" +
+      "@" + Var("libprotobuf_rev"),
 
   Var("dart_root") + "/third_party/icu":
       Var("chromium_git") + "/chromium/deps/icu.git" +
