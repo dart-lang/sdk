@@ -4621,6 +4621,8 @@ class InstanceCallInstr : public InstanceCallBaseInstr {
   const CallTargets& Targets();
   void SetTargets(const CallTargets* targets) { targets_ = targets; }
 
+  void EnsureICData(FlowGraph* graph);
+
 #define FIELD_LIST(F)                                                          \
   F(const intptr_t, checked_argument_count_)                                   \
   F(const AbstractType*, receivers_static_type_)

@@ -1320,4 +1320,224 @@ ISOLATE_UNIT_TEST_CASE(IL_Canonicalize_RepresentationChange) {
   TestRepresentationChangeDuringCanonicalization(thread, false);
 }
 
+static void TestCanonicalizationOfTypedDataViewFieldLoads(Thread* thread,
+                                                          const Slot& field) {
+  const auto& typed_data_lib = Library::Handle(Library::TypedDataLibrary());
+  const auto& view_cls = Class::Handle(
+      typed_data_lib.LookupClassAllowPrivate(Symbols::_Float32ArrayView()));
+  const Error& err = Error::Handle(view_cls.EnsureIsFinalized(thread));
+  EXPECT(err.IsNull());
+  const auto& factory =
+      Function::ZoneHandle(view_cls.LookupFactoryAllowPrivate(String::Handle(
+          String::Concat(Symbols::_Float32ArrayView(), Symbols::DotUnder()))));
+  EXPECT(!factory.IsNull());
+
+  using compiler::BlockBuilder;
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
+  FlowGraphBuilderHelper H;
+
+  auto b1 = H.flow_graph()->graph_entry()->normal_entry();
+
+  const auto constant_4 = H.IntConstant(4);
+  const auto constant_1 = H.IntConstant(1);
+
+  Definition* array;
+  Definition* load;
+  ReturnInstr* ret;
+
+  {
+    BlockBuilder builder(H.flow_graph(), b1);
+    // array <- AllocateTypedData(1)
+    array = builder.AddDefinition(new AllocateTypedDataInstr(
+        InstructionSource(), kTypedDataFloat64ArrayCid, new Value(constant_1),
+        DeoptId::kNone));
+    // view <- StaticCall(_Float32ArrayView._, null, array, 4, 1)
+    const auto view = builder.AddDefinition(new StaticCallInstr(
+        InstructionSource(), factory, 1, Array::empty_array(),
+        {new Value(H.flow_graph()->constant_null()), new Value(array),
+         new Value(constant_4), new Value(constant_1)},
+        DeoptId::kNone, 1, ICData::RebindRule::kStatic));
+    // array_alias <- LoadField(view.length)
+    load = builder.AddDefinition(
+        new LoadFieldInstr(new Value(view), field, InstructionSource()));
+    // Return(load)
+    ret = builder.AddReturn(new Value(load));
+  }
+  H.FinishGraph();
+  H.flow_graph()->Canonicalize();
+
+  if (field.IsIdentical(Slot::TypedDataBase_length())) {
+    EXPECT_PROPERTY(ret->value()->definition(), &it == constant_1);
+  } else if (field.IsIdentical(Slot::TypedDataView_offset_in_bytes())) {
+    EXPECT_PROPERTY(ret->value()->definition(), &it == constant_4);
+  } else if (field.IsIdentical(Slot::TypedDataView_typed_data())) {
+    EXPECT_PROPERTY(ret->value()->definition(), &it == array);
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(IL_Canonicalize_TypedDataViewFactory) {
+  TestCanonicalizationOfTypedDataViewFieldLoads(thread,
+                                                Slot::TypedDataBase_length());
+  TestCanonicalizationOfTypedDataViewFieldLoads(
+      thread, Slot::TypedDataView_offset_in_bytes());
+  TestCanonicalizationOfTypedDataViewFieldLoads(
+      thread, Slot::TypedDataView_typed_data());
+}
+
+// Check that canonicalize can devirtualize InstanceCall based on type
+// information in AOT mode.
+ISOLATE_UNIT_TEST_CASE(IL_Canonicalize_InstanceCallWithNoICDataInAOT) {
+  const auto& typed_data_lib = Library::Handle(Library::TypedDataLibrary());
+  const auto& view_cls = Class::Handle(typed_data_lib.LookupClassAllowPrivate(
+      String::Handle(Symbols::New(thread, "_TypedListBase"))));
+  const Error& err = Error::Handle(view_cls.EnsureIsFinalized(thread));
+  EXPECT(err.IsNull());
+  const auto& getter = Function::Handle(
+      view_cls.LookupFunctionAllowPrivate(Symbols::GetLength()));
+  EXPECT(!getter.IsNull());
+
+  using compiler::BlockBuilder;
+  CompilerState S(thread, /*is_aot=*/true, /*is_optimizing=*/true);
+  FlowGraphBuilderHelper H;
+
+  auto b1 = H.flow_graph()->graph_entry()->normal_entry();
+
+  InstanceCallInstr* length_call;
+  ReturnInstr* ret;
+
+  {
+    BlockBuilder builder(H.flow_graph(), b1);
+    // array <- AllocateTypedData(1)
+    const auto array = builder.AddDefinition(new AllocateTypedDataInstr(
+        InstructionSource(), kTypedDataFloat64ArrayCid,
+        new Value(H.IntConstant(1)), DeoptId::kNone));
+    // length_call <- InstanceCall('get:length', array, ICData[])
+    length_call = builder.AddDefinition(new InstanceCallInstr(
+        InstructionSource(), Symbols::GetLength(), Token::kGET,
+        /*args=*/{new Value(array)}, 0, Array::empty_array(), 1,
+        /*deopt_id=*/42));
+    length_call->EnsureICData(H.flow_graph());
+    // Return(load)
+    ret = builder.AddReturn(new Value(length_call));
+  }
+  H.FinishGraph();
+  H.flow_graph()->Canonicalize();
+
+  EXPECT_PROPERTY(length_call, it.previous() == nullptr);
+  EXPECT_PROPERTY(ret->value()->definition(), it.IsStaticCall());
+  EXPECT_PROPERTY(ret->value()->definition()->AsStaticCall(),
+                  it.function().ptr() == getter.ptr());
+}
+
+void TestStaticFieldForwarding(Thread* thread,
+                               const Class& test_cls,
+                               const Field& field,
+                               intptr_t num_stores,
+                               bool expected_to_forward) {
+  EXPECT(num_stores <= 2);
+
+  using compiler::BlockBuilder;
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
+  FlowGraphBuilderHelper H;
+
+  auto b1 = H.flow_graph()->graph_entry()->normal_entry();
+
+  const auto constant_42 = H.IntConstant(42);
+  const auto constant_24 = H.IntConstant(24);
+  Definition* load;
+  ReturnInstr* ret;
+
+  {
+    BlockBuilder builder(H.flow_graph(), b1);
+    // obj <- AllocateObject(TestClass)
+    const auto obj = builder.AddDefinition(
+        new AllocateObjectInstr(InstructionSource(), test_cls, DeoptId::kNone));
+
+    if (num_stores >= 1) {
+      // StoreField(o.field = 42)
+      builder.AddInstruction(new StoreFieldInstr(
+          field, new Value(obj), new Value(constant_42),
+          StoreBarrierType::kNoStoreBarrier, InstructionSource(),
+          &H.flow_graph()->parsed_function(),
+          StoreFieldInstr::Kind::kInitializing));
+    }
+
+    if (num_stores >= 2) {
+      // StoreField(o.field = 24)
+      builder.AddInstruction(new StoreFieldInstr(
+          field, new Value(obj), new Value(constant_24),
+          StoreBarrierType::kNoStoreBarrier, InstructionSource(),
+          &H.flow_graph()->parsed_function()));
+    }
+
+    // load <- LoadField(view.field)
+    load = builder.AddDefinition(new LoadFieldInstr(
+        new Value(obj), Slot::Get(field, &H.flow_graph()->parsed_function()),
+        InstructionSource()));
+
+    // Return(load)
+    ret = builder.AddReturn(new Value(load));
+  }
+  H.FinishGraph();
+  H.flow_graph()->Canonicalize();
+
+  if (expected_to_forward) {
+    EXPECT_PROPERTY(ret->value()->definition(), &it == constant_42);
+  } else {
+    EXPECT_PROPERTY(ret->value()->definition(), &it == load);
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(IL_Canonicalize_FinalFieldForwarding) {
+  const char* script_chars = R"(
+    import 'dart:typed_data';
+
+    class TestClass {
+      final dynamic finalField;
+      late final dynamic lateFinalField;
+      dynamic normalField;
+
+      TestClass(this.finalField, this.lateFinalField, this.normalField);
+    }
+  )";
+  const auto& lib = Library::Handle(LoadTestScript(script_chars));
+
+  const auto& test_cls = Class::ZoneHandle(
+      lib.LookupLocalClass(String::Handle(Symbols::New(thread, "TestClass"))));
+  const auto& err = Error::Handle(test_cls.EnsureIsFinalized(thread));
+  EXPECT(err.IsNull());
+
+  const auto lookup_field = [&](const char* name) -> const Field& {
+    const auto& original_field = Field::Handle(
+        test_cls.LookupField(String::Handle(Symbols::New(thread, name))));
+    EXPECT(!original_field.IsNull());
+    return Field::Handle(original_field.CloneFromOriginal());
+  };
+
+  const auto& final_field = lookup_field("finalField");
+  const auto& late_final_field = lookup_field("lateFinalField");
+  const auto& normal_field = lookup_field("normalField");
+
+  TestStaticFieldForwarding(thread, test_cls, final_field, /*num_stores=*/0,
+                            /*expected_to_forward=*/false);
+  TestStaticFieldForwarding(thread, test_cls, final_field, /*num_stores=*/1,
+                            /*expected_to_forward=*/true);
+  TestStaticFieldForwarding(thread, test_cls, final_field, /*num_stores=*/2,
+                            /*expected_to_forward=*/false);
+
+  TestStaticFieldForwarding(thread, test_cls, late_final_field,
+                            /*num_stores=*/0, /*expected_to_forward=*/false);
+  TestStaticFieldForwarding(thread, test_cls, late_final_field,
+                            /*num_stores=*/1, /*expected_to_forward=*/false);
+  TestStaticFieldForwarding(thread, test_cls, late_final_field,
+                            /*num_stores=*/2, /*expected_to_forward=*/false);
+
+  TestStaticFieldForwarding(thread, test_cls, normal_field, /*num_stores=*/0,
+                            /*expected_to_forward=*/false);
+  TestStaticFieldForwarding(thread, test_cls, normal_field, /*num_stores=*/1,
+                            /*expected_to_forward=*/false);
+  TestStaticFieldForwarding(thread, test_cls, normal_field, /*num_stores=*/2,
+                            /*expected_to_forward=*/false);
+}
+
 }  // namespace dart

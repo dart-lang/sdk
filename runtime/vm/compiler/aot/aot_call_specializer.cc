@@ -698,20 +698,6 @@ bool AotCallSpecializer::TryOptimizeDoubleOperation(TemplateDartCall<0>* instr,
   return false;
 }
 
-static void EnsureICData(Zone* zone,
-                         const Function& function,
-                         InstanceCallInstr* call) {
-  if (!call->HasICData()) {
-    const Array& arguments_descriptor =
-        Array::Handle(zone, call->GetArgumentsDescriptor());
-    const ICData& ic_data = ICData::ZoneHandle(
-        zone, ICData::New(function, call->function_name(), arguments_descriptor,
-                          call->deopt_id(), call->checked_argument_count(),
-                          ICData::kInstance));
-    call->set_ic_data(&ic_data);
-  }
-}
-
 // Tries to optimize instance call by replacing it with a faster instruction
 // (e.g, binary op, field load, ..).
 // TODO(dartbug.com/30635) Evaluate how much this can be shared with
@@ -1039,8 +1025,8 @@ bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
       ->BindToEnvironment(invoke_get);
 
   // AOT compiler expects all calls to have an ICData.
-  EnsureICData(Z, flow_graph()->function(), invoke_get);
-  EnsureICData(Z, flow_graph()->function(), invoke_call);
+  invoke_get->EnsureICData(flow_graph());
+  invoke_call->EnsureICData(flow_graph());
 
   // Specialize newly inserted calls.
   TryCreateICData(invoke_get);
