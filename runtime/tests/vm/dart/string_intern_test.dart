@@ -16,9 +16,9 @@ main() {
 
   var internedA = intern(a);
   Expect.equals(a, internedA);
-  // Likely, but not guarenteed: Expect.identical(a, internedA);
+  // Likely, but not guaranteed: Expect.identical(a, internedA);
   var internedB = intern(b);
   Expect.equals(b, internedB);
-  // Likely, but not guarenteed: Expect.identical(a, internedB);
+  // Likely, but not guaranteed: Expect.identical(a, internedB);
   Expect.identical(internedA, internedB);
 }
