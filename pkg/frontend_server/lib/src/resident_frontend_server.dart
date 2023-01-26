@@ -126,7 +126,7 @@ class ResidentCompiler {
           await _getSourceFilesToRecompile(_lastCompileStartTime);
       // No changes to source files detected and cached kernel file exists
       // If a kernel file is removed in between compilation requests,
-      // fall through to procude the kernel in recompileDelta.
+      // fall through to produce the kernel in recompileDelta.
       if (invalidatedUris.isEmpty && _outputDill.existsSync()) {
         return _encodeCompilerOutput(
             _outputDill.path, _formattedOutput, _compiler.errors.length,
