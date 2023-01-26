@@ -24,6 +24,7 @@ enum _MethodType {
   getter,
   method,
   setter,
+  operator,
 }
 
 bool parametersNeedParens(List<String> parameters) =>
@@ -49,23 +50,17 @@ class _MethodLoweringConfig {
   Uri get fileUri => procedure.fileUri;
 
   String generateJS(List<String> parameters) {
-    String callArguments;
-    String functionParameters;
-    String object;
-    if (isConstructor) {
-      object = '';
-      callArguments = parameters.join(',');
-      functionParameters = callArguments;
-    } else if (firstParameterIsObject) {
-      object = parameters[0];
-      callArguments = parameters.sublist(1).join(',');
-      functionParameters =
-          '$object${callArguments.isEmpty ? '' : ',$callArguments'}';
-    } else {
-      object = 'globalThis';
-      callArguments = parameters.join(',');
-      functionParameters = callArguments;
-    }
+    String object = isConstructor
+        ? ''
+        : firstParameterIsObject
+            ? parameters[0]
+            : 'globalThis';
+    List<String> callArguments =
+        firstParameterIsObject ? parameters.sublist(1) : parameters;
+    String callArgumentsString = callArguments.join(',');
+    String functionParameters = firstParameterIsObject
+        ? '$object${callArguments.isEmpty ? '' : ',$callArgumentsString'}'
+        : callArgumentsString;
     String bodyString;
     switch (type) {
       case _MethodType.jsObjectLiteralConstructor:
@@ -78,16 +73,25 @@ class _MethodLoweringConfig {
         bodyString = '({${keyValuePairs.join(',')}})';
         break;
       case _MethodType.constructor:
-        bodyString = 'new $jsString($callArguments)';
+        bodyString = 'new $jsString($callArgumentsString)';
         break;
       case _MethodType.getter:
         bodyString = '$object.$jsString';
         break;
       case _MethodType.method:
-        bodyString = '$object.$jsString($callArguments)';
+        bodyString = '$object.$jsString($callArgumentsString)';
         break;
       case _MethodType.setter:
-        bodyString = '$object.$jsString = $callArguments';
+        bodyString = '$object.$jsString = $callArgumentsString';
+        break;
+      case _MethodType.operator:
+        if (jsString == '[]') {
+          bodyString = '$object[${callArguments[0]}]';
+        } else if (jsString == '[]=') {
+          bodyString = '$object[${callArguments[0]}] = ${callArguments[1]}';
+        } else {
+          throw 'Unsupported operator: $jsString';
+        }
         break;
     }
     if (parametersNeedParens(parameters)) {
@@ -112,9 +116,11 @@ class _JSLowerer extends Transformer {
   final Procedure _jsifyRawTarget;
   final Procedure _isDartFunctionWrappedTarget;
   final Procedure _wrapDartFunctionTarget;
+  final Procedure _jsValueBoxTarget;
+  final Procedure _jsValueUnboxTarget;
   final Procedure _allowInteropTarget;
   final Procedure _inlineJSTarget;
-  final Procedure _numToInt;
+  final Procedure _numToIntTarget;
   final Class _wasmExternRefClass;
   final Class _pragmaClass;
   final Field _pragmaName;
@@ -139,13 +145,21 @@ class _JSLowerer extends Transformer {
             .getTopLevelProcedure('dart:_js_helper', '_isDartFunctionWrapped'),
         _wrapDartFunctionTarget = _coreTypes.index
             .getTopLevelProcedure('dart:_js_helper', '_wrapDartFunction'),
+        _jsValueBoxTarget = _coreTypes.index
+            .getClass('dart:_js_helper', 'JSValue')
+            .procedures
+            .firstWhere((p) => p.name.text == 'box'),
+        _jsValueUnboxTarget = _coreTypes.index
+            .getClass('dart:_js_helper', 'JSValue')
+            .procedures
+            .firstWhere((p) => p.name.text == 'unbox'),
         _allowInteropTarget =
             _coreTypes.index.getTopLevelProcedure('dart:js', 'allowInterop'),
         _inlineJSTarget =
             _coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'JS'),
         _wasmExternRefClass =
             _coreTypes.index.getClass('dart:wasm', 'WasmExternRef'),
-        _numToInt = _coreTypes.index
+        _numToIntTarget = _coreTypes.index
             .getClass('dart:core', 'num')
             .procedures
             .firstWhere((p) => p.name.text == 'toInt'),
@@ -248,6 +262,11 @@ class _JSLowerer extends Transformer {
               type = _MethodType.setter;
             } else if (nodeDescriptor.kind == ExtensionMemberKind.Method) {
               type = _MethodType.method;
+            } else if (nodeDescriptor.kind == ExtensionMemberKind.Operator) {
+              if (getJSName(node).isNotEmpty) {
+                throw 'Operators cannot have `@JS` annotations.';
+              }
+              type = _MethodType.operator;
             }
           }
         }
@@ -281,6 +300,10 @@ class _JSLowerer extends Transformer {
     return node;
   }
 
+  bool _isStaticInteropType(DartType type) =>
+      type is InterfaceType &&
+      hasStaticInteropAnnotation(type.className.asClass);
+
   /// Returns and initializes `_extensionMemberIndex` to an index of the member
   /// reference to the member `ExtensionMemberDescriptor`, for all extension
   /// members in the given [library] of classes annotated with
@@ -289,9 +312,7 @@ class _JSLowerer extends Transformer {
       Library library) {
     _extensionMemberIndex = {};
     library.extensions.forEach((extension) {
-      DartType onType = extension.onType;
-      if (onType is InterfaceType &&
-          hasStaticInteropAnnotation(onType.className.asClass)) {
+      if (_isStaticInteropType(extension.onType)) {
         extension.members.forEach((descriptor) {
           _extensionMemberIndex![descriptor.member] = descriptor;
         });
@@ -542,6 +563,14 @@ class _JSLowerer extends Transformer {
             type));
   }
 
+  InstanceInvocation _invokeMethod(
+          VariableDeclaration receiver, Procedure target) =>
+      InstanceInvocation(InstanceAccessKind.Instance, VariableGet(receiver),
+          target.name, Arguments([]),
+          interfaceTarget: target,
+          functionType:
+              target.function.computeFunctionType(Nullability.nonNullable));
+
   // Specializes a JS method for a given [_MethodLoweringConfig] and returns an
   // invocation of the specialized method.
   ReturnStatement _specializeJSMethod(_MethodLoweringConfig config) {
@@ -575,27 +604,34 @@ class _JSLowerer extends Transformer {
     // Return the replacement body.
     // Because we simply don't have enough information, we leave all JS numbers
     // as doubles. However, in cases where we know the user expects an `int` we
-    // insert a cast.
+    // insert a cast. We also let static interop types flow through without
+    // conversion, both as arguments, and as the return type.
     DartType returnType = config.function.returnType;
+    Expression invocation = StaticInvocation(
+        dartProcedure,
+        Arguments(originalParameters.map<Expression>((value) {
+          Procedure target;
+          if (_isStaticInteropType(value.type)) {
+            target = _jsValueUnboxTarget;
+          } else {
+            target = _jsifyRawTarget;
+          }
+          return StaticInvocation(target, Arguments([VariableGet(value)]));
+        }).toList()));
+    Procedure dartifyTarget;
+    if (_isStaticInteropType(returnType)) {
+      dartifyTarget = _jsValueBoxTarget;
+    } else {
+      dartifyTarget = _dartifyRawTarget;
+    }
     DartType returnTypeOverride = returnType == _coreTypes.intNullableRawType
         ? _coreTypes.doubleNullableRawType
         : returnType == _coreTypes.intNonNullableRawType
             ? _coreTypes.doubleNonNullableRawType
             : returnType;
     return ReturnStatement(AsExpression(
-        _convertReturnType(
-            returnType,
-            returnTypeOverride,
-            StaticInvocation(
-                _dartifyRawTarget,
-                Arguments([
-                  StaticInvocation(
-                      dartProcedure,
-                      Arguments(originalParameters
-                          .map<Expression>((value) => StaticInvocation(
-                              _jsifyRawTarget, Arguments([VariableGet(value)])))
-                          .toList()))
-                ]))),
+        _convertReturnType(returnType, returnTypeOverride,
+            StaticInvocation(dartifyTarget, Arguments([invocation]))),
         returnType));
   }
 
@@ -613,11 +649,7 @@ class _JSLowerer extends Transformer {
           ConditionalExpression(
               _variableCheckConstant(v, NullConstant()),
               ConstantExpression(NullConstant()),
-              InstanceInvocation(InstanceAccessKind.Instance, VariableGet(v),
-                  _numToInt.name, Arguments([]),
-                  interfaceTarget: _numToInt,
-                  functionType: _numToInt.function
-                      .computeFunctionType(Nullability.nonNullable)),
+              _invokeMethod(v, _numToIntTarget),
               returnType));
     } else {
       return expression;
@@ -725,7 +757,8 @@ Map<Procedure, String> _performJSInteropTransformations(
   // Therefore, erasure must come after the lowering.
   final staticInteropClassEraser = StaticInteropClassEraser(coreTypes, null,
       libraryForJavaScriptObject: 'dart:_js_helper',
-      classNameOfJavaScriptObject: 'JSValue');
+      classNameOfJavaScriptObject: 'JSValue',
+      additionalCoreLibraries: {'_js_helper'});
   for (Library library in interopDependentLibraries) {
     staticInteropClassEraser.visitLibrary(library);
   }
