@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
-
 import '../analyzer.dart';
 
 const _desc =
@@ -42,13 +39,6 @@ View(Style style, List children)
     : _children = children,
       super(style) {
 ```
-
-**DEPRECATED:** In Dart 2, it is a compile-time error if a superinitializer
-appears in an initializer list at any other position than at the end so this
-rule is made redundant by the Dart analyzer's basic checks and is no longer
-necessary.
-
-The rule will be removed in a future Linter release.
 ''';
 
 class SuperGoesLast extends LintRule {
@@ -63,34 +53,9 @@ class SuperGoesLast extends LintRule {
             name: 'super_goes_last',
             description: _desc,
             details: _details,
-            state: State.deprecated(),
+            state: State.removed(since: dart3),
             group: Group.style);
 
   @override
   LintCode get lintCode => code;
-
-  @override
-  void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
-    registry.addConstructorDeclaration(this, visitor);
-  }
-}
-
-class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
-
-  _Visitor(this.rule);
-
-  @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
-    var last = node.initializers.length - 1;
-
-    for (var i = 0; i <= last; ++i) {
-      var init = node.initializers[i];
-      if (init is SuperConstructorInvocation && i != last) {
-        rule.reportLint(init);
-      }
-    }
-  }
 }

@@ -79,7 +79,6 @@ import 'recursive_getters_test.dart' as recursive_getters;
 import 'sort_constructors_first_test.dart' as sort_constructors_first;
 import 'sort_unnamed_constructors_first_test.dart'
     as sort_unnamed_constructors_first;
-import 'super_goes_last_test.dart' as super_goes_last;
 import 'tighten_type_of_initializing_formals_test.dart'
     as tighten_type_of_initializing_formals;
 import 'type_init_formals_test.dart' as type_init_formals;
@@ -157,7 +156,6 @@ void main() {
   recursive_getters.main();
   sort_constructors_first.main();
   sort_unnamed_constructors_first.main();
-  super_goes_last.main();
   tighten_type_of_initializing_formals.main();
   type_init_formals.main();
   unawaited_futures.main();
