@@ -347,7 +347,7 @@ Future<void> testIsolateSpawn(Future Function() fun) async {
 ///    In this invocation, we can call [Isolate.spawn] which should then reuse
 ///    native asset mapping, because this mapping is shared among the isolate
 ///    group.
-///    Morever, we can call [Isolate.spawnUri] with [Platform.script], because
+///    Moreover, we can call [Isolate.spawnUri] with [Platform.script], because
 ///    we know that snapshot lines up with the runtime. (If we tried to do this
 ///    in 1, we could try to run an aot snapshot with the JIT runtime.)
 /// 3. The [doOnSpawnUriInvocation]. In this, we have been invoked with
