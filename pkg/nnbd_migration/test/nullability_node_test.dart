@@ -720,7 +720,7 @@ class NullabilityNodeTest {
     expect(nodeB.outerCompoundNodes, [substNode]);
   }
 
-  void test_unconstrainted_node_non_nullable() {
+  void test_unconstrained_node_non_nullable() {
     var n1 = newNode(1);
     propagate();
     expect(n1.isNullable, false);
