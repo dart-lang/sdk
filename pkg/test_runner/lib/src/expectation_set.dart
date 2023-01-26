@@ -101,7 +101,7 @@ class _PathNode {
   /// The glob child directory and file paths within this directory.
   final Map<RegExp, _PathNode> regExpChildren = {};
 
-  /// The test expectatations that any test within this directory should
+  /// The test expectations that any test within this directory should
   /// include.
   final Set<Expectation> expectations = {};
 
