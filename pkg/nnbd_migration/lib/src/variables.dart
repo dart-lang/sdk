@@ -449,7 +449,7 @@ class Variables {
     //   span = end*(end + 1) / 2
     //   end^2 + end - 2*span = 0
     //   end = -1 +/- sqrt(1 + 8*span)
-    // We can reslove the `+/-` to `+` (since the result we seek can't be
+    // We can resolve the `+/-` to `+` (since the result we seek can't be
     // negative), so that yields:
     //   end = sqrt(1 + 8*span) - 1
     int end = (math.sqrt(1 + 8.0 * span) - 1).floor();
