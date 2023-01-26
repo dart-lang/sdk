@@ -1368,7 +1368,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     _dds = null;
   }
 
-  /// Shuts down the debug adapter, including terminating/detatching from the
+  /// Shuts down the debug adapter, including terminating/detaching from the
   /// debugee if required.
   @nonVirtual
   Future<void> shutdown() async {
