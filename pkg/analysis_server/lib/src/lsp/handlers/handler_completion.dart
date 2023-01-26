@@ -459,14 +459,14 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
         // lazily to reduce the payload.
         CompletionItemResolutionInfo? resolutionInfo;
         if (item is DartCompletionSuggestion) {
-          final dartElement = item.dartElement;
+          final elementLocation = item.elementLocation;
           final importUris = item.requiredImports;
 
           if (importUris.isNotEmpty) {
             resolutionInfo = DartCompletionResolutionInfo(
               file: unit.path,
               importUris: importUris.map((uri) => uri.toString()).toList(),
-              ref: dartElement?.location?.encoding,
+              ref: elementLocation?.encoding,
             );
           }
         }
