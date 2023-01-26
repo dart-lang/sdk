@@ -4508,7 +4508,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           }
           if (step == parameters.length) {
             var element = parameter.declaredElement!;
-            // This error can only occur if there is a bound, so we can saefly
+            // This error can only occur if there is a bound, so we can safely
             // assume `element.bound` is non-`null`.
             errorReporter.reportErrorForToken(
               CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
