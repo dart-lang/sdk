@@ -1,0 +1,28 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/class_modifiers/base/outside_library/main.dart:7:7: Error: The class 'A' can't be implemented outside of its library because it's a base class.
+// class ImplementsBaseClass implements A {}
+//       ^
+//
+// pkg/front_end/testcases/class_modifiers/base/outside_library/main.dart:9:7: Error: The mixin 'M' can't be implemented outside of its library because it's a base mixin.
+// class ImplementsBaseMixin implements M {}
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+class ImplementsBaseClass extends core::Object implements mai::A {
+  synthetic constructor •() → self::ImplementsBaseClass
+    : super core::Object::•()
+    ;
+}
+class ImplementsBaseMixin extends core::Object implements mai::M {
+  synthetic constructor •() → self::ImplementsBaseMixin
+    : super core::Object::•()
+    ;
+}

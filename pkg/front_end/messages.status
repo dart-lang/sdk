@@ -39,6 +39,10 @@ AwaitAsIdentifier/example: Fail
 AwaitInLateLocalInitializer/analyzerCode: Fail
 AwaitInLateLocalInitializer/example: Fail
 AwaitNotAsync/example: Fail
+BaseClassImplementedOutsideOfLibrary/analyzerCode: Fail
+BaseClassImplementedOutsideOfLibrary/part_wrapped_script: Fail # Uses imports
+BaseMixinImplementedOutsideOfLibrary/analyzerCode: Fail
+BaseMixinImplementedOutsideOfLibrary/part_wrapped_script: Fail # Uses imports
 BuiltInIdentifierAsType/example: Fail
 BuiltInIdentifierInDeclaration/example: Fail
 BytecodeLimitExceededTooManyArguments/analyzerCode: Fail

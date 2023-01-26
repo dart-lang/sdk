@@ -2097,8 +2097,35 @@ severity: $severity
                 cls.charOffset,
                 noLength);
           }
-        }
 
+          // Report an error for a class implementing a base class outside of
+          // its library.
+          List<TypeBuilder>? interfaceBuilders = cls.interfaceBuilders;
+          if (supertype.isBase && interfaceBuilders != null) {
+            for (TypeBuilder interfaceBuilder in interfaceBuilders) {
+              TypeDeclarationBuilder? builder = interfaceBuilder.declaration;
+              while (builder is TypeAliasBuilder) {
+                builder = builder.type.declaration;
+              }
+              if (builder == supertype) {
+                if (supertype.isMixinDeclaration) {
+                  cls.addProblem(
+                      templateBaseMixinImplementedOutsideOfLibrary
+                          .withArguments(supertype.fullNameForErrors),
+                      cls.charOffset,
+                      noLength);
+                } else {
+                  cls.addProblem(
+                      templateBaseClassImplementedOutsideOfLibrary
+                          .withArguments(supertype.fullNameForErrors),
+                      cls.charOffset,
+                      noLength);
+                }
+                break;
+              }
+            }
+          }
+        }
         // Report error for subtyping outside of sealed supertype's library.
         if (cls.libraryBuilder.libraryFeatures.sealedClass.isEnabled &&
             supertype.isSealed) {

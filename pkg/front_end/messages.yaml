@@ -6060,6 +6060,26 @@ CantUseClassAsMixin:
     lib.dart:
       class A {}
 
+BaseClassImplementedOutsideOfLibrary:
+  problemMessage: "The class '#name' can't be implemented outside of its library because it's a base class."
+  experiments: class-modifiers
+  script:
+    main.dart:
+      import 'lib.dart';
+      class B implements A {}
+    lib.dart:
+      base class A {}
+
+BaseMixinImplementedOutsideOfLibrary:
+  problemMessage: "The mixin '#name' can't be implemented outside of its library because it's a base mixin."
+  experiments: class-modifiers
+  script:
+    main.dart:
+      import 'lib.dart';
+      class B implements A {}
+    lib.dart:
+      base mixin A {}
+
 UnspecifiedGetterNameInObjectPattern:
   problemMessage: "The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern."
   experiments: patterns

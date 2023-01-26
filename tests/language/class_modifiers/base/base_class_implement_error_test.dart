@@ -9,14 +9,14 @@
 import 'base_class_implement_lib.dart';
 
 abstract class AOutside implements BaseClass {}
-// ^
+//             ^
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 // [analyzer] unspecified
-// [cfe] unspecified
 
 class BOutside implements BaseClass {
-// ^
+//    ^
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 // [analyzer] unspecified
-// [cfe] unspecified
   @override
   int foo = 1;
 }

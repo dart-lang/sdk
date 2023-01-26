@@ -343,6 +343,60 @@ const MessageCode messageAwaitNotAsync = const MessageCode("AwaitNotAsync",
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        String
+            name)> templateBaseClassImplementedOutsideOfLibrary = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The class '#name' can't be implemented outside of its library because it's a base class.""",
+    withArguments: _withArgumentsBaseClassImplementedOutsideOfLibrary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeBaseClassImplementedOutsideOfLibrary =
+    const Code<Message Function(String name)>(
+  "BaseClassImplementedOutsideOfLibrary",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsBaseClassImplementedOutsideOfLibrary(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeBaseClassImplementedOutsideOfLibrary,
+      problemMessage:
+          """The class '${name}' can't be implemented outside of its library because it's a base class.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateBaseMixinImplementedOutsideOfLibrary = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The mixin '#name' can't be implemented outside of its library because it's a base mixin.""",
+    withArguments: _withArgumentsBaseMixinImplementedOutsideOfLibrary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeBaseMixinImplementedOutsideOfLibrary =
+    const Code<Message Function(String name)>(
+  "BaseMixinImplementedOutsideOfLibrary",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsBaseMixinImplementedOutsideOfLibrary(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeBaseMixinImplementedOutsideOfLibrary,
+      problemMessage:
+          """The mixin '${name}' can't be implemented outside of its library because it's a base mixin.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
         String string,
         String
             string2)> templateBinaryOperatorWrittenOut = const Template<
