@@ -676,12 +676,6 @@ class Harness {
     _operations.addExhaustiveness(type, isExhaustive);
   }
 
-  /// Updates the harness so that when a [factor] query is invoked on types
-  /// [from] and [what], [result] will be returned.
-  void addFactor(String from, String what, String result) {
-    _operations.addFactor(from, what, result);
-  }
-
   /// Updates the harness so that when member [memberName] is looked up on type
   /// [targetType], a member is found having the given [type].
   ///
@@ -710,10 +704,13 @@ class Harness {
     _operations.addPromotionException(from, to, result);
   }
 
-  /// Updates the harness so that when an [isSubtypeOf] query is invoked on
-  /// types [leftType] and [rightType], [isSubtype] will be returned.
-  void addSubtype(String leftType, String rightType, bool isSubtype) {
-    _operations.addSubtype(leftType, rightType, isSubtype);
+  void addSuperInterfaces(
+      String className, List<Type> Function(List<Type>) template) {
+    _operations.addSuperInterfaces(className, template);
+  }
+
+  void addTypeVariable(String name, {String? bound}) {
+    _operations.addTypeVariable(name, bound: bound);
   }
 
   /// Attempts to look up a member named [memberName] in the given [type].  If
@@ -862,197 +859,6 @@ class MiniAstOperations
     'String': false,
   };
 
-  static const Map<String, bool> _coreSubtypes = const {
-    'bool <: int': false,
-    'bool <: Object': true,
-    'double <: bool': false,
-    'double <: double?': true,
-    'double <: Object': true,
-    'double <: Object?': true,
-    'double <: Never': false,
-    'double <: num': true,
-    'double <: num?': true,
-    'double <: int': false,
-    'double <: int?': false,
-    'double <: String': false,
-    'double? <: Null': false,
-    'dynamic <: int': false,
-    'dynamic <: int?': false,
-    'dynamic <: Null': false,
-    'dynamic <: num': false,
-    'dynamic <: Object': false,
-    'Future<String> <: String': false,
-    'FutureOr<int> <: int': false,
-    'FutureOr<int> <: Object': true,
-    'FutureOr<Object> <: Object': true,
-    'FutureOr<String> <: Object': true,
-    'FutureOr<String> <: String': false,
-    'int <: bool': false,
-    'int <: double': false,
-    'int <: double?': false,
-    'int <: dynamic': true,
-    'int <: FutureOr<int>': true,
-    'int <: int?': true,
-    'int <: Iterable': false,
-    'int <: List': false,
-    'int <: Never': false,
-    'int <: Null': false,
-    'int <: num': true,
-    'int <: num?': true,
-    'int <: num*': true,
-    'int <: Never?': false,
-    'int <: Object': true,
-    'int <: Object?': true,
-    'int <: String': false,
-    'int <: ?': true,
-    'int? <: dynamic': true,
-    'int? <: int': false,
-    'int? <: Never': false,
-    'int? <: Null': false,
-    'int? <: num': false,
-    'int? <: num?': true,
-    'int? <: Object': false,
-    'int? <: Object?': true,
-    'List<int> <: Object': true,
-    'Never <: Object': true,
-    'Never <: Object?': true,
-    'Null <: double': false,
-    'Null <: double?': true,
-    'Null <: int': false,
-    'Null <: Object': false,
-    'Null <: Object?': true,
-    'Null <: dynamic': true,
-    'num <: double': false,
-    'num <: dynamic': true,
-    'num <: int': false,
-    'num <: Iterable': false,
-    'num <: List': false,
-    'num <: num?': true,
-    'num <: num*': true,
-    'num <: Object': true,
-    'num <: Object?': true,
-    'num <: String': false,
-    'num? <: int?': false,
-    'num? <: num': false,
-    'num? <: num*': true,
-    'num? <: Object': false,
-    'num? <: Object?': true,
-    'num* <: num': true,
-    'num* <: num?': true,
-    'num* <: Object': true,
-    'num* <: Object?': true,
-    'Iterable <: int': false,
-    'Iterable <: num': false,
-    'Iterable <: Object': true,
-    'Iterable <: Object?': true,
-    'Iterable<int> <: List<int>': false,
-    'List <: int': false,
-    'List <: Iterable': true,
-    'List <: Object': true,
-    'List<dynamic> <: Object': true,
-    'List<Object?> <: Object': true,
-    'List<int> <: dynamic': true,
-    'List<int> <: Iterable<double>': false,
-    'List<int> <: Iterable<int>': true,
-    'List<int> <: List<num>': true,
-    'List<int> <: String': false,
-    'Map<bool, int> <: Map<Object, num>': true,
-    'Never <: bool': true,
-    'Never <: int': true,
-    'Never <: int?': true,
-    'Never <: Null': true,
-    'Never? <: int': false,
-    'Never? <: int?': true,
-    'Never? <: num?': true,
-    'Never? <: Object?': true,
-    'Null <: int?': true,
-    'Object <: bool': false,
-    'Object <: FutureOr<Object>': true,
-    'Object <: int': false,
-    'Object <: int?': false,
-    'Object <: List': false,
-    'Object <: List<Object?>': false,
-    'Object <: Null': false,
-    'Object <: num': false,
-    'Object <: num?': false,
-    'Object <: Object?': true,
-    'Object <: String': false,
-    'Object? <: Object': false,
-    'Object? <: int': false,
-    'Object? <: int?': false,
-    'Object? <: Null': false,
-    'Object? <: String': false,
-    'String <: Future<String>': false,
-    'String <: FutureOr<String>': true,
-    'String <: int': false,
-    'String <: int?': false,
-    'String <: List<num>': false,
-    'String <: Map<bool, int>': false,
-    'String <: num': false,
-    'String <: num?': false,
-    'String <: Object': true,
-    'String <: Object?': true,
-    'String <: String?': true,
-    'String <: List<int>': false,
-    'String? <: Null': false,
-    'String? <: Object': false,
-    'String? <: Object?': true,
-    '(int, int) <: (Object?, Object?)': true,
-  };
-
-  static final Map<String, Type> _coreFactors = {
-    'bool - Object': Type('Never'),
-    'dynamic - int': Type('dynamic'),
-    'dynamic - int?': Type('dynamic'),
-    'dynamic - num': Type('dynamic'),
-    'FutureOr<int> - int': Type('Future<int>'),
-    'FutureOr<String> - String': Type('Future<String>'),
-    'Object? - double': Type('Object?'),
-    'Object? - int': Type('Object?'),
-    'Object? - int?': Type('Object'),
-    'Object? - Never': Type('Object?'),
-    'Object? - Null': Type('Object'),
-    'Object? - num?': Type('Object'),
-    'Object? - String': Type('Object?'),
-    'Object? - String?': Type('Object?'),
-    'Object - bool': Type('Object'),
-    'Object - FutureOr<Object>': Type('Object'),
-    'Object - int': Type('Object'),
-    'Object - String': Type('Object'),
-    'double - num': Type('Never'),
-    'int - num': Type('int'),
-    'int - Object': Type('Never'),
-    'int - String': Type('int'),
-    'int - int?': Type('Never'),
-    'int? - int': Type('Never?'),
-    'int? - Null': Type('int'),
-    'int? - String': Type('int?'),
-    'List<int> - Iterable<int>': Type('Never'),
-    'List<int> - String': Type('List<int>'),
-    'Null - dynamic': Type('Never'),
-    'Null - int': Type('Null'),
-    'Null - int?': Type('Never'),
-    'Null - double?': Type('Never'),
-    'num - double': Type('num'),
-    'num - int': Type('num'),
-    'num? - num': Type('Never?'),
-    'num? - int': Type('num?'),
-    'num? - int?': Type('num'),
-    'num? - Object': Type('Never?'),
-    'num? - String': Type('num?'),
-    'Object - int?': Type('Object'),
-    'Object - num': Type('Object'),
-    'Object - num?': Type('Object'),
-    'Object - num*': Type('Object'),
-    'Object - Iterable': Type('Object'),
-    'Object? - Object': Type('Never?'),
-    'Object? - Iterable': Type('Object?'),
-    'Object? - num': Type('Object?'),
-    'Iterable - List': Type('Iterable'),
-    'num* - Object': Type('Never'),
-    'String - num': Type('String'),
-  };
-
   static final Map<String, Type> _coreGlbs = {
     'Object?, double': Type('double'),
     'Object?, int': Type('int'),
@@ -1103,10 +909,6 @@ class MiniAstOperations
 
   final Map<String, bool> _exhaustiveness = Map.of(_coreExhaustiveness);
 
-  final Map<String, bool> _subtypes = Map.of(_coreSubtypes);
-
-  final Map<String, Type> _factorResults = Map.of(_coreFactors);
-
   final Map<String, Type> _glbs = Map.of(_coreGlbs);
 
   final Map<String, Type> _lubs = Map.of(_coreLubs);
@@ -1122,6 +924,8 @@ class MiniAstOperations
       Map.of(_coreAreStructurallyEqualResults);
 
   final Set<_PropertyElement> promotableFields = {};
+
+  final TypeSystem _typeSystem = TypeSystem();
 
   bool get legacy => _legacy ?? false;
 
@@ -1145,22 +949,17 @@ class MiniAstOperations
     _exhaustiveness[type] = isExhaustive;
   }
 
-  /// Updates the harness so that when a [factor] query is invoked on types
-  /// [from] and [what], [result] will be returned.
-  void addFactor(String from, String what, String result) {
-    var query = '$from - $what';
-    _factorResults[query] = Type(result);
-  }
-
   void addPromotionException(String from, String to, String result) {
     (_promotionExceptions[from] ??= {})[to] = result;
   }
 
-  /// Updates the harness so that when an [isSubtypeOf] query is invoked on
-  /// types [leftType] and [rightType], [isSubtype] will be returned.
-  void addSubtype(String leftType, String rightType, bool isSubtype) {
-    var query = '$leftType <: $rightType';
-    _subtypes[query] = isSubtype;
+  void addSuperInterfaces(
+      String className, List<Type> Function(List<Type>) template) {
+    _typeSystem.addSuperInterfaces(className, template);
+  }
+
+  void addTypeVariable(String name, {String? bound}) {
+    _typeSystem.addTypeVariable(name, bound: bound);
   }
 
   @override
@@ -1193,11 +992,7 @@ class MiniAstOperations
 
   @override
   Type factor(Type from, Type what) {
-    var fromStr = from.toString();
-    var whatStr = what.toString();
-    if (fromStr == whatStr) return Type('Never');
-    var query = '$fromStr - $whatStr';
-    return _factorResults[query] ?? fail('Unknown factor query: $query');
+    return _typeSystem.factor(from, what);
   }
 
   @override
@@ -1245,9 +1040,7 @@ class MiniAstOperations
 
   @override
   bool isSubtypeOf(Type leftType, Type rightType) {
-    if (leftType.type == rightType.type) return true;
-    var query = '$leftType <: $rightType';
-    return _subtypes[query] ?? fail('Unknown subtype query: $query');
+    return _typeSystem.isSubtype(leftType, rightType);
   }
 
   @override
