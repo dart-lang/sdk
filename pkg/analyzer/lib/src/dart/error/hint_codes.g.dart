@@ -636,7 +636,7 @@ class HintCode extends AnalyzerErrorCode {
   ///  0: the name of the member
   static const HintCode MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE = HintCode(
     'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
-    "Missing concrete override implementation of '{0}'.",
+    "Missing concrete implementation of '{0}'.",
     correctionMessage: "Try overriding the missing member.",
     hasPublishedDocs: true,
     uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE',
@@ -649,7 +649,7 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS =
       HintCode(
     'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
-    "Missing concrete override implementation of '{0}', '{1}', and {2} more.",
+    "Missing concrete implementations of '{0}', '{1}', and {2} more.",
     correctionMessage: "Try overriding the missing members.",
     hasPublishedDocs: true,
     uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS',
@@ -660,7 +660,7 @@ class HintCode extends AnalyzerErrorCode {
   ///  1: the name of the second member
   static const HintCode MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO = HintCode(
     'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
-    "Missing concrete override implementation of '{0}' and '{1}'.",
+    "Missing concrete implementations of '{0}' and '{1}'.",
     correctionMessage: "Try overriding the missing members.",
     hasPublishedDocs: true,
     uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO',
