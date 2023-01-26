@@ -14,7 +14,10 @@ import 'package:test/test.dart';
 bool get verbose => false;
 
 Uri get sdkRoot => computePlatformBinariesLocation();
-Uri get sdkSummaryPath => sdkRoot.resolve('ddc_outline_unsound.dill');
+// Unsound .dill files are not longer in the released SDK so this file must be
+// read from the build output directory.
+Uri get sdkSummaryPath => computePlatformBinariesLocation(forceBuildDir: true)
+    .resolve('ddc_outline_unsound.dill');
 Uri get librariesPath => sdkRoot.resolve('lib/libraries.json');
 
 void main(List<String> args) {

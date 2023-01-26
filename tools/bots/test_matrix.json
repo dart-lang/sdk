@@ -15,6 +15,7 @@
       ".dart_tool/package_config.json",
       "out/ReleaseIA32/dart-sdk/",
       "out/ReleaseX64/dart-sdk/",
+      "out/ReleaseX64/ddc_outline_unsound.dill",
       "out/ReleaseX64/gen/utils/dartdevc/",
       "pkg/",
       "runtime/tests/",
@@ -52,12 +53,15 @@
       "tools/",
       "xcodebuild/ReleaseIA32/dart-sdk/",
       "xcodebuild/ReleaseX64/dart-sdk/",
+      "xcodebuild/ReleaseX64/ddc_outline_unsound.dill",
       "xcodebuild/ReleaseX64/gen/utils/dartdevc/"
     ],
     "web_platform_nnbd": [
       ".dart_tool/package_config.json",
       "out/ReleaseIA32/dart-sdk/",
       "out/ReleaseX64/dart-sdk/",
+      "out/ReleaseX64/ddc_outline.dill",
+      "out/ReleaseX64/ddc_outline_unsound.dill",
       "out/ReleaseX64/gen/utils/dartdevc/",
       "pkg/",
       "runtime/tests/",
@@ -88,6 +92,8 @@
       "tools/",
       "xcodebuild/ReleaseIA32/dart-sdk/",
       "xcodebuild/ReleaseX64/dart-sdk/",
+      "xcodebuild/ReleaseX64/ddc_outline.dill",
+      "xcodebuild/ReleaseX64/ddc_outline_unsound.dill",
       "xcodebuild/ReleaseX64/gen/utils/dartdevc/"
     ],
     "web_platform_hostasserts": [
