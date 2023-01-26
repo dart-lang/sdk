@@ -27,9 +27,9 @@ mixin KernelNodes {
   late final Class hashFieldBaseClass =
       index.getClass("dart:collection", "_HashFieldBase");
   late final Class immutableMapClass =
-      index.getClass("dart:collection", "_WasmImmutableLinkedHashMap");
+      index.getClass("dart:collection", "_WasmImmutableMap");
   late final Class immutableSetClass =
-      index.getClass("dart:collection", "_WasmImmutableLinkedHashSet");
+      index.getClass("dart:collection", "_WasmImmutableSet");
 
   // dart:core various classes
   late final Class boxedBoolClass = index.getClass("dart:core", "_BoxedBool");
@@ -133,14 +133,14 @@ mixin KernelNodes {
   late final Procedure mapFactory =
       index.getProcedure("dart:collection", "LinkedHashMap", "_default");
   late final Procedure mapPut = index
-      .getClass("dart:collection", "_CompactLinkedCustomHashMap")
+      .getClass("dart:collection", "_WasmDefaultMap")
       .superclass! // _LinkedHashMapMixin<K, V>
       .procedures
       .firstWhere((p) => p.name.text == "[]=");
   late final Procedure setFactory =
       index.getProcedure("dart:collection", "LinkedHashSet", "_default");
   late final Procedure setAdd = index
-      .getClass("dart:collection", "_CompactLinkedCustomHashSet")
+      .getClass("dart:collection", "_WasmDefaultSet")
       .superclass! // _LinkedHashSetMixin<K, V>
       .procedures
       .firstWhere((p) => p.name.text == "add");
