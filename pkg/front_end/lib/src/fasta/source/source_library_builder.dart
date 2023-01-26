@@ -2451,7 +2451,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         List<TypeBuilder>? applicationTypeArguments;
         if (isNamedMixinApplication) {
           // If this is a named mixin application, it must be given all the
-          // declarated type variables.
+          // declared type variables.
           applicationTypeVariables = typeVariables;
         } else {
           // Otherwise, we pass the fresh type variables to the mixin

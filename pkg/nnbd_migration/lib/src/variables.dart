@@ -99,14 +99,14 @@ class Variables {
       Source? source, TypeAnnotation typeAnnotation) {
     var annotationsInSource = _decoratedTypeAnnotations[source];
     if (annotationsInSource == null) {
-      throw StateError('No declarated type annotations in ${source!.fullName}; '
+      throw StateError('No declared type annotations in ${source!.fullName}; '
           'expected one for ${typeAnnotation.toSource()} '
           '(offset ${typeAnnotation.offset})');
     }
     DecoratedType? decoratedTypeAnnotation = annotationsInSource[
         uniqueIdentifierForSpan(typeAnnotation.offset, typeAnnotation.end)];
     if (decoratedTypeAnnotation == null) {
-      throw StateError('Missing declarated type annotation'
+      throw StateError('Missing declared type annotation'
           ' in ${source!.fullName}; for ${typeAnnotation.toSource()}');
     }
     return decoratedTypeAnnotation;
