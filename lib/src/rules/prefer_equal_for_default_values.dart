@@ -7,12 +7,6 @@ import '../analyzer.dart';
 const _desc = r'Use `=` to separate a named parameter from its default value.';
 
 const _details = r'''
-**DEPRECATED:** In Dart 2.19, 
-the Dart analyzer reports the old `:` syntax as a warning
-and will report it as an error in Dart 3.0.
-As a result, this rule is unmaintained 
-and will be removed in a future Linter release.
-
 From the [style guide](https://dart.dev/guides/language/effective-dart/usage):
 
 **DO** use `=` to separate a named parameter from its default value.
@@ -38,12 +32,9 @@ class PreferEqualForDefaultValues extends LintRule {
             name: 'prefer_equal_for_default_values',
             description: _desc,
             details: _details,
-            state: State.deprecated(since: dart3),
+            state: State.removed(since: dart3),
             group: Group.style);
 
   @override
   LintCode get lintCode => code;
-
-  // As of 2.19, this is a warning so we don't want to double-report and so
-  // we don't register any processors.
 }

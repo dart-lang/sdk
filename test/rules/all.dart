@@ -67,8 +67,6 @@ import 'prefer_const_declarations_test.dart' as prefer_const_declarations;
 import 'prefer_const_literals_to_create_immutables_test.dart'
     as prefer_const_literals_to_create_immutables;
 import 'prefer_contains_test.dart' as prefer_contains;
-import 'prefer_equal_for_default_values_test.dart'
-    as prefer_equal_for_default_values;
 import 'prefer_final_fields_test.dart' as prefer_final_fields;
 import 'prefer_final_parameters_test.dart' as prefer_final_parameters;
 import 'prefer_generic_function_type_aliases_test.dart'
@@ -147,7 +145,6 @@ void main() {
   prefer_const_declarations.main();
   prefer_const_literals_to_create_immutables.main();
   prefer_contains.main();
-  prefer_equal_for_default_values.main();
   prefer_final_fields.main();
   prefer_final_parameters.main();
   prefer_generic_function_type_aliases.main();
