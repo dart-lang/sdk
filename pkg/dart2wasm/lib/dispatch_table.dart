@@ -331,7 +331,7 @@ class DispatchTable {
           // Reference is abstract, do not override inherited concrete member
           selector.targets[info.classId] ??= reference;
         } else {
-          // Reference is concrete, override inerited member
+          // Reference is concrete, override inherited member
           selector.targets[info.classId] = reference;
         }
         selectorIds.add(selector.id);
