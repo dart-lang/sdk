@@ -4,7 +4,7 @@
 
 // This file is a reimplementation of the header file mach-o/loader.h, which is
 // part of the Apple system headers. All comments, which detail the format of
-// Mach-O files, have been reproduced from the orginal header.
+// Mach-O files, have been reproduced from the original header.
 
 import 'dart:io';
 import 'dart:typed_data';
