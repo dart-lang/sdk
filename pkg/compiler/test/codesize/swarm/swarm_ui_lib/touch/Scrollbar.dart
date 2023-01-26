@@ -16,7 +16,7 @@ class Scrollbar implements ScrollListener {
   /// the content is stretching past its boundaries.
   static const _MIN_COMPRESSED_SIZE = 8;
 
-  /// Padding in pixels to add above and bellow the scrollbar. */
+  /// Padding in pixels to add above and below the scrollbar. */
   static const _PADDING_LENGTH = 10;
 
   /// The amount of time to wait before hiding scrollbars after showing them.
