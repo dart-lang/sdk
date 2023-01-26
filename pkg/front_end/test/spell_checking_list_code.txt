@@ -1429,7 +1429,6 @@ subname
 subnode
 subnodes
 subpatterns
-subpattterns
 subscription
 subsection
 subsections
