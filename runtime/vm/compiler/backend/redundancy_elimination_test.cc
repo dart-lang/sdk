@@ -717,7 +717,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_TypedArrayViewAliasing) {
     builder.AddInstruction(new StoreIndexedInstr(
         new Value(array), new Value(H.IntConstant(0)),
         new Value(H.DoubleConstant(1.0)), StoreBarrierType::kNoStoreBarrier,
-        /*inded_unboxed=*/false,
+        /*index_unboxed=*/false,
         /*index_scale=*/Instance::ElementSizeFor(kTypedDataFloat64ArrayCid),
         kTypedDataFloat64ArrayCid, AlignmentType::kAlignedAccess,
         DeoptId::kNone, InstructionSource()));
@@ -729,7 +729,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_TypedArrayViewAliasing) {
     builder.AddInstruction(new StoreIndexedInstr(
         new Value(array_alias), new Value(H.IntConstant(1)),
         new Value(H.DoubleConstant(2.0)), StoreBarrierType::kNoStoreBarrier,
-        /*inded_unboxed=*/false,
+        /*index_unboxed=*/false,
         /*index_scale=*/Instance::ElementSizeFor(kTypedDataFloat32ArrayCid),
         kTypedDataFloat32ArrayCid, AlignmentType::kAlignedAccess,
         DeoptId::kNone, InstructionSource()));
