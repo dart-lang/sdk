@@ -328,7 +328,7 @@ abstract class PubspecVisitor<T> {
 
   T? visitPackageName(PSEntry name) => null;
 
-  T? visitPackageRepository(PSEntry repostory) => null;
+  T? visitPackageRepository(PSEntry repository) => null;
 
   T? visitPackageVersion(PSEntry version) => null;
 }
