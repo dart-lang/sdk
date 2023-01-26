@@ -245,7 +245,7 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction?>
   bool _requiresUintConversion(HInstruction node) {
     if (node.isUInt31(_abstractValueDomain).isDefinitelyTrue) return false;
     if (_bitWidth(node) <= 31) return false;
-    // JavaScript bitwise operations generally intepret the input as a signed
+    // JavaScript bitwise operations generally interpret the input as a signed
     // 32-bit value, so the conversion to an unsigned value may be avoided if
     // the value is used only by bitwise operations.
     return _hasNonBitOpUser(node, Set<HPhi>());
