@@ -433,7 +433,7 @@ class CommandQueue {
         assert(command == output.command);
 
         _commandOutputStream.add(output);
-        if (output.canRunDependendCommands) {
+        if (output.canRunDependentCommands) {
           graph.changeState(node, NodeState.successful);
         } else {
           graph.changeState(node, NodeState.failed);
