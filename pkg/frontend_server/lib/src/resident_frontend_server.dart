@@ -338,7 +338,7 @@ class ResidentFrontendServer {
         '--protobuf-tree-shaker-v2',
       if (request['define'] != null)
         for (var define in request['define']) define,
-      if (request['enable-experiement'] != null)
+      if (request['enable-experiment'] != null)
         for (var experiment in request['enable-experiment']) experiment,
     ]);
   }
@@ -364,7 +364,7 @@ class ResidentFrontendServer {
       bool? treeShakeWriteOnlyFields,
       bool? protobufTreeShakerV2,
       List<String>? define,
-      List<String>? enableExperiement,
+      List<String>? enableExperiment,
       bool verbose = false}) {
     return jsonEncode(<String, Object>{
       "command": "compile",
@@ -373,7 +373,7 @@ class ResidentFrontendServer {
       if (aot != null) "aot": true,
       if (define != null) "define": define,
       if (enableAsserts != null) "enable-asserts": true,
-      if (enableExperiement != null) "enable-experiment": enableExperiement,
+      if (enableExperiment != null) "enable-experiment": enableExperiment,
       if (packages != null) "packages": packages,
       if (protobufTreeShakerV2 != null) "protobuf-tree-shaker-v2": true,
       if (rta != null) "rta": true,
