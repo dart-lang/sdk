@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 void main() {
-  /*ddc.1:main*/ Class. /*ddk.1:main*/ test();
+  Class. /*1:main*/ test();
 }
 
 class Class {
