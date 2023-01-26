@@ -1394,6 +1394,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkMixinsSuperClass(withClause);
       _checkForMixinWithConflictingPrivateMember(withClause, superclass);
       _checkForConflictingGenerics(node);
+      _checkForBaseClassOrMixinImplementedOutsideOfLibrary(
+          node, implementsClause);
       _checkForClassUsedAsMixin(node, withClause);
       _checkForSealedSupertypeOutsideOfLibrary(
           node, superclass, withClause, implementsClause);
@@ -1722,6 +1724,37 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (mixinElement != null && mixinElement.name == "Function") {
           errorReporter.reportErrorForNode(
               WarningCode.DEPRECATED_MIXIN_FUNCTION, type);
+        }
+      }
+    }
+  }
+
+  /// Verify that if a class is implementing a base class or mixin, it must be
+  /// within the same library as that class or mixin.
+  ///
+  /// See [CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY],
+  /// [CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY].
+  void _checkForBaseClassOrMixinImplementedOutsideOfLibrary(
+      NamedCompilationUnitMember node, ImplementsClause? implementsClause) {
+    if (implementsClause == null) return;
+    for (NamedType interface in implementsClause.interfaces) {
+      final interfaceType = interface.type;
+      if (interfaceType is InterfaceType) {
+        final interfaceElement = interfaceType.element;
+        if (interfaceElement is ClassOrMixinElementImpl &&
+            interfaceElement.isBase &&
+            interfaceElement.library != _currentLibrary) {
+          if (interfaceElement is ClassElement) {
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+                interface,
+                [interfaceElement.name]);
+          } else if (interfaceElement is MixinElement) {
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+                interface,
+                [interfaceElement.name]);
+          }
         }
       }
     }
@@ -5109,6 +5142,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         CompileTimeErrorCode.IMPLEMENTS_REPEATED,
       );
       _checkForConflictingGenerics(node);
+      _checkForBaseClassOrMixinImplementedOutsideOfLibrary(
+          node, implementsClause);
       _checkForSealedSupertypeOutsideOfLibrary(
           node, null, null, implementsClause);
     }

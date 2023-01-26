@@ -354,8 +354,8 @@ const Template<
 const Code<Message Function(String name)>
     codeBaseClassImplementedOutsideOfLibrary =
     const Code<Message Function(String name)>(
-  "BaseClassImplementedOutsideOfLibrary",
-);
+        "BaseClassImplementedOutsideOfLibrary",
+        analyzerCodes: <String>["BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsBaseClassImplementedOutsideOfLibrary(String name) {
@@ -381,8 +381,8 @@ const Template<
 const Code<Message Function(String name)>
     codeBaseMixinImplementedOutsideOfLibrary =
     const Code<Message Function(String name)>(
-  "BaseMixinImplementedOutsideOfLibrary",
-);
+        "BaseMixinImplementedOutsideOfLibrary",
+        analyzerCodes: <String>["BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsBaseMixinImplementedOutsideOfLibrary(String name) {

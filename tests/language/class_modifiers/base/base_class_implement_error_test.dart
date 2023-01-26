@@ -11,12 +11,14 @@ import 'base_class_implement_lib.dart';
 abstract class AOutside implements BaseClass {}
 //             ^
 // [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
-// [analyzer] unspecified
+//                                 ^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 
 class BOutside implements BaseClass {
 //    ^
 // [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
-// [analyzer] unspecified
+//                        ^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
   @override
   int foo = 1;
 }
