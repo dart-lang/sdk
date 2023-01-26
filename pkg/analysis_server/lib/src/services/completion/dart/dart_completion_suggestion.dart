@@ -9,7 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 /// An extension of [CompletionSuggestion] that includes additional
 /// Dart-specific fields that are not part of the JSON protocol.
 class DartCompletionSuggestion extends CompletionSuggestion {
-  final Element? dartElement;
+  final ElementLocation? elementLocation;
   final List<Uri> requiredImports;
 
   DartCompletionSuggestion(
@@ -38,7 +38,7 @@ class DartCompletionSuggestion extends CompletionSuggestion {
     super.parameterType,
     super.libraryUri,
     super.isNotImported,
-    required this.dartElement,
+    required this.elementLocation,
     this.requiredImports = const [],
   });
 }

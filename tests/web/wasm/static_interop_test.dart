@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:js_util';
 import 'package:expect/expect.dart';
 import 'package:js/js.dart';
 import 'static_interop_library.dart';
@@ -345,6 +346,31 @@ void concreteFactoryConstructorTest() {
   Expect.equals('foofoo', anonymousRedirectJSClass.foo('foo'));
 }
 
+@JS()
+@staticInterop
+class JSArray {}
+
+extension JSArrayExtension on JSArray {
+  external Object? operator [](int index);
+  external int get length;
+  external String get deoptKey;
+}
+
+@JS()
+external JSArray get arrayObject;
+
+void staticInteropBypassConversionTest() {
+  eval(r'''
+    globalThis.arrayObject = ['1', '2'];
+    globalThis.arrayObject.deoptKey = 'foo';
+  ''');
+
+  JSArray a = arrayObject;
+  Expect.isTrue(instanceOfString(a, "Array"));
+  Expect.equals(2, a.length);
+  Expect.equals('foo', a.deoptKey);
+}
+
 void main() {
   createClassTest();
   createClassWithNestedJSNameTest();
@@ -353,4 +379,5 @@ void main() {
   topLevelMethodsTest();
   anonymousTest();
   concreteFactoryConstructorTest();
+  staticInteropBypassConversionTest();
 }

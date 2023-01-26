@@ -5,6 +5,7 @@
 import 'package:test/test.dart';
 
 import '../mini_ast.dart';
+import '../mini_types.dart';
 
 main() {
   late Harness h;
@@ -1595,11 +1596,7 @@ main() {
       });
 
       test('promoted initializer', () {
-        h.addSubtype('T&int', 'T', true);
-        h.addSubtype('T&int', 'Object', true);
-        h.addSubtype('T', 'T&int', false);
-        h.addFactor('T', 'T&int', 'T');
-        h.addFactor('T&int', 'T', 'Never');
+        h.addTypeVariable('T');
         var x = Var('x');
         h.run([
           declare(x, initializer: expr('T&int')).checkIr('match(expr(T&int), '
@@ -2768,6 +2765,9 @@ main() {
         test('inferred', () {
           h.addDownwardInfer(name: 'B', context: 'A<int>', result: 'B<int>');
           h.addMember('B<int>', 'foo', 'int');
+          h.addSuperInterfaces(
+              'B', (args) => [PrimaryType('A', args: args), Type('Object')]);
+          h.addSuperInterfaces('A', (_) => [Type('Object')]);
           h.run([
             ifCase(
               expr('A<int>').checkContext('?'),
@@ -2980,11 +2980,6 @@ main() {
         group('Match record type:', () {
           group('Same shape:', () {
             test('irrefutable', () {
-              h.addSubtype(
-                '(int, String)',
-                '(Object?, Object?)',
-                true,
-              );
               h.run([
                 match(
                   recordPattern([
@@ -3003,7 +2998,6 @@ main() {
           });
           group('Different shape:', () {
             test('irrefutable', () {
-              h.addSubtype('(int)', '(Object?, Object?)', false);
               h.run([
                 (match(
                   recordPattern([
@@ -3066,6 +3060,7 @@ main() {
         });
         group('Match other type:', () {
           test('refutable', () {
+            h.addSuperInterfaces('X', (_) => [Type('Object')]);
             h.run([
               ifCase(
                 expr('X').checkContext('?'),
@@ -3105,11 +3100,6 @@ main() {
         group('Match record type:', () {
           group('Same shape:', () {
             test('irrefutable', () {
-              h.addSubtype(
-                '({int a, String b})',
-                '({Object? a, Object? b})',
-                true,
-              );
               h.run([
                 match(
                   recordPattern([
@@ -3127,7 +3117,6 @@ main() {
           });
           group('Different shape:', () {
             test('irrefutable', () {
-              h.addSubtype('({int a})', '({Object? a, Object? b})', false);
               h.run([
                 (match(
                   recordPattern([
@@ -3190,6 +3179,7 @@ main() {
         });
         group('Match other type:', () {
           test('refutable', () {
+            h.addSuperInterfaces('X', (_) => [Type('Object')]);
             h.run([
               ifCase(
                 expr('X').checkContext('?'),

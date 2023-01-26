@@ -2924,6 +2924,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the display name of the setter without a concrete implementation
+  static const CompileTimeErrorCode
+      MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER = CompileTimeErrorCode(
+    'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER',
+    "The class doesn't have a concrete implementation of the super-invoked "
+        "setter '{0}'.",
+    hasPublishedDocs: true,
+    uniqueName: 'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER',
+  );
+
+  ///  Parameters:
   ///  0: the name of the mixin that is invalid
   static const CompileTimeErrorCode MIXIN_CLASS_DECLARES_CONSTRUCTOR =
       CompileTimeErrorCode(

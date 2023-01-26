@@ -9,14 +9,14 @@
 import 'base_mixin_implement_lib.dart';
 
 abstract class AOutside implements BaseMixin {}
-// ^
+//             ^
+// [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
 // [analyzer] unspecified
-// [cfe] unspecified
 
 class BOutside implements BaseMixin {
-// ^
+//    ^
+// [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
 // [analyzer] unspecified
-// [cfe] unspecified
   @override
   int foo = 1;
 }

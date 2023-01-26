@@ -30,10 +30,10 @@ import 'package:dart2wasm/transformers.dart' as wasmTrans;
 class WasmTarget extends Target {
   Class? _growableList;
   Class? _immutableList;
-  Class? _wasmImmutableLinkedHashMap;
-  Class? _wasmImmutableLinkedHashSet;
-  Class? _compactLinkedCustomHashMap;
-  Class? _compactLinkedCustomHashSet;
+  Class? _wasmDefaultMap;
+  Class? _wasmDefaultSet;
+  Class? _wasmImmutableMap;
+  Class? _wasmImmutableSet;
   Class? _oneByteString;
   Class? _twoByteString;
   Map<String, Class>? _nativeClasses;
@@ -311,26 +311,26 @@ class WasmTarget extends Target {
 
   @override
   Class concreteMapLiteralClass(CoreTypes coreTypes) {
-    return _compactLinkedCustomHashMap ??= coreTypes.index
-        .getClass('dart:collection', '_CompactLinkedCustomHashMap');
+    return _wasmDefaultMap ??=
+        coreTypes.index.getClass('dart:collection', '_WasmDefaultMap');
   }
 
   @override
   Class concreteConstMapLiteralClass(CoreTypes coreTypes) {
-    return _wasmImmutableLinkedHashMap ??= coreTypes.index
-        .getClass('dart:collection', '_WasmImmutableLinkedHashMap');
+    return _wasmImmutableMap ??=
+        coreTypes.index.getClass('dart:collection', '_WasmImmutableMap');
   }
 
   @override
   Class concreteSetLiteralClass(CoreTypes coreTypes) {
-    return _compactLinkedCustomHashSet ??= coreTypes.index
-        .getClass('dart:collection', '_CompactLinkedCustomHashSet');
+    return _wasmDefaultSet ??=
+        coreTypes.index.getClass('dart:collection', '_WasmDefaultSet');
   }
 
   @override
   Class concreteConstSetLiteralClass(CoreTypes coreTypes) {
-    return _wasmImmutableLinkedHashSet ??= coreTypes.index
-        .getClass('dart:collection', '_WasmImmutableLinkedHashSet');
+    return _wasmImmutableSet ??=
+        coreTypes.index.getClass('dart:collection', '_WasmImmutableSet');
   }
 
   @override

@@ -666,9 +666,6 @@ class _CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
   V? operator [](Object? o) => _validKey(o) ? super[o] : null;
   V? remove(Object? o) => _validKey(o) ? super.remove(o) : null;
 
-  @pragma("wasm:entry-point")
-  void operator []=(K key, V value);
-
   _CompactLinkedCustomHashMap(
       this._equality, this._hasher, bool Function(Object?)? validKey)
       : _validKey = validKey ?? _TypeTest<K>().test;
@@ -1105,9 +1102,6 @@ class _CompactLinkedCustomHashSet<E> extends _HashFieldBase
   bool contains(Object? o) => _validKey(o) ? super.contains(o) : false;
   E? lookup(Object? o) => _validKey(o) ? super.lookup(o) : null;
   bool remove(Object? o) => _validKey(o) ? super.remove(o) : false;
-
-  @pragma("wasm:entry-point")
-  bool add(E key);
 
   _CompactLinkedCustomHashSet(
       this._equality, this._hasher, bool Function(Object?)? validKey)

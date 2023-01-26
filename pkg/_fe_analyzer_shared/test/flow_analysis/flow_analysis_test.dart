@@ -512,9 +512,7 @@ main() {
 
     test('equalityOp_end does not set reachability for `this`', () {
       h.thisType = 'C';
-      h.addSubtype('Null', 'C', false);
-      h.addFactor('C', 'Null', 'C');
-      h.addSubtype('C', 'Object', true);
+      h.addSuperInterfaces('C', (_) => [Type('Object')]);
       h.run([
         if_(this_.is_('Null'), [
           if_(this_.eq(nullLiteral), [
@@ -1303,11 +1301,7 @@ main() {
     group('initialize() promotes implicitly typed vars to type parameter types',
         () {
       test('when not final', () {
-        h.addSubtype('T&int', 'T', true);
-        h.addSubtype('T&int', 'Object', true);
-        h.addSubtype('T', 'T&int', false);
-        h.addFactor('T', 'T&int', 'T');
-        h.addFactor('T&int', 'T', 'Never');
+        h.addTypeVariable('T');
         var x = Var('x');
         h.run([
           declare(x, initializer: expr('T&int')),
@@ -1316,11 +1310,7 @@ main() {
       });
 
       test('when final', () {
-        h.addSubtype('T&int', 'T', true);
-        h.addSubtype('T&int', 'Object', true);
-        h.addSubtype('T', 'T&int', false);
-        h.addFactor('T', 'T&int', 'T');
-        h.addFactor('T&int', 'T', 'Never');
+        h.addTypeVariable('T');
         var x = Var('x');
         h.run([
           declare(x,
@@ -1337,9 +1327,7 @@ main() {
         'parameter types', () {
       test('when not final', () {
         var x = Var('x');
-        h.addSubtype('T&int', 'T', true);
-        h.addSubtype('T', 'T&int', false);
-        h.addFactor('T&int', 'T', 'Never');
+        h.addTypeVariable('T');
         h.run([
           declare(x, type: 'T', initializer: expr('T&int')),
           checkNotPromoted(x),
@@ -1348,9 +1336,7 @@ main() {
 
       test('when final', () {
         var x = Var('x');
-        h.addSubtype('T&int', 'T', true);
-        h.addSubtype('T', 'T&int', false);
-        h.addFactor('T&int', 'T', 'Never');
+        h.addTypeVariable('T');
         h.run([
           declare(x, isFinal: true, type: 'T', initializer: expr('T&int')),
           checkNotPromoted(x),
@@ -1565,8 +1551,6 @@ main() {
 
     test('isExpression_end() sets reachability for `this`', () {
       h.thisType = 'C';
-      h.addSubtype('Never', 'C', true);
-      h.addFactor('C', 'Never', 'C');
       h.run([
         if_(this_.is_('Never'), [
           checkReachable(false),
@@ -3915,38 +3899,10 @@ main() {
             // class A {}
             // class B extends A {}
             // class C extends B {}
-            h.addSubtype('Object', 'A', false);
-            h.addSubtype('Object', 'A?', false);
-            h.addSubtype('Object', 'B?', false);
-            h.addSubtype('A', 'Object', true);
-            h.addSubtype('A', 'Object?', true);
-            h.addSubtype('A', 'A?', true);
-            h.addSubtype('A', 'B', false);
-            h.addSubtype('A', 'B?', false);
-            h.addSubtype('A?', 'Object', false);
-            h.addSubtype('A?', 'Object?', true);
-            h.addSubtype('A?', 'A', false);
-            h.addSubtype('A?', 'B?', false);
-            h.addSubtype('B', 'Object', true);
-            h.addSubtype('B', 'A', true);
-            h.addSubtype('B', 'A?', true);
-            h.addSubtype('B', 'B?', true);
-            h.addSubtype('B?', 'Object', false);
-            h.addSubtype('B?', 'Object?', true);
-            h.addSubtype('B?', 'A', false);
-            h.addSubtype('B?', 'A?', true);
-            h.addSubtype('B?', 'B', false);
-            h.addSubtype('C', 'Object', true);
-            h.addSubtype('C', 'A', true);
-            h.addSubtype('C', 'A?', true);
-            h.addSubtype('C', 'B', true);
-            h.addSubtype('C', 'B?', true);
-
-            h.addFactor('Object', 'A?', 'Object');
-            h.addFactor('Object', 'B?', 'Object');
-            h.addFactor('Object?', 'A', 'Object?');
-            h.addFactor('Object?', 'A?', 'Object');
-            h.addFactor('Object?', 'B?', 'Object');
+            h.addSuperInterfaces(
+                'C', (_) => [Type('B'), Type('A'), Type('Object')]);
+            h.addSuperInterfaces('B', (_) => [Type('A'), Type('Object')]);
+            h.addSuperInterfaces('A', (_) => [Type('Object')]);
           });
 
           test('; first', () {
@@ -4412,20 +4368,26 @@ main() {
               finallyModel._infoFor(h, x).promotedTypes, expectedFinallyChain);
         }
 
-        _check(['Object'], ['num', 'int'], ['Iterable', 'List'],
-            ['Object', 'Iterable', 'List']);
-        _check([], ['num', 'int'], ['Iterable', 'List'], ['Iterable', 'List']);
-        _check(['Object'], [], ['Iterable', 'List'],
-            ['Object', 'Iterable', 'List']);
-        _check([], [], ['Iterable', 'List'], ['Iterable', 'List']);
+        _check(
+            ['Object'],
+            ['num', 'int'],
+            ['Iterable<dynamic>', 'List<dynamic>'],
+            ['Object', 'Iterable<dynamic>', 'List<dynamic>']);
+        _check([], ['num', 'int'], ['Iterable<dynamic>', 'List<dynamic>'],
+            ['Iterable<dynamic>', 'List<dynamic>']);
+        _check(['Object'], [], ['Iterable<dynamic>', 'List<dynamic>'],
+            ['Object', 'Iterable<dynamic>', 'List<dynamic>']);
+        _check([], [], ['Iterable<dynamic>', 'List<dynamic>'],
+            ['Iterable<dynamic>', 'List<dynamic>']);
         _check(['Object'], ['num', 'int'], [], ['Object', 'num', 'int']);
         _check([], ['num', 'int'], [], ['num', 'int']);
         _check(['Object'], [], [], ['Object']);
         _check([], [], [], []);
-        _check(
-            [], ['num', 'int'], ['Object', 'Iterable'], ['Object', 'Iterable']);
+        _check([], ['num', 'int'], ['Object', 'Iterable<dynamic>'],
+            ['Object', 'Iterable<dynamic>']);
         _check([], ['num', 'int'], ['Object'], ['Object', 'num', 'int']);
-        _check([], ['Object', 'Iterable'], ['num', 'int'], ['num', 'int']);
+        _check([], ['Object', 'Iterable<dynamic>'], ['num', 'int'],
+            ['num', 'int']);
         _check([], ['Object'], ['num', 'int'], ['num', 'int']);
         _check([], ['num'], ['Object', 'int'], ['Object', 'int']);
         _check([], ['int'], ['Object', 'num'], ['Object', 'num', 'int']);
@@ -4514,22 +4476,23 @@ main() {
       var D = Type('D');
       var E = Type('E');
       var F = Type('F');
-      h.addSubtype('A', 'B', false);
-      h.addSubtype('B', 'A', true);
-      h.addSubtype('B', 'C', false);
-      h.addSubtype('B', 'D', false);
-      h.addSubtype('C', 'B', true);
-      h.addSubtype('C', 'D', false);
-      h.addSubtype('C', 'E', false);
-      h.addSubtype('D', 'B', true);
-      h.addSubtype('D', 'C', true);
-      h.addSubtype('D', 'E', false);
-      h.addSubtype('D', 'F', false);
-      h.addSubtype('E', 'C', true);
-      h.addSubtype('E', 'D', true);
-      h.addSubtype('E', 'F', false);
-      h.addSubtype('F', 'D', true);
-      h.addSubtype('F', 'E', true);
+      h.addSuperInterfaces(
+          'F',
+          (_) => [
+                Type('E'),
+                Type('D'),
+                Type('C'),
+                Type('B'),
+                Type('A'),
+                Type('Object')
+              ]);
+      h.addSuperInterfaces('E',
+          (_) => [Type('D'), Type('C'), Type('B'), Type('A'), Type('Object')]);
+      h.addSuperInterfaces(
+          'D', (_) => [Type('C'), Type('B'), Type('A'), Type('Object')]);
+      h.addSuperInterfaces('C', (_) => [Type('B'), Type('A'), Type('Object')]);
+      h.addSuperInterfaces('B', (_) => [Type('A'), Type('Object')]);
+      h.addSuperInterfaces('A', (_) => [Type('Object')]);
 
       void check(List<Type> chain1, List<Type> chain2, Matcher matcher) {
         expect(
@@ -5956,8 +5919,8 @@ main() {
     group('because this', () {
       test('explicit', () {
         h.thisType = 'C';
-        h.addSubtype('D', 'C', true);
-        h.addFactor('C', 'D', 'C');
+        h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
         h.run([
           if_(this_.isNot('D'), [
             return_(),
@@ -5972,8 +5935,8 @@ main() {
 
       test('implicit', () {
         h.thisType = 'C';
-        h.addSubtype('D', 'C', true);
-        h.addFactor('C', 'D', 'C');
+        h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
         h.run([
           if_(this_.isNot('D'), [
             return_(),
@@ -6073,8 +6036,8 @@ main() {
     test('promotion of target breaks field promotion', () {
       h.addMember('B', '_field', 'Object?', promotable: true);
       h.addMember('C', '_field', 'num?', promotable: true);
-      h.addSubtype('C', 'B', true);
-      h.addFactor('B', 'C', 'B');
+      h.addSuperInterfaces('C', (_) => [Type('B'), Type('Object')]);
+      h.addSuperInterfaces('B', (_) => [Type('Object')]);
       var x = Var('x');
       h.run([
         declare(x, type: 'B', initializer: expr('B')),
@@ -6094,8 +6057,8 @@ main() {
     test('promotion of target does not break field promotion', () {
       h.addMember('B', '_field', 'Object?', promotable: true);
       h.addMember('C', '_field', 'num?', promotable: true);
-      h.addSubtype('C', 'B', true);
-      h.addFactor('B', 'C', 'B');
+      h.addSuperInterfaces('C', (_) => [Type('B'), Type('Object')]);
+      h.addSuperInterfaces('B', (_) => [Type('Object')]);
       var x = Var('x');
       h.run([
         declare(x, type: 'B', initializer: expr('B')),
@@ -6115,8 +6078,8 @@ main() {
     test('field not promotable after outer variable demoted', () {
       h.addMember('B', '_field', 'Object?', promotable: false);
       h.addMember('C', '_field', 'Object?', promotable: true);
-      h.addSubtype('C', 'B', true);
-      h.addFactor('B', 'C', 'B');
+      h.addSuperInterfaces('C', (_) => [Type('B'), Type('Object')]);
+      h.addSuperInterfaces('B', (_) => [Type('Object')]);
       var x = Var('x');
       h.run([
         declare(x, type: 'B', initializer: expr('B')),
@@ -6136,8 +6099,8 @@ main() {
     test('field promotable after outer variable promoted', () {
       h.addMember('B', '_field', 'Object?', promotable: false);
       h.addMember('C', '_field', 'Object?', promotable: true);
-      h.addSubtype('C', 'B', true);
-      h.addFactor('B', 'C', 'B');
+      h.addSuperInterfaces('C', (_) => [Type('B'), Type('Object')]);
+      h.addSuperInterfaces('B', (_) => [Type('Object')]);
       var x = Var('x');
       h.run([
         declare(x, type: 'B', initializer: expr('B')),
@@ -6490,6 +6453,18 @@ main() {
       });
     });
 
+    group('Cast pattern:', () {
+      test('Promotes', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'Object?'),
+          ifCase(x.expr, wildcard().as_('String'), [
+            checkPromoted(x, 'String'),
+          ]),
+        ]);
+      });
+    });
+
     group('If-case element:', () {
       test('guarded', () {
         var x = Var('x');
@@ -6632,6 +6607,32 @@ main() {
           ]),
         ]);
       });
+
+      test('Promotes', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(x.expr, listPattern([wildcard()], elementType: 'int'), [
+            checkPromoted(x, 'List<int>'),
+          ]),
+        ]);
+      });
+    });
+
+    group('Map pattern:', () {
+      test('Promotes', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              mapPattern([mapPatternEntry(intLiteral(0), wildcard())],
+                  keyType: 'int', valueType: 'String'),
+              [
+                checkPromoted(x, 'Map<int, String>'),
+              ]),
+        ]);
+      });
     });
 
     group('Null-assert:', () {
@@ -6695,9 +6696,7 @@ main() {
                     requiredType: 'T',
                     fields: [wildcard().nullAssert.recordField('foo')]),
                 [
-                  // TODO(paulberry): objectPattern should have promoted to
-                  // `int?`
-                  checkNotPromoted(x),
+                  checkPromoted(x, 'int?'),
                 ]),
           ]);
         });
@@ -6790,9 +6789,7 @@ main() {
                     requiredType: 'T',
                     fields: [wildcard().nullCheck.recordField('foo')]),
                 [
-                  // TODO(paulberry): objectPattern should have promoted to
-                  // `int?`
-                  checkNotPromoted(x),
+                  checkPromoted(x, 'int?'),
                 ]),
           ]);
         });
@@ -6819,6 +6816,30 @@ main() {
         h.run([
           ifCase(expr('Object?'), wildcard().nullCheck, [
             checkReachable(true),
+          ]),
+        ]);
+      });
+    });
+
+    group('Object pattern:', () {
+      test('Promotes', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(x.expr, objectPattern(requiredType: 'int', fields: []), [
+            checkPromoted(x, 'int'),
+          ]),
+        ]);
+      });
+    });
+
+    group('Record pattern:', () {
+      test('Promotes', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(x.expr, recordPattern([wildcard().recordField()]), [
+            checkPromoted(x, '(Object?)'),
           ]),
         ]);
       });
@@ -7338,9 +7359,7 @@ main() {
                   requiredType: 'num',
                   fields: [y.pattern(type: 'int').recordField('sign')]),
               [
-                // TODO(paulberry): objectPattern should have promoted to
-                // `num`
-                checkNotPromoted(x),
+                checkPromoted(x, 'num'),
                 // TODO(paulberry): should promote `x.sign` to `int`.
               ]),
         ]);

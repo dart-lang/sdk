@@ -16,6 +16,38 @@ A second library in this package, `js_util`, provides low-level utilities that
 you can use when it isn't possible to wrap JavaScript with a static, annotated
 API.
 
+## Static Interop
+
+In the past, `package:js` has allowed users to use JavaScript interoperability
+in more dynamic, class-based ways. While we will continue to allow users to use
+that functionality in the foreseeable future, Dart is transitioning to a more
+static, inline class-based interop. What this largely means is that we're moving
+away from dynamic invocations and instead requiring static typing to use
+interop. We're calling this model "static interop".
+
+We are doing this for several reasons, such as idiomaticity, performance, type
+soundness, ability to interop with DOM types, and compatibility with Wasm. This
+is an ongoing effort that will affect our web library offerings as well.
+
+In version 0.6.6, we introduced a way to use static interop with
+`@staticInterop`. `package:js` classes that have this annotation are required
+to use the new static semantics via extensions and do not support dynamic
+invocations. For more details on how to use `@staticInterop` classes, see below.
+To test these classes, see the sections below on `@JSExport` and
+`js_util.createStaticInteropMock`.
+
+As this is an ongoing effort, we are also working on interop with inline
+classes. [Inline classes][] will be a new language feature that enables
+zero-cost wrapping. In the future, users should opt-in to the semantics of
+static interop using inline classes instead of `@staticInterop`. It will be
+easier to use, more idiomatic, and better supported going forward.
+
+For now, static interop remains experimental and in development. We may make
+breaking changes in the future. We'll update this text when the new interop
+model matures and is considered stable.
+
+[Inline classes]: https://github.com/dart-lang/language/issues/2727
+
 ## Usage
 
 The following examples show how to handle common interoperability tasks.

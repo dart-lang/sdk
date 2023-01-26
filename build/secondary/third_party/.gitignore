@@ -1,0 +1,2 @@
+# Ignore protobuf directory because it is retrieved by gclient sync.
+protobuf/

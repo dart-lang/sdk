@@ -51,6 +51,7 @@ import 'meta_meta.dart';
 /// Tools, such as the analyzer, can also expect this contract to be enforced;
 /// that is, tools may emit warnings if a function with this annotation
 /// _doesn't_ always throw.
+@Deprecated("Use a return type of 'Never' instead")
 const _AlwaysThrows alwaysThrows = _AlwaysThrows();
 
 /// Used to annotate a parameter of an instance method that overrides another

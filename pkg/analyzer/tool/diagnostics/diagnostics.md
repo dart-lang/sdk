@@ -11116,11 +11116,11 @@ dependencies:
 
 ### missing_override_of_must_be_overridden
 
-_Missing concrete override implementation of '{0}' and '{1}'._
+_Missing concrete implementation of '{0}'._
 
-_Missing concrete override implementation of '{0}', '{1}', and {2} more._
+_Missing concrete implementations of '{0}' and '{1}'._
 
-_Missing concrete override implementation of '{0}'._
+_Missing concrete implementations of '{0}', '{1}', and {2} more._
 
 #### Description
 
@@ -11455,6 +11455,9 @@ class X = A with M;
 ### mixin_application_no_concrete_super_invoked_member
 
 _The class doesn't have a concrete implementation of the super-invoked member
+'{0}'._
+
+_The class doesn't have a concrete implementation of the super-invoked setter
 '{0}'._
 
 #### Description

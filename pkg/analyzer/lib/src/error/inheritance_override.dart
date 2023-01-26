@@ -914,7 +914,16 @@ class _ClassVerifier {
     }
 
     _missingMustBeOverridden[classNameToken] = notOverridden.toList();
-    final namesForError = notOverridden.map((e) => e.name).toSet().toList();
+    final namesForError = notOverridden
+        .map((e) {
+          var name = e.name;
+          if (name.endsWith('=')) {
+            name = name.substring(0, name.length - 1);
+          }
+          return name;
+        })
+        .toSet()
+        .toList();
 
     if (namesForError.length == 1) {
       reporter.reportErrorForToken(

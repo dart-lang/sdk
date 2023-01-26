@@ -51,6 +51,16 @@ Arguments specific to `attachRequest` are:
 
 \* Exactly one of `vmServiceInfoFile` or `vmServiceInfoFile` should be supplied.
 
+## Expression Evaluation Format Specifiers
+
+Special suffixes can be added to evaluation expressions (such as a Watch window or Debug Console) that will affect the formatting of variables:
+
+- `,nq` - don't add quotes around strings
+- `,h` - format integers as hex
+- `,d` - format integers as decimal (base 10)
+
+A format specifier overrides any other formatting (such as the `format` argument that can be supplied to `variablesRequest` and `evaluateRequest`). Format specifiers also carry down the variables tree, so adding `,h` to an expression that is a `List<int>` will cause the values inside the list (once expanded) to be rendered as hex. Multiple format specifiers can be comma-separated (`myVariable,nq,h` on a class will cause `String`s in child fields to be unquoted and `int`s to be formatted as hex).
+
 ## Custom Requests
 
 Some custom requests are available for clients to call.

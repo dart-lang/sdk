@@ -97,8 +97,11 @@ vars = {
   "gperftools_revision": "bf8b714bf5075d0a6f2f28504b43095e2b1e11c5",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
+  "libprotobuf_rev": "24487dd1045c7f3d64a21f38a3f0c06cc4cf2edb",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
+  "perfetto_rev": "b8da07095979310818f0efde2ef3c69ea70d62c5",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
+  "protobuf_gn_rev": "b9517855b24624ec4edf4a11c1b7060f4ef237e6",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
   "zlib_rev": "27c2f474b71d0d20764f86f60ef8b00da1a16cda",
@@ -107,7 +110,7 @@ vars = {
   # 'tools/rev_sdk_deps.dart' can rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to pin it at its current revision.
 
-  "args_rev": "04c934647912e524b8eb0188ccaec559c11342a7",
+  "args_rev": "a23ea85cfd5c467c8671aef2ef9dfe45759ff974",
   "async_rev": "c9cc576e1f4d477047f737cace79ed6b72c70350",
   "bazel_worker_rev": "b35c25e6cecced319b80c6686b9d025e462c7053",
   "benchmark_harness_rev": "76881df31f4b76ff7bc50e3389d540b7fb2a69e6",
@@ -131,16 +134,16 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "d0c6b1da52c9f80679a7aaa05e5935ef5c6bb52f", # manually rev'd
-  "dartdoc_rev": "ed56883d7b3c31aea3faa27232c3bffc2c97aaa4",
+  "dartdoc_rev": "99df16a0d08c6a6323ebf66d1cada63c7a4de0ba",
   "ffi_rev": "2a56c2a9a87122c057168874bde384debbb806b0",
   "file_rev": "b768f79dcd104a5feabafab47101c4355b71cd8f",
   "fixnum_rev": "71f0d4d16054e6be7d8e22bdb3b082b9f82061be",
   "glob_rev": "4579281741e59e2e4ad02a197e0b1f4d6558dede",
   "html_rev": "3dd00b0ca99e222697e6b6dc653774dc877da420",
-  "http_rev": "57c53b05e9f42546149f51348bc063bc7279283c",
+  "http_rev": "092bb2d5ed1d522c55ef6781a469ba1e53cee2a8",
   "http_multi_server_rev": "cce50802b66d33f703f82b3189988aa8e51976ac",
   "http_parser_rev": "6f73e4a399df013ded8f4c81f151d122b36d361b",
-  "intl_rev": "3fcc8109e29a109d7d91132adf1b862eb23c5f70",
+  "intl_rev": "946c34c155073c0c7dbbc6ce06f5d0c35570019d",
   "json_rpc_2_rev": "bd9f8d90ec9ce9d0da5c11f3e71b87af3aaca3b4",
   "linter_rev": "8f7b75f8a3501ca2c4d5bbc1f003d90d66447544", # 1.32.0
   "lints_rev": "dfded5e265015f21ce154577fe8488dc244e33c2",
@@ -159,7 +162,7 @@ vars = {
   "source_map_stack_trace_rev": "adea3e51269f355514b59b66a4fcecabd1fa6e95",
   "source_maps_rev": "d995912983f4f4c33a040c629952fb4632aeea70",
   "source_span_rev": "72d5c55e455c3940c37fe768730f5922e7a1f309",
-  "sse_rev": "be426a2467108d88354dc36a44493d2d17019993",
+  "sse_rev": "4e63b08cbe4974c834e43e30c52af632ad147cea",
   "stack_trace_rev": "c08ee90b83380381a893d1e77a9a533d632f40e0",
   "stream_channel_rev": "3b9926876dc06970b583c34d0cb359ef976c4350",
   "string_scanner_rev": "045498024df8f0a1cd0f717f12d60aec77d3d8ae",
@@ -175,7 +178,7 @@ vars = {
   "watcher_rev": "3b49c7ea087cc158bdcba19fe8919283fdc1cd86",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "28d7b82986cf931e6d977d973a7849cfc7c0bab9",
-  "webdev_rev": "f978b90cdfc97967b8caec1b5e2a4919ce9fa3d2",
+  "webdev_rev": "a347fa038b5174a01a15ff121367cd7c987b4f6d",
   "webdriver_rev": "00c887daa14de516c0dd02f1021225d478f503c1",
   "webkit_inspection_protocol_rev": "15244ffbab9221f1603eb04eaae74ae7c7ca3944",
   "yaml_rev": "b2fce6cb8f07f091967b849d5434ed495cbb305f",
@@ -301,9 +304,22 @@ deps = {
       Var("chromium_git") + "/chromium/src/third_party/jinja2.git" +
       "@" + Var("jinja2_rev"),
 
+  Var("dart_root") + "/third_party/perfetto":
+      Var("fuchsia_git") +
+      "/third_party/android.googlesource.com/platform/external/perfetto" +
+      "@" + Var("perfetto_rev"),
+
   Var("dart_root") + "/third_party/ply":
       Var("chromium_git") + "/chromium/src/third_party/ply.git" +
       "@" + Var("ply_rev"),
+
+  Var("dart_root") + "/build/secondary/third_party/protobuf":
+      Var("fuchsia_git") + "/protobuf-gn" +
+      "@" + Var("protobuf_gn_rev"),
+
+  Var("dart_root") + "/third_party/protobuf":
+      Var("fuchsia_git") + "/third_party/protobuf" +
+      "@" + Var("libprotobuf_rev"),
 
   Var("dart_root") + "/third_party/icu":
       Var("chromium_git") + "/chromium/deps/icu.git" +

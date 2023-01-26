@@ -8687,6 +8687,13 @@ CompileTimeErrorCode:
 
       class X = A with M;
       ```
+  MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER:
+    sharedName: MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER
+    problemMessage: "The class doesn't have a concrete implementation of the super-invoked setter '{0}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the display name of the setter without a concrete implementation
   MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER:
     problemMessage: "The class doesn't have a concrete implementation of the super-invoked member '{0}'."
     hasPublishedDocs: true
@@ -19277,7 +19284,7 @@ HintCode:
       ```
   MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
     sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
-    problemMessage: "Missing concrete override implementation of '{0}'."
+    problemMessage: "Missing concrete implementation of '{0}'."
     correctionMessage: Try overriding the missing member.
     hasPublishedDocs: true
     comment: |-
@@ -19337,7 +19344,7 @@ HintCode:
       ```
   MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO:
     sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
-    problemMessage: "Missing concrete override implementation of '{0}' and '{1}'."
+    problemMessage: "Missing concrete implementations of '{0}' and '{1}'."
     correctionMessage: Try overriding the missing members.
     hasPublishedDocs: true
     comment: |-
@@ -19346,7 +19353,7 @@ HintCode:
       1: the name of the second member
   MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS:
     sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
-    problemMessage: "Missing concrete override implementation of '{0}', '{1}', and {2} more."
+    problemMessage: "Missing concrete implementations of '{0}', '{1}', and {2} more."
     correctionMessage: Try overriding the missing members.
     hasPublishedDocs: true
     comment: |-

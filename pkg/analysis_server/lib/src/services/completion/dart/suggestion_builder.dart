@@ -367,7 +367,7 @@ class SuggestionBuilder {
         false,
         false,
         displayText: displayText,
-        dartElement: type.element,
+        elementLocation: null, // type.element is Null for FunctionType.
       );
     }
 
@@ -743,7 +743,7 @@ class SuggestionBuilder {
           false,
           // Let the user know that we are going to insert a complete statement.
           displayText: 'setState(() {});',
-          dartElement: method,
+          elementLocation: method.location,
         ),
         textToMatchOverride: 'setState',
       );
@@ -833,7 +833,7 @@ class SuggestionBuilder {
         parameterName: name,
         parameterType: type,
         replacementLength: replacementLength,
-        dartElement: parameter);
+        elementLocation: parameter.location);
     if (parameter is FieldFormalParameterElement) {
       _setDocumentation(suggestion, parameter);
       suggestion.element =
@@ -939,7 +939,7 @@ class SuggestionBuilder {
         element.hasDeprecated,
         false,
         displayText: displayText,
-        dartElement: element,
+        elementLocation: element.location,
         requiredImports: overrideImports.toList());
     suggestion.element = protocol.convertElement(element,
         withNullability: _isNonNullableByDefault);
@@ -1435,7 +1435,7 @@ class SuggestionBuilder {
       documentation: documentation,
       defaultArgumentList: defaultArgumentList,
       element: suggestedElement,
-      dartElement: element,
+      elementLocation: element.location,
     );
   }
 
@@ -1692,7 +1692,7 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
       defaultArgumentListTextRanges: element.defaultArgumentList?.ranges,
       libraryUri: libraryUriStr,
       isNotImported: isNotImported ? true : null,
-      dartElement: element.dartElement,
+      elementLocation: element.elementLocation,
       requiredImports: requiredImports,
     );
   }
@@ -1713,7 +1713,7 @@ class _ElementCompletionData {
   CompletionDefaultArgumentList? defaultArgumentList;
   final _ElementDocumentation? documentation;
   final protocol.Element element;
-  final Element dartElement;
+  final ElementLocation? elementLocation;
 
   _ElementCompletionData({
     required this.completion,
@@ -1727,7 +1727,7 @@ class _ElementCompletionData {
     required this.defaultArgumentList,
     required this.documentation,
     required this.element,
-    required this.dartElement,
+    required this.elementLocation,
   });
 }
 

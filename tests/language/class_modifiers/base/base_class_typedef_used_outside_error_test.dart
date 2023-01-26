@@ -13,8 +13,8 @@ import 'base_class_typedef_used_outside_lib.dart';
 typedef ATypeDef = BaseClass;
 
 class B implements ATypeDef {
-// ^
+//    ^
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 // [analyzer] unspecified
-// [cfe] unspecified
   int foo = 1;
 }

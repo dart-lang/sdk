@@ -317,6 +317,11 @@ mixin TypeAnalyzer<
       MatchContext<Node, Expression, Pattern, Type, Variable> context,
       Pattern innerPattern,
       Type type) {
+    // TODO(paulberry): using `patternRequiredType` here doesn't quite match the
+    // spec, because if `type` isn't a subtype of the matched value type,
+    // promotion won't occur.  Fix this.
+    flow.patternRequiredType(
+        matchedType: flow.getMatchedValueType(), requiredType: type);
     flow.pushSubpattern(type, isDistinctValue: false);
     dispatchPattern(context, innerPattern);
     // Stack: (Pattern)
@@ -411,6 +416,8 @@ mixin TypeAnalyzer<
           matchedType: matchedType,
           requiredType: staticType);
     }
+    flow.patternRequiredType(
+        matchedType: matchedType, requiredType: staticType);
     bool isImplicitlyTyped = declaredType == null;
     // TODO(paulberry): are we handling _isFinal correctly?
     int promotionKey = flow.declaredVariablePattern(
@@ -650,8 +657,10 @@ mixin TypeAnalyzer<
         valueType = objectQuestionType;
       }
     }
+    Type requiredType = listType(valueType);
+    flow.patternRequiredType(
+        matchedType: matchedType, requiredType: requiredType);
     // Stack: ()
-    flow.listPattern_begin();
     Node? previousRestPattern;
     for (Node element in elements) {
       if (isRestPatternElement(element)) {
@@ -665,7 +674,7 @@ mixin TypeAnalyzer<
         previousRestPattern = element;
         Pattern? subPattern = getRestPatternElementPattern(element);
         if (subPattern != null) {
-          Type subPatternMatchedType = listType(valueType);
+          Type subPatternMatchedType = requiredType;
           flow.pushSubpattern(subPatternMatchedType, isDistinctValue: true);
           dispatchPattern(context, subPattern);
           flow.popSubpattern();
@@ -678,7 +687,6 @@ mixin TypeAnalyzer<
       }
     }
     // Stack: (n * Pattern) where n = elements.length
-    Type requiredType = listType(valueType);
     Node? irrefutableContext = context.irrefutableContext;
     if (irrefutableContext != null &&
         !operations.isAssignableTo(matchedType, requiredType)) {
@@ -835,6 +843,12 @@ mixin TypeAnalyzer<
         keyContext = unknownType;
       }
     }
+    Type requiredType = mapType(
+      keyType: keyType,
+      valueType: valueType,
+    );
+    flow.patternRequiredType(
+        matchedType: matchedType, requiredType: requiredType);
     // Stack: ()
 
     bool hasDuplicateRestPatternReported = false;
@@ -880,10 +894,6 @@ mixin TypeAnalyzer<
       }
     }
     // Stack: (n * MapPatternElement) where n = elements.length
-    Type requiredType = mapType(
-      keyType: keyType,
-      valueType: valueType,
-    );
     Node? irrefutableContext = context.irrefutableContext;
     if (irrefutableContext != null &&
         !operations.isAssignableTo(matchedType, requiredType)) {
@@ -1000,6 +1010,8 @@ mixin TypeAnalyzer<
       matchedType: matchedType,
       pattern: node,
     );
+    flow.patternRequiredType(
+        matchedType: matchedType, requiredType: requiredType);
 
     // If the required type is `dynamic` or `Never`, then every getter is
     // treated as having the same type.
@@ -1227,9 +1239,11 @@ mixin TypeAnalyzer<
       ),
       named: requiredTypeNamedTypes,
     );
+    Type matchedType = flow.getMatchedValueType();
+    flow.patternRequiredType(
+        matchedType: matchedType, requiredType: requiredType);
 
     // Stack: ()
-    Type matchedType = flow.getMatchedValueType();
     RecordType<Type>? matchedRecordType = asRecordType(matchedType);
     if (matchedRecordType != null) {
       List<Type>? fieldTypes = _matchRecordTypeShape(fields, matchedRecordType);
@@ -1570,11 +1584,8 @@ mixin TypeAnalyzer<
       }
     }
     if (declaredType != null) {
-      flow.declaredVariablePattern(
-        matchedType: matchedType,
-        staticType: declaredType,
-        isImplicitlyTyped: false,
-      );
+      flow.patternRequiredType(
+          matchedType: matchedType, requiredType: declaredType);
     }
   }
 

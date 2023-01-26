@@ -4,6 +4,8 @@
   extend classes marked `base`, `final` or `interface`.
 * Introduce `@MustBeOverridden` to annotate class or mixin members which must be
   overridden in all subclasses.
+* Deprecate `@alwaysThrows`, which can be replaced by using a return type of
+  'Never'.
 
 ## 1.8.0
 

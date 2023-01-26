@@ -6,6 +6,7 @@
 library dart._js_helper;
 
 import 'dart:_internal';
+import 'dart:_js_annotations' as js;
 import 'dart:collection';
 import 'dart:typed_data';
 import 'dart:wasm';
@@ -23,6 +24,8 @@ class JSValue {
   // they are nullable.
   static JSValue? box(WasmExternRef? ref) =>
       isDartNull(ref) ? null : JSValue(ref!);
+
+  static WasmExternRef? unbox(JSValue? v) => v == null ? null : v._ref;
 
   @override
   bool operator ==(Object that) =>
@@ -72,33 +75,25 @@ extension ObjectToJS on Object {
 bool isDartNull(WasmExternRef? ref) => ref == null || isJSUndefined(ref);
 
 /// A [JSArray] is a wrapper for a native JSArray.
-class JSArray extends JSValue {
-  JSArray(WasmExternRef ref) : super(ref);
+@js.JS()
+@js.staticInterop
+class JSArray {}
 
-  static JSArray? box(WasmExternRef? ref) =>
-      isDartNull(ref) ? null : JSArray(ref!);
-
-  JSValue? pop() => JSValue.box(
-      callMethodVarArgsRaw(_ref, 'pop'.toExternRef(), [].toExternRef()));
-  JSValue? operator [](int index) =>
-      JSValue.box(getPropertyRaw(_ref, intToJSNumber(index)));
-  void operator []=(int index, JSValue? value) =>
-      setPropertyRaw(_ref, intToJSNumber(index), value?.toExternRef());
-  int get length =>
-      toDartNumber(getPropertyRaw(_ref, 'length'.toExternRef())!).floor();
+extension JSArrayExtension on JSArray {
+  external Object? pop();
+  external Object? operator [](int index);
+  external void operator []=(int index, Object? value);
+  external int get length;
 }
 
 /// A [JSObject] is a wrapper for any JS object literal.
-class JSObject extends JSValue {
-  JSObject(WasmExternRef ref) : super(ref);
+@js.JS()
+@js.staticInterop
+class JSObject {}
 
-  static JSObject? box(WasmExternRef? ref) =>
-      isDartNull(ref) ? null : JSObject(ref!);
-
-  JSValue? operator [](String key) =>
-      JSValue.box(getPropertyRaw(_ref, key.toExternRef()));
-  void operator []=(String key, JSValue? value) =>
-      setPropertyRaw(_ref, key.toExternRef(), value?.toExternRef());
+extension JSObjectExtension on JSObject {
+  external Object? operator [](String key);
+  external void operator []=(String key, Object? value);
 }
 
 class JSArrayIteratorAdapter<T> extends Iterator<T> {
@@ -516,10 +511,10 @@ WasmExternRef? getConstructorRaw(String name) =>
     getPropertyRaw(globalThisRaw(), name.toExternRef());
 
 /// Equivalent to `Object.keys(object)`.
-JSArray objectKeys(JSValue object) => JSArray(callMethodVarArgsRaw(
+JSArray objectKeys(JSObject object) => JSValue.box(callMethodVarArgsRaw(
     getConstructorRaw('Object'),
     'keys'.toExternRef(),
-    [object].toExternRef())!);
+    [object].toExternRef())!) as JSArray;
 
 /// Takes a [codeTemplate] string which must represent a valid JS function, and
 /// a list of optional arguments. The [codeTemplate] will be inserted into the

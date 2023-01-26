@@ -32,7 +32,26 @@ class A {
 
 class B extends A {}
 ''', [
-      error(HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO, 86, 1),
+      error(HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 86, 1),
+    ]);
+  }
+
+  test_field_method() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustBeOverridden
+  int f = 0;
+
+  @mustBeOverridden
+  void m() {}
+}
+
+class B extends A {}
+''', [
+      error(HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO, 121, 1,
+          messageContains: ["'f'", "'m'"]),
     ]);
   }
 
