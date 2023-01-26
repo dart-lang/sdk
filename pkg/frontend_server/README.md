@@ -2,7 +2,7 @@ The frontend_server package is used by both the flutter command line tool and th
 
 ## API Stability
 
-Changes to the command line API or behavior should be tested against the follwing test suites (in addition to normal HHH testing):
+Changes to the command line API or behavior should be tested against the following test suites (in addition to normal HHH testing):
   * flutter_tools: https://github.com/flutter/flutter/tree/master/packages/flutter_tools
   * frontend_server_client: https://github.com/dart-lang/webdev/tree/master/frontend_server_client
 
