@@ -126,7 +126,7 @@ Future compileTests(
     }));
 
     // Split into NNBD Strong and Weak so only the ones that match are
-    // compiled togeher. If mixing-and-matching the first file (which could
+    // compiled together. If mixing-and-matching the first file (which could
     // be either) will setup the compiler which can lead to compilation errors
     // for another file, for instance if the first one is strong but a
     // subsequent one tries to opt out (i.e. is weak) an error is issued that
