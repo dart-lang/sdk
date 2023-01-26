@@ -997,7 +997,7 @@ class DynamicTable extends Section {
       // Each entry is a tag and a value, both native word sized.
       final tag = _readElfNative(sectionReader);
       final value = _readElfNative(sectionReader);
-      // A DT_NULL entry signfies the end of entries.
+      // A DT_NULL entry signifies the end of entries.
       if (tag == DynamicTableTag.DT_NULL.index) break;
       entries[tag] = value;
     }
