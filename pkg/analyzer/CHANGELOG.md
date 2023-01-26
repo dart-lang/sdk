@@ -919,7 +919,7 @@
   #36678, #36691.
 
 ## 0.36.0
-* Changed the return type of `Expression.precendence` to `Precedence`.  Clients
+* Changed the return type of `Expression.precedence` to `Precedence`.  Clients
   that prepared for this change by switching to `Expression.precedence2` should
   now return to using `Expression.precedence`.
 * AST cleanup related to the "UI as code" feature:
