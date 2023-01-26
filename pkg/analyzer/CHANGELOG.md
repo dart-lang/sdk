@@ -75,7 +75,7 @@
 * Added `FileResult.isAugmentation` and `isLibrary` to complement `isPart`.
 * Deprecated 'XyzDeclaration.name' in AST, use `name2` and `declaredElement` instead.
 * Deprecated `Element.enclosingElement2`, use `enclosingElement3` instead.  The meaningful change is that
-  `ConstructorElement.enclosingElement3` returns now `IntefaceElement`, not `ClassElement`.
+  `ConstructorElement.enclosingElement3` returns now `InterfaceElement`, not `ClassElement`.
 * Deprecated `get enums/mixin`, use `get enums2/mixins2` instead.
 * Deprecated `DartType.element`, check for `InterfaceType`, `TypeParameterType`, and then ask the element.
 * Deprecated `ClassElement.isEnum` and `isMixin`. Check for `is EnumElement` and `is MixinElement` instead.
