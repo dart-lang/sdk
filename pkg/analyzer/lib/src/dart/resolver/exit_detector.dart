@@ -208,10 +208,10 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
         // TODO(jwren) Do we want to take all constant expressions into account?
         // If for(; true; ) (or for(;;)), and the body doesn't return or the body
         // doesn't have a break, then return true.
-        bool implicitOrExplictTrue = conditionExpression == null ||
+        bool implicitOrExplicitTrue = conditionExpression == null ||
             (conditionExpression is BooleanLiteral &&
                 conditionExpression.value);
-        if (implicitOrExplictTrue) {
+        if (implicitOrExplicitTrue) {
           if (blockReturns || !_enclosingBlockContainsBreak) {
             return true;
           }
@@ -279,9 +279,9 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       // TODO(jwren) Do we want to take all constant expressions into account?
       // If for(; true; ) (or for(;;)), and the body doesn't return or the body
       // doesn't have a break, then return true.
-      bool implicitOrExplictTrue =
+      bool implicitOrExplicitTrue =
           condition == null || (condition is BooleanLiteral && condition.value);
-      if (implicitOrExplictTrue) {
+      if (implicitOrExplicitTrue) {
         if (blockReturns || !_enclosingBlockContainsBreak) {
           return true;
         }
