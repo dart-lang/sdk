@@ -279,7 +279,7 @@ class BlazeFileWatcherIsolate {
 ///    isolate is supposed to shut down. No more messages should be exchanged
 ///    afterwards.
 class BlazeFileWatcherService {
-  final InstrumentationService _instrumetation;
+  final InstrumentationService _instrumentation;
 
   final _events = StreamController<List<WatchEvent>>.broadcast();
 
@@ -296,7 +296,7 @@ class BlazeFileWatcherService {
   /// True if the isolate is ready to watch files.
   final _isolateHasStarted = Completer<void>();
 
-  BlazeFileWatcherService(this._instrumetation);
+  BlazeFileWatcherService(this._instrumentation);
 
   Stream<List<WatchEvent>> get events => _events.stream;
 
@@ -342,9 +342,9 @@ class BlazeFileWatcherService {
     } else if (message is BlazeWatcherEvents) {
       _events.add(message.events);
     } else if (message is BlazeWatcherError) {
-      _instrumetation.logError(message.message);
+      _instrumentation.logError(message.message);
     } else {
-      _instrumetation.logError(
+      _instrumentation.logError(
           'Received unexpected message from BlazeFileWatcherIsolate: $message');
     }
   }
