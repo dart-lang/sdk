@@ -29,6 +29,18 @@ missing_parameter_for_argument() {
     ]);
   }
 
+  /// https://github.com/dart-lang/linter/issues/4019
+  test_future_dynamic() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+
+void f(FutureOr<void>? arg) {
+  Future<dynamic>? future;
+  f(future);
+}
+''');
+  }
+
   test_returnOfInvalidType() async {
     await assertDiagnostics(r'''
 void bug2813() {
