@@ -6453,6 +6453,18 @@ main() {
       });
     });
 
+    group('Cast pattern:', () {
+      test('Promotes', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'Object?'),
+          ifCase(x.expr, wildcard().as_('String'), [
+            checkPromoted(x, 'String'),
+          ]),
+        ]);
+      });
+    });
+
     group('If-case element:', () {
       test('guarded', () {
         var x = Var('x');
@@ -6595,6 +6607,32 @@ main() {
           ]),
         ]);
       });
+
+      test('Promotes', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(x.expr, listPattern([wildcard()], elementType: 'int'), [
+            checkPromoted(x, 'List<int>'),
+          ]),
+        ]);
+      });
+    });
+
+    group('Map pattern:', () {
+      test('Promotes', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(
+              x.expr,
+              mapPattern([mapPatternEntry(intLiteral(0), wildcard())],
+                  keyType: 'int', valueType: 'String'),
+              [
+                checkPromoted(x, 'Map<int, String>'),
+              ]),
+        ]);
+      });
     });
 
     group('Null-assert:', () {
@@ -6658,9 +6696,7 @@ main() {
                     requiredType: 'T',
                     fields: [wildcard().nullAssert.recordField('foo')]),
                 [
-                  // TODO(paulberry): objectPattern should have promoted to
-                  // `int?`
-                  checkNotPromoted(x),
+                  checkPromoted(x, 'int?'),
                 ]),
           ]);
         });
@@ -6753,9 +6789,7 @@ main() {
                     requiredType: 'T',
                     fields: [wildcard().nullCheck.recordField('foo')]),
                 [
-                  // TODO(paulberry): objectPattern should have promoted to
-                  // `int?`
-                  checkNotPromoted(x),
+                  checkPromoted(x, 'int?'),
                 ]),
           ]);
         });
@@ -6782,6 +6816,30 @@ main() {
         h.run([
           ifCase(expr('Object?'), wildcard().nullCheck, [
             checkReachable(true),
+          ]),
+        ]);
+      });
+    });
+
+    group('Object pattern:', () {
+      test('Promotes', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(x.expr, objectPattern(requiredType: 'int', fields: []), [
+            checkPromoted(x, 'int'),
+          ]),
+        ]);
+      });
+    });
+
+    group('Record pattern:', () {
+      test('Promotes', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('Object?')),
+          ifCase(x.expr, recordPattern([wildcard().recordField()]), [
+            checkPromoted(x, '(Object?)'),
           ]),
         ]);
       });
@@ -7301,9 +7359,7 @@ main() {
                   requiredType: 'num',
                   fields: [y.pattern(type: 'int').recordField('sign')]),
               [
-                // TODO(paulberry): objectPattern should have promoted to
-                // `num`
-                checkNotPromoted(x),
+                checkPromoted(x, 'num'),
                 // TODO(paulberry): should promote `x.sign` to `int`.
               ]),
         ]);

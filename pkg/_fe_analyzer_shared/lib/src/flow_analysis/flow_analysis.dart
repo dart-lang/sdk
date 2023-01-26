@@ -521,9 +521,6 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// Call this method just after visiting the initializer of a late variable.
   void lateInitializer_end();
 
-  /// Call this method just before visiting the subpatterns of a list pattern.
-  void listPattern_begin();
-
   /// Call this method before visiting the LHS of a logical binary operation
   /// ("||" or "&&").
   void logicalBinaryOp_begin();
@@ -620,6 +617,15 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
 
   /// Call this method after visiting the body.
   void patternForIn_end();
+
+  /// Call this method when visiting a pattern that has a required type
+  /// (a declared variable pattern, list pattern, map pattern, record pattern,
+  /// object pattern, or wildcard pattern).
+  ///
+  /// [matchedType] should be the matched value type, and [requiredType] should
+  /// be the required type of the pattern.
+  void patternRequiredType(
+      {required Type matchedType, required Type requiredType});
 
   /// Call this method just after visiting the initializer of a pattern variable
   /// declaration, and before visiting the pattern.
@@ -1354,11 +1360,6 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void listPattern_begin() {
-    _wrap('listPattern_begin()', () => _wrapped.listPattern_begin());
-  }
-
-  @override
   void logicalBinaryOp_begin() {
     _wrap('logicalBinaryOp_begin()', () => _wrapped.logicalBinaryOp_begin());
   }
@@ -1470,6 +1471,16 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   @override
   void patternForIn_end() {
     _wrap('patternForIn_end()', () => _wrapped.patternForIn_end());
+  }
+
+  @override
+  void patternRequiredType(
+      {required Type matchedType, required Type requiredType}) {
+    _wrap(
+        'patternRequiredType(matchedType: $matchedType, '
+        'requiredType: $requiredType)',
+        () => _wrapped.patternRequiredType(
+            matchedType: matchedType, requiredType: requiredType));
   }
 
   @override
@@ -3691,34 +3702,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       bool isFinal = false,
       bool isLate = false,
       required bool isImplicitlyTyped}) {
-    _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
-    ReferenceWithType<Type> matchedValueReference =
-        context._matchedValueReference;
-    bool coversMatchedType =
-        typeOperations.isSubtypeOf(matchedType, staticType);
-    // Promote the synthetic cache variable the pattern is being matched
-    // against.
-    ExpressionInfo<Type> promotionInfo = _current.tryPromoteForTypeCheck(
-        this, matchedValueReference, staticType);
-    FlowModel<Type> ifTrue = promotionInfo.ifTrue;
-    FlowModel<Type> ifFalse = promotionInfo.ifFalse;
-    ReferenceWithType<Type>? scrutineeReference = _scrutineeReference;
-    // If there's a scrutinee, and its value is known to be the same as that of
-    // the synthetic cache variable, promote it too.
-    if (scrutineeReference != null &&
-        _current.infoFor(matchedValueReference.promotionKey).ssaNode ==
-            _current.infoFor(scrutineeReference.promotionKey).ssaNode) {
-      ifTrue = ifTrue
-          .tryPromoteForTypeCheck(this, scrutineeReference, staticType)
-          .ifTrue;
-      ifFalse = ifFalse
-          .tryPromoteForTypeCheck(this, scrutineeReference, staticType)
-          .ifFalse;
-    }
-    _current = ifTrue;
-    if (!coversMatchedType) {
-      _unmatched = _join(_unmatched!, ifFalse);
-    }
     // Choose a fresh promotion key to represent the temporary variable that
     // stores the matched value, and mark it as initialized.
     int promotionKey = promotionKeyStore.makeTemporaryKey();
@@ -4126,14 +4109,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void listPattern_begin() {
-    // As a temporary measure, just assume the pattern might or might not match.
-    // This avoids some bogus "unreachable code" warnings in analyzer tests.
-    // TODO(paulberry): replace this with a full implementation.
-    _unmatched = _join(_unmatched!, _current);
-  }
-
-  @override
   void logicalBinaryOp_begin() {
     _current = _current.split();
   }
@@ -4324,6 +4299,39 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void patternForIn_end() {
     _popPattern(null);
     _popScrutinee();
+  }
+
+  @override
+  void patternRequiredType(
+      {required Type matchedType, required Type requiredType}) {
+    _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
+    ReferenceWithType<Type> matchedValueReference =
+        context._matchedValueReference;
+    bool coversMatchedType =
+        typeOperations.isSubtypeOf(matchedType, requiredType);
+    // Promote the synthetic cache variable the pattern is being matched
+    // against.
+    ExpressionInfo<Type> promotionInfo = _current.tryPromoteForTypeCheck(
+        this, matchedValueReference, requiredType);
+    FlowModel<Type> ifTrue = promotionInfo.ifTrue;
+    FlowModel<Type> ifFalse = promotionInfo.ifFalse;
+    ReferenceWithType<Type>? scrutineeReference = _scrutineeReference;
+    // If there's a scrutinee, and its value is known to be the same as that of
+    // the synthetic cache variable, promote it too.
+    if (scrutineeReference != null &&
+        _current.infoFor(matchedValueReference.promotionKey).ssaNode ==
+            _current.infoFor(scrutineeReference.promotionKey).ssaNode) {
+      ifTrue = ifTrue
+          .tryPromoteForTypeCheck(this, scrutineeReference, requiredType)
+          .ifTrue;
+      ifFalse = ifFalse
+          .tryPromoteForTypeCheck(this, scrutineeReference, requiredType)
+          .ifFalse;
+    }
+    _current = ifTrue;
+    if (!coversMatchedType) {
+      _unmatched = _join(_unmatched!, ifFalse);
+    }
   }
 
   @override
@@ -5335,9 +5343,6 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void lateInitializer_end() {}
 
   @override
-  void listPattern_begin() {}
-
-  @override
   void logicalBinaryOp_begin() {
     _writeStackForAnd.add({});
   }
@@ -5478,6 +5483,10 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
 
   @override
   void patternForIn_end() {}
+
+  @override
+  void patternRequiredType(
+      {required Type matchedType, required Type requiredType}) {}
 
   @override
   void patternVariableDeclaration_afterInitializer(

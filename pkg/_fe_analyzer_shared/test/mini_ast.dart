@@ -258,9 +258,16 @@ Statement localFunction(List<Statement> body) {
   return _LocalFunction(_Block(body, location: location), location: location);
 }
 
-Pattern mapPattern(List<MapPatternElement> elements) {
+Pattern mapPattern(List<MapPatternElement> elements,
+    {String? keyType, String? valueType}) {
   var location = computeLocation();
-  return _MapPattern(null, elements, location: location);
+  return _MapPattern(
+      keyType == null && valueType == null
+          ? null
+          : MapPatternTypeArguments(
+              keyType: Type(keyType!), valueType: Type(valueType!)),
+      elements,
+      location: location);
 }
 
 MapPatternElement mapPatternEntry(Expression key, Pattern value) {
@@ -881,6 +888,7 @@ class MiniAstOperations
   static final Map<String, Type> _coreDownwardInferenceResults = {
     'dynamic <: int': Type('dynamic'),
     'int <: num': Type('int'),
+    'int <: Object?': Type('int'),
     'List <: Iterable<int>': Type('List<int>'),
     'Never <: int': Type('Never'),
     'num <: int': Type('num'),
