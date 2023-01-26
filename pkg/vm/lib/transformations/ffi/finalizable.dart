@@ -297,7 +297,7 @@ mixin FinalizableTransformer on Transformer {
   /// executed multiple times. The context of this closure is restored on
   /// re-execution. These two things make it a continuation.
   /// The [YieldStatement]s are compiled into returns from that closure.
-  /// When inlining the iterator machinery and eleminating dead code, the
+  /// When inlining the iterator machinery and eliminating dead code, the
   /// compiler can see that we will never execute a re-entry if we just ask for
   /// only the first value of a stream from a sync* function.
   /// So, we need to insert fences for yields as if they were returns in sync*
