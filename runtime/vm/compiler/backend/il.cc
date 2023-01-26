@@ -2900,6 +2900,30 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
     }
   }
 
+  if (instance()->definition()->IsAllocateObject() && slot().is_immutable()) {
+    StoreFieldInstr* initializing_store = nullptr;
+    for (auto use : instance()->definition()->input_uses()) {
+      if (auto store = use->instruction()->AsStoreField()) {
+        if (store->slot().IsIdentical(slot())) {
+          if (initializing_store == nullptr) {
+            initializing_store = store;
+          } else {
+            initializing_store = nullptr;
+            break;
+          }
+        }
+      }
+    }
+
+    // If we find an initializing store then it *must* by construction
+    // dominate the load.
+    if (initializing_store != nullptr &&
+        initializing_store->is_initialization()) {
+      ASSERT(IsDominatedBy(initializing_store));
+      return initializing_store->value()->definition();
+    }
+  }
+
   return this;
 }
 
@@ -4955,6 +4979,20 @@ static FunctionPtr FindBinarySmiOp(Zone* zone, const String& name) {
   return smi_op_target.ptr();
 }
 
+void InstanceCallInstr::EnsureICData(FlowGraph* graph) {
+  if (HasICData()) {
+    return;
+  }
+
+  const Array& arguments_descriptor =
+      Array::Handle(graph->zone(), GetArgumentsDescriptor());
+  const ICData& ic_data = ICData::ZoneHandle(
+      graph->zone(),
+      ICData::New(graph->function(), function_name(), arguments_descriptor,
+                  deopt_id(), checked_argument_count(), ICData::kInstance));
+  set_ic_data(&ic_data);
+}
+
 void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Zone* zone = compiler->zone();
 
@@ -5317,14 +5355,20 @@ Definition* InstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
 
   // We could turn cold call sites for known receiver cids into a StaticCall.
   // However, that keeps the ICData of the InstanceCall from being updated.
+  //
   // This is fine if there is no later deoptimization, but if there is, then
   // the InstanceCall with the updated ICData for this receiver may then be
   // better optimized by the compiler.
   //
+  // This optimization is safe to apply in AOT mode because deoptimization is
+  // not a concern there.
+  //
   // TODO(dartbug.com/37291): Allow this optimization, but accumulate affected
   // InstanceCallInstrs and the corresponding receiver cids during compilation.
   // After compilation, add receiver checks to the ICData for those call sites.
-  if (Targets().is_empty()) return this;
+  if (!CompilerState::Current().is_aot() && Targets().is_empty()) {
+    return this;
+  }
 
   const CallTargets* new_target =
       FlowGraphCompiler::ResolveCallTargetsForReceiverCid(

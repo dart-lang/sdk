@@ -115,6 +115,7 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
       throw _in::IterableElementError::noElement();
     this.{core::List::[]=}(this.{core::List::length}{core::int}.{core::num::-}(1){(core::num) → core::int}, value){(core::int, cac::_CustomList&Object&ListMixin::E%) → void};
   }
+  @#C6
   get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ iterator() → core::Iterator<cac::_CustomList&Object&ListMixin::E%>
     return new _in::ListIterator::•<cac::_CustomList&Object&ListMixin::E%>(this);
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ elementAt(core::int index) → cac::_CustomList&Object&ListMixin::E%
@@ -633,8 +634,8 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:491:12 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:499:12 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:511:12 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:523:12 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:492:12 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:500:12 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:512:12 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:524:12 -> IntConstant(-1)
 Extra constant evaluation: evaluated: 1170, effectively constant: 4

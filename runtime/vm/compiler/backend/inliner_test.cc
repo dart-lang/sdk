@@ -339,8 +339,6 @@ ISOLATE_UNIT_TEST_CASE(Inliner_List_of_inlined) {
   auto entry = flow_graph->graph_entry()->normal_entry();
   ILMatcher cursor(flow_graph, entry, /*trace=*/true);
 
-  StaticCallInstr* call_get_length;
-  StaticCallInstr* call_interpolate;
   StaticCallInstr* call_print;
   RELEASE_ASSERT(cursor.TryMatch({
       kMoveGlob,
@@ -357,19 +355,15 @@ ISOLATE_UNIT_TEST_CASE(Inliner_List_of_inlined) {
       kMoveGlob,
       kMatchAndMoveBranchFalse,
       kMoveGlob,
-      {kMatchAndMoveStaticCall, &call_get_length},
-      kMoveGlob,
-      {kMatchAndMoveStaticCall, &call_interpolate},
-      kMoveGlob,
       {kMatchAndMoveStaticCall, &call_print},
       kMoveGlob,
       kMatchReturn,
   }));
-  EXPECT(strcmp(call_get_length->function().UserVisibleNameCString(),
-                "length") == 0);
-  EXPECT(strcmp(call_interpolate->function().UserVisibleNameCString(),
-                "_interpolateSingle") == 0);
   EXPECT(strcmp(call_print->function().UserVisibleNameCString(), "print") == 0);
+  // Length is fully forwarded and string interpolation is constant folded.
+  EXPECT_PROPERTY(call_print->ArgumentAt(0),
+                  it.IsConstant() && it.AsConstant()->value().IsString() &&
+                      String::Cast(it.AsConstant()->value()).Equals("100"));
 }
 
 #endif  // defined(DART_PRECOMPILER)

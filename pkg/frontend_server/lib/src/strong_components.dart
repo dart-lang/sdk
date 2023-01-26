@@ -40,7 +40,7 @@ class StrongComponents {
   /// The libraries loaded from a dill file that should not be processed.
   final Set<Library> loadedLibraries;
 
-  /// The main URI for thiis application.
+  /// The main URI for this application.
   final Uri mainUri;
 
   /// The filesystem instance for resolving files.

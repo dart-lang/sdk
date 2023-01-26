@@ -47,7 +47,7 @@
 ///
 /// ## Proxying and automatic conversion
 ///
-/// When setting properties on a JsObject or passing arguments to a Javascript
+/// When setting properties on a JsObject or passing arguments to a JavaScript
 /// method or function, Dart objects are automatically converted or proxied to
 /// JavaScript objects. When accessing JavaScript properties, or when a Dart
 /// closure is invoked from JavaScript, the JavaScript objects are also

@@ -4996,7 +4996,7 @@ class Parser {
   ///
   /// If [isFunctionExpression] is true, this method parses the rest of named
   /// function expression which isn't legal syntax in Dart.  Useful for
-  /// recovering from Javascript code being pasted into a Dart program, as it
+  /// recovering from JavaScript code being pasted into a Dart program, as it
   /// will interpret `function foo() {}` as a named function expression with
   /// return type `function` and name `foo`.
   ///

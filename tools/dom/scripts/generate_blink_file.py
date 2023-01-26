@@ -563,7 +563,7 @@ def _Process_Operations(blink_file,
 
 # List of DartName operations to not emit (e.g., For now only WebGL2RenderingContextBase
 # has readPixels in both WebGLRenderingContextBase and WebGL2RenderingContextBase.
-# Furthermore, readPixels has the exact same number of arguments - in Javascript
+# Furthermore, readPixels has the exact same number of arguments - in JavaScript
 # there is no typing so they're the same.
 suppressed_operations = {
     'WebGL2RenderingContextBase': ['readPixels2', 'texImage2D2'],

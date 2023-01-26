@@ -67,7 +67,7 @@ class ModuleSymbolsCollector extends RecursiveVisitor {
 
   @override
   void visitClass(Class node) {
-    // Some class names are not emitted, i.e. mixin aplications.
+    // Some class names are not emitted, i.e. mixin applications.
     if (_classJsNames[node] != null) {
       var classSymbol = ClassSymbol(
           name: node.name,

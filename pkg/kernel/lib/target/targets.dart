@@ -389,8 +389,8 @@ abstract class Target {
   bool get nativeExtensionExpectsString => false;
 
   /// Whether integer literals that cannot be represented exactly on the web
-  /// (i.e. in Javascript) should cause an error to be issued.
-  /// An example of such a number is `2^53 + 1` where in Javascript - because
+  /// (i.e. in JavaScript) should cause an error to be issued.
+  /// An example of such a number is `2^53 + 1` where in JavaScript - because
   /// integers are represented as doubles
   /// `Math.pow(2, 53) = Math.pow(2, 53) + 1`.
   bool get errorOnUnexactWebIntLiterals => false;

@@ -71,7 +71,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
 
   final String Function(String) safeVariableName;
 
-  // All the <x>Name variables are names of Javascript variables used in the
+  // All the <x>Name variables are names of JavaScript variables used in the
   // transformed code.
 
   /// Contains the result of an awaited expression, or a conditional or
@@ -567,7 +567,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   Iterable<js.VariableInitialization> variableInitializations(
       js.JavaScriptNodeSourceInformation? sourceInformation);
 
-  /// Rewrites an async/sync*/async* function to a normal Javascript function.
+  /// Rewrites an async/sync*/async* function to a normal JavaScript function.
   ///
   /// The control flow is flattened by simulating 'goto' using a switch in a
   /// loop and a state variable [goto] inside a nested function [body]
@@ -1138,7 +1138,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   @override
   void visitForIn(js.ForIn node) {
     // The dart output currently never uses for-in loops.
-    throw "Javascript for-in not implemented yet in the await transformation";
+    throw "JavaScript for-in not implemented yet in the await transformation";
   }
 
   @override

@@ -443,7 +443,7 @@ class Response {
 
   /// Initialize a newly created instance to represent an error condition caused
   /// by a [request] that had invalid parameter.  [path] is the path to the
-  /// invalid parameter, in Javascript notation (e.g. "foo.bar" means that the
+  /// invalid parameter, in JavaScript notation (e.g. "foo.bar" means that the
   /// parameter "foo" contained a key "bar" whose value was the wrong type).
   /// [expectation] is a description of the type of data that was expected.
   Response.invalidParameter(Request request, String path, String expectation)
