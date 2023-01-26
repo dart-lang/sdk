@@ -149,7 +149,7 @@ class RecordRepresentation {
   /// A shape class defines some metadata properties on the prototype:
   ///
   /// (1) The shapeTag, a small integer (see below).
-  /// (2) The the top-type recipe for the shape. The recipe is a function of the
+  /// (2) The top-type recipe for the shape. The recipe is a function of the
   ///     [shape]. e.g. `"+end,start(@,@)"`.
   final bool definesShape;
 
