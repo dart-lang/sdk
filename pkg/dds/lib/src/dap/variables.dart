@@ -73,12 +73,14 @@ class EvaluationExpression {
     final match = _expressionWithFormatSpecifierRegex.firstMatch(expression);
     expression = match?.group(1) ?? expression;
     final formatSpecifiers = match?.group(2)?.split(',').toSet() ?? const {};
+    final format = formatSpecifiers.isEmpty
+        ? null
+        : VariableFormat(
+            noQuotes: formatSpecifiers.contains('nq'),
+            hex: formatSpecifiers.contains('h'),
+            decimal: formatSpecifiers.contains('d'),
+          );
 
-    return EvaluationExpression._(expression,
-        format: VariableFormat(
-          noQuotes: formatSpecifiers.contains('nq'),
-          hex: formatSpecifiers.contains('h'),
-          decimal: formatSpecifiers.contains('d'),
-        ));
+    return EvaluationExpression._(expression, format: format);
   }
 }

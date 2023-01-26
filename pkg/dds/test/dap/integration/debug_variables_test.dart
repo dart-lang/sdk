@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dds/src/dap/protocol_generated.dart';
 import 'package:test/test.dart';
 
 import 'test_client.dart';
@@ -645,6 +646,50 @@ void main() {
         ''',
         ignore: {'runtimeType'},
       );
+    });
+
+    group('value formats', () {
+      test('can trigger invalidation from the DAP client', () async {
+        final client = dap.client;
+        final testFile = dap.createTestFile(simpleBreakpointProgram);
+        final breakpointLine = lineWith(testFile, breakpointMarker);
+        await client.hitBreakpoint(testFile, breakpointLine);
+
+        // Expect the server to emit an "invalidated" event after we call
+        // our custom '_invalidateAreas' request.
+        final invalidatedEventFuture = client.event('invalidated');
+        await client.sendRequest({
+          'areas': ['a', 'b'],
+        }, overrideCommand: '_invalidateAreas');
+
+        final invalidatedEvent = await invalidatedEventFuture;
+        final body = InvalidatedEventBody.fromJson(
+          invalidatedEvent.body as Map<String, Object?>,
+        );
+        expect(body.areas, ['a', 'b']);
+      });
+
+      test('supports format.hex in variables arguments', () async {
+        final client = dap.client;
+        final testFile = dap.createTestFile('''
+  void main(List<String> args) {
+    var i = 12345;
+    print('Hello!'); $breakpointMarker
+  }''');
+        final breakpointLine = lineWith(testFile, breakpointMarker);
+
+        final stop = await client.hitBreakpoint(testFile, breakpointLine);
+        final topFrameId = await client.getTopFrameId(stop.threadId!);
+        await client.expectScopeVariables(
+          topFrameId,
+          'Locals',
+          '''
+            i: 0x3039, eval: i
+        ''',
+          ignore: {'args'},
+          format: ValueFormat(hex: true),
+        );
+      });
     });
     // These tests can be slow due to starting up the external server process.
   }, timeout: Timeout.none);

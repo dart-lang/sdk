@@ -843,6 +843,23 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         sendResponse(_noResult);
         break;
 
+      // Called by VS Code extension to have us force a re-evaluation of
+      // variables if settings are modified that globally change the format
+      // of numbers (in the case where format specifiers are not explicitly
+      // provided, such as the Variables pane).
+      case '_invalidateAreas':
+        // We just send the invalidate request back to the client. DAP only
+        // allows these to originate in the DAP server, but we have case where
+        // the client knows that these have become stale (because the user
+        // changed some config) so we have to bounce it through the server.
+        final areas = args?.args['areas'] as List<Object?>?;
+        final stringArears = areas?.whereType<String>().toList();
+        // Trigger the invalidation.
+        sendEvent(InvalidatedEventBody(areas: stringArears));
+        // Respond to the incoming request.
+        sendResponse(_noResult);
+        break;
+
       default:
         await super.customRequest(request, args, sendResponse);
     }
@@ -926,7 +943,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
           .replaceFirst(_trailingSemicolonPattern, ''),
     );
     final expression = expressionData.expression;
-    final format = expressionData.format;
+    final format = expressionData.format ??
+        // If we didn't parse a format specifier, fall back to the format in
+        // the arguments.
+        VariableFormat.fromDapValueFormat(args.format);
 
     final exceptionReference = thread.exceptionReference;
     // The value in the constant `frameExceptionExpression` is used as a special
@@ -1084,6 +1104,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       supportsConfigurationDoneRequest: true,
       supportsDelayedStackTraceLoading: true,
       supportsEvaluateForHovers: true,
+      supportsValueFormattingOptions: true,
       supportsLogPoints: true,
       supportsRestartRequest: supportsRestartRequest,
       // TODO(dantup): All of these...
@@ -1679,6 +1700,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       format = data.format;
       data = data.data;
     }
+
+    // If no explicit formatting, use from args.
+    format ??= VariableFormat.fromDapValueFormat(args.format);
 
     final variables = <Variable>[];
 

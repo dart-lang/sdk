@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dds/src/dap/adapters/dart.dart';
+import 'package:dds/src/dap/protocol_generated.dart';
 import 'package:test/test.dart';
 
 import 'test_client.dart';
@@ -314,6 +315,27 @@ void foo() {
         ''',
           );
         }
+      });
+    });
+
+    group('value formats', () {
+      test('supports format.hex in evaluation arguments', () async {
+        final client = dap.client;
+        final testFile = dap.createTestFile('''
+  void main(List<String> args) {
+    var i = 12345;
+    print('Hello!'); $breakpointMarker
+  }''');
+        final breakpointLine = lineWith(testFile, breakpointMarker);
+
+        final stop = await client.hitBreakpoint(testFile, breakpointLine);
+        final topFrameId = await client.getTopFrameId(stop.threadId!);
+        await client.expectEvalResult(
+          topFrameId,
+          'i',
+          '0x3039',
+          format: ValueFormat(hex: true),
+        );
       });
     });
     // These tests can be slow due to starting up the external server process.

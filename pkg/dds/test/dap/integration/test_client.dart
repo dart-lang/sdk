@@ -177,11 +177,13 @@ class DapTestClient {
     String expression, {
     int? frameId,
     String? context,
+    ValueFormat? format,
   }) {
     return sendRequest(EvaluateArguments(
       expression: expression,
       frameId: frameId,
       context: context,
+      format: format,
     ));
   }
 
@@ -429,11 +431,13 @@ class DapTestClient {
     int variablesReference, {
     int? start,
     int? count,
+    ValueFormat? format,
   }) {
     return sendRequest(VariablesArguments(
       variablesReference: variablesReference,
       start: start,
       count: count,
+      format: format,
     ));
   }
 
@@ -849,6 +853,7 @@ extension DapTestClientExtension on DapTestClient {
     String expectedVariables, {
     bool ignorePrivate = true,
     Set<String>? ignore,
+    ValueFormat? format,
   }) async {
     final scope = await getValidScope(frameId, expectedName);
     await expectVariables(
@@ -856,6 +861,7 @@ extension DapTestClientExtension on DapTestClient {
       expectedVariables,
       ignorePrivate: ignorePrivate,
       ignore: ignore,
+      format: format,
     );
     return scope;
   }
@@ -923,11 +929,13 @@ extension DapTestClientExtension on DapTestClient {
     int variablesReference, {
     int? start,
     int? count,
+    ValueFormat? format,
   }) async {
     final response = await variables(
       variablesReference,
       start: start,
       count: count,
+      format: format,
     );
     expect(response.success, isTrue);
     expect(response.command, equals('variables'));
@@ -946,6 +954,7 @@ extension DapTestClientExtension on DapTestClient {
     int? count,
     bool ignorePrivate = true,
     Set<String>? ignore,
+    ValueFormat? format,
   }) async {
     final expectedLines =
         expectedVariables.trim().split('\n').map((l) => l.trim()).toList();
@@ -954,6 +963,7 @@ extension DapTestClientExtension on DapTestClient {
       variablesReference,
       start: start,
       count: count,
+      format: format,
     );
 
     // If a variable was set to be ignored but wasn't in the list, that's
@@ -1025,9 +1035,14 @@ extension DapTestClientExtension on DapTestClient {
   Future<EvaluateResponseBody> expectEvalResult(
     int frameId,
     String expression,
-    String expectedResult,
-  ) async {
-    final response = await evaluate(expression, frameId: frameId);
+    String expectedResult, {
+    ValueFormat? format,
+  }) async {
+    final response = await evaluate(
+      expression,
+      frameId: frameId,
+      format: format,
+    );
     expect(response.success, isTrue);
     expect(response.command, equals('evaluate'));
     final body =
