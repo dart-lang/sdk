@@ -7,6 +7,7 @@
 #include "platform/assert.h"
 
 #include "vm/code_patcher.h"
+#include "vm/hash_table.h"
 #include "vm/object.h"
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
@@ -14,64 +15,43 @@
 
 namespace dart {
 
+class CodeTraits {
+ public:
+  static const char* Name() { return "CodeTraits"; }
+  static bool ReportStats() { return false; }
+  static bool IsMatch(const Object& a, const Object& b) {
+    return a.ptr() == b.ptr();
+  }
+  static uword Hash(const Object& key) { return Code::Cast(key).Hash(); }
+};
+
+typedef UnorderedHashSet<CodeTraits, WeakArrayStorageTraits> WeakCodeSet;
+
 bool WeakCodeReferences::HasCodes() const {
   return !array_.IsNull() && (array_.Length() > 0);
 }
 
 void WeakCodeReferences::Register(const Code& value) {
-  if (!array_.IsNull()) {
-    // Try to find and reuse cleared WeakProperty to avoid allocating new one.
-    WeakProperty& weak_property = WeakProperty::Handle();
-    for (intptr_t i = 0; i < array_.Length(); i++) {
-      weak_property ^= array_.At(i);
-      if (weak_property.key() == Code::null()) {
-        // Empty property found. Reuse it.
-        weak_property.set_key(value);
-        return;
-      }
-    }
-  }
-
-  const WeakProperty& weak_property =
-      WeakProperty::Handle(WeakProperty::New(Heap::kOld));
-  weak_property.set_key(value);
-
-  intptr_t length = array_.IsNull() ? 0 : array_.Length();
-  const Array& new_array =
-      Array::Handle(Array::Grow(array_, length + 1, Heap::kOld));
-  new_array.SetAt(length, weak_property);
-  UpdateArrayTo(new_array);
-}
-
-bool WeakCodeReferences::IsOptimizedCode(const Array& dependent_code,
-                                         const Code& code) {
-  if (!code.is_optimized()) {
-    return false;
-  }
-  WeakProperty& weak_property = WeakProperty::Handle();
-  for (intptr_t i = 0; i < dependent_code.Length(); i++) {
-    weak_property ^= dependent_code.At(i);
-    if (code.ptr() == weak_property.key()) {
-      return true;
-    }
-  }
-  return false;
+  WeakCodeSet set(array_.IsNull() ? HashTables::New<WeakCodeSet>(4, Heap::kOld)
+                                  : array_.ptr());
+  set.Insert(value);
+  UpdateArrayTo(set.Release());
 }
 
 void WeakCodeReferences::DisableCode(bool are_mutators_stopped) {
-  Thread* thread = Thread::Current();
-  const Array& code_objects = Array::Handle(thread->zone(), array_.ptr());
 #if defined(DART_PRECOMPILED_RUNTIME)
-  ASSERT(code_objects.IsNull());
+  ASSERT(array_.IsNull());
   return;
 #else
   // Ensure mutators see empty code_objects only after code was deoptimized.
   DEBUG_ASSERT(
       IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
 
-  if (code_objects.IsNull()) {
+  if (array_.IsNull()) {
     return;
   }
+
+  WeakCodeSet set(array_.ptr());
 
   auto isolate_group = IsolateGroup::Current();
   auto disable_code_fun = [&]() {
@@ -84,7 +64,8 @@ void WeakCodeReferences::DisableCode(bool are_mutators_stopped) {
           StackFrame* frame = iterator.NextFrame();
           while (frame != nullptr) {
             code = frame->LookupDartCode();
-            if (IsOptimizedCode(code_objects, code)) {
+
+            if (set.ContainsKey(code)) {
               ReportDeoptimization(code);
               DeoptimizeAt(mutator_thread, code, frame);
             }
@@ -94,12 +75,11 @@ void WeakCodeReferences::DisableCode(bool are_mutators_stopped) {
         /*at_safepoint=*/true);
 
     // Switch functions that use dependent code to unoptimized code.
-    WeakProperty& weak_property = WeakProperty::Handle();
     Object& owner = Object::Handle();
     Function& function = Function::Handle();
-    for (intptr_t i = 0; i < code_objects.Length(); i++) {
-      weak_property ^= code_objects.At(i);
-      code ^= weak_property.key();
+    WeakCodeSet::Iterator it(&set);
+    while (it.MoveNext()) {
+      code ^= set.GetKey(it.Current());
       if (code.IsNull()) {
         // Code was garbage collected already.
         continue;
@@ -138,7 +118,7 @@ void WeakCodeReferences::DisableCode(bool are_mutators_stopped) {
       }
     }
 
-    UpdateArrayTo(Object::null_array());
+    UpdateArrayTo(WeakArray::Handle());
   };
 
   // Deoptimize stacks and disable code (with mutators stopped if they are not
@@ -148,6 +128,8 @@ void WeakCodeReferences::DisableCode(bool are_mutators_stopped) {
   } else {
     isolate_group->RunWithStoppedMutators(disable_code_fun);
   }
+
+  set.Release();
 
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }

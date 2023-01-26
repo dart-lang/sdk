@@ -1203,6 +1203,7 @@ class Class : public Object {
   void set_end_token_pos(TokenPosition value) const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+  uint32_t Hash() const;
   int32_t SourceFingerprint() const;
 
   // Return the Type with type parameters declared by this class filled in with
@@ -1799,8 +1800,8 @@ class Class : public Object {
   // Return the list of code objects that were compiled using CHA of this class.
   // These code objects will be invalidated if new subclasses of this class
   // are finalized.
-  ArrayPtr dependent_code() const;
-  void set_dependent_code(const Array& array) const;
+  WeakArrayPtr dependent_code() const;
+  void set_dependent_code(const WeakArray& array) const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   bool TraceAllocation(IsolateGroup* isolate_group) const;
@@ -4236,6 +4237,8 @@ class Field : public Object {
   ScriptPtr Script() const;
   ObjectPtr RawOwner() const;
 
+  uint32_t Hash() const;
+
   AbstractTypePtr type() const { return untag()->type(); }
   // Used by class finalizer, otherwise initialized in constructor.
   void SetFieldType(const AbstractType& value) const;
@@ -4464,8 +4467,8 @@ class Field : public Object {
   // assumptions about guarded class id and nullability of this field.
   // These code objects must be deoptimized when field's properties change.
   // Code objects are held weakly via an indirection through WeakProperty.
-  ArrayPtr dependent_code() const;
-  void set_dependent_code(const Array& array) const;
+  WeakArrayPtr dependent_code() const;
+  void set_dependent_code(const WeakArray& array) const;
 
   // Add the given code object to the list of dependent ones.
   void RegisterDependentCode(const Code& code) const;
@@ -6907,6 +6910,7 @@ class Code : public Object {
                         UntaggedPcDescriptors::Kind kind) const;
   intptr_t GetDeoptIdForOsr(uword pc) const;
 
+  uint32_t Hash() const;
   const char* Name() const;
   const char* QualifiedName(const NameFormattingParams& params) const;
 
