@@ -1,5 +1,11 @@
 # Changelog
 
+## 11.0.0
+- Change `HttpProfileRequestRef.id` type from `int` to `String`.
+- Change `SocketStatistic.id` type from `int` to `String`.
+- Change `ext.dart.io.getHttpProfileRequest` `id` parameter type from `int` to `String`.
+- Change `ext.dart.io.socketProfilingEnabled` parameter from 'enable' to 'enabled'.
+
 ## 10.0.0
 - Update to version `4.0` of the spec.
 - Update for incorrectly documented types for `WeakReference`'s `target`,
