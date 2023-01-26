@@ -227,7 +227,7 @@ functionality is publicly exposed.
     to elements that are understood directly in Dart.
 
   * `lib/src/js_backend/backend_helpers.dart`: provides a way to lookup internal
-    elements of the Javascript backend, like our internal
+    elements of the JavaScript backend, like our internal
     representation of JSInt31, JSArray, and other implementation-specific
     elements.
 

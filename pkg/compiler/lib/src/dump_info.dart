@@ -1157,7 +1157,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   /// [registerEntityAst] is called.
   final Map<jsAst.Node, CodeSpan> _nodeData = <jsAst.Node, CodeSpan>{};
 
-  // A mapping from Dart Entities to Javascript AST Nodes.
+  // A mapping from Dart Entities to JavaScript AST Nodes.
   final Map<Entity, List<jsAst.Node>> _entityToNodes =
       <Entity, List<jsAst.Node>>{};
   final Map<ConstantValue, jsAst.Node> _constantToNode =

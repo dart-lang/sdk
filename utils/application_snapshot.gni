@@ -128,7 +128,7 @@ template("_application_snapshot") {
       "--output=" + rebase_path(output, root_build_dir),
       "--depfile=" + rebase_path(depfile),
 
-      # Ensure the compiled appliation (e.g. kernel-service, frontend-server,
+      # Ensure the compiled application (e.g. kernel-service, frontend-server,
       # ...) will use this SDK hash when consuming/producing kernel.
       #
       # (Instead of ensuring every user of the "application_snapshot" /

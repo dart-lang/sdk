@@ -1929,7 +1929,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         if (value is IntConstantValue) {
           // Only constant-fold int.toString() when Dart and JS results the
           // same.
-          // TODO(18103): We should be able to remove this work-around when
+          // TODO(18103): We should be able to remove this workaround when
           // issue 18103 is resolved by providing the correct string.
           if (!value.isUInt32()) return null;
           return asString('${value.intValue}');

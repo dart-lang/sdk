@@ -85,7 +85,7 @@ Future asyncStepOver(Isolate isolate) async {
     }
   }
 
-  // Complete futures with with error.
+  // Complete futures with error.
   completeError(error) {
     if (!pausedAtSyntheticBreakpoint.isCompleted) {
       pausedAtSyntheticBreakpoint.completeError(error);

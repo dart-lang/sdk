@@ -9,7 +9,7 @@ import("../application_snapshot.gni")
 import("../create_timestamp.gni")
 
 declare_args() {
-  # Enables DDC canary features during compilation to Javascript.
+  # Enables DDC canary features during compilation to JavaScript.
   ddc_canary = false
 }
 

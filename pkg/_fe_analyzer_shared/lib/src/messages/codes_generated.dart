@@ -12425,7 +12425,7 @@ const Template<
     problemMessageTemplate:
         r"""The integer literal #string can't be represented exactly in JavaScript.""",
     correctionMessageTemplate:
-        r"""Try changing the literal to something that can be represented in Javascript. In Javascript #string2 is the nearest value that can be represented exactly.""",
+        r"""Try changing the literal to something that can be represented in JavaScript. In JavaScript #string2 is the nearest value that can be represented exactly.""",
     withArguments: _withArgumentsWebLiteralCannotBeRepresentedExactly);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12443,7 +12443,7 @@ Message _withArgumentsWebLiteralCannotBeRepresentedExactly(
   return new Message(codeWebLiteralCannotBeRepresentedExactly,
       problemMessage:
           """The integer literal ${string} can't be represented exactly in JavaScript.""",
-      correctionMessage: """Try changing the literal to something that can be represented in Javascript. In Javascript ${string2} is the nearest value that can be represented exactly.""",
+      correctionMessage: """Try changing the literal to something that can be represented in JavaScript. In JavaScript ${string2} is the nearest value that can be represented exactly.""",
       arguments: {'string': string, 'string2': string2});
 }
 

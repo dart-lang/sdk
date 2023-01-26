@@ -395,7 +395,7 @@ class FrontendCompiler implements CompilerInterface {
   late bool _printIncrementalDependencies;
   late ProcessedOptions _processedOptions;
 
-  /// Initialized in [writeJavascriptBundle]
+  /// Initialized in [writeJavaScriptBundle]
   IncrementalJavaScriptBundler? _bundler;
 
   /// Nullable fields
@@ -605,7 +605,7 @@ class FrontendCompiler implements CompilerInterface {
       transformer?.transform(results.component!);
 
       if (_compilerOptions.target!.name == 'dartdevc') {
-        await writeJavascriptBundle(results, _kernelBinaryFilename,
+        await writeJavaScriptBundle(results, _kernelBinaryFilename,
             options['filesystem-scheme'], options['dartdevc-module-format'],
             fullComponent: true);
       }
@@ -666,7 +666,7 @@ class FrontendCompiler implements CompilerInterface {
   }
 
   /// Write a JavaScript bundle containing the provided component.
-  Future<void> writeJavascriptBundle(KernelCompilationResults results,
+  Future<void> writeJavaScriptBundle(KernelCompilationResults results,
       String filename, String fileSystemScheme, String moduleFormat,
       {required bool fullComponent}) async {
     // ignore: unnecessary_null_comparison
@@ -851,7 +851,7 @@ class FrontendCompiler implements CompilerInterface {
         deltaProgram.uriToSource.keys);
 
     if (_compilerOptions.target!.name == 'dartdevc') {
-      await writeJavascriptBundle(results, _kernelBinaryFilename,
+      await writeJavaScriptBundle(results, _kernelBinaryFilename,
           _options['filesystem-scheme'], _options['dartdevc-module-format'],
           fullComponent: false);
     } else {

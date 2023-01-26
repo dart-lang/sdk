@@ -191,7 +191,7 @@ class CAaMAiBCaMBCiIJ_2 extends CAaMAiBC with MBCiIJ {}
 // Abstract mixin application does not implement I and J.
 abstract class OaMiIJ = O with MiIJ;
 
-// Concrete subclass of abstract mixin appliction
+// Concrete subclass of abstract mixin application
 class COaMiIJ extends OaMiIJ {
   String toString() => "${super.toString()}:COaMiIJ";
   String methodI() => "COaMiIJ:${this}.I";
@@ -201,7 +201,7 @@ class COaMiIJ extends OaMiIJ {
 // Abstract class with mixin application and does not implement I and J.
 abstract class OaMiIJ_2 extends O with MiIJ {}
 
-// Concrete subclass of abstract mixin appliction
+// Concrete subclass of abstract mixin application
 class COaMiIJ_2 extends OaMiIJ_2 {
   String toString() => "${super.toString()}:COaMiIJ";
   String methodI() => "COaMiIJ:${this}.I";

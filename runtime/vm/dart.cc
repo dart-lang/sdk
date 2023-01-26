@@ -539,10 +539,10 @@ char* Dart::Init(const Dart_InitializeParams* params) {
 }
 
 static void DumpAliveIsolates(intptr_t num_attempts,
-                              bool only_aplication_isolates) {
+                              bool only_application_isolates) {
   IsolateGroup::ForEach([&](IsolateGroup* group) {
     group->ForEachIsolate([&](Isolate* isolate) {
-      if (!only_aplication_isolates || !Isolate::IsSystemIsolate(isolate)) {
+      if (!only_application_isolates || !Isolate::IsSystemIsolate(isolate)) {
         OS::PrintErr("Attempt:%" Pd " waiting for isolate %s to check in\n",
                      num_attempts, isolate->name());
       }

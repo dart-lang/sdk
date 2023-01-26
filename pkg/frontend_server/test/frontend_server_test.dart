@@ -2488,7 +2488,7 @@ e() {
       frontendServer.close();
     });
 
-    test('compile expression to Javascript', () async {
+    test('compile expression to JavaScript', () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {\n}\n");
       var packageConfig = File('${tempDir.path}/.dart_tool/package_config.json')
@@ -2576,7 +2576,7 @@ e() {
       expect(count, 3);
     });
 
-    test('compiled Javascript includes web library environment defines',
+    test('compiled JavaScript includes web library environment defines',
         () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync(
