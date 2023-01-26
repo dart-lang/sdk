@@ -18,12 +18,28 @@ final platformDill = path.join(buildDir, 'vm_platform_strong.dill');
 final genKernel = path.join(sdkDir, 'pkg', 'vm', 'tool',
     'gen_kernel' + (Platform.isWindows ? '.bat' : ''));
 final _genSnapshotBase = 'gen_snapshot' + (Platform.isWindows ? '.exe' : '');
-// Slight hack to work around issue that gen_snapshot for simarm_x64 is not
-// in the same subdirectory as dart_precompiled_runtime (${MODE}SIMARM), but
-// instead it's in ${MODE}SIMARM_X64.
-final genSnapshot = File(path.join(buildDir, _genSnapshotBase)).existsSync()
-    ? path.join(buildDir, _genSnapshotBase)
-    : path.join(buildDir + '_X64', _genSnapshotBase);
+final genSnapshot = () {
+  final possiblePaths = [
+    // No cross compilation.
+    path.join(buildDir, _genSnapshotBase),
+    // ${MODE}SIMARM_X64 for X64->SIMARM cross compilation.
+    path.join('${buildDir}_X64', _genSnapshotBase),
+    // ${MODE}XARM64/clang_x64 for X64->ARM64 cross compilation.
+    path.join(buildDir, 'clang_x64', _genSnapshotBase),
+  ];
+  for (final path in possiblePaths) {
+    if (File(path).existsSync()) {
+      return path;
+    }
+  }
+  // We couldn't find an appropriate `gen_snapshot` executable, but it's
+  // possible that the importing test doesn't actually use `genSnapshot`.
+  // Instead of eagerly failing, just set `genSnapshot` to one of the
+  // non-existent paths. (In the `vm/dart` version, we use `late final`.)
+  print('Could not find gen_snapshot for build directory $buildDir, '
+      'using default path.');
+  return possiblePaths.first;
+}();
 final aotRuntime = path.join(
     buildDir, 'dart_precompiled_runtime' + (Platform.isWindows ? '.exe' : ''));
 final isSimulator = path.basename(buildDir).contains('SIM');
