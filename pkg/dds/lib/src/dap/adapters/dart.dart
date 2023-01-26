@@ -24,6 +24,7 @@ import '../protocol_converter.dart';
 import '../protocol_generated.dart';
 import '../protocol_stream.dart';
 import '../utils.dart';
+import '../variables.dart';
 import 'mixins.dart';
 
 /// The mime type to send with source responses to the client.
@@ -915,18 +916,24 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       throw UnimplementedError('Global evaluation not currently supported');
     }
 
+    // Parse the expression for trailing format specifiers.
+    final expressionData = EvaluationExpression.parse(
+      args.expression
+          .trim()
+          // Remove any trailing semicolon as the VM only evaluates expressions
+          // but a user may have highlighted a whole line/statement to send for
+          // evaluation.
+          .replaceFirst(_trailingSemicolonPattern, ''),
+    );
+    final expression = expressionData.expression;
+    final format = expressionData.format;
+
+    final exceptionReference = thread.exceptionReference;
     // The value in the constant `frameExceptionExpression` is used as a special
     // expression that evaluates to the exception on the current thread. This
     // allows us to construct evaluateNames that evaluate to the fields down the
     // tree to support some of the debugger functionality (for example
     // "Copy Value", which re-evaluates).
-    final expression = args.expression
-        .trim()
-        // Remove any trailing semicolon as the VM only evaluates expressions
-        // but a user may have highlighted a whole line/statement to send for
-        // evaluation.
-        .replaceFirst(_trailingSemicolonPattern, '');
-    final exceptionReference = thread.exceptionReference;
     final isExceptionExpression = expression == threadExceptionExpression ||
         expression.startsWith('$threadExceptionExpression.');
 
@@ -974,10 +981,12 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         thread,
         result,
         allowCallingToString: evaluateToStringInDebugViews,
+        format: format,
       );
 
-      final variablesReference =
-          _converter.isSimpleKind(result.kind) ? 0 : thread.storeData(result);
+      final variablesReference = _converter.isSimpleKind(result.kind)
+          ? 0
+          : thread.storeData(VariableData(result, format));
 
       // Store the expression that gets this object as we may need it to
       // compute evaluateNames for child objects later.
@@ -1662,12 +1671,19 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       throw StateError('variablesReference is no longer valid');
     }
     final thread = storedData.thread;
-    final data = storedData.data;
-    final vmData = data is vm.Response ? data : null;
+    var data = storedData.data;
+
+    VariableFormat? format;
+    // Unwrap any variable we stored with formatting info.
+    if (data is VariableData) {
+      format = data.format;
+      data = data.data;
+    }
+
     final variables = <Variable>[];
 
-    if (vmData is vm.Frame) {
-      final vars = vmData.vars;
+    if (data is vm.Frame) {
+      final vars = data.vars;
       if (vars != null) {
         Future<Variable> convert(int index, vm.BoundVariable variable) {
           // Store the expression that gets this object as we may need it to
@@ -1680,6 +1696,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
             allowCallingToString: evaluateToStringInDebugViews &&
                 index <= maxToStringsPerEvaluation,
             evaluateName: variable.name,
+            format: format,
           );
         }
 
@@ -1701,9 +1718,11 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
               thread,
               key,
               allowCallingToString: evaluateToStringInDebugViews,
+              format: format,
             ),
-            variablesReference:
-                _converter.isSimpleKind(key.kind) ? 0 : thread.storeData(key),
+            variablesReference: _converter.isSimpleKind(key.kind)
+                ? 0
+                : thread.storeData(VariableData(key, format)),
           ),
           Variable(
               name: 'value',
@@ -1711,18 +1730,19 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
                 thread,
                 value,
                 allowCallingToString: evaluateToStringInDebugViews,
+                format: format,
               ),
               variablesReference: _converter.isSimpleKind(value.kind)
                   ? 0
-                  : thread.storeData(value),
+                  : thread.storeData(VariableData(value, format)),
               evaluateName:
                   buildEvaluateName('', parentInstanceRefId: value.id)),
         ]);
       }
-    } else if (vmData is vm.ObjRef) {
+    } else if (data is vm.ObjRef) {
       final object = await _isolateManager.getObject(
         storedData.thread.isolate,
-        vmData,
+        data,
         offset: childStart,
         count: childCount,
       );
@@ -1737,10 +1757,11 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         variables.addAll(await _converter.convertVmInstanceToVariablesList(
           thread,
           object,
-          evaluateName: buildEvaluateName('', parentInstanceRefId: vmData.id),
+          evaluateName: buildEvaluateName('', parentInstanceRefId: data.id),
           allowCallingToString: evaluateToStringInDebugViews,
           startItem: childStart,
           numItems: childCount,
+          format: format,
         ));
       } else {
         variables.add(Variable(
@@ -1976,9 +1997,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
   }
 
-  /// Helper to convert to InstanceRef to a complete untruncated String,
-  /// handling [vm.InstanceKind.kNull] which is the type for the unused fields
-  /// of a log event.
+  /// Helper to convert to InstanceRef to a complete untruncated unquoted
+  /// String, handling [vm.InstanceKind.kNull] which is the type for the unused
+  /// fields of a log event.
   Future<String?> getFullString(ThreadInfo thread, vm.InstanceRef? ref) async {
     if (ref == null || ref.kind == vm.InstanceKind.kNull) {
       return null;
@@ -1992,7 +2013,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       // setting.
       allowCallingToString: true,
       allowTruncatedValue: false,
-      includeQuotesAroundString: false,
+      format: VariableFormat.noQuotes(),
     )
         // Fetching strings from the server may throw if they have been
         // collected since (for example if a Hot Restart occurs while
