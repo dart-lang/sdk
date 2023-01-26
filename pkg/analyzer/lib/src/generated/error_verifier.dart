@@ -3606,10 +3606,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     bool isConflictingName(
         String name, LibraryElement library, NamedType namedType) {
       if (Identifier.isPrivateName(name)) {
-        Map<String, String> names =
-            mixedInNames.putIfAbsent(library, () => <String, String>{});
+        Map<String, String> names = mixedInNames.putIfAbsent(library, () => {});
         var conflictingName = names[name];
         if (conflictingName != null) {
+          if (name.endsWith('=')) {
+            name = name.substring(0, name.length - 1);
+          }
           errorReporter.reportErrorForNode(
               CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
               namedType,
@@ -3623,6 +3625,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           concrete: true,
         );
         if (inheritedMember != null) {
+          if (name.endsWith('=')) {
+            name = name.substring(0, name.length - 1);
+          }
           // Inherited members are always contained inside named elements, so we
           // can safely assume `inheritedMember.enclosingElement3.name` is
           // non-`null`.

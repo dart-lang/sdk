@@ -369,7 +369,8 @@ import 'a.dart';
 
 class C extends A with B {}
 ''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 41, 1),
+      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 41, 1,
+          messageContains: ["'_foo'"]),
     ]);
   }
 
@@ -389,7 +390,8 @@ import 'a.dart';
 
 class C extends A with B {}
 ''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 41, 1),
+      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 41, 1,
+          messageContains: ["'_foo'"]),
     ]);
   }
 
@@ -614,7 +616,8 @@ enum E with A, B {
   v
 }
 ''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 33, 1),
+      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 33, 1,
+          messageContains: ["'_foo'"]),
     ]);
   }
 }
