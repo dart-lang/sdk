@@ -35,7 +35,7 @@ UNIT_TEST_CASE(FixedCacheHalfFull) {
   EXPECT(strcmp(*cache.Lookup(20), "b") == 0);
   EXPECT(strcmp(*cache.Lookup(40), "c") == 0);
   EXPECT(strcmp(*cache.Lookup(25), "bc") == 0);
-  // Non-existent - front, middle, end.
+  // Nonexistent - front, middle, end.
   EXPECT(cache.Lookup(1) == NULL);
   EXPECT(cache.Lookup(35) == NULL);
   EXPECT(cache.Lookup(50) == NULL);

@@ -35,7 +35,7 @@ final genSnapshot = () {
   // We couldn't find an appropriate `gen_snapshot` executable, but it's
   // possible that the importing test doesn't actually use `genSnapshot`.
   // Instead of eagerly failing, just set `genSnapshot` to one of the
-  // non-existent paths. (In the `vm/dart` version, we use `late final`.)
+  // nonexistent paths. (In the `vm/dart` version, we use `late final`.)
   print('Could not find gen_snapshot for build directory $buildDir, '
       'using default path.');
   return possiblePaths.first;
