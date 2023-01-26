@@ -3370,7 +3370,7 @@
 				},
 				"evaluateName": {
 					"type": "string",
-					"description": "Optional evaluatable name of this variable which can be passed to the 'EvaluateRequest' to fetch the variable's value."
+					"description": "Optional evaluable name of this variable which can be passed to the 'EvaluateRequest' to fetch the variable's value."
 				},
 				"variablesReference": {
 					"type": "integer",
