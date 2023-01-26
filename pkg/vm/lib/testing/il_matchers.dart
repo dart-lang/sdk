@@ -45,6 +45,10 @@ class FlowGraph {
       }
     }
 
+    if (env.unboundNames.isNotEmpty) {
+      throw 'Some names left unbound: ${env.unboundNames}';
+    }
+
     return env;
   }
 
@@ -97,14 +101,19 @@ class Env {
   final Map<String, InstructionDescriptor> descriptors;
   final Renamer rename;
   final Map<String, int> nameToId = {};
+  final Set<String> unboundNames = {};
 
   Env({required this.rename, required this.descriptors});
 
   void bind(String name, Map<String, dynamic> instrOrBlock) {
     final id = instrOrBlock['v'] ?? instrOrBlock['b'];
 
-    if (nameToId.containsKey(name) && nameToId[name] != id) {
-      throw 'Binding mismatch for $name: got ${nameToId[name]} and $id';
+    if (nameToId.containsKey(name)) {
+      if (nameToId[name] != id) {
+        throw 'Binding mismatch for $name: got ${nameToId[name]} and $id';
+      }
+      unboundNames.remove(name);
+      return;
     }
 
     nameToId[name] = id;
@@ -228,6 +237,7 @@ class _RefMatcher implements Matcher {
       throw UnimplementedError('Unbound reference to ${name}');
     }
 
+    e.unboundNames.add(name);
     e.nameToId[name] = v;
     return MatchStatus.matched;
   }
@@ -417,9 +427,11 @@ class Matchers {
       for (var e in invocation.namedArguments.entries)
         getName(e.key): Matchers._toAttributeMatcher(e.value),
     };
-    final inputs =
-        invocation.positionalArguments.map(Matchers._toInputMatcher).toList();
     final op = getName(invocation.memberName);
+    final binding = op == 'Phi'; // Allow Phis to have undeclared arguments.
+    final inputs = invocation.positionalArguments
+        .map((v) => Matchers._toInputMatcher(v, binding: binding))
+        .toList();
     return InstructionMatcher._(op: op, matchers: {
       if (data.isNotEmpty) 'd': _AttributesMatcher(op, data),
       if (inputs.isNotEmpty) 'i': _ListMatcher(inputs),
@@ -436,11 +448,11 @@ class Matchers {
     }
   }
 
-  static Matcher _toInputMatcher(dynamic v) {
+  static Matcher _toInputMatcher(dynamic v, {bool binding = false}) {
     if (v is Matcher) {
       return v;
     } else if (v is String) {
-      return _RefMatcher(v);
+      return _RefMatcher(v, binding: binding);
     } else {
       throw ArgumentError.value(
           v, 'v', 'Expected either a Matcher or a String (binding name)');
