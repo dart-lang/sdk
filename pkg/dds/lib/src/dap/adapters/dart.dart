@@ -1355,7 +1355,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     sendResponse(SetExceptionBreakpointsResponseBody());
   }
 
-  /// Shuts down/detatches from the debugee and cleans up.
+  /// Shuts down/detaches from the debugee and cleans up.
   ///
   /// This is called by [disconnectRequest] and [terminateRequest] but may also
   /// be called if the client just disconnects from the server without calling
