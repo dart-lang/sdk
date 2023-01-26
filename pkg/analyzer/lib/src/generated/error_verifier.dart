@@ -3545,11 +3545,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           forMixinIndex: mixinIndex, concrete: true, forSuper: true);
 
       if (superMember == null) {
-        errorReporter.reportErrorForNode(
-            CompileTimeErrorCode
-                .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
-            mixinName.name,
-            [name]);
+        var isSetter = name.endsWith('=');
+
+        var errorCode = isSetter
+            ? CompileTimeErrorCode
+                .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER
+            : CompileTimeErrorCode
+                .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER;
+
+        if (isSetter) {
+          name = name.substring(0, name.length - 1);
+        }
+
+        errorReporter.reportErrorForNode(errorCode, mixinName.name, [name]);
         return true;
       }
 

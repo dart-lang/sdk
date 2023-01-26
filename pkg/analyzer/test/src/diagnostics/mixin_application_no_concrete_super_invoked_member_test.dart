@@ -242,7 +242,7 @@ abstract class X extends A with M {}
 ''', [
       error(
           CompileTimeErrorCode
-              .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+              .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER,
           129,
           1),
     ]);
@@ -385,7 +385,7 @@ enum E with M1, M2 {
 ''', [
       error(
           CompileTimeErrorCode
-              .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+              .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER,
           106,
           2),
     ]);

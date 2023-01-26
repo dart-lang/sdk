@@ -8687,6 +8687,13 @@ CompileTimeErrorCode:
 
       class X = A with M;
       ```
+  MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER:
+    sharedName: MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER
+    problemMessage: "The class doesn't have a concrete implementation of the super-invoked setter '{0}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the display name of the setter without a concrete implementation
   MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER:
     problemMessage: "The class doesn't have a concrete implementation of the super-invoked member '{0}'."
     hasPublishedDocs: true
