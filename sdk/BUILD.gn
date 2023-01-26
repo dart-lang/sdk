@@ -544,7 +544,7 @@ copy("copy_dev_compiler_amd_require_js") {
 }
 
 # Copies stack_trace_mapper tool to lib/dev_compiler/web.
-# Used when running DDC compiled applicaations.
+# Used when running DDC compiled applications.
 copy("copy_dev_compiler_stack_trace_mapper") {
   visibility = [ ":copy_dev_compiler_sdk" ]
   deps = [ "../utils/dartdevc:stack_trace_mapper" ]
