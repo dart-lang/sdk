@@ -53,7 +53,7 @@ class AvoidAs extends LintRule {
           description: _desc,
           details: _details,
           group: Group.style,
-          state: State.removed(since: dart3),
+          state: State.removed(since: dart2_12),
         );
 
   @override

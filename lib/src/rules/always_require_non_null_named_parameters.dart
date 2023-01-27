@@ -49,7 +49,7 @@ class AlwaysRequireNonNullNamedParameters extends LintRule {
             name: 'always_require_non_null_named_parameters',
             description: _desc,
             details: _details,
-            state: State.deprecated(since: dart3),
+            state: State.deprecated(since: dart2_12),
             group: Group.style);
 
   @override

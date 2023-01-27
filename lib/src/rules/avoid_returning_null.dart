@@ -59,7 +59,7 @@ class AvoidReturningNull extends LintRule {
             name: 'avoid_returning_null',
             description: _desc,
             details: _details,
-            state: State.deprecated(since: dart3),
+            state: State.deprecated(since: dart2_12),
             group: Group.style);
 
   @override

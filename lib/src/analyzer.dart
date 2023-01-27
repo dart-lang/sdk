@@ -15,6 +15,7 @@ import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/util.dart' as util;
 import 'package:analyzer/src/services/lint.dart' as lint_service;
+import 'package:pub_semver/pub_semver.dart';
 
 import 'version.dart';
 
@@ -45,6 +46,10 @@ export 'package:analyzer/src/services/lint.dart' show lintRegistry;
 export 'package:analyzer/src/workspace/pub.dart' show PubWorkspacePackage;
 
 const loggedAnalyzerErrorExitCode = 63;
+
+/// A version describing Dart language version 2.12.0.
+// todo(pq): remove when analyzer 5.5.0 is published.
+final Version dart2_12 = Version(2, 12, 0);
 
 Future<Iterable<AnalysisErrorInfo>> lintFiles(
     DartLinter linter, List<File> filesToLint) async {

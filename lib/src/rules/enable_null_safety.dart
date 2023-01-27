@@ -34,7 +34,7 @@ class EnableNullSafety extends LintRule implements NodeLintRule {
             name: 'enable_null_safety',
             description: _desc,
             details: _details,
-            state: State.removed(since: dart3),
+            state: State.removed(since: dart2_12),
             group: Group.style);
 
   @override
