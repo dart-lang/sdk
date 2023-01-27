@@ -510,6 +510,6 @@ dart_2/entrypoints/*: SkipByDesign # These tests are for compiler optimizations 
 
 # The analyze_snapshot tool tests are only supported on 64 bit AOT builds running under
 # release or product runtimes for linux and android platforms
-[ $arch != arm64 && $arch != arm64c && $arch != simarm64 && $arch != simarm64c && $arch != x64 || $compiler != dartk && $compiler != dartkp || $mode != product && $mode != release || $runtime != dart_precompiled && $runtime != vm || $system != android && $system != linux ]
+[ $arch != arm64 && $arch != arm64c && $arch != simarm64 && $arch != simarm64c && $arch != x64 && $arch != x64c || $compiler != dartk && $compiler != dartkp || $mode != product && $mode != release || $runtime != dart_precompiled && $runtime != vm || $system != android && $system != linux ]
 dart/analyze_snapshot_binary_test: SkipByDesign # Only run on 64bit AOT on standard architectures
 dart_2/analyze_snapshot_binary_test: SkipByDesign # Only run on 64bit AOT on standard architectures
