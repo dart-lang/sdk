@@ -1394,8 +1394,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkMixinsSuperClass(withClause);
       _checkForMixinWithConflictingPrivateMember(withClause, superclass);
       _checkForConflictingGenerics(node);
-      _checkForBaseClassOrMixinImplementedOutsideOfLibrary(
-          node, implementsClause);
+      _checkForBaseClassOrMixinImplementedOutsideOfLibrary(implementsClause);
       _checkForClassUsedAsMixin(node, withClause);
       _checkForSealedSupertypeOutsideOfLibrary(
           node, superclass, withClause, implementsClause);
@@ -1735,7 +1734,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// See [CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY],
   /// [CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY].
   void _checkForBaseClassOrMixinImplementedOutsideOfLibrary(
-      NamedCompilationUnitMember node, ImplementsClause? implementsClause) {
+      ImplementsClause? implementsClause) {
     if (implementsClause == null) return;
     for (NamedType interface in implementsClause.interfaces) {
       final interfaceType = interface.type;
@@ -5142,8 +5141,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         CompileTimeErrorCode.IMPLEMENTS_REPEATED,
       );
       _checkForConflictingGenerics(node);
-      _checkForBaseClassOrMixinImplementedOutsideOfLibrary(
-          node, implementsClause);
+      _checkForBaseClassOrMixinImplementedOutsideOfLibrary(implementsClause);
       _checkForSealedSupertypeOutsideOfLibrary(
           node, null, null, implementsClause);
     }
