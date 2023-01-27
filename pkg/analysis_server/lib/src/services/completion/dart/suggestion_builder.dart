@@ -209,9 +209,18 @@ class SuggestionBuilder {
   /// computed. In the latter case, [_hasContainingMemberName] will be `false`.
   String? _cachedContainingMemberName;
 
+  /// If added builders can be filtered based on the `targetPrefix`.
+  final bool useFilter;
+
+  /// The lower case `targetPrefix` possibly used to filter results before
+  /// actually adding them.
+  late final String targetPrefixLower;
+
   /// Initialize a newly created suggestion builder to build suggestions for the
   /// given [request].
-  SuggestionBuilder(this.request, {this.listener});
+  SuggestionBuilder(this.request, {this.listener, required this.useFilter}) {
+    targetPrefixLower = request.targetPrefix.toLowerCase();
+  }
 
   /// Return an object that can answer questions about Flutter code.
   Flutter get flutter => Flutter.instance;
@@ -269,40 +278,43 @@ class SuggestionBuilder {
         }
       }
     } else {
-      var type = _getPropertyAccessorType(accessor);
-      var featureComputer = request.featureComputer;
-      var contextType =
-          featureComputer.contextTypeFeature(request.contextType, type);
-      var elementKind =
-          _computeElementKind(accessor, distance: inheritanceDistance);
-      var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
-      var isConstant = request.inConstantContext
-          ? featureComputer.isConstantFeature(accessor)
-          : 0.0;
-      var startsWithDollar =
-          featureComputer.startsWithDollarFeature(accessor.name);
-      var superMatches = featureComputer.superMatchesFeature(
-          _containingMemberName, accessor.name);
-      var relevance = _computeRelevance(
-        contextType: contextType,
-        elementKind: elementKind,
-        hasDeprecated: hasDeprecated,
-        isConstant: isConstant,
-        isNotImported:
-            request.featureComputer.isNotImportedFeature(isNotImportedLibrary),
-        startsWithDollar: startsWithDollar,
-        superMatches: superMatches,
-        inheritanceDistance: inheritanceDistance,
-      );
-      _addBuilder(
-        _createCompletionSuggestionBuilder(
-          accessor,
-          completion: enclosingPrefix + accessor.displayName,
-          kind: CompletionSuggestionKind.IDENTIFIER,
-          relevance: relevance,
-          isNotImported: isNotImportedLibrary,
-        ),
-      );
+      var completion = enclosingPrefix + accessor.displayName;
+      if (_couldMatch(completion, null)) {
+        var type = _getPropertyAccessorType(accessor);
+        var featureComputer = request.featureComputer;
+        var contextType =
+            featureComputer.contextTypeFeature(request.contextType, type);
+        var elementKind =
+            _computeElementKind(accessor, distance: inheritanceDistance);
+        var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
+        var isConstant = request.inConstantContext
+            ? featureComputer.isConstantFeature(accessor)
+            : 0.0;
+        var startsWithDollar =
+            featureComputer.startsWithDollarFeature(accessor.name);
+        var superMatches = featureComputer.superMatchesFeature(
+            _containingMemberName, accessor.name);
+        var relevance = _computeRelevance(
+          contextType: contextType,
+          elementKind: elementKind,
+          hasDeprecated: hasDeprecated,
+          isConstant: isConstant,
+          isNotImported: request.featureComputer
+              .isNotImportedFeature(isNotImportedLibrary),
+          startsWithDollar: startsWithDollar,
+          superMatches: superMatches,
+          inheritanceDistance: inheritanceDistance,
+        );
+        _addBuilder(
+          _createCompletionSuggestionBuilder(
+            accessor,
+            completion: completion,
+            kind: CompletionSuggestionKind.IDENTIFIER,
+            relevance: relevance,
+            isNotImported: isNotImportedLibrary,
+          ),
+        );
+      }
     }
   }
 
@@ -425,19 +437,21 @@ class SuggestionBuilder {
       return;
     }
 
-    var returnType = _instantiateInterfaceElement(enclosingClass);
-    var relevance =
-        _computeTopLevelRelevance(constructor, elementType: returnType);
-    _addBuilder(
-      _createCompletionSuggestionBuilder(
-        constructor,
-        completion: completion,
-        kind: kind,
-        prefix: prefix,
-        relevance: relevance,
-        isNotImported: isNotImportedLibrary,
-      ),
-    );
+    if (_couldMatch(completion, prefix)) {
+      var returnType = _instantiateInterfaceElement(enclosingClass);
+      var relevance =
+          _computeTopLevelRelevance(constructor, elementType: returnType);
+      _addBuilder(
+        _createCompletionSuggestionBuilder(
+          constructor,
+          completion: completion,
+          kind: kind,
+          prefix: prefix,
+          relevance: relevance,
+          isNotImported: isNotImportedLibrary,
+        ),
+      );
+    }
   }
 
   /// Add a suggestion for a top-level [element]. If a [kind] is provided it
@@ -490,17 +504,23 @@ class SuggestionBuilder {
   void suggestExtension(ExtensionElement extension,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
       String? prefix}) {
-    var relevance = _computeTopLevelRelevance(extension,
-        elementType: extension.extendedType);
-    _addBuilder(
-      _createCompletionSuggestionBuilder(
-        extension,
-        kind: kind,
-        prefix: prefix,
-        relevance: relevance,
-        isNotImported: isNotImportedLibrary,
-      ),
-    );
+    var elementData = _getElementCompletionData(extension);
+    if (elementData == null) return;
+    var completion = elementData.completion;
+    if (_couldMatch(completion, prefix)) {
+      var relevance = _computeTopLevelRelevance(extension,
+          elementType: extension.extendedType);
+      _addBuilder(
+        _createCompletionSuggestionBuilder(
+          extension,
+          kind: kind,
+          prefix: prefix,
+          relevance: relevance,
+          isNotImported: isNotImportedLibrary,
+          elementData: elementData,
+        ),
+      );
+    }
   }
 
   /// Add a suggestion for a [field]. If the field is being referenced with a
@@ -509,34 +529,42 @@ class SuggestionBuilder {
   /// value of the inheritance distance feature computed for the field (or
   /// `-1.0` if the field is a static field).
   void suggestField(FieldElement field, {required double inheritanceDistance}) {
-    var featureComputer = request.featureComputer;
-    var contextType =
-        featureComputer.contextTypeFeature(request.contextType, field.type);
-    var elementKind = _computeElementKind(field, distance: inheritanceDistance);
-    var hasDeprecated = featureComputer.hasDeprecatedFeature(field);
-    var isConstant = request.inConstantContext
-        ? featureComputer.isConstantFeature(field)
-        : 0.0;
-    var startsWithDollar = featureComputer.startsWithDollarFeature(field.name);
-    var superMatches =
-        featureComputer.superMatchesFeature(_containingMemberName, field.name);
-    var relevance = _computeRelevance(
-      contextType: contextType,
-      elementKind: elementKind,
-      hasDeprecated: hasDeprecated,
-      isConstant: isConstant,
-      startsWithDollar: startsWithDollar,
-      superMatches: superMatches,
-      inheritanceDistance: inheritanceDistance,
-    );
-    _addBuilder(
-      _createCompletionSuggestionBuilder(
-        field,
-        kind: CompletionSuggestionKind.IDENTIFIER,
-        relevance: relevance,
-        isNotImported: isNotImportedLibrary,
-      ),
-    );
+    var elementData = _getElementCompletionData(field);
+    if (elementData == null) return;
+    var completion = elementData.completion;
+    if (_couldMatch(completion, null)) {
+      var featureComputer = request.featureComputer;
+      var contextType =
+          featureComputer.contextTypeFeature(request.contextType, field.type);
+      var elementKind =
+          _computeElementKind(field, distance: inheritanceDistance);
+      var hasDeprecated = featureComputer.hasDeprecatedFeature(field);
+      var isConstant = request.inConstantContext
+          ? featureComputer.isConstantFeature(field)
+          : 0.0;
+      var startsWithDollar =
+          featureComputer.startsWithDollarFeature(field.name);
+      var superMatches = featureComputer.superMatchesFeature(
+          _containingMemberName, field.name);
+      var relevance = _computeRelevance(
+        contextType: contextType,
+        elementKind: elementKind,
+        hasDeprecated: hasDeprecated,
+        isConstant: isConstant,
+        startsWithDollar: startsWithDollar,
+        superMatches: superMatches,
+        inheritanceDistance: inheritanceDistance,
+      );
+      _addBuilder(
+        _createCompletionSuggestionBuilder(
+          field,
+          kind: CompletionSuggestionKind.IDENTIFIER,
+          relevance: relevance,
+          isNotImported: isNotImportedLibrary,
+          elementData: elementData,
+        ),
+      );
+    }
   }
 
   /// Add a suggestion to reference a [field] in a field formal parameter.
@@ -584,17 +612,23 @@ class SuggestionBuilder {
   /// Add a suggestion for an [element]. If the class can only be
   /// referenced using a prefix, then the [prefix] should be provided.
   void suggestInterface(InterfaceElement element, {String? prefix}) {
-    var relevance = _computeTopLevelRelevance(element,
-        elementType: _instantiateInterfaceElement(element));
-    _addBuilder(
-      _createCompletionSuggestionBuilder(
-        element,
-        kind: CompletionSuggestionKind.IDENTIFIER,
-        prefix: prefix,
-        relevance: relevance,
-        isNotImported: isNotImportedLibrary,
-      ),
-    );
+    var elementData = _getElementCompletionData(element);
+    if (elementData == null) return;
+    var completion = elementData.completion;
+    if (_couldMatch(completion, prefix)) {
+      var relevance = _computeTopLevelRelevance(element,
+          elementType: _instantiateInterfaceElement(element));
+      _addBuilder(
+        _createCompletionSuggestionBuilder(
+          element,
+          kind: CompletionSuggestionKind.IDENTIFIER,
+          prefix: prefix,
+          relevance: relevance,
+          isNotImported: isNotImportedLibrary,
+          elementData: elementData,
+        ),
+      );
+    }
   }
 
   /// Add a suggestion for a [keyword]. The [offset] is the offset from the
@@ -1047,18 +1081,21 @@ class SuggestionBuilder {
       if (enclosingName != null) {
         enclosingPrefix = '$enclosingName.';
       }
-      var relevance =
-          _computeTopLevelRelevance(element, elementType: element.type);
-      _addBuilder(
-        _createCompletionSuggestionBuilder(
-          element,
-          completion: enclosingPrefix + element.name,
-          kind: CompletionSuggestionKind.IDENTIFIER,
-          prefix: prefix,
-          relevance: relevance,
-          isNotImported: isNotImportedLibrary,
-        ),
-      );
+      var completion = enclosingPrefix + element.name;
+      if (_couldMatch(completion, prefix)) {
+        var relevance =
+            _computeTopLevelRelevance(element, elementType: element.type);
+        _addBuilder(
+          _createCompletionSuggestionBuilder(
+            element,
+            completion: completion,
+            kind: CompletionSuggestionKind.IDENTIFIER,
+            prefix: prefix,
+            relevance: relevance,
+            isNotImported: isNotImportedLibrary,
+          ),
+        );
+      }
     }
   }
 
@@ -1080,17 +1117,23 @@ class SuggestionBuilder {
   void suggestTopLevelFunction(FunctionElement function,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
       String? prefix}) {
-    var relevance =
-        _computeTopLevelRelevance(function, elementType: function.returnType);
-    _addBuilder(
-      _createCompletionSuggestionBuilder(
-        function,
-        kind: kind,
-        prefix: prefix,
-        relevance: relevance,
-        isNotImported: isNotImportedLibrary,
-      ),
-    );
+    var elementData = _getElementCompletionData(function);
+    if (elementData == null) return;
+    var completion = elementData.completion;
+    if (_couldMatch(completion, prefix)) {
+      var relevance =
+          _computeTopLevelRelevance(function, elementType: function.returnType);
+      _addBuilder(
+        _createCompletionSuggestionBuilder(
+          function,
+          kind: kind,
+          prefix: prefix,
+          relevance: relevance,
+          isNotImported: isNotImportedLibrary,
+          elementData: elementData,
+        ),
+      );
+    }
   }
 
   /// Add a suggestion for a top-level property [accessor]. If the accessor can
@@ -1112,37 +1155,43 @@ class SuggestionBuilder {
         }
       }
     } else {
-      var type = _getPropertyAccessorType(accessor);
-      var featureComputer = request.featureComputer;
-      var contextType =
-          featureComputer.contextTypeFeature(request.contextType, type);
-      var elementKind = _computeElementKind(accessor);
-      var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
-      var isConstant = request.inConstantContext
-          ? featureComputer.isConstantFeature(accessor)
-          : 0.0;
-      var startsWithDollar =
-          featureComputer.startsWithDollarFeature(accessor.name);
-      var superMatches = 0.0;
-      var relevance = _computeRelevance(
-        contextType: contextType,
-        elementKind: elementKind,
-        hasDeprecated: hasDeprecated,
-        isConstant: isConstant,
-        isNotImported:
-            request.featureComputer.isNotImportedFeature(isNotImportedLibrary),
-        startsWithDollar: startsWithDollar,
-        superMatches: superMatches,
-      );
-      _addBuilder(
-        _createCompletionSuggestionBuilder(
-          accessor,
-          kind: CompletionSuggestionKind.IDENTIFIER,
-          prefix: prefix,
-          relevance: relevance,
-          isNotImported: isNotImportedLibrary,
-        ),
-      );
+      var elementData = _getElementCompletionData(accessor);
+      if (elementData == null) return;
+      var completion = elementData.completion;
+      if (_couldMatch(completion, prefix)) {
+        var type = _getPropertyAccessorType(accessor);
+        var featureComputer = request.featureComputer;
+        var contextType =
+            featureComputer.contextTypeFeature(request.contextType, type);
+        var elementKind = _computeElementKind(accessor);
+        var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
+        var isConstant = request.inConstantContext
+            ? featureComputer.isConstantFeature(accessor)
+            : 0.0;
+        var startsWithDollar =
+            featureComputer.startsWithDollarFeature(accessor.name);
+        var superMatches = 0.0;
+        var relevance = _computeRelevance(
+          contextType: contextType,
+          elementKind: elementKind,
+          hasDeprecated: hasDeprecated,
+          isConstant: isConstant,
+          isNotImported: request.featureComputer
+              .isNotImportedFeature(isNotImportedLibrary),
+          startsWithDollar: startsWithDollar,
+          superMatches: superMatches,
+        );
+        _addBuilder(
+          _createCompletionSuggestionBuilder(
+            accessor,
+            kind: CompletionSuggestionKind.IDENTIFIER,
+            prefix: prefix,
+            relevance: relevance,
+            isNotImported: isNotImportedLibrary,
+            elementData: elementData,
+          ),
+        );
+      }
     }
   }
 
@@ -1150,34 +1199,46 @@ class SuggestionBuilder {
   /// referenced using a prefix, then the [prefix] should be provided.
   void suggestTopLevelVariable(TopLevelVariableElement variable,
       {String? prefix}) {
-    assert(variable.enclosingElement is CompilationUnitElement);
-    var relevance =
-        _computeTopLevelRelevance(variable, elementType: variable.type);
-    _addBuilder(
-      _createCompletionSuggestionBuilder(
-        variable,
-        kind: CompletionSuggestionKind.IDENTIFIER,
-        prefix: prefix,
-        relevance: relevance,
-        isNotImported: isNotImportedLibrary,
-      ),
-    );
+    var elementData = _getElementCompletionData(variable);
+    if (elementData == null) return;
+    var completion = elementData.completion;
+    if (_couldMatch(completion, prefix)) {
+      assert(variable.enclosingElement is CompilationUnitElement);
+      var relevance =
+          _computeTopLevelRelevance(variable, elementType: variable.type);
+      _addBuilder(
+        _createCompletionSuggestionBuilder(
+          variable,
+          kind: CompletionSuggestionKind.IDENTIFIER,
+          prefix: prefix,
+          relevance: relevance,
+          isNotImported: isNotImportedLibrary,
+          elementData: elementData,
+        ),
+      );
+    }
   }
 
   /// Add a suggestion for a [typeAlias]. If the alias can only be referenced
   /// using a prefix, then the [prefix] should be provided.
   void suggestTypeAlias(TypeAliasElement typeAlias, {String? prefix}) {
-    var relevance = _computeTopLevelRelevance(typeAlias,
-        elementType: _instantiateTypeAlias(typeAlias));
-    _addBuilder(
-      _createCompletionSuggestionBuilder(
-        typeAlias,
-        kind: CompletionSuggestionKind.IDENTIFIER,
-        prefix: prefix,
-        relevance: relevance,
-        isNotImported: isNotImportedLibrary,
-      ),
-    );
+    var elementData = _getElementCompletionData(typeAlias);
+    if (elementData == null) return;
+    var completion = elementData.completion;
+    if (_couldMatch(completion, prefix)) {
+      var relevance = _computeTopLevelRelevance(typeAlias,
+          elementType: _instantiateTypeAlias(typeAlias));
+      _addBuilder(
+        _createCompletionSuggestionBuilder(
+          typeAlias,
+          kind: CompletionSuggestionKind.IDENTIFIER,
+          prefix: prefix,
+          relevance: relevance,
+          isNotImported: isNotImportedLibrary,
+          elementData: elementData,
+        ),
+      );
+    }
   }
 
   /// Add a suggestion for a type [parameter].
@@ -1333,6 +1394,22 @@ class SuggestionBuilder {
     );
   }
 
+  bool _couldMatch(String candidateArbitraryCase, String? prefix) {
+    if (!useFilter) return true;
+    var candidateLower = candidateArbitraryCase.toLowerCase();
+    if (prefix != null) {
+      candidateLower = '${prefix.toLowerCase()}.$candidateLower';
+    }
+    var i = 0;
+    var j = 0;
+    for (; i < candidateLower.length && j < targetPrefixLower.length; i++) {
+      if (candidateLower.codeUnitAt(i) == targetPrefixLower.codeUnitAt(j)) {
+        j++;
+      }
+    }
+    return j == targetPrefixLower.length;
+  }
+
   /// Return a [CompletionSuggestionBuilder] based on the [element], or `null`
   /// if the element cannot be suggested. If the completion should be something
   /// different than the name of the element, then the [completion] should be
@@ -1347,8 +1424,9 @@ class SuggestionBuilder {
     required int relevance,
     required bool isNotImported,
     String? prefix,
+    _ElementCompletionData? elementData,
   }) {
-    var elementData = _getElementCompletionData(element);
+    elementData ??= _getElementCompletionData(element);
     if (elementData == null) {
       return null;
     }

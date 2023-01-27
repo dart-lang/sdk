@@ -47,6 +47,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
     Set<String>? includedElementNames,
     List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags,
     NotImportedSuggestions? notImportedSuggestions,
+    required bool useFilter,
   }) async {
     //
     // Allow plugins to start computing fixes.
@@ -69,7 +70,11 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
       );
 
       suggestions.addAll(
-        await manager.computeSuggestions(request, performance),
+        await manager.computeSuggestions(
+          request,
+          performance,
+          useFilter: useFilter,
+        ),
       );
     });
     // TODO (danrubel) if request is obsolete (processAnalysisRequest returns
@@ -206,6 +211,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
             performance: performance,
             request: completionRequest,
             notImportedSuggestions: notImportedSuggestions,
+            useFilter: true,
           );
         } on AbortCompletion {
           return server.sendResponse(

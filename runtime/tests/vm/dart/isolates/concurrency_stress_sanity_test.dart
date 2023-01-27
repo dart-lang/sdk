@@ -37,7 +37,7 @@ main() async {
     final args = [
       '--packages=$packageConfig',
       '--snapshot-kind=kernel',
-      '--no-sound-null-safety',
+      '--sound-null-safety',
       '--snapshot=$stressTestDill',
       stressTest
     ];
