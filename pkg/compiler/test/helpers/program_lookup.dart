@@ -19,7 +19,7 @@ ClassEntity lookupClass(JElementEnvironment elementEnvironment, String name) {
   return cls!;
 }
 
-MemberEntity lookupMember(JElementEnvironment elementEnvironment, String name) {
+MemberEntity lookupMember(ElementEnvironment elementEnvironment, String name) {
   MemberEntity? member;
   int dotIndex = name.indexOf('.');
   if (dotIndex != -1) {

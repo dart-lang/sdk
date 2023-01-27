@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/elements.dart';
@@ -105,7 +103,7 @@ main() {
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
     JsBackendStrategy backendStrategy = compiler.backendStrategy;
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     RuntimeTypesNeed rtiNeed = closedWorld.rtiNeed;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     ProgramLookup programLookup = new ProgramLookup(backendStrategy);
@@ -117,16 +115,17 @@ main() {
     }
 
     void checkParameters(String name,
-        {int expectedParameterCount, bool needsTypeArguments}) {
-      FunctionEntity function = lookupMember(elementEnvironment, name);
+        {required int expectedParameterCount,
+        required bool needsTypeArguments}) {
+      final function = lookupMember(elementEnvironment, name) as FunctionEntity;
 
       Expect.equals(
           needsTypeArguments,
           rtiNeed.methodNeedsTypeArguments(function),
           "Unexpected type argument need for $function.");
-      Method method = programLookup.getMethod(function);
+      Method method = programLookup.getMethod(function)!;
 
-      js.Fun fun = method.code;
+      final fun = method.code as js.Fun;
       Expect.equals(expectedParameterCount, fun.params.length,
           "Unexpected parameter count on $function: ${js.nodeToString(fun)}");
     }
@@ -146,16 +145,16 @@ main() {
         expectedParameterCount: 1, needsTypeArguments: false);
 
     checkArguments(String name, String targetName,
-        {int expectedTypeArguments}) {
-      FunctionEntity function = lookupMember(elementEnvironment, name);
-      Method method = programLookup.getMethod(function);
+        {required int expectedTypeArguments}) {
+      final function = lookupMember(elementEnvironment, name) as FunctionEntity;
+      Method method = programLookup.getMethod(function)!;
 
-      js.Fun fun = method.code;
+      final fun = method.code as js.Fun;
 
       js.Name selector = getName(targetName, expectedTypeArguments);
       bool callFound = false;
       forEachNode(fun, onCall: (js.Call node) {
-        js.Expression target = js.undefer(node.target);
+        js.Node target = js.undefer(node.target);
         if (target is js.PropertyAccess) {
           js.Node targetSelector = js.undefer(target.selector);
           if (targetSelector is js.Name && targetSelector.key == selector.key) {
