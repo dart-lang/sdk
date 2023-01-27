@@ -1464,7 +1464,11 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
         budget: budget,
         listener: listener,
         notImportedSuggestions: notImportedSuggestions,
-      ).computeSuggestions(dartRequest, performance);
+      ).computeSuggestions(
+        dartRequest,
+        performance,
+        useFilter: true,
+      );
       suggestions = serverSuggestions.map((serverSuggestion) {
         return serverSuggestion.build();
       }).toList();
@@ -1481,7 +1485,11 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTagList,
         listener: listener,
-      ).computeSuggestions(dartRequest, performance);
+      ).computeSuggestions(
+        dartRequest,
+        performance,
+        useFilter: true,
+      );
       suggestions = serverSuggestions.map((serverSuggestion) {
         return serverSuggestion.build();
       }).toList();

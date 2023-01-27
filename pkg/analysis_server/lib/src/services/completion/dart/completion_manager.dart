@@ -124,6 +124,7 @@ class DartCompletionManager {
     OperationPerformanceImpl performance, {
     bool enableOverrideContributor = true,
     bool enableUriContributor = true,
+    required bool useFilter,
   }) async {
     request.checkAborted();
     var pathContext = request.resourceProvider.pathContext;
@@ -139,7 +140,8 @@ class DartCompletionManager {
     request.checkAborted();
 
     // Request Dart specific completions from each contributor
-    var builder = SuggestionBuilder(request, listener: listener);
+    var builder =
+        SuggestionBuilder(request, useFilter: useFilter, listener: listener);
     var contributors = <DartCompletionContributor>[
       ArgListContributor(request, builder),
       ClosureContributor(request, builder),
@@ -485,7 +487,9 @@ class DartCompletionRequest {
       final uriNode = target.containingNode;
       if (uriNode is SimpleStringLiteral && uriNode.literal == entity) {
         final directive = uriNode.parent;
-        if (directive is UriBasedDirective && directive.uri == uriNode) {
+        if (directive is UriBasedDirective &&
+            directive.uri == uriNode &&
+            offset >= uriNode.contentsOffset) {
           return uriNode.value.substring(0, offset - uriNode.contentsOffset);
         }
       }

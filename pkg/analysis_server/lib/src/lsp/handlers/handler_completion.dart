@@ -390,6 +390,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
         final suggestions = await contributor.computeSuggestions(
           completionRequest,
           performance,
+          useFilter: true,
         );
 
         // Keep track of whether the set of results was truncated (because

@@ -106,6 +106,7 @@ class CompletionRunner {
           var suggestions = await contributor.computeSuggestions(
             dartRequest,
             OperationPerformanceImpl('<root>'),
+            useFilter: true,
           );
           timer.stop();
 

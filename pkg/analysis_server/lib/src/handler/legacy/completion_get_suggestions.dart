@@ -148,6 +148,9 @@ class CompletionGetSuggestionsHandler extends CompletionGetSuggestions2Handler {
               includedElementKinds: includedElementKinds,
               includedElementNames: includedElementNames,
               includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
+              // There's no filtering done afterwards,
+              // so don't filter here either.
+              useFilter: false,
             );
           } on AbortCompletion {
             // Continue with empty suggestions list.
