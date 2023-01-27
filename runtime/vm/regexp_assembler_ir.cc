@@ -183,23 +183,25 @@ void IRRegExpMacroAssembler::GenerateEntryBlock() {
   StoreLocal(current_position_, Bind(Sub(start_index_push, length_push)));
 
   {
-    const Library& lib = Library::ZoneHandle(Z, Library::CoreLibrary());
+    const Library& lib = Library::Handle(Library::CoreLibrary());
     const Class& regexp_class =
-        Class::ZoneHandle(Z, lib.LookupClassAllowPrivate(Symbols::_RegExp()));
+        Class::Handle(lib.LookupClassAllowPrivate(Symbols::_RegExp()));
     const Function& get_registers_function = Function::ZoneHandle(
         Z, regexp_class.LookupFunctionAllowPrivate(Symbols::_getRegisters()));
 
-    // This will be replaced with correct constant value at Finalization.
-    num_registers_constant_instr = Int64Constant(0);
+    // The "0" placeholder constant will be replaced with correct value
+    // determined at the end of regexp graph construction in Finalization.
+    num_registers_constant_instr =
+        new (Z) ConstantInstr(Integer::ZoneHandle(Z, Integer::NewCanonical(0)));
     StoreLocal(registers_, Bind(StaticCall(get_registers_function,
                                            Bind(num_registers_constant_instr),
                                            ICData::kStatic)));
 
-    const Function& get_backtracking_stack_function =
-        Function::ZoneHandle(Z, regexp_class.LookupFunctionAllowPrivate(
-                                    Symbols::_getBacktrackingStack()));
-    StoreLocal(stack_, Bind(StaticCall(get_backtracking_stack_function,
-                                       ICData::kStatic)));
+    const Field& backtracking_stack_field =
+        Field::ZoneHandle(Z, regexp_class.LookupStaticFieldAllowPrivate(
+                                 Symbols::_backtrackingStack()));
+    StoreLocal(stack_, Bind(LoadStaticField(backtracking_stack_field,
+                                            /*calls_initializer=*/true)));
   }
   ClearRegisters(0, saved_registers_count_ - 1);
 
@@ -513,6 +515,13 @@ LoadLocalInstr* IRRegExpMacroAssembler::LoadLocal(LocalVariable* local) const {
 
 void IRRegExpMacroAssembler::StoreLocal(LocalVariable* local, Value* value) {
   Do(new (Z) StoreLocalInstr(*local, value, InstructionSource()));
+}
+
+LoadStaticFieldInstr* IRRegExpMacroAssembler::LoadStaticField(
+    const Field& field,
+    bool calls_initializer) const {
+  return new (Z) LoadStaticFieldInstr(field, InstructionSource(),
+                                      calls_initializer, GetNextDeoptId());
 }
 
 void IRRegExpMacroAssembler::set_current_instruction(Instruction* instruction) {
@@ -1480,9 +1489,9 @@ void IRRegExpMacroAssembler::CheckStackLimit() {
 
 void IRRegExpMacroAssembler::GrowStack() {
   TAG();
-  const Library& lib = Library::ZoneHandle(Z, Library::CoreLibrary());
+  const Library& lib = Library::Handle(Library::CoreLibrary());
   const Class& regexp_class =
-      Class::ZoneHandle(Z, lib.LookupClassAllowPrivate(Symbols::_RegExp()));
+      Class::Handle(lib.LookupClassAllowPrivate(Symbols::_RegExp()));
 
   const Function& grow_backtracking_stack_function =
       Function::ZoneHandle(Z, regexp_class.LookupFunctionAllowPrivate(
