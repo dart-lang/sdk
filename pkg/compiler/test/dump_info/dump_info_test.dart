@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:convert';
 import 'dart:io';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
@@ -72,7 +70,7 @@ class DumpInfoDataComputer extends DataComputer<Features> {
   @override
   void computeLibraryData(Compiler compiler, LibraryEntity library,
       Map<Id, ActualData<Features>> actualMap,
-      {bool verbose}) {
+      {required bool verbose}) {
     final converter = info.AllInfoToJsonConverter(isBackwardCompatible: true);
     DumpInfoStateData dumpInfoState = compiler.dumpInfoStateForTesting;
 
@@ -102,7 +100,7 @@ class DumpInfoDataComputer extends DataComputer<Features> {
         features.addElement(Tags.outputUnits, jsonEncode(outputUnitJsonObject));
       }
       features.addElement(
-          Tags.deferredFiles, jsonEncode(dumpInfoState.info.deferredFiles));
+          Tags.deferredFiles, jsonEncode(dumpInfoState.info.deferredFiles!));
     }
 
     final id = LibraryId(library.canonicalUri);
@@ -133,13 +131,13 @@ class DumpInfoDataComputer extends DataComputer<Features> {
           Tags.classType, jsonEncode(classTypeInfos.first.accept(converter)));
     }
 
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
-    ir.Class node = elementMap.getClassDefinition(cls).node;
+    ir.Class node = elementMap.getClassDefinition(cls).node as ir.Class;
     ClassId id = ClassId(node.name);
-    ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node);
+    ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node)!;
     actualMap[id] = ActualData<Features>(id, features,
-        nodeWithOffset?.location?.file, nodeWithOffset?.fileOffset, cls);
+        nodeWithOffset.location!.file, nodeWithOffset.fileOffset, cls);
   }
 
   @override
@@ -183,13 +181,13 @@ class DumpInfoDataComputer extends DataComputer<Features> {
       }
     }
 
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
-    ir.Member node = elementMap.getMemberDefinition(member).node;
+    final node = elementMap.getMemberDefinition(member).node as ir.Member;
     Id id = computeMemberId(node);
-    ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node);
+    ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node)!;
     actualMap[id] = ActualData<Features>(id, features,
-        nodeWithOffset?.location?.file, nodeWithOffset?.fileOffset, member);
+        nodeWithOffset.location!.file, nodeWithOffset.fileOffset, member);
   }
 
   @override
@@ -202,13 +200,13 @@ class DumpInfoDataComputer extends DataComputer<Features> {
 /// The data annotation reader conserves whitespace visually while ignoring
 /// them during comparison.
 class JsonFeaturesDataInterpreter implements DataInterpreter<Features> {
-  final String wildcard;
+  final String? wildcard;
   final JsonEncoder encoder = const JsonEncoder();
 
   const JsonFeaturesDataInterpreter({this.wildcard});
 
   @override
-  String isAsExpected(Features actualFeatures, String expectedData) {
+  String? isAsExpected(Features actualFeatures, String? expectedData) {
     if (wildcard != null && expectedData == wildcard) {
       return null;
     } else if (expectedData == '') {
@@ -219,7 +217,7 @@ class JsonFeaturesDataInterpreter implements DataInterpreter<Features> {
       Set<String> validatedFeatures = Set<String>();
       expectedFeatures.forEach((String key, Object expectedValue) {
         validatedFeatures.add(key);
-        Object actualValue = actualFeatures[key];
+        Object? actualValue = actualFeatures[key];
         if (!actualFeatures.containsKey(key)) {
           errorsFound.add('No data found for $key');
         } else if (expectedValue == '') {
@@ -231,16 +229,16 @@ class JsonFeaturesDataInterpreter implements DataInterpreter<Features> {
         } else if (expectedValue is List) {
           if (actualValue is List) {
             List actualList = actualValue.toList();
-            for (Object expectedObject in expectedValue) {
+            for (String expectedObject in expectedValue) {
               String expectedText =
                   jsonEncode(jsonDecode(expectedObject), indent: false);
               bool matchFound = false;
-              if (wildcard != null && expectedText.endsWith(wildcard)) {
+              if (wildcard != null && expectedText.endsWith(wildcard!)) {
                 // Wildcard matcher.
                 String prefix =
-                    expectedText.substring(0, expectedText.indexOf(wildcard));
+                    expectedText.substring(0, expectedText.indexOf(wildcard!));
                 List matches = [];
-                for (Object actualObject in actualList) {
+                for (String actualObject in actualList) {
                   final formattedActualObject =
                       jsonEncode(jsonDecode(actualObject), indent: false);
                   if (formattedActualObject.startsWith(prefix)) {
@@ -252,7 +250,7 @@ class JsonFeaturesDataInterpreter implements DataInterpreter<Features> {
                   actualList.remove(match);
                 }
               } else {
-                for (Object actualObject in actualList) {
+                for (String actualObject in actualList) {
                   final formattedActualObject =
                       jsonEncode(jsonDecode(actualObject), indent: false);
                   if (expectedText == formattedActualObject) {
@@ -293,12 +291,12 @@ class JsonFeaturesDataInterpreter implements DataInterpreter<Features> {
   }
 
   @override
-  String getText(Features actualData, [String indentation]) {
+  String getText(Features actualData, [String? indentation]) {
     return actualData.getText(indentation);
   }
 
   @override
-  bool isEmpty(Features actualData) {
+  bool isEmpty(Features? actualData) {
     return actualData == null || actualData.isEmpty;
   }
 }
