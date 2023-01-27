@@ -4474,7 +4474,7 @@ abstract class RecordPatternField implements AstNode {
 
 /// A field name in a record pattern field.
 ///
-///    recordPatternField ::=
+///    recordPatternFieldName ::=
 ///        [Token]? ':'
 ///
 /// Clients may not extend, implement or mix-in this class.

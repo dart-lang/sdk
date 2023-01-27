@@ -31,6 +31,7 @@ class KernelIsolate : public AllStatic {
   static const int kCompileExpressionTag;
   static const int kListDependenciesTag;
   static const int kNotifyIsolateShutdown;
+  static const int kRejectTag;
 
   static void InitializeState();
   static bool Start();
@@ -62,6 +63,7 @@ class KernelIsolate : public AllStatic {
                                const char* original_working_directory);
 
   static Dart_KernelCompilationResult AcceptCompilation();
+  static Dart_KernelCompilationResult RejectCompilation();
   static Dart_KernelCompilationResult UpdateInMemorySources(
       int source_files_count,
       Dart_SourceFile source_files[]);

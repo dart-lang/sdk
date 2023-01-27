@@ -16,14 +16,14 @@ main() {
 @reflectiveTest
 class BaseMixinImplementedOutsideOfLibraryTest
     extends PubPackageResolutionTest {
-  test_class_implements_inside() async {
+  test_class_inside() async {
     await assertNoErrorsInCode(r'''
 base mixin Foo {}
 class Bar implements Foo {}
 ''');
   }
 
-  test_class_implements_outside() async {
+  test_class_outside() async {
     newFile('$testPackageLibPath/foo.dart', r'''
 base mixin Foo {}
 ''');
@@ -37,7 +37,7 @@ class Bar implements Foo {}
     ]);
   }
 
-  test_class_implements_outside_viaTypedef_inside() async {
+  test_class_outside_viaTypedef_inside() async {
     newFile('$testPackageLibPath/foo.dart', r'''
 base mixin Foo {}
 typedef FooTypedef = Foo;
@@ -52,7 +52,7 @@ class Bar implements FooTypedef {}
     ]);
   }
 
-  test_class_implements_outside_viaTypedef_outside() async {
+  test_class_outside_viaTypedef_outside() async {
     newFile('$testPackageLibPath/foo.dart', r'''
 base mixin Foo {}
 ''');
@@ -67,7 +67,7 @@ class Bar implements FooTypedef {}
     ]);
   }
 
-  test_class_implements_subtypeOfBase_outside() async {
+  test_class_subtypeOfBase_outside() async {
     newFile('$testPackageLibPath/foo.dart', r'''
 base mixin Foo {}
 class Bar implements Foo {}
@@ -79,7 +79,7 @@ class Bar2 implements Bar {}
 ''');
   }
 
-  test_mixin_implements_outside() async {
+  test_mixin_outside() async {
     newFile('$testPackageLibPath/foo.dart', r'''
 base mixin Foo {}
 ''');

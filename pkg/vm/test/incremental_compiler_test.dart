@@ -1240,6 +1240,85 @@ main() {
         expect(lrc.librariesReferenced, equals(<Library>{barLib}));
       }
     });
+
+    test('compile, recompile with new entry, reject, expression compilation',
+        () async {
+      var v1Uri = Uri.file('${mytest.path}/v1.dart');
+      new File(v1Uri.toFilePath()).writeAsStringSync("""import 'dart:isolate';
+          test() => 'apple';
+          main() {
+            RawReceivePort keepAlive = new RawReceivePort();
+            print('spawned isolate running');
+          }
+          """);
+
+      var v2Uri = Uri.file('${mytest.path}/v2.dart');
+      new File(v2Uri.toFilePath()).writeAsStringSync("""import 'dart:isolate';
+          import 'library_isnt_here_man';
+
+          test() => 'apple';
+
+          main() {
+            RawReceivePort keepAlive = new RawReceivePort();
+            print('spawned isolate running');
+          }
+          """);
+
+      CompilerOptions optionsModified = getFreshOptions()
+        ..onDiagnostic = (DiagnosticMessage message) {
+          // sometimes expected on this one.
+          print(message.ansiFormatted);
+        };
+      IncrementalCompiler compiler =
+          new IncrementalCompiler(optionsModified, [v1Uri]);
+
+      print("Compiling v1 uri (should be ok)");
+      await compiler.compile(entryPoints: [v1Uri]);
+
+      print("Accepting.");
+      compiler.accept();
+      {
+        print("Compiling expression.");
+        Procedure? procedure = await compiler.compileExpression(
+            'test()',
+            <String>[],
+            <String>[],
+            <String>[],
+            <String>[],
+            <String>[],
+            v1Uri.toString(),
+            null,
+            null,
+            false);
+        expect(procedure, isNotNull);
+        ReturnStatement returnStmt =
+            procedure!.function.body as ReturnStatement;
+        expect(returnStmt.expression, isA<StaticInvocation>());
+      }
+
+      print("Compiling v2 uri (with error)");
+      await compiler.compile(entryPoints: [v2Uri]);
+      print("Rejecting.");
+      await compiler.reject();
+      {
+        print("Compiling expression.");
+        Procedure? procedure = await compiler.compileExpression(
+            'test()',
+            <String>[],
+            <String>[],
+            <String>[],
+            <String>[],
+            <String>[],
+            v1Uri.toString(),
+            null,
+            null,
+            false);
+        expect(procedure, isNotNull);
+        ReturnStatement returnStmt =
+            procedure!.function.body as ReturnStatement;
+        expect(returnStmt.expression, isA<StaticInvocation>());
+      }
+    });
   });
 
   group('expression evaluation', () {
