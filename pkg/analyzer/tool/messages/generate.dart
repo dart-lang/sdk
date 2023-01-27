@@ -91,6 +91,11 @@ class _AnalyzerErrorGenerator {
       if (errorClass.includeCfeMessages) {
         shouldGenerateFastaAnalyzerErrorCodes = true;
       }
+      analyzerMessages[errorClass.name]!.forEach((_, errorCodeInfo) {
+        if (errorCodeInfo is AliasErrorCodeInfo) {
+          imports.add(errorCodeInfo.aliasForFilePath.toPackageAnalyzerUri);
+        }
+      });
     }
     out.writeln();
     for (var importPath in imports.toList()..sort()) {
@@ -113,12 +118,17 @@ class _AnalyzerErrorGenerator {
         var errorName = entry.key;
         var errorCodeInfo = entry.value;
 
-        generatedCodes.add('${errorClass.name}.$errorName');
-
         out.writeln();
         out.write(errorCodeInfo.toAnalyzerComments(indent: '  '));
-        out.writeln('  static const ${errorClass.name} $errorName =');
-        out.writeln(errorCodeInfo.toAnalyzerCode(errorClass.name, errorName));
+        if (errorCodeInfo is AliasErrorCodeInfo) {
+          out.writeln(
+              '  static const ${errorCodeInfo.aliasForClass} $errorName =');
+          out.writeln('${errorCodeInfo.aliasFor};');
+        } else {
+          generatedCodes.add('${errorClass.name}.$errorName');
+          out.writeln('  static const ${errorClass.name} $errorName =');
+          out.writeln(errorCodeInfo.toAnalyzerCode(errorClass.name, errorName));
+        }
       }
       out.writeln();
       out.writeln('/// Initialize a newly created error code to have the given '
@@ -362,4 +372,9 @@ class _SyntacticErrorGenerator {
       }
     }
   }
+}
+
+extension on String {
+  String get toPackageAnalyzerUri =>
+      replaceFirst(RegExp('^lib/'), 'package:analyzer/');
 }

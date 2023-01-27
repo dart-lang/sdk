@@ -142,6 +142,9 @@ class DocumentationGenerator {
     for (var errorEntry in messages.entries) {
       var errorName = errorEntry.key;
       var errorCodeInfo = errorEntry.value;
+      if (errorCodeInfo is AliasErrorCodeInfo) {
+        continue;
+      }
       var name = errorCodeInfo.sharedName ?? errorName;
       var info = infoByName[name];
       var message = convertTemplate(
