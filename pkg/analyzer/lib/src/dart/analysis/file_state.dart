@@ -36,6 +36,7 @@ import 'package:analyzer/src/util/either.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/util/uri.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
@@ -608,18 +609,18 @@ class FileState {
   ) {
     final primaryUri = _buildDirectiveUri(directive.uri);
 
-    final configurationUris = <DirectiveUri>[];
     DirectiveUri? selectedConfigurationUri;
-    for (final configuration in directive.configurations) {
+    final configurationUris = directive.configurations.map((configuration) {
       final configurationUri = _buildDirectiveUri(configuration.uri);
-      configurationUris.add(configurationUri);
       // Maybe select this URI.
       final name = configuration.name;
       final value = configuration.valueOrTrue;
       if (_fsState._declaredVariables.get(name) == value) {
         selectedConfigurationUri ??= configurationUri;
       }
-    }
+      // Include it anyway.
+      return configurationUri;
+    }).toFixedList();
 
     return NamespaceDirectiveUris(
       primary: primaryUri,
@@ -929,7 +930,7 @@ class FileState {
               .whereType<ConstructorDeclaration>()
               .map((e) => e.name?.lexeme ?? '')
               .where((e) => !e.startsWith('_'))
-              .toList();
+              .toFixedList();
           if (constructors.isNotEmpty) {
             macroClasses.add(
               MacroClass(
@@ -944,8 +945,8 @@ class FileState {
     if (!isDartCore && !hasDartCoreImport) {
       imports.add(
         UnlinkedLibraryImportDirective(
-          combinators: [],
-          configurations: [],
+          combinators: const [],
+          configurations: const [],
           importKeywordOffset: -1,
           isSyntheticDartCore: true,
           prefix: null,
@@ -978,15 +979,15 @@ class FileState {
 
     return UnlinkedUnit(
       apiSignature: Uint8List.fromList(computeUnlinkedApiSignature(unit)),
-      augmentations: augmentations,
-      exports: exports,
-      imports: imports,
+      augmentations: augmentations.toFixedList(),
+      exports: exports.toFixedList(),
+      imports: imports.toFixedList(),
       informativeBytes: writeUnitInformative(unit),
       libraryAugmentationDirective: libraryAugmentationDirective,
       libraryDirective: libraryDirective,
       lineStarts: Uint32List.fromList(unit.lineInfo.lineStarts),
-      macroClasses: macroClasses,
-      parts: parts,
+      macroClasses: macroClasses.toFixedList(),
+      parts: parts.toFixedList(),
       partOfNameDirective: partOfNameDirective,
       partOfUriDirective: partOfUriDirective,
       topLevelDeclarations: topLevelDeclarations,
@@ -1020,7 +1021,7 @@ class FileState {
           keywordOffset: combinator.keyword.offset,
           endOffset: combinator.end,
           isShow: true,
-          names: combinator.shownNames.map((e) => e.name).toList(),
+          names: combinator.shownNames.map((e) => e.name).toFixedList(),
         );
       } else {
         combinator as HideCombinator;
@@ -1028,10 +1029,10 @@ class FileState {
           keywordOffset: combinator.keyword.offset,
           endOffset: combinator.end,
           isShow: false,
-          names: combinator.hiddenNames.map((e) => e.name).toList(),
+          names: combinator.hiddenNames.map((e) => e.name).toFixedList(),
         );
       }
-    }).toList();
+    }).toFixedList();
   }
 
   static List<UnlinkedNamespaceDirectiveConfiguration> _serializeConfigurations(
@@ -1045,7 +1046,7 @@ class FileState {
         value: value,
         uri: configuration.uri.stringValue,
       );
-    }).toList();
+    }).toFixedList();
   }
 
   static UnlinkedLibraryExportDirective _serializeExport(ExportDirective node) {
@@ -1748,7 +1749,7 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
           uri: uri,
         );
       }
-    }).toList();
+    }).toFixedList();
   }
 
   @override
@@ -1940,7 +1941,7 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
           uri: uri,
         );
       }
-    }).toList();
+    }).toFixedList();
   }
 
   List<LibraryExportState> get libraryExports {
@@ -1980,7 +1981,7 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
           uris: uris,
         );
       }
-    }).toList();
+    }).toFixedList();
   }
 
   List<LibraryImportState> get libraryImports {
@@ -2020,7 +2021,7 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
           uris: uris,
         );
       }
-    }).toList();
+    }).toFixedList();
   }
 
   /// Collect files that are transitively referenced by this library.

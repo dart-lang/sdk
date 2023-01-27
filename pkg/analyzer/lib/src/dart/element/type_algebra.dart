@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 import 'package:analyzer/src/summary2/record_type_builder.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 /// Generates a fresh copy of the given type parameters, with their bounds
 /// substituted to reference the new parameters.
@@ -25,7 +26,7 @@ FreshTypeParameters getFreshTypeParameters(
   var freshParameters = List<TypeParameterElementImpl>.generate(
     typeParameters.length,
     (i) => TypeParameterElementImpl(typeParameters[i].name, -1),
-    growable: true,
+    growable: false,
   );
 
   var map = <TypeParameterElement, DartType>{};
@@ -136,7 +137,7 @@ class FreshTypeParameters {
       parameters: type.parameters.map((parameter) {
         var type = substitute(parameter.type);
         return parameter.copyWith(type: type);
-      }).toList(),
+      }).toFixedList(),
       returnType: substitute(type.returnType),
       nullabilitySuffix: type.nullabilitySuffix,
     );
@@ -259,28 +260,26 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
       return const <TypeParameterElement>[];
     }
 
-    var freshElements = <TypeParameterElement>[];
-    for (var i = 0; i < elements.length; i++) {
+    var freshElements = List.generate(elements.length, (index) {
       // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
       // variance is added to the interface.
-      var element = elements[i] as TypeParameterElementImpl;
+      var element = elements[index] as TypeParameterElementImpl;
       var freshElement = TypeParameterElementImpl(element.name, -1);
-      freshElements.add(freshElement);
       var freshType = freshElement.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,
       );
       substitution[element] = freshType;
-
       if (!element.isLegacyCovariant) {
         freshElement.variance = element.variance;
       }
-    }
+      return freshElement;
+    }, growable: false);
 
     for (var i = 0; i < freshElements.length; i++) {
       var element = elements[i];
       var bound = element.bound;
       if (bound != null) {
-        var freshElement = freshElements[i] as TypeParameterElementImpl;
+        var freshElement = freshElements[i];
         freshElement.bound = bound.accept(this);
       }
     }
@@ -439,7 +438,7 @@ abstract class _TypeSubstitutor
     var parameters = type.parameters.map((parameter) {
       var type = parameter.type.accept(inner);
       return parameter.copyWith(type: type);
-    }).toList();
+    }).toFixedList();
 
     inner.invertVariance();
 
@@ -614,7 +613,7 @@ abstract class _TypeSubstitutor
   }
 
   List<DartType> _mapList(List<DartType> types) {
-    return types.map((e) => e.accept(this)).toList();
+    return types.map((e) => e.accept(this)).toFixedList();
   }
 }
 

@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 /// Helper for computing canonical presentation of types.
 ///
@@ -50,7 +51,7 @@ class NormalizeHelper {
         return e.copyWith(
           type: _normalize(e.type),
         );
-      }).toList(),
+      }).toFixedList(),
       returnType: _normalize(functionType.returnType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -140,7 +141,7 @@ class NormalizeHelper {
     // NORM(C<T0, ..., Tn>) = C<R0, ..., Rn> where Ri is NORM(Ti)
     if (T is InterfaceType) {
       return T.element.instantiate(
-        typeArguments: T.typeArguments.map(_normalize).toList(),
+        typeArguments: T.typeArguments.map(_normalize).toFixedList(),
         nullabilitySuffix: NullabilitySuffix.none,
       );
     }
@@ -152,13 +153,13 @@ class NormalizeHelper {
           return RecordTypePositionalFieldImpl(
             type: _normalize(field.type),
           );
-        }).toList(),
+        }).toFixedList(),
         namedFields: T.namedFields.map((field) {
           return RecordTypeNamedFieldImpl(
             name: field.name,
             type: _normalize(field.type),
           );
-        }).toList(),
+        }).toFixedList(),
         nullabilitySuffix: NullabilitySuffix.none,
       );
     }

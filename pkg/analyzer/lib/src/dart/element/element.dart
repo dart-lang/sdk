@@ -49,6 +49,7 @@ import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
@@ -207,7 +208,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
       if (typeParameters.isNotEmpty) {
         typeArguments = typeParameters.map<DartType>((t) {
           return t.instantiate(nullabilitySuffix: _noneOrStarSuffix);
-        }).toList();
+        }).toFixedList();
       } else {
         typeArguments = const <DartType>[];
       }
@@ -922,7 +923,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
               ..staticType = implicitParameter.type,
           );
         }
-        implicitConstructor.parameters = implicitParameters;
+        implicitConstructor.parameters = implicitParameters.toFixedList();
       }
       implicitConstructor.enclosingElement = this;
       // TODO(scheglov) Why do we manually map parameters types above?
@@ -2874,7 +2875,7 @@ class ElementLocationImpl implements ElementLocation {
       components.insert(0, (ancestor as ElementImpl).identifier);
       ancestor = ancestor.enclosingElement;
     }
-    _components = components;
+    _components = components.toFixedList();
   }
 
   /// Initialize a newly created location from the given [encoding].
@@ -4394,7 +4395,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     }
 
     visitAugmentations(this);
-    return result;
+    return result.toFixedList();
   }
 
   @override
@@ -4709,7 +4710,11 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
 
 mixin MacroTargetElement {
   /// Errors registered while applying macros to this element.
-  List<MacroApplicationError> macroApplicationErrors = [];
+  List<MacroApplicationError> macroApplicationErrors = const [];
+
+  void addMacroApplicationError(MacroApplicationError error) {
+    macroApplicationErrors = [...macroApplicationErrors, error];
+  }
 }
 
 /// Marker interface for elements that may have [MacroTargetElement]s.
@@ -5869,9 +5874,9 @@ class PropertyAccessorElementImpl_ImplicitSetter
       return _parameters;
     }
 
-    return _parameters = <ParameterElement>[
-      ParameterElementImpl_ofImplicitSetter(this)
-    ];
+    return _parameters = List.generate(
+        1, (_) => ParameterElementImpl_ofImplicitSetter(this),
+        growable: false);
   }
 
   @override

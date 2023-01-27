@@ -29,6 +29,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/task/api/model.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 class ConstantEvaluationConfiguration {
   /// During evaluation of enum constants we might need to report an error
@@ -1367,7 +1368,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       var type = variableElement.instantiate(
         typeArguments: variableElement.typeParameters
             .map((t) => _typeProvider.dynamicType)
-            .toList(),
+            .toFixedList(),
         nullabilitySuffix: NullabilitySuffix.star,
       );
       return DartObjectImpl(
@@ -2038,15 +2039,16 @@ class EvaluationResultImpl {
   /// The errors encountered while trying to evaluate the compile time constant.
   /// These errors may or may not have prevented the expression from being a
   /// valid compile time constant.
-  late final List<AnalysisError> _errors;
+  final List<AnalysisError> _errors;
 
   /// The value of the expression, or `null` if the value couldn't be computed
   /// due to errors.
   final DartObjectImpl? value;
 
-  EvaluationResultImpl(this.value, [List<AnalysisError>? errors]) {
-    _errors = errors ?? <AnalysisError>[];
-  }
+  EvaluationResultImpl(
+    this.value, [
+    this._errors = const [],
+  ]);
 
   List<AnalysisError> get errors => _errors;
 

@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/summary2/export.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 /// The scope for the initializers in a constructor.
 class ConstructorInitializerScope extends EnclosedScope {
@@ -97,7 +98,7 @@ class InterfaceScope extends EnclosedScope {
 
 class LibraryOrAugmentationScope extends EnclosedScope {
   final LibraryOrAugmentationElementImpl _container;
-  final List<ExtensionElement> extensions = [];
+  List<ExtensionElement> extensions = [];
 
   LibraryOrAugmentationScope(LibraryOrAugmentationElementImpl container)
       : _container = container,
@@ -116,6 +117,8 @@ class LibraryOrAugmentationScope extends EnclosedScope {
       _addGetter(DynamicElementImpl.instance);
       _addGetter(NeverElementImpl.instance);
     }
+
+    extensions = extensions.toFixedList();
   }
 
   void _addExtension(ExtensionElement element) {
@@ -383,7 +386,7 @@ class _LibraryOrAugmentationImportScope implements Scope {
       ..._nullPrefixScope._extensions,
       for (var prefix in _container.prefixes)
         ...(prefix.scope as PrefixScope)._extensions,
-    }.toList();
+    }.toFixedList();
   }
 
   @override

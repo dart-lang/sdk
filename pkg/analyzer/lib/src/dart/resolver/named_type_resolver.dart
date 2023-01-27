@@ -139,7 +139,8 @@ class NamedTypeResolver with ScopeHelpers {
         node,
         [node.name.name, parameterCount, argumentCount],
       );
-      return List.filled(parameterCount, DynamicTypeImpl.instance);
+      return List.filled(parameterCount, DynamicTypeImpl.instance,
+          growable: false);
     }
 
     if (parameterCount == 0) {
@@ -149,6 +150,7 @@ class NamedTypeResolver with ScopeHelpers {
     return List.generate(
       parameterCount,
       (i) => arguments[i].typeOrThrow,
+      growable: false,
     );
   }
 

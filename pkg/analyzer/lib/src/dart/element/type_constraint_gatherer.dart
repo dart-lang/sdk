@@ -535,10 +535,10 @@ class TypeConstraintGatherer {
     return true;
   }
 
-  InterfaceType _futureNone(DartType argument) {
+  InterfaceType _futureNone(DartType valueType) {
     var element = _typeSystem.typeProvider.futureElement;
     return element.instantiate(
-      typeArguments: [argument],
+      typeArguments: fixedTypeList(valueType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }

@@ -624,7 +624,7 @@ class TypedLiteralResolver {
         elementType = typeArguments[0].typeOrThrow;
       }
       node.staticType = _typeProvider.listElement.instantiate(
-        typeArguments: [elementType],
+        typeArguments: fixedTypeList(elementType),
         nullabilitySuffix: _noneOrStarSuffix,
       );
       return;
@@ -660,7 +660,7 @@ class TypedLiteralResolver {
         node.becomeSet();
         var elementType = typeArguments[0].typeOrThrow;
         node.staticType = _typeProvider.setElement.instantiate(
-          typeArguments: [elementType],
+          typeArguments: fixedTypeList(elementType),
           nullabilitySuffix: _noneOrStarSuffix,
         );
         return;
@@ -669,7 +669,7 @@ class TypedLiteralResolver {
         var keyType = typeArguments[0].typeOrThrow;
         var valueType = typeArguments[1].typeOrThrow;
         node.staticType = _typeProvider.mapElement.instantiate(
-          typeArguments: [keyType, valueType],
+          typeArguments: fixedTypeList(keyType, valueType),
           nullabilitySuffix: _noneOrStarSuffix,
         );
         return;

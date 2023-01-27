@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 class ClassHierarchy {
   final Map<InterfaceElement, _Hierarchy> _map = {};
@@ -88,8 +89,8 @@ class ClassHierarchy {
       interfaces.add(collector.type);
     }
 
-    hierarchy.errors = errors;
-    hierarchy.interfaces = interfaces;
+    hierarchy.errors = errors.toFixedList();
+    hierarchy.interfaces = interfaces.toFixedList();
 
     return hierarchy;
   }
