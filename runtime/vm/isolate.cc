@@ -235,7 +235,7 @@ void IdleTimeHandler::NotifyIdle(int64_t deadline) {
 
 void IdleTimeHandler::NotifyIdleUsingDefaultDeadline() {
   const int64_t now = OS::GetCurrentMonotonicMicros();
-  NotifyIdle(now + FLAG_idle_timeout_micros);
+  NotifyIdle(now + FLAG_idle_duration_micros);
 }
 
 DisableIdleTimerScope::DisableIdleTimerScope(IdleTimeHandler* handler)
