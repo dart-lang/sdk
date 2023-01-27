@@ -6062,6 +6062,7 @@ CantUseClassAsMixin:
 
 BaseClassImplementedOutsideOfLibrary:
   problemMessage: "The class '#name' can't be implemented outside of its library because it's a base class."
+  analyzerCode: BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY
   experiments: class-modifiers
   script:
     main.dart:
@@ -6072,6 +6073,7 @@ BaseClassImplementedOutsideOfLibrary:
 
 BaseMixinImplementedOutsideOfLibrary:
   problemMessage: "The mixin '#name' can't be implemented outside of its library because it's a base mixin."
+  analyzerCode: BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY
   experiments: class-modifiers
   script:
     main.dart:

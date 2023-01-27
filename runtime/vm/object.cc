@@ -4273,9 +4273,10 @@ static bool IsMutatorOrAtDeoptSafepoint() {
 class CHACodeArray : public WeakCodeReferences {
  public:
   explicit CHACodeArray(const Class& cls)
-      : WeakCodeReferences(Array::Handle(cls.dependent_code())), cls_(cls) {}
+      : WeakCodeReferences(WeakArray::Handle(cls.dependent_code())),
+        cls_(cls) {}
 
-  virtual void UpdateArrayTo(const Array& value) {
+  virtual void UpdateArrayTo(const WeakArray& value) {
     // TODO(fschneider): Fails for classes in the VM isolate.
     cls_.set_dependent_code(value);
   }
@@ -4333,13 +4334,13 @@ void Class::DisableAllCHAOptimizedCode() {
   DisableCHAOptimizedCode(Class::Handle());
 }
 
-ArrayPtr Class::dependent_code() const {
+WeakArrayPtr Class::dependent_code() const {
   DEBUG_ASSERT(
       IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
   return untag()->dependent_code();
 }
 
-void Class::set_dependent_code(const Array& array) const {
+void Class::set_dependent_code(const WeakArray& array) const {
   DEBUG_ASSERT(
       IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   untag()->set_dependent_code(array.ptr());
@@ -5376,6 +5377,10 @@ bool Class::NoteImplementor(const Class& implementor) const {
   }
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+uint32_t Class::Hash() const {
+  return String::HashRawSymbol(Name());
+}
 
 int32_t Class::SourceFingerprint() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -11300,6 +11305,10 @@ ScriptPtr Field::Script() const {
   return PatchClass::Cast(obj).script();
 }
 
+uint32_t Field::Hash() const {
+  return String::HashRawSymbol(name());
+}
+
 ExternalTypedDataPtr Field::KernelData() const {
   const Object& obj = Object::Handle(this->untag()->owner());
   // During background JIT compilation field objects are copied
@@ -11623,13 +11632,13 @@ InstancePtr Field::SetterClosure() const {
   return AccessorClosure(true);
 }
 
-ArrayPtr Field::dependent_code() const {
+WeakArrayPtr Field::dependent_code() const {
   DEBUG_ASSERT(
       IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
   return untag()->dependent_code();
 }
 
-void Field::set_dependent_code(const Array& array) const {
+void Field::set_dependent_code(const WeakArray& array) const {
   ASSERT(IsOriginal());
   DEBUG_ASSERT(
       IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
@@ -11639,10 +11648,10 @@ void Field::set_dependent_code(const Array& array) const {
 class FieldDependentArray : public WeakCodeReferences {
  public:
   explicit FieldDependentArray(const Field& field)
-      : WeakCodeReferences(Array::Handle(field.dependent_code())),
+      : WeakCodeReferences(WeakArray::Handle(field.dependent_code())),
         field_(field) {}
 
-  virtual void UpdateArrayTo(const Array& value) {
+  virtual void UpdateArrayTo(const WeakArray& value) {
     field_.set_dependent_code(value);
   }
 
@@ -18183,6 +18192,24 @@ const char* Code::ToCString() const {
   return OS::SCreate(Thread::Current()->zone(), "Code(%s)",
                      QualifiedName(NameFormattingParams(
                          kScrubbedName, NameDisambiguation::kYes)));
+}
+
+uint32_t Code::Hash() const {
+  // PayloadStart() is a tempting hash as Instructions are not moved by the
+  // compactor, but Instructions are effectively moved between the process
+  // creating an AppJIT/AOT snapshot and the process loading the snapshot.
+  const Object& obj =
+      Object::Handle(WeakSerializationReference::UnwrapIfTarget(owner()));
+  if (obj.IsClass()) {
+    return Class::Cast(obj).Hash();
+  } else if (obj.IsAbstractType()) {
+    return AbstractType::Cast(obj).Hash();
+  } else if (obj.IsFunction()) {
+    return Function::Cast(obj).Hash();
+  } else {
+    // E.g., VM stub.
+    return 42;
+  }
 }
 
 const char* Code::Name() const {

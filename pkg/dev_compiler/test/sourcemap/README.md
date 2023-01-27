@@ -20,19 +20,19 @@ See `README.md` in `pkg/sourcemap_testing`.
 
 One can filter which tests are run by running (from the sourcemap folder):
 ```
-dart sourcemaps_ddk_suite.dart -- sourcemaps_ddk/printing_class_fields
+dart sourcemaps_suite.dart -- sourcemaps/printing_class_fields
 ```
 
 One can additionally get debug output for failing tests (i.e. tests with different outcome than
 expected), e.g.:
 ```
-dart sourcemaps_ddk_suite.dart -Ddebug=true -- sourcemaps_ddk/printing_class_fields
+dart sourcemaps_suite.dart -Ddebug=true -- sourcemaps/printing_class_fields
 ```
 
 The latter is also useful in combination with `/*fail*/` when adding new tests to see all the places
 where the debugger stopped (both in JS positions and translated to dart positions).
 
-For instance `-Ddebug=true -- sourcemaps_ddk/next_through_catch_test` with a `/*fail*/`
+For instance `-Ddebug=true -- sourcemaps/next_through_catch_test` with a `/*fail*/`
 currently gives output like the following:
 
 ```

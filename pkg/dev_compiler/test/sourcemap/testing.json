@@ -5,11 +5,11 @@
   "packages": "../../../../.dart_tool/package_config.json",
   "suites": [
     {
-      "name": "sourcemaps_ddk",
+      "name": "sourcemaps",
       "kind": "Chain",
-      "source": "sourcemaps_ddk_suite.dart",
+      "source": "sourcemaps_suite.dart",
       "path": "testfiles",
-      "status": "sourcemaps_ddk.status",
+      "status": "sourcemaps.status",
       "pattern": [
         "\\.dart$",
         "\\.unformatteddart$"
@@ -18,11 +18,11 @@
       ]
     },
     {
-      "name": "stacktrace_ddk",
+      "name": "stacktrace",
       "kind": "Chain",
-      "source": "stacktrace_ddk_suite.dart",
+      "source": "stacktrace_suite.dart",
       "path": "stacktrace_testfiles",
-      "status": "stacktrace_ddk.status",
+      "status": "stacktrace.status",
       "pattern": [
         "\\.dart$"
       ],

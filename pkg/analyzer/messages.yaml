@@ -1127,6 +1127,18 @@ CompileTimeErrorCode:
       16.30 Await Expressions: It is a compile-time error if the function
       immediately enclosing _a_ is not declared asynchronous. (Where _a_ is the
       await expression.)
+  BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
+    sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+    problemMessage: "The class '{0}' can't be implemented outside of its library because it's a base class."
+    comment: |-
+      Parameters:
+      0: the name of the base class being implemented
+  BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
+    sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+    problemMessage: "The mixin '{0}' can't be implemented outside of its library because it's a base mixin."
+    comment: |-
+      Parameters:
+      0: the name of the base mixin being implemented
   BODY_MIGHT_COMPLETE_NORMALLY:
     problemMessage: "The body might complete normally, causing 'null' to be returned, but the return type, '{0}', is a potentially non-nullable type."
     correctionMessage: Try adding either a return or a throw statement at the end.

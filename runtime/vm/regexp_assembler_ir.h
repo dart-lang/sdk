@@ -269,6 +269,9 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   LoadLocalInstr* LoadLocal(LocalVariable* local) const;
   void StoreLocal(LocalVariable* local, Value* value);
 
+  LoadStaticFieldInstr* LoadStaticField(const Field& field,
+                                        bool calls_initializer = false) const;
+
   Value* PushLocal(LocalVariable* local);
 
   Value* PushRegisterIndex(intptr_t reg);

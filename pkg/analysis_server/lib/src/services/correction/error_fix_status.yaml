@@ -150,6 +150,10 @@ CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER:
   status: needsEvaluation
 CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT:
   status: hasFix
+CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
+  status: needsEvaluation
+CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
+  status: needsEvaluation
 CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY:
   status: hasFix
 CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER:

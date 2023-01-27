@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 /// Failure because of there is no most specific signature in [candidates].
 class CandidatesConflict extends Conflict {
@@ -642,7 +643,7 @@ class InheritanceManager3 {
       noSuchMethodForwarders,
       namedCandidates,
       superImplemented,
-      conflicts,
+      conflicts.toFixedList(),
     );
   }
 
@@ -702,7 +703,10 @@ class InheritanceManager3 {
       {},
       interfaceCandidates,
       [superInterface],
-      <Conflict>[...superConflicts, ...interfaceConflicts],
+      <Conflict>[
+        ...superConflicts,
+        ...interfaceConflicts,
+      ].toFixedList(),
     );
   }
 

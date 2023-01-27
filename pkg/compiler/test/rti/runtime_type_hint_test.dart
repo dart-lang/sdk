@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
@@ -18,7 +16,7 @@ test(String code, List<String> options, List<MessageKind> expectedHints) async {
       options: options,
       diagnosticHandler: collector);
   Expect.isTrue(result.isSuccess);
-  List<MessageKind> actualHints =
+  List<MessageKind?> actualHints =
       collector.hints.map((c) => c.messageKind).toList();
   String message = "Unexpected hints for $options on\n$code\n"
       "Expected: ${expectedHints}\n"

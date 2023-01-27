@@ -16,6 +16,7 @@ import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/util/comment.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
@@ -1140,7 +1141,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _visitPropertyFirst<FieldDeclaration>(node.members);
     });
 
-    if (holder.constructors.isEmpty) {
+    if (!holder.hasConstructors) {
       holder.addConstructor(
         ConstructorElementImpl('', -1)..isSynthetic = true,
       );
@@ -1299,15 +1300,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       return const <ElementAnnotation>[];
     }
 
-    var annotations = <ElementAnnotation>[];
-    for (int i = 0; i < length; i++) {
-      var ast = nodeList[i] as AnnotationImpl;
+    return List<ElementAnnotation>.generate(length, (index) {
+      var ast = nodeList[index] as AnnotationImpl;
       var element = ElementAnnotationImpl(unitElement);
       element.annotationAst = ast;
       ast.elementAnnotation = element;
-      annotations.add(element);
-    }
-    return annotations;
+      return element;
+    }, growable: false);
   }
 
   static void _setCodeRange(ElementImpl element, AstNode node) {
@@ -1337,19 +1336,19 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 class _EnclosingContext {
   final Reference reference;
   final ElementImpl element;
-  final List<ClassElementImpl> classes = [];
-  final List<ConstructorElementImpl> constructors = [];
-  final List<EnumElementImpl> enums = [];
-  final List<ExtensionElementImpl> extensions = [];
-  final List<FieldElementImpl> fields = [];
-  final List<FunctionElementImpl> functions = [];
-  final List<MethodElementImpl> methods = [];
-  final List<MixinElementImpl> mixins = [];
-  final List<ParameterElementImpl> parameters = [];
-  final List<PropertyAccessorElementImpl> propertyAccessors = [];
-  final List<TopLevelVariableElementImpl> topLevelVariables = [];
-  final List<TypeAliasElementImpl> typeAliases = [];
-  final List<TypeParameterElementImpl> typeParameters = [];
+  final List<ClassElementImpl> _classes = [];
+  final List<ConstructorElementImpl> _constructors = [];
+  final List<EnumElementImpl> _enums = [];
+  final List<ExtensionElementImpl> _extensions = [];
+  final List<FieldElementImpl> _fields = [];
+  final List<FunctionElementImpl> _functions = [];
+  final List<MethodElementImpl> _methods = [];
+  final List<MixinElementImpl> _mixins = [];
+  final List<ParameterElementImpl> _parameters = [];
+  final List<PropertyAccessorElementImpl> _propertyAccessors = [];
+  final List<TopLevelVariableElementImpl> _topLevelVariables = [];
+  final List<TypeAliasElementImpl> _typeAliases = [];
+  final List<TypeParameterElementImpl> _typeParameters = [];
   final bool hasConstConstructor;
 
   _EnclosingContext(
@@ -1358,55 +1357,109 @@ class _EnclosingContext {
     this.hasConstConstructor = false,
   });
 
+  List<ClassElementImpl> get classes {
+    return _classes.toFixedList();
+  }
+
+  List<ConstructorElementImpl> get constructors {
+    return _constructors.toFixedList();
+  }
+
+  List<EnumElementImpl> get enums {
+    return _enums.toFixedList();
+  }
+
+  List<ExtensionElementImpl> get extensions {
+    return _extensions.toFixedList();
+  }
+
+  List<FieldElementImpl> get fields {
+    return _fields.toFixedList();
+  }
+
+  List<FunctionElementImpl> get functions {
+    return _functions.toFixedList();
+  }
+
+  bool get hasConstructors => _constructors.isNotEmpty;
+
   bool get isDartCoreEnum {
     final element = this.element;
     return element is ClassElementImpl && element.isDartCoreEnum;
   }
 
+  List<MethodElementImpl> get methods {
+    return _methods.toFixedList();
+  }
+
+  List<MixinElementImpl> get mixins {
+    return _mixins.toFixedList();
+  }
+
+  List<ParameterElementImpl> get parameters {
+    return _parameters.toFixedList();
+  }
+
+  List<PropertyAccessorElementImpl> get propertyAccessors {
+    return _propertyAccessors.toFixedList();
+  }
+
+  List<TopLevelVariableElementImpl> get topLevelVariables {
+    return _topLevelVariables.toFixedList();
+  }
+
+  List<TypeAliasElementImpl> get typeAliases {
+    return _typeAliases.toFixedList();
+  }
+
+  List<TypeParameterElementImpl> get typeParameters {
+    return _typeParameters.toFixedList();
+  }
+
   Reference addClass(String name, ClassElementImpl element) {
-    classes.add(element);
+    _classes.add(element);
     return _bindReference('@class', name, element);
   }
 
   Reference addConstructor(ConstructorElementImpl element) {
-    constructors.add(element);
+    _constructors.add(element);
 
     final referenceName = element.name.ifNotEmptyOrElse('new');
     return _bindReference('@constructor', referenceName, element);
   }
 
   Reference addEnum(String name, EnumElementImpl element) {
-    enums.add(element);
+    _enums.add(element);
     return _bindReference('@enum', name, element);
   }
 
   Reference addExtension(String name, ExtensionElementImpl element) {
-    extensions.add(element);
+    _extensions.add(element);
     return _bindReference('@extension', name, element);
   }
 
   Reference addField(String name, FieldElementImpl element) {
-    fields.add(element);
+    _fields.add(element);
     return _bindReference('@field', name, element);
   }
 
   Reference addFunction(String name, FunctionElementImpl element) {
-    functions.add(element);
+    _functions.add(element);
     return _bindReference('@function', name, element);
   }
 
   Reference addGetter(String name, PropertyAccessorElementImpl element) {
-    propertyAccessors.add(element);
+    _propertyAccessors.add(element);
     return _bindReference('@getter', name, element);
   }
 
   Reference addMethod(String name, MethodElementImpl element) {
-    methods.add(element);
+    _methods.add(element);
     return _bindReference('@method', name, element);
   }
 
   Reference addMixin(String name, MixinElementImpl element) {
-    mixins.add(element);
+    _mixins.add(element);
     return _bindReference('@mixin', name, element);
   }
 
@@ -1428,7 +1481,7 @@ class _EnclosingContext {
   }
 
   Reference? addParameter(String? name, ParameterElementImpl element) {
-    parameters.add(element);
+    _parameters.add(element);
     if (name == null) {
       return null;
     } else {
@@ -1437,23 +1490,23 @@ class _EnclosingContext {
   }
 
   Reference addSetter(String name, PropertyAccessorElementImpl element) {
-    propertyAccessors.add(element);
+    _propertyAccessors.add(element);
     return _bindReference('@setter', name, element);
   }
 
   Reference addTopLevelVariable(
       String name, TopLevelVariableElementImpl element) {
-    topLevelVariables.add(element);
+    _topLevelVariables.add(element);
     return _bindReference('@variable', name, element);
   }
 
   Reference addTypeAlias(String name, TypeAliasElementImpl element) {
-    typeAliases.add(element);
+    _typeAliases.add(element);
     return _bindReference('@typeAlias', name, element);
   }
 
   void addTypeParameter(String name, TypeParameterElementImpl element) {
-    typeParameters.add(element);
+    _typeParameters.add(element);
     this.element.encloseElement(element);
   }
 

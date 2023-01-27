@@ -7,7 +7,9 @@
 // Verifies that many isolate workers can use one RegExp.
 
 import 'dart:isolate';
-import "package:async_helper/async_helper.dart";
+
+import 'package:async_helper/async_helper.dart';
+import 'package:expect/expect.dart';
 
 worker(List<dynamic> args) {
   final re = args[0] as RegExp;
@@ -16,7 +18,11 @@ worker(List<dynamic> args) {
   final sendPort = args[2] as SendPort;
   final sw = Stopwatch()..start();
   while (sw.elapsedMilliseconds < 2000) {
-    re.firstMatch('h' * i * 1000);
+    final match = re.firstMatch('h' * i * 1000 + ' a b c ');
+    Expect.isNotNull(match);
+    Expect.equals(2, match.groupCount);
+    Expect.equals('a b c ', match.group(0));
+    Expect.equals('a b c ', match.group(1));
   }
   sendPort.send(true);
 }

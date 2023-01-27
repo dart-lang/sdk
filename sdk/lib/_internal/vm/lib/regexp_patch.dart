@@ -208,6 +208,8 @@ class _RegExpMatch implements RegExpMatch {
   static const int _MATCH_PAIR = 2;
 }
 
+const _initialBacktrackingStackSize = 128;
+
 @pragma("vm:entry-point")
 class _RegExp implements RegExp {
   @pragma("vm:external-name", "RegExp_factory")
@@ -367,24 +369,17 @@ class _RegExp implements RegExp {
   external List<int>? _ExecuteMatchSticky(String str, int start_index);
 
   static Int32List _getRegisters(int registers_count) {
-    if (_registers == null || _registers!.length < registers_count) {
-      _registers = Int32List(registers_count);
+    var registers = _registers;
+    if (registers == null || registers.length < registers_count) {
+      _registers = registers = Int32List(registers_count);
     }
-    return _registers!;
-  }
-
-  static Int32List _getBacktrackingStack() {
-    if (_backtrackingStack == null) {
-      const _initialBacktrackingStackSize = 128;
-      _backtrackingStack = Int32List(_initialBacktrackingStackSize);
-    }
-    return _backtrackingStack!;
+    return registers;
   }
 
 // TODO: Should we bound this to the same limit used by the irregexp interpreter
 // for consistency?
   static Int32List _growBacktrackingStack() {
-    final stack = _backtrackingStack!;
+    final stack = _backtrackingStack;
     final newStack = Int32List(stack.length * 2);
     for (int i = 0; i < stack.length; i++) {
       newStack[i] = stack[i];
@@ -394,7 +389,9 @@ class _RegExp implements RegExp {
   }
 
   static Int32List? _registers;
-  static Int32List? _backtrackingStack;
+
+  static Int32List _backtrackingStack =
+      Int32List(_initialBacktrackingStackSize);
 }
 
 class _AllMatchesIterable extends IterableBase<RegExpMatch> {

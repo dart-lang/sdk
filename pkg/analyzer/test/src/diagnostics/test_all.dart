@@ -41,6 +41,10 @@ import 'async_keyword_used_as_identifier_test.dart'
 import 'await_in_late_local_variable_initializer_test.dart'
     as await_in_late_local_variable_initializer;
 import 'await_in_wrong_context_test.dart' as await_in_wrong_context;
+import 'base_class_implemented_outside_of_library_test.dart'
+    as base_class_implemented_outside_of_library;
+import 'base_mixin_implemented_outside_of_library_test.dart'
+    as base_mixin_implemented_outside_of_library;
 import 'binary_operator_written_out_test.dart' as binary_operator_written_out;
 import 'body_might_complete_normally_catch_error_test.dart'
     as body_might_complete_normally_catch_error;
@@ -878,6 +882,8 @@ main() {
     async_keyword_used_as_identifier.main();
     await_in_late_local_variable_initializer.main();
     await_in_wrong_context.main();
+    base_class_implemented_outside_of_library.main();
+    base_mixin_implemented_outside_of_library.main();
     binary_operator_written_out.main();
     body_might_complete_normally_catch_error.main();
     body_might_complete_normally_nullable.main();

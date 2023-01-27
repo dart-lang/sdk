@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:async';
 import 'dart:io';
 import 'package:_fe_analyzer_shared/src/util/filenames.dart';
@@ -43,9 +41,9 @@ void test(List<String> arguments,
     for (String file in tests.keys) {
       print('==$file=========================================================');
       for (String config in configurations) {
-        List<String> options = TEST_CONFIGURATIONS[config];
+        List<String> options = TEST_CONFIGURATIONS[config]!;
         print('---$config----------------------------------------------------');
-        Uri uri = tests[file];
+        Uri uri = tests[file]!;
         TestResult result = await runTests(config, file, uri, options);
         if (result.missingCodePointsMap.isNotEmpty) {
           errorsFound =
@@ -73,7 +71,7 @@ void test(List<String> arguments,
 bool parseArguments(
     List<String> arguments, Set<String> configurations, Map<String, Uri> tests,
     {bool measure = false}) {
-  Set<String> extra = arguments.contains('--file') ? new Set<String>() : null;
+  Set<String>? extra = arguments.contains('--file') ? new Set<String>() : null;
 
   for (String argument in arguments) {
     if (!parseArgument(argument, configurations, tests, extra)) {
@@ -113,14 +111,14 @@ bool parseArguments(
 ///
 /// Unmatching arguments are added to [files] is provided.
 bool parseArgument(String argument, Set<String> configurations,
-    Map<String, Uri> tests, Set<String> extra) {
+    Map<String, Uri> tests, Set<String>? extra) {
   if (argument.startsWith('-')) {
     // Skip options.
     return true;
   } else if (TEST_CONFIGURATIONS.containsKey(argument)) {
     configurations.add(argument);
   } else if (TEST_FILES.containsKey(argument)) {
-    tests[argument] = TEST_FILES[argument];
+    tests[argument] = TEST_FILES[argument]!;
   } else if (extra != null) {
     extra.add(argument);
   } else {
@@ -142,7 +140,7 @@ Map<String, Uri> _computeTestFiles() {
   Map<String, Uri> map = <String, Uri>{};
   Directory dataDir = new Directory.fromUri(
       Uri.base.resolve('pkg/compiler/test/sourcemaps/data/'));
-  for (File file in dataDir.listSync()) {
+  for (FileSystemEntity file in dataDir.listSync()) {
     Uri uri = file.uri;
     map[uri.pathSegments.last] = uri;
   }
@@ -157,7 +155,7 @@ Future<TestResult> runTests(
       .process(['--csp', Flags.disableInlining, ...options], verbose: verbose);
   TestResult result = new TestResult(config, filename, processor);
   for (SourceMapInfo info in sourceMaps.elementSourceMapInfos.values) {
-    if (info.element.library.canonicalUri.isScheme('dart')) continue;
+    if (info.element!.library.canonicalUri.isScheme('dart')) continue;
     result.userInfoList.add(info);
     Iterable<CodePoint> missingCodePoints =
         info.codePoints.where((c) => c.isMissing);
@@ -167,7 +165,7 @@ Future<TestResult> runTests(
     Map<int, Set<SourceLocation>> offsetToLocationsMap =
         <int, Set<SourceLocation>>{};
     for (Node node in info.nodeMap.nodes) {
-      info.nodeMap[node]
+      info.nodeMap[node]!
           .forEach((int targetOffset, List<SourceLocation> sourceLocations) {
         if (sourceLocations.length > 1) {
           Map<Node, List<SourceLocation>> multipleMap = result.multipleNodesMap

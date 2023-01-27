@@ -113,14 +113,13 @@ intptr_t ObjectHash(const Object& obj) {
     return Instance::Cast(obj).CanonicalizeHash();
   }
   if (obj.IsCode()) {
-    // Instructions don't move during compaction.
-    return Code::Cast(obj).PayloadStart();
+    return Code::Cast(obj).Hash();
   }
   if (obj.IsFunction()) {
     return Function::Cast(obj).Hash();
   }
   if (obj.IsField()) {
-    return dart::String::HashRawSymbol(Field::Cast(obj).name());
+    return Field::Cast(obj).Hash();
   }
   if (obj.IsICData()) {
     return ICData::Cast(obj).Hash();

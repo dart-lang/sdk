@@ -64,6 +64,7 @@ js/method_call_on_object_test: SkipByDesign # Issue 42085.
 js/mock_test/*: SkipByDesign # Issue 42085.
 js/parameters_test: SkipByDesign # Issue 42085.
 js/static_interop_test/external_static_member_lowerings_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/static_interop_test/external_static_member_lowerings_trusttypes_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/external_static_member_lowerings_with_namespaces_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/trust_types_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 

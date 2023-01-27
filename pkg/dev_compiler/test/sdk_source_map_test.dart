@@ -9,6 +9,12 @@ import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart' as sm;
 
+/// Verifies that the compiled SDK modules used in the SDK test suites have
+/// source maps, and those mappings correctly point to the .dart source files.
+///
+/// There are no longer any precompiled SDK modules distributed with the Dart
+/// SDK so this test depends on built assets from the gen/utils/dartdevc
+/// directory.
 void main() async {
   // This test relies on source maps for the built SDK when working inside the
   // Dart SDK repo.

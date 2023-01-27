@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 /// The type builder for a [GenericFunctionType].
 class FunctionTypeBuilder extends TypeBuilder {
@@ -154,7 +155,7 @@ class FunctionTypeBuilder extends TypeBuilder {
         _getParameterType(isNNBD, parameter),
         parameter.kind,
       );
-    }).toList();
+    }).toFixedList();
   }
 
   /// If the [type] is a [TypeBuilder], build it; otherwise return as is.
@@ -208,6 +209,6 @@ class FunctionTypeBuilder extends TypeBuilder {
     TypeParameterList? node,
   ) {
     if (node == null) return const [];
-    return node.typeParameters.map((n) => n.declaredElement!).toList();
+    return node.typeParameters.map((n) => n.declaredElement!).toFixedList();
   }
 }

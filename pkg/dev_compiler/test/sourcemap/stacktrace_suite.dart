@@ -7,7 +7,7 @@ import 'package:testing/testing.dart';
 
 import 'common.dart';
 import 'ddc_common.dart';
-import 'sourcemaps_ddk_suite.dart' as ddk;
+import 'sourcemaps_suite.dart';
 
 Future<ChainContext> createContext(
     Chain suite, Map<String, String> environment) async {
@@ -26,8 +26,7 @@ class StackTraceContext extends ChainContextWithCleanupHelper
     return _steps ??= <Step>[
       const Setup(),
       const SetCwdToSdkRoot(),
-      TestStackTrace(ddk.DevCompilerRunner(this, debugging: false), 'ddk',
-          const ['ddk', 'ddc']),
+      TestStackTrace(DevCompilerRunner(this, debugging: false), 'ddc', ['ddc']),
     ];
   }
 }

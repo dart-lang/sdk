@@ -36,8 +36,6 @@ declare_args() {
 # ......dart or dart.exe (executable)
 # ......dart.lib (import library for VM native extensions on Windows)
 # ......dartaotruntime or dartaotruntime.exe (executable)
-# ......dart2js
-# ......dartdevc
 # ......utils/gen_snapshot or utils/gen_snapshot.exe (if not on ia32)
 # ......snapshots/
 # ........analysis_server.dart.snapshot
@@ -70,12 +68,20 @@ declare_args() {
 # ........dart2js_server_platform_unsound.dill
 # ........dart2wasm_platform.dill (if not on ia32)
 # ........dart2wasm_outline.dill (if not on ia32)
+# ........ddc_outline.dill
+# ........ddc_platform.dill
 # ........vm_platform_strong.dill
-# ........dev_compiler/
+# ........js_dev_runtime/
+# ........js_runtime/
+# ........js_shared/
 # ......async/
 # ......collection/
 # ......convert/
 # ......core/
+# ......dev_compiler/
+#.........amd/require.js
+#.........web/dart_stack_trace_mapper.js
+# ......developer/
 # ......html/
 # ......_http/
 # ......internal/
@@ -518,13 +524,10 @@ copy("copy_dev_compiler_dills") {
   deps = [
     ":copy_libraries",
     "../utils/dartdevc:dartdevc_platform_sound",
-    "../utils/dartdevc:dartdevc_platform_unsound",
   ]
   sources = [
     "$root_out_dir/ddc_outline.dill",
-    "$root_out_dir/ddc_outline_unsound.dill",
     "$root_out_dir/ddc_platform.dill",
-    "$root_out_dir/ddc_platform_unsound.dill",
   ]
   outputs =
       [ "$root_out_dir/$dart_sdk_output/lib/_internal/{{source_file_part}}" ]

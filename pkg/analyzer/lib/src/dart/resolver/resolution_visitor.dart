@@ -26,6 +26,7 @@ import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/element_walker.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 class ElementHolder {
   final ElementImpl _element;
@@ -34,9 +35,13 @@ class ElementHolder {
 
   ElementHolder(this._element);
 
-  List<ParameterElementImpl> get parameters => _parameters;
+  List<ParameterElementImpl> get parameters {
+    return _parameters.toFixedList();
+  }
 
-  List<TypeParameterElementImpl> get typeParameters => _typeParameters;
+  List<TypeParameterElementImpl> get typeParameters {
+    return _typeParameters.toFixedList();
+  }
 
   void addParameter(ParameterElementImpl element) {
     _parameters.add(element);

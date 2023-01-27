@@ -228,6 +228,26 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the name of the base class being implemented
+  static const CompileTimeErrorCode BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY =
+      CompileTimeErrorCode(
+    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
+    "The class '{0}' can't be implemented outside of its library because it's "
+        "a base class.",
+    uniqueName: 'BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the base mixin being implemented
+  static const CompileTimeErrorCode BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY =
+      CompileTimeErrorCode(
+    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
+    "The mixin '{0}' can't be implemented outside of its library because it's "
+        "a base mixin.",
+    uniqueName: 'BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
+  );
+
+  ///  Parameters:
   ///  0: the name of the return type
   static const CompileTimeErrorCode BODY_MIGHT_COMPLETE_NORMALLY =
       CompileTimeErrorCode(

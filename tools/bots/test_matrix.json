@@ -15,6 +15,7 @@
       ".dart_tool/package_config.json",
       "out/ReleaseIA32/dart-sdk/",
       "out/ReleaseX64/dart-sdk/",
+      "out/ReleaseX64/ddc_outline_unsound.dill",
       "out/ReleaseX64/gen/utils/dartdevc/",
       "pkg/",
       "runtime/tests/",
@@ -52,12 +53,15 @@
       "tools/",
       "xcodebuild/ReleaseIA32/dart-sdk/",
       "xcodebuild/ReleaseX64/dart-sdk/",
+      "xcodebuild/ReleaseX64/ddc_outline_unsound.dill",
       "xcodebuild/ReleaseX64/gen/utils/dartdevc/"
     ],
     "web_platform_nnbd": [
       ".dart_tool/package_config.json",
       "out/ReleaseIA32/dart-sdk/",
       "out/ReleaseX64/dart-sdk/",
+      "out/ReleaseX64/ddc_outline.dill",
+      "out/ReleaseX64/ddc_outline_unsound.dill",
       "out/ReleaseX64/gen/utils/dartdevc/",
       "pkg/",
       "runtime/tests/",
@@ -88,6 +92,8 @@
       "tools/",
       "xcodebuild/ReleaseIA32/dart-sdk/",
       "xcodebuild/ReleaseX64/dart-sdk/",
+      "xcodebuild/ReleaseX64/ddc_outline.dill",
+      "xcodebuild/ReleaseX64/ddc_outline_unsound.dill",
       "xcodebuild/ReleaseX64/gen/utils/dartdevc/"
     ],
     "web_platform_hostasserts": [
@@ -2617,7 +2623,7 @@
           "name": "ddk sourcemap tests",
           "script": "out/ReleaseX64/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddk_suite.dart",
+            "pkg/dev_compiler/test/sourcemap/sourcemaps_suite.dart",
             "-rnone"
           ]
         },
@@ -2625,7 +2631,7 @@
           "name": "ddk sourcemap stacktrace tests",
           "script": "out/ReleaseX64/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/stacktrace_ddk_suite.dart",
+            "pkg/dev_compiler/test/sourcemap/stacktrace_suite.dart",
             "-rnone"
           ]
         },
@@ -2872,7 +2878,7 @@
           "name": "ddk sourcemap tests",
           "script": "xcodebuild/ReleaseX64/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddk_suite.dart",
+            "pkg/dev_compiler/test/sourcemap/sourcemaps_suite.dart",
             "-rnone"
           ]
         },
@@ -2880,7 +2886,7 @@
           "name": "ddk sourcemap stacktrace tests",
           "script": "xcodebuild/ReleaseX64/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/stacktrace_ddk_suite.dart",
+            "pkg/dev_compiler/test/sourcemap/stacktrace_suite.dart",
             "-rnone"
           ]
         },

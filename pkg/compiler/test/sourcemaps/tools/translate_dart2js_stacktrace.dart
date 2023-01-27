@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:args/args.dart';
 import 'package:http/http.dart' as http;
@@ -34,14 +32,14 @@ main(List<String> arguments) async {
     data = new File(url).readAsStringSync();
   }
 
-  SingleMapping sourceMap = parse(data);
+  final sourceMap = parse(data) as SingleMapping;
 
   print("Now paste the stacktrace here. Finish with at least 3 empty lines...");
 
   int emptyInARow = 0;
   List<String> lines = [];
   while (true) {
-    String line = stdin.readLineSync();
+    String? line = stdin.readLineSync();
     if (line == null) break;
     if (line == "") {
       ++emptyInARow;
@@ -66,10 +64,10 @@ main(List<String> arguments) async {
       continue;
     }
     Match m = ms.first;
-    int l = int.parse(m.group(1));
-    int c = int.parse(m.group(2));
-    SourceMapSpan span = sourceMap.spanFor(l, c);
-    if (span?.start == null) {
+    int l = int.parse(m.group(1)!);
+    int c = int.parse(m.group(2)!);
+    SourceMapSpan? span = sourceMap.spanFor(l, c);
+    if (span == null) {
       if (options['inline']) {
         print("----- (unparseable) -----");
       } else {

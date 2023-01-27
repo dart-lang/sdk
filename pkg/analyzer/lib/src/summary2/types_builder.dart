@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/summary2/default_types_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 /// Return `true` if [type] can be used as a class.
 bool _isInterfaceTypeClass(InterfaceType type) {
@@ -257,7 +258,7 @@ class TypesBuilder {
   List<ParameterElement> _formalParameters(FormalParameterList node) {
     return node.parameters.asImpl.map((parameter) {
       return parameter.declaredElement!;
-    }).toList();
+    }).toFixedList();
   }
 
   void _functionTypeAlias(FunctionTypeAlias node) {
@@ -348,7 +349,7 @@ class TypesBuilder {
 
     return node.typeParameters
         .map<TypeParameterElement>((p) => p.declaredElement!)
-        .toList();
+        .toFixedList();
   }
 
   /// The [FunctionType] to use when a function type is expected for a type

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:async';
 import 'dart:io';
 
@@ -65,7 +63,7 @@ void main(List<String> arguments) {
   bool verbose = false;
   bool printJs = false;
   bool writeJs = false;
-  List<int> indices;
+  List<int>? indices;
   for (String arg in arguments) {
     if (arg == '-v') {
       verbose = true;
@@ -74,7 +72,7 @@ void main(List<String> arguments) {
     } else if (arg == '--write-js') {
       writeJs = true;
     } else {
-      int index = int.tryParse(arg);
+      int? index = int.tryParse(arg);
       if (index != null) {
         indices ??= <int>[];
         if (index < 0 || index >= TESTS.length) {
@@ -89,7 +87,7 @@ void main(List<String> arguments) {
     indices = new List<int>.generate(TESTS.length, (i) => i);
   }
   asyncTest(() async {
-    for (int index in indices) {
+    for (int index in indices!) {
       await runTest(index, processTestCode(TESTS[index]),
           printJs: printJs, writeJs: writeJs, verbose: verbose);
     }
@@ -97,7 +95,7 @@ void main(List<String> arguments) {
 }
 
 Future runTest(int index, Test test,
-    {bool printJs = false, bool writeJs, bool verbose = false}) async {
+    {bool printJs = false, required bool writeJs, bool verbose = false}) async {
   print("--$index------------------------------------------------------------");
   print("Compiling dart2js\n ${test.annotatedCode}");
   OutputCollector collector = new OutputCollector();
@@ -110,11 +108,11 @@ Future runTest(int index, Test test,
       unsafeToTouchSourceFiles: true);
   Expect.isTrue(compilationResult.isSuccess,
       "Unsuccessful compilation of test:\n${test.code}");
-  String sourceMapText = collector.getOutput('', api.OutputType.sourceMap);
-  SingleMapping sourceMap = parse(sourceMapText);
+  String sourceMapText = collector.getOutput('', api.OutputType.sourceMap)!;
+  final sourceMap = parse(sourceMapText) as SingleMapping;
   if (writeJs) {
     new File('out.js')
-        .writeAsStringSync(collector.getOutput('', api.OutputType.js));
+        .writeAsStringSync(collector.getOutput('', api.OutputType.js)!);
     new File('out.js.map').writeAsStringSync(sourceMapText);
   }
 
@@ -124,13 +122,13 @@ Future runTest(int index, Test test,
   for (TargetLineEntry targetLineEntry in sourceMap.lines) {
     for (TargetEntry targetEntry in targetLineEntry.entries) {
       if (targetEntry.sourceUrlId != null &&
-          sourceMap.urls[targetEntry.sourceUrlId] == 'memory:main.dart') {
-        String methodName;
+          sourceMap.urls[targetEntry.sourceUrlId!] == 'memory:main.dart') {
+        String? methodName;
         if (targetEntry.sourceNameId != null) {
-          methodName = sourceMap.names[targetEntry.sourceNameId];
+          methodName = sourceMap.names[targetEntry.sourceNameId!];
         }
         SourceLocation location = new SourceLocation(methodName,
-            targetEntry.sourceLine + 1, targetEntry.sourceColumn + 1);
+            targetEntry.sourceLine! + 1, targetEntry.sourceColumn! + 1);
         actualLocations.add(location);
         if (!expectedLocations.remove(location)) {
           extraLocations.add(location);
@@ -143,7 +141,7 @@ Future runTest(int index, Test test,
     print('--Missing source locations:---------------------------------------');
     AnnotatedCode annotatedCode = new AnnotatedCode(test.code, test.code, []);
     expectedLocations.forEach((l) => annotatedCode.addAnnotation(
-        l.lineNo, l.columnNo, '/*', l.methodName, '*/'));
+        l.lineNo, l.columnNo, '/*', l.methodName!, '*/'));
     print(annotatedCode.toText());
     print('------------------------------------------------------------------');
     Expect.isTrue(
@@ -156,7 +154,7 @@ Future runTest(int index, Test test,
     print('--Extra source locations:-----------------------------------------');
     AnnotatedCode annotatedCode = new AnnotatedCode(test.code, test.code, []);
     extraLocations.forEach((l) => annotatedCode.addAnnotation(
-        l.lineNo, l.columnNo, '/*', l.methodName, '*/'));
+        l.lineNo, l.columnNo, '/*', l.methodName!, '*/'));
     print(annotatedCode.toText());
     print('------------------------------------------------------------------');
     Expect.isTrue(
@@ -168,7 +166,7 @@ Future runTest(int index, Test test,
 }
 
 class SourceLocation {
-  final String methodName;
+  final String? methodName;
   final int lineNo;
   final int columnNo;
 

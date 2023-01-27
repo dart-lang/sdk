@@ -15,6 +15,7 @@ typedef ATypeDef = BaseClass;
 class B implements ATypeDef {
 //    ^
 // [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
-// [analyzer] unspecified
+//                 ^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
   int foo = 1;
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /// Loads a source map file and outputs a human-readable version of it.
 
 library load;
@@ -20,7 +18,7 @@ Usage: load <dir-containing 'out.js.map'>
     exit(1);
   }
 
-  File humanReadableSourceMapFile;
+  File? humanReadableSourceMapFile;
   File sourceMapFile;
   if (args.length == 1 && new Directory(args[0]).existsSync()) {
     humanReadableSourceMapFile = new File('${args[0]}/out.js.map2');
@@ -34,7 +32,7 @@ Usage: load <dir-containing 'out.js.map'>
   mainInternal(sourceMapFile, humanReadableSourceMapFile);
 }
 
-void mainInternal(File sourceMapFile, File humanReadableSourceMapFile) {
+void mainInternal(File sourceMapFile, File? humanReadableSourceMapFile) {
   SingleMapping sourceMap =
       new SingleMapping.fromJson(json.decode(sourceMapFile.readAsStringSync()));
   String humanReadableSourceMap = convertToHumanReadableSourceMap(sourceMap);
@@ -68,7 +66,7 @@ String convertToHumanReadableSourceMap(SingleMapping sourceMap) {
         entryIndex++) {
       TargetEntry entry = lineEntry.entries[entryIndex];
       int columnStart = entry.column + 1;
-      int columnEnd;
+      int? columnEnd;
       String position;
       if (entryIndex + 1 < lineEntry.entries.length) {
         columnEnd = lineEntry.entries[entryIndex + 1].column + 1;
@@ -82,12 +80,12 @@ String convertToHumanReadableSourceMap(SingleMapping sourceMap) {
         }
         sb.write('    {"target": "$position"');
         if (entry.sourceUrlId != null) {
-          int sourceUrlId = entry.sourceUrlId;
-          int sourceLine = entry.sourceLine + 1;
-          int sourceColumn = entry.sourceColumn + 1;
+          int sourceUrlId = entry.sourceUrlId!;
+          int sourceLine = entry.sourceLine! + 1;
+          int sourceColumn = entry.sourceColumn! + 1;
           sb.write(', "source": "$sourceUrlId:$sourceLine,$sourceColumn"');
           if (entry.sourceNameId != null) {
-            sb.write(', "name": "${sourceMap.names[entry.sourceNameId]}"');
+            sb.write(', "name": "${sourceMap.names[entry.sourceNameId!]}"');
           }
         }
         sb.write('}');

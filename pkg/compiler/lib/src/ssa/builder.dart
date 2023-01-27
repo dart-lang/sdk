@@ -2870,7 +2870,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       // Use null as the marker for a synthetic default clause.
       // The synthetic default is added because otherwise there would be no
       // good place to give a default value to the local.
-      switchCases = List<ir.SwitchCase>.from(switchCases);
+      switchCases = List<ir.SwitchCase?>.from(switchCases);
       switchCases.add(null);
     }
 

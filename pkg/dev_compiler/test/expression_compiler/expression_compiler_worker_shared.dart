@@ -737,9 +737,13 @@ class TestProjectConfiguration {
   Uri get packagesPath => root.resolve('package_config.json');
 
   Uri get sdkRoot => computePlatformBinariesLocation();
+  // Use the outline copied to the released SDK.
+  // Unsound .dill files are not longer in the released SDK so this file must be
+  // read from the build output directory.
   Uri get sdkSummaryPath => soundNullSafety
       ? sdkRoot.resolve('ddc_outline.dill')
-      : sdkRoot.resolve('ddc_outline_unsound.dill');
+      : computePlatformBinariesLocation(forceBuildDir: true)
+          .resolve('ddc_outline_unsound.dill');
   Uri get librariesPath => sdkRoot.resolve('lib/libraries.json');
 
   List get inputUris => [
@@ -1139,7 +1143,7 @@ class DDCKernelGenerator {
     for (var module in config.modules.values) {
       exitCode = await _generateSummary(module);
       expect(exitCode, 0,
-          reason: 'Failed to generate fsummary for ${module.moduleName}');
+          reason: 'Failed to generate summary dill for ${module.moduleName}');
     }
 
     // generate full dill

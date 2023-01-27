@@ -10,30 +10,28 @@
 
 namespace dart {
 
-class Array;
+class WeakArray;
 class Code;
 
 // Helper class to handle an array of code weak properties. Implements
 // registration and disabling of stored code objects.
 class WeakCodeReferences : public ValueObject {
  public:
-  explicit WeakCodeReferences(const Array& value) : array_(value) {}
+  explicit WeakCodeReferences(const WeakArray& value) : array_(value) {}
   virtual ~WeakCodeReferences() {}
 
   void Register(const Code& value);
 
-  virtual void UpdateArrayTo(const Array& array) = 0;
+  virtual void UpdateArrayTo(const WeakArray& array) = 0;
   virtual void ReportDeoptimization(const Code& code) = 0;
   virtual void ReportSwitchingCode(const Code& code) = 0;
-
-  static bool IsOptimizedCode(const Array& dependent_code, const Code& code);
 
   void DisableCode(bool are_mutators_stopped);
 
   bool HasCodes() const;
 
  private:
-  const Array& array_;  // Array of Code objects.
+  const WeakArray& array_;  // Array of Code objects.
   DISALLOW_COPY_AND_ASSIGN(WeakCodeReferences);
 };
 

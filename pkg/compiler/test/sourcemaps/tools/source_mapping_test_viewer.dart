@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /// Visualization of source mappings generated and tested in
 /// 'source_mapping_test.dart'.
 
@@ -54,31 +52,26 @@ main(List<String> arguments) async {
   OutputConfigurations outputConfigurations =
       new OutputConfigurations(configurations, tests.keys);
   bool generateMultiConfigs = false;
-  if (outputPath != null) {
-    if (configurations.length > 1 || tests.length > 1) {
-      for (String config in configurations) {
-        for (String file in tests.keys) {
-          String path = '$outputPath.$config.$file';
-          Uri uri = Uri.base.resolve(nativeToUriPath(path));
-          outputConfigurations.registerPathUri(config, file, path, uri);
-        }
+  if (configurations.length > 1 || tests.length > 1) {
+    for (String config in configurations) {
+      for (String file in tests.keys) {
+        String path = '$outputPath.$config.$file';
+        Uri uri = Uri.base.resolve(nativeToUriPath(path));
+        outputConfigurations.registerPathUri(config, file, path, uri);
       }
-      generateMultiConfigs = true;
-    } else {
-      outputConfigurations.registerPathUri(
-          configurations.first,
-          tests.keys.first,
-          outputPath,
-          Uri.base.resolve(nativeToUriPath(outputPath)));
     }
+    generateMultiConfigs = true;
+  } else {
+    outputConfigurations.registerPathUri(configurations.first, tests.keys.first,
+        outputPath, Uri.base.resolve(nativeToUriPath(outputPath)));
   }
 
   List<Measurement> measurements = <Measurement>[];
   for (String config in configurations) {
     for (String file in tests.keys) {
-      List<String> options = TEST_CONFIGURATIONS[config];
+      List<String> options = TEST_CONFIGURATIONS[config]!;
       Measurement measurement = await runTest(
-          config, file, tests[file], options,
+          config, file, tests[file]!, options,
           outputUri: outputConfigurations.getUri(config, file),
           verbose: !measure,
           missingOnly: missingOnly);
@@ -109,7 +102,7 @@ class OutputConfigurations implements Configurations {
     uriMap[key] = uri;
   }
 
-  Uri getUri(String config, String file) {
+  Uri? getUri(String config, String file) {
     Pair key = new Pair(config, file);
     return uriMap[key];
   }
@@ -117,13 +110,13 @@ class OutputConfigurations implements Configurations {
   @override
   String getPath(String config, String file) {
     Pair key = new Pair(config, file);
-    return pathMap[key];
+    return pathMap[key]!;
   }
 }
 
 Future<Measurement> runTest(
     String config, String filename, Uri uri, List<String> options,
-    {Uri outputUri, bool verbose, bool missingOnly = false}) async {
+    {Uri? outputUri, required bool verbose, bool missingOnly = false}) async {
   TestResult result =
       await runTests(config, filename, uri, options, verbose: verbose);
   if (outputUri != null) {

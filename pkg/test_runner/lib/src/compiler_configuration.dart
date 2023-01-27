@@ -626,8 +626,11 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     // the bootstrapping code, instead of a compiler option.
     var options = sharedOptions.toList();
     options.remove('--null-assertions');
-    if (!_useSdk) {
+    if (!_useSdk || _configuration.nnbdMode != NnbdMode.strong) {
       // If we're testing a built SDK, DDC will find its own summary.
+      //
+      // Unsound summary files are not longer bundled with the built SDK so they
+      // must always be specified manually.
       //
       // For local development we don't have a built SDK yet, so point directly
       // at the built summary file location.

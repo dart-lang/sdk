@@ -418,11 +418,11 @@ class ObjectPointerVisitor;
   V(_WeakReference, "_WeakReference")                                          \
   V(_await, "_await")                                                          \
   V(_awaitWithTypeCheck, "_awaitWithTypeCheck")                                \
+  V(_backtrackingStack, "_backtrackingStack")                                  \
   V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_current, "_current")                                                      \
   V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \
   V(_future, "_future")                                                        \
-  V(_getBacktrackingStack, "_getBacktrackingStack")                            \
   V(_getRegisters, "_getRegisters")                                            \
   V(_growBacktrackingStack, "_growBacktrackingStack")                          \
   V(_handleException, "_handleException")                                      \
