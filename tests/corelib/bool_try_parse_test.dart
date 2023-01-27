@@ -6,17 +6,16 @@
 import "package:expect/expect.dart";
 
 main() {
-  Expect.isTrue(const bool.tryParse('true'));
-  Expect.isFalse(const bool.tryParse('false'));
-  Expect.isTrue(const bool.tryParse('TRUE', caseSensitive: true));
-  Expect.isFalse(const bool.tryParse('FALSE', caseSensitive: true));
-
-  Expect.isNull(const bool.tryParse('TRUE'));
-  Expect.isNull(const bool.tryParse('FALSE'));
-  Expect.isNull(const bool.tryParse('y'));
-  Expect.isNull(const bool.tryParse('n'));
-  Expect.isNull(const bool.tryParse(' true ', caseSensitive: true));
-  Expect.isNull(const bool.tryParse(' false ', caseSensitive: true));
-  Expect.isNull(const bool.tryParse('0', caseSensitive: true));
-  Expect.isNull(const bool.tryParse('1', caseSensitive: true));
+  Expect.isTrue(bool.tryParse('true'));
+  Expect.isFalse(bool.tryParse('false'));
+  Expect.isTrue(bool.tryParse('TRUE', caseSensitive: true));
+  Expect.isFalse(bool.tryParse('FALSE', caseSensitive: true));
+  Expect.isNull(bool.tryParse('TRUE'));
+  Expect.isNull(bool.tryParse('FALSE'));
+  Expect.isNull(bool.tryParse('y'));
+  Expect.isNull(bool.tryParse('n'));
+  Expect.isNull(bool.tryParse(' true ', caseSensitive: false));
+  Expect.isNull(bool.tryParse(' false ', caseSensitive: false));
+  Expect.isNull(bool.tryParse('0', caseSensitive: true));
+  Expect.isNull(bool.tryParse('1', caseSensitive: true));
 }

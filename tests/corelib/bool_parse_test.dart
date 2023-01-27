@@ -6,12 +6,12 @@
 import "package:expect/expect.dart";
 
 main() {
-  Expect.isTrue(const bool.parse('true'));
-  Expect.isFalse(const bool.parse('false'));
-  Expect.isTrue(const bool.parse('TRUE', caseSensitive: true));
-  Expect.isFalse(const bool.parse('FALSE', caseSensitive: true));
-  Expect.isTrue(const bool.parse('true', caseSensitive: false));
-  Expect.isFalse(const bool.parse('false', caseSensitive: false));
+  Expect.isTrue(bool.parse('true'));
+  Expect.isFalse(bool.parse('false'));
+  Expect.isTrue(bool.parse('TRUE', caseSensitive: true));
+  Expect.isFalse(bool.parse('FALSE', caseSensitive: true));
+  Expect.isTrue(bool.parse('true', caseSensitive: false));
+  Expect.isFalse(bool.parse('false', caseSensitive: false));
   Expect.throws(()=> bool.parse('True'));
   Expect.throws(()=> bool.parse('False'));
   Expect.throws(()=> bool.parse('y'));
