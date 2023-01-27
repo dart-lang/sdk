@@ -66,6 +66,7 @@ const String packageConfigFile = '.dart_tool/package_config.json';
 //       purposes).
 //   5 - List program dependencies (for creating depfiles)
 //   6 - Isolate shutdown that potentially should result in compiler cleanup.
+//   7 - Reject last compilation result.
 const int kCompileTag = 0;
 const int kUpdateSourcesTag = 1;
 const int kAcceptTag = 2;
@@ -73,6 +74,7 @@ const int kTrainTag = 3;
 const int kCompileExpressionTag = 4;
 const int kListDependenciesTag = 5;
 const int kNotifyIsolateShutdownTag = 6;
+const int kRejectTag = 7;
 
 bool allowDartInternalImport = false;
 
@@ -103,7 +105,9 @@ CompilerOptions setupCompilerOptions(
     ..packagesFileUri = packagesUri
     ..sdkSummary = platformKernelPath
     ..verbose = verbose
-    ..omitPlatform = true
+    ..omitPlatform = false // so that compilation results can be rejected,
+                           // which potentially is only relevant for
+                           // incremental, rather than single-shot compilter
     ..explicitExperimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(expFlags), onError: (msg) {
       errorsPlain.add(msg);
@@ -339,6 +343,7 @@ class IncrementalCompilerWrapper extends Compiler {
   }
 
   void accept() => generator!.accept();
+  Future<void> reject() async => generator!.reject();
   void invalidate(Uri uri) => generator!.invalidate(uri);
 
   Future<IncrementalCompilerWrapper> clone(int isolateGroupId) async {
@@ -406,7 +411,7 @@ class SingleShotCompilerWrapper extends Compiler {
 
     Set<Library> loadedLibraries = createLoadedLibrariesSet(
         compilerResult.loadedComponents, compilerResult.sdkComponent,
-        includePlatform: !options.omitPlatform);
+        includePlatform: false);
 
     return new CompilerResult(compilerResult.component, loadedLibraries,
         compilerResult.classHierarchy, compilerResult.coreTypes);
@@ -814,14 +819,21 @@ Future _processLoadRequest(request) async {
     updateSources(compiler as IncrementalCompilerWrapper, sourceFiles);
     port.send(new CompilationResult.ok(null).toResponse());
     return;
-  } else if (tag == kAcceptTag) {
+  } else if (tag == kAcceptTag || tag == kRejectTag) {
     assert(
-        incremental, "Incremental compiler required for use of 'kAcceptTag'");
+        incremental,
+        "Incremental compiler required for use of 'kAcceptTag' or "
+        "'kRejectTag");
     compiler = lookupIncrementalCompiler(isolateGroupId);
     // There are unit tests that invoke the IncrementalCompiler directly and
     // request a reload, meaning that we won't have a compiler for this isolate.
     if (compiler != null) {
-      (compiler as IncrementalCompilerWrapper).accept();
+      final wrapper = compiler as IncrementalCompilerWrapper;
+      if (tag == kAcceptTag) {
+        wrapper.accept();
+      } else {
+        await wrapper.reject();
+      }
     }
     port.send(new CompilationResult.ok(null).toResponse());
     return;

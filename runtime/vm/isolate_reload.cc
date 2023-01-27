@@ -656,6 +656,28 @@ static ObjectPtr AcceptCompilation(Thread* thread) {
   return Object::null();
 }
 
+static ObjectPtr RejectCompilation(Thread* thread) {
+  TransitionVMToNative transition(thread);
+  Dart_KernelCompilationResult result = KernelIsolate::RejectCompilation();
+  if (result.status != Dart_KernelCompilationStatus_Ok) {
+    if (result.status != Dart_KernelCompilationStatus_MsgFailed) {
+      FATAL1(
+          "An error occurred while rejecting the most recent"
+          " compilation results: %s",
+          result.error);
+    }
+    TIR_Print(
+        "An error occurred while rejecting the most recent"
+        " compilation results: %s",
+        result.error);
+    Zone* zone = thread->zone();
+    const auto& error_str = String::Handle(zone, String::New(result.error));
+    free(result.error);
+    return ApiError::New(error_str);
+  }
+  return Object::null();
+}
+
 // If [root_script_url] is null, attempt to load from [kernel_buffer].
 bool IsolateGroupReloadContext::Reload(bool force_reload,
                                        const char* root_script_url,
@@ -711,6 +733,8 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
           AddReasonForCancelling(new Aborted(Z, error));
           ReportReasonsForCancelling();
           CommonFinalizeTail(num_old_libs_);
+
+          RejectCompilation(thread);
           return false;
         }
       }

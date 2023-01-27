@@ -52,6 +52,7 @@ DEFINE_FLAG(charp,
 //   4 - Compile expressions in context (used by expression evaluation).
 //   5 - Generate dependencies used to create a dependencies file.
 //   6 - Triggers shutdown of the kernel isolate.
+//   7 - Reject last compilation result.
 const int KernelIsolate::kCompileTag = 0;
 const int KernelIsolate::kUpdateSourcesTag = 1;
 const int KernelIsolate::kAcceptTag = 2;
@@ -59,6 +60,7 @@ const int KernelIsolate::kTrainTag = 3;
 const int KernelIsolate::kCompileExpressionTag = 4;
 const int KernelIsolate::kListDependenciesTag = 5;
 const int KernelIsolate::kNotifyIsolateShutdown = 6;
+const int KernelIsolate::kRejectTag = 7;
 
 const char* KernelIsolate::kName = DART_KERNEL_ISOLATE_NAME;
 Dart_IsolateGroupCreateCallback KernelIsolate::create_group_callback_ = NULL;
@@ -1182,6 +1184,24 @@ Dart_KernelCompilationResult KernelIsolate::AcceptCompilation() {
   KernelCompilationRequest request;
   return request.SendAndWaitForResponse(
       kAcceptTag, kernel_port, NULL, NULL, 0, 0, NULL, true, false, NULL, NULL,
+      NULL, experimental_flags_, NULL,
+      Dart_KernelCompilationVerbosityLevel_Error);
+}
+
+Dart_KernelCompilationResult KernelIsolate::RejectCompilation() {
+  // This must be the main script to be loaded. Wait for Kernel isolate
+  // to finish initialization.
+  Dart_Port kernel_port = WaitForKernelPort();
+  if (kernel_port == ILLEGAL_PORT) {
+    Dart_KernelCompilationResult result = {};
+    result.status = Dart_KernelCompilationStatus_MsgFailed;
+    result.error = Utils::StrDup("Error while initializing Kernel isolate");
+    return result;
+  }
+
+  KernelCompilationRequest request;
+  return request.SendAndWaitForResponse(
+      kRejectTag, kernel_port, NULL, NULL, 0, 0, NULL, true, false, NULL, NULL,
       NULL, experimental_flags_, NULL,
       Dart_KernelCompilationVerbosityLevel_Error);
 }

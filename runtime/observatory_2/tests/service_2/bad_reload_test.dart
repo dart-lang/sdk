@@ -35,17 +35,11 @@ Future<String> invokeTest(Isolate isolate) async {
   await isolate.reload();
   Library lib = isolate.rootLibrary;
   await lib.load();
-  Instance result = await lib.evaluate('test()');
+  final resultOrError = await lib.evaluate('test()');
+  print('resultOrError: $resultOrError');
+  Instance result = resultOrError as Instance;
   expect(result.isString, isTrue);
-  return result.valueAsString;
-}
-
-Future<void> invokeTestWithError(Isolate isolate) async {
-  await isolate.reload();
-  Library lib = isolate.rootLibrary;
-  await lib.load();
-  final result = await lib.evaluate('test()');
-  expect(result.isError, isTrue);
+  return result.valueAsString as String;
 }
 
 var tests = <IsolateTest>[
@@ -82,7 +76,7 @@ var tests = <IsolateTest>[
     expect(reasonForCancelling['type'], equals('ReasonForCancelling'));
     expect(reasonForCancelling['message'], contains('library_isnt_here_man'));
 
-    await invokeTestWithError(spawnedIsolate);
+    await invokeTest(spawnedIsolate);
   }
 ];
 

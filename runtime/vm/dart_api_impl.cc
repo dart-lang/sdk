@@ -6139,14 +6139,16 @@ Dart_CompileToKernel(const char* script_uri,
       script_uri, platform_kernel, platform_kernel_size, 0, NULL,
       incremental_compile, snapshot_compile, package_config, NULL, NULL,
       verbosity);
-  if (incremental_compile && result.status == Dart_KernelCompilationStatus_Ok) {
-    Dart_KernelCompilationResult accept_result =
-        KernelIsolate::AcceptCompilation();
-    if (accept_result.status != Dart_KernelCompilationStatus_Ok) {
+  if (incremental_compile) {
+    Dart_KernelCompilationResult ack_result =
+        result.status == Dart_KernelCompilationStatus_Ok ?
+            KernelIsolate::AcceptCompilation():
+            KernelIsolate::RejectCompilation();
+    if (ack_result.status != Dart_KernelCompilationStatus_Ok) {
       FATAL1(
-          "An error occurred in the CFE while accepting the most recent"
+          "An error occurred in the CFE while acking the most recent"
           " compilation results: %s",
-          accept_result.error);
+          ack_result.error);
     }
   }
 #endif
