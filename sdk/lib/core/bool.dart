@@ -116,14 +116,14 @@ class bool {
   ///
   /// Example:
   /// ```dart
-  /// print(int.tryParse('true'));  // true
-  /// print(int.tryParse('TRUE'));  // true
-  /// print(int.tryParse('false', caseSensitive: true)); // false
-  /// print(int.tryParse('FALSE', caseSensitive: true)); // false
-  /// print(int.tryParse('NO')); // null
-  /// print(int.tryParse('YES')); // null
-  /// print(int.tryParse('0')); // null
-  /// print(int.tryParse('1')); // null
+  /// print(bool.tryParse('true'));  // true
+  /// print(bool.tryParse('TRUE'));  // true
+  /// print(bool.tryParse('false', caseSensitive: true)); // false
+  /// print(bool.tryParse('FALSE', caseSensitive: true)); // false
+  /// print(bool.tryParse('NO')); // null
+  /// print(bool.tryParse('YES')); // null
+  /// print(bool.tryParse('0')); // null
+  /// print(bool.tryParse('1')); // null
   /// ```
   @Since("3.0")
   external static bool? tryParse(String source, {bool? caseSensitive});
