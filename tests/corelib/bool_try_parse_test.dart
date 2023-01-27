@@ -8,8 +8,8 @@ import "package:expect/expect.dart";
 main() {
   Expect.isTrue(bool.tryParse('true'));
   Expect.isFalse(bool.tryParse('false'));
-  Expect.isTrue(bool.tryParse('TRUE', caseSensitive: true));
-  Expect.isFalse(bool.tryParse('FALSE', caseSensitive: true));
+  Expect.isTrue(bool.tryParse('TRUE', caseSensitive: false));
+  Expect.isFalse(bool.tryParse('FALSE', caseSensitive: false));
   Expect.isNull(bool.tryParse('TRUE'));
   Expect.isNull(bool.tryParse('FALSE'));
   Expect.isNull(bool.tryParse('y'));
