@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
@@ -22,11 +20,11 @@ main(List<String> args) {
 Future checkTests(Directory dataDir,
     {List<String> options = const <String>[],
     List<String> args = const <String>[],
-    Directory libDirectory = null,
+    Directory? libDirectory,
     bool forUserLibrariesOnly = true,
     int shards = 1,
     int shardIndex = 0,
-    void onTest(Uri uri)}) async {
+    void onTest(Uri uri)?}) async {
   args = args.toList();
   bool shouldContinue = args.remove('-c');
   bool continued = false;
