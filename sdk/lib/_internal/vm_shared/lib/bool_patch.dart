@@ -33,11 +33,9 @@ class bool {
               (throw FormatException("Not a valid boolean", source));
     }
     // Ignore case-sensitive when caseSensitive is false.
-    return _compareIgnoreCase(source, "true")
-        ? true
-        : _compareIgnoreCase(source, "false")
-            ? false
-            : throw ArgumentError(source);
+    return _compareIgnoreCase(source, "true") ||
+        !_compareIgnoreCase(source, "false") &&
+            (throw FormatException("Not a valid boolean", source));
   }
 
   @patch
