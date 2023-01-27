@@ -7,6 +7,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
+import 'package:analyzer/src/lint/state.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -51,7 +52,7 @@ class OptionsRuleValidatorTest extends Object with ResourceProviderMixin {
     StableLint(),
     RuleNeg(),
     RulePos(),
-    RemovedLint(),
+    RemovedIn2_12Lint(),
     ReplacedLint(),
     ReplacingLint(),
   ];
@@ -96,7 +97,7 @@ linter:
     - deprecated_since_3_lint
       ''',
       [DEPRECATED_LINT_HINT],
-      sdk: Version(3, 0, 0),
+      sdk: dart3,
     );
   }
 
@@ -162,19 +163,39 @@ linter:
   }
 
   test_removed_rule() {
-    assertErrors('''
+    assertErrors(
+      '''
 linter:
   rules:
-    - removed_lint
-      ''', [AnalysisOptionsWarningCode.REMOVED_LINT]);
+    - removed_in_2_12_lint
+''',
+      [AnalysisOptionsWarningCode.REMOVED_LINT],
+      sdk: dart2_12,
+    );
+  }
+
+  test_removed_rule_notYet_ok() {
+    assertErrors(
+      '''
+linter:
+  rules:
+    - removed_in_2_12_lint
+''',
+      [],
+      sdk: Version(2, 11, 0),
+    );
   }
 
   test_replaced_rule() {
-    assertErrors('''
+    assertErrors(
+      '''
 linter:
   rules:
     - replaced_lint
-      ''', [AnalysisOptionsWarningCode.REPLACED_LINT]);
+      ''',
+      [AnalysisOptionsWarningCode.REPLACED_LINT],
+      sdk: dart3,
+    );
   }
 
   test_stable_rule() {
@@ -210,12 +231,12 @@ linter:
   }
 }
 
-class RemovedLint extends LintRule {
-  RemovedLint()
+class RemovedIn2_12Lint extends LintRule {
+  RemovedIn2_12Lint()
       : super(
-          name: 'removed_lint',
+          name: 'removed_in_2_12_lint',
           group: Group.style,
-          state: State.removed(since: dart3),
+          state: State.removed(since: dart2_12),
           description: '',
           details: '',
         );

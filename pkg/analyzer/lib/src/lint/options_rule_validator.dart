@@ -66,16 +66,24 @@ class LinterRuleOptionsValidator extends OptionsValidator {
       {LintRuleProvider? provider, this.sdkVersionConstraint})
       : ruleProvider = provider ?? (() => Registry.ruleRegistry.rules);
 
+  bool currentSdkAllows(Version? since) {
+    if (since == null) return true;
+    var sdk = sdkVersionConstraint;
+    if (sdk == null) return false;
+    return sdk.allows(since);
+  }
+
   LintRule? getRegisteredLint(Object value) =>
       ruleProvider().firstWhereOrNull((rule) => rule.name == value);
 
   bool isDeprecatedInCurrentSdk(State state) {
     if (state is! DeprecatedState) return false;
-    var since = state.since;
-    if (since == null) return true;
-    var sdk = sdkVersionConstraint;
-    if (sdk == null) return false;
-    return sdk.allows(since);
+    return currentSdkAllows(state.since);
+  }
+
+  bool isRemovedInCurrentSdk(State state) {
+    if (state is! RemovedState) return false;
+    return currentSdkAllows(state.since);
   }
 
   @override
@@ -123,9 +131,9 @@ class LinterRuleOptionsValidator extends OptionsValidator {
       var state = rule.state;
       if (isDeprecatedInCurrentSdk(state)) {
         reporter.reportErrorForSpan(DEPRECATED_LINT_HINT, node.span, [value]);
-      } else if (state is RemovedState) {
+      } else if (isRemovedInCurrentSdk(state)) {
         var since = state.since.toString();
-        var replacedBy = state.replacedBy;
+        var replacedBy = (state as RemovedState).replacedBy;
         if (replacedBy != null) {
           reporter.reportErrorForSpan(AnalysisOptionsWarningCode.REPLACED_LINT,
               node.span, [value, since, replacedBy]);
