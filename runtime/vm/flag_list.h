@@ -132,7 +132,7 @@ constexpr bool FLAG_support_il_printer = false;
     "methods.")                                                                \
   P(idle_timeout_micros, int, 1000 * kMicrosecondsPerMillisecond,              \
     "Consider thread pool isolates for idle tasks after this long.")           \
-  P(idle_duration_micros, int, 500 * kMicrosecondsPerMillisecond,              \
+  P(idle_duration_micros, int, kMaxInt32,                                      \
     "Allow idle tasks to run for this long.")                                  \
   P(interpret_irregexp, bool, false, "Use irregexp bytecode interpreter")      \
   P(lazy_async_stacks, bool, true, "Obsolete, ignored.")                       \
