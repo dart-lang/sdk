@@ -148,12 +148,32 @@ Map<String, Map<String, AnalyzerErrorCodeInfo>> decodeAnalyzerMessagesYaml(
         problem('value associated with error $className.$errorName is not a '
             'map');
       }
+
       try {
-        (result[className] ??= {})[errorName] =
-            AnalyzerErrorCodeInfo.fromYaml(errorValue);
+        var aliasFor = errorValue['aliasFor'];
+        if (aliasFor is String) {
+          var aliasForPath = aliasFor.split('.');
+          if (aliasForPath.isEmpty) {
+            problem("The 'aliasFor' value at '$className.$errorName is empty");
+          }
+          var node = yaml;
+          for (var key in aliasForPath) {
+            var value = node[key];
+            if (value is! Map<Object?, Object?>) {
+              problem('No Map value at "$aliasFor", aliased from '
+                  '$className.$errorName');
+            }
+            node = value;
+          }
+
+          (result[className] ??= {})[errorName] = AliasErrorCodeInfo(
+              aliasFor: aliasFor, comment: errorValue['comment'] as String?);
+        } else {
+          (result[className] ??= {})[errorName] =
+              AnalyzerErrorCodeInfo.fromYaml(errorValue);
+        }
       } catch (e) {
-        problem('while processing '
-            '$className.$errorName, $e');
+        problem('while processing $className.$errorName, $e');
       }
     }
   }
@@ -237,6 +257,27 @@ List<String> _splitText(
     lineMaxEndIndex = lineStartIndex + maxWidth;
   }
   return lines;
+}
+
+/// An [AnalyzerErrorCodeInfo] which is an alias for another, for incremental
+/// deprecation purposes.
+class AliasErrorCodeInfo extends AnalyzerErrorCodeInfo {
+  String aliasFor;
+
+  AliasErrorCodeInfo({required this.aliasFor, super.comment})
+      : super(
+            documentation: null,
+            hasPublishedDocs: false,
+            isUnresolvedIdentifier: false,
+            sharedName: null,
+            problemMessage: 'UNUSED',
+            correctionMessage: null);
+
+  String get aliasForClass => aliasFor.split('.').first;
+
+  String get aliasForFilePath => errorClasses
+      .firstWhere((element) => element.name == aliasForClass)
+      .filePath;
 }
 
 /// In-memory representation of error code information obtained from the

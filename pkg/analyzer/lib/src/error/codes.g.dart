@@ -12,6 +12,7 @@
 // ignore_for_file: constant_identifier_names
 
 import "package:analyzer/error/error.dart";
+import "package:analyzer/src/dart/error/hint_codes.g.dart";
 import "package:analyzer/src/error/analyzer_error_code.dart";
 
 class CompileTimeErrorCode extends AnalyzerErrorCode {
@@ -5649,6 +5650,9 @@ class WarningCode extends AnalyzerErrorCode {
         "changing the return type to 'void'.",
   );
 
+  ///  This is the new replacement for [HintCode.DEAD_CODE].
+  static const HintCode DEAD_CODE = HintCode.DEAD_CODE;
+
   ///  No parameters.
   static const WarningCode DEPRECATED_EXTENDS_FUNCTION = WarningCode(
     'DEPRECATED_SUBTYPE_OF_FUNCTION',
@@ -5749,6 +5753,14 @@ class WarningCode extends AnalyzerErrorCode {
     correctionMessage: "Change or remove the duplicate key.",
     hasPublishedDocs: true,
   );
+
+  ///  This is the new replacement for [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR].
+  static const HintCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR =
+      HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR;
+
+  ///  This is the new replacement for [HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD].
+  static const HintCode OVERRIDE_ON_NON_OVERRIDING_FIELD =
+      HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD;
 
   ///  Parameters:
   ///  0: the name of the class
@@ -5898,6 +5910,12 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  This is the new replacement for [HintCode.UNNECESSARY_CAST].
+  static const HintCode UNNECESSARY_CAST = HintCode.UNNECESSARY_CAST;
+
+  ///  This is the new replacement for [HintCode.UNNECESSARY_FINAL].
+  static const HintCode UNNECESSARY_FINAL = HintCode.UNNECESSARY_FINAL;
+
   ///  Parameters:
   ///  0: the name of the exception variable
   static const WarningCode UNUSED_CATCH_CLAUSE = WarningCode(
@@ -5916,6 +5934,22 @@ class WarningCode extends AnalyzerErrorCode {
     correctionMessage: "Try removing the stack trace variable, or using it.",
     hasPublishedDocs: true,
   );
+
+  ///  This is the new replacement for [HintCode.UNUSED_ELEMENT].
+  static const HintCode UNUSED_ELEMENT = HintCode.UNUSED_ELEMENT;
+
+  ///  This is the new replacement for [HintCode.UNUSED_ELEMENT_PARAMETER].
+  static const HintCode UNUSED_ELEMENT_PARAMETER =
+      HintCode.UNUSED_ELEMENT_PARAMETER;
+
+  ///  This is the new replacement for [HintCode.UNUSED_FIELD].
+  static const HintCode UNUSED_FIELD = HintCode.UNUSED_FIELD;
+
+  ///  This is the new replacement for [HintCode.UNUSED_IMPORT].
+  static const HintCode UNUSED_IMPORT = HintCode.UNUSED_IMPORT;
+
+  ///  This is the new replacement for [HintCode.UNUSED_LOCAL_VARIABLE].
+  static const HintCode UNUSED_LOCAL_VARIABLE = HintCode.UNUSED_LOCAL_VARIABLE;
 
   /// Initialize a newly created error code to have the given [name].
   const WarningCode(
