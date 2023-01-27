@@ -26,14 +26,13 @@ class bool {
   @patch
   static bool parse(String source, {bool? caseSensitive}) {
     checkNotNullable(source, "source");
-    //The caseSensitive defaults to true.
-    if (caseSensitive == null || caseSensitive == true)
-      return source == "true"
-          ? true
-          : source == "false"
-              ? false
-              : throw ArgumentError(source);
-    //Ignore case-sensitive when caseSensitive is false.
+    // The caseSensitive defaults to true.
+    if (caseSensitive == null || caseSensitive == true) {
+      return source == "true" ||
+          source != "false" &&
+              (throw FormatException("Not a valid boolean", source));
+    }
+    // Ignore case-sensitive when caseSensitive is false.
     return _compareIgnoreCase(source, "true")
         ? true
         : _compareIgnoreCase(source, "false")
@@ -44,14 +43,15 @@ class bool {
   @patch
   static bool? tryParse(String source, {bool? caseSensitive}) {
     checkNotNullable(source, "source");
-    //The caseSensitive defaults to true.
-    if (caseSensitive == null || caseSensitive == true)
+    // The caseSensitive defaults to true.
+    if (caseSensitive == null || caseSensitive == true) {
       return source == "true"
           ? true
           : source == "false"
               ? false
               : null;
-    //Ignore case-sensitive when caseSensitive is false.
+    }
+    // Ignore case-sensitive when caseSensitive is false.
     return _compareIgnoreCase(source, "true")
         ? true
         : _compareIgnoreCase(source, "false")
