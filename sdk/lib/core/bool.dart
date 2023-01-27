@@ -106,6 +106,7 @@ class bool {
   ///
   /// Rather than throwing and immediately catching the [FormatException],
   /// instead use [tryParse] to handle a potential parsing error.
+  @Since("3.0")
   external static bool parse(String source, {bool? caseSensitive});
 
   /// Parse [source] as an, optionally case-insensitive, boolean literal.
@@ -124,6 +125,7 @@ class bool {
   /// print(int.tryParse('0')); // null
   /// print(int.tryParse('1')); // null
   /// ```
+  @Since("3.0")
   external static bool? tryParse(String source, {bool? caseSensitive});
 
   external int get hashCode;
