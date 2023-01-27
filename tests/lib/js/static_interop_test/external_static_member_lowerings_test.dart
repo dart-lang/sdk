@@ -9,7 +9,7 @@ library external_static_member_lowerings_test;
 import 'dart:_js_interop';
 
 import 'package:expect/minitest.dart';
-import 'package:js/js.dart' show trustTypes, staticInterop;
+import 'package:js/js.dart' show staticInterop;
 
 @JS()
 external dynamic eval(String code);
@@ -44,23 +44,18 @@ extension on ExternalStatic {
   external String get initialValue;
 }
 
-@JS('ExternalStatic')
-@staticInterop
-@trustTypes
-class ExternalStaticTrustType {
-  external static double field;
-  external static double get getSet;
-  external static double method();
-}
-
 // Top-level fields.
+@JS()
 external String field;
 @JS('field')
 external String renamedField;
+@JS()
 external final String finalField;
 
 // Top-level getters and setters.
+@JS()
 external String get getSet;
+@JS()
 external set getSet(String val);
 @JS('getSet')
 external String get renamedGetSet;
@@ -68,7 +63,9 @@ external String get renamedGetSet;
 external set renamedGetSet(String val);
 
 // Top-level methods.
+@JS()
 external String method();
+@JS()
 external String differentArgsMethod(String a, [String b = '']);
 @JS('method')
 external String renamedMethod();
@@ -129,14 +126,6 @@ void testClassStaticMembers() {
       'optionalmethod');
   expect(ExternalStatic.renamedMethod(), 'method');
   expect((ExternalStatic.renamedMethod)(), 'method');
-
-  // Use wrong return type in conjunction with `@trustTypes`.
-  expect(ExternalStaticTrustType.field, 'renamedField');
-
-  expect(ExternalStaticTrustType.getSet, 'renamedGetSet');
-
-  expect(ExternalStaticTrustType.method(), 'method');
-  expect((ExternalStaticTrustType.method)(), 'method');
 }
 
 void testTopLevelMembers() {

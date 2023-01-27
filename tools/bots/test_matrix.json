@@ -2603,11 +2603,11 @@
           ]
         },
         {
-          "name": "ddc kernel modular tests",
+          "name": "ddc modular tests unsound",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,
           "arguments": [
-            "pkg/dev_compiler/test/modular_suite.dart",
+            "pkg/dev_compiler/test/modular_suite_unsound.dart",
             "-ndartdevk-checked-${system}-release-chrome",
             "--verbose",
             "--use-sdk"
@@ -2736,12 +2736,12 @@
           "fileset": "web_platform_nnbd"
         },
         {
-          "name": "ddc weak modular tests",
+          "name": "ddc modular tests",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,
           "arguments": [
-            "pkg/dev_compiler/test/modular_suite_nnbd.dart",
-            "-ndartdevk-weak-${system}-release-chrome",
+            "pkg/dev_compiler/test/modular_suite.dart",
+            "-ndartdevk-strong-${system}-release-chrome",
             "--verbose",
             "--use-sdk"
           ]
@@ -2807,11 +2807,11 @@
           "fileset": "web_platform_nnbd"
         },
         {
-          "name": "ddc weak modular tests",
+          "name": "ddc modular tests unsound",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,
           "arguments": [
-            "pkg/dev_compiler/test/modular_suite_nnbd.dart",
+            "pkg/dev_compiler/test/modular_suite_unsound.dart",
             "-ndartdevc-canary-weak-linux-release-chrome-x64",
             "--verbose",
             "--use-sdk"
@@ -2858,11 +2858,11 @@
           ]
         },
         {
-          "name": "ddc kernel modular tests",
+          "name": "ddc modular tests unsound",
           "script": "xcodebuild/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,
           "arguments": [
-            "pkg/dev_compiler/test/modular_suite.dart",
+            "pkg/dev_compiler/test/modular_suite_unsound.dart",
             "-ndartdevk-checked-mac-release-chrome",
             "--verbose",
             "--use-sdk"
