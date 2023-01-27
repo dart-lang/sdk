@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library sourcemap.html_parts;
 
 import 'sourcemap_html_helper.dart';
@@ -18,8 +16,8 @@ class Annotation {
 }
 
 typedef bool AnnotationFilter(Annotation annotation);
-typedef AnnotationData AnnotationDataFunction(Iterable<Annotation> annotations,
-    {bool forSpan});
+typedef AnnotationData? AnnotationDataFunction(Iterable<Annotation> annotations,
+    {required bool forSpan});
 typedef LineData LineDataFunction(lineAnnotation);
 
 bool includeAllAnnotation(Annotation annotation) => true;
@@ -34,10 +32,9 @@ class LineData {
 
 class AnnotationData {
   final String tag;
-  final Map<String, String> properties;
+  final Map<String, String?> properties;
 
-  const AnnotationData(
-      {this.tag = 'a', this.properties = const <String, String>{}});
+  const AnnotationData({this.tag = 'a', this.properties = const {}});
 
   @override
   int get hashCode => tag.hashCode * 13 + properties.hashCode * 19;
@@ -54,8 +51,8 @@ class AnnotationData {
 
 AnnotationDataFunction createAnnotationDataFunction(
     {CssColorScheme colorScheme = const SingleColorScheme(),
-    ElementScheme elementScheme = const ElementScheme()}) {
-  return (Iterable<Annotation> annotations, {bool forSpan}) {
+    required ElementScheme elementScheme}) {
+  return (Iterable<Annotation> annotations, {required bool forSpan}) {
     return getAnnotationDataFromSchemes(annotations,
         forSpan: forSpan,
         colorScheme: colorScheme,
@@ -65,23 +62,21 @@ AnnotationDataFunction createAnnotationDataFunction(
 
 LineData getDefaultLineData(data) => const LineData();
 
-AnnotationData getAnnotationDataFromSchemes(Iterable<Annotation> annotations,
-    {bool forSpan,
+AnnotationData? getAnnotationDataFromSchemes(Iterable<Annotation> annotations,
+    {required bool forSpan,
     CssColorScheme colorScheme = const SingleColorScheme(),
     ElementScheme elementScheme = const ElementScheme()}) {
   if (colorScheme.showLocationAsSpan != forSpan) return null;
-  Map<String, String> data = <String, String>{};
+  Map<String, String?> data = {};
   var id;
   if (annotations.length == 1) {
     Annotation annotation = annotations.single;
-    if (annotation != null) {
-      id = annotation.id;
-      data['style'] = colorScheme.singleLocationToCssColor(id);
-      data['title'] = annotation.title;
-    }
+    id = annotation.id;
+    data['style'] = colorScheme.singleLocationToCssColor(id);
+    data['title'] = annotation.title;
   } else {
     id = annotations.first.id;
-    List ids = [];
+    List<int> ids = [];
     for (Annotation annotation in annotations) {
       ids.add(annotation.id);
     }
@@ -89,7 +84,7 @@ AnnotationData getAnnotationDataFromSchemes(Iterable<Annotation> annotations,
     data['title'] = annotations.map((l) => l.title).join(',');
   }
   if (id != null) {
-    Set ids = annotations.map<int>((l) => l.id).toSet();
+    Set<int> ids = annotations.map<int>((l) => l.id).toSet();
     data['name'] = elementScheme.getName(id, ids);
     data['href'] = elementScheme.getHref(id, ids);
     data['onclick'] = elementScheme.onClick(id, ids);
@@ -101,7 +96,7 @@ AnnotationData getAnnotationDataFromSchemes(Iterable<Annotation> annotations,
 }
 
 class HtmlPrintContext {
-  final int lineNoWidth;
+  final int? lineNoWidth;
   final bool usePre;
   final AnnotationFilter includeAnnotation;
   final AnnotationDataFunction getAnnotationData;
@@ -115,11 +110,11 @@ class HtmlPrintContext {
       this.getLineData = getDefaultLineData});
 
   HtmlPrintContext from(
-      {int lineNoWidth,
-      bool usePre,
-      AnnotationFilter includeAnnotation,
-      AnnotationDataFunction getAnnotationData,
-      LineDataFunction getLineData}) {
+      {int? lineNoWidth,
+      bool? usePre,
+      AnnotationFilter? includeAnnotation,
+      AnnotationDataFunction? getAnnotationData,
+      LineDataFunction? getLineData}) {
     return new HtmlPrintContext(
         lineNoWidth: lineNoWidth ?? this.lineNoWidth,
         usePre: usePre ?? this.usePre,
@@ -166,7 +161,6 @@ abstract class HtmlPart {
         case HtmlPartKind.LINE_NUMBER:
           return LineNumber.fromJson(json, strategy);
       }
-      return null;
     }
   }
 }
@@ -241,7 +235,7 @@ class HtmlText implements HtmlPart {
 
 class TagPart implements HtmlPart {
   final String tag;
-  final Map<String, String> properties;
+  final Map<String, String?> properties;
   final List<HtmlPart> content;
 
   TagPart(this.tag,
@@ -254,7 +248,7 @@ class TagPart implements HtmlPart {
   @override
   void printHtmlOn(StringBuffer buffer, HtmlPrintContext context) {
     buffer.write('<$tag');
-    properties.forEach((String key, String value) {
+    properties.forEach((String key, String? value) {
       if (value != null) {
         buffer.write(' $key="${value}"');
       }
@@ -324,9 +318,9 @@ class CodePart {
 
     List<HtmlPart> htmlParts = <HtmlPart>[];
     if (included.isNotEmpty) {
-      AnnotationData annotationData =
+      AnnotationData? annotationData =
           context.getAnnotationData(included, forSpan: false);
-      AnnotationData annotationDataForSpan =
+      AnnotationData? annotationDataForSpan =
           context.getAnnotationData(included, forSpan: true);
 
       String head = subsequentCode;
@@ -414,26 +408,20 @@ class LineNumber extends HtmlPart {
 }
 
 class CodeLine extends HtmlPart {
-  final Uri uri;
+  final Uri? uri;
   final int lineNo;
   final int offset;
   final StringBuffer codeBuffer = new StringBuffer();
   final List<CodePart> codeParts = <CodePart>[];
   final List<Annotation> annotations = <Annotation>[];
   var lineAnnotation;
-  String _code;
 
   CodeLine(this.lineNo, this.offset, {this.uri});
 
   @override
   HtmlPartKind get kind => HtmlPartKind.CODE;
 
-  String get code {
-    if (_code == null) {
-      _code = codeBuffer.toString();
-    }
-    return _code;
-  }
+  late final String code = codeBuffer.toString();
 
   @override
   void printHtmlOn(StringBuffer htmlBuffer, HtmlPrintContext context) {
