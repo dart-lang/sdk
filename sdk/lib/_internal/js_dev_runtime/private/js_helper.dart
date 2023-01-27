@@ -820,3 +820,8 @@ void Function(T)? wrapZoneUnaryCallback<T>(void Function(T)? callback) {
   if (callback == null) return null;
   return Zone.current.bindUnaryCallbackGuarded(callback);
 }
+
+/// [createRecordTypePredicate] is currently unused by DDC.
+Object? createRecordTypePredicate(Object? partialShapeTag, Object? fieldRtis) {
+  throw UnimplementedError('createRecordTypePredicate');
+}

@@ -86,7 +86,7 @@ class _EmptyRecord extends _Record {
   String toString() => '()';
 
   @override
-  bool operator ==(Object other) => identical(other, const _EmptyRecord());
+  bool operator ==(Object other) => identical(other, ());
 
   @override
   int get hashCode => 43 * 67;
@@ -198,7 +198,10 @@ class _RecordN extends _Record {
 /// resolution phase this function is assumed to be called in order to add
 /// impacts for all the uses in code injected in lowering from K-world to
 /// J-world.
-void _RecordImpactModel() {
+///
+/// Codegen impacts are finer-grained, based on the record representation
+/// classes and impacts returned by [RecordCodegen].
+void _recordImpactModel() {
   // Record classes are instantiated.
   Object? anything() => _inscrutable(0);
   final r0 = const _EmptyRecord();
@@ -213,36 +216,56 @@ void _RecordImpactModel() {
   r2 == anything();
   r3 == anything();
   rN == anything();
+
+  newRti.pairwiseIsTest(anything() as JSArray, anything() as JSArray);
 }
 
 // TODO(50081): Can this be `external`?
 @pragma('dart2js:assumeDynamic')
 Object? _inscrutable(Object? x) => x;
 
-// /// Class for all records with two unnamed fields.
-// // TODO(49718): Generate this class.
-// class _Record2$ extends _Record2 {
-//   _Record2$(super._0, super._1);
-//
-//   bool operator ==(Object other) => other is _Record2$ && _equalFields(other);
-//
-//   // Dynamic getters. Static field access does not use these getters.
-//   Object? get $0 => _0;
-//   Object? get $1 => _1;
-// }
-//
-// /// Class for all records with two unnamed fields containing `int`s.
-// // TODO(49718): Generate this class.
-// class _Record2$_int_int extends _Record2 {
-//   _Record2$_int_int(super._0, super._1);
-//
-//   @pragma('dart2js:as:trust')
-//   bool _equalFields(_Record2 other) =>
-//       _0 as int == other._0 && _1 as int == other._1;
-//
-//   // Dynamic getters. Static field access does not use these getters.
-//   @pragma('dart2js:as:trust')
-//   int get $0 => _0 as int;
-//   @pragma('dart2js:as:trust')
-//   int get $1 => _1 as int;
-// }
+/// Returns a JavaScript predicate that tests if the argument is a record with
+/// the given shape and fields types. The shape is determined by the number of
+/// fields and the partial shape tag [shape]. [fieldRtis] is a JSArray of Rti
+/// type objects for each field.
+///
+/// Returns `null` if test will always fail.
+@pragma('dart2js:never-inline')
+@pragma('dart2js:index-bounds:trust')
+@pragma('dart2js:as:trust')
+Object? createRecordTypePredicate(Object? shape, Object? fieldRtis) {
+  String partialShapeTag = shape as String;
+  JSArray array = fieldRtis as JSArray;
+  final length = array.length;
+
+  final table = JS_EMBEDDED_GLOBAL('', RECORD_TYPE_TEST_COMBINATORS_PROPERTY);
+
+  final combinedTag = '$length;$partialShapeTag';
+  final function = JS('', '#[#]', table, combinedTag);
+
+  if (function == null) {
+    // If the shape is missing from the table it means that no records are
+    // instantiated at that shape, so the result is always false.
+    return null;
+  }
+
+  if (length == 0) {
+    return function;
+  }
+
+  // If the JavaScript combinator has one argument per field, 'spread' the Rtis
+  // into the function.  (This logic requires that 1-element records are handled
+  // specially. We have chosen the arity class [_Record1] above, which is
+  // usually tree-shaken. If we used [_RecordN], then we would either have to
+  // special-case `length == 1` here or generate a combinator that returned a
+  // function that indexed into the single-element `_values` array.)
+
+  int argumentCount = JS('', '#.length', function);
+  if (length == argumentCount) {
+    return JS('', '#.apply(null, #)', function, array);
+  }
+
+  // Otherwise the combinator takes the list of field Rtis.
+  assert(argumentCount == 1);
+  return JS('', '#(#)', function, fieldRtis);
+}
