@@ -65,6 +65,7 @@ DECLARE_FLAG(bool, print_metrics);
 DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, trace_shutdown);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
+DECLARE_FLAG(int, old_gen_growth_time_ratio);
 
 // Reload flags.
 DECLARE_FLAG(int, reload_every);
@@ -80,6 +81,7 @@ static void DeterministicModeHandler(bool value) {
     FLAG_concurrent_mark = false;         // Timing dependent.
     FLAG_concurrent_sweep = false;        // Timing dependent.
     FLAG_scavenger_tasks = 0;             // Timing dependent.
+    FLAG_old_gen_growth_time_ratio = 0;   // Timing dependent.
     FLAG_random_seed = 0x44617274;        // "Dart"
   }
 }
