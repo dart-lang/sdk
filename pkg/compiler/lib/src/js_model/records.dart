@@ -79,6 +79,10 @@ class RecordData {
     sink.end(tag);
   }
 
+  /// Returns a fresh List of representations that define shapes.
+  List<RecordRepresentation> representationsForShapes() =>
+      [..._shapeToRepresentation.values];
+
   RecordRepresentation representationForShape(RecordShape shape) {
     return _shapeToRepresentation[shape] ??
         (throw StateError('representationForShape $shape'));
@@ -194,6 +198,19 @@ class RecordRepresentation {
     sink.writeStringOrNull(_specializationKey);
     sink.end(tag);
   }
+
+  @override
+  String toString() {
+    final sb = StringBuffer('RecordRepresentation(');
+    sb.writeAll([
+      'cls=$cls',
+      'shape=$shape',
+      'shapeTag=$shapeTag',
+      if (_specializationKey != null) 'specializationKey=$_specializationKey'
+    ], ',');
+    sb.write(')');
+    return sb.toString();
+  }
 }
 
 /// Conversion of records to classes.
@@ -217,7 +234,9 @@ class RecordDataBuilder {
     List<RecordRepresentation> representations = [];
     for (int i = 0; i < shapes.length; i++) {
       final shape = shapes[i];
-      final cls = closedWorldBuilder.buildRecordShapeClass(shape);
+      final cls = shape.fieldCount == 0
+          ? _elementMap.commonElements.emptyRecordClass
+          : closedWorldBuilder.buildRecordShapeClass(shape);
       int shapeTag = i;
       bool usesList = _computeUsesGeneralClass(cls);
       final info =

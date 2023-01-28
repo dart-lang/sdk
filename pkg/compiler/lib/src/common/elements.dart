@@ -635,16 +635,21 @@ abstract class CommonElements {
   /// A function that is used to model the back-end impacts of record lowering
   /// in the front-end.
   late final FunctionEntity recordImpactModel =
-      _findHelperFunction('_RecordImpactModel');
+      _findHelperFunction('_recordImpactModel');
 
   /// Base class for records with N fields. Can be a fixed-arity class or a
   /// general class that works for any arity.
   ClassEntity recordArityClass(int n) {
     return _findClassOrNull(jsHelperLibrary, '_Record$n') ??
-        recordGeneralBaseClass;
+        (n == 0 ? emptyRecordClass : recordGeneralBaseClass);
   }
 
   late final ClassEntity recordGeneralBaseClass = _findHelperClass('_RecordN');
+
+  late final ClassEntity emptyRecordClass = _findHelperClass('_EmptyRecord');
+
+  late final FunctionEntity recordTestByListHelper =
+      _findHelperFunction('_testRecordValues');
 
   late final ClassEntity jsInvocationMirrorClass =
       _findHelperClass('JSInvocationMirror');
@@ -842,6 +847,8 @@ abstract class CommonElements {
   late final FunctionEntity typeLiteralMaker = _findRtiFunction('typeLiteral');
 
   late final FunctionEntity checkTypeBound = _findRtiFunction('checkTypeBound');
+
+  late final FunctionEntity pairwiseIsTest = _findRtiFunction('pairwiseIsTest');
 
   ClassEntity get _rtiImplClass => _findRtiClass('Rti');
 

@@ -22,6 +22,7 @@ import '../universe/world_impact.dart'
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'custom_elements_analysis.dart';
+import 'records_codegen.dart';
 import 'runtime_types_resolution.dart';
 
 class CodegenEnqueuerListener extends EnqueuerListener {
@@ -35,6 +36,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   final RecordData _recordData;
 
   final CustomElementsCodegenAnalysis _customElementsAnalysis;
+  final RecordsCodegen _recordsCodegen;
 
   final NativeCodegenEnqueuer _nativeEnqueuer;
 
@@ -50,6 +52,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       this._rtiNeed,
       this._recordData,
       this._customElementsAnalysis,
+      this._recordsCodegen,
       this._nativeEnqueuer);
 
   @override
@@ -117,6 +120,8 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     // Return early if any elements are added to avoid counting the elements as
     // due to mirrors.
     enqueuer.applyImpact(_customElementsAnalysis.flush());
+
+    enqueuer.applyImpact(_recordsCodegen.flush(recentClasses));
 
     if (_backendUsage.isNoSuchMethodUsed && !_isNoSuchMethodUsed) {
       enqueuer.applyImpact(

@@ -17,6 +17,7 @@ import 'dart:_js_embedded_names'
         IS_HUNK_INITIALIZED,
         LEAF_TAGS,
         NATIVE_SUPERCLASS_TAG_NAME,
+        RECORD_TYPE_TEST_COMBINATORS_PROPERTY,
         RUNTIME_METRICS,
         STARTUP_METRICS,
         STATIC_FUNCTION_NAME_PROPERTY_NAME,
@@ -66,6 +67,7 @@ import 'dart:_rti' as newRti
         getTypeFromTypesTable,
         instanceTypeName,
         instantiatedGenericFunctionType,
+        pairwiseIsTest,
         throwTypeError;
 
 import 'dart:_load_library_priority';

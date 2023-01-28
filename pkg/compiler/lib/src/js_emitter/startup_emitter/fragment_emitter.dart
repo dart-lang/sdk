@@ -1888,6 +1888,12 @@ class FragmentEmitter {
           js.string(RUNTIME_METRICS), js.js('dartProgram.$RUNTIME_METRICS')));
     }
 
+    final recordStubs = (program.mainFragment as MainFragment).recordTypeStubs;
+    if (recordStubs != null) {
+      globals.add(js.Property(
+          js.string(RECORD_TYPE_TEST_COMBINATORS_PROPERTY), recordStubs));
+    }
+
     js.ObjectInitializer globalsObject =
         js.ObjectInitializer(globals, isOneLiner: false);
 

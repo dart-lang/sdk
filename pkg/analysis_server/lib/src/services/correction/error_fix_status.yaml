@@ -351,7 +351,10 @@ CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR:
 CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT:
   status: needsEvaluation
 CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION:
-  status: needsEvaluation
+  status: hasFix
+  notes: |-
+    Has fix for expression that can be made constant. More cases to be
+    implemented as per the tests.
 CompileTimeErrorCode.CONTINUE_LABEL_INVALID:
   status: needsEvaluation
 CompileTimeErrorCode.COULD_NOT_INFER:

@@ -166,6 +166,11 @@ const RUNTIME_METRICS_CONTAINER = 'runtimeMetrics';
 /// An embedded global used to collect and access startup metrics.
 const STARTUP_METRICS = 'sm';
 
+/// An embedded global that contains combinator functions for generating record
+/// type checks.
+// TODO(51016): This might be moved to improve deferred loading.
+const RECORD_TYPE_TEST_COMBINATORS_PROPERTY = 'rttc';
+
 /// Names of fields of collected tear-off parameters object.
 ///
 /// Tear-off getters are created before the Dart classes are initialized, so a

@@ -15,6 +15,7 @@ import '../js_model/js_world.dart';
 import '../js_model/type_recipe.dart';
 import '../js_emitter/js_emitter.dart' show ModularEmitter;
 import '../universe/class_hierarchy.dart';
+import '../universe/record_shape.dart';
 import 'namer.dart' show StringBackedName;
 import 'native_data.dart';
 import 'runtime_types_codegen.dart' show RuntimeTypesSubstitutions;
@@ -285,7 +286,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   void visitRecordType(RecordType type, _) {
     _emitCode(Recipe.startRecord);
     // Partial shape tag. The full shape is this plus the number of fields.
-    _emitStringUnescaped(type.shape.fieldNames.join(Recipe.separatorString));
+    _emitStringUnescaped(partialShapeTagOf(type.shape));
     _emitCode(Recipe.startFunctionArguments);
     bool first = true;
     for (DartType field in type.fields) {
@@ -404,6 +405,10 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
     visit(type.typeArgument, _);
     _emitCode(Recipe.wrapFutureOr);
   }
+}
+
+String partialShapeTagOf(RecordShape shape) {
+  return shape.fieldNames.join(Recipe.separatorString);
 }
 
 class _RulesetEntry {

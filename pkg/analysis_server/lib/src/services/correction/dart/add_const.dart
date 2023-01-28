@@ -40,6 +40,17 @@ class AddConst extends CorrectionProducer {
       });
       return;
     }
+    if (targetNode is ConstantPattern) {
+      var expression = targetNode.expression;
+      var canBeConst = getLinterContext().canBeConst(expression);
+      if (canBeConst) {
+        await builder.addDartFileEdit(file, (builder) {
+          final offset = expression.offset;
+          builder.addSimpleInsertion(offset, 'const ');
+        });
+      }
+      return;
+    }
 
     bool isParentConstant(
         DartFileEditBuilderImpl builder, Expression targetNode) {

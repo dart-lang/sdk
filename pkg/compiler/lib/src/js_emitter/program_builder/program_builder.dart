@@ -23,6 +23,7 @@ import '../../js_backend/interceptor_data.dart';
 import '../../js_backend/namer.dart' show Namer;
 import '../../js_backend/namer.dart' show StringBackedName, compareNames;
 import '../../js_backend/native_data.dart';
+import '../../js_backend/records_codegen.dart' show RecordsCodegen;
 import '../../js_backend/runtime_types.dart' show RuntimeTypesChecks;
 import '../../js_backend/runtime_types_codegen.dart' show TypeCheck;
 import '../../js_backend/runtime_types_new.dart'
@@ -73,6 +74,7 @@ class ProgramBuilder {
   final RecipeEncoder _rtiRecipeEncoder;
   final OneShotInterceptorData _oneShotInterceptorData;
   final CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
+  final RecordsCodegen _recordsCodegen;
   final Map<MemberEntity, js.Expression> _generatedCode;
   final Namer _namer;
   final CodeEmitterTask _task;
@@ -120,6 +122,7 @@ class ProgramBuilder {
       this._rtiRecipeEncoder,
       this._oneShotInterceptorData,
       this._customElementsCodegenAnalysis,
+      this._recordsCodegen,
       this._generatedCode,
       this._namer,
       this._task,
@@ -285,6 +288,7 @@ class ProgramBuilder {
         outputUnit,
         "", // The empty string is the name for the main output file.
         _buildInvokeMain(),
+        _buildMainUnitRecordTypeStubs(outputUnit),
         _buildLibraries(librariesMap),
         _buildStaticNonFinalFields(librariesMap),
         _buildStaticLazilyInitializedFields(librariesMap),
@@ -300,6 +304,11 @@ class ProgramBuilder {
         _mainFunction,
         _backendUsage.requiresStartupMetrics,
         _options);
+  }
+
+  js.Expression? _buildMainUnitRecordTypeStubs(OutputUnit mainOutputUnit) {
+    return _recordsCodegen.generateTestTableForOutputUnit(
+        mainOutputUnit, _outputUnitData, _namer);
   }
 
   DeferredFragment _buildDeferredFragment(LibrariesMap librariesMap) {

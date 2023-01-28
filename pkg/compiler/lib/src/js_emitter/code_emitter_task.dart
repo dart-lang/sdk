@@ -114,6 +114,7 @@ class CodeEmitterTask extends CompilerTask {
           codegenInputs.rtiRecipeEncoder,
           codegenWorld.oneShotInterceptorData,
           _backendStrategy.customElementsCodegenAnalysis,
+          _backendStrategy.recordsCodegen,
           _backendStrategy.generatedCode,
           namer,
           this,

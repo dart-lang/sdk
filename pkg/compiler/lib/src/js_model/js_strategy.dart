@@ -44,6 +44,7 @@ import '../js_backend/namer.dart'
         MinifyNamer,
         ModularNamer,
         Namer;
+import '../js_backend/records_codegen.dart';
 import '../js_backend/runtime_types.dart';
 import '../js_backend/runtime_types_codegen.dart';
 import '../js_backend/runtime_types_new.dart' show RecipeEncoder;
@@ -84,6 +85,8 @@ class JsBackendStrategy {
   /// Codegen support for generating table of interceptors and
   /// constructors for custom elements.
   late final CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
+
+  late final RecordsCodegen _recordsCodegen;
 
   late final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
 
@@ -149,6 +152,8 @@ class JsBackendStrategy {
   /// constructors for custom elements.
   CustomElementsCodegenAnalysis get customElementsCodegenAnalysis =>
       _customElementsCodegenAnalysis;
+
+  RecordsCodegen get recordsCodegen => _recordsCodegen;
 
   RuntimeTypesChecksBuilder get rtiChecksBuilder {
     assert(
@@ -249,6 +254,7 @@ class JsBackendStrategy {
     BackendImpacts impacts = BackendImpacts(commonElements, _compiler.options);
     _customElementsCodegenAnalysis = CustomElementsCodegenAnalysis(
         commonElements, elementEnvironment, closedWorld.nativeData);
+    _recordsCodegen = RecordsCodegen(commonElements, closedWorld.recordData);
     return CodegenEnqueuer(
         task,
         CodegenWorldBuilderImpl(
@@ -273,6 +279,7 @@ class JsBackendStrategy {
             closedWorld.rtiNeed,
             closedWorld.recordData,
             customElementsCodegenAnalysis,
+            recordsCodegen,
             nativeCodegenEnqueuer),
         closedWorld.annotationsData);
   }

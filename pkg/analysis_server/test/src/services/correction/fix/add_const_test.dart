@@ -64,24 +64,32 @@ class AddConst_PatternExpressionMustBeValidConst extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_CONST;
 
-  @FailingTest(reason: "TODO(keertip): Add support in FixProcessor")
-  Future<void> test_caseConst() async {
+  @FailingTest(issue: "https://github.com/dart-lang/sdk/issues/51139")
+  Future<void> test_caseConstConstructorCall() async {
     await resolveTestCode('''
+class A {
+  final int a;
+  const A(this.a);
+}
 void f() {
   var m = 5;
-  var x = 1;
   switch(m) {
-    case x: break;
+    case A(1): break;
   }
+}
 ''');
 
     await assertHasFix('''
+class A {
+  final int a;
+  A(this.a);
+}
 void f() {
   var m = 5;
-  const x = 1;
   switch(m) {
-    case x: break;
+    case const A(1): break;
   }
+}
 ''');
   }
 
@@ -103,6 +111,43 @@ void f() {
   switch(m) {
     case const (5 * 5): break;
   }
+''');
+  }
+
+  Future<void> test_caseConstWithField() async {
+    await resolveTestCode('''
+int x = 1;
+void f() {
+  var m = 5;
+  switch(m) {
+    case x: break;
+  }
+}
+''');
+
+    await assertNoFix();
+  }
+
+  @FailingTest(reason: "TODO(keertip): Add support for local variables")
+  Future<void> test_caseConstWithLocalVariable() async {
+    await resolveTestCode('''
+void f() {
+  var m = 5;
+  var x = 1;
+  switch(m) {
+    case x: break;
+  }
+}
+''');
+
+    await assertHasFix('''
+void f() {
+  var m = 5;
+  const x = 1;
+  switch(m) {
+    case x: break;
+  }
+}
 ''');
   }
 

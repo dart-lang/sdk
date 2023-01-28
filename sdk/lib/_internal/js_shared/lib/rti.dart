@@ -20,6 +20,7 @@ import 'dart:_foreign_helper'
         LEGACY_TYPE_REF;
 import 'dart:_interceptors'
     show JavaScriptFunction, JSArray, JSNull, JSUnmodifiableArray;
+import 'dart:_js_helper' show createRecordTypePredicate;
 import 'dart:_js_names'
     show getSpecializedTestTag, unmangleGlobalNameIfPreservedAnyways;
 import 'dart:_js_shared_embedded_names';
@@ -371,6 +372,16 @@ class Rti {
     var s = _getCanonicalRecipe(rti);
     return JS('String', '#.replace(/\\*/g, "")', s);
   }
+}
+
+@pragma('dart2js:types:trust')
+@pragma('dart2js:index-bounds:trust')
+bool pairwiseIsTest(JSArray fieldRtis, JSArray values) {
+  final length = values.length;
+  for (int i = 0; i < length; i++) {
+    if (!Rti._isCheck(_Utils.asRti(fieldRtis[i]), values[i])) return false;
+  }
+  return true;
 }
 
 class _FunctionParameters {
@@ -893,6 +904,10 @@ bool _installSpecializedIsTest(Object? object) {
   //
   //   `null is Never`  --> `false`
   //   `null is Never*` --> `true`
+  if (Rti._getKind(testRti) == Rti.kindNever) {
+    return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isNever));
+  }
+
   Rti unstarred = Rti._getKind(testRti) == Rti.kindStar
       ? Rti._getStarArgument(testRti)
       : testRti;
@@ -927,6 +942,9 @@ bool _installSpecializedIsTest(Object? object) {
   } else if (Rti._getKind(testRti) == Rti.kindQuestion) {
     return _finishIsFn(testRti, object,
         RAW_DART_FUNCTION_REF(_generalNullableIsTestImplementation));
+  } else if (Rti._getKind(unstarred) == Rti.kindRecord) {
+    isFn = _recordSpecializedIsTest(unstarred);
+    return _finishIsFn(testRti, object, isFn);
   }
   return _finishIsFn(
       testRti, object, RAW_DART_FUNCTION_REF(_generalIsTestImplementation));
@@ -952,6 +970,13 @@ Object? _simpleSpecializedIsTest(Rti testRti) {
     isFn = RAW_DART_FUNCTION_REF(_isBool);
   }
   return isFn;
+}
+
+Object? _recordSpecializedIsTest(Rti testRti) {
+  final partialShapeTag = Rti._getRecordPartialShapeTag(testRti);
+  final fieldRtis = Rti._getRecordFields(testRti);
+  final predicate = createRecordTypePredicate(partialShapeTag, fieldRtis);
+  return predicate ?? RAW_DART_FUNCTION_REF(_isNever);
 }
 
 /// Called from generated code.
@@ -1164,6 +1189,12 @@ bool _isTop(Object? object) {
 /// Called from generated code via Rti `_as` methods.
 Object? _asTop(Object? object) {
   return object;
+}
+
+/// Specialization for 'is Never'.
+/// Called from generated code via Rti '_is' method.
+bool _isNever(Object? object) {
+  return false;
 }
 
 /// Specialization for 'is bool'.

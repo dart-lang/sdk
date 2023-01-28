@@ -92,10 +92,16 @@ abstract class Fragment {
 class MainFragment extends Fragment {
   final js.Statement invokeMain;
 
+  // TODO(50081): We should collect a list of stub objects in the model to
+  // support different stubs in different units, and merging units and their
+  // stubs.
+  final js.Expression? recordTypeStubs;
+
   MainFragment(
       OutputUnit outputUnit,
       String outputFileName,
       this.invokeMain,
+      this.recordTypeStubs,
       List<Library> libraries,
       List<StaticField> staticNonFinalFields,
       List<StaticField> staticLazilyInitializedFields,

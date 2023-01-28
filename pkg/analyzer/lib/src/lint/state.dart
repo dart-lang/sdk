@@ -4,7 +4,10 @@
 
 import 'package:pub_semver/pub_semver.dart';
 
-/// A version describing Dart 3.0.0.
+/// A version describing Dart language version 2.12.0.
+final Version dart2_12 = Version(2, 12, 0);
+
+/// A version describing Dart language version 3.0.0.
 final Version dart3 = Version(3, 0, 0);
 
 /// A state that marks a lint as deprecated.
@@ -29,8 +32,7 @@ class RemovedState extends State {
   final String? replacedBy;
 
   /// Initialize a newly created removed state with given values.
-  const RemovedState({required super.since, this.replacedBy})
-      : super(label: 'removed');
+  const RemovedState({super.since, this.replacedBy}) : super(label: 'removed');
 }
 
 /// A state that marks a lint as stable.
@@ -45,7 +47,7 @@ abstract class State {
   static const _undatedDeprecated = DeprecatedState();
   static const _undatedExperimental = ExperimentalState();
 
-  /// An Optional Dart SDK version that identifies the start of this state.
+  /// An Optional Dart language version that identifies the start of this state.
   final Version? since;
 
   /// A short description, suitable for displaying in documentation or a
@@ -66,7 +68,7 @@ abstract class State {
       since == null ? _undatedExperimental : ExperimentalState(since: since);
 
   /// Initialize a newly created removed state with given values.
-  factory State.removed({required Version since, String? replacedBy}) =>
+  factory State.removed({Version? since, String? replacedBy}) =>
       RemovedState(since: since, replacedBy: replacedBy);
 
   /// Initialize a newly created stable state with given values.
