@@ -9,89 +9,88 @@ import 'dart:nativewrappers';
 
 import 'package:expect/expect.dart';
 
-@FfiNative<Void Function()>("ffi.empty")
+@Native<Void Function()>()
 external void empty();
 
-@FfiNative<Int8 Function(Int8, Int8)>("ffi.addInt8")
+@Native<Int8 Function(Int8, Int8)>()
 external int addInt8(int a, int b);
 
-@FfiNative<Int8 Function(Uint8, Uint8)>("ffi.addUint8")
+@Native<Int8 Function(Uint8, Uint8)>()
 external int addUint8(int a, int b);
 
-@FfiNative<Int16 Function(Int16, Int16)>("ffi.addInt16")
+@Native<Int16 Function(Int16, Int16)>()
 external int addInt16(int a, int b);
 
-@FfiNative<Uint16 Function(Uint16, Uint16)>("ffi.addUint16")
+@Native<Uint16 Function(Uint16, Uint16)>()
 external int addUint16(int a, int b);
 
-@FfiNative<Int32 Function(Int32, Int32)>("ffi.addInt32")
+@Native<Int32 Function(Int32, Int32)>()
 external int addInt32(int a, int b);
 
-@FfiNative<Uint32 Function(Uint32, Uint32)>("ffi.addUint32")
+@Native<Uint32 Function(Uint32, Uint32)>()
 external int addUint32(int a, int b);
 
-@FfiNative<Int64 Function(Int64, Int64)>("ffi.addInt64")
+@Native<Int64 Function(Int64, Int64)>()
 external int addInt64(int a, int b);
 
-@FfiNative<Uint64 Function(Uint64, Uint64)>("ffi.addUint64")
+@Native<Uint64 Function(Uint64, Uint64)>()
 external int addUint64(int a, int b);
 
-@FfiNative<Bool Function(Bool)>("ffi.negateBool")
+@Native<Bool Function(Bool)>()
 external bool negateBool(bool b);
 
-@FfiNative<Bool Function(Int)>("ffi.boolReturn")
+@Native<Bool Function(Int)>()
 external bool boolReturn(int b);
 
-@FfiNative<Void Function()>("ffi.toggleBool")
+@Native<Void Function()>()
 external void toggleBool();
 
-@FfiNative<Double Function(Double)>("ffi.sqrt")
+@Native<Double Function(Double)>()
 external double sqrt(double d);
 
-@FfiNative<Char Function(Char)>("ffi.incrementChar")
+@Native<Char Function(Char)>()
 external int incrementChar(int a);
 
-@FfiNative<UnsignedChar Function(UnsignedChar)>("ffi.incrementUnsignedChar")
+@Native<UnsignedChar Function(UnsignedChar)>()
 external int incrementUnsignedChar(int a);
 
-@FfiNative<SignedChar Function(SignedChar)>("ffi.incrementSignedChar")
+@Native<SignedChar Function(SignedChar)>()
 external int incrementSignedChar(int a);
 
-@FfiNative<Short Function(Short)>("ffi.incrementShort")
+@Native<Short Function(Short)>()
 external int incrementShort(int a);
 
-@FfiNative<UnsignedShort Function(UnsignedShort)>("ffi.incrementUnsignedShort")
+@Native<UnsignedShort Function(UnsignedShort)>()
 external int incrementUnsignedShort(int a);
 
-@FfiNative<Int Function(Int)>("ffi.incrementInt")
+@Native<Int Function(Int)>()
 external int incrementInt(int a);
 
-@FfiNative<UnsignedInt Function(UnsignedInt)>("ffi.incrementUnsignedInt")
+@Native<UnsignedInt Function(UnsignedInt)>()
 external int incrementUnsignedInt(int a);
 
-@FfiNative<Long Function(Long)>("ffi.incrementLong")
+@Native<Long Function(Long)>()
 external int incrementLong(int a);
 
-@FfiNative<UnsignedLong Function(UnsignedLong)>("ffi.incrementUnsignedLong")
+@Native<UnsignedLong Function(UnsignedLong)>()
 external int incrementUnsignedLong(int a);
 
-@FfiNative<LongLong Function(LongLong)>("ffi.incrementLongLong")
+@Native<LongLong Function(LongLong)>()
 external int incrementLongLong(int a);
 
-@FfiNative<UnsignedLongLong Function(UnsignedLongLong)>(
-    "ffi.incrementUnsignedLongLong")
+@Native<UnsignedLongLong Function(UnsignedLongLong)>()
 external int incrementUnsignedLongLong(int a);
 
-@FfiNative<IntPtr Function(IntPtr)>("ffi.incrementIntPtr")
+@Native<IntPtr Function(IntPtr)>()
 external int incrementIntPtr(int a);
 
-@FfiNative<UintPtr Function(UintPtr)>("ffi.incrementUintPtr")
+@Native<UintPtr Function(UintPtr)>()
 external int incrementUintPtr(int a);
 
-@FfiNative<Size Function(Size)>("ffi.incrementSize")
+@Native<Size Function(Size)>()
 external int incrementSize(int a);
 
-@FfiNative<WChar Function(WChar)>("ffi.incrementWchar")
+@Native<WChar Function(WChar)>()
 external int incrementWchar(int a);
 
 class MyStruct extends Struct implements NativeFieldWrapperClass1 {
@@ -102,10 +101,10 @@ class MyStruct extends Struct implements NativeFieldWrapperClass1 {
   external int y;
 }
 
-@FfiNative<Pointer<MyStruct> Function()>("ffi.getStruct")
+@Native<Pointer<MyStruct> Function()>()
 external Pointer<MyStruct> getStruct();
 
-@FfiNative<Void Function(Pointer<MyStruct>)>("ffi.clearStruct")
+@Native<Void Function(Pointer<MyStruct>)>()
 external void clearStruct(Pointer<MyStruct> struct);
 
 void main() {

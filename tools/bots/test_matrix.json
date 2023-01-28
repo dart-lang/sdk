@@ -2817,7 +2817,7 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,
           "arguments": [
-            "pkg/dev_compiler/test/modular_suite_unsound.dart",
+            "pkg/dev_compiler/test/modular_suite_canary_unsound.dart",
             "-ndartdevc-canary-weak-linux-release-chrome-x64",
             "--verbose",
             "--use-sdk"
