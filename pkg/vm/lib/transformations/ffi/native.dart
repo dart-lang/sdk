@@ -56,7 +56,7 @@ class FfiNativeTransformer extends FfiTransformer {
   final Field ffiNativeIsLeafField;
   final Field resolverField;
 
-  StringConstant? _currentAsset;
+  StringConstant? currentAsset;
 
   // VariableDeclaration names can be null or empty string, in which case
   // they're automatically assigned a "temporary" name like `#t0`.
@@ -86,14 +86,14 @@ class FfiNativeTransformer extends FfiTransformer {
 
   @override
   TreeNode visitLibrary(Library node) {
-    assert(_currentAsset == null);
+    assert(currentAsset == null);
     final annotation = tryGetAssetAnnotation(node);
     if (annotation != null) {
-      _currentAsset = (annotation.constant as InstanceConstant)
+      currentAsset = (annotation.constant as InstanceConstant)
           .fieldValues[assetAssetField.fieldReference] as StringConstant;
     }
     final result = super.visitLibrary(node);
-    _currentAsset = null;
+    currentAsset = null;
     return result;
   }
 
@@ -118,7 +118,10 @@ class FfiNativeTransformer extends FfiTransformer {
       tryGetAnnotation(node, [assetClass]);
 
   ConstantExpression? tryGetFfiNativeAnnotation(Member node) =>
-      tryGetAnnotation(node, [nativeClass, ffiNativeClass]);
+      tryGetAnnotation(node, [ffiNativeClass]);
+
+  ConstantExpression? tryGetNativeAnnotation(Member node) =>
+      tryGetAnnotation(node, [nativeClass]);
 
   bool _extendsNativeFieldWrapperClass1(DartType type) {
     if (type is InterfaceType) {
@@ -643,7 +646,8 @@ class FfiNativeTransformer extends FfiTransformer {
     // Only transform functions that are external and have FfiNative annotation:
     //   @FfiNative<Double Function(Double)>('Math_sqrt')
     //   external double _square_root(double x);
-    final ffiNativeAnnotation = tryGetFfiNativeAnnotation(node);
+    final ffiNativeAnnotation =
+        tryGetNativeAnnotation(node) ?? tryGetFfiNativeAnnotation(node);
     if (ffiNativeAnnotation == null) {
       return node;
     }
@@ -668,7 +672,7 @@ class FfiNativeTransformer extends FfiTransformer {
     final assetConstant =
         ffiConstant.fieldValues[nativeAssetField.fieldReference];
     final assetName =
-        assetConstant is StringConstant ? assetConstant : _currentAsset;
+        assetConstant is StringConstant ? assetConstant : currentAsset;
     final isLeaf = ((ffiConstant
                     .fieldValues[nativeIsLeafField.fieldReference] ??
                 ffiConstant.fieldValues[ffiNativeIsLeafField.fieldReference])
