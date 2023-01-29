@@ -189,6 +189,8 @@ void defineCreateTests() {
         expect(lines.length, 3);
         expect(lines[0], 'cd $dir');
         expect(lines[1], 'dart pub global activate webdev');
+        --webdev serve
+Use the build_runner tool to build your app, unless you want to support the debug service protocol to link up Dart devtools (link to more info on that)
         expect(lines[2], 'webdev serve');
       } else if (generator.categories.contains('console')) {
         expect(lines.length, 2);

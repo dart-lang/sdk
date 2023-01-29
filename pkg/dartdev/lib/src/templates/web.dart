@@ -28,7 +28,8 @@ class WebGenerator extends DefaultGenerator {
     );
     addFile('web/styles.css', _styles);
   }
-
+  --webdev serve;
+Use the build_runner tool to build your app, unless you want to support the debug service protocol to link up Dart devtools (link to more info on that)
   @override
   String getInstallInstructions(
     String directory, {
@@ -37,6 +38,9 @@ class WebGenerator extends DefaultGenerator {
       '  cd ${p.relative(directory)}\n'
       '  dart pub global activate webdev\n'
       '  webdev serve';
+}
+
+class webdev {
 }
 
 final String _pubspec = '''
