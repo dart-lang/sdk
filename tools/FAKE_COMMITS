@@ -28,10 +28,6 @@ Force build while trybots are broken, to check builders for brokenness.
 Force build to test recipe changes
 Force build to test recipe changes
 Trigger bots
-Trigger bots
-Trigger builds to check recipe changes
-Trigger builds to check recipe changes
-Trigger builds to check recipe changes
 Trigger builds to check recipe changes
 Trigger builds to test builder configuration change
 Trigger mac builds now that the snoopy service is installed
