@@ -29,15 +29,16 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 
 /// Options controlling the translation.
 class TranslatorOptions {
+  bool enableAsserts = false;
   bool exportAll = false;
   bool importSharedMemory = false;
   bool inlining = true;
-  int inliningLimit = 0;
   bool nameSection = true;
+  bool omitTypeChecks = false;
   bool polymorphicSpecialization = false;
   bool printKernel = false;
   bool printWasm = false;
-  bool enableAsserts = false;
+  int inliningLimit = 0;
   int? sharedMemoryMaxPages;
   List<int>? watchPoints = null;
 }
@@ -393,21 +394,25 @@ class Translator with KernelNodes {
     final positionalParameters = List.of(staticType.positionalParameters);
     assert(positionalParameters.length ==
         method.function.positionalParameters.length);
-    for (int i = 0; i < positionalParameters.length; i++) {
-      final param = method.function.positionalParameters[i];
-      if (param.isCovariantByDeclaration || param.isCovariantByClass) {
-        positionalParameters[i] = coreTypes.objectNullableRawType;
-      }
-    }
 
     final namedParameters = List.of(staticType.namedParameters);
     assert(namedParameters.length == method.function.namedParameters.length);
-    for (int i = 0; i < namedParameters.length; i++) {
-      final param = method.function.namedParameters[i];
-      if (param.isCovariantByDeclaration || param.isCovariantByClass) {
-        namedParameters[i] = NamedType(
-            namedParameters[i].name, coreTypes.objectNullableRawType,
-            isRequired: namedParameters[i].isRequired);
+
+    if (!options.omitTypeChecks) {
+      for (int i = 0; i < positionalParameters.length; i++) {
+        final param = method.function.positionalParameters[i];
+        if (param.isCovariantByDeclaration || param.isCovariantByClass) {
+          positionalParameters[i] = coreTypes.objectNullableRawType;
+        }
+      }
+
+      for (int i = 0; i < namedParameters.length; i++) {
+        final param = method.function.namedParameters[i];
+        if (param.isCovariantByDeclaration || param.isCovariantByClass) {
+          namedParameters[i] = NamedType(
+              namedParameters[i].name, coreTypes.objectNullableRawType,
+              isRequired: namedParameters[i].isRequired);
+        }
       }
     }
 

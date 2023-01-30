@@ -18,6 +18,7 @@ where *options* include:
 | `--`[`no-`]`inlining`                   | yes     | Enable function inlining.
 | `--inlining-limit` *size*               | 0       | Always inline functions no larger than this number of AST nodes, if inlining is enabled.
 | `--`[`no-`]`name-section`               | yes     | Emit Name Section with function names.
+| `--`[`no-`]`omit-type-checks`           | no      | Omit runtime type checks, such as covariance checks and downcasts.
 | `--`[`no-`]`polymorphic-specialization` | no      | Do virtual calls by switching on the class ID instead of using `call_indirect`.
 | `--`[`no-`]`print-kernel`               | no      | Print IR for each function before compiling it.
 | `--`[`no-`]`print-wasm`                 | no      | Print Wasm instructions of each compiled function.
