@@ -855,7 +855,7 @@ ISOLATE_UNIT_TEST_CASE(ConcurrentForceGrowthScope) {
 ISOLATE_UNIT_TEST_CASE(WeakSmi) {
   // Weaklings are prevented from referencing Smis by the public Dart library
   // interface, but the VM internally can do this and the implementation should
-  // just handle it. Immediate objects are effectively immmortal.
+  // just handle it. Immediate objects are effectively immortal.
 
   WeakProperty& new_ephemeron =
       WeakProperty::Handle(WeakProperty::New(Heap::kNew));

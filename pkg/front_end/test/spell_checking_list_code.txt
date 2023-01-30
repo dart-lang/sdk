@@ -119,9 +119,7 @@ became
 beforehand
 behave
 believe
-bellow
 belonging
-beloning
 benchmark
 benchmarked
 benchmarker
@@ -189,7 +187,6 @@ cardinality
 caret
 carets
 carriage
-carring
 cascades
 casing
 cast
@@ -1025,7 +1022,6 @@ paulberry
 pay
 payload
 payloads
-paylod
 pdf
 pedantic
 per
@@ -1433,7 +1429,6 @@ subname
 subnode
 subnodes
 subpatterns
-subpattterns
 subscription
 subsection
 subsections

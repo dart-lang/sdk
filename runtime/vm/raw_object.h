@@ -3247,7 +3247,7 @@ class UntaggedRecord : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Record);
 
 #if defined(DART_COMPRESSED_POINTERS)
-  // This explicit padding avoids implict padding between [shape] and [data].
+  // This explicit padding avoids implicit padding between [shape] and [data].
   // Record allocation doesn't initialize the implicit padding but GC scans
   // everything between 'from' (shape) and 'to' (end of data),
   // so it would see garbage if implicit padding is inserted.

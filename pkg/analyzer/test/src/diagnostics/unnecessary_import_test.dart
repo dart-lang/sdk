@@ -171,7 +171,7 @@ f(p.A a, p.B b) {}
     ]);
   }
 
-  test_duplicteImport_differentPrefix() async {
+  test_duplicateImport_differentPrefix() async {
     newFile('$testPackageLibPath/lib1.dart', '''
 class A {}
 class B {}

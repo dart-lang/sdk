@@ -6188,7 +6188,7 @@ class ValueFormat {
 /// The client can use this optional information to present the children in a
 /// paged UI and fetch them in chunks.
 class Variable {
-  /// Optional evaluatable name of this variable which can be passed to the
+  /// Optional evaluable name of this variable which can be passed to the
   /// 'EvaluateRequest' to fetch the variable's value.
   final String? evaluateName;
 

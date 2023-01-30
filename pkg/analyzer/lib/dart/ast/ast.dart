@@ -1463,7 +1463,7 @@ abstract class Configuration implements AstNode {
 /// - constant constructor invocations
 /// - constant list literals
 /// - constant set or map literals
-/// - constant expressions wrapped in parentheses and preceeded by the `const`
+/// - constant expressions wrapped in parentheses and preceded by the `const`
 ///   keyword
 ///
 /// This node is also used to recover from cases where a different kind of

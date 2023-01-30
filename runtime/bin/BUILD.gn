@@ -891,7 +891,7 @@ dart_executable("dart_precompiled_runtime_product") {
   extra_deps += [ ":elf_loader_product" ]
 }
 
-# This flag is set set in runtime/runtime_args.gni
+# This flag is set in runtime/runtime_args.gni
 # The analyze_snapshot tool is only supported on 64 bit AOT builds running under
 # linux and android platforms
 if (build_analyze_snapshot) {

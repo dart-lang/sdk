@@ -128,7 +128,7 @@ class _SizeTracker extends RecursiveInfoVisitor {
   final Map<Info, int> missing = {};
 
   /// Set of [FunctionInfo]s that appear to be unused by the app (they are not
-  /// registed [coverage]).
+  /// registered [coverage]).
   final List unused = [];
 
   /// Tracks the current state of this visitor.

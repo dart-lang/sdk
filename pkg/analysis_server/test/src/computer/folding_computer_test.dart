@@ -285,7 +285,7 @@ void f() {}
  * comment 1
  *//*0]*/
 
-/* this comment starts on the same line as delimeters/*[1*/
+/* this comment starts on the same line as delimiters/*[1*/
  * second line
  *//*1]*/
 void f() {}

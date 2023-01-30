@@ -75,7 +75,7 @@
 #    version (or add the missing needed one(s)) to avoid triggering an assert.
 #
 # `#nameOKEmpty`: name (as string). Will use an "(unnamed)" default message if
-#    the string is null or empty. Otherwise see the describtion above.
+#    the string is null or empty. Otherwise see the description above.
 #
 # `#names`: A list of names (strings).
 #
@@ -91,7 +91,7 @@
 #
 # `#stringOKEmpty`: string (that isn't a name). Will use an "(empty)" default
 #    message if the string is null or empty.
-#    Otherwise see the describtion above.
+#    Otherwise see the description above.
 #
 # `#type`, #type2`, `#type3`: Kernel types.
 #

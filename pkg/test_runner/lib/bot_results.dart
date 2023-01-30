@@ -122,7 +122,7 @@ Future<Iterable<String>> lsGsutil(String directory) async {
 Future cpGsutil(String source, String destination) =>
     runGsutil(["cp", source, destination]);
 
-/// Copies a directory recursively to or from cloud strorage.
+/// Copies a directory recursively to or from cloud storage.
 Future cpRecursiveGsutil(String source, String destination) =>
     runGsutil(["-m", "cp", "-r", "-Z", source, destination]);
 

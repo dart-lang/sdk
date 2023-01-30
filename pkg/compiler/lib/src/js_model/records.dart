@@ -122,7 +122,7 @@ class RecordData {
 }
 
 /// How to access a field of a record. Currently there are two forms, a single
-/// field acccess (e.g. `r._2`), used for small records, or a field access
+/// field access (e.g. `r._2`), used for small records, or a field access
 /// followed by an indexing, used for records that hold the values in a JSArray
 /// (e.g. `r._values[2]`).
 class RecordAccessPath {
@@ -149,7 +149,7 @@ class RecordRepresentation {
   /// A shape class defines some metadata properties on the prototype:
   ///
   /// (1) The shapeTag, a small integer (see below).
-  /// (2) The the top-type recipe for the shape. The recipe is a function of the
+  /// (2) The top-type recipe for the shape. The recipe is a function of the
   ///     [shape]. e.g. `"+end,start(@,@)"`.
   final bool definesShape;
 

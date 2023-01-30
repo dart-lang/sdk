@@ -4230,7 +4230,7 @@ class A2 {}
     fileStateFor(a).refresh();
 
     // The augmentation `a.dart` has a different unlinked key, and its
-    // refresh invalidated the library cycle `b.dart`, which has a differrent
+    // refresh invalidated the library cycle `b.dart`, which has a different
     // signature now.
     assertDriverStateString(testFile, r'''
 files

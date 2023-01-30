@@ -138,7 +138,7 @@ mixin VmServiceInfoFileUtils on FileUtils {
   /// Creates a temp folder for the VM to write the service-info-file into and
   /// returns the [File] to use.
   File generateVmServiceInfoFile() {
-    // Using tmpDir.createTempory() is flakey on Windows+Linux (at least
+    // Using tmpDir.createTemporary() is flakey on Windows+Linux (at least
     // on GitHub Actions) complaining the file does not exist when creating a
     // watcher. Creating/watching a folder and writing the file into it seems
     // to be reliable.

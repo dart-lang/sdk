@@ -1128,7 +1128,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// uriToSource (used in places for dependency tracking), the incremental
   /// serializer (they are no longer kept up-to-date) and the DillTarget
   /// (to avoid leaks).
-  /// We also have to remove any component problems beloning to any such
+  /// We also have to remove any component problems belonging to any such
   /// no-longer-used library (to avoid re-issuing errors about no longer
   /// relevant stuff).
   void _cleanupRemovedBuilders(IncrementalKernelTarget? lastGoodKernelTarget,

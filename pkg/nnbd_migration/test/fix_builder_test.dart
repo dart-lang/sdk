@@ -1688,7 +1688,7 @@ _f(int/*?*/ x) {
     await analyze('int f(num x) => x;');
     var xRef = findNode.simple('x;');
     visitSubexpression(xRef, 'int', changes: {
-      xRef: isNodeChangeForExpression.havingIndroduceAsWithInfo(
+      xRef: isNodeChangeForExpression.havingIntroduceAsWithInfo(
           'int',
           isInfo(NullabilityFixDescription.downcastExpression,
               {FixReasonTarget.root: isEdge}))
@@ -3528,7 +3528,7 @@ int f(Object o) {
 ''');
     var xRef = findNode.simple('o;');
     visitSubexpression(xRef, 'int', changes: {
-      xRef: isNodeChangeForExpression.havingIndroduceAsWithInfo(
+      xRef: isNodeChangeForExpression.havingIntroduceAsWithInfo(
           'int',
           isInfo(NullabilityFixDescription.otherCastExpression,
               {FixReasonTarget.root: isEdge}))
@@ -3951,7 +3951,7 @@ extension _NodeChangeForExpressionExtension<T extends NodeChangeForExpression>
           .having((c) => c.expressionChangeInfos.single,
               'expressionChangeInfos.single', infoMatcher);
 
-  TypeMatcher<T> havingIndroduceAsWithInfo(
+  TypeMatcher<T> havingIntroduceAsWithInfo(
           dynamic typeStringMatcher, dynamic infoMatcher) =>
       havingExpressionChange(
           TypeMatcher<IntroduceAsChange>().having(

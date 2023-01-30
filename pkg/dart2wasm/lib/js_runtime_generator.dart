@@ -401,7 +401,7 @@ class _JSLowerer extends Transformer {
   /// argument(only for callbacks that take optional parameters), followed by
   /// all of the arguments to the Dart callback as JS objects.  The trampoline
   /// will `dartifyRaw` all incoming JS objects and then cast them to their
-  /// approriate types, dispatch, and then `jsifyRaw` any returned value.
+  /// appropriate types, dispatch, and then `jsifyRaw` any returned value.
   /// [_createFunctionTrampoline] Returns a [String] function name representing
   /// the name of the wrapping function.
   String _createFunctionTrampoline(Procedure node, FunctionType function) {

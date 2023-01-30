@@ -220,7 +220,7 @@ class CodeActionHandler
   }
 }
 
-/// Sorts [CodeActionWithPriority]s by priorty, and removes duplicates keeping
+/// Sorts [CodeActionWithPriority]s by priority, and removes duplicates keeping
 /// the one nearest [range].
 class _CodeActionSorter {
   final Range range;

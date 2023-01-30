@@ -134,7 +134,7 @@ final _traceLineRE =
 /// sections.
 ///
 /// Unless forceHexadecimal is true, an integer offset without a "0x" prefix or
-/// any hexdecimal digits will be parsed as decimal.
+/// any hexadecimal digits will be parsed as decimal.
 ///
 /// Returns null if the string is not of the expected format.
 PCOffset? tryParseSymbolOffset(String s,

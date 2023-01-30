@@ -398,6 +398,7 @@ capturing
 care
 careful
 cares
+caring
 carries
 carry
 cascade
@@ -748,7 +749,6 @@ deciding
 decimal
 decision
 declarable
-declarated
 declaration
 declaration's
 declarations

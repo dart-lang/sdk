@@ -310,7 +310,7 @@ static ArrayPtr GetAssetLocation(Thread* const thread, const String& asset) {
 //
 // The |asset_location| is formatted as follows:
 // ['<path_type>', '<path (optional)>']
-// The |asset_location| is comform to: pkg/vm/lib/native_assets/validator.dart
+// The |asset_location| is conform to: pkg/vm/lib/native_assets/validator.dart
 static void* FfiResolveAsset(Thread* const thread,
                              const Array& asset_location,
                              const String& symbol,

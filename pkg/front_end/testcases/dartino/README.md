@@ -163,7 +163,7 @@ The latter version tests what happens when:
 
 * A modification is made to a top-level method.
 
-* A modifiction is made to the main method, which is a special case.
+* A modification is made to the main method, which is a special case.
 
 * Two more selectors are added to tree-shaking, the enqueuer: 'get:bar',
   and 'set:bar'.

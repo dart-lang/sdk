@@ -31,7 +31,7 @@ abstract class InferredData {
   SideEffects getSideEffectsOfElement(FunctionEntity element);
 
   /// Returns the side effects of calling [selector] on the [receiver]. A `null`
-  /// [receiver] indicates the type of the reciever is unknown and therefore
+  /// [receiver] indicates the type of the receiver is unknown and therefore
   /// all matches of the selector are returned.
   SideEffects getSideEffectsOfSelector(
       Selector selector, AbstractValue? receiver);

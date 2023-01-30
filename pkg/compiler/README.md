@@ -53,7 +53,7 @@ The current compiler phases are:
      The result of this phase is what we call a "closed world" (w1). The closed
      world is also a datastructure that can answer interesting queries, such as:
      Is this interface implemented by a single class? Is this method available
-     in any stubtype of some interface? The answers to these questions can help
+     in any subtype of some interface? The answers to these questions can help
      the compiler generate higher quality JavaScript.
 
   4. **global analysis**: Run a global analysis that assumes closed world

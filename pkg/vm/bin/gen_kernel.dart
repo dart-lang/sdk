@@ -47,7 +47,7 @@ Future runBatchModeCompiler() async {
     // Important things to note:
     //
     //   * Our global transformations must never alter the AST structures which
-    //     the statefull IKG generator keeps across compilations.
+    //     the stateful IKG generator keeps across compilations.
     //     => We need to make our own copy.
     //
     //   * We must ensure the stateful IKG generator keeps giving us all the

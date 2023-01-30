@@ -356,7 +356,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       typeLocals[typeParameters[i]] = paramLocals[parameterOffset + i];
     }
 
-    // Local for the prameter type if any of the parameters need type checks
+    // Local for the parameter type if any of the parameters need type checks
     w.Local? parameterExpectedTypeLocal;
 
     void setupParamLocal(

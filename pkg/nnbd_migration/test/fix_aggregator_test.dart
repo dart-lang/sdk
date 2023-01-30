@@ -1661,7 +1661,7 @@ class C {
     // `throw c..d`.  In an ideal world, we would see that we can just keep the
     // parens we have, but this is difficult because we don't see that the
     // parens are needed until we walk far enough up the AST to see that we're
-    // inside a casade expression.  So we drop the parens and then create new
+    // inside a cascade expression.  So we drop the parens and then create new
     // ones surrounding `throw c..d`.
     //
     // Strictly speaking the code we produce is correct, it's just making a

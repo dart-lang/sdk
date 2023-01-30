@@ -49,7 +49,7 @@ IDE.
 ### VS Code
 
 1. Open the command palette (Ctrl+Shift+P) and type "Dart: Open Analyzer
-   Diagnostics". The analyzer diagonstics website should open in an external
+   Diagnostics". The analyzer diagnostics website should open in an external
    browser.
 
 ## Using the analyzer diagnostics pages

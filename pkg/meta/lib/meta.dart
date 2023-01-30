@@ -294,7 +294,7 @@ const _Protected protected = _Protected();
 ///   marked `sealed` and it extends, mixes in, or implements the interface of
 ///   another class or mixin which prevents subclassing.
 /// * We give a warning if a subclass or sub-mixin extends, mixes in, implements
-///   the the interface of, or has as an on type a class or mixin which prevents
+///   the interface of, or has as an on type a class or mixin which prevents
 ///   subclassing, and the subclass or sub-mixin has no modifier or is marked
 ///   `interface` or `base`.
 ///

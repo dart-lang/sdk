@@ -35,7 +35,7 @@ class A {
 }
 ''', [
       // TODO(srawlins): Only report one error. Theoretically change Fasta to
-      // report "Field initiailizer in factory constructor" as a parse error.
+      // report "Field initializer in factory constructor" as a parse error.
       error(CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR, 43, 12),
       error(ParserErrorCode.MISSING_FUNCTION_BODY, 56, 1),
     ]);
