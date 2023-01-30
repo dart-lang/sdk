@@ -2287,7 +2287,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   @override
   void visitRecordIndexGet(RecordIndexGet node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
-    writeSymbol('.\$${node.index}');
+    writeSymbol('.\$${node.index + 1}');
     writeSymbol('{');
     writeType(node.receiverType.positional[node.index]);
     writeSymbol('}');

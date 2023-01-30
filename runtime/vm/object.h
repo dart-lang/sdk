@@ -11240,7 +11240,7 @@ class Record : public Instance {
 
   // Returns index of the field with given name, or -1
   // if such field doesn't exist.
-  // Supports positional field names ("$0", "$1", etc).
+  // Supports positional field names ("$1", "$2", etc).
   intptr_t GetFieldIndexByName(Thread* thread, const String& field_name) const;
 
   ArrayPtr GetFieldNames(Thread* thread) const {

@@ -53,7 +53,8 @@ class FakeEntryPointsListener implements EntryPointsListener {
   }
 
   @override
-  Field getRecordPositionalField(int pos) => getRecordNamedField("\$$pos");
+  Field getRecordPositionalField(int pos) =>
+      getRecordNamedField("\$${pos + 1}");
 
   @override
   Field getRecordNamedField(String name) =>

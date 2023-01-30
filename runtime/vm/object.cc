@@ -28421,8 +28421,8 @@ intptr_t Record::GetPositionalFieldIndexFromFieldName(
     int64_t value = 0;
     const char* cstr = field_name.ToCString();
     if (OS::StringToInt64(cstr + 1 /* skip '$' */, &value)) {
-      if (value >= 0 && value < kMaxElements) {
-        return static_cast<intptr_t>(value);
+      if (value >= 1 && value < kMaxElements) {
+        return static_cast<intptr_t>(value - 1);
       }
     }
   }

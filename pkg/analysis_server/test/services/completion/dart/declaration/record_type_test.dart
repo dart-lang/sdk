@@ -54,7 +54,7 @@ suggestions
   runtimeType
     kind: getter
     returnType: Type
-  $0
+  $1
     kind: identifier
     returnType: int
   foo02
@@ -114,10 +114,10 @@ suggestions
   runtimeType
     kind: getter
     returnType: Type
-  $0
+  $1
     kind: identifier
     returnType: int
-  $1
+  $2
     kind: identifier
     returnType: String
   toString

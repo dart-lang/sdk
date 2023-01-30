@@ -3,19 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 method((int,{String a})? r) {
-  var l0 = r.$0;
+  var l0 = r.$1;
   var l1 = r.a;
-  var l2 = r?.$0;
+  var l2 = r?.$1;
   var l3 = r?.a;
   if (r != null) {
-    var l4 = r.$0;
+    var l4 = r.$1;
     var l5 = r.a;
-    var l6 = r?.$0; // Warning.
+    var l6 = r?.$1; // Warning.
     var l7 = r?.a; // Warning.
   }
 }
 
 extension on (int, {String a})? {
-  int get $0 => 0;
+  int get $1 => 0;
   String get a => '';
 }

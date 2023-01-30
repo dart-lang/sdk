@@ -103,7 +103,7 @@ class TypeMemberContributor extends DartCompletionContributor {
     type.positionalFields.forEachIndexed((index, field) {
       builder.suggestRecordField(
         field: field,
-        name: '\$$index',
+        name: '\$${index + 1}',
       );
     });
 

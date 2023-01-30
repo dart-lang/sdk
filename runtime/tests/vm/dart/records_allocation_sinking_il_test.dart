@@ -18,8 +18,8 @@ import 'package:vm/testing/il_matchers.dart';
 @pragma('vm:testing:print-flow-graph')
 void test(int x, bool y, String foo, bool bar, int baz) {
   final r1 = createRecord1(x, y);
-  print(r1.$0);
   print(r1.$1);
+  print(r1.$2);
   final r2 = createRecord2(foo, bar, baz);
   print(r2.foo);
   print(r2.baz);

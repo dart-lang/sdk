@@ -134,7 +134,7 @@ extension ParameterElementExtensions on ParameterElement {
 
 extension RecordTypeExtension on RecordType {
   /// A regular expression used to match positional field names.
-  static final RegExp _positionalName = RegExp(r'^\$(([0-9])|([1-9][0-9]*))$');
+  static final RegExp _positionalName = RegExp(r'^\$[1-9]\d*$');
 
   List<RecordTypeField> get fields {
     return [
@@ -144,7 +144,7 @@ extension RecordTypeExtension on RecordType {
   }
 
   /// The [name] is either an actual name like `foo` in `({int foo})`, or
-  /// the name of a positional field like `$0` in `(int, String)`.
+  /// the name of a positional field like `$1` in `(int, String)`.
   RecordTypeField? fieldByName(String name) {
     return namedField(name) ?? positionalField(name);
   }
@@ -166,14 +166,15 @@ extension RecordTypeExtension on RecordType {
     return null;
   }
 
-  /// Attempt to parse `$0`, `$1`, etc.
+  /// Attempt to parse `$1`, `$2`, etc.
   static int? positionalFieldIndex(String name) {
-    final match = _positionalName.firstMatch(name);
-    if (match != null) {
-      final indexStr = match.group(1);
-      if (indexStr != null) {
-        return int.tryParse(indexStr);
-      }
+    if (_positionalName.hasMatch(name)) {
+      final positionString = name.substring(1);
+      // Use `tryParse` instead of `parse`
+      // even though the numeral matches the pattern `[1-9]\d*`,
+      // to reject numerals too big to fit in an `int`.
+      final position = int.tryParse(positionString);
+      if (position != null) return position - 1;
     }
     return null;
   }

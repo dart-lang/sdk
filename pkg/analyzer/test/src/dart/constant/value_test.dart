@@ -482,9 +482,9 @@ class DartObjectImplTest {
       'b': _intValue(3),
     });
 
-    expect(record.getField(r'$0'), _intValue(0));
-    expect(record.getField(r'$1'), _intValue(1));
-    expect(record.getField(r'$2'), isNull);
+    expect(record.getField(r'$1'), _intValue(0));
+    expect(record.getField(r'$2'), _intValue(1));
+    expect(record.getField(r'$3'), isNull);
     expect(record.getField(r'$-2'), isNull);
 
     expect(record.getField(r'a'), _intValue(2));

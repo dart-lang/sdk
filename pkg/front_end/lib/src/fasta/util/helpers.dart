@@ -33,19 +33,28 @@ bool isDartCoreRecord(DartType type) {
       targetClass.enclosingLibrary.importUri.path == "core";
 }
 
+/// The positional record index of the identifier [name].
+///
+/// Accepts identifiers of the form `$digits` where `digits` is an integer
+/// numeral with no leading zeros and a value *n* in the range
+/// 1 &le; *n* &le; [positionalFieldCount].
+///
+/// Returns a zero-based index, one less than the value *n*,
+/// if [name] is such an identifier, and `null` if not.
 int? tryParseRecordPositionalGetterName(String name, int positionalFieldCount) {
-  if (name.startsWith(r"$")) {
+  const int c$ = 0x24; // ASCII code of '$'.
+  const int c0 = 0x30; // ASCII code of '0'.
+  if (name.length >= 2 &&
+      name.codeUnitAt(0) == c$ &&
+      name.codeUnitAt(1) != c0) {
+    // Starts with `$`, not followed by leading zero.
     String suffix = name.substring(1);
     int? impliedIndex = int.tryParse(suffix);
     if (impliedIndex != null &&
-        impliedIndex >= 0 &&
-        impliedIndex < positionalFieldCount &&
-        suffix == "${impliedIndex}") {
-      return impliedIndex;
-    } else {
-      return null;
+        impliedIndex >= 1 &&
+        impliedIndex <= positionalFieldCount) {
+      return impliedIndex - 1;
     }
-  } else {
-    return null;
   }
+  return null;
 }

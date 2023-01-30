@@ -431,7 +431,7 @@ FunctionExpressionInvocation
   test_record_field_positional_rewrite() async {
     await assertNoErrorsInCode(r'''
 void f((void Function(int),) r) {
-  r.$0(0);
+  r.$1(0);
 }
 ''');
 
@@ -445,7 +445,7 @@ FunctionExpressionInvocation
       staticType: (void Function(int))
     operator: .
     propertyName: SimpleIdentifier
-      token: $0
+      token: $1
       staticElement: <null>
       staticType: void Function(int)
     staticType: void Function(int)
@@ -466,7 +466,7 @@ FunctionExpressionInvocation
   test_record_field_positional_withParenthesis() async {
     await assertNoErrorsInCode(r'''
 void f((void Function(int),) r) {
-  (r.$0)(0);
+  (r.$1)(0);
 }
 ''');
 
@@ -482,7 +482,7 @@ FunctionExpressionInvocation
         staticType: (void Function(int))
       operator: .
       propertyName: SimpleIdentifier
-        token: $0
+        token: $1
         staticElement: <null>
         staticType: void Function(int)
       staticType: void Function(int)

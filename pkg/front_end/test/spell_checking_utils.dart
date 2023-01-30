@@ -194,11 +194,11 @@ List<String> splitStringIntoWords(String s, List<int> splitOffsets,
     regExpStringInner =
         "${regExpStringInner}_:\\.\\(\\)<>\\[\\]\{\}@&#\\?%`\"0123456789";
   }
-  // Match one or more of the characters specified above.
-  String regExp = "[$regExpStringInner]+";
+  // Match one or more of the characters specified above, or an HTML entity.
+  String regExp = "(?:&[a-zA-Z0-9]+;|[$regExpStringInner])+";
   if (splitAsCode) {
     // If splitting as code we also want to remove the two characters "\n".
-    regExp = "([$regExpStringInner]|(\\\\n))+";
+    regExp = "(?:&[a-zA-Z0-9]+;|[$regExpStringInner]|\\\\n)+";
   }
 
   Iterator<RegExpMatch> matchesIterator =

@@ -72,7 +72,7 @@ class BenchListAddRecord extends BenchmarkBase {
     for (int i = 0; i < N; ++i) {
       list.add((i, i));
     }
-    if (list[N ~/ 2].$0 != N ~/ 2) throw 'Bad result: ${list[N ~/ 2].$0}';
+    if (list[N ~/ 2].$1 != N ~/ 2) throw 'Bad result: ${list[N ~/ 2].$1}';
   }
 }
 
@@ -99,7 +99,7 @@ class BenchListAddPolyRecord extends BenchmarkBase {
     for (int i = 0; i < N; ++i) {
       list.add((i, i));
     }
-    final int mid = (list[N ~/ 2] as (int, int)).$0;
+    final int mid = (list[N ~/ 2] as (int, int)).$1;
     if (mid != N ~/ 2) throw 'Bad result: ${mid}';
   }
 }
@@ -126,7 +126,7 @@ class BenchListSetIndexedRecord extends BenchmarkBase {
     for (int i = 0; i < N; ++i) {
       list[i] = (i, i);
     }
-    if (list[N ~/ 2].$0 != N ~/ 2) throw 'Bad result: ${list[N ~/ 2].$0}';
+    if (list[N ~/ 2].$1 != N ~/ 2) throw 'Bad result: ${list[N ~/ 2].$1}';
   }
 }
 
@@ -153,7 +153,7 @@ class BenchListSetIndexedPolyRecord extends BenchmarkBase {
     for (int i = 0; i < N; ++i) {
       list[i] = (i, i);
     }
-    final int mid = (list[N ~/ 2] as (int, int)).$0;
+    final int mid = (list[N ~/ 2] as (int, int)).$1;
     if (mid != N ~/ 2) throw 'Bad result: ${mid}';
   }
 }
@@ -188,7 +188,7 @@ class BenchListGetIndexedRecord extends BenchmarkBase {
   void run() {
     int sum = 0;
     for (int i = 0; i < list.length; ++i) {
-      sum += list[i].$0;
+      sum += list[i].$1;
     }
     if (sum != SUM) throw 'Bad result: $sum';
   }
@@ -218,7 +218,7 @@ class BenchListGetIndexedPolyRecord extends BenchmarkBase {
   void run() {
     int sum = 0;
     for (int i = 0; i < list.length; ++i) {
-      sum += list[i].$0;
+      sum += list[i].$1;
     }
     if (sum != SUM) throw 'Bad result: $sum';
   }
@@ -254,7 +254,7 @@ class BenchListIterateRecord extends BenchmarkBase {
   void run() {
     int sum = 0;
     for (final v in list) {
-      sum += v.$0;
+      sum += v.$1;
     }
     if (sum != SUM) throw 'Bad result: $sum';
   }
@@ -284,7 +284,7 @@ class BenchListIteratePolyRecord extends BenchmarkBase {
   void run() {
     int sum = 0;
     for (final v in list) {
-      sum += v.$0;
+      sum += v.$1;
     }
     if (sum != SUM) throw 'Bad result: $sum';
   }

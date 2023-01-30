@@ -6,7 +6,7 @@ import "dart:core" as core;
 static method recordLiteral() → dynamic
   return (#C1, #C2, {bar: #C3});
 [@vm.unboxing-info.metadata=(b)->i]static method recordFieldAccess1([@vm.inferred-type.metadata=dart.core::_Record](core::int, core::String) rec) → dynamic
-  return rec.$0{core::int};
+  return rec.$1{core::int};
 [@vm.unboxing-info.metadata=(b)->i]static method recordFieldAccess2([@vm.inferred-type.metadata=dart.core::_Record]({required a: core::int, required b: core::String}) rec) → dynamic
   return rec.a{core::int};
 static method recordDynamicFieldAccess(dynamic x) → dynamic

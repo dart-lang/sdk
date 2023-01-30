@@ -129,7 +129,7 @@ class DartObjectPrinter {
         _withIndent(() {
           positionalFields.forEachIndexed((index, field) {
             sink.write(indent);
-            sink.write('\$$index: ');
+            sink.write('\$${index + 1}: ');
             write(field);
           });
         });
