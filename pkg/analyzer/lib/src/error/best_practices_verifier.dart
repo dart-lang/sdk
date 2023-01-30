@@ -144,8 +144,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (parent is MethodDeclaration) {
         _checkForInvalidFactory(parent);
       } else {
-        _errorReporter
-            .reportErrorForNode(HintCode.INVALID_FACTORY_ANNOTATION, node, []);
+        _errorReporter.reportErrorForNode(
+            WarningCode.INVALID_FACTORY_ANNOTATION, node, []);
       }
     } else if (element.isImmutable) {
       if (parent is! ClassDeclaration &&
@@ -196,7 +196,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           parent.parent is ExtensionDeclaration ||
           parent.parent is EnumDeclaration) {
         _errorReporter.reportErrorForNode(
-          HintCode.INVALID_ANNOTATION_TARGET,
+          WarningCode.INVALID_ANNOTATION_TARGET,
           node,
           [node.name.name, 'instance members of classes and mixins'],
         );
@@ -207,7 +207,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           parent.parent is ExtensionDeclaration ||
           parent.parent is EnumDeclaration) {
         _errorReporter.reportErrorForNode(
-          HintCode.INVALID_ANNOTATION_TARGET,
+          WarningCode.INVALID_ANNOTATION_TARGET,
           node,
           [node.name.name, 'instance members of classes and mixins'],
         );
@@ -337,8 +337,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         var validKinds = kindNames.commaSeparatedWithOr;
         // Annotations always refer to named elements, so we can safely assume
         // that `name` is non-`null`.
-        _errorReporter.reportErrorForNode(
-            HintCode.INVALID_ANNOTATION_TARGET, node.name, [name!, validKinds]);
+        _errorReporter.reportErrorForNode(WarningCode.INVALID_ANNOTATION_TARGET,
+            node.name, [name!, validKinds]);
         return;
       }
     }
@@ -1107,7 +1107,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (libraryElement == null) return;
     if (libraryElement.hasInternal) {
       _errorReporter.reportErrorForNode(
-          HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT,
+          WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT,
           node,
           [libraryElement.displayName]);
     }
@@ -1116,7 +1116,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     exportNamespace.definedNames.forEach((String name, Element element) {
       if (element.hasInternal) {
         _errorReporter.reportErrorForNode(
-            HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT,
+            WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT,
             node,
             [element.displayName]);
       } else if (element is FunctionElement) {
@@ -1129,7 +1129,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           var aliasElement = type?.alias?.element;
           if (aliasElement != null && aliasElement.hasInternal) {
             _errorReporter.reportErrorForNode(
-                HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY,
+                WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY,
                 node,
                 [aliasElement.name, element.displayName]);
           }
@@ -1144,7 +1144,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     var returnType = decl.returnType?.type;
     if (returnType is VoidType) {
       _errorReporter.reportErrorForToken(
-          HintCode.INVALID_FACTORY_METHOD_DECL, decl.name, [decl.name.lexeme]);
+          WarningCode.INVALID_FACTORY_METHOD_DECL,
+          decl.name,
+          [decl.name.lexeme]);
       return;
     }
 
@@ -1173,7 +1175,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     _errorReporter.reportErrorForToken(
-        HintCode.INVALID_FACTORY_METHOD_IMPL, decl.name, [decl.name.lexeme]);
+        WarningCode.INVALID_FACTORY_METHOD_IMPL, decl.name, [decl.name.lexeme]);
   }
 
   void _checkForInvalidSealedSuperclass(NamedCompilationUnitMember node) {

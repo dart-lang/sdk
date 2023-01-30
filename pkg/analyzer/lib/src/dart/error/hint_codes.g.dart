@@ -306,59 +306,6 @@ class HintCode extends AnalyzerErrorCode {
     correctionMessage: "Try specifying the type of the parameter.",
   );
 
-  ///  Parameters:
-  ///  0: the name of the annotation
-  ///  1: the list of valid targets
-  static const HintCode INVALID_ANNOTATION_TARGET = HintCode(
-    'INVALID_ANNOTATION_TARGET',
-    "The annotation '{0}' can only be used on {1}.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the element
-  static const HintCode INVALID_EXPORT_OF_INTERNAL_ELEMENT = HintCode(
-    'INVALID_EXPORT_OF_INTERNAL_ELEMENT',
-    "The member '{0}' can't be exported as a part of a package's public API.",
-    correctionMessage: "Try using a hide clause to hide '{0}'.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the element
-  ///  1: ?
-  static const HintCode INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY =
-      HintCode(
-    'INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY',
-    "The member '{0}' can't be exported as a part of a package's public API, "
-        "but is indirectly exported as part of the signature of '{1}'.",
-    correctionMessage: "Try using a hide clause to hide '{0}'.",
-    hasPublishedDocs: true,
-  );
-
-  ///  This hint is generated anywhere a @factory annotation is associated with
-  ///  anything other than a method.
-  static const HintCode INVALID_FACTORY_ANNOTATION = HintCode(
-    'INVALID_FACTORY_ANNOTATION',
-    "Only methods can be annotated as factories.",
-  );
-
-  ///  Parameters:
-  ///  0: The name of the method
-  static const HintCode INVALID_FACTORY_METHOD_DECL = HintCode(
-    'INVALID_FACTORY_METHOD_DECL',
-    "Factory method '{0}' must have a return type.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the method
-  static const HintCode INVALID_FACTORY_METHOD_IMPL = HintCode(
-    'INVALID_FACTORY_METHOD_IMPL',
-    "Factory method '{0}' doesn't return a newly allocated object.",
-    hasPublishedDocs: true,
-  );
-
   ///  This hint is generated anywhere an @immutable annotation is associated with
   ///  anything other than a class.
   static const HintCode INVALID_IMMUTABLE_ANNOTATION = HintCode(

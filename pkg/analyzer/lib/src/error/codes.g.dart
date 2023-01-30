@@ -5754,6 +5754,59 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the name of the annotation
+  ///  1: the list of valid targets
+  static const WarningCode INVALID_ANNOTATION_TARGET = WarningCode(
+    'INVALID_ANNOTATION_TARGET',
+    "The annotation '{0}' can only be used on {1}.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the element
+  static const WarningCode INVALID_EXPORT_OF_INTERNAL_ELEMENT = WarningCode(
+    'INVALID_EXPORT_OF_INTERNAL_ELEMENT',
+    "The member '{0}' can't be exported as a part of a package's public API.",
+    correctionMessage: "Try using a hide clause to hide '{0}'.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the element
+  ///  1: ?
+  static const WarningCode INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY =
+      WarningCode(
+    'INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY',
+    "The member '{0}' can't be exported as a part of a package's public API, "
+        "but is indirectly exported as part of the signature of '{1}'.",
+    correctionMessage: "Try using a hide clause to hide '{0}'.",
+    hasPublishedDocs: true,
+  );
+
+  ///  This hint is generated anywhere a @factory annotation is associated with
+  ///  anything other than a method.
+  static const WarningCode INVALID_FACTORY_ANNOTATION = WarningCode(
+    'INVALID_FACTORY_ANNOTATION',
+    "Only methods can be annotated as factories.",
+  );
+
+  ///  Parameters:
+  ///  0: The name of the method
+  static const WarningCode INVALID_FACTORY_METHOD_DECL = WarningCode(
+    'INVALID_FACTORY_METHOD_DECL',
+    "Factory method '{0}' must have a return type.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the method
+  static const WarningCode INVALID_FACTORY_METHOD_IMPL = WarningCode(
+    'INVALID_FACTORY_METHOD_IMPL',
+    "Factory method '{0}' doesn't return a newly allocated object.",
+    hasPublishedDocs: true,
+  );
+
   ///  This is the new replacement for [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR].
   static const HintCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR =
       HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR;

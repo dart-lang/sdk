@@ -18352,216 +18352,6 @@ HintCode:
 
       Parameters:
       0: the name of the parameter
-  INVALID_ANNOTATION_TARGET:
-    problemMessage: "The annotation '{0}' can only be used on {1}."
-    comment: |-
-      Parameters:
-      0: the name of the annotation
-      1: the list of valid targets
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an annotation is applied to a
-      kind of declaration that it doesn't support.
-
-      #### Example
-
-      The following code produces this diagnostic because the `optionalTypeArgs`
-      annotation isn't defined to be valid for top-level variables:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      @[!optionalTypeArgs!]
-      int x = 0;
-      ```
-
-      #### Common fixes
-
-      Remove the annotation from the declaration.
-  INVALID_EXPORT_OF_INTERNAL_ELEMENT:
-    problemMessage: "The member '{0}' can't be exported as a part of a package's public API."
-    correctionMessage: "Try using a hide clause to hide '{0}'."
-    comment: |-
-      Parameters:
-      0: the name of the element
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a [public library][] exports a
-      declaration that is marked with the `[internal][meta-internal]`
-      annotation.
-
-      #### Example
-
-      Given a file named `a.dart` in the `src` directory that contains:
-
-      ```dart
-      %uri="lib/src/a.dart"
-      import 'package:meta/meta.dart';
-
-      @internal class One {}
-      ```
-
-      The following code, when found in a [public library][] produces this
-      diagnostic because the `export` directive is exporting a name that is only
-      intended to be used internally:
-
-      ```dart
-      [!export 'src/a.dart';!]
-      ```
-
-      #### Common fixes
-
-      If the export is needed, then add a `hide` clause to hide the internal
-      names:
-
-      ```dart
-      export 'src/a.dart' hide One;
-      ```
-
-      If the export isn't needed, then remove it.
-  INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY:
-    problemMessage: "The member '{0}' can't be exported as a part of a package's public API, but is indirectly exported as part of the signature of '{1}'."
-    correctionMessage: "Try using a hide clause to hide '{0}'."
-    comment: |-
-      Parameters:
-      0: the name of the element
-      1: ?
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a [public library][] exports a
-      top-level function  with a return type or at least one parameter type that
-      is marked with the `[internal][meta-internal]` annotation.
-
-      #### Example
-
-      Given a file named `a.dart` in the `src` directory that contains the
-      following:
-
-      ```dart
-      %uri="lib/src/a.dart"
-      import 'package:meta/meta.dart';
-
-      @internal
-      typedef IntFunction = int Function();
-
-      int f(IntFunction g) => g();
-      ```
-
-      The following code produces this diagnostic because the function `f` has a
-      parameter of type `IntFunction`, and `IntFunction` is only intended to be
-      used internally:
-
-      ```dart
-      [!export 'src/a.dart' show f;!]
-      ```
-
-      #### Common fixes
-
-      If the function must be public, then make all the types in the function's
-      signature public types.
-
-      If the function doesn't need to be exported, then stop exporting it,
-      either by removing it from the `show` clause, adding it to the `hide`
-      clause, or by removing the export.
-  INVALID_FACTORY_ANNOTATION:
-    problemMessage: Only methods can be annotated as factories.
-    comment: |-
-      This hint is generated anywhere a @factory annotation is associated with
-      anything other than a method.
-  INVALID_FACTORY_METHOD_DECL:
-    problemMessage: "Factory method '{0}' must have a return type."
-    comment: |-
-      Parameters:
-      0: The name of the method
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a method that is annotated with
-      the `[factory][meta-factory]` annotation has a return type of `void`.
-
-      #### Example
-
-      The following code produces this diagnostic because the method `createC`
-      is annotated with the `[factory][meta-factory]` annotation but doesn't
-      return any value:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class Factory {
-        @factory
-        void [!createC!]() {}
-      }
-
-      class C {}
-      ```
-
-      #### Common fixes
-
-      Change the return type to something other than `void`:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class Factory {
-        @factory
-        C createC() => C();
-      }
-
-      class C {}
-      ```
-  INVALID_FACTORY_METHOD_IMPL:
-    problemMessage: "Factory method '{0}' doesn't return a newly allocated object."
-    comment: |-
-      Parameters:
-      0: the name of the method
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a method that is annotated with
-      the `[factory][meta-factory]` annotation doesn't return a newly allocated
-      object.
-
-      #### Example
-
-      The following code produces this diagnostic because the method `createC`
-      returns the value of a field rather than a newly created instance of `C`:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class Factory {
-        C c = C();
-
-        @factory
-        C [!createC!]() => c;
-      }
-
-      class C {}
-      ```
-
-      #### Common fixes
-
-      Change the method to return a newly created instance of the return type:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class Factory {
-        @factory
-        C createC() => C();
-      }
-
-      class C {}
-      ```
   INVALID_IMMUTABLE_ANNOTATION:
     problemMessage: Only classes can be annotated as being immutable.
     comment: |-
@@ -22758,6 +22548,216 @@ WarningCode:
       Note that literal maps preserve the order of their entries, so the choice
       of which entry to remove might affect the order in which the keys and
       values are returned by an iterator.
+  INVALID_ANNOTATION_TARGET:
+    problemMessage: "The annotation '{0}' can only be used on {1}."
+    comment: |-
+      Parameters:
+      0: the name of the annotation
+      1: the list of valid targets
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an annotation is applied to a
+      kind of declaration that it doesn't support.
+
+      #### Example
+
+      The following code produces this diagnostic because the `optionalTypeArgs`
+      annotation isn't defined to be valid for top-level variables:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @[!optionalTypeArgs!]
+      int x = 0;
+      ```
+
+      #### Common fixes
+
+      Remove the annotation from the declaration.
+  INVALID_EXPORT_OF_INTERNAL_ELEMENT:
+    problemMessage: "The member '{0}' can't be exported as a part of a package's public API."
+    correctionMessage: "Try using a hide clause to hide '{0}'."
+    comment: |-
+      Parameters:
+      0: the name of the element
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a [public library][] exports a
+      declaration that is marked with the `[internal][meta-internal]`
+      annotation.
+
+      #### Example
+
+      Given a file named `a.dart` in the `src` directory that contains:
+
+      ```dart
+      %uri="lib/src/a.dart"
+      import 'package:meta/meta.dart';
+
+      @internal class One {}
+      ```
+
+      The following code, when found in a [public library][] produces this
+      diagnostic because the `export` directive is exporting a name that is only
+      intended to be used internally:
+
+      ```dart
+      [!export 'src/a.dart';!]
+      ```
+
+      #### Common fixes
+
+      If the export is needed, then add a `hide` clause to hide the internal
+      names:
+
+      ```dart
+      export 'src/a.dart' hide One;
+      ```
+
+      If the export isn't needed, then remove it.
+  INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY:
+    problemMessage: "The member '{0}' can't be exported as a part of a package's public API, but is indirectly exported as part of the signature of '{1}'."
+    correctionMessage: "Try using a hide clause to hide '{0}'."
+    comment: |-
+      Parameters:
+      0: the name of the element
+      1: ?
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a [public library][] exports a
+      top-level function  with a return type or at least one parameter type that
+      is marked with the `[internal][meta-internal]` annotation.
+
+      #### Example
+
+      Given a file named `a.dart` in the `src` directory that contains the
+      following:
+
+      ```dart
+      %uri="lib/src/a.dart"
+      import 'package:meta/meta.dart';
+
+      @internal
+      typedef IntFunction = int Function();
+
+      int f(IntFunction g) => g();
+      ```
+
+      The following code produces this diagnostic because the function `f` has a
+      parameter of type `IntFunction`, and `IntFunction` is only intended to be
+      used internally:
+
+      ```dart
+      [!export 'src/a.dart' show f;!]
+      ```
+
+      #### Common fixes
+
+      If the function must be public, then make all the types in the function's
+      signature public types.
+
+      If the function doesn't need to be exported, then stop exporting it,
+      either by removing it from the `show` clause, adding it to the `hide`
+      clause, or by removing the export.
+  INVALID_FACTORY_ANNOTATION:
+    problemMessage: Only methods can be annotated as factories.
+    comment: |-
+      This hint is generated anywhere a @factory annotation is associated with
+      anything other than a method.
+  INVALID_FACTORY_METHOD_DECL:
+    problemMessage: "Factory method '{0}' must have a return type."
+    comment: |-
+      Parameters:
+      0: The name of the method
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a method that is annotated with
+      the `[factory][meta-factory]` annotation has a return type of `void`.
+
+      #### Example
+
+      The following code produces this diagnostic because the method `createC`
+      is annotated with the `[factory][meta-factory]` annotation but doesn't
+      return any value:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class Factory {
+        @factory
+        void [!createC!]() {}
+      }
+
+      class C {}
+      ```
+
+      #### Common fixes
+
+      Change the return type to something other than `void`:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class Factory {
+        @factory
+        C createC() => C();
+      }
+
+      class C {}
+      ```
+  INVALID_FACTORY_METHOD_IMPL:
+    problemMessage: "Factory method '{0}' doesn't return a newly allocated object."
+    comment: |-
+      Parameters:
+      0: the name of the method
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a method that is annotated with
+      the `[factory][meta-factory]` annotation doesn't return a newly allocated
+      object.
+
+      #### Example
+
+      The following code produces this diagnostic because the method `createC`
+      returns the value of a field rather than a newly created instance of `C`:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class Factory {
+        C c = C();
+
+        @factory
+        C [!createC!]() => c;
+      }
+
+      class C {}
+      ```
+
+      #### Common fixes
+
+      Change the method to return a newly created instance of the return type:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class Factory {
+        @factory
+        C createC() => C();
+      }
+
+      class C {}
+      ```
   NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR:
     aliasFor: HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR
     comment: This is the new replacement for [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR].
