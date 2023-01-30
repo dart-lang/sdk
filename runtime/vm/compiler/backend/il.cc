@@ -1078,20 +1078,14 @@ ConstantInstr::ConstantInstr(const Object& value,
   if (!value.IsNull() && !value.IsSmi() && value.IsInstance() &&
       !value.IsCanonical() && (value.ptr() != Object::sentinel().ptr())) {
     // Arrays in ConstantInstrs are usually immutable and canonicalized, but
-    // there are at least a couple of cases where one or both is not true:
+    // the Arrays created as backing for ArgumentsDescriptors may not be
+    // canonicalized for space reasons when inlined in the IL. However, they
+    // are still immutable.
     //
-    // * The Arrays created as backing for ArgumentsDescriptors may not be
-    //   canonicalized for space reasons when inlined in the IL. However, they
-    //   are still immutable.
-    // * The backtracking stack for IRRegExps is put into a ConstantInstr for
-    //   immediate use as an argument to the operations on that stack. In this
-    //   case, the Array representing it is neither immutable or canonical.
-    //
-    // In addition to complicating the story for Arrays, IRRegExp compilation
-    // also uses other non-canonical values as "constants". For example, the bit
-    // tables used for certain character classes are represented as TypedData,
-    // and so those values are also neither immutable (as there are no immutable
-    // TypedData values) or canonical.
+    // IRRegExp compilation uses TypeData non-canonical values as "constants".
+    // Specifically, the bit tables used for certain character classes are
+    // represented as TypedData, and so those values are also neither immutable
+    // (as there are no immutable TypedData values) or canonical.
     //
     // LibraryPrefixes are also never canonicalized since their equality is
     // their identity.

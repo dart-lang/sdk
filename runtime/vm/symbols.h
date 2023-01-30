@@ -154,7 +154,6 @@ class ObjectPointerVisitor;
   V(GetRuntimeType, "get:runtimeType")                                         \
   V(GetterPrefix, "get:")                                                      \
   V(GreaterEqualOperator, ">=")                                                \
-  V(GrowRegExpStack, "_growRegExpStack")                                       \
   V(HaveSameRuntimeType, "_haveSameRuntimeType")                               \
   V(ICData, "ICData")                                                          \
   V(Identical, "identical")                                                    \
@@ -422,6 +421,9 @@ class ObjectPointerVisitor;
   V(_current, "_current")                                                      \
   V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \
   V(_future, "_future")                                                        \
+  V(_getBacktrackingStack, "_getBacktrackingStack")                            \
+  V(_getRegisters, "_getRegisters")                                            \
+  V(_growBacktrackingStack, "_growBacktrackingStack")                          \
   V(_handleException, "_handleException")                                      \
   V(_handleFinalizerMessage, "_handleFinalizerMessage")                        \
   V(_handleMessage, "_handleMessage")                                          \

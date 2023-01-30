@@ -146,15 +146,6 @@ external _prependTypeArguments(
 @pragma("vm:external-name", "Internal_boundsCheckForPartialInstantiation")
 external _boundsCheckForPartialInstantiation(closure, typeArgs);
 
-// Called by IRRegExpMacroAssembler::GrowStack.
-Int32List _growRegExpStack(Int32List stack) {
-  final newStack = new Int32List(stack.length * 2);
-  for (int i = 0; i < stack.length; i++) {
-    newStack[i] = stack[i];
-  }
-  return newStack;
-}
-
 @patch
 @pragma("vm:external-name", "Internal_unsafeCast")
 external T unsafeCast<T>(dynamic v);

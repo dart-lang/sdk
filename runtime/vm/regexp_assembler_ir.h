@@ -430,14 +430,14 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   intptr_t registers_count_;
   const intptr_t saved_registers_count_;
 
-  // The actual array objects used for the stack and registers.
-  Array& stack_array_cell_;
-  TypedData& registers_array_;
-
   IdAllocator block_id_;
   IdAllocator temp_id_;
   IdAllocator local_id_;
   IdAllocator indirect_id_;
+
+  // Placeholder instruction holding number of registers in Irregexp entry block
+  // that is replaced with correct value during code finalization.
+  ConstantInstr* num_registers_constant_instr = nullptr;
 };
 
 }  // namespace dart

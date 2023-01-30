@@ -365,6 +365,36 @@ class _RegExp implements RegExp {
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:external-name", "RegExp_ExecuteMatchSticky")
   external List<int>? _ExecuteMatchSticky(String str, int start_index);
+
+  static Int32List _getRegisters(int registers_count) {
+    if (_registers == null || _registers!.length < registers_count) {
+      _registers = Int32List(registers_count);
+    }
+    return _registers!;
+  }
+
+  static Int32List _getBacktrackingStack() {
+    if (_backtrackingStack == null) {
+      const _initialBacktrackingStackSize = 128;
+      _backtrackingStack = Int32List(_initialBacktrackingStackSize);
+    }
+    return _backtrackingStack!;
+  }
+
+// TODO: Should we bound this to the same limit used by the irregexp interpreter
+// for consistency?
+  static Int32List _growBacktrackingStack() {
+    final stack = _backtrackingStack!;
+    final newStack = Int32List(stack.length * 2);
+    for (int i = 0; i < stack.length; i++) {
+      newStack[i] = stack[i];
+    }
+    _backtrackingStack = newStack;
+    return newStack;
+  }
+
+  static Int32List? _registers;
+  static Int32List? _backtrackingStack;
 }
 
 class _AllMatchesIterable extends IterableBase<RegExpMatch> {
