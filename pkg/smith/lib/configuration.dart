@@ -115,6 +115,11 @@ class Configuration {
 
     // Infer option values from the words in the configuration name.
     var words = name.split("-").toSet();
+    // "vm-aot" -> "dart_precompiled-aot"
+    if (words.contains("aot")) {
+      words.remove("vm");
+      words.add("dart_precompiled");
+    }
     var optionsCopy = Map.of(optionsJson);
 
     T? enumOption<T extends NamedEnum>(
