@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:kernel/ast.dart';
 
 import '../kernel/internal_ast.dart';
+import '../names.dart';
 import '../type_inference/external_ast_helper.dart';
 import '../type_inference/inference_visitor_base.dart';
 import 'inference_results.dart';
@@ -132,15 +133,15 @@ class DelayedAndExpression implements DelayedExpression {
   DelayedAndExpression(this._left, this._right, {required this.fileOffset});
 
   @override
-  DartType getType(InferenceVisitorBase base) =>
-      base.coreTypes.boolNonNullableRawType;
-
-  @override
   Expression createExpression(InferenceVisitorBase base) {
     return createAndExpression(
         _left.createExpression(base), _right.createExpression(base),
         fileOffset: fileOffset);
   }
+
+  @override
+  DartType getType(InferenceVisitorBase base) =>
+      base.coreTypes.boolNonNullableRawType;
 
   @override
   void registerUse() {
@@ -174,15 +175,15 @@ class DelayedOrExpression implements DelayedExpression {
   DelayedOrExpression(this._left, this._right, {required this.fileOffset});
 
   @override
-  DartType getType(InferenceVisitorBase base) =>
-      base.coreTypes.boolNonNullableRawType;
-
-  @override
   Expression createExpression(InferenceVisitorBase base) {
     return createOrExpression(
         _left.createExpression(base), _right.createExpression(base),
         fileOffset: fileOffset);
   }
+
+  @override
+  DartType getType(InferenceVisitorBase base) =>
+      base.coreTypes.boolNonNullableRawType;
 
   @override
   void registerUse() {
@@ -252,8 +253,7 @@ class VariableSetExpression implements DelayedExpression {
 
   @override
   Expression createExpression(InferenceVisitorBase base) {
-    return createVariableSet(
-        _variable, _value.createExpression(base, _variable.type),
+    return createVariableSet(_variable, _value.createExpression(base),
         allowFinalAssignment: allowFinalAssignment, fileOffset: fileOffset);
   }
 
@@ -340,14 +340,17 @@ class DelayedIsExpression implements DelayedExpression {
 class DelayedAsExpression implements DelayedExpression {
   final DelayedExpression _operand;
   final DartType _type;
+  final bool isUnchecked;
   final int fileOffset;
 
-  DelayedAsExpression(this._operand, this._type, {required this.fileOffset});
+  DelayedAsExpression(this._operand, this._type,
+      {this.isUnchecked = false, required this.fileOffset});
 
   @override
   Expression createExpression(InferenceVisitorBase base) {
     return createAsExpression(_operand.createExpression(base), _type,
         forNonNullableByDefault: base.isNonNullableByDefault,
+        isUnchecked: isUnchecked,
         fileOffset: fileOffset);
   }
 
@@ -440,8 +443,9 @@ class DelayedPropertyGetExpression implements DelayedExpression {
   Expression createExpression(InferenceVisitorBase base) {
     PropertyGetInferenceResult propertyGet = base.createPropertyGet(
         fileOffset: fileOffset,
-        receiver: _receiver.createExpression(base, _receiverType),
+        receiver: _receiver.createExpression(base),
         receiverType: _receiverType,
+        readTarget: _readTarget,
         propertyName: _propertyName,
         // TODO(johnniwinther): What is the type context?
         typeContext: const UnknownType(),
@@ -470,26 +474,24 @@ class DelayedPropertyGetExpression implements DelayedExpression {
 ///
 /// The accessed [_invokeTarget] known upon creation of this delayed expression.
 class DelayedInvokeExpression implements DelayedExpression {
-  final DartType _receiverType;
   final CacheableExpression _receiver;
   final ObjectAccessTarget _invokeTarget;
   final Name _invokeName;
   final List<DelayedExpression> _arguments;
   final int fileOffset;
 
-  DelayedInvokeExpression(this._receiverType, this._receiver,
-      this._invokeTarget, this._invokeName, this._arguments,
+  DelayedInvokeExpression(
+      this._receiver, this._invokeTarget, this._invokeName, this._arguments,
       {required this.fileOffset});
 
   @override
   Expression createExpression(InferenceVisitorBase base) {
-    Expression receiver = _receiver.createExpression(base, _receiverType);
     ExpressionInferenceResult result = base.inferMethodInvocation(
         base,
         fileOffset,
         const Link(),
-        receiver,
-        _receiverType,
+        _receiver.createExpression(base),
+        _receiver.getType(base),
         _invokeName,
         new ArgumentsImpl(
             _arguments.map((e) => e.createExpression(base)).toList()),
@@ -532,28 +534,38 @@ class DelayedInvokeExpression implements DelayedExpression {
 ///
 /// The accessed [_invokeTarget] known upon creation of this delayed expression.
 class DelayedEqualsExpression implements DelayedExpression {
-  final DartType _leftType;
   final CacheableExpression _left;
   final ObjectAccessTarget _invokeTarget;
   final DelayedExpression _right;
-  final bool isNot;
   final int fileOffset;
 
-  DelayedEqualsExpression(
-      this._leftType, this._left, this._invokeTarget, this._right,
-      {required this.isNot, required this.fileOffset});
+  DelayedEqualsExpression(this._left, this._invokeTarget, this._right,
+      {required this.fileOffset});
 
   @override
   Expression createExpression(InferenceVisitorBase base) {
-    // TODO(johnniwinther): Use [invokeTarget] and handle general calls.
-    EqualsCall equalsCall = createEqualsCall(base, _leftType,
-        _left.createExpression(base, _leftType), _right.createExpression(base),
-        fileOffset: fileOffset);
-    Expression expression = equalsCall;
-    if (isNot) {
-      expression = createNot(expression);
+    if (_invokeTarget.isInstanceMember || _invokeTarget.isObjectMember) {
+      FunctionType functionType = _invokeTarget.getFunctionType(base);
+      return new EqualsCall(
+          _left.createExpression(base), _right.createExpression(base),
+          functionType: functionType,
+          interfaceTarget: _invokeTarget.member as Procedure)
+        ..fileOffset = fileOffset;
+    } else {
+      assert(_invokeTarget.isNever);
+      FunctionType functionType = new FunctionType([const DynamicType()],
+          const NeverType.nonNullable(), base.libraryBuilder.nonNullable);
+      // Ensure operator == member even for `Never`.
+      Member target = base
+          .findInterfaceMember(const DynamicType(), equalsName, -1,
+              instrumented: false,
+              callSiteAccessKind: CallSiteAccessKind.operatorInvocation)
+          .member!;
+      return new EqualsCall(
+          _left.createExpression(base), _right.createExpression(base),
+          functionType: functionType, interfaceTarget: target as Procedure)
+        ..fileOffset = fileOffset;
     }
-    return expression;
   }
 
   @override
@@ -572,4 +584,30 @@ class DelayedEqualsExpression implements DelayedExpression {
       identical(this, expression) ||
       _left.uses(expression) ||
       _right.uses(expression);
+}
+
+class DelayedNotExpression implements DelayedExpression {
+  final DelayedExpression _expression;
+
+  DelayedNotExpression(this._expression);
+
+  @override
+  Expression createExpression(InferenceVisitorBase base) {
+    return createNot(_expression.createExpression(base));
+  }
+
+  @override
+  DartType getType(InferenceVisitorBase base) {
+    return base.coreTypes.boolNonNullableRawType;
+  }
+
+  @override
+  void registerUse() {
+    _expression.registerUse();
+  }
+
+  @override
+  bool uses(DelayedExpression expression) {
+    return identical(this, expression) || _expression.uses(expression);
+  }
 }

@@ -49,10 +49,10 @@ static method test5(dynamic x) → dynamic {
     dynamic y1;
     core::String y2;
     final dynamic #0#0 = x;
-    function ##0#10#initializer() → dynamic
+    function ##0#11#initializer() → dynamic
       return #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C11){(core::Object?) → dynamic};
-    late final dynamic #0#10 = ##0#10#initializer(){() → dynamic};
-    if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C10){(core::Object?) → core::bool} && (let final dynamic #t1 = y1 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C10){(core::Object?) → dynamic} as{ForNonNullableByDefault} dynamic in true) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C11){(core::Object?) → core::bool} && (let final dynamic #t2 = #0#10! in #0#10! is{ForNonNullableByDefault} core::String && (let final core::String #t3 = y2 = #0#10! as{ForNonNullableByDefault} core::String in true))) {
+    late final dynamic #0#11 = ##0#11#initializer(){() → dynamic};
+    if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C10){(core::Object?) → core::bool} && (let final dynamic #t1 = y1 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C10){(core::Object?) → dynamic} in true) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C11){(core::Object?) → core::bool} && (let final dynamic #t2 = #0#11! in #0#11! is{ForNonNullableByDefault} core::String && (let final core::String #t3 = y2 = #0#11! as{ForNonNullableByDefault} core::String in true))) {
       return 0;
     }
     else {

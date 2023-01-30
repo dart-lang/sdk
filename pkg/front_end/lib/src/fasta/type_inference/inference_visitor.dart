@@ -7600,6 +7600,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     MatchingCache matchingCache = createMatchingCache();
+    // TODO(johnniwinther): Handle promoted scrutinee types.
     CacheableExpression matchedExpression =
         matchingCache.createRootExpression(expression, scrutineeType);
 
@@ -7891,7 +7892,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           (int headIndex) {
         Pattern pattern = switchCase.patternGuards[headIndex].pattern;
         DelayedExpression matchingExpression = pattern.createMatchingExpression(
-            this, matchingCache, matchedExpression);
+            // TODO(johnniwinther): Handle promoted scrutinee types.
+            this,
+            matchingCache,
+            matchedExpression);
         matchingExpression.registerUse();
         return matchingExpression;
       });
@@ -8515,8 +8519,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     MatchingCache matchingCache = createMatchingCache();
     // TODO(cstefantsova): Do we need a more precise type for the variable?
+    DartType matchedType = const DynamicType();
     CacheableExpression matchedExpression =
-        matchingCache.createRootExpression(initializer, const DynamicType());
+        matchingCache.createRootExpression(initializer, matchedType);
 
     DelayedExpression matchingExpression = node.pattern
         .createMatchingExpression(this, matchingCache, matchedExpression);
@@ -9897,8 +9902,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     MatchingCache matchingCache = createMatchingCache();
     // TODO(cstefantsova): Do we need a more precise type for the variable?
+    DartType matchedType = const DynamicType();
     CacheableExpression matchedExpression =
-        matchingCache.createRootExpression(expression, const DynamicType());
+        matchingCache.createRootExpression(expression, matchedType);
 
     DelayedExpression matchingExpression = node.pattern
         .createMatchingExpression(this, matchingCache, matchedExpression);

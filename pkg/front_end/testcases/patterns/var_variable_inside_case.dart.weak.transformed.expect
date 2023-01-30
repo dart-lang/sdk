@@ -9,7 +9,7 @@ static method test(dynamic x) → dynamic {
     dynamic y;
     final dynamic #0#0 = x;
     dynamic #t2;
-    if(let final dynamic #t3 = y = #0#0{dynamic} in true) {
+    if(let final dynamic #t3 = y = #0#0 in true) {
       #t1 = 0;
       #t2 = y;
     }

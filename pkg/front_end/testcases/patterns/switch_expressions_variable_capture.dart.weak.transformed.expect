@@ -49,22 +49,22 @@ static method test2(dynamic x) → dynamic
     core::String a';
     core::String b';
     final dynamic #0#0 = x;
-    function ##0#3#initializer() → core::bool
+    function ##0#4#initializer() → core::bool
       return #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C4;
-    late final core::bool #0#3 = ##0#3#initializer(){() → core::bool};
+    late final core::bool #0#4 = ##0#4#initializer(){() → core::bool};
     function ##0#6#initializer() → dynamic
       return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
     late final dynamic #0#6 = ##0#6#initializer(){() → dynamic};
     function ##0#7#initializer() → dynamic
       return #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
     late final dynamic #0#7 = ##0#7#initializer(){() → dynamic};
-    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#3 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t6 = a = #0#6{core::int} in true)) && (#0#7 is{ForNonNullableByDefault} core::int && (let final core::int #t7 = b = #0#7{core::int} in true)) && (self::captured = (dynamic x) → core::int {
+    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t6 = a = #0#6{core::int} in true)) && (#0#7 is{ForNonNullableByDefault} core::int && (let final core::int #t7 = b = #0#7{core::int} in true)) && (self::captured = (dynamic x) → core::int {
       return a.{core::num::+}(b){(core::num) → core::int};
     }) is{ForNonNullableByDefault} dynamic) {
       #t5 = 0;
     }
     else
-      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#3 && (#0#6 is{ForNonNullableByDefault} core::String && (let final core::String #t8 = a' = #0#6{core::String} in true)) && (#0#7 is{ForNonNullableByDefault} core::String && (let final core::String #t9 = b' = #0#7{core::String} in true)) && (self::captured = (dynamic x) → core::String {
+      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::String && (let final core::String #t8 = a' = #0#6{core::String} in true)) && (#0#7 is{ForNonNullableByDefault} core::String && (let final core::String #t9 = b' = #0#7{core::String} in true)) && (self::captured = (dynamic x) → core::String {
         return a'.{core::String::+}(b'){(core::String) → core::String};
       }) is{ForNonNullableByDefault} dynamic) {
         #t5 = 1;
@@ -104,9 +104,9 @@ static method test3(dynamic x) → dynamic {
     core::String a';
     core::String b';
     final dynamic #0#0 = x;
-    function ##0#3#initializer() → core::bool
+    function ##0#4#initializer() → core::bool
       return #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C4;
-    late final core::bool #0#3 = ##0#3#initializer(){() → core::bool};
+    late final core::bool #0#4 = ##0#4#initializer(){() → core::bool};
     function ##0#6#initializer() → dynamic
       return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
     late final dynamic #0#6 = ##0#6#initializer(){() → dynamic};
@@ -117,7 +117,7 @@ static method test3(dynamic x) → dynamic {
     dynamic #t12;
     dynamic #t13;
     dynamic #t14;
-    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#3 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t15 = a = #0#6{core::int} in true)) && (#0#7 is{ForNonNullableByDefault} core::int && (let final core::int #t16 = b = #0#7{core::int} in true)) && (self::captured = (dynamic x) → core::int {
+    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t15 = a = #0#6{core::int} in true)) && (#0#7 is{ForNonNullableByDefault} core::int && (let final core::int #t16 = b = #0#7{core::int} in true)) && (self::captured = (dynamic x) → core::int {
       return a.{core::num::+}(b){(core::num) → core::int};
     }) is{ForNonNullableByDefault} dynamic) {
       #t10 = 0;
@@ -125,7 +125,7 @@ static method test3(dynamic x) → dynamic {
       #t12 = b;
     }
     else
-      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#3 && (#0#6 is{ForNonNullableByDefault} core::String && (let final core::String #t17 = a' = #0#6{core::String} in true)) && (#0#7 is{ForNonNullableByDefault} core::String && (let final core::String #t18 = b' = #0#7{core::String} in true)) && (self::captured = (dynamic x) → core::String {
+      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::String && (let final core::String #t17 = a' = #0#6{core::String} in true)) && (#0#7 is{ForNonNullableByDefault} core::String && (let final core::String #t18 = b' = #0#7{core::String} in true)) && (self::captured = (dynamic x) → core::String {
         return a'.{core::String::+}(b'){(core::String) → core::String};
       }) is{ForNonNullableByDefault} dynamic) {
         #t10 = 1;

@@ -14,11 +14,11 @@ static method test(dynamic x) → dynamic {
     core::int #t1 = -1;
     core::int f;
     final dynamic #0#0 = x;
-    function ##0#1#initializer() → core::int?
+    function ##0#2#initializer() → core::int?
       return #0#0{self::C}.{self::C::f}{core::int?};
-    late final core::int? #0#1 = ##0#1#initializer(){() → core::int?};
+    late final core::int? #0#2 = ##0#2#initializer(){() → core::int?};
     dynamic #t2;
-    if(#0#0 is{ForNonNullableByDefault} self::C && (let final core::int? #t3 = #0#1! in let final core::int? #t4 = f = #0#1! in true)) {
+    if(#0#0 is{ForNonNullableByDefault} self::C && (let final core::int? #t3 = #0#2! in let final core::int? #t4 = f = #0#2! in true)) {
       #t1 = 0;
       #t2 = f;
     }
