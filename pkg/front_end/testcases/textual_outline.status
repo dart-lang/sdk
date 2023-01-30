@@ -33,6 +33,8 @@ const_functions/const_functions_const_factory: FormatterCrash
 constructor_tearoffs/issue46133: FormatterCrash
 constructor_tearoffs/issue47075: FormatterCrash
 constructor_tearoffs/new_as_selector: FormatterCrash
+dart2js/inline_class/external: FormatterCrash
+dartdevc/inline_class/external: FormatterCrash
 enhanced_enums/recovery_in_elements: FormatterCrash
 extension_types/basic_show: FormatterCrash
 extension_types/call_not_get: FormatterCrash
