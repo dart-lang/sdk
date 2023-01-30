@@ -1,84 +1,21 @@
 library /*isNonNullableByDefault*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/patterns/records/record_pattern_inside_if_case.dart:6:15: Error: The getter '$0' isn't defined for the class '(Object?, Object?)'.
-//  - 'Object' is from 'dart:core'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named '$0'.
-//   if (x case (1, 2)) {}
-//               ^^
-//
-// pkg/front_end/testcases/patterns/records/record_pattern_inside_if_case.dart:7:15: Error: The getter '$0' isn't defined for the class '(Object?, {Object? a})'.
-//  - 'Object' is from 'dart:core'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named '$0'.
-//   if (x case (1, a: 2)) {}
-//               ^^
-//
-// pkg/front_end/testcases/patterns/records/record_pattern_inside_if_case.dart:8:21: Error: The getter '$0' isn't defined for the class '(Object?, {Object? a})'.
-//  - 'Object' is from 'dart:core'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named '$0'.
-//   if (x case (a: 1, 2)) {}
-//                     ^^
-//
-// pkg/front_end/testcases/patterns/records/record_pattern_inside_if_case.dart:10:19: Error: The getter '$0' isn't defined for the class '(Object?, Object?, {Object? bar, Object? foo})'.
-//  - 'Object' is from 'dart:core'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named '$0'.
-//   if (x case (int _, double y, foo: String _!, bar: var _)) {
-//                   ^^
-//
-// pkg/front_end/testcases/patterns/records/record_pattern_inside_if_case.dart:19:15: Error: The getter '$0' isn't defined for the class '(Object?, Object?)'.
-//  - 'Object' is from 'dart:core'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named '$0'.
-//   if (x case (1, 2)) {}
-//               ^^
-//
-// pkg/front_end/testcases/patterns/records/record_pattern_inside_if_case.dart:23:15: Error: The getter '$0' isn't defined for the class '(Object?, {Object? a})'.
-//  - 'Object' is from 'dart:core'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named '$0'.
-//   if (x case (1, a: 2)) {}
-//               ^^
-//
-// pkg/front_end/testcases/patterns/records/record_pattern_inside_if_case.dart:24:21: Error: The getter '$0' isn't defined for the class '(Object?, {Object? a})'.
-//  - 'Object' is from 'dart:core'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named '$0'.
-//   if (x case (a: 1, 2)) {}
-//                     ^^
-//
-// pkg/front_end/testcases/patterns/records/record_pattern_inside_if_case.dart:32:19: Error: The getter '$0' isn't defined for the class '(Object?, Object?, {Object? bar, Object? foo})'.
-//  - 'Object' is from 'dart:core'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named '$0'.
-//   if (x case (int _, double y, foo: String _!, bar: var _)) {
-//                   ^^
-//
 import self as self;
 import "dart:core" as core;
 
 static method test1(core::Record x) → dynamic {
   {
     final core::Record #0#0 = x;
-    if(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?) && #C1 =={core::num::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/patterns/records/record_pattern_inside_if_case.dart:6:15: Error: The getter '\$0' isn't defined for the class '(Object?, Object?)'.
- - 'Object' is from 'dart:core'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named '\$0'.
-  if (x case (1, 2)) {}
-              ^^" in #0#0{(core::Object?, core::Object?)}{<unresolved>}.$0 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$1{core::Object?}) {
+    if(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$1{core::Object?} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$2{core::Object?}) {
     }
   }
   {
     final core::Record #1#0 = x;
-    if(#1#0 is{ForNonNullableByDefault} (core::Object?, {a: core::Object?}) && #C1 =={core::num::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/patterns/records/record_pattern_inside_if_case.dart:7:15: Error: The getter '\$0' isn't defined for the class '(Object?, {Object? a})'.
- - 'Object' is from 'dart:core'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named '\$0'.
-  if (x case (1, a: 2)) {}
-              ^^" in #1#0{(core::Object?, {a: core::Object?})}{<unresolved>}.$0 && #C2 =={core::num::==}{(core::Object) → core::bool} #1#0{(core::Object?, {a: core::Object?})}.a{core::Object?}) {
+    if(#1#0 is{ForNonNullableByDefault} (core::Object?, {a: core::Object?}) && #C1 =={core::num::==}{(core::Object) → core::bool} #1#0{(core::Object?, {a: core::Object?})}.$1{core::Object?} && #C2 =={core::num::==}{(core::Object) → core::bool} #1#0{(core::Object?, {a: core::Object?})}.a{core::Object?}) {
     }
   }
   {
     final core::Record #2#0 = x;
-    if(#2#0 is{ForNonNullableByDefault} (core::Object?, {a: core::Object?}) && #C1 =={core::num::==}{(core::Object) → core::bool} #2#0{(core::Object?, {a: core::Object?})}.a{core::Object?} && #C2 =={core::num::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/patterns/records/record_pattern_inside_if_case.dart:8:21: Error: The getter '\$0' isn't defined for the class '(Object?, {Object? a})'.
- - 'Object' is from 'dart:core'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named '\$0'.
-  if (x case (a: 1, 2)) {}
-                    ^^" in #2#0{(core::Object?, {a: core::Object?})}{<unresolved>}.$0) {
+    if(#2#0 is{ForNonNullableByDefault} (core::Object?, {a: core::Object?}) && #C1 =={core::num::==}{(core::Object) → core::bool} #2#0{(core::Object?, {a: core::Object?})}.a{core::Object?} && #C2 =={core::num::==}{(core::Object) → core::bool} #2#0{(core::Object?, {a: core::Object?})}.$1{core::Object?}) {
     }
   }
   {
@@ -89,13 +26,9 @@ Try correcting the name to the name of an existing getter, or defining a getter 
   {
     core::double y;
     final core::Record #4#0 = x;
-    late final core::Object? #4#2 = #4#0{(core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?})}.$1{core::Object?};
+    late final core::Object? #4#2 = #4#0{(core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?})}.$2{core::Object?};
     late final core::Object? #4#3 = #4#0{(core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?})}.foo{core::Object?};
-    if(#4#0 is{ForNonNullableByDefault} (core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?}) && invalid-expression "pkg/front_end/testcases/patterns/records/record_pattern_inside_if_case.dart:10:19: Error: The getter '\$0' isn't defined for the class '(Object?, Object?, {Object? bar, Object? foo})'.
- - 'Object' is from 'dart:core'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named '\$0'.
-  if (x case (int _, double y, foo: String _!, bar: var _)) {
-                  ^^" in #4#0{(core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?})}{<unresolved>}.$0 is{ForNonNullableByDefault} core::int && (#4#2 is{ForNonNullableByDefault} core::double && (let final dynamic #t1 = y = #4#2{core::double} in true)) && (let final dynamic #t2 = #4#3! in #4#3! is{ForNonNullableByDefault} core::String) && true) {
+    if(#4#0 is{ForNonNullableByDefault} (core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?}) && #4#0{(core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?})}.$1{core::Object?} is{ForNonNullableByDefault} core::int && (#4#2 is{ForNonNullableByDefault} core::double && (let final dynamic #t1 = y = #4#2{core::double} in true)) && (let final dynamic #t2 = #4#3! in #4#3! is{ForNonNullableByDefault} core::String) && true) {
       return 0;
     }
     else {
@@ -106,31 +39,19 @@ Try correcting the name to the name of an existing getter, or defining a getter 
 static method test2((core::int, core::int) x) → dynamic {
   {
     final(core::int, core::int) #0#0 = x;
-    if(#C1 =={core::num::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/patterns/records/record_pattern_inside_if_case.dart:19:15: Error: The getter '\$0' isn't defined for the class '(Object?, Object?)'.
- - 'Object' is from 'dart:core'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named '\$0'.
-  if (x case (1, 2)) {}
-              ^^" in #0#0{<unresolved>}.$0 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.$1{core::Object?}) {
+    if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0.$1{core::Object?} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.$2{core::Object?}) {
     }
   }
 }
 static method test3((core::int, {required a: core::int}) x) → dynamic {
   {
     final(core::int, {required a: core::int}) #0#0 = x;
-    if(#C1 =={core::num::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/patterns/records/record_pattern_inside_if_case.dart:23:15: Error: The getter '\$0' isn't defined for the class '(Object?, {Object? a})'.
- - 'Object' is from 'dart:core'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named '\$0'.
-  if (x case (1, a: 2)) {}
-              ^^" in #0#0{<unresolved>}.$0 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.a{core::Object?}) {
+    if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0.$1{core::Object?} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.a{core::Object?}) {
     }
   }
   {
     final(core::int, {required a: core::int}) #1#0 = x;
-    if(#C1 =={core::num::==}{(core::Object) → core::bool} #1#0.a{core::Object?} && #C2 =={core::num::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/patterns/records/record_pattern_inside_if_case.dart:24:21: Error: The getter '\$0' isn't defined for the class '(Object?, {Object? a})'.
- - 'Object' is from 'dart:core'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named '\$0'.
-  if (x case (a: 1, 2)) {}
-                    ^^" in #1#0{<unresolved>}.$0) {
+    if(#C1 =={core::num::==}{(core::Object) → core::bool} #1#0.a{core::Object?} && #C2 =={core::num::==}{(core::Object) → core::bool} #1#0.$1{core::Object?}) {
     }
   }
 }
@@ -145,13 +66,9 @@ static method test5((core::int, core::double, {required bar: dynamic, required f
   {
     core::double y;
     final(core::int, core::double, {required bar: dynamic, required foo: core::String}) #0#0 = x;
-    late final core::Object? #0#2 = #0#0.$1{core::Object?};
+    late final core::Object? #0#2 = #0#0.$2{core::Object?};
     late final core::Object? #0#3 = #0#0.foo{core::Object?};
-    if(invalid-expression "pkg/front_end/testcases/patterns/records/record_pattern_inside_if_case.dart:32:19: Error: The getter '\$0' isn't defined for the class '(Object?, Object?, {Object? bar, Object? foo})'.
- - 'Object' is from 'dart:core'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named '\$0'.
-  if (x case (int _, double y, foo: String _!, bar: var _)) {
-                  ^^" in #0#0{<unresolved>}.$0 is{ForNonNullableByDefault} core::int && (#0#2 is{ForNonNullableByDefault} core::double && (let final dynamic #t3 = y = #0#2{core::double} in true)) && (let final dynamic #t4 = #0#3! in #0#3! is{ForNonNullableByDefault} core::String) && true) {
+    if(#0#0.$1{core::Object?} is{ForNonNullableByDefault} core::int && (#0#2 is{ForNonNullableByDefault} core::double && (let final dynamic #t3 = y = #0#2{core::double} in true)) && (let final dynamic #t4 = #0#3! in #0#3! is{ForNonNullableByDefault} core::String) && true) {
       return 0;
     }
     else {
