@@ -21,6 +21,10 @@ import 'dart:_internal'
 import 'dart:_native_typed_data';
 import 'dart:_runtime' as dart;
 
+// Export `JSObject` so `dart:js_interop` can import a representation type
+// consistently across all backends.
+export 'dart:_interceptors' show JSObject;
+
 part 'annotations.dart';
 part 'linked_hash_map.dart';
 part 'identity_hash_map.dart';
