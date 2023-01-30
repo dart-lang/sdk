@@ -363,7 +363,6 @@ abstract class ListMixin<E> implements List<E> {
 
   void shuffle([Random? random]) {
     random ??= Random();
-    if (random == null) throw "!"; // TODO(38493): The `??=` should promote.
 
     int length = this.length;
     while (length > 1) {
@@ -384,7 +383,6 @@ abstract class ListMixin<E> implements List<E> {
   List<E> sublist(int start, [int? end]) {
     int listLength = this.length;
     end ??= listLength;
-    if (end == null) throw "!"; // TODO(38493): The `??=` should promote.
 
     RangeError.checkValidRange(start, end, listLength);
     return List.from(getRange(start, end));
