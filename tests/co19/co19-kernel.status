@@ -2,6 +2,13 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == dart2wasm ]
+LibTest/ffi/*: SkipByDesign
+LibTest/html/*: SkipByDesign
+LibTest/io/*: SkipByDesign
+LibTest/isolate/*: SkipByDesign
+LibTest/mirrors/*: SkipByDesign
+
 [ $runtime == dart_precompiled ]
 LibTest/mirrors/*: SkipByDesign # dart:mirrors is not supported:
 

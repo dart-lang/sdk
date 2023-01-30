@@ -205,7 +205,6 @@
       "tests/web/",
       "tests/dartdevc/",
       "tests/language/",
-      "tests/language_2/",
       "tests/lib/",
       "tests/light_unittest.dart",
       "tests/search/",
@@ -3596,11 +3595,11 @@
           "name": "dart2wasm d8 tests",
           "arguments": [
             "-ndart2wasm-hostasserts-linux-x64-d8",
-            "language",
+            "co19",
             "corelib",
-            "web/wasm",
-            "lib/lib/(async|collection|convert|js/export|js/static_interop_test|math|typed_data)/",
-            "co19/co19/(src/)?(Language|LanguageFeatures|LibTest/(async|collection|convert|core|math|typed_data))/"
+            "language",
+            "lib",
+            "web"
           ],
           "shards": 10,
           "fileset": "dart2wasm_hostasserts"

@@ -8,7 +8,14 @@ wasm/*: Skip # dart:wasm is currently behind a Dart SDK build flag.
 convert/utf85_test: Skip # Pass, Slow Issue 12644.
 
 [ $compiler == dart2wasm ]
+developer/*: SkipByDesign
+fix_data_tests/*: SkipByDesign
+html/*: SkipByDesign # dart:html not supported on dart2wasm
+isolate/*: SkipByDesign
+js/(?!export|static_interop_test)*: SkipByDesign
 js/static_interop_test/external_static_member_lowerings_trusttypes_test: SkipByDesign # Tests @trustTypes, which is unsupported on dart2wasm.
+mirrors/*: SkipByDesign
+web/*: SkipByDesign
 
 [ $mode == product ]
 developer/timeline_test: Skip # Not supported
