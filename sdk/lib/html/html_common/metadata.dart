@@ -55,8 +55,7 @@ class DomName {
 }
 
 /**
- * Metadata that specifies that member is editable through generated
- * files.
+ * Metadata that specifies that the member is editable through generated files.
  */
 class DocsEditable {
   const DocsEditable();

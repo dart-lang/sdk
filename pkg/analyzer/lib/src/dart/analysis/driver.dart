@@ -59,7 +59,7 @@ import 'package:analyzer/src/utilities/uri_cache.dart';
 /// analyzed files to the most recent [AnalysisResult] delivered to [results]
 /// for each file. Let the "current file state" represent a map from file path
 /// to the file contents most recently read from that file, or fetched from the
-/// content cache (considering all possible possible file paths, regardless of
+/// content cache (considering all possible file paths, regardless of
 /// whether they're in the set of explicitly analyzed files). Let the
 /// "analysis state" be either "analyzing" or "idle".
 ///
@@ -2021,7 +2021,7 @@ class AnalysisDriverScheduler {
     }
   }
 
-  /// Notify that there is a change to the [driver], it it might need to
+  /// Notify that there is a change to the [driver], it might need to
   /// perform some work.
   void notify(AnalysisDriverGeneric? driver) {
     // TODO(brianwilkerson) Consider removing the parameter, given that it isn't

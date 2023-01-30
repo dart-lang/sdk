@@ -443,7 +443,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// Capabilities of the DDS instance available in the connected VM Service.
   ///
   /// If the VM Service is not yet connected, does not have a DDS instance, or
-  /// the version has not been been fetched, all capabilities will be false.
+  /// the version has not been fetched, all capabilities will be false.
   _DdsCapabilities _ddsCapabilities = _DdsCapabilities.empty;
 
   /// The ID of the custom VM Service stream that emits events intended for
@@ -527,7 +527,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// to this request.
   Future<void> attachImpl();
 
-  /// [attachRequest] is called by the client when it wants us to to attach to
+  /// [attachRequest] is called by the client when it wants us to attach to
   /// an existing app. This will only be called once (and only one of this or
   /// launchRequest will be called).
   @override
@@ -1155,7 +1155,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// to this request.
   Future<void> launchImpl();
 
-  /// [launchRequest] is called by the client when it wants us to to start the app
+  /// [launchRequest] is called by the client when it wants us to start the app
   /// to be run/debug. This will only be called once (and only one of this or
   /// [attachRequest] will be called).
   @override

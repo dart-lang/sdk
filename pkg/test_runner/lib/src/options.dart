@@ -290,7 +290,7 @@ Allowed values are: legacy, weak, strong''')
     ..addFlag('write-logs',
         aliases: ['write_logs'],
         hide: true,
-        help: 'Write failing test stdout and stderr to to the '
+        help: 'Write failing test stdout and stderr to the '
             '"${TestUtils.logsFileName}" file')
     ..addFlag('reset-browser-configuration',
         aliases: ['reset_browser_configuration'],

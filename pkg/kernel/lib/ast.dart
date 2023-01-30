@@ -13215,7 +13215,7 @@ class TypeParameterType extends DartType {
   @override
   int get hashCode {
     // TODO(johnniwinther): Since we use a unification strategy for function
-    //  type type parameter equality, we have to assume they can end up being
+    //  type parameter equality, we have to assume they can end up being
     //  equal. Maybe we should change the equality strategy.
     int hash = parameter.isFunctionTypeTypeParameter ? 0 : parameter.hashCode;
     int nullabilityHash = (0x33333333 >> nullability.index) ^ 0x33333333;

@@ -106,7 +106,7 @@ abstract class InternetAddress {
   /// address (dotted-decimal notation).
   /// If [type] is [InternetAddressType.IPv6], [address] must be a numeric IPv6
   /// address (hexadecimal notation).
-  /// If [type] is [InternetAddressType.unix], [address] must be a a valid file
+  /// If [type] is [InternetAddressType.unix], [address] must be a valid file
   /// path.
   /// If [type] is omitted, [address] must be either a numeric IPv4 or IPv6
   /// address and the type is inferred from the format.

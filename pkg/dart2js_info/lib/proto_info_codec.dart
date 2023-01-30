@@ -16,7 +16,7 @@ export 'src/proto/info.pb.dart';
 class ProtoToAllInfoConverter extends Converter<AllInfoPB, AllInfo> {
   @override
   AllInfo convert(AllInfoPB input) {
-    // TODO(lorenvs): Implement this conversion. It is unlikely to to be used
+    // TODO(lorenvs): Implement this conversion. It is unlikely to be used
     // by production code since the goal of the proto codec is to consume this
     // information from other languages. However, it is useful for roundtrip
     // testing, so we should support it.

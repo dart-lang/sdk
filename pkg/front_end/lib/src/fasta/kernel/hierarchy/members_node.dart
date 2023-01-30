@@ -1447,7 +1447,7 @@ class ClassMembersNodeBuilder {
       /// is for a method, a getter or a setter.
       /// [declaredMember] is the member declared in the current class, if any.
       /// [mixedInMember] is the member declared in a mixin that is mixed into
-      /// the current current class, if any.
+      /// the current class, if any.
       /// [extendedMember] is the member inherited from the super class.
       /// [implementedMembers] are the members inherited from the super
       /// interfaces, if none this is `null`.

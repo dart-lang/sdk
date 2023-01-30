@@ -32,7 +32,7 @@ const String HOOKS_API_USAGE = """
 //    is loaded. It should load and eval the javascript of `uri`, and call
 //    successCallback. If it fails to do so, it should call errorCallback with
 //    an error. The loadId argument is the deferred import that resulted in
-//    this uri being loaded. The loadPriority argument is the priorty the
+//    this uri being loaded. The loadPriority argument is the priority the
 //    library should be loaded with as specified in the code via the
 //    load-priority annotation (0: normal, 1: high).
 //

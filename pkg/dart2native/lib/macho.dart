@@ -185,7 +185,7 @@ enum LoadCommandType {
   /// After MacOS X 10.1 when a new load command is added that is required to be
   /// understood by the dynamic linker for the image to execute properly, this
   /// bit will be or'ed into the load command constant. If the dynamic
-  /// linker sees such a load command it it does not understand will issue a
+  /// linker sees such a load command it does not understand will issue a
   /// "unknown load command required for execution" error and refuse to use the
   /// image.  Other load commands without this bit that are not understood will
   /// simply be ignored.

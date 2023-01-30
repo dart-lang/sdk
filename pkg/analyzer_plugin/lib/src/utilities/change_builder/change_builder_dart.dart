@@ -1158,7 +1158,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   ///
   /// The prefix is not needed if the [element] is defined in the target
   /// library, or there is already an import without prefix that exports the
-  /// [element]. If there there are no existing import that exports the
+  /// [element]. If there are no existing import that exports the
   /// [element], a library that exports the [element] is scheduled for import,
   /// possibly with a prefix.
   void _writeLibraryReference(Element element) {

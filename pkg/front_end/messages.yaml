@@ -760,7 +760,7 @@ AbstractStaticField:
 AbstractExtensionField:
   problemMessage: "Extension fields can't be declared 'abstract'."
   correctionMessage: "Try removing the 'abstract' keyword."
-# Separate class and extension field handling to to support this.
+# Separate class and extension field handling to support this.
 #  configuration: nnbd-strong
 #  script:
 #    - "extension C on int {abstract static var f;}"

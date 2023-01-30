@@ -496,7 +496,7 @@ class NullSafetyDeadCodeVerifier {
       } else {
         var offset = firstDeadNode.offset;
         // We know that [node] is the first dead node, or contains it.
-        // So, technically the code code interval ends at the end of [node].
+        // So, technically the code interval ends at the end of [node].
         // But we trim it to the last statement for presentation purposes.
         if (node != firstDeadNode) {
           if (node is FunctionDeclaration) {
@@ -622,7 +622,7 @@ class NullSafetyDeadCodeVerifier {
     if (flowAnalysis == null) return;
     flowAnalysis.checkUnreachableNode(node);
 
-    // If the first dead node is not `null`, even if this new new node is
+    // If the first dead node is not `null`, even if this new node is
     // unreachable, we can ignore it as it is part of the same dead code
     // range anyway.
     if (_firstDeadNode != null) return;
