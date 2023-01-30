@@ -37,6 +37,9 @@ final List<Option> options = [
   Flag(
       "enable-asserts", (o, value) => o.translatorOptions.enableAsserts = value,
       defaultsTo: _d.translatorOptions.enableAsserts),
+  Flag("omit-type-checks",
+      (o, value) => o.translatorOptions.omitTypeChecks = value,
+      defaultsTo: _d.translatorOptions.omitTypeChecks),
   IntOption(
       "inlining-limit", (o, value) => o.translatorOptions.inliningLimit = value,
       defaultsTo: "${_d.translatorOptions.inliningLimit}"),

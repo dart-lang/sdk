@@ -378,7 +378,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         b.local_set(local);
         b.end();
       }
-      if (variable.isCovariantByClass || variable.isCovariantByDeclaration) {
+      if (!translator.options.omitTypeChecks &&
+          (variable.isCovariantByClass || variable.isCovariantByDeclaration)) {
         final typeLocal = parameterExpectedTypeLocal ??= addLocal(
             translator.classInfo[translator.typeClass]!.nonNullableType);
         _generateArgumentTypeCheck(
@@ -2767,6 +2768,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitAsExpression(AsExpression node, w.ValueType expectedType) {
+    if (translator.options.omitTypeChecks) {
+      return wrap(node.operand, expectedType);
+    }
+
     w.Label asCheckBlock = b.block();
     wrap(node.operand, translator.topInfo.nullableType);
     w.Local operand = addLocal(translator.topInfo.nullableType);
@@ -2941,7 +2946,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       b.end();
 
       // Create locals for type parameters. These will be used by `makeType`
-      // below when generating types of parameters, for type checks.
+      // below when generating types of parameters, for type checks, and when
+      // pushing the type parameters when calling the actual member.
       for (int typeParamIdx = memberTypeParams.length - 1;
           typeParamIdx >= 0;
           typeParamIdx -= 1) {
@@ -2951,73 +2957,74 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       }
     }
 
-    // Check positional argument types
-    final List<VariableDeclaration> memberPositionalParams =
-        procedure.function.positionalParameters;
+    if (!translator.options.omitTypeChecks) {
+      // Check positional argument types
+      final List<VariableDeclaration> memberPositionalParams =
+          procedure.function.positionalParameters;
 
-    // Local for the current argument being checked. Used to avoid indexing the
-    // positional parameters array again when throwing type error.
-    final argLocal = addLocal(translator.topInfo.nullableType);
+      // Local for the current argument being checked. Used to avoid indexing the
+      // positional parameters array again when throwing type error.
+      final argLocal = addLocal(translator.topInfo.nullableType);
 
-    // Local for the expected type of the current positional arguments. Used to
-    // avoid generating the type again when throwing type error.
-    final argTypeLocal = addLocal(typeType);
+      // Local for the expected type of the current positional arguments. Used to
+      // avoid generating the type again when throwing type error.
+      final argTypeLocal = addLocal(typeType);
 
-    for (int positionalParamIdx = 0;
-        positionalParamIdx < memberPositionalParams.length;
-        positionalParamIdx += 1) {
-      final param = memberPositionalParams[positionalParamIdx];
-      _generateArgumentTypeCheck(
-        param.name!,
-        () {
-          b.local_get(positionalArgsLocal);
-          translator.indexList(b, (b) => b.i32_const(positionalParamIdx));
-        },
-        () {
-          types.makeType(this, param.type);
-        },
-        argLocal,
-        argTypeLocal,
-      );
-    }
-
-    // Check named argument types
-    final memberNamedParams = procedure.function.namedParameters;
-
-    /// Maps a named parameter in the member's signature to the parameter's
-    /// index in the array [namedArgsLocal].
-    int mapNamedParameterToArrayIndex(String name) {
-      int? idx;
-      for (int i = 0; i < targetParamInfo.names.length; i += 1) {
-        if (targetParamInfo.names[i] == name) {
-          idx = i;
-          break;
-        }
+      for (int positionalParamIdx = 0;
+          positionalParamIdx < memberPositionalParams.length;
+          positionalParamIdx += 1) {
+        final param = memberPositionalParams[positionalParamIdx];
+        _generateArgumentTypeCheck(
+          param.name!,
+          () {
+            b.local_get(positionalArgsLocal);
+            translator.indexList(b, (b) => b.i32_const(positionalParamIdx));
+          },
+          () {
+            types.makeType(this, param.type);
+          },
+          argLocal,
+          argTypeLocal,
+        );
       }
-      return idx!;
-    }
 
-    for (int namedParamIdx = 0;
-        namedParamIdx < memberNamedParams.length;
-        namedParamIdx += 1) {
-      final param = memberNamedParams[namedParamIdx];
-      _generateArgumentTypeCheck(
-        param.name!,
-        () {
-          b.local_get(namedArgsLocal);
-          translator.indexList(b,
-              (b) => b.i32_const(mapNamedParameterToArrayIndex(param.name!)));
-        },
-        () {
-          types.makeType(this, param.type);
-        },
-        argLocal,
-        argTypeLocal,
-      );
+      // Check named argument types
+      final memberNamedParams = procedure.function.namedParameters;
+
+      /// Maps a named parameter in the member's signature to the parameter's
+      /// index in the array [namedArgsLocal].
+      int mapNamedParameterToArrayIndex(String name) {
+        int? idx;
+        for (int i = 0; i < targetParamInfo.names.length; i += 1) {
+          if (targetParamInfo.names[i] == name) {
+            idx = i;
+            break;
+          }
+        }
+        return idx!;
+      }
+
+      for (int namedParamIdx = 0;
+          namedParamIdx < memberNamedParams.length;
+          namedParamIdx += 1) {
+        final param = memberNamedParams[namedParamIdx];
+        _generateArgumentTypeCheck(
+          param.name!,
+          () {
+            b.local_get(namedArgsLocal);
+            translator.indexList(b,
+                (b) => b.i32_const(mapNamedParameterToArrayIndex(param.name!)));
+          },
+          () {
+            types.makeType(this, param.type);
+          },
+          argLocal,
+          argTypeLocal,
+        );
+      }
     }
 
     // Argument types are as expected, call the member function
-
     final w.BaseFunction memberWasmFunction =
         translator.functions.getFunction(member.reference);
     final List<w.ValueType> memberWasmInputs = memberWasmFunction.type.inputs;

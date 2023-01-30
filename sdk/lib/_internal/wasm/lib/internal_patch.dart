@@ -143,6 +143,17 @@ void _invokeCallback(void Function() callback) {
   }
 }
 
+@pragma("wasm:export", "\$invokeCallback1")
+void _invokeCallback1(void Function(dynamic) callback, dynamic arg) {
+  try {
+    callback(arg);
+  } catch (e, s) {
+    print(e);
+    print(s);
+    rethrow;
+  }
+}
+
 /// Used to invoke the `main` function from JS, printing any exceptions that
 /// escape.
 @pragma("wasm:export", "\$invokeMain")

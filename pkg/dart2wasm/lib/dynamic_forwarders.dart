@@ -651,12 +651,14 @@ void generateDynamicFunctionCall(
   b.br_if(noSuchMethodBlock);
 
   // Shape check passed, check types
-  b.local_get(functionTypeLocal);
-  b.local_get(typeArgsLocal);
-  b.local_get(posArgsLocal);
-  b.local_get(namedArgsLocal);
-  b.call(
-      translator.functions.getFunction(translator.checkClosureType.reference));
+  if (!translator.options.omitTypeChecks) {
+    b.local_get(functionTypeLocal);
+    b.local_get(typeArgsLocal);
+    b.local_get(posArgsLocal);
+    b.local_get(namedArgsLocal);
+    b.call(translator.functions
+        .getFunction(translator.checkClosureType.reference));
+  }
 
   // Type check passed, call vtable entry
   b.local_get(closureLocal);
