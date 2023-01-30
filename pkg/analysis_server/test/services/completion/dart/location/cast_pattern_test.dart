@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
-import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
@@ -30,19 +28,6 @@ class CastPatternTest2 extends AbstractCompletionDriverTest
 }
 
 mixin CastPatternTestCases on AbstractCompletionDriverTest {
-  @override
-  Future<void> setUp() async {
-    await super.setUp();
-
-    printerConfiguration = printer.Configuration(
-      filter: (suggestion) {
-        final completion = suggestion.completion;
-        return suggestion.kind == CompletionSuggestionKind.KEYWORD ||
-            ['A0', 'B0'].any(completion.startsWith);
-      },
-    );
-  }
-
   Future<void> test_noType_afterDeclaration() async {
     await computeSuggestions('''
 void f(Object x) {

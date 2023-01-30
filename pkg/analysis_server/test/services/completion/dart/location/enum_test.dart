@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
-import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
@@ -49,16 +47,7 @@ mixin EnumDeclarationTestCases on AbstractCompletionDriverTest {
   @override
   Future<void> setUp() async {
     await super.setUp();
-
-    printerConfiguration = printer.Configuration(
-      filter: (suggestion) {
-        final completion = suggestion.completion;
-        if (suggestion.kind == CompletionSuggestionKind.IDENTIFIER) {
-          return const {'Object'}.contains(completion);
-        }
-        return true;
-      },
-    );
+    allowedIdentifiers = const {'Object', 'foo01', 'foo02', 'new'};
   }
 
   Future<void> test_afterConstants_noSemicolon() async {

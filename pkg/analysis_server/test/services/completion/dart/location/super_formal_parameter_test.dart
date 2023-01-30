@@ -5,7 +5,6 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
-import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
@@ -32,11 +31,8 @@ mixin SuperFormalParameterTestCases on AbstractCompletionDriverTest {
   @override
   Future<void> setUp() async {
     await super.setUp();
-
-    printerConfiguration = printer.Configuration(
-      filter: (suggestion) => true,
-      withReturnType: true,
-    );
+    allowedIdentifiers = const {'first', 'second', 'third'};
+    printerConfiguration.withReturnType = true;
   }
 
   Future<void> test_explicit_optionalNamed_hasArgument_named() async {
