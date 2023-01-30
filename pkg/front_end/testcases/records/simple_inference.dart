@@ -11,7 +11,7 @@ foo2((int, String?) r, X Function<X>() f) {
 }
 
 foo3() {
-  (num, num) r = (3, 3.5)..$0.isEven;
+  (num, num) r = (3, 3.5)..$1.isEven;
 }
 
 foo4() {

@@ -902,7 +902,7 @@ typedef A = (int foo,);
 
 void f(x) {
   switch (x) {
-    case A($0: var y):
+    case A($1: var y):
       break;
   }
 }
@@ -923,7 +923,7 @@ ObjectPattern
   fields
     RecordPatternField
       fieldName: RecordPatternFieldName
-        name: $0
+        name: $1
         colon: :
       pattern: DeclaredVariablePattern
         keyword: var

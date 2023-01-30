@@ -1,4 +1,31 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/late_lowering/caching.dart:91:15: Error: The getter '$0' isn't defined for the class '(Object?, Object?)'.
+//  - 'Object' is from 'dart:core'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named '$0'.
+//   if (o case (0, 1)) {
+//               ^^
+//
+// pkg/front_end/testcases/late_lowering/caching.dart:156:22: Error: The getter '$0' isn't defined for the class '(Object?, Object?)'.
+//  - 'Object' is from 'dart:core'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named '$0'.
+//   } else if (o case (0, 1)) {
+//                      ^^
+//
+// pkg/front_end/testcases/late_lowering/caching.dart:221:11: Error: The getter '$0' isn't defined for the class '(Object?, Object?)'.
+//  - 'Object' is from 'dart:core'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named '$0'.
+//     case (0, 1):
+//           ^^
+//
+// pkg/front_end/testcases/late_lowering/caching.dart:261:6: Error: The getter '$0' isn't defined for the class '(Object?, Object?)'.
+//  - 'Object' is from 'dart:core'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named '$0'.
+//     (0, 1) => 26,
+//      ^^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -205,7 +232,11 @@ static method ifCase(dynamic o) → core::int {
   }
   {
     final dynamic #24#0 = o;
-    if(#24#0 is{ForNonNullableByDefault} (core::Object?, core::Object?) && #C11 =={core::num::==}{(core::Object) → core::bool} #24#0{(core::Object?, core::Object?)}.$0{core::Object?} && #C1 =={core::num::==}{(core::Object) → core::bool} #24#0{(core::Object?, core::Object?)}.$1{core::Object?}) {
+    if(#24#0 is{ForNonNullableByDefault} (core::Object?, core::Object?) && #C11 =={core::num::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/late_lowering/caching.dart:91:15: Error: The getter '\$0' isn't defined for the class '(Object?, Object?)'.
+ - 'Object' is from 'dart:core'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named '\$0'.
+  if (o case (0, 1)) {
+              ^^" in #24#0{(core::Object?, core::Object?)}{<unresolved>}.$0 && #C1 =={core::num::==}{(core::Object) → core::bool} #24#0{(core::Object?, core::Object?)}.$1{core::Object?}) {
       return 26;
     }
   }
@@ -395,7 +426,11 @@ static method ifCaseElse(dynamic o) → core::int {
                                                   }
                                                   else {
                                                     final dynamic #2#0 = o;
-                                                    if(#2#0 is{ForNonNullableByDefault} (core::Object?, core::Object?) && #C11 =={core::num::==}{(core::Object) → core::bool} #2#0{(core::Object?, core::Object?)}.$0{core::Object?} && #C1 =={core::num::==}{(core::Object) → core::bool} #2#0{(core::Object?, core::Object?)}.$1{core::Object?}) {
+                                                    if(#2#0 is{ForNonNullableByDefault} (core::Object?, core::Object?) && #C11 =={core::num::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/late_lowering/caching.dart:156:22: Error: The getter '\$0' isn't defined for the class '(Object?, Object?)'.
+ - 'Object' is from 'dart:core'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named '\$0'.
+  } else if (o case (0, 1)) {
+                     ^^" in #2#0{(core::Object?, core::Object?)}{<unresolved>}.$0 && #C1 =={core::num::==}{(core::Object) → core::bool} #2#0{(core::Object?, core::Object?)}.$1{core::Object?}) {
                                                       return 26;
                                                     }
                                                     else {
@@ -629,7 +664,11 @@ static method switchStatement(dynamic o) → core::int {
                                                     #t70 = b;
                                                   }
                                                   else
-                                                    if(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?) && #C11 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$0{core::Object?} && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$1{core::Object?}) {
+                                                    if(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?) && #C11 =={core::num::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/late_lowering/caching.dart:221:11: Error: The getter '\$0' isn't defined for the class '(Object?, Object?)'.
+ - 'Object' is from 'dart:core'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named '\$0'.
+    case (0, 1):
+          ^^" in #0#0{(core::Object?, core::Object?)}{<unresolved>}.$0 && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$1{core::Object?}) {
                                                       #t49 = 24;
                                                     }
                                                     else
@@ -1032,7 +1071,11 @@ static method switchExpression(dynamic o) → core::int {
                                                     #t87 = 23;
                                                   }
                                                   else
-                                                    if(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?) && #C11 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$0{core::Object?} && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$1{core::Object?}) {
+                                                    if(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?) && #C11 =={core::num::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/late_lowering/caching.dart:261:6: Error: The getter '\$0' isn't defined for the class '(Object?, Object?)'.
+ - 'Object' is from 'dart:core'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named '\$0'.
+    (0, 1) => 26,
+     ^^" in #0#0{(core::Object?, core::Object?)}{<unresolved>}.$0 && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$1{core::Object?}) {
                                                       #t87 = 24;
                                                     }
                                                     else

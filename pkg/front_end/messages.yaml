@@ -4476,7 +4476,7 @@ ImportChainContext:
 
     #string
     Detailed import paths for (some of) the these imports:
-    
+
     #string2
   severity: CONTEXT
 
@@ -5928,7 +5928,7 @@ MixinApplicationNoConcreteGetter:
   analyzerCode: MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER
   script: |
     class Super {
-      int get getter => 42; 
+      int get getter => 42;
     }
     mixin Mixin on Super {
       int get getter {
@@ -5943,7 +5943,7 @@ MixinApplicationNoConcreteSetter:
   analyzerCode: MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER
   script: |
     class Super {
-      void set setter(int value) {} 
+      void set setter(int value) {}
     }
     mixin Mixin on Super {
       void set setter(int value) {
@@ -6014,7 +6014,7 @@ NamedFieldClashesWithPositionalFieldInRecord:
   analyzerCode: INVALID_FIELD_NAME
   experiments: records
   script: |
-    foo() => (0, $0: 0);
+    foo() => (0, $1: 0);
 
 EnumWithNameValues:
   problemMessage: "The name 'values' is not a valid name for an enum. Try using a different name."

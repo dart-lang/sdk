@@ -4591,7 +4591,7 @@ class RecordIndexGet extends Expression {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(receiver);
-    printer.write(".\$${index}");
+    printer.write(".\$${index + 1}");
   }
 }
 

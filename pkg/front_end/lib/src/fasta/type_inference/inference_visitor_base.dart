@@ -3298,7 +3298,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         if (target.isNullable) {
           // Handles cases like:
           //   (void Function())? r;
-          //   r.$0();
+          //   r.$1();
           List<LocatedMessage>? context = getWhyNotPromotedContext(
               flowAnalysis.whyNotPromoted(receiver)(),
               receiver,

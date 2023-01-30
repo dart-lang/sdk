@@ -1,4 +1,13 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/cast_inside_record_pattern_implicitly_named.dart:7:27: Error: The getter '$0' isn't defined for the class '(Object?, {Object? n})'.
+//  - 'Object' is from 'dart:core'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named '$0'.
+//     case (: var n as int, 2):
+//                           ^^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -10,7 +19,11 @@ static method test(dynamic x) → dynamic {
     final dynamic #0#0 = x;
     late final core::Object? #0#1 = #0#0{(core::Object?, {n: core::Object?})}.n{core::Object?};
     dynamic #t2;
-    if(#0#0 is{ForNonNullableByDefault} (core::Object?, {n: core::Object?}) && (let final dynamic #t3 = #0#1 as{ForNonNullableByDefault} core::int in let final dynamic #t4 = n = #0#1 as{ForNonNullableByDefault} core::int in true) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, {n: core::Object?})}.$0{core::Object?}) {
+    if(#0#0 is{ForNonNullableByDefault} (core::Object?, {n: core::Object?}) && (let final dynamic #t3 = #0#1 as{ForNonNullableByDefault} core::int in let final dynamic #t4 = n = #0#1 as{ForNonNullableByDefault} core::int in true) && #C1 =={core::num::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/patterns/cast_inside_record_pattern_implicitly_named.dart:7:27: Error: The getter '\$0' isn't defined for the class '(Object?, {Object? n})'.
+ - 'Object' is from 'dart:core'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named '\$0'.
+    case (: var n as int, 2):
+                          ^^" in #0#0{(core::Object?, {n: core::Object?})}{<unresolved>}.$0) {
       #t1 = 0;
       #t2 = n;
     }

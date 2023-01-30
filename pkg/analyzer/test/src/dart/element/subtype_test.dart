@@ -4130,7 +4130,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     }
 
     check('(int)', '(int, String)');
-    check('(int)', r'({int $0})');
+    check('(int)', r'({int $1})');
 
     check('({int f1, String f2})', '({int f1})');
     check('({int f1})', '({int f2})');

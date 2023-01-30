@@ -17,5 +17,5 @@ main() {
 /*member: useRecord1:[subclass=JSNumber]*/
 useRecord1() {
   final r = getRecord1();
-  return r.$0;
+  return r.$1;
 }

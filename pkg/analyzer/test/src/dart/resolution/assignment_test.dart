@@ -2380,7 +2380,7 @@ AssignmentExpression
   test_propertyAccess_recordTypeField_positional_FFFF_compound() async {
     await assertErrorsInCode(r'''
 void f((int, String) r) {
-  r.$3 += 0;
+  r.$4 += 0;
 }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 2),
@@ -2397,7 +2397,7 @@ AssignmentExpression
       staticType: (int, String)
     operator: .
     propertyName: SimpleIdentifier
-      token: $3
+      token: $4
       staticElement: <null>
       staticType: null
     staticType: null
@@ -2422,7 +2422,7 @@ AssignmentExpression
   test_propertyAccess_recordTypeField_positional_FFFF_simple() async {
     await assertErrorsInCode(r'''
 void f((int, String) r) {
-  r.$3 = 0;
+  r.$4 = 0;
 }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2),
@@ -2438,7 +2438,7 @@ AssignmentExpression
       staticType: (int, String)
     operator: .
     propertyName: SimpleIdentifier
-      token: $3
+      token: $4
       staticElement: <null>
       staticType: null
     staticType: null
@@ -2463,11 +2463,11 @@ AssignmentExpression
   test_propertyAccess_recordTypeField_positional_FTFF_compound() async {
     await assertErrorsInCode(r'''
 extension E on (int, String) {
-  int get $2 => 0;
+  int get $3 => 0;
 }
 
 void f((int, String) r) {
-  r.$2 += 0;
+  r.$3 += 0;
 }
 ''', [
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 83, 2),
@@ -2483,7 +2483,7 @@ AssignmentExpression
       staticType: (int, String)
     operator: .
     propertyName: SimpleIdentifier
-      token: $2
+      token: $3
       staticElement: <null>
       staticType: null
     staticType: null
@@ -2492,9 +2492,9 @@ AssignmentExpression
     literal: 0
     parameter: dart:core::@class::num::@method::+::@parameter::other
     staticType: int
-  readElement: self::@extension::E::@getter::$2
+  readElement: self::@extension::E::@getter::$3
   readType: int
-  writeElement: self::@extension::E::@getter::$2
+  writeElement: self::@extension::E::@getter::$3
   writeType: dynamic
   staticElement: dart:core::@class::num::@method::+
   staticType: int
@@ -2508,11 +2508,11 @@ AssignmentExpression
   test_propertyAccess_recordTypeField_positional_FTFF_simple() async {
     await assertErrorsInCode(r'''
 extension E on (int, String) {
-  int get $2 => 0;
+  int get $3 => 0;
 }
 
 void f((int, String) r) {
-  r.$2 = 0;
+  r.$3 = 0;
 }
 ''', [
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 83, 2),
@@ -2528,7 +2528,7 @@ AssignmentExpression
       staticType: (int, String)
     operator: .
     propertyName: SimpleIdentifier
-      token: $2
+      token: $3
       staticElement: <null>
       staticType: null
     staticType: null
@@ -2539,7 +2539,7 @@ AssignmentExpression
     staticType: int
   readElement: <null>
   readType: null
-  writeElement: self::@extension::E::@getter::$2
+  writeElement: self::@extension::E::@getter::$3
   writeType: dynamic
   staticElement: <null>
   staticType: int
@@ -2553,7 +2553,7 @@ AssignmentExpression
   test_propertyAccess_recordTypeField_positional_TFFF_compound() async {
     await assertErrorsInCode(r'''
 void f((int, String) r) {
-  r.$0 += 0;
+  r.$1 += 0;
 }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2),
@@ -2569,7 +2569,7 @@ AssignmentExpression
       staticType: (int, String)
     operator: .
     propertyName: SimpleIdentifier
-      token: $0
+      token: $1
       staticElement: <null>
       staticType: null
     staticType: null
@@ -2594,7 +2594,7 @@ AssignmentExpression
   test_propertyAccess_recordTypeField_positional_TFFF_simple() async {
     await assertErrorsInCode(r'''
 void f((int, String) r) {
-  r.$0 = 0;
+  r.$1 = 0;
 }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2),
@@ -2610,7 +2610,7 @@ AssignmentExpression
       staticType: (int, String)
     operator: .
     propertyName: SimpleIdentifier
-      token: $0
+      token: $1
       staticElement: <null>
       staticType: null
     staticType: null
@@ -2635,11 +2635,11 @@ AssignmentExpression
   test_propertyAccess_recordTypeField_positional_TFFT_compound() async {
     await assertErrorsInCode(r'''
 extension E on (int, String) {
-  set $0(int _) {}
+  set $1(int _) {}
 }
 
 void f((int, String) r) {
-  r.$0 += 0;
+  r.$1 += 0;
 }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_SETTER, 83, 2),
@@ -2655,7 +2655,7 @@ AssignmentExpression
       staticType: (int, String)
     operator: .
     propertyName: SimpleIdentifier
-      token: $0
+      token: $1
       staticElement: <null>
       staticType: null
     staticType: null
@@ -2680,11 +2680,11 @@ AssignmentExpression
   test_propertyAccess_recordTypeField_positional_TFFT_simple() async {
     await assertErrorsInCode(r'''
 extension E on (int, String) {
-  set $0(int _) {}
+  set $1(int _) {}
 }
 
 void f((int, String) r) {
-  r.$0 = 0;
+  r.$1 = 0;
 }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_SETTER, 83, 2),
@@ -2700,7 +2700,7 @@ AssignmentExpression
       staticType: (int, String)
     operator: .
     propertyName: SimpleIdentifier
-      token: $0
+      token: $1
       staticElement: <null>
       staticType: null
     staticType: null

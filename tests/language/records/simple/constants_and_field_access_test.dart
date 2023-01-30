@@ -9,14 +9,14 @@
 import "package:expect/expect.dart";
 
 void checkRecordP2(Object? e1, Object? e2, (Object?, Object?) r) {
-  Expect.equals(e1, r.$0);
-  Expect.equals(e2, r.$1);
+  Expect.equals(e1, r.$1);
+  Expect.equals(e2, r.$2);
 }
 
 void checkRecordP3(Object? e1, Object? e2, Object? e3, (Object? e1, Object? e2, Object? e3) r) {
-  Expect.equals(e1, r.$0);
-  Expect.equals(e2, r.$1);
-  Expect.equals(e3, r.$2);
+  Expect.equals(e1, r.$1);
+  Expect.equals(e2, r.$2);
+  Expect.equals(e3, r.$3);
 }
 
 void checkRecordN1(Object? foo, ({Object? foo}) r) {
@@ -35,12 +35,12 @@ void checkRecordN3(Object? foo, Object? bar, Object? baz, ({Object? foo, Object?
 }
 
 void checkRecordP1N1(Object? e1, Object? foo, (Object?, {Object? foo}) r) {
-  Expect.equals(e1, r.$0);
+  Expect.equals(e1, r.$1);
   Expect.equals(foo, r.foo);
 }
 
 void checkRecordP1N2(Object? e1, Object? foo, Object? bar, (Object? e1, {Object? foo, Object? bar, }) r) {
-  Expect.equals(e1, r.$0);
+  Expect.equals(e1, r.$1);
   Expect.equals(foo, r.foo);
   Expect.equals(bar, r.bar);
 }
@@ -49,9 +49,9 @@ void checkRecordP3N3(Object? e1, Object? e2, Object? e3, Object? foo, Object? ba
   Expect.equals(bar, r.bar);
   Expect.equals(foo, r.foo);
   Expect.equals(baz, r.baz);
-  Expect.equals(e1, r.$0);
-  Expect.equals(e2, r.$1);
-  Expect.equals(e3, r.$2);
+  Expect.equals(e1, r.$1);
+  Expect.equals(e2, r.$2);
+  Expect.equals(e3, r.$3);
 }
 
 (Object?, {Object? foo}) getP1N1() => getP1N1Rec(42);

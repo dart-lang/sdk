@@ -1,4 +1,13 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/patternVariableDeclarationStatement_noMetadata_var_record.dart:6:8: Error: The getter '$0' isn't defined for the class '(Object?)'.
+//  - 'Object' is from 'dart:core'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named '$0'.
+//   var (a,) = x;
+//        ^^
+//
 import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
@@ -7,7 +16,11 @@ static method f(dynamic x) → dynamic {
   dynamic a;
   {
     final dynamic #0#0 = x;
-    if(!(#0#0 is{ForNonNullableByDefault} (core::Object?) && (let final core::Object? #t1 = a = #0#0{(core::Object?)}.$0{core::Object?} in true)))
+    if(!(#0#0 is{ForNonNullableByDefault} (core::Object?) && (let final dynamic #t1 = a = invalid-expression "pkg/front_end/testcases/patterns/patternVariableDeclarationStatement_noMetadata_var_record.dart:6:8: Error: The getter '\$0' isn't defined for the class '(Object?)'.
+ - 'Object' is from 'dart:core'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named '\$0'.
+  var (a,) = x;
+       ^^" in #0#0{(core::Object?)}{<unresolved>}.$0 as{ForNonNullableByDefault} dynamic in true)))
       throw new _in::ReachabilityError::•();
   }
 }

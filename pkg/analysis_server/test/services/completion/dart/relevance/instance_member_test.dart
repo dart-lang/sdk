@@ -91,10 +91,10 @@ void g((A, B, C, D) r) {
 }
 ''');
     assertOrder([
-      suggestionWith(completion: r'$1'), // same
-      suggestionWith(completion: r'$2'), // subtype
-      suggestionWith(completion: r'$3'), // unrelated
-      suggestionWith(completion: r'$0'), // supertype
+      suggestionWith(completion: r'$2'), // same
+      suggestionWith(completion: r'$3'), // subtype
+      suggestionWith(completion: r'$4'), // unrelated
+      suggestionWith(completion: r'$1'), // supertype
     ]);
   }
 

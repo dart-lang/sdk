@@ -38,13 +38,13 @@ class C extends A {
 @pragma('vm:testing:print-flow-graph')
 void test(int x, bool z, String foo, int bar, A obj1, A obj2) {
   final r1 = getRecord1(x, z);
-  print(r1.$0);
   print(r1.$1);
+  print(r1.$2);
   final r2 = getRecord2(foo, bar);
   print(r2.foo);
   print(r2.bar);
   final r3 = obj1.record3;
-  print(r3.$0);
+  print(r3.$1);
   print(r3.y);
   final r4 = obj2.record3;
   print(r4);

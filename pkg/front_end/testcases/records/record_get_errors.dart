@@ -3,6 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 method() {
-  (0, "").$2;
+  (0, "").$3;
   (0, a: "", b: true).c;
 }

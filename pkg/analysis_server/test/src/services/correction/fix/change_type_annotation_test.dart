@@ -78,13 +78,13 @@ f(A a) {
   Future<void> test_recordType_from() async {
     await resolveTestCode(r'''
 f() {
-  (String, String) v = ('a', 'b').$0;
+  (String, String) v = ('a', 'b').$1;
   print(v);
 }
 ''');
     await assertHasFix(r'''
 f() {
-  String v = ('a', 'b').$0;
+  String v = ('a', 'b').$1;
   print(v);
 }
 ''');

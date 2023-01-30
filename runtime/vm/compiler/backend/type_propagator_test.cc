@@ -711,7 +711,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_RecordFieldAccess) {
 
     void main() {
       final x = bar();
-      baz(x.$0 + 1);
+      baz(x.$1 + 1);
       baz(x.foo);
     }
   )";

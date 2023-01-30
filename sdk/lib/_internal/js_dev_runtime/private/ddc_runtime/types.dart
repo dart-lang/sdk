@@ -2379,7 +2379,7 @@ Object registerRecord(@notNull String shapeRecipe, @notNull int positionals,
   // Add convenience getters for accessing the record's field values.
   var count = 0;
   while (count < positionals) {
-    var name = '\$$count';
+    var name = '\$${count + 1}';
     defineAccessor(recordPrototype, name,
         get: _recordGet(count), enumerable: true);
     count++;

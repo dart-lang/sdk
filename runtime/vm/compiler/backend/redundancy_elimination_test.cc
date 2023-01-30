@@ -1277,8 +1277,8 @@ String foo(int x, String y) {
   // except array allocation for string interpolation at the end.
   (int, bool) r1 = (x, true);
   final r2 = getRecord(x, y);
-  int sum = r1.$0 + r2.field1;
-  return "r1: (${r1.$0}, ${r1.$1}), "
+  int sum = r1.$1 + r2.field1;
+  return "r1: (${r1.$1}, ${r1.$2}), "
     "r2: (field1: ${r2.field1}, field2: ${r2.field2}), sum: $sum";
 }
 

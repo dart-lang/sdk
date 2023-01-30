@@ -5066,7 +5066,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitRecordIndexGet(RecordIndexGet node) {
-    return _emitPropertyGet(node.receiver, null, '\$${node.index}');
+    return _emitPropertyGet(node.receiver, null, '\$${node.index + 1}');
   }
 
   @override

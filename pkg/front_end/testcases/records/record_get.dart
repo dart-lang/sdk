@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 method() {
-  (0, "").$0;
   (0, "").$1;
-  (0, a: "", b: true).$0;
+  (0, "").$2;
+  (0, a: "", b: true).$1;
   (0, a: "", b: true).a;
   (0, a: "", b: true).b;
 }

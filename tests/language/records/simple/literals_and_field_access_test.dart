@@ -7,14 +7,14 @@
 import "package:expect/expect.dart";
 
 void checkRecordP2(Object? e1, Object? e2, (Object?, Object?) r) {
-  Expect.equals(e1, r.$0);
-  Expect.equals(e2, r.$1);
+  Expect.equals(e1, r.$1);
+  Expect.equals(e2, r.$2);
 }
 
 void checkRecordP3(Object? e1, Object? e2, Object? e3, (Object? e1, Object? e2, Object? e3) r) {
-  Expect.equals(e1, r.$0);
-  Expect.equals(e2, r.$1);
-  Expect.equals(e3, r.$2);
+  Expect.equals(e1, r.$1);
+  Expect.equals(e2, r.$2);
+  Expect.equals(e3, r.$3);
 }
 
 void checkRecordN1(Object? foo, ({Object? foo}) r) {
@@ -33,12 +33,12 @@ void checkRecordN3(Object? foo, Object? bar, Object? baz, ({Object? foo, Object?
 }
 
 void checkRecordP1N1(Object? e1, Object? foo, (Object?, {Object? foo}) r) {
-  Expect.equals(e1, r.$0);
+  Expect.equals(e1, r.$1);
   Expect.equals(foo, r.foo);
 }
 
 void checkRecordP1N2(Object? e1, Object? foo, Object? bar, (Object? e1, {Object? foo, Object? bar, }) r) {
-  Expect.equals(e1, r.$0);
+  Expect.equals(e1, r.$1);
   Expect.equals(foo, r.foo);
   Expect.equals(bar, r.bar);
 }
@@ -47,9 +47,9 @@ void checkRecordP3N3(Object? e1, Object? e2, Object? e3, Object? foo, Object? ba
   Expect.equals(bar, r.bar);
   Expect.equals(foo, r.foo);
   Expect.equals(baz, r.baz);
-  Expect.equals(e1, r.$0);
-  Expect.equals(e2, r.$1);
-  Expect.equals(e3, r.$2);
+  Expect.equals(e1, r.$1);
+  Expect.equals(e2, r.$2);
+  Expect.equals(e3, r.$3);
 }
 
 ({Object? foo}) getN1(Object foo) => (foo: foo);
@@ -63,7 +63,7 @@ void checkRecordP3N3(Object? e1, Object? e2, Object? e3, Object? foo, Object? ba
 
 (dynamic, dynamic, dynamic, {dynamic foo, dynamic bar, dynamic baz, }) getP3N3(int i, String s) {
   (dynamic, dynamic, {dynamic foo, dynamic qq, dynamic baz}) r1 = (s.substring(i, i+1), s.substring(i, i+2), foo: s.substring(i, i+4), qq: i, baz: s.substring(i, i+6));
-  (dynamic, dynamic, dynamic, {dynamic foo, dynamic bar, dynamic baz}) r2 = (r1.$0, r1.$1, s.substring(i, i+3), foo: r1.foo, bar: s.substring(i, i+5), baz: r1.baz);
+  (dynamic, dynamic, dynamic, {dynamic foo, dynamic bar, dynamic baz}) r2 = (r1.$1, r1.$2, s.substring(i, i+3), foo: r1.foo, bar: s.substring(i, i+5), baz: r1.baz);
   return r2;
 }
 

@@ -486,7 +486,7 @@ mixin StringTypes on AbstractTypeSystemTest {
     allNamed('({num f1})', {'f1': numNone});
     allNamed('({int f2})', {'f2': intNone});
     allNamed('({Never f1})', {'f1': neverNone});
-    allNamed(r'({int $0})', {r'$0': intNone});
+    allNamed(r'({int $1})', {r'$1': intNone});
 
     allNamedQuestion('({int f1})?', {'f1': intNone});
     allNamedQuestion('({int? f1})?', {'f1': intQuestion});
