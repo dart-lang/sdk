@@ -1,13 +1,4 @@
 library /*isNonNullableByDefault*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/patterns/records/destructuring.dart:14:10: Error: The getter '$0' isn't defined for the class '(Object?, Object?)'.
-//  - 'Object' is from 'dart:core'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named '$0'.
-//   final (lat, long) = getLocation('Aarhus');
-//          ^^
-//
 import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
@@ -25,11 +16,7 @@ static method main(core::List<core::String> arguments) → void {
   final core::double long;
   {
     final dynamic #0#0 = self::getLocation("Aarhus");
-    if(!(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?) && (let final core::double #t1 = lat = invalid-expression "pkg/front_end/testcases/patterns/records/destructuring.dart:14:10: Error: The getter '\$0' isn't defined for the class '(Object?, Object?)'.
- - 'Object' is from 'dart:core'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named '\$0'.
-  final (lat, long) = getLocation('Aarhus');
-         ^^" in #0#0{(core::Object?, core::Object?)}{<unresolved>}.$0 in true) && (let final core::double #t2 = long = #0#0{(core::Object?, core::Object?)}.$1{core::Object?} as{ForNonNullableByDefault} core::double in true)))
+    if(!(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?) && (let final core::double #t1 = lat = #0#0{(core::Object?, core::Object?)}.$1{core::Object?} as{ForNonNullableByDefault} core::double in true) && (let final core::double #t2 = long = #0#0{(core::Object?, core::Object?)}.$2{core::Object?} as{ForNonNullableByDefault} core::double in true)))
       throw new _in::ReachabilityError::•();
   }
   core::print("Current location: ${lat}, ${long}");
@@ -45,4 +32,4 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 Extra constant evaluation status:
 Evaluated: RecordLiteral @ org-dartlang-testcase:///destructuring.dart:7:12 -> RecordConstant(const (56.1629, 10.2039))
 Evaluated: RecordLiteral @ org-dartlang-testcase:///destructuring.dart:9:12 -> RecordConstant(const (0.0, 0.0))
-Extra constant evaluation: evaluated: 35, effectively constant: 2
+Extra constant evaluation: evaluated: 38, effectively constant: 2

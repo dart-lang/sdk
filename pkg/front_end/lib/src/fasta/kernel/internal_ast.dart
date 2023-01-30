@@ -4836,7 +4836,7 @@ class RecordPattern extends Pattern {
         fieldExpression = matchingCache.createPropertyGetExpression(
             type,
             matchedExpression,
-            new Name('\$${recordFieldIndex}', base.libraryBuilder.library),
+            new Name('\$${recordFieldIndex + 1}', base.libraryBuilder.library),
             fileOffset: fieldPattern.fileOffset);
 
         // [type] is computed by the CFE, so the field index out of range is an

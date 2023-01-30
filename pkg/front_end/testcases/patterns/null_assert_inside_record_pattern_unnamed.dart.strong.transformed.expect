@@ -1,13 +1,4 @@
 library /*isNonNullableByDefault*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/patterns/null_assert_inside_record_pattern_unnamed.dart:7:12: Error: The getter '$0' isn't defined for the class '(Object?, Object?)'.
-//  - 'Object' is from 'dart:core'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named '$0'.
-//     case (1!, 2):
-//            ^^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -16,14 +7,10 @@ static method test(dynamic x) → dynamic {
   {
     core::int #t1 = -1;
     final dynamic #0#0 = x;
-    function ##0#1#initializer() → dynamic
-      return invalid-expression "pkg/front_end/testcases/patterns/null_assert_inside_record_pattern_unnamed.dart:7:12: Error: The getter '\$0' isn't defined for the class '(Object?, Object?)'.
- - 'Object' is from 'dart:core'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named '\$0'.
-    case (1!, 2):
-           ^^" in #0#0{(core::Object?, core::Object?)}{<unresolved>}.$0;
-    late final dynamic #0#1 = ##0#1#initializer(){() → dynamic};
-    if(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?) && (let final dynamic #t2 = #0#1! in #C1 =={core::num::==}{(core::Object) → core::bool} #0#1!) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$1{core::Object?}) {
+    function ##0#1#initializer() → core::Object?
+      return #0#0{(core::Object?, core::Object?)}.$1{core::Object?};
+    late final core::Object? #0#1 = ##0#1#initializer(){() → core::Object?};
+    if(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?) && (let final core::Object? #t2 = #0#1! in #C1 =={core::num::==}{(core::Object) → core::bool} #0#1!) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$2{core::Object?}) {
       #t1 = 0;
     }
     switch(#t1) {

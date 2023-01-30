@@ -10,18 +10,6 @@ library /*isNonNullableByDefault*/;
 //   } else if (x case (: [1, 2])) { // Error
 //                      ^
 //
-// pkg/front_end/testcases/patterns/issue50933.dart:19:22: Error: The getter '$0' isn't defined for the class '(Object?)'.
-//  - 'Object' is from 'dart:core'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named '$0'.
-//   } else if (x case (: [1, 2])) { // Error
-//                      ^^
-//
-// pkg/front_end/testcases/patterns/issue50933.dart:15:62: Error: The getter '$0' isn't defined for the class '(Object?, {Object? bar, Object? baz, Object? foo})'.
-//  - 'Object' is from 'dart:core'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named '$0'.
-//   } else if (x case (:var foo!, :var bar, :var baz?, var boz as double)) {
-//                                                              ^^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -61,13 +49,9 @@ static method test(dynamic x) → dynamic {
       function ##2#4#initializer() → core::Object?
         return #2#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?})}.baz{core::Object?};
       late final core::Object? #2#4 = ##2#4#initializer(){() → core::Object?};
-      function ##2#6#initializer() → dynamic
-        return invalid-expression "pkg/front_end/testcases/patterns/issue50933.dart:15:62: Error: The getter '\$0' isn't defined for the class '(Object?, {Object? bar, Object? baz, Object? foo})'.
- - 'Object' is from 'dart:core'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named '\$0'.
-  } else if (x case (:var foo!, :var bar, :var baz?, var boz as double)) {
-                                                             ^^" in #2#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?})}{<unresolved>}.$0;
-      late final dynamic #2#6 = ##2#6#initializer(){() → dynamic};
+      function ##2#6#initializer() → core::Object?
+        return #2#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?})}.$1{core::Object?};
+      late final core::Object? #2#6 = ##2#6#initializer(){() → core::Object?};
       if(#2#0 is{ForNonNullableByDefault} (core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?}) && (let final core::Object? #t5 = #2#1! in let final core::Object? #t6 = foo = #2#1! in true) && (let final core::Object? #t7 = bar = #2#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?})}.bar{core::Object?} in true) && (!(#2#4 == null) ?{core::bool} let final core::Object? #t8 = baz = #2#4 in true : false) && (let final core::double #t9 = #2#6 as{ForNonNullableByDefault} core::double in let final core::double #t10 = boz = #2#6 as{ForNonNullableByDefault} core::double in true)) {
         return 1;
       }
@@ -83,11 +67,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
                      ^";
           if(#0#0 is{ForNonNullableByDefault} (core::Object?) && invalid-expression "pkg/front_end/testcases/patterns/issue50933.dart:19:22: Error: The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern.
   } else if (x case (: [1, 2])) { // Error
-                     ^" =={core::Object::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/patterns/issue50933.dart:19:22: Error: The getter '\$0' isn't defined for the class '(Object?)'.
- - 'Object' is from 'dart:core'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named '\$0'.
-  } else if (x case (: [1, 2])) { // Error
-                     ^^" in #0#0{(core::Object?)}{<unresolved>}.$0) {
+                     ^" =={core::Object::==}{(core::Object) → core::bool} #0#0{(core::Object?)}.$1{core::Object?}) {
             return 3;
           }
         }
