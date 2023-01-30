@@ -1030,7 +1030,7 @@ extension FutureExtensions<T> on Future<T> {
   /// error in [test].
   /// Example:
   /// ```dart
-  /// // Unwraps an an exceptions cause, if it has one.
+  /// // Unwraps an exceptions cause, if it has one.
   /// someFuture.onError<SomeException>((e, _) {
   ///   throw e.cause ?? e;
   /// });

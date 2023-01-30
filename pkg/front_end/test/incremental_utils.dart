@@ -82,7 +82,7 @@ Future<void> throwOnInsufficientUriToSource(Component component,
       if (uri == null) continue;
       if (!uri.isScheme("org-dartlang-test")) continue;
       // The file system doesn't have the sources for any modules.
-      // For now assume that is always what's going on.
+      // For now assume that that is always what's going on.
       if (!await fileSystem.entityForUri(uri).exists()) continue;
       List<int> expected = await fileSystem.entityForUri(uri).readAsBytes();
       List<int> actual = component.uriToSource[uri]!.source;

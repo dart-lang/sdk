@@ -704,7 +704,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
     if (_configuration.runtime == Runtime.d8) {
       // TODO(sigmund): ddc should have a flag to emit an entrypoint file like
-      // the one below, otherwise it is succeptible to break, for example, if
+      // the one below, otherwise it is susceptible to break, for example, if
       // library naming conventions were to change in the future.
       runFile = "$tempDir/$moduleName.d8.js";
       var nonNullAsserts = arguments.contains('--null-assertions');

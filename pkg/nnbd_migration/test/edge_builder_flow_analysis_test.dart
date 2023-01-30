@@ -595,7 +595,7 @@ void f(int i, int j) {
 ''');
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
-    // No edge from i to never because is is promoted.
+    // No edge from i to never because i is promoted.
     assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never because its promotion was cancelled.
     assertEdge(jNode, inSet(pointsToNever), hard: false);
@@ -612,7 +612,7 @@ bool g(int k) => true;
 ''');
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
-    // No edge from i to never because is is promoted.
+    // No edge from i to never because i is promoted.
     assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never because its promotion was cancelled.
     assertEdge(jNode, inSet(pointsToNever), hard: false);
@@ -740,7 +740,7 @@ void f(int i, int j) {
 ''');
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
-    // No edge from i to never because is is promoted.
+    // No edge from i to never because i is promoted.
     assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never because its promotion was cancelled.
     assertEdge(jNode, inSet(pointsToNever), hard: false);
@@ -759,7 +759,7 @@ void f(int i, int j) {
 ''');
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
-    // No edge from i to never because is is promoted.
+    // No edge from i to never because i is promoted.
     assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never because its promotion was cancelled.
     assertEdge(jNode, inSet(pointsToNever), hard: false);
@@ -776,7 +776,7 @@ void f(int i, int j) {
 ''');
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
-    // No edge from i to never because is is promoted.
+    // No edge from i to never because i is promoted.
     assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never because its promotion was cancelled.
     assertEdge(jNode, inSet(pointsToNever), hard: false);
@@ -793,7 +793,7 @@ void f(int i, int j) {
 ''');
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
-    // No edge from i to never because is is promoted.
+    // No edge from i to never because i is promoted.
     assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never because its promotion was cancelled.
     assertEdge(jNode, inSet(pointsToNever), hard: false);
@@ -885,7 +885,7 @@ void f(int i, int j, Iterable<Object> x) {
 ''');
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
-    // No edge from i to never because is is promoted.
+    // No edge from i to never because i is promoted.
     assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never because its promotion was cancelled.
     assertEdge(jNode, inSet(pointsToNever), hard: false);
@@ -927,7 +927,7 @@ void f(int i, int j, Iterable<Object> x) {
 ''');
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
-    // No edge from i to never because is is promoted.
+    // No edge from i to never because i is promoted.
     assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never because its promotion was cancelled.
     assertEdge(jNode, inSet(pointsToNever), hard: false);
@@ -1544,7 +1544,7 @@ void f(int i, int j) {
 ''');
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
-    // No edge from i to never because is is promoted.
+    // No edge from i to never because i is promoted.
     assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never because its promotion was cancelled.
     assertEdge(jNode, inSet(pointsToNever), hard: false);
@@ -1562,7 +1562,7 @@ bool g(int k) => true;
 ''');
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
-    // No edge from i to never because is is promoted.
+    // No edge from i to never because i is promoted.
     assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never because its promotion was cancelled.
     assertEdge(jNode, inSet(pointsToNever), hard: false);
@@ -1579,7 +1579,7 @@ void f(int i, int j) {
 ''');
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
-    // No edge from i to never because is is promoted.
+    // No edge from i to never because i is promoted.
     assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never.
     assertEdge(jNode, inSet(pointsToNever), hard: false);

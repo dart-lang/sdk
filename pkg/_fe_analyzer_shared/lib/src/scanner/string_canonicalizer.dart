@@ -102,7 +102,7 @@ class _StringNode extends _Node {
   //  * [String] is 16 bytes plus the actual string data.
   //
   // It's an estimation that may overestimate (e.g. on 32-bit architectures) or
-  // underestimate (if paylod is unicode) - but is reasonably precise for our
+  // underestimate (if payload is unicode) - but is reasonably precise for our
   // purpose.
   int get estimatedMemoryConsumption => 32 + (16 + payload.length);
 }
@@ -184,16 +184,6 @@ class _StringCanonicalizer {
     _nodes = newNodes;
   }
 
-  String canonicalize(data, int start, int end, bool asciiOnly) {
-    if (data is String) {
-      if (start == 0 && (end == data.length - 1)) {
-        return canonicalizeString(data);
-      }
-      return canonicalizeSubString(data, start, end);
-    }
-    return canonicalizeBytes(data as List<int>, start, end, asciiOnly);
-  }
-
   String canonicalizeBytes(List<int> data, int start, int end, bool asciiOnly) {
     if (_count > _size) rehash();
     final int index = hashBytes(data, start, end) & (_size - 1);
@@ -221,25 +211,20 @@ class _StringCanonicalizer {
   }
 
   String canonicalizeSubString(String data, int start, int end) {
+    final int len = end - start;
+    if (start == 0 && data.length == len) {
+      return canonicalizeString(data);
+    }
     if (_count > _size) rehash();
     final int index = hashString(data, start, end) & (_size - 1);
     final _Node? s = _nodes[index];
     _Node? t = s;
-    final int len = end - start;
     while (t != null) {
       if (t is _StringNode) {
         final String tData = t.payload;
-        if (identical(data, tData)) return tData;
-        if (tData.length == len) {
-          int i = start, j = 0;
-          while (i < end && data.codeUnitAt(i) == tData.codeUnitAt(j)) {
-            i++;
-            j++;
-          }
-          if (i == end) {
-            t.usageCount++;
-            return tData;
-          }
+        if (tData.length == len && data.startsWith(tData, start)) {
+          t.usageCount++;
+          return tData;
         }
       }
       t = t.next;

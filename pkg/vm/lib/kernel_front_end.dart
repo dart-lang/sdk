@@ -665,7 +665,7 @@ Target? createFrontEndTarget(String targetName,
 
 /// Create a front-end file system.
 ///
-/// If requested, create a virtual mutli-root file system and/or an http aware
+/// If requested, create a virtual multi-root file system and/or an http aware
 /// file system.
 FileSystem createFrontEndFileSystem(
     String? multiRootFileSystemScheme, List<String>? multiRootFileSystemRoots,

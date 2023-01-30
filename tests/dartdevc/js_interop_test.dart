@@ -302,7 +302,7 @@ void main() {
   // Stored Function typed getter
   method = someClass.jsFunctionFieldGetter;
   // We lose safety after calling a getter that returns a function, which takes
-  // a function as an argument. Since this can be modeled with a method, isntead
+  // a function as an argument. Since this can be modeled with a method, instead
   // of a getter returning a function, we don't expect this is a pattern likely
   // to show up in real code.
   //Expect.throws(() {

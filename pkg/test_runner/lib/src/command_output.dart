@@ -107,7 +107,7 @@ class CommandOutput {
 
   bool _didFail(TestCase testCase) => exitCode != 0 && !hasCrashed;
 
-  bool get canRunDependendCommands {
+  bool get canRunDependentCommands {
     // FIXME(kustermann): We may need to change this
     return !hasTimedOut && exitCode == 0;
   }
@@ -1220,7 +1220,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
       : super(command, exitCode, timedOut, stdout, stderr, time,
             compilationSkipped);
 
-  bool get canRunDependendCommands {
+  bool get canRunDependentCommands {
     // See [BatchRunnerProcess]: 0 means success, 1 means compile-time error.
     // TODO(asgerf): When the frontend supports it, continue running even if
     // there were compile-time errors. See kernel_sdk issue #18.
@@ -1309,7 +1309,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
   ///
   /// This ensures we test that the DartVM produces correct CompileTime errors
   /// as it is supposed to for our test suites.
-  bool get successful => canRunDependendCommands;
+  bool get successful => canRunDependentCommands;
 }
 
 class JSCommandLineOutput extends CommandOutput
@@ -1416,7 +1416,7 @@ class ScriptCommandOutput extends CommandOutput {
 
   Expectation realResult(TestCase testCase) => _result;
 
-  bool get canRunDependendCommands => _result == Expectation.pass;
+  bool get canRunDependentCommands => _result == Expectation.pass;
 
   bool get successful => _result == Expectation.pass;
 }

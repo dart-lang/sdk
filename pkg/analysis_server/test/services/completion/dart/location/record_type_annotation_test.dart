@@ -5,7 +5,6 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
-import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
@@ -21,16 +20,7 @@ class RecordTypeAnnotationTest extends AbstractCompletionDriverTest {
   @override
   Future<void> setUp() async {
     await super.setUp();
-
-    printerConfiguration = printer.Configuration(
-      filter: (suggestion) {
-        final completion = suggestion.completion;
-        if (['A0', 'B0'].any(completion.startsWith)) {
-          return true;
-        }
-        return {'buffer', 'stringBuffer'}.contains(completion);
-      },
-    );
+    allowedIdentifiers = const {'buffer', 'stringBuffer'};
   }
 
   Future<void> test_named_comma_space_prefix_x_right() async {

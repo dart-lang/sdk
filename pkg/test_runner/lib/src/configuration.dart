@@ -230,14 +230,14 @@ class TestConfiguration {
       } else {
         var isReload = hotReload || hotReloadRollback;
 
-        var compilerMulitiplier = compilerConfiguration.timeoutMultiplier;
+        var compilerMultiplier = compilerConfiguration.timeoutMultiplier;
         var runtimeMultiplier = runtimeConfiguration.timeoutMultiplier(
             mode: mode,
             isChecked: isChecked,
             isReload: isReload,
             arch: architecture);
 
-        _timeout = 60 * compilerMulitiplier * runtimeMultiplier;
+        _timeout = 60 * compilerMultiplier * runtimeMultiplier;
       }
     }
 

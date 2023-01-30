@@ -9,7 +9,7 @@ static method test(dynamic x) → dynamic {
     core::int y;
     final dynamic #0#0 = x;
     dynamic #t2;
-    if(let final dynamic #t3 = #0#0 as{ForNonNullableByDefault} core::Object in (#0#0 as{ForNonNullableByDefault} core::Object) is{ForNonNullableByDefault} core::int && (let final dynamic #t4 = y = (#0#0 as{ForNonNullableByDefault} core::Object) as{ForNonNullableByDefault} core::int in true)) {
+    if(let final dynamic #t3 = #0#0 as{ForNonNullableByDefault} core::Object in (#0#0 as{ForNonNullableByDefault} core::Object) is{ForNonNullableByDefault} core::int && (let final dynamic #t4 = y = #0#0 as{ForNonNullableByDefault} core::Object in true)) {
       #t1 = 0;
       #t2 = y;
     }

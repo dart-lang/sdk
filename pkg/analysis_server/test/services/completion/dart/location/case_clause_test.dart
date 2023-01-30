@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
-import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
@@ -30,18 +28,6 @@ class CaseClauseTest2 extends AbstractCompletionDriverTest
 }
 
 mixin CaseClauseTestCases on AbstractCompletionDriverTest {
-  @override
-  Future<void> setUp() async {
-    await super.setUp();
-
-    // TODO(brianwilkerson) Include more than keywords in these tests.
-    printerConfiguration = printer.Configuration(
-      filter: (suggestion) {
-        return suggestion.kind == CompletionSuggestionKind.KEYWORD;
-      },
-    );
-  }
-
   Future<void> test_afterCase_inIfElement() async {
     await computeSuggestions('''
 var v = [ if (o case ^) ];
@@ -114,7 +100,7 @@ suggestions
     // The `true` isn't in the `IfStatement`. The only reason we don't suggest
     // `when` in this case is because the completion point is computed to be
     // just before the closing paren, but because the previous token is a number
-    // we short circuit the `KeywordConstributor`.
+    // we short circuit the `KeywordContributor`.
     await computeSuggestions('''
 void f(Object o) {
   if (o case != '' ^ o.length > 3) {}

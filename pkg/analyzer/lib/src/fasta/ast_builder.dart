@@ -2857,16 +2857,16 @@ class AstBuilder extends StackListener {
 
   @override
   void endOptionalFormalParameters(
-      int count, Token leftDelimeter, Token rightDelimeter) {
-    assert((optional('[', leftDelimeter) && optional(']', rightDelimeter)) ||
-        (optional('{', leftDelimeter) && optional('}', rightDelimeter)));
+      int count, Token leftDelimiter, Token rightDelimiter) {
+    assert((optional('[', leftDelimiter) && optional(']', rightDelimiter)) ||
+        (optional('{', leftDelimiter) && optional('}', rightDelimiter)));
     debugEvent("OptionalFormalParameters");
 
     push(
       _OptionalFormalParameters(
         popTypedList2<FormalParameterImpl>(count),
-        leftDelimeter,
-        rightDelimeter,
+        leftDelimiter,
+        rightDelimiter,
       ),
     );
   }

@@ -7,10 +7,10 @@ static method test(dynamic x) → dynamic {
   {
     core::int #t1 = -1;
     final dynamic #0#0 = x;
-    function ##0#7#initializer() → dynamic
+    function ##0#8#initializer() → dynamic
       return #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic};
-    late final dynamic #0#7 = ##0#7#initializer(){() → dynamic};
-    if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && (let final core::int #t2 = #0#7 as{ForNonNullableByDefault} core::int in #C2 =={core::num::==}{(core::Object) → core::bool} #0#7 as{ForNonNullableByDefault} core::int)) {
+    late final dynamic #0#8 = ##0#8#initializer(){() → dynamic};
+    if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && (let final core::int #t2 = #0#8 as{ForNonNullableByDefault} core::int in #C2 =={core::num::==}{(core::Object) → core::bool} #0#8 as{ForNonNullableByDefault} core::int)) {
       #t1 = 0;
     }
     switch(#t1) {

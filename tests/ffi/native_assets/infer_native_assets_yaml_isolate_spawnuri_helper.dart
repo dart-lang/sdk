@@ -9,7 +9,7 @@ import 'dart:isolate';
 // Add an unused import to see that we're using actually the package config.
 // Note, this will also succeed when using the dart-sdk package config.
 // We will inherit that config if doing Isolate.spawnUri from within the SDK.
-// The proper way to to test Isolate.spawnUri is to do it from a Dart file run
+// The proper way to test Isolate.spawnUri is to do it from a Dart file run
 // from a temp folder.
 // ignore: unused_import
 import 'package:meta/meta.dart';

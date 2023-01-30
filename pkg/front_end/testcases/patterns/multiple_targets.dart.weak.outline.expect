@@ -1,0 +1,25 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A<T extends core::Object? = dynamic> extends core::Object {
+  final field self::A::T% foo;
+  constructor •(self::A::T% foo) → self::A<self::A::T%>
+    ;
+}
+class B extends core::Object {
+  final field core::num foo;
+  constructor •(core::num foo) → self::B
+    ;
+}
+class C extends core::Object implements self::A<core::int>, self::B {
+  final field core::int foo;
+  constructor •(core::int foo) → self::C
+    ;
+}
+static method test(dynamic o) → dynamic
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

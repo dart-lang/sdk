@@ -519,7 +519,7 @@ class TypeVariableType extends DartType {
 ///     void Function<T>(T t)
 ///
 /// Such a type variable is different from a [TypeVariableType] because it
-/// doesn't have a unique identity; is is equal to any other
+/// doesn't have a unique identity; is equal to any other
 /// [FunctionTypeVariable] used similarly in another structurally equivalent
 /// function type.
 class FunctionTypeVariable extends DartType {

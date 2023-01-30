@@ -260,7 +260,7 @@ class MyCl^ass1 {}
     ]);
   }
 
-  Future<void> test_mixin_superclassConstaints() async {
+  Future<void> test_mixin_superclassConstraints() async {
     final content = '''
 /*[0*/mixin /*[1*/MyMixin1/*1]*/ on MyClass1 {}/*0]*/
 class MyCl^ass1 {}

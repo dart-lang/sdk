@@ -102,10 +102,10 @@ abstract class WorkspacePackage {
 /// Classes that provide information of such a workspace should implement this
 /// interface.
 class WorkspaceWithDefaultAnalysisOptions {
-  /// The uri for the default analysis options file.
+  /// The URI for the default analysis options file.
   static const String uri = 'package:dart.analysis_options/default.yaml';
 
-  ///  The uri for third_party analysis options file.
+  ///  The URI for third_party analysis options file.
   static const String thirdPartyUri =
       'package:dart.analysis_options/third_party.yaml';
 }

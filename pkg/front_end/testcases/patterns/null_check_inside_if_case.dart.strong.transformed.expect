@@ -1,4 +1,22 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/null_check_inside_if_case.dart:11:19: Warning: The null-check pattern will have no effect because the matched type isn't nullable.
+// Try replacing the null-check pattern with its nested pattern.
+//   if (x case var y?) {}
+//                   ^
+//
+// pkg/front_end/testcases/patterns/null_check_inside_if_case.dart:12:19: Warning: The null-check pattern will have no effect because the matched type isn't nullable.
+// Try replacing the null-check pattern with its nested pattern.
+//   if (x case int y?) {}
+//                   ^
+//
+// pkg/front_end/testcases/patterns/null_check_inside_if_case.dart:13:22: Warning: The null-check pattern will have no effect because the matched type isn't nullable.
+// Try replacing the null-check pattern with its nested pattern.
+//   if (x case String y?) {}
+//                      ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -6,7 +24,7 @@ static method test1(dynamic x) → dynamic {
   {
     dynamic y;
     final dynamic #0#0 = x;
-    if(!(#0#0 == null) ?{core::bool} let final dynamic #t1 = y = #0#0{dynamic} in true : false) {
+    if(!(#0#0 == null) ?{core::bool} let final dynamic #t1 = y = #0#0 in true : false) {
     }
   }
   {
@@ -26,7 +44,7 @@ static method test2(core::num x) → dynamic {
   {
     core::int y;
     final core::num #1#0 = x;
-    if(!(#1#0 == null) ?{core::bool} #1#0 is{ForNonNullableByDefault} core::int && (let final core::int #t4 = y = #1#0{core::int} in true) : false) {
+    if(!(#1#0 == null) ?{core::bool} #1#0 is{ForNonNullableByDefault} core::int && (let final core::num #t4 = y = #1#0 in true) : false) {
     }
   }
   {

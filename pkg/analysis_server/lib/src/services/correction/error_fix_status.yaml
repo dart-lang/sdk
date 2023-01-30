@@ -1410,29 +1410,6 @@ HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE:
   status: noFix
 HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER:
   status: noFix
-HintCode.INVALID_ANNOTATION_TARGET:
-  status: hasFix
-HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT:
-  status: needsFix
-  notes: |-
-    Low priority, because this is likely not encountered often.
-
-    The fix is to update the export directive so that the name is no longer
-    exported.
-HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY:
-  status: needsFix
-  notes: |-
-    Low priority, because this is likely not encountered often and the only fix
-    is not likely to be the most common fix.
-
-    The fix is to update the export directive so that the member using the name
-    is no longer exported.
-HintCode.INVALID_FACTORY_ANNOTATION:
-  status: hasFix
-HintCode.INVALID_FACTORY_METHOD_DECL:
-  status: noFix
-HintCode.INVALID_FACTORY_METHOD_IMPL:
-  status: noFix
 HintCode.INVALID_IMMUTABLE_ANNOTATION:
   status: hasFix
 HintCode.INVALID_INTERNAL_ANNOTATION:
@@ -2766,6 +2743,29 @@ WarningCode.EQUAL_KEYS_IN_MAP:
   status: noFix
   notes: |-
     Fix depends on user's intent, which can't be known.
+WarningCode.INVALID_ANNOTATION_TARGET:
+  status: hasFix
+WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT:
+  status: needsFix
+  notes: |-
+    Low priority, because this is likely not encountered often.
+
+    The fix is to update the export directive so that the name is no longer
+    exported.
+WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY:
+  status: needsFix
+  notes: |-
+    Low priority, because this is likely not encountered often and the only fix
+    is not likely to be the most common fix.
+
+    The fix is to update the export directive so that the member using the name
+    is no longer exported.
+WarningCode.INVALID_FACTORY_ANNOTATION:
+  status: hasFix
+WarningCode.INVALID_FACTORY_METHOD_DECL:
+  status: noFix
+WarningCode.INVALID_FACTORY_METHOD_IMPL:
+  status: noFix
 WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE:
   status: hasFix
 WarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT:

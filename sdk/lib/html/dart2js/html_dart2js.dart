@@ -13049,7 +13049,7 @@ class Element extends Node
   }
 
   /**
-   * Finds all descendent elements of this element that match the specified
+   * Finds all descendant elements of this element that match the specified
    * group of selectors.
    *
    * [selectors] should be a string using CSS selector syntax.
@@ -23462,7 +23462,7 @@ class Node extends EventTarget {
   @JSName('textContent')
 
   /**
-   * All text within this node and its descendents.
+   * All text within this node and its descendants.
    *
    * ## Other resources
    *

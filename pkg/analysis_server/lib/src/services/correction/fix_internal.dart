@@ -1351,12 +1351,6 @@ class FixProcessor extends BaseProcessor {
     ],
     // TODO(brianwilkerson) Add a fix to convert the path to a package: import.
 //    HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE: [],
-    HintCode.INVALID_ANNOTATION_TARGET: [
-      RemoveAnnotation.new,
-    ],
-    HintCode.INVALID_FACTORY_ANNOTATION: [
-      RemoveAnnotation.new,
-    ],
     HintCode.INVALID_IMMUTABLE_ANNOTATION: [
       RemoveAnnotation.new,
     ],
@@ -1556,6 +1550,12 @@ class FixProcessor extends BaseProcessor {
     ],
     WarningCode.DUPLICATE_SHOWN_NAME: [
       RemoveNameFromCombinator.new,
+    ],
+    WarningCode.INVALID_ANNOTATION_TARGET: [
+      RemoveAnnotation.new,
+    ],
+    WarningCode.INVALID_FACTORY_ANNOTATION: [
+      RemoveAnnotation.new,
     ],
     WarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT: [
       UpdateSdkConstraints.version_2_2_2,

@@ -119,9 +119,7 @@ became
 beforehand
 behave
 believe
-bellow
 belonging
-beloning
 benchmark
 benchmarked
 benchmarker
@@ -189,7 +187,6 @@ cardinality
 caret
 carets
 carriage
-carring
 cascades
 casing
 cast
@@ -482,9 +479,9 @@ established
 establishes
 establishing
 estimate
-et
 estimated
 estimation
+et
 eval
 evar
 exchanging
@@ -1025,7 +1022,6 @@ paulberry
 pay
 payload
 payloads
-paylod
 pdf
 pedantic
 per
@@ -1283,6 +1279,7 @@ say
 saying
 sb
 sc
+scale
 scc
 scenarios
 scheglov
@@ -1433,7 +1430,6 @@ subname
 subnode
 subnodes
 subpatterns
-subpattterns
 subscription
 subsection
 subsections

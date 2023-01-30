@@ -108,7 +108,7 @@ class BaseTest {
     return '$uriPrefix${path.join(testDirectory, relativePath)}';
   }
 
-  /// Convert the given posix [filePath] to conform to to the platform style.
+  /// Convert the given posix [filePath] to conform to the platform style.
   ///
   /// This is a utility method for testing; paths passed in to other methods in
   /// this class are never converted automatically.

@@ -9,7 +9,7 @@
 /// validation and throws a [ConstantEvaluationError] if there was a
 /// compile-time errors.
 ///
-/// Due to the lack information which is is only available in the front-end,
+/// Due to the lack information which is only available in the front-end,
 /// this validation is incomplete (e.g. whether an integer literal used the
 /// hexadecimal syntax or not).
 ///

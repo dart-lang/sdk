@@ -10,6 +10,16 @@ library /*isNonNullableByDefault*/;
 //   } else if (x case (: [1, 2])) { // Error
 //                      ^
 //
+// pkg/front_end/testcases/patterns/issue50933.dart:13:24: Warning: The null-assert pattern will have no effect because the matched type isn't nullable.
+// Try replacing the null-assert pattern with its nested pattern.
+//   if (x case A(:var foo!, :var bar, :var baz?, var boz as double)) {
+//                        ^
+//
+// pkg/front_end/testcases/patterns/issue50933.dart:13:45: Warning: The null-check pattern will have no effect because the matched type isn't nullable.
+// Try replacing the null-check pattern with its nested pattern.
+//   if (x case A(:var foo!, :var bar, :var baz?, var boz as double)) {
+//                                             ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -28,9 +38,9 @@ static method test(dynamic x) → dynamic {
     core::int bar;
     core::int baz;
     final dynamic #3#0 = x;
-    late final core::int #3#1 = #3#0{self::A}.{self::A::foo}{core::int};
-    late final core::int #3#4 = #3#0{self::A}.{self::A::baz}{core::int};
-    if(#3#0 is{ForNonNullableByDefault} self::A && (let final dynamic #t1 = #3#1! in let final dynamic #t2 = foo = #3#1! in true) && (let final dynamic #t3 = bar = #3#0{self::A}.{self::A::bar}{core::int} in true) && (!(#3#4 == null) ?{core::bool} let final dynamic #t4 = baz = #3#4 in true : false)) {
+    late final core::int #3#2 = #3#0{self::A}.{self::A::foo}{core::int};
+    late final core::int #3#5 = #3#0{self::A}.{self::A::baz}{core::int};
+    if(#3#0 is{ForNonNullableByDefault} self::A && (let final dynamic #t1 = #3#2! in let final dynamic #t2 = foo = #3#2! in true) && (let final dynamic #t3 = bar = #3#0{self::A}.{self::A::bar}{core::int} in true) && (!(#3#5 == null) ?{core::bool} let final dynamic #t4 = baz = #3#5 in true : false)) {
       return 0;
     }
     else {
@@ -39,10 +49,10 @@ static method test(dynamic x) → dynamic {
       dynamic baz;
       core::double boz;
       final dynamic #2#0 = x;
-      late final core::Object? #2#1 = #2#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?})}.foo{core::Object?};
-      late final core::Object? #2#4 = #2#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?})}.baz{core::Object?};
-      late final core::Object? #2#6 = #2#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?})}.$1{core::Object?};
-      if(#2#0 is{ForNonNullableByDefault} (core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?}) && (let final dynamic #t5 = #2#1! in let final dynamic #t6 = foo = #2#1! in true) && (let final dynamic #t7 = bar = #2#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?})}.bar{core::Object?} in true) && (!(#2#4 == null) ?{core::bool} let final dynamic #t8 = baz = #2#4 in true : false) && (let final dynamic #t9 = #2#6 as{ForNonNullableByDefault} core::double in let final dynamic #t10 = boz = #2#6 as{ForNonNullableByDefault} core::double in true)) {
+      late final core::Object? #2#2 = #2#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?})}.foo{core::Object?};
+      late final core::Object? #2#5 = #2#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?})}.baz{core::Object?};
+      late final core::Object? #2#7 = #2#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?})}.$1{core::Object?};
+      if(#2#0 is{ForNonNullableByDefault} (core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?}) && (let final dynamic #t5 = #2#2! in let final dynamic #t6 = foo = #2#2! in true) && (let final dynamic #t7 = bar = #2#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?})}.bar{core::Object?} in true) && (!(#2#5 == null) ?{core::bool} let final dynamic #t8 = baz = #2#5 in true : false) && (let final dynamic #t9 = #2#7 as{ForNonNullableByDefault} core::double in let final dynamic #t10 = boz = #2#7 as{ForNonNullableByDefault} core::double in true)) {
         return 1;
       }
       else {
@@ -52,7 +62,7 @@ static method test(dynamic x) → dynamic {
         }
         else {
           final dynamic #0#0 = x;
-          final const invalid-type #0#2 = invalid-expression "pkg/front_end/testcases/patterns/issue50933.dart:19:22: Error: The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern.
+          final const invalid-type #0#3 = invalid-expression "pkg/front_end/testcases/patterns/issue50933.dart:19:22: Error: The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern.
   } else if (x case (: [1, 2])) { // Error
                      ^";
           if(#0#0 is{ForNonNullableByDefault} (core::Object?) && invalid-expression "pkg/front_end/testcases/patterns/issue50933.dart:19:22: Error: The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern.

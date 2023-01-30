@@ -11,7 +11,7 @@ import 'inference_results.dart';
 import 'inference_visitor_base.dart';
 import 'object_access_target.dart';
 
-/// Creates an invocation of the the [target] constructor with the given
+/// Creates an invocation of the [target] constructor with the given
 /// [arguments].
 ConstructorInvocation createConstructorInvocation(
     Constructor target, Arguments arguments,

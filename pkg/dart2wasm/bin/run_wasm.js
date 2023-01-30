@@ -10,7 +10,7 @@
 //       --experimental-wasm-type-reflection run_wasm.js \
 //       -- /abs/path/to/<dart_module>.mjs <dart_module>.wasm [<ffi_module>.wasm]
 //
-// Please note we require an absolue path for the JS runtime. This is a
+// Please note we require an absolute path for the JS runtime. This is a
 // workaround for a discrepancy in D8. Specifically, `import`(used to load .mjs
 // files) searches for imports relative to run_wasm.js, but `readbuffer`(used to
 // read in .wasm files) searches relative to CWD.  A path relative to

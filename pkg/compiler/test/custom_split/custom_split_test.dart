@@ -58,7 +58,7 @@ List<String> getDeferredImports(ir.Component component) {
 /// 2) Spawns the supplied [constraintsUri] in its own isolate
 /// 3) Passes deferred imports via a port to the spawned isolate
 /// 4) Listens for a json string from the spawned isolated and returns the
-///    results as a a [Future<String>].
+///    results as a [Future<String>].
 Future<String> constraintsToJson(
     ir.Component component, Uri constraintsUri) async {
   var imports = getDeferredImports(component);

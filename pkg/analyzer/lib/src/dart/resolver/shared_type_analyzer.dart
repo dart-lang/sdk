@@ -91,6 +91,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   void duplicateRecordPatternField({
+    required DartPattern objectOrRecordPattern,
     required String name,
     required covariant SharedRecordPatternField original,
     required covariant SharedRecordPatternField duplicate,
@@ -107,7 +108,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   void duplicateRestPattern({
-    required AstNode node,
+    required DartPattern mapOrListPattern,
     required covariant RestPatternElementImpl original,
     required covariant RestPatternElementImpl duplicate,
   }) {
@@ -202,13 +203,13 @@ class SharedTypeAnalyzerErrors
 
   @override
   void relationalPatternOperatorReturnTypeNotAssignableToBool({
-    required covariant RelationalPatternImpl node,
+    required covariant RelationalPatternImpl pattern,
     required DartType returnType,
   }) {
     _errorReporter.reportErrorForToken(
       CompileTimeErrorCode
           .RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL,
-      node.operator,
+      pattern.operator,
     );
   }
 

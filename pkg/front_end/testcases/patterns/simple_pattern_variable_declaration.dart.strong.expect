@@ -18,10 +18,10 @@ static method test2(dynamic x) → dynamic {
   core::String b;
   {
     final dynamic #0#0 = x;
-    late final core::int #0#1 = #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+    late final core::int #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int};
     late final dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    late final dynamic #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(#0#1.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic};
-    if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#1.{core::num::>=}(#C2){(core::num) → core::bool} && (#0#6 is{ForNonNullableByDefault} core::String && (let final dynamic #t2 = a = #0#6{core::String} in true)) && (#0#7 is{ForNonNullableByDefault} core::String && (let final dynamic #t3 = b = #0#7{core::String} in true))))
+    late final dynamic #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(#0#2.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic};
+    if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#2.{core::num::>=}(#C2){(core::num) → core::bool} && (#0#6 is{ForNonNullableByDefault} core::String && (let final dynamic #t2 = a = #0#6{core::String} in true)) && (#0#7 is{ForNonNullableByDefault} core::String && (let final dynamic #t3 = b = #0#7{core::String} in true))))
       throw new _in::ReachabilityError::•();
   }
   return a.{core::String::+}(b){(core::String) → core::String};

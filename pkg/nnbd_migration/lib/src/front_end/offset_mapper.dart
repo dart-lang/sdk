@@ -19,7 +19,7 @@ abstract class OffsetMapper {
       _SimpleSourceEditMapper(offset, 0, length);
 
   /// Return a mapper representing the file modified by an insertion at [offset]
-  /// with [replacemnet] text overwriting the given [length].
+  /// with [replacement] text overwriting the given [length].
   factory OffsetMapper.forReplacement(
           int offset, int length, String replacement) =>
       _SimpleSourceEditMapper(offset, length, replacement.length);

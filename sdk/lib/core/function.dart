@@ -87,7 +87,7 @@ part of dart.core;
 /// is accepted and checked at runtime.
 ///
 /// Like every function type has a `call` method with its own function type,
-/// the the `Function` type has a special `call` member
+/// the `Function` type has a special `call` member
 /// which acts as if it is a method with a function type of `Function`
 /// (which is not a method signature which can be expression in normal
 /// Dart code).

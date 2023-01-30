@@ -93,8 +93,8 @@ abstract class InferenceVisitor {
 
 class InferenceVisitorImpl extends InferenceVisitorBase
     with
-        TypeAnalyzer<Node, Statement, Expression, VariableDeclaration, DartType,
-            Pattern>,
+        TypeAnalyzer<TreeNode, Statement, Expression, VariableDeclaration,
+            DartType, Pattern>,
         StackChecker
     implements
         ExpressionVisitor1<ExpressionInferenceResult, DartType>,
@@ -143,7 +143,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   late final SharedTypeAnalyzerErrors errors = new SharedTypeAnalyzerErrors(
-      helper: helper, uriForInstrumentation: uriForInstrumentation);
+      visitor: this,
+      helper: helper,
+      uri: uriForInstrumentation,
+      coreTypes: coreTypes,
+      isNonNullableByDefault: isNonNullableByDefault);
 
   InferenceVisitorImpl(TypeInferrerImpl inferrer, InferenceHelper helper,
       this.constructorDeclaration, this.operations)
@@ -7600,6 +7604,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     MatchingCache matchingCache = createMatchingCache();
+    // TODO(johnniwinther): Handle promoted scrutinee types.
     CacheableExpression matchedExpression =
         matchingCache.createRootExpression(expression, scrutineeType);
 
@@ -7891,7 +7896,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           (int headIndex) {
         Pattern pattern = switchCase.patternGuards[headIndex].pattern;
         DelayedExpression matchingExpression = pattern.createMatchingExpression(
-            this, matchingCache, matchedExpression);
+            // TODO(johnniwinther): Handle promoted scrutinee types.
+            this,
+            matchingCache,
+            matchedExpression);
         matchingExpression.registerUse();
         return matchingExpression;
       });
@@ -8515,8 +8523,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     MatchingCache matchingCache = createMatchingCache();
     // TODO(cstefantsova): Do we need a more precise type for the variable?
+    DartType matchedType = const DynamicType();
     CacheableExpression matchedExpression =
-        matchingCache.createRootExpression(initializer, const DynamicType());
+        matchingCache.createRootExpression(initializer, matchedType);
 
     DelayedExpression matchingExpression = node.pattern
         .createMatchingExpression(this, matchingCache, matchedExpression);
@@ -9080,7 +9089,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void dispatchPattern(SharedMatchContext context, Node node) {
+  void dispatchPattern(SharedMatchContext context, TreeNode node) {
     if (node is Pattern) {
       node.acceptInference(this, context: context);
     } else {
@@ -9089,7 +9098,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  DartType dispatchPatternSchema(Node node) {
+  DartType dispatchPatternSchema(TreeNode node) {
     // The front end's representation of a switch cases currently doesn't have
     // any support for patterns; each case is represented as an expression.  So
     // analyze it as a constant pattern.
@@ -9198,11 +9207,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  FlowAnalysis<Node, Statement, Expression, VariableDeclaration, DartType>
+  FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration, DartType>
       get flow => flowAnalysis;
 
   @override
-  SwitchExpressionMemberInfo<Node, Expression, VariableDeclaration>
+  SwitchExpressionMemberInfo<TreeNode, Expression, VariableDeclaration>
       getSwitchExpressionMemberInfo(Expression node, int index) {
     SwitchExpressionCase switchExpressionCase =
         (node as SwitchExpression).cases[index];
@@ -9211,9 +9220,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       for (VariableDeclaration declaredVariable in pattern.declaredVariables)
         declaredVariable.name!: declaredVariable
     };
-    return new SwitchExpressionMemberInfo<Node, Expression,
+    return new SwitchExpressionMemberInfo<TreeNode, Expression,
             VariableDeclaration>(
-        head: new CaseHeadOrDefaultInfo<Node, Expression, VariableDeclaration>(
+        head: new CaseHeadOrDefaultInfo<TreeNode, Expression,
+                VariableDeclaration>(
             pattern: pattern,
             guard: switchExpressionCase.patternGuard.guard,
             variables: variables),
@@ -9221,7 +9231,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  SwitchStatementMemberInfo<Node, Statement, Expression, VariableDeclaration>
+  SwitchStatementMemberInfo<TreeNode, Statement, Expression,
+          VariableDeclaration>
       getSwitchStatementMemberInfo(
           covariant SwitchStatement node, int caseIndex) {
     SwitchCase case_ = node.cases[caseIndex];
@@ -9366,7 +9377,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Statement node, int caseIndex, Iterable<VariableDeclaration> variables) {}
 
   @override
-  void handleDefault(Node node, int caseIndex) {}
+  void handleDefault(TreeNode node, int caseIndex) {}
 
   @override
   void handleNoStatement(Statement node) {
@@ -9381,13 +9392,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void handleNoGuard(Node node, int caseIndex) {
+  void handleNoGuard(TreeNode node, int caseIndex) {
     int? stackBase;
-    assert(checkStackBase(node as TreeNode, stackBase = stackHeight));
+    assert(checkStackBase(node, stackBase = stackHeight));
 
     pushRewrite(NullValues.Expression);
 
-    assert(checkStack(node as TreeNode, stackBase, [
+    assert(checkStack(node, stackBase, [
       /* expression = */ ValueKinds.ExpressionOrNull,
     ]));
   }
@@ -9417,13 +9428,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  bool isLegacySwitchExhaustive(Node node, DartType expressionType) {
+  bool isLegacySwitchExhaustive(TreeNode node, DartType expressionType) {
     Set<Field?>? enumFields = _enumFields;
     return enumFields != null && enumFields.isEmpty;
   }
 
   @override
-  bool isVariablePattern(Node node) {
+  bool isVariablePattern(TreeNode node) {
     throw new UnimplementedError('TODO(paulberry)');
   }
 
@@ -9706,7 +9717,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(checkStackBase(node, stackBase = stackHeight));
 
     analyzeObjectPattern(context, node,
-        fields: <RecordPatternField<Node, Pattern>>[
+        fields: <RecordPatternField<TreeNode, Pattern>>[
           for (NamedPattern field in node.fields)
             new RecordPatternField(
                 node: field, name: field.name, pattern: field.pattern)
@@ -9751,12 +9762,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    // TODO(johnniwinther): Use type analyzer.
-    DartType matchedType = flow.getMatchedValueType();
-    ExpressionInferenceResult expressionResult =
-        inferExpression(node.expression, matchedType);
-    node.expression = expressionResult.expression..parent = node;
-    node.expressionType = expressionResult.inferredType;
+    DartType expressionType =
+        analyzeRelationalPattern(context, node, node.expression);
+
+    assert(checkStack(node, stackBase, [
+      /* expression = */ ValueKinds.Expression,
+    ]));
+
+    Object? rewrite = popRewrite();
+    if (!identical(rewrite, node.expression)) {
+      node.expression = (rewrite as Expression)..parent = node;
+    }
+
+    node.expressionType = expressionType;
 
     pushRewrite(node);
 
@@ -9827,7 +9845,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    List<RecordPatternField<Node, Pattern>> fields = [
+    List<RecordPatternField<TreeNode, Pattern>> fields = [
       for (Pattern fieldPattern in node.patterns)
         new RecordPatternField(
             node: fieldPattern,
@@ -9897,8 +9915,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     MatchingCache matchingCache = createMatchingCache();
     // TODO(cstefantsova): Do we need a more precise type for the variable?
+    DartType matchedType = const DynamicType();
     CacheableExpression matchedExpression =
-        matchingCache.createRootExpression(expression, const DynamicType());
+        matchingCache.createRootExpression(expression, matchedType);
 
     DelayedExpression matchingExpression = node.pattern
         .createMatchingExpression(this, matchingCache, matchedExpression);
@@ -9999,7 +10018,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void dispatchCollectionElement(Node element, Object? context) {
+  void dispatchCollectionElement(TreeNode element, Object? context) {
     // TODO(scheglov): implement dispatchCollectionElement
     throw new UnimplementedError('TODO(scheglov)');
   }
@@ -10007,7 +10026,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   DartType resolveObjectPatternPropertyGet({
     required DartType receiverType,
-    required shared.RecordPatternField<Node, Pattern> field,
+    required shared.RecordPatternField<TreeNode, Pattern> field,
   }) {
     // TODO(cstefantsova): Provide a better fileOffset.
     ObjectAccessTarget fieldAccessTarget = findInterfaceMember(
@@ -10017,7 +10036,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void handleNoCollectionElement(Node element) {
+  void handleNoCollectionElement(TreeNode element) {
     // TODO(scheglov): implement handleNoCollectionElement
     throw new UnimplementedError('TODO(scheglov)');
   }
@@ -10049,7 +10068,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   List<VariableDeclaration>? getJoinedVariableComponents(
     VariableDeclaration variable,
   ) {
-    Node? patternSwitchCase = variable.parent;
+    TreeNode? patternSwitchCase = variable.parent;
     if (patternSwitchCase is PatternSwitchCase) {
       List<VariableDeclaration> components = [];
       for (PatternGuard patternGuard in patternSwitchCase.patternGuards) {
@@ -10068,17 +10087,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  bool isRestPatternElement(Node node) {
+  bool isRestPatternElement(TreeNode node) {
     return node is RestPattern;
   }
 
   @override
-  Pattern? getRestPatternElementPattern(Node node) {
+  Pattern? getRestPatternElementPattern(TreeNode node) {
     return (node as RestPattern).subPattern;
   }
 
   @override
-  void handleListPatternRestElement(Pattern container, Node restElement) {
+  void handleListPatternRestElement(Pattern container, TreeNode restElement) {
     RestPattern restPattern = restElement as RestPattern;
     int? stackBase;
     if (restPattern.subPattern != null) {
@@ -10104,14 +10123,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void handleMapPatternRestElement(Pattern container, Node restElement) {
+  void handleMapPatternRestElement(Pattern container, TreeNode restElement) {
     // TODO(scheglov): implement handleMapPatternRestElement
     throw new UnimplementedError('TODO(scheglov)');
   }
 
   @override
   shared.MapPatternEntry<Expression, Pattern>? getMapPatternEntry(
-      Node element) {
+      TreeNode element) {
     element as MapPatternEntry;
     return new shared.MapPatternEntry<Expression, Pattern>(
         key: (element.key as ExpressionPattern).expression,
@@ -10119,7 +10138,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void handleMapPatternEntry(Pattern container, Node entryElement) {
+  void handleMapPatternEntry(Pattern container, TreeNode entryElement) {
     entryElement as MapPatternEntry;
     ExpressionPattern keyPattern = entryElement.key as ExpressionPattern;
     Pattern valuePattern = entryElement.value;
@@ -10153,8 +10172,41 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   RelationalOperatorResolution<DartType>? resolveRelationalPatternOperator(
-      Pattern node, DartType matchedValueType) {
-    throw new UnimplementedError('TODO(paulberry)');
+      covariant RelationalPattern node, DartType matchedValueType) {
+    Name operatorName;
+    bool isEquality = false;
+    switch (node.kind) {
+      case RelationalPatternKind.equals:
+      case RelationalPatternKind.notEquals:
+        operatorName = equalsName;
+        isEquality = true;
+        break;
+      case RelationalPatternKind.lessThan:
+        operatorName = lessThanName;
+        break;
+      case RelationalPatternKind.lessThanEqual:
+        operatorName = lessThanOrEqualsName;
+        break;
+      case RelationalPatternKind.greaterThan:
+        operatorName = greaterThanName;
+        break;
+      case RelationalPatternKind.greaterThanEqual:
+        operatorName = greaterThanOrEqualsName;
+        break;
+    }
+    ObjectAccessTarget binaryTarget = findInterfaceMember(
+        matchedValueType, operatorName, node.fileOffset,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+
+    DartType returnType = binaryTarget.getReturnType(this);
+    DartType parameterType = binaryTarget.getBinaryOperandType(this);
+
+    assert(!binaryTarget.isSpecialCasedBinaryOperator(this));
+
+    return new RelationalOperatorResolution(
+        isEquality: isEquality,
+        parameterType: parameterType,
+        returnType: returnType);
   }
 }
 

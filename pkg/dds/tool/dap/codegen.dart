@@ -116,7 +116,7 @@ class CodeGenerator {
 
   /// Writes a `canParse` function for a DAP spec class.
   ///
-  /// The function checks whether an Object? is a a valid map that contains all
+  /// The function checks whether an Object? is a valid map that contains all
   /// required fields and matches the types of the spec class.
   ///
   /// This is used where the spec contains union classes and we need to decide

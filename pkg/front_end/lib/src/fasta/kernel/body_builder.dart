@@ -4498,10 +4498,18 @@ class BodyBuilder extends StackListenerImpl
       } else {
         entry as RestPattern;
         if (restPatternPreviousOffset != TreeNode.noOffset) {
-          addProblem(fasta.messageRestPatternMoreThanOne,
-              restPatternPreviousOffset, noLength);
+          addProblem(fasta.messageDuplicateRestElementInPattern,
+              entry.fileOffset, noLength,
+              context: [
+                fasta.messageDuplicateRestElementInPatternContext
+                    .withLocation(uri, restPatternPreviousOffset, noLength)
+              ]);
         } else if (i != 0) {
           addProblem(fasta.messageRestPatternNotLastInMapPattern,
+              entry.fileOffset, noLength);
+        }
+        if (entry.subPattern != null) {
+          addProblem(fasta.messageRestElementWithSubpatternInMapPattern,
               entry.fileOffset, noLength);
         }
         restPatternPreviousOffset = entry.fileOffset;

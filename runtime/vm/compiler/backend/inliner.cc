@@ -471,7 +471,7 @@ class CallSites : public ValueObject {
     // their dependencies (values that flow into inputs). Calls will
     // form the prefix of the worklist followed by their inputs.
     for (auto& call_info : *calls_) {
-      // Call might not have an SSA temp assinged because its result is
+      // Call might not have an SSA temp assigned because its result is
       // not used. We still want to add such call to worklist but we
       // should not try to update the bitvector.
       if (call_info.call->HasSSATemp()) {

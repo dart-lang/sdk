@@ -46,7 +46,7 @@ Map<String, String> _useCdKeys(Map<_CustomDimensions, String> parameters) {
 ///
 /// [exitCode] is the exit code returned from this invocation of dartdev.
 ///
-/// [specifiedExperiements] are the experiments passed into the dartdev
+/// [specifiedExperiments] are the experiments passed into the dartdev
 /// command. If the command doesn't use the experiments, they are not reported.
 ///
 /// [commandFlags] are the flags (no values) used to run this command.

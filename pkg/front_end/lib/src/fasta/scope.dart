@@ -201,7 +201,7 @@ class Scope extends MutableScope {
   }
 
   /// Patch up the scope, using the two replacement maps to replace builders in
-  /// scope. The replacement maps maps from old LibraryBuilder to map, mapping
+  /// scope. The replacement maps from old LibraryBuilder to map, mapping
   /// from name to new (replacement) builder.
   void patchUpScope(Map<LibraryBuilder, Map<String, Builder>> replacementMap,
       Map<LibraryBuilder, Map<String, Builder>> replacementMapSetters) {

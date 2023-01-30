@@ -175,7 +175,11 @@ def _PromoteDartArchiveBuild(channel, source_channel, revision):
         # Copy VERSION file.
         from_loc = raw_namer.version_filepath(revision)
         to_loc = release_namer.version_filepath(to_revision)
-        Gsutil(['cp', from_loc, to_loc])
+        # Never cache the latest VERSION file for quick new version detection.
+        no_cache = []
+        if to_revision == 'latest':
+            no_cache = ['-h', 'Cache-Control: no-cache']
+        Gsutil(no_cache + ['cp', from_loc, to_loc])
 
     promote(revision)
     promote('latest')

@@ -13,8 +13,16 @@ import 'dart:wasm';
 
 part 'regexp_helper.dart';
 
+/// The interface implemented by JavaScript objects and used as the
+/// representation type for inline classes.
+///
+/// Note that the semantics of this on dart2wasm is slightly different from the
+/// JS backends as [JSValue] implements this. This means we can interop with any
+/// JS extern ref. TODO(srujzs): Change this when we add JS types.
+abstract class JSObject {}
+
 /// [JSValue] is the root of the JS interop object hierarchy.
-class JSValue {
+class JSValue implements JSObject {
   final WasmExternRef _ref;
 
   JSValue(this._ref);
@@ -38,7 +46,7 @@ class JSValue {
   // a regular linked list when the keys are [JSValue]. This behavior is not
   // intuitive.
   // TODO(joshualitt): There are a lot of different directions we can go, but
-  // the most straightforward to to expose `JSMap` and `JSSet` from JS for users
+  // the most straightforward to expose `JSMap` and `JSSet` from JS for users
   // who need to efficiently manage JS objects in collections.
   @override
   int get hashCode => 0;
@@ -86,12 +94,15 @@ extension JSArrayExtension on JSArray {
   external int get length;
 }
 
-/// A [JSObject] is a wrapper for any JS object literal.
+/// A [JSObjectInterface] is a wrapper for any JS object literal.
+///
+/// TODO(srujzs): This is a temporary placeholder type. We should remove this
+/// once we expose the extension elsewhere.
 @js.JS()
 @js.staticInterop
-class JSObject {}
+class JSObjectInterface {}
 
-extension JSObjectExtension on JSObject {
+extension JSObjectInterfaceExtension on JSObjectInterface {
   external Object? operator [](String key);
   external void operator []=(String key, Object? value);
 }
@@ -511,10 +522,9 @@ WasmExternRef? getConstructorRaw(String name) =>
     getPropertyRaw(globalThisRaw(), name.toExternRef());
 
 /// Equivalent to `Object.keys(object)`.
-JSArray objectKeys(JSObject object) => JSValue.box(callMethodVarArgsRaw(
-    getConstructorRaw('Object'),
-    'keys'.toExternRef(),
-    [object].toExternRef())!) as JSArray;
+JSArray objectKeys(JSObjectInterface object) =>
+    JSValue.box(callMethodVarArgsRaw(getConstructorRaw('Object'),
+        'keys'.toExternRef(), [object].toExternRef())!) as JSArray;
 
 /// Takes a [codeTemplate] string which must represent a valid JS function, and
 /// a list of optional arguments. The [codeTemplate] will be inserted into the

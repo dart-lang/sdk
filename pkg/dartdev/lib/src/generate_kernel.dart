@@ -23,7 +23,7 @@ typedef CompileRequestGeneratorCallback = String Function({
 
 /// Uses the resident frontend compiler to compute a kernel file for
 /// [executable]. Throws a [FrontendCompilerException] if the compilation
-/// fails or if the source code contians compilation errors.
+/// fails or if the source code contains compilation errors.
 ///
 /// [executable] is expected to contain a path to the dart source file and
 /// a package_config file.

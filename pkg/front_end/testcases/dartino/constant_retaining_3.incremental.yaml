@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE.md file.
 
 main.dart.patch: |
-  // Similiar to constant_retaining_2, but tests that constant handling is still
+  // Similar to constant_retaining_2, but tests that constant handling is still
   // correct even if an unrelated constant is introduced and removed again.
   var constant;
 

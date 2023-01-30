@@ -461,7 +461,7 @@ class WidgetCreatorTracker {
         if (initializer is RedirectingInitializer) {
           if (initializer.target.enclosingClass == clazz) {
             // We need to handle this constructor first or the call to
-            // addDebugLocationArgument bellow will fail due to the named
+            // addDebugLocationArgument below will fail due to the named
             // parameter not yet existing on the constructor.
             handleConstructor(initializer.target);
           }

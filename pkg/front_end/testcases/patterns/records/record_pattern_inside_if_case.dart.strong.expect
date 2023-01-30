@@ -1,4 +1,12 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/records/record_pattern_inside_if_case.dart:32:45: Warning: The null-assert pattern will have no effect because the matched type isn't nullable.
+// Try replacing the null-assert pattern with its nested pattern.
+//   if (x case (int _, double y, foo: String _!, bar: var _)) {
+//                                             ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -26,9 +34,9 @@ static method test1(core::Record x) → dynamic {
   {
     core::double y;
     final core::Record #4#0 = x;
-    late final core::Object? #4#2 = #4#0{(core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?})}.$2{core::Object?};
-    late final core::Object? #4#3 = #4#0{(core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?})}.foo{core::Object?};
-    if(#4#0 is{ForNonNullableByDefault} (core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?}) && #4#0{(core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?})}.$1{core::Object?} is{ForNonNullableByDefault} core::int && (#4#2 is{ForNonNullableByDefault} core::double && (let final dynamic #t1 = y = #4#2{core::double} in true)) && (let final dynamic #t2 = #4#3! in #4#3! is{ForNonNullableByDefault} core::String) && true) {
+    late final core::Object? #4#3 = #4#0{(core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?})}.$2{core::Object?};
+    late final core::Object? #4#4 = #4#0{(core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?})}.foo{core::Object?};
+    if(#4#0 is{ForNonNullableByDefault} (core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?}) && #4#0{(core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?})}.$1{core::Object?} is{ForNonNullableByDefault} core::int && (#4#3 is{ForNonNullableByDefault} core::double && (let final dynamic #t1 = y = #4#3 in true)) && (let final dynamic #t2 = #4#4! in #4#4! is{ForNonNullableByDefault} core::String) && true) {
       return 0;
     }
     else {
@@ -68,7 +76,7 @@ static method test5((core::int, core::double, {required bar: dynamic, required f
     final(core::int, core::double, {required bar: dynamic, required foo: core::String}) #0#0 = x;
     late final core::Object? #0#2 = #0#0.$2{core::Object?};
     late final core::Object? #0#3 = #0#0.foo{core::Object?};
-    if(#0#0.$1{core::Object?} is{ForNonNullableByDefault} core::int && (#0#2 is{ForNonNullableByDefault} core::double && (let final dynamic #t3 = y = #0#2{core::double} in true)) && (let final dynamic #t4 = #0#3! in #0#3! is{ForNonNullableByDefault} core::String) && true) {
+    if(#0#0.$1{core::Object?} is{ForNonNullableByDefault} core::int && (#0#2 is{ForNonNullableByDefault} core::double && (let final dynamic #t3 = y = #0#2 in true)) && (let final dynamic #t4 = #0#3! in #0#3! is{ForNonNullableByDefault} core::String) && true) {
       return 0;
     }
     else {

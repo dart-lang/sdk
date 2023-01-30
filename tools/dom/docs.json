@@ -2476,7 +2476,7 @@
           "/**",
           "   * Returns a copy of this node.",
           "   *",
-          "   * If [deep] is `true`, then all of this node's children and descendents are",
+          "   * If [deep] is `true`, then all of this node's children and descendants are",
           "   * copied as well. If [deep] is `false`, then only this node is copied.",
           "   *",
           "   * ## Other resources",
@@ -2645,7 +2645,7 @@
         ],
         "textContent": [
           "/**",
-          "   * All text within this node and its descendents.",
+          "   * All text within this node and its descendants.",
           "   *",
           "   * ## Other resources",
           "   *",

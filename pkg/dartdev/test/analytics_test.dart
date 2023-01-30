@@ -368,10 +368,10 @@ Future<void> main() async {
 
 void disabledAnalyticsObject() {
   test('object', () {
-    var diabledAnalytics = DisabledAnalytics('trackingId', 'appName');
-    expect(diabledAnalytics.trackingId, 'trackingId');
-    expect(diabledAnalytics.applicationName, 'appName');
-    expect(diabledAnalytics.enabled, isFalse);
-    expect(diabledAnalytics.firstRun, isFalse);
+    var disabledAnalytics = DisabledAnalytics('trackingId', 'appName');
+    expect(disabledAnalytics.trackingId, 'trackingId');
+    expect(disabledAnalytics.applicationName, 'appName');
+    expect(disabledAnalytics.enabled, isFalse);
+    expect(disabledAnalytics.firstRun, isFalse);
   });
 }

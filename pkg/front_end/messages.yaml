@@ -75,7 +75,7 @@
 #    version (or add the missing needed one(s)) to avoid triggering an assert.
 #
 # `#nameOKEmpty`: name (as string). Will use an "(unnamed)" default message if
-#    the string is null or empty. Otherwise see the describtion above.
+#    the string is null or empty. Otherwise see the description above.
 #
 # `#names`: A list of names (strings).
 #
@@ -91,7 +91,7 @@
 #
 # `#stringOKEmpty`: string (that isn't a name). Will use an "(empty)" default
 #    message if the string is null or empty.
-#    Otherwise see the describtion above.
+#    Otherwise see the description above.
 #
 # `#type`, #type2`, `#type3`: Kernel types.
 #
@@ -760,7 +760,7 @@ AbstractStaticField:
 AbstractExtensionField:
   problemMessage: "Extension fields can't be declared 'abstract'."
   correctionMessage: "Try removing the 'abstract' keyword."
-# Separate class and extension field handling to to support this.
+# Separate class and extension field handling to support this.
 #  configuration: nnbd-strong
 #  script:
 #    - "extension C on int {abstract static var f;}"
@@ -6102,18 +6102,6 @@ VariablePatternTypeMismatchInSwitchHeads:
   script: |
     test(dynamic x) { switch (x) { case [int a]: case [double a] : return a; default: return null; } }
 
-RestPatternMoreThanOne:
-  problemMessage: "The '...' pattern can appear only once in the enclosing pattern."
-  experiments: patterns
-  script: |
-    test(dynamic x) { if (x case {..., 1: 1, ...}) {} }
-
-RestPatternNotLastInMapPattern:
-  problemMessage: "The '...' pattern can appear only at the end in map patterns."
-  experiments: patterns
-  script: |
-    test(dynamic x) { if (x case {..., 1: 1}) {} }
-
 NonExhaustiveSwitch:
   problemMessage: "The type '#type' is not exhaustively matched by the switch cases."
   correctionMessage: "Try adding a default case or cases that match #string."
@@ -6144,4 +6132,120 @@ UnreachableSwitchCase:
         case Enum.a:
           break;
       }
+    }
+
+PatternTypeMismatchInIrrefutableContext:
+  problemMessage: "The matched value of type '#type' isn't assignable to the required type '#type2'."
+  correctionMessage: "Try changing the required type of the pattern, or the matched value type."
+  analyzerCode: PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT
+  experiments: patterns
+  script: |
+    method(List<String> list) {
+      var <int>[a] = list;
+    }
+
+DuplicatePatternAssignmentVariable:
+  problemMessage: The variable '#name' is already assigned in this pattern.
+  correctionMessage: Try renaming the variable.
+  analyzerCode: DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE
+  experiments: patterns
+  script: |
+    method(List<String> list) {
+      String a = '';
+      [a, a] = list;
+    }
+
+DuplicatePatternAssignmentVariableContext:
+  problemMessage: The first assigned variable pattern.
+  severity: CONTEXT
+
+DuplicateRecordPatternField:
+  problemMessage: The field '#name' is already matched in this pattern.
+  correctionMessage: Try removing the duplicate field.
+  analyzerCode: DUPLICATE_RECORD_PATTERN_FIELD
+  experiments: patterns
+  script: |
+    method(o) {
+      switch (o) {
+        case (field: 1, field: 2):
+      }
+    }
+
+DuplicateRecordPatternFieldContext:
+  problemMessage: The first field.
+  severity: CONTEXT
+
+DuplicateRestElementInPattern:
+  problemMessage: At most one rest element is allowed in a list or map pattern.
+  correctionMessage: Try removing the duplicate rest element.
+  analyzerCode: DUPLICATE_REST_ELEMENT_IN_PATTERN
+  experiments: patterns
+  script: |
+    method(o) {
+      switch (o) {
+        case [..., ...]:
+      }
+    }
+
+DuplicateRestElementInPatternContext:
+  problemMessage: The first rest element.
+  severity: CONTEXT
+
+RestPatternNotLastInMapPattern:
+  problemMessage: "The '...' pattern can appear only at the end in map patterns."
+  experiments: patterns
+  script: |
+    test(dynamic x) { if (x case {..., 1: 1}) {} }
+
+UnnecessaryNullAssertPattern:
+  problemMessage: The null-assert pattern will have no effect because the matched type isn't nullable.
+  correctionMessage: Try replacing the null-assert pattern with its nested pattern.
+  analyzerCode: UNNECESSARY_NULL_ASSERT_PATTERN
+  severity: WARNING
+  experiments: patterns
+  script: |
+    method(List<int> list) {
+      if (list case [var a!]) {}
+    }
+
+UnnecessaryNullCheckPattern:
+  problemMessage: The null-check pattern will have no effect because the matched type isn't nullable.
+  correctionMessage: Try replacing the null-check pattern with its nested pattern.
+  analyzerCode: UNNECESSARY_NULL_CHECK_PATTERN
+  comment: No parameters.
+  severity: WARNING
+  experiments: patterns
+  script: |
+    method(List<int> list) {
+      if (list case [var a?]) {}
+    }
+
+NonBoolCondition:
+  problemMessage: "Conditions must have a static type of 'bool'."
+  correctionMessage: Try changing the condition.
+  analyzerCode: NON_BOOL_CONDITION
+  experiments: patterns
+  script: |
+    method(int i) {
+      if (i case 5 when i) {}
+    }
+
+RefutablePatternInIrrefutableContext:
+  problemMessage: Refutable patterns can't be used in an irrefutable context.
+  correctionMessage: Try using an if-case, a 'switch' statement, or a 'switch' expression instead.
+  analyzerCode: REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT
+  experiments: patterns
+  script: |
+    method(int? x) {
+      var (a?) = x;
+    }
+
+RestElementWithSubpatternInMapPattern:
+  problemMessage: A rest element in a map pattern can't have a subpattern.
+  correctionMessage: Try removing the subpattern.
+  analyzerCode: REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN
+  experiments: patterns
+  script: |
+    method(x) {
+      if (x case {...var a}) {}
     }

@@ -82,8 +82,7 @@ Future<Null> runMe(List<String> arguments, CreateContext f,
 ///
 ///     main(List<String> arguments) => asyncTest(run(arguments, ["my_suite"]));
 ///
-/// To run run the same suite from `package:test`, create a file with this
-/// content:
+/// To run the same suite from `package:test`, create a file with this content:
 ///
 ///     import 'package:test/test.dart' show Timeout, test;
 ///

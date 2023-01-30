@@ -222,7 +222,7 @@ class NativeCodegenEnqueuer extends NativeEnqueuer {
       _registerTypeUses(impactBuilder, _nativeClasses /*, 'forced'*/);
     }
 
-    // HACK HACK - add all the resolved classes.
+    // HACK - add all the resolved classes.
     Set<ClassEntity> matchingClasses = {};
     for (ClassEntity classElement in _nativeClasses) {
       if (_unusedClasses.contains(classElement)) {

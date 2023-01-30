@@ -28,14 +28,31 @@ void main() {
 abstract class AbstractCompletionDriverTest
     extends PubPackageAnalysisServerTest {
   late CompletionDriver driver;
+
   late List<CompletionSuggestion> suggestions;
+
   late CompletionResponseForTesting response;
 
-  /// The configuration for [assertResponseText] and [assertResponse].
-  /// You almost always want to change it, usually in [setUp].
-  printer.Configuration printerConfiguration = printer.Configuration(
-    filter: (suggestion) => true,
-  );
+  /// The configuration used by [assertResponse] to limit the number of
+  /// suggestions that will be compared by a test. The reasons for the filter
+  /// are
+  /// - to prevent uninteresting changes to the SDK from breaking the completion
+  ///   tests, and
+  /// - to keep the expected response text shorter.
+  ///
+  /// The default filter, initialized in [setUp], prints
+  /// - identifier suggestions consisting of a single letter followed by one or
+  ///   more digits,
+  /// - identifier suggestions that are in the set of [allowedIdentifiers], and
+  /// - non-identifier suggestions.
+  ///
+  /// Tests can override this configuration to change the set of suggestions to
+  /// be printed.
+  late printer.Configuration printerConfiguration;
+
+  /// A set of identifiers that will be included in the printed version of the
+  /// selections. Individual tests can replace the default set.
+  Set<String> allowedIdentifiers = const {};
 
   @override
   List<String> get experiments => [
@@ -191,6 +208,19 @@ name: test
     await driver.createProject();
 
     // todo (pq): add logic (possibly to driver) that waits for SDK suggestions
+
+    printerConfiguration = printer.Configuration(
+      filter: (suggestion) {
+        var kind = suggestion.kind;
+        if (kind == CompletionSuggestionKind.IDENTIFIER ||
+            kind == CompletionSuggestionKind.INVOCATION) {
+          var completion = suggestion.completion;
+          return RegExp(r'^[a-zA-Z][0-9]+$').hasMatch(completion) ||
+              allowedIdentifiers.contains(completion);
+        }
+        return true;
+      },
+    );
   }
 
   SuggestionMatcher suggestionHas({

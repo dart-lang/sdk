@@ -9,7 +9,7 @@ static method test(dynamic x) → dynamic {
     dynamic y;
     final dynamic #0#0 = x;
     dynamic #t2;
-    if(!(#0#0 == null) ?{core::bool} let final dynamic #t3 = y = #0#0{dynamic} in true : false) {
+    if(!(#0#0 == null) ?{core::bool} let final dynamic #t3 = y = #0#0 in true : false) {
       #t1 = 0;
       #t2 = y;
     }

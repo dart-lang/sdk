@@ -4861,7 +4861,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// Creates a [ReferenceWithType] representing a temporary variable that
   /// doesn't correspond to any variable in the user's source code.  This is
   /// used by flow analysis to model the synthetic variables used during pattern
-  /// matching to cache the values that the pattern, and its subpattterns, are
+  /// matching to cache the values that the pattern, and its subpatterns, are
   /// being matched against.
   ReferenceWithType<Type> _makeTemporaryReference(
       SsaNode<Type>? ssaNode, Type matchedType) {

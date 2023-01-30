@@ -513,7 +513,7 @@ abstract class AbstractScanner implements Scanner {
    * If a begin group token matches [openKind],
    * then discard begin group tokens up to that match and return `true`,
    * otherwise return `false`.
-   * This recovers nicely from from situations like "{[}" and "{foo());}",
+   * This recovers nicely from situations like "{[}" and "{foo());}",
    * but not "foo(() {bar());});"
    */
   bool discardBeginGroupUntil(int openKind) {
@@ -543,7 +543,7 @@ abstract class AbstractScanner implements Scanner {
 
     // If the stack does not have any opener of the given type,
     // then return without discarding anything.
-    // This recovers nicely from from situations like "{foo());}".
+    // This recovers nicely from situations like "{foo());}".
     if (groupingStack.isEmpty) {
       groupingStack = originalStack;
       return false;
@@ -613,7 +613,7 @@ abstract class AbstractScanner implements Scanner {
     }
 
     // Insert synthetic closers and report errors for any unbalanced openers.
-    // This recovers nicely from from situations like "{[}".
+    // This recovers nicely from situations like "{[}".
     insertSyntheticClosers(originalStack, groupingStack);
     return true;
   }
@@ -621,7 +621,7 @@ abstract class AbstractScanner implements Scanner {
   void insertSyntheticClosers(
       Link<BeginToken> originalStack, Link<BeginToken> entryToUse) {
     // Insert synthetic closers and report errors for any unbalanced openers.
-    // This recovers nicely from from situations like "{[}".
+    // This recovers nicely from situations like "{[}".
     while (!identical(originalStack, entryToUse)) {
       // Don't report unmatched errors for <; it is also the less-than operator.
       if (!identical(entryToUse.head.kind, LT_TOKEN)) {

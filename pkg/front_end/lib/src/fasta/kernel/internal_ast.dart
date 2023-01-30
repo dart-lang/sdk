@@ -35,10 +35,11 @@ import '../type_inference/inference_visitor.dart';
 import '../type_inference/inference_visitor_base.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/matching_cache.dart';
+import '../type_inference/object_access_target.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
 
 typedef SharedMatchContext = shared
-    .MatchContext<Node, Expression, Pattern, DartType, VariableDeclaration>;
+    .MatchContext<TreeNode, Expression, Pattern, DartType, VariableDeclaration>;
 
 int getExtensionTypeParameterCount(Arguments arguments) {
   if (arguments is ArgumentsImpl) {
@@ -3670,6 +3671,8 @@ class InternalRecordLiteral extends InternalExpression {
 }
 
 abstract class Pattern extends TreeNode with InternalTreeNode {
+  Expression? error;
+
   Pattern(int fileOffset) {
     this.fileOffset = fileOffset;
   }
@@ -3688,6 +3691,15 @@ abstract class Pattern extends TreeNode with InternalTreeNode {
   /// Creates the [DelayedExpression] needed to match [matchedExpression] using
   /// [matchingCache] to create cacheable expressions.
   DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+      MatchingCache matchingCache, CacheableExpression matchedExpression) {
+    if (error != null) {
+      return new FixedExpression(error!, const InvalidType());
+    }
+    return createMatchingExpressionInternal(
+        base, matchingCache, matchedExpression);
+  }
+
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression);
 
   /// Returns the variable name that this pattern defines, if any.
@@ -3721,7 +3733,7 @@ class DummyPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     return new BooleanExpression(false, fileOffset: fileOffset);
   }
@@ -3758,12 +3770,12 @@ class ExpressionPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     CacheableExpression constExpression =
         matchingCache.createConstantExpression(expression, expressionType);
     return matchingCache.createEqualsExpression(
-        expressionType, constExpression, matchedExpression,
+        constExpression, matchedExpression,
         fileOffset: fileOffset);
   }
 
@@ -3801,7 +3813,7 @@ class AndPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     return new DelayedAndExpression(
         left.createMatchingExpression(base, matchingCache, matchedExpression),
@@ -3848,7 +3860,7 @@ class OrPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     matchingCache.declareJointVariables(_orPatternJointVariables,
         left.declaredVariables, right.declaredVariables);
@@ -3895,7 +3907,7 @@ class CastPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     CacheableExpression asExpression = matchingCache
         .createAsExpression(matchedExpression, type, fileOffset: fileOffset);
@@ -3939,7 +3951,7 @@ class NullAssertPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     CacheableExpression nullAssertExpression = matchingCache
         .createNullAssertMatcher(matchedExpression, fileOffset: fileOffset);
@@ -3984,7 +3996,7 @@ class NullCheckPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     CacheableExpression nullCheckExpression = matchingCache
         .createNullCheckMatcher(matchedExpression, fileOffset: fileOffset);
@@ -4031,10 +4043,9 @@ class ListPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     DartType matchedType = matchedExpression.getType(base);
-
     DartType typeArgument = this.typeArgument ?? const DynamicType();
     DartType targetListType = new InterfaceType(base.coreTypes.listClass,
         Nullability.nonNullable, <DartType>[typeArgument]);
@@ -4043,8 +4054,25 @@ class ListPattern extends Pattern {
         !base.isAssignable(targetListType, matchedType) ||
             matchedType is DynamicType;
 
+    CacheableExpression? isExpression;
+    CacheableExpression typedMatchedExpression;
+    if (typeCheckForTargetListNeeded) {
+      isExpression = matchingCache.createIsExpression(
+          matchedExpression, targetListType,
+          fileOffset: fileOffset);
+      typedMatchedExpression =
+          new PromotedCacheableExpression(matchedExpression, targetListType);
+    } else {
+      typedMatchedExpression = matchedExpression;
+    }
+
+    ObjectAccessTarget lengthTarget = base.findInterfaceMember(
+        targetListType, lengthName, fileOffset,
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.getterInvocation);
+
     CacheableExpression lengthGet = matchingCache.createPropertyGetExpression(
-        targetListType, matchedExpression, lengthName,
+        typedMatchedExpression, lengthName, lengthTarget,
         fileOffset: fileOffset);
 
     CacheableExpression lengthCheck;
@@ -4057,7 +4085,6 @@ class ListPattern extends Pattern {
     }
     if (hasRestPattern) {
       lengthCheck = matchingCache.createComparisonExpression(
-          base.coreTypes.intNonNullableRawType,
           lengthGet,
           greaterThanOrEqualsName,
           matchingCache.createIntConstant(patterns.length - 1,
@@ -4065,27 +4092,21 @@ class ListPattern extends Pattern {
           fileOffset: fileOffset);
     } else {
       lengthCheck = matchingCache.createEqualsExpression(
-          base.coreTypes.intNonNullableRawType,
           lengthGet,
           matchingCache.createIntConstant(patterns.length,
               fileOffset: fileOffset),
           fileOffset: fileOffset);
     }
 
-    DelayedExpression typeAndLengthCheck;
-    if (typeCheckForTargetListNeeded) {
-      CacheableExpression isExpression = matchingCache.createIsExpression(
-          matchedExpression, targetListType,
-          fileOffset: fileOffset);
-
-      typeAndLengthCheck = matchingCache.createAndExpression(
+    DelayedExpression matchingExpression;
+    if (isExpression != null) {
+      matchingExpression = matchingCache.createAndExpression(
           isExpression, lengthCheck,
           fileOffset: fileOffset);
     } else {
-      typeAndLengthCheck = lengthCheck;
+      matchingExpression = lengthCheck;
     }
 
-    DelayedExpression matchingExpression = typeAndLengthCheck;
     bool hasSeenRestPattern = false;
     for (int i = 0; i < patterns.length; i++) {
       CacheableExpression elementExpression;
@@ -4097,34 +4118,30 @@ class ListPattern extends Pattern {
         }
         int nextIndex = i + 1;
         elementExpression = matchingCache.createSublistExpression(
-            targetListType,
-            matchedExpression,
-            lengthGet,
-            i,
-            patterns.length - nextIndex,
+            typedMatchedExpression, lengthGet, i, patterns.length - nextIndex,
             fileOffset: fileOffset);
       } else {
         if (!hasSeenRestPattern) {
           elementExpression = matchingCache.createHeadIndexExpression(
-              targetListType, matchedExpression, i,
+              typedMatchedExpression, i,
               fileOffset: fileOffset);
         } else {
           elementExpression = matchingCache.createTailIndexExpression(
-              targetListType, matchedExpression, lengthGet, patterns.length - i,
+              typedMatchedExpression, lengthGet, patterns.length - i,
               fileOffset: fileOffset);
         }
       }
 
-      DelayedExpression subExpression = patterns[i]
+      DelayedExpression elementMatcher = patterns[i]
           .createMatchingExpression(base, matchingCache, elementExpression);
-      if (!subExpression.uses(elementExpression)) {
+      if (!elementMatcher.uses(elementExpression)) {
         // Ensure that we perform the lookup even if we don't use the result.
         matchingExpression = DelayedAndExpression.merge(matchingExpression,
-            new EffectExpression(elementExpression, subExpression),
+            new EffectExpression(elementExpression, elementMatcher),
             fileOffset: fileOffset);
       } else {
         matchingExpression = DelayedAndExpression.merge(
-            matchingExpression, subExpression,
+            matchingExpression, elementMatcher,
             fileOffset: fileOffset);
       }
     }
@@ -4202,10 +4219,9 @@ class ObjectPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     DartType matchedType = matchedExpression.getType(base);
-
     // targetObjectType: `classNode`<`typeArguments`>
     DartType targetObjectType;
     if (typeArguments != null &&
@@ -4228,10 +4244,15 @@ class ObjectPattern extends Pattern {
             matchedType is DynamicType;
 
     DelayedExpression? matchingExpression;
+    CacheableExpression typedMatchedExpression;
     if (typeCheckForTargetNeeded) {
-      matchingExpression = new DelayedIsExpression(
+      matchingExpression = matchingCache.createIsExpression(
           matchedExpression, targetObjectType,
           fileOffset: fileOffset);
+      typedMatchedExpression =
+          new PromotedCacheableExpression(matchedExpression, targetObjectType);
+    } else {
+      typedMatchedExpression = matchedExpression;
     }
 
     for (NamedPattern field in fields) {
@@ -4249,9 +4270,14 @@ class ObjectPattern extends Pattern {
       if (fieldNameString != null) {
         Name fieldName = new Name(fieldNameString);
 
+        ObjectAccessTarget fieldTarget = base.findInterfaceMember(
+            targetObjectType, fieldName, fileOffset,
+            includeExtensionMethods: true,
+            callSiteAccessKind: CallSiteAccessKind.getterInvocation);
+
         CacheableExpression objectExpression =
             matchingCache.createPropertyGetExpression(
-                targetObjectType, matchedExpression, fieldName,
+                typedMatchedExpression, fieldName, fieldTarget,
                 fileOffset: fileOffset);
         DelayedExpression subExpression = field.pattern
             .createMatchingExpression(base, matchingCache, objectExpression);
@@ -4315,7 +4341,7 @@ class RelationalPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     CacheableExpression constant =
         matchingCache.createConstantExpression(expression, expressionType);
@@ -4323,10 +4349,13 @@ class RelationalPattern extends Pattern {
     switch (kind) {
       case RelationalPatternKind.equals:
       case RelationalPatternKind.notEquals:
-        return matchingCache.createEqualsExpression(
-            matchedExpression.getType(base), matchedExpression, constant,
-            isNot: kind == RelationalPatternKind.notEquals,
+        DelayedExpression expression = matchingCache.createEqualsExpression(
+            matchedExpression, constant,
             fileOffset: fileOffset);
+        if (kind == RelationalPatternKind.notEquals) {
+          expression = new DelayedNotExpression(expression);
+        }
+        return expression;
       case RelationalPatternKind.lessThan:
         name = lessThanName;
         break;
@@ -4341,7 +4370,7 @@ class RelationalPattern extends Pattern {
         break;
     }
     return matchingCache.createComparisonExpression(
-        matchedExpression.getType(base), matchedExpression, name, constant,
+        matchedExpression, name, constant,
         fileOffset: fileOffset);
   }
 
@@ -4393,7 +4422,7 @@ class WildcardPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     if (type != null) {
       return new DelayedIsExpression(matchedExpression, type!,
@@ -4504,10 +4533,19 @@ class AssignedVariablePattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
+    DartType matchedType = matchedExpression.getType(base);
+    CacheableExpression valueExpression;
+    if (!base.isAssignable(matchedType, variable.type) ||
+        matchedType is DynamicType) {
+      valueExpression =
+          new PromotedCacheableExpression(matchedExpression, variable.type);
+    } else {
+      valueExpression = matchedExpression;
+    }
     return new EffectExpression(
-        new VariableSetExpression(variable, matchedExpression,
+        new VariableSetExpression(variable, valueExpression,
             fileOffset: fileOffset),
         new BooleanExpression(true, fileOffset: fileOffset));
   }
@@ -4638,10 +4676,9 @@ class MapPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     DartType matchedType = matchedExpression.getType(base);
-
     DartType keyType = this.keyType ?? const DynamicType();
     DartType valueType = this.valueType ?? const DynamicType();
     DartType targetMapType = new InterfaceType(
@@ -4651,16 +4688,25 @@ class MapPattern extends Pattern {
         !base.isAssignable(targetMapType, matchedType) ||
             matchedType is DynamicType;
 
-    DelayedExpression? matchingExpression;
-
+    CacheableExpression? isExpression;
+    CacheableExpression typedMatchedExpression;
     if (typeCheckForTargetMapNeeded) {
-      matchingExpression = matchingCache.createIsExpression(
+      isExpression = matchingCache.createIsExpression(
           matchedExpression, targetMapType,
           fileOffset: fileOffset);
+      typedMatchedExpression =
+          new PromotedCacheableExpression(matchedExpression, targetMapType);
+    } else {
+      typedMatchedExpression = matchedExpression;
     }
 
+    ObjectAccessTarget lengthTarget = base.findInterfaceMember(
+        targetMapType, lengthName, fileOffset,
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.getterInvocation);
+
     CacheableExpression lengthGet = matchingCache.createPropertyGetExpression(
-        targetMapType, matchedExpression, lengthName,
+        typedMatchedExpression, lengthName, lengthTarget,
         fileOffset: fileOffset);
 
     CacheableExpression lengthCheck;
@@ -4669,7 +4715,6 @@ class MapPattern extends Pattern {
         entries.isNotEmpty && identical(entries.last, restMapPatternEntry);
     if (hasRestPattern) {
       lengthCheck = matchingCache.createComparisonExpression(
-          base.coreTypes.intNonNullableRawType,
           lengthGet,
           greaterThanOrEqualsName,
           matchingCache.createIntConstant(entries.length - 1,
@@ -4677,15 +4722,20 @@ class MapPattern extends Pattern {
           fileOffset: fileOffset);
     } else {
       lengthCheck = matchingCache.createEqualsExpression(
-          base.coreTypes.intNonNullableRawType,
           lengthGet,
           matchingCache.createIntConstant(entries.length,
               fileOffset: fileOffset),
           fileOffset: fileOffset);
     }
-    matchingExpression = DelayedAndExpression.merge(
-        matchingExpression, lengthCheck,
-        fileOffset: fileOffset);
+
+    DelayedExpression matchingExpression;
+    if (isExpression != null) {
+      matchingExpression = matchingCache.createAndExpression(
+          isExpression, lengthCheck,
+          fileOffset: fileOffset);
+    } else {
+      matchingExpression = lengthCheck;
+    }
 
     for (MapPatternEntry entry in entries) {
       if (identical(entry, restMapPatternEntry)) continue;
@@ -4693,17 +4743,23 @@ class MapPattern extends Pattern {
       CacheableExpression keyExpression =
           matchingCache.createConstantExpression(
               keyPattern.expression, keyPattern.expressionType);
-      CacheableExpression containsExpression =
-          matchingCache.createContainsKeyExpression(
-              targetMapType, matchedExpression, keyExpression,
+      CacheableExpression containsExpression = matchingCache
+          .createContainsKeyExpression(typedMatchedExpression, keyExpression,
               fileOffset: entry.fileOffset);
       matchingExpression = DelayedAndExpression.merge(
           matchingExpression, containsExpression,
           fileOffset: fileOffset);
 
+      ObjectAccessTarget invokeTarget = base.findInterfaceMember(
+          targetMapType, indexGetName, fileOffset,
+          includeExtensionMethods: true,
+          callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+
       CacheableExpression valueExpression = matchingCache.createIndexExpression(
-          targetMapType, matchedExpression, keyExpression,
+          typedMatchedExpression, keyExpression, invokeTarget,
           fileOffset: entry.fileOffset);
+      valueExpression =
+          new PromotedCacheableExpression(valueExpression, valueType);
 
       DelayedExpression subExpression = entry.value
           .createMatchingExpression(base, matchingCache, valueExpression);
@@ -4718,10 +4774,7 @@ class MapPattern extends Pattern {
             fileOffset: fileOffset);
       }
     }
-
-    return matchingExpression ??
-        // TODO(johnniwinther): Why is this necessary?
-        new BooleanExpression(true, fileOffset: fileOffset);
+    return matchingExpression;
   }
 }
 
@@ -4757,7 +4810,7 @@ class NamedPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     return pattern.createMatchingExpression(
         base, matchingCache, matchedExpression);
@@ -4802,41 +4855,54 @@ class RecordPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     DartType matchedType = matchedExpression.getType(base);
-
     bool typeCheckNeeded =
         !base.isAssignable(type, matchedType) || matchedType is DynamicType;
 
     DelayedExpression? matchingExpression;
+    CacheableExpression typedMatchedExpression;
     if (typeCheckNeeded) {
-      matchingExpression = new DelayedIsExpression(matchedExpression, type,
-          fileOffset: fileOffset);
+      matchingExpression = matchingCache
+          .createIsExpression(matchedExpression, type, fileOffset: fileOffset);
+      typedMatchedExpression =
+          new PromotedCacheableExpression(matchedExpression, type);
+    } else {
+      typedMatchedExpression = matchedExpression;
     }
 
     int recordFieldIndex = 0;
     for (Pattern fieldPattern in patterns) {
       CacheableExpression fieldExpression;
-      Pattern subpattern;
       if (fieldPattern is NamedPattern) {
+        Name fieldName =
+            new Name(fieldPattern.name, base.libraryBuilder.library);
+
+        ObjectAccessTarget fieldTarget = base.findInterfaceMember(
+            type, fieldName, fileOffset,
+            includeExtensionMethods: true,
+            callSiteAccessKind: CallSiteAccessKind.getterInvocation);
+
         fieldExpression = matchingCache.createPropertyGetExpression(
-            type,
-            matchedExpression,
-            new Name(fieldPattern.name, base.libraryBuilder.library),
+            typedMatchedExpression, fieldName, fieldTarget,
             fileOffset: fieldPattern.fileOffset);
 
         // [type] is computed by the CFE, so the absence of the named field is
         // an internal error, and we check the condition with an assert rather
         // than reporting a compile-time error.
         assert(type.named.any((named) => named.name == fieldPattern.name));
-
-        subpattern = fieldPattern.pattern;
       } else {
+        Name fieldName =
+            new Name('\$${recordFieldIndex + 1}', base.libraryBuilder.library);
+
+        ObjectAccessTarget fieldTarget = base.findInterfaceMember(
+            type, fieldName, fileOffset,
+            includeExtensionMethods: true,
+            callSiteAccessKind: CallSiteAccessKind.getterInvocation);
+
         fieldExpression = matchingCache.createPropertyGetExpression(
-            type,
-            matchedExpression,
-            new Name('\$${recordFieldIndex + 1}', base.libraryBuilder.library),
+            typedMatchedExpression, fieldName, fieldTarget,
             fileOffset: fieldPattern.fileOffset);
 
         // [type] is computed by the CFE, so the field index out of range is an
@@ -4844,14 +4910,13 @@ class RecordPattern extends Pattern {
         // reporting a compile-time error.
         assert(recordFieldIndex < type.positional.length);
 
-        subpattern = fieldPattern;
         recordFieldIndex++;
       }
 
-      DelayedExpression subpatternResult = subpattern.createMatchingExpression(
+      DelayedExpression fieldMatcher = fieldPattern.createMatchingExpression(
           base, matchingCache, fieldExpression);
       matchingExpression = DelayedAndExpression.merge(
-          matchingExpression, subpatternResult,
+          matchingExpression, fieldMatcher,
           fileOffset: fileOffset);
     }
 
@@ -4883,18 +4948,27 @@ class VariablePattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
+    DartType matchedType = matchedExpression.getType(base);
     DelayedExpression? matchingExpression;
     if (type != null) {
       matchingExpression = new DelayedIsExpression(matchedExpression, type!,
           fileOffset: fileOffset);
     }
+    VariableDeclaration target = matchingCache.getUnaliasedVariable(variable);
+    CacheableExpression valueExpression;
+    if (!base.isAssignable(matchedType, target.type) ||
+        matchedType is DynamicType) {
+      valueExpression =
+          new PromotedCacheableExpression(matchedExpression, target.type);
+    } else {
+      valueExpression = matchedExpression;
+    }
     return DelayedAndExpression.merge(
         matchingExpression,
         new EffectExpression(
-            new VariableSetExpression(
-                matchingCache.getUnaliasedVariable(variable), matchedExpression,
+            new VariableSetExpression(target, valueExpression,
                 allowFinalAssignment: true, fileOffset: fileOffset),
             new BooleanExpression(true, fileOffset: fileOffset)),
         fileOffset: fileOffset);
@@ -4962,7 +5036,7 @@ class RestPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     if (subPattern != null) {
       return subPattern!

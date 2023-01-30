@@ -28,7 +28,7 @@ class JSNativeMatch extends JSArray {}
 extension JSNativeMatchExtension on JSNativeMatch {
   external String get input;
   external int get index;
-  external JSObject? get groups;
+  external JSObjectInterface? get groups;
 }
 
 @js.JS()
@@ -196,7 +196,7 @@ class _MatchImplementation implements RegExpMatch {
   }
 
   String? namedGroup(String name) {
-    JSObject? groups = _match.groups;
+    JSObjectInterface? groups = _match.groups;
     if (groups != null) {
       Object? result = groups[name];
       if (result != null ||
@@ -209,7 +209,7 @@ class _MatchImplementation implements RegExpMatch {
   }
 
   Iterable<String> get groupNames {
-    JSObject? groups = _match.groups;
+    JSObjectInterface? groups = _match.groups;
     if (groups != null) {
       return JSArrayIterableAdapter<String>(objectKeys(groups));
     }

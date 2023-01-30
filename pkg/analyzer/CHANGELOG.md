@@ -75,7 +75,7 @@
 * Added `FileResult.isAugmentation` and `isLibrary` to complement `isPart`.
 * Deprecated 'XyzDeclaration.name' in AST, use `name2` and `declaredElement` instead.
 * Deprecated `Element.enclosingElement2`, use `enclosingElement3` instead.  The meaningful change is that
-  `ConstructorElement.enclosingElement3` returns now `IntefaceElement`, not `ClassElement`.
+  `ConstructorElement.enclosingElement3` returns now `InterfaceElement`, not `ClassElement`.
 * Deprecated `get enums/mixin`, use `get enums2/mixins2` instead.
 * Deprecated `DartType.element`, check for `InterfaceType`, `TypeParameterType`, and then ask the element.
 * Deprecated `ClassElement.isEnum` and `isMixin`. Check for `is EnumElement` and `is MixinElement` instead.
@@ -919,7 +919,7 @@
   #36678, #36691.
 
 ## 0.36.0
-* Changed the return type of `Expression.precendence` to `Precedence`.  Clients
+* Changed the return type of `Expression.precedence` to `Precedence`.  Clients
   that prepared for this change by switching to `Expression.precedence2` should
   now return to using `Expression.precedence`.
 * AST cleanup related to the "UI as code" feature:

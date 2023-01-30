@@ -2525,6 +2525,43 @@ Message _withArgumentsDuplicateLabelInSwitchStatement(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateDuplicatePatternAssignmentVariable =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""The variable '#name' is already assigned in this pattern.""",
+        correctionMessageTemplate: r"""Try renaming the variable.""",
+        withArguments: _withArgumentsDuplicatePatternAssignmentVariable);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeDuplicatePatternAssignmentVariable =
+    const Code<Message Function(String name)>(
+        "DuplicatePatternAssignmentVariable",
+        analyzerCodes: <String>["DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatePatternAssignmentVariable(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeDuplicatePatternAssignmentVariable,
+      problemMessage:
+          """The variable '${name}' is already assigned in this pattern.""",
+      correctionMessage: """Try renaming the variable.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeDuplicatePatternAssignmentVariableContext =
+    messageDuplicatePatternAssignmentVariableContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageDuplicatePatternAssignmentVariableContext =
+    const MessageCode("DuplicatePatternAssignmentVariableContext",
+        severity: Severity.context,
+        problemMessage: r"""The first assigned variable pattern.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeDuplicatePrefix = messageDuplicatePrefix;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2533,6 +2570,63 @@ const MessageCode messageDuplicatePrefix = const MessageCode("DuplicatePrefix",
     problemMessage:
         r"""An import directive can only have one prefix ('as' clause).""",
     correctionMessage: r"""Try removing all but one prefix.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateDuplicateRecordPatternField =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""The field '#name' is already matched in this pattern.""",
+        correctionMessageTemplate: r"""Try removing the duplicate field.""",
+        withArguments: _withArgumentsDuplicateRecordPatternField);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeDuplicateRecordPatternField =
+    const Code<Message Function(String name)>("DuplicateRecordPatternField",
+        analyzerCodes: <String>["DUPLICATE_RECORD_PATTERN_FIELD"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicateRecordPatternField(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeDuplicateRecordPatternField,
+      problemMessage:
+          """The field '${name}' is already matched in this pattern.""",
+      correctionMessage: """Try removing the duplicate field.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeDuplicateRecordPatternFieldContext =
+    messageDuplicateRecordPatternFieldContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageDuplicateRecordPatternFieldContext = const MessageCode(
+    "DuplicateRecordPatternFieldContext",
+    severity: Severity.context,
+    problemMessage: r"""The first field.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeDuplicateRestElementInPattern =
+    messageDuplicateRestElementInPattern;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageDuplicateRestElementInPattern = const MessageCode(
+    "DuplicateRestElementInPattern",
+    analyzerCodes: <String>["DUPLICATE_REST_ELEMENT_IN_PATTERN"],
+    problemMessage:
+        r"""At most one rest element is allowed in a list or map pattern.""",
+    correctionMessage: r"""Try removing the duplicate rest element.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeDuplicateRestElementInPatternContext =
+    messageDuplicateRestElementInPatternContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageDuplicateRestElementInPatternContext =
+    const MessageCode("DuplicateRestElementInPatternContext",
+        severity: Severity.context,
+        problemMessage: r"""The first rest element.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateDuplicatedDeclaration =
@@ -9201,6 +9295,16 @@ const MessageCode messageNonAugmentationMemberConflictCause = const MessageCode(
     problemMessage: r"""This is the existing member.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonBoolCondition = messageNonBoolCondition;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonBoolCondition = const MessageCode(
+    "NonBoolCondition",
+    analyzerCodes: <String>["NON_BOOL_CONDITION"],
+    problemMessage: r"""Conditions must have a static type of 'bool'.""",
+    correctionMessage: r"""Try changing the condition.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNonConstConstructor = messageNonConstConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10607,6 +10711,19 @@ Message _withArgumentsRedirectionTargetNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRefutablePatternInIrrefutableContext =
+    messageRefutablePatternInIrrefutableContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRefutablePatternInIrrefutableContext = const MessageCode(
+    "RefutablePatternInIrrefutableContext",
+    analyzerCodes: <String>["REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT"],
+    problemMessage:
+        r"""Refutable patterns can't be used in an irrefutable context.""",
+    correctionMessage:
+        r"""Try using an if-case, a 'switch' statement, or a 'switch' expression instead.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateRequiredNamedParameterHasDefaultValueError =
     const Template<Message Function(String name)>(
@@ -10645,13 +10762,16 @@ const MessageCode messageRequiredParameterWithDefault = const MessageCode(
         r"""Try removing the default value or making the parameter optional.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeRestPatternMoreThanOne = messageRestPatternMoreThanOne;
+const Code<Null> codeRestElementWithSubpatternInMapPattern =
+    messageRestElementWithSubpatternInMapPattern;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageRestPatternMoreThanOne = const MessageCode(
-    "RestPatternMoreThanOne",
-    problemMessage:
-        r"""The '...' pattern can appear only once in the enclosing pattern.""");
+const MessageCode messageRestElementWithSubpatternInMapPattern =
+    const MessageCode("RestElementWithSubpatternInMapPattern",
+        analyzerCodes: <String>["REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN"],
+        problemMessage:
+            r"""A rest element in a map pattern can't have a subpattern.""",
+        correctionMessage: r"""Try removing the subpattern.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRestPatternNotLastInMapPattern =
@@ -12148,6 +12268,34 @@ Message _withArgumentsUnmatchedToken(String string, Token token) {
       problemMessage: """Can't find '${string}' to match '${lexeme}'.""",
       arguments: {'string': string, 'lexeme': token});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeUnnecessaryNullAssertPattern =
+    messageUnnecessaryNullAssertPattern;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageUnnecessaryNullAssertPattern = const MessageCode(
+    "UnnecessaryNullAssertPattern",
+    analyzerCodes: <String>["UNNECESSARY_NULL_ASSERT_PATTERN"],
+    severity: Severity.warning,
+    problemMessage:
+        r"""The null-assert pattern will have no effect because the matched type isn't nullable.""",
+    correctionMessage:
+        r"""Try replacing the null-assert pattern with its nested pattern.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeUnnecessaryNullCheckPattern =
+    messageUnnecessaryNullCheckPattern;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageUnnecessaryNullCheckPattern = const MessageCode(
+    "UnnecessaryNullCheckPattern",
+    analyzerCodes: <String>["UNNECESSARY_NULL_CHECK_PATTERN"],
+    severity: Severity.warning,
+    problemMessage:
+        r"""The null-check pattern will have no effect because the matched type isn't nullable.""",
+    correctionMessage:
+        r"""Try replacing the null-check pattern with its nested pattern.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeUnreachableSwitchCase = messageUnreachableSwitchCase;

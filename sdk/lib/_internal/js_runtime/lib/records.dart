@@ -111,7 +111,7 @@ class _Record2 extends _Record {
   // TODO(49718): Add specializations in shape class that combines is-check with
   // shape check.
   //
-  // TODO(49718): Add specializations in type specialization that that combines
+  // TODO(49718): Add specializations in type specialization that combines
   // is-check with shape check and inlines and specializes `_equalFields`.
   bool operator ==(Object other) {
     return other is _Record2 && _sameShape(other) && _equalFields(other);

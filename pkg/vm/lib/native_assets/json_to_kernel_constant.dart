@@ -7,7 +7,7 @@ import 'package:kernel/kernel.dart';
 /// Converts a [jsonObject] into a kernel [Constant].
 ///
 /// [jsonObject] must consist only of [double], [int], [String], [List], and
-/// [Map] recurively.
+/// [Map] recursively.
 Constant jsonToKernelConstant(Object jsonObject) {
   if (jsonObject is int) {
     return IntConstant(jsonObject);

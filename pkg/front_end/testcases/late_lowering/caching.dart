@@ -63,10 +63,9 @@ int ifCase(o) {
   if (o case (e: != 'bar')) {
     return 17;
   }
-  /* TODO(johnniwinther): Ensure that the value lookup is non-nullable.
   if (o case <int, int>{5: >= 16}) {
     return 18;
-  }*/
+  }
   if (o case [_]) {
     return 19;
   }
@@ -136,9 +135,8 @@ int ifCaseElse(o) {
     return 16;
   } else if (o case (e: != 'bar')) {
     return 17;
-  /* TODO(johnniwinther): Ensure that the value lookup is non-nullable.
   } else if (o case <int, int>{5: >= 16}) {
-    return 18;*/
+    return 18;
   } else if (o case [_]) {
     return 19;
   } else if (o case bool _) {
@@ -201,9 +199,8 @@ int switchStatement(o) {
       return 16;
     case (e: != 'bar'):
       return 17;
-  /* TODO(johnniwinther): Ensure that the value lookup is non-nullable.
     case <int, int>{5: >= 16}:
-      return 18;*/
+      return 18;
     case [_]:
       return 19;
     case bool _:
@@ -249,8 +246,7 @@ int switchExpression(o) {
     Class() => 15,
     == 'foo' => 16,
     (e: != 'bar') => 17,
-    /* TODO(johnniwinther): Ensure that the value lookup is non-nullable.
-    <int, int>{5: >= 16} => 18,*/
+    <int, int>{5: >= 16} => 18,
     [_] => 19,
     bool _ => 20,
     {} => 21,
@@ -309,9 +305,8 @@ main() {
   test(17, (e: 'baz'));
   test(0, (e: 'bar'));
 
-  /* TODO(johnniwinther): Ensure that the value lookup is non-nullable.
   test(18, <int, int>{5: 16});
-  test(18, <int, int>{5: 17});*/
+  test(18, <int, int>{5: 17});
 
   test(19, [true]);
   test(19, ['foo']);

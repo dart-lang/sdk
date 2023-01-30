@@ -52,7 +52,7 @@ class Struct9 extends Struct {
   external Pointer notEmpty;
 }
 
-/// Not tetained because of FFI callback not being reachable.
+/// Not retained because of FFI callback not being reachable.
 class Struct10 extends Struct {
   external Pointer notEmpty;
 }

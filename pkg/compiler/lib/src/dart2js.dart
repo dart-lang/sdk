@@ -1280,7 +1280,7 @@ Usage: dart compile js [arguments] <dart entry point>
         --disable-rti-optimizations
 
 
-       Some optimizations cannot be dissabled at this time, as we add the option
+       Some optimizations cannot be disabled at this time, as we add the option
        to disable them, they will be added here as well.
 
     -O1

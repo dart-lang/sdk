@@ -496,6 +496,6 @@ class MapEntry<K, V> {
 
   /// String representation intended for debugging only.
   ///
-  /// Not guranteed to be stable over time.
+  /// Not guaranteed to be stable over time.
   String toString() => "MapEntry($key: $value)";
 }

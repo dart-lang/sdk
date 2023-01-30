@@ -418,7 +418,7 @@ class BoxedInt {
   BoxedInt(this.value);
 }
 
-// TODO(jensj): Better support for not carring about preexisting spaces, e.g.
+// TODO(jensj): Better support for not caring about preexisting spaces, e.g.
 //              "foo(int a, int b)" will be different from "foo(int a,int b)".
 // TODO(jensj): Specify scanner settings to match that of the compiler.
 // TODO(jensj): Canonicalize show/hides on imports/exports. E.g.

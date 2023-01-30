@@ -22,7 +22,7 @@ class Env {
         callback, element, minTime);
   }
 
-  /// Cancel the pending callback callback matching the specified [id].
+  /// Cancel the pending callback matching the specified [id].
   static void cancelRequestAnimationFrame(int id) {
     _animationScheduler.cancelRequestAnimationFrame(id);
   }

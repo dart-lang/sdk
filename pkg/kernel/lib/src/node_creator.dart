@@ -955,13 +955,15 @@ class NodeCreator {
           ..fileOffset = _needFileOffset();
       case ExpressionKind.RecordIndexGet:
         return RecordIndexGet(_createExpression(),
-            _createDartTypeFromKind(DartTypeKind.RecordType) as RecordType, 0)
+            new RecordType([_createDartType()], [], Nullability.nonNullable), 0)
           ..fileOffset = _needFileOffset();
       case ExpressionKind.RecordNameGet:
+        String name = _createName().text;
         return RecordNameGet(
             _createExpression(),
-            _createDartTypeFromKind(DartTypeKind.RecordType) as RecordType,
-            _createName().text)
+            new RecordType([], [new NamedType(name, _createDartType())],
+                Nullability.nonNullable),
+            name)
           ..fileOffset = _needFileOffset();
       case ExpressionKind.RecordLiteral:
         return _createOneOf(_pendingExpressions, kind, index, [

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.g.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -76,7 +76,7 @@ class A {
   static int f = 0;
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 45, 17),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 45, 17),
     ]);
   }
 
@@ -88,7 +88,7 @@ class A {
   static int get f => 0;
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 45, 17),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 45, 17),
     ]);
   }
 
@@ -100,7 +100,7 @@ class A {
   static void m() {}
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 45, 17),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 45, 17),
     ]);
   }
 
@@ -112,7 +112,7 @@ class A {
   static void set f(int value) {}
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 45, 17),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 45, 17),
     ]);
   }
 
@@ -125,7 +125,7 @@ class C {
   C();
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 47, 16),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 47, 16),
     ]);
   }
 
@@ -139,7 +139,7 @@ enum E {
   void m() {}
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 57, 17),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 57, 17),
     ]);
   }
 
@@ -152,7 +152,7 @@ extension E on String {
   void m() {}
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 60, 17),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 60, 17),
     ]);
   }
 
@@ -174,7 +174,7 @@ import 'package:meta/meta.dart';
 @mustBeOverridden
 void m() {}
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 35, 16),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 35, 16),
     ]);
   }
 }
@@ -240,7 +240,7 @@ class A {
   static int f = 0;
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 45, 14),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 45, 14),
     ]);
   }
 
@@ -252,7 +252,7 @@ class A {
   static int get f => 0;
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 45, 14),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 45, 14),
     ]);
   }
 
@@ -264,7 +264,7 @@ class A {
   static void m() {}
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 45, 14),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 45, 14),
     ]);
   }
 
@@ -276,7 +276,7 @@ class A {
   static void set f(int value) {}
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 45, 14),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 45, 14),
     ]);
   }
 
@@ -289,7 +289,7 @@ class C {
   C();
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 47, 13),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 47, 13),
     ]);
   }
 
@@ -303,7 +303,7 @@ enum E {
   void m() {}
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 57, 14),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 57, 14),
     ]);
   }
 
@@ -316,7 +316,7 @@ extension E on String {
   void m() {}
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 60, 14),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 60, 14),
     ]);
   }
 
@@ -338,7 +338,7 @@ import 'package:meta/meta.dart';
 @mustCallSuper
 void m() {}
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 35, 13),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 35, 13),
     ]);
   }
 }
@@ -375,7 +375,7 @@ class A {
 @A()
 mixin M {}
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 98, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 98, 1),
     ]);
   }
 
@@ -392,7 +392,7 @@ class A {
 @A()
 int x = 0;
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 98, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 98, 1),
     ]);
   }
 
@@ -411,7 +411,7 @@ const a = A();
 @a
 int x = 0;
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 114, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 114, 1),
     ]);
   }
 
@@ -428,7 +428,7 @@ class A {
 @A()
 class C {}
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 97, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 97, 1),
     ]);
   }
 
@@ -460,7 +460,7 @@ class A {
 @A()
 class C {}
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 98, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 98, 1),
     ]);
   }
 
@@ -527,7 +527,7 @@ class C {
   int M(int x) => 0;
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 109, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 109, 1),
     ]);
   }
 
@@ -544,7 +544,7 @@ class A {
 @A()
 int get x => 0;
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 97, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 97, 1),
     ]);
   }
 
@@ -561,7 +561,7 @@ class A {
 @A()
 set x(_x) {}
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 97, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 97, 1),
     ]);
   }
 
@@ -597,7 +597,7 @@ class C {
   int m(int x) => x;
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 107, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 107, 1),
     ]);
   }
 
@@ -616,7 +616,7 @@ class C {
   set x(int _x) {}
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 107, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 107, 1),
     ]);
   }
 
@@ -648,7 +648,7 @@ class A {
 @A()
 class C {}
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 96, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 96, 1),
     ]);
   }
 
@@ -695,7 +695,7 @@ class C {
   int get x => 0;
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 107, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 107, 1),
     ]);
   }
 
@@ -748,7 +748,7 @@ class C {
   set x(int _x) {}
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 107, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 107, 1),
     ]);
   }
 
@@ -765,7 +765,7 @@ class A {
 @A()
 int f(int x) => x;
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 95, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 95, 1),
     ]);
   }
 
@@ -782,7 +782,7 @@ class A {
 @A()
 class C {}
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 98, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 98, 1),
     ]);
   }
 
@@ -814,7 +814,7 @@ class A {
 @A()
 int x = 0;
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 117, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 117, 1),
     ]);
   }
 
@@ -849,7 +849,7 @@ class A {
 @A()
 void f(int x) {}
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 98, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 98, 1),
     ]);
   }
 
@@ -882,7 +882,7 @@ class C {
   int get x => 0;
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 107, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 107, 1),
     ]);
   }
 
@@ -901,7 +901,7 @@ class C {
   int m(int x) => x;
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 107, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 107, 1),
     ]);
   }
 
@@ -952,7 +952,7 @@ class B {
   int f = 0;
 }
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 117, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 117, 1),
     ]);
   }
 
@@ -1015,7 +1015,7 @@ class A {
 extension on C {}
 class C {}
 ''', [
-      error(HintCode.INVALID_ANNOTATION_TARGET, 93, 1),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 93, 1),
     ]);
   }
 

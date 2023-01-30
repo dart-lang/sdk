@@ -13,10 +13,10 @@ static method test(dynamic x) → dynamic {
   {
     core::int #t1 = -1;
     final dynamic #0#0 = x;
-    function ##0#1#initializer() → core::int?
+    function ##0#2#initializer() → core::int?
       return #0#0{self::C}.{self::C::f}{core::int?};
-    late final core::int? #0#1 = ##0#1#initializer(){() → core::int?};
-    if(#0#0 is{ForNonNullableByDefault} self::C && (!(#0#1 == null) ?{core::bool} #C1 =={core::num::==}{(core::Object) → core::bool} #0#1 : false)) {
+    late final core::int? #0#2 = ##0#2#initializer(){() → core::int?};
+    if(#0#0 is{ForNonNullableByDefault} self::C && (!(#0#2 == null) ?{core::bool} #C1 =={core::num::==}{(core::Object) → core::bool} #0#2 : false)) {
       #t1 = 0;
     }
     switch(#t1) {

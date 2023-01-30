@@ -7,7 +7,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
-import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
@@ -19,17 +18,6 @@ void main() {
 class DirectiveUriTest extends AbstractCompletionDriverTest {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-
-  @override
-  Future<void> setUp() async {
-    await super.setUp();
-
-    printerConfiguration = printer.Configuration(
-      filter: (suggestion) {
-        return true;
-      },
-    );
-  }
 
   Future<void> test_uri_end() async {
     await _checkDirectives(

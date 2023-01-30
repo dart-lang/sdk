@@ -74,8 +74,7 @@ void main(List<String> args) {
       await client.expectEvalResult(topFrameId, 'a + b;', '3');
     });
 
-    test(
-        'evaluates complex expressions expressions with evaluateToStringInDebugViews=true',
+    test('evaluates complex expressions with evaluateToStringInDebugViews=true',
         () async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleBreakpointProgram);
