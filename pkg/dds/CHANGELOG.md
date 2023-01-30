@@ -1,8 +1,10 @@
+# 2.7.4
+- [DAP] Added support for `,d` (decimal), `,h` (hex) and `,nq` (no quotes) format specifiers to be used as suffixes to evaluation requests.
+- [DAP] Added support for `format.hex` in `variablesRequest` and `evaluateRequest`.
+
 # 2.7.3
 - [DAP] Added support for displaying records in responses to `variablesRequest`.
 - A new exception `ExistingDartDevelopmentServiceException` (extending `DartDevelopmentServiceException`) is thrown when trying to connect DDS to a VM Service that already has a DDS instance. This new exception contains a `ddsUri` field that is populated with the URI of the existing DDS instance if provided by the target VM Service.
-- [DAP] Added support for `,d` (decimal), `,h` (hex) and `,nq` (no quotes) format specifiers to be used as suffixes to evaluation requests.
-- [DAP] Added support for `format.hex` in `variablesRequest` and `evaluateRequest`.
 
 # 2.7.2
 - Update DDS protocol version to 1.4.
