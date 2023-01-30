@@ -4547,7 +4547,8 @@ class RecordIndexGet extends Expression {
   RecordType receiverType;
   final int index;
 
-  RecordIndexGet(this.receiver, this.receiverType, this.index) {
+  RecordIndexGet(this.receiver, this.receiverType, this.index)
+      : assert(0 <= index && index < receiverType.positional.length) {
     receiver.parent = this;
   }
 
@@ -4600,7 +4601,11 @@ class RecordNameGet extends Expression {
   RecordType receiverType;
   final String name;
 
-  RecordNameGet(this.receiver, this.receiverType, this.name) {
+  RecordNameGet(this.receiver, this.receiverType, this.name)
+      : assert(receiverType.named
+                .singleWhere((element) => element.name == name)
+                .name ==
+            name) {
     receiver.parent = this;
   }
 

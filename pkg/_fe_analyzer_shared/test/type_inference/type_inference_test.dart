@@ -1970,7 +1970,8 @@ main() {
               expr('dynamic'),
             ),
           ], expectedErrors: {
-            'duplicateRestPattern(node: MAP_PATTERN, original: REST_ELEMENT1, '
+            'duplicateRestPattern(mapOrListPattern: MAP_PATTERN, '
+                'original: REST_ELEMENT1, '
                 'duplicate: REST_ELEMENT2)'
           });
         });
@@ -1987,7 +1988,8 @@ main() {
               expr('dynamic'),
             ),
           ], expectedErrors: {
-            'duplicateRestPattern(node: MAP_PATTERN, original: REST_ELEMENT1, '
+            'duplicateRestPattern(mapOrListPattern: MAP_PATTERN, '
+                'original: REST_ELEMENT1, '
                 'duplicate: REST_ELEMENT2)'
           });
         });
@@ -2261,7 +2263,8 @@ main() {
                   'List<int>)), matchedType: List<int>, '
                   'requiredType: List<int>))'),
             ], expectedErrors: {
-              'duplicateRestPattern(node: LIST_PATTERN, original: ORI, '
+              'duplicateRestPattern(mapOrListPattern: LIST_PATTERN, '
+                  'original: ORI, '
                   'duplicate: DUP)',
             });
           });
@@ -2277,7 +2280,8 @@ main() {
               ).checkIr('match(expr(List<int>), listPattern(..., ..., '
                   'matchedType: List<int>, requiredType: List<int>))'),
             ], expectedErrors: {
-              'duplicateRestPattern(node: LIST_PATTERN, original: ORI, '
+              'duplicateRestPattern(mapOrListPattern: LIST_PATTERN, '
+                  'original: ORI, '
                   'duplicate: DUP)',
             });
           });
@@ -2829,11 +2833,13 @@ main() {
                   Var('a').pattern().recordField('foo')..errorId = 'ORIGINAL',
                   Var('b').pattern().recordField('foo')..errorId = 'DUPLICATE',
                 ],
-              ),
+              )..errorId = 'PATTERN',
               [],
             ),
           ], expectedErrors: {
-            'duplicateRecordPatternField(name: foo, original: ORIGINAL, '
+            'duplicateRecordPatternField('
+                'objectOrRecordPattern: PATTERN, '
+                'name: foo, original: ORIGINAL, '
                 'duplicate: DUPLICATE)'
           });
         });
@@ -3203,11 +3209,14 @@ main() {
               recordPattern([
                 Var('a').pattern().recordField('a')..errorId = 'ORIGINAL',
                 Var('b').pattern().recordField('a')..errorId = 'DUPLICATE',
-              ]),
+              ])
+                ..errorId = 'PATTERN',
               [],
             ),
           ], expectedErrors: {
-            'duplicateRecordPatternField(name: a, original: ORIGINAL, '
+            'duplicateRecordPatternField('
+                'objectOrRecordPattern: PATTERN, '
+                'name: a, original: ORIGINAL, '
                 'duplicate: DUPLICATE)'
           });
         });
@@ -3300,7 +3309,7 @@ main() {
                 'matchedType: A), variables(), true, block(), noop)')
           ], expectedErrors: {
             'relationalPatternOperatorReturnTypeNotAssignableToBool('
-                'node: PATTERN, returnType: int)'
+                'pattern: PATTERN, returnType: int)'
           });
         });
       });

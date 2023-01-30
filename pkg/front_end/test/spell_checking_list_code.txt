@@ -479,9 +479,9 @@ established
 establishes
 establishing
 estimate
-et
 estimated
 estimation
+et
 eval
 evar
 exchanging
@@ -1279,6 +1279,7 @@ say
 saying
 sb
 sc
+scale
 scc
 scenarios
 scheglov

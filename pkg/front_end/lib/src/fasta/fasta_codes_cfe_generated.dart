@@ -4473,6 +4473,47 @@ Message _withArgumentsOverrideTypeVariablesBoundMismatch(
 const Template<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templatePatternTypeMismatchInIrrefutableContext = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""The matched value of type '#type' isn't assignable to the required type '#type2'.""",
+        correctionMessageTemplate:
+            r"""Try changing the required type of the pattern, or the matched value type.""",
+        withArguments: _withArgumentsPatternTypeMismatchInIrrefutableContext);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codePatternTypeMismatchInIrrefutableContext = const Code<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "PatternTypeMismatchInIrrefutableContext",
+        analyzerCodes: <String>[
+      "PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT"
+    ]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsPatternTypeMismatchInIrrefutableContext(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codePatternTypeMismatchInIrrefutableContext,
+      problemMessage:
+          """The matched value of type '${type}' isn't assignable to the required type '${type2}'.""" +
+              labeler.originMessages,
+      correctionMessage: """Try changing the required type of the pattern, or the matched value type.""",
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
     templateRedirectingFactoryIncompatibleTypeArgument = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(

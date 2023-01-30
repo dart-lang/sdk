@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
+import 'package:front_end/src/fasta/type_inference/inference_visitor.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
 
 import '../fasta_codes.dart';
 import '../kernel/internal_ast.dart';
@@ -13,14 +15,23 @@ import 'inference_helper.dart';
 /// front end's [InferenceHelper] class.
 class SharedTypeAnalyzerErrors
     implements
-        TypeAnalyzerErrors<Node, Statement, Expression, VariableDeclaration,
+        TypeAnalyzerErrors<TreeNode, Statement, Expression, VariableDeclaration,
             DartType, Pattern> {
+  final InferenceVisitorImpl visitor;
   final InferenceHelper helper;
 
-  final Uri uriForInstrumentation;
+  final Uri uri;
+
+  final CoreTypes coreTypes;
+
+  final bool isNonNullableByDefault;
 
   SharedTypeAnalyzerErrors(
-      {required this.helper, required this.uriForInstrumentation});
+      {required this.visitor,
+      required this.helper,
+      required this.uri,
+      required this.coreTypes,
+      required this.isNonNullableByDefault});
 
   @override
   void argumentTypeNotAssignable({
@@ -28,7 +39,11 @@ class SharedTypeAnalyzerErrors
     required DartType argumentType,
     required DartType parameterType,
   }) {
-    throw new UnimplementedError('TODO(scheglov)');
+    helper.addProblem(
+        templateArgumentTypeNotAssignable.withArguments(
+            argumentType, parameterType, isNonNullableByDefault),
+        argument.fileOffset,
+        noLength);
   }
 
   @override
@@ -53,7 +68,7 @@ class SharedTypeAnalyzerErrors
         noLength,
         context: [
           messageSwitchExpressionNotAssignableCause.withLocation(
-              uriForInstrumentation, scrutinee.fileOffset, noLength)
+              uri, scrutinee.fileOffset, noLength)
         ]);
   }
 
@@ -63,25 +78,46 @@ class SharedTypeAnalyzerErrors
     required Pattern original,
     required Pattern duplicate,
   }) {
-    throw new UnimplementedError('TODO(scheglov)');
+    duplicate.error = helper.buildProblem(
+        templateDuplicatePatternAssignmentVariable
+            .withArguments(variable.name!),
+        duplicate.fileOffset,
+        noLength,
+        context: [
+          messageDuplicatePatternAssignmentVariableContext.withLocation(
+              uri, original.fileOffset, noLength)
+        ]);
   }
 
   @override
   void duplicateRecordPatternField({
+    required Pattern objectOrRecordPattern,
     required String name,
-    required RecordPatternField<Node, Pattern> original,
-    required RecordPatternField<Node, Pattern> duplicate,
+    required RecordPatternField<TreeNode, Pattern> original,
+    required RecordPatternField<TreeNode, Pattern> duplicate,
   }) {
-    throw new UnimplementedError('TODO(scheglov)');
+    objectOrRecordPattern.error = helper.buildProblem(
+        templateDuplicateRecordPatternField.withArguments(name),
+        duplicate.pattern.fileOffset,
+        noLength,
+        context: [
+          messageDuplicateRecordPatternFieldContext.withLocation(
+              uri, original.pattern.fileOffset, noLength)
+        ]);
   }
 
   @override
   void duplicateRestPattern({
-    required Node node,
-    required Node original,
-    required Node duplicate,
+    required Pattern mapOrListPattern,
+    required TreeNode original,
+    required TreeNode duplicate,
   }) {
-    throw new UnimplementedError('TODO(scheglov)');
+    mapOrListPattern.error = helper.buildProblem(
+        messageDuplicateRestElementInPattern, duplicate.fileOffset, noLength,
+        context: [
+          messageDuplicateRestElementInPatternContext.withLocation(
+              uri, original.fileOffset, noLength)
+        ]);
   }
 
   @override
@@ -98,22 +134,32 @@ class SharedTypeAnalyzerErrors
     required Pattern pattern,
     required DartType matchedType,
   }) {
-    // TODO(scheglov) Implement it.
+    // These are only warnings, so we don't update `pattern.error`.
+    if (pattern is NullAssertPattern) {
+      helper.addProblem(
+          messageUnnecessaryNullAssertPattern, pattern.fileOffset, noLength);
+    } else {
+      helper.addProblem(
+          messageUnnecessaryNullCheckPattern, pattern.fileOffset, noLength);
+    }
   }
 
   @override
   void nonBooleanCondition(Expression node) {
-    throw new UnimplementedError('TODO(paulberry)');
+    // TODO(johnniwinther): Find a way to propagate the error state to the
+    // parent of the guard.
+    helper.addProblem(messageNonBoolCondition, node.fileOffset, noLength);
   }
 
   @override
-  void patternDoesNotAllowLate(Node pattern) {
+  void patternDoesNotAllowLate(TreeNode pattern) {
+    // TODO(johnniwinther): Is late even supported by the grammar or parser?
     throw new UnimplementedError('TODO(paulberry)');
   }
 
   @override
   void patternForInExpressionIsNotIterable({
-    required Node node,
+    required TreeNode node,
     required Expression expression,
     required DartType expressionType,
   }) {
@@ -122,34 +168,46 @@ class SharedTypeAnalyzerErrors
 
   @override
   void patternTypeMismatchInIrrefutableContext(
-      {required Node pattern,
-      required Node context,
+      {required Pattern pattern,
+      required TreeNode context,
       required DartType matchedType,
       required DartType requiredType}) {
-    throw new UnimplementedError('TODO(paulberry)');
+    pattern.error = helper.buildProblem(
+        templatePatternTypeMismatchInIrrefutableContext.withArguments(
+            matchedType, requiredType, isNonNullableByDefault),
+        pattern.fileOffset,
+        noLength);
   }
 
   @override
-  void refutablePatternInIrrefutableContext(Node pattern, Node context) {
-    throw new UnimplementedError('TODO(paulberry)');
+  void refutablePatternInIrrefutableContext(
+      covariant Pattern pattern, TreeNode context) {
+    pattern.error = helper.buildProblem(
+        messageRefutablePatternInIrrefutableContext,
+        pattern.fileOffset,
+        noLength);
   }
 
   @override
   void relationalPatternOperatorReturnTypeNotAssignableToBool({
-    required Node node,
+    required Pattern pattern,
     required DartType returnType,
   }) {
-    throw new UnimplementedError('TODO(scheglov)');
+    pattern.error = helper.buildProblem(
+        templateInvalidAssignmentError.withArguments(returnType,
+            coreTypes.boolNonNullableRawType, isNonNullableByDefault),
+        pattern.fileOffset,
+        noLength);
   }
 
   @override
-  void restPatternNotLastInMap(Pattern node, Node element) {
-    throw new UnimplementedError('TODO(scheglov)');
+  void restPatternNotLastInMap(Pattern node, TreeNode element) {
+    // This is reported in the body builder.
   }
 
   @override
-  void restPatternWithSubPatternInMap(Pattern node, Node element) {
-    throw new UnimplementedError('TODO(paulberry)');
+  void restPatternWithSubPatternInMap(Pattern node, TreeNode element) {
+    // This is reported in the body builder.
   }
 
   @override

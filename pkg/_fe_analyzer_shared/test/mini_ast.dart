@@ -2955,11 +2955,13 @@ class _MiniAstErrors
 
   @override
   void duplicateRecordPatternField({
+    required Pattern objectOrRecordPattern,
     required String name,
     required covariant RecordPatternField original,
     required covariant RecordPatternField duplicate,
   }) {
     _recordError('duplicateRecordPatternField', {
+      'objectOrRecordPattern': objectOrRecordPattern,
       'name': name,
       'original': original,
       'duplicate': duplicate,
@@ -2968,12 +2970,12 @@ class _MiniAstErrors
 
   @override
   void duplicateRestPattern({
-    required Node node,
+    required Pattern mapOrListPattern,
     required Node original,
     required Node duplicate,
   }) {
     _recordError('duplicateRestPattern', {
-      'node': node,
+      'mapOrListPattern': mapOrListPattern,
       'original': original,
       'duplicate': duplicate,
     });
@@ -3077,11 +3079,11 @@ class _MiniAstErrors
 
   @override
   void relationalPatternOperatorReturnTypeNotAssignableToBool({
-    required Node node,
+    required Pattern pattern,
     required Type returnType,
   }) {
     _recordError('relationalPatternOperatorReturnTypeNotAssignableToBool', {
-      'node': node,
+      'pattern': pattern,
       'returnType': returnType,
     });
   }

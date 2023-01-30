@@ -39,7 +39,7 @@ import '../type_inference/object_access_target.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
 
 typedef SharedMatchContext = shared
-    .MatchContext<Node, Expression, Pattern, DartType, VariableDeclaration>;
+    .MatchContext<TreeNode, Expression, Pattern, DartType, VariableDeclaration>;
 
 int getExtensionTypeParameterCount(Arguments arguments) {
   if (arguments is ArgumentsImpl) {
@@ -3671,6 +3671,8 @@ class InternalRecordLiteral extends InternalExpression {
 }
 
 abstract class Pattern extends TreeNode with InternalTreeNode {
+  Expression? error;
+
   Pattern(int fileOffset) {
     this.fileOffset = fileOffset;
   }
@@ -3689,6 +3691,15 @@ abstract class Pattern extends TreeNode with InternalTreeNode {
   /// Creates the [DelayedExpression] needed to match [matchedExpression] using
   /// [matchingCache] to create cacheable expressions.
   DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+      MatchingCache matchingCache, CacheableExpression matchedExpression) {
+    if (error != null) {
+      return new FixedExpression(error!, const InvalidType());
+    }
+    return createMatchingExpressionInternal(
+        base, matchingCache, matchedExpression);
+  }
+
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression);
 
   /// Returns the variable name that this pattern defines, if any.
@@ -3722,7 +3733,7 @@ class DummyPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     return new BooleanExpression(false, fileOffset: fileOffset);
   }
@@ -3759,7 +3770,7 @@ class ExpressionPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     CacheableExpression constExpression =
         matchingCache.createConstantExpression(expression, expressionType);
@@ -3802,7 +3813,7 @@ class AndPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     return new DelayedAndExpression(
         left.createMatchingExpression(base, matchingCache, matchedExpression),
@@ -3849,7 +3860,7 @@ class OrPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     matchingCache.declareJointVariables(_orPatternJointVariables,
         left.declaredVariables, right.declaredVariables);
@@ -3896,7 +3907,7 @@ class CastPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     CacheableExpression asExpression = matchingCache
         .createAsExpression(matchedExpression, type, fileOffset: fileOffset);
@@ -3940,7 +3951,7 @@ class NullAssertPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     CacheableExpression nullAssertExpression = matchingCache
         .createNullAssertMatcher(matchedExpression, fileOffset: fileOffset);
@@ -3985,7 +3996,7 @@ class NullCheckPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     CacheableExpression nullCheckExpression = matchingCache
         .createNullCheckMatcher(matchedExpression, fileOffset: fileOffset);
@@ -4032,7 +4043,7 @@ class ListPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     DartType matchedType = matchedExpression.getType(base);
     DartType typeArgument = this.typeArgument ?? const DynamicType();
@@ -4208,7 +4219,7 @@ class ObjectPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     DartType matchedType = matchedExpression.getType(base);
     // targetObjectType: `classNode`<`typeArguments`>
@@ -4330,7 +4341,7 @@ class RelationalPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     CacheableExpression constant =
         matchingCache.createConstantExpression(expression, expressionType);
@@ -4411,7 +4422,7 @@ class WildcardPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     if (type != null) {
       return new DelayedIsExpression(matchedExpression, type!,
@@ -4522,7 +4533,7 @@ class AssignedVariablePattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     DartType matchedType = matchedExpression.getType(base);
     CacheableExpression valueExpression;
@@ -4665,7 +4676,7 @@ class MapPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     DartType matchedType = matchedExpression.getType(base);
     DartType keyType = this.keyType ?? const DynamicType();
@@ -4799,7 +4810,7 @@ class NamedPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     return pattern.createMatchingExpression(
         base, matchingCache, matchedExpression);
@@ -4844,7 +4855,7 @@ class RecordPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     DartType matchedType = matchedExpression.getType(base);
     bool typeCheckNeeded =
@@ -4937,7 +4948,7 @@ class VariablePattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     DartType matchedType = matchedExpression.getType(base);
     DelayedExpression? matchingExpression;
@@ -5025,7 +5036,7 @@ class RestPattern extends Pattern {
   }
 
   @override
-  DelayedExpression createMatchingExpression(InferenceVisitorBase base,
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     if (subPattern != null) {
       return subPattern!

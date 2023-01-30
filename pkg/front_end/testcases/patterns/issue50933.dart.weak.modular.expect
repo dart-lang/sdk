@@ -10,6 +10,16 @@ library /*isNonNullableByDefault*/;
 //   } else if (x case (: [1, 2])) { // Error
 //                      ^
 //
+// pkg/front_end/testcases/patterns/issue50933.dart:13:24: Warning: The null-assert pattern will have no effect because the matched type isn't nullable.
+// Try replacing the null-assert pattern with its nested pattern.
+//   if (x case A(:var foo!, :var bar, :var baz?, var boz as double)) {
+//                        ^
+//
+// pkg/front_end/testcases/patterns/issue50933.dart:13:45: Warning: The null-check pattern will have no effect because the matched type isn't nullable.
+// Try replacing the null-check pattern with its nested pattern.
+//   if (x case A(:var foo!, :var bar, :var baz?, var boz as double)) {
+//                                             ^
+//
 import self as self;
 import "dart:core" as core;
 

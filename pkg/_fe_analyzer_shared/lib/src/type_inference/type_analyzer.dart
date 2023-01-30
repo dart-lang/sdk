@@ -666,7 +666,7 @@ mixin TypeAnalyzer<
       if (isRestPatternElement(element)) {
         if (previousRestPattern != null) {
           errors?.duplicateRestPattern(
-            node: node,
+            mapOrListPattern: node,
             original: previousRestPattern,
             duplicate: element,
           );
@@ -857,7 +857,7 @@ mixin TypeAnalyzer<
       if (isRestPatternElement(element)) {
         if (previousRestPattern != null) {
           errors?.duplicateRestPattern(
-            node: node,
+            mapOrListPattern: node,
             original: previousRestPattern,
             duplicate: element,
           );
@@ -1003,7 +1003,7 @@ mixin TypeAnalyzer<
     Pattern node, {
     required List<RecordPatternField<Node, Pattern>> fields,
   }) {
-    _reportDuplicateRecordPatternFields(fields);
+    _reportDuplicateRecordPatternFields(node, fields);
 
     Type matchedType = flow.getMatchedValueType();
     Type requiredType = downwardInferObjectPatternRequiredType(
@@ -1217,7 +1217,7 @@ mixin TypeAnalyzer<
       }
     }
 
-    _reportDuplicateRecordPatternFields(fields);
+    _reportDuplicateRecordPatternFields(node, fields);
 
     // Build the required type.
     int requiredTypePositionalCount = 0;
@@ -1302,10 +1302,12 @@ mixin TypeAnalyzer<
   /// This method will invoke [resolveRelationalPatternOperator] to obtain
   /// information about the operator.
   ///
+  /// Returns the type of the [operand].
+  ///
   /// See [dispatchPattern] for the meaning of [context].
   ///
   /// Stack effect: pushes (Expression).
-  void analyzeRelationalPattern(
+  Type analyzeRelationalPattern(
       MatchContext<Node, Expression, Pattern, Type, Variable> context,
       Pattern node,
       Expression operand) {
@@ -1335,11 +1337,14 @@ mixin TypeAnalyzer<
       }
       if (!operations.isAssignableTo(operator.returnType, boolType)) {
         errors.relationalPatternOperatorReturnTypeNotAssignableToBool(
-          node: node,
+          pattern: node,
           returnType: operator.returnType,
         );
       }
     }
+    // TODO(johnniwinther): This doesn't scale. We probably need to pass more
+    // information, for instance whether this was an erroneous case.
+    return operandType;
   }
 
   /// Computes the type schema for a relational pattern.
@@ -2036,6 +2041,7 @@ mixin TypeAnalyzer<
 
   /// Reports errors for duplicate named record fields.
   void _reportDuplicateRecordPatternFields(
+    Pattern pattern,
     List<RecordPatternField<Node, Pattern>> fields,
   ) {
     Map<String, RecordPatternField<Node, Pattern>> nameToField = {};
@@ -2045,6 +2051,7 @@ mixin TypeAnalyzer<
         RecordPatternField<Node, Pattern>? original = nameToField[name];
         if (original != null) {
           errors?.duplicateRecordPatternField(
+            objectOrRecordPattern: pattern,
             name: name,
             original: original,
             duplicate: field,
@@ -2098,6 +2105,7 @@ abstract class TypeAnalyzerErrors<
 
   /// Called for a pair of named fields have the same name.
   void duplicateRecordPatternField({
+    required Pattern objectOrRecordPattern,
     required String name,
     required RecordPatternField<Node, Pattern> original,
     required RecordPatternField<Node, Pattern> duplicate,
@@ -2105,7 +2113,7 @@ abstract class TypeAnalyzerErrors<
 
   /// Called for a duplicate rest pattern found in a list or map pattern.
   void duplicateRestPattern({
-    required Node node,
+    required Pattern mapOrListPattern,
     required Node original,
     required Node duplicate,
   });
@@ -2170,7 +2178,7 @@ abstract class TypeAnalyzerErrors<
   /// Called if the [returnType] of the invoked relational operator is not
   /// assignable to `bool`.
   void relationalPatternOperatorReturnTypeNotAssignableToBool({
-    required Node node,
+    required Pattern pattern,
     required Type returnType,
   });
 
