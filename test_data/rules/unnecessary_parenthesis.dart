@@ -121,6 +121,11 @@ main() async {
   (a?..abs()).hashCode;
   (a?[0]).hashCode;
 
+  (a?.sign.sign).hashCode;
+  (a?.abs().abs()).hashCode;
+  (a?..abs()..abs()).hashCode;
+  (a?[0][1]).hashCode;
+
   (a?.sign)!;
   (a?.abs())!;
   (a?..abs())!;

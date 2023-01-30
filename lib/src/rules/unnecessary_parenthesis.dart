@@ -88,11 +88,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     var parent = node.parent;
     var expression = node.expression;
-    if (expression is SimpleIdentifier ||
-        (expression is CascadeExpression && expression.isNullAware) ||
-        (expression is PropertyAccess && expression.isNullAware) ||
-        (expression is MethodInvocation && expression.isNullAware) ||
-        (expression is IndexExpression && expression.isNullAware)) {
+    if (expression is SimpleIdentifier || _isNullAware(expression)) {
       if (parent is PropertyAccess) {
         var name = parent.propertyName.name;
         if (name == 'hashCode' || name == 'runtimeType') {
@@ -237,6 +233,25 @@ class _Visitor extends SimpleAstVisitor<void> {
         _ContainsFunctionExpressionVisitor();
     node.accept(containsFunctionExpressionVisitor);
     return containsFunctionExpressionVisitor.hasFunctionExpression;
+  }
+
+  /// Return `true` if the expression is null aware, or if one of its recursive
+  /// targets is null aware.
+  bool _isNullAware(Expression? expression) {
+    if (expression is CascadeExpression) {
+      // No need to check the target.
+      return expression.isNullAware;
+    } else if (expression is PropertyAccess) {
+      if (expression.isNullAware) return true;
+      return _isNullAware(expression.target);
+    } else if (expression is MethodInvocation) {
+      if (expression.isNullAware) return true;
+      return _isNullAware(expression.target);
+    } else if (expression is IndexExpression) {
+      if (expression.isNullAware) return true;
+      return _isNullAware(expression.target);
+    }
+    return false;
   }
 }
 
