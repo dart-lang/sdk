@@ -251,7 +251,7 @@ class EmbedderSdk extends AbstractDartSdk {
   // TODO(danrubel) Determine SDK version
   String get sdkVersion => '0';
 
-  /// The url mappings for this SDK.
+  /// The URL mappings for this SDK.
   Map<String, String> get urlMappings => _urlMappings;
 
   @override
