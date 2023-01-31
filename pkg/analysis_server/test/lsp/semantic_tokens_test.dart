@@ -699,9 +699,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
           [CustomSemanticTokenModifiers.control]),
       _Token('int', SemanticTokenTypes.class_),
       _Token('var', SemanticTokenTypes.keyword),
-      // TODO(dantup): Should there be a variable declaration here?
-      // _Token('isEven', SemanticTokenTypes.variable,
-      //     [SemanticTokenModifiers.declaration]),
+      _Token('isEven', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
       _Token('when', SemanticTokenTypes.keyword,
           [CustomSemanticTokenModifiers.control]),
       _Token('isEven', SemanticTokenTypes.variable),
@@ -951,6 +950,158 @@ class MyClass {}
       _Token('a', SemanticTokenTypes.parameter,
           [CustomSemanticTokenModifiers.label]),
       _Token('a', SemanticTokenTypes.parameter),
+    ];
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final tokens = await getSemanticTokens(mainFileUri);
+    final decoded = _decodeSemanticTokens(content, tokens);
+    expect(decoded, equals(expected));
+  }
+
+  Future<void> test_patterns_assignment() async {
+    final content = r'''
+void f() {
+  int a, b;
+  <int>[a, b] = [1, 2];
+  var [c, d] = [1, 2];
+}
+    ''';
+
+    final expected = [
+      _Token('void', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.void_]),
+      _Token('f', SemanticTokenTypes.function,
+          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('int', SemanticTokenTypes.class_),
+      _Token('a', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token('b', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token('int', SemanticTokenTypes.class_),
+      _Token('a', SemanticTokenTypes.variable),
+      _Token('b', SemanticTokenTypes.variable),
+      _Token('1', SemanticTokenTypes.number),
+      _Token('2', SemanticTokenTypes.number),
+      _Token('var', SemanticTokenTypes.keyword),
+      _Token('c', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token('d', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token('1', SemanticTokenTypes.number),
+      _Token('2', SemanticTokenTypes.number)
+    ];
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final tokens = await getSemanticTokens(mainFileUri);
+    final decoded = _decodeSemanticTokens(content, tokens);
+    expect(decoded, equals(expected));
+  }
+
+  Future<void> test_patterns_switch_list() async {
+    final content = r'''
+void f() {
+  switch (1) {
+    case [var c, == 'a'] when c != null:
+  }
+}
+    ''';
+
+    final expected = [
+      _Token('void', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.void_]),
+      _Token('f', SemanticTokenTypes.function,
+          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('switch', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.control]),
+      _Token('1', SemanticTokenTypes.number),
+      _Token('case', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.control]),
+      _Token('var', SemanticTokenTypes.keyword),
+      _Token('c', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token("'a'", SemanticTokenTypes.string),
+      _Token('when', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.control]),
+      _Token('c', SemanticTokenTypes.variable),
+      _Token('null', SemanticTokenTypes.keyword)
+    ];
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final tokens = await getSemanticTokens(mainFileUri);
+    final decoded = _decodeSemanticTokens(content, tokens);
+    expect(decoded, equals(expected));
+  }
+
+  Future<void> test_patterns_switch_object() async {
+    final content = r'''
+void f() {
+  switch (1) {
+    case int(isEven: var isEven) when isEven:
+  }
+}
+    ''';
+
+    final expected = [
+      _Token('void', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.void_]),
+      _Token('f', SemanticTokenTypes.function,
+          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('switch', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.control]),
+      _Token('1', SemanticTokenTypes.number),
+      _Token('case', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.control]),
+      _Token('int', SemanticTokenTypes.class_),
+      _Token('isEven', SemanticTokenTypes.property,
+          [CustomSemanticTokenModifiers.instance]),
+      _Token('var', SemanticTokenTypes.keyword),
+      _Token('isEven', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token('when', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.control]),
+      _Token('isEven', SemanticTokenTypes.variable),
+    ];
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final tokens = await getSemanticTokens(mainFileUri);
+    final decoded = _decodeSemanticTokens(content, tokens);
+    expect(decoded, equals(expected));
+  }
+
+  Future<void> test_patterns_switch_object_inferredName() async {
+    final content = r'''
+void f() {
+  switch (1) {
+    case int(:var isEven) when isEven:
+  }
+}
+    ''';
+
+    final expected = [
+      _Token('void', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.void_]),
+      _Token('f', SemanticTokenTypes.function,
+          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('switch', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.control]),
+      _Token('1', SemanticTokenTypes.number),
+      _Token('case', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.control]),
+      _Token('int', SemanticTokenTypes.class_),
+      _Token('var', SemanticTokenTypes.keyword),
+      _Token('isEven', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token('when', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.control]),
+      _Token('isEven', SemanticTokenTypes.variable),
     ];
 
     await initialize();
