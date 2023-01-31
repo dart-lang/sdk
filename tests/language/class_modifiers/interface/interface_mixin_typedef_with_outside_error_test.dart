@@ -9,11 +9,11 @@
 import 'interface_mixin_typedef_with_lib.dart';
 
 abstract class AOutside with InterfaceMixinTypeDef {}
-// ^
-// [analyzer] unspecified
+//                           ^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] unspecified
 
 class BOutside with InterfaceMixinTypeDef {}
-// ^
-// [analyzer] unspecified
+//                  ^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] unspecified

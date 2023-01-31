@@ -2246,6 +2246,26 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the name of the interface class being extended.
+  static const CompileTimeErrorCode
+      INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY = CompileTimeErrorCode(
+    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
+    "The class '{0}' can't be extended outside of its library because it's an "
+        "interface class.",
+    uniqueName: 'INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the interface mixin being mixed in.
+  static const CompileTimeErrorCode
+      INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY = CompileTimeErrorCode(
+    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
+    "The mixin '{0}' can't be mixed-in outside of its library because it's an "
+        "interface mixin.",
+    uniqueName: 'INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY',
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode INVALID_ANNOTATION = CompileTimeErrorCode(
     'INVALID_ANNOTATION',

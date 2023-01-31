@@ -623,6 +623,10 @@ CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE:
   status: hasFix
 CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE:
   status: needsEvaluation
+CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY:
+  status: needsEvaluation
+CompileTimeErrorCode.INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY:
+  status: needsEvaluation
 CompileTimeErrorCode.INVALID_ANNOTATION:
   status: hasFix
 CompileTimeErrorCode.INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY:

@@ -13,6 +13,6 @@ import 'interface_class_typedef_used_outside_lib.dart';
 typedef ATypeDef = InterfaceClass;
 
 class A extends ATypeDef {}
-// ^
-// [analyzer] unspecified
+//              ^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] unspecified

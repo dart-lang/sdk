@@ -359,6 +359,10 @@ import 'instantiate_type_alias_expands_to_type_parameter_test.dart'
 import 'integer_literal_imprecise_as_double_test.dart'
     as integer_literal_imprecise_as_double;
 import 'integer_literal_out_of_range_test.dart' as integer_literal_out_of_range;
+import 'interface_class_extended_outside_of_library_test.dart'
+    as interface_class_extended_outside_of_library;
+import 'interface_mixin_mixed_in_outside_of_library_test.dart'
+    as interface_mixin_mixed_in_outside_of_library;
 import 'invalid_annotation_from_deferred_library_test.dart'
     as invalid_annotation_from_deferred_library;
 import 'invalid_annotation_target_test.dart' as invalid_annotation_target;
@@ -1085,6 +1089,8 @@ main() {
     instantiate_type_alias_expands_to_type_parameter.main();
     integer_literal_imprecise_as_double.main();
     integer_literal_out_of_range.main();
+    interface_class_extended_outside_of_library.main();
+    interface_mixin_mixed_in_outside_of_library.main();
     invalid_annotation.main();
     invalid_annotation_from_deferred_library.main();
     invalid_annotation_target.main();
