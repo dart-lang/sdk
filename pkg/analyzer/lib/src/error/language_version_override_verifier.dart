@@ -187,7 +187,7 @@ class LanguageVersionOverrideVerifier {
 
     if (slashCount > 2) {
       _errorReporter.reportErrorForOffset(
-          HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES,
+          WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES,
           offset,
           length);
       return false;
@@ -195,14 +195,16 @@ class LanguageVersionOverrideVerifier {
 
     if (!atSignPresent) {
       _errorReporter.reportErrorForOffset(
-          HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN, offset, length);
+          WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN,
+          offset,
+          length);
       return false;
     }
 
     if (possibleDart != 'dart') {
       // The 4 characters after `@` are "dart", but in the wrong case.
       _errorReporter.reportErrorForOffset(
-          HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE,
+          WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE,
           offset,
           length);
       return false;
@@ -213,19 +215,19 @@ class LanguageVersionOverrideVerifier {
       // The separator between "@dart" and the version number is either not
       // present, or is not a single "=" character.
       _errorReporter.reportErrorForOffset(
-          HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS, offset, length);
+          WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS, offset, length);
       return false;
     }
 
     if (containsInvalidVersionNumberPrefix) {
       _errorReporter.reportErrorForOffset(
-          HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX, offset, length);
+          WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX, offset, length);
       return false;
     }
 
     void reportInvalidNumber() {
       _errorReporter.reportErrorForOffset(
-          HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER, offset, length);
+          WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER, offset, length);
     }
 
     // Nothing preceding the version number makes this comment invalid. Check
@@ -258,7 +260,7 @@ class LanguageVersionOverrideVerifier {
     // This comment is a valid language version override, except for trailing
     // characters.
     _errorReporter.reportErrorForOffset(
-        HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS,
+        WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS,
         offset,
         length);
     return false;
@@ -286,7 +288,7 @@ class LanguageVersionOverrideVerifier {
           if (match != null) {
             var atDartStart = lexeme.indexOf('@dart');
             _errorReporter.reportErrorForOffset(
-              HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION,
+              WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION,
               commentToken.offset + atDartStart,
               match.end - atDartStart,
             );

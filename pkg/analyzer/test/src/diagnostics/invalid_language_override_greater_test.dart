@@ -4,7 +4,7 @@
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.g.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -28,7 +28,7 @@ class InvalidLanguageOverrideGreaterTest extends PubPackageResolutionTest {
 // @dart = ${latestVersion.major}.${latestVersion.minor + 1}
 class A {}
 ''', [
-      error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER, 0, 14),
+      error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER, 0, 14),
     ]);
     _assertUnitLanguageVersion(
       package: latestVersion,

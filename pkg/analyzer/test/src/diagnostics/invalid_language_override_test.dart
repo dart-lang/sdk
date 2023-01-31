@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.g.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -20,7 +20,7 @@ class InvalidLanguageOverrideTest extends PubPackageResolutionTest {
 // @dart = 11.12
 int i = 0;
 ''', [
-      error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER, 0, 16),
+      error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER, 0, 16),
     ]);
   }
 
@@ -29,7 +29,7 @@ int i = 0;
 // @dart = 3.190
 int i = 0;
 ''', [
-      error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER, 0, 16),
+      error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER, 0, 16),
     ]);
   }
 
@@ -88,7 +88,7 @@ class A {
   void test() {}
 }
 ''', [
-      error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION, 15, 11),
+      error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION, 15, 11),
     ]);
   }
 
@@ -96,14 +96,14 @@ class A {
     await assertErrorsInCode(r'''
 class A {}
 // @dart = 2.5
-''', [error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION, 14, 11)]);
+''', [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION, 14, 11)]);
   }
 
   test_location_afterDeclaration_beforeEof() async {
     await assertErrorsInCode(r'''
 class A {}
 // @dart = 2.5
-''', [error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION, 14, 11)]);
+''', [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION, 14, 11)]);
   }
 
   test_location_afterDirective() async {
@@ -111,7 +111,7 @@ class A {}
 import 'dart:core';
 // @dart = 2.5
 class A {}
-''', [error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION, 23, 11)]);
+''', [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION, 23, 11)]);
   }
 
   test_location_beforeDeclaration() async {
@@ -136,14 +136,14 @@ class A {
     await assertErrorsInCode(r'''
 // dart = 2.0
 int i = 0;
-''', [error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN, 0, 13)]);
+''', [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN, 0, 13)]);
   }
 
   test_missingSeparator() async {
     await assertErrorsInCode(r'''
 // @dart 2.0
 int i = 0;
-''', [error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS, 0, 12)]);
+''', [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS, 0, 12)]);
   }
 
   test_nonVersionOverride_atDart2js() async {
@@ -207,7 +207,7 @@ int i = 0;
     await assertErrorsInCode(r'''
 // @dart >= 2.0
 int i = 0;
-''', [error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS, 0, 15)]);
+''', [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS, 0, 15)]);
   }
 
   test_shebangLine() async {
@@ -223,28 +223,28 @@ int i = 0;
 #!/usr/bin/dart
 // @Dart = 2.0
 int i = 0;
-''', [error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE, 16, 14)]);
+''', [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE, 16, 14)]);
   }
 
   test_tooManySlashes() async {
     await assertErrorsInCode(r'''
 /// @dart = 2.0
 int i = 0;
-''', [error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES, 0, 15)]);
+''', [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES, 0, 15)]);
   }
 
   test_wrongAtSignPosition() async {
     await assertErrorsInCode(r'''
 // dart @ 2.0
 int i = 0;
-''', [error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN, 0, 13)]);
+''', [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN, 0, 13)]);
   }
 
   test_wrongCase_firstComment() async {
     await assertErrorsInCode(r'''
 // @Dart = 2.0
 int i = 0;
-''', [error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE, 0, 14)]);
+''', [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE, 0, 14)]);
   }
 
   test_wrongCase_multilineComment() async {
@@ -252,7 +252,7 @@ int i = 0;
 // Copyright
 // @Dart = 2.0
 int i = 0;
-''', [error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE, 13, 14)]);
+''', [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE, 13, 14)]);
   }
 
   test_wrongCase_secondComment() async {
@@ -261,21 +261,21 @@ int i = 0;
 
 // @Dart = 2.0
 int i = 0;
-''', [error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE, 14, 14)]);
+''', [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE, 14, 14)]);
   }
 
   test_wrongSeparator_noSpace() async {
     await assertErrorsInCode(r'''
 // @dart:2.0
 int i = 0;
-''', [error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS, 0, 12)]);
+''', [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS, 0, 12)]);
   }
 
   test_wrongSeparator_withSpace() async {
     await assertErrorsInCode(r'''
 // @dart : 2.0
 int i = 0;
-''', [error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS, 0, 14)]);
+''', [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS, 0, 14)]);
   }
 
   test_wrongVersion_extraSpecificity() async {
@@ -283,8 +283,8 @@ int i = 0;
 // @dart = 2.0.0
 int i = 0;
 ''', [
-      error(
-          HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS, 0, 16)
+      error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS,
+          0, 16)
     ]);
   }
 
@@ -292,13 +292,13 @@ int i = 0;
     await assertErrorsInCode(r'''
 // @dart = 2
 int i = 0;
-''', [error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER, 0, 12)]);
+''', [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER, 0, 12)]);
   }
 
   test_wrongVersion_prefixCharacter() async {
     await assertErrorsInCode(r'''
 // @dart = v2.0
 int i = 0;
-''', [error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX, 0, 15)]);
+''', [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX, 0, 15)]);
   }
 }

@@ -5810,6 +5810,120 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
+  static const WarningCode INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN =
+      WarningCode(
+    'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    "The Dart language version override number must begin with '@dart'.",
+    correctionMessage:
+        "Specify a Dart language version override with a comment like '// "
+        "@dart = 2.0'.",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN',
+  );
+
+  ///  No parameters.
+  static const WarningCode INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS =
+      WarningCode(
+    'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    "The Dart language version override comment must be specified with an '=' "
+        "character.",
+    correctionMessage:
+        "Specify a Dart language version override with a comment like '// "
+        "@dart = 2.0'.",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS',
+  );
+
+  ///  Parameters:
+  ///  0: the latest major version
+  ///  1: the latest minor version
+  static const WarningCode INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER =
+      WarningCode(
+    'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    "The language version override can't specify a version greater than the "
+        "latest known language version: {0}.{1}.",
+    correctionMessage: "Try removing the language version override.",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER',
+  );
+
+  static const WarningCode INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION =
+      WarningCode(
+    'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    "The language version override must be specified before any declaration or "
+        "directive.",
+    correctionMessage:
+        "Try moving the language version override to the top of the file.",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION',
+  );
+
+  ///  No parameters.
+  static const WarningCode INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE =
+      WarningCode(
+    'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    "The Dart language version override comment must be specified with the "
+        "word 'dart' in all lower case.",
+    correctionMessage:
+        "Specify a Dart language version override with a comment like '// "
+        "@dart = 2.0'.",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE',
+  );
+
+  ///  No parameters.
+  static const WarningCode INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER =
+      WarningCode(
+    'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    "The Dart language version override comment must be specified with a "
+        "version number, like '2.0', after the '=' character.",
+    correctionMessage:
+        "Specify a Dart language version override with a comment like '// "
+        "@dart = 2.0'.",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER',
+  );
+
+  ///  No parameters.
+  static const WarningCode INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX =
+      WarningCode(
+    'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    "The Dart language version override number can't be prefixed with a "
+        "letter.",
+    correctionMessage:
+        "Specify a Dart language version override with a comment like '// "
+        "@dart = 2.0'.",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX',
+  );
+
+  ///  No parameters.
+  static const WarningCode
+      INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS = WarningCode(
+    'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    "The Dart language version override comment can't be followed by any "
+        "non-whitespace characters.",
+    correctionMessage:
+        "Specify a Dart language version override with a comment like '// "
+        "@dart = 2.0'.",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS',
+  );
+
+  ///  No parameters.
+  static const WarningCode INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES =
+      WarningCode(
+    'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    "The Dart language version override comment must be specified with exactly "
+        "two slashes.",
+    correctionMessage:
+        "Specify a Dart language version override with a comment like '// "
+        "@dart = 2.0'.",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES',
+  );
+
   ///  This is the new replacement for [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR].
   static const HintCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR =
       HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR;

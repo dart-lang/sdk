@@ -1414,51 +1414,6 @@ HintCode.INVALID_IMMUTABLE_ANNOTATION:
   status: hasFix
 HintCode.INVALID_INTERNAL_ANNOTATION:
   status: hasFix
-HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN:
-  status: needsFix
-  notes: |-
-    If we can identify enough information to do so, the fix is to rewrite the
-    comment into a valid form.
-HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS:
-  status: needsFix
-  notes: |-
-    If we can identify enough information to do so, the fix is to rewrite the
-    comment into a valid form.
-HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER:
-  status: needsFix
-  notes: |-
-    If we can identify enough information to do so, the fix is to rewrite the
-    comment into a valid form.
-HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION:
-  status: needsFix
-  notes: |-
-    If we can identify enough information to do so, the fix is to rewrite the
-    comment into a valid form.
-HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE:
-  status: needsFix
-  notes: |-
-    If we can identify enough information to do so, the fix is to rewrite the
-    comment into a valid form.
-HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER:
-  status: needsFix
-  notes: |-
-    If we can identify enough information to do so, the fix is to rewrite the
-    comment into a valid form.
-HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX:
-  status: needsFix
-  notes: |-
-    If we can identify enough information to do so, the fix is to rewrite the
-    comment into a valid form.
-HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS:
-  status: needsFix
-  notes: |-
-    If we can identify enough information to do so, the fix is to rewrite the
-    comment into a valid form.
-HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES:
-  status: needsFix
-  notes: |-
-    If we can identify enough information to do so, the fix is to rewrite the
-    comment into a valid form.
 HintCode.INVALID_LITERAL_ANNOTATION:
   status: hasFix
 HintCode.INVALID_NON_VIRTUAL_ANNOTATION:
@@ -2766,6 +2721,51 @@ WarningCode.INVALID_FACTORY_METHOD_DECL:
   status: noFix
 WarningCode.INVALID_FACTORY_METHOD_IMPL:
   status: noFix
+WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN:
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
+WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS:
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
+WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER:
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
+WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION:
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
+WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE:
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
+WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER:
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
+WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX:
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
+WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS:
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
+WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES:
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
 WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE:
   status: hasFix
 WarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT:

@@ -407,8 +407,8 @@ FlowGraph* CompilerPass::RunPipelineWithPasses(
 }
 
 COMPILER_PASS(ComputeSSA, {
-  // Transform to SSA (virtual register 0 and no inlining arguments).
-  flow_graph->ComputeSSA(0, NULL);
+  // Transform to SSA (no inlining arguments).
+  flow_graph->ComputeSSA(nullptr);
 });
 
 COMPILER_PASS(ApplyICData, { state->call_specializer->ApplyICData(); });
