@@ -399,12 +399,12 @@ _nightly_builder(
 
 # vm|misc
 _nightly_builder(
-    "vm-optcounter-threshold-linux-release-ia32",
+    "vm-eager-optimization-linux-release-ia32",
     category = "vm|misc|o32",
     channels = ["try"],
 )
 _low_priority_builder(
-    "vm-optcounter-threshold-linux-release-x64",
+    "vm-eager-optimization-linux-release-x64",
     category = "vm|misc|o64",
 )
 
