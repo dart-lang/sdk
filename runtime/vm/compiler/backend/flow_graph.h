@@ -362,8 +362,7 @@ class FlowGraph : public ZoneAllocated {
                                    UseKind use_kind);
 
   // Operations on the flow graph.
-  void ComputeSSA(intptr_t next_virtual_register_number,
-                  ZoneGrowableArray<Definition*>* inlining_parameters);
+  void ComputeSSA(ZoneGrowableArray<Definition*>* inlining_parameters);
 
   // Verification method for debugging.
   bool VerifyRedefinitions();
