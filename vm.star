@@ -471,23 +471,23 @@ _nightly_builder(
     channels = ["try"],
 )
 _nightly_builder(
-    "vm-kernel-nnbd-linux-debug-x64c",
+    "vm-kernel-linux-debug-x64c",
     category = "vm|misc|compressed|jl",
     channels = ["try"],
 )
 _nightly_builder(
-    "vm-kernel-precomp-nnbd-linux-debug-x64c",
+    "vm-kernel-precomp-linux-debug-x64c",
     category = "vm|misc|compressed|al",
     channels = ["try"],
 )
 _nightly_builder(
-    "vm-kernel-nnbd-win-debug-x64c",
+    "vm-kernel-win-debug-x64c",
     category = "vm|misc|compressed|jw",
     channels = ["try"],
     dimensions = windows,
 )
 _nightly_builder(
-    "vm-kernel-precomp-nnbd-win-debug-x64c",
+    "vm-kernel-precomp-win-debug-x64c",
     category = "vm|misc|compressed|aw",
     channels = ["try"],
     dimensions = windows,
