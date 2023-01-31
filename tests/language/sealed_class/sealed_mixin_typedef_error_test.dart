@@ -9,7 +9,7 @@
 import 'sealed_mixin_typedef_lib.dart';
 
 class ATypeDef with SealedMixinTypeDef {}
-// [error column 1, length 41]
-// [analyzer] COMPILE_TIME_ERROR.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY
 //    ^
-// [cfe] Sealed mixin 'SealedMixin' can't be mixed in outside of its library.
+// [cfe] The mixin 'SealedMixin' can't be mixed in outside of its library because it's a sealed mixin.
+//                  ^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY

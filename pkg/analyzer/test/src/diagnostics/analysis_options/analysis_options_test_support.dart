@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/lint/options_rule_validator.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -18,11 +19,20 @@ abstract class AbstractAnalysisOptionsTest with ResourceProviderMixin {
   VersionConstraint? get sdkVersionConstraint => null;
 
   Future<void> assertErrorsInCode(
-      String code, List<ExpectedError> expectedErrors) async {
+    String code,
+    List<ExpectedError> expectedErrors, {
+    LintRuleProvider? provider,
+  }) async {
     var path = convertPath('/analysis_options.yaml');
     newFile(path, code);
     var diagnostics = analyzeAnalysisOptions(
-        TestSource(path), code, sourceFactory, '/', sdkVersionConstraint);
+      TestSource(path),
+      code,
+      sourceFactory,
+      '/',
+      sdkVersionConstraint,
+      provider: provider,
+    );
     var errorListener = GatheringErrorListener();
     errorListener.addAll(diagnostics);
     errorListener.assertErrors(expectedErrors);

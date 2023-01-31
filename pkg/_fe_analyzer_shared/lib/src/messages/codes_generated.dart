@@ -960,10 +960,12 @@ Message _withArgumentsCantReadFile(Uri uri_, String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> templateCantUseClassAsMixin =
-    const Template<Message Function(String name)>(
-        problemMessageTemplate: r"""Class '#name' can't be used as a mixin.""",
-        withArguments: _withArgumentsCantUseClassAsMixin);
+const Template<
+    Message Function(String name)> templateCantUseClassAsMixin = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The class '#name' can't be used as a mixin because it isn't a mixin class nor a mixin.""",
+    withArguments: _withArgumentsCantUseClassAsMixin);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeCantUseClassAsMixin =
@@ -975,7 +977,8 @@ Message _withArgumentsCantUseClassAsMixin(String name) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   return new Message(codeCantUseClassAsMixin,
-      problemMessage: """Class '${name}' can't be used as a mixin.""",
+      problemMessage:
+          """The class '${name}' can't be used as a mixin because it isn't a mixin class nor a mixin.""",
       arguments: {'name': name});
 }
 
@@ -10914,7 +10917,7 @@ const Template<
             name)> templateSealedClassSubtypeOutsideOfLibrary = const Template<
         Message Function(String name)>(
     problemMessageTemplate:
-        r"""Sealed class '#name' can't be extended, implemented, or mixed in outside of its library.""",
+        r"""The class '#name' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.""",
     withArguments: _withArgumentsSealedClassSubtypeOutsideOfLibrary);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10930,7 +10933,7 @@ Message _withArgumentsSealedClassSubtypeOutsideOfLibrary(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeSealedClassSubtypeOutsideOfLibrary,
       problemMessage:
-          """Sealed class '${name}' can't be extended, implemented, or mixed in outside of its library.""",
+          """The class '${name}' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.""",
       arguments: {'name': name});
 }
 
@@ -10941,7 +10944,7 @@ const Template<
             name)> templateSealedMixinSubtypeOutsideOfLibrary = const Template<
         Message Function(String name)>(
     problemMessageTemplate:
-        r"""Sealed mixin '#name' can't be mixed in outside of its library.""",
+        r"""The mixin '#name' can't be mixed in outside of its library because it's a sealed mixin.""",
     withArguments: _withArgumentsSealedMixinSubtypeOutsideOfLibrary);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10957,7 +10960,7 @@ Message _withArgumentsSealedMixinSubtypeOutsideOfLibrary(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeSealedMixinSubtypeOutsideOfLibrary,
       problemMessage:
-          """Sealed mixin '${name}' can't be mixed in outside of its library.""",
+          """The mixin '${name}' can't be mixed in outside of its library because it's a sealed mixin.""",
       arguments: {'name': name});
 }
 

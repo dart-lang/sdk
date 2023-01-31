@@ -415,8 +415,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   ///  0: the name of the class being used as a mixin
   static const CompileTimeErrorCode CLASS_USED_AS_MIXIN = CompileTimeErrorCode(
     'CLASS_USED_AS_MIXIN',
-    "The class '{0}' can't be implicitly used as a mixin because it isn't a "
-        "mixin class nor a mixin.",
+    "The class '{0}' can't be used as a mixin because it isn't a mixin class "
+        "nor a mixin.",
   );
 
   static const CompileTimeErrorCode CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE =
@@ -4294,20 +4294,23 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the name of the supertype being extended, implemented, or mixed in
+  ///  0: the name of the sealed class being extended, implemented, or mixed in
   static const CompileTimeErrorCode SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY =
       CompileTimeErrorCode(
-    'SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY',
-    "The sealed class '{0}' can't be extended, implemented, or mixed in "
-        "outside of its library.",
+    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
+    "The class '{0}' can't be extended, implemented, or mixed in outside of "
+        "its library because it's a sealed class.",
+    uniqueName: 'SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY',
   );
 
   ///  Parameters:
-  ///  0: the name of the supertype being mixed in
+  ///  0: the name of the sealed mixin being mixed in
   static const CompileTimeErrorCode SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY =
       CompileTimeErrorCode(
-    'SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY',
-    "The sealed mixin '{0}' can't be mixed in outside of its library.",
+    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
+    "The mixin '{0}' can't be mixed in outside of its library because it's a "
+        "sealed mixin.",
+    uniqueName: 'SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY',
   );
 
   ///  No parameters.

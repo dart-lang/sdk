@@ -6028,7 +6028,7 @@ InheritedRestrictedMemberOfEnumImplementer:
     abstract class B extends A implements Enum {}
 
 SealedClassSubtypeOutsideOfLibrary:
-  problemMessage: "Sealed class '#name' can't be extended, implemented, or mixed in outside of its library."
+  problemMessage: "The class '#name' can't be extended, implemented, or mixed in outside of its library because it's a sealed class."
   analyzerCode: SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY
   experiments: sealed-class
   script:
@@ -6039,7 +6039,7 @@ SealedClassSubtypeOutsideOfLibrary:
       sealed class A {}
 
 SealedMixinSubtypeOutsideOfLibrary:
-  problemMessage: "Sealed mixin '#name' can't be mixed in outside of its library."
+  problemMessage: "The mixin '#name' can't be mixed in outside of its library because it's a sealed mixin."
   analyzerCode: SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY
   experiments: sealed-class
   script:
@@ -6050,7 +6050,7 @@ SealedMixinSubtypeOutsideOfLibrary:
       sealed mixin M {}
 
 CantUseClassAsMixin:
-  problemMessage: "Class '#name' can't be used as a mixin."
+  problemMessage: "The class '#name' can't be used as a mixin because it isn't a mixin class nor a mixin."
   analyzerCode: CLASS_USED_AS_MIXIN
   experiments: class-modifiers
   script:

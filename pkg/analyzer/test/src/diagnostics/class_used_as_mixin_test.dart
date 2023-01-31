@@ -46,7 +46,7 @@ class Foo {}
 import 'foo.dart';
 class Bar with Foo {}
 ''', [
-      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 19, 21),
+      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 34, 3),
     ]);
   }
 
@@ -72,7 +72,7 @@ class Foo {}
 import 'foo.dart';
 class Bar with Foo {}
 ''', [
-      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 35, 21),
+      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 50, 3),
     ]);
   }
 
@@ -97,7 +97,7 @@ typedef FooTypedef = Foo;
 import 'foo.dart';
 class Bar with FooTypedef {}
 ''', [
-      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 19, 28),
+      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 34, 10),
     ]);
   }
 
@@ -136,7 +136,7 @@ import 'foo.dart';
 typedef FooTypedef = Foo;
 class Bar with FooTypedef {}
 ''', [
-      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 45, 28),
+      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 60, 10),
     ]);
   }
 

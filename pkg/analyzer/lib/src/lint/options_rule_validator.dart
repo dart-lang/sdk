@@ -61,10 +61,13 @@ class LinterRuleOptionsValidator extends OptionsValidator {
 
   final LintRuleProvider ruleProvider;
   final VersionConstraint? sdkVersionConstraint;
+  final bool sourceIsOptionsForContextRoot;
 
-  LinterRuleOptionsValidator(
-      {LintRuleProvider? provider, this.sdkVersionConstraint})
-      : ruleProvider = provider ?? (() => Registry.ruleRegistry.rules);
+  LinterRuleOptionsValidator({
+    LintRuleProvider? provider,
+    this.sdkVersionConstraint,
+    this.sourceIsOptionsForContextRoot = true,
+  }) : ruleProvider = provider ?? (() => Registry.ruleRegistry.rules);
 
   bool currentSdkAllows(Version? since) {
     if (since == null) return true;
@@ -128,18 +131,24 @@ class LinterRuleOptionsValidator extends OptionsValidator {
           reporter.reportErrorForSpan(DUPLICATE_RULE_HINT, node.span, [value]);
         }
       }
-      var state = rule.state;
-      if (isDeprecatedInCurrentSdk(state)) {
-        reporter.reportErrorForSpan(DEPRECATED_LINT_HINT, node.span, [value]);
-      } else if (isRemovedInCurrentSdk(state)) {
-        var since = state.since.toString();
-        var replacedBy = (state as RemovedState).replacedBy;
-        if (replacedBy != null) {
-          reporter.reportErrorForSpan(AnalysisOptionsWarningCode.REPLACED_LINT,
-              node.span, [value, since, replacedBy]);
-        } else {
-          reporter.reportErrorForSpan(AnalysisOptionsWarningCode.REMOVED_LINT,
-              node.span, [value, since]);
+      // Report removed or deprecated lint warnings defined directly (and not in
+      // includes).
+      if (sourceIsOptionsForContextRoot) {
+        var state = rule.state;
+        if (isDeprecatedInCurrentSdk(state)) {
+          reporter.reportErrorForSpan(DEPRECATED_LINT_HINT, node.span, [value]);
+        } else if (isRemovedInCurrentSdk(state)) {
+          var since = state.since.toString();
+          var replacedBy = (state as RemovedState).replacedBy;
+          if (replacedBy != null) {
+            reporter.reportErrorForSpan(
+                AnalysisOptionsWarningCode.REPLACED_LINT,
+                node.span,
+                [value, since, replacedBy]);
+          } else {
+            reporter.reportErrorForSpan(AnalysisOptionsWarningCode.REMOVED_LINT,
+                node.span, [value, since]);
+          }
         }
       }
     }

@@ -173,6 +173,22 @@ f(a) async {
     assertHasRegion(HighlightRegionType.KEYWORD, 'in');
   }
 
+  Future<void> test_BUILT_IN_base() async {
+    addTestFile('''
+base class A {}
+base mixin M {}
+base class B = Object with M;
+void f() {
+  var base = 42;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'base class A');
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'base mixin M');
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'base class B');
+    assertNoRegion(HighlightRegionType.BUILT_IN, 'base = 42');
+  }
+
   Future<void> test_BUILT_IN_deferred() async {
     addTestFile('''
 import 'dart:math' deferred as math;
@@ -223,6 +239,22 @@ void f() {
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.BUILT_IN, 'factory A()');
     assertNoRegion(HighlightRegionType.BUILT_IN, 'factory = 42');
+  }
+
+  Future<void> test_BUILT_IN_final() async {
+    addTestFile('''
+final class A {}
+final mixin M {}
+final class B = Object with M;
+void f() {
+  var final = 42;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'final class A');
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'final mixin M');
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'final class B');
+    assertNoRegion(HighlightRegionType.BUILT_IN, 'final = 42');
   }
 
   Future<void> test_BUILT_IN_Function() async {
@@ -284,6 +316,22 @@ void f() {
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.BUILT_IN, 'import "');
     assertNoRegion(HighlightRegionType.BUILT_IN, 'import = 42');
+  }
+
+  Future<void> test_BUILT_IN_interface() async {
+    addTestFile('''
+interface class A {}
+interface mixin M {}
+interface class B = Object with M;
+void f() {
+  var interface = 42;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'interface class A');
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'interface mixin M');
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'interface class B');
+    assertNoRegion(HighlightRegionType.BUILT_IN, 'interface = 42');
   }
 
   Future<void> test_BUILT_IN_library() async {

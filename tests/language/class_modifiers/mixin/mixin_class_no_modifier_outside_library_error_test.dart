@@ -9,43 +9,43 @@
 import 'mixin_class_no_modifier_lib.dart';
 
 abstract class OutsideA with Class {}
-// [error column 1, length 37]
-// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
 //             ^
-// [cfe] Class 'Class' can't be used as a mixin.
+// [cfe] The class 'Class' can't be used as a mixin because it isn't a mixin class nor a mixin.
+//                           ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
 
 class OutsideB with Class {}
-// [error column 1, length 28]
-// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
 //    ^
-// [cfe] Class 'Class' can't be used as a mixin.
+// [cfe] The class 'Class' can't be used as a mixin because it isn't a mixin class nor a mixin.
+//                  ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
 
 class OutsideC = Object with Class;
-// [error column 1, length 35]
-// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
 //    ^
-// [cfe] Class 'Class' can't be used as a mixin.
+// [cfe] The class 'Class' can't be used as a mixin because it isn't a mixin class nor a mixin.
+//                           ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
 
 abstract class OutsideD with Class, Mixin {}
-// [error column 1, length 44]
-// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
 //             ^
-// [cfe] Class 'Class' can't be used as a mixin.
+// [cfe] The class 'Class' can't be used as a mixin because it isn't a mixin class nor a mixin.
+//                           ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
 
 class OutsideE with Class, Mixin {}
-// [error column 1, length 35]
-// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
 //    ^
-// [cfe] Class 'Class' can't be used as a mixin.
+// [cfe] The class 'Class' can't be used as a mixin because it isn't a mixin class nor a mixin.
+//                  ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
 
 class OutsideF with NamedMixinClassApplication {}
-// [error column 1, length 49]
-// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
 //    ^
-// [cfe] Class 'NamedMixinClassApplication' can't be used as a mixin.
+// [cfe] The class 'NamedMixinClassApplication' can't be used as a mixin because it isn't a mixin class nor a mixin.
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
 
 class OutsideG with AbstractClass {}
-// [error column 1, length 36]
-// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
 //    ^
-// [cfe] Class 'AbstractClass' can't be used as a mixin.
+// [cfe] The class 'AbstractClass' can't be used as a mixin because it isn't a mixin class nor a mixin.
+//                  ^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN

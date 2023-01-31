@@ -1598,7 +1598,7 @@ CompileTimeErrorCode:
       int y = x as int;
       ```
   CLASS_USED_AS_MIXIN:
-    problemMessage: "The class '{0}' can't be implicitly used as a mixin because it isn't a mixin class nor a mixin."
+    problemMessage: "The class '{0}' can't be used as a mixin because it isn't a mixin class nor a mixin."
     comment: |-
       Parameters:
       0: the name of the class being used as a mixin
@@ -12697,15 +12697,17 @@ CompileTimeErrorCode:
       }
       ```
   SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY:
-    problemMessage: "The sealed class '{0}' can't be extended, implemented, or mixed in outside of its library."
+    sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+    problemMessage: "The class '{0}' can't be extended, implemented, or mixed in outside of its library because it's a sealed class."
     comment: |-
       Parameters:
-      0: the name of the supertype being extended, implemented, or mixed in
+      0: the name of the sealed class being extended, implemented, or mixed in
   SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY:
-    problemMessage: "The sealed mixin '{0}' can't be mixed in outside of its library."
+    sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+    problemMessage: "The mixin '{0}' can't be mixed in outside of its library because it's a sealed mixin."
     comment: |-
       Parameters:
-      0: the name of the supertype being mixed in
+      0: the name of the sealed mixin being mixed in
   SET_ELEMENT_TYPE_NOT_ASSIGNABLE:
     problemMessage: "The element type '{0}' can't be assigned to the set type '{1}'."
     hasPublishedDocs: true
