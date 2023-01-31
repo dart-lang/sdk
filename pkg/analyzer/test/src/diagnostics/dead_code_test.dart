@@ -115,6 +115,19 @@ class C {
     );
   }
 
+  test_continueInSwitch() async {
+    await assertNoErrorsInCode(r'''
+void f(int i) {
+  for (;; 1) {
+    switch (i) {
+      default:
+        continue;
+    }
+  }
+}
+''');
+  }
+
   test_deadBlock_conditionalElse() async {
     await assertErrorsInCode(r'''
 f() {

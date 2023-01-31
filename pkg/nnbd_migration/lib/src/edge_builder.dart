@@ -637,7 +637,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType? visitBreakStatement(BreakStatement node) {
     _flowAnalysis!.handleBreak(FlowAnalysisHelper.getLabelTarget(
-        node, node.label?.staticElement as LabelElement?));
+        node, node.label?.staticElement as LabelElement?,
+        isBreak: true));
     // Later statements no longer post-dominate the declarations because we
     // exited (or, in parent scopes, conditionally exited).
     // TODO(mfairhurst): don't clear post-dominators beyond the current loop.
@@ -845,7 +846,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType? visitContinueStatement(ContinueStatement node) {
     _flowAnalysis!.handleContinue(FlowAnalysisHelper.getLabelTarget(
-        node, node.label?.staticElement as LabelElement?));
+        node, node.label?.staticElement as LabelElement?,
+        isBreak: false));
     // Later statements no longer post-dominate the declarations because we
     // exited (or, in parent scopes, conditionally exited).
     // TODO(mfairhurst): don't clear post-dominators beyond the current loop.

@@ -125,7 +125,7 @@ class FlowAnalysisHelper {
   }
 
   void breakStatement(BreakStatement node) {
-    var target = getLabelTarget(node, node.label?.staticElement);
+    var target = getLabelTarget(node, node.label?.staticElement, isBreak: true);
     flow!.handleBreak(target);
   }
 
@@ -141,7 +141,8 @@ class FlowAnalysisHelper {
   }
 
   void continueStatement(ContinueStatement node) {
-    var target = getLabelTarget(node, node.label?.staticElement);
+    var target =
+        getLabelTarget(node, node.label?.staticElement, isBreak: false);
     flow!.handleContinue(target);
   }
 
@@ -313,12 +314,15 @@ class FlowAnalysisHelper {
   /// Return the target of the `break` or `continue` statement with the
   /// [element] label. The [element] might be `null` (when the statement does
   /// not specify a label), so the default enclosing target is returned.
-  static Statement? getLabelTarget(AstNode? node, Element? element) {
+  ///
+  /// [isBreak] is `true` for `break`, and `false` for `continue`.
+  static Statement? getLabelTarget(AstNode? node, Element? element,
+      {required bool isBreak}) {
     for (; node != null; node = node.parent) {
       if (element == null) {
         if (node is DoStatement ||
             node is ForStatement ||
-            node is SwitchStatement ||
+            (isBreak && node is SwitchStatement) ||
             node is WhileStatement) {
           return node as Statement;
         }
