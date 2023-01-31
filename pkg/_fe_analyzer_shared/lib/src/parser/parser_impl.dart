@@ -9481,6 +9481,17 @@ class Parser {
         // variablePattern ::= ( 'var' | 'final' | 'final'? type )? identifier
         return parseVariablePattern(token, patternContext);
       case '(':
+        // "(" could start a record type (which has to be followed by an
+        // identifier though), e.g. `(int, int) foo`.
+        if (next.endGroup!.next!.isIdentifier) {
+          TypeInfo typeInfo = computeVariablePatternType(token);
+          if (typeInfo is ComplexTypeInfo &&
+              typeInfo.isRecordType &&
+              !typeInfo.recovered) {
+            return parseVariablePattern(token, patternContext,
+                typeInfo: typeInfo);
+          }
+        }
         // parenthesizedPattern  ::= '(' pattern ')'
         // recordPattern         ::= '(' patternFields? ')'
         // patternFields         ::= patternField ( ',' patternField )* ','?
