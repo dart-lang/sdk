@@ -32,7 +32,7 @@ import 'foo.dart';
 class Bar extends Foo {}
 ''', [
       error(
-          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 19, 24),
+          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 37, 3),
     ]);
   }
 
@@ -47,7 +47,7 @@ import 'foo.dart';
 class Bar extends FooTypedef {}
 ''', [
       error(
-          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 19, 31),
+          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 37, 10),
     ]);
   }
 
@@ -62,7 +62,7 @@ typedef FooTypedef = Foo;
 class Bar extends FooTypedef {}
 ''', [
       error(
-          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 45, 31),
+          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 63, 10),
     ]);
   }
 
@@ -95,7 +95,7 @@ import 'foo.dart';
 class Bar implements Foo {}
 ''', [
       error(
-          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 19, 27),
+          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 40, 3),
     ]);
   }
 
@@ -110,7 +110,7 @@ import 'foo.dart';
 class Bar implements FooTypedef {}
 ''', [
       error(
-          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 19, 34),
+          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 40, 10),
     ]);
   }
 
@@ -125,7 +125,7 @@ typedef FooTypedef = Foo;
 class Bar implements FooTypedef {}
 ''', [
       error(
-          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 45, 34),
+          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 66, 10),
     ]);
   }
 
@@ -157,9 +157,9 @@ sealed class Foo {}
 import 'foo.dart';
 class Bar with Foo {}
 ''', [
-      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 19, 21),
+      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 34, 3),
       error(
-          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 19, 21),
+          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 34, 3),
     ]);
   }
 
@@ -173,9 +173,9 @@ typedef FooTypedef = Foo;
 import 'foo.dart';
 class Bar with FooTypedef {}
 ''', [
-      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 19, 28),
+      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 34, 10),
       error(
-          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 19, 28),
+          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 34, 10),
     ]);
   }
 
@@ -189,9 +189,9 @@ import 'foo.dart';
 typedef FooTypedef = Foo;
 class Bar with FooTypedef {}
 ''', [
-      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 45, 28),
+      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 60, 10),
       error(
-          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 45, 28),
+          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 60, 10),
     ]);
   }
 
@@ -217,7 +217,7 @@ import 'foo.dart';
 mixin Bar implements Foo {}
 ''', [
       error(
-          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 19, 27),
+          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 40, 3),
     ]);
   }
 }

@@ -1395,9 +1395,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForMixinWithConflictingPrivateMember(withClause, superclass);
       _checkForConflictingGenerics(node);
       _checkForBaseClassOrMixinImplementedOutsideOfLibrary(implementsClause);
-      _checkForClassUsedAsMixin(node, withClause);
+      _checkForClassUsedAsMixin(withClause);
       _checkForSealedSupertypeOutsideOfLibrary(
-          node, superclass, withClause, implementsClause);
+          superclass, withClause, implementsClause);
       if (node is ClassDeclaration) {
         _checkForNoDefaultSuperConstructorImplicit(node);
       }
@@ -1838,8 +1838,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// No error is emitted if the class being mixed in is a mixin class.
   ///
   /// See [CompileTimeErrorCode.CLASS_USED_AS_MIXIN].
-  void _checkForClassUsedAsMixin(
-      NamedCompilationUnitMember node, WithClause? withClause) {
+  void _checkForClassUsedAsMixin(WithClause? withClause) {
     if (withClause != null) {
       for (NamedType withMixin in withClause.mixinTypes) {
         final withType = withMixin.type;
@@ -1852,7 +1851,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                   .isEnabled(Feature.class_modifiers)) {
             errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.CLASS_USED_AS_MIXIN,
-                node,
+                withMixin,
                 [withElement.name]);
           }
         }
@@ -4308,60 +4307,39 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY],
   /// [CompileTimeErrorCode.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY].
-  void _checkForSealedSupertypeOutsideOfLibrary(
-      NamedCompilationUnitMember node,
-      NamedType? superclass,
-      WithClause? withClause,
-      ImplementsClause? implementsClause) {
-    void reportSealedClassOrMixinSubtypeOutsideOfLibraryError(
-        ClassOrMixinElementImpl superclass) {
-      if (superclass.isSealed && superclass.library != _currentLibrary) {
-        if (superclass is MixinElementImpl) {
-          errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY,
-              node,
-              [superclass.name]);
-        } else {
-          errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
-              node,
-              [superclass.name]);
+  void _checkForSealedSupertypeOutsideOfLibrary(NamedType? superclass,
+      WithClause? withClause, ImplementsClause? implementsClause) {
+    void reportErrorsForSealedClassesAndMixins(List<NamedType> namedTypes) {
+      for (NamedType namedType in namedTypes) {
+        final type = namedType.type;
+        if (type is InterfaceType) {
+          final element = type.element;
+          if (element is ClassOrMixinElementImpl &&
+              element.isSealed &&
+              element.library != _currentLibrary) {
+            final ErrorCode errorCode;
+            if (element is MixinElementImpl) {
+              errorCode =
+                  CompileTimeErrorCode.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY;
+            } else {
+              errorCode =
+                  CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY;
+            }
+            errorReporter
+                .reportErrorForNode(errorCode, namedType, [element.name]);
+          }
         }
       }
     }
 
     if (superclass != null) {
-      final superclassType = superclass.type;
-      if (superclassType is InterfaceType) {
-        final superclassElement = superclassType.element;
-        if (superclassElement is ClassElementImpl) {
-          reportSealedClassOrMixinSubtypeOutsideOfLibraryError(
-              superclassElement);
-        }
-      }
+      reportErrorsForSealedClassesAndMixins([superclass]);
     }
     if (withClause != null) {
-      for (NamedType withMixin in withClause.mixinTypes) {
-        final withType = withMixin.type;
-        if (withType is InterfaceType) {
-          final withElement = withType.element;
-          if (withElement is ClassOrMixinElementImpl) {
-            reportSealedClassOrMixinSubtypeOutsideOfLibraryError(withElement);
-          }
-        }
-      }
+      reportErrorsForSealedClassesAndMixins(withClause.mixinTypes);
     }
     if (implementsClause != null) {
-      for (NamedType interface in implementsClause.interfaces) {
-        final interfaceType = interface.type;
-        if (interfaceType is InterfaceType) {
-          final interfaceElement = interfaceType.element;
-          if (interfaceElement is ClassElementImpl) {
-            reportSealedClassOrMixinSubtypeOutsideOfLibraryError(
-                interfaceElement);
-          }
-        }
-      }
+      reportErrorsForSealedClassesAndMixins(implementsClause.interfaces);
     }
   }
 
@@ -5142,8 +5120,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       );
       _checkForConflictingGenerics(node);
       _checkForBaseClassOrMixinImplementedOutsideOfLibrary(implementsClause);
-      _checkForSealedSupertypeOutsideOfLibrary(
-          node, null, null, implementsClause);
+      _checkForSealedSupertypeOutsideOfLibrary(null, null, implementsClause);
     }
   }
 

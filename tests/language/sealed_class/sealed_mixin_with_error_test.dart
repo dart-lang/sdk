@@ -9,16 +9,16 @@
 import 'sealed_mixin_with_lib.dart';
 
 abstract class OutsideA with SealedMixin {}
-// [error column 1, length 43]
-// [analyzer] COMPILE_TIME_ERROR.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY
 //             ^
-// [cfe] Sealed mixin 'SealedMixin' can't be mixed in outside of its library.
+// [cfe] The mixin 'SealedMixin' can't be mixed in outside of its library because it's a sealed mixin.
+//                           ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 
 class OutsideB with SealedMixin {
-// [error column 1, length 297]
-// [analyzer] COMPILE_TIME_ERROR.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY
 //    ^
-// [cfe] Sealed mixin 'SealedMixin' can't be mixed in outside of its library.
+// [cfe] The mixin 'SealedMixin' can't be mixed in outside of its library because it's a sealed mixin.
+//                  ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
   @override
   int foo = 2;
 
@@ -27,7 +27,7 @@ class OutsideB with SealedMixin {
 }
 
 abstract class OutsideC = Object with SealedMixin;
-// [error column 1, length 50]
-// [analyzer] COMPILE_TIME_ERROR.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY
 //             ^
-// [cfe] Sealed mixin 'SealedMixin' can't be mixed in outside of its library.
+// [cfe] The mixin 'SealedMixin' can't be mixed in outside of its library because it's a sealed mixin.
+//                                    ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY

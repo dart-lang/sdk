@@ -32,7 +32,7 @@ import 'foo.dart';
 class Bar = Object with Foo;
 ''', [
       error(
-          CompileTimeErrorCode.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY, 19, 28),
+          CompileTimeErrorCode.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY, 43, 3),
     ]);
   }
 
@@ -47,7 +47,7 @@ import 'foo.dart';
 class Bar = Object with FooTypedef;
 ''', [
       error(
-          CompileTimeErrorCode.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY, 19, 35),
+          CompileTimeErrorCode.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY, 43, 10),
     ]);
   }
 
@@ -62,7 +62,7 @@ typedef FooTypedef = Foo;
 class Bar = Object with FooTypedef;
 ''', [
       error(
-          CompileTimeErrorCode.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY, 45, 35),
+          CompileTimeErrorCode.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY, 69, 10),
     ]);
   }
 
@@ -83,7 +83,7 @@ import 'foo.dart';
 class Bar with Foo {}
 ''', [
       error(
-          CompileTimeErrorCode.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY, 19, 21),
+          CompileTimeErrorCode.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY, 34, 3),
     ]);
   }
 
@@ -98,7 +98,7 @@ import 'foo.dart';
 class Bar with FooTypedef {}
 ''', [
       error(
-          CompileTimeErrorCode.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY, 19, 28),
+          CompileTimeErrorCode.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY, 34, 10),
     ]);
   }
 
@@ -113,7 +113,7 @@ typedef FooTypedef = Foo;
 class Bar with FooTypedef {}
 ''', [
       error(
-          CompileTimeErrorCode.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY, 45, 28),
+          CompileTimeErrorCode.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY, 60, 10),
     ]);
   }
 

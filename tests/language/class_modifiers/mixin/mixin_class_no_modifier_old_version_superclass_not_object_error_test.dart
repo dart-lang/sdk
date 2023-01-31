@@ -9,12 +9,13 @@
 
 import 'mixin_class_no_modifier_old_version_lib.dart';
 
-class SubclassNotObject with NonObjectSuperclassClass {}
-//    ^
-// [cfe] The non-abstract class 'SubclassNotObject' is missing implementations for these members:
+class SubclassNotObject with NonObjectSuperclassClass {
 //                           ^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_INHERITS_FROM_NOT_OBJECT
 // [cfe] The class 'NonObjectSuperclassClass' can't be used as a mixin because it extends a class other than 'Object'.
+  @override
+  int foo = 1;
+}
 
 abstract class AbstractMixinClass with NonObjectSuperclassClass {}
 //                                     ^^^^^^^^^^^^^^^^^^^^^^^^
