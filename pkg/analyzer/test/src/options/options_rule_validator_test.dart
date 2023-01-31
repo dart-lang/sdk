@@ -15,10 +15,12 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
 
 import '../../generated/test_support.dart';
+import '../diagnostics/analysis_options/analysis_options_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OptionsRuleValidatorTest);
+    defineReflectiveTests(OptionsRuleValidatorIncludedFileTest);
   });
 }
 
@@ -45,34 +47,44 @@ class DeprecatedSince3Lint extends LintRule {
 }
 
 @reflectiveTest
-class OptionsRuleValidatorTest extends Object with ResourceProviderMixin {
-  final rules = [
-    DeprecatedLint(),
-    DeprecatedSince3Lint(),
-    StableLint(),
-    RuleNeg(),
-    RulePos(),
-    RemovedIn2_12Lint(),
-    ReplacedLint(),
-    ReplacingLint(),
-  ];
+class OptionsRuleValidatorIncludedFileTest extends AbstractAnalysisOptionsTest
+    with OptionsRuleValidatorTestMixin {
+  test_deprecated_rule_inInclude_ok() {
+    newFile('/included.yaml', '''
+linter:
+  rules:
+    - deprecated_lint
+''');
 
-  /// Assert that when the validator is used on the given [content] the
-  /// [expectedErrorCodes] are produced.
-  void assertErrors(String content, List<ErrorCode> expectedErrorCodes,
-      {VersionConstraint? sdk}) {
-    GatheringErrorListener listener = GatheringErrorListener();
-    ErrorReporter reporter = ErrorReporter(
-      listener,
-      StringSource(content, 'analysis_options.yaml'),
-      isNonNullableByDefault: false,
+    assertErrorsInCode(
+      '''
+include: included.yaml
+''',
+      [],
+      provider: () => rules,
     );
-    var validator = LinterRuleOptionsValidator(
-        provider: () => rules, sdkVersionConstraint: sdk);
-    validator.validate(reporter, loadYamlNode(content) as YamlMap);
-    listener.assertErrorsWithCodes(expectedErrorCodes);
   }
 
+  test_removed_rule_inInclude_ok() {
+    newFile('/included.yaml', '''
+linter:
+  rules:
+    - removed_in_2_12_lint
+''');
+
+    assertErrorsInCode(
+      '''
+include: included.yaml
+''',
+      [],
+      provider: () => rules,
+    );
+  }
+}
+
+@reflectiveTest
+class OptionsRuleValidatorTest
+    with OptionsRuleValidatorTestMixin, ResourceProviderMixin {
   test_deprecated_rule() {
     assertErrors('''
 linter:
@@ -228,6 +240,35 @@ linter:
   rules:
     this_rule_does_not_exist: false
       ''', [UNDEFINED_LINT_WARNING]);
+  }
+}
+
+mixin OptionsRuleValidatorTestMixin {
+  final rules = [
+    DeprecatedLint(),
+    DeprecatedSince3Lint(),
+    StableLint(),
+    RuleNeg(),
+    RulePos(),
+    RemovedIn2_12Lint(),
+    ReplacedLint(),
+    ReplacingLint(),
+  ];
+
+  /// Assert that when the validator is used on the given [content] the
+  /// [expectedErrorCodes] are produced.
+  void assertErrors(String content, List<ErrorCode> expectedErrorCodes,
+      {VersionConstraint? sdk}) {
+    GatheringErrorListener listener = GatheringErrorListener();
+    ErrorReporter reporter = ErrorReporter(
+      listener,
+      StringSource(content, 'analysis_options.yaml'),
+      isNonNullableByDefault: false,
+    );
+    var validator = LinterRuleOptionsValidator(
+        provider: () => rules, sdkVersionConstraint: sdk);
+    validator.validate(reporter, loadYamlNode(content) as YamlMap);
+    listener.assertErrorsWithCodes(expectedErrorCodes);
   }
 }
 

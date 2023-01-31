@@ -271,8 +271,11 @@ class ErrorProcessorMatcher extends Matcher {
 
 @reflectiveTest
 class OptionsFileValidatorTest {
-  final OptionsFileValidator validator =
-      OptionsFileValidator(TestSource(), sdkVersionConstraint: null);
+  final OptionsFileValidator validator = OptionsFileValidator(
+    TestSource(),
+    sdkVersionConstraint: null,
+    sourceIsOptionsForContextRoot: true,
+  );
   final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
 
   test_analyzer_cannotIgnore_badValue() {

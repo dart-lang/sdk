@@ -32,8 +32,9 @@ List<AnalysisError> analyzeAnalysisOptions(
   String content,
   SourceFactory sourceFactory,
   String contextRoot,
-  VersionConstraint? sdkVersionConstraint,
-) {
+  VersionConstraint? sdkVersionConstraint, {
+  LintRuleProvider? provider,
+}) {
   List<AnalysisError> errors = [];
   Source initialSource = source;
   SourceSpan? initialIncludeSpan;
@@ -73,11 +74,14 @@ List<AnalysisError> analyzeAnalysisOptions(
   }
 
   // Validate the specified options and any included option files.
-  void validate(Source source, YamlMap options) {
+  void validate(Source source, YamlMap options, LintRuleProvider? provider) {
     var sourceIsOptionsForContextRoot = initialIncludeSpan == null;
-    var validationErrors =
-        OptionsFileValidator(source, sdkVersionConstraint: sdkVersionConstraint)
-            .validate(options);
+    var validationErrors = OptionsFileValidator(
+      source,
+      sdkVersionConstraint: sdkVersionConstraint,
+      sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
+      provider: provider,
+    ).validate(options);
     addDirectErrorOrIncludedError(validationErrors, source,
         sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot);
 
@@ -131,7 +135,7 @@ List<AnalysisError> analyzeAnalysisOptions(
     try {
       var includedOptions =
           optionsProvider.getOptionsFromString(includedSource.contents.data);
-      validate(includedSource, includedOptions);
+      validate(includedSource, includedOptions, provider);
       firstPluginName ??= _firstPluginName(includedOptions);
       // Validate the 'plugins' option in [options], taking into account any
       // plugins enabled by [includedOptions].
@@ -161,7 +165,7 @@ List<AnalysisError> analyzeAnalysisOptions(
 
   try {
     YamlMap options = optionsProvider.getOptionsFromString(content);
-    validate(source, options);
+    validate(source, options, provider);
   } on OptionsFormatException catch (e) {
     SourceSpan span = e.span!;
     errors.add(AnalysisError(source, span.start.offset, span.length,
@@ -694,14 +698,19 @@ class OptionsFileValidator {
 
   final List<OptionsValidator> _validators;
 
-  OptionsFileValidator(this.source,
-      {required VersionConstraint? sdkVersionConstraint})
-      : _validators = [
+  OptionsFileValidator(
+    this.source, {
+    required VersionConstraint? sdkVersionConstraint,
+    required bool sourceIsOptionsForContextRoot,
+    LintRuleProvider? provider,
+  }) : _validators = [
           AnalyzerOptionsValidator(),
           CodeStyleOptionsValidator(),
           LinterOptionsValidator(),
           LinterRuleOptionsValidator(
+            provider: provider,
             sdkVersionConstraint: sdkVersionConstraint,
+            sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
           ),
         ];
 
