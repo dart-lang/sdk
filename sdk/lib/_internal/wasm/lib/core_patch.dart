@@ -55,7 +55,6 @@ import 'dart:wasm';
 
 part "bool.dart";
 part "closure.dart";
-part "date_patch.dart";
 part "double.dart";
 part "errors_patch.dart";
 part "growable_list.dart";

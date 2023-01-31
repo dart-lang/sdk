@@ -62,7 +62,6 @@ import "dart:typed_data" show Uint8List, Uint16List, Int32List;
 
 /// These are the additional parts of this patch library:
 part "array.dart";
-part "date_patch.dart";
 part "double.dart";
 part "double_patch.dart";
 part "errors_patch.dart";
