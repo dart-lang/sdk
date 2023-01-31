@@ -16,9 +16,8 @@ static method test(dynamic x) → dynamic {
     function ##0#2#initializer() → core::int?
       return #0#0{self::C}.{self::C::f}{core::int?};
     late final core::int? #0#2 = ##0#2#initializer(){() → core::int?};
-    if(#0#0 is{ForNonNullableByDefault} self::C && (let final core::int? #t2 = #0#2! in #C1 =={core::num::==}{(core::Object) → core::bool} #0#2!)) {
+    if(#0#0 is{ForNonNullableByDefault} self::C && (let final core::int? #t2 = #0#2! in #C1 =={core::num::==}{(core::Object) → core::bool} #0#2!))
       #t1 = 0;
-    }
     switch(#t1) {
       #L2:
       case #C2:

@@ -7,9 +7,8 @@ static method test(dynamic x) → dynamic {
   {
     core::int #t1 = -1;
     final dynamic #0#0 = x;
-    if(#0#0{dynamic}.>=(#C1)) {
+    if(#0#0{dynamic}.>=(#C1))
       #t1 = 0;
-    }
     switch(#t1) {
       #L2:
       case #C2:

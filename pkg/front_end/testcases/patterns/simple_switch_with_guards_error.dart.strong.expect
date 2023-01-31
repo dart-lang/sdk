@@ -12,43 +12,21 @@ import "dart:core" as core;
 static method test(dynamic x) → dynamic {
   #L1:
   {
-    dynamic #t1;
-    final dynamic #t2 = x;
-    final core::int #t3 = -1;
-    final core::bool #t4 = false;
-    if(!#t4) {
-      final dynamic #t5 = #t2;
-      if(#t5 is core::List<dynamic> && #t5{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::==}(2){(core::Object) → core::bool}) {
-        final dynamic #t6 = #t5{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-        final dynamic #t7 = #t6;
-        if(#t7 is core::int) {
-          core::int a = #t7{core::int};
-          if(a.{core::int::isEven}{core::bool}) {
-            #t3 = 0;
-            #t4 = true;
-            #t1 = a;
-          }
-        }
-      }
-    }
-    if(!#t4) {
-      final dynamic #t8 = #t2;
-      if(#t8 is core::List<dynamic> && #t8{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::==}(2){(core::Object) → core::bool}) {
-        final dynamic #t9 = #t8{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
-        final dynamic #t10 = #t9;
-        if(#t10 is core::double) {
-          core::double a = #t10{core::double};
-          if(a.{core::double::ceil}(){() → core::int}.{core::int::isOdd}{core::bool}) {
-            #t3 = 0;
-            #t4 = true;
-            #t1 = a;
-          }
-        }
-      }
-    }
-    switch(#t3) {
+    core::int #t1 = -1;
+    core::int a;
+    core::double a';
+    final dynamic #0#0 = x;
+    late final core::bool #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1;
+    late final dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    late final dynamic #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
+    dynamic #t2;
+    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t3 = a = #0#6{core::int} in true)) && (let final dynamic #t4 = #0#7 in true) && a.{core::int::isEven}{core::bool} && (let final dynamic #t5 = #t2 = a in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (let final dynamic #t6 = #0#6 in true) && (#0#7 is{ForNonNullableByDefault} core::double && (let final dynamic #t7 = a' = #0#7{core::double} in true)) && a'.{core::double::ceil}(){() → core::int}.{core::int::isOdd}{core::bool} && (let final dynamic #t8 = #t2 = a' in true))
+      #t1 = 0;
+    else
+      #t1 = 1;
+    switch(#t1) {
       #L2:
-      case #C1:
+      case #C2:
         {
           core::int a = invalid-expression "pkg/front_end/testcases/patterns/simple_switch_with_guards_error.dart:7:15: Error: Variable pattern 'a' doesn't have the same type in all cases.
     case [int a, _] when a.isEven: // Error: type of 'a' mismatch.
@@ -58,14 +36,19 @@ static method test(dynamic x) → dynamic {
           }
         }
       #L3:
+      case #C3:
       default:
         {
-          return null;
+          {
+            return null;
+          }
         }
     }
   }
 }
 
 constants  {
-  #C1 = 0
+  #C1 = 2
+  #C2 = 0
+  #C3 = 1
 }

@@ -10,9 +10,8 @@ static method test(dynamic x) → dynamic {
     function ##0#2#initializer() → core::Object?
       return #0#0{(core::Object?, core::Object?)}.$1{core::Object?};
     late final core::Object? #0#2 = ##0#2#initializer(){() → core::Object?};
-    if(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?) && (let final core::int #t2 = #0#2 as{ForNonNullableByDefault} core::int in #C1 =={core::num::==}{(core::Object) → core::bool} #0#2 as{ForNonNullableByDefault} core::int) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$2{core::Object?}) {
+    if(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?) && (let final core::int #t2 = #0#2 as{ForNonNullableByDefault} core::int in #C1 =={core::num::==}{(core::Object) → core::bool} #0#2 as{ForNonNullableByDefault} core::int) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$2{core::Object?})
       #t1 = 0;
-    }
     switch(#t1) {
       #L2:
       case #C3:

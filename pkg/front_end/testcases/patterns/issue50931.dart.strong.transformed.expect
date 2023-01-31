@@ -2,42 +2,58 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-static method test(dynamic x) → dynamic {
+static method test1(dynamic x) → dynamic {
   #L1:
   {
     core::int #t1 = -1;
     core::int y;
+    core::double y';
+    core::String y'';
     final dynamic #0#0 = x;
-    dynamic #t2;
-    if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t3 = y = #0#0{core::int} in true)) {
+    if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = y = #0#0{core::int} in true))
       #t1 = 0;
-      #t2 = y;
-    }
     else
-      if(#C1 =={core::String::==}{(core::Object) → core::bool} #0#0) {
+      if(#C1 =={core::String::==}{(core::Object) → core::bool} #0#0 || #C2 =={core::String::==}{(core::Object) → core::bool} #0#0)
         #t1 = 1;
-      }
-      else {
-        #t1 = 2;
-      }
+      else
+        if(#0#0 is{ForNonNullableByDefault} core::double && (let final core::double #t3 = y' = #0#0{core::double} in true))
+          #t1 = 2;
+        else
+          if(#0#0 is{ForNonNullableByDefault} core::String && (let final core::String #t4 = y'' = #0#0{core::String} in true))
+            #t1 = 3;
+          else
+            #t1 = 4;
     switch(#t1) {
       #L2:
-      case #C2:
+      case #C3:
         {
-          core::int y = #t2{core::int};
           {
             continue #L3;
           }
         }
       #L3:
-      case #C3:
+      case #C4:
         {
           {
             return 0;
           }
         }
       #L4:
-      case #C4:
+      case #C5:
+        {
+          {
+            continue #L3;
+          }
+        }
+      #L5:
+      case #C6:
+        {
+          {
+            continue #L3;
+          }
+        }
+      #L6:
+      case #C7:
       default:
         {
           {
@@ -47,13 +63,86 @@ static method test(dynamic x) → dynamic {
     }
   }
 }
+static method test2(dynamic x) → dynamic {
+  #L7:
+  {
+    core::int #t5 = -1;
+    core::String y;
+    core::int y';
+    core::double y'';
+    core::bool y1;
+    core::List<dynamic> y2;
+    final dynamic #0#0 = x;
+    if(#0#0 is{ForNonNullableByDefault} core::String && (let final core::String #t6 = y = #0#0{core::String} in true))
+      #t5 = 0;
+    else
+      if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t7 = y' = #0#0{core::int} in true))
+        #t5 = 1;
+      else
+        if(#0#0 is{ForNonNullableByDefault} core::double && (let final core::double #t8 = y'' = #0#0{core::double} in true))
+          #t5 = 2;
+        else
+          if(#0#0 is{ForNonNullableByDefault} core::bool && (let final core::bool #t9 = y1 = #0#0{core::bool} in true))
+            #t5 = 3;
+          else
+            if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (let final core::List<dynamic> #t10 = y2 = #0#0{core::List<dynamic>} in true) || true)
+              #t5 = 4;
+    switch(#t5) {
+      #L8:
+      case #C3:
+        {
+          {
+            return "String";
+          }
+        }
+      #L9:
+      case #C4:
+        {
+          {
+            continue #L10;
+          }
+        }
+      #L10:
+      case #C5:
+        {
+          {
+            return "num";
+          }
+        }
+      #L11:
+      case #C6:
+        {
+          {
+            continue #L12;
+          }
+        }
+      #L12:
+      case #C7:
+      default:
+        {
+          {
+            return "other";
+          }
+        }
+    }
+  }
+}
 static method main() → dynamic {
-  self::expectEquals(self::test(0), 0);
-  self::expectEquals(self::test(1), 0);
-  self::expectEquals(self::test(2), 0);
-  self::expectEquals(self::test("foo"), 0);
-  self::expectEquals(self::test("bar"), 1);
-  self::expectEquals(self::test(null), 1);
+  self::expectEquals(self::test1(0), 0);
+  self::expectEquals(self::test1(1), 0);
+  self::expectEquals(self::test1(2), 0);
+  self::expectEquals(self::test1("foo"), 0);
+  self::expectEquals(self::test1("bar"), 0);
+  self::expectEquals(self::test1("foobar"), 0);
+  self::expectEquals(self::test1(3.14), 0);
+  self::expectEquals(self::test1(null), 1);
+  self::expectEquals(self::test1(false), 1);
+  self::expectEquals(self::test2("foo"), "String");
+  self::expectEquals(self::test2(0), "num");
+  self::expectEquals(self::test2(3.14), "num");
+  self::expectEquals(self::test2(false), "other");
+  self::expectEquals(self::test2(core::_GrowableList::_literal2<core::Object>(1, "2")), "other");
+  self::expectEquals(self::test2(null), "other");
 }
 static method expectEquals(dynamic x, dynamic y) → dynamic {
   if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {
@@ -63,7 +152,10 @@ static method expectEquals(dynamic x, dynamic y) → dynamic {
 
 constants  {
   #C1 = "foo"
-  #C2 = 0
-  #C3 = 1
-  #C4 = 2
+  #C2 = "foobar"
+  #C3 = 0
+  #C4 = 1
+  #C5 = 2
+  #C6 = 3
+  #C7 = 4
 }

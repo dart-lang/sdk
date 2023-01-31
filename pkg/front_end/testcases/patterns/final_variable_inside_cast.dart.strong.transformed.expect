@@ -8,16 +8,12 @@ static method test(dynamic x) → dynamic {
     core::int #t1 = -1;
     final core::Object y;
     final dynamic #0#0 = x;
-    dynamic #t2;
-    if(let final core::Object #t3 = let dynamic #t4 = #0#0 in #t4 == null ?{core::Object} #t4 as{ForNonNullableByDefault} core::Object : #t4{core::Object} in let final core::Object #t5 = y = let dynamic #t6 = #0#0 in #t6 == null ?{core::Object} #t6 as{ForNonNullableByDefault} core::Object : #t6{core::Object} in true) {
+    if(let final core::Object #t2 = let dynamic #t3 = #0#0 in #t3 == null ?{core::Object} #t3 as{ForNonNullableByDefault} core::Object : #t3{core::Object} in let final core::Object #t4 = y = let dynamic #t5 = #0#0 in #t5 == null ?{core::Object} #t5 as{ForNonNullableByDefault} core::Object : #t5{core::Object} in true)
       #t1 = 0;
-      #t2 = y;
-    }
     switch(#t1) {
       #L2:
       case #C1:
         {
-          final core::Object y = #t2{core::Object};
           {
             break #L1;
           }

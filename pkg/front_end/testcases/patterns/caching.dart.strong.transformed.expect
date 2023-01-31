@@ -485,128 +485,91 @@ static method switchStatement(dynamic o) → core::int {
     function ##0#130#initializer() → dynamic
       return #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic};
     late final dynamic #0#130 = ##0#130#initializer(){() → dynamic};
-    dynamic #t30;
-    dynamic #t31;
-    dynamic #t32;
-    dynamic #t33;
-    if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
+    if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0)
       #t29 = 0;
-    }
     else
-      if(#0#0 is{ForNonNullableByDefault} ({f: core::Object?}) && ((let final core::int #t34 = #0#4 as{ForNonNullableByDefault} core::int in (#0#4 as{ForNonNullableByDefault} core::int).{core::num::>=}(#C2){(core::num) → core::bool}) && (let final core::int #t35 = #0#4 as{ForNonNullableByDefault} core::int in (#0#4 as{ForNonNullableByDefault} core::int).{core::num::<}(#C3){(core::num) → core::bool}))) {
+      if(#0#0 is{ForNonNullableByDefault} ({f: core::Object?}) && ((let final core::int #t30 = #0#4 as{ForNonNullableByDefault} core::int in (#0#4 as{ForNonNullableByDefault} core::int).{core::num::>=}(#C2){(core::num) → core::bool}) && (let final core::int #t31 = #0#4 as{ForNonNullableByDefault} core::int in (#0#4 as{ForNonNullableByDefault} core::int).{core::num::<}(#C3){(core::num) → core::bool})))
         #t29 = 1;
-      }
       else
-        if(#C4 =={core::num::==}{(core::Object) → core::bool} #0#0 || #C5 =={core::num::==}{(core::Object) → core::bool} #0#0) {
+        if(#C4 =={core::num::==}{(core::Object) → core::bool} #0#0 || #C5 =={core::num::==}{(core::Object) → core::bool} #0#0)
           #t29 = 2;
-        }
         else
-          if(#0#0 is{ForNonNullableByDefault} ({g: core::Object?}) && (let final core::int #t36 = #0#15 as{ForNonNullableByDefault} core::int in #C6 =={core::num::==}{(core::Object) → core::bool} #0#15 as{ForNonNullableByDefault} core::int)) {
+          if(#0#0 is{ForNonNullableByDefault} ({g: core::Object?}) && (let final core::int #t32 = #0#15 as{ForNonNullableByDefault} core::int in #C6 =={core::num::==}{(core::Object) → core::bool} #0#15 as{ForNonNullableByDefault} core::int))
             #t29 = 3;
-          }
           else
-            if(#0#0 is{ForNonNullableByDefault} ({a: core::Object?}) && (let final core::Object? #t37 = (#0#20#isSet ?{core::Object?} #0#20{core::Object?} : let final core::bool* #t38 = #0#20#isSet = true in #0#20 = #0#0{({a: core::Object?})}.a{core::Object?})! in true)) {
+            if(#0#0 is{ForNonNullableByDefault} ({a: core::Object?}) && (let final core::Object? #t33 = (#0#20#isSet ?{core::Object?} #0#20{core::Object?} : let final core::bool* #t34 = #0#20#isSet = true in #0#20 = #0#0{({a: core::Object?})}.a{core::Object?})! in true))
               #t29 = 4;
-            }
             else
-              if(#0#0 is{ForNonNullableByDefault} ({b: core::Object?}) && (!((#0#23#isSet ?{core::Object?} #0#23{core::Object?} : let final core::bool* #t39 = #0#23#isSet = true in #0#23 = #0#0{({b: core::Object?})}.b{core::Object?}) == null) ?{core::bool} true : false)) {
+              if(#0#0 is{ForNonNullableByDefault} ({b: core::Object?}) && (!((#0#23#isSet ?{core::Object?} #0#23{core::Object?} : let final core::bool* #t35 = #0#23#isSet = true in #0#23 = #0#0{({b: core::Object?})}.b{core::Object?}) == null) ?{core::bool} true : false))
                 #t29 = 5;
-              }
               else
-                if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t40 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && #C1 =={core::num::==}{(core::Object) → core::bool} #0#30 && #C7 =={core::num::==}{(core::Object) → core::bool} #0#33) {
+                if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t36 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && #C1 =={core::num::==}{(core::Object) → core::bool} #0#30 && #C7 =={core::num::==}{(core::Object) → core::bool} #0#33)
                   #t29 = 6;
-                }
                 else
-                  if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#36#isSet ?{core::bool} #0#36{core::bool} : let final core::bool* #t41 = #0#36#isSet = true in #0#36 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t42 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C7){(core::num) → core::bool}) && #C7 =={core::num::==}{(core::Object) → core::bool} #0#30 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#33) {
+                  if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#36#isSet ?{core::bool} #0#36{core::bool} : let final core::bool* #t37 = #0#36#isSet = true in #0#36 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t38 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C7){(core::num) → core::bool}) && #C7 =={core::num::==}{(core::Object) → core::bool} #0#30 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#33)
                     #t29 = 7;
-                  }
                   else
-                    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#43#isSet ?{core::bool} #0#43{core::bool} : let final core::bool* #t43 = #0#43#isSet = true in #0#43 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t44 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#30 && #C8 =={core::num::==}{(core::Object) → core::bool} #0#33 && #C3 =={core::num::==}{(core::Object) → core::bool} (#0#49#isSet ?{dynamic} #0#49{dynamic} : let final core::bool* #t45 = #0#49#isSet = true in #0#49 = #0#0{core::List<dynamic>}.{core::List::[]}((#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t46 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic})) {
+                    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#43#isSet ?{core::bool} #0#43{core::bool} : let final core::bool* #t39 = #0#43#isSet = true in #0#43 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t40 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#30 && #C8 =={core::num::==}{(core::Object) → core::bool} #0#33 && #C3 =={core::num::==}{(core::Object) → core::bool} (#0#49#isSet ?{dynamic} #0#49{dynamic} : let final core::bool* #t41 = #0#49#isSet = true in #0#49 = #0#0{core::List<dynamic>}.{core::List::[]}((#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t42 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic}))
                       #t29 = 8;
-                    }
                     else
-                      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#36#isSet ?{core::bool} #0#36{core::bool} : let final core::bool* #t47 = #0#36#isSet = true in #0#36 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t48 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C7){(core::num) → core::bool}) && #C8 =={core::num::==}{(core::Object) → core::bool} #0#30 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#33 && ((#0#56#isSet ?{core::List<dynamic>} #0#56{core::List<dynamic>} : let final core::bool* #t49 = #0#56#isSet = true in #0#56 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final core::int #t50 = (#0#59#isSet ?{dynamic} #0#59{dynamic} : let final core::bool* #t51 = #0#59#isSet = true in #0#59 = (#0#56#isSet ?{core::List<dynamic>} #0#56{core::List<dynamic>} : let final core::bool* #t52 = #0#56#isSet = true in #0#56 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int in ((#0#59#isSet ?{dynamic} #0#59{dynamic} : let final core::bool* #t53 = #0#59#isSet = true in #0#59 = (#0#56#isSet ?{core::List<dynamic>} #0#56{core::List<dynamic>} : let final core::bool* #t54 = #0#56#isSet = true in #0#56 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final core::int #t55 = (#0#63#isSet ?{dynamic} #0#63{dynamic} : let final core::bool* #t56 = #0#63#isSet = true in #0#63 = (#0#56#isSet ?{core::List<dynamic>} #0#56{core::List<dynamic>} : let final core::bool* #t57 = #0#56#isSet = true in #0#56 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int in ((#0#63#isSet ?{dynamic} #0#63{dynamic} : let final core::bool* #t58 = #0#63#isSet = true in #0#63 = (#0#56#isSet ?{core::List<dynamic>} #0#56{core::List<dynamic>} : let final core::bool* #t59 = #0#56#isSet = true in #0#56 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int).{core::num::>}(#C7){(core::num) → core::bool}))) {
+                      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#36#isSet ?{core::bool} #0#36{core::bool} : let final core::bool* #t43 = #0#36#isSet = true in #0#36 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t44 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C7){(core::num) → core::bool}) && #C8 =={core::num::==}{(core::Object) → core::bool} #0#30 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#33 && ((#0#56#isSet ?{core::List<dynamic>} #0#56{core::List<dynamic>} : let final core::bool* #t45 = #0#56#isSet = true in #0#56 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final core::int #t46 = (#0#59#isSet ?{dynamic} #0#59{dynamic} : let final core::bool* #t47 = #0#59#isSet = true in #0#59 = (#0#56#isSet ?{core::List<dynamic>} #0#56{core::List<dynamic>} : let final core::bool* #t48 = #0#56#isSet = true in #0#56 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int in ((#0#59#isSet ?{dynamic} #0#59{dynamic} : let final core::bool* #t49 = #0#59#isSet = true in #0#59 = (#0#56#isSet ?{core::List<dynamic>} #0#56{core::List<dynamic>} : let final core::bool* #t50 = #0#56#isSet = true in #0#56 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final core::int #t51 = (#0#63#isSet ?{dynamic} #0#63{dynamic} : let final core::bool* #t52 = #0#63#isSet = true in #0#63 = (#0#56#isSet ?{core::List<dynamic>} #0#56{core::List<dynamic>} : let final core::bool* #t53 = #0#56#isSet = true in #0#56 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int in ((#0#63#isSet ?{dynamic} #0#63{dynamic} : let final core::bool* #t54 = #0#63#isSet = true in #0#63 = (#0#56#isSet ?{core::List<dynamic>} #0#56{core::List<dynamic>} : let final core::bool* #t55 = #0#56#isSet = true in #0#56 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int).{core::num::>}(#C7){(core::num) → core::bool})))
                         #t29 = 9;
-                      }
                       else
-                        if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#43#isSet ?{core::bool} #0#43{core::bool} : let final core::bool* #t60 = #0#43#isSet = true in #0#43 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t61 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) && #C3 =={core::num::==}{(core::Object) → core::bool} #0#30 && #C4 =={core::num::==}{(core::Object) → core::bool} #0#33 && ((#0#71#isSet ?{core::List<dynamic>} #0#71{core::List<dynamic>} : let final core::bool* #t62 = #0#71#isSet = true in #0#71 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t63 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final core::int #t64 = (#0#74#isSet ?{dynamic} #0#74{dynamic} : let final core::bool* #t65 = #0#74#isSet = true in #0#74 = (#0#71#isSet ?{core::List<dynamic>} #0#71{core::List<dynamic>} : let final core::bool* #t66 = #0#71#isSet = true in #0#71 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t67 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int in ((#0#74#isSet ?{dynamic} #0#74{dynamic} : let final core::bool* #t68 = #0#74#isSet = true in #0#74 = (#0#71#isSet ?{core::List<dynamic>} #0#71{core::List<dynamic>} : let final core::bool* #t69 = #0#71#isSet = true in #0#71 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t70 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final core::int #t71 = (#0#78#isSet ?{dynamic} #0#78{dynamic} : let final core::bool* #t72 = #0#78#isSet = true in #0#78 = (#0#71#isSet ?{core::List<dynamic>} #0#71{core::List<dynamic>} : let final core::bool* #t73 = #0#71#isSet = true in #0#71 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t74 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int in ((#0#78#isSet ?{dynamic} #0#78{dynamic} : let final core::bool* #t75 = #0#78#isSet = true in #0#78 = (#0#71#isSet ?{core::List<dynamic>} #0#71{core::List<dynamic>} : let final core::bool* #t76 = #0#71#isSet = true in #0#71 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t77 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int).{core::num::>}(#C7){(core::num) → core::bool})) && #C5 =={core::num::==}{(core::Object) → core::bool} (#0#49#isSet ?{dynamic} #0#49{dynamic} : let final core::bool* #t78 = #0#49#isSet = true in #0#49 = #0#0{core::List<dynamic>}.{core::List::[]}((#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t79 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic})) {
+                        if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#43#isSet ?{core::bool} #0#43{core::bool} : let final core::bool* #t56 = #0#43#isSet = true in #0#43 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t57 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) && #C3 =={core::num::==}{(core::Object) → core::bool} #0#30 && #C4 =={core::num::==}{(core::Object) → core::bool} #0#33 && ((#0#71#isSet ?{core::List<dynamic>} #0#71{core::List<dynamic>} : let final core::bool* #t58 = #0#71#isSet = true in #0#71 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t59 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final core::int #t60 = (#0#74#isSet ?{dynamic} #0#74{dynamic} : let final core::bool* #t61 = #0#74#isSet = true in #0#74 = (#0#71#isSet ?{core::List<dynamic>} #0#71{core::List<dynamic>} : let final core::bool* #t62 = #0#71#isSet = true in #0#71 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t63 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int in ((#0#74#isSet ?{dynamic} #0#74{dynamic} : let final core::bool* #t64 = #0#74#isSet = true in #0#74 = (#0#71#isSet ?{core::List<dynamic>} #0#71{core::List<dynamic>} : let final core::bool* #t65 = #0#71#isSet = true in #0#71 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t66 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final core::int #t67 = (#0#78#isSet ?{dynamic} #0#78{dynamic} : let final core::bool* #t68 = #0#78#isSet = true in #0#78 = (#0#71#isSet ?{core::List<dynamic>} #0#71{core::List<dynamic>} : let final core::bool* #t69 = #0#71#isSet = true in #0#71 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t70 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int in ((#0#78#isSet ?{dynamic} #0#78{dynamic} : let final core::bool* #t71 = #0#78#isSet = true in #0#78 = (#0#71#isSet ?{core::List<dynamic>} #0#71{core::List<dynamic>} : let final core::bool* #t72 = #0#71#isSet = true in #0#71 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t73 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int).{core::num::>}(#C7){(core::num) → core::bool})) && #C5 =={core::num::==}{(core::Object) → core::bool} (#0#49#isSet ?{dynamic} #0#49{dynamic} : let final core::bool* #t74 = #0#49#isSet = true in #0#49 = #0#0{core::List<dynamic>}.{core::List::[]}((#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t75 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic}))
                           #t29 = 10;
-                        }
                         else
-                          if(#0#0 is{ForNonNullableByDefault} self::Class && #C1 =={core::num::==}{(core::Object) → core::bool} #0#85) {
+                          if(#0#0 is{ForNonNullableByDefault} self::Class && #C1 =={core::num::==}{(core::Object) → core::bool} #0#85)
                             #t29 = 11;
-                          }
                           else
-                            if(#0#0 is{ForNonNullableByDefault} self::Class && #C7 =={core::num::==}{(core::Object) → core::bool} #0#0{self::Class}.{self::Class::finalField}{core::int}) {
+                            if(#0#0 is{ForNonNullableByDefault} self::Class && #C7 =={core::num::==}{(core::Object) → core::bool} #0#0{self::Class}.{self::Class::finalField}{core::int})
                               #t29 = 12;
-                            }
                             else
-                              if(#0#0 is{ForNonNullableByDefault} self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} #0#85 && #C8 =={core::num::==}{(core::Object) → core::bool} #0#0{self::Class}.{self::Class::getter}{core::int}) {
+                              if(#0#0 is{ForNonNullableByDefault} self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} #0#85 && #C8 =={core::num::==}{(core::Object) → core::bool} #0#0{self::Class}.{self::Class::getter}{core::int})
                                 #t29 = 13;
-                              }
                               else
-                                if(#0#0 is{ForNonNullableByDefault} self::Class) {
+                                if(#0#0 is{ForNonNullableByDefault} self::Class)
                                   #t29 = 14;
-                                }
                                 else
-                                  if(#0#0 =={core::Object::==}{(core::Object) → core::bool} #C9) {
+                                  if(#0#0 =={core::Object::==}{(core::Object) → core::bool} #C9)
                                     #t29 = 15;
-                                  }
                                   else
-                                    if(#0#0 is{ForNonNullableByDefault} ({e: core::Object?}) && !(#0#0{({e: core::Object?})}.e{core::Object?} =={core::Object::==}{(core::Object) → core::bool} #C10)) {
+                                    if(#0#0 is{ForNonNullableByDefault} ({e: core::Object?}) && !(#0#0{({e: core::Object?})}.e{core::Object?} =={core::Object::==}{(core::Object) → core::bool} #C10))
                                       #t29 = 16;
-                                    }
                                     else
-                                      if(#0#0 is{ForNonNullableByDefault} core::Map<core::int, core::int> && (#0#104#isSet ?{core::bool} #0#104{core::bool} : let final core::bool* #t80 = #0#104#isSet = true in #0#104 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t81 = #0#26#isSet = true in #0#26 = #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1) && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool} && (let core::int? #t82 = #0#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?} in #t82 == null ?{core::int} #t82 as{ForNonNullableByDefault} core::int : #t82{core::int}).{core::num::>=}(#C11){(core::num) → core::bool}) {
+                                      if(#0#0 is{ForNonNullableByDefault} core::Map<core::int, core::int> && (#0#104#isSet ?{core::bool} #0#104{core::bool} : let final core::bool* #t76 = #0#104#isSet = true in #0#104 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t77 = #0#26#isSet = true in #0#26 = #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1) && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool} && (let core::int? #t78 = #0#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?} in #t78 == null ?{core::int} #t78 as{ForNonNullableByDefault} core::int : #t78{core::int}).{core::num::>=}(#C11){(core::num) → core::bool})
                                         #t29 = 17;
-                                      }
                                       else
-                                        if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#104#isSet ?{core::bool} #0#104{core::bool} : let final core::bool* #t83 = #0#104#isSet = true in #0#104 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t84 = #0#26#isSet = true in #0#26 = #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1) && (let final dynamic #t85 = #0#30 in true)) {
+                                        if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#104#isSet ?{core::bool} #0#104{core::bool} : let final core::bool* #t79 = #0#104#isSet = true in #0#104 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t80 = #0#26#isSet = true in #0#26 = #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1) && (let final dynamic #t81 = #0#30 in true))
                                           #t29 = 18;
-                                        }
                                         else
-                                          if(#0#0 is{ForNonNullableByDefault} core::bool) {
+                                          if(#0#0 is{ForNonNullableByDefault} core::bool)
                                             #t29 = 19;
-                                          }
                                           else
-                                            if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t86 = #0#26#isSet = true in #0#26 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C12) {
+                                            if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t82 = #0#26#isSet = true in #0#26 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C12)
                                               #t29 = 20;
-                                            }
                                             else
-                                              if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#104#isSet ?{core::bool} #0#104{core::bool} : let final core::bool* #t87 = #0#104#isSet = true in #0#104 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t88 = #0#26#isSet = true in #0#26 = #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C12){(core::Object?) → core::bool} && #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C12){(core::Object?) → dynamic} is{ForNonNullableByDefault} core::int) {
+                                              if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#104#isSet ?{core::bool} #0#104{core::bool} : let final core::bool* #t83 = #0#104#isSet = true in #0#104 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t84 = #0#26#isSet = true in #0#26 = #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C12){(core::Object?) → core::bool} && #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C12){(core::Object?) → dynamic} is{ForNonNullableByDefault} core::int)
                                                 #t29 = 21;
-                                              }
                                               else
-                                                if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t89 = #0#26#isSet = true in #0#26 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}).{core::num::>=}(#C1){(core::num) → core::bool} && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic} is{ForNonNullableByDefault} core::String) {
+                                                if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t85 = #0#26#isSet = true in #0#26 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}).{core::num::>=}(#C1){(core::num) → core::bool} && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic} is{ForNonNullableByDefault} core::String)
                                                   #t29 = 22;
-                                                }
                                                 else
-                                                  if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#104#isSet ?{core::bool} #0#104{core::bool} : let final core::bool* #t90 = #0#104#isSet = true in #0#104 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t91 = #0#26#isSet = true in #0#26 = #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool} && (let final dynamic #t92 = a = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C7){(core::Object?) → dynamic} in true)) {
+                                                  if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#104#isSet ?{core::bool} #0#104{core::bool} : let final core::bool* #t86 = #0#104#isSet = true in #0#104 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t87 = #0#26#isSet = true in #0#26 = #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool} && (let final dynamic #t88 = a = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C7){(core::Object?) → dynamic} in true))
                                                     #t29 = 23;
-                                                    #t30 = a;
-                                                  }
                                                   else
-                                                    if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#104#isSet ?{core::bool} #0#104{core::bool} : let final core::bool* #t93 = #0#104#isSet = true in #0#104 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t94 = #0#26#isSet = true in #0#26 = #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool} && (#0#130 is{ForNonNullableByDefault} core::int && (let final core::int #t95 = b = #0#130{core::int} in true))) {
+                                                    if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#104#isSet ?{core::bool} #0#104{core::bool} : let final core::bool* #t89 = #0#104#isSet = true in #0#104 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t90 = #0#26#isSet = true in #0#26 = #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool} && (#0#130 is{ForNonNullableByDefault} core::int && (let final core::int #t91 = b = #0#130{core::int} in true)))
                                                       #t29 = 24;
-                                                      #t31 = b;
-                                                    }
                                                     else
-                                                      if(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?) && #C12 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$1{core::Object?} && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$2{core::Object?}) {
+                                                      if(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?) && #C12 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$1{core::Object?} && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$2{core::Object?})
                                                         #t29 = 25;
-                                                      }
                                                       else
-                                                        if(#0#0 is{ForNonNullableByDefault} ({a: core::Object?, b: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} (#0#20#isSet ?{core::Object?} #0#20{core::Object?} : let final core::bool* #t96 = #0#20#isSet = true in #0#20 = #0#0{({a: core::Object?, b: core::Object?})}.a{core::Object?}) && (let final core::Object? #t97 = c = #0#23#isSet ?{core::Object?} #0#23{core::Object?} : let final core::bool* #t98 = #0#23#isSet = true in #0#23 = #0#0{({a: core::Object?, b: core::Object?})}.b{core::Object?} in true)) {
+                                                        if(#0#0 is{ForNonNullableByDefault} ({a: core::Object?, b: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} (#0#20#isSet ?{core::Object?} #0#20{core::Object?} : let final core::bool* #t92 = #0#20#isSet = true in #0#20 = #0#0{({a: core::Object?, b: core::Object?})}.a{core::Object?}) && (let final core::Object? #t93 = c = #0#23#isSet ?{core::Object?} #0#23{core::Object?} : let final core::bool* #t94 = #0#23#isSet = true in #0#23 = #0#0{({a: core::Object?, b: core::Object?})}.b{core::Object?} in true))
                                                           #t29 = 26;
-                                                          #t32 = c;
-                                                        }
                                                         else
-                                                          if(#0#0 is{ForNonNullableByDefault} ({c: core::Object?, d: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} #0#0{({c: core::Object?, d: core::Object?})}.c{core::Object?} && (let final core::Object? #t99 = d = #0#0{({c: core::Object?, d: core::Object?})}.d{core::Object?} in true) && d is{ForNonNullableByDefault} core::int) {
+                                                          if(#0#0 is{ForNonNullableByDefault} ({c: core::Object?, d: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} #0#0{({c: core::Object?, d: core::Object?})}.c{core::Object?} && (let final core::Object? #t95 = d = #0#0{({c: core::Object?, d: core::Object?})}.d{core::Object?} in true) && d is{ForNonNullableByDefault} core::int)
                                                             #t29 = 27;
-                                                            #t33 = d;
-                                                          }
-                                                          else {
+                                                          else
                                                             #t29 = 28;
-                                                          }
     switch(#t29) {
       #L2:
       case #C12:
@@ -772,7 +735,6 @@ static method switchStatement(dynamic o) → core::int {
       #L25:
       case #C26:
         {
-          dynamic a = #t30{dynamic};
           {
             return 24;
           }
@@ -780,7 +742,6 @@ static method switchStatement(dynamic o) → core::int {
       #L26:
       case #C27:
         {
-          core::int b = #t31{core::int};
           {
             return 25;
           }
@@ -795,7 +756,6 @@ static method switchStatement(dynamic o) → core::int {
       #L28:
       case #C29:
         {
-          dynamic c = #t32{dynamic};
           {
             return 27;
           }
@@ -803,7 +763,6 @@ static method switchStatement(dynamic o) → core::int {
       #L29:
       case #C30:
         {
-          dynamic d = #t33{dynamic};
           {
             return 28;
           }
@@ -822,8 +781,8 @@ static method switchStatement(dynamic o) → core::int {
 static method switchExpression(dynamic o) → core::int {
   core::print("o = ${o}");
   return block {
-    core::int #t100;
-    core::int #t101 = -1;
+    core::int #t96;
+    core::int #t97 = -1;
     dynamic a;
     core::int b;
     dynamic c;
@@ -874,298 +833,298 @@ static method switchExpression(dynamic o) → core::int {
       return #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic};
     late final dynamic #0#130 = ##0#130#initializer(){() → dynamic};
     if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
-      #t101 = 0;
+      #t97 = 0;
     }
     else
-      if(#0#0 is{ForNonNullableByDefault} ({f: core::Object?}) && ((let final core::int #t102 = #0#4 as{ForNonNullableByDefault} core::int in (#0#4 as{ForNonNullableByDefault} core::int).{core::num::>=}(#C2){(core::num) → core::bool}) && (let final core::int #t103 = #0#4 as{ForNonNullableByDefault} core::int in (#0#4 as{ForNonNullableByDefault} core::int).{core::num::<}(#C3){(core::num) → core::bool}))) {
-        #t101 = 1;
+      if(#0#0 is{ForNonNullableByDefault} ({f: core::Object?}) && ((let final core::int #t98 = #0#4 as{ForNonNullableByDefault} core::int in (#0#4 as{ForNonNullableByDefault} core::int).{core::num::>=}(#C2){(core::num) → core::bool}) && (let final core::int #t99 = #0#4 as{ForNonNullableByDefault} core::int in (#0#4 as{ForNonNullableByDefault} core::int).{core::num::<}(#C3){(core::num) → core::bool}))) {
+        #t97 = 1;
       }
       else
         if(#C4 =={core::num::==}{(core::Object) → core::bool} #0#0 || #C5 =={core::num::==}{(core::Object) → core::bool} #0#0) {
-          #t101 = 2;
+          #t97 = 2;
         }
         else
-          if(#0#0 is{ForNonNullableByDefault} ({g: core::Object?}) && (let final core::int #t104 = #0#15 as{ForNonNullableByDefault} core::int in #C6 =={core::num::==}{(core::Object) → core::bool} #0#15 as{ForNonNullableByDefault} core::int)) {
-            #t101 = 3;
+          if(#0#0 is{ForNonNullableByDefault} ({g: core::Object?}) && (let final core::int #t100 = #0#15 as{ForNonNullableByDefault} core::int in #C6 =={core::num::==}{(core::Object) → core::bool} #0#15 as{ForNonNullableByDefault} core::int)) {
+            #t97 = 3;
           }
           else
-            if(#0#0 is{ForNonNullableByDefault} ({a: core::Object?}) && (let final core::Object? #t105 = (#0#20#isSet ?{core::Object?} #0#20{core::Object?} : let final core::bool* #t106 = #0#20#isSet = true in #0#20 = #0#0{({a: core::Object?})}.a{core::Object?})! in true)) {
-              #t101 = 4;
+            if(#0#0 is{ForNonNullableByDefault} ({a: core::Object?}) && (let final core::Object? #t101 = (#0#20#isSet ?{core::Object?} #0#20{core::Object?} : let final core::bool* #t102 = #0#20#isSet = true in #0#20 = #0#0{({a: core::Object?})}.a{core::Object?})! in true)) {
+              #t97 = 4;
             }
             else
-              if(#0#0 is{ForNonNullableByDefault} ({b: core::Object?}) && (!((#0#23#isSet ?{core::Object?} #0#23{core::Object?} : let final core::bool* #t107 = #0#23#isSet = true in #0#23 = #0#0{({b: core::Object?})}.b{core::Object?}) == null) ?{core::bool} true : false)) {
-                #t101 = 5;
+              if(#0#0 is{ForNonNullableByDefault} ({b: core::Object?}) && (!((#0#23#isSet ?{core::Object?} #0#23{core::Object?} : let final core::bool* #t103 = #0#23#isSet = true in #0#23 = #0#0{({b: core::Object?})}.b{core::Object?}) == null) ?{core::bool} true : false)) {
+                #t97 = 5;
               }
               else
-                if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t108 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && #C1 =={core::num::==}{(core::Object) → core::bool} #0#30 && #C7 =={core::num::==}{(core::Object) → core::bool} #0#33) {
-                  #t101 = 6;
+                if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t104 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && #C1 =={core::num::==}{(core::Object) → core::bool} #0#30 && #C7 =={core::num::==}{(core::Object) → core::bool} #0#33) {
+                  #t97 = 6;
                 }
                 else
-                  if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#36#isSet ?{core::bool} #0#36{core::bool} : let final core::bool* #t109 = #0#36#isSet = true in #0#36 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t110 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C7){(core::num) → core::bool}) && #C7 =={core::num::==}{(core::Object) → core::bool} #0#30 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#33) {
-                    #t101 = 7;
+                  if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#36#isSet ?{core::bool} #0#36{core::bool} : let final core::bool* #t105 = #0#36#isSet = true in #0#36 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t106 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C7){(core::num) → core::bool}) && #C7 =={core::num::==}{(core::Object) → core::bool} #0#30 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#33) {
+                    #t97 = 7;
                   }
                   else
-                    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#43#isSet ?{core::bool} #0#43{core::bool} : let final core::bool* #t111 = #0#43#isSet = true in #0#43 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t112 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#30 && #C8 =={core::num::==}{(core::Object) → core::bool} #0#33 && #C3 =={core::num::==}{(core::Object) → core::bool} (#0#49#isSet ?{dynamic} #0#49{dynamic} : let final core::bool* #t113 = #0#49#isSet = true in #0#49 = #0#0{core::List<dynamic>}.{core::List::[]}((#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t114 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic})) {
-                      #t101 = 8;
+                    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#43#isSet ?{core::bool} #0#43{core::bool} : let final core::bool* #t107 = #0#43#isSet = true in #0#43 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t108 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#30 && #C8 =={core::num::==}{(core::Object) → core::bool} #0#33 && #C3 =={core::num::==}{(core::Object) → core::bool} (#0#49#isSet ?{dynamic} #0#49{dynamic} : let final core::bool* #t109 = #0#49#isSet = true in #0#49 = #0#0{core::List<dynamic>}.{core::List::[]}((#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t110 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic})) {
+                      #t97 = 8;
                     }
                     else
-                      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#36#isSet ?{core::bool} #0#36{core::bool} : let final core::bool* #t115 = #0#36#isSet = true in #0#36 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t116 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C7){(core::num) → core::bool}) && #C8 =={core::num::==}{(core::Object) → core::bool} #0#30 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#33 && ((#0#56#isSet ?{core::List<dynamic>} #0#56{core::List<dynamic>} : let final core::bool* #t117 = #0#56#isSet = true in #0#56 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final core::int #t118 = (#0#59#isSet ?{dynamic} #0#59{dynamic} : let final core::bool* #t119 = #0#59#isSet = true in #0#59 = (#0#56#isSet ?{core::List<dynamic>} #0#56{core::List<dynamic>} : let final core::bool* #t120 = #0#56#isSet = true in #0#56 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int in ((#0#59#isSet ?{dynamic} #0#59{dynamic} : let final core::bool* #t121 = #0#59#isSet = true in #0#59 = (#0#56#isSet ?{core::List<dynamic>} #0#56{core::List<dynamic>} : let final core::bool* #t122 = #0#56#isSet = true in #0#56 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final core::int #t123 = (#0#63#isSet ?{dynamic} #0#63{dynamic} : let final core::bool* #t124 = #0#63#isSet = true in #0#63 = (#0#56#isSet ?{core::List<dynamic>} #0#56{core::List<dynamic>} : let final core::bool* #t125 = #0#56#isSet = true in #0#56 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int in ((#0#63#isSet ?{dynamic} #0#63{dynamic} : let final core::bool* #t126 = #0#63#isSet = true in #0#63 = (#0#56#isSet ?{core::List<dynamic>} #0#56{core::List<dynamic>} : let final core::bool* #t127 = #0#56#isSet = true in #0#56 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int).{core::num::>}(#C7){(core::num) → core::bool}))) {
-                        #t101 = 9;
+                      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#36#isSet ?{core::bool} #0#36{core::bool} : let final core::bool* #t111 = #0#36#isSet = true in #0#36 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t112 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C7){(core::num) → core::bool}) && #C8 =={core::num::==}{(core::Object) → core::bool} #0#30 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#33 && ((#0#56#isSet ?{core::List<dynamic>} #0#56{core::List<dynamic>} : let final core::bool* #t113 = #0#56#isSet = true in #0#56 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final core::int #t114 = (#0#59#isSet ?{dynamic} #0#59{dynamic} : let final core::bool* #t115 = #0#59#isSet = true in #0#59 = (#0#56#isSet ?{core::List<dynamic>} #0#56{core::List<dynamic>} : let final core::bool* #t116 = #0#56#isSet = true in #0#56 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int in ((#0#59#isSet ?{dynamic} #0#59{dynamic} : let final core::bool* #t117 = #0#59#isSet = true in #0#59 = (#0#56#isSet ?{core::List<dynamic>} #0#56{core::List<dynamic>} : let final core::bool* #t118 = #0#56#isSet = true in #0#56 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final core::int #t119 = (#0#63#isSet ?{dynamic} #0#63{dynamic} : let final core::bool* #t120 = #0#63#isSet = true in #0#63 = (#0#56#isSet ?{core::List<dynamic>} #0#56{core::List<dynamic>} : let final core::bool* #t121 = #0#56#isSet = true in #0#56 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int in ((#0#63#isSet ?{dynamic} #0#63{dynamic} : let final core::bool* #t122 = #0#63#isSet = true in #0#63 = (#0#56#isSet ?{core::List<dynamic>} #0#56{core::List<dynamic>} : let final core::bool* #t123 = #0#56#isSet = true in #0#56 = #0#0{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int).{core::num::>}(#C7){(core::num) → core::bool}))) {
+                        #t97 = 9;
                       }
                       else
-                        if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#43#isSet ?{core::bool} #0#43{core::bool} : let final core::bool* #t128 = #0#43#isSet = true in #0#43 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t129 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) && #C3 =={core::num::==}{(core::Object) → core::bool} #0#30 && #C4 =={core::num::==}{(core::Object) → core::bool} #0#33 && ((#0#71#isSet ?{core::List<dynamic>} #0#71{core::List<dynamic>} : let final core::bool* #t130 = #0#71#isSet = true in #0#71 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t131 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final core::int #t132 = (#0#74#isSet ?{dynamic} #0#74{dynamic} : let final core::bool* #t133 = #0#74#isSet = true in #0#74 = (#0#71#isSet ?{core::List<dynamic>} #0#71{core::List<dynamic>} : let final core::bool* #t134 = #0#71#isSet = true in #0#71 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t135 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int in ((#0#74#isSet ?{dynamic} #0#74{dynamic} : let final core::bool* #t136 = #0#74#isSet = true in #0#74 = (#0#71#isSet ?{core::List<dynamic>} #0#71{core::List<dynamic>} : let final core::bool* #t137 = #0#71#isSet = true in #0#71 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t138 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final core::int #t139 = (#0#78#isSet ?{dynamic} #0#78{dynamic} : let final core::bool* #t140 = #0#78#isSet = true in #0#78 = (#0#71#isSet ?{core::List<dynamic>} #0#71{core::List<dynamic>} : let final core::bool* #t141 = #0#71#isSet = true in #0#71 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t142 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int in ((#0#78#isSet ?{dynamic} #0#78{dynamic} : let final core::bool* #t143 = #0#78#isSet = true in #0#78 = (#0#71#isSet ?{core::List<dynamic>} #0#71{core::List<dynamic>} : let final core::bool* #t144 = #0#71#isSet = true in #0#71 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t145 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int).{core::num::>}(#C7){(core::num) → core::bool})) && #C5 =={core::num::==}{(core::Object) → core::bool} (#0#49#isSet ?{dynamic} #0#49{dynamic} : let final core::bool* #t146 = #0#49#isSet = true in #0#49 = #0#0{core::List<dynamic>}.{core::List::[]}((#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t147 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic})) {
-                          #t101 = 10;
+                        if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#43#isSet ?{core::bool} #0#43{core::bool} : let final core::bool* #t124 = #0#43#isSet = true in #0#43 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t125 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) && #C3 =={core::num::==}{(core::Object) → core::bool} #0#30 && #C4 =={core::num::==}{(core::Object) → core::bool} #0#33 && ((#0#71#isSet ?{core::List<dynamic>} #0#71{core::List<dynamic>} : let final core::bool* #t126 = #0#71#isSet = true in #0#71 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t127 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C7 && (let final core::int #t128 = (#0#74#isSet ?{dynamic} #0#74{dynamic} : let final core::bool* #t129 = #0#74#isSet = true in #0#74 = (#0#71#isSet ?{core::List<dynamic>} #0#71{core::List<dynamic>} : let final core::bool* #t130 = #0#71#isSet = true in #0#71 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t131 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int in ((#0#74#isSet ?{dynamic} #0#74{dynamic} : let final core::bool* #t132 = #0#74#isSet = true in #0#74 = (#0#71#isSet ?{core::List<dynamic>} #0#71{core::List<dynamic>} : let final core::bool* #t133 = #0#71#isSet = true in #0#71 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t134 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(0){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int).{core::num::<}(#C1){(core::num) → core::bool}) && (let final core::int #t135 = (#0#78#isSet ?{dynamic} #0#78{dynamic} : let final core::bool* #t136 = #0#78#isSet = true in #0#78 = (#0#71#isSet ?{core::List<dynamic>} #0#71{core::List<dynamic>} : let final core::bool* #t137 = #0#71#isSet = true in #0#71 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t138 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int in ((#0#78#isSet ?{dynamic} #0#78{dynamic} : let final core::bool* #t139 = #0#78#isSet = true in #0#78 = (#0#71#isSet ?{core::List<dynamic>} #0#71{core::List<dynamic>} : let final core::bool* #t140 = #0#71#isSet = true in #0#71 = #0#0{core::List<dynamic>}.{core::List::sublist}(2, (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t141 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>}).{core::List::[]}(1){(core::int) → dynamic}) as{ForNonNullableByDefault} core::int).{core::num::>}(#C7){(core::num) → core::bool})) && #C5 =={core::num::==}{(core::Object) → core::bool} (#0#49#isSet ?{dynamic} #0#49{dynamic} : let final core::bool* #t142 = #0#49#isSet = true in #0#49 = #0#0{core::List<dynamic>}.{core::List::[]}((#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t143 = #0#26#isSet = true in #0#26 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic})) {
+                          #t97 = 10;
                         }
                         else
                           if(#0#0 is{ForNonNullableByDefault} self::Class && #C1 =={core::num::==}{(core::Object) → core::bool} #0#85) {
-                            #t101 = 11;
+                            #t97 = 11;
                           }
                           else
                             if(#0#0 is{ForNonNullableByDefault} self::Class && #C7 =={core::num::==}{(core::Object) → core::bool} #0#0{self::Class}.{self::Class::finalField}{core::int}) {
-                              #t101 = 12;
+                              #t97 = 12;
                             }
                             else
                               if(#0#0 is{ForNonNullableByDefault} self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} #0#85 && #C8 =={core::num::==}{(core::Object) → core::bool} #0#0{self::Class}.{self::Class::getter}{core::int}) {
-                                #t101 = 13;
+                                #t97 = 13;
                               }
                               else
                                 if(#0#0 is{ForNonNullableByDefault} self::Class) {
-                                  #t101 = 14;
+                                  #t97 = 14;
                                 }
                                 else
                                   if(#0#0 =={core::Object::==}{(core::Object) → core::bool} #C9) {
-                                    #t101 = 15;
+                                    #t97 = 15;
                                   }
                                   else
                                     if(#0#0 is{ForNonNullableByDefault} ({e: core::Object?}) && !(#0#0{({e: core::Object?})}.e{core::Object?} =={core::Object::==}{(core::Object) → core::bool} #C10)) {
-                                      #t101 = 16;
+                                      #t97 = 16;
                                     }
                                     else
-                                      if(#0#0 is{ForNonNullableByDefault} core::Map<core::int, core::int> && (#0#104#isSet ?{core::bool} #0#104{core::bool} : let final core::bool* #t148 = #0#104#isSet = true in #0#104 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t149 = #0#26#isSet = true in #0#26 = #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1) && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool} && (let core::int? #t150 = #0#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?} in #t150 == null ?{core::int} #t150 as{ForNonNullableByDefault} core::int : #t150{core::int}).{core::num::>=}(#C11){(core::num) → core::bool}) {
-                                        #t101 = 17;
+                                      if(#0#0 is{ForNonNullableByDefault} core::Map<core::int, core::int> && (#0#104#isSet ?{core::bool} #0#104{core::bool} : let final core::bool* #t144 = #0#104#isSet = true in #0#104 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t145 = #0#26#isSet = true in #0#26 = #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1) && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool} && (let core::int? #t146 = #0#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?} in #t146 == null ?{core::int} #t146 as{ForNonNullableByDefault} core::int : #t146{core::int}).{core::num::>=}(#C11){(core::num) → core::bool}) {
+                                        #t97 = 17;
                                       }
                                       else
-                                        if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#104#isSet ?{core::bool} #0#104{core::bool} : let final core::bool* #t151 = #0#104#isSet = true in #0#104 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t152 = #0#26#isSet = true in #0#26 = #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1) && (let final dynamic #t153 = #0#30 in true)) {
-                                          #t101 = 18;
+                                        if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (#0#104#isSet ?{core::bool} #0#104{core::bool} : let final core::bool* #t147 = #0#104#isSet = true in #0#104 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t148 = #0#26#isSet = true in #0#26 = #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1) && (let final dynamic #t149 = #0#30 in true)) {
+                                          #t97 = 18;
                                         }
                                         else
                                           if(#0#0 is{ForNonNullableByDefault} core::bool) {
-                                            #t101 = 19;
+                                            #t97 = 19;
                                           }
                                           else
-                                            if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t154 = #0#26#isSet = true in #0#26 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C12) {
-                                              #t101 = 20;
+                                            if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t150 = #0#26#isSet = true in #0#26 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C12) {
+                                              #t97 = 20;
                                             }
                                             else
-                                              if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#104#isSet ?{core::bool} #0#104{core::bool} : let final core::bool* #t155 = #0#104#isSet = true in #0#104 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t156 = #0#26#isSet = true in #0#26 = #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C12){(core::Object?) → core::bool} && #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C12){(core::Object?) → dynamic} is{ForNonNullableByDefault} core::int) {
-                                                #t101 = 21;
+                                              if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#104#isSet ?{core::bool} #0#104{core::bool} : let final core::bool* #t151 = #0#104#isSet = true in #0#104 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t152 = #0#26#isSet = true in #0#26 = #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C12){(core::Object?) → core::bool} && #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C12){(core::Object?) → dynamic} is{ForNonNullableByDefault} core::int) {
+                                                #t97 = 21;
                                               }
                                               else
-                                                if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t157 = #0#26#isSet = true in #0#26 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}).{core::num::>=}(#C1){(core::num) → core::bool} && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic} is{ForNonNullableByDefault} core::String) {
-                                                  #t101 = 22;
+                                                if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t153 = #0#26#isSet = true in #0#26 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}).{core::num::>=}(#C1){(core::num) → core::bool} && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic} is{ForNonNullableByDefault} core::String) {
+                                                  #t97 = 22;
                                                 }
                                                 else
-                                                  if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#104#isSet ?{core::bool} #0#104{core::bool} : let final core::bool* #t158 = #0#104#isSet = true in #0#104 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t159 = #0#26#isSet = true in #0#26 = #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool} && (let final dynamic #t160 = a = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C7){(core::Object?) → dynamic} in true)) {
-                                                    #t101 = 23;
+                                                  if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#104#isSet ?{core::bool} #0#104{core::bool} : let final core::bool* #t154 = #0#104#isSet = true in #0#104 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t155 = #0#26#isSet = true in #0#26 = #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool} && (let final dynamic #t156 = a = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C7){(core::Object?) → dynamic} in true)) {
+                                                    #t97 = 23;
                                                   }
                                                   else
-                                                    if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#104#isSet ?{core::bool} #0#104{core::bool} : let final core::bool* #t161 = #0#104#isSet = true in #0#104 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t162 = #0#26#isSet = true in #0#26 = #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool} && (#0#130 is{ForNonNullableByDefault} core::int && (let final core::int #t163 = b = #0#130{core::int} in true))) {
-                                                      #t101 = 24;
+                                                    if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#0#104#isSet ?{core::bool} #0#104{core::bool} : let final core::bool* #t157 = #0#104#isSet = true in #0#104 = (#0#26#isSet ?{core::int} #0#26{core::int} : let final core::bool* #t158 = #0#26#isSet = true in #0#26 = #0#0{core::Map<core::int, core::int>}.{core::Map::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1) && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool} && (#0#130 is{ForNonNullableByDefault} core::int && (let final core::int #t159 = b = #0#130{core::int} in true))) {
+                                                      #t97 = 24;
                                                     }
                                                     else
                                                       if(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?) && #C12 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$1{core::Object?} && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$2{core::Object?}) {
-                                                        #t101 = 25;
+                                                        #t97 = 25;
                                                       }
                                                       else
-                                                        if(#0#0 is{ForNonNullableByDefault} ({a: core::Object?, b: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} (#0#20#isSet ?{core::Object?} #0#20{core::Object?} : let final core::bool* #t164 = #0#20#isSet = true in #0#20 = #0#0{({a: core::Object?, b: core::Object?})}.a{core::Object?}) && (let final core::Object? #t165 = c = #0#23#isSet ?{core::Object?} #0#23{core::Object?} : let final core::bool* #t166 = #0#23#isSet = true in #0#23 = #0#0{({a: core::Object?, b: core::Object?})}.b{core::Object?} in true)) {
-                                                          #t101 = 26;
+                                                        if(#0#0 is{ForNonNullableByDefault} ({a: core::Object?, b: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} (#0#20#isSet ?{core::Object?} #0#20{core::Object?} : let final core::bool* #t160 = #0#20#isSet = true in #0#20 = #0#0{({a: core::Object?, b: core::Object?})}.a{core::Object?}) && (let final core::Object? #t161 = c = #0#23#isSet ?{core::Object?} #0#23{core::Object?} : let final core::bool* #t162 = #0#23#isSet = true in #0#23 = #0#0{({a: core::Object?, b: core::Object?})}.b{core::Object?} in true)) {
+                                                          #t97 = 26;
                                                         }
                                                         else
-                                                          if(#0#0 is{ForNonNullableByDefault} ({c: core::Object?, d: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} #0#0{({c: core::Object?, d: core::Object?})}.c{core::Object?} && (let final core::Object? #t167 = d = #0#0{({c: core::Object?, d: core::Object?})}.d{core::Object?} in true) && d is{ForNonNullableByDefault} core::int) {
-                                                            #t101 = 27;
+                                                          if(#0#0 is{ForNonNullableByDefault} ({c: core::Object?, d: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} #0#0{({c: core::Object?, d: core::Object?})}.c{core::Object?} && (let final core::Object? #t163 = d = #0#0{({c: core::Object?, d: core::Object?})}.d{core::Object?} in true) && d is{ForNonNullableByDefault} core::int) {
+                                                            #t97 = 27;
                                                           }
                                                           else
                                                             if(true) {
-                                                              #t101 = 28;
+                                                              #t97 = 28;
                                                             }
     #L31:
-    switch(#t101) {
+    switch(#t97) {
       #L32:
       case #C12:
         {
-          #t100 = 1;
+          #t96 = 1;
           break #L31;
         }
       #L33:
       case #C1:
         {
-          #t100 = 2;
+          #t96 = 2;
           break #L31;
         }
       #L34:
       case #C7:
         {
-          #t100 = 3;
+          #t96 = 3;
           break #L31;
         }
       #L35:
       case #C2:
         {
-          #t100 = 4;
+          #t96 = 4;
           break #L31;
         }
       #L36:
       case #C8:
         {
-          #t100 = 5;
+          #t96 = 5;
           break #L31;
         }
       #L37:
       case #C3:
         {
-          #t100 = 6;
+          #t96 = 6;
           break #L31;
         }
       #L38:
       case #C4:
         {
-          #t100 = 7;
+          #t96 = 7;
           break #L31;
         }
       #L39:
       case #C5:
         {
-          #t100 = 8;
+          #t96 = 8;
           break #L31;
         }
       #L40:
       case #C6:
         {
-          #t100 = 9;
+          #t96 = 9;
           break #L31;
         }
       #L41:
       case #C13:
         {
-          #t100 = 10;
+          #t96 = 10;
           break #L31;
         }
       #L42:
       case #C14:
         {
-          #t100 = 11;
+          #t96 = 11;
           break #L31;
         }
       #L43:
       case #C15:
         {
-          #t100 = 12;
+          #t96 = 12;
           break #L31;
         }
       #L44:
       case #C16:
         {
-          #t100 = 13;
+          #t96 = 13;
           break #L31;
         }
       #L45:
       case #C17:
         {
-          #t100 = 14;
+          #t96 = 14;
           break #L31;
         }
       #L46:
       case #C18:
         {
-          #t100 = 15;
+          #t96 = 15;
           break #L31;
         }
       #L47:
       case #C19:
         {
-          #t100 = 16;
+          #t96 = 16;
           break #L31;
         }
       #L48:
       case #C11:
         {
-          #t100 = 17;
+          #t96 = 17;
           break #L31;
         }
       #L49:
       case #C20:
         {
-          #t100 = 18;
+          #t96 = 18;
           break #L31;
         }
       #L50:
       case #C21:
         {
-          #t100 = 19;
+          #t96 = 19;
           break #L31;
         }
       #L51:
       case #C22:
         {
-          #t100 = 20;
+          #t96 = 20;
           break #L31;
         }
       #L52:
       case #C23:
         {
-          #t100 = 21;
+          #t96 = 21;
           break #L31;
         }
       #L53:
       case #C24:
         {
-          #t100 = 22;
+          #t96 = 22;
           break #L31;
         }
       #L54:
       case #C25:
         {
-          #t100 = 23;
+          #t96 = 23;
           break #L31;
         }
       #L55:
       case #C26:
         {
-          #t100 = 24;
+          #t96 = 24;
           break #L31;
         }
       #L56:
       case #C27:
         {
-          #t100 = 25;
+          #t96 = 25;
           break #L31;
         }
       #L57:
       case #C28:
         {
-          #t100 = 26;
+          #t96 = 26;
           break #L31;
         }
       #L58:
       case #C29:
         {
-          #t100 = 27;
+          #t96 = 27;
           break #L31;
         }
       #L59:
       case #C30:
         {
-          #t100 = 28;
+          #t96 = 28;
           break #L31;
         }
       #L60:
       case #C31:
         {
-          #t100 = 0;
+          #t96 = 0;
           break #L31;
         }
     }
-  } =>#t100;
+  } =>#t96;
 }
 static method test(dynamic expected, dynamic value) → dynamic {
   self::expect(expected, self::ifCase(value));
@@ -1285,4 +1244,4 @@ Evaluated: RecordLiteral @ org-dartlang-testcase:///caching.dart:331:12 -> Recor
 Evaluated: RecordLiteral @ org-dartlang-testcase:///caching.dart:332:12 -> RecordConstant(const ({c: 0, d: 1}))
 Evaluated: RecordLiteral @ org-dartlang-testcase:///caching.dart:333:12 -> RecordConstant(const ({c: 0, d: 2}))
 Evaluated: RecordLiteral @ org-dartlang-testcase:///caching.dart:334:11 -> RecordConstant(const ({c: 0, d: "foo"}))
-Extra constant evaluation: evaluated: 2383, effectively constant: 14
+Extra constant evaluation: evaluated: 2371, effectively constant: 14

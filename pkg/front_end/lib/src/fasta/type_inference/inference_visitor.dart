@@ -7917,7 +7917,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               fileOffset: node.fileOffset)
       };
 
-      List<Statement> caseDeclaredVariableHelperInitializers = [];
       Expression? caseCondition;
       for (int headIndex = 0;
           headIndex < switchCase.patternGuards.length;
@@ -7961,13 +7960,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               fileOffset: guard.fileOffset);
         }
 
-        if (caseCondition != null) {
-          caseCondition = createOrExpression(caseCondition, headCondition,
-              fileOffset: node.fileOffset);
-        } else {
-          caseCondition = headCondition;
-        }
-
         for (VariableDeclaration declaredVariable
             in pattern.declaredVariables) {
           String variableName = declaredVariable.name!;
@@ -7975,14 +7967,25 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           VariableDeclaration? variableHelper =
               caseDeclaredVariableHelpersByName[variableName];
           if (variableHelper != null) {
-            // initializer:
-            //     `declaredVariableHelper` = `declaredVariable`;
-            //   ==> HVAR = `declaredVariable`;
-            caseDeclaredVariableHelperInitializers.add(
-                createExpressionStatement(createVariableSet(
-                    variableHelper, createVariableGet(declaredVariable),
-                    fileOffset: node.fileOffset)));
+            // headCondition: `headCondition` &&
+            //     let _ = `variableHelper` = `declaredVariable` in true
+            headCondition = createAndExpression(
+                headCondition,
+                createLetEffect(
+                    effect: createVariableSet(
+                        variableHelper, createVariableGet(declaredVariable),
+                        fileOffset: node.fileOffset),
+                    result: createBoolLiteral(true,
+                        fileOffset: declaredVariable.fileOffset)),
+                fileOffset: declaredVariable.fileOffset);
           }
+        }
+
+        if (caseCondition != null) {
+          caseCondition = createOrExpression(caseCondition, headCondition,
+              fileOffset: node.fileOffset);
+        } else {
+          caseCondition = headCondition;
         }
       }
 
@@ -8001,16 +8004,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         }
       }
       if (caseCondition != null) {
-        ifStatements.add(createIfStatement(
-            caseCondition,
-            createBlock(
-                [setMatchResult, ...caseDeclaredVariableHelperInitializers],
-                fileOffset: switchCase.fileOffset),
+        ifStatements.add(createIfStatement(caseCondition, setMatchResult,
             fileOffset: switchCase.fileOffset));
       } else {
-        ifStatements.add(createBlock(
-            [setMatchResult, ...caseDeclaredVariableHelperInitializers],
-            fileOffset: switchCase.fileOffset));
+        ifStatements.add(setMatchResult);
       }
 
       declaredVariableHelpers.addAll(caseDeclaredVariableHelpersByName.values);
@@ -9253,10 +9250,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ], {}, hasLabels: case_.hasLabel);
     } else {
       case_ as PatternSwitchCase;
-      Map<String, VariableDeclaration> jointVariablesByName = {
-        for (VariableDeclaration jointVariable in case_.jointVariables)
-          jointVariable.name!: jointVariable
-      };
       return new SwitchStatementMemberInfo([
         for (PatternGuard patternGuard in case_.patternGuards)
           new CaseHeadOrDefaultInfo(
@@ -9265,7 +9258,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             variables: {
               for (VariableDeclaration variable
                   in patternGuard.pattern.declaredVariables)
-                variable.name!: jointVariablesByName[variable.name!] ?? variable
+                variable.name!: variable
             },
           ),
         if (case_.isDefault)

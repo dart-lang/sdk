@@ -150,9 +150,6 @@ nnbd/issue42603: TypeCheckError
 nnbd/no_support_for_old_null_aware_index_access_syntax: RuntimeError # Expected.
 no_such_method_forwarders/mixin_nsm: TypeCheckError
 patterns/shared_errors: TypeCheckError
-patterns/simple_switch_with_guards_error: Crash
-patterns/simple_switch_with_guards_runtime: Crash
-patterns/switch_expressions_variable_capture: RuntimeError # https://github.com/dart-lang/sdk/issues/51112
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError

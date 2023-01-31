@@ -12,25 +12,17 @@ static method test(dynamic x) → dynamic {
     function ##0#6#initializer() → dynamic
       return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
     late final dynamic #0#6 = ##0#6#initializer(){() → dynamic};
-    dynamic #t2;
-    dynamic #t3;
-    if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t4 = y = #0#0{core::int} in true)) {
+    if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = y = #0#0{core::int} in true))
       #t1 = 0;
-      #t2 = y;
-    }
     else
-      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::double && (let final core::double #t5 = z = #0#6{core::double} in true))) {
+      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::double && (let final core::double #t3 = z = #0#6{core::double} in true)))
         #t1 = 1;
-        #t3 = z;
-      }
-      else {
+      else
         #t1 = 2;
-      }
     switch(#t1) {
       #L2:
       case #C2:
         {
-          core::int y = #t2{core::int};
           {
             return y;
           }
@@ -38,7 +30,6 @@ static method test(dynamic x) → dynamic {
       #L3:
       case #C1:
         {
-          core::double z = #t3{core::double};
           {
             return z;
           }

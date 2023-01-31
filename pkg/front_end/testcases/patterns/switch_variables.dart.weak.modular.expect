@@ -9,22 +9,15 @@ static method method(dynamic o) → dynamic {
     core::String a;
     core::int a';
     final dynamic #0#0 = o;
-    dynamic #t2;
-    dynamic #t3;
-    if(#0#0 is{ForNonNullableByDefault} core::String && (let final dynamic #t4 = a = #0#0{core::String} in true)) {
+    if(#0#0 is{ForNonNullableByDefault} core::String && (let final dynamic #t2 = a = #0#0{core::String} in true))
       #t1 = 0;
-      #t2 = a;
-    }
     else
-      if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t5 = a' = #0#0{core::int} in true)) {
+      if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t3 = a' = #0#0{core::int} in true))
         #t1 = 1;
-        #t3 = a';
-      }
     switch(#t1) {
       #L2:
       case #C1:
         {
-          core::String a = #t2{core::String};
           {
             core::print(a);
             break #L1;
@@ -33,9 +26,8 @@ static method method(dynamic o) → dynamic {
       #L3:
       case #C2:
         {
-          core::int a = #t3{core::int};
           {
-            core::print(a);
+            core::print(a');
             break #L1;
           }
         }

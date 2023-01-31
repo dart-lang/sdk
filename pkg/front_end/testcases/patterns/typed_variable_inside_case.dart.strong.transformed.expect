@@ -8,16 +8,12 @@ static method test(dynamic x) → dynamic {
     core::int #t1 = -1;
     core::int y;
     final dynamic #0#0 = x;
-    dynamic #t2;
-    if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t3 = y = #0#0{core::int} in true)) {
+    if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = y = #0#0{core::int} in true))
       #t1 = 0;
-      #t2 = y;
-    }
     switch(#t1) {
       #L2:
       case #C1:
         {
-          core::int y = #t2{core::int};
           {
             break #L1;
           }

@@ -11,16 +11,12 @@ static method test(dynamic x) → dynamic {
     function ##0#2#initializer() → core::Object?
       return #0#0{(core::Object?, core::Object?)}.$1{core::Object?};
     late final core::Object? #0#2 = ##0#2#initializer(){() → core::Object?};
-    dynamic #t2;
-    if(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?) && (#0#2 is{ForNonNullableByDefault} core::int && (let final core::Object? #t3 = as = #0#2 in true)) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$2{core::Object?}) {
+    if(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?) && (#0#2 is{ForNonNullableByDefault} core::int && (let final core::Object? #t2 = as = #0#2 in true)) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$2{core::Object?})
       #t1 = 0;
-      #t2 = as;
-    }
     switch(#t1) {
       #L2:
       case #C2:
         {
-          core::int as = #t2{core::int};
           {
             break #L1;
           }

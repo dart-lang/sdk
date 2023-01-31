@@ -1,3 +1,4 @@
-test(dynamic x) {}
+test1(dynamic x) {}
+test2(dynamic x) {}
 main() {}
 expectEquals(x, y) {}

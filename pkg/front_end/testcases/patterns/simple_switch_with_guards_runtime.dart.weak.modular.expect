@@ -5,38 +5,29 @@ import "dart:core" as core;
 static method test1(dynamic x) → dynamic {
   #L1:
   {
-    dynamic #t1;
-    final dynamic #t2 = x;
-    final core::int #t3 = -1;
-    final core::bool #t4 = false;
-    if(!#t4) {
-      final dynamic #t5 = #t2;
-      if(#t5 is core::List<dynamic> && #t5{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::==}(1){(core::Object) → core::bool}) {
-        final dynamic #t6 = #t5{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-        final dynamic #t7 = #t6;
-        if(#t7 is core::int) {
-          core::int a = #t7{core::int};
-          if(a.{core::num::>}(0){(core::num) → core::bool}) {
-            #t3 = 0;
-            #t4 = true;
-            #t1 = a;
-          }
-        }
-      }
-    }
-    switch(#t3) {
+    core::int #t1 = -1;
+    core::int a;
+    final dynamic #0#0 = x;
+    late final dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t2 = a = #0#6{core::int} in true)) && a.{core::num::>}(0){(core::num) → core::bool})
+      #t1 = 0;
+    else
+      #t1 = 1;
+    switch(#t1) {
       #L2:
-      case #C1:
+      case #C2:
         {
-          core::int a = #t1{core::int};
           {
             return a;
           }
         }
       #L3:
+      case #C1:
       default:
         {
-          return null;
+          {
+            return null;
+          }
         }
     }
   }
@@ -44,53 +35,34 @@ static method test1(dynamic x) → dynamic {
 static method test2(dynamic x) → dynamic {
   #L4:
   {
-    dynamic #t8;
-    final dynamic #t9 = x;
-    final core::int #t10 = -1;
-    final core::bool #t11 = false;
-    if(!#t11) {
-      final dynamic #t12 = #t9;
-      if(#t12 is core::List<dynamic> && #t12{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::==}(2){(core::Object) → core::bool}) {
-        final dynamic #t13 = #t12{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-        final dynamic #t14 = #t13;
-        if(#t14 is core::num) {
-          core::num a = #t14{core::num};
-          if(a is{ForNonNullableByDefault} core::int && a{core::int}.{core::int::isEven}{core::bool}) {
-            #t10 = 0;
-            #t11 = true;
-            #t8 = a;
-          }
-        }
-      }
-    }
-    if(!#t11) {
-      final dynamic #t15 = #t9;
-      if(#t15 is core::List<dynamic> && #t15{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::==}(2){(core::Object) → core::bool}) {
-        final dynamic #t16 = #t15{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
-        final dynamic #t17 = #t16;
-        if(#t17 is core::num) {
-          core::num a = #t17{core::num};
-          if(a is{ForNonNullableByDefault} core::double && a{core::double}.{core::double::ceil}(){() → core::int}.{core::int::isOdd}{core::bool}) {
-            #t10 = 0;
-            #t11 = true;
-            #t8 = a;
-          }
-        }
-      }
-    }
-    switch(#t10) {
+    core::int #t3 = -1;
+    core::num a;
+    core::num a';
+    final dynamic #0#0 = x;
+    late final core::bool #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C3;
+    late final dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    late final dynamic #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
+    dynamic #t4;
+    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::num && (let final dynamic #t5 = a = #0#6{core::num} in true)) && (let final dynamic #t6 = #0#7 in true) && (a is{ForNonNullableByDefault} core::int && a{core::int}.{core::int::isEven}{core::bool}) && (let final dynamic #t7 = #t4 = a in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (let final dynamic #t8 = #0#6 in true) && (#0#7 is{ForNonNullableByDefault} core::num && (let final dynamic #t9 = a' = #0#7{core::num} in true)) && (a' is{ForNonNullableByDefault} core::double && a'{core::double}.{core::double::ceil}(){() → core::int}.{core::int::isOdd}{core::bool}) && (let final dynamic #t10 = #t4 = a' in true))
+      #t3 = 0;
+    else
+      #t3 = 1;
+    switch(#t3) {
       #L5:
-      case #C1:
+      case #C2:
         {
-          core::num a = #t8{core::num};
+          core::num a = #t4{core::num};
           {
             return a;
           }
         }
       #L6:
+      case #C1:
       default:
         {
-          return null;
+          {
+            return null;
+          }
         }
     }
   }
@@ -112,5 +84,7 @@ static method expectEquals(dynamic x, dynamic y) → dynamic {
 }
 
 constants  {
-  #C1 = 0
+  #C1 = 1
+  #C2 = 0
+  #C3 = 2
 }

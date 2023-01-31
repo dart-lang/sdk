@@ -8,9 +8,8 @@ static method test(dynamic x) → dynamic {
     core::int #t1 = -1;
     core::int as;
     final dynamic #0#0 = x;
-    if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0 || #0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t2 = as = #0#0{core::int} in true)) {
+    if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0 || #0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t2 = as = #0#0{core::int} in true))
       #t1 = 0;
-    }
     switch(#t1) {
       #L2:
       case #C2:
