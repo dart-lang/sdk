@@ -44,8 +44,6 @@ const char* MessageHandler::MessageStatusString(MessageStatus status) {
       return "OK";
     case kError:
       return "Error";
-    case kRestart:
-      return "Restart";
     case kShutdown:
       return "Shutdown";
     default:
@@ -358,9 +356,8 @@ bool MessageHandler::ShouldPauseOnStart(MessageStatus status) const {
   }
   // If we are restarting or shutting down, we do not want to honor
   // should_pause_on_start or should_pause_on_exit.
-  return (status != MessageHandler::kRestart &&
-          status != MessageHandler::kShutdown) &&
-         should_pause_on_start() && owning_isolate->is_runnable();
+  return (status != MessageHandler::kShutdown) && should_pause_on_start() &&
+         owning_isolate->is_runnable();
 }
 
 bool MessageHandler::ShouldPauseOnExit(MessageStatus status) const {
@@ -368,9 +365,8 @@ bool MessageHandler::ShouldPauseOnExit(MessageStatus status) const {
   if (owning_isolate == NULL) {
     return false;
   }
-  return (status != MessageHandler::kRestart &&
-          status != MessageHandler::kShutdown) &&
-         should_pause_on_exit() && owning_isolate->is_runnable();
+  return (status != MessageHandler::kShutdown) && should_pause_on_exit() &&
+         owning_isolate->is_runnable();
 }
 #endif
 

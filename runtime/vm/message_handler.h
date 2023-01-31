@@ -25,7 +25,6 @@ class MessageHandler {
   enum MessageStatus {
     kOK,        // We successfully handled a message.
     kError,     // We encountered an error handling a message.
-    kRestart,   // The VM is restarting.
     kShutdown,  // The VM is shutting down.
   };
   static const char* MessageStatusString(MessageStatus status);
