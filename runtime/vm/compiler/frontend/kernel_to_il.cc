@@ -771,6 +771,7 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError(const Function& target,
 LocalVariable* FlowGraphBuilder::LookupVariable(intptr_t kernel_offset) {
   LocalVariable* local = scopes_->locals.Lookup(kernel_offset);
   ASSERT(local != NULL);
+  ASSERT(local->kernel_offset() == kernel_offset);
   return local;
 }
 
@@ -1740,9 +1741,9 @@ static const LocalScope* MakeImplicitClosureScope(Zone* Z, const Class& klass) {
   // and not the signature type.
   Type& klass_type = Type::ZoneHandle(Z, klass.DeclarationType());
 
-  LocalVariable* receiver_variable = new (Z)
-      LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                    Symbols::This(), klass_type, /*param_type=*/nullptr);
+  LocalVariable* receiver_variable = new (Z) LocalVariable(
+      TokenPosition::kNoSource, TokenPosition::kNoSource, Symbols::This(),
+      klass_type, LocalVariable::kNoKernelOffset, /*param_type=*/nullptr);
 
   receiver_variable->set_is_captured();
   //  receiver_variable->set_is_final();

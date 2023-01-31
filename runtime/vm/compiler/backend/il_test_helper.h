@@ -291,10 +291,10 @@ class FlowGraphBuilderHelper {
   void AddVariable(const char* name,
                    const AbstractType& static_type,
                    CompileType* param_type = nullptr) {
-    LocalVariable* v =
-        new LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                          String::Handle(Symbols::New(Thread::Current(), name)),
-                          static_type, param_type);
+    LocalVariable* v = new LocalVariable(
+        TokenPosition::kNoSource, TokenPosition::kNoSource,
+        String::Handle(Symbols::New(Thread::Current(), name)), static_type,
+        LocalVariable::kNoKernelOffset, param_type);
     v->set_type_check_mode(LocalVariable::kTypeCheckedByCaller);
     flow_graph()->parsed_function().scope()->AddVariable(v);
   }

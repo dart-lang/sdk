@@ -18626,6 +18626,15 @@ void ContextScope::SetContextLevelAt(intptr_t scope_index,
   untag()->set_context_level_at(scope_index, Smi::New(context_level));
 }
 
+intptr_t ContextScope::KernelOffsetAt(intptr_t scope_index) const {
+  return Smi::Value(untag()->kernel_offset_at(scope_index));
+}
+
+void ContextScope::SetKernelOffsetAt(intptr_t scope_index,
+                                     intptr_t kernel_offset) const {
+  untag()->set_kernel_offset_at(scope_index, Smi::New(kernel_offset));
+}
+
 const char* ContextScope::ToCString() const {
   const char* prev_cstr = "ContextScope:";
   String& name = String::Handle();

@@ -98,11 +98,13 @@ class ScopeBuilder {
       ParameterTypeCheckMode type_check_mode,
       const ProcedureAttributesMetadata& attrs);
 
-  LocalVariable* MakeVariable(TokenPosition declaration_pos,
-                              TokenPosition token_pos,
-                              const String& name,
-                              const AbstractType& type,
-                              const InferredTypeMetadata* param_type_md = NULL);
+  LocalVariable* MakeVariable(
+      TokenPosition declaration_pos,
+      TokenPosition token_pos,
+      const String& name,
+      const AbstractType& type,
+      intptr_t kernel_offset = LocalVariable::kNoKernelOffset,
+      const InferredTypeMetadata* param_type_md = NULL);
 
   void AddExceptionVariable(GrowableArray<LocalVariable*>* variables,
                             const char* prefix,
@@ -130,9 +132,9 @@ class ScopeBuilder {
   const String& GenerateName(const char* prefix, intptr_t suffix);
 
   void HandleLoadReceiver();
-  void HandleSpecialLoad(LocalVariable** variable, const String& symbol);
-  void LookupCapturedVariableByName(LocalVariable** variable,
-                                    const String& name);
+  void HandleSpecialLoad(LocalVariable** variable,
+                         const String& symbol,
+                         intptr_t kernel_offset);
 
   struct DepthState {
     explicit DepthState(intptr_t function)

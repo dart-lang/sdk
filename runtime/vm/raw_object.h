@@ -2346,6 +2346,7 @@ class UntaggedContextScope : public UntaggedObject {
     };
     CompressedSmiPtr context_index;
     CompressedSmiPtr context_level;
+    CompressedSmiPtr kernel_offset;
   };
 
   int32_t num_variables_;
@@ -2385,6 +2386,7 @@ class UntaggedContextScope : public UntaggedObject {
   DEFINE_ACCESSOR(InstancePtr, value)
   DEFINE_ACCESSOR(SmiPtr, context_index)
   DEFINE_ACCESSOR(SmiPtr, context_level)
+  DEFINE_ACCESSOR(SmiPtr, kernel_offset)
 #undef DEFINE_ACCESSOR
 
   CompressedObjectPtr* to(intptr_t num_vars) {

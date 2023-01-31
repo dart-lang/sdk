@@ -51,10 +51,14 @@ ISOLATE_UNIT_TEST_CASE(LocalScope) {
   EXPECT(!outer_scope->AddVariable(var_a));
 
   // Check the simple layout above.
-  EXPECT_EQ(var_a, outer_scope->LocalLookupVariable(a));
-  EXPECT_EQ(var_a, inner_scope1->LookupVariable(a, true));
-  EXPECT(outer_scope->LocalLookupVariable(b) == NULL);
-  EXPECT(inner_scope1->LocalLookupVariable(c) == NULL);
+  EXPECT_EQ(var_a, outer_scope->LocalLookupVariable(
+                       a, LocalVariable::kNoKernelOffset));
+  EXPECT_EQ(var_a, inner_scope1->LookupVariable(
+                       a, LocalVariable::kNoKernelOffset, true));
+  EXPECT(outer_scope->LocalLookupVariable(b, LocalVariable::kNoKernelOffset) ==
+         NULL);
+  EXPECT(inner_scope1->LocalLookupVariable(c, LocalVariable::kNoKernelOffset) ==
+         NULL);
 
   // Modify the local scopes to contain shadowing:
   // {  // outer_scope
@@ -69,8 +73,10 @@ ISOLATE_UNIT_TEST_CASE(LocalScope) {
   //   }
   // }
   EXPECT(inner_scope1->AddVariable(inner_var_a));
-  EXPECT_EQ(inner_var_a, inner_scope1->LookupVariable(a, true));
-  EXPECT(inner_scope1->LookupVariable(a, true) != var_a);
+  EXPECT_EQ(inner_var_a, inner_scope1->LookupVariable(
+                             a, LocalVariable::kNoKernelOffset, true));
+  EXPECT(inner_scope1->LookupVariable(a, LocalVariable::kNoKernelOffset,
+                                      true) != var_a);
 
   // Modify the local scopes with access of an outer scope variable:
   // {  // outer_scope
@@ -84,9 +90,11 @@ ISOLATE_UNIT_TEST_CASE(LocalScope) {
   //     L: ...
   //   }
   // }
-  EXPECT(inner_scope2->LocalLookupVariable(a) == NULL);
+  EXPECT(inner_scope2->LocalLookupVariable(a, LocalVariable::kNoKernelOffset) ==
+         NULL);
   EXPECT(inner_scope2->AddVariable(var_a));
-  EXPECT_EQ(var_a, inner_scope2->LocalLookupVariable(a));
+  EXPECT_EQ(var_a, inner_scope2->LocalLookupVariable(
+                       a, LocalVariable::kNoKernelOffset));
 
   EXPECT_EQ(1, outer_scope->num_variables());
   EXPECT_EQ(2, inner_scope1->num_variables());
