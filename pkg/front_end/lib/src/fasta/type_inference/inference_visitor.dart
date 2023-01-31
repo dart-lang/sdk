@@ -7608,22 +7608,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     CacheableExpression matchedExpression =
         matchingCache.createRootExpression(expression, scrutineeType);
 
-    // matchResultVariable: int RVAR = -1;
-    VariableDeclaration matchResultVariable = createInitializedVariable(
-        createIntLiteral(-1, fileOffset: node.fileOffset),
-        coreTypes.intNonNullableRawType,
-        fileOffset: node.fileOffset);
-
     // valueVariable: `valueType` valueVariable;
     VariableDeclaration valueVariable =
         createUninitializedVariable(valueType, fileOffset: node.fileOffset);
 
-    LabeledStatement switchLabel =
-        createLabeledStatement(dummyStatement, fileOffset: node.fileOffset);
-
     List<Statement> replacementStatements = [];
-
-    List<SwitchCase> replacementCases = [];
 
     List<VariableDeclaration> declaredVariableHelpers = [];
 
@@ -7653,13 +7642,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         (declaredVariablesByName[variable.name!] ??= []).add(variable);
       }
 
-      // setMatchResult: `matchResultVariable` = `caseIndex`;
-      //   ==> RVAR = `caseIndex`;
-      Statement setMatchResult = createExpressionStatement(createVariableSet(
-          matchResultVariable,
-          createIntLiteral(caseIndex, fileOffset: node.fileOffset),
-          fileOffset: node.fileOffset));
-
       DelayedExpression matchingExpression = matchingExpressions[caseIndex];
       Expression caseCondition = matchingExpression.createExpression(this);
       if (guard != null) {
@@ -7667,20 +7649,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             fileOffset: guard.fileOffset);
       }
 
-      ifStatements.add(createIfStatement(caseCondition,
-          createBlock([setMatchResult], fileOffset: switchCase.fileOffset),
+      ifStatements.add(createIfStatement(
+          caseCondition,
+          createExpressionStatement(createVariableSet(valueVariable, body,
+              fileOffset: node.fileOffset)),
           fileOffset: switchCase.fileOffset));
-
-      replacementCases.add(createSwitchCase(
-          [createIntLiteral(caseIndex, fileOffset: node.fileOffset)],
-          [switchCase.fileOffset],
-          createBlock([
-            createExpressionStatement(createVariableSet(valueVariable, body,
-                fileOffset: node.fileOffset)),
-            createBreakStatement(switchLabel, fileOffset: node.fileOffset)
-          ], fileOffset: node.fileOffset),
-          isDefault: false,
-          fileOffset: node.fileOffset));
     }
 
     // TODO(johnniwinther): Find a better way to avoid name clashes between
@@ -7696,26 +7669,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     IfStatement? ifStatement;
     for (IfStatement statement in ifStatements.reversed) {
-      statement.otherwise = ifStatement?..parent = ifStatement;
+      statement.otherwise = ifStatement?..parent = statement;
       ifStatement = statement;
     }
 
-    replacementStatements = [
-      valueVariable,
-      matchResultVariable,
-      ...replacementStatements,
-      ...matchingCache.declarations,
-      ...declaredVariableHelpers,
-      ifStatement ?? new EmptyStatement(),
-      switchLabel
-        ..body = (createSwitchStatement(
-            createVariableGet(matchResultVariable), replacementCases,
-            isExplicitlyExhaustive: false, fileOffset: node.fileOffset)
-          ..parent = switchLabel),
-    ];
-
     Expression replacement = createBlockExpression(
-        createBlock(replacementStatements, fileOffset: node.fileOffset),
+        createBlock([
+          valueVariable,
+          ...replacementStatements,
+          ...matchingCache.declarations,
+          ...declaredVariableHelpers,
+          if (ifStatement != null) ifStatement,
+        ], fileOffset: node.fileOffset),
         createVariableGet(valueVariable),
         fileOffset: node.fileOffset);
 
@@ -7889,11 +7854,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Map<String, List<VariableDeclaration>> declaredVariablesByName = {};
 
+    bool hasContinue = false;
     List<List<DelayedExpression>> matchingExpressions =
         new List.generate(node.cases.length, (int caseIndex) {
       PatternSwitchCase switchCase = node.cases[caseIndex];
       return new List.generate(switchCase.patternGuards.length,
           (int headIndex) {
+        if (switchCase.labelUsers.isNotEmpty) {
+          hasContinue = true;
+        }
         Pattern pattern = switchCase.patternGuards[headIndex].pattern;
         DelayedExpression matchingExpression = pattern.createMatchingExpression(
             // TODO(johnniwinther): Handle promoted scrutinee types.
@@ -7989,25 +7958,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         }
       }
 
-      // setMatchResult: `matchResultVariable` = `caseIndex`;
-      //   ==> RVAR = `caseIndex`;
-      Statement setMatchResult = createExpressionStatement(createVariableSet(
-          matchResultVariable,
-          createIntLiteral(caseIndex, fileOffset: node.fileOffset),
-          fileOffset: node.fileOffset));
-
       if (switchCase.isDefault) {
         if (caseCondition != null) {
           caseCondition = createOrExpression(caseCondition,
               createBoolLiteral(true, fileOffset: switchCase.fileOffset),
               fileOffset: switchCase.fileOffset);
         }
-      }
-      if (caseCondition != null) {
-        ifStatements.add(createIfStatement(caseCondition, setMatchResult,
-            fileOffset: switchCase.fileOffset));
-      } else {
-        ifStatements.add(setMatchResult);
       }
 
       declaredVariableHelpers.addAll(caseDeclaredVariableHelpersByName.values);
@@ -8026,31 +7982,54 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             ..parent = jointVariable;
         }
       }
+      Statement caseBlock;
+      if (hasContinue) {
+        // setMatchResult: `matchResultVariable` = `caseIndex`;
+        //   ==> RVAR = `caseIndex`;
+        Statement setMatchResult = createExpressionStatement(createVariableSet(
+            matchResultVariable,
+            createIntLiteral(caseIndex, fileOffset: node.fileOffset),
+            fileOffset: node.fileOffset));
 
-      SwitchCase replacementCase = createSwitchCase(
-          [createIntLiteral(caseIndex, fileOffset: node.fileOffset)],
-          [node.fileOffset],
-          createBlock([
-            ...switchCase.jointVariables,
-            if (body is! Block || body.statements.isNotEmpty) body
-          ], fileOffset: node.fileOffset),
-          isDefault: switchCase.isDefault,
-          fileOffset: node.fileOffset);
+        caseBlock = setMatchResult;
 
-      for (Statement labelUser in switchCase.labelUsers) {
-        if (labelUser is ContinueSwitchStatement) {
-          labelUser.target = replacementCase;
-        } else {
-          // TODO(cstefantsova): Handle other label user types.
-          return problems.unhandled(
-              "${labelUser.runtimeType}",
-              "InferenceVisitorImpl.visitPatternSwitchStatement",
-              labelUser.fileOffset,
-              helper.uri);
+        SwitchCase replacementCase = createSwitchCase(
+            [createIntLiteral(caseIndex, fileOffset: node.fileOffset)],
+            [node.fileOffset],
+            createBlock([
+              ...switchCase.jointVariables,
+              if (body is! Block || body.statements.isNotEmpty) body
+            ], fileOffset: node.fileOffset),
+            isDefault: switchCase.isDefault,
+            fileOffset: node.fileOffset);
+
+        for (Statement labelUser in switchCase.labelUsers) {
+          if (labelUser is ContinueSwitchStatement) {
+            labelUser.target = replacementCase;
+          } else {
+            // TODO(cstefantsova): Handle other label user types.
+            return problems.unhandled(
+                "${labelUser.runtimeType}",
+                "InferenceVisitorImpl.visitPatternSwitchStatement",
+                labelUser.fileOffset,
+                helper.uri);
+          }
         }
+
+        replacementCases.add(replacementCase);
+      } else {
+        caseBlock = createBlock([
+          ...switchCase.jointVariables,
+          if (body is! Block || body.statements.isNotEmpty) body
+        ], fileOffset: switchCase.fileOffset);
       }
 
-      replacementCases.add(replacementCase);
+      if (caseCondition != null) {
+        ifStatements.add(createIfStatement(caseCondition, caseBlock,
+            fileOffset: switchCase.fileOffset));
+      } else {
+        ifStatements.add(caseBlock);
+      }
     }
 
     // TODO(johnniwinther): Find a better way to avoid name clashes between
@@ -8067,21 +8046,30 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Statement? ifStatement;
     for (Statement statement in ifStatements.reversed) {
       if (statement is IfStatement) {
-        statement.otherwise = ifStatement?..parent = ifStatement;
+        statement.otherwise = ifStatement?..parent = statement;
       }
       ifStatement = statement;
     }
 
-    replacementStatements = [
-      matchResultVariable,
-      ...replacementStatements,
-      ...matchingCache.declarations,
-      ...declaredVariableHelpers,
-      ifStatement ?? new EmptyStatement(),
-      createSwitchStatement(
-          createVariableGet(matchResultVariable), replacementCases,
-          isExplicitlyExhaustive: false, fileOffset: node.fileOffset)
-    ];
+    if (hasContinue) {
+      replacementStatements = [
+        matchResultVariable,
+        ...replacementStatements,
+        ...matchingCache.declarations,
+        ...declaredVariableHelpers,
+        if (ifStatement != null) ifStatement,
+        createSwitchStatement(
+            createVariableGet(matchResultVariable), replacementCases,
+            isExplicitlyExhaustive: false, fileOffset: node.fileOffset)
+      ];
+    } else {
+      replacementStatements = [
+        ...replacementStatements,
+        ...matchingCache.declarations,
+        ...declaredVariableHelpers,
+        if (ifStatement != null) ifStatement,
+      ];
+    }
 
     Statement replacementStatement;
     if (replacementStatements.length == 1) {

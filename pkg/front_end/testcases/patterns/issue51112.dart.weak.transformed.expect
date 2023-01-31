@@ -6,7 +6,6 @@ static method test(dynamic x) → dynamic {
   () → void setToOne = () → void {};
   #L1:
   {
-    core::int #t1 = -1;
     core::int y;
     core::int y';
     core::double y'';
@@ -23,56 +22,41 @@ static method test(dynamic x) → dynamic {
     function ##0#7#initializer() → dynamic
       return #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
     late final dynamic #0#7 = ##0#7#initializer(){() → dynamic};
-    dynamic #t2;
-    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t3 = y = #0#6{core::int} in true)) && (let final dynamic #t4 = #0#7 in true) && (() → core::bool {
+    dynamic #t1;
+    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = y = #0#6{core::int} in true)) && (let final dynamic #t3 = #0#7 in true) && (() → core::bool {
       setToOne = () → void {
         y = 1;
       };
       return true;
-    })(){() → core::bool} && (let final core::int #t5 = #t2 = y in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (let final dynamic #t6 = #0#6 in true) && (#0#7 is{ForNonNullableByDefault} core::int && (let final core::int #t7 = y' = #0#7{core::int} in true)) && (() → core::bool {
+    })(){() → core::bool} && (let final core::int #t4 = #t1 = y in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (let final dynamic #t5 = #0#6 in true) && (#0#7 is{ForNonNullableByDefault} core::int && (let final core::int #t6 = y' = #0#7{core::int} in true)) && (() → core::bool {
       setToOne = () → void {
         y' = 1;
       };
       return true;
-    })(){() → core::bool} && (let final core::int #t8 = #t2 = y' in true))
-      #t1 = 0;
+    })(){() → core::bool} && (let final core::int #t7 = #t1 = y' in true)) {
+      core::int y = #t1{core::int};
+      {
+        setToOne(){() → void};
+        return y;
+      }
+    }
     else
-      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#2 =={core::num::==}{(core::Object) → core::bool} #C2 && (#0#6 is{ForNonNullableByDefault} core::double && (let final core::double #t9 = y'' = #0#6{core::double} in true)) && (() → core::bool {
+      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#2 =={core::num::==}{(core::Object) → core::bool} #C2 && (#0#6 is{ForNonNullableByDefault} core::double && (let final core::double #t8 = y'' = #0#6{core::double} in true)) && (() → core::bool {
         setToOne = () → void {
           y'' = 1.0;
         };
         return true;
-      })(){() → core::bool})
-        #t1 = 1;
-      else
-        #t1 = 2;
-    switch(#t1) {
-      #L2:
-      case #C3:
+      })(){() → core::bool}) {
         {
-          core::int y = #t2{core::int};
-          {
-            setToOne(){() → void};
-            return y;
-          }
+          setToOne(){() → void};
+          return y'';
         }
-      #L3:
-      case #C2:
+      }
+      else {
         {
-          {
-            setToOne(){() → void};
-            return y'';
-          }
+          return null;
         }
-      #L4:
-      case #C1:
-      default:
-        {
-          {
-            return null;
-          }
-        }
-    }
+      }
   }
 }
 static method main() → dynamic {
@@ -90,5 +74,4 @@ static method expectEquals(dynamic x, dynamic y) → dynamic {
 constants  {
   #C1 = 2
   #C2 = 1
-  #C3 = 0
 }

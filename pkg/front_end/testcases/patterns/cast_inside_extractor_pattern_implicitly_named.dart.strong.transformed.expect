@@ -11,26 +11,15 @@ class C extends core::Object {
 static method test(dynamic x) → dynamic {
   #L1:
   {
-    core::int #t1 = -1;
     core::int f;
     final dynamic #0#0 = x;
     function ##0#2#initializer() → core::int?
       return #0#0{self::C}.{self::C::f}{core::int?};
     late final core::int? #0#2 = ##0#2#initializer(){() → core::int?};
-    if(#0#0 is{ForNonNullableByDefault} self::C && (let final core::int #t2 = let core::int? #t3 = #0#2 in #t3 == null ?{core::int} #t3 as{ForNonNullableByDefault} core::int : #t3{core::int} in let final core::int #t4 = f = let core::int? #t5 = #0#2 in #t5 == null ?{core::int} #t5 as{ForNonNullableByDefault} core::int : #t5{core::int} in true))
-      #t1 = 0;
-    switch(#t1) {
-      #L2:
-      case #C1:
-        {
-          {
-            break #L1;
-          }
-        }
+    if(#0#0 is{ForNonNullableByDefault} self::C && (let final core::int #t1 = let core::int? #t2 = #0#2 in #t2 == null ?{core::int} #t2 as{ForNonNullableByDefault} core::int : #t2{core::int} in let final core::int #t3 = f = let core::int? #t4 = #0#2 in #t4 == null ?{core::int} #t4 as{ForNonNullableByDefault} core::int : #t4{core::int} in true)) {
+      {
+        break #L1;
+      }
     }
   }
-}
-
-constants  {
-  #C1 = 0
 }

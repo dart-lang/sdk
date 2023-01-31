@@ -10,22 +10,11 @@ class C<T extends core::Object? = dynamic> extends core::Object {
 static method test(dynamic x) → dynamic {
   #L1:
   {
-    core::int #t1 = -1;
     final dynamic #0#0 = x;
-    if(#0#0 is{ForNonNullableByDefault} self::C<core::int>)
-      #t1 = 0;
-    switch(#t1) {
-      #L2:
-      case #C1:
-        {
-          {
-            break #L1;
-          }
-        }
+    if(#0#0 is{ForNonNullableByDefault} self::C<core::int>) {
+      {
+        break #L1;
+      }
     }
   }
-}
-
-constants  {
-  #C1 = 0
 }
