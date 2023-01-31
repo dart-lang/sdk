@@ -10012,6 +10012,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             typeParametersToInfer, matchedType, libraryBuilder.library);
     List<DartType> inferredTypes = typeSchemaEnvironment.partialInfer(
         gatherer, typeParametersToInfer, null, libraryBuilder.library);
+
+    // TODO(johnniwinther): Remove this work-around once language issue #2770
+    // has been resolved.
+    inferredTypes = typeSchemaEnvironment.upwardsInfer(
+        gatherer, typeParametersToInfer, inferredTypes, libraryBuilder.library);
+
     Substitution substitution =
         Substitution.fromPairs(typeParametersToInfer, inferredTypes);
     return substitution.substituteType(typeToInfer);

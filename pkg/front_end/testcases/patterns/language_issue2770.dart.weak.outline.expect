@@ -1,0 +1,13 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class<T extends core::Object> extends core::Object {
+  covariant-by-class field self::Class::T field;
+  constructor •(self::Class::T field) → self::Class<self::Class::T>
+    ;
+}
+static method method1(core::Object object) → dynamic
+  ;
+static method main() → dynamic
+  ;
