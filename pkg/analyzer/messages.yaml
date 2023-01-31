@@ -18416,95 +18416,6 @@ HintCode:
       ```dart
       class C {}
       ```
-  INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER:
-    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
-    problemMessage: "The language version override can't specify a version greater than the latest known language version: {0}.{1}."
-    correctionMessage: Try removing the language version override.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the latest major version
-      1: the latest minor version
-  INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN:
-    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
-    problemMessage: "The Dart language version override number must begin with '@dart'."
-    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
-    comment: |-
-      No parameters.
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a comment that appears to be an
-      attempt to specify a language version override doesn't conform to the
-      requirements for such a comment. For more information, see
-      [Per-library language version selection](https://dart.dev/guides/language/evolution#per-library-language-version-selection).
-
-      #### Example
-
-      The following code produces this diagnostic because the word `dart` must
-      be lowercase in such a comment and because there's no equal sign between
-      the word `dart` and the version number:
-
-      ```dart
-      [!// @Dart 2.13!]
-      ```
-
-      #### Common fixes
-
-      If the comment is intended to be a language version override, then change
-      the comment to follow the correct format:
-
-      ```dart
-      // @dart = 2.13
-      ```
-  INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION:
-    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
-    problemMessage: The language version override must be specified before any declaration or directive.
-    correctionMessage: Try moving the language version override to the top of the file.
-    hasPublishedDocs: true
-  INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE:
-    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
-    problemMessage: "The Dart language version override comment must be specified with the word 'dart' in all lower case."
-    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
-    comment: |-
-      No parameters.
-    hasPublishedDocs: true
-  INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER:
-    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
-    problemMessage: "The Dart language version override comment must be specified with a version number, like '2.0', after the '=' character."
-    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
-    comment: |-
-      No parameters.
-    hasPublishedDocs: true
-  INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX:
-    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
-    problemMessage: "The Dart language version override number can't be prefixed with a letter."
-    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
-    comment: |-
-      No parameters.
-    hasPublishedDocs: true
-  INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS:
-    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
-    problemMessage: "The Dart language version override comment can't be followed by any non-whitespace characters."
-    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
-    comment: |-
-      No parameters.
-    hasPublishedDocs: true
-  INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES:
-    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
-    problemMessage: The Dart language version override comment must be specified with exactly two slashes.
-    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
-    comment: |-
-      No parameters.
-    hasPublishedDocs: true
-  INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS:
-    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
-    problemMessage: "The Dart language version override comment must be specified with an '=' character."
-    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
-    comment: |-
-      No parameters.
-    hasPublishedDocs: true
   INVALID_LITERAL_ANNOTATION:
     problemMessage: Only const constructors can have the `@literal` annotation.
     hasPublishedDocs: true
@@ -22760,6 +22671,95 @@ WarningCode:
 
       class C {}
       ```
+  INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER:
+    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
+    problemMessage: "The language version override can't specify a version greater than the latest known language version: {0}.{1}."
+    correctionMessage: Try removing the language version override.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the latest major version
+      1: the latest minor version
+  INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN:
+    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
+    problemMessage: "The Dart language version override number must begin with '@dart'."
+    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
+    comment: |-
+      No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a comment that appears to be an
+      attempt to specify a language version override doesn't conform to the
+      requirements for such a comment. For more information, see
+      [Per-library language version selection](https://dart.dev/guides/language/evolution#per-library-language-version-selection).
+
+      #### Example
+
+      The following code produces this diagnostic because the word `dart` must
+      be lowercase in such a comment and because there's no equal sign between
+      the word `dart` and the version number:
+
+      ```dart
+      [!// @Dart 2.13!]
+      ```
+
+      #### Common fixes
+
+      If the comment is intended to be a language version override, then change
+      the comment to follow the correct format:
+
+      ```dart
+      // @dart = 2.13
+      ```
+  INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION:
+    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
+    problemMessage: The language version override must be specified before any declaration or directive.
+    correctionMessage: Try moving the language version override to the top of the file.
+    hasPublishedDocs: true
+  INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE:
+    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
+    problemMessage: "The Dart language version override comment must be specified with the word 'dart' in all lower case."
+    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
+    comment: |-
+      No parameters.
+    hasPublishedDocs: true
+  INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER:
+    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
+    problemMessage: "The Dart language version override comment must be specified with a version number, like '2.0', after the '=' character."
+    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
+    comment: |-
+      No parameters.
+    hasPublishedDocs: true
+  INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX:
+    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
+    problemMessage: "The Dart language version override number can't be prefixed with a letter."
+    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
+    comment: |-
+      No parameters.
+    hasPublishedDocs: true
+  INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS:
+    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
+    problemMessage: "The Dart language version override comment can't be followed by any non-whitespace characters."
+    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
+    comment: |-
+      No parameters.
+    hasPublishedDocs: true
+  INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES:
+    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
+    problemMessage: The Dart language version override comment must be specified with exactly two slashes.
+    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
+    comment: |-
+      No parameters.
+    hasPublishedDocs: true
+  INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS:
+    sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
+    problemMessage: "The Dart language version override comment must be specified with an '=' character."
+    correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
+    comment: |-
+      No parameters.
+    hasPublishedDocs: true
   NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR:
     aliasFor: HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR
     comment: This is the new replacement for [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR].
