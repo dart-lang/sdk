@@ -399,12 +399,12 @@ _nightly_builder(
 
 # vm|misc
 _nightly_builder(
-    "vm-kernel-optcounter-threshold-linux-release-ia32",
+    "vm-optcounter-threshold-linux-release-ia32",
     category = "vm|misc|o32",
     channels = ["try"],
 )
 _low_priority_builder(
-    "vm-kernel-optcounter-threshold-linux-release-x64",
+    "vm-optcounter-threshold-linux-release-x64",
     category = "vm|misc|o64",
 )
 
@@ -417,77 +417,77 @@ def dart_vm_sanitizer_builder(name, **kwargs):
     )
 
 dart_vm_sanitizer_builder(
-    "vm-kernel-asan-linux-release-x64",
-    category = "vm|misc|a",
+    "vm-asan-linux-release-x64",
+    category = "vm|misc|sanitizer|a",
 )
 dart_vm_sanitizer_builder(
-    "vm-kernel-msan-linux-release-x64",
-    category = "vm|misc|m",
+    "vm-msan-linux-release-x64",
+    category = "vm|misc|sanitizer|m",
 )
 dart_vm_sanitizer_builder(
-    "vm-kernel-tsan-linux-release-x64",
-    category = "vm|misc|t",
+    "vm-nnbd-linux-release-x64",
+    category = "vm|misc|sanitizer|t",
 )
 dart_vm_sanitizer_builder(
-    "vm-kernel-ubsan-linux-release-x64",
-    category = "vm|misc|u",
+    "vm-ubsan-linux-release-x64",
+    category = "vm|misc|sanitizer|u",
     goma = False,
 )  # ubsan is not compatible with our sysroot.
 dart_vm_sanitizer_builder(
-    "vm-kernel-precomp-asan-linux-release-x64",
-    category = "vm|misc|aot|a",
+    "vm-aot-asan-linux-release-x64",
+    category = "vm|misc|sanitizer|a",
 )
 dart_vm_sanitizer_builder(
-    "vm-kernel-precomp-msan-linux-release-x64",
-    category = "vm|misc|aot|m",
+    "vm-aot-msan-linux-release-x64",
+    category = "vm|misc|sanitizer|m",
 )
 dart_vm_sanitizer_builder(
-    "vm-kernel-precomp-tsan-linux-release-x64",
-    category = "vm|misc|aot|t",
+    "vm-aot-tsan-linux-release-x64",
+    category = "vm|misc|sanitizer|t",
 )
 dart_vm_sanitizer_builder(
-    "vm-kernel-precomp-ubsan-linux-release-x64",
-    category = "vm|misc|aot|u",
+    "vm-aot-ubsan-linux-release-x64",
+    category = "vm|misc|sanitizer|u",
     goma = False,
 )  # ubsan is not compatible with our sysroot.
 _nightly_builder(
-    "vm-kernel-reload-linux-debug-x64",
+    "vm-reload-linux-debug-x64",
     category = "vm|misc|reload|d",
     channels = ["try"],
 )
 _nightly_builder(
-    "vm-kernel-reload-linux-release-x64",
+    "vm-reload-linux-release-x64",
     category = "vm|misc|reload|r",
     channels = ["try"],
 )
 _nightly_builder(
-    "vm-kernel-reload-rollback-linux-debug-x64",
+    "vm-reload-rollback-linux-debug-x64",
     category = "vm|misc|reload|drb",
     channels = ["try"],
 )
 _nightly_builder(
-    "vm-kernel-reload-rollback-linux-release-x64",
+    "vm-reload-rollback-linux-release-x64",
     category = "vm|misc|reload|rrb",
     channels = ["try"],
 )
 _nightly_builder(
-    "vm-kernel-linux-debug-x64c",
+    "vm-kernel-nnbd-linux-debug-x64c",
     category = "vm|misc|compressed|jl",
     channels = ["try"],
 )
 _nightly_builder(
-    "vm-kernel-precomp-linux-debug-x64c",
+    "vm-kernel-precomp-nnbd-linux-debug-x64c",
     category = "vm|misc|compressed|al",
     channels = ["try"],
 )
 _nightly_builder(
-    "vm-kernel-win-debug-x64c",
+    "vm-kernel-nnbd-win-debug-x64c",
     category = "vm|misc|compressed|jw",
     channels = ["try"],
     dimensions = windows,
 )
 _nightly_builder(
-    "vm-kernel-precomp-win-debug-x64c",
+    "vm-kernel-precomp-nnbd-win-debug-x64c",
     category = "vm|misc|compressed|aw",
     channels = ["try"],
     dimensions = windows,
