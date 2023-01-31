@@ -1197,8 +1197,10 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
         // TODO(johnniwinther): Can we do better?
         return impliedClasses(
             _elementEnvironment.getTypeVariableBound(type.element));
+      } else if (type is RecordType) {
+        return [commonElements.recordClass];
       }
-      throw UnsupportedError('Unexpected type $type');
+      throw UnsupportedError('Unexpected type $type (${type.runtimeType})');
     }
 
     void addClass(ClassEntity? cls) {

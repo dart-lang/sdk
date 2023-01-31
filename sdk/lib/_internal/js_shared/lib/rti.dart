@@ -839,22 +839,68 @@ Type getRuntimeType(Object? object) {
 }
 
 /// Called from generated code.
+@pragma('dart2js:never-inline')
 Type createRuntimeType(Rti rti) {
-  _Type? type = Rti._getCachedRuntimeType(rti);
-  if (type != null) return type;
+  return Rti._getCachedRuntimeType(rti) ?? _createAndCacheRuntimeType(rti);
+}
+
+_Type _createAndCacheRuntimeType(Rti rti) {
+  final type = _createRuntimeType(rti);
+  Rti._setCachedRuntimeType(rti, type);
+  return type;
+}
+
+_Type _createRuntimeType(Rti rti) {
   if (JS_GET_FLAG('PRINT_LEGACY_STARS')) {
     return _Type(rti);
-  } else {
-    String recipe = Rti._getCanonicalRecipe(rti);
-    String starErasedRecipe = Rti.getLegacyErasedRecipe(rti);
-    if (starErasedRecipe == recipe) {
-      return _Type(rti);
-    }
-    Rti starErasedRti = _Universe.eval(_theUniverse(), starErasedRecipe, true);
-    type = Rti._getCachedRuntimeType(starErasedRti) ?? _Type(starErasedRti);
-    Rti._setCachedRuntimeType(rti, type);
-    return type;
   }
+  String recipe = Rti._getCanonicalRecipe(rti);
+  String starErasedRecipe = Rti.getLegacyErasedRecipe(rti);
+  if (starErasedRecipe == recipe) {
+    return _Type(rti);
+  }
+  Rti starErasedRti = _Universe.eval(_theUniverse(), starErasedRecipe, true);
+  return Rti._getCachedRuntimeType(starErasedRti) ??
+      _createAndCacheRuntimeType(starErasedRti);
+}
+
+Type getRuntimeTypeOfRecord(String recordRecipe, List valuesList) {
+  JSArray values = JS('', '#', valuesList);
+  final length = values.length;
+  if (length == 0) {
+    // TODO(50081): Remove this when DDC can handle `TYPE_REF<()>`.
+    if (JS_GET_FLAG('DEV_COMPILER')) {
+      throw UnimplementedError('getRuntimeTypeOfRecord not supported for DDC');
+    } else {
+      return createRuntimeType(TYPE_REF<()>());
+    }
+  }
+
+  Rti bindings = _rtiEval(
+      _fieldTypeForRuntimeTypeOfRecord(values[0]),
+      '${Recipe.pushDynamicString}'
+      '${Recipe.startTypeArgumentsString}'
+      '0'
+      '${Recipe.endTypeArgumentsString}');
+
+  for (int i = 1; i < length; i++) {
+    bindings = _rtiBind(bindings, _fieldTypeForRuntimeTypeOfRecord(values[i]));
+  }
+
+  final recordRti = _rtiEval(bindings, recordRecipe);
+  return createRuntimeType(recordRti);
+}
+
+Rti _fieldTypeForRuntimeTypeOfRecord(Object? object) {
+  // Since some objects override `get runtimeType`, we call that to get the
+  // type, otherwise we print e.g. `int` as `JSInt`.
+
+  // TODO(50081): SDK types that override `.runtimeType` are 'reasonable' in
+  // that they return the type of some interface. Get clarity on whether
+  // user-defined overrides of `.runtimeType` can affect the result of a record
+  // with a field of the type with the override.
+  Type type = object.runtimeType;
+  return (type as _Type)._rti;
 }
 
 /// Called from generated code in the constant pool.
@@ -1111,6 +1157,7 @@ Object? _generalNullableAsCheckImplementation(Object? object) {
 }
 
 void _failedAsCheck(Object? object, Rti testRti) {
+  // We need to generate an Rti for a record type to print it here.
   Rti objectRti = instanceOrFunctionType(object, testRti);
   String message =
       _Error.compose(object, objectRti, _rtiToString(testRti, null));

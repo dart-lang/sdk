@@ -17,6 +17,13 @@ abstract class _Record implements Record {
   // TODO(50081): Replace with a Map view.
   List<Object?> _getFieldValues();
 
+  Type get runtimeType {
+    // TODO(51040): Consider caching.
+    String recipe =
+        JS('', '#[#]', this, JS_GET_NAME(JsGetName.RECORD_SHAPE_TYPE_PROPERTY));
+    return newRti.getRuntimeTypeOfRecord(recipe, _getFieldValues());
+  }
+
   @override
   String toString() {
     final keys = _fieldKeys();
@@ -53,13 +60,19 @@ abstract class _Record implements Record {
 
     // TODO(50081): The Rti recipe format is agnostic to what the record shape
     // key is. We happen to use a comma-separated list of the names for the
-    // named arguments. `"+a,b(@,@,@,@)"` is the 4-record with two named fields
+    // named arguments. `"+a,b(1,2,3,4)"` is the 4-record with two named fields
     // `a` and `b`. We should refactor the code so that rti.dart returns the
     // arity and the Rti's shape key which are interpreted here.
-    String joinedNames =
-        JS('', '#.substring(1, #.indexOf(#))', recipe, recipe, '(');
-    String atSigns = JS('', '#.replace(/[^@]/g, "")', recipe);
-    int arity = atSigns.length;
+    int position = JS('', '#.indexOf(#)', recipe, '(');
+    String joinedNames = JS('', '#.substring(1, #)', recipe, position);
+    String fields = JS('', '#.substring(#)', recipe, position);
+    int arity;
+    if (fields == '()') {
+      arity = 0;
+    } else {
+      String commas = JS('', '#.replace(/[^,]/g, "")', fields);
+      arity = commas.length + 1;
+    }
 
     List<Object> result = List.generate(arity, (i) => i);
     if (joinedNames != '') {

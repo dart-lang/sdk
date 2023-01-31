@@ -588,14 +588,8 @@ class ProgramBuilder {
     RecordRepresentation? record = _recordData.representationForClass(cls);
     if (record != null && record.definesShape) {
       recordShapeTag = record.shapeTag;
-      // A top-type for a record shape. We choose `dynamic` as the top-type for
-      // the fields since is encodes concisely.
-      // TODO(50081): Move this somewhere to improve consistency with Rti
-      // runtime.
-      final recordTop = _dartTypes.recordType(record.shape,
-          List.filled(record.shape.fieldCount, _dartTypes.dynamicType()));
-      recordShapeRecipe = _rtiRecipeEncoder.encodeGroundRecipe(
-          _task.emitter, TypeExpressionRecipe(recordTop));
+      recordShapeRecipe =
+          _rtiRecipeEncoder.encodeRecordFromBindingRecipe(record.shape);
     }
 
     List<Method> methods = [];

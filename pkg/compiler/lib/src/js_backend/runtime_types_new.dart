@@ -37,6 +37,10 @@ abstract class RecipeEncoder {
   /// assumed to never be erased.
   jsAst.Literal encodeMetadataRecipe(ModularEmitter emitter,
       InterfaceType declaringType, DartType supertypeArgument);
+
+  /// Returns a [jsAst.Literal] representing the recipe for converting a binding
+  /// Rti with N bindings into a record Rti for a record shape with N fields.
+  jsAst.Literal encodeRecordFromBindingRecipe(RecordShape shape);
 }
 
 class RecipeEncoderImpl implements RecipeEncoder {
@@ -70,6 +74,21 @@ class RecipeEncoderImpl implements RecipeEncoder {
             metadata: true)
         .run()
         .recipe;
+  }
+
+  @override
+  jsAst.Literal encodeRecordFromBindingRecipe(RecordShape shape) {
+    final sb = StringBuffer();
+    sb.write(Recipe.startRecordString);
+    // Partial shape tag. The full shape is this plus the number of fields.
+    sb.write(partialShapeTagOf(shape));
+    sb.write(Recipe.startFunctionArgumentsString);
+    for (int i = 0; i < shape.fieldCount; i++) {
+      if (i > 0) sb.write(Recipe.separatorString);
+      sb.write(i + 1);
+    }
+    sb.write(Recipe.endFunctionArgumentsString);
+    return js.string(sb.toString());
   }
 }
 
