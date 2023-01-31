@@ -1624,7 +1624,7 @@ HintCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT:
 HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL:
   status: hasFix
 HintCode.UNREACHABLE_SWITCH_CASE:
-  status: needsEvaluation
+  status: hasFix
 HintCode.UNUSED_ELEMENT:
   status: hasFix
 HintCode.UNUSED_ELEMENT_PARAMETER:

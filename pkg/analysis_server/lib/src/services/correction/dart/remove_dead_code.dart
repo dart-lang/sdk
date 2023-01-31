@@ -104,6 +104,10 @@ class RemoveDeadCode extends CorrectionProducer {
       if (forStatement is! ForStatement) return;
 
       await _computeForStatementParts(builder, forStatement, coveredNode);
+    } else if (coveredNode is SwitchPatternCase) {
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addDeletion(range.deletionRange(coveredNode));
+      });
     }
   }
 

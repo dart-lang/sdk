@@ -1468,6 +1468,9 @@ class FixProcessor extends BaseProcessor {
     HintCode.UNNECESSARY_TYPE_CHECK_TRUE: [
       RemoveComparison.typeCheck,
     ],
+    HintCode.UNREACHABLE_SWITCH_CASE: [
+      RemoveDeadCode.new,
+    ],
     HintCode.UNUSED_ELEMENT: [
       RemoveUnusedElement.new,
     ],

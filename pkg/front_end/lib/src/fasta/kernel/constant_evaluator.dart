@@ -440,6 +440,7 @@ class ConstantsTransformer extends RemovingTransformer {
     transformTypedefList(library.typedefs, library);
     transformClassList(library.classes, library);
     transformExtensionList(library.extensions, library);
+    transformInlineClassList(library.inlineClasses, library);
     transformProcedureList(library.procedures, library);
     transformFieldList(library.fields, library);
 
@@ -489,6 +490,19 @@ class ConstantsTransformer extends RemovingTransformer {
 
   @override
   Extension visitExtension(Extension node, TreeNode? removalSentinel) {
+    StaticTypeContext? oldStaticTypeContext = _staticTypeContext;
+    _staticTypeContext = new StaticTypeContext.forAnnotations(
+        node.enclosingLibrary, typeEnvironment);
+    constantEvaluator.withNewEnvironment(() {
+      transformAnnotations(node.annotations, node);
+      transformTypeParameterList(node.typeParameters, node);
+    });
+    _staticTypeContext = oldStaticTypeContext;
+    return node;
+  }
+
+  @override
+  InlineClass visitInlineClass(InlineClass node, TreeNode? removalSentinel) {
     StaticTypeContext? oldStaticTypeContext = _staticTypeContext;
     _staticTypeContext = new StaticTypeContext.forAnnotations(
         node.enclosingLibrary, typeEnvironment);

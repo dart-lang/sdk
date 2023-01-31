@@ -1083,13 +1083,11 @@ class SourceInlineClassConstructorBuilder
     nameScheme
         .getConstructorMemberName(name, isTearOff: false)
         .attachMember(_constructor);
-    _constructorTearOff = createConstructorTearOffProcedure(
-      name,
-      compilationUnit, compilationUnit.fileUri, charOffset, tearOffReference,
-      forAbstractClassOrEnum: forAbstractClassOrEnum,
-      // TODO(johnniwinther): Generate tear-off.
-      /*forceCreateLowering: true*/
-    );
+    _constructorTearOff = createConstructorTearOffProcedure(name,
+        compilationUnit, compilationUnit.fileUri, charOffset, tearOffReference,
+        forAbstractClassOrEnum: forAbstractClassOrEnum,
+        // TODO(johnniwinther): Support tear-offs on generic classes.
+        forceCreateLowering: typeVariables == null);
     if (_constructorTearOff != null) {
       nameScheme
           .getConstructorMemberName(name, isTearOff: true)
@@ -1153,7 +1151,7 @@ class SourceInlineClassConstructorBuilder
     _build();
     f(_constructor, BuiltMemberKind.InlineClassConstructor);
     if (_constructorTearOff != null) {
-      f(_constructorTearOff!, BuiltMemberKind.Method);
+      f(_constructorTearOff!, BuiltMemberKind.InlineClassTearOff);
     }
   }
 

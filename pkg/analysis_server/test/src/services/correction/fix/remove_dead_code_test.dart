@@ -470,4 +470,74 @@ int f() {
 }
 ''');
   }
+
+  Future<void> test_switchCase_sharedStatements() async {
+    await resolveTestCode('''
+void f() {
+  var m = 5;
+  switch(m) {
+    case 5:
+    case 5:
+    case 3: break;
+  }
+}
+''');
+    await assertHasFix('''
+void f() {
+  var m = 5;
+  switch(m) {
+    case 5:
+    case 3: break;
+  }
+}
+''');
+  }
+
+  Future<void> test_switchCase_uniqueStatements() async {
+    await resolveTestCode('''
+void f() {
+  var m = 5;
+  switch(m) {
+    case 5: print('');
+    case 5: print('a');
+    case 3: break;
+  }
+}
+''');
+    await assertHasFix('''
+void f() {
+  var m = 5;
+  switch(m) {
+    case 5: print('');
+    case 3: break;
+  }
+}
+''');
+  }
+
+  @FailingTest(issue: "https://github.com/dart-lang/sdk/issues/50950")
+  Future<void> test_switchExpression() async {
+    await resolveTestCode('''
+void f() {
+  var m = 5;
+  switch(m) {
+    5 => '',
+    5 => 'a',
+    3 => 'b'
+}
+
+}
+''');
+    await assertHasFix('''
+void f() {
+  var m = 5;
+  switch(m) {
+    5 => '',
+    3 => 'b'
+}
+
+  }
+}
+''');
+  }
 }

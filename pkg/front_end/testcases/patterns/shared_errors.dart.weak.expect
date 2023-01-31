@@ -212,9 +212,9 @@ static method matchedTypeIsStrictlyNonNullable(core::List<core::int> list) → d
     core::int a;
     core::int b;
     final core::List<core::int> #0#0 = list;
-    late final dynamic #0#4 = #0#0.{core::List::[]}(0){(core::int) → dynamic};
-    late final dynamic #0#6 = #0#0.{core::List::[]}(1){(core::int) → dynamic};
-    if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && (let final dynamic #t7 = #0#4! in let final dynamic #t8 = a = #0#4! as{ForNonNullableByDefault} core::int in true) && (!(#0#6 == null) ?{core::bool} let final dynamic #t9 = b = #0#6{core::int} in true : false)) {
+    late final core::int #0#4 = #0#0.{core::List::[]}(0){(core::int) → core::int};
+    late final core::int #0#6 = #0#0.{core::List::[]}(1){(core::int) → core::int};
+    if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && (let final dynamic #t7 = #0#4! in let final dynamic #t8 = a = #0#4! in true) && (!(#0#6 == null) ?{core::bool} let final dynamic #t9 = b = #0#6 in true : false)) {
       core::print(0);
     }
   }
