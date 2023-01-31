@@ -66,6 +66,7 @@ MessageHandler::MessageHandler()
       should_pause_on_exit_(false),
       is_paused_on_start_(false),
       is_paused_on_exit_(false),
+      remembered_paused_on_exit_status_(kOK),
       paused_timestamp_(-1),
 #endif
       task_running_(false),
@@ -427,6 +428,7 @@ void MessageHandler::TaskCallback() {
         return;
       } else {
         PausedOnExitLocked(&ml, false);
+        status = remembered_paused_on_exit_status_;
       }
     }
 #endif  // !defined(PRODUCT)
@@ -462,9 +464,11 @@ void MessageHandler::TaskCallback() {
               "Use the Observatory to release it.\n",
               name());
         }
+        remembered_paused_on_exit_status_ = status;
         PausedOnExitLocked(&ml, true);
         // More messages may have come in while we released the monitor.
-        status = HandleMessages(&ml, false, false);
+        status = HandleMessages(&ml, /*allow_normal_messages=*/false,
+                                /*allow_multiple_normal_messagesfalse=*/false);
         if (ShouldPauseOnExit(status)) {
           // Still paused.
           ASSERT(oob_queue_->IsEmpty());
