@@ -80,7 +80,6 @@ part "record_patch.dart";
 part "regexp_patch.dart";
 part "stacktrace.dart";
 part "stopwatch_patch.dart";
-part "string_buffer_patch.dart";
 part "string_patch.dart";
 part "type_patch.dart";
 part "uri_patch.dart";
