@@ -82,6 +82,69 @@ SwitchExpression
 ''');
   }
 
+  test_location_topLevel() async {
+    await assertNoErrorsInCode(r'''
+final a = switch (null) {
+  int(:var isEven) when isEven => 1,
+  _ => 0,
+};
+''');
+
+    final node = findNode.singleSwitchExpression;
+    assertResolvedNodeText(node, r'''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: NullLiteral
+    literal: null
+    staticType: Null
+  rightParenthesis: )
+  leftBracket: {
+  cases
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: ObjectPattern
+          type: NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+          leftParenthesis: (
+          fields
+            RecordPatternField
+              fieldName: RecordPatternFieldName
+                colon: :
+              pattern: DeclaredVariablePattern
+                keyword: var
+                name: isEven
+                declaredElement: hasImplicitType isEven@37
+                  type: bool
+              fieldElement: dart:core::@class::int::@getter::isEven
+          rightParenthesis: )
+        whenClause: WhenClause
+          whenKeyword: when
+          expression: SimpleIdentifier
+            token: isEven
+            staticElement: isEven@37
+            staticType: bool
+      arrow: =>
+      expression: IntegerLiteral
+        literal: 1
+        staticType: int
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: WildcardPattern
+          name: _
+      arrow: =>
+      expression: IntegerLiteral
+        literal: 0
+        staticType: int
+  rightBracket: }
+  staticType: int
+''');
+  }
+
   test_rewrite_case_expression() async {
     await assertNoErrorsInCode(r'''
 void f(Object? x, int Function() a) {

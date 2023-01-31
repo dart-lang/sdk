@@ -1211,12 +1211,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.expression.accept(this);
 
     for (var case_ in node.cases) {
-      _resolveGuardedPattern(
-        case_.guardedPattern,
-        then: () {
-          case_.expression.accept(this);
-        },
-      );
+      _withNameScope(() {
+        _resolveGuardedPattern(
+          case_.guardedPattern,
+          then: () {
+            case_.expression.accept(this);
+          },
+        );
+      });
     }
   }
 
