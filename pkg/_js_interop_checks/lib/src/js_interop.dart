@@ -35,6 +35,11 @@ bool hasTrustTypesAnnotation(Annotatable a) =>
 bool hasJSExportAnnotation(Annotatable a) =>
     a.annotations.any(_isJSExportAnnotation);
 
+/// Returns true iff the node has an `@Native(...)` annotation from the internal
+/// `dart:_js_helper`.
+bool hasNativeAnnotation(Annotatable a) =>
+    a.annotations.any(_isNativeAnnotation);
+
 /// If [a] has a `@JS('...')` annotation, returns the value inside the
 /// parentheses.
 ///

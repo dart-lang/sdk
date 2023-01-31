@@ -12,6 +12,8 @@ import '../js_interop.dart'
         getJSName,
         hasAnonymousAnnotation,
         hasInternalJSInteropAnnotation,
+        hasJSInteropAnnotation,
+        hasNativeAnnotation,
         hasStaticInteropAnnotation,
         hasTrustTypesAnnotation;
 
@@ -122,10 +124,10 @@ class JsUtilOptimizer extends Transformer {
       if (node.isExtensionMember) {
         var index = _extensionMemberIndex ??=
             _createExtensionMembersIndex(node.enclosingLibrary);
-        Reference reference = node.reference;
-        var nodeDescriptor = index[reference]!;
-        bool shouldTrustType = _shouldTrustType.contains(reference);
-        if (!nodeDescriptor.isStatic) {
+        var reference = node.reference;
+        var nodeDescriptor = index[reference];
+        var shouldTrustType = _shouldTrustType.contains(reference);
+        if (nodeDescriptor != null && !nodeDescriptor.isStatic) {
           if (nodeDescriptor.kind == ExtensionMemberKind.Getter) {
             transformedBody = _getExternalGetterBody(node, shouldTrustType);
           } else if (nodeDescriptor.kind == ExtensionMemberKind.Setter) {
@@ -252,12 +254,16 @@ class JsUtilOptimizer extends Transformer {
     _shouldTrustType = {};
     library.extensions
         .forEach((extension) => extension.members.forEach((descriptor) {
-              Reference reference = descriptor.member;
-              _extensionMemberIndex![reference] = descriptor;
-              DartType onType = extension.onType;
-              if (onType is InterfaceType &&
-                  hasTrustTypesAnnotation(onType.className.asClass)) {
-                _shouldTrustType.add(reference);
+              var onType = extension.onType;
+              if (onType is InterfaceType) {
+                var cls = onType.classNode;
+                var reference = descriptor.member;
+                if (hasJSInteropAnnotation(cls) || hasNativeAnnotation(cls)) {
+                  _extensionMemberIndex![reference] = descriptor;
+                }
+                if (hasTrustTypesAnnotation(cls)) {
+                  _shouldTrustType.add(reference);
+                }
               }
             }));
     return _extensionMemberIndex!;
