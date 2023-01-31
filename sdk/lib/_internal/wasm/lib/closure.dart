@@ -29,4 +29,7 @@ class _Closure implements Function {
   // Support dynamic tear-off of `.call` on functions
   @pragma("wasm:entry-point")
   _Closure get call => this;
+
+  @override
+  String toString() => 'Closure: $runtimeType';
 }
