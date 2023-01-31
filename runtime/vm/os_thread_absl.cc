@@ -138,11 +138,11 @@ static void* ThreadStart(void* data_ptr) {
   uword parameter = data->parameter();
   delete data;
 
-#if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
   // Set the thread name. There is 16 bytes limit on the name (including \0).
   // pthread_setname_np ignores names that are too long rather than truncating.
   char truncated_name[16];
   snprintf(truncated_name, ARRAY_SIZE(truncated_name), "%s", name);
+#if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
   pthread_setname_np(pthread_self(), truncated_name);
 #elif defined(DART_HOST_OS_MACOS)
   // Set the thread name.
@@ -153,7 +153,7 @@ static void* ThreadStart(void* data_ptr) {
   OSThread* thread = OSThread::CreateOSThread();
   if (thread != NULL) {
     OSThread::SetCurrent(thread);
-    thread->set_name(name);
+    thread->SetName(name);
     UnblockSIGPROF();
     // Call the supplied thread start function handing it its parameters.
     function(parameter);
@@ -228,6 +228,19 @@ ThreadId OSThread::GetCurrentThreadTraceId() {
 #endif
 }
 #endif  // SUPPORT_TIMELINE
+
+char* OSThread::GetCurrentThreadName() {
+#if defined(DART_HOST_OS_ANDROID)
+  // TODO(derekx): |pthread_getname_np| isn't defined on Android, so we need to
+  // find an alternative solution.
+  return nullptr;
+#elif defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS)
+  const intptr_t kNameBufferSize = 16;
+  char* name = static_cast<char*>(malloc(kNameBufferSize));
+  pthread_getname_np(pthread_self(), name, kNameBufferSize);
+  return name;
+#endif
+}
 
 ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
   ASSERT(thread != NULL);

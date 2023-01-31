@@ -80,7 +80,11 @@ static void* ThreadStart(void* data_ptr) {
   uword parameter = data->parameter();
   delete data;
 
-  // Set the thread name.
+  // Set the thread name. We need to impose a limit on the name length so that
+  // we can know how large of a buffer to use when retrieving the name. We
+  // truncate the name at 16 bytes to be consistent with Android and Linux.
+  char truncated_name[16];
+  snprintf(truncated_name, sizeof(truncated_name), "%s", name);
   pthread_setname_np(name);
 
   // Call the supplied thread start function handing it its parameters.

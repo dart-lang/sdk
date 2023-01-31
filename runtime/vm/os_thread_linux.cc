@@ -148,7 +148,7 @@ static void* ThreadStart(void* data_ptr) {
   OSThread* thread = OSThread::CreateOSThread();
   if (thread != NULL) {
     OSThread::SetCurrent(thread);
-    thread->set_name(name);
+    thread->SetName(name);
     UnblockSIGPROF();
     // Call the supplied thread start function handing it its parameters.
     function(parameter);
@@ -217,6 +217,13 @@ ThreadId OSThread::GetCurrentThreadTraceId() {
   return syscall(__NR_gettid);
 }
 #endif  // SUPPORT_TIMELINE
+
+char* OSThread::GetCurrentThreadName() {
+  const intptr_t kNameBufferSize = 16;
+  char* name = static_cast<char*>(malloc(kNameBufferSize));
+  pthread_getname_np(pthread_self(), name, kNameBufferSize);
+  return name;
+}
 
 ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
   ASSERT(thread != NULL);

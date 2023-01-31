@@ -96,14 +96,17 @@ static void* ThreadStart(void* data_ptr) {
   delete data;
 
   // Set the thread name.
+  char truncated_name[ZX_MAX_NAME_LEN];
+  snprintf(truncated_name, ZX_MAX_NAME_LEN, "%s", name);
   zx_handle_t thread_handle = thrd_get_zx_handle(thrd_current());
-  zx_object_set_property(thread_handle, ZX_PROP_NAME, name, strlen(name) + 1);
+  zx_object_set_property(thread_handle, ZX_PROP_NAME, truncated_name,
+                         ZX_MAX_NAME_LEN);
 
   // Create new OSThread object and set as TLS for new thread.
   OSThread* thread = OSThread::CreateOSThread();
   if (thread != NULL) {
     OSThread::SetCurrent(thread);
-    thread->set_name(name);
+    thread->SetName(name);
     // Call the supplied thread start function handing it its parameters.
     function(parameter);
   }
@@ -171,6 +174,13 @@ ThreadId OSThread::GetCurrentThreadTraceId() {
   return pthread_self();
 }
 #endif  // SUPPORT_TIMELINE
+
+char* OSThread::GetCurrentThreadName() {
+  char* name = static_cast<char*>(malloc(ZX_MAX_NAME_LEN));
+  zx_handle_t thread_handle = thrd_get_zx_handle(thrd_current());
+  zx_object_get_property(thread_handle, ZX_PROP_NAME, name, ZX_MAX_NAME_LEN);
+  return name;
+}
 
 ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
   ASSERT(thread != NULL);
