@@ -743,6 +743,12 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitRecordPatternField(RecordPatternField node) {
+    _addSuggestions(patternKeywords);
+    super.visitRecordPatternField(node);
+  }
+
+  @override
   void visitReturnStatement(ReturnStatement node) {
     if (entity == node.expression) {
       _addExpressionKeywords(node);
