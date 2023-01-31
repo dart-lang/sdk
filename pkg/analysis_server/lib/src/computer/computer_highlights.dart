@@ -1425,7 +1425,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitWhenClause(WhenClause node) {
-    computer._addRegion_token(node.whenKeyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(node.whenKeyword, HighlightRegionType.KEYWORD,
+        semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
     super.visitWhenClause(node);
   }
 

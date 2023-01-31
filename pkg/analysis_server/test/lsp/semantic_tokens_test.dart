@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
@@ -21,6 +23,12 @@ void main() {
 
 @reflectiveTest
 class SemanticTokensTest extends AbstractLspAnalysisServerTest {
+  @override
+  AnalysisServerOptions get serverOptions => AnalysisServerOptions()
+    ..enabledExperiments = [
+      EnableString.patterns,
+    ];
+
   Future<void> test_annotation() async {
     final content = '''
     import 'other_file.dart' as other;
@@ -650,6 +658,9 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
         print('test');
       }
       for (var item in []);
+      switch (1) {
+        case int(:var isEven) when isEven:
+      }
     }
     ''';
 
@@ -681,6 +692,19 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
           [SemanticTokenModifiers.declaration]),
       _Token('in', SemanticTokenTypes.keyword,
           [CustomSemanticTokenModifiers.control]),
+      _Token('switch', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.control]),
+      _Token('1', SemanticTokenTypes.number),
+      _Token('case', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.control]),
+      _Token('int', SemanticTokenTypes.class_),
+      _Token('var', SemanticTokenTypes.keyword),
+      // TODO(dantup): Should there be a variable declaration here?
+      // _Token('isEven', SemanticTokenTypes.variable,
+      //     [SemanticTokenModifiers.declaration]),
+      _Token('when', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.control]),
+      _Token('isEven', SemanticTokenTypes.variable),
     ];
 
     await initialize();
