@@ -15,16 +15,12 @@ static method test(dynamic x) → dynamic {
     core::int as;
     final dynamic #0#0 = x;
     late final core::int? #0#2 = #0#0{self::C}.{self::C::f}{core::int?};
-    dynamic #t2;
-    if(#0#0 is{ForNonNullableByDefault} self::C && (#0#2 is{ForNonNullableByDefault} core::int && (let final dynamic #t3 = as = #0#2 in true))) {
+    if(#0#0 is{ForNonNullableByDefault} self::C && (#0#2 is{ForNonNullableByDefault} core::int && (let final dynamic #t2 = as = #0#2 in true)))
       #t1 = 0;
-      #t2 = as;
-    }
     switch(#t1) {
       #L2:
       case #C1:
         {
-          core::int as = #t2{core::int};
           {
             break #L1;
           }

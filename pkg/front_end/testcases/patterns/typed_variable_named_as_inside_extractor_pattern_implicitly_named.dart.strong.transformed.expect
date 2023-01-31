@@ -30,16 +30,12 @@ Try correcting the name to the name of an existing getter, or defining a getter 
     case C(: int as):
          ^^" in #0#0{self::C}{<unresolved>}.as;
     late final dynamic #0#2 = ##0#2#initializer(){() → dynamic};
-    dynamic #t2;
-    if(#0#0 is{ForNonNullableByDefault} self::C && (#0#2 is{ForNonNullableByDefault} core::int && (let final core::int #t3 = as = #0#2{core::int} in true))) {
+    if(#0#0 is{ForNonNullableByDefault} self::C && (#0#2 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = as = #0#2{core::int} in true)))
       #t1 = 0;
-      #t2 = as;
-    }
     switch(#t1) {
       #L2:
       case #C1:
         {
-          core::int as = #t2{core::int};
           {
             break #L1;
           }

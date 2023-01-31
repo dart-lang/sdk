@@ -129,6 +129,11 @@ import 'utils.dart';
 // TODO(ahe): Remove this and ensure all nodes have a location.
 const int noLocation = TreeNode.noOffset;
 
+/// The name of the scope corresponding to a head of a switch case
+///
+/// The name is used in assertions and for debugging.
+const String caseHeadScopeName = "case-head";
+
 enum JumpTargetKind {
   Break,
   Continue,
@@ -2509,9 +2514,41 @@ class BodyBuilder extends StackListenerImpl
   @override
   void beginCaseExpression(Token caseKeyword) {
     debugEvent("beginCaseExpression");
+
+    // Case heads can be preceded by labels. The scope that we need to exit lies
+    // under the labels on the stack.
+    List<Label>? labels;
+    Object? value;
+    do {
+      assert(checkState(caseKeyword, [
+        unionOfKinds([ValueKinds.Label, ValueKinds.Scope])
+      ]));
+      value = pop();
+      if (value is Label) {
+        (labels ??= <Label>[]).add(value);
+      }
+    } while (value is! Scope);
+    push(value);
+
+    // Scope of the preceding case head or a sentinel if it's the first head.
+    assert(
+        scope.classNameOrDebugName == caseHeadScopeName,
+        "Expected to have scope 'case-head', "
+        "but got '${scope.classNameOrDebugName}'.");
+    exitLocalScope();
+
+    // Return labels back on the stack.
+    if (labels != null) {
+      for (int i = labels.length - 1; i >= 0; i--) {
+        push(labels[i]);
+      }
+    }
+
+    enterLocalScope(caseHeadScopeName);
     super.push(constantContext);
     constantContext = ConstantContext.inferred;
-    assert(checkState(caseKeyword, [ValueKinds.ConstantContext]));
+    assert(checkState(
+        caseKeyword, [ValueKinds.ConstantContext, ValueKinds.Scope]));
   }
 
   @override
@@ -2531,6 +2568,7 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Pattern,
       ]),
       ValueKinds.ConstantContext,
+      ValueKinds.Scope,
     ]));
 
     Expression? guard;
@@ -2539,6 +2577,11 @@ class BodyBuilder extends StackListenerImpl
     }
     Object? value = pop();
     constantContext = pop() as ConstantContext;
+    Scope headScope = pop() as Scope;
+    assert(
+        headScope.classNameOrDebugName == "switch block",
+        "Expected to have scope 'switch block', "
+        "but got '${headScope.classNameOrDebugName}'.");
     if (value is Pattern) {
       super.push(new ExpressionOrPatternGuardCase.patternGuard(
           caseKeyword.charOffset, new PatternGuard(value, guard)));
@@ -2550,7 +2593,9 @@ class BodyBuilder extends StackListenerImpl
       super.push(new ExpressionOrPatternGuardCase.expression(
           caseKeyword.charOffset, expression));
     }
-    assert(checkState(colon, [ValueKinds.ExpressionOrPatternGuardCase]));
+    push(headScope);
+    assert(checkState(
+        colon, [ValueKinds.Scope, ValueKinds.ExpressionOrPatternGuardCase]));
   }
 
   @override
@@ -7306,6 +7351,7 @@ class BodyBuilder extends StackListenerImpl
     enterLocalScope("switch block");
     enterSwitchScope();
     enterBreakTarget(token.charOffset);
+    enterLocalScope(caseHeadScopeName); // Sentinel scope.
   }
 
   @override
@@ -7318,34 +7364,54 @@ class BodyBuilder extends StackListenerImpl
             unionOfKinds([
               ValueKinds.Label,
               ValueKinds.ExpressionOrPatternGuardCase,
+              ValueKinds.Scope,
             ]),
             count)));
-    List<Object>? labelsExpressionsAndPatterns =
-        const FixedNullableList<Object>()
-            .popNonNullable(stack, count, dummyLabel);
+    assert(scope.classNameOrDebugName == caseHeadScopeName);
+
+    Scope? switchCaseScope;
     List<Label>? labels =
         labelCount == 0 ? null : new List<Label>.filled(labelCount, dummyLabel);
+    int labelIndex = labelCount - 1;
     bool containsPatterns = false;
     List<ExpressionOrPatternGuardCase> expressionOrPatterns =
         new List<ExpressionOrPatternGuardCase>.filled(
             expressionCount, dummyExpressionOrPatternGuardCase,
             growable: true);
-    int labelIndex = 0;
-    int expressionOrPatternIndex = 0;
-    if (labelsExpressionsAndPatterns != null) {
-      for (Object labelExpressionOrPattern in labelsExpressionsAndPatterns) {
-        if (labelExpressionOrPattern is Label) {
-          labels![labelIndex++] = labelExpressionOrPattern;
+    int expressionOrPatternIndex = expressionCount - 1;
+
+    for (int i = 0; i < count + 1; i++) {
+      Object? value = peek();
+      if (value is Label) {
+        labels![labelIndex--] = value;
+        pop();
+      } else if (value is Scope) {
+        assert(switchCaseScope == null);
+        if (expressionCount == 1) {
+          // The single-head case. The scope of the head should be remembered
+          // and reused later; it already contains the declared pattern
+          // variables.
+          switchCaseScope = scope;
+          exitLocalScope();
         } else {
-          expressionOrPatterns[expressionOrPatternIndex++] =
-              labelExpressionOrPattern as ExpressionOrPatternGuardCase;
-          if (labelExpressionOrPattern.patternGuard != null) {
-            containsPatterns = true;
-          }
+          // The multi-head or "default" case. The scope of the last head should
+          // be exited, and the new scope for the joint variables should be
+          // created.
+          exitLocalScope();
+          switchCaseScope = scope.createNestedScope("switch case");
         }
+      } else {
+        expressionOrPatterns[expressionOrPatternIndex--] =
+            value as ExpressionOrPatternGuardCase;
+        if (value.patternGuard != null) {
+          containsPatterns = true;
+        }
+        pop();
       }
     }
+
     assert(scope == switchScope);
+
     if (labels != null) {
       for (Label label in labels) {
         String labelName = label.name;
@@ -7367,47 +7433,60 @@ class BodyBuilder extends StackListenerImpl
     push(expressionOrPatterns);
     push(containsPatterns);
     push(labels ?? NullValues.Labels);
-    enterLocalScope("switch case");
 
+    enterLocalScope("switch case", switchCaseScope);
     List<VariableDeclaration>? jointPatternVariables;
-    for (ExpressionOrPatternGuardCase expressionOrPattern
-        in expressionOrPatterns) {
-      PatternGuard? patternGuard = expressionOrPattern.patternGuard;
-      if (patternGuard != null) {
-        if (jointPatternVariables == null) {
-          jointPatternVariables = [
-            for (VariableDeclaration variable
-                in patternGuard.pattern.declaredVariables)
-              forest.createVariableDeclaration(
-                  variable.fileOffset, variable.name!)
-                ..isFinal = variable.isFinal
-          ];
-        } else {
-          Map<String, VariableDeclaration> patternVariablesByName = {
-            for (VariableDeclaration variable
-                in patternGuard.pattern.declaredVariables)
-              variable.name!: variable
-          };
-          List<VariableDeclaration> sharedVariables = [];
-          for (VariableDeclaration jointVariable in jointPatternVariables) {
-            VariableDeclaration? patternVariable =
-                patternVariablesByName[jointVariable.name!];
-            if (patternVariable != null &&
-                patternVariable.isFinal == jointVariable.isFinal) {
-              sharedVariables.add(jointVariable);
+    if (expressionCount > 1) {
+      for (ExpressionOrPatternGuardCase expressionOrPattern
+          in expressionOrPatterns) {
+        PatternGuard? patternGuard = expressionOrPattern.patternGuard;
+        if (patternGuard != null) {
+          if (jointPatternVariables == null) {
+            jointPatternVariables = [
+              for (VariableDeclaration variable
+                  in patternGuard.pattern.declaredVariables)
+                forest.createVariableDeclaration(
+                    variable.fileOffset, variable.name!)
+                  ..isFinal = variable.isFinal
+            ];
+          } else {
+            Map<String, VariableDeclaration> patternVariablesByName = {
+              for (VariableDeclaration variable
+                  in patternGuard.pattern.declaredVariables)
+                variable.name!: variable
+            };
+            List<VariableDeclaration> sharedVariables = [];
+            for (VariableDeclaration jointVariable in jointPatternVariables) {
+              VariableDeclaration? patternVariable =
+                  patternVariablesByName[jointVariable.name!];
+              if (patternVariable != null &&
+                  patternVariable.isFinal == jointVariable.isFinal) {
+                sharedVariables.add(jointVariable);
+              }
             }
+            jointPatternVariables = sharedVariables;
           }
-          jointPatternVariables = sharedVariables;
         }
       }
-    }
-    if (jointPatternVariables != null) {
-      if (jointPatternVariables.isEmpty) {
-        jointPatternVariables = null;
-      } else {
-        for (VariableDeclaration jointVariable in jointPatternVariables) {
-          declareVariable(jointVariable, scope);
-          typeInferrer.assignedVariables.declare(jointVariable);
+      if (jointPatternVariables != null) {
+        if (jointPatternVariables.isEmpty) {
+          jointPatternVariables = null;
+        } else {
+          for (VariableDeclaration jointVariable in jointPatternVariables) {
+            declareVariable(jointVariable, scope);
+            typeInferrer.assignedVariables.declare(jointVariable);
+          }
+        }
+      }
+    } else if (expressionCount == 1) {
+      PatternGuard? patternGuard = expressionOrPatterns.single.patternGuard;
+      if (patternGuard != null && patternGuard.guard == null) {
+        // If the guard is omitted, the variables weren't declared in the scope
+        // yet, and we need to declare them here.
+        for (VariableDeclaration variable
+            in patternGuard.pattern.declaredVariables) {
+          declareVariable(variable, scope);
+          typeInferrer.assignedVariables.declare(variable);
         }
       }
     }
@@ -7432,9 +7511,15 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
+      ValueKinds.ConstantContext,
     ]));
+
+    // Here we declare the pattern variables in the scope of the case head. It
+    // makes the variables visible in the 'when' clause of the head. Note that
+    // if the 'when' clause is omitted, the variables will not be declared. In
+    // that case if the head is the single head of the switch case, those
+    // variables need to be declared at the beginning of the case body.
     Object? pattern = peek();
-    enterLocalScope("case-guard");
     if (pattern is Pattern) {
       for (VariableDeclaration variable in pattern.declaredVariables) {
         declareVariable(variable, scope);
@@ -7455,11 +7540,9 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Generator
       ]),
       ValueKinds.ConstantContext,
-      ValueKinds.Scope,
     ]));
     Object? guard = pop();
     constantContext = pop() as ConstantContext;
-    exitLocalScope();
     push(guard);
   }
 
@@ -7487,7 +7570,11 @@ class BodyBuilder extends StackListenerImpl
     Statement block = popBlock(statementCount, firstToken, null);
     List<VariableDeclaration>? jointPatternVariables =
         pop() as List<VariableDeclaration>?;
+
+    assert(scope.classNameOrDebugName == "switch case" ||
+        scope.classNameOrDebugName == caseHeadScopeName);
     exitLocalScope();
+
     List<Label>? labels = pop() as List<Label>?;
     assert(labels == null || labels.isNotEmpty);
     bool containsPatterns = pop() as bool;
@@ -7528,7 +7615,9 @@ class BodyBuilder extends StackListenerImpl
         ..fileOffset = firstToken.charOffset);
     }
     push(labels ?? NullValues.Labels);
+    enterLocalScope(caseHeadScopeName); // Sentinel scope.
     assert(checkState(firstToken, [
+      ValueKinds.Scope,
       ValueKinds.LabelListOrNull,
       ValueKinds.SwitchCase,
     ]));
@@ -7538,7 +7627,7 @@ class BodyBuilder extends StackListenerImpl
   void endSwitchStatement(Token switchKeyword, Token endToken) {
     debugEvent("SwitchStatement");
     assert(checkState(switchKeyword, [
-      /* labelUsers = */ ValueKinds.StatementListList,
+      /* labelUsers = */ ValueKinds.StatementListOrNullList,
       /* cases = */ ValueKinds.SwitchCaseList,
       /* containsPatterns */ ValueKinds.Bool,
       /* break target = */ ValueKinds.BreakTarget,
@@ -7546,7 +7635,7 @@ class BodyBuilder extends StackListenerImpl
       /* local scope = */ ValueKinds.Scope,
       /* expression = */ ValueKinds.Condition,
     ]));
-    List<List<Statement>> labelUsers = pop() as List<List<Statement>>;
+    List<List<Statement>?> labelUsers = pop() as List<List<Statement>?>;
     List<SwitchCase> cases = pop() as List<SwitchCase>;
     bool containsPatterns = pop() as bool;
     JumpTarget target = exitBreakTarget()!;
@@ -7579,7 +7668,10 @@ class BodyBuilder extends StackListenerImpl
               hasLabel: switchCase.hasLabel,
               jointVariables: []);
         }
-        patternSwitchCase.labelUsers.addAll(labelUsers[index]);
+        List<Statement>? users = labelUsers[index];
+        if (users != null) {
+          patternSwitchCase.labelUsers.addAll(users);
+        }
         return patternSwitchCase;
       });
       switchStatement = new PatternSwitchStatement(
@@ -7695,18 +7787,22 @@ class BodyBuilder extends StackListenerImpl
   @override
   void endSwitchBlock(int caseCount, Token beginToken, Token endToken) {
     debugEvent("SwitchBlock");
-    assert(checkState(
-        beginToken,
-        repeatedKinds([
-          ValueKinds.LabelListOrNull,
-          ValueKinds.SwitchCase,
-        ], caseCount)));
+    assert(checkState(beginToken, [
+      ValueKinds.Scope,
+      ...repeatedKinds([
+        ValueKinds.LabelListOrNull,
+        ValueKinds.SwitchCase,
+      ], caseCount)
+    ]));
+
+    assert(scope.classNameOrDebugName == caseHeadScopeName);
+    exitLocalScope(); // Exit the sentinel scope.
+
     bool containsPatterns = false;
     List<SwitchCase> cases =
         new List<SwitchCase>.filled(caseCount, dummySwitchCase, growable: true);
-    List<List<Statement>> caseLabelUsers = new List<List<Statement>>.filled(
-        caseCount, const <Statement>[],
-        growable: true);
+    List<List<Statement>?> caseLabelUsers =
+        new List<List<Statement>?>.filled(caseCount, null, growable: true);
     for (int i = caseCount - 1; i >= 0; i--) {
       List<Label>? labels = pop() as List<Label>?;
       SwitchCase current = cases[i] = pop() as SwitchCase;
@@ -7714,8 +7810,7 @@ class BodyBuilder extends StackListenerImpl
         for (Label label in labels) {
           JumpTarget? target = switchScope!.lookupLabel(label.name);
           if (target != null) {
-            caseLabelUsers[i] =
-                new List<Statement>.of(target.users, growable: true);
+            (caseLabelUsers[i] ??= <Statement>[]).addAll(target.users);
             target.resolveGotos(forest, current);
           }
         }
@@ -7761,7 +7856,7 @@ class BodyBuilder extends StackListenerImpl
     push(cases);
     push(caseLabelUsers);
     assert(checkState(beginToken, [
-      ValueKinds.StatementListList,
+      ValueKinds.StatementListOrNullList,
       ValueKinds.SwitchCaseList,
       ValueKinds.Bool,
     ]));

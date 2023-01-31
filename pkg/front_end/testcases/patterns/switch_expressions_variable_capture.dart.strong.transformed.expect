@@ -113,34 +113,21 @@ static method test3(dynamic x) → dynamic {
     function ##0#7#initializer() → dynamic
       return #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
     late final dynamic #0#7 = ##0#7#initializer(){() → dynamic};
-    dynamic #t11;
-    dynamic #t12;
-    dynamic #t13;
-    dynamic #t14;
-    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t15 = a = #0#6{core::int} in true)) && (#0#7 is{ForNonNullableByDefault} core::int && (let final core::int #t16 = b = #0#7{core::int} in true)) && (self::captured = (dynamic x) → core::int {
+    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t11 = a = #0#6{core::int} in true)) && (#0#7 is{ForNonNullableByDefault} core::int && (let final core::int #t12 = b = #0#7{core::int} in true)) && (self::captured = (dynamic x) → core::int {
       return a.{core::num::+}(b){(core::num) → core::int};
-    }) is{ForNonNullableByDefault} dynamic) {
+    }) is{ForNonNullableByDefault} dynamic)
       #t10 = 0;
-      #t11 = a;
-      #t12 = b;
-    }
     else
-      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::String && (let final core::String #t17 = a' = #0#6{core::String} in true)) && (#0#7 is{ForNonNullableByDefault} core::String && (let final core::String #t18 = b' = #0#7{core::String} in true)) && (self::captured = (dynamic x) → core::String {
+      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::String && (let final core::String #t13 = a' = #0#6{core::String} in true)) && (#0#7 is{ForNonNullableByDefault} core::String && (let final core::String #t14 = b' = #0#7{core::String} in true)) && (self::captured = (dynamic x) → core::String {
         return a'.{core::String::+}(b'){(core::String) → core::String};
-      }) is{ForNonNullableByDefault} dynamic) {
+      }) is{ForNonNullableByDefault} dynamic)
         #t10 = 1;
-        #t13 = a';
-        #t14 = b';
-      }
-      else {
+      else
         #t10 = 2;
-      }
     switch(#t10) {
       #L9:
       case #C1:
         {
-          core::int a = #t11{core::int};
-          core::int b = #t12{core::int};
           {
             return self::captured!(a = b){(dynamic) → dynamic};
           }
@@ -148,10 +135,8 @@ static method test3(dynamic x) → dynamic {
       #L10:
       case #C3:
         {
-          core::String a = #t13{core::String};
-          core::String b = #t14{core::String};
           {
-            return self::captured!(a = b){(dynamic) → dynamic};
+            return self::captured!(a' = b'){(dynamic) → dynamic};
           }
         }
       #L11:

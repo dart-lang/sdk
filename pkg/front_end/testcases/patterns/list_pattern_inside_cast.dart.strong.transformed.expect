@@ -7,9 +7,8 @@ static method test(dynamic x) → dynamic {
   {
     core::int #t1 = -1;
     final dynamic #0#0 = x;
-    if(let final core::Object #t2 = let dynamic #t3 = #0#0 in #t3 == null ?{core::Object} #t3 as{ForNonNullableByDefault} core::Object : #t3{core::Object} in (let dynamic #t4 = #0#0 in #t4 == null ?{core::Object} #t4 as{ForNonNullableByDefault} core::Object : #t4{core::Object}) is{ForNonNullableByDefault} core::List<dynamic> && ((let dynamic #t5 = #0#0 in #t5 == null ?{core::Object} #t5 as{ForNonNullableByDefault} core::Object : #t5{core::Object}) as{ForNonNullableByDefault} core::List<dynamic>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && #C1 =={core::num::==}{(core::Object) → core::bool} ((let dynamic #t6 = #0#0 in #t6 == null ?{core::Object} #t6 as{ForNonNullableByDefault} core::Object : #t6{core::Object}) as{ForNonNullableByDefault} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic}) {
+    if(let final core::Object #t2 = let dynamic #t3 = #0#0 in #t3 == null ?{core::Object} #t3 as{ForNonNullableByDefault} core::Object : #t3{core::Object} in (let dynamic #t4 = #0#0 in #t4 == null ?{core::Object} #t4 as{ForNonNullableByDefault} core::Object : #t4{core::Object}) is{ForNonNullableByDefault} core::List<dynamic> && ((let dynamic #t5 = #0#0 in #t5 == null ?{core::Object} #t5 as{ForNonNullableByDefault} core::Object : #t5{core::Object}) as{ForNonNullableByDefault} core::List<dynamic>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && #C1 =={core::num::==}{(core::Object) → core::bool} ((let dynamic #t6 = #0#0 in #t6 == null ?{core::Object} #t6 as{ForNonNullableByDefault} core::Object : #t6{core::Object}) as{ForNonNullableByDefault} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic})
       #t1 = 0;
-    }
     switch(#t1) {
       #L2:
       case #C2:

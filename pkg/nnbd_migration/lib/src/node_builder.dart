@@ -761,6 +761,18 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
             declaredElement.enclosingElement, parameters!.parent);
         instrumentation?.implicitReturnType(source, node, decoratedReturnType);
       } else {
+        // If the function expression just throws, analyzer will infer `Null`
+        // return type is legacy mode. This causes unnecessary casts at the
+        // fix generation phase. So change it back to `Never`.
+        if (body is ExpressionFunctionBody &&
+            body.expression is ThrowExpression &&
+            functionType.returnType == _typeProvider.nullType) {
+          functionType = FunctionTypeImpl(
+              typeFormals: functionType.typeFormals,
+              parameters: functionType.parameters,
+              returnType: _typeProvider.neverType,
+              nullabilitySuffix: functionType.nullabilitySuffix);
+        }
         // Inferred return type.
         decoratedReturnType = DecoratedType.forImplicitType(
             _typeProvider, functionType.returnType, _graph, target);

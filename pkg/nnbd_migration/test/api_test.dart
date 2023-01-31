@@ -4690,6 +4690,28 @@ int? test(C c) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_function_expression_never() async {
+    var content = '''
+typedef CB = int Function(Object o);
+abstract class C {
+  void m(CB cb);
+}
+void f(C c) {
+  c.m((_) => throw Exception());
+}
+''';
+    var expected = '''
+typedef CB = int Function(Object o);
+abstract class C {
+  void m(CB cb);
+}
+void f(C c) {
+  c.m((_) => throw Exception());
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_function_expression_return() async {
     var content = '''
 void test({String foo}) async {

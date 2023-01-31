@@ -1,0 +1,94 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test(dynamic x) → dynamic {
+  () → void setToOne = () → void {};
+  #L1:
+  {
+    core::int #t1 = -1;
+    core::int y;
+    core::int y';
+    core::double y'';
+    final dynamic #0#0 = x;
+    function ##0#2#initializer() → core::int
+      return #0#0{core::List<dynamic>}.{core::List::length}{core::int};
+    late final core::int #0#2 = ##0#2#initializer(){() → core::int};
+    function ##0#4#initializer() → core::bool
+      return #0#2 =={core::num::==}{(core::Object) → core::bool} #C1;
+    late final core::bool #0#4 = ##0#4#initializer(){() → core::bool};
+    function ##0#6#initializer() → dynamic
+      return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    late final dynamic #0#6 = ##0#6#initializer(){() → dynamic};
+    function ##0#7#initializer() → dynamic
+      return #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
+    late final dynamic #0#7 = ##0#7#initializer(){() → dynamic};
+    dynamic #t2;
+    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t3 = y = #0#6{core::int} in true)) && (let final dynamic #t4 = #0#7 in true) && (() → core::bool {
+      setToOne = () → void {
+        y = 1;
+      };
+      return true;
+    })(){() → core::bool} && (let final core::int #t5 = #t2 = y in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (let final dynamic #t6 = #0#6 in true) && (#0#7 is{ForNonNullableByDefault} core::int && (let final core::int #t7 = y' = #0#7{core::int} in true)) && (() → core::bool {
+      setToOne = () → void {
+        y' = 1;
+      };
+      return true;
+    })(){() → core::bool} && (let final core::int #t8 = #t2 = y' in true))
+      #t1 = 0;
+    else
+      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#2 =={core::num::==}{(core::Object) → core::bool} #C2 && (#0#6 is{ForNonNullableByDefault} core::double && (let final core::double #t9 = y'' = #0#6{core::double} in true)) && (() → core::bool {
+        setToOne = () → void {
+          y'' = 1.0;
+        };
+        return true;
+      })(){() → core::bool})
+        #t1 = 1;
+      else
+        #t1 = 2;
+    switch(#t1) {
+      #L2:
+      case #C3:
+        {
+          core::int y = #t2{core::int};
+          {
+            setToOne(){() → void};
+            return y;
+          }
+        }
+      #L3:
+      case #C2:
+        {
+          {
+            setToOne(){() → void};
+            return y'';
+          }
+        }
+      #L4:
+      case #C1:
+      default:
+        {
+          {
+            return null;
+          }
+        }
+    }
+  }
+}
+static method main() → dynamic {
+  self::expectEquals(self::test(core::_GrowableList::_literal2<core::Object>(0, "foo")), 0);
+  self::expectEquals(self::test(core::_GrowableList::_literal2<core::Object>("foo", 0)), 0);
+  self::expectEquals(self::test(core::_GrowableList::_literal1<core::double>(3.14)), 1.0);
+  self::expectEquals(self::test(null), null);
+}
+static method expectEquals(dynamic x, dynamic y) → dynamic {
+  if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {
+    throw "Expected ${x} to be equal to ${y}.";
+  }
+}
+
+constants  {
+  #C1 = 2
+  #C2 = 1
+  #C3 = 0
+}

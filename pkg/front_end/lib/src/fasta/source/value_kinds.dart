@@ -166,8 +166,8 @@ class ValueKinds {
   static const ValueKind Statement = const SingleValueKind<type.Statement>();
   static const ValueKind StatementOrNull =
       const SingleValueKind<type.Statement>(NullValues.Block);
-  static const ValueKind StatementListList =
-      const SingleValueKind<List<List<type.Statement>>>();
+  static const ValueKind StatementListOrNullList =
+      const SingleValueKind<List<List<type.Statement>?>>();
   static const ValueKind Token = const SingleValueKind<type.Token>();
   static const ValueKind TokenOrNull =
       const SingleValueKind<type.Token>(NullValues.Token);

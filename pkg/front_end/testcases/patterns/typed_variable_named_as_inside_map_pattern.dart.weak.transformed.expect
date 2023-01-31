@@ -11,16 +11,12 @@ static method test(dynamic x) → dynamic {
     function ##0#8#initializer() → dynamic
       return #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic};
     late final dynamic #0#8 = ##0#8#initializer(){() → dynamic};
-    dynamic #t2;
-    if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && (#0#8 is{ForNonNullableByDefault} core::int && (let final core::int #t3 = as = #0#8{core::int} in true))) {
+    if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && (#0#8 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = as = #0#8{core::int} in true)))
       #t1 = 0;
-      #t2 = as;
-    }
     switch(#t1) {
       #L2:
       case #C3:
         {
-          core::int as = #t2{core::int};
           {
             break #L1;
           }

@@ -232,9 +232,6 @@ nnbd_mixed/messages_with_types_opt_in: TypeCheckError
 nnbd_mixed/messages_with_types_opt_out: TypeCheckError
 nnbd_mixed/mixin_from_opt_in/main: RuntimeError
 patterns/shared_errors: TypeCheckError
-patterns/simple_switch_with_guards_error: Crash
-patterns/simple_switch_with_guards_runtime: Crash
-patterns/switch_expressions_variable_capture: RuntimeError # https://github.com/dart-lang/sdk/issues/51112
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError
@@ -281,8 +278,8 @@ regress/issue_37285: RuntimeError
 regress/issue_39091_2: RuntimeError
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
-set_literals/disambiguation_rule: RuntimeError
 set_literals/disambiguation_rule2: RuntimeError
+set_literals/disambiguation_rule: RuntimeError
 value_class/copy_with_call_sites: RuntimeError # Expected
 value_class/simple: RuntimeError # Expected
 value_class/value_extends_non_value: RuntimeError # Expected

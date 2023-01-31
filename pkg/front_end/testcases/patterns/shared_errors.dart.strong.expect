@@ -110,9 +110,8 @@ static method argumentTypeNotAssignable(self::Class cls) → dynamic {
     if(#0#0.{self::Class::>=}(invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:13:13: Error: The argument type 'int' can't be assigned to the parameter type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/patterns/shared_errors.dart'.
     case >= 0: // Error
-            ^" in #C1 as{TypeError,ForNonNullableByDefault} self::Class){(self::Class) → core::bool}) {
+            ^" in #C1 as{TypeError,ForNonNullableByDefault} self::Class){(self::Class) → core::bool})
       #t1 = 0;
-    }
     switch(#t1) {
       #L2:
       case #C1:
@@ -131,9 +130,8 @@ static method relationalPatternOperatorReturnTypeNotAssignableToBool(self::Class
     if(invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:20:10: Error: A value of type 'Class' can't be assigned to a variable of type 'bool'.
  - 'Class' is from 'pkg/front_end/testcases/patterns/shared_errors.dart'.
     case > 0: // Error
-         ^") {
+         ^")
       #t2 = 0;
-    }
     switch(#t2) {
       #L4:
       case #C1:
@@ -175,9 +173,8 @@ Try removing the duplicate field.
                            ^" || invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:37:33: Error: The field 'field' is already matched in this pattern.
 Try removing the duplicate field.
     case Class(field: 1, field: 2): // Error
-                                ^") {
+                                ^")
       #t5 = 0;
-    }
     switch(#t5) {
       #L6:
       case #C1:
@@ -197,9 +194,8 @@ static method duplicateRestPattern(dynamic o) → dynamic {
     if(invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:44:16: Error: At most one rest element is allowed in a list or map pattern.
 Try removing the duplicate rest element.
     case [..., ...]: // Error
-               ^" || #0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool}) {
+               ^" || #0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #0#0{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool})
       #t6 = 0;
-    }
     switch(#t6) {
       #L8:
       case #C1:
