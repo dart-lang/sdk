@@ -170,28 +170,31 @@ class TypeAssertions {
 
   TypeAssertions(this._typeProvider);
 
-  /// Primitive assertion for the dynamic type
+  /// Primitive assertion for the dynamic type.
   Asserter<DartType> get isDynamic => isType(_typeProvider.dynamicType);
 
-  /// Primitive assertion for the int type
+  /// Primitive assertion for the int type.
   Asserter<DartType> get isInt => isType(_typeProvider.intType);
 
-  /// Primitive assertion for the list type
+  /// Primitive assertion for the list type.
   Asserter<DartType> get isList => hasElement(_typeProvider.listElement);
 
-  /// Primitive assertion for the map type
+  /// Primitive assertion for the map type.
   Asserter<DartType> get isMap => hasElement(_typeProvider.mapElement);
 
-  /// Primitive assertion for the Null type
+  /// Primitive assertion for the Never type.
+  Asserter<DartType> get isNever => isType(_typeProvider.neverType);
+
+  /// Primitive assertion for the Null type.
   Asserter<DartType> get isNull => isType(_typeProvider.nullType);
 
-  /// Primitive assertion for the num type
+  /// Primitive assertion for the num type.
   Asserter<DartType> get isNum => isType(_typeProvider.numType);
 
-  /// Primitive assertion for the Object type
+  /// Primitive assertion for the Object type.
   Asserter<DartType> get isObject => isType(_typeProvider.objectType);
 
-  /// Primitive assertion for the string type
+  /// Primitive assertion for the string type.
   Asserter<DartType> get isString => isType(_typeProvider.stringType);
 
   /// Assert that a type has the element that is equal to the [expected].
