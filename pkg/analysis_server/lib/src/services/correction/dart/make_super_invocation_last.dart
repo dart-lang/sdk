@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/extensions/range_factory.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -21,12 +22,21 @@ class MakeSuperInvocationLast extends CorrectionProducer {
     if (parent is! ConstructorDeclaration) return;
 
     var initializers = parent.initializers;
-    var firstToken = node.beginToken.precedingComments ?? node.beginToken;
-    var lastToken = node.endToken;
-    var text = utils.getRangeText(range.startEnd(firstToken, lastToken));
+    var lineInfo = resolvedResult.lineInfo;
+
+    var deletionRange =
+        range.nodeInListWithComments(lineInfo, initializers, node);
+
+    var nodeRange = range.nodeWithComments(lineInfo, node);
+    var text = utils.getRangeText(nodeRange);
+    var insertionOffset = range
+        .trailingComment(lineInfo, initializers.last.endToken,
+            returnComma: false)
+        .token
+        .end;
     await builder.addDartFileEdit(file, (builder) {
-      builder.addDeletion(range.nodeInList(initializers, node));
-      builder.addSimpleInsertion(initializers.last.end, ', $text');
+      builder.addDeletion(deletionRange);
+      builder.addSimpleInsertion(insertionOffset, ', $text');
     });
   }
 }

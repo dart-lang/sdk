@@ -99,4 +99,23 @@ class A {
 }
 ''');
   }
+
+  Future<void> test_comment_trailing() async {
+    await resolveTestCode('''
+class A {
+  final int x;
+  final int y;
+  A() :
+    x = 1, /* s1 */ super() /* s2 */ /* s3 */, /* a1 */ y = 1 /* a2 */ /* a2 */;
+}
+''');
+    await assertHasFix('''
+class A {
+  final int x;
+  final int y;
+  A() :
+    x = 1, /* a1 */ y = 1 /* a2 */ /* a2 */, /* s1 */ super() /* s2 */ /* s3 */;
+}
+''');
+  }
 }
