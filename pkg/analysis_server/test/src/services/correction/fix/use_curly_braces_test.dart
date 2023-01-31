@@ -91,6 +91,23 @@ f() {
 }
 ''');
   }
+
+  Future<void> test_pattern() async {
+    await resolveTestCode('''
+f() {
+  var json = [1, 2, 3];
+  if (json case [2, 4]) print('');
+}
+''');
+    await assertHasFix('''
+f() {
+  var json = [1, 2, 3];
+  if (json case [2, 4]) {
+    print('');
+  }
+}
+''');
+  }
 }
 
 @reflectiveTest
