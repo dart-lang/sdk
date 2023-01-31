@@ -43,8 +43,8 @@ callIt(Callable().call);
 ''';
 
 class ImplicitCallTearoffs extends LintRule {
-  static const LintCode code = LintCode('diagnostic_describe_all_properties',
-      "Implicit tear-off of the 'call' method.",
+  static const LintCode code = LintCode(
+      'implicit_call_tearoffs', "Implicit tear-off of the 'call' method.",
       correctionMessage: "Try explicitly tearing off the 'call' method.");
 
   ImplicitCallTearoffs()
