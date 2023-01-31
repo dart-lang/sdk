@@ -151,13 +151,27 @@ intptr_t SocketBase::ReceiveMessage(intptr_t fd,
   size_t num_messages = 0;
   while (cmsg != nullptr) {
     num_messages++;
+#ifndef __GLIBC__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+#endif
     cmsg = CMSG_NXTHDR(&msg, cmsg);
+#ifndef __GLIBC__
+#pragma clang diagnostic pop
+#endif
   }
   (*p_messages) = reinterpret_cast<SocketControlMessage*>(
       Dart_ScopeAllocate(sizeof(SocketControlMessage) * num_messages));
   SocketControlMessage* control_message = *p_messages;
   for (cmsg = CMSG_FIRSTHDR(&msg); cmsg != nullptr;
+#ifndef __GLIBC__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+#endif
        cmsg = CMSG_NXTHDR(&msg, cmsg), control_message++) {
+#ifndef __GLIBC__
+#pragma clang diagnostic pop
+#endif
     void* data = CMSG_DATA(cmsg);
     size_t data_length = cmsg->cmsg_len - (reinterpret_cast<uint8_t*>(data) -
                                            reinterpret_cast<uint8_t*>(cmsg));
@@ -260,7 +274,14 @@ intptr_t SocketBase::SendMessage(intptr_t fd,
     struct cmsghdr* cmsg = CMSG_FIRSTHDR(&msg);
     message = messages;
     for (intptr_t i = 0; i < num_messages;
+#ifndef __GLIBC__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+#endif
          i++, message++, cmsg = CMSG_NXTHDR(&msg, cmsg)) {
+#ifndef __GLIBC__
+#pragma clang diagnostic pop
+#endif
       ASSERT(message->is_file_descriptors_control_message());
       cmsg->cmsg_level = SOL_SOCKET;
       cmsg->cmsg_type = SCM_RIGHTS;
