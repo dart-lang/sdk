@@ -106,7 +106,8 @@ String computeLocation() {
   return match.group(0)!;
 }
 
-Statement continue_() => new _Continue(location: computeLocation());
+Statement continue_([Label? target]) =>
+    new _Continue(target, location: computeLocation());
 
 Statement declare(Var variable,
     {bool isLate = false,
@@ -810,24 +811,18 @@ class Harness {
   }
 }
 
-class Label extends Node {
-  final String _name;
+abstract class Label extends Node {
+  factory Label(String name) = _BoundLabel;
 
-  late final Node _binding;
+  factory Label.unbound() = _UnboundLabel;
 
-  Label(this._name) : super._(location: computeLocation());
+  Label._({required super.location}) : super._();
 
-  Statement thenStmt(Statement statement) {
-    if (statement is! _LabeledStatement) {
-      statement = _LabeledStatement(statement, location: computeLocation());
-    }
-    statement._labels.insert(0, this);
-    _binding = statement;
-    return statement;
-  }
+  Statement thenStmt(Statement statement);
 
-  @override
-  String toString() => _name;
+  /// Returns the statement this label has been bound to, or `null` for labels
+  /// constructed with [Label.unbound].
+  Statement? _getBinding();
 }
 
 abstract class ListPatternElement implements _ListOrMapPatternElement {}
@@ -1606,6 +1601,37 @@ class _BooleanLiteral extends Expression {
   }
 }
 
+/// Normal implementation of [Label].
+class _BoundLabel extends Label {
+  final String _name;
+
+  Statement? _binding;
+
+  _BoundLabel(this._name) : super._(location: computeLocation());
+
+  @override
+  Statement thenStmt(Statement statement) {
+    if (statement is! _LabeledStatement) {
+      statement = _LabeledStatement(statement, location: computeLocation());
+    }
+    statement._labels.insert(0, this);
+    _binding = statement;
+    return statement;
+  }
+
+  @override
+  String toString() => _name;
+
+  @override
+  Statement? _getBinding() {
+    var binding = _binding;
+    if (binding == null) {
+      fail("Unbound label $_name");
+    }
+    return binding;
+  }
+}
+
 class _Break extends Statement {
   final Label? target;
 
@@ -1619,7 +1645,10 @@ class _Break extends Statement {
 
   @override
   void visit(Harness h) {
-    h.typeAnalyzer.analyzeBreakStatement(target?._binding as Statement?);
+    var target = this.target;
+    h.typeAnalyzer.analyzeBreakStatement(target == null
+        ? h.typeAnalyzer._currentBreakTarget
+        : target._getBinding());
     h.irBuilder.apply('break', [], Kind.statement, location: location);
   }
 }
@@ -1999,7 +2028,9 @@ class _ConstantPattern extends Pattern {
 }
 
 class _Continue extends Statement {
-  _Continue({required super.location});
+  final Label? target;
+
+  _Continue(this.target, {required super.location});
 
   @override
   void preVisit(PreVisitor visitor) {}
@@ -2009,7 +2040,10 @@ class _Continue extends Statement {
 
   @override
   void visit(Harness h) {
-    h.typeAnalyzer.analyzeContinueStatement();
+    var target = this.target;
+    h.typeAnalyzer.analyzeContinueStatement(target == null
+        ? h.typeAnalyzer._currentContinueTarget
+        : target._getBinding());
     h.irBuilder.apply('continue', [], Kind.statement, location: location);
   }
 }
@@ -3278,7 +3312,7 @@ class _MiniAstTypeAnalyzer
   }
 
   void analyzeBreakStatement(Statement? target) {
-    flow.handleBreak(target ?? _currentBreakTarget!);
+    flow.handleBreak(target);
   }
 
   SimpleTypeAnalysisResult<Type> analyzeConditionalExpression(Expression node,
@@ -3294,8 +3328,8 @@ class _MiniAstTypeAnalyzer
         type: leastUpperBound(ifTrueType, ifFalseType));
   }
 
-  void analyzeContinueStatement() {
-    flow.handleContinue(_currentContinueTarget!);
+  void analyzeContinueStatement(Statement? target) {
+    flow.handleContinue(target);
   }
 
   void analyzeDoLoop(Statement node, Statement body, Expression condition) {
@@ -4682,6 +4716,23 @@ class _TryStatement extends TryStatement {
         Kind.statement,
         location: location);
   }
+}
+
+/// Variant of [Label] that causes `null` to be passed to `handleBreak` or
+/// `handleContinue`.
+class _UnboundLabel extends Label {
+  _UnboundLabel() : super._(location: computeLocation());
+
+  @override
+  Statement thenStmt(Statement statement) {
+    fail("Unbound labels can't be bound");
+  }
+
+  @override
+  String toString() => '<UNBOUND LABEL>';
+
+  @override
+  Statement? _getBinding() => null;
 }
 
 class _VariableBinder extends VariableBinder<Node, Var> {

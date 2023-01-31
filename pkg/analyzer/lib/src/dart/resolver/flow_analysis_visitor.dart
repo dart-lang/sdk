@@ -126,9 +126,7 @@ class FlowAnalysisHelper {
 
   void breakStatement(BreakStatement node) {
     var target = getLabelTarget(node, node.label?.staticElement);
-    if (target != null) {
-      flow!.handleBreak(target);
-    }
+    flow!.handleBreak(target);
   }
 
   /// Mark the [node] as unreachable if it is not covered by another node that
@@ -144,9 +142,7 @@ class FlowAnalysisHelper {
 
   void continueStatement(ContinueStatement node) {
     var target = getLabelTarget(node, node.label?.staticElement);
-    if (target != null) {
-      flow!.handleContinue(target);
-    }
+    flow!.handleContinue(target);
   }
 
   void executableDeclaration_enter(

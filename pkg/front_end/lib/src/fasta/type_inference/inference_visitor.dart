@@ -891,9 +891,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // TODO(johnniwinther): Refactor break/continue encoding.
     assert(node.targetStatement != null);
     if (node.isContinue) {
-      flowAnalysis.handleContinue(node.targetStatement!);
+      flowAnalysis.handleContinue(node.targetStatement);
     } else {
-      flowAnalysis.handleBreak(node.targetStatement!);
+      flowAnalysis.handleBreak(node.targetStatement);
     }
     return const StatementInferenceResult();
   }
