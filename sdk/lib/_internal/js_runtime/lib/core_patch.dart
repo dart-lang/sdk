@@ -584,7 +584,7 @@ class bool {
   int get hashCode => super.hashCode;
 
   @patch
-  static bool parse(String source, {bool? caseSensitive}) {
+  static bool parse(String source, {bool caseSensitive = true}) {
     var value = tryParse(source, caseSensitive: caseSensitive);
     if (value != null) return value;
     throw FormatException("Not a valid boolean", source);
