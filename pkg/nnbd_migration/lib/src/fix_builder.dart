@@ -702,9 +702,16 @@ class MigrationResolutionHooksImpl
       return _createNullCheckChange(node, expressionType);
     } else {
       _flowAnalysis!.asExpression_end(node, contextType);
-      return IntroduceAsChange(contextType,
-          isDowncast:
-              _fixBuilder._typeSystem.isSubtypeOf(contextType, expressionType));
+      var glb = _fixBuilder._typeSystem
+          .getGreatestLowerBound(contextType, expressionType);
+
+      if (glb != _fixBuilder._typeSystem.typeProvider.neverType &&
+          !identical(glb, expressionType)) {
+        return IntroduceAsChange(glb, isDowncast: true);
+      }
+      // there is no sense to do casts of unrelated types, let it fail at
+      // compile time, so users see it earlier.
+      return NoValidMigrationChange(contextType);
     }
   }
 

@@ -3527,12 +3527,7 @@ int f(Object o) {
 }
 ''');
     var xRef = findNode.simple('o;');
-    visitSubexpression(xRef, 'int', changes: {
-      xRef: isNodeChangeForExpression.havingIntroduceAsWithInfo(
-          'int',
-          isInfo(NullabilityFixDescription.otherCastExpression,
-              {FixReasonTarget.root: isEdge}))
-    });
+    visitSubexpression(xRef, 'int', changes: {xRef: isNoValidMigration});
   }
 
   Future<void> test_symbolLiteral() async {
