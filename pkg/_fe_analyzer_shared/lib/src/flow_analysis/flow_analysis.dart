@@ -171,7 +171,7 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// This may be used in future calls to [assignMatchedPatternVariable] to
   /// handle nested logical-ors, or logical-ors nested within switch cases that
   /// share a body.
-  int assignMatchedPatternVariable(Variable variable, int promotionKey);
+  void assignMatchedPatternVariable(Variable variable, int promotionKey);
 
   /// Call this method when visiting a boolean literal expression.
   void booleanLiteral(Expression expression, bool value);
@@ -1057,10 +1057,9 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  int assignMatchedPatternVariable(Variable variable, int promotionKey) {
-    return _wrap('assignMatchedPatternVariable($variable, $promotionKey)',
-        () => _wrapped.assignMatchedPatternVariable(variable, promotionKey),
-        isQuery: true, isPure: false);
+  void assignMatchedPatternVariable(Variable variable, int promotionKey) {
+    _wrap('assignMatchedPatternVariable($variable, $promotionKey)',
+        () => _wrapped.assignMatchedPatternVariable(variable, promotionKey));
   }
 
   @override
@@ -3658,7 +3657,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  int assignMatchedPatternVariable(Variable variable, int promotionKey) {
+  void assignMatchedPatternVariable(Variable variable, int promotionKey) {
     int mergedKey = promotionKeyStore.keyForVariable(variable);
     VariableModel<Type> info = _current.infoFor(promotionKey);
     // Normally flow analysis is responsible for tracking whether variables are
@@ -3669,7 +3668,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     // pretend that the variable is definitely assigned, even if it isn't.
     info = info._setAssigned();
     _current = _current._updateVariableInfo(mergedKey, info);
-    return mergedKey;
   }
 
   @override
@@ -5191,7 +5189,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void assert_end() {}
 
   @override
-  int assignMatchedPatternVariable(Variable variable, int promotionKey) => 0;
+  void assignMatchedPatternVariable(Variable variable, int promotionKey) {}
 
   @override
   void booleanLiteral(Expression expression, bool value) {}
