@@ -6259,3 +6259,21 @@ MissingVariablePattern:
     method(x) {
       if (x case [var a] || _) {}
     }
+
+MapPatternTypeArgumentMismatch:
+  problemMessage: "A map pattern requires exactly two type arguments."
+  analyzerCode: EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS
+  experiments: patterns
+  script: |
+    method(x) {
+      if (x case <int>{}) {}
+    }
+
+ListPatternTooManyTypeArguments:
+  problemMessage: "A list pattern requires exactly one type argument."
+  analyzerCode: EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS
+  experiments: patterns
+  script: |
+    method(x) {
+      if (x case <int, int>[]) {}
+    }
