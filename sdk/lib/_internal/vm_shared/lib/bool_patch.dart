@@ -24,7 +24,7 @@ class bool {
   int get _identityHashCode => this ? 1231 : 1237;
 
   @patch
-  static bool parse(String source, {bool? caseSensitive}) {
+  static bool parse(String source, {bool caseSensitive = true}) {
     checkNotNullable(source, "source");
     // The caseSensitive defaults to true.
     if (caseSensitive == null || caseSensitive == true) {
