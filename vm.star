@@ -329,7 +329,7 @@ dart_vm_sanitizer_builder(
     category = "vm|misc|sanitizer|m",
 )
 dart_vm_sanitizer_builder(
-    "vm-nnbd-linux-release-x64",
+    "vm-tsan-linux-release-x64",
     category = "vm|misc|sanitizer|t",
 )
 dart_vm_sanitizer_builder(
