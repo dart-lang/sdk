@@ -1,0 +1,20 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test1([@vm.inferred-type.metadata=dart.core::_Closure] core::Function x, [@vm.inferred-type.metadata=dart.core::_Closure] core::Object y) → core::bool
+  return [@vm.direct-call.metadata=dart.core::_Closure.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] x =={core::Function::==}{(core::Object) → core::bool} y;
+static method test2([@vm.inferred-type.metadata=dart.core::_Closure] () → void x, [@vm.inferred-type.metadata=dart.core::_Closure] core::Object y) → core::bool
+  return [@vm.direct-call.metadata=dart.core::_Closure.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] x =={core::Object::==}{(core::Object) → core::bool} y;
+static method foo1() → void {}
+static method foo2() → void {}
+static method main() → void {
+  self::test1(#C1, #C1);
+  self::test1(#C2, #C2);
+  self::test2(#C1, #C2);
+  self::test2(#C2, #C1);
+}
+constants  {
+  #C1 = static-tearoff self::foo1
+  #C2 = static-tearoff self::foo2
+}

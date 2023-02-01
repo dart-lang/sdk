@@ -70,6 +70,7 @@ abstract class TypesBuilder {
   /// Return [TFClass] corresponding to the given [classNode].
   TFClass getTFClass(Class classNode);
 
+  late final Type functionType = ConeType(getTFClass(coreTypes.functionClass));
   late final Type recordType = ConeType(getTFClass(coreTypes.recordClass));
 
   /// Create a Type which corresponds to a set of instances constrained by
@@ -86,8 +87,8 @@ abstract class TypesBuilder {
     } else if (type is NeverType || type is NullType) {
       result = const EmptyType();
     } else if (type is FunctionType) {
-      // TODO(alexmarkov): support function types
-      result = const AnyType();
+      // TODO(alexmarkov): support inference of function types
+      result = functionType;
     } else if (type is RecordType) {
       // TODO(dartbug.com/49719): support inference of record types
       result = recordType;
