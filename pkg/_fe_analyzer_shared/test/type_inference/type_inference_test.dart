@@ -442,7 +442,7 @@ main() {
                       'varPattern(x, matchedType: double, staticType: double), '
                       'varPattern(x, matchedType: double, staticType: '
                       'double), matchedType: double), true, variables('
-                      'notConsistent dynamic x = [x1, x2])), expr(int)), '
+                      'notConsistent double x = [x1, x2])), expr(int)), '
                       'case(default, expr(int)))',
                     )
                     .stmt,
@@ -469,7 +469,7 @@ main() {
                       'varPattern(x, matchedType: double, staticType: double), '
                       'varPattern(x, matchedType: double, staticType: '
                       'num), matchedType: double), true, variables('
-                      'notConsistent dynamic x = [x1, x2])), expr(int)), '
+                      'notConsistent error x = [x1, x2])), expr(int)), '
                       'case(default, expr(int)))',
                     )
                     .stmt,
@@ -895,7 +895,7 @@ main() {
                       'matchedType: int, staticType: num), true, '
                       'variables(x1)), head(varPattern(x, matchedType: int, '
                       'staticType: int), true, variables(x2)), '
-                      'variables(notConsistent dynamic x = [x1, x2])), '
+                      'variables(notConsistent error x = [x1, x2])), '
                       'block(break())))'),
                 ]);
               });
@@ -918,7 +918,7 @@ main() {
                       'matchedType: int, staticType: num), true, variables('
                       'x1)), head(varPattern(x, matchedType: int, '
                       'staticType: int), true, variables(x2)), '
-                      'variables(notConsistent dynamic x = [x1, x2])), '
+                      'variables(notConsistent error x = [x1, x2])), '
                       'block(break())))'),
                 ]);
               });
@@ -943,7 +943,7 @@ main() {
                       'variables(x1)), head(listPattern(varPattern(x, '
                       'matchedType: int, staticType: int), matchedType: '
                       'List<int>, requiredType: List<int>), true, '
-                      'variables(x2)), variables(notConsistent dynamic '
+                      'variables(x2)), variables(notConsistent error '
                       'x = [x1, x2])), block(break())))'),
                 ]);
               });
@@ -967,7 +967,7 @@ main() {
                     'matchedType: int, staticType: int), true, variables(x1)), '
                     'head(varPattern(x, matchedType: int, staticType: int), '
                     'true, variables(x2)), variables(notConsistent '
-                    'dynamic x = [x1, x2])), block(break())))'),
+                    'int x = [x1, x2])), block(break())))'),
               ]);
             });
           });
@@ -2494,7 +2494,7 @@ main() {
                 ).checkIr('ifCase(expr(Object), logicalOrPattern(varPattern(x, '
                     'matchedType: Object, staticType: int), varPattern(x, '
                     'matchedType: Object, staticType: num), matchedType: '
-                    'Object), variables(notConsistent dynamic x = [x1, x2]), '
+                    'Object), variables(notConsistent error x = [x1, x2]), '
                     'true, block(), noop)'),
               ], expectedErrors: {
                 'inconsistentJoinedPatternVariable(variable: x = [x1, x2], '
@@ -2513,7 +2513,7 @@ main() {
                 ).checkIr('ifCase(expr(num), logicalOrPattern(varPattern(x, '
                     'matchedType: num, staticType: int), varPattern(x, '
                     'matchedType: num, staticType: num), matchedType: num), '
-                    'variables(notConsistent dynamic x = [x1, x2]), true, '
+                    'variables(notConsistent error x = [x1, x2]), true, '
                     'block(), noop)'),
               ], expectedErrors: {
                 'inconsistentJoinedPatternVariable(variable: x = [x1, x2], '
@@ -2534,7 +2534,7 @@ main() {
             ).checkIr('ifCase(expr(int), logicalOrPattern(varPattern(x, '
                 'matchedType: int, staticType: int), varPattern(x, '
                 'matchedType: int, staticType: int), matchedType: int), '
-                'variables(notConsistent dynamic x = [x1, x2]), true, '
+                'variables(notConsistent int x = [x1, x2]), true, '
                 'block(), noop)'),
           ], expectedErrors: {
             'inconsistentJoinedPatternVariable(variable: x = [x1, x2], '

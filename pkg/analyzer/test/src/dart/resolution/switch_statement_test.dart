@@ -640,7 +640,7 @@ SwitchStatement
           expression: SimpleIdentifier
             token: a
             staticElement: notConsistent a[a@54, a@81]
-            staticType: dynamic
+            staticType: int
           semicolon: ;
   rightBracket: }
 ''');

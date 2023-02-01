@@ -257,15 +257,15 @@ IfStatement
           leftOperand: SimpleIdentifier
             token: a
             staticElement: notConsistent a[a@37, a@53]
-            staticType: dynamic
+            staticType: int
           operator: >
           rightOperand: IntegerLiteral
             literal: 0
-            parameter: <null>
+            parameter: dart:core::@class::num::@method::>::@parameter::other
             staticType: int
-          staticElement: <null>
-          staticInvokeType: null
-          staticType: dynamic
+          staticElement: dart:core::@class::num::@method::>
+          staticInvokeType: bool Function(num)
+          staticType: bool
   rightParenthesis: )
   thenStatement: Block
     leftBracket: {
@@ -274,7 +274,7 @@ IfStatement
         expression: SimpleIdentifier
           token: a
           staticElement: notConsistent a[a@37, a@53]
-          staticType: dynamic
+          staticType: int
         semicolon: ;
     rightBracket: }
 ''');

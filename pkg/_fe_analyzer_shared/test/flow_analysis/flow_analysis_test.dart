@@ -6619,6 +6619,155 @@ main() {
       });
     });
 
+    group('Logical-or pattern:', () {
+      group('Joins promotions of scrutinee:', () {
+        test('LHS more promoted', () {
+          var x = Var('x');
+          // `(num() && int()) || num()` retains promotion to `num`
+          h.run([
+            declare(x, initializer: expr('Object')),
+            ifCase(
+                x.expr,
+                objectPattern(requiredType: 'num', fields: [])
+                    .and(objectPattern(requiredType: 'int', fields: []))
+                    .or(objectPattern(requiredType: 'num', fields: [])),
+                [
+                  checkPromoted(x, 'num'),
+                ]),
+          ]);
+        });
+
+        test('RHS more promoted', () {
+          var x = Var('x');
+          // `num() || (num() && int())` retains promotion to `num`
+          h.run([
+            declare(x, initializer: expr('Object')),
+            ifCase(
+                x.expr,
+                objectPattern(requiredType: 'num', fields: []).or(
+                    objectPattern(requiredType: 'num', fields: [])
+                        .and(objectPattern(requiredType: 'int', fields: []))),
+                [
+                  checkPromoted(x, 'num'),
+                ]),
+          ]);
+        });
+      });
+
+      group('Joins promotions of implicit temporary match variable:', () {
+        test('LHS more promoted', () {
+          // `(num() && int()) || num()` retains promotion to `num`
+          h.run([
+            ifCase(
+                expr('Object'),
+                objectPattern(requiredType: 'num', fields: [])
+                    .and(objectPattern(requiredType: 'int', fields: []))
+                    .or(objectPattern(requiredType: 'num', fields: []))
+                    .and(wildcard(expectInferredType: 'num')),
+                []),
+          ]);
+        });
+
+        test('RHS more promoted', () {
+          // `num() || (num() && int())` retains promotion to `num`
+          h.run([
+            ifCase(
+                expr('Object'),
+                objectPattern(requiredType: 'num', fields: [])
+                    .or(objectPattern(requiredType: 'num', fields: [])
+                        .and(objectPattern(requiredType: 'int', fields: [])))
+                    .and(wildcard(expectInferredType: 'num')),
+                []),
+          ]);
+        });
+      });
+
+      group('Joins explicitly declared variables:', () {
+        test('LHS promoted', () {
+          var x1 = Var('x', identity: 'x1');
+          var x2 = Var('x', identity: 'x2');
+          var x = PatternVariableJoin('x', expectedComponents: [x1, x2]);
+          h.run([
+            ifCase(
+                expr('int?'),
+                x1.pattern(type: 'int?').nullCheck.or(x2.pattern(type: 'int?')),
+                [
+                  checkNotPromoted(x),
+                ]),
+          ]);
+        });
+
+        test('RHS promoted', () {
+          var x1 = Var('x', identity: 'x1');
+          var x2 = Var('x', identity: 'x2');
+          var x = PatternVariableJoin('x', expectedComponents: [x1, x2]);
+          h.run([
+            ifCase(
+                expr('int?'),
+                x1.pattern(type: 'int?').or(x2.pattern(type: 'int?').nullCheck),
+                [
+                  checkNotPromoted(x),
+                ]),
+          ]);
+        });
+
+        test('Both sides promoted', () {
+          var x1 = Var('x', identity: 'x1');
+          var x2 = Var('x', identity: 'x2');
+          var x = PatternVariableJoin('x', expectedComponents: [x1, x2]);
+          h.run([
+            ifCase(
+                expr('int?'),
+                x1
+                    .pattern(type: 'int?')
+                    .nullCheck
+                    .or(x2.pattern(type: 'int?').nullCheck),
+                [
+                  checkPromoted(x, 'int'),
+                ]),
+          ]);
+        });
+      });
+
+      group(
+          'Sets join variable assigned even if variable appears on only one '
+          'side:', () {
+        test('Variable on LHS only', () {
+          var x1 = Var('x', identity: 'x1')..errorId = 'X1';
+          var x = PatternVariableJoin('x', expectedComponents: [x1]);
+          // `x` is considered assigned inside the `true` branch (even though
+          // it's not actually assigned on both sides of the or-pattern) because
+          // this avoids redundant errors.
+          h.run([
+            ifCase(expr('int?'),
+                (x1.pattern().nullCheck.or(wildcard()))..errorId = 'OR', [
+              checkAssigned(x, true),
+            ]),
+          ], expectedErrors: {
+            'logicalOrPatternBranchMissingVariable(node: OR, hasInLeft: true, '
+                'name: x, variable: X1)'
+          });
+        });
+
+        test('Variable on RHS only', () {
+          var x1 = Var('x', identity: 'x1')..errorId = 'X1';
+          var x = PatternVariableJoin('x', expectedComponents: [x1]);
+          // `x` is considered assigned inside the `true` branch (even though
+          // it's not actually assigned on both sides of the or-pattern) because
+          // this avoids redundant errors.
+          h.run([
+            ifCase(expr('int?'),
+                (wildcard().nullCheck.or(x1.pattern()))..errorId = 'OR', [
+              checkAssigned(x, true),
+            ]),
+          ], expectedErrors: {
+            'logicalOrPatternBranchMissingVariable(node: OR, hasInLeft: false, '
+                'name: x, variable: X1)'
+          });
+        });
+      });
+    });
+
     group('List pattern:', () {
       test('Not guaranteed to match', () {
         h.run([

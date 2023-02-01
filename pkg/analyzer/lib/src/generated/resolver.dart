@@ -460,6 +460,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   ExecutableElement? get enclosingFunction => _enclosingFunction;
 
   @override
+  DartType get errorType => typeProvider.dynamicType;
+
+  @override
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
       get flow => flowAnalysis.flow!;
 
@@ -904,15 +907,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
       }
     }
-  }
-
-  @override
-  List<PromotableElement>? getJoinedVariableComponents(
-      PromotableElement variable) {
-    if (variable is JoinPatternVariableElementImpl) {
-      return variable.variables;
-    }
-    return null;
   }
 
   @override

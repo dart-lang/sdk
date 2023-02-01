@@ -9103,6 +9103,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   DartType get dynamicType => const DynamicType();
 
   @override
+  DartType get errorType => const InvalidType();
+
+  @override
   void finishExpressionCase(Expression node, int caseIndex) {
     SwitchExpressionCase switchExpressionCase =
         (node as SwitchExpression).cases[caseIndex];
@@ -10029,29 +10032,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  List<VariableDeclaration>? getJoinedVariableComponents(
-    VariableDeclaration variable,
-  ) {
-    TreeNode? patternSwitchCase = variable.parent;
-    if (patternSwitchCase is PatternSwitchCase) {
-      List<VariableDeclaration> components = [];
-      for (PatternGuard patternGuard in patternSwitchCase.patternGuards) {
-        for (VariableDeclaration patternVariable
-            in patternGuard.pattern.declaredVariables) {
-          if (patternVariable.name == variable.name) {
-            components.add(patternVariable);
-          }
-        }
-      }
-      return components;
-    } else {
-      // Not a joined variable.
-      return null;
-    }
-  }
-
-  @override
-  bool isRestPatternElement(TreeNode node) {
+  bool isRestPatternElement(Node node) {
     return node is RestPattern;
   }
 

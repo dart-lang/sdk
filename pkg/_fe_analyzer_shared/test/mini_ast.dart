@@ -895,6 +895,7 @@ class MiniAstOperations
     'FutureOr<Object>': Type('Object'),
     'double': Type('double'),
     'int': Type('int'),
+    'int?': Type('int?'),
     'num': Type('num'),
     'List<int>': Type('List<int>'),
   };
@@ -3228,6 +3229,9 @@ class _MiniAstTypeAnalyzer
   _MiniAstTypeAnalyzer(this._harness, this.options);
 
   @override
+  Type get errorType => Type('error');
+
+  @override
   FlowAnalysis<Node, Statement, Expression, Var, Type> get flow =>
       _harness.flow;
 
@@ -3565,14 +3569,6 @@ class _MiniAstTypeAnalyzer
     if (!isConsistent) {
       variable.isConsistent = false;
     }
-  }
-
-  @override
-  List<Var>? getJoinedVariableComponents(Var variable) {
-    if (variable is PatternVariableJoin) {
-      return variable.expectedComponents;
-    }
-    return null;
   }
 
   @override
