@@ -433,7 +433,6 @@ mixin TypeAnalyzer<
             isImplicitlyTyped: isImplicitlyTyped);
     setVariableType(variable, staticType);
     (context.componentVariables[variableName] ??= []).add(variable);
-    flow.declare(variable, staticType, initialized: false);
     flow.assignMatchedPatternVariable(variable, promotionKey);
     return staticType;
   }
