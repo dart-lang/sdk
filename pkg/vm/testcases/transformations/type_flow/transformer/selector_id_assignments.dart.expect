@@ -105,7 +105,7 @@ static method main() → dynamic {
   {
     core::Iterator<self::A1> :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::A1>] x1.{core::Iterable::iterator}{core::Iterator<self::A1>};
     for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      self::A1 o = [@vm.direct-call.metadata=dart._internal::ListIterator.current] :sync-for-iterator.{core::Iterator::current}{self::A1};
+      self::A1 o = [@vm.direct-call.metadata=dart._internal::ListIterator.current] [@vm.inferred-type.metadata=!] :sync-for-iterator.{core::Iterator::current}{self::A1};
       o.{self::A1::foo}(){() → void};
     }
   }
@@ -113,7 +113,7 @@ static method main() → dynamic {
   {
     core::Iterator<self::A2> :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::A2>] x2.{core::Iterable::iterator}{core::Iterator<self::A2>};
     for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      self::A2 o = [@vm.direct-call.metadata=dart._internal::ListIterator.current] :sync-for-iterator.{core::Iterator::current}{self::A2};
+      self::A2 o = [@vm.direct-call.metadata=dart._internal::ListIterator.current] [@vm.inferred-type.metadata=!] :sync-for-iterator.{core::Iterator::current}{self::A2};
       o.{self::A2::foo}(){() → void};
     }
   }
@@ -121,7 +121,7 @@ static method main() → dynamic {
   {
     core::Iterator<self::A3> :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::A3>] x3.{core::Iterable::iterator}{core::Iterator<self::A3>};
     for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      self::A3 o = [@vm.direct-call.metadata=dart._internal::ListIterator.current] :sync-for-iterator.{core::Iterator::current}{self::A3};
+      self::A3 o = [@vm.direct-call.metadata=dart._internal::ListIterator.current] [@vm.inferred-type.metadata=!] :sync-for-iterator.{core::Iterator::current}{self::A3};
       o.{self::A3::foo}(){() → void};
     }
   }
@@ -129,7 +129,7 @@ static method main() → dynamic {
   {
     core::Iterator<self::A4> :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::A4>] x4.{core::Iterable::iterator}{core::Iterator<self::A4>};
     for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      self::A4 o = [@vm.direct-call.metadata=dart._internal::ListIterator.current] :sync-for-iterator.{core::Iterator::current}{self::A4};
+      self::A4 o = [@vm.direct-call.metadata=dart._internal::ListIterator.current] [@vm.inferred-type.metadata=!] :sync-for-iterator.{core::Iterator::current}{self::A4};
       o.{self::A4::foo}(){() → void};
     }
   }
@@ -137,7 +137,7 @@ static method main() → dynamic {
   {
     core::Iterator<self::B4> :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::B4>] y4.{core::Iterable::iterator}{core::Iterator<self::B4>};
     for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      self::B4 o = [@vm.direct-call.metadata=dart._internal::ListIterator.current] :sync-for-iterator.{core::Iterator::current}{self::B4};
+      self::B4 o = [@vm.direct-call.metadata=dart._internal::ListIterator.current] [@vm.inferred-type.metadata=!] :sync-for-iterator.{core::Iterator::current}{self::B4};
       o.{self::B4::foo}(){() → void};
     }
   }
@@ -145,8 +145,8 @@ static method main() → dynamic {
   {
     core::Iterator<self::C4> :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::C4>] z4.{core::Iterable::iterator}{core::Iterator<self::C4>};
     for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      self::C4 o = [@vm.direct-call.metadata=dart._internal::ListIterator.current] :sync-for-iterator.{core::Iterator::current}{self::C4};
-      [@vm.direct-call.metadata=#lib::C4.foo??] [@vm.inferred-type.metadata=!? (skip check)] o.{self::C4::foo}(){() → void};
+      self::C4 o = [@vm.direct-call.metadata=dart._internal::ListIterator.current] [@vm.inferred-type.metadata=!] :sync-for-iterator.{core::Iterator::current}{self::C4};
+      [@vm.direct-call.metadata=#lib::C4.foo] [@vm.inferred-type.metadata=!? (skip check)] o.{self::C4::foo}(){() → void};
     }
   }
 }

@@ -19,10 +19,9 @@ import '../../common_test_utils.dart';
 
 final Uri pkgVmDir = Platform.script.resolve('../../..');
 
-void runTestCase(Uri source, bool enableNullSafety,
-    List<Uri>? linkedDependencies, List<String>? experimentalFlags) async {
-  final target =
-      new TestingVmTarget(new TargetFlags(enableNullSafety: enableNullSafety));
+void runTestCase(Uri source, List<Uri>? linkedDependencies,
+    List<String>? experimentalFlags) async {
+  final target = new TestingVmTarget(new TargetFlags(enableNullSafety: true));
   Component component = await compileTestCaseToKernelProgram(source,
       target: target,
       linkedDependencies: linkedDependencies,
@@ -82,14 +81,10 @@ class TestOptions {
   static const Option<List<String>?> linked =
       Option('--linked', StringListValue());
 
-  /// If set, the test should be compiled with sound null safety.
-  static const Option<bool> nnbdStrong =
-      Option('--nnbd-strong', BoolValue(false));
-
   static const Option<List<String>?> enableExperiment =
       Option('--enable-experiment', StringListValue());
 
-  static const List<Option> options = [linked, nnbdStrong, enableExperiment];
+  static const List<Option> options = [linked, enableExperiment];
 }
 
 void main(List<String> args) {
@@ -111,7 +106,6 @@ void main(List<String> args) {
           continue;
         }
         List<Uri>? linkDependencies;
-        bool enableNullSafety = path.endsWith('_nnbd_strong.dart');
         List<String>? experimentalFlags;
 
         File optionsFile = new File('${path}.options');
@@ -124,16 +118,11 @@ void main(List<String> args) {
             linkDependencies =
                 linked.map((String name) => entry.uri.resolve(name)).toList();
           }
-          if (TestOptions.nnbdStrong.read(parsedOptions)) {
-            enableNullSafety = true;
-          }
           experimentalFlags = TestOptions.enableExperiment.read(parsedOptions);
         }
 
-        test(
-            path,
-            () => runTestCase(entry.uri, enableNullSafety, linkDependencies,
-                experimentalFlags));
+        test(path,
+            () => runTestCase(entry.uri, linkDependencies, experimentalFlags));
       }
     }
   }, timeout: Timeout.none);

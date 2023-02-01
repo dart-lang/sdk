@@ -256,7 +256,8 @@ main() {
       [nullableSetT12, nullableSetT34, nullableSetT1234, nullableEmpty],
     ];
 
-    final hierarchy = new TestTypeHierarchy(coreTypes,
+    final hierarchy = new TestTypeHierarchy(
+        coreTypes,
         // subtypes
         {
           c1: [c1],
