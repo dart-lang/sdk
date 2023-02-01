@@ -177,6 +177,9 @@ class _NaiveFloat32x4List extends Object
 
   _NaiveFloat32x4List(int length) : _storage = Float32List(length * 4);
 
+  @override
+  Type get runtimeType => Float32x4List;
+
   _NaiveFloat32x4List._externalStorage(this._storage);
 
   _NaiveFloat32x4List._slowFromList(List<Float32x4> list)
@@ -340,7 +343,10 @@ class _NaiveFloat32x4 implements Float32x4 {
 
   @override
   String toString() {
-    return '[$x, $y, $z, $w]';
+    return '[${x.toStringAsFixed(6)}, '
+        '${y.toStringAsFixed(6)}, '
+        '${z.toStringAsFixed(6)}, '
+        '${w.toStringAsFixed(6)}]';
   }
 
   Float32x4 operator +(Float32x4 other) {
