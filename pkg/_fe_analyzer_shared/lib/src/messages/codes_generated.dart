@@ -8561,6 +8561,34 @@ const MessageCode messageMissingTypedefParameters = const MessageCode(
 const Template<
     Message Function(
         String
+            name)> templateMissingVariablePattern = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Variable pattern '#name' is missing in this branch of the logical-or pattern.""",
+    correctionMessageTemplate:
+        r"""Try declaring this variable pattern in the branch.""",
+    withArguments: _withArgumentsMissingVariablePattern);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeMissingVariablePattern =
+    const Code<Message Function(String name)>("MissingVariablePattern",
+        analyzerCodes: <String>["MISSING_VARIABLE_PATTERN"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMissingVariablePattern(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeMissingVariablePattern,
+      problemMessage:
+          """Variable pattern '${name}' is missing in this branch of the logical-or pattern.""",
+      correctionMessage: """Try declaring this variable pattern in the branch.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
             name)> templateMixinApplicationNoConcreteGetter = const Template<
         Message Function(String name)>(
     problemMessageTemplate:

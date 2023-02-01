@@ -1,4 +1,12 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/typed_variable_named_as_inside_logical_or_rhs.dart:7:10: Error: Variable pattern 'as' is missing in this branch of the logical-or pattern.
+// Try declaring this variable pattern in the branch.
+//     case 1 || int as:
+//          ^
+//
 import self as self;
 import "dart:core" as core;
 

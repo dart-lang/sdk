@@ -6249,3 +6249,13 @@ RestElementWithSubpatternInMapPattern:
     method(x) {
       if (x case {...var a}) {}
     }
+
+MissingVariablePattern:
+  problemMessage: "Variable pattern '#name' is missing in this branch of the logical-or pattern."
+  correctionMessage: "Try declaring this variable pattern in the branch."
+  analyzerCode: MISSING_VARIABLE_PATTERN
+  experiments: patterns
+  script: |
+    method(x) {
+      if (x case [var a] || _) {}
+    }
