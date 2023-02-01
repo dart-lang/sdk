@@ -170,13 +170,19 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
         return error(ServerErrorCodes.RenameNotValid,
             finalStatus.problem!.message, null);
       } else if (finalStatus.hasError || finalStatus.hasWarning) {
-        // Ask the user whether to proceed with the rename.
+        // If this change would produce errors but we can't prompt the user, just
+        // fail with the message.
+        if (!server.supportsShowMessageRequest) {
+          return error(ServerErrorCodes.RenameNotValid, finalStatus.message!);
+        }
+
+        // Otherwise, ask the user whether to proceed with the rename.
         final userChoice = await server.showUserPrompt(
           MessageType.Warning,
           finalStatus.message!,
           [
-            MessageActionItem(title: UserPromptActions.renameAnyway),
-            MessageActionItem(title: UserPromptActions.cancel),
+            UserPromptActions.renameAnyway,
+            UserPromptActions.cancel,
           ],
         );
 
@@ -184,7 +190,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
           return cancelled();
         }
 
-        if (userChoice.title != UserPromptActions.renameAnyway) {
+        if (userChoice != UserPromptActions.renameAnyway) {
           // Return an empty workspace edit response so we do not perform any
           // rename, but also so we do not cause the client to show the user an
           // error after they clicked cancel.
@@ -268,15 +274,20 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
   /// class.
   Future<bool> _promptToRenameFile(
       String oldFilename, String newFilename) async {
+    // If we can't prompt, do the same as if they said no.
+    if (!server.supportsShowMessageRequest) {
+      return false;
+    }
+
     final userChoice = await server.showUserPrompt(
       MessageType.Info,
       "Rename '$oldFilename' to '$newFilename'?",
       [
-        MessageActionItem(title: UserPromptActions.yes),
-        MessageActionItem(title: UserPromptActions.no),
+        UserPromptActions.yes,
+        UserPromptActions.no,
       ],
     );
 
-    return userChoice.title == UserPromptActions.yes;
+    return userChoice == UserPromptActions.yes;
   }
 }

@@ -242,6 +242,11 @@ class LspAnalysisServer extends AnalysisServer {
   RefactoringWorkspace get refactoringWorkspace => _refactoringWorkspace ??=
       RefactoringWorkspace(driverMap.values, searchEngine);
 
+  /// Whether or not the client has advertised support for
+  /// 'window/showMessageRequest'.
+  bool get supportsShowMessageRequest =>
+      clientCapabilities?.supportsShowMessageRequest ?? false;
+
   Future<void> addPriorityFile(String filePath) async {
     // When pubspecs are opened, trigger pre-loading of pub package names and
     // versions.
@@ -789,15 +794,53 @@ class LspAnalysisServer extends AnalysisServer {
     ));
   }
 
-  /// Shows the user a prompt with some actions to select using ShowMessageRequest.
-  Future<MessageActionItem> showUserPrompt(
-      MessageType type, String message, List<MessageActionItem> actions) async {
+  /// Shows the user a prompt with some actions to select from using
+  /// 'window/showMessageRequest'.
+  ///
+  /// Callers should verify the client supports 'window/showMessageRequest' with
+  /// [supportsShowMessageRequest] before calling this, and handle cases where
+  /// it is not appropriately.
+  ///
+  /// This is just a convenience method over [showUserPromptItems] where only
+  /// title strings are used.
+  Future<String?> showUserPrompt(
+    MessageType type,
+    String message,
+    List<String> actions,
+  ) async {
+    assert(supportsShowMessageRequest);
+    final response = await showUserPromptItems(
+      type,
+      message,
+      actions.map((title) => MessageActionItem(title: title)).toList(),
+    );
+    return response?.title;
+  }
+
+  /// Shows the user a prompt with some actions to select from using
+  /// 'window/showMessageRequest'.
+  ///
+  /// Callers should verify the client supports 'window/showMessageRequest' with
+  /// [supportsShowMessageRequest] before calling this, and handle cases where
+  /// it is not appropriately.
+  ///
+  /// For simple cases, [showUserPrompt] provides a slightly simpler API using
+  /// [String]s instead of [MessageActionItem]s.
+  Future<MessageActionItem?> showUserPromptItems(
+    MessageType type,
+    String message,
+    List<MessageActionItem> actions,
+  ) async {
+    assert(supportsShowMessageRequest);
     final response = await sendRequest(
       Method.window_showMessageRequest,
       ShowMessageRequestParams(type: type, message: message, actions: actions),
     );
 
-    return MessageActionItem.fromJson(response.result as Map<String, Object?>);
+    final result = response.result;
+    return result != null
+        ? MessageActionItem.fromJson(response.result as Map<String, Object?>)
+        : null;
   }
 
   @override
