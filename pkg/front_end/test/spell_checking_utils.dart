@@ -353,9 +353,12 @@ void spellSummarizeAndInteractiveMode(
     bool interactive,
     String interactiveLaunchExample) {
   if (reportedWordsDenylisted.isNotEmpty) {
+    bool isSingular = reportedWordsDenylisted.length == 1;
+    String suffix = isSingular ? "" : "s";
+    String were = isSingular ? "was" : "were";
     print("\n\n\n");
     print("================");
-    print("The following words was reported as used and denylisted:");
+    print("The following word$suffix $were reported as used and denylisted:");
     print("----------------");
     for (String s in reportedWordsDenylisted) {
       print("$s");
@@ -363,9 +366,14 @@ void spellSummarizeAndInteractiveMode(
     print("================");
   }
   if (reportedWords.isNotEmpty) {
+    bool isSingular = reportedWords.length == 1;
+    String suffix = isSingular ? "" : "s";
+    String were = isSingular ? "was" : "were";
+    String are = isSingular ? "is" : "are";
+
     print("\n\n\n");
     print("================");
-    print("The following word(s) were reported as unknown:");
+    print("The following word$suffix $were reported as unknown:");
     print("----------------");
 
     Dictionaries? dictionaryToUse;
@@ -448,8 +456,8 @@ void spellSummarizeAndInteractiveMode(
       }
       if (dictionaries.isNotEmpty) {
         print("----------------");
-        print("If the word(s) are correctly spelled please add it to one of "
-            "these files:");
+        print("If the word$suffix $are correctly spelled please add "
+            "${isSingular ? "it" : "them separately"} to one of these files:");
         for (Dictionaries dictionary in dictionaries) {
           print(" - ${dictionaryToUri(dictionary)}");
         }
