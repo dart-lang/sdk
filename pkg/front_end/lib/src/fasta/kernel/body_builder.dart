@@ -8051,7 +8051,6 @@ class BodyBuilder extends StackListenerImpl
         typeVariables,
         libraryBuilder.loader.target.dynamicType,
         libraryBuilder.loader.target.nullType,
-        libraryBuilder.loader.target.objectClassBuilder,
         unboundTypes: unboundTypes,
         unboundTypeVariables: unboundTypeVariables);
     assert(unboundTypes.isEmpty,

@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
+import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/transformations/flags.dart';
 
 import '../builder/builder.dart';
@@ -835,7 +836,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
     valuesBuilder.buildBody(
         classHierarchy.coreTypes,
         new ListLiteral(values,
-            typeArgument: rawType(libraryBuilder.nonNullable), isConst: true));
+            typeArgument: instantiateToBounds(
+                rawType(libraryBuilder.nonNullable),
+                classHierarchy.coreTypes.objectClass,
+                libraryBuilder.library),
+            isConst: true));
 
     for (SourceFieldBuilder elementBuilder in elementBuilders) {
       elementBuilder.type.registerInferredType(
