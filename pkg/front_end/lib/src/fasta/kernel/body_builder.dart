@@ -4714,6 +4714,15 @@ class BodyBuilder extends StackListenerImpl
   void handleType(Token beginToken, Token? questionMark) {
     // TODO(ahe): The scope is wrong for return types of generic functions.
     debugEvent("Type");
+    assert(checkState(beginToken, [
+      ValueKinds.TypeArgumentsOrNull,
+      unionOfKinds([
+        ValueKinds.QualifiedName,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+      ]),
+    ]));
+
     if (!libraryBuilder.isNonNullableByDefault) {
       reportErrorIfNullableType(questionMark);
     }
@@ -4746,7 +4755,7 @@ class BodyBuilder extends StackListenerImpl
         return;
       }
     }
-    TypeBuilder? result;
+    TypeBuilder result;
     if (name is Generator) {
       bool allowPotentiallyConstantType;
       if (libraryBuilder.isNonNullableByDefault) {
@@ -4762,10 +4771,6 @@ class BodyBuilder extends StackListenerImpl
           libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable), arguments,
           allowPotentiallyConstantType: allowPotentiallyConstantType,
           performTypeCanonicalization: constantContext != ConstantContext.none);
-      // ignore: unnecessary_null_comparison
-      if (result == null) {
-        unhandled("null", "result", beginToken.charOffset, uri);
-      }
     } else if (name is ProblemBuilder) {
       // TODO(ahe): Arguments could be passed here.
       libraryBuilder.addProblem(
@@ -8716,91 +8721,19 @@ class BodyBuilder extends StackListenerImpl
     List<NamedPattern>? fields = pop() as List<NamedPattern>?;
     List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
 
-    TypeDeclarationBuilder? typeDeclaration;
-    if (secondIdentifier == null) {
-      handleIdentifier(firstIdentifier, IdentifierContext.typeReference);
-      Object? resolvedIdentifier = pop();
-      if (resolvedIdentifier is TypeUseGenerator) {
-        typeDeclaration = resolvedIdentifier.declaration;
-      } else {
-        // TODO(cstefantsova): Handle this case.
-      }
-    } else {
-      handleIdentifier(
-          firstIdentifier, IdentifierContext.prefixedTypeReference);
+    handleIdentifier(firstIdentifier, IdentifierContext.prefixedTypeReference);
+    if (secondIdentifier != null) {
       handleIdentifier(
           secondIdentifier, IdentifierContext.typeReferenceContinuation);
       handleQualified(dot!);
-      handleNoTypeArguments(secondIdentifier.next!);
-      handleType(firstIdentifier, null);
-      Object? resolvedIdentifier = pop();
-      if (resolvedIdentifier is NamedTypeBuilder) {
-        typeDeclaration = resolvedIdentifier.declaration;
-      } else {
-        // TODO(cstefantsova): Handle this case.
-      }
     }
-
-    if (typeDeclaration != null) {
-      if (typeDeclaration is TypeAliasBuilder) {
-        if (typeArguments == null ||
-            typeArguments.length ==
-                typeDeclaration.typedef.typeParameters.length) {
-          TypeDeclarationBuilder? unaliasedTypeDeclaration =
-              typeDeclaration.unaliasDeclaration(typeArguments);
-          List<TypeBuilder>? unaliasedTypeArguments =
-              typeDeclaration.unaliasTypeArguments(typeArguments);
-          if (unaliasedTypeDeclaration == null) {
-            // TODO(cstefantsova): Make sure an error is reported elsewhere.
-            push(new DummyPattern(firstIdentifier.charOffset));
-            return;
-          } else {
-            typeDeclaration = unaliasedTypeDeclaration;
-            typeArguments = unaliasedTypeArguments;
-          }
-        } else {
-          addProblem(
-              fasta.templateTypeArgumentMismatch
-                  .withArguments(typeDeclaration.typedef.typeParameters.length),
-              firstIdentifier.charOffset,
-              noLength);
-          push(new DummyPattern(firstIdentifier.charOffset));
-          return;
-        }
-      }
-
-      if (typeDeclaration is ClassBuilder) {
-        List<DartType>? builtTypeArguments;
-        if (typeArguments != null) {
-          if (typeArguments.length ==
-              typeDeclaration.cls.typeParameters.length) {
-            for (TypeBuilder typeBuilder in typeArguments) {
-              (builtTypeArguments ??= <DartType>[])
-                  .add(typeBuilder.build(libraryBuilder, TypeUse.typeArgument));
-            }
-          } else {
-            addProblem(
-                fasta.templateTypeArgumentMismatch
-                    .withArguments(typeDeclaration.cls.typeParameters.length),
-                firstIdentifier.charOffset,
-                noLength);
-            push(new DummyPattern(firstIdentifier.charOffset));
-            return;
-          }
-        }
-        push(new ObjectPattern(
-            typeDeclaration.cls.reference,
-            fields ?? <NamedPattern>[],
-            builtTypeArguments,
-            firstIdentifier.offset));
-      } else {
-        // TODO(cstefantsova): Handle other possibilities.
-        push(new DummyPattern(firstIdentifier.charOffset));
-      }
-    } else {
-      // TODO(cstefantsova): Handle the error.
-      push(new DummyPattern(firstIdentifier.charOffset));
-    }
+    push(typeArguments ?? NullValues.TypeArguments);
+    handleType(firstIdentifier, null);
+    TypeBuilder typeBuilder = pop() as TypeBuilder;
+    DartType type = buildDartType(typeBuilder, TypeUse.objectPatternType,
+        allowPotentiallyConstantType: true);
+    push(new ObjectPattern(
+        type, fields ?? <NamedPattern>[], firstIdentifier.charOffset));
   }
 
   @override

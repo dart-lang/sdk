@@ -1,12 +1,23 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/patternVariableDeclarationStatement_withMetadata_var_extractor.dart:9:7: Error: 'C' isn't a type.
+//   var C(f: a) = x;
+//       ^
+//
 import self as self;
 import "dart:_internal" as _in;
 import "dart:core" as core;
 
 static const field core::int annotation = #C1;
 static method f(dynamic x) → dynamic {
-  if(!false)
-    throw new _in::ReachabilityError::•();
+  invalid-type a;
+  {
+    final dynamic #0#0 = x;
+    if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t1 = a = #0#0{invalid-type}{<invalid>}.f in true)))
+      throw new _in::ReachabilityError::•();
+  }
 }
 
 constants  {

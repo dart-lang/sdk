@@ -5011,6 +5011,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         case TypeUse.returnType:
         case TypeUse.isType:
         case TypeUse.asType:
+        case TypeUse.objectPatternType:
         case TypeUse.catchType:
         case TypeUse.constructorTypeArgument:
         case TypeUse.redirectionTypeArgument:
