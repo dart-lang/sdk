@@ -7605,7 +7605,10 @@ class BodyBuilder extends StackListenerImpl
     bool containsPatterns = pop() as bool;
     List<ExpressionOrPatternGuardCase> expressionsOrPatternGuards =
         pop() as List<ExpressionOrPatternGuardCase>;
-    if (containsPatterns) {
+    if (containsPatterns || libraryFeatures.patterns.isEnabled) {
+      // If patterns are enabled, we always use the pattern switch encoding.
+      // Otherwise, we use pattern switch encoding to handle the erroneous case
+      // of an unsupported use of patterns.
       List<int> caseOffsets = [];
       List<PatternGuard> patternGuards = <PatternGuard>[];
       for (ExpressionOrPatternGuardCase expressionOrPatternGuard
@@ -7671,7 +7674,10 @@ class BodyBuilder extends StackListenerImpl
         "Unexpected pattern in switch statement: ${condition.patternGuard}.");
     Expression expression = condition.expression;
     Statement switchStatement;
-    if (containsPatterns) {
+    if (containsPatterns || libraryFeatures.patterns.isEnabled) {
+      // If patterns are enabled, we always use the pattern switch encoding.
+      // Otherwise, we use pattern switch encoding to handle the erroneous case
+      // of an unsupported use of patterns.
       List<PatternSwitchCase> patternSwitchCases =
           new List<PatternSwitchCase>.generate(cases.length, (int index) {
         SwitchCase switchCase = cases[index];

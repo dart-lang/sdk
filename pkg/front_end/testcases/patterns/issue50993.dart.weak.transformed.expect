@@ -102,22 +102,23 @@ static method test5(core::int value) → core::String {
 }
 static method test6(core::int value) → core::String {
   #L6:
-  switch(value) {
-    #L7:
-    case #C1:
+  {
+    final core::int #0#0 = value;
+    if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
       {
         return "case 2";
       }
-    #L8:
-    case #C3:
-    case #C4:
-      {
-        return "case 1/4";
+    }
+    else
+      if(#C3 =={core::num::==}{(core::Object) → core::bool} #0#0 || #C4 =={core::num::==}{(core::Object) → core::bool} #0#0) {
+        {
+          return "case 1/4";
+        }
       }
-    #L9:
-    default:
-      {
-        return "default";
+      else {
+        {
+          return "default";
+        }
       }
   }
 }

@@ -40,7 +40,6 @@ library /*isNonNullableByDefault*/;
 //
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 import "main_lib.dart" as mai;
 
 import "org-dartlang-testcase:///main_lib.dart";
@@ -68,136 +67,126 @@ class B extends core::_Enum /*isEnum*/  {
 }
 static method a1(self::A? a) → core::int? {
   #L1:
-  switch(a) /*isExplicitlyExhaustive*/ {
-    #L2:
-    case #C3:
+  {
+    final self::A? #0#0 = a;
+    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         return 0;
       }
-    #L3:
-    default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
+    }
   }
 }
 static method a2(self::A? a) → core::int? {
-  #L4:
-  switch(a) /*isExplicitlyExhaustive*/ {
-    #L5:
-    case #C11:
+  #L2:
+  {
+    final self::A? #0#0 = a;
+    if(#0#0 == null) {
       {
         return null;
       }
-    #L6:
-    case #C3:
-      {
-        return 0;
+    }
+    else
+      if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+        {
+          return 0;
+        }
       }
-    #L7:
-    default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
   }
 }
 static method b1(self::B b) → core::int {
-  #L8:
-  switch(b) /*isExplicitlyExhaustive*/ {
-    #L9:
-    case #C8:
+  #L3:
+  {
+    final self::B #0#0 = b;
+    if(#C8 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         return 0;
       }
-    #L10:
-    case #C9:
-      {
-        return 1;
+    }
+    else
+      if(#C9 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+        {
+          return 1;
+        }
       }
-    #L11:
-    default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
   }
 }
 static method b2(self::B? b) → core::int? {
-  #L12:
-  switch(b) /*isExplicitlyExhaustive*/ {
-    #L13:
-    case #C11:
+  #L4:
+  {
+    final self::B? #0#0 = b;
+    if(#0#0 == null) {
       {
         return null;
       }
-    #L14:
-    case #C8:
-      {
-        return 0;
+    }
+    else
+      if(#C8 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+        {
+          return 0;
+        }
       }
-    #L15:
-    default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
   }
 }
 static method c1(mai::C? c) → core::int? {
-  #L16:
-  switch(c) /*isExplicitlyExhaustive*/ {
-    #L17:
-    case #C12:
+  #L5:
+  {
+    final mai::C? #0#0 = c;
+    if(#C11 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         return 0;
       }
-    #L18:
-    default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
+    }
   }
 }
 static method c2(mai::C? c) → core::int? {
-  #L19:
-  switch(c) /*isExplicitlyExhaustive*/ {
-    #L20:
-    case #C11:
+  #L6:
+  {
+    final mai::C? #0#0 = c;
+    if(#0#0 == null) {
       {
         return null;
       }
-    #L21:
-    case #C12:
-      {
-        return 0;
+    }
+    else
+      if(#C11 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+        {
+          return 0;
+        }
       }
-    #L22:
-    default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
   }
 }
 static method d1(mai::D d) → core::int {
-  #L23:
-  switch(d) /*isExplicitlyExhaustive*/ {
-    #L24:
-    case #C13:
+  #L7:
+  {
+    final mai::D #0#0 = d;
+    if(#C12 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         return 0;
       }
-    #L25:
-    case #C14:
-      {
-        return 1;
+    }
+    else
+      if(#C13 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+        {
+          return 1;
+        }
       }
-    #L26:
-    default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
   }
 }
 static method d2(mai::D? d) → core::int? {
-  #L27:
-  switch(d) /*isExplicitlyExhaustive*/ {
-    #L28:
-    case #C11:
+  #L8:
+  {
+    final mai::D? #0#0 = d;
+    if(#0#0 == null) {
       {
         return null;
       }
-    #L29:
-    case #C13:
-      {
-        return 0;
+    }
+    else
+      if(#C12 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+        {
+          return 0;
+        }
       }
-    #L30:
-    default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
   }
 }
 static method main() → void {
@@ -205,10 +194,10 @@ static method main() → void {
   self::a2(#C6);
   self::b1(#C9);
   self::b2(#C9);
-  self::c1(#C15);
-  self::c2(#C15);
-  self::d1(#C14);
-  self::d2(#C14);
+  self::c1(#C14);
+  self::c2(#C14);
+  self::d1(#C13);
+  self::d2(#C13);
 }
 
 constants  {
@@ -222,11 +211,10 @@ constants  {
   #C8 = self::B {index:#C1, _name:#C2}
   #C9 = self::B {index:#C4, _name:#C5}
   #C10 = <self::B*>[#C8, #C9]
-  #C11 = null
-  #C12 = mai::C {index:#C1, _name:#C2}
-  #C13 = mai::D {index:#C1, _name:#C2}
-  #C14 = mai::D {index:#C4, _name:#C5}
-  #C15 = mai::C {index:#C4, _name:#C5}
+  #C11 = mai::C {index:#C1, _name:#C2}
+  #C12 = mai::D {index:#C1, _name:#C2}
+  #C13 = mai::D {index:#C4, _name:#C5}
+  #C14 = mai::C {index:#C4, _name:#C5}
 }
 
 

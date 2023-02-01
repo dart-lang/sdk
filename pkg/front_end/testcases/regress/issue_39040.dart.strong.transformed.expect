@@ -7,32 +7,47 @@ static method main() → void {
   core::int outer = 1;
   core::int inner = 0;
   #L1:
-  switch(outer) {
-    #L2:
-    case #C1:
+  {
+    final core::int #1#0 = outer;
+    if(#C1 =={core::num::==}{(core::Object) → core::bool} #1#0) {
       {
         whereWasI.{core::List::add}("outer 0"){(core::String) → void};
         break #L1;
       }
-    #L3:
-    case #C2:
-      {
-        (() → Null {
-          #L4:
-          switch(inner) {
-            #L5:
-            case #C1:
-              {
-                whereWasI.{core::List::add}("inner 0"){(core::String) → void};
-                continue #L6;
+    }
+    else
+      if(#C2 =={core::num::==}{(core::Object) → core::bool} #1#0) {
+        {
+          (() → Never {
+            #L2:
+            {
+              core::int #t1 = -1;
+              final core::int #0#0 = inner;
+              if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0)
+                #t1 = 0;
+              else
+                if(#C2 =={core::num::==}{(core::Object) → core::bool} #0#0)
+                  #t1 = 1;
+              switch(#t1) {
+                #L3:
+                case #C1:
+                  {
+                    {
+                      whereWasI.{core::List::add}("inner 0"){(core::String) → void};
+                      continue #L4;
+                    }
+                  }
+                #L4:
+                case #C2:
+                  {
+                    {
+                      whereWasI.{core::List::add}("inner 1"){(core::String) → void};
+                    }
+                  }
               }
-            #L6:
-            case #C2:
-              {
-                whereWasI.{core::List::add}("inner 1"){(core::String) → void};
-              }
-          }
-        })(){() → Null};
+            }
+          })(){() → Never};
+        }
       }
   }
   if(!(whereWasI.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 2) || !(whereWasI.{core::List::[]}(0){(core::int) → core::String} =={core::String::==}{(core::Object) → core::bool} "inner 0") || !(whereWasI.{core::List::[]}(1){(core::int) → core::String} =={core::String::==}{(core::Object) → core::bool} "inner 1")) {

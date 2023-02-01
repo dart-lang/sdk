@@ -13,7 +13,7 @@ class C<T> {
 
 void test(C<int> x) {
   switch (x) {
-    case const /*@typeArgs=int*/ C():
+    case const /*@typeArgs=int*/ /*@target=Object.==*/ C():
       var /*@type=int*/ y = 0;
       break;
     default:
