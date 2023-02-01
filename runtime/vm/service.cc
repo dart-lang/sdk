@@ -3522,25 +3522,20 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
 
 static const MethodParameter* const get_instances_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
-    NULL,
+    new IdParameter("objectId", /*required=*/true),
+    new UIntParameter("limit", /*required=*/true),
+    new BoolParameter("includeSubclasses", /*required=*/false),
+    new BoolParameter("includeImplementers", /*required=*/false),
+    nullptr,
 };
 
 static void GetInstances(Thread* thread, JSONStream* js) {
   const char* object_id = js->LookupParam("objectId");
-  if (object_id == NULL) {
-    PrintMissingParamError(js, "objectId");
-    return;
-  }
-  const char* limit_cstr = js->LookupParam("limit");
-  if (limit_cstr == NULL) {
-    PrintMissingParamError(js, "limit");
-    return;
-  }
-  intptr_t limit;
-  if (!GetIntegerId(limit_cstr, &limit)) {
-    PrintInvalidParamError(js, "limit");
-    return;
-  }
+  const intptr_t limit = UIntParameter::Parse(js->LookupParam("limit"));
+  const bool include_subclasses =
+      BoolParameter::Parse(js->LookupParam("includeSubclasses"), false);
+  const bool include_implementers =
+      BoolParameter::Parse(js->LookupParam("includeImplementers"), false);
 
   const Object& obj = Object::Handle(LookupHeapObject(thread, object_id, NULL));
   if (obj.ptr() == Object::sentinel().ptr() || !obj.IsClass()) {
@@ -3557,7 +3552,7 @@ static void GetInstances(Thread* thread, JSONStream* js) {
   {
     ObjectGraph graph(thread);
     HeapIterationScope iteration_scope(Thread::Current(), true);
-    MarkClasses(cls, false, false);
+    MarkClasses(cls, include_subclasses, include_implementers);
     graph.IterateObjects(&visitor);
     UnmarkClasses();
   }

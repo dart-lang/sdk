@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.0.0';
+const String vmServiceVersion = '4.1.0';
 
 /// @optional
 const String optional = 'optional';
@@ -601,8 +601,7 @@ abstract class VmServiceInterface {
       String isolateId, String targetId, int limit);
 
   /// The `getInstances` RPC is used to retrieve a set of instances which are of
-  /// a specific class. This does not include instances of subclasses of the
-  /// given class.
+  /// a specific class.
   ///
   /// The order of the instances is undefined (i.e., not related to allocation
   /// order) and unstable (i.e., multiple invocations of this method against the
@@ -617,6 +616,13 @@ abstract class VmServiceInterface {
   ///
   /// `limit` is the maximum number of instances to be returned.
   ///
+  /// If `includeSubclasses` is true, instances of subclasses of the specified
+  /// class will be included in the set.
+  ///
+  /// If `includeImplementers` is true, instances of implementers of the
+  /// specified class will be included in the set. Note that subclasses of a
+  /// class are also considered implementers of that class.
+  ///
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
   ///
@@ -625,7 +631,12 @@ abstract class VmServiceInterface {
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
   Future<InstanceSet> getInstances(
-      String isolateId, String objectId, int limit);
+    String isolateId,
+    String objectId,
+    int limit, {
+    bool? includeSubclasses,
+    bool? includeImplementers,
+  });
 
   /// The `getIsolate` RPC is used to lookup an `Isolate` object by its `id`.
   ///
@@ -1449,6 +1460,8 @@ class VmServerConnection {
             params!['isolateId'],
             params['objectId'],
             params['limit'],
+            includeSubclasses: params['includeSubclasses'],
+            includeImplementers: params['includeImplementers'],
           );
           break;
         case 'getIsolate':
@@ -1974,9 +1987,20 @@ class VmService implements VmServiceInterface {
 
   @override
   Future<InstanceSet> getInstances(
-          String isolateId, String objectId, int limit) =>
-      _call('getInstances',
-          {'isolateId': isolateId, 'objectId': objectId, 'limit': limit});
+    String isolateId,
+    String objectId,
+    int limit, {
+    bool? includeSubclasses,
+    bool? includeImplementers,
+  }) =>
+      _call('getInstances', {
+        'isolateId': isolateId,
+        'objectId': objectId,
+        'limit': limit,
+        if (includeSubclasses != null) 'includeSubclasses': includeSubclasses,
+        if (includeImplementers != null)
+          'includeImplementers': includeImplementers,
+      });
 
   @override
   Future<Isolate> getIsolate(String isolateId) =>
