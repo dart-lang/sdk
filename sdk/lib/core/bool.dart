@@ -117,9 +117,10 @@ class bool {
   /// Example:
   /// ```dart
   /// print(bool.tryParse('true'));  // true
-  /// print(bool.tryParse('TRUE'));  // true
-  /// print(bool.tryParse('false', caseSensitive: true)); // false
-  /// print(bool.tryParse('FALSE', caseSensitive: true)); // false
+  /// print(bool.tryParse('false'));  // false
+  /// print(bool.tryParse('TRUE'));  // null
+  /// print(bool.tryParse('TRUE', caseSensitive: false)); // true
+  /// print(bool.tryParse('FALSE', caseSensitive: false)); // false
   /// print(bool.tryParse('NO')); // null
   /// print(bool.tryParse('YES')); // null
   /// print(bool.tryParse('0')); // null
