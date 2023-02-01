@@ -104,15 +104,13 @@ _nightly_builder(
     category = "vm|nnbd|jit|r3",
     channels = ["try"],
 )
-_nightly_builder(
+_extra_builder(
     "vm-kernel-nnbd-linux-release-simarm",
     category = "vm|nnbd|jit|ra",
-    channels = ["try"],
 )
-_nightly_builder(
+_extra_builder(
     "vm-kernel-nnbd-linux-release-simarm64",
     category = "vm|nnbd|jit|ra6",
-    channels = ["try"],
 )
 _nightly_builder(
     "vm-kernel-nnbd-mac-debug-arm64",
@@ -121,24 +119,21 @@ _nightly_builder(
     dimensions = [mac, arm64],
     properties = [no_android, pinned_xcode, slow_shards],
 )
-_nightly_builder(
+_builder(
     "vm-kernel-nnbd-mac-debug-x64",
     category = "vm|nnbd|jit|md",
-    channels = ["try"],
     dimensions = mac,
     properties = [pinned_xcode, slow_shards],
 )
-_extra_builder(
+_builder(
     "vm-kernel-nnbd-mac-release-arm64",
     category = "vm|nnbd|jit|m1r",
-    channels = ["try"],
     dimensions = [mac, arm64],
     properties = [no_android, pinned_xcode],
 )
-_nightly_builder(
+_builder(
     "vm-kernel-nnbd-mac-release-x64",
     category = "vm|nnbd|jit|mr",
-    channels = ["try"],
     dimensions = mac,
     properties = pinned_xcode,
 )
@@ -148,17 +143,15 @@ _nightly_builder(
     channels = ["try"],
     dimensions = windows,
 )
-_nightly_builder(
+_builder(
     "vm-kernel-nnbd-win-debug-x64",
     category = "vm|nnbd|jit|wd",
-    channels = ["try"],
     properties = slow_shards,
     dimensions = windows,
 )
-_nightly_builder(
+_builder(
     "vm-kernel-nnbd-win-release-x64",
     category = "vm|nnbd|jit|wr",
-    channels = ["try"],
     dimensions = windows,
 )
 
@@ -167,15 +160,13 @@ _extra_builder(
     "vm-kernel-precomp-nnbd-linux-release-x64",
     category = "vm|nnbd|aot|r",
 )
-_nightly_builder(
+_extra_builder(
     "vm-kernel-precomp-nnbd-linux-debug-simarm_x64",
     category = "vm|nnbd|aot|da",
-    channels = ["try"],
 )
-_nightly_builder(
+_extra_builder(
     "vm-kernel-precomp-nnbd-linux-release-simarm_x64",
     category = "vm|nnbd|aot|ra",
-    channels = ["try"],
 )
 _nightly_builder(
     "vm-kernel-precomp-nnbd-linux-debug-x64",
@@ -183,10 +174,9 @@ _nightly_builder(
     channels = ["try"],
     properties = slow_shards,
 )
-_nightly_builder(
+_extra_builder(
     "vm-kernel-precomp-nnbd-linux-release-simarm64",
     category = "vm|nnbd|aot|ra6",
-    channels = ["try"],
 )
 _extra_builder(
     "vm-kernel-precomp-nnbd-mac-release-arm64",
@@ -195,17 +185,15 @@ _extra_builder(
     dimensions = [mac, arm64],
     properties = [no_android, pinned_xcode, slow_shards],
 )
-_nightly_builder(
+_extra_builder(
     "vm-kernel-precomp-nnbd-mac-release-simarm64",
     category = "vm|nnbd|aot|ma6",
-    channels = ["try"],
     dimensions = mac,
     properties = [pinned_xcode, slow_shards],
 )
-_nightly_builder(
+_extra_builder(
     "vm-kernel-precomp-nnbd-win-release-x64",
     category = "vm|nnbd|aot|wr",
-    channels = ["try"],
     dimensions = windows,
 )
 
@@ -226,25 +214,7 @@ _extra_builder(
 )
 
 #vm|kernel
-_extra_builder(
-    "vm-canary-linux-debug",
-    category = "vm|kernel|c",
-    on_cq = True,
-)
 _builder("vm-kernel-linux-debug-x64", category = "vm|kernel|d")
-_extra_builder(
-    "vm-kernel-linux-release-simarm",
-    category = "vm|kernel|a32",
-)
-_extra_builder(
-    "vm-kernel-linux-release-simarm64",
-    category = "vm|kernel|a64",
-)
-_nightly_builder(
-    "vm-kernel-linux-release-ia32",
-    category = "vm|kernel|r32",
-    channels = ["try"],
-)
 _builder(
     "vm-kernel-linux-release-x64",
     category = "vm|kernel|r",
@@ -256,53 +226,11 @@ _extra_builder(
     experiments = {"dart.use_update_script": 100},
 )
 _nightly_builder(
-    "vm-kernel-linux-debug-ia32",
-    category = "vm|kernel|d32",
-    channels = ["try"],
-)
-_builder(
-    "vm-kernel-mac-debug-x64",
-    category = "vm|kernel|md",
-    dimensions = mac,
-    properties = pinned_xcode,
-)
-_builder(
-    "vm-kernel-mac-release-x64",
-    category = "vm|kernel|mr",
-    dimensions = mac,
-    on_cq = True,
-    experiment_percentage = 5,
-    properties = pinned_xcode,
-)
-_builder(
-    "vm-kernel-mac-release-arm64",
-    category = "vm|kernel|m1r",
-    channels = ["try", "dev"],
-    dimensions = [mac, arm64],
-    properties = [no_android, pinned_xcode],
-)
-_nightly_builder(
     "vm-kernel-win-debug-ia32",
     category = "vm|kernel|wd3",
     channels = ["try"],
     dimensions = windows,
     properties = [slow_shards],
-)
-_builder(
-    "vm-kernel-win-debug-x64",
-    category = "vm|kernel|wd",
-    dimensions = windows,
-)
-_nightly_builder(
-    "vm-kernel-win-release-ia32",
-    category = "vm|kernel|wr3",
-    channels = ["try"],
-    dimensions = windows,
-)
-_builder(
-    "vm-kernel-win-release-x64",
-    category = "vm|kernel|wr",
-    dimensions = windows,
 )
 _extra_builder(
     "cross-vm-linux-release-arm64",
@@ -322,36 +250,12 @@ _extra_builder(
     category = "vm|kernel-precomp|a32",
 )
 _extra_builder(
-    "vm-kernel-precomp-linux-release-simarm64",
-    category = "vm|kernel-precomp|a64",
-)
-_extra_builder(
     "vm-kernel-precomp-linux-release-x64",
     category = "vm|kernel-precomp|r",
 )
 _extra_builder(
     "vm-kernel-precomp-obfuscate-linux-release-x64",
     category = "vm|kernel-precomp|o",
-)
-_extra_builder(
-    "vm-kernel-precomp-linux-debug-simarm_x64",
-    category = "vm|kernel-precomp|adx",
-    properties = slow_shards,
-)
-_extra_builder(
-    "vm-kernel-precomp-linux-release-simarm_x64",
-    category = "vm|kernel-precomp|arx",
-)
-_extra_builder(
-    "vm-kernel-precomp-mac-release-simarm64",
-    category = "vm|kernel-precomp|ma",
-    dimensions = mac,
-    properties = pinned_xcode,
-)
-_extra_builder(
-    "vm-kernel-precomp-win-release-x64",
-    category = "vm|kernel-precomp|wr",
-    dimensions = windows,
 )
 _nightly_builder(
     "cross-vm-precomp-linux-release-arm64",
