@@ -9,16 +9,14 @@
 import 'base_mixin_implement_lib.dart';
 
 abstract class AOutside implements BaseMixin {}
-//             ^
-// [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
 //                                 ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
 
 class BOutside implements BaseMixin {
-//    ^
-// [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
 //                        ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
   @override
   int foo = 1;
 }

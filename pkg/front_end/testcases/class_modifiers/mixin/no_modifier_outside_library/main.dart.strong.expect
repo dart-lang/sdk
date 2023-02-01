@@ -2,29 +2,29 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/class_modifiers/mixin/no_modifier_outside_library/main.dart:7:7: Error: The class 'A' can't be used as a mixin because it isn't a mixin class nor a mixin.
+// pkg/front_end/testcases/class_modifiers/mixin/no_modifier_outside_library/main.dart:7:18: Error: The class 'A' can't be used as a mixin because it isn't a mixin class nor a mixin.
 // class AWith with A {}
-//       ^
+//                  ^
 //
-// pkg/front_end/testcases/class_modifiers/mixin/no_modifier_outside_library/main.dart:9:7: Error: The class 'B' can't be used as a mixin because it isn't a mixin class nor a mixin.
+// pkg/front_end/testcases/class_modifiers/mixin/no_modifier_outside_library/main.dart:9:18: Error: The class 'B' can't be used as a mixin because it isn't a mixin class nor a mixin.
 // class BWith with B {}
-//       ^
+//                  ^
 //
-// pkg/front_end/testcases/class_modifiers/mixin/no_modifier_outside_library/main.dart:11:7: Error: The class 'C' can't be used as a mixin because it isn't a mixin class nor a mixin.
+// pkg/front_end/testcases/class_modifiers/mixin/no_modifier_outside_library/main.dart:11:18: Error: The class 'C' can't be used as a mixin because it isn't a mixin class nor a mixin.
 // class CWith with C {}
-//       ^
+//                  ^
 //
-// pkg/front_end/testcases/class_modifiers/mixin/no_modifier_outside_library/main.dart:13:7: Error: The class 'A' can't be used as a mixin because it isn't a mixin class nor a mixin.
+// pkg/front_end/testcases/class_modifiers/mixin/no_modifier_outside_library/main.dart:13:30: Error: The class 'A' can't be used as a mixin because it isn't a mixin class nor a mixin.
 // class MultipleWithMixin with A, M {}
-//       ^
+//                              ^
 //
-// pkg/front_end/testcases/class_modifiers/mixin/no_modifier_outside_library/main.dart:15:7: Error: The class 'A' can't be used as a mixin because it isn't a mixin class nor a mixin.
+// pkg/front_end/testcases/class_modifiers/mixin/no_modifier_outside_library/main.dart:15:37: Error: The class 'A' can't be used as a mixin because it isn't a mixin class nor a mixin.
 // class MultipleWithAnotherClass with A, B {}
-//       ^
+//                                     ^
 //
-// pkg/front_end/testcases/class_modifiers/mixin/no_modifier_outside_library/main.dart:15:7: Error: The class 'B' can't be used as a mixin because it isn't a mixin class nor a mixin.
+// pkg/front_end/testcases/class_modifiers/mixin/no_modifier_outside_library/main.dart:15:40: Error: The class 'B' can't be used as a mixin because it isn't a mixin class nor a mixin.
 // class MultipleWithAnotherClass with A, B {}
-//       ^
+//                                        ^
 //
 import self as self;
 import "dart:core" as core;

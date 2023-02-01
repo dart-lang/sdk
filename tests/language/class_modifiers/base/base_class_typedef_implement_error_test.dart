@@ -9,10 +9,9 @@
 import 'base_class_typedef_lib.dart';
 
 class BTypeDef implements BaseClassTypeDef {
-//    ^
-// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 //                        ^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
   @override
   int foo = 1;
 }
@@ -21,10 +20,9 @@ class BTypeDef implements BaseClassTypeDef {
 typedef BaseClassTypeDef2 = BaseClassTypeDef;
 
 class BTypeDef2 implements BaseClassTypeDef2 {
-//    ^
-// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 //                         ^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
   @override
   int foo = 1;
 }

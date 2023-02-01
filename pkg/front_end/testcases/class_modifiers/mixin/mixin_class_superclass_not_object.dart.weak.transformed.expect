@@ -2,9 +2,9 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_superclass_not_object.dart:9:13: Error: The class 'A' can't be used as a mixin because it extends a class other than 'Object'.
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_superclass_not_object.dart:9:23: Error: The class 'A' can't be used as a mixin because it extends a class other than 'Object'.
 // mixin class A extends NotObject {}
-//             ^
+//                       ^
 //
 // pkg/front_end/testcases/class_modifiers/mixin/mixin_class_superclass_not_object.dart:11:13: Error: The class 'B' can't be used as a mixin because it extends a class other than 'Object'.
 // mixin class B extends Object with NotObject {}
