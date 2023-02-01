@@ -61,6 +61,10 @@ class LspAnalysisServer extends AnalysisServer {
   /// The capabilities of the LSP client. Will be null prior to initialization.
   LspClientCapabilities? _clientCapabilities;
 
+  /// Information about the connected client. Will be null prior to
+  /// initialization or if the client did not provide it.
+  InitializeParamsClientInfo? _clientInfo;
+
   /// Initialization options provided by the LSP client. Allows opting in/out of
   /// specific server functionality. Will be null prior to initialization.
   LspInitializationOptions? _initializationOptions;
@@ -182,13 +186,40 @@ class LspAnalysisServer extends AnalysisServer {
   Future<void> get analysisContextsRebuilt =>
       _analysisContextRebuildCompleter.future;
 
+  /// The hosted location of the client application.
+  ///
+  /// This information is not part of the LSP spec so is only provided for
+  /// clients extensions that add it to initialization options explicitly
+  /// (such as Dart-Code for VS Code where it comes from 'env.appHost').
+  ///
+  /// This value is usually 'desktop' for desktop installs and for web will be
+  /// the name of the web embedder if provided (such as 'github.dev' or
+  /// 'codespaces'), else 'web'.
+  String? get clientAppHost => _initializationOptions?.appHost;
+
   /// The capabilities of the LSP client. Will be null prior to initialization.
   LspClientCapabilities? get clientCapabilities => _clientCapabilities;
+
+  /// The capabilities of the LSP client. Will be null prior to initialization.
+  InitializeParamsClientInfo? get clientInfo => _clientInfo;
+
+  /// The name of the remote when the client is running using a remote workspace.
+  ///
+  /// This information is not part of the LSP spec so is only provided for
+  /// clients extensions that add it to initialization options explicitly
+  /// (such as Dart-Code for VS Code where it comes from 'env.remoteName').
+  ///
+  /// This value is `null` for local workspaces and will contain a string such
+  /// as 'ssh-remote' or 'wsl' for remote workspaces.
+  String? get clientRemoteName => _initializationOptions?.remoteName;
 
   Future<void> get exited => channel.closed;
 
   /// Initialization options provided by the LSP client. Allows opting in/out of
-  /// specific server functionality. Will be null prior to initialization.
+  /// specific server functionality. This getter is for convenience and will
+  /// throw if accessed prior to initialization.
+  /// TODO(dantup): Make this nullable and review all uses of it to ensure
+  ///  there aren't potential errors here.
   LspInitializationOptions get initializationOptions =>
       _initializationOptions as LspInitializationOptions;
 
@@ -322,8 +353,12 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   void handleClientConnection(
-      ClientCapabilities capabilities, dynamic initializationOptions) {
+    ClientCapabilities capabilities,
+    InitializeParamsClientInfo? clientInfo,
+    Object? initializationOptions,
+  ) {
     _clientCapabilities = LspClientCapabilities(capabilities);
+    _clientInfo = clientInfo;
     _initializationOptions = LspInitializationOptions(initializationOptions);
 
     performanceAfterStartup = ServerPerformance();
@@ -961,6 +996,9 @@ class LspAnalysisServer extends AnalysisServer {
 }
 
 class LspInitializationOptions {
+  final Map<String, Object?> raw;
+  final String? appHost;
+  final String? remoteName;
   final bool onlyAnalyzeProjectsWithOpenFiles;
   final bool suggestFromUnimportedLibraries;
   final bool closingLabels;
@@ -968,19 +1006,26 @@ class LspInitializationOptions {
   final bool flutterOutline;
   final int? completionBudgetMilliseconds;
 
-  LspInitializationOptions(dynamic options)
-      : onlyAnalyzeProjectsWithOpenFiles = options != null &&
+  factory LspInitializationOptions(Object? options) =>
+      LspInitializationOptions._(
+        options is Map<String, Object?> ? options : const {},
+      );
+
+  LspInitializationOptions._(Map<String, Object?> options)
+      : raw = options,
+        appHost = options['appHost'] as String?,
+        remoteName = options['remoteName'] as String?,
+        onlyAnalyzeProjectsWithOpenFiles =
             options['onlyAnalyzeProjectsWithOpenFiles'] == true,
         // suggestFromUnimportedLibraries defaults to true, so must be
         // explicitly passed as false to disable.
-        suggestFromUnimportedLibraries = options == null ||
+        suggestFromUnimportedLibraries =
             options['suggestFromUnimportedLibraries'] != false,
-        closingLabels = options != null && options['closingLabels'] == true,
-        outline = options != null && options['outline'] == true,
-        flutterOutline = options != null && options['flutterOutline'] == true,
-        completionBudgetMilliseconds = options != null
-            ? options['completionBudgetMilliseconds'] as int?
-            : null;
+        closingLabels = options['closingLabels'] == true,
+        outline = options['outline'] == true,
+        flutterOutline = options['flutterOutline'] == true,
+        completionBudgetMilliseconds =
+            options['completionBudgetMilliseconds'] as int?;
 }
 
 class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
