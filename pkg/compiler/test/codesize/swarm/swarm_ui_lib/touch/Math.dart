@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of touch;
 
 // TODO(jacobr): pick a better name. This was goog.math in Closure.
@@ -11,7 +9,7 @@ part of touch;
 class GoogleMath {
   /// Takes a [value] and clamps it to within the bounds specified by
   /// [min] and [max].
-  static num clamp(num value, num min, num max) {
+  static T clamp<T extends num>(T value, T min, T max) {
     return Math.min(Math.max(value, min), max);
   }
 

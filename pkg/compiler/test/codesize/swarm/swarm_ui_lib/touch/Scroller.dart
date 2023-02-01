@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of touch;
 
 /// Implementation of a custom scrolling behavior.
@@ -68,20 +66,25 @@ class Scroller implements Draggable, MomentumDelegate {
   final Element _frame;
 
   /// Touch manager to track the events on the scrollable area. */
-  TouchHandler _touchHandler;
+  late final TouchHandler _touchHandler;
 
-  Momentum _momentum;
+  late final Momentum _momentum;
 
-  StreamController<Event> _onScrollerStart;
-  Stream<Event> _onScrollerStartStream;
-  StreamController<Event> _onScrollerEnd;
-  Stream<Event> _onScrollerEndStream;
-  StreamController<Event> _onScrollerDragEnd;
-  Stream<Event> _onScrollerDragEndStream;
-  StreamController<Event> _onContentMoved;
-  Stream<Event> _onContentMovedStream;
-  StreamController<Event> _onDecelStart;
-  Stream<Event> _onDecelStartStream;
+  late final StreamController<Event> _onScrollerStart =
+      StreamController<Event>.broadcast(sync: true);
+  late final Stream<Event> onScrollerStart = _onScrollerStart.stream;
+  late final StreamController<Event> _onScrollerEnd =
+      StreamController<Event>.broadcast(sync: true);
+  late final Stream<Event> onScrollerEnd = _onScrollerEnd.stream;
+  late final StreamController<Event> _onScrollerDragEnd =
+      StreamController<Event>.broadcast(sync: true);
+  late final Stream<Event> onScrollerDragEnd = _onScrollerDragEnd.stream;
+  late final StreamController<Event> _onContentMoved =
+      StreamController<Event>.broadcast(sync: true);
+  late final Stream<Event> onContentMoved = _onContentMoved.stream;
+  late final StreamController<Event> _onDecelStart =
+      StreamController<Event>.broadcast(sync: true);
+  late final Stream<Event> onDecelStart = _onDecelStart.stream;
 
   /// Set if vertical scrolling should be enabled. */
   @override
@@ -115,20 +118,20 @@ class Scroller implements Draggable, MomentumDelegate {
   // TODO(jacobr): the function type is
   // [:Function(Element, num, num)->void:].
   /// The function to use that will actually translate the scrollable node.
-  Function _setOffsetFunction;
+  late final Function _setOffsetFunction;
 
   /// Function that returns the content size that can be specified instead of
   /// querying the DOM.
   final Function _lookupContentSizeDelegate;
 
-  Size _scrollSize;
-  Size _contentSize;
+  late Size _scrollSize;
+  late Size _contentSize;
   Coordinate _minPoint;
   final bool _isStopping = false;
-  Coordinate _contentStartOffset;
+  Coordinate? _contentStartOffset;
   bool _started = false;
   bool _activeGesture = false;
-  ScrollWatcher _scrollWatcher;
+  late final ScrollWatcher _scrollWatcher = ScrollWatcher(this)..initialize();
 
   Scroller(Element scrollableElem,
       [this.verticalEnabled = false,
@@ -136,12 +139,12 @@ class Scroller implements Draggable, MomentumDelegate {
       momentumEnabled = true,
       lookupContentSizeDelegate,
       num defaultDecelerationFactor = 1,
-      int scrollTechnique,
+      int? scrollTechnique,
       bool capture = false])
       : _momentumEnabled = momentumEnabled,
         _lookupContentSizeDelegate = lookupContentSizeDelegate,
         _element = scrollableElem,
-        _frame = scrollableElem.parent,
+        _frame = scrollableElem.parent!,
         _scrollTechnique =
             scrollTechnique ?? ScrollerScrollTechnique.TRANSFORM_3D,
         _minPoint = Coordinate(0, 0),
@@ -152,8 +155,7 @@ class Scroller implements Draggable, MomentumDelegate {
     _touchHandler = TouchHandler(this, scrollableElem.parent);
     _momentum = Momentum(this, defaultDecelerationFactor);
 
-    Element parentElem = scrollableElem.parent;
-    assert(parentElem != null);
+    Element parentElem = scrollableElem.parent!;
     _setOffsetFunction = _getOffsetFunction(_scrollTechnique);
     _touchHandler.setDraggable(this);
     _touchHandler.enable(capture);
@@ -230,53 +232,9 @@ class Scroller implements Draggable, MomentumDelegate {
     _initLayer();
   }
 
-  Stream<Event> get onScrollerStart {
-    if (_onScrollerStart == null) {
-      _onScrollerStart = StreamController<Event>.broadcast(sync: true);
-      _onScrollerStartStream = _onScrollerStart.stream;
-    }
-    return _onScrollerStartStream;
-  }
-
-  Stream<Event> get onScrollerEnd {
-    if (_onScrollerEnd == null) {
-      _onScrollerEnd = StreamController<Event>.broadcast(sync: true);
-      _onScrollerEndStream = _onScrollerEnd.stream;
-    }
-    return _onScrollerEndStream;
-  }
-
-  Stream<Event> get onScrollerDragEnd {
-    if (_onScrollerDragEnd == null) {
-      _onScrollerDragEnd = StreamController<Event>.broadcast(sync: true);
-      _onScrollerDragEndStream = _onScrollerDragEnd.stream;
-    }
-    return _onScrollerDragEndStream;
-  }
-
-  Stream<Event> get onContentMoved {
-    if (_onContentMoved == null) {
-      _onContentMoved = StreamController<Event>.broadcast(sync: true);
-      _onContentMovedStream = _onContentMoved.stream;
-    }
-    return _onContentMovedStream;
-  }
-
-  Stream<Event> get onDecelStart {
-    if (_onDecelStart == null) {
-      _onDecelStart = StreamController<Event>.broadcast(sync: true);
-      _onDecelStartStream = _onDecelStart.stream;
-    }
-    return _onDecelStartStream;
-  }
-
   /// Add a scroll listener. This allows other classes to subscribe to scroll
   /// notifications from this scroller.
   void addScrollListener(ScrollListener listener) {
-    if (_scrollWatcher == null) {
-      _scrollWatcher = ScrollWatcher(this);
-      _scrollWatcher.initialize();
-    }
     _scrollWatcher.addListener(listener);
   }
 
@@ -297,7 +255,7 @@ class Scroller implements Draggable, MomentumDelegate {
 
   /// Coordinate we would end up at if we did nothing.
   Coordinate get currentTarget {
-    Coordinate end = _momentum.destination;
+    Coordinate? end = _momentum.destination;
     end ??= _contentOffset;
     return end;
   }
@@ -307,7 +265,7 @@ class Scroller implements Draggable, MomentumDelegate {
   /// Animate the position of the scroller to the specified [x], [y] coordinates
   /// by applying the throw gesture with the correct velocity to end at that
   /// location.
-  void throwTo(num x, num y, [num decelerationFactor]) {
+  void throwTo(num x, num y, [num? decelerationFactor]) {
     reconfigure(() {
       final snappedTarget = _snapToBounds(x, y);
       // If a deceleration factor is not specified, use the existing
@@ -328,7 +286,7 @@ class Scroller implements Draggable, MomentumDelegate {
     });
   }
 
-  void throwDelta(num deltaX, num deltaY, [num decelerationFactor]) {
+  void throwDelta(num deltaX, num deltaY, [num? decelerationFactor]) {
     Coordinate start = _contentOffset;
     Coordinate end = currentTarget;
     int x = end.x.toInt();
@@ -336,10 +294,10 @@ class Scroller implements Draggable, MomentumDelegate {
     // If we are throwing in the opposite direction of the existing momentum,
     // cancel the current momentum.
     if (deltaX != 0 && deltaX.isNegative != (end.x - start.x).isNegative) {
-      x = start.x;
+      x = start.x as int;
     }
     if (deltaY != 0 && deltaY.isNegative != (end.y - start.y).isNegative) {
-      y = start.y;
+      y = start.y as int;
     }
     x += deltaX.toInt();
     y += deltaY.toInt();
@@ -371,7 +329,7 @@ class Scroller implements Draggable, MomentumDelegate {
   /// [x] Value to use as reference for percent measurement. If
   ///      none is provided then the content's current x offset will be used.
   /// Returns the percent of the page scrolled horizontally.
-  num getHorizontalScrollPercent([num x]) {
+  num getHorizontalScrollPercent([num? x]) {
     x = x ?? _contentOffset.x;
     return (x - _minPoint.x) / (_maxPoint.x - _minPoint.x);
   }
@@ -387,7 +345,7 @@ class Scroller implements Draggable, MomentumDelegate {
 
   /// [y] value is used as reference for percent measurement. If
   /// none is provided then the content's current y offset will be used.
-  num getVerticalScrollPercent([num y]) {
+  num getVerticalScrollPercent([num? y]) {
     y = y ?? _contentOffset.y;
     return (y - _minPoint.y) / Math.max(1, _maxPoint.y - _minPoint.y);
   }
@@ -449,8 +407,7 @@ class Scroller implements Draggable, MomentumDelegate {
       return;
     }
 
-    assert(_contentStartOffset != null); // Content start not set
-    Coordinate contentStart = _contentStartOffset;
+    Coordinate contentStart = _contentStartOffset!;
     num newX = contentStart.x + _touchHandler.getDragDeltaX();
     num newY = contentStart.y + _touchHandler.getDragDeltaY();
     newY = _shouldScrollVertically()
@@ -474,7 +431,7 @@ class Scroller implements Draggable, MomentumDelegate {
 
   @override
   bool onDragStart(TouchEvent e) {
-    if (e.touches.length > 1) {
+    if (e.touches!.length > 1) {
       return false;
     }
     bool shouldHorizontal = _shouldScrollHorizontally();
@@ -491,7 +448,7 @@ class Scroller implements Draggable, MomentumDelegate {
   @override
   bool onTouchStart(TouchEvent e) {
     reconfigure(() {
-      final touch = e.touches[0];
+      final touch = e.touches![0];
       if (_momentum.decelerating) {
         e.preventDefault();
         e.stopPropagation();
@@ -602,7 +559,7 @@ class Scroller implements Draggable, MomentumDelegate {
 
   /// Initiate the deceleration behavior given a flick [velocity].
   /// Returns true if deceleration has been initiated.
-  bool _startDeceleration(Coordinate velocity, [num decelerationFactor]) {
+  bool _startDeceleration(Coordinate velocity, [num? decelerationFactor]) {
     if (!_shouldScrollHorizontally()) {
       velocity.x = 0;
     }

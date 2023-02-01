@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of touch;
 
 /// Touch Handler. Class that handles all touch events and
@@ -86,23 +84,23 @@ class TouchHandler {
   /// jarring if the content moves slowly after a fast drag.
   static const _VELOCITY_FOR_INCORRECT_EVENTS = 1;
 
-  Draggable _draggable;
-  bool _tracking;
-  bool _dragging;
-  bool _touching;
-  int _startTouchX;
-  int _startTouchY;
-  int _startTime;
-  TouchEvent _lastEvent;
-  int _lastTouchX;
-  int _lastTouchY;
-  int _lastMoveX;
-  int _lastMoveY;
-  int _endTime;
-  int _endTouchX;
-  int _endTouchY;
+  late Draggable _draggable;
+  late bool _tracking;
+  late bool _dragging;
+  late bool _touching;
+  late int _startTouchX;
+  late int _startTouchY;
+  late int _startTime;
+  late TouchEvent _lastEvent;
+  late int _lastTouchX;
+  late int _lastTouchY;
+  late int _lastMoveX;
+  late int _lastMoveY;
+  late int _endTime;
+  late int _endTouchX;
+  late int _endTouchY;
 
-  TouchHandler(Touchable touchable, [Element element])
+  TouchHandler(Touchable touchable, [Element? element])
       : _touchable = touchable,
         _totalMoveY = 0,
         _totalMoveX = 0,
@@ -112,9 +110,8 @@ class TouchHandler {
         // See b/5045736
         _dragging = false,
         _tracking = false,
-        _touching = false {
-    _element = element ?? touchable.getElement();
-  }
+        _touching = false,
+        _element = element ?? touchable.getElement();
 
   /// Begin tracking the touchable element, it is eligible for dragging.
   void _beginTracking() {
@@ -151,9 +148,9 @@ class TouchHandler {
     }
 
     _addEventListeners(_element, (e) {
-      _onStart(e);
+      _onStart(e as TouchEvent);
     }, (e) {
-      _onMove(e);
+      _onMove(e as TouchEvent);
     }, onEnd, onEnd, capture);
   }
 
@@ -196,7 +193,7 @@ class TouchHandler {
   /// Return the touch of the last event.
   Touch _getLastTouch() {
     assert(_lastEvent != null); // Last event not set
-    return _lastEvent.touches[0];
+    return _lastEvent.touches![0];
   }
 
   /// Is the touch manager currently tracking touch moves to detect a drag?
@@ -205,15 +202,15 @@ class TouchHandler {
   }
 
   /// Touch end handler.
-  void _onEnd(int timeStamp, [TouchEvent e]) {
+  void _onEnd(int timeStamp, [TouchEvent? e]) {
     _touching = false;
     _touchable.onTouchEnd();
     if (!_tracking || _draggable == null) {
       return;
     }
     Touch touch = _getLastTouch();
-    int clientX = touch.client.x;
-    int clientY = touch.client.y;
+    int clientX = touch.client.x as int;
+    int clientY = touch.client.y as int;
     if (_dragging) {
       _endTime = timeStamp;
       _endTouchX = clientX;
@@ -234,12 +231,12 @@ class TouchHandler {
     if (!_tracking || _draggable == null) {
       return;
     }
-    final touch = e.touches[0];
-    int clientX = touch.client.x;
-    int clientY = touch.client.y;
+    final touch = e.touches![0];
+    int clientX = touch.client.x as int;
+    int clientY = touch.client.y as int;
     int moveX = _lastTouchX - clientX;
     int moveY = _lastTouchY - clientY;
-    int timeStamp = e.timeStamp.toInt();
+    int timeStamp = e.timeStamp!.toInt();
     _totalMoveX += moveX.abs();
     _totalMoveY += moveY.abs();
     _lastTouchX = clientX;
@@ -285,17 +282,17 @@ class TouchHandler {
     if (!_touchable.onTouchStart(e) || _draggable == null) {
       return;
     }
-    final touch = e.touches[0];
-    _startTouchX = _lastTouchX = touch.client.x;
-    _startTouchY = _lastTouchY = touch.client.y;
-    int timeStamp = e.timeStamp.toInt();
+    final touch = e.touches![0];
+    _startTouchX = _lastTouchX = touch.client.x as int;
+    _startTouchY = _lastTouchY = touch.client.y as int;
+    int timeStamp = e.timeStamp!.toInt();
     _startTime = timeStamp;
     // TODO(jacobr): why don't we just clear the lists?
     _recentTouchesX = <int>[];
     _recentTouchesY = <int>[];
-    _recentTouchesX.add(touch.client.x);
+    _recentTouchesX.add(touch.client.x as int);
     _recentTouchesX.add(timeStamp);
-    _recentTouchesY.add(touch.client.y);
+    _recentTouchesY.add(touch.client.y as int);
     _recentTouchesY.add(timeStamp);
     _lastEvent = e;
     _beginTracking();

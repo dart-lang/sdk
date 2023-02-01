@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of touch;
 
 /// Adds a listener to the scroller with triggers events
@@ -45,14 +43,14 @@ class InfiniteScroller {
 
   /// Saves the last Y position. */
   double _lastScrollY;
-  Element _topDiv;
-  Element _topLoadingDiv;
-  Element _bottomDiv;
-  Element _bottomLoadingDiv;
+  Element? _topDiv;
+  Element? _topLoadingDiv;
+  Element? _bottomDiv;
+  Element? _bottomLoadingDiv;
 
   InfiniteScroller(Scroller scroller, Function onTopScroll,
       Function onBottomScroll, double offsetTop,
-      [double offsetBottom])
+      [double? offsetBottom])
       : _scroller = scroller,
         _onTopScroll = onTopScroll,
         _onBottomScroll = onBottomScroll,
@@ -68,10 +66,10 @@ class InfiniteScroller {
   /// [bottomLoadingDiv] is the div to show at the bottom when waiting for more
   /// content to load at the end of the page.
   void addLoadingDivs(
-      [Element topDiv,
-      Element topLoadingDiv,
-      Element bottomDiv,
-      Element bottomLoadingDiv]) {
+      [Element? topDiv,
+      Element? topLoadingDiv,
+      Element? bottomDiv,
+      Element? bottomLoadingDiv]) {
     _topDiv = topDiv;
     _topLoadingDiv = topLoadingDiv;
     _bottomDiv = bottomDiv;
@@ -93,7 +91,7 @@ class InfiniteScroller {
 
   /// Called at the end of a scroll event.
   void _onScrollEnd() {
-    double ypos = _scroller.getVerticalOffset();
+    final ypos = _scroller.getVerticalOffset() as double;
 
     // Scroll is below last point.
     if (ypos < _lastScrollY) {
@@ -124,7 +122,7 @@ class InfiniteScroller {
 
   /// Hides one div and shows another.
   void _updateVisibility(
-      bool isLoading, Element element, Element loadingElement) {
+      bool isLoading, Element? element, Element? loadingElement) {
     if (element != null) {
       element.style.display = isLoading ? "none" : "";
     }
