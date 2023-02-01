@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 /// This tool builds a program with a deferred graph isomorphic to the provided
 /// graph, or generates permutations of bits and the associated files to
 /// generate complex deferred graphs.
@@ -61,7 +59,7 @@ void generatePermutedNames(
     for (int i = 0; i < bits.length; i++) {
       if (bits[i] == 1) {
         names.putIfAbsent(i, () => []);
-        names[i].add(List.from(bits));
+        names[i]!.add(List.from(bits));
       }
     }
     return;
@@ -201,7 +199,7 @@ class GraphIsomorphizer {
       // generate hierarchies. Also generate a const instance per class and a closure
       // to invoke.
       for (var bitPosition in nameKeys) {
-        var bitsList = names[bitPosition];
+        var bitsList = names[bitPosition]!;
         for (var bits in bitsList) {
           var name = generateBitString(bits);
           if (!uniques.add(name)) continue;
@@ -227,7 +225,7 @@ class GraphIsomorphizer {
       newline(out);
       uniques = {};
       for (var bitPosition in nameKeys) {
-        var bitsList = names[bitPosition];
+        var bitsList = names[bitPosition]!;
         for (var bits in bitsList) {
           var name = generateBitString(bits);
           var bitCount = bits.reduce((a, b) => a + b);
@@ -239,9 +237,9 @@ class GraphIsomorphizer {
             List<String> types = [];
             for (int i = 0; i < bits.length; i++) {
               if (bits[i] == 1) {
-                classes.addAll(classNames[i]);
-                mixins.addAll(mixinNames[i]);
-                types.addAll(typeNames[i]);
+                classes.addAll(classNames[i]!);
+                mixins.addAll(mixinNames[i]!);
+                types.addAll(typeNames[i]!);
               }
             }
             String mixinString = mixins.join(', ');
@@ -275,8 +273,8 @@ class GraphIsomorphizer {
               out.write('implements $typeImplementsString {}\n');
               for (int i = 0; i < bits.length; i++) {
                 if (bits[i] == 1) {
-                  mixerClassNames[i].add(className);
-                  mixerTypeNames[i].add(typeName);
+                  mixerClassNames[i]!.add(className);
+                  mixerTypeNames[i]!.add(typeName);
                 }
               }
               count++;
@@ -290,7 +288,7 @@ class GraphIsomorphizer {
     newline(out);
     uniques = {};
     for (var name in nameKeys) {
-      var bitsList = names[name];
+      var bitsList = names[name]!;
       for (var bits in bitsList) {
         var name = generateBitString(bits);
         if (uniques.add(name)) {
@@ -314,7 +312,7 @@ class GraphIsomorphizer {
       // create type test.
       noInlineDecorator(out);
       out.write('typeTest(dynamic t) {\n');
-      for (var type in mixerTypeNames[bit]) {
+      for (var type in mixerTypeNames[bit]!) {
         out.write('  if (t is $type) { return true; }\n');
       }
       out.write('  return false;\n');
@@ -328,19 +326,19 @@ class GraphIsomorphizer {
       out.write('  // C${generateCommentName(bits, bit)};\n');
 
       // Construct new instances of each class and pass them to the typeTest
-      for (var cls in mixerClassNames[bit]) {
+      for (var cls in mixerClassNames[bit]!) {
         out.write('  Expect.isFalse(typeTest($cls()));\n');
       }
       newline(out);
 
       // Invoke the test closure for each class.
-      for (var cls in mixerClassNames[bit]) {
+      for (var cls in mixerClassNames[bit]!) {
         out.write('  Expect.isTrue(closure$cls($cls())($cls()));\n');
       }
       newline(out);
 
       // Verify the runtimeTypes of the closures haven't been mangled.
-      for (var cls in mixerClassNames[bit]) {
+      for (var cls in mixerClassNames[bit]!) {
         out.write(
             '  Expect.equals(closure$cls($cls()).runtimeType.toString(), ');
         out.write("'($cls) => bool');\n");
@@ -351,7 +349,7 @@ class GraphIsomorphizer {
     // Collect the names so we can sort them and put them in a canonical order.
     int count = 0;
     List<String> namesBits = [];
-    names[bit].forEach((nameBits) {
+    names[bit]!.forEach((nameBits) {
       var nameString = generateBitString(nameBits);
       namesBits.add(nameString);
       count++;

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of swarmlib;
 
 /// The top-level class for the UI state. UI state is essentially a "model" from
@@ -16,11 +14,11 @@ class SwarmState extends UIState {
 
   /// Which article the user is currently viewing, or null if they aren't
   /// viewing an Article.
-  final ObservableValue<Article> currentArticle;
+  final ObservableValue<Article?> currentArticle;
 
   /// Which article the user currently has selected (for traversing articles
   /// via keyboard shortcuts).
-  final ObservableValue<Article> selectedArticle;
+  final ObservableValue<Article?> selectedArticle;
 
   /// True if the story view is maximized and the top and bottom UI elements
   /// are hidden.
@@ -32,17 +30,17 @@ class SwarmState extends UIState {
 
   /// Which article the user currently has selected (by keyboard shortcuts),
   /// or null if an article isn't selected by the keyboard.
-  BiIterator<Article> _articleIterator;
+  late final BiIterator<Article?> _articleIterator;
 
   /// Which feed is currently selected (for keyboard shortcuts).
-  BiIterator<Feed> _feedIterator;
+  late final BiIterator<Feed> _feedIterator;
 
   /// Which section is currently selected (for keyboard shortcuts).
-  BiIterator<Section> _sectionIterator;
+  late final BiIterator<Section> _sectionIterator;
 
   SwarmState(this._dataModel)
-      : currentArticle = ObservableValue<Article>(null),
-        selectedArticle = ObservableValue<Article>(null),
+      : currentArticle = ObservableValue<Article?>(null),
+        selectedArticle = ObservableValue<Article?>(null),
         storyMaximized = ObservableValue<bool>(false),
         storyTextMode = ObservableValue<bool>(true) {
     startHistoryTracking();
@@ -71,11 +69,11 @@ class SwarmState extends UIState {
 
   @override
   Map<String, String> toHistory() {
-    final data = {};
+    final data = <String, String>{};
     data['section'] = currentSection.id;
     data['feed'] = currentFeed.id;
     if (currentArticle.value != null) {
-      data['article'] = currentArticle.value.id;
+      data['article'] = currentArticle.value!.id;
     }
     return data;
   }
@@ -226,8 +224,8 @@ class SwarmState extends UIState {
   bool get hasArticleSelected => selectedArticle.value != null;
 
   /// Mark the current article as read
-  bool markCurrentAsRead() {
-    currentArticle.value.unread.value = false;
+  void markCurrentAsRead() {
+    currentArticle.value!.unread.value = false;
   }
 
   /// The user has moved to a new section (page). This can occur either

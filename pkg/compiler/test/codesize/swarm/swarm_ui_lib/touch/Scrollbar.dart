@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of touch;
 
 /// Implementation of a scrollbar for the custom scrolling behavior
@@ -35,16 +33,16 @@ class Scrollbar implements ScrollListener {
 
   /// This bound function will be used as the input to window.setTimeout when
   /// scheduling the hiding of the scrollbars.
-  Function _boundHideFn;
+  late final void Function() _boundHideFn;
 
-  Element _verticalElement;
-  Element _horizontalElement;
+  late Element _verticalElement;
+  late Element _horizontalElement;
 
-  int _currentScrollStartMouse;
-  num _currentScrollStartOffset;
-  bool _currentScrollVertical;
-  num _currentScrollRatio;
-  Timer _timer;
+  late int _currentScrollStartMouse;
+  late num _currentScrollStartOffset;
+  late bool _currentScrollVertical;
+  late num _currentScrollRatio;
+  Timer? _timer;
 
   final bool _displayOnHover;
   bool _hovering = false;
@@ -215,7 +213,7 @@ class Scrollbar implements ScrollListener {
   }
 
   /// When scrolling ends, schedule a timeout to hide the scrollbars.
-  void _onScrollerEnd(Event e) {
+  void _onScrollerEnd(Event? e) {
     _cancelTimeout();
     _timer = Timer(const Duration(milliseconds: _DISPLAY_TIME), _boundHideFn);
     _scrollInProgress = false;
@@ -257,7 +255,7 @@ class Scrollbar implements ScrollListener {
   }
 
   /// When scrolling starts, show scrollbars and clear hide intervals.
-  void _onScrollerStart(Event e) {
+  void _onScrollerStart(Event? e) {
     _scrollInProgress = true;
     _cancelTimeout();
     _showScrollbars(true);
@@ -265,7 +263,7 @@ class Scrollbar implements ScrollListener {
 
   void _cancelTimeout() {
     if (_timer != null) {
-      _timer.cancel();
+      _timer!.cancel();
       _timer = null;
     }
   }

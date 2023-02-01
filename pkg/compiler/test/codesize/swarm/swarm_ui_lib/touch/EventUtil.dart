@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of touch;
 
 /// Common events related helpers.
@@ -13,8 +11,8 @@ class EventUtil {
   /// If [capture] is true, the listener gets events on the capture phase.
   /// If [removeHandlerOnFocus] is true the handler is removed when there is any
   /// focus event, and added back on blur events.
-  static void observe(
-      /*Element or Document*/ element, Stream stream, Function handler,
+  static void observe(/*Element or Document*/ element, Stream<Event> stream,
+      EventListener handler,
       [bool removeHandlerOnFocus = false]) {
     var subscription = stream.listen(handler);
     // TODO(jacobr): this remove on focus behavior seems really ugly.
@@ -32,7 +30,7 @@ class EventUtil {
   /// one). If there is no currently focused element then this function will do
   /// nothing. For most browsers this will cause the keyboard to be dismissed.
   static void blurFocusedElement() {
-    Element focusedEl = document.querySelector("*:focus");
+    Element? focusedEl = document.querySelector("*:focus");
     if (focusedEl != null) {
       focusedEl.blur();
     }

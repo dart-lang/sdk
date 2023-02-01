@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of swarmlib;
 
 /// A simple news reader in Dart.
@@ -13,13 +11,13 @@ class Swarm extends App {
   bool onLoadFired;
 
   /// Collections of datafeeds to show per page. */
-  Sections sections;
+  late final Sections sections;
 
   /// The front page of the app. */
-  FrontView frontView;
+  late final FrontView frontView;
 
   /// Observable UI state. */
-  SwarmState state;
+  late final SwarmState state;
 
   Swarm({bool useCannedData = false}) : onLoadFired = false {
     Sections.initializeFromUrl(useCannedData, (currSections) {
@@ -79,6 +77,6 @@ class Swarm extends App {
 
   void render() {
     frontView = FrontView(this);
-    frontView.addToDocument(document.body);
+    frontView.addToDocument(document.body!);
   }
 }

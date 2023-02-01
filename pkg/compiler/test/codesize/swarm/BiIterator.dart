@@ -1,5 +1,3 @@
-// @dart = 2.9
-
 part of swarmlib;
 
 /// An iterator that allows the user to move forward and backward though
@@ -12,7 +10,7 @@ class BiIterator<E> {
   /// The collection of items we will be iterating through.
   List<E> list;
 
-  BiIterator(this.list, [List<ChangeListener> oldListeners])
+  BiIterator(this.list, [List<ChangeListener>? oldListeners])
       : currentIndex = ObservableValue<int>(0) {
     if (oldListeners != null) {
       currentIndex.listeners = oldListeners;

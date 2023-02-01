@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of touch;
 
 /// Wraps a callback with translations of mouse events to touch events. Use
@@ -14,7 +12,7 @@ EventListener mouseToTouchCallback(EventListener callback) {
     var touches = <Touch>[];
     var targetTouches = <Touch>[];
     var changedTouches = <Touch>[];
-    final mockTouch = MockTouch(e);
+    final mockTouch = MockTouch(e as MouseEvent);
     final mockTouchList = <Touch>[mockTouch];
     if (e.type == 'mouseup') {
       changedTouches = mockTouchList;
@@ -33,7 +31,7 @@ EventListener mouseToTouchCallback(EventListener callback) {
 void _addEventListeners(Element node, EventListener onStart,
     EventListener onMove, EventListener onEnd, EventListener onCancel,
     [bool capture = false]) {
-  Function removeListeners;
+  late final Function removeListeners;
 
   onEndWrapper(e) {
     removeListeners();
@@ -51,10 +49,10 @@ void _addEventListeners(Element node, EventListener onStart,
   }
 
   if (Device.supportsTouch) {
-    StreamSubscription<TouchEvent> touchMoveSub;
-    StreamSubscription<TouchEvent> touchEndSub;
-    StreamSubscription<TouchEvent> touchLeaveSub;
-    StreamSubscription<TouchEvent> touchCancelSub;
+    late StreamSubscription<TouchEvent> touchMoveSub;
+    late StreamSubscription<TouchEvent> touchEndSub;
+    late StreamSubscription<TouchEvent> touchLeaveSub;
+    late StreamSubscription<TouchEvent> touchCancelSub;
 
     removeListeners = () {
       touchMoveSub.cancel();
@@ -84,9 +82,9 @@ void _addEventListeners(Element node, EventListener onStart,
     onEnd = mouseToTouchCallback(onEnd);
     // onLeave will never be called if the device does not support touches.
 
-    StreamSubscription<MouseEvent> mouseMoveSub;
-    StreamSubscription<MouseEvent> mouseUpSub;
-    StreamSubscription<TouchEvent> touchCancelSub;
+    late StreamSubscription<MouseEvent> mouseMoveSub;
+    late StreamSubscription<MouseEvent> mouseUpSub;
+    late StreamSubscription<TouchEvent> touchCancelSub;
 
     removeListeners = () {
       mouseMoveSub.cancel();
@@ -112,7 +110,7 @@ void _addEventListeners(Element node, EventListener onStart,
 /// Gets whether the given touch event targets the node, or one of the node's
 /// children.
 bool _touchEventTargetsNode(event, Node node) {
-  Node target = event.changedTouches[0].target;
+  Node? target = event.changedTouches[0].target;
 
   // TODO(rnystrom): Move this into Dom.
   // Walk up the parents looking for the node.
@@ -160,9 +158,14 @@ class MockTouch implements Touch {
 
   MockTouch(this.wrapped);
 
-  int get clientX => wrapped.client.x;
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other);
+  }
 
-  int get clientY => wrapped.client.y;
+  num get clientX => wrapped.client.x;
+
+  num get clientY => wrapped.client.y;
 
   @override
   get client => wrapped.client;
@@ -170,18 +173,16 @@ class MockTouch implements Touch {
   @override
   int get identifier => 0;
 
-  int get pageX => wrapped.page.x;
+  num get pageX => wrapped.page.x;
 
-  int get pageY => wrapped.page.y;
+  num get pageY => wrapped.page.y;
 
-  int get screenX => wrapped.screen.x;
+  num get screenX => wrapped.screen.x;
 
-  int get screenY {
-    return wrapped.screen.y;
-  }
+  num get screenY => wrapped.screen.y;
 
   @override
-  EventTarget get target => wrapped.target;
+  EventTarget? get target => wrapped.target;
 
   @override
   double get force {
@@ -242,6 +243,11 @@ class MockTouchList extends Object
 
   MockTouchList(this.values);
 
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other);
+  }
+
   static bool get supported => true;
 
   @override
@@ -277,6 +283,11 @@ class MockTouchEvent implements TouchEvent {
       : touches = MockTouchList(touches),
         targetTouches = MockTouchList(targetTouches),
         changedTouches = MockTouchList(changedTouches);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other);
+  }
 
   @override
   bool get bubbles => wrapped.bubbles;

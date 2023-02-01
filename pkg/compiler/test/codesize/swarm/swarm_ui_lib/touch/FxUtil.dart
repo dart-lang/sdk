@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of touch;
 
 /// Common effects related helpers.
@@ -38,7 +36,7 @@ class FxUtil {
 
   /// Apply a -webkit-transform using translate3d to an HTML element. */
   static void setWebkitTransform(Element el, num x, num y,
-      [num z = 0, num rotation, num scale, num originX, num originY]) {
+      [num z = 0, num? rotation, num? scale, num? originX, num? originY]) {
     final style = el.style;
     // TODO(jacobr): create a helper class that simplifies building
     // transformation matrices that will be set as CSS styles. We should

@@ -2,18 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of swarmlib;
 
 // TODO(jimhug): Fill out methods, add encoder, move to shared lib.
 class Decoder {
-  int index;
+  int index = 0;
   String data;
 
-  Decoder(this.data) {
-    index = 0;
-  }
+  Decoder(this.data);
 
   // Reads numbers in variable-length 7-bit encoding.  This matches the
   // varint encoding used by protobufs except that it only uses 7

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library view;
 
 import 'dart:async';
@@ -28,12 +26,12 @@ part 'SliderMenu.dart';
 
 /// A generic view. */
 class View implements Positionable {
-  Element _node;
-  ViewLayout _layout;
+  Element? _node;
+  ViewLayout? _layout;
 
   // TODO(jmesserly): instead of tracking this on every View, we could have the
   // App track the views that want to be notified of resize()
-  StreamSubscription _resizeSubscription;
+  StreamSubscription? _resizeSubscription;
 
   /// Style properties configured for this view.
   // TODO(jmesserly): We should be getting these from our CSS preprocessor.
@@ -54,14 +52,7 @@ class View implements Positionable {
   // TODO(rnystrom): Get rid of this when all views are refactored to not use
   // it.
   @override
-  Element get node {
-    // Lazy render.
-    if (_node == null) {
-      _render();
-    }
-
-    return _node;
-  }
+  late final Element node = _node ?? _render();
 
   /// A subclass that contains child views should override this to return those
   /// views. View uses this to ensure that child views are properly rendered
@@ -103,9 +94,9 @@ class View implements Positionable {
   /// Gets whether this View (or one of its parents) has been added to the
   /// document or not.
   bool get isInDocument {
-    return _node != null &&
+    return node != null &&
         node.ownerDocument is HtmlDocument &&
-        (node.ownerDocument as HtmlDocument).body.contains(node);
+        (node.ownerDocument as HtmlDocument).body!.contains(node);
   }
 
   /// Adds this view to the document as a child of the given node. This should
@@ -114,7 +105,7 @@ class View implements Positionable {
     assert(!isInDocument);
 
     _render();
-    parentNode.nodes.add(_node);
+    parentNode.nodes.add(node);
     _hookGlobalLayoutEvents();
     _enterDocument();
   }
@@ -125,7 +116,7 @@ class View implements Positionable {
     // Remove runs in reverse order of how we entered.
     _exitDocument();
     _unhookGlobalLayoutEvents();
-    _node.remove();
+    node.remove();
   }
 
   /// Override this to generate the DOM structure for the view.
@@ -187,11 +178,11 @@ class View implements Positionable {
   }
 
   void addOnClick(EventListener handler) {
-    _node.onClick.listen(handler);
+    node.onClick.listen(handler);
   }
 
   /// Gets whether the view is hidden.
-  bool get hidden => _node.style.display == 'none';
+  bool get hidden => node.style.display == 'none';
 
   /// Sets whether the view is hidden.
   set hidden(bool hidden) {
@@ -217,24 +208,24 @@ class View implements Positionable {
 
   // TODO(rnystrom): Get rid of this, or move into a separate class?
   /// Creates a View whose node is a <div> with the given class(es). */
-  static View div(String cssClass, [String body]) {
-    body ??= '';
+  static View div(String cssClass, [String body = '']) {
     return View.html('<div class="$cssClass">$body</div>');
   }
 
   /// Internal render method that deals with traversing child views. Should not
   /// be overridden.
-  void _render() {
+  Element _render() {
     // TODO(rnystrom): Should render child views here. Not implemented yet.
     // Instead, we rely on the parent accessing .node to implicitly cause the
     // child to be rendered.
 
     // Render this view.
-    _node ??= render();
+    final node = _node ??= render();
 
     // Pass the node back to the derived view so it can register event
     // handlers on it.
-    afterRender(_node);
+    afterRender(node);
+    return node;
   }
 
   /// Internal method that deals with traversing child views. Should not be
@@ -252,8 +243,7 @@ class View implements Positionable {
 
   @override
   ViewLayout get layout {
-    _layout ??= ViewLayout.fromView(this);
-    return _layout;
+    return _layout ??= ViewLayout.fromView(this);
   }
 
   /// Internal method that deals with traversing child views. Should not be
@@ -273,7 +263,7 @@ class View implements Positionable {
   /// demand.
   void _hookGlobalLayoutEvents() {
     if (_resizeSubscription == null) {
-      var handler = EventBatch.wrap((e) => doLayout());
+      final handler = EventBatch.wrap((e) => doLayout());
       _resizeSubscription = window.onResize.listen(handler);
     }
 
@@ -283,7 +273,7 @@ class View implements Positionable {
 
   void _unhookGlobalLayoutEvents() {
     if (_resizeSubscription != null) {
-      _resizeSubscription.cancel();
+      _resizeSubscription!.cancel();
       _resizeSubscription = null;
     }
   }
@@ -323,9 +313,9 @@ class View implements Positionable {
     // a good tradeoff?
     if (ViewLayout.hasCustomLayout(this)) {
       // TODO(10459): code should not use Completer.sync.
-      Completer sizeCompleter = Completer<Size>.sync();
+      final sizeCompleter = Completer<Size>.sync();
       scheduleMicrotask(() {
-        sizeCompleter.complete(Size(_node.client.width, _node.client.height));
+        sizeCompleter.complete(Size(node.client.width, node.client.height));
       });
       layout.measureLayout(sizeCompleter.future, changed);
     } else {
@@ -343,7 +333,7 @@ class View implements Positionable {
 
   void _applyLayout() {
     if (_layout != null) {
-      _layout.applyLayout();
+      _layout!.applyLayout();
     }
     _applyLayoutToChildren();
   }
