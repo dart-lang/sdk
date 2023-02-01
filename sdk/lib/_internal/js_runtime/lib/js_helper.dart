@@ -390,7 +390,7 @@ class Primitives {
               ? false
               : null;
     }
-    // Ignore case-sensitive when caseSensitive is false.
+    // Compare case-sensitive when caseSensitive is false.
     return _compareIgnoreCase(source, "true")
         ? true
         : _compareIgnoreCase(source, "false")
