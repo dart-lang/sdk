@@ -766,23 +766,18 @@ void g(int  i) {
 
   Future<void> test_downcast_nonNullable_to_nullable() async {
     var content = 'int/*?*/ f(num/*!*/ n) => n;';
-    // TODO(paulberry): we should actually cast to `int`, not `int?`, because we
-    // know `n` is non-nullable.
-    var migratedContent = 'int/*?*/ f(num/*!*/ n) => n as int?;';
+    var migratedContent = 'int/*?*/ f(num/*!*/ n) => n as int;';
     var unit = await buildInfoForSingleTestFile(content,
         migratedContent: migratedContent);
     var regions = getNonInformativeRegions(unit.regions);
-    var regionTarget = ' as int?';
+    var regionTarget = ' as int';
     var offset = migratedContent.indexOf(regionTarget);
     var region = regions.where((region) => region.offset == offset).single;
-    // TODO(paulberry): once we are correctly casting to `int`, not `int?`, this
-    // should be classified as a downcast.  Currently it's classified as a side
-    // cast.
     assertRegion(
         region: region,
         offset: offset,
         length: regionTarget.length,
-        kind: NullabilityFixKind.otherCastExpression,
+        kind: NullabilityFixKind.downcastExpression,
         edits: isEmpty,
         traces: isEmpty);
   }
@@ -1394,20 +1389,20 @@ int f(Object o) {
     var migratedContent = '''
 int  f(Object  o) {
   if (o is! String ) return 0;
-  return o as int;
+  return o /* no valid migration */;
 }
 ''';
     var unit = await buildInfoForSingleTestFile(content,
         migratedContent: migratedContent);
     var regions = getNonInformativeRegions(unit.regions);
-    expect(regions, hasLength(1));
-    var region = regions.single;
-    var regionTarget = ' as int';
+    var regionTarget = '/* no valid migration */';
+    var offset = migratedContent.indexOf(regionTarget);
+    var region = regions.where((region) => region.offset == offset).single;
     assertRegion(
         region: region,
-        offset: migratedContent.indexOf(regionTarget),
+        offset: offset,
         length: regionTarget.length,
-        kind: NullabilityFixKind.otherCastExpression,
+        kind: NullabilityFixKind.noValidMigrationForNull,
         edits: isEmpty);
   }
 

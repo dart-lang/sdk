@@ -64,6 +64,7 @@ import 'dart:_rti' as newRti
         createRuntimeType,
         evalInInstance,
         getRuntimeType,
+        getRuntimeTypeOfRecord,
         getTypeFromTypesTable,
         instanceTypeName,
         instantiatedGenericFunctionType,

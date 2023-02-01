@@ -5,183 +5,116 @@ import "dart:core" as core;
 static method test1(core::int value) → core::String {
   #L1:
   {
-    core::int #t1 = -1;
     final core::int #0#0 = value;
-    if(#0#0.{core::num::<}(#C1){(core::num) → core::bool})
-      #t1 = 0;
-    else
-      if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0)
-        #t1 = 1;
-    switch(#t1) {
-      #L2:
-      case #C2:
-        {
-          {
-            return "case <2";
-          }
-        }
-      #L3:
-      case #C3:
-        {
-          {
-            return "case 2";
-          }
-        }
+    if(#0#0.{core::num::<}(#C1){(core::num) → core::bool}) {
+      {
+        return "case <2";
+      }
     }
+    else
+      if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
+        {
+          return "case 2";
+        }
+      }
   }
   return "not matched";
 }
 static method test2(core::int value) → core::String {
-  #L4:
+  #L2:
   {
-    core::int #t2 = -1;
     final core::int #0#0 = value;
-    if(#0#0.{core::num::<}(#C1){(core::num) → core::bool})
-      #t2 = 0;
-    else
-      if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0 || true)
-        #t2 = 1;
-    switch(#t2) {
-      #L5:
-      case #C2:
-        {
-          {
-            return "case <2";
-          }
-        }
-      #L6:
-      case #C3:
-      default:
-        {
-          {
-            return "case 2";
-          }
-        }
+    if(#0#0.{core::num::<}(#C1){(core::num) → core::bool}) {
+      {
+        return "case <2";
+      }
     }
+    else
+      if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0 || true) {
+        {
+          return "case 2";
+        }
+      }
   }
   return "not matched";
 }
 static method test3(core::int value) → core::String {
-  #L7:
+  #L3:
   {
-    core::int #t3 = -1;
     final core::int #0#0 = value;
-    if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0)
-      #t3 = 0;
-    else
-      if(#0#0.{core::num::<}(#C1){(core::num) → core::bool} || true)
-        #t3 = 1;
-    switch(#t3) {
-      #L8:
-      case #C2:
-        {
-          {
-            return "case 2";
-          }
-        }
-      #L9:
-      case #C3:
-      default:
-        {
-          {
-            return "case <2";
-          }
-        }
+    if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
+      {
+        return "case 2";
+      }
     }
+    else
+      if(#0#0.{core::num::<}(#C1){(core::num) → core::bool} || true) {
+        {
+          return "case <2";
+        }
+      }
   }
   return "not matched";
 }
 static method test4(core::int value) → core::String {
-  #L10:
+  #L4:
   {
-    core::int #t4 = -1;
     final core::int #0#0 = value;
-    if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0)
-      #t4 = 0;
-    else
-      if(#0#0.{core::num::<}(#C1){(core::num) → core::bool})
-        #t4 = 1;
-      else
-        #t4 = 2;
-    switch(#t4) {
-      #L11:
-      case #C2:
-        {
-          {
-            return "case 2";
-          }
-        }
-      #L12:
-      case #C3:
-        {
-          {
-            return "case <2";
-          }
-        }
-      #L13:
-      case #C1:
-      default:
-        {
-          {
-            return "default";
-          }
-        }
+    if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
+      {
+        return "case 2";
+      }
     }
+    else
+      if(#0#0.{core::num::<}(#C1){(core::num) → core::bool}) {
+        {
+          return "case <2";
+        }
+      }
+      else {
+        {
+          return "default";
+        }
+      }
   }
 }
 static method test5(core::int value) → core::String {
-  #L14:
+  #L5:
   {
-    core::int #t5 = -1;
     final core::int #0#0 = value;
-    if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0)
-      #t5 = 0;
-    else
-      if(#0#0.{core::num::<}(#C1){(core::num) → core::bool} || #0#0.{core::num::>}(#C4){(core::num) → core::bool})
-        #t5 = 1;
-      else
-        #t5 = 2;
-    switch(#t5) {
-      #L15:
-      case #C2:
-        {
-          {
-            return "case 2";
-          }
-        }
-      #L16:
-      case #C3:
-        {
-          {
-            return "case <2 >3";
-          }
-        }
-      #L17:
-      case #C1:
-      default:
-        {
-          {
-            return "default";
-          }
-        }
+    if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
+      {
+        return "case 2";
+      }
     }
+    else
+      if(#0#0.{core::num::<}(#C1){(core::num) → core::bool} || #0#0.{core::num::>}(#C2){(core::num) → core::bool}) {
+        {
+          return "case <2 >3";
+        }
+      }
+      else {
+        {
+          return "default";
+        }
+      }
   }
 }
 static method test6(core::int value) → core::String {
-  #L18:
+  #L6:
   switch(value) {
-    #L19:
+    #L7:
     case #C1:
       {
         return "case 2";
       }
-    #L20:
+    #L8:
     case #C3:
-    case #C5:
+    case #C4:
       {
         return "case 1/4";
       }
-    #L21:
+    #L9:
     default:
       {
         return "default";
@@ -220,8 +153,7 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 
 constants  {
   #C1 = 2
-  #C2 = 0
+  #C2 = 3
   #C3 = 1
-  #C4 = 3
-  #C5 = 4
+  #C4 = 4
 }

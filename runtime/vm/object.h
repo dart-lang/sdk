@@ -7220,6 +7220,9 @@ class ContextScope : public Object {
   intptr_t ContextLevelAt(intptr_t scope_index) const;
   void SetContextLevelAt(intptr_t scope_index, intptr_t context_level) const;
 
+  intptr_t KernelOffsetAt(intptr_t scope_index) const;
+  void SetKernelOffsetAt(intptr_t scope_index, intptr_t kernel_offset) const;
+
   static const intptr_t kBytesPerElement =
       sizeof(UntaggedContextScope::VariableDesc);
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;

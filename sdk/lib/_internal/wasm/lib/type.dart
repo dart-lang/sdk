@@ -398,8 +398,6 @@ class _FunctionType extends _Type {
   @override
   String toString() {
     StringBuffer s = StringBuffer();
-    s.write(returnType);
-    s.write(" Function");
     if (typeParameterBounds.isNotEmpty) {
       s.write("<");
       for (int i = 0; i < typeParameterBounds.length; i++) {
@@ -429,7 +427,8 @@ class _FunctionType extends _Type {
       s.write("}");
     }
     s.write(")");
-    if (isDeclaredNullable) s.write("?");
+    s.write(" => ");
+    s.write(returnType);
     return s.toString();
   }
 }

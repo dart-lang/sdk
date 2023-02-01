@@ -36,59 +36,44 @@ static method method(dynamic e) → dynamic {
   }
   #L5:
   {
-    core::int #t1 = -1;
     final dynamic #0#0 = e;
-    if(#0#0 is{ForNonNullableByDefault} core::int && e =={core::Object::==}{(core::Object) → core::bool} 0)
-      #t1 = 0;
+    if(#0#0 is{ForNonNullableByDefault} core::int && e =={core::Object::==}{(core::Object) → core::bool} 0) {
+      {
+        core::print(0);
+        break #L5;
+      }
+    }
     else
-      if(#0#0 is{ForNonNullableByDefault} core::int && e =={core::Object::==}{(core::Object) → core::bool} 1)
-        #t1 = 1;
+      if(#0#0 is{ForNonNullableByDefault} core::int && e =={core::Object::==}{(core::Object) → core::bool} 1) {
+        {
+          core::print(1);
+          break #L5;
+        }
+      }
       else
-        if(#0#0 is{ForNonNullableByDefault} core::int && e =={core::Object::==}{(core::Object) → core::bool} 2)
-          #t1 = 2;
-    switch(#t1) {
-      #L6:
-      case #C1:
-        {
-          {
-            core::print(0);
-            break #L5;
-          }
-        }
-      #L7:
-      case #C4:
-        {
-          {
-            core::print(1);
-            break #L5;
-          }
-        }
-      #L8:
-      case #C7:
-        {
+        if(#0#0 is{ForNonNullableByDefault} core::int && e =={core::Object::==}{(core::Object) → core::bool} 2) {
           {
             core::print(2);
           }
         }
-    }
   }
 }
 static method method2(self::Enum e) → dynamic {
-  #L9:
+  #L6:
   switch(e) /*isExplicitlyExhaustive*/ {
-    #L10:
+    #L7:
     case #C3:
       {
         core::print(0);
-        break #L9;
+        break #L6;
       }
-    #L11:
+    #L8:
     case #C6:
       {
         core::print(1);
-        break #L9;
+        break #L6;
       }
-    #L12:
+    #L9:
     case #C9:
       {
         core::print(2);

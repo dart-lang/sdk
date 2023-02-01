@@ -5,25 +5,11 @@ import "dart:core" as core;
 static method f(dynamic x) → dynamic
   return block {
     core::int #t1;
-    core::int #t2 = -1;
-    if(true && true) {
-      #t2 = 0;
-    }
-    #L1:
-    switch(#t2) {
-      #L2:
-      case #C1:
-        {
-          #t1 = 0;
-          break #L1;
-        }
-    }
+    if(true && true)
+      #t1 = 0;
   } =>#t1;
 
-constants  {
-  #C1 = 0
-}
 
 Extra constant evaluation status:
 Evaluated: LogicalExpression @ org-dartlang-testcase:///switchExpression_onePattern_guarded.dart:6:10 -> BoolConstant(true)
-Extra constant evaluation: evaluated: 6, effectively constant: 1
+Extra constant evaluation: evaluated: 4, effectively constant: 1

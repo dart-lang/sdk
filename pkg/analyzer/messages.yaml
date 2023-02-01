@@ -6712,6 +6712,18 @@ CompileTimeErrorCode:
       ```dart
       var x = BigInt.parse('9223372036854775810');
       ```
+  INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY:
+    sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+    problemMessage: "The class '{0}' can't be extended outside of its library because it's an interface class."
+    comment: |-
+      Parameters:
+      0: the name of the interface class being extended.
+  INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY:
+    sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+    problemMessage: "The mixin '{0}' can't be mixed-in outside of its library because it's an interface mixin."
+    comment: |-
+      Parameters:
+      0: the name of the interface mixin being mixed in.
   INVALID_ANNOTATION:
     problemMessage: Annotation must be either a const variable reference or const constructor invocation.
     hasPublishedDocs: true

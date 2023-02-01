@@ -1060,6 +1060,17 @@ main() {
       ]);
     });
 
+    test('handleBreak handles null target', () {
+      h.run([
+        while_(booleanLiteral(true), [
+          checkReachable(true),
+          break_(Label.unbound()),
+          checkReachable(false),
+        ]),
+        checkReachable(false),
+      ]);
+    });
+
     test('handleContinue handles deep nesting', () {
       h.run([
         do_([
@@ -1087,6 +1098,18 @@ main() {
           continue_(),
           checkReachable(false),
         ], checkReachable(true).thenExpr(booleanLiteral(true))),
+        checkReachable(false),
+      ]);
+    });
+
+    test('handleContinue handles null target', () {
+      h.run([
+        for_(null, booleanLiteral(true),
+            checkReachable(false).thenExpr(expr('Object?')), [
+          checkReachable(true),
+          continue_(Label.unbound()),
+          checkReachable(false),
+        ]),
         checkReachable(false),
       ]);
     });

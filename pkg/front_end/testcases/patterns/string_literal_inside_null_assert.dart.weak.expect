@@ -5,23 +5,15 @@ import "dart:core" as core;
 static method test(dynamic x) → dynamic {
   #L1:
   {
-    core::int #t1 = -1;
     final dynamic #0#0 = x;
-    if(let final dynamic #t2 = #0#0! in #C1 =={core::String::==}{(core::Object) → core::bool} #0#0!)
-      #t1 = 0;
-    switch(#t1) {
-      #L2:
-      case #C2:
-        {
-          {
-            break #L1;
-          }
-        }
+    if(let final dynamic #t1 = #0#0! in #C1 =={core::String::==}{(core::Object) → core::bool} #0#0!) {
+      {
+        break #L1;
+      }
     }
   }
 }
 
 constants  {
   #C1 = "x"
-  #C2 = 0
 }

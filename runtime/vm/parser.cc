@@ -199,11 +199,12 @@ void ParsedFunction::AllocateVariables() {
       String& tmp = String::ZoneHandle(Z);
       tmp = Symbols::FromConcat(T, Symbols::OriginalParam(), variable->name());
 
-      RELEASE_ASSERT(scope->LocalLookupVariable(tmp) == NULL);
+      RELEASE_ASSERT(scope->LocalLookupVariable(
+                         tmp, variable->kernel_offset()) == nullptr);
       raw_parameter = new LocalVariable(
           variable->declaration_token_pos(), variable->token_pos(), tmp,
-          variable->type(), variable->parameter_type(),
-          variable->parameter_value());
+          variable->type(), variable->kernel_offset(),
+          variable->parameter_type(), variable->parameter_value());
       if (variable->is_explicit_covariant_parameter()) {
         raw_parameter->set_is_explicit_covariant_parameter();
       }
@@ -247,11 +248,13 @@ void ParsedFunction::AllocateVariables() {
       tmp = Symbols::FromConcat(T, Symbols::OriginalParam(),
                                 function_type_arguments_->name());
 
-      ASSERT(scope->LocalLookupVariable(tmp) == NULL);
+      ASSERT(scope->LocalLookupVariable(
+                 tmp, function_type_arguments_->kernel_offset()) == nullptr);
       raw_type_args_parameter =
-          new LocalVariable(raw_type_args_parameter->declaration_token_pos(),
-                            raw_type_args_parameter->token_pos(), tmp,
-                            raw_type_args_parameter->type());
+          new LocalVariable(function_type_arguments_->declaration_token_pos(),
+                            function_type_arguments_->token_pos(), tmp,
+                            function_type_arguments_->type(),
+                            function_type_arguments_->kernel_offset());
       bool ok = scope->AddVariable(raw_type_args_parameter);
       ASSERT(ok);
     }

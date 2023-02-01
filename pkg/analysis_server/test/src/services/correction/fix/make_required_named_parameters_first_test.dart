@@ -88,6 +88,15 @@ void f({required int a, /* bb */ int? b}) {}
 ''');
   }
 
+  Future<void> test_comments() async {
+    await resolveTestCode('''
+void f({int? a /* a */, required int b /* b1 */ /* b2 */}) {}
+''');
+    await assertHasFix('''
+void f({required int b /* b1 */ /* b2 */, int? a /* a */}) {}
+''');
+  }
+
   Future<void> test_single() async {
     await resolveTestCode('''
 void f({int? b, required int a}) {}

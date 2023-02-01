@@ -91,8 +91,8 @@ RecordType getRecordType(_RecordImpl obj) {
     var named = shape.named;
     var positionals = shape.positionals;
     var types = [];
-    var count = 0;
-    while (count < positionals) {
+    var count = 1;
+    while (count <= positionals) {
       var name = '\$$count';
       var field = JS('', '#[#]', obj, name);
       types.add(getReifiedType(field));

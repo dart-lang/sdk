@@ -1395,6 +1395,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForMixinWithConflictingPrivateMember(withClause, superclass);
       _checkForConflictingGenerics(node);
       _checkForBaseClassOrMixinImplementedOutsideOfLibrary(implementsClause);
+      _checkForInterfaceClassOrMixinSuperclassOutsideOfLibrary(
+          superclass, withClause);
       _checkForClassUsedAsMixin(withClause);
       _checkForSealedSupertypeOutsideOfLibrary(
           superclass, withClause, implementsClause);
@@ -3026,6 +3028,48 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (enclosingElement is! InterfaceElement) {
           // OK, top-level element
           return;
+        }
+      }
+    }
+  }
+
+  /// Verify that if a class is extending an interface class or mixing in an
+  /// interface mixin, it must be within the same library as that class or
+  /// mixin.
+  ///
+  /// See
+  /// [CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY],
+  /// [CompileTimeErrorCode.INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY].
+  void _checkForInterfaceClassOrMixinSuperclassOutsideOfLibrary(
+      NamedType? superclass, WithClause? withClause) {
+    if (superclass != null) {
+      final superclassType = superclass.type;
+      if (superclassType is InterfaceType) {
+        final superclassElement = superclassType.element;
+        if (superclassElement is ClassElementImpl &&
+            superclassElement.isInterface &&
+            superclassElement.library != _currentLibrary) {
+          errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
+              superclass,
+              [superclassElement.name]);
+        }
+      }
+    }
+    if (withClause != null) {
+      for (NamedType withMixin in withClause.mixinTypes) {
+        final withType = withMixin.type;
+        if (withType is InterfaceType) {
+          final withElement = withType.element;
+          if (withElement is MixinElementImpl &&
+              withElement.isInterface &&
+              withElement.library != _currentLibrary) {
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode
+                    .INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY,
+                withMixin,
+                [withElement.name]);
+          }
         }
       }
     }

@@ -5,44 +5,31 @@ import "dart:core" as core;
 static method test1(dynamic x) → dynamic {
   #L1:
   {
-    core::int #t1 = -1;
     core::int a;
     final dynamic #0#0 = x;
     function ##0#6#initializer() → dynamic
       return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
     late final dynamic #0#6 = ##0#6#initializer(){() → dynamic};
-    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = a = #0#6{core::int} in true)) && a.{core::num::>}(0){(core::num) → core::bool})
-      #t1 = 0;
-    else
-      #t1 = 1;
-    switch(#t1) {
-      #L2:
-      case #C2:
-        {
-          {
-            return a;
-          }
-        }
-      #L3:
-      case #C1:
-      default:
-        {
-          {
-            return null;
-          }
-        }
+    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t1 = a = #0#6{core::int} in true)) && a.{core::num::>}(0){(core::num) → core::bool}) {
+      {
+        return a;
+      }
+    }
+    else {
+      {
+        return null;
+      }
     }
   }
 }
 static method test2(dynamic x) → dynamic {
-  #L4:
+  #L2:
   {
-    core::int #t3 = -1;
     core::num a;
     core::num a';
     final dynamic #0#0 = x;
     function ##0#4#initializer() → core::bool
-      return #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C3;
+      return #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2;
     late final core::bool #0#4 = ##0#4#initializer(){() → core::bool};
     function ##0#6#initializer() → dynamic
       return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
@@ -50,28 +37,17 @@ static method test2(dynamic x) → dynamic {
     function ##0#7#initializer() → dynamic
       return #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
     late final dynamic #0#7 = ##0#7#initializer(){() → dynamic};
-    dynamic #t4;
-    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::num && (let final core::num #t5 = a = #0#6{core::num} in true)) && (let final dynamic #t6 = #0#7 in true) && (a is{ForNonNullableByDefault} core::int && a{core::int}.{core::int::isEven}{core::bool}) && (let final core::num #t7 = #t4 = a in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (let final dynamic #t8 = #0#6 in true) && (#0#7 is{ForNonNullableByDefault} core::num && (let final core::num #t9 = a' = #0#7{core::num} in true)) && (a' is{ForNonNullableByDefault} core::double && a'{core::double}.{core::double::ceil}(){() → core::int}.{core::int::isOdd}{core::bool}) && (let final core::num #t10 = #t4 = a' in true))
-      #t3 = 0;
-    else
-      #t3 = 1;
-    switch(#t3) {
-      #L5:
-      case #C2:
-        {
-          core::num a = #t4{core::num};
-          {
-            return a;
-          }
-        }
-      #L6:
-      case #C1:
-      default:
-        {
-          {
-            return null;
-          }
-        }
+    dynamic #t2;
+    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::num && (let final core::num #t3 = a = #0#6{core::num} in true)) && (let final dynamic #t4 = #0#7 in true) && (a is{ForNonNullableByDefault} core::int && a{core::int}.{core::int::isEven}{core::bool}) && (let final core::num #t5 = #t2 = a in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (let final dynamic #t6 = #0#6 in true) && (#0#7 is{ForNonNullableByDefault} core::num && (let final core::num #t7 = a' = #0#7{core::num} in true)) && (a' is{ForNonNullableByDefault} core::double && a'{core::double}.{core::double::ceil}(){() → core::int}.{core::int::isOdd}{core::bool}) && (let final core::num #t8 = #t2 = a' in true)) {
+      core::num a = #t2{core::num};
+      {
+        return a;
+      }
+    }
+    else {
+      {
+        return null;
+      }
     }
   }
 }
@@ -93,10 +69,9 @@ static method expectEquals(dynamic x, dynamic y) → dynamic {
 
 constants  {
   #C1 = 1
-  #C2 = 0
-  #C3 = 2
+  #C2 = 2
 }
 
 Extra constant evaluation status:
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_switch_with_guards_runtime.dart:27:29 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 122, effectively constant: 1
+Extra constant evaluation: evaluated: 116, effectively constant: 1

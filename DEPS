@@ -93,7 +93,7 @@ vars = {
   "boringssl_gen_rev": "ced85ef0a00bbca77ce5a91261a5f2ae61b1e62f",
   "boringssl_rev": "87f316d7748268eb56f2dc147bd593254ae93198",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
-  "devtools_rev": "c7a81f64dabb4b9f2cae0cf2c9411ef8bb805191",
+  "devtools_rev": "a7c581e3923357c9768c9d8ead62327dbbcc3a50",
   "gperftools_revision": "bf8b714bf5075d0a6f2f28504b43095e2b1e11c5",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",

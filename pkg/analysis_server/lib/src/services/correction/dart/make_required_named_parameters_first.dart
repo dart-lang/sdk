@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/extensions/range_factory.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -57,19 +58,18 @@ class MakeRequiredNamedParametersFirst extends CorrectionProducer {
       var firstParameter = parameters[firstOptionalParameter!];
       var firstComments = firstParameter.beginToken.precedingComments;
       var offset = firstComments?.offset ?? firstParameter.offset;
+      var lineInfo = resolvedResult.lineInfo;
       builder.addInsertion(offset, (builder) {
         for (var index in requiredParameterIndices) {
-          var parameter = parameters[index];
-          var firstToken =
-              parameter.beginToken.precedingComments ?? parameter.beginToken;
-          var lastToken = parameter.endToken;
-          var text = utils.getRangeText(range.startEnd(firstToken, lastToken));
+          var nodeRange = range.nodeWithComments(lineInfo, parameters[index]);
+          var text = utils.getRangeText(nodeRange);
           builder.write('$text, ');
         }
       });
       SourceRange? lastRange;
       for (var index in requiredParameterIndices) {
-        var sourceRange = range.nodeInList(parameters, parameters[index]);
+        var sourceRange = range.nodeInListWithComments(
+            lineInfo, parameters, parameters[index]);
         if (sourceRange.offset >= (lastRange?.end ?? 0)) {
           builder.addDeletion(sourceRange);
         }

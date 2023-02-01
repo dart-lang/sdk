@@ -625,6 +625,13 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitAssignedVariablePattern(AssignedVariablePattern node) {
+    computer._addRegion_token(
+        node.name, HighlightRegionType.LOCAL_VARIABLE_REFERENCE);
+    super.visitAssignedVariablePattern(node);
+  }
+
+  @override
   void visitAwaitExpression(AwaitExpression node) {
     computer._addRegion_token(node.awaitKeyword, HighlightRegionType.BUILT_IN,
         semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
@@ -780,6 +787,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
     computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(
+        node.name, HighlightRegionType.LOCAL_VARIABLE_DECLARATION);
     super.visitDeclaredVariablePattern(node);
   }
 
@@ -1219,6 +1228,16 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitRecordPatternFieldName(RecordPatternFieldName node) {
+    final name = node.name;
+    if (name != null) {
+      computer._addRegion_token(
+          node.name, HighlightRegionType.INSTANCE_GETTER_REFERENCE);
+    }
+    super.visitRecordPatternFieldName(node);
+  }
+
+  @override
   void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
     for (final field in node.fields) {
       computer._addRegion_token(field.name, HighlightRegionType.FIELD);
@@ -1425,7 +1444,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitWhenClause(WhenClause node) {
-    computer._addRegion_token(node.whenKeyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(node.whenKeyword, HighlightRegionType.KEYWORD,
+        semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
     super.visitWhenClause(node);
   }
 

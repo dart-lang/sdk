@@ -5,44 +5,28 @@ import "dart:core" as core;
 static method test(dynamic x) → dynamic {
   #L1:
   {
-    core::int #t1 = -1;
     core::int y;
     core::double z;
     final dynamic #0#0 = x;
     function ##0#6#initializer() → dynamic
       return #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
     late final dynamic #0#6 = ##0#6#initializer(){() → dynamic};
-    if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = y = #0#0{core::int} in true))
-      #t1 = 0;
-    else
-      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::double && (let final core::double #t3 = z = #0#6{core::double} in true)))
-        #t1 = 1;
-      else
-        #t1 = 2;
-    switch(#t1) {
-      #L2:
-      case #C2:
-        {
-          {
-            return y;
-          }
-        }
-      #L3:
-      case #C1:
-        {
-          {
-            return z;
-          }
-        }
-      #L4:
-      case #C3:
-      default:
-        {
-          {
-            return null;
-          }
-        }
+    if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t1 = y = #0#0{core::int} in true)) {
+      {
+        return y;
+      }
     }
+    else
+      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::double && (let final core::double #t2 = z = #0#6{core::double} in true))) {
+        {
+          return z;
+        }
+      }
+      else {
+        {
+          return null;
+        }
+      }
   }
 }
 static method main() → dynamic {
@@ -59,6 +43,4 @@ static method expectEquals(dynamic x, dynamic y) → dynamic {
 
 constants  {
   #C1 = 1
-  #C2 = 0
-  #C3 = 2
 }

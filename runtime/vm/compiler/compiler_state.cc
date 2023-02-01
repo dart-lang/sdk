@@ -48,7 +48,8 @@ LocalVariable* CompilerState::GetDummyCapturedVariable(intptr_t context_id,
             Z, Symbols::NewFormatted(thread(), ":context_var%" Pd, index));
         LocalVariable* var = new (Z)
             LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                          name, dynamic_type, /*param_type=*/nullptr);
+                          name, dynamic_type, LocalVariable::kNoKernelOffset,
+                          /*param_type=*/nullptr);
         var->set_is_captured();
         var->set_index(VariableIndex(index));
         return var;

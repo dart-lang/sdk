@@ -31,7 +31,7 @@ OSThread::OSThread()
 #ifdef SUPPORT_TIMELINE
       trace_id_(OSThread::GetCurrentThreadTraceId()),
 #endif
-      name_(NULL),
+      name_(OSThread::GetCurrentThreadName()),
       timeline_block_lock_(),
       timeline_block_(NULL),
       thread_list_next_(NULL),
@@ -93,7 +93,9 @@ void OSThread::SetName(const char* name) {
     free(name_);
     name_ = NULL;
   }
-  set_name(name);
+  ASSERT(OSThread::Current() == this);
+  ASSERT(name != nullptr);
+  name_ = Utils::StrDup(name);
 }
 
 // Disable AddressSanitizer and SafeStack transformation on this function. In
@@ -157,7 +159,7 @@ void OSThread::Init() {
   OSThread* os_thread = CreateOSThread();
   ASSERT(os_thread != NULL);
   OSThread::SetCurrent(os_thread);
-  os_thread->set_name("Dart_Initialize");
+  os_thread->SetName("Dart_Initialize");
 }
 
 void OSThread::Cleanup() {
@@ -183,7 +185,9 @@ OSThread* OSThread::CreateAndSetUnknownThread() {
   OSThread* os_thread = CreateOSThread();
   if (os_thread != NULL) {
     OSThread::SetCurrent(os_thread);
-    os_thread->set_name("Unknown");
+    if (os_thread->name() == nullptr) {
+      os_thread->SetName("Unknown");
+    }
   }
   return os_thread;
 }

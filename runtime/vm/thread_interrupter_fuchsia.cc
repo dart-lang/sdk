@@ -69,7 +69,7 @@ class ThreadInterrupterFuchsia : public AllStatic {
  public:
 #if defined(TARGET_ARCH_X64)
   static bool GrabRegisters(zx_handle_t thread, InterruptedThreadState* state) {
-    zx_thread_state_general_regs regs;
+    zx_thread_state_general_regs_t regs;
     zx_status_t status = zx_thread_read_state(
         thread, ZX_THREAD_STATE_GENERAL_REGS, &regs, sizeof(regs));
     if (status != ZX_OK) {
@@ -87,7 +87,7 @@ class ThreadInterrupterFuchsia : public AllStatic {
   }
 #elif defined(TARGET_ARCH_ARM64)
   static bool GrabRegisters(zx_handle_t thread, InterruptedThreadState* state) {
-    zx_thread_state_general_regs regs;
+    zx_thread_state_general_regs_t regs;
     zx_status_t status = zx_thread_read_state(
         thread, ZX_THREAD_STATE_GENERAL_REGS, &regs, sizeof(regs));
     if (status != ZX_OK) {

@@ -106,13 +106,6 @@ class OSThread : public BaseThread {
 
   void SetName(const char* name);
 
-  void set_name(const char* name) {
-    ASSERT(OSThread::Current() == this);
-    ASSERT(name_ == NULL);
-    ASSERT(name != NULL);
-    name_ = Utils::StrDup(name);
-  }
-
   Mutex* timeline_block_lock() const { return &timeline_block_lock_; }
 
   // Only safe to access when holding |timeline_block_lock_|.
@@ -254,6 +247,11 @@ class OSThread : public BaseThread {
 #ifdef SUPPORT_TIMELINE
   static ThreadId GetCurrentThreadTraceId();
 #endif  // SUPPORT_TIMELINE
+
+  // Retrieves the name given to the current thread at the OS level and returns
+  // it as a heap-allocated string that must eventually be freed by the caller
+  // using free. Returns |nullptr| when the name cannot be retrieved.
+  static char* GetCurrentThreadName();
   static OSThread* GetOSThreadFromThread(ThreadState* thread);
   static void AddThreadToListLocked(OSThread* thread);
   static void RemoveThreadFromList(OSThread* thread);

@@ -16,6 +16,7 @@ import 'field_formal_parameter_test.dart' as field_formal_parameter;
 import 'if_element_test.dart' as if_element;
 import 'if_statement_test.dart' as if_statement;
 import 'named_expression_test.dart' as named_expression;
+import 'object_pattern_test.dart' as object_pattern;
 import 'record_literal_test.dart' as record_literal;
 import 'record_pattern_test.dart' as record_pattern;
 import 'record_type_annotation_test.dart' as record_type_annotation;
@@ -37,6 +38,7 @@ void main() {
     if_element.main();
     if_statement.main();
     named_expression.main();
+    object_pattern.main();
     record_literal.main();
     record_pattern.main();
     record_type_annotation.main();

@@ -2579,30 +2579,39 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
   parent_scope->AddVariable(var_c);
 
   bool test_only = false;  // Please, insert alias.
-  var_ta = local_scope->LookupVariable(ta, test_only);
+  var_ta = local_scope->LookupVariable(ta, LocalVariable::kNoKernelOffset,
+                                       test_only);
   EXPECT(var_ta->is_captured());
   EXPECT_EQ(parent_scope_function_level, var_ta->owner()->function_level());
-  EXPECT(local_scope->LocalLookupVariable(ta) == var_ta);  // Alias.
+  EXPECT(local_scope->LocalLookupVariable(ta, LocalVariable::kNoKernelOffset) ==
+         var_ta);  // Alias.
 
-  var_a = local_scope->LookupVariable(a, test_only);
+  var_a =
+      local_scope->LookupVariable(a, LocalVariable::kNoKernelOffset, test_only);
   EXPECT(var_a->is_captured());
   EXPECT_EQ(parent_scope_function_level, var_a->owner()->function_level());
-  EXPECT(local_scope->LocalLookupVariable(a) == var_a);  // Alias.
+  EXPECT(local_scope->LocalLookupVariable(a, LocalVariable::kNoKernelOffset) ==
+         var_a);  // Alias.
 
-  var_b = local_scope->LookupVariable(b, test_only);
+  var_b =
+      local_scope->LookupVariable(b, LocalVariable::kNoKernelOffset, test_only);
   EXPECT(!var_b->is_captured());
   EXPECT_EQ(local_scope_function_level, var_b->owner()->function_level());
-  EXPECT(local_scope->LocalLookupVariable(b) == var_b);
+  EXPECT(local_scope->LocalLookupVariable(b, LocalVariable::kNoKernelOffset) ==
+         var_b);
 
   test_only = true;  // Please, do not insert alias.
-  var_c = local_scope->LookupVariable(c, test_only);
+  var_c =
+      local_scope->LookupVariable(c, LocalVariable::kNoKernelOffset, test_only);
   EXPECT(!var_c->is_captured());
   EXPECT_EQ(parent_scope_function_level, var_c->owner()->function_level());
   // c is not in local_scope.
-  EXPECT(local_scope->LocalLookupVariable(c) == NULL);
+  EXPECT(local_scope->LocalLookupVariable(c, LocalVariable::kNoKernelOffset) ==
+         NULL);
 
   test_only = false;  // Please, insert alias.
-  var_c = local_scope->LookupVariable(c, test_only);
+  var_c =
+      local_scope->LookupVariable(c, LocalVariable::kNoKernelOffset, test_only);
   EXPECT(var_c->is_captured());
 
   EXPECT_EQ(4, local_scope->num_variables());         // ta, a, b, c.
@@ -2629,22 +2638,23 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
   LocalScope* outer_scope = LocalScope::RestoreOuterScope(context_scope);
   EXPECT_EQ(3, outer_scope->num_variables());
 
-  var_ta = outer_scope->LocalLookupVariable(ta);
+  var_ta = outer_scope->LocalLookupVariable(ta, LocalVariable::kNoKernelOffset);
   EXPECT(var_ta->is_captured());
   EXPECT_EQ(0, var_ta->index().value());  // First index.
   EXPECT_EQ(parent_scope_context_level - local_scope_context_level,
             var_ta->owner()->context_level());  // Adjusted context level.
 
-  var_a = outer_scope->LocalLookupVariable(a);
+  var_a = outer_scope->LocalLookupVariable(a, LocalVariable::kNoKernelOffset);
   EXPECT(var_a->is_captured());
   EXPECT_EQ(1, var_a->index().value());  // First index.
   EXPECT_EQ(parent_scope_context_level - local_scope_context_level,
             var_a->owner()->context_level());  // Adjusted context level.
 
   // var b was not captured.
-  EXPECT(outer_scope->LocalLookupVariable(b) == NULL);
+  EXPECT(outer_scope->LocalLookupVariable(b, LocalVariable::kNoKernelOffset) ==
+         NULL);
 
-  var_c = outer_scope->LocalLookupVariable(c);
+  var_c = outer_scope->LocalLookupVariable(c, LocalVariable::kNoKernelOffset);
   EXPECT(var_c->is_captured());
   EXPECT_EQ(2, var_c->index().value());
   EXPECT_EQ(parent_scope_context_level - local_scope_context_level,

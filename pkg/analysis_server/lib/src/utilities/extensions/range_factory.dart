@@ -9,6 +9,15 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
+class TokenWithOptionalComma {
+  final Token token;
+
+  /// `true` if a comma is previously included.
+  final bool includesComma;
+
+  TokenWithOptionalComma(this.token, this.includesComma);
+}
+
 extension RangeFactoryExtensions on RangeFactory {
   /// Return a source range that covers the given [node] in the containing
   /// [list]. This includes a leading or trailing comma, as appropriate, and any
@@ -17,6 +26,10 @@ extension RangeFactoryExtensions on RangeFactory {
   /// comments (on lines between the start of the node and the preceding comma).
   ///
   /// Throws an `ArgumentError` if the [node] is not an element of the [list].
+  ///
+  /// This method is useful for deleting a node in a list.
+  ///
+  /// See [nodeWithComments].
   SourceRange nodeInListWithComments<T extends AstNode>(
       LineInfo lineInfo, NodeList<T> list, T node) {
     // TODO(brianwilkerson) Improve the name and signature of this method and
@@ -34,9 +47,10 @@ extension RangeFactoryExtensions on RangeFactory {
       }
       // If there's only one item in the list, then delete everything including
       // any leading or trailing comments, including any trailing comma.
-      var leadingComment = _leadingComment(lineInfo, node.beginToken);
-      var trailingComment = _trailingComment(lineInfo, node.endToken, true);
-      return startEnd(leadingComment, trailingComment);
+      var leading = _leadingComment(lineInfo, node.beginToken);
+      var trailing =
+          trailingComment(lineInfo, node.endToken, returnComma: true);
+      return startEnd(leading, trailing.token);
     }
     final index = list.indexOf(node);
     if (index < 0) {
@@ -53,18 +67,20 @@ extension RangeFactoryExtensions on RangeFactory {
       // If this isn't the first item in the list, then delete everything from
       // the end of the previous item, after the comma and any trailing comment,
       // to the end of this item, also after the comma and any trailing comment.
-      var previousTrailingComment =
-          _trailingComment(lineInfo, list[index - 1].endToken, false);
-      var previousHasTrailingComment = previousTrailingComment is CommentToken;
-      var thisTrailingComment =
-          _trailingComment(lineInfo, node.endToken, previousHasTrailingComment);
-      if (!previousHasTrailingComment && thisTrailingComment is CommentToken) {
-        // But if this item has a trailing comment and the previous didn't, then
+      var previousTrailingComment = trailingComment(
+          lineInfo, list[index - 1].endToken,
+          returnComma: false);
+      var thisTrailingComment = trailingComment(lineInfo, node.endToken,
+          returnComma: previousTrailingComment.includesComma);
+      var previousToken = previousTrailingComment.token;
+      if (!previousTrailingComment.includesComma &&
+          thisTrailingComment.includesComma) {
+        // But if this item has comma and the previous didn't, then
         // we'd be deleting both commas, which would leave invalid code. We
         // can't leave the comment, so instead we leave the preceding comma.
-        previousTrailingComment = previousTrailingComment.next!;
+        previousToken = previousToken.next!;
       }
-      return endEnd(previousTrailingComment, thisTrailingComment);
+      return endEnd(previousToken, thisTrailingComment.token);
     }
   }
 
@@ -101,18 +117,73 @@ extension RangeFactoryExtensions on RangeFactory {
   ///
   /// The range ends at the end of the trailing comment token or the end of the
   /// node itself if there is not one.
+  ///
+  /// See [nodeInListWithComments].
   SourceRange nodeWithComments(LineInfo lineInfo, AstNode node) {
+    var beginToken = node.beginToken;
     // If the node is the first thing in the unit, leading comments are treated
     // as headers and should never be included in the range.
-    final isFirstItem = node.beginToken == node.root.beginToken;
+    final isFirstItem = beginToken == node.root.beginToken;
 
-    var thisLeadingComment = isFirstItem
-        ? node.beginToken
-        : _leadingComment(lineInfo, node.beginToken);
-    var thisTrailingComment = _trailingComment(lineInfo, node.endToken, false);
+    var thisLeadingComment =
+        isFirstItem ? beginToken : _leadingComment(lineInfo, beginToken);
+    var thisTrailingComment =
+        trailingComment(lineInfo, node.endToken, returnComma: false);
 
-    return startEnd(thisLeadingComment, thisTrailingComment);
+    return startEnd(thisLeadingComment, thisTrailingComment.token);
   }
+
+  /// Return the trailing comment token following the [token] if it is on the
+  /// same line as the [token], or return the [token] if there is no trailing
+  /// comment or if the comment is on a different line than the [token].
+  ///
+  /// If there is a trailing comment, the returned `includesComma` indicates
+  /// that there is a `comma` between the token and the trailing comment.
+  ///
+  /// If [returnComma] is `true` and there is a comma after the
+  /// [token], then the comma will be returned when the [token] would have been.
+  ///
+  TokenWithOptionalComma trailingComment(LineInfo lineInfo, Token token,
+      {required bool returnComma}) {
+    var lastToken = token;
+    var nextToken = lastToken.next!;
+    var includesComma = nextToken.type == TokenType.COMMA &&
+        _shouldIncludeCommentsAfterComma(lineInfo, nextToken);
+    // There are comments after the comma that follows token, which are probably
+    // meant to apply to token, so we must actually proceed with nextToken
+    // instead of token.
+    if (includesComma) {
+      lastToken = nextToken;
+      nextToken = lastToken.next!;
+    }
+    Token? comment = nextToken.precedingComments;
+
+    // If there is no comment after the next comma, and the comma is on a
+    // different line than the token.
+    if (comment == null &&
+        includesComma &&
+        _areDifferentLines(lineInfo, token, lastToken)) {
+      comment = lastToken.precedingComments;
+      lastToken = token;
+    }
+    if (comment != null) {
+      var tokenLine = _lineNumber(lineInfo, lastToken);
+      if (_lineNumber(lineInfo, comment) == tokenLine) {
+        var next = comment.next;
+        while (next != null && _lineNumber(lineInfo, next) == tokenLine) {
+          comment = next;
+          next = next.next;
+        }
+        return TokenWithOptionalComma(comment!, includesComma);
+      }
+    }
+    return TokenWithOptionalComma(returnComma ? lastToken : token, false);
+  }
+
+  /// Return `true` if the line number of the given [token] is different than
+  /// the line number of the [other].
+  bool _areDifferentLines(LineInfo lineInfo, Token token, Token other) =>
+      _lineNumber(lineInfo, token) != _lineNumber(lineInfo, other);
 
   /// Return the left-most comment immediately before the [token] that is not on
   /// the same line as the first non-comment token before the [token]. Return
@@ -122,38 +193,42 @@ extension RangeFactoryExtensions on RangeFactory {
     if (previous == null || previous.isEof) {
       return token.precedingComments ?? token;
     }
+    var tokenLine = lineInfo.getLocation(token.offset).lineNumber;
     var previousLine = lineInfo.getLocation(previous.offset).lineNumber;
     Token? comment = token.precedingComments;
-    while (comment != null) {
-      var commentLine = lineInfo.getLocation(comment.offset).lineNumber;
-      if (commentLine != previousLine) {
-        break;
+    if (tokenLine != previousLine) {
+      while (comment != null) {
+        var commentLine = lineInfo.getLocation(comment.offset).lineNumber;
+        if (commentLine != previousLine) {
+          break;
+        }
+        comment = comment.next;
       }
-      comment = comment.next;
     }
     return comment ?? token;
   }
 
-  /// Return the comment token immediately following the [token] if it is on the
-  /// same line as the [token], or the [token] if there is no comment after the
-  /// [token] or if the comment is on a different line than the [token]. If
-  /// [returnComma] is `true` and there is a comma after the [token], then the
-  /// comma will be returned when the [token] would have been.
-  Token _trailingComment(LineInfo lineInfo, Token token, bool returnComma) {
-    var lastToken = token;
-    var nextToken = lastToken.next!;
-    if (nextToken.type == TokenType.COMMA) {
-      lastToken = nextToken;
-      nextToken = lastToken.next!;
+  /// Return the line number of the given [token].
+  int _lineNumber(LineInfo lineInfo, Token token) =>
+      lineInfo.getLocation(token.offset).lineNumber;
+
+  /// Return `true` if the comments preceding the token after the given [comma]
+  /// should be included.
+  ///
+  /// This happens when the comments precede a closing token (e.g. parenthesis),
+  /// or if the token next to [comma] is on a different line.
+  bool _shouldIncludeCommentsAfterComma(LineInfo lineInfo, Token comma) {
+    var tokenAfterComma = comma.next!;
+    var tokenTypeAfterComma = tokenAfterComma.type;
+    // Include the comment if the token next to comma is a closing token
+    // (e.g. closing parenthesis).
+    if (tokenTypeAfterComma == TokenType.CLOSE_CURLY_BRACKET ||
+        tokenTypeAfterComma == TokenType.CLOSE_PAREN ||
+        tokenTypeAfterComma == TokenType.CLOSE_SQUARE_BRACKET) {
+      return true;
     }
-    var tokenLine = lineInfo.getLocation(lastToken.offset).lineNumber;
-    Token? comment = nextToken.precedingComments;
-    if (comment != null &&
-        lineInfo.getLocation(comment.offset).lineNumber == tokenLine) {
-      // This doesn't account for the possibility of multiple trailing block
-      // comments.
-      return comment;
-    }
-    return returnComma ? lastToken : token;
+    // Include the comment if the token next to comma is not on the same
+    // line as the comma.
+    return _areDifferentLines(lineInfo, comma, tokenAfterComma);
   }
 }

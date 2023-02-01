@@ -383,11 +383,19 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
 
   /// Call this method when visiting a break statement.  [target] should be the
   /// statement targeted by the break.
-  void handleBreak(Statement target);
+  ///
+  /// To facilitate error recovery, [target] is allowed to be `null`; if this
+  /// happens, the break statement is analyzed as though it's an unconditional
+  /// branch to nowhere (i.e. similar to a `return` or `throw`).
+  void handleBreak(Statement? target);
 
   /// Call this method when visiting a continue statement.  [target] should be
   /// the statement targeted by the continue.
-  void handleContinue(Statement target);
+  ///
+  /// To facilitate error recovery, [target] is allowed to be `null`; if this
+  /// happens, the continue statement is analyzed as though it's an
+  /// unconditional branch to nowhere (i.e. similar to a `return` or `throw`).
+  void handleContinue(Statement? target);
 
   /// Register the fact that the current state definitely exists, e.g. returns
   /// from the body, throws an exception, etc.
@@ -1226,12 +1234,12 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void handleBreak(Statement target) {
+  void handleBreak(Statement? target) {
     _wrap('handleBreak($target)', () => _wrapped.handleBreak(target));
   }
 
   @override
-  void handleContinue(Statement target) {
+  void handleContinue(Statement? target) {
     _wrap('handleContinue($target)', () => _wrapped.handleContinue(target));
   }
 
@@ -3899,7 +3907,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void handleBreak(Statement target) {
+  void handleBreak(Statement? target) {
     _BranchTargetContext<Type>? context = _statementToContext[target];
     if (context != null) {
       context._breakModel =
@@ -3909,7 +3917,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void handleContinue(Statement target) {
+  void handleContinue(Statement? target) {
     _BranchTargetContext<Type>? context = _statementToContext[target];
     if (context != null) {
       context._continueModel = _join(
@@ -5249,10 +5257,10 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   }
 
   @override
-  void handleBreak(Statement target) {}
+  void handleBreak(Statement? target) {}
 
   @override
-  void handleContinue(Statement target) {}
+  void handleContinue(Statement? target) {}
 
   @override
   void handleExit() {}

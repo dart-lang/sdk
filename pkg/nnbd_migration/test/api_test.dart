@@ -2830,7 +2830,8 @@ void f(dynamic a) {
 
   Future<void> test_downcast_to_null() async {
     // This probably doesn't arise too often for real-world code, since it is
-    // most likely a mistake.  Still, we want to make sure we don't crash.
+    // most likely a mistake.  Still, we want to make sure we don't crash and
+    // fail at compile-time instead.
     var content = '''
 test() {
   var x = List.filled(3, null);
@@ -2840,11 +2841,11 @@ test() {
     var expected = '''
 test() {
   var x = List.filled(3, null);
-  x[0] = 1 as Null;
+  x[0] = 1;
 }
 ''';
-    // Note: using allowErrors=true because casting a literal int to a Null is
-    // an error
+    // Note: using allowErrors=true because passing `1` where `Null` is
+    // expected is an error.
     await _checkSingleFileChanges(content, expected, allowErrors: true);
   }
 
@@ -4870,6 +4871,8 @@ Future<String> getFoo() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  // TODO(yanok): the cast of `foi2` looks wrong, I think it should be `int?`
+  // instead, but `DOWN(int?, FutureOr<int?>)` is `int` according to the spec.
   Future<void> test_future_or_t_downcast_to_t() async {
     var content = '''
 import 'dart:async';
@@ -4894,7 +4897,7 @@ void f(
     FutureOr<int?> foi4
 ) {
   int i1 = foi1 as int;
-  int? i2 = foi2 as int?;
+  int? i2 = foi2 as int;
   int? i3 = foi3 as int?;
   int? i4 = foi4 as int?;
 }
@@ -9840,7 +9843,9 @@ F _f = () => null;
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40388')
+//  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40388')
+// TODO(yanok): the test stopped failing since we don't emit casts for
+// unrelated types anymore, but the issue mentioned still exists.
   Future<void> test_typedef_assign_null_return_type_formal() async {
     var content = '''
 typedef F = T Function<T>();

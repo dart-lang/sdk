@@ -16,6 +16,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:collection';
 import 'dart:io';
+import 'dart:typed_data';
 
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
@@ -43,6 +44,10 @@ class MyListOfOneElement extends Object
 
 class FileTest {
   static Directory tempDirectory;
+  static File largeFile;
+  static final largeFileLastBytes = [104, 101, 108, 108, 111];
+  static final largeFileSize = (1 << 31) + largeFileLastBytes.length;
+
   static int numLiveAsyncTests = 0;
 
   static void asyncTestStarted() {
@@ -61,6 +66,26 @@ class FileTest {
   static void createTempDirectory(Function doNext) {
     Directory.systemTemp.createTemp('dart_file').then((temp) {
       tempDirectory = temp;
+      doNext();
+    });
+  }
+
+  static void createLargeFile(Function doNext) {
+    // Increase the test count to prevent the temp directory from being
+    // deleted.
+    ++numLiveAsyncTests;
+    final buffer = Uint8List(1 << 24);
+    largeFile = new File('${tempDirectory.path}/test_large_file');
+    IOSink output = largeFile.openWrite();
+    for (var i = 0;
+        i < (largeFileSize - largeFileLastBytes.length) / buffer.length;
+        ++i) {
+      output.add(buffer);
+    }
+    output.add(largeFileLastBytes);
+    output.flush().then((_) => output.close());
+    output.done.then((_) {
+      --numLiveAsyncTests;
       doNext();
     });
   }
@@ -1136,6 +1161,27 @@ class FileTest {
     });
   }
 
+  static void testReadAsBytesLargeFile() {
+    asyncTestStarted();
+    // On Windows and macOS, it is an error to call
+    // `read/_read(fildes, buf, nbyte)` with `nbyte >= INT_MAX` and, on Linux,
+    // it returns partial data.
+    largeFile.readAsBytes().then((bytes) {
+      Expect.equals(largeFileSize, bytes.length);
+      Expect.listEquals(
+          largeFileLastBytes,
+          Uint8List.sublistView(
+              bytes, bytes.length - largeFileLastBytes.length));
+      asyncTestDone("testReadAsBytesLargeFile");
+    }, onError: (e) {
+      // The test fails on 32-bit platforms or when using compressed
+      // pointers. It is not possible to identify when running with
+      // compressed pointers.
+      Expect.type<OutOfMemoryError>(e);
+      asyncTestDone("testReadAsBytesLargeFile");
+    });
+  }
+
   static void testReadAsBytesSync() {
     var name = getFilename("fixed_length_file");
     var bytes = new File(name).readAsBytesSync();
@@ -1147,6 +1193,27 @@ class FileTest {
     var name = getFilename("empty_file");
     var bytes = new File(name).readAsBytesSync();
     Expect.equals(bytes.length, 0);
+  }
+
+  static testReadAsBytesSyncLargeFile() {
+    asyncTestStarted();
+    // On Windows and macOS, it is an error to call
+    // `read/_read(fildes, buf, nbyte)` with `nbyte >= INT_MAX` and, on Linux,
+    // it returns partial data.
+    Uint8List bytes;
+    try {
+      bytes = largeFile.readAsBytesSync();
+    } on OutOfMemoryError catch (e) {
+      // The test fails on 32-bit platforms or when using compressed
+      // pointers. It is not possible to identify when running with
+      // compressed pointers.
+      asyncTestDone("testReadAsBytesSyncLargeFile");
+      return;
+    }
+    Expect.equals(largeFileSize, bytes.length);
+    Expect.listEquals(largeFileLastBytes,
+        Uint8List.sublistView(bytes, bytes.length - largeFileLastBytes.length));
+    asyncTestDone("testReadAsBytesSyncLargeFile");
   }
 
   static void testReadAsText() {
@@ -1613,7 +1680,8 @@ class FileTest {
 
     var absFile = file.absolute;
     Expect.isTrue(absFile.isAbsolute);
-    Expect.isTrue(absFile.path.startsWith(tempDirectory.path));
+    Expect.isTrue(absFile.path.startsWith(tempDirectory.path),
+        '${absFile.path} not in ${tempDirectory.path}');
 
     Expect.equals("content", absFile.readAsStringSync());
 
@@ -1730,7 +1798,11 @@ class FileTest {
       testSetLastAccessedSyncDirectory();
       testDoubleAsyncOperation();
       testAbsolute();
-      asyncEnd();
+      createLargeFile(() {
+        testReadAsBytesLargeFile();
+        testReadAsBytesSyncLargeFile();
+        asyncEnd();
+      });
     });
   }
 }
