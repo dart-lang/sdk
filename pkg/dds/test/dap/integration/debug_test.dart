@@ -441,9 +441,42 @@ main() {
       expect(toolEvent.body, {
         'kind': 'navigate',
         'data': {
-          'file': 'x.dart',
+          'uri': 'file:///file.dart',
         },
       });
+    });
+
+    test('resolves URIs in tool events to file:///', () async {
+      final testFile =
+          dap.createTestFile(simpleToolEventWithDartCoreUriProgram);
+
+      // Capture the `dart.toolEvent` event.
+      final toolEventsFuture = dap.client.events('dart.toolEvent').first;
+
+      // Run the script until we get the event (which means mapping has
+      // completed).
+      await Future.wait([
+        toolEventsFuture,
+        dap.client.initialize(),
+        dap.client.launch(testFile.path),
+      ], eagerError: true);
+
+      // Terminate the app (since the test script has a delay to ensure it
+      // doesn't terminate before the async mapping code completes).
+      await Future.wait([
+        dap.client.event('terminated'),
+        dap.client.terminate(),
+      ], eagerError: true);
+
+      // Verify we got the right fileUri.
+      final toolEvent = await toolEventsFuture;
+      final body = toolEvent.body as Map<String, Object?>;
+      final data = body['data'] as Map<String, Object?>;
+      final uri = data['uri'] as String;
+      final resolvedUri = data['resolvedUri'] as String;
+      expect(uri, 'dart:core');
+      expect(resolvedUri, startsWith('file:///'));
+      expect(resolvedUri, endsWith('lib/core/core.dart'));
     });
     // These tests can be slow due to starting up the external server process.
   }, timeout: Timeout.none);
