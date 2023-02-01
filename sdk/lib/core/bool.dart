@@ -107,7 +107,7 @@ class bool {
   /// Rather than throwing and immediately catching the [FormatException],
   /// instead use [tryParse] to handle a potential parsing error.
   @Since("3.0")
-  external static bool parse(String source, {bool? caseSensitive});
+  external static bool parse(String source, {bool caseSensitive = true});
 
   /// Parse [source] as an, optionally case-insensitive, boolean literal.
   ///
