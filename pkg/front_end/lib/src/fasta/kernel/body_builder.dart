@@ -6347,11 +6347,15 @@ class BodyBuilder extends StackListenerImpl
       } else {
         target = b.member;
       }
-      return buildStaticInvocation(target!, arguments,
-          constness: constness,
-          charOffset: nameToken.charOffset,
-          charLength: nameToken.length,
-          typeAliasBuilder: typeAliasBuilder as TypeAliasBuilder?);
+      if (target != null) {
+        return buildStaticInvocation(target, arguments,
+            constness: constness,
+            charOffset: nameToken.charOffset,
+            charLength: nameToken.length,
+            typeAliasBuilder: typeAliasBuilder as TypeAliasBuilder?);
+      } else {
+        errorName ??= debugName(type.name, name);
+      }
     } else if (type is InvalidTypeDeclarationBuilder) {
       LocatedMessage message = type.message;
       return evaluateArgumentsBefore(
