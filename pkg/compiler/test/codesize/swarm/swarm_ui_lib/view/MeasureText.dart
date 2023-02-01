@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of view;
 
 // TODO(jacobr): handle splitting lines on symbols such as '-' that aren't
@@ -11,24 +9,19 @@ part of view;
 /// Utility class to efficiently word break and measure text without requiring
 /// access to the DOM.
 class MeasureText {
-  static CanvasRenderingContext2D _context;
+  static late final _context = (Element.tag('canvas') as CanvasElement)
+      .getContext('2d') as CanvasRenderingContext2D;
 
   final String font;
-  num _spaceLength;
-  num _typicalCharLength;
+  late final num _spaceLength;
+  late final num _typicalCharLength;
 
   static const String ELLIPSIS = '...';
 
   MeasureText(this.font) {
-    if (_context == null) {
-      CanvasElement canvas = Element.tag('canvas');
-      _context = canvas.getContext('2d');
-    }
-    if (_spaceLength == null) {
-      _context.font = font;
-      _spaceLength = _context.measureText(' ').width;
-      _typicalCharLength = _context.measureText('k').width;
-    }
+    _context.font = font;
+    _spaceLength = _context.measureText(' ').width!;
+    _typicalCharLength = _context.measureText('k').width!;
   }
 
   // TODO(jacobr): we are DOA for i18N...
@@ -63,7 +56,7 @@ class MeasureText {
   /// This function is safe to call with [:sb == null:] in which case just the
   /// line count is returned.
   int addLineBrokenText(
-      StringBuffer sb, String text, num lineWidth, int maxLines) {
+      StringBuffer? sb, String text, num lineWidth, int maxLines) {
     // Strip surrounding whitespace. This ensures we create zero lines if there
     // is no visible text.
     text = text.trim();
@@ -72,7 +65,7 @@ class MeasureText {
     // the number of lines and not the actual linebreaks is required.
     if (sb == null) {
       _context.font = font;
-      int textWidth = _context.measureText(text).width.toInt();
+      int textWidth = _context.measureText(text).width!.toInt();
       // By the pigeon hole principle, the resulting text will require at least
       // maxLines if the raw text is longer than the amount of text that will
       // fit on maxLines - 1.  We add the length of a whitespace
@@ -115,8 +108,8 @@ class MeasureText {
     int lines = 0;
     num currentLength = 0;
     int startIndex = 0;
-    int wordStartIndex;
-    int lastWordEndIndex;
+    int? wordStartIndex;
+    int? lastWordEndIndex;
     bool lastWhitespace = true;
     // TODO(jacobr): optimize this further.
     // To simplify the logic, we simulate injecting a whitespace character
@@ -126,7 +119,7 @@ class MeasureText {
       bool whitespace = i == len || isWhitespace(text[i]);
       if (whitespace && !lastWhitespace) {
         num wordLength =
-            _context.measureText(text.substring(wordStartIndex, i)).width;
+            _context.measureText(text.substring(wordStartIndex!, i)).width!;
         // TODO(jimhug): Replace the line above with this one to workaround
         //               dartium bug - error: unimplemented code
         // num wordLength = (i - wordStartIndex) * 17;
