@@ -1663,6 +1663,26 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the name of the final class being extended.
+  static const CompileTimeErrorCode FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY =
+      CompileTimeErrorCode(
+    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
+    "The class '{0}' can't be extended outside of its library because it's a "
+        "final class.",
+    uniqueName: 'FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the final class being implemented.
+  static const CompileTimeErrorCode FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY =
+      CompileTimeErrorCode(
+    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
+    "The class '{0}' can't be implemented outside of its library because it's "
+        "a final class.",
+    uniqueName: 'FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
+  );
+
+  ///  Parameters:
   ///  0: the name of the field in question
   static const CompileTimeErrorCode
       FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR = CompileTimeErrorCode(
@@ -1671,6 +1691,26 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "set to a new value.",
     correctionMessage: "Try removing one of the initializations.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the final mixin being implemented.
+  static const CompileTimeErrorCode FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY =
+      CompileTimeErrorCode(
+    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
+    "The mixin '{0}' can't be implemented outside of its library because it's "
+        "a final mixin.",
+    uniqueName: 'FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the final mixin being mixed in.
+  static const CompileTimeErrorCode FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY =
+      CompileTimeErrorCode(
+    'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
+    "The mixin '{0}' can't be mixed-in outside of its library because it's a "
+        "final mixin.",
+    uniqueName: 'FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY',
   );
 
   ///  Parameters:

@@ -1397,6 +1397,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForBaseClassOrMixinImplementedOutsideOfLibrary(implementsClause);
       _checkForInterfaceClassOrMixinSuperclassOutsideOfLibrary(
           superclass, withClause);
+      _checkForFinalSupertypeOutsideOfLibrary(
+          superclass, withClause, implementsClause);
       _checkForClassUsedAsMixin(withClause);
       _checkForSealedSupertypeOutsideOfLibrary(
           superclass, withClause, implementsClause);
@@ -2841,6 +2843,69 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var fields = classMember.fields;
         _checkForFinalNotInitialized(fields);
         _checkForNotInitializedNonNullableInstanceFields(classMember);
+      }
+    }
+  }
+
+  /// Check that if a direct supertype of a node is final, then it must be in
+  /// the same library.
+  ///
+  /// See [CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY],
+  /// [CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY],
+  /// [CompileTimeErrorCode.FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY],
+  /// [CompileTimeErrorCode.FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY].
+  void _checkForFinalSupertypeOutsideOfLibrary(NamedType? superclass,
+      WithClause? withClause, ImplementsClause? implementsClause) {
+    if (superclass != null) {
+      final type = superclass.type;
+      if (type is InterfaceType) {
+        final element = type.element;
+        if (element is ClassElementImpl &&
+            element.isFinal &&
+            element.library != _currentLibrary) {
+          errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
+              superclass,
+              [element.name]);
+        }
+      }
+    }
+    if (withClause != null) {
+      for (NamedType namedType in withClause.mixinTypes) {
+        final type = namedType.type;
+        if (type is InterfaceType) {
+          final element = type.element;
+          if (element is MixinElementImpl &&
+              element.isFinal &&
+              element.library != _currentLibrary) {
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY,
+                namedType,
+                [element.name]);
+          }
+        }
+      }
+    }
+    if (implementsClause != null) {
+      for (NamedType namedType in implementsClause.interfaces) {
+        final type = namedType.type;
+        if (type is InterfaceType) {
+          final element = type.element;
+          if (element is ClassOrMixinElementImpl &&
+              element.isFinal &&
+              element.library != _currentLibrary) {
+            final ErrorCode errorCode;
+            if (element is ClassElement) {
+              errorCode = CompileTimeErrorCode
+                  .FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY;
+            } else {
+              errorCode = CompileTimeErrorCode
+                  .FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY;
+            }
+            errorReporter
+                .reportErrorForNode(errorCode, namedType, [element.name]);
+          }
+        }
       }
     }
   }
@@ -5164,6 +5229,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       );
       _checkForConflictingGenerics(node);
       _checkForBaseClassOrMixinImplementedOutsideOfLibrary(implementsClause);
+      _checkForFinalSupertypeOutsideOfLibrary(null, null, implementsClause);
       _checkForSealedSupertypeOutsideOfLibrary(null, null, implementsClause);
     }
   }
