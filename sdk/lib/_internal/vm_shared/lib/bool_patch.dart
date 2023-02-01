@@ -27,7 +27,7 @@ class bool {
   static bool parse(String source, {bool caseSensitive = true}) {
     checkNotNullable(source, "source");
     // The caseSensitive defaults to true.
-    if (caseSensitive == null || caseSensitive == true) {
+    if (caseSensitive == null || caseSensitive) {
       return source == "true" ||
           source != "false" &&
               (throw FormatException("Not a valid boolean", source));
