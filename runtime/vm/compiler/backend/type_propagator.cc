@@ -1160,7 +1160,8 @@ CompileType ParameterInstr::ComputeType() const {
   // The code below is not safe for OSR because it doesn't necessarily use
   // the correct scope.
   if (graph_entry->IsCompiledForOsr()) {
-    return CompileType::Dynamic();
+    // Parameter at OSR entry may correspond to a late local variable.
+    return CompileType::DynamicOrSentinel();
   }
 
   const ParsedFunction& pf = graph_entry->parsed_function();
