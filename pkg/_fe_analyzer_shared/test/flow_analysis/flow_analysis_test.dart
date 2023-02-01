@@ -7437,6 +7437,134 @@ main() {
               'block(stmt(1), synthetic-break())))'),
         ]);
       });
+
+      group('Joins promotions of scrutinee:', () {
+        test('First case more promoted', () {
+          var x = Var('x');
+          // ` case num() && int(): case num():` retains promotion to `num`
+          h.run([
+            declare(x, initializer: expr('Object')),
+            switch_(x.expr, [
+              switchStatementMember([
+                objectPattern(requiredType: 'num', fields: [])
+                    .and(objectPattern(requiredType: 'int', fields: []))
+                    .switchCase,
+                objectPattern(requiredType: 'num', fields: []).switchCase
+              ], [
+                checkPromoted(x, 'num'),
+              ])
+            ]),
+          ]);
+        });
+
+        test('Second case more promoted', () {
+          var x = Var('x');
+          // `case num(): case num() && int():` retains promotion to `num`
+          h.run([
+            declare(x, initializer: expr('Object')),
+            switch_(x.expr, [
+              switchStatementMember([
+                objectPattern(requiredType: 'num', fields: []).switchCase,
+                objectPattern(requiredType: 'num', fields: [])
+                    .and(objectPattern(requiredType: 'int', fields: []))
+                    .switchCase
+              ], [
+                checkPromoted(x, 'num'),
+              ])
+            ]),
+          ]);
+        });
+      });
+
+      group('Joins explicitly declared variables:', () {
+        test('First var promoted', () {
+          var x1 = Var('x', identity: 'x1');
+          var x2 = Var('x', identity: 'x2');
+          var x = PatternVariableJoin('x', expectedComponents: [x1, x2]);
+          h.run([
+            switch_(expr('int?'), [
+              switchStatementMember([
+                x1.pattern(type: 'int?').nullCheck.switchCase,
+                x2.pattern(type: 'int?').switchCase
+              ], [
+                checkNotPromoted(x),
+              ])
+            ]),
+          ]);
+        });
+
+        test('Second var promoted', () {
+          var x1 = Var('x', identity: 'x1');
+          var x2 = Var('x', identity: 'x2');
+          var x = PatternVariableJoin('x', expectedComponents: [x1, x2]);
+          h.run([
+            switch_(expr('int?'), [
+              switchStatementMember([
+                x1.pattern(type: 'int?').switchCase,
+                x2.pattern(type: 'int?').nullCheck.switchCase
+              ], [
+                checkNotPromoted(x),
+              ])
+            ]),
+          ]);
+        });
+
+        test('Both vars promoted', () {
+          var x1 = Var('x', identity: 'x1');
+          var x2 = Var('x', identity: 'x2');
+          var x = PatternVariableJoin('x', expectedComponents: [x1, x2]);
+          h.run([
+            switch_(expr('int?'), [
+              switchStatementMember([
+                x1.pattern(type: 'int?').nullCheck.switchCase,
+                x2.pattern(type: 'int?').nullCheck.switchCase
+              ], [
+                checkPromoted(x, 'int'),
+              ])
+            ]),
+          ]);
+        });
+      });
+
+      group(
+          "Sets join variable assigned even if variable doesn't appear in "
+          "every case", () {
+        test('Variable in first case only', () {
+          var x1 = Var('x', identity: 'x1');
+          var x = PatternVariableJoin('x', expectedComponents: [x1]);
+          // `x` is considered assigned inside the case body (even though it's
+          // not actually assigned by both patterns) because this avoids
+          // redundant errors.
+          h.run([
+            switch_(expr('int?'), [
+              switchStatementMember([
+                x1.pattern().nullCheck.switchCase,
+                wildcard().switchCase
+              ], [
+                checkAssigned(x, true),
+              ])
+            ]),
+          ]);
+        });
+
+        test('Variable in second case only', () {
+          var x1 = Var('x', identity: 'x1');
+          var x = PatternVariableJoin('x', expectedComponents: [x1]);
+          // `x` is considered assigned inside the case body (even though it's
+          // not actually assigned by both patterns) because this avoids
+          // redundant errors.
+          h.run([
+            switch_(expr('int?'), [
+              switchStatementMember([
+                wildcard().nullCheck.switchCase,
+                x1.pattern().switchCase
+              ], [
+                checkAssigned(x, true),
+              ])
+            ]),
+          ]);
+        });
+      });
     });
 
     group('Variable pattern:', () {

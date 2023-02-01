@@ -853,6 +853,7 @@ class MiniAstOperations
     '()': true,
     'dynamic': false,
     'int': false,
+    'int?': false,
     'List<int>': false,
     'Never': false,
     'num': false,

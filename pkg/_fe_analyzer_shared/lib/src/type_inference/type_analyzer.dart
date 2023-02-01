@@ -2063,7 +2063,25 @@ mixin TypeAnalyzer<
         }
         (outerComponentVariables?[variableName] ??= [])?.add(variable);
       }
-      outerPatternVariablePromotionKeys?[variableName] = promotionKey;
+      if (outerPatternVariablePromotionKeys != null) {
+        // We're finishing the pattern for one of the cases of a switch
+        // statement.  See if this variable appeared in any previous patterns
+        // that share the same case body.
+        int? previousPromotionKey =
+            outerPatternVariablePromotionKeys[variableName];
+        if (previousPromotionKey == null) {
+          // This variable hasn't been seen in any previous patterns that share
+          // the same body.  So we can safely use the promotion key we have to
+          // store information about this variable.
+          outerPatternVariablePromotionKeys[variableName] = promotionKey;
+        } else {
+          // This variable has been seen in previous patterns, so we have to
+          // copy promotion data into the previously-used promotion key, to
+          // ensure that the promotion information is properly joined.
+          flow.copyPromotionData(
+              sourceKey: promotionKey, destinationKey: previousPromotionKey);
+        }
+      }
     }
   }
 
