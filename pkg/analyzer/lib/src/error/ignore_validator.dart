@@ -7,8 +7,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
-import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/lint/state.dart';
 
 /// Used to validate the ignore comments in a single file.
 class IgnoreValidator {
@@ -146,36 +144,38 @@ class IgnoreValidator {
   /// Report the [ignoredNames] as being unnecessary.
   void _reportUnnecessaryOrRemovedOrDeprecatedIgnores(
       List<IgnoredElement> ignoredNames) {
-    for (var ignoredName in ignoredNames) {
-      if (ignoredName is DiagnosticName) {
-        var name = ignoredName.name;
-        var rule = Registry.ruleRegistry.getRule(name);
-        if (rule != null) {
-          var state = rule.state;
-          var since = state.since.toString();
-          if (state is DeprecatedState) {
-            // todo(pq): implement
-          } else if (state is RemovedState) {
-            var replacedBy = state.replacedBy;
-            if (replacedBy != null) {
-              _errorReporter.reportErrorForOffset(HintCode.REPLACED_LINT_USE,
-                  ignoredName.offset, name.length, [name, since, replacedBy]);
-              continue;
-            } else {
-              _errorReporter.reportErrorForOffset(HintCode.REMOVED_LINT_USE,
-                  ignoredName.offset, name.length, [name, since]);
-              continue;
-            }
-          }
-        }
-
-        // TODO(brianwilkerson) Uncomment the code below after the unnecessary
-        //  ignores in the Flutter code base have been cleaned up.
-        //   _errorReporter.reportErrorForOffset(
-        //       HintCode.UNNECESSARY_IGNORE, ignoredName.offset, name.length,
-        //       [name]);
-      }
-    }
+    // todo(pq): find the right way to roll-out enablement and uncomment
+    // https://github.com/dart-lang/sdk/issues/51214
+    // for (var ignoredName in ignoredNames) {
+    //   if (ignoredName is DiagnosticName) {
+    //     var name = ignoredName.name;
+    //     var rule = Registry.ruleRegistry.getRule(name);
+    //     if (rule != null) {
+    //       var state = rule.state;
+    //       var since = state.since.toString();
+    //       if (state is DeprecatedState) {
+    //         // todo(pq): implement
+    //       } else if (state is RemovedState) {
+    //         var replacedBy = state.replacedBy;
+    //         if (replacedBy != null) {
+    //           _errorReporter.reportErrorForOffset(HintCode.REPLACED_LINT_USE,
+    //               ignoredName.offset, name.length, [name, since, replacedBy]);
+    //           continue;
+    //         } else {
+    //           _errorReporter.reportErrorForOffset(HintCode.REMOVED_LINT_USE,
+    //               ignoredName.offset, name.length, [name, since]);
+    //           continue;
+    //         }
+    //       }
+    //     }
+    //
+    //     // TODO(brianwilkerson) Uncomment the code below after the unnecessary
+    //     //  ignores in the Flutter code base have been cleaned up.
+    //     //   _errorReporter.reportErrorForOffset(
+    //     //       HintCode.UNNECESSARY_IGNORE, ignoredName.offset, name.length,
+    //     //       [name]);
+    //   }
+    // }
   }
 }
 
