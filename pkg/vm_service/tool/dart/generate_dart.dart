@@ -1148,6 +1148,8 @@ class MemberType extends Member {
 
   bool get isMultipleReturns => types.length > 1;
 
+  bool get areAllTypesSimple => types.every((type) => type.isSimple);
+
   bool get isSimple => types.length == 1 && types.first.isSimple;
 
   bool get isEnum => types.length == 1 && api.isEnumName(types.first.name);
@@ -1642,7 +1644,9 @@ void _parseTokenPosTable() {
 
   // Writes the code to retrieve the serialized value of a field.
   void generateSerializedFieldAccess(TypeField field, DartGenerator gen) {
-    if (field.type.isSimple || field.type.isEnum) {
+    if (field.type.isSimple ||
+        field.type.isEnum ||
+        field.type.areAllTypesSimple) {
       gen.write('${field.generatableName}');
       final defaultValue = field.defaultValue;
       if (defaultValue != null) {

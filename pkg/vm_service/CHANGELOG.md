@@ -1,5 +1,8 @@
 # Changelog
 
+## 10.1.2
+- Fix bug where code would try to call `.toJson()` on `String`s.
+
 ## 10.1.0
 - Update to version `4.1` of the spec.
 - Add optional `includeSubclasses` and `includeImplementers` parameters to

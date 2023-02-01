@@ -892,10 +892,19 @@ abstract class VmServiceInterface {
   /// timeline events from the following time range will be returned:
   /// `(timeOriginMicros, timeOriginMicros + timeExtentMicros)`.
   ///
+  /// If `getVMTimeline` is invoked while the current recorder is Callback, an
+  /// [RPC error] with error code `114`, `invalid timeline request`, will be
+  /// returned as timeline events are handled by the embedder in this mode.
+  ///
   /// If `getVMTimeline` is invoked while the current recorder is one of Fuchsia
   /// or Macos or Systrace, an [RPC error] with error code `114`, `invalid
   /// timeline request`, will be returned as timeline events are handled by the
   /// OS in these modes.
+  ///
+  /// If `getVMTimeline` is invoked while the current recorder is File, an [RPC
+  /// error] with error code `114`, `invalid timeline request`, will be returned
+  /// as timeline events are written directly to a file, and thus cannot be
+  /// retrieved through the VM Service, in this mode.
   Future<Timeline> getVMTimeline(
       {int? timeOriginMicros, int? timeExtentMicros});
 
@@ -2966,7 +2975,7 @@ class BoundField {
     final json = <String, dynamic>{};
     json.addAll({
       'decl': decl?.toJson(),
-      'name': name?.toJson(),
+      'name': name,
       'value': value?.toJson(),
     });
     return json;
@@ -5299,7 +5308,7 @@ class Instance extends Obj implements InstanceRef {
   @optional
   List<InstanceRef>? typeParameters;
 
-  /// The fields of this Instance.
+  /// The (non-static) fields of this Instance.
   ///
   /// Provided for instance kinds:
   ///  - PlainInstance
@@ -7228,7 +7237,7 @@ class RetainingObject {
     });
     _setIfNotNull(json, 'parentListIndex', parentListIndex);
     _setIfNotNull(json, 'parentMapKey', parentMapKey?.toJson());
-    _setIfNotNull(json, 'parentField', parentField?.toJson());
+    _setIfNotNull(json, 'parentField', parentField);
     return json;
   }
 
