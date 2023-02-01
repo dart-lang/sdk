@@ -1717,8 +1717,35 @@ class _Uri implements Uri {
 
   /// The default port for the scheme of this Uri.
   static int _defaultPort(String scheme) {
-    if (scheme == "http") return 80;
-    if (scheme == "https") return 443;
+    // TODO: Magic numbers could be replaced with constants
+    switch (scheme) {
+      case "http":
+        return 80;
+      case "https":
+        return 443;
+      case "ws":
+        return 80;
+      case "wss":
+        return 443;
+      case "nntp":
+        return 119;
+      case "sftp":
+        return 22;
+      case "gopher":
+        return 70;
+      case "coap":
+        return 5683;
+      case "coaps":
+        return 5684;
+      case "coap+tcp":
+        return 5683;
+      case "coaps+tcp":
+        return 5684;
+      case "coap+ws":
+        return 80;
+      case "coaps+ws":
+        return 443;
+    }
     return 0;
   }
 
