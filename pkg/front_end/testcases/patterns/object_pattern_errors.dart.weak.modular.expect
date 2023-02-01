@@ -20,19 +20,16 @@ class A extends core::Object {
     ;
 }
 static method test(dynamic x) → dynamic {
-  if(false) {
-  }
   {
-    final dynamic #1#0 = x;
-    if(#1#0 is{ForNonNullableByDefault} self::A) {
+    final dynamic #0#0 = x;
+    if(#0#0 is{ForNonNullableByDefault} invalid-type) {
     }
   }
-  {
-    final dynamic #2#0 = x;
-    if(#2#0 is{ForNonNullableByDefault} self::A) {
-    }
+  if(true) {
   }
-  if(false) {
+  if(true) {
+  }
+  if(true) {
   }
 }
 static method _#B#new#tearOff<unrelated X extends core::Object? = dynamic>() → self::A

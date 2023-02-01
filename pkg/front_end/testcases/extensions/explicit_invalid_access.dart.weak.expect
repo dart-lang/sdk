@@ -6,6 +6,11 @@ library /*isNonNullableByDefault*/;
 //   Extension(c);
 //   ^^^^^^^^^
 //
+// pkg/front_end/testcases/extensions/explicit_invalid_access.dart:11:3: Error: This requires the experimental 'extension-types' language feature to be enabled.
+// Try passing the '--enable-experiment=extension-types' command line option.
+//   Extension(c) = 42;
+//   ^^^^^^^^^
+//
 // pkg/front_end/testcases/extensions/explicit_invalid_access.dart:12:3: Error: Explicit extension application cannot be used as an expression.
 //   Extension(c) += 42;
 //   ^^^^^^^^^
@@ -35,7 +40,7 @@ static method errors(self::Class c) → dynamic {
   ^^^^^^^^^";
   block {
     final dynamic #0#0 = 42;
-    if(!false)
+    if(!(#0#0 is{ForNonNullableByDefault} invalid-type))
       throw new _in::ReachabilityError::•();
   } =>#0#0;
   invalid-expression "pkg/front_end/testcases/extensions/explicit_invalid_access.dart:12:3: Error: Explicit extension application cannot be used as an expression.

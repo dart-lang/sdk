@@ -18,7 +18,6 @@
 /// kernel class, because multiple constructs in Dart may desugar to a tree
 /// with the same kind of root node.
 import 'package:kernel/ast.dart';
-import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/text/ast_to_text.dart' show Precedence, Printer;
 import 'package:kernel/type_environment.dart';
@@ -4172,15 +4171,10 @@ class ListPattern extends Pattern {
 }
 
 class ObjectPattern extends Pattern {
-  final Reference classReference;
+  final DartType type;
   final List<NamedPattern> fields;
-  final List<DartType>? typeArguments;
 
-  Class get classNode => classReference.asClass;
-
-  ObjectPattern(
-      this.classReference, this.fields, this.typeArguments, int fileOffset)
-      : super(fileOffset) {
+  ObjectPattern(this.type, this.fields, int fileOffset) : super(fileOffset) {
     setParents(fields, this);
   }
 
@@ -4197,12 +4191,7 @@ class ObjectPattern extends Pattern {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.write('${classNode.name}');
-    if (typeArguments != null) {
-      printer.write('<');
-      printer.writeTypes(typeArguments!);
-      printer.write('>');
-    }
+    printer.writeType(type);
     printer.write('(');
     String comma = '';
     for (Pattern field in fields) {
@@ -4222,22 +4211,7 @@ class ObjectPattern extends Pattern {
   DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
       MatchingCache matchingCache, CacheableExpression matchedExpression) {
     DartType matchedType = matchedExpression.getType(base);
-    // targetObjectType: `classNode`<`typeArguments`>
-    DartType targetObjectType;
-    if (typeArguments != null &&
-        typeArguments!.length == classNode.typeParameters.length) {
-      targetObjectType =
-          new InterfaceType(classNode, Nullability.nonNullable, typeArguments);
-    } else {
-      if (typeArguments != null) {
-        // TODO(cstefantsova): Report an error.
-      }
-      targetObjectType = new InterfaceType(
-          classNode,
-          Nullability.nonNullable,
-          calculateBounds(classNode.typeParameters, base.coreTypes.objectClass,
-              base.libraryBuilder.library));
-    }
+    DartType targetObjectType = type;
 
     bool typeCheckForTargetNeeded =
         !base.isAssignable(targetObjectType, matchedType) ||

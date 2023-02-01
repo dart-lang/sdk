@@ -3955,11 +3955,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         if (!haveErroneousBounds) {
           List<NamedTypeBuilder> unboundTypes = [];
           List<TypeVariableBuilder> unboundTypeVariables = [];
-          List<TypeBuilder> calculatedBounds = calculateBounds(
-              variables,
-              dynamicType,
-              isNonNullableByDefault ? bottomType : nullType,
-              objectClass,
+          List<TypeBuilder> calculatedBounds = calculateBounds(variables,
+              dynamicType, isNonNullableByDefault ? bottomType : nullType,
               unboundTypes: unboundTypes,
               unboundTypeVariables: unboundTypeVariables);
           for (NamedTypeBuilder unboundType in unboundTypes) {
@@ -5011,6 +5008,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         case TypeUse.returnType:
         case TypeUse.isType:
         case TypeUse.asType:
+        case TypeUse.objectPatternType:
         case TypeUse.catchType:
         case TypeUse.constructorTypeArgument:
         case TypeUse.redirectionTypeArgument:

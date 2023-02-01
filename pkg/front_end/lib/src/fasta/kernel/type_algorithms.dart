@@ -442,7 +442,7 @@ TypeBuilder substitute(
 /// (https://github.com/dart-lang/sdk/blob/master/docs/language/informal/instantiate-to-bound.md)
 /// of the algorithm for details.
 List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
-    TypeBuilder dynamicType, TypeBuilder bottomType, ClassBuilder objectClass,
+    TypeBuilder dynamicType, TypeBuilder bottomType,
     {required List<TypeBuilder> unboundTypes,
     required List<TypeVariableBuilder> unboundTypeVariables}) {
   // ignore: unnecessary_null_comparison

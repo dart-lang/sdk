@@ -318,8 +318,7 @@ Space convertExpressionToSpace(
 Space convertPatternToSpace(CfeExhaustivenessCache cache, Pattern pattern,
     Map<Node, Constant?> constants, StaticTypeContext context) {
   if (pattern is ObjectPattern) {
-    InterfaceType type = new InterfaceType(
-        pattern.classNode, Nullability.nonNullable, pattern.typeArguments);
+    DartType type = pattern.type;
     Map<String, Space> fields = {};
     for (NamedPattern field in pattern.fields) {
       fields[field.name] =

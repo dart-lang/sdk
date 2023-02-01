@@ -197,6 +197,16 @@ enum TypeUse {
   ///
   asType,
 
+  /// A type used as the type in an object pattern.
+  ///
+  /// For instance `X` in
+  ///
+  ///    method(o) {
+  ///      if (o case X()) {}
+  ///    }
+  ///
+  objectPatternType,
+
   /// A type used as the type of local variable.
   ///
   /// For instance `X` in

@@ -1,0 +1,8 @@
+class A {}
+
+enum E<X extends A> {
+  element,
+}
+
+main() {}
+expectEquals(x, y) {}

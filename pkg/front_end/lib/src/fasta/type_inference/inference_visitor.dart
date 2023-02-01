@@ -9976,32 +9976,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     required Pattern pattern,
   }) {
     if (pattern is! ObjectPattern) return const InvalidType();
-    if (pattern.classNode.typeParameters.isEmpty) {
-      return new InterfaceType(pattern.classNode, Nullability.nonNullable, []);
-    }
-    if (pattern.typeArguments != null) {
-      return new InterfaceType(
-          pattern.classNode, Nullability.nonNullable, pattern.typeArguments);
-    }
-
-    DartType typeToInfer =
-        pattern.classNode.getThisType(coreTypes, Nullability.nonNullable);
-    List<TypeParameter> typeParametersToInfer =
-        pattern.classNode.typeParameters;
-    TypeConstraintGatherer gatherer =
-        typeSchemaEnvironment.setupGenericTypeInference(typeToInfer,
-            typeParametersToInfer, matchedType, libraryBuilder.library);
-    List<DartType> inferredTypes = typeSchemaEnvironment.partialInfer(
-        gatherer, typeParametersToInfer, null, libraryBuilder.library);
-
-    // TODO(johnniwinther): Remove this work-around once language issue #2770
-    // has been resolved.
-    inferredTypes = typeSchemaEnvironment.upwardsInfer(
-        gatherer, typeParametersToInfer, inferredTypes, libraryBuilder.library);
-
-    Substitution substitution =
-        Substitution.fromPairs(typeParametersToInfer, inferredTypes);
-    return substitution.substituteType(typeToInfer);
+    // TODO(johnniwinther): Update this when language issue #2770 has been
+    // resolved.
+    return pattern.type;
   }
 
   @override

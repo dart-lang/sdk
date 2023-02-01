@@ -1,13 +1,19 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/patternVariableDeclarationStatement_noMetadata_final_extractor.dart:6:9: Error: 'C' isn't a type.
+//   final C(f: a) = x;
+//         ^
+//
 import self as self;
 import "dart:_internal" as _in;
 
 static method f(dynamic x) → dynamic {
-  if(!false)
-    throw new _in::ReachabilityError::•();
+  final invalid-type a;
+  {
+    final dynamic #0#0 = x;
+    if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t1 = a = #0#0{invalid-type}{<invalid>}.f in true)))
+      throw new _in::ReachabilityError::•();
+  }
 }
-
-
-Extra constant evaluation status:
-Evaluated: Not @ org-dartlang-testcase:///patternVariableDeclarationStatement_noMetadata_final_extractor.dart:6:9 -> BoolConstant(true)
-Extra constant evaluation: evaluated: 3, effectively constant: 1
