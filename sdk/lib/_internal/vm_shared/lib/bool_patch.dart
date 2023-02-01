@@ -42,7 +42,7 @@ class bool {
   static bool? tryParse(String source, {bool? caseSensitive}) {
     checkNotNullable(source, "source");
     // The caseSensitive defaults to true.
-    if (caseSensitive == null || caseSensitive == true) {
+    if (caseSensitive == null || caseSensitive) {
       return source == "true"
           ? true
           : source == "false"
