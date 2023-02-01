@@ -291,8 +291,11 @@ class Scrape {
         print(line);
       } else {
         // Overwrite the same line.
+        var trimmed = shortPath;
+        if (trimmed.length > 80) trimmed = trimmed.substring(0, 80);
+
         stdout.write('\u001b[2K\r'
-            '[$_scrapedFileCount files, $_scrapedLineCount lines] $shortPath');
+            '[$_scrapedFileCount files, $_scrapedLineCount lines] $trimmed');
         _needClearLine = true;
       }
     }
@@ -316,7 +319,7 @@ class Scrape {
 
     for (var visitorFactory in _visitorFactories) {
       var visitor = visitorFactory();
-      bindVisitor(visitor, this, shortPath, source, lineInfo);
+      bindVisitor(visitor, this, shortPath, source, startToken, lineInfo);
       node.accept(visitor);
     }
   }
