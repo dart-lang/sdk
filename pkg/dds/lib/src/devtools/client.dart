@@ -186,7 +186,7 @@ class DevToolsClient {
         print('DevTools SSE request: $e');
         return e;
       });
-      sink = LoggingMiddlewareSink(sink);
+      sink = LoggingMiddlewareSink<String>(sink);
     }
 
     _devToolsPeer = json_rpc.Peer(
