@@ -34,6 +34,9 @@ class ReplacedLintUseTest extends PubPackageResolutionTest {
     Registry.ruleRegistry.register(RemovedLint());
   }
 
+  @FailingTest(
+      reason: 'Diagnostic reporting disabled',
+      issue: 'https://github.com/dart-lang/sdk/issues/51214')
   test_file() async {
     await assertErrorsInCode(r'''
 // ignore_for_file: removed_lint
@@ -44,6 +47,9 @@ void f() { }
     ]);
   }
 
+  @FailingTest(
+      reason: 'Diagnostic reporting disabled',
+      issue: 'https://github.com/dart-lang/sdk/issues/51214')
   test_line() async {
     await assertErrorsInCode(r'''
 // ignore: removed_lint

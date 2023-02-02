@@ -7503,6 +7503,9 @@ class BodyBuilder extends StackListenerImpl
           }
         }
       }
+      switchCaseScope = scope.createNestedScope("switch case");
+      exitLocalScope();
+      enterLocalScope("switch case", switchCaseScope);
     } else if (expressionCount == 1) {
       PatternGuard? patternGuard = expressionOrPatterns.single.patternGuard;
       if (patternGuard != null && patternGuard.guard == null) {
@@ -7514,6 +7517,10 @@ class BodyBuilder extends StackListenerImpl
           typeInferrer.assignedVariables.declare(variable);
         }
       }
+      assert(scope.classNameOrDebugName == caseHeadScopeName);
+      switchCaseScope = scope.createNestedScope("switch case");
+      exitLocalScope();
+      enterLocalScope("switch case", switchCaseScope);
     }
     push(jointPatternVariables ?? NullValues.VariableDeclarationList);
 

@@ -41,10 +41,10 @@ class Class extends core::Object {
 static method test(dynamic o) → dynamic {
   #L1:
   {
-    dynamic s1;
-    dynamic s1';
-    dynamic field1;
-    dynamic f;
+    core::int? s1;
+    core::int? s1';
+    core::int? field1;
+    core::int? f;
     core::int? s2;
     core::int? field2;
     final dynamic #0#0 = o;

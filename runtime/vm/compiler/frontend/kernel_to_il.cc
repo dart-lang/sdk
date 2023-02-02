@@ -2263,7 +2263,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecordFieldGetter(
   ASSERT(!get_field_names_function.IsNull());
   body += LoadLocal(parsed_function_->receiver_var());
   body += StaticCall(TokenPosition::kNoSource, get_field_names_function, 1,
-                     ICData::kStatic);
+                     ICData::kNoRebind);
   LocalVariable* field_names = MakeTemporary("field_names");
 
   body += LoadLocal(field_names);

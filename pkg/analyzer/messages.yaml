@@ -5018,6 +5018,18 @@ CompileTimeErrorCode:
         C(String s) : f = int.parse(s);
       }
       ```
+  FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY:
+    sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+    problemMessage: "The class '{0}' can't be extended outside of its library because it's a final class."
+    comment: |-
+      Parameters:
+      0: the name of the final class being extended.
+  FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
+    sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+    problemMessage: "The class '{0}' can't be implemented outside of its library because it's a final class."
+    comment: |-
+      Parameters:
+      0: the name of the final class being implemented.
   FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR:
     problemMessage: "'{0}' is final and was given a value when it was declared, so it can't be set to a new value."
     correctionMessage: Try removing one of the initializations.
@@ -5067,6 +5079,18 @@ CompileTimeErrorCode:
         C(this.f);
       }
       ```
+  FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
+    sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+    problemMessage: "The mixin '{0}' can't be implemented outside of its library because it's a final mixin."
+    comment: |-
+      Parameters:
+      0: the name of the final mixin being implemented.
+  FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY:
+    sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+    problemMessage: "The mixin '{0}' can't be mixed-in outside of its library because it's a final mixin."
+    comment: |-
+      Parameters:
+      0: the name of the final mixin being mixed in.
   FINAL_NOT_INITIALIZED:
     problemMessage: "The final variable '{0}' must be initialized."
     correctionMessage: Try initializing the variable.

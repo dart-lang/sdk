@@ -9,11 +9,11 @@
 import 'final_mixin_with_lib.dart';
 
 abstract class AOutside with FinalMixin {}
-// ^
-// [analyzer] unspecified
+//                           ^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] unspecified
 
 class BOutside with FinalMixin {}
-// ^
-// [analyzer] unspecified
+//                  ^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] unspecified

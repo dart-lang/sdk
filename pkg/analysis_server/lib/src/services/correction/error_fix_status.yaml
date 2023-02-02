@@ -500,7 +500,15 @@ CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR:
   status: needsEvaluation
 CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE:
   status: needsEvaluation
+CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY:
+  status: needsEvaluation
+CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
+  status: needsEvaluation
 CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR:
+  status: needsEvaluation
+CompileTimeErrorCode.FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
+  status: needsEvaluation
+CompileTimeErrorCode.FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.FINAL_NOT_INITIALIZED:
   status: hasFix

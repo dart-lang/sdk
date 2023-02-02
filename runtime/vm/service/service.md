@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 4.0
+# Dart VM Service Protocol 4.1
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 4.0_ of the Dart VM Service Protocol. This
+This document describes of _version 4.1_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -838,12 +838,13 @@ See [InboundReferences](#inboundreferences).
 ```
 InstanceSet|Sentinel getInstances(string isolateId,
                                   string objectId,
-                                  int limit)
+                                  int limit,
+                                  bool includeSubclasses [optional],
+                                  bool includeImplementers [optional])
 ```
 
 The _getInstances_ RPC is used to retrieve a set of instances which are of a
-specific class. This does not include instances of subclasses of the given
-class.
+specific class.
 
 The order of the instances is undefined (i.e., not related to allocation order)
 and unstable (i.e., multiple invocations of this method against the same class
@@ -857,6 +858,13 @@ _objectId_ is the ID of the `Class` to retrieve instances for. _objectId_ must
 be the ID of a `Class`, otherwise an [RPC error](#rpc-error) is returned.
 
 _limit_ is the maximum number of instances to be returned.
+
+If _includeSubclasses_ is true, instances of subclasses of the specified class
+will be included in the set.
+
+If _includeImplementers_ is true, instances of implementers of the specified
+class will be included in the set. Note that subclasses of a class are also
+considered implementers of that class.
 
 If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
@@ -4444,5 +4452,6 @@ version | comments
 3.61 | Added `isolateGroupId` property to `@Isolate` and `Isolate`.
 3.62 | Added `Set` to `InstanceKind`.
 4.0 | Added `Record` and `RecordType` `InstanceKind`s, added a deprecation notice to the `decl` property of `BoundField`, added `name` property to `BoundField`, added a deprecation notice to the `parentListIndex` property of `InboundReference`, changed the type of the `parentField` property of `InboundReference` from `@Field` to `@Field\|string\|int`, added a deprecation notice to the `parentListIndex` property of `RetainingObject`, changed the type of the `parentField` property of `RetainingObject` from `string` to `string\|int`, removed the deprecated `timeSpan` property from `CpuSamples`, and removed the deprecated `timeSpan` property from `CpuSamplesEvent`.
+4.1 | Added optional `includeSubclasses` and `includeImplementers` parameters to `getInstances`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss
