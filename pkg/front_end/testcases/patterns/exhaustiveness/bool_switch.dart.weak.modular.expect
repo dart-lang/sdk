@@ -34,225 +34,227 @@ library /*isNonNullableByDefault*/;
 //
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 static method exhaustiveSwitch(core::bool b) → void {
   #L1:
-  switch(b) /*isExplicitlyExhaustive*/ {
-    #L2:
-    case #C1:
+  {
+    final core::bool #0#0 = b;
+    if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("true");
         break #L1;
       }
-    #L3:
-    case #C2:
-      {
-        core::print("false");
-        break #L1;
+    }
+    else
+      if(#C2 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+        {
+          core::print("false");
+          break #L1;
+        }
       }
-    #L4:
-    default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
   }
 }
 static method nonExhaustiveSwitch1(core::bool b) → void {
+  #L2:
+  {
+    final core::bool #0#0 = b;
+    if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+      {
+        core::print("true");
+        break #L2;
+      }
+    }
+  }
+}
+static method nonExhaustiveSwitch2(core::bool b) → void {
+  #L3:
+  {
+    final core::bool #0#0 = b;
+    if(#C2 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+      {
+        core::print("false");
+        break #L3;
+      }
+    }
+  }
+}
+static method nonExhaustiveSwitchWithDefault(core::bool b) → void {
+  #L4:
+  {
+    final invalid-type #0#0 = invalid-expression "pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:33:11: Error: Undefined name 'e'.
+  switch (e) /* Ok */ {
+          ^";
+    if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+      {
+        core::print("true");
+        break #L4;
+      }
+    }
+    else {
+      {
+        core::print("default");
+        break #L4;
+      }
+    }
+  }
+}
+static method exhaustiveNullableSwitch(core::bool? b) → void {
   #L5:
-  switch(b) /*isExplicitlyExhaustive*/ {
-    #L6:
-    case #C1:
+  {
+    final core::bool? #0#0 = b;
+    if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("true");
         break #L5;
       }
-    #L7:
-    default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
-  }
-}
-static method nonExhaustiveSwitch2(core::bool b) → void {
-  #L8:
-  switch(b) /*isExplicitlyExhaustive*/ {
-    #L9:
-    case #C2:
-      {
-        core::print("false");
-        break #L8;
+    }
+    else
+      if(#C2 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+        {
+          core::print("false");
+          break #L5;
+        }
       }
-    #L10:
-    default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
-  }
-}
-static method nonExhaustiveSwitchWithDefault(core::bool b) → void {
-  #L11:
-  switch(invalid-expression "pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:33:11: Error: Undefined name 'e'.
-  switch (e) /* Ok */ {
-          ^") {
-    #L12:
-    case #C1:
-      {
-        core::print("true");
-        break #L11;
-      }
-    #L13:
-    default:
-      {
-        core::print("default");
-        break #L11;
-      }
-  }
-}
-static method exhaustiveNullableSwitch(core::bool? b) → void {
-  #L14:
-  switch(b) /*isExplicitlyExhaustive*/ {
-    #L15:
-    case #C1:
-      {
-        core::print("true");
-        break #L14;
-      }
-    #L16:
-    case #C2:
-      {
-        core::print("false");
-        break #L14;
-      }
-    #L17:
-    case #C3:
-      {
-        core::print("null");
-        break #L14;
-      }
-    #L18:
-    default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
+      else
+        if(#0#0 == null) {
+          {
+            core::print("null");
+            break #L5;
+          }
+        }
   }
 }
 static method nonExhaustiveNullableSwitch1(core::bool? e) → void {
-  #L19:
-  switch(invalid-expression "pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:58:11: Error: Undefined name 'b'.
+  #L6:
+  {
+    final invalid-type #0#0 = invalid-expression "pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:58:11: Error: Undefined name 'b'.
   switch (b) /* Error */ {
-          ^") {
-    #L20:
-    case #C1:
+          ^";
+    if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("true");
-        break #L19;
+        break #L6;
       }
-    #L21:
-    case #C2:
-      {
-        core::print("false");
-        break #L19;
+    }
+    else
+      if(#C2 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+        {
+          core::print("false");
+          break #L6;
+        }
       }
   }
 }
 static method nonExhaustiveNullableSwitch2(core::bool? e) → void {
-  #L22:
-  switch(invalid-expression "pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:69:11: Error: Undefined name 'b'.
+  #L7:
+  {
+    final invalid-type #0#0 = invalid-expression "pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:69:11: Error: Undefined name 'b'.
   switch (b) /* Error */ {
-          ^") {
-    #L23:
-    case #C1:
+          ^";
+    if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("true");
-        break #L22;
+        break #L7;
       }
-    #L24:
-    case #C3:
-      {
-        core::print("null");
-        break #L22;
+    }
+    else
+      if(#0#0 == null) {
+        {
+          core::print("null");
+          break #L7;
+        }
       }
   }
 }
 static method unreachableCase1(core::bool b) → void {
-  #L25:
-  switch(invalid-expression "pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:80:11: Error: Undefined name 'e'.
+  #L8:
+  {
+    final invalid-type #0#0 = invalid-expression "pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:80:11: Error: Undefined name 'e'.
   switch (e) /* Ok */ {
-          ^") {
-    #L26:
-    case #C1:
+          ^";
+    if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("true1");
-        break #L25;
+        break #L8;
       }
-    #L27:
-    case #C2:
-      {
-        core::print("false");
-        break #L25;
+    }
+    else
+      if(#C2 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+        {
+          core::print("false");
+          break #L8;
+        }
       }
-    #L28:
-    case #C1:
-      {
-        core::print("true2");
-        break #L25;
-      }
+      else
+        if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+          {
+            core::print("true2");
+            break #L8;
+          }
+        }
   }
 }
 static method unreachableCase2(core::bool b) → void {
-  #L29:
-  switch(b) /*isExplicitlyExhaustive*/ {
-    #L30:
-    case #C1:
+  #L9:
+  {
+    final core::bool #0#0 = b;
+    if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("true");
-        break #L29;
+        break #L9;
       }
-    #L31:
-    case #C2:
-      {
-        core::print("false");
-        break #L29;
+    }
+    else
+      if(#C2 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+        {
+          core::print("false");
+          break #L9;
+        }
       }
-    #L32:
-    case #C3:
-      {
-        core::print("null");
-        break #L29;
-      }
-    #L33:
-    default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
+      else
+        if(#0#0 == null) {
+          {
+            core::print("null");
+            break #L9;
+          }
+        }
   }
 }
 static method unreachableCase3(core::bool? b) → void {
-  #L34:
-  switch(b) /*isExplicitlyExhaustive*/ {
-    #L35:
-    case #C1:
+  #L10:
+  {
+    final core::bool? #0#0 = b;
+    if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("true");
-        break #L34;
+        break #L10;
       }
-    #L36:
-    case #C2:
-      {
-        core::print("false");
-        break #L34;
+    }
+    else
+      if(#C2 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+        {
+          core::print("false");
+          break #L10;
+        }
       }
-    #L37:
-    case #C3:
-      {
-        core::print("null1");
-        break #L34;
-      }
-    #L38:
-    case #C3:
-      {
-        core::print("null2");
-        break #L34;
-      }
-    #L39:
-    default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
+      else
+        if(#0#0 == null) {
+          {
+            core::print("null1");
+            break #L10;
+          }
+        }
+        else
+          if(#0#0 == null) {
+            {
+              core::print("null2");
+              break #L10;
+            }
+          }
   }
 }
 
 constants  {
   #C1 = true
   #C2 = false
-  #C3 = null
 }

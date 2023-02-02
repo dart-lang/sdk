@@ -72,6 +72,10 @@ class MatchContext<Node extends Object, Expression extends Node,
   /// in a logical-or pattern.
   final Map<String, List<Variable>> componentVariables;
 
+  /// For each variable name in the pattern, the promotion key holding the value
+  /// captured by that variable.
+  final Map<String, int> patternVariablePromotionKeys;
+
   MatchContext({
     Expression? initializer,
     this.irrefutableContext,
@@ -81,6 +85,7 @@ class MatchContext<Node extends Object, Expression extends Node,
     required this.topPattern,
     this.assignedVariables,
     required this.componentVariables,
+    required this.patternVariablePromotionKeys,
   })  : _initializer = initializer,
         _switchScrutinee = switchScrutinee;
 
@@ -107,7 +112,23 @@ class MatchContext<Node extends Object, Expression extends Node,
               switchScrutinee: _switchScrutinee,
               topPattern: topPattern,
               componentVariables: componentVariables,
+              patternVariablePromotionKeys: patternVariablePromotionKeys,
             );
+
+  /// Returns a modified version of `this`, with a new value of
+  /// [patternVariablePromotionKeys].
+  MatchContext<Node, Expression, Pattern, Type, Variable> withPromotionKeys(
+          Map<String, int> patternVariablePromotionKeys) =>
+      new MatchContext(
+        initializer: _initializer,
+        irrefutableContext: irrefutableContext,
+        isFinal: isFinal,
+        isLate: isLate,
+        switchScrutinee: _switchScrutinee,
+        topPattern: topPattern,
+        componentVariables: componentVariables,
+        patternVariablePromotionKeys: patternVariablePromotionKeys,
+      );
 }
 
 /// Container for the result of running type analysis on an expression that does

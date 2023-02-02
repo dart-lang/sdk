@@ -37,203 +37,224 @@ import "dart:core" as core;
 
 static method exhaustiveSwitch(core::bool b) → void {
   #L1:
-  switch(b) /*isExplicitlyExhaustive*/ {
-    #L2:
-    case #C1:
+  {
+    final core::bool #0#0 = b;
+    if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("true");
         break #L1;
       }
-    #L3:
-    case #C2:
-      {
-        core::print("false");
-        break #L1;
+    }
+    else
+      if(#C2 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+        {
+          core::print("false");
+          break #L1;
+        }
       }
   }
 }
 static method nonExhaustiveSwitch1(core::bool b) → void {
+  #L2:
+  {
+    final core::bool #0#0 = b;
+    if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+      {
+        core::print("true");
+        break #L2;
+      }
+    }
+  }
+}
+static method nonExhaustiveSwitch2(core::bool b) → void {
+  #L3:
+  {
+    final core::bool #0#0 = b;
+    if(#C2 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+      {
+        core::print("false");
+        break #L3;
+      }
+    }
+  }
+}
+static method nonExhaustiveSwitchWithDefault(core::bool b) → void {
   #L4:
-  switch(b) /*isExplicitlyExhaustive*/ {
-    #L5:
-    case #C1:
+  {
+    final invalid-type #0#0 = invalid-expression "pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:33:11: Error: Undefined name 'e'.
+  switch (e) /* Ok */ {
+          ^";
+    if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("true");
         break #L4;
       }
-  }
-}
-static method nonExhaustiveSwitch2(core::bool b) → void {
-  #L6:
-  switch(b) /*isExplicitlyExhaustive*/ {
-    #L7:
-    case #C2:
-      {
-        core::print("false");
-        break #L6;
-      }
-  }
-}
-static method nonExhaustiveSwitchWithDefault(core::bool b) → void {
-  #L8:
-  switch(invalid-expression "pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:33:11: Error: Undefined name 'e'.
-  switch (e) /* Ok */ {
-          ^") {
-    #L9:
-    case #C1:
-      {
-        core::print("true");
-        break #L8;
-      }
-    #L10:
-    default:
+    }
+    else {
       {
         core::print("default");
-        break #L8;
+        break #L4;
       }
+    }
   }
 }
 static method exhaustiveNullableSwitch(core::bool? b) → void {
-  #L11:
-  switch(b) /*isExplicitlyExhaustive*/ {
-    #L12:
-    case #C1:
+  #L5:
+  {
+    final core::bool? #0#0 = b;
+    if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("true");
-        break #L11;
+        break #L5;
       }
-    #L13:
-    case #C2:
-      {
-        core::print("false");
-        break #L11;
+    }
+    else
+      if(#C2 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+        {
+          core::print("false");
+          break #L5;
+        }
       }
-    #L14:
-    case #C3:
-      {
-        core::print("null");
-        break #L11;
-      }
+      else
+        if(#0#0 == null) {
+          {
+            core::print("null");
+            break #L5;
+          }
+        }
   }
 }
 static method nonExhaustiveNullableSwitch1(core::bool? e) → void {
-  #L15:
-  switch(invalid-expression "pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:58:11: Error: Undefined name 'b'.
+  #L6:
+  {
+    final invalid-type #0#0 = invalid-expression "pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:58:11: Error: Undefined name 'b'.
   switch (b) /* Error */ {
-          ^") {
-    #L16:
-    case #C1:
+          ^";
+    if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("true");
-        break #L15;
+        break #L6;
       }
-    #L17:
-    case #C2:
-      {
-        core::print("false");
-        break #L15;
+    }
+    else
+      if(#C2 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+        {
+          core::print("false");
+          break #L6;
+        }
       }
   }
 }
 static method nonExhaustiveNullableSwitch2(core::bool? e) → void {
-  #L18:
-  switch(invalid-expression "pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:69:11: Error: Undefined name 'b'.
+  #L7:
+  {
+    final invalid-type #0#0 = invalid-expression "pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:69:11: Error: Undefined name 'b'.
   switch (b) /* Error */ {
-          ^") {
-    #L19:
-    case #C1:
+          ^";
+    if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("true");
-        break #L18;
+        break #L7;
       }
-    #L20:
-    case #C3:
-      {
-        core::print("null");
-        break #L18;
+    }
+    else
+      if(#0#0 == null) {
+        {
+          core::print("null");
+          break #L7;
+        }
       }
   }
 }
 static method unreachableCase1(core::bool b) → void {
-  #L21:
-  switch(invalid-expression "pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:80:11: Error: Undefined name 'e'.
+  #L8:
+  {
+    final invalid-type #0#0 = invalid-expression "pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:80:11: Error: Undefined name 'e'.
   switch (e) /* Ok */ {
-          ^") {
-    #L22:
-    case #C1:
+          ^";
+    if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("true1");
-        break #L21;
+        break #L8;
       }
-    #L23:
-    case #C2:
-      {
-        core::print("false");
-        break #L21;
+    }
+    else
+      if(#C2 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+        {
+          core::print("false");
+          break #L8;
+        }
       }
-    #L24:
-    case #C1:
-      {
-        core::print("true2");
-        break #L21;
-      }
+      else
+        if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+          {
+            core::print("true2");
+            break #L8;
+          }
+        }
   }
 }
 static method unreachableCase2(core::bool b) → void {
-  #L25:
-  switch(b) /*isExplicitlyExhaustive*/ {
-    #L26:
-    case #C1:
+  #L9:
+  {
+    final core::bool #0#0 = b;
+    if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("true");
-        break #L25;
+        break #L9;
       }
-    #L27:
-    case #C2:
-      {
-        core::print("false");
-        break #L25;
+    }
+    else
+      if(#C2 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+        {
+          core::print("false");
+          break #L9;
+        }
       }
-    #L28:
-    case #C3:
-      {
-        core::print("null");
-        break #L25;
-      }
+      else
+        if(#0#0 == null) {
+          {
+            core::print("null");
+            break #L9;
+          }
+        }
   }
 }
 static method unreachableCase3(core::bool? b) → void {
-  #L29:
-  switch(b) /*isExplicitlyExhaustive*/ {
-    #L30:
-    case #C1:
+  #L10:
+  {
+    final core::bool? #0#0 = b;
+    if(#C1 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         core::print("true");
-        break #L29;
+        break #L10;
       }
-    #L31:
-    case #C2:
-      {
-        core::print("false");
-        break #L29;
+    }
+    else
+      if(#C2 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+        {
+          core::print("false");
+          break #L10;
+        }
       }
-    #L32:
-    case #C3:
-      {
-        core::print("null1");
-        break #L29;
-      }
-    #L33:
-    case #C3:
-      {
-        core::print("null2");
-        break #L29;
-      }
+      else
+        if(#0#0 == null) {
+          {
+            core::print("null1");
+            break #L10;
+          }
+        }
+        else
+          if(#0#0 == null) {
+            {
+              core::print("null2");
+              break #L10;
+            }
+          }
   }
 }
 
 constants  {
   #C1 = true
   #C2 = false
-  #C3 = null
 }

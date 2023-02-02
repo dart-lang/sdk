@@ -1193,7 +1193,7 @@ CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM:
     to think about what they were trying to do and it seems more likely that the
     right fix is to rename the member.
 CompileTimeErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT:
-  status: needsEvaluation
+  status: hasFix
 CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH:
   status: needsEvaluation
 CompileTimeErrorCode.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE:

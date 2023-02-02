@@ -8065,6 +8065,16 @@ const MessageCode messageListLiteralTooManyTypeArguments = const MessageCode(
     problemMessage: r"""List literal requires exactly one type argument.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeListPatternTooManyTypeArguments =
+    messageListPatternTooManyTypeArguments;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageListPatternTooManyTypeArguments = const MessageCode(
+    "ListPatternTooManyTypeArguments",
+    analyzerCodes: <String>["EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS"],
+    problemMessage: r"""A list pattern requires exactly one type argument.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string, Token token)>
     templateLiteralWithClass =
     const Template<Message Function(String string, Token token)>(
@@ -8233,6 +8243,16 @@ const MessageCode messageMapLiteralTypeArgumentMismatch = const MessageCode(
     "MapLiteralTypeArgumentMismatch",
     analyzerCodes: <String>["EXPECTED_TWO_MAP_TYPE_ARGUMENTS"],
     problemMessage: r"""A map literal requires exactly two type arguments.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMapPatternTypeArgumentMismatch =
+    messageMapPatternTypeArgumentMismatch;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMapPatternTypeArgumentMismatch = const MessageCode(
+    "MapPatternTypeArgumentMismatch",
+    analyzerCodes: <String>["EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS"],
+    problemMessage: r"""A map pattern requires exactly two type arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateMemberNotFound =
@@ -8556,6 +8576,34 @@ const MessageCode messageMissingTypedefParameters = const MessageCode(
     analyzerCodes: <String>["MISSING_TYPEDEF_PARAMETERS"],
     problemMessage: r"""A typedef needs an explicit list of parameters.""",
     correctionMessage: r"""Try adding a parameter list to the typedef.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateMissingVariablePattern = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Variable pattern '#name' is missing in this branch of the logical-or pattern.""",
+    correctionMessageTemplate:
+        r"""Try declaring this variable pattern in the branch.""",
+    withArguments: _withArgumentsMissingVariablePattern);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeMissingVariablePattern =
+    const Code<Message Function(String name)>("MissingVariablePattern",
+        analyzerCodes: <String>["MISSING_VARIABLE_PATTERN"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMissingVariablePattern(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeMissingVariablePattern,
+      problemMessage:
+          """Variable pattern '${name}' is missing in this branch of the logical-or pattern.""",
+      correctionMessage: """Try declaring this variable pattern in the branch.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

@@ -51,6 +51,21 @@ void f() {
     await assertNoAssistAt('else');
   }
 
+  Future<void> test_ifCasePattern() async {
+    await resolveTestCode('''
+f() {
+  var json = [1, 2, 3];
+  int vvv;
+  if (json case [3, 4]) {
+    vvv = 111;
+  } else {
+    vvv = 222;
+  }
+}
+''');
+    await assertNoAssistAt('if (json case [3, 4])');
+  }
+
   Future<void> test_notIfStatement() async {
     await resolveTestCode('''
 void f() {

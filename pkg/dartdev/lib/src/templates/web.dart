@@ -54,7 +54,7 @@ dependencies:
 
 dev_dependencies:
   build_runner: ^2.3.0
-  build_web_compilers: ^3.2.0
+  build_web_compilers: ^4.0.0
   lints: ^2.0.0
 ''';
 

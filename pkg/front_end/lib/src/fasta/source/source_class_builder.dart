@@ -823,9 +823,11 @@ class SourceClassBuilder extends ClassBuilderImpl
             ]);
       }
       // Check that the class has 'Object' as their superclass.
-      if (superClass != null && superClass.cls != objectClass) {
+      if (superClass != null &&
+          superClassType != null &&
+          superClass.cls != objectClass) {
         addProblem(templateMixinInheritsFromNotObject.withArguments(name),
-            charOffset, noLength);
+            superClassType.charOffset ?? TreeNode.noOffset, noLength);
       }
     }
     if (classHierarchyNode.isMixinApplication) {

@@ -954,7 +954,10 @@ abstract class DiagnosticPage extends Page {
 }
 
 abstract class DiagnosticPageWithNav extends DiagnosticPage {
-  DiagnosticPageWithNav(super.site, super.id, super.title, {super.description});
+  final bool indentInNav;
+
+  DiagnosticPageWithNav(super.site, super.id, super.title,
+      {super.description, this.indentInNav = false});
 
   @override
   bool get isNavPage => true;
@@ -967,16 +970,21 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
   Future<void> generateContainer(Map<String, String> params) async {
     buf.writeln('<div class="columns docs-layout">');
 
-    bool shouldShowInNav(Page page) {
-      return page is DiagnosticPageWithNav && page.showInNav;
-    }
+    bool shouldShowInNav(DiagnosticPageWithNav page) => page.showInNav;
 
     buf.writeln('<div class="one-fifth column">');
     buf.writeln('<nav class="menu docs-menu">');
-    for (var page in site.pages.where(shouldShowInNav)) {
-      buf.write('<a class="menu-item ${page == this ? ' selected' : ''}" '
+    var navPages =
+        site.pages.whereType<DiagnosticPageWithNav>().where(shouldShowInNav);
+    for (var page in navPages) {
+      var classes = [
+        'menu-item',
+        if (page == this) 'selected',
+        if (page.indentInNav) 'pl-5',
+      ];
+      buf.write('<a class="${classes.join(' ')}" '
           'href="${page.path}">${escape(page.title)}');
-      var detail = (page as DiagnosticPageWithNav).navDetail;
+      var detail = page.navDetail;
       if (detail != null) {
         buf.write('<span class="counter">$detail</span>');
       }
@@ -1024,7 +1032,9 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
     if (server is LegacyAnalysisServer) {
       pages.add(SubscriptionsPage(this, server));
     } else if (server is LspAnalysisServer) {
+      pages.add(LspPage(this, server));
       pages.add(LspCapabilitiesPage(this, server));
+      pages.add(LspRegistrationsPage(this, server));
     }
     pages.add(TimingPage(this));
 
@@ -1215,12 +1225,12 @@ class LspCapabilitiesPage extends DiagnosticPageWithNav {
 
   LspCapabilitiesPage(DiagnosticsSite site, this.server)
       : super(site, 'lsp_capabilities', 'LSP Capabilities',
-            description: 'Client and Server LSP Capabilities.');
+            description: 'Client and Server LSP Capabilities.',
+            indentInNav: true);
 
   @override
   Future generateContent(Map<String, String> params) async {
     buf.writeln('<div class="columns">');
-
     buf.writeln('<div class="column one-half">');
     h3('Client Capabilities');
     var clientCapabilities = server.clientCapabilities;
@@ -1241,8 +1251,44 @@ class LspCapabilitiesPage extends DiagnosticPageWithNav {
     }
     buf.writeln('</div>'); // half for server capabilities
     buf.writeln('</div>'); // columns
+  }
+}
 
-    h3('Current registrations');
+class LspPage extends DiagnosticPageWithNav {
+  @override
+  LspAnalysisServer server;
+
+  LspPage(DiagnosticsSite site, this.server)
+      : super(site, 'lsp', 'LSP',
+            description: 'Information about an LSP client.');
+
+  @override
+  Future generateContent(Map<String, String> params) async {
+    h3('LSP Client Info');
+    prettyJson({
+      'Name': server.clientInfo?.name,
+      'Version': server.clientInfo?.version,
+      'Host': server.clientAppHost,
+      'Remote': server.clientRemoteName,
+    });
+
+    h3('Initialization Options');
+    prettyJson(server.initializationOptions.raw);
+  }
+}
+
+class LspRegistrationsPage extends DiagnosticPageWithNav {
+  @override
+  LspAnalysisServer server;
+
+  LspRegistrationsPage(DiagnosticsSite site, this.server)
+      : super(site, 'lsp_registrations', 'LSP Registrations',
+            description: 'Current LSP feature registrations.',
+            indentInNav: true);
+
+  @override
+  Future generateContent(Map<String, String> params) async {
+    h3('Current Registrations');
     p('Showing the LSP method name and the registration params sent to the '
         'client.');
     prettyJson(server.capabilitiesComputer.currentRegistrations.toList());

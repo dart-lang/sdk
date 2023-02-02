@@ -2,13 +2,13 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/class_modifiers/base/outside_library/main.dart:7:7: Error: The class 'A' can't be implemented outside of its library because it's a base class.
+// pkg/front_end/testcases/class_modifiers/base/outside_library/main.dart:7:38: Error: The class 'A' can't be implemented outside of its library because it's a base class.
 // class ImplementsBaseClass implements A {}
-//       ^
+//                                      ^
 //
-// pkg/front_end/testcases/class_modifiers/base/outside_library/main.dart:9:7: Error: The mixin 'M' can't be implemented outside of its library because it's a base mixin.
+// pkg/front_end/testcases/class_modifiers/base/outside_library/main.dart:9:38: Error: The mixin 'M' can't be implemented outside of its library because it's a base mixin.
 // class ImplementsBaseMixin implements M {}
-//       ^
+//                                      ^
 //
 import self as self;
 import "dart:core" as core;

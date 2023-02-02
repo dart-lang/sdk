@@ -961,6 +961,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.CONST_WITH_NON_TYPE: [
       ChangeTo.classOrMixin,
     ],
+    CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION: [
+      AddConst.new,
+    ],
     CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER: [
       RemoveDefaultValue.new,
       RemoveRequired.new,
@@ -1299,15 +1302,15 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.URI_DOES_NOT_EXIST: [
       CreateFile.new,
     ],
+    CompileTimeErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT: [
+      RemoveVar.new,
+    ],
     CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
       MoveTypeArgumentsToClass.new,
       RemoveTypeArguments.new,
     ],
     CompileTimeErrorCode.YIELD_OF_INVALID_TYPE: [
       MakeReturnTypeNullable.new,
-    ],
-    CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION: [
-      AddConst.new,
     ],
     FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS: [
       RemoveNameFromDeclarationClause.new,

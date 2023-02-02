@@ -524,70 +524,58 @@ static method callReturningNever(() → Never f) → dynamic {
 }
 static method switchOnEnum(uns::E e) → dynamic {
   #L1:
-  switch(e) /*isExplicitlyExhaustive*/ {
-    #L2:
-    case #C3:
+  {
+    final uns::E #0#0 = e;
+    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
         return;
       }
-    #L3:
-    case #C6:
-      {
-        return;
+    }
+    else
+      if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+        {
+          return;
+        }
       }
-    #L4:
-    default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
   }
 }
 static method switchOnEnumWithBreak(uns::E e) → dynamic {
-  #L5:
-  switch(e) /*isExplicitlyExhaustive*/ {
-    #L6:
-    case #C3:
+  #L2:
+  {
+    final uns::E #0#0 = e;
+    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
-        break #L5;
+        break #L2;
       }
-    #L7:
-    case #C6:
-      {
-        break #L5;
+    }
+    else
+      if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+        {
+          break #L2;
+        }
       }
-    #L8:
-    default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
   }
 }
 static method switchOnEnumWithFallThrough1(uns::E e) → dynamic {
-  #L9:
-  switch(e) /*isExplicitlyExhaustive*/ {
-    #L10:
-    case #C3:
+  #L3:
+  {
+    final uns::E #0#0 = e;
+    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       {
-        break #L9;
+        break #L3;
       }
-    #L11:
-    case #C6:
-      {
-        break #L9;
+    }
+    else
+      if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
       }
-    #L12:
-    default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
   }
 }
 static method switchOnEnumWithFallThrough2(uns::E e) → dynamic {
-  #L13:
-  switch(e) /*isExplicitlyExhaustive*/ {
-    #L14:
-    case #C3:
-    case #C6:
-      {
-        break #L13;
-      }
-    #L15:
-    default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
+  #L4:
+  {
+    final uns::E #0#0 = e;
+    if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0 || #C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+    }
   }
 }
 static method handleThrow() → dynamic {
@@ -638,7 +626,7 @@ Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:39:56 
 Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:39:56 -> IntConstant(42)
 Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:134:5 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:134:5 -> IntConstant(0)
-Extra constant evaluation: evaluated: 720, effectively constant: 18
+Extra constant evaluation: evaluated: 729, effectively constant: 18
 
 
 Constructor coverage from constants:

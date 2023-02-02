@@ -2100,15 +2100,64 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
   }
 
+  /// Resolves any URI stored in [data] with key [field] to a local file URI via
+  /// the VM Service and adds it to [data] with a 'resolved' prefix.
+  ///
+  /// A resolved URI will not be added if the URI cannot be resolved or is
+  /// already a 'file://' URI.
+  Future<void> resolveToolEventUris(
+    vm.IsolateRef? isolate,
+    Map<String, Object?> data,
+    String field,
+  ) async {
+    final thread = _isolateManager.threadForIsolate(isolate);
+    if (thread == null) {
+      return;
+    }
+
+    final uriString = data[field];
+    if (uriString is! String) {
+      return;
+    }
+    final uri = Uri.tryParse(uriString);
+    if (uri == null) {
+      return;
+    }
+
+    if (uri.isScheme('file')) {
+      return;
+    }
+
+    final path = await thread.resolveUriToPath(uri);
+    if (path != null) {
+      // Convert:
+      //   uri -> resolvedUri
+      //   fileUri -> resolvedFileUri
+      final resolvedFieldName =
+          'resolved${field.substring(0, 1).toUpperCase()}${field.substring(1)}';
+      data[resolvedFieldName] = Uri.file(path).toString();
+    }
+  }
+
   @protected
   @mustCallSuper
   Future<void> handleToolEvent(vm.Event event) async {
     await debuggerInitialized;
 
+    // Some events will contain URIs that need to first be mapped to file URIs
+    // so the IDE can understand them.
+    final data = event.extensionData?.data;
+    if (data is Map<String, Object?>) {
+      const uriFieldNames = ['fileUri', 'uri'];
+      for (final fieldName in uriFieldNames) {
+        await resolveToolEventUris(event.isolate, data, fieldName);
+      }
+    }
+
     sendEvent(
       RawEventBody({
         'kind': event.extensionKind,
-        'data': event.extensionData?.data,
+        'data': data,
       }),
       eventType: 'dart.toolEvent',
     );

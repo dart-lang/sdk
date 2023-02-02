@@ -208,10 +208,30 @@ const simpleToolEventProgram = r'''
     postEvent(
       'navigate',
       {
-        'file': 'x.dart',
+        'uri': 'file:///file.dart',
       },
       stream: 'ToolEvent',
     );
+  }
+''';
+
+/// A simple Dart script that sends a `navigate` event to the `ToolEvent`
+/// stream using a dart:core URI.
+const simpleToolEventWithDartCoreUriProgram = r'''
+  import 'dart:developer';
+
+  void main(List<String> args) async {
+    postEvent(
+      'navigate',
+      {
+        'uri': 'dart:core',
+      },
+      stream: 'ToolEvent',
+    );
+    // resolving postEvent URIs is async, so we need to ensure the program
+    // does not immediately terminate. The test script should terminate it when
+    // it has had the event.
+    await Future.delayed(const Duration(seconds: 10));
   }
 ''';
 

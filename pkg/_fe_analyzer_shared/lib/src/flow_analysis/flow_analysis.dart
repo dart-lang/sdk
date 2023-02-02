@@ -171,7 +171,7 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// This may be used in future calls to [assignMatchedPatternVariable] to
   /// handle nested logical-ors, or logical-ors nested within switch cases that
   /// share a body.
-  int assignMatchedPatternVariable(Variable variable, int promotionKey);
+  void assignMatchedPatternVariable(Variable variable, int promotionKey);
 
   /// Call this method when visiting a boolean literal expression.
   void booleanLiteral(Expression expression, bool value);
@@ -195,6 +195,14 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   void conditional_thenBegin(Expression condition, Node conditionalExpression);
 
   void constantPattern_end(Expression expression);
+
+  /// Copy promotion data associated with one promotion key to another.  This
+  /// is used after analyzing a branch of a logical-or pattern, to move the
+  /// promotion data associated with the result of a pattern match on the left
+  /// hand and right hand sides of the logical-or into a common promotion key,
+  /// so that promotions will be properly unified when the control flow paths
+  /// are joined.
+  void copyPromotionData({required int sourceKey, required int destinationKey});
 
   /// Register a declaration of the [variable] in the current state.
   /// Should also be called for function parameters.
@@ -1049,10 +1057,9 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  int assignMatchedPatternVariable(Variable variable, int promotionKey) {
-    return _wrap('assignMatchedPatternVariable($variable, $promotionKey)',
-        () => _wrapped.assignMatchedPatternVariable(variable, promotionKey),
-        isQuery: true, isPure: false);
+  void assignMatchedPatternVariable(Variable variable, int promotionKey) {
+    _wrap('assignMatchedPatternVariable($variable, $promotionKey)',
+        () => _wrapped.assignMatchedPatternVariable(variable, promotionKey));
   }
 
   @override
@@ -1090,6 +1097,16 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   void constantPattern_end(Expression expression) {
     _wrap('constantPattern_end($expression)',
         () => _wrapped.constantPattern_end(expression));
+  }
+
+  @override
+  void copyPromotionData(
+      {required int sourceKey, required int destinationKey}) {
+    _wrap(
+        'copyPromotionData(sourceKey: $sourceKey, '
+        'destinationKey: $destinationKey)',
+        () => _wrapped.copyPromotionData(
+            sourceKey: sourceKey, destinationKey: destinationKey));
   }
 
   @override
@@ -3062,6 +3079,18 @@ class VariableModel<Type extends Object> {
     return new _DemotionResult<Type>(newPromotedTypes, newNonPromotionHistory);
   }
 
+  /// Returns a variable model that is the same as this one, but with the
+  /// variable definitely assigned.
+  VariableModel<Type> _setAssigned() => assigned
+      ? this
+      : new VariableModel(
+          promotedTypes: promotedTypes,
+          tested: tested,
+          assigned: true,
+          unassigned: false,
+          ssaNode: ssaNode ?? new SsaNode(null),
+          nonPromotionHistory: nonPromotionHistory);
+
   /// Determines whether a variable with the given [promotedTypes] should be
   /// promoted to [writtenType] based on types of interest.  If it should,
   /// returns an updated promotion chain; otherwise returns [promotedTypes]
@@ -3628,11 +3657,17 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  int assignMatchedPatternVariable(Variable variable, int promotionKey) {
+  void assignMatchedPatternVariable(Variable variable, int promotionKey) {
     int mergedKey = promotionKeyStore.keyForVariable(variable);
-    _current =
-        _current._updateVariableInfo(mergedKey, _current.infoFor(promotionKey));
-    return mergedKey;
+    VariableModel<Type> info = _current.infoFor(promotionKey);
+    // Normally flow analysis is responsible for tracking whether variables are
+    // definitely assigned; however for variables appearing in patterns we
+    // have other logic to make sure that a value is definitely assigned (e.g.
+    // the rule that a variable appearing on one side of an `||` must also
+    // appear on the other side).  So to avoid reporting redundant errors, we
+    // pretend that the variable is definitely assigned, even if it isn't.
+    info = info._setAssigned();
+    _current = _current._updateVariableInfo(mergedKey, info);
   }
 
   @override
@@ -3689,6 +3724,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     // TODO(paulberry): replace this with an implementation that does similar
     // promotion to `==` operations.
     _unmatched = _join(_unmatched!, _current);
+  }
+
+  @override
+  void copyPromotionData(
+      {required int sourceKey, required int destinationKey}) {
+    _current = _current._updateVariableInfo(
+        destinationKey, _current.infoFor(sourceKey));
   }
 
   @override
@@ -5147,7 +5189,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void assert_end() {}
 
   @override
-  int assignMatchedPatternVariable(Variable variable, int promotionKey) => 0;
+  void assignMatchedPatternVariable(Variable variable, int promotionKey) {}
 
   @override
   void booleanLiteral(Expression expression, bool value) {}
@@ -5171,6 +5213,10 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
 
   @override
   void constantPattern_end(Expression expression) {}
+
+  @override
+  void copyPromotionData(
+      {required int sourceKey, required int destinationKey}) {}
 
   @override
   void declare(Variable variable, Type staticType,

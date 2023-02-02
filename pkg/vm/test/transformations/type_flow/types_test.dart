@@ -60,6 +60,7 @@ main() {
     final TypesBuilder tb = new TestTypeHierarchy(coreTypes, {}, {});
     final tfc1 = tb.getTFClass(c1);
     final tfc2 = tb.getTFClass(c2);
+    final tfFunction = tb.getTFClass(coreTypes.functionClass);
 
     final InterfaceType t1 = new InterfaceType(c1, Nullability.legacy);
     final InterfaceType t2Raw = new InterfaceType(c2, Nullability.legacy);
@@ -80,7 +81,7 @@ main() {
     expect(tb.fromStaticType(t2Raw, false), equals(new ConeType(tfc2)));
     expect(tb.fromStaticType(t2Generic, false), equals(new ConeType(tfc2)));
     expect(tb.fromStaticType(t3, false), equals(new EmptyType()));
-    expect(tb.fromStaticType(f1, false), equals(const AnyType()));
+    expect(tb.fromStaticType(f1, false), equals(ConeType(tfFunction)));
 
     expect(tb.fromStaticType(t1, true),
         equals(new NullableType(new ConeType(tfc1))));
@@ -90,8 +91,8 @@ main() {
         equals(new NullableType(new ConeType(tfc2))));
     expect(
         tb.fromStaticType(t3, true), equals(new NullableType(new EmptyType())));
-    expect(
-        tb.fromStaticType(f1, true), equals(new NullableType(const AnyType())));
+    expect(tb.fromStaticType(f1, true),
+        equals(new NullableType(ConeType(tfFunction))));
 
     expect(new Type.nullableAny(), equals(new NullableType(new AnyType())));
   });
@@ -256,7 +257,8 @@ main() {
       [nullableSetT12, nullableSetT34, nullableSetT1234, nullableEmpty],
     ];
 
-    final hierarchy = new TestTypeHierarchy(coreTypes,
+    final hierarchy = new TestTypeHierarchy(
+        coreTypes,
         // subtypes
         {
           c1: [c1],

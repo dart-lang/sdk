@@ -2678,11 +2678,8 @@ class BodyBuilder extends StackListenerImpl
     ]));
     reportIfNotEnabled(
         libraryFeatures.patterns, token.charOffset, token.charCount);
-    // ignore: unused_local_variable
     Pattern right = toPattern(pop());
-    // ignore: unused_local_variable
     Pattern left = toPattern(pop());
-    // TODO(johnniwinther): Create a binary pattern.
 
     String operator = token.lexeme;
     switch (operator) {
@@ -2694,10 +2691,27 @@ class BodyBuilder extends StackListenerImpl
           for (VariableDeclaration leftVariable in left.declaredVariables)
             leftVariable.name!: leftVariable
         };
-        if (!leftVariablesByName.keys.toSet().containsAll(
-                right.declaredVariables.map((variable) => variable.name!)) &&
-            leftVariablesByName.length == right.declaredVariables.length) {
-          // TODO(cstefantsova): Report a compile-time error.
+        for (VariableDeclaration rightVariable in right.declaredVariables) {
+          if (!leftVariablesByName.containsKey(rightVariable.name)) {
+            addProblem(
+                fasta.templateMissingVariablePattern
+                    .withArguments(rightVariable.name!),
+                left.fileOffset,
+                noLength);
+          }
+        }
+        Map<String, VariableDeclaration> rightVariablesByName = {
+          for (VariableDeclaration rightVariable in right.declaredVariables)
+            rightVariable.name!: rightVariable
+        };
+        for (VariableDeclaration leftVariable in left.declaredVariables) {
+          if (!rightVariablesByName.containsKey(leftVariable.name)) {
+            addProblem(
+                fasta.templateMissingVariablePattern
+                    .withArguments(leftVariable.name!),
+                right.fileOffset,
+                noLength);
+          }
         }
         push(new OrPattern(left, right, token.charOffset,
             orPatternJointVariables: [
@@ -4243,7 +4257,7 @@ class BodyBuilder extends StackListenerImpl
     if (typeArguments != null) {
       if (typeArguments.length > 1) {
         addProblem(
-            fasta.messageListLiteralTooManyTypeArguments,
+            fasta.messageListPatternTooManyTypeArguments,
             offsetForToken(leftBracket),
             lengthOfSpan(leftBracket, leftBracket.endGroup));
         typeArgument = const InvalidType();
@@ -4576,6 +4590,8 @@ class BodyBuilder extends StackListenerImpl
       if (typeArguments.length != 2) {
         keyType = const InvalidType();
         valueType = const InvalidType();
+        addProblem(fasta.messageMapPatternTypeArgumentMismatch,
+            leftBrace.charOffset, noLength);
       } else {
         keyType = buildDartType(typeArguments[0], TypeUse.literalTypeArgument,
             allowPotentiallyConstantType: false);
@@ -7589,7 +7605,10 @@ class BodyBuilder extends StackListenerImpl
     bool containsPatterns = pop() as bool;
     List<ExpressionOrPatternGuardCase> expressionsOrPatternGuards =
         pop() as List<ExpressionOrPatternGuardCase>;
-    if (containsPatterns) {
+    if (containsPatterns || libraryFeatures.patterns.isEnabled) {
+      // If patterns are enabled, we always use the pattern switch encoding.
+      // Otherwise, we use pattern switch encoding to handle the erroneous case
+      // of an unsupported use of patterns.
       List<int> caseOffsets = [];
       List<PatternGuard> patternGuards = <PatternGuard>[];
       for (ExpressionOrPatternGuardCase expressionOrPatternGuard
@@ -7655,7 +7674,10 @@ class BodyBuilder extends StackListenerImpl
         "Unexpected pattern in switch statement: ${condition.patternGuard}.");
     Expression expression = condition.expression;
     Statement switchStatement;
-    if (containsPatterns) {
+    if (containsPatterns || libraryFeatures.patterns.isEnabled) {
+      // If patterns are enabled, we always use the pattern switch encoding.
+      // Otherwise, we use pattern switch encoding to handle the erroneous case
+      // of an unsupported use of patterns.
       List<PatternSwitchCase> patternSwitchCases =
           new List<PatternSwitchCase>.generate(cases.length, (int index) {
         SwitchCase switchCase = cases[index];

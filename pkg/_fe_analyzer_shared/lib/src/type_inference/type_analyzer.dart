@@ -239,6 +239,9 @@ mixin TypeAnalyzer<
   TypeAnalyzerErrors<Node, Statement, Expression, Variable, Type, Pattern>?
       get errors;
 
+  /// Returns the type used by the client in the case of errors.
+  Type get errorType;
+
   /// Returns the client's [FlowAnalysis] object.
   FlowAnalysis<Node, Statement, Expression, Variable, Type> get flow;
 
@@ -420,16 +423,16 @@ mixin TypeAnalyzer<
         matchedType: matchedType, requiredType: staticType);
     bool isImplicitlyTyped = declaredType == null;
     // TODO(paulberry): are we handling _isFinal correctly?
-    int promotionKey = flow.declaredVariablePattern(
-        matchedType: matchedType,
-        staticType: staticType,
-        initializerExpression: context.getInitializer(node),
-        isFinal: context.isFinal || isVariableFinal(variable),
-        isLate: context.isLate,
-        isImplicitlyTyped: isImplicitlyTyped);
+    int promotionKey = context.patternVariablePromotionKeys[variableName] =
+        flow.declaredVariablePattern(
+            matchedType: matchedType,
+            staticType: staticType,
+            initializerExpression: context.getInitializer(node),
+            isFinal: context.isFinal || isVariableFinal(variable),
+            isLate: context.isLate,
+            isImplicitlyTyped: isImplicitlyTyped);
     setVariableType(variable, staticType);
     (context.componentVariables[variableName] ??= []).add(variable);
-    flow.declare(variable, staticType, initialized: false);
     flow.assignMatchedPatternVariable(variable, promotionKey);
     return staticType;
   }
@@ -494,15 +497,18 @@ mixin TypeAnalyzer<
     flow.ifCaseStatement_afterExpression(expression, initializerType);
     // Stack: (Expression)
     Map<String, List<Variable>> componentVariables = {};
+    Map<String, int> patternVariablePromotionKeys = {};
     // TODO(paulberry): rework handling of isFinal
     dispatchPattern(
         new MatchContext<Node, Expression, Pattern, Type, Variable>(
             isFinal: false,
             topPattern: pattern,
-            componentVariables: componentVariables),
+            componentVariables: componentVariables,
+            patternVariablePromotionKeys: patternVariablePromotionKeys),
         pattern);
     // Stack: (Expression, Pattern)
-    _finishJoinedPatternVariables(variables, componentVariables,
+    _finishJoinedPatternVariables(
+        variables, componentVariables, patternVariablePromotionKeys,
         location: JoinedPatternVariableLocation.singlePattern);
     if (guard != null) {
       _checkGuardType(guard, analyzeExpression(guard, boolType));
@@ -543,12 +549,14 @@ mixin TypeAnalyzer<
     flow.ifCaseStatement_afterExpression(expression, initializerType);
     // Stack: (Expression)
     Map<String, List<Variable>> componentVariables = {};
+    Map<String, int> patternVariablePromotionKeys = {};
     // TODO(paulberry): rework handling of isFinal
     dispatchPattern(
       new MatchContext<Node, Expression, Pattern, Type, Variable>(
         isFinal: false,
         topPattern: pattern,
         componentVariables: componentVariables,
+        patternVariablePromotionKeys: patternVariablePromotionKeys,
       ),
       pattern,
     );
@@ -556,6 +564,7 @@ mixin TypeAnalyzer<
     _finishJoinedPatternVariables(
       variables,
       componentVariables,
+      patternVariablePromotionKeys,
       location: JoinedPatternVariableLocation.singlePattern,
     );
 
@@ -786,11 +795,44 @@ mixin TypeAnalyzer<
     }
     // Stack: ()
     flow.logicalOrPattern_begin();
-    dispatchPattern(context, lhs);
+    Map<String, int> leftPromotionKeys = {};
+    dispatchPattern(context.withPromotionKeys(leftPromotionKeys), lhs);
     // Stack: (Pattern left)
+    // We'll use the promotion keys allocated during processing of the LHS as
+    // the merged keys.
+    for (MapEntry<String, int> entry in leftPromotionKeys.entries) {
+      String variableName = entry.key;
+      int promotionKey = entry.value;
+      assert(!context.patternVariablePromotionKeys.containsKey(variableName));
+      context.patternVariablePromotionKeys[variableName] = promotionKey;
+    }
     flow.logicalOrPattern_afterLhs();
-    dispatchPattern(context, rhs);
+    Map<String, int> rightPromotionKeys = {};
+    dispatchPattern(context.withPromotionKeys(rightPromotionKeys), rhs);
     // Stack: (Pattern left, Pattern right)
+    for (MapEntry<String, int> entry in rightPromotionKeys.entries) {
+      String variableName = entry.key;
+      int rightPromotionKey = entry.value;
+      int? mergedPromotionKey = leftPromotionKeys[variableName];
+      if (mergedPromotionKey == null) {
+        // No matching variable on the LHS.  This is an error condition (which
+        // has already been reported by VariableBinder).  For error recovery,
+        // we still need to add the variable to
+        // context.patternVariablePromotionKeys so that later analysis still
+        // accounts for the presence of this variable.  So we just use the
+        // promotion key from the RHS as the merged key.
+        mergedPromotionKey = rightPromotionKey;
+        assert(!context.patternVariablePromotionKeys.containsKey(variableName));
+        context.patternVariablePromotionKeys[variableName] = mergedPromotionKey;
+      } else {
+        // Copy the promotion data over to the merged key.
+        flow.copyPromotionData(
+            sourceKey: rightPromotionKey, destinationKey: mergedPromotionKey);
+      }
+    }
+    // Since the promotion data is now all stored in the merged keys in both
+    // flow control branches, the normal join process will combine promotions
+    // accordingly.
     flow.logicalOrPattern_end();
   }
 
@@ -1069,6 +1111,7 @@ mixin TypeAnalyzer<
     // Stack: (Expression)
     flow.patternAssignment_afterRhs(rhs, rhsType);
     Map<String, List<Variable>> componentVariables = {};
+    Map<String, int> patternVariablePromotionKeys = {};
     dispatchPattern(
       new MatchContext<Node, Expression, Pattern, Type, Variable>(
         isFinal: false,
@@ -1077,6 +1120,7 @@ mixin TypeAnalyzer<
         topPattern: pattern,
         assignedVariables: <Variable, Pattern>{},
         componentVariables: componentVariables,
+        patternVariablePromotionKeys: patternVariablePromotionKeys,
       ),
       pattern,
     );
@@ -1125,12 +1169,14 @@ mixin TypeAnalyzer<
     flow.patternForIn_afterExpression(elementType);
 
     Map<String, List<Variable>> componentVariables = {};
+    Map<String, int> patternVariablePromotionKeys = {};
     dispatchPattern(
       new MatchContext<Node, Expression, Pattern, Type, Variable>(
         isFinal: false,
         irrefutableContext: node,
         topPattern: pattern,
         componentVariables: componentVariables,
+        patternVariablePromotionKeys: patternVariablePromotionKeys,
       ),
       pattern,
     );
@@ -1174,6 +1220,7 @@ mixin TypeAnalyzer<
     flow.patternVariableDeclaration_afterInitializer(
         initializer, initializerType);
     Map<String, List<Variable>> componentVariables = {};
+    Map<String, int> patternVariablePromotionKeys = {};
     dispatchPattern(
       new MatchContext<Node, Expression, Pattern, Type, Variable>(
         isFinal: isFinal,
@@ -1182,10 +1229,12 @@ mixin TypeAnalyzer<
         irrefutableContext: node,
         topPattern: pattern,
         componentVariables: componentVariables,
+        patternVariablePromotionKeys: patternVariablePromotionKeys,
       ),
       pattern,
     );
-    _finishJoinedPatternVariables({}, componentVariables,
+    _finishJoinedPatternVariables(
+        {}, componentVariables, patternVariablePromotionKeys,
         location: JoinedPatternVariableLocation.singlePattern);
     flow.patternVariableDeclaration_end();
     // Stack: (Expression, Pattern)
@@ -1380,18 +1429,21 @@ mixin TypeAnalyzer<
       Expression? guard;
       if (pattern != null) {
         Map<String, List<Variable>> componentVariables = {};
+        Map<String, int> patternVariablePromotionKeys = {};
         dispatchPattern(
           new MatchContext<Node, Expression, Pattern, Type, Variable>(
             isFinal: false,
             switchScrutinee: scrutinee,
             topPattern: pattern,
             componentVariables: componentVariables,
+            patternVariablePromotionKeys: patternVariablePromotionKeys,
           ),
           pattern,
         );
         _finishJoinedPatternVariables(
           memberInfo.head.variables,
           componentVariables,
+          patternVariablePromotionKeys,
           location: JoinedPatternVariableLocation.singlePattern,
         );
         // Stack: (Expression, i * ExpressionCase, Pattern)
@@ -1442,6 +1494,8 @@ mixin TypeAnalyzer<
     bool hasDefault = false;
     bool lastCaseTerminates = true;
     for (int caseIndex = 0; caseIndex < numCases; caseIndex++) {
+      Map<String, List<Variable>> outerComponentVariables = {};
+      Map<String, int> outerPatternVariablePromotionKeys = {};
       // Stack: (Expression, numExecutionPaths * StatementCase)
       flow.switchStatement_beginAlternatives();
       // Stack: (Expression, numExecutionPaths * StatementCase,
@@ -1458,19 +1512,25 @@ mixin TypeAnalyzer<
         Expression? guard;
         if (pattern != null) {
           Map<String, List<Variable>> componentVariables = {};
+          Map<String, int> patternVariablePromotionKeys = {};
           dispatchPattern(
             new MatchContext<Node, Expression, Pattern, Type, Variable>(
               isFinal: false,
               switchScrutinee: scrutinee,
               topPattern: pattern,
               componentVariables: componentVariables,
+              patternVariablePromotionKeys: patternVariablePromotionKeys,
             ),
             pattern,
           );
           _finishJoinedPatternVariables(
             head.variables,
             componentVariables,
+            patternVariablePromotionKeys,
             location: JoinedPatternVariableLocation.singlePattern,
+            outerComponentVariables: outerComponentVariables,
+            outerPatternVariablePromotionKeys:
+                outerPatternVariablePromotionKeys,
           );
           // Stack: (Expression, numExecutionPaths * StatementCase,
           //         numHeads * CaseHead, Pattern),
@@ -1497,10 +1557,10 @@ mixin TypeAnalyzer<
           hasLabels: memberInfo.hasLabels);
       Map<String, Variable> variables = memberInfo.variables;
       if (memberInfo.hasLabels || heads.length > 1) {
-        // TODO(paulberry): pass the proper value for componentVariables.
         _finishJoinedPatternVariables(
           variables,
-          {},
+          outerComponentVariables,
+          outerPatternVariablePromotionKeys,
           location: JoinedPatternVariableLocation.sharedCaseScope,
         );
       }
@@ -1674,8 +1734,6 @@ mixin TypeAnalyzer<
     required bool isFinal,
     required Type type,
   });
-
-  List<Variable>? getJoinedVariableComponents(Variable variable);
 
   /// If the [element] is a map pattern entry, returns it.
   MapPatternEntry<Expression, Pattern>? getMapPatternEntry(Node element);
@@ -1938,60 +1996,90 @@ mixin TypeAnalyzer<
 
   void _finishJoinedPatternVariables(
     Map<String, Variable> variables,
-    Map<String, List<Variable>> componentVariables, {
+    Map<String, List<Variable>> componentVariables,
+    Map<String, int> patternVariablePromotionKeys, {
     required JoinedPatternVariableLocation location,
+    Map<String, List<Variable>>? outerComponentVariables,
+    Map<String, int>? outerPatternVariablePromotionKeys,
   }) {
     assert(() {
       // Every entry in `variables` should match a variable we know about.
       for (String variableName in variables.keys) {
-        // TODO(paulberry): make this work properly when location is
-        // `sharedCaseScope`.
-        assert(componentVariables.containsKey(variableName) ||
-            location == JoinedPatternVariableLocation.sharedCaseScope);
+        assert(patternVariablePromotionKeys.containsKey(variableName));
       }
       return true;
     }());
-    for (MapEntry<String, Variable> entry in variables.entries) {
-      Variable variable = entry.value;
-      List<Variable>? components = getJoinedVariableComponents(variable);
-      if (components != null) {
-        bool isConsistent = true;
-        bool? resultIsFinal;
-        Type? resultType;
-        for (Variable component in components) {
-          bool componentIsFinal = isVariableFinal(component);
-          Type componentType = getVariableType(component);
-          if (resultIsFinal == null || resultType == null) {
-            resultIsFinal = componentIsFinal;
-            resultType = componentType;
-          } else {
-            bool sameFinality = resultIsFinal == componentIsFinal;
-            bool sameType =
-                _structurallyEqualAfterNormTypes(resultType, componentType);
-            if (!sameFinality || !sameType) {
-              if (location == JoinedPatternVariableLocation.singlePattern) {
-                errors?.inconsistentJoinedPatternVariable(
-                  variable: variable,
-                  component: component,
-                );
-              }
-              isConsistent = false;
-              resultIsFinal = null;
-              resultType = null;
-              break;
-            }
+    for (MapEntry<String, int> entry in patternVariablePromotionKeys.entries) {
+      String variableName = entry.key;
+      int promotionKey = entry.value;
+      Variable? variable = variables[variableName];
+      List<Variable> components = componentVariables[variableName] ?? [];
+      bool isFirst = true;
+      Type? typeIfConsistent;
+      bool? isFinalIfConsistent;
+      bool isIdenticalToComponent = false;
+      for (Variable component in components) {
+        if (identical(variable, component)) {
+          isIdenticalToComponent = true;
+        }
+        Type componentType = getVariableType(component);
+        bool isComponentFinal = isVariableFinal(component);
+        if (isFirst) {
+          typeIfConsistent = componentType;
+          isFinalIfConsistent = isComponentFinal;
+          isFirst = false;
+        } else {
+          bool inconsistencyFound = false;
+          if (typeIfConsistent != null &&
+              !_structurallyEqualAfterNormTypes(
+                  typeIfConsistent, componentType)) {
+            typeIfConsistent = null;
+            inconsistencyFound = true;
+          }
+          if (isFinalIfConsistent != null &&
+              isFinalIfConsistent != isComponentFinal) {
+            isFinalIfConsistent = null;
+            inconsistencyFound = true;
+          }
+          if (inconsistencyFound &&
+              location == JoinedPatternVariableLocation.singlePattern &&
+              variable != null) {
+            errors?.inconsistentJoinedPatternVariable(
+                variable: variable, component: component);
           }
         }
-        resultIsFinal ??= false;
-        resultType ??= dynamicType;
-        finishJoinedPatternVariable(
-          variable,
-          location: location,
-          isConsistent: isConsistent,
-          isFinal: resultIsFinal,
-          type: resultType,
-        );
-        flow.declare(variable, resultType, initialized: true);
+      }
+      if (variable != null) {
+        if (!isIdenticalToComponent) {
+          finishJoinedPatternVariable(variable,
+              location: location,
+              isConsistent:
+                  typeIfConsistent != null && isFinalIfConsistent != null,
+              isFinal: isFinalIfConsistent ?? false,
+              type: typeIfConsistent ?? errorType);
+          flow.assignMatchedPatternVariable(
+              variable, patternVariablePromotionKeys[variableName]!);
+        }
+        (outerComponentVariables?[variableName] ??= [])?.add(variable);
+      }
+      if (outerPatternVariablePromotionKeys != null) {
+        // We're finishing the pattern for one of the cases of a switch
+        // statement.  See if this variable appeared in any previous patterns
+        // that share the same case body.
+        int? previousPromotionKey =
+            outerPatternVariablePromotionKeys[variableName];
+        if (previousPromotionKey == null) {
+          // This variable hasn't been seen in any previous patterns that share
+          // the same body.  So we can safely use the promotion key we have to
+          // store information about this variable.
+          outerPatternVariablePromotionKeys[variableName] = promotionKey;
+        } else {
+          // This variable has been seen in previous patterns, so we have to
+          // copy promotion data into the previously-used promotion key, to
+          // ensure that the promotion information is properly joined.
+          flow.copyPromotionData(
+              sourceKey: promotionKey, destinationKey: previousPromotionKey);
+        }
       }
     }
   }

@@ -7,17 +7,17 @@ import "dart:_internal" as _in;
   if(_in::unsafeCast<core::bool>([@vm.direct-call.metadata=dart.core::_IntegerImplementation.<] [@vm.inferred-type.metadata=dart.core::bool] n{dynamic}.<(2)))
     return false;
   for (core::int i = 2; [@vm.direct-call.metadata=dart.core::_IntegerImplementation.<=] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.direct-call.metadata=dart.core::_IntegerImplementation.*] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::*}(i){(core::num) → core::int}.{core::num::<=}(_in::unsafeCast<core::num>(n)){(core::num) → core::bool}; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int}) {
-    if([@vm.inferred-type.metadata=dart.core::bool?] [@vm.direct-call.metadata=dart.core::_IntegerImplementation.%] [@vm.inferred-type.metadata=int] n{dynamic}.%(i) =={core::Object::==}{(core::Object) → core::bool} 0)
+    if([@vm.inferred-type.metadata=dart.core::bool] [@vm.direct-call.metadata=dart.core::_IntegerImplementation.%] [@vm.inferred-type.metadata=int] n{dynamic}.%(i) =={core::Object::==}{(core::Object) → core::bool} 0)
       return false;
   }
   return true;
 }
 static method nThPrimeNumber() → core::int {
   core::int counter = 0;
-  for (core::int i = 1; ; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+??] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int}) {
+  for (core::int i = 1; ; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int}) {
     if([@vm.inferred-type.metadata=dart.core::bool] self::isPrime(i))
-      counter = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+??] [@vm.inferred-type.metadata=int (skip check)] counter.{core::num::+}(1){(core::num) → core::int};
-    if([@vm.inferred-type.metadata=dart.core::bool] counter =={core::num::==}{(core::Object) → core::bool} #C1) {
+      counter = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] counter.{core::num::+}(1){(core::num) → core::int};
+    if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] counter =={core::num::==}{(core::Object) → core::bool} #C1) {
       return i;
     }
   }
@@ -25,7 +25,7 @@ static method nThPrimeNumber() → core::int {
 static method run() → void {
   core::int e = 611953;
   core::int p = [@vm.inferred-type.metadata=int?] self::nThPrimeNumber();
-  if(!([@vm.inferred-type.metadata=dart.core::bool] p =={core::num::==}{(core::Object) → core::bool} e)) {
+  if(!([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] p =={core::num::==}{(core::Object) → core::bool} e)) {
     throw core::Exception::•("Unexpected result: ${p} != ${e}");
   }
 }

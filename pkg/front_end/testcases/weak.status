@@ -84,7 +84,6 @@ general/issue31767: semiFuzzFailureOnForceRebuildBodies # private class, field
 general/issue45101/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 general/issue47036: semiFuzzFailureOnForceRebuildBodies # private class
 general/issue48548: semiFuzzFailureOnForceRebuildBodies # private field
-general/issue49697_2/main: RuntimeError # https://github.com/dart-lang/sdk/issues/51053
 general/nested_lib_spec/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 general/private_members: semiFuzzFailureOnForceRebuildBodies # private class (etc).
 general/private_method_tearoff: semiFuzzFailureOnForceRebuildBodies # private method in class
@@ -103,6 +102,7 @@ nnbd_mixed/no_null_shorting_explicit_extension: semiFuzzFailureOnForceRebuildBod
 nnbd_mixed/no_null_shorting_extension: semiFuzzFailureOnForceRebuildBodies # private field in class
 nnbd_mixed/nullable_extension_on_opt_out: semiFuzzFailureOnForceRebuildBodies # unnamed extension
 nnbd_mixed/object_bound_redirecting_factory/main: semiFuzzFailureOnForceRebuildBodies # private constructor
+nnbd_mixed/unsound_checks: RuntimeError # https://github.com/dart-lang/sdk/issues/51053
 nnbd/injected_late_field_checks/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 nnbd/issue42504: semiFuzzFailureOnForceRebuildBodies # private class
 nnbd/issue43918: semiFuzzFailureOnForceRebuildBodies # private class
@@ -276,6 +276,7 @@ regress/issue_35260: RuntimeError # Expected
 regress/issue_35266: RuntimeError # Expected
 regress/issue_37285: RuntimeError
 regress/issue_39091_2: RuntimeError
+regress/issue_39040: RuntimeError # https://github.com/dart-lang/sdk/issues/51206
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
 set_literals/disambiguation_rule2: RuntimeError
