@@ -285,12 +285,12 @@ w.FunctionType _makeFunctionType(Translator translator, Reference target,
       ? translator.translateExternalType(type)
       : translator.translateType(type);
 
-  List<w.ValueType> typeParameters = List.filled(
+  final List<w.ValueType> typeParameters = List.filled(
       typeParamCount,
       translateType(
           InterfaceType(translator.typeClass, Nullability.nonNullable)));
 
-  List<w.ValueType> inputs = [];
+  final List<w.ValueType> inputs = [];
   if (receiverType != null) {
     assert(!isImportOrExport);
     inputs.add(receiverType);
@@ -298,11 +298,13 @@ w.FunctionType _makeFunctionType(Translator translator, Reference target,
   inputs.addAll(typeParameters);
   inputs.addAll(params.map(translateType));
 
-  List<w.ValueType> outputs = returnType is VoidType
-      ? member.function?.asyncMarker == AsyncMarker.Async
-          ? [translateType(translator.coreTypes.objectNullableRawType)]
-          : const []
-      : [translateType(returnType)];
+  final bool emptyOutputList = member is Constructor ||
+      member is Procedure && member.isSetter ||
+      isImportOrExport && returnType is VoidType ||
+      returnType is InterfaceType &&
+          returnType.classNode == translator.wasmVoidClass;
+  final List<w.ValueType> outputs =
+      emptyOutputList ? const [] : [translateType(returnType)];
 
   return translator.m.addFunctionType(inputs, outputs);
 }

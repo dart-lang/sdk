@@ -22,7 +22,7 @@ WasmStructRef? structRef;
 
 int funCount = 0;
 
-void fun(WasmEqRef arg) {
+WasmVoid? fun(WasmEqRef arg) {
   funCount++;
   Expect.equals("Dart object", arg.toObject());
 }
@@ -81,7 +81,7 @@ test() {
 
   // Cast a typed function reference to a `funcref` and back.
   WasmFuncRef funcref = WasmFuncRef.fromWasmFunction(ff);
-  var ff2 = WasmFunction<void Function(WasmEqRef)>.fromFuncRef(funcref);
+  var ff2 = WasmFunction<WasmVoid? Function(WasmEqRef)>.fromFuncRef(funcref);
   ff2.call(dartObjectRef);
 
   // Create a typed function reference from an import and call it.

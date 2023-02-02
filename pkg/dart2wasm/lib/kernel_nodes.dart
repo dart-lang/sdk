@@ -115,6 +115,7 @@ mixin KernelNodes {
       index.getClass("dart:wasm", "WasmArrayRef");
   late final Class wasmFunctionClass =
       index.getClass("dart:wasm", "WasmFunction");
+  late final Class wasmVoidClass = index.getClass("dart:wasm", "WasmVoid");
   late final Class wasmTableClass = index.getClass("dart:wasm", "WasmTable");
 
   // dart:_internal procedures
