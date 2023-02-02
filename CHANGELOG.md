@@ -107,6 +107,11 @@
 
 - Deprecated `NetworkInterface.listSupported`. Has always returned true since
   Dart 2.3.
+- Finalize `httpEnableTimelineLogging` parameter name transition from `enable`
+  to `enabled`. See [#43638][].
+- **Breaking change** [#51035][]:
+  - Update `NetworkProfiling` to accommodate new `String` ids
+    that are introduced in vm_service:11.0.0
 
 #### `dart:js_util`
 
