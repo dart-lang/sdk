@@ -722,7 +722,7 @@ class CodeSource {
   final Uri uri;
   final String name;
   final int? begin;
-  final int end;
+  final int? end;
   final List<CodeSource> members = <CodeSource>[];
 
   CodeSource(this.kind, this.uri, this.name, this.begin, this.end);
