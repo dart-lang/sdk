@@ -865,7 +865,7 @@ class ClassHierarchyNodeIterable extends IterableBase<ClassEntity> {
   ClassHierarchyNodeIterable(this.root, this.mask, {this.includeRoot = true});
 
   @override
-  Iterator<ClassEntity> get iterator {
+  ClassHierarchyNodeIterator get iterator {
     return ClassHierarchyNodeIterator(this);
   }
 }

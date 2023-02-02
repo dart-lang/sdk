@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
@@ -84,7 +82,7 @@ main() {
   Compiler compiler = result.compiler;
   var options = compiler.options;
 
-  KClosedWorld closedWorld = compiler.frontendClosedWorldForTesting;
+  KClosedWorld closedWorld = compiler.frontendClosedWorldForTesting!;
   DartTypes types = closedWorld.dartTypes;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 
@@ -92,17 +90,17 @@ main() {
     return type.toStructuredText(types, options);
   }
 
-  elementEnvironment.forEachLibraryMember(elementEnvironment.mainLibrary,
+  elementEnvironment.forEachLibraryMember(elementEnvironment.mainLibrary!,
       (MemberEntity member) {
     if (member == elementEnvironment.mainFunction) return;
 
-    Impact expectedImpact = expectedImpactMap[member.name];
+    Impact? expectedImpact = expectedImpactMap[member.name];
     Expect.isNotNull(expectedImpact, "Not expected impact for $member");
-    WorldImpact actualImpact = compiler.impactCache[member];
+    WorldImpact actualImpact = compiler.impactCache[member]!;
 
     Set<TypeUse> typeUses = actualImpact.typeUses.toSet();
 
-    Set<String> asCasts = expectedImpact.asCasts.toSet();
+    Set<String> asCasts = expectedImpact!.asCasts.toSet();
     Set<String> checkedModeChecks = expectedImpact.checkedModeChecks.toSet();
     Set<String> implicitCasts = expectedImpact.implicitCasts.toSet();
     Set<String> parameterChecks = expectedImpact.parameterChecks.toSet();

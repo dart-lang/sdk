@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /// TODO(johnniwinther): Currently this only works with the mock compiler.
 
 import "package:expect/expect.dart";
@@ -91,7 +89,8 @@ main() {
 }
 """;
 
-checkRangeError(String test, {bool hasRangeError, String methodName}) async {
+checkRangeError(String test,
+    {required bool hasRangeError, String? methodName}) async {
   String generated =
       await compile(test, methodName: methodName, disableTypeInference: false);
   Expect.equals(

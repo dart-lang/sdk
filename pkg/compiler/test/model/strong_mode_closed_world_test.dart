@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
@@ -198,10 +196,10 @@ method2() {
     'Class2': ['c'],
   };
 
-  KClosedWorld closedWorld = compiler.frontendClosedWorldForTesting;
+  KClosedWorld closedWorld = compiler.frontendClosedWorldForTesting!;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 
-  elementEnvironment.forEachClass(elementEnvironment.mainLibrary,
+  elementEnvironment.forEachClass(elementEnvironment.mainLibrary!,
       (ClassEntity cls) {
     List<String> expectedLiveMembers =
         expectedLiveMembersMap[cls.name] ?? const <String>[];
@@ -209,7 +207,7 @@ method2() {
     closedWorld.liveMemberUsage.forEach((MemberEntity member, _) {
       if (member.enclosingClass != cls) return;
       if (member is ConstructorEntity) return;
-      actualLiveMembers.add(member.name);
+      actualLiveMembers.add(member.name!);
     });
     Expect.setEquals(
         expectedLiveMembers,

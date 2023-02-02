@@ -549,7 +549,7 @@ class DiffCreator {
     lines.add(line);
     if (codeSource.begin != null) {
       int startLine = sourceFile.getLocation(codeSource.begin!).line - 1;
-      int endLine = sourceFile.getLocation(codeSource.end).line;
+      int endLine = sourceFile.getLocation(codeSource.end!).line;
       for (CodeLine codeLine in convertAnnotatedCodeToCodeLines(
           sourceFile.slowText(), const <Annotation>[],
           startLine: startLine, endLine: endLine)) {
@@ -601,7 +601,7 @@ class DiffCreator {
             for (CodeSource codeSource in codeSources) {
               Interval interval = new Interval(
                   sourceFile.getLocation(codeSource.begin!).line - 1,
-                  sourceFile.getLocation(codeSource.end).line);
+                  sourceFile.getLocation(codeSource.end!).line);
               if (interval.contains(dartCodeLine.lineNo)) {
                 currentCodeSource = codeSource;
                 currentLineInterval = interval;
@@ -740,7 +740,7 @@ class CodeLineAnnotation {
   final AnnotationType annotationType;
   final List<CodeLocation> codeLocations;
   final List<CodeSource> codeSources;
-  final String stepInfo;
+  final String? stepInfo;
   int? sourceMappingIndex;
 
   CodeLineAnnotation(
@@ -748,7 +748,7 @@ class CodeLineAnnotation {
       required this.annotationType,
       required this.codeLocations,
       required this.codeSources,
-      required this.stepInfo,
+      this.stepInfo,
       this.sourceMappingIndex});
 
   Map toJson(JsonStrategy strategy) {

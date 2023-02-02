@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
 // Test that parameters keep their names in the output.
 
 import 'package:async_helper/async_helper.dart';
@@ -10,7 +9,7 @@ import 'package:expect/expect.dart';
 import '../helpers/compiler_helper.dart';
 
 main() {
-  runTests({int numberOfParameters}) async {
+  runTests({required int numberOfParameters}) async {
     StringBuffer buffer = new StringBuffer();
     buffer.write("foo(");
     for (int i = 0; i < numberOfParameters; i++) {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_api.dart' as api;
 import 'package:expect/expect.dart';
@@ -53,7 +51,7 @@ main() {
     OutputCollector collector = new OutputCollector();
     await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
-    String jsOutput = collector.getOutput('', api.OutputType.js);
+    String jsOutput = collector.getOutput('', api.OutputType.js)!;
 
     // Skip comments.
     List<String> lines = jsOutput.split("\n");

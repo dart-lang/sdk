@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import 'package:compiler/compiler_api.dart' as api;
@@ -48,7 +46,7 @@ void main() {
         options: [Flags.testMode]);
     // Simply check that the constants of the small functions are still in the
     // output, and that we don't see the result of constant folding.
-    String jsOutput = collector.getOutput('', api.OutputType.js);
+    String jsOutput = collector.getOutput('', api.OutputType.js)!;
 
     Expect.isTrue(jsOutput.contains('49912344'));
     Expect.isTrue(jsOutput.contains('123455'));

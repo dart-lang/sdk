@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library sourcemap.diff_view;
 
 import 'dart:async';
@@ -31,7 +29,7 @@ import '../helpers/trace_graph.dart';
 main(List<String> args) async {
   DEBUG_MODE = true;
   String out = 'out.js.diff_view.html';
-  String filename;
+  late String filename;
   List<String> currentOptions = [];
   List<List<String>> optionSegments = [currentOptions];
   Map<int, String> loadFrom = {};
@@ -99,7 +97,7 @@ main(List<String> args) async {
           filename, options[i], structure, result.coverage.getCoverageReport());
     }
     if (saveTo.containsKey(i)) {
-      AnnotatedOutput.saveOutput(output, saveTo[i]);
+      AnnotatedOutput.saveOutput(output, saveTo[i]!);
     }
     outputs.add(output);
   }
@@ -116,7 +114,7 @@ main(List<String> args) async {
 void computeEntityCodeSources(
     CodeLinesResult result, OutputStructure structure) {
   result.elementMap.forEach((int line, MemberEntity element) {
-    OutputEntity entity = structure.getEntityForLine(line);
+    OutputEntity? entity = structure.getEntityForLine(line);
     if (entity != null) {
       entity.codeSource = codeSourceFromElement(element);
     }
@@ -152,7 +150,7 @@ class CodeLineAnnotationJsonStrategy implements JsonStrategy {
   }
 
   @override
-  encodeLineAnnotation(covariant CodeSource lineAnnotation) {
+  Map? encodeLineAnnotation(covariant CodeSource? lineAnnotation) {
     if (lineAnnotation != null) {
       return lineAnnotation.toJson();
     }
@@ -196,7 +194,7 @@ class AnnotatedOutput {
     return output;
   }
 
-  static void saveOutput(AnnotatedOutput output, String filename) {
+  static void saveOutput(AnnotatedOutput output, String? filename) {
     if (filename != null) {
       new File(filename).writeAsStringSync(
           const JsonEncoder.withIndent('  ').convert(output.toJson()));
@@ -209,7 +207,6 @@ void outputDiffView(
     String out, List<AnnotatedOutput> outputs, List<DiffBlock> blocks,
     {bool showMarkers = true, bool showSourceMapped = true}) {
   assert(outputs[0].filename == outputs[1].filename);
-  bool usePre = true;
 
   StringBuffer sb = new StringBuffer();
   sb.write('''
@@ -268,20 +265,8 @@ void outputDiffView(
 .${ClassNames.inlinedDart} {
   overflow-y: hidden;
   vertical-align: top;
-''');
-  if (usePre) {
-    sb.write('''
   overflow-x: hidden;
   white-space: pre-wrap;
-''');
-  } else {
-    sb.write('''
-  overflow-x: hidden;
-  padding-left: 100px;
-  text-indent: -100px;
-''');
-  }
-  sb.write('''
   font-family: monospace;
   padding: 0px;
 }
@@ -475,7 +460,7 @@ as mapped through source-maps.">
 
   List<HtmlPrintContext> printContexts = <HtmlPrintContext>[];
   for (int i = 0; i < 2; i++) {
-    int lineNoWidth;
+    int? lineNoWidth;
     if (outputs[i].codeLines.isNotEmpty) {
       lineNoWidth = '${outputs[i].codeLines.last.lineNo + 1}'.length;
     }
@@ -501,7 +486,7 @@ as mapped through source-maps.">
     sb.write('''
 <td class="${ClassNames.headerColumn} ${ClassNames.column(column)}">''');
     if (column.type == 'js') {
-      sb.write('''[${outputs[column.index].options.join(',')}]''');
+      sb.write('''[${outputs[column.index!].options.join(',')}]''');
     } else {
       sb.write('''Dart code''');
     }
@@ -543,7 +528,7 @@ as mapped through source-maps.">
           getAnnotationData: getAnnotationData,
           getLineData: getLineData);
       if (column.type == 'js') {
-        context = printContexts[column.index];
+        context = printContexts[column.index!];
       }
       block.printHtmlOn(column, sb, context);
       sb.write('''</td>''');
@@ -557,7 +542,7 @@ as mapped through source-maps.">
     sb.write('''
 <td class="${ClassNames.cell} ${ClassNames.column(column)}"><pre>''');
     if (column.type == 'js') {
-      sb.write(outputs[column.index].coverage);
+      sb.write(outputs[column.index!].coverage);
     }
     sb.write('''</td>''');
   }
@@ -625,14 +610,14 @@ class CodeSources {
 
   CodeSources(SourceMapProcessor processor, SourceMaps sourceMaps) {
     ElementEnvironment elementEnvironment =
-        sourceMaps.compiler.backendClosedWorldForTesting.elementEnvironment;
+        sourceMaps.compiler.backendClosedWorldForTesting!.elementEnvironment;
 
     CodeSource computeCodeSource(Entity element) {
       return codeSourceMap.putIfAbsent(element, () {
         CodeSource codeSource = codeSourceFromElement(element);
         if (codeSource.begin != null) {
-          Interval interval = new Interval(codeSource.begin, codeSource.end);
-          Map<Interval, CodeSource> intervals =
+          Interval interval = Interval(codeSource.begin!, codeSource.end!);
+          Map<Interval, CodeSource>? intervals =
               uriCodeSourceMap[codeSource.uri];
           if (intervals == null) {
             intervals = <Interval, CodeSource>{};
@@ -640,7 +625,7 @@ class CodeSources {
           } else {
             for (Interval existingInterval in intervals.keys.toList()) {
               if (existingInterval.contains(interval.from)) {
-                CodeSource existingCodeSource = intervals[existingInterval];
+                CodeSource existingCodeSource = intervals[existingInterval]!;
                 intervals.remove(existingInterval);
                 if (existingInterval.from < interval.from) {
                   Interval preInterval =
@@ -676,14 +661,14 @@ class CodeSources {
         ..sort((i1, i2) => i1.from.compareTo(i2.from));
       Map<Interval, CodeSource> sortedintervals = <Interval, CodeSource>{};
       sortedKeys.forEach((Interval interval) {
-        sortedintervals[interval] = intervals[interval];
+        sortedintervals[interval] = intervals[interval]!;
       });
       uriCodeSourceMap[uri] = sortedintervals;
     });
   }
 
-  CodeSource sourceLocationToCodeSource(SourceLocation sourceLocation) {
-    Map<Interval, CodeSource> intervals =
+  CodeSource? sourceLocationToCodeSource(SourceLocation sourceLocation) {
+    Map<Interval, CodeSource>? intervals =
         uriCodeSourceMap[sourceLocation.sourceUri];
     if (intervals == null) {
       print('No code source for $sourceLocation(${sourceLocation.offset})');
@@ -710,7 +695,7 @@ Future<CodeLinesResult> computeCodeLines(
 
   CodeSources codeSources = new CodeSources(processor, sourceMaps);
 
-  SourceMapInfo info = sourceMaps.mainSourceMapInfo;
+  SourceMapInfo info = sourceMaps.mainSourceMapInfo!;
 
   int nextAnnotationId = 0;
   List<CodeLine> codeLines;
@@ -720,24 +705,24 @@ Future<CodeLinesResult> computeCodeLines(
 
   /// Create a [CodeLineAnnotation] for [codeOffset].
   void addCodeLineAnnotation(
-      {AnnotationType annotationType,
-      int codeOffset,
+      {required AnnotationType annotationType,
+      required int codeOffset,
       List<SourceLocation> locations = const <SourceLocation>[],
-      String stepInfo}) {
+      String? stepInfo}) {
     if (annotationType == AnnotationType.WITHOUT_SOURCE_INFO ||
         annotationType == AnnotationType.UNUSED_SOURCE_INFO) {
       locations = [];
     }
     List<CodeLocation> codeLocations = locations
         .where((l) => l.sourceUri != null)
-        .map((l) => new CodeLocation(l.sourceUri, l.sourceName, l.offset))
+        .map((l) => CodeLocation(l.sourceUri!, l.sourceName!, l.offset))
         .toList();
     List<CodeSource> codeSourceList = locations
         .where((l) => l.sourceUri != null)
         .map(codeSources.sourceLocationToCodeSource)
-        .where((c) => c != null)
+        .whereType<CodeSource>()
         .toList();
-    CodeLineAnnotation data = new CodeLineAnnotation(
+    CodeLineAnnotation data = CodeLineAnnotation(
         annotationId: nextAnnotationId++,
         annotationType: annotationType,
         codeLocations: codeLocations,
@@ -755,22 +740,24 @@ Future<CodeLinesResult> computeCodeLines(
 
   /// Add an annotation for [codeOffset] pointing to [locations].
   void addSourceLocations(
-      {AnnotationType annotationType,
-      int codeOffset,
-      List<SourceLocation> locations,
-      String stepInfo}) {
-    locations = locations.where((l) => l != null).toList();
+      {required AnnotationType annotationType,
+      required int codeOffset,
+      required List<SourceLocation?> locations,
+      String? stepInfo}) {
+    final nonNullLocations = locations.whereType<SourceLocation>().toList();
     addCodeLineAnnotation(
         annotationType: annotationType,
         codeOffset: codeOffset,
         stepInfo: stepInfo,
-        locations: locations);
+        locations: nonNullLocations);
   }
 
   /// Add annotations for all mappings created for [node].
   bool addSourceLocationsForNode(
-      {AnnotationType annotationType, js.Node node, String stepInfo}) {
-    Map<int, List<SourceLocation>> locations = info.nodeMap[node];
+      {required AnnotationType annotationType,
+      required js.Node node,
+      String? stepInfo}) {
+    Map<int, List<SourceLocation>>? locations = info.nodeMap[node];
     if (locations == null || locations.isEmpty) {
       return false;
     }
@@ -793,11 +780,11 @@ Future<CodeLinesResult> computeCodeLines(
         node: step.node,
         stepInfo: stepInfo);
     if (!added) {
-      int offset;
+      int? offset;
       if (options.contains(Flags.useNewSourceInfo)) {
         offset = step.offset.value;
       } else {
-        offset = info.jsCodePositions[step.node].startPosition;
+        offset = info.jsCodePositions[step.node]!.startPosition;
       }
       if (offset != null) {
         addCodeLineAnnotation(
@@ -822,7 +809,7 @@ Future<CodeLinesResult> computeCodeLines(
   collector.sourceLocations
       .forEach((js.Node node, List<SourceLocation> locations) {
     if (!mappedNodes.contains(node)) {
-      int offset = info.jsCodePositions[node].startPosition;
+      int offset = info.jsCodePositions[node]!.startPosition;
       addSourceLocations(
           annotationType: AnnotationType.UNUSED_SOURCE_INFO,
           codeOffset: offset,
@@ -835,7 +822,7 @@ Future<CodeLinesResult> computeCodeLines(
   List<Annotation> annotations = <Annotation>[];
   for (int codeOffset in codeLineAnnotationMap.keys.toList()..sort()) {
     bool hasSourceMappedLocation = false;
-    for (CodeLineAnnotation data in codeLineAnnotationMap[codeOffset]) {
+    for (CodeLineAnnotation data in codeLineAnnotationMap[codeOffset]!) {
       if (data.annotationType.isSourceMapped) {
         data.sourceMappingIndex = nextSourceMappedLocationIndex;
         hasSourceMappedLocation = true;
@@ -854,7 +841,7 @@ Future<CodeLinesResult> computeCodeLines(
   Map<int, MemberEntity> elementMap = <int, MemberEntity>{};
   sourceMaps.elementSourceMapInfos
       .forEach((MemberEntity element, SourceMapInfo info) {
-    CodePosition position = info.jsCodePositions[info.node];
+    CodePosition position = info.jsCodePositions[info.node]!;
     elementMap[sourceFile.getLocation(position.startPosition).line - 1] =
         element;
   });
@@ -872,7 +859,7 @@ class SourceLocationCollector extends js.BaseVisitorVoid {
 
   @override
   void visitNode(js.Node node) {
-    SourceInformation sourceInformation = node.sourceInformation;
+    final sourceInformation = node.sourceInformation as SourceInformation?;
     if (sourceInformation != null) {
       sourceLocations[node] = sourceInformation.sourceLocations;
     }
@@ -883,14 +870,12 @@ class SourceLocationCollector extends js.BaseVisitorVoid {
 /// Compute a [CodeSource] for source span of [element].
 CodeSource codeSourceFromElement(Entity element) {
   // TODO(johnniwinther): Handle kernel based elements.
-  CodeKind kind;
-  Uri uri;
-  String name;
-  int begin;
-  int end;
+  late CodeKind kind;
+  late Uri uri;
+  late String name;
   if (element is LibraryEntity) {
     kind = CodeKind.LIBRARY;
-    name = element.name;
+    name = element.name!;
     uri = element.canonicalUri;
   } else if (element is ClassEntity) {
     kind = CodeKind.CLASS;
@@ -899,14 +884,14 @@ CodeSource codeSourceFromElement(Entity element) {
   } else if (element is MemberEntity) {
     kind = CodeKind.MEMBER;
     uri = element.library.canonicalUri;
-    name = computeElementNameForSourceMaps(element);
+    name = computeElementNameForSourceMaps(element)!;
   }
-  return new CodeSource(kind, uri, name, begin, end);
+  return CodeSource(kind, uri, name, null, null);
 }
 
 /// Create [LineData] that colors line numbers according to the [CodeSource]s
 /// origin if available.
-LineData getLineData(Object lineAnnotation) {
+LineData getLineData(Object? lineAnnotation) {
   if (lineAnnotation != null) {
     return new LineData(
         lineClass: ClassNames.line,
@@ -917,13 +902,13 @@ LineData getLineData(Object lineAnnotation) {
       lineClass: ClassNames.line, lineNumberClass: ClassNames.lineNumber);
 }
 
-AnnotationData getAnnotationData(Iterable<Annotation> annotations,
-    {bool forSpan}) {
+AnnotationData? getAnnotationData(Iterable<Annotation> annotations,
+    {required bool forSpan}) {
   for (Annotation annotation in annotations) {
     CodeLineAnnotation data = annotation.data;
     if (data.annotationType.isSourceMapped) {
       if (forSpan) {
-        int index = data.sourceMappingIndex;
+        int index = data.sourceMappingIndex!;
         return new AnnotationData(tag: 'span', properties: {
           'class': '${ClassNames.sourceMapping} '
               '${ClassNames.sourceMappingIndex(index % HUE_COUNT)}',
