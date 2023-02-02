@@ -1,3 +1,21 @@
+# 1.33.0
+
+- fix `unnecessary_parenthesis` false-positive with null-aware expressions
+- fix `void_checks` to allow assignments of `Future<dynamic>?` to parameters 
+  typed `FutureOr<void>?`
+- removed support for:
+  - `enable_null_safety`
+  - `invariant_booleans`
+  - `prefer_bool_in_asserts`
+  - `prefer_equal_for_default_values`
+  - `super_goes_last`
+- update `unnecessary_parenthesis` to detect some doubled parens
+- update `void_checks` to allow returning `Never` as void
+- new lint: `unnecessary_breaks`
+- fix `use_build_context_synchronously` in if conditions
+- update `no_adjacent_strings_in_list` to support set literals and for- and 
+  if-elements
+
 # 1.32.0
 
 - update `avoid_types_as_parameter_names` to handle type variables
