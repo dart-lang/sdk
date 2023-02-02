@@ -353,53 +353,6 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  This hint is generated anywhere where `@required` annotates a named
-  ///  parameter with a default value.
-  ///
-  ///  Parameters:
-  ///  0: the name of the member
-  static const HintCode INVALID_REQUIRED_NAMED_PARAM = HintCode(
-    'INVALID_REQUIRED_NAMED_PARAM',
-    "The type parameter '{0}' is annotated with @required but only named "
-        "parameters without a default value can be annotated with it.",
-    correctionMessage: "Remove @required.",
-  );
-
-  ///  This hint is generated anywhere where `@required` annotates an optional
-  ///  positional parameter.
-  ///
-  ///  Parameters:
-  ///  0: the name of the member
-  static const HintCode INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM = HintCode(
-    'INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM',
-    "Incorrect use of the annotation @required on the optional positional "
-        "parameter '{0}'. Optional positional parameters cannot be required.",
-    correctionMessage: "Remove @required.",
-  );
-
-  ///  This hint is generated anywhere where `@required` annotates a non optional
-  ///  positional parameter.
-  ///
-  ///  Parameters:
-  ///  0: the name of the member
-  static const HintCode INVALID_REQUIRED_POSITIONAL_PARAM = HintCode(
-    'INVALID_REQUIRED_POSITIONAL_PARAM',
-    "Redundant use of the annotation @required on the required positional "
-        "parameter '{0}'.",
-    correctionMessage: "Remove @required.",
-  );
-
-  ///  This hint is generated anywhere where `@sealed` annotates something other
-  ///  than a class.
-  ///
-  ///  No parameters.
-  static const HintCode INVALID_SEALED_ANNOTATION = HintCode(
-    'INVALID_SEALED_ANNOTATION',
-    "The annotation '@sealed' can only be applied to classes.",
-    correctionMessage: "Try removing the '@sealed' annotation.",
-    hasPublishedDocs: true,
-  );
-
   ///  Parameters:
   ///  0: the name of the member
   static const HintCode INVALID_USE_OF_INTERNAL_MEMBER = HintCode(
@@ -773,28 +726,6 @@ class HintCode extends AnalyzerErrorCode {
         "'{1}' is also annotated.",
     correctionMessage: "Annotate '{1}' with 'doNotStore'.",
     hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the return type as declared in the return statement
-  ///  1: the expected return type as defined by the type of the Future
-  static const HintCode RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR = HintCode(
-    'INVALID_RETURN_TYPE_FOR_CATCH_ERROR',
-    "A value of type '{0}' can't be returned by the 'onError' handler because "
-        "it must be assignable to '{1}'.",
-    hasPublishedDocs: true,
-    uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR',
-  );
-
-  ///  Parameters:
-  ///  0: the return type of the function
-  ///  1: the expected return type as defined by the type of the Future
-  static const HintCode RETURN_TYPE_INVALID_FOR_CATCH_ERROR = HintCode(
-    'INVALID_RETURN_TYPE_FOR_CATCH_ERROR',
-    "The return type '{0}' isn't assignable to '{1}', as required by "
-        "'Future.catchError'.",
-    hasPublishedDocs: true,
-    uniqueName: 'RETURN_TYPE_INVALID_FOR_CATCH_ERROR',
   );
 
   ///  When "strict-raw-types" is enabled, "raw types" must have type arguments.

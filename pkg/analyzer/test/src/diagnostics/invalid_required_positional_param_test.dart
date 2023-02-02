@@ -27,7 +27,7 @@ import 'package:meta/meta.dart';
 
 m(@required a) => null;
 ''', [
-      error(HintCode.INVALID_REQUIRED_POSITIONAL_PARAM, 36, 11),
+      error(WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM, 36, 11),
     ]);
   }
 
@@ -37,7 +37,7 @@ import 'package:meta/meta.dart';
 
 m(a, @required b) => null;
 ''', [
-      error(HintCode.INVALID_REQUIRED_POSITIONAL_PARAM, 39, 11),
+      error(WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM, 39, 11),
     ]);
   }
 
@@ -47,7 +47,7 @@ import 'package:meta/meta.dart';
 
 typedef F = void Function(@required int a);
 ''', [
-      error(HintCode.INVALID_REQUIRED_POSITIONAL_PARAM, 60, 15),
+      error(WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM, 60, 15),
     ]);
   }
 
@@ -57,7 +57,7 @@ import 'package:meta/meta.dart';
 
 typedef F = void Function(@required int);
 ''', [
-      error(HintCode.INVALID_REQUIRED_POSITIONAL_PARAM, 60, 13),
+      error(WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM, 60, 13),
     ]);
   }
 
