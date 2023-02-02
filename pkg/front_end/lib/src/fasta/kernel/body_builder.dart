@@ -8725,7 +8725,11 @@ class BodyBuilder extends StackListenerImpl
       if (field is NamedPattern) {
         (fields ??= <NamedPattern>[]).add(field);
       } else {
-        // TODO(cstefantsova): Report an error.
+        Pattern pattern = toPattern(field);
+        if (pattern is! InvalidPattern) {
+          addProblem(fasta.messageUnnamedObjectPatternField, pattern.fileOffset,
+              noLength);
+        }
       }
     }
     if (fields != null) {
@@ -8930,7 +8934,7 @@ class BodyBuilder extends StackListenerImpl
         name = pattern.variableName;
       }
       if (name == null) {
-        push(toPattern(buildProblem(
+        push(new InvalidPattern(buildProblem(
             fasta.messageUnspecifiedGetterNameInObjectPattern,
             colon.charOffset,
             noLength)));

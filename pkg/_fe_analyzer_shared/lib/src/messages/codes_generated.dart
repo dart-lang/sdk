@@ -12321,6 +12321,17 @@ Message _withArgumentsUnmatchedToken(String string, Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeUnnamedObjectPatternField =
+    messageUnnamedObjectPatternField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageUnnamedObjectPatternField = const MessageCode(
+    "UnnamedObjectPatternField",
+    problemMessage: r"""A pattern field in an object pattern must be named.""",
+    correctionMessage:
+        r"""Try adding a pattern name or ':' before the pattern.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeUnnecessaryNullAssertPattern =
     messageUnnecessaryNullAssertPattern;
 

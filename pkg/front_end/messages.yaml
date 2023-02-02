@@ -6277,3 +6277,12 @@ ListPatternTooManyTypeArguments:
     method(x) {
       if (x case <int, int>[]) {}
     }
+
+UnnamedObjectPatternField:
+  problemMessage: "A pattern field in an object pattern must be named."
+  correctionMessage: "Try adding a pattern name or ':' before the pattern."
+  experiments: patterns
+  script: |
+    method(x) {
+      if (x case int(5)) {}
+    }

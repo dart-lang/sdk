@@ -5020,3 +5020,36 @@ class RestPattern extends Pattern {
         "RestPattern.createMatchingExpression", fileOffset, base.helper.uri);
   }
 }
+
+class InvalidPattern extends Pattern {
+  final Expression invalidExpression;
+
+  InvalidPattern(this.invalidExpression) : super(invalidExpression.fileOffset) {
+    invalidExpression.parent = this;
+  }
+
+  @override
+  void acceptInference(InferenceVisitorImpl visitor,
+      {required SharedMatchContext context}) {
+    visitor.visitInvalidPattern(this, context: context);
+  }
+
+  @override
+  DelayedExpression createMatchingExpressionInternal(InferenceVisitorBase base,
+      MatchingCache matchingCache, CacheableExpression matchedExpression) {
+    return new FixedExpression(invalidExpression, const InvalidType());
+  }
+
+  @override
+  List<VariableDeclaration> get declaredVariables => const [];
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(invalidExpression);
+  }
+
+  @override
+  String toString() {
+    return "InvalidPattern(${toStringInternal()})";
+  }
+}
