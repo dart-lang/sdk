@@ -251,6 +251,7 @@ PatternVariableDeclarationStatement
               type: String
           fieldElement: <null>
       rightParenthesis: )
+      matchedValueType: (int, String)
     equals: =
     expression: SimpleIdentifier
       token: x

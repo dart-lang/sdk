@@ -202,6 +202,7 @@ RecordPattern
           type: int
       fieldElement: <null>
   rightParenthesis: )
+  matchedValueType: (int)
 ''');
   }
 

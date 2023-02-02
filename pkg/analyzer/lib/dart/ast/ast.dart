@@ -3500,15 +3500,15 @@ abstract class ListLiteral implements TypedLiteral {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class ListPattern implements DartPattern {
-  /// The required type, specified by [typeArguments] or inferred from the
-  /// matched value type; or `null` if the node is not resolved yet.
-  DartType? requiredType;
-
   /// Return the elements in this pattern.
   NodeList<ListPatternElement> get elements;
 
   /// Return the left square bracket.
   Token get leftBracket;
+
+  /// The required type, specified by [typeArguments] or inferred from the
+  /// matched value type; or `null` if the node is not resolved yet.
+  DartType? get requiredType;
 
   /// Return the right square bracket.
   Token get rightBracket;
@@ -3602,15 +3602,14 @@ abstract class MapLiteralEntry implements CollectionElement {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class MapPattern implements DartPattern {
-  /// The required type, specified by [typeArguments] or inferred from the
-  /// matched value type; or `null` if the node is not resolved yet.
-  DartType? requiredType;
-
   /// Return the elements in this pattern.
   NodeList<MapPatternElement> get elements;
 
   /// Return the left curly bracket.
   Token get leftBracket;
+
+  /// The matched value type, or `null` if the node is not resolved yet.
+  DartType? get requiredType;
 
   /// Return the right curly bracket.
   Token get rightBracket;
@@ -4448,6 +4447,9 @@ abstract class RecordPattern implements DartPattern {
 
   /// Return the left parenthesis.
   Token get leftParenthesis;
+
+  /// The matched value type, or `null` if the node is not resolved yet.
+  DartType? get matchedValueType;
 
   /// Return the right parenthesis.
   Token get rightParenthesis;

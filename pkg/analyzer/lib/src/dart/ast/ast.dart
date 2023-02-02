@@ -11030,6 +11030,9 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   @override
   final Token rightParenthesis;
 
+  @override
+  DartType? matchedValueType;
+
   RecordPatternImpl({
     required this.leftParenthesis,
     required List<RecordPatternFieldImpl> fields,
@@ -11068,6 +11071,7 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
+    matchedValueType = resolverVisitor.flow.getMatchedValueType();
     resolverVisitor.analyzeRecordPattern(
       context,
       this,

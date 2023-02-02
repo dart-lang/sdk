@@ -328,6 +328,7 @@ ForElement
                 type: bool
             fieldElement: <null>
         rightParenthesis: )
+        matchedValueType: (int, bool)
       equals: =
       expression: SimpleIdentifier
         token: x
