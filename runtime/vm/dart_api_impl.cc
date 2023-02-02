@@ -5841,24 +5841,8 @@ DART_EXPORT Dart_Handle Dart_LibraryHandleError(Dart_Handle library_in,
   return error_in;
 }
 
-DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
-                                                   intptr_t buffer_size) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
-#else
-  DARTSCOPE(Thread::Current());
-  API_TIMELINE_DURATION(T);
-  StackZone zone(T);
-
-  CHECK_CALLBACK_STATE(T);
-
-  // NOTE: We do not attach a finalizer for this object, because the embedder
-  // will/should free it once the isolate group has shutdown.
-  // See also http://dartbug.com/37030.
-  const auto& td = ExternalTypedData::Handle(ExternalTypedData::New(
-      kExternalTypedDataUint8ArrayCid, const_cast<uint8_t*>(buffer),
-      buffer_size, Heap::kOld));
-
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static Dart_Handle LoadLibrary(Thread* T, const ExternalTypedData& td) {
   const char* error = nullptr;
   std::unique_ptr<kernel::Program> program =
       kernel::Program::ReadFromTypedData(td, &error);
@@ -5873,6 +5857,40 @@ DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
   source->add_loaded_blob(Z, td);
 
   return Api::NewHandle(T, result.ptr());
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
+                                                   intptr_t buffer_size) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
+#else
+  DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
+  StackZone zone(T);
+
+  CHECK_CALLBACK_STATE(T);
+
+  // NOTE: We do not attach a finalizer for this object, because the embedder
+  // will/should free it once the isolate group has shutdown.
+  const auto& td = ExternalTypedData::Handle(ExternalTypedData::New(
+      kExternalTypedDataUint8ArrayCid, const_cast<uint8_t*>(buffer),
+      buffer_size, Heap::kOld));
+  return LoadLibrary(T, td);
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+}
+
+DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle kernel_buffer) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
+#else
+  DARTSCOPE(Thread::Current());
+  const ExternalTypedData& td =
+      Api::UnwrapExternalTypedDataHandle(Z, kernel_buffer);
+  if (td.IsNull()) {
+    RETURN_TYPE_ERROR(Z, kernel_buffer, ExternalTypedData);
+  }
+  return LoadLibrary(T, td);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
