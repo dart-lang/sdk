@@ -39,7 +39,13 @@ BINARYEN="$BIN_DIR/wasm-opt"
 TEMPDIR="$(mktemp -d)"
 TEMPFILE="$(mktemp -p "$TEMPDIR" --suffix=.wasm)"
 
-"$DART2WASM" "$1" "$TEMPFILE"
+if [[ "$3" == "--omit-checks" ]]; then
+  COMPILE_FLAGS="--omit-type-checks"
+else
+  COMPILE_FLAGS=""
+fi
+
+"$DART2WASM" "$1" "$TEMPFILE" $COMPILE_FLAGS
 "$BINARYEN" -all -g --closed-world -tnh -O3 --type-ssa --gufa -O3 --type-merging "$TEMPFILE" -o "$2"
 
 # Locate JS runtime and copy it to the same directory as "$2". We also rename it
