@@ -22,7 +22,6 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/type_environment.dart';
 import 'package:kernel/verifier.dart';
 
 import 'package:vm/kernel_front_end.dart' show writeDepfile;
@@ -103,11 +102,7 @@ Future<CompilerOutput?> compileToModule(compiler.CompilerOptions options,
     return true;
   }());
 
-  var translator = Translator(
-      component,
-      coreTypes,
-      TypeEnvironment(coreTypes, compilerResult.classHierarchy!),
-      options.translatorOptions);
+  var translator = Translator(component, coreTypes, options.translatorOptions);
 
   String? depFile = options.depFile;
   if (depFile != null) {
