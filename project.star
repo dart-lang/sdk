@@ -75,6 +75,10 @@ luci.project(
 
 luci.logdog(gs_bucket = "chromium-luci-logdog")
 
+luci.buildbucket_notification_topic(
+    name = "projects/dart-ci/topics/buildbucket-messages",
+)
+
 luci.bucket(
     name = "ci",
     acls = [
