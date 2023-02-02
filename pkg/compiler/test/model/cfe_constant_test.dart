@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
@@ -29,7 +27,7 @@ main(List<String> args) {
 }
 
 class ConstantDataComputer extends DataComputer<String> {
-  ir.TypeEnvironment _typeEnvironment;
+  ir.TypeEnvironment? _typeEnvironment;
 
   ir.TypeEnvironment getTypeEnvironment(KernelToElementMap elementMap) {
     if (_typeEnvironment == null) {
@@ -38,7 +36,7 @@ class ConstantDataComputer extends DataComputer<String> {
       _typeEnvironment = new ir.TypeEnvironment(
           coreTypes, new ir.ClassHierarchy(component, coreTypes));
     }
-    return _typeEnvironment;
+    return _typeEnvironment!;
   }
 
   /// Compute type inference data for [member] from kernel based inference.
@@ -61,7 +59,7 @@ class ConstantDataComputer extends DataComputer<String> {
   @override
   String computeErrorData(
       Compiler compiler, Id id, List<CollectedMessage> errors) {
-    return errors.map((c) => c.message.message).join(',');
+    return errors.map((c) => c.message!.message).join(',');
   }
 
   @override
@@ -81,12 +79,12 @@ class ConstantDataExtractor extends IrDataExtractor<String> {
       : super(reporter, actualMap);
 
   @override
-  String computeNodeValue(Id id, ir.TreeNode node) {
+  String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.ConstantExpression) {
       return constantToText(
           elementMap.types,
           elementMap.getConstantValue(
-              elementMap.getStaticTypeContext(member), node));
+              elementMap.getStaticTypeContext(member), node)!);
     }
     return null;
   }

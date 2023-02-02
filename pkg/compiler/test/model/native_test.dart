@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common/elements.dart';
@@ -245,7 +243,7 @@ runTest(String fileName, String location, Map<String, Kind> expectations,
       entryPoint, {path: commonLines.join('\n')}, expectations);
   for (String name in subTests.keys) {
     if (!skipList.contains(name)) {
-      SubTest subTest = subTests[name];
+      SubTest subTest = subTests[name]!;
       await runNegativeTest(
           subTest, entryPoint, {path: subTest.generateCode(commonLines)});
     }
@@ -291,25 +289,25 @@ runPositiveTest(Uri entryPoint, Map<String, String> sources,
     }
   }
 
-  elementEnvironment.forEachLibraryMember(elementEnvironment.mainLibrary,
+  elementEnvironment.forEachLibraryMember(elementEnvironment.mainLibrary!,
       (MemberEntity member) {
     if (member == elementEnvironment.mainFunction) return;
 
-    Kind kind = expectations.remove(member.name);
+    Kind? kind = expectations.remove(member.name);
     Expect.isNotNull(kind, "No expectations for $member");
     checkMember(member,
         isNative: kind == Kind.native, isJsInterop: kind == Kind.jsInterop);
   });
 
-  elementEnvironment.forEachClass(elementEnvironment.mainLibrary,
+  elementEnvironment.forEachClass(elementEnvironment.mainLibrary!,
       (ClassEntity cls) {
-    Kind kind = expectations.remove(cls.name);
+    Kind? kind = expectations.remove(cls.name);
     Expect.isNotNull(kind, "No expectations for $cls");
     checkClass(cls,
         isNative: kind == Kind.native, isJsInterop: kind == Kind.jsInterop);
 
     checkClassMember(MemberEntity member) {
-      Kind kind = expectations.remove('${cls.name}.${member.name}');
+      Kind? kind = expectations.remove('${cls.name}.${member.name}');
       Expect.isNotNull(kind, "No expectations for $member");
       checkMember(member,
           isNative: kind == Kind.native, isJsInterop: kind == Kind.jsInterop);
