@@ -68,9 +68,12 @@ class ConvertForEachToForLoop extends CorrectionProducer {
         body.visitChildren(_ReturnVisitor(builder));
       });
     } else if (body is ExpressionFunctionBody) {
+      var expression = body.expression;
+      if (expression is SetOrMapLiteral && expression.typeArguments == null) {
+        return;
+      }
+      var prefix = utils.getPrefix(statement.offset);
       await builder.addDartFileEdit(file, (builder) {
-        var expression = body.expression;
-        var prefix = utils.getPrefix(statement.offset);
         builder.addReplacement(range.startStart(invocation, expression),
             (builder) {
           builder.write('for (var ');
@@ -96,6 +99,11 @@ class _ReturnVisitor extends RecursiveAstVisitor<void> {
   final DartFileEditBuilder builder;
 
   _ReturnVisitor(this.builder);
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    // Don't visit children.
+  }
 
   @override
   void visitReturnStatement(ReturnStatement node) {
