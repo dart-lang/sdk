@@ -525,6 +525,16 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TrivialRecordAllocation) {
   }
 }
 
+ISOLATE_UNIT_TEST_CASE(Profiler_NullSampleBuffer) {
+  Isolate* isolate = thread->isolate();
+
+  SampleFilter filter(isolate->main_port(), Thread::kMutatorTask, -1, -1);
+  Profile profile;
+  profile.Build(thread, &filter, nullptr);
+
+  EXPECT_EQ(0, profile.sample_count());
+}
+
 #if defined(DART_USE_TCMALLOC) && defined(DART_HOST_OS_LINUX) &&               \
     defined(DEBUG) && defined(HOST_ARCH_X64)
 
