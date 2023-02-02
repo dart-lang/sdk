@@ -3540,19 +3540,26 @@ class BodyBuilder extends StackListenerImpl
     PatternGuard? patternGuard = condition.patternGuard;
     if (patternGuard != null && patternGuard.guard != null) {
       assert(checkState(token, [ValueKinds.Scope]));
-      Scope scope = pop() as Scope;
+      Scope thenScope = scope.createNestedScope("then body");
+      exitLocalScope();
       push(condition);
-      push(scope);
+      enterLocalScope("then body", thenScope);
     } else {
       push(condition);
-      // There is no guard, so the scope for "then" isn't entered yet.
-      enterLocalScope("then");
+      // There is no guard, so the scope for "then" isn't entered yet. We need
+      // to enter the scope and declare all of the pattern variables.
       if (patternGuard != null) {
+        enterLocalScope("pattern scope");
         for (VariableDeclaration variable
             in patternGuard.pattern.declaredVariables) {
           declareVariable(variable, scope);
           typeInferrer.assignedVariables.declare(variable);
         }
+        Scope thenScope = scope.createNestedScope("then body");
+        exitLocalScope();
+        enterLocalScope("then body", thenScope);
+      } else {
+        enterLocalScope("then body");
       }
     }
   }
