@@ -1610,8 +1610,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     final forwarder = translator.dynamicForwarders
         .getDynamicInvocationForwarder(node.name.text);
 
-    final forwarderCallBlock = b.block([], [translator.topInfo.nullableType]);
-
     // Evaluate receiver
     wrap(receiver, translator.topInfo.nullableType);
     final nullableReceiverLocal =
@@ -1682,15 +1680,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     w.BaseFunction f = translator.functions
         .getFunction(translator.noSuchMethodErrorThrowWithInvocation.reference);
     b.call(f);
-    b.br(forwarderCallBlock);
+    b.unreachable();
     b.end(); // nullBlock
 
     b.local_get(typeArgsLocal);
     b.local_get(positionalArgsLocal);
     b.local_get(namedArgsLocal);
     b.call(forwarder.function);
-
-    b.end(); // forwarderCallBlock
 
     return translator.topInfo.nullableType;
   }
@@ -1935,7 +1931,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       b.local_get(capture.context.currentLocal);
       wrap(node.value, capture.type);
       if (preserved) {
-        w.Local temp = addLocal(translateType(node.variable.type));
+        w.Local temp = addLocal(capture.type);
         b.local_tee(temp);
         b.struct_set(capture.context.struct, capture.fieldIndex);
         b.local_get(temp);
@@ -2088,9 +2084,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     final forwarder =
         translator.dynamicForwarders.getDynamicGetForwarder(node.name.text);
 
-    // Call get forwarder
-    final forwarderCallBlock = b.block([], [translator.topInfo.nullableType]);
-
     // Evaluate receiver
     wrap(receiver, translator.topInfo.nullableType);
     final nullableReceiverLocal =
@@ -2109,12 +2102,11 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     w.BaseFunction f = translator.functions
         .getFunction(translator.noSuchMethodErrorThrowWithInvocation.reference);
     b.call(f);
-    b.br(forwarderCallBlock);
+    b.unreachable();
     b.end(); // nullBlock
 
+    // Call get forwarder
     b.call(forwarder.function);
-
-    b.end(); // forwarderCallBlock
 
     return translator.topInfo.nullableType;
   }
@@ -2125,9 +2117,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     final value = node.value;
     final forwarder =
         translator.dynamicForwarders.getDynamicSetForwarder(node.name.text);
-
-    // Call set forwarder
-    final forwarderCallBlock = b.block([], [translator.topInfo.nullableType]);
 
     // Evaluate receiver
     wrap(receiver, translator.topInfo.nullableType);
@@ -2154,13 +2143,12 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     w.BaseFunction f = translator.functions
         .getFunction(translator.noSuchMethodErrorThrowWithInvocation.reference);
     b.call(f);
-    b.br(forwarderCallBlock);
+    b.unreachable();
     b.end(); // nullBlock
 
+    // Call set forwarder
     b.local_get(positionalArgLocal);
     b.call(forwarder.function);
-
-    b.end(); // forwarderCallBlock
 
     return translator.topInfo.nullableType;
   }
@@ -2722,6 +2710,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       wrap(entry.key, putKeyType);
       wrap(entry.value, putValueType);
       b.call(mapPut);
+      b.drop();
     }
     b.local_get(mapLocal);
     return mapLocal.type;

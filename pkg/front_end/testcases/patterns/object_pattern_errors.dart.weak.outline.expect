@@ -4,6 +4,7 @@ import "dart:core" as core;
 
 typedef B<unrelated X extends core::Object? = dynamic> = self::A;
 class A extends core::Object {
+  field core::int? field;
   synthetic constructor •() → self::A
     ;
 }

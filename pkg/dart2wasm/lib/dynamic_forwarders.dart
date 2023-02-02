@@ -292,6 +292,7 @@ class Forwarder {
           translator.indexList(b, (b) => b.local_get(argIdxLocal));
           b.call(translator.functions
               .getFunction(translator.growableListAdd.reference));
+          b.drop();
           b.local_get(argIdxLocal);
           b.i32_const(1);
           b.i32_add();
@@ -317,6 +318,7 @@ class Forwarder {
 
             b.call(translator.functions
                 .getFunction(translator.growableListAdd.reference));
+            b.drop();
 
             b.end();
           }
@@ -405,6 +407,7 @@ class Forwarder {
               });
               b.call(translator.functions
                   .getFunction(translator.growableListAdd.reference));
+              b.drop();
             } else {
               // Optional, either has a default in the member or not used by
               // the member
@@ -431,6 +434,7 @@ class Forwarder {
 
               b.call(translator.functions
                   .getFunction(translator.growableListAdd.reference));
+              b.drop();
 
               b.else_();
 
@@ -444,6 +448,7 @@ class Forwarder {
               });
               b.call(translator.functions
                   .getFunction(translator.growableListAdd.reference));
+              b.drop();
 
               b.end();
             }
@@ -658,6 +663,7 @@ void generateDynamicFunctionCall(
     b.local_get(namedArgsLocal);
     b.call(translator.functions
         .getFunction(translator.checkClosureType.reference));
+    b.drop();
   }
 
   // Type check passed, call vtable entry

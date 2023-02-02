@@ -1052,10 +1052,7 @@ class CaptureFinder extends RecursiveVisitor {
       for (VariableDeclaration param in node.namedParameters)
         translator.translateType(param.type)
     ];
-    List<w.ValueType> outputs = [
-      if (node.returnType != const VoidType())
-        translator.translateType(node.returnType)
-    ];
+    List<w.ValueType> outputs = [translator.translateType(node.returnType)];
     w.FunctionType type = m.addFunctionType(inputs, outputs);
     w.DefinedFunction function =
         m.addFunction(type, "$member closure at ${node.location}");

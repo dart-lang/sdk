@@ -179,6 +179,11 @@ class WasmFunction<F extends Function> extends WasmFuncRef {
   external F get call;
 }
 
+/// A marker type for the return type of functions and the type argument to
+/// [WasmFunction] to indicate that the function type should have no outputs.
+@pragma("wasm:entry-point")
+class WasmVoid extends _WasmBase {}
+
 /// A Wasm table.
 @pragma("wasm:entry-point")
 class WasmTable<T> extends _WasmBase {

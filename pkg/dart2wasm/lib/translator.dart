@@ -500,13 +500,15 @@ class Translator with KernelNodes {
                 functionType.positionalParameters.length) {
           throw "A WasmFunction can't have optional/type parameters";
         }
+        DartType returnType = functionType.returnType;
+        bool voidReturn = returnType is InterfaceType &&
+            returnType.classNode == wasmVoidClass;
         List<w.ValueType> inputs = [
           for (DartType type in functionType.positionalParameters)
             translateType(type)
         ];
         List<w.ValueType> outputs = [
-          if (functionType.returnType != const VoidType())
-            translateType(functionType.returnType)
+          if (!voidReturn) translateType(functionType.returnType)
         ];
         w.FunctionType wasmType = m.addFunctionType(inputs, outputs);
         return w.RefType.def(wasmType, nullable: type.isPotentiallyNullable);

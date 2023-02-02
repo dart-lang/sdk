@@ -42,6 +42,11 @@ library /*isNonNullableByDefault*/;
 // // @dart=2.18
 // ^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/general/implicit_constant_in_switch.dart:56:16: Error: A pattern field in an object pattern must be named.
+// Try adding a pattern name or ':' before the pattern.
+//     case Const(42):
+//                ^
+//
 // pkg/front_end/testcases/general/implicit_constant_in_switch.dart:56:10: Error: The 'patterns' language feature is disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
 //     case Const(42):
@@ -57,6 +62,11 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/general/implicit_constant_in_switch.dart:5:1: Context: This is the annotation that opts out this library from the 'patterns' language feature.
 // // @dart=2.18
 // ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/implicit_constant_in_switch.dart:59:21: Error: A pattern field in an object pattern must be named.
+// Try adding a pattern name or ':' before the pattern.
+//     case Const<num>(42):
+//                     ^
 //
 // pkg/front_end/testcases/general/implicit_constant_in_switch.dart:59:10: Error: The 'patterns' language feature is disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.

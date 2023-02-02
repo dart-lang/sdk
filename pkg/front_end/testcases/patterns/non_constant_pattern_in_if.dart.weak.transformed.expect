@@ -1,4 +1,17 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/non_constant_pattern_in_if.dart:43:24: Error: A pattern field in an object pattern must be named.
+// Try adding a pattern name or ':' before the pattern.
+//   if (value case Const(42)) {
+//                        ^
+//
+// pkg/front_end/testcases/patterns/non_constant_pattern_in_if.dart:46:29: Error: A pattern field in an object pattern must be named.
+// Try adding a pattern name or ':' before the pattern.
+//   if (value case Const<num>(42)) {
+//                             ^
+//
 import self as self;
 import "dart:core" as core;
 

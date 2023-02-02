@@ -9739,6 +9739,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ]));
   }
 
+  void visitInvalidPattern(InvalidPattern node,
+      {required SharedMatchContext context}) {
+    int? stackBase;
+    assert(checkStackBase(node, stackBase = stackHeight));
+
+    pushRewrite(node);
+
+    assert(checkStack(node, stackBase, [
+      /* pattern = */ ValueKinds.Pattern,
+    ]));
+  }
+
   void visitRelationalPattern(
     RelationalPattern node, {
     required SharedMatchContext context,

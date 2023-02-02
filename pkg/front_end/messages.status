@@ -959,6 +959,7 @@ UnmatchedToken/part_wrapped_script1: Fail
 UnmatchedToken/part_wrapped_script3: Fail
 UnmatchedToken/script1: Fail
 UnmatchedToken/script3: Fail
+UnnamedObjectPatternField/analyzerCode: Fail
 Unspecified/analyzerCode: Fail
 Unspecified/example: Fail
 UnsupportedDartExt/analyzerCode: Fail

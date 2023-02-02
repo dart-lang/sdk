@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:math';
-
 import 'package:dart2wasm/class_info.dart';
 import 'package:dart2wasm/param_info.dart';
 import 'package:dart2wasm/reference_extensions.dart';
@@ -38,10 +36,8 @@ class SelectorInfo {
   /// Least upper bound of [ParameterInfo]s of all targets.
   final ParameterInfo paramInfo;
 
-  /// Number of Wasm return values of the selector's targets.
-  ///
-  /// BUG(50458): This should always be 1.
-  int _returnCount;
+  /// Is this an implicit or explicit setter?
+  final bool isSetter;
 
   /// Maps class IDs to the selector's member in the class. The member can be
   /// abstract.
@@ -75,7 +71,7 @@ class SelectorInfo {
   String get name => paramInfo.member!.name.text;
 
   SelectorInfo._(this.translator, this.id, this.callCount, this.paramInfo,
-      this._returnCount);
+      {required this.isSetter});
 
   /// Compute the signature for the functions implementing members targeted by
   /// this selector.
@@ -86,12 +82,13 @@ class SelectorInfo {
   /// returns are subtypes (resp. supertypes) of the types in the signature.
   w.FunctionType _computeSignature() {
     var nameIndex = paramInfo.nameIndex;
+    final int returnCount = isSetter ? 0 : 1;
     List<Set<ClassInfo>> inputSets =
         List.generate(1 + paramInfo.paramCount, (_) => {});
-    List<Set<ClassInfo>> outputSets = List.generate(_returnCount, (_) => {});
+    List<Set<ClassInfo>> outputSets = List.generate(returnCount, (_) => {});
     List<bool> inputNullable = List.filled(1 + paramInfo.paramCount, false);
     List<bool> ensureBoxed = List.filled(1 + paramInfo.paramCount, false);
-    List<bool> outputNullable = List.filled(_returnCount, false);
+    List<bool> outputNullable = List.filled(returnCount, false);
     targets.forEach((classId, target) {
       ClassInfo receiver = translator.classes[classId];
       List<DartType> positional;
@@ -123,9 +120,7 @@ class SelectorInfo {
             for (VariableDeclaration param in function.namedParameters)
               param.name!: param.type
           };
-          returns = function.returnType is VoidType
-              ? const []
-              : [function.returnType];
+          returns = target.isSetter ? const [] : [function.returnType];
 
           // Box parameters that need covariance checks
           if (!translator.options.omitTypeChecks) {
@@ -161,7 +156,7 @@ class SelectorInfo {
         ensureBoxed[1 + i] |=
             paramInfo.named[name] == ParameterInfo.defaultValueSentinel;
       }
-      for (int i = 0; i < _returnCount; i++) {
+      for (int i = 0; i < returnCount; i++) {
         if (i < returns.length) {
           outputSets[i]
               .add(translator.classInfo[translator.classForType(returns[i])]!);
@@ -250,10 +245,6 @@ class DispatchTable {
         ? metadata.getterSelectorId
         : metadata.methodOrSetterSelectorId;
     ParameterInfo paramInfo = ParameterInfo.fromMember(target);
-    final int returnCount = (isGetter && member.getterType is! VoidType) ||
-            (member is Procedure && member.function.returnType is! VoidType)
-        ? 1
-        : 0;
 
     // _WasmBase and its subclass methods cannot be called dynamically
     final cls = member.enclosingClass;
@@ -267,9 +258,10 @@ class DispatchTable {
     final selector = _selectorInfo.putIfAbsent(
         selectorId,
         () => SelectorInfo._(translator, selectorId,
-            _selectorMetadata[selectorId].callCount, paramInfo, returnCount));
+            _selectorMetadata[selectorId].callCount, paramInfo,
+            isSetter: isSetter));
+    assert(selector.isSetter == isSetter);
     selector.paramInfo.merge(paramInfo);
-    selector._returnCount = max(selector._returnCount, returnCount);
     if (calledDynamically) {
       if (isGetter) {
         (_dynamicGetters[member.name.text] ??= []).add(selector);

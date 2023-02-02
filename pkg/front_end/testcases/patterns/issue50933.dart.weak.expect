@@ -2,6 +2,11 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/patterns/issue50933.dart:13:56: Error: A pattern field in an object pattern must be named.
+// Try adding a pattern name or ':' before the pattern.
+//   if (x case A(:var foo!, :var bar, :var baz?, var boz as double)) {
+//                                                        ^
+//
 // pkg/front_end/testcases/patterns/issue50933.dart:17:23: Error: The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern.
 //   } else if (x case A(: [1, 2])) { // Error
 //                       ^
@@ -62,12 +67,9 @@ static method test(dynamic x) → dynamic {
         }
         else {
           final dynamic #0#0 = x;
-          final const invalid-type #0#3 = invalid-expression "pkg/front_end/testcases/patterns/issue50933.dart:19:22: Error: The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern.
-  } else if (x case (: [1, 2])) { // Error
-                     ^";
           if(#0#0 is{ForNonNullableByDefault} (core::Object?) && invalid-expression "pkg/front_end/testcases/patterns/issue50933.dart:19:22: Error: The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern.
   } else if (x case (: [1, 2])) { // Error
-                     ^" =={core::Object::==}{(core::Object) → core::bool} #0#0{(core::Object?)}.$1{core::Object?}) {
+                     ^") {
             return 3;
           }
         }
