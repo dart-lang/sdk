@@ -6477,13 +6477,48 @@ main() {
     });
 
     group('Cast pattern:', () {
-      test('Promotes', () {
+      test('Subtype', () {
         var x = Var('x');
         h.run([
           declare(x, type: 'Object?'),
-          ifCase(x.expr, wildcard().as_('String'), [
+          ifCase(x.expr, wildcard(expectInferredType: 'String').as_('String'), [
             checkPromoted(x, 'String'),
           ]),
+        ]);
+      });
+
+      test('Supertype', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'num'),
+          ifCase(x.expr, wildcard(expectInferredType: 'Object').as_('Object'), [
+            checkNotPromoted(x),
+          ]),
+        ]);
+      });
+
+      test('Unrelated type', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'num'),
+          ifCase(x.expr, wildcard(expectInferredType: 'String').as_('String'), [
+            checkNotPromoted(x),
+          ]),
+        ]);
+      });
+
+      test('Inner promotions have no effect', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'Object?'),
+          ifCase(
+              x.expr,
+              objectPattern(requiredType: 'int', fields: [])
+                  .as_('num')
+                  .and(wildcard(expectInferredType: 'num')),
+              [
+                checkPromoted(x, 'num'),
+              ]),
         ]);
       });
     });
@@ -7001,6 +7036,28 @@ main() {
           ifCase(x.expr, objectPattern(requiredType: 'int', fields: []), [
             checkPromoted(x, 'int'),
           ]),
+        ]);
+      });
+    });
+
+    group('Pattern assignment:', () {
+      test('Promotes RHS', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('num')),
+          wildcard().as_('int').assign(x.expr).stmt,
+          checkPromoted(x, 'int'),
+        ]);
+      });
+    });
+
+    group('Pattern variable declaration:', () {
+      test('Promotes RHS', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('num')),
+          match(wildcard().as_('int'), x.expr),
+          checkPromoted(x, 'int'),
         ]);
       });
     });

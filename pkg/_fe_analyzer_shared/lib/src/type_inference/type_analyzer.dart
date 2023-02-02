@@ -320,12 +320,15 @@ mixin TypeAnalyzer<
       MatchContext<Node, Expression, Pattern, Type, Variable> context,
       Pattern innerPattern,
       Type type) {
-    // TODO(paulberry): using `patternRequiredType` here doesn't quite match the
-    // spec, because if `type` isn't a subtype of the matched value type,
-    // promotion won't occur.  Fix this.
     flow.patternRequiredType(
         matchedType: flow.getMatchedValueType(), requiredType: type);
-    flow.pushSubpattern(type, isDistinctValue: false);
+    // Note: although technically the inner pattern match of a cast-pattern
+    // operates on the same value as the cast pattern does, we analyze it as
+    // though it's a different value; this ensures that (a) the matched value
+    // type when matching the inner pattern is precisely the cast type, and (b)
+    // promotions triggered by the inner pattern have no effect outside the
+    // cast.
+    flow.pushSubpattern(type);
     dispatchPattern(context, innerPattern);
     // Stack: (Pattern)
     flow.popSubpattern();
@@ -684,13 +687,13 @@ mixin TypeAnalyzer<
         Pattern? subPattern = getRestPatternElementPattern(element);
         if (subPattern != null) {
           Type subPatternMatchedType = requiredType;
-          flow.pushSubpattern(subPatternMatchedType, isDistinctValue: true);
+          flow.pushSubpattern(subPatternMatchedType);
           dispatchPattern(context, subPattern);
           flow.popSubpattern();
         }
         handleListPatternRestElement(node, element);
       } else {
-        flow.pushSubpattern(valueType, isDistinctValue: true);
+        flow.pushSubpattern(valueType);
         dispatchPattern(context, element);
         flow.popSubpattern();
       }
@@ -914,7 +917,7 @@ mixin TypeAnalyzer<
       MapPatternEntry<Expression, Pattern>? entry = getMapPatternEntry(element);
       if (entry != null) {
         analyzeExpression(entry.key, keyContext);
-        flow.pushSubpattern(valueType, isDistinctValue: true);
+        flow.pushSubpattern(valueType);
         dispatchPattern(context, entry.value);
         handleMapPatternEntry(node, element);
         flow.popSubpattern();
@@ -928,7 +931,7 @@ mixin TypeAnalyzer<
         Pattern? subPattern = getRestPatternElementPattern(element);
         if (subPattern != null) {
           errors?.restPatternWithSubPatternInMap(node, element);
-          flow.pushSubpattern(dynamicType, isDistinctValue: true);
+          flow.pushSubpattern(dynamicType);
           dispatchPattern(context, subPattern);
           flow.popSubpattern();
         }
@@ -1081,7 +1084,7 @@ mixin TypeAnalyzer<
             receiverType: requiredType,
             field: field,
           );
-      flow.pushSubpattern(propertyType, isDistinctValue: true);
+      flow.pushSubpattern(propertyType);
       dispatchPattern(context, field.pattern);
       flow.popSubpattern();
     }
@@ -1255,7 +1258,7 @@ mixin TypeAnalyzer<
       RecordPatternField<Node, Pattern> field,
       Type matchedType,
     ) {
-      flow.pushSubpattern(matchedType, isDistinctValue: true);
+      flow.pushSubpattern(matchedType);
       dispatchPattern(context, field.pattern);
       flow.popSubpattern();
     }
