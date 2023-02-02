@@ -672,11 +672,8 @@ config("chromium_code") {
     cflags = [
       "-Wall",
       "-Wextra",
+      "-Werror",
     ]
-
-    if (dart_sysroot != "alpine") {
-      cflags += [ "-Werror" ]
-    }
 
     defines = []
     if (!using_sanitizer && !is_clang) {
