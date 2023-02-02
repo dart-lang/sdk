@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // This test exercises a sound null safety issue that arose in the compiler by
 // allocating an argument slot for a type parameter that was determined to be
 // unused. This resulted in `null` being added to a list that wouldn't otherwise
