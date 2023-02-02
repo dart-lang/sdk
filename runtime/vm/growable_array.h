@@ -10,6 +10,8 @@
 #ifndef RUNTIME_VM_GROWABLE_ARRAY_H_
 #define RUNTIME_VM_GROWABLE_ARRAY_H_
 
+#include <initializer_list>
+
 #include "platform/growable_array.h"
 #include "vm/thread_state.h"
 #include "vm/zone.h"
