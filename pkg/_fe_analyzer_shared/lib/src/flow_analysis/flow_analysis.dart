@@ -715,14 +715,9 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// [matchedType] is the type that should be used to type check the
   /// subpattern.
   ///
-  /// If [isDistinctValue] is `true`, that indicates that the subpattern will be
-  /// matched against a different value than the outer pattern (this happens,
-  /// for example, when examining the subpatterns of a list, map, or object
-  /// pattern).  If [isDistinctValue] is `false`, that indicates that the
-  /// subpattern will be matched against the same value as the outer pattern
-  /// (and thus, promotions should transfer between the subpattern and the outer
-  /// pattern).
-  void pushSubpattern(Type matchedType, {required bool isDistinctValue});
+  /// Flow analysis makes no assumptions about the relation between the matched
+  /// value for the outer pattern and the subpattern.
+  void pushSubpattern(Type matchedType);
 
   /// Retrieves the SSA node associated with [variable], or `null` if [variable]
   /// is not associated with an SSA node because it is write captured.  For
@@ -1560,11 +1555,9 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void pushSubpattern(Type matchedType, {required bool isDistinctValue}) {
-    _wrap(
-        'pushSubpattern($matchedType, isDistinctValue: $isDistinctValue)',
-        () => _wrapped.pushSubpattern(matchedType,
-            isDistinctValue: isDistinctValue));
+  void pushSubpattern(Type matchedType) {
+    _wrap('pushSubpattern($matchedType)',
+        () => _wrapped.pushSubpattern(matchedType));
   }
 
   @override
@@ -4426,13 +4419,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void pushSubpattern(Type matchedType, {required bool isDistinctValue}) {
-    _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
+  void pushSubpattern(Type matchedType) {
+    assert(_stack.last is _PatternContext<Type>);
     assert(_unmatched != null);
     _stack.add(new _PatternContext<Type>(
-        isDistinctValue
-            ? _makeTemporaryReference(new SsaNode<Type>(null), matchedType)
-            : context._matchedValueReference,
+        _makeTemporaryReference(new SsaNode<Type>(null), matchedType),
         matchedType));
   }
 
@@ -5569,7 +5560,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
       null;
 
   @override
-  void pushSubpattern(Type matchedType, {required bool isDistinctValue}) {}
+  void pushSubpattern(Type matchedType) {}
 
   @override
   SsaNode<Type>? ssaNodeForTesting(Variable variable) {

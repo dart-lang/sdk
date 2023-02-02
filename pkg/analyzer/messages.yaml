@@ -18656,137 +18656,6 @@ HintCode:
         void m() {}
       }
       ```
-  INVALID_REQUIRED_NAMED_PARAM:
-    problemMessage: "The type parameter '{0}' is annotated with @required but only named parameters without a default value can be annotated with it."
-    correctionMessage: Remove @required.
-    comment: |-
-      This hint is generated anywhere where `@required` annotates a named
-      parameter with a default value.
-
-      Parameters:
-      0: the name of the member
-  INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM:
-    problemMessage: "Incorrect use of the annotation @required on the optional positional parameter '{0}'. Optional positional parameters cannot be required."
-    correctionMessage: Remove @required.
-    comment: |-
-      This hint is generated anywhere where `@required` annotates an optional
-      positional parameter.
-
-      Parameters:
-      0: the name of the member
-  INVALID_REQUIRED_POSITIONAL_PARAM:
-    problemMessage: "Redundant use of the annotation @required on the required positional parameter '{0}'."
-    correctionMessage: Remove @required.
-    comment: |-
-      This hint is generated anywhere where `@required` annotates a non optional
-      positional parameter.
-
-      Parameters:
-      0: the name of the member
-  RETURN_TYPE_INVALID_FOR_CATCH_ERROR:
-    sharedName: INVALID_RETURN_TYPE_FOR_CATCH_ERROR
-    problemMessage: "The return type '{0}' isn't assignable to '{1}', as required by 'Future.catchError'."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the return type of the function
-      1: the expected return type as defined by the type of the Future
-  RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR:
-    sharedName: INVALID_RETURN_TYPE_FOR_CATCH_ERROR
-    problemMessage: "A value of type '{0}' can't be returned by the 'onError' handler because it must be assignable to '{1}'."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the return type as declared in the return statement
-      1: the expected return type as defined by the type of the Future
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an invocation of
-      `Future.catchError` has an argument whose return type isn't compatible with
-      the type returned by the instance of `Future`. At runtime, the method
-      `catchError` attempts to return the value from the callback as the result
-      of the future, which results in another exception being thrown.
-
-      #### Examples
-
-      The following code produces this diagnostic because `future` is declared to
-      return an `int` while `callback` is declared to return a `String`, and
-      `String` isn't a subtype of `int`:
-
-      ```dart
-      void f(Future<int> future, String Function(dynamic, StackTrace) callback) {
-        future.catchError([!callback!]);
-      }
-      ```
-
-      The following code produces this diagnostic because the closure being
-      passed to `catchError` returns an `int` while `future` is declared to
-      return a `String`:
-
-      ```dart
-      void f(Future<String> future) {
-        future.catchError((error, stackTrace) => [!3!]);
-      }
-      ```
-
-      #### Common fixes
-
-      If the instance of `Future` is declared correctly, then change the callback
-      to match:
-
-      ```dart
-      void f(Future<int> future, int Function(dynamic, StackTrace) callback) {
-        future.catchError(callback);
-      }
-      ```
-
-      If the declaration of the instance of `Future` is wrong, then change it to
-      match the callback:
-
-      ```dart
-      void f(Future<String> future, String Function(dynamic, StackTrace) callback) {
-        future.catchError(callback);
-      }
-      ```
-  INVALID_SEALED_ANNOTATION:
-    problemMessage: "The annotation '@sealed' can only be applied to classes."
-    correctionMessage: Try removing the '@sealed' annotation.
-    hasPublishedDocs: true
-    comment: |-
-      This hint is generated anywhere where `@sealed` annotates something other
-      than a class.
-
-      No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a declaration other than a
-      class declaration has the `@sealed` annotation on it.
-
-      #### Example
-
-      The following code produces this diagnostic because the `@sealed`
-      annotation is on a method declaration:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      class A {
-        [!@sealed!]
-        void m() {}
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the annotation:
-
-      ```dart
-      class A {
-        void m() {}
-      }
-      ```
   INVALID_USE_OF_INTERNAL_MEMBER:
     problemMessage: "The member '{0}' can only be used within its package."
     comment: |-
@@ -22796,6 +22665,137 @@ WarningCode:
     comment: |-
       No parameters.
     hasPublishedDocs: true
+  INVALID_REQUIRED_NAMED_PARAM:
+    problemMessage: "The type parameter '{0}' is annotated with @required but only named parameters without a default value can be annotated with it."
+    correctionMessage: Remove @required.
+    comment: |-
+      This hint is generated anywhere where `@required` annotates a named
+      parameter with a default value.
+
+      Parameters:
+      0: the name of the member
+  INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM:
+    problemMessage: "Incorrect use of the annotation @required on the optional positional parameter '{0}'. Optional positional parameters cannot be required."
+    correctionMessage: Remove @required.
+    comment: |-
+      This hint is generated anywhere where `@required` annotates an optional
+      positional parameter.
+
+      Parameters:
+      0: the name of the member
+  INVALID_REQUIRED_POSITIONAL_PARAM:
+    problemMessage: "Redundant use of the annotation @required on the required positional parameter '{0}'."
+    correctionMessage: Remove @required.
+    comment: |-
+      This hint is generated anywhere where `@required` annotates a non optional
+      positional parameter.
+
+      Parameters:
+      0: the name of the member
+  RETURN_TYPE_INVALID_FOR_CATCH_ERROR:
+    sharedName: INVALID_RETURN_TYPE_FOR_CATCH_ERROR
+    problemMessage: "The return type '{0}' isn't assignable to '{1}', as required by 'Future.catchError'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the return type of the function
+      1: the expected return type as defined by the type of the Future
+  RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR:
+    sharedName: INVALID_RETURN_TYPE_FOR_CATCH_ERROR
+    problemMessage: "A value of type '{0}' can't be returned by the 'onError' handler because it must be assignable to '{1}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the return type as declared in the return statement
+      1: the expected return type as defined by the type of the Future
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an invocation of
+      `Future.catchError` has an argument whose return type isn't compatible with
+      the type returned by the instance of `Future`. At runtime, the method
+      `catchError` attempts to return the value from the callback as the result
+      of the future, which results in another exception being thrown.
+
+      #### Examples
+
+      The following code produces this diagnostic because `future` is declared to
+      return an `int` while `callback` is declared to return a `String`, and
+      `String` isn't a subtype of `int`:
+
+      ```dart
+      void f(Future<int> future, String Function(dynamic, StackTrace) callback) {
+        future.catchError([!callback!]);
+      }
+      ```
+
+      The following code produces this diagnostic because the closure being
+      passed to `catchError` returns an `int` while `future` is declared to
+      return a `String`:
+
+      ```dart
+      void f(Future<String> future) {
+        future.catchError((error, stackTrace) => [!3!]);
+      }
+      ```
+
+      #### Common fixes
+
+      If the instance of `Future` is declared correctly, then change the callback
+      to match:
+
+      ```dart
+      void f(Future<int> future, int Function(dynamic, StackTrace) callback) {
+        future.catchError(callback);
+      }
+      ```
+
+      If the declaration of the instance of `Future` is wrong, then change it to
+      match the callback:
+
+      ```dart
+      void f(Future<String> future, String Function(dynamic, StackTrace) callback) {
+        future.catchError(callback);
+      }
+      ```
+  INVALID_SEALED_ANNOTATION:
+    problemMessage: "The annotation '@sealed' can only be applied to classes."
+    correctionMessage: Try removing the '@sealed' annotation.
+    hasPublishedDocs: true
+    comment: |-
+      This hint is generated anywhere where `@sealed` annotates something other
+      than a class.
+
+      No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a declaration other than a
+      class declaration has the `@sealed` annotation on it.
+
+      #### Example
+
+      The following code produces this diagnostic because the `@sealed`
+      annotation is on a method declaration:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class A {
+        [!@sealed!]
+        void m() {}
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the annotation:
+
+      ```dart
+      class A {
+        void m() {}
+      }
+      ```
   NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR:
     aliasFor: HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR
     comment: This is the new replacement for [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR].

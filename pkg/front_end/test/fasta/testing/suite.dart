@@ -2181,7 +2181,7 @@ Target createTarget(FolderOptions folderOptions, FastaContext context) {
         folderOptions.forceNoExplicitGetterCalls,
     forceConstructorTearOffLoweringForTesting:
         folderOptions.forceConstructorTearOffLowering,
-    enableNullSafety: context.soundNullSafety,
+    soundNullSafety: context.soundNullSafety,
     supportedDartLibraries: {'_supported.by.target'},
     unsupportedDartLibraries: {'unsupported.by.target'},
   );

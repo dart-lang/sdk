@@ -56,7 +56,7 @@ void main(List<String> args) async {
     ..onDiagnostic = _onDiagnosticMessageHandler
     ..compileSdk = true
     ..packagesFileUri = Uri.base.resolve('.dart_tool/package_config.json')
-    ..target = VmTarget(TargetFlags());
+    ..target = VmTarget(TargetFlags(soundNullSafety: false));
   var pOptions = ProcessedOptions(options: options);
   var uriResolver = await pOptions.getUriTranslator();
   var context = CompilerContext(pOptions);

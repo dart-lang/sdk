@@ -55,6 +55,7 @@
 #include "vm/thread_registry.h"
 #include "vm/uri.h"
 #include "vm/version.h"
+#include "vm/zone_text_buffer.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/aot/precompiler.h"
@@ -7013,7 +7014,7 @@ DART_EXPORT Dart_Handle Dart_GetObfuscationMap(uint8_t** buffer,
 
   // Note: can't use JSONStream in PRODUCT builds.
   const intptr_t kInitialBufferSize = 1 * MB;
-  TextBuffer text_buffer(kInitialBufferSize);
+  ZoneTextBuffer text_buffer(Api::TopScope(T)->zone(), kInitialBufferSize);
 
   text_buffer.AddChar('[');
   if (isolate_group->obfuscation_map() != nullptr) {
@@ -7029,7 +7030,7 @@ DART_EXPORT Dart_Handle Dart_GetObfuscationMap(uint8_t** buffer,
   text_buffer.AddChar(']');
 
   *buffer_length = text_buffer.length();
-  *reinterpret_cast<char**>(buffer) = text_buffer.Steal();
+  *reinterpret_cast<char**>(buffer) = text_buffer.buffer();
   return Api::Success();
 #endif
 }

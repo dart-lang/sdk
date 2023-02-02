@@ -1366,18 +1366,6 @@ class FixProcessor extends BaseProcessor {
     HintCode.INVALID_NON_VIRTUAL_ANNOTATION: [
       RemoveAnnotation.new,
     ],
-    HintCode.INVALID_REQUIRED_NAMED_PARAM: [
-      RemoveAnnotation.new,
-    ],
-    HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM: [
-      RemoveAnnotation.new,
-    ],
-    HintCode.INVALID_REQUIRED_POSITIONAL_PARAM: [
-      RemoveAnnotation.new,
-    ],
-    HintCode.INVALID_SEALED_ANNOTATION: [
-      RemoveAnnotation.new,
-    ],
     HintCode.INVALID_VISIBILITY_ANNOTATION: [
       RemoveAnnotation.new,
     ],
@@ -1561,6 +1549,18 @@ class FixProcessor extends BaseProcessor {
       RemoveAnnotation.new,
     ],
     WarningCode.INVALID_FACTORY_ANNOTATION: [
+      RemoveAnnotation.new,
+    ],
+    WarningCode.INVALID_REQUIRED_NAMED_PARAM: [
+      RemoveAnnotation.new,
+    ],
+    WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM: [
+      RemoveAnnotation.new,
+    ],
+    WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM: [
+      RemoveAnnotation.new,
+    ],
+    WarningCode.INVALID_SEALED_ANNOTATION: [
       RemoveAnnotation.new,
     ],
     WarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT: [

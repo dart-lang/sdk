@@ -988,7 +988,9 @@ class ProfileBuilder : public ValueObject {
 
   bool FilterSamples() {
     ScopeTimer sw("ProfileBuilder::FilterSamples", FLAG_trace_profiler);
-    ASSERT(sample_buffer_ != nullptr);
+    if (sample_buffer_ == nullptr) {
+      return false;
+    }
     samples_ = sample_buffer_->BuildProcessedSampleBuffer(filter_);
     profile_->samples_ = samples_;
     profile_->sample_count_ = samples_->length();
@@ -1476,7 +1478,8 @@ Profile::Profile()
       dead_code_index_offset_(-1),
       tag_code_index_offset_(-1),
       min_time_(kMaxInt64),
-      max_time_(0) {}
+      max_time_(0),
+      sample_count_(0) {}
 
 void Profile::Build(Thread* thread,
                     SampleFilter* filter,

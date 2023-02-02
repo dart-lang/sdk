@@ -1935,7 +1935,7 @@ worlds:
     }
 
     TargetFlags targetFlags = new TargetFlags(
-        enableNullSafety: false,
+        soundNullSafety: false,
         trackWidgetCreation: _settings.widgetTransformation);
     Target target;
     switch (_settings.targetString) {

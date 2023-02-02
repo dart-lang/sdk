@@ -226,8 +226,9 @@ class ExpressionCompilerWorker {
       ..sdkSummary = sdkSummary
       ..packagesFileUri = packagesFile
       ..librariesSpecificationUri = librariesSpecificationUri
-      ..target = DevCompilerTarget(
-          TargetFlags(trackWidgetCreation: trackWidgetCreation))
+      ..target = DevCompilerTarget(TargetFlags(
+          trackWidgetCreation: trackWidgetCreation,
+          soundNullSafety: soundNullSafety))
       ..fileSystem = fileSystem
       ..omitPlatform = true
       ..environmentDefines = {

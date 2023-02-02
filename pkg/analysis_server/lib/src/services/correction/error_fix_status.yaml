@@ -1432,14 +1432,6 @@ HintCode.INVALID_NON_VIRTUAL_ANNOTATION:
   status: hasFix
 HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER:
   status: noFix
-HintCode.INVALID_REQUIRED_NAMED_PARAM:
-  status: hasFix
-HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM:
-  status: hasFix
-HintCode.INVALID_REQUIRED_POSITIONAL_PARAM:
-  status: hasFix
-HintCode.INVALID_SEALED_ANNOTATION:
-  status: hasFix
 HintCode.INVALID_USE_OF_INTERNAL_MEMBER:
   status: noFix
 HintCode.INVALID_USE_OF_PROTECTED_MEMBER:
@@ -1524,10 +1516,6 @@ HintCode.RETURN_OF_DO_NOT_STORE:
   status: needsFix
   notes: |-
     The fix is to add the annotation to the enclosing function.
-HintCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR:
-  status: noFix
-HintCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR:
-  status: noFix
 HintCode.STRICT_RAW_TYPE:
   status: needsFix
   notes: |-
@@ -2778,6 +2766,18 @@ WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES:
   notes: |-
     If we can identify enough information to do so, the fix is to rewrite the
     comment into a valid form.
+WarningCode.INVALID_REQUIRED_NAMED_PARAM:
+  status: hasFix
+WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM:
+  status: hasFix
+WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM:
+  status: hasFix
+WarningCode.INVALID_SEALED_ANNOTATION:
+  status: hasFix
+WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR:
+  status: noFix
+WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR:
+  status: noFix
 WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE:
   status: hasFix
 WarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT:

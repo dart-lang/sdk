@@ -658,7 +658,7 @@ Target? createFrontEndTarget(String targetName,
 
   final TargetFlags targetFlags = new TargetFlags(
       trackWidgetCreation: trackWidgetCreation,
-      enableNullSafety: nullSafety,
+      soundNullSafety: nullSafety,
       supportMirrors: supportMirrors);
   return getTarget(targetName, targetFlags);
 }

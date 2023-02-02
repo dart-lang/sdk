@@ -26,7 +26,7 @@ main() {
     OutputCollector output = OutputCollector();
 
     var options = CompilerOptions()
-      ..target = Dart2jsTarget("dart2js", TargetFlags(enableNullSafety: true))
+      ..target = Dart2jsTarget("dart2js", TargetFlags())
       ..nnbdMode = NnbdMode.Strong
       ..packagesFileUri = Uri.base.resolve('.dart_tool/package_config.json')
       ..additionalDills = <Uri>[

@@ -1617,7 +1617,7 @@ class _TreeShakerPass1 extends RemovingTransformer {
     // are implicitly checked for null, so transform the node only
     // if using sound null safety or it evaluates to a bool literal.
     if (_isExtendedBoolLiteral(left) &&
-        (shaker.typeFlowAnalysis.target.flags.enableNullSafety ||
+        (shaker.typeFlowAnalysis.target.flags.soundNullSafety ||
             _isExtendedBoolLiteral(right))) {
       return _evaluateArguments([left], right);
     }

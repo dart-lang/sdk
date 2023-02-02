@@ -232,7 +232,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     } else if (element.isSealed) {
       if (!(parent is ClassDeclaration || parent is ClassTypeAlias)) {
         _errorReporter.reportErrorForNode(
-            HintCode.INVALID_SEALED_ANNOTATION, node);
+            WarningCode.INVALID_SEALED_ANNOTATION, node);
       }
     } else if (element.isVisibleForTemplate ||
         element.isVisibleForTesting ||
@@ -1565,19 +1565,21 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         .where((p) => p.declaredElement!.defaultValueCode != null);
     for (final param in nonNamedParamsWithRequired.where((p) => p.isOptional)) {
       _errorReporter.reportErrorForNode(
-          HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM,
+          WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM,
           param,
           [_formalParameterNameOrEmpty(param)]);
     }
     for (final param in nonNamedParamsWithRequired.where((p) => p.isRequired)) {
       _errorReporter.reportErrorForNode(
-          HintCode.INVALID_REQUIRED_POSITIONAL_PARAM,
+          WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM,
           param,
           [_formalParameterNameOrEmpty(param)]);
     }
     for (final param in namedParamsWithRequiredAndDefault) {
-      _errorReporter.reportErrorForNode(HintCode.INVALID_REQUIRED_NAMED_PARAM,
-          param, [_formalParameterNameOrEmpty(param)]);
+      _errorReporter.reportErrorForNode(
+          WarningCode.INVALID_REQUIRED_NAMED_PARAM,
+          param,
+          [_formalParameterNameOrEmpty(param)]);
     }
   }
 

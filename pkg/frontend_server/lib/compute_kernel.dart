@@ -179,7 +179,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
       (parsedArgs['target'] as String?) ?? (summaryOnly ? 'ddc' : 'vm');
   var targetFlags = new TargetFlags(
       trackWidgetCreation: trackWidgetCreation,
-      enableNullSafety: nnbdMode == fe.NnbdMode.Strong);
+      soundNullSafety: nnbdMode == fe.NnbdMode.Strong);
   Target target;
   switch (targetName) {
     case 'vm':

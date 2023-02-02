@@ -34,6 +34,13 @@ test3(dynamic x) {
   }
 }
 
+test4(dynamic x) {
+  Function f = () => 0;
+  // The then-clause isn't a block.
+  if (x case int x) String x = () { f = () => 1; return "foo"; }();
+  return f();
+}
+
 main() {
   expectEquals(test1(0), "foo");
   expectEquals(test1("foo"), "bar");
@@ -42,6 +49,8 @@ main() {
   expectEquals(test2("foo"), "bar");
   expectEquals(test3(0), "foo");
   expectEquals(test3("foo"), "bar");
+  expectEquals(test4(0), 1);
+  expectEquals(test4("foo"), 0);
 }
 
 expectEquals(x, y) {

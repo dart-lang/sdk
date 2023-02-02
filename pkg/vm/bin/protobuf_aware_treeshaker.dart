@@ -108,7 +108,8 @@ Future main(List<String> args) async {
 
   installAdditionalTargets();
 
-  final target = getTarget(argResults['target'], TargetFlags())!;
+  final target =
+      getTarget(argResults['target'], TargetFlags(soundNullSafety: false))!;
 
   // The [component] is treeshaken and has TFA annotations. Write output.
   if (argResults['aot']) {

@@ -113,8 +113,7 @@ class TestOptions {
 }
 
 runTestCase(Uri source, List<String>? experimentalFlags) async {
-  final Target target =
-      new TestingVmTarget(new TargetFlags(enableNullSafety: true));
+  final Target target = new TestingVmTarget(new TargetFlags());
   final Component component = await compileTestCaseToKernelProgram(source,
       experimentalFlags: experimentalFlags);
   final Library library = component.mainMethod!.enclosingLibrary;
