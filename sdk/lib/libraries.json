@@ -137,7 +137,11 @@
         "uri": "_internal/wasm/lib/js_helper.dart"
       },
       "_js_interop": {
-        "uri": "_js_interop/js_interop.dart"
+        "uri": "_js_interop/js_interop.dart",
+        "patches": "_internal/wasm/lib/js_interop_patch.dart"
+      },
+      "_js_types": {
+        "uri": "_internal/wasm/lib/js_types.dart"
       },
       "async": {
         "uri": "async/async.dart",
@@ -319,10 +323,14 @@
         "patches": "_internal/js_runtime/lib/js_patch.dart"
       },
       "_js_interop": {
-        "uri": "_js_interop/js_interop.dart"
+        "uri": "_js_interop/js_interop.dart",
+        "patches": "_internal/js_shared/lib/js_interop_patch.dart"
       },
       "_js_annotations": {
         "uri": "js/_js_annotations.dart"
+      },
+      "_js_types": {
+        "uri": "_internal/js_shared/lib/js_types.dart"
       },
       "js_util": {
         "uri": "js_util/js_util.dart",
@@ -418,13 +426,17 @@
         "uri": "_internal/js_dev_runtime/private/js_helper.dart"
       },
       "_js_interop": {
-        "uri": "_js_interop/js_interop.dart"
+        "uri": "_js_interop/js_interop.dart",
+        "patches": "_internal/js_shared/lib/js_interop_patch.dart"
       },
       "_js_names": {
         "uri": "_internal/js_dev_runtime/private/js_names.dart"
       },
       "_js_primitives": {
         "uri": "_internal/js_dev_runtime/private/js_primitives.dart"
+      },
+      "_js_types": {
+        "uri": "_internal/js_shared/lib/js_types.dart"
       },
       "_metadata": {
         "uri": "html/html_common/metadata.dart"

@@ -73,10 +73,6 @@ import 'dart:_rti' as newRti
 
 import 'dart:_load_library_priority';
 
-// Export `JSObject` so `dart:js_interop` can import a representation type
-// consistently across all backends.
-export 'dart:_interceptors' show JSObject;
-
 part 'annotations.dart';
 part 'constant_map.dart';
 part 'instantiation.dart';

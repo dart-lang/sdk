@@ -7,22 +7,23 @@ library dart._js_helper;
 
 import 'dart:_internal';
 import 'dart:_js_annotations' as js;
+import 'dart:_js_interop';
 import 'dart:collection';
 import 'dart:typed_data';
 import 'dart:wasm';
 
 part 'regexp_helper.dart';
 
-/// The interface implemented by JavaScript objects and used as the
-/// representation type for inline classes.
-///
-/// Note that the semantics of this on dart2wasm is slightly different from the
-/// JS backends as [JSValue] implements this. This means we can interop with any
-/// JS extern ref. TODO(srujzs): Change this when we add JS types.
-abstract class JSObject {}
+// TODO(joshualitt): After we have JS types and more efficient JS interop, we
+// should be able to rewrite a significant amount of logic in this file and
+// `js_runtime_blob` such that most of the conversion logic can live in Dart.
+// TODO(joshualitt): In many places we use `WasmExternRef?` when the ref can't
+// be null, we should use `WasmExternRef` in those cases.
 
-/// [JSValue] is the root of the JS interop object hierarchy.
-class JSValue implements JSObject {
+/// [JSValue] is just a box [WasmExternRef]. For now, it is the single box for
+/// all JS types, but in time we may want to make each JS type a unique box
+/// type.
+class JSValue {
   final WasmExternRef _ref;
 
   JSValue(this._ref);
@@ -59,9 +60,9 @@ class JSValue implements JSObject {
   JSValue toJS() => this;
 }
 
+// TODO(joshualitt): Delete these now that we have JS types.
 extension DoubleToJS on double {
   WasmExternRef toExternRef() => toJSNumber(this)!;
-  JSValue toJS() => JSValue(toExternRef());
 }
 
 extension StringToJS on String {
@@ -76,17 +77,13 @@ extension ListOfObjectToJS on List<Object?> {
 
 extension ObjectToJS on Object {
   WasmExternRef toExternRef() => jsObjectFromDartObject(this);
-  JSValue toJS() => JSValue(toExternRef());
 }
 
 // For now both `null` and `undefined` in JS map to `null` in Dart.
 bool isDartNull(WasmExternRef? ref) => ref == null || isJSUndefined(ref);
 
-/// A [JSArray] is a wrapper for a native JSArray.
-@js.JS()
-@js.staticInterop
-class JSArray {}
-
+// Extensions for [JSArray] and [JSObject].
+// TODO(joshualitt): Rewrite using JS types.
 extension JSArrayExtension on JSArray {
   external Object? pop();
   external Object? operator [](int index);
@@ -94,15 +91,7 @@ extension JSArrayExtension on JSArray {
   external int get length;
 }
 
-/// A [JSObjectInterface] is a wrapper for any JS object literal.
-///
-/// TODO(srujzs): This is a temporary placeholder type. We should remove this
-/// once we expose the extension elsewhere.
-@js.JS()
-@js.staticInterop
-class JSObjectInterface {}
-
-extension JSObjectInterfaceExtension on JSObjectInterface {
+extension JSObjectExtension on JSObject {
   external Object? operator [](String key);
   external void operator []=(String key, Object? value);
 }
@@ -503,6 +492,19 @@ List<int> jsIntTypedArrayToDartIntTypedData(
   return list;
 }
 
+JSArray toJSArray(List<JSAny?> list) {
+  int length = list.length;
+  JSArray result = JSArray.withLength(length.toDouble().toJS());
+  for (int i = 0; i < length; i++) {
+    result[i] = list[i];
+  }
+  return result;
+}
+
+List<JSAny?> toDartListJSAny(WasmExternRef? ref) => List<JSAny?>.generate(
+    objectLength(ref).round(),
+    (int n) => JSValue.box(objectReadIndex(ref, n.toDouble())) as JSAny?);
+
 List<Object?> toDartList(WasmExternRef? ref) => List<Object?>.generate(
     objectLength(ref).round(),
     (int n) => dartifyRaw(objectReadIndex(ref, n.toDouble())));
@@ -522,9 +524,10 @@ WasmExternRef? getConstructorRaw(String name) =>
     getPropertyRaw(globalThisRaw(), name.toExternRef());
 
 /// Equivalent to `Object.keys(object)`.
-JSArray objectKeys(JSObjectInterface object) =>
-    JSValue.box(callMethodVarArgsRaw(getConstructorRaw('Object'),
-        'keys'.toExternRef(), [object].toExternRef())!) as JSArray;
+JSArray objectKeys(JSObject object) => JSValue.box(callMethodVarArgsRaw(
+    getConstructorRaw('Object'),
+    'keys'.toExternRef(),
+    [object].toExternRef())!) as JSArray;
 
 /// Takes a [codeTemplate] string which must represent a valid JS function, and
 /// a list of optional arguments. The [codeTemplate] will be inserted into the

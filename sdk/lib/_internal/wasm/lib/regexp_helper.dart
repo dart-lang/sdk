@@ -23,12 +23,15 @@ String quoteStringForRegExp(String string) =>
 
 @js.JS()
 @js.staticInterop
-class JSNativeMatch extends JSArray {}
+class JSNativeMatch extends JSArray {
+  // This constructor exists just to avoid the `no unnamed constructor` error.
+  external factory JSNativeMatch();
+}
 
 extension JSNativeMatchExtension on JSNativeMatch {
   external String get input;
   external int get index;
-  external JSObjectInterface? get groups;
+  external JSObject? get groups;
 }
 
 @js.JS()
@@ -196,7 +199,7 @@ class _MatchImplementation implements RegExpMatch {
   }
 
   String? namedGroup(String name) {
-    JSObjectInterface? groups = _match.groups;
+    JSObject? groups = _match.groups;
     if (groups != null) {
       Object? result = groups[name];
       if (result != null ||
@@ -209,7 +212,7 @@ class _MatchImplementation implements RegExpMatch {
   }
 
   Iterable<String> get groupNames {
-    JSObjectInterface? groups = _match.groups;
+    JSObject? groups = _match.groups;
     if (groups != null) {
       return JSArrayIterableAdapter<String>(objectKeys(groups));
     }

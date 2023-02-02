@@ -7,6 +7,7 @@ library dart.js_util;
 import "dart:_js_annotations" as js;
 import "dart:_internal";
 import "dart:_js_helper";
+import "dart:_js_types";
 import "dart:async" show Completer, FutureOr;
 import "dart:collection";
 import "dart:typed_data";

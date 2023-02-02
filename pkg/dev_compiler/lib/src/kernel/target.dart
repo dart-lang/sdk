@@ -72,6 +72,7 @@ class DevCompilerTarget extends Target {
         'dart:_js_interop',
         'dart:_js_names',
         'dart:_js_primitives',
+        'dart:_js_types',
         'dart:_metadata',
         'dart:_native_typed_data',
         'dart:async',

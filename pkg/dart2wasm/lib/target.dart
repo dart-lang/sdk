@@ -70,6 +70,7 @@ class WasmTarget extends Target {
   @override
   List<String> get extraIndexedLibraries => const <String>[
         'dart:_js_helper',
+        'dart:_js_interop',
         'dart:collection',
         'dart:typed_data',
         'dart:js',
