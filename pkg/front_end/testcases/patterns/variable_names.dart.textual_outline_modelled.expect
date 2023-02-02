@@ -1,0 +1,10 @@
+abstract class A {
+  String get quux;
+  bool get qux;
+  int? get baz;
+  int? get foo;
+  int get bar;
+  num get boz;
+}
+
+test(x, y, z) {}

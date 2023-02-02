@@ -3,14 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 abstract class A {
-  int get foo;
+  int? get foo;
   int get bar;
-  int get baz;
+  int? get baz;
   num get boz;
+  bool get qux;
+  String get quux;
 }
 
-test(dynamic x) {
-  if (x case A(:var foo!, :var bar, :var baz?, var boz as double)) {
+test(x, y, z) {
+  var qux;
+  var quux;
+  if (x case A(:var foo!, :var bar, :var baz?, :var boz as double)) {
     return 0;
   } else if (x case (:var foo!, :var bar, :var baz?, var boz as double)) {
     return 1;
@@ -19,4 +23,7 @@ test(dynamic x) {
   } else if (x case (: [1, 2])) { // Error
     return 3;
   }
+
+  A(:qux, :quux) = y;
+  (qux, :quux) = z;
 }

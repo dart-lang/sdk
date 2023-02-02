@@ -4497,6 +4497,9 @@ class AssignedVariablePattern extends Pattern {
   List<VariableDeclaration> get declaredVariables => const [];
 
   @override
+  String? get variableName => variable.name!;
+
+  @override
   void toTextInternal(AstPrinter printer) {
     printer.write(variable.name!);
   }
