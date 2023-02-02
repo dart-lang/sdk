@@ -96,22 +96,52 @@ class _IdentifierVisitor extends RecursiveAstVisitor {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var e = node.staticElement;
-    if (e != null) {
-      _addDeclaration(e);
+    if (!node.inDeclarationContext()) {
+      var e = node.staticElement;
+      if (e != null) {
+        _addDeclaration(e);
+      }
     }
     super.visitSimpleIdentifier(node);
   }
 
   /// Adds the declaration of the top-level element which contains [element] to
   /// [declarations], if it is found in [declarationMap].
+  ///
+  /// Also adds the declaration of [element] if it is a public static accessor
+  /// or static method on a public top-level element.
   void _addDeclaration(Element element) {
-    var enclosingElement = element.thisOrAncestorMatching((a) =>
+    // First add the enclosing top-level declaration.
+    var enclosingTopLevelElement = element.thisOrAncestorMatching((a) =>
         a.enclosingElement == null ||
         a.enclosingElement is CompilationUnitElement);
-    var enclosingDeclaration = declarationMap[enclosingElement];
-    if (enclosingDeclaration != null) {
-      declarations.add(enclosingDeclaration);
+    var enclosingTopLevelDeclaration = declarationMap[enclosingTopLevelElement];
+    if (enclosingTopLevelDeclaration != null) {
+      declarations.add(enclosingTopLevelDeclaration);
+    }
+
+    // Also add [element]'s declaration if it is a static accessor or static
+    // method.
+    if (element.isPrivate) {
+      return;
+    }
+    var enclosingElement = element.enclosingElement;
+    if (enclosingElement == null || enclosingElement.isPrivate) {
+      return;
+    }
+    if (enclosingElement is InterfaceElement ||
+        enclosingElement is ExtensionElement) {
+      if (element is PropertyAccessorElement && element.isStatic) {
+        var declaration = declarationMap[element];
+        if (declaration != null) {
+          declarations.add(declaration);
+        }
+      } else if (element is MethodElement && element.isStatic) {
+        var declaration = declarationMap[element];
+        if (declaration != null) {
+          declarations.add(declaration);
+        }
+      }
     }
   }
 
@@ -138,49 +168,89 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.directives.whereType<PartOfDirective>().isNotEmpty) return;
     if (node.directives.whereType<PartDirective>().isNotEmpty) return;
 
-    var topDeclarations = node.declarations
-        .expand((e) => [
-              if (e is TopLevelVariableDeclaration)
-                ...e.variables.variables
-              else
-                e,
-            ])
-        .toSet();
+    var declarations = <Declaration>{};
 
-    var entryPoints = topDeclarations.where(_isEntryPoint).toList();
+    void addStaticMember(ClassMember member) {
+      if (member is FieldDeclaration && member.isStatic) {
+        for (var field in member.fields.variables) {
+          var e = field.declaredElement;
+          if (e != null && e.isPublic) {
+            declarations.add(field);
+          }
+        }
+      } else if (member is MethodDeclaration && member.isStatic) {
+        var e = member.declaredElement;
+        if (e != null && e.isPublic) {
+          declarations.add(member);
+        }
+      }
+    }
+
+    // Gather all of the top-level and static declarations which we may wish to
+    // report on.
+    for (var declaration in node.declarations) {
+      if (declaration is TopLevelVariableDeclaration) {
+        declarations.addAll(declaration.variables.variables);
+      } else {
+        declarations.add(declaration);
+        var declaredElement = declaration.declaredElement;
+        if (declaredElement == null || declaredElement.isPrivate) {
+          continue;
+        }
+        if (declaration is MixinDeclaration) {
+          declaration.members.forEach(addStaticMember);
+        } else if (declaration is ClassDeclaration) {
+          declaration.members.forEach(addStaticMember);
+        } else if (declaration is EnumDeclaration) {
+          declaration.members.forEach(addStaticMember);
+        } else if (declaration is ExtensionDeclaration) {
+          declaration.members.forEach(addStaticMember);
+        }
+      }
+    }
+
+    var entryPoints = declarations.where(_isEntryPoint).toList();
     if (entryPoints.isEmpty) return;
 
+    // Map all of the top-level and static declarations to the element(s) which
+    // each declares.
     var declarationByElement = <Element, Declaration>{};
-    for (var declaration in topDeclarations) {
+    for (var declaration in declarations) {
       var element = declaration.declaredElement;
       if (element != null) {
+        declarationByElement[element] = declaration;
         if (element is TopLevelVariableElement) {
-          declarationByElement[element] = declaration;
           var getter = element.getter;
           if (getter != null) declarationByElement[getter] = declaration;
           var setter = element.setter;
           if (setter != null) declarationByElement[setter] = declaration;
-        } else {
-          declarationByElement[element] = declaration;
+        } else if (element is FieldElement) {
+          var getter = element.getter;
+          if (getter != null) declarationByElement[getter] = declaration;
+          var setter = element.setter;
+          if (setter != null) declarationByElement[setter] = declaration;
         }
       }
     }
 
     // The set of the declarations which each top-level declaration references.
     var dependencies = <Declaration, Set<Declaration>>{};
-    for (var declaration in topDeclarations) {
+
+    // Map each declaration to the collection of declarations which are
+    // referenced within its body.
+    for (var declaration in declarations) {
       var visitor = _IdentifierVisitor(declarationByElement);
       declaration.accept(visitor);
       dependencies[declaration] = visitor.declarations;
     }
 
     var usedMembers = entryPoints.toSet();
-    // The following variable will be used to visit every reachable declaration
-    // starting from entry-points. At every loop an element is removed. This
-    // element is marked as used and we add its dependencies in the declaration
-    // list to traverse. Once this list is empty `usedMembers` contains every
-    // declarations reachable from an entry-point.
     var declarationsToCheck = Queue.of(usedMembers);
+
+    // Loop through declarations which are reachable from the set of
+    // entry-points. We mark each such declaration as "used", and add its
+    // dependencies to the queue to loop through. Once the queue is empty,
+    // `usedMembers` contains every declaration reachable from an entry-point.
     while (declarationsToCheck.isNotEmpty) {
       var declaration = declarationsToCheck.removeLast();
       for (var dep in dependencies[declaration]!) {
@@ -190,7 +260,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
 
-    var unusedMembers = topDeclarations.difference(usedMembers).where((e) {
+    var unusedMembers = declarations.difference(usedMembers).where((e) {
       var element = e.declaredElement;
       return element != null &&
           element.isPublic &&
