@@ -491,6 +491,8 @@ InstantiationTooManyArguments/analyzerCode: Fail
 IntegerLiteralIsOutOfRange/example: Fail
 InterfaceCheck/analyzerCode: Fail
 InterfaceCheck/example: Fail
+InterfaceClassExtendedOutsideOfLibrary/part_wrapped_script: Fail # Uses imports
+InterfaceMixinMixedInOutsideOfLibrary/part_wrapped_script: Fail # Uses imports
 InterpolationInUri/example: Fail
 InvalidAssignmentWarning/analyzerCode: Fail
 InvalidAssignmentWarning/example: Fail

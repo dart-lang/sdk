@@ -2180,6 +2180,16 @@ severity: $severity
       if (supertypeDeclaration is ClassBuilder &&
           cls.libraryBuilder.origin !=
               supertypeDeclaration.libraryBuilder.origin) {
+        if (isClassModifiersEnabled(supertypeDeclaration)) {
+          if (supertypeDeclaration.isInterface && !cls.isMixinDeclaration) {
+            cls.addProblem(
+                templateInterfaceClassExtendedOutsideOfLibrary
+                    .withArguments(supertypeDeclaration.fullNameForErrors),
+                supertypeBuilder.charOffset ?? TreeNode.noOffset,
+                noLength);
+          }
+        }
+
         // Report error for extending a sealed class outside of its library.
         if (isSealedClassEnabled(supertypeDeclaration) &&
             supertypeDeclaration.isSealed &&
@@ -2211,6 +2221,13 @@ severity: $severity
               !mixedInTypeDeclaration.isMixinClass) {
             cls.addProblem(
                 templateCantUseClassAsMixin
+                    .withArguments(mixedInTypeDeclaration.fullNameForErrors),
+                mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
+                noLength);
+          }
+          if (mixedInTypeDeclaration.isInterface) {
+            cls.addProblem(
+                templateInterfaceMixinMixedInOutsideOfLibrary
                     .withArguments(mixedInTypeDeclaration.fullNameForErrors),
                 mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
                 noLength);

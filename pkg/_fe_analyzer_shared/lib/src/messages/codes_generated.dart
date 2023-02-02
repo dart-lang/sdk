@@ -6284,6 +6284,60 @@ Message _withArgumentsInterfaceCheck(String name, String name2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateInterfaceClassExtendedOutsideOfLibrary = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The class '#name' can't be extended outside of its library because it's an interface class.""",
+    withArguments: _withArgumentsInterfaceClassExtendedOutsideOfLibrary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeInterfaceClassExtendedOutsideOfLibrary =
+    const Code<Message Function(String name)>(
+        "InterfaceClassExtendedOutsideOfLibrary",
+        analyzerCodes: <String>["INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInterfaceClassExtendedOutsideOfLibrary(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeInterfaceClassExtendedOutsideOfLibrary,
+      problemMessage:
+          """The class '${name}' can't be extended outside of its library because it's an interface class.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateInterfaceMixinMixedInOutsideOfLibrary = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The mixin '#name' can't be mixed-in outside of its library because it's an interface mixin.""",
+    withArguments: _withArgumentsInterfaceMixinMixedInOutsideOfLibrary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeInterfaceMixinMixedInOutsideOfLibrary =
+    const Code<Message Function(String name)>(
+        "InterfaceMixinMixedInOutsideOfLibrary",
+        analyzerCodes: <String>["INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInterfaceMixinMixedInOutsideOfLibrary(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeInterfaceMixinMixedInOutsideOfLibrary,
+      problemMessage:
+          """The mixin '${name}' can't be mixed-in outside of its library because it's an interface mixin.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInternalProblemAlreadyInitialized =
     messageInternalProblemAlreadyInitialized;
 

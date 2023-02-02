@@ -11,9 +11,9 @@ import 'interface_mixin_typedef_with_lib.dart';
 abstract class AOutside with InterfaceMixinTypeDef {}
 //                           ^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] unspecified
+// [cfe] The mixin 'InterfaceMixin' can't be mixed-in outside of its library because it's an interface mixin.
 
 class BOutside with InterfaceMixinTypeDef {}
 //                  ^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] unspecified
+// [cfe] The mixin 'InterfaceMixin' can't be mixed-in outside of its library because it's an interface mixin.

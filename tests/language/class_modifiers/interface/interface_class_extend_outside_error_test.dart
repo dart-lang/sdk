@@ -11,10 +11,10 @@ import 'interface_class_extend_lib.dart';
 abstract class AOutside extends InterfaceClass {}
 //                              ^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] unspecified
+// [cfe] The class 'InterfaceClass' can't be extended outside of its library because it's an interface class.
 
 class BOutside extends InterfaceClass {
 //                     ^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] unspecified
+// [cfe] The class 'InterfaceClass' can't be extended outside of its library because it's an interface class.
 }

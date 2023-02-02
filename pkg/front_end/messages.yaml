@@ -6082,6 +6082,28 @@ BaseMixinImplementedOutsideOfLibrary:
     lib.dart:
       base mixin A {}
 
+InterfaceClassExtendedOutsideOfLibrary:
+  problemMessage: "The class '#name' can't be extended outside of its library because it's an interface class."
+  analyzerCode: INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY
+  experiments: class-modifiers
+  script:
+    main.dart:
+      import 'lib.dart';
+      class B extends A {}
+    lib.dart:
+      interface class A {}
+
+InterfaceMixinMixedInOutsideOfLibrary:
+  problemMessage: "The mixin '#name' can't be mixed-in outside of its library because it's an interface mixin."
+  analyzerCode: INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY
+  experiments: class-modifiers
+  script:
+    main.dart:
+      import 'lib.dart';
+      class B with A {}
+    lib.dart:
+      interface mixin A {}
+
 UnspecifiedGetterNameInObjectPattern:
   problemMessage: "The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern."
   experiments: patterns

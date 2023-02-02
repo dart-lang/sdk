@@ -1,0 +1,174 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/class_modifiers/interface/typedef/main.dart:7:44: Error: The class 'A' can't be extended outside of its library because it's an interface class.
+// class ExtendsInterfaceClassTypedef extends ATypeDef {}
+//                                            ^
+//
+// pkg/front_end/testcases/class_modifiers/interface/typedef/main.dart:9:45: Error: The class 'A' can't be extended outside of its library because it's an interface class.
+// class ExtendsInterfaceClassTypedef2 extends ATypeDef2 {}
+//                                             ^
+//
+// pkg/front_end/testcases/class_modifiers/interface/typedef/main.dart:11:39: Error: The mixin 'M' can't be mixed-in outside of its library because it's an interface mixin.
+// class MixInInterfaceMixinTypeDef with MTypeDef {}
+//                                       ^
+//
+// pkg/front_end/testcases/class_modifiers/interface/typedef/main.dart:13:42: Error: The mixin 'M' can't be mixed-in outside of its library because it's an interface mixin.
+// enum EnumMixInInterfaceMixinTypeDef with MTypeDef { foo }
+//                                          ^
+//
+// pkg/front_end/testcases/class_modifiers/interface/typedef/main.dart:15:40: Error: The mixin 'M' can't be mixed-in outside of its library because it's an interface mixin.
+// class MixInInterfaceMixinTypeDef2 with MTypeDef2 {}
+//                                        ^
+//
+// pkg/front_end/testcases/class_modifiers/interface/typedef/main.dart:17:43: Error: The mixin 'M' can't be mixed-in outside of its library because it's an interface mixin.
+// enum EnumMixInInterfaceMixinTypeDef2 with MTypeDef2 { foo }
+//                                           ^
+//
+// pkg/front_end/testcases/class_modifiers/interface/typedef/main.dart:23:51: Error: The class 'A' can't be extended outside of its library because it's an interface class.
+// class ExtendsInterfaceClassTypedefOutside extends AOutsideTypedef {}
+//                                                   ^
+//
+// pkg/front_end/testcases/class_modifiers/interface/typedef/main.dart:25:46: Error: The mixin 'M' can't be mixed-in outside of its library because it's an interface mixin.
+// class MixInInterfaceMixinTypeDefOutside with MOutsideTypedef {}
+//                                              ^
+//
+// pkg/front_end/testcases/class_modifiers/interface/typedef/main.dart:27:49: Error: The mixin 'M' can't be mixed-in outside of its library because it's an interface mixin.
+// enum EnumMixInInterfaceMixinTypeDefOutside with MOutsideTypedef { foo }
+//                                                 ^
+//
+import self as self;
+import "main_lib.dart" as mai;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+typedef AOutsideTypedef = mai::A;
+typedef MOutsideTypedef = mai::M;
+class ExtendsInterfaceClassTypedef extends mai::A {
+  synthetic constructor •() → self::ExtendsInterfaceClassTypedef
+    : super mai::A::•()
+    ;
+}
+class ExtendsInterfaceClassTypedef2 extends mai::A {
+  synthetic constructor •() → self::ExtendsInterfaceClassTypedef2
+    : super mai::A::•()
+    ;
+}
+abstract class _MixInInterfaceMixinTypeDef&Object&MTypeDef = core::Object with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_MixInInterfaceMixinTypeDef&Object&MTypeDef
+    : super core::Object::•()
+    ;
+}
+class MixInInterfaceMixinTypeDef extends self::_MixInInterfaceMixinTypeDef&Object&MTypeDef {
+  synthetic constructor •() → self::MixInInterfaceMixinTypeDef
+    : super self::_MixInInterfaceMixinTypeDef&Object&MTypeDef::•()
+    ;
+}
+abstract class _EnumMixInInterfaceMixinTypeDef&_Enum&MTypeDef = core::_Enum with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EnumMixInInterfaceMixinTypeDef&_Enum&MTypeDef
+    : super core::_Enum::•(index, _name)
+    ;
+}
+class EnumMixInInterfaceMixinTypeDef extends self::_EnumMixInInterfaceMixinTypeDef&_Enum&MTypeDef /*isEnum*/  {
+  static const field core::List<self::EnumMixInInterfaceMixinTypeDef> values = #C4;
+  enum-element static const field self::EnumMixInInterfaceMixinTypeDef foo = #C3;
+  const constructor •(core::int #index, core::String #name) → self::EnumMixInInterfaceMixinTypeDef
+    : super self::_EnumMixInInterfaceMixinTypeDef&_Enum&MTypeDef::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "EnumMixInInterfaceMixinTypeDef.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class _MixInInterfaceMixinTypeDef2&Object&MTypeDef2 = core::Object with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_MixInInterfaceMixinTypeDef2&Object&MTypeDef2
+    : super core::Object::•()
+    ;
+}
+class MixInInterfaceMixinTypeDef2 extends self::_MixInInterfaceMixinTypeDef2&Object&MTypeDef2 {
+  synthetic constructor •() → self::MixInInterfaceMixinTypeDef2
+    : super self::_MixInInterfaceMixinTypeDef2&Object&MTypeDef2::•()
+    ;
+}
+abstract class _EnumMixInInterfaceMixinTypeDef2&_Enum&MTypeDef2 = core::_Enum with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EnumMixInInterfaceMixinTypeDef2&_Enum&MTypeDef2
+    : super core::_Enum::•(index, _name)
+    ;
+}
+class EnumMixInInterfaceMixinTypeDef2 extends self::_EnumMixInInterfaceMixinTypeDef2&_Enum&MTypeDef2 /*isEnum*/  {
+  static const field core::List<self::EnumMixInInterfaceMixinTypeDef2> values = #C6;
+  enum-element static const field self::EnumMixInInterfaceMixinTypeDef2 foo = #C5;
+  const constructor •(core::int #index, core::String #name) → self::EnumMixInInterfaceMixinTypeDef2
+    : super self::_EnumMixInInterfaceMixinTypeDef2&_Enum&MTypeDef2::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "EnumMixInInterfaceMixinTypeDef2.${this.{core::_Enum::_name}{core::String}}";
+}
+class ExtendsInterfaceClassTypedefOutside extends mai::A {
+  synthetic constructor •() → self::ExtendsInterfaceClassTypedefOutside
+    : super mai::A::•()
+    ;
+}
+abstract class _MixInInterfaceMixinTypeDefOutside&Object&MOutsideTypedef = core::Object with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_MixInInterfaceMixinTypeDefOutside&Object&MOutsideTypedef
+    : super core::Object::•()
+    ;
+}
+class MixInInterfaceMixinTypeDefOutside extends self::_MixInInterfaceMixinTypeDefOutside&Object&MOutsideTypedef {
+  synthetic constructor •() → self::MixInInterfaceMixinTypeDefOutside
+    : super self::_MixInInterfaceMixinTypeDefOutside&Object&MOutsideTypedef::•()
+    ;
+}
+abstract class _EnumMixInInterfaceMixinTypeDefOutside&_Enum&MOutsideTypedef = core::_Enum with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EnumMixInInterfaceMixinTypeDefOutside&_Enum&MOutsideTypedef
+    : super core::_Enum::•(index, _name)
+    ;
+}
+class EnumMixInInterfaceMixinTypeDefOutside extends self::_EnumMixInInterfaceMixinTypeDefOutside&_Enum&MOutsideTypedef /*isEnum*/  {
+  static const field core::List<self::EnumMixInInterfaceMixinTypeDefOutside> values = #C8;
+  enum-element static const field self::EnumMixInInterfaceMixinTypeDefOutside foo = #C7;
+  const constructor •(core::int #index, core::String #name) → self::EnumMixInInterfaceMixinTypeDefOutside
+    : super self::_EnumMixInInterfaceMixinTypeDefOutside&_Enum&MOutsideTypedef::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "EnumMixInInterfaceMixinTypeDefOutside.${this.{core::_Enum::_name}{core::String}}";
+}
+
+library /*isNonNullableByDefault*/;
+import self as mai;
+import "dart:core" as core;
+
+typedef ATypeDef = mai::A;
+typedef ATypeDef2 = mai::A;
+typedef MTypeDef = mai::M;
+typedef MTypeDef2 = mai::M;
+interface class A extends core::Object {
+  synthetic constructor •() → mai::A
+    : super core::Object::•()
+    ;
+}
+abstract interface class M extends core::Object /*isMixinDeclaration*/  {
+}
+
+constants  {
+  #C1 = 0
+  #C2 = "foo"
+  #C3 = self::EnumMixInInterfaceMixinTypeDef {index:#C1, _name:#C2}
+  #C4 = <self::EnumMixInInterfaceMixinTypeDef>[#C3]
+  #C5 = self::EnumMixInInterfaceMixinTypeDef2 {index:#C1, _name:#C2}
+  #C6 = <self::EnumMixInInterfaceMixinTypeDef2>[#C5]
+  #C7 = self::EnumMixInInterfaceMixinTypeDefOutside {index:#C1, _name:#C2}
+  #C8 = <self::EnumMixInInterfaceMixinTypeDefOutside>[#C7]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///main.dart:
+- EnumMixInInterfaceMixinTypeDef. (from org-dartlang-testcase:///main.dart:13:6)
+- _EnumMixInInterfaceMixinTypeDef&_Enum&MTypeDef. (from org-dartlang-testcase:///main.dart:13:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- EnumMixInInterfaceMixinTypeDef2. (from org-dartlang-testcase:///main.dart:17:6)
+- _EnumMixInInterfaceMixinTypeDef2&_Enum&MTypeDef2. (from org-dartlang-testcase:///main.dart:17:6)
+- EnumMixInInterfaceMixinTypeDefOutside. (from org-dartlang-testcase:///main.dart:27:6)
+- _EnumMixInInterfaceMixinTypeDefOutside&_Enum&MOutsideTypedef. (from org-dartlang-testcase:///main.dart:27:6)
