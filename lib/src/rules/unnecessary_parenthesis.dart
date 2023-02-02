@@ -96,6 +96,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           return;
         }
       } else if (parent is MethodInvocation) {
+        if (expression is CascadeExpression) return;
         var name = parent.methodName.name;
         if (name == 'noSuchMethod' || name == 'toString') {
           // Code like `(String).noSuchMethod()` is allowed.
