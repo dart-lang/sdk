@@ -86,7 +86,7 @@ Future<List<int>> compileUnit(List<String> inputs, Map<String, dynamic> sources,
       .entityForUri(toTestUri('.dart_tool/package_config.json'))
       .writeAsStringSync('{"configVersion": 2, "packages": []}');
   var options = CompilerOptions()
-    ..target = Dart2jsTarget("dart2js", TargetFlags(enableNullSafety: true))
+    ..target = Dart2jsTarget("dart2js", TargetFlags())
     ..fileSystem = TestFileSystem(fs)
     ..nnbdMode = NnbdMode.Strong
     ..additionalDills = additionalDills

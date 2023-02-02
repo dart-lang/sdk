@@ -77,7 +77,8 @@ class SetupCompilerOptions {
     var options = fe.CompilerOptions()
       ..verbose = false // set to true for debugging
       ..sdkRoot = sdkRoot
-      ..target = DevCompilerTarget(TargetFlags())
+      ..target =
+          DevCompilerTarget(TargetFlags(soundNullSafety: soundNullSafety))
       ..librariesSpecificationUri = p.toUri('sdk/lib/libraries.json')
       ..omitPlatform = true
       ..sdkSummary =

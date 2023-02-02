@@ -54,7 +54,8 @@ class SetupCompilerOptions {
     var options = CompilerOptions()
       ..verbose = false // set to true for debugging
       ..sdkRoot = sdkRoot
-      ..target = DevCompilerTarget(TargetFlags())
+      ..target =
+          DevCompilerTarget(TargetFlags(soundNullSafety: soundNullSafety))
       ..librariesSpecificationUri = Uri.base.resolve('sdk/lib/libraries.json')
       ..omitPlatform = true
       ..sdkSummary =

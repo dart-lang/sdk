@@ -1615,7 +1615,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
             matcher ?? new ConstantPragmaAnnotationParser(coreTypes, target) {
     nativeCodeOracle = new NativeCodeOracle(libraryIndex, annotationMatcher);
     hierarchyCache = new _ClassHierarchyCache(this, _genericInterfacesInfo,
-        environment, target.flags.enableNullSafety);
+        environment, target.flags.soundNullSafety);
     summaryCollector = new SummaryCollector(
         target,
         environment,

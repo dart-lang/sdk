@@ -48,7 +48,7 @@ class WasmTarget extends Target {
   String get name => 'wasm';
 
   @override
-  TargetFlags get flags => TargetFlags(enableNullSafety: true);
+  TargetFlags get flags => TargetFlags();
 
   @override
   List<String> get extraRequiredLibraries => const <String>[

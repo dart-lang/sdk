@@ -371,8 +371,9 @@ class ProcessedOptions {
   String get currentSdkVersion => _raw.currentSdkVersion;
 
   Target? _target;
-  Target get target =>
-      _target ??= _raw.target ?? new NoneTarget(new TargetFlags());
+  Target get target => _target ??= _raw.target ??
+      new NoneTarget(
+          new TargetFlags(soundNullSafety: nnbdMode == NnbdMode.Strong));
 
   /// Returns the global state of the experimental features.
   flags.GlobalFeatures get globalFeatures => _raw.globalFeatures;

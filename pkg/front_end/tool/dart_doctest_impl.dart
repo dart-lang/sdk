@@ -315,7 +315,7 @@ class DartDocTest {
 
   void setupIncrementalCompiler(Uri uri) {
     options = getOptions();
-    TargetFlags targetFlags = new TargetFlags(enableNullSafety: true);
+    TargetFlags targetFlags = new TargetFlags();
     // TODO: Target could possible be something else...
     Target target = new VmTarget(targetFlags);
     options.target = target;

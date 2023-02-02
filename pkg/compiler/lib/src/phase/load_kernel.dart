@@ -222,7 +222,10 @@ Future<_LoadFromSourceResult> _loadFromSource(
   bool verbose = false;
   bool cfeConstants = options.features.cfeConstants.isEnabled;
   Map<String, String>? environment = cfeConstants ? options.environment : null;
-  Target target = Dart2jsTarget(targetName, TargetFlags(),
+  Target target = Dart2jsTarget(
+      targetName,
+      TargetFlags(
+          soundNullSafety: options.nullSafetyMode == NullSafetyMode.sound),
       options: options,
       canPerformGlobalTransforms: true,
       supportsUnevaluatedConstants: !cfeConstants);

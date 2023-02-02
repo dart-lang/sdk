@@ -137,7 +137,7 @@ ProcessedOptions analyzeCommandLine(String programName,
           Options.forceConstructorTearOffLowering.read(parsedOptions),
       forceLateLoweringSentinelForTesting:
           Options.forceLateLoweringSentinel.read(parsedOptions),
-      enableNullSafety: isExperimentEnabled(ExperimentalFlag.nonNullable,
+      soundNullSafety: isExperimentEnabled(ExperimentalFlag.nonNullable,
           explicitExperimentalFlags: explicitExperimentalFlags));
 
   final Target? target = getTarget(targetName, flags);

@@ -190,7 +190,7 @@ class _ParameterInfo {
     // When run in weak mode with null assertions enabled, parameters with
     // non-nullable types have implicit null checks, which count as reads.
     if ((param.isCovariantByDeclaration || param.isCovariantByClass) ||
-        (!shaker.typeFlowAnalysis.target.flags.enableNullSafety &&
+        (!shaker.typeFlowAnalysis.target.flags.soundNullSafety &&
             param.type.nullability == Nullability.nonNullable &&
             (type == null || type is NullableType))) {
       isChecked = true;

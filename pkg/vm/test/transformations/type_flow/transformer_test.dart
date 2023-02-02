@@ -21,7 +21,7 @@ final Uri pkgVmDir = Platform.script.resolve('../../..');
 
 void runTestCase(Uri source, List<Uri>? linkedDependencies,
     List<String>? experimentalFlags) async {
-  final target = new TestingVmTarget(new TargetFlags(enableNullSafety: true));
+  final target = new TestingVmTarget(new TargetFlags());
   Component component = await compileTestCaseToKernelProgram(source,
       target: target,
       linkedDependencies: linkedDependencies,
