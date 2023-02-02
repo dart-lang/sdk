@@ -829,10 +829,15 @@ Future _processLoadRequest(request) async {
     // request a reload, meaning that we won't have a compiler for this isolate.
     if (compiler != null) {
       final wrapper = compiler as IncrementalCompilerWrapper;
-      if (tag == kAcceptTag) {
-        wrapper.accept();
-      } else {
-        await wrapper.reject();
+      try {
+        if (tag == kAcceptTag) {
+          wrapper.accept();
+        } else {
+          await wrapper.reject();
+        }
+      } catch(e, st) {
+        port.send(CompilationResult.crash(e, st).toResponse());
+        return;
       }
     }
     port.send(new CompilationResult.ok(null).toResponse());
