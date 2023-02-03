@@ -1,0 +1,6 @@
+class Class {
+  dynamic field1;
+  dynamic field2;
+}
+
+method(x, y, z) {}

@@ -6308,3 +6308,13 @@ UnnamedObjectPatternField:
     method(x) {
       if (x case int(5)) {}
     }
+
+PatternAssignmentDeclaresVariable:
+  problemMessage: "Variable '#name' can't be declared in a pattern assignment."
+  correctionMessage: "Try using a preexisting variable or changing the assignment to a pattern variable declaration."
+  experiments: patterns
+  script: |
+    method(x) {
+      var y;
+      [y, var z] = x;
+    }

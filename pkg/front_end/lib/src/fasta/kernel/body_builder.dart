@@ -8889,21 +8889,27 @@ class BodyBuilder extends StackListenerImpl
 
     reportIfNotEnabled(
         libraryFeatures.patterns, variable.charOffset, variable.charCount);
-    // ignore: unused_local_variable
     TypeBuilder? type = pop(NullValues.TypeBuilder) as TypeBuilder?;
     DartType? patternType = type?.build(libraryBuilder, TypeUse.variableType);
     Pattern pattern;
     if (variable.lexeme == "_") {
       pattern = new WildcardPattern(patternType, variable.charOffset);
     } else if (inAssignmentPattern) {
-      Expression variableUse =
-          toValue(scopeLookup(scope, variable.lexeme, variable));
-      if (variableUse is VariableGet) {
-        pattern = new AssignedVariablePattern(variableUse.variable,
-            offset: variable.charOffset);
+      String name = variable.lexeme;
+      if (keyword != null || type != null) {
+        pattern = new InvalidPattern(buildProblem(
+            fasta.templatePatternAssignmentDeclaresVariable.withArguments(name),
+            variable.charOffset,
+            variable.charCount));
       } else {
-        // Recover by using [WildcardPattern] instead.
-        pattern = new WildcardPattern(patternType, variable.charOffset);
+        Expression variableUse = toValue(scopeLookup(scope, name, variable));
+        if (variableUse is VariableGet) {
+          pattern = new AssignedVariablePattern(variableUse.variable,
+              offset: variable.charOffset);
+        } else {
+          // Recover by using [WildcardPattern] instead.
+          pattern = new WildcardPattern(patternType, variable.charOffset);
+        }
       }
     } else {
       VariableDeclaration declaredVariable = forest.createVariableDeclaration(

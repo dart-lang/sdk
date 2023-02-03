@@ -10614,6 +10614,37 @@ const MessageCode messagePatchNonExternal = const MessageCode(
     correctionMessage: r"""Try adding 'external' to the origin declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templatePatternAssignmentDeclaresVariable = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Variable '#name' can't be declared in a pattern assignment.""",
+    correctionMessageTemplate:
+        r"""Try using a preexisting variable or changing the assignment to a pattern variable declaration.""",
+    withArguments: _withArgumentsPatternAssignmentDeclaresVariable);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codePatternAssignmentDeclaresVariable =
+    const Code<Message Function(String name)>(
+  "PatternAssignmentDeclaresVariable",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsPatternAssignmentDeclaresVariable(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codePatternAssignmentDeclaresVariable,
+      problemMessage:
+          """Variable '${name}' can't be declared in a pattern assignment.""",
+      correctionMessage:
+          """Try using a preexisting variable or changing the assignment to a pattern variable declaration.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codePlatformPrivateLibraryAccess =
     messagePlatformPrivateLibraryAccess;
 

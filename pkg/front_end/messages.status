@@ -836,6 +836,7 @@ PatchInjectionFailed/analyzerCode: Fail
 PatchInjectionFailed/example: Fail
 PatchNonExternal/analyzerCode: Fail
 PatchNonExternal/example: Fail
+PatternAssignmentDeclaresVariable/analyzerCode: Fail
 PlatformPrivateLibraryAccess/example: Fail
 PositionalAfterNamedArgument/example: Fail
 PositionalSuperParametersAndArguments/analyzerCode: Fail
