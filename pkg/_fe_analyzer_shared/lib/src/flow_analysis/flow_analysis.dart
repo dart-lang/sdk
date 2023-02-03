@@ -3938,7 +3938,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
             .infoFor(context._matchedValueReference.promotionKey)
             .promotedTypes
             ?.last ??
-        context._matchedValueType;
+        context._matchedValueReference.type;
   }
 
   @override
@@ -4215,8 +4215,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void logicalOrPattern_begin() {
     _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
     // Save the pieces of the current flow state that will be needed later.
-    _stack.add(new _OrPatternContext<Type>(context._matchedValueReference,
-        context._matchedValueType, _unmatched!));
+    _stack.add(new _OrPatternContext<Type>(
+        context._matchedValueReference, _unmatched!));
     // Initialize `_unmatched` to a fresh unreachable flow state, so that after
     // we visit the left hand side, `_unmatched` will represent the flow state
     // if the left hand side failed to match.
@@ -4423,8 +4423,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     assert(_stack.last is _PatternContext<Type>);
     assert(_unmatched != null);
     _stack.add(new _PatternContext<Type>(
-        _makeTemporaryReference(new SsaNode<Type>(null), matchedType),
-        matchedType));
+        _makeTemporaryReference(new SsaNode<Type>(null), matchedType)));
   }
 
   @override
@@ -4946,7 +4945,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void _pushPattern() {
     _stack.add(new _TopPatternContext<Type>(
         _makeTemporaryReference(_scrutineeSsaNode, _scrutineeType!),
-        _scrutineeType!,
         _unmatched));
     _unmatched = _current.setUnreachable();
   }
@@ -5797,8 +5795,7 @@ class _OrPatternContext<Type extends Object> extends _PatternContext<Type> {
   /// side matched.
   FlowModel<Type>? _lhsMatched;
 
-  _OrPatternContext(super.matchedValueReference, super.matchedValueType,
-      this._previousUnmatched);
+  _OrPatternContext(super.matchedValueReference, this._previousUnmatched);
 
   @override
   Map<String, Object?> get _debugFields => super._debugFields
@@ -5814,15 +5811,11 @@ class _PatternContext<Type extends Object> extends _FlowContext {
   /// Reference for the value being matched.
   final ReferenceWithType<Type> _matchedValueReference;
 
-  /// The matched value type that should be used to type analyze the pattern.
-  final Type _matchedValueType;
-
-  _PatternContext(this._matchedValueReference, this._matchedValueType);
+  _PatternContext(this._matchedValueReference);
 
   @override
-  Map<String, Object?> get _debugFields => super._debugFields
-    ..['matchedValueReference'] = _matchedValueReference
-    ..['matchedValueType'] = _matchedValueType;
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['matchedValueReference'] = _matchedValueReference;
 
   @override
   String get _debugType => '_PatternContext';
@@ -5955,8 +5948,7 @@ class _SwitchStatementContext<Type extends Object>
 class _TopPatternContext<Type extends Object> extends _PatternContext<Type> {
   final FlowModel<Type>? _previousUnmatched;
 
-  _TopPatternContext(super._matchedValueReference, super.matchedValueType,
-      this._previousUnmatched);
+  _TopPatternContext(super._matchedValueReference, this._previousUnmatched);
 
   @override
   Map<String, Object?> get _debugFields =>
