@@ -11,12 +11,12 @@ import 'final_class_implement_lib.dart';
 abstract class AOutside implements FinalClass {}
 //                                 ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] unspecified
+// [cfe] The class 'FinalClass' can't be implemented outside of its library because it's a final class.
 
 class BOutside implements FinalClass {
 //                        ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] unspecified
+// [cfe] The class 'FinalClass' can't be implemented outside of its library because it's a final class.
   @override
   int foo = 1;
 }

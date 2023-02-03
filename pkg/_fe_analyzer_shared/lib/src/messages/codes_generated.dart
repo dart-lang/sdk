@@ -5160,6 +5160,60 @@ const MessageCode messageFinalAndVar = const MessageCode("FinalAndVar",
 const Template<
     Message Function(
         String
+            name)> templateFinalClassExtendedOutsideOfLibrary = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The class '#name' can't be extended outside of its library because it's a final class.""",
+    withArguments: _withArgumentsFinalClassExtendedOutsideOfLibrary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeFinalClassExtendedOutsideOfLibrary =
+    const Code<Message Function(String name)>(
+        "FinalClassExtendedOutsideOfLibrary",
+        analyzerCodes: <String>["FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFinalClassExtendedOutsideOfLibrary(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFinalClassExtendedOutsideOfLibrary,
+      problemMessage:
+          """The class '${name}' can't be extended outside of its library because it's a final class.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateFinalClassImplementedOutsideOfLibrary = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The class '#name' can't be implemented outside of its library because it's a final class.""",
+    withArguments: _withArgumentsFinalClassImplementedOutsideOfLibrary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeFinalClassImplementedOutsideOfLibrary =
+    const Code<Message Function(String name)>(
+        "FinalClassImplementedOutsideOfLibrary",
+        analyzerCodes: <String>["FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFinalClassImplementedOutsideOfLibrary(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFinalClassImplementedOutsideOfLibrary,
+      problemMessage:
+          """The class '${name}' can't be implemented outside of its library because it's a final class.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
             name)> templateFinalFieldNotInitialized = const Template<
         Message Function(String name)>(
     problemMessageTemplate: r"""Final field '#name' is not initialized.""",
@@ -5239,6 +5293,60 @@ Message _withArgumentsFinalFieldWithoutInitializer(String name) {
       problemMessage: """The final variable '${name}' must be initialized.""",
       correctionMessage:
           """Try adding an initializer ('= expression') to the declaration.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateFinalMixinImplementedOutsideOfLibrary = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The mixin '#name' can't be implemented outside of its library because it's a final mixin.""",
+    withArguments: _withArgumentsFinalMixinImplementedOutsideOfLibrary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeFinalMixinImplementedOutsideOfLibrary =
+    const Code<Message Function(String name)>(
+        "FinalMixinImplementedOutsideOfLibrary",
+        analyzerCodes: <String>["FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFinalMixinImplementedOutsideOfLibrary(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFinalMixinImplementedOutsideOfLibrary,
+      problemMessage:
+          """The mixin '${name}' can't be implemented outside of its library because it's a final mixin.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateFinalMixinMixedInOutsideOfLibrary = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The mixin '#name' can't be mixed-in outside of its library because it's a final mixin.""",
+    withArguments: _withArgumentsFinalMixinMixedInOutsideOfLibrary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeFinalMixinMixedInOutsideOfLibrary =
+    const Code<Message Function(String name)>(
+        "FinalMixinMixedInOutsideOfLibrary",
+        analyzerCodes: <String>["FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFinalMixinMixedInOutsideOfLibrary(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFinalMixinMixedInOutsideOfLibrary,
+      problemMessage:
+          """The mixin '${name}' can't be mixed-in outside of its library because it's a final mixin.""",
       arguments: {'name': name});
 }
 

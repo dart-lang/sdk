@@ -2187,6 +2187,15 @@ severity: $severity
                     .withArguments(supertypeDeclaration.fullNameForErrors),
                 supertypeBuilder.charOffset ?? TreeNode.noOffset,
                 noLength);
+          } else if (supertypeDeclaration.isFinal &&
+              // TODO(kallentu): Error case where the class has a singular on
+              // clause. Change with the new spec changes.
+              !cls.isMixinDeclaration) {
+            cls.addProblem(
+                templateFinalClassExtendedOutsideOfLibrary
+                    .withArguments(supertypeDeclaration.fullNameForErrors),
+                supertypeBuilder.charOffset ?? TreeNode.noOffset,
+                noLength);
           }
         }
 
@@ -2231,6 +2240,12 @@ severity: $severity
                     .withArguments(mixedInTypeDeclaration.fullNameForErrors),
                 mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
                 noLength);
+          } else if (mixedInTypeDeclaration.isFinal) {
+            cls.addProblem(
+                templateFinalMixinMixedInOutsideOfLibrary
+                    .withArguments(mixedInTypeDeclaration.fullNameForErrors),
+                mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
+                noLength);
           }
         }
 
@@ -2267,6 +2282,23 @@ severity: $severity
               } else {
                 cls.addProblem(
                     templateBaseClassImplementedOutsideOfLibrary
+                        .withArguments(interfaceDeclaration.fullNameForErrors),
+                    interfaceBuilder.charOffset ?? TreeNode.noOffset,
+                    noLength);
+              }
+            } else if (interfaceDeclaration.isFinal &&
+                // TODO(kallentu): Error case where the class has multiple on
+                // clauses. Change with the new spec changes.
+                !cls.cls.isAnonymousMixin) {
+              if (interfaceDeclaration.isMixinDeclaration) {
+                cls.addProblem(
+                    templateFinalMixinImplementedOutsideOfLibrary
+                        .withArguments(interfaceDeclaration.fullNameForErrors),
+                    interfaceBuilder.charOffset ?? TreeNode.noOffset,
+                    noLength);
+              } else {
+                cls.addProblem(
+                    templateFinalClassImplementedOutsideOfLibrary
                         .withArguments(interfaceDeclaration.fullNameForErrors),
                     interfaceBuilder.charOffset ?? TreeNode.noOffset,
                     noLength);

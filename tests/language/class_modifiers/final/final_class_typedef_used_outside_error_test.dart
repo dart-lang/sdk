@@ -15,11 +15,11 @@ typedef ATypeDef = FinalClass;
 class A extends ATypeDef {}
 //              ^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] unspecified
+// [cfe] The class 'FinalClass' can't be extended outside of its library because it's a final class.
 
 class B implements ATypeDef {
 //                 ^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] unspecified
+// [cfe] The class 'FinalClass' can't be implemented outside of its library because it's a final class.
   int foo = 1;
 }
