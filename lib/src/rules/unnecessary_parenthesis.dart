@@ -96,7 +96,6 @@ class _Visitor extends SimpleAstVisitor<void> {
           return;
         }
       } else if (parent is MethodInvocation) {
-        if (expression is CascadeExpression) return;
         var name = parent.methodName.name;
         if (name == 'noSuchMethod' || name == 'toString') {
           // Code like `(String).noSuchMethod()` is allowed.
@@ -239,10 +238,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Return `true` if the expression is null aware, or if one of its recursive
   /// targets is null aware.
   bool _isNullAware(Expression? expression) {
-    if (expression is CascadeExpression) {
-      // No need to check the target.
-      return expression.isNullAware;
-    } else if (expression is PropertyAccess) {
+    if (expression is PropertyAccess) {
       if (expression.isNullAware) return true;
       return _isNullAware(expression.target);
     } else if (expression is MethodInvocation) {

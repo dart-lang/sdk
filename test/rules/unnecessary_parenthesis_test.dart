@@ -23,10 +23,16 @@ class UnnecessaryParenthesisTest extends LintRuleTest {
 class A {
   var b = false;
   void m() {}
+  set setter(int i) {}
 }
 
 void f(A? a) {
   (a?..b = true)?.m();
+  (a?..b = true)?.setter = 1;
+}
+
+void g(List<int>? list) {
+  (list?..[0] = 1)?.length;
 }
 ''');
   }
