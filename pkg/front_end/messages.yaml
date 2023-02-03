@@ -6362,3 +6362,14 @@ PatternAssignmentDeclaresVariable:
       var y;
       [y, var z] = x;
     }
+
+PatternAssignmentNotLocalVariable:
+  problemMessage: Only local variables or formal parameters can be used in pattern assignments.
+  correctionMessage: Try assigning to a local variable.
+  analyzerCode: PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE
+  experiments: patterns
+  script: |
+    var global;
+    method(x) {
+      [global] = x;
+    }

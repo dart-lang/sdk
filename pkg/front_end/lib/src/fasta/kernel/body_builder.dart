@@ -8917,6 +8917,8 @@ class BodyBuilder extends StackListenerImpl
           pattern = new AssignedVariablePattern(variableUse.variable,
               offset: variable.charOffset);
         } else {
+          addProblem(fasta.messagePatternAssignmentNotLocalVariable,
+              variable.charOffset, variable.charCount);
           // Recover by using [WildcardPattern] instead.
           pattern = new WildcardPattern(patternType, variable.charOffset);
         }
