@@ -181,7 +181,8 @@ LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
   locs->set_in(kDestPos, Location::WritableRegister());
   locs->set_in(kSrcStartPos, LocationRegisterOrConstant(src_start()));
   locs->set_in(kDestStartPos, LocationRegisterOrConstant(dest_start()));
-  locs->set_in(kLengthPos, Location::WritableRegister());
+  locs->set_in(kLengthPos,
+               LocationWritableRegisterOrSmiConstant(length(), 0, 4));
   return locs;
 }
 
@@ -190,10 +191,54 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register dest_reg = locs()->in(kDestPos).reg();
   const Location src_start_loc = locs()->in(kSrcStartPos);
   const Location dest_start_loc = locs()->in(kDestStartPos);
-  const Register length_reg = locs()->in(kLengthPos).reg();
+  const Location length_loc = locs()->in(kLengthPos);
+  const bool constant_length = length_loc.IsConstant();
+  const Register length_reg = constant_length ? kNoRegister : length_loc.reg();
 
   EmitComputeStartPointer(compiler, src_cid_, src_reg, src_start_loc);
   EmitComputeStartPointer(compiler, dest_cid_, dest_reg, dest_start_loc);
+
+  if (constant_length) {
+    const intptr_t num_bytes =
+        Integer::Cast(length_loc.constant()).AsInt64Value() * element_size_;
+    const intptr_t mov_size =
+        Utils::Minimum(element_size_, static_cast<intptr_t>(XLEN / 8));
+    const intptr_t mov_repeat = num_bytes / mov_size;
+    ASSERT(num_bytes % mov_size == 0);
+    for (intptr_t i = 0; i < mov_repeat; i++) {
+      switch (mov_size) {
+        case 1:
+          __ lb(TMP, compiler::Address(src_reg, mov_size * i));
+          __ sb(TMP, compiler::Address(dest_reg, mov_size * i));
+          break;
+        case 2:
+          __ lh(TMP, compiler::Address(src_reg, mov_size * i));
+          __ sh(TMP, compiler::Address(dest_reg, mov_size * i));
+          break;
+        case 4:
+          __ lw(TMP, compiler::Address(src_reg, mov_size * i));
+          __ sw(TMP, compiler::Address(dest_reg, mov_size * i));
+          break;
+        case 8:
+#if XLEN == 64
+          __ ld(TMP, compiler::Address(src_reg, mov_size * i));
+          __ sd(TMP, compiler::Address(dest_reg, mov_size * i));
+#else
+          UNREACHABLE();
+#endif
+          break;
+        case 16:
+#if XLEN == 128
+          __ lq(TMP, compiler::Address(src_reg, mov_size * i));
+          __ sq(TMP, compiler::Address(dest_reg, mov_size * i));
+#else
+          UNREACHABLE();
+#endif
+          break;
+      }
+    }
+    return;
+  }
 
   compiler::Label loop, done;
 
@@ -262,6 +307,7 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif
       break;
   }
+
   __ subi(length_reg, length_reg, loop_subtract);
   __ bnez(length_reg, &loop);
   __ Bind(&done);

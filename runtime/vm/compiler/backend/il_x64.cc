@@ -162,16 +162,59 @@ LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
   locs->set_in(kDestPos, Location::RegisterLocation(RDI));
   locs->set_in(kSrcStartPos, LocationRegisterOrConstant(src_start()));
   locs->set_in(kDestStartPos, LocationRegisterOrConstant(dest_start()));
-  locs->set_in(kLengthPos, Location::RegisterLocation(RCX));
+  if (length()->BindsToSmiConstant() && length()->BoundSmiConstant() <= 4) {
+    locs->set_in(
+        kLengthPos,
+        Location::Constant(
+            length()->definition()->OriginalDefinition()->AsConstant()));
+  } else {
+    locs->set_in(kLengthPos, Location::RegisterLocation(RCX));
+  }
   return locs;
 }
 
 void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register src_reg = locs()->in(kSrcPos).reg();
+  const Register dest_reg = locs()->in(kDestPos).reg();
   const Location src_start_loc = locs()->in(kSrcStartPos);
   const Location dest_start_loc = locs()->in(kDestStartPos);
+  const Location length_loc = locs()->in(kLengthPos);
 
-  EmitComputeStartPointer(compiler, src_cid_, RSI, src_start_loc);
-  EmitComputeStartPointer(compiler, dest_cid_, RDI, dest_start_loc);
+  EmitComputeStartPointer(compiler, src_cid_, src_reg, src_start_loc);
+  EmitComputeStartPointer(compiler, dest_cid_, dest_reg, dest_start_loc);
+
+  if (length_loc.IsConstant()) {
+    const intptr_t num_bytes =
+        Integer::Cast(length_loc.constant()).AsInt64Value() * element_size_;
+    const intptr_t mov_size =
+        Utils::Minimum(element_size_, static_cast<intptr_t>(8));
+    const intptr_t mov_repeat = num_bytes / mov_size;
+    ASSERT(num_bytes % mov_size == 0);
+
+    for (intptr_t i = 0; i < mov_repeat; i++) {
+      const intptr_t disp = mov_size * i;
+      switch (mov_size) {
+        case 1:
+          __ movzxb(TMP, compiler::Address(src_reg, disp));
+          __ movb(compiler::Address(dest_reg, disp), ByteRegisterOf(TMP));
+          break;
+        case 2:
+          __ movzxw(TMP, compiler::Address(src_reg, disp));
+          __ movw(compiler::Address(dest_reg, disp), TMP);
+          break;
+        case 4:
+          __ movl(TMP, compiler::Address(src_reg, disp));
+          __ movl(compiler::Address(dest_reg, disp), TMP);
+          break;
+        case 8:
+          __ movq(TMP, compiler::Address(src_reg, disp));
+          __ movq(compiler::Address(dest_reg, disp), TMP);
+          break;
+      }
+    }
+    return;
+  }
+
   if (element_size_ <= compiler::target::kWordSize) {
     if (!unboxed_length_) {
       __ SmiUntag(RCX);

@@ -491,8 +491,14 @@ Location LocationExceptionLocation();
 Location LocationStackTraceLocation();
 // Constants.
 Location LocationRegisterOrConstant(Value* value);
-Location LocationRegisterOrSmiConstant(Value* value);
-Location LocationWritableRegisterOrSmiConstant(Value* value);
+Location LocationRegisterOrSmiConstant(
+    Value* value,
+    intptr_t min_value = compiler::target::kSmiMin,
+    intptr_t max_value = compiler::target::kSmiMax);
+Location LocationWritableRegisterOrSmiConstant(
+    Value* value,
+    intptr_t min_value = compiler::target::kSmiMin,
+    intptr_t max_value = compiler::target::kSmiMax);
 Location LocationFixedRegisterOrConstant(Value* value, Register reg);
 Location LocationFixedRegisterOrSmiConstant(Value* value, Register reg);
 Location LocationAnyOrConstant(Value* value);

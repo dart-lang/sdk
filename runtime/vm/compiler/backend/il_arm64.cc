@@ -164,7 +164,8 @@ LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
   locs->set_in(kDestPos, Location::WritableRegister());
   locs->set_in(kSrcStartPos, LocationRegisterOrConstant(src_start()));
   locs->set_in(kDestStartPos, LocationRegisterOrConstant(dest_start()));
-  locs->set_in(kLengthPos, Location::WritableRegister());
+  locs->set_in(kLengthPos,
+               LocationWritableRegisterOrSmiConstant(length(), 0, 4));
   locs->set_temp(0, element_size_ == 16
                         ? Location::Pair(Location::RequiresRegister(),
                                          Location::RequiresRegister())
@@ -177,7 +178,8 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register dest_reg = locs()->in(kDestPos).reg();
   const Location src_start_loc = locs()->in(kSrcStartPos);
   const Location dest_start_loc = locs()->in(kDestStartPos);
-  const Register length_reg = locs()->in(kLengthPos).reg();
+  const Location length_loc = locs()->in(kLengthPos);
+  const bool constant_length = length_loc.IsConstant();
 
   Register temp_reg, temp_reg2;
   if (locs()->temp(0).IsPairLocation()) {
@@ -191,6 +193,42 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   EmitComputeStartPointer(compiler, src_cid_, src_reg, src_start_loc);
   EmitComputeStartPointer(compiler, dest_cid_, dest_reg, dest_start_loc);
+
+  if (constant_length) {
+    const intptr_t mov_repeat =
+        Integer::Cast(length_loc.constant()).AsInt64Value();
+    for (intptr_t i = 0; i < mov_repeat; i++) {
+      compiler::Address src_address =
+          compiler::Address(src_reg, element_size_ * i);
+      compiler::Address dest_address =
+          compiler::Address(dest_reg, element_size_ * i);
+      switch (element_size_) {
+        case 1:
+          __ ldr(temp_reg, src_address, compiler::kUnsignedByte);
+          __ str(temp_reg, dest_address, compiler::kUnsignedByte);
+          break;
+        case 2:
+          __ ldr(temp_reg, src_address, compiler::kUnsignedTwoBytes);
+          __ str(temp_reg, dest_address, compiler::kUnsignedTwoBytes);
+          break;
+        case 4:
+          __ ldr(temp_reg, src_address, compiler::kUnsignedFourBytes);
+          __ str(temp_reg, dest_address, compiler::kUnsignedFourBytes);
+          break;
+        case 8:
+          __ ldr(temp_reg, src_address, compiler::kEightBytes);
+          __ str(temp_reg, dest_address, compiler::kEightBytes);
+          break;
+        case 16:
+          __ ldp(temp_reg, temp_reg2, src_address, compiler::kEightBytes);
+          __ stp(temp_reg, temp_reg2, dest_address, compiler::kEightBytes);
+          break;
+      }
+    }
+    return;
+  }
+
+  const Register length_reg = length_loc.reg();
 
   compiler::Label loop, done;
 
@@ -225,6 +263,7 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ stp(temp_reg, temp_reg2, dest_address, compiler::kEightBytes);
       break;
   }
+
   __ subs(length_reg, length_reg, compiler::Operand(loop_subtract),
           compiler::kObjectBytes);
   __ b(&loop, NOT_ZERO);

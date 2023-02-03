@@ -167,7 +167,8 @@ LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
   locs->set_in(kDestPos, Location::WritableRegister());
   locs->set_in(kSrcStartPos, LocationRegisterOrConstant(src_start()));
   locs->set_in(kDestStartPos, LocationRegisterOrConstant(dest_start()));
-  locs->set_in(kLengthPos, Location::WritableRegister());
+  locs->set_in(kLengthPos,
+               LocationWritableRegisterOrSmiConstant(length(), 0, 4));
   for (intptr_t i = 0; i < kNumTemps; i++) {
     locs->set_temp(i, Location::RequiresRegister());
   }
@@ -179,7 +180,8 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register dest_reg = locs()->in(kDestPos).reg();
   const Location src_start_loc = locs()->in(kSrcStartPos);
   const Location dest_start_loc = locs()->in(kDestStartPos);
-  const Register length_reg = locs()->in(kLengthPos).reg();
+  const Location length_loc = locs()->in(kLengthPos);
+  const bool constant_length = length_loc.IsConstant();
 
   const Register temp_reg = locs()->temp(0).reg();
   RegList temp_regs = 0;
@@ -189,6 +191,39 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   EmitComputeStartPointer(compiler, src_cid_, src_reg, src_start_loc);
   EmitComputeStartPointer(compiler, dest_cid_, dest_reg, dest_start_loc);
+
+  if (constant_length) {
+    const intptr_t mov_repeat =
+        Integer::Cast(length_loc.constant()).AsInt64Value();
+    for (intptr_t i = 0; i < mov_repeat; i++) {
+      compiler::Address src_address =
+          compiler::Address(src_reg, element_size_ * i);
+      compiler::Address dest_address =
+          compiler::Address(dest_reg, element_size_ * i);
+      switch (element_size_) {
+        case 1:
+          __ ldrb(temp_reg, src_address);
+          __ strb(temp_reg, dest_address);
+          break;
+        case 2:
+          __ ldrh(temp_reg, src_address);
+          __ strh(temp_reg, dest_address);
+          break;
+        case 4:
+          __ ldr(temp_reg, src_address);
+          __ str(temp_reg, dest_address);
+          break;
+        case 8:
+        case 16:
+          __ ldm(BlockAddressMode::IA_W, src_reg, temp_regs);
+          __ stm(BlockAddressMode::IA_W, dest_reg, temp_regs);
+          break;
+      }
+    }
+    return;
+  }
+
+  const Register length_reg = length_loc.reg();
 
   compiler::Label loop, done;
 
@@ -4331,8 +4366,8 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
       object_store->allocate_mint_without_fpu_regs_stub()
           ->untag()
           ->InVMIsolateHeap();
-  const bool shared_slow_path_call = SlowPathSharingSupported(opt) &&
-                                     !stubs_in_vm_isolate;
+  const bool shared_slow_path_call =
+      SlowPathSharingSupported(opt) && !stubs_in_vm_isolate;
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
       ValueFitsSmi()
