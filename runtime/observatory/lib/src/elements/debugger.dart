@@ -219,9 +219,9 @@ class DownCommand extends DebuggerCommand {
     try {
       debugger.downFrame(count);
       debugger.console.print('frame = ${debugger.currentFrame}');
-    } on dynamic catch (e) {
-      debugger.console
-          .print('frame must be in range [${e.start}..${e.end - 1}]');
+    } catch (e) {
+      debugger.console.print(
+          'frame must be in range [${(e as dynamic).start}..${(e as dynamic).end - 1}]');
     }
     return new Future.value(null);
   }
