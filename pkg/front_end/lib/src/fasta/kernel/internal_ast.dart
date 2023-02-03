@@ -4523,7 +4523,7 @@ class AssignedVariablePattern extends Pattern {
     }
     return new EffectExpression(
         new VariableSetExpression(variable, valueExpression,
-            fileOffset: fileOffset),
+            allowFinalAssignment: true, fileOffset: fileOffset),
         new BooleanExpression(true, fileOffset: fileOffset));
   }
 }
