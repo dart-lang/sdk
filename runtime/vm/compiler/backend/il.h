@@ -3085,12 +3085,11 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
 
  private:
   // Set array_reg to point to the index indicated by start (contained in
-  // start_reg) of the typed data or string in array (contained in array_reg).
+  // start_loc) of the typed data or string in array (contained in array_reg).
   void EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                classid_t array_cid,
-                               Value* start,
                                Register array_reg,
-                               Register start_reg);
+                               Location start_loc);
 
   static bool IsArrayTypeSupported(classid_t array_cid) {
     if (IsTypedDataBaseClassId(array_cid)) {

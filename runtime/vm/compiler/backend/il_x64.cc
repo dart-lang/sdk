@@ -160,19 +160,18 @@ LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(kSrcPos, Location::RegisterLocation(RSI));
   locs->set_in(kDestPos, Location::RegisterLocation(RDI));
-  locs->set_in(kSrcStartPos, Location::WritableRegister());
-  locs->set_in(kDestStartPos, Location::WritableRegister());
+  locs->set_in(kSrcStartPos, LocationRegisterOrConstant(src_start()));
+  locs->set_in(kDestStartPos, LocationRegisterOrConstant(dest_start()));
   locs->set_in(kLengthPos, Location::RegisterLocation(RCX));
   return locs;
 }
 
 void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register src_start_reg = locs()->in(kSrcStartPos).reg();
-  const Register dest_start_reg = locs()->in(kDestStartPos).reg();
+  const Location src_start_loc = locs()->in(kSrcStartPos);
+  const Location dest_start_loc = locs()->in(kDestStartPos);
 
-  EmitComputeStartPointer(compiler, src_cid_, src_start(), RSI, src_start_reg);
-  EmitComputeStartPointer(compiler, dest_cid_, dest_start(), RDI,
-                          dest_start_reg);
+  EmitComputeStartPointer(compiler, src_cid_, RSI, src_start_loc);
+  EmitComputeStartPointer(compiler, dest_cid_, RDI, dest_start_loc);
   if (element_size_ <= 8) {
     __ SmiUntag(RCX);
   } else {
@@ -199,9 +198,8 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                               classid_t array_cid,
-                                              Value* start,
                                               Register array_reg,
-                                              Register start_reg) {
+                                              Location start_loc) {
   intptr_t offset;
   if (IsTypedDataBaseClassId(array_cid)) {
     __ movq(array_reg,
@@ -237,6 +235,16 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
         break;
     }
   }
+  ASSERT(start_loc.IsRegister() || start_loc.IsConstant());
+  if (start_loc.IsConstant()) {
+    const auto& constant = start_loc.constant();
+    ASSERT(constant.IsInteger());
+    const int64_t start_value = Integer::Cast(constant).AsInt64Value();
+    const intptr_t add_value = start_value * element_size_ + offset;
+    __ AddImmediate(array_reg, add_value);
+    return;
+  }
+  const Register start_reg = start_loc.reg();
   ScaleFactor scale;
   switch (element_size_) {
     case 1:
@@ -936,7 +944,7 @@ static Condition EmitNullAwareInt64ComparisonOp(FlowGraphCompiler* compiler,
   __ OBJ(cmp)(left, right);
   __ j(EQUAL, equal_result);
   __ OBJ(mov)(TMP, left);
-  __ OBJ(and)(TMP, right);
+  __ OBJ (and)(TMP, right);
   __ BranchIfSmi(TMP, not_equal_result);
   __ CompareClassId(left, kMintCid);
   __ j(NOT_EQUAL, not_equal_result);
@@ -4036,8 +4044,8 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
       object_store->allocate_mint_without_fpu_regs_stub()
           ->untag()
           ->InVMIsolateHeap();
-  const bool shared_slow_path_call = SlowPathSharingSupported(opt) &&
-                                     !stubs_in_vm_isolate;
+  const bool shared_slow_path_call =
+      SlowPathSharingSupported(opt) && !stubs_in_vm_isolate;
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
       ValueFitsSmi()

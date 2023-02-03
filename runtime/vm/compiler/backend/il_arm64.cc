@@ -162,8 +162,8 @@ LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(kSrcPos, Location::WritableRegister());
   locs->set_in(kDestPos, Location::WritableRegister());
-  locs->set_in(kSrcStartPos, Location::RequiresRegister());
-  locs->set_in(kDestStartPos, Location::RequiresRegister());
+  locs->set_in(kSrcStartPos, LocationRegisterOrConstant(src_start()));
+  locs->set_in(kDestStartPos, LocationRegisterOrConstant(dest_start()));
   locs->set_in(kLengthPos, Location::WritableRegister());
   locs->set_temp(0, element_size_ == 16
                         ? Location::Pair(Location::RequiresRegister(),
@@ -175,8 +175,8 @@ LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
 void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register src_reg = locs()->in(kSrcPos).reg();
   const Register dest_reg = locs()->in(kDestPos).reg();
-  const Register src_start_reg = locs()->in(kSrcStartPos).reg();
-  const Register dest_start_reg = locs()->in(kDestStartPos).reg();
+  const Location src_start_loc = locs()->in(kSrcStartPos);
+  const Location dest_start_loc = locs()->in(kDestStartPos);
   const Register length_reg = locs()->in(kLengthPos).reg();
 
   Register temp_reg, temp_reg2;
@@ -189,10 +189,8 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     temp_reg2 = kNoRegister;
   }
 
-  EmitComputeStartPointer(compiler, src_cid_, src_start(), src_reg,
-                          src_start_reg);
-  EmitComputeStartPointer(compiler, dest_cid_, dest_start(), dest_reg,
-                          dest_start_reg);
+  EmitComputeStartPointer(compiler, src_cid_, src_reg, src_start_loc);
+  EmitComputeStartPointer(compiler, dest_cid_, dest_reg, dest_start_loc);
 
   compiler::Label loop, done;
 
@@ -236,44 +234,54 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                               classid_t array_cid,
-                                              Value* start,
                                               Register array_reg,
-                                              Register start_reg) {
+                                              Location start_loc) {
+  intptr_t offset;
   if (IsTypedDataBaseClassId(array_cid)) {
     __ ldr(array_reg,
            compiler::FieldAddress(
                array_reg, compiler::target::PointerBase::data_offset()));
+    offset = 0;
   } else {
     switch (array_cid) {
       case kOneByteStringCid:
-        __ add(
-            array_reg, array_reg,
-            compiler::Operand(compiler::target::OneByteString::data_offset() -
-                              kHeapObjectTag));
+        offset =
+            compiler::target::OneByteString::data_offset() - kHeapObjectTag;
         break;
       case kTwoByteStringCid:
-        __ add(
-            array_reg, array_reg,
-            compiler::Operand(compiler::target::OneByteString::data_offset() -
-                              kHeapObjectTag));
+        offset =
+            compiler::target::TwoByteString::data_offset() - kHeapObjectTag;
         break;
       case kExternalOneByteStringCid:
         __ ldr(array_reg,
                compiler::FieldAddress(array_reg,
                                       compiler::target::ExternalOneByteString::
                                           external_data_offset()));
+        offset = 0;
         break;
       case kExternalTwoByteStringCid:
         __ ldr(array_reg,
                compiler::FieldAddress(array_reg,
                                       compiler::target::ExternalTwoByteString::
                                           external_data_offset()));
+        offset = 0;
         break;
       default:
         UNREACHABLE();
         break;
     }
   }
+  ASSERT(start_loc.IsRegister() || start_loc.IsConstant());
+  if (start_loc.IsConstant()) {
+    const auto& constant = start_loc.constant();
+    ASSERT(constant.IsInteger());
+    const int64_t start_value = Integer::Cast(constant).AsInt64Value();
+    const intptr_t add_value = start_value * element_size_ + offset;
+    __ AddImmediate(array_reg, add_value);
+    return;
+  }
+  __ AddImmediate(array_reg, offset);
+  const Register start_reg = start_loc.reg();
   intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) - 1;
   if (shift < 0) {
 #if defined(DART_COMPRESSED_POINTERS)
