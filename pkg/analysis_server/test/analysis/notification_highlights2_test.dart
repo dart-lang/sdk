@@ -569,10 +569,12 @@ void f(Object o) {
     addTestFile('''
 class AAA {}
 AAA aaa;
+Never nnn() => throw '';
 ''');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.CLASS, 'AAA {}');
     assertHasRegion(HighlightRegionType.CLASS, 'AAA aaa');
+    assertHasRegion(HighlightRegionType.CLASS, 'Never nnn');
   }
 
   Future<void> test_class_constructor_fieldFormalParameter() async {
