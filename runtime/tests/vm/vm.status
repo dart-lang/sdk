@@ -304,11 +304,16 @@ dart_2/snapshot_version_test: RuntimeError # Please triage.
 [ $compiler == dartk && ($hot_reload || $hot_reload_rollback) ]
 dart/data_uri_spawn_test: Skip # Timeout
 dart/heap_snapshot_referrers_test: SkipSlow
+dart/heapsnapshot_cli_test: SkipSlow
+dart/isolates/reload_many_isolates_live_and_die_test: SkipSlow # The test itself does reloading of subprocesses.
 dart/kernel_determinism_test: SkipSlow
+dart/regress_48196_test: SkipSlow
 dart_2/data_uri_spawn_test: Skip # Timeout
 dart_2/heap_snapshot_referrers_test: SkipSlow
+dart_2/heapsnapshot_cli_test: SkipSlow
 dart_2/isolates/reload_many_isolates_live_and_die_test: SkipSlow # The test itself does reloading of subprocesses.
 dart_2/kernel_determinism_test: SkipSlow
+dart_2/regress_48196_test: SkipSlow
 
 [ $compiler == dartkp && $system == windows ]
 dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/40579 Dart C API symbols not available.
