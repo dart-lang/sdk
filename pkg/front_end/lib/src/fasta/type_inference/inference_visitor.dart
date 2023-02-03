@@ -9951,6 +9951,37 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
+    // TODO(johnniwinther): Share this through the type analyzer.
+    VariableDeclarationImpl variable = node.variable as VariableDeclarationImpl;
+    if (isNonNullableByDefault) {
+      bool isDefinitelyAssigned = flowAnalysis.isAssigned(variable);
+      bool isDefinitelyUnassigned = flowAnalysis.isUnassigned(variable);
+      if ((variable.isLate && variable.isFinal) ||
+          variable.isLateFinalWithoutInitializer) {
+        if (isDefinitelyAssigned) {
+          node.error = helper.buildProblem(
+              templateLateDefinitelyAssignedError
+                  .withArguments(node.variable.name!),
+              node.fileOffset,
+              node.variable.name!.length);
+        }
+      } else if (variable.isStaticLate) {
+        if (!isDefinitelyUnassigned) {
+          node.error = helper.buildProblem(
+              templateFinalPossiblyAssignedError
+                  .withArguments(node.variable.name!),
+              node.fileOffset,
+              node.variable.name!.length);
+        }
+      } else if (variable.isFinal && variable.hasDeclaredInitializer) {
+        node.error = helper.buildProblem(
+            templateCannotAssignToFinalVariable
+                .withArguments(node.variable.name!),
+            node.fileOffset,
+            node.variable.name!.length);
+      }
+    }
+
     analyzeAssignedVariablePattern(context, node, node.variable);
 
     pushRewrite(node);
