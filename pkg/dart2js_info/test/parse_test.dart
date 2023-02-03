@@ -3,17 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:dart2js_info/json_info_codec.dart';
 import 'package:test/test.dart';
 
+import 'test_shared.dart';
+
 void main() {
   group('parse', () {
-    test('hello_world', () {
-      var uri = Platform.script.resolve('hello_world/hello_world.js.info.json');
-      var helloWorld = File.fromUri(uri);
-      var json = jsonDecode(helloWorld.readAsStringSync());
+    test('hello_world', () async {
+      var content = await helloWorldDumpInfo();
+      var json = jsonDecode(content);
       var decoded = AllInfoJsonCodec().decode(json);
 
       final program = decoded.program;

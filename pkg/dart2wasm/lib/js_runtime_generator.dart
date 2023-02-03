@@ -111,6 +111,8 @@ class _MethodLoweringConfig {
 /// go ahead and lower everything, let the TFA tree shake, and then emit JS only
 /// for the remaining nodes. We can revisit this if it becomes a performance
 /// issue.
+/// TODO(joshualitt): Only support JS types in static interop APIs, then
+/// simpify this code significantly and clean up the nullabilities.
 class _JSLowerer extends Transformer {
   final Procedure _dartifyRawTarget;
   final Procedure _jsifyRawTarget;
@@ -119,8 +121,10 @@ class _JSLowerer extends Transformer {
   final Procedure _jsValueBoxTarget;
   final Procedure _jsValueUnboxTarget;
   final Procedure _allowInteropTarget;
+  final Procedure _functionToJSTarget;
   final Procedure _inlineJSTarget;
   final Procedure _numToIntTarget;
+  final Constructor _jsValueConstructor;
   final Class _wasmExternRefClass;
   final Class _pragmaClass;
   final Field _pragmaName;
@@ -145,6 +149,10 @@ class _JSLowerer extends Transformer {
             .getTopLevelProcedure('dart:_js_helper', '_isDartFunctionWrapped'),
         _wrapDartFunctionTarget = _coreTypes.index
             .getTopLevelProcedure('dart:_js_helper', '_wrapDartFunction'),
+        _jsValueConstructor = _coreTypes.index
+            .getClass('dart:_js_helper', 'JSValue')
+            .constructors
+            .single,
         _jsValueBoxTarget = _coreTypes.index
             .getClass('dart:_js_helper', 'JSValue')
             .procedures
@@ -163,6 +171,8 @@ class _JSLowerer extends Transformer {
             .getClass('dart:core', 'num')
             .procedures
             .firstWhere((p) => p.name.text == 'toInt'),
+        _functionToJSTarget = _coreTypes.index.getTopLevelProcedure(
+            'dart:_js_interop', 'FunctionToJSExportedDartFunction|toJS'),
         _pragmaClass = _coreTypes.pragmaClass,
         _pragmaName = _coreTypes.pragmaName,
         _pragmaOptions = _coreTypes.pragmaOptions,
@@ -198,6 +208,12 @@ class _JSLowerer extends Transformer {
       Expression argument = node.arguments.positional.single;
       DartType functionType = argument.getStaticType(_staticTypeContext);
       return _allowInterop(node.target, functionType as FunctionType, argument);
+    } else if (node.target == _functionToJSTarget) {
+      Expression argument = node.arguments.positional.single;
+      DartType typeArgument = node.arguments.types.single;
+      if (typeArgument is FunctionType) {
+        return _functionToJS(node.target, typeArgument, argument);
+      }
     } else if (node.target == _inlineJSTarget) {
       return _expandInlineJS(node.target, node);
     }
@@ -339,6 +355,14 @@ class _JSLowerer extends Transformer {
       StaticInvocation(_coreTypes.identicalProcedure,
           Arguments([VariableGet(variable), ConstantExpression(constant)]));
 
+  Procedure _jsifyTarget(DartType type) {
+    if (_isStaticInteropType(type)) {
+      return _jsValueUnboxTarget;
+    } else {
+      return _jsifyRawTarget;
+    }
+  }
+
   void _annotateProcedure(
       Procedure procedure, String pragmaOptionString, _AnnotationType type) {
     String pragmaName;
@@ -369,20 +393,30 @@ class _JSLowerer extends Transformer {
     return procedure;
   }
 
+  StaticInvocation _invokeOneArg(Procedure target, Expression arg) =>
+      StaticInvocation(target, Arguments([arg]));
+
   Statement _generateDispatchCase(
       FunctionType function,
       VariableDeclaration callbackVariable,
       List<VariableDeclaration> positionalParameters,
-      int requiredParameterCount) {
+      int requiredParameterCount,
+      {required bool boxExternRef}) {
     List<Expression> callbackArguments = [];
     for (int i = 0; i < requiredParameterCount; i++) {
-      callbackArguments.add(AsExpression(
-          StaticInvocation(_dartifyRawTarget,
-              Arguments([VariableGet(positionalParameters[i])])),
-          function.positionalParameters[i]));
+      DartType callbackParameterType = function.positionalParameters[i];
+      Expression expression;
+      VariableGet v = VariableGet(positionalParameters[i]);
+      if (_isStaticInteropType(callbackParameterType) && boxExternRef) {
+        expression = _invokeOneArg(_jsValueBoxTarget, v);
+      } else {
+        expression = AsExpression(
+            _invokeOneArg(_dartifyRawTarget, v), callbackParameterType);
+      }
+      callbackArguments.add(expression);
     }
     return ReturnStatement(StaticInvocation(
-        _jsifyRawTarget,
+        _jsifyTarget(function.returnType),
         Arguments([
           FunctionInvocation(
               FunctionAccessKind.FunctionType,
@@ -404,7 +438,8 @@ class _JSLowerer extends Transformer {
   /// appropriate types, dispatch, and then `jsifyRaw` any returned value.
   /// [_createFunctionTrampoline] Returns a [String] function name representing
   /// the name of the wrapping function.
-  String _createFunctionTrampoline(Procedure node, FunctionType function) {
+  String _createFunctionTrampoline(Procedure node, FunctionType function,
+      {required bool boxExternRef}) {
     // Create arguments for each positional parameter in the function. These
     // arguments will be JS objects. The generated wrapper will cast each
     // argument to the correct type.  The first argument to this function will
@@ -442,13 +477,15 @@ class _JSLowerer extends Transformer {
           _variableCheckConstant(
               argumentsLength!, DoubleConstant(i.toDouble())),
           _generateDispatchCase(
-              function, callbackVariable, positionalParameters, i),
+              function, callbackVariable, positionalParameters, i,
+              boxExternRef: boxExternRef),
           null));
     }
 
     // Finally handle the case where only required parameters are passed.
     dispatchCases.add(_generateDispatchCase(function, callbackVariable,
-        positionalParameters, function.requiredParameterCount));
+        positionalParameters, function.requiredParameterCount,
+        boxExternRef: boxExternRef));
     Statement functionTrampolineBody = Block(dispatchCases);
 
     // Create a new procedure for the callback trampoline. This procedure will
@@ -540,7 +577,8 @@ class _JSLowerer extends Transformer {
   /// the original Dart function.
   Expression _allowInterop(
       Procedure node, FunctionType type, Expression argument) {
-    String functionTrampolineName = _createFunctionTrampoline(node, type);
+    String functionTrampolineName =
+        _createFunctionTrampoline(node, type, boxExternRef: false);
     Procedure jsWrapperFunction =
         _getJSWrapperFunction(type, functionTrampolineName, node.fileUri);
     VariableDeclaration v =
@@ -563,6 +601,22 @@ class _JSLowerer extends Transformer {
             type));
   }
 
+  /// Lowers an invocation of `<Function>.toJS<type>()` to:
+  ///
+  ///   JSValue(jsWrapperFunction(<Function>))
+  Expression _functionToJS(
+      Procedure node, FunctionType type, Expression argument) {
+    String functionTrampolineName =
+        _createFunctionTrampoline(node, type, boxExternRef: true);
+    Procedure jsWrapperFunction =
+        _getJSWrapperFunction(type, functionTrampolineName, node.fileUri);
+    return ConstructorInvocation(
+        _jsValueConstructor,
+        Arguments([
+          StaticInvocation(jsWrapperFunction, Arguments([argument]))
+        ]));
+  }
+
   InstanceInvocation _invokeMethod(
           VariableDeclaration receiver, Procedure target) =>
       InstanceInvocation(InstanceAccessKind.Instance, VariableGet(receiver),
@@ -573,7 +627,7 @@ class _JSLowerer extends Transformer {
 
   // Specializes a JS method for a given [_MethodLoweringConfig] and returns an
   // invocation of the specialized method.
-  ReturnStatement _specializeJSMethod(_MethodLoweringConfig config) {
+  Statement _specializeJSMethod(_MethodLoweringConfig config) {
     // Initialize variable declarations.
     List<String> jsParameterStrings = [];
     List<VariableDeclaration> originalParameters = config.parameters;
@@ -609,30 +663,29 @@ class _JSLowerer extends Transformer {
     DartType returnType = config.function.returnType;
     Expression invocation = StaticInvocation(
         dartProcedure,
-        Arguments(originalParameters.map<Expression>((value) {
-          Procedure target;
-          if (_isStaticInteropType(value.type)) {
-            target = _jsValueUnboxTarget;
-          } else {
-            target = _jsifyRawTarget;
-          }
-          return StaticInvocation(target, Arguments([VariableGet(value)]));
-        }).toList()));
-    Procedure dartifyTarget;
-    if (_isStaticInteropType(returnType)) {
-      dartifyTarget = _jsValueBoxTarget;
-    } else {
-      dartifyTarget = _dartifyRawTarget;
-    }
+        Arguments(originalParameters
+            .map<Expression>((value) => StaticInvocation(
+                _jsifyTarget(value.type), Arguments([VariableGet(value)])))
+            .toList()));
     DartType returnTypeOverride = returnType == _coreTypes.intNullableRawType
         ? _coreTypes.doubleNullableRawType
         : returnType == _coreTypes.intNonNullableRawType
             ? _coreTypes.doubleNonNullableRawType
             : returnType;
-    return ReturnStatement(AsExpression(
-        _convertReturnType(returnType, returnTypeOverride,
-            StaticInvocation(dartifyTarget, Arguments([invocation]))),
-        returnType));
+    if (returnType is VoidType) {
+      return ExpressionStatement(invocation);
+    } else {
+      Expression expression;
+      if (_isStaticInteropType(returnType)) {
+        expression = _invokeOneArg(_jsValueBoxTarget, invocation);
+      } else {
+        expression = AsExpression(
+            _convertReturnType(returnType, returnTypeOverride,
+                _invokeOneArg(_dartifyRawTarget, invocation)),
+            returnType);
+      }
+      return ReturnStatement(expression);
+    }
   }
 
   // Handles any necessary return type conversions. Today this is just for
@@ -758,7 +811,7 @@ Map<Procedure, String> _performJSInteropTransformations(
   final staticInteropClassEraser = StaticInteropClassEraser(coreTypes, null,
       libraryForJavaScriptObject: 'dart:_js_helper',
       classNameOfJavaScriptObject: 'JSValue',
-      additionalCoreLibraries: {'_js_helper'});
+      additionalCoreLibraries: {'_js_helper', '_js_types', '_js_interop'});
   for (Library library in interopDependentLibraries) {
     staticInteropClassEraser.visitLibrary(library);
   }

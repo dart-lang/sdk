@@ -56,7 +56,7 @@ class Translator with KernelNodes {
   final Component component;
   final List<Library> libraries;
   final CoreTypes coreTypes;
-  final TypeEnvironment typeEnvironment;
+  late final TypeEnvironment typeEnvironment;
   final ClosedWorldClassHierarchy hierarchy;
   late final ClassHierarchySubtypes subtypes;
 
@@ -203,10 +203,11 @@ class Translator with KernelNodes {
     topInfo.nullableType
   ]);
 
-  Translator(this.component, this.coreTypes, this.typeEnvironment, this.options)
+  Translator(this.component, this.coreTypes, this.options)
       : libraries = component.libraries,
         hierarchy =
             ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy {
+    typeEnvironment = TypeEnvironment(coreTypes, hierarchy);
     subtypes = hierarchy.computeSubtypesInformation();
     closureLayouter = ClosureLayouter(this);
     classInfoCollector = ClassInfoCollector(this);

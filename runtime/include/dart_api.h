@@ -3646,6 +3646,8 @@ DART_EXPORT Dart_Handle Dart_LibraryHandleError(Dart_Handle library,
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_LoadLibraryFromKernel(const uint8_t* kernel_buffer,
                            intptr_t kernel_buffer_size);
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
+Dart_LoadLibrary(Dart_Handle kernel_buffer);
 
 /**
  * Indicates that all outstanding load requests have been satisfied.

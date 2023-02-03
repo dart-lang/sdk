@@ -1989,6 +1989,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleSwitchCaseNoWhenClause(Token token) {
+    listener?.handleSwitchCaseNoWhenClause(token);
+  }
+
+  @override
   void handleSwitchExpressionCasePattern(Token token) {
     listener?.handleSwitchExpressionCasePattern(token);
   }

@@ -11,24 +11,28 @@
 // --dump-info=binary
 // --packages=$PATH_TO_SDK/.dart_tool/package_config.json
 
-import 'dart:io';
-
 import 'package:dart2js_info/binary_serialization.dart';
+import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/runtime_coverage_utils.dart';
 import 'package:dart2js_info/src/util.dart';
-
 import 'package:test/test.dart';
+
+import 'test_shared.dart';
 
 void main() {
   group('runtime coverage', () {
     group('class filter (angular info)', () {
-      final infoBinaryFile =
-          File.fromUri(Platform.script.resolve('classes/classes.js.info.data'));
-      final allInfo = decode(infoBinaryFile.readAsBytesSync());
-      final classFilters =
-          File.fromUri(Platform.script.resolve('classes/class_filter.txt'))
-              .readAsLinesSync();
       final runtimeClassInfos = <String, RuntimeClassInfo>{};
+      late final List<String> classFilters;
+      late final AllInfo allInfo;
+
+      setUpAll(() async {
+        final infoBinaryFile =
+            await resolveTestFile('classes/classes.js.info.data');
+        allInfo = decode(infoBinaryFile.readAsBytesSync());
+        classFilters = (await resolveTestFile('classes/class_filter.txt'))
+            .readAsLinesSync();
+      });
 
       setUp(() {
         runtimeClassInfos.clear();

@@ -132,6 +132,12 @@ riscv32, riscv64, simriscv32, simriscv64''')
         hide: true,
         help: '''The named test configuration that supplies the values for all
 test options, specifying how tests should be run.''')
+    ..addFlag('detect-host',
+        aliases: ['detect_host'],
+        help: 'Replace the system and architecture options in named '
+            'configurations to match the local host. Provided only as a '
+            'convenience when running tests locally. It is an error use this '
+            'flag with without specifying a named configuration.')
     ..addFlag('build',
         help: 'Build the necessary targets to test this configuration')
     // TODO(sigmund): rename flag once we migrate all dart2js bots to the test
@@ -735,12 +741,32 @@ has been specified on the command line.''')
     }
 
     var namedConfigurations = data["named-configuration"] as List<String>;
+    var detectHost = data['detect-host'] as bool;
+    if (detectHost && namedConfigurations.isEmpty) {
+      _fail('The `--detect-host` flag is only supported for named '
+          'configurations.');
+    }
     if (namedConfigurations.isNotEmpty) {
       var testMatrix = TestMatrix.fromPath(_testMatrixFile);
       for (var namedConfiguration in namedConfigurations) {
         try {
           var configuration = testMatrix.configurations
               .singleWhere((c) => c.name == namedConfiguration);
+          if (configuration.system != System.host ||
+              configuration.architecture != Architecture.host) {
+            print("-- WARNING -- \n"
+                "The provided named configuration does not match the host "
+                "system or architecture:\n"
+                "    ${configuration.name}");
+            if (detectHost) {
+              configuration = Configuration.detectHost(configuration);
+              print("Detecting host configuration:\n"
+                  "    $configuration");
+            } else {
+              print("Passing the `--detect-host` flag will modify the named "
+                  "configuration to match the local system and architecture.");
+            }
+          }
           addConfiguration(configuration, namedConfiguration);
         } on StateError {
           var names = testMatrix.configurations

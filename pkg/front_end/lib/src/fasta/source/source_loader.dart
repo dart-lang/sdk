@@ -2180,6 +2180,25 @@ severity: $severity
       if (supertypeDeclaration is ClassBuilder &&
           cls.libraryBuilder.origin !=
               supertypeDeclaration.libraryBuilder.origin) {
+        if (isClassModifiersEnabled(supertypeDeclaration)) {
+          if (supertypeDeclaration.isInterface && !cls.isMixinDeclaration) {
+            cls.addProblem(
+                templateInterfaceClassExtendedOutsideOfLibrary
+                    .withArguments(supertypeDeclaration.fullNameForErrors),
+                supertypeBuilder.charOffset ?? TreeNode.noOffset,
+                noLength);
+          } else if (supertypeDeclaration.isFinal &&
+              // TODO(kallentu): Error case where the class has a singular on
+              // clause. Change with the new spec changes.
+              !cls.isMixinDeclaration) {
+            cls.addProblem(
+                templateFinalClassExtendedOutsideOfLibrary
+                    .withArguments(supertypeDeclaration.fullNameForErrors),
+                supertypeBuilder.charOffset ?? TreeNode.noOffset,
+                noLength);
+          }
+        }
+
         // Report error for extending a sealed class outside of its library.
         if (isSealedClassEnabled(supertypeDeclaration) &&
             supertypeDeclaration.isSealed &&
@@ -2211,6 +2230,19 @@ severity: $severity
               !mixedInTypeDeclaration.isMixinClass) {
             cls.addProblem(
                 templateCantUseClassAsMixin
+                    .withArguments(mixedInTypeDeclaration.fullNameForErrors),
+                mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
+                noLength);
+          }
+          if (mixedInTypeDeclaration.isInterface) {
+            cls.addProblem(
+                templateInterfaceMixinMixedInOutsideOfLibrary
+                    .withArguments(mixedInTypeDeclaration.fullNameForErrors),
+                mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
+                noLength);
+          } else if (mixedInTypeDeclaration.isFinal) {
+            cls.addProblem(
+                templateFinalMixinMixedInOutsideOfLibrary
                     .withArguments(mixedInTypeDeclaration.fullNameForErrors),
                 mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
                 noLength);
@@ -2250,6 +2282,23 @@ severity: $severity
               } else {
                 cls.addProblem(
                     templateBaseClassImplementedOutsideOfLibrary
+                        .withArguments(interfaceDeclaration.fullNameForErrors),
+                    interfaceBuilder.charOffset ?? TreeNode.noOffset,
+                    noLength);
+              }
+            } else if (interfaceDeclaration.isFinal &&
+                // TODO(kallentu): Error case where the class has multiple on
+                // clauses. Change with the new spec changes.
+                !cls.cls.isAnonymousMixin) {
+              if (interfaceDeclaration.isMixinDeclaration) {
+                cls.addProblem(
+                    templateFinalMixinImplementedOutsideOfLibrary
+                        .withArguments(interfaceDeclaration.fullNameForErrors),
+                    interfaceBuilder.charOffset ?? TreeNode.noOffset,
+                    noLength);
+              } else {
+                cls.addProblem(
+                    templateFinalClassImplementedOutsideOfLibrary
                         .withArguments(interfaceDeclaration.fullNameForErrors),
                     interfaceBuilder.charOffset ?? TreeNode.noOffset,
                     noLength);

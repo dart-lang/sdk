@@ -107,7 +107,7 @@ class AnalysisServerMemoryUsageTest
       outOfTestExpect(serverConnected.isCompleted, isFalse);
       serverConnected.complete();
     });
-    return startServer(servicesPort: _vmServicePort).then((_) {
+    return startServer(servicePort: _vmServicePort).then((_) {
       server.listenToOutput(dispatchNotification);
       server.exitCode.then((_) {
         skipShutdown = true;

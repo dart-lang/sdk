@@ -12,12 +12,12 @@ import 'final_class_typedef_lib.dart';
 class ATypeDef extends FinalClassTypeDef {}
 //                     ^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] unspecified
+// [cfe] The class 'FinalClass' can't be extended outside of its library because it's a final class.
 
 class BTypeDef implements FinalClassTypeDef {
 //                        ^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] unspecified
+// [cfe] The class 'FinalClass' can't be implemented outside of its library because it's a final class.
   @override
   int foo = 1;
 }

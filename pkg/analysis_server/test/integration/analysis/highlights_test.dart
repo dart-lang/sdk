@@ -49,12 +49,12 @@ class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
   @override
   Future startServer({
     int? diagnosticPort,
-    int? servicesPort,
+    int? servicePort,
   }) {
     return server.start(
         dartSdkPath: dartSdkPath,
         diagnosticPort: diagnosticPort,
-        servicesPort: servicesPort,
+        servicePort: servicePort,
         useAnalysisHighlight2: true);
   }
 

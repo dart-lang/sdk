@@ -1,0 +1,46 @@
+import 'main_lib.dart';
+
+class ExtendsFinalClassTypedef extends ATypeDef {}
+
+class ExtendsFinalClassTypedef2 extends ATypeDef2 {}
+
+class ExtendsFinalClassTypedefOutside extends AOutsideTypedef {}
+
+class ImplementsFinalClassTypedef implements ATypeDef {}
+
+class ImplementsFinalClassTypedef2 implements ATypeDef2 {}
+
+class ImplementsFinalClassTypedefOutside implements AOutsideTypedef {}
+
+class ImplementsFinalMixinTypeDef implements MTypeDef {}
+
+class ImplementsFinalMixinTypeDef2 implements MTypeDef2 {}
+
+class ImplementsFinalMixinTypeDefOutside implements MOutsideTypedef {}
+
+class MixInFinalMixinTypeDef with MTypeDef {}
+
+class MixInFinalMixinTypeDef2 with MTypeDef2 {}
+
+class MixInFinalMixinTypeDefOutside with MOutsideTypedef {}
+
+enum EnumImplementsFinalClassTypedef implements ATypeDef { x }
+
+enum EnumImplementsFinalClassTypedef2 implements ATypeDef2 { x }
+
+enum EnumImplementsFinalClassTypedefOutside implements AOutsideTypedef { x }
+
+enum EnumImplementsFinalMixinTypeDef implements MTypeDef { x }
+
+enum EnumImplementsFinalMixinTypeDef2 implements MTypeDef2 { x }
+
+enum EnumImplementsFinalMixinTypeDefOutside implements MOutsideTypedef { x }
+
+enum EnumMixInFinalMixinTypeDef with MTypeDef { x }
+
+enum EnumMixInFinalMixinTypeDef2 with MTypeDef2 { x }
+
+enum EnumMixInFinalMixinTypeDefOutside with MOutsideTypedef { x }
+
+typedef AOutsideTypedef = A;
+typedef MOutsideTypedef = M;

@@ -5340,6 +5340,11 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleSwitchCaseNoWhenClause(Token token) {
+    debugEvent("SwitchCaseNoWhenClause");
+  }
+
+  @override
   void handleSwitchExpressionCasePattern(Token token) {
     debugEvent("SwitchExpressionCasePattern");
   }

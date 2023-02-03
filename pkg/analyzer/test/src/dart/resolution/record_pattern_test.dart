@@ -29,6 +29,7 @@ void f(x) {
 RecordPattern
   leftParenthesis: (
   rightParenthesis: )
+  matchedValueType: dynamic
 ''');
   }
 
@@ -59,6 +60,7 @@ RecordPattern
           type: dynamic
       fieldElement: <null>
   rightParenthesis: )
+  matchedValueType: dynamic
 ''');
   }
 
@@ -66,7 +68,7 @@ RecordPattern
     await assertErrorsInCode(r'''
 void f(x) {
   switch (x) {
-    case (var y):
+    case (var y,):
       break;
   }
 }
@@ -75,14 +77,18 @@ void f(x) {
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-ParenthesizedPattern
+RecordPattern
   leftParenthesis: (
-  pattern: DeclaredVariablePattern
-    keyword: var
-    name: y
-    declaredElement: hasImplicitType y@41
-      type: dynamic
+  fields
+    RecordPatternField
+      pattern: DeclaredVariablePattern
+        keyword: var
+        name: y
+        declaredElement: hasImplicitType y@41
+          type: dynamic
+      fieldElement: <null>
   rightParenthesis: )
+  matchedValueType: dynamic
 ''');
   }
 
@@ -100,6 +106,7 @@ void f(Object? x) {
 RecordPattern
   leftParenthesis: (
   rightParenthesis: )
+  matchedValueType: Object?
 ''');
   }
 
@@ -127,6 +134,7 @@ RecordPattern
           staticType: int
       fieldElement: <null>
   rightParenthesis: )
+  matchedValueType: Object?
 ''');
   }
 
@@ -162,6 +170,7 @@ RecordPattern
           type: int
       fieldElement: <null>
   rightParenthesis: )
+  matchedValueType: Object?
 ''');
   }
 
@@ -192,6 +201,7 @@ RecordPattern
           type: Object?
       fieldElement: <null>
   rightParenthesis: )
+  matchedValueType: Object?
 ''');
   }
 
@@ -216,6 +226,7 @@ RecordPattern
           staticType: int
       fieldElement: <null>
   rightParenthesis: )
+  matchedValueType: Object?
 ''');
   }
 
@@ -248,6 +259,7 @@ RecordPattern
           type: int
       fieldElement: <null>
   rightParenthesis: )
+  matchedValueType: Object?
 ''');
   }
 
@@ -275,6 +287,7 @@ RecordPattern
           type: Object?
       fieldElement: <null>
   rightParenthesis: )
+  matchedValueType: Object?
 ''');
   }
 
@@ -306,6 +319,7 @@ RecordPattern
           type: Object?
       fieldElement: <null>
   rightParenthesis: )
+  matchedValueType: ()
 ''');
   }
 
@@ -336,6 +350,7 @@ RecordPattern
           type: Object?
       fieldElement: <null>
   rightParenthesis: )
+  matchedValueType: ()
 ''');
   }
 
@@ -365,6 +380,7 @@ RecordPattern
           type: Object?
       fieldElement: <null>
   rightParenthesis: )
+  matchedValueType: ({int b})
 ''');
   }
 
@@ -394,6 +410,7 @@ RecordPattern
           type: Object?
       fieldElement: <null>
   rightParenthesis: )
+  matchedValueType: ({int a, int b})
 ''');
   }
 
@@ -422,6 +439,7 @@ RecordPattern
           type: Object?
       fieldElement: <null>
   rightParenthesis: )
+  matchedValueType: ()
 ''');
   }
 
@@ -449,6 +467,7 @@ RecordPattern
           type: Object?
       fieldElement: <null>
   rightParenthesis: )
+  matchedValueType: (int, String)
 ''');
   }
 
@@ -467,6 +486,7 @@ void f(() x) {
 RecordPattern
   leftParenthesis: (
   rightParenthesis: )
+  matchedValueType: ()
 ''');
   }
 
@@ -513,6 +533,7 @@ RecordPattern
           type: double
       fieldElement: <null>
   rightParenthesis: )
+  matchedValueType: (int, double, {String foo})
 ''');
   }
 
@@ -543,6 +564,7 @@ RecordPattern
           type: Object?
       fieldElement: <null>
   rightParenthesis: )
+  matchedValueType: ({int foo})
 ''');
   }
 
@@ -573,6 +595,7 @@ RecordPattern
           type: int
       fieldElement: <null>
   rightParenthesis: )
+  matchedValueType: ({int foo})
 ''');
   }
 
@@ -601,6 +624,7 @@ RecordPattern
           staticType: int
       fieldElement: <null>
   rightParenthesis: )
+  matchedValueType: ({int foo})
 ''');
   }
 
@@ -630,6 +654,7 @@ RecordPattern
           type: int
       fieldElement: <null>
   rightParenthesis: )
+  matchedValueType: ({int foo})
 ''');
   }
 
@@ -667,6 +692,7 @@ RecordPattern
           type: int
       fieldElement: <null>
   rightParenthesis: )
+  matchedValueType: ({int? foo})
 ''');
   }
 
@@ -698,6 +724,7 @@ RecordPattern
         operator: !
       fieldElement: <null>
   rightParenthesis: )
+  matchedValueType: ({int? foo})
 ''');
   }
 
@@ -729,6 +756,7 @@ RecordPattern
         operator: ?
       fieldElement: <null>
   rightParenthesis: )
+  matchedValueType: ({int? foo})
 ''');
   }
 
@@ -756,6 +784,7 @@ RecordPattern
           type: int
       fieldElement: <null>
   rightParenthesis: )
+  matchedValueType: (int)
 ''');
   }
 
@@ -788,6 +817,7 @@ PatternVariableDeclaration
             type: String
         fieldElement: <null>
     rightParenthesis: )
+    matchedValueType: (int, String)
   equals: =
   expression: SimpleIdentifier
     token: x
@@ -839,6 +869,7 @@ PatternVariableDeclaration
             type: String
         fieldElement: <null>
     rightParenthesis: )
+    matchedValueType: (int, String)
   equals: =
   expression: MethodInvocation
     methodName: SimpleIdentifier

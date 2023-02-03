@@ -372,12 +372,19 @@ static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
   }
 }
 
+static void MallocFinalizer(void* isolate_callback_data, void* peer) {
+  free(peer);
+}
+
 static void MaybeLoadExtraInputs(const CommandLineOptions& inputs) {
   for (intptr_t i = 1; i < inputs.count(); i++) {
     uint8_t* buffer = NULL;
     intptr_t size = 0;
     ReadFile(inputs.GetArgument(i), &buffer, &size);
-    Dart_Handle result = Dart_LoadLibraryFromKernel(buffer, size);
+    Dart_Handle td = Dart_NewExternalTypedDataWithFinalizer(
+        Dart_TypedData_kUint8, buffer, size, buffer, size, MallocFinalizer);
+    CHECK_RESULT(td);
+    Dart_Handle result = Dart_LoadLibrary(td);
     CHECK_RESULT(result);
   }
 }

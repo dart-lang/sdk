@@ -65,6 +65,7 @@ class JsInteropChecks extends RecursiveVisitor {
     '_foreign_helper', // for foreign helpers
     '_late_helper', // for dart2js late variable utilities
     '_interceptors', // for ddc JS string
+    '_js_interop',
     '_native_typed_data',
     '_runtime', // for ddc types at runtime
     'async',
@@ -78,6 +79,12 @@ class JsInteropChecks extends RecursiveVisitor {
     'web_audio',
     'web_gl',
     'web_sql'
+  ];
+
+  /// Libraries that need to use external extension members with static interop
+  /// types.
+  static final Iterable<String> _customStaticInteropImplementations = [
+    '_js_interop',
   ];
 
   /// Native tests to exclude from checks on external.
@@ -361,7 +368,8 @@ class JsInteropChecks extends RecursiveVisitor {
 
     if (procedure.isExternal &&
         procedure.isExtensionMember &&
-        _isStaticInteropExtensionMember(procedure)) {
+        _isStaticInteropExtensionMember(procedure) &&
+        !_isAllowedCustomStaticInteropImplementation(procedure)) {
       // If the extension has type parameters of its own, it copies those type
       // parameters to the procedure's type parameters (in the front) as well.
       // Ignore these for the analysis.
@@ -513,6 +521,7 @@ class JsInteropChecks extends RecursiveVisitor {
     // Some backends have multiple native APIs.
     if (!enableDisallowedExternalCheck) return;
     if (member.isExternal) {
+      if (_isAllowedExternalUsage(member)) return;
       if (member.isExtensionMember) {
         if (!_isNativeExtensionMember(member)) {
           _diagnosticsReporter.report(
@@ -521,8 +530,7 @@ class JsInteropChecks extends RecursiveVisitor {
               member.name.text.length,
               member.fileUri);
         }
-      } else if (!hasJSInteropAnnotation(member) &&
-          !_isAllowedExternalUsage(member)) {
+      } else if (!hasJSInteropAnnotation(member)) {
         // Member could be JS annotated and not considered a JS interop member
         // if inside a non-JS interop class. Should not report an error in this
         // case, since a different error will already be produced.
@@ -550,6 +558,15 @@ class JsInteropChecks extends RecursiveVisitor {
     Uri uri = member.enclosingLibrary.importUri;
     return uri.isScheme('dart') &&
             _pathsWithAllowedDartExternalUsage.contains(uri.path) ||
+        _allowedNativeTestPatterns.any((pattern) => uri.path.contains(pattern));
+  }
+
+  /// Verifies given member is an external extension member on a static interop
+  /// type that needs custom behavior.
+  bool _isAllowedCustomStaticInteropImplementation(Member member) {
+    Uri uri = member.enclosingLibrary.importUri;
+    return uri.isScheme('dart') &&
+            _customStaticInteropImplementations.contains(uri.path) ||
         _allowedNativeTestPatterns.any((pattern) => uri.path.contains(pattern));
   }
 

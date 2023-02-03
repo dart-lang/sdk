@@ -1886,6 +1886,11 @@ class Listener implements UnescapeErrorListener {
     logEvent("Operator");
   }
 
+  /// Invoked when a pattern switch case doesn't have the 'when' clause
+  void handleSwitchCaseNoWhenClause(Token token) {
+    logEvent("SwitchCaseNoWhenClause");
+  }
+
   void handleSwitchExpressionCasePattern(Token token) {
     logEvent("SwitchExpressionCasePattern");
   }

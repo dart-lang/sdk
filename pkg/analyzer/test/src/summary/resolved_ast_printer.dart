@@ -1189,6 +1189,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('RecordPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeType('matchedValueType', node.matchedValueType);
     });
   }
 

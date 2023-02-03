@@ -242,6 +242,7 @@ PatternAssignment
           element: self::@function::f::@parameter::a
         fieldElement: <null>
     rightParenthesis: )
+    matchedValueType: ({int foo})
   equals: =
   expression: SimpleIdentifier
     token: x
@@ -271,6 +272,7 @@ PatternAssignment
           element: self::@function::f::@parameter::a
         fieldElement: <null>
     rightParenthesis: )
+    matchedValueType: ({int a})
   equals: =
   expression: RecordLiteral
     leftParenthesis: (
@@ -309,6 +311,7 @@ PatternAssignment
           element: self::@function::f::@parameter::a
         fieldElement: <null>
     rightParenthesis: )
+    matchedValueType: (int)
   equals: =
   expression: SimpleIdentifier
     token: x

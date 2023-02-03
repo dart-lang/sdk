@@ -3,19 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:dart2js_info/json_info_codec.dart';
 import 'package:dart2js_info/proto_info_codec.dart';
 import 'package:test/test.dart';
 
+import 'test_shared.dart';
+
 void main() {
   group('json to proto conversion with deferred files', () {
-    test('hello_world_deferred', () {
-      var uri = Platform.script
-          .resolve('hello_world_deferred/hello_world_deferred.js.info.json');
-      final helloWorld = File.fromUri(uri);
-      final json = jsonDecode(helloWorld.readAsStringSync());
+    test('hello_world_deferred', () async {
+      final helloWorld = await helloWorldDeferredDumpInfo();
+      final json = jsonDecode(helloWorld);
       final decoded = AllInfoJsonCodec().decode(json);
       final proto = AllInfoProtoCodec().encode(decoded);
 

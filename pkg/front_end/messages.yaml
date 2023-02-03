@@ -6082,6 +6082,72 @@ BaseMixinImplementedOutsideOfLibrary:
     lib.dart:
       base mixin A {}
 
+InterfaceClassExtendedOutsideOfLibrary:
+  problemMessage: "The class '#name' can't be extended outside of its library because it's an interface class."
+  analyzerCode: INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY
+  experiments: class-modifiers
+  script:
+    main.dart:
+      import 'lib.dart';
+      class B extends A {}
+    lib.dart:
+      interface class A {}
+
+InterfaceMixinMixedInOutsideOfLibrary:
+  problemMessage: "The mixin '#name' can't be mixed-in outside of its library because it's an interface mixin."
+  analyzerCode: INTERFACE_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY
+  experiments: class-modifiers
+  script:
+    main.dart:
+      import 'lib.dart';
+      class B with A {}
+    lib.dart:
+      interface mixin A {}
+
+FinalClassExtendedOutsideOfLibrary:
+  problemMessage: "The class '#name' can't be extended outside of its library because it's a final class."
+  analyzerCode: FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY
+  experiments: class-modifiers
+  script:
+    main.dart:
+      import 'lib.dart';
+      class B extends A {}
+    lib.dart:
+      final class A {}
+
+FinalClassImplementedOutsideOfLibrary:
+  problemMessage: "The class '#name' can't be implemented outside of its library because it's a final class."
+  analyzerCode: FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY
+  experiments: class-modifiers
+  script:
+    main.dart:
+      import 'lib.dart';
+      class B implements A {}
+    lib.dart:
+      final class A {}
+
+FinalMixinImplementedOutsideOfLibrary:
+  problemMessage: "The mixin '#name' can't be implemented outside of its library because it's a final mixin."
+  analyzerCode: FINAL_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY
+  experiments: class-modifiers
+  script:
+    main.dart:
+      import 'lib.dart';
+      class B implements A {}
+    lib.dart:
+      final mixin A {}
+
+FinalMixinMixedInOutsideOfLibrary:
+  problemMessage: "The mixin '#name' can't be mixed-in outside of its library because it's a final mixin."
+  analyzerCode: FINAL_MIXIN_MIXED_IN_OUTSIDE_OF_LIBRARY
+  experiments: class-modifiers
+  script:
+    main.dart:
+      import 'lib.dart';
+      class B with A {}
+    lib.dart:
+      final mixin A {}
+
 UnspecifiedGetterNameInObjectPattern:
   problemMessage: "The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern."
   experiments: patterns
@@ -6285,4 +6351,14 @@ UnnamedObjectPatternField:
   script: |
     method(x) {
       if (x case int(5)) {}
+    }
+
+PatternAssignmentDeclaresVariable:
+  problemMessage: "Variable '#name' can't be declared in a pattern assignment."
+  correctionMessage: "Try using a preexisting variable or changing the assignment to a pattern variable declaration."
+  experiments: patterns
+  script: |
+    method(x) {
+      var y;
+      [y, var z] = x;
     }

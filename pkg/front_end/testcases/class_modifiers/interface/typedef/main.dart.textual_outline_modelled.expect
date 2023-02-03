@@ -1,0 +1,22 @@
+import 'main_lib.dart';
+
+class ExtendsInterfaceClassTypedef extends ATypeDef {}
+
+class ExtendsInterfaceClassTypedef2 extends ATypeDef2 {}
+
+class ExtendsInterfaceClassTypedefOutside extends AOutsideTypedef {}
+
+class MixInInterfaceMixinTypeDef with MTypeDef {}
+
+class MixInInterfaceMixinTypeDef2 with MTypeDef2 {}
+
+class MixInInterfaceMixinTypeDefOutside with MOutsideTypedef {}
+
+enum EnumMixInInterfaceMixinTypeDef with MTypeDef { foo }
+
+enum EnumMixInInterfaceMixinTypeDef2 with MTypeDef2 { foo }
+
+enum EnumMixInInterfaceMixinTypeDefOutside with MOutsideTypedef { foo }
+
+typedef AOutsideTypedef = A;
+typedef MOutsideTypedef = M;

@@ -1,8 +1,0 @@
-abstract class A {
-  int get bar;
-  int get baz;
-  int get foo;
-  num get boz;
-}
-
-test(dynamic x) {}
