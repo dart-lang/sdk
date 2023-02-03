@@ -18,8 +18,10 @@
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/compiler/jit/jit_call_specializer.h"
+#include "vm/compiler/method_recognizer.h"
 #include "vm/flags.h"
 #include "vm/kernel.h"
+#include "vm/log.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -4429,6 +4431,41 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
 
       // We need a return value to replace uses of the original definition.
       // The final instruction is a use of 'void operator[]=()', so we use null.
+      *result = flow_graph->constant_null();
+      return true;
+    }
+
+    case MethodRecognizer::kMemCopy: {
+      // Keep consistent with kernel_to_il.cc (except unboxed param).
+      *entry = new (Z)
+          FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
+                             call->GetBlock()->try_index(), DeoptId::kNone);
+      (*entry)->InheritDeoptTarget(Z, call);
+      Definition* arg_target = call->ArgumentAt(0);
+      Definition* arg_target_offset_in_bytes = call->ArgumentAt(1);
+      Definition* arg_source = call->ArgumentAt(2);
+      Definition* arg_source_offset_in_bytes = call->ArgumentAt(3);
+      Definition* arg_length_in_bytes = call->ArgumentAt(4);
+
+      auto env = call->deopt_id() != DeoptId::kNone ? call->env() : nullptr;
+
+      // Insert explicit unboxing instructions with truncation to avoid relying
+      // on [SelectRepresentations] which doesn't mark them as truncating.
+      arg_length_in_bytes =
+          UnboxInstr::Create(kUnboxedIntPtr, new (Z) Value(arg_length_in_bytes),
+                             call->deopt_id(), Instruction::kNotSpeculative);
+      arg_length_in_bytes->AsUnboxInteger()->mark_truncating();
+      flow_graph->AppendTo(*entry, arg_length_in_bytes, env, FlowGraph::kValue);
+
+      *last = new (Z)
+          MemoryCopyInstr(new (Z) Value(arg_source), new (Z) Value(arg_target),
+                          new (Z) Value(arg_source_offset_in_bytes),
+                          new (Z) Value(arg_target_offset_in_bytes),
+                          new (Z) Value(arg_length_in_bytes),
+                          /*src_cid=*/kTypedDataUint8ArrayCid,
+                          /*dest_cid=*/kTypedDataUint8ArrayCid, true);
+      flow_graph->AppendTo(arg_length_in_bytes, *last, env, FlowGraph::kEffect);
+
       *result = flow_graph->constant_null();
       return true;
     }

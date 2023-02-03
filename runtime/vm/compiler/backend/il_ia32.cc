@@ -102,10 +102,17 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   EmitComputeStartPointer(compiler, src_cid_, ESI, src_start_loc);
   EmitComputeStartPointer(compiler, dest_cid_, EDI, dest_start_loc);
-  if (element_size_ <= 4) {
-    __ SmiUntag(ECX);
-  } else if (element_size_ == 16) {
-    __ shll(ECX, compiler::Immediate(1));
+  if (element_size_ <= compiler::target::kWordSize) {
+    if (!unboxed_length_) {
+      __ SmiUntag(ECX);
+    }
+  } else {
+    const intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) -
+                           compiler::target::kWordSizeLog2 -
+                           (unboxed_length_ ? 0 : kSmiTagShift);
+    if (shift != 0) {
+      __ shll(ECX, compiler::Immediate(shift));
+    }
   }
   switch (element_size_) {
     case 1:

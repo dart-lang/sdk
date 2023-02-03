@@ -197,8 +197,7 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   compiler::Label loop, done;
 
-  // Untag length and skip copy if length is zero.
-  __ SmiUntag(length_reg);
+  const intptr_t loop_subtract = unboxed_length_ ? 1 : Smi::RawValue(1);
   __ beqz(length_reg, &done);
 
   __ Bind(&loop);
@@ -263,7 +262,7 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif
       break;
   }
-  __ subi(length_reg, length_reg, 1);
+  __ subi(length_reg, length_reg, loop_subtract);
   __ bnez(length_reg, &loop);
   __ Bind(&done);
 }

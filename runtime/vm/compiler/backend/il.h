@@ -3032,10 +3032,12 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
                   Value* dest_start,
                   Value* length,
                   classid_t src_cid,
-                  classid_t dest_cid)
+                  classid_t dest_cid,
+                  bool unboxed_length)
       : src_cid_(src_cid),
         dest_cid_(dest_cid),
-        element_size_(Instance::ElementSizeFor(src_cid)) {
+        element_size_(Instance::ElementSizeFor(src_cid)),
+        unboxed_length_(unboxed_length) {
     ASSERT(IsArrayTypeSupported(src_cid));
     ASSERT(IsArrayTypeSupported(dest_cid));
     ASSERT(Instance::ElementSizeFor(src_cid) ==
@@ -3058,6 +3060,9 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
   DECLARE_INSTRUCTION(MemoryCopy)
 
   virtual Representation RequiredInputRepresentation(intptr_t index) const {
+    if (index == kLengthPos && unboxed_length_) {
+      return kUnboxedIntPtr;
+    }
     // All inputs are tagged (for now).
     return kTagged;
   }
@@ -3076,7 +3081,8 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
 #define FIELD_LIST(F)                                                          \
   F(classid_t, src_cid_)                                                       \
   F(classid_t, dest_cid_)                                                      \
-  F(intptr_t, element_size_)
+  F(intptr_t, element_size_)                                                   \
+  F(bool, unboxed_length_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(MemoryCopyInstr,
                                           TemplateInstruction,

@@ -40,12 +40,14 @@ static classid_t TypedDataCidForElementSize(intptr_t elem_size) {
 static void RunMemoryCopyInstrTest(intptr_t src_start,
                                    intptr_t dest_start,
                                    intptr_t length,
-                                   intptr_t elem_size) {
+                                   intptr_t elem_size,
+                                   bool length_unboxed) {
   OS::Print("==================================================\n");
   OS::Print("RunMemoryCopyInstrTest src_start %" Pd " dest_start %" Pd
             " length "
-            "%" Pd " elem_size %" Pd "\n",
-            src_start, dest_start, length, elem_size);
+            "%" Pd "%s elem_size %" Pd "\n",
+            src_start, dest_start, length, length_unboxed ? " (unboxed)" : "",
+            elem_size);
   OS::Print("==================================================\n");
   classid_t cid = TypedDataCidForElementSize(elem_size);
 
@@ -116,7 +118,8 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
       Integer::ZoneHandle(zone, Integer::New(dest_start, Heap::kOld)), kTagged);
 
   auto* const length_constant_instr = flow_graph->GetConstant(
-      Integer::ZoneHandle(zone, Integer::New(length, Heap::kOld)), kTagged);
+      Integer::ZoneHandle(zone, Integer::New(length, Heap::kOld)),
+      length_unboxed ? kUnboxedIntPtr : kTagged);
 
   auto* const memory_copy_instr = new (zone)
       MemoryCopyInstr(new (zone) Value(pointer), new (zone) Value(pointer2),
@@ -124,7 +127,7 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
                       new (zone) Value(dest_start_constant_instr),
                       new (zone) Value(length_constant_instr),
                       /*src_cid=*/cid,
-                      /*dest_cid=*/cid);
+                      /*dest_cid=*/cid, length_unboxed);
   flow_graph->InsertBefore(another_function_call, memory_copy_instr, nullptr,
                            FlowGraph::kEffect);
 
@@ -166,11 +169,21 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
   free(ptr2);
 }
 
-#define MEMORY_COPY_TEST(src_start, dest_start, length, elem_size)             \
+#define MEMORY_COPY_TEST_BOXED(src_start, dest_start, length, elem_size)       \
   ISOLATE_UNIT_TEST_CASE(                                                      \
       IRTest_MemoryCopy_##src_start##_##dest_start##_##length##_##elem_size) { \
-    RunMemoryCopyInstrTest(src_start, dest_start, length, elem_size);          \
+    RunMemoryCopyInstrTest(src_start, dest_start, length, elem_size, false);   \
   }
+
+#define MEMORY_COPY_TEST_UNBOXED(src_start, dest_start, length, el_si)         \
+  ISOLATE_UNIT_TEST_CASE(                                                      \
+      IRTest_MemoryCopy_##src_start##_##dest_start##_##length##_##el_si##_u) { \
+    RunMemoryCopyInstrTest(src_start, dest_start, length, el_si, true);        \
+  }
+
+#define MEMORY_COPY_TEST(src_start, dest_start, length, elem_size)             \
+  MEMORY_COPY_TEST_BOXED(src_start, dest_start, length, elem_size)             \
+  MEMORY_COPY_TEST_UNBOXED(src_start, dest_start, length, elem_size)
 
 // No offset, varying length.
 MEMORY_COPY_TEST(0, 0, 1, 1)

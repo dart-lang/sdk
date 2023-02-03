@@ -199,10 +199,8 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Address dest_address =
       compiler::Address(dest_reg, element_size_, compiler::Address::PostIndex);
 
-  // Untag length and skip copy if length is zero.
-  __ adds(length_reg, ZR, compiler::Operand(length_reg, ASR, 1),
-          compiler::kObjectBytes);
-  __ b(&done, ZERO);
+  const intptr_t loop_subtract = unboxed_length_ ? 1 : Smi::RawValue(1);
+  __ BranchIfZero(length_reg, &done);
 
   __ Bind(&loop);
   switch (element_size_) {
@@ -227,7 +225,8 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ stp(temp_reg, temp_reg2, dest_address, compiler::kEightBytes);
       break;
   }
-  __ subs(length_reg, length_reg, compiler::Operand(1));
+  __ subs(length_reg, length_reg, compiler::Operand(loop_subtract),
+          compiler::kObjectBytes);
   __ b(&loop, NOT_ZERO);
   __ Bind(&done);
 }

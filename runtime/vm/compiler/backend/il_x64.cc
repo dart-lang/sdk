@@ -172,9 +172,17 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   EmitComputeStartPointer(compiler, src_cid_, RSI, src_start_loc);
   EmitComputeStartPointer(compiler, dest_cid_, RDI, dest_start_loc);
-  if (element_size_ <= 8) {
-    __ SmiUntag(RCX);
+  if (element_size_ <= compiler::target::kWordSize) {
+    if (!unboxed_length_) {
+      __ SmiUntag(RCX);
+    }
   } else {
+    const intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) -
+                           compiler::target::kWordSizeLog2 -
+                           (unboxed_length_ ? 0 : kSmiTagShift);
+    if (shift != 0) {
+      __ shll(RCX, compiler::Immediate(shift));
+    }
 #if defined(DART_COMPRESSED_POINTERS)
     __ orl(RCX, RCX);
 #endif
