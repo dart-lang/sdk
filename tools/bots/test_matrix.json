@@ -1770,7 +1770,9 @@
             "standalone",
             "utils",
             "vm"
-          ]
+          ],
+          "fileset": "vm-kernel",
+          "shards": 3
         }
       ]
     },
@@ -1826,7 +1828,9 @@
             "-nvm-aot-${sanitizer}-${system}-${mode}-${arch}",
             "vm",
             "standalone"
-          ]
+          ],
+          "fileset": "vm-kernel",
+          "shards": 3
         }
       ]
     },
