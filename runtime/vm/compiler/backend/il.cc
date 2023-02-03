@@ -26,6 +26,7 @@
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/compiler/method_recognizer.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/object.h"
@@ -6583,6 +6584,44 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
   }
   ASSERT(idx == 2);
   return RepresentationOfArrayElement(class_id());
+}
+
+Instruction* MemoryCopyInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!length()->BindsToSmiConstant() || !src_start()->BindsToSmiConstant() ||
+      !dest_start()->BindsToSmiConstant()) {
+    // TODO(https://dartbug.com/51031): Consider adding support for src/dest
+    // starts to be in bytes rather than element size.
+    return this;
+  }
+
+  intptr_t new_length = length()->BoundSmiConstant();
+  intptr_t new_src_start = src_start()->BoundSmiConstant();
+  intptr_t new_dest_start = dest_start()->BoundSmiConstant();
+  intptr_t new_element_size = element_size_;
+  while (((new_length | new_src_start | new_dest_start) & 1) == 0 &&
+         new_element_size < compiler::target::kWordSize) {
+    new_length >>= 1;
+    new_src_start >>= 1;
+    new_dest_start >>= 1;
+    new_element_size <<= 1;
+  }
+  if (new_element_size == element_size_) {
+    return this;
+  }
+
+  Zone* const zone = flow_graph->zone();
+  auto* const length_instr = flow_graph->GetConstant(
+      Integer::ZoneHandle(zone, Integer::New(new_length, Heap::kOld)),
+      unboxed_length_ ? kUnboxedIntPtr : kTagged);
+  auto* const src_start_instr = flow_graph->GetConstant(
+      Integer::ZoneHandle(zone, Integer::New(new_src_start, Heap::kOld)));
+  auto* const dest_start_instr = flow_graph->GetConstant(
+      Integer::ZoneHandle(zone, Integer::New(new_dest_start, Heap::kOld)));
+  length()->BindTo(length_instr);
+  src_start()->BindTo(src_start_instr);
+  dest_start()->BindTo(dest_start_instr);
+  element_size_ = new_element_size;
+  return this;
 }
 
 bool Utf8ScanInstr::IsScanFlagsUnboxed() const {

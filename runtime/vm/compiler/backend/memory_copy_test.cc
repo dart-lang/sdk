@@ -234,4 +234,9 @@ MEMORY_COPY_TEST(5, 72, 1, 8)
 MEMORY_COPY_TEST(13, 14, 15, 16)
 #endif
 
+// Size promotions with offsets.
+MEMORY_COPY_TEST(2, 2, 8, 1)  // promoted to 2.
+MEMORY_COPY_TEST(4, 4, 8, 1)  // promoted to 4.
+MEMORY_COPY_TEST(8, 8, 8, 1)  // promoted to 8.
+
 }  // namespace dart
