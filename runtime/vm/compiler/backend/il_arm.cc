@@ -165,9 +165,10 @@ LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(kSrcPos, Location::WritableRegister());
   locs->set_in(kDestPos, Location::WritableRegister());
-  locs->set_in(kSrcStartPos, Location::RequiresRegister());
-  locs->set_in(kDestStartPos, Location::RequiresRegister());
-  locs->set_in(kLengthPos, Location::WritableRegister());
+  locs->set_in(kSrcStartPos, LocationRegisterOrConstant(src_start()));
+  locs->set_in(kDestStartPos, LocationRegisterOrConstant(dest_start()));
+  locs->set_in(kLengthPos,
+               LocationWritableRegisterOrSmiConstant(length(), 0, 4));
   for (intptr_t i = 0; i < kNumTemps; i++) {
     locs->set_temp(i, Location::RequiresRegister());
   }
@@ -177,9 +178,10 @@ LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
 void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register src_reg = locs()->in(kSrcPos).reg();
   const Register dest_reg = locs()->in(kDestPos).reg();
-  const Register src_start_reg = locs()->in(kSrcStartPos).reg();
-  const Register dest_start_reg = locs()->in(kDestStartPos).reg();
-  const Register length_reg = locs()->in(kLengthPos).reg();
+  const Location src_start_loc = locs()->in(kSrcStartPos);
+  const Location dest_start_loc = locs()->in(kDestStartPos);
+  const Location length_loc = locs()->in(kLengthPos);
+  const bool constant_length = length_loc.IsConstant();
 
   const Register temp_reg = locs()->temp(0).reg();
   RegList temp_regs = 0;
@@ -187,10 +189,41 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     temp_regs |= 1 << locs()->temp(i).reg();
   }
 
-  EmitComputeStartPointer(compiler, src_cid_, src_start(), src_reg,
-                          src_start_reg);
-  EmitComputeStartPointer(compiler, dest_cid_, dest_start(), dest_reg,
-                          dest_start_reg);
+  EmitComputeStartPointer(compiler, src_cid_, src_reg, src_start_loc);
+  EmitComputeStartPointer(compiler, dest_cid_, dest_reg, dest_start_loc);
+
+  if (constant_length) {
+    const intptr_t mov_repeat =
+        Integer::Cast(length_loc.constant()).AsInt64Value();
+    for (intptr_t i = 0; i < mov_repeat; i++) {
+      compiler::Address src_address =
+          compiler::Address(src_reg, element_size_ * i);
+      compiler::Address dest_address =
+          compiler::Address(dest_reg, element_size_ * i);
+      switch (element_size_) {
+        case 1:
+          __ ldrb(temp_reg, src_address);
+          __ strb(temp_reg, dest_address);
+          break;
+        case 2:
+          __ ldrh(temp_reg, src_address);
+          __ strh(temp_reg, dest_address);
+          break;
+        case 4:
+          __ ldr(temp_reg, src_address);
+          __ str(temp_reg, dest_address);
+          break;
+        case 8:
+        case 16:
+          __ ldm(BlockAddressMode::IA_W, src_reg, temp_regs);
+          __ stm(BlockAddressMode::IA_W, dest_reg, temp_regs);
+          break;
+      }
+    }
+    return;
+  }
+
+  const Register length_reg = length_loc.reg();
 
   compiler::Label loop, done;
 
@@ -199,9 +232,8 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Address dest_address =
       compiler::Address(dest_reg, element_size_, compiler::Address::PostIndex);
 
-  // Untag length and skip copy if length is zero.
-  __ movs(length_reg, compiler::Operand(length_reg, ASR, 1));
-  __ b(&done, ZERO);
+  const intptr_t loop_subtract = unboxed_length_ ? 1 : Smi::RawValue(1);
+  __ BranchIfZero(length_reg, &done);
 
   __ Bind(&loop);
   switch (element_size_) {
@@ -223,51 +255,61 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ stm(BlockAddressMode::IA_W, dest_reg, temp_regs);
       break;
   }
-  __ subs(length_reg, length_reg, compiler::Operand(1));
+  __ subs(length_reg, length_reg, compiler::Operand(loop_subtract));
   __ b(&loop, NOT_ZERO);
   __ Bind(&done);
 }
 
 void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                               classid_t array_cid,
-                                              Value* start,
                                               Register array_reg,
-                                              Register start_reg) {
+                                              Location start_loc) {
+  intptr_t offset;
   if (IsTypedDataBaseClassId(array_cid)) {
     __ ldr(array_reg,
            compiler::FieldAddress(
                array_reg, compiler::target::PointerBase::data_offset()));
+    offset = 0;
   } else {
     switch (array_cid) {
       case kOneByteStringCid:
-        __ add(
-            array_reg, array_reg,
-            compiler::Operand(compiler::target::OneByteString::data_offset() -
-                              kHeapObjectTag));
+        offset =
+            compiler::target::OneByteString::data_offset() - kHeapObjectTag;
         break;
       case kTwoByteStringCid:
-        __ add(
-            array_reg, array_reg,
-            compiler::Operand(compiler::target::OneByteString::data_offset() -
-                              kHeapObjectTag));
+        offset =
+            compiler::target::TwoByteString::data_offset() - kHeapObjectTag;
         break;
       case kExternalOneByteStringCid:
         __ ldr(array_reg,
                compiler::FieldAddress(array_reg,
                                       compiler::target::ExternalOneByteString::
                                           external_data_offset()));
+        offset = 0;
         break;
       case kExternalTwoByteStringCid:
         __ ldr(array_reg,
                compiler::FieldAddress(array_reg,
                                       compiler::target::ExternalTwoByteString::
                                           external_data_offset()));
+        offset = 0;
         break;
       default:
         UNREACHABLE();
         break;
     }
   }
+  ASSERT(start_loc.IsRegister() || start_loc.IsConstant());
+  if (start_loc.IsConstant()) {
+    const auto& constant = start_loc.constant();
+    ASSERT(constant.IsInteger());
+    const int64_t start_value = Integer::Cast(constant).AsInt64Value();
+    const intptr_t add_value = start_value * element_size_ + offset;
+    __ AddImmediate(array_reg, add_value);
+    return;
+  }
+  __ AddImmediate(array_reg, offset);
+  const Register start_reg = start_loc.reg();
   intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) - 1;
   if (shift < 0) {
     __ add(array_reg, array_reg, compiler::Operand(start_reg, ASR, -shift));
@@ -4324,8 +4366,8 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
       object_store->allocate_mint_without_fpu_regs_stub()
           ->untag()
           ->InVMIsolateHeap();
-  const bool shared_slow_path_call = SlowPathSharingSupported(opt) &&
-                                     !stubs_in_vm_isolate;
+  const bool shared_slow_path_call =
+      SlowPathSharingSupported(opt) && !stubs_in_vm_isolate;
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
       ValueFitsSmi()

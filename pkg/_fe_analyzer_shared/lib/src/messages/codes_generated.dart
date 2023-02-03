@@ -10753,6 +10753,18 @@ Message _withArgumentsPatternAssignmentDeclaresVariable(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePatternAssignmentNotLocalVariable =
+    messagePatternAssignmentNotLocalVariable;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePatternAssignmentNotLocalVariable = const MessageCode(
+    "PatternAssignmentNotLocalVariable",
+    analyzerCodes: <String>["PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE"],
+    problemMessage:
+        r"""Only local variables or formal parameters can be used in pattern assignments.""",
+    correctionMessage: r"""Try assigning to a local variable.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codePlatformPrivateLibraryAccess =
     messagePlatformPrivateLibraryAccess;
 

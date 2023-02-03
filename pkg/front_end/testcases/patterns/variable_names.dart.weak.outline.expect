@@ -11,6 +11,7 @@ abstract class A extends core::Object {
   abstract get boz() → core::num;
   abstract get qux() → core::bool;
   abstract get quux() → core::String;
+  abstract get foobar() → core::int;
 }
 static method test(dynamic x, dynamic y, dynamic z) → dynamic
   ;

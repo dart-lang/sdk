@@ -79,34 +79,84 @@ DEFINE_BACKEND(TailCall,
 
 LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
+  const bool remove_loop =
+      length()->BindsToSmiConstant() && length()->BoundSmiConstant() <= 4;
   const intptr_t kNumInputs = 5;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = remove_loop ? 1 : 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(kSrcPos, Location::RequiresRegister());
   locs->set_in(kDestPos, Location::RegisterLocation(EDI));
-  locs->set_in(kSrcStartPos, Location::WritableRegister());
-  locs->set_in(kDestStartPos, Location::WritableRegister());
-  locs->set_in(kLengthPos, Location::RegisterLocation(ECX));
+  locs->set_in(kSrcStartPos, LocationRegisterOrConstant(src_start()));
+  locs->set_in(kDestStartPos, LocationRegisterOrConstant(dest_start()));
+  if (remove_loop) {
+    locs->set_in(
+        kLengthPos,
+        Location::Constant(
+            length()->definition()->OriginalDefinition()->AsConstant()));
+    // Needs a valid ByteRegister for single byte moves, and a temp register
+    // for more than one move. We could potentially optimize the 2 and 4 byte
+    // single moves to overwrite the src_reg.
+    locs->set_temp(0, Location::RegisterLocation(ECX));
+  } else {
+    locs->set_in(kLengthPos, Location::RegisterLocation(ECX));
+  }
   return locs;
 }
 
 void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register src_reg = locs()->in(kSrcPos).reg();
-  const Register src_start_reg = locs()->in(kSrcStartPos).reg();
-  const Register dest_start_reg = locs()->in(kDestStartPos).reg();
+  const Register dest_reg = locs()->in(kDestPos).reg();
+  const Location src_start_loc = locs()->in(kSrcStartPos);
+  const Location dest_start_loc = locs()->in(kDestStartPos);
+  const Location length_loc = locs()->in(kLengthPos);
+
+  EmitComputeStartPointer(compiler, src_cid_, src_reg, src_start_loc);
+  EmitComputeStartPointer(compiler, dest_cid_, dest_reg, dest_start_loc);
+
+  if (length_loc.IsConstant()) {
+    const intptr_t num_bytes =
+        Integer::Cast(length_loc.constant()).AsInt64Value() * element_size_;
+    const intptr_t mov_size = Utils::Minimum(element_size_, 4);
+    const intptr_t mov_repeat = num_bytes / mov_size;
+    ASSERT(num_bytes % mov_size == 0);
+
+    const Register temp_reg = locs()->temp(0).reg();
+    for (intptr_t i = 0; i < mov_repeat; i++) {
+      const intptr_t disp = mov_size * i;
+      switch (mov_size) {
+        case 1:
+          __ movzxb(temp_reg, compiler::Address(src_reg, disp));
+          __ movb(compiler::Address(dest_reg, disp), ByteRegisterOf(temp_reg));
+          break;
+        case 2:
+          __ movzxw(temp_reg, compiler::Address(src_reg, disp));
+          __ movw(compiler::Address(dest_reg, disp), temp_reg);
+          break;
+        case 4:
+          __ movl(temp_reg, compiler::Address(src_reg, disp));
+          __ movl(compiler::Address(dest_reg, disp), temp_reg);
+          break;
+      }
+    }
+    return;
+  }
 
   // Save ESI which is THR.
   __ pushl(ESI);
   __ movl(ESI, src_reg);
 
-  EmitComputeStartPointer(compiler, src_cid_, src_start(), ESI, src_start_reg);
-  EmitComputeStartPointer(compiler, dest_cid_, dest_start(), EDI,
-                          dest_start_reg);
-  if (element_size_ <= 4) {
-    __ SmiUntag(ECX);
-  } else if (element_size_ == 16) {
-    __ shll(ECX, compiler::Immediate(1));
+  if (element_size_ <= compiler::target::kWordSize) {
+    if (!unboxed_length_) {
+      __ SmiUntag(ECX);
+    }
+  } else {
+    const intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) -
+                           compiler::target::kWordSizeLog2 -
+                           (unboxed_length_ ? 0 : kSmiTagShift);
+    if (shift != 0) {
+      __ shll(ECX, compiler::Immediate(shift));
+    }
   }
   switch (element_size_) {
     case 1:
@@ -128,9 +178,8 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                               classid_t array_cid,
-                                              Value* start,
                                               Register array_reg,
-                                              Register start_reg) {
+                                              Location start_loc) {
   intptr_t offset;
   if (IsTypedDataBaseClassId(array_cid)) {
     __ movl(array_reg,
@@ -166,6 +215,16 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
         break;
     }
   }
+  ASSERT(start_loc.IsRegister() || start_loc.IsConstant());
+  if (start_loc.IsConstant()) {
+    const auto& constant = start_loc.constant();
+    ASSERT(constant.IsInteger());
+    const int64_t start_value = Integer::Cast(constant).AsInt64Value();
+    const intptr_t add_value = start_value * element_size_ + offset;
+    __ AddImmediate(array_reg, add_value);
+    return;
+  }
+  const Register start_reg = start_loc.reg();
   ScaleFactor scale;
   switch (element_size_) {
     case 1:

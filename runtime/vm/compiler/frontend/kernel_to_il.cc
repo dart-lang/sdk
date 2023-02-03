@@ -1206,7 +1206,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(2));
       body += LoadLocal(parsed_function_->RawParameterVariable(3));
       body += LoadLocal(parsed_function_->RawParameterVariable(4));
-      body += MemoryCopy(kTypedDataUint8ArrayCid, kOneByteStringCid);
+      body += MemoryCopy(kTypedDataUint8ArrayCid, kOneByteStringCid,
+                         /*unboxed_length=*/false);
       body += NullConstant();
       break;
     case MethodRecognizer::kImmutableLinkedHashBase_setIndexStoreRelease:
@@ -1235,6 +1236,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += Box(kUnboxedIntPtr);
       break;
     case MethodRecognizer::kMemCopy: {
+      // Keep consistent with inliner.cc (except boxed param).
       ASSERT_EQUAL(function.NumParameters(), 5);
       LocalVariable* arg_target = parsed_function_->RawParameterVariable(0);
       LocalVariable* arg_target_offset_in_bytes =
@@ -1250,7 +1252,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(arg_target_offset_in_bytes);
       body += LoadLocal(arg_length_in_bytes);
       // Pointers and TypedData have the same layout.
-      body += MemoryCopy(kTypedDataUint8ArrayCid, kTypedDataUint8ArrayCid);
+      body += MemoryCopy(kTypedDataUint8ArrayCid, kTypedDataUint8ArrayCid,
+                         /*unboxed_length=*/false);
       body += NullConstant();
     } break;
     case MethodRecognizer::kFfiAbi:

@@ -3032,10 +3032,12 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
                   Value* dest_start,
                   Value* length,
                   classid_t src_cid,
-                  classid_t dest_cid)
+                  classid_t dest_cid,
+                  bool unboxed_length)
       : src_cid_(src_cid),
         dest_cid_(dest_cid),
-        element_size_(Instance::ElementSizeFor(src_cid)) {
+        element_size_(Instance::ElementSizeFor(src_cid)),
+        unboxed_length_(unboxed_length) {
     ASSERT(IsArrayTypeSupported(src_cid));
     ASSERT(IsArrayTypeSupported(dest_cid));
     ASSERT(Instance::ElementSizeFor(src_cid) ==
@@ -3058,6 +3060,9 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
   DECLARE_INSTRUCTION(MemoryCopy)
 
   virtual Representation RequiredInputRepresentation(intptr_t index) const {
+    if (index == kLengthPos && unboxed_length_) {
+      return kUnboxedIntPtr;
+    }
     // All inputs are tagged (for now).
     return kTagged;
   }
@@ -3073,10 +3078,17 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
   Value* dest_start() const { return inputs_[kDestStartPos]; }
   Value* length() const { return inputs_[kLengthPos]; }
 
+  intptr_t element_size() const { return element_size_; }
+  bool unboxed_length() const { return unboxed_length_; }
+
+  // Optimizes MemoryCopyInstr with constant parameters to use larger moves.
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+
 #define FIELD_LIST(F)                                                          \
   F(classid_t, src_cid_)                                                       \
   F(classid_t, dest_cid_)                                                      \
-  F(intptr_t, element_size_)
+  F(intptr_t, element_size_)                                                   \
+  F(bool, unboxed_length_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(MemoryCopyInstr,
                                           TemplateInstruction,
@@ -3085,12 +3097,11 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
 
  private:
   // Set array_reg to point to the index indicated by start (contained in
-  // start_reg) of the typed data or string in array (contained in array_reg).
+  // start_loc) of the typed data or string in array (contained in array_reg).
   void EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                classid_t array_cid,
-                               Value* start,
                                Register array_reg,
-                               Register start_reg);
+                               Location start_loc);
 
   static bool IsArrayTypeSupported(classid_t array_cid) {
     if (IsTypedDataBaseClassId(array_cid)) {

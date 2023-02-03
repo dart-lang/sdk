@@ -234,20 +234,38 @@ Location LocationRegisterOrConstant(Value* value) {
              : Location::RequiresRegister();
 }
 
-Location LocationRegisterOrSmiConstant(Value* value) {
+Location LocationRegisterOrSmiConstant(Value* value,
+                                       intptr_t min_value,
+                                       intptr_t max_value) {
   ConstantInstr* constant = value->definition()->AsConstant();
-  return ((constant != NULL) &&
-          compiler::Assembler::IsSafeSmi(constant->value()))
-             ? Location::Constant(constant)
-             : Location::RequiresRegister();
+  if (constant == nullptr) {
+    return Location::RequiresRegister();
+  }
+  if (!compiler::Assembler::IsSafeSmi(constant->value())) {
+    return Location::RequiresRegister();
+  }
+  const intptr_t smi_value = value->BoundSmiConstant();
+  if (smi_value < min_value || smi_value > max_value) {
+    return Location::RequiresRegister();
+  }
+  return Location::Constant(constant);
 }
 
-Location LocationWritableRegisterOrSmiConstant(Value* value) {
+Location LocationWritableRegisterOrSmiConstant(Value* value,
+                                               intptr_t min_value,
+                                               intptr_t max_value) {
   ConstantInstr* constant = value->definition()->AsConstant();
-  return ((constant != NULL) &&
-          compiler::Assembler::IsSafeSmi(constant->value()))
-             ? Location::Constant(constant)
-             : Location::WritableRegister();
+  if (constant == nullptr) {
+    return Location::WritableRegister();
+  }
+  if (!compiler::Assembler::IsSafeSmi(constant->value())) {
+    return Location::WritableRegister();
+  }
+  const intptr_t smi_value = value->BoundSmiConstant();
+  if (smi_value < min_value || smi_value > max_value) {
+    return Location::WritableRegister();
+  }
+  return Location::Constant(constant);
 }
 
 Location LocationFixedRegisterOrConstant(Value* value, Register reg) {
