@@ -7,7 +7,7 @@ part of dart._http;
 abstract class HttpProfiler {
   static const _kType = 'HttpProfile';
 
-  static final Map<int, _HttpProfileData> _profile = {};
+  static final Map<String, _HttpProfileData> _profile = {};
 
   static _HttpProfileData startRequest(
     String method,
@@ -19,7 +19,7 @@ abstract class HttpProfiler {
     return data;
   }
 
-  static _HttpProfileData? getHttpProfileRequest(int id) => _profile[id];
+  static _HttpProfileData? getHttpProfileRequest(String id) => _profile[id];
 
   static void clear() => _profile.clear();
 
@@ -63,7 +63,7 @@ class _HttpProfileData {
         ) {
     // Grab the ID from the timeline event so HTTP profile IDs can be matched
     // to the timeline.
-    id = _timeline.pass();
+    id = _timeline.pass().toString();
     requestInProgress = true;
     requestStartTimestamp = Timeline.now;
     _timeline.start('HTTP CLIENT $method', arguments: {
@@ -261,7 +261,7 @@ class _HttpProfileData {
   bool requestInProgress = true;
   bool? responseInProgress;
 
-  late final int id;
+  late final String id;
   final String method;
   final Uri uri;
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## 11.0.0
+- Change `HttpProfileRequestRef.id` type from `int` to `String`.
+- Change `SocketStatistic.id` type from `int` to `String`.
+- Change `ext.dart.io.getHttpProfileRequest` `id` parameter type from `int` to `String`.
+- Change `ext.dart.io.socketProfilingEnabled` parameter from 'enable' to 'enabled'.
 ## 10.1.2
 - Fix bug where code would try to call `.toJson()` on `String`s.
 
