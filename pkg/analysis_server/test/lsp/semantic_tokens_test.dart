@@ -156,12 +156,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('// Trailing comment', SemanticTokenTypes.comment),
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = _decodeSemanticTokens(content, tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokens(content, expected);
   }
 
   Future<void> test_class_constructors() async {
@@ -226,12 +221,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
           [CustomSemanticTokenModifiers.constructor]),
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = _decodeSemanticTokens(content, tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokens(content, expected);
   }
 
   Future<void> test_class_fields() async {
@@ -287,12 +277,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token("'a'", SemanticTokenTypes.string),
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = _decodeSemanticTokens(content, tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokens(content, expected);
   }
 
   Future<void> test_class_getterSetter() async {
@@ -373,12 +358,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token("'a'", SemanticTokenTypes.string),
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = _decodeSemanticTokens(content, tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokens(content, expected);
   }
 
   Future<void> test_class_method() async {
@@ -453,12 +433,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
           [SemanticTokenModifiers.static]),
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = _decodeSemanticTokens(content, tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokens(content, expected);
   }
 
   Future<void> test_dartdoc() async {
@@ -501,12 +476,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('2', SemanticTokenTypes.number)
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = _decodeSemanticTokens(content, tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokens(content, expected);
   }
 
   Future<void> test_directives() async {
@@ -543,12 +513,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('foo', SemanticTokenTypes.namespace),
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = _decodeSemanticTokens(content, tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokens(content, expected);
   }
 
   Future<void> test_extension() async {
@@ -563,12 +528,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('String', SemanticTokenTypes.class_)
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = _decodeSemanticTokens(content, tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokens(content, expected);
   }
 
   Future<void> test_fromPlugin() async {
@@ -706,12 +666,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('isEven', SemanticTokenTypes.variable),
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = _decodeSemanticTokens(content, tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokens(content, expected);
   }
 
   Future<void> test_lastLine_code() async {
@@ -723,12 +678,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
           [SemanticTokenModifiers.declaration]),
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = _decodeSemanticTokens(content, tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokens(content, expected);
   }
 
   Future<void> test_lastLine_comment() async {
@@ -738,12 +688,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('// Trailing comment', SemanticTokenTypes.comment),
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = _decodeSemanticTokens(content, tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokens(content, expected);
   }
 
   Future<void> test_lastLine_multilineComment() async {
@@ -760,12 +705,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
           [SemanticTokenModifiers.documentation]),
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = _decodeSemanticTokens(content, tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokens(content, expected);
   }
 
   Future<void> test_local() async {
@@ -794,12 +734,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('func', SemanticTokenTypes.function),
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = _decodeSemanticTokens(content, tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokens(content, expected);
   }
 
   Future<void> test_manyBools_bug() async {
@@ -851,12 +786,7 @@ class MyTestClass {
       ],
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = _decodeSemanticTokens(content, tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokens(content, expected);
   }
 
   Future<void> test_manyImports_sortBug() async {
@@ -889,12 +819,7 @@ import 'dart:async';
       ],
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = _decodeSemanticTokens(content, tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokens(content, expected);
   }
 
   Future<void> test_multilineRegions() async {
@@ -925,12 +850,7 @@ class MyClass {}
       _Token('MyClass', SemanticTokenTypes.class_),
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = _decodeSemanticTokens(content, tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokens(content, expected);
   }
 
   Future<void> test_namedArguments() async {
@@ -952,12 +872,31 @@ class MyClass {}
       _Token('a', SemanticTokenTypes.parameter),
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
+    await _verifyTokens(content, expected);
+  }
 
-    final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = _decodeSemanticTokens(content, tokens);
-    expect(decoded, equals(expected));
+  Future<void> test_never() async {
+    final content = '''
+    Never f() => throw '';
+    Never? g() => throw '';
+    ''';
+
+    final expected = [
+      _Token('Never', SemanticTokenTypes.type),
+      _Token('f', SemanticTokenTypes.function,
+          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('throw', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.control]),
+      _Token("''", SemanticTokenTypes.string),
+      _Token('Never', SemanticTokenTypes.type),
+      _Token('g', SemanticTokenTypes.function,
+          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('throw', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.control]),
+      _Token("''", SemanticTokenTypes.string),
+    ];
+
+    await _verifyTokens(content, expected);
   }
 
   Future<void> test_patterns_assignment() async {
@@ -993,12 +932,7 @@ void f() {
       _Token('2', SemanticTokenTypes.number)
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = _decodeSemanticTokens(content, tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokens(content, expected);
   }
 
   Future<void> test_patterns_switch_list() async {
@@ -1030,12 +964,7 @@ void f() {
       _Token('null', SemanticTokenTypes.keyword)
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = _decodeSemanticTokens(content, tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokens(content, expected);
   }
 
   Future<void> test_patterns_switch_object() async {
@@ -1068,12 +997,7 @@ void f() {
       _Token('isEven', SemanticTokenTypes.variable),
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = _decodeSemanticTokens(content, tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokens(content, expected);
   }
 
   Future<void> test_patterns_switch_object_inferredName() async {
@@ -1104,12 +1028,7 @@ void f() {
       _Token('isEven', SemanticTokenTypes.variable),
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = _decodeSemanticTokens(content, tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokens(content, expected);
   }
 
   Future<void> test_range() async {
@@ -1128,13 +1047,7 @@ void f() {
       _Token('// class comment', SemanticTokenTypes.comment),
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens =
-        await getSemanticTokensRange(mainFileUri, rangeFromMarkers(content));
-    final decoded = _decodeSemanticTokens(withoutMarkers(content), tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokensInRange(content, expected);
   }
 
   Future<void> test_range_entireFile() async {
@@ -1157,13 +1070,7 @@ void f() {
       _Token('// Trailing comment', SemanticTokenTypes.comment),
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens =
-        await getSemanticTokensRange(mainFileUri, rangeFromMarkers(content));
-    final decoded = _decodeSemanticTokens(withoutMarkers(content), tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokensInRange(content, expected);
   }
 
   Future<void> test_range_multilineRegions() async {
@@ -1187,13 +1094,7 @@ void f() {
       _Token('class', SemanticTokenTypes.keyword),
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens =
-        await getSemanticTokensRange(mainFileUri, rangeFromMarkers(content));
-    final decoded = _decodeSemanticTokens(withoutMarkers(content), tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokensInRange(content, expected);
   }
 
   Future<void> test_strings() async {
@@ -1260,12 +1161,7 @@ multi
       _Token("'''", SemanticTokenTypes.string),
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = _decodeSemanticTokens(content, tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokens(content, expected);
   }
 
   Future<void> test_strings_escape() async {
@@ -1316,12 +1212,7 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
       _Token(r"\u{12345699}'", SemanticTokenTypes.string),
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = _decodeSemanticTokens(content, tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokens(content, expected);
   }
 
   Future<void> test_topLevel() async {
@@ -1386,12 +1277,7 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
       _Token('funcTearOff', SemanticTokenTypes.property),
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = _decodeSemanticTokens(content, tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokens(content, expected);
   }
 
   Future<void> test_unresolvedOrInvalid() async {
@@ -1430,12 +1316,7 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
       _Token('baz', CustomSemanticTokenTypes.source),
     ];
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = _decodeSemanticTokens(content, tokens);
-    expect(decoded, equals(expected));
+    await _verifyTokens(content, expected);
   }
 
   /// Decode tokens according to the LSP spec and pair with relevant file contents.
@@ -1469,6 +1350,26 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
     }
 
     return results;
+  }
+
+  Future<void> _verifyTokens(String content, List<_Token> expected) async {
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final tokens = await getSemanticTokens(mainFileUri);
+    final decoded = _decodeSemanticTokens(content, tokens);
+    expect(decoded, equals(expected));
+  }
+
+  Future<void> _verifyTokensInRange(
+      String content, List<_Token> expected) async {
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final tokens =
+        await getSemanticTokensRange(mainFileUri, rangeFromMarkers(content));
+    final decoded = _decodeSemanticTokens(withoutMarkers(content), tokens);
+    expect(decoded, equals(expected));
   }
 }
 
