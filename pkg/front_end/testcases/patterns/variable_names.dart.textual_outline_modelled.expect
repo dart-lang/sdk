@@ -4,6 +4,7 @@ abstract class A {
   int? get baz;
   int? get foo;
   int get bar;
+  int get foobar;
   num get boz;
 }
 
