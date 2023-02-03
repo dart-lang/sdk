@@ -4,9 +4,9 @@
 import 'dart:io';
 
 // READ ME! If you add a new field to this, make sure to add it to
-// [parse()], [optionsEqual()], [hashCode], and [toString()]. A good check is to
-// comment out an existing field and see what breaks. Every error is a place
-// where you will need to add code for your new field.
+// [_cloneHelper()], [parse()], [optionsEqual()], [hashCode], and [toString()].
+// A good check is to comment out an existing field and see what breaks.
+// Every error is a place where you will need to add code for your new field.
 
 /// A set of options that affects how a Dart SDK test is run in a way that may
 /// affect its outcome.
@@ -210,6 +210,13 @@ class Configuration {
       return List<String>.from(value);
     }
 
+    var detectHost = boolOption('detect-host');
+    if (detectHost != null && detectHost) {
+      throw FormatException(
+          'The `detect-host` option is explicitly forbidden in the '
+          'test_matrix.json file.');
+    }
+
     // Extract options from the name and map.
     var architecture =
         enumOption("architecture", Architecture.names, Architecture.find);
@@ -392,6 +399,80 @@ class Configuration {
           "Name of test configuration cannot contain spaces: $name");
     }
   }
+
+  /// A helper constructor for cloning factories.
+  ///
+  /// NOTE: All parameters should be required to ensure that cloning factories
+  /// are updated when new class fields are added.
+  Configuration._cloneHelper(
+    this.name,
+    this.architecture,
+    this.compiler,
+    this.mode,
+    this.runtime,
+    this.system, {
+    required this.nnbdMode,
+    required this.sanitizer,
+    required this.babel,
+    required this.builderTag,
+    required this.genKernelOptions,
+    required this.vmOptions,
+    required this.dart2jsOptions,
+    required this.experiments,
+    required this.timeout,
+    required this.enableAsserts,
+    required this.isChecked,
+    required this.isCsp,
+    required this.isHostChecked,
+    required this.isMinified,
+    required this.useAnalyzerCfe,
+    required this.useAnalyzerFastaParser,
+    required this.useElf,
+    required this.useHotReload,
+    required this.useHotReloadRollback,
+    required this.useSdk,
+    required this.useQemu,
+  });
+
+  /// Creates a shallow clone of [source] with a new name and changes the system
+  /// and architecture to match the local host.
+  ///
+  /// NOTE: This calls [_cloneHelper] instead of the default constructor to
+  /// ensure it gets updated whenever new fields are added to the class.
+  factory Configuration.detectHost(Configuration source) =>
+      Configuration._cloneHelper(
+        '${source.name}-detect-host-${_detectHostNumber++}',
+        Architecture.host,
+        source.compiler,
+        source.mode,
+        source.runtime,
+        System.host,
+        nnbdMode: source.nnbdMode,
+        sanitizer: source.sanitizer,
+        babel: source.babel,
+        builderTag: source.builderTag,
+        genKernelOptions: source.genKernelOptions,
+        vmOptions: source.vmOptions,
+        dart2jsOptions: source.dart2jsOptions,
+        experiments: source.experiments,
+        timeout: source.timeout,
+        enableAsserts: source.enableAsserts,
+        isChecked: source.isChecked,
+        isCsp: source.isCsp,
+        isHostChecked: source.isHostChecked,
+        isMinified: source.isMinified,
+        useAnalyzerCfe: source.useAnalyzerCfe,
+        useAnalyzerFastaParser: source.useAnalyzerFastaParser,
+        useElf: source.useElf,
+        useHotReload: source.useHotReload,
+        useHotReloadRollback: source.useHotReloadRollback,
+        useSdk: source.useSdk,
+        useQemu: source.useQemu,
+      );
+
+  /// Counter to provide a unique number in the name of each call to
+  /// [detectHost].
+  static var _detectHostNumber = 1;
 
   /// Returns `true` if this configuration's options all have the same values
   /// as [other].
