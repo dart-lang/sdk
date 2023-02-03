@@ -11,8 +11,10 @@
 #include <fcntl.h>
 
 #include <cstdlib>
+#include <utility>
 
 #include "platform/atomic.h"
+#include "platform/hashmap.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
 #include "vm/lockers.h"
@@ -629,6 +631,16 @@ void TimelineEvent::Init(EventType event_type, const char* label) {
   OSThread* os_thread = OSThread::Current();
   ASSERT(os_thread != NULL);
   thread_ = os_thread->trace_id();
+  if (FLAG_timeline_recorder != nullptr &&
+      // There is no way to retrieve track metadata when a callback or systrace
+      // recorder is in use, so we don't need to call
+      // |AddTrackMetadataBasedOnThread()| in these cases.
+      strcmp("callback", FLAG_timeline_recorder) != 0 &&
+      strcmp("systrace", FLAG_timeline_recorder) != 0) {
+    RecorderLockScope rl;
+    TimelineEventRecorder* recorder = Timeline::recorder();
+    recorder->AddTrackMetadataBasedOnThread(*os_thread);
+  }
   auto thread = Thread::Current();
   auto isolate = thread != nullptr ? thread->isolate() : nullptr;
   auto isolate_group = thread != nullptr ? thread->isolate_group() : nullptr;
@@ -841,6 +853,27 @@ const char* TimelineEvent::GetFormattedIsolateGroupId() const {
   return formatted_isolate_group_id;
 }
 
+TimelineTrackMetadata::TimelineTrackMetadata(
+    intptr_t pid,
+    intptr_t tid,
+    Utils::CStringUniquePtr&& track_name)
+    : pid_(pid), tid_(tid), track_name_(std::move(track_name)) {}
+
+#if !defined(PRODUCT)
+void TimelineTrackMetadata::PrintJSON(const JSONArray& jsarr_events) const {
+  JSONObject jsobj(&jsarr_events);
+  jsobj.AddProperty("name", "thread_name");
+  jsobj.AddProperty("ph", "M");
+  jsobj.AddProperty("pid", pid());
+  jsobj.AddProperty("tid", tid());
+  {
+    JSONObject jsobj_args(&jsobj, "args");
+    jsobj_args.AddPropertyF("name", "%s (%" Pd ")", track_name(), tid());
+    jsobj_args.AddProperty("mode", "basic");
+  }
+}
+#endif  // !defined(PRODUCT)
+
 TimelineStream::TimelineStream(const char* name,
                                const char* fuchsia_name,
                                bool has_static_labels,
@@ -1034,30 +1067,28 @@ IsolateTimelineEventFilter::IsolateTimelineEventFilter(
       isolate_id_(isolate_id) {}
 
 TimelineEventRecorder::TimelineEventRecorder()
-    : time_low_micros_(0), time_high_micros_(0) {}
+    : time_low_micros_(0),
+      time_high_micros_(0),
+      track_uuid_to_track_metadata_(
+          &SimpleHashMap::SamePointerValue,
+          TimelineEventRecorder::kTrackUuidToTrackMetadataInitialCapacity) {}
+
+TimelineEventRecorder::~TimelineEventRecorder() {
+  for (SimpleHashMap::Entry* entry = track_uuid_to_track_metadata_.Start();
+       entry != nullptr; entry = track_uuid_to_track_metadata_.Next(entry)) {
+    TimelineTrackMetadata* value =
+        static_cast<TimelineTrackMetadata*>(entry->value);
+    delete value;
+  }
+}
 
 #ifndef PRODUCT
-void TimelineEventRecorder::PrintJSONMeta(JSONArray* events) const {
-  OSThreadIterator it;
-  while (it.HasNext()) {
-    OSThread* thread = it.Next();
-    const char* thread_name = thread->name();
-    if (thread_name == NULL) {
-      // Only emit a thread name if one was set.
-      continue;
-    }
-    JSONObject obj(events);
-    int64_t pid = OS::ProcessId();
-    int64_t tid = OSThread::ThreadIdToIntPtr(thread->trace_id());
-    obj.AddProperty("name", "thread_name");
-    obj.AddProperty("ph", "M");
-    obj.AddProperty64("pid", pid);
-    obj.AddProperty64("tid", tid);
-    {
-      JSONObject args(&obj, "args");
-      args.AddPropertyF("name", "%s (%" Pd64 ")", thread_name, tid);
-      args.AddProperty("mode", "basic");
-    }
+void TimelineEventRecorder::PrintJSONMeta(const JSONArray& jsarr_events) const {
+  for (SimpleHashMap::Entry* entry = track_uuid_to_track_metadata_.Start();
+       entry != nullptr; entry = track_uuid_to_track_metadata_.Next(entry)) {
+    TimelineTrackMetadata* value =
+        static_cast<TimelineTrackMetadata*>(entry->value);
+    value->PrintJSON(jsarr_events);
   }
 }
 #endif
@@ -1209,6 +1240,25 @@ TimelineEventBlock* TimelineEventRecorder::GetNewBlock() {
   return GetNewBlockLocked();
 }
 
+void TimelineEventRecorder::AddTrackMetadataBasedOnThread(
+    const OSThread& thread) {
+  intptr_t pid = OS::ProcessId();
+  intptr_t tid = OSThread::ThreadIdToIntPtr(thread.trace_id());
+  const char* thread_name = thread.name();
+
+  void* key = reinterpret_cast<void*>(tid);
+  const intptr_t hash = Utils::WordHash(tid);
+  SimpleHashMap::Entry* entry =
+      track_uuid_to_track_metadata_.Lookup(key, hash, true);
+  if (entry->value == nullptr) {
+    TimelineTrackMetadata* metadata = new TimelineTrackMetadata(
+        pid, tid,
+        Utils::CreateCStringUniquePtr(
+            Utils::StrDup(thread_name == nullptr ? "" : thread_name)));
+    entry->value = metadata;
+  }
+}
+
 TimelineEventFixedBufferRecorder::TimelineEventFixedBufferRecorder(
     intptr_t capacity)
     : memory_(NULL),
@@ -1282,7 +1332,7 @@ void TimelineEventFixedBufferRecorder::PrintJSON(JSONStream* js,
   topLevel.AddProperty("type", "Timeline");
   {
     JSONArray events(&topLevel, "traceEvents");
-    PrintJSONMeta(&events);
+    PrintJSONMeta(events);
     PrintJSONEvents(&events, filter);
   }
   topLevel.AddPropertyTimeMicros("timeOriginMicros", TimeOriginMicros());
@@ -1293,7 +1343,7 @@ void TimelineEventFixedBufferRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
   JSONArray events(js);
-  PrintJSONMeta(&events);
+  PrintJSONMeta(events);
   PrintJSONEvents(&events, filter);
 }
 #endif
@@ -1638,7 +1688,7 @@ void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
   topLevel.AddProperty("type", "Timeline");
   {
     JSONArray events(&topLevel, "traceEvents");
-    PrintJSONMeta(&events);
+    PrintJSONMeta(events);
     PrintJSONEvents(&events, filter);
   }
   topLevel.AddPropertyTimeMicros("timeOriginMicros", TimeOriginMicros());
@@ -1649,7 +1699,7 @@ void TimelineEventEndlessRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
   JSONArray events(js);
-  PrintJSONMeta(&events);
+  PrintJSONMeta(events);
   PrintJSONEvents(&events, filter);
 }
 #endif
