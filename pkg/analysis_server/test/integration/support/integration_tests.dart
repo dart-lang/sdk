@@ -235,12 +235,12 @@ abstract class AbstractAnalysisServerIntegrationTest
   /// Start [server].
   Future startServer({
     int? diagnosticPort,
-    int? servicesPort,
+    int? servicePort,
   }) {
     return server.start(
       dartSdkPath: dartSdkPath,
       diagnosticPort: diagnosticPort,
-      servicesPort: servicesPort,
+      servicePort: servicePort,
     );
   }
 
@@ -615,7 +615,7 @@ class Server {
     String? instrumentationLogFile,
     String? packagesFile,
     bool profileServer = false,
-    int? servicesPort,
+    int? servicePort,
     bool useAnalysisHighlight2 = false,
   }) async {
     _time.start();
@@ -643,14 +643,14 @@ class Server {
     // Add VM arguments.
     //
     if (profileServer) {
-      if (servicesPort == null) {
+      if (servicePort == null) {
         arguments.add('--observe');
       } else {
-        arguments.add('--observe=$servicesPort');
+        arguments.add('--observe=$servicePort');
       }
       arguments.add('--pause-isolates-on-exit');
-    } else if (servicesPort != null) {
-      arguments.add('--enable-vm-service=$servicesPort');
+    } else if (servicePort != null) {
+      arguments.add('--enable-vm-service=$servicePort');
     }
     if (Platform.packageConfig != null) {
       arguments.add('--packages=${Platform.packageConfig}');
