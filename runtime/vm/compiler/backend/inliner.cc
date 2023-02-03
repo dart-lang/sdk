@@ -1202,6 +1202,11 @@ class CallSiteInliner : public ValueObject {
         {
           COMPILER_TIMINGS_TIMER_SCOPE(thread(), BuildGraph);
           callee_graph = builder.BuildGraph();
+          // Make sure SSA temp indices in the callee graph
+          // do not intersect with SSA temp indices in the caller.
+          ASSERT(callee_graph->current_ssa_temp_index() == 0);
+          callee_graph->set_current_ssa_temp_index(
+              caller_graph_->current_ssa_temp_index());
 #if defined(DEBUG)
           // The inlining IDs of instructions in the callee graph are unset
           // until we call SetInliningID later.
@@ -1294,8 +1299,7 @@ class CallSiteInliner : public ValueObject {
         {
           // Compute SSA on the callee graph, catching bailouts.
           COMPILER_TIMINGS_TIMER_SCOPE(thread(), ComputeSSA);
-          callee_graph->ComputeSSA(caller_graph_->current_ssa_temp_index(),
-                                   param_stubs);
+          callee_graph->ComputeSSA(param_stubs);
 #if defined(DEBUG)
           // The inlining IDs of instructions in the callee graph are unset
           // until we call SetInliningID later.

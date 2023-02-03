@@ -910,12 +910,27 @@ void VariableLivenessAnalysis::ComputeInitialSets() {
 }
 
 void FlowGraph::ComputeSSA(
-    intptr_t next_virtual_register_number,
     ZoneGrowableArray<Definition*>* inlining_parameters) {
-  ASSERT((next_virtual_register_number == 0) || (inlining_parameters != NULL));
-  current_ssa_temp_index_ = next_virtual_register_number;
   GrowableArray<BitVector*> dominance_frontier;
   GrowableArray<intptr_t> idom;
+
+#ifdef DEBUG
+  if (inlining_parameters != nullptr) {
+    for (intptr_t i = 0, n = inlining_parameters->length(); i < n; ++i) {
+      Definition* defn = (*inlining_parameters)[i];
+      if (defn->IsConstant()) {
+        ASSERT(defn->previous() == graph_entry_);
+        ASSERT(defn->HasSSATemp());
+        ASSERT(defn->ssa_temp_index() < current_ssa_temp_index());
+      } else {
+        ASSERT(defn->previous() == nullptr);
+        ASSERT(!defn->HasSSATemp());
+      }
+    }
+  } else {
+    ASSERT(current_ssa_temp_index() == 0);
+  }
+#endif
 
   ComputeDominators(&dominance_frontier);
 
