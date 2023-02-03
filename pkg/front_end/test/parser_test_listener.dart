@@ -2741,6 +2741,12 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleSwitchCaseNoWhenClause(Token token) {
+    seen(token);
+    doPrint('handleSwitchCaseNoWhenClause(' '$token)');
+  }
+
+  @override
   void handleSwitchExpressionCasePattern(Token token) {
     seen(token);
     doPrint('handleSwitchExpressionCasePattern(' '$token)');

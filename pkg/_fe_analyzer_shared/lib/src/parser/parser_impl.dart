@@ -8514,6 +8514,8 @@ class Parser {
             listener.beginSwitchCaseWhenClause(when);
             token = parseExpression(token);
             listener.endSwitchCaseWhenClause(token);
+          } else {
+            listener.handleSwitchCaseNoWhenClause(token);
           }
           token = ensureColon(token);
           listener.endCaseExpression(caseKeyword, when, token);

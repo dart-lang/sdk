@@ -2577,6 +2577,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleSwitchCaseNoWhenClause(Token token) {
+    SwitchCaseNoWhenClauseHandle data =
+        new SwitchCaseNoWhenClauseHandle(ParserAstType.HANDLE, token: token);
+    seen(data);
+  }
+
+  @override
   void handleSwitchExpressionCasePattern(Token token) {
     SwitchExpressionCasePatternHandle data =
         new SwitchExpressionCasePatternHandle(ParserAstType.HANDLE,
@@ -7570,6 +7577,18 @@ class OperatorHandle extends ParserAstNode {
 
   OperatorHandle(ParserAstType type, {required this.token})
       : super("Operator", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+      };
+}
+
+class SwitchCaseNoWhenClauseHandle extends ParserAstNode {
+  final Token token;
+
+  SwitchCaseNoWhenClauseHandle(ParserAstType type, {required this.token})
+      : super("SwitchCaseNoWhenClause", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {

@@ -7514,16 +7514,6 @@ class BodyBuilder extends StackListenerImpl
       exitLocalScope();
       enterLocalScope("switch case", switchCaseScope);
     } else if (expressionCount == 1) {
-      PatternGuard? patternGuard = expressionOrPatterns.single.patternGuard;
-      if (patternGuard != null && patternGuard.guard == null) {
-        // If the guard is omitted, the variables weren't declared in the scope
-        // yet, and we need to declare them here.
-        for (VariableDeclaration variable
-            in patternGuard.pattern.declaredVariables) {
-          declareVariable(variable, scope);
-          typeInferrer.assignedVariables.declare(variable);
-        }
-      }
       assert(scope.classNameOrDebugName == caseHeadScopeName);
       switchCaseScope = scope.createNestedScope("switch case");
       exitLocalScope();
@@ -7554,10 +7544,7 @@ class BodyBuilder extends StackListenerImpl
     ]));
 
     // Here we declare the pattern variables in the scope of the case head. It
-    // makes the variables visible in the 'when' clause of the head. Note that
-    // if the 'when' clause is omitted, the variables will not be declared. In
-    // that case if the head is the single head of the switch case, those
-    // variables need to be declared at the beginning of the case body.
+    // makes the variables visible in the 'when' clause of the head.
     Object? pattern = peek();
     if (pattern is Pattern) {
       for (VariableDeclaration variable in pattern.declaredVariables) {
@@ -7583,6 +7570,29 @@ class BodyBuilder extends StackListenerImpl
     Object? guard = pop();
     constantContext = pop() as ConstantContext;
     push(guard);
+  }
+
+  @override
+  void handleSwitchCaseNoWhenClause(Token token) {
+    debugEvent("SwitchCaseWhenClause");
+    assert(checkState(token, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Pattern,
+      ])
+    ]));
+
+    // Here we declare the pattern variables. It makes the variables visible
+    // body of the case.
+    Object? pattern = peek();
+    if (pattern is Pattern) {
+      for (VariableDeclaration variable in pattern.declaredVariables) {
+        declareVariable(variable, scope);
+        typeInferrer.assignedVariables.declare(variable);
+      }
+    }
   }
 
   @override
