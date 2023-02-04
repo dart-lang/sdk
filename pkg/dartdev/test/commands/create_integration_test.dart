@@ -133,20 +133,31 @@ void defineCreateTests() {
           // if they've executed correctly. These templates won't exit on their
           // own, so we'll need to terminate the process once we've verified it
           // runs correctly.
+          var hasError = false;
           stdoutSub = process.stdout.transform(utf8.decoder).listen((e) {
             print('stdout: $e');
-            if ((isServerTemplate && e.contains('Server listening on port')) ||
+            if (e.contains('[SEVERE]') ||
+                (isServerTemplate && e.contains('Server listening on port')) ||
                 (isWebTemplate && e.contains('Succeeded after'))) {
+              if (e.contains('[SEVERE]')) {
+                hasError = true;
+              }
               stderrSub.cancel();
               stdoutSub.cancel();
               process.kill();
               completer.complete();
             }
           });
-          stderrSub = process.stderr
-              .transform(utf8.decoder)
-              .listen((e) => print('stderr: $e'));
+          stderrSub = process.stderr.transform(utf8.decoder).listen((e) {
+            print('stderr: $e');
+            hasError = true;
+            stderrSub.cancel();
+            stdoutSub.cancel();
+            process.kill();
+            completer.complete();
+          });
           await completer.future;
+          expect(hasError, isFalse, reason: 'Command $command failed.');
 
           // Since we had to terminate the process manually, we aren't certain
           // as to what the exit code will be on all platforms (should be -15
@@ -154,9 +165,25 @@ void defineCreateTests() {
           // here.
           await process.exitCode;
         } else {
+          final output = <String>[];
+          final errors = <String>[];
+          process.stdout.transform(utf8.decoder).listen(output.add);
+          process.stderr.transform(utf8.decoder).listen(errors.add);
+
           // If the sample should exit on its own, it should always result in
           // an exit code of 0.
-          expect(await process.exitCode, 0);
+          final duration = const Duration(seconds: 30);
+          final exitCode =
+              await process.exitCode.timeout(duration, onTimeout: () {
+            print('Command $command timed out');
+            return -1;
+          });
+          if (exitCode != 0) {
+            print('Command $command exited with code $exitCode');
+            print('Output: \n${output.join('\n')}');
+            print('Errors: \n${errors.join('\n')}');
+          }
+          expect(exitCode, 0);
         }
         print('[${i + 1} / ${runCommands.length}] Done "$command".');
       }
