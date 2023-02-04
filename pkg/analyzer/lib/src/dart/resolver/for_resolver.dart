@@ -120,7 +120,7 @@ class ForResolver {
       identifier.accept(_resolver);
       AssignmentExpressionShared(
         resolver: _resolver,
-      ).checkFinalAlreadyAssigned(identifier);
+      ).checkFinalAlreadyAssigned(identifier, isForEachIdentifier: true);
     }
 
     DartType? valueType;

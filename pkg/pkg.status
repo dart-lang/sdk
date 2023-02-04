@@ -147,7 +147,6 @@ vm_service/test/*: SkipByDesign # Uses dart:io
 vm_snapshot_analysis/test/*: SkipByDesign # Only meant to run on vm
 
 [ $system == windows ]
-dartdev/test/commands/create_integration_test: Skip # dartbug.com/51037 until fix lands for windows
 front_end/test/fasta/bootstrap_test: Skip # Issue 31902
 front_end/test/fasta/strong_test: Pass, Slow, Timeout
 front_end/test/incremental_dart2js_load_from_dill_test: Pass, Slow

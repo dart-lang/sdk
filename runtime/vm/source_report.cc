@@ -55,12 +55,20 @@ SourceReport::~SourceReport() {
 }
 
 void SourceReport::ClearScriptTable() {
+  // Delete entries from script_table_ as it has the unfiltered list.
+  DirectChainedHashMap<ScriptTableTrait>::Iterator iter =
+      script_table_.GetIterator();
+  ScriptTableTrait::Pair* pair;
+  while ((pair = iter.Next()) != nullptr) {
+    delete ScriptTableTrait::ValueOf(*pair);
+  }
+  script_table_.Clear();
+
   for (intptr_t i = 0; i < script_table_entries_.length(); i++) {
-    delete script_table_entries_[i];
     script_table_entries_[i] = NULL;
   }
   script_table_entries_.Clear();
-  script_table_.Clear();
+
   next_script_index_ = 0;
 }
 
