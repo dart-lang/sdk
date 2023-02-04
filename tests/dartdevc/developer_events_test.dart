@@ -7,7 +7,6 @@ library developer_events_test;
 
 import 'dart:developer'
     show postEvent, registerExtension, ServiceExtensionResponse;
-import 'dart:convert';
 
 import 'package:js/js.dart';
 import 'package:expect/expect.dart';
@@ -50,69 +49,17 @@ class _TestDebugEvent {
 }
 
 void main() {
-  testBackwardsCompatibility();
-  testWarningMessages();
+  testRegisterExtensionWarningMessage();
   testPostEvent();
   testRegisterExtension();
 }
 
-/// Verify backwards compatibility for sending messages on the console.debug log
-/// in the chrome browser when the hooks have not been set.
-// TODO(nshahan) Remove testing of debug log after package:dwds removes support.
-// https://github.com/dart-lang/webdev/issues/1342`
-void testBackwardsCompatibility() {
-  var consoleDebugLog = <List>[];
-  var savedConsoleDebug = consoleDebug;
-  var savedDwdsVersion = dwdsVersion;
-
-  try {
-    // Patch our own console.debug function for testing.
-    consoleDebug = allowInterop((arg1, [arg2, arg3]) => consoleDebugLog.add([
-          arg1,
-          if (arg2 != null) arg2,
-          if (arg3 != null) arg3,
-        ]));
-    // Provide a version to signal there is an attached debugger.
-    dwdsVersion = '1.0.0-for-test';
-
-    // All post and register events should go to the console debug log.
-    var data0 = {'key0': 'value0'};
-    postEvent('kind0', data0);
-
-    expect(consoleDebugLog.single[0], 'dart.developer.postEvent');
-    expect(consoleDebugLog.single[1], 'kind0');
-    Expect.contains('"key0":"value0"', consoleDebugLog.single[2]);
-
-    var testHandler = (String s, Map<String, String> m) async =>
-        ServiceExtensionResponse.result('test result');
-
-    registerExtension('ext.method0', testHandler);
-    expect(consoleDebugLog.length, 2);
-    expect(consoleDebugLog[1].first, 'dart.developer.registerExtension');
-    expect(consoleDebugLog[1].last, 'ext.method0');
-
-    var data1 = {'key1': 'value1'};
-    postEvent('kind1', data1);
-
-    expect(consoleDebugLog.length, 3);
-    expect(consoleDebugLog[2][0], 'dart.developer.postEvent');
-    expect(consoleDebugLog[2][1], 'kind1');
-    Expect.contains('"key1":"value1"', consoleDebugLog[2][2]);
-
-    registerExtension('ext.method1', testHandler);
-    expect(consoleDebugLog.length, 4);
-    expect(consoleDebugLog[3].first, 'dart.developer.registerExtension');
-    expect(consoleDebugLog[3].last, 'ext.method1');
-  } finally {
-    // Restore actual console.debug function.
-    consoleDebug = savedConsoleDebug;
-    dwdsVersion = savedDwdsVersion;
-  }
-}
-
-/// Verify that warning messages are printed on the first call of postEvent()
-/// and registerExtension() when the hooks are undefined.
-void testWarningMessages() {
+/// Verify that warning messages are printed on the first call of
+/// `registerExtension()` when the hooks are undefined.
+///
+/// Calls to `postEvent()` are always a no-op when no extension has been
+/// registered to listen which can never happen if the hook is undefined.
+void testRegisterExtensionWarningMessage() {
   final consoleWarnLog = <String>[];
   var savedConsoleWarn = consoleWarn;
   try {
@@ -130,8 +77,9 @@ void testWarningMessages() {
     var data1 = {'key1': 'value1'};
     postEvent('kind1', data1);
 
-    // No warnings should be issued because postEvent is a no-op.
-    expect(consoleWarnLog.length, 0);
+    // No warnings should be issued because postEvent is a no-op when no
+    // extensions have been registered to listen.
+    expect(consoleWarnLog.isEmpty, true);
 
     consoleWarnLog.clear();
 
@@ -154,6 +102,15 @@ void testWarningMessages() {
 
     // A warning is only issued on the first call of `registerExtension()`.
     expect(consoleWarnLog.length, 1);
+
+    consoleWarnLog.clear();
+
+    // The earlier call to registerExtension() was a no-op and printed a warning
+    // because no debugger hooks are defined. This means more calls to
+    // `postEvent()` are still no ops.
+    postEvent('kind0', data0);
+    postEvent('kind1', data1);
+    expect(consoleWarnLog.isEmpty, true);
   } finally {
     // Restore actual console.warn function.
     consoleWarn = savedConsoleWarn;

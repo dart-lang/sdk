@@ -13,6 +13,7 @@ import 'dart:convert' show json;
 import 'dart:isolate';
 
 var _issuedRegisterExtensionWarning = false;
+var _issuedPostEventWarning = false;
 final _developerSupportWarning = 'from dart:developer is only supported in '
     'build/run/test environments where the developer event method hooks have '
     'been set by package:dwds v11.1.0 or higher.';
@@ -86,10 +87,7 @@ _registerExtension(String method, ServiceExtensionHandler handler) {
     // See hooks assigned by package:dwds:
     // https://github.com/dart-lang/webdev/blob/de05cf9fbbfe088be74bb61df4a138289a94d902/dwds/web/client.dart#L223
     JS('', r'#.$emitRegisterEvent(#)', dart.global_, method);
-    return;
   }
-  // TODO(48103) Remove use of debug log in Dart 3.0.0.
-  JS('', 'console.debug("dart.developer.registerExtension", #)', method);
 }
 
 /// Returns a JS `Promise` that resolves with the result of invoking
@@ -124,16 +122,20 @@ bool get extensionStreamHasListener => _debuggerAttached;
 
 @patch
 void _postEvent(String eventKind, String eventData) {
+  if (!_debuggerAttached) {
+    if (!_issuedPostEventWarning) {
+      var message = 'postEvent() $_developerSupportWarning';
+      JS('', 'console.warn(#)', message);
+      _issuedPostEventWarning = true;
+    }
+    return;
+  }
   // TODO(46377) Update this check when we have a documented API for DDC apps.
   if (JS<bool>('!', r'!!#.$emitDebugEvent', dart.global_)) {
     // See hooks assigned by package:dwds:
     // https://github.com/dart-lang/webdev/blob/de05cf9fbbfe088be74bb61df4a138289a94d902/dwds/web/client.dart#L220
     JS('', r'#.$emitDebugEvent(#, #)', dart.global_, eventKind, eventData);
-    return;
   }
-  // TODO(48103) Remove use of debug log in Dart 3.0.0.
-  JS('', 'console.debug("dart.developer.postEvent", #, #)', eventKind,
-      eventData);
 }
 
 @patch
