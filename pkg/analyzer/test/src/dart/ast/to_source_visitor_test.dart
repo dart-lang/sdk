@@ -3661,6 +3661,14 @@ $code
     _assertSource(code, findNode.topLevelVariableDeclaration(code));
   }
 
+  void test_visitTopLevelVariableDeclaration_withMetadata() {
+    final code = '@deprecated var a;';
+    final findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.topLevelVariableDeclaration(code));
+  }
+
   void test_visitTryStatement_catch() {
     final code = 'try {} on E {}';
     final findNode = _parseStringToFindNode('''

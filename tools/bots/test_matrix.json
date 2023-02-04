@@ -985,6 +985,12 @@
         ]
       }
     },
+    "vm-appjit-(linux|mac|win)-(debug|product|release)-(x64|arm64)": {
+      "options": {
+        "compiler": "app_jitk",
+        "nnbd": "strong"
+      }
+    },
     "dartdevk-checked-(linux|mac|win)-(debug|product|release)-(chrome|firefox)": {
       "options": {
         "checked": true,
@@ -1770,7 +1776,9 @@
             "standalone",
             "utils",
             "vm"
-          ]
+          ],
+          "fileset": "vm-kernel",
+          "shards": 3
         }
       ]
     },
@@ -1826,7 +1834,9 @@
             "-nvm-aot-${sanitizer}-${system}-${mode}-${arch}",
             "vm",
             "standalone"
-          ]
+          ],
+          "fileset": "vm-kernel",
+          "shards": 3
         }
       ]
     },
@@ -2320,6 +2330,43 @@
           "name": "vm tests",
           "arguments": [
             "-napp_jitk-linux-${mode}-${arch}"
+          ],
+          "shards": 6,
+          "fileset": "vm-kernel"
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-appjit-linux-debug-x64",
+        "vm-appjit-linux-release-x64",
+        "vm-appjit-linux-product-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the VM AppJIT builder group."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-appjit-${system}-${mode}-${arch}",
+            "benchmark_smoke",
+            "corelib",
+            "ffi",
+            "language",
+            "lib",
+            "samples",
+            "service",
+            "standalone",
+            "utils",
+            "vm"
           ],
           "shards": 6,
           "fileset": "vm-kernel"

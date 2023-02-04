@@ -1314,6 +1314,7 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.externalKeyword, suffix: ' ');
     _visitNode(node.variables, suffix: ';');
   }
