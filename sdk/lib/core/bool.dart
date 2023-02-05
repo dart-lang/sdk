@@ -127,7 +127,7 @@ class bool {
   /// print(bool.tryParse('1')); // null
   /// ```
   @Since("3.0")
-  external static bool? tryParse(String source, {bool? caseSensitive});
+  external static bool? tryParse(String source, {bool caseSensitive = true});
 
   external int get hashCode;
 
