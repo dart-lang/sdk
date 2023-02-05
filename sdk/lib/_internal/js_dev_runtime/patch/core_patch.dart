@@ -727,7 +727,7 @@ class bool {
       (throw FormatException("Not valid boolean", source));
 
   @patch
-  static bool? tryParse(String source, {bool? caseSensitive = true}) {
+  static bool? tryParse(String source, {bool caseSensitive = true}) {
     return Primitives.parseBool(source, caseSensitive);
   }
 
