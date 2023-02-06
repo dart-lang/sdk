@@ -19,7 +19,7 @@ import 'extension_builder.dart';
 class PrefixBuilder extends BuilderImpl {
   final String name;
 
-  final Scope exportScope = new Scope.top();
+  final Scope exportScope = new Scope.top(kind: ScopeKind.library);
 
   @override
   final SourceLibraryBuilder parent;

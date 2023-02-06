@@ -650,7 +650,7 @@ class Parser {
           sealedToken,
           baseToken,
           interfaceToken,
-          null,
+          /* mixinToken = */ null,
           directiveState);
     } else if (identical(value, 'enum')) {
       directiveState?.checkDeclaration();
@@ -719,7 +719,7 @@ class Parser {
                 inlineToken,
                 sealedToken,
                 baseToken,
-                null,
+                /* interfaceToken = */ null,
                 keyword,
                 directiveState);
           }
@@ -7844,15 +7844,16 @@ class Parser {
       } else {
         // Process `for ( pattern in expression )`
         assert(optional('in', token.next!));
-        return parseForInRest(
-            token, awaitToken, forToken, patternKeyword, null);
+        return parseForInRest(token, awaitToken, forToken, patternKeyword,
+            /* identifier = */ null);
       }
     }
     Token identifier = token.next!;
     token = parseForLoopPartsMid(token, awaitToken, forToken);
     if (optional('in', token.next!) || optional(':', token.next!)) {
       // Process `for ( ... in ... )`
-      return parseForInRest(token, awaitToken, forToken, null, identifier);
+      return parseForInRest(
+          token, awaitToken, forToken, /* patternKeyword = */ null, identifier);
     } else {
       // Process `for ( ... ; ... ; ... )`
       return parseForRest(awaitToken, token, forToken);
@@ -9621,10 +9622,11 @@ class Parser {
       Token next = token.next!;
       if (optional('var', next) || optional('final', next)) {
         token = keyword = next;
+        bool nextIsParen = optional("(", token.next!);
         // TODO(paulberry): this accepts `var <type> name` as a variable
         // pattern.  We want to accept that for error recovery, but don't forget
         // to report the appropriate error.
-        typeInfo = computeVariablePatternType(token);
+        typeInfo = computeVariablePatternType(token, nextIsParen);
         token = typeInfo.parseType(token, this);
       } else {
         // Bare identifier pattern

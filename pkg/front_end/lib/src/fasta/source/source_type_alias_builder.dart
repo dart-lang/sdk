@@ -246,6 +246,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       local[variable.name] = variable;
     }
     return new Scope(
+        kind: ScopeKind.typeParameters,
         local: local,
         parent: parent,
         debugName: "type parameter",

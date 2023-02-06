@@ -497,6 +497,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         supertypeBuilder,
         interfaceBuilders,
         new Scope(
+            kind: ScopeKind.declaration,
             local: members,
             setters: setters,
             parent: scope.parent,

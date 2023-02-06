@@ -95,7 +95,7 @@ class _StringNode extends _Node {
 
   @override
   int get hash =>
-      _StringCanonicalizer.hashString(payload, /*start=*/ 0, payload.length);
+      _StringCanonicalizer.hashString(payload, /* start = */ 0, payload.length);
 
   // On a 64-bit Dart VM the size of
   //  * [_StringNode] itself is 32 bytes
@@ -234,7 +234,8 @@ class _StringCanonicalizer {
 
   String canonicalizeString(String data) {
     if (_count > _size) rehash();
-    final int index = hashString(data, /*start=*/ 0, data.length) & (_size - 1);
+    final int index =
+        hashString(data, /* start = */ 0, data.length) & (_size - 1);
     final _Node? s = _nodes[index];
     _Node? t = s;
     while (t != null) {
@@ -274,7 +275,7 @@ class _StringCanonicalizer {
 
   void initializeWithSize(int size) {
     _size = size;
-    _nodes = new List<_Node?>.filled(_size, null);
+    _nodes = new List<_Node?>.filled(_size, /* fill = */ null);
     _count = 0;
     _utf8StringCount = 0;
     _stringCount = 0;
@@ -301,7 +302,7 @@ class _StringCanonicalizer {
     // leaving some space before we'll have to prune again next time.
 
     final List<_StringNode> stringNodes = new List<_StringNode>.filled(
-        _stringCount, new _StringNode('dummy', null));
+        _stringCount, new _StringNode('dummy', /* next = */ null));
     int writeIndex = 0;
     for (int i = 0; i < _nodes.length; ++i) {
       _Node? node = _nodes[i];

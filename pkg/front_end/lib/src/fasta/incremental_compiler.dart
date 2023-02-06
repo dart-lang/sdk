@@ -124,7 +124,7 @@ import 'incremental_serializer.dart' show IncrementalSerializer;
 
 import 'kernel/macro/macro.dart' show enableMacros, NeededPrecompilations;
 
-import 'scope.dart' show Scope;
+import 'scope.dart' show Scope, ScopeKind;
 
 import 'source/source_class_builder.dart' show SourceClassBuilder;
 
@@ -1994,7 +1994,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         packageLanguageVersion:
             new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
         loader: lastGoodKernelTarget.loader,
-        scope: debugLibrary.scope.createNestedScope("expression"),
+        scope: debugLibrary.scope.createNestedScope(
+            debugName: "expression", kind: ScopeKind.library),
         nameOrigin: libraryBuilder,
         isUnsupported: libraryBuilder.isUnsupported,
         isAugmentation: false,

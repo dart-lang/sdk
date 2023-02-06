@@ -35,6 +35,7 @@ class DillClassBuilder extends ClassBuilderImpl {
             null,
             null,
             new Scope(
+                kind: ScopeKind.declaration,
                 local: <String, MemberBuilder>{},
                 setters: <String, MemberBuilder>{},
                 parent: parent.scope,

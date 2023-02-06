@@ -31,9 +31,7 @@ static method test2(dynamic x) → dynamic {
     late final core::bool #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1;
     late final dynamic #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
     late final dynamic #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
-    dynamic #t2;
-    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t3 = x = #0#6{core::int} in true)) && (let final dynamic #t4 = #0#7 in true) && (let final dynamic #t5 = #t2 = x in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (let final dynamic #t6 = #0#6 in true) && (#0#7 is{ForNonNullableByDefault} core::int && (let final dynamic #t7 = x' = #0#7{core::int} in true)) && (let final dynamic #t8 = #t2 = x' in true)) {
-      core::int x = #t2{core::int};
+    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t2 = x = #0#6{core::int} in true)) && (let final dynamic #t3 = #0#7 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (let final dynamic #t4 = #0#6 in true) && (#0#7 is{ForNonNullableByDefault} core::int && (let final dynamic #t5 = x' = #0#7{core::int} in true))) {
       {
         core::String x = "foo";
         return x;
@@ -50,7 +48,7 @@ static method test3(dynamic x) → dynamic {
   {
     core::int x;
     final dynamic #0#0 = x;
-    if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t9 = x = #0#0{core::int} in true)) {
+    if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t6 = x = #0#0{core::int} in true)) {
       core::String x = "foo";
       return x;
     }
@@ -64,7 +62,7 @@ static method test4(dynamic x) → dynamic {
   {
     core::int x;
     final dynamic #0#0 = x;
-    if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t10 = x = #0#0{core::int} in true)) {
+    if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t7 = x = #0#0{core::int} in true)) {
       core::String x = (() → core::String {
         f = () → core::int => 1;
         return "foo";
