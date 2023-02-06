@@ -1476,7 +1476,6 @@ class ObjectCopy : public Base {
       to_untagged->hash_mask_ = Smi::New(0);
       to_untagged->index_ = TypedData::RawCast(Object::null());
       to_untagged->deleted_keys_ = Smi::New(0);
-      Base::EnqueueObjectToRehash(to);
     }
 
     // From this point on we shouldn't use the raw pointers, since GC might
@@ -1499,6 +1498,10 @@ class ObjectCopy : public Base {
     Base::StoreCompressedPointersNoBarrier(
         from, to, OFFSET_OF(UntaggedLinkedHashBase, used_data_),
         OFFSET_OF(UntaggedLinkedHashBase, used_data_));
+
+    if (Base::exception_msg_ == nullptr && needs_rehashing) {
+      Base::EnqueueObjectToRehash(to);
+    }
   }
 
   void CopyMap(typename Types::Map from, typename Types::Map to) {
