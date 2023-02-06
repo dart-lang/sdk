@@ -129,11 +129,6 @@ import 'utils.dart';
 // TODO(ahe): Remove this and ensure all nodes have a location.
 const int noLocation = TreeNode.noOffset;
 
-/// The name of the scope corresponding to a head of a switch case
-///
-/// The name is used in assertions and for debugging.
-const String caseHeadScopeName = "case-head";
-
 enum JumpTargetKind {
   Break,
   Continue,
@@ -451,19 +446,33 @@ class BodyBuilder extends StackListenerImpl
     return createJumpTarget(JumpTargetKind.Goto, charOffset);
   }
 
-  void enterLocalScope(String debugName, [Scope? newScope]) {
+  void enterLocalScope(Scope localScope) {
     push(scope);
-    scope = newScope ?? scope.createNestedScope(debugName);
+    scope = localScope;
+    assert(checkState(null, [
+      ValueKinds.Scope,
+    ]));
+  }
+
+  void createAndEnterLocalScope(
+      {required String debugName, required ScopeKind kind}) {
+    push(scope);
+    scope = scope.createNestedScope(debugName: debugName, kind: kind);
     assert(checkState(null, [
       ValueKinds.Scope,
     ]));
   }
 
   @override
-  void exitLocalScope() {
+  void exitLocalScope({List<ScopeKind>? expectedScopeKinds}) {
     assert(checkState(null, [
       ValueKinds.Scope,
     ]));
+    assert(
+        expectedScopeKinds == null || expectedScopeKinds.contains(scope.kind),
+        "Expected the current scope to be one of the kinds "
+        "${expectedScopeKinds.map((k) => "'${k}'").join(", ")}, "
+        "but got '${scope.kind}'.");
     scope = pop() as Scope;
     // ignore: unnecessary_null_comparison
     assert(scope != null);
@@ -494,26 +503,31 @@ class BodyBuilder extends StackListenerImpl
   @override
   void beginBlockFunctionBody(Token begin) {
     debugEvent("beginBlockFunctionBody");
-    enterLocalScope("block function body");
+    createAndEnterLocalScope(
+        debugName: "block function body", kind: ScopeKind.functionBody);
   }
 
   @override
   void beginForStatement(Token token) {
     debugEvent("beginForStatement");
     enterLoop(token.charOffset);
-    enterLocalScope("for statement");
+    createAndEnterLocalScope(
+        debugName: "for statement", kind: ScopeKind.statementLocalScope);
   }
 
   @override
   void beginForControlFlow(Token? awaitToken, Token forToken) {
     debugEvent("beginForControlFlow");
-    enterLocalScope("for in a collection");
+    createAndEnterLocalScope(
+        debugName: "for in a collection", kind: ScopeKind.statementLocalScope);
   }
 
   @override
   void beginDoWhileStatementBody(Token token) {
     debugEvent("beginDoWhileStatementBody");
-    enterLocalScope("do-while statement body");
+    createAndEnterLocalScope(
+        debugName: "do-while statement body",
+        kind: ScopeKind.statementLocalScope);
   }
 
   @override
@@ -527,7 +541,8 @@ class BodyBuilder extends StackListenerImpl
   @override
   void beginWhileStatementBody(Token token) {
     debugEvent("beginWhileStatementBody");
-    enterLocalScope("while statement body");
+    createAndEnterLocalScope(
+        debugName: "while statement body", kind: ScopeKind.statementLocalScope);
   }
 
   @override
@@ -541,7 +556,8 @@ class BodyBuilder extends StackListenerImpl
   @override
   void beginForStatementBody(Token token) {
     debugEvent("beginForStatementBody");
-    enterLocalScope("for statement body");
+    createAndEnterLocalScope(
+        debugName: "for statement body", kind: ScopeKind.statementLocalScope);
   }
 
   @override
@@ -555,7 +571,8 @@ class BodyBuilder extends StackListenerImpl
   @override
   void beginForInBody(Token token) {
     debugEvent("beginForInBody");
-    enterLocalScope("for-in body");
+    createAndEnterLocalScope(
+        debugName: "for-in body", kind: ScopeKind.statementLocalScope);
   }
 
   @override
@@ -569,7 +586,8 @@ class BodyBuilder extends StackListenerImpl
   @override
   void beginElseStatement(Token token) {
     debugEvent("beginElseStatement");
-    enterLocalScope("else");
+    createAndEnterLocalScope(
+        debugName: "else", kind: ScopeKind.statementLocalScope);
   }
 
   @override
@@ -1133,7 +1151,8 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("NoInitializers");
     if (functionNestingLevel == 0) {
       prepareInitializers();
-      scope = formalParameterScope ?? new Scope.immutable();
+      scope = formalParameterScope ??
+          new Scope.immutable(kind: ScopeKind.initializers);
     }
   }
 
@@ -1150,7 +1169,8 @@ class BodyBuilder extends StackListenerImpl
   void endInitializers(int count, Token beginToken, Token endToken) {
     debugEvent("Initializers");
     if (functionNestingLevel == 0) {
-      scope = formalParameterScope ?? new Scope.immutable();
+      scope = formalParameterScope ??
+          new Scope.immutable(kind: ScopeKind.initializers);
     }
     inConstructorInitializer = false;
   }
@@ -1792,10 +1812,8 @@ class BodyBuilder extends StackListenerImpl
                     fileUri: uri)
                   ..variable = formal;
               }, growable: false);
-    enterLocalScope(
-        'formalParameters',
-        new FormalParameters(formals, fileOffset, noLength, uri)
-            .computeFormalParameterScope(scope, member, this));
+    enterLocalScope(new FormalParameters(formals, fileOffset, noLength, uri)
+        .computeFormalParameterScope(scope, member, this));
 
     Token endToken =
         parser.parseExpression(parser.syntheticPreviousToken(token));
@@ -2531,11 +2549,7 @@ class BodyBuilder extends StackListenerImpl
     push(value);
 
     // Scope of the preceding case head or a sentinel if it's the first head.
-    assert(
-        scope.classNameOrDebugName == caseHeadScopeName,
-        "Expected to have scope 'case-head', "
-        "but got '${scope.classNameOrDebugName}'.");
-    exitLocalScope();
+    exitLocalScope(expectedScopeKinds: const [ScopeKind.caseHead]);
 
     // Return labels back on the stack.
     if (labels != null) {
@@ -2544,7 +2558,7 @@ class BodyBuilder extends StackListenerImpl
       }
     }
 
-    enterLocalScope(caseHeadScopeName);
+    createAndEnterLocalScope(debugName: "case-head", kind: ScopeKind.caseHead);
     super.push(constantContext);
     constantContext = ConstantContext.inferred;
     assert(checkState(
@@ -3517,7 +3531,8 @@ class BodyBuilder extends StackListenerImpl
     ]));
 
     Pattern pattern = toPattern(peek());
-    enterLocalScope("then");
+    createAndEnterLocalScope(
+        debugName: "if-case-head", kind: ScopeKind.ifCaseHead);
     for (VariableDeclaration variable in pattern.declaredVariables) {
       declareVariable(variable, scope);
       typeInferrer.assignedVariables.declare(variable);
@@ -3540,26 +3555,30 @@ class BodyBuilder extends StackListenerImpl
     PatternGuard? patternGuard = condition.patternGuard;
     if (patternGuard != null && patternGuard.guard != null) {
       assert(checkState(token, [ValueKinds.Scope]));
-      Scope thenScope = scope.createNestedScope("then body");
+      Scope thenScope = scope.createNestedScope(
+          debugName: "then body", kind: ScopeKind.statementLocalScope);
       exitLocalScope();
       push(condition);
-      enterLocalScope("then body", thenScope);
+      enterLocalScope(thenScope);
     } else {
       push(condition);
       // There is no guard, so the scope for "then" isn't entered yet. We need
       // to enter the scope and declare all of the pattern variables.
       if (patternGuard != null) {
-        enterLocalScope("pattern scope");
+        createAndEnterLocalScope(
+            debugName: "if-case-head", kind: ScopeKind.ifCaseHead);
         for (VariableDeclaration variable
             in patternGuard.pattern.declaredVariables) {
           declareVariable(variable, scope);
           typeInferrer.assignedVariables.declare(variable);
         }
-        Scope thenScope = scope.createNestedScope("then body");
+        Scope thenScope = scope.createNestedScope(
+            debugName: "then body", kind: ScopeKind.statementLocalScope);
         exitLocalScope();
-        enterLocalScope("then body", thenScope);
+        enterLocalScope(thenScope);
       } else {
-        enterLocalScope("then body");
+        createAndEnterLocalScope(
+            debugName: "then body", kind: ScopeKind.statementLocalScope);
       }
     }
   }
@@ -3858,7 +3877,8 @@ class BodyBuilder extends StackListenerImpl
           .prepend(typeInferrer.assignedVariables.deferNode());
     }
     debugEvent("beginBlock");
-    enterLocalScope("block");
+    createAndEnterLocalScope(
+        debugName: "block", kind: ScopeKind.statementLocalScope);
   }
 
   @override
@@ -4817,8 +4837,10 @@ class BodyBuilder extends StackListenerImpl
 
   void enterFunctionTypeScope(List<TypeVariableBuilder>? typeVariables) {
     debugEvent("enterFunctionTypeScope");
-    enterLocalScope('FunctionTypeScope',
-        scope.createNestedScope("function-type scope", isModifiable: true));
+    enterLocalScope(scope.createNestedScope(
+        debugName: "function-type scope",
+        isModifiable: true,
+        kind: ScopeKind.typeParameters));
     if (typeVariables != null) {
       for (TypeVariableBuilder builder in typeVariables) {
         String name = builder.name;
@@ -5322,8 +5344,7 @@ class BodyBuilder extends StackListenerImpl
     push(formals);
     if ((inCatchClause || functionNestingLevel != 0) &&
         kind != MemberKind.GeneralizedFunctionType) {
-      enterLocalScope('formalParameters',
-          formals.computeFormalParameterScope(scope, member, this));
+      enterLocalScope(formals.computeFormalParameterScope(scope, member, this));
     }
   }
 
@@ -6746,7 +6767,8 @@ class BodyBuilder extends StackListenerImpl
         pop() as List<TypeVariableBuilder>?;
     // Create an additional scope in which the named function expression is
     // declared.
-    enterLocalScope("named function");
+    createAndEnterLocalScope(
+        debugName: "named function", kind: ScopeKind.namedFunctionExpression);
     push(typeVariables ?? NullValues.TypeVariables);
     enterFunction();
   }
@@ -6938,7 +6960,12 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   void beginForInExpression(Token token) {
-    enterLocalScope('forIn', scope.parent);
+    if (scope.parent != null) {
+      enterLocalScope(scope.parent!);
+    } else {
+      createAndEnterLocalScope(
+          debugName: 'forIn', kind: ScopeKind.statementLocalScope);
+    }
   }
 
   @override
@@ -7171,7 +7198,7 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("beginLabeledStatement");
     List<Label>? labels = const FixedNullableList<Label>()
         .popNonNullable(stack, labelCount, dummyLabel);
-    enterLocalScope('labeledStatement', scope.createNestedLabelScope());
+    enterLocalScope(scope.createNestedLabelScope());
     LabelTarget target =
         new LabelTarget(functionNestingLevel, uri, token.charOffset);
     if (labels != null) {
@@ -7380,10 +7407,12 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("beginSwitchBlock");
     // This is matched by the [endNode] call in [endSwitchStatement].
     typeInferrer.assignedVariables.beginNode();
-    enterLocalScope("switch block");
+    createAndEnterLocalScope(
+        debugName: "switch block", kind: ScopeKind.statementLocalScope);
     enterSwitchScope();
     enterBreakTarget(token.charOffset);
-    enterLocalScope(caseHeadScopeName); // Sentinel scope.
+    createAndEnterLocalScope(
+        debugName: "case-head", kind: ScopeKind.caseHead); // Sentinel scope.
   }
 
   @override
@@ -7399,7 +7428,6 @@ class BodyBuilder extends StackListenerImpl
               ValueKinds.Scope,
             ]),
             count)));
-    assert(scope.classNameOrDebugName == caseHeadScopeName);
 
     Scope? switchCaseScope;
     List<Label>? labels =
@@ -7424,13 +7452,14 @@ class BodyBuilder extends StackListenerImpl
           // and reused later; it already contains the declared pattern
           // variables.
           switchCaseScope = scope;
-          exitLocalScope();
+          exitLocalScope(expectedScopeKinds: const [ScopeKind.caseHead]);
         } else {
           // The multi-head or "default" case. The scope of the last head should
           // be exited, and the new scope for the joint variables should be
           // created.
-          exitLocalScope();
-          switchCaseScope = scope.createNestedScope("switch case");
+          exitLocalScope(expectedScopeKinds: const [ScopeKind.caseHead]);
+          switchCaseScope = scope.createNestedScope(
+              debugName: "joint-variables", kind: ScopeKind.jointVariables);
         }
       } else {
         expressionOrPatterns[expressionOrPatternIndex--] =
@@ -7466,8 +7495,8 @@ class BodyBuilder extends StackListenerImpl
     push(containsPatterns);
     push(labels ?? NullValues.Labels);
 
-    enterLocalScope("switch case", switchCaseScope);
     List<VariableDeclaration>? jointPatternVariables;
+    enterLocalScope(switchCaseScope!);
     if (expressionCount > 1) {
       for (ExpressionOrPatternGuardCase expressionOrPattern
           in expressionOrPatterns) {
@@ -7505,19 +7534,21 @@ class BodyBuilder extends StackListenerImpl
           jointPatternVariables = null;
         } else {
           for (VariableDeclaration jointVariable in jointPatternVariables) {
+            assert(scope.kind == ScopeKind.jointVariables);
             declareVariable(jointVariable, scope);
             typeInferrer.assignedVariables.declare(jointVariable);
           }
         }
       }
-      switchCaseScope = scope.createNestedScope("switch case");
-      exitLocalScope();
-      enterLocalScope("switch case", switchCaseScope);
+      switchCaseScope = scope.createNestedScope(
+          debugName: "switch case", kind: ScopeKind.switchCase);
+      exitLocalScope(expectedScopeKinds: const [ScopeKind.jointVariables]);
+      enterLocalScope(switchCaseScope);
     } else if (expressionCount == 1) {
-      assert(scope.classNameOrDebugName == caseHeadScopeName);
-      switchCaseScope = scope.createNestedScope("switch case");
-      exitLocalScope();
-      enterLocalScope("switch case", switchCaseScope);
+      switchCaseScope = scope.createNestedScope(
+          debugName: "switch case", kind: ScopeKind.switchCase);
+      exitLocalScope(expectedScopeKinds: const [ScopeKind.caseHead]);
+      enterLocalScope(switchCaseScope);
     }
     push(jointPatternVariables ?? NullValues.VariableDeclarationList);
 
@@ -7620,9 +7651,29 @@ class BodyBuilder extends StackListenerImpl
     List<VariableDeclaration>? jointPatternVariables =
         pop() as List<VariableDeclaration>?;
 
-    assert(scope.classNameOrDebugName == "switch case" ||
-        scope.classNameOrDebugName == caseHeadScopeName);
-    exitLocalScope();
+    if (jointPatternVariables != null) {
+      List<VariableDeclaration>? usedJointPatternVariables;
+      Scope? jointVariablesScope = scope;
+      while (jointVariablesScope != null &&
+          jointVariablesScope.kind != ScopeKind.jointVariables) {
+        jointVariablesScope = jointVariablesScope.parent;
+      }
+      assert(jointVariablesScope != null,
+          "Can't find the scope the joint variables are declared in.");
+      for (VariableDeclaration variable in jointPatternVariables) {
+        if (jointVariablesScope?.usedNames?.containsKey(variable.name!) ??
+            false) {
+          (usedJointPatternVariables ??= <VariableDeclaration>[]).add(variable);
+        }
+      }
+      jointPatternVariables = usedJointPatternVariables;
+    }
+
+    exitLocalScope(expectedScopeKinds: const [
+      ScopeKind.switchCase,
+      ScopeKind.caseHead,
+      ScopeKind.jointVariables
+    ]);
 
     List<Label>? labels = pop() as List<Label>?;
     assert(labels == null || labels.isNotEmpty);
@@ -7667,7 +7718,8 @@ class BodyBuilder extends StackListenerImpl
         ..fileOffset = firstToken.charOffset);
     }
     push(labels ?? NullValues.Labels);
-    enterLocalScope(caseHeadScopeName); // Sentinel scope.
+    createAndEnterLocalScope(
+        debugName: "case-head", kind: ScopeKind.caseHead); // Sentinel scope.
     assert(checkState(firstToken, [
       ValueKinds.Scope,
       ValueKinds.LabelListOrNull,
@@ -7763,7 +7815,8 @@ class BodyBuilder extends StackListenerImpl
       ])
     ]));
     Object? pattern = pop();
-    enterLocalScope("switch-expression-case");
+    createAndEnterLocalScope(
+        debugName: "switch-expression-case", kind: ScopeKind.caseHead);
     if (pattern is Pattern) {
       for (VariableDeclaration variable in pattern.declaredVariables) {
         declareVariable(variable, scope);
@@ -7850,8 +7903,9 @@ class BodyBuilder extends StackListenerImpl
       ], caseCount)
     ]));
 
-    assert(scope.classNameOrDebugName == caseHeadScopeName);
-    exitLocalScope(); // Exit the sentinel scope.
+    exitLocalScope(expectedScopeKinds: const [
+      ScopeKind.caseHead
+    ]); // Exit the sentinel scope.
 
     bool containsPatterns = false;
     List<SwitchCase> cases =
@@ -9273,6 +9327,7 @@ class FormalParameters {
       }
     }
     return new Scope(
+        kind: ScopeKind.formals,
         local: local,
         parent: parent,
         debugName: "formals",

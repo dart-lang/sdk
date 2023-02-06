@@ -216,6 +216,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       }
     }
     return new Scope(
+        kind: ScopeKind.formals,
         local: local,
         parent: parent,
         debugName: "formal parameter",
@@ -245,6 +246,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       local[formal.name] = formal.forFormalParameterInitializerScope();
     }
     return new Scope(
+        kind: ScopeKind.initializers,
         local: local,
         parent: parent,
         debugName: "formal parameter initializer",
@@ -259,6 +261,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       local[variable.name] = variable;
     }
     return new Scope(
+        kind: ScopeKind.typeParameters,
         local: local,
         parent: parent,
         debugName: "type parameter",

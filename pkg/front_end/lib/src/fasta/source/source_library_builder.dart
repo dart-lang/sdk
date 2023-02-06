@@ -299,7 +299,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             packageUri,
             packageLanguageVersion,
             new TypeParameterScopeBuilder.library(),
-            scope ?? new Scope.top(),
+            scope ?? new Scope.top(kind: ScopeKind.library),
             origin,
             library,
             nameOrigin,
@@ -334,7 +334,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             fileUri,
             _libraryTypeParameterScopeBuilder.toScope(importScope,
                 omittedTypeDeclarationBuilders: omittedTypes),
-            new Scope.top()) {
+            new Scope.top(kind: ScopeKind.library)) {
     assert(
         _packageUri == null ||
             !importUri.isScheme('package') ||
@@ -1901,6 +1901,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Map<String, MemberBuilder> setters = declaration.setters!;
 
     Scope classScope = new Scope(
+        kind: ScopeKind.declaration,
         local: members,
         setters: setters,
         parent: scope.withTypeVariables(typeVariables),
@@ -2143,6 +2144,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Map<String, MemberBuilder> setters = declaration.setters!;
 
     Scope classScope = new Scope(
+        kind: ScopeKind.declaration,
         local: members,
         setters: setters,
         parent: scope.withTypeVariables(typeVariables),
@@ -2221,6 +2223,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Map<String, MemberBuilder> setters = declaration.setters!;
 
     Scope memberScope = new Scope(
+        kind: ScopeKind.declaration,
         local: members,
         setters: setters,
         parent: scope.withTypeVariables(typeVariables),
@@ -2532,6 +2535,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                     : null,
             null, // No `on` clause types.
             new Scope(
+                kind: ScopeKind.declaration,
                 local: <String, MemberBuilder>{},
                 setters: <String, MemberBuilder>{},
                 parent: scope.withTypeVariables(typeVariables),
@@ -3147,6 +3151,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         charEndOffset,
         referencesFromIndexedClass,
         new Scope(
+            kind: ScopeKind.declaration,
             local: members,
             setters: setters,
             parent: scope.withTypeVariables(typeVariables),
@@ -5471,12 +5476,14 @@ class TypeParameterScopeBuilder {
     if (omittedTypeDeclarationBuilders != null &&
         omittedTypeDeclarationBuilders.isNotEmpty) {
       parent = new Scope(
+          kind: ScopeKind.typeParameters,
           local: omittedTypeDeclarationBuilders,
           parent: parent,
           debugName: 'omitted-types',
           isModifiable: false);
     }
     return new Scope(
+        kind: ScopeKind.typeParameters,
         local: members ?? const {},
         setters: setters,
         extensions: extensions,

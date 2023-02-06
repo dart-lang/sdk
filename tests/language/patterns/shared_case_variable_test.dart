@@ -17,14 +17,14 @@ main() {
   Expect.equals('s: var', differentTypeNotUsedInBody(2, 's'));
 
   Expect.equals('unique: unique', differentVariableNotUsedInBody(0, 'unique'));
-  Expect.equals('inTwo: in', differentVariableNotUsedInBody(1, 'in'));
-  Expect.equals('inTwo: two', differentVariableNotUsedInBody(2, 'two'));
+  Expect.equals('in: inTwo', differentVariableNotUsedInBody(1, 'in'));
+  Expect.equals('two: inTwo', differentVariableNotUsedInBody(2, 'two'));
 
   Expect.equals('one: var', sharedAnnotatedAndUnannotated(0, 'one'));
   Expect.equals('two: Object', sharedAnnotatedAndUnannotated(1, 'two'));
 
   Expect.equals('one: var', sharedAnnotatedAndPromotionInferred(0, 'one'));
-  Expect.equals('two: int', sharedAnnotatedAndPromotionInferred(1, 'two'));
+  Expect.equals('two: String', sharedAnnotatedAndPromotionInferred(1, 'two'));
 
   Expect.equals('0: 0: list', sharedDifferentContext([0, true]));
   Expect.equals('1: 1: map', sharedDifferentContext({'a': 1, 'b': true}));
@@ -62,7 +62,7 @@ Object? differentTypeNotUsedInBody(int caseKey, Object value) {
 /// OK if some variables only exist in some cases if they aren't used in the
 /// body.
 Object? differentVariableNotUsedInBody(int caseKey, Object value) {
-  switch ((value, value)) {
+  switch ((caseKey, value)) {
     case (0, var unique) when _guard(unique, 'unique'):
     case (1, var inTwo) when _guard(inTwo, 'inTwo'):
     case (2, var inTwo) when _guard(inTwo, 'inTwo'):
@@ -89,11 +89,11 @@ Object? sharedAnnotatedAndUnannotated(int caseKey, Object value) {
 /// Variables can be shared if not all are annotated as long as the type
 /// inferred using promotion matches.
 Object? sharedAnnotatedAndPromotionInferred(int caseKey, Object value) {
-  // Promote value to int.
-  if (value is int) {
+  // Promote value to String.
+  if (value is String) {
     switch ((caseKey, value)) {
       case (0, var a) when _guard(a, 'var'):
-      case (1, int a) when _guard(a, 'int'):
+      case (1, String a) when _guard(a, 'String'):
         // Use pattern variable in body:
         Expect.equals(value, a);
         return _matchedCase();
