@@ -378,9 +378,9 @@ DeclaredVariablePattern
 
   test_var_switchCase_cast() async {
     await assertErrorsInCode(r'''
-void f(int x) {
+void f(num x) {
   switch (x) {
-    case var y as Object:
+    case var y as int:
       break;
   }
 }
@@ -394,14 +394,14 @@ CastPattern
     keyword: var
     name: y
     declaredElement: hasImplicitType y@44
-      type: Object
+      type: int
   asToken: as
   type: NamedType
     name: SimpleIdentifier
-      token: Object
-      staticElement: dart:core::@class::Object
+      token: int
+      staticElement: dart:core::@class::int
       staticType: null
-    type: Object
+    type: int
 ''');
   }
 }

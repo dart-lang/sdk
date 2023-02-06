@@ -640,7 +640,9 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   ///
   /// [matchedType] should be the matched value type, and [requiredType] should
   /// be the required type of the pattern.
-  void patternRequiredType(
+  ///
+  /// Returns `true` if [matchedType] is a subtype of [requiredType].
+  bool patternRequiredType(
       {required Type matchedType, required Type requiredType});
 
   /// Call this method just after visiting the initializer of a pattern variable
@@ -1494,13 +1496,15 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void patternRequiredType(
+  bool patternRequiredType(
       {required Type matchedType, required Type requiredType}) {
-    _wrap(
+    return _wrap(
         'patternRequiredType(matchedType: $matchedType, '
         'requiredType: $requiredType)',
         () => _wrapped.patternRequiredType(
-            matchedType: matchedType, requiredType: requiredType));
+            matchedType: matchedType, requiredType: requiredType),
+        isQuery: true,
+        isPure: false);
   }
 
   @override
@@ -4345,7 +4349,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void patternRequiredType(
+  bool patternRequiredType(
       {required Type matchedType, required Type requiredType}) {
     _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
     ReferenceWithType<Type> matchedValueReference =
@@ -4375,6 +4379,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     if (!coversMatchedType) {
       _unmatched = _join(_unmatched!, ifFalse);
     }
+    return coversMatchedType;
   }
 
   @override
@@ -5528,8 +5533,9 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void patternForIn_end() {}
 
   @override
-  void patternRequiredType(
-      {required Type matchedType, required Type requiredType}) {}
+  bool patternRequiredType(
+          {required Type matchedType, required Type requiredType}) =>
+      false;
 
   @override
   void patternVariableDeclaration_afterInitializer(

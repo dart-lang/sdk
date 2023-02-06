@@ -310,25 +310,35 @@ mixin TypeAnalyzer<
   Type analyzeAssignedVariablePatternSchema(Variable variable) =>
       flow.promotedType(variable) ?? operations.variableType(variable);
 
-  /// Analyzes a cast pattern.  [innerPattern] is the sub-pattern] and [type] is
-  /// the type to cast to.
+  /// Analyzes a cast pattern.  [innerPattern] is the sub-pattern] and
+  /// [requiredType] is the type to cast to.
   ///
   /// See [dispatchPattern] for the meaning of [context].
   ///
   /// Stack effect: pushes (Pattern innerPattern).
-  void analyzeCastPattern(
-      MatchContext<Node, Expression, Pattern, Type, Variable> context,
-      Pattern innerPattern,
-      Type type) {
-    flow.patternRequiredType(
-        matchedType: flow.getMatchedValueType(), requiredType: type);
+  void analyzeCastPattern({
+    required MatchContext<Node, Expression, Pattern, Type, Variable> context,
+    required Pattern pattern,
+    required Pattern innerPattern,
+    required Type requiredType,
+  }) {
+    Type matchedValueType = flow.getMatchedValueType();
+    bool matchedTypeIsSubtypeOfRequired = flow.patternRequiredType(
+        matchedType: matchedValueType, requiredType: requiredType);
+    if (matchedTypeIsSubtypeOfRequired) {
+      errors?.matchedTypeIsSubtypeOfRequired(
+        pattern: pattern,
+        matchedType: matchedValueType,
+        requiredType: requiredType,
+      );
+    }
     // Note: although technically the inner pattern match of a cast-pattern
     // operates on the same value as the cast pattern does, we analyze it as
     // though it's a different value; this ensures that (a) the matched value
     // type when matching the inner pattern is precisely the cast type, and (b)
     // promotions triggered by the inner pattern have no effect outside the
     // cast.
-    flow.pushSubpattern(type);
+    flow.pushSubpattern(requiredType);
     dispatchPattern(context, innerPattern);
     // Stack: (Pattern)
     flow.popSubpattern();
@@ -2222,6 +2232,14 @@ abstract class TypeAnalyzerErrors<
   void matchedTypeIsStrictlyNonNullable({
     required Pattern pattern,
     required Type matchedType,
+  });
+
+  /// Called when the matched type of a cast pattern is a subtype of the
+  /// required type, so the cast is not necessary.
+  void matchedTypeIsSubtypeOfRequired({
+    required Pattern pattern,
+    required Type matchedType,
+    required Type requiredType,
   });
 
   /// Called if the static type of a condition is not assignable to `bool`.

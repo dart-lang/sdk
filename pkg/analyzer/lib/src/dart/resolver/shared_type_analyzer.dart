@@ -154,6 +154,18 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void matchedTypeIsSubtypeOfRequired({
+    required covariant CastPatternImpl pattern,
+    required DartType matchedType,
+    required DartType requiredType,
+  }) {
+    _errorReporter.reportErrorForToken(
+      WarningCode.UNNECESSARY_CAST_PATTERN,
+      pattern.asToken,
+    );
+  }
+
+  @override
   void nonBooleanCondition(Expression node) {
     _errorReporter.reportErrorForNode(
       CompileTimeErrorCode.NON_BOOL_CONDITION,

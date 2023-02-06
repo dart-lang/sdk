@@ -812,6 +812,7 @@ import 'undefined_super_method_test.dart' as undefined_super_method;
 import 'undefined_super_operator_test.dart' as undefined_super_operator;
 import 'undefined_super_setter_test.dart' as undefined_super_setter;
 import 'unignorable_ignore_test.dart' as unignorable_ignore;
+import 'unnecessary_cast_pattern_test.dart' as unnecessary_cast_pattern;
 import 'unnecessary_cast_test.dart' as unnecessary_cast;
 import 'unnecessary_final_test.dart' as unnecessary_final;
 import 'unnecessary_ignore_test.dart' as unnecessary_ignore;
@@ -1398,6 +1399,7 @@ main() {
     undefined_super_setter.main();
     unignorable_ignore.main();
     unnecessary_import.main();
+    unnecessary_cast_pattern.main();
     unnecessary_cast.main();
     unnecessary_final.main();
     unnecessary_ignore.main();

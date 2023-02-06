@@ -1674,7 +1674,12 @@ class _CastPattern extends Pattern {
   @override
   void visit(Harness h, SharedMatchContext context) {
     var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
-    h.typeAnalyzer.analyzeCastPattern(context, _inner, _type);
+    h.typeAnalyzer.analyzeCastPattern(
+      context: context,
+      pattern: this,
+      innerPattern: _inner,
+      requiredType: _type,
+    );
     h.irBuilder.atom(_type.type, Kind.type, location: location);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply(
@@ -3064,6 +3069,19 @@ class _MiniAstErrors
     _recordError('matchedTypeIsStrictlyNonNullable', {
       'pattern': pattern,
       'matchedType': matchedType,
+    });
+  }
+
+  @override
+  void matchedTypeIsSubtypeOfRequired({
+    required Pattern pattern,
+    required Type matchedType,
+    required Type requiredType,
+  }) {
+    _recordError('matchedTypeIsSubtypeOfRequired', {
+      'pattern': pattern,
+      'matchedType': matchedType,
+      'requiredType': requiredType,
     });
   }
 
