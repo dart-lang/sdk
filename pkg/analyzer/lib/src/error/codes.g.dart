@@ -6036,6 +6036,52 @@ class WarningCode extends AnalyzerErrorCode {
   static const HintCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR =
       HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR;
 
+  ///  No parameters.
+  static const WarningCode NULLABLE_TYPE_IN_CATCH_CLAUSE = WarningCode(
+    'NULLABLE_TYPE_IN_CATCH_CLAUSE',
+    "A potentially nullable type can't be used in an 'on' clause because it "
+        "isn't valid to throw a nullable expression.",
+    correctionMessage: "Try using a non-nullable type.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the method being invoked
+  ///  1: the type argument associated with the method
+  static const WarningCode NULL_ARGUMENT_TO_NON_NULL_TYPE = WarningCode(
+    'NULL_ARGUMENT_TO_NON_NULL_TYPE',
+    "'{0}' shouldn't be called with a null argument for the non-nullable type "
+        "argument '{1}'.",
+    correctionMessage: "Try adding a non-null argument.",
+    hasPublishedDocs: true,
+  );
+
+  ///  When the left operand of a binary expression uses '?.' operator, it can be
+  ///  `null`.
+  static const WarningCode NULL_AWARE_BEFORE_OPERATOR = WarningCode(
+    'NULL_AWARE_BEFORE_OPERATOR',
+    "The left operand uses '?.', so its value can be null.",
+  );
+
+  ///  A condition in a control flow statement could evaluate to `null` because it
+  ///  uses the null-aware '?.' operator.
+  static const WarningCode NULL_AWARE_IN_CONDITION = WarningCode(
+    'NULL_AWARE_IN_CONDITION',
+    "The value of the '?.' operator can be 'null', which isn't appropriate in "
+        "a condition.",
+    correctionMessage:
+        "Try replacing the '?.' with a '.', testing the left-hand side for "
+        "null if necessary.",
+  );
+
+  ///  A condition in operands of a logical operator could evaluate to `null`
+  ///  because it uses the null-aware '?.' operator.
+  static const WarningCode NULL_AWARE_IN_LOGICAL_OPERATOR = WarningCode(
+    'NULL_AWARE_IN_LOGICAL_OPERATOR',
+    "The value of the '?.' operator can be 'null', which isn't appropriate as "
+        "an operand of a logical operator.",
+  );
+
   ///  This is the new replacement for [HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD].
   static const HintCode OVERRIDE_ON_NON_OVERRIDING_FIELD =
       HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD;

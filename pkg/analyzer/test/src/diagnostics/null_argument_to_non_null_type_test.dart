@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.g.dart';
 import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -23,7 +23,7 @@ class NullArgumentToNonNullCompleterCompleteTest
 import 'dart:async';
 void f() => Completer<int>().complete();
 ''', [
-      error(HintCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 33, 27),
+      error(WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 33, 27),
     ]);
   }
 
@@ -55,7 +55,7 @@ void f() {
 import 'dart:async';
 void f() => Completer<int>().complete(null);
 ''', [
-      error(HintCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 59, 4),
+      error(WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 59, 4),
     ]);
   }
 
@@ -75,7 +75,7 @@ void f() {
 import 'dart:async';
 void f(Null a) => Completer<int>().complete(a);
 ''', [
-      error(HintCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 65, 1),
+      error(WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 65, 1),
     ]);
   }
 }
@@ -86,7 +86,7 @@ class NullArgumentToNonNullFutureValueTest extends PubPackageResolutionTest {
     await assertErrorsInCode('''
 void foo() => Future<int>.value();
 ''', [
-      error(HintCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 14, 19),
+      error(WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 14, 19),
     ]);
   }
 
@@ -114,7 +114,7 @@ void f() {
     await assertErrorsInCode('''
 void foo() => Future<int>.value(null);
 ''', [
-      error(HintCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 32, 4),
+      error(WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 32, 4),
     ]);
   }
 
@@ -131,7 +131,7 @@ void f() {
     await assertErrorsInCode('''
 void foo(Null a) => Future<int>.value(a);
 ''', [
-      error(HintCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 38, 1),
+      error(WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 38, 1),
     ]);
   }
 }

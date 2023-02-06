@@ -561,52 +561,6 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
-  static const HintCode NULLABLE_TYPE_IN_CATCH_CLAUSE = HintCode(
-    'NULLABLE_TYPE_IN_CATCH_CLAUSE',
-    "A potentially nullable type can't be used in an 'on' clause because it "
-        "isn't valid to throw a nullable expression.",
-    correctionMessage: "Try using a non-nullable type.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the method being invoked
-  ///  1: the type argument associated with the method
-  static const HintCode NULL_ARGUMENT_TO_NON_NULL_TYPE = HintCode(
-    'NULL_ARGUMENT_TO_NON_NULL_TYPE',
-    "'{0}' shouldn't be called with a null argument for the non-nullable type "
-        "argument '{1}'.",
-    correctionMessage: "Try adding a non-null argument.",
-    hasPublishedDocs: true,
-  );
-
-  ///  When the left operand of a binary expression uses '?.' operator, it can be
-  ///  `null`.
-  static const HintCode NULL_AWARE_BEFORE_OPERATOR = HintCode(
-    'NULL_AWARE_BEFORE_OPERATOR',
-    "The left operand uses '?.', so its value can be null.",
-  );
-
-  ///  A condition in a control flow statement could evaluate to `null` because it
-  ///  uses the null-aware '?.' operator.
-  static const HintCode NULL_AWARE_IN_CONDITION = HintCode(
-    'NULL_AWARE_IN_CONDITION',
-    "The value of the '?.' operator can be 'null', which isn't appropriate in "
-        "a condition.",
-    correctionMessage:
-        "Try replacing the '?.' with a '.', testing the left-hand side for "
-        "null if necessary.",
-  );
-
-  ///  A condition in operands of a logical operator could evaluate to `null`
-  ///  because it uses the null-aware '?.' operator.
-  static const HintCode NULL_AWARE_IN_LOGICAL_OPERATOR = HintCode(
-    'NULL_AWARE_IN_LOGICAL_OPERATOR',
-    "The value of the '?.' operator can be 'null', which isn't appropriate as "
-        "an operand of a logical operator.",
-  );
-
-  ///  No parameters.
   static const HintCode NULL_CHECK_ALWAYS_FAILS = HintCode(
     'NULL_CHECK_ALWAYS_FAILS',
     "This null-check will always throw an exception because the expression "

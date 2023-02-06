@@ -19284,99 +19284,6 @@ HintCode:
 
       void f() => const C();
       ```
-  NULLABLE_TYPE_IN_CATCH_CLAUSE:
-    problemMessage: "A potentially nullable type can't be used in an 'on' clause because it isn't valid to throw a nullable expression."
-    correctionMessage: Try using a non-nullable type.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when the type following `on` in a
-      `catch` clause is a nullable type. It isn't valid to specify a nullable
-      type because it isn't possible to catch `null` (because it's a runtime
-      error to throw `null`).
-
-      #### Example
-
-      The following code produces this diagnostic because the exception type is
-      specified to allow `null` when `null` can't be thrown:
-
-      ```dart
-      void f() {
-        try {
-          // ...
-        } on [!FormatException?!] {
-        }
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the question mark from the type:
-
-      ```dart
-      void f() {
-        try {
-          // ...
-        } on FormatException {
-        }
-      }
-      ```
-  NULL_ARGUMENT_TO_NON_NULL_TYPE:
-    problemMessage: "'{0}' shouldn't be called with a null argument for the non-nullable type argument '{1}'."
-    correctionMessage: Try adding a non-null argument.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the method being invoked
-      1: the type argument associated with the method
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when `null` is passed to either the
-      constructor `Future.value` or the method `Completer.complete` when the type
-      argument used to create the instance was non-nullable. Even though the type
-      system can't express this restriction, passing in a `null` results in a
-      runtime exception.
-
-      #### Example
-
-      The following code produces this diagnostic because `null` is being passed
-      to the constructor `Future.value` even though the type argument is the
-      non-nullable type `String`:
-
-      ```dart
-      Future<String> f() {
-        return Future.value([!null!]);
-      }
-      ```
-
-      #### Common fixes
-
-      Pass in a non-null value:
-
-      ```dart
-      Future<String> f() {
-        return Future.value('');
-      }
-      ```
-  NULL_AWARE_BEFORE_OPERATOR:
-    problemMessage: "The left operand uses '?.', so its value can be null."
-    comment: |-
-      When the left operand of a binary expression uses '?.' operator, it can be
-      `null`.
-  NULL_AWARE_IN_CONDITION:
-    problemMessage: "The value of the '?.' operator can be 'null', which isn't appropriate in a condition."
-    correctionMessage: "Try replacing the '?.' with a '.', testing the left-hand side for null if necessary."
-    comment: |-
-      A condition in a control flow statement could evaluate to `null` because it
-      uses the null-aware '?.' operator.
-  NULL_AWARE_IN_LOGICAL_OPERATOR:
-    problemMessage: "The value of the '?.' operator can be 'null', which isn't appropriate as an operand of a logical operator."
-    comment: |-
-      A condition in operands of a logical operator could evaluate to `null`
-      because it uses the null-aware '?.' operator.
   CAST_FROM_NULL_ALWAYS_FAILS:
     problemMessage: "This cast always throws an exception because the expression always evaluates to 'null'."
     comment: |-
@@ -22799,6 +22706,99 @@ WarningCode:
   NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR:
     aliasFor: HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR
     comment: This is the new replacement for [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR].
+  NULLABLE_TYPE_IN_CATCH_CLAUSE:
+    problemMessage: "A potentially nullable type can't be used in an 'on' clause because it isn't valid to throw a nullable expression."
+    correctionMessage: Try using a non-nullable type.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the type following `on` in a
+      `catch` clause is a nullable type. It isn't valid to specify a nullable
+      type because it isn't possible to catch `null` (because it's a runtime
+      error to throw `null`).
+
+      #### Example
+
+      The following code produces this diagnostic because the exception type is
+      specified to allow `null` when `null` can't be thrown:
+
+      ```dart
+      void f() {
+        try {
+          // ...
+        } on [!FormatException?!] {
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the question mark from the type:
+
+      ```dart
+      void f() {
+        try {
+          // ...
+        } on FormatException {
+        }
+      }
+      ```
+  NULL_ARGUMENT_TO_NON_NULL_TYPE:
+    problemMessage: "'{0}' shouldn't be called with a null argument for the non-nullable type argument '{1}'."
+    correctionMessage: Try adding a non-null argument.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the method being invoked
+      1: the type argument associated with the method
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when `null` is passed to either the
+      constructor `Future.value` or the method `Completer.complete` when the type
+      argument used to create the instance was non-nullable. Even though the type
+      system can't express this restriction, passing in a `null` results in a
+      runtime exception.
+
+      #### Example
+
+      The following code produces this diagnostic because `null` is being passed
+      to the constructor `Future.value` even though the type argument is the
+      non-nullable type `String`:
+
+      ```dart
+      Future<String> f() {
+        return Future.value([!null!]);
+      }
+      ```
+
+      #### Common fixes
+
+      Pass in a non-null value:
+
+      ```dart
+      Future<String> f() {
+        return Future.value('');
+      }
+      ```
+  NULL_AWARE_BEFORE_OPERATOR:
+    problemMessage: "The left operand uses '?.', so its value can be null."
+    comment: |-
+      When the left operand of a binary expression uses '?.' operator, it can be
+      `null`.
+  NULL_AWARE_IN_CONDITION:
+    problemMessage: "The value of the '?.' operator can be 'null', which isn't appropriate in a condition."
+    correctionMessage: "Try replacing the '?.' with a '.', testing the left-hand side for null if necessary."
+    comment: |-
+      A condition in a control flow statement could evaluate to `null` because it
+      uses the null-aware '?.' operator.
+  NULL_AWARE_IN_LOGICAL_OPERATOR:
+    problemMessage: "The value of the '?.' operator can be 'null', which isn't appropriate as an operand of a logical operator."
+    comment: |-
+      A condition in operands of a logical operator could evaluate to `null`
+      because it uses the null-aware '?.' operator.
   OVERRIDE_ON_NON_OVERRIDING_FIELD:
     aliasFor: HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD
     comment: This is the new replacement for [HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD].

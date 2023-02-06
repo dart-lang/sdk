@@ -1403,7 +1403,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
     if (_typeSystem.isPotentiallyNullable(type.typeOrThrow)) {
       _errorReporter.reportErrorForNode(
-        HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE,
+        WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE,
         type,
       );
     }
@@ -1459,7 +1459,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         parent is ConditionalExpression && parent.condition == childOfParent ||
         parent is AssertStatement && parent.condition == childOfParent) {
       _errorReporter.reportErrorForNode(
-          HintCode.NULL_AWARE_IN_CONDITION, childOfParent);
+          WarningCode.NULL_AWARE_IN_CONDITION, childOfParent);
       return;
     }
 
@@ -1469,7 +1469,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             [TokenType.BAR_BAR, TokenType.AMPERSAND_AMPERSAND]
                 .contains(parent.operator.type)) {
       _errorReporter.reportErrorForNode(
-          HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR, childOfParent);
+          WarningCode.NULL_AWARE_IN_LOGICAL_OPERATOR, childOfParent);
       return;
     }
 
@@ -1479,7 +1479,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             .contains(parent.operator.type) &&
         parent.leftOperand == childOfParent) {
       _errorReporter.reportErrorForNode(
-          HintCode.NULL_AWARE_BEFORE_OPERATOR, childOfParent);
+          WarningCode.NULL_AWARE_BEFORE_OPERATOR, childOfParent);
       return;
     }
   }
