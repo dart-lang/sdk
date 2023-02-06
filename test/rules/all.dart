@@ -89,6 +89,7 @@ import 'unnecessary_library_directive_test.dart'
 import 'unnecessary_null_checks_test.dart' as unnecessary_null_checks;
 import 'unnecessary_overrides_test.dart' as unnecessary_overrides;
 import 'unnecessary_parenthesis_test.dart' as unnecessary_parenthesis;
+import 'unreachable_from_main_test.dart' as unreachable_from_main;
 import 'use_build_context_synchronously_test.dart'
     as use_build_context_synchronously;
 import 'use_enums_test.dart' as use_enums;
@@ -162,6 +163,7 @@ void main() {
   unnecessary_null_checks.main();
   unnecessary_overrides.main();
   unnecessary_parenthesis.main();
+  unreachable_from_main.main();
   use_build_context_synchronously.main();
   use_enums.main();
   use_is_even_rather_than_modulo.main();
