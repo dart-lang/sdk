@@ -126,6 +126,7 @@ void f(E e) {
     expect(testOccurrences.element.name, 'E');
     assertHasOffset('E e');
     assertHasOffset('E.v');
+    assertHasOffset('E {');
   }
 
   Future<void> test_enum_constant() async {
@@ -301,6 +302,20 @@ void f() {
     assertHasOffset('mmm(); // b');
   }
 
+  Future<void> test_mixin() async {
+    addTestFile('''
+mixin A { // 1
+  void aaa() {}
+}
+class B with A {}
+''');
+    await prepareOccurrences();
+    assertHasRegion('A { // 1');
+    expect(testOccurrences.element.kind, ElementKind.MIXIN);
+    expect(testOccurrences.element.name, 'A');
+    assertHasOffset('A {}');
+  }
+
   Future<void> test_parameter_named() async {
     addTestFile('''
 void f(int aaa, int bbb, {int? ccc, int? ddd}) {
@@ -379,6 +394,18 @@ int VVV = 4;
     assertHasOffset('int b');
     assertHasOffset('int c');
     assertHasOffset('int VVV');
+  }
+
+  Future<void> test_type_class_definition() async {
+    addTestFile('''
+class A {}
+A a;
+''');
+    await prepareOccurrences();
+    assertHasRegion('A a');
+    expect(testOccurrences.element.kind, ElementKind.CLASS);
+    expect(testOccurrences.element.name, 'A');
+    assertHasOffset('A {}');
   }
 
   Future<void> test_type_dynamic() async {
