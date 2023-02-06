@@ -50,8 +50,8 @@ class ForCondition extends LiteralEntryInfo {
         // Process `for ( pattern in expression )`
         assert(optional('in', token.next!));
         _inStyle = true;
-        return parser.parseForInLoopPartsRest(
-            token, awaitToken, forToken, patternKeyword, null);
+        return parser.parseForInLoopPartsRest(token, awaitToken, forToken,
+            patternKeyword, /* identifier = */ null);
       }
     }
     Token identifier = token.next!;
@@ -61,7 +61,7 @@ class ForCondition extends LiteralEntryInfo {
       // Process `for ( ... in ... )`
       _inStyle = true;
       token = parser.parseForInLoopPartsRest(
-          token, awaitToken, forToken, null, identifier);
+          token, awaitToken, forToken, /* patternKeyword = */ null, identifier);
     } else {
       // Process `for ( ... ; ... ; ... )`
       _inStyle = false;
