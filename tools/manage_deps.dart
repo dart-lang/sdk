@@ -117,7 +117,7 @@ This will:
       if (argResults.wasParsed('target'))
         argResults['target']
       else
-        'origin/HEAD',
+        'origin/${defaultBranchTarget(pkgDir)}',
     ], workingDirectory: pkgDir, explanation: 'Finding sha-id');
 
     final target = gitRevParseResult.first;
@@ -264,4 +264,20 @@ int runProcessForExitCode(List<String> cmd,
   );
   stdout.writeln(' => ${result.exitCode}');
   return result.exitCode;
+}
+
+String defaultBranchTarget(String dir) {
+  var branchNames = Directory(p.join(dir, '.git', 'refs', 'heads'))
+      .listSync()
+      .whereType<File>()
+      .map((f) => p.basename(f.path))
+      .toSet();
+
+  for (var name in ['main', 'master']) {
+    if (branchNames.contains(name)) {
+      return name;
+    }
+  }
+
+  return 'HEAD';
 }

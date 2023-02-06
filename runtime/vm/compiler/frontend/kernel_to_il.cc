@@ -3862,44 +3862,44 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
       }
     }
     body += NullConstant();
-  } else {
-    ASSERT(is_getter);
-    if (is_method) {
-      body += LoadLocal(parsed_function_->ParameterVariable(0));
-      body += LoadField(
-          field, /*calls_initializer=*/field.NeedsInitializationCheckOnLoad());
-    } else if (field.is_const()) {
-      const auto& value = Object::Handle(Z, field.StaticConstFieldValue());
-      if (value.IsError()) {
-        Report::LongJump(Error::Cast(value));
-      }
-      body += Constant(Instance::ZoneHandle(Z, Instance::RawCast(value.ptr())));
-    } else {
-      // Static fields
-      //  - with trivial initializer
-      //  - without initializer if they are not late
-      // are initialized eagerly and do not have implicit getters.
-      // Static fields with non-trivial initializer need getter to perform
-      // lazy initialization. Late fields without initializer need getter
-      // to make sure they are already initialized.
-      ASSERT(field.has_nontrivial_initializer() ||
-             (field.is_late() && !field.has_initializer()));
-      body += LoadStaticField(field, /*calls_initializer=*/true);
-    }
-
-    if (is_method || !field.is_const()) {
+  } else if (is_getter && is_method) {
+    ASSERT(!field.needs_load_guard()
+                NOT_IN_PRODUCT(|| IG->HasAttemptedReload()));
+    body += LoadLocal(parsed_function_->ParameterVariable(0));
+    body += LoadField(
+        field, /*calls_initializer=*/field.NeedsInitializationCheckOnLoad());
+    if (field.needs_load_guard()) {
 #if defined(PRODUCT)
-      RELEASE_ASSERT(!field.needs_load_guard());
+      UNREACHABLE();
 #else
-      // Always build fragment for load guard to maintain stable deopt_id
-      // numbering, but link it into the graph only if field actually
-      // needs load guard.
-      Fragment load_guard = CheckAssignable(
-          AbstractType::Handle(Z, field.type()), Symbols::FunctionResult());
-      if (field.needs_load_guard()) {
-        ASSERT(IG->HasAttemptedReload());
-        body += load_guard;
-      }
+      body += CheckAssignable(AbstractType::Handle(Z, field.type()),
+                              Symbols::FunctionResult());
+#endif
+    }
+  } else if (field.is_const()) {
+    const auto& value = Object::Handle(Z, field.StaticConstFieldValue());
+    if (value.IsError()) {
+      Report::LongJump(Error::Cast(value));
+    }
+    body += Constant(Instance::ZoneHandle(Z, Instance::RawCast(value.ptr())));
+  } else {
+    // Static fields
+    //  - with trivial initializer
+    //  - without initializer if they are not late
+    // are initialized eagerly and do not have implicit getters.
+    // Static fields with non-trivial initializer need getter to perform
+    // lazy initialization. Late fields without initializer need getter
+    // to make sure they are already initialized.
+    ASSERT(field.has_nontrivial_initializer() ||
+           (field.is_late() && !field.has_initializer()));
+    body += LoadStaticField(field, /*calls_initializer=*/true);
+    if (field.needs_load_guard()) {
+#if defined(PRODUCT)
+      UNREACHABLE();
+#else
+      ASSERT(IsolateGroup::Current()->HasAttemptedReload());
+      body += CheckAssignable(AbstractType::Handle(Z, field.type()),
+                              Symbols::FunctionResult());
 #endif
     }
   }

@@ -114,13 +114,13 @@ class GitHelper {
   }
 
   Future<String> findLatestUnsyncedCommit() async {
-    // git log HEAD..origin --format=%H -1
+    // git log ..origin/<default-branch> --format=%H -1
 
     var result = await exec(
       [
         'git',
         'log',
-        'HEAD..origin',
+        '..origin/$defaultBranchName',
         '--format=%H',
         '-1',
       ],
@@ -130,17 +130,33 @@ class GitHelper {
   }
 
   Future<String> calculateUnsyncedCommits() async {
-    // git log HEAD..origin --format="%h  %ad  %aN  %s" -1
+    // git log ..origin/<default-branch> --format="%h  %ad  %aN  %s" -1
     var result = await exec(
       [
         'git',
         'log',
-        'HEAD..origin',
+        '..origin/$defaultBranchName',
         '--format=%h  %ad  %aN  %s',
       ],
       cwd: dir,
     );
     return result.trim();
+  }
+
+  String get defaultBranchName {
+    var branchNames = Directory(path.join(dir, '.git', 'refs', 'heads'))
+        .listSync()
+        .whereType<File>()
+        .map((f) => path.basename(f.path))
+        .toSet();
+
+    for (var name in ['main', 'master']) {
+      if (branchNames.contains(name)) {
+        return name;
+      }
+    }
+
+    return 'origin';
   }
 }
 
