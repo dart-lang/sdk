@@ -4,6 +4,8 @@
 
 #include "vm/canonical_tables.h"
 
+#include "vm/regexp.h"
+
 namespace dart {
 
 bool MetadataMapTraits::IsMatch(const Object& a, const Object& b) {
@@ -109,6 +111,11 @@ uword CanonicalInstanceTraits::Hash(const CanonicalInstanceKey& key) {
 
 ObjectPtr CanonicalInstanceTraits::NewKey(const CanonicalInstanceKey& obj) {
   return obj.key_.ptr();
+}
+
+ObjectPtr CanonicalRegExpTraits::NewKey(const RegExpKey& key) {
+  return RegExpEngine::CreateRegExp(Thread::Current(), key.pattern_,
+                                    key.flags_);
 }
 
 }  // namespace dart

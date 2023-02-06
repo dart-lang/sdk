@@ -12436,8 +12436,12 @@ class RegExpFlags {
 
   int value() const { return value_; }
 
-  bool operator==(const RegExpFlags& other) { return value_ == other.value_; }
-  bool operator!=(const RegExpFlags& other) { return value_ != other.value_; }
+  bool operator==(const RegExpFlags& other) const {
+    return value_ == other.value_;
+  }
+  bool operator!=(const RegExpFlags& other) const {
+    return value_ != other.value_;
+  }
 
  private:
   int value_;
@@ -12601,6 +12605,7 @@ class RegExp : public Instance {
   }
 
   virtual bool CanonicalizeEquals(const Instance& other) const;
+  virtual uint32_t CanonicalizeHash() const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedRegExp));

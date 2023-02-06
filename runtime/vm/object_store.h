@@ -141,6 +141,7 @@ class ObjectPointerVisitor;
   RW(Class, finalizer_entry_class)                                             \
   RW(Class, native_finalizer_class)                                            \
   ARW_AR(WeakArray, symbol_table)                                              \
+  ARW_AR(WeakArray, regexp_table)                                              \
   RW(Array, canonical_types)                                                   \
   RW(Array, canonical_function_types)                                          \
   RW(Array, canonical_record_types)                                            \

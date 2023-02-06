@@ -12,36 +12,11 @@ class RegExp {
       bool caseSensitive = true,
       bool unicode = false,
       bool dotAll = false}) {
-    _RegExpHashKey key =
-        new _RegExpHashKey(source, multiLine, caseSensitive, unicode, dotAll);
-    _RegExpHashValue? value = _cache[key];
-
-    if (value == null) {
-      if (_cache.length > _MAX_CACHE_SIZE) {
-        _RegExpHashKey lastKey = _recentlyUsed.last;
-        _recentlyUsed.remove(lastKey);
-        _cache.remove(lastKey);
-      }
-
-      value = new _RegExpHashValue(
-          new _RegExp(source,
-              multiLine: multiLine,
-              caseSensitive: caseSensitive,
-              unicode: unicode,
-              dotAll: dotAll),
-          key);
-      _cache[key] = value;
-    } else {
-      value.key.unlink();
-    }
-
-    assert(value != null);
-
-    _recentlyUsed.addFirst(value.key);
-    assert(_recentlyUsed.length == _cache.length);
-
-    // TODO(zerny): We might not want to canonicalize regexp objects.
-    return value.regexp;
+    return new _RegExp(source,
+        multiLine: multiLine,
+        caseSensitive: caseSensitive,
+        unicode: unicode,
+        dotAll: dotAll);
   }
 
   /**
@@ -96,55 +71,9 @@ class RegExp {
     return buffer.toString();
   }
 
-  // Regular expression objects are stored in a cache of up to _MAX_CACHE_SIZE
-  // elements using an LRU eviction strategy.
-  // TODO(zerny): Do not impose a fixed limit on the number of cached objects.
-  // Other possibilities could be limiting by the size of the regexp objects,
-  // or imposing a lower time bound for the most recent use under which a regexp
-  // may not be removed from the cache.
-  // TODO(zerny): Use self-sizing cache similar to _AccessorCache in
-  // mirrors_impl.dart.
-  static const int _MAX_CACHE_SIZE = 256;
-  static final Map<_RegExpHashKey, _RegExpHashValue> _cache =
-      new HashMap<_RegExpHashKey, _RegExpHashValue>();
-  static final LinkedList<_RegExpHashKey> _recentlyUsed =
-      new LinkedList<_RegExpHashKey>();
-
   int get _groupCount;
   Iterable<String> get _groupNames;
   int _groupNameIndex(String name);
-}
-
-// Represents both a key in the regular expression cache as well as its
-// corresponding entry in the LRU list.
-class _RegExpHashKey extends LinkedListEntry<_RegExpHashKey> {
-  final String pattern;
-  final bool multiLine;
-  final bool caseSensitive;
-  final bool unicode;
-  final bool dotAll;
-
-  _RegExpHashKey(this.pattern, this.multiLine, this.caseSensitive, this.unicode,
-      this.dotAll);
-
-  int get hashCode => pattern.hashCode;
-  bool operator ==(that) {
-    return (that is _RegExpHashKey) &&
-        (this.pattern == that.pattern) &&
-        (this.multiLine == that.multiLine) &&
-        (this.caseSensitive == that.caseSensitive) &&
-        (this.unicode == that.unicode) &&
-        (this.dotAll == that.dotAll);
-  }
-}
-
-// Represents a value in the regular expression cache. Contains a pointer
-// back to the key in order to access the corresponding LRU entry.
-class _RegExpHashValue {
-  final _RegExp regexp;
-  final _RegExpHashKey key;
-
-  _RegExpHashValue(this.regexp, this.key);
 }
 
 class _RegExpMatch implements RegExpMatch {

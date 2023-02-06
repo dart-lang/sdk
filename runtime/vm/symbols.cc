@@ -337,7 +337,7 @@ template <typename StringType>
 StringPtr Symbols::NewSymbol(Thread* thread, const StringType& str) {
   REUSABLE_OBJECT_HANDLESCOPE(thread);
   REUSABLE_SMI_HANDLESCOPE(thread);
-  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_WEAK_ARRAY_HANDLESCOPE(thread);
   String& symbol = String::Handle(thread->zone());
   dart::Object& key = thread->ObjectHandle();
   Smi& value = thread->SmiHandle();

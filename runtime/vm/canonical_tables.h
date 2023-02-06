@@ -430,6 +430,47 @@ struct CanonicalFfiCallbackFunctionTraits {
 using FfiCallbackFunctionSet =
     UnorderedHashSet<CanonicalFfiCallbackFunctionTraits>;
 
+class RegExpKey {
+ public:
+  RegExpKey(const String& pattern, RegExpFlags flags)
+      : pattern_(pattern), flags_(flags) {}
+
+  bool Equals(const RegExp& other) const {
+    return pattern_.Equals(String::Handle(other.pattern())) &&
+           (flags_ == other.flags());
+  }
+  uword Hash() const {
+    // Must agree with RegExp::CanonicalizeHash.
+    return CombineHashes(pattern_.Hash(), flags_.value());
+  }
+
+  const String& pattern_;
+  RegExpFlags flags_;
+
+ private:
+  DISALLOW_ALLOCATION();
+};
+
+class CanonicalRegExpTraits {
+ public:
+  static const char* Name() { return "CanonicalRegExpTraits"; }
+  static bool ReportStats() { return false; }
+  static bool IsMatch(const Object& a, const Object& b) {
+    return RegExp::Cast(a).CanonicalizeEquals(RegExp::Cast(b));
+  }
+  static bool IsMatch(const RegExpKey& a, const Object& b) {
+    return a.Equals(RegExp::Cast(b));
+  }
+  static uword Hash(const Object& key) {
+    return RegExp::Cast(key).CanonicalizeHash();
+  }
+  static uword Hash(const RegExpKey& key) { return key.Hash(); }
+  static ObjectPtr NewKey(const RegExpKey& key);
+};
+
+typedef UnorderedHashSet<CanonicalRegExpTraits, WeakAcqRelStorageTraits>
+    CanonicalRegExpSet;
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_CANONICAL_TABLES_H_
