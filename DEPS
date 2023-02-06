@@ -123,7 +123,7 @@ vars = {
   "collection_rev": "a566328f793cd26c52f3fa4010fe331bb8700383",
   "convert_rev": "20d136c2fa4edc229fc3d7684bbeb8df5105580b",
   "crypto_rev": "f854f2fa730acb107aa41ebe431403081f7161e4",
-  "csslib_rev": "7054945b62bd83c4c7a0fab693fa73c3f137c202",
+  "csslib_rev": "f33d63211f77e2a895b90bcf22508ab7a0af4466",
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
   # matches the version here. Please follow this process to make updates:
@@ -140,7 +140,7 @@ vars = {
   "file_rev": "b768f79dcd104a5feabafab47101c4355b71cd8f",
   "fixnum_rev": "71f0d4d16054e6be7d8e22bdb3b082b9f82061be",
   "glob_rev": "4579281741e59e2e4ad02a197e0b1f4d6558dede",
-  "html_rev": "3dd00b0ca99e222697e6b6dc653774dc877da420",
+  "html_rev": "f118e004dfe68a4d101246106e775c0231efb79a",
   "http_rev": "092bb2d5ed1d522c55ef6781a469ba1e53cee2a8",
   "http_multi_server_rev": "cce50802b66d33f703f82b3189988aa8e51976ac",
   "http_parser_rev": "6f73e4a399df013ded8f4c81f151d122b36d361b",
