@@ -4776,7 +4776,7 @@ const Template<
     Message Function(String name)> templateFfiFieldNull = const Template<
         Message Function(String name)>(
     problemMessageTemplate:
-        r"""Field '#name' cannot have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct` or `Union`.""",
+        r"""Field '#name' cannot be nullable or have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct` or `Union`.""",
     withArguments: _withArgumentsFfiFieldNull);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4791,7 +4791,7 @@ Message _withArgumentsFfiFieldNull(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeFfiFieldNull,
       problemMessage:
-          """Field '${name}' cannot have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct` or `Union`.""",
+          """Field '${name}' cannot be nullable or have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct` or `Union`.""",
       arguments: {'name': name});
 }
 

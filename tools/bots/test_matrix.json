@@ -1220,41 +1220,7 @@
     },
     {
       "builders": [
-        "vm-canary-linux-debug"
-      ],
-      "meta": {
-        "description": "This configuration is used to get fast feedback on vm builds."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--arch=ia32,x64",
-            "runtime"
-          ]
-        },
-        {
-          "name": "vm ia32 tests",
-          "arguments": [
-            "-ndartk-linux-debug-ia32-canary",
-            "vm"
-          ]
-        },
-        {
-          "name": "vm x64 tests",
-          "arguments": [
-            "-ndartk-linux-debug-x64-canary",
-            "vm"
-          ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-kernel-precomp-android-release-arm",
         "vm-kernel-precomp-android-release-arm_x64",
-        "vm-kernel-precomp-android-release-arm64",
         "vm-kernel-precomp-android-release-arm64c"
       ],
       "meta": {
@@ -1283,13 +1249,10 @@
     },
     {
       "builders": [
-        "vm-ffi-android-debug-arm64",
         "vm-ffi-android-debug-arm64c",
         "vm-ffi-android-debug-arm",
-        "vm-ffi-android-release-arm64",
         "vm-ffi-android-release-arm64c",
         "vm-ffi-android-release-arm",
-        "vm-ffi-android-product-arm64",
         "vm-ffi-android-product-arm64c",
         "vm-ffi-android-product-arm"
       ],
@@ -1480,17 +1443,10 @@
       "builders": [
         "vm-kernel-precomp-nnbd-linux-debug-simriscv64",
         "vm-kernel-precomp-nnbd-linux-debug-x64",
-        "vm-kernel-precomp-nnbd-linux-debug-x64c",
         "vm-kernel-precomp-nnbd-linux-release-simarm64",
-        "vm-kernel-precomp-nnbd-linux-release-simarm64c",
         "vm-kernel-precomp-nnbd-linux-release-x64",
-        "vm-kernel-precomp-nnbd-linux-release-x64c",
         "vm-kernel-precomp-nnbd-mac-release-simarm64",
-        "vm-kernel-precomp-nnbd-mac-release-simarm64c",
-        "vm-kernel-precomp-nnbd-win-debug-x64",
-        "vm-kernel-precomp-nnbd-win-debug-x64c",
-        "vm-kernel-precomp-nnbd-win-release-x64",
-        "vm-kernel-precomp-nnbd-win-release-x64c"
+        "vm-kernel-precomp-nnbd-win-release-x64"
       ],
       "meta": {
         "description": "This configuration is for the VM AOT nnbd builder group."
@@ -1598,16 +1554,8 @@
     {
       "builders": [
         "vm-kernel-precomp-linux-product-x64",
-        "vm-kernel-precomp-linux-product-x64c",
         "vm-kernel-precomp-linux-release-simarm",
-        "vm-kernel-precomp-linux-release-simarm64",
-        "vm-kernel-precomp-linux-release-simriscv32",
-        "vm-kernel-precomp-linux-release-simriscv64",
-        "vm-kernel-precomp-mac-release-simarm64",
-        "vm-kernel-precomp-mac-release-simarm64c",
-        "vm-kernel-precomp-win-product-x64",
-        "vm-kernel-precomp-win-release-x64",
-        "vm-kernel-precomp-win-release-x64c"
+        "vm-kernel-precomp-win-product-x64"
       ],
       "meta": {
         "description": "This configuration is used by the vm kernel precomp builders."
@@ -1659,11 +1607,6 @@
       "builders": [
         "vm-kernel-precomp-linux-debug-x64",
         "vm-kernel-precomp-linux-debug-x64c",
-        "vm-kernel-precomp-linux-debug-simarm",
-        "vm-kernel-precomp-linux-debug-simarm64",
-        "vm-kernel-precomp-linux-debug-simarm64c",
-        "vm-kernel-precomp-linux-debug-simriscv32",
-        "vm-kernel-precomp-linux-debug-simriscv64",
         "vm-kernel-precomp-win-debug-x64c"
       ],
       "meta": {
@@ -1690,8 +1633,7 @@
     },
     {
       "builders": [
-        "vm-kernel-precomp-dwarf-linux-product-x64",
-        "vm-kernel-precomp-dwarf-linux-product-simarm64"
+        "vm-kernel-precomp-dwarf-linux-product-x64"
       ],
       "meta": {
         "description": "This configuration is used by the vm kernel precomp builders with dwarf stack traces."
@@ -1717,8 +1659,7 @@
     },
     {
       "builders": [
-        "vm-kernel-precomp-obfuscate-linux-release-x64",
-        "vm-kernel-precomp-obfuscate-linux-release-x64c"
+        "vm-kernel-precomp-obfuscate-linux-release-x64"
       ],
       "meta": {
         "description": "This configuration is used by the obfuscated vm kernel precomp builders."
@@ -1744,12 +1685,8 @@
     },
     {
       "builders": [
-        "vm-asan-linux-release-ia32",
         "vm-asan-linux-release-x64",
-        "vm-lsan-linux-release-ia32",
-        "vm-lsan-linux-release-x64",
         "vm-msan-linux-release-x64",
-        "vm-ubsan-linux-release-ia32",
         "vm-ubsan-linux-release-x64"
       ],
       "meta": {
@@ -1812,7 +1749,6 @@
     {
       "builders": [
         "vm-aot-asan-linux-release-x64",
-        "vm-aot-lsan-linux-release-x64",
         "vm-aot-msan-linux-release-x64",
         "vm-aot-ubsan-linux-release-x64"
       ],
@@ -2023,23 +1959,8 @@
     },
     {
       "builders": [
-        "vm-kernel-linux-debug-simarm",
-        "vm-kernel-linux-debug-simarm64",
-        "vm-kernel-linux-debug-simarm64c",
-        "vm-kernel-linux-debug-simriscv32",
-        "vm-kernel-linux-debug-simriscv64",
-        "vm-kernel-linux-release-simarm",
-        "vm-kernel-linux-release-simarm64",
-        "vm-kernel-linux-release-simarm64c",
-        "vm-kernel-linux-release-simriscv32",
-        "vm-kernel-linux-release-simriscv64",
-        "vm-kernel-linux-release-ia32",
         "vm-kernel-win-debug-ia32",
-        "vm-kernel-win-debug-x64",
-        "vm-kernel-win-debug-x64c",
-        "vm-kernel-win-product-x64",
-        "vm-kernel-win-product-x64c",
-        "vm-kernel-win-release-ia32"
+        "vm-kernel-win-debug-x64c"
       ],
       "meta": {
         "description": "This configuration is for the kernel builder group."
@@ -2067,26 +1988,17 @@
         "vm-kernel-nnbd-linux-debug-ia32",
         "vm-kernel-nnbd-linux-debug-simriscv64",
         "vm-kernel-nnbd-linux-debug-x64",
-        "vm-kernel-nnbd-linux-debug-x64c",
         "vm-kernel-nnbd-linux-release-ia32",
         "vm-kernel-nnbd-linux-release-simarm",
         "vm-kernel-nnbd-linux-release-simarm64",
-        "vm-kernel-nnbd-linux-release-simarm64c",
-        "vm-kernel-nnbd-linux-release-simriscv32",
-        "vm-kernel-nnbd-linux-release-simriscv64",
         "vm-kernel-nnbd-linux-release-x64",
-        "vm-kernel-nnbd-linux-release-x64c",
         "vm-kernel-nnbd-mac-debug-arm64",
         "vm-kernel-nnbd-mac-debug-x64",
-        "vm-kernel-nnbd-mac-debug-x64c",
         "vm-kernel-nnbd-mac-release-arm64",
         "vm-kernel-nnbd-mac-release-x64",
-        "vm-kernel-nnbd-mac-release-x64c",
         "vm-kernel-nnbd-win-debug-x64",
-        "vm-kernel-nnbd-win-debug-x64c",
         "vm-kernel-nnbd-win-release-ia32",
-        "vm-kernel-nnbd-win-release-x64",
-        "vm-kernel-nnbd-win-release-x64c"
+        "vm-kernel-nnbd-win-release-x64"
       ],
       "meta": {
         "description": "This configuration is for the VM nnbd builder group."
@@ -2157,22 +2069,9 @@
     },
     {
       "builders": [
-        "vm-kernel-linux-product-x64",
-        "vm-kernel-linux-product-x64c",
         "vm-kernel-linux-release-x64",
-        "vm-kernel-linux-release-x64c",
-        "vm-kernel-linux-debug-ia32",
         "vm-kernel-linux-debug-x64",
-        "vm-kernel-linux-debug-x64c",
-        "vm-kernel-mac-product-x64",
-        "vm-kernel-mac-product-x64c",
-        "vm-kernel-mac-release-arm64",
-        "vm-kernel-mac-release-x64",
-        "vm-kernel-mac-release-x64c",
-        "vm-kernel-mac-debug-x64",
-        "vm-kernel-mac-debug-x64c",
-        "vm-kernel-win-release-x64",
-        "vm-kernel-win-release-x64c"
+        "vm-kernel-linux-debug-x64c"
       ],
       "meta": {
         "description": "This configuration is for the co19_2 kernel builder group."
@@ -2206,8 +2105,7 @@
     },
     {
       "builders": [
-        "vm-kernel-checked-linux-release-x64",
-        "vm-kernel-checked-linux-release-x64c"
+        "vm-kernel-checked-linux-release-x64"
       ],
       "meta": {
         "description": "This configuration is for the kernel builder group in checked mode."
@@ -2254,8 +2152,7 @@
     },
     {
       "builders": [
-        "cross-vm-linux-release-arm64",
-        "cross-vm-linux-release-arm64c"
+        "cross-vm-linux-release-arm64"
       ],
       "meta": {
         "description": "This configuration is for the cross arm builders."
@@ -2280,8 +2177,7 @@
     },
     {
       "builders": [
-        "cross-vm-precomp-linux-release-arm64",
-        "cross-vm-precomp-linux-release-arm64c"
+        "cross-vm-precomp-linux-release-arm64"
       ],
       "meta": {
         "description": "This configuration is for the cross arm AOT builders."
@@ -2309,11 +2205,8 @@
     {
       "builders": [
         "app-kernel-linux-debug-x64",
-        "app-kernel-linux-debug-x64c",
         "app-kernel-linux-product-x64",
-        "app-kernel-linux-product-x64c",
-        "app-kernel-linux-release-x64",
-        "app-kernel-linux-release-x64c"
+        "app-kernel-linux-release-x64"
       ],
       "meta": {
         "description": "This configuration is used by the vm kernel app builder group."
@@ -2717,13 +2610,7 @@
     {
       "builders": [
         "vm-eager-optimization-linux-release-ia32",
-        "vm-eager-optimization-linux-release-x64",
-        "vm-eager-optimization-linux-release-x64c",
-        "vm-eager-optimization-linux-release-simarm",
-        "vm-eager-optimization-linux-release-simarm64",
-        "vm-eager-optimization-linux-release-simarm64c",
-        "vm-eager-optimization-linux-release-simriscv32",
-        "vm-eager-optimization-linux-release-simriscv64"
+        "vm-eager-optimization-linux-release-x64"
       ],
       "meta": {
         "description": "This is the configuration for the VM builders with a lower optimization counter threshold."
@@ -2758,9 +2645,7 @@
     {
       "builders": [
         "vm-reload-linux-debug-x64",
-        "vm-reload-linux-debug-x64c",
-        "vm-reload-linux-release-x64",
-        "vm-reload-linux-release-x64c"
+        "vm-reload-linux-release-x64"
       ],
       "meta": {
         "description": "This is the configuration for the kernel hot reload builders."
@@ -2795,9 +2680,7 @@
     {
       "builders": [
         "vm-reload-rollback-linux-debug-x64",
-        "vm-reload-rollback-linux-debug-x64c",
-        "vm-reload-rollback-linux-release-x64",
-        "vm-reload-rollback-linux-release-x64c"
+        "vm-reload-rollback-linux-release-x64"
       ],
       "meta": {
         "description": "This is the configuration for kernel reload rollback builders."
@@ -2998,9 +2881,7 @@
         "dart2js-strong-mac-x64-chrome",
         "dart2js-strong-mac-x64-safari",
         "dart2js-strong-win-x64-chrome",
-        "dart2js-strong-win-x64-edge",
-        "dart2js-strong-win-x64-firefox",
-        "dart2js-strong-win-x64-ie11"
+        "dart2js-strong-win-x64-firefox"
       ],
       "meta": {
         "description": "dart2js browser tests for Dart 2.0."
@@ -4036,41 +3917,6 @@
           ],
           "shards": 10,
           "fileset": "vm-kernel"
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-kernel-precomp-linux-debug-simarm_x64",
-        "vm-kernel-precomp-linux-release-simarm_x64"
-      ],
-      "meta": {
-        "description": "This configuration runs tests for the simarm_x64 architecture."
-      },
-      "steps": [
-        {
-          "name": "build dart for simarm_x64",
-          "script": "tools/build.py",
-          "arguments": [
-            "gen_snapshot"
-          ]
-        },
-        {
-          "name": "build dart for simarm",
-          "script": "tools/build.py",
-          "arguments": [
-            "--arch=simarm",
-            "dart_precompiled_runtime",
-            "vm_platform"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-ndartkp-${system}-${mode}-simarm-crossword"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 10
         }
       ]
     },

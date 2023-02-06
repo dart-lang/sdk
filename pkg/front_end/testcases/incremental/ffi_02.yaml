@@ -30,7 +30,7 @@ worlds:
           @Double()
           external double y;
 
-          external Pointer<Coordinate>? next;
+          external Pointer<Coordinate> next;
 
           factory Coordinate.allocate(double x, double y, Pointer<Coordinate>? next) {
             throw '';
