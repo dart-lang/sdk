@@ -605,14 +605,14 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       TestFile testFile, List<String> vmOptions, List<String> args) {
     return [
       ...testFile.sharedOptions,
-      ..._configuration.sharedOptions,
-      ..._experimentsArgument(_configuration, testFile),
       ...testFile.ddcOptions,
+      ..._configuration.sharedOptions,
+      ..._configuration.ddcOptions,
+      ..._experimentsArgument(_configuration, testFile),
       if (_configuration.nnbdMode == NnbdMode.strong)
         '--sound-null-safety'
       else
         '--no-sound-null-safety',
-      if (_configuration.configuration.builderTag == 'canary') '--canary',
       // The file being compiled is the last argument.
       args.last
     ];

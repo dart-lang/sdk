@@ -1036,7 +1036,10 @@
         "builder-tag": "canary",
         "checked": true,
         "use-sdk": true,
-        "enable-asserts": true
+        "enable-asserts": true,
+        "ddc-options": [
+          "--canary"
+        ]
       }
     },
     "dartdevc-canary-weak-(linux|mac|win)-release-(chrome|firefox)-(x64|arm64)": {
@@ -1044,7 +1047,10 @@
         "builder-tag": "canary",
         "checked": true,
         "use-sdk": true,
-        "enable-asserts": true
+        "enable-asserts": true,
+        "ddc-options": [
+          "--canary"
+        ]
       }
     },
     "cfe-(linux|mac|win)": {
