@@ -197,20 +197,20 @@ _extra_builder(
     dimensions = windows,
 )
 
-# vm|app-kernel
+# vm|appjit
 _extra_builder(
-    "app-kernel-linux-debug-x64",
-    category = "vm|app-kernel|d64",
+    "vm-appjit-linux-debug-x64",
+    category = "vm|appjit|d",
     properties = slow_shards,
 )
-_nightly_builder(
-    "app-kernel-linux-product-x64",
-    category = "vm|app-kernel|p64",
-    channels = ["try"],
-)
 _extra_builder(
-    "app-kernel-linux-release-x64",
-    category = "vm|app-kernel|r64",
+    "vm-appjit-linux-release-x64",
+    category = "vm|appjit|r",
+)
+_nightly_builder(
+    "vm-appjit-linux-product-x64",
+    category = "vm|appjit|p",
+    channels = ["try"],
 )
 
 #vm|kernel
