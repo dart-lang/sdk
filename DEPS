@@ -111,19 +111,19 @@ vars = {
   # 'tools/rev_sdk_deps.dart' can rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to pin it at its current revision.
 
-  "args_rev": "a23ea85cfd5c467c8671aef2ef9dfe45759ff974",
-  "async_rev": "f700e9aa61148b00a6cc27bb2bae0a0fed77be71",
-  "bazel_worker_rev": "b35c25e6cecced319b80c6686b9d025e462c7053",
-  "benchmark_harness_rev": "76881df31f4b76ff7bc50e3389d540b7fb2a69e6",
-  "boolean_selector_rev": "ba7d86b66382aa808576cd55840d4c34f0225066",
-  "browser_launcher_rev": "f2f01e4c7e719c633ca3c35d55c5331d4fe8b54b",
-  "characters_rev": "4526aa83c584cbba4333111809a1ffd1ccd15c07",
-  "cli_util_rev": "32bc0779a604c1bde1bb0782789c99cac222e651",
-  "clock_rev": "65e8a13ddf26c9d21884ccc8f8532725697d40df",
-  "collection_rev": "a566328f793cd26c52f3fa4010fe331bb8700383",
-  "convert_rev": "20d136c2fa4edc229fc3d7684bbeb8df5105580b",
-  "crypto_rev": "f854f2fa730acb107aa41ebe431403081f7161e4",
-  "csslib_rev": "f33d63211f77e2a895b90bcf22508ab7a0af4466",
+  "args_rev": "bd3ac8537c78e267d55d261d95c2f79d10faee83",
+  "async_rev": "8deaa40439b05babb0093554ac58b982891076ff",
+  "bazel_worker_rev": "11246923516148dd5fa7f20dfaf82bf432e7c38d",
+  "benchmark_harness_rev": "b1efcf74d42042cf8c9baa72e23f43c909c278ef",
+  "boolean_selector_rev": "16e6ad3c8000e08a7f1c213aef2a692d872a16c7",
+  "browser_launcher_rev": "bc2dc4ef53a6619032e9f01450848e9ed40a9437",
+  "characters_rev": "29f3a3e2a050161823670cea8de9546466c8ac05",
+  "cli_util_rev": "fd38b5fb282a4f3d4f7c2acb1c1d4c0d62e000ae",
+  "clock_rev": "5abb4816bad6cf3bfab64d65d501752d19760bd0",
+  "collection_rev": "0d0e184a5f70ca4e23dab23df686127ec40bfb11",
+  "convert_rev": "83886e3fd895211a98e49b7595a92796fa216641",
+  "crypto_rev": "03eb2c9098069a7816bbace581dc2d6e196c63ca",
+  "csslib_rev": "e6c83089e83dd0320dc560c33a73ff66a80e51fe",
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
   # matches the version here. Please follow this process to make updates:
@@ -135,7 +135,7 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "d0c6b1da52c9f80679a7aaa05e5935ef5c6bb52f", # manually rev'd
-  "dartdoc_rev": "bc7bdc44b03c558c9993f178d19ad989ed1c5f12",
+  "dartdoc_rev": "bc7bdc44b03c558c9993f178d19ad989ed1c5f12", # https://github.com/dart-lang/markdown/pull/494
   "ffi_rev": "2a56c2a9a87122c057168874bde384debbb806b0",
   "file_rev": "b768f79dcd104a5feabafab47101c4355b71cd8f",
   "fixnum_rev": "71f0d4d16054e6be7d8e22bdb3b082b9f82061be",
