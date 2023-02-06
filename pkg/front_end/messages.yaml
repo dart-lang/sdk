@@ -4734,7 +4734,7 @@ FfiTypeInvalid:
 
 FfiFieldNull:
   # Used by dart:ffi
-  problemMessage: "Field '#name' cannot have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct` or `Union`."
+  problemMessage: "Field '#name' cannot be nullable or have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct` or `Union`."
   external: test/ffi_test.dart
 
 FfiFieldAnnotation:
