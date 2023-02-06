@@ -420,7 +420,7 @@ def GetGitRevision(git_revision_file=None, repo_path=DART_DIR):
         git_revision_file = os.path.join(repo_path, 'tools', 'GIT_REVISION')
     try:
         with open(git_revision_file) as fd:
-            return fd.read().decode('utf-8').strip()
+            return fd.read().strip()
     except:
         pass
     p = subprocess.Popen(['git', 'rev-parse', 'HEAD'],
@@ -478,7 +478,15 @@ def GetLatestDevTag(repo_path=DART_DIR):
     return tag
 
 
-def GetGitTimestamp(repo_path=DART_DIR):
+def GetGitTimestamp(git_timestamp_file=None, repo_path=DART_DIR):
+    # When building from tarball use tools/GIT_TIMESTAMP
+    if git_timestamp_file is None:
+        git_timestamp_file = os.path.join(repo_path, 'tools', 'GIT_TIMESTAMP')
+    try:
+        with open(git_timestamp_file) as fd:
+            return fd.read().strip()
+    except:
+        pass
     p = subprocess.Popen(['git', 'log', '-n', '1', '--pretty=format:%cd'],
                          stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT,
