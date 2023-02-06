@@ -906,7 +906,7 @@ abstract class NativeApi {
 /// Example:
 ///
 /// ```dart template:top
-/// @FfiNative<Int64 Function(Int64, Int64)>('FfiNative_Sum', isLeaf:true)
+/// @Native<Int64 Function(Int64, Int64)>(symbol: 'FfiNative_Sum', isLeaf:true)
 /// external int sum(int a, int b);
 /// ```
 ///
@@ -915,8 +915,9 @@ abstract class NativeApi {
 ///
 /// See `Dart_SetFfiNativeResolver` in `dart_api.h`
 ///
-/// NOTE: This is an experimental feature and may change in the future.
+/// NOTE: This experimental feature is replaced by [Native].
 @Since('2.14')
+@Deprecated('Use Native instead.')
 class FfiNative<T> {
   final String nativeName;
 
