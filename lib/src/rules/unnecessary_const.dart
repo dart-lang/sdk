@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -51,7 +52,8 @@ class UnnecessaryConst extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
+    var visitor =
+        _Visitor(this, patternsEnabled: context.isEnabled(Feature.patterns));
     registry.addInstanceCreationExpression(this, visitor);
     registry.addListLiteral(this, visitor);
     registry.addRecordLiteral(this, visitor);
@@ -61,7 +63,8 @@ class UnnecessaryConst extends LintRule {
 
 class _Visitor extends SimpleAstVisitor {
   final LintRule rule;
-  _Visitor(this.rule);
+  final bool patternsEnabled;
+  _Visitor(this.rule, {required this.patternsEnabled});
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
@@ -73,7 +76,10 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   @override
-  void visitListLiteral(ListLiteral node) => _visitTypedLiteral(node);
+  void visitListLiteral(ListLiteral node) {
+    if (patternsEnabled) return;
+    _visitTypedLiteral(node);
+  }
 
   @override
   void visitRecordLiteral(RecordLiteral node) {
@@ -86,6 +92,7 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    if (patternsEnabled) return;
     _visitTypedLiteral(node);
   }
 

@@ -8,12 +8,65 @@ import '../rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UnnecessaryConstTest);
+    defineReflectiveTests(UnnecessaryConstPatternsTest);
+    defineReflectiveTests(UnnecessaryConstRecordsTest);
   });
 }
 
 @reflectiveTest
-class UnnecessaryConstTest extends LintRuleTest {
+class UnnecessaryConstPatternsTest extends LintRuleTest {
+  @override
+  List<String> get experiments => ['patterns', 'records'];
+
+  @override
+  String get lintRule => 'unnecessary_const';
+
+  test_case_constConstructor_ok() async {
+    await assertNoDiagnostics(r'''
+class C {
+  const C();
+}
+f(C c) {
+  switch (c) {
+    case const C():
+  }
+}
+''');
+  }
+
+  test_case_listLiteral_ok() async {
+    await assertNoDiagnostics(r'''
+void f(Object o) {
+  switch (o) {
+    case const [1, 2]:
+  }
+}
+''');
+  }
+
+  test_case_mapLiteral_ok() async {
+    await assertNoDiagnostics(r'''
+void f(Object o) {
+  switch (o) {
+   case const {'k': 'v'}:
+  }
+}
+''');
+  }
+
+  test_case_setLiteral_ok() async {
+    await assertNoDiagnostics(r'''
+void f(Object o) {
+  switch (o) {
+    case const {1}:
+  }
+}
+''');
+  }
+}
+
+@reflectiveTest
+class UnnecessaryConstRecordsTest extends LintRuleTest {
   @override
   List<String> get experiments => ['records'];
 
