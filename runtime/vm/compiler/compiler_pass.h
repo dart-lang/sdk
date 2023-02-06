@@ -9,6 +9,8 @@
 #error "AOT runtime should not use compiler sources (including header files)"
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
+#include <initializer_list>
+
 #include "vm/growable_array.h"
 #include "vm/timer.h"
 #include "vm/token_position.h"
