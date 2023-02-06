@@ -9621,10 +9621,11 @@ class Parser {
       Token next = token.next!;
       if (optional('var', next) || optional('final', next)) {
         token = keyword = next;
+        bool nextIsParen = optional("(", token.next!);
         // TODO(paulberry): this accepts `var <type> name` as a variable
         // pattern.  We want to accept that for error recovery, but don't forget
         // to report the appropriate error.
-        typeInfo = computeVariablePatternType(token);
+        typeInfo = computeVariablePatternType(token, nextIsParen);
         token = typeInfo.parseType(token, this);
       } else {
         // Bare identifier pattern

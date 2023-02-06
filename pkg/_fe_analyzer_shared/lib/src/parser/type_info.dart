@@ -353,8 +353,8 @@ TypeInfo computeType(final Token token, bool required,
 /// This is similar to [computeType], but has special logic to account for an
 /// ambiguity that arises in patterns due to the fact that `as` can either be
 /// an identifier or the operator in a castPattern.
-TypeInfo computeVariablePatternType(Token token) {
-  TypeInfo typeInfo = computeType(token, /* required = */ false);
+TypeInfo computeVariablePatternType(Token token, [bool required = false]) {
+  TypeInfo typeInfo = computeType(token, required);
   Token afterType = typeInfo.skipType(token);
   if (!identical(afterType, token)) {
     Token next = afterType.next!;
