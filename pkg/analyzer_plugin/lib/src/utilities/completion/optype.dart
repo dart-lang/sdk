@@ -947,6 +947,18 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitListPattern(ListPattern node) {
+    // TODO(brianwilkerson) We need a way to specify that only constants are
+    //  allowed in this context that is different from "this is a constant
+    //  context". In both cases, we need to not suggest elements that aren't
+    //  valid in those contexts.
+    optype.completionLocation = 'ListPattern_element';
+    optype.includeReturnValueSuggestions = true;
+    optype.includeTypeNameSuggestions = true;
+    optype.includeVarNameSuggestions = true;
+  }
+
+  @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
     optype.completionLocation = 'MapLiteralEntry_value';
     optype.includeReturnValueSuggestions = true;

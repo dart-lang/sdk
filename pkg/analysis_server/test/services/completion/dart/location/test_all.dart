@@ -15,6 +15,7 @@ import 'enum_test.dart' as enum_;
 import 'field_formal_parameter_test.dart' as field_formal_parameter;
 import 'if_element_test.dart' as if_element;
 import 'if_statement_test.dart' as if_statement;
+import 'list_pattern_test.dart' as list_pattern;
 import 'named_expression_test.dart' as named_expression;
 import 'object_pattern_test.dart' as object_pattern;
 import 'record_literal_test.dart' as record_literal;
@@ -37,6 +38,7 @@ void main() {
     field_formal_parameter.main();
     if_element.main();
     if_statement.main();
+    list_pattern.main();
     named_expression.main();
     object_pattern.main();
     record_literal.main();
