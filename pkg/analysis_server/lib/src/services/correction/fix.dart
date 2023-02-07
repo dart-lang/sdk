@@ -944,6 +944,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Remove awaits in file',
   );
+  static const REMOVE_BREAK = FixKind(
+    'dart.fix.remove.break',
+    DartFixKindPriority.DEFAULT,
+    'Remove break',
+  );
+  static const REMOVE_BREAK_MULTI = FixKind(
+    'dart.fix.remove.break.multi',
+    DartFixKindPriority.IN_FILE,
+    'Remove unnecessary breaks in file',
+  );
   static const REMOVE_CHARACTER = FixKind(
     'dart.fix.remove.character',
     DartFixKindPriority.DEFAULT,

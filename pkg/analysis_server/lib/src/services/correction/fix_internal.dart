@@ -118,6 +118,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_argument.dar
 import 'package:analysis_server/src/services/correction/dart/remove_assertion.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_assignment.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_break.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_character.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_comparison.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
@@ -661,6 +662,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.unnecessary_brace_in_string_interps: [
       RemoveInterpolationBraces.new,
+    ],
+    LintNames.unnecessary_breaks: [
+      RemoveBreak.new,
     ],
     LintNames.unnecessary_const: [
       RemoveUnnecessaryConst.new,

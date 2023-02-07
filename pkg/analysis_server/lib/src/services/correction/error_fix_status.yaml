@@ -2001,9 +2001,7 @@ LintCode.unnecessary_await_in_return:
 LintCode.unnecessary_brace_in_string_interps:
   status: hasFix
 LintCode.unnecessary_breaks:
-  status: needsFix
-  notes: |-
-    https://github.com/dart-lang/sdk/issues/49960
+  status: hasFix
 LintCode.unnecessary_const:
   status: hasFix
 LintCode.unnecessary_constructor_name:

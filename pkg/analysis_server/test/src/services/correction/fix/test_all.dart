@@ -147,6 +147,7 @@ import 'remove_argument_test.dart' as remove_argument;
 import 'remove_assertion_test.dart' as remove_assertion;
 import 'remove_assignment_test.dart' as remove_assignment;
 import 'remove_await_test.dart' as remove_await;
+import 'remove_break_test.dart' as remove_break;
 import 'remove_character_test.dart' as remove_character;
 import 'remove_comparison_test.dart' as remove_comparison;
 import 'remove_const_test.dart' as remove_const;
@@ -381,6 +382,7 @@ void main() {
     remove_assertion.main();
     remove_assignment.main();
     remove_await.main();
+    remove_break.main();
     remove_character.main();
     remove_comparison.main();
     remove_const.main();
