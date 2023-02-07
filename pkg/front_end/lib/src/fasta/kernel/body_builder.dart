@@ -4,7 +4,6 @@
 
 library fasta.body_builder;
 
-import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
@@ -31,6 +30,7 @@ import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
     show isBinaryOperator, isMinusOperator, isUserDefinableOperator;
+import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
@@ -512,14 +512,14 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("beginForStatement");
     enterLoop(token.charOffset);
     createAndEnterLocalScope(
-        debugName: "for statement", kind: ScopeKind.statementLocalScope);
+        debugName: "for statement", kind: ScopeKind.forStatement);
   }
 
   @override
   void beginForControlFlow(Token? awaitToken, Token forToken) {
     debugEvent("beginForControlFlow");
     createAndEnterLocalScope(
-        debugName: "for in a collection", kind: ScopeKind.statementLocalScope);
+        debugName: "for in a collection", kind: ScopeKind.forStatement);
   }
 
   @override
@@ -3252,7 +3252,8 @@ class BodyBuilder extends StackListenerImpl
             this, token, fasta.messageNotAConstantExpression);
       }
       VariableDeclaration variable = variableBuilder.variable!;
-      if (!variableBuilder.isAssignable) {
+      if (!variableBuilder.isAssignable ||
+          (variable.isFinal && scope.kind == ScopeKind.forStatement)) {
         return _createReadOnlyVariableAccess(
             variable,
             token,
