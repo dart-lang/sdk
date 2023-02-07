@@ -89,9 +89,10 @@ declare_args() {
   # which is already linked in the VM.
   create_kernel_service_snapshot = dart_target_arch == "x64"
 
-  # The analyze_snapshot tool is only supported on 64 bit AOT builds running
-  # under linux and android platforms
+  # The analyze_snapshot tool is only supported on 64 bit AOT builds that use
+  # ELF.
   build_analyze_snapshot =
-      (is_linux || is_android) &&
+      (target_os == "linux" || target_os == "android" ||
+       target_os == "fuchsia") &&
       (dart_target_arch == "x64" || dart_target_arch == "arm64")
 }
