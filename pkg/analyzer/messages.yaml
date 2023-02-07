@@ -1021,7 +1021,7 @@ CompileTimeErrorCode:
       ```
   ASYNC_FOR_IN_WRONG_CONTEXT:
     problemMessage: The async for-in loop can only be used in an async function.
-    correctionMessage: "Try marking the function body with either 'async' or 'async*', or removing the 'await' before the for-in loop."
+    correctionMessage: Try marking the function body with either 'async' or 'async*', or removing the 'await' before the for-in loop.
     hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
@@ -1122,7 +1122,7 @@ CompileTimeErrorCode:
       ```
   AWAIT_IN_WRONG_CONTEXT:
     problemMessage: The await expression can only be used in an async function.
-    correctionMessage: "Try marking the function body with either 'async' or 'async*'."
+    correctionMessage: Try marking the function body with either 'async' or 'async*'.
     comment: |-
       16.30 Await Expressions: It is a compile-time error if the function
       immediately enclosing _a_ is not declared asynchronous. (Where _a_ is the
@@ -1140,7 +1140,7 @@ CompileTimeErrorCode:
       Parameters:
       0: the name of the base mixin being implemented
   BODY_MIGHT_COMPLETE_NORMALLY:
-    problemMessage: "The body might complete normally, causing 'null' to be returned, but the return type, '{0}', is a potentially non-nullable type."
+    problemMessage: The body might complete normally, causing 'null' to be returned, but the return type, '{0}', is a potentially non-nullable type.
     correctionMessage: Try adding either a return or a throw statement at the end.
     hasPublishedDocs: true
     comment: |-
@@ -1219,7 +1219,7 @@ CompileTimeErrorCode:
       }
       ```
   BREAK_LABEL_ON_SWITCH_MEMBER:
-    problemMessage: "A break label resolves to the 'case' or 'default' statement."
+    problemMessage: A break label resolves to the 'case' or 'default' statement.
     hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
@@ -1276,7 +1276,7 @@ CompileTimeErrorCode:
       }
       ```
   BUILT_IN_IDENTIFIER_AS_TYPE:
-    problemMessage: "The built-in identifier '{0}' can't be used as a type."
+    problemMessage: The built-in identifier '{0}' can't be used as a type.
     correctionMessage: Try correcting the name to match an existing type.
     hasPublishedDocs: true
     comment: |-
@@ -6975,7 +6975,7 @@ CompileTimeErrorCode:
 
       This error is only reported in libraries which are not null safe.
   INVALID_CAST_FUNCTION_EXPR:
-    problemMessage: "The function expression type '{0}' isn't of type '{1}'. This means its parameter or return type doesn't match what is expected. Consider changing parameter type(s) or the returned type(s)."
+    problemMessage: The function expression type '{0}' isn't of type '{1}'. This means its parameter or return type doesn't match what is expected. Consider changing parameter type(s) or the returned type(s).
     comment: |-
       Parameters:
       0: the type of the torn-off function expression
@@ -20058,6 +20058,11 @@ HintCode:
       ```dart
       dynamic x;
       ```
+  UNNECESSARY_SET_LITERAL:
+    problemMessage: Braces unnecessarily wrap this expression in a set literal.
+    correctionMessage: Try removing the set literal around the expression.
+    hasPublishedDocs: false
+    comment: No parameters.
   UNNECESSARY_TYPE_CHECK_FALSE:
     sharedName: UNNECESSARY_TYPE_CHECK
     problemMessage: "Unnecessary type check; the result is always 'false'."
