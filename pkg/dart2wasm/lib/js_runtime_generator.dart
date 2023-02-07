@@ -9,6 +9,8 @@ import 'package:_js_interop_checks/src/js_interop.dart'
         hasAnonymousAnnotation,
         hasStaticInteropAnnotation,
         hasJSInteropAnnotation;
+import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
+    show InlineExtensionIndex;
 import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
 import 'package:dart2wasm/js_runtime_blob.dart';
 import 'package:kernel/ast.dart';
@@ -137,8 +139,8 @@ class _JSLowerer extends Transformer {
   late String _libraryJSString;
 
   final CoreTypes _coreTypes;
+  late InlineExtensionIndex _inlineExtensionIndex;
   final StatefulStaticTypeContext _staticTypeContext;
-  Map<Reference, ExtensionMemberDescriptor>? _extensionMemberIndex;
 
   _JSLowerer(this._coreTypes, ClassHierarchy hierarchy)
       : _dartifyRawTarget = _coreTypes.index
@@ -182,6 +184,7 @@ class _JSLowerer extends Transformer {
   @override
   Library visitLibrary(Library lib) {
     _library = lib;
+    _inlineExtensionIndex = InlineExtensionIndex(_library);
     _libraryJSString = getJSName(_library);
     if (_libraryJSString.isNotEmpty) {
       _libraryJSString = '$_libraryJSString.';
@@ -189,7 +192,6 @@ class _JSLowerer extends Transformer {
     _staticTypeContext.enterLibrary(lib);
     lib.transformChildren(this);
     _staticTypeContext.leaveLibrary(lib);
-    _extensionMemberIndex = null;
     return lib;
   }
 
@@ -242,6 +244,17 @@ class _JSLowerer extends Transformer {
     }
   }
 
+  _MethodType _getTypeForInlineClassMember(InlineClassMemberKind kind) {
+    if (kind == InlineClassMemberKind.Getter) {
+      return _MethodType.getter;
+    } else if (kind == InlineClassMemberKind.Setter) {
+      return _MethodType.setter;
+    } else {
+      assert(kind == InlineClassMemberKind.Method);
+      return _MethodType.method;
+    }
+  }
+
   @override
   Procedure visitProcedure(Procedure node) {
     _staticTypeContext.enterMember(node);
@@ -264,14 +277,30 @@ class _JSLowerer extends Transformer {
           jsString = '$jsString.$memberSelectorString';
           type = _getTypeForNonExtensionMember(node);
         }
+      } else if (node.isInlineClassMember) {
+        InlineClassMemberDescriptor? nodeDescriptor =
+            _inlineExtensionIndex.getInlineDescriptor(node.reference);
+        if (nodeDescriptor != null) {
+          InlineClass cls =
+              _inlineExtensionIndex.getInlineClass(node.reference)!;
+          InlineClassMemberKind kind = nodeDescriptor.kind;
+          jsString = _getTopLevelJSString(cls, cls.name);
+          if (kind == InlineClassMemberKind.Constructor ||
+              kind == InlineClassMemberKind.Factory) {
+            type = _MethodType.constructor;
+          } else if (nodeDescriptor.isStatic) {
+            String memberSelectorString =
+                _getJSString(node, nodeDescriptor.name.text);
+            jsString = '$jsString.$memberSelectorString';
+            type = _getTypeForInlineClassMember(kind);
+          }
+        }
       } else if (node.isExtensionMember) {
-        var index = _extensionMemberIndex ??=
-            _createExtensionMembersIndex(node.enclosingLibrary);
-        var nodeDescriptor = index[node.reference];
+        ExtensionMemberDescriptor? nodeDescriptor =
+            _inlineExtensionIndex.getExtensionDescriptor(node.reference);
         if (nodeDescriptor != null) {
           if (!nodeDescriptor.isStatic) {
-            jsString = _getJSString(
-                node, _extensionMemberIndex![node.reference]!.name.text);
+            jsString = _getJSString(node, nodeDescriptor.name.text);
             if (nodeDescriptor.kind == ExtensionMemberKind.Getter) {
               type = _MethodType.getter;
             } else if (nodeDescriptor.kind == ExtensionMemberKind.Setter) {
@@ -319,23 +348,6 @@ class _JSLowerer extends Transformer {
   bool _isStaticInteropType(DartType type) =>
       type is InterfaceType &&
       hasStaticInteropAnnotation(type.className.asClass);
-
-  /// Returns and initializes `_extensionMemberIndex` to an index of the member
-  /// reference to the member `ExtensionMemberDescriptor`, for all extension
-  /// members in the given [library] of classes annotated with
-  /// `@staticInterop`.
-  Map<Reference, ExtensionMemberDescriptor> _createExtensionMembersIndex(
-      Library library) {
-    _extensionMemberIndex = {};
-    library.extensions.forEach((extension) {
-      if (_isStaticInteropType(extension.onType)) {
-        extension.members.forEach((descriptor) {
-          _extensionMemberIndex![descriptor.member] = descriptor;
-        });
-      }
-    });
-    return _extensionMemberIndex!;
-  }
 
   // We could generate something more human readable, but for now we just
   // generate something short and unique.

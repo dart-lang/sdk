@@ -49,8 +49,8 @@ class JsUtilOptimizer extends Transformer {
 
   final CoreTypes _coreTypes;
   final StatefulStaticTypeContext _staticTypeContext;
-  Map<Reference, ExtensionMemberDescriptor>? _extensionMemberIndex;
-  late Set<Reference> _shouldTrustType;
+
+  late InlineExtensionIndex _inlineExtensionIndex;
 
   static const Set<String> _existingJsAnnotationsUsers = {
     'dart:_engine',
@@ -101,10 +101,10 @@ class JsUtilOptimizer extends Transformer {
 
   @override
   visitLibrary(Library lib) {
+    _inlineExtensionIndex = InlineExtensionIndex(lib);
     _staticTypeContext.enterLibrary(lib);
     lib.transformChildren(this);
     _staticTypeContext.leaveLibrary(lib);
-    _extensionMemberIndex = null;
     return lib;
   }
 
@@ -122,43 +122,42 @@ class JsUtilOptimizer extends Transformer {
     ReturnStatement? transformedBody;
     if (node.isExternal) {
       if (node.isExtensionMember) {
-        var index = _extensionMemberIndex ??=
-            _createExtensionMembersIndex(node.enclosingLibrary);
         var reference = node.reference;
-        var nodeDescriptor = index[reference];
-        var shouldTrustType = _shouldTrustType.contains(reference);
+        var nodeDescriptor =
+            _inlineExtensionIndex.getExtensionDescriptor(reference);
+        var shouldTrustType =
+            _inlineExtensionIndex.isTrustTypesMember(reference);
         if (nodeDescriptor != null && !nodeDescriptor.isStatic) {
-          if (nodeDescriptor.kind == ExtensionMemberKind.Getter) {
+          if (_isGetter(node)) {
             transformedBody = _getExternalGetterBody(node, shouldTrustType);
-          } else if (nodeDescriptor.kind == ExtensionMemberKind.Setter) {
+          } else if (_isSetter(node)) {
             transformedBody = _getExternalSetterBody(node);
-          } else if (nodeDescriptor.kind == ExtensionMemberKind.Method) {
+          } else if (_isMethod(node)) {
             transformedBody = _getExternalMethodBody(node, shouldTrustType);
           }
         }
       } else {
-        // Do the lowerings for top-levels, static class members, and factories.
-        var dottedPrefix = _getDottedPrefixForNonInstanceMember(node);
+        // Do the lowerings for top-levels, static class members, and
+        // constructors/factories.
+        var dottedPrefix = _getDottedPrefixForStaticallyResolvableMember(node);
         if (dottedPrefix != null) {
           var receiver = _getObjectOffGlobalThis(
               node, dottedPrefix.isEmpty ? [] : dottedPrefix.split('.'));
           var shouldTrustType = node.enclosingClass != null &&
               hasTrustTypesAnnotation(node.enclosingClass!);
-          if (node.kind == ProcedureKind.Getter) {
+          if (_isGetter(node)) {
             transformedBody =
                 _getExternalGetterBody(node, shouldTrustType, receiver);
-          } else if (node.kind == ProcedureKind.Setter) {
+          } else if (_isSetter(node)) {
             transformedBody = _getExternalSetterBody(node, receiver);
-          } else if (node.kind == ProcedureKind.Method) {
+          } else if (_isMethod(node)) {
             transformedBody =
                 _getExternalMethodBody(node, shouldTrustType, receiver);
-          } else if (node.kind == ProcedureKind.Factory) {
-            if (!hasAnonymousAnnotation(node.enclosingClass!)) {
-              transformedBody = _getExternalConstructorBody(
-                  node,
-                  // Get the constructor object using the class name.
-                  _getObjectOffGlobalThis(node, dottedPrefix.split('.')));
-            }
+          } else if (_isNonLiteralConstructor(node)) {
+            transformedBody = _getExternalConstructorBody(
+                node,
+                // Get the constructor object using the class name.
+                _getObjectOffGlobalThis(node, dottedPrefix.split('.')));
           }
         }
       }
@@ -174,17 +173,67 @@ class JsUtilOptimizer extends Transformer {
     return node;
   }
 
+  bool _isOneOfKinds(Procedure node, InlineClassMemberKind inlineKind,
+      ExtensionMemberKind extensionKind, ProcedureKind procedureKind) {
+    var reference = node.reference;
+    if (node.isInlineClassMember) {
+      return _inlineExtensionIndex.getInlineDescriptor(reference)?.kind ==
+          inlineKind;
+    } else if (node.isExtensionMember) {
+      return _inlineExtensionIndex.getExtensionDescriptor(reference)?.kind ==
+          extensionKind;
+    } else {
+      return node.kind == procedureKind;
+    }
+  }
+
+  bool _isGetter(Procedure node) => _isOneOfKinds(
+      node,
+      InlineClassMemberKind.Getter,
+      ExtensionMemberKind.Getter,
+      ProcedureKind.Getter);
+
+  bool _isSetter(Procedure node) => _isOneOfKinds(
+      node,
+      InlineClassMemberKind.Setter,
+      ExtensionMemberKind.Setter,
+      ProcedureKind.Setter);
+
+  bool _isMethod(Procedure node) => _isOneOfKinds(
+      node,
+      InlineClassMemberKind.Method,
+      ExtensionMemberKind.Method,
+      ProcedureKind.Method);
+
+  bool _isNonLiteralConstructor(Procedure node) {
+    if (node.isInlineClassMember) {
+      var kind =
+          _inlineExtensionIndex.getInlineDescriptor(node.reference)?.kind;
+      return kind == InlineClassMemberKind.Constructor ||
+          kind == InlineClassMemberKind.Factory;
+    } else {
+      return node.kind == ProcedureKind.Factory &&
+          node.enclosingClass != null &&
+          !hasAnonymousAnnotation(node.enclosingClass!);
+    }
+  }
+
   /// Returns the prefixed JS name for the given [node] using the enclosing
   /// library's, enclosing class' (if any), and member's `@JS` values.
   ///
-  /// Returns null if [node] is not external and a top-level member, a
-  /// `@staticInterop` factory, or a `@staticInterop` static member.
-  String? _getDottedPrefixForNonInstanceMember(Procedure node) {
-    if (!node.isExternal || (!node.isFactory && !node.isStatic)) return null;
-    var enclosingClass = node.enclosingClass;
+  /// Returns null if [node] is not external and one of:
+  /// 1. A top-level member
+  /// 2. A `@staticInterop` factory
+  /// 3. A `@staticInterop` static member
+  /// 4. A `@JS` inline class constructor
+  /// 5. A `@JS` inline class static member
+  String? _getDottedPrefixForStaticallyResolvableMember(Procedure node) {
+    if (!node.isExternal) return null;
+
     var dottedPrefix = getJSName(node.enclosingLibrary);
 
-    if (enclosingClass == null &&
+    if (!node.isInlineClassMember &&
+        node.enclosingClass == null &&
         ((hasInternalJSInteropAnnotation(node) ||
                 hasInternalJSInteropAnnotation(node.enclosingLibrary)) &&
             !_existingJsAnnotationsUsers
@@ -206,15 +255,35 @@ class JsUtilOptimizer extends Transformer {
               dottedPrefix, jsName.substring(0, lastDotIndex));
         }
       }
-    } else if (enclosingClass != null &&
-        hasStaticInteropAnnotation(enclosingClass)) {
-      // `@staticInterop` factory or static member, use the class name as part
-      // of the dotted prefix.
-      var className = getJSName(enclosingClass);
-      if (className.isEmpty) className = enclosingClass.name;
-      dottedPrefix = _concatenateJSNames(dottedPrefix, className);
     } else {
-      return null;
+      Annotatable enclosingClass;
+      if (node.isInlineClassMember) {
+        var descriptor =
+            _inlineExtensionIndex.getInlineDescriptor(node.reference);
+        if (descriptor == null ||
+            (!descriptor.isStatic &&
+                descriptor.kind != InlineClassMemberKind.Constructor &&
+                descriptor.kind != InlineClassMemberKind.Factory)) {
+          return null;
+        }
+        enclosingClass = _inlineExtensionIndex.getInlineClass(node.reference)!;
+      } else if (node.enclosingClass != null &&
+          hasStaticInteropAnnotation(node.enclosingClass!)) {
+        if (!node.isFactory && !node.isStatic) return null;
+        enclosingClass = node.enclosingClass!;
+      } else {
+        return null;
+      }
+      // `@staticInterop` or `@JS` inline class
+      // factory/constructor/static member, use the class name as part of the
+      // dotted prefix.
+      var className = getJSName(enclosingClass);
+      if (className.isEmpty) {
+        className = enclosingClass is Class
+            ? enclosingClass.name
+            : (enclosingClass as InlineClass).name;
+      }
+      dottedPrefix = _concatenateJSNames(dottedPrefix, className);
     }
     return dottedPrefix;
   }
@@ -243,30 +312,6 @@ class JsUtilOptimizer extends Transformer {
         ..fileOffset = node.fileOffset;
     }
     return currentTarget;
-  }
-
-  /// Returns and initializes `_extensionMemberIndex` to an index of the member
-  /// reference to the member `ExtensionMemberDescriptor`, for all extension
-  /// members in the given [library].
-  Map<Reference, ExtensionMemberDescriptor> _createExtensionMembersIndex(
-      Library library) {
-    _extensionMemberIndex = {};
-    _shouldTrustType = {};
-    library.extensions
-        .forEach((extension) => extension.members.forEach((descriptor) {
-              var onType = extension.onType;
-              if (onType is InterfaceType) {
-                var cls = onType.classNode;
-                var reference = descriptor.member;
-                if (hasJSInteropAnnotation(cls) || hasNativeAnnotation(cls)) {
-                  _extensionMemberIndex![reference] = descriptor;
-                }
-                if (hasTrustTypesAnnotation(cls)) {
-                  _shouldTrustType.add(reference);
-                }
-              }
-            }));
-    return _extensionMemberIndex!;
   }
 
   /// Returns a new function body for the given [node] external getter.
@@ -383,13 +428,14 @@ class JsUtilOptimizer extends Transformer {
   /// non-`static`.
   bool _isInstanceExtensionMember(Member node) =>
       node.isExtensionMember &&
-      !_extensionMemberIndex![node.reference]!.isStatic;
+      !_inlineExtensionIndex.getExtensionDescriptor(node.reference)!.isStatic;
 
   /// Returns the underlying JS name.
   ///
   /// Returns either the name from the `@JS` annotation if non-empty, or the
-  /// declared name of the member. In the case of an extension member, this
-  /// does not return the CFE generated name for the top level member.
+  /// declared name of the member. In the case of an extension or inline class
+  /// member, this does not return the CFE generated name for the top level
+  /// member, but rather the name of the original member.
   String _getMemberJSName(Procedure node) {
     var jsAnnotationName = getJSName(node);
     if (jsAnnotationName.isNotEmpty) {
@@ -397,11 +443,19 @@ class JsUtilOptimizer extends Transformer {
       // namespacing before the last '.' should be resolved when we provide a
       // receiver to the lowerings. Here, we just take the final identifier.
       return jsAnnotationName.split('.').last;
+    } else if (node.isExtensionMember) {
+      return _inlineExtensionIndex
+          .getExtensionDescriptor(node.reference)!
+          .name
+          .text;
+    } else if (node.isInlineClassMember) {
+      return _inlineExtensionIndex
+          .getInlineDescriptor(node.reference)!
+          .name
+          .text;
+    } else {
+      return node.name.text;
     }
-    if (node.isExtensionMember) {
-      return _extensionMemberIndex![node.reference]!.name.text;
-    }
-    return node.name.text;
   }
 
   /// Replaces js_util method calls with optimization when possible.
@@ -596,5 +650,83 @@ class JsUtilOptimizer extends Transformer {
       // Only other DartType guaranteed to not be a function.
       return type is NullType;
     }
+  }
+}
+
+/// Lazily-initialized indexes for extension members and inline class members.
+class InlineExtensionIndex {
+  Map<Reference, ExtensionMemberDescriptor>? _extensionMemberIndex;
+  late Map<Reference, InlineClass> _inlineClassIndex;
+  Map<Reference, InlineClassMemberDescriptor>? _inlineMemberIndex;
+  late Set<Reference> _shouldTrustType;
+
+  final Library _library;
+
+  InlineExtensionIndex(this._library);
+
+  /// For all extension members in `_library` whose on-type has a
+  /// `@staticInterop` annotation, initializes `_extensionMemberIndex` to an
+  /// index of the extension member references to the member's
+  /// `ExtensionMemberDescriptor`.
+  ///
+  /// Also initializes `_shouldTrustType` to the set of extension member
+  /// references whose on-type has a `@trustTypes` annotation.
+  void _createExtensionIndexes() {
+    if (_extensionMemberIndex != null) return;
+    _extensionMemberIndex = {};
+    _shouldTrustType = {};
+    _library.extensions
+        .forEach((extension) => extension.members.forEach((descriptor) {
+              var onType = extension.onType;
+              if (onType is InterfaceType) {
+                var cls = onType.classNode;
+                var reference = descriptor.member;
+                if (hasJSInteropAnnotation(cls) || hasNativeAnnotation(cls)) {
+                  _extensionMemberIndex![reference] = descriptor;
+                }
+                if (hasTrustTypesAnnotation(cls)) {
+                  _shouldTrustType.add(reference);
+                }
+              }
+            }));
+  }
+
+  ExtensionMemberDescriptor? getExtensionDescriptor(Reference reference) {
+    _createExtensionIndexes();
+    return _extensionMemberIndex![reference];
+  }
+
+  bool isTrustTypesMember(Reference reference) {
+    _createExtensionIndexes();
+    return _shouldTrustType.contains(reference);
+  }
+
+  /// For all inline class members in `_library` whose class has a `@JS`
+  /// annotation, initializes `_inlineMemberIndex` and `_inlineClassIndex` to
+  /// indices of the inline class member references to the member's
+  /// `InlineClassMemberDescriptor` and `InlineClass`.
+  void _createInlineIndexes() {
+    if (_inlineMemberIndex != null) return;
+    _inlineMemberIndex = {};
+    _inlineClassIndex = {};
+    _library.inlineClasses.forEach((inlineClass) {
+      if (hasJSInteropAnnotation(inlineClass)) {
+        inlineClass.members.forEach((descriptor) {
+          var reference = descriptor.member;
+          _inlineMemberIndex![reference] = descriptor;
+          _inlineClassIndex[reference] = inlineClass;
+        });
+      }
+    });
+  }
+
+  InlineClassMemberDescriptor? getInlineDescriptor(Reference reference) {
+    _createInlineIndexes();
+    return _inlineMemberIndex![reference];
+  }
+
+  InlineClass? getInlineClass(Reference reference) {
+    _createInlineIndexes();
+    return _inlineClassIndex[reference];
   }
 }
