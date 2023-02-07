@@ -369,6 +369,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// concrete SSA builder reports an error.
   bool? _getFlagValue(String flagName) {
     switch (flagName) {
+      case 'FALSE':
+        return false;
       case 'DEV_COMPILER':
         return false;
       case 'MINIFIED':

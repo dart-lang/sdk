@@ -8,6 +8,7 @@ import 'dart:_js_embedded_names'
     show DISPATCH_PROPERTY_NAME, TYPE_TO_INTERCEPTOR_MAP;
 
 import 'dart:collection' hide LinkedList, LinkedListEntry;
+import 'dart:_foreign_helper' show JS_GET_FLAG;
 import 'dart:_internal' hide Symbol;
 import "dart:_internal" as _symbol_dev show Symbol;
 import 'dart:_js_helper'
