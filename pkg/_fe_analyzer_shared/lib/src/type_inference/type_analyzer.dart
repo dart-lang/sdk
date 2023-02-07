@@ -369,7 +369,8 @@ mixin TypeAnalyzer<
     }
     Type matchedType = flow.getMatchedValueType();
     Type staticType = analyzeExpression(expression, matchedType);
-    flow.constantPattern_end(expression);
+    flow.constantPattern_end(expression, staticType,
+        patternsEnabled: options.patternsEnabled);
     // Stack: (Expression)
     if (errors != null && !options.patternsEnabled) {
       Expression? switchScrutinee = context.getSwitchScrutinee(node);

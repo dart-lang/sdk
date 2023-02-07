@@ -4929,7 +4929,7 @@ class _WildcardPattern extends Pattern {
         names: ['matchedType'], location: location);
     var expectInferredType = this.expectInferredType;
     if (expectInferredType != null) {
-      expect(matchedType.type, expectInferredType);
+      expect(matchedType.type, expectInferredType, reason: 'at $location');
     }
   }
 
