@@ -1,3 +1,18 @@
+## 2.19.2 - 2023-02-08
+
+This is a patch release that:
+
+- Fixes a VM crash when mixing the use of double and float calculations in
+  debug/jit configuration. (issue [#50622][]).
+
+- Fixes the compiler crashing when attempting to inline a method with lots of
+  optional parameters with distinct default values. (issue [#119220][]).
+
+- Fixes the `part_of_different_library` error encountered when using `PackageBuildWorkspace`. (issue [#51087][]).
+
+[#50622]: https://github.com/dart-lang/sdk/issues/50622
+[#119220]: https://github.com/flutter/flutter/issues/119220
+[#51087]: https://github.com/dart-lang/sdk/issues/51087
 ## 2.19.1 - 2023-02-01
 
 This is a patch release that:
