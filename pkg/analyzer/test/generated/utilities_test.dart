@@ -876,6 +876,22 @@ void f() {
     );
   }
 
+  void test_forEachPartsWithPattern() {
+    var findNode = _parseStringToFindNode(r'''
+void f() {
+  for (var (a) in []) {}
+  for (var (b) in []) {}
+}
+''');
+    _assertReplacementForChildren<ForEachPartsWithPattern>(
+      destination: findNode.forEachPartsWithPattern('(a)'),
+      source: findNode.forEachPartsWithPattern('(b)'),
+      childAccessors: [
+        (node) => node.iterable,
+      ],
+    );
+  }
+
   void test_forEachStatement_withIdentifier() {
     var findNode = _parseStringToFindNode(r'''
 void f(int a) {

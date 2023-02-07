@@ -2514,6 +2514,16 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   }
 
   @override
+  bool? visitForEachPartsWithPattern(ForEachPartsWithPattern node) {
+    if (identical(node.iterable, _oldNode)) {
+      (node as ForEachPartsWithPatternImpl).iterable =
+          _newNode as ExpressionImpl;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
   bool visitForElement(ForElement node) {
     if (identical(node.forLoopParts, _oldNode)) {
       (node as ForElementImpl).forLoopParts = _newNode as ForLoopPartsImpl;
