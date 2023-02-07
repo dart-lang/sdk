@@ -749,6 +749,21 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitRelationalPattern(RelationalPattern node) {
+    var operator = node.operator;
+    if (request.offset >= operator.end) {
+      if (request.opType.completionLocation == 'TypeArgumentList_argument') {
+        // This is most likely a type argument list.
+        _addSuggestion(Keyword.DYNAMIC);
+        _addSuggestion(Keyword.VOID);
+        return;
+      }
+      _addConstantExpressionKeywords(node);
+    }
+    super.visitRelationalPattern(node);
+  }
+
+  @override
   void visitReturnStatement(ReturnStatement node) {
     if (entity == node.expression) {
       _addExpressionKeywords(node);
