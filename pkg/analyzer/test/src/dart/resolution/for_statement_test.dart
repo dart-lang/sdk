@@ -684,6 +684,7 @@ ForStatement
       expression: IntegerLiteral
         literal: 0
         staticType: int
+      patternTypeSchema: int
       staticType: int
     leftSeparator: ;
     rightSeparator: ;
@@ -745,6 +746,7 @@ ForStatement
         token: x
         staticElement: self::@function::f::@parameter::x
         staticType: (int, bool)
+      patternTypeSchema: (_, _)
     leftSeparator: ;
     condition: SimpleIdentifier
       token: b

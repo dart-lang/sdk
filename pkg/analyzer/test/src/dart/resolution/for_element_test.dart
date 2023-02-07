@@ -334,6 +334,7 @@ ForElement
         token: x
         staticElement: self::@function::f::@parameter::x
         staticType: (int, bool)
+      patternTypeSchema: (_, _)
     leftSeparator: ;
     condition: SimpleIdentifier
       token: b

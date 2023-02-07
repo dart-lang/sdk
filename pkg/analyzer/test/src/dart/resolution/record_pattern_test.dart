@@ -823,6 +823,7 @@ PatternVariableDeclaration
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: (int, String)
+  patternTypeSchema: (_, _)
 ''');
   }
 
@@ -884,6 +885,7 @@ PatternVariableDeclaration
     typeArgumentTypes
       int
       String
+  patternTypeSchema: (int, String)
 ''');
   }
 }

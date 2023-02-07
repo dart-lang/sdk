@@ -41,6 +41,7 @@ PatternVariableDeclaration
   expression: IntegerLiteral
     literal: 0
     staticType: int
+  patternTypeSchema: _
 ''');
   }
 
@@ -71,6 +72,7 @@ PatternVariableDeclaration
   expression: IntegerLiteral
     literal: 0
     staticType: int
+  patternTypeSchema: _
 ''');
   }
 
@@ -100,6 +102,7 @@ PatternVariableDeclaration
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: int?
+  patternTypeSchema: _
 ''');
   }
 
@@ -130,6 +133,7 @@ PatternVariableDeclaration
   expression: IntegerLiteral
     literal: 0
     staticType: int
+  patternTypeSchema: _
 ''');
   }
 }

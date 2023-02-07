@@ -514,6 +514,7 @@ PatternVariableDeclaration
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Map<bool, int>
+  patternTypeSchema: Map<_, _>
 ''');
   }
 
@@ -574,6 +575,7 @@ PatternVariableDeclaration
     staticType: Map<bool, int>
     typeArgumentTypes
       Map<bool, int>
+  patternTypeSchema: Map<bool, int>
 ''');
   }
 
@@ -624,6 +626,7 @@ PatternVariableDeclaration
     staticType: Map<Object?, int>
     typeArgumentTypes
       Map<Object?, int>
+  patternTypeSchema: Map<_, int>
 ''');
   }
 }

@@ -977,6 +977,7 @@ PatternVariableDeclaration
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: A<int>
+  patternTypeSchema: A<dynamic>
 ''');
   }
 
@@ -1045,6 +1046,7 @@ PatternVariableDeclaration
       leftParenthesis: (
       rightParenthesis: )
     staticType: A<int>
+  patternTypeSchema: A<int>
 ''');
   }
 
@@ -1109,6 +1111,7 @@ PatternVariableDeclaration
       leftParenthesis: (
       rightParenthesis: )
     staticType: A<dynamic>
+  patternTypeSchema: A<dynamic>
 ''');
   }
 }

@@ -455,6 +455,7 @@ PatternVariableDeclaration
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: List<int>
+  patternTypeSchema: List<_>
 ''');
   }
 
@@ -504,6 +505,7 @@ PatternVariableDeclaration
     staticType: List<int>
     typeArgumentTypes
       List<int>
+  patternTypeSchema: List<int>
 ''');
   }
 
@@ -549,6 +551,7 @@ PatternVariableDeclaration
     staticType: List<int>
     typeArgumentTypes
       List<int>
+  patternTypeSchema: List<int>
 ''');
   }
 }

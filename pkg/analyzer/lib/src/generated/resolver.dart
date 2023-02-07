@@ -2999,17 +2999,22 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitPatternAssignment(covariant PatternAssignmentImpl node) {
     checkUnreachableNode(node);
-    node.staticType =
-        analyzePatternAssignment(node, node.pattern, node.expression)
-            .resolveShorting();
+    final analysisResult =
+        analyzePatternAssignment(node, node.pattern, node.expression);
+    node.patternTypeSchema = analysisResult.patternSchema;
+    node.staticType = analysisResult.resolveShorting();
     popRewrite(); // expression
   }
 
   @override
-  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+  void visitPatternVariableDeclaration(
+    covariant PatternVariableDeclarationImpl node,
+  ) {
     // TODO(scheglov) Support for `late` was removed.
-    analyzePatternVariableDeclaration(node, node.pattern, node.expression,
+    final patternSchema = analyzePatternVariableDeclaration(
+        node, node.pattern, node.expression,
         isFinal: node.keyword.keyword == Keyword.FINAL, isLate: false);
+    node.patternTypeSchema = patternSchema;
     popRewrite(); // expression
   }
 

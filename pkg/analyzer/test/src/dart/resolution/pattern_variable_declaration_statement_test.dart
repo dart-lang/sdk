@@ -45,6 +45,7 @@ PatternVariableDeclarationStatement
     expression: IntegerLiteral
       literal: 0
       staticType: int
+    patternTypeSchema: num
   semicolon: ;
 ''');
   }
@@ -72,6 +73,7 @@ PatternVariableDeclarationStatement
     expression: IntegerLiteral
       literal: 0
       staticType: int
+    patternTypeSchema: _
   semicolon: ;
 ''');
   }
@@ -112,6 +114,7 @@ PatternVariableDeclarationStatement
         leftParenthesis: (
         rightParenthesis: )
       staticType: A
+    patternTypeSchema: _
   semicolon: ;
 ''');
   }
@@ -145,6 +148,7 @@ PatternVariableDeclarationStatement
     expression: IntegerLiteral
       literal: 0
       staticType: int
+    patternTypeSchema: num
   semicolon: ;
 ''');
   }
@@ -190,6 +194,7 @@ PatternVariableDeclarationStatement
       staticType: int
       typeArgumentTypes
         int
+    patternTypeSchema: int
   semicolon: ;
 ''');
   }
@@ -217,6 +222,7 @@ PatternVariableDeclarationStatement
     expression: IntegerLiteral
       literal: 0
       staticType: int
+    patternTypeSchema: _
   semicolon: ;
 ''');
   }
@@ -257,6 +263,7 @@ PatternVariableDeclarationStatement
       token: x
       staticElement: self::@function::f::@parameter::x
       staticType: (int, String)
+    patternTypeSchema: (_, _)
   semicolon: ;
 ''');
   }
