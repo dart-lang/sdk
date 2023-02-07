@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/src/channel/channel.dart';
@@ -68,13 +69,10 @@ class ByteStreamClientChannel implements ClientCommunicationChannel {
   }
 }
 
-/// Instances of the class [ByteStreamServerChannel] implement a
-/// [ServerCommunicationChannel] that uses a stream and a sink (typically,
-/// standard input and standard output) to communicate with clients.
-class ByteStreamServerChannel implements ServerCommunicationChannel {
-  final Stream _input;
-  final IOSink _output;
-
+/// Instances of the subclasses of [ByteStreamServerChannel] implement a
+/// [ServerCommunicationChannel] that uses a stream and a sink to communicate
+/// with clients.
+abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
   /// The instrumentation service that is to be used by this analysis server.
   final InstrumentationService _instrumentationService;
 
@@ -88,21 +86,17 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
   bool _closeRequested = false;
 
   @override
-  late final Stream<Request> requests = _input
-      .transform(const Utf8Decoder())
-      .transform(const LineSplitter())
-      .transform(
-        StreamTransformer.fromHandlers(
-          handleData: _readRequest,
-          handleDone: (sink) {
-            close();
-            sink.close();
-          },
-        ),
-      );
+  late final Stream<Request> requests = _lines.transform(
+    StreamTransformer.fromHandlers(
+      handleData: _readRequest,
+      handleDone: (sink) {
+        close();
+        sink.close();
+      },
+    ),
+  );
 
-  ByteStreamServerChannel(
-      this._input, this._output, this._instrumentationService,
+  ByteStreamServerChannel(this._instrumentationService,
       {RequestStatisticsHelper? requestStatistics})
       : _requestStatistics = requestStatistics {
     _requestStatistics?.serverChannel = this;
@@ -112,6 +106,10 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
   Future get closed {
     return _closed.future;
   }
+
+  Stream<String> get _lines;
+
+  IOSink get _output;
 
   @override
   void close() {
@@ -176,5 +174,51 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     }
     _requestStatistics?.addRequest(request);
     sink.add(request);
+  }
+}
+
+/// Instances of the class of [InputOutputByteStreamServerChannel] implement a
+/// [ServerCommunicationChannel] that communicate with clients via a
+/// "byte stream" and a sink.
+class InputOutputByteStreamServerChannel extends ByteStreamServerChannel {
+  final Stream<List<int>> _input;
+
+  @override
+  final IOSink _output;
+
+  @override
+  late final Stream<String> _lines =
+      _input.transform(const Utf8Decoder()).transform(const LineSplitter());
+
+  InputOutputByteStreamServerChannel(
+      this._input, this._output, super._instrumentationService,
+      {super.requestStatistics});
+}
+
+/// Communication channel that operates via stdin/stdout.
+///
+/// Stdin communication is done via an isolate to speedup receiving data
+/// (while we're busy performing other tasks in the main isolate), but with an
+/// isolate already being used, it is used for transforming and splitting the
+/// input into line strings as well.
+class StdinStdoutLineStreamServerChannel extends ByteStreamServerChannel {
+  @override
+  final IOSink _output = stdout;
+  final ReceivePort _linesFromIsolate = ReceivePort();
+
+  @override
+  late final Stream<String> _lines = _linesFromIsolate.cast();
+
+  StdinStdoutLineStreamServerChannel(super._instrumentationService,
+      {super.requestStatistics}) {
+    Isolate.spawn(_stdinInAnIsolate, _linesFromIsolate.sendPort);
+  }
+
+  static void _stdinInAnIsolate(Object message) {
+    var replyTo = message as SendPort;
+    stdin
+        .transform(const Utf8Decoder())
+        .transform(const LineSplitter())
+        .listen(replyTo.send);
   }
 }
