@@ -7204,6 +7204,186 @@ main() {
       });
     });
 
+    group('Relational pattern:', () {
+      group('==:', () {
+        test('Guaranteed match due to Null type', () {
+          h.run([
+            ifCase(expr('Null'), relationalPattern('==', nullLiteral), [
+              checkReachable(true),
+            ], [
+              checkReachable(false),
+            ])
+          ]);
+        });
+
+        test('In the general case, may or may not match', () {
+          h.run([
+            ifCase(expr('Object?'), relationalPattern('==', intLiteral(0)), [
+              checkReachable(true),
+            ], [
+              checkReachable(true),
+            ]),
+          ]);
+        });
+
+        test('Null pattern promotes unchanged scrutinee', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('int?')),
+            ifCase(x.expr, relationalPattern('==', nullLiteral), [
+              checkReachable(true),
+              checkNotPromoted(x),
+            ], [
+              checkReachable(true),
+              checkPromoted(x, 'int'),
+            ])
+          ]);
+        });
+
+        test("Null pattern doesn't promote changed scrutinee", () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('int?')),
+            switch_(x.expr, [
+              wildcard()
+                  .when(x.write(expr('int?')).stmt.thenExpr(expr('bool')))
+                  .then([
+                break_(),
+              ]),
+              relationalPattern('==', nullLiteral).then([
+                checkReachable(true),
+                checkNotPromoted(x),
+              ]),
+              wildcard(expectInferredType: 'int').then([
+                checkReachable(true),
+                checkNotPromoted(x),
+              ]),
+            ]),
+          ]);
+        });
+
+        test('Null pattern promotes matched pattern var', () {
+          h.run([
+            ifCase(
+                expr('int?'),
+                relationalPattern('==', nullLiteral)
+                    .or(wildcard(expectInferredType: 'int')),
+                []),
+          ]);
+        });
+
+        test('Null pattern can even match non-nullable types', () {
+          // Due to mixed mode unsoundness, attempting to match `null` to a
+          // non-nullable type can still succeed, so in order to avoid
+          // unsoundness escalation, it's important that the matching case is
+          // considered reachable.
+          h.run([
+            ifCase(expr('int'), relationalPattern('==', nullLiteral), [
+              checkReachable(true),
+            ], [
+              checkReachable(true),
+            ]),
+          ]);
+        });
+      });
+
+      group('!=:', () {
+        test('Guaranteed mismatch due to Null type', () {
+          h.run([
+            ifCase(expr('Null'), relationalPattern('!=', nullLiteral), [
+              checkReachable(false),
+            ], [
+              checkReachable(true),
+            ])
+          ]);
+        });
+
+        test('In the general case, may or may not match', () {
+          h.run([
+            ifCase(expr('Object?'), relationalPattern('!=', intLiteral(0)), [
+              checkReachable(true),
+            ], [
+              checkReachable(true),
+            ]),
+          ]);
+        });
+
+        test('Null pattern promotes unchanged scrutinee', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('int?')),
+            ifCase(x.expr, relationalPattern('!=', nullLiteral), [
+              checkReachable(true),
+              checkPromoted(x, 'int'),
+            ], [
+              checkReachable(true),
+              checkNotPromoted(x),
+            ])
+          ]);
+        });
+
+        test("Null pattern doesn't promote changed scrutinee", () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('int?')),
+            switch_(x.expr, [
+              wildcard()
+                  .when(x.write(expr('int?')).stmt.thenExpr(expr('bool')))
+                  .then([
+                break_(),
+              ]),
+              relationalPattern('!=', nullLiteral)
+                  .and(wildcard(expectInferredType: 'int'))
+                  .then([
+                checkReachable(true),
+                checkNotPromoted(x),
+              ]),
+            ]),
+          ]);
+        });
+
+        test('Null pattern promotes matched pattern var', () {
+          h.run([
+            ifCase(
+                expr('int?'),
+                relationalPattern('!=', nullLiteral)
+                    .and(wildcard(expectInferredType: 'int')),
+                []),
+          ]);
+        });
+
+        test('Null pattern can even match non-nullable types', () {
+          // Due to mixed mode unsoundness, attempting to match `null` to a
+          // non-nullable type can still succeed, so in order to avoid
+          // unsoundness escalation, it's important that the matching case is
+          // considered reachable.
+          h.run([
+            ifCase(expr('int'), relationalPattern('!=', nullLiteral), [
+              checkReachable(true),
+            ], [
+              checkReachable(true),
+            ]),
+          ]);
+        });
+      });
+
+      group('other:', () {
+        test('Does not assume anything, even though == or != would', () {
+          // This is a bit of a contrived test case, since it exercises
+          // `null < null`.  But such a thing is possible with extension
+          // methods.
+          h.addMember('Null', '<', 'bool Function(Object?)');
+          h.run([
+            ifCase(expr('Null'), relationalPattern('<', nullLiteral), [
+              checkReachable(true),
+            ], [
+              checkReachable(true),
+            ])
+          ]);
+        });
+      });
+    });
+
     group('Switch expression:', () {
       test('guarded', () {
         var x = Var('x');

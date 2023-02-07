@@ -10167,12 +10167,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   RelationalOperatorResolution<DartType>? resolveRelationalPatternOperator(
       covariant RelationalPattern node, DartType matchedValueType) {
     Name operatorName;
-    bool isEquality = false;
+    RelationalOperatorKind kind = RelationalOperatorKind.other;
     switch (node.kind) {
       case RelationalPatternKind.equals:
+        operatorName = equalsName;
+        kind = RelationalOperatorKind.equals;
+        break;
       case RelationalPatternKind.notEquals:
         operatorName = equalsName;
-        isEquality = true;
+        kind = RelationalOperatorKind.notEquals;
         break;
       case RelationalPatternKind.lessThan:
         operatorName = lessThanName;
@@ -10197,9 +10200,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(!binaryTarget.isSpecialCasedBinaryOperator(this));
 
     return new RelationalOperatorResolution(
-        isEquality: isEquality,
-        parameterType: parameterType,
-        returnType: returnType);
+        kind: kind, parameterType: parameterType, returnType: returnType);
   }
 }
 

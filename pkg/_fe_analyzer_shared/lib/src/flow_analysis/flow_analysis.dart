@@ -294,6 +294,13 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
       EqualityInfo<Type>? leftOperandInfo, EqualityInfo<Type>? rightOperandInfo,
       {bool notEqual = false});
 
+  /// Call this method after processing a relational pattern that uses an
+  /// equality operator (either `==` or `!=`).  [operand] should be the operand
+  /// to the right of the operator, [operandType] should be its static type, and
+  /// [notEqual] should be `true` iff the operator was `!=`.
+  void equalityRelationalPattern_end(Expression operand, Type operandType,
+      {bool notEqual = false});
+
   /// Retrieves the [ExpressionInfo] associated with [target], if known.  Will
   /// return `null` if (a) no info is associated with [target], or (b) another
   /// expression with info has been visited more recently than [target].  For
@@ -586,6 +593,10 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
 
   /// Call this method after visiting a logical-or (`||`) pattern.
   void logicalOrPattern_end();
+
+  /// Call this method after processing a relational pattern that uses a
+  /// non-equality operator (any operator other than `==` or `!=`).
+  void nonEqualityRelationalPattern_end();
 
   /// Call this method just after visiting a non-null assertion (`x!`)
   /// expression.
@@ -1202,6 +1213,16 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
+  void equalityRelationalPattern_end(Expression operand, Type operandType,
+      {bool notEqual = false}) {
+    _wrap(
+        'equalityRelationalPattern_end($operand, $operandType, '
+        'notEqual: $notEqual)',
+        () => _wrapped.equalityRelationalPattern_end(operand, operandType,
+            notEqual: notEqual));
+  }
+
+  @override
   ExpressionInfo<Type>? expressionInfoForTesting(Expression target) {
     return _wrap('expressionInfoForTesting($target)',
         () => _wrapped.expressionInfoForTesting(target),
@@ -1450,6 +1471,12 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   @override
   void logicalOrPattern_end() {
     _wrap('logicalOrPattern_end()', () => _wrapped.logicalOrPattern_end());
+  }
+
+  @override
+  void nonEqualityRelationalPattern_end() {
+    _wrap('nonEqualityRelationalPattern_end()',
+        () => _wrapped.nonEqualityRelationalPattern_end());
   }
 
   @override
@@ -3779,58 +3806,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       {required bool patternsEnabled}) {
     assert(_stack.last is _PatternContext<Type>);
     if (patternsEnabled) {
-      _EqualityCheckResult equalityCheckResult = _equalityCheck(
-          equalityOperand_end(expression, type), _scrutineeInfo!);
-      if (equalityCheckResult is _NoEqualityInformation) {
-        // We have no information so we have to assume the pattern might or
-        // might not match.
-        _unmatched = _join(_unmatched!, _current);
-      } else if (equalityCheckResult is _EqualityCheckIsNullCheck<Type>) {
-        FlowModel<Type>? ifNotNull;
-        if (equalityCheckResult.isReferenceOnRight) {
-          // The `null` literal is on the left hand side of the implicit
-          // equality check, meaning it is the constant value.  So the user is
-          // doing something like this:
-          //
-          //     if (v case null) { ... }
-          //
-          // So we want to promote the type of `v` in the case where the
-          // constant pattern *didn't* match.
-          ifNotNull = _nullCheckPattern();
-          if (ifNotNull == null) {
-            // `_nullCheckPattern` returns `null` in the case where the matched
-            // value type is non-nullable.  In fully sound programs, this would
-            // mean that the pattern cannot possibly match.  However, in mixed
-            // mode programs it might match due to unsoundness.  Since we don't
-            // want type inference results to change when a program becomes
-            // fully sound, we have to assume that we're in mixed mode, and thus
-            // the pattern might match.
-            ifNotNull = _current;
-          }
-        } else {
-          // The `null` literal is on the right hand side of the implicit
-          // equality check, meaning it is the scrutinee.  So the user is doing
-          // something silly like this:
-          //
-          //     if (null case c) { ... }
-          //
-          // (where `c` is some constant).  There's no variable to promote.
-          //
-          // Since flow analysis can't make use of the results of constant
-          // evaluation, we can't really assume anything; as far as we know, the
-          // pattern might or might not match.
-          ifNotNull = _current;
-        }
-        _unmatched = _join(_unmatched!, ifNotNull);
-      } else {
-        assert(equalityCheckResult is _GuaranteedEqual);
-        // Both operands are known by flow analysis to compare equal, so the
-        // constant pattern is guaranteed to match.  Since our approach to
-        // handling patterns in flow analysis uses "implicit and" semantics
-        // (initially assuming that the pattern always matches, and then
-        // updating the `_current` and `_unmatched` states to reflect what
-        // values the pattern rejects), we don't have to do any updates.
-      }
+      _handleEqualityCheckPattern(expression, type, notEqual: false);
     } else {
       // Before pattern support was added to Dart, flow analysis didn't do any
       // promotion based on the constants in individual case clauses.  Also, it
@@ -3952,6 +3928,12 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       // will consider both code paths reachable and won't perform any
       // promotions on either path.
     }
+  }
+
+  @override
+  void equalityRelationalPattern_end(Expression operand, Type operandType,
+      {bool notEqual = false}) {
+    _handleEqualityCheckPattern(operand, operandType, notEqual: notEqual);
   }
 
   @override
@@ -4353,6 +4335,14 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     // If either the left hand side or the right hand side matched, the
     // logical-or pattern is considered to have matched.
     _current = _join(context._lhsMatched, _current);
+  }
+
+  @override
+  void nonEqualityRelationalPattern_end() {
+    // Flow analysis has no way of knowing whether the operator will return
+    // `true` or `false`, so just assume the worst case--both cases are
+    // reachable and no promotions can be done in either case.
+    _unmatched = _join(_unmatched!, _current);
   }
 
   @override
@@ -4952,6 +4942,81 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     return () => {};
   }
 
+  /// Common code for handling patterns that perform an equality check.
+  /// [operand] is the expression that the matched value is being compared to,
+  /// and [operandType] is its type.
+  ///
+  /// If [notEqual] is `true`, the pattern matches if the matched value is *not*
+  /// equal to the operand; otherwise, it matches if the matched value is
+  /// *equal* to the operand.
+  void _handleEqualityCheckPattern(Expression operand, Type operandType,
+      {required bool notEqual}) {
+    _EqualityCheckResult equalityCheckResult = _equalityCheck(
+        _scrutineeInfo!, equalityOperand_end(operand, operandType));
+    if (equalityCheckResult is _NoEqualityInformation) {
+      // We have no information so we have to assume the pattern might or
+      // might not match.
+      _unmatched = _join(_unmatched!, _current);
+    } else if (equalityCheckResult is _EqualityCheckIsNullCheck<Type>) {
+      FlowModel<Type>? ifNotNull;
+      if (!equalityCheckResult.isReferenceOnRight) {
+        // The `null` literal is on the right hand side of the implicit
+        // equality check, meaning it is the constant value.  So the user is
+        // doing something like this:
+        //
+        //     if (v case == null) { ... }
+        //
+        // So we want to promote the type of `v` in the case where the
+        // constant pattern *didn't* match.
+        ifNotNull = _nullCheckPattern();
+        if (ifNotNull == null) {
+          // `_nullCheckPattern` returns `null` in the case where the matched
+          // value type is non-nullable.  In fully sound programs, this would
+          // mean that the pattern cannot possibly match.  However, in mixed
+          // mode programs it might match due to unsoundness.  Since we don't
+          // want type inference results to change when a program becomes
+          // fully sound, we have to assume that we're in mixed mode, and thus
+          // the pattern might match.
+          ifNotNull = _current;
+        }
+      } else {
+        // The `null` literal is on the left hand side of the implicit
+        // equality check, meaning it is the scrutinee.  So the user is doing
+        // something silly like this:
+        //
+        //     if (null case == c) { ... }
+        //
+        // (where `c` is some constant).  There's no variable to promote.
+        //
+        // Since flow analysis can't make use of the results of constant
+        // evaluation, we can't really assume anything; as far as we know, the
+        // pattern might or might not match.
+        ifNotNull = _current;
+      }
+      if (notEqual) {
+        _unmatched = _join(_unmatched!, _current);
+        _current = ifNotNull;
+      } else {
+        _unmatched = _join(_unmatched!, ifNotNull);
+      }
+    } else {
+      assert(equalityCheckResult is _GuaranteedEqual);
+      if (notEqual) {
+        // Both operands are known by flow analysis to compare equal, so the
+        // constant pattern is guaranteed *not* to match.
+        _unmatched = _join(_unmatched!, _current);
+        _current = _current.setUnreachable();
+      } else {
+        // Both operands are known by flow analysis to compare equal, so the
+        // constant pattern is guaranteed to match.  Since our approach to
+        // handling patterns in flow analysis uses "implicit and" semantics
+        // (initially assuming that the pattern always matches, and then
+        // updating the `_current` and `_unmatched` states to reflect what
+        // values the pattern rejects), we don't have to do any updates.
+      }
+    }
+  }
+
   Type? _handleProperty(Expression? wholeExpression, Expression? target,
       String propertyName, Object? propertyMember, Type staticType) {
     int targetKey;
@@ -5450,6 +5515,10 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
       {bool notEqual = false}) {}
 
   @override
+  void equalityRelationalPattern_end(Expression operand, Type operandType,
+      {bool notEqual = false}) {}
+
+  @override
   ExpressionInfo<Type>? expressionInfoForTesting(Expression target) {
     throw new StateError(
         'expressionInfoForTesting requires null-aware flow analysis');
@@ -5700,6 +5769,9 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
 
   @override
   void logicalOrPattern_end() {}
+
+  @override
+  void nonEqualityRelationalPattern_end() {}
 
   @override
   void nonNullAssert_end(Expression operand) {}
