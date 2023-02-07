@@ -4520,10 +4520,10 @@ class _SwitchStatement extends Statement {
   @override
   void visit(Harness h) {
     if (h.patternsEnabled && isLegacyExhaustive != null) {
-      fail('isExhaustive should not be specified when patterns enabled, '
+      fail('isLegacyExhaustive should not be specified when patterns enabled, '
           'at $location');
     } else if (!h.patternsEnabled && isLegacyExhaustive == null) {
-      fail('isExhaustive should be specified when patterns disabled, '
+      fail('isLegacyExhaustive should be specified when patterns disabled, '
           'at $location');
     }
     var previousBreakTarget = h.typeAnalyzer._currentBreakTarget;
