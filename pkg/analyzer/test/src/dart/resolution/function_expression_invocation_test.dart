@@ -173,7 +173,7 @@ void f(Never x) {
   x<int>(1 + 2);
 }
 ''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
       error(HintCode.DEAD_CODE, 26, 8),
     ]);
 

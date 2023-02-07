@@ -89,7 +89,7 @@ class PropertyElementResolver with ScopeHelpers {
     if (identical(targetType, NeverTypeImpl.instance)) {
       // TODO(scheglov) Report directly in TypePropertyResolver?
       errorReporter.reportErrorForNode(
-        HintCode.RECEIVER_OF_TYPE_NEVER,
+        WarningCode.RECEIVER_OF_TYPE_NEVER,
         target,
       );
       return PropertyElementResolverResult();

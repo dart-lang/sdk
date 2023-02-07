@@ -629,59 +629,6 @@ class HintCode extends AnalyzerErrorCode {
     "A package import shouldn't contain '..'.",
   );
 
-  ///  It is not an error to call or tear-off a method, setter, or getter, or to
-  ///  read or write a field, on a receiver of static type `Never`.
-  ///  Implementations that provide feedback about dead or unreachable code are
-  ///  encouraged to indicate that any arguments to the invocation are
-  ///  unreachable.
-  ///
-  ///  It is not an error to apply an expression of type `Never` in the function
-  ///  position of a function call. Implementations that provide feedback about
-  ///  dead or unreachable code are encouraged to indicate that any arguments to
-  ///  the call are unreachable.
-  ///
-  ///  Parameters: none
-  static const HintCode RECEIVER_OF_TYPE_NEVER = HintCode(
-    'RECEIVER_OF_TYPE_NEVER',
-    "The receiver is of type 'Never', and will never complete with a value.",
-    correctionMessage:
-        "Try checking for throw expressions or type errors in the receiver",
-  );
-
-  ///  An error code indicating use of a removed lint rule.
-  ///
-  ///  Parameters:
-  ///  0: the rule name
-  ///  1: the SDK version in which the lint was removed
-  static const HintCode REMOVED_LINT_USE = HintCode(
-    'REMOVED_LINT_USE',
-    "'{0}' was removed in Dart '{1}'",
-    correctionMessage: "Remove the reference to '{0}'.",
-  );
-
-  ///  An error code indicating use of a removed lint rule.
-  ///
-  ///  Parameters:
-  ///  0: the rule name
-  ///  1: the SDK version in which the lint was removed
-  ///  2: the name of a replacing lint
-  static const HintCode REPLACED_LINT_USE = HintCode(
-    'REPLACED_LINT_USE',
-    "'{0}' was replaced by '{2}' in Dart '{1}'.",
-    correctionMessage: "Replace '{0}' with '{1}'.",
-  );
-
-  ///  Parameters:
-  ///  0: the name of the annotated function being invoked
-  ///  1: the name of the function containing the return
-  static const HintCode RETURN_OF_DO_NOT_STORE = HintCode(
-    'RETURN_OF_DO_NOT_STORE',
-    "'{0}' is annotated with 'doNotStore' and shouldn't be returned unless "
-        "'{1}' is also annotated.",
-    correctionMessage: "Annotate '{1}' with 'doNotStore'.",
-    hasPublishedDocs: true,
-  );
-
   ///  When "strict-raw-types" is enabled, "raw types" must have type arguments.
   ///
   ///  A "raw type" is a type name that does not use inference to fill in missing

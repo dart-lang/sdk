@@ -19483,96 +19483,6 @@ HintCode:
       given package, or more generally, it is bad practice for a package import
       to contain a "..". For example, a source file should not contain a
       directive such as `import 'package:foo/../some.dart'`.
-  RECEIVER_OF_TYPE_NEVER:
-    problemMessage: "The receiver is of type 'Never', and will never complete with a value."
-    correctionMessage: Try checking for throw expressions or type errors in the receiver
-    comment: |-
-      It is not an error to call or tear-off a method, setter, or getter, or to
-      read or write a field, on a receiver of static type `Never`.
-      Implementations that provide feedback about dead or unreachable code are
-      encouraged to indicate that any arguments to the invocation are
-      unreachable.
-
-      It is not an error to apply an expression of type `Never` in the function
-      position of a function call. Implementations that provide feedback about
-      dead or unreachable code are encouraged to indicate that any arguments to
-      the call are unreachable.
-
-      Parameters: none
-  REMOVED_LINT_USE:
-    problemMessage: "'{0}' was removed in Dart '{1}'"
-    correctionMessage: "Remove the reference to '{0}'."
-    comment: |-
-      An error code indicating use of a removed lint rule.
-
-      Parameters:
-      0: the rule name
-      1: the SDK version in which the lint was removed
-  REPLACED_LINT_USE:
-    problemMessage:  "'{0}' was replaced by '{2}' in Dart '{1}'."
-    correctionMessage: "Replace '{0}' with '{1}'."
-    comment: |-
-      An error code indicating use of a removed lint rule.
-
-      Parameters:
-      0: the rule name
-      1: the SDK version in which the lint was removed
-      2: the name of a replacing lint
-  RETURN_OF_DO_NOT_STORE:
-    problemMessage: "'{0}' is annotated with 'doNotStore' and shouldn't be returned unless '{1}' is also annotated."
-    correctionMessage: "Annotate '{1}' with 'doNotStore'."
-    comment: |-
-      Parameters:
-      0: the name of the annotated function being invoked
-      1: the name of the function containing the return
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a value that is annotated with
-      the `[doNotStore][meta-doNotStore]` annotation is returned from a method,
-      getter, or function that doesn't have the same annotation.
-
-      #### Example
-
-      The following code produces this diagnostic because the result of invoking
-      `f` shouldn't be stored, but the function `g` isn't annotated to preserve
-      that semantic:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      @doNotStore
-      int f() => 0;
-
-      int g() => [!f()!];
-      ```
-
-      #### Common fixes
-
-      If the value that shouldn't be stored is the correct value to return, then
-      mark the function with the `[doNotStore][meta-doNotStore]` annotation:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      @doNotStore
-      int f() => 0;
-
-      @doNotStore
-      int g() => f();
-      ```
-
-      Otherwise, return a different value from the function:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      @doNotStore
-      int f() => 0;
-
-      int g() => 0;
-      ```
   STRICT_RAW_TYPE:
     problemMessage: "The generic type '{0}' should have explicit type arguments but doesn't."
     correctionMessage: "Use explicit type arguments for '{0}'."
@@ -22802,6 +22712,96 @@ WarningCode:
   OVERRIDE_ON_NON_OVERRIDING_FIELD:
     aliasFor: HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD
     comment: This is the new replacement for [HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD].
+  RECEIVER_OF_TYPE_NEVER:
+    problemMessage: "The receiver is of type 'Never', and will never complete with a value."
+    correctionMessage: Try checking for throw expressions or type errors in the receiver
+    comment: |-
+      It is not an error to call or tear-off a method, setter, or getter, or to
+      read or write a field, on a receiver of static type `Never`.
+      Implementations that provide feedback about dead or unreachable code are
+      encouraged to indicate that any arguments to the invocation are
+      unreachable.
+
+      It is not an error to apply an expression of type `Never` in the function
+      position of a function call. Implementations that provide feedback about
+      dead or unreachable code are encouraged to indicate that any arguments to
+      the call are unreachable.
+
+      Parameters: none
+  REMOVED_LINT_USE:
+    problemMessage: "'{0}' was removed in Dart '{1}'"
+    correctionMessage: "Remove the reference to '{0}'."
+    comment: |-
+      An error code indicating use of a removed lint rule.
+
+      Parameters:
+      0: the rule name
+      1: the SDK version in which the lint was removed
+  REPLACED_LINT_USE:
+    problemMessage:  "'{0}' was replaced by '{2}' in Dart '{1}'."
+    correctionMessage: "Replace '{0}' with '{1}'."
+    comment: |-
+      An error code indicating use of a removed lint rule.
+
+      Parameters:
+      0: the rule name
+      1: the SDK version in which the lint was removed
+      2: the name of a replacing lint
+  RETURN_OF_DO_NOT_STORE:
+    problemMessage: "'{0}' is annotated with 'doNotStore' and shouldn't be returned unless '{1}' is also annotated."
+    correctionMessage: "Annotate '{1}' with 'doNotStore'."
+    comment: |-
+      Parameters:
+      0: the name of the annotated function being invoked
+      1: the name of the function containing the return
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a value that is annotated with
+      the `[doNotStore][meta-doNotStore]` annotation is returned from a method,
+      getter, or function that doesn't have the same annotation.
+
+      #### Example
+
+      The following code produces this diagnostic because the result of invoking
+      `f` shouldn't be stored, but the function `g` isn't annotated to preserve
+      that semantic:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @doNotStore
+      int f() => 0;
+
+      int g() => [!f()!];
+      ```
+
+      #### Common fixes
+
+      If the value that shouldn't be stored is the correct value to return, then
+      mark the function with the `[doNotStore][meta-doNotStore]` annotation:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @doNotStore
+      int f() => 0;
+
+      @doNotStore
+      int g() => f();
+      ```
+
+      Otherwise, return a different value from the function:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @doNotStore
+      int f() => 0;
+
+      int g() => 0;
+      ```
   SDK_VERSION_ASYNC_EXPORTED_FROM_CORE:
     problemMessage: "The class '{0}' wasn't exported from 'dart:core' until version 2.1, but this code is required to be able to run on earlier versions."
     correctionMessage: "Try either importing 'dart:async' or updating the SDK constraints."

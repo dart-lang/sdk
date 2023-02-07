@@ -1353,7 +1353,7 @@ void g(A a) {
   print(1);
 }
 ''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 54, 3),
+      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 54, 3),
       error(HintCode.DEAD_CODE, 57, 16),
     ]);
   }
@@ -1365,7 +1365,7 @@ void g(Never f) {
   print(1);
 }
 ''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 3),
+      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 3),
       error(HintCode.DEAD_CODE, 23, 16),
     ]);
   }
@@ -1377,7 +1377,7 @@ void g(Never f) {
   print(1);
 }
 ''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
       error(HintCode.DEAD_CODE, 21, 16),
     ]);
   }

@@ -1501,7 +1501,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         // named elements, so we can safely assume `entry.value.name` is
         // non-`null`.
         _errorReporter.reportErrorForNode(
-          HintCode.RETURN_OF_DO_NOT_STORE,
+          WarningCode.RETURN_OF_DO_NOT_STORE,
           entry.key,
           [entry.value.name!, parent.declaredElement!.displayName],
         );

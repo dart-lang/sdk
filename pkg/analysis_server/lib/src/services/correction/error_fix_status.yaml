@@ -1493,18 +1493,6 @@ HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT:
   notes: |-
     We should be able to convert the import into a `package:` import. At least
     some of the time.
-HintCode.RECEIVER_OF_TYPE_NEVER:
-  status: needsFix
-  notes: |-
-    We _could_ remove the thing being received (method invocation, etc.)
-HintCode.REMOVED_LINT_USE:
-  status: needsFix
-HintCode.REPLACED_LINT_USE:
-  status: needsFix
-HintCode.RETURN_OF_DO_NOT_STORE:
-  status: needsFix
-  notes: |-
-    The fix is to add the annotation to the enclosing function.
 HintCode.STRICT_RAW_TYPE:
   status: needsFix
   notes: |-
@@ -2774,6 +2762,18 @@ WarningCode.NULL_AWARE_IN_CONDITION:
   status: noFix
 WarningCode.NULL_AWARE_IN_LOGICAL_OPERATOR:
   status: noFix
+WarningCode.RECEIVER_OF_TYPE_NEVER:
+  status: needsFix
+  notes: |-
+    We _could_ remove the thing being received (method invocation, etc.)
+WarningCode.REMOVED_LINT_USE:
+  status: needsFix
+WarningCode.REPLACED_LINT_USE:
+  status: needsFix
+WarningCode.RETURN_OF_DO_NOT_STORE:
+  status: needsFix
+  notes: |-
+    The fix is to add the annotation to the enclosing function.
 WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR:
   status: noFix
 WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR:
