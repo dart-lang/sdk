@@ -302,7 +302,7 @@ mixin TypeAnalyzer<
           matchedType: matchedType,
           requiredType: variableDeclaredType);
     }
-    flow.write(node, variable, matchedType, context.getInitializer(node));
+    flow.assignedVariablePattern(node, variable, matchedType);
   }
 
   /// Computes the type schema for a variable pattern appearing in an assignment
