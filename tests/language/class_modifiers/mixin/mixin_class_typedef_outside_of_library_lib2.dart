@@ -4,6 +4,9 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
+// Other-library declarations used by
+// mixin_class_typedef_outside_of_library_test.dart.
+
 import 'mixin_class_typedef_outside_of_library_lib.dart';
 
 typedef ATypeDef = MixinClass;

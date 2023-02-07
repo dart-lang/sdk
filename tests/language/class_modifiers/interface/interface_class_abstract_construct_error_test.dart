@@ -13,11 +13,11 @@ abstract interface class AlsoNotConstructable = Object with M;
 
 main() {
   var error = NotConstructable();
-// ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//            ^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INSTANTIATE_ABSTRACT_CLASS
+// [cfe] The class 'NotConstructable' is abstract and can't be instantiated.
   var error2 = AlsoNotConstructable();
-// ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//             ^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INSTANTIATE_ABSTRACT_CLASS
+// [cfe] The class 'AlsoNotConstructable' is abstract and can't be instantiated.
 }

@@ -4,6 +4,8 @@
 
 // SharedOptions=--enable-experiment=sealed-class
 
+// Other-library declarations used by sealed_class_mixin_on_test.dart.
+
 sealed class SealedClass {}
 
 abstract class A extends SealedClass {}

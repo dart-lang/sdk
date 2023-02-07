@@ -11,6 +11,8 @@ final class FinalClass {
   int foo = 0;
 }
 
-abstract class A extends FinalClass {}
+abstract final class A extends FinalClass {}
 
-class B extends FinalClass {}
+final class AImpl extends A {}
+
+final class B extends FinalClass {}

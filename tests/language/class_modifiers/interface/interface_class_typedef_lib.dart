@@ -4,6 +4,9 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
+// Other library declarations used by
+// interface_class_typedef_extend_error_test.dart.
+
 interface class InterfaceClass {
   int foo = 0;
 }
@@ -13,6 +16,5 @@ typedef InterfaceClassTypeDef = InterfaceClass;
 class A extends InterfaceClassTypeDef {}
 
 class B implements InterfaceClassTypeDef {
-  @override
   int foo = 1;
 }

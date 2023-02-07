@@ -11,9 +11,10 @@ interface mixin InterfaceMixin {
   int foo = 0;
 }
 
+interface mixin MixinForEnum {}
+
 abstract class A implements InterfaceMixin {}
 
 class B implements InterfaceMixin {
-  @override
   int foo = 1;
 }

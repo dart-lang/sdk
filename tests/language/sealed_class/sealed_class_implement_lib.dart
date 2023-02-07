@@ -4,6 +4,9 @@
 
 // SharedOptions=--enable-experiment=sealed-class
 
+// Other-library declarations used by sealed_class_implement_test.dart and
+// sealed_class_implement_error_test.dart.
+
 sealed class SealedClass {
   int nonAbstractFoo = 0;
   abstract int foo;
@@ -11,32 +14,22 @@ sealed class SealedClass {
   int bar(int value);
 }
 
+sealed class ClassForEnum {}
+
 abstract class A implements SealedClass {}
 
 class AImpl implements A {
-  @override
   int nonAbstractFoo = 0;
-
-  @override
   int foo = 1;
-
-  @override
   int nonAbstractBar(int value) => value + 100;
-
-  @override
   int bar(int value) => value + 1;
 }
 
 class B implements SealedClass {
-  @override
   int nonAbstractFoo = 100;
-
-  @override
   int foo = 2;
-
-  @override
   int nonAbstractBar(int value) => value + 100;
-
-  @override
   int bar(int value) => value;
 }
+
+enum EnumInside implements ClassForEnum { x }

@@ -4,6 +4,10 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
+// Other-library declarations used by
+// interface_mixin_typedef_with_outside_error_test.dart and
+// interface_mixin_typedef_with_test.dart.
+
 interface mixin InterfaceMixin {
   int foo = 0;
 }
@@ -11,6 +15,5 @@ interface mixin InterfaceMixin {
 typedef InterfaceMixinTypeDef = InterfaceMixin;
 
 class A with InterfaceMixinTypeDef {
-  @override
   int foo = 1;
 }

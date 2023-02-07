@@ -4,13 +4,15 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
+// Other-library declarations used by
+// final_mixin_typedef_with_outside_error_test.dart.
+
 final mixin FinalMixin {
   int foo = 0;
 }
 
 typedef FinalMixinTypeDef = FinalMixin;
 
-class A with FinalMixinTypeDef {
-  @override
+final class A with FinalMixinTypeDef {
   int foo = 1;
 }

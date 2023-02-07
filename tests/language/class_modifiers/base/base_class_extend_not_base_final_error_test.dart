@@ -4,8 +4,8 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
-// Error when extending a base class where the subclass is not also a base class
-// or final.
+// Error when extending a base class where the subclass is not a base, final or
+// sealed class.
 
 import 'base_class_extend_lib.dart';
 

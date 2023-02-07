@@ -10,9 +10,16 @@ final mixin FinalMixin {
   int foo = 0;
 }
 
-abstract class A implements FinalMixin {}
+final mixin MixinForEnum {}
 
-class B implements FinalMixin {
-  @override
+abstract final class A implements FinalMixin {}
+
+final class AImpl implements A {
   int foo = 1;
 }
+
+final class B implements FinalMixin {
+  int foo = 1;
+}
+
+enum EnumInside implements MixinForEnum { x }

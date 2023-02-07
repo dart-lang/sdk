@@ -4,28 +4,38 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
-// Allow a final type to appear in the "on" clause of a mixin declaration in
-// another library.
+// Allow a final type to appear in the "on" clause of a mixin declaration.
 
 import 'package:expect/expect.dart';
-import 'final_class_mixin_on_lib.dart';
 
-mixin MA on FinalClass {}
-mixin MB on FinalClass {}
+final class FinalClass {}
 
-class ConcreteA extends A with MA, MB {
+abstract final class A extends FinalClass {}
+
+final class B extends FinalClass {}
+
+final mixin FinalMixin {}
+
+final class C extends FinalClass with FinalMixin {}
+
+final class D with FinalMixin {}
+
+final mixin MA on FinalClass {}
+final mixin MB on FinalClass {}
+
+final class ConcreteA extends A with MA, MB {
   int foo = 0;
 }
 
-mixin MC on FinalClass, FinalMixin {}
+final mixin MC on FinalClass, FinalMixin {}
 
-class ConcreteC extends C with MC {
+final class ConcreteC extends C with MC {
   int foo = 0;
 }
 
-mixin MCSingular on FinalMixin {}
+final mixin MCSingular on FinalMixin {}
 
-class ConcreteD extends D with MCSingular {
+final class ConcreteD extends D with MCSingular {
   int foo = 0;
 }
 

@@ -4,8 +4,8 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
-// Error when mixing in a base mixin where the class mixing it in is not base or
-// final.
+// Error when mixing in a base mixin where the class mixing it in is not base,
+// final, or sealed.
 
 import 'base_mixin_with_lib.dart';
 

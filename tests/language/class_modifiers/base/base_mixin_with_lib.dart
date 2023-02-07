@@ -10,6 +10,10 @@ base mixin BaseMixin {
   int foo = 0;
 }
 
-abstract class A with BaseMixin {}
+base mixin MixinForEnum {}
 
-class B with BaseMixin {}
+abstract base class A with BaseMixin {}
+
+base class B with BaseMixin {}
+
+enum EnumInside with MixinForEnum { x }

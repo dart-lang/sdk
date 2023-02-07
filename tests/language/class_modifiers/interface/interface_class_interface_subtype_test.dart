@@ -13,7 +13,6 @@ interface class InterfaceClass {
 }
 interface class A extends InterfaceClass {}
 interface class B implements InterfaceClass {
-  @override
   int foo = 1;
 }
 

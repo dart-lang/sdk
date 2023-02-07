@@ -4,6 +4,8 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
+// Other-library declarations used by interface_class_mixin_on_test.dart.
+
 interface class InterfaceClass {}
 
 abstract class A extends InterfaceClass {}

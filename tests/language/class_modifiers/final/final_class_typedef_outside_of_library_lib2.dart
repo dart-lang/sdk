@@ -4,6 +4,9 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
+// Other-library declarations used by
+// final_class_typedef_outside_of_library_test.dart.
+
 import 'final_class_typedef_outside_of_library_lib.dart';
 
 typedef ATypeDef = FinalClass;

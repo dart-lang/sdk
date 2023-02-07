@@ -4,6 +4,9 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
+// Other-library declarations used by
+// final_class_typedef_used_outside_error_test.dart.
+
 final class FinalClass {
   int foo = 0;
 }

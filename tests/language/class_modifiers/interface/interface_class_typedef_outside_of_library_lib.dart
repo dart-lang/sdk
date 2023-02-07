@@ -4,6 +4,9 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
+// Other-library declarations used by
+// interface_class_typedef_outside_of_library_test.dart.
+
 import 'interface_class_typedef_outside_of_library_lib2.dart';
 
 interface class InterfaceClass {

@@ -14,4 +14,5 @@ class AImpl extends A {}
 main() {
   Expect.equals(0, AImpl().foo);
   Expect.equals(0, B().foo);
+  Expect.equals(0, EnumInside.x.index);
 }

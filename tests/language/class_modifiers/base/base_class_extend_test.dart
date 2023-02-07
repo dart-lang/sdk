@@ -10,7 +10,7 @@
 import 'package:expect/expect.dart';
 import 'base_class_extend_lib.dart';
 
-class AImpl extends A {}
+base class AImpl extends A {}
 
 main() {
   Expect.equals(0, AImpl().foo);

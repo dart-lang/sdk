@@ -11,11 +11,14 @@ import 'base_mixin_with_lib.dart';
 
 abstract base class AOutside with BaseMixin {}
 
-class AOutsideImpl extends AOutside {}
+base class AOutsideImpl extends AOutside {}
 
 base class BOutside with BaseMixin {}
+
+enum EnumOutside with MixinForEnum { x }
 
 main() {
   Expect.equals(0, AOutsideImpl().foo);
   Expect.equals(0, BOutside().foo);
+  Expect.equals(0, EnumOutside.x.index);
 }

@@ -79,3 +79,10 @@ mixin typedef T = String;
 // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
 // [cfe] A mixin declaration must have a body, even if it is empty.
 // [cfe] Expected an identifier, but got 'typedef'.
+
+mixin extension StringExtension on String {}
+//    ^^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_BODY
+// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+// [cfe] A mixin declaration must have a body, even if it is empty.
+// [cfe] Expected an identifier, but got 'extension'.

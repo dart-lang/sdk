@@ -8,12 +8,12 @@
 
 import 'final_mixin_typedef_with_lib.dart';
 
-abstract class AOutside with FinalMixinTypeDef {}
-//                           ^^^^^^^^^^^^^^^^^
+abstract final class AOutside with FinalMixinTypeDef {}
+//                                 ^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The mixin 'FinalMixin' can't be mixed-in outside of its library because it's a final mixin.
 
-class BOutside with FinalMixinTypeDef {}
-//                  ^^^^^^^^^^^^^^^^^
+final class BOutside with FinalMixinTypeDef {}
+//                        ^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The mixin 'FinalMixin' can't be mixed-in outside of its library because it's a final mixin.

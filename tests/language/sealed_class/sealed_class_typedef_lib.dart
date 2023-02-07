@@ -4,6 +4,8 @@
 
 // SharedOptions=--enable-experiment=sealed-class
 
+// Other-library declarations used by sealed_class_typedef_error_test.dart.
+
 sealed class SealedClass {
   int foo = 0;
 }
@@ -13,6 +15,5 @@ typedef SealedClassTypeDef = SealedClass;
 class A extends SealedClassTypeDef {}
 
 class B implements SealedClassTypeDef {
-  @override
   int foo = 1;
 }

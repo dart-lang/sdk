@@ -4,11 +4,12 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
+// Library declarations used by final_class_part_test.dart.
+
 part of 'final_class_part_test.dart';
 
-class A extends FinalClass {}
+final class A extends FinalClass {}
 
-class B implements FinalClass {
-  @override
+final class B implements FinalClass {
   int foo = 1;
 }

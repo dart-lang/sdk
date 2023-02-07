@@ -17,10 +17,7 @@ class OutsideB with SealedMixin {
 //                  ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The mixin 'SealedMixin' can't be mixed in outside of its library because it's a sealed mixin.
-  @override
   int foo = 2;
-
-  @override
   int bar(int value) => value;
 }
 
@@ -28,3 +25,8 @@ abstract class OutsideC = Object with SealedMixin;
 //                                    ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The mixin 'SealedMixin' can't be mixed in outside of its library because it's a sealed mixin.
+
+enum EnumOutside with MixinForEnum { x }
+//                    ^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The mixin 'MixinForEnum' can't be mixed in outside of its library because it's a sealed mixin.

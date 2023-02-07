@@ -4,15 +4,18 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
+// Other-library declarations used by 
+// final_class_typedef_subtype_error_test.dart and
+// final_class_typedef_test.dart.
+
 final class FinalClass {
   int foo = 0;
 }
 
 typedef FinalClassTypeDef = FinalClass;
 
-class A extends FinalClassTypeDef {}
+final class A extends FinalClassTypeDef {}
 
-class B implements FinalClassTypeDef {
-  @override
+final class B implements FinalClassTypeDef {
   int foo = 1;
 }

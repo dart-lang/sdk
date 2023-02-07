@@ -12,7 +12,7 @@ import 'base_mixin_typedef_with_lib.dart';
 
 abstract base class AOutside with BaseMixinTypeDef {}
 
-class AOutsideImpl extends AOutside {}
+base class AOutsideImpl extends AOutside {}
 
 base class BOutside with BaseMixinTypeDef {}
 

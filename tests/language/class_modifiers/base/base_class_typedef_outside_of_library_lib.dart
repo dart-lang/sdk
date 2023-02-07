@@ -4,14 +4,17 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
+// Other-library declarations used by 
+// base_class_typedef_outside_of_library_test.dart
+
 import 'base_class_typedef_outside_of_library_lib2.dart';
 
 base class BaseClass {
   int foo = 0;
 }
 
-class A extends ATypeDef {}
+base class A extends ATypeDef {}
 
-class B implements ATypeDef {
+base class B implements ATypeDef {
   int foo = 1;
 }

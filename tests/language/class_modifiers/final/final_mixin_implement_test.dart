@@ -9,12 +9,8 @@
 import 'package:expect/expect.dart';
 import 'final_mixin_implement_lib.dart';
 
-class AImpl implements A {
-  @override
-  int foo = 1;
-}
-
 main() {
   Expect.equals(1, AImpl().foo);
   Expect.equals(1, B().foo);
+  Expect.equals(0, EnumInside.x.index);
 }
