@@ -225,7 +225,7 @@ Future<void> _processFiles(
       allCompilationErrors.addAll(compilationErrors);
     }
   } finally {
-    tempDir.delete(recursive: true);
+    tempDir.deleteSync(recursive: true);
   }
 }
 
@@ -338,7 +338,7 @@ Future<List<String>> attemptStuff(
     throw "Got $resultDone, expected 0";
   }
 
-  inputStreamController.close();
+  await inputStreamController.close();
 
   logger.log("Did $compilations compilations and verifications in "
       "${stopwatch.elapsedMilliseconds} ms.");

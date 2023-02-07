@@ -233,7 +233,7 @@ main([List<String> arguments = const <String>[]]) async {
         isolate.kill(priority: Isolate.immediate);
       });
       await exitPort.first;
-      errorSubscription.cancel();
+      await errorSubscription.cancel();
       timer.cancel();
       if (!timedOut && !gotError) {
         int seconds = stopwatch.elapsedMilliseconds ~/ 1000;

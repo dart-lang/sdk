@@ -348,7 +348,7 @@ void main() {
     final symbolsSink = _MemorySink();
     final coreTypes = CoreTypes(testComponent);
 
-    javaScriptBundler.compile(
+    await javaScriptBundler.compile(
       ClassHierarchy(testComponent, coreTypes),
       coreTypes,
       packageConfig,
