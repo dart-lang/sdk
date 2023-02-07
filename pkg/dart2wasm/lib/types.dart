@@ -269,7 +269,9 @@ class Types {
             type.positionalParameters.every(_isTypeConstant) &&
             type.namedParameters.every((n) => _isTypeConstant(n.type))) ||
         type is InterfaceType && type.typeArguments.every(_isTypeConstant) ||
-        type is TypeParameterType && isFunctionTypeParameter(type);
+        type is TypeParameterType && isFunctionTypeParameter(type) ||
+        type is InlineType &&
+            _isTypeConstant(type.instantiatedRepresentationType);
   }
 
   Class classForType(DartType type) {
@@ -299,6 +301,8 @@ class Types {
       } else {
         return translator.interfaceTypeParameterTypeClass;
       }
+    } else if (type is InlineType) {
+      return classForType(type.instantiatedRepresentationType);
     }
     throw "Unexpected DartType: $type";
   }
@@ -415,6 +419,7 @@ class Types {
     // All of the singleton types represented by canonical objects should be
     // created const.
     assert(type is TypeParameterType ||
+        type is InlineType ||
         type is InterfaceType ||
         type is FutureOrType ||
         type is FunctionType);
@@ -425,6 +430,10 @@ class Types {
         codeGen.call(translator.typeAsNullable.reference);
       }
       return nonNullableTypeType;
+    }
+
+    if (type is InlineType) {
+      return makeType(codeGen, type.instantiatedRepresentationType);
     }
 
     ClassInfo info = translator.classInfo[classForType(type)]!;
