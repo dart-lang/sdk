@@ -21,6 +21,7 @@ main() {
     await runTest('tests/web_2/jsinterop_test.dart', '', {
       'Class': Kind.regular,
       'JsInteropClass': Kind.jsInterop,
+      'flag': Kind.regular,
       'topLevelField': Kind.regular,
       'topLevelGetter': Kind.regular,
       'topLevelSetter': Kind.regular,
@@ -81,6 +82,7 @@ main() {
     await runTest('tests/web_2/non_jsinterop_test.dart', '', {
       'Class': Kind.regular,
       'JsInteropClass': Kind.jsInterop,
+      'flag': Kind.regular,
       'topLevelField': Kind.regular,
       'topLevelGetter': Kind.regular,
       'topLevelSetter': Kind.regular,

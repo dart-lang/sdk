@@ -52,6 +52,7 @@ import 'js_model/locals.dart';
 import 'kernel/front_end_adapter.dart' show CompilerFileSystem;
 import 'kernel/kernel_strategy.dart';
 import 'kernel/kernel_world.dart';
+import 'kernel/transformations/const_conditional_simplifier.dart';
 import 'null_compiler_output.dart' show NullCompilerOutput;
 import 'options.dart' show CompilerOptions;
 import 'phase/load_kernel.dart' as load_kernel;
@@ -442,6 +443,19 @@ class Compiler {
   bool shouldStopAfterLoadKernel(load_kernel.Output? output) =>
       output == null || compilationFailed || options.cfeOnly;
 
+  void simplifyConstConditionals(load_kernel.Output output) {
+    if (options.readClosedWorldUri == null) {
+      // No existing closed world means we're in phase 1, so run the
+      // transformer.
+      ConstConditionalSimplifier(
+              output.component, environment, reporter, options)
+          .run();
+    }
+
+    // If the closed world is deserialized instead, then the input .dill should
+    // already have the modified AST.
+  }
+
   Future<ModuleData> runModularAnalysis(
       load_kernel.Output output, Set<Uri> moduleLibraries) async {
     ir.Component component = output.component;
@@ -685,17 +699,19 @@ class Compiler {
     final output = await produceKernel();
     if (shouldStopAfterLoadKernel(output)) return;
 
+    simplifyConstConditionals(output!);
+
     // Run modular analysis. This may be null if modular analysis was not
     // requested for this pipeline.
     ModuleData? moduleData;
     if (options.modularMode || options.hasModularAnalysisInputs) {
-      moduleData = await produceModuleData(output!);
+      moduleData = await produceModuleData(output);
     }
     if (shouldStopAfterModularAnalysis) return;
 
     // Compute closed world.
     DataAndIndices<JClosedWorld>? closedWorldAndIndices =
-        await produceClosedWorld(output!, moduleData);
+        await produceClosedWorld(output, moduleData);
     if (shouldStopAfterClosedWorld(closedWorldAndIndices)) return;
 
     // Run global analysis.
