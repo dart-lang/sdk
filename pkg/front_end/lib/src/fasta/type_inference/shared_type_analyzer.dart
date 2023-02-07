@@ -145,6 +145,15 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void matchedTypeIsSubtypeOfRequired({
+    required Pattern pattern,
+    required DartType matchedType,
+    required DartType requiredType,
+  }) {
+    // TODO(scheglov) implement
+  }
+
+  @override
   void nonBooleanCondition(Expression node) {
     // TODO(johnniwinther): Find a way to propagate the error state to the
     // parent of the guard.

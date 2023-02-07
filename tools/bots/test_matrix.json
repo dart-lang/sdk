@@ -978,13 +978,6 @@
         ]
       }
     },
-    "app_jitk-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c)": {
-      "options": {
-        "vm-options": [
-          "--no-sound-null-safety"
-        ]
-      }
-    },
     "vm-appjit-(linux|mac|win)-(debug|product|release)-(x64|arm64)": {
       "options": {
         "compiler": "app_jitk",
@@ -1036,7 +1029,10 @@
         "builder-tag": "canary",
         "checked": true,
         "use-sdk": true,
-        "enable-asserts": true
+        "enable-asserts": true,
+        "ddc-options": [
+          "--canary"
+        ]
       }
     },
     "dartdevc-canary-weak-(linux|mac|win)-release-(chrome|firefox)-(x64|arm64)": {
@@ -1044,7 +1040,10 @@
         "builder-tag": "canary",
         "checked": true,
         "use-sdk": true,
-        "enable-asserts": true
+        "enable-asserts": true,
+        "ddc-options": [
+          "--canary"
+        ]
       }
     },
     "cfe-(linux|mac|win)": {
@@ -2199,33 +2198,6 @@
           ],
           "fileset": "vm-kernel",
           "shards": 1
-        }
-      ]
-    },
-    {
-      "builders": [
-        "app-kernel-linux-debug-x64",
-        "app-kernel-linux-product-x64",
-        "app-kernel-linux-release-x64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the vm kernel app builder group."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-napp_jitk-linux-${mode}-${arch}"
-          ],
-          "shards": 6,
-          "fileset": "vm-kernel"
         }
       ]
     },

@@ -1711,15 +1711,35 @@ main() {
         ]);
       });
 
+      group('Refutable context:', () {
+        test('When matched type is a subtype of required type', () {
+          h.run([
+            ifCase(
+              expr('int'),
+              wildcard().as_('num')..errorId = 'PATTERN',
+              [],
+            ).checkIr('ifCase(expr(int), castPattern(wildcardPattern('
+                'matchedType: num), num, matchedType: int), '
+                'variables(), true, block(), noop)'),
+          ], expectedErrors: {
+            'matchedTypeIsSubtypeOfRequired(pattern: PATTERN, '
+                'matchedType: int, requiredType: num)',
+          });
+        });
+      });
+
       group('Refutability:', () {
         test('When matched type is a subtype of variable type', () {
           var x = Var('x');
           h.run([
-            match(x.pattern().as_('num'), expr('int'))
+            match(x.pattern().as_('num')..errorId = 'PATTERN', expr('int'))
                 .checkIr('match(expr(int), '
                     'castPattern(varPattern(x, matchedType: num, '
                     'staticType: num), num, matchedType: int))'),
-          ]);
+          ], expectedErrors: {
+            'matchedTypeIsSubtypeOfRequired(pattern: PATTERN, '
+                'matchedType: int, requiredType: num)',
+          });
         });
 
         test('When matched type is dynamic', () {

@@ -6214,6 +6214,13 @@ class WarningCode extends AnalyzerErrorCode {
   ///  This is the new replacement for [HintCode.UNNECESSARY_CAST].
   static const HintCode UNNECESSARY_CAST = HintCode.UNNECESSARY_CAST;
 
+  ///  No parameters.
+  static const WarningCode UNNECESSARY_CAST_PATTERN = WarningCode(
+    'UNNECESSARY_CAST_PATTERN',
+    "Unnecessary cast pattern.",
+    correctionMessage: "Try removing the cast pattern.",
+  );
+
   ///  This is the new replacement for [HintCode.UNNECESSARY_FINAL].
   static const HintCode UNNECESSARY_FINAL = HintCode.UNNECESSARY_FINAL;
 

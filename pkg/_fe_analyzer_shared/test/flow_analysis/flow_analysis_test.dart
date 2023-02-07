@@ -6491,10 +6491,17 @@ main() {
         var x = Var('x');
         h.run([
           declare(x, type: 'num'),
-          ifCase(x.expr, wildcard(expectInferredType: 'Object').as_('Object'), [
-            checkNotPromoted(x),
-          ]),
-        ]);
+          ifCase(
+              x.expr,
+              wildcard(expectInferredType: 'Object').as_('Object')
+                ..errorId = 'PATTERN',
+              [
+                checkNotPromoted(x),
+              ]),
+        ], expectedErrors: {
+          'matchedTypeIsSubtypeOfRequired(pattern: PATTERN, '
+              'matchedType: num, requiredType: Object)',
+        });
       });
 
       test('Unrelated type', () {

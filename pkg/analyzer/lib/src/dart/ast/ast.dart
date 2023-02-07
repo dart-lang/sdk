@@ -1547,7 +1547,12 @@ class CastPatternImpl extends DartPatternImpl implements CastPattern {
     SharedMatchContext context,
   ) {
     type.accept(resolverVisitor);
-    resolverVisitor.analyzeCastPattern(context, pattern, type.typeOrThrow);
+    resolverVisitor.analyzeCastPattern(
+      context: context,
+      pattern: this,
+      innerPattern: pattern,
+      requiredType: type.typeOrThrow,
+    );
   }
 
   @override

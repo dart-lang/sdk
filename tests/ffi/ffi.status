@@ -32,6 +32,8 @@ vmspecific_function_gc_test: SkipByDesign # Already has VMOptions=--optimization
 vmspecific_function_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
 
 [ $compiler == app_jitk ]
+native_assets/asset_*: SkipByDesign # Only intended to run from source. https://dartbug.com/51266
+native_assets/infer_native_assets_yaml_*: SkipByDesign # Only intended to run from source. https://dartbug.com/51265
 vmspecific_leaf_call_test: Skip # https://dartbug.com/46125: Snapshot fails to generate.
 
 [ $mode == debug ]

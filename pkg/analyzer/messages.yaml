@@ -23518,6 +23518,10 @@ WarningCode:
   UNNECESSARY_CAST:
     aliasFor: HintCode.UNNECESSARY_CAST
     comment: This is the new replacement for [HintCode.UNNECESSARY_CAST].
+  UNNECESSARY_CAST_PATTERN:
+    problemMessage: Unnecessary cast pattern.
+    correctionMessage: Try removing the cast pattern.
+    comment: No parameters.
   UNNECESSARY_FINAL:
     aliasFor: HintCode.UNNECESSARY_FINAL
     comment: This is the new replacement for [HintCode.UNNECESSARY_FINAL].

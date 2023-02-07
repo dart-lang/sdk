@@ -994,6 +994,7 @@ const List<ErrorCode> errorCodeValues = [
   WarningCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT,
   WarningCode.UNDEFINED_HIDDEN_NAME,
   WarningCode.UNDEFINED_SHOWN_NAME,
+  WarningCode.UNNECESSARY_CAST_PATTERN,
   WarningCode.UNUSED_CATCH_CLAUSE,
   WarningCode.UNUSED_CATCH_STACK,
 ];

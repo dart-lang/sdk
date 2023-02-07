@@ -9596,7 +9596,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    analyzeCastPattern(context, node.pattern, node.type);
+    analyzeCastPattern(
+      context: context,
+      pattern: node,
+      innerPattern: node.pattern,
+      requiredType: node.type,
+    );
 
     assert(checkStack(node, stackBase, [
       /* subpattern = */ ValueKinds.Pattern,
