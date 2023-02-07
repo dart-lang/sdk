@@ -2976,7 +2976,7 @@ class BoundField {
     json.addAll({
       'decl': decl?.toJson(),
       'name': name,
-      'value': value?.toJson(),
+      'value': value is int || value is String ? value : value?.toJson(),
     });
     return json;
   }
@@ -3040,7 +3040,7 @@ class BoundVariable extends Response {
     json['type'] = type;
     json.addAll({
       'name': name ?? '',
-      'value': value?.toJson(),
+      'value': value is int || value is String ? value : value?.toJson(),
       'declarationTokenPos': declarationTokenPos ?? -1,
       'scopeStartTokenPos': scopeStartTokenPos ?? -1,
       'scopeEndTokenPos': scopeEndTokenPos ?? -1,
@@ -3114,7 +3114,8 @@ class Breakpoint extends Obj {
       'breakpointNumber': breakpointNumber ?? -1,
       'enabled': enabled ?? false,
       'resolved': resolved ?? false,
-      'location': location?.toJson(),
+      'location':
+          location is int || location is String ? location : location?.toJson(),
     });
     _setIfNotNull(
         json, 'isSyntheticAsyncContinuation', isSyntheticAsyncContinuation);
@@ -3653,7 +3654,7 @@ class ContextElement {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     json.addAll({
-      'value': value?.toJson(),
+      'value': value is int || value is String ? value : value?.toJson(),
     });
     return json;
   }
@@ -4538,7 +4539,12 @@ class Field extends Obj implements FieldRef {
       'static': isStatic ?? false,
     });
     _setIfNotNull(json, 'location', location?.toJson());
-    _setIfNotNull(json, 'staticValue', staticValue?.toJson());
+    _setIfNotNull(
+        json,
+        'staticValue',
+        staticValue is int || staticValue is String
+            ? staticValue
+            : staticValue?.toJson());
     return json;
   }
 
@@ -4770,7 +4776,7 @@ class FuncRef extends ObjRef {
     json['type'] = type;
     json.addAll({
       'name': name ?? '',
-      'owner': owner?.toJson(),
+      'owner': owner is int || owner is String ? owner : owner?.toJson(),
       'static': isStatic ?? false,
       'const': isConst ?? false,
       'implicit': implicit ?? false,
@@ -4872,7 +4878,7 @@ class Func extends Obj implements FuncRef {
     json['type'] = type;
     json.addAll({
       'name': name ?? '',
-      'owner': owner?.toJson(),
+      'owner': owner is int || owner is String ? owner : owner?.toJson(),
       'static': isStatic ?? false,
       'const': isConst ?? false,
       'implicit': implicit ?? false,
@@ -6106,7 +6112,12 @@ class InboundReference {
       'source': source?.toJson(),
     });
     _setIfNotNull(json, 'parentListIndex', parentListIndex);
-    _setIfNotNull(json, 'parentField', parentField?.toJson());
+    _setIfNotNull(
+        json,
+        'parentField',
+        parentField is int || parentField is String
+            ? parentField
+            : parentField?.toJson());
     return json;
   }
 
@@ -6462,8 +6473,8 @@ class MapAssociation {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     json.addAll({
-      'key': key?.toJson(),
-      'value': value?.toJson(),
+      'key': key is int || key is String ? key : key?.toJson(),
+      'value': value is int || value is String ? value : value?.toJson(),
     });
     return json;
   }
