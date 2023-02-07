@@ -19,23 +19,6 @@ void main() {
 
 @reflectiveTest
 class ResultConverterTest extends ProtocolTestUtilities {
-  static const List<String> strings = <String>[
-    'a',
-    'b',
-    'c',
-    'd',
-    'e',
-    'f',
-    'g',
-    'h',
-    'i',
-    'j',
-    'k',
-    'l',
-    'm',
-    'n'
-  ];
-
   ResultConverter converter = ResultConverter();
 
   void test_convertAnalysisErrorFixes() {

@@ -146,7 +146,7 @@ vars = {
   "http_parser_rev": "1c0c17a1a5d9ca62c85f0940d9edbf2a98209bfa",
   "intl_rev": "fca552f2ec5d682b5fa36f02bdd72a5a4e2edcee",
   "json_rpc_2_rev": "0280ac6cb4f3905d81c47ba927123ba2b95f7940",
-  "linter_rev": "8f7b75f8a3501ca2c4d5bbc1f003d90d66447544", # 1.32.0
+  "linter_rev": "70fb087e39e6882ad331ee1e3f52f3f3a88e2d16", # 1.33.0 (+ `unnecessary_parenthesis` fix)
   "lints_rev": "dfded5e265015f21ce154577fe8488dc244e33c2",
   "logging_rev": "abef3717d958158eb8b0ddb2871f4b15a9804cd4",
   "markdown_rev": "ee3f4e976efcfed87c6ec78364bc2dd3c6e717b9", # https://github.com/dart-lang/markdown/pull/494

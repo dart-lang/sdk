@@ -7,7 +7,6 @@ analyzer:
 linter:
   rules:
     avoid_bool_literals_in_conditional_expressions: true
-    avoid_returning_null: true
     avoid_unused_constructor_parameters: true
     cancel_subscriptions: true
     comment_references: true

@@ -1996,6 +1996,10 @@ LintCode.unnecessary_await_in_return:
   status: needsEvaluation
 LintCode.unnecessary_brace_in_string_interps:
   status: hasFix
+LintCode.unnecessary_breaks:
+  status: needsFix
+  notes: |-
+    https://github.com/dart-lang/sdk/issues/49960
 LintCode.unnecessary_const:
   status: hasFix
 LintCode.unnecessary_constructor_name:

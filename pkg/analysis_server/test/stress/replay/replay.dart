@@ -50,6 +50,7 @@ class Driver {
   static String OVERLAY_STYLE_OPTION_NAME = 'overlay-style';
 
   /// The name of the branch used to clean-up after making temporary changes.
+  // ignore: unreachable_from_main
   static const String TEMP_BRANCH_NAME = 'temp';
 
   /// The name of the command-line flag that will cause verbose output to be

@@ -125,15 +125,30 @@
 
 #### Linter
 
-Updates the Linter to `1.32.0`, which includes changes that
+Updates the Linter to `1.33.0`, which includes changes that
 
+- add new lint: `unnecessary_breaks`.
+- remove support for:
+  - `enable_null_safety`
+  - `invariant_booleans`
+  - `prefer_bool_in_asserts`
+  - `prefer_equal_for_default_values`
+  - `super_goes_last`
+- fix `unnecessary_parenthesis` false-positives with null-aware expressions.
+- fix `void_checks` to allow assignments of `Future<dynamic>?` to parameters 
+  typed `FutureOr<void>?`.
+- fix `use_build_context_synchronously` in if conditions.
+- fix a false positive for `avoid_private_typedef_functions` with generalized type aliases.
+- update `unnecessary_parenthesis` to detect some doubled parens.
+- update `void_checks` to allow returning `Never` as void.
+- update `no_adjacent_strings_in_list` to support set literals and for- and 
+  if-elements.
 - update `avoid_types_as_parameter_names` to handle type variables.
 - update `avoid_positional_boolean_parameters` to handle typedefs.
-- improve `unnecessary_parenthesis` support for property accesses and method invocations.
 - update `avoid_redundant_argument_values` to check parameters of redirecting constructors.
 - improve performance for `prefer_const_literals_to_create_immutables`.
 - update `use_build_context_synchronously` to check context properties.
-- fix a false positive for `avoid_private_typedef_functions` with generalized type aliases.
+- improve `unnecessary_parenthesis` support for property accesses and method invocations.
 
 #### Migration tool removal
 
