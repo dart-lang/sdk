@@ -47,74 +47,96 @@ class PackageBuildFileUriResolverTest with ResourceProviderMixin {
   late final PackageBuildWorkspace workspace;
   late final PackageBuildFileUriResolver resolver;
 
+  File get testFile => getFile('$testPackageLibPath/test.dart');
+
+  String get testPackageGeneratedLibPath => '$testPackageGeneratedRootPath/lib';
+
+  String get testPackageGeneratedRootPath =>
+      '$testPackageRootPath/.dart_tool/build/generated/test';
+
+  String get testPackageLibPath => '$testPackageRootPath/lib';
+
+  String get testPackageRootPath => '$workspaceRootPath/test';
+
+  String get workspaceRootPath => '/home';
+
   void setUp() {
-    newFolder('/workspace/.dart_tool/build/generated/project/lib');
-    newPubspecYamlFile('/workspace', 'name: project');
+    newFolder(testPackageGeneratedLibPath);
+    newPubspecYamlFile(testPackageRootPath, 'name: test');
 
     workspace = PackageBuildWorkspace.find(
       resourceProvider,
       Packages({
-        'project': Package(
-          name: 'project',
-          rootFolder: getFolder('/workspace'),
-          libFolder: getFolder('/workspace'),
+        'test': Package(
+          name: 'test',
+          rootFolder: getFolder(testPackageRootPath),
+          libFolder: getFolder(testPackageLibPath),
           languageVersion: null,
         ),
       }),
-      convertPath('/workspace'),
+      convertPath(testPackageRootPath),
     )!;
     resolver = PackageBuildFileUriResolver(workspace);
-    newFile('/workspace/test.dart', '');
-    newFile('/workspace/.dart_tool/build/generated/project/gen.dart', '');
     expect(workspace.isBlaze, isFalse);
   }
 
-  void test_pathToUri() {
-    var uri = toUri('/workspace/test.dart');
+  void test_resolveAbsolute_fileUri() {
+    var path = testFile.path;
+    newFile(path, '');
+    _assertResolveUri(toUri(path), path);
+  }
+
+  void test_resolveAbsolute_fileUri_doesNotExist() {
+    var path = testFile.path;
+    _assertResolveUri(toUri(path), path, exists: false);
+  }
+
+  void test_resolveAbsolute_fileUri_folder() {
+    var uri = toUri(testPackageRootPath);
+    var source = resolver.resolveAbsolute(uri);
+    expect(source, isNull);
+  }
+
+  void test_resolveAbsolute_fileUri_generated_lib() {
+    var file = newFile('$testPackageGeneratedLibPath/foo.dart', '');
+    _assertResolveUri(
+      toUri('$testPackageLibPath/foo.dart'),
+      file.path,
+    );
+  }
+
+  void test_resolveAbsolute_fileUri_generated_notLib() {
+    var file = newFile('$testPackageGeneratedRootPath/example/foo.dart', '');
+    _assertResolveUri(
+      toUri('$testPackageRootPath/example/foo.dart'),
+      file.path,
+    );
+  }
+
+  void test_resolveAbsolute_notFileUri_dartUri() {
+    var uri = Uri.parse('dart:core');
+    var source = resolver.resolveAbsolute(uri);
+    expect(source, isNull);
+  }
+
+  void test_resolveAbsolute_notFileUri_httpsUri() {
+    var uri = Uri.parse('https://127.0.0.1/test.dart');
+    var source = resolver.resolveAbsolute(uri);
+    expect(source, isNull);
+  }
+
+  Source _assertResolveUri(
+    Uri uri,
+    String posixPath, {
+    bool exists = true,
+  }) {
     var source = resolver.resolveAbsolute(uri)!;
-    expect(resolver.pathToUri(source.fullName), uri);
-  }
-
-  void test_resolveAbsolute_doesNotExist() {
-    var source = _resolvePath('/workspace/foo.dart')!;
-    expect(source, isNotNull);
-    expect(source.exists(), isFalse);
-    expect(source.fullName, convertPath('/workspace/foo.dart'));
-  }
-
-  void test_resolveAbsolute_file() {
-    var source = _resolvePath('/workspace/test.dart')!;
-    expect(source.exists(), isTrue);
-    expect(source.fullName, convertPath('/workspace/test.dart'));
-  }
-
-  void test_resolveAbsolute_folder() {
-    var source = _resolvePath('/workspace');
-    expect(source, isNull);
-  }
-
-  void test_resolveAbsolute_generated_file_exists_one() {
-    var source = _resolvePath('/workspace/gen.dart')!;
-    expect(source.exists(), isTrue);
-    expect(source.fullName,
-        convertPath('/workspace/.dart_tool/build/generated/project/gen.dart'));
-  }
-
-  void test_resolveAbsolute_notFile_dartUri() {
-    Uri uri = Uri(scheme: 'dart', path: 'core');
-    var source = resolver.resolveAbsolute(uri);
-    expect(source, isNull);
-  }
-
-  void test_resolveAbsolute_notFile_httpsUri() {
-    Uri uri = Uri(scheme: 'https', path: '127.0.0.1/test.dart');
-    var source = resolver.resolveAbsolute(uri);
-    expect(source, isNull);
-  }
-
-  Source? _resolvePath(String path) {
-    Uri uri = toUri(path);
-    return resolver.resolveAbsolute(uri);
+    var path = source.fullName;
+    expect(path, convertPath(posixPath));
+    expect(source.uri, uri);
+    expect(source.exists(), exists);
+    expect(resolver.pathToUri(path), uri);
+    return source;
   }
 }
 
@@ -211,17 +233,17 @@ class PackageBuildPackageUriResolverTest with ResourceProviderMixin {
     resolver = PackageBuildPackageUriResolver(workspace, packageUriResolver);
   }
 
-  Source _assertResolveUri(Uri uri, String posixPath,
-      {bool exists = true, bool restore = true}) {
+  Source _assertResolveUri(
+    Uri uri,
+    String posixPath, {
+    bool exists = true,
+  }) {
     var source = resolver.resolveAbsolute(uri)!;
     var path = source.fullName;
     expect(path, convertPath(posixPath));
     expect(source.uri, uri);
     expect(source.exists(), exists);
-    // If enabled, test also "restoreAbsolute".
-    if (restore) {
-      expect(resolver.pathToUri(path), uri);
-    }
+    expect(resolver.pathToUri(path), uri);
     return source;
   }
 }
