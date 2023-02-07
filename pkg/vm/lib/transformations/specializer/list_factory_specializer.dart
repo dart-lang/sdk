@@ -98,8 +98,7 @@ class ListFactorySpecializer extends BaseSpecializer {
     assert(args.positional.length == 2);
     final length = args.positional[0];
     final fill = args.positional[1];
-    final fillingWithNull = fill is NullLiteral ||
-        (fill is ConstantExpression && fill.constant is NullConstant);
+    final fillingWithNull = _isNullConstant(fill);
     final bool? growable =
         _getConstantOptionalArgument(args, 'growable', false);
     if (growable == null) {
@@ -158,7 +157,7 @@ class ListFactorySpecializer extends BaseSpecializer {
     }
     final namedArg = args.named.single;
     assert(namedArg.name == name);
-    final value = namedArg.value;
+    final value = _unwrapFinalVariableGet(namedArg.value);
     if (value is BoolLiteral) {
       return value.value;
     } else if (value is ConstantExpression) {
@@ -168,5 +167,27 @@ class ListFactorySpecializer extends BaseSpecializer {
       }
     }
     return null;
+  }
+
+  bool _isNullConstant(Expression value) {
+    value = _unwrapFinalVariableGet(value);
+    return value is NullLiteral ||
+        (value is ConstantExpression && value.constant is NullConstant);
+  }
+
+  // Front-end can create extra temporary variables ("Let v = e, call(v)")
+  // to hoist expressions when rearraning named parameters.
+  // Unwrap such variables and return their initializers.
+  Expression _unwrapFinalVariableGet(Expression expr) {
+    if (expr is VariableGet) {
+      final variable = expr.variable;
+      if (variable.isFinal) {
+        final initializer = variable.initializer;
+        if (initializer != null) {
+          return initializer;
+        }
+      }
+    }
+    return expr;
   }
 }
