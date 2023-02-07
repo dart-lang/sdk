@@ -141,6 +141,20 @@ The null safety migration tool (`dart migrate`) has been removed.  If you still
 have code which needs to be migrated to null safety, please run `dart migrate`
 using Dart version 2.19, before upgrading to Dart version 3.0.
 
+#### Pub
+
+- To preserve compatibility with null-safe code pre Dart 3 Pub will interpret a
+  language constraint indicating a language version of `2.12` or higher and an
+  upper bound of `<3.0.0` as `<4.0.0`.
+
+  For example `>=2.19.2 <3.0.0` will be interpreted as `>=2.19.2 <4.0.0`.
+- `dart pub publish` will no longer warn about `dependency_overrides`. Dependency
+  overrides only take effect in the root package of a resolution.
+- `dart pub token add` now verifies that the given token is valid for including
+  in a header according to [RFC 6750 section
+  2.1](https://www.rfc-editor.org/rfc/rfc6750#section-2.1). This means they must
+  contain only the characters: `^[a-zA-Z0-9._~+/=-]+$`. Before a failure would
+  happen when attempting to send the authorization header.
 ## 2.19.0
 
 ### Language

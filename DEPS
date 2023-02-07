@@ -157,7 +157,7 @@ vars = {
   "path_rev": "a95f1e911dc9e2d407662c03edab0d550f2d1fa5",
   "pool_rev": "51f1131f707f81c5c9120bed5d290c8be83dc5d3",
   "protobuf_rev": "75bc380a6e9601565606a13dee16c5ab2bf5019c",
-  "pub_rev": "0cbaf7a2fb8c8ca543c6f222bf25d5f5c63abbf3", # manually rev'd
+  "pub_rev": "048e3ad2b5e1b4ebe6883addbc95722be6904a7b", # manually rev'd
   "pub_semver_rev": "e9c600c40986f6468b657a0ef967b32d668f4661",
   "shelf_rev": "9d1fb8ac5db71885bf8621e3a58cd5dd93ab6f02",
   "source_map_stack_trace_rev": "a60ef54b36147b103d8b7d0317d6b578ebf874cc",
