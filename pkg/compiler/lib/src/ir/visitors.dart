@@ -210,6 +210,11 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   }
 
   @override
+  DartType visitInlineType(ir.InlineType node) {
+    return node.instantiatedRepresentationType.accept(this);
+  }
+
+  @override
   DartType defaultDartType(ir.DartType node) {
     throw UnsupportedError('Unsupported type $node (${node.runtimeType})');
   }

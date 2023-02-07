@@ -480,7 +480,19 @@ class DataSourceReader {
     return library.lookupClassByName(name)!;
   }
 
-  /// Reads a reference to a kernel class node from this data source.
+  /// Reads a reference to a kernel inline class node from this data source.
+  ir.InlineClass readInlineClassNode() {
+    _checkDataKind(DataKind.inlineClassNode);
+    return _readInlineClassNode();
+  }
+
+  ir.InlineClass _readInlineClassNode() {
+    LibraryData library = _readLibraryData();
+    String name = _readString();
+    return library.lookupInlineClass(name)!;
+  }
+
+  /// Reads a reference to a kernel typedef node from this data source.
   ir.Typedef readTypedefNode() {
     _checkDataKind(DataKind.typedefNode);
     return _readTypedefNode();
@@ -917,6 +929,12 @@ class DataSourceReader {
             _readDartTypeNodes(functionTypeVariables);
         List<ir.NamedType> named = _readNamedTypeNodes(functionTypeVariables);
         return ir.RecordType(positional, named, nullability);
+      case DartTypeNodeKind.inlineType:
+        ir.InlineClass inlineClass = readInlineClassNode();
+        ir.Nullability nullability = readEnum(ir.Nullability.values);
+        List<ir.DartType> typeArguments =
+            _readDartTypeNodes(functionTypeVariables);
+        return ir.InlineType(inlineClass, nullability, typeArguments);
       case DartTypeNodeKind.typedef:
         ir.Typedef typedef = readTypedefNode();
         ir.Nullability nullability = readEnum(ir.Nullability.values);
