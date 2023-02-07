@@ -35,7 +35,7 @@ f() {
   }
 }
 ''', [
-      error(HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 32, 7),
+      error(WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 32, 7),
     ]);
   }
 
@@ -57,7 +57,7 @@ f() {
   }
 }
 ''', [
-      error(HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 21, 16),
+      error(WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 21, 16),
     ]);
   }
 
@@ -79,7 +79,7 @@ f() {
   }
 }
 ''', [
-      error(HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 21, 4),
+      error(WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 21, 4),
     ]);
   }
 
@@ -105,7 +105,7 @@ class A<B> {
   }
 }
 ''', [
-      error(HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 40, 1),
+      error(WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 40, 1),
     ]);
   }
 

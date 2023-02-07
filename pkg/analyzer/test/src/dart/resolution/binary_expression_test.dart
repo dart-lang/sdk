@@ -248,7 +248,7 @@ f(Never a, int b) {
   a + b;
 }
 ''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 22, 1),
+      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 22, 1),
       error(HintCode.DEAD_CODE, 26, 2),
     ]);
 

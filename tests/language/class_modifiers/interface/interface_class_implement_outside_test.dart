@@ -13,19 +13,20 @@ import 'interface_class_implement_lib.dart';
 abstract class AOutside implements InterfaceClass {}
 
 class AOutsideImpl implements AOutside {
-  @override
   int foo = 1;
 }
 
 class DoesNotPreventExtension extends AOutsideImpl {}
 
 class BOutside implements InterfaceClass {
-  @override
   int foo = 1;
 }
+
+enum EnumOutside implements ClassForEnum { x }
 
 main() {
   Expect.equals(1, AOutsideImpl().foo);
   Expect.equals(1, DoesNotPreventExtension().foo);
   Expect.equals(1, BOutside().foo);
+  Expect.equals(0, EnumOutside.x.index);
 }

@@ -9,9 +9,8 @@
 import 'package:expect/expect.dart';
 import 'final_mixin_with_lib.dart';
 
-class AImpl extends A {}
-
 main() {
   Expect.equals(0, AImpl().foo);
   Expect.equals(0, B().foo);
+  Expect.equals(0, EnumInside.x.index);
 }

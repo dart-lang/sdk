@@ -4,15 +4,17 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
+// Other-library declarations used by
+// base_class_typedef_implement_error_test.dart.
+
 base class BaseClass {
   int foo = 0;
 }
 
 typedef BaseClassTypeDef = BaseClass;
 
-class A extends BaseClassTypeDef {}
+base class A extends BaseClassTypeDef {}
 
-class B implements BaseClassTypeDef {
-  @override
+base class B implements BaseClassTypeDef {
   int foo = 1;
 }

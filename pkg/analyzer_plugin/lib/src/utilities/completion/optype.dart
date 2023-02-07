@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
+import 'package:analyzer_plugin/src/utilities/extensions/token.dart';
 import 'package:collection/collection.dart';
 
 typedef SuggestionsFilter = int? Function(DartType dartType, int relevance);
@@ -947,6 +948,18 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitListPattern(ListPattern node) {
+    // TODO(brianwilkerson) We need a way to specify that only constants are
+    //  allowed in this context that is different from "this is a constant
+    //  context". In both cases, we need to not suggest elements that aren't
+    //  valid in those contexts.
+    optype.completionLocation = 'ListPattern_element';
+    optype.includeReturnValueSuggestions = true;
+    optype.includeTypeNameSuggestions = true;
+    optype.includeVarNameSuggestions = true;
+  }
+
+  @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
     optype.completionLocation = 'MapLiteralEntry_value';
     optype.includeReturnValueSuggestions = true;
@@ -1216,6 +1229,22 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   ) {
     optype.completionLocation = 'RecordTypeAnnotationPositionalField_name';
     optype.includeVarNameSuggestions = true;
+  }
+
+  @override
+  void visitRelationalPattern(RelationalPattern node) {
+    var operator = node.operator;
+    if (offset >= operator.end) {
+      if (operator.type == TokenType.LT &&
+          operator.nextNotSynthetic.type == TokenType.GT) {
+        // This is most likely a type argument list.
+        optype.completionLocation = 'TypeArgumentList_argument';
+        optype.includeTypeNameSuggestions = true;
+        return;
+      }
+      // TODO(brianwilkerson) Suggest things valid for a constant expression.
+      optype.completionLocation = 'RelationalPattern_operand';
+    }
   }
 
   @override

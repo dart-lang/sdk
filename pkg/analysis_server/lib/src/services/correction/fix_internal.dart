@@ -1393,9 +1393,6 @@ class FixProcessor extends BaseProcessor {
     HintCode.MUST_CALL_SUPER: [
       AddCallSuper.new,
     ],
-    HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE: [
-      RemoveQuestionMark.new,
-    ],
     HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD: [
       RemoveAnnotation.new,
     ],
@@ -1562,6 +1559,9 @@ class FixProcessor extends BaseProcessor {
     ],
     WarningCode.INVALID_SEALED_ANNOTATION: [
       RemoveAnnotation.new,
+    ],
+    WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE: [
+      RemoveQuestionMark.new,
     ],
     WarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT: [
       UpdateSdkConstraints.version_2_2_2,

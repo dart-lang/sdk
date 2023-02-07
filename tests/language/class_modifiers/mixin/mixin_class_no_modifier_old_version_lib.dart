@@ -4,6 +4,9 @@
 
 // @dart = 2.19
 
+// Testing usage of classes as mixins with no 'mixin' modifier in an older
+// version.
+
 class Class {
   int foo = 0;
 }

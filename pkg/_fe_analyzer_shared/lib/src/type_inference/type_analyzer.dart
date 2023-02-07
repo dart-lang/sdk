@@ -302,7 +302,7 @@ mixin TypeAnalyzer<
           matchedType: matchedType,
           requiredType: variableDeclaredType);
     }
-    flow.write(node, variable, matchedType, context.getInitializer(node));
+    flow.assignedVariablePattern(node, variable, matchedType);
   }
 
   /// Computes the type schema for a variable pattern appearing in an assignment
@@ -1117,10 +1117,11 @@ mixin TypeAnalyzer<
   /// the pattern, and [rhs] for the right hand side.
   ///
   /// Stack effect: pushes (Expression, Pattern).
-  ExpressionTypeAnalysisResult<Type> analyzePatternAssignment(
+  PatternAssignmentAnalysisResult<Type> analyzePatternAssignment(
       Expression node, Pattern pattern, Expression rhs) {
     // Stack: ()
-    Type rhsType = analyzeExpression(rhs, dispatchPatternSchema(pattern));
+    Type patternSchema = dispatchPatternSchema(pattern);
+    Type rhsType = analyzeExpression(rhs, patternSchema);
     // Stack: (Expression)
     flow.patternAssignment_afterRhs(rhs, rhsType);
     Map<String, List<Variable>> componentVariables = {};
@@ -1144,7 +1145,10 @@ mixin TypeAnalyzer<
     }
     flow.patternAssignment_end();
     // Stack: (Expression, Pattern)
-    return new SimpleTypeAnalysisResult<Type>(type: rhsType);
+    return new PatternAssignmentAnalysisResult<Type>(
+      patternSchema: patternSchema,
+      type: rhsType,
+    );
   }
 
   /// Analyzes a `pattern-for-in` statement or element.
@@ -1213,8 +1217,10 @@ mixin TypeAnalyzer<
   /// variable pattern; [TypeAnalyzerErrors.patternDoesNotAllowLate] will be
   /// reported if any other kind of pattern is used.
   ///
+  /// Returns the type schema of the [pattern].
+  ///
   /// Stack effect: pushes (Expression, Pattern).
-  void analyzePatternVariableDeclaration(
+  Type analyzePatternVariableDeclaration(
       Node node, Pattern pattern, Expression initializer,
       {required bool isFinal, required bool isLate}) {
     // Stack: ()
@@ -1224,8 +1230,8 @@ mixin TypeAnalyzer<
     if (isLate) {
       flow.lateInitializer_begin(node);
     }
-    Type initializerType =
-        analyzeExpression(initializer, dispatchPatternSchema(pattern));
+    Type patternSchema = dispatchPatternSchema(pattern);
+    Type initializerType = analyzeExpression(initializer, patternSchema);
     // Stack: (Expression)
     if (isLate) {
       flow.lateInitializer_end();
@@ -1251,6 +1257,7 @@ mixin TypeAnalyzer<
         location: JoinedPatternVariableLocation.singlePattern);
     flow.patternVariableDeclaration_end();
     // Stack: (Expression, Pattern)
+    return patternSchema;
   }
 
   /// Analyzes a record pattern.  [node] is the pattern itself, and [fields]

@@ -4,14 +4,17 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
+// Other-library declarations used by
+// final_class_typedef_outside_of_library_test.dart.
+
 import 'final_class_typedef_outside_of_library_lib2.dart';
 
 final class FinalClass {
   int foo = 0;
 }
 
-class A extends ATypeDef {}
+final class A extends ATypeDef {}
 
-class B implements ATypeDef {
+final class B implements ATypeDef {
   int foo = 1;
 }

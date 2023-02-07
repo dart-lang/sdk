@@ -4,13 +4,16 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
+// Library declarations used by 
+// base_mixin_typedef_with_outside_test.dart and
+// base_mixin_typedef_with_test.dart.
+
 base mixin BaseMixin {
   int foo = 0;
 }
 
 typedef BaseMixinTypeDef = BaseMixin;
 
-class A with BaseMixinTypeDef {
-  @override
+base class A with BaseMixinTypeDef {
   int foo = 1;
 }

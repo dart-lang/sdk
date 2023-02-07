@@ -10337,6 +10337,10 @@ class PatternAssignmentImpl extends ExpressionImpl
   @override
   final DartPatternImpl pattern;
 
+  /// The pattern type schema, used for downward inference of [expression];
+  /// or `null` if the node is not resolved yet.
+  DartType? patternTypeSchema;
+
   PatternAssignmentImpl({
     required this.pattern,
     required this.equals,
@@ -10402,6 +10406,10 @@ class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
 
   @override
   final DartPatternImpl pattern;
+
+  /// The pattern type schema, used for downward inference of [expression];
+  /// or `null` if the node is not resolved yet.
+  DartType? patternTypeSchema;
 
   /// Variables declared in [pattern].
   late final List<BindPatternVariableElementImpl> elements;

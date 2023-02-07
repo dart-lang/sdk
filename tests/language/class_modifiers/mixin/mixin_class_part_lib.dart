@@ -4,6 +4,8 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
+// Other-library declarations used by mixin_class_part_test.dart.
+
 part of 'mixin_class_part_test.dart';
 
 class A with MixinClass {}

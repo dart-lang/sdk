@@ -6036,9 +6036,108 @@ class WarningCode extends AnalyzerErrorCode {
   static const HintCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR =
       HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR;
 
+  ///  No parameters.
+  static const WarningCode NULLABLE_TYPE_IN_CATCH_CLAUSE = WarningCode(
+    'NULLABLE_TYPE_IN_CATCH_CLAUSE',
+    "A potentially nullable type can't be used in an 'on' clause because it "
+        "isn't valid to throw a nullable expression.",
+    correctionMessage: "Try using a non-nullable type.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the method being invoked
+  ///  1: the type argument associated with the method
+  static const WarningCode NULL_ARGUMENT_TO_NON_NULL_TYPE = WarningCode(
+    'NULL_ARGUMENT_TO_NON_NULL_TYPE',
+    "'{0}' shouldn't be called with a null argument for the non-nullable type "
+        "argument '{1}'.",
+    correctionMessage: "Try adding a non-null argument.",
+    hasPublishedDocs: true,
+  );
+
+  ///  When the left operand of a binary expression uses '?.' operator, it can be
+  ///  `null`.
+  static const WarningCode NULL_AWARE_BEFORE_OPERATOR = WarningCode(
+    'NULL_AWARE_BEFORE_OPERATOR',
+    "The left operand uses '?.', so its value can be null.",
+  );
+
+  ///  A condition in a control flow statement could evaluate to `null` because it
+  ///  uses the null-aware '?.' operator.
+  static const WarningCode NULL_AWARE_IN_CONDITION = WarningCode(
+    'NULL_AWARE_IN_CONDITION',
+    "The value of the '?.' operator can be 'null', which isn't appropriate in "
+        "a condition.",
+    correctionMessage:
+        "Try replacing the '?.' with a '.', testing the left-hand side for "
+        "null if necessary.",
+  );
+
+  ///  A condition in operands of a logical operator could evaluate to `null`
+  ///  because it uses the null-aware '?.' operator.
+  static const WarningCode NULL_AWARE_IN_LOGICAL_OPERATOR = WarningCode(
+    'NULL_AWARE_IN_LOGICAL_OPERATOR',
+    "The value of the '?.' operator can be 'null', which isn't appropriate as "
+        "an operand of a logical operator.",
+  );
+
   ///  This is the new replacement for [HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD].
   static const HintCode OVERRIDE_ON_NON_OVERRIDING_FIELD =
       HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD;
+
+  ///  It is not an error to call or tear-off a method, setter, or getter, or to
+  ///  read or write a field, on a receiver of static type `Never`.
+  ///  Implementations that provide feedback about dead or unreachable code are
+  ///  encouraged to indicate that any arguments to the invocation are
+  ///  unreachable.
+  ///
+  ///  It is not an error to apply an expression of type `Never` in the function
+  ///  position of a function call. Implementations that provide feedback about
+  ///  dead or unreachable code are encouraged to indicate that any arguments to
+  ///  the call are unreachable.
+  ///
+  ///  Parameters: none
+  static const WarningCode RECEIVER_OF_TYPE_NEVER = WarningCode(
+    'RECEIVER_OF_TYPE_NEVER',
+    "The receiver is of type 'Never', and will never complete with a value.",
+    correctionMessage:
+        "Try checking for throw expressions or type errors in the receiver",
+  );
+
+  ///  An error code indicating use of a removed lint rule.
+  ///
+  ///  Parameters:
+  ///  0: the rule name
+  ///  1: the SDK version in which the lint was removed
+  static const WarningCode REMOVED_LINT_USE = WarningCode(
+    'REMOVED_LINT_USE',
+    "'{0}' was removed in Dart '{1}'",
+    correctionMessage: "Remove the reference to '{0}'.",
+  );
+
+  ///  An error code indicating use of a removed lint rule.
+  ///
+  ///  Parameters:
+  ///  0: the rule name
+  ///  1: the SDK version in which the lint was removed
+  ///  2: the name of a replacing lint
+  static const WarningCode REPLACED_LINT_USE = WarningCode(
+    'REPLACED_LINT_USE',
+    "'{0}' was replaced by '{2}' in Dart '{1}'.",
+    correctionMessage: "Replace '{0}' with '{1}'.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the annotated function being invoked
+  ///  1: the name of the function containing the return
+  static const WarningCode RETURN_OF_DO_NOT_STORE = WarningCode(
+    'RETURN_OF_DO_NOT_STORE',
+    "'{0}' is annotated with 'doNotStore' and shouldn't be returned unless "
+        "'{1}' is also annotated.",
+    correctionMessage: "Annotate '{1}' with 'doNotStore'.",
+    hasPublishedDocs: true,
+  );
 
   ///  Parameters:
   ///  0: the return type as declared in the return statement

@@ -4,11 +4,12 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
+// Other-library declarations used by interface_class_part_test.dart.
+
 part of 'interface_class_part_test.dart';
 
 class A extends InterfaceClass {}
 
 class B implements InterfaceClass {
-  @override
   int foo = 1;
 }

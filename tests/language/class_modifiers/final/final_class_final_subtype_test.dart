@@ -13,7 +13,6 @@ final class FinalClass {
 }
 final class A extends FinalClass {}
 final class B implements FinalClass {
-  @override
   int foo = 1;
 }
 
@@ -21,18 +20,17 @@ final mixin FinalMixin {
   int foo = 0;
 }
 final class C implements FinalMixin {
-  @override
   int foo = 1;
 }
 final class AMixin with FinalMixin {}
 final class BMixin = Object with FinalMixin;
 
 // Used for trivial runtime tests of the final subtypes.
-class AConcrete extends A {}
-class BConcrete extends B {}
-class CConcrete extends C {}
-class AMixinConcrete extends AMixin {}
-class BMixinConcrete extends BMixin {}
+final class AConcrete extends A {}
+final class BConcrete extends B {}
+final class CConcrete extends C {}
+final class AMixinConcrete extends AMixin {}
+final class BMixinConcrete extends BMixin {}
 
 main() {
   Expect.equals(0, AConcrete().foo);

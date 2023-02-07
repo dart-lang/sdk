@@ -101,6 +101,7 @@ PatternVariableDeclaration
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: dynamic
+  patternTypeSchema: Object?
 ''');
   }
 }

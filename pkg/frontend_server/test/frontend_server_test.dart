@@ -54,7 +54,7 @@ class _MockedCompiler implements CompilerInterface {
       this.verifyRecompileDelta = nopVerifyRecompileDelta,
       this.verifyInvalidate = nopVerifyInvalidate,
       this.verifyAcceptLastDelta = nopVerify,
-      this.verifyResetIncrementalCompiler= nopVerify}) {}
+      this.verifyResetIncrementalCompiler = nopVerify}) {}
 
   @override
   void acceptLastDelta() {
@@ -128,7 +128,7 @@ void main() async {
         expect(entryPoint, equals('server.dart'));
         expect(opts['sdk-root'], equals('sdkroot'));
       };
-      final compiler = _MockedCompiler(verifyCompile : verify);
+      final compiler = _MockedCompiler(verifyCompile: verify);
       final List<String> args = <String>[
         'server.dart',
         '--sdk-root',
@@ -143,7 +143,7 @@ void main() async {
         expect(opts['sdk-root'], equals('sdkroot'));
         expect(opts['link-platform'], equals(true));
       };
-      final compiler = _MockedCompiler(verifyCompile : verify);
+      final compiler = _MockedCompiler(verifyCompile: verify);
       final List<String> args = <String>[
         'server.dart',
         '--sdk-root',
@@ -160,7 +160,7 @@ void main() async {
         expect(opts['link-platform'], equals(true));
         expect(opts['flutter-widget-cache'], equals(true));
       };
-      final compiler = _MockedCompiler(verifyCompile : verify);
+      final compiler = _MockedCompiler(verifyCompile: verify);
       final List<String> args = <String>[
         'server.dart',
         '--sdk-root',
@@ -184,7 +184,7 @@ void main() async {
         expect(opts['sdk-root'], equals('sdkroot'));
         compileCalled.sendPort.send(true);
       };
-      final compiler = _MockedCompiler(verifyCompile : verify);
+      final compiler = _MockedCompiler(verifyCompile: verify);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
       Future<int> result = starter(
@@ -196,7 +196,7 @@ void main() async {
       await compileCalled.first;
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
-      inputStreamController.close();
+      await inputStreamController.close();
     });
 
     test('compile one file to JavaScript', () async {
@@ -206,7 +206,7 @@ void main() async {
         expect(opts['sdk-root'], equals('sdkroot'));
         compileCalled.sendPort.send(true);
       };
-      final compiler = _MockedCompiler(verifyCompile : verify);
+      final compiler = _MockedCompiler(verifyCompile: verify);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
 
@@ -219,7 +219,7 @@ void main() async {
       await compileCalled.first;
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
-      inputStreamController.close();
+      await inputStreamController.close();
     });
   });
 
@@ -236,7 +236,7 @@ void main() async {
         expect(opts['sdk-root'], equals('sdkroot'));
         compileCalled.sendPort.send(true);
       };
-      final compiler = _MockedCompiler(verifyCompile : verify);
+      final compiler = _MockedCompiler(verifyCompile: verify);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
       Future<int> result = starter(
@@ -248,7 +248,7 @@ void main() async {
       await compileCalled.first;
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
-      inputStreamController.close();
+      await inputStreamController.close();
     });
 
     test('compile few files', () async {
@@ -259,7 +259,7 @@ void main() async {
         expect(opts['sdk-root'], equals('sdkroot'));
         compileCalled.sendPort.send(true);
       };
-      final compiler = _MockedCompiler(verifyCompile : verify);
+      final compiler = _MockedCompiler(verifyCompile: verify);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
       Future<int> result = starter(
@@ -272,7 +272,7 @@ void main() async {
       await compileCalled.first;
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
-      inputStreamController.close();
+      await inputStreamController.close();
     });
   });
 
@@ -297,7 +297,7 @@ void main() async {
         recompileDeltaCalled.sendPort.send(true);
       };
       final compiler = _MockedCompiler(
-        verifyInvalidate : verifyI, verifyRecompileDelta : verifyR);
+          verifyInvalidate: verifyI, verifyRecompileDelta: verifyR);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
 
@@ -312,7 +312,7 @@ void main() async {
 
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
-      inputStreamController.close();
+      await inputStreamController.close();
     });
 
     test('recompile one file with widget cache does not fail', () async {
@@ -330,7 +330,7 @@ void main() async {
       // The component will not contain the flutter framework sources so
       // this should no-op.
       final compiler = _MockedCompiler(
-        verifyRecompileDelta : verifyR, verifyInvalidate : verifyI);
+          verifyRecompileDelta: verifyR, verifyInvalidate: verifyI);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
 
@@ -343,7 +343,7 @@ void main() async {
       await recompileDeltaCalled.first;
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
-      inputStreamController.close();
+      await inputStreamController.close();
     });
 
     test('recompile few files with new entrypoint', () async {
@@ -360,7 +360,7 @@ void main() async {
         recompileDeltaCalled.sendPort.send(true);
       };
       final compiler = _MockedCompiler(
-        verifyRecompileDelta : verifyR, verifyInvalidate : verifyI);
+          verifyRecompileDelta: verifyR, verifyInvalidate: verifyI);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
 
@@ -374,7 +374,7 @@ void main() async {
       await recompileDeltaCalled.first;
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
-      inputStreamController.close();
+      await inputStreamController.close();
     });
 
     test('accept', () async {
@@ -382,7 +382,7 @@ void main() async {
       final verify = () {
         acceptCalled.sendPort.send(true);
       };
-      final compiler = _MockedCompiler(verifyAcceptLastDelta : verify);
+      final compiler = _MockedCompiler(verifyAcceptLastDelta: verify);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
       Future<int> result = starter(
@@ -394,7 +394,7 @@ void main() async {
       await acceptCalled.first;
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
-      inputStreamController.close();
+      await inputStreamController.close();
     });
 
     test('reset', () async {
@@ -402,7 +402,7 @@ void main() async {
       final verify = () {
         resetCalled.sendPort.send(true);
       };
-      final compiler = _MockedCompiler(verifyResetIncrementalCompiler : verify);
+      final compiler = _MockedCompiler(verifyResetIncrementalCompiler: verify);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
       Future<int> result = starter(
@@ -414,7 +414,7 @@ void main() async {
       await resetCalled.first;
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
-      inputStreamController.close();
+      await inputStreamController.close();
     });
 
     test('compile then recompile', () async {
@@ -444,9 +444,11 @@ void main() async {
         expect(entryPoint, equals(null));
         recompileDeltaCalled.sendPort.send(true);
       };
-      final compiler = _MockedCompiler(verifyCompile : verifyC,
-        verifyRecompileDelta : verifyR, verifyInvalidate : verifyI,
-        verifyAcceptLastDelta : verifyA);
+      final compiler = _MockedCompiler(
+          verifyCompile: verifyC,
+          verifyRecompileDelta: verifyR,
+          verifyInvalidate: verifyI,
+          verifyAcceptLastDelta: verifyA);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
 
@@ -462,7 +464,7 @@ void main() async {
       await recompileDeltaCalled.first;
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
-      inputStreamController.close();
+      await inputStreamController.close();
     });
   });
 
@@ -478,7 +480,7 @@ void main() async {
       tempDir = Directory.systemTemp.createTempSync();
     });
     tearDown(() {
-      tempDir.delete(recursive: true);
+      tempDir.deleteSync(recursive: true);
     });
 
     test('compile then accept', () async {
@@ -530,14 +532,14 @@ void main() async {
 
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
-      inputStreamController.close();
+      await inputStreamController.close();
     });
 
     group('compile with output path', () {
       final verify = (String entryPoint, ArgResults opts) {
         expect(opts['sdk-root'], equals('sdkroot'));
       };
-      final compiler = _MockedCompiler(verifyCompile : verify);
+      final compiler = _MockedCompiler(verifyCompile: verify);
       test('compile from command line', () async {
         final List<String> args = <String>[
           'server.dart',
@@ -570,7 +572,7 @@ void main() async {
     });
 
     tearDown(() {
-      tempDir.delete(recursive: true);
+      tempDir.deleteSync(recursive: true);
     });
 
     test('compile expression', () async {
@@ -1679,9 +1681,9 @@ class BarState extends State<FizzWidget> {
           try {
             await f(requestChannel);
           } finally {
-            requestChannel.sendRequest('stop', {});
+            unawaited(requestChannel.sendRequest('stop', {}));
             socket.destroy();
-            serverSocket.close();
+            await serverSocket.close();
             testFinished.complete();
           }
         });
@@ -3091,9 +3093,7 @@ class OutputParser {
       // Second boundaryKey indicates end of frontend server response
       expectSources = true;
       _receivedResults.add(Result(
-          s.length > bKey.length
-              ? s.substring(bKey.length + 1)
-              : null,
+          s.length > bKey.length ? s.substring(bKey.length + 1) : null,
           _receivedSources!));
       _boundaryKey = null;
     } else {

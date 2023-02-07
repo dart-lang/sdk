@@ -17,12 +17,16 @@ class A {
   final filledFactory6 = List<int?>.filled(2, null, growable: true);
   final filledFactory7 = List<int?>.filled(2, null, growable: false);
   final filledFactory8 = List<int?>.filled(2, null, growable: nonConstant());
+  final filledFactory9 = List<int?>.filled(2, growable: true, null);
+  final filledFactory10 = List<int?>.filled(2, growable: false, null);
   final generateFactory1 = List<int>.generate(2, (i) => i);
   final generateFactory2 = List<int>.generate(2, (i) => i, growable: true);
   final generateFactory3 = List<int>.generate(2, (i) => i, growable: false);
   final generateFactory4 =
       List<int>.generate(2, (i) => i, growable: nonConstant());
   final generateFactory5 = List<List<int>>.generate(2, (_) => <int>[]);
+  final generateFactory6 = List<int>.generate(2, growable: true, (i) => i);
+  final generateFactory7 = List<int>.generate(2, growable: false, (i) => i);
 }
 
 main() {
@@ -39,9 +43,13 @@ main() {
   print(x.filledFactory6);
   print(x.filledFactory7);
   print(x.filledFactory8);
+  print(x.filledFactory9);
+  print(x.filledFactory10);
   print(x.generateFactory1);
   print(x.generateFactory2);
   print(x.generateFactory3);
   print(x.generateFactory4);
   print(x.generateFactory5);
+  print(x.generateFactory6);
+  print(x.generateFactory7);
 }

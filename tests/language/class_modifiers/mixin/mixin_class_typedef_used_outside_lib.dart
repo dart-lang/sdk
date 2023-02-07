@@ -4,6 +4,9 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
+// Other-library declarations used by
+// mixin_class_typedef_used_outside_test.dart.
+
 mixin class MixinClass {
   int foo = 0;
 }

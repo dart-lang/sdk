@@ -4,10 +4,13 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
+// Library for having a `final` subtype on a `base` superclass outside its
+// library.
+
 base class BaseClass {
   int foo = 0;
 }
 
 base mixin BaseMixin {
-  int foo = 0; 
+  int foo = 0;
 }

@@ -4,6 +4,9 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
+// Other-library declarations used by 
+// base_class_typedef_used_outside_error_test.dart.
+
 base class BaseClass {
   int foo = 0;
 }

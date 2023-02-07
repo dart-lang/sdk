@@ -2988,7 +2988,7 @@ f(Never a, int b, int c) {
 }
 ''',
         expectedErrorsByNullability(nullable: [
-          error(HintCode.RECEIVER_OF_TYPE_NEVER, 29, 1),
+          error(WarningCode.RECEIVER_OF_TYPE_NEVER, 29, 1),
           error(HintCode.DEAD_CODE, 36, 7),
         ], legacy: [
           error(CompileTimeErrorCode.UNDEFINED_METHOD, 31, 5),

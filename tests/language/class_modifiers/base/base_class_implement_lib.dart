@@ -10,9 +10,16 @@ base class BaseClass {
   int foo = 0;
 }
 
-abstract class A implements BaseClass {}
+base class ClassForEnum {}
 
-class B implements BaseClass {
-  @override
+abstract base class A implements BaseClass {}
+
+base class AImpl implements A {
   int foo = 1;
 }
+
+base class B implements BaseClass {
+  int foo = 1;
+}
+
+enum EnumInside implements ClassForEnum { x }

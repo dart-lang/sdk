@@ -13,16 +13,17 @@ import 'interface_mixin_implement_lib.dart';
 abstract class AOutside implements InterfaceMixin {}
 
 class AOutsideImpl implements AOutside {
-  @override
   int foo = 1;
 }
 
 class BOutside implements InterfaceMixin {
-  @override
   int foo = 1;
 }
+
+enum EnumOutside implements MixinForEnum { x }
 
 main() {
   Expect.equals(1, AOutsideImpl().foo);
   Expect.equals(1, BOutside().foo);
+  Expect.equals(0, EnumOutside.x.index);
 }

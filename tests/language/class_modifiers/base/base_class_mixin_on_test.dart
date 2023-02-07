@@ -10,22 +10,22 @@
 import 'package:expect/expect.dart';
 import 'base_class_mixin_on_lib.dart';
 
-mixin MA on BaseClass {}
-mixin MB on BaseClass {}
+base mixin MA on BaseClass {}
+base mixin MB on BaseClass {}
 
-class ConcreteA extends A with MA, MB {
+base class ConcreteA extends A with MA, MB {
   int foo = 0;
 }
 
-mixin MC on BaseClass, BaseMixin {}
+base mixin MC on BaseClass, BaseMixin {}
 
-class ConcreteC extends C with MC {
+base class ConcreteC extends C with MC {
   int foo = 0;
 }
 
-mixin MCSingular on BaseMixin {}
+base mixin MCSingular on BaseMixin {}
 
-class ConcreteD extends D with MCSingular {
+base class ConcreteD extends D with MCSingular {
   int foo = 0;
 }
 

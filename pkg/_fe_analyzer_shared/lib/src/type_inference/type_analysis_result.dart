@@ -131,6 +131,18 @@ class MatchContext<Node extends Object, Expression extends Node,
       );
 }
 
+/// Container for the result of running type analysis on a pattern assignment.
+class PatternAssignmentAnalysisResult<Type extends Object>
+    extends SimpleTypeAnalysisResult<Type> {
+  /// The type schema of the pattern on the left hand size of the assignment.
+  final Type patternSchema;
+
+  PatternAssignmentAnalysisResult({
+    required this.patternSchema,
+    required super.type,
+  });
+}
+
 /// Container for the result of running type analysis on an expression that does
 /// not contain any null shorting.
 class SimpleTypeAnalysisResult<Type extends Object>

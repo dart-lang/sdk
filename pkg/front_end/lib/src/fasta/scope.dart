@@ -42,6 +42,9 @@ enum ScopeKind {
   /// Scope where the formal parameters of a function are declared
   formals,
 
+  /// Scope of a `for` statement
+  forStatement,
+
   /// Scope of a function body
   functionBody,
 

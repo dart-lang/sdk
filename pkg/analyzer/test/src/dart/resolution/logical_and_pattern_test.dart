@@ -107,6 +107,7 @@ PatternVariableDeclarationStatement
     expression: IntegerLiteral
       literal: 0
       staticType: int
+    patternTypeSchema: _
   semicolon: ;
 ''');
   }

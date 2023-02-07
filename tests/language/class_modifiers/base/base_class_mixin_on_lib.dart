@@ -4,14 +4,16 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
+// Other-library declarations used by base_class_mixin_on_test.dart.
+
 base class BaseClass {}
 
-abstract class A extends BaseClass {}
+abstract base class A extends BaseClass {}
 
-class B extends BaseClass {}
+base class B extends BaseClass {}
 
 base mixin BaseMixin {}
 
-class C extends BaseClass with BaseMixin {}
+base class C extends BaseClass with BaseMixin {}
 
-class D with BaseMixin {}
+base class D with BaseMixin {}

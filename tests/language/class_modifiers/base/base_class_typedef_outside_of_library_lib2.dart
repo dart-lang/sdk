@@ -4,6 +4,9 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
+// Other-library declarations used by
+// base_class_typedef_outside_of_library_test.dart
+
 import "base_class_typedef_outside_of_library_lib.dart";
 
 typedef ATypeDef = BaseClass;

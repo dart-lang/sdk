@@ -10,6 +10,6 @@ base class BaseClass {
   int foo = 0;
 }
 
-abstract class A extends BaseClass {}
+abstract base class A extends BaseClass {}
 
-class B extends BaseClass {}
+base class B extends BaseClass {}

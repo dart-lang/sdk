@@ -17,16 +17,9 @@ class OutsideB implements SealedClass {
 //                        ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'SealedClass' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
-  @override
   int nonAbstractFoo = 2;
-
-  @override
   int foo = 2;
-
-  @override
   int nonAbstractBar(int value) => value;
-
-  @override
   int bar(int value) => value;
 }
 
@@ -34,3 +27,8 @@ mixin OutsideMixin implements SealedClass {}
 //                            ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'SealedClass' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
+
+enum EnumOutside implements ClassForEnum { x }
+//                          ^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'ClassForEnum' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.

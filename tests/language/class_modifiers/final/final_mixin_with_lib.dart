@@ -10,6 +10,12 @@ final mixin FinalMixin {
   int foo = 0;
 }
 
-abstract class A with FinalMixin {}
+final mixin MixinForEnum {}
 
-class B with FinalMixin {}
+abstract final class A with FinalMixin {}
+
+final class AImpl extends A {}
+
+final class B with FinalMixin {}
+
+enum EnumInside with MixinForEnum { x }

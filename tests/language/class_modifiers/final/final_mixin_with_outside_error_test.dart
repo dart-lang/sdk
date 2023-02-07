@@ -8,12 +8,17 @@
 
 import 'final_mixin_with_lib.dart';
 
-abstract class AOutside with FinalMixin {}
-//                           ^^^^^^^^^^
+abstract final class AOutside with FinalMixin {}
+//                                 ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] unspecified
+// [cfe] The mixin 'FinalMixin' can't be mixed-in outside of its library because it's a final mixin.
 
-class BOutside with FinalMixin {}
-//                  ^^^^^^^^^^
+final class BOutside with FinalMixin {}
+//                        ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] unspecified
+// [cfe] The mixin 'FinalMixin' can't be mixed-in outside of its library because it's a final mixin.
+
+enum EnumOutside with MixinForEnum { x }
+//                    ^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The mixin 'MixinForEnum' can't be mixed-in outside of its library because it's a final mixin.

@@ -1275,7 +1275,7 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
         break;
       case _State.RECOMPILE_LIST:
         if (string == boundaryKey) {
-          compiler.recompileDelta(entryPoint: recompileEntryPoint);
+          await compiler.recompileDelta(entryPoint: recompileEntryPoint);
           state = _State.READY_FOR_INSTRUCTION;
         } else {
           compiler.invalidate(Uri.base.resolve(string));
@@ -1310,7 +1310,7 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
       case _State.COMPILE_EXPRESSION_IS_STATIC:
         if (string == 'true' || string == 'false') {
           compileExpressionRequest.isStatic = string == 'true';
-          compiler.compileExpression(
+          await compiler.compileExpression(
               compileExpressionRequest.expression,
               compileExpressionRequest.defs,
               compileExpressionRequest.defTypes,
@@ -1365,7 +1365,7 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
         break;
       case _State.COMPILE_EXPRESSION_TO_JS_EXPRESSION:
         compileExpressionToJsRequest.expression = string;
-        compiler.compileExpressionToJs(
+        await compiler.compileExpressionToJs(
             compileExpressionToJsRequest.libraryUri,
             compileExpressionToJsRequest.line,
             compileExpressionToJsRequest.column,

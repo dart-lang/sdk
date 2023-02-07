@@ -78,7 +78,7 @@ class FunctionExpressionInvocationResolver {
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
       _errorReporter.reportErrorForNode(
-          HintCode.RECEIVER_OF_TYPE_NEVER, function);
+          WarningCode.RECEIVER_OF_TYPE_NEVER, function);
       _unresolved(node, NeverTypeImpl.instance, whyNotPromotedList,
           contextType: contextType);
       return;

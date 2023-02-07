@@ -10,9 +10,16 @@ final class FinalClass {
   int foo = 0;
 }
 
-abstract class A implements FinalClass {}
+final class ClassForEnum {}
 
-class B implements FinalClass {
-  @override
+abstract final class A implements FinalClass {}
+
+final class AImpl implements A {
   int foo = 1;
 }
+
+final class B implements FinalClass {
+  int foo = 1;
+}
+
+enum EnumInside implements ClassForEnum { x }

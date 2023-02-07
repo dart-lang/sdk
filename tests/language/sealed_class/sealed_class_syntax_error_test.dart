@@ -54,6 +54,7 @@ sealed sealed class SealedDuplicateClass {}
 // [error column 1, length 6]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'sealed' isn't a type.
+// [cfe] Can't use 'sealed' because it is declared more than once.
 //     ^^^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
@@ -63,7 +64,36 @@ class SealedVariable {
     sealed var x = 2;
 //  ^^^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+// [cfe] Can't use 'sealed' because it is declared more than once.
 // [cfe] Expected ';' after this.
     return x;
   }
 }
+
+sealed extension StringExtension on String {}
+// [error column 1, length 6]
+// [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+// [cfe] 'sealed' isn't a type.
+// [cfe] Expected ';' after this.
+//     ^^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+// [cfe] Expected an identifier, but got 'extension'.
+
+sealed enum Enum { x }
+// [error column 1, length 6]
+// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+// [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
+// [cfe] 'sealed' is already declared in this scope.
+// [cfe] Expected ';' after this.
+// [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+
+sealed typedef EnumTypedef = Enum;
+// [error column 1, length 6]
+// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+// [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
+// [cfe] 'sealed' is already declared in this scope.
+// [cfe] Expected ';' after this.
+// [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.

@@ -4,11 +4,12 @@
 
 // SharedOptions=--enable-experiment=sealed-class
 
+// Other-library declarations used by sealed_class_part_test.dart.
+
 part of 'sealed_class_part_test.dart';
 
 class A extends SealedClass {}
 
 class B implements SealedClass {
-  @override
   int foo = 1;
 }

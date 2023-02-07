@@ -11,9 +11,12 @@ interface class InterfaceClass {
   int foo = 0;
 }
 
+interface class ClassForEnum {}
+
 abstract class A implements InterfaceClass {}
 
 class B implements InterfaceClass {
-  @override
   int foo = 1;
 }
+
+enum EnumInside implements ClassForEnum { x }

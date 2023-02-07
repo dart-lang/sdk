@@ -1095,19 +1095,23 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitPatternAssignment(PatternAssignment node) {
+  void visitPatternAssignment(covariant PatternAssignmentImpl node) {
     _writeln('PatternAssignment');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeType('patternTypeSchema', node.patternTypeSchema);
       _writeType('staticType', node.staticType);
     });
   }
 
   @override
-  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+  void visitPatternVariableDeclaration(
+    covariant PatternVariableDeclarationImpl node,
+  ) {
     _writeln('PatternVariableDeclaration');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeType('patternTypeSchema', node.patternTypeSchema);
     });
   }
 

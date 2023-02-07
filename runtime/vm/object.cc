@@ -1732,6 +1732,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     Class& cls = Class::Handle(zone);
     Type& type = Type::Handle(zone);
     Array& array = Array::Handle(zone);
+    WeakArray& weak_array = WeakArray::Handle(zone);
     Library& lib = Library::Handle(zone);
     TypeArguments& type_args = TypeArguments::Handle(zone);
 
@@ -1760,6 +1761,12 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
         GrowableObjectArray::type_arguments_offset(),
         RTN::GrowableObjectArray::type_arguments_offset());
     cls.set_num_type_arguments_unsafe(1);
+
+    // Initialize hash set for regexp_table_.
+    const intptr_t kInitialCanonicalRegExpSize = 4;
+    weak_array = HashTables::New<CanonicalRegExpSet>(
+        kInitialCanonicalRegExpSize, Heap::kOld);
+    object_store->set_regexp_table(weak_array);
 
     // Initialize hash set for canonical types.
     const intptr_t kInitialCanonicalTypeSize = 16;
@@ -27287,6 +27294,11 @@ bool RegExp::CanonicalizeEquals(const Instance& other) const {
     return false;
   }
   return true;
+}
+
+uint32_t RegExp::CanonicalizeHash() const {
+  // Must agree with RegExpKey::Hash.
+  return CombineHashes(String::Hash(pattern()), flags().value());
 }
 
 const char* RegExp::ToCString() const {

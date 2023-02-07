@@ -17,3 +17,8 @@ class BOutside with InterfaceMixin {}
 //                  ^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The mixin 'InterfaceMixin' can't be mixed-in outside of its library because it's an interface mixin.
+
+enum EnumOutside with MixinForEnum { x }
+//                    ^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The mixin 'MixinForEnum' can't be mixed-in outside of its library because it's an interface mixin.

@@ -10,9 +10,10 @@ base mixin BaseMixin {
   int foo = 0;
 }
 
-abstract class A implements BaseMixin {}
+base mixin MixinForEnum {}
 
-class B implements BaseMixin {
-  @override
+abstract base class A implements BaseMixin {}
+
+base class B implements BaseMixin {
   int foo = 1;
 }

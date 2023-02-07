@@ -55,7 +55,7 @@ m(x) {
   x?.a - '';
 }
 ''', [
-      error(HintCode.NULL_AWARE_BEFORE_OPERATOR, 9, 4),
+      error(WarningCode.NULL_AWARE_BEFORE_OPERATOR, 9, 4),
     ]);
   }
 

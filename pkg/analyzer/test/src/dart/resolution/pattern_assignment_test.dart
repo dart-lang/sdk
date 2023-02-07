@@ -111,6 +111,7 @@ PatternAssignment
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: List<int>
+  patternTypeSchema: List<num>
   staticType: List<int>
 ''');
   }
@@ -159,6 +160,7 @@ PatternAssignment
       leftParenthesis: (
       rightParenthesis: )
     staticType: A
+  patternTypeSchema: A
   staticType: A
 ''');
   }
@@ -183,6 +185,7 @@ PatternAssignment
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: int
+  patternTypeSchema: num
   staticType: int
 ''');
   }
@@ -217,6 +220,7 @@ PatternAssignment
     staticType: int
     typeArgumentTypes
       int
+  patternTypeSchema: int
   staticType: int
 ''');
   }
@@ -248,6 +252,7 @@ PatternAssignment
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: ({int foo})
+  patternTypeSchema: ({num foo})
   staticType: ({int foo})
 ''');
   }
@@ -289,6 +294,7 @@ PatternAssignment
           staticType: int
     rightParenthesis: )
     staticType: ({int a})
+  patternTypeSchema: ({int a})
   staticType: ({int a})
 ''');
   }
@@ -317,6 +323,7 @@ PatternAssignment
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: (int)
+  patternTypeSchema: (num)
   staticType: (int)
 ''');
   }

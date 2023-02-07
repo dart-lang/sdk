@@ -157,6 +157,12 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// See [assert_begin] for more information.
   void assert_end();
 
+  /// Call this method after visiting a reference to a variable inside a pattern
+  /// assignment.  [node] is the pattern, [variable] is the referenced variable,
+  /// and [writtenType] is the type that's written to that variable by the
+  /// assignment.
+  void assignedVariablePattern(Node node, Variable variable, Type writtenType);
+
   /// Call this method when the temporary variable holding the result of a
   /// pattern match is assigned to a user-accessible variable.  (Depending on
   /// the client's model, this might happen right after a variable pattern is
@@ -1051,6 +1057,12 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   @override
   void assert_end() {
     _wrap('assert_end()', () => _wrapped.assert_end());
+  }
+
+  @override
+  void assignedVariablePattern(Node node, Variable variable, Type writtenType) {
+    _wrap('assignedVariablePattern($node, $variable, $writtenType)',
+        () => _wrapped.assignedVariablePattern(node, variable, writtenType));
   }
 
   @override
@@ -3540,9 +3552,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   FlowModel<Type>? _unmatched;
 
   /// If a pattern is being analyzed, and the scrutinee is something that might
-  /// be type promoted as a consequence of the pattern match, reference to the
-  /// scrutinee.  Otherwise `null`.
-  ReferenceWithType<Type>? _scrutineeReference;
+  /// be relevant to type promotion as a consequence of the pattern match,
+  /// [EqualityInfo] object referring to the scrutinee.  Otherwise `null`.
+  EqualityInfo<Type>? _scrutineeInfo;
 
   /// If a pattern is being analyzed, and the scrutinee is something that might
   /// be type promoted as a consequence of the pattern match, [SsaNode]
@@ -3654,6 +3666,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
+  void assignedVariablePattern(Node node, Variable variable, Type writtenType) {
+    _write(node, variable, writtenType, _scrutineeInfo?._expressionInfo);
+  }
+
+  @override
   void assignMatchedPatternVariable(Variable variable, int promotionKey) {
     int mergedKey = promotionKeyStore.keyForVariable(variable);
     VariableModel<Type> info = _current.infoFor(promotionKey);
@@ -3753,7 +3770,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     // stores the matched value, and mark it as initialized.
     int promotionKey = promotionKeyStore.makeTemporaryKey();
     _current = _current.declare(promotionKey, true);
-    _initialize(promotionKey, matchedType, initializerExpression,
+    _initialize(promotionKey, matchedType, _scrutineeInfo?._expressionInfo,
         isFinal: isFinal,
         isLate: isLate,
         isImplicitlyTyped: isImplicitlyTyped,
@@ -3789,8 +3806,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   EqualityInfo<Type> equalityOperand_end(Expression operand, Type type) =>
-      new EqualityInfo<Type>._(
-          _getExpressionInfo(operand), type, _getExpressionReference(operand));
+      _computeEqualityInfo(operand, type);
 
   @override
   void equalityOperation_end(Expression wholeExpression,
@@ -3844,7 +3860,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     assert(_stack.isEmpty);
     assert(_current.reachable.parent == null);
     assert(_unmatched == null);
-    assert(_scrutineeReference == null);
+    assert(_scrutineeInfo == null);
     assert(_scrutineeSsaNode == null);
     assert(_scrutineeType == null);
   }
@@ -3979,7 +3995,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     // Note that we don't need to take any action to handle
     // `before(E1) = matched(P)`, because we store both the "matched" state for
     // patterns and the "before" state for expressions in `_current`.
-    _pushScrutinee(_getExpressionReference(scrutinee), scrutineeType);
+    _pushScrutinee(scrutinee, scrutineeType);
     _pushPattern();
   }
 
@@ -4081,7 +4097,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       required bool isImplicitlyTyped}) {
     Type unpromotedType = operations.variableType(variable);
     int variableKey = promotionKeyStore.keyForVariable(variable);
-    _initialize(variableKey, matchedType, initializerExpression,
+    _initialize(
+        variableKey, matchedType, _getExpressionInfo(initializerExpression),
         isFinal: isFinal,
         isLate: isLate,
         isImplicitlyTyped: isImplicitlyTyped,
@@ -4290,7 +4307,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     if (!matchedTypeIsStrictlyNonNullable) {
       FlowModel<Type> ifTrue =
           _current.tryMarkNonNullable(this, matchedValueReference).ifTrue;
-      ReferenceWithType<Type>? scrutineeReference = _scrutineeReference;
+      ReferenceWithType<Type>? scrutineeReference = _scrutineeInfo?._reference;
       // If there's a scrutinee, and its value is known to be the same as that
       // of the synthetic cache variable, promote it too.
       if (scrutineeReference != null &&
@@ -4326,7 +4343,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void patternAssignment_afterRhs(Expression rhs, Type rhsType) {
-    _pushScrutinee(_getExpressionReference(rhs), rhsType);
+    _pushScrutinee(rhs, rhsType);
     _pushPattern();
   }
 
@@ -4362,7 +4379,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         this, matchedValueReference, requiredType);
     FlowModel<Type> ifTrue = promotionInfo.ifTrue;
     FlowModel<Type> ifFalse = promotionInfo.ifFalse;
-    ReferenceWithType<Type>? scrutineeReference = _scrutineeReference;
+    ReferenceWithType<Type>? scrutineeReference = _scrutineeInfo?._reference;
     // If there's a scrutinee, and its value is known to be the same as that of
     // the synthetic cache variable, promote it too.
     if (scrutineeReference != null &&
@@ -4385,7 +4402,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void patternVariableDeclaration_afterInitializer(
       Expression initializer, Type initializerType) {
-    _pushScrutinee(_getExpressionReference(initializer), initializerType);
+    _pushScrutinee(initializer, initializerType);
     _pushPattern();
   }
 
@@ -4521,7 +4538,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void switchStatement_expressionEnd(
       Statement? switchStatement, Expression scrutinee, Type scrutineeType) {
-    _pushScrutinee(_getExpressionReference(scrutinee), scrutineeType);
+    _pushScrutinee(scrutinee, scrutineeType);
     _current = _current.split();
     _SwitchStatementContext<Type> context = new _SwitchStatementContext<Type>(
         _current.reachable.parent!, _current, scrutineeType);
@@ -4689,22 +4706,14 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void write(Node node, Variable variable, Type writtenType,
       Expression? writtenExpression) {
-    Type unpromotedType = operations.variableType(variable);
-    int variableKey = promotionKeyStore.keyForVariable(variable);
-    ExpressionInfo<Type>? expressionInfo = writtenExpression == null
-        ? null
-        : _getExpressionInfo(writtenExpression);
-    SsaNode<Type> newSsaNode = new SsaNode<Type>(
-        expressionInfo is _TrivialExpressionInfo ? null : expressionInfo);
-    _current = _current.write(
-        this,
-        new DemoteViaExplicitWrite<Variable>(variable, node),
-        variableKey,
-        writtenType,
-        newSsaNode,
-        operations,
-        unpromotedType: unpromotedType);
+    _write(node, variable, writtenType, _getExpressionInfo(writtenExpression));
   }
+
+  /// Computes an [EqualityInfo] object to describe the expression [expression],
+  /// having static type [type].
+  EqualityInfo<Type> _computeEqualityInfo(Expression expression, Type type) =>
+      new EqualityInfo<Type>._(_getExpressionInfo(expression), type,
+          _getExpressionReference(expression));
 
   @override
   void _dumpState() {
@@ -4712,8 +4721,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     if (_unmatched != null) {
       print('  unmatched: $_unmatched');
     }
-    if (_scrutineeReference != null) {
-      print('  scrutineeReference: $_scrutineeReference');
+    if (_scrutineeInfo != null) {
+      print('  scrutineeInfo: $_scrutineeInfo');
     }
     if (_scrutineeSsaNode != null) {
       print('  scrutineeSsaNode: $_scrutineeSsaNode');
@@ -4869,22 +4878,21 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   void _initialize(
-      int promotionKey, Type matchedType, Expression? initializerExpression,
+      int promotionKey, Type matchedType, ExpressionInfo<Type>? expressionInfo,
       {required bool isFinal,
       required bool isLate,
       required bool isImplicitlyTyped,
       required Type unpromotedType}) {
-    ExpressionInfo<Type>? expressionInfo;
     if (isLate) {
-      // Don't get expression info for late variables, since we don't know when
+      // Don't use expression info for late variables, since we don't know when
       // they'll be initialized.
+      expressionInfo = null;
     } else if (isImplicitlyTyped && !respectImplicitlyTypedVarInitializers) {
       // If the language version is too old, SSA analysis has to ignore
       // initializer expressions for implicitly typed variables, in order to
       // preserve the buggy behavior of
       // https://github.com/dart-lang/language/issues/1785.
-    } else if (initializerExpression != null) {
-      expressionInfo = _getExpressionInfo(initializerExpression);
+      expressionInfo = null;
     }
     SsaNode<Type> newSsaNode = new SsaNode<Type>(
         expressionInfo is _TrivialExpressionInfo ? null : expressionInfo);
@@ -4942,7 +4950,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void _popScrutinee() {
     _ScrutineeContext<Type> context =
         _stack.removeLast() as _ScrutineeContext<Type>;
-    _scrutineeReference = context.previousScrutineeReference;
+    _scrutineeInfo = context.previousScrutineeInfo;
     _scrutineeSsaNode = context.previousScrutineeSsaNode;
     _scrutineeType = context.previousScrutineeType;
   }
@@ -4954,13 +4962,16 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _unmatched = _current.setUnreachable();
   }
 
-  void _pushScrutinee(
-      ReferenceWithType<Type>? scrutineeReference, Type scrutineeType) {
+  void _pushScrutinee(Expression? scrutinee, Type scrutineeType) {
+    EqualityInfo<Type>? scrutineeInfo = scrutinee == null
+        ? null
+        : _computeEqualityInfo(scrutinee, scrutineeType);
     _stack.add(new _ScrutineeContext<Type>(
-        previousScrutineeReference: _scrutineeReference,
+        previousScrutineeInfo: _scrutineeInfo,
         previousScrutineeSsaNode: _scrutineeSsaNode,
         previousScrutineeType: _scrutineeType));
-    _scrutineeReference = scrutineeReference;
+    _scrutineeInfo = scrutineeInfo;
+    ReferenceWithType<Type>? scrutineeReference = scrutineeInfo?._reference;
     _scrutineeSsaNode = scrutineeReference == null
         ? new SsaNode<Type>(null)
         : _current.infoFor(scrutineeReference.promotionKey).ssaNode;
@@ -4995,6 +5006,24 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       new ReferenceWithType<Type>(variableKey,
           _current.infoFor(variableKey).promotedTypes?.last ?? unpromotedType,
           isPromotable: true, isThisOrSuper: false);
+
+  /// Common logic for handling writes to variables, whether they occur as part
+  /// of an ordinary assignment or a pattern assignment.
+  void _write(Node node, Variable variable, Type writtenType,
+      ExpressionInfo<Type>? expressionInfo) {
+    Type unpromotedType = operations.variableType(variable);
+    int variableKey = promotionKeyStore.keyForVariable(variable);
+    SsaNode<Type> newSsaNode = new SsaNode<Type>(
+        expressionInfo is _TrivialExpressionInfo ? null : expressionInfo);
+    _current = _current.write(
+        this,
+        new DemoteViaExplicitWrite<Variable>(variable, node),
+        variableKey,
+        writtenType,
+        newSsaNode,
+        operations,
+        unpromotedType: unpromotedType);
+  }
 }
 
 /// Base class for objects representing constructs in the Dart programming
@@ -5181,6 +5210,9 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
 
   @override
   void assert_end() {}
+
+  @override
+  assignedVariablePattern(Node node, Variable variable, Type writtenType) {}
 
   @override
   void assignMatchedPatternVariable(Variable variable, int promotionKey) {}
@@ -5852,20 +5884,20 @@ class _PropertyReferenceWithType<Type extends Object>
 /// [_FlowContext] representing a construct that can contain one or more
 /// patterns, and thus has a scrutinee (for example a `switch` statement).
 class _ScrutineeContext<Type extends Object> extends _FlowContext {
-  final ReferenceWithType<Type>? previousScrutineeReference;
+  final EqualityInfo<Type>? previousScrutineeInfo;
 
   final SsaNode<Type>? previousScrutineeSsaNode;
 
   final Type? previousScrutineeType;
 
   _ScrutineeContext(
-      {required this.previousScrutineeReference,
+      {required this.previousScrutineeInfo,
       required this.previousScrutineeSsaNode,
       required this.previousScrutineeType});
 
   @override
   Map<String, Object?> get _debugFields => super._debugFields
-    ..['previousScrutineeReference'] = previousScrutineeReference
+    ..['previousScrutineeInfo'] = previousScrutineeInfo
     ..['previousScrutineeSsaNode'] = previousScrutineeSsaNode
     ..['previousScrutineeType'] = previousScrutineeType;
 

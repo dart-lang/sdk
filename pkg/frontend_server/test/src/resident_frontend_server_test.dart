@@ -91,7 +91,7 @@ void main() async {
     });
 
     tearDown(() async {
-      d.delete(recursive: true);
+      d.deleteSync(recursive: true);
       ResidentFrontendServer.compilers.clear();
     });
 

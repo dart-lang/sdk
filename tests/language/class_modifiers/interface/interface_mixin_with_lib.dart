@@ -10,6 +10,10 @@ interface mixin InterfaceMixin {
   int foo = 0;
 }
 
+interface mixin MixinForEnum {}
+
 abstract class A with InterfaceMixin {}
 
 class B with InterfaceMixin {}
+
+enum EnumInside implements MixinForEnum { x }

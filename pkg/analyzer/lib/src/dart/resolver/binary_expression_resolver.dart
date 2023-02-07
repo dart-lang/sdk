@@ -296,7 +296,7 @@ class BinaryExpressionResolver {
 
     if (identical(leftType, NeverTypeImpl.instance)) {
       _resolver.errorReporter.reportErrorForNode(
-        HintCode.RECEIVER_OF_TYPE_NEVER,
+        WarningCode.RECEIVER_OF_TYPE_NEVER,
         leftOperand,
       );
       return;

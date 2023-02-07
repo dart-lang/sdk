@@ -22,7 +22,7 @@ m(x) {
   assert (x?.a);
 }
 ''', [
-      error(HintCode.NULL_AWARE_IN_CONDITION, 17, 4),
+      error(WarningCode.NULL_AWARE_IN_CONDITION, 17, 4),
     ]);
   }
 
@@ -32,7 +32,7 @@ m(x) {
   return x?.a ? 0 : 1;
 }
 ''', [
-      error(HintCode.NULL_AWARE_IN_CONDITION, 16, 4),
+      error(WarningCode.NULL_AWARE_IN_CONDITION, 16, 4),
     ]);
   }
 
@@ -42,7 +42,7 @@ m(x) {
   do {} while (x?.a);
 }
 ''', [
-      error(HintCode.NULL_AWARE_IN_CONDITION, 22, 4),
+      error(WarningCode.NULL_AWARE_IN_CONDITION, 22, 4),
     ]);
   }
 
@@ -52,7 +52,7 @@ m(x) {
   for (var v = x; v?.a; v = v.next) {}
 }
 ''', [
-      error(HintCode.NULL_AWARE_IN_CONDITION, 25, 4),
+      error(WarningCode.NULL_AWARE_IN_CONDITION, 25, 4),
     ]);
   }
 
@@ -62,7 +62,7 @@ m(x) {
   if (x?.a) {}
 }
 ''', [
-      error(HintCode.NULL_AWARE_IN_CONDITION, 13, 4),
+      error(WarningCode.NULL_AWARE_IN_CONDITION, 13, 4),
     ]);
   }
 
@@ -72,7 +72,7 @@ m(x) {
   if ((x?.a)) {}
 }
 ''', [
-      error(HintCode.NULL_AWARE_IN_CONDITION, 13, 6),
+      error(WarningCode.NULL_AWARE_IN_CONDITION, 13, 6),
     ]);
   }
 
@@ -82,7 +82,7 @@ m(x) {
   while (x?.a) {}
 }
 ''', [
-      error(HintCode.NULL_AWARE_IN_CONDITION, 16, 4),
+      error(WarningCode.NULL_AWARE_IN_CONDITION, 16, 4),
     ]);
   }
 }

@@ -8,15 +8,19 @@
 
 import 'base_class_implement_lib.dart';
 
-abstract class AOutside implements BaseClass {}
-//                                 ^^^^^^^^^
+abstract base class AOutside implements BaseClass {}
+//                                      ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
-class BOutside implements BaseClass {
-//                        ^^^^^^^^^
+base class BOutside implements BaseClass {
+//                             ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
-  @override
   int foo = 1;
 }
+
+enum EnumOutside implements ClassForEnum { x }
+//                          ^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'ClassForEnum' can't be implemented outside of its library because it's a base class.

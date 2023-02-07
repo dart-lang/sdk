@@ -251,7 +251,9 @@ class ProgramBuilder {
         _nativeCodegenEnqueuer.hasInstantiatedNativeClasses ||
             _nativeData.isAllowInteropUsed;
 
-    assert(!needsNativeSupport || nativeClasses.isNotEmpty);
+    assert(!needsNativeSupport ||
+        nativeClasses.isNotEmpty ||
+        _nativeData.isAllowInteropUsed);
 
     List<js.TokenFinalizer> finalizers = [_task.metadataCollector];
     if (_namer is js.TokenFinalizer) {

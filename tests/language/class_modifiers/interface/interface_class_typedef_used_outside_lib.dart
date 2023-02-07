@@ -4,6 +4,9 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
+// Other-library declarations used by
+// interface_class_typedef_used_outside_error_test.dart.
+
 interface class InterfaceClass {
   int foo = 0;
 }

@@ -92,6 +92,6 @@ declare_args() {
   # The analyze_snapshot tool is only supported on 64 bit AOT builds running
   # under linux and android platforms
   build_analyze_snapshot =
-      (target_os == "linux" || target_os == "android") &&
+      (is_linux || is_android) &&
       (dart_target_arch == "x64" || dart_target_arch == "arm64")
 }

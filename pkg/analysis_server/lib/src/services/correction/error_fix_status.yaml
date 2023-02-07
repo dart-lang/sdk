@@ -1476,21 +1476,10 @@ HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW:
   status: needsFix
   notes: |-
     The fix is to replace `new` with `const`.
-HintCode.NULL_ARGUMENT_TO_NON_NULL_TYPE:
-  status: noFix
-  since: ~2.15
-HintCode.NULL_AWARE_BEFORE_OPERATOR:
-  status: noFix
-HintCode.NULL_AWARE_IN_CONDITION:
-  status: noFix
-HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR:
-  status: noFix
 HintCode.NULL_CHECK_ALWAYS_FAILS:
   status: needsFix
   notes: |-
     Remove the null check.
-HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE:
-  status: hasFix
 HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD:
   status: hasFix
 HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER:
@@ -1504,18 +1493,6 @@ HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT:
   notes: |-
     We should be able to convert the import into a `package:` import. At least
     some of the time.
-HintCode.RECEIVER_OF_TYPE_NEVER:
-  status: needsFix
-  notes: |-
-    We _could_ remove the thing being received (method invocation, etc.)
-HintCode.REMOVED_LINT_USE:
-  status: needsFix
-HintCode.REPLACED_LINT_USE:
-  status: needsFix
-HintCode.RETURN_OF_DO_NOT_STORE:
-  status: needsFix
-  notes: |-
-    The fix is to add the annotation to the enclosing function.
 HintCode.STRICT_RAW_TYPE:
   status: needsFix
   notes: |-
@@ -2774,6 +2751,29 @@ WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM:
   status: hasFix
 WarningCode.INVALID_SEALED_ANNOTATION:
   status: hasFix
+WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE:
+  status: hasFix
+WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE:
+  status: noFix
+  since: ~2.15
+WarningCode.NULL_AWARE_BEFORE_OPERATOR:
+  status: noFix
+WarningCode.NULL_AWARE_IN_CONDITION:
+  status: noFix
+WarningCode.NULL_AWARE_IN_LOGICAL_OPERATOR:
+  status: noFix
+WarningCode.RECEIVER_OF_TYPE_NEVER:
+  status: needsFix
+  notes: |-
+    We _could_ remove the thing being received (method invocation, etc.)
+WarningCode.REMOVED_LINT_USE:
+  status: needsFix
+WarningCode.REPLACED_LINT_USE:
+  status: needsFix
+WarningCode.RETURN_OF_DO_NOT_STORE:
+  status: needsFix
+  notes: |-
+    The fix is to add the annotation to the enclosing function.
 WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR:
   status: noFix
 WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR:

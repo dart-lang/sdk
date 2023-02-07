@@ -4,11 +4,12 @@
 
 // SharedOptions=--enable-experiment=class-modifiers
 
+// Other declarations used by base_class_part_test.dart.
+
 part of 'base_class_part_test.dart';
 
-class A extends BaseClass {}
+base class A extends BaseClass {}
 
-class B implements BaseClass {
-  @override
+base class B implements BaseClass {
   int foo = 1;
 }

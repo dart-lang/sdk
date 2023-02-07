@@ -420,7 +420,7 @@ Future<void> residentServerCleanup(
     ServerSocket server, File serverInfoFile) async {
   try {
     if (_cleanupHandler != null) {
-      _cleanupHandler!.cancel();
+      await _cleanupHandler!.cancel();
     }
   } catch (_) {
   } finally {
