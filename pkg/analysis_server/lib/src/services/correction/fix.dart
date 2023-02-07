@@ -1108,6 +1108,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     '{0}',
   );
+  static const REMOVE_NEW = FixKind(
+    'dart.fix.remove.new',
+    DartFixKindPriority.DEFAULT,
+    "Remove 'new' keyword",
+  );
   static const REMOVE_NON_NULL_ASSERTION = FixKind(
     'dart.fix.remove.nonNullAssertion',
     DartFixKindPriority.DEFAULT,
@@ -1689,11 +1694,6 @@ class DartFixKind {
     'dart.fix.updateSdkConstraints',
     DartFixKindPriority.DEFAULT,
     'Update the SDK constraints',
-  );
-  static const USE_CONST = FixKind(
-    'dart.fix.use.const',
-    DartFixKindPriority.DEFAULT,
-    'Change to constant',
   );
   static const USE_EFFECTIVE_INTEGER_DIVISION = FixKind(
     'dart.fix.use.effectiveIntegerDivision',

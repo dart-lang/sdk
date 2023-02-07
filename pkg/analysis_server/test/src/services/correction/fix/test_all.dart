@@ -245,7 +245,6 @@ import 'sort_constructor_first_test.dart' as sort_constructor_first_test;
 import 'sort_unnamed_constructor_first_test.dart'
     as sort_unnamed_constructor_first_test;
 import 'update_sdk_constraints_test.dart' as update_sdk_constraints;
-import 'use_const_test.dart' as use_const;
 import 'use_curly_braces_test.dart' as use_curly_braces;
 import 'use_effective_integer_division_test.dart'
     as use_effective_integer_division;
@@ -467,7 +466,6 @@ void main() {
     sort_combinators_test.main();
     sort_unnamed_constructor_first_test.main();
     update_sdk_constraints.main();
-    use_const.main();
     use_curly_braces.main();
     use_effective_integer_division.main();
     use_eq_eq_null.main();
