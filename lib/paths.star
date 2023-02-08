@@ -15,7 +15,7 @@ _STANDARD_PATHS = [
     "sdk_args.gni",
     # core libraries
     ".dart_tool/package_config.json",
-    "sdk/.+",
+    "sdk/lib/[^_].+",
     # testing
     _TEST_PY_PATHS,
     "tools/bots/test_matrix.json",
@@ -33,9 +33,16 @@ _VM_PATHS = _CFE_PATHS + [
     # VM sources
     "pkg/vm/.+",
     "runtime/.+",
+    "sdk/lib/_http/.+",
+    "sdk/lib/_internal/vm.+",
 ]
 
-_DART2JS_PATHS = _CFE_PATHS + [
+_WEB_PATHS = _CFE_PATHS + [
+    "sdk/lib/_js_interop/.+",
+    "sdk/lib/_internal/js.+",
+]
+
+_DART2JS_PATHS = _WEB_PATHS + [
     # compiler sources
     "pkg/(compiler|dart2js_tools|js_ast)/.+",
     "utils/compiler/.+",
@@ -43,7 +50,7 @@ _DART2JS_PATHS = _CFE_PATHS + [
     "pkg/(js|modular_test|sourcemap_testing)/.+",
 ]
 
-_DDC_PATHS = _CFE_PATHS + [
+_DDC_PATHS = _WEB_PATHS + [
     # compiler sources
     "pkg/(build_integration|dev_compiler|meta)/.+",
     "utils/dartdevc/.+",
@@ -63,6 +70,11 @@ _ANALYZER_PATHS = _STANDARD_PATHS + [
 
 _DART2WASM_PATHS = _CFE_PATHS + [
     "pkg/(dart2wasm|vm|wasm_builder|_js_interop_checks)/.+",
+    "sdk/lib/_internal/vm_shared/.+",
+    "sdk/lib/_internal/vm/lib/ffi_.+",
+    "sdk/lib/_internal/vm/lib/typed_data_patch.dart",
+    "sdk/lib/_internal/wasm.+",
+    "sdk/lib/_js_interop/.+",
 ]
 
 _RELEASE_PATHS = [
