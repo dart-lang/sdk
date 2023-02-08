@@ -563,6 +563,12 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitPatternAssignment(PatternAssignment node) => visitExpression(node);
 
   @override
+  R? visitPatternField(PatternField node) => visitNode(node);
+
+  @override
+  R? visitPatternFieldName(PatternFieldName node) => visitNode(node);
+
+  @override
   R? visitPatternVariableDeclaration(PatternVariableDeclaration node) =>
       visitNode(node);
 
@@ -588,13 +594,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitRecordPattern(RecordPattern node) => visitDartPattern(node);
-
-  @override
-  R? visitRecordPatternField(RecordPatternField node) => visitNode(node);
-
-  @override
-  R? visitRecordPatternFieldName(RecordPatternFieldName node) =>
-      visitNode(node);
 
   @override
   R? visitRecordTypeAnnotation(RecordTypeAnnotation node) =>
@@ -1456,6 +1455,18 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitPatternField(PatternField node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitPatternFieldName(PatternFieldName node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitPatternVariableDeclaration(PatternVariableDeclaration node) {
     node.visitChildren(this);
     return null;
@@ -1500,18 +1511,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitRecordPattern(RecordPattern node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R? visitRecordPatternField(RecordPatternField node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R? visitRecordPatternFieldName(RecordPatternFieldName node) {
     node.visitChildren(this);
     return null;
   }
@@ -2133,6 +2132,12 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitPatternAssignment(PatternAssignment node) => null;
 
   @override
+  R? visitPatternField(PatternField node) => null;
+
+  @override
+  R? visitPatternFieldName(PatternFieldName node) => null;
+
+  @override
   R? visitPatternVariableDeclaration(PatternVariableDeclaration node) => null;
 
   @override
@@ -2158,11 +2163,8 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitRecordPattern(RecordPattern node) => null;
 
-  @override
-  R? visitRecordPatternField(RecordPatternField node) => null;
-
-  @override
-  R? visitRecordPatternFieldName(RecordPatternFieldName node) => null;
+  @Deprecated('Use visitPatternField() instead')
+  void visitRecordPatternField(RecordPatternField node) {}
 
   @override
   R? visitRecordTypeAnnotation(RecordTypeAnnotation node) => null;
@@ -2664,6 +2666,12 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitPatternAssignment(PatternAssignment node) => _throw(node);
 
   @override
+  R? visitPatternField(PatternField node) => _throw(node);
+
+  @override
+  R? visitPatternFieldName(PatternFieldName node) => _throw(node);
+
+  @override
   R? visitPatternVariableDeclaration(PatternVariableDeclaration node) =>
       _throw(node);
 
@@ -2689,12 +2697,6 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitRecordPattern(RecordPattern node) => _throw(node);
-
-  @override
-  R? visitRecordPatternField(RecordPatternField node) => _throw(node);
-
-  @override
-  R? visitRecordPatternFieldName(RecordPatternFieldName node) => _throw(node);
 
   @override
   R? visitRecordTypeAnnotation(RecordTypeAnnotation node) => _throw(node);
@@ -3764,6 +3766,22 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitPatternField(PatternField node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitPatternField(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitPatternFieldName(PatternFieldName node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitPatternFieldName(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitPatternVariableDeclaration(PatternVariableDeclaration node) {
     stopwatch.start();
     T? result = _baseVisitor.visitPatternVariableDeclaration(node);
@@ -3824,22 +3842,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitRecordPattern(RecordPattern node) {
     stopwatch.start();
     T? result = _baseVisitor.visitRecordPattern(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
-  T? visitRecordPatternField(RecordPatternField node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitRecordPatternField(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
-  T? visitRecordPatternFieldName(RecordPatternFieldName node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitRecordPatternFieldName(node);
     stopwatch.stop();
     return result;
   }
@@ -4573,6 +4575,12 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R? visitPatternAssignment(PatternAssignment node) => visitNode(node);
 
   @override
+  R? visitPatternField(PatternField node) => visitNode(node);
+
+  @override
+  R? visitPatternFieldName(PatternFieldName node) => visitNode(node);
+
+  @override
   R? visitPatternVariableDeclaration(PatternVariableDeclaration node) =>
       visitNode(node);
 
@@ -4598,13 +4606,6 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitRecordPattern(RecordPattern node) => visitNode(node);
-
-  @override
-  R? visitRecordPatternField(RecordPatternField node) => visitNode(node);
-
-  @override
-  R? visitRecordPatternFieldName(RecordPatternFieldName node) =>
-      visitNode(node);
 
   @override
   R? visitRecordTypeAnnotation(RecordTypeAnnotation node) => visitNode(node);

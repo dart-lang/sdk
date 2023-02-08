@@ -721,6 +721,12 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitPatternField(PatternField node) {
+    _addSuggestions(patternKeywords);
+    super.visitPatternField(node);
+  }
+
+  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (entity != node.identifier) {
       _addExpressionKeywords(node);
@@ -740,12 +746,6 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     _addExpressionKeywords(node);
     _addSuggestions([Keyword.DYNAMIC]);
     return super.visitRecordPattern(node);
-  }
-
-  @override
-  void visitRecordPatternField(RecordPatternField node) {
-    _addSuggestions(patternKeywords);
-    super.visitRecordPatternField(node);
   }
 
   @override

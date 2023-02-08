@@ -202,6 +202,20 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
+  Element? visitPatternField(PatternField node) {
+    return node.element;
+  }
+
+  @override
+  Element? visitPatternFieldName(PatternFieldName node) {
+    final parent = node.parent;
+    if (parent is PatternField) {
+      return parent.element;
+    }
+    return super.visitPatternFieldName(node);
+  }
+
+  @override
   Element? visitPostfixExpression(PostfixExpression node) {
     return node.staticElement;
   }
@@ -214,20 +228,6 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   @override
   Element? visitPrefixExpression(PrefixExpression node) {
     return node.staticElement;
-  }
-
-  @override
-  Element? visitRecordPatternField(RecordPatternField node) {
-    return node.fieldElement;
-  }
-
-  @override
-  Element? visitRecordPatternFieldName(RecordPatternFieldName node) {
-    final parent = node.parent;
-    if (parent is RecordPatternField) {
-      return parent.fieldElement;
-    }
-    return super.visitRecordPatternFieldName(node);
   }
 
   @override

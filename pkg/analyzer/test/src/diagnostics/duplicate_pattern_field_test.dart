@@ -1,4 +1,4 @@
-// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,12 +9,12 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(DuplicateRecordPatternFieldTest);
+    defineReflectiveTests(DuplicatePatternFieldTest);
   });
 }
 
 @reflectiveTest
-class DuplicateRecordPatternFieldTest extends PubPackageResolutionTest {
+class DuplicatePatternFieldTest extends PubPackageResolutionTest {
   test_objectPattern() async {
     await assertErrorsInCode(r'''
 void f(Object? x) {
@@ -24,7 +24,7 @@ void f(Object? x) {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_RECORD_PATTERN_FIELD, 57, 4,
+      error(CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD, 57, 4,
           contextMessages: [message('/home/test/lib/test.dart', 48, 4)]),
     ]);
   }
@@ -38,7 +38,7 @@ void f(x) {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_RECORD_PATTERN_FIELD, 45, 3,
+      error(CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD, 45, 3,
           contextMessages: [message('/home/test/lib/test.dart', 37, 3)]),
     ]);
   }
@@ -52,7 +52,7 @@ void f(x) {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_RECORD_PATTERN_FIELD, 45, 1,
+      error(CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD, 45, 1,
           contextMessages: [message('/home/test/lib/test.dart', 37, 3)]),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 50, 3),
     ]);
@@ -68,7 +68,7 @@ void f(x) {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 42, 3),
-      error(CompileTimeErrorCode.DUPLICATE_RECORD_PATTERN_FIELD, 47, 3,
+      error(CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD, 47, 3,
           contextMessages: [message('/home/test/lib/test.dart', 37, 1)]),
     ]);
   }
@@ -82,7 +82,7 @@ void f(Object? x) {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_RECORD_PATTERN_FIELD, 53, 3,
+      error(CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD, 53, 3,
           contextMessages: [message('/home/test/lib/test.dart', 45, 3)]),
     ]);
   }
@@ -96,7 +96,7 @@ void f(({int foo}) x) {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_RECORD_PATTERN_FIELD, 57, 3,
+      error(CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD, 57, 3,
           contextMessages: [message('/home/test/lib/test.dart', 49, 3)]),
     ]);
   }

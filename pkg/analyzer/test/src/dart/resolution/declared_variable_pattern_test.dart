@@ -151,15 +151,15 @@ ObjectPattern
     type: int
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: sign
         colon: :
       pattern: DeclaredVariablePattern
         name: a
         declaredElement: hasImplicitType isFinal a@63
           type: int
-      fieldElement: dart:core::@class::int::@getter::sign
+      element: dart:core::@class::int::@getter::sign
   rightParenthesis: )
 ''');
   }
@@ -195,12 +195,12 @@ void f() {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
+    PatternField
       pattern: DeclaredVariablePattern
         name: a
         declaredElement: hasImplicitType isFinal a@54
           type: int
-      fieldElement: <null>
+      element: <null>
   rightParenthesis: )
   matchedValueType: (int)
 ''');

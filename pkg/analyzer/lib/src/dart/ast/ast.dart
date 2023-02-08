@@ -3602,7 +3602,7 @@ class DeclaredVariablePatternImpl extends VariablePatternImpl
       var parent = current.parent;
       if (parent is MapPatternEntry) {
         parent = parent.parent;
-      } else if (parent is RecordPatternFieldImpl) {
+      } else if (parent is PatternFieldImpl) {
         parent = parent.parent;
       } else if (parent is RestPatternElementImpl) {
         parent = parent.parent;
@@ -9933,10 +9933,10 @@ mixin NullShortableExpressionImpl implements NullShortableExpression {
 /// An object pattern.
 ///
 ///    objectPattern ::=
-///        [Identifier] [TypeArgumentList]? '(' [RecordPatternField] ')'
+///        [Identifier] [TypeArgumentList]? '(' [PatternField] ')'
 @experimental
 class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
-  final NodeListImpl<RecordPatternFieldImpl> _fields = NodeListImpl._();
+  final NodeListImpl<PatternFieldImpl> _fields = NodeListImpl._();
 
   @override
   final Token leftParenthesis;
@@ -9950,7 +9950,7 @@ class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   ObjectPatternImpl({
     required this.type,
     required this.leftParenthesis,
-    required List<RecordPatternFieldImpl> fields,
+    required List<PatternFieldImpl> fields,
     required this.rightParenthesis,
   }) {
     _becomeParentOf(type);
@@ -9964,7 +9964,7 @@ class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   Token get endToken => rightParenthesis;
 
   @override
-  NodeList<RecordPatternFieldImpl> get fields => _fields;
+  NodeList<PatternFieldImpl> get fields => _fields;
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -9989,7 +9989,7 @@ class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
     resolverVisitor.analyzeObjectPattern(
       context,
       this,
-      fields: resolverVisitor.buildSharedRecordPatternFields(fields),
+      fields: resolverVisitor.buildSharedPatternFields(fields),
     );
   }
 
@@ -10386,6 +10386,81 @@ class PatternAssignmentImpl extends ExpressionImpl
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
     expression.accept(visitor);
+  }
+}
+
+/// A field in a record pattern.
+///
+///    patternField ::=
+///        [PatternFieldName]? [DartPattern]
+@experimental
+class PatternFieldImpl extends AstNodeImpl implements PatternField {
+  @override
+  Element? element;
+
+  @override
+  final PatternFieldNameImpl? name;
+
+  @override
+  final DartPatternImpl pattern;
+
+  PatternFieldImpl({required this.name, required this.pattern}) {
+    _becomeParentOf(name);
+    _becomeParentOf(pattern);
+  }
+
+  @override
+  Token get beginToken => name?.beginToken ?? pattern.beginToken;
+
+  @override
+  Token get endToken => pattern.endToken;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addNode('name', name)
+    ..addNode('pattern', pattern);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitPatternField(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    name?.accept(visitor);
+    pattern.accept(visitor);
+  }
+}
+
+/// A field name in a record pattern field.
+///
+///    patternFieldName ::=
+///        [Token]? ':'
+@experimental
+class PatternFieldNameImpl extends AstNodeImpl implements PatternFieldName {
+  @override
+  final Token colon;
+
+  @override
+  final Token? name;
+
+  PatternFieldNameImpl({required this.name, required this.colon});
+
+  @override
+  Token get beginToken => name ?? colon;
+
+  @override
+  Token get endToken => colon;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('name', name)
+    ..addToken('colon', colon);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitPatternFieldName(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    // There are no children to visit.
   }
 }
 
@@ -10952,90 +11027,13 @@ class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   }
 }
 
-/// A field in a record pattern.
-///
-///    recordPatternField ::=
-///        [RecordPatternFieldName]? [DartPattern]
-@experimental
-class RecordPatternFieldImpl extends AstNodeImpl implements RecordPatternField {
-  @override
-  Element? fieldElement;
-
-  @override
-  final RecordPatternFieldNameImpl? fieldName;
-
-  @override
-  final DartPatternImpl pattern;
-
-  RecordPatternFieldImpl({required this.fieldName, required this.pattern}) {
-    _becomeParentOf(fieldName);
-    _becomeParentOf(pattern);
-  }
-
-  @override
-  Token get beginToken => fieldName?.beginToken ?? pattern.beginToken;
-
-  @override
-  Token get endToken => pattern.endToken;
-
-  @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addNode('fieldName', fieldName)
-    ..addNode('pattern', pattern);
-
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitRecordPatternField(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    fieldName?.accept(visitor);
-    pattern.accept(visitor);
-  }
-}
-
-/// A field name in a record pattern field.
-///
-///    recordPatternField ::=
-///        [Token]? ':'
-@experimental
-class RecordPatternFieldNameImpl extends AstNodeImpl
-    implements RecordPatternFieldName {
-  @override
-  final Token colon;
-
-  @override
-  final Token? name;
-
-  RecordPatternFieldNameImpl({required this.name, required this.colon});
-
-  @override
-  Token get beginToken => name ?? colon;
-
-  @override
-  Token get endToken => colon;
-
-  @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('name', name)
-    ..addToken('colon', colon);
-
-  @override
-  E? accept<E>(AstVisitor<E> visitor) =>
-      visitor.visitRecordPatternFieldName(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    // There are no children to visit.
-  }
-}
-
 /// A record pattern.
 ///
 ///    recordPattern ::=
-///        '(' [RecordPatternField] (',' [RecordPatternField])* ')'
+///        '(' [PatternField] (',' [PatternField])* ')'
 @experimental
 class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
-  final NodeListImpl<RecordPatternFieldImpl> _fields = NodeListImpl._();
+  final NodeListImpl<PatternFieldImpl> _fields = NodeListImpl._();
 
   @override
   final Token leftParenthesis;
@@ -11048,7 +11046,7 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
 
   RecordPatternImpl({
     required this.leftParenthesis,
-    required List<RecordPatternFieldImpl> fields,
+    required List<PatternFieldImpl> fields,
     required this.rightParenthesis,
   }) {
     _fields._initialize(this, fields);
@@ -11061,7 +11059,7 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   Token get endToken => rightParenthesis;
 
   @override
-  NodeList<RecordPatternFieldImpl> get fields => _fields;
+  NodeList<PatternFieldImpl> get fields => _fields;
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -11075,7 +11073,7 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor.analyzeRecordPatternSchema(
-      fields: resolverVisitor.buildSharedRecordPatternFields(fields),
+      fields: resolverVisitor.buildSharedPatternFields(fields),
     );
   }
 
@@ -11088,7 +11086,7 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
     resolverVisitor.analyzeRecordPattern(
       context,
       this,
-      fields: resolverVisitor.buildSharedRecordPatternFields(fields),
+      fields: resolverVisitor.buildSharedPatternFields(fields),
     );
   }
 

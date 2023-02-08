@@ -138,13 +138,13 @@ PatternAssignment
       type: A
     leftParenthesis: (
     fields
-      RecordPatternField
-        fieldName: RecordPatternFieldName
+      PatternField
+        name: PatternFieldName
           colon: :
         pattern: AssignedVariablePattern
           name: foo
           element: self::@function::f::@parameter::foo
-        fieldElement: self::@class::A::@getter::foo
+        element: self::@class::A::@getter::foo
     rightParenthesis: )
   equals: =
   expression: InstanceCreationExpression
@@ -237,14 +237,14 @@ PatternAssignment
   pattern: RecordPattern
     leftParenthesis: (
     fields
-      RecordPatternField
-        fieldName: RecordPatternFieldName
+      PatternField
+        name: PatternFieldName
           name: foo
           colon: :
         pattern: AssignedVariablePattern
           name: a
           element: self::@function::f::@parameter::a
-        fieldElement: <null>
+        element: <null>
     rightParenthesis: )
     matchedValueType: ({int foo})
   equals: =
@@ -269,13 +269,13 @@ PatternAssignment
   pattern: RecordPattern
     leftParenthesis: (
     fields
-      RecordPatternField
-        fieldName: RecordPatternFieldName
+      PatternField
+        name: PatternFieldName
           colon: :
         pattern: AssignedVariablePattern
           name: a
           element: self::@function::f::@parameter::a
-        fieldElement: <null>
+        element: <null>
     rightParenthesis: )
     matchedValueType: ({int a})
   equals: =
@@ -311,11 +311,11 @@ PatternAssignment
   pattern: RecordPattern
     leftParenthesis: (
     fields
-      RecordPatternField
+      PatternField
         pattern: AssignedVariablePattern
           name: a
           element: self::@function::f::@parameter::a
-        fieldElement: <null>
+        element: <null>
     rightParenthesis: )
     matchedValueType: (int)
   equals: =

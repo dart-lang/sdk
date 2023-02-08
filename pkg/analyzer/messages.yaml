@@ -3597,7 +3597,7 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the variable
-  DUPLICATE_RECORD_PATTERN_FIELD:
+  DUPLICATE_PATTERN_FIELD:
     problemMessage: The field '{0}' is already matched in this pattern.
     correctionMessage: Try removing the duplicate field.
     comment: |-

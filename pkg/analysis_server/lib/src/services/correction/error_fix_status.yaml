@@ -394,8 +394,8 @@ CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE:
   status: needsFix
   notes: |-
     We can suggest names from the context, as in did you mean this?
-CompileTimeErrorCode.DUPLICATE_RECORD_PATTERN_FIELD:
-  status: noFix
+CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD:
+  status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_REST_ELEMENT_IN_PATTERN:
   status: noFix
   notes: |-

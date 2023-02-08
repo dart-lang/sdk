@@ -1155,18 +1155,18 @@ ForStatement
       pattern: RecordPattern
         leftParenthesis: (
         fields
-          RecordPatternField
+          PatternField
             pattern: DeclaredVariablePattern
               name: a
               declaredElement: hasImplicitType a@36
                 type: int
-            fieldElement: <null>
-          RecordPatternField
+            element: <null>
+          PatternField
             pattern: DeclaredVariablePattern
               name: b
               declaredElement: hasImplicitType b@39
                 type: bool
-            fieldElement: <null>
+            element: <null>
         rightParenthesis: )
         matchedValueType: (int, bool)
       equals: =
