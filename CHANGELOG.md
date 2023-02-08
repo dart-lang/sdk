@@ -1,5 +1,19 @@
 ## 3.0.0
 
+### Language
+
+- **Breaking Change** [#50902][]: Report a compile-time error for a `continue` statement
+  having an invalid target.
+
+  As per 18.15 of the language spec, it is a compile-time error for a `continue`
+  label to have a target which is not a loop (`for`, `do` and `while` statements)
+  or a `switch` member.
+
+  Breakage is mitigated by changing the code to have the `continue` label properly
+  target a valid labeled statement.
+
+[#50902]: https://github.com/dart-lang/sdk/issues/50902
+
 ### Libraries
 
 #### `dart:core`
