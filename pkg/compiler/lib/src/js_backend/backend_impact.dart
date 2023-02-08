@@ -399,8 +399,7 @@ class BackendImpacts {
 
   late final BackendImpact allowInterop = BackendImpact(
     staticUses: [
-      _commonElements.jsAllowInterop1!,
-      _commonElements.jsAllowInterop2!,
+      _commonElements.jsAllowInterop!,
     ],
     features: EnumSet<BackendFeature>.fromValues([
       BackendFeature.needToInitializeIsolateAffinityTag,

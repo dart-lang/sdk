@@ -34,7 +34,7 @@ bool _isJSLibrary(Library library) => _isLibrary(library, [
 bool isAllowInterop(Expression node) {
   if (node is StaticInvocation) {
     var target = node.target;
-    return _isLibrary(target.enclosingLibrary, ['dart:js']) &&
+    return _isLibrary(target.enclosingLibrary, ['dart:js_util']) &&
         target.name.text == 'allowInterop';
   }
   return false;

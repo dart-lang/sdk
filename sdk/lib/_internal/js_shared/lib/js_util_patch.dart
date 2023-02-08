@@ -8,7 +8,6 @@ import 'dart:_js_helper'
     show convertDartClosureToJS, assertInterop, assertInteropArgs;
 import 'dart:collection' show HashMap;
 import 'dart:async' show Completer;
-import 'dart:js_util';
 
 @patch
 dynamic jsify(Object object) {

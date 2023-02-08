@@ -150,10 +150,10 @@ typedef _PromiseFailureFunc = void Function(Object? error);
 Future<T> promiseToFuture<T>(Object jsPromise) {
   Completer<T> completer = Completer<T>();
 
-  final success = js.allowInterop<_PromiseSuccessFunc>((r) {
+  final success = allowInterop<_PromiseSuccessFunc>((r) {
     return completer.complete(r as FutureOr<T>?);
   });
-  final error = js.allowInterop<_PromiseFailureFunc>((e) {
+  final error = allowInterop<_PromiseFailureFunc>((e) {
     // Note that `completeError` expects a non-nullable error regardless of
     // whether null-safety is enabled, so a `NullRejectionException` is always
     // provided if the error is `null` or `undefined`.
@@ -257,3 +257,10 @@ Object? dartify(Object? object) {
 
   return convert(object);
 }
+
+/// This will be lowered to a a call to `_wrapDartCallback`.
+@patch
+F allowInterop<F extends Function>(F f) => throw UnimplementedError();
+
+@patch
+Function allowInteropCaptureThis(Function f) => throw UnimplementedError();

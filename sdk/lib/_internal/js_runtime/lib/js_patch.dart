@@ -9,7 +9,12 @@ import 'dart:typed_data' show TypedData;
 import 'dart:_foreign_helper' show JS, DART_CLOSURE_TO_JS;
 import 'dart:_interceptors' show DART_CLOSURE_PROPERTY_NAME;
 import 'dart:_internal' show patch;
-import 'dart:_js_helper' show Primitives, getIsolateAffinityTag, isJSFunction;
+import 'dart:_js_helper'
+    show
+        Primitives,
+        getIsolateAffinityTag,
+        isJSFunction,
+        JS_FUNCTION_PROPERTY_NAME;
 import 'dart:_js' show isBrowserObject, convertFromBrowserObject;
 
 @patch
@@ -370,8 +375,6 @@ final String _DART_OBJECT_PROPERTY_NAME =
 
 // property added to a JS object referencing its Dart-side JsObject proxy
 const _JS_OBJECT_PROPERTY_NAME = r'_$dart_jsObject';
-const _JS_FUNCTION_PROPERTY_NAME = r'$dart_jsFunction';
-const _JS_FUNCTION_PROPERTY_NAME_CAPTURE_THIS = r'_$dart_jsFunctionCaptureThis';
 
 @pragma('dart2js:tryInline')
 JsObject _castToJsObject(o) => JS<JsObject>('', '#', o);
@@ -431,7 +434,7 @@ Object? _convertToJS(Object? o) {
     return Primitives.lazyAsJsDate(o);
   }
   if (o is Function) {
-    return _getJsProxy(o, _JS_FUNCTION_PROPERTY_NAME, (o) {
+    return _getJsProxy(o, JS_FUNCTION_PROPERTY_NAME, (o) {
       var jsFunction = _convertDartFunction(o);
       // set a property on the JS closure referencing the Dart closure
       _defineProperty(jsFunction, DART_CLOSURE_PROPERTY_NAME, o);
@@ -501,72 +504,4 @@ Object _getDartProxy(o, String propertyName, JsObject createProxy(o)) {
     _defineProperty(o, propertyName, dartProxy);
   }
   return dartProxy;
-}
-
-_convertDartFunctionFast(Function f) {
-  var existing = JS('', '#.#', f, _JS_FUNCTION_PROPERTY_NAME);
-  if (existing != null) return existing;
-  var ret = JS(
-      'JavaScriptFunction',
-      '''
-        function(_call, f) {
-          return function() {
-            return _call(f, Array.prototype.slice.apply(arguments));
-          }
-        }(#, #)
-      ''',
-      DART_CLOSURE_TO_JS(_callDartFunctionFast),
-      f);
-  JS('', '#.# = #', ret, DART_CLOSURE_PROPERTY_NAME, f);
-  JS('', '#.# = #', f, _JS_FUNCTION_PROPERTY_NAME, ret);
-  return ret;
-}
-
-_convertDartFunctionFastCaptureThis(Function f) {
-  var existing = JS('', '#.#', f, _JS_FUNCTION_PROPERTY_NAME_CAPTURE_THIS);
-  if (existing != null) return existing;
-  var ret = JS(
-      'JavaScriptFunction',
-      '''
-        function(_call, f) {
-          return function() {
-            return _call(f, this,Array.prototype.slice.apply(arguments));
-          }
-        }(#, #)
-      ''',
-      DART_CLOSURE_TO_JS(_callDartFunctionFastCaptureThis),
-      f);
-  JS('', '#.# = #', ret, DART_CLOSURE_PROPERTY_NAME, f);
-  JS('', '#.# = #', f, _JS_FUNCTION_PROPERTY_NAME_CAPTURE_THIS, ret);
-  return ret;
-}
-
-_callDartFunctionFast(callback, List arguments) {
-  return Function.apply(callback, arguments);
-}
-
-_callDartFunctionFastCaptureThis(callback, self, List arguments) {
-  return Function.apply(callback, [self]..addAll(arguments));
-}
-
-@patch
-F allowInterop<F extends Function>(F f) {
-  if (isJSFunction(f)) {
-    // Already supports interop, just use the existing function.
-    return f;
-  } else {
-    return _convertDartFunctionFast(f);
-  }
-}
-
-@patch
-Function allowInteropCaptureThis(Function f) {
-  if (isJSFunction(f)) {
-    // Behavior when the function is already a JS function is unspecified.
-    throw ArgumentError(
-        "Function is already a JS function so cannot capture this.");
-    return f;
-  } else {
-    return _convertDartFunctionFastCaptureThis(f);
-  }
 }

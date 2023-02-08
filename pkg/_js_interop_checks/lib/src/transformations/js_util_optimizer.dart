@@ -89,8 +89,8 @@ class JsUtilOptimizer extends Transformer {
             .getTopLevelProcedure('dart:js_util', '_setPropertyUnchecked'),
         _jsTarget =
             _coreTypes.index.getTopLevelProcedure('dart:_foreign_helper', 'JS'),
-        _allowInteropTarget =
-            _coreTypes.index.getTopLevelProcedure('dart:js', 'allowInterop'),
+        _allowInteropTarget = _coreTypes.index
+            .getTopLevelProcedure('dart:js_util', 'allowInterop'),
         _allowedInteropJsUtilTargets = _allowedInteropJsUtilMembers.map(
             (member) =>
                 _coreTypes.index.getTopLevelProcedure('dart:js_util', member)),

@@ -30,21 +30,9 @@ class JsInteropClass {
   /*member: JsInteropClass.:*/
   external JsInteropClass();
 
-  /*member: JsInteropClass.method:
-   type=[
-    native:ApplicationCacheErrorEvent,
-    native:DomError,
-    native:DomException,
-    native:ErrorEvent,
+  /*member: JsInteropClass.method:type=[
     native:GenericClass<dynamic>,
-    native:JsInteropClass,
-    native:MediaError,
-    native:NavigatorUserMediaError,
-    native:OverconstrainedError,
-    native:PositionError,
-    native:SensorErrorEvent,
-    native:SpeechRecognitionError]
-  */
+    native:JsInteropClass]*/
   @JS()
   external double method();
 }

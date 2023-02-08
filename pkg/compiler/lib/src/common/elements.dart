@@ -139,8 +139,9 @@ abstract class CommonElements {
   late final LibraryEntity internalLibrary =
       _env.lookupLibrary(Uris.dart__internal, required: true)!;
 
-  /// The dart:js library.
-  late final LibraryEntity? dartJsLibrary = _env.lookupLibrary(Uris.dart_js);
+  /// The dart:js_util library.
+  late final LibraryEntity? dartJsUtilLibrary =
+      _env.lookupLibrary(Uris.dart_js_util);
 
   /// The package:js library.
   late final LibraryEntity? packageJsLibrary =
@@ -1039,21 +1040,9 @@ abstract class CommonElements {
         : objectClass;
   }
 
-  // From package:js
-  late final FunctionEntity? jsAllowInterop1 =
-      _findLibraryMember(dartJsLibrary, 'allowInterop', required: false);
-
-  // From dart:_js_annotations;
-  late final FunctionEntity? jsAllowInterop2 = _findLibraryMember(
-      dartJsAnnotationsLibrary, 'allowInterop',
-      required: false);
-
-  /// Returns `true` if [function] is `allowInterop`.
-  ///
-  /// This function can come from either `package:js` or `dart:_js_annotations`.
-  bool isJsAllowInterop(FunctionEntity function) {
-    return function == jsAllowInterop1 || function == jsAllowInterop2;
-  }
+  // From dart:js_util
+  late final FunctionEntity? jsAllowInterop =
+      _findLibraryMember(dartJsUtilLibrary, 'allowInterop', required: false);
 
   bool isCreateInvocationMirrorHelper(MemberEntity member) {
     return member.isTopLevel &&

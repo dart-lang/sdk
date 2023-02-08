@@ -113,10 +113,3 @@ class JsArray<E> extends JsObject with ListMixin<E> {
   @patch
   void sort([int compare(E a, E b)?]) => throw UnimplementedError();
 }
-
-/// This will be lowered to a call to `_wrapDartCallback`.
-@patch
-F allowInterop<F extends Function>(F f) => throw UnimplementedError();
-
-@patch
-Function allowInteropCaptureThis(Function f) => throw UnimplementedError();
