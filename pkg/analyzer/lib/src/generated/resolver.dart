@@ -41,7 +41,6 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/error/inference_error_listener.dart';
 import 'package:analyzer/src/dart/resolver/annotation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/binary_expression_resolver.dart';
@@ -182,12 +181,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   final ErrorReporter errorReporter;
-
-  /// The [InferenceErrorListener] to which inference errors should be reported,
-  /// or `null` if such errors shouldn't be reported.
-  ///
-  /// If `null`, errors will still be reported to [errorReporter].
-  final InferenceErrorListener? inferenceErrorListener;
 
   /// The class containing the AST nodes being visited,
   /// or `null` if we are not in the scope of a class.
@@ -336,8 +329,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
       {FeatureSet? featureSet,
-      required FlowAnalysisHelper flowAnalysisHelper,
-      InferenceErrorListener? inferenceErrorListener})
+      required FlowAnalysisHelper flowAnalysisHelper})
       : this._(
             inheritanceManager,
             definingLibrary,
@@ -345,7 +337,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             definingLibrary.typeSystem,
             typeProvider as TypeProviderImpl,
             errorListener,
-            inferenceErrorListener,
             featureSet ??
                 definingLibrary.context.analysisOptions.contextFeatures,
             flowAnalysisHelper,
@@ -359,7 +350,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       this.typeSystem,
       this.typeProvider,
       AnalysisErrorListener errorListener,
-      this.inferenceErrorListener,
       FeatureSet featureSet,
       this.flowAnalysis,
       this._migratableAstInfoProvider,
@@ -3558,27 +3548,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (error == null) {
       return;
     }
-    switch (error.kind) {
-      case TopLevelInferenceErrorKind.none:
-        break;
-      case TopLevelInferenceErrorKind.couldNotInfer:
-        errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.COULD_NOT_INFER, node.name, error.arguments);
-        break;
-      case TopLevelInferenceErrorKind.dependencyCycle:
-        var argumentsText = error.arguments.join(', ');
-        errorReporter.reportErrorForToken(CompileTimeErrorCode.TOP_LEVEL_CYCLE,
-            node.name, [node.name.lexeme, argumentsText]);
-        break;
-      case TopLevelInferenceErrorKind.inferenceFailureOnInstanceCreation:
-        errorReporter.reportErrorForToken(
-            HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
-            node.name,
-            error.arguments);
-        break;
-      case TopLevelInferenceErrorKind.overrideNoCombinedSuperSignature:
-        // TODO: Handle this case.
-        break;
+    if (error.kind == TopLevelInferenceErrorKind.dependencyCycle) {
+      var argumentsText = error.arguments.join(', ');
+      errorReporter.reportErrorForToken(CompileTimeErrorCode.TOP_LEVEL_CYCLE,
+          node.name, [node.name.lexeme, argumentsText]);
     }
   }
 
@@ -3610,11 +3583,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var inferrer = GenericInferrer(
       typeSystem,
       typeParameters,
-      inferenceErrorListener: InferenceErrorReporter(
-        errorReporter,
-        isNonNullableByDefault: typeSystem.isNonNullableByDefault,
-        isGenericMetadataEnabled: genericMetadataIsEnabled,
-      ),
       errorNode: errorNode,
       genericMetadataIsEnabled: genericMetadataIsEnabled,
     );
@@ -3974,7 +3942,6 @@ class ResolverVisitorForMigration extends ResolverVisitor {
       Source source,
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
-      InferenceErrorListener? inferenceErrorListener,
       TypeSystemImpl typeSystem,
       FeatureSet featureSet,
       MigrationResolutionHooks migrationResolutionHooks)
@@ -3986,7 +3953,6 @@ class ResolverVisitorForMigration extends ResolverVisitor {
             typeSystem,
             typeProvider as TypeProviderImpl,
             errorListener,
-            inferenceErrorListener,
             featureSet,
             FlowAnalysisHelperForMigration(
                 typeSystem, migrationResolutionHooks, featureSet),

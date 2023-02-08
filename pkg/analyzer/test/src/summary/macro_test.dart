@@ -962,6 +962,7 @@ library
         fields
           foo @-1
             type: int
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -1187,6 +1188,7 @@ library
     topLevelVariables
       static final x @-1
         type: int
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get x @-1
         returnType: int

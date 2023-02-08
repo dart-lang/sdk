@@ -378,20 +378,28 @@ library
     topLevelVariables
       static vPlusIntInt @4
         type: int
+        shouldUseTypeForInitializerInference: false
       static vPlusIntDouble @29
         type: double
+        shouldUseTypeForInitializerInference: false
       static vPlusDoubleInt @59
         type: double
+        shouldUseTypeForInitializerInference: false
       static vPlusDoubleDouble @89
         type: double
+        shouldUseTypeForInitializerInference: false
       static vMinusIntInt @124
         type: int
+        shouldUseTypeForInitializerInference: false
       static vMinusIntDouble @150
         type: double
+        shouldUseTypeForInitializerInference: false
       static vMinusDoubleInt @181
         type: double
+        shouldUseTypeForInitializerInference: false
       static vMinusDoubleDouble @212
         type: double
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vPlusIntInt @-1
         returnType: int
@@ -462,6 +470,7 @@ library
     topLevelVariables
       static V @4
         type: num
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get V @-1
         returnType: num
@@ -485,10 +494,13 @@ library
     topLevelVariables
       static a @4
         type: int
+        shouldUseTypeForInitializerInference: false
       static t1 @15
         type: int
+        shouldUseTypeForInitializerInference: false
       static t2 @33
         type: int
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get a @-1
         returnType: int
@@ -526,10 +538,13 @@ library
     topLevelVariables
       static a @4
         type: List<int>
+        shouldUseTypeForInitializerInference: false
       static t1 @17
         type: int
+        shouldUseTypeForInitializerInference: false
       static t2 @38
         type: int
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get a @-1
         returnType: List<int>
@@ -572,6 +587,7 @@ library
         fields
           f @16
             type: int
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -585,10 +601,13 @@ library
     topLevelVariables
       static a @25
         type: A
+        shouldUseTypeForInitializerInference: false
       static t1 @42
         type: int
+        shouldUseTypeForInitializerInference: false
       static t2 @62
         type: int
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get a @-1
         returnType: A
@@ -632,6 +651,7 @@ library
         fields
           f @16
             type: int
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -650,10 +670,13 @@ library
     topLevelVariables
       static c @56
         type: C
+        shouldUseTypeForInitializerInference: true
       static t1 @63
         type: int
+        shouldUseTypeForInitializerInference: false
       static t2 @83
         type: int
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get c @-1
         returnType: C
@@ -697,6 +720,7 @@ library
         fields
           f @16
             type: int
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -715,8 +739,10 @@ library
     topLevelVariables
       static t1 @76
         type: int
+        shouldUseTypeForInitializerInference: false
       static t2 @101
         type: int
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get t1 @-1
         returnType: int
@@ -754,8 +780,10 @@ library
     topLevelVariables
       static uValue @80
         type: Future<int> Function()
+        shouldUseTypeForInitializerInference: false
       static uFuture @121
         type: Future<int> Function()
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get uValue @-1
         returnType: Future<int> Function()
@@ -793,14 +821,19 @@ library
     topLevelVariables
       static vBitXor @4
         type: int
+        shouldUseTypeForInitializerInference: false
       static vBitAnd @25
         type: int
+        shouldUseTypeForInitializerInference: false
       static vBitOr @46
         type: int
+        shouldUseTypeForInitializerInference: false
       static vBitShiftLeft @66
         type: int
+        shouldUseTypeForInitializerInference: false
       static vBitShiftRight @94
         type: int
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vBitXor @-1
         returnType: int
@@ -858,6 +891,7 @@ library
         fields
           a @16
             type: int
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -874,10 +908,13 @@ library
     topLevelVariables
       static vSetField @39
         type: A
+        shouldUseTypeForInitializerInference: false
       static vInvokeMethod @71
         type: A
+        shouldUseTypeForInitializerInference: false
       static vBoth @105
         type: A
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vSetField @-1
         returnType: A
@@ -944,6 +981,7 @@ library
         fields
           f @16
             type: int
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -958,6 +996,7 @@ library
         fields
           a @39
             type: A
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -972,6 +1011,7 @@ library
         fields
           b @58
             type: B
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -986,28 +1026,40 @@ library
         fields
           a @77
             type: A
+            shouldUseTypeForInitializerInference: true
           b @94
             type: B
+            shouldUseTypeForInitializerInference: true
           c @111
             type: C
+            shouldUseTypeForInitializerInference: true
           t01 @130
             type: int
+            shouldUseTypeForInitializerInference: false
           t02 @147
             type: int
+            shouldUseTypeForInitializerInference: false
           t03 @166
             type: int
+            shouldUseTypeForInitializerInference: false
           t11 @187
             type: int
+            shouldUseTypeForInitializerInference: false
           t12 @210
             type: int
+            shouldUseTypeForInitializerInference: false
           t13 @235
             type: int
+            shouldUseTypeForInitializerInference: false
           t21 @262
             type: int
+            shouldUseTypeForInitializerInference: false
           t22 @284
             type: int
+            shouldUseTypeForInitializerInference: false
           t23 @308
             type: int
+            shouldUseTypeForInitializerInference: false
         constructors
           synthetic @-1
         accessors
@@ -1115,6 +1167,7 @@ library
     topLevelVariables
       static V @4
         type: num
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get V @-1
         returnType: num
@@ -1137,8 +1190,10 @@ library
     topLevelVariables
       static vEq @4
         type: bool
+        shouldUseTypeForInitializerInference: false
       static vNotEq @22
         type: bool
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vEq @-1
         returnType: bool
@@ -1170,10 +1225,12 @@ library
         typeInferenceError: dependencyCycle
           arguments: [a, b]
         type: dynamic
+        shouldUseTypeForInitializerInference: false
       static b @21
         typeInferenceError: dependencyCycle
           arguments: [a, b]
         type: dynamic
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -1204,6 +1261,7 @@ library
         typeInferenceError: dependencyCycle
           arguments: [a]
         type: dynamic
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -1227,10 +1285,13 @@ library
     topLevelVariables
       static a @4
         type: List<num>
+        shouldUseTypeForInitializerInference: false
       static b0 @22
         type: num
+        shouldUseTypeForInitializerInference: false
       static b1 @37
         type: num
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get a @-1
         returnType: List<num>
@@ -1274,6 +1335,7 @@ library
     topLevelVariables
       static x @21
         type: int
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get x @-1
         returnType: int
@@ -1300,6 +1362,7 @@ library
         fields
           f @16
             type: int
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -1313,6 +1376,7 @@ library
     topLevelVariables
       static x @29
         type: int
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get x @-1
         returnType: int
@@ -1343,6 +1407,7 @@ library
     topLevelVariables
       static x @21
         type: int
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get x @-1
         returnType: int
@@ -1372,6 +1437,7 @@ library
     topLevelVariables
       static x @21
         type: int
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get x @-1
         returnType: int
@@ -1398,6 +1464,7 @@ library
         fields
           f @16
             type: int
+            shouldUseTypeForInitializerInference: false
         constructors
           synthetic @-1
         accessors
@@ -1411,6 +1478,7 @@ library
     topLevelVariables
       static x @29
         type: int
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get x @-1
         returnType: int
@@ -1441,6 +1509,7 @@ library
     topLevelVariables
       static x @21
         type: int
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get x @-1
         returnType: int
@@ -1469,6 +1538,7 @@ library
         fields
           f @16
             type: int
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -1483,6 +1553,7 @@ library
         fields
           static t @44
             type: int
+            shouldUseTypeForInitializerInference: false
         constructors
           synthetic @-1
         accessors
@@ -1512,6 +1583,7 @@ library
         fields
           b @17
             type: bool
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -1525,8 +1597,10 @@ library
     topLevelVariables
       static c @24
         type: C
+        shouldUseTypeForInitializerInference: true
       static x @31
         type: bool
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get c @-1
         returnType: C
@@ -1562,6 +1636,7 @@ library
         fields
           b @17
             type: bool
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -1580,8 +1655,10 @@ library
     topLevelVariables
       static c @57
         type: C
+        shouldUseTypeForInitializerInference: true
       static x @64
         type: bool
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get c @-1
         returnType: C
@@ -1617,6 +1694,7 @@ library
         fields
           b @17
             type: bool
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -1635,6 +1713,7 @@ library
     topLevelVariables
       static x @74
         type: bool
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get x @-1
         returnType: bool
@@ -1681,8 +1760,10 @@ library
     topLevelVariables
       static x @70
         type: int
+        shouldUseTypeForInitializerInference: false
       static y @89
         type: int
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get x @-1
         returnType: int
@@ -1719,16 +1800,22 @@ library
     topLevelVariables
       static vFuture @25
         type: Future<int>
+        shouldUseTypeForInitializerInference: false
       static v_noParameters_inferredReturnType @60
         type: int Function()
+        shouldUseTypeForInitializerInference: false
       static v_hasParameter_withType_inferredReturnType @110
         type: int Function(String)
+        shouldUseTypeForInitializerInference: false
       static v_hasParameter_withType_returnParameter @177
         type: String Function(String)
+        shouldUseTypeForInitializerInference: false
       static v_async_returnValue @240
         type: Future<int> Function()
+        shouldUseTypeForInitializerInference: false
       static v_async_returnFuture @282
         type: Future<int> Function()
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vFuture @-1
         returnType: Future<int>
@@ -1786,6 +1873,7 @@ library
     topLevelVariables
       static v @4
         type: int
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get v @-1
         returnType: int
@@ -1809,8 +1897,10 @@ library
     topLevelVariables
       static vHasTypeArgument @22
         type: int
+        shouldUseTypeForInitializerInference: false
       static vNoTypeArgument @55
         type: dynamic
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vHasTypeArgument @-1
         returnType: int
@@ -1846,8 +1936,10 @@ library
     topLevelVariables
       static vOkArgumentType @29
         type: String
+        shouldUseTypeForInitializerInference: false
       static vWrongArgumentType @57
         type: String
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vOkArgumentType @-1
         returnType: String
@@ -1900,6 +1992,7 @@ library
         fields
           static staticClassVariable @118
             type: int
+            shouldUseTypeForInitializerInference: false
           synthetic static staticGetter @-1
             type: int
         constructors
@@ -1928,22 +2021,31 @@ library
     topLevelVariables
       static topLevelVariable @44
         type: int
+        shouldUseTypeForInitializerInference: false
       static r_topLevelFunction @280
         type: String Function(int)
+        shouldUseTypeForInitializerInference: false
       static r_topLevelVariable @323
         type: int
+        shouldUseTypeForInitializerInference: false
       static r_topLevelGetter @366
         type: int
+        shouldUseTypeForInitializerInference: false
       static r_staticClassVariable @405
         type: int
+        shouldUseTypeForInitializerInference: false
       static r_staticGetter @456
         type: int
+        shouldUseTypeForInitializerInference: false
       static r_staticClassMethod @493
         type: String Function(int)
+        shouldUseTypeForInitializerInference: false
       static instanceOfA @540
         type: A
+        shouldUseTypeForInitializerInference: false
       static r_instanceClassMethod @567
         type: String Function(int)
+        shouldUseTypeForInitializerInference: false
       synthetic static topLevelGetter @-1
         type: int
     accessors
@@ -2041,6 +2143,7 @@ library
             typeInferenceError: dependencyCycle
               arguments: [a, b]
             type: dynamic
+            shouldUseTypeForInitializerInference: false
         constructors
           synthetic @-1
         accessors
@@ -2057,6 +2160,7 @@ library
             typeInferenceError: dependencyCycle
               arguments: [a, b]
             type: dynamic
+            shouldUseTypeForInitializerInference: false
         constructors
           synthetic @-1
         accessors
@@ -2070,6 +2174,7 @@ library
     topLevelVariables
       static c @72
         type: dynamic
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get c @-1
         returnType: dynamic
@@ -2099,6 +2204,7 @@ library
             typeInferenceError: dependencyCycle
               arguments: [a, b]
             type: dynamic
+            shouldUseTypeForInitializerInference: false
         constructors
           synthetic @-1
         accessors
@@ -2114,8 +2220,10 @@ library
         typeInferenceError: dependencyCycle
           arguments: [a, b]
         type: dynamic
+        shouldUseTypeForInitializerInference: false
       static c @49
         type: dynamic
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get b @-1
         returnType: dynamic
@@ -2149,16 +2257,20 @@ library
         typeInferenceError: dependencyCycle
           arguments: [a, b, c]
         type: dynamic
+        shouldUseTypeForInitializerInference: false
       static final b @19
         typeInferenceError: dependencyCycle
           arguments: [a, b, c]
         type: dynamic
+        shouldUseTypeForInitializerInference: false
       static final c @32
         typeInferenceError: dependencyCycle
           arguments: [a, b, c]
         type: dynamic
+        shouldUseTypeForInitializerInference: false
       static final d @45
         type: dynamic
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -2206,6 +2318,7 @@ library
     topLevelVariables
       static a @15
         type: A
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get a @-1
         returnType: A
@@ -2229,8 +2342,10 @@ library
     topLevelVariables
       static s @25
         type: String
+        shouldUseTypeForInitializerInference: false
       static h @49
         type: int
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get s @-1
         returnType: String
@@ -2264,10 +2379,13 @@ library
     topLevelVariables
       static d @8
         type: dynamic
+        shouldUseTypeForInitializerInference: true
       static s @15
         type: String
+        shouldUseTypeForInitializerInference: false
       static h @37
         type: int
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get d @-1
         returnType: dynamic
@@ -2304,8 +2422,10 @@ library
     topLevelVariables
       static a @4
         type: double
+        shouldUseTypeForInitializerInference: false
       static b @17
         type: bool
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get a @-1
         returnType: double
@@ -2365,12 +2485,16 @@ library
     topLevelVariables
       static vObject @4
         type: List<Object>
+        shouldUseTypeForInitializerInference: false
       static vNum @37
         type: List<num>
+        shouldUseTypeForInitializerInference: false
       static vNumEmpty @64
         type: List<num>
+        shouldUseTypeForInitializerInference: false
       static vInt @89
         type: List<int>
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vObject @-1
         returnType: List<Object>
@@ -2415,10 +2539,13 @@ library
     topLevelVariables
       static vInt @4
         type: List<int>
+        shouldUseTypeForInitializerInference: false
       static vNum @26
         type: List<num>
+        shouldUseTypeForInitializerInference: false
       static vObject @47
         type: List<Object>
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vInt @-1
         returnType: List<int>
@@ -2470,14 +2597,19 @@ library
     topLevelVariables
       static vObjectObject @4
         type: Map<Object, Object>
+        shouldUseTypeForInitializerInference: false
       static vComparableObject @50
         type: Map<Comparable<int>, Object>
+        shouldUseTypeForInitializerInference: false
       static vNumString @109
         type: Map<num, String>
+        shouldUseTypeForInitializerInference: false
       static vNumStringEmpty @149
         type: Map<num, String>
+        shouldUseTypeForInitializerInference: false
       static vIntString @188
         type: Map<int, String>
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vObjectObject @-1
         returnType: Map<Object, Object>
@@ -2529,10 +2661,13 @@ library
     topLevelVariables
       static vIntString @4
         type: Map<int, String>
+        shouldUseTypeForInitializerInference: false
       static vNumString @39
         type: Map<num, String>
+        shouldUseTypeForInitializerInference: false
       static vIntObject @76
         type: Map<int, Object>
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vIntString @-1
         returnType: Map<int, String>
@@ -2584,14 +2719,19 @@ library
     topLevelVariables
       static a @4
         type: bool
+        shouldUseTypeForInitializerInference: false
       static b @18
         type: bool
+        shouldUseTypeForInitializerInference: false
       static vEq @32
         type: bool
+        shouldUseTypeForInitializerInference: false
       static vAnd @50
         type: bool
+        shouldUseTypeForInitializerInference: false
       static vOr @69
         type: bool
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get a @-1
         returnType: bool
@@ -2675,10 +2815,13 @@ library
     topLevelVariables
       static instanceOfA @43
         type: A
+        shouldUseTypeForInitializerInference: false
       static v1 @70
         type: String
+        shouldUseTypeForInitializerInference: false
       static v2 @96
         type: String
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get instanceOfA @-1
         returnType: A
@@ -2724,26 +2867,37 @@ library
     topLevelVariables
       static vModuloIntInt @4
         type: int
+        shouldUseTypeForInitializerInference: false
       static vModuloIntDouble @31
         type: double
+        shouldUseTypeForInitializerInference: false
       static vMultiplyIntInt @63
         type: int
+        shouldUseTypeForInitializerInference: false
       static vMultiplyIntDouble @92
         type: double
+        shouldUseTypeForInitializerInference: false
       static vMultiplyDoubleInt @126
         type: double
+        shouldUseTypeForInitializerInference: false
       static vMultiplyDoubleDouble @160
         type: double
+        shouldUseTypeForInitializerInference: false
       static vDivideIntInt @199
         type: double
+        shouldUseTypeForInitializerInference: false
       static vDivideIntDouble @226
         type: double
+        shouldUseTypeForInitializerInference: false
       static vDivideDoubleInt @258
         type: double
+        shouldUseTypeForInitializerInference: false
       static vDivideDoubleDouble @290
         type: double
+        shouldUseTypeForInitializerInference: false
       static vFloorDivide @327
         type: int
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vModuloIntInt @-1
         returnType: int
@@ -2837,10 +2991,13 @@ library
     topLevelVariables
       static a @4
         type: int
+        shouldUseTypeForInitializerInference: false
       static vEq @15
         type: bool
+        shouldUseTypeForInitializerInference: false
       static vNotEq @46
         type: bool
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get a @-1
         returnType: int
@@ -2876,6 +3033,7 @@ library
     topLevelVariables
       static V @4
         type: int
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get V @-1
         returnType: int
@@ -2902,16 +3060,22 @@ library
     topLevelVariables
       static vInt @4
         type: int
+        shouldUseTypeForInitializerInference: false
       static vDouble @18
         type: double
+        shouldUseTypeForInitializerInference: false
       static vIncInt @37
         type: int
+        shouldUseTypeForInitializerInference: false
       static vDecInt @59
         type: int
+        shouldUseTypeForInitializerInference: false
       static vIncDouble @81
         type: double
+        shouldUseTypeForInitializerInference: false
       static vDecDouble @109
         type: double
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vInt @-1
         returnType: int
@@ -2973,16 +3137,22 @@ library
     topLevelVariables
       static vInt @4
         type: List<int>
+        shouldUseTypeForInitializerInference: false
       static vDouble @20
         type: List<double>
+        shouldUseTypeForInitializerInference: false
       static vIncInt @41
         type: int
+        shouldUseTypeForInitializerInference: false
       static vDecInt @66
         type: int
+        shouldUseTypeForInitializerInference: false
       static vIncDouble @91
         type: double
+        shouldUseTypeForInitializerInference: false
       static vDecDouble @122
         type: double
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vInt @-1
         returnType: List<int>
@@ -3044,16 +3214,22 @@ library
     topLevelVariables
       static vInt @4
         type: int
+        shouldUseTypeForInitializerInference: false
       static vDouble @18
         type: double
+        shouldUseTypeForInitializerInference: false
       static vIncInt @37
         type: int
+        shouldUseTypeForInitializerInference: false
       static vDecInt @59
         type: int
+        shouldUseTypeForInitializerInference: false
       static vIncDouble @81
         type: double
+        shouldUseTypeForInitializerInference: false
       static vDecInt @109
         type: double
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vInt @-1
         returnType: int
@@ -3133,16 +3309,22 @@ library
     topLevelVariables
       static vInt @4
         type: List<int>
+        shouldUseTypeForInitializerInference: false
       static vDouble @20
         type: List<double>
+        shouldUseTypeForInitializerInference: false
       static vIncInt @41
         type: int
+        shouldUseTypeForInitializerInference: false
       static vDecInt @66
         type: int
+        shouldUseTypeForInitializerInference: false
       static vIncDouble @91
         type: double
+        shouldUseTypeForInitializerInference: false
       static vDecInt @122
         type: double
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vInt @-1
         returnType: List<int>
@@ -3199,6 +3381,7 @@ library
     topLevelVariables
       static vNot @4
         type: bool
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vNot @-1
         returnType: bool
@@ -3222,10 +3405,13 @@ library
     topLevelVariables
       static vNegateInt @4
         type: int
+        shouldUseTypeForInitializerInference: false
       static vNegateDouble @25
         type: double
+        shouldUseTypeForInitializerInference: false
       static vComplement @51
         type: int
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vNegateInt @-1
         returnType: int
@@ -3269,6 +3455,7 @@ library
         fields
           static d @21
             type: D
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -3283,6 +3470,7 @@ library
         fields
           i @42
             type: int
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -3296,6 +3484,7 @@ library
     topLevelVariables
       static final x @53
         type: int
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get x @-1
         returnType: int
@@ -3329,6 +3518,7 @@ library
         fields
           i @54
             type: int
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -3342,6 +3532,7 @@ library
     topLevelVariables
       static x @63
         type: int
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get x @-1
         returnType: int
@@ -3366,12 +3557,16 @@ library
     topLevelVariables
       static vLess @4
         type: bool
+        shouldUseTypeForInitializerInference: false
       static vLessOrEqual @23
         type: bool
+        shouldUseTypeForInitializerInference: false
       static vGreater @50
         type: bool
+        shouldUseTypeForInitializerInference: false
       static vGreaterOrEqual @72
         type: bool
+        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vLess @-1
         returnType: bool
@@ -3431,6 +3626,7 @@ library
         fields
           x @25
             type: int
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -3470,6 +3666,7 @@ library
         fields
           f @16
             type: int
+            shouldUseTypeForInitializerInference: false
         constructors
           @25
             parameters
@@ -3511,10 +3708,13 @@ library
         fields
           x @25
             type: int
+            shouldUseTypeForInitializerInference: true
           y @34
             type: int
+            shouldUseTypeForInitializerInference: true
           z @43
             type: int
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -3545,6 +3745,7 @@ library
         fields
           x @77
             type: int
+            shouldUseTypeForInitializerInference: true
           synthetic y @-1
             type: int
           synthetic z @-1
@@ -3586,6 +3787,7 @@ library
         fields
           x @29
             type: dynamic
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -3602,6 +3804,7 @@ library
         fields
           x @63
             type: dynamic
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -3639,10 +3842,13 @@ library
         fields
           x @26
             type: E
+            shouldUseTypeForInitializerInference: true
           y @33
             type: E
+            shouldUseTypeForInitializerInference: true
           z @40
             type: E
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -3676,6 +3882,7 @@ library
         fields
           x @80
             type: T
+            shouldUseTypeForInitializerInference: true
           synthetic y @-1
             type: T
           synthetic z @-1
@@ -3717,6 +3924,7 @@ library
         fields
           x @25
             type: dynamic
+            shouldUseTypeForInitializerInference: false
         constructors
           synthetic @-1
         accessors
@@ -3733,6 +3941,7 @@ library
         fields
           x @59
             type: dynamic
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -3763,6 +3972,7 @@ library
         fields
           x @25
             type: num
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -3779,6 +3989,7 @@ library
         fields
           x @59
             type: num
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -3832,6 +4043,7 @@ library
         fields
           x @89
             type: int
+            shouldUseTypeForInitializerInference: true
           synthetic y @-1
             type: int
           synthetic z @-1
@@ -3902,6 +4114,7 @@ library
         fields
           x @92
             type: T
+            shouldUseTypeForInitializerInference: true
           synthetic y @-1
             type: T
           synthetic z @-1
@@ -4189,8 +4402,10 @@ library
         fields
           x @148
             type: dynamic
+            shouldUseTypeForInitializerInference: false
           final y @159
             type: int
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -4358,6 +4573,7 @@ library
         fields
           x @108
             type: int
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -4527,6 +4743,7 @@ library
         fields
           x @113
             type: int
+            shouldUseTypeForInitializerInference: true
           synthetic y @-1
             type: int
           synthetic z @-1
@@ -4769,6 +4986,7 @@ library
         fields
           x @94
             type: int
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -4843,10 +5061,13 @@ library
         fields
           t1 @16
             type: int
+            shouldUseTypeForInitializerInference: false
           t2 @30
             type: double
+            shouldUseTypeForInitializerInference: false
           t3 @46
             type: dynamic
+            shouldUseTypeForInitializerInference: false
         constructors
           synthetic @-1
         accessors
@@ -5398,6 +5619,7 @@ library
         fields
           m @16
             type: int
+            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors

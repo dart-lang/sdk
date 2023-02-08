@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -47,7 +48,11 @@ class VariableDeclarationResolver {
       _resolver.flowAnalysis.flow?.lateInitializer_begin(node);
     }
 
-    _resolver.analyzeExpression(initializer, element.type);
+    final contextType = element is! PropertyInducingElementImpl ||
+            element.shouldUseTypeForInitializerInference
+        ? element.type
+        : UnknownInferredType.instance;
+    _resolver.analyzeExpression(initializer, contextType);
     initializer = _resolver.popRewrite()!;
     var whyNotPromoted =
         _resolver.flowAnalysis.flow?.whyNotPromoted(initializer);

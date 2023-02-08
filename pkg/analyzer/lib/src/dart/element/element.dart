@@ -4952,27 +4952,33 @@ class Modifier implements Comparable<Modifier> {
 
   static const Modifier PROMOTABLE = Modifier('IS_PROMOTABLE', 23);
 
+  /// Indicates whether the type of a [PropertyInducingElementImpl] should be
+  /// used to infer the initializer. We set it to `false` if the type was
+  /// inferred from the initializer itself.
+  static const Modifier SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE =
+      Modifier('SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE', 24);
+
   /// Indicates that the modifier 'sealed' was applied to the element.
-  static const Modifier SEALED = Modifier('SEALED', 24);
+  static const Modifier SEALED = Modifier('SEALED', 25);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 25);
+  static const Modifier SETTER = Modifier('SETTER', 26);
 
   /// See [TypeParameterizedElement.isSimplyBounded].
-  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 26);
+  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 27);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 27);
+  static const Modifier STATIC = Modifier('STATIC', 28);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 28);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 29);
 
   /// Indicates that the element was appended to this enclosing element to
   /// simulate temporary the effect of applying augmentation.
-  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 29);
+  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 30);
 
   static const List<Modifier> values = [
     ABSTRACT,
@@ -5935,7 +5941,9 @@ abstract class PropertyInducingElementImpl
 
   /// Initialize a newly created synthetic element to have the given [name] and
   /// [offset].
-  PropertyInducingElementImpl(super.name, super.offset);
+  PropertyInducingElementImpl(super.name, super.offset) {
+    setModifier(Modifier.SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE, true);
+  }
 
   @override
   bool get isConstantEvaluated => true;
@@ -5958,6 +5966,14 @@ abstract class PropertyInducingElementImpl
     } else {
       return this;
     }
+  }
+
+  bool get shouldUseTypeForInitializerInference {
+    return hasModifier(Modifier.SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE);
+  }
+
+  set shouldUseTypeForInitializerInference(bool value) {
+    setModifier(Modifier.SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE, value);
   }
 
   @override
@@ -5999,7 +6015,9 @@ abstract class PropertyInducingElementImpl
     }
 
     // We must be linking, and the type has not been set yet.
-    return _type = typeInference!.perform();
+    _type = typeInference!.perform();
+    shouldUseTypeForInitializerInference = false;
+    return _type!;
   }
 
   /// Return `true` if this variable needs the setter.

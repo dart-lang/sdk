@@ -93,7 +93,9 @@ class C<P extends num> {
 
 var c = C([]);
 ''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 78, 1),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 82, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 82, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 82, 1)]),
     ]);
   }
 }
