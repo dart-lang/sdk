@@ -589,7 +589,7 @@ dart.ci_sandbox_builder(
 # Builders that test the dev Linux images. When the image autoroller detects
 # successful builds of these builders with a dev images, that dev image becomes
 # the new prod image. Newly created bots will than use the updated image. The
-# `vm-precomp-ffi-qemu-linux-release-arm` and the `vm-canary-linux-debug`
+# `vm-precomp-ffi-qemu-linux-release-arm` and the `pkg-linux-release`
 # are used because qemu is the main difference on focal, they don't trigger
 # shards and run a few different builds. See also https://crbug.com/1207358.
 cron.nightly_builder(
@@ -599,7 +599,7 @@ cron.nightly_builder(
     notifies = "infra",
 )
 cron.nightly_builder(
-    "vm-canary-linux-debug-experimental",
+    "pkg-linux-release-experimental",
     channels = [],
     dimensions = experimental,
     notifies = "infra",
