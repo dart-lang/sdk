@@ -63,6 +63,41 @@ void f(Object o) {
 }
 ''');
   }
+
+  test_constConstructor() async {
+    await assertDiagnostics(r'''
+class C {
+  const C();
+}
+const c = const C();
+''', [
+      lint(35, 9),
+    ]);
+  }
+
+  test_listLiteral() async {
+    await assertDiagnostics(r'''
+const l = const [];
+''', [
+      lint(10, 8),
+    ]);
+  }
+
+  test_mapLiteral() async {
+    await assertDiagnostics(r'''
+const m = const {1: 1};
+''', [
+      lint(10, 12),
+    ]);
+  }
+
+  test_setLiteral() async {
+    await assertDiagnostics(r'''
+const s = const {1};
+''', [
+      lint(10, 9),
+    ]);
+  }
 }
 
 @reflectiveTest
