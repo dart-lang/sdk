@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -993,10 +992,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           FfiCode.MISSING_FIELD_TYPE_IN_STRUCT, fields.variables[0].name);
     } else {
       DartType declaredType = fieldType.typeOrThrow;
-      if (declaredType.nullabilitySuffix == NullabilitySuffix.question) {
-        _errorReporter.reportErrorForNode(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT,
-            fieldType, [fieldType.toSource()]);
-      } else if (declaredType.isDartCoreInt) {
+      if (declaredType.isDartCoreInt) {
         _validateAnnotations(fieldType, annotations, _PrimitiveDartType.int);
       } else if (declaredType.isDartCoreDouble) {
         _validateAnnotations(fieldType, annotations, _PrimitiveDartType.double);
