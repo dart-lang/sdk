@@ -15,16 +15,16 @@ import 'dart:isolate';
 // workers in a staggered fashion in an attempt to see a variety of
 // isolate states at the time that this program terminates.
 
-trySpawn(Function f, Object o) async {
+trySpawn(void Function(SendPort?) f, SendPort? o) async {
   try {
-    await Isolate.spawn<SendPort>(f, o);
+    await Isolate.spawn<SendPort?>(f, o);
   } catch (e) {
     // Isolate spawning may fail if the program is ending.
     assert(e is IsolateSpawnException);
   }
 }
 
-void worker(SendPort parentPort) {
+void worker(SendPort? parentPort) {
   var port = new RawReceivePort();
 
   // This worker will exit when it receives any message.
