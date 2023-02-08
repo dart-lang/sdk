@@ -52,6 +52,10 @@ class DartUnitHoverComputer {
       locationEntity = node.name ?? node.returnType;
     } else if (node is VariableDeclaration) {
       locationEntity = node.name;
+    } else if (node is VariablePattern) {
+      locationEntity = node.name;
+    } else if (node is RecordPatternFieldName) {
+      locationEntity = node.name;
     }
     if (locationEntity == null) {
       return null;
@@ -77,7 +81,9 @@ class DartUnitHoverComputer {
             node is FormalParameter ||
             node is MethodDeclaration ||
             node is ConstructorDeclaration ||
-            node is VariableDeclaration)) {
+            node is VariableDeclaration ||
+            node is VariablePattern ||
+            node is RecordPatternFieldName)) {
       // For constructors, the location should cover the type name and
       // constructor name (for both calls and declarations).
       HoverInformation hover;
@@ -160,19 +166,18 @@ class DartUnitHoverComputer {
       {
         var parent = node.parent;
         DartType? staticType;
-        if (element is VariableElement) {
+        if (node is Expression &&
+            (element == null || element is VariableElement)) {
+          staticType = _getTypeOfDeclarationOrReference(node);
+        } else if (element is VariableElement) {
           staticType = element.type;
-        }
-        if (node is Expression) {
-          if (element == null || element is VariableElement) {
-            staticType = _getTypeOfDeclarationOrReference(node);
-          }
-        }
-        if (parent is MethodInvocation && parent.methodName == node) {
+        } else if (parent is MethodInvocation && parent.methodName == node) {
           staticType = parent.staticInvokeType;
           if (staticType != null && staticType.isDynamic) {
             staticType = null;
           }
+        } else if (node is RecordPatternField && parent is RecordPattern) {
+          // TODO(dantup): Get the type of this field.
         }
         hover.staticType = _typeDisplayString(staticType);
       }

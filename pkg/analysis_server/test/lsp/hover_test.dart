@@ -3,11 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/lsp_spec/matchers.dart';
+import '../utils/test_code_extensions.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -18,6 +22,13 @@ void main() {
 
 @reflectiveTest
 class HoverTest extends AbstractLspAnalysisServerTest {
+  @override
+  AnalysisServerOptions get serverOptions => AnalysisServerOptions()
+    ..enabledExperiments = [
+      EnableString.records,
+      EnableString.patterns,
+    ];
+
   /// Checks whether the correct types of documentation are returned in a Hover
   /// based on [preference].
   Future<void> assertDocumentation(
@@ -58,6 +69,19 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     } else {
       expect(hoverContents, isNot(contains('Full.')));
     }
+  }
+
+  Future<void> assertStringContents(String content, Matcher matcher) async {
+    final code = TestCode.parse(content);
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    final hover = await getHover(mainFileUri, code.position.position);
+    expect(hover, isNotNull);
+    expect(hover!.range, equals(code.range.range));
+    expect(hover.contents, isNotNull);
+    final contents = _getStringContents(hover);
+    expect(contents, matcher);
   }
 
   Future<void> test_dartDoc_macros() async {
@@ -295,6 +319,163 @@ Type: `String?`
     expect(_getStringContents(hover), equals(expectedHoverContent));
   }
 
+  Future<void> test_pattern_assignment_left() => assertStringContents(
+        '''
+void f(String a, String b) {
+  (b, [!a^!]) = (a, b);
+}
+    ''',
+        contains('Type: `String`'),
+      );
+
+  Future<void> test_pattern_assignment_list() => assertStringContents(
+        '''
+void f(List<int> x, num a) {
+  [[!a^!]] = x;
+}
+    ''',
+        contains('num a'),
+      );
+
+  Future<void> test_pattern_assignment_right() => assertStringContents(
+        '''
+void f(String a, String b) {
+  (b, a) = ([!a^!], b);
+}
+    ''',
+        contains('Type: `String`'),
+      );
+
+  Future<void> test_pattern_cast_typeName() => assertStringContents(
+        '''
+void f((num, Object) record) {
+  var (i as int, s as [!St^ring!]) = record;
+}
+    ''',
+        contains('class String'),
+      );
+
+  Future<void> test_pattern_map() => assertStringContents(
+        '''
+void f(x) {
+  switch (x) {
+    case {0: [!Str^ing!] a}:
+      break;
+  }
+}
+    ''',
+        contains('class String'),
+      );
+
+  Future<void> test_pattern_map_typeArguments() => assertStringContents(
+        '''
+void f(x) {
+  switch (x) {
+    case <int, [!Str^ing!]>{0: var a}:
+      break;
+  }
+}
+    ''',
+        contains('class String'),
+      );
+
+  Future<void> test_pattern_nullAssert() => assertStringContents(
+        '''
+void f((int?, int?) position) {
+  var ([!x^!]!, y!) = position;
+}
+    ''',
+        contains('Type: `int`'),
+      );
+
+  Future<void> test_pattern_nullCheck() => assertStringContents(
+        '''
+void f(String? maybeString) {
+  switch (maybeString) {
+    case var [!s^!]?:
+  }
+}
+    ''',
+        contains('Type: `String`'),
+      );
+
+  Future<void> test_pattern_object_fieldName() => assertStringContents(
+        '''
+double calculateArea(Shape shape) =>
+  switch (shape) {
+    Square([!leng^th!]: var l) => l * l,
+  };
+
+class Shape { }
+class Square extends Shape {
+  /// The length.
+  double get length => 0;
+}
+    ''',
+        allOf([
+          contains('double get length'),
+          contains('The length.'),
+        ]),
+      );
+
+  Future<void> test_pattern_object_typeName() => assertStringContents(
+        '''
+double calculateArea(Shape shape) =>
+  switch (shape) {
+    [!Squ^are!](length: var l) => l * l,
+  };
+
+class Shape { }
+/// A square.
+class Square extends Shape {
+  double get length => 0;
+}
+    ''',
+        contains('A square.'),
+      );
+
+  @FailingTest(
+    reason: 'Needs a way to get type from RecordPatternField in ComputerHover',
+  )
+  Future<void> test_pattern_record_fieldName() => assertStringContents(
+        '''
+void f(({int foo}) x, num a) {
+  ([!fo^o!]: a,) = x;
+}
+    ''',
+        contains('Type: `int`'),
+      );
+
+  Future<void> test_pattern_record_fieldValue() => assertStringContents(
+        '''
+void f(({int foo}) x, num a) {
+  (foo: [!a^!],) = x;
+}
+    ''',
+        contains('Type: `num`'),
+      );
+
+  Future<void> test_pattern_record_variable() => assertStringContents(
+        '''
+void f(({int foo}) x, num a) {
+  (foo: a,) = [!x^!];
+}
+    ''',
+        contains('Type: `({int foo})`'),
+      );
+
+  Future<void> test_pattern_relational_variable() => assertStringContents(
+        '''
+String f(int char) {
+  const zero = 0;
+  return switch (char) {
+    == [!ze^ro!] => 'zero'
+  };
+}
+    ''',
+        contains('Type: `int`'),
+      );
+
   Future<void> test_plainText_simple() async {
     final content = '''
     /// This is a string.
@@ -356,6 +537,42 @@ Type: `String`
     expect(hover, isNotNull);
     expect(hover!.range, equals(rangeFromMarkers(content)));
   }
+
+  Future<void> test_recordLiteral_named() => assertStringContents(
+        r'''
+void f(({int f1, int f2}) r) {
+  r.[!f^1!];
+}
+    ''',
+        contains('Type: `int`'),
+      );
+
+  Future<void> test_recordLiteral_positional() => assertStringContents(
+        r'''
+void f((int, int) r) {
+  r.[!$^1!];
+}
+    ''',
+        contains('Type: `int`'),
+      );
+
+  Future<void> test_recordType_parameter() => assertStringContents(
+        '''
+void f(([!dou^ble!], double) param) {
+  return (1.0, 1.0);
+}
+    ''',
+        contains('class double'),
+      );
+
+  Future<void> test_recordType_return() => assertStringContents(
+        '''
+([!dou^ble!], double) f() {
+  return (1.0, 1.0);
+}
+    ''',
+        contains('class double'),
+      );
 
   Future<void> test_signatureFormatting_multiLine() async {
     final content = '''
