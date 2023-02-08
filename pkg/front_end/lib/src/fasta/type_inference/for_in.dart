@@ -71,6 +71,24 @@ class LocalForInVariable implements ForInVariable {
   }
 }
 
+class PatternVariableDeclarationForInVariable implements ForInVariable {
+  PatternVariableDeclaration patternVariableDeclaration;
+
+  PatternVariableDeclarationForInVariable(this.patternVariableDeclaration);
+
+  @override
+  DartType computeElementType(InferenceVisitorBase visitor) {
+    return (patternVariableDeclaration.initializer as VariableGet)
+        .variable
+        .type;
+  }
+
+  @override
+  Expression? inferAssignment(InferenceVisitorBase visitor, DartType rhsType) {
+    return null;
+  }
+}
+
 class PropertyForInVariable implements ForInVariable {
   final PropertySet propertySet;
 

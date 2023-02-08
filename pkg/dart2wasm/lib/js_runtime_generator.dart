@@ -163,8 +163,8 @@ class _JSLowerer extends Transformer {
             .getClass('dart:_js_helper', 'JSValue')
             .procedures
             .firstWhere((p) => p.name.text == 'unbox'),
-        _allowInteropTarget =
-            _coreTypes.index.getTopLevelProcedure('dart:js', 'allowInterop'),
+        _allowInteropTarget = _coreTypes.index
+            .getTopLevelProcedure('dart:js_util', 'allowInterop'),
         _inlineJSTarget =
             _coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'JS'),
         _wasmExternRefClass =

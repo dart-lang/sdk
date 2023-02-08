@@ -74,7 +74,7 @@ void checkElementTextWithConfiguration(
       // Assuming traceString contains "$_testPath:$invocationLine:$column",
       // figure out the value of invocationLine.
 
-      int testFilePathOffset = traceString.indexOf(_testPath!);
+      int testFilePathOffset = traceString.lastIndexOf(_testPath!);
       expect(testFilePathOffset, isNonNegative);
 
       // Sanity check: there must be ':' after the path.
@@ -931,10 +931,22 @@ class _ElementWriter {
       _writeCodeRange(e);
       _writeTypeInferenceError(e);
       _writeType('type', e.type);
+      _writeShouldUseTypeForInitializerInference(e);
       _writeConstantInitializer(e);
       _writeNonSyntheticElement(e);
       writeLinking();
     });
+  }
+
+  void _writeShouldUseTypeForInitializerInference(
+    PropertyInducingElementImpl e,
+  ) {
+    if (!e.isSynthetic) {
+      _writelnWithIndent(
+        'shouldUseTypeForInitializerInference: '
+        '${e.shouldUseTypeForInitializerInference}',
+      );
+    }
   }
 
   void _writeSuperConstructorParameter(ParameterElement e) {

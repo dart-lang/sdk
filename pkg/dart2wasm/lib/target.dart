@@ -61,7 +61,6 @@ class WasmTarget extends Target {
         'dart:typed_data',
         'dart:nativewrappers',
         'dart:io',
-        'dart:js',
         'dart:js_util',
         'dart:wasm',
         'dart:developer',
@@ -73,7 +72,6 @@ class WasmTarget extends Target {
         'dart:_js_interop',
         'dart:collection',
         'dart:typed_data',
-        'dart:js',
         'dart:js_util',
         'dart:wasm',
       ];

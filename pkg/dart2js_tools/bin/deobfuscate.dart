@@ -4,11 +4,12 @@
 
 import 'dart:io';
 import 'dart:math' show max;
-import 'package:stack_trace/stack_trace.dart';
-import 'package:dart2js_tools/src/trace.dart';
+
 import 'package:dart2js_tools/src/name_decoder.dart';
-import 'package:dart2js_tools/src/util.dart';
+import 'package:dart2js_tools/src/trace.dart';
 import 'package:dart2js_tools/src/trace_decoder.dart';
+import 'package:dart2js_tools/src/util.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 /// Script that deobfuscates a stack-trace given in a text file.
 ///
@@ -44,28 +45,28 @@ main(List<String> args) {
     print('usage: deobfuscate.dart <stack-trace-file>');
     exit(1);
   }
-  var sb = new StringBuffer();
+  var sb = StringBuffer();
   try {
-    String obfuscatedTrace = new File(args[0]).readAsStringSync();
+    String obfuscatedTrace = File(args[0]).readAsStringSync();
     String? error = extractErrorMessage(obfuscatedTrace);
-    var provider = new CachingFileProvider(logger: Logger());
+    var provider = CachingFileProvider(logger: Logger());
     StackDeobfuscationResult result =
         deobfuscateStack(obfuscatedTrace, provider);
     Frame firstFrame = result.original.frames.first;
     String? translatedError =
         translate(error, provider.mappingFor(firstFrame.uri));
-    if (translatedError == null) translatedError = '<no error message found>';
+    translatedError ??= '<no error message found>';
     printPadded(translatedError, error, sb);
     int longest =
         result.deobfuscated.frames.fold(0, (m, f) => max(f.member!.length, m));
     for (var originalFrame in result.original.frames) {
       var deobfuscatedFrames = result.frameMap[originalFrame];
       if (deobfuscatedFrames == null) {
-        printPadded('no mapping', '${originalFrame.location}', sb);
+        printPadded('no mapping', originalFrame.location, sb);
       } else {
         for (var frame in deobfuscatedFrames) {
           printPadded('${frame.member!.padRight(longest)} ${frame.location}',
-              '${originalFrame.location}', sb);
+              originalFrame.location, sb);
         }
       }
     }

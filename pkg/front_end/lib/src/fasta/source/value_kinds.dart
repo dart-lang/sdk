@@ -60,6 +60,8 @@ class ValueKinds {
       const SingleValueKind<type.AsyncMarker>();
   static const ValueKind AsyncModifier =
       const SingleValueKind<type.AsyncMarker>();
+  static const ValueKind AwaitTokenOrNull =
+      const SingleValueKind<type.Token>(NullValues.AwaitToken);
   static const ValueKind BreakTarget =
       const SingleValueKind<type.JumpTarget>(NullValues.BreakTarget);
   static const ValueKind Bool = const SingleValueKind<bool>();

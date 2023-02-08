@@ -180,7 +180,7 @@ void f() {
 import 'dart:collection';
 var m = HashMap();
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 30, 1),
+      error(HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 34, 7),
     ]);
   }
 

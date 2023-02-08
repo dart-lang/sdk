@@ -82,6 +82,9 @@ part 'string_helper.dart';
 part 'linked_hash_map.dart';
 part 'records.dart';
 
+const JS_FUNCTION_PROPERTY_NAME = r'$dart_jsFunction';
+const JS_FUNCTION_PROPERTY_NAME_CAPTURE_THIS = r'_$dart_jsFunctionCaptureThis';
+
 /// Marks the internal map in dart2js, so that internal libraries can is-check
 /// them.
 abstract class InternalMap {}

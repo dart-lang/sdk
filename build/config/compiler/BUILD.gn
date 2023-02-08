@@ -729,6 +729,15 @@ config("no_rtti") {
   }
 }
 
+config("enable_exceptions") {
+  if (is_win) {
+    cflags_cc = [ "/EHsc" ]
+    defines = [ "_HAS_EXCEPTIONS=1" ]
+  } else if (is_clang) {
+    cflags_cc = [ "-fexceptions" ]
+  }
+}
+
 # Optimization -----------------------------------------------------------------
 #
 # Note that BUILDCONFIG.gn sets up a variable "default_optimization_config"

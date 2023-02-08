@@ -287,7 +287,9 @@ _dart2js_common:
 
     js_util:
       uri: "js_util/js_util.dart"
-      patches: "_internal/js_shared/lib/js_util_patch.dart"
+      patches:
+        - "_internal/js_shared/lib/js_util_patch.dart"
+        - "_internal/js_runtime/lib/js_allow_interop_patch.dart"
 
     math:
       uri: "math/math.dart"
@@ -457,7 +459,9 @@ dartdevc:
 
       js_util:
         uri: "js_util/js_util.dart"
-        patches: "_internal/js_shared/lib/js_util_patch.dart"
+        patches:
+          - "_internal/js_shared/lib/js_util_patch.dart"
+          - "_internal/js_dev_runtime/patch/js_allow_interop_patch.dart"
 
       svg:
         uri: "svg/dart2js/svg_dart2js.dart"

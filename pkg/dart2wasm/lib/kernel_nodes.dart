@@ -191,6 +191,11 @@ mixin KernelNodes {
       index.getProcedure("dart:core", "_JavaScriptError", "_");
   late final Procedure rangeErrorCheckValueInInterval =
       index.getProcedure("dart:core", "RangeError", "checkValueInInterval");
+  late final Class errorClass = index.getClass("dart:core", "Error");
+  late final Field errorClassStackTraceField =
+      index.getField("dart:core", "Error", "_stackTrace");
+  late final Procedure errorThrow =
+      index.getProcedure("dart:core", "Error", "_throw");
 
   // dart:core type procedures
   late final Procedure isSubtype =

@@ -688,16 +688,6 @@ class Intrinsifier {
           b.i32_wrap_i64();
           b.struct_set(translator.objectInfo.struct, FieldIndex.identityHash);
           return codeGen.voidMarker;
-        case "_throwObjectWithStackTrace":
-          Expression object = node.arguments.positional[0];
-          Expression stackTrace = node.arguments.positional[1];
-          w.ValueType objectType = translator.topInfo.nonNullableType;
-          w.ValueType stackTraceType =
-              translator.stackTraceInfo.nonNullableType;
-          codeGen.wrap(object, objectType);
-          codeGen.wrap(stackTrace, stackTraceType);
-          b.throw_(translator.exceptionTag);
-          return codeGen.voidMarker;
         case "_getTypeRulesSupers":
           return translator.types.makeTypeRulesSupers(b);
         case "_getTypeRulesSubstitutions":
@@ -1695,6 +1685,63 @@ class Intrinsifier {
           () => b.local_get(closureLocal),
           () => createInvocationObject(translator, function, "call",
               typeArgsLocal, posArgsLocal, namedArgsListLocal));
+
+      return true;
+    }
+
+    if (member.enclosingClass == translator.errorClass && name == "_throw") {
+      final objectLocal = function.locals[0]; // ref #Top
+      final stackTraceLocal = function.locals[1]; // ref Object
+
+      final notErrorBlock = b.block([], [objectLocal.type]);
+
+      final errorClassInfo = translator.classInfo[translator.errorClass]!;
+      final errorRefType = errorClassInfo.nonNullableType;
+      final stackTraceFieldIndex =
+          translator.fieldIndex[translator.errorClassStackTraceField]!;
+      b.local_get(objectLocal);
+      b.br_on_cast_fail(errorRefType, notErrorBlock);
+
+      // Binaryen can merge struct types, so we need to check class ID in the
+      // slow path
+      final errorLocal = function.addLocal(errorRefType);
+      b.local_tee(errorLocal);
+
+      final classIdLocal = function.addLocal(w.NumType.i32);
+      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+      b.local_set(classIdLocal);
+
+      final errorBlock = b.block();
+
+      bool isErrorClass(Class cls) =>
+          cls == translator.errorClass ||
+          (cls.superclass != null && isErrorClass(cls.superclass!));
+
+      for (ClassInfo classInfo in translator.classes) {
+        final Class? cls = classInfo.cls;
+        if (cls == null || !isErrorClass(cls)) {
+          continue;
+        }
+
+        b.local_get(classIdLocal);
+        b.i32_const(classInfo.classId);
+        b.i32_eq();
+        b.br_if(errorBlock);
+      }
+
+      b.local_get(errorLocal);
+      b.br(notErrorBlock);
+      b.end(); // errorBlock
+
+      b.local_get(errorLocal);
+      b.local_get(stackTraceLocal);
+      b.struct_set(errorClassInfo.struct, stackTraceFieldIndex);
+
+      b.local_get(objectLocal);
+      b.end(); // notErrorBlock
+
+      b.local_get(stackTraceLocal);
+      b.throw_(translator.exceptionTag);
 
       return true;
     }

@@ -1517,8 +1517,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(inferredType, iterable);
   }
 
-  ForInVariable computeForInVariable(
-      Expression? syntheticAssignment, bool hasProblem) {
+  ForInVariable computeForInVariable(Expression? syntheticAssignment,
+      Statement? expressionEffects, bool hasProblem) {
     if (syntheticAssignment is VariableSet) {
       return new LocalForInVariable(syntheticAssignment);
     } else if (syntheticAssignment is PropertySet) {
@@ -1531,6 +1531,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return new StaticForInVariable(syntheticAssignment);
     } else if (syntheticAssignment is InvalidExpression || hasProblem) {
       return new InvalidForInVariable(syntheticAssignment);
+    } else if (syntheticAssignment == null &&
+        expressionEffects is PatternVariableDeclaration) {
+      return new PatternVariableDeclarationForInVariable(expressionEffects);
     } else {
       UriOffset uriOffset = _computeUriOffset(syntheticAssignment!);
       return problems.unhandled(
@@ -1551,8 +1554,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       required bool hasProblem}) {
     // ignore: unnecessary_null_comparison
     assert(hasProblem != null);
-    ForInVariable forInVariable =
-        computeForInVariable(syntheticAssignment, hasProblem);
+    ForInVariable forInVariable = computeForInVariable(
+        syntheticAssignment, expressionEffects, hasProblem);
     DartType elementType = forInVariable.computeElementType(this);
     ExpressionInferenceResult iterableResult =
         inferForInIterable(iterable, elementType, isAsync: isAsync);
@@ -9423,6 +9426,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  DartType iterableType(DartType elementType) {
+    return new InterfaceType(coreTypes.iterableClass, Nullability.nonNullable,
+        <DartType>[elementType]);
+  }
+
+  @override
   DartType listType(DartType elementType) {
     return new InterfaceType(
         coreTypes.listClass, Nullability.nonNullable, <DartType>[elementType]);
@@ -10081,12 +10090,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   bool isRestPatternElement(Node node) {
-    return node is RestPattern;
+    if (node is MapPatternEntry) {
+      return identical(node, restMapPatternEntry);
+    } else {
+      return node is RestPattern;
+    }
   }
 
   @override
   Pattern? getRestPatternElementPattern(TreeNode node) {
-    return (node as RestPattern).subPattern;
+    if (identical(node, restMapPatternEntry)) {
+      return null;
+    } else {
+      return (node as RestPattern).subPattern;
+    }
   }
 
   @override
@@ -10117,17 +10134,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   void handleMapPatternRestElement(Pattern container, TreeNode restElement) {
-    // TODO(scheglov): implement handleMapPatternRestElement
-    throw new UnimplementedError('TODO(scheglov)');
+    pushRewrite(restElement);
   }
 
   @override
   shared.MapPatternEntry<Expression, Pattern>? getMapPatternEntry(
       TreeNode element) {
     element as MapPatternEntry;
-    return new shared.MapPatternEntry<Expression, Pattern>(
-        key: (element.key as ExpressionPattern).expression,
-        value: element.value);
+    if (identical(element, restMapPatternEntry)) {
+      return null;
+    } else {
+      return new shared.MapPatternEntry<Expression, Pattern>(
+          key: (element.key as ExpressionPattern).expression,
+          value: element.value);
+    }
   }
 
   @override

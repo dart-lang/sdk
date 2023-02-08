@@ -6980,10 +6980,34 @@ class BodyBuilder extends StackListenerImpl
   @override
   void handleForInLoopParts(Token? awaitToken, Token forToken,
       Token leftParenthesis, Token? patternKeyword, Token inKeyword) {
-    if (patternKeyword != null) {
-      throw new UnimplementedError(
-          'TODO(paulberry): handle pattern in for-in loop');
+    debugEvent("ForIntLoopParts");
+    assert(checkState(forToken, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+      ]),
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Pattern,
+        ValueKinds.Statement, // Variable for non-pattern for-in loop.
+      ]),
+    ]));
+    Object expression = pop() as Object;
+    Object pattern = pop() as Object;
+
+    if (pattern is Pattern) {
+      pop(); // Metadata.
+      for (VariableDeclaration variable in pattern.declaredVariables) {
+        declareVariable(variable, scope);
+        typeInferrer.assignedVariables.declare(variable);
+      }
     }
+
+    push(pattern);
+    push(expression);
     push(awaitToken ?? NullValues.AwaitToken);
     push(forToken);
     push(inKeyword);
@@ -7090,6 +7114,21 @@ class BodyBuilder extends StackListenerImpl
             new VariableGetImpl(variable, forNullGuardedAccess: false)
               ..fileOffset = inToken.offset,
             voidContext: true);
+      } else if (lvalue is Pattern) {
+        /// We are in the case where `lvalue` is a pattern:
+        ///
+        ///     for (pattern in expression) body
+        ///
+        /// This is normalized to:
+        ///
+        ///     for (final #t in expression) {
+        ///       pattern = #t;
+        ///       body;
+        ///     }
+        elements.syntheticAssignment = null;
+        elements.expressionEffects = new PatternVariableDeclaration(
+            lvalue, new VariableGetImpl(variable, forNullGuardedAccess: false),
+            fileOffset: inToken.offset, isFinal: false);
       } else {
         Message message = forest.isVariablesDeclaration(lvalue)
             ? fasta.messageForInLoopExactlyOneVariable
@@ -7123,6 +7162,24 @@ class BodyBuilder extends StackListenerImpl
   @override
   void endForIn(Token endToken) {
     debugEvent("ForIn");
+    assert(checkState(endToken, [
+      /* body= */ ValueKinds.Statement,
+      /* inKeyword = */ ValueKinds.Token,
+      /* forToken = */ ValueKinds.Token,
+      /* awaitToken = */ ValueKinds.AwaitTokenOrNull,
+      /* expression = */ unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+      ]),
+      /* lvalue = */ unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Pattern,
+        ValueKinds.Statement,
+      ]),
+    ]));
     Statement body = popStatement();
 
     Token inKeyword = pop() as Token;

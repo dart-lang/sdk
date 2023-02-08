@@ -27184,15 +27184,15 @@ void RegExp::set_bytecode(bool is_one_byte,
                           const TypedData& bytecode) const {
   if (sticky) {
     if (is_one_byte) {
-      untag()->set_one_byte_sticky(bytecode.ptr());
+      untag()->set_one_byte_sticky<std::memory_order_release>(bytecode.ptr());
     } else {
-      untag()->set_two_byte_sticky(bytecode.ptr());
+      untag()->set_two_byte_sticky<std::memory_order_release>(bytecode.ptr());
     }
   } else {
     if (is_one_byte) {
-      untag()->set_one_byte(bytecode.ptr());
+      untag()->set_one_byte<std::memory_order_release>(bytecode.ptr());
     } else {
-      untag()->set_two_byte(bytecode.ptr());
+      untag()->set_two_byte<std::memory_order_release>(bytecode.ptr());
     }
   }
 }

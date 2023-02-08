@@ -1,5 +1,19 @@
 ## 3.0.0
 
+### Language
+
+- **Breaking Change** [#50902][]: Report a compile-time error for a `continue` statement
+  having an invalid target.
+
+  As per 18.15 of the language spec, it is a compile-time error for a `continue`
+  label to have a target which is not a loop (`for`, `do` and `while` statements)
+  or a `switch` member.
+
+  Breakage is mitigated by changing the code to have the `continue` label properly
+  target a valid labeled statement.
+
+[#50902]: https://github.com/dart-lang/sdk/issues/50902
+
 ### Libraries
 
 #### `dart:core`
@@ -170,7 +184,51 @@ using Dart version 2.19, before upgrading to Dart version 3.0.
   2.1](https://www.rfc-editor.org/rfc/rfc6750#section-2.1). This means they must
   contain only the characters: `^[a-zA-Z0-9._~+/=-]+$`. Before a failure would
   happen when attempting to send the authorization header.
-## 2.19.0
+
+## 2.19.2 - 2023-02-08
+
+This is a patch release that:
+
+- Fixes a VM crash when mixing the use of double and float calculations in
+  debug/jit configuration. (issue [#50622][]).
+
+- Fixes the compiler crashing when attempting to inline a method with lots of
+  optional parameters with distinct default values. (issue [#119220][]).
+
+- Fixes the `part_of_different_library` error encountered when using `PackageBuildWorkspace`. (issue [#51087][]).
+
+[#50622]: https://github.com/dart-lang/sdk/issues/50622
+[#119220]: https://github.com/flutter/flutter/issues/119220
+[#51087]: https://github.com/dart-lang/sdk/issues/51087
+
+## 2.19.1 - 2023-02-01
+
+This is a patch release that:
+
+- Fixes `pub get` behaviour: In Dart 2.19.0 a `dart pub get` with a
+  `pubspec.lock` created by a 2.18 SDK will unlock all constraints, effectively
+  like a `pub upgrade` (issue [#51166][]).
+
+- Stops rewriting SDK constraints: In Dart 3, a SDK constraint like
+  `>=2.12.0 <3.0.0` gets interpreted by the pub client as `>=2.12.0 <4.0.0` to
+  allow for backwards compatibility (issue [#51101][]).
+
+  This change was intended for Dart 3.0.0 and later, but was landed already in
+  2.19.0. It is now being removed in 2.19.1, as it can give confusing messages
+  such as:
+
+  > Because library requires SDK version >=2.19.2 <4.0.0, version solving failed.
+
+  This reinterpretation no longer happens in Dart 2.19.1.
+
+- Fixes a VM crash caused by incorrect sharing of RegExp between isolates
+  (issue [#51130][]).
+
+[#51166]: https://github.com/dart-lang/sdk/issues/51166
+[#51101]: https://github.com/dart-lang/sdk/issues/51101
+[#51130]: https://github.com/dart-lang/sdk/issues/51130
+
+## 2.19.0 - 2023-01-24
 
 ### Language
 

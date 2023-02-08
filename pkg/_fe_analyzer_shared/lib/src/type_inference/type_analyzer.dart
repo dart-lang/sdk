@@ -1180,7 +1180,9 @@ mixin TypeAnalyzer<
     required void Function() dispatchBody,
   }) {
     // Stack: ()
-    Type expressionType = analyzeExpression(expression, unknownType);
+    Type patternTypeSchema = dispatchPatternSchema(pattern);
+    Type expressionTypeSchema = iterableType(patternTypeSchema);
+    Type expressionType = analyzeExpression(expression, expressionTypeSchema);
     // Stack: (Expression)
 
     Type? elementType = operations.matchIterableType(expressionType);
@@ -1949,6 +1951,9 @@ mixin TypeAnalyzer<
 
   /// Queries whether [pattern] is a variable pattern.
   bool isVariablePattern(Node pattern);
+
+  /// Returns the type `Iterable`, with type argument [elementType].
+  Type iterableType(Type elementType);
 
   /// Returns the type `List`, with type argument [elementType].
   Type listType(Type elementType);

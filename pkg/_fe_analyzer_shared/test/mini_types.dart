@@ -191,6 +191,8 @@ class RecordType extends Type {
       } else {
         return '({$namedStr})';
       }
+    } else if (positional.length == 1) {
+      return '($positionalStr,)';
     } else {
       return '($positionalStr)';
     }
