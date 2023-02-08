@@ -30,15 +30,19 @@
 library dart2js.js_model.records;
 
 import '../common.dart';
+import '../constants/values.dart' show ConstantValue;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
-
+import '../ir/element_map.dart' show IrToElementMap;
+import '../ir/static_type_cache.dart';
 import '../js_backend/annotations.dart';
-import '../js_model/element_map.dart';
 import '../ordered_typeset.dart';
 import '../serialization/serialization.dart';
 import '../universe/record_shape.dart';
+import 'class_type_variable_access.dart';
+import 'element_map.dart';
+import 'element_map_impl.dart' show JsKernelToElementMap;
 import 'elements.dart';
 import 'env.dart';
 import 'js_world_builder.dart' show JClosedWorldBuilder;
@@ -357,4 +361,125 @@ class RecordClassData implements JClassData {
 
   @override
   List<Variance> getVariances() => [];
+}
+
+class JRecordGetter extends JFunction {
+  /// Tag used for identifying serialized [JRecordGetter] objects in a
+  /// debugging data stream.
+  static const String tag = 'record-getter';
+
+  JRecordGetter(JClass enclosingClass, Name name)
+      : super(enclosingClass.library, enclosingClass, name,
+            ParameterStructure.getter, AsyncMarker.SYNC,
+            isStatic: false, isExternal: false);
+
+  factory JRecordGetter.readFromDataSource(DataSourceReader source) {
+    source.begin(tag);
+    JClass enclosingClass = source.readClass() as JClass;
+    Name memberName = source.readMemberName();
+    source.end(tag);
+    return JRecordGetter(enclosingClass, memberName);
+  }
+
+  @override
+  void writeToDataSink(DataSinkWriter sink) {
+    sink.writeEnum(JMemberKind.recordGetter);
+    sink.begin(tag);
+    sink.writeClass(enclosingClass!);
+    sink.writeMemberName(memberName);
+    sink.end(tag);
+  }
+
+  @override
+  bool get isAbstract => false;
+
+  @override
+  bool get isGetter => true;
+
+  @override
+  String toString() => '${jsElementPrefix}record_getter'
+      '(${enclosingClass!.name}.$name)';
+}
+
+abstract class RecordMemberData implements JMemberData {
+  @override
+  final MemberDefinition definition;
+  final InterfaceType? memberThisType;
+
+  RecordMemberData(this.definition, this.memberThisType);
+
+  @override
+  StaticTypeCache get staticTypes {
+    // The cached types are stored in the data for enclosing member.
+    throw UnsupportedError('RecordMemberData.staticTypes');
+  }
+
+  @override
+  InterfaceType? getMemberThisType(covariant JsToElementMap elementMap) {
+    return memberThisType;
+  }
+}
+
+class RecordGetterData extends RecordMemberData implements FunctionData {
+  /// Tag used for identifying serialized [RecordGetterData] objects in a
+  /// debugging data stream.
+  static const String tag = 'record-getter-data';
+
+  final FunctionType functionType;
+
+  RecordGetterData(super.definition, super.memberThisType, this.functionType);
+
+  RecordGetterData._deserialized(
+      super.definition, super.memberThisType, this.functionType);
+
+  factory RecordGetterData.readFromDataSource(DataSourceReader source) {
+    source.begin(tag);
+    MemberDefinition definition = MemberDefinition.readFromDataSource(source);
+    InterfaceType? memberThisType =
+        source.readDartTypeOrNull() as InterfaceType?;
+    FunctionType functionType = source.readDartType() as FunctionType;
+    source.end(tag);
+    return RecordGetterData._deserialized(
+        definition, memberThisType, functionType);
+  }
+
+  @override
+  void writeToDataSink(DataSinkWriter sink) {
+    sink.writeEnum(JMemberDataKind.recordGetter);
+    sink.begin(tag);
+    definition.writeToDataSink(sink);
+    sink.writeDartTypeOrNull(memberThisType);
+    sink.writeDartType(functionType);
+    sink.end(tag);
+  }
+
+  @override
+  ClassTypeVariableAccess get classTypeVariableAccess =>
+      ClassTypeVariableAccess.none;
+
+  @override
+  List<TypeVariableType> getFunctionTypeVariables(
+      covariant JsKernelToElementMap unusedElementMap) {
+    return const <TypeVariableType>[];
+  }
+
+  @override
+  void forEachParameter(
+      JsToElementMap elementMap,
+      ParameterStructure parameterStructure,
+      void f(DartType type, String? name, ConstantValue? defaultValue),
+      {bool isNative = false}) {
+    // This `throw` can be removed if `RecordGetterData.forEachParameter` is
+    // used from general code via `FunctionData.forEachParameter`.
+    throw UnsupportedError('${runtimeType}.forEachParameter');
+  }
+
+  @override
+  // It is a bit of a code-smell here that an synthetic element introduced
+  // during creation of the K-world depends on Kernel. Perhaps it would be
+  // better to compute this type and serialize it for all functions, although
+  // that is redundant with the Kernel IR for most functions.
+  FunctionType getFunctionType(IrToElementMap unusedElementMap) {
+    return functionType;
+  }
 }

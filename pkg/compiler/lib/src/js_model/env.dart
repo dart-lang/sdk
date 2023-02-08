@@ -32,7 +32,7 @@ import 'element_map.dart'
         forEachOrderedParameterByFunctionNode;
 import 'element_map_impl.dart';
 import 'elements.dart';
-import 'records.dart' show RecordClassData;
+import 'records.dart' show RecordClassData, RecordGetterData;
 
 /// Environment for fast lookup of component libraries.
 class JProgramEnv {
@@ -581,6 +581,7 @@ enum JMemberDataKind {
   generatorBody,
   closureFunction,
   closureField,
+  recordGetter,
 }
 
 abstract class JMemberData {
@@ -614,6 +615,8 @@ abstract class JMemberData {
         return ClosureFunctionData.readFromDataSource(source);
       case JMemberDataKind.closureField:
         return ClosureFieldData.readFromDataSource(source);
+      case JMemberDataKind.recordGetter:
+        return RecordGetterData.readFromDataSource(source);
     }
   }
 

@@ -12,7 +12,7 @@ import '../elements/types.dart';
 import '../serialization/serialization.dart';
 import '../universe/class_set.dart' show ClassHierarchyNodesMapKey;
 import 'closure.dart';
-import 'records.dart' show JRecordClass;
+import 'records.dart' show JRecordClass, JRecordGetter;
 
 const String jsElementPrefix = 'j:';
 
@@ -122,6 +122,7 @@ enum JMemberKind {
   generatorBody,
   signatureMethod,
   contextField,
+  recordGetter,
 }
 
 abstract class JMember extends IndexedMember {
@@ -164,6 +165,8 @@ abstract class JMember extends IndexedMember {
         return JSignatureMethod.readFromDataSource(source);
       case JMemberKind.contextField:
         return JContextField.readFromDataSource(source);
+      case JMemberKind.recordGetter:
+        return JRecordGetter.readFromDataSource(source);
     }
   }
 
