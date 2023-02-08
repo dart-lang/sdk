@@ -6,10 +6,9 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
-import 'package:path/path.dart' as path;
-
 import 'package:mmap/mmap.dart';
 import 'package:mmap/src/mmap_impl.dart' show kPageSize;
+import 'package:path/path.dart' as path;
 
 final sizesToTest = [
   0,

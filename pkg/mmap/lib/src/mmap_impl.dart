@@ -4,7 +4,10 @@
 
 // File is compiled with checked in SDK, update [FfiNative]s to [Native] when
 // SDK is rolled.
+
+// ignore_for_file: camel_case_types
 // ignore_for_file: deprecated_member_use
+// ignore_for_file: non_constant_identifier_names
 
 import 'dart:ffi';
 import 'dart:typed_data';

@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:source_maps/source_maps.dart';
+// ignore: implementation_imports
 import 'package:source_maps/src/vlq.dart';
 
 import 'util.dart';
@@ -26,18 +27,18 @@ class Dart2jsMapping {
   late final List<int> frameIndex = frames.keys.toList()..sort();
 
   Dart2jsMapping(this.sourceMap, Map json, {Logger? logger}) {
-    var extensions = json['x_org_dartlang_dart2js'];
+    var extensions = json['x_org_dartlang_dart2js'] as Map?;
     if (extensions == null) return;
     var minifiedNames = extensions['minified_names'];
     if (minifiedNames != null) {
       _extractMinifiedNames(
-          minifiedNames['global'], sourceMap, globalNames, logger);
-      _extractMinifiedNames(
-          minifiedNames['instance'], sourceMap, instanceNames, logger);
+          minifiedNames['global'] as String, sourceMap, globalNames, logger);
+      _extractMinifiedNames(minifiedNames['instance'] as String, sourceMap,
+          instanceNames, logger);
     }
-    String? jsonFrames = extensions['frames'];
+    var jsonFrames = extensions['frames'] as String?;
     if (jsonFrames != null) {
-      new _FrameDecoder(jsonFrames).parseFrames(frames, sourceMap);
+      _FrameDecoder(jsonFrames).parseFrames(frames, sourceMap);
     }
   }
 
@@ -62,23 +63,25 @@ class FrameEntry {
   bool get isPush => callUri != null;
   bool get isPop => callUri == null;
 
+  @override
   toString() {
-    if (isPush)
+    if (isPush) {
       return "push $inlinedMethodName @ $callUri:$callLine:$callColumn";
+    }
     return isEmpty ? 'pop: empty' : 'pop';
   }
 }
 
 const _marker = "\n//# sourceMappingURL=";
 Dart2jsMapping? parseMappingFor(Uri uri, {Logger? logger}) {
-  var file = new File.fromUri(uri);
+  var file = File.fromUri(uri);
   if (!file.existsSync()) {
     logger?.log('Error: no such file: $uri');
     return null;
   }
   var contents = file.readAsStringSync();
   var urlIndex = contents.indexOf(_marker);
-  var sourcemapPath;
+  String sourcemapPath;
   if (urlIndex != -1) {
     sourcemapPath = contents.substring(urlIndex + _marker.length).trim();
   } else {
@@ -88,13 +91,13 @@ Dart2jsMapping? parseMappingFor(Uri uri, {Logger? logger}) {
   }
 
   assert(!sourcemapPath.contains('\n'));
-  var sourcemapFile = new File.fromUri(uri.resolve(sourcemapPath));
+  var sourcemapFile = File.fromUri(uri.resolve(sourcemapPath));
   if (!sourcemapFile.existsSync()) {
     logger?.log('Error: no such file: $sourcemapFile');
     return null;
   }
   var json = jsonDecode(sourcemapFile.readAsStringSync());
-  return new Dart2jsMapping(parseSingleMapping(json), json, logger: logger);
+  return Dart2jsMapping(parseSingleMapping(json), json, logger: logger);
 }
 
 class _FrameDecoder implements Iterator<String> {
@@ -104,8 +107,10 @@ class _FrameDecoder implements Iterator<String> {
   _FrameDecoder(this._internal) : _length = _internal.length;
 
   // Iterator API is used by decodeVlq to consume VLQ entries.
+  @override
   bool moveNext() => ++index < _length;
 
+  @override
   String get current => (index >= 0 && index < _length)
       ? _internal[index]
       : throw StateError('No current value available.');
@@ -125,11 +130,11 @@ class _FrameDecoder implements Iterator<String> {
       List<FrameEntry> entries = frames[offset] ??= [];
       var marker = _internal[index + 1];
       if (marker == ';') {
-        entries.add(new FrameEntry.pop(true));
+        entries.add(FrameEntry.pop(true));
         index++;
         continue;
       } else if (marker == ',') {
-        entries.add(new FrameEntry.pop(false));
+        entries.add(FrameEntry.pop(false));
         index++;
         continue;
       } else {
@@ -139,7 +144,7 @@ class _FrameDecoder implements Iterator<String> {
         column += _readDelta();
         nameId += _readDelta();
         var name = sourceMap.names[nameId];
-        entries.add(new FrameEntry.push(uri, line, column, name));
+        entries.add(FrameEntry.push(uri, line, column, name));
       }
     }
   }

@@ -75,11 +75,12 @@ class StackTraceLine {
     } else {
       fileName = text;
     }
-    return new StackTraceLine(methodName, fileName, lineNo, columnNo ?? 1);
+    return StackTraceLine(methodName, fileName, lineNo, columnNo ?? 1);
   }
 
+  @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('  at ');
     if (methodName != null) {
       sb.write(methodName);
@@ -101,7 +102,7 @@ class StackTraceLine {
   }
 
   String get inlineString {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     var padding = 20;
     var lineMethodName = methodName;
     if (lineMethodName != null) {
@@ -124,12 +125,12 @@ class StackTraceLine {
 }
 
 List<StackTraceLine> parseStackTrace(String trace, {Logger? logger}) {
-  List<String> lines = trace.split(new RegExp(r'(\r|\n|\r\n)'));
+  List<String> lines = trace.split(RegExp(r'(\r|\n|\r\n)'));
   List<StackTraceLine> jsStackTrace = <StackTraceLine>[];
   for (String line in lines) {
     line = line.trim();
     if (line.startsWith('at ')) {
-      jsStackTrace.add(new StackTraceLine.fromText(line, logger: logger));
+      jsStackTrace.add(StackTraceLine.fromText(line, logger: logger));
     }
   }
   return jsStackTrace;
@@ -139,7 +140,7 @@ List<StackTraceLine> parseStackTrace(String trace, {Logger? logger}) {
 ///
 /// Note: some errors can span multiple lines.
 String? extractErrorMessage(String trace) {
-  var firstStackFrame = trace.indexOf(new RegExp('\n +at'));
+  var firstStackFrame = trace.indexOf(RegExp('\n +at'));
   if (firstStackFrame == -1) return null;
   var errorMarker = trace.indexOf('^') + 1;
   return trace.substring(errorMarker, firstStackFrame).trim();
