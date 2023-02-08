@@ -1517,8 +1517,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(inferredType, iterable);
   }
 
-  ForInVariable computeForInVariable(
-      Expression? syntheticAssignment, bool hasProblem) {
+  ForInVariable computeForInVariable(Expression? syntheticAssignment,
+      Statement? expressionEffects, bool hasProblem) {
     if (syntheticAssignment is VariableSet) {
       return new LocalForInVariable(syntheticAssignment);
     } else if (syntheticAssignment is PropertySet) {
@@ -1531,6 +1531,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return new StaticForInVariable(syntheticAssignment);
     } else if (syntheticAssignment is InvalidExpression || hasProblem) {
       return new InvalidForInVariable(syntheticAssignment);
+    } else if (syntheticAssignment == null &&
+        expressionEffects is PatternVariableDeclaration) {
+      return new PatternVariableDeclarationForInVariable(expressionEffects);
     } else {
       UriOffset uriOffset = _computeUriOffset(syntheticAssignment!);
       return problems.unhandled(
@@ -1551,8 +1554,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       required bool hasProblem}) {
     // ignore: unnecessary_null_comparison
     assert(hasProblem != null);
-    ForInVariable forInVariable =
-        computeForInVariable(syntheticAssignment, hasProblem);
+    ForInVariable forInVariable = computeForInVariable(
+        syntheticAssignment, expressionEffects, hasProblem);
     DartType elementType = forInVariable.computeElementType(this);
     ExpressionInferenceResult iterableResult =
         inferForInIterable(iterable, elementType, isAsync: isAsync);
