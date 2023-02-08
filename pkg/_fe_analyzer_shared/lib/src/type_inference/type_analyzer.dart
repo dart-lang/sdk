@@ -1175,17 +1175,22 @@ mixin TypeAnalyzer<
   /// Stack effect: pushes (Expression, Pattern).
   void analyzePatternForIn({
     required Node node,
+    required bool hasAwait,
     required Pattern pattern,
     required Expression expression,
     required void Function() dispatchBody,
   }) {
     // Stack: ()
     Type patternTypeSchema = dispatchPatternSchema(pattern);
-    Type expressionTypeSchema = iterableType(patternTypeSchema);
+    Type expressionTypeSchema = hasAwait
+        ? streamType(patternTypeSchema)
+        : iterableType(patternTypeSchema);
     Type expressionType = analyzeExpression(expression, expressionTypeSchema);
     // Stack: (Expression)
 
-    Type? elementType = operations.matchIterableType(expressionType);
+    Type? elementType = hasAwait
+        ? operations.matchStreamType(expressionType)
+        : operations.matchIterableType(expressionType);
     if (elementType == null) {
       if (operations.isDynamic(expressionType)) {
         elementType = dynamicType;
@@ -1989,6 +1994,9 @@ mixin TypeAnalyzer<
   /// is called once per variable, regardless of whether the variable's type is
   /// explicit or inferred.
   void setVariableType(Variable variable, Type type);
+
+  /// Returns the type `Stream`, with type argument [elementType].
+  Type streamType(Type elementType);
 
   /// Computes the type that should be inferred for an implicitly typed variable
   /// whose initializer expression has static type [type].

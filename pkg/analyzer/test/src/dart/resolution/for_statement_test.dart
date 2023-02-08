@@ -15,6 +15,8 @@ main() {
     defineReflectiveTests(
         ForStatementResolutionTest_ForEachPartsWithIdentifier);
     defineReflectiveTests(ForStatementResolutionTest_ForEachPartsWithPattern);
+    defineReflectiveTests(
+        ForStatementResolutionTest_ForEachPartsWithPattern_await);
     defineReflectiveTests(ForStatementResolutionTest_ForPartsWithExpression);
     defineReflectiveTests(ForStatementResolutionTest_ForPartsWithPattern);
   });
@@ -708,6 +710,338 @@ ForStatement
         expression: SimpleIdentifier
           token: a
           staticElement: a@38
+          staticType: num
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+}
+
+@reflectiveTest
+class ForStatementResolutionTest_ForEachPartsWithPattern_await
+    extends PubPackageResolutionTest {
+  test_iterable_dynamic() async {
+    await assertNoErrorsInCode(r'''
+void f(x) async {
+  await for (var (a) in x) {
+    a;
+  }
+}
+''');
+    var node = findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  awaitKeyword: await
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredElement: hasImplicitType a@36
+          type: dynamic
+      rightParenthesis: )
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: dynamic
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a@36
+          staticType: dynamic
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_iterable_Object() async {
+    await assertErrorsInCode(r'''
+void f(Object x) async {
+  await for (var (a) in x) {
+    a;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 49, 1),
+    ]);
+    var node = findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  awaitKeyword: await
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredElement: hasImplicitType a@43
+          type: dynamic
+      rightParenthesis: )
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Object
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a@43
+          staticType: dynamic
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_iterable_Stream() async {
+    await assertNoErrorsInCode(r'''
+void f(Stream<int> x) async {
+  await for (var (a) in x) {
+    a;
+  }
+}
+''');
+    var node = findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  awaitKeyword: await
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredElement: hasImplicitType a@48
+          type: int
+      rightParenthesis: )
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Stream<int>
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a@48
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_iterableContextType_patternVariable_typed() async {
+    await assertNoErrorsInCode(r'''
+void f() async {
+  await for (var (int a) in g()) {
+    a;
+  }
+}
+
+T g<T>() => throw 0;
+''');
+    var node = findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  awaitKeyword: await
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+        name: a
+        declaredElement: a@39
+          type: int
+      rightParenthesis: )
+    inKeyword: in
+    iterable: MethodInvocation
+      methodName: SimpleIdentifier
+        token: g
+        staticElement: self::@function::g
+        staticType: T Function<T>()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: Stream<int> Function()
+      staticType: Stream<int>
+      typeArgumentTypes
+        Stream<int>
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a@39
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_iterableContextType_patternVariable_untyped() async {
+    await assertNoErrorsInCode(r'''
+void f() async {
+  await for (var (a) in g()) {
+    a;
+  }
+}
+
+T g<T>() => throw 0;
+''');
+    var node = findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  awaitKeyword: await
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredElement: hasImplicitType a@35
+          type: Object?
+      rightParenthesis: )
+    inKeyword: in
+    iterable: MethodInvocation
+      methodName: SimpleIdentifier
+        token: g
+        staticElement: self::@function::g
+        staticType: T Function<T>()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: Stream<Object?> Function()
+      staticType: Stream<Object?>
+      typeArgumentTypes
+        Stream<Object?>
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a@35
+          staticType: Object?
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_keyword_final_patternVariable() async {
+    await assertNoErrorsInCode(r'''
+void f(Stream<int> x) async {
+  await for (final (a) in x) {
+    a;
+  }
+}
+''');
+    var node = findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  awaitKeyword: await
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: final
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredElement: hasImplicitType isFinal a@50
+          type: int
+      rightParenthesis: )
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Stream<int>
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a@50
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_pattern_patternVariable_typed() async {
+    await assertNoErrorsInCode(r'''
+void f(Stream<int> x) async {
+  await for (var (num a) in x) {
+    a;
+  }
+}
+''');
+    var node = findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  awaitKeyword: await
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        type: NamedType
+          name: SimpleIdentifier
+            token: num
+            staticElement: dart:core::@class::num
+            staticType: null
+          type: num
+        name: a
+        declaredElement: a@52
+          type: num
+      rightParenthesis: )
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Stream<int>
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a@52
           staticType: num
         semicolon: ;
     rightBracket: }

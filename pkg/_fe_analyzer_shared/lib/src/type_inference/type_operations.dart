@@ -98,6 +98,10 @@ mixin TypeOperations<Type extends Object> {
   /// returns these `K` and `V`.  Otherwise returns `null`.
   MapPatternTypeArguments<Type>? matchMapType(Type type);
 
+  /// If [type] is a subtype of the type `Stream<T>` for some `T`, returns
+  /// the type `T`.  Otherwise returns `null`.
+  Type? matchStreamType(Type type);
+
   /// Computes `NORM` of [type].
   /// https://github.com/dart-lang/language
   /// See `resources/type-system/normalization.md`

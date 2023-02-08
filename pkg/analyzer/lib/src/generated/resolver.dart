@@ -1729,6 +1729,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
   }
 
+  @override
+  DartType streamType(DartType elementType) {
+    return typeProvider.streamType(elementType);
+  }
+
   /// Returns the result of an implicit `this.` lookup for the identifier string
   /// [id] in a getter context, or `null` if no match was found.
   LexicalLookupResult? thisLookupGetter(SimpleIdentifier node) {
