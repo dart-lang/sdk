@@ -135,7 +135,7 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "d0c6b1da52c9f80679a7aaa05e5935ef5c6bb52f", # manually rev'd
-  "dartdoc_rev": "bc7bdc44b03c558c9993f178d19ad989ed1c5f12", # https://github.com/dart-lang/markdown/pull/494
+  "dartdoc_rev": "494a6bed4992ea4ee1d831e6bcf20ab645da950b",
   "ffi_rev": "69d759613f9be3a897ce9a67910e9914694c96f3",
   "file_rev": "72a67c33f90bfb7e10057e286e06d2fe3baa4d98",
   "fixnum_rev": "f8379d94436f3a73f71ea078f3207897c6700498",
@@ -149,7 +149,7 @@ vars = {
   "linter_rev": "70fb087e39e6882ad331ee1e3f52f3f3a88e2d16", # 1.33.0 (+ `unnecessary_parenthesis` fix)
   "lints_rev": "dfded5e265015f21ce154577fe8488dc244e33c2",
   "logging_rev": "abef3717d958158eb8b0ddb2871f4b15a9804cd4",
-  "markdown_rev": "ee3f4e976efcfed87c6ec78364bc2dd3c6e717b9", # https://github.com/dart-lang/markdown/pull/494
+  "markdown_rev": "f51c24c5c5603ac20b6d88aded78ef3aa23619ac",
   "matcher_rev": "c1a07043de3da4968e1736fcde1c521802821859",
   "mime_rev": "1a51be02b3cbc742c79d83575bd096ae8c295c1f",
   "mockito_rev": "d2a8df169706d1c1e5daaf0c96ee03b8238bd599",

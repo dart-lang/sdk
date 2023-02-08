@@ -43,17 +43,6 @@ class C extends Union {
     ]);
   }
 
-  test_instance_invalid3() async {
-    await assertErrorsInCode(r'''
-import 'dart:ffi';
-class C extends Struct {
-  external Pointer? p;
-}
-''', [
-      error(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT, 55, 8),
-    ]);
-  }
-
   test_instance_valid() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';

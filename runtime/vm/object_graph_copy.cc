@@ -156,7 +156,6 @@ static bool CanShareObject(ObjectPtr obj, uword tags) {
   if (cid == kExternalOneByteStringCid) return true;
   if (cid == kExternalTwoByteStringCid) return true;
   if (cid == kMintCid) return true;
-  if (cid == kImmutableArrayCid) return true;
   if (cid == kNeverCid) return true;
   if (cid == kSentinelCid) return true;
   if (cid == kStackTraceCid) return true;
@@ -209,7 +208,6 @@ static bool MightNeedReHashing(ObjectPtr object) {
   // These are shared and use identity hash codes. If they are used as a key in
   // a map or a value in a set, they will already have the identity hash code
   // set.
-  if (cid == kImmutableArrayCid) return false;
   if (cid == kRegExpCid) return false;
   if (cid == kInt32x4Cid) return false;
 
@@ -270,11 +268,10 @@ DART_FORCE_INLINE
 void UpdateLengthField(intptr_t cid, ObjectPtr from, ObjectPtr to) {
   // We share these objects - never copy them.
   ASSERT(!IsStringClassId(cid));
-  ASSERT(cid != kImmutableArrayCid);
 
   // We update any in-heap variable sized object with the length to keep the
   // length and the size in the object header in-sync for the GC.
-  if (cid == kArrayCid) {
+  if (cid == kArrayCid || cid == kImmutableArrayCid) {
     static_cast<UntaggedArray*>(to.untag())->length_ =
         static_cast<UntaggedArray*>(from.untag())->length_;
   } else if (cid == kContextCid) {
@@ -1203,7 +1200,8 @@ class SlowObjectCopyBase : public ObjectCopyBase {
     UpdateLengthField(cid, from.ptr(), to_.ptr());
     slow_forward_map_.Insert(from, to_, size);
     ObjectPtr to = to_.ptr();
-    if (cid == kArrayCid && !Heap::IsAllocatableInNewSpace(size)) {
+    if ((cid == kArrayCid || cid == kImmutableArrayCid) &&
+        !Heap::IsAllocatableInNewSpace(size)) {
       to.untag()->SetCardRememberedBitUnsynchronized();
     }
     if (IsExternalTypedDataClassId(cid)) {
@@ -1317,6 +1315,13 @@ class ObjectCopy : public Base {
       COPY_TO(Map)
       COPY_TO(Set)
 #undef COPY_TO
+
+      case ImmutableArray::kClassId: {
+        typename Types::Array casted_from = Types::CastArray(from);
+        typename Types::Array casted_to = Types::CastArray(to);
+        CopyArray(casted_from, casted_to);
+        return;
+      }
 
 #define COPY_TO(clazz) case kTypedData##clazz##Cid:
 
