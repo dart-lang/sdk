@@ -83,6 +83,7 @@ import 'rules/flutter_style_todos.dart';
 import 'rules/hash_and_equals.dart';
 import 'rules/implementation_imports.dart';
 import 'rules/implicit_call_tearoffs.dart';
+import 'rules/invalid_case_patterns.dart';
 import 'rules/invariant_booleans.dart';
 import 'rules/iterable_contains_unrelated_type.dart';
 import 'rules/join_return_with_assignment.dart';
@@ -308,6 +309,7 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(ImplementationImports())
     ..register(ImplicitCallTearoffs())
     ..register(InvariantBooleans())
+    ..register(InvalidCasePatterns())
     ..register(IterableContainsUnrelatedType())
     ..register(JoinReturnWithAssignment())
     ..register(LeadingNewlinesInMultilineStrings())

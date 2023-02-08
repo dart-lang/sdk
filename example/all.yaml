@@ -77,6 +77,7 @@ linter:
     - hash_and_equals
     - implementation_imports
     - implicit_call_tearoffs
+    - invalid_case_patterns
     - iterable_contains_unrelated_type
     - join_return_with_assignment
     - leading_newlines_in_multiline_strings
