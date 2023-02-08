@@ -179,9 +179,19 @@ static bool CanShareObject(ObjectPtr obj, uword tags) {
         ->typed_data()
         ->untag()
         ->IsImmutable();
+  } else {
+    if ((tags & UntaggedObject::ImmutableBit::mask_in_place()) != 0) {
+      return true;
+    }
   }
 
   return false;
+}
+
+bool CanShareObjectAcrossIsolates(ObjectPtr obj) {
+  if (!obj->IsHeapObject()) return true;
+  const uword tags = TagsFromUntaggedObject(obj.untag());
+  return CanShareObject(obj, tags);
 }
 
 // Whether executing `get:hashCode` (possibly in a different isolate) on an
