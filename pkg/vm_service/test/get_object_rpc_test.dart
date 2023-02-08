@@ -704,6 +704,10 @@ var tests = <IsolateTest>[
     final fieldsMap = HashMap.fromEntries(
         result.fields!.map((f) => MapEntry(f.name, f.value)));
     expect(fieldsMap.keys.length, result.length);
+    // [BoundField]s have fields with type [dynamic], and such fields have
+    // broken [toJson()] in the past. So, we make the following call just to
+    // ensure that it doesn't throw.
+    result.fields!.first.toJson();
     expect(fieldsMap.containsKey(0), true);
     expect(fieldsMap[0].valueAsString, '1');
     expect(fieldsMap.containsKey("x"), true);

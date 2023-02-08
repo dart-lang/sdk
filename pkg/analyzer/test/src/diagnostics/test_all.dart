@@ -827,6 +827,7 @@ import 'unnecessary_null_check_pattern_test.dart'
     as unnecessary_null_check_pattern;
 import 'unnecessary_null_comparison_test.dart' as unnecessary_null_comparison;
 import 'unnecessary_question_mark_test.dart' as unnecessary_question_mark;
+import 'unnecessary_set_literal_test.dart' as unnecessary_set_literal;
 import 'unnecessary_type_check_test.dart' as unnecessary_type_check;
 import 'unqualified_reference_to_non_local_static_member_test.dart'
     as unqualified_reference_to_non_local_static_member;
@@ -1410,6 +1411,7 @@ main() {
     unnecessary_null_check_pattern.main();
     unnecessary_null_comparison.main();
     unnecessary_question_mark.main();
+    unnecessary_set_literal.main();
     unnecessary_type_check.main();
     unqualified_reference_to_non_local_static_member.main();
     unqualified_reference_to_static_member_of_extended_type.main();

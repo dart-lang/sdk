@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -284,7 +285,8 @@ void f(List<int> list) {
   list.forEach((x) => {print('')});
 }
 ''');
-    await assertNoFix();
+    await assertNoFix(
+        errorFilter: (error) => error.errorCode.type == ErrorType.LINT);
   }
 
   Future<void> test_setLiteral_multiple() async {
@@ -317,6 +319,6 @@ void f(List<int> list) {
     <int>{x};
   }
 }
-''');
+''', errorFilter: (error) => error.errorCode.type == ErrorType.LINT);
   }
 }

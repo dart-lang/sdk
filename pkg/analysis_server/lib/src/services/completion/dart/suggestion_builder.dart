@@ -250,6 +250,10 @@ class SuggestionBuilder {
   bool get _isNonNullableByDefault =>
       request.libraryElement.isNonNullableByDefault;
 
+  /// Return `true` if the context requires a constant expression.
+  bool get _preferConstants =>
+      request.inConstantContext || request.opType.mustBeConst;
+
   /// Add a suggestion for an [accessor] declared within a class or extension.
   /// If the accessor is being invoked with a target of `super`, then the
   /// [containingMemberName] should be the name of the member containing the
@@ -287,7 +291,7 @@ class SuggestionBuilder {
         var elementKind =
             _computeElementKind(accessor, distance: inheritanceDistance);
         var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
-        var isConstant = request.inConstantContext
+        var isConstant = _preferConstants
             ? featureComputer.isConstantFeature(accessor)
             : 0.0;
         var startsWithDollar =
@@ -324,7 +328,7 @@ class SuggestionBuilder {
     var contextType = request.featureComputer
         .contextTypeFeature(request.contextType, variableType);
     var elementKind = _computeElementKind(parameter);
-    var isConstant = request.inConstantContext
+    var isConstant = _preferConstants
         ? request.featureComputer.isConstantFeature(parameter)
         : 0.0;
     var relevance = _computeRelevance(
@@ -539,9 +543,8 @@ class SuggestionBuilder {
       var elementKind =
           _computeElementKind(field, distance: inheritanceDistance);
       var hasDeprecated = featureComputer.hasDeprecatedFeature(field);
-      var isConstant = request.inConstantContext
-          ? featureComputer.isConstantFeature(field)
-          : 0.0;
+      var isConstant =
+          _preferConstants ? featureComputer.isConstantFeature(field) : 0.0;
       var startsWithDollar =
           featureComputer.startsWithDollarFeature(field.name);
       var superMatches = featureComputer.superMatchesFeature(
@@ -694,7 +697,7 @@ class SuggestionBuilder {
         request.featureComputer.localVariableDistanceFeature(node, variable);
     var elementKind =
         _computeElementKind(variable, distance: localVariableDistance);
-    var isConstant = request.inConstantContext
+    var isConstant = _preferConstants
         ? request.featureComputer.isConstantFeature(variable)
         : 0.0;
     var relevance = _computeRelevance(
@@ -728,9 +731,8 @@ class SuggestionBuilder {
     var elementKind =
         _computeElementKind(method, distance: inheritanceDistance);
     var hasDeprecated = featureComputer.hasDeprecatedFeature(method);
-    var isConstant = request.inConstantContext
-        ? featureComputer.isConstantFeature(method)
-        : 0.0;
+    var isConstant =
+        _preferConstants ? featureComputer.isConstantFeature(method) : 0.0;
     var isNoSuchMethod = featureComputer.isNoSuchMethodFeature(
         _containingMemberName, method.name);
     var startsWithDollar = featureComputer.startsWithDollarFeature(method.name);
@@ -991,7 +993,7 @@ class SuggestionBuilder {
     var contextType = request.featureComputer
         .contextTypeFeature(request.contextType, variableType);
     var elementKind = _computeElementKind(parameter);
-    var isConstant = request.inConstantContext
+    var isConstant = _preferConstants
         ? request.featureComputer.isConstantFeature(parameter)
         : 0.0;
     var relevance = _computeRelevance(
@@ -1165,7 +1167,7 @@ class SuggestionBuilder {
             featureComputer.contextTypeFeature(request.contextType, type);
         var elementKind = _computeElementKind(accessor);
         var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
-        var isConstant = request.inConstantContext
+        var isConstant = _preferConstants
             ? featureComputer.isConstantFeature(accessor)
             : 0.0;
         var startsWithDollar =
@@ -1244,7 +1246,7 @@ class SuggestionBuilder {
   /// Add a suggestion for a type [parameter].
   void suggestTypeParameter(TypeParameterElement parameter) {
     var elementKind = _computeElementKind(parameter);
-    var isConstant = request.inConstantContext
+    var isConstant = _preferConstants
         ? request.featureComputer.isConstantFeature(parameter)
         : 0.0;
     var relevance = _computeRelevance(
@@ -1381,9 +1383,8 @@ class SuggestionBuilder {
         featureComputer.contextTypeFeature(request.contextType, elementType);
     var elementKind = _computeElementKind(element);
     var hasDeprecated = featureComputer.hasDeprecatedFeature(element);
-    var isConstant = request.inConstantContext
-        ? featureComputer.isConstantFeature(element)
-        : 0.0;
+    var isConstant =
+        _preferConstants ? featureComputer.isConstantFeature(element) : 0.0;
     return _computeRelevance(
       contextType: contextType,
       elementKind: elementKind,

@@ -147,6 +147,7 @@ import 'remove_argument_test.dart' as remove_argument;
 import 'remove_assertion_test.dart' as remove_assertion;
 import 'remove_assignment_test.dart' as remove_assignment;
 import 'remove_await_test.dart' as remove_await;
+import 'remove_break_test.dart' as remove_break;
 import 'remove_character_test.dart' as remove_character;
 import 'remove_comparison_test.dart' as remove_comparison;
 import 'remove_const_test.dart' as remove_const;
@@ -245,7 +246,6 @@ import 'sort_constructor_first_test.dart' as sort_constructor_first_test;
 import 'sort_unnamed_constructor_first_test.dart'
     as sort_unnamed_constructor_first_test;
 import 'update_sdk_constraints_test.dart' as update_sdk_constraints;
-import 'use_const_test.dart' as use_const;
 import 'use_curly_braces_test.dart' as use_curly_braces;
 import 'use_effective_integer_division_test.dart'
     as use_effective_integer_division;
@@ -382,6 +382,7 @@ void main() {
     remove_assertion.main();
     remove_assignment.main();
     remove_await.main();
+    remove_break.main();
     remove_character.main();
     remove_comparison.main();
     remove_const.main();
@@ -467,7 +468,6 @@ void main() {
     sort_combinators_test.main();
     sort_unnamed_constructor_first_test.main();
     update_sdk_constraints.main();
-    use_const.main();
     use_curly_braces.main();
     use_effective_integer_division.main();
     use_eq_eq_null.main();

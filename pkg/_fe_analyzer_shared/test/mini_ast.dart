@@ -741,7 +741,9 @@ class Harness {
       Type matchedValueType, String operator) {
     if (operator == '==' || operator == '!=') {
       return RelationalOperatorResolution(
-          isEquality: true,
+          kind: operator == '=='
+              ? RelationalOperatorKind.equals
+              : RelationalOperatorKind.notEquals,
           parameterType: Type('Object'),
           returnType: Type('bool'));
     }
@@ -757,7 +759,7 @@ class Harness {
           'must accept a parameter');
     }
     return RelationalOperatorResolution(
-        isEquality: operator == '==' || operator == '!=',
+        kind: RelationalOperatorKind.other,
         parameterType: memberType.positionalParameters[0],
         returnType: memberType.returnType);
   }
@@ -4929,7 +4931,7 @@ class _WildcardPattern extends Pattern {
         names: ['matchedType'], location: location);
     var expectInferredType = this.expectInferredType;
     if (expectInferredType != null) {
-      expect(matchedType.type, expectInferredType);
+      expect(matchedType.type, expectInferredType, reason: 'at $location');
     }
   }
 

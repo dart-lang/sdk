@@ -1571,8 +1571,18 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     DartType matchedType,
   ) {
     var operatorLexeme = node.operator.lexeme;
-    var isEquality = const {'==', '!='}.contains(operatorLexeme);
-    var methodName = isEquality ? '==' : operatorLexeme;
+    RelationalOperatorKind kind;
+    String methodName;
+    if (operatorLexeme == '==') {
+      kind = RelationalOperatorKind.equals;
+      methodName = '==';
+    } else if (operatorLexeme == '!=') {
+      kind = RelationalOperatorKind.notEquals;
+      methodName = '==';
+    } else {
+      kind = RelationalOperatorKind.other;
+      methodName = operatorLexeme;
+    }
 
     var result = typePropertyResolver.resolve(
       receiver: null,
@@ -1603,7 +1613,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     return RelationalOperatorResolution(
-      isEquality: isEquality,
+      kind: kind,
       parameterType: parameterType,
       returnType: element.returnType,
     );

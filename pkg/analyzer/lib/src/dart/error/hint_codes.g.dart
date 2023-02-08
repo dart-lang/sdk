@@ -807,6 +807,13 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
+  static const HintCode UNNECESSARY_SET_LITERAL = HintCode(
+    'UNNECESSARY_SET_LITERAL',
+    "Braces unnecessarily wrap this expression in a set literal.",
+    correctionMessage: "Try removing the set literal around the expression.",
+  );
+
+  ///  No parameters.
   static const HintCode UNNECESSARY_TYPE_CHECK_FALSE = HintCode(
     'UNNECESSARY_TYPE_CHECK',
     "Unnecessary type check; the result is always 'false'.",

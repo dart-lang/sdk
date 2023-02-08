@@ -46,12 +46,12 @@ suggestions
     kind: topLevelVariable
   c11
     kind: localVariable
-  o1
-    kind: parameter
   v01
     kind: topLevelVariable
   v11
     kind: localVariable
+  o1
+    kind: parameter
 ''');
   }
 
@@ -73,12 +73,12 @@ suggestions
     kind: topLevelVariable
   c11
     kind: localVariable
-  o1
-    kind: parameter
   v01
     kind: topLevelVariable
   v11
     kind: localVariable
+  o1
+    kind: parameter
 ''');
   }
 
@@ -100,12 +100,12 @@ suggestions
     kind: topLevelVariable
   c11
     kind: localVariable
-  o1
-    kind: parameter
   v01
     kind: topLevelVariable
   v11
     kind: localVariable
+  o1
+    kind: parameter
 ''');
   }
 
@@ -127,12 +127,12 @@ suggestions
     kind: topLevelVariable
   c11
     kind: localVariable
-  o1
-    kind: parameter
   v01
     kind: topLevelVariable
   v11
     kind: localVariable
+  o1
+    kind: parameter
 ''');
   }
 }

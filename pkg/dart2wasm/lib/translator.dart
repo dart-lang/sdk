@@ -546,6 +546,9 @@ class Translator with KernelNodes {
               : classInfo[typeClass]!.struct,
           nullable: type.isPotentiallyNullable);
     }
+    if (type is InlineType) {
+      return translateStorageType(type.instantiatedRepresentationType);
+    }
     throw "Unsupported type ${type.runtimeType}";
   }
 

@@ -112,6 +112,8 @@ abstract class TypesBuilder {
       } else {
         result = fromStaticType(bound, canBeNull);
       }
+    } else if (type is InlineType) {
+      result = fromStaticType(type.instantiatedRepresentationType, canBeNull);
     } else {
       throw 'Unexpected type ${type.runtimeType} $type';
     }

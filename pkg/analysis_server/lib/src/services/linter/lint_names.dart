@@ -140,6 +140,7 @@ class LintNames {
   static const String unawaited_futures = 'unawaited_futures';
   static const String unnecessary_brace_in_string_interps =
       'unnecessary_brace_in_string_interps';
+  static const String unnecessary_breaks = 'unnecessary_breaks';
   static const String unnecessary_const = 'unnecessary_const';
   static const String unnecessary_constructor_name =
       'unnecessary_constructor_name';

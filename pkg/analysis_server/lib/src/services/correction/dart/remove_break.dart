@@ -1,4 +1,4 @@
-// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,22 +9,27 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class UseConst extends CorrectionProducer {
+class RemoveBreak extends CorrectionProducer {
   @override
-  FixKind get fixKind => DartFixKind.USE_CONST;
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
+  FixKind get fixKind => DartFixKind.REMOVE_BREAK;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_BREAK_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (coveredNode is InstanceCreationExpression) {
-      var instanceCreation = coveredNode as InstanceCreationExpression;
+    final breakStatement = node;
+    if (breakStatement is BreakStatement) {
       await builder.addDartFileEdit(file, (builder) {
-        var keyword = instanceCreation.keyword;
-        if (keyword == null) {
-          builder.addSimpleInsertion(
-              instanceCreation.constructorName.offset, 'const');
-        } else {
-          builder.addSimpleReplacement(range.token(keyword), 'const');
-        }
+        var start = utils.getLineContentStart(breakStatement.offset);
+        var end = utils.getLineContentEnd(breakStatement.end);
+        builder.addDeletion(range.startOffsetEndOffset(start, end));
       });
     }
   }

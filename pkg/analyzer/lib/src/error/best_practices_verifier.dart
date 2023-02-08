@@ -585,12 +585,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
+    var body = node.body;
     if (node.parent is! FunctionDeclaration) {
-      _checkForMissingReturn(node.body, node);
+      _checkForMissingReturn(body, node);
     }
     if (!(node as FunctionExpressionImpl).wasFunctionTypeSupplied) {
       _checkStrictInferenceInParameters(node.parameters, body: node.body);
     }
+    _checkForUnnecessarySetLiteral(body, node);
     super.visitFunctionExpression(node);
   }
 
@@ -1553,6 +1555,47 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
     }
     return false;
+  }
+
+  /// Generate hints related to returning a set literal in an
+  /// [ExpressionFunctionBody], having a single expression,
+  /// for a function of `void` return type.
+  void _checkForUnnecessarySetLiteral(
+      FunctionBody body, FunctionExpression node) {
+    if (body is ExpressionFunctionBodyImpl) {
+      var parameterType = node.staticParameterElement?.type;
+
+      DartType? returnType;
+      if (parameterType is FunctionType) {
+        returnType = parameterType.returnType;
+      } else {
+        var parent = node.parent;
+        if (parent is! FunctionDeclaration) return;
+        returnType = parent.returnType?.type;
+      }
+      if (returnType == null) return;
+
+      bool isReturnVoid;
+      if (returnType.isVoid) {
+        isReturnVoid = true;
+      } else if (returnType is ParameterizedType &&
+          (returnType.isDartAsyncFuture || returnType.isDartAsyncFutureOr)) {
+        var typeArguments = returnType.typeArguments;
+        isReturnVoid = typeArguments.length == 1 && typeArguments.first.isVoid;
+      } else {
+        isReturnVoid = false;
+      }
+      if (isReturnVoid) {
+        var expression = body.expression;
+        if (expression is SetOrMapLiteralImpl && expression.isSet) {
+          var elements = expression.elements;
+          if (elements.length == 1 && elements.first is Expression) {
+            _errorReporter.reportErrorForNode(
+                HintCode.UNNECESSARY_SET_LITERAL, expression);
+          }
+        }
+      }
+    }
   }
 
   void _checkRequiredParameter(FormalParameterList node) {

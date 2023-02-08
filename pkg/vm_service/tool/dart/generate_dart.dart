@@ -1664,6 +1664,12 @@ void _parseTokenPosTable() {
         gen.write('.toJson()');
       }
       gen.write(').toList()');
+    } else if (field.type.isMultipleReturns) {
+      gen.write('''
+${field.generatableName} is int || ${field.generatableName} is String
+    ? ${field.generatableName}
+    : ${field.generatableName}?.toJson()
+''');
     } else {
       gen.write('${field.generatableName}?.toJson()');
     }

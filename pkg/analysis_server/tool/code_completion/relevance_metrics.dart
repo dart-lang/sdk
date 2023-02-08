@@ -116,6 +116,7 @@ class RelevanceData {
   /// A number identifying the version of this code that produced a given JSON
   /// encoded file. The number should be incremented whenever the shape of the
   /// JSON file is changed.
+  // ignore: unreachable_from_main
   static const String currentVersion = '1';
 
   /// A table mapping match distances to counts by kind of distance.

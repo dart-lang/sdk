@@ -11,9 +11,31 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(RemoveNewTest);
     defineReflectiveTests(RemoveUnnecessaryNewBulkTest);
     defineReflectiveTests(RemoveUnnecessaryNewTest);
   });
+}
+
+@reflectiveTest
+class RemoveNewTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_NEW;
+
+  Future<void> test_explicitNew() async {
+    await resolveTestCode('''
+class A {
+  const A();
+}
+const a = new A();
+''');
+    await assertHasFix('''
+class A {
+  const A();
+}
+const a = A();
+''');
+  }
 }
 
 @reflectiveTest

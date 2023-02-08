@@ -91,15 +91,27 @@ class RecordType<Type extends Object> {
   });
 }
 
+/// Kinds of relational pattern operators that shared analysis needs to
+/// distinguish.
+enum RelationalOperatorKind {
+  /// The operator `==`
+  equals,
+
+  /// The operator `!=`
+  notEquals,
+
+  /// Any relational pattern operator other than `==` or `!=`
+  other,
+}
+
 /// Information about a relational operator.
 class RelationalOperatorResolution<Type extends Object> {
-  /// Is `true` when the operator is `==` or `!=`.
-  final bool isEquality;
+  final RelationalOperatorKind kind;
   final Type parameterType;
   final Type returnType;
 
   RelationalOperatorResolution({
-    required this.isEquality,
+    required this.kind,
     required this.parameterType,
     required this.returnType,
   });
@@ -369,7 +381,8 @@ mixin TypeAnalyzer<
     }
     Type matchedType = flow.getMatchedValueType();
     Type staticType = analyzeExpression(expression, matchedType);
-    flow.constantPattern_end(expression);
+    flow.constantPattern_end(expression, staticType,
+        patternsEnabled: options.patternsEnabled);
     // Stack: (Expression)
     if (errors != null && !options.patternsEnabled) {
       Expression? switchScrutinee = context.getSwitchScrutinee(node);
@@ -1392,11 +1405,27 @@ mixin TypeAnalyzer<
         resolveRelationalPatternOperator(node, matchedValueType);
     Type operandContext = operator?.parameterType ?? unknownType;
     Type operandType = analyzeExpression(operand, operandContext);
+    bool isEquality;
+    switch (operator?.kind) {
+      case RelationalOperatorKind.equals:
+        isEquality = true;
+        flow.equalityRelationalPattern_end(operand, operandType,
+            notEqual: false);
+        break;
+      case RelationalOperatorKind.notEquals:
+        isEquality = true;
+        flow.equalityRelationalPattern_end(operand, operandType,
+            notEqual: true);
+        break;
+      default:
+        isEquality = false;
+        flow.nonEqualityRelationalPattern_end();
+        break;
+    }
     // Stack: (Expression)
     if (errors != null && operator != null) {
-      Type argumentType = operator.isEquality
-          ? operations.promoteToNonNull(operandType)
-          : operandType;
+      Type argumentType =
+          isEquality ? operations.promoteToNonNull(operandType) : operandType;
       if (!operations.isAssignableTo(argumentType, operator.parameterType)) {
         errors.argumentTypeNotAssignable(
           argument: operand,

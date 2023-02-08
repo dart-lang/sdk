@@ -761,6 +761,9 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       return _makeFutureOrType(constant, type, info);
     } else if (type is FunctionType) {
       return _makeFunctionType(constant, type, info);
+    } else if (type is InlineType) {
+      return ensureConstant(
+          TypeLiteralConstant(type.instantiatedRepresentationType));
     } else if (type is TypeParameterType) {
       if (types.isFunctionTypeParameter(type)) {
         // The indexing scheme used by function type parameters ensures that

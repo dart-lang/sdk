@@ -241,8 +241,10 @@ class JsInteropClass {
   external static externalStaticJsInteropMethod();
 }
 
+bool flag;
+
 main() {
-  if (false) {
+  if (flag = false) {
     topLevelSetter = topLevelField = topLevelGetter;
     topLevelFunction();
     externalTopLevelSetter = externalTopLevelGetter;

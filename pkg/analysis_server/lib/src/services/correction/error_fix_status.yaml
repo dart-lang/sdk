@@ -1547,6 +1547,10 @@ HintCode.UNNECESSARY_NULL_COMPARISON_TRUE:
   status: hasFix
 HintCode.UNNECESSARY_QUESTION_MARK:
   status: hasFix
+HintCode.UNNECESSARY_SET_LITERAL:
+  status: needsFix
+  notes: |-
+    Remove the set literal.
 HintCode.UNNECESSARY_TYPE_CHECK_FALSE:
   status: hasFix
 HintCode.UNNECESSARY_TYPE_CHECK_TRUE:
@@ -1995,6 +1999,8 @@ LintCode.unawaited_futures:
 LintCode.unnecessary_await_in_return:
   status: needsEvaluation
 LintCode.unnecessary_brace_in_string_interps:
+  status: hasFix
+LintCode.unnecessary_breaks:
   status: hasFix
 LintCode.unnecessary_const:
   status: hasFix

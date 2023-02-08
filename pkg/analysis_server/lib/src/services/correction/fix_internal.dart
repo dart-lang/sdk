@@ -118,6 +118,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_argument.dar
 import 'package:analysis_server/src/services/correction/dart/remove_assertion.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_assignment.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_break.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_character.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_comparison.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
@@ -201,7 +202,6 @@ import 'package:analysis_server/src/services/correction/dart/sort_combinators.da
 import 'package:analysis_server/src/services/correction/dart/sort_constructor_first.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_unnamed_constructor_first.dart';
 import 'package:analysis_server/src/services/correction/dart/update_sdk_constraints.dart';
-import 'package:analysis_server/src/services/correction/dart/use_const.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/use_effective_integer_division.dart';
 import 'package:analysis_server/src/services/correction/dart/use_eq_eq_null.dart';
@@ -663,6 +663,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.unnecessary_brace_in_string_interps: [
       RemoveInterpolationBraces.new,
     ],
+    LintNames.unnecessary_breaks: [
+      RemoveBreak.new,
+    ],
     LintNames.unnecessary_const: [
       RemoveUnnecessaryConst.new,
     ],
@@ -950,7 +953,8 @@ class FixProcessor extends BaseProcessor {
       MakeClassAbstract.new,
     ],
     CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE: [
-      UseConst.new,
+      RemoveConst.new,
+      RemoveNew.new,
     ],
     CompileTimeErrorCode.CONST_INSTANCE_FIELD: [
       AddStatic.new,

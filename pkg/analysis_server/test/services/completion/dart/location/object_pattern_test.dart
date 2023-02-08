@@ -56,7 +56,8 @@ class A1 extends A0 {
   static set s12(x) {}
 }
 ''');
-    assertResponse('''
+    if (isProtocolVersion2) {
+      assertResponse('''
 suggestions
   A0
     kind: class
@@ -81,6 +82,33 @@ suggestions
   x0
     kind: parameter
 ''');
+    } else {
+      assertResponse('''
+suggestions
+  A0
+    kind: class
+  A0
+    kind: constructorInvocation
+  A1
+    kind: class
+  A1
+    kind: constructorInvocation
+  false
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
+  x0
+    kind: parameter
+  const
+    kind: keyword
+  final
+    kind: keyword
+  var
+    kind: keyword
+''');
+    }
   }
 
   Future<void> test_pattern_second() async {
@@ -111,7 +139,8 @@ class A1 extends A0 {
   static set s12(x) {}
 }
 ''');
-    assertResponse('''
+    if (isProtocolVersion2) {
+      assertResponse('''
 suggestions
   A0
     kind: class
@@ -136,6 +165,33 @@ suggestions
   x0
     kind: parameter
 ''');
+    } else {
+      assertResponse('''
+suggestions
+  A0
+    kind: class
+  A0
+    kind: constructorInvocation
+  A1
+    kind: class
+  A1
+    kind: constructorInvocation
+  false
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
+  x0
+    kind: parameter
+  const
+    kind: keyword
+  final
+    kind: keyword
+  var
+    kind: keyword
+''');
+    }
   }
 
   Future<void> test_property_first() async {

@@ -421,6 +421,7 @@ downloaded
 downloading
 dq
 dquote
+drawn
 dsdk
 dst
 dummy
@@ -468,8 +469,10 @@ enumerates
 env
 eof
 eq
+equally
 equation
 equivalences
+equivalently
 erase
 erased
 es
@@ -584,6 +587,7 @@ futureor
 fvar
 g
 gardening
+garner
 gb
 gen
 generation
@@ -885,6 +889,7 @@ mi
 migrated
 migration
 mime
+mimic
 min
 mini
 misuse
@@ -1648,6 +1653,7 @@ util
 utils
 v
 validly
+value's
 variable's
 variances
 variant
@@ -1700,10 +1706,12 @@ widgets
 wiki
 wikipedia
 wind
+winds
 wise
 wiser
 wishes
 wn
+worst
 worthwhile
 worthy
 woven
