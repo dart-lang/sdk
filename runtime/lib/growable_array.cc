@@ -8,6 +8,7 @@
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
+#include "vm/object_graph_copy.h"
 
 namespace dart {
 
@@ -89,6 +90,17 @@ DEFINE_NATIVE_ENTRY(Internal_makeListFixedLength, 0, 1) {
 DEFINE_NATIVE_ENTRY(Internal_makeFixedListUnmodifiable, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Array, array, arguments->NativeArgAt(0));
   array.MakeImmutable();
+  const intptr_t len = array.Length();
+  bool is_deeply_immutable = true;
+  for (intptr_t i = 0; i < len; ++i) {
+    if (!CanShareObjectAcrossIsolates(array.At(i))) {
+      is_deeply_immutable = false;
+      break;
+    }
+  }
+  if (is_deeply_immutable) {
+    array.SetImmutable();
+  }
   return array.ptr();
 }
 

@@ -1,5 +1,8 @@
 # Changelog
 
+## 11.0.2
+- Reduce number of type checks in `toJson()` methods.
+
 ## 11.0.1
 - Fix bug where code would try to call `.toJson()` on `int`s.
 
