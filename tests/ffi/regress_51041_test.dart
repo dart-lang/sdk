@@ -16,4 +16,5 @@ class Foo extends Struct {
 void main() {
   final ptr = calloc.allocate<Foo>(sizeOf<Foo>());
   print(ptr.ref.x);
+  calloc.free(ptr);
 }
