@@ -1102,55 +1102,8 @@ class _Replacement {
 }
 
 extension on ClassElement {
-  bool get isBase {
-    final self = this;
-    return self is ClassElementImpl && self.isBase;
-  }
-
-  bool get isFinal {
-    final self = this;
-    return self is ClassElementImpl && self.isFinal;
-  }
-
-  bool get isInterface {
-    final self = this;
-    return self is ClassElementImpl && self.isInterface;
-  }
-
   bool get isMacro {
     final self = this;
     return self is ClassElementImpl && self.isMacro;
-  }
-
-  bool get isMixinClass {
-    final self = this;
-    return self is ClassElementImpl && self.isMixinClass;
-  }
-
-  bool get isSealed {
-    final self = this;
-    return self is ClassElementImpl && self.isSealed;
-  }
-}
-
-extension on MixinElement {
-  bool get isBase {
-    final self = this;
-    return self is MixinElementImpl && self.isBase;
-  }
-
-  bool get isFinal {
-    final self = this;
-    return self is MixinElementImpl && self.isFinal;
-  }
-
-  bool get isInterface {
-    final self = this;
-    return self is MixinElementImpl && self.isInterface;
-  }
-
-  bool get isSealed {
-    final self = this;
-    return self is MixinElementImpl && self.isSealed;
   }
 }

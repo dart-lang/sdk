@@ -739,6 +739,9 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
     return true;
   }
 
+  @override
+  bool get isExhaustive => isSealed;
+
   bool get isMacro {
     return hasModifier(Modifier.MACRO);
   }
@@ -757,6 +760,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
     setModifier(Modifier.MIXIN_APPLICATION, isMixinApplication);
   }
 
+  @override
   bool get isMixinClass {
     return hasModifier(Modifier.MIXIN_CLASS);
   }
@@ -802,6 +806,32 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeClassElement(this);
+  }
+
+  @override
+  bool isExtendableIn(LibraryElement library) {
+    if (library == this.library) {
+      return true;
+    }
+    return !isInterface && !isFinal && !isSealed;
+  }
+
+  @override
+  bool isImplementableIn(LibraryElement library) {
+    if (library == this.library) {
+      return true;
+    }
+    return !isBase && !isFinal && !isSealed;
+  }
+
+  @override
+  bool isMixableIn(LibraryElement library) {
+    if (library == this.library) {
+      return true;
+    } else if (this.library.featureSet.isEnabled(Feature.class_modifiers)) {
+      return isMixinClass && !isInterface && !isFinal && !isSealed;
+    }
+    return true;
   }
 
   /// Compute a list of constructors for this class, which is a mixin
@@ -4837,6 +4867,9 @@ class MixinElementImpl extends ClassOrMixinElementImpl implements MixinElement {
   }
 
   @override
+  bool get isExhaustive => isSealed;
+
+  @override
   List<InterfaceType> get mixins => const <InterfaceType>[];
 
   @override
@@ -4865,6 +4898,22 @@ class MixinElementImpl extends ClassOrMixinElementImpl implements MixinElement {
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeMixinElement(this);
+  }
+
+  @override
+  bool isImplementableIn(LibraryElement library) {
+    if (library == this.library) {
+      return true;
+    }
+    return !isBase && !isFinal && !isSealed;
+  }
+
+  @override
+  bool isMixableIn(LibraryElement library) {
+    if (library == this.library) {
+      return true;
+    }
+    return !isInterface && !isFinal && !isSealed;
   }
 }
 
