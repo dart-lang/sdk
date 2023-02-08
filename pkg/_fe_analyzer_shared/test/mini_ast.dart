@@ -1067,10 +1067,10 @@ class MiniAstOperations
 
   @override
   Type? matchIterableType(Type type) {
-    if (type is PrimaryType &&
-        type.name == 'Iterable' &&
-        type.args.length == 1) {
-      return type.args[0];
+    if (type is PrimaryType && type.args.length == 1) {
+      if (type.name == 'Iterable' || type.name == 'List') {
+        return type.args[0];
+      }
     }
     return null;
   }
@@ -3831,6 +3831,11 @@ class _MiniAstTypeAnalyzer
 
   @override
   bool isVariablePattern(Node pattern) => pattern is _VariablePattern;
+
+  @override
+  Type iterableType(Type elementType) {
+    return PrimaryType('Iterable', args: [elementType]);
+  }
 
   Type leastUpperBound(Type t1, Type t2) => _harness._operations._lub(t1, t2);
 

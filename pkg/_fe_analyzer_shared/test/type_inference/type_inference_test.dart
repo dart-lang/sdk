@@ -1634,6 +1634,26 @@ main() {
     });
 
     group('Pattern-for-in:', () {
+      group('Expression context type schema:', () {
+        test('Pattern has type', () {
+          var x = Var('x');
+          h.run([
+            patternForIn(x.pattern(type: 'num'),
+                    expr('List<int>').checkContext('Iterable<num>'), [])
+                .checkIr('forEach(expr(List<int>), varPattern(x, '
+                    'matchedType: int, staticType: num), block())'),
+          ]);
+        });
+        test('Pattern does not have type', () {
+          var x = Var('x');
+          h.run([
+            patternForIn(x.pattern(),
+                    expr('List<int>').checkContext('Iterable<?>'), [])
+                .checkIr('forEach(expr(List<int>), varPattern(x, '
+                    'matchedType: int, staticType: int), block())'),
+          ]);
+        });
+      });
       group('Expression type:', () {
         test('Iterable', () {
           var x = Var('x');

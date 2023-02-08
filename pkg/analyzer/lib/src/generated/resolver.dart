@@ -1212,6 +1212,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   bool isVariablePattern(AstNode pattern) => pattern is DeclaredVariablePattern;
 
   @override
+  DartType iterableType(DartType elementType) {
+    return typeProvider.iterableType(elementType);
+  }
+
+  @override
   DartType listType(DartType elementType) {
     return typeProvider.listType(elementType);
   }

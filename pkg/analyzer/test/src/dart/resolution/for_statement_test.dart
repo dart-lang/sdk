@@ -532,6 +532,100 @@ ForStatement
 ''');
   }
 
+  test_iterableContextType_patternVariable_typed() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (var (int a) in g()) {}
+}
+
+T g<T>() => throw 0;
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 27, 1),
+    ]);
+    var node = findNode.forStatement('for');
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+        name: a
+        declaredElement: a@27
+          type: int
+      rightParenthesis: )
+    inKeyword: in
+    iterable: MethodInvocation
+      methodName: SimpleIdentifier
+        token: g
+        staticElement: self::@function::g
+        staticType: T Function<T>()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: Iterable<int> Function()
+      staticType: Iterable<int>
+      typeArgumentTypes
+        Iterable<int>
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_iterableContextType_patternVariable_untyped() async {
+    await assertErrorsInCode(r'''
+void f() {
+  for (var (a) in g()) {}
+}
+
+T g<T>() => throw 0;
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 23, 1),
+    ]);
+    var node = findNode.forStatement('for');
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredElement: hasImplicitType a@23
+          type: Object?
+      rightParenthesis: )
+    inKeyword: in
+    iterable: MethodInvocation
+      methodName: SimpleIdentifier
+        token: g
+        staticElement: self::@function::g
+        staticType: T Function<T>()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: Iterable<Object?> Function()
+      staticType: Iterable<Object?>
+      typeArgumentTypes
+        Iterable<Object?>
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_keyword_final_patternVariable() async {
     await assertNoErrorsInCode(r'''
 void f(List<int> x) {

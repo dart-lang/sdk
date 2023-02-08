@@ -9426,6 +9426,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  DartType iterableType(DartType elementType) {
+    return new InterfaceType(coreTypes.iterableClass, Nullability.nonNullable,
+        <DartType>[elementType]);
+  }
+
+  @override
   DartType listType(DartType elementType) {
     return new InterfaceType(
         coreTypes.listClass, Nullability.nonNullable, <DartType>[elementType]);
