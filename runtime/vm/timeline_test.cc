@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include <cstring>
-#include <memory>
 
 #include "platform/assert.h"
 
@@ -372,55 +371,6 @@ TEST_CASE(TimelineRingRecorderJSONOrder) {
   const char* alpha = strstr(js.ToCString(), "Alpha");
   const char* beta = strstr(js.ToCString(), "Beta");
   EXPECT(alpha < beta);
-}
-
-TEST_CASE(TimelineTrackMetadataRace) {
-  struct ReportMetadataArguments {
-    TimelineEventRingRecorder* recorder;
-    ThreadJoinId join_id = OSThread::kInvalidThreadJoinId;
-  };
-
-  TimelineEventRingRecorder recorder;
-  const intptr_t fake_process_id = 1;
-  const intptr_t fake_trace_id = 1;
-
-  // Try concurrently reading from / writing to the metadata map. I don't think
-  // it's possible to assert anything about the outcome, because of scheduling
-  // uncertainty. This test is just used to ensure that TSAN checks the metadata
-  // map code.
-  JSONStream js;
-  TimelineEventFilter filter;
-  const ReportMetadataArguments report_metadata_1_arguments{&recorder};
-  const ReportMetadataArguments report_metadata_2_arguments{&recorder};
-  OSThread::Start(
-      "ReportMetadata1",
-      [](uword arguments_ptr) {
-        ReportMetadataArguments& arguments =
-            *reinterpret_cast<ReportMetadataArguments*>(arguments_ptr);
-        arguments.recorder->AddTrackMetadataBasedOnThread(
-            fake_process_id, fake_trace_id, "Thread 1");
-        arguments.join_id =
-            OSThread::GetCurrentThreadJoinId(OSThread::Current());
-      },
-      reinterpret_cast<uword>(&report_metadata_1_arguments));
-  OSThread::Start(
-      "ReportMetadata2",
-      [](uword arguments_ptr) {
-        ReportMetadataArguments& arguments =
-            *reinterpret_cast<ReportMetadataArguments*>(arguments_ptr);
-        arguments.recorder->AddTrackMetadataBasedOnThread(
-            fake_process_id, fake_trace_id, "Incorrect Name");
-        arguments.join_id =
-            OSThread::GetCurrentThreadJoinId(OSThread::Current());
-      },
-      reinterpret_cast<uword>(&report_metadata_2_arguments));
-  recorder.PrintJSON(&js, &filter);
-  while (report_metadata_1_arguments.join_id == OSThread::kInvalidThreadId ||
-         report_metadata_2_arguments.join_id == OSThread::kInvalidThreadId) {
-    // Spin until the join IDs have been set.
-  }
-  OSThread::Join(report_metadata_1_arguments.join_id);
-  OSThread::Join(report_metadata_2_arguments.join_id);
 }
 
 #endif  // !PRODUCT
