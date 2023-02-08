@@ -8,6 +8,7 @@
 #include "include/dart_tools_api.h"
 
 #include "platform/atomic.h"
+#include "platform/hashmap.h"
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
 #include "vm/globals.h"
@@ -586,6 +587,32 @@ class TimelineEvent {
   DISALLOW_COPY_AND_ASSIGN(TimelineEvent);
 };
 
+class TimelineTrackMetadata {
+ public:
+  TimelineTrackMetadata(intptr_t pid,
+                        intptr_t tid,
+                        Utils::CStringUniquePtr&& track_name);
+  intptr_t pid() const { return pid_; }
+  intptr_t tid() const { return tid_; }
+  const char* track_name() const { return track_name_.get(); }
+  inline void set_track_name(Utils::CStringUniquePtr&& track_name);
+#if !defined(PRODUCT)
+  /*
+   * Prints a Chrome-format event representing the metadata stored by this
+   * object into |jsarr_events|.
+   */
+  void PrintJSON(const JSONArray& jsarr_events) const;
+#endif  // !defined(PRODUCT)
+
+ private:
+  // The ID of the process that this track is associated with.
+  intptr_t pid_;
+  // The trace ID of the thread that this track is associated with.
+  intptr_t tid_;
+  // The name of this track.
+  Utils::CStringUniquePtr track_name_;
+};
+
 #ifdef SUPPORT_TIMELINE
 #define TIMELINE_DURATION(thread, stream, name)                                \
   TimelineBeginEndScope tbes(thread, Timeline::Get##stream##Stream(), name);
@@ -808,9 +835,7 @@ class IsolateTimelineEventFilter : public TimelineEventFilter {
 class TimelineEventRecorder : public MallocAllocated {
  public:
   TimelineEventRecorder();
-  virtual ~TimelineEventRecorder() {}
-
-  TimelineEventBlock* GetNewBlock();
+  virtual ~TimelineEventRecorder();
 
   // Interface method(s) which must be implemented.
 #ifndef PRODUCT
@@ -818,10 +843,12 @@ class TimelineEventRecorder : public MallocAllocated {
   virtual void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) = 0;
 #endif
   virtual const char* name() const = 0;
-
-  void FinishBlock(TimelineEventBlock* block);
-
   virtual intptr_t Size() = 0;
+  TimelineEventBlock* GetNewBlock();
+  void FinishBlock(TimelineEventBlock* block);
+  // This function must be called at least once for each thread that corresponds
+  // to a track in the trace.
+  void AddTrackMetadataBasedOnThread(const OSThread& thread);
 
  protected:
 #ifndef PRODUCT
@@ -837,7 +864,7 @@ class TimelineEventRecorder : public MallocAllocated {
 
   // Utility method(s).
 #ifndef PRODUCT
-  void PrintJSONMeta(JSONArray* array) const;
+  void PrintJSONMeta(const JSONArray& jsarr_events);
 #endif
   TimelineEvent* ThreadBlockStartEvent();
   void ThreadBlockCompleteEvent(TimelineEvent* event);
@@ -857,6 +884,9 @@ class TimelineEventRecorder : public MallocAllocated {
   friend class Timeline;
 
  private:
+  static const intptr_t kTrackUuidToTrackMetadataInitialCapacity = 1 << 4;
+  SimpleHashMap track_uuid_to_track_metadata_;
+  Mutex track_uuid_to_track_metadata_lock_;
   DISALLOW_COPY_AND_ASSIGN(TimelineEventRecorder);
 };
 
