@@ -1006,7 +1006,7 @@ void _checkClosureType(_FunctionType functionType, List<_Type> typeArguments,
             "Type argument '$typeArgument' is not a "
             "subtype of type parameter bound '$paramBound'",
             stackTrace);
-        _throwObjectWithStackTrace(typeError, stackTrace);
+        Error._throw(typeError, stackTrace);
       }
     }
 
