@@ -12484,8 +12484,9 @@ class RegExp : public Instance {
   bool is_complex() const { return (type() == kComplex); }
 
   intptr_t num_registers(bool is_one_byte) const {
-    return is_one_byte ? untag()->num_one_byte_registers_
-                       : untag()->num_two_byte_registers_;
+    return LoadNonPointer<intptr_t, std::memory_order_relaxed>(
+        is_one_byte ? &untag()->num_one_byte_registers_
+                    : &untag()->num_two_byte_registers_);
   }
 
   StringPtr pattern() const { return untag()->pattern(); }
@@ -12496,11 +12497,13 @@ class RegExp : public Instance {
 
   TypedDataPtr bytecode(bool is_one_byte, bool sticky) const {
     if (sticky) {
-      return TypedData::RawCast(is_one_byte ? untag()->one_byte_sticky()
-                                            : untag()->two_byte_sticky());
+      return TypedData::RawCast(
+          is_one_byte ? untag()->one_byte_sticky<std::memory_order_acquire>()
+                      : untag()->two_byte_sticky<std::memory_order_acquire>());
     } else {
-      return TypedData::RawCast(is_one_byte ? untag()->one_byte()
-                                            : untag()->two_byte());
+      return TypedData::RawCast(
+          is_one_byte ? untag()->one_byte<std::memory_order_acquire>()
+                      : untag()->two_byte<std::memory_order_acquire>());
     }
   }
 
@@ -12590,11 +12593,10 @@ class RegExp : public Instance {
   void set_is_simple() const { set_type(kSimple); }
   void set_is_complex() const { set_type(kComplex); }
   void set_num_registers(bool is_one_byte, intptr_t value) const {
-    if (is_one_byte) {
-      StoreNonPointer(&untag()->num_one_byte_registers_, value);
-    } else {
-      StoreNonPointer(&untag()->num_two_byte_registers_, value);
-    }
+    StoreNonPointer<intptr_t, intptr_t, std::memory_order_relaxed>(
+        is_one_byte ? &untag()->num_one_byte_registers_
+                    : &untag()->num_two_byte_registers_,
+        value);
   }
 
   RegExpFlags flags() const {
