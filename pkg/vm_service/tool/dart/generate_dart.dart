@@ -1150,6 +1150,14 @@ class MemberType extends Member {
 
   bool get areAllTypesSimple => types.every((type) => type.isSimple);
 
+  List<String> get subsetOfTypesThatAreSimple =>
+      types.fold(<String>[], (List<String> accumulator, TypeRef typeRef) {
+        if (typeRef.isSimple) {
+          accumulator.add(typeRef.ref);
+        }
+        return accumulator;
+      });
+
   bool get isSimple => types.length == 1 && types.first.isSimple;
 
   bool get isEnum => types.length == 1 && api.isEnumName(types.first.name);
@@ -1664,13 +1672,18 @@ void _parseTokenPosTable() {
         gen.write('.toJson()');
       }
       gen.write(').toList()');
-    } else if (field.type.isMultipleReturns) {
-      gen.write('''
-${field.generatableName} is int || ${field.generatableName} is String
-    ? ${field.generatableName}
-    : ${field.generatableName}?.toJson()
-''');
     } else {
+      final subsetOfTypesThatAreSimple = field.type.subsetOfTypesThatAreSimple;
+      if (subsetOfTypesThatAreSimple.isNotEmpty) {
+        for (int i = 0; i < subsetOfTypesThatAreSimple.length; i++) {
+          if (i >= 1) {
+            gen.write(' || ');
+          }
+          gen.write(
+              '${field.generatableName} is ${subsetOfTypesThatAreSimple[i]}');
+        }
+        gen.write(' ? ${field.generatableName} : ');
+      }
       gen.write('${field.generatableName}?.toJson()');
     }
   }
