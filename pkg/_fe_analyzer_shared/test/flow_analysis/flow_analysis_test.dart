@@ -7198,7 +7198,7 @@ main() {
         h.run([
           declare(x, initializer: expr('Object?')),
           ifCase(x.expr, recordPattern([wildcard().recordField()]), [
-            checkPromoted(x, '(Object?)'),
+            checkPromoted(x, '(Object?,)'),
           ]),
         ]);
       });

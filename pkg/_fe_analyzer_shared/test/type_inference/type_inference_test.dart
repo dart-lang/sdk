@@ -3034,17 +3034,17 @@ main() {
                     ..errorId = 'PATTERN',
                   expr('(int,)').checkContext('(int, ?)'),
                 )..errorId = 'CONTEXT')
-                    .checkIr('match(expr((int)), recordPattern(varPattern(a, '
+                    .checkIr('match(expr((int,)), recordPattern(varPattern(a, '
                         'matchedType: Object?, staticType: int), '
                         'varPattern(b, matchedType: Object?, staticType: '
-                        'Object?), matchedType: (int), requiredType: '
+                        'Object?), matchedType: (int,), requiredType: '
                         '(Object?, Object?)))'),
               ], expectedErrors: {
                 'patternTypeMismatchInIrrefutableContext(pattern: VAR(a), '
                     'context: CONTEXT, matchedType: Object?, '
                     'requiredType: int)',
                 'patternTypeMismatchInIrrefutableContext(pattern: PATTERN, '
-                    'context: CONTEXT, matchedType: (int), '
+                    'context: CONTEXT, matchedType: (int,), '
                     'requiredType: (Object?, Object?))'
               });
             });
@@ -3058,10 +3058,10 @@ main() {
                       Var('b').pattern().recordField(),
                     ]),
                     [],
-                  ).checkIr('ifCase(expr((int)), recordPattern(varPattern(a, '
+                  ).checkIr('ifCase(expr((int,)), recordPattern(varPattern(a, '
                       'matchedType: Object?, staticType: Object?), '
                       'varPattern(b, matchedType: Object?, staticType: '
-                      'Object?), matchedType: (int), requiredType: '
+                      'Object?), matchedType: (int,), requiredType: '
                       '(Object?, Object?)), variables(a, b), true, '
                       'block(), noop)'),
                 ]);
@@ -3077,7 +3077,7 @@ main() {
                   ).checkIr('ifCase(expr((int, String)), '
                       'recordPattern(varPattern(a, matchedType: Object?, '
                       'staticType: Object?), matchedType: (int, String), '
-                      'requiredType: (Object?)), variables(a), true, '
+                      'requiredType: (Object?,)), variables(a), true, '
                       'block(), noop)'),
                 ]);
               });
