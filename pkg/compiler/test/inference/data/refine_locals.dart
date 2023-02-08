@@ -99,7 +99,6 @@ _noRefinementUpdatedVariable(/*[null|exact=Class1]*/ o) {
 
 /*member: _condition:Value([exact=JSBool], value: false)*/
 @pragma('dart2js:assumeDynamic')
-@pragma('dart2js:noInline')
 get _condition => false;
 
 /*member: refineToClass:[null]*/
