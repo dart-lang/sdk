@@ -660,17 +660,6 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// Call this method after visiting the body.
   void patternForIn_end();
 
-  /// Call this method when visiting a pattern that has a required type
-  /// (a declared variable pattern, list pattern, map pattern, record pattern,
-  /// object pattern, or wildcard pattern).
-  ///
-  /// [matchedType] should be the matched value type, and [requiredType] should
-  /// be the required type of the pattern.
-  ///
-  /// Returns `true` if [matchedType] is a subtype of [requiredType].
-  bool patternRequiredType(
-      {required Type matchedType, required Type requiredType});
-
   /// Call this method just after visiting the initializer of a pattern variable
   /// declaration, and before visiting the pattern.
   ///
@@ -712,6 +701,29 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// Retrieves the type that the [variable] is promoted to, if the [variable]
   /// is currently promoted.  Otherwise returns `null`.
   Type? promotedType(Variable variable);
+
+  /// Call this method when visiting a pattern whose semantics constrain the
+  /// type of the matched value.  This could be due to a required type of a
+  /// declared variable pattern, list pattern, map pattern, record pattern,
+  /// object pattern, or wildcard pattern, or it could be due to the
+  /// demonstrated type of a record pattern.
+  ///
+  /// [matchedType] should be the matched value type, and [knownType] should
+  /// be the type that the matched value is now known to satisfy.
+  ///
+  /// If [updateUnmatched] is `true` (the default), flow analysis models the
+  /// usual semantics of a type test in a pattern: if the matched value fails to
+  /// have the type [knownType], the pattern will fail to match.  If it is
+  /// `false`, it models the semantics where the no match failure can occur
+  /// (either because the matched value is known, due to other invariants to
+  /// have the type [knownType], or because a type test failure would result in
+  /// an exception being thrown).
+  ///
+  /// Returns `true` if [matchedType] is a subtype of [knownType].
+  bool promoteForPattern(
+      {required Type matchedType,
+      required Type knownType,
+      bool updateUnmatched = true});
 
   /// Call this method just after visiting a property get expression.
   /// [wholeExpression] should be the whole property get, [target] should be the
@@ -1548,18 +1560,6 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  bool patternRequiredType(
-      {required Type matchedType, required Type requiredType}) {
-    return _wrap(
-        'patternRequiredType(matchedType: $matchedType, '
-        'requiredType: $requiredType)',
-        () => _wrapped.patternRequiredType(
-            matchedType: matchedType, requiredType: requiredType),
-        isQuery: true,
-        isPure: false);
-  }
-
-  @override
   void patternVariableDeclaration_afterInitializer(
       Expression initializer, Type initializerType) {
     _wrap(
@@ -1596,6 +1596,22 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
     return _wrap(
         'promotedType($variable)', () => _wrapped.promotedType(variable),
         isQuery: true);
+  }
+
+  @override
+  bool promoteForPattern(
+      {required Type matchedType,
+      required Type knownType,
+      bool updateUnmatched = true}) {
+    return _wrap(
+        'patternRequiredType(matchedType: $matchedType, '
+        'requiredType: $knownType, updateUnmatched: $updateUnmatched)',
+        () => _wrapped.promoteForPattern(
+            matchedType: matchedType,
+            knownType: knownType,
+            updateUnmatched: updateUnmatched),
+        isQuery: true,
+        isPure: false);
   }
 
   @override
@@ -4435,40 +4451,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  bool patternRequiredType(
-      {required Type matchedType, required Type requiredType}) {
-    _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
-    ReferenceWithType<Type> matchedValueReference =
-        context._matchedValueReference;
-    bool coversMatchedType =
-        typeOperations.isSubtypeOf(matchedType, requiredType);
-    // Promote the synthetic cache variable the pattern is being matched
-    // against.
-    ExpressionInfo<Type> promotionInfo = _current.tryPromoteForTypeCheck(
-        this, matchedValueReference, requiredType);
-    FlowModel<Type> ifTrue = promotionInfo.ifTrue;
-    FlowModel<Type> ifFalse = promotionInfo.ifFalse;
-    ReferenceWithType<Type>? scrutineeReference = _scrutineeInfo?._reference;
-    // If there's a scrutinee, and its value is known to be the same as that of
-    // the synthetic cache variable, promote it too.
-    if (scrutineeReference != null &&
-        _current.infoFor(matchedValueReference.promotionKey).ssaNode ==
-            _current.infoFor(scrutineeReference.promotionKey).ssaNode) {
-      ifTrue = ifTrue
-          .tryPromoteForTypeCheck(this, scrutineeReference, requiredType)
-          .ifTrue;
-      ifFalse = ifFalse
-          .tryPromoteForTypeCheck(this, scrutineeReference, requiredType)
-          .ifFalse;
-    }
-    _current = ifTrue;
-    if (!coversMatchedType) {
-      _unmatched = _join(_unmatched!, ifFalse);
-    }
-    return coversMatchedType;
-  }
-
-  @override
   void patternVariableDeclaration_afterInitializer(
       Expression initializer, Type initializerType) {
     _pushPattern(_pushScrutinee(initializer, initializerType));
@@ -4499,6 +4481,41 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         .infoFor(promotionKeyStore.keyForVariable(variable))
         .promotedTypes
         ?.last;
+  }
+
+  @override
+  bool promoteForPattern(
+      {required Type matchedType,
+      required Type knownType,
+      bool updateUnmatched = true}) {
+    _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
+    ReferenceWithType<Type> matchedValueReference =
+        context._matchedValueReference;
+    bool coversMatchedType = operations.isSubtypeOf(matchedType, knownType);
+    // Promote the synthetic cache variable the pattern is being matched
+    // against.
+    ExpressionInfo<Type> promotionInfo =
+        _current.tryPromoteForTypeCheck(this, matchedValueReference, knownType);
+    FlowModel<Type> ifTrue = promotionInfo.ifTrue;
+    FlowModel<Type> ifFalse = promotionInfo.ifFalse;
+    ReferenceWithType<Type>? scrutineeReference = _scrutineeInfo?._reference;
+    // If there's a scrutinee, and its value is known to be the same as that of
+    // the synthetic cache variable, promote it too.
+    if (scrutineeReference != null &&
+        _current.infoFor(matchedValueReference.promotionKey).ssaNode ==
+            _current.infoFor(scrutineeReference.promotionKey).ssaNode) {
+      ifTrue = ifTrue
+          .tryPromoteForTypeCheck(this, scrutineeReference, knownType)
+          .ifTrue;
+      ifFalse = ifFalse
+          .tryPromoteForTypeCheck(this, scrutineeReference, knownType)
+          .ifFalse;
+    }
+    _current = ifTrue;
+    if (updateUnmatched && !coversMatchedType) {
+      _unmatched = _join(_unmatched!, ifFalse);
+    }
+    return coversMatchedType;
   }
 
   @override
@@ -5810,11 +5827,6 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void patternForIn_end() {}
 
   @override
-  bool patternRequiredType(
-          {required Type matchedType, required Type requiredType}) =>
-      false;
-
-  @override
   void patternVariableDeclaration_afterInitializer(
       Expression initializer, Type initializerType) {}
 
@@ -5834,6 +5846,13 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
     int variableKey = _promotionKeyStore.keyForVariable(variable);
     return _knownTypes[variableKey];
   }
+
+  @override
+  bool promoteForPattern(
+          {required Type matchedType,
+          required Type knownType,
+          bool updateUnmatched = true}) =>
+      false;
 
   @override
   Type? propertyGet(Expression? wholeExpression, Expression target,

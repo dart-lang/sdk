@@ -6528,6 +6528,18 @@ main() {
               ]),
         ]);
       });
+
+      test('Match failure unreachable', () {
+        // Cast patterns don't fail; they throw exceptions.  So the "match
+        // failure" code path should be unreachable.
+        h.run([
+          ifCase(expr('Object?'), wildcard().as_('int'), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ]),
+        ]);
+      });
     });
 
     group('Constant pattern:', () {
@@ -6970,6 +6982,16 @@ main() {
               ]),
         ]);
       });
+
+      test('Match failure reachable', () {
+        h.run([
+          ifCase(expr('Object?'), mapPattern([]), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
     });
 
     group('Null-assert:', () {
@@ -7199,6 +7221,16 @@ main() {
           declare(x, initializer: expr('Object?')),
           ifCase(x.expr, recordPattern([wildcard().recordField()]), [
             checkPromoted(x, '(Object?,)'),
+          ]),
+        ]);
+      });
+
+      test('Match failure reachable', () {
+        h.run([
+          ifCase(expr('Object?'), recordPattern([wildcard().recordField()]), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
           ]),
         ]);
       });
