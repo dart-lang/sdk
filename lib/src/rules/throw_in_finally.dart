@@ -72,7 +72,7 @@ class ThrowInFinally extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void>
-    with ControlFlowInFinallyBlockReporterMixin {
+    with ControlFlowInFinallyBlockReporter {
   @override
   final LintRule rule;
 
