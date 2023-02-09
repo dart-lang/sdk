@@ -33,9 +33,6 @@ class DevCompilerTarget extends Target {
   Map<String, Class>? _nativeClasses;
 
   @override
-  bool get enableSuperMixins => true;
-
-  @override
   int get enabledLateLowerings => LateLowering.all;
 
   @override

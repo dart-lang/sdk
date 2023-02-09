@@ -29,16 +29,8 @@ const kUpdateExpectations = 'updateExpectations';
 /// Environment define to dump actual results alongside expectations.
 const kDumpActualResult = 'dump.actual.result';
 
-class TestingVmTarget extends VmTarget {
-  TestingVmTarget(TargetFlags flags) : super(flags);
-
-  @override
-  bool enableSuperMixins = false;
-}
-
 Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
     {Target? target,
-    bool enableSuperMixins = false,
     List<String>? experimentalFlags,
     Map<String, String>? environmentDefines,
     Uri? packagesFileUri,
@@ -47,8 +39,7 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
   try {
     final platformKernel =
         computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
-    target ??= new TestingVmTarget(new TargetFlags())
-      ..enableSuperMixins = enableSuperMixins;
+    target ??= new VmTarget(new TargetFlags());
     environmentDefines ??= <String, String>{};
     final options = new CompilerOptions()
       ..target = target
