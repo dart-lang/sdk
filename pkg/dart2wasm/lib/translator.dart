@@ -319,18 +319,20 @@ class Translator with KernelNodes {
       if (options.exportAll && exportName == null) {
         m.exportFunction(canonicalName, function);
       }
-      var codeGen = CodeGenerator(this, function, reference);
+
+      final CodeGenerator codeGen =
+          CodeGenerator.forFunction(this, member.function, function, reference);
       codeGen.generate();
 
       if (options.printWasm) {
-        print(function.type);
-        print(function.body.trace);
+        print(codeGen.function.type);
+        print(codeGen.function.body.trace);
       }
 
       for (Lambda lambda in codeGen.closures.lambdas.values) {
-        w.DefinedFunction lambdaFunction =
-            CodeGenerator(this, lambda.function, reference)
-                .generateLambda(lambda, codeGen.closures);
+        w.DefinedFunction lambdaFunction = CodeGenerator.forFunction(
+                this, lambda.functionNode, lambda.function, reference)
+            .generateLambda(lambda, codeGen.closures);
         _printFunction(lambdaFunction, "$canonicalName (closure)");
       }
 
@@ -874,6 +876,7 @@ class Translator with KernelNodes {
   bool shouldInline(Reference target) {
     if (!options.inlining) return false;
     Member member = target.asMember;
+    if (member.function?.asyncMarker == AsyncMarker.SyncStar) return false;
     if (membersContainingInnerFunctions.contains(member)) return false;
     if (membersBeingGenerated.contains(member)) return false;
     if (member is Field) return true;
