@@ -970,6 +970,23 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitMapPattern(MapPattern node) {
+    optype.completionLocation = 'MapPatternEntry_key';
+    optype.includeReturnValueSuggestions = true;
+    optype.includeTypeNameSuggestions = true;
+    optype.includeVarNameSuggestions = true;
+    optype.mustBeConst = true;
+  }
+
+  @override
+  void visitMapPatternEntry(MapPatternEntry node) {
+    optype.completionLocation = 'MapPatternEntry_value';
+    optype.includeReturnValueSuggestions = true;
+    optype.includeTypeNameSuggestions = true;
+    optype.includeVarNameSuggestions = true;
+  }
+
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (identical(entity, node.returnType) ||
         identical(entity, node.name) && node.returnType == null) {

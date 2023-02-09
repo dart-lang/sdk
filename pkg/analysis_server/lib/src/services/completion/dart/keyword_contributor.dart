@@ -630,6 +630,19 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitMapPattern(MapPattern node) {
+    _addConstantExpressionKeywords(node);
+    super.visitMapPattern(node);
+  }
+
+  @override
+  void visitMapPatternEntry(MapPatternEntry node) {
+    _addSuggestions([Keyword.FINAL, Keyword.VAR]);
+    _addExpressionKeywords(node);
+    super.visitMapPatternEntry(node);
+  }
+
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (entity == node.body) {
       if (node.body.isEmpty) {
