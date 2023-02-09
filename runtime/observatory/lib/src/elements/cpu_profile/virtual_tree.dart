@@ -27,14 +27,14 @@ class CpuProfileVirtualTreeElement extends CustomElement implements Renderable {
   late M.ProfileTreeDirection _direction;
   late ProfileTreeMode _mode;
   late M.SampleProfileType _type;
-  late M.IsolateRef _isolate;
+  M.IsolateRef? _isolate;
   late M.SampleProfile _profile;
   Iterable<M.CallTreeNodeFilter>? _filters;
 
   M.ProfileTreeDirection get direction => _direction;
   ProfileTreeMode get mode => _mode;
   M.SampleProfileType get type => _type;
-  M.IsolateRef get isolate => _isolate;
+  M.IsolateRef? get isolate => _isolate;
   M.SampleProfile get profile => _profile;
   Iterable<M.CallTreeNodeFilter>? get filters => _filters;
 
@@ -46,7 +46,8 @@ class CpuProfileVirtualTreeElement extends CustomElement implements Renderable {
     _r.dirty();
   }
 
-  factory CpuProfileVirtualTreeElement(Object? owner, M.SampleProfile profile,
+  factory CpuProfileVirtualTreeElement(
+      M.IsolateRef? isolate, M.SampleProfile profile,
       {ProfileTreeMode mode = ProfileTreeMode.function,
       M.SampleProfileType type = M.SampleProfileType.cpu,
       M.ProfileTreeDirection direction = M.ProfileTreeDirection.exclusive,
@@ -57,7 +58,7 @@ class CpuProfileVirtualTreeElement extends CustomElement implements Renderable {
     CpuProfileVirtualTreeElement e = new CpuProfileVirtualTreeElement.created();
     e._r =
         new RenderingScheduler<CpuProfileVirtualTreeElement>(e, queue: queue);
-    e._isolate = owner as M.Isolate;
+    e._isolate = isolate;
     e._profile = profile;
     e._mode = mode;
     e._type = type;
