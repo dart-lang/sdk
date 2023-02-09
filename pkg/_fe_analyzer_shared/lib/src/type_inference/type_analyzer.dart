@@ -335,8 +335,10 @@ mixin TypeAnalyzer<
     required Type requiredType,
   }) {
     Type matchedValueType = flow.getMatchedValueType();
-    bool matchedTypeIsSubtypeOfRequired = flow.patternRequiredType(
-        matchedType: matchedValueType, requiredType: requiredType);
+    bool matchedTypeIsSubtypeOfRequired = flow.promoteForPattern(
+        matchedType: matchedValueType,
+        knownType: requiredType,
+        updateUnmatched: false);
     if (matchedTypeIsSubtypeOfRequired) {
       errors?.matchedTypeIsSubtypeOfRequired(
         pattern: pattern,
@@ -445,8 +447,7 @@ mixin TypeAnalyzer<
           matchedType: matchedType,
           requiredType: staticType);
     }
-    flow.patternRequiredType(
-        matchedType: matchedType, requiredType: staticType);
+    flow.promoteForPattern(matchedType: matchedType, knownType: staticType);
     bool isImplicitlyTyped = declaredType == null;
     // TODO(paulberry): are we handling _isFinal correctly?
     int promotionKey = context.patternVariablePromotionKeys[variableName] =
@@ -693,8 +694,7 @@ mixin TypeAnalyzer<
       }
     }
     Type requiredType = listType(valueType);
-    flow.patternRequiredType(
-        matchedType: matchedType, requiredType: requiredType);
+    flow.promoteForPattern(matchedType: matchedType, knownType: requiredType);
     // Stack: ()
     Node? previousRestPattern;
     for (Node element in elements) {
@@ -915,8 +915,7 @@ mixin TypeAnalyzer<
       keyType: keyType,
       valueType: valueType,
     );
-    flow.patternRequiredType(
-        matchedType: matchedType, requiredType: requiredType);
+    flow.promoteForPattern(matchedType: matchedType, knownType: requiredType);
     // Stack: ()
 
     bool hasDuplicateRestPatternReported = false;
@@ -1078,8 +1077,7 @@ mixin TypeAnalyzer<
       matchedType: matchedType,
       pattern: node,
     );
-    flow.patternRequiredType(
-        matchedType: matchedType, requiredType: requiredType);
+    flow.promoteForPattern(matchedType: matchedType, knownType: requiredType);
 
     // If the required type is `dynamic` or `Never`, then every getter is
     // treated as having the same type.
@@ -1329,8 +1327,7 @@ mixin TypeAnalyzer<
       named: requiredTypeNamedTypes,
     );
     Type matchedType = flow.getMatchedValueType();
-    flow.patternRequiredType(
-        matchedType: matchedType, requiredType: requiredType);
+    flow.promoteForPattern(matchedType: matchedType, knownType: requiredType);
 
     // Stack: ()
     RecordType<Type>? matchedRecordType = asRecordType(matchedType);
@@ -1705,8 +1702,7 @@ mixin TypeAnalyzer<
       }
     }
     if (declaredType != null) {
-      flow.patternRequiredType(
-          matchedType: matchedType, requiredType: declaredType);
+      flow.promoteForPattern(matchedType: matchedType, knownType: declaredType);
     }
   }
 

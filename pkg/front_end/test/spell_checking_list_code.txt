@@ -358,6 +358,7 @@ delimiting
 demands
 demangle
 demangled
+demonstrated
 dep
 depended
 dependency's
