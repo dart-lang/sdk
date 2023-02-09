@@ -35,4 +35,7 @@ main() {
   Expect.equals(0, MixinClassCtor.named().foo);
   Expect.equals(0, ConstMixinClassCtor().foo);
   Expect.equals(0, ConstMixinClassCtor.named().foo);
+  Expect.equals(0, MixinClassFactory.x().foo);
+  Expect.equals(0, MixinClassFactory.y().foo);
+  Expect.equals(0, MixinClassFactory.z().foo);
 }

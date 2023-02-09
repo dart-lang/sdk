@@ -810,17 +810,26 @@ class SourceClassBuilder extends ClassBuilderImpl
         SourceMemberBuilder constructor = constructorIterator.current;
         // Assumes the constructor isn't synthetic since
         // [installSyntheticConstructors] hasn't been called yet.
-        addProblem(
-            templateIllegalMixinDueToConstructors
-                .withArguments(fullNameForErrors),
-            charOffset,
-            noLength,
-            context: [
-              templateIllegalMixinDueToConstructorsCause
-                  .withArguments(fullNameForErrors)
-                  .withLocation(
-                      constructor.fileUri!, constructor.charOffset, noLength)
-            ]);
+        if (constructor is DeclaredSourceConstructorBuilder) {
+          // Report an error if a mixin class has a constructor with parameters,
+          // is external, or is a redirecting constructor.
+          if (constructor.isRedirecting ||
+              (constructor.formals != null &&
+                  constructor.formals!.isNotEmpty) ||
+              constructor.isExternal) {
+            addProblem(
+                templateIllegalMixinDueToConstructors
+                    .withArguments(fullNameForErrors),
+                charOffset,
+                noLength,
+                context: [
+                  templateIllegalMixinDueToConstructorsCause
+                      .withArguments(fullNameForErrors)
+                      .withLocation(
+                          constructor.fileUri, constructor.charOffset, noLength)
+                ]);
+          }
+        }
       }
       // Check that the class has 'Object' as their superclass.
       if (superClass != null &&

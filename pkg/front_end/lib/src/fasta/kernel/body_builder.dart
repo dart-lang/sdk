@@ -2024,6 +2024,21 @@ class BodyBuilder extends StackListenerImpl
 
     List<Initializer>? initializers = _initializers;
     if (initializers != null && initializers.isNotEmpty) {
+      if (sourceClassBuilder != null && sourceClassBuilder!.isMixinClass) {
+        // Report an error if a mixin class has a constructor with an
+        // initializer.
+        buildProblem(
+            fasta.templateIllegalMixinDueToConstructors
+                .withArguments(sourceClassBuilder!.fullNameForErrors),
+            sourceClassBuilder!.charOffset,
+            noLength,
+            context: [
+              fasta.templateIllegalMixinDueToConstructorsCause
+                  .withArguments(sourceClassBuilder!.fullNameForErrors)
+                  .withLocation(constructorDeclaration.fileUri!,
+                      constructorDeclaration.charOffset, noLength)
+            ]);
+      }
       if (initializers.last is SuperInitializer) {
         SuperInitializer superInitializer =
             initializers.last as SuperInitializer;
@@ -2179,6 +2194,23 @@ class BodyBuilder extends StackListenerImpl
       /// >and no body is provided, then c implicitly has an empty body {}.
       /// We use an empty statement instead.
       function.body = new EmptyStatement()..parent = function;
+    } else if (body != null &&
+        sourceClassBuilder != null &&
+        sourceClassBuilder!.isMixinClass &&
+        !constructorDeclaration.isFactory) {
+      // Report an error if a mixin class has a non-factory constructor with a
+      // body.
+      buildProblem(
+          fasta.templateIllegalMixinDueToConstructors
+              .withArguments(sourceClassBuilder!.fullNameForErrors),
+          sourceClassBuilder!.charOffset,
+          noLength,
+          context: [
+            fasta.templateIllegalMixinDueToConstructorsCause
+                .withArguments(sourceClassBuilder!.fullNameForErrors)
+                .withLocation(constructorDeclaration.fileUri!,
+                    constructorDeclaration.charOffset, noLength)
+          ]);
     }
   }
 
