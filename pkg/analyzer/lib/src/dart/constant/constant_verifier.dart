@@ -856,7 +856,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           [],
         );
       } else if (error is NonExhaustiveError &&
-          isAlwaysExhaustiveType(expressionType) &&
+          _typeSystem.isAlwaysExhaustive(expressionType) &&
           !hasDefault) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH,

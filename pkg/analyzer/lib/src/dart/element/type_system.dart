@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/greatest_lower_bound.dart';
 import 'package:analyzer/src/dart/element/least_greatest_closure.dart';
@@ -661,6 +662,52 @@ class TypeSystemImpl implements TypeSystem {
     List<DartType> orderedArguments =
         typeFormals.map((p) => defaults[p]!).toFixedList();
     return orderedArguments;
+  }
+
+  /// https://github.com/dart-lang/language
+  /// accepted/future-releases/0546-patterns/feature-specification.md#exhaustiveness-and-reachability
+  bool isAlwaysExhaustive(DartType type) {
+    if (type is InterfaceType) {
+      if (type.isDartCoreBool) {
+        return true;
+      }
+      if (type.isDartCoreNull) {
+        return true;
+      }
+      final element = type.element;
+      if (element is EnumElement) {
+        return true;
+      }
+      if (element is ClassElement && element.isSealed) {
+        return true;
+      }
+      if (element is MixinElement && element.isSealed) {
+        return true;
+      }
+      if (type.isDartAsyncFutureOr) {
+        return isAlwaysExhaustive(type.typeArguments[0]);
+      }
+      return false;
+    } else if (type is TypeParameterTypeImpl) {
+      final promotedBound = type.promotedBound;
+      if (promotedBound != null && isAlwaysExhaustive(promotedBound)) {
+        return true;
+      }
+      final bound = type.element.bound;
+      if (bound != null && isAlwaysExhaustive(bound)) {
+        return true;
+      }
+      return false;
+    } else if (type is RecordType) {
+      for (final field in type.fields) {
+        if (!isAlwaysExhaustive(field.type)) {
+          return false;
+        }
+      }
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @override

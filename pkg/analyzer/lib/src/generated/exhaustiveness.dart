@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/constant.dart';
 
@@ -67,27 +66,6 @@ Space convertPatternToSpace(
   // TODO(johnniwinther): Handle remaining patterns.
   DartObjectImpl? value = constantPatternValues[pattern];
   return convertConstantValueToSpace(cache, value);
-}
-
-bool isAlwaysExhaustiveType(DartType type) {
-  if (type is InterfaceType) {
-    if (type.isDartCoreBool) return true;
-    if (type.isDartCoreNull) return true;
-    var element = type.element;
-    if (element is EnumElement) return true;
-    if (element is ClassElementImpl && element.isSealed) return true;
-    if (type.isDartAsyncFutureOr) {
-      return isAlwaysExhaustiveType(type.typeArguments[0]);
-    }
-    return false;
-  } else if (type is RecordType) {
-    for (var field in type.fields) {
-      if (!isAlwaysExhaustiveType(field.type)) return false;
-    }
-    return true;
-  } else {
-    return false;
-  }
 }
 
 class AnalyzerEnumOperations
