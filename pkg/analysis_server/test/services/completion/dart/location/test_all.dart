@@ -25,6 +25,7 @@ import 'record_type_annotation_test.dart' as record_type_annotation;
 import 'super_formal_parameter_test.dart' as super_formal_parameter;
 import 'switch_pattern_case_test.dart' as switch_pattern_case;
 import 'type_argument_list_test.dart' as type_argument_list;
+import 'variable_declaration_list_test.dart' as variable_declaration_list;
 
 /// Tests suggestions produced at specific locations.
 void main() {
@@ -50,5 +51,6 @@ void main() {
     super_formal_parameter.main();
     switch_pattern_case.main();
     type_argument_list.main();
+    variable_declaration_list.main();
   });
 }
