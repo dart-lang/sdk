@@ -6119,6 +6119,60 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the name of the member
+  static const WarningCode INVALID_USE_OF_INTERNAL_MEMBER = WarningCode(
+    'INVALID_USE_OF_INTERNAL_MEMBER',
+    "The member '{0}' can only be used within its package.",
+    hasPublishedDocs: true,
+  );
+
+  ///  This hint is generated anywhere where a member annotated with `@protected`
+  ///  is used outside of an instance member of a subclass.
+  ///
+  ///  Parameters:
+  ///  0: the name of the member
+  ///  1: the name of the defining class
+  static const WarningCode INVALID_USE_OF_PROTECTED_MEMBER = WarningCode(
+    'INVALID_USE_OF_PROTECTED_MEMBER',
+    "The member '{0}' can only be used within instance members of subclasses "
+        "of '{1}'.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the member
+  static const WarningCode INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER =
+      WarningCode(
+    'INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER',
+    "The member '{0}' can only be used for overriding.",
+    hasPublishedDocs: true,
+  );
+
+  ///  This hint is generated anywhere where a member annotated with
+  ///  `@visibleForTemplate` is used outside of a "template" Dart file.
+  ///
+  ///  Parameters:
+  ///  0: the name of the member
+  ///  1: the name of the defining class
+  static const WarningCode INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER =
+      WarningCode(
+    'INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER',
+    "The member '{0}' can only be used within '{1}' or a template library.",
+  );
+
+  ///  This hint is generated anywhere where a member annotated with
+  ///  `@visibleForTesting` is used outside the defining library, or a test.
+  ///
+  ///  Parameters:
+  ///  0: the name of the member
+  ///  1: the name of the defining class
+  static const WarningCode INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER =
+      WarningCode(
+    'INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER',
+    "The member '{0}' can only be used within '{1}' or a test.",
+    hasPublishedDocs: true,
+  );
+
   ///  This is the new replacement for [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR].
   static const HintCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR =
       HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR;

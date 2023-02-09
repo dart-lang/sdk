@@ -2014,7 +2014,7 @@ class _InvalidAccessVerifier {
       }
 
       _errorReporter.reportErrorForToken(
-          HintCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER,
+          WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER,
           operator,
           [operator.type.lexeme]);
     }
@@ -2028,8 +2028,10 @@ class _InvalidAccessVerifier {
       // `stringValue` is if its string contains an interpolation, in which case
       // the element would never have resolved in the first place.  So we can
       // safely assume `node.uri.stringValue` is non-`null`.
-      _errorReporter.reportErrorForNode(HintCode.INVALID_USE_OF_INTERNAL_MEMBER,
-          node, [node.uri.stringValue!]);
+      _errorReporter.reportErrorForNode(
+          WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
+          node,
+          [node.uri.stringValue!]);
     }
   }
 
@@ -2042,7 +2044,7 @@ class _InvalidAccessVerifier {
     if (_hasInternal(element) &&
         !_isLibraryInWorkspacePackage(element!.library)) {
       _errorReporter.reportErrorForNode(
-          HintCode.INVALID_USE_OF_INTERNAL_MEMBER, node, [element.name]);
+          WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, node, [element.name]);
     }
   }
 
@@ -2064,7 +2066,7 @@ class _InvalidAccessVerifier {
       }
 
       _errorReporter.reportErrorForNode(
-          HintCode.INVALID_USE_OF_INTERNAL_MEMBER, node, [name]);
+          WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, node, [name]);
     }
   }
 
@@ -2114,20 +2116,20 @@ class _InvalidAccessVerifier {
     var definingClass = element.enclosingElement;
     if (hasProtected) {
       _errorReporter.reportErrorForNode(
-          HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
+          WarningCode.INVALID_USE_OF_PROTECTED_MEMBER,
           node,
           [name, definingClass!.source!.uri]);
     }
     if (hasVisibleForTemplate) {
       _errorReporter.reportErrorForNode(
-          HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER,
+          WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER,
           node,
           [name, definingClass!.source!.uri]);
     }
 
     if (hasVisibleForTesting) {
       _errorReporter.reportErrorForNode(
-          HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
+          WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
           node,
           [name, definingClass!.source!.uri]);
     }
@@ -2145,7 +2147,7 @@ class _InvalidAccessVerifier {
       }
       if (!validOverride) {
         _errorReporter.reportErrorForNode(
-            HintCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER,
+            WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER,
             node,
             [name]);
       }

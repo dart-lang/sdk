@@ -18589,169 +18589,6 @@ HintCode:
         void m() {}
       }
       ```
-  INVALID_USE_OF_INTERNAL_MEMBER:
-    problemMessage: "The member '{0}' can only be used within its package."
-    comment: |-
-      Parameters:
-      0: the name of the member
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a reference to a declaration
-      that is annotated with the `[internal][meta-internal]` annotation is found
-      outside the package containing the declaration.
-
-      #### Example
-
-      Given a package `p` that defines a library containing a declaration marked
-      with the `[internal][meta-internal]` annotation:
-
-      ```dart
-      %uri="package:p/src/p.dart"
-      import 'package:meta/meta.dart';
-
-      @internal
-      class C {}
-      ```
-
-      The following code produces this diagnostic because it's referencing the
-      class `C`, which isn't intended to be used outside the package `p`:
-
-      ```dart
-      import 'package:p/src/p.dart';
-
-      void f([!C!] c) {}
-      ```
-
-      #### Common fixes
-
-      Remove the reference to the internal declaration.
-  INVALID_USE_OF_PROTECTED_MEMBER:
-    problemMessage: "The member '{0}' can only be used within instance members of subclasses of '{1}'."
-    comment: |-
-      This hint is generated anywhere where a member annotated with `@protected`
-      is used outside of an instance member of a subclass.
-
-      Parameters:
-      0: the name of the member
-      1: the name of the defining class
-  INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER:
-    problemMessage: "The member '{0}' can only be used for overriding."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the member
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an instance member that is
-      annotated with `[visibleForOverriding][meta-visibleForOverriding]` is
-      referenced outside the library in which it's declared for any reason other
-      than to override it.
-
-      #### Example
-
-      Given a file named `a.dart` containing the following declaration:
-
-      ```dart
-      %uri="lib/a.dart"
-      import 'package:meta/meta.dart';
-
-      class A {
-        @visibleForOverriding
-        void a() {}
-      }
-      ```
-
-      The following code produces this diagnostic because the method `m` is being
-      invoked even though the only reason it's public is to allow it to be
-      overridden:
-
-      ```dart
-      import 'a.dart';
-
-      class B extends A {
-        void b() {
-          [!a!]();
-        }
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the invalid use of the member.
-  INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER:
-    problemMessage: "The member '{0}' can only be used within '{1}' or a template library."
-    comment: |-
-      This hint is generated anywhere where a member annotated with
-      `@visibleForTemplate` is used outside of a "template" Dart file.
-
-      Parameters:
-      0: the name of the member
-      1: the name of the defining class
-  INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER:
-    problemMessage: "The member '{0}' can only be used within '{1}' or a test."
-    hasPublishedDocs: true
-    comment: |-
-      This hint is generated anywhere where a member annotated with
-      `@visibleForTesting` is used outside the defining library, or a test.
-
-      Parameters:
-      0: the name of the member
-      1: the name of the defining class
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a member annotated with
-      `@visibleForTesting` is referenced anywhere other than the library in
-      which it is declared or in a library in the `test` directory.
-
-      #### Example
-
-      Given a file named `c.dart` that contains the following:
-
-      ```dart
-      %uri="lib/c.dart"
-      import 'package:meta/meta.dart';
-
-      class C {
-        @visibleForTesting
-        void m() {}
-      }
-      ```
-
-      The following code, when not inside the `test` directory, produces this
-      diagnostic because the method `m` is marked as being visible only for
-      tests:
-
-      ```dart
-      import 'c.dart';
-
-      void f(C c) {
-        c.[!m!]();
-      }
-      ```
-
-      #### Common fixes
-
-      If the annotated member should not be referenced outside of tests, then
-      remove the reference:
-
-      ```dart
-      import 'c.dart';
-
-      void f(C c) {}
-      ```
-
-      If it's OK to reference the annotated member outside of tests, then remove
-      the annotation:
-
-      ```dart
-      class C {
-        void m() {}
-      }
-      ```
   INVALID_VISIBILITY_ANNOTATION:
     problemMessage: "The member '{0}' is annotated with '{1}', but this annotation is only meaningful on declarations of public members."
     hasPublishedDocs: true
@@ -22514,6 +22351,169 @@ WarningCode:
 
       Parameters:
       0: the name of the member
+  INVALID_USE_OF_INTERNAL_MEMBER:
+    problemMessage: "The member '{0}' can only be used within its package."
+    comment: |-
+      Parameters:
+      0: the name of the member
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a reference to a declaration
+      that is annotated with the `[internal][meta-internal]` annotation is found
+      outside the package containing the declaration.
+
+      #### Example
+
+      Given a package `p` that defines a library containing a declaration marked
+      with the `[internal][meta-internal]` annotation:
+
+      ```dart
+      %uri="package:p/src/p.dart"
+      import 'package:meta/meta.dart';
+
+      @internal
+      class C {}
+      ```
+
+      The following code produces this diagnostic because it's referencing the
+      class `C`, which isn't intended to be used outside the package `p`:
+
+      ```dart
+      import 'package:p/src/p.dart';
+
+      void f([!C!] c) {}
+      ```
+
+      #### Common fixes
+
+      Remove the reference to the internal declaration.
+  INVALID_USE_OF_PROTECTED_MEMBER:
+    problemMessage: "The member '{0}' can only be used within instance members of subclasses of '{1}'."
+    comment: |-
+      This hint is generated anywhere where a member annotated with `@protected`
+      is used outside of an instance member of a subclass.
+
+      Parameters:
+      0: the name of the member
+      1: the name of the defining class
+  INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER:
+    problemMessage: "The member '{0}' can only be used for overriding."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the member
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an instance member that is
+      annotated with `[visibleForOverriding][meta-visibleForOverriding]` is
+      referenced outside the library in which it's declared for any reason other
+      than to override it.
+
+      #### Example
+
+      Given a file named `a.dart` containing the following declaration:
+
+      ```dart
+      %uri="lib/a.dart"
+      import 'package:meta/meta.dart';
+
+      class A {
+        @visibleForOverriding
+        void a() {}
+      }
+      ```
+
+      The following code produces this diagnostic because the method `m` is being
+      invoked even though the only reason it's public is to allow it to be
+      overridden:
+
+      ```dart
+      import 'a.dart';
+
+      class B extends A {
+        void b() {
+          [!a!]();
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the invalid use of the member.
+  INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER:
+    problemMessage: "The member '{0}' can only be used within '{1}' or a template library."
+    comment: |-
+      This hint is generated anywhere where a member annotated with
+      `@visibleForTemplate` is used outside of a "template" Dart file.
+
+      Parameters:
+      0: the name of the member
+      1: the name of the defining class
+  INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER:
+    problemMessage: "The member '{0}' can only be used within '{1}' or a test."
+    hasPublishedDocs: true
+    comment: |-
+      This hint is generated anywhere where a member annotated with
+      `@visibleForTesting` is used outside the defining library, or a test.
+
+      Parameters:
+      0: the name of the member
+      1: the name of the defining class
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a member annotated with
+      `@visibleForTesting` is referenced anywhere other than the library in
+      which it is declared or in a library in the `test` directory.
+
+      #### Example
+
+      Given a file named `c.dart` that contains the following:
+
+      ```dart
+      %uri="lib/c.dart"
+      import 'package:meta/meta.dart';
+
+      class C {
+        @visibleForTesting
+        void m() {}
+      }
+      ```
+
+      The following code, when not inside the `test` directory, produces this
+      diagnostic because the method `m` is marked as being visible only for
+      tests:
+
+      ```dart
+      import 'c.dart';
+
+      void f(C c) {
+        c.[!m!]();
+      }
+      ```
+
+      #### Common fixes
+
+      If the annotated member should not be referenced outside of tests, then
+      remove the reference:
+
+      ```dart
+      import 'c.dart';
+
+      void f(C c) {}
+      ```
+
+      If it's OK to reference the annotated member outside of tests, then remove
+      the annotation:
+
+      ```dart
+      class C {
+        void m() {}
+      }
+      ```
   RETURN_TYPE_INVALID_FOR_CATCH_ERROR:
     sharedName: INVALID_RETURN_TYPE_FOR_CATCH_ERROR
     problemMessage: "The return type '{0}' isn't assignable to '{1}', as required by 'Future.catchError'."
