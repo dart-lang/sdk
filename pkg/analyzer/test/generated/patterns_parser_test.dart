@@ -4857,6 +4857,44 @@ NullCheckPattern
 ''');
   }
 
+  void test_map_recovery_incompleteEntry() {
+    _parse('''
+const c = 0;
+
+void f(Object o) {
+  switch (o) {
+    case {c}:
+      break;
+  }
+}
+''', errors: [
+      error(ParserErrorCode.EXPECTED_TOKEN, 59, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 59, 1),
+    ]);
+    var node = findNode.switchPatternCase('case');
+    assertParsedNodeText(node, r'''
+SwitchPatternCase
+  keyword: case
+  guardedPattern: GuardedPattern
+    pattern: MapPattern
+      leftBracket: {
+      elements
+        MapPatternEntry
+          key: SimpleIdentifier
+            token: c
+          separator: : <synthetic>
+          value: ConstantPattern
+            expression: SimpleIdentifier
+              token: <empty> <synthetic>
+      rightBracket: }
+  colon: :
+  statements
+    BreakStatement
+      breakKeyword: break
+      semicolon: ;
+''');
+  }
+
   test_nullAssert_insideCase() {
     _parse('''
 void f(x) {
