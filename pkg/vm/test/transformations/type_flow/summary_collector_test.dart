@@ -12,6 +12,7 @@ import 'package:kernel/target/targets.dart';
 import 'package:kernel/src/text_util.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:test/test.dart';
+import 'package:vm/target/vm.dart' show VmTarget;
 import 'package:vm/transformations/pragma.dart'
     show ConstantPragmaAnnotationParser;
 import 'package:vm/transformations/type_flow/analysis.dart';
@@ -113,7 +114,7 @@ class TestOptions {
 }
 
 runTestCase(Uri source, List<String>? experimentalFlags) async {
-  final Target target = new TestingVmTarget(new TargetFlags());
+  final Target target = new VmTarget(new TargetFlags());
   final Component component = await compileTestCaseToKernelProgram(source,
       experimentalFlags: experimentalFlags);
   final Library library = component.mainMethod!.enclosingLibrary;

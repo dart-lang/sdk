@@ -10,6 +10,7 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:test/test.dart';
+import 'package:vm/target/vm.dart' show VmTarget;
 import 'package:vm/transformations/pragma.dart'
     show ConstantPragmaAnnotationParser;
 import 'package:vm/transformations/type_flow/transformer.dart'
@@ -21,7 +22,7 @@ final Uri pkgVmDir = Platform.script.resolve('../../..');
 
 void runTestCase(Uri source, List<Uri>? linkedDependencies,
     List<String>? experimentalFlags) async {
-  final target = new TestingVmTarget(new TargetFlags());
+  final target = new VmTarget(new TargetFlags());
   Component component = await compileTestCaseToKernelProgram(source,
       target: target,
       linkedDependencies: linkedDependencies,
