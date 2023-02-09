@@ -9509,6 +9509,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
+    analyzeWildcardPattern(
+        context: context, node: node, declaredType: node.type);
+
     pushRewrite(node);
 
     assert(checkStack(node, stackBase, [
