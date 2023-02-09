@@ -9757,7 +9757,7 @@ class Parser {
           colon = rewriteAndRecover(
               token,
               codes.templateExpectedButGot.withArguments(':'),
-              new SyntheticToken(TokenType.PERIOD, next.charOffset));
+              new SyntheticToken(TokenType.COLON, next.charOffset));
         }
         token = parsePattern(colon, patternContext);
         listener.handleMapPatternEntry(colon, token.next!);
