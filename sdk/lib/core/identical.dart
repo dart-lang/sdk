@@ -16,6 +16,8 @@ part of dart.core;
 /// isIdentical = identical(const [1], const [1]); // true
 /// isIdentical = identical(const [1], const [2]); // false
 /// isIdentical = identical(2, 1 + 1); // true, integers canonicalizes
+/// isIdentical = identical(null, null); // true
+/// isIdentical = identical(null, Object()); // false
 /// ```
 external bool identical(Object? a, Object? b);
 
