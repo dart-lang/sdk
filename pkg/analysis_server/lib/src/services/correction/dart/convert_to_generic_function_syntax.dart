@@ -102,13 +102,16 @@ class ConvertToGenericFunctionSyntax extends CorrectionProducer {
     var returnTypeNode = node.returnType;
     var returnType =
         returnTypeNode != null ? '${utils.getNodeText(returnTypeNode)} ' : '';
-    var functionName = utils.getRangeText(
-        range.startEnd(node.name, node.typeParameters ?? node.name));
+    var functionName = node.name.lexeme;
+    var typeParametersNode = node.typeParameters;
+    var typeParameters =
+        typeParametersNode != null ? utils.getNodeText(typeParametersNode) : '';
+
     var parameters = utils.getNodeText(node.parameters);
     var question = node.question != null ? '?' : '';
-    var replacement =
-        '$required$covariant${returnType}Function$parameters$question $functionName';
-    // add change
+    var replacement = '$required$covariant${returnType}Function'
+        '$typeParameters$parameters$question $functionName';
+
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(range.node(node), replacement);
     });
