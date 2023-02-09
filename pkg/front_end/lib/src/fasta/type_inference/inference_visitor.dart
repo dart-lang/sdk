@@ -9523,8 +9523,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    DartType matchedType = flow.getMatchedValueType();
-    node.expressionType = analyzeExpression(node.expression, matchedType);
+    node.expressionType =
+        analyzeConstantPattern(context, node, node.expression);
 
     assert(checkStack(node, stackBase, [
       /* expression = */ ValueKinds.Expression,

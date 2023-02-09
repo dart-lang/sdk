@@ -172,6 +172,7 @@ rasta/issue_000041: RuntimeError
 rasta/issue_000042: RuntimeError
 rasta/issue_000044: RuntimeError
 rasta/malformed_const_constructor: RuntimeError
+rasta/malformed_function: RuntimeError
 rasta/parser_error: RuntimeError
 rasta/static: RuntimeError
 rasta/super: RuntimeError

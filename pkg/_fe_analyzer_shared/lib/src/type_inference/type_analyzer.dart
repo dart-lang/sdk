@@ -369,8 +369,10 @@ mixin TypeAnalyzer<
   ///
   /// See [dispatchPattern] for the meaning of [context].
   ///
+  /// Returns the static type of [expression].
+  ///
   /// Stack effect: pushes (Expression).
-  void analyzeConstantPattern(
+  Type analyzeConstantPattern(
       MatchContext<Node, Expression, Pattern, Type, Variable> context,
       Node node,
       Expression expression) {
@@ -382,8 +384,8 @@ mixin TypeAnalyzer<
       errors?.refutablePatternInIrrefutableContext(node, irrefutableContext);
     }
     Type matchedType = flow.getMatchedValueType();
-    Type staticType = analyzeExpression(expression, matchedType);
-    flow.constantPattern_end(expression, staticType,
+    Type expressionType = analyzeExpression(expression, matchedType);
+    flow.constantPattern_end(expression, expressionType,
         patternsEnabled: options.patternsEnabled);
     // Stack: (Expression)
     if (errors != null && !options.patternsEnabled) {
@@ -391,18 +393,19 @@ mixin TypeAnalyzer<
       if (switchScrutinee != null) {
         bool nullSafetyEnabled = options.nullSafetyEnabled;
         bool matches = nullSafetyEnabled
-            ? operations.isSubtypeOf(staticType, matchedType)
-            : operations.isAssignableTo(staticType, matchedType);
+            ? operations.isSubtypeOf(expressionType, matchedType)
+            : operations.isAssignableTo(expressionType, matchedType);
         if (!matches) {
           errors.caseExpressionTypeMismatch(
               caseExpression: expression,
               scrutinee: switchScrutinee,
-              caseExpressionType: staticType,
+              caseExpressionType: expressionType,
               scrutineeType: matchedType,
               nullSafetyEnabled: nullSafetyEnabled);
         }
       }
     }
+    return expressionType;
   }
 
   /// Computes the type schema for a constant pattern.

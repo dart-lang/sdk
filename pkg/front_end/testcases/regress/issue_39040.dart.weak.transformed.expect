@@ -1,7 +1,6 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 static method main() → void {
   core::List<core::String> whereWasI = core::_GrowableList::•<core::String>(0);
@@ -19,17 +18,17 @@ static method main() → void {
     else
       if(#C2 =={core::num::==}{(core::Object) → core::bool} #1#0) {
         {
-          let final Never #t1 = (() → Never {
+          (() → Null {
             #L2:
             {
-              core::int #t2 = -1;
+              core::int #t1 = -1;
               final core::int #0#0 = inner;
               if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0)
-                #t2 = 0;
+                #t1 = 0;
               else
                 if(#C2 =={core::num::==}{(core::Object) → core::bool} #0#0)
-                  #t2 = 1;
-              switch(#t2) {
+                  #t1 = 1;
+              switch(#t1) {
                 #L3:
                 case #C1:
                   {
@@ -47,7 +46,7 @@ static method main() → void {
                   }
               }
             }
-          })(){() → Never} in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+          })(){() → Null};
         }
       }
   }

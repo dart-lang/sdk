@@ -18,7 +18,7 @@ static method main() → void {
     else
       if(#C2 =={core::num::==}{(core::Object) → core::bool} #1#0) {
         {
-          (() → Never {
+          (() → Null {
             #L2:
             {
               core::int #t1 = -1;
@@ -46,7 +46,7 @@ static method main() → void {
                   }
               }
             }
-          })(){() → Never};
+          })(){() → Null};
         }
       }
   }
