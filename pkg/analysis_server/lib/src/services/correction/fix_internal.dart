@@ -503,6 +503,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.implicit_call_tearoffs: [
       AddExplicitCall.new,
     ],
+    LintNames.invalid_case_patterns: [
+      AddConst.new,
+    ],
     LintNames.leading_newlines_in_multiline_strings: [
       AddLeadingNewlineToString.new,
     ],

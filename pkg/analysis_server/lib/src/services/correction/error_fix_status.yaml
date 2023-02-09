@@ -1813,9 +1813,7 @@ LintCode.implementation_imports:
 LintCode.implicit_call_tearoffs:
   status: hasFix
 LintCode.invalid_case_patterns:
-  status: needsFix
-  notes: |-
-    https://github.com/dart-lang/sdk/issues/49960
+  status: hasFix
 LintCode.invariant_booleans:
   status: needsEvaluation
 LintCode.iterable_contains_unrelated_type:
