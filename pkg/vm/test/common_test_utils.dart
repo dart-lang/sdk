@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:dart2wasm/target.dart' show WasmTarget;
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerOptions,
@@ -37,9 +38,12 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
     List<Uri>? linkedDependencies}) async {
   Directory? tempDirectory;
   try {
-    final platformKernel =
-        computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
     target ??= new VmTarget(new TargetFlags());
+    final platformFileName = (target is WasmTarget)
+        ? 'dart2wasm_platform.dill'
+        : 'vm_platform_strong.dill';
+    final platformKernel =
+        computePlatformBinariesLocation().resolve(platformFileName);
     environmentDefines ??= <String, String>{};
     final options = new CompilerOptions()
       ..target = target

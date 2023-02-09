@@ -1222,14 +1222,39 @@ class _ClassHierarchyCache extends TypeHierarchy {
             .getProcedure('dart:core', 'Object', 'noSuchMethod'),
         recordClass = _typeFlowAnalysis.target
                 .concreteRecordClass(environment.coreTypes) ??
-            Class(
-                name: "&&Record",
-                supertype: Supertype(environment.coreTypes.objectClass, []),
-                implementedTypes: [
-                  Supertype(environment.coreTypes.recordClass, [])
-                ],
-                fileUri: artificialNodeUri),
+            _createArtificialRecordClass(environment.coreTypes),
         super(environment.coreTypes, nullSafety);
+
+  static Class _createArtificialRecordClass(CoreTypes coreTypes) {
+    // Override Object methods in order to make sure they are
+    // not monomorphic.
+    final procedures = <Procedure>[];
+    List<VariableDeclaration> copyParameters(List<VariableDeclaration> list) =>
+        list.map((v) => VariableDeclaration(v.name, type: v.type)).toList();
+    for (final p in coreTypes.objectClass.procedures) {
+      if (p.isInstanceMember && !p.name.isPrivate) {
+        final f = p.function;
+        final proc = Procedure(
+            p.name,
+            p.kind,
+            FunctionNode(null,
+                positionalParameters: copyParameters(f.positionalParameters),
+                namedParameters: copyParameters(f.namedParameters),
+                requiredParameterCount: f.requiredParameterCount,
+                returnType: f.returnType),
+            isExternal: true,
+            fileUri: artificialNodeUri);
+        procedures.add(proc);
+      }
+    }
+    return Class(
+        name: "&&Record",
+        supertype: Supertype(coreTypes.objectClass, []),
+        implementedTypes: [Supertype(coreTypes.recordClass, [])],
+        procedures: procedures,
+        fileUri: artificialNodeUri)
+      ..parent = Library(artificialNodeUri, fileUri: artificialNodeUri);
+  }
 
   @override
   _TFClassImpl getTFClass(Class c) {
