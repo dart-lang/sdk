@@ -2367,6 +2367,16 @@ ParserErrorCode.INVALID_CODE_POINT:
   status: needsEvaluation
 ParserErrorCode.INVALID_COMMENT_REFERENCE:
   status: needsEvaluation
+ParserErrorCode.INVALID_CONSTANT_PATTERN_DUPLICATE_CONST:
+  status: needsEvaluation
+ParserErrorCode.INVALID_CONSTANT_PATTERN_EMPTY_RECORD_LITERAL:
+  status: needsEvaluation
+ParserErrorCode.INVALID_CONSTANT_PATTERN_GENERIC:
+  status: needsEvaluation
+ParserErrorCode.INVALID_CONSTANT_PATTERN_NEGATION:
+  status: needsEvaluation
+ParserErrorCode.INVALID_CONSTANT_PATTERN_UNARY:
+  status: needsEvaluation
 ParserErrorCode.INVALID_CONSTRUCTOR_NAME:
   status: needsEvaluation
 ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE:

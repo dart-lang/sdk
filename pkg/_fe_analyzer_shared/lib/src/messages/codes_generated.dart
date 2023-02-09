@@ -6926,6 +6926,81 @@ const MessageCode messageInvalidCodePoint = const MessageCode(
         r"""The escape sequence starting with '\u' isn't a valid code point.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidConstantPatternDuplicateConst =
+    messageInvalidConstantPatternDuplicateConst;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidConstantPatternDuplicateConst =
+    const MessageCode("InvalidConstantPatternDuplicateConst",
+        index: 137,
+        problemMessage:
+            r"""Duplicate 'const' keyword in constant expression.""",
+        correctionMessage: r"""Try removing one of the 'const' keywords.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidConstantPatternEmptyRecordLiteral =
+    messageInvalidConstantPatternEmptyRecordLiteral;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidConstantPatternEmptyRecordLiteral =
+    const MessageCode("InvalidConstantPatternEmptyRecordLiteral",
+        index: 138,
+        problemMessage:
+            r"""The empty record literal is not supported as a constant pattern.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidConstantPatternGeneric =
+    messageInvalidConstantPatternGeneric;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidConstantPatternGeneric = const MessageCode(
+    "InvalidConstantPatternGeneric",
+    index: 139,
+    problemMessage:
+        r"""This expression is not supported as a constant pattern.""",
+    correctionMessage: r"""Try wrapping the expression in 'const ( ... )'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidConstantPatternNegation =
+    messageInvalidConstantPatternNegation;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidConstantPatternNegation = const MessageCode(
+    "InvalidConstantPatternNegation",
+    index: 135,
+    problemMessage:
+        r"""Only negation of a numeric literal is supported as a constant pattern.""",
+    correctionMessage: r"""Try wrapping the expression in 'const ( ... )'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateInvalidConstantPatternUnary = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The unary operator #name is not supported as a constant pattern.""",
+    correctionMessageTemplate:
+        r"""Try wrapping the expression in 'const ( ... )'.""",
+    withArguments: _withArgumentsInvalidConstantPatternUnary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeInvalidConstantPatternUnary =
+    const Code<Message Function(String name)>("InvalidConstantPatternUnary",
+        index: 136);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidConstantPatternUnary(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeInvalidConstantPatternUnary,
+      problemMessage:
+          """The unary operator ${name} is not supported as a constant pattern.""",
+      correctionMessage: """Try wrapping the expression in 'const ( ... )'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateInvalidContinueTarget =
     const Template<Message Function(String name)>(
         problemMessageTemplate: r"""Can't continue at '#name'.""",

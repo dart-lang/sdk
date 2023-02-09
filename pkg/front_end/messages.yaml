@@ -2,6 +2,18 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+# Run
+#
+#     dart run pkg/front_end/tool/_fasta/generate_messages.dart
+#
+# to regenerate messages after having edited this file.
+#
+# If entries with 'analyzerCode' and 'index' have been changed, run
+#
+#     dart run pkg/analyzer/tool/messages/generate.dart
+#
+# to regenerate analyzer messages.
+
 # Each entry in this map corresponds to a diagnostic message. Ideally, each
 # entry contains three parts:
 #
@@ -6347,6 +6359,62 @@ UnnamedObjectPatternField:
   script: |
     method(x) {
       if (x case int(5)) {}
+    }
+
+InvalidConstantPatternNegation:
+  problemMessage: "Only negation of a numeric literal is supported as a constant pattern."
+  correctionMessage: "Try wrapping the expression in 'const ( ... )'."
+  experiments: patterns
+  analyzerCode: ParserErrorCode.INVALID_CONSTANT_PATTERN_NEGATION
+  index: 135
+  script: |
+    method(x) {
+      const y = 5;
+      if (x case -y) {}
+    }
+
+InvalidConstantPatternUnary:
+  problemMessage: "The unary operator #name is not supported as a constant pattern."
+  correctionMessage: "Try wrapping the expression in 'const ( ... )'."
+  experiments: patterns
+  analyzerCode: ParserErrorCode.INVALID_CONSTANT_PATTERN_UNARY
+  index: 136
+  script: |
+    method(x) {
+      const y = false;
+      if (x case !y) {}
+    }
+
+InvalidConstantPatternDuplicateConst:
+  problemMessage: "Duplicate 'const' keyword in constant expression."
+  correctionMessage: "Try removing one of the 'const' keywords."
+  analyzerCode: ParserErrorCode.INVALID_CONSTANT_PATTERN_DUPLICATE_CONST
+  index: 137
+  experiments: patterns
+  script: |
+    method(x) {
+      if (x case const const []) {}
+    }
+
+InvalidConstantPatternEmptyRecordLiteral:
+  problemMessage: "The empty record literal is not supported as a constant pattern."
+  analyzerCode: ParserErrorCode.INVALID_CONSTANT_PATTERN_EMPTY_RECORD_LITERAL
+  index: 138
+  experiments: patterns,records
+  script: |
+    method(x) {
+      if (x case const ()) {}
+    }
+
+InvalidConstantPatternGeneric:
+  problemMessage: "This expression is not supported as a constant pattern."
+  correctionMessage: "Try wrapping the expression in 'const ( ... )'."
+  analyzerCode: ParserErrorCode.INVALID_CONSTANT_PATTERN_GENERIC
+  index: 139
+  experiments: patterns
+  script: |
+    method(x) {
+      if (x case List<int>) {}
     }
 
 PatternAssignmentDeclaresVariable:
