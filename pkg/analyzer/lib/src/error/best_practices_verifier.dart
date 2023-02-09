@@ -1661,7 +1661,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (parameter.type == null && isParameterReferenced(parameter)) {
         ParameterElement element = parameter.declaredElement!;
         _errorReporter.reportErrorForNode(
-          HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER,
+          WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER,
           parameter,
           [element.displayName],
         );
@@ -1690,7 +1690,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
     if (returnType == null) {
       _errorReporter.reportErrorForNode(
-          HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE,
+          WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE,
           reportNode,
           [displayName]);
     }

@@ -25,7 +25,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart'
-    show CompileTimeErrorCode, HintCode;
+    show CompileTimeErrorCode, WarningCode;
 import 'package:meta/meta.dart';
 
 /// Tracks upper and lower type bounds for a set of type parameters.
@@ -569,7 +569,7 @@ class GenericInferrer {
           ? errorNode.type.name.name
           : '${errorNode.type}.${errorNode.name}';
       errorReporter.reportErrorForNode(
-          HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
+          WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
           errorNode,
           [constructorName]);
     } else if (errorNode is Annotation) {
@@ -581,7 +581,7 @@ class GenericInferrer {
               ? errorNode.name.name
               : '${errorNode.name.name}.${errorNode.constructorName}';
           errorReporter.reportErrorForNode(
-              HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
+              WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
               errorNode,
               [constructorName]);
         }
@@ -604,7 +604,7 @@ class GenericInferrer {
         }
         if (!element.hasOptionalTypeArgs) {
           errorReporter.reportErrorForNode(
-              HintCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION,
+              WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION,
               errorNode,
               [errorNode.name]);
           return;
@@ -616,7 +616,7 @@ class GenericInferrer {
         var typeDisplayString = type.getDisplayString(
             withNullability: _typeSystem.isNonNullableByDefault);
         errorReporter.reportErrorForNode(
-            HintCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION,
+            WarningCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION,
             errorNode,
             [typeDisplayString]);
         return;

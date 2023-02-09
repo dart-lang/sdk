@@ -18323,73 +18323,6 @@ HintCode:
       If you can't migrate the imported library, then the importing library
       needs to have a language version that is before 2.12, when null safety was
       enabled by default.
-  INFERENCE_FAILURE_ON_COLLECTION_LITERAL:
-    problemMessage: "The type argument(s) of '{0}' can't be inferred."
-    correctionMessage: "Use explicit type argument(s) for '{0}'."
-    comment: |-
-      When "strict-inference" is enabled, collection literal types must be
-      inferred via the context type, or have type arguments.
-
-      Parameters:
-      0: the name of the collection
-  INFERENCE_FAILURE_ON_FUNCTION_INVOCATION:
-    problemMessage: "The type argument(s) of the function '{0}' can't be inferred."
-    correctionMessage: "Use explicit type argument(s) for '{0}'."
-    comment: |-
-      When "strict-inference" is enabled, types in function invocations must be
-      inferred via the context type, or have type arguments.
-
-      Parameters:
-      0: the name of the function
-  INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE:
-    problemMessage: "The return type of '{0}' cannot be inferred."
-    correctionMessage: "Declare the return type of '{0}'."
-    comment: |-
-      When "strict-inference" is enabled, recursive local functions, top-level
-      functions, methods, and function-typed function parameters must all
-      specify a return type. See the strict-inference resource:
-
-      https://github.com/dart-lang/language/blob/master/resources/type-system/strict-inference.md
-
-      Parameters:
-      0: the name of the function or method
-  INFERENCE_FAILURE_ON_GENERIC_INVOCATION:
-    problemMessage: "The type argument(s) of the generic function type '{0}' can't be inferred."
-    correctionMessage: "Use explicit type argument(s) for '{0}'."
-    comment: |-
-      When "strict-inference" is enabled, types in function invocations must be
-      inferred via the context type, or have type arguments.
-
-      Parameters:
-      0: the name of the type
-  INFERENCE_FAILURE_ON_INSTANCE_CREATION:
-    problemMessage: "The type argument(s) of the constructor '{0}' can't be inferred."
-    correctionMessage: "Use explicit type argument(s) for '{0}'."
-    comment: |-
-      When "strict-inference" is enabled, types in instance creation
-      (constructor calls) must be inferred via the context type, or have type
-      arguments.
-
-      Parameters:
-      0: the name of the constructor
-  INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE:
-    problemMessage: "The type of {0} can't be inferred without either a type or initializer."
-    correctionMessage: Try specifying the type of the variable.
-    comment: |-
-      When "strict-inference" in enabled, uninitialized variables must be
-      declared with a specific type.
-
-      Parameters:
-      0: the name of the variable
-  INFERENCE_FAILURE_ON_UNTYPED_PARAMETER:
-    problemMessage: "The type of {0} can't be inferred; a type must be explicitly provided."
-    correctionMessage: Try specifying the type of the parameter.
-    comment: |-
-      When "strict-inference" in enabled, function parameters must be
-      declared with a specific type, or inherit a type.
-
-      Parameters:
-      0: the name of the parameter
   INVALID_IMMUTABLE_ANNOTATION:
     problemMessage: Only classes can be annotated as being immutable.
     comment: |-
@@ -22188,6 +22121,73 @@ WarningCode:
       Note that literal maps preserve the order of their entries, so the choice
       of which entry to remove might affect the order in which the keys and
       values are returned by an iterator.
+  INFERENCE_FAILURE_ON_COLLECTION_LITERAL:
+    problemMessage: "The type argument(s) of '{0}' can't be inferred."
+    correctionMessage: "Use explicit type argument(s) for '{0}'."
+    comment: |-
+      When "strict-inference" is enabled, collection literal types must be
+      inferred via the context type, or have type arguments.
+
+      Parameters:
+      0: the name of the collection
+  INFERENCE_FAILURE_ON_FUNCTION_INVOCATION:
+    problemMessage: "The type argument(s) of the function '{0}' can't be inferred."
+    correctionMessage: "Use explicit type argument(s) for '{0}'."
+    comment: |-
+      When "strict-inference" is enabled, types in function invocations must be
+      inferred via the context type, or have type arguments.
+
+      Parameters:
+      0: the name of the function
+  INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE:
+    problemMessage: "The return type of '{0}' cannot be inferred."
+    correctionMessage: "Declare the return type of '{0}'."
+    comment: |-
+      When "strict-inference" is enabled, recursive local functions, top-level
+      functions, methods, and function-typed function parameters must all
+      specify a return type. See the strict-inference resource:
+
+      https://github.com/dart-lang/language/blob/master/resources/type-system/strict-inference.md
+
+      Parameters:
+      0: the name of the function or method
+  INFERENCE_FAILURE_ON_GENERIC_INVOCATION:
+    problemMessage: "The type argument(s) of the generic function type '{0}' can't be inferred."
+    correctionMessage: "Use explicit type argument(s) for '{0}'."
+    comment: |-
+      When "strict-inference" is enabled, types in function invocations must be
+      inferred via the context type, or have type arguments.
+
+      Parameters:
+      0: the name of the type
+  INFERENCE_FAILURE_ON_INSTANCE_CREATION:
+    problemMessage: "The type argument(s) of the constructor '{0}' can't be inferred."
+    correctionMessage: "Use explicit type argument(s) for '{0}'."
+    comment: |-
+      When "strict-inference" is enabled, types in instance creation
+      (constructor calls) must be inferred via the context type, or have type
+      arguments.
+
+      Parameters:
+      0: the name of the constructor
+  INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE:
+    problemMessage: "The type of {0} can't be inferred without either a type or initializer."
+    correctionMessage: Try specifying the type of the variable.
+    comment: |-
+      When "strict-inference" in enabled, uninitialized variables must be
+      declared with a specific type.
+
+      Parameters:
+      0: the name of the variable
+  INFERENCE_FAILURE_ON_UNTYPED_PARAMETER:
+    problemMessage: "The type of {0} can't be inferred; a type must be explicitly provided."
+    correctionMessage: Try specifying the type of the parameter.
+    comment: |-
+      When "strict-inference" in enabled, function parameters must be
+      declared with a specific type, or inherit a type.
+
+      Parameters:
+      0: the name of the parameter
   INVALID_ANNOTATION_TARGET:
     problemMessage: "The annotation '{0}' can only be used on {1}."
     comment: |-

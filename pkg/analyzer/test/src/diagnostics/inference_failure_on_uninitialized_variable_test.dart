@@ -13,7 +13,7 @@ main() {
   });
 }
 
-/// Tests of HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE with the
+/// Tests of WarningCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE with the
 /// "strict-inference" static analysis option.
 @reflectiveTest
 class InferenceFailureOnUninitializedVariableTest
@@ -34,7 +34,7 @@ class C {
   var a;
 }
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE, 16, 1),
+      error(WarningCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE, 16, 1),
     ]);
   }
 
@@ -71,7 +71,7 @@ class C {
   C(this.a);
 }
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE, 18, 1),
+      error(WarningCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE, 18, 1),
     ]);
   }
 
@@ -82,7 +82,7 @@ void f() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-      error(HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE, 17, 1),
+      error(WarningCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE, 17, 1),
     ]);
   }
 
@@ -118,7 +118,7 @@ class C {
   static var a;
 }
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE, 23, 1),
+      error(WarningCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE, 23, 1),
     ]);
   }
 
@@ -126,7 +126,7 @@ class C {
     await assertErrorsInCode(r'''
 var a;
 ''', [
-      error(HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE, 4, 1),
+      error(WarningCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE, 4, 1),
     ]);
   }
 

@@ -5817,6 +5817,93 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  When "strict-inference" is enabled, collection literal types must be
+  ///  inferred via the context type, or have type arguments.
+  ///
+  ///  Parameters:
+  ///  0: the name of the collection
+  static const WarningCode INFERENCE_FAILURE_ON_COLLECTION_LITERAL =
+      WarningCode(
+    'INFERENCE_FAILURE_ON_COLLECTION_LITERAL',
+    "The type argument(s) of '{0}' can't be inferred.",
+    correctionMessage: "Use explicit type argument(s) for '{0}'.",
+  );
+
+  ///  When "strict-inference" is enabled, types in function invocations must be
+  ///  inferred via the context type, or have type arguments.
+  ///
+  ///  Parameters:
+  ///  0: the name of the function
+  static const WarningCode INFERENCE_FAILURE_ON_FUNCTION_INVOCATION =
+      WarningCode(
+    'INFERENCE_FAILURE_ON_FUNCTION_INVOCATION',
+    "The type argument(s) of the function '{0}' can't be inferred.",
+    correctionMessage: "Use explicit type argument(s) for '{0}'.",
+  );
+
+  ///  When "strict-inference" is enabled, recursive local functions, top-level
+  ///  functions, methods, and function-typed function parameters must all
+  ///  specify a return type. See the strict-inference resource:
+  ///
+  ///  https://github.com/dart-lang/language/blob/master/resources/type-system/strict-inference.md
+  ///
+  ///  Parameters:
+  ///  0: the name of the function or method
+  static const WarningCode INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE =
+      WarningCode(
+    'INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE',
+    "The return type of '{0}' cannot be inferred.",
+    correctionMessage: "Declare the return type of '{0}'.",
+  );
+
+  ///  When "strict-inference" is enabled, types in function invocations must be
+  ///  inferred via the context type, or have type arguments.
+  ///
+  ///  Parameters:
+  ///  0: the name of the type
+  static const WarningCode INFERENCE_FAILURE_ON_GENERIC_INVOCATION =
+      WarningCode(
+    'INFERENCE_FAILURE_ON_GENERIC_INVOCATION',
+    "The type argument(s) of the generic function type '{0}' can't be "
+        "inferred.",
+    correctionMessage: "Use explicit type argument(s) for '{0}'.",
+  );
+
+  ///  When "strict-inference" is enabled, types in instance creation
+  ///  (constructor calls) must be inferred via the context type, or have type
+  ///  arguments.
+  ///
+  ///  Parameters:
+  ///  0: the name of the constructor
+  static const WarningCode INFERENCE_FAILURE_ON_INSTANCE_CREATION = WarningCode(
+    'INFERENCE_FAILURE_ON_INSTANCE_CREATION',
+    "The type argument(s) of the constructor '{0}' can't be inferred.",
+    correctionMessage: "Use explicit type argument(s) for '{0}'.",
+  );
+
+  ///  When "strict-inference" in enabled, uninitialized variables must be
+  ///  declared with a specific type.
+  ///
+  ///  Parameters:
+  ///  0: the name of the variable
+  static const WarningCode INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE =
+      WarningCode(
+    'INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE',
+    "The type of {0} can't be inferred without either a type or initializer.",
+    correctionMessage: "Try specifying the type of the variable.",
+  );
+
+  ///  When "strict-inference" in enabled, function parameters must be
+  ///  declared with a specific type, or inherit a type.
+  ///
+  ///  Parameters:
+  ///  0: the name of the parameter
+  static const WarningCode INFERENCE_FAILURE_ON_UNTYPED_PARAMETER = WarningCode(
+    'INFERENCE_FAILURE_ON_UNTYPED_PARAMETER',
+    "The type of {0} can't be inferred; a type must be explicitly provided.",
+    correctionMessage: "Try specifying the type of the parameter.",
+  );
+
   ///  Parameters:
   ///  0: the name of the annotation
   ///  1: the list of valid targets

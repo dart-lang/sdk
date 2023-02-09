@@ -2851,9 +2851,9 @@ void f() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 212, 36),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 264, 19),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 309, 18),
-      error(HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 330, 1),
+      error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 330, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 341, 18),
-      error(HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 362, 6),
+      error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 362, 6),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 380, 20),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 427, 16),
     ]);
