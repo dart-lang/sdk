@@ -3315,6 +3315,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitSwitchExpression(
+    covariant SwitchExpressionImpl node, {
+    DartType? contextType,
+  }) {
+    analyzeExpression(node, contextType);
+    popRewrite();
+  }
+
+  @override
   void visitSwitchStatement(covariant SwitchStatementImpl node) {
     // Stack: ()
     checkUnreachableNode(node);
