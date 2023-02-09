@@ -7,6 +7,18 @@
 
 {
   'WATCHLIST_DEFINITIONS': {
+    'analyzer': {
+      'filepath': (
+        '^pkg/analysis_server|'
+        '^pkg/analysis_server_client|'
+        '^pkg/analyzer|'
+        '^pkg/analyzer_cli|'
+        '^pkg/analyzer_plugin|'
+        '^pkg/analyzer_utilities|'
+        '^pkg/meta|'
+        '^pkg/nnbd_migration'
+      )
+    },
     'build': {
       'filepath': (
         '.*gyp$|'
@@ -83,6 +95,7 @@
   },
 
   'WATCHLISTS': {
+    'analyzer': [ 'dart-analysis-team-log@google.com' ],
     'dart2js': [ 'dart2js-team+reviews@google.com' ],
     'dart2wasm': [ 'dart2wasm-team+reviews@google.com' ],
     'dartdevc': [ 'dart-dc-team+reviews@google.com' ],

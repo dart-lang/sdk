@@ -22,6 +22,16 @@ bool OSThread::creation_enabled_ = false;
 
 thread_local ThreadState* OSThread::current_vm_thread_ = NULL;
 
+#if defined(SUPPORT_TIMELINE)
+inline void UpdateTimelineTrackMetadata(const OSThread& thread) {
+  RecorderLockScope rl;
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  if (recorder != nullptr && !rl.IsShuttingDown()) {
+    recorder->AddTrackMetadataBasedOnThread(thread);
+  }
+}
+#endif  // defined(SUPPORT_TIMELINE)
+
 OSThread::OSThread()
     : BaseThread(true),
       id_(OSThread::GetCurrentThreadId()),
@@ -54,6 +64,10 @@ OSThread::OSThread()
   ASSERT(stack_base_ > GetCurrentStackPointer());
   ASSERT(stack_limit_ < GetCurrentStackPointer());
   RELEASE_ASSERT(HasStackHeadroom());
+
+#if defined(SUPPORT_TIMELINE)
+  UpdateTimelineTrackMetadata(*this);
+#endif  // defined(SUPPORT_TIMELINE)
 }
 
 OSThread* OSThread::CreateOSThread() {
@@ -96,6 +110,10 @@ void OSThread::SetName(const char* name) {
   ASSERT(OSThread::Current() == this);
   ASSERT(name != nullptr);
   name_ = Utils::StrDup(name);
+
+#if defined(SUPPORT_TIMELINE)
+  UpdateTimelineTrackMetadata(*this);
+#endif  // defined(SUPPORT_TIMELINE)
 }
 
 // Disable AddressSanitizer and SafeStack transformation on this function. In

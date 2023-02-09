@@ -9,7 +9,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
-    hide NamedType, RecordPatternField, RecordType;
+    hide NamedType, RecordType;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart'
@@ -96,8 +96,8 @@ import 'package:meta/meta.dart';
 typedef SharedMatchContext = shared.MatchContext<AstNode, Expression,
     DartPattern, DartType, PromotableElement>;
 
-typedef SharedRecordPatternField
-    = shared.RecordPatternField<RecordPatternFieldImpl, DartPatternImpl>;
+typedef SharedPatternField
+    = shared.RecordPatternField<PatternFieldImpl, DartPatternImpl>;
 
 /// A function which returns [NonPromotionReason]s that various types are not
 /// promoted.
@@ -517,12 +517,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return null;
   }
 
-  List<SharedRecordPatternField> buildSharedRecordPatternFields(
-    List<RecordPatternFieldImpl> fields,
+  List<SharedPatternField> buildSharedPatternFields(
+    List<PatternFieldImpl> fields,
   ) {
     return fields.map((field) {
       Token? nameToken;
-      var fieldName = field.fieldName;
+      var fieldName = field.name;
       if (fieldName != null) {
         nameToken = fieldName.name;
         if (nameToken == null) {
@@ -1513,10 +1513,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   DartType resolveObjectPatternPropertyGet({
     required DartType receiverType,
-    required covariant SharedRecordPatternField field,
+    required covariant SharedPatternField field,
   }) {
     var fieldNode = field.node;
-    var nameToken = fieldNode.fieldName?.name;
+    var nameToken = fieldNode.name?.name;
     nameToken ??= field.pattern.variablePattern?.name;
     if (nameToken == null) {
       errorReporter.reportErrorForNode(
@@ -1544,7 +1544,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     var getter = result.getter;
     if (getter != null) {
-      fieldNode.fieldElement = getter;
+      fieldNode.element = getter;
       if (getter is PropertyAccessorElement) {
         return getter.returnType;
       } else {
@@ -1727,6 +1727,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
       }
     }
+  }
+
+  @override
+  DartType streamType(DartType elementType) {
+    return typeProvider.streamType(elementType);
   }
 
   /// Returns the result of an implicit `this.` lookup for the identifier string

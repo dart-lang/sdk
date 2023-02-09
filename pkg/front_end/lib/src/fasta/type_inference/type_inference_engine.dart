@@ -572,6 +572,22 @@ class OperationsCfe
   }
 
   @override
+  DartType? matchStreamType(DartType type) {
+    if (type is InterfaceType) {
+      List<DartType>? typeArguments =
+          typeEnvironment.getTypeArgumentsAsInstanceOf(
+              type, typeEnvironment.coreTypes.streamClass);
+      if (typeArguments == null || typeArguments.length != 1) {
+        return null;
+      } else {
+        return typeArguments.single;
+      }
+    } else {
+      return null;
+    }
+  }
+
+  @override
   bool areStructurallyEqual(DartType type1, DartType type2) {
     // TODO(cstefantsova): Use the actual algorithm for structural equality.
     return type1 == type2;

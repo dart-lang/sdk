@@ -41,6 +41,9 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo;
 import 'package:meta/meta.dart';
 
+@Deprecated('Use PatternField and visitPatternField() instead')
+typedef RecordPatternField = PatternField;
+
 /// Two or more string literals that are implicitly concatenated because of
 /// being adjacent (separated only by whitespace).
 ///
@@ -591,6 +594,10 @@ abstract class AstVisitor<R> {
 
   R? visitPatternAssignment(PatternAssignment node);
 
+  R? visitPatternField(PatternField node);
+
+  R? visitPatternFieldName(PatternFieldName node);
+
   R? visitPatternVariableDeclaration(PatternVariableDeclaration node);
 
   R? visitPatternVariableDeclarationStatement(
@@ -607,10 +614,6 @@ abstract class AstVisitor<R> {
   R? visitRecordLiteral(RecordLiteral node);
 
   R? visitRecordPattern(RecordPattern node);
-
-  R? visitRecordPatternField(RecordPatternField node);
-
-  R? visitRecordPatternFieldName(RecordPatternFieldName node);
 
   R? visitRecordTypeAnnotation(RecordTypeAnnotation node);
 
@@ -4131,13 +4134,13 @@ abstract class NullShortableExpression implements Expression {
 /// An object pattern.
 ///
 ///    objectPattern ::=
-///        [Identifier] [TypeArgumentList]? '(' [RecordPatternField] ')'
+///        [Identifier] [TypeArgumentList]? '(' [PatternField] ')'
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class ObjectPattern implements DartPattern {
   /// Return the patterns matching the properties of the object.
-  NodeList<RecordPatternField> get fields;
+  NodeList<PatternField> get fields;
 
   /// Return the left parenthesis.
   Token get leftParenthesis;
@@ -4261,6 +4264,42 @@ abstract class PatternAssignment implements Expression {
 
   /// The pattern that will match the expression.
   DartPattern get pattern;
+}
+
+/// A field in an object or record pattern.
+///
+///    patternField ::=
+///        [PatternFieldName]? [DartPattern]
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class PatternField implements AstNode {
+  /// The element referenced explicitly by [name], or implicitly by the
+  /// variable pattern inside [pattern]. Is `null` if not resolved yet,
+  /// not `null` inside valid [ObjectPattern]s, always `null` inside
+  /// [RecordPattern]s.
+  Element? get element;
+
+  /// The name of the field, or `null` if the field is a positional field.
+  PatternFieldName? get name;
+
+  /// The pattern used to match the corresponding record field.
+  DartPattern get pattern;
+}
+
+/// A field name in an object or record pattern field.
+///
+///    patternFieldName ::=
+///        [Token]? ':'
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class PatternFieldName implements AstNode {
+  /// The colon following the name.
+  Token get colon;
+
+  /// The name of the field.
+  Token? get name;
 }
 
 /// A pattern variable declaration.
@@ -4437,13 +4476,13 @@ abstract class RecordLiteral implements Literal {
 /// A record pattern.
 ///
 ///    recordPattern ::=
-///        '(' [RecordPatternField] (',' [RecordPatternField])* ')'
+///        '(' [PatternField] (',' [PatternField])* ')'
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class RecordPattern implements DartPattern {
   /// Return the fields of the record pattern.
-  NodeList<RecordPatternField> get fields;
+  NodeList<PatternField> get fields;
 
   /// Return the left parenthesis.
   Token get leftParenthesis;
@@ -4453,40 +4492,6 @@ abstract class RecordPattern implements DartPattern {
 
   /// Return the right parenthesis.
   Token get rightParenthesis;
-}
-
-/// A field in a record pattern.
-///
-///    recordPatternField ::=
-///        [RecordPatternFieldName]? [DartPattern]
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class RecordPatternField implements AstNode {
-  /// The element referenced explicitly by [fieldName], or implicitly by the
-  /// variable pattern inside [pattern].
-  Element? get fieldElement;
-
-  /// The name of the field, or `null` if the field is a positional field.
-  RecordPatternFieldName? get fieldName;
-
-  /// The pattern used to match the corresponding record field.
-  DartPattern get pattern;
-}
-
-/// A field name in a record pattern field.
-///
-///    recordPatternFieldName ::=
-///        [Token]? ':'
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class RecordPatternFieldName implements AstNode {
-  /// The colon following the name.
-  Token get colon;
-
-  /// The name of the field.
-  Token? get name;
 }
 
 /// A record type.

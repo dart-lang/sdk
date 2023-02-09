@@ -15,9 +15,54 @@ mixin class MixinClass {
   MixinClass(this.foo);
 //^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+}
 
-  MixinClass.named(this.foo);
-//^^^^^^^^^^
+mixin class MixinClassNamed {
+//          ^
+// [cfe] Can't use 'MixinClassNamed' as a mixin because it has constructors.
+  final int foo;
+
+  MixinClassNamed.named(this.foo);
+//^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+}
+
+mixin class MixinClassRedirect {
+//          ^
+// [cfe] Can't use 'MixinClassRedirect' as a mixin because it has constructors.
+  int foo = 0;
+
+  MixinClassRedirect.named(int f) { this.foo = f; }
+//^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+
+  MixinClassRedirect.x(int f) : this.named(f);
+//^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+}
+
+mixin class MixinClassExternal {
+//          ^
+// [cfe] Can't use 'MixinClassExternal' as a mixin because it has constructors.
+  external MixinClassExternal();
+//         ^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+// [web] Only JS interop members may be 'external'.
+}
+
+mixin class MixinClassSuper {
+//          ^
+// [cfe] Can't use 'MixinClassSuper' as a mixin because it has constructors.
+  MixinClassSuper(): super();
+//^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+}
+
+mixin class MixinClassBody {
+//          ^
+// [cfe] Can't use 'MixinClassBody' as a mixin because it has constructors.
+  MixinClassBody() {}
+//^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
 }
 

@@ -595,6 +595,14 @@ class FindNode {
     return _node(search, (n) => n is PatternAssignment);
   }
 
+  PatternField patternField(String search) {
+    return _node(search, (n) => n is PatternField);
+  }
+
+  PatternFieldName patternFieldName(String search) {
+    return _node(search, (n) => n is PatternFieldName);
+  }
+
   PatternVariableDeclaration patternVariableDeclaration(String search) {
     return _node(search, (n) => n is PatternVariableDeclaration);
   }
@@ -626,14 +634,6 @@ class FindNode {
 
   RecordPattern recordPattern(String search) {
     return _node(search, (n) => n is RecordPattern);
-  }
-
-  RecordPatternField recordPatternField(String search) {
-    return _node(search, (n) => n is RecordPatternField);
-  }
-
-  RecordPatternFieldName recordPatternFieldName(String search) {
-    return _node(search, (n) => n is RecordPatternFieldName);
   }
 
   RecordTypeAnnotation recordTypeAnnotation(String search) {

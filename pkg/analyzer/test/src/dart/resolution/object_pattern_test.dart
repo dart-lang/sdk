@@ -105,8 +105,8 @@ ObjectPattern
     type: A<int>
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: foo
         colon: :
       pattern: DeclaredVariablePattern
@@ -114,7 +114,7 @@ ObjectPattern
         name: foo2
         declaredElement: hasImplicitType foo2@90
           type: int
-      fieldElement: PropertyAccessorMember
+      element: PropertyAccessorMember
         base: self::@class::A::@getter::foo
         substitution: {T: int}
   rightParenthesis: )
@@ -145,15 +145,15 @@ ObjectPattern
     type: A
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: foo
         colon: :
       pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 0
           staticType: int
-      fieldElement: self::@class::A::@getter::foo
+      element: self::@class::A::@getter::foo
   rightParenthesis: )
 ''');
   }
@@ -184,15 +184,15 @@ ObjectPattern
     type: A
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: foo
         colon: :
       pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 0
           staticType: int
-      fieldElement: self::@extension::E::@getter::foo
+      element: self::@extension::E::@getter::foo
   rightParenthesis: )
 ''');
   }
@@ -223,8 +223,8 @@ ObjectPattern
     type: A
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: foo
         colon: :
       pattern: DeclaredVariablePattern
@@ -232,7 +232,7 @@ ObjectPattern
         name: y
         declaredElement: hasImplicitType y@83
           type: void Function()
-      fieldElement: self::@class::A::@method::foo
+      element: self::@class::A::@method::foo
   rightParenthesis: )
 ''');
   }
@@ -265,8 +265,8 @@ ObjectPattern
     type: A
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: foo
         colon: :
       pattern: DeclaredVariablePattern
@@ -274,7 +274,7 @@ ObjectPattern
         name: y
         declaredElement: hasImplicitType y@97
           type: void Function()
-      fieldElement: self::@extension::E::@method::foo
+      element: self::@extension::E::@method::foo
   rightParenthesis: )
 ''');
   }
@@ -305,8 +305,8 @@ ObjectPattern
     type: A
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: foo
         colon: :
       pattern: DeclaredVariablePattern
@@ -314,7 +314,7 @@ ObjectPattern
         name: foo2
         declaredElement: hasImplicitType foo2@84
           type: int
-      fieldElement: self::@class::A::@getter::foo
+      element: self::@class::A::@getter::foo
   rightParenthesis: )
 ''');
   }
@@ -345,14 +345,14 @@ ObjectPattern
     type: A
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         colon: :
       pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 0
           staticType: int
-      fieldElement: <null>
+      element: <null>
   rightParenthesis: )
 ''');
   }
@@ -383,15 +383,15 @@ ObjectPattern
     type: A
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         colon: :
       pattern: DeclaredVariablePattern
         keyword: var
         name: foo
         declaredElement: hasImplicitType foo@81
           type: int
-      fieldElement: self::@class::A::@getter::foo
+      element: self::@class::A::@getter::foo
   rightParenthesis: )
 ''');
   }
@@ -422,8 +422,8 @@ ObjectPattern
     type: A
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         colon: :
       pattern: CastPattern
         pattern: DeclaredVariablePattern
@@ -438,7 +438,7 @@ ObjectPattern
             staticElement: dart:core::@class::int
             staticType: null
           type: int
-      fieldElement: self::@class::A::@getter::foo
+      element: self::@class::A::@getter::foo
   rightParenthesis: )
 ''');
   }
@@ -469,8 +469,8 @@ ObjectPattern
     type: A
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         colon: :
       pattern: NullAssertPattern
         pattern: DeclaredVariablePattern
@@ -479,7 +479,7 @@ ObjectPattern
           declaredElement: hasImplicitType foo@82
             type: int
         operator: !
-      fieldElement: self::@class::A::@getter::foo
+      element: self::@class::A::@getter::foo
   rightParenthesis: )
 ''');
   }
@@ -510,8 +510,8 @@ ObjectPattern
     type: A
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         colon: :
       pattern: NullCheckPattern
         pattern: DeclaredVariablePattern
@@ -520,7 +520,7 @@ ObjectPattern
           declaredElement: hasImplicitType foo@82
             type: int
         operator: ?
-      fieldElement: self::@class::A::@getter::foo
+      element: self::@class::A::@getter::foo
   rightParenthesis: )
 ''');
   }
@@ -551,8 +551,8 @@ ObjectPattern
     type: A
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         colon: :
       pattern: ParenthesizedPattern
         leftParenthesis: (
@@ -562,7 +562,7 @@ ObjectPattern
           declaredElement: hasImplicitType foo@82
             type: int
         rightParenthesis: )
-      fieldElement: self::@class::A::@getter::foo
+      element: self::@class::A::@getter::foo
   rightParenthesis: )
 ''');
   }
@@ -591,15 +591,15 @@ ObjectPattern
     type: A
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: foo
         colon: :
       pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 0
           staticType: int
-      fieldElement: <null>
+      element: <null>
   rightParenthesis: )
 ''');
   }
@@ -629,15 +629,15 @@ ObjectPattern
     type: A
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         colon: :
       pattern: DeclaredVariablePattern
         keyword: var
         name: foo
         declaredElement: hasImplicitType foo@65
           type: dynamic
-      fieldElement: <null>
+      element: <null>
   rightParenthesis: )
 ''');
   }
@@ -666,8 +666,8 @@ ObjectPattern
     type: dynamic
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: foo
         colon: :
       pattern: DeclaredVariablePattern
@@ -675,7 +675,7 @@ ObjectPattern
         name: y
         declaredElement: hasImplicitType y@77
           type: dynamic
-      fieldElement: <null>
+      element: <null>
   rightParenthesis: )
 ''');
   }
@@ -721,8 +721,8 @@ ObjectPattern
           int
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: foo
         colon: :
       pattern: DeclaredVariablePattern
@@ -730,7 +730,7 @@ ObjectPattern
         name: y
         declaredElement: hasImplicitType y@145
           type: int
-      fieldElement: self::@extension::E::@getter::foo
+      element: self::@extension::E::@getter::foo
   rightParenthesis: )
 ''');
   }
@@ -764,8 +764,8 @@ ObjectPattern
       alias: self::@typeAlias::A
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: foo
         colon: :
       pattern: DeclaredVariablePattern
@@ -773,7 +773,7 @@ ObjectPattern
         name: y
         declaredElement: hasImplicitType y@141
           type: int
-      fieldElement: self::@extension::E::@getter::foo
+      element: self::@extension::E::@getter::foo
   rightParenthesis: )
 ''');
   }
@@ -803,8 +803,8 @@ ObjectPattern
       alias: self::@typeAlias::A
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: hashCode
         colon: :
       pattern: DeclaredVariablePattern
@@ -812,7 +812,7 @@ ObjectPattern
         name: y
         declaredElement: hasImplicitType y@90
           type: int
-      fieldElement: dart:core::@class::Object::@getter::hashCode
+      element: dart:core::@class::Object::@getter::hashCode
   rightParenthesis: )
 ''');
   }
@@ -843,8 +843,8 @@ ObjectPattern
       alias: self::@typeAlias::A
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: foo
         colon: :
       pattern: DeclaredVariablePattern
@@ -852,7 +852,7 @@ ObjectPattern
         name: y
         declaredElement: hasImplicitType y@85
           type: dynamic
-      fieldElement: <null>
+      element: <null>
   rightParenthesis: )
 ''');
   }
@@ -882,8 +882,8 @@ ObjectPattern
       alias: self::@typeAlias::A
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: foo
         colon: :
       pattern: DeclaredVariablePattern
@@ -891,7 +891,7 @@ ObjectPattern
         name: y
         declaredElement: hasImplicitType y@73
           type: int
-      fieldElement: <null>
+      element: <null>
   rightParenthesis: )
 ''');
   }
@@ -921,8 +921,8 @@ ObjectPattern
       alias: self::@typeAlias::A
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: $1
         colon: :
       pattern: DeclaredVariablePattern
@@ -930,7 +930,7 @@ ObjectPattern
         name: y
         declaredElement: hasImplicitType y@71
           type: int
-      fieldElement: <null>
+      element: <null>
   rightParenthesis: )
 ''');
   }
@@ -960,15 +960,15 @@ PatternVariableDeclaration
       type: A<int>
     leftParenthesis: (
     fields
-      RecordPatternField
-        fieldName: RecordPatternFieldName
+      PatternField
+        name: PatternFieldName
           name: foo
           colon: :
         pattern: DeclaredVariablePattern
           name: a
           declaredElement: hasImplicitType a@32
             type: int
-        fieldElement: PropertyAccessorMember
+        element: PropertyAccessorMember
           base: self::@class::A::@getter::foo
           substitution: {T: int}
     rightParenthesis: )
@@ -1017,15 +1017,15 @@ PatternVariableDeclaration
       type: A<int>
     leftParenthesis: (
     fields
-      RecordPatternField
-        fieldName: RecordPatternFieldName
+      PatternField
+        name: PatternFieldName
           name: foo
           colon: :
         pattern: DeclaredVariablePattern
           name: a
           declaredElement: hasImplicitType a@29
             type: int
-        fieldElement: PropertyAccessorMember
+        element: PropertyAccessorMember
           base: self::@class::A::@getter::foo
           substitution: {T: int}
     rightParenthesis: )
@@ -1076,8 +1076,8 @@ PatternVariableDeclaration
       type: A<dynamic>
     leftParenthesis: (
     fields
-      RecordPatternField
-        fieldName: RecordPatternFieldName
+      PatternField
+        name: PatternFieldName
           name: foo
           colon: :
         pattern: DeclaredVariablePattern
@@ -1090,7 +1090,7 @@ PatternVariableDeclaration
           name: a
           declaredElement: a@28
             type: int
-        fieldElement: PropertyAccessorMember
+        element: PropertyAccessorMember
           base: self::@class::A::@getter::foo
           substitution: {T: dynamic}
     rightParenthesis: )

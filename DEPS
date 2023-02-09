@@ -146,7 +146,7 @@ vars = {
   "http_parser_rev": "1c0c17a1a5d9ca62c85f0940d9edbf2a98209bfa",
   "intl_rev": "fca552f2ec5d682b5fa36f02bdd72a5a4e2edcee",
   "json_rpc_2_rev": "0280ac6cb4f3905d81c47ba927123ba2b95f7940",
-  "linter_rev": "70fb087e39e6882ad331ee1e3f52f3f3a88e2d16", # 1.33.0 (+ `unnecessary_parenthesis` fix)
+  "linter_rev": "2a32d3f04394d02b80c53a460363b5ad4c413301", # 1.33.0 (+ `invalid_case_patterns`)
   "lints_rev": "dfded5e265015f21ce154577fe8488dc244e33c2",
   "logging_rev": "abef3717d958158eb8b0ddb2871f4b15a9804cd4",
   "markdown_rev": "f51c24c5c5603ac20b6d88aded78ef3aa23619ac",

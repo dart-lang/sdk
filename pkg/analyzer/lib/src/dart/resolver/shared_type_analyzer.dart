@@ -13,8 +13,8 @@ import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:collection/collection.dart';
 
-typedef SharedRecordPatternField
-    = shared.RecordPatternField<RecordPatternFieldImpl, DartPattern>;
+typedef SharedPatternField
+    = shared.RecordPatternField<PatternFieldImpl, DartPatternImpl>;
 
 /// Implementation of [shared.TypeAnalyzerErrors] that reports errors using the
 /// analyzer's [ErrorReporter] class.
@@ -93,11 +93,11 @@ class SharedTypeAnalyzerErrors
   void duplicateRecordPatternField({
     required DartPattern objectOrRecordPattern,
     required String name,
-    required covariant SharedRecordPatternField original,
-    required covariant SharedRecordPatternField duplicate,
+    required covariant SharedPatternField original,
+    required covariant SharedPatternField duplicate,
   }) {
     _errorReporter.reportError(
-      DiagnosticFactory().duplicateRecordPatternField(
+      DiagnosticFactory().duplicatePatternField(
         source: _errorReporter.source,
         name: name,
         duplicateField: duplicate.node,

@@ -1137,6 +1137,20 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitPatternField(PatternField node) {
+    var other = _other as PatternField;
+    return isEqualNodes(node.name, other.name) &&
+        isEqualNodes(node.pattern, other.pattern);
+  }
+
+  @override
+  bool visitPatternFieldName(PatternFieldName node) {
+    var other = _other as PatternFieldName;
+    return isEqualTokens(node.name, other.name) &&
+        isEqualTokens(node.colon, other.colon);
+  }
+
+  @override
   bool visitPatternVariableDeclaration(PatternVariableDeclaration node) {
     var other = _other as PatternVariableDeclaration;
     return isEqualNodes(
@@ -1200,20 +1214,6 @@ class AstComparator implements AstVisitor<bool> {
     return isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
         _isEqualNodeLists(node.fields, other.fields) &&
         isEqualTokens(node.rightParenthesis, other.rightParenthesis);
-  }
-
-  @override
-  bool visitRecordPatternField(RecordPatternField node) {
-    var other = _other as RecordPatternField;
-    return isEqualNodes(node.fieldName, other.fieldName) &&
-        isEqualNodes(node.pattern, other.pattern);
-  }
-
-  @override
-  bool visitRecordPatternFieldName(RecordPatternFieldName node) {
-    var other = _other as RecordPatternFieldName;
-    return isEqualTokens(node.name, other.name) &&
-        isEqualTokens(node.colon, other.colon);
   }
 
   @override

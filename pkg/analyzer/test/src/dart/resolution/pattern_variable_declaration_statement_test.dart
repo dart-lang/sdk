@@ -244,18 +244,18 @@ PatternVariableDeclarationStatement
     pattern: RecordPattern
       leftParenthesis: (
       fields
-        RecordPatternField
+        PatternField
           pattern: DeclaredVariablePattern
             name: a
             declaredElement: hasImplicitType a@33
               type: int
-          fieldElement: <null>
-        RecordPatternField
+          element: <null>
+        PatternField
           pattern: DeclaredVariablePattern
             name: b
             declaredElement: hasImplicitType b@36
               type: String
-          fieldElement: <null>
+          element: <null>
       rightParenthesis: )
       matchedValueType: (int, String)
     equals: =

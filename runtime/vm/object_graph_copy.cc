@@ -144,45 +144,28 @@ static ObjectPtr Marker() {
   return Object::unknown_constant().ptr();
 }
 
-// Keep in sync with runtime/lib/isolate.cc:ValidateMessageObject
 DART_FORCE_INLINE
 static bool CanShareObject(ObjectPtr obj, uword tags) {
   if ((tags & UntaggedObject::CanonicalBit::mask_in_place()) != 0) {
     return true;
   }
   const auto cid = UntaggedObject::ClassIdTag::decode(tags);
-  if (cid == kOneByteStringCid) return true;
-  if (cid == kTwoByteStringCid) return true;
-  if (cid == kExternalOneByteStringCid) return true;
-  if (cid == kExternalTwoByteStringCid) return true;
-  if (cid == kMintCid) return true;
-  if (cid == kNeverCid) return true;
-  if (cid == kSentinelCid) return true;
-  if (cid == kStackTraceCid) return true;
-  if (cid == kDoubleCid || cid == kFloat32x4Cid || cid == kFloat64x2Cid ||
-      cid == kInt32x4Cid) {
+  if ((tags & UntaggedObject::ImmutableBit::mask_in_place()) != 0) {
+    if (IsUnmodifiableTypedDataViewClassId(cid)) {
+      // Unmodifiable typed data views may have mutable backing stores.
+      return TypedDataView::RawCast(obj)
+          ->untag()
+          ->typed_data()
+          ->untag()
+          ->IsImmutable();
+    }
+    // All other objects that have immutability bit set are deeply immutable.
     return true;
   }
-  if (cid == kSendPortCid) return true;
-  if (cid == kCapabilityCid) return true;
-  if (cid == kRegExpCid) return true;
 
   if (cid == kClosureCid) {
     // We can share a closure iff it doesn't close over any state.
     return Closure::RawCast(obj)->untag()->context() == Object::null();
-  }
-
-  if (IsUnmodifiableTypedDataViewClassId(cid)) {
-    // Unmodifiable typed data views may have mutable backing stores.
-    return TypedDataView::RawCast(obj)
-        ->untag()
-        ->typed_data()
-        ->untag()
-        ->IsImmutable();
-  } else {
-    if ((tags & UntaggedObject::ImmutableBit::mask_in_place()) != 0) {
-      return true;
-    }
   }
 
   return false;

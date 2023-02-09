@@ -47,13 +47,13 @@ Space convertPatternToSpace(
     return Space(cache.getStaticType(type));
   } else if (pattern is ObjectPattern) {
     Map<String, Space> fields = {};
-    for (RecordPatternField field in pattern.fields) {
-      RecordPatternFieldName? fieldName = field.fieldName;
+    for (PatternField field in pattern.fields) {
+      PatternFieldName? fieldName = field.name;
       String? name;
       if (fieldName?.name != null) {
         name = fieldName!.name!.lexeme;
       } else {
-        name = field.fieldElement?.name;
+        name = field.element?.name;
       }
       if (name == null) {
         // TODO(johnniwinther): How do we handle error cases?

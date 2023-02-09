@@ -9438,6 +9438,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  DartType streamType(DartType elementType) {
+    return new InterfaceType(coreTypes.streamClass, Nullability.nonNullable,
+        <DartType>[elementType]);
+  }
+
+  @override
   DartType get objectQuestionType => coreTypes.objectNullableRawType;
 
   @override

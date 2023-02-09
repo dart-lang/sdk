@@ -193,6 +193,13 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPatternField(PatternField node) {
+    usedElements.addMember(node.element);
+    usedElements.addReadMember(node.element);
+    super.visitPatternField(node);
+  }
+
+  @override
   void visitPostfixExpression(PostfixExpression node) {
     var element = node.staticElement;
     usedElements.addMember(element);
@@ -204,13 +211,6 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     var element = node.staticElement;
     usedElements.addMember(element);
     super.visitPrefixExpression(node);
-  }
-
-  @override
-  void visitRecordPatternField(RecordPatternField node) {
-    usedElements.addMember(node.fieldElement);
-    usedElements.addReadMember(node.fieldElement);
-    super.visitRecordPatternField(node);
   }
 
   @override

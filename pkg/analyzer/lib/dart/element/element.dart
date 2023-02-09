@@ -200,6 +200,11 @@ abstract class ClassElement
   /// <i>abstract</i> is different from <i>has unimplemented members</i>.
   bool get isAbstract;
 
+  /// Return `true` if this class is a base class. A class is a base class if it
+  /// has an explicit `base` modifier.
+  @experimental
+  bool get isBase;
+
   /// Return `true` if this class represents the class 'Enum' defined in the
   /// dart:core library.
   bool get isDartCoreEnum;
@@ -208,9 +213,35 @@ abstract class ClassElement
   /// dart:core library.
   bool get isDartCoreObject;
 
+  /// Return `true` if this element has the property where, in a switch, if you
+  /// cover all of the subtypes of this element, then the compiler knows that
+  /// you have covered all possible instances of the type.
+  @experimental
+  bool get isExhaustive;
+
+  /// Return `true` if this class is a final class. A class is a final class if
+  /// it has an explicit `final` modifier.
+  @experimental
+  bool get isFinal;
+
+  /// Return `true` if this class is an interface class. A class is an interface
+  /// class if it has an explicit `interface` modifier.
+  @experimental
+  bool get isInterface;
+
   /// Return `true` if this class is a mixin application.  A class is a mixin
   /// application if it was declared using the syntax "class A = B with C;".
   bool get isMixinApplication;
+
+  /// Return `true` if this class is a mixin class. A class is a mixin class if
+  /// it has an explicit `mixin` modifier.
+  @experimental
+  bool get isMixinClass;
+
+  /// Return `true` if this class is a sealed class. A class is a sealed class
+  /// if it has an explicit `sealed` modifier.
+  @experimental
+  bool get isSealed;
 
   /// Return `true` if this class can validly be used as a mixin when defining
   /// another class. For classes defined by a class declaration or a mixin
@@ -237,6 +268,21 @@ abstract class ClassElement
   /// guard against infinite loops.
   @Deprecated('This getter is implemented only for MixinElement')
   List<InterfaceType> get superclassConstraints;
+
+  /// Return `true` if this element, assuming that it is within scope, is
+  /// extendable to classes in the given [library].
+  @experimental
+  bool isExtendableIn(LibraryElement library);
+
+  /// Return `true` if this element, assuming that it is within scope, is
+  /// implementable to classes, mixins, and enums in the given [library].
+  @experimental
+  bool isImplementableIn(LibraryElement library);
+
+  /// Return `true` if this element, assuming that it is within scope, is
+  /// able to be mixed-in by classes and enums in the given [library].
+  @experimental
+  bool isMixableIn(LibraryElement library);
 }
 
 /// An element that is contained within a [ClassElement].
@@ -1943,6 +1989,32 @@ abstract class MixinElement
   /// Returns the result of applying augmentations to this element.
   AugmentedMixinElement get augmented;
 
+  /// Return `true` if this mixin is a base mixin. A mixin is a base mixin if it
+  /// has an explicit `base` modifier.
+  @experimental
+  bool get isBase;
+
+  /// Return `true` if this element has the property where, in a switch, if you
+  /// cover all of the subtypes of this element, then the compiler knows that
+  /// you have covered all possible instances of the type.
+  @experimental
+  bool get isExhaustive;
+
+  /// Return `true` if this mixin is a final mixin. A mixin is a final mixin if
+  /// it has an explicit `final` modifier.
+  @experimental
+  bool get isFinal;
+
+  /// Return `true` if this mixin is an interface mixin. A mixin is an interface
+  /// mixin if it has an explicit `interface` modifier.
+  @experimental
+  bool get isInterface;
+
+  /// Return `true` if this mixin is a sealed mixin. A mixin is a sealed mixin
+  /// if it has an explicit `sealed` modifier.
+  @experimental
+  bool get isSealed;
+
   /// Returns the superclass constraints defined for this mixin. If the
   /// declaration does not have an `on` clause, then the list will contain
   /// the type for the class `Object`.
@@ -1953,6 +2025,16 @@ abstract class MixinElement
   /// a cycle. Clients that traverse the inheritance structure must explicitly
   /// guard against infinite loops.
   List<InterfaceType> get superclassConstraints;
+
+  /// Return `true` if this element, assuming that it is within scope, is
+  /// implementable to classes, mixins, and enums in the given [library].
+  @experimental
+  bool isImplementableIn(LibraryElement library);
+
+  /// Return `true` if this element, assuming that it is within scope, is
+  /// able to be mixed-in by classes and enums in the given [library].
+  @experimental
+  bool isMixableIn(LibraryElement library);
 }
 
 /// Shared interface between [MixinElement] and [MixinAugmentationElement].

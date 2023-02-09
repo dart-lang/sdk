@@ -391,13 +391,19 @@ CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT:
 CompileTimeErrorCode.DUPLICATE_PART:
   status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE:
-  status: needsEvaluation
-CompileTimeErrorCode.DUPLICATE_RECORD_PATTERN_FIELD:
+  status: needsFix
+  notes: |-
+    We can suggest names from the context, as in did you mean this?
+CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD:
   status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_REST_ELEMENT_IN_PATTERN:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    We do not know which one of the rest elements is to be removed.
 CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    We cannot figure out the intent of the user to suggest the right fix.
 CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
   status: noFix
   notes: |-
@@ -433,9 +439,9 @@ CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET:
 CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP:
   status: needsEvaluation
 CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS:
   status: needsEvaluation
 CompileTimeErrorCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS:
@@ -443,7 +449,10 @@ CompileTimeErrorCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS:
 CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS:
   status: needsEvaluation
 CompileTimeErrorCode.EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    We do not know the user's intent here and so cannot figure out what to 
+    add or delete.
 CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.EXPORT_LEGACY_SYMBOL:
@@ -604,9 +613,12 @@ CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD:
 CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE:
   status: needsEvaluation
 CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    We cannot figure out the the user's intent here, and so cannot generate a
+    fix that would be right.
 CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD:
   status: needsEvaluation
 CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD:
@@ -756,7 +768,7 @@ CompileTimeErrorCode.MISSING_OBJECT_PATTERN_GETTER_NAME:
 CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT:
   status: hasFix
 CompileTimeErrorCode.MISSING_VARIABLE_PATTERN:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE:
   status: needsEvaluation
 CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER:
@@ -855,13 +867,15 @@ CompileTimeErrorCode.NON_CONSTANT_MAP_KEY:
 CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY:
-  status: needsEvaluation
+  status: needsFix
 CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE:
   status: needsEvaluation
 CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Make the pattern expression a constant.
 CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT:
   status: needsEvaluation
 CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH:
@@ -934,13 +948,16 @@ CompileTimeErrorCode.PART_OF_NON_PART:
 CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    We do not have enough information to figure out the user's intent with the
+    use of the variable in the pattern.
 CompileTimeErrorCode.POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT:
   status: needsFix
   since: 2.17
@@ -995,13 +1012,19 @@ CompileTimeErrorCode.REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
 CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION:
   status: needsEvaluation
 CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT:
-  status: needsEvaluation
+  status: noFix
 CompileTimeErrorCode.RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL:
   status: noFix
 CompileTimeErrorCode.REST_ELEMENT_NOT_LAST_IN_MAP_PATTERN:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    We do not have enough information to figure out the users intention here is
+    with the use of the rest element.
 CompileTimeErrorCode.REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    We do not have enough information to figure out the users intention here is
+    with the use of the rest element.
 CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH:
   status: needsEvaluation
 CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR:
@@ -1803,6 +1826,10 @@ LintCode.implementation_imports:
   status: needsEvaluation
 LintCode.implicit_call_tearoffs:
   status: hasFix
+LintCode.invalid_case_patterns:
+  status: needsFix
+  notes: |-
+    https://github.com/dart-lang/sdk/issues/49960
 LintCode.invariant_booleans:
   status: needsEvaluation
 LintCode.iterable_contains_unrelated_type:

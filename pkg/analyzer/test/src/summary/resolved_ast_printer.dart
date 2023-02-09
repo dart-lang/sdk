@@ -1105,6 +1105,23 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitPatternField(PatternField node) {
+    _writeln('PatternField');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeElement('element', node.element);
+    });
+  }
+
+  @override
+  void visitPatternFieldName(PatternFieldName node) {
+    _writeln('PatternFieldName');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitPatternVariableDeclaration(
     covariant PatternVariableDeclarationImpl node,
   ) {
@@ -1194,23 +1211,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       _writeType('matchedValueType', node.matchedValueType);
-    });
-  }
-
-  @override
-  void visitRecordPatternField(RecordPatternField node) {
-    _writeln('RecordPatternField');
-    _withIndent(() {
-      _writeNamedChildEntities(node);
-      _writeElement('fieldElement', node.fieldElement);
-    });
-  }
-
-  @override
-  void visitRecordPatternFieldName(RecordPatternFieldName node) {
-    _writeln('RecordPatternFieldName');
-    _withIndent(() {
-      _writeNamedChildEntities(node);
     });
   }
 

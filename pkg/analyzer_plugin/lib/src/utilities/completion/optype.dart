@@ -1104,6 +1104,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitPatternField(PatternField node) {
+    optype.completionLocation = 'PatternField_pattern';
+    optype.includeTypeNameSuggestions = true;
+    optype.includeReturnValueSuggestions = true;
+  }
+
+  @override
   void visitPostfixExpression(PostfixExpression node) {
     optype.includeReturnValueSuggestions = true;
     optype.includeTypeNameSuggestions = true;
@@ -1183,13 +1190,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
-  }
-
-  @override
-  void visitRecordPatternField(RecordPatternField node) {
-    optype.completionLocation = 'RecordPatternField_pattern';
-    optype.includeTypeNameSuggestions = true;
-    optype.includeReturnValueSuggestions = true;
   }
 
   @override

@@ -321,11 +321,15 @@ Pattern objectPattern({
 ///       for (var (a, b) in iterable) { ... }
 ///     }
 Statement patternForIn(
-    Pattern pattern, Expression expression, List<Statement> body) {
+  Pattern pattern,
+  Expression expression,
+  List<Statement> body, {
+  bool hasAwait = false,
+}) {
   var location = computeLocation();
   return new _PatternForIn(
       pattern, expression, _Block(body, location: location),
-      location: location);
+      hasAwait: hasAwait, location: location);
 }
 
 /// Creates a "pattern-for-in" element.
@@ -335,10 +339,14 @@ Statement patternForIn(
 ///       [for (var (a, b) in iterable) '$a $b']
 ///     }
 CollectionElement patternForInElement(
-    Pattern pattern, Expression expression, CollectionElement body) {
+  Pattern pattern,
+  Expression expression,
+  CollectionElement body, {
+  bool hasAwait = false,
+}) {
   var location = computeLocation();
   return new _PatternForInElement(pattern, expression, body,
-      location: location);
+      hasAwait: hasAwait, location: location);
 }
 
 Pattern recordPattern(List<RecordPatternField> fields) =>
@@ -1090,6 +1098,16 @@ class MiniAstOperations
         keyType: type.args[0],
         valueType: type.args[1],
       );
+    }
+    return null;
+  }
+
+  @override
+  Type? matchStreamType(Type type) {
+    if (type is PrimaryType && type.args.length == 1) {
+      if (type.name == 'Stream') {
+        return type.args[0];
+      }
     }
     return null;
   }
@@ -3886,6 +3904,11 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
+  Type streamType(Type elementType) {
+    return PrimaryType('Stream', args: [elementType]);
+  }
+
+  @override
   String toString() => _irBuilder.toString();
 
   @override
@@ -4156,12 +4179,13 @@ class _PatternAssignment extends Expression {
 }
 
 class _PatternForIn extends Statement {
+  final bool hasAwait;
   final Pattern pattern;
   final Expression expression;
   final Statement body;
 
   _PatternForIn(this.pattern, this.expression, this.body,
-      {required super.location});
+      {required this.hasAwait, required super.location});
 
   @override
   void preVisit(PreVisitor visitor) {
@@ -4187,6 +4211,7 @@ class _PatternForIn extends Statement {
   void visit(Harness h) {
     h.typeAnalyzer.analyzePatternForIn(
         node: this,
+        hasAwait: hasAwait,
         pattern: pattern,
         expression: expression,
         dispatchBody: () {
@@ -4202,12 +4227,13 @@ class _PatternForIn extends Statement {
 }
 
 class _PatternForInElement extends CollectionElement {
+  final bool hasAwait;
   final Pattern pattern;
   final Expression expression;
   final CollectionElement body;
 
   _PatternForInElement(this.pattern, this.expression, this.body,
-      {required super.location});
+      {required this.hasAwait, required super.location});
 
   @override
   void preVisit(PreVisitor visitor) {
@@ -4228,6 +4254,7 @@ class _PatternForInElement extends CollectionElement {
   void visit(Harness h, covariant _CollectionElementContext context) {
     h.typeAnalyzer.analyzePatternForIn(
         node: this,
+        hasAwait: hasAwait,
         pattern: pattern,
         expression: expression,
         dispatchBody: () {

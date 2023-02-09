@@ -1634,82 +1634,190 @@ main() {
     });
 
     group('Pattern-for-in:', () {
-      group('Expression context type schema:', () {
-        test('Pattern has type', () {
-          var x = Var('x');
-          h.run([
-            patternForIn(x.pattern(type: 'num'),
-                    expr('List<int>').checkContext('Iterable<num>'), [])
-                .checkIr('forEach(expr(List<int>), varPattern(x, '
-                    'matchedType: int, staticType: num), block())'),
-          ]);
+      group('sync', () {
+        group('Expression context type schema:', () {
+          test('Pattern has type', () {
+            var x = Var('x');
+            h.run([
+              patternForIn(x.pattern(type: 'num'),
+                      expr('List<int>').checkContext('Iterable<num>'), [])
+                  .checkIr('forEach(expr(List<int>), varPattern(x, '
+                      'matchedType: int, staticType: num), block())'),
+            ]);
+          });
+          test('Pattern does not have type', () {
+            var x = Var('x');
+            h.run([
+              patternForIn(x.pattern(),
+                      expr('List<int>').checkContext('Iterable<?>'), [])
+                  .checkIr('forEach(expr(List<int>), varPattern(x, '
+                      'matchedType: int, staticType: int), block())'),
+            ]);
+          });
         });
-        test('Pattern does not have type', () {
-          var x = Var('x');
-          h.run([
-            patternForIn(x.pattern(),
-                    expr('List<int>').checkContext('Iterable<?>'), [])
-                .checkIr('forEach(expr(List<int>), varPattern(x, '
-                    'matchedType: int, staticType: int), block())'),
-          ]);
+        group('Expression type:', () {
+          test('Iterable', () {
+            var x = Var('x');
+            h.run([
+              patternForIn(x.pattern(), expr('Iterable<int>'), [])
+                  .checkIr('forEach(expr(Iterable<int>), varPattern(x, '
+                      'matchedType: int, staticType: int), block())'),
+            ]);
+          });
+          test('dynamic', () {
+            var x = Var('x');
+            h.run([
+              patternForIn(x.pattern(), expr('dynamic'), [])
+                  .checkIr('forEach(expr(dynamic), varPattern(x, '
+                      'matchedType: dynamic, staticType: dynamic), block())'),
+            ]);
+          });
+          test('Object', () {
+            var x = Var('x');
+            h.run([
+              (patternForIn(
+                      x.pattern(), expr('Object')..errorId = 'EXPRESSION', [])
+                    ..errorId = 'FOR')
+                  .checkIr('forEach(expr(Object), varPattern(x, '
+                      'matchedType: dynamic, staticType: dynamic), block())'),
+            ], expectedErrors: {
+              'patternForInExpressionIsNotIterable(node: FOR, '
+                  'expression: EXPRESSION, expressionType: Object)'
+            });
+          });
         });
-      });
-      group('Expression type:', () {
-        test('Iterable', () {
-          var x = Var('x');
-          h.run([
-            patternForIn(x.pattern(), expr('Iterable<int>'), [])
-                .checkIr('forEach(expr(Iterable<int>), varPattern(x, '
-                    'matchedType: int, staticType: int), block())'),
-          ]);
-        });
-        test('dynamic', () {
-          var x = Var('x');
-          h.run([
-            patternForIn(x.pattern(), expr('dynamic'), [])
-                .checkIr('forEach(expr(dynamic), varPattern(x, '
-                    'matchedType: dynamic, staticType: dynamic), block())'),
-          ]);
-        });
-        test('Object', () {
-          var x = Var('x');
-          h.run([
-            (patternForIn(
-                    x.pattern(), expr('Object')..errorId = 'EXPRESSION', [])
-                  ..errorId = 'FOR')
-                .checkIr('forEach(expr(Object), varPattern(x, '
-                    'matchedType: dynamic, staticType: dynamic), block())'),
-          ], expectedErrors: {
-            'patternForInExpressionIsNotIterable(node: FOR, '
-                'expression: EXPRESSION, expressionType: Object)'
+        group('Refutability:', () {
+          test('When a refutable pattern', () {
+            var x = Var('x');
+            h.run([
+              (patternForIn(x.pattern().nullCheck..errorId = 'PATTERN',
+                      expr('Iterable<int?>'), [])
+                    ..errorId = 'FOR')
+                  .checkIr('forEach(expr(Iterable<int?>), nullCheckPattern('
+                      'varPattern(x, matchedType: int, staticType: int), '
+                      'matchedType: int?), block())'),
+            ], expectedErrors: {
+              'refutablePatternInIrrefutableContext(PATTERN, FOR)',
+            });
+          });
+          test('When the variable type is not a subtype of the matched type',
+              () {
+            var x = Var('x');
+            h.run([
+              (patternForIn(x.pattern(type: 'String')..errorId = 'PATTERN',
+                      expr('Iterable<int>'), [])
+                    ..errorId = 'FOR')
+                  .checkIr('forEach(expr(Iterable<int>), varPattern(x, '
+                      'matchedType: int, staticType: String), block())'),
+            ], expectedErrors: {
+              'patternTypeMismatchInIrrefutableContext(pattern: PATTERN, '
+                  'context: FOR, matchedType: int, requiredType: String)',
+            });
           });
         });
       });
-      group('Refutability:', () {
-        test('When a refutable pattern', () {
-          var x = Var('x');
-          h.run([
-            (patternForIn(x.pattern().nullCheck..errorId = 'PATTERN',
-                    expr('Iterable<int?>'), [])
-                  ..errorId = 'FOR')
-                .checkIr('forEach(expr(Iterable<int?>), nullCheckPattern('
-                    'varPattern(x, matchedType: int, staticType: int), '
-                    'matchedType: int?), block())'),
-          ], expectedErrors: {
-            'refutablePatternInIrrefutableContext(PATTERN, FOR)',
+      group('async', () {
+        group('Expression context type schema:', () {
+          test('Pattern has type', () {
+            var x = Var('x');
+            h.run([
+              patternForIn(
+                x.pattern(type: 'num'),
+                expr('Stream<int>').checkContext('Stream<num>'),
+                [],
+                hasAwait: true,
+              ).checkIr('forEach(expr(Stream<int>), varPattern(x, '
+                  'matchedType: int, staticType: num), block())'),
+            ]);
+          });
+          test('Pattern does not have type', () {
+            var x = Var('x');
+            h.run([
+              patternForIn(
+                x.pattern(),
+                expr('Stream<int>').checkContext('Stream<?>'),
+                [],
+                hasAwait: true,
+              ).checkIr('forEach(expr(Stream<int>), varPattern(x, '
+                  'matchedType: int, staticType: int), block())'),
+            ]);
           });
         });
-        test('When the variable type is not a subtype of the matched type', () {
-          var x = Var('x');
-          h.run([
-            (patternForIn(x.pattern(type: 'String')..errorId = 'PATTERN',
-                    expr('Iterable<int>'), [])
-                  ..errorId = 'FOR')
-                .checkIr('forEach(expr(Iterable<int>), varPattern(x, '
-                    'matchedType: int, staticType: String), block())'),
-          ], expectedErrors: {
-            'patternTypeMismatchInIrrefutableContext(pattern: PATTERN, '
-                'context: FOR, matchedType: int, requiredType: String)',
+        group('Expression type:', () {
+          test('Stream', () {
+            var x = Var('x');
+            h.run([
+              patternForIn(
+                x.pattern(),
+                expr('Stream<int>'),
+                [],
+                hasAwait: true,
+              ).checkIr('forEach(expr(Stream<int>), varPattern(x, '
+                  'matchedType: int, staticType: int), block())'),
+            ]);
+          });
+          test('dynamic', () {
+            var x = Var('x');
+            h.run([
+              patternForIn(
+                x.pattern(),
+                expr('dynamic'),
+                [],
+                hasAwait: true,
+              ).checkIr('forEach(expr(dynamic), varPattern(x, '
+                  'matchedType: dynamic, staticType: dynamic), block())'),
+            ]);
+          });
+          test('Object', () {
+            var x = Var('x');
+            h.run([
+              (patternForIn(
+                x.pattern(),
+                expr('Object')..errorId = 'EXPRESSION',
+                [],
+                hasAwait: true,
+              )..errorId = 'FOR')
+                  .checkIr('forEach(expr(Object), varPattern(x, '
+                      'matchedType: dynamic, staticType: dynamic), block())'),
+            ], expectedErrors: {
+              'patternForInExpressionIsNotIterable(node: FOR, '
+                  'expression: EXPRESSION, expressionType: Object)'
+            });
+          });
+        });
+        group('Refutability:', () {
+          test('When a refutable pattern', () {
+            var x = Var('x');
+            h.run([
+              (patternForIn(
+                x.pattern().nullCheck..errorId = 'PATTERN',
+                expr('Stream<int?>'),
+                [],
+                hasAwait: true,
+              )..errorId = 'FOR')
+                  .checkIr('forEach(expr(Stream<int?>), nullCheckPattern('
+                      'varPattern(x, matchedType: int, staticType: int), '
+                      'matchedType: int?), block())'),
+            ], expectedErrors: {
+              'refutablePatternInIrrefutableContext(PATTERN, FOR)',
+            });
+          });
+          test('When the variable type is not a subtype of the matched type',
+              () {
+            var x = Var('x');
+            h.run([
+              (patternForIn(
+                x.pattern(type: 'String')..errorId = 'PATTERN',
+                expr('Stream<int>'),
+                [],
+                hasAwait: true,
+              )..errorId = 'FOR')
+                  .checkIr('forEach(expr(Stream<int>), varPattern(x, '
+                      'matchedType: int, staticType: String), block())'),
+            ], expectedErrors: {
+              'patternTypeMismatchInIrrefutableContext(pattern: PATTERN, '
+                  'context: FOR, matchedType: int, requiredType: String)',
+            });
           });
         });
       });

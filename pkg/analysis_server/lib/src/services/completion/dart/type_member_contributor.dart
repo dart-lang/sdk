@@ -34,7 +34,7 @@ class TypeMemberContributor extends DartCompletionContributor {
         //  contributor this way, and we should look into better ways to
         //  structure the code.
         var excludedGetters = containingNode.fields
-            .map((field) => field.fieldName?.name?.lexeme)
+            .map((field) => field.name?.name?.lexeme)
             .whereNotNull()
             .toSet();
         _suggestFromType(

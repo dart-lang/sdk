@@ -1,3 +1,7 @@
+## 5.5.0-dev
+* Rename `RecordPatternField` to `PatternField`.
+* Rename `RecordPatternFieldName` to `PatternFieldName`.
+
 ## 5.4.0
 * Bug fixes: 50660
 

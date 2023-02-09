@@ -172,8 +172,7 @@ import 'duplicate_named_argument_test.dart' as duplicate_named_argument;
 import 'duplicate_part_test.dart' as duplicate_part;
 import 'duplicate_pattern_assignment_variable_test.dart'
     as duplicate_pattern_assignment_variable;
-import 'duplicate_record_pattern_field_test.dart'
-    as duplicate_record_pattern_field;
+import 'duplicate_pattern_field_test.dart' as duplicate_pattern_field;
 import 'duplicate_rest_element_in_pattern_test.dart'
     as duplicate_rest_element_in_pattern;
 import 'duplicate_shown_name_test.dart' as duplicate_shown_name;
@@ -982,7 +981,7 @@ main() {
     duplicate_named_argument.main();
     duplicate_part.main();
     duplicate_pattern_assignment_variable.main();
-    duplicate_record_pattern_field.main();
+    duplicate_pattern_field.main();
     duplicate_rest_element_in_pattern.main();
     duplicate_shown_name.main();
     duplicate_variable_pattern.main();

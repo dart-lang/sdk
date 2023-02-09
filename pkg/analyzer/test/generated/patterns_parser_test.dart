@@ -800,8 +800,8 @@ ObjectPattern
       token: C
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: f
         colon: :
       pattern: CastPattern
@@ -836,8 +836,8 @@ ObjectPattern
       token: C
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         colon: :
       pattern: CastPattern
         pattern: DeclaredVariablePattern
@@ -890,8 +890,8 @@ void f(x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: n
         colon: :
       pattern: CastPattern
@@ -902,7 +902,7 @@ RecordPattern
         type: NamedType
           name: SimpleIdentifier
             token: int
-    RecordPatternField
+    PatternField
       pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 2
@@ -924,8 +924,8 @@ void f(x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         colon: :
       pattern: CastPattern
         pattern: DeclaredVariablePattern
@@ -935,7 +935,7 @@ RecordPattern
         type: NamedType
           name: SimpleIdentifier
             token: int
-    RecordPatternField
+    PatternField
       pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 2
@@ -957,7 +957,7 @@ void f(x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
+    PatternField
       pattern: CastPattern
         pattern: ConstantPattern
           expression: IntegerLiteral
@@ -966,7 +966,7 @@ RecordPattern
         type: NamedType
           name: SimpleIdentifier
             token: int
-    RecordPatternField
+    PatternField
       pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 2
@@ -3088,8 +3088,8 @@ ObjectPattern
       token: Foo
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: bar
         colon: :
       pattern: RelationalPattern
@@ -3327,8 +3327,8 @@ SwitchExpressionCase
           token: Foo
       leftParenthesis: (
       fields
-        RecordPatternField
-          fieldName: RecordPatternFieldName
+        PatternField
+          name: PatternFieldName
             name: bar
             colon: :
           pattern: WildcardPattern
@@ -5062,8 +5062,8 @@ ObjectPattern
       token: C
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: f
         colon: :
       pattern: NullAssertPattern
@@ -5095,8 +5095,8 @@ ObjectPattern
       token: C
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         colon: :
       pattern: NullAssertPattern
         pattern: DeclaredVariablePattern
@@ -5143,8 +5143,8 @@ void f(x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: n
         colon: :
       pattern: NullAssertPattern
@@ -5152,7 +5152,7 @@ RecordPattern
           expression: IntegerLiteral
             literal: 1
         operator: !
-    RecordPatternField
+    PatternField
       pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 2
@@ -5174,15 +5174,15 @@ void f(x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         colon: :
       pattern: NullAssertPattern
         pattern: DeclaredVariablePattern
           keyword: var
           name: n
         operator: !
-    RecordPatternField
+    PatternField
       pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 2
@@ -5204,13 +5204,13 @@ void f(x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
+    PatternField
       pattern: NullAssertPattern
         pattern: ConstantPattern
           expression: IntegerLiteral
             literal: 1
         operator: !
-    RecordPatternField
+    PatternField
       pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 2
@@ -5423,8 +5423,8 @@ ObjectPattern
       token: C
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: f
         colon: :
       pattern: NullCheckPattern
@@ -5456,8 +5456,8 @@ ObjectPattern
       token: C
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         colon: :
       pattern: NullCheckPattern
         pattern: DeclaredVariablePattern
@@ -5504,8 +5504,8 @@ void f(x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: n
         colon: :
       pattern: NullCheckPattern
@@ -5513,7 +5513,7 @@ RecordPattern
           expression: IntegerLiteral
             literal: 1
         operator: ?
-    RecordPatternField
+    PatternField
       pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 2
@@ -5535,15 +5535,15 @@ void f(x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         colon: :
       pattern: NullCheckPattern
         pattern: DeclaredVariablePattern
           keyword: var
           name: n
         operator: ?
-    RecordPatternField
+    PatternField
       pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 2
@@ -5565,13 +5565,13 @@ void f(x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
+    PatternField
       pattern: NullCheckPattern
         pattern: ConstantPattern
           expression: IntegerLiteral
             literal: 1
         operator: ?
-    RecordPatternField
+    PatternField
       pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 2
@@ -5884,8 +5884,8 @@ CastPattern
         token: C
     leftParenthesis: (
     fields
-      RecordPatternField
-        fieldName: RecordPatternFieldName
+      PatternField
+        name: PatternFieldName
           name: f
           colon: :
         pattern: ConstantPattern
@@ -5920,8 +5920,8 @@ NullAssertPattern
         token: C
     leftParenthesis: (
     fields
-      RecordPatternField
-        fieldName: RecordPatternFieldName
+      PatternField
+        name: PatternFieldName
           name: f
           colon: :
         pattern: ConstantPattern
@@ -5953,8 +5953,8 @@ NullCheckPattern
         token: C
     leftParenthesis: (
     fields
-      RecordPatternField
-        fieldName: RecordPatternFieldName
+      PatternField
+        name: PatternFieldName
           name: f
           colon: :
         pattern: ConstantPattern
@@ -6046,8 +6046,8 @@ NullAssertPattern
         rightBracket: >
     leftParenthesis: (
     fields
-      RecordPatternField
-        fieldName: RecordPatternFieldName
+      PatternField
+        name: PatternFieldName
           name: f
           colon: :
         pattern: ConstantPattern
@@ -6285,10 +6285,10 @@ ForElement
     pattern: RecordPattern
       leftParenthesis: (
       fields
-        RecordPatternField
+        PatternField
           pattern: DeclaredVariablePattern
             name: a
-        RecordPatternField
+        PatternField
           pattern: DeclaredVariablePattern
             name: b
       rightParenthesis: )
@@ -6320,10 +6320,10 @@ ForElement
     pattern: RecordPattern
       leftParenthesis: (
       fields
-        RecordPatternField
+        PatternField
           pattern: DeclaredVariablePattern
             name: a
-        RecordPatternField
+        PatternField
           pattern: DeclaredVariablePattern
             name: b
       rightParenthesis: )
@@ -6352,10 +6352,10 @@ ForStatement
     pattern: RecordPattern
       leftParenthesis: (
       fields
-        RecordPatternField
+        PatternField
           pattern: DeclaredVariablePattern
             name: a
-        RecordPatternField
+        PatternField
           pattern: DeclaredVariablePattern
             name: b
       rightParenthesis: )
@@ -6390,10 +6390,10 @@ ForStatement
     pattern: RecordPattern
       leftParenthesis: (
       fields
-        RecordPatternField
+        PatternField
           pattern: DeclaredVariablePattern
             name: a
-        RecordPatternField
+        PatternField
           pattern: DeclaredVariablePattern
             name: b
       rightParenthesis: )
@@ -6422,10 +6422,10 @@ ForElement
       pattern: RecordPattern
         leftParenthesis: (
         fields
-          RecordPatternField
+          PatternField
             pattern: DeclaredVariablePattern
               name: a
-          RecordPatternField
+          PatternField
             pattern: DeclaredVariablePattern
               name: b
         rightParenthesis: )
@@ -6457,10 +6457,10 @@ ForStatement
       pattern: RecordPattern
         leftParenthesis: (
         fields
-          RecordPatternField
+          PatternField
             pattern: DeclaredVariablePattern
               name: a
-          RecordPatternField
+          PatternField
             pattern: DeclaredVariablePattern
               name: b
         rightParenthesis: )
@@ -6490,10 +6490,10 @@ ForElement
       pattern: RecordPattern
         leftParenthesis: (
         fields
-          RecordPatternField
+          PatternField
             pattern: AssignedVariablePattern
               name: a
-          RecordPatternField
+          PatternField
             pattern: AssignedVariablePattern
               name: b
         rightParenthesis: )
@@ -6524,10 +6524,10 @@ ForStatement
       pattern: RecordPattern
         leftParenthesis: (
         fields
-          RecordPatternField
+          PatternField
             pattern: AssignedVariablePattern
               name: a
-          RecordPatternField
+          PatternField
             pattern: AssignedVariablePattern
               name: b
         rightParenthesis: )
@@ -6576,8 +6576,8 @@ PatternVariableDeclarationStatement
           token: C
       leftParenthesis: (
       fields
-        RecordPatternField
-          fieldName: RecordPatternFieldName
+        PatternField
+          name: PatternFieldName
             name: f
             colon: :
           pattern: DeclaredVariablePattern
@@ -6679,7 +6679,7 @@ PatternVariableDeclarationStatement
     pattern: RecordPattern
       leftParenthesis: (
       fields
-        RecordPatternField
+        PatternField
           pattern: DeclaredVariablePattern
             name: a
       rightParenthesis: )
@@ -6707,8 +6707,8 @@ PatternVariableDeclarationStatement
           token: C
       leftParenthesis: (
       fields
-        RecordPatternField
-          fieldName: RecordPatternFieldName
+        PatternField
+          name: PatternFieldName
             name: f
             colon: :
           pattern: DeclaredVariablePattern
@@ -6810,7 +6810,7 @@ PatternVariableDeclarationStatement
     pattern: RecordPattern
       leftParenthesis: (
       fields
-        RecordPatternField
+        PatternField
           pattern: DeclaredVariablePattern
             name: a
       rightParenthesis: )
@@ -6844,8 +6844,8 @@ PatternVariableDeclarationStatement
           token: C
       leftParenthesis: (
       fields
-        RecordPatternField
-          fieldName: RecordPatternFieldName
+        PatternField
+          name: PatternFieldName
             name: f
             colon: :
           pattern: DeclaredVariablePattern
@@ -6971,7 +6971,7 @@ PatternVariableDeclarationStatement
     pattern: RecordPattern
       leftParenthesis: (
       fields
-        RecordPatternField
+        PatternField
           pattern: DeclaredVariablePattern
             name: a
       rightParenthesis: )
@@ -7005,8 +7005,8 @@ PatternVariableDeclarationStatement
           token: C
       leftParenthesis: (
       fields
-        RecordPatternField
-          fieldName: RecordPatternFieldName
+        PatternField
+          name: PatternFieldName
             name: f
             colon: :
           pattern: DeclaredVariablePattern
@@ -7132,7 +7132,7 @@ PatternVariableDeclarationStatement
     pattern: RecordPattern
       leftParenthesis: (
       fields
-        RecordPatternField
+        PatternField
           pattern: DeclaredVariablePattern
             name: a
       rightParenthesis: )
@@ -7168,7 +7168,7 @@ void f(x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
+    PatternField
       pattern: AssignedVariablePattern
         name: a
   rightParenthesis: )
@@ -7186,10 +7186,10 @@ void f(x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
+    PatternField
       pattern: AssignedVariablePattern
         name: a
-    RecordPatternField
+    PatternField
       pattern: AssignedVariablePattern
         name: b
   rightParenthesis: )
@@ -7227,7 +7227,7 @@ void f(x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
+    PatternField
       pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 1
@@ -7249,11 +7249,11 @@ void f(x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
+    PatternField
       pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 1
-    RecordPatternField
+    PatternField
       pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 2
@@ -7276,11 +7276,11 @@ CastPattern
   pattern: RecordPattern
     leftParenthesis: (
     fields
-      RecordPatternField
+      PatternField
         pattern: ConstantPattern
           expression: IntegerLiteral
             literal: 1
-      RecordPatternField
+      PatternField
         pattern: ConstantPattern
           expression: IntegerLiteral
             literal: 2
@@ -7317,7 +7317,7 @@ void f(x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
+    PatternField
       pattern: DeclaredVariablePattern
         name: a
   rightParenthesis: )
@@ -7335,10 +7335,10 @@ void f(x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
+    PatternField
       pattern: DeclaredVariablePattern
         name: a
-    RecordPatternField
+    PatternField
       pattern: DeclaredVariablePattern
         name: b
   rightParenthesis: )
@@ -7360,11 +7360,11 @@ NullAssertPattern
   pattern: RecordPattern
     leftParenthesis: (
     fields
-      RecordPatternField
+      PatternField
         pattern: ConstantPattern
           expression: IntegerLiteral
             literal: 1
-      RecordPatternField
+      PatternField
         pattern: ConstantPattern
           expression: IntegerLiteral
             literal: 2
@@ -7388,11 +7388,11 @@ NullCheckPattern
   pattern: RecordPattern
     leftParenthesis: (
     fields
-      RecordPatternField
+      PatternField
         pattern: ConstantPattern
           expression: IntegerLiteral
             literal: 1
-      RecordPatternField
+      PatternField
         pattern: ConstantPattern
           expression: IntegerLiteral
             literal: 2
@@ -7711,8 +7711,8 @@ ObjectPattern
       token: C
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: f
         colon: :
       pattern: RelationalPattern
@@ -7758,15 +7758,15 @@ void f(x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: n
         colon: :
       pattern: RelationalPattern
         operator: ==
         operand: IntegerLiteral
           literal: 1
-    RecordPatternField
+    PatternField
       pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 2
@@ -7788,12 +7788,12 @@ void f(x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
+    PatternField
       pattern: RelationalPattern
         operator: ==
         operand: IntegerLiteral
           literal: 1
-    RecordPatternField
+    PatternField
       pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 2
@@ -8608,8 +8608,8 @@ ObjectPattern
       token: C
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: f
         colon: :
       pattern: DeclaredVariablePattern
@@ -8641,8 +8641,8 @@ ObjectPattern
       token: C
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         colon: :
       pattern: DeclaredVariablePattern
         type: NamedType
@@ -8689,8 +8689,8 @@ void f(x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         name: n
         colon: :
       pattern: DeclaredVariablePattern
@@ -8698,7 +8698,7 @@ RecordPattern
           name: SimpleIdentifier
             token: int
         name: as
-    RecordPatternField
+    PatternField
       pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 2
@@ -8720,15 +8720,15 @@ void f(x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
-      fieldName: RecordPatternFieldName
+    PatternField
+      name: PatternFieldName
         colon: :
       pattern: DeclaredVariablePattern
         type: NamedType
           name: SimpleIdentifier
             token: int
         name: as
-    RecordPatternField
+    PatternField
       pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 2
@@ -8750,13 +8750,13 @@ void f(x) {
 RecordPattern
   leftParenthesis: (
   fields
-    RecordPatternField
+    PatternField
       pattern: DeclaredVariablePattern
         type: NamedType
           name: SimpleIdentifier
             token: int
         name: as
-    RecordPatternField
+    PatternField
       pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 2

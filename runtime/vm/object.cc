@@ -2766,7 +2766,7 @@ void Object::InitializeObject(uword address,
   tags = UntaggedObject::OldAndNotRememberedBit::update(is_old, tags);
   tags = UntaggedObject::NewBit::update(!is_old, tags);
   tags = UntaggedObject::ImmutableBit::update(
-      IsUnmodifiableTypedDataViewClassId(class_id), tags);
+      ShouldHaveImmutabilityBitSet(class_id), tags);
 #if defined(HASH_IN_OBJECT_HEADER)
   tags = UntaggedObject::HashTag::update(0, tags);
 #endif

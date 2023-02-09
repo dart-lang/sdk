@@ -112,15 +112,15 @@ SwitchExpression
             type: int
           leftParenthesis: (
           fields
-            RecordPatternField
-              fieldName: RecordPatternFieldName
+            PatternField
+              name: PatternFieldName
                 colon: :
               pattern: DeclaredVariablePattern
                 keyword: var
                 name: isEven
                 declaredElement: hasImplicitType isEven@37
                   type: bool
-              fieldElement: dart:core::@class::int::@getter::isEven
+              element: dart:core::@class::int::@getter::isEven
           rightParenthesis: )
         whenClause: WhenClause
           whenKeyword: when
