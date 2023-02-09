@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -43,13 +42,6 @@ class A {}
 
 @reflectiveTest
 class AnalysisHoverTest extends PubPackageAnalysisServerTest {
-  @override
-  List<String> get experiments => [
-        ...super.experiments,
-        EnableString.class_modifiers,
-        EnableString.sealed_class
-      ];
-
   Future<HoverInformation> prepareHover(String search) async {
     return (await prepareHoverOrNull(search))!;
   }

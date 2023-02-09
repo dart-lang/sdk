@@ -215,12 +215,14 @@ class ContextResolutionTest with ResourceProviderMixin {
 
 class PubPackageAnalysisServerTest extends ContextResolutionTest {
   // If experiments are needed,
-  // add `import 'package:analyzer/src/dart/analysis/experiments.dart';`
+  // add `import 'package:analyzer/dart/analysis/features.dart';`
   // and list the necessary experiments here.
   List<String> get experiments => [
+        Feature.class_modifiers.enableString,
         Feature.macros.enableString,
         Feature.patterns.enableString,
         Feature.records.enableString,
+        Feature.sealed_class.enableString,
       ];
 
   /// The path that is not in [workspaceRootPath], contains external packages.

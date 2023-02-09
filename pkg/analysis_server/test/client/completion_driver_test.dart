@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -53,14 +52,6 @@ abstract class AbstractCompletionDriverTest
   /// A set of identifiers that will be included in the printed version of the
   /// selections. Individual tests can replace the default set.
   Set<String> allowedIdentifiers = const {};
-
-  @override
-  List<String> get experiments => [
-        EnableString.class_modifiers,
-        EnableString.patterns,
-        EnableString.records,
-        EnableString.sealed_class,
-      ];
 
   bool get isProtocolVersion1 {
     return protocol == TestingCompletionProtocol.version1;

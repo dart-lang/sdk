@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -28,13 +27,6 @@ class AnalysisNotificationOccurrencesTest extends PubPackageAnalysisServerTest {
   late Occurrences testOccurrences;
 
   final Completer<void> _resultsAvailable = Completer();
-
-  @override
-  List<String> get experiments => [
-        ...super.experiments,
-        EnableString.patterns,
-        EnableString.records,
-      ];
 
   /// Asserts that there is an offset of [search] in [testOccurrences].
   void assertHasOffset(String search) {
