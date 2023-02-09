@@ -42,6 +42,11 @@ class FieldIndex {
   static const byteDataViewLength = 2;
   static const byteDataViewTypedData = 3;
   static const byteDataViewOffsetInBytes = 4;
+  static const suspendStateIterator = 4;
+  static const suspendStateContext = 5;
+  static const suspendStateTargetIndex = 6;
+  static const syncStarIteratorCurrent = 3;
+  static const syncStarIteratorYieldStarIterable = 4;
 
   static void validate(Translator translator) {
     void check(Class cls, String name, int expectedIndex) {
@@ -68,6 +73,16 @@ class FieldIndex {
         FieldIndex.interfaceTypeTypeArguments);
     check(translator.functionTypeClass, "namedParameters",
         FieldIndex.functionTypeNamedParameters);
+    check(translator.suspendStateClass, "_iterator",
+        FieldIndex.suspendStateIterator);
+    check(translator.suspendStateClass, "_context",
+        FieldIndex.suspendStateContext);
+    check(translator.suspendStateClass, "_targetIndex",
+        FieldIndex.suspendStateTargetIndex);
+    check(translator.syncStarIteratorClass, "_current",
+        FieldIndex.syncStarIteratorCurrent);
+    check(translator.syncStarIteratorClass, "_yieldStarIterable",
+        FieldIndex.syncStarIteratorYieldStarIterable);
   }
 }
 

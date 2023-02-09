@@ -35,7 +35,7 @@ export 'directive_context.dart' show DirectiveContext;
 
 export 'member_kind.dart' show MemberKind;
 
-export 'parser_impl.dart' show Parser;
+export 'parser_impl.dart' show ConstantPatternContext, Parser;
 
 export 'parser_error.dart' show ParserError;
 

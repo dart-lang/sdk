@@ -149,6 +149,11 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.ABSTRACT_SEALED_CLASS,
   ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT,
   ParserErrorCode.ANNOTATION_SPACE_BEFORE_PARENTHESIS,
+  ParserErrorCode.INVALID_CONSTANT_PATTERN_NEGATION,
+  ParserErrorCode.INVALID_CONSTANT_PATTERN_UNARY,
+  ParserErrorCode.INVALID_CONSTANT_PATTERN_DUPLICATE_CONST,
+  ParserErrorCode.INVALID_CONSTANT_PATTERN_EMPTY_RECORD_LITERAL,
+  ParserErrorCode.INVALID_CONSTANT_PATTERN_GENERIC,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -907,6 +912,39 @@ class ParserErrorCode extends ErrorCode {
     'INVALID_COMMENT_REFERENCE',
     "Comment references should contain a possibly prefixed identifier and can "
         "start with 'new', but shouldn't contain anything else.",
+  );
+
+  static const ParserErrorCode INVALID_CONSTANT_PATTERN_DUPLICATE_CONST =
+      ParserErrorCode(
+    'INVALID_CONSTANT_PATTERN_DUPLICATE_CONST',
+    "Duplicate 'const' keyword in constant expression.",
+    correctionMessage: "Try removing one of the 'const' keywords.",
+  );
+
+  static const ParserErrorCode INVALID_CONSTANT_PATTERN_EMPTY_RECORD_LITERAL =
+      ParserErrorCode(
+    'INVALID_CONSTANT_PATTERN_EMPTY_RECORD_LITERAL',
+    "The empty record literal is not supported as a constant pattern.",
+  );
+
+  static const ParserErrorCode INVALID_CONSTANT_PATTERN_GENERIC =
+      ParserErrorCode(
+    'INVALID_CONSTANT_PATTERN_GENERIC',
+    "This expression is not supported as a constant pattern.",
+    correctionMessage: "Try wrapping the expression in 'const ( ... )'.",
+  );
+
+  static const ParserErrorCode INVALID_CONSTANT_PATTERN_NEGATION =
+      ParserErrorCode(
+    'INVALID_CONSTANT_PATTERN_NEGATION',
+    "Only negation of a numeric literal is supported as a constant pattern.",
+    correctionMessage: "Try wrapping the expression in 'const ( ... )'.",
+  );
+
+  static const ParserErrorCode INVALID_CONSTANT_PATTERN_UNARY = ParserErrorCode(
+    'INVALID_CONSTANT_PATTERN_UNARY',
+    "The unary operator {0} is not supported as a constant pattern.",
+    correctionMessage: "Try wrapping the expression in 'const ( ... )'.",
   );
 
   static const ParserErrorCode INVALID_CONSTRUCTOR_NAME = ParserErrorCode(

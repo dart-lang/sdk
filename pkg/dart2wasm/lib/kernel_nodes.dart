@@ -78,6 +78,14 @@ mixin KernelNodes {
   late final Class typeUniverseClass =
       index.getClass("dart:core", "_TypeUniverse");
 
+  // dart:core sync* support classes
+  late final Class suspendStateClass =
+      index.getClass("dart:core", "_SuspendState");
+  late final Class syncStarIterableClass =
+      index.getClass("dart:core", "_SyncStarIterable");
+  late final Class syncStarIteratorClass =
+      index.getClass("dart:core", "_SyncStarIterator");
+
   // dart:ffi classes
   late final Class ffiCompoundClass = index.getClass("dart:ffi", "_Compound");
   late final Class ffiPointerClass = index.getClass("dart:ffi", "Pointer");

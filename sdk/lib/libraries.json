@@ -178,6 +178,7 @@
           "_internal/vm_shared/lib/string_buffer_patch.dart",
           "_internal/wasm/lib/date_patch_patch.dart",
           "_internal/wasm/lib/string_buffer_create.dart",
+          "_internal/wasm/lib/sync_star_patch.dart",
           "_internal/wasm/lib/weak_patch.dart"
         ]
       },
