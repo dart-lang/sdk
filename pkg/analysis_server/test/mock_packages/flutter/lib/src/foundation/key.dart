@@ -12,6 +12,10 @@ abstract class LocalKey extends Key {
   const LocalKey() : super._();
 }
 
+class UniqueKey extends LocalKey {
+  UniqueKey();
+}
+
 class ValueKey<T> extends LocalKey {
   final T value;
 

@@ -186,6 +186,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_return_type
 import 'package:analysis_server/src/services/correction/dart/replace_var_with_dynamic.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_brackets.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_conditional_assignment.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_decorated_box.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_eight_digit_hex.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_extension_name.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_identifier.dart';
@@ -719,6 +720,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.unnecessary_this: [
       RemoveThisExpression.new,
+    ],
+    LintNames.use_decorated_box: [
+      ReplaceWithDecoratedBox.new,
     ],
     LintNames.use_enums: [
       ConvertClassToEnum.new,
