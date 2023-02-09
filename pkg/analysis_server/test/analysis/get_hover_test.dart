@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -42,6 +43,13 @@ class A {}
 
 @reflectiveTest
 class AnalysisHoverTest extends PubPackageAnalysisServerTest {
+  @override
+  List<String> get experiments => [
+        ...super.experiments,
+        EnableString.class_modifiers,
+        EnableString.sealed_class
+      ];
+
   Future<HoverInformation> prepareHover(String search) async {
     return (await prepareHoverOrNull(search))!;
   }
@@ -376,6 +384,105 @@ abstract class B extends A {}
     var hover = await prepareHover('B extends');
     expect(hover.containingClassDescription, null);
     expect(hover.elementDescription, 'abstract class B extends A');
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+  }
+
+  Future<void> test_class_declaration_base() async {
+    newFile(testFilePath, '''
+base class A {}
+''');
+    var hover = await prepareHover('A');
+    expect(hover.containingClassDescription, null);
+    expect(hover.elementDescription, 'base class A');
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+  }
+
+  Future<void> test_class_declaration_base_abstract() async {
+    newFile(testFilePath, '''
+abstract base class A {}
+''');
+    var hover = await prepareHover('A');
+    expect(hover.containingClassDescription, null);
+    expect(hover.elementDescription, 'abstract base class A');
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+  }
+
+  Future<void> test_class_declaration_final() async {
+    newFile(testFilePath, '''
+final class A {}
+''');
+    var hover = await prepareHover('A');
+    expect(hover.containingClassDescription, null);
+    expect(hover.elementDescription, 'final class A');
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+  }
+
+  Future<void> test_class_declaration_final_abstract() async {
+    newFile(testFilePath, '''
+abstract final class A {}
+''');
+    var hover = await prepareHover('A');
+    expect(hover.containingClassDescription, null);
+    expect(hover.elementDescription, 'abstract final class A');
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+  }
+
+  Future<void> test_class_declaration_interface() async {
+    newFile(testFilePath, '''
+interface class A {}
+''');
+    var hover = await prepareHover('A');
+    expect(hover.containingClassDescription, null);
+    expect(hover.elementDescription, 'interface class A');
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+  }
+
+  Future<void> test_class_declaration_interface_abstract() async {
+    newFile(testFilePath, '''
+abstract interface class A {}
+''');
+    var hover = await prepareHover('A');
+    expect(hover.containingClassDescription, null);
+    expect(hover.elementDescription, 'abstract interface class A');
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+  }
+
+  Future<void> test_class_declaration_mixin() async {
+    newFile(testFilePath, '''
+mixin class A {}
+''');
+    var hover = await prepareHover('A');
+    expect(hover.containingClassDescription, null);
+    expect(hover.elementDescription, 'mixin class A');
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+  }
+
+  Future<void> test_class_declaration_mixin_base() async {
+    newFile(testFilePath, '''
+base mixin class A {}
+''');
+    var hover = await prepareHover('A');
+    expect(hover.containingClassDescription, null);
+    expect(hover.elementDescription, 'base mixin class A');
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+  }
+
+  Future<void> test_class_declaration_sealed() async {
+    newFile(testFilePath, '''
+sealed class A {}
+''');
+    var hover = await prepareHover('A');
+    expect(hover.containingClassDescription, null);
+    expect(hover.elementDescription, 'sealed class A');
     expect(hover.staticType, isNull);
     expect(hover.propagatedType, isNull);
   }
@@ -1116,6 +1223,36 @@ class E {}
 ''');
     var hover = await prepareHover('A');
     expect(hover.elementDescription, 'mixin A on B, C implements D, E');
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+  }
+
+  Future<void> test_mixin_declaration_base() async {
+    newFile(testFilePath, '''
+base mixin A {}
+''');
+    var hover = await prepareHover('A');
+    expect(hover.elementDescription, 'base mixin A on Object');
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+  }
+
+  Future<void> test_mixin_declaration_final() async {
+    newFile(testFilePath, '''
+final mixin A {}
+''');
+    var hover = await prepareHover('A');
+    expect(hover.elementDescription, 'final mixin A on Object');
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+  }
+
+  Future<void> test_mixin_declaration_interface() async {
+    newFile(testFilePath, '''
+interface mixin A {}
+''');
+    var hover = await prepareHover('A');
+    expect(hover.elementDescription, 'interface mixin A on Object');
     expect(hover.staticType, isNull);
     expect(hover.propagatedType, isNull);
   }
