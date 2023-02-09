@@ -123,7 +123,7 @@ vars = {
   "collection_rev": "0d0e184a5f70ca4e23dab23df686127ec40bfb11",
   "convert_rev": "83886e3fd895211a98e49b7595a92796fa216641",
   "crypto_rev": "03eb2c9098069a7816bbace581dc2d6e196c63ca",
-  "csslib_rev": "f33d63211f77e2a895b90bcf22508ab7a0af4466", # b/268132431
+  "csslib_rev": "45264a876d090f441d2bdacc1bb30afa52a0b8ec",
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
   # matches the version here. Please follow this process to make updates:
