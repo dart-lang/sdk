@@ -120,15 +120,15 @@ class CmdLineSeveralProjectsBenchmark extends AbstractCmdLineBenchmark {
 
   @override
   List<String> analyzeWhat(bool quick) => quick
-      ? ["meta"]
+      ? ['meta']
       : [
-          "analysis_server",
-          "analysis_server_client",
-          "analyzer",
-          "analyzer_cli",
-          "analyzer_plugin",
-          "analyzer_utilities",
-          "_fe_analyzer_shared",
+          'analysis_server',
+          'analysis_server_client',
+          'analyzer',
+          'analyzer_cli',
+          'analyzer_plugin',
+          'analyzer_utilities',
+          '_fe_analyzer_shared',
         ];
 }
 
@@ -144,7 +144,7 @@ class CmdLineSmallFileBenchmark extends AbstractCmdLineBenchmark {
   String get workingDir => _tempDir!.path;
 
   @override
-  List<String> analyzeWhat(bool quick) => ["t.dart"];
+  List<String> analyzeWhat(bool quick) => ['t.dart'];
 
   @override
   void cleanup() {
@@ -154,12 +154,12 @@ class CmdLineSmallFileBenchmark extends AbstractCmdLineBenchmark {
 
   @override
   void setup() {
-    var dir = Directory.systemTemp.createTempSync("analyzer-benchmark");
-    var file = File.fromUri(dir.uri.resolve("t.dart"));
-    file.writeAsStringSync("""
+    var dir = Directory.systemTemp.createTempSync('analyzer-benchmark');
+    var file = File.fromUri(dir.uri.resolve('t.dart'));
+    file.writeAsStringSync('''
 void main() {
   print("Hello, world!");
-}""");
+}''');
     _tempDir = dir;
   }
 }

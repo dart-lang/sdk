@@ -274,21 +274,21 @@ class ServiceProtocol {
     var id = '${++_id}';
     var completer = Completer<Map>();
     _completers[id] = completer;
-    var m = <String, dynamic>{
+    var messageMap = <String, dynamic>{
       'jsonrpc': '2.0',
       'id': id,
       'method': method,
-      'args': args
+      'args': args,
+      'params': args,
     };
-    m['params'] = args;
-    var message = jsonEncode(m);
+    var message = jsonEncode(messageMap);
     socket.add(message);
     return completer.future;
   }
 
-  Future dispose() => socket.close();
+  Future<void> dispose() => socket.close();
 
-  void _handleMessage(dynamic message) {
+  void _handleMessage(Object? message) {
     if (message is! String) {
       return;
     }

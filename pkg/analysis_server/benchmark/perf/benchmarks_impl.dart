@@ -76,7 +76,7 @@ class AnalysisBenchmark extends Benchmark {
     var completionCount = 0;
     var stopwatch = Stopwatch()..start();
 
-    Future complete(int offset) async {
+    Future<void> complete(int offset) async {
       await test.complete(filePath, offset, isWarmUp: false);
       completionCount++;
     }
@@ -191,10 +191,10 @@ class ColdAnalysisBenchmark extends Benchmark {
 }
 
 class ServerBenchmark {
-  static final das = ServerBenchmark('analysis-server', 'Analysis Server',
-      () => AnalysisServerBenchmarkTest());
+  static final das = ServerBenchmark(
+      'analysis-server', 'Analysis Server', AnalysisServerBenchmarkTest.new);
   static final lsp = ServerBenchmark('lsp-analysis-server',
-      'LSP Analysis Server', () => LspAnalysisServerBenchmarkTest());
+      'LSP Analysis Server', LspAnalysisServerBenchmarkTest.new);
   final String id;
 
   final String name;
