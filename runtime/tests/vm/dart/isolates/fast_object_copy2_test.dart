@@ -165,6 +165,7 @@ class SendReceiveTest extends SendReceiveTestBase {
     const int Dart_TypedData_kUint8 = 2;
     const int count = 10;
     final bytes = malloc.allocate<Uint8>(count);
+    msanUnpoison(bytes, count);
     final td = createUnmodifiableTypedData(
         Dart_TypedData_kUint8, bytes, count, nullptr, 0, nullptr);
     Expect.equals(count, td.length);
@@ -217,3 +218,17 @@ main() async {
     symbol: "Dart_NewUnmodifiableExternalTypedDataWithFinalizer")
 external Uint8List createUnmodifiableTypedData(int type, Pointer<Uint8> data,
     int length, Pointer<Void> peer, int externalSize, Pointer<Void> callback);
+
+final msanUnpoisonPointer =
+    DynamicLibrary.process().providesSymbol("__msan_unpoison")
+        ? DynamicLibrary.process()
+            .lookup<NativeFunction<Void Function(Pointer<Void>, Size)>>(
+                "__msan_unpoison")
+        : nullptr;
+
+void msanUnpoison(Pointer<Uint8> pointer, int size) {
+  if (msanUnpoisonPointer != nullptr) {
+    msanUnpoisonPointer.asFunction<void Function(Pointer<Void>, int)>()(
+        pointer.cast(), size);
+  }
+}
