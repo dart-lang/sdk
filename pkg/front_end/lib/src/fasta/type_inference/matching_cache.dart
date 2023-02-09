@@ -197,7 +197,7 @@ class MatchingCache {
           fileOffset: expression.fileOffset);
     }
     return cache.registerAccess(
-        null, new FixedExpression(expression, expressionType), const []);
+        cacheKey, new FixedExpression(expression, expressionType));
   }
 
   /// Creates a cacheable expression for integer constant [value].
@@ -228,7 +228,7 @@ class MatchingCache {
           fileOffset: expression.fileOffset);
     }
     return cache.registerAccess(
-        null, new FixedExpression(expression, expressionType), const []);
+        cacheKey, new FixedExpression(expression, expressionType));
   }
 
   /// Creates a cacheable as expression of the [operand] against [type].
@@ -241,10 +241,8 @@ class MatchingCache {
       cache = _createCacheableExpression(cacheKey,
           requiresCaching: false, fileOffset: fileOffset);
     }
-    return cache.registerAccess(
-        null,
-        new DelayedAsExpression(operand, type, fileOffset: fileOffset),
-        [operand]);
+    return cache.registerAccess(operand.accessKey,
+        new DelayedAsExpression(operand, type, fileOffset: fileOffset));
   }
 
   /// Creates a cacheable expression for a null assert pattern, which asserts
@@ -257,10 +255,8 @@ class MatchingCache {
       cache = _createCacheableExpression(cacheKey,
           requiresCaching: false, fileOffset: fileOffset);
     }
-    return cache.registerAccess(
-        null,
-        new DelayedNullAssertExpression(operand, fileOffset: fileOffset),
-        [operand]);
+    return cache.registerAccess(operand.accessKey,
+        new DelayedNullAssertExpression(operand, fileOffset: fileOffset));
   }
 
   /// Creates a cacheable expression for a null check pattern, which matches if
@@ -273,10 +269,8 @@ class MatchingCache {
       cache = _createCacheableExpression(cacheKey,
           requiresCaching: false, fileOffset: fileOffset);
     }
-    return cache.registerAccess(
-        null,
-        new DelayedNullCheckExpression(operand, fileOffset: fileOffset),
-        [operand]);
+    return cache.registerAccess(operand.accessKey,
+        new DelayedNullCheckExpression(operand, fileOffset: fileOffset));
   }
 
   /// Creates a cacheable expression for an is test on [operand] against [type].
@@ -289,10 +283,8 @@ class MatchingCache {
       cache = _createCacheableExpression(cacheKey,
           requiresCaching: false, fileOffset: fileOffset);
     }
-    return cache.registerAccess(
-        null,
-        new DelayedIsExpression(operand, type, fileOffset: fileOffset),
-        [operand]);
+    return cache.registerAccess(operand.accessKey,
+        new DelayedIsExpression(operand, type, fileOffset: fileOffset));
   }
 
   /// Creates a cacheable expression for accessing the [propertyName] property
@@ -313,11 +305,10 @@ class MatchingCache {
           requiresCaching: true, fileOffset: fileOffset);
     }
     return cache.registerAccess(
-        receiver.getType(_base),
+        receiver.accessKey,
         new DelayedPropertyGetExpression(
             receiver.getType(_base), receiver, readTarget, propertyName,
-            fileOffset: fileOffset),
-        [receiver]);
+            fileOffset: fileOffset));
   }
 
   /// Creates a cacheable expression that compares [left] of type [leftType]
@@ -343,10 +334,9 @@ class MatchingCache {
           requiresCaching: true, fileOffset: fileOffset);
     }
     return cache.registerAccess(
-        left.getType(_base),
+        new JointAccessKey(left.accessKey, right.accessKey),
         new DelayedInvokeExpression(left, invokeTarget, operatorName, [right],
-            fileOffset: fileOffset),
-        [left, right]);
+            fileOffset: fileOffset));
   }
 
   /// Creates a cacheable expression that checks [left] of type [leftType]
@@ -372,10 +362,9 @@ class MatchingCache {
           requiresCaching: true, fileOffset: fileOffset);
     }
     return cache.registerAccess(
-        left.getType(_base),
+        new JointAccessKey(left.accessKey, right.accessKey),
         new DelayedEqualsExpression(left, invokeTarget, right,
-            fileOffset: fileOffset),
-        [left, right]);
+            fileOffset: fileOffset));
   }
 
   /// Creates a cacheable lazy-and expression of [left] and [right].
@@ -389,9 +378,8 @@ class MatchingCache {
           requiresCaching: false, fileOffset: fileOffset);
     }
     return cache.registerAccess(
-        null,
-        new DelayedAndExpression(left, right, fileOffset: fileOffset),
-        [left, right]);
+        new JointAccessKey(left.accessKey, right.accessKey),
+        new DelayedAndExpression(left, right, fileOffset: fileOffset));
   }
 
   /// Creates a cacheable lazy-or expression of [left] and [right].
@@ -405,9 +393,8 @@ class MatchingCache {
           requiresCaching: false, fileOffset: fileOffset);
     }
     return cache.registerAccess(
-        null,
-        new DelayedOrExpression(left, right, fileOffset: fileOffset),
-        [left, right]);
+        new JointAccessKey(left.accessKey, right.accessKey),
+        new DelayedOrExpression(left, right, fileOffset: fileOffset));
   }
 
   /// Creates a cacheable expression that accesses the `List.[]` operator on
@@ -435,11 +422,10 @@ class MatchingCache {
           requiresCaching: true, fileOffset: fileOffset);
     }
     return cache.registerAccess(
-        receiver.getType(_base),
+        receiver.accessKey,
         new DelayedInvokeExpression(receiver, invokeTarget, indexGetName,
             [new IntegerExpression(headSize, fileOffset: fileOffset)],
-            fileOffset: fileOffset),
-        [receiver]);
+            fileOffset: fileOffset));
   }
 
   /// Creates a cacheable expression that accesses the `List.[]` operator on
@@ -473,7 +459,7 @@ class MatchingCache {
         includeExtensionMethods: true,
         callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
     return cache.registerAccess(
-        receiver.getType(_base),
+        new JointAccessKey(receiver.accessKey, length.accessKey),
         new DelayedInvokeExpression(
             receiver,
             invokeTarget,
@@ -483,8 +469,7 @@ class MatchingCache {
                   [new IntegerExpression(tailSize, fileOffset: fileOffset)],
                   fileOffset: fileOffset)
             ],
-            fileOffset: fileOffset),
-        [receiver, length]);
+            fileOffset: fileOffset));
   }
 
   /// Creates a cacheable expression that calls the `List.sublist` method on
@@ -525,11 +510,10 @@ class MatchingCache {
           fileOffset: fileOffset);
     }
     return cache.registerAccess(
-        receiver.getType(_base),
+        new JointAccessKey(receiver.accessKey, length.accessKey),
         new DelayedInvokeExpression(receiver, invokeTarget, sublistName,
             [startIndex, if (endIndex != null) endIndex],
-            fileOffset: fileOffset),
-        [receiver, length]);
+            fileOffset: fileOffset));
   }
 
   /// Creates a cacheable expression that calls the `Map.containsKey` on
@@ -555,11 +539,10 @@ class MatchingCache {
           requiresCaching: true, fileOffset: fileOffset);
     }
     return cache.registerAccess(
-        receiver.getType(_base),
+        new JointAccessKey(receiver.accessKey, key.accessKey),
         new DelayedInvokeExpression(
             receiver, invokeTarget, containsKeyName, [key],
-            fileOffset: fileOffset),
-        [receiver, key]);
+            fileOffset: fileOffset));
   }
 
   /// Creates a cacheable expression that access the `Map.[]` on [receiver] of
@@ -581,12 +564,26 @@ class MatchingCache {
           requiresCaching: true, fileOffset: fileOffset);
     }
     return cache.registerAccess(
-        receiver.getType(_base),
+        new JointAccessKey(receiver.accessKey, key.accessKey),
         new DelayedInvokeExpression(receiver, invokeTarget, indexGetName, [key],
-            fileOffset: fileOffset),
-        [receiver, key]);
+            fileOffset: fileOffset));
   }
 }
+
+/// A key that identifies the computation of a cacheable value.
+///
+/// For instance
+///
+///    switch (o) {
+///      case [...]:
+///      case {...}:
+///    }
+///
+/// both cases have an access to `o.length` which must therefore be cached,
+/// but the definitions refer to different interface targets, `List.length`
+/// and `Map.length`, respectively, so we must generated two different
+/// expressions to have statically typed access to each.
+abstract class AccessKey {}
 
 /// A key that identifies the value computed by a [CacheableExpression].
 ///
@@ -594,7 +591,7 @@ class MatchingCache {
 /// specification, but doesn't fully match, since it always for caching of
 /// more properties that necessary but also doesn't handle the constant value
 /// identity of the constant expressions.
-abstract class CacheKey {
+abstract class CacheKey implements AccessKey {
   /// Descriptor name of the key used for verbose encoding of cached variables.
   String get name;
 }
@@ -835,7 +832,7 @@ abstract class CacheableExpression implements DelayedExpression {
   /// The [CacheKey] that identifies the computed by the [_expression].
   CacheKey get cacheKey;
 
-  /// Returns `true` if this cacheable expression only has one definition.
+  /// Returns the [AccessKey] for this cacheable expression.
   ///
   /// For instance
   ///
@@ -848,7 +845,7 @@ abstract class CacheableExpression implements DelayedExpression {
   /// but the definitions refer to different interface targets, `List.length`
   /// and `Map.length`, respectively, so we must generated two different
   /// expressions to have statically typed access to each.
-  bool get isUniquelyDefined;
+  AccessKey get accessKey;
 }
 
 /// A cacheable expression that can promote the type of the underlying
@@ -870,7 +867,11 @@ class PromotedCacheableExpression implements CacheableExpression {
 
   final DartType _promotedType;
 
-  PromotedCacheableExpression(this._expression, this._promotedType);
+  @override
+  final AccessKey accessKey;
+
+  PromotedCacheableExpression(this._expression, this._promotedType)
+      : accessKey = new PromotedAccessKey(_expression.cacheKey, _promotedType);
 
   @override
   CacheKey get cacheKey => _expression.cacheKey;
@@ -899,9 +900,6 @@ class PromotedCacheableExpression implements CacheableExpression {
   }
 
   @override
-  bool get isUniquelyDefined => _expression.isUniquelyDefined;
-
-  @override
   void registerUse() {
     _expression.registerUse();
   }
@@ -917,17 +915,17 @@ class CacheExpression implements CacheableExpression {
   @override
   final CacheKey cacheKey;
 
-  final Cache _cache;
-  final DartType? receiverType;
-  final DelayedExpression expression;
-  final List<CacheableExpression> _dependencies;
+  @override
+  final AccessKey accessKey;
 
-  CacheExpression(this.cacheKey, this._cache, this.receiverType,
-      this.expression, this._dependencies);
+  final Cache _cache;
+  final DelayedExpression expression;
+
+  CacheExpression(this.cacheKey, this.accessKey, this._cache, this.expression);
 
   @override
   Expression createExpression(InferenceVisitorBase base) {
-    return _cache.createExpression(base, receiverType);
+    return _cache.createExpression(base, accessKey);
   }
 
   @override
@@ -945,19 +943,6 @@ class CacheExpression implements CacheableExpression {
   @override
   bool uses(DelayedExpression expression) =>
       identical(this, expression) || expression.uses(expression);
-
-  @override
-  bool get isUniquelyDefined {
-    if (!_cache.isUniquelyDefined) {
-      return false;
-    }
-    for (CacheableExpression dependency in _dependencies) {
-      if (!dependency.isUniquelyDefined) {
-        return false;
-      }
-    }
-    return true;
-  }
 }
 
 /// Object that tracks computation of cacheable value.
@@ -1016,11 +1001,9 @@ class Cache {
   /// The file offset used for synthesized AST nodes.
   final int _fileOffset;
 
-  /// The [CacheExpression] that creates the expression value.
-  ///
-  /// The key is the receiver type of of the [CacheExpression], or null if the
-  /// expression doesn't depend on the receiver type.
-  Map<DartType?, CacheExpression> _accesses = {};
+  /// Map from [AccessKey] to the corresponding [CacheExpression] that creates
+  /// the expression value.
+  Map<AccessKey, CacheExpression> _accesses = {};
 
   Cache(this.cacheKey, this._matchingCache, this._name,
       {required bool isLate,
@@ -1040,26 +1023,20 @@ class Cache {
   /// [dependencies] are the cacheable expression used to create [expression].
   ///
   /// Returns a [CacheableExpression] for the [expression].
-  CacheableExpression registerAccess(DartType? receiverType,
-      DelayedExpression expression, List<CacheableExpression> dependencies) {
-    return _accesses[receiverType] ??= new CacheExpression(
-        cacheKey, this, receiverType, expression, dependencies);
+  CacheableExpression registerAccess(
+      AccessKey accessKey, DelayedExpression expression) {
+    return _accesses[accessKey] ??=
+        new CacheExpression(cacheKey, accessKey, this, expression);
   }
 
-  /// Returns `true` if there is only one way to compute this cacheable value.
-  bool get isUniquelyDefined => _accesses.length <= 1;
-
-  /// Creates an [Expression] for the cacheable value for the given
-  /// [receiverType], corresponding to the receiver type provided to
-  /// [registerAccess].
+  /// Creates an [Expression] for the cacheable value for the given accessKey].
   ///
   /// If cached, the value is accessed through a caching variable, otherwise
   /// a fresh [Expression] is created.
-  Expression createExpression(
-      InferenceVisitorBase base, DartType? receiverType) {
+  Expression createExpression(InferenceVisitorBase base, AccessKey accessKey) {
     assert(_useCount >= 1);
     assert(_accesses.isNotEmpty);
-    CacheExpression cacheableExpression = _accesses[receiverType]!;
+    CacheExpression cacheableExpression = _accesses[accessKey]!;
     _hasBeenCreated = true;
     bool createCache;
     if (_isLate) {
@@ -1075,7 +1052,7 @@ class Cache {
     if (!createCache) {
       result = cacheableExpression.expression.createExpression(base);
     } else {
-      if (_accesses.length == 1 && cacheableExpression.isUniquelyDefined) {
+      if (_accesses.length == 1) {
         VariableDeclaration? variable = _variable;
         VariableDeclaration? isSetVariable = _isSetVariable;
         if (variable == null) {
@@ -1268,5 +1245,43 @@ extension _ on ObjectAccessTarget {
       case ObjectAccessTargetKind.nullableInlineClassMember:
         return true;
     }
+  }
+}
+
+/// An access through a promoted expression.
+class PromotedAccessKey implements AccessKey {
+  final AccessKey accessKey;
+  final DartType type;
+
+  PromotedAccessKey(this.accessKey, this.type);
+
+  @override
+  int get hashCode => Object.hash(accessKey, type);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is PromotedAccessKey &&
+        accessKey == other.accessKey &&
+        type == other.type;
+  }
+}
+
+/// An access that depends on two sub expressions.
+class JointAccessKey implements AccessKey {
+  final AccessKey leftAccessKey;
+  final AccessKey rightAccessKey;
+
+  JointAccessKey(this.leftAccessKey, this.rightAccessKey);
+
+  @override
+  int get hashCode => Object.hash(leftAccessKey, rightAccessKey);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is JointAccessKey &&
+        leftAccessKey == other.leftAccessKey &&
+        rightAccessKey == other.rightAccessKey;
   }
 }
