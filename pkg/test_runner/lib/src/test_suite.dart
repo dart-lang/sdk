@@ -177,6 +177,7 @@ abstract class TestSuite {
           Compiler.dart2js,
           Compiler.dartdevc,
           Compiler.dartdevk,
+          Compiler.ddc,
         }.contains(configuration.compiler)) {
       return true;
     }
@@ -946,7 +947,7 @@ class StandardTestSuite extends TestSuite {
             testFile.sharedOptions.contains('--null-assertions');
         var weakNullSafetyErrors =
             testFile.ddcOptions.contains('--weak-null-safety-errors');
-        content = dartdevcHtml(
+        content = ddcHtml(
             nameNoExt,
             nameFromModuleRootNoExt,
             jsDir,
@@ -967,7 +968,8 @@ class StandardTestSuite extends TestSuite {
       Compiler.dart2js,
       Compiler.dart2wasm,
       Compiler.dartdevc,
-      Compiler.dartdevk
+      Compiler.dartdevk,
+      Compiler.ddc
     };
     assert(supportedCompilers.contains(configuration.compiler));
 

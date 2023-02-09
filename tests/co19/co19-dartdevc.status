@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dartdevc || $compiler == dartdevk ]
+[ $compiler == dartdevc || $compiler == dartdevk || $compiler == ddc ]
 Language/Expressions/Constants/integer_size_t03: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Constants/integer_size_t04: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Constants/literal_number_t01: SkipByDesign # uses integer literal not representable as JavaScript number

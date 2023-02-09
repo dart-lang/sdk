@@ -571,6 +571,7 @@ class CommandExecutorImpl implements CommandExecutor {
         (command.displayName == 'dart2js' ||
             command.displayName == 'dartdevc' ||
             command.displayName == 'dartdevk' ||
+            command.displayName == 'ddc' ||
             command.displayName == 'fasta') &&
         globalConfiguration.batch) {
       return _getBatchRunner(command.displayName)

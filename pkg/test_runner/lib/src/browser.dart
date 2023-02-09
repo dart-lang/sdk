@@ -129,18 +129,18 @@ bool _invalidVariableName(String keyword, {bool strictMode = true}) {
   return false;
 }
 
-/// Generates the HTML template file needed to load and run a dartdevc test in
+/// Generates the HTML template file needed to load and run a ddc test in
 /// the browser.
 ///
 /// [testName] is the short name of the test without any subdirectory path
 /// or extension, like "math_test". [testNameAlias] is the alias of the
 /// test variable used for import/export (usually relative to its module root).
 /// [testJSDir] is the relative path to the build directory where the
-/// dartdevc-generated JS file is stored. [nonNullAsserts] enables non-null
+/// ddc-generated JS file is stored. [nonNullAsserts] enables non-null
 /// assertions for non-nullable method parameters when running with weak null
 /// safety. [weakNullSafetyErrors] enables null safety type violations to throw
 /// when running in weak mode.
-String dartdevcHtml(
+String ddcHtml(
     String testName,
     String testNameAlias,
     String testJSDir,
