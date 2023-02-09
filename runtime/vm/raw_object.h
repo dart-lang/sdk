@@ -253,6 +253,9 @@ class UntaggedObject {
   class OldAndNotRememberedBit
       : public BitField<uword, bool, kOldAndNotRememberedBit, 1> {};
 
+  // Will be set to 1 iff
+  //   - is unmodifiable typed data view (backing store may be mutable)
+  //   - is transitively immutable
   class ImmutableBit : public BitField<uword, bool, kImmutableBit, 1> {};
 
   class ReservedBit : public BitField<uword, intptr_t, kReservedBit, 1> {};

@@ -419,6 +419,16 @@ inline bool IsUnmodifiableTypedDataViewClassId(intptr_t index) {
                                    kTypedDataCidRemainderUnmodifiable);
 }
 
+inline bool ShouldHaveImmutabilityBitSet(intptr_t index) {
+  return IsUnmodifiableTypedDataViewClassId(index) || IsStringClassId(index) ||
+         index == kMintCid || index == kNeverCid || index == kSentinelCid ||
+         index == kStackTraceCid || index == kDoubleCid ||
+         index == kFloat32x4Cid || index == kFloat64x2Cid ||
+         index == kInt32x4Cid || index == kSendPortCid ||
+         index == kCapabilityCid || index == kRegExpCid || index == kBoolCid ||
+         index == kNullCid;
+}
+
 inline bool IsFfiTypeClassId(intptr_t index) {
   switch (index) {
     case kPointerCid:

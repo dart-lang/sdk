@@ -214,32 +214,11 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
     thread->CheckForSafepoint();
 
     ObjectPtr raw = working_set->RemoveLast();
-
+    if (CanShareObjectAcrossIsolates(raw)) {
+      continue;
+    }
     const intptr_t cid = raw->GetClassId();
-    // Keep the list in sync with the one in runtime/vm/object_graph_copy.cc
     switch (cid) {
-      // Can be shared.
-      case kOneByteStringCid:
-      case kTwoByteStringCid:
-      case kExternalOneByteStringCid:
-      case kExternalTwoByteStringCid:
-      case kMintCid:
-      case kImmutableArrayCid:
-      case kNeverCid:
-      case kSentinelCid:
-      case kInt32x4Cid:
-      case kSendPortCid:
-      case kCapabilityCid:
-      case kRegExpCid:
-      case kStackTraceCid:
-        continue;
-      // Cannot be shared due to possibly being mutable boxes for unboxed
-      // fields in JIT, but can be transferred via Isolate.exit()
-      case kDoubleCid:
-      case kFloat32x4Cid:
-      case kFloat64x2Cid:
-        continue;
-
       case kArrayCid: {
         array ^= Array::RawCast(raw);
         visitor.VisitObject(array.GetTypeArguments());
