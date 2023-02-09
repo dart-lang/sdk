@@ -2465,6 +2465,23 @@ void f(Object? x) {
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_VariablePatternElement_patternAssignment() async {
+    await resolveTestCode('''
+void f() {
+  int v;
+  (v, _) = (0, 1);
+  v; // read
+}
+''');
+    var element = findElement.localVar('v');
+    var f = findElement.function('f');
+    var expected = [
+      _expectId(f, SearchResultKind.WRITE, 'v,', length: 1),
+      _expectId(f, SearchResultKind.READ, 'v; // read'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_searchReferences_VariablePatternElement_switchExpression() async {
     await resolveTestCode('''
 Object f(Object? x) => switch (0) {
