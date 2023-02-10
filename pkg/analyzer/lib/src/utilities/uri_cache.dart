@@ -20,14 +20,11 @@ final UriCache uriCache = UriCache();
 /// When a [Uri] instance is not used anymore, it will be garbage collected,
 /// because the cache uses [WeakReference]s.
 class UriCache {
-  final Map<String, WeakReference<Uri>> _map = {};
+  static const _getCountBeforePruning = 10000;
+  static const _minLengthForPruning = 1000;
 
-  late final Finalizer<String> _finalizer = Finalizer((key) {
-    var weakReference = _map[key];
-    if (weakReference != null && weakReference.target == null) {
-      _map.remove(key);
-    }
-  });
+  final Map<String, WeakReference<Uri>> _map = {};
+  int _getCount = 0;
 
   /// Returns the [Uri] for [uriStr].
   Uri parse(String uriStr) {
@@ -45,6 +42,7 @@ class UriCache {
 
   /// Returns the [Uri] for [uriStr], or `null` if it cannot be parsed.
   Uri? tryParse(String uriStr) {
+    _prune();
     var result = _map[uriStr]?.target;
     if (result == null) {
       result = Uri.tryParse(uriStr);
@@ -57,6 +55,7 @@ class UriCache {
 
   /// Returns the [Uri] for [uriStr], or given [uri] if provided.
   Uri _parse(String uriStr, {Uri? uri}) {
+    _prune();
     var result = _map[uriStr]?.target;
     if (result == null) {
       result = uri ?? Uri.parse(uriStr);
@@ -65,9 +64,30 @@ class UriCache {
     return result;
   }
 
+  void _prune() {
+    if (_getCount++ < _getCountBeforePruning) {
+      return;
+    }
+    _getCount = 0;
+
+    if (_map.length < _minLengthForPruning) {
+      return;
+    }
+
+    final keysToRemove = <String>[];
+    for (final entry in _map.entries) {
+      if (entry.value.target == null) {
+        keysToRemove.add(entry.key);
+      }
+    }
+
+    for (final key in keysToRemove) {
+      _map.remove(key);
+    }
+  }
+
   void _put(String uriStr, Uri uri) {
     _map[uriStr] = WeakReference(uri);
-    _finalizer.attach(uri, uriStr);
   }
 
   /// Returns the shared [Uri] for the given [uri].
