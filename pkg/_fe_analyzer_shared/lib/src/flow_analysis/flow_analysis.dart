@@ -3639,8 +3639,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   /// If a pattern is being analyzed, and the scrutinee is something that might
   /// be relevant to type promotion as a consequence of the pattern match,
-  /// [EqualityInfo] object referring to the scrutinee.  Otherwise `null`.
-  EqualityInfo<Type>? _scrutineeInfo;
+  /// [ReferenceWithType] object referring to the scrutinee.  Otherwise `null`.
+  ReferenceWithType<Type>? _scrutineeReference;
 
   /// If a pattern is being analyzed, and the scrutinee is something that might
   /// be type promoted as a consequence of the pattern match, [SsaNode]
@@ -3748,7 +3748,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void assignedVariablePattern(Node node, Variable variable, Type writtenType) {
-    _write(node, variable, writtenType, _scrutineeInfo?._expressionInfo);
+    _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
+    _write(node, variable, writtenType, context._matchedValueInfo);
   }
 
   @override
@@ -3856,11 +3857,12 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       bool isFinal = false,
       bool isLate = false,
       required bool isImplicitlyTyped}) {
+    _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
     // Choose a fresh promotion key to represent the temporary variable that
     // stores the matched value, and mark it as initialized.
     int promotionKey = promotionKeyStore.makeTemporaryKey();
     _current = _current.declare(promotionKey, true);
-    _initialize(promotionKey, matchedType, _scrutineeInfo?._expressionInfo,
+    _initialize(promotionKey, matchedType, context._matchedValueInfo,
         isFinal: isFinal,
         isLate: isLate,
         isImplicitlyTyped: isImplicitlyTyped,
@@ -3956,7 +3958,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     assert(_stack.isEmpty);
     assert(_current.reachable.parent == null);
     assert(_unmatched == null);
-    assert(_scrutineeInfo == null);
+    assert(_scrutineeReference == null);
     assert(_scrutineeSsaNode == null);
   }
 
@@ -4330,7 +4332,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void logicalOrPattern_begin() {
     _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
     // Save the pieces of the current flow state that will be needed later.
-    _stack.add(new _OrPatternContext<Type>(
+    _stack.add(new _OrPatternContext<Type>(context._matchedValueInfo,
         context._matchedValueReference, _unmatched!));
     // Initialize `_unmatched` to a fresh unreachable flow state, so that after
     // we visit the left hand side, `_unmatched` will represent the flow state
@@ -4492,7 +4494,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         _current.tryPromoteForTypeCheck(this, matchedValueReference, knownType);
     FlowModel<Type> ifTrue = promotionInfo.ifTrue;
     FlowModel<Type> ifFalse = promotionInfo.ifFalse;
-    ReferenceWithType<Type>? scrutineeReference = _scrutineeInfo?._reference;
+    ReferenceWithType<Type>? scrutineeReference = _scrutineeReference;
     // If there's a scrutinee, and its value is known to be the same as that of
     // the synthetic cache variable, promote it too.
     if (scrutineeReference != null &&
@@ -4524,7 +4526,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     assert(_stack.last is _PatternContext<Type>);
     assert(_unmatched != null);
     _stack.add(new _PatternContext<Type>(
-        _makeTemporaryReference(new SsaNode<Type>(null), matchedType)));
+        null, _makeTemporaryReference(new SsaNode<Type>(null), matchedType)));
   }
 
   @override
@@ -4548,7 +4550,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _SwitchAlternativesContext<Type> context =
         _stack.last as _SwitchAlternativesContext<Type>;
     _current = context._switchStatementContext._unmatched;
-    _pushPattern(context._switchStatementContext._matchedValueReference);
+    _pushPattern(context._switchStatementContext._matchedValueInfo);
   }
 
   @override
@@ -4617,11 +4619,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void switchStatement_expressionEnd(
       Statement? switchStatement, Expression scrutinee, Type scrutineeType) {
-    ReferenceWithType<Type> matchedValueReference =
+    EqualityInfo<Type> matchedValueInfo =
         _pushScrutinee(scrutinee, scrutineeType);
     _current = _current.split();
     _SwitchStatementContext<Type> context = new _SwitchStatementContext<Type>(
-        _current.reachable.parent!, _current, matchedValueReference);
+        _current.reachable.parent!, _current, matchedValueInfo);
     _stack.add(context);
     if (switchStatement != null) {
       _statementToContext[switchStatement] = context;
@@ -4801,8 +4803,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     if (_unmatched != null) {
       print('  unmatched: $_unmatched');
     }
-    if (_scrutineeInfo != null) {
-      print('  scrutineeInfo: $_scrutineeInfo');
+    if (_scrutineeReference != null) {
+      print('  scrutineeReference: $_scrutineeReference');
     }
     if (_scrutineeSsaNode != null) {
       print('  scrutineeSsaNode: $_scrutineeSsaNode');
@@ -4956,8 +4958,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// *equal* to the operand.
   void _handleEqualityCheckPattern(Expression operand, Type operandType,
       {required bool notEqual}) {
+    _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
     _EqualityCheckResult equalityCheckResult = _equalityCheck(
-        _scrutineeInfo!, equalityOperand_end(operand, operandType));
+        new EqualityInfo._(context._matchedValueInfo, getMatchedValueType(),
+            context._matchedValueReference),
+        equalityOperand_end(operand, operandType));
     if (equalityCheckResult is _NoEqualityInformation) {
       // We have no information so we have to assume the pattern might or
       // might not match.
@@ -5140,7 +5145,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     } else {
       FlowModel<Type>? ifNotNull =
           _current.tryMarkNonNullable(this, matchedValueReference).ifTrue;
-      ReferenceWithType<Type>? scrutineeReference = _scrutineeInfo?._reference;
+      ReferenceWithType<Type>? scrutineeReference = _scrutineeReference;
       // If there's a scrutinee, and its value is known to be the same as that
       // of the synthetic cache variable, promote it too.
       if (scrutineeReference != null &&
@@ -5172,15 +5177,16 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void _popScrutinee() {
     _ScrutineeContext<Type> context =
         _stack.removeLast() as _ScrutineeContext<Type>;
-    _scrutineeInfo = context.previousScrutineeInfo;
+    _scrutineeReference = context.previousScrutineeReference;
     _scrutineeSsaNode = context.previousScrutineeSsaNode;
   }
 
   /// Updates the [_stack] to reflect the fact that flow analysis is entering
-  /// into a pattern or subpattern match.  [matchedValueReference] should be the
-  /// reference representing the value being matched.
-  void _pushPattern(ReferenceWithType<Type> matchedValueReference) {
-    _stack.add(new _TopPatternContext<Type>(matchedValueReference, _unmatched));
+  /// into a pattern or subpattern match.  [matchedValueInfo] should be the
+  /// [EqualityInfo] representing the value being matched.
+  void _pushPattern(EqualityInfo<Type> matchedValueInfo) {
+    _stack.add(new _TopPatternContext<Type>(matchedValueInfo._expressionInfo,
+        matchedValueInfo._reference!, _unmatched));
     _unmatched = _current.setUnreachable();
   }
 
@@ -5190,22 +5196,22 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// that's being matched directly, as happens when in `for-in` loops).
   /// [scrutineeType] should be the static type of the scrutinee.
   ///
-  /// The returned value is the reference representing the value being matched.
-  /// It should be passed to [_pushPattern].
-  ReferenceWithType<Type> _pushScrutinee(
-      Expression? scrutinee, Type scrutineeType) {
+  /// The returned value is the [EqualityInfo] representing the value being
+  /// matched.  It should be passed to [_pushPattern].
+  EqualityInfo<Type> _pushScrutinee(Expression? scrutinee, Type scrutineeType) {
     EqualityInfo<Type>? scrutineeInfo = scrutinee == null
         ? null
         : _computeEqualityInfo(scrutinee, scrutineeType);
     _stack.add(new _ScrutineeContext<Type>(
-        previousScrutineeInfo: _scrutineeInfo,
+        previousScrutineeReference: _scrutineeReference,
         previousScrutineeSsaNode: _scrutineeSsaNode));
-    _scrutineeInfo = scrutineeInfo;
     ReferenceWithType<Type>? scrutineeReference = scrutineeInfo?._reference;
+    _scrutineeReference = scrutineeReference;
     _scrutineeSsaNode = scrutineeReference == null
         ? new SsaNode<Type>(null)
         : _current.infoFor(scrutineeReference.promotionKey).ssaNode;
-    return _makeTemporaryReference(_scrutineeSsaNode, scrutineeType);
+    return new EqualityInfo._(scrutineeInfo?._expressionInfo, scrutineeType,
+        _makeTemporaryReference(_scrutineeSsaNode, scrutineeType));
   }
 
   /// Associates [expression], which should be the most recently visited
@@ -6091,7 +6097,8 @@ class _OrPatternContext<Type extends Object> extends _PatternContext<Type> {
   /// side matched.
   FlowModel<Type>? _lhsMatched;
 
-  _OrPatternContext(super.matchedValueReference, this._previousUnmatched);
+  _OrPatternContext(super.matchedValueInfo, super.matchedValueReference,
+      this._previousUnmatched);
 
   @override
   Map<String, Object?> get _debugFields => super._debugFields
@@ -6104,14 +6111,18 @@ class _OrPatternContext<Type extends Object> extends _PatternContext<Type> {
 
 /// [_FlowContext] representing a pattern.
 class _PatternContext<Type extends Object> extends _FlowContext {
+  /// [ExpressionInfo] for the value being matched.
+  final ExpressionInfo<Type>? _matchedValueInfo;
+
   /// Reference for the value being matched.
   final ReferenceWithType<Type> _matchedValueReference;
 
-  _PatternContext(this._matchedValueReference);
+  _PatternContext(this._matchedValueInfo, this._matchedValueReference);
 
   @override
-  Map<String, Object?> get _debugFields =>
-      super._debugFields..['matchedValueReference'] = _matchedValueReference;
+  Map<String, Object?> get _debugFields => super._debugFields
+    ..['matchedValueInfo'] = _matchedValueInfo
+    ..['matchedValueReference'] = _matchedValueReference;
 
   @override
   String get _debugType => '_PatternContext';
@@ -6142,17 +6153,17 @@ class _PropertyReferenceWithType<Type extends Object>
 /// [_FlowContext] representing a construct that can contain one or more
 /// patterns, and thus has a scrutinee (for example a `switch` statement).
 class _ScrutineeContext<Type extends Object> extends _FlowContext {
-  final EqualityInfo<Type>? previousScrutineeInfo;
+  final ReferenceWithType<Type>? previousScrutineeReference;
 
   final SsaNode<Type>? previousScrutineeSsaNode;
 
   _ScrutineeContext(
-      {required this.previousScrutineeInfo,
+      {required this.previousScrutineeReference,
       required this.previousScrutineeSsaNode});
 
   @override
   Map<String, Object?> get _debugFields => super._debugFields
-    ..['previousScrutineeInfo'] = previousScrutineeInfo
+    ..['previousScrutineeReference'] = previousScrutineeReference
     ..['previousScrutineeSsaNode'] = previousScrutineeSsaNode;
 
   @override
@@ -6215,8 +6226,8 @@ class _SwitchAlternativesContext<Type extends Object> extends _FlowContext {
 /// [_FlowContext] representing a switch statement.
 class _SwitchStatementContext<Type extends Object>
     extends _SimpleStatementContext<Type> {
-  /// Reference for the value being matched.
-  final ReferenceWithType<Type> _matchedValueReference;
+  /// [EqualityInfo] for the value being matched.
+  final EqualityInfo<Type> _matchedValueInfo;
 
   /// Flow state for the code path where no switch cases have matched yet.  If
   /// we think of a switch statement as syntactic sugar for a chain of if-else
@@ -6224,12 +6235,12 @@ class _SwitchStatementContext<Type extends Object>
   FlowModel<Type> _unmatched;
 
   _SwitchStatementContext(
-      super.checkpoint, super._previous, this._matchedValueReference)
+      super.checkpoint, super._previous, this._matchedValueInfo)
       : _unmatched = _previous;
 
   @override
   Map<String, Object?> get _debugFields => super._debugFields
-    ..['matchedValueReference'] = _matchedValueReference
+    ..['matchedValueInfo'] = _matchedValueInfo
     ..['unmatched'] = _unmatched;
 
   @override
@@ -6240,7 +6251,8 @@ class _SwitchStatementContext<Type extends Object>
 class _TopPatternContext<Type extends Object> extends _PatternContext<Type> {
   final FlowModel<Type>? _previousUnmatched;
 
-  _TopPatternContext(super._matchedValueReference, this._previousUnmatched);
+  _TopPatternContext(super._matchedValueInfo, super._matchedValueReference,
+      this._previousUnmatched);
 
   @override
   Map<String, Object?> get _debugFields =>
