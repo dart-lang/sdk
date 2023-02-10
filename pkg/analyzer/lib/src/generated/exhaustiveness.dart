@@ -40,9 +40,8 @@ Space convertPatternToSpace(
     AnalyzerExhaustivenessCache cache,
     DartPattern pattern,
     Map<ConstantPattern, DartObjectImpl> constantPatternValues) {
-  if (pattern is DeclaredVariablePattern) {
-    DartType type =
-        (pattern as DeclaredVariablePatternImpl).declaredElement!.type;
+  if (pattern is DeclaredVariablePatternImpl) {
+    DartType type = pattern.declaredElement!.type;
     return Space(cache.getStaticType(type));
   } else if (pattern is ObjectPattern) {
     Map<String, Space> fields = {};

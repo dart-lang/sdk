@@ -571,6 +571,7 @@ import 'non_constant_relational_pattern_expression_test.dart'
     as non_constant_relational_pattern_expression;
 import 'non_constant_set_element_test.dart' as non_constant_set_element;
 import 'non_constant_type_argument_test.dart' as non_constant_type_argument;
+import 'non_exhaustive_switch_test.dart' as non_exhaustive_switch;
 import 'non_final_field_in_enum_test.dart' as non_final_field_in_enum;
 import 'non_generative_constructor_test.dart' as non_generative_constructor;
 import 'non_generative_implicit_constructor_test.dart'
@@ -832,6 +833,7 @@ import 'unqualified_reference_to_non_local_static_member_test.dart'
     as unqualified_reference_to_non_local_static_member;
 import 'unqualified_reference_to_static_member_of_extended_type_test.dart'
     as unqualified_reference_to_static_member_of_extended_type;
+import 'unreachable_switch_case_test.dart' as unreachable_switch_case;
 import 'unused_catch_clause_test.dart' as unused_catch_clause;
 import 'unused_catch_stack_test.dart' as unused_catch_stack;
 import 'unused_element_test.dart' as unused_element;
@@ -1236,6 +1238,7 @@ main() {
     non_constant_map_value_from_deferred_library.main();
     non_constant_set_element.main();
     non_constant_type_argument.main();
+    non_exhaustive_switch.main();
     non_final_field_in_enum.main();
     non_generative_constructor.main();
     non_generative_implicit_constructor.main();
@@ -1414,6 +1417,7 @@ main() {
     unnecessary_type_check.main();
     unqualified_reference_to_non_local_static_member.main();
     unqualified_reference_to_static_member_of_extended_type.main();
+    unreachable_switch_case.main();
     unused_catch_clause.main();
     unused_catch_stack.main();
     unused_element.main();

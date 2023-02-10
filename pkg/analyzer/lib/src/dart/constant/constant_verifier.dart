@@ -6,7 +6,6 @@ import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -370,19 +369,37 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSwitchExpression(SwitchExpression node) {
+    _withConstantPatternValues((constantPatternValues) {
+      super.visitSwitchExpression(node);
+      _validateSwitchExhaustiveness(
+        node: node,
+        switchKeyword: node.switchKeyword,
+        scrutinee: node.expression,
+        caseNodes: node.cases,
+        constantPatternValues: constantPatternValues,
+      );
+    });
+  }
+
+  @override
   void visitSwitchStatement(SwitchStatement node) {
-    Map<ConstantPattern, DartObjectImpl>? previousConstantPatternValues =
-        _constantPatternValues;
-    _constantPatternValues = {};
-    super.visitSwitchStatement(node);
-    if (_currentLibrary.featureSet.isEnabled(Feature.patterns)) {
-      _validateSwitchStatement_patterns(node, _constantPatternValues!);
-    } else if (_currentLibrary.isNonNullableByDefault) {
-      _validateSwitchStatement_nullSafety(node);
-    } else {
-      _validateSwitchStatement_legacy(node);
-    }
-    _constantPatternValues = previousConstantPatternValues;
+    _withConstantPatternValues((constantPatternValues) {
+      super.visitSwitchStatement(node);
+      if (_currentLibrary.featureSet.isEnabled(Feature.patterns)) {
+        _validateSwitchExhaustiveness(
+          node: node,
+          switchKeyword: node.switchKeyword,
+          scrutinee: node.expression,
+          caseNodes: node.members,
+          constantPatternValues: constantPatternValues,
+        );
+      } else if (_currentLibrary.isNonNullableByDefault) {
+        _validateSwitchStatement_nullSafety(node);
+      } else {
+        _validateSwitchStatement_legacy(node);
+      }
+    });
   }
 
   @override
@@ -721,6 +738,97 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _validateSwitchExhaustiveness({
+    required AstNode node,
+    required Token switchKeyword,
+    required Expression scrutinee,
+    required List<AstNode> caseNodes,
+    required Map<ConstantPattern, DartObjectImpl> constantPatternValues,
+  }) {
+    final scrutineeType = scrutinee.typeOrThrow;
+    final scrutineeTypeEx = _exhaustivenessCache.getStaticType(scrutineeType);
+
+    final caseNodesWithSpace = <AstNode>[];
+    final caseSpaces = <Space>[];
+    var hasDefault = false;
+
+    // Build spaces for cases.
+    for (final caseNode in caseNodes) {
+      GuardedPattern? guardedPattern;
+      if (caseNode is SwitchDefault) {
+        hasDefault = true;
+      } else if (caseNode is SwitchExpressionCase) {
+        guardedPattern = caseNode.guardedPattern;
+      } else if (caseNode is SwitchPatternCase) {
+        guardedPattern = caseNode.guardedPattern;
+      } else {
+        throw UnimplementedError('(${caseNode.runtimeType}) $caseNode');
+      }
+
+      if (guardedPattern != null) {
+        Space space;
+        if (guardedPattern.whenClause != null) {
+          // TODO(johnniwinther): Test this.
+          space = Space(_exhaustivenessCache.getUnknownStaticType());
+        } else {
+          final pattern = guardedPattern.pattern;
+          space = convertPatternToSpace(
+              _exhaustivenessCache, pattern, constantPatternValues);
+        }
+        caseNodesWithSpace.add(caseNode);
+        caseSpaces.add(space);
+      }
+    }
+
+    // Prepare for recording data for testing.
+    List<Space>? remainingSpaces;
+    final exhaustivenessDataForTesting = this.exhaustivenessDataForTesting;
+    if (exhaustivenessDataForTesting != null) {
+      remainingSpaces = [];
+    }
+
+    // Compute and report errors.
+    final errors = reportErrors(scrutineeTypeEx, caseSpaces, remainingSpaces);
+    for (final error in errors) {
+      if (error is UnreachableCaseError) {
+        final caseNode = caseNodesWithSpace[error.index];
+        final Token errorToken;
+        if (caseNode is SwitchExpressionCase) {
+          errorToken = caseNode.arrow;
+        } else if (caseNode is SwitchPatternCase) {
+          errorToken = caseNode.keyword;
+        } else {
+          throw UnimplementedError('(${caseNode.runtimeType}) $caseNode');
+        }
+        _errorReporter.reportErrorForToken(
+          HintCode.UNREACHABLE_SWITCH_CASE,
+          errorToken,
+        );
+      } else if (error is NonExhaustiveError &&
+          _typeSystem.isAlwaysExhaustive(scrutineeType) &&
+          !hasDefault) {
+        _errorReporter.reportErrorForToken(
+          CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH,
+          switchKeyword,
+          [scrutineeType, '${error.remaining}'],
+        );
+      }
+    }
+
+    // Record data for testing.
+    if (exhaustivenessDataForTesting != null && remainingSpaces != null) {
+      assert(remainingSpaces.length == caseSpaces.length + 1);
+      for (var i = 0; i < caseSpaces.length; i++) {
+        final caseNode = caseNodesWithSpace[i];
+        exhaustivenessDataForTesting.caseSpaces[caseNode] = caseSpaces[i];
+        exhaustivenessDataForTesting.remainingSpaces[caseNode] =
+            remainingSpaces[i];
+      }
+      exhaustivenessDataForTesting.switchScrutineeType[node] = scrutineeTypeEx;
+      exhaustivenessDataForTesting.remainingSpaces[node] = remainingSpaces.last;
+    }
+  }
+
   void _validateSwitchStatement_legacy(SwitchStatement node) {
     // TODO(paulberry): to minimize error messages, it would be nice to
     // compare all types with the most popular type rather than the first
@@ -809,74 +917,14 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _validateSwitchStatement_patterns(SwitchStatement node,
-      Map<ConstantPattern, DartObjectImpl> constantPatternValues) {
-    DartType expressionType = node.expression.staticType!;
-    StaticType type = _exhaustivenessCache.getStaticType(expressionType);
-    List<Space> cases = [];
-    List<SwitchMember> caseMembers = [];
-    bool hasDefault = false;
-    for (var switchMember in node.members) {
-      if (switchMember is SwitchCase) {
-        Expression expression = switchMember.expression;
-        var expressionValue = _validate(
-          expression,
-          CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION,
-        );
-        Space space =
-            convertConstantValueToSpace(_exhaustivenessCache, expressionValue);
-        cases.add(space);
-        caseMembers.add(switchMember);
-      } else if (switchMember is SwitchPatternCase) {
-        Space space;
-        if (switchMember.guardedPattern.whenClause != null) {
-          // TODO(johnniwinther): Test this.
-          space = Space(_exhaustivenessCache.getUnknownStaticType());
-        } else {
-          DartPattern pattern = switchMember.guardedPattern.pattern;
-          space = convertPatternToSpace(
-              _exhaustivenessCache, pattern, constantPatternValues);
-        }
-        cases.add(space);
-        caseMembers.add(switchMember);
-      } else if (switchMember is SwitchDefault) {
-        hasDefault = true;
-      }
-    }
-    List<Space>? remainingSpaces;
-    if (exhaustivenessDataForTesting != null) {
-      remainingSpaces = [];
-    }
-    for (ExhaustivenessError error
-        in reportErrors(type, cases, remainingSpaces)) {
-      if (error is UnreachableCaseError) {
-        _errorReporter.reportErrorForToken(
-          HintCode.UNREACHABLE_SWITCH_CASE,
-          caseMembers[error.index].keyword,
-          [],
-        );
-      } else if (error is NonExhaustiveError &&
-          _typeSystem.isAlwaysExhaustive(expressionType) &&
-          !hasDefault) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH,
-          node.expression,
-          [expressionType, '${error.remaining}'],
-        );
-      }
-    }
-    if (exhaustivenessDataForTesting != null) {
-      assert(remainingSpaces!.length == cases.length + 1);
-      for (int i = 0; i < cases.length; i++) {
-        SwitchMember caseMember = caseMembers[i];
-        exhaustivenessDataForTesting!.caseSpaces[caseMember] = cases[i];
-        exhaustivenessDataForTesting!.remainingSpaces[caseMember] =
-            remainingSpaces![i];
-      }
-      exhaustivenessDataForTesting!.switchScrutineeType[node] = type;
-      exhaustivenessDataForTesting!.remainingSpaces[node] =
-          remainingSpaces!.last;
-    }
+  /// Runs [f] with new [_constantPatternValues].
+  void _withConstantPatternValues(
+    void Function(Map<ConstantPattern, DartObjectImpl> constantPatternValues) f,
+  ) {
+    final previous = _constantPatternValues;
+    final values = _constantPatternValues = {};
+    f(values);
+    _constantPatternValues = previous;
   }
 }
 
