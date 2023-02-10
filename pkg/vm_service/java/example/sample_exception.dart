@@ -41,7 +41,7 @@ void main(List<String> args) {
 }
 
 void foo(int val) {
-  print('val: ${val}');
+  print('val: $val');
 }
 
 class Bar extends FooBar {

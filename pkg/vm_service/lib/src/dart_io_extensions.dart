@@ -11,7 +11,7 @@ import 'vm_service.dart' hide Error;
 
 extension DartIOExtension on VmService {
   static bool _factoriesRegistered = false;
-  static Map<String, Version> _isolateVersion = {};
+  static final Map<String, Version> _isolateVersion = {};
 
   Future<Version> _version(String isolateId) async {
     Version? version = _isolateVersion[isolateId];
@@ -798,9 +798,11 @@ class SpawnedProcess extends Response implements SpawnedProcessRef {
   String get type => 'SpawnedProcess';
 
   /// The unique ID associated with this process.
+  @override
   final int id;
 
   /// The name of the executable.
+  @override
   final String name;
 
   /// The process ID associated with the process.
@@ -902,9 +904,11 @@ class OpenFile extends Response implements OpenFileRef {
   String get type => 'OpenFile';
 
   /// The unique ID associated with this file.
+  @override
   final int id;
 
   /// The path of the file.
+  @override
   final String name;
 
   /// The total number of bytes read from this file.
@@ -939,6 +943,7 @@ class OpenFileList extends Response {
         _files = List<OpenFileRef>.from(
             createServiceObject(json['files'], const ['OpenFileRef']) as List);
 
+  @override
   String get type => 'OpenFileList';
 
   /// A list of all files opened through dart:io on a given isolate.

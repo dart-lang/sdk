@@ -6,10 +6,10 @@ library src_gen_common;
 
 import 'package:markdown/markdown.dart';
 
-const int RUNE_SPACE = 32;
-const int RUNE_EOL = 10;
-const int RUNE_LEFT_CURLY = 123;
-const int RUNE_RIGHT_CURLY = 125;
+const int $space = 32;
+const int $eol = 10;
+const int $leftCurly = 123;
+const int $rightCurly = 125;
 
 final RegExp _wsRegexp = RegExp(r'\s+');
 
@@ -82,7 +82,7 @@ String _simpleWrap(String str, [int col = 80]) {
   while (str.length > col) {
     int index = col;
 
-    while (index > 0 && str.codeUnitAt(index) != RUNE_SPACE) {
+    while (index > 0 && str.codeUnitAt(index) != $space) {
       index--;
     }
 

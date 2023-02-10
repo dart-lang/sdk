@@ -85,7 +85,7 @@ String? _coerceRefType(String? typeName) {
   if (typeName == '@Object') typeName = 'ObjRef';
   if (typeName == 'Function') typeName = 'Func';
   if (typeName == '@Function') typeName = 'FuncRef';
-  if (typeName!.startsWith('@')) typeName = typeName.substring(1) + 'Ref';
+  if (typeName!.startsWith('@')) typeName = '${typeName.substring(1)}Ref';
   if (typeName == 'string') typeName = 'String';
   if (typeName == 'bool') typeName = 'boolean';
   if (typeName == 'num') typeName = 'BigDecimal';
@@ -103,8 +103,10 @@ class Api extends Member with ApiParseUtil {
   Map<String, List<String>> streamIdMap = {};
   final String scriptLocation;
 
+  @override
   String? get docs => null;
 
+  @override
   String get name => 'api';
 
   Api(this.scriptLocation);
@@ -194,7 +196,7 @@ class Api extends Member with ApiParseUtil {
         JavaMethodArg('responseType', 'String'),
         JavaMethodArg('json', 'JsonObject')
       ], (StatementWriter writer) {
-        var generatedForwards = Set<String>();
+        var generatedForwards = <String>{};
 
         var sorted = methods.toList()
           ..sort((m1, m2) {
@@ -319,7 +321,7 @@ class Api extends Member with ApiParseUtil {
     } else if (definition.startsWith('enum ')) {
       enums.add(Enum(name, scriptLocation, definition, docs));
     } else {
-      throw 'unexpected entity: ${name}, ${definition}';
+      throw 'unexpected entity: $name, $definition';
     }
   }
 
@@ -360,14 +362,16 @@ class Api extends Member with ApiParseUtil {
       if (n.tag != 'h3') return n.tag;
       return '${n.tag}:[${n.children!.map((c) => printNode(c)).join(', ')}]';
     } else {
-      return '${n}';
+      return '$n';
     }
   }
 }
 
 class Enum extends Member {
+  @override
   final String name;
   final String scriptLocation;
+  @override
   final String? docs;
 
   List<EnumValue> enums = [];
@@ -423,7 +427,9 @@ class EnumParser extends Parser {
 
 class EnumValue extends Member {
   final Enum parent;
+  @override
   final String? name;
+  @override
   final String? docs;
 
   EnumValue(this.parent, this.name, [this.docs]);
@@ -438,6 +444,7 @@ abstract class Member {
 
   String? get name;
 
+  @override
   String toString() => name!;
 }
 
@@ -456,6 +463,7 @@ class MemberType extends Member {
 
   bool get isValueAndSentinel => types.length == 2 && hasSentinel;
 
+  @override
   String? get name {
     if (types.isEmpty) return '';
     if (types.length == 1) return types.first.ref;
@@ -486,7 +494,9 @@ class MemberType extends Member {
       while (parser.consume('[')) {
         parser.expect(']');
         if (isMulti) {
-          types.forEach((t) => t.arrayDepth++);
+          for (var t in types) {
+            t.arrayDepth++;
+          }
         } else {
           ref.arrayDepth++;
         }
@@ -498,8 +508,10 @@ class MemberType extends Member {
 }
 
 class Method extends Member {
+  @override
   final String name;
   final String scriptLocation;
+  @override
   final String? docs;
 
   MemberType returnType = MemberType();
@@ -595,7 +607,7 @@ class Method extends Member {
       for (MethodArg arg in args) {
         if (!includeOptional && arg.optional) continue;
         var argName = arg.name;
-        String op = arg.optional ? 'if (${argName} != null) ' : '';
+        String op = arg.optional ? 'if ($argName != null) ' : '';
         if (arg.isEnumType) {
           writer
               .addLine('${op}params.addProperty("$argName", $argName.name());');
@@ -625,7 +637,9 @@ class Method extends Member {
 class MethodArg extends Member {
   final Method parent;
   final TypeRef type;
+  @override
   String? name;
+  @override
   String? docs;
   bool optional = false;
 
@@ -712,8 +726,10 @@ class TextOutputVisitor implements NodeVisitor {
 
   TextOutputVisitor();
 
+  @override
   String toString() => buf.toString().trim();
 
+  @override
   bool visitElementBefore(Element element) {
     if (element.tag == 'em') {
       buf.write('[');
@@ -732,12 +748,14 @@ class TextOutputVisitor implements NodeVisitor {
     return true;
   }
 
+  @override
   void visitText(Text text) {
     String? t = text.text;
     if (_inRef) t = _coerceRefType(t);
     buf.write(t);
   }
 
+  @override
   void visitElementAfter(Element element) {
     if (element.tag == 'em') {
       buf.write(']');
@@ -758,8 +776,10 @@ class Type extends Member {
   final Api parent;
   final String scriptLocation;
   String? rawName;
+  @override
   String? name;
   String? superName;
+  @override
   final String? docs;
   List<TypeField> fields = [];
 
@@ -879,6 +899,7 @@ class TypeField extends Member {
   final Type parent;
   final String? _docs;
   MemberType type = MemberType();
+  @override
   String? name;
   bool optional = false;
   String? defaultValue;
@@ -900,11 +921,12 @@ class TypeField extends Member {
     return 'get${titleCase(remappedName!)}';
   }
 
+  @override
   String? get docs {
     String str = _docs == null ? '' : _docs!;
     if (type.isMultipleReturns) {
       str += '\n\n@return one of '
-          '${joinLast(type.types.map((t) => '<code>${t}</code>'), ', ', ' or ')}';
+          '${joinLast(type.types.map((t) => '<code>$t</code>'), ', ', ' or ')}';
       str = str.trim();
     }
     if (optional) {
@@ -923,9 +945,9 @@ class TypeField extends Member {
         for (TypeRef t in type.types) {
           String refName = t.name!;
           if (refName.endsWith('Ref')) {
-            refName = '@' + refName.substring(0, refName.length - 3);
+            refName = '@${refName.substring(0, refName.length - 3)}';
           }
-          w.addLine('if (elem.get("type").getAsString().equals("${refName}")) '
+          w.addLine('if (elem.get("type").getAsString().equals("$refName")) '
               'return new ${t.name}(elem);');
         }
         w.addLine('return null;');
@@ -1023,11 +1045,11 @@ class TypeRef {
     if (genericTypes != null) {
       return '$name<${genericTypes!.join(', ')}>';
     } else if (isSimple) {
-      if (arrayDepth == 2) return 'List<List<${javaBoxedName}>>';
-      if (arrayDepth == 1) return 'List<${javaBoxedName}>';
+      if (arrayDepth == 2) return 'List<List<$javaBoxedName>>';
+      if (arrayDepth == 1) return 'List<$javaBoxedName>';
     } else {
-      if (arrayDepth == 2) return 'ElementList<ElementList<${javaBoxedName}>>';
-      if (arrayDepth == 1) return 'ElementList<${javaBoxedName}>';
+      if (arrayDepth == 2) return 'ElementList<ElementList<$javaBoxedName>>';
+      if (arrayDepth == 1) return 'ElementList<$javaBoxedName>';
     }
     return name;
   }
@@ -1161,5 +1183,6 @@ class TypeRef {
     }
   }
 
+  @override
   String toString() => ref!;
 }

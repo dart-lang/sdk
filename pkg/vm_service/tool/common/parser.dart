@@ -21,6 +21,7 @@ class Token {
 
   bool get isComment => text != null && text!.startsWith('//');
 
+  @override
   String toString() => text == null ? 'EOF' : text!;
 }
 
@@ -70,7 +71,7 @@ class Tokenizer {
 
   void _emit(String? value) {
     Token token = Token(value);
-    if (_head == null) _head = token;
+    _head ??= token;
     if (_last != null) _last!.next = token;
     _last = token;
   }
@@ -80,16 +81,17 @@ class Tokenizer {
     return i < text.length ? text[i] : String.fromCharCodes([0]);
   }
 
+  @override
   String toString() {
     StringBuffer buf = StringBuffer();
 
     Token t = _head!;
 
-    buf.write('[${t}]\n');
+    buf.write('[$t]\n');
 
     while (!t.eof) {
       t = t.next!;
-      buf.write('[${t}]\n');
+      buf.write('[$t]\n');
     }
 
     return buf.toString().trim();
@@ -105,7 +107,7 @@ abstract class Parser {
 
   Token expect(String text) {
     Token t = advance()!;
-    if (text != t.text) fail('expected ${text}, got ${t}');
+    if (text != t.text) fail('expected $text, got $t');
     return t;
   }
 
@@ -126,7 +128,7 @@ abstract class Parser {
 
   Token expectName() {
     Token t = advance()!;
-    if (!t.isName) fail('expected name token, got ${t}');
+    if (!t.isName) fail('expected name token, got $t');
     return t;
   }
 
@@ -154,7 +156,7 @@ abstract class Parser {
       } else if (str.isEmpty) {
         buf.write('\n\n');
       } else {
-        buf.write('${str} ');
+        buf.write('$str ');
       }
     }
 
@@ -185,7 +187,7 @@ abstract class Parser {
   }
 
   void validate(bool result, String message) {
-    if (!result) throw 'expected ${message}';
+    if (!result) throw 'expected $message';
   }
 
   void fail(String message) => throw message;
