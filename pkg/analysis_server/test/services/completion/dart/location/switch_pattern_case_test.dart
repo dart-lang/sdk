@@ -28,6 +28,72 @@ class SwitchPatternCaseTest2 extends AbstractCompletionDriverTest
 }
 
 mixin SwitchPatternCaseTestCases on AbstractCompletionDriverTest {
+  Future<void> test_afterCase() async {
+    await computeSuggestions('''
+void f(Object o) {
+  switch (o) {
+    case ^
+  }
+}
+
+class A01 {}
+''');
+    assertResponse('''
+suggestions
+  A01
+    kind: class
+  const
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
+  var
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterCase_partial() async {
+    await computeSuggestions('''
+void f(Object x) {
+  switch (x) {
+    case tr^
+  }
+}
+''');
+    if (isProtocolVersion2) {
+      assertResponse('''
+replacement
+  left: 2
+suggestions
+  true
+    kind: keyword
+''');
+    } else {
+      assertResponse('''
+replacement
+  left: 2
+suggestions
+  const
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
+  var
+    kind: keyword
+''');
+    }
+  }
+
   Future<void> test_afterColon() async {
     await computeSuggestions('''
 void f(Object o) {
@@ -79,6 +145,44 @@ suggestions
 ''');
   }
 
+  Future<void> test_afterFinal() async {
+    await computeSuggestions('''
+void f(Object x) {
+  switch (x) {
+    case final ^
+  }
+}
+class A01 {}
+class A02 {}
+class B01 {}
+''');
+    assertResponse('''
+suggestions
+  A01
+    kind: class
+  A02
+    kind: class
+  B01
+    kind: class
+''');
+  }
+
+  Future<void> test_afterVar() async {
+    await computeSuggestions('''
+void f(Object x) {
+  switch (x) {
+    case var ^
+  }
+}
+class A01 {}
+class A02 {}
+class B01 {}
+''');
+    assertResponse('''
+suggestions
+''');
+  }
+
   Future<void> test_beforeColon_afterAs_afterDeclaration() async {
     await computeSuggestions('''
 void f(Object o) {
@@ -87,10 +191,20 @@ void f(Object o) {
       return;
   }
 }
+class A01 {}
+class A02 {}
+class B01 {}
 ''');
-    // TODO(brianwilkerson) This should include `dynamic` and types.
     assertResponse('''
 suggestions
+  A01
+    kind: class
+  A02
+    kind: class
+  B01
+    kind: class
+  dynamic
+    kind: keyword
 ''');
   }
 
@@ -103,10 +217,20 @@ void f(Object o) {
       return;
   }
 }
+class A01 {}
+class A02 {}
+class B01 {}
 ''');
-    // TODO(brianwilkerson) This should include `dynamic` and types.
     assertResponse('''
 suggestions
+  A01
+    kind: class
+  A02
+    kind: class
+  B01
+    kind: class
+  dynamic
+    kind: keyword
 ''');
   }
 
@@ -279,27 +403,6 @@ suggestions
   as
     kind: keyword
   when
-    kind: keyword
-''');
-  }
-
-  Future<void> test_beforeColon_empty() async {
-    await computeSuggestions('''
-void f(Object o) {
-  switch (o) {
-    case ^
-  }
-}
-''');
-    assertResponse('''
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  true
     kind: keyword
 ''');
   }
