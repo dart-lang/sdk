@@ -275,7 +275,9 @@ class MemberData {
   /// Returns the index corresponding to [ir.TreeNode] in this member.
   int getIndexByTreeNode(ir.TreeNode node) {
     _ensureMaps();
-    return _nodeToIndexMap![node]!;
+    return _nodeToIndexMap![node] ??
+        (throw StateError(
+            'getIndexByTreeNode ${node.runtimeType} in member ${this.node}'));
   }
 
   @override
