@@ -35,7 +35,6 @@ final testSuiteDirectories = [
   Path('runtime/observatory_2/tests/service_2'),
   Path('runtime/tests/vm'),
   Path('samples'),
-  Path('samples-dev'),
   Path('tests/corelib'),
   Path('tests/corelib_2'),
   Path('tests/dartdevc'),

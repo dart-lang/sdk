@@ -7,6 +7,8 @@
       "options": {
         "compiler": "dartkp"
       }
-    }
+    },
+    "vm-legacy": {},
+    "vm-strong": {}
   }
 }

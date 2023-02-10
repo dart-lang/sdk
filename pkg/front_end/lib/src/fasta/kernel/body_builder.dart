@@ -688,14 +688,14 @@ class BodyBuilder extends StackListenerImpl
     if (node is Pattern) {
       return node;
     } else if (node is Generator) {
-      return new ExpressionPattern(node.buildSimpleRead());
+      return new ConstantPattern(node.buildSimpleRead());
     } else if (node is Expression) {
-      return new ExpressionPattern(node);
+      return new ConstantPattern(node);
     } else if (node is ProblemBuilder) {
       // ignore: unused_local_variable
       Expression expression =
           buildProblem(node.message, node.charOffset, noLength);
-      return new ExpressionPattern(expression);
+      return new ConstantPattern(expression);
     } else {
       return unhandled("${node.runtimeType}", "toPattern", -1, uri);
     }
@@ -7854,7 +7854,7 @@ class BodyBuilder extends StackListenerImpl
           List<PatternGuard> patterns = new List<PatternGuard>.generate(
               switchCase.expressions.length, (int index) {
             return new PatternGuard(
-                new ExpressionPattern(switchCase.expressions[index]));
+                new ConstantPattern(switchCase.expressions[index]));
           });
           patternSwitchCase = new PatternSwitchCase(
               switchCase.fileOffset,
