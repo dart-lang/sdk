@@ -2,6 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// ignore_for_file: implementation_imports, constant_identifier_names
+
+// front_end/src imports below that require lint `ignore_for_file` are a
+// temporary state of things until frontend team builds better api that would
+// replace api used below. This api was made private in an effort to discourage
+// further use.
+
 library frontend_server;
 
 import 'dart:async';
@@ -16,14 +23,9 @@ import 'package:dev_compiler/dev_compiler.dart'
         ExpressionCompiler,
         parseModuleFormat,
         ProgramCompiler;
-
-// front_end/src imports below that require lint `ignore_for_file`
-// are a temporary state of things until frontend team builds better api
-// that would replace api used below. This api was made private in
-// an effort to discourage further use.
-import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as ddc
     show IncrementalCompiler;
+import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:front_end/widget_cache.dart';
 import 'package:kernel/ast.dart' show Library, Procedure, LibraryDependency;
 import 'package:kernel/binary/ast_to_binary.dart';
@@ -32,7 +34,6 @@ import 'package:kernel/kernel.dart'
 import 'package:kernel/target/targets.dart' show targets, TargetFlags;
 import 'package:package_config/package_config.dart';
 import 'package:usage/uuid/uuid.dart';
-
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
 import 'package:vm/kernel_front_end.dart';
 import 'package:vm/target_os.dart'; // For possible --target-os values.
@@ -279,7 +280,7 @@ abstract class CompilerInterface {
 
   /// Assuming some Dart program was previously compiled, recompile it again
   /// taking into account some changed(invalidated) sources.
-  Future<Null> recompileDelta({String? entryPoint});
+  Future<void> recompileDelta({String? entryPoint});
 
   /// Accept results of previous compilation so that next recompilation cycle
   /// won't recompile sources that were previously reported as changed.
@@ -305,7 +306,7 @@ abstract class CompilerInterface {
   /// If [klass] is [null],expression is compiled at top-level of
   /// [libraryUrl] library. If [klass] is not [null], [isStatic] determines
   /// whether expression can refer to [this] or not.
-  Future<Null> compileExpression(
+  Future<void> compileExpression(
       String expression,
       List<String> definitions,
       List<String> definitionTypes,
@@ -335,7 +336,7 @@ abstract class CompilerInterface {
   /// variable name is the name originally used in JavaScript to contain the
   /// module object, for example:
   /// { 'dart':'dart_sdk', 'main': '/packages/hello_world_main.dart' }
-  Future<Null> compileExpressionToJs(
+  Future<void> compileExpressionToJs(
       String libraryUri,
       int line,
       int column,
@@ -370,17 +371,17 @@ class FrontendCompiler implements CompilerInterface {
       this.emitDebugMetadata = false,
       this.emitDebugSymbols = false})
       : _outputStream = outputStream ?? stdout,
-        printerFactory = printerFactory ?? new BinaryPrinterFactory();
+        printerFactory = printerFactory ?? BinaryPrinterFactory();
 
   /// Fields with initializers
   final List<String> errors = <String>[];
-  Set<Uri> previouslyReportedDependencies = Set<Uri>();
+  Set<Uri> previouslyReportedDependencies = <Uri>{};
 
   /// Initialized in the constructor
   bool emitDebugMetadata;
   bool emitDebugSymbols;
   bool incrementalSerialization;
-  StringSink _outputStream;
+  final StringSink _outputStream;
   BinaryPrinterFactory printerFactory;
   bool useDebuggerModuleNames;
 
@@ -782,16 +783,16 @@ class FrontendCompiler implements CompilerInterface {
     }
   }
 
-  Future<Null> invalidateIfInitializingFromDill() async {
-    if (_assumeInitializeFromDillUpToDate) return null;
-    if (_kernelBinaryFilename != _kernelBinaryFilenameFull) return null;
+  Future<void> invalidateIfInitializingFromDill() async {
+    if (_assumeInitializeFromDillUpToDate) return;
+    if (_kernelBinaryFilename != _kernelBinaryFilenameFull) return;
     // If the generator is initialized, it's not going to initialize from dill
     // again anyway, so there's no reason to spend time invalidating what should
     // be invalidated by the normal approach anyway.
-    if (_generator.initialized) return null;
+    if (_generator.initialized) return;
 
     final File f = File(_initializeFromDill);
-    if (!f.existsSync()) return null;
+    if (!f.existsSync()) return;
 
     Component component;
     try {
@@ -799,7 +800,7 @@ class FrontendCompiler implements CompilerInterface {
     } catch (e) {
       // If we cannot load the dill file we shouldn't initialize from it.
       _generator = _createGenerator(null);
-      return null;
+      return;
     }
 
     nextUri:
@@ -841,7 +842,7 @@ class FrontendCompiler implements CompilerInterface {
   }
 
   @override
-  Future<Null> recompileDelta({String? entryPoint}) async {
+  Future<void> recompileDelta({String? entryPoint}) async {
     final String boundaryKey = Uuid().generateV4();
     _outputStream.writeln('result $boundaryKey');
     await invalidateIfInitializingFromDill();
@@ -880,7 +881,7 @@ class FrontendCompiler implements CompilerInterface {
   }
 
   @override
-  Future<Null> compileExpression(
+  Future<void> compileExpression(
       String expression,
       List<String> definitions,
       List<String> definitionTypes,
@@ -924,7 +925,7 @@ class FrontendCompiler implements CompilerInterface {
   final Map<String, ProgramCompiler> cachedProgramCompilers = {};
 
   @override
-  Future<Null> compileExpressionToJs(
+  Future<void> compileExpressionToJs(
       String libraryUri,
       int line,
       int column,
@@ -957,7 +958,7 @@ class FrontendCompiler implements CompilerInterface {
 
     _processedOptions.ticker.logMs('Computed component');
 
-    final expressionCompiler = new ExpressionCompiler(
+    final expressionCompiler = ExpressionCompiler(
       _compilerOptions,
       parseModuleFormat(_options['dartdevc-module-format'] as String),
       errors,
@@ -999,7 +1000,7 @@ class FrontendCompiler implements CompilerInterface {
   /// Map of already serialized dill data. All uris in a serialized component
   /// maps to the same blob of data. Used by
   /// [writePackagesToSinkAndTrimComponent].
-  Map<Uri, List<int>> cachedPackageLibraries = Map<Uri, List<int>>();
+  Map<Uri, List<int>> cachedPackageLibraries = <Uri, List<int>>{};
 
   /// Map of dependencies for already serialized dill data.
   /// E.g. if blob1 dependents on blob2, but only using a single file from blob1
@@ -1007,7 +1008,7 @@ class FrontendCompiler implements CompilerInterface {
   /// dill file in a weird state that could cause the VM to crash if asked to
   /// forcefully compile everything. Used by
   /// [writePackagesToSinkAndTrimComponent].
-  Map<Uri, List<Uri>> cachedPackageDependencies = Map<Uri, List<Uri>>();
+  Map<Uri, List<Uri>> cachedPackageDependencies = <Uri, List<Uri>>{};
 
   writePackagesToSinkAndTrimComponent(
       Component deltaProgram, Sink<List<int>> ioSink) {
@@ -1027,8 +1028,8 @@ class FrontendCompiler implements CompilerInterface {
       ..clear()
       ..addAll(libraries);
 
-    Map<String, List<Library>> newPackages = Map<String, List<Library>>();
-    Set<List<int>> alreadyAdded = Set<List<int>>();
+    Map<String, List<Library>> newPackages = <String, List<Library>>{};
+    Set<List<int>> alreadyAdded = <List<int>>{};
 
     addDataAndDependentData(List<int> data, Uri uri) {
       if (alreadyAdded.add(data)) {
@@ -1062,11 +1063,11 @@ class FrontendCompiler implements CompilerInterface {
       printer.writeComponentFile(singleLibrary);
 
       // Record things this package blob dependent on.
-      Set<Uri> libraryUris = Set<Uri>();
+      Set<Uri> libraryUris = <Uri>{};
       for (Library lib in libraries) {
         libraryUris.add(lib.fileUri);
       }
-      Set<Uri> deps = Set<Uri>();
+      Set<Uri> deps = <Uri>{};
       for (Library lib in libraries) {
         for (LibraryDependency dep in lib.dependencies) {
           Library dependencyLibrary = dep.importedLibraryReference.asLibrary;
@@ -1156,7 +1157,7 @@ class FrontendCompiler implements CompilerInterface {
 
   /// Runs the given function [f] in a Zone that redirects all prints into
   /// [_outputStream].
-  Future<T> _runWithPrintRedirection<T>(Future<T> f()) {
+  Future<T> _runWithPrintRedirection<T>(Future<T> Function() f) {
     return runZoned(() => Future<T>(f),
         zoneSpecification: ZoneSpecification(
             print: (Zone self, ZoneDelegate parent, Zone zone, String line) =>
@@ -1168,10 +1169,12 @@ class FrontendCompiler implements CompilerInterface {
 class ByteSink implements Sink<List<int>> {
   final BytesBuilder builder = BytesBuilder();
 
+  @override
   void add(List<int> data) {
     builder.add(data);
   }
 
+  @override
   void close() {}
 }
 

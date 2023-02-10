@@ -9,7 +9,7 @@ import 'dart:io';
 
 import 'package:frontend_server/starter.dart';
 
-Future<Null> main(List<String> args) async {
+Future<void> main(List<String> args) async {
   exitCode = await starter(args);
   if (exitCode != 0) {
     exit(exitCode);

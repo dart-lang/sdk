@@ -2,10 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:kernel/ast.dart';
-import 'package:kernel/util/graph.dart';
+// ignore_for_file: implementation_imports
 
 import 'package:front_end/src/api_unstable/vm.dart' show FileSystem;
+import 'package:kernel/ast.dart';
+import 'package:kernel/util/graph.dart';
 
 /// Compute the strongly connected components for JavaScript compilation.
 ///
@@ -79,7 +80,7 @@ class StrongComponents {
     }
 
     if (entrypoint == null) {
-      throw Exception('Could not find entrypoint ${mainUri} in Component.');
+      throw Exception('Could not find entrypoint $mainUri in Component.');
     }
 
     final List<List<Library>> results = computeStrongComponents(
