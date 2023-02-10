@@ -120,6 +120,7 @@ class _JSLowerer extends Transformer {
   final Procedure _jsifyRawTarget;
   final Procedure _isDartFunctionWrappedTarget;
   final Procedure _wrapDartFunctionTarget;
+  final Procedure _jsObjectFromDartObjectTarget;
   final Procedure _jsValueBoxTarget;
   final Procedure _jsValueUnboxTarget;
   final Procedure _allowInteropTarget;
@@ -151,6 +152,8 @@ class _JSLowerer extends Transformer {
             .getTopLevelProcedure('dart:_js_helper', '_isDartFunctionWrapped'),
         _wrapDartFunctionTarget = _coreTypes.index
             .getTopLevelProcedure('dart:_js_helper', '_wrapDartFunction'),
+        _jsObjectFromDartObjectTarget = _coreTypes.index
+            .getTopLevelProcedure('dart:_js_helper', 'jsObjectFromDartObject'),
         _jsValueConstructor = _coreTypes.index
             .getClass('dart:_js_helper', 'JSValue')
             .constructors
@@ -606,7 +609,11 @@ class _JSLowerer extends Transformer {
                 Arguments([
                   VariableGet(v),
                   StaticInvocation(
-                      jsWrapperFunction, Arguments([VariableGet(v)])),
+                      jsWrapperFunction,
+                      Arguments([
+                        StaticInvocation(_jsObjectFromDartObjectTarget,
+                            Arguments([VariableGet(v)]))
+                      ])),
                 ], types: [
                   type
                 ])),
@@ -625,7 +632,12 @@ class _JSLowerer extends Transformer {
     return ConstructorInvocation(
         _jsValueConstructor,
         Arguments([
-          StaticInvocation(jsWrapperFunction, Arguments([argument]))
+          StaticInvocation(
+              jsWrapperFunction,
+              Arguments([
+                StaticInvocation(
+                    _jsObjectFromDartObjectTarget, Arguments([argument]))
+              ]))
         ]));
   }
 
