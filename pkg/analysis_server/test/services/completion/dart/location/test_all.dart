@@ -22,6 +22,7 @@ import 'object_pattern_test.dart' as object_pattern;
 import 'record_literal_test.dart' as record_literal;
 import 'record_pattern_test.dart' as record_pattern;
 import 'record_type_annotation_test.dart' as record_type_annotation;
+import 'relational_pattern_test.dart' as relational_pattern;
 import 'super_formal_parameter_test.dart' as super_formal_parameter;
 import 'switch_pattern_case_test.dart' as switch_pattern_case;
 import 'type_argument_list_test.dart' as type_argument_list;
@@ -48,6 +49,7 @@ void main() {
     record_literal.main();
     record_pattern.main();
     record_type_annotation.main();
+    relational_pattern.main();
     super_formal_parameter.main();
     switch_pattern_case.main();
     type_argument_list.main();

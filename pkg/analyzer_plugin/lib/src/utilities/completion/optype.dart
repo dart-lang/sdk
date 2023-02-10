@@ -1262,8 +1262,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         optype.includeTypeNameSuggestions = true;
         return;
       }
-      // TODO(brianwilkerson) Suggest things valid for a constant expression.
       optype.completionLocation = 'RelationalPattern_operand';
+      optype.includeTypeNameSuggestions = true;
+      optype.includeVarNameSuggestions = true;
       optype.mustBeConst = true;
     }
   }
