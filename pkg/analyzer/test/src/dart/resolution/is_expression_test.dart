@@ -40,6 +40,7 @@ IsExpression
         guardedPattern: GuardedPattern
           pattern: WildcardPattern
             name: _
+            matchedValueType: Object?
         arrow: =>
         expression: IntegerLiteral
           literal: 0

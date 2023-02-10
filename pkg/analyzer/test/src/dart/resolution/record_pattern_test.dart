@@ -58,6 +58,7 @@ RecordPattern
         name: y
         declaredElement: hasImplicitType y@46
           type: dynamic
+        matchedValueType: dynamic
       element: <null>
   rightParenthesis: )
   matchedValueType: dynamic
@@ -86,6 +87,7 @@ RecordPattern
         name: y
         declaredElement: hasImplicitType y@41
           type: dynamic
+        matchedValueType: dynamic
       element: <null>
   rightParenthesis: )
   matchedValueType: dynamic
@@ -132,6 +134,7 @@ RecordPattern
         expression: IntegerLiteral
           literal: 0
           staticType: int
+        matchedValueType: Object?
       element: <null>
   rightParenthesis: )
   matchedValueType: Object?
@@ -168,6 +171,7 @@ RecordPattern
         name: y
         declaredElement: y@54
           type: int
+        matchedValueType: Object?
       element: <null>
   rightParenthesis: )
   matchedValueType: Object?
@@ -199,6 +203,7 @@ RecordPattern
         name: y
         declaredElement: hasImplicitType y@54
           type: Object?
+        matchedValueType: Object?
       element: <null>
   rightParenthesis: )
   matchedValueType: Object?
@@ -224,6 +229,7 @@ RecordPattern
         expression: IntegerLiteral
           literal: 0
           staticType: int
+        matchedValueType: Object?
       element: <null>
   rightParenthesis: )
   matchedValueType: Object?
@@ -257,6 +263,7 @@ RecordPattern
         name: y
         declaredElement: y@49
           type: int
+        matchedValueType: Object?
       element: <null>
   rightParenthesis: )
   matchedValueType: Object?
@@ -285,6 +292,7 @@ RecordPattern
         name: y
         declaredElement: hasImplicitType y@49
           type: Object?
+        matchedValueType: Object?
       element: <null>
   rightParenthesis: )
   matchedValueType: Object?
@@ -317,6 +325,7 @@ RecordPattern
         name: b
         declaredElement: hasImplicitType b@47
           type: Object?
+        matchedValueType: Object?
       element: <null>
   rightParenthesis: )
   matchedValueType: ()
@@ -348,6 +357,7 @@ RecordPattern
         name: a
         declaredElement: hasImplicitType a@46
           type: Object?
+        matchedValueType: Object?
       element: <null>
   rightParenthesis: )
   matchedValueType: ()
@@ -378,6 +388,7 @@ RecordPattern
         name: a
         declaredElement: hasImplicitType a@53
           type: Object?
+        matchedValueType: Object?
       element: <null>
   rightParenthesis: )
   matchedValueType: ({int b})
@@ -408,6 +419,7 @@ RecordPattern
         name: a
         declaredElement: hasImplicitType a@60
           type: Object?
+        matchedValueType: Object?
       element: <null>
   rightParenthesis: )
   matchedValueType: ({int a, int b})
@@ -437,6 +449,7 @@ RecordPattern
         name: a
         declaredElement: hasImplicitType a@44
           type: Object?
+        matchedValueType: Object?
       element: <null>
   rightParenthesis: )
   matchedValueType: ()
@@ -465,6 +478,7 @@ RecordPattern
         name: a
         declaredElement: hasImplicitType a@55
           type: Object?
+        matchedValueType: Object?
       element: <null>
   rightParenthesis: )
   matchedValueType: (int, String)
@@ -514,6 +528,7 @@ RecordPattern
         name: a
         declaredElement: hasImplicitType a@69
           type: int
+        matchedValueType: int
       element: <null>
     PatternField
       name: PatternFieldName
@@ -524,6 +539,7 @@ RecordPattern
         name: b
         declaredElement: hasImplicitType b@81
           type: String
+        matchedValueType: String
       element: <null>
     PatternField
       pattern: DeclaredVariablePattern
@@ -531,6 +547,7 @@ RecordPattern
         name: c
         declaredElement: hasImplicitType c@88
           type: double
+        matchedValueType: double
       element: <null>
   rightParenthesis: )
   matchedValueType: (int, double, {String foo})
@@ -562,6 +579,7 @@ RecordPattern
         name: a
         declaredElement: hasImplicitType a@58
           type: Object?
+        matchedValueType: Object?
       element: <null>
   rightParenthesis: )
   matchedValueType: ({int foo})
@@ -593,6 +611,7 @@ RecordPattern
         name: y
         declaredElement: hasImplicitType y@58
           type: int
+        matchedValueType: int
       element: <null>
   rightParenthesis: )
   matchedValueType: ({int foo})
@@ -622,6 +641,7 @@ RecordPattern
         expression: IntegerLiteral
           literal: 0
           staticType: int
+        matchedValueType: Object?
       element: <null>
   rightParenthesis: )
   matchedValueType: ({int foo})
@@ -652,6 +672,7 @@ RecordPattern
         name: foo
         declaredElement: hasImplicitType foo@55
           type: int
+        matchedValueType: int
       element: <null>
   rightParenthesis: )
   matchedValueType: ({int foo})
@@ -683,6 +704,7 @@ RecordPattern
           name: foo
           declaredElement: hasImplicitType foo@56
             type: int
+          matchedValueType: int
         asToken: as
         type: NamedType
           name: SimpleIdentifier
@@ -690,6 +712,7 @@ RecordPattern
             staticElement: dart:core::@class::int
             staticType: null
           type: int
+        matchedValueType: int?
       element: <null>
   rightParenthesis: )
   matchedValueType: ({int? foo})
@@ -721,7 +744,9 @@ RecordPattern
           name: foo
           declaredElement: hasImplicitType foo@56
             type: int
+          matchedValueType: int
         operator: !
+        matchedValueType: int?
       element: <null>
   rightParenthesis: )
   matchedValueType: ({int? foo})
@@ -753,7 +778,9 @@ RecordPattern
           name: foo
           declaredElement: hasImplicitType foo@56
             type: int
+          matchedValueType: int
         operator: ?
+        matchedValueType: int?
       element: <null>
   rightParenthesis: )
   matchedValueType: ({int? foo})
@@ -782,6 +809,7 @@ RecordPattern
         name: a
         declaredElement: hasImplicitType a@48
           type: int
+        matchedValueType: int
       element: <null>
   rightParenthesis: )
   matchedValueType: (int)
@@ -809,12 +837,14 @@ PatternVariableDeclaration
           name: a
           declaredElement: hasImplicitType a@33
             type: int
+          matchedValueType: int
         element: <null>
       PatternField
         pattern: DeclaredVariablePattern
           name: b
           declaredElement: hasImplicitType b@36
             type: String
+          matchedValueType: String
         element: <null>
     rightParenthesis: )
     matchedValueType: (int, String)
@@ -856,6 +886,7 @@ PatternVariableDeclaration
           name: a
           declaredElement: a@22
             type: int
+          matchedValueType: int
         element: <null>
       PatternField
         pattern: DeclaredVariablePattern
@@ -868,6 +899,7 @@ PatternVariableDeclaration
           name: b
           declaredElement: b@32
             type: String
+          matchedValueType: String
         element: <null>
     rightParenthesis: )
     matchedValueType: (int, String)

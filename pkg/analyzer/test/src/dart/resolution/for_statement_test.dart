@@ -430,7 +430,9 @@ ForStatement
         name: a
         declaredElement: hasImplicitType a@24
           type: dynamic
+        matchedValueType: dynamic
       rightParenthesis: )
+      matchedValueType: dynamic
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -471,7 +473,9 @@ ForStatement
         name: a
         declaredElement: hasImplicitType a@34
           type: int
+        matchedValueType: int
       rightParenthesis: )
+      matchedValueType: int
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -514,7 +518,9 @@ ForStatement
         name: a
         declaredElement: hasImplicitType a@31
           type: dynamic
+        matchedValueType: dynamic
       rightParenthesis: )
+      matchedValueType: dynamic
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -563,7 +569,9 @@ ForStatement
         name: a
         declaredElement: a@27
           type: int
+        matchedValueType: int
       rightParenthesis: )
+      matchedValueType: int
     inKeyword: in
     iterable: MethodInvocation
       methodName: SimpleIdentifier
@@ -607,7 +615,9 @@ ForStatement
         name: a
         declaredElement: hasImplicitType a@23
           type: Object?
+        matchedValueType: Object?
       rightParenthesis: )
+      matchedValueType: Object?
     inKeyword: in
     iterable: MethodInvocation
       methodName: SimpleIdentifier
@@ -649,7 +659,9 @@ ForStatement
         name: a
         declaredElement: hasImplicitType isFinal a@36
           type: int
+        matchedValueType: int
       rightParenthesis: )
+      matchedValueType: int
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -696,7 +708,9 @@ ForStatement
         name: a
         declaredElement: a@38
           type: num
+        matchedValueType: int
       rightParenthesis: )
+      matchedValueType: int
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -742,7 +756,9 @@ ForStatement
         name: a
         declaredElement: hasImplicitType a@36
           type: dynamic
+        matchedValueType: dynamic
       rightParenthesis: )
+      matchedValueType: dynamic
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -786,7 +802,9 @@ ForStatement
         name: a
         declaredElement: hasImplicitType a@43
           type: dynamic
+        matchedValueType: dynamic
       rightParenthesis: )
+      matchedValueType: dynamic
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -828,7 +846,9 @@ ForStatement
         name: a
         declaredElement: hasImplicitType a@48
           type: int
+        matchedValueType: int
       rightParenthesis: )
+      matchedValueType: int
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -878,7 +898,9 @@ ForStatement
         name: a
         declaredElement: a@39
           type: int
+        matchedValueType: int
       rightParenthesis: )
+      matchedValueType: int
     inKeyword: in
     iterable: MethodInvocation
       methodName: SimpleIdentifier
@@ -930,7 +952,9 @@ ForStatement
         name: a
         declaredElement: hasImplicitType a@35
           type: Object?
+        matchedValueType: Object?
       rightParenthesis: )
+      matchedValueType: Object?
     inKeyword: in
     iterable: MethodInvocation
       methodName: SimpleIdentifier
@@ -980,7 +1004,9 @@ ForStatement
         name: a
         declaredElement: hasImplicitType isFinal a@50
           type: int
+        matchedValueType: int
       rightParenthesis: )
+      matchedValueType: int
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -1028,7 +1054,9 @@ ForStatement
         name: a
         declaredElement: a@52
           type: num
+        matchedValueType: int
       rightParenthesis: )
+      matchedValueType: int
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -1107,7 +1135,9 @@ ForStatement
         pattern: AssignedVariablePattern
           name: a
           element: a@17
+          matchedValueType: int
         rightParenthesis: )
+        matchedValueType: int
       equals: =
       expression: IntegerLiteral
         literal: 0
@@ -1160,12 +1190,14 @@ ForStatement
               name: a
               declaredElement: hasImplicitType a@36
                 type: int
+              matchedValueType: int
             element: <null>
           PatternField
             pattern: DeclaredVariablePattern
               name: b
               declaredElement: hasImplicitType b@39
                 type: bool
+              matchedValueType: bool
             element: <null>
         rightParenthesis: )
         matchedValueType: (int, bool)

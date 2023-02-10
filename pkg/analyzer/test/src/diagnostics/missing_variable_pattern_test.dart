@@ -35,6 +35,7 @@ GuardedPattern
     name: a
     declaredElement: hasImplicitType isFinal a@35
       type: int
+    matchedValueType: int
 ''');
 
     final node2 = findNode.caseClause('case final b').guardedPattern;
@@ -45,6 +46,7 @@ GuardedPattern
     name: b
     declaredElement: hasImplicitType isFinal b@61
       type: int
+    matchedValueType: int
 ''');
   }
 
@@ -67,6 +69,7 @@ GuardedPattern
     name: a
     declaredElement: hasImplicitType isFinal a@35
       type: int
+    matchedValueType: int
 ''');
 
     final node2 = findNode.caseClause('case final b').guardedPattern;
@@ -77,6 +80,7 @@ GuardedPattern
     name: b
     declaredElement: hasImplicitType isFinal b@60
       type: int
+    matchedValueType: int
 ''');
   }
 
@@ -97,12 +101,15 @@ LogicalOrPattern
     name: a
     declaredElement: hasImplicitType isFinal a@35
       type: int
+    matchedValueType: int
   operator: ||
   rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@46
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 
@@ -123,18 +130,23 @@ LogicalOrPattern
       expression: IntegerLiteral
         literal: 0
         staticType: int
+      matchedValueType: int
     operator: &&
     rightOperand: DeclaredVariablePattern
       keyword: final
       name: a
       declaredElement: hasImplicitType isFinal a@40
         type: int
+      matchedValueType: int
+    matchedValueType: int
   operator: ||
   rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@51
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 
@@ -161,11 +173,14 @@ LogicalOrPattern
     name: a
     declaredElement: isFinal a@39
       type: int
+    matchedValueType: num
   operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
       staticType: int
+    matchedValueType: num
+  matchedValueType: num
 ''');
   }
 
@@ -185,12 +200,15 @@ LogicalOrPattern
     expression: IntegerLiteral
       literal: 1
       staticType: int
+    matchedValueType: int
   operator: ||
   rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@40
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 
@@ -219,16 +237,21 @@ LogicalOrPattern
       name: a
       declaredElement: isFinal a@39
         type: int
+      matchedValueType: num
     operator: ||
     rightOperand: ConstantPattern
       expression: IntegerLiteral
         literal: 2
         staticType: int
+      matchedValueType: num
+    matchedValueType: num
   operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 3
       staticType: int
+    matchedValueType: num
+  matchedValueType: num
 ''');
   }
 
@@ -257,6 +280,7 @@ LogicalOrPattern
       name: a
       declaredElement: isFinal a@39
         type: int
+      matchedValueType: num
     operator: ||
     rightOperand: DeclaredVariablePattern
       keyword: final
@@ -269,11 +293,15 @@ LogicalOrPattern
       name: a
       declaredElement: isFinal a@54
         type: int
+      matchedValueType: num
+    matchedValueType: num
   operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 3
       staticType: int
+    matchedValueType: num
+  matchedValueType: num
 ''');
   }
 
@@ -296,18 +324,23 @@ LogicalOrPattern
       name: a
       declaredElement: hasImplicitType isFinal a@35
         type: int
+      matchedValueType: int
     operator: ||
     rightOperand: DeclaredVariablePattern
       keyword: final
       name: a
       declaredElement: hasImplicitType isFinal a@46
         type: int
+      matchedValueType: int
+    matchedValueType: int
   operator: ||
   rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@57
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 
@@ -336,11 +369,14 @@ LogicalOrPattern
       name: a
       declaredElement: isFinal a@39
         type: int
+      matchedValueType: num
     operator: ||
     rightOperand: ConstantPattern
       expression: IntegerLiteral
         literal: 2
         staticType: int
+      matchedValueType: num
+    matchedValueType: num
   operator: ||
   rightOperand: DeclaredVariablePattern
     keyword: final
@@ -353,6 +389,8 @@ LogicalOrPattern
     name: a
     declaredElement: isFinal a@59
       type: int
+    matchedValueType: num
+  matchedValueType: num
 ''');
   }
 
@@ -374,6 +412,7 @@ LogicalOrPattern
       expression: IntegerLiteral
         literal: 1
         staticType: int
+      matchedValueType: num
     operator: ||
     rightOperand: DeclaredVariablePattern
       keyword: final
@@ -386,11 +425,15 @@ LogicalOrPattern
       name: a
       declaredElement: isFinal a@44
         type: int
+      matchedValueType: num
+    matchedValueType: num
   operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 3
       staticType: int
+    matchedValueType: num
+  matchedValueType: num
 ''');
   }
 
@@ -412,18 +455,23 @@ LogicalOrPattern
       expression: IntegerLiteral
         literal: 1
         staticType: int
+      matchedValueType: int
     operator: ||
     rightOperand: DeclaredVariablePattern
       keyword: final
       name: a
       declaredElement: hasImplicitType isFinal a@40
         type: int
+      matchedValueType: int
+    matchedValueType: int
   operator: ||
   rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@51
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 
@@ -444,17 +492,22 @@ LogicalOrPattern
       expression: IntegerLiteral
         literal: 1
         staticType: int
+      matchedValueType: int
     operator: ||
     rightOperand: ConstantPattern
       expression: IntegerLiteral
         literal: 2
         staticType: int
+      matchedValueType: int
+    matchedValueType: int
   operator: ||
   rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@45
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 
@@ -478,12 +531,15 @@ LogicalOrPattern
     name: a
     declaredElement: hasImplicitType isFinal a@46
       type: int
+    matchedValueType: int
   operator: ||
   rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@57
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 
@@ -513,11 +569,14 @@ LogicalOrPattern
     name: a
     declaredElement: isFinal a@50
       type: int
+    matchedValueType: num
   operator: ||
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
       staticType: int
+    matchedValueType: num
+  matchedValueType: num
 ''');
   }
 
@@ -540,12 +599,15 @@ LogicalOrPattern
     expression: IntegerLiteral
       literal: 1
       staticType: int
+    matchedValueType: int
   operator: ||
   rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@51
       type: int
+    matchedValueType: int
+  matchedValueType: int
 ''');
   }
 
@@ -572,6 +634,7 @@ GuardedPattern
     name: a
     declaredElement: hasImplicitType isFinal a@52
       type: int
+    matchedValueType: int
 ''');
 
     final node2 = findNode.switchPatternCase('case /*2*/').guardedPattern;
@@ -582,6 +645,7 @@ GuardedPattern
     name: a
     declaredElement: hasImplicitType isFinal a@76
       type: int
+    matchedValueType: int
 ''');
   }
 

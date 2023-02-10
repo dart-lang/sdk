@@ -41,7 +41,9 @@ ListPattern
       name: a
       declaredElement: a@41
         type: int
+      matchedValueType: dynamic
   rightBracket: ]
+  matchedValueType: dynamic
   requiredType: List<dynamic>
 ''');
   }
@@ -67,7 +69,9 @@ ListPattern
       name: a
       declaredElement: hasImplicitType a@41
         type: dynamic
+      matchedValueType: dynamic
   rightBracket: ]
+  matchedValueType: dynamic
   requiredType: List<dynamic>
 ''');
   }
@@ -103,7 +107,9 @@ ListPattern
       name: a
       declaredElement: hasImplicitType a@46
         type: int
+      matchedValueType: int
   rightBracket: ]
+  matchedValueType: dynamic
   requiredType: List<int>
 ''');
   }
@@ -123,9 +129,11 @@ ListPattern
       expression: IntegerLiteral
         literal: 0
         staticType: int
+      matchedValueType: int
     RestPatternElement
       operator: ...
   rightBracket: ]
+  matchedValueType: List<int>
   requiredType: List<int>
 ''');
   }
@@ -147,6 +155,7 @@ ListPattern
       expression: IntegerLiteral
         literal: 0
         staticType: int
+      matchedValueType: int
     RestPatternElement
       operator: ...
       pattern: DeclaredVariablePattern
@@ -154,7 +163,9 @@ ListPattern
         name: rest
         declaredElement: hasImplicitType rest@46
           type: List<int>
+        matchedValueType: List<int>
   rightBracket: ]
+  matchedValueType: List<int>
   requiredType: List<int>
 ''');
   }
@@ -180,7 +191,9 @@ ListPattern
       name: a
       declaredElement: hasImplicitType a@51
         type: int
+      matchedValueType: int
   rightBracket: ]
+  matchedValueType: List<int>
   requiredType: List<int>
 ''');
   }
@@ -216,7 +229,9 @@ ListPattern
       name: a
       declaredElement: hasImplicitType a@56
         type: int
+      matchedValueType: int
   rightBracket: ]
+  matchedValueType: List<num>
   requiredType: List<int>
 ''');
   }
@@ -239,7 +254,9 @@ ListPattern
       expression: IntegerLiteral
         literal: 0
         staticType: int
+      matchedValueType: Object?
   rightBracket: ]
+  matchedValueType: Object
   requiredType: List<Object?>
 ''');
   }
@@ -258,6 +275,7 @@ void f(Object x) {
 ListPattern
   leftBracket: [
   rightBracket: ]
+  matchedValueType: Object
   requiredType: List<Object?>
 ''');
   }
@@ -288,7 +306,9 @@ ListPattern
       name: a
       declaredElement: a@48
         type: int
+      matchedValueType: Object?
   rightBracket: ]
+  matchedValueType: Object
   requiredType: List<Object?>
 ''');
   }
@@ -314,7 +334,9 @@ ListPattern
       name: a
       declaredElement: hasImplicitType a@48
         type: Object?
+      matchedValueType: Object?
   rightBracket: ]
+  matchedValueType: Object
   requiredType: List<Object?>
 ''');
   }
@@ -347,7 +369,9 @@ ListPattern
       expression: IntegerLiteral
         literal: 0
         staticType: int
+      matchedValueType: int
   rightBracket: ]
+  matchedValueType: Object
   requiredType: List<int>
 ''');
   }
@@ -388,7 +412,9 @@ ListPattern
       name: a
       declaredElement: a@53
         type: int
+      matchedValueType: num
   rightBracket: ]
+  matchedValueType: Object
   requiredType: List<num>
 ''');
   }
@@ -424,7 +450,9 @@ ListPattern
       name: a
       declaredElement: hasImplicitType a@53
         type: int
+      matchedValueType: int
   rightBracket: ]
+  matchedValueType: Object
   requiredType: List<int>
 ''');
   }
@@ -448,7 +476,9 @@ PatternVariableDeclaration
         name: a
         declaredElement: hasImplicitType a@29
           type: int
+        matchedValueType: int
     rightBracket: ]
+    matchedValueType: List<int>
     requiredType: List<int>
   equals: =
   expression: SimpleIdentifier
@@ -490,7 +520,9 @@ PatternVariableDeclaration
         name: a
         declaredElement: hasImplicitType a@23
           type: int
+        matchedValueType: int
     rightBracket: ]
+    matchedValueType: List<int>
     requiredType: List<int>
   equals: =
   expression: MethodInvocation
@@ -536,7 +568,9 @@ PatternVariableDeclaration
         name: a
         declaredElement: a@22
           type: int
+        matchedValueType: int
     rightBracket: ]
+    matchedValueType: List<int>
     requiredType: List<int>
   equals: =
   expression: MethodInvocation

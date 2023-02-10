@@ -119,6 +119,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writeNamedChildEntities(node);
       if (_withResolution) {
         writeElement('element', node.element);
+        _writePatternMatchedValueType(node);
       }
     });
   }
@@ -226,6 +227,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('CastPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writePatternMatchedValueType(node);
     });
   }
 
@@ -311,6 +313,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ConstantPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writePatternMatchedValueType(node);
     });
   }
 
@@ -399,6 +402,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
             _writeType('type', element.type);
           });
         }
+        _writePatternMatchedValueType(node);
       }
     });
   }
@@ -908,6 +912,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ListPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writePatternMatchedValueType(node);
       _writeType('requiredType', node.requiredType);
     });
   }
@@ -917,6 +922,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('LogicalAndPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writePatternMatchedValueType(node);
     });
   }
 
@@ -925,6 +931,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('LogicalOrPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writePatternMatchedValueType(node);
     });
   }
 
@@ -941,6 +948,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('MapPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writePatternMatchedValueType(node);
       _writeType('requiredType', node.requiredType);
     });
   }
@@ -1021,6 +1029,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('NullAssertPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writePatternMatchedValueType(node);
     });
   }
 
@@ -1029,6 +1038,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('NullCheckPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writePatternMatchedValueType(node);
     });
   }
 
@@ -1047,6 +1057,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ObjectPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writePatternMatchedValueType(node);
     });
   }
 
@@ -1073,6 +1084,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ParenthesizedPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writePatternMatchedValueType(node);
     });
   }
 
@@ -1210,7 +1222,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('RecordPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeType('matchedValueType', node.matchedValueType);
+      _writePatternMatchedValueType(node);
     });
   }
 
@@ -1267,6 +1279,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       _writeElement('element', node.element);
+      _writePatternMatchedValueType(node);
     });
   }
 
@@ -1577,6 +1590,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('WildcardPattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writePatternMatchedValueType(node);
     });
   }
 
@@ -1990,6 +2004,17 @@ Expected parent: (${parent.runtimeType}) $parent
 
   void _writePartElement(PartElement element) {
     _writeDirectiveUri(element.uri);
+  }
+
+  void _writePatternMatchedValueType(DartPattern node) {
+    if (_withResolution) {
+      final matchedValueType = node.matchedValueType;
+      if (matchedValueType != null) {
+        _writeType('matchedValueType', matchedValueType);
+      } else {
+        fail('No matchedValueType: $node');
+      }
+    }
   }
 
   void _writeRaw(String name, Object? value) {

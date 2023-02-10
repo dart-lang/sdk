@@ -31,6 +31,7 @@ CastPattern
     name: y
     declaredElement: hasImplicitType y@29
       type: int
+    matchedValueType: int
   asToken: as
   type: NamedType
     name: SimpleIdentifier
@@ -38,6 +39,7 @@ CastPattern
       staticElement: dart:core::@class::int
       staticType: null
     type: int
+  matchedValueType: dynamic
 ''');
   }
 
@@ -59,6 +61,7 @@ CastPattern
       token: a
       staticElement: a@20
       staticType: int
+    matchedValueType: int
   asToken: as
   type: NamedType
     name: SimpleIdentifier
@@ -66,6 +69,7 @@ CastPattern
       staticElement: dart:core::@class::int
       staticType: null
     type: int
+  matchedValueType: dynamic
 ''');
   }
 
@@ -88,6 +92,7 @@ PatternVariableDeclaration
         name: a
         declaredElement: hasImplicitType a@19
           type: int
+        matchedValueType: int
       asToken: as
       type: NamedType
         name: SimpleIdentifier
@@ -95,7 +100,9 @@ PatternVariableDeclaration
           staticElement: dart:core::@class::int
           staticType: null
         type: int
+      matchedValueType: dynamic
     rightParenthesis: )
+    matchedValueType: dynamic
   equals: =
   expression: SimpleIdentifier
     token: x

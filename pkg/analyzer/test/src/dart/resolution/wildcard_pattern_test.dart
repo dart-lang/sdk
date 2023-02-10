@@ -26,7 +26,9 @@ ParenthesizedPattern
   leftParenthesis: (
   pattern: WildcardPattern
     name: _
+    matchedValueType: int
   rightParenthesis: )
+  matchedValueType: int
 ''');
   }
 
@@ -48,7 +50,9 @@ ParenthesizedPattern
         staticType: null
       type: int
     name: _
+    matchedValueType: int
   rightParenthesis: )
+  matchedValueType: int
 ''');
   }
 
@@ -64,7 +68,9 @@ ParenthesizedPattern
   leftParenthesis: (
   pattern: WildcardPattern
     name: _
+    matchedValueType: int
   rightParenthesis: )
+  matchedValueType: int
 ''');
   }
 
@@ -84,6 +90,7 @@ WildcardPattern
       staticType: null
     type: int
   name: _
+  matchedValueType: dynamic
 ''');
   }
 
@@ -104,6 +111,7 @@ WildcardPattern
       staticType: null
     type: int
   name: _
+  matchedValueType: dynamic
 ''');
   }
 
@@ -117,6 +125,7 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 WildcardPattern
   name: _
+  matchedValueType: dynamic
 ''');
   }
 
@@ -131,6 +140,7 @@ void f(x) {
 WildcardPattern
   keyword: final
   name: _
+  matchedValueType: dynamic
 ''');
   }
 }

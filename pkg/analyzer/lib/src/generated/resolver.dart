@@ -799,6 +799,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void dispatchPattern(SharedMatchContext context, AstNode node) {
     if (node is DartPatternImpl) {
+      node.matchedValueType = flow.getMatchedValueType();
       node.resolvePattern(this, context);
     } else {
       // This can occur inside conventional switch statements, since

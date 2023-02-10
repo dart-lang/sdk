@@ -34,6 +34,7 @@ ListPattern
     RestPatternElement
       operator: ...
   rightBracket: ]
+  matchedValueType: List<int>
   requiredType: List<int>
 ''');
   }
@@ -57,6 +58,7 @@ MapPattern
     RestPatternElement
       operator: ...
   rightBracket: }
+  matchedValueType: Map<int, String>
   requiredType: Map<int, String>
 ''');
   }

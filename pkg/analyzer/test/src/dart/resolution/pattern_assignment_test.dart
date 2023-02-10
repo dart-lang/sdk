@@ -104,7 +104,9 @@ PatternAssignment
       AssignedVariablePattern
         name: a
         element: self::@function::f::@parameter::a
+        matchedValueType: int
     rightBracket: ]
+    matchedValueType: List<int>
     requiredType: List<int>
   equals: =
   expression: SimpleIdentifier
@@ -144,8 +146,10 @@ PatternAssignment
         pattern: AssignedVariablePattern
           name: foo
           element: self::@function::f::@parameter::foo
+          matchedValueType: int
         element: self::@class::A::@getter::foo
     rightParenthesis: )
+    matchedValueType: A
   equals: =
   expression: InstanceCreationExpression
     constructorName: ConstructorName
@@ -179,7 +183,9 @@ PatternAssignment
     pattern: AssignedVariablePattern
       name: a
       element: self::@function::f::@parameter::a
+      matchedValueType: int
     rightParenthesis: )
+    matchedValueType: int
   equals: =
   expression: SimpleIdentifier
     token: x
@@ -206,7 +212,9 @@ PatternAssignment
     pattern: AssignedVariablePattern
       name: a
       element: self::@function::f::@parameter::a
+      matchedValueType: int
     rightParenthesis: )
+    matchedValueType: int
   equals: =
   expression: MethodInvocation
     methodName: SimpleIdentifier
@@ -244,6 +252,7 @@ PatternAssignment
         pattern: AssignedVariablePattern
           name: a
           element: self::@function::f::@parameter::a
+          matchedValueType: int
         element: <null>
     rightParenthesis: )
     matchedValueType: ({int foo})
@@ -275,6 +284,7 @@ PatternAssignment
         pattern: AssignedVariablePattern
           name: a
           element: self::@function::f::@parameter::a
+          matchedValueType: int
         element: <null>
     rightParenthesis: )
     matchedValueType: ({int a})
@@ -315,6 +325,7 @@ PatternAssignment
         pattern: AssignedVariablePattern
           name: a
           element: self::@function::f::@parameter::a
+          matchedValueType: int
         element: <null>
     rightParenthesis: )
     matchedValueType: (int)

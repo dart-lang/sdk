@@ -48,7 +48,9 @@ SwitchStatement
             expression: IntegerLiteral
               literal: 0
               staticType: int
+            matchedValueType: Object
           operator: ?
+          matchedValueType: Object?
       colon: :
       statements
         BreakStatement
@@ -98,7 +100,9 @@ SwitchStatement
             expression: IntegerLiteral
               literal: 0
               staticType: int
+            matchedValueType: Object
           operator: ?
+          matchedValueType: Object?
       colon: :
     SwitchPatternCase
       keyword: case
@@ -108,7 +112,9 @@ SwitchStatement
             expression: IntegerLiteral
               literal: 1
               staticType: int
+            matchedValueType: Object
           operator: ?
+          matchedValueType: Object?
       colon: :
       statements
         BreakStatement
@@ -122,7 +128,9 @@ SwitchStatement
             expression: IntegerLiteral
               literal: 2
               staticType: int
+            matchedValueType: Object
           operator: ?
+          matchedValueType: Object?
       colon: :
       statements
         BreakStatement
@@ -176,6 +184,7 @@ SwitchStatement
               leftParenthesis: (
               rightParenthesis: )
             staticType: A
+          matchedValueType: Object?
       colon: :
       statements
         BreakStatement
@@ -214,6 +223,7 @@ SwitchStatement
           expression: IntegerLiteral
             literal: 0
             staticType: int
+          matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
           expression: FunctionExpressionInvocation
@@ -272,6 +282,7 @@ SwitchStatement
           name: a
           declaredElement: a@48
             type: int
+          matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
           expression: BinaryExpression
@@ -301,6 +312,7 @@ SwitchStatement
           name: a
           declaredElement: a@75
             type: int
+          matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
           expression: BinaryExpression
@@ -365,6 +377,7 @@ SwitchStatement
           name: a
           declaredElement: isFinal a@54
             type: int
+          matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
           expression: BinaryExpression
@@ -395,6 +408,7 @@ SwitchStatement
           name: a
           declaredElement: isFinal a@87
             type: int
+          matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
           expression: BinaryExpression
@@ -459,6 +473,7 @@ SwitchStatement
             name: a
             declaredElement: a@48
               type: int
+            matchedValueType: Object?
           operator: ||
           rightOperand: ListPattern
             leftBracket: [
@@ -473,8 +488,11 @@ SwitchStatement
                 name: a
                 declaredElement: a@58
                   type: int
+                matchedValueType: Object?
             rightBracket: ]
+            matchedValueType: Object?
             requiredType: List<Object?>
+          matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
           expression: BinaryExpression
@@ -505,6 +523,7 @@ SwitchStatement
             name: a
             declaredElement: a@86
               type: int
+            matchedValueType: Object?
           operator: ||
           rightOperand: ListPattern
             leftBracket: [
@@ -519,8 +538,11 @@ SwitchStatement
                 name: a
                 declaredElement: a@96
                   type: int
+                matchedValueType: Object?
             rightBracket: ]
+            matchedValueType: Object?
             requiredType: List<Object?>
+          matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
           expression: BinaryExpression
@@ -590,6 +612,7 @@ SwitchStatement
           name: a
           declaredElement: isFinal a@54
             type: int
+          matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
           expression: BinaryExpression
@@ -619,6 +642,7 @@ SwitchStatement
           name: a
           declaredElement: a@81
             type: int
+          matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
           expression: BinaryExpression
@@ -688,6 +712,7 @@ SwitchStatement
           name: a
           declaredElement: isFinal a@54
             type: int
+          matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
           expression: BinaryExpression
@@ -717,6 +742,7 @@ SwitchStatement
           name: a
           declaredElement: a@81
             type: num
+          matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
           expression: BinaryExpression
@@ -785,6 +811,7 @@ SwitchStatement
           name: a
           declaredElement: a@48
             type: int
+          matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
           expression: BinaryExpression
@@ -814,6 +841,7 @@ SwitchStatement
           name: a
           declaredElement: a@75
             type: num
+          matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
           expression: BinaryExpression
@@ -876,6 +904,7 @@ SwitchStatement
           expression: IntegerLiteral
             literal: 0
             staticType: int
+          matchedValueType: Object?
       colon: :
     SwitchPatternCase
       keyword: case
@@ -890,6 +919,7 @@ SwitchStatement
           name: a
           declaredElement: a@60
             type: int
+          matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
           expression: BinaryExpression
@@ -958,6 +988,7 @@ SwitchStatement
           name: a
           declaredElement: a@48
             type: int
+          matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
           expression: BinaryExpression
@@ -981,6 +1012,7 @@ SwitchStatement
           expression: IntegerLiteral
             literal: 0
             staticType: int
+          matchedValueType: Object?
       colon: :
       statements
         ExpressionStatement
@@ -1034,6 +1066,7 @@ SwitchStatement
           name: a
           declaredElement: a@48
             type: int
+          matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
           expression: BinaryExpression
@@ -1102,6 +1135,7 @@ SwitchStatement
           name: a
           declaredElement: hasImplicitType a@48
             type: Object?
+          matchedValueType: Object?
       colon: :
     SwitchPatternCase
       keyword: case
@@ -1111,6 +1145,7 @@ SwitchStatement
           name: a
           declaredElement: hasImplicitType a@64
             type: Object?
+          matchedValueType: Object?
       colon: :
     SwitchDefault
       keyword: default
@@ -1175,6 +1210,7 @@ SwitchStatement
           name: a
           declaredElement: a@61
             type: int
+          matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
           expression: BinaryExpression
@@ -1254,6 +1290,7 @@ SwitchStatement
           name: a
           declaredElement: a@48
             type: int
+          matchedValueType: Object?
       colon: :
     SwitchPatternCase
       keyword: case
@@ -1268,6 +1305,7 @@ SwitchStatement
           name: b
           declaredElement: b@67
             type: double
+          matchedValueType: Object?
       colon: :
     SwitchPatternCase
       keyword: case
@@ -1282,6 +1320,7 @@ SwitchStatement
           name: c
           declaredElement: c@86
             type: String
+          matchedValueType: Object?
       colon: :
       statements
         ExpressionStatement
@@ -1350,13 +1389,17 @@ SwitchStatement
                 name: a
                 declaredElement: hasImplicitType a@54
                   type: int
+                matchedValueType: int
               operator: ||
               rightOperand: DeclaredVariablePattern
                 keyword: var
                 name: a
                 declaredElement: hasImplicitType a@63
                   type: int
+                matchedValueType: int
+              matchedValueType: int
           rightBracket: ]
+          matchedValueType: Object?
           requiredType: List<int>
       colon: :
       statements
@@ -1414,6 +1457,7 @@ SwitchStatement
               name: a
               declaredElement: a@62
                 type: int
+              matchedValueType: Object?
             RelationalPattern
               operator: ==
               operand: SimpleIdentifier
@@ -1421,7 +1465,9 @@ SwitchStatement
                 staticElement: a@62
                 staticType: int
               element: dart:core::@class::Object::@method::==
+              matchedValueType: Object?
           rightBracket: ]
+          matchedValueType: Object?
           requiredType: List<Object?>
         whenClause: WhenClause
           whenKeyword: when
@@ -1485,6 +1531,7 @@ SwitchStatement
           name: a
           declaredElement: a@48
             type: int
+          matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
           expression: BinaryExpression
@@ -1541,6 +1588,7 @@ SwitchStatement
           expression: IntegerLiteral
             literal: 0
             staticType: int
+          matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
           expression: BooleanLiteral

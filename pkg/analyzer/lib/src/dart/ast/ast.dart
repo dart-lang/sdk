@@ -3438,7 +3438,8 @@ class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
 @experimental
 abstract class DartPatternImpl extends AstNodeImpl
     implements DartPattern, ListPatternElementImpl {
-  DartPatternImpl();
+  @override
+  DartType? matchedValueType;
 
   @override
   // TODO(brianwilkerson) Remove this and implement it in subclasses when we
@@ -11051,9 +11052,6 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   @override
   final Token rightParenthesis;
 
-  @override
-  DartType? matchedValueType;
-
   RecordPatternImpl({
     required this.leftParenthesis,
     required List<PatternFieldImpl> fields,
@@ -11092,7 +11090,6 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    matchedValueType = resolverVisitor.flow.getMatchedValueType();
     resolverVisitor.analyzeRecordPattern(
       context,
       this,

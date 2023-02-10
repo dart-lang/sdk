@@ -32,6 +32,7 @@ LogicalAndPattern
         staticType: null
       type: int
     name: _
+    matchedValueType: dynamic
   operator: &&
   rightOperand: WildcardPattern
     type: NamedType
@@ -41,6 +42,8 @@ LogicalAndPattern
         staticType: null
       type: double
     name: _
+    matchedValueType: int
+  matchedValueType: dynamic
 ''');
   }
 
@@ -64,6 +67,7 @@ LogicalAndPattern
         staticType: null
       type: int
     name: _
+    matchedValueType: dynamic
   operator: &&
   rightOperand: WildcardPattern
     type: NamedType
@@ -73,6 +77,8 @@ LogicalAndPattern
         staticType: null
       type: double
     name: _
+    matchedValueType: int
+  matchedValueType: dynamic
 ''');
   }
 
@@ -97,12 +103,16 @@ PatternVariableDeclarationStatement
           name: a
           declaredElement: hasImplicitType a@18
             type: int
+          matchedValueType: int
         operator: &&
         rightOperand: DeclaredVariablePattern
           name: b
           declaredElement: hasImplicitType b@23
             type: int
+          matchedValueType: int
+        matchedValueType: int
       rightParenthesis: )
+      matchedValueType: int
     equals: =
     expression: IntegerLiteral
       literal: 0
