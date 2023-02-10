@@ -15996,6 +15996,12 @@ final List<TreeNode> dummyTreeNodes = [
   dummyLabeledStatement,
 ];
 
+void clearDummyTreeNodesParentPointer() {
+  for (TreeNode treeNode in dummyTreeNodes) {
+    treeNode.parent = null;
+  }
+}
+
 /// Sentinel value used to signal that a node cannot be removed through the
 /// [RemovingTransformer].
 const Null cannotRemoveSentinel = null;

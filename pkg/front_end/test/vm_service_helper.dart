@@ -200,6 +200,12 @@ abstract class LaunchingVMServiceHelper extends VMServiceHelper {
     });
   }
 
+  Future<void> startWithoutRunning(Uri observatoryUri) async {
+    if (_started) throw "Already started";
+    _started = true;
+    await _setupAndRun(observatoryUri);
+  }
+
   void processExited(int exitCode) {}
 
   void killProcess() {

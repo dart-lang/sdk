@@ -7,9 +7,11 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' show Service, debugger;
 import 'dart:io';
 import 'dart:isolate';
 import 'package:bazel_worker/bazel_worker.dart';
+import 'package:kernel/ast.dart' show clearDummyTreeNodesParentPointer;
 
 import 'src/compiler/shared_command.dart';
 import 'src/kernel/command.dart';
@@ -29,7 +31,8 @@ Future internalMain(List<String> args, [SendPort? sendPort]) async {
         : SendPortAsyncWorkerConnection(sendPort);
     await _CompilerWorker(parsedArgs, workerConnection).run();
   } else if (parsedArgs.isBatch) {
-    await runBatch(parsedArgs);
+    var batch = _BatchHelper();
+    await batch._runBatch(parsedArgs);
   } else if (parsedArgs.isExpressionCompiler) {
     await ExpressionCompilerWorker.createAndStart(parsedArgs.rest,
         sendPort: sendPort);
@@ -77,26 +80,61 @@ class _CompilerWorker extends AsyncWorkerLoop {
   }
 }
 
-/// Runs DDC in Kernel batch mode for test.dart.
-Future runBatch(ParsedArguments batchArgs) async {
-  var totalTests = 0;
-  var failedTests = 0;
-  var watch = Stopwatch()..start();
-
-  print('>>> BATCH START');
-
-  String? line;
+class _BatchHelper {
+  Stopwatch watch = Stopwatch();
   CompilerResult? result;
+  int totalTests = 0;
+  int failedTests = 0;
 
-  while ((line = stdin.readLineSync(encoding: utf8))?.isNotEmpty == true) {
+  /// One can go into "leak test mode" by doing `export DDC_LEAK_TEST="true"`
+  /// on the terminal (I think `set DDC_LEAK_TEST="true"` on Windows).
+  /// Then one could run test.py, say
+  /// ```
+  /// python3 tools/test.py -t10000 -c dartdevk --nnbd weak -m release -r none \
+  ///   --enable-asserts --no-use-sdk -j 1 co19/LanguageFeatures/
+  /// ```
+  /// and attach the leak tester via
+  /// ```
+  /// out/ReleaseX64/dart \
+  ///   pkg/front_end/test/vm_service_for_leak_detection.dart --dart-leak-test
+  /// ```
+  final bool leakTesting = Platform.environment['DDC_LEAK_TEST'] == 'true';
+
+  /// Runs DDC in Kernel batch mode for test.dart.
+  Future _runBatch(ParsedArguments batchArgs) async {
+    _workaroundForLeakingBug();
+    if (leakTesting) {
+      var services =
+          await Service.controlWebServer(enable: true, silenceOutput: true);
+      File.fromUri(Directory.systemTemp.uri.resolve('./dart_leak_test_uri'))
+          .writeAsStringSync(services.serverUri!.toString());
+    }
+
+    watch.start();
+
+    print('>>> BATCH START');
+
+    String? line;
+    while ((line = stdin.readLineSync(encoding: utf8))?.isNotEmpty == true) {
+      await _doIteration(batchArgs, line!);
+      _iterationDone();
+    }
+
+    var time = watch.elapsedMilliseconds;
+    print('>>> BATCH END (${totalTests - failedTests})/$totalTests ${time}ms');
+  }
+
+  Future<void> _doIteration(ParsedArguments batchArgs, String line) async {
     totalTests++;
-    var args = batchArgs.merge(line!.split(RegExp(r'\s+')));
+    var args = batchArgs.merge(line.split(RegExp(r'\s+')));
 
     String outcome;
     try {
       result = await compile(args, compilerState: result?.kernelState);
-      outcome = result.success ? 'PASS' : (result.crashed ? 'CRASH' : 'FAIL');
+      outcome = result!.success ? 'PASS' : (result!.crashed ? 'CRASH' : 'FAIL');
     } catch (e, s) {
+      // Clear the cache. It might have been left in a weird state.
+      result = null;
       outcome = 'CRASH';
       print('Unhandled exception:');
       print(e);
@@ -107,6 +145,27 @@ Future runBatch(ParsedArguments batchArgs) async {
     print('>>> TEST $outcome ${watch.elapsedMilliseconds}ms');
   }
 
-  var time = watch.elapsedMilliseconds;
-  print('>>> BATCH END (${totalTests - failedTests})/$totalTests ${time}ms');
+  void _iterationDone() {
+    if (leakTesting) {
+      // Dummy tree nodes can (currently) leak though the parent pointer.
+      // To avoid that (here) (for leak testing) we'll null them out.
+      clearDummyTreeNodesParentPointer();
+
+      print('Will now wait');
+      debugger();
+    }
+  }
+
+  /// Workaround for https://github.com/dart-lang/sdk/issues/51317.
+  void _workaroundForLeakingBug() {
+    try {
+      stdin.echoMode;
+    } catch (e) {/**/}
+    try {
+      stdout.writeln();
+    } catch (e) {/**/}
+    try {
+      stderr.writeln();
+    } catch (e) {/**/}
+  }
 }
