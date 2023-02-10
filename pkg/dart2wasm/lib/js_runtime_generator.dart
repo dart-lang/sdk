@@ -177,7 +177,7 @@ class _JSLowerer extends Transformer {
             .procedures
             .firstWhere((p) => p.name.text == 'toInt'),
         _functionToJSTarget = _coreTypes.index.getTopLevelProcedure(
-            'dart:js_interop', 'FunctionToJSExportedDartFunction|toJS'),
+            'dart:js_interop', 'FunctionToJSExportedDartFunction|get#toJS'),
         _pragmaClass = _coreTypes.pragmaClass,
         _pragmaName = _coreTypes.pragmaName,
         _pragmaOptions = _coreTypes.pragmaOptions,
@@ -215,10 +215,8 @@ class _JSLowerer extends Transformer {
       return _allowInterop(node.target, functionType as FunctionType, argument);
     } else if (node.target == _functionToJSTarget) {
       Expression argument = node.arguments.positional.single;
-      DartType typeArgument = node.arguments.types.single;
-      if (typeArgument is FunctionType) {
-        return _functionToJS(node.target, typeArgument, argument);
-      }
+      DartType functionType = argument.getStaticType(_staticTypeContext);
+      return _functionToJS(node.target, functionType as FunctionType, argument);
     } else if (node.target == _inlineJSTarget) {
       return _expandInlineJS(node.target, node);
     }
@@ -620,7 +618,7 @@ class _JSLowerer extends Transformer {
             type));
   }
 
-  /// Lowers an invocation of `<Function>.toJS<type>()` to:
+  /// Lowers an invocation of `<Function>.toJS` to:
   ///
   ///   JSValue(jsWrapperFunction(<Function>))
   Expression _functionToJS(

@@ -99,20 +99,20 @@ typedef JSString = js_types.JSString;
 
 /// [JSExportedDartFunction] <-> [Function]
 extension JSExportedDartFunctionToFunction on JSExportedDartFunction {
-  external T toDart<T extends Function>();
+  external Function get toDart;
 }
 
 extension FunctionToJSExportedDartFunction on Function {
-  external JSExportedDartFunction toJS<T extends Function>();
+  external JSExportedDartFunction get toJS;
 }
 
 /// [JSExportedDartObject] <-> [Object]
 extension JSExportedDartObjectToObject on JSExportedDartObject {
-  external T toDart<T>();
+  external Object get toDart;
 }
 
 extension ObjectToJSExportedDartObject on Object {
-  external JSExportedDartObject toJS();
+  external JSExportedDartObject get toJS;
 }
 
 /// TODO(joshualitt): On Wasm backends List / Array conversion methods will
@@ -120,135 +120,135 @@ extension ObjectToJSExportedDartObject on Object {
 /// consistent semantics.
 /// [JSArrayBuffer] <-> [ByteBuffer]
 extension JSArrayBufferToByteBuffer on JSArrayBuffer {
-  external ByteBuffer toDart();
+  external ByteBuffer get toDart;
 }
 
 extension ByteBufferToJSArrayBuffer on ByteBuffer {
-  external JSArrayBuffer toJS();
+  external JSArrayBuffer get toJS;
 }
 
 /// [JSDataView] <-> [ByteData]
 extension JSDataViewToByteData on JSDataView {
-  external ByteData toDart();
+  external ByteData get toDart;
 }
 
 extension ByteDataToJSDataView on ByteData {
-  external JSDataView toJS();
+  external JSDataView get toJS;
 }
 
 /// [JSInt8Array] <-> [Int8List]
 extension JSInt8ArrayToInt8List on JSInt8Array {
-  external Int8List toDart();
+  external Int8List get toDart;
 }
 
 extension Int8ListToJSInt8Array on Int8List {
-  external JSInt8Array toJS();
+  external JSInt8Array get toJS;
 }
 
 /// [JSUint8Array] <-> [Uint8List]
 extension JSUint8ArrayToUint8List on JSUint8Array {
-  external Uint8List toDart();
+  external Uint8List get toDart;
 }
 
 extension Uint8ListToJSUint8Array on Uint8List {
-  external JSUint8Array toJS();
+  external JSUint8Array get toJS;
 }
 
 /// [JSUint8ClampedArray] <-> [Uint8ClampedList]
 extension JSUint8ClampedArrayToUint8ClampedList on JSUint8ClampedArray {
-  external Uint8ClampedList toDart();
+  external Uint8ClampedList get toDart;
 }
 
 extension Uint8ClampedListToJSUint8ClampedArray on Uint8ClampedList {
-  external JSUint8ClampedArray toJS();
+  external JSUint8ClampedArray get toJS;
 }
 
 /// [JSInt16Array] <-> [Int16List]
 extension JSInt16ArrayToInt16List on JSInt16Array {
-  external Int16List toDart();
+  external Int16List get toDart;
 }
 
 extension Int16ListToJSInt16Array on Int16List {
-  external JSInt16Array toJS();
+  external JSInt16Array get toJS;
 }
 
 /// [JSUint16Array] <-> [Uint16List]
 extension JSUint16ArrayToInt16List on JSUint16Array {
-  external Uint16List toDart();
+  external Uint16List get toDart;
 }
 
 extension Uint16ListToJSInt16Array on Uint16List {
-  external JSUint16Array toJS();
+  external JSUint16Array get toJS;
 }
 
 /// [JSInt32Array] <-> [Int32List]
 extension JSInt32ArrayToInt32List on JSInt32Array {
-  external Int32List toDart();
+  external Int32List get toDart;
 }
 
 extension Int32ListToJSInt32Array on Int32List {
-  external JSInt32Array toJS();
+  external JSInt32Array get toJS;
 }
 
 /// [JSUint32Array] <-> [Uint32List]
 extension JSUint32ArrayToUint32List on JSUint32Array {
-  external Uint32List toDart();
+  external Uint32List get toDart;
 }
 
 extension Uint32ListToJSUint32Array on Uint32List {
-  external JSUint32Array toJS();
+  external JSUint32Array get toJS;
 }
 
 /// [JSFloat32Array] <-> [Float32List]
 extension JSFloat32ArrayToFloat32List on JSFloat32Array {
-  external Float32List toDart();
+  external Float32List get toDart;
 }
 
 extension Float32ListToJSFloat32Array on Float32List {
-  external JSFloat32Array toJS();
+  external JSFloat32Array get toJS;
 }
 
 /// [JSFloat64Array] <-> [Float64List]
 extension JSFloat64ArrayToFloat64List on JSFloat64Array {
-  external Float64List toDart();
+  external Float64List get toDart;
 }
 
 extension Float64ListToJSFloat64Array on Float64List {
-  external JSFloat64Array toJS();
+  external JSFloat64Array get toJS;
 }
 
 /// [JSArray] <-> [List]
 extension JSArrayToList on JSArray {
-  external List<JSAny?> toDart();
+  external List<JSAny?> get toDart;
 }
 
 extension ListToJSArray on List<JSAny?> {
-  external JSArray toJS();
+  external JSArray get toJS;
 }
 
 /// [JSNumber] <-> [double].
 extension JSNumberToDouble on JSNumber {
-  external double toDart();
+  external double get toDart;
 }
 
 extension DoubleToJSNumber on double {
-  external JSNumber toJS();
+  external JSNumber get toJS;
 }
 
 /// [JSBoolean] <-> [bool]
 extension JSBooleanToBool on JSBoolean {
-  external bool toDart();
+  external bool get toDart;
 }
 
 extension BoolToJSBoolean on bool {
-  external JSBoolean toJS();
+  external JSBoolean get toJS;
 }
 
 /// [JSString] <-> [String]
 extension JSStringToString on JSString {
-  external String toDart();
+  external String get toDart;
 }
 
 extension StringToJSString on String {
-  external JSString toJS();
+  external JSString get toJS;
 }
