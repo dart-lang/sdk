@@ -35,5 +35,5 @@ method(x, y, z) {
     definitelyAssignedFinal] = y; // Error
   Class(field1: definitelyAssignedLateFinal, // Error
       field2: [[notDefinitelyAssignedFinal, _], // Error
-               [1, notDefinitelyAssignedLateFinal]]) = z; // Ok
+               [_, notDefinitelyAssignedLateFinal]]) = z; // Ok
 }

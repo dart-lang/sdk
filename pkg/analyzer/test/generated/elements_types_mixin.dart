@@ -161,6 +161,7 @@ mixin ElementsTypesMixin {
   ClassElementImpl class_({
     required String name,
     bool isAbstract = false,
+    bool isSealed = false,
     InterfaceType? superType,
     List<TypeParameterElement> typeParameters = const [],
     List<InterfaceType> interfaces = const [],
@@ -168,6 +169,8 @@ mixin ElementsTypesMixin {
     List<MethodElementImpl> methods = const [],
   }) {
     var element = ClassElementImpl(name, 0);
+    element.isAbstract = isAbstract;
+    element.isSealed = isSealed;
     element.enclosingElement = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;
     element.supertype = superType ?? typeProvider.objectType;
@@ -202,6 +205,22 @@ mixin ElementsTypesMixin {
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.star,
     );
+  }
+
+  EnumElementImpl enum_({
+    required String name,
+    required List<ConstFieldElementImpl> constants,
+  }) {
+    var element = EnumElementImpl(name, 0);
+    element.enclosingElement = testLibrary.definingCompilationUnit;
+    element.fields = constants;
+    return element;
+  }
+
+  ConstFieldElementImpl enumConstant_(
+    String name,
+  ) {
+    return ConstFieldElementImpl(name, 0)..isEnumConstant = true;
   }
 
   FunctionTypeImpl functionType({
@@ -305,7 +324,7 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceType interfaceType(
-    ClassElement element, {
+    InterfaceElement element, {
     List<DartType> typeArguments = const [],
     required NullabilitySuffix nullabilitySuffix,
   }) {
@@ -454,11 +473,13 @@ mixin ElementsTypesMixin {
 
   MixinElementImpl mixin_({
     required String name,
+    bool isSealed = false,
     List<TypeParameterElement> typeParameters = const [],
     List<InterfaceType>? constraints,
     List<InterfaceType> interfaces = const [],
   }) {
     var element = MixinElementImpl(name, 0);
+    element.isSealed = isSealed;
     element.enclosingElement = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;
     element.superclassConstraints = constraints ?? [typeProvider.objectType];

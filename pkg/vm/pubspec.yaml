@@ -19,6 +19,7 @@ dependencies:
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
+  dart2wasm: any
   expect: any
   json_rpc_2: any
   lints: any

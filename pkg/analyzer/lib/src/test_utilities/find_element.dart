@@ -139,6 +139,9 @@ class FindElement extends _FindElementBase {
       declaredIdentifier: (node) {
         updateResult(node.declaredElement!);
       },
+      declaredVariablePattern: (node) {
+        updateResult(node.declaredElement!);
+      },
       variableDeclaration: (node) {
         updateResult(node.declaredElement!);
       },

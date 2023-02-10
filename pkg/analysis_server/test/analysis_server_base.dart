@@ -11,6 +11,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart' as analysis;
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -214,9 +215,15 @@ class ContextResolutionTest with ResourceProviderMixin {
 
 class PubPackageAnalysisServerTest extends ContextResolutionTest {
   // If experiments are needed,
-  // add `import 'package:analyzer/src/dart/analysis/experiments.dart';`
+  // add `import 'package:analyzer/dart/analysis/features.dart';`
   // and list the necessary experiments here.
-  List<String> get experiments => [];
+  List<String> get experiments => [
+        Feature.class_modifiers.enableString,
+        Feature.macros.enableString,
+        Feature.patterns.enableString,
+        Feature.records.enableString,
+        Feature.sealed_class.enableString,
+      ];
 
   /// The path that is not in [workspaceRootPath], contains external packages.
   String get packagesRootPath => '/packages';

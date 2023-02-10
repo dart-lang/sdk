@@ -848,7 +848,9 @@ class TimelineEventRecorder : public MallocAllocated {
   void FinishBlock(TimelineEventBlock* block);
   // This function must be called at least once for each thread that corresponds
   // to a track in the trace.
-  void AddTrackMetadataBasedOnThread(const OSThread& thread);
+  void AddTrackMetadataBasedOnThread(const intptr_t process_id,
+                                     const intptr_t trace_id,
+                                     const char* thread_name);
 
  protected:
 #ifndef PRODUCT

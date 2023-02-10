@@ -110,6 +110,8 @@ class StatementAnalyzer extends SelectionAnalyzer {
         containsInit = _contains(selectedNodes, forLoopParts.initialization);
       } else if (forLoopParts is ForPartsWithDeclarations) {
         containsInit = _contains(selectedNodes, forLoopParts.variables);
+      } else if (forLoopParts is ForPartsWithPattern) {
+        containsInit = _contains(selectedNodes, forLoopParts.variables);
       } else {
         throw StateError('Unrecognized for loop parts');
       }

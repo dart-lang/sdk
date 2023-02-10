@@ -7,8 +7,8 @@ library dart._js_helper;
 
 import 'dart:_internal';
 import 'dart:_js_annotations' as js;
-import 'dart:_js_interop';
 import 'dart:collection';
+import 'dart:js_interop';
 import 'dart:typed_data';
 import 'dart:wasm';
 

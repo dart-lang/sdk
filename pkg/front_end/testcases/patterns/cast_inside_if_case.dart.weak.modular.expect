@@ -33,7 +33,7 @@ static method test(dynamic x) → dynamic {
     }
   }
   {
-    final dynamic #4#0 = x;
+    final core::int #4#0 = x{core::int};
     if(let final dynamic #t8 = #4#0 as{ForNonNullableByDefault} core::String in true) {
       return 4;
     }

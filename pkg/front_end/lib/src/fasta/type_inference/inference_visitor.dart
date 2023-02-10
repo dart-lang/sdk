@@ -9509,6 +9509,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
+    analyzeWildcardPattern(
+        context: context, node: node, declaredType: node.type);
+
     pushRewrite(node);
 
     assert(checkStack(node, stackBase, [
@@ -9523,8 +9526,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    DartType matchedType = flow.getMatchedValueType();
-    node.expressionType = analyzeExpression(node.expression, matchedType);
+    node.expressionType =
+        analyzeConstantPattern(context, node, node.expression);
 
     assert(checkStack(node, stackBase, [
       /* expression = */ ValueKinds.Expression,

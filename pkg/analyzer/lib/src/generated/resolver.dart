@@ -80,8 +80,6 @@ import 'package:analyzer/src/error/super_formal_parameters_verifier.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
-import 'package:analyzer/src/generated/exhaustiveness.dart' as exhaustiveness
-    show isAlwaysExhaustiveType;
 import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -1181,7 +1179,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   bool isAlwaysExhaustiveType(DartType type) {
-    return exhaustiveness.isAlwaysExhaustiveType(type);
+    return typeSystem.isAlwaysExhaustive(type);
   }
 
   @override
@@ -3314,6 +3312,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitSuperFormalParameter(SuperFormalParameter node) {
     checkUnreachableNode(node);
     node.visitChildren(this);
+  }
+
+  @override
+  void visitSwitchExpression(
+    covariant SwitchExpressionImpl node, {
+    DartType? contextType,
+  }) {
+    analyzeExpression(node, contextType);
+    popRewrite();
   }
 
   @override

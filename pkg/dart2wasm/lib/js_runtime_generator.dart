@@ -174,7 +174,7 @@ class _JSLowerer extends Transformer {
             .procedures
             .firstWhere((p) => p.name.text == 'toInt'),
         _functionToJSTarget = _coreTypes.index.getTopLevelProcedure(
-            'dart:_js_interop', 'FunctionToJSExportedDartFunction|toJS'),
+            'dart:js_interop', 'FunctionToJSExportedDartFunction|toJS'),
         _pragmaClass = _coreTypes.pragmaClass,
         _pragmaName = _coreTypes.pragmaName,
         _pragmaOptions = _coreTypes.pragmaOptions,
@@ -823,7 +823,7 @@ Map<Procedure, String> _performJSInteropTransformations(
   final staticInteropClassEraser = StaticInteropClassEraser(coreTypes, null,
       libraryForJavaScriptObject: 'dart:_js_helper',
       classNameOfJavaScriptObject: 'JSValue',
-      additionalCoreLibraries: {'_js_helper', '_js_types', '_js_interop'});
+      additionalCoreLibraries: {'_js_helper', '_js_types', 'js_interop'});
   for (Library library in interopDependentLibraries) {
     staticInteropClassEraser.visitLibrary(library);
   }

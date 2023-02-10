@@ -1538,16 +1538,6 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Replace 'var' with 'dynamic'",
   );
-  static const REPLACE_WITH_EIGHT_DIGIT_HEX = FixKind(
-    'dart.fix.replace.withEightDigitHex',
-    DartFixKindPriority.DEFAULT,
-    "Replace with '{0}'",
-  );
-  static const REPLACE_WITH_EIGHT_DIGIT_HEX_MULTI = FixKind(
-    'dart.fix.replace.withEightDigitHex.multi',
-    DartFixKindPriority.IN_FILE,
-    'Replace with hex digits everywhere in file',
-  );
   static const REPLACE_WITH_BRACKETS = FixKind(
     'dart.fix.replace.withBrackets',
     DartFixKindPriority.DEFAULT,
@@ -1567,6 +1557,26 @@ class DartFixKind {
     'dart.fix.replace.withConditionalAssignment.multi',
     DartFixKindPriority.IN_FILE,
     'Replace with ??= everywhere in file',
+  );
+  static const REPLACE_WITH_DECORATED_BOX = FixKind(
+    'dart.fix.replace.withDecoratedBox',
+    DartFixKindPriority.DEFAULT,
+    "Replace with 'DecoratedBox'",
+  );
+  static const REPLACE_WITH_DECORATED_BOX_MULTI = FixKind(
+    'dart.fix.replace.withDecoratedBox.multi',
+    DartFixKindPriority.IN_FILE,
+    "Replace with 'DecoratedBox' everywhere in file",
+  );
+  static const REPLACE_WITH_EIGHT_DIGIT_HEX = FixKind(
+    'dart.fix.replace.withEightDigitHex',
+    DartFixKindPriority.DEFAULT,
+    "Replace with '{0}'",
+  );
+  static const REPLACE_WITH_EIGHT_DIGIT_HEX_MULTI = FixKind(
+    'dart.fix.replace.withEightDigitHex.multi',
+    DartFixKindPriority.IN_FILE,
+    'Replace with hex digits everywhere in file',
   );
   static const REPLACE_WITH_EXTENSION_NAME = FixKind(
     'dart.fix.replace.withExtensionName',

@@ -11,6 +11,8 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AddConst_InvalidCasePatternsTest);
+    defineReflectiveTests(AddConst_InvalidCasePatternsBulkTest);
     defineReflectiveTests(AddConst_NonConstGenerativeEnumConstructorTest);
     defineReflectiveTests(AddConst_PatternExpressionMustBeValidConst);
     defineReflectiveTests(AddConst_PreferConstConstructorsInImmutablesBulkTest);
@@ -21,6 +23,134 @@ void main() {
         AddConst_PreferConstLiteralsToCreateImmutablesBulkTest);
     defineReflectiveTests(AddConst_PreferConstLiteralsToCreateImmutablesTest);
   });
+}
+
+@reflectiveTest
+class AddConst_InvalidCasePatternsBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.invalid_case_patterns;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode(r'''
+//@dart=2.19
+class C {
+  const C();
+}
+
+void f(Object c) {
+  switch (c) {
+    case C():
+    case [1, 2]:
+  }
+}
+''');
+    await assertHasFix(r'''
+//@dart=2.19
+class C {
+  const C();
+}
+
+void f(Object c) {
+  switch (c) {
+    case const C():
+    case const [1, 2]:
+  }
+}
+''');
+  }
+}
+
+@reflectiveTest
+class AddConst_InvalidCasePatternsTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_CONST;
+
+  @override
+  String get lintCode => LintNames.invalid_case_patterns;
+
+  Future<void> test_constructorCall() async {
+    await resolveTestCode(r'''
+//@dart=2.19
+class C {
+  const C();
+}
+
+void f(Object c) {
+  switch (c) {
+    case C():
+  }
+}
+''');
+    await assertHasFix(r'''
+//@dart=2.19
+class C {
+  const C();
+}
+
+void f(Object c) {
+  switch (c) {
+    case const C():
+  }
+}
+''');
+  }
+
+  Future<void> test_listLiteral() async {
+    await resolveTestCode(r'''
+//@dart=2.19
+void f(Object o) {
+  switch (o) {
+    case [1, 2]:
+  }
+}
+''');
+    await assertHasFix(r'''
+//@dart=2.19
+void f(Object o) {
+  switch (o) {
+    case const [1, 2]:
+  }
+}
+''');
+  }
+
+  Future<void> test_mapLiteral() async {
+    await resolveTestCode(r'''
+//@dart=2.19
+void f(Object o) {
+  switch (o) {
+   case {'k': 'v'}:
+  }
+}
+''');
+    await assertHasFix(r'''
+//@dart=2.19
+void f(Object o) {
+  switch (o) {
+   case const {'k': 'v'}:
+  }
+}
+''');
+  }
+
+  Future<void> test_setLiteral() async {
+    await resolveTestCode(r'''
+//@dart=2.19
+void f(Object o) {
+  switch (o) {
+    case {1}:
+  }
+}
+''');
+    await assertHasFix(r'''
+//@dart=2.19
+void f(Object o) {
+  switch (o) {
+    case const {1}:
+  }
+}
+''');
+  }
 }
 
 @reflectiveTest

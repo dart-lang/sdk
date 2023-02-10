@@ -3567,12 +3567,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (element is ClassElementImpl && element.isMixinClass) {
       // Check that the class does not have a constructor.
       for (ClassMember member in members) {
-        if (member is ConstructorDeclaration) {
+        if (member is ConstructorDeclarationImpl) {
           if (!member.isSynthetic && member.factoryKeyword == null) {
-            errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR,
-                member.returnType,
-                [element.name]);
+            // Report errors on non-trivial generative constructors on mixin
+            // classes.
+            if (!member.isTrivial) {
+              errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR,
+                  member.returnType,
+                  [element.name]);
+            }
           }
         }
       }

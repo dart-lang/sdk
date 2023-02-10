@@ -26,7 +26,8 @@ bool get isDart2WasmConfiguration =>
 
 bool get isDdcConfiguration =>
     _configuration.compiler == Compiler.dartdevk ||
-    _configuration.compiler == Compiler.dartdevc;
+    _configuration.compiler == Compiler.dartdevc ||
+    _configuration.compiler == Compiler.ddc;
 
 bool get isVmJitConfiguration => _configuration.compiler == Compiler.dartk;
 

@@ -154,7 +154,7 @@ void main() {
 
     await _resolveFile('$testPackageRootPath/lib1.dart');
     await _resolveFile('$testPackageRootPath/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 42, 1),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 42, 1),
     ]);
   }
 
@@ -194,7 +194,7 @@ void main() {
 
     await _resolveFile('$testPackageRootPath/lib1.dart');
     await _resolveFile('$testPackageRootPath/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 44, 1),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 44, 1),
     ]);
   }
 
@@ -236,8 +236,8 @@ void f(A _) {}
 
     await _resolveFile('$testPackageLibPath/a.dart');
     await _resolveFile('$testPackageLibPath/b.dart', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 21, 1),
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 32, 1),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 21, 1),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 32, 1),
     ]);
   }
 
@@ -258,7 +258,7 @@ class B {
 
     await _resolveFile('$testPackageRootPath/lib1.dart');
     await _resolveFile('$testPackageRootPath/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 52, 1),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 52, 1),
     ]);
   }
 
@@ -280,7 +280,7 @@ void main() {
 
     await _resolveFile('$testPackageRootPath/lib1.dart');
     await _resolveFile('$testPackageRootPath/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 40, 1),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 40, 1),
     ]);
   }
 
@@ -305,7 +305,7 @@ void main() {
       error(HintCode.UNUSED_FIELD, 49, 2),
     ]);
     await _resolveFile('$testPackageRootPath/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 40, 12,
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 40, 12,
           messageContains: ['A.forTesting']),
     ]);
   }
@@ -367,7 +367,7 @@ void main() {
 
     await _resolveFile('$testPackageRootPath/lib1.dart');
     await _resolveFile('$testPackageRootPath/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 44, 1),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 44, 1),
     ]);
   }
 
@@ -386,7 +386,7 @@ void main() {
 
     await _resolveFile('$testPackageRootPath/lib1.dart');
     await _resolveFile('$testPackageRootPath/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 36, 3),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 36, 3),
     ]);
   }
 
@@ -405,7 +405,7 @@ void main() {
 
     await _resolveFile('$testPackageRootPath/lib1.dart');
     await _resolveFile('$testPackageRootPath/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 36, 1),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 36, 1),
     ]);
   }
 
@@ -430,7 +430,7 @@ void main() {
       error(HintCode.UNUSED_FIELD, 49, 2),
     ]);
     await _resolveFile('$testPackageRootPath/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 40, 1),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 40, 1),
     ]);
   }
 

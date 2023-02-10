@@ -40,21 +40,21 @@ static method method(dynamic e) → dynamic {
   #L2:
   {
     final dynamic #1#0 = e;
-    if(#1#0 is{ForNonNullableByDefault} core::int && e =={core::Object::==}{(core::Object) → core::bool} 0) {
+    if(#1#0 is{ForNonNullableByDefault} core::int && e{core::int} =={core::num::==}{(core::Object) → core::bool} 0) {
       {
         core::print(0);
         break #L2;
       }
     }
     else
-      if(#1#0 is{ForNonNullableByDefault} core::int && e =={core::Object::==}{(core::Object) → core::bool} 1) {
+      if(#1#0 is{ForNonNullableByDefault} core::int && e{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
         {
           core::print(1);
           break #L2;
         }
       }
       else
-        if(#1#0 is{ForNonNullableByDefault} core::int && e =={core::Object::==}{(core::Object) → core::bool} 2) {
+        if(#1#0 is{ForNonNullableByDefault} core::int && e{core::int} =={core::num::==}{(core::Object) → core::bool} 2) {
           {
             core::print(2);
           }

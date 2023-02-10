@@ -494,7 +494,7 @@ class TypedLiteralResolver {
       // no context type. If there are any elements, inference has not failed,
       // as the types of those elements are considered resolved.
       _errorReporter.reportErrorForNode(
-          HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, node, ['List']);
+          WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, node, ['List']);
     }
 
     inferrer.constrainArguments(
@@ -697,7 +697,7 @@ class TypedLiteralResolver {
       // no context type. If there are any elements, inference has not failed,
       // as the types of those elements are considered resolved.
       _errorReporter.reportErrorForNode(
-          HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL,
+          WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL,
           node,
           [node.isMap ? 'Map' : 'Set']);
     }

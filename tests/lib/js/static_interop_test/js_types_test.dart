@@ -4,8 +4,7 @@
 
 // Check that JS types work.
 
-// ignore: IMPORT_INTERNAL_LIBRARY
-import 'dart:_js_interop';
+import 'dart:js_interop';
 import 'dart:typed_data';
 
 import 'package:expect/minitest.dart';

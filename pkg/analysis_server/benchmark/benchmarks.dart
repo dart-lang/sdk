@@ -77,9 +77,9 @@ abstract class Benchmark {
 
   bool get needsSetup => false;
 
-  Future oneTimeCleanup() => Future.value();
+  Future<void> oneTimeCleanup() => Future.value();
 
-  Future oneTimeSetup() => Future.value();
+  Future<void> oneTimeSetup() => Future.value();
 
   Future<BenchMarkResult> run({
     required String dartSdkPath,
@@ -87,7 +87,7 @@ abstract class Benchmark {
     bool verbose = false,
   });
 
-  Map toJson() =>
+  Map<String, Object?> toJson() =>
       {'id': id, 'description': description, 'enabled': enabled, 'kind': kind};
 
   @override
@@ -106,7 +106,7 @@ class BenchMarkResult {
     return BenchMarkResult(kindName, math.min(value, other.value));
   }
 
-  Map toJson() => {kindName: value};
+  Map<String, Object?> toJson() => {kindName: value};
 
   @override
   String toString() => '$kindName: $value';
@@ -124,35 +124,32 @@ class CompoundBenchMarkResult extends BenchMarkResult {
   }
 
   @override
-  BenchMarkResult combine(BenchMarkResult other) {
+  BenchMarkResult combine(covariant CompoundBenchMarkResult other) {
     BenchMarkResult combine(BenchMarkResult? a, BenchMarkResult? b) {
       if (a == null) return b!;
       if (b == null) return a;
       return a.combine(b);
     }
 
-    var o = other as CompoundBenchMarkResult;
-
     var combined = CompoundBenchMarkResult(name);
-    var keys = (<String>{}
-          ..addAll(results.keys)
-          ..addAll(o.results.keys))
-        .toList();
+    var keys = {
+      ...results.keys,
+      ...other.results.keys,
+    }.toList();
 
     for (var key in keys) {
-      combined.add(key, combine(results[key], o.results[key]));
+      combined.add(key, combine(results[key], other.results[key]));
     }
 
     return combined;
   }
 
   @override
-  Map toJson() {
-    var m = <String, dynamic>{};
-    for (var entry in results.entries) {
-      m['$name-${entry.key}'] = entry.value.toJson();
-    }
-    return m;
+  Map<String, Object?> toJson() {
+    return {
+      for (var entry in results.entries)
+        '$name-${entry.key}': entry.value.toJson(),
+    };
   }
 
   @override
@@ -186,7 +183,7 @@ class ListCommand extends Command {
   @override
   void run() {
     if (argResults!['machine'] as bool) {
-      var map = <String, dynamic>{
+      var map = <String, Object?>{
         'benchmarks': benchmarks.map((b) => b.toJson()).toList()
       };
       print(JsonEncoder.withIndent('  ').convert(map));

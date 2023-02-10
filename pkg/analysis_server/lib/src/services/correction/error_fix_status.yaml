@@ -1431,20 +1431,6 @@ HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
 HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE:
   status: noFix
   notes: Deprecated
-HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL:
-  status: noFix
-HintCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION:
-  status: noFix
-HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE:
-  status: noFix
-HintCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION:
-  status: noFix
-HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION:
-  status: noFix
-HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE:
-  status: noFix
-HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER:
-  status: noFix
 HintCode.INVALID_IMMUTABLE_ANNOTATION:
   status: hasFix
 HintCode.INVALID_INTERNAL_ANNOTATION:
@@ -1454,17 +1440,6 @@ HintCode.INVALID_LITERAL_ANNOTATION:
 HintCode.INVALID_NON_VIRTUAL_ANNOTATION:
   status: hasFix
 HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER:
-  status: noFix
-HintCode.INVALID_USE_OF_INTERNAL_MEMBER:
-  status: noFix
-HintCode.INVALID_USE_OF_PROTECTED_MEMBER:
-  status: noFix
-HintCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER:
-  status: noFix
-  since: ~2.15
-HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER:
-  status: noFix
-HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER:
   status: noFix
 HintCode.INVALID_VISIBILITY_ANNOTATION:
   status: hasFix
@@ -1827,9 +1802,7 @@ LintCode.implementation_imports:
 LintCode.implicit_call_tearoffs:
   status: hasFix
 LintCode.invalid_case_patterns:
-  status: needsFix
-  notes: |-
-    https://github.com/dart-lang/sdk/issues/49960
+  status: hasFix
 LintCode.invariant_booleans:
   status: needsEvaluation
 LintCode.iterable_contains_unrelated_type:
@@ -2086,7 +2059,7 @@ LintCode.use_build_context_synchronously:
 LintCode.use_colored_box:
   status: needsEvaluation
 LintCode.use_decorated_box:
-  status: needsEvaluation
+  status: hasFix
 LintCode.use_enums:
   status: hasFix
 LintCode.use_full_hex_values_for_flutter_colors:
@@ -2718,6 +2691,20 @@ WarningCode.EQUAL_KEYS_IN_MAP:
   status: noFix
   notes: |-
     Fix depends on user's intent, which can't be known.
+WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL:
+  status: noFix
+WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION:
+  status: noFix
+WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE:
+  status: noFix
+WarningCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION:
+  status: noFix
+WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION:
+  status: noFix
+WarningCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE:
+  status: noFix
+WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER:
+  status: noFix
 WarningCode.INVALID_ANNOTATION_TARGET:
   status: hasFix
 WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT:
@@ -2794,6 +2781,17 @@ WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM:
   status: hasFix
 WarningCode.INVALID_SEALED_ANNOTATION:
   status: hasFix
+WarningCode.INVALID_USE_OF_INTERNAL_MEMBER:
+  status: noFix
+WarningCode.INVALID_USE_OF_PROTECTED_MEMBER:
+  status: noFix
+WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER:
+  status: noFix
+  since: ~2.15
+WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER:
+  status: noFix
+WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER:
+  status: noFix
 WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE:
   status: hasFix
 WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE:

@@ -2287,6 +2287,48 @@ void f() {
     });
   }
 
+  Future<void> test_patternVariable_ifCase() {
+    addTestFile('''
+void f(Object? x) {
+  if (x case int test) {
+    test;
+    test = 1;
+    test += 2;
+  }
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test) {', 'newName');
+    }, '''
+void f(Object? x) {
+  if (x case int newName) {
+    newName;
+    newName = 1;
+    newName += 2;
+  }
+}
+''');
+  }
+
+  Future<void> test_patternVariable_patternAssignment() {
+    addTestFile('''
+void f(Object? x) {
+  int test;
+  (test, _) = (0, 1);
+  test;
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test,', 'newName');
+    }, '''
+void f(Object? x) {
+  int newName;
+  (newName, _) = (0, 1);
+  newName;
+}
+''');
+  }
+
   Future<void> test_reset_afterCreateChange() {
     test_simulateRefactoringReset_afterCreateChange = true;
     addTestFile('''

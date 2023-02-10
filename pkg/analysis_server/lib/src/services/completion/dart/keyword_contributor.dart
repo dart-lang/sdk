@@ -630,6 +630,19 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitMapPattern(MapPattern node) {
+    _addConstantExpressionKeywords(node);
+    super.visitMapPattern(node);
+  }
+
+  @override
+  void visitMapPatternEntry(MapPatternEntry node) {
+    _addSuggestions([Keyword.FINAL, Keyword.VAR]);
+    _addExpressionKeywords(node);
+    super.visitMapPatternEntry(node);
+  }
+
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (entity == node.body) {
       if (node.body.isEmpty) {
@@ -902,8 +915,12 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
+    var keyword = node.keyword;
     var variables = node.variables;
-    if (variables.isNotEmpty && entity == variables[0] && node.type == null) {
+    if (variables.isNotEmpty &&
+        entity == variables[0] &&
+        node.type == null &&
+        (keyword == null || keyword.lexeme != 'var')) {
       _addSuggestion(Keyword.DYNAMIC);
       _addSuggestion(Keyword.VOID);
     }

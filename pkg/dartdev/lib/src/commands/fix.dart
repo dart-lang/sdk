@@ -347,12 +347,12 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       }
     }
 
-    log.stdout(
-        'To fix an individual diagnostic, run one of the following commands:');
+    log.stdout('To fix an individual diagnostic, run one of:');
     for (var code in codes.sorted()) {
-      log.stdout('  dart fix --apply --code $code $argsTarget');
+      log.stdout('  dart fix --apply --code=$code $argsTarget');
     }
 
+    log.stdout('');
     log.stdout('To fix all diagnostics, run:');
     log.stdout('  dart fix --apply $argsTarget');
   }

@@ -217,6 +217,13 @@ abstract class AbstractLspAnalysisServerTest
     pubspecFilePath = join(projectFolderPath, file_paths.pubspecYaml);
     pubspecFileUri = Uri.file(pubspecFilePath);
     analysisOptionsPath = join(projectFolderPath, 'analysis_options.yaml');
+    newFile(analysisOptionsPath, '''
+analyzer:
+  enable-experiment:
+    - records
+    - patterns
+''');
+
     analysisOptionsUri = Uri.file(analysisOptionsPath);
     writePackageConfig(projectFolderPath);
   }

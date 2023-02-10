@@ -128,6 +128,9 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
     }
     // validate resulting code
     var actualCode = SourceEdit.applySequence(testCode, fileEdit.edits);
+    if (actualCode != expectedCode) {
+      print(actualCode);
+    }
     expect(actualCode, expectedCode);
   }
 

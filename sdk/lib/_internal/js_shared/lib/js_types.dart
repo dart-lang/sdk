@@ -16,7 +16,7 @@ import 'dart:typed_data';
 /// backends. See `sdk/lib/_internal/wasm/lib/js_types.dart` for more details.
 
 /// For specific details of the JS type hierarchy, please see
-/// `sdk/lib/_js_interop/js_interop.dart`.
+/// `sdk/lib/js_interop/js_interop.dart`.
 /// TODO(joshualitt): Some users may want type safety instead of conflating Dart
 /// types and JS types. For those users, we should have an opt-in flag where we
 /// swap out these typedef for actual types that would not implicitly coerce

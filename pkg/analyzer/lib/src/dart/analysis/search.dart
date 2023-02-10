@@ -1417,6 +1417,15 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
   _LocalReferencesVisitor(this.elements, this.enclosingUnitElement);
 
   @override
+  void visitAssignedVariablePattern(AssignedVariablePattern node) {
+    if (elements.contains(node.element)) {
+      _addResult(node, SearchResultKind.WRITE);
+    }
+
+    super.visitAssignedVariablePattern(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.inDeclarationContext()) {
       return;

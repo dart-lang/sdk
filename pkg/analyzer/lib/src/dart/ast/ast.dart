@@ -3036,6 +3036,16 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   @override
   NodeListImpl<ConstructorInitializerImpl> get initializers => _initializers;
 
+  // A trivial constructor is a generative constructor that is not a
+  // redirecting constructor, declares no parameters, has no
+  // initializer list, has no body, and is not external.
+  bool get isTrivial =>
+      redirectedConstructor == null &&
+      parameters.parameters.isEmpty &&
+      initializers.isEmpty &&
+      body is EmptyFunctionBody &&
+      externalKeyword == null;
+
   @Deprecated('Use name instead')
   @override
   Token? get name2 => name;

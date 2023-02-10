@@ -267,6 +267,51 @@ MethodInvocation
 ''');
   }
 
+  test_hasReceiver_interfaceType_switchExpression() async {
+    await assertNoErrorsInCode(r'''
+Object f(Object? x) {
+  return switch (x) {
+    _ => 0,
+  }.toString();
+}
+''');
+
+    final node = findNode.methodInvocation('toString()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SwitchExpression
+    switchKeyword: switch
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Object?
+    rightParenthesis: )
+    leftBracket: {
+    cases
+      SwitchExpressionCase
+        guardedPattern: GuardedPattern
+          pattern: WildcardPattern
+            name: _
+        arrow: =>
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
+    rightBracket: }
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    staticElement: dart:core::@class::int::@method::toString
+    staticType: String Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: String Function()
+  staticType: String
+''');
+  }
+
   test_hasReceiver_interfaceTypeQ_defined() async {
     await assertErrorsInCode(r'''
 class A {

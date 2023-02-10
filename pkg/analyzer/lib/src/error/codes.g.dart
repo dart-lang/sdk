@@ -5817,6 +5817,93 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  When "strict-inference" is enabled, collection literal types must be
+  ///  inferred via the context type, or have type arguments.
+  ///
+  ///  Parameters:
+  ///  0: the name of the collection
+  static const WarningCode INFERENCE_FAILURE_ON_COLLECTION_LITERAL =
+      WarningCode(
+    'INFERENCE_FAILURE_ON_COLLECTION_LITERAL',
+    "The type argument(s) of '{0}' can't be inferred.",
+    correctionMessage: "Use explicit type argument(s) for '{0}'.",
+  );
+
+  ///  When "strict-inference" is enabled, types in function invocations must be
+  ///  inferred via the context type, or have type arguments.
+  ///
+  ///  Parameters:
+  ///  0: the name of the function
+  static const WarningCode INFERENCE_FAILURE_ON_FUNCTION_INVOCATION =
+      WarningCode(
+    'INFERENCE_FAILURE_ON_FUNCTION_INVOCATION',
+    "The type argument(s) of the function '{0}' can't be inferred.",
+    correctionMessage: "Use explicit type argument(s) for '{0}'.",
+  );
+
+  ///  When "strict-inference" is enabled, recursive local functions, top-level
+  ///  functions, methods, and function-typed function parameters must all
+  ///  specify a return type. See the strict-inference resource:
+  ///
+  ///  https://github.com/dart-lang/language/blob/master/resources/type-system/strict-inference.md
+  ///
+  ///  Parameters:
+  ///  0: the name of the function or method
+  static const WarningCode INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE =
+      WarningCode(
+    'INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE',
+    "The return type of '{0}' cannot be inferred.",
+    correctionMessage: "Declare the return type of '{0}'.",
+  );
+
+  ///  When "strict-inference" is enabled, types in function invocations must be
+  ///  inferred via the context type, or have type arguments.
+  ///
+  ///  Parameters:
+  ///  0: the name of the type
+  static const WarningCode INFERENCE_FAILURE_ON_GENERIC_INVOCATION =
+      WarningCode(
+    'INFERENCE_FAILURE_ON_GENERIC_INVOCATION',
+    "The type argument(s) of the generic function type '{0}' can't be "
+        "inferred.",
+    correctionMessage: "Use explicit type argument(s) for '{0}'.",
+  );
+
+  ///  When "strict-inference" is enabled, types in instance creation
+  ///  (constructor calls) must be inferred via the context type, or have type
+  ///  arguments.
+  ///
+  ///  Parameters:
+  ///  0: the name of the constructor
+  static const WarningCode INFERENCE_FAILURE_ON_INSTANCE_CREATION = WarningCode(
+    'INFERENCE_FAILURE_ON_INSTANCE_CREATION',
+    "The type argument(s) of the constructor '{0}' can't be inferred.",
+    correctionMessage: "Use explicit type argument(s) for '{0}'.",
+  );
+
+  ///  When "strict-inference" in enabled, uninitialized variables must be
+  ///  declared with a specific type.
+  ///
+  ///  Parameters:
+  ///  0: the name of the variable
+  static const WarningCode INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE =
+      WarningCode(
+    'INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE',
+    "The type of {0} can't be inferred without either a type or initializer.",
+    correctionMessage: "Try specifying the type of the variable.",
+  );
+
+  ///  When "strict-inference" in enabled, function parameters must be
+  ///  declared with a specific type, or inherit a type.
+  ///
+  ///  Parameters:
+  ///  0: the name of the parameter
+  static const WarningCode INFERENCE_FAILURE_ON_UNTYPED_PARAMETER = WarningCode(
+    'INFERENCE_FAILURE_ON_UNTYPED_PARAMETER',
+    "The type of {0} can't be inferred; a type must be explicitly provided.",
+    correctionMessage: "Try specifying the type of the parameter.",
+  );
+
   ///  Parameters:
   ///  0: the name of the annotation
   ///  1: the list of valid targets
@@ -6029,6 +6116,60 @@ class WarningCode extends AnalyzerErrorCode {
     'INVALID_SEALED_ANNOTATION',
     "The annotation '@sealed' can only be applied to classes.",
     correctionMessage: "Try removing the '@sealed' annotation.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the member
+  static const WarningCode INVALID_USE_OF_INTERNAL_MEMBER = WarningCode(
+    'INVALID_USE_OF_INTERNAL_MEMBER',
+    "The member '{0}' can only be used within its package.",
+    hasPublishedDocs: true,
+  );
+
+  ///  This hint is generated anywhere where a member annotated with `@protected`
+  ///  is used outside of an instance member of a subclass.
+  ///
+  ///  Parameters:
+  ///  0: the name of the member
+  ///  1: the name of the defining class
+  static const WarningCode INVALID_USE_OF_PROTECTED_MEMBER = WarningCode(
+    'INVALID_USE_OF_PROTECTED_MEMBER',
+    "The member '{0}' can only be used within instance members of subclasses "
+        "of '{1}'.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the member
+  static const WarningCode INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER =
+      WarningCode(
+    'INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER',
+    "The member '{0}' can only be used for overriding.",
+    hasPublishedDocs: true,
+  );
+
+  ///  This hint is generated anywhere where a member annotated with
+  ///  `@visibleForTemplate` is used outside of a "template" Dart file.
+  ///
+  ///  Parameters:
+  ///  0: the name of the member
+  ///  1: the name of the defining class
+  static const WarningCode INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER =
+      WarningCode(
+    'INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER',
+    "The member '{0}' can only be used within '{1}' or a template library.",
+  );
+
+  ///  This hint is generated anywhere where a member annotated with
+  ///  `@visibleForTesting` is used outside the defining library, or a test.
+  ///
+  ///  Parameters:
+  ///  0: the name of the member
+  ///  1: the name of the defining class
+  static const WarningCode INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER =
+      WarningCode(
+    'INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER',
+    "The member '{0}' can only be used within '{1}' or a test.",
     hasPublishedDocs: true,
   );
 

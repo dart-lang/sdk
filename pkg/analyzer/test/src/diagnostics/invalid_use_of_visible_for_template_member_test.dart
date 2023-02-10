@@ -71,7 +71,7 @@ void main() {
 
     await _resolveFile('$testPackageLibPath/lib1.dart');
     await _resolveFile('$testPackageLibPath/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 42, 1),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 42, 1),
     ]);
   }
 
@@ -112,7 +112,7 @@ class B {
 
     await _resolveFile('$testPackageLibPath/lib1.dart');
     await _resolveFile('$testPackageLibPath/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 53, 1),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 53, 1),
     ]);
   }
 
@@ -158,7 +158,7 @@ void main() {
       error(HintCode.UNUSED_FIELD, 65, 2),
     ]);
     await _resolveFile('$testPackageLibPath/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 41, 13),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 41, 13),
     ]);
   }
 
@@ -184,8 +184,8 @@ void main() {
 
     await _resolveFile('$testPackageLibPath/lib1.dart');
     await _resolveFile('$testPackageLibPath/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 45, 1),
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 58, 1),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 45, 1),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 58, 1),
     ]);
   }
 
@@ -248,7 +248,7 @@ void main() {
 
     await _resolveFile('$testPackageLibPath/lib1.dart');
     await _resolveFile('$testPackageLibPath/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 37, 3),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 37, 3),
     ]);
   }
 
@@ -268,7 +268,7 @@ void main() {
 
     await _resolveFile('$testPackageLibPath/lib1.dart');
     await _resolveFile('$testPackageLibPath/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 37, 1),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 37, 1),
     ]);
   }
 
@@ -294,7 +294,7 @@ void main() {
       error(HintCode.UNUSED_FIELD, 65, 2),
     ]);
     await _resolveFile('$testPackageLibPath/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 41, 1),
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 41, 1),
     ]);
   }
 

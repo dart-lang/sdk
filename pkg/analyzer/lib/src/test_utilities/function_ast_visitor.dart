@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   final void Function(CatchClauseParameter)? catchClauseParameter;
   final void Function(DeclaredIdentifier)? declaredIdentifier;
+  final void Function(DeclaredVariablePattern)? declaredVariablePattern;
   final void Function(ForElement)? forElement;
   final void Function(ForStatement)? forStatement;
   final void Function(FunctionDeclarationStatement)?
@@ -31,6 +32,7 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   FunctionAstVisitor({
     this.catchClauseParameter,
     this.declaredIdentifier,
+    this.declaredVariablePattern,
     this.forElement,
     this.forStatement,
     this.functionDeclarationStatement,
@@ -61,6 +63,12 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
       declaredIdentifier!(node);
     }
     super.visitDeclaredIdentifier(node);
+  }
+
+  @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    declaredVariablePattern?.call(node);
+    super.visitDeclaredVariablePattern(node);
   }
 
   @override

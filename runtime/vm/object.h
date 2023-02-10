@@ -395,41 +395,31 @@ class Object {
   bool IsNotTemporaryScopedHandle() const;
 #endif
 
-  static Object& Handle(Zone* zone, ObjectPtr ptr) {
-    Object* obj = reinterpret_cast<Object*>(VMHandles::AllocateHandle(zone));
-    initializeHandle(obj, ptr);
-    return *obj;
+  static Object& Handle() {
+    return HandleImpl(Thread::Current()->zone(), null_, kObjectCid);
   }
-  static Object* ReadOnlyHandle() {
-    Object* obj = reinterpret_cast<Object*>(Dart::AllocateReadOnlyHandle());
-    initializeHandle(obj, Object::null());
-    return obj;
+  static Object& Handle(Zone* zone) {
+    return HandleImpl(zone, null_, kObjectCid);
   }
-
-  static Object& Handle() { return Handle(Thread::Current()->zone(), null_); }
-
-  static Object& Handle(Zone* zone) { return Handle(zone, null_); }
-
   static Object& Handle(ObjectPtr ptr) {
-    return Handle(Thread::Current()->zone(), ptr);
+    return HandleImpl(Thread::Current()->zone(), ptr, kObjectCid);
   }
-
-  static Object& ZoneHandle(Zone* zone, ObjectPtr ptr) {
-    Object* obj =
-        reinterpret_cast<Object*>(VMHandles::AllocateZoneHandle(zone));
-    initializeHandle(obj, ptr);
-    return *obj;
+  static Object& Handle(Zone* zone, ObjectPtr ptr) {
+    return HandleImpl(zone, ptr, kObjectCid);
   }
-
-  static Object& ZoneHandle(Zone* zone) { return ZoneHandle(zone, null_); }
-
   static Object& ZoneHandle() {
-    return ZoneHandle(Thread::Current()->zone(), null_);
+    return ZoneHandleImpl(Thread::Current()->zone(), null_, kObjectCid);
   }
-
+  static Object& ZoneHandle(Zone* zone) {
+    return ZoneHandleImpl(zone, null_, kObjectCid);
+  }
   static Object& ZoneHandle(ObjectPtr ptr) {
-    return ZoneHandle(Thread::Current()->zone(), ptr);
+    return ZoneHandleImpl(Thread::Current()->zone(), ptr, kObjectCid);
   }
+  static Object& ZoneHandle(Zone* zone, ObjectPtr ptr) {
+    return ZoneHandleImpl(zone, ptr, kObjectCid);
+  }
+  static Object* ReadOnlyHandle() { return ReadOnlyHandleImpl(kObjectCid); }
 
   static ObjectPtr null() { return null_; }
 

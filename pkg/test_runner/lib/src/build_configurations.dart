@@ -84,6 +84,7 @@ List<String> _selectBuildTargets(Configuration inner) {
     Compiler.appJitk: ['runtime'],
     Compiler.fasta: ['create_sdk', 'dartdevc_test', 'kernel_platform_files'],
     Compiler.dartdevk: ['dartdevc_test'],
+    Compiler.ddc: ['dartdevc_test'],
     Compiler.dart2js: ['create_sdk'],
     Compiler.dart2analyzer: ['create_sdk', 'utils/dartanalyzer'],
     Compiler.specParser: <String>[],
@@ -109,7 +110,8 @@ List<String> _selectBuildTargets(Configuration inner) {
     result.add('analyze_snapshot');
   }
 
-  if (compiler == Compiler.dartdevk && !inner.useSdk) {
+  if ((compiler == Compiler.dartdevk || compiler == Compiler.ddc) &&
+      !inner.useSdk) {
     result
       ..remove('dartdevc_test')
       ..add('dartdevc_test_local');

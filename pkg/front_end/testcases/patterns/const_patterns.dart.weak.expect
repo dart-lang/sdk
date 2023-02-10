@@ -274,7 +274,7 @@ class Class extends core::Object /*hasConstConstructor*/  {
         else
           if(#1#0 is{ForNonNullableByDefault} void && (let final dynamic #t1 = fun = #1#0{void} in true)) {
             {
-              () → Never {};
+              () → Null {};
               invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:40:25: Error: This couldn't be parsed.
       case void fun() {}: // Error
                         ^";

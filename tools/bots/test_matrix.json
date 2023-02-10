@@ -727,6 +727,19 @@
         ]
       }
     },
+    "vm-aot-android-(debug|product|release)-arm_x64": {
+      "options": {
+        "builder-tag": "crossword",
+        "use-elf": true,
+        "nnbd": "strong"
+      }
+    },
+    "vm-aot-android-(debug|product|release)-(arm|arm64|arm64c)": {
+      "options": {
+        "use-elf": true,
+        "nnbd": "strong"
+      }
+    },
     "dartk-android-(debug|product|release)-(arm|arm64|arm64c)": {
       "options": {
         "vm-options": [
@@ -1214,6 +1227,35 @@
             "lib",
             "service"
           ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-aot-android-release-arm_x64",
+        "vm-aot-android-release-arm64c"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm precomp builders on Android."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "dart_precompiled_runtime",
+            "--os=android"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-aot-android-${mode}-${arch}",
+            "-j2"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 15
         }
       ]
     },
