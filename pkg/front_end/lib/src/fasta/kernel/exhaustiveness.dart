@@ -327,7 +327,7 @@ Space convertPatternToSpace(CfeExhaustivenessCache cache, Pattern pattern,
     return new Space(cache.getStaticType(type), fields);
   } else if (pattern is VariablePattern) {
     return new Space(cache.getStaticType(pattern.variable.type));
-  } else if (pattern is ExpressionPattern) {
+  } else if (pattern is ConstantPattern) {
     return convertExpressionToSpace(
         cache, pattern.expression, constants, context);
   }

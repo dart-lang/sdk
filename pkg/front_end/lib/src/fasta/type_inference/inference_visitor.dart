@@ -57,6 +57,7 @@ import 'inference_helper.dart';
 import 'inference_results.dart';
 import 'inference_visitor_base.dart';
 import 'matching_cache.dart';
+import 'matching_expressions.dart';
 import 'object_access_target.dart';
 import 'shared_type_analyzer.dart';
 import 'stack_values.dart';
@@ -100,6 +101,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ExpressionVisitor1<ExpressionInferenceResult, DartType>,
         StatementVisitor<StatementInferenceResult>,
         InitializerVisitor<InitializerInferenceResult>,
+        PatternVisitor1<void, SharedMatchContext>,
         InferenceVisitor {
   /// Debug-only: if `true`, manipulations of [_rewriteStack] performed by
   /// [popRewrite] and [pushRewrite] will be printed.
@@ -1889,10 +1891,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     MatchingCache matchingCache = createMatchingCache();
+    MatchingExpressionVisitor matchingExpressionVisitor =
+        new MatchingExpressionVisitor(this, matchingCache);
     CacheableExpression matchedExpression =
         matchingCache.createRootExpression(node.expression, scrutineeType);
-    DelayedExpression matchingExpression = node.patternGuard.pattern
-        .createMatchingExpression(this, matchingCache, matchedExpression);
+    DelayedExpression matchingExpression = matchingExpressionVisitor
+        .visitPattern(node.patternGuard.pattern, matchedExpression);
 
     matchingExpression.registerUse();
 
@@ -7607,6 +7611,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     MatchingCache matchingCache = createMatchingCache();
+    MatchingExpressionVisitor matchingExpressionVisitor =
+        new MatchingExpressionVisitor(this, matchingCache);
     // TODO(johnniwinther): Handle promoted scrutinee types.
     CacheableExpression matchedExpression =
         matchingCache.createRootExpression(expression, scrutineeType);
@@ -7626,8 +7632,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     List<DelayedExpression> matchingExpressions =
         new List.generate(node.cases.length, (int caseIndex) {
       SwitchExpressionCase switchCase = node.cases[caseIndex];
-      DelayedExpression matchingExpression = switchCase.patternGuard.pattern
-          .createMatchingExpression(this, matchingCache, matchedExpression);
+      DelayedExpression matchingExpression = matchingExpressionVisitor
+          .visitPattern(switchCase.patternGuard.pattern, matchedExpression);
       matchingExpression.registerUse();
       return matchingExpression;
     });
@@ -7838,6 +7844,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     MatchingCache matchingCache = createMatchingCache();
+    MatchingExpressionVisitor matchingExpressionVisitor =
+        new MatchingExpressionVisitor(this, matchingCache);
     CacheableExpression matchedExpression =
         matchingCache.createRootExpression(expression, scrutineeType);
 
@@ -7867,11 +7875,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           hasContinue = true;
         }
         Pattern pattern = switchCase.patternGuards[headIndex].pattern;
-        DelayedExpression matchingExpression = pattern.createMatchingExpression(
-            // TODO(johnniwinther): Handle promoted scrutinee types.
-            this,
-            matchingCache,
-            matchedExpression);
+        DelayedExpression matchingExpression =
+            matchingExpressionVisitor.visitPattern(
+                pattern,
+                // TODO(johnniwinther): Handle promoted scrutinee types.
+                matchedExpression);
         matchingExpression.registerUse();
         return matchingExpression;
       });
@@ -8510,13 +8518,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     MatchingCache matchingCache = createMatchingCache();
+    MatchingExpressionVisitor matchingExpressionVisitor =
+        new MatchingExpressionVisitor(this, matchingCache);
     // TODO(cstefantsova): Do we need a more precise type for the variable?
     DartType matchedType = const DynamicType();
     CacheableExpression matchedExpression =
         matchingCache.createRootExpression(initializer, matchedType);
 
-    DelayedExpression matchingExpression = node.pattern
-        .createMatchingExpression(this, matchingCache, matchedExpression);
+    DelayedExpression matchingExpression =
+        matchingExpressionVisitor.visitPattern(node.pattern, matchedExpression);
 
     matchingExpression.registerUse();
 
@@ -9079,7 +9089,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   void dispatchPattern(SharedMatchContext context, TreeNode node) {
     if (node is Pattern) {
-      node.acceptInference(this, context: context);
+      node.acceptPattern1(this, context);
     } else {
       analyzeConstantPattern(context, node, node as Expression);
     }
@@ -9466,10 +9476,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(_rewriteStack.isEmpty);
   }
 
-  void visitVariablePattern(
-    VariablePattern node, {
-    required SharedMatchContext context,
-  }) {
+  @override
+  void visitVariablePattern(VariablePattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -9488,10 +9496,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ]));
   }
 
-  void visitWildcardBinder(
-    WildcardPattern node, {
-    required SharedMatchContext context,
-  }) {
+  @override
+  void visitWildcardPattern(WildcardPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -9505,10 +9511,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ]));
   }
 
-  void visitExpressionPattern(
-    ExpressionPattern node, {
-    required SharedMatchContext context,
-  }) {
+  @override
+  void visitConstantPattern(ConstantPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -9531,10 +9535,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ]));
   }
 
-  void visitAndPattern(
-    AndPattern node, {
-    required SharedMatchContext context,
-  }) {
+  @override
+  void visitAndPattern(AndPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -9562,10 +9564,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ]));
   }
 
-  void visitOrPattern(
-    OrPattern node, {
-    required SharedMatchContext context,
-  }) {
+  @override
+  void visitOrPattern(OrPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -9593,10 +9593,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ]));
   }
 
-  void visitCastPattern(
-    CastPattern node, {
-    required SharedMatchContext context,
-  }) {
+  @override
+  void visitCastPattern(CastPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -9623,10 +9621,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ]));
   }
 
+  @override
   void visitNullAssertPattern(
-    NullAssertPattern node, {
-    required SharedMatchContext context,
-  }) {
+      NullAssertPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -9649,10 +9646,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ]));
   }
 
+  @override
   void visitNullCheckPattern(
-    NullCheckPattern node, {
-    required SharedMatchContext context,
-  }) {
+      NullCheckPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -9675,10 +9671,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ]));
   }
 
-  void visitListPattern(
-    ListPattern node, {
-    required SharedMatchContext context,
-  }) {
+  @override
+  void visitListPattern(ListPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -9704,8 +9698,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ]));
   }
 
-  void visitObjectPattern(ObjectPattern node,
-      {required SharedMatchContext context}) {
+  @override
+  void visitObjectPattern(ObjectPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -9736,8 +9730,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ]));
   }
 
-  void visitRestPattern(RestPattern node,
-      {required SharedMatchContext context}) {
+  @override
+  void visitRestPattern(RestPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -9748,8 +9742,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ]));
   }
 
-  void visitInvalidPattern(InvalidPattern node,
-      {required SharedMatchContext context}) {
+  @override
+  void visitInvalidPattern(InvalidPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -9760,10 +9754,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ]));
   }
 
+  @override
   void visitRelationalPattern(
-    RelationalPattern node, {
-    required SharedMatchContext context,
-  }) {
+      RelationalPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -9788,10 +9781,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ]));
   }
 
-  void visitMapPattern(
-    MapPattern node, {
-    required SharedMatchContext context,
-  }) {
+  @override
+  void visitMapPattern(MapPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -9828,10 +9819,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ]));
   }
 
-  void visitNamedPattern(
-    NamedPattern node, {
-    required SharedMatchContext context,
-  }) {
+  @override
+  void visitNamedPattern(NamedPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -9843,10 +9832,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ]));
   }
 
-  void visitRecordPattern(
-    RecordPattern node, {
-    required SharedMatchContext context,
-  }) {
+  @override
+  void visitRecordPattern(RecordPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -9919,13 +9906,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(checkStack(node, stackBase, [/*empty*/]));
 
     MatchingCache matchingCache = createMatchingCache();
+    MatchingExpressionVisitor matchingExpressionVisitor =
+        new MatchingExpressionVisitor(this, matchingCache);
     // TODO(cstefantsova): Do we need a more precise type for the variable?
     DartType matchedType = const DynamicType();
     CacheableExpression matchedExpression =
         matchingCache.createRootExpression(expression, matchedType);
 
-    DelayedExpression matchingExpression = node.pattern
-        .createMatchingExpression(this, matchingCache, matchedExpression);
+    DelayedExpression matchingExpression =
+        matchingExpressionVisitor.visitPattern(node.pattern, matchedExpression);
 
     matchedExpression.registerUse();
     matchingExpression.registerUse();
@@ -9955,8 +9944,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         analysisResult.resolveShorting(), replacement);
   }
 
-  void visitAssignedVariablePattern(AssignedVariablePattern node,
-      {required SharedMatchContext context}) {
+  @override
+  void visitAssignedVariablePattern(
+      AssignedVariablePattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -10140,7 +10130,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return null;
     } else {
       return new shared.MapPatternEntry<Expression, Pattern>(
-          key: (element.key as ExpressionPattern).expression,
+          key: (element.key as ConstantPattern).expression,
           value: element.value);
     }
   }
@@ -10148,7 +10138,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   void handleMapPatternEntry(Pattern container, TreeNode entryElement) {
     entryElement as MapPatternEntry;
-    ExpressionPattern keyPattern = entryElement.key as ExpressionPattern;
+    ConstantPattern keyPattern = entryElement.key as ConstantPattern;
     Pattern valuePattern = entryElement.value;
     bool isChanged = false;
 
@@ -10216,6 +10206,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     return new RelationalOperatorResolution(
         kind: kind, parameterType: parameterType, returnType: returnType);
+  }
+
+  @override
+  void defaultPattern(Pattern node, SharedMatchContext arg) {
+    problems.unhandled("$node (${node.runtimeType})", "InferenceVisitor",
+        node.fileOffset, helper.uri);
   }
 }
 
