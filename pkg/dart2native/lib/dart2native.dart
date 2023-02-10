@@ -58,12 +58,14 @@ Future<ProcessResult> generateAotKernel(
     String? packages,
     List<String> defines,
     {String enableExperiment = '',
+    String? targetOS,
     List<String> extraGenKernelOptions = const []}) {
   return Process.run(dart, [
     genKernel,
     '--platform',
     platformDill,
     if (enableExperiment.isNotEmpty) '--enable-experiment=$enableExperiment',
+    if (targetOS != null) '--target-os=$targetOS',
     '--aot',
     '-Ddart.vm.product=true',
     ...(defines.map((d) => '-D$d')),

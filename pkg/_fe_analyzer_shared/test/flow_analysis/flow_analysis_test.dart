@@ -7248,6 +7248,21 @@ main() {
           ]);
         });
 
+        test('Guaranteed match due to Null type in subpattern', () {
+          h.run([
+            ifCase(
+                expr('(Null,)'),
+                recordPattern(
+                    [relationalPattern('==', nullLiteral).recordField()]),
+                [
+                  checkReachable(true),
+                ],
+                [
+                  checkReachable(false),
+                ])
+          ]);
+        });
+
         test('In the general case, may or may not match', () {
           h.run([
             ifCase(expr('Object?'), relationalPattern('==', intLiteral(0)), [

@@ -93,7 +93,7 @@ const jsRuntimeBlobPart2 = r'''
 
     // Initialize async bridge.
     asyncBridge = new WebAssembly.Function(
-        {parameters: ['externref', 'externref'], results: ['externref']},
+        {parameters: ['anyref', 'anyref'], results: ['externref']},
         dartInstance.exports.$asyncBridge,
         {promising: 'first'});
     return dartInstance;

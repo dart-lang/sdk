@@ -147,7 +147,7 @@ class RefType extends ValueType {
   const RefType.common({required bool nullable})
       : this._(HeapType.common, nullable);
 
-  /// A (possibly nullable) reference to the `any` heap type.
+  /// A (possibly nullable) reference to the `extern` heap type.
   const RefType.extern({required bool nullable})
       : this._(HeapType.extern, nullable);
 

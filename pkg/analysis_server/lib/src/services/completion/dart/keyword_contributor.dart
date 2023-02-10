@@ -828,11 +828,25 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     final entity = this.entity;
     if (entity == node.colon && request.target.offset <= node.colon.offset) {
       var previous = node.colon.previous?.keyword;
-      if (previous != Keyword.AS && previous != Keyword.WHEN) {
+      if (previous == Keyword.AS) {
+        _addSuggestion(Keyword.DYNAMIC);
+      } else if (previous != Keyword.WHEN) {
         _addSuggestions([Keyword.AS, Keyword.WHEN]);
       }
     } else if (entity is GuardedPattern) {
-      _addConstantExpressionKeywords(node);
+      var pattern = node.guardedPattern.pattern;
+      if (pattern is DeclaredVariablePattern) {
+        var keyword = pattern.keyword;
+        if (keyword == null) {
+          _addConstantExpressionKeywords(node);
+          _addSuggestions([Keyword.FINAL, Keyword.VAR]);
+        }
+      } else if (pattern is ConstantPattern) {
+        _addConstantExpressionKeywords(node);
+        _addSuggestions([Keyword.FINAL, Keyword.VAR]);
+      } else {
+        _addConstantExpressionKeywords(node);
+      }
     } else {
       _addStatementKeywords(node);
     }

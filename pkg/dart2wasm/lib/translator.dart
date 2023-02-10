@@ -372,7 +372,7 @@ class Translator with KernelNodes {
 
   w.DefinedFunction generateGetMain(Procedure mainFunction) {
     w.DefinedFunction getMain = m.addFunction(
-        m.addFunctionType(const [], const [w.RefType.extern(nullable: true)]));
+        m.addFunctionType(const [], const [w.RefType.any(nullable: true)]));
     constants.instantiateConstant(getMain, getMain.body,
         StaticTearOffConstant(mainFunction), getMain.type.outputs.single);
     getMain.body.end();
@@ -568,17 +568,22 @@ class Translator with KernelNodes {
   }
 
   /// Translate a Dart type as it should appear on parameters and returns of
-  /// imported and exported functions. The only reference types allowed here
-  /// for JS interop are `externref` and `funcref`.
-  ///
+  /// imported and exported functions. All wasm types are allowed on the interop
+  /// boundary, but in order to be compatible with the `--closed-world` mode of
+  /// Binaryen, we coerce all reference types to abstract reference types
+  /// (`anyref`, `funcref` or `externref`).
   /// This function can be called before the class info is built.
   w.ValueType translateExternalType(DartType type) {
+    bool isPotentiallyNullable = type.isPotentiallyNullable;
     if (type is InterfaceType) {
       Class cls = type.classNode;
       if (cls == wasmFuncRefClass || cls == wasmFunctionClass) {
-        return w.RefType.func(nullable: true);
+        return w.RefType.func(nullable: isPotentiallyNullable);
       }
-      if (!type.isPotentiallyNullable) {
+      if (cls == wasmExternRefClass) {
+        return w.RefType.extern(nullable: isPotentiallyNullable);
+      }
+      if (!isPotentiallyNullable) {
         w.StorageType? builtin = builtinTypes[cls];
         if (builtin != null && builtin.isPrimitive) {
           return builtin as w.ValueType;
@@ -588,7 +593,9 @@ class Translator with KernelNodes {
         }
       }
     }
-    return w.RefType.extern(nullable: true);
+    // TODO(joshualitt): We'd like to use the potential nullability here too,
+    // but unfortunately this seems to break things.
+    return w.RefType.any(nullable: true);
   }
 
   w.DefinedGlobal makeFunctionRef(w.BaseFunction f) {
@@ -773,16 +780,6 @@ class Translator with KernelNodes {
       }
     }
 
-    bool fromIsExtern = from.isSubtypeOf(w.RefType.extern(nullable: true));
-    bool toIsExtern = to.isSubtypeOf(w.RefType.extern(nullable: true));
-    if (fromIsExtern && !toIsExtern) {
-      b.extern_internalize();
-      from = w.RefType.any(nullable: from.nullable);
-    }
-    if (!fromIsExtern && toIsExtern) {
-      to = w.RefType.any(nullable: to.nullable);
-    }
-
     if (!from.isSubtypeOf(to)) {
       if (from is w.RefType && to is w.RefType) {
         if (from.withNullability(false).isSubtypeOf(to)) {
@@ -812,10 +809,6 @@ class Translator with KernelNodes {
       } else {
         throw "Conversion between non-reference types";
       }
-    }
-
-    if (!fromIsExtern && toIsExtern) {
-      b.extern_externalize();
     }
   }
 

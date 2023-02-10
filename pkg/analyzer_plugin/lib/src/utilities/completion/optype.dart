@@ -1398,6 +1398,17 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         optype.completionLocation = 'CastPattern_type';
         optype.includeTypeNameSuggestions = true;
       }
+    } else if (entity is GuardedPattern) {
+      optype.completionLocation = 'SwitchPatternCase_pattern';
+      var pattern = node.guardedPattern.pattern;
+      if (pattern is DeclaredVariablePattern) {
+        var keyword = pattern.keyword;
+        if (keyword == null || keyword.lexeme != 'var') {
+          optype.includeTypeNameSuggestions = true;
+        }
+      } else if (pattern is ConstantPattern) {
+        optype.includeTypeNameSuggestions = true;
+      }
     } else if (node.statements.contains(entity)) {
       optype.completionLocation = 'SwitchMember_statement';
       optype.includeReturnValueSuggestions = true;

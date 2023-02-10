@@ -35,6 +35,7 @@ import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 
+import '../../base/nnbd_mode.dart';
 import '../fasta_codes.dart';
 
 import 'constant_int_folder.dart';
@@ -177,7 +178,18 @@ void transformProcedure(
 enum EvaluationMode {
   weak,
   agnostic,
-  strong,
+  strong;
+
+  static EvaluationMode fromNnbdMode(NnbdMode nnbdMode) {
+    switch (nnbdMode) {
+      case NnbdMode.Weak:
+        return EvaluationMode.weak;
+      case NnbdMode.Strong:
+        return EvaluationMode.strong;
+      case NnbdMode.Agnostic:
+        return EvaluationMode.agnostic;
+    }
+  }
 }
 
 class ConstantWeakener extends ComputeOnceConstantVisitor<Constant?> {
@@ -3144,7 +3156,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   /// This compute the constant as seen in the current evaluation mode even when
   /// the constant is defined in a library compiled with the agnostic evaluation
   /// mode.
-  Constant _evaluateExpressionInContext(Member member, Expression expression) {
+  Constant evaluateExpressionInContext(Member member, Expression expression) {
     StaticTypeContext? oldStaticTypeContext = _staticTypeContext;
     _staticTypeContext = new StaticTypeContext(member, typeEnvironment);
     Constant constant = _evaluateSubexpression(expression);
@@ -3166,7 +3178,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       visitedLibraries.add(target.enclosingLibrary);
       if (target is Field) {
         if (target.isConst) {
-          return _evaluateExpressionInContext(target, target.initializer!);
+          return evaluateExpressionInContext(target, target.initializer!);
         }
         return createEvaluationErrorConstant(
             node,
@@ -3241,7 +3253,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   Constant _getFromEnvironmentDefaultValue(Procedure target) {
     VariableDeclaration variable = target.function.namedParameters
         .singleWhere((v) => v.name == 'defaultValue');
-    return _evaluateExpressionInContext(target, variable.initializer!);
+    return evaluateExpressionInContext(target, variable.initializer!);
   }
 
   Constant _handleFromEnvironment(

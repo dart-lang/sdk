@@ -32,7 +32,7 @@ test() {
   Object dartObject1 = "1";
   Object dartObject2 = true;
   Object dartObject3 = Object();
-  WasmAnyRef jsObject1 = createObject(null)!.internalize();
+  WasmAnyRef jsObject1 = createObject(WasmExternRef.nullRef)!.internalize();
 
   // A JS object is not a Dart object.
   Expect.isFalse(jsObject1.isObject);
@@ -86,7 +86,8 @@ test() {
 
   // Create a typed function reference from an import and call it.
   var createObjectFun = WasmFunction.fromFunction(createObject);
-  WasmAnyRef jsObject3 = createObjectFun.call(null).internalize()!;
+  WasmAnyRef jsObject3 =
+      createObjectFun.call(WasmExternRef.nullRef).internalize()!;
   Expect.isFalse(jsObject3.isObject);
 
   Expect.equals(3, funCount);

@@ -80,7 +80,7 @@ extension ObjectToJS on Object {
 }
 
 // For now both `null` and `undefined` in JS map to `null` in Dart.
-bool isDartNull(WasmExternRef? ref) => ref == null || isJSUndefined(ref);
+bool isDartNull(WasmExternRef? ref) => ref.isNull || isJSUndefined(ref);
 
 // Extensions for [JSArray] and [JSObject].
 // TODO(joshualitt): Rewrite using JS types.
@@ -328,7 +328,7 @@ WasmExternRef? jsArrayBufferFromDartByteBuffer(ByteBuffer buffer) {
 
 WasmExternRef? jsifyRaw(Object? object) {
   if (object == null) {
-    return null;
+    return WasmExternRef.nullRef;
   } else if (object is bool) {
     return toJSBoolean(object);
   } else if (object is Function) {
@@ -370,10 +370,10 @@ WasmExternRef? jsifyRaw(Object? object) {
   }
 }
 
-bool isWasmGCStruct(WasmExternRef ref) => ref.internalize().isObject;
+bool isWasmGCStruct(WasmExternRef? ref) => ref.internalize()?.isObject ?? false;
 
 Object? dartifyRaw(WasmExternRef? ref) {
-  if (ref == null) {
+  if (ref.isNull) {
     return null;
   } else if (isJSUndefined(ref)) {
     // TODO(joshualitt): Introduce a `JSUndefined` type.
@@ -413,7 +413,7 @@ Object? dartifyRaw(WasmExternRef? ref) {
   } else if (isWasmGCStruct(ref)) {
     return jsObjectToDartObject(ref);
   } else {
-    return JSValue(ref);
+    return JSValue.box(ref);
   }
 }
 

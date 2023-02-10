@@ -35,6 +35,7 @@ import 'package:usage/uuid/uuid.dart';
 
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
 import 'package:vm/kernel_front_end.dart';
+import 'package:vm/target_os.dart'; // For possible --target-os values.
 
 import 'src/javascript_bundle.dart';
 
@@ -51,6 +52,9 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('aot',
       help: 'Run compiler in AOT mode (enables whole-program transformations)',
       defaultsTo: false)
+  ..addOption('target-os',
+      help: 'Compile to a specific target operating system.',
+      allowed: TargetOS.names)
   ..addFlag('support-mirrors',
       help: 'Whether dart:mirrors is supported. By default dart:mirrors is '
           'supported when --aot and --minimal-kernel are not used.',
@@ -513,6 +517,13 @@ class FrontendCompiler implements CompilerInterface {
       }
     }
 
+    if (options['target-os'] != null) {
+      if (!options['aot']) {
+        print('Error: --target-os option must be used with --aot');
+        return false;
+      }
+    }
+
     if (options['support-mirrors'] == true) {
       if (options['aot']) {
         print('Error: --support-mirrors option cannot be used with --aot');
@@ -592,6 +603,7 @@ class FrontendCompiler implements CompilerInterface {
           includePlatform: options['link-platform'],
           deleteToStringPackageUris: options['delete-tostring-package-uri'],
           aot: options['aot'],
+          targetOS: options['target-os'],
           useGlobalTypeFlowAnalysis: options['tfa'],
           useRapidTypeAnalysis: options['rta'],
           environmentDefines: environmentDefines,
