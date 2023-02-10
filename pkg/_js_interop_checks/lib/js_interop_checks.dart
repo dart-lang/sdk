@@ -65,7 +65,6 @@ class JsInteropChecks extends RecursiveVisitor {
     '_foreign_helper', // for foreign helpers
     '_late_helper', // for dart2js late variable utilities
     '_interceptors', // for ddc JS string
-    '_js_interop',
     '_native_typed_data',
     '_runtime', // for ddc types at runtime
     'async',
@@ -74,6 +73,7 @@ class JsInteropChecks extends RecursiveVisitor {
     'html_common',
     'indexed_db',
     'js',
+    'js_interop',
     'js_util',
     'svg',
     'web_audio',
@@ -84,7 +84,7 @@ class JsInteropChecks extends RecursiveVisitor {
   /// Libraries that need to use external extension members with static interop
   /// types.
   static final Iterable<String> _customStaticInteropImplementations = [
-    '_js_interop',
+    'js_interop',
   ];
 
   /// Native tests to exclude from checks on external.

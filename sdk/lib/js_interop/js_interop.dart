@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// **WARNING**:
+/// The following types will be sealed in the near future. Do *not* subtype
+/// the types in this library as the subtypes will be broken.
+
 /// A library for JS interop. Includes a JS type hierarchy to facilitate sound
 /// interop with JS. The JS type hierarchy is modeled after the actual type
 /// hierarchy in JS, and not the Dart type hierarchy.

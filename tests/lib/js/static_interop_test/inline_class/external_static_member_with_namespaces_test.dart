@@ -7,8 +7,7 @@
 @JS('library1.library2')
 library static_member_test;
 
-// ignore: IMPORT_INTERNAL_LIBRARY
-import 'dart:_js_interop';
+import 'dart:js_interop';
 import 'dart:js_util' as js_util;
 
 import 'package:expect/minitest.dart';
