@@ -1,0 +1,53 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "dart:io";
+
+static method testAndroid(core::int i) → void {
+  final core::bool b = #C1;
+  core::print(b);
+}
+static method testFuchsia(core::int i) → void {
+  final core::bool b = #C1;
+  core::print(b);
+}
+static method testIOS(core::int i) → void {
+  final core::bool b = #C2;
+  core::print(b);
+  {
+    final core::String os = #C3;
+    core::print(os);
+    final core::String sep = #C4;
+    core::print(sep);
+  }
+}
+static method testLinux(core::int i) → void {
+  final core::bool b = #C1;
+  core::print(b);
+}
+static method testMacOS(core::int i) → void {
+  final core::bool b = #C1;
+  core::print(b);
+}
+static method testWindows(core::int i) → void {
+  final core::bool b = #C1;
+  core::print(b);
+}
+static method main(core::List<core::String> args) → dynamic {
+  if(args.{core::Iterable::isEmpty}{core::bool})
+    return;
+  final core::int i = core::int::parse(args.{core::List::[]}(0){(core::int) → core::String});
+  self::testAndroid(i);
+  self::testFuchsia(i);
+  self::testIOS(i);
+  self::testLinux(i);
+  self::testMacOS(i);
+  self::testWindows(i);
+}
+constants  {
+  #C1 = false
+  #C2 = true
+  #C3 = "ios"
+  #C4 = "/"
+}

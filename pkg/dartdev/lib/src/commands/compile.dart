@@ -10,6 +10,7 @@ import 'package:dart2native/generate.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
 import 'package:path/path.dart' as path;
+import 'package:vm/target_os.dart'; // For possible --target-os values.
 
 import '../core.dart';
 import '../experiments.dart';
@@ -281,6 +282,9 @@ Remove debugging information from the output and save it separately to the speci
         hide: true,
         valueHelp: 'opt1,opt2,...',
       )
+      ..addOption('target-os',
+          help: 'Compile to a specific target operating system.',
+          allowed: TargetOS.names)
       ..addExperimentalFlags(verbose: verbose);
   }
 
@@ -327,6 +331,7 @@ Remove debugging information from the output and save it separately to the speci
         verbose: verbose,
         verbosity: args['verbosity'],
         extraOptions: args['extra-gen-snapshot-options'],
+        targetOS: args['target-os'],
       );
       return 0;
     } catch (e, st) {

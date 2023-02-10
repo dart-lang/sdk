@@ -25,6 +25,7 @@ dependencies:
   pub: any
   telemetry: any
   usage: any
+  vm: any
   yaml: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.

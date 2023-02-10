@@ -25,6 +25,7 @@ Future<void> generateNative({
   String? outputFile,
   String? debugFile,
   String? packages,
+  String? targetOS,
   required List<String> defines,
   String enableExperiment = '',
   bool enableAsserts = false,
@@ -53,6 +54,9 @@ Future<void> generateNative({
         debugFile != null ? path.canonicalize(path.normalize(debugFile)) : null;
 
     if (verbose) {
+      if (targetOS != null) {
+        print('Specializing Platform getters for target OS $targetOS.');
+      }
       print('Compiling $sourcePath to $outputPath using format $kind:');
       print('Generating AOT kernel dill.');
     }
@@ -61,6 +65,7 @@ Future<void> generateNative({
     final kernelResult = await generateAotKernel(Platform.executable, genKernel,
         productPlatformDill, sourcePath, kernelFile, packages, defines,
         enableExperiment: enableExperiment,
+        targetOS: targetOS,
         extraGenKernelOptions: [
           '--invocation-modes=compile',
           '--verbosity=$verbosity',

@@ -82,8 +82,7 @@ class _Platform {
     if (_environmentCache == null) {
       var env = _environment();
       if (env is Iterable<Object?>) {
-        var isWindows = operatingSystem == 'windows';
-        var result = isWindows
+        var result = Platform.isWindows
             ? new _CaseInsensitiveStringMap<String>()
             : new Map<String, String>();
         for (var environmentEntry in env) {

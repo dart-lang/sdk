@@ -214,6 +214,8 @@ class CoreTypes {
   late final Procedure objectEquals =
       index.getProcedure('dart:core', 'Object', '==');
 
+  late final Class? platformClass = index.tryGetClass('dart:io', 'Platform');
+
   late final Class pragmaClass = index.getClass('dart:core', 'pragma');
 
   late final Field pragmaName = index.getField('dart:core', 'pragma', 'name');

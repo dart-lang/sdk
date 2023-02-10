@@ -1,4 +1,4 @@
-// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,7 +9,9 @@ import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/verifier.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
+import 'package:vm/target_os.dart';
 import 'package:vm/target/vm.dart' show VmTarget;
 import 'package:vm/transformations/unreachable_code_elimination.dart'
     show transformComponent;
@@ -19,7 +21,7 @@ import '../common_test_utils.dart';
 
 final String pkgVmDir = Platform.script.resolve('../..').toFilePath();
 
-runTestCase(Uri source) async {
+runTestCase(Uri source, TargetOS os) async {
   final target = new VmTarget(new TargetFlags());
   Component component = await compileTestCaseToKernelProgram(source,
       target: target,
@@ -28,28 +30,29 @@ runTestCase(Uri source) async {
         'test.define.isFalse': 'false'
       });
 
-  // Do not perform constant evaluation for a specific target operating system.
-  final evaluator = VMConstantEvaluator.create(
-      target, component, /* targetOS = */ null, NnbdMode.Strong);
-  component =
-      transformComponent(component, /* enableAsserts = */ false, evaluator);
+  final evaluator =
+      VMConstantEvaluator.create(target, component, os, NnbdMode.Strong);
+  final enableAsserts = false;
+  component = transformComponent(component, enableAsserts, evaluator);
   verifyComponent(component);
 
   final actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
-
-  compareResultWithExpectationsFile(source, actual);
+  final postfix = '.${os.name}';
+  compareResultWithExpectationsFile(source, actual, expectFilePostfix: postfix);
 }
 
 main() {
-  group('unreachable-code-elimination', () {
-    final testCasesDir = new Directory(
-        pkgVmDir + '/testcases/transformations/unreachable_code_elimination');
+  group('platform-use-transformation', () {
+    final testCasesPath = path.join(
+        pkgVmDir, 'testcases', 'transformations', 'vm_constant_evaluator');
 
-    for (var entry in testCasesDir
+    for (var entry in Directory(testCasesPath)
         .listSync(recursive: true, followLinks: false)
         .reversed) {
       if (entry.path.endsWith(".dart")) {
-        test(entry.path, () => runTestCase(entry.uri));
+        for (final os in TargetOS.values) {
+          test('${entry.path}.${os.name}', () => runTestCase(entry.uri, os));
+        }
       }
     }
   });
